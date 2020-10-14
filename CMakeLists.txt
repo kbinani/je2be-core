@@ -4,9 +4,10 @@ project(je2be)
 include(CheckCCompilerFlag)
 
 include_directories(. ext/libminecraft-file/include ext/leveldb-mcpe/include)
-add_definitions(-std=c++17)
-add_executable(je2be src/main.cc ext/libminecraft-file/include/minecraft-file.hpp)
-list(APPEND je2be_link_libraries "z")
+link_directories(ext/leveldb-mcpe/out-static)
+add_definitions(-std=c++17 -DDLLX=)
+add_executable(je2be src/main.cpp ext/libminecraft-file/include/minecraft-file.hpp)
+list(APPEND je2be_link_libraries "z;leveldb")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
