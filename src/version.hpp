@@ -1,5 +1,7 @@
 #pragma once
 
+namespace j2e {
+
 class Version {
 public:
     int fMajor;
@@ -32,3 +34,5 @@ public:
         return l;
     }
 };
+
+}

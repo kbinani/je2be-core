@@ -1,5 +1,7 @@
 #pragma once
 
+namespace j2e {
+
 class Level {
 public:
     class Abilities {
@@ -255,3 +257,5 @@ public:
         w.write((uint8_t)0);
     }
 };
+
+}

@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
     using namespace mcfile;
     using namespace mcfile::nbt;
     namespace fs = mcfile::detail::filesystem;
+    using namespace j2e;
 
     if (argc != 3) {
         return -1;

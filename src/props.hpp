@@ -1,5 +1,6 @@
 #pragma once
 
+namespace j2e {
 namespace props {
 
 static std::shared_ptr<mcfile::nbt::ByteTag> Bool(bool b) {
@@ -27,4 +28,5 @@ static std::shared_ptr<mcfile::nbt::FloatTag> Float(float v) {
     return std::make_shared<mcfile::nbt::FloatTag>(v);
 }
 
+}
 }
