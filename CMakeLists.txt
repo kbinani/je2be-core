@@ -6,6 +6,9 @@ include(CheckCCompilerFlag)
 add_definitions(-std=c++17 /std:c++latest -DDLLX= -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 add_executable(je2be
   src/main.cpp
+  src/level.hpp
+  src/props.hpp
+  src/version.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
