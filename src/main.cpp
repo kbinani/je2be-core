@@ -9,12 +9,10 @@
 #include "props.hpp"
 #include "version.hpp"
 #include "level.hpp"
+#include "db.hpp"
 
 int main(int argc, char *argv[]) {
     using namespace std;
-    using namespace leveldb;
-    using namespace mcfile;
-    using namespace mcfile::nbt;
     namespace fs = mcfile::detail::filesystem;
     using namespace j2e;
 
@@ -32,17 +30,10 @@ int main(int argc, char *argv[]) {
     Level level;
     level.write(output + string("/level.dat"));
 
-    DB *db;
-    Options options;
-    options.compression = kZlibCompression;
-    options.create_if_missing = true;
-    Status status = DB::Open(options, dbPath.string().c_str(), &db);
-    if (!status.ok()) {
-        cerr << status.ToString() << endl;
+    Db db(dbPath.string());
+    if (!db.valid()) {
         return -1;
     }
-
-    delete db;
 
     return 0;
 }

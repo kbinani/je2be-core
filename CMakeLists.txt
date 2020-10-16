@@ -9,6 +9,7 @@ add_executable(je2be
   src/level.hpp
   src/props.hpp
   src/version.hpp
+  src/db.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
