@@ -3,9 +3,7 @@ project(je2be)
 
 include(CheckCCompilerFlag)
 
-include_directories(. ext/libminecraft-file/include ext/leveldb-mcpe/include)
-link_directories(ext/leveldb-mcpe/out-static)
-add_definitions(-std=c++17 -DDLLX=)
+add_definitions(-std=c++17 /std:c++latest -DDLLX= -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 add_executable(je2be
   src/main.cpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
@@ -57,7 +55,10 @@ add_executable(je2be
   ext/libminecraft-file/include/mcfile/stream/output-stream.hpp
   ext/libminecraft-file/include/mcfile/world.hpp
   ext/libminecraft-file/include/minecraft-file.hpp)
-list(APPEND je2be_link_libraries "z;leveldb")
+list(APPEND je2be_link_libraries "leveldb")
+list(APPEND je2be_include_directories "build/deps/zlib")
+list(APPEND je2be_link_directories "build/deps/leveldb/${CMAKE_BUILD_TYPE}")
+list(APPEND je2be_link_directories "build/deps/zlib/${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
@@ -65,4 +66,11 @@ if (TEST_RESULT_STDCXXFS AND "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND je2be_link_libraries stdc++fs)
 endif()
 
-target_link_libraries(je2be ${je2be_link_libraries})
+target_include_directories(je2be PRIVATE
+  ext/libminecraft-file/include
+  ext/zlib
+  ext/leveldb/include
+  ext/leveldb
+  ${je2be_include_directories})
+target_link_libraries(je2be ${je2be_link_libraries} zlib leveldb)
+target_link_directories(je2be PRIVATE ${je2be_link_directories})

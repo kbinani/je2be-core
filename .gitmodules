@@ -1,6 +1,9 @@
 [submodule "ext/libminecraft-file"]
 	path = ext/libminecraft-file
 	url = https://github.com/kbinani/libminecraft-file.git
-[submodule "ext/leveldb-mcpe"]
-	path = ext/leveldb-mcpe
-	url = https://github.com/Mojang/leveldb-mcpe.git
+[submodule "ext/leveldb"]
+	path = ext/leveldb
+	url = https://github.com/pmmp/leveldb.git
+[submodule "ext/zlib"]
+	path = ext/zlib
+	url = https://github.com/commontk/zlib.git

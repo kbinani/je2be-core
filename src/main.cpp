@@ -1,7 +1,6 @@
 #include <minecraft-file.hpp>
 #include <leveldb/db.h>
-#include <leveldb/zlib_compressor.h>
-#include <leveldb/decompress_allocator.h>
+#include <table/compression/zlib_compressor.h>
 #include <string>
 #include <iostream>
 #include <memory>
@@ -201,6 +200,7 @@ int main(int argc, char *argv[]) {
     using namespace leveldb;
     using namespace mcfile;
     using namespace mcfile::nbt;
+    namespace fs = mcfile::detail::filesystem;
     
     if (argc != 3) {
         return -1;
@@ -208,19 +208,20 @@ int main(int argc, char *argv[]) {
     string const input = argv[1];
     string const output = argv[2];
 
-    int const mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    std::string const dbRoot = output + "/db";
-    ::mkdir(output.c_str(), mode);
-    ::mkdir(dbRoot.c_str(), mode);
+    auto rootPath = fs::path(output);
+    auto dbPath = rootPath / "db";
+
+    fs::create_directory(rootPath);
+    fs::create_directory(dbPath);
     auto const& root = ConvertJELevelDat();
     auto stream = make_shared<mcfile::stream::FileInputStream>(output.c_str());
-    WriteBELevelDat(*root, output + "/level.dat");
+    WriteBELevelDat(*root, output + string("/level.dat"));
 
     DB *db;
     Options options;
-    options.compressors[0] = new ZlibCompressorRaw(-1);
-    options.compressors[1] = new ZlibCompressor();
-    Status status = DB::Open(options, dbRoot.c_str(), &db);
+    options.compression = kZlibCompression;
+    options.create_if_missing = true;
+    Status status = DB::Open(options, dbPath.string().c_str(), &db);
     if (!status.ok()) {
         cerr << status.ToString() << endl;
         return -1;
