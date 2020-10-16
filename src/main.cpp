@@ -1,15 +1,7 @@
-#include <minecraft-file.hpp>
-#include <leveldb/db.h>
-#include <table/compression/zlib_compressor.h>
 #include <string>
 #include <iostream>
-#include <memory>
-#include <sys/stat.h>
 
-#include "props.hpp"
-#include "version.hpp"
-#include "level.hpp"
-#include "db.hpp"
+#include <je2be.hpp>
 
 int main(int argc, char *argv[]) {
     using namespace std;
