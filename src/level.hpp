@@ -144,6 +144,7 @@ public:
 
     std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
         using namespace props;
+        using props::Byte;
 
         auto root = std::make_shared<mcfile::nbt:: CompoundTag>();
         root->fValue = {
@@ -153,7 +154,7 @@ public:
             {"BiomeOverride", String(fBiomeOverride)},
             {"bonusChestEnabled", Bool(fBonusChestEnabled)},
             {"bonusChestSpawned", Bool(fBonusChestSpawned)},
-            {"CenterMapsToOrigin", ByteV(fCenterMapsToOrigin)},
+            {"CenterMapsToOrigin", Byte(fCenterMapsToOrigin)},
             {"commandblockoutput", Bool(fCommandBlockOutput)},
             {"commandblocksenabled", Bool(fCommandblocksEnabled)},
             {"commandsEnabled", Bool(fCommandsEnabled)},

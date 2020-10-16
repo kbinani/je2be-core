@@ -7,7 +7,7 @@ static std::shared_ptr<mcfile::nbt::ByteTag> Bool(bool b) {
     return std::make_shared<mcfile::nbt::ByteTag>(b ? 1 : 0);
 }
 
-static std::shared_ptr<mcfile::nbt::ByteTag> ByteV(int8_t v) {
+static std::shared_ptr<mcfile::nbt::ByteTag> Byte(int8_t v) {
     uint8_t t = *(uint8_t *)&v;
     return std::make_shared<mcfile::nbt::ByteTag>(t);
 }
