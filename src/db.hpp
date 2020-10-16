@@ -32,9 +32,15 @@ public:
 		return fValid;
 	}
 
+	void put(std::string const& key, leveldb::Slice const& value) {
+		assert(fValid);
+		fDb->Put(fWriteOptions, key, value);
+	}
+
 private:
 	leveldb::DB *fDb;
 	bool fValid;
+	leveldb::WriteOptions fWriteOptions;
 };
 
 }
