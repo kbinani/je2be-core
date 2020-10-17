@@ -12,7 +12,7 @@ public:
 
 	    DB *db;
 	    Options options;
-	    options.compression = kZlibCompression;
+	    options.compression = kZlibRawCompression;
 	    options.create_if_missing = true;
 	    Status status = DB::Open(options, dir.c_str(), &db);
 	    if (!status.ok()) {
@@ -35,6 +35,18 @@ public:
 	void put(std::string const& key, leveldb::Slice const& value) {
 		assert(fValid);
 		fDb->Put(fWriteOptions, key, value);
+	}
+
+	std::optional<leveldb::Slice> get(std::string const& key) {
+		assert(fValid);
+		leveldb::ReadOptions o;
+		std::string v;
+		leveldb::Status st = fDb->Get(o, key, &v);
+		if (st.ok()) {
+			return leveldb::Slice(v.data(), v.size());
+		} else {
+			return std::nullopt;
+		}
 	}
 
 private:
