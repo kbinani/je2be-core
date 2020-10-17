@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.0)
 project(je2be)
 
 include(CheckCCompilerFlag)
+include(ext/setup_source_groups/setup_source_groups.cmake)
 
 add_definitions(-std=c++17 /std:c++latest -DDLLX= -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
-add_executable(je2be
+set(je2be_srcs
   src/main.cpp
   include/je2be/level-data.hpp
   include/je2be/props.hpp
@@ -63,6 +64,8 @@ add_executable(je2be
   ext/libminecraft-file/include/mcfile/stream/output-stream.hpp
   ext/libminecraft-file/include/mcfile/world.hpp
   ext/libminecraft-file/include/minecraft-file.hpp)
+add_executable(je2be ${je2be_srcs})
+setup_source_groups("${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
 list(APPEND je2be_link_libraries "leveldb")
 list(APPEND je2be_include_directories "build/deps/zlib")
 list(APPEND je2be_link_directories "build/deps/leveldb/${CMAKE_BUILD_TYPE}")
@@ -70,8 +73,10 @@ list(APPEND je2be_link_directories "build/deps/zlib/${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
-if (TEST_RESULT_STDCXXFS AND "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-  list(APPEND je2be_link_libraries stdc++fs)
+if (TEST_RESULT_STDCXXFS)
+  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    list(APPEND je2be_link_libraries stdc++fs)
+  endif()
 endif()
 
 target_include_directories(je2be PRIVATE

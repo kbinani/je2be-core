@@ -7,3 +7,6 @@
 [submodule "ext/zlib"]
 	path = ext/zlib
 	url = https://github.com/commontk/zlib.git
+[submodule "ext/setup_source_groups"]
+	path = ext/setup_source_groups
+	url = https://gist.github.com/d042b6d630d175cc4941eaf6fd2c3a3c.git
