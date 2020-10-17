@@ -4,7 +4,6 @@ project(je2be)
 include(CheckCCompilerFlag)
 include(ext/setup_source_groups/setup_source_groups.cmake)
 
-add_definitions(-std=c++17 /std:c++latest -DDLLX= -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 set(je2be_srcs
   src/main.cpp
   include/je2be/level-data.hpp
@@ -66,10 +65,6 @@ set(je2be_srcs
   ext/libminecraft-file/include/minecraft-file.hpp)
 add_executable(je2be ${je2be_srcs})
 setup_source_groups("${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
-list(APPEND je2be_link_libraries "leveldb")
-list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
-list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
-list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/zlib/${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
@@ -79,12 +74,24 @@ if (TEST_RESULT_STDCXXFS)
   endif()
 endif()
 
+message("${CMAKE_C_COMPILER_ID}")
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+  add_definitions(/std:c++latest -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
+  list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
+  list(APPEND je2be_include_directories "ext/zlib")
+  list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/zlib/${CMAKE_BUILD_TYPE}")
+  list(APPEND je2be_link_libraries zlib)
+else()
+  add_definitions(-std=c++17)
+  list(APPEND je2be_link_libraries z)
+endif()
+list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
+
 target_include_directories(je2be PRIVATE
   include
   ext/libminecraft-file/include
-  ext/zlib
   ext/leveldb/include
   ext/leveldb
   ${je2be_include_directories})
-target_link_libraries(je2be ${je2be_link_libraries} zlib leveldb)
+target_link_libraries(je2be ${je2be_link_libraries} leveldb)
 target_link_directories(je2be PRIVATE ${je2be_link_directories})
