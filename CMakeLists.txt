@@ -67,9 +67,9 @@ set(je2be_srcs
 add_executable(je2be ${je2be_srcs})
 setup_source_groups("${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
 list(APPEND je2be_link_libraries "leveldb")
-list(APPEND je2be_include_directories "build/deps/zlib")
-list(APPEND je2be_link_directories "build/deps/leveldb/${CMAKE_BUILD_TYPE}")
-list(APPEND je2be_link_directories "build/deps/zlib/${CMAKE_BUILD_TYPE}")
+list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
+list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
+list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/zlib/${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
