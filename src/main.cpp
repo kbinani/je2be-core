@@ -1,31 +1,17 @@
 #include <string>
-#include <iostream>
+#include <thread>
 
 #include <je2be.hpp>
 
 int main(int argc, char *argv[]) {
-    using namespace std;
-    namespace fs = mcfile::detail::filesystem;
-    using namespace j2e;
-
     if (argc != 3) {
         return -1;
     }
-    string const input = argv[1];
-    string const output = argv[2];
+    std::string const input = argv[1];
+    std::string const output = argv[2];
 
-    auto rootPath = fs::path(output);
-    auto dbPath = rootPath / "db";
-
-    fs::create_directory(rootPath);
-    fs::create_directory(dbPath);
-    LevelData levelData;
-    levelData.write(output + string("/level.dat"));
-
-    Db db(dbPath.string());
-    if (!db.valid()) {
-        return -1;
-    }
-
-    return 0;
+    j2e::Converter::InputOption io;
+    j2e::Converter::OutputOption oo;
+    j2e::Converter converter(input, io, output, oo);
+    return converter.run(std::thread::hardware_concurrency()) ? 0 : -1;
 }

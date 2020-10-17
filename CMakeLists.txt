@@ -13,6 +13,7 @@ add_executable(je2be
   include/je2be/enums.hpp
   include/je2be/keys.hpp
   include/je2be.hpp
+  include/je2be/converter.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
