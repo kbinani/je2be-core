@@ -6,7 +6,7 @@ include(CheckCCompilerFlag)
 add_definitions(-std=c++17 /std:c++latest -DDLLX= -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 add_executable(je2be
   src/main.cpp
-  include/je2be/level.hpp
+  include/je2be/level-data.hpp
   include/je2be/props.hpp
   include/je2be/version.hpp
   include/je2be/db.hpp

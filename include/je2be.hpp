@@ -9,4 +9,4 @@
 #include <je2be/props.hpp>
 #include <je2be/version.hpp>
 #include <je2be/db.hpp>
-#include <je2be/level.hpp>
+#include <je2be/level-data.hpp>

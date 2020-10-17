@@ -2,7 +2,7 @@
 
 namespace j2e {
 
-class Level {
+class LevelData {
 public:
     class Abilities {
     public:

@@ -19,8 +19,8 @@ int main(int argc, char *argv[]) {
 
     fs::create_directory(rootPath);
     fs::create_directory(dbPath);
-    Level level;
-    level.write(output + string("/level.dat"));
+    LevelData levelData;
+    levelData.write(output + string("/level.dat"));
 
     Db db(dbPath.string());
     if (!db.valid()) {
