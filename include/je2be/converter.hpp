@@ -6,6 +6,34 @@ class Converter {
 public:
 	class InputOption {
 	public:
+		LevelDirectoryStructure fLevelDirectoryStructure = LevelDirectoryStructure::Vanilla;
+
+		std::string getWorldDirectory(std::string const& root, Dimension dim) const {
+			switch (fLevelDirectoryStructure) {
+			case LevelDirectoryStructure::Vanilla: {
+				switch (dim) {
+				case Dimension::Overworld:
+					return root;
+				case Dimension::Nether:
+					return root + "/DIM-1";
+				case Dimension::End:
+					return root + "/DIM1";
+				}
+				break;
+			}
+			case LevelDirectoryStructure::Paper: {
+				switch (dim) {
+				case Dimension::Overworld:
+					return root + "/world";
+				case Dimension::Nether:
+					return root + "/world_nether/DIM-1";
+				case Dimension::End:
+					return root + "/world_the_end/DIM1";
+				}
+				break;
+			}
+			}
+		}
 	};
 
 	class OutputOption {
@@ -22,6 +50,7 @@ public:
 	bool run(unsigned int concurrency) {
 		using namespace std;
 		namespace fs = mcfile::detail::filesystem;
+		using namespace mcfile;
 
 		auto rootPath = fs::path(fOutput);
 		auto dbPath = rootPath / "db";
@@ -36,7 +65,20 @@ public:
 			return false;
 		}
 
-		return true;
+		bool ok = true;
+		for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
+			auto dir = fInputOption.getWorldDirectory(fInput, dim);
+			World world(dir);
+			ok &= convertWorld(world, dim);
+		}
+
+		return ok;
+	}
+
+private:
+	bool convertWorld(mcfile::World const& w, Dimension dim) {
+		//TODO:
+		return false;
 	}
 
 private:

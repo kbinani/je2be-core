@@ -8,4 +8,9 @@ enum class Dimension : uint8_t {
 	End = 2,
 };
 
+enum class LevelDirectoryStructure {
+	Vanilla,
+	Paper,
+};
+
 }
