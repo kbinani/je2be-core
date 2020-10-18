@@ -10,16 +10,16 @@ public:
         using namespace mcfile::nbt;
 
         static unordered_map<string, ConverterFunction> const converterTable = {
-            {"minecraft:stone", StoneSubtype("stone")},
-            {"minecraft:granite", StoneSubtype("granite")},
-            {"minecraft:polished_granite", StoneSubtype("granite_smooth")},
-            {"minecraft:andesite", StoneSubtype("andesite")},
-            {"minecraft:polished_andesite", StoneSubtype("andesite_smooth")},
-            {"minecraft:diorite", StoneSubtype("diorite")},
-            {"minecraft:polished_diorite", StoneSubtype("diorite_smooth")},
-            {"minecraft:dirt", DirtSubtype("normal")},
-            {"minecraft:coarse_dirt", DirtSubtype("coarse")},
-            {"minecraft:grass_block", Rename("minecraft:grass")},
+            {"minecraft:stone", Stone("stone")},
+            {"minecraft:granite", Stone("granite")},
+            {"minecraft:polished_granite", Stone("granite_smooth")},
+            {"minecraft:andesite", Stone("andesite")},
+            {"minecraft:polished_andesite", Stone("andesite_smooth")},
+            {"minecraft:diorite", Stone("diorite")},
+            {"minecraft:polished_diorite", Stone("diorite_smooth")},
+            {"minecraft:dirt", Dirt("normal")},
+            {"minecraft:coarse_dirt", Dirt("coarse")},
+            {"minecraft:grass_block", Rename("grass")},
             {"minecraft:oak_log", Log("oak")},
             {"minecraft:spruce_log", Log("spruce")},
             {"minecraft:birch_log", Log("birch")},
@@ -96,9 +96,9 @@ public:
             {"minecraft:rose_bush", DoublePlant("rose")},
             {"minecraft:peony", DoublePlant("paeonia")},
             {"minecraft:sunflower", DoublePlant("sunflower")},
-            {"minecraft:dead_bush", Rename("minecraft:deadbush")},
+            {"minecraft:dead_bush", Rename("deadbush")},
             {"minecraft:sea_pickle", SeaPickle},
-            {"minecraft:dandelion", Rename("minecraft:yellow_flower")},
+            {"minecraft:dandelion", Rename("yellow_flower")},
             {"minecraft:poppy", RedFlower("poppy")},
             {"minecraft:blue_orchid", RedFlower("orchid")},
             {"minecraft:allium", RedFlower("allium")},
@@ -131,28 +131,19 @@ private:
     using ConverterFunction = std::function<std::shared_ptr<mcfile::nbt::CompoundTag>(mcfile::Block const&)>;
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
+    using Block = mcfile::Block;
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> MakeAir() {
-        using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
-        using namespace props;
-
-        auto tag = make_shared<CompoundTag>();
-        auto states = make_shared<CompoundTag>();
-        tag->fValue.insert(make_pair("name", String("minecraft:air"s)));
-        tag->fValue.insert(make_pair("version", Int(kBlockDataVersion)));
-        tag->fValue.insert(make_pair("states", states));
-
+    static BlockDataType MakeAir() {
+        auto tag = New("air");
+        auto states = States();
+        tag->fValue.emplace("states", states);
         return tag;
     }
 
     static ConverterFunction RedFlower(std::string const& type) {
-        using namespace std;
         using namespace props;
-        using namespace mcfile;
         return [=](Block const& block) -> BlockDataType {
-            auto tag = New("minecraft:red_flower");
+            auto tag = New("red_flower");
             auto states = States();
             states->fValue.emplace("flower_type", String(type));
             MergeProperties(block, *states, {});
@@ -161,10 +152,10 @@ private:
         };
     }
     
-    static BlockDataType SeaPickle(mcfile::Block const& block) {
+    static BlockDataType SeaPickle(Block const& block) {
         using namespace std;
         using namespace props;
-        auto tag = New("minecraft:sea_pickle");
+        auto tag = New("sea_pickle");
         auto states = States();
         auto waterlogged = block.property("waterlogged", "false");
         states->fValue.emplace("dead_bit", Bool(waterlogged == "false"));
@@ -178,12 +169,9 @@ private:
     }
     
     static ConverterFunction DoublePlant(std::string const& type) {
-        using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
-        return [=](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:double_plant");
+        return [=](Block const& block) -> BlockDataType {
+            auto tag = New("double_plant");
             auto states = States();
             states->fValue.emplace("double_plant_type", String(type));
             auto half = block.property("half", "lower");
@@ -195,62 +183,53 @@ private:
     }
     
     static ConverterFunction TallGrass(std::string const& type) {
-        using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
-        return [=](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:tallgrass");
-            auto states = make_shared<CompoundTag>();
-            states->fValue.emplace("tall_grass_type", props::String(type));
+        using namespace props;
+        return [=](Block const& block) -> BlockDataType {
+            auto tag = New("tallgrass");
+            auto states = States();
+            states->fValue.emplace("tall_grass_type", String(type));
             MergeProperties(block, *states, {});
             tag->fValue.emplace("states", states);
             return tag;
         };
     }
     
-    static std::shared_ptr<mcfile::nbt::CompoundTag> Identity(mcfile::Block const& block) {
+    static BlockDataType Identity(mcfile::Block const& block) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
-        using namespace props;
 
-        auto tag = New(block.fName);
-        auto states = make_shared<CompoundTag>();
+        auto tag = New(block.fName, true);
+        auto states = States();
         static set<string> const ignore = {};
         MergeProperties(block, *states, ignore);
-        tag->fValue.insert(make_pair("states", states));
+        tag->fValue.emplace("states", states);
         return tag;
     }
 
     static ConverterFunction Subtype(std::string const& name, std::string const& subtypeTitle, std::string const& subtype) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
-        return [name, subtypeTitle, subtype](Block const& block) -> shared_ptr<CompoundTag> {
+        return [=](Block const& block) -> BlockDataType {
             auto tag = New(name);
-            auto states = make_shared<CompoundTag>();
-            states->fValue.insert(make_pair(subtypeTitle, String(subtype)));
+            auto states = States();
+            states->fValue.emplace(subtypeTitle, String(subtype));
             static set<string> const ignore = { subtypeTitle };
             MergeProperties(block, *states, ignore);
-            tag->fValue.insert(make_pair("states", states));
+            tag->fValue.emplace("states", states);
             return tag;
         };
     }
 
-    static ConverterFunction StoneSubtype(std::string const& stoneType) {
-        return Subtype("minecraft:stone", "stone_type", stoneType);
+    static ConverterFunction Stone(std::string const& stoneType) {
+        return Subtype("stone", "stone_type", stoneType);
     }
 
-    static ConverterFunction DirtSubtype(std::string const& dirtType) {
-        return Subtype("minecraft:dirt", "dirt_type", dirtType);
+    static ConverterFunction Dirt(std::string const& dirtType) {
+        return Subtype("dirt", "dirt_type", dirtType);
     }
 
     static ConverterFunction Rename(std::optional<std::string> to = std::nullopt , std::optional<std::unordered_map<std::string, std::string>> properties = std::nullopt) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
         set<string> ignore;
@@ -260,10 +239,10 @@ private:
             });
         }
 
-        return [to, properties, ignore](Block const& block) -> shared_ptr<CompoundTag> {
-            string name = to ? *to : block.fName;
-            auto tag = New(name);
-            auto states = make_shared<CompoundTag>();
+        return [=](Block const& block) -> BlockDataType {
+            string name = to ? ("minecraft:"s + *to) : block.fName;
+            auto tag = New(name, true);
+            auto states = States();
             if (properties) {
                 for_each(properties->begin(), properties->end(), [&block, &states](auto& it) {
                     auto found = block.fProperties.find(it.first);
@@ -288,16 +267,18 @@ private:
                     continue;
                 }
             }
-            states.fValue.insert(std::make_pair(name, props::String(it->second)));
+            states.fValue.emplace(name, props::String(it->second));
         }
     }
 
-    static BlockDataType New(std::string const& name) {
+    static BlockDataType New(std::string const& name, bool nameIsFull = false) {
         using namespace std;
         using namespace mcfile::nbt;
-        auto tag = make_shared<mcfile::nbt::CompoundTag>();
-        tag->fValue.insert(make_pair("name", props::String(name)));
-        tag->fValue.insert(make_pair("version", props::Int(kBlockDataVersion)));
+        using namespace props;
+        auto tag = make_shared<CompoundTag>();
+        string fullName = nameIsFull ? name : "minecraft:"s + name;
+        tag->fValue.emplace("name", String(fullName));
+        tag->fValue.emplace("version", Int(kBlockDataVersion));
         return tag;
     }
 
@@ -307,13 +288,11 @@ private:
     
     static ConverterFunction Log(std::string const& type) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
-        return [type](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:log");
-            auto states = make_shared<CompoundTag>();
+        return [type](Block const& block) -> BlockDataType {
+            auto tag = New("log");
+            auto states = States();
             states->fValue.emplace("old_log_type", String(type));
             auto axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
@@ -326,13 +305,11 @@ private:
 
     static ConverterFunction Log2(std::string const& type) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
-        return [type](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:log2");
-            auto states = make_shared<CompoundTag>();
+        return [=](Block const& block) -> BlockDataType {
+            auto tag = New("log2");
+            auto states = States();
             states->fValue.emplace("new_log_type", String(type));
             string axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
@@ -345,33 +322,29 @@ private:
 
     static ConverterFunction Wood(std::string const& type, bool stripped) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
-        return [=](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:wood");
-            auto states = make_shared<CompoundTag>();
+        return [=](Block const& block) -> BlockDataType {
+            auto tag = New("wood");
+            auto states = States();
             auto axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
             states->fValue.emplace("wood_type", String(type));
             states->fValue.emplace("stripped_bit", Bool(stripped));
             static set<string> const ignore = { "axis" };
             MergeProperties(block, *states, ignore);
-            tag->fValue.insert(make_pair("states", states));
+            tag->fValue.emplace("states", states);
             return tag;
         };
     }
 
     static ConverterFunction Leaves(std::string const& type) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
-        return [type](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:leaves");
-            auto states = make_shared<CompoundTag>();
+        return [type](Block const& block) -> BlockDataType {
+            auto tag = New("leaves");
+            auto states = States();
             states->fValue.emplace("old_leaf_type", String(type));
 
             auto persistent = block.property("persistent", "false");
@@ -391,13 +364,11 @@ private:
 
     static ConverterFunction Leaves2(std::string const& type) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
 
-        return [type](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New("minecraft:leaves2");
-            auto states = make_shared<CompoundTag>();
+        return [type](Block const& block) -> BlockDataType {
+            auto tag = New("leaves2");
+            auto states = States();
             states->fValue.emplace("new_leaf_type", String(type));
 
             auto persistent = block.property("persistent", "false");
@@ -425,17 +396,15 @@ private:
 
     static ConverterFunction WoodenSlab(std::string const& type) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
-        return [=](Block const& block) -> shared_ptr<nbt::CompoundTag> {
-            auto states = make_shared<CompoundTag>();
+        return [=](Block const& block) -> BlockDataType {
+            auto states = States();
             auto t = block.property("type", "bottom");
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             states->fValue.emplace("wood_type", String(type));
             static set<string> const ignore = { "type", "waterlogged" };
             MergeProperties(block, *states, ignore);
-            auto tag = t == "double" ? New("minecraft:double_wooden_slab") : New("minecraft:wooden_slab");
+            auto tag = t == "double" ? New("double_wooden_slab") : New("wooden_slab");
             tag->fValue.emplace("states", states);
             return tag;
         };
@@ -459,18 +428,16 @@ private:
 
     static ConverterFunction StoneSlabNumbered(std::string const& number, std::string const& type) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
-        return [=](Block const& block) -> shared_ptr<nbt::CompoundTag> {
-            auto states = make_shared<CompoundTag>();
+        return [=](Block const& block) -> BlockDataType {
+            auto states = States();
             auto t = block.property("type", "bottom");
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
             states->fValue.emplace(typeKey, String(type));
             static set<string> const ignore = { "type", "waterlogged" };
             MergeProperties(block, *states, ignore);
-            auto tag = t == "double" ? New("minecraft:double_stone_slab" + number) : New("minecraft:stone_slab" + number);
+            auto tag = t == "double" ? New("double_stone_slab" + number) : New("stone_slab" + number);
             tag->fValue.emplace("states", states);
             return tag;
         };
@@ -478,16 +445,14 @@ private:
 
     static ConverterFunction StoneSlabNT(std::string const& doubledName) {
         using namespace std;
-        using namespace mcfile;
-        using namespace mcfile::nbt;
         using namespace props;
-        return [=](Block const& block) -> shared_ptr<nbt::CompoundTag> {
-            auto states = make_shared<CompoundTag>();
+        return [=](Block const& block) -> BlockDataType {
+            auto states = States();
             auto t = block.property("type", "bottom");
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             static set<string> const ignore = { "type", "waterlogged" };
             MergeProperties(block, *states, ignore);
-            auto tag = t == "double" ? New(doubledName) : New(block.fName);
+            auto tag = t == "double" ? New(doubledName) : New(block.fName, true);
             tag->fValue.emplace("states", states);
             return tag;
         };
