@@ -48,6 +48,13 @@ public:
             {"minecraft:warped_hyphae", AxisToPillarAxis()},
             {"minecraft:stripped_crimson_hyphae", AxisToPillarAxis()},
             {"minecraft:stripped_warped_hyphae", AxisToPillarAxis()},
+            {"minecraft:oak_slab", WoodenSlab("oak")},
+            {"minecraft:birch_slab", WoodenSlab("birch")},
+            {"minecraft:spruce_slab", WoodenSlab("spruce")},
+            {"minecraft:jungle_slab", WoodenSlab("jungle")},
+            {"minecraft:acacia_slab", WoodenSlab("acacia")},
+            {"minecraft:dark_oak_slab", WoodenSlab("dark_oak")},
+            {"minecraft:petrified_oak_slab", WoodenSlab("oak")},
         };
 
         auto found = converterTable.find(block->fName);
@@ -293,6 +300,28 @@ private:
             {"axis", "pillar_axis"}
         };
         return Rename(std::nullopt, axisToPillarAxis);
+    }
+
+    static ConverterFunction WoodenSlab(std::string const& type) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        using namespace props;
+        return [=](Block const& block) -> shared_ptr<nbt::CompoundTag> {
+            auto states = make_shared<CompoundTag>();
+            auto t = block.property("type", "bottom");
+            states->fValue.emplace("top_slot_bit", Bool(t == "top"));
+            states->fValue.emplace("wood_type", String(type));
+            static set<string> const ignore = { "type", "waterlogged" };
+            MergeProperties(block, *states, ignore);
+            auto tag = t == "double" ? New("minecraft:double_wooden_slab") : New("minecraft:wooden_slab");
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
     }
 
 private:
