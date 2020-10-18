@@ -112,7 +112,7 @@ public:
             {"minecraft:lily_of_the_valley", RedFlower("lily_of_the_valley")},
             {"minecraft:seagrass", Seagrass},
             {"minecraft:tall_seagrass", TallSeagrass},
-            {"minecraft:kelp", Kelp(0)},
+            {"minecraft:kelp", Kelp()},
             {"minecraft:kelp_plant", Kelp(16)},
         };
 
@@ -145,6 +145,7 @@ private:
     using Block = mcfile::Block;
 
     static ConverterFunction Kelp(int32_t age) {
+    static ConverterFunction Kelp(int32_t age = -1) {
         using namespace std;
         using namespace props;
         return [=](Block const& block) -> BlockDataType {
@@ -152,7 +153,12 @@ private:
             using namespace props;
             auto tag = New("kelp");
             auto states = States();
-            states->fValue.emplace("kelp_age", Int(age));
+            int32_t a = age;
+            if (age < 0) {
+                auto ageString = block.property("age", "0");
+                a = stoi(ageString);
+            }
+            states->fValue.emplace("kelp_age", Int(a));
             MergeProperties(block, *states, {});
             tag->fValue.emplace("states", states);
             return tag;
