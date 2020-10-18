@@ -121,6 +121,45 @@ public:
             {"minecraft:twisting_vines_plant", NetherVines("twisting", 25)}, //TODO(kbinani): is 25 correct?
             {"minecraft:twisting_vines", NetherVines("twisting")},
             {"minecraft:vine", Vine},
+            {"minecraft:cobblestone_stairs", Stairs("stone_stairs")},
+            {"minecraft:stone_stairs", Stairs("normal_stone_stairs")},
+            {"minecraft:end_stone_brick_stairs", Stairs("end_brick_stairs")},
+            {"minecraft:prismarine_brick_stairs", Stairs("prismarine_bricks_stairs")},
+            {"minecraft:oak_stairs", Stairs()},
+            {"minecraft:spruce_stairs", Stairs()},
+            {"minecraft:birch_stairs", Stairs()},
+            {"minecraft:jungle_stairs", Stairs()},
+            {"minecraft:acacia_stairs", Stairs()},
+            {"minecraft:dark_oak_stairs", Stairs()},
+            {"minecraft:crimson_stairs", Stairs()},
+            {"minecraft:warped_stairs", Stairs()},
+            {"minecraft:granite_stairs", Stairs()},
+            {"minecraft:polished_granite_stairs", Stairs()},
+            {"minecraft:diorite_stairs", Stairs()},
+            {"minecraft:polished_diorite_stairs", Stairs()},
+            {"minecraft:andesite_stairs", Stairs()},
+            {"minecraft:polished_andesite_stairs", Stairs()},
+            {"minecraft:cobblestone_stairs", Stairs()},
+            {"minecraft:mossy_cobblestone_stairs", Stairs()},
+            {"minecraft:stone_brick_stairs", Stairs()},
+            {"minecraft:mossy_stone_brick_stairs", Stairs()},
+            {"minecraft:brick_stairs", Stairs()},
+            {"minecraft:end_stone_brick_stairs", Stairs()},
+            {"minecraft:nether_brick_stairs", Stairs()},
+            {"minecraft:red_nether_brick_stairs", Stairs()},
+            {"minecraft:sandstone_stairs", Stairs()},
+            {"minecraft:smooth_sandstone_stairs", Stairs()},
+            {"minecraft:red_sandstone_stairs", Stairs()},
+            {"minecraft:smooth_red_sandstone_stairs", Stairs()},
+            {"minecraft:quartz_stairs", Stairs()},
+            {"minecraft:smooth_quartz_stairs", Stairs()},
+            {"minecraft:purpur_stairs", Stairs()},
+            {"minecraft:prismarine_stairs", Stairs()},
+            {"minecraft:prismarine_brick_stairs", Stairs()},
+            {"minecraft:dark_prismarine_stairs", Stairs()},
+            {"minecraft:blackstone_stairs", Stairs()},
+            {"minecraft:polished_blackstone_stairs", Stairs()},
+            {"minecraft:polished_blackstone_brick_stairs", Stairs()},
         };
 
         auto found = converterTable.find(block->fName);
@@ -150,6 +189,37 @@ private:
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
+
+    static ConverterFunction Stairs(std::optional<std::string> name = std::nullopt) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) -> BlockDataType {
+            string n = name ? "minecraft:"s + *name : block.fName;
+            auto tag = New(n, true);
+            auto states = States();
+
+            auto facing = block.property("facing", "north");
+            int32_t direction = 0;
+            if (facing == "east") {
+                direction = 0;
+            } else if (facing == "south") {
+                direction = 2;
+            } else if (facing == "north") {
+                direction = 3;
+            } else if (facing == "west") {
+                direction = 1;
+            }
+            states->fValue.emplace("weirdo_direction", Int(direction));
+
+            auto half = block.property("half", "bottom");
+            states->fValue.emplace("upside_down_bit", Bool(half == "top"));
+
+            MergeProperties(block, *states, { "facing", "half", "shape" });
+            tag->fValue.emplace("states", states);
+
+            return tag;
+        };
+    }
 
     static BlockDataType Vine(Block const& block) {
         using namespace std;
