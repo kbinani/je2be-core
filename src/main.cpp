@@ -10,9 +10,9 @@ int main(int argc, char *argv[]) {
     std::string const input = argv[1];
     std::string const output = argv[2];
 
-    j2e::Converter::InputOption io;
-    io.fLevelDirectoryStructure = j2e::LevelDirectoryStructure::Paper;
-    j2e::Converter::OutputOption oo;
-    j2e::Converter converter(input, io, output, oo);
+    j2b::Converter::InputOption io;
+    io.fLevelDirectoryStructure = j2b::LevelDirectoryStructure::Paper;
+    j2b::Converter::OutputOption oo;
+    j2b::Converter converter(input, io, output, oo);
     return converter.run(std::thread::hardware_concurrency()) ? 0 : -1;
 }

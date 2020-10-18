@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2e {
+namespace j2b {
 
 enum class Dimension : uint8_t {
     Overworld = 0,

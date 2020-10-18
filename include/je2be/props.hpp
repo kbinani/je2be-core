@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2e {
+namespace j2b {
 namespace props {
 
 inline std::shared_ptr<mcfile::nbt::ByteTag> Bool(bool b) {

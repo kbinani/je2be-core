@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2e {
+namespace j2b {
 
 class Converter {
 public:
