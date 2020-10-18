@@ -282,6 +282,34 @@ public:
             {"minecraft:cracked_stone_bricks", StoneBrick("cracked")},
             {"minecraft:mossy_stone_bricks", StoneBrick("mossy")},
             {"minecraft:stone_bricks", StoneBrick("default")},
+            {"minecraft:oak_sapling", Sapling("oak")},
+            {"minecraft:birch_sapling", Sapling("birch")},
+            {"minecraft:jungle_sapling", Sapling("jungle")},
+            {"minecraft:acacia_sapling", Sapling("acacia")},
+            {"minecraft:spruce_sapling", Sapling("spruce")},
+            {"minecraft:dark_oak_sapling", Sapling("dark_oak")},
+            {"minecraft:tube_coral_block", Coral("blue", false)},
+            {"minecraft:brain_coral_block", Coral("pink", false)},
+            {"minecraft:bubble_coral_block", Coral("purple", false)},
+            {"minecraft:fire_coral_block", Coral("red", false)},
+            {"minecraft:horn_coral_block", Coral("yellow", false)},
+            {"minecraft:dead_tube_coral_block", Coral("blue", true)},
+            {"minecraft:dead_brain_coral_block", Coral("pink", true)},
+            {"minecraft:dead_bubble_coral_block", Coral("purple", true)},
+            {"minecraft:dead_fire_coral_block", Coral("red", true)},
+            {"minecraft:dead_horn_coral_block", Coral("yellow", true)},
+            {"minecraft:snow", SnowLayer},
+            {"minecraft:sugar_cane", Rename("reeds")},
+            {"minecraft:end_rod", EndRod},
+            {"minecraft:oak_fence", Fence("oak")},
+            {"minecraft:spruce_fence", Fence("spruce")},
+            {"minecraft:birch_fence", Fence("birch")},
+            {"minecraft:jungle_fence", Fence("jungle")},
+            {"minecraft:acacia_fence", Fence("acacia")},
+            {"minecraft:dark_oak_fence", Fence("dark_oak")},
+            {"minecraft:ladder", FacingToFacingDirection},
+            {"minecraft:chest", FacingToFacingDirection},
+            {"minecraft:furnace", FacingToFacingDirection},
         };
 
         auto found = converterTable.find(block->fName);
@@ -311,6 +339,78 @@ private:
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
+
+    static ConverterFunction Fence(std::string const& type) {
+        return Subtype("fence", "wood_type", type);
+    }
+
+    static BlockDataType EndRod(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("end_rod");
+        auto states = States();
+        auto facing = block.property("facing", "up");
+        int32_t direction = 1;
+        if (facing == "up") {
+            direction = 1;
+        } else if (facing == "east") {
+            direction = 4;
+        } else if (facing == "south") {
+            direction = 2;
+        } else if (facing == "north") {
+            direction = 3;
+        } else if (facing == "down") {
+            direction = 0;
+        } else if (facing == "west") {
+            direction = 5;
+        }
+        states->fValue.emplace("facing_direction", Int(direction));
+        MergeProperties(block, *states, {"facing"});
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static BlockDataType SnowLayer(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("snow_layer");
+        auto states = States();
+        auto layers = stoi(block.property("layers", "1"));
+        states->fValue.emplace("height", Int(int32_t(layers - 1)));
+        states->fValue.emplace("covered_bit", Bool(false));
+        MergeProperties(block, *states, {"layers"});
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static ConverterFunction Coral(std::string const& color, bool dead) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New("coral_block");
+            auto states = States();
+            states->fValue.emplace("coral_color", String(color));
+            states->fValue.emplace("dead_bit", Bool(dead));
+            MergeProperties(block, *states, {});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static ConverterFunction Sapling(std::string const& type) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New("sapling");
+            auto states = States();
+            states->fValue.emplace("sapling_type", String(type));
+            auto stage = block.property("stage", "0");
+            states->fValue.emplace("age_bit", Bool(stage == "1"));
+            MergeProperties(block, *states, {"stage"});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
 
     static ConverterFunction StoneBrick(std::string const& type) {
         return Subtype("stonebrick", "stone_brick_type", type);
@@ -359,6 +459,28 @@ private:
         } else {
             return 2;
         }
+    }
+
+    static BlockDataType FacingToFacingDirection(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New(block.fName, true);
+        auto states = States();
+        auto facing = block.property("facing", "north");
+        int32_t direction = 2;
+        if (facing == "east") {
+            direction = 5;
+        } else if (facing == "south") {
+            direction = 3;
+        } else if (facing == "west") {
+            direction = 4;
+        } else if (facing == "north") {
+            direction = 2;
+        }
+        states->fValue.emplace("facing_direction", Int(direction));
+        MergeProperties(block, *states, { "facing" });
+        tag->fValue.emplace("states", states);
+        return tag;
     }
 
     static BlockDataType FacingToDirection(Block const& block) {
