@@ -63,7 +63,8 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/stream/output-stream-writer.hpp
   ext/libminecraft-file/include/mcfile/stream/output-stream.hpp
   ext/libminecraft-file/include/mcfile/world.hpp
-  ext/libminecraft-file/include/minecraft-file.hpp)
+  ext/libminecraft-file/include/minecraft-file.hpp
+  .editorconfig)
 add_executable(je2be ${je2be_srcs})
 setup_source_groups("${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
