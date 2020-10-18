@@ -110,6 +110,10 @@ public:
             {"minecraft:oxeye_daisy", RedFlower("oxeye")},
             {"minecraft:cornflower", RedFlower("cornflower")},
             {"minecraft:lily_of_the_valley", RedFlower("lily_of_the_valley")},
+            {"minecraft:seagrass", Seagrass},
+            {"minecraft:tall_seagrass", TallSeagrass},
+            {"minecraft:kelp", Kelp(0)},
+            {"minecraft:kelp_plant", Kelp(16)},
         };
 
         auto found = converterTable.find(block->fName);
@@ -121,10 +125,17 @@ public:
     }
 
     static std::shared_ptr<mcfile::nbt::CompoundTag> Air() {
-        static std::shared_ptr<mcfile::nbt::CompoundTag> const air = MakeAir();
+        static std::shared_ptr<mcfile::nbt::CompoundTag> const air = Make("air");
         return air;
     }
 
+    static std::shared_ptr<mcfile::nbt::CompoundTag> Make(std::string const& name) {
+        auto tag = New(name);
+        auto states = States();
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+    
 private:
     BlockData() = delete;
 
@@ -133,9 +144,41 @@ private:
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
 
-    static BlockDataType MakeAir() {
-        auto tag = New("air");
+    static ConverterFunction Kelp(int32_t age) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) -> BlockDataType {
+            using namespace std;
+            using namespace props;
+            auto tag = New("kelp");
+            auto states = States();
+            states->fValue.emplace("kelp_age", Int(age));
+            MergeProperties(block, *states, {});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static BlockDataType TallSeagrass(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("seagrass");
         auto states = States();
+        auto half = block.property("half", "bottom");
+        string type = half == "bottom" ? "double_bot" : "double_top";
+        states->fValue.emplace("sea_grass_type", String(type));
+        MergeProperties(block, *states, {});
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static BlockDataType Seagrass(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("seagrass");
+        auto states = States();
+        states->fValue.emplace("sea_grass_type", String("default"));
+        MergeProperties(block, *states, {});
         tag->fValue.emplace("states", states);
         return tag;
     }
