@@ -114,6 +114,8 @@ public:
             {"minecraft:tall_seagrass", TallSeagrass},
             {"minecraft:kelp", Kelp()},
             {"minecraft:kelp_plant", Kelp(16)},
+            {"minecraft:water", Liquid("water")},
+            {"minecraft:lava", Liquid("lava")},
         };
 
         auto found = converterTable.find(block->fName);
@@ -144,7 +146,26 @@ private:
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
 
-    static ConverterFunction Kelp(int32_t age) {
+    static ConverterFunction Liquid(std::string const& type) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) -> BlockDataType {
+            auto levelString = block.property("level", "0");
+            auto level = stoi(levelString);
+            BlockDataType tag;
+            if (level == 0) {
+                tag = New(type);
+            } else {
+                tag = New("flowing_"s + type);
+            }
+            auto states = States();
+            states->fValue.emplace("liquid_depth", Int(level));
+            MergeProperties(block, *states, { "level" });
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
     static ConverterFunction Kelp(int32_t age = -1) {
         using namespace std;
         using namespace props;
