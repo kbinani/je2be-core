@@ -160,6 +160,128 @@ public:
             {"minecraft:blackstone_stairs", Stairs()},
             {"minecraft:polished_blackstone_stairs", Stairs()},
             {"minecraft:polished_blackstone_brick_stairs", Stairs()},
+            {"minecraft:sponge", Sponge("dry")},
+            {"minecraft:wet_sponge", Sponge("wet")},
+            {"minecraft:sandstone", Sandstone("default")},
+            {"minecraft:chiseled_sandstone", Sandstone("heiroglyphs")},
+            {"minecraft:cut_sandstone", Sandstone("cut")},
+            {"minecraft:smooth_sandstone", Sandstone("smooth")},
+            {"minecraft:red_sandstone", RedSandstone("default")},
+            {"minecraft:chiseled_red_sandstone", RedSandstone("heiroglyphs")},
+            {"minecraft:cut_red_sandstone", RedSandstone("cut")},
+            {"minecraft:smooth_red_sandstone", RedSandstone("smooth")},
+            {"minecraft:white_wool", Wool("white")},
+            {"minecraft:orange_wool", Wool("orange")},
+            {"minecraft:magenta_wool", Wool("magenta")},
+            {"minecraft:light_blue_wool", Wool("light_blue")},
+            {"minecraft:yellow_wool", Wool("yellow")},
+            {"minecraft:lime_wool", Wool("lime")},
+            {"minecraft:pink_wool", Wool("pink")},
+            {"minecraft:gray_wool", Wool("gray")},
+            {"minecraft:light_gray_wool", Wool("silver")},
+            {"minecraft:cyan_wool", Wool("cyan")},
+            {"minecraft:purple_wool", Wool("purple")},
+            {"minecraft:blue_wool", Wool("blue")},
+            {"minecraft:brown_wool", Wool("brown")},
+            {"minecraft:green_wool", Wool("green")},
+            {"minecraft:red_wool", Wool("red")},
+            {"minecraft:black_wool", Wool("black")},
+            {"minecraft:snow_block", Rename("snow")},
+            {"minecraft:quartz_block", QuartzBlock("default")},
+            {"minecraft:smooth_quartz", QuartzBlock("smooth")},
+            {"minecraft:quartz_pillar", QuartzBlock("lines")},
+            {"minecraft:chiseled_quartz_block", QuartzBlock("chiseled")},
+            {"minecraft:bricks", Rename("brick_block")},
+            {"minecraft:sand", Sand("normal")},
+            {"minecraft:red_sand", Sand("red")},
+            {"minecraft:oak_planks", Planks("oak")},
+            {"minecraft:spruce_planks", Planks("spruce")},
+            {"minecraft:birch_planks", Planks("birch")},
+            {"minecraft:jungle_planks", Planks("jungle")},
+            {"minecraft:acacia_planks", Planks("acacia")},
+            {"minecraft:dark_oak_planks", Planks("dark_oak")},
+            {"minecraft:purpur_block", PurpurBlock("default")},
+            {"minecraft:purpur_pillar", PurpurBlock("lines")},
+            {"minecraft:jack_o_lantern", LitPumpkin},
+            {"minecraft:carved_pumpkin", FacingToDirection},
+            {"minecraft:white_stained_glass", StainedGlass("white")},
+            {"minecraft:orange_stained_glass", StainedGlass("orange")},
+            {"minecraft:magenta_stained_glass", StainedGlass("magenta")},
+            {"minecraft:light_blue_stained_glass", StainedGlass("light_blue")},
+            {"minecraft:yellow_stained_glass", StainedGlass("yellow")},
+            {"minecraft:lime_stained_glass", StainedGlass("lime")},
+            {"minecraft:pink_stained_glass", StainedGlass("pink")},
+            {"minecraft:gray_stained_glass", StainedGlass("gray")},
+            {"minecraft:light_gray_stained_glass", StainedGlass("silver")},
+            {"minecraft:cyan_stained_glass", StainedGlass("cyan")},
+            {"minecraft:purple_stained_glass", StainedGlass("purple")},
+            {"minecraft:blue_stained_glass", StainedGlass("blue")},
+            {"minecraft:brown_stained_glass", StainedGlass("brown")},
+            {"minecraft:green_stained_glass", StainedGlass("green")},
+            {"minecraft:red_stained_glass", StainedGlass("red")},
+            {"minecraft:black_stained_glass", StainedGlass("black")},
+            {"minecraft:white_concrete_powder", ConcretePowder("white")},
+            {"minecraft:orange_concrete_powder", ConcretePowder("orange")},
+            {"minecraft:magenta_concrete_powder", ConcretePowder("magenta")},
+            {"minecraft:light_blue_concrete_powder", ConcretePowder("light_blue")},
+            {"minecraft:yellow_concrete_powder", ConcretePowder("yellow")},
+            {"minecraft:lime_concrete_powder", ConcretePowder("lime")},
+            {"minecraft:pink_concrete_powder", ConcretePowder("pink")},
+            {"minecraft:gray_concrete_powder", ConcretePowder("gray")},
+            {"minecraft:light_gray_concrete_powder", ConcretePowder("silver")},
+            {"minecraft:cyan_concrete_powder", ConcretePowder("cyan")},
+            {"minecraft:purple_concrete_powder", ConcretePowder("purple")},
+            {"minecraft:blue_concrete_powder", ConcretePowder("blue")},
+            {"minecraft:brown_concrete_powder", ConcretePowder("brown")},
+            {"minecraft:green_concrete_powder", ConcretePowder("green")},
+            {"minecraft:red_concrete_powder", ConcretePowder("red")},
+            {"minecraft:black_concrete_powder", ConcretePowder("black")},
+            {"minecraft:white_concrete", Concrete("white")},
+            {"minecraft:orange_concrete", Concrete("orange")},
+            {"minecraft:magenta_concrete", Concrete("magenta")},
+            {"minecraft:light_blue_concrete", Concrete("light_blue")},
+            {"minecraft:yellow_concrete", Concrete("yellow")},
+            {"minecraft:lime_concrete", Concrete("lime")},
+            {"minecraft:pink_concrete", Concrete("pink")},
+            {"minecraft:gray_concrete", Concrete("gray")},
+            {"minecraft:light_gray_concrete", Concrete("silver")},
+            {"minecraft:cyan_concrete", Concrete("cyan")},
+            {"minecraft:purple_concrete", Concrete("purple")},
+            {"minecraft:blue_concrete", Concrete("blue")},
+            {"minecraft:brown_concrete", Concrete("brown")},
+            {"minecraft:green_concrete", Concrete("green")},
+            {"minecraft:red_concrete", Concrete("red")},
+            {"minecraft:black_concrete", Concrete("black")},
+            {"minecraft:white_terracotta", Terracotta("white")},
+            {"minecraft:orange_terracotta", Terracotta("orange")},
+            {"minecraft:magenta_terracotta", Terracotta("magenta")},
+            {"minecraft:light_blue_terracotta", Terracotta("light_blue")},
+            {"minecraft:yellow_terracotta", Terracotta("yellow")},
+            {"minecraft:lime_terracotta", Terracotta("lime")},
+            {"minecraft:pink_terracotta", Terracotta("pink")},
+            {"minecraft:gray_terracotta", Terracotta("gray")},
+            {"minecraft:light_gray_terracotta", Terracotta("silver")},
+            {"minecraft:cyan_terracotta", Terracotta("cyan")},
+            {"minecraft:purple_terracotta", Terracotta("purple")},
+            {"minecraft:blue_terracotta", Terracotta("blue")},
+            {"minecraft:brown_terracotta", Terracotta("brown")},
+            {"minecraft:green_terracotta", Terracotta("green")},
+            {"minecraft:red_terracotta", Terracotta("red")},
+            {"minecraft:black_terracotta", Terracotta("black")},
+            {"minecraft:nether_quartz_ore", Rename("quartz_ore")},
+            {"minecraft:red_nether_bricks", Rename("red_nether_brick")},
+            {"minecraft:magma_block", Rename("magma")},
+            {"minecraft:sea_lantern", Rename("seaLantern")},
+            {"minecraft:prismarine_bricks", Prismarine("bricks")},
+            {"minecraft:dark_prismarine", Prismarine("dark")},
+            {"minecraft:prismarine", Prismarine("default")},
+            {"minecraft:terracotta", Rename("hardened_clay")},
+            {"minecraft:end_stone_bricks", Rename("end_bricks")},
+            {"minecraft:melon", Rename("melon_block")},
+            {"minecraft:chiseled_stone_bricks", StoneBrick("chiseled")},
+            {"minecraft:cracked_stone_bricks", StoneBrick("cracked")},
+            {"minecraft:mossy_stone_bricks", StoneBrick("mossy")},
+            {"minecraft:stone_bricks", StoneBrick("default")},
         };
 
         auto found = converterTable.find(block->fName);
@@ -189,6 +311,109 @@ private:
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
+
+    static ConverterFunction StoneBrick(std::string const& type) {
+        return Subtype("stonebrick", "stone_brick_type", type);
+    }
+
+    static ConverterFunction Prismarine(std::string const& type) {
+        return Subtype("prismarine", "prismarine_block_type", type);
+    }
+
+    static ConverterFunction Terracotta(std::string const& color) {
+        return Subtype("stained_hardened_clay", "color", color);
+    }
+
+    static ConverterFunction Concrete(std::string const& color) {
+        return Subtype("concrete", "color", color);
+    }
+
+    static ConverterFunction ConcretePowder(std::string const& color) {
+        return Subtype("concretePowder", "color", color);
+    }
+
+    static ConverterFunction StainedGlass(std::string const& color) {
+        return Subtype("stained_glass", "color", color);
+    }
+
+    static BlockDataType LitPumpkin(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("lit_pumpkin");
+        auto states = States();
+        auto direction = DirectionFromFacing(block);
+        states->fValue.emplace("direction", Int(direction));
+        MergeProperties(block, *states, { "facing" });
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static int32_t DirectionFromFacing(Block const& block) {
+        auto facing = block.property("facing", "north");
+        if (facing == "south") {
+            return 0;
+        } else if (facing == "east") {
+            return 3;
+        } else if (facing == "west") {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
+    static BlockDataType FacingToDirection(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New(block.fName, true);
+        auto states = States();
+        auto direction = DirectionFromFacing(block);
+        states->fValue.emplace("direction", Int(direction));
+        MergeProperties(block, *states, { "facing" });
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static ConverterFunction PurpurBlock(std::string const& type) {
+        return Subtype("purpur_block", "chisel_type", type);
+    }
+
+    static ConverterFunction Planks(std::string const& type) {
+        return Subtype("planks", "wood_type", type);
+    }
+
+    static ConverterFunction Sand(std::string const& type) {
+        return Subtype("sand", "sand_type", type);
+    }
+
+    static ConverterFunction QuartzBlock(std::string const& type) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New("quartz_block");
+            auto states = States();
+            auto axis = block.property("axis", "y");
+            states->fValue.emplace("pillar_axis", String(axis));
+            states->fValue.emplace("chisel_type", String(type));
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static ConverterFunction Wool(std::string const& color) {
+        return Subtype("wool", "color", color);
+    }
+
+    static ConverterFunction RedSandstone(std::string const& type) {
+        return Subtype("red_sandstone", "sand_stone_type", type);
+    }
+
+    static ConverterFunction Sandstone(std::string const& type) {
+        return Subtype("sandstone", "sand_stone_type", type);
+    }
+
+    static ConverterFunction Sponge(std::string const& type) {
+        return Subtype("sponge", "sponge_type", type);
+    }
 
     static ConverterFunction Stairs(std::optional<std::string> name = std::nullopt) {
         using namespace std;
