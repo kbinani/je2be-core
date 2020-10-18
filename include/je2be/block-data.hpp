@@ -10,40 +10,44 @@ public:
         using namespace mcfile::nbt;
 
         static unordered_map<string, ConverterFunction> const converterTable = {
-            {"minecraft:stone", StoneSubtype("stone") },
-            {"minecraft:granite", StoneSubtype("granite") },
-            {"minecraft:polished_granite", StoneSubtype("granite_smooth") },
-            {"minecraft:andesite", StoneSubtype("andesite") },
-            {"minecraft:polished_andesite", StoneSubtype("andesite_smooth" ) },
-            {"minecraft:diorite", StoneSubtype("diorite") },
-            {"minecraft:polished_diorite", StoneSubtype("diorite_smooth") },
-            {"minecraft:dirt", DirtSubtype("normal") },
-            {"minecraft:coarse_dirt", DirtSubtype("coarse") },
-            {"minecraft:grass_block", Rename("minecraft:grass") },
-            {"minecraft:oak_log", Log("oak") },
-            {"minecraft:spruce_log", Log("spruce") },
-            {"minecraft:birch_log", Log("birch") },
-            {"minecraft:jungle_log", Log("jungle") },
-            {"minecraft:acacia_log", Log2("acacia") },
-            {"minecraft:dark_oak_log", Log2("dark_oak") },
-            {"minecraft:oak_wood", Wood("oak", false) },
-            {"minecraft:spruce_wood", Wood("spruce", false) },
-            {"minecraft:birch_wood", Wood("birch", false) },
-            {"minecraft:acacia_wood", Wood("acacia", false) },
-            {"minecraft:jungle_wood", Wood("jungle", false) },
-            {"minecraft:dark_oak_wood", Wood("dark_oak", false) },
-            {"minecraft:stripped_oak_wood", Wood("oak", true) },
-            {"minecraft:stripped_spruce_wood", Wood("spruce", true) },
-            {"minecraft:stripped_birch_wood", Wood("birch", true) },
-            {"minecraft:stripped_acacia_wood", Wood("acacia", true) },
-            {"minecraft:stripped_jungle_wood", Wood("jungle", true) },
-            {"minecraft:stripped_dark_oak_wood", Wood("dark_oak", true) },
-            {"minecraft:oak_leaves", Leaves("oak") },
-            {"minecraft:spruce_leaves", Leaves("spruce") },
-            {"minecraft:birch_leaves", Leaves("birch") },
-            {"minecraft:jungle_leaves", Leaves("jungle") },
-            {"minecraft:acacia_leaves", Leaves2("acacia") },
-            {"minecraft:dark_oak_leaves", Leaves2("dark_oak") },
+            {"minecraft:stone", StoneSubtype("stone")},
+            {"minecraft:granite", StoneSubtype("granite")},
+            {"minecraft:polished_granite", StoneSubtype("granite_smooth")},
+            {"minecraft:andesite", StoneSubtype("andesite")},
+            {"minecraft:polished_andesite", StoneSubtype("andesite_smooth")},
+            {"minecraft:diorite", StoneSubtype("diorite")},
+            {"minecraft:polished_diorite", StoneSubtype("diorite_smooth")},
+            {"minecraft:dirt", DirtSubtype("normal")},
+            {"minecraft:coarse_dirt", DirtSubtype("coarse")},
+            {"minecraft:grass_block", Rename("minecraft:grass")},
+            {"minecraft:oak_log", Log("oak")},
+            {"minecraft:spruce_log", Log("spruce")},
+            {"minecraft:birch_log", Log("birch")},
+            {"minecraft:jungle_log", Log("jungle")},
+            {"minecraft:acacia_log", Log2("acacia")},
+            {"minecraft:dark_oak_log", Log2("dark_oak")},
+            {"minecraft:oak_wood", Wood("oak", false)},
+            {"minecraft:spruce_wood", Wood("spruce", false)},
+            {"minecraft:birch_wood", Wood("birch", false)},
+            {"minecraft:acacia_wood", Wood("acacia", false)},
+            {"minecraft:jungle_wood", Wood("jungle", false)},
+            {"minecraft:dark_oak_wood", Wood("dark_oak", false)},
+            {"minecraft:stripped_oak_wood", Wood("oak", true)},
+            {"minecraft:stripped_spruce_wood", Wood("spruce", true)},
+            {"minecraft:stripped_birch_wood", Wood("birch", true)},
+            {"minecraft:stripped_acacia_wood", Wood("acacia", true)},
+            {"minecraft:stripped_jungle_wood", Wood("jungle", true)},
+            {"minecraft:stripped_dark_oak_wood", Wood("dark_oak", true)},
+            {"minecraft:oak_leaves", Leaves("oak")},
+            {"minecraft:spruce_leaves", Leaves("spruce")},
+            {"minecraft:birch_leaves", Leaves("birch")},
+            {"minecraft:jungle_leaves", Leaves("jungle")},
+            {"minecraft:acacia_leaves", Leaves2("acacia")},
+            {"minecraft:dark_oak_leaves", Leaves2("dark_oak")},
+            {"minecraft:crimson_hyphae", AxisToPillarAxis()},
+            {"minecraft:warped_hyphae", AxisToPillarAxis()},
+            {"minecraft:stripped_crimson_hyphae", AxisToPillarAxis()},
+            {"minecraft:stripped_warped_hyphae", AxisToPillarAxis()},
         };
 
         auto found = converterTable.find(block->fName);
@@ -118,18 +122,34 @@ private:
         return Subtype("minecraft:dirt", "dirt_type", dirtType);
     }
 
-    static ConverterFunction Rename(std::string const& to) {
+    static ConverterFunction Rename(std::optional<std::string> to = std::nullopt , std::optional<std::unordered_map<std::string, std::string>> properties = std::nullopt) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
         using namespace props;
 
-        return [to](Block const& block) -> shared_ptr<CompoundTag> {
-            auto tag = New(to);
+        set<string> ignore;
+        if (properties) {
+            for_each(properties->begin(), properties->end(), [&ignore](auto& it) {
+                ignore.insert(it.first);
+            });
+        }
+
+        return [to, properties, ignore](Block const& block) -> shared_ptr<CompoundTag> {
+            string name = to ? *to : block.fName;
+            auto tag = New(name);
             auto states = make_shared<CompoundTag>();
-            static set<string> const ignore = {};
+            if (properties) {
+                for_each(properties->begin(), properties->end(), [&block, &states](auto& it) {
+                    auto found = block.fProperties.find(it.first);
+                    if (found == block.fProperties.end()) {
+                        return;
+                    }
+                    states->fValue.emplace(it.second, props::String(found->second));
+                });
+            }
             MergeProperties(block, *states, ignore);
-            tag->fValue.insert(make_pair("states", states));
+            tag->fValue.emplace("states", states);
             return tag;
         };
     }
@@ -265,6 +285,14 @@ private:
             tag->fValue.emplace("states", states);
             return tag;
         };
+    }
+
+    static ConverterFunction AxisToPillarAxis() {
+        using namespace std;
+        static unordered_map<string, string> const axisToPillarAxis = {
+            {"axis", "pillar_axis"}
+        };
+        return Rename(std::nullopt, axisToPillarAxis);
     }
 
 private:
