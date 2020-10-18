@@ -72,8 +72,9 @@ public:
         }
 
         bool ok = true;
-        for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
-            auto dir = fInputOption.getWorldDirectory(fInput, dim);
+        //for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
+        for (auto dim : { Dimension::Overworld }) { //TODO(kbinani): debug
+                auto dir = fInputOption.getWorldDirectory(fInput, dim);
             World world(dir);
             ok &= convertWorld(world, dim, db);
         }
@@ -87,8 +88,14 @@ private:
         using namespace mcfile;
 
         w.eachRegions([this, dim, &db](shared_ptr<Region> const& region) {
+            if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
+                return true;
+            }
             bool err;
             region->loadAllChunks(err, [this, dim, &db](Chunk const& chunk) {
+                if (chunk.fChunkX != 0 || chunk.fChunkZ != 0) { //TODO(kbinani): debug
+                    return true;
+                }
                 putChunk(chunk, dim, db);
                 return true;
             });
