@@ -37,13 +37,13 @@ public:
         fDb->Put(fWriteOptions, key, value);
     }
 
-    std::optional<leveldb::Slice> get(std::string const& key) {
+    std::optional<std::string> get(std::string const& key) {
         assert(fValid);
         leveldb::ReadOptions o;
         std::string v;
         leveldb::Status st = fDb->Get(o, key, &v);
         if (st.ok()) {
-            return leveldb::Slice(v.data(), v.size());
+            return v;
         } else {
             return std::nullopt;
         }
