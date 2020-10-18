@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <set>
+#include <unordered_map>
 
 #include <je2be/enums.hpp>
 #include <je2be/keys.hpp>

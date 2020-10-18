@@ -9,7 +9,7 @@ public:
         using namespace props;
         using namespace mcfile::nbt;
 
-        static map<string, ConverterFunction> const converterTable = {
+        static unordered_map<string, ConverterFunction> const converterTable = {
             {"minecraft:stone", StoneSubtype("stone") },
             {"minecraft:granite", StoneSubtype("granite") },
             {"minecraft:polished_granite", StoneSubtype("granite_smooth") },
