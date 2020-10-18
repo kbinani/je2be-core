@@ -88,6 +88,28 @@ public:
             {"minecraft:end_stone_brick_slab", StoneSlab3("end_stone_brick")},
             {"minecraft:warped_slab", StoneSlabNT("warped_double_slab")},
             {"minecraft:crimson_slab", StoneSlabNT("crimson_double_slab")},
+            {"minecraft:grass", TallGrass("tall")},
+            {"minecraft:tall_grass", DoublePlant("grass")},
+            {"minecraft:large_fern", DoublePlant("fern")},
+            {"minecraft:fern", TallGrass("fern")},
+            {"minecraft:lilac", DoublePlant("syringa")},
+            {"minecraft:rose_bush", DoublePlant("rose")},
+            {"minecraft:peony", DoublePlant("paeonia")},
+            {"minecraft:sunflower", DoublePlant("sunflower")},
+            {"minecraft:dead_bush", Rename("minecraft:deadbush")},
+            {"minecraft:sea_pickle", SeaPickle},
+            {"minecraft:dandelion", Rename("minecraft:yellow_flower")},
+            {"minecraft:poppy", RedFlower("poppy")},
+            {"minecraft:blue_orchid", RedFlower("orchid")},
+            {"minecraft:allium", RedFlower("allium")},
+            {"minecraft:azure_bluet", RedFlower("houstonia")},
+            {"minecraft:red_tulip", RedFlower("tulip_red")},
+            {"minecraft:orange_tulip", RedFlower("tulip_orange")},
+            {"minecraft:white_tulip", RedFlower("tulip_white")},
+            {"minecraft:pink_tulip", RedFlower("tulip_pink")},
+            {"minecraft:oxeye_daisy", RedFlower("oxeye")},
+            {"minecraft:cornflower", RedFlower("cornflower")},
+            {"minecraft:lily_of_the_valley", RedFlower("lily_of_the_valley")},
         };
 
         auto found = converterTable.find(block->fName);
@@ -107,6 +129,8 @@ private:
     BlockData() = delete;
 
     using ConverterFunction = std::function<std::shared_ptr<mcfile::nbt::CompoundTag>(mcfile::Block const&)>;
+    using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
+    using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
 
     static std::shared_ptr<mcfile::nbt::CompoundTag> MakeAir() {
         using namespace std;
@@ -123,6 +147,67 @@ private:
         return tag;
     }
 
+    static ConverterFunction RedFlower(std::string const& type) {
+        using namespace std;
+        using namespace props;
+        using namespace mcfile;
+        return [=](Block const& block) -> BlockDataType {
+            auto tag = New("minecraft:red_flower");
+            auto states = States();
+            states->fValue.emplace("flower_type", String(type));
+            MergeProperties(block, *states, {});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+    
+    static BlockDataType SeaPickle(mcfile::Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("minecraft:sea_pickle");
+        auto states = States();
+        auto waterlogged = block.property("waterlogged", "false");
+        states->fValue.emplace("dead_bit", Bool(waterlogged == "false"));
+        auto pickles = block.property("pickles", "1");
+        auto cluster = (min)((max)(stoi(pickles), 1), 4) - 1;
+        states->fValue.emplace("cluster_count", Int(cluster));
+        static set<string> const ignore = {"pickles"};
+        MergeProperties(block, *states, ignore);
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+    
+    static ConverterFunction DoublePlant(std::string const& type) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        using namespace props;
+        return [=](Block const& block) -> shared_ptr<CompoundTag> {
+            auto tag = New("minecraft:double_plant");
+            auto states = States();
+            states->fValue.emplace("double_plant_type", String(type));
+            auto half = block.property("half", "lower");
+            states->fValue.emplace("upper_block_bit", Bool(half == "upper"));
+            MergeProperties(block, *states, {});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+    
+    static ConverterFunction TallGrass(std::string const& type) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        return [=](Block const& block) -> shared_ptr<CompoundTag> {
+            auto tag = New("minecraft:tallgrass");
+            auto states = make_shared<CompoundTag>();
+            states->fValue.emplace("tall_grass_type", props::String(type));
+            MergeProperties(block, *states, {});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+    
     static std::shared_ptr<mcfile::nbt::CompoundTag> Identity(mcfile::Block const& block) {
         using namespace std;
         using namespace mcfile;
@@ -207,16 +292,19 @@ private:
         }
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> New(std::string const& name) {
+    static BlockDataType New(std::string const& name) {
         using namespace std;
         using namespace mcfile::nbt;
         auto tag = make_shared<mcfile::nbt::CompoundTag>();
-        auto states = make_shared<CompoundTag>();
         tag->fValue.insert(make_pair("name", props::String(name)));
         tag->fValue.insert(make_pair("version", props::Int(kBlockDataVersion)));
         return tag;
     }
 
+    static StatesType States() {
+        return std::make_shared<mcfile::nbt::CompoundTag>();
+    }
+    
     static ConverterFunction Log(std::string const& type) {
         using namespace std;
         using namespace mcfile;
