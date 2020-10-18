@@ -38,6 +38,12 @@ public:
             {"minecraft:stripped_acacia_wood", Wood("acacia", true) },
             {"minecraft:stripped_jungle_wood", Wood("jungle", true) },
             {"minecraft:stripped_dark_oak_wood", Wood("dark_oak", true) },
+            {"minecraft:oak_leaves", Leaves("oak") },
+            {"minecraft:spruce_leaves", Leaves("spruce") },
+            {"minecraft:birch_leaves", Leaves("birch") },
+            {"minecraft:jungle_leaves", Leaves("jungle") },
+            {"minecraft:acacia_leaves", Leaves2("acacia") },
+            {"minecraft:dark_oak_leaves", Leaves2("dark_oak") },
         };
 
         auto found = converterTable.find(block->fName);
@@ -161,12 +167,8 @@ private:
             auto tag = New("minecraft:log");
             auto states = make_shared<CompoundTag>();
             states->fValue.emplace("old_log_type", String(type));
-            auto axis = block.fProperties.find("axis");
-            string pillarAxis = "y";
-            if (axis != block.fProperties.end()) {
-                pillarAxis = axis->second;
-            }
-            states->fValue.emplace("pillar_axis", String(pillarAxis));
+            auto axis = block.property("axis", "y");
+            states->fValue.emplace("pillar_axis", String(axis));
             static set<string> const ignore = { "axis", "pillar_axis", "old_log_type" };
             MergeProperties(block, *states, ignore);
             tag->fValue.emplace("states", states);
@@ -209,6 +211,58 @@ private:
             static set<string> const ignore = { "axis" };
             MergeProperties(block, *states, ignore);
             tag->fValue.insert(make_pair("states", states));
+            return tag;
+        };
+    }
+
+    static ConverterFunction Leaves(std::string const& type) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        using namespace props;
+
+        return [type](Block const& block) -> shared_ptr<CompoundTag> {
+            auto tag = New("minecraft:leaves");
+            auto states = make_shared<CompoundTag>();
+            states->fValue.emplace("old_leaf_type", String(type));
+
+            auto persistent = block.property("persistent", "false");
+            bool persistentV = persistent == "true";
+            states->fValue.emplace("persistent_bit", Bool(persistentV));
+
+            auto distance = block.property("distance", "7");
+            int distanceV = stoi(distance);
+            states->fValue.emplace("update_bit", Bool(distanceV > 4));
+
+            static set<string> const ignore = { "persistent", "distance" };
+            MergeProperties(block, *states, ignore);
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static ConverterFunction Leaves2(std::string const& type) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        using namespace props;
+
+        return [type](Block const& block) -> shared_ptr<CompoundTag> {
+            auto tag = New("minecraft:leaves2");
+            auto states = make_shared<CompoundTag>();
+            states->fValue.emplace("new_leaf_type", String(type));
+
+            auto persistent = block.property("persistent", "false");
+            bool persistentV = persistent == "true";
+            states->fValue.emplace("persistent_bit", Bool(persistentV));
+
+            auto distance = block.property("distance", "7");
+            int distanceV = stoi(distance);
+            states->fValue.emplace("update_bit", Bool(distanceV > 4));
+
+            static set<string> const ignore = { "persistent", "distance" };
+            MergeProperties(block, *states, ignore);
+            tag->fValue.emplace("states", states);
             return tag;
         };
     }
