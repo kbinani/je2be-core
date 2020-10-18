@@ -102,7 +102,7 @@ private:
             return true;
         });
 
-        return false;
+        return true;
     }
 
     void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db) {
