@@ -55,6 +55,39 @@ public:
             {"minecraft:acacia_slab", WoodenSlab("acacia")},
             {"minecraft:dark_oak_slab", WoodenSlab("dark_oak")},
             {"minecraft:petrified_oak_slab", WoodenSlab("oak")},
+            {"minecraft:stone_slab", StoneSlab4("stone")},
+            {"minecraft:granite_slab", StoneSlab3("granite")},
+            {"minecraft:andesite_slab", StoneSlab3("andesite")},
+            {"minecraft:diorite_slab", StoneSlab3("diorite")},
+            {"minecraft:cobblestone_slab", StoneSlab("cobblestone")},
+            {"minecraft:stone_brick_slab", StoneSlab("stone_brick")},
+            {"minecraft:brick_slab", StoneSlab("brick")},
+            {"minecraft:sandstone_slab", StoneSlab("sandstone")},
+            {"minecraft:smooth_sandstone_slab", StoneSlab2("smooth_sandstone")},
+            {"minecraft:smooth_stone_slab", StoneSlab("smooth_stone")},
+            {"minecraft:nether_brick_slab", StoneSlab("nether_brick")},
+            {"minecraft:quartz_slab", StoneSlab("quartz")},
+            {"minecraft:smooth_quartz_slab", StoneSlab4("smooth_quartz")},
+            {"minecraft:red_sandstone_slab", StoneSlab2("red_sandstone")},
+            {"minecraft:smooth_red_sandstone_slab", StoneSlab3("smooth_red_sandstone")},
+            {"minecraft:cut_red_sandstone_slab", StoneSlab4("cut_red_sandstone")},
+            {"minecraft:mossy_cobblestone_slab", StoneSlab2("mossy_cobblestone")},
+            {"minecraft:polished_diorite_slab", StoneSlab3("polished_diorite")},
+            {"minecraft:mossy_stone_brick_slab", StoneSlab4("mossy_stone_brick")},
+            {"minecraft:polished_granite_slab", StoneSlab3("polished_granite")},
+            {"minecraft:dark_prismarine_slab", StoneSlab2("prismarine_dark")},
+            {"minecraft:prismarine_brick_slab", StoneSlab2("prismarine_brick")},
+            {"minecraft:prismarine_slab", StoneSlab2("prismarine_rough")},
+            {"minecraft:purpur_slab", StoneSlab2("purpur")},
+            {"minecraft:cut_sandstone_slab", StoneSlab4("cut_sandstone")},
+            {"minecraft:polished_blackstone_brick_slab", StoneSlabNT("polished_blackstone_brick_double_slab")},
+            {"minecraft:polished_blackstone_slab", StoneSlabNT("polished_blackstone_double_slab")},
+            {"minecraft:blackstone_slab", StoneSlabNT("blackstone_double_slab")},
+            {"minecraft:polished_andesite_slab", StoneSlab3("polished_andesite")},
+            {"minecraft:red_nether_brick_slab", StoneSlab2("red_nether_brick")},
+            {"minecraft:end_stone_brick_slab", StoneSlab3("end_stone_brick")},
+            {"minecraft:warped_slab", StoneSlabNT("warped_double_slab")},
+            {"minecraft:crimson_slab", StoneSlabNT("crimson_double_slab")},
         };
 
         auto found = converterTable.find(block->fName);
@@ -319,6 +352,54 @@ private:
             return tag;
         };
     }
+
+    static ConverterFunction StoneSlab(std::string const& type) {
+        return StoneSlabNumbered("", type);
+    }
+
+    static ConverterFunction StoneSlab2(std::string const& type) {
+        return StoneSlabNumbered("2", type);
+    }
+
+    static ConverterFunction StoneSlab3(std::string const& type) {
+        return StoneSlabNumbered("3", type);
+    }
+
+    static ConverterFunction StoneSlab4(std::string const& type) {
+        return StoneSlabNumbered("4", type);
+    }
+
+    static ConverterFunction StoneSlabNumbered(std::string const& number, std::string const& type) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        using namespace props;
+        return [=](Block const& block) -> shared_ptr<nbt::CompoundTag> {
+            auto states = make_shared<CompoundTag>();
+            auto t = block.property("type", "bottom");
+            states->fValue.emplace("top_slot_bit", Bool(t == "top"));
+            auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
+            states->fValue.emplace(typeKey, String(type));
+            static set<string> const ignore = { "type", "waterlogged" };
+            MergeProperties(block, *states, ignore);
+            auto tag = t == "double" ? New("minecraft:double_stone_slab" + number) : New("minecraft:stone_slab" + number);
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static ConverterFunction StoneSlabNT(std::string const& doubledName) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::nbt;
+        using namespace props;
+        return [=](Block const& block) -> shared_ptr<nbt::CompoundTag> {
+            auto states = make_shared<CompoundTag>();
+            auto t = block.property("type", "bottom");
+            states->fValue.emplace("top_slot_bit", Bool(t == "top"));
+            static set<string> const ignore = { "type", "waterlogged" };
+            MergeProperties(block, *states, ignore);
+            auto tag = t == "double" ? New(doubledName) : New(block.fName);
             tag->fValue.emplace("states", states);
             return tag;
         };
