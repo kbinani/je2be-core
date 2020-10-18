@@ -116,6 +116,11 @@ public:
             {"minecraft:kelp_plant", Kelp(16)},
             {"minecraft:water", Liquid("water")},
             {"minecraft:lava", Liquid("lava")},
+            {"minecraft:weeping_vines_plant", NetherVines("weeping", 25)}, //TODO(kbinani): is 25 correct?
+            {"minecraft:weeping_vines", NetherVines("weeping")},
+            {"minecraft:twisting_vines_plant", NetherVines("twisting", 25)}, //TODO(kbinani): is 25 correct?
+            {"minecraft:twisting_vines", NetherVines("twisting")},
+            {"minecraft:vine", Vine},
         };
 
         auto found = converterTable.find(block->fName);
@@ -145,6 +150,52 @@ private:
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
+
+    static BlockDataType Vine(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("vine");
+        auto east = block.property("east", "false") == "true";
+        auto north = block.property("north", "false") == "true";
+        auto south = block.property("south", "false") == "true";
+        auto up = block.property("up", "false") == "true";
+        auto west = block.property("west", "false") == "true";
+        int32_t direction = 0;
+        if (east) {
+            direction |= 0x8;
+        }
+        if (north) {
+            direction |= 0x4;
+        }
+        if (west) {
+            direction |= 0x2;
+        }
+        if (south) {
+            direction |= 0x1;
+        }
+        auto states = States();
+        states->fValue.emplace("vine_direction_bits", Int(direction));
+        MergeProperties(block, *states, { "up", "east", "west", "north", "south" });
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static ConverterFunction NetherVines(std::string const& type, int32_t age = -1) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) -> BlockDataType {
+            auto tag = New(type + "_vines");
+            auto states = States();
+            int32_t a = age;
+            if (a < 0) {
+                auto ageString = block.property("age", "0");
+                a = stoi(ageString);
+            }
+            MergeProperties(block, *states, { "age" });
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
 
     static ConverterFunction Liquid(std::string const& type) {
         using namespace std;
