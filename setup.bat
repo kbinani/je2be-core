@@ -30,6 +30,6 @@ cmake --build . --target leveldb --config Debug
 cmake --build . --target leveldb --config Release
 popd
 
-cmake %dir%
-
 popd
+
+cmake %dir%
