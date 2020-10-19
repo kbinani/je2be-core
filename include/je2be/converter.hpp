@@ -269,6 +269,9 @@ private:
             air->write(w);
             
             auto water = BlockData::Make("water");
+            auto states = make_shared<CompoundTag>();
+            states->fValue.emplace("liquid_depth", Int(0));
+            water->fValue.emplace("states", states);
             w.write((uint8_t)Tag::TAG_Compound);
             w.write(string());
             water->write(w);
