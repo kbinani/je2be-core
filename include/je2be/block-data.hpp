@@ -370,7 +370,7 @@ private:
             auto tag = New(prefix + "torch");
             auto states = States();
             states->fValue.emplace("torch_facing_direction", String("top"));
-            return Complete(tag, block, states, {});
+            return Complete(tag, block, states);
         };
     }
 
@@ -438,7 +438,7 @@ private:
             auto states = States();
             states->fValue.emplace("coral_color", String(color));
             states->fValue.emplace("dead_bit", Bool(dead));
-            return Complete(tag, block, states, {});
+            return Complete(tag, block, states);
         };
     }
 
@@ -553,7 +553,7 @@ private:
             auto axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
             states->fValue.emplace("chisel_type", String(type));
-            return Complete(tag, block, states, {});
+            return Complete(tag, block, states);
         };
     }
 
@@ -697,7 +697,7 @@ private:
         auto tag = New("seagrass");
         auto states = States();
         states->fValue.emplace("sea_grass_type", String("default"));
-        return Complete(tag, block, states, {});
+        return Complete(tag, block, states);
     }
 
     static ConverterFunction RedFlower(std::string const& type) {
@@ -706,7 +706,7 @@ private:
             auto tag = New("red_flower");
             auto states = States();
             states->fValue.emplace("flower_type", String(type));
-            return Complete(tag, block, states, {});
+            return Complete(tag, block, states);
         };
     }
     
@@ -720,8 +720,7 @@ private:
         auto pickles = block.property("pickles", "1");
         auto cluster = (min)((max)(stoi(pickles), 1), 4) - 1;
         states->fValue.emplace("cluster_count", Int(cluster));
-        static set<string> const ignore = {"pickles"};
-        return Complete(tag, block, states, ignore);
+        return Complete(tag, block, states, {"pickles"});
     }
     
     static ConverterFunction DoublePlant(std::string const& type) {
@@ -732,7 +731,7 @@ private:
             states->fValue.emplace("double_plant_type", String(type));
             auto half = block.property("half", "lower");
             states->fValue.emplace("upper_block_bit", Bool(half == "upper"));
-            return Complete(tag, block, states, {});
+            return Complete(tag, block, states);
         };
     }
     
@@ -742,7 +741,7 @@ private:
             auto tag = New("tallgrass");
             auto states = States();
             states->fValue.emplace("tall_grass_type", String(type));
-            return Complete(tag, block, states, {});
+            return Complete(tag, block, states);
         };
     }
     
@@ -751,8 +750,7 @@ private:
 
         auto tag = New(block.fName, true);
         auto states = States();
-        static set<string> const ignore = {};
-        return Complete(tag, block, states, ignore);
+        return Complete(tag, block, states);
     }
 
     static ConverterFunction Subtype(std::string const& name, std::string const& subtypeTitle, std::string const& subtype) {
@@ -763,8 +761,7 @@ private:
             auto tag = New(name);
             auto states = States();
             states->fValue.emplace(subtypeTitle, String(subtype));
-            static set<string> const ignore = { subtypeTitle };
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {subtypeTitle});
         };
     }
 
@@ -804,18 +801,27 @@ private:
         };
     }
 
+    static BlockDataType Complete(BlockDataType tag, Block const& block, StatesType states) {
+        MergeProperties(block, *states, std::nullopt);
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
     static BlockDataType Complete(BlockDataType tag, Block const& block, StatesType states, std::set<std::string> const& ignore) {
         MergeProperties(block, *states, ignore);
         tag->fValue.emplace("states", states);
         return tag;
     }
 
-    static void MergeProperties(mcfile::Block const& block, mcfile::nbt::CompoundTag& states, std::set<std::string> const& ignore) {
+    static void MergeProperties(mcfile::Block const& block, mcfile::nbt::CompoundTag& states, std::optional<std::set<std::string>> ignore) {
         for (auto it = block.fProperties.begin(); it != block.fProperties.end(); it++) {
             auto const& name = it->first;
-            if (!ignore.empty()) {
-                auto found = ignore.find(name);
-                if (found != ignore.end()) {
+            if (name == "waterlogged") {
+                continue;
+            }
+            if (ignore && !ignore->empty()) {
+                auto found = ignore->find(name);
+                if (found != ignore->end()) {
                     continue;
                 }
             }
@@ -848,8 +854,7 @@ private:
             states->fValue.emplace("old_log_type", String(type));
             auto axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
-            static set<string> const ignore = { "axis", "pillar_axis", "old_log_type" };
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"axis", "pillar_axis", "old_log_type"});
         };
     }
 
@@ -863,8 +868,7 @@ private:
             states->fValue.emplace("new_log_type", String(type));
             string axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
-            static set<string> const ignore = { "axis", "pillar_axis", "new_log_type" };
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"axis", "pillar_axis", "new_log_type"});
         };
     }
 
@@ -879,8 +883,7 @@ private:
             states->fValue.emplace("pillar_axis", String(axis));
             states->fValue.emplace("wood_type", String(type));
             states->fValue.emplace("stripped_bit", Bool(stripped));
-            static set<string> const ignore = { "axis" };
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"axis"});
         };
     }
 
@@ -901,8 +904,7 @@ private:
             int distanceV = stoi(distance);
             states->fValue.emplace("update_bit", Bool(distanceV > 4));
 
-            static set<string> const ignore = { "persistent", "distance" };
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"persistent", "distance"});
         };
     }
 
@@ -923,8 +925,7 @@ private:
             int distanceV = stoi(distance);
             states->fValue.emplace("update_bit", Bool(distanceV > 4));
 
-            static set<string> const ignore = { "persistent", "distance" };
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"persistent", "distance"});
         };
     }
 
@@ -944,9 +945,8 @@ private:
             auto t = block.property("type", "bottom");
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             states->fValue.emplace("wood_type", String(type));
-            static set<string> const ignore = { "type", "waterlogged" };
             auto tag = t == "double" ? New("double_wooden_slab") : New("wooden_slab");
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"type"});
         };
     }
 
@@ -975,9 +975,8 @@ private:
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
             states->fValue.emplace(typeKey, String(type));
-            static set<string> const ignore = { "type", "waterlogged" };
             auto tag = t == "double" ? New("double_stone_slab" + number) : New("stone_slab" + number);
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"type"});
         };
     }
 
@@ -988,9 +987,8 @@ private:
             auto states = States();
             auto t = block.property("type", "bottom");
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
-            static set<string> const ignore = { "type", "waterlogged" };
             auto tag = t == "double" ? New(doubledName) : New(block.fName, true);
-            return Complete(tag, block, states, ignore);
+            return Complete(tag, block, states, {"type"});
         };
     }
 
