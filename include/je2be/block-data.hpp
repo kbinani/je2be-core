@@ -370,9 +370,7 @@ private:
             auto tag = New(prefix + "torch");
             auto states = States();
             states->fValue.emplace("torch_facing_direction", String("top"));
-            MergeProperties(block, *states, {});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {});
         };
     }
 
@@ -385,9 +383,7 @@ private:
             auto facing = block.property("facing", "north");
             auto direction = TorchFacingDirectionFromFacing(facing);
             states->fValue.emplace("torch_facing_direction", String(direction));
-            MergeProperties(block, *states, { "facing" });
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, { "facing" });
         };
     }
 
@@ -420,9 +416,7 @@ private:
             direction = 5;
         }
         states->fValue.emplace("facing_direction", Int(direction));
-        MergeProperties(block, *states, {"facing"});
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, {"facing"});
     }
 
     static BlockDataType SnowLayer(Block const& block) {
@@ -433,9 +427,7 @@ private:
         auto layers = stoi(block.property("layers", "1"));
         states->fValue.emplace("height", Int(int32_t(layers - 1)));
         states->fValue.emplace("covered_bit", Bool(false));
-        MergeProperties(block, *states, {"layers"});
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, {"layers"});
     }
 
     static ConverterFunction Coral(std::string const& color, bool dead) {
@@ -446,9 +438,7 @@ private:
             auto states = States();
             states->fValue.emplace("coral_color", String(color));
             states->fValue.emplace("dead_bit", Bool(dead));
-            MergeProperties(block, *states, {});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {});
         };
     }
 
@@ -461,9 +451,7 @@ private:
             states->fValue.emplace("sapling_type", String(type));
             auto stage = block.property("stage", "0");
             states->fValue.emplace("age_bit", Bool(stage == "1"));
-            MergeProperties(block, *states, {"stage"});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {"stage"});
         };
     }
 
@@ -498,9 +486,7 @@ private:
         auto states = States();
         auto direction = DirectionFromFacing(block);
         states->fValue.emplace("direction", Int(direction));
-        MergeProperties(block, *states, { "facing" });
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, { "facing" });
     }
 
     static int32_t DirectionFromFacing(Block const& block) {
@@ -533,9 +519,7 @@ private:
             direction = 2;
         }
         states->fValue.emplace("facing_direction", Int(direction));
-        MergeProperties(block, *states, { "facing" });
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, { "facing" });
     }
 
     static BlockDataType FacingToDirection(Block const& block) {
@@ -545,9 +529,7 @@ private:
         auto states = States();
         auto direction = DirectionFromFacing(block);
         states->fValue.emplace("direction", Int(direction));
-        MergeProperties(block, *states, { "facing" });
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, { "facing" });
     }
 
     static ConverterFunction PurpurBlock(std::string const& type) {
@@ -571,8 +553,7 @@ private:
             auto axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
             states->fValue.emplace("chisel_type", String(type));
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {});
         };
     }
 
@@ -616,10 +597,7 @@ private:
             auto half = block.property("half", "bottom");
             states->fValue.emplace("upside_down_bit", Bool(half == "top"));
 
-            MergeProperties(block, *states, { "facing", "half", "shape" });
-            tag->fValue.emplace("states", states);
-
-            return tag;
+            return Complete(tag, block, states, { "facing", "half", "shape" });
         };
     }
 
@@ -647,9 +625,7 @@ private:
         }
         auto states = States();
         states->fValue.emplace("vine_direction_bits", Int(direction));
-        MergeProperties(block, *states, { "up", "east", "west", "north", "south" });
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, { "up", "east", "west", "north", "south" });
     }
 
     static ConverterFunction NetherVines(std::string const& type, int32_t age = -1) {
@@ -664,9 +640,7 @@ private:
                 a = stoi(ageString);
             }
             states->fValue.emplace(type + "_vines_age", Int(a));
-            MergeProperties(block, *states, { "age" });
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, { "age" });
         };
     }
 
@@ -684,9 +658,7 @@ private:
             }
             auto states = States();
             states->fValue.emplace("liquid_depth", Int(level));
-            MergeProperties(block, *states, { "level" });
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, { "level" });
         };
     }
 
@@ -704,9 +676,7 @@ private:
                 a = stoi(ageString);
             }
             states->fValue.emplace("kelp_age", Int(a));
-            MergeProperties(block, *states, {});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {"age"});
         };
     }
 
@@ -718,9 +688,7 @@ private:
         auto half = block.property("half", "bottom");
         string type = half == "bottom" ? "double_bot" : "double_top";
         states->fValue.emplace("sea_grass_type", String(type));
-        MergeProperties(block, *states, {});
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, {"half"});
     }
 
     static BlockDataType Seagrass(Block const& block) {
@@ -729,9 +697,7 @@ private:
         auto tag = New("seagrass");
         auto states = States();
         states->fValue.emplace("sea_grass_type", String("default"));
-        MergeProperties(block, *states, {});
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, {});
     }
 
     static ConverterFunction RedFlower(std::string const& type) {
@@ -740,9 +706,7 @@ private:
             auto tag = New("red_flower");
             auto states = States();
             states->fValue.emplace("flower_type", String(type));
-            MergeProperties(block, *states, {});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {});
         };
     }
     
@@ -757,9 +721,7 @@ private:
         auto cluster = (min)((max)(stoi(pickles), 1), 4) - 1;
         states->fValue.emplace("cluster_count", Int(cluster));
         static set<string> const ignore = {"pickles"};
-        MergeProperties(block, *states, ignore);
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, ignore);
     }
     
     static ConverterFunction DoublePlant(std::string const& type) {
@@ -770,9 +732,7 @@ private:
             states->fValue.emplace("double_plant_type", String(type));
             auto half = block.property("half", "lower");
             states->fValue.emplace("upper_block_bit", Bool(half == "upper"));
-            MergeProperties(block, *states, {});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {});
         };
     }
     
@@ -782,9 +742,7 @@ private:
             auto tag = New("tallgrass");
             auto states = States();
             states->fValue.emplace("tall_grass_type", String(type));
-            MergeProperties(block, *states, {});
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, {});
         };
     }
     
@@ -794,9 +752,7 @@ private:
         auto tag = New(block.fName, true);
         auto states = States();
         static set<string> const ignore = {};
-        MergeProperties(block, *states, ignore);
-        tag->fValue.emplace("states", states);
-        return tag;
+        return Complete(tag, block, states, ignore);
     }
 
     static ConverterFunction Subtype(std::string const& name, std::string const& subtypeTitle, std::string const& subtype) {
@@ -808,9 +764,7 @@ private:
             auto states = States();
             states->fValue.emplace(subtypeTitle, String(subtype));
             static set<string> const ignore = { subtypeTitle };
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -846,10 +800,14 @@ private:
                     states->fValue.emplace(it.second, props::String(found->second));
                 });
             }
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
+    }
+
+    static BlockDataType Complete(BlockDataType tag, Block const& block, StatesType states, std::set<std::string> const& ignore) {
+        MergeProperties(block, *states, ignore);
+        tag->fValue.emplace("states", states);
+        return tag;
     }
 
     static void MergeProperties(mcfile::Block const& block, mcfile::nbt::CompoundTag& states, std::set<std::string> const& ignore) {
@@ -891,9 +849,7 @@ private:
             auto axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
             static set<string> const ignore = { "axis", "pillar_axis", "old_log_type" };
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -908,9 +864,7 @@ private:
             string axis = block.property("axis", "y");
             states->fValue.emplace("pillar_axis", String(axis));
             static set<string> const ignore = { "axis", "pillar_axis", "new_log_type" };
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -926,9 +880,7 @@ private:
             states->fValue.emplace("wood_type", String(type));
             states->fValue.emplace("stripped_bit", Bool(stripped));
             static set<string> const ignore = { "axis" };
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -950,9 +902,7 @@ private:
             states->fValue.emplace("update_bit", Bool(distanceV > 4));
 
             static set<string> const ignore = { "persistent", "distance" };
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -974,9 +924,7 @@ private:
             states->fValue.emplace("update_bit", Bool(distanceV > 4));
 
             static set<string> const ignore = { "persistent", "distance" };
-            MergeProperties(block, *states, ignore);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -997,10 +945,8 @@ private:
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             states->fValue.emplace("wood_type", String(type));
             static set<string> const ignore = { "type", "waterlogged" };
-            MergeProperties(block, *states, ignore);
             auto tag = t == "double" ? New("double_wooden_slab") : New("wooden_slab");
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -1030,10 +976,8 @@ private:
             auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
             states->fValue.emplace(typeKey, String(type));
             static set<string> const ignore = { "type", "waterlogged" };
-            MergeProperties(block, *states, ignore);
             auto tag = t == "double" ? New("double_stone_slab" + number) : New("stone_slab" + number);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
@@ -1045,10 +989,8 @@ private:
             auto t = block.property("type", "bottom");
             states->fValue.emplace("top_slot_bit", Bool(t == "top"));
             static set<string> const ignore = { "type", "waterlogged" };
-            MergeProperties(block, *states, ignore);
             auto tag = t == "double" ? New(doubledName) : New(block.fName, true);
-            tag->fValue.emplace("states", states);
-            return tag;
+            return Complete(tag, block, states, ignore);
         };
     }
 
