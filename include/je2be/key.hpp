@@ -2,7 +2,7 @@
 
 namespace j2b {
 
-class Keys {
+class Key {
 public:
     static std::string SubChunk(int32_t chunkX, int32_t chunkY, int32_t chunkZ, Dimension dim) {
         std::vector<char> b;
@@ -56,7 +56,7 @@ private:
     }
 
 private:
-    Keys() = delete;
+    Key() = delete;
 };
 
 }

@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include <je2be/enums.hpp>
-#include <je2be/keys.hpp>
+#include <je2be/key.hpp>
 #include <je2be/props.hpp>
 #include <je2be/block-data.hpp>
 #include <je2be/biome-map.hpp>

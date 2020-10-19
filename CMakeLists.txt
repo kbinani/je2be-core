@@ -11,7 +11,7 @@ set(je2be_srcs
   include/je2be/version.hpp
   include/je2be/db.hpp
   include/je2be/enums.hpp
-  include/je2be/keys.hpp
+  include/je2be/key.hpp
   include/je2be.hpp
   include/je2be/converter.hpp
   include/je2be/block-data.hpp

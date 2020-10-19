@@ -117,7 +117,7 @@ private:
             putSubChunk(chunk, dim, chunkY, db, hm);
         }
         {
-            auto const& versionKey = Keys::Version(chunk.fChunkX, chunk.fChunkZ, dim);
+            auto const& versionKey = Key::Version(chunk.fChunkX, chunk.fChunkZ, dim);
             leveldb::Slice version(&kSubChunkVersion, 1);
             db.put(versionKey, version);
         }
@@ -140,7 +140,7 @@ private:
             bm.write(w);
             s->drain(buffer);
             leveldb::Slice data2D((char *)buffer.data(), buffer.size());
-            auto const& data2DKey = Keys::Data2D(chunk.fChunkX, chunk.fChunkZ, dim);
+            auto const& data2DKey = Key::Data2D(chunk.fChunkX, chunk.fChunkZ, dim);
             db.put(data2DKey, data2D);
         }
     }
@@ -314,7 +314,7 @@ private:
         vector<uint8_t> data;
         stream->drain(data);
         Slice subChunk((char *)data.data(), data.size());
-        auto const& subChunkKey = Keys::SubChunk(chunk.fChunkX, chunkY, chunk.fChunkZ, dim);
+        auto const& subChunkKey = Key::SubChunk(chunk.fChunkX, chunkY, chunk.fChunkZ, dim);
         db.put(subChunkKey, subChunk);
     }
 
