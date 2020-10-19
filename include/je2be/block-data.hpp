@@ -310,6 +310,17 @@ public:
             {"minecraft:ladder", FacingToFacingDirection},
             {"minecraft:chest", FacingToFacingDirection},
             {"minecraft:furnace", FacingToFacingDirection},
+            {"minecraft:nether_bricks", Rename("nether_brick")},
+            {"minecraft:infested_stone", InfestedStone("stone")},
+            {"minecraft:infested_cobblestone", InfestedStone("cobblestone")},
+            {"minecraft:infested_stone_bricks", InfestedStone("stone_brick")},
+            {"minecraft:infested_mossy_stone_bricks", InfestedStone("mossy_stone_brick")},
+            {"minecraft:infested_cracked_stone_bricks", InfestedStone("cracked_stone_brick")},
+            {"minecraft:infested_chiseled_stone_bricks", InfestedStone("chiseled_stone_brick")},
+            {"minecraft:torch", AnyTorch("")},
+            {"minecraft:wall_torch", AnyWallTorch("")},
+            {"minecraft:soul_torch", AnyTorch("soul_")},
+            {"minecraft:soul_wall_torch", AnyWallTorch("soul_")},
         };
 
         auto found = converterTable.find(block->fName);
@@ -339,6 +350,50 @@ private:
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
+
+    static std::string TorchFacingDirectionFromFacing(std::string const& facing) {
+        if (facing == "east") {
+            return "west";
+        } else if (facing == "west") {
+            return "east";
+        } else if (facing == "north") {
+            return "south";
+        } else {
+            return "north";
+        }
+    }
+
+    static ConverterFunction AnyTorch(std::string const& prefix) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New(prefix + "torch");
+            auto states = States();
+            states->fValue.emplace("torch_facing_direction", String("top"));
+            MergeProperties(block, *states, {});
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static ConverterFunction AnyWallTorch(std::string const& prefix) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New(prefix + "torch");
+            auto states = States();
+            auto facing = block.property("facing", "north");
+            auto direction = TorchFacingDirectionFromFacing(facing);
+            states->fValue.emplace("torch_facing_direction", String(direction));
+            MergeProperties(block, *states, { "facing" });
+            tag->fValue.emplace("states", states);
+            return tag;
+        };
+    }
+
+    static ConverterFunction InfestedStone(std::string const& type) {
+        return Subtype("monster_egg", "monster_egg_stone_type", type);
+    }
 
     static ConverterFunction Fence(std::string const& type) {
         return Subtype("fence", "wood_type", type);
