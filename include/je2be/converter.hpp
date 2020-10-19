@@ -106,15 +106,46 @@ private:
     }
 
     void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db) {
+        using namespace std;
+        using namespace mcfile;
+        using namespace mcfile::stream;
+
+        HeightMap hm;
+        BiomeMap bm;
+
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, db);
+            putSubChunk(chunk, dim, chunkY, db, hm);
         }
-        auto const& versionKey = Keys::Version(chunk.fChunkX, chunk.fChunkZ, dim);
-        leveldb::Slice version(&kSubChunkVersion, 1);
-        db.put(versionKey, version);
+        {
+            auto const& versionKey = Keys::Version(chunk.fChunkX, chunk.fChunkZ, dim);
+            leveldb::Slice version(&kSubChunkVersion, 1);
+            db.put(versionKey, version);
+        }
+        {
+            int const y = 0;
+            int const x0 = chunk.minBlockX();
+            int const z0 = chunk.minBlockZ();
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    auto biome = chunk.biomeAt(x + x0, z + z0);
+                    bm.set(x, z, biome);
+                }
+            }
+        }
+        {
+            vector<uint8_t> buffer(16 * 16 * 2 + 16 * 16);
+            auto s = make_shared<ByteStream>(buffer);
+            OutputStreamWriter w(s, { .fLittleEndian = true });
+            hm.write(w);
+            bm.write(w);
+            s->drain(buffer);
+            leveldb::Slice data2D((char *)buffer.data(), buffer.size());
+            auto const& data2DKey = Keys::Data2D(chunk.fChunkX, chunk.fChunkZ, dim);
+            db.put(data2DKey, data2D);
+        }
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, Db &db) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, Db &db, HeightMap &hm) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -156,6 +187,9 @@ private:
                     auto block = chunk.blockAt(bx, by, bz);
                     if (block) {
                         empty = false;
+                        if (!IsAir(*block)) {
+                            hm.update(x, by, z);
+                        }
                     }
                     string paletteKey = block ? block->toString() : "minecraft:air"s;
                     auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
@@ -290,6 +324,11 @@ private:
             return true;
         }
         return block.property("waterlogged", "false") == "true";
+    }
+
+    static bool IsAir(mcfile::Block const& block) {
+        auto const& name = block.fName;
+        return name == "minecraft:air" || name == "minecraft:cave_air";
     }
 
 private:

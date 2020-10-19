@@ -15,6 +15,8 @@ set(je2be_srcs
   include/je2be.hpp
   include/je2be/converter.hpp
   include/je2be/block-data.hpp
+  include/je2be/height-map.hpp
+  include/je2be/biome-map.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp

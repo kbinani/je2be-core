@@ -20,6 +20,20 @@ public:
         return std::string(b.data(), b.size());
     }
 
+    static std::string Data2D(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+        std::vector<char> b;
+        PlaceXZTag(b, chunkX, chunkZ, 0x2d);
+        SetDimension(b, dim);
+        return std::string(b.data(), b.size());
+    }
+
+    static std::string BiomeState(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+        std::vector<char> b;
+        PlaceXZTag(b, chunkX, chunkZ, 0x35);
+        SetDimension(b, dim);
+        return std::string(b.data(), b.size());
+    }
+
 private:
     static void PlaceXZTag(std::vector<char>& out, int32_t chunkX, int32_t chunkZ, uint8_t tag) {
         out.clear();
