@@ -608,6 +608,7 @@ private:
                 auto ageString = block.property("age", "0");
                 a = stoi(ageString);
             }
+            states->fValue.emplace(type + "_vines_age", Int(a));
             MergeProperties(block, *states, { "age" });
             tag->fValue.emplace("states", states);
             return tag;
