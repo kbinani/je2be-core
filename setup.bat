@@ -30,6 +30,14 @@ cmake --build . --target leveldb --config Debug
 cmake --build . --target leveldb --config Release
 popd
 
+rem xxHash
+mkdir xxHash
+pushd xxHash
+cmake %dir%\ext\xxHash\cmake_unofficial -DBUILD_SHARED_LIBS=OFF
+cmake --build . --target xxhash --config Debug
+cmake --build . --target xxhash --config Release
+popd
+
 popd
 
 cmake %dir%

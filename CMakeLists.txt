@@ -83,13 +83,15 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/std:c++latest -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
   list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
   list(APPEND je2be_include_directories "ext/zlib")
+  list(APPEND je2be_include_directories "ext/xxHash")
   list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/zlib/${CMAKE_BUILD_TYPE}")
-  list(APPEND je2be_link_libraries zlib)
+  list(APPEND je2be_link_libraries zlib xxhash)
 else()
   add_definitions(-std=c++17)
-  list(APPEND je2be_link_libraries z)
+  list(APPEND je2be_link_libraries z xxhash)
 endif()
 list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
+list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/xxHash/${CMAKE_BUILD_TYPE}")
 
 target_include_directories(je2be PRIVATE
   include
