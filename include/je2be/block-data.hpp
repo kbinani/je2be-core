@@ -354,7 +354,104 @@ private:
             {"wall_torch", AnyWallTorch("")},
             {"soul_torch", AnyTorch("soul_")},
             {"soul_wall_torch", AnyWallTorch("soul_")},
+            {"farmland", Farmland()},
+            {"red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false)},
+            {"brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false)},
+            {"mushroom_stem", AnyMushroomBlock("brown_mushroom_block", true)},
+            {"end_portal_frame", EndPortalFrame},
+            {"white_shulker_box", ShulkerBox("white")},
+            {"orange_shulker_box", ShulkerBox("orange")},
+            {"magenta_shulker_box", ShulkerBox("magenta")},
+            {"light_blue_shulker_box", ShulkerBox("light_blue")},
+            {"yellow_shulker_box", ShulkerBox("yellow")},
+            {"lime_shulker_box", ShulkerBox("lime")},
+            {"pink_shulker_box", ShulkerBox("pink")},
+            {"gray_shulker_box", ShulkerBox("gray")},
+            {"light_gray_shulker_box", ShulkerBox("silver")},
+            {"cyan_shulker_box", ShulkerBox("cyan")},
+            {"purple_shulker_box", ShulkerBox("purple")},
+            {"blue_shulker_box", ShulkerBox("blue")},
+            {"brown_shulker_box", ShulkerBox("brown")},
+            {"green_shulker_box", ShulkerBox("green")},
+            {"red_shulker_box", ShulkerBox("red")},
+            {"black_shulker_box", ShulkerBox("black")},
+            {"shulker_box", Rename("undyed_shulker_box")},
+            {"cobblestone_wall", Wall("cobblestone")},
+            {"mossy_cobblestone_wall", Wall("mossy_cobblestone")},
+            {"brick_wall", Wall("brick")},
+            {"prismarine_wall", Wall("prismarine")},
+            {"red_sandstone_wall", Wall("red_sandstone")},
+            {"mossy_stone_brick_wall", Wall("mossy_stone_brick")},
+            {"granite_wall", Wall("granite")},
+            {"andesite_wall", Wall("andesite")},
+            {"diorite_wall", Wall("diorite")},
+            {"stone_brick_wall", Wall("stone_brick")},
+            {"nether_brick_wall", Wall("nether_brick")},
+            {"red_nether_brick_wall", Wall("red_nether_brick")},
+            {"sandstone_wall", Wall("sandstone")},
+            {"end_stone_brick_wall", Wall("end_brick")},
+            {"blackstone_wall", WallNT},
+            {"polished_blackstone_wall", WallNT},
+            {"polished_blackstone_brick_wall", WallNT},
+            {"white_carpet", Carpet("white")},
+            {"orange_carpet", Carpet("orange")},
+            {"magenta_carpet", Carpet("magenta")},
+            {"light_blue_carpet", Carpet("light_blue")},
+            {"yellow_carpet", Carpet("yellow")},
+            {"lime_carpet", Carpet("lime")},
+            {"pink_carpet", Carpet("pink")},
+            {"gray_carpet", Carpet("gray")},
+            {"light_gray_carpet", Carpet("silver")},
+            {"cyan_carpet", Carpet("cyan")},
+            {"purple_carpet", Carpet("purple")},
+            {"blue_carpet", Carpet("blue")},
+            {"brown_carpet", Carpet("brown")},
+            {"green_carpet", Carpet("green")},
+            {"red_carpet", Carpet("red")},
+            {"black_carpet", Carpet("black")},
+            {"white_stained_glass_pane", StainedGlassPane("white")},
+            {"orange_stained_glass_pane", StainedGlassPane("orange")},
+            {"magenta_stained_glass_pane", StainedGlassPane("magenta")},
+            {"light_blue_stained_glass_pane", StainedGlassPane("light_blue")},
+            {"yellow_stained_glass_pane", StainedGlassPane("yellow")},
+            {"lime_stained_glass_pane", StainedGlassPane("lime")},
+            {"pink_stained_glass_pane", StainedGlassPane("pink")},
+            {"gray_stained_glass_pane", StainedGlassPane("gray")},
+            {"light_gray_stained_glass_pane", StainedGlassPane("silver")},
+            {"cyan_stained_glass_pane", StainedGlassPane("cyan")},
+            {"purple_stained_glass_pane", StainedGlassPane("purple")},
+            {"blue_stained_glass_pane", StainedGlassPane("blue")},
+            {"brown_stained_glass_pane", StainedGlassPane("brown")},
+            {"green_stained_glass_pane", StainedGlassPane("green")},
+            {"red_stained_glass_pane", StainedGlassPane("red")},
+            {"black_stained_glass_pane", StainedGlassPane("black")},
+            {"slime_block", Rename("slime")},
+            {"anvil", Anvil("undamaged")},
+            {"chipped_anvil", Anvil("slightly_damaged")},
+            {"damaged_anvil", Anvil("very_damaged")},
+            {"white_glazed_terracotta", FacingToFacingDirection},
+            {"orange_glazed_terracotta", FacingToFacingDirection},
+            {"magenta_glazed_terracotta", FacingToFacingDirection},
+            {"light_blue_glazed_terracotta", FacingToFacingDirection},
+            {"yellow_glazed_terracotta", FacingToFacingDirection},
+            {"lime_glazed_terracotta", FacingToFacingDirection},
+            {"pink_glazed_terracotta", FacingToFacingDirection},
+            {"gray_glazed_terracotta", FacingToFacingDirection},
+            {"light_gray_glazed_terracotta", SilverGlazedTerracotta},
+            {"cyan_glazed_terracotta", FacingToFacingDirection},
+            {"purple_glazed_terracotta", FacingToFacingDirection},
+            {"blue_glazed_terracotta", FacingToFacingDirection},
+            {"brown_glazed_terracotta", FacingToFacingDirection},
+            {"green_glazed_terracotta", FacingToFacingDirection},
+            {"red_glazed_terracotta", FacingToFacingDirection},
+            {"black_glazed_terracotta", FacingToFacingDirection},
         });
+
+        /*
+        TODO:
+        - direction of shulker box
+        */
+
         TableType* table = new TableType();
         for (auto it = base->begin(); it != base->end(); it++) {
             string name = it->first;
@@ -363,6 +460,151 @@ private:
         }
         delete base;
         return table;
+    }
+
+    static BlockDataType SilverGlazedTerracotta(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("silver_glazed_terracotta");
+        auto direction = FacingDirectionFromFacing(block);
+        auto states = States();
+        states->fValue.emplace("facing_direction", Int(direction));
+        return Complete(tag, block, states, {"facing"});
+    }
+
+    static ConverterFunction Anvil(std::string const& damage) {
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New("anvil");
+            auto states = States();
+            states->fValue.emplace("damage", String(damage));
+            auto direction = DirectionFromFacing(block);
+            states->fValue.emplace("direction", Int(direction));
+            return Complete(tag, block, states, {"facing"});
+        };
+    }
+
+    static ConverterFunction StainedGlassPane(std::string const& color) {
+        return Subtype("stained_glass_pane", "color", color);
+    }
+
+    static ConverterFunction Carpet(std::string const& color) {
+        return Subtype("carpet", "color", color);
+    }
+
+    static std::string WallConnectionType(std::string const& type) {
+        if (type == "low") {
+            return "short";
+        } else if (type == "tall") {
+            return "tall";
+        } else {
+            return "none";
+        }
+    }
+
+    static BlockDataType WallNT(Block const& block) {
+        using namespace props;
+        auto tag = New(block.fName, true);
+        auto states = States();
+        auto east = WallConnectionType(block.property("east", "none"));
+        auto north = WallConnectionType(block.property("north", "none"));
+        auto south = WallConnectionType(block.property("south", "none"));
+        auto west = WallConnectionType(block.property("west", "none"));
+        states->fValue.emplace("wall_connection_type_east", String(east));
+        states->fValue.emplace("wall_connection_type_north", String(north));
+        states->fValue.emplace("wall_connection_type_south", String(south));
+        states->fValue.emplace("wall_connection_type_west", String(west));
+        states->fValue.emplace("wall_post_bit", Bool(false));
+        return Complete(tag, block, states, {"east", "north", "south", "west"});
+    }
+
+    static ConverterFunction Wall(std::string const& type) {
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New("cobblestone_wall");
+            auto states = States();
+            states->fValue.emplace("wall_block_type", String(type));
+            auto east = WallConnectionType(block.property("east", "none"));
+            auto north = WallConnectionType(block.property("north", "none"));
+            auto south = WallConnectionType(block.property("south", "none"));
+            auto west = WallConnectionType(block.property("west", "none"));
+            states->fValue.emplace("wall_connection_type_east", String(east));
+            states->fValue.emplace("wall_connection_type_north", String(north));
+            states->fValue.emplace("wall_connection_type_south", String(south));
+            states->fValue.emplace("wall_connection_type_west", String(west));
+            return Complete(tag, block, states, {"east", "north", "south", "west"});
+        };
+    }
+
+    static ConverterFunction ShulkerBox(std::string const& color) {
+        return Subtype("shulker_box", "color", color);
+    }
+
+    static BlockDataType EndPortalFrame(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("end_portal_frame");
+        auto direction = DirectionFromFacing(block);
+        auto eye = block.property("eye", "false") == "true";
+        auto states = States();
+        states->fValue.emplace("direction", Int(direction));
+        states->fValue.emplace("end_portal_eye_bit", Bool(eye));
+        return Complete(tag, block, states, {"facing", "eye"});
+    }
+
+    static ConverterFunction Farmland() {
+        using namespace std;
+        static map<string, string> const moisture = {
+            {"moisture", "moisturized_amount"},
+        };
+        return Rename(nullopt, moisture);
+    }
+    
+    static ConverterFunction AnyMushroomBlock(std::string const& name, bool stem) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New(name);
+            auto up = block.property("up", "false") == "true";
+            auto down = block.property("down", "false") == "true";
+            auto north = block.property("north", "false") == "true";
+            auto east = block.property("east", "false") == "true";
+            auto south = block.property("south", "false") == "true";
+            auto west = block.property("west", "false") == "true";
+            int32_t bits = stem ? 15 : 14;
+            if (!up && !down && !north && !east && !south && !west) {
+                bits = 0;
+            } else if (up && west && north && !down && !east && !south) {
+                bits = 1;
+            } else if (up && north && !down && !east && !south && !west) {
+                bits = 2;
+            } else if (up && north && east && !down && !south && !west) {
+                bits = 3;
+            } else if (up && west && !down && !north && !east && !south) {
+                bits = 4;
+            } else if (up && !down && !north && !east && !south && !west) {
+                bits = 5;
+            } else if (up && east && !down && !north && !south && !west) {
+                bits = 6;
+            } else if (up && south && west && !down && !north && !east) {
+                bits = 7;
+            } else if (up && south && !down && !north && !east && !west) {
+                bits = 8;
+            } else if (up && east && south && !down && !north && !west) {
+                bits = 9;
+            } else if (north && east && south && west && !up && !down && stem) {
+                bits = 10;
+            } else if (up && down && north && east && south && west) {
+                if (stem) {
+                    bits = 15;
+                } else {
+                    bits = 14;
+                }
+            }
+            auto states = States();
+            states->fValue.emplace("huge_mushroom_bits", Int(bits));
+            return Complete(tag, block, states, {"up", "down", "north", "east", "south", "west"});
+        };
     }
 
     static std::string TorchFacingDirectionFromFacing(std::string const& facing) {
@@ -516,11 +758,7 @@ private:
         }
     }
 
-    static BlockDataType FacingToFacingDirection(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New(block.fName, true);
-        auto states = States();
+    static int32_t FacingDirectionFromFacing(Block const& block) {
         auto facing = block.property("facing", "north");
         int32_t direction = 2;
         if (facing == "east") {
@@ -532,6 +770,16 @@ private:
         } else if (facing == "north") {
             direction = 2;
         }
+        return direction;
+    }
+
+    static BlockDataType FacingToFacingDirection(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New(block.fName, true);
+        auto states = States();
+        auto facing = block.property("facing", "north");
+        int32_t direction = FacingDirectionFromFacing(block);
         states->fValue.emplace("facing_direction", Int(direction));
         return Complete(tag, block, states, { "facing" });
     }
@@ -787,7 +1035,7 @@ private:
         return Subtype("dirt", "dirt_type", dirtType);
     }
 
-    static ConverterFunction Rename(std::optional<std::string> to = std::nullopt , std::optional<std::unordered_map<std::string, std::string>> properties = std::nullopt) {
+    static ConverterFunction Rename(std::optional<std::string> to = std::nullopt , std::optional<std::map<std::string, std::string>> properties = std::nullopt) {
         using namespace std;
         using namespace props;
 
@@ -945,7 +1193,7 @@ private:
 
     static ConverterFunction AxisToPillarAxis() {
         using namespace std;
-        static unordered_map<string, string> const axisToPillarAxis = {
+        static map<string, string> const axisToPillarAxis = {
             {"axis", "pillar_axis"}
         };
         return Rename(std::nullopt, axisToPillarAxis);
