@@ -469,6 +469,24 @@ private:
             {"dead_bubble_coral_fan", CoralFan("purple", true)},
             {"dead_fire_coral_fan", CoralFan("red", true)},
             {"dead_horn_coral_fan", CoralFan("yellow", true)},
+
+            {"oak_sign", Sign()},
+            {"spruce_sign", Sign("spruce")},
+            {"birch_sign", Sign("birch")},
+            {"jungle_sign", Sign("jungle")},
+            {"acacia_sign", Sign("acacia")},
+            {"dark_oak_sign", Sign("darkoak")},
+            {"crimson_sign", Sign("crimson")},
+            {"warped_sign", Sign("warped")},
+
+            {"oak_wall_sign", WallSign()},
+            {"spruce_wall_sign", WallSign("spruce")},
+            {"birch_wall_sign", WallSign("birch")},
+            {"jungle_wall_sign", WallSign("jungle")},
+            {"acacia_wall_sign", WallSign("acacia")},
+            {"dark_wall_oak_sign", WallSign("darkoak")},
+            {"crimson_wall_sign", WallSign("crimson")},
+            {"warped_wall_sign", WallSign("warped")},
         });
 
         /*
@@ -484,6 +502,32 @@ private:
         }
         delete base;
         return table;
+    }
+
+    static ConverterFunction WallSign(std::optional<std::string> prefix = std::nullopt) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
+            auto tag = New(name);
+            auto direction = FacingDirectionFromFacing(block);
+            auto states = States();
+            states->fValue.emplace("facing_direction", Int(direction));
+            return Complete(tag, block, states, {"facing"});
+        };
+    }
+
+    static ConverterFunction Sign(std::optional<std::string> prefix = std::nullopt) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            string name = prefix ? *prefix + "_standing_sign" : "standing_sign";
+            auto tag = New(name);
+            auto rotation = block.property("rotation", "0");
+            auto states = States();
+            states->fValue.emplace("ground_sign_direction", Int(stoi(rotation)));
+            return Complete(tag, block, states, {"rotation"});
+        };
     }
 
     static ConverterFunction CoralFan(std::string const& type, bool dead) {
