@@ -112,14 +112,10 @@ private:
 
         HeightMap hm;
         BiomeMap bm;
+        ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, db, hm);
-        }
-        {
-            auto const& versionKey = Key::Version(chunk.fChunkX, chunk.fChunkZ, dim);
-            leveldb::Slice version(&kSubChunkVersion, 1);
-            db.put(versionKey, version);
+            putSubChunk(chunk, dim, chunkY, cd, hm);
         }
         {
             int const y = 0;
@@ -133,19 +129,17 @@ private:
             }
         }
         {
-            vector<uint8_t> buffer(16 * 16 * 2 + 16 * 16);
-            auto s = make_shared<ByteStream>(buffer);
+            auto s = make_shared<ByteStream>();
             OutputStreamWriter w(s, { .fLittleEndian = true });
             hm.write(w);
             bm.write(w);
-            s->drain(buffer);
-            leveldb::Slice data2D((char *)buffer.data(), buffer.size());
-            auto const& data2DKey = Key::Data2D(chunk.fChunkX, chunk.fChunkZ, dim);
-            db.put(data2DKey, data2D);
+            s->drain(cd.fData2D);
         }
+
+        cd.put(db);
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, Db &db, HeightMap &hm) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -311,11 +305,7 @@ private:
             water->write(w);
         }
         
-        vector<uint8_t> data;
-        stream->drain(data);
-        Slice subChunk((char *)data.data(), data.size());
-        auto const& subChunkKey = Key::SubChunk(chunk.fChunkX, chunkY, chunk.fChunkZ, dim);
-        db.put(subChunkKey, subChunk);
+        stream->drain(cd.fSubChunks[chunkY]);
     }
 
     static bool IsWaterLogged(mcfile::Block const& block) {
@@ -339,7 +329,6 @@ private:
 
 private:
     uint8_t const kBlockStorageVersion = 8;
-    char const kSubChunkVersion = 19;
 };
 
 }

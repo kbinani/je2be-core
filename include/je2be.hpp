@@ -3,6 +3,7 @@
 #include <minecraft-file.hpp>
 #include <leveldb/db.h>
 #include <table/compression/zlib_compressor.h>
+#include <xxhash.h>
 
 #include <optional>
 #include <set>
@@ -17,4 +18,5 @@
 #include <je2be/db.hpp>
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
+#include <je2be/chunk-data.hpp>
 #include <je2be/converter.hpp>
