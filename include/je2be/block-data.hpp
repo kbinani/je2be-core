@@ -321,16 +321,16 @@ private:
             {"acacia_sapling", Sapling("acacia")},
             {"spruce_sapling", Sapling("spruce")},
             {"dark_oak_sapling", Sapling("dark_oak")},
-            {"tube_coral_block", Coral("blue", false)},
-            {"brain_coral_block", Coral("pink", false)},
-            {"bubble_coral_block", Coral("purple", false)},
-            {"fire_coral_block", Coral("red", false)},
-            {"horn_coral_block", Coral("yellow", false)},
-            {"dead_tube_coral_block", Coral("blue", true)},
-            {"dead_brain_coral_block", Coral("pink", true)},
-            {"dead_bubble_coral_block", Coral("purple", true)},
-            {"dead_fire_coral_block", Coral("red", true)},
-            {"dead_horn_coral_block", Coral("yellow", true)},
+            {"tube_coral_block", CoralBlock("blue", false)},
+            {"brain_coral_block", CoralBlock("pink", false)},
+            {"bubble_coral_block", CoralBlock("purple", false)},
+            {"fire_coral_block", CoralBlock("red", false)},
+            {"horn_coral_block", CoralBlock("yellow", false)},
+            {"dead_tube_coral_block", CoralBlock("blue", true)},
+            {"dead_brain_coral_block", CoralBlock("pink", true)},
+            {"dead_bubble_coral_block", CoralBlock("purple", true)},
+            {"dead_fire_coral_block", CoralBlock("red", true)},
+            {"dead_horn_coral_block", CoralBlock("yellow", true)},
             {"snow", SnowLayer},
             {"sugar_cane", Rename("reeds")},
             {"end_rod", EndRod},
@@ -445,6 +445,30 @@ private:
             {"green_glazed_terracotta", FacingToFacingDirection},
             {"red_glazed_terracotta", FacingToFacingDirection},
             {"black_glazed_terracotta", FacingToFacingDirection},
+
+            {"tube_coral", Coral("blue", false)},
+            {"brain_coral", Coral("pink", false)},
+            {"bubble_coral", Coral("purple", false)},
+            {"fire_coral", Coral("red", false)},
+            {"horn_coral", Coral("yellow", false)},
+
+            {"dead_tube_coral", Coral("blue", true)},
+            {"dead_brain_coral", Coral("pink", true)},
+            {"dead_bubble_coral", Coral("purple", true)},
+            {"dead_fire_coral", Coral("red", true)},
+            {"dead_horn_coral", Coral("yellow", true)},
+
+            {"tube_coral_fan", CoralFan("blue", false)},
+            {"brain_coral_fan", CoralFan("pink", false)},
+            {"bubble_coral_fan", CoralFan("purple", false)},
+            {"fire_coral_fan", CoralFan("red", false)},
+            {"horn_coral_fan", CoralFan("yellow", false)},
+
+            {"dead_tube_coral_fan", CoralFan("blue", true)},
+            {"dead_brain_coral_fan", CoralFan("pink", true)},
+            {"dead_bubble_coral_fan", CoralFan("purple", true)},
+            {"dead_fire_coral_fan", CoralFan("red", true)},
+            {"dead_horn_coral_fan", CoralFan("yellow", true)},
         });
 
         /*
@@ -460,6 +484,30 @@ private:
         }
         delete base;
         return table;
+    }
+
+    static ConverterFunction CoralFan(std::string const& type, bool dead) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New(dead ? "coral_fan_dead" : "coral_fan");
+            auto states = States();
+            states->fValue.emplace("coral_color", String(type));
+            states->fValue.emplace("coral_fan_direction", Int(0));
+            return Complete(tag, block, states);
+        };
+    }
+
+    static ConverterFunction Coral(std::string const& type, bool dead) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New("coral");
+            auto states = States();
+            states->fValue.emplace("coral_color", String(type));
+            states->fValue.emplace("dead_bit", Bool(dead));
+            return Complete(tag, block, states);
+        };
     }
 
     static BlockDataType SilverGlazedTerracotta(Block const& block) {
@@ -686,7 +734,7 @@ private:
         return Complete(tag, block, states, {"layers"});
     }
 
-    static ConverterFunction Coral(std::string const& color, bool dead) {
+    static ConverterFunction CoralBlock(std::string const& color, bool dead) {
         using namespace std;
         using namespace props;
         return [=](Block const& block) {
