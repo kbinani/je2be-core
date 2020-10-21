@@ -9,7 +9,7 @@ public:
         using namespace props;
         using namespace mcfile::nbt;
 
-        static unordered_map<string, ConverterFunction> const* const converterTable = PrepareConverterTable();
+        static unique_ptr<unordered_map<string, ConverterFunction> const> const converterTable(CreateConverterTable());
 
         auto found = converterTable->find(block->fName);
         if (found == converterTable->end()) {
@@ -39,549 +39,559 @@ private:
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
 
-    static std::unordered_map<std::string, ConverterFunction>* PrepareConverterTable() {
+    static std::unordered_map<std::string, ConverterFunction>* CreateConverterTable() {
         using namespace std;
-        using TableType = unordered_map<string, ConverterFunction>;
-        TableType* base = new TableType({
-            {"stone", Stone("stone")},
-            {"granite", Stone("granite")},
-            {"polished_granite", Stone("granite_smooth")},
-            {"andesite", Stone("andesite")},
-            {"polished_andesite", Stone("andesite_smooth")},
-            {"diorite", Stone("diorite")},
-            {"polished_diorite", Stone("diorite_smooth")},
-            {"dirt", Dirt("normal")},
-            {"coarse_dirt", Dirt("coarse")},
-            {"grass_block", Rename("grass")},
-            {"oak_log", Log("oak")},
-            {"spruce_log", Log("spruce")},
-            {"birch_log", Log("birch")},
-            {"jungle_log", Log("jungle")},
-            {"acacia_log", Log2("acacia")},
-            {"dark_oak_log", Log2("dark_oak")},
-            {"oak_wood", Wood("oak", false)},
-            {"spruce_wood", Wood("spruce", false)},
-            {"birch_wood", Wood("birch", false)},
-            {"acacia_wood", Wood("acacia", false)},
-            {"jungle_wood", Wood("jungle", false)},
-            {"dark_oak_wood", Wood("dark_oak", false)},
-            {"stripped_oak_wood", Wood("oak", true)},
-            {"stripped_spruce_wood", Wood("spruce", true)},
-            {"stripped_birch_wood", Wood("birch", true)},
-            {"stripped_acacia_wood", Wood("acacia", true)},
-            {"stripped_jungle_wood", Wood("jungle", true)},
-            {"stripped_dark_oak_wood", Wood("dark_oak", true)},
-            {"oak_leaves", Leaves("oak")},
-            {"spruce_leaves", Leaves("spruce")},
-            {"birch_leaves", Leaves("birch")},
-            {"jungle_leaves", Leaves("jungle")},
-            {"acacia_leaves", Leaves2("acacia")},
-            {"dark_oak_leaves", Leaves2("dark_oak")},
-            {"crimson_hyphae", AxisToPillarAxis()},
-            {"warped_hyphae", AxisToPillarAxis()},
-            {"stripped_crimson_hyphae", AxisToPillarAxis()},
-            {"stripped_warped_hyphae", AxisToPillarAxis()},
-            {"oak_slab", WoodenSlab("oak")},
-            {"birch_slab", WoodenSlab("birch")},
-            {"spruce_slab", WoodenSlab("spruce")},
-            {"jungle_slab", WoodenSlab("jungle")},
-            {"acacia_slab", WoodenSlab("acacia")},
-            {"dark_oak_slab", WoodenSlab("dark_oak")},
-            {"petrified_oak_slab", WoodenSlab("oak")},
-            {"stone_slab", StoneSlab4("stone")},
-            {"granite_slab", StoneSlab3("granite")},
-            {"andesite_slab", StoneSlab3("andesite")},
-            {"diorite_slab", StoneSlab3("diorite")},
-            {"cobblestone_slab", StoneSlab("cobblestone")},
-            {"stone_brick_slab", StoneSlab("stone_brick")},
-            {"brick_slab", StoneSlab("brick")},
-            {"sandstone_slab", StoneSlab("sandstone")},
-            {"smooth_sandstone_slab", StoneSlab2("smooth_sandstone")},
-            {"smooth_stone_slab", StoneSlab("smooth_stone")},
-            {"nether_brick_slab", StoneSlab("nether_brick")},
-            {"quartz_slab", StoneSlab("quartz")},
-            {"smooth_quartz_slab", StoneSlab4("smooth_quartz")},
-            {"red_sandstone_slab", StoneSlab2("red_sandstone")},
-            {"smooth_red_sandstone_slab", StoneSlab3("smooth_red_sandstone")},
-            {"cut_red_sandstone_slab", StoneSlab4("cut_red_sandstone")},
-            {"mossy_cobblestone_slab", StoneSlab2("mossy_cobblestone")},
-            {"polished_diorite_slab", StoneSlab3("polished_diorite")},
-            {"mossy_stone_brick_slab", StoneSlab4("mossy_stone_brick")},
-            {"polished_granite_slab", StoneSlab3("polished_granite")},
-            {"dark_prismarine_slab", StoneSlab2("prismarine_dark")},
-            {"prismarine_brick_slab", StoneSlab2("prismarine_brick")},
-            {"prismarine_slab", StoneSlab2("prismarine_rough")},
-            {"purpur_slab", StoneSlab2("purpur")},
-            {"cut_sandstone_slab", StoneSlab4("cut_sandstone")},
-            {"polished_blackstone_brick_slab", StoneSlabNT("polished_blackstone_brick_double_slab")},
-            {"polished_blackstone_slab", StoneSlabNT("polished_blackstone_double_slab")},
-            {"blackstone_slab", StoneSlabNT("blackstone_double_slab")},
-            {"polished_andesite_slab", StoneSlab3("polished_andesite")},
-            {"red_nether_brick_slab", StoneSlab2("red_nether_brick")},
-            {"end_stone_brick_slab", StoneSlab3("end_stone_brick")},
-            {"warped_slab", StoneSlabNT("warped_double_slab")},
-            {"crimson_slab", StoneSlabNT("crimson_double_slab")},
-            {"grass", TallGrass("tall")},
-            {"tall_grass", DoublePlant("grass")},
-            {"large_fern", DoublePlant("fern")},
-            {"fern", TallGrass("fern")},
-            {"lilac", DoublePlant("syringa")},
-            {"rose_bush", DoublePlant("rose")},
-            {"peony", DoublePlant("paeonia")},
-            {"sunflower", DoublePlant("sunflower")},
-            {"dead_bush", Rename("deadbush")},
-            {"sea_pickle", SeaPickle},
-            {"dandelion", Rename("yellow_flower")},
-            {"poppy", RedFlower("poppy")},
-            {"blue_orchid", RedFlower("orchid")},
-            {"allium", RedFlower("allium")},
-            {"azure_bluet", RedFlower("houstonia")},
-            {"red_tulip", RedFlower("tulip_red")},
-            {"orange_tulip", RedFlower("tulip_orange")},
-            {"white_tulip", RedFlower("tulip_white")},
-            {"pink_tulip", RedFlower("tulip_pink")},
-            {"oxeye_daisy", RedFlower("oxeye")},
-            {"cornflower", RedFlower("cornflower")},
-            {"lily_of_the_valley", RedFlower("lily_of_the_valley")},
-            {"seagrass", Seagrass},
-            {"tall_seagrass", TallSeagrass},
-            {"kelp", Kelp()},
-            {"kelp_plant", Kelp(16)},
-            {"water", Liquid("water")},
-            {"lava", Liquid("lava")},
-            {"weeping_vines_plant", NetherVines("weeping", 25)}, //TODO(kbinani): is 25 correct?
-            {"weeping_vines", NetherVines("weeping")},
-            {"twisting_vines_plant", NetherVines("twisting", 25)}, //TODO(kbinani): is 25 correct?
-            {"twisting_vines", NetherVines("twisting")},
-            {"vine", Vine},
-            {"cobblestone_stairs", Stairs("stone_stairs")},
-            {"stone_stairs", Stairs("normal_stone_stairs")},
-            {"end_stone_brick_stairs", Stairs("end_brick_stairs")},
-            {"prismarine_brick_stairs", Stairs("prismarine_bricks_stairs")},
-            {"oak_stairs", Stairs()},
-            {"spruce_stairs", Stairs()},
-            {"birch_stairs", Stairs()},
-            {"jungle_stairs", Stairs()},
-            {"acacia_stairs", Stairs()},
-            {"dark_oak_stairs", Stairs()},
-            {"crimson_stairs", Stairs()},
-            {"warped_stairs", Stairs()},
-            {"granite_stairs", Stairs()},
-            {"polished_granite_stairs", Stairs()},
-            {"diorite_stairs", Stairs()},
-            {"polished_diorite_stairs", Stairs()},
-            {"andesite_stairs", Stairs()},
-            {"polished_andesite_stairs", Stairs()},
-            {"cobblestone_stairs", Stairs()},
-            {"mossy_cobblestone_stairs", Stairs()},
-            {"stone_brick_stairs", Stairs()},
-            {"mossy_stone_brick_stairs", Stairs()},
-            {"brick_stairs", Stairs()},
-            {"end_stone_brick_stairs", Stairs()},
-            {"nether_brick_stairs", Stairs()},
-            {"red_nether_brick_stairs", Stairs()},
-            {"sandstone_stairs", Stairs()},
-            {"smooth_sandstone_stairs", Stairs()},
-            {"red_sandstone_stairs", Stairs()},
-            {"smooth_red_sandstone_stairs", Stairs()},
-            {"quartz_stairs", Stairs()},
-            {"smooth_quartz_stairs", Stairs()},
-            {"purpur_stairs", Stairs()},
-            {"prismarine_stairs", Stairs()},
-            {"prismarine_brick_stairs", Stairs()},
-            {"dark_prismarine_stairs", Stairs()},
-            {"blackstone_stairs", Stairs()},
-            {"polished_blackstone_stairs", Stairs()},
-            {"polished_blackstone_brick_stairs", Stairs()},
-            {"sponge", Sponge("dry")},
-            {"wet_sponge", Sponge("wet")},
-            {"sandstone", Sandstone("default")},
-            {"chiseled_sandstone", Sandstone("heiroglyphs")},
-            {"cut_sandstone", Sandstone("cut")},
-            {"smooth_sandstone", Sandstone("smooth")},
-            {"red_sandstone", RedSandstone("default")},
-            {"chiseled_red_sandstone", RedSandstone("heiroglyphs")},
-            {"cut_red_sandstone", RedSandstone("cut")},
-            {"smooth_red_sandstone", RedSandstone("smooth")},
-            {"white_wool", Wool("white")},
-            {"orange_wool", Wool("orange")},
-            {"magenta_wool", Wool("magenta")},
-            {"light_blue_wool", Wool("light_blue")},
-            {"yellow_wool", Wool("yellow")},
-            {"lime_wool", Wool("lime")},
-            {"pink_wool", Wool("pink")},
-            {"gray_wool", Wool("gray")},
-            {"light_gray_wool", Wool("silver")},
-            {"cyan_wool", Wool("cyan")},
-            {"purple_wool", Wool("purple")},
-            {"blue_wool", Wool("blue")},
-            {"brown_wool", Wool("brown")},
-            {"green_wool", Wool("green")},
-            {"red_wool", Wool("red")},
-            {"black_wool", Wool("black")},
-            {"snow_block", Rename("snow")},
-            {"quartz_block", QuartzBlock("default")},
-            {"smooth_quartz", QuartzBlock("smooth")},
-            {"quartz_pillar", QuartzBlock("lines")},
-            {"chiseled_quartz_block", QuartzBlock("chiseled")},
-            {"bricks", Rename("brick_block")},
-            {"sand", Sand("normal")},
-            {"red_sand", Sand("red")},
-            {"oak_planks", Planks("oak")},
-            {"spruce_planks", Planks("spruce")},
-            {"birch_planks", Planks("birch")},
-            {"jungle_planks", Planks("jungle")},
-            {"acacia_planks", Planks("acacia")},
-            {"dark_oak_planks", Planks("dark_oak")},
-            {"purpur_block", PurpurBlock("default")},
-            {"purpur_pillar", PurpurBlock("lines")},
-            {"jack_o_lantern", LitPumpkin},
-            {"carved_pumpkin", FacingToDirection},
-            {"white_stained_glass", StainedGlass("white")},
-            {"orange_stained_glass", StainedGlass("orange")},
-            {"magenta_stained_glass", StainedGlass("magenta")},
-            {"light_blue_stained_glass", StainedGlass("light_blue")},
-            {"yellow_stained_glass", StainedGlass("yellow")},
-            {"lime_stained_glass", StainedGlass("lime")},
-            {"pink_stained_glass", StainedGlass("pink")},
-            {"gray_stained_glass", StainedGlass("gray")},
-            {"light_gray_stained_glass", StainedGlass("silver")},
-            {"cyan_stained_glass", StainedGlass("cyan")},
-            {"purple_stained_glass", StainedGlass("purple")},
-            {"blue_stained_glass", StainedGlass("blue")},
-            {"brown_stained_glass", StainedGlass("brown")},
-            {"green_stained_glass", StainedGlass("green")},
-            {"red_stained_glass", StainedGlass("red")},
-            {"black_stained_glass", StainedGlass("black")},
-            {"white_concrete_powder", ConcretePowder("white")},
-            {"orange_concrete_powder", ConcretePowder("orange")},
-            {"magenta_concrete_powder", ConcretePowder("magenta")},
-            {"light_blue_concrete_powder", ConcretePowder("light_blue")},
-            {"yellow_concrete_powder", ConcretePowder("yellow")},
-            {"lime_concrete_powder", ConcretePowder("lime")},
-            {"pink_concrete_powder", ConcretePowder("pink")},
-            {"gray_concrete_powder", ConcretePowder("gray")},
-            {"light_gray_concrete_powder", ConcretePowder("silver")},
-            {"cyan_concrete_powder", ConcretePowder("cyan")},
-            {"purple_concrete_powder", ConcretePowder("purple")},
-            {"blue_concrete_powder", ConcretePowder("blue")},
-            {"brown_concrete_powder", ConcretePowder("brown")},
-            {"green_concrete_powder", ConcretePowder("green")},
-            {"red_concrete_powder", ConcretePowder("red")},
-            {"black_concrete_powder", ConcretePowder("black")},
-            {"white_concrete", Concrete("white")},
-            {"orange_concrete", Concrete("orange")},
-            {"magenta_concrete", Concrete("magenta")},
-            {"light_blue_concrete", Concrete("light_blue")},
-            {"yellow_concrete", Concrete("yellow")},
-            {"lime_concrete", Concrete("lime")},
-            {"pink_concrete", Concrete("pink")},
-            {"gray_concrete", Concrete("gray")},
-            {"light_gray_concrete", Concrete("silver")},
-            {"cyan_concrete", Concrete("cyan")},
-            {"purple_concrete", Concrete("purple")},
-            {"blue_concrete", Concrete("blue")},
-            {"brown_concrete", Concrete("brown")},
-            {"green_concrete", Concrete("green")},
-            {"red_concrete", Concrete("red")},
-            {"black_concrete", Concrete("black")},
-            {"white_terracotta", Terracotta("white")},
-            {"orange_terracotta", Terracotta("orange")},
-            {"magenta_terracotta", Terracotta("magenta")},
-            {"light_blue_terracotta", Terracotta("light_blue")},
-            {"yellow_terracotta", Terracotta("yellow")},
-            {"lime_terracotta", Terracotta("lime")},
-            {"pink_terracotta", Terracotta("pink")},
-            {"gray_terracotta", Terracotta("gray")},
-            {"light_gray_terracotta", Terracotta("silver")},
-            {"cyan_terracotta", Terracotta("cyan")},
-            {"purple_terracotta", Terracotta("purple")},
-            {"blue_terracotta", Terracotta("blue")},
-            {"brown_terracotta", Terracotta("brown")},
-            {"green_terracotta", Terracotta("green")},
-            {"red_terracotta", Terracotta("red")},
-            {"black_terracotta", Terracotta("black")},
-            {"nether_quartz_ore", Rename("quartz_ore")},
-            {"red_nether_bricks", Rename("red_nether_brick")},
-            {"magma_block", Rename("magma")},
-            {"sea_lantern", Rename("seaLantern")},
-            {"prismarine_bricks", Prismarine("bricks")},
-            {"dark_prismarine", Prismarine("dark")},
-            {"prismarine", Prismarine("default")},
-            {"terracotta", Rename("hardened_clay")},
-            {"end_stone_bricks", Rename("end_bricks")},
-            {"melon", Rename("melon_block")},
-            {"chiseled_stone_bricks", StoneBrick("chiseled")},
-            {"cracked_stone_bricks", StoneBrick("cracked")},
-            {"mossy_stone_bricks", StoneBrick("mossy")},
-            {"stone_bricks", StoneBrick("default")},
-            {"oak_sapling", Sapling("oak")},
-            {"birch_sapling", Sapling("birch")},
-            {"jungle_sapling", Sapling("jungle")},
-            {"acacia_sapling", Sapling("acacia")},
-            {"spruce_sapling", Sapling("spruce")},
-            {"dark_oak_sapling", Sapling("dark_oak")},
-            {"tube_coral_block", CoralBlock("blue", false)},
-            {"brain_coral_block", CoralBlock("pink", false)},
-            {"bubble_coral_block", CoralBlock("purple", false)},
-            {"fire_coral_block", CoralBlock("red", false)},
-            {"horn_coral_block", CoralBlock("yellow", false)},
-            {"dead_tube_coral_block", CoralBlock("blue", true)},
-            {"dead_brain_coral_block", CoralBlock("pink", true)},
-            {"dead_bubble_coral_block", CoralBlock("purple", true)},
-            {"dead_fire_coral_block", CoralBlock("red", true)},
-            {"dead_horn_coral_block", CoralBlock("yellow", true)},
-            {"snow", SnowLayer},
-            {"sugar_cane", Rename("reeds")},
-            {"end_rod", EndRod},
-            {"oak_fence", Fence("oak")},
-            {"spruce_fence", Fence("spruce")},
-            {"birch_fence", Fence("birch")},
-            {"jungle_fence", Fence("jungle")},
-            {"acacia_fence", Fence("acacia")},
-            {"dark_oak_fence", Fence("dark_oak")},
-            {"ladder", FacingToFacingDirection},
-            {"chest", FacingToFacingDirection},
-            {"furnace", FacingToFacingDirection},
-            {"nether_bricks", Rename("nether_brick")},
-            {"infested_stone", InfestedStone("stone")},
-            {"infested_cobblestone", InfestedStone("cobblestone")},
-            {"infested_stone_bricks", InfestedStone("stone_brick")},
-            {"infested_mossy_stone_bricks", InfestedStone("mossy_stone_brick")},
-            {"infested_cracked_stone_bricks", InfestedStone("cracked_stone_brick")},
-            {"infested_chiseled_stone_bricks", InfestedStone("chiseled_stone_brick")},
-            {"torch", AnyTorch("")},
-            {"wall_torch", AnyWallTorch("")},
-            {"soul_torch", AnyTorch("soul_")},
-            {"soul_wall_torch", AnyWallTorch("soul_")},
-            {"farmland", Farmland()},
-            {"red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false)},
-            {"brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false)},
-            {"mushroom_stem", AnyMushroomBlock("brown_mushroom_block", true)},
-            {"end_portal_frame", EndPortalFrame},
-            {"white_shulker_box", ShulkerBox("white")},
-            {"orange_shulker_box", ShulkerBox("orange")},
-            {"magenta_shulker_box", ShulkerBox("magenta")},
-            {"light_blue_shulker_box", ShulkerBox("light_blue")},
-            {"yellow_shulker_box", ShulkerBox("yellow")},
-            {"lime_shulker_box", ShulkerBox("lime")},
-            {"pink_shulker_box", ShulkerBox("pink")},
-            {"gray_shulker_box", ShulkerBox("gray")},
-            {"light_gray_shulker_box", ShulkerBox("silver")},
-            {"cyan_shulker_box", ShulkerBox("cyan")},
-            {"purple_shulker_box", ShulkerBox("purple")},
-            {"blue_shulker_box", ShulkerBox("blue")},
-            {"brown_shulker_box", ShulkerBox("brown")},
-            {"green_shulker_box", ShulkerBox("green")},
-            {"red_shulker_box", ShulkerBox("red")},
-            {"black_shulker_box", ShulkerBox("black")},
-            {"shulker_box", Rename("undyed_shulker_box")},
-            {"cobblestone_wall", Wall("cobblestone")},
-            {"mossy_cobblestone_wall", Wall("mossy_cobblestone")},
-            {"brick_wall", Wall("brick")},
-            {"prismarine_wall", Wall("prismarine")},
-            {"red_sandstone_wall", Wall("red_sandstone")},
-            {"mossy_stone_brick_wall", Wall("mossy_stone_brick")},
-            {"granite_wall", Wall("granite")},
-            {"andesite_wall", Wall("andesite")},
-            {"diorite_wall", Wall("diorite")},
-            {"stone_brick_wall", Wall("stone_brick")},
-            {"nether_brick_wall", Wall("nether_brick")},
-            {"red_nether_brick_wall", Wall("red_nether_brick")},
-            {"sandstone_wall", Wall("sandstone")},
-            {"end_stone_brick_wall", Wall("end_brick")},
-            {"blackstone_wall", WallNT},
-            {"polished_blackstone_wall", WallNT},
-            {"polished_blackstone_brick_wall", WallNT},
-            {"white_carpet", Carpet("white")},
-            {"orange_carpet", Carpet("orange")},
-            {"magenta_carpet", Carpet("magenta")},
-            {"light_blue_carpet", Carpet("light_blue")},
-            {"yellow_carpet", Carpet("yellow")},
-            {"lime_carpet", Carpet("lime")},
-            {"pink_carpet", Carpet("pink")},
-            {"gray_carpet", Carpet("gray")},
-            {"light_gray_carpet", Carpet("silver")},
-            {"cyan_carpet", Carpet("cyan")},
-            {"purple_carpet", Carpet("purple")},
-            {"blue_carpet", Carpet("blue")},
-            {"brown_carpet", Carpet("brown")},
-            {"green_carpet", Carpet("green")},
-            {"red_carpet", Carpet("red")},
-            {"black_carpet", Carpet("black")},
-            {"white_stained_glass_pane", StainedGlassPane("white")},
-            {"orange_stained_glass_pane", StainedGlassPane("orange")},
-            {"magenta_stained_glass_pane", StainedGlassPane("magenta")},
-            {"light_blue_stained_glass_pane", StainedGlassPane("light_blue")},
-            {"yellow_stained_glass_pane", StainedGlassPane("yellow")},
-            {"lime_stained_glass_pane", StainedGlassPane("lime")},
-            {"pink_stained_glass_pane", StainedGlassPane("pink")},
-            {"gray_stained_glass_pane", StainedGlassPane("gray")},
-            {"light_gray_stained_glass_pane", StainedGlassPane("silver")},
-            {"cyan_stained_glass_pane", StainedGlassPane("cyan")},
-            {"purple_stained_glass_pane", StainedGlassPane("purple")},
-            {"blue_stained_glass_pane", StainedGlassPane("blue")},
-            {"brown_stained_glass_pane", StainedGlassPane("brown")},
-            {"green_stained_glass_pane", StainedGlassPane("green")},
-            {"red_stained_glass_pane", StainedGlassPane("red")},
-            {"black_stained_glass_pane", StainedGlassPane("black")},
-            {"slime_block", Rename("slime")},
-            {"anvil", Anvil("undamaged")},
-            {"chipped_anvil", Anvil("slightly_damaged")},
-            {"damaged_anvil", Anvil("very_damaged")},
-            {"white_glazed_terracotta", FacingToFacingDirection},
-            {"orange_glazed_terracotta", FacingToFacingDirection},
-            {"magenta_glazed_terracotta", FacingToFacingDirection},
-            {"light_blue_glazed_terracotta", FacingToFacingDirection},
-            {"yellow_glazed_terracotta", FacingToFacingDirection},
-            {"lime_glazed_terracotta", FacingToFacingDirection},
-            {"pink_glazed_terracotta", FacingToFacingDirection},
-            {"gray_glazed_terracotta", FacingToFacingDirection},
-            {"light_gray_glazed_terracotta", SilverGlazedTerracotta},
-            {"cyan_glazed_terracotta", FacingToFacingDirection},
-            {"purple_glazed_terracotta", FacingToFacingDirection},
-            {"blue_glazed_terracotta", FacingToFacingDirection},
-            {"brown_glazed_terracotta", FacingToFacingDirection},
-            {"green_glazed_terracotta", FacingToFacingDirection},
-            {"red_glazed_terracotta", FacingToFacingDirection},
-            {"black_glazed_terracotta", FacingToFacingDirection},
+        auto table = new unordered_map<string, ConverterFunction>();
+#define E(__name, __func) table->emplace("minecraft:"##__name, __func);
+        E("stone", Stone("stone"));
+        E("granite", Stone("granite"));
+        E("polished_granite", Stone("granite_smooth"));
+        E("andesite", Stone("andesite"));
+        E("polished_andesite", Stone("andesite_smooth"));
+        E("diorite", Stone("diorite"));
+        E("polished_diorite", Stone("diorite_smooth"));
+        E("dirt", Dirt("normal"));
+        E("coarse_dirt", Dirt("coarse"));
+        E("grass_block", Rename("grass"));
+        E("oak_log", Log("oak"));
+        E("spruce_log", Log("spruce"));
+        E("birch_log", Log("birch"));
+        E("jungle_log", Log("jungle"));
+        E("acacia_log", Log2("acacia"));
+        E("dark_oak_log", Log2("dark_oak"));
+        E("crimson_stem", AxisToPillarAxis());
+        E("warped_stem", AxisToPillarAxis());
 
-            {"tube_coral", Coral("blue", false)},
-            {"brain_coral", Coral("pink", false)},
-            {"bubble_coral", Coral("purple", false)},
-            {"fire_coral", Coral("red", false)},
-            {"horn_coral", Coral("yellow", false)},
+        E("stripped_oak_log", AxisToPillarAxis());
+        E("stripped_spruce_log", AxisToPillarAxis());
+        E("stripped_birch_log", AxisToPillarAxis());
+        E("stripped_acacia_log", AxisToPillarAxis());
+        E("stripped_jungle_log", AxisToPillarAxis());
+        E("stripped_dark_oak_log", AxisToPillarAxis());
 
-            {"dead_tube_coral", Coral("blue", true)},
-            {"dead_brain_coral", Coral("pink", true)},
-            {"dead_bubble_coral", Coral("purple", true)},
-            {"dead_fire_coral", Coral("red", true)},
-            {"dead_horn_coral", Coral("yellow", true)},
+        E("oak_wood", Wood("oak", false));
+        E("spruce_wood", Wood("spruce", false));
+        E("birch_wood", Wood("birch", false));
+        E("acacia_wood", Wood("acacia", false));
+        E("jungle_wood", Wood("jungle", false));
+        E("dark_oak_wood", Wood("dark_oak", false));
+        E("stripped_oak_wood", Wood("oak", true));
+        E("stripped_spruce_wood", Wood("spruce", true));
+        E("stripped_birch_wood", Wood("birch", true));
+        E("stripped_acacia_wood", Wood("acacia", true));
+        E("stripped_jungle_wood", Wood("jungle", true));
+        E("stripped_dark_oak_wood", Wood("dark_oak", true));
+        E("oak_leaves", Leaves("oak"));
+        E("spruce_leaves", Leaves("spruce"));
+        E("birch_leaves", Leaves("birch"));
+        E("jungle_leaves", Leaves("jungle"));
+        E("acacia_leaves", Leaves2("acacia"));
+        E("dark_oak_leaves", Leaves2("dark_oak"));
+        E("crimson_hyphae", AxisToPillarAxis());
+        E("warped_hyphae", AxisToPillarAxis());
+        E("stripped_crimson_hyphae", AxisToPillarAxis());
+        E("stripped_warped_hyphae", AxisToPillarAxis());
+        E("oak_slab", WoodenSlab("oak"));
+        E("birch_slab", WoodenSlab("birch"));
+        E("spruce_slab", WoodenSlab("spruce"));
+        E("jungle_slab", WoodenSlab("jungle"));
+        E("acacia_slab", WoodenSlab("acacia"));
+        E("dark_oak_slab", WoodenSlab("dark_oak"));
+        E("petrified_oak_slab", WoodenSlab("oak"));
+        E("stone_slab", StoneSlab4("stone"));
+        E("granite_slab", StoneSlab3("granite"));
+        E("andesite_slab", StoneSlab3("andesite"));
+        E("diorite_slab", StoneSlab3("diorite"));
+        E("cobblestone_slab", StoneSlab("cobblestone"));
+        E("stone_brick_slab", StoneSlab("stone_brick"));
+        E("brick_slab", StoneSlab("brick"));
+        E("sandstone_slab", StoneSlab("sandstone"));
+        E("smooth_sandstone_slab", StoneSlab2("smooth_sandstone"));
+        E("smooth_stone_slab", StoneSlab("smooth_stone"));
+        E("nether_brick_slab", StoneSlab("nether_brick"));
+        E("quartz_slab", StoneSlab("quartz"));
+        E("smooth_quartz_slab", StoneSlab4("smooth_quartz"));
+        E("red_sandstone_slab", StoneSlab2("red_sandstone"));
+        E("smooth_red_sandstone_slab", StoneSlab3("smooth_red_sandstone"));
+        E("cut_red_sandstone_slab", StoneSlab4("cut_red_sandstone"));
+        E("mossy_cobblestone_slab", StoneSlab2("mossy_cobblestone"));
+        E("polished_diorite_slab", StoneSlab3("polished_diorite"));
+        E("mossy_stone_brick_slab", StoneSlab4("mossy_stone_brick"));
+        E("polished_granite_slab", StoneSlab3("polished_granite"));
+        E("dark_prismarine_slab", StoneSlab2("prismarine_dark"));
+        E("prismarine_brick_slab", StoneSlab2("prismarine_brick"));
+        E("prismarine_slab", StoneSlab2("prismarine_rough"));
+        E("purpur_slab", StoneSlab2("purpur"));
+        E("cut_sandstone_slab", StoneSlab4("cut_sandstone"));
+        E("polished_blackstone_brick_slab", StoneSlabNT("polished_blackstone_brick_double_slab"));
+        E("polished_blackstone_slab", StoneSlabNT("polished_blackstone_double_slab"));
+        E("blackstone_slab", StoneSlabNT("blackstone_double_slab"));
+        E("polished_andesite_slab", StoneSlab3("polished_andesite"));
+        E("red_nether_brick_slab", StoneSlab2("red_nether_brick"));
+        E("end_stone_brick_slab", StoneSlab3("end_stone_brick"));
+        E("warped_slab", StoneSlabNT("warped_double_slab"));
+        E("crimson_slab", StoneSlabNT("crimson_double_slab"));
+        E("grass", TallGrass("tall"));
+        E("tall_grass", DoublePlant("grass"));
+        E("large_fern", DoublePlant("fern"));
+        E("fern", TallGrass("fern"));
+        E("lilac", DoublePlant("syringa"));
+        E("rose_bush", DoublePlant("rose"));
+        E("peony", DoublePlant("paeonia"));
+        E("sunflower", DoublePlant("sunflower"));
+        E("dead_bush", Rename("deadbush"));
+        E("sea_pickle", SeaPickle);
+        E("dandelion", Rename("yellow_flower"));
+        E("poppy", RedFlower("poppy"));
+        E("blue_orchid", RedFlower("orchid"));
+        E("allium", RedFlower("allium"));
+        E("azure_bluet", RedFlower("houstonia"));
+        E("red_tulip", RedFlower("tulip_red"));
+        E("orange_tulip", RedFlower("tulip_orange"));
+        E("white_tulip", RedFlower("tulip_white"));
+        E("pink_tulip", RedFlower("tulip_pink"));
+        E("oxeye_daisy", RedFlower("oxeye"));
+        E("cornflower", RedFlower("cornflower"));
+        E("lily_of_the_valley", RedFlower("lily_of_the_valley"));
+        E("seagrass", Seagrass);
+        E("tall_seagrass", TallSeagrass);
+        E("kelp", Kelp());
+        E("kelp_plant", Kelp(16));
+        E("water", Liquid("water"));
+        E("lava", Liquid("lava"));
+        E("weeping_vines_plant", NetherVines("weeping", 25)); //TODO(kbinani): is 25 correct?
+        E("weeping_vines", NetherVines("weeping"));
+        E("twisting_vines_plant", NetherVines("twisting", 25)); //TODO(kbinani): is 25 correct?
+        E("twisting_vines", NetherVines("twisting"));
+        E("vine", Vine);
+        E("cobblestone_stairs", Stairs("stone_stairs"));
+        E("stone_stairs", Stairs("normal_stone_stairs"));
+        E("end_stone_brick_stairs", Stairs("end_brick_stairs"));
+        E("prismarine_brick_stairs", Stairs("prismarine_bricks_stairs"));
+        E("oak_stairs", Stairs());
+        E("spruce_stairs", Stairs());
+        E("birch_stairs", Stairs());
+        E("jungle_stairs", Stairs());
+        E("acacia_stairs", Stairs());
+        E("dark_oak_stairs", Stairs());
+        E("crimson_stairs", Stairs());
+        E("warped_stairs", Stairs());
+        E("granite_stairs", Stairs());
+        E("polished_granite_stairs", Stairs());
+        E("diorite_stairs", Stairs());
+        E("polished_diorite_stairs", Stairs());
+        E("andesite_stairs", Stairs());
+        E("polished_andesite_stairs", Stairs());
+        E("cobblestone_stairs", Stairs());
+        E("mossy_cobblestone_stairs", Stairs());
+        E("stone_brick_stairs", Stairs());
+        E("mossy_stone_brick_stairs", Stairs());
+        E("brick_stairs", Stairs());
+        E("end_stone_brick_stairs", Stairs());
+        E("nether_brick_stairs", Stairs());
+        E("red_nether_brick_stairs", Stairs());
+        E("sandstone_stairs", Stairs());
+        E("smooth_sandstone_stairs", Stairs());
+        E("red_sandstone_stairs", Stairs());
+        E("smooth_red_sandstone_stairs", Stairs());
+        E("quartz_stairs", Stairs());
+        E("smooth_quartz_stairs", Stairs());
+        E("purpur_stairs", Stairs());
+        E("prismarine_stairs", Stairs());
+        E("prismarine_brick_stairs", Stairs());
+        E("dark_prismarine_stairs", Stairs());
+        E("blackstone_stairs", Stairs());
+        E("polished_blackstone_stairs", Stairs());
+        E("polished_blackstone_brick_stairs", Stairs());
+        E("sponge", Sponge("dry"));
+        E("wet_sponge", Sponge("wet"));
+        E("sandstone", Sandstone("default"));
+        E("chiseled_sandstone", Sandstone("heiroglyphs"));
+        E("cut_sandstone", Sandstone("cut"));
+        E("smooth_sandstone", Sandstone("smooth"));
+        E("red_sandstone", RedSandstone("default"));
+        E("chiseled_red_sandstone", RedSandstone("heiroglyphs"));
+        E("cut_red_sandstone", RedSandstone("cut"));
+        E("smooth_red_sandstone", RedSandstone("smooth"));
+        E("white_wool", Wool("white"));
+        E("orange_wool", Wool("orange"));
+        E("magenta_wool", Wool("magenta"));
+        E("light_blue_wool", Wool("light_blue"));
+        E("yellow_wool", Wool("yellow"));
+        E("lime_wool", Wool("lime"));
+        E("pink_wool", Wool("pink"));
+        E("gray_wool", Wool("gray"));
+        E("light_gray_wool", Wool("silver"));
+        E("cyan_wool", Wool("cyan"));
+        E("purple_wool", Wool("purple"));
+        E("blue_wool", Wool("blue"));
+        E("brown_wool", Wool("brown"));
+        E("green_wool", Wool("green"));
+        E("red_wool", Wool("red"));
+        E("black_wool", Wool("black"));
+        E("snow_block", Rename("snow"));
+        E("quartz_block", QuartzBlock("default"));
+        E("smooth_quartz", QuartzBlock("smooth"));
+        E("quartz_pillar", QuartzBlock("lines"));
+        E("chiseled_quartz_block", QuartzBlock("chiseled"));
+        E("bricks", Rename("brick_block"));
+        E("sand", Sand("normal"));
+        E("red_sand", Sand("red"));
+        E("oak_planks", Planks("oak"));
+        E("spruce_planks", Planks("spruce"));
+        E("birch_planks", Planks("birch"));
+        E("jungle_planks", Planks("jungle"));
+        E("acacia_planks", Planks("acacia"));
+        E("dark_oak_planks", Planks("dark_oak"));
+        E("purpur_block", PurpurBlock("default"));
+        E("purpur_pillar", PurpurBlock("lines"));
+        E("jack_o_lantern", LitPumpkin);
+        E("carved_pumpkin", FacingToDirection);
+        E("white_stained_glass", StainedGlass("white"));
+        E("orange_stained_glass", StainedGlass("orange"));
+        E("magenta_stained_glass", StainedGlass("magenta"));
+        E("light_blue_stained_glass", StainedGlass("light_blue"));
+        E("yellow_stained_glass", StainedGlass("yellow"));
+        E("lime_stained_glass", StainedGlass("lime"));
+        E("pink_stained_glass", StainedGlass("pink"));
+        E("gray_stained_glass", StainedGlass("gray"));
+        E("light_gray_stained_glass", StainedGlass("silver"));
+        E("cyan_stained_glass", StainedGlass("cyan"));
+        E("purple_stained_glass", StainedGlass("purple"));
+        E("blue_stained_glass", StainedGlass("blue"));
+        E("brown_stained_glass", StainedGlass("brown"));
+        E("green_stained_glass", StainedGlass("green"));
+        E("red_stained_glass", StainedGlass("red"));
+        E("black_stained_glass", StainedGlass("black"));
+        E("white_concrete_powder", ConcretePowder("white"));
+        E("orange_concrete_powder", ConcretePowder("orange"));
+        E("magenta_concrete_powder", ConcretePowder("magenta"));
+        E("light_blue_concrete_powder", ConcretePowder("light_blue"));
+        E("yellow_concrete_powder", ConcretePowder("yellow"));
+        E("lime_concrete_powder", ConcretePowder("lime"));
+        E("pink_concrete_powder", ConcretePowder("pink"));
+        E("gray_concrete_powder", ConcretePowder("gray"));
+        E("light_gray_concrete_powder", ConcretePowder("silver"));
+        E("cyan_concrete_powder", ConcretePowder("cyan"));
+        E("purple_concrete_powder", ConcretePowder("purple"));
+        E("blue_concrete_powder", ConcretePowder("blue"));
+        E("brown_concrete_powder", ConcretePowder("brown"));
+        E("green_concrete_powder", ConcretePowder("green"));
+        E("red_concrete_powder", ConcretePowder("red"));
+        E("black_concrete_powder", ConcretePowder("black"));
+        E("white_concrete", Concrete("white"));
+        E("orange_concrete", Concrete("orange"));
+        E("magenta_concrete", Concrete("magenta"));
+        E("light_blue_concrete", Concrete("light_blue"));
+        E("yellow_concrete", Concrete("yellow"));
+        E("lime_concrete", Concrete("lime"));
+        E("pink_concrete", Concrete("pink"));
+        E("gray_concrete", Concrete("gray"));
+        E("light_gray_concrete", Concrete("silver"));
+        E("cyan_concrete", Concrete("cyan"));
+        E("purple_concrete", Concrete("purple"));
+        E("blue_concrete", Concrete("blue"));
+        E("brown_concrete", Concrete("brown"));
+        E("green_concrete", Concrete("green"));
+        E("red_concrete", Concrete("red"));
+        E("black_concrete", Concrete("black"));
+        E("white_terracotta", Terracotta("white"));
+        E("orange_terracotta", Terracotta("orange"));
+        E("magenta_terracotta", Terracotta("magenta"));
+        E("light_blue_terracotta", Terracotta("light_blue"));
+        E("yellow_terracotta", Terracotta("yellow"));
+        E("lime_terracotta", Terracotta("lime"));
+        E("pink_terracotta", Terracotta("pink"));
+        E("gray_terracotta", Terracotta("gray"));
+        E("light_gray_terracotta", Terracotta("silver"));
+        E("cyan_terracotta", Terracotta("cyan"));
+        E("purple_terracotta", Terracotta("purple"));
+        E("blue_terracotta", Terracotta("blue"));
+        E("brown_terracotta", Terracotta("brown"));
+        E("green_terracotta", Terracotta("green"));
+        E("red_terracotta", Terracotta("red"));
+        E("black_terracotta", Terracotta("black"));
+        E("nether_quartz_ore", Rename("quartz_ore"));
+        E("red_nether_bricks", Rename("red_nether_brick"));
+        E("magma_block", Rename("magma"));
+        E("sea_lantern", Rename("seaLantern"));
+        E("prismarine_bricks", Prismarine("bricks"));
+        E("dark_prismarine", Prismarine("dark"));
+        E("prismarine", Prismarine("default"));
+        E("terracotta", Rename("hardened_clay"));
+        E("end_stone_bricks", Rename("end_bricks"));
+        E("melon", Rename("melon_block"));
+        E("chiseled_stone_bricks", StoneBrick("chiseled"));
+        E("cracked_stone_bricks", StoneBrick("cracked"));
+        E("mossy_stone_bricks", StoneBrick("mossy"));
+        E("stone_bricks", StoneBrick("default"));
+        E("oak_sapling", Sapling("oak"));
+        E("birch_sapling", Sapling("birch"));
+        E("jungle_sapling", Sapling("jungle"));
+        E("acacia_sapling", Sapling("acacia"));
+        E("spruce_sapling", Sapling("spruce"));
+        E("dark_oak_sapling", Sapling("dark_oak"));
+        E("tube_coral_block", CoralBlock("blue", false));
+        E("brain_coral_block", CoralBlock("pink", false));
+        E("bubble_coral_block", CoralBlock("purple", false));
+        E("fire_coral_block", CoralBlock("red", false));
+        E("horn_coral_block", CoralBlock("yellow", false));
+        E("dead_tube_coral_block", CoralBlock("blue", true));
+        E("dead_brain_coral_block", CoralBlock("pink", true));
+        E("dead_bubble_coral_block", CoralBlock("purple", true));
+        E("dead_fire_coral_block", CoralBlock("red", true));
+        E("dead_horn_coral_block", CoralBlock("yellow", true));
+        E("snow", SnowLayer);
+        E("sugar_cane", Rename("reeds"));
+        E("end_rod", EndRod);
+        E("oak_fence", Fence("oak"));
+        E("spruce_fence", Fence("spruce"));
+        E("birch_fence", Fence("birch"));
+        E("jungle_fence", Fence("jungle"));
+        E("acacia_fence", Fence("acacia"));
+        E("dark_oak_fence", Fence("dark_oak"));
+        E("ladder", FacingToFacingDirection);
+        E("chest", FacingToFacingDirection);
+        E("furnace", FacingToFacingDirection);
+        E("nether_bricks", Rename("nether_brick"));
+        E("infested_stone", InfestedStone("stone"));
+        E("infested_cobblestone", InfestedStone("cobblestone"));
+        E("infested_stone_bricks", InfestedStone("stone_brick"));
+        E("infested_mossy_stone_bricks", InfestedStone("mossy_stone_brick"));
+        E("infested_cracked_stone_bricks", InfestedStone("cracked_stone_brick"));
+        E("infested_chiseled_stone_bricks", InfestedStone("chiseled_stone_brick"));
+        E("torch", AnyTorch(""));
+        E("wall_torch", AnyWallTorch(""));
+        E("soul_torch", AnyTorch("soul_"));
+        E("soul_wall_torch", AnyWallTorch("soul_"));
+        E("farmland", Farmland());
+        E("red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false));
+        E("brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false));
+        E("mushroom_stem", AnyMushroomBlock("brown_mushroom_block", true));
+        E("end_portal_frame", EndPortalFrame);
+        E("white_shulker_box", ShulkerBox("white"));
+        E("orange_shulker_box", ShulkerBox("orange"));
+        E("magenta_shulker_box", ShulkerBox("magenta"));
+        E("light_blue_shulker_box", ShulkerBox("light_blue"));
+        E("yellow_shulker_box", ShulkerBox("yellow"));
+        E("lime_shulker_box", ShulkerBox("lime"));
+        E("pink_shulker_box", ShulkerBox("pink"));
+        E("gray_shulker_box", ShulkerBox("gray"));
+        E("light_gray_shulker_box", ShulkerBox("silver"));
+        E("cyan_shulker_box", ShulkerBox("cyan"));
+        E("purple_shulker_box", ShulkerBox("purple"));
+        E("blue_shulker_box", ShulkerBox("blue"));
+        E("brown_shulker_box", ShulkerBox("brown"));
+        E("green_shulker_box", ShulkerBox("green"));
+        E("red_shulker_box", ShulkerBox("red"));
+        E("black_shulker_box", ShulkerBox("black"));
+        E("shulker_box", Rename("undyed_shulker_box"));
+        E("cobblestone_wall", Wall("cobblestone"));
+        E("mossy_cobblestone_wall", Wall("mossy_cobblestone"));
+        E("brick_wall", Wall("brick"));
+        E("prismarine_wall", Wall("prismarine"));
+        E("red_sandstone_wall", Wall("red_sandstone"));
+        E("mossy_stone_brick_wall", Wall("mossy_stone_brick"));
+        E("granite_wall", Wall("granite"));
+        E("andesite_wall", Wall("andesite"));
+        E("diorite_wall", Wall("diorite"));
+        E("stone_brick_wall", Wall("stone_brick"));
+        E("nether_brick_wall", Wall("nether_brick"));
+        E("red_nether_brick_wall", Wall("red_nether_brick"));
+        E("sandstone_wall", Wall("sandstone"));
+        E("end_stone_brick_wall", Wall("end_brick"));
+        E("blackstone_wall", WallNT);
+        E("polished_blackstone_wall", WallNT);
+        E("polished_blackstone_brick_wall", WallNT);
+        E("white_carpet", Carpet("white"));
+        E("orange_carpet", Carpet("orange"));
+        E("magenta_carpet", Carpet("magenta"));
+        E("light_blue_carpet", Carpet("light_blue"));
+        E("yellow_carpet", Carpet("yellow"));
+        E("lime_carpet", Carpet("lime"));
+        E("pink_carpet", Carpet("pink"));
+        E("gray_carpet", Carpet("gray"));
+        E("light_gray_carpet", Carpet("silver"));
+        E("cyan_carpet", Carpet("cyan"));
+        E("purple_carpet", Carpet("purple"));
+        E("blue_carpet", Carpet("blue"));
+        E("brown_carpet", Carpet("brown"));
+        E("green_carpet", Carpet("green"));
+        E("red_carpet", Carpet("red"));
+        E("black_carpet", Carpet("black"));
+        E("white_stained_glass_pane", StainedGlassPane("white"));
+        E("orange_stained_glass_pane", StainedGlassPane("orange"));
+        E("magenta_stained_glass_pane", StainedGlassPane("magenta"));
+        E("light_blue_stained_glass_pane", StainedGlassPane("light_blue"));
+        E("yellow_stained_glass_pane", StainedGlassPane("yellow"));
+        E("lime_stained_glass_pane", StainedGlassPane("lime"));
+        E("pink_stained_glass_pane", StainedGlassPane("pink"));
+        E("gray_stained_glass_pane", StainedGlassPane("gray"));
+        E("light_gray_stained_glass_pane", StainedGlassPane("silver"));
+        E("cyan_stained_glass_pane", StainedGlassPane("cyan"));
+        E("purple_stained_glass_pane", StainedGlassPane("purple"));
+        E("blue_stained_glass_pane", StainedGlassPane("blue"));
+        E("brown_stained_glass_pane", StainedGlassPane("brown"));
+        E("green_stained_glass_pane", StainedGlassPane("green"));
+        E("red_stained_glass_pane", StainedGlassPane("red"));
+        E("black_stained_glass_pane", StainedGlassPane("black"));
+        E("slime_block", Rename("slime"));
+        E("anvil", Anvil("undamaged"));
+        E("chipped_anvil", Anvil("slightly_damaged"));
+        E("damaged_anvil", Anvil("very_damaged"));
+        E("white_glazed_terracotta", FacingToFacingDirection);
+        E("orange_glazed_terracotta", FacingToFacingDirection);
+        E("magenta_glazed_terracotta", FacingToFacingDirection);
+        E("light_blue_glazed_terracotta", FacingToFacingDirection);
+        E("yellow_glazed_terracotta", FacingToFacingDirection);
+        E("lime_glazed_terracotta", FacingToFacingDirection);
+        E("pink_glazed_terracotta", FacingToFacingDirection);
+        E("gray_glazed_terracotta", FacingToFacingDirection);
+        E("light_gray_glazed_terracotta", SilverGlazedTerracotta);
+        E("cyan_glazed_terracotta", FacingToFacingDirection);
+        E("purple_glazed_terracotta", FacingToFacingDirection);
+        E("blue_glazed_terracotta", FacingToFacingDirection);
+        E("brown_glazed_terracotta", FacingToFacingDirection);
+        E("green_glazed_terracotta", FacingToFacingDirection);
+        E("red_glazed_terracotta", FacingToFacingDirection);
+        E("black_glazed_terracotta", FacingToFacingDirection);
 
-            {"tube_coral_fan", CoralFan("blue", false)},
-            {"brain_coral_fan", CoralFan("pink", false)},
-            {"bubble_coral_fan", CoralFan("purple", false)},
-            {"fire_coral_fan", CoralFan("red", false)},
-            {"horn_coral_fan", CoralFan("yellow", false)},
+        E("tube_coral", Coral("blue", false));
+        E("brain_coral", Coral("pink", false));
+        E("bubble_coral", Coral("purple", false));
+        E("fire_coral", Coral("red", false));
+        E("horn_coral", Coral("yellow", false));
 
-            {"dead_tube_coral_fan", CoralFan("blue", true)},
-            {"dead_brain_coral_fan", CoralFan("pink", true)},
-            {"dead_bubble_coral_fan", CoralFan("purple", true)},
-            {"dead_fire_coral_fan", CoralFan("red", true)},
-            {"dead_horn_coral_fan", CoralFan("yellow", true)},
+        E("dead_tube_coral", Coral("blue", true));
+        E("dead_brain_coral", Coral("pink", true));
+        E("dead_bubble_coral", Coral("purple", true));
+        E("dead_fire_coral", Coral("red", true));
+        E("dead_horn_coral", Coral("yellow", true));
 
-            {"oak_sign", Sign()},
-            {"spruce_sign", Sign("spruce")},
-            {"birch_sign", Sign("birch")},
-            {"jungle_sign", Sign("jungle")},
-            {"acacia_sign", Sign("acacia")},
-            {"dark_oak_sign", Sign("darkoak")},
-            {"crimson_sign", Sign("crimson")},
-            {"warped_sign", Sign("warped")},
+        E("tube_coral_fan", CoralFan("blue", false));
+        E("brain_coral_fan", CoralFan("pink", false));
+        E("bubble_coral_fan", CoralFan("purple", false));
+        E("fire_coral_fan", CoralFan("red", false));
+        E("horn_coral_fan", CoralFan("yellow", false));
 
-            {"oak_wall_sign", WallSign()},
-            {"spruce_wall_sign", WallSign("spruce")},
-            {"birch_wall_sign", WallSign("birch")},
-            {"jungle_wall_sign", WallSign("jungle")},
-            {"acacia_wall_sign", WallSign("acacia")},
-            {"dark_wall_oak_sign", WallSign("darkoak")},
-            {"crimson_wall_sign", WallSign("crimson")},
-            {"warped_wall_sign", WallSign("warped")},
+        E("dead_tube_coral_fan", CoralFan("blue", true));
+        E("dead_brain_coral_fan", CoralFan("pink", true));
+        E("dead_bubble_coral_fan", CoralFan("purple", true));
+        E("dead_fire_coral_fan", CoralFan("red", true));
+        E("dead_horn_coral_fan", CoralFan("yellow", true));
 
-            {"white_bed", Bed},
-            {"orange_bed", Bed},
-            {"magenta_bed", Bed},
-            {"light_blue_bed", Bed},
-            {"yellow_bed", Bed},
-            {"lime_bed", Bed},
-            {"pink_bed", Bed},
-            {"gray_bed", Bed},
-            {"light_gray_bed", Bed},
-            {"cyan_bed", Bed},
-            {"purple_bed", Bed},
-            {"blue_bed", Bed},
-            {"brown_bed", Bed},
-            {"green_bed", Bed},
-            {"red_bed", Bed},
-            {"black_bed", Bed},
+        E("oak_sign", Sign());
+        E("spruce_sign", Sign("spruce"));
+        E("birch_sign", Sign("birch"));
+        E("jungle_sign", Sign("jungle"));
+        E("acacia_sign", Sign("acacia"));
+        E("dark_oak_sign", Sign("darkoak"));
+        E("crimson_sign", Sign("crimson"));
+        E("warped_sign", Sign("warped"));
 
-            {"potted_oak_sapling", PottedFlowerPot},
-            {"potted_spruce_sapling", PottedFlowerPot},
-            {"potted_birch_sapling", PottedFlowerPot},
-            {"potted_jungle_sapling", PottedFlowerPot},
-            {"potted_acacia_sapling", PottedFlowerPot},
-            {"potted_dark_oak_sapling", PottedFlowerPot},
-            {"potted_fern", PottedFlowerPot},
-            {"potted_dead_bush", PottedFlowerPot},
-            {"potted_dandelion", PottedFlowerPot},
-            {"potted_poppy", PottedFlowerPot},
-            {"potted_blue_orchid", PottedFlowerPot},
-            {"potted_allium", PottedFlowerPot},
-            {"potted_azure_bluet", PottedFlowerPot},
-            {"potted_red_tulip", PottedFlowerPot},
-            {"potted_orange_tulip", PottedFlowerPot},
-            {"potted_white_tulip", PottedFlowerPot},
-            {"potted_pink_tulip", PottedFlowerPot},
-            {"potted_oxeye_daisy", PottedFlowerPot},
-            {"potted_cornflower", PottedFlowerPot},
-            {"potted_lily_of_the_valley", PottedFlowerPot},
-            {"potted_wither_rose", PottedFlowerPot},
-            {"potted_brown_mushroom", PottedFlowerPot},
-            {"potted_red_mushroom", PottedFlowerPot},
-            {"potted_crimson_fungus", PottedFlowerPot},
-            {"potted_warped_fungus", PottedFlowerPot},
-            {"potted_crimson_roots", PottedFlowerPot},
-            {"potted_warped_roots", PottedFlowerPot},
-            {"potted_bamboo", PottedFlowerPot},
+        E("oak_wall_sign", WallSign());
+        E("spruce_wall_sign", WallSign("spruce"));
+        E("birch_wall_sign", WallSign("birch"));
+        E("jungle_wall_sign", WallSign("jungle"));
+        E("acacia_wall_sign", WallSign("acacia"));
+        E("dark_wall_oak_sign", WallSign("darkoak"));
+        E("crimson_wall_sign", WallSign("crimson"));
+        E("warped_wall_sign", WallSign("warped"));
 
-            {"skeleton_skull", SkeletonSkull},
+        E("white_bed", Bed);
+        E("orange_bed", Bed);
+        E("magenta_bed", Bed);
+        E("light_blue_bed", Bed);
+        E("yellow_bed", Bed);
+        E("lime_bed", Bed);
+        E("pink_bed", Bed);
+        E("gray_bed", Bed);
+        E("light_gray_bed", Bed);
+        E("cyan_bed", Bed);
+        E("purple_bed", Bed);
+        E("blue_bed", Bed);
+        E("brown_bed", Bed);
+        E("green_bed", Bed);
+        E("red_bed", Bed);
+        E("black_bed", Bed);
 
-            {"white_banner", Banner},
-            {"orange_banner", Banner},
-            {"magenta_banner", Banner},
-            {"light_blue_banner", Banner},
-            {"yellow_banner", Banner},
-            {"lime_banner", Banner},
-            {"pink_banner", Banner},
-            {"gray_banner", Banner},
-            {"light_gray_banner", Banner},
-            {"cyan_banner", Banner},
-            {"purple_banner", Banner},
-            {"blue_banner", Banner},
-            {"brown_banner", Banner},
-            {"green_banner", Banner},
-            {"red_banner", Banner},
-            {"black_banner", Banner},
+        E("potted_oak_sapling", PottedFlowerPot);
+        E("potted_spruce_sapling", PottedFlowerPot);
+        E("potted_birch_sapling", PottedFlowerPot);
+        E("potted_jungle_sapling", PottedFlowerPot);
+        E("potted_acacia_sapling", PottedFlowerPot);
+        E("potted_dark_oak_sapling", PottedFlowerPot);
+        E("potted_fern", PottedFlowerPot);
+        E("potted_dead_bush", PottedFlowerPot);
+        E("potted_dandelion", PottedFlowerPot);
+        E("potted_poppy", PottedFlowerPot);
+        E("potted_blue_orchid", PottedFlowerPot);
+        E("potted_allium", PottedFlowerPot);
+        E("potted_azure_bluet", PottedFlowerPot);
+        E("potted_red_tulip", PottedFlowerPot);
+        E("potted_orange_tulip", PottedFlowerPot);
+        E("potted_white_tulip", PottedFlowerPot);
+        E("potted_pink_tulip", PottedFlowerPot);
+        E("potted_oxeye_daisy", PottedFlowerPot);
+        E("potted_cornflower", PottedFlowerPot);
+        E("potted_lily_of_the_valley", PottedFlowerPot);
+        E("potted_wither_rose", PottedFlowerPot);
+        E("potted_brown_mushroom", PottedFlowerPot);
+        E("potted_red_mushroom", PottedFlowerPot);
+        E("potted_crimson_fungus", PottedFlowerPot);
+        E("potted_warped_fungus", PottedFlowerPot);
+        E("potted_crimson_roots", PottedFlowerPot);
+        E("potted_warped_roots", PottedFlowerPot);
+        E("potted_bamboo", PottedFlowerPot);
 
-            {"white_wall_banner", WallBanner},
-            {"orange_wall_banner", WallBanner},
-            {"magenta_wall_banner", WallBanner},
-            {"light_blue_wall_banner", WallBanner},
-            {"yellow_wall_banner", WallBanner},
-            {"lime_wall_banner", WallBanner},
-            {"pink_wall_banner", WallBanner},
-            {"gray_wall_banner", WallBanner},
-            {"light_gray_wall_banner", WallBanner},
-            {"cyan_wall_banner", WallBanner},
-            {"purple_wall_banner", WallBanner},
-            {"blue_wall_banner", WallBanner},
-            {"brown_wall_banner", WallBanner},
-            {"green_wall_banner", WallBanner},
-            {"red_wall_banner", WallBanner},
-            {"black_wall_banner", WallBanner},
+        E("skeleton_skull", SkeletonSkull);
 
-            {"stonecutter", RenameFaced("stonecutter_block")},
-            {"loom", FacingToDirection},
-            {"grindstone", Grindstone},
-            {"smoker", FacingToFacingDirection},
-            {"blast_furnace", FacingToFacingDirection},
-            {"barrel", Barrel},
-            {"lantern", Lantern},
-            {"soul_lantern", Lantern},
-            {"bell", Bell},
-            {"campfire", Campfire},
-            {"soul_campfire", Campfire},
-        });
+        E("white_banner", Banner);
+        E("orange_banner", Banner);
+        E("magenta_banner", Banner);
+        E("light_blue_banner", Banner);
+        E("yellow_banner", Banner);
+        E("lime_banner", Banner);
+        E("pink_banner", Banner);
+        E("gray_banner", Banner);
+        E("light_gray_banner", Banner);
+        E("cyan_banner", Banner);
+        E("purple_banner", Banner);
+        E("blue_banner", Banner);
+        E("brown_banner", Banner);
+        E("green_banner", Banner);
+        E("red_banner", Banner);
+        E("black_banner", Banner);
+
+        E("white_wall_banner", WallBanner);
+        E("orange_wall_banner", WallBanner);
+        E("magenta_wall_banner", WallBanner);
+        E("light_blue_wall_banner", WallBanner);
+        E("yellow_wall_banner", WallBanner);
+        E("lime_wall_banner", WallBanner);
+        E("pink_wall_banner", WallBanner);
+        E("gray_wall_banner", WallBanner);
+        E("light_gray_wall_banner", WallBanner);
+        E("cyan_wall_banner", WallBanner);
+        E("purple_wall_banner", WallBanner);
+        E("blue_wall_banner", WallBanner);
+        E("brown_wall_banner", WallBanner);
+        E("green_wall_banner", WallBanner);
+        E("red_wall_banner", WallBanner);
+        E("black_wall_banner", WallBanner);
+
+        E("stonecutter", RenameFaced("stonecutter_block"));
+        E("loom", FacingToDirection);
+        E("grindstone", Grindstone);
+        E("smoker", FacingToFacingDirection);
+        E("blast_furnace", FacingToFacingDirection);
+        E("barrel", Barrel);
+        E("lantern", Lantern);
+        E("soul_lantern", Lantern);
+        E("bell", Bell);
+        E("campfire", Campfire);
+        E("soul_campfire", Campfire);
+#undef E
 
         /*
         TODO:
@@ -590,13 +600,6 @@ private:
         - rotation of skelton skull
         */
 
-        TableType* table = new TableType();
-        for (auto it = base->begin(); it != base->end(); it++) {
-            string name = it->first;
-            table->emplace(name, it->second);
-            table->emplace("minecraft:"s + name, it->second);
-        }
-        delete base;
         return table;
     }
 
