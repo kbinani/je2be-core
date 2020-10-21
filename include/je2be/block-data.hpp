@@ -507,8 +507,8 @@ private:
     static ConverterFunction WallSign(std::optional<std::string> prefix = std::nullopt) {
         using namespace std;
         using namespace props;
+        string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
         return [=](Block const& block) {
-            string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
             auto tag = New(name);
             auto direction = FacingDirectionFromFacing(block);
             auto states = States();
@@ -520,8 +520,8 @@ private:
     static ConverterFunction Sign(std::optional<std::string> prefix = std::nullopt) {
         using namespace std;
         using namespace props;
+        string name = prefix ? *prefix + "_standing_sign" : "standing_sign";
         return [=](Block const& block) {
-            string name = prefix ? *prefix + "_standing_sign" : "standing_sign";
             auto tag = New(name);
             auto rotation = block.property("rotation", "0");
             auto states = States();
@@ -533,8 +533,8 @@ private:
     static ConverterFunction CoralFan(std::string const& type, bool dead) {
         using namespace std;
         using namespace props;
+        auto tag = New(dead ? "coral_fan_dead" : "coral_fan");
         return [=](Block const& block) {
-            auto tag = New(dead ? "coral_fan_dead" : "coral_fan");
             auto states = States();
             states->fValue.emplace("coral_color", String(type));
             states->fValue.emplace("coral_fan_direction", Int(0));
@@ -714,8 +714,9 @@ private:
     static ConverterFunction AnyTorch(std::string const& prefix) {
         using namespace std;
         using namespace props;
+        string name = prefix + "torch";
         return [=](Block const& block) {
-            auto tag = New(prefix + "torch");
+            auto tag = New(name);
             auto states = States();
             states->fValue.emplace("torch_facing_direction", String("top"));
             return Complete(tag, block, states);
@@ -725,8 +726,9 @@ private:
     static ConverterFunction AnyWallTorch(std::string const& prefix) {
         using namespace std;
         using namespace props;
+        string name = prefix + "torch";
         return [=](Block const& block) {
-            auto tag = New(prefix + "torch");
+            auto tag = New(name);
             auto states = States();
             auto facing = block.property("facing", "north");
             auto direction = TorchFacingDirectionFromFacing(facing);
@@ -985,8 +987,9 @@ private:
     static ConverterFunction NetherVines(std::string const& type, int32_t age = -1) {
         using namespace std;
         using namespace props;
+        string name = type + "_vines";
         return [=](Block const& block) -> BlockDataType {
-            auto tag = New(type + "_vines");
+            auto tag = New(name);
             auto states = States();
             int32_t a = age;
             if (a < 0) {
@@ -1020,8 +1023,6 @@ private:
         using namespace std;
         using namespace props;
         return [=](Block const& block) -> BlockDataType {
-            using namespace std;
-            using namespace props;
             auto tag = New("kelp");
             auto states = States();
             int32_t a = age;
