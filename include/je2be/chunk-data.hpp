@@ -30,13 +30,13 @@ public:
 		auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
 		db.put(data2DKey, data2D);
 
-		auto sum = checksum();
-		auto checksumKey = Key::Checksum(fChunkX, fChunkZ, fDimension);
+		auto sum = checksums();
+		auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
 		db.put(checksumKey, sum);
 	}
 
 private:
-	std::string checksum() const {
+	std::string checksums() const {
 		using namespace std;
 		using namespace mcfile::stream;
 		auto s = make_shared<ByteStream>();

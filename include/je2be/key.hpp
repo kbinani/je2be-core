@@ -34,7 +34,7 @@ public:
         return std::string(b.data(), b.size());
     }
 
-    static std::string Checksum(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+    static std::string Checksums(int32_t chunkX, int32_t chunkZ, Dimension dim) {
         std::vector<char> b;
         PlaceXZTag(b, chunkX, chunkZ, 0x3b);
         SetDimension(b, dim);
