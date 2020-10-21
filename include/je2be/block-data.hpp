@@ -487,11 +487,107 @@ private:
             {"dark_wall_oak_sign", WallSign("darkoak")},
             {"crimson_wall_sign", WallSign("crimson")},
             {"warped_wall_sign", WallSign("warped")},
+
+            {"white_bed", Bed},
+            {"orange_bed", Bed},
+            {"magenta_bed", Bed},
+            {"light_blue_bed", Bed},
+            {"yellow_bed", Bed},
+            {"lime_bed", Bed},
+            {"pink_bed", Bed},
+            {"gray_bed", Bed},
+            {"light_gray_bed", Bed},
+            {"cyan_bed", Bed},
+            {"purple_bed", Bed},
+            {"blue_bed", Bed},
+            {"brown_bed", Bed},
+            {"green_bed", Bed},
+            {"red_bed", Bed},
+            {"black_bed", Bed},
+
+            {"potted_oak_sapling", PottedFlowerPot},
+            {"potted_spruce_sapling", PottedFlowerPot},
+            {"potted_birch_sapling", PottedFlowerPot},
+            {"potted_jungle_sapling", PottedFlowerPot},
+            {"potted_acacia_sapling", PottedFlowerPot},
+            {"potted_dark_oak_sapling", PottedFlowerPot},
+            {"potted_fern", PottedFlowerPot},
+            {"potted_dead_bush", PottedFlowerPot},
+            {"potted_dandelion", PottedFlowerPot},
+            {"potted_poppy", PottedFlowerPot},
+            {"potted_blue_orchid", PottedFlowerPot},
+            {"potted_allium", PottedFlowerPot},
+            {"potted_azure_bluet", PottedFlowerPot},
+            {"potted_red_tulip", PottedFlowerPot},
+            {"potted_orange_tulip", PottedFlowerPot},
+            {"potted_white_tulip", PottedFlowerPot},
+            {"potted_pink_tulip", PottedFlowerPot},
+            {"potted_oxeye_daisy", PottedFlowerPot},
+            {"potted_cornflower", PottedFlowerPot},
+            {"potted_lily_of_the_valley", PottedFlowerPot},
+            {"potted_wither_rose", PottedFlowerPot},
+            {"potted_brown_mushroom", PottedFlowerPot},
+            {"potted_red_mushroom", PottedFlowerPot},
+            {"potted_crimson_fungus", PottedFlowerPot},
+            {"potted_warped_fungus", PottedFlowerPot},
+            {"potted_crimson_roots", PottedFlowerPot},
+            {"potted_warped_roots", PottedFlowerPot},
+            {"potted_bamboo", PottedFlowerPot},
+
+            {"skeleton_skull", SkeletonSkull},
+
+            {"white_banner", Banner},
+            {"orange_banner", Banner},
+            {"magenta_banner", Banner},
+            {"light_blue_banner", Banner},
+            {"yellow_banner", Banner},
+            {"lime_banner", Banner},
+            {"pink_banner", Banner},
+            {"gray_banner", Banner},
+            {"light_gray_banner", Banner},
+            {"cyan_banner", Banner},
+            {"purple_banner", Banner},
+            {"blue_banner", Banner},
+            {"brown_banner", Banner},
+            {"green_banner", Banner},
+            {"red_banner", Banner},
+            {"black_banner", Banner},
+
+            {"white_wall_banner", WallBanner},
+            {"orange_wall_banner", WallBanner},
+            {"magenta_wall_banner", WallBanner},
+            {"light_blue_wall_banner", WallBanner},
+            {"yellow_wall_banner", WallBanner},
+            {"lime_wall_banner", WallBanner},
+            {"pink_wall_banner", WallBanner},
+            {"gray_wall_banner", WallBanner},
+            {"light_gray_wall_banner", WallBanner},
+            {"cyan_wall_banner", WallBanner},
+            {"purple_wall_banner", WallBanner},
+            {"blue_wall_banner", WallBanner},
+            {"brown_wall_banner", WallBanner},
+            {"green_wall_banner", WallBanner},
+            {"red_wall_banner", WallBanner},
+            {"black_wall_banner", WallBanner},
+
+            {"stonecutter", RenameFaced("stonecutter_block")},
+            {"loom", FacingToDirection},
+            {"grindstone", Grindstone},
+            {"smoker", FacingToFacingDirection},
+            {"blast_furnace", FacingToFacingDirection},
+            {"barrel", Barrel},
+            {"lantern", Lantern},
+            {"soul_lantern", Lantern},
+            {"bell", Bell},
+            {"campfire", Campfire},
+            {"soul_campfire", Campfire},
         });
 
         /*
         TODO:
         - direction of shulker box
+        - sign text
+        - rotation of skelton skull
         */
 
         TableType* table = new TableType();
@@ -502,6 +598,162 @@ private:
         }
         delete base;
         return table;
+    }
+
+    static BlockDataType Campfire(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New(block.fName, true);
+        auto states = States();
+        auto direction = DirectionFromFacing(block);
+        states->fValue.emplace("direction", Int(direction));
+        auto lit = block.property("lit", "false") == "true";
+        states->fValue.emplace("extinguished", Bool(!lit));
+        return Complete(tag, block, states);
+    }
+
+    static std::string Attachment(std::string const& attachment) {
+        if (attachment == "floor") {
+            return "standing";
+        } else if (attachment == "ceiling") {
+            return "hanging";
+        } else if (attachment == "double_wall") {
+            return "multiple";
+        } else if (attachment == "single_wall") {
+            return "side";
+        }
+        return attachment;
+    }
+
+    static BlockDataType Bell(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("bell");
+        auto states = States();
+        auto facing = block.property("facing", "north");
+        int32_t direction = 0;
+        if (facing == "north") {
+            direction = 0;
+        } else if (facing == "east") {
+            direction = 1;
+        } else if (facing == "south") {
+            direction = 2;
+        } else {
+            direction = 3;
+        }
+        states->fValue.emplace("direction", Int(direction));
+        auto toggle = block.property("powered", "false") == "true";
+        states->fValue.emplace("toggle_bit", Bool(toggle));
+        auto attachment = block.property("attachment", "floor");
+        states->fValue.emplace("attachment", String(Attachment(attachment)));
+        return Complete(tag, block, states, {"facing", "attachment", "powered"});
+    }
+
+    static BlockDataType Lantern(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New(block.fName, true);
+        auto hanging = block.property("hanging", "false") == "true";
+        auto states = States();
+        states->fValue.emplace("hanging", Bool(hanging));
+        return Complete(tag, block, states, {"hanging"});
+    }
+
+    static BlockDataType Barrel(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("barrel");
+        auto states = States();
+        auto facing = FacingDirectionFromFacing(block);
+        states->fValue.emplace("facing_direction", Int(facing));
+        auto open = block.property("open", "false") == "true";
+        states->fValue.emplace("open_bit", Bool(open));
+        return Complete(tag, block, states, {"facing", "open"});
+    }
+
+    static BlockDataType Grindstone(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("grindstone");
+        auto states = States();
+        auto direction = DirectionFromFacing(block);
+        states->fValue.emplace("direction", Int(direction));
+        auto face = block.property("face", "wall");
+        string attachment;
+        if (face == "wall") {
+            attachment = "side";
+        } else if (face == "floor") {
+            attachment = "standing";
+        } else {
+            attachment = "hanging";
+        }
+        states->fValue.emplace("attachment", String(attachment));
+        return Complete(tag, block, states, {"facing", "face"});
+    }
+
+    static ConverterFunction RenameFaced(std::string const& name) {
+        using namespace std;
+        using namespace props;
+        return [=](Block const& block) {
+            auto tag = New(name);
+            auto states = States();
+            auto facing = FacingDirectionFromFacing(block);
+            states->fValue.emplace("facing_direction", Int(facing));
+            return Complete(tag, block, states, {"facing"});
+        };
+    }
+
+    static BlockDataType WallBanner(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("wall_banner");
+        auto states = States();
+        auto direction = FacingDirectionFromFacing(block);
+        states->fValue.emplace("facing_direction", Int(direction));
+        return Complete(tag, block, states, {"facing"});
+    }
+
+    static BlockDataType Banner(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("standing_banner");
+        auto states = States();
+        auto rotation = block.property("rotation", "0");
+        states->fValue.emplace("ground_sign_direction", Int(stoi(rotation)));
+        return Complete(tag, block, states, {"rotation"});
+    }
+
+    static BlockDataType SkeletonSkull(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("skull");
+        auto states = States();
+        states->fValue.emplace("facing_direction", Int(1));
+        states->fValue.emplace("no_drop_bit", Bool(false));
+        return Complete(tag, block, states, {"rotation"});
+    }
+
+    static BlockDataType PottedFlowerPot(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("flower_pot");
+        auto states = States();
+        states->fValue.emplace("update_bit", Bool(true));
+        return Complete(tag, block, states);
+    }
+
+    static BlockDataType Bed(Block const& block) {
+        using namespace std;
+        using namespace props;
+        auto tag = New("bed");
+        auto states = States();
+        auto direction = DirectionFromFacing(block);
+        states->fValue.emplace("direction", Int(direction));
+        auto head = block.property("part", "foot") == "head";
+        states->fValue.emplace("head_piece_bit", Bool(head));
+        auto occupied = block.property("occupied", "false") == "true";
+        states->fValue.emplace("occupied_bit", Bool(occupied));
+        return Complete(tag, block, states, {"facing", "part", "occupied"});
     }
 
     static ConverterFunction WallSign(std::optional<std::string> prefix = std::nullopt) {
@@ -854,17 +1106,19 @@ private:
 
     static int32_t FacingDirectionFromFacing(Block const& block) {
         auto facing = block.property("facing", "north");
-        int32_t direction = 2;
         if (facing == "east") {
-            direction = 5;
+            return 5;
         } else if (facing == "south") {
-            direction = 3;
+            return 3;
         } else if (facing == "west") {
-            direction = 4;
+            return 4;
         } else if (facing == "north") {
-            direction = 2;
+            return 2;
+        } else if (facing == "up") {
+            return 1;
+        } else {
+            return 0;
         }
-        return direction;
     }
 
     static BlockDataType FacingToFacingDirection(Block const& block) {
@@ -1180,7 +1434,9 @@ private:
                     continue;
                 }
             }
-            states.fValue.emplace(name, props::String(it->second));
+#ifdef _DEBUG
+            std::cout << "Warning: Unhandled property " << block.fName << "[" << it->first << "=" << it->second << "]" << std::endl;
+#endif
         }
     }
 
