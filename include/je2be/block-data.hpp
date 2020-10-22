@@ -546,13 +546,51 @@ private:
         auto eye = block.property("eye", "false") == "true";
         return std::make_pair("end_portal_eye_bit", props::Bool(eye));
     }
-    
-    static PropertySpec FacingDirectionFromFacing(Block const& block) {
+
+    static int32_t GetFacingDirectionFromFacing(Block const& block) {
         auto facing = block.property("facing", "north");
+        if (facing == "east") {
+            return 5;
+        } else if (facing == "south") {
+            return 3;
+        } else if (facing == "west") {
+            return 4;
+        } else if (facing == "north") {
+            return 2;
+        } else if (facing == "up") {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    static int32_t GetFacingDirectionFromFacing2(Block const& block) {
+        auto facing = block.property("facing", "north");
+        if (facing == "east") {
+            return 4;
+        } else if (facing == "south") {
+            return 2;
+        } else if (facing == "west") {
+            return 5;
+        } else if (facing == "north") {
+            return 3;
+        } else if (facing == "up") {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    static PropertySpec FacingDirectionFromFacing(Block const& block) {
         int32_t direction = GetFacingDirectionFromFacing(block);
         return std::make_pair("facing_direction", props::Int(direction));
     }
-    
+
+    static PropertySpec FacingDirectionFromFacing2(Block const& block) {
+        int32_t direction = GetFacingDirectionFromFacing2(block);
+        return std::make_pair("facing_direction", props::Int(direction));
+    }
+
     static std::string GetWallConnectionType(std::string const& type) {
         if (type == "low") {
             return "short";
@@ -687,6 +725,7 @@ private:
         Converter axisToPillarAxis(Same, AxisToPillarAxis);
         Converter directionFromFacing(Same, DirectionFromFacing);
         Converter facingDirectionFromFacing(Same, FacingDirectionFromFacing);
+        Converter facingDirectionFromFacing2(Same, FacingDirectionFromFacing2);
         Converter wall(Same,
                        AddBoolProperty("wall_post_bit", false),
                        WallConnectionType("east", "wall_connection_type_east"),
@@ -1250,8 +1289,42 @@ private:
         E("bell", Converter(Fixed("bell"), BellDirectionFromFacing, BellAttachmentFromAttachment, WithName("toggle_bit", Powered)));
         E("campfire", campfire);
         E("soul_campfire", campfire);
+        E("piston", facingDirectionFromFacing2);
+        E("sticky_piston", facingDirectionFromFacing2);
+        E("piston_head", facingDirectionFromFacing2);
+        E("sticky_piston_head", facingDirectionFromFacing2);
+        E("note_block", Rename("noteblock"));
+        E("dispenser", Converter(Same, FacingDirectionFromFacing, WithName("triggered_bit", Triggered)));
+        E("lever", Converter(Same, LeverDirection, WithName("open_bit", Powered)));
 #undef E
         return table;
+    }
+
+    static PropertySpec LeverDirection(Block const& b) {
+        auto face = b.property("face", "wall");
+        auto facing = b.property("facing", "north");
+        std::string result;
+        if (face == "floor") {
+            if (facing == "west" || facing == "east") {
+                result = "up_east_west";
+            } else {
+                result = "up_north_south";
+            }
+        } else if (face == "ceiling") {
+            if (facing == "west" || facing == "east") {
+                result = "down_east_west";
+            } else {
+                result = "down_north_south";
+            }
+        } else {
+            result = facing;
+        }
+        return std::make_pair("lever_direction", props::String(result));
+    }
+
+    static PropertyType Triggered(Block const& b) {
+        bool v = b.property("triggered", "false") == "true";
+        return props::Bool(v);
     }
 
     static std::string GetAttachment(std::string const& attachment) {
@@ -1265,23 +1338,6 @@ private:
             return "side";
         }
         return attachment;
-    }
-
-    static int32_t GetFacingDirectionFromFacing(Block const& block) {
-        auto facing = block.property("facing", "north");
-        if (facing == "east") {
-            return 5;
-        } else if (facing == "south") {
-            return 3;
-        } else if (facing == "west") {
-            return 4;
-        } else if (facing == "north") {
-            return 2;
-        } else if (facing == "up") {
-            return 1;
-        } else {
-            return 0;
-        }
     }
 
     static BlockDataType New(std::string const& name, bool nameIsFull = false) {
