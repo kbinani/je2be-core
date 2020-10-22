@@ -6,19 +6,16 @@ class BlockData {
 public:
     static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::Block const> const& block) {
         using namespace std;
-        using namespace props;
-        using namespace mcfile::nbt;
-
-        static unique_ptr<unordered_map<string, ConverterFunction> const> const converterTable(CreateConverterTable());
-
-        auto found = converterTable->find(block->fName);
-        if (found == converterTable->end()) {
+        static unique_ptr<unordered_map<string, Converter> const> const table(CreateConverterTable());
+        
+        auto found = table->find(block->fName);
+        if (found == table->end()) {
             return Identity(*block);
         } else {
             return found->second(*block);
         }
     }
-
+    
     static std::shared_ptr<mcfile::nbt::CompoundTag> Air() {
         static std::shared_ptr<mcfile::nbt::CompoundTag> const air = Make("air");
         return air;
@@ -34,14 +31,676 @@ public:
 private:
     BlockData() = delete;
 
-    using ConverterFunction = std::function<std::shared_ptr<mcfile::nbt::CompoundTag>(mcfile::Block const&)>;
     using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
     using Block = mcfile::Block;
 
-    static std::unordered_map<std::string, ConverterFunction>* CreateConverterTable() {
+    using PropertyType = std::shared_ptr<mcfile::nbt::Tag>;
+    using PropertySpec = std::pair<std::string, PropertyType>;
+
+    using NamingFunction = std::function<std::string(Block const&)>;
+    using PropertyMapFunction = std::function<std::pair<std::string, PropertyType>(Block const&)>;
+
+    struct Converter {
+        template<class... A>
+        Converter(NamingFunction name, A... args)
+            : fName(name)
+            , fProperties(std::initializer_list<PropertyMapFunction>{args...}) {}
+        
+        BlockDataType operator() (Block const& block) const {
+            using namespace std;
+            string name = fName(block);
+            auto tag = New(name, true);
+            auto states = States();
+            for (auto const& p : fProperties) {
+                auto kv = p(block);
+                states->fValue.insert(kv);
+            }
+            tag->fValue.emplace("states", states);
+            return tag;
+        }
+        
+        NamingFunction const fName;
+        std::vector<PropertyMapFunction> fProperties;
+    };
+
+    static BlockDataType Identity(mcfile::Block const& block) {
+        auto tag = New(block.fName, true);
+        auto states = States();
+        tag->fValue.emplace("states", states);
+        return tag;
+    }
+
+    static NamingFunction Fixed(std::string const& name) {
+        return [=](Block const&) { return "minecraft:" + name; };
+    }
+    
+    static std::string Same(Block const& block) {
+        return block.fName;
+    }
+    
+    static NamingFunction SlabName(std::string const& name, std::string const& tail) {
+        return [=](Block const& block) {
+            auto t = block.property("type", "bottom");
+            return t == "double" ? ("minecraft:double_" + name + "_slab" + tail) : ("minecraft:" + name + "_slab" + tail);
+        };
+    }
+    
+    static NamingFunction ChangeWhenDoubleType(std::string const& doubleName) {
+        return [=](Block const& block) {
+            auto t = block.property("type", "bottom");
+            return t == "double" ? "minecraft:" + doubleName : block.fName;
+        };
+    }
+    
+    static NamingFunction FlowingLiquidName(std::string const& name) {
+        return [=](Block const& block) {
+            auto levelString = block.property("level", "0");
+            auto level = std::stoi(levelString);
+            if (level == 0) {
+                return "minecraft:" + name;
+            } else {
+                return "minecraft:flowing_" + name;
+            }
+        };
+    }
+    
+    static PropertyMapFunction AddStringProperty(std::string const& name, std::string const& value) {
+        return [=](Block const&) { return std::make_pair(name, props::String(value)); };
+    }
+
+    static PropertyMapFunction AddBoolProperty(std::string const& name, bool v) {
+        return [=](Block const&) { return std::make_pair(name, props::Bool(v)); };
+    }
+    
+    static PropertyMapFunction AddIntProperty(std::string const& name, int32_t v) {
+        return [=](Block const&) { return std::make_pair(name, props::Int(v)); };
+    }
+
+    static PropertySpec AxisToPillarAxis(Block const& block) {
+        auto v = block.property("axis", "y");
+        return std::make_pair("pillar_axis", props::String(v));
+    }
+    
+    static PropertySpec PersistentToPersistentBit(Block const& block) {
+        auto persistent = block.property("persistent", "false");
+        bool persistentV = persistent == "true";
+        return std::make_pair("persistent_bit", props::Bool(persistentV));
+    }
+
+    static PropertySpec DistanceToUpdateBit(Block const& block) {
+        auto distance = block.property("distance", "7");
+        int distanceV = std::stoi(distance);
+        return std::make_pair("update_bit", props::Bool(distanceV > 4));
+    }
+
+    static PropertySpec TypeToTopSlotBit(Block const& block) {
+        auto t = block.property("type", "bottom");
+        return std::make_pair("top_slot_bit", props::Bool(t == "top"));
+    }
+    
+    static PropertyMapFunction AddStoneSlabType(std::string const& number, std::string const& type) {
+        auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
+        return [=](Block const&) {
+            return std::make_pair(typeKey, props::String(type));
+        };
+    }
+    
+    static PropertySpec HalfToUpperBlockBit(Block const& block) {
+        auto half = block.property("half", "lower");
+        return std::make_pair("upper_block_bit", props::Bool(half == "upper"));
+    }
+    
+    static PropertySpec WaterloggedToDeadBit(Block const& block) {
+        auto waterlogged = block.property("waterlogged", "false");
+        return std::make_pair("dead_bit", props::Bool(waterlogged == "false"));
+    }
+    
+    static PropertySpec PicklesToClusterCount(Block const& block) {
+        auto pickles = block.property("pickles", "1");
+        auto cluster = std::stoi(pickles) - 1;
+        return std::make_pair("cluster_count", props::Int(cluster));
+    }
+
+    static PropertySpec HalfToSeagrassType(Block const& block) {
+        auto half = block.property("half", "bottom");
+        auto type = half == "bottom" ? "double_bot" : "double_top";
+        return std::make_pair("sea_grass_type", props::String(type));
+    }
+    
+    static PropertyType Age(Block const& block) {
+        auto age = std::stoi(block.property("age", "0"));
+        return props::Int(age);
+    }
+    
+    static PropertyMapFunction WithName(std::string const& name, std::function<PropertyType(Block const&)> func) {
+        return [=](Block const& block) {
+            return std::make_pair(name, func(block));
+        };
+    }
+
+    static PropertyType Level(Block const& block) {
+        auto level = std::stoi(block.property("level", "0"));
+        return props::Int(level);
+    }
+    
+
+    static PropertySpec VineDirectionBits(Block const& block) {
+        auto east = block.property("east", "false") == "true";
+        auto north = block.property("north", "false") == "true";
+        auto south = block.property("south", "false") == "true";
+        auto up = block.property("up", "false") == "true";
+        auto west = block.property("west", "false") == "true";
+        int32_t direction = 0;
+        if (east) {
+            direction |= 0x8;
+        }
+        if (north) {
+            direction |= 0x4;
+        }
+        if (west) {
+            direction |= 0x2;
+        }
+        if (south) {
+            direction |= 0x1;
+        }
+        auto states = States();
+        return std::make_pair("vine_direction_bits", props::Int(direction));
+    }
+
+    static Converter Subtype(std::string const& name, std::string const& subtypeTitle, std::string const& subtype) {
+        return Converter(Fixed(name), AddStringProperty(subtypeTitle, subtype));
+    }
+
+    static Converter Stone(std::string const& stoneType) {
+        return Subtype("stone", "stone_type", stoneType);
+    }
+
+    static Converter Dirt(std::string const& dirtType) {
+        return Subtype("dirt", "dirt_type", dirtType);
+    }
+    
+    static Converter Log(std::string const& type) {
+        return Converter(Fixed("log"), AddStringProperty("old_log_type", type), AxisToPillarAxis);
+    }
+
+    static Converter Log2(std::string const& type) {
+        return Converter(Fixed("log2"), AddStringProperty("new_log_type", type), AxisToPillarAxis);
+    }
+
+    static Converter Wood(std::string const& type, bool stripped) {
+        return Converter(Fixed("wood"), AxisToPillarAxis, AddStringProperty("wood_type", type), AddBoolProperty("stripped_bit", stripped));
+    }
+
+    static Converter Leaves(std::string const& type) {
+        return Converter(Fixed("leaves"), AddStringProperty("old_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit);
+    }
+
+    static Converter Leaves2(std::string const& type) {
+        return Converter(Fixed("leaves2"), AddStringProperty("new_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit);
+    }
+
+    static Converter WoodenSlab(std::string const& type) {
+        return Converter(SlabName("wooden", ""), TypeToTopSlotBit, AddStringProperty("wood_type", type));
+    }
+
+    static Converter StoneSlab(std::string const& type) {
+        return StoneSlabNumbered("", type);
+    }
+
+    static Converter StoneSlab2(std::string const& type) {
+        return StoneSlabNumbered("2", type);
+    }
+
+    static Converter StoneSlab3(std::string const& type) {
+        return StoneSlabNumbered("3", type);
+    }
+
+    static Converter StoneSlab4(std::string const& type) {
+        return StoneSlabNumbered("4", type);
+    }
+
+    static Converter StoneSlabNumbered(std::string const& number, std::string const& type) {
+        return Converter(SlabName("stone", number), TypeToTopSlotBit, AddStoneSlabType(number, type));
+    }
+
+    static Converter StoneSlabNT(std::string const& doubledName) {
+        return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit);
+    }
+
+    static Converter TallGrass(std::string const& type) {
+        return Converter(Fixed("tallgrass"), AddStringProperty("tall_grass_type", type));
+    }
+
+    static Converter DoublePlant(std::string const& type) {
+        return Converter(Fixed("double_plant"), AddStringProperty("double_plant_type", type), HalfToUpperBlockBit);
+    }
+    
+    static Converter Rename(std::string const& name) {
+        return Converter(Fixed(name));
+    }
+    
+    static Converter SeaPickle() {
+        return Converter(Fixed("sea_pickle"), WaterloggedToDeadBit, PicklesToClusterCount);
+    }
+    
+    static Converter RedFlower(std::string const& type) {
+        return Converter(Fixed("red_flower"), AddStringProperty("flower_type", type));
+    }
+     
+    static Converter Kelp(std::optional<int32_t> age = std::nullopt) {
+        if (age) {
+            return Converter(Fixed("kelp"), AddIntProperty("kelp_age", *age));
+        } else {
+            return Converter(Fixed("kelp"), WithName("kelp_age", Age));
+        }
+    }
+
+    static Converter Liquid(std::string const& type) {
+        return Converter(FlowingLiquidName(type), WithName("liquid_depth", Level));
+    }
+
+    static Converter NetherVines(std::string const& type, std::optional<int> age = std::nullopt) {
+        if (age) {
+            return Converter(Fixed(type + "_vines"), AddIntProperty(type + "_vines_age", *age));
+        } else {
+            return Converter(Fixed(type + "_vines"), WithName(type + "_vines_age", Age));
+        }
+    }
+
+    static PropertySpec StairsDirectionFromFacing(Block const& block) {
+        auto facing = block.property("facing", "north");
+        int32_t direction = 0;
+        if (facing == "east") {
+            direction = 0;
+        } else if (facing == "south") {
+            direction = 2;
+        } else if (facing == "north") {
+            direction = 3;
+        } else if (facing == "west") {
+            direction = 1;
+        }
+        return std::make_pair("weirdo_direction", props::Int(direction));
+    }
+    
+    static PropertySpec HalfToUpsideDownBit(Block const& block) {
+        auto half = block.property("half", "bottom");
+        return std::make_pair("upside_down_bit", props::Bool(half == "top"));
+    }
+    
+    static Converter Stairs(std::optional<std::string> name = std::nullopt) {
+        NamingFunction naming = name ? Fixed(*name) : Same;
+        return Converter(naming, HalfToUpsideDownBit, StairsDirectionFromFacing);
+    }
+
+    static Converter Sponge(std::string const& type) {
+        return Subtype("sponge", "sponge_type", type);
+    }
+
+    static Converter Wool(std::string const& color) {
+        return Subtype("wool", "color", color);
+    }
+
+    static Converter RedSandstone(std::string const& type) {
+        return Subtype("red_sandstone", "sand_stone_type", type);
+    }
+
+    static Converter Sandstone(std::string const& type) {
+        return Subtype("sandstone", "sand_stone_type", type);
+    }
+
+    static Converter Sand(std::string const& type) {
+        return Subtype("sand", "sand_type", type);
+    }
+
+    static Converter QuartzBlock(std::string const& type) {
+        return Converter(Fixed("quartz_block"), AxisToPillarAxis, AddStringProperty("chisel_type", type));
+    }
+
+    static Converter PurpurBlock(std::string const& type) {
+        return Subtype("purpur_block", "chisel_type", type);
+    }
+
+    static Converter Planks(std::string const& type) {
+        return Subtype("planks", "wood_type", type);
+    }
+
+    static PropertyType Facing(Block const& block) {
+        auto facing = block.property("facing", "north");
+        int32_t direction = 2;
+        if (facing == "south") {
+            direction = 0;
+        } else if (facing == "east") {
+            direction = 3;
+        } else if (facing == "west") {
+            direction = 1;
+        } else {
+            direction = 2;
+        }
+        return props::Int(direction);
+    }
+
+    static PropertySpec DirectionFromFacing(Block const& block) {
+        return std::make_pair("direction", Facing(block));
+    }
+    
+    static Converter LitPumpkin() {
+        return Converter(Fixed("lit_pumpkin"), DirectionFromFacing);
+    }
+
+    static Converter StainedGlass(std::string const& color) {
+        return Subtype("stained_glass", "color", color);
+    }
+
+    static Converter Prismarine(std::string const& type) {
+        return Subtype("prismarine", "prismarine_block_type", type);
+    }
+
+    static Converter Terracotta(std::string const& color) {
+        return Subtype("stained_hardened_clay", "color", color);
+    }
+
+    static Converter Concrete(std::string const& color) {
+        return Subtype("concrete", "color", color);
+    }
+
+    static Converter ConcretePowder(std::string const& color) {
+        return Subtype("concretePowder", "color", color);
+    }
+
+    static Converter CoralBlock(std::string const& color, bool dead) {
+        return Converter(Fixed("coral_block"), AddStringProperty("coral_color", color), AddBoolProperty("dead_bit", dead));
+    }
+
+    static PropertySpec StageToAgeBit(Block const& block) {
+        auto stage = block.property("stage", "0");
+        return std::make_pair("age_bit", props::Bool(stage == "1"));
+    }
+    
+    static Converter Sapling(std::string const& type) {
+        return Converter(Fixed("sapling"), AddStringProperty("sapling_type", type), StageToAgeBit);
+    }
+
+    static Converter StoneBrick(std::string const& type) {
+        return Subtype("stonebrick", "stone_brick_type", type);
+    }
+
+    static PropertySpec LayersToHeight(Block const& block) {
+        auto layers = std::stoi(block.property("layers", "1"));
+        return std::make_pair("height", props::Int(layers - 1));
+    }
+    
+    static Converter SnowLayer() {
+        return Converter(Fixed("snow_layer"), LayersToHeight, AddBoolProperty("covered_bit", false));
+    }
+
+    static PropertySpec EndRodFacingDirectionFromFacing(Block const& block) {
+        auto facing = block.property("facing", "up");
+        int32_t direction = 1;
+        if (facing == "up") {
+            direction = 1;
+        } else if (facing == "east") {
+            direction = 4;
+        } else if (facing == "south") {
+            direction = 2;
+        } else if (facing == "north") {
+            direction = 3;
+        } else if (facing == "down") {
+            direction = 0;
+        } else if (facing == "west") {
+            direction = 5;
+        }
+        return std::make_pair("facing_direction", props::Int(direction));
+    }
+
+    static Converter AnyTorch(std::string const& prefix) {
+        return Converter(Fixed(prefix + "torch"), AddStringProperty("torch_facing_direction", "top"));
+    }
+
+    static std::string GetTorchFacingDirectionFromFacing(std::string const& facing) {
+        if (facing == "east") {
+            return "west";
+        } else if (facing == "west") {
+            return "east";
+        } else if (facing == "north") {
+            return "south";
+        } else {
+            return "north";
+        }
+    }
+
+    static PropertySpec TorchFacingDirectionFromFacing(Block const& block) {
+        auto facing = block.property("facing", "north");
+        auto direction = GetTorchFacingDirectionFromFacing(facing);
+        return std::make_pair("torch_facing_direction", props::String(direction));
+    }
+    
+    static Converter AnyWallTorch(std::string const& prefix) {
+        return Converter(Fixed(prefix + "torch"), TorchFacingDirectionFromFacing);
+    }
+
+    static Converter InfestedStone(std::string const& type) {
+        return Subtype("monster_egg", "monster_egg_stone_type", type);
+    }
+
+    static Converter Fence(std::string const& type) {
+        return Subtype("fence", "wood_type", type);
+    }
+
+    static PropertyType Moisture(Block const& block) {
+        auto v = std::stoi(block.property("moisture", "0"));
+        return props::Int(v);
+    }
+    
+    static PropertyMapFunction HugeMushroomBits(bool stem) {
+        return [=](Block const& block) {
+            auto up = block.property("up", "false") == "true";
+            auto down = block.property("down", "false") == "true";
+            auto north = block.property("north", "false") == "true";
+            auto east = block.property("east", "false") == "true";
+            auto south = block.property("south", "false") == "true";
+            auto west = block.property("west", "false") == "true";
+            int32_t bits = stem ? 15 : 14;
+            if (!up && !down && !north && !east && !south && !west) {
+                bits = 0;
+            } else if (up && west && north && !down && !east && !south) {
+                bits = 1;
+            } else if (up && north && !down && !east && !south && !west) {
+                bits = 2;
+            } else if (up && north && east && !down && !south && !west) {
+                bits = 3;
+            } else if (up && west && !down && !north && !east && !south) {
+                bits = 4;
+            } else if (up && !down && !north && !east && !south && !west) {
+                bits = 5;
+            } else if (up && east && !down && !north && !south && !west) {
+                bits = 6;
+            } else if (up && south && west && !down && !north && !east) {
+                bits = 7;
+            } else if (up && south && !down && !north && !east && !west) {
+                bits = 8;
+            } else if (up && east && south && !down && !north && !west) {
+                bits = 9;
+            } else if (north && east && south && west && !up && !down && stem) {
+                bits = 10;
+            } else if (up && down && north && east && south && west) {
+                if (stem) {
+                    bits = 15;
+                } else {
+                    bits = 14;
+                }
+            }
+            return std::make_pair("huge_mushroom_bits", props::Int(bits));
+        };
+    }
+
+    static Converter AnyMushroomBlock(std::string const& name, bool stem) {
+        return Converter(Fixed(name), HugeMushroomBits(stem));
+    }
+
+    static Converter ShulkerBox(std::string const& color) {
+        return Subtype("shulker_box", "color", color);
+    }
+
+    static PropertySpec EyeToEndPortalEyeBit(Block const& block) {
+        auto eye = block.property("eye", "false") == "true";
+        return std::make_pair("end_portal_eye_bit", props::Bool(eye));
+    }
+    
+    static PropertySpec FacingDirectionFromFacing(Block const& block) {
+        auto facing = block.property("facing", "north");
+        int32_t direction = GetFacingDirectionFromFacing(block);
+        return std::make_pair("facing_direction", props::Int(direction));
+    }
+    
+    static std::string GetWallConnectionType(std::string const& type) {
+        if (type == "low") {
+            return "short";
+        } else if (type == "tall") {
+            return "tall";
+        } else {
+            return "none";
+        }
+    }
+
+    static PropertyMapFunction WallConnectionType(std::string const& jeName, std::string const& beName) {
+        return [=](Block const& block) {
+            auto v = block.property(jeName, "none");
+            auto type = GetWallConnectionType(v);
+            return std::make_pair(beName, props::String(type));
+        };
+    }
+    
+    static Converter Wall(std::string const& type) {
+        return Converter(Fixed("cobblestone_wall"),
+                         AddStringProperty("wall_block_type", type),
+                         WallConnectionType("east", "wall_connection_type_east"),
+                         WallConnectionType("north", "wall_connection_type_north"),
+                         WallConnectionType("south", "wall_connection_type_south"),
+                         WallConnectionType("west", "wall_connection_type_west"));
+    }
+
+    static Converter Carpet(std::string const& color) {
+        return Subtype("carpet", "color", color);
+    }
+
+    static Converter StainedGlassPane(std::string const& color) {
+        return Subtype("stained_glass_pane", "color", color);
+    }
+
+    static Converter Anvil(std::string const& damage) {
+        return Converter(Fixed("anvil"), AddStringProperty("damage", damage), DirectionFromFacing);
+    }
+
+    static Converter Coral(std::string const& type, bool dead) {
+        return Converter(Fixed("coral"), AddStringProperty("coral_color", type), AddBoolProperty("dead_bit", dead));
+    }
+
+    static Converter CoralFan(std::string const& type, bool dead) {
+        return Converter(Fixed(dead ? "coral_fan_dead" : "coral_fan"), AddStringProperty("coral_color", type), AddIntProperty("coral_fan_direction", 0));
+    }
+
+    static Converter WallSign(std::optional<std::string> prefix = std::nullopt) {
+        std::string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
+        return Converter(Fixed(name), FacingDirectionFromFacing);
+    }
+
+    static PropertyType Rotation(Block const& block) {
+        auto r = block.property("rotation", "0");
+        return props::Int(std::stoi(r));
+    }
+    
+    static Converter Sign(std::optional<std::string> prefix = std::nullopt) {
+        std::string name = prefix ? *prefix + "_standing_sign" : "standing_sign";
+        return Converter(Fixed(name), WithName("ground_sign_direction", Rotation));
+    }
+
+    static PropertySpec PartToHeadPieceBit(Block const& block) {
+        auto head = block.property("part", "foot") == "head";
+        return std::make_pair("head_piece_bit", props::Bool(head));
+    }
+    
+    static PropertySpec OccupiedToOccupiedBit(Block const& block) {
+        auto occupied = block.property("occupied", "false") == "true";
+        return std::make_pair("occupied_bit", props::Bool(occupied));
+    }
+    
+    static PropertyType Open(Block const& block) {
+        return props::Bool(block.property("open", "false") == "true");
+    }
+    
+    static PropertySpec GrindstoneFaceToAttachment(Block const& block) {
+        auto face = block.property("face", "wall");
+        std::string attachment;
+        if (face == "wall") {
+            attachment = "side";
+        } else if (face == "floor") {
+            attachment = "standing";
+        } else {
+            attachment = "hanging";
+        }
+        return std::make_pair("attachment", props::String(attachment));
+    }
+    
+    static PropertyType Hanging(Block const& block) {
+        auto hanging = block.property("hanging", "false") == "true";
+        return props::Bool(hanging);
+    }
+    
+    static PropertySpec BellAttachmentFromAttachment(Block const& block) {
+        auto attachment = block.property("attachment", "floor");
+        return std::make_pair("attachment", props::String(GetAttachment(attachment)));
+    }
+
+    static PropertySpec BellDirectionFromFacing(Block const& block) {
+        auto facing = block.property("facing", "north");
+        int32_t direction = 0;
+        if (facing == "north") {
+            direction = 0;
+        } else if (facing == "east") {
+            direction = 1;
+        } else if (facing == "south") {
+            direction = 2;
+        } else {
+            direction = 3;
+        }
+        return std::make_pair("direction", props::Int(direction));
+    }
+    
+    static PropertyType Powered(Block const& block) {
+        auto p = block.property("powered", "false") == "true";
+        return props::Bool(p);
+    }
+    
+    static PropertyType Lit(Block const& block) {
+        auto l = block.property("lit", "flase") == "true";
+        return props::Bool(l);
+    }
+    
+    static PropertySpec LitToExtinguished(Block const& block) {
+        auto l = block.property("lit", "flase") == "true";
+        return std::make_pair("extinguished", props::Bool(!l));
+    }
+    
+    static std::unordered_map<std::string, Converter>* CreateConverterTable() {
         using namespace std;
-        auto table = new unordered_map<string, ConverterFunction>();
+        Converter axisToPillarAxis(Same, AxisToPillarAxis);
+        Converter directionFromFacing(Same, DirectionFromFacing);
+        Converter facingDirectionFromFacing(Same, FacingDirectionFromFacing);
+        Converter wall(Same,
+                       AddBoolProperty("wall_post_bit", false),
+                       WallConnectionType("east", "wall_connection_type_east"),
+                       WallConnectionType("north", "wall_connection_type_north"),
+                       WallConnectionType("south", "wall_connection_type_south"),
+                       WallConnectionType("west", "wall_connection_type_west"));
+        Converter bed(Fixed("bed"), DirectionFromFacing, PartToHeadPieceBit, OccupiedToOccupiedBit);
+        Converter pottedFlowerPot(Fixed("flower_pot"), AddBoolProperty("update_bit", true));
+        Converter wallBanner(Fixed("wall_banner"), FacingDirectionFromFacing);
+        Converter banner(Fixed("standing_banner"), WithName("ground_sign_direction", Rotation));
+        Converter lantern(Same, WithName("hanging", Hanging));
+        Converter campfire(Same, DirectionFromFacing, LitToExtinguished);
+
+        auto table = new unordered_map<string, Converter>();
 #define E(__name, __func) table->emplace("minecraft:" __name, __func);
         E("stone", Stone("stone"));
         E("granite", Stone("granite"));
@@ -59,15 +718,15 @@ private:
         E("jungle_log", Log("jungle"));
         E("acacia_log", Log2("acacia"));
         E("dark_oak_log", Log2("dark_oak"));
-        E("crimson_stem", AxisToPillarAxis());
-        E("warped_stem", AxisToPillarAxis());
+        E("crimson_stem", axisToPillarAxis);
+        E("warped_stem", axisToPillarAxis);
 
-        E("stripped_oak_log", AxisToPillarAxis());
-        E("stripped_spruce_log", AxisToPillarAxis());
-        E("stripped_birch_log", AxisToPillarAxis());
-        E("stripped_acacia_log", AxisToPillarAxis());
-        E("stripped_jungle_log", AxisToPillarAxis());
-        E("stripped_dark_oak_log", AxisToPillarAxis());
+        E("stripped_oak_log", axisToPillarAxis);
+        E("stripped_spruce_log", axisToPillarAxis);
+        E("stripped_birch_log", axisToPillarAxis);
+        E("stripped_acacia_log", axisToPillarAxis);
+        E("stripped_jungle_log", axisToPillarAxis);
+        E("stripped_dark_oak_log", axisToPillarAxis);
 
         E("oak_wood", Wood("oak", false));
         E("spruce_wood", Wood("spruce", false));
@@ -87,10 +746,10 @@ private:
         E("jungle_leaves", Leaves("jungle"));
         E("acacia_leaves", Leaves2("acacia"));
         E("dark_oak_leaves", Leaves2("dark_oak"));
-        E("crimson_hyphae", AxisToPillarAxis());
-        E("warped_hyphae", AxisToPillarAxis());
-        E("stripped_crimson_hyphae", AxisToPillarAxis());
-        E("stripped_warped_hyphae", AxisToPillarAxis());
+        E("crimson_hyphae", axisToPillarAxis);
+        E("warped_hyphae", axisToPillarAxis);
+        E("stripped_crimson_hyphae", axisToPillarAxis);
+        E("stripped_warped_hyphae", axisToPillarAxis);
         E("oak_slab", WoodenSlab("oak"));
         E("birch_slab", WoodenSlab("birch"));
         E("spruce_slab", WoodenSlab("spruce"));
@@ -140,7 +799,7 @@ private:
         E("peony", DoublePlant("paeonia"));
         E("sunflower", DoublePlant("sunflower"));
         E("dead_bush", Rename("deadbush"));
-        E("sea_pickle", SeaPickle);
+        E("sea_pickle", SeaPickle());
         E("dandelion", Rename("yellow_flower"));
         E("poppy", RedFlower("poppy"));
         E("blue_orchid", RedFlower("orchid"));
@@ -153,8 +812,8 @@ private:
         E("oxeye_daisy", RedFlower("oxeye"));
         E("cornflower", RedFlower("cornflower"));
         E("lily_of_the_valley", RedFlower("lily_of_the_valley"));
-        E("seagrass", Seagrass);
-        E("tall_seagrass", TallSeagrass);
+        E("seagrass", Converter(Fixed("seagrass"), AddStringProperty("sea_grass_type", "default")));
+        E("tall_seagrass", Converter(Fixed("seagrass"), HalfToSeagrassType));
         E("kelp", Kelp());
         E("kelp_plant", Kelp(16));
         E("water", Liquid("water"));
@@ -163,7 +822,7 @@ private:
         E("weeping_vines", NetherVines("weeping"));
         E("twisting_vines_plant", NetherVines("twisting", 25)); //TODO(kbinani): is 25 correct?
         E("twisting_vines", NetherVines("twisting"));
-        E("vine", Vine);
+        E("vine", Converter(Fixed("vine"), VineDirectionBits));
         E("cobblestone_stairs", Stairs("stone_stairs"));
         E("stone_stairs", Stairs("normal_stone_stairs"));
         E("end_stone_brick_stairs", Stairs("end_brick_stairs"));
@@ -245,8 +904,8 @@ private:
         E("dark_oak_planks", Planks("dark_oak"));
         E("purpur_block", PurpurBlock("default"));
         E("purpur_pillar", PurpurBlock("lines"));
-        E("jack_o_lantern", LitPumpkin);
-        E("carved_pumpkin", FacingToDirection);
+        E("jack_o_lantern", LitPumpkin());
+        E("carved_pumpkin", directionFromFacing);
         E("white_stained_glass", StainedGlass("white"));
         E("orange_stained_glass", StainedGlass("orange"));
         E("magenta_stained_glass", StainedGlass("magenta"));
@@ -341,18 +1000,18 @@ private:
         E("dead_bubble_coral_block", CoralBlock("purple", true));
         E("dead_fire_coral_block", CoralBlock("red", true));
         E("dead_horn_coral_block", CoralBlock("yellow", true));
-        E("snow", SnowLayer);
+        E("snow", SnowLayer());
         E("sugar_cane", Rename("reeds"));
-        E("end_rod", EndRod);
+        E("end_rod", Converter(Same, EndRodFacingDirectionFromFacing));
         E("oak_fence", Fence("oak"));
         E("spruce_fence", Fence("spruce"));
         E("birch_fence", Fence("birch"));
         E("jungle_fence", Fence("jungle"));
         E("acacia_fence", Fence("acacia"));
         E("dark_oak_fence", Fence("dark_oak"));
-        E("ladder", FacingToFacingDirection);
-        E("chest", FacingToFacingDirection);
-        E("furnace", FacingToFacingDirection);
+        E("ladder", facingDirectionFromFacing);
+        E("chest", facingDirectionFromFacing);
+        E("furnace", facingDirectionFromFacing);
         E("nether_bricks", Rename("nether_brick"));
         E("infested_stone", InfestedStone("stone"));
         E("infested_cobblestone", InfestedStone("cobblestone"));
@@ -364,11 +1023,11 @@ private:
         E("wall_torch", AnyWallTorch(""));
         E("soul_torch", AnyTorch("soul_"));
         E("soul_wall_torch", AnyWallTorch("soul_"));
-        E("farmland", Farmland());
+        E("farmland", Converter(Same, WithName("moisturized_amount", Moisture)));
         E("red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false));
         E("brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false));
         E("mushroom_stem", AnyMushroomBlock("brown_mushroom_block", true));
-        E("end_portal_frame", EndPortalFrame);
+        E("end_portal_frame", Converter(Same, DirectionFromFacing, EyeToEndPortalEyeBit));
         E("white_shulker_box", ShulkerBox("white"));
         E("orange_shulker_box", ShulkerBox("orange"));
         E("magenta_shulker_box", ShulkerBox("magenta"));
@@ -400,9 +1059,9 @@ private:
         E("red_nether_brick_wall", Wall("red_nether_brick"));
         E("sandstone_wall", Wall("sandstone"));
         E("end_stone_brick_wall", Wall("end_brick"));
-        E("blackstone_wall", WallNT);
-        E("polished_blackstone_wall", WallNT);
-        E("polished_blackstone_brick_wall", WallNT);
+        E("blackstone_wall", wall);
+        E("polished_blackstone_wall", wall);
+        E("polished_blackstone_brick_wall", wall);
         E("white_carpet", Carpet("white"));
         E("orange_carpet", Carpet("orange"));
         E("magenta_carpet", Carpet("magenta"));
@@ -439,22 +1098,22 @@ private:
         E("anvil", Anvil("undamaged"));
         E("chipped_anvil", Anvil("slightly_damaged"));
         E("damaged_anvil", Anvil("very_damaged"));
-        E("white_glazed_terracotta", FacingToFacingDirection);
-        E("orange_glazed_terracotta", FacingToFacingDirection);
-        E("magenta_glazed_terracotta", FacingToFacingDirection);
-        E("light_blue_glazed_terracotta", FacingToFacingDirection);
-        E("yellow_glazed_terracotta", FacingToFacingDirection);
-        E("lime_glazed_terracotta", FacingToFacingDirection);
-        E("pink_glazed_terracotta", FacingToFacingDirection);
-        E("gray_glazed_terracotta", FacingToFacingDirection);
-        E("light_gray_glazed_terracotta", SilverGlazedTerracotta);
-        E("cyan_glazed_terracotta", FacingToFacingDirection);
-        E("purple_glazed_terracotta", FacingToFacingDirection);
-        E("blue_glazed_terracotta", FacingToFacingDirection);
-        E("brown_glazed_terracotta", FacingToFacingDirection);
-        E("green_glazed_terracotta", FacingToFacingDirection);
-        E("red_glazed_terracotta", FacingToFacingDirection);
-        E("black_glazed_terracotta", FacingToFacingDirection);
+        E("white_glazed_terracotta", facingDirectionFromFacing);
+        E("orange_glazed_terracotta", facingDirectionFromFacing);
+        E("magenta_glazed_terracotta", facingDirectionFromFacing);
+        E("light_blue_glazed_terracotta", facingDirectionFromFacing);
+        E("yellow_glazed_terracotta", facingDirectionFromFacing);
+        E("lime_glazed_terracotta", facingDirectionFromFacing);
+        E("pink_glazed_terracotta", facingDirectionFromFacing);
+        E("gray_glazed_terracotta", facingDirectionFromFacing);
+        E("light_gray_glazed_terracotta", Converter(Fixed("silver_glazed_terracotta"), FacingDirectionFromFacing));
+        E("cyan_glazed_terracotta", facingDirectionFromFacing);
+        E("purple_glazed_terracotta", facingDirectionFromFacing);
+        E("blue_glazed_terracotta", facingDirectionFromFacing);
+        E("brown_glazed_terracotta", facingDirectionFromFacing);
+        E("green_glazed_terracotta", facingDirectionFromFacing);
+        E("red_glazed_terracotta", facingDirectionFromFacing);
+        E("black_glazed_terracotta", facingDirectionFromFacing);
 
         E("tube_coral", Coral("blue", false));
         E("brain_coral", Coral("pink", false));
@@ -498,124 +1157,104 @@ private:
         E("crimson_wall_sign", WallSign("crimson"));
         E("warped_wall_sign", WallSign("warped"));
 
-        E("white_bed", Bed);
-        E("orange_bed", Bed);
-        E("magenta_bed", Bed);
-        E("light_blue_bed", Bed);
-        E("yellow_bed", Bed);
-        E("lime_bed", Bed);
-        E("pink_bed", Bed);
-        E("gray_bed", Bed);
-        E("light_gray_bed", Bed);
-        E("cyan_bed", Bed);
-        E("purple_bed", Bed);
-        E("blue_bed", Bed);
-        E("brown_bed", Bed);
-        E("green_bed", Bed);
-        E("red_bed", Bed);
-        E("black_bed", Bed);
+        E("white_bed", bed);
+        E("orange_bed", bed);
+        E("magenta_bed", bed);
+        E("light_blue_bed", bed);
+        E("yellow_bed", bed);
+        E("lime_bed", bed);
+        E("pink_bed", bed);
+        E("gray_bed", bed);
+        E("light_gray_bed", bed);
+        E("cyan_bed", bed);
+        E("purple_bed", bed);
+        E("blue_bed", bed);
+        E("brown_bed", bed);
+        E("green_bed", bed);
+        E("red_bed", bed);
+        E("black_bed", bed);
 
-        E("potted_oak_sapling", PottedFlowerPot);
-        E("potted_spruce_sapling", PottedFlowerPot);
-        E("potted_birch_sapling", PottedFlowerPot);
-        E("potted_jungle_sapling", PottedFlowerPot);
-        E("potted_acacia_sapling", PottedFlowerPot);
-        E("potted_dark_oak_sapling", PottedFlowerPot);
-        E("potted_fern", PottedFlowerPot);
-        E("potted_dead_bush", PottedFlowerPot);
-        E("potted_dandelion", PottedFlowerPot);
-        E("potted_poppy", PottedFlowerPot);
-        E("potted_blue_orchid", PottedFlowerPot);
-        E("potted_allium", PottedFlowerPot);
-        E("potted_azure_bluet", PottedFlowerPot);
-        E("potted_red_tulip", PottedFlowerPot);
-        E("potted_orange_tulip", PottedFlowerPot);
-        E("potted_white_tulip", PottedFlowerPot);
-        E("potted_pink_tulip", PottedFlowerPot);
-        E("potted_oxeye_daisy", PottedFlowerPot);
-        E("potted_cornflower", PottedFlowerPot);
-        E("potted_lily_of_the_valley", PottedFlowerPot);
-        E("potted_wither_rose", PottedFlowerPot);
-        E("potted_brown_mushroom", PottedFlowerPot);
-        E("potted_red_mushroom", PottedFlowerPot);
-        E("potted_crimson_fungus", PottedFlowerPot);
-        E("potted_warped_fungus", PottedFlowerPot);
-        E("potted_crimson_roots", PottedFlowerPot);
-        E("potted_warped_roots", PottedFlowerPot);
-        E("potted_bamboo", PottedFlowerPot);
+        E("potted_oak_sapling", pottedFlowerPot);
+        E("potted_spruce_sapling", pottedFlowerPot);
+        E("potted_birch_sapling", pottedFlowerPot);
+        E("potted_jungle_sapling", pottedFlowerPot);
+        E("potted_acacia_sapling", pottedFlowerPot);
+        E("potted_dark_oak_sapling", pottedFlowerPot);
+        E("potted_fern", pottedFlowerPot);
+        E("potted_dead_bush", pottedFlowerPot);
+        E("potted_dandelion", pottedFlowerPot);
+        E("potted_poppy", pottedFlowerPot);
+        E("potted_blue_orchid", pottedFlowerPot);
+        E("potted_allium", pottedFlowerPot);
+        E("potted_azure_bluet", pottedFlowerPot);
+        E("potted_red_tulip", pottedFlowerPot);
+        E("potted_orange_tulip", pottedFlowerPot);
+        E("potted_white_tulip", pottedFlowerPot);
+        E("potted_pink_tulip", pottedFlowerPot);
+        E("potted_oxeye_daisy", pottedFlowerPot);
+        E("potted_cornflower", pottedFlowerPot);
+        E("potted_lily_of_the_valley", pottedFlowerPot);
+        E("potted_wither_rose", pottedFlowerPot);
+        E("potted_brown_mushroom", pottedFlowerPot);
+        E("potted_red_mushroom", pottedFlowerPot);
+        E("potted_crimson_fungus", pottedFlowerPot);
+        E("potted_warped_fungus", pottedFlowerPot);
+        E("potted_crimson_roots", pottedFlowerPot);
+        E("potted_warped_roots", pottedFlowerPot);
+        E("potted_bamboo", pottedFlowerPot);
 
-        E("skeleton_skull", SkeletonSkull);
+        E("skeleton_skull", Converter(Fixed("skull"), AddIntProperty("facing_direction", 1), AddBoolProperty("no_drop_bit", false)));
 
-        E("white_banner", Banner);
-        E("orange_banner", Banner);
-        E("magenta_banner", Banner);
-        E("light_blue_banner", Banner);
-        E("yellow_banner", Banner);
-        E("lime_banner", Banner);
-        E("pink_banner", Banner);
-        E("gray_banner", Banner);
-        E("light_gray_banner", Banner);
-        E("cyan_banner", Banner);
-        E("purple_banner", Banner);
-        E("blue_banner", Banner);
-        E("brown_banner", Banner);
-        E("green_banner", Banner);
-        E("red_banner", Banner);
-        E("black_banner", Banner);
+        E("white_banner", banner);
+        E("orange_banner", banner);
+        E("magenta_banner", banner);
+        E("light_blue_banner", banner);
+        E("yellow_banner", banner);
+        E("lime_banner", banner);
+        E("pink_banner", banner);
+        E("gray_banner", banner);
+        E("light_gray_banner", banner);
+        E("cyan_banner", banner);
+        E("purple_banner", banner);
+        E("blue_banner", banner);
+        E("brown_banner", banner);
+        E("green_banner", banner);
+        E("red_banner", banner);
+        E("black_banner", banner);
 
-        E("white_wall_banner", WallBanner);
-        E("orange_wall_banner", WallBanner);
-        E("magenta_wall_banner", WallBanner);
-        E("light_blue_wall_banner", WallBanner);
-        E("yellow_wall_banner", WallBanner);
-        E("lime_wall_banner", WallBanner);
-        E("pink_wall_banner", WallBanner);
-        E("gray_wall_banner", WallBanner);
-        E("light_gray_wall_banner", WallBanner);
-        E("cyan_wall_banner", WallBanner);
-        E("purple_wall_banner", WallBanner);
-        E("blue_wall_banner", WallBanner);
-        E("brown_wall_banner", WallBanner);
-        E("green_wall_banner", WallBanner);
-        E("red_wall_banner", WallBanner);
-        E("black_wall_banner", WallBanner);
+        E("white_wall_banner", wallBanner);
+        E("orange_wall_banner", wallBanner);
+        E("magenta_wall_banner", wallBanner);
+        E("light_blue_wall_banner", wallBanner);
+        E("yellow_wall_banner", wallBanner);
+        E("lime_wall_banner", wallBanner);
+        E("pink_wall_banner", wallBanner);
+        E("gray_wall_banner", wallBanner);
+        E("light_gray_wall_banner", wallBanner);
+        E("cyan_wall_banner", wallBanner);
+        E("purple_wall_banner", wallBanner);
+        E("blue_wall_banner", wallBanner);
+        E("brown_wall_banner", wallBanner);
+        E("green_wall_banner", wallBanner);
+        E("red_wall_banner", wallBanner);
+        E("black_wall_banner", wallBanner);
 
-        E("stonecutter", RenameFaced("stonecutter_block"));
-        E("loom", FacingToDirection);
-        E("grindstone", Grindstone);
-        E("smoker", FacingToFacingDirection);
-        E("blast_furnace", FacingToFacingDirection);
-        E("barrel", Barrel);
-        E("lantern", Lantern);
-        E("soul_lantern", Lantern);
-        E("bell", Bell);
-        E("campfire", Campfire);
-        E("soul_campfire", Campfire);
+        E("stonecutter", Converter(Fixed("stonecutter_block"), FacingDirectionFromFacing));
+        E("loom", directionFromFacing);
+        E("grindstone", Converter(Fixed("grindstone"), DirectionFromFacing, GrindstoneFaceToAttachment));
+        E("smoker", facingDirectionFromFacing);
+        E("blast_furnace", facingDirectionFromFacing);
+        E("barrel", Converter(Fixed("barrel"), FacingDirectionFromFacing, WithName("open_bit", Open)));
+        E("lantern", lantern);
+        E("soul_lantern", lantern);
+        E("bell", Converter(Fixed("bell"), BellDirectionFromFacing, BellAttachmentFromAttachment, WithName("toggle_bit", Powered)));
+        E("campfire", campfire);
+        E("soul_campfire", campfire);
 #undef E
-
-        /*
-        TODO:
-        - direction of shulker box
-        - sign text
-        - rotation of skelton skull
-        */
-
         return table;
     }
 
-    static BlockDataType Campfire(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New(block.fName, true);
-        auto states = States();
-        auto direction = DirectionFromFacing(block);
-        states->fValue.emplace("direction", Int(direction));
-        auto lit = block.property("lit", "false") == "true";
-        states->fValue.emplace("extinguished", Bool(!lit));
-        return Complete(tag, block, states);
-    }
-
-    static std::string Attachment(std::string const& attachment) {
+    static std::string GetAttachment(std::string const& attachment) {
         if (attachment == "floor") {
             return "standing";
         } else if (attachment == "ceiling") {
@@ -628,486 +1267,7 @@ private:
         return attachment;
     }
 
-    static BlockDataType Bell(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("bell");
-        auto states = States();
-        auto facing = block.property("facing", "north");
-        int32_t direction = 0;
-        if (facing == "north") {
-            direction = 0;
-        } else if (facing == "east") {
-            direction = 1;
-        } else if (facing == "south") {
-            direction = 2;
-        } else {
-            direction = 3;
-        }
-        states->fValue.emplace("direction", Int(direction));
-        auto toggle = block.property("powered", "false") == "true";
-        states->fValue.emplace("toggle_bit", Bool(toggle));
-        auto attachment = block.property("attachment", "floor");
-        states->fValue.emplace("attachment", String(Attachment(attachment)));
-        return Complete(tag, block, states, {"facing", "attachment", "powered"});
-    }
-
-    static BlockDataType Lantern(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New(block.fName, true);
-        auto hanging = block.property("hanging", "false") == "true";
-        auto states = States();
-        states->fValue.emplace("hanging", Bool(hanging));
-        return Complete(tag, block, states, {"hanging"});
-    }
-
-    static BlockDataType Barrel(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("barrel");
-        auto states = States();
-        auto facing = FacingDirectionFromFacing(block);
-        states->fValue.emplace("facing_direction", Int(facing));
-        auto open = block.property("open", "false") == "true";
-        states->fValue.emplace("open_bit", Bool(open));
-        return Complete(tag, block, states, {"facing", "open"});
-    }
-
-    static BlockDataType Grindstone(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("grindstone");
-        auto states = States();
-        auto direction = DirectionFromFacing(block);
-        states->fValue.emplace("direction", Int(direction));
-        auto face = block.property("face", "wall");
-        string attachment;
-        if (face == "wall") {
-            attachment = "side";
-        } else if (face == "floor") {
-            attachment = "standing";
-        } else {
-            attachment = "hanging";
-        }
-        states->fValue.emplace("attachment", String(attachment));
-        return Complete(tag, block, states, {"facing", "face"});
-    }
-
-    static ConverterFunction RenameFaced(std::string const& name) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New(name);
-            auto states = States();
-            auto facing = FacingDirectionFromFacing(block);
-            states->fValue.emplace("facing_direction", Int(facing));
-            return Complete(tag, block, states, {"facing"});
-        };
-    }
-
-    static BlockDataType WallBanner(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("wall_banner");
-        auto states = States();
-        auto direction = FacingDirectionFromFacing(block);
-        states->fValue.emplace("facing_direction", Int(direction));
-        return Complete(tag, block, states, {"facing"});
-    }
-
-    static BlockDataType Banner(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("standing_banner");
-        auto states = States();
-        auto rotation = block.property("rotation", "0");
-        states->fValue.emplace("ground_sign_direction", Int(stoi(rotation)));
-        return Complete(tag, block, states, {"rotation"});
-    }
-
-    static BlockDataType SkeletonSkull(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("skull");
-        auto states = States();
-        states->fValue.emplace("facing_direction", Int(1));
-        states->fValue.emplace("no_drop_bit", Bool(false));
-        return Complete(tag, block, states, {"rotation"});
-    }
-
-    static BlockDataType PottedFlowerPot(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("flower_pot");
-        auto states = States();
-        states->fValue.emplace("update_bit", Bool(true));
-        return Complete(tag, block, states);
-    }
-
-    static BlockDataType Bed(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("bed");
-        auto states = States();
-        auto direction = DirectionFromFacing(block);
-        states->fValue.emplace("direction", Int(direction));
-        auto head = block.property("part", "foot") == "head";
-        states->fValue.emplace("head_piece_bit", Bool(head));
-        auto occupied = block.property("occupied", "false") == "true";
-        states->fValue.emplace("occupied_bit", Bool(occupied));
-        return Complete(tag, block, states, {"facing", "part", "occupied"});
-    }
-
-    static ConverterFunction WallSign(std::optional<std::string> prefix = std::nullopt) {
-        using namespace std;
-        using namespace props;
-        string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
-        return [=](Block const& block) {
-            auto tag = New(name);
-            auto direction = FacingDirectionFromFacing(block);
-            auto states = States();
-            states->fValue.emplace("facing_direction", Int(direction));
-            return Complete(tag, block, states, {"facing"});
-        };
-    }
-
-    static ConverterFunction Sign(std::optional<std::string> prefix = std::nullopt) {
-        using namespace std;
-        using namespace props;
-        string name = prefix ? *prefix + "_standing_sign" : "standing_sign";
-        return [=](Block const& block) {
-            auto tag = New(name);
-            auto rotation = block.property("rotation", "0");
-            auto states = States();
-            states->fValue.emplace("ground_sign_direction", Int(stoi(rotation)));
-            return Complete(tag, block, states, {"rotation"});
-        };
-    }
-
-    static ConverterFunction CoralFan(std::string const& type, bool dead) {
-        using namespace std;
-        using namespace props;
-        auto tag = New(dead ? "coral_fan_dead" : "coral_fan");
-        return [=](Block const& block) {
-            auto states = States();
-            states->fValue.emplace("coral_color", String(type));
-            states->fValue.emplace("coral_fan_direction", Int(0));
-            return Complete(tag, block, states);
-        };
-    }
-
-    static ConverterFunction Coral(std::string const& type, bool dead) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New("coral");
-            auto states = States();
-            states->fValue.emplace("coral_color", String(type));
-            states->fValue.emplace("dead_bit", Bool(dead));
-            return Complete(tag, block, states);
-        };
-    }
-
-    static BlockDataType SilverGlazedTerracotta(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("silver_glazed_terracotta");
-        auto direction = FacingDirectionFromFacing(block);
-        auto states = States();
-        states->fValue.emplace("facing_direction", Int(direction));
-        return Complete(tag, block, states, {"facing"});
-    }
-
-    static ConverterFunction Anvil(std::string const& damage) {
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New("anvil");
-            auto states = States();
-            states->fValue.emplace("damage", String(damage));
-            auto direction = DirectionFromFacing(block);
-            states->fValue.emplace("direction", Int(direction));
-            return Complete(tag, block, states, {"facing"});
-        };
-    }
-
-    static ConverterFunction StainedGlassPane(std::string const& color) {
-        return Subtype("stained_glass_pane", "color", color);
-    }
-
-    static ConverterFunction Carpet(std::string const& color) {
-        return Subtype("carpet", "color", color);
-    }
-
-    static std::string WallConnectionType(std::string const& type) {
-        if (type == "low") {
-            return "short";
-        } else if (type == "tall") {
-            return "tall";
-        } else {
-            return "none";
-        }
-    }
-
-    static BlockDataType WallNT(Block const& block) {
-        using namespace props;
-        auto tag = New(block.fName, true);
-        auto states = States();
-        auto east = WallConnectionType(block.property("east", "none"));
-        auto north = WallConnectionType(block.property("north", "none"));
-        auto south = WallConnectionType(block.property("south", "none"));
-        auto west = WallConnectionType(block.property("west", "none"));
-        states->fValue.emplace("wall_connection_type_east", String(east));
-        states->fValue.emplace("wall_connection_type_north", String(north));
-        states->fValue.emplace("wall_connection_type_south", String(south));
-        states->fValue.emplace("wall_connection_type_west", String(west));
-        states->fValue.emplace("wall_post_bit", Bool(false));
-        return Complete(tag, block, states, {"east", "north", "south", "west"});
-    }
-
-    static ConverterFunction Wall(std::string const& type) {
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New("cobblestone_wall");
-            auto states = States();
-            states->fValue.emplace("wall_block_type", String(type));
-            auto east = WallConnectionType(block.property("east", "none"));
-            auto north = WallConnectionType(block.property("north", "none"));
-            auto south = WallConnectionType(block.property("south", "none"));
-            auto west = WallConnectionType(block.property("west", "none"));
-            states->fValue.emplace("wall_connection_type_east", String(east));
-            states->fValue.emplace("wall_connection_type_north", String(north));
-            states->fValue.emplace("wall_connection_type_south", String(south));
-            states->fValue.emplace("wall_connection_type_west", String(west));
-            return Complete(tag, block, states, {"east", "north", "south", "west"});
-        };
-    }
-
-    static ConverterFunction ShulkerBox(std::string const& color) {
-        return Subtype("shulker_box", "color", color);
-    }
-
-    static BlockDataType EndPortalFrame(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("end_portal_frame");
-        auto direction = DirectionFromFacing(block);
-        auto eye = block.property("eye", "false") == "true";
-        auto states = States();
-        states->fValue.emplace("direction", Int(direction));
-        states->fValue.emplace("end_portal_eye_bit", Bool(eye));
-        return Complete(tag, block, states, {"facing", "eye"});
-    }
-
-    static ConverterFunction Farmland() {
-        using namespace std;
-        static map<string, string> const moisture = {
-            {"moisture", "moisturized_amount"},
-        };
-        return Rename(nullopt, moisture);
-    }
-    
-    static ConverterFunction AnyMushroomBlock(std::string const& name, bool stem) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New(name);
-            auto up = block.property("up", "false") == "true";
-            auto down = block.property("down", "false") == "true";
-            auto north = block.property("north", "false") == "true";
-            auto east = block.property("east", "false") == "true";
-            auto south = block.property("south", "false") == "true";
-            auto west = block.property("west", "false") == "true";
-            int32_t bits = stem ? 15 : 14;
-            if (!up && !down && !north && !east && !south && !west) {
-                bits = 0;
-            } else if (up && west && north && !down && !east && !south) {
-                bits = 1;
-            } else if (up && north && !down && !east && !south && !west) {
-                bits = 2;
-            } else if (up && north && east && !down && !south && !west) {
-                bits = 3;
-            } else if (up && west && !down && !north && !east && !south) {
-                bits = 4;
-            } else if (up && !down && !north && !east && !south && !west) {
-                bits = 5;
-            } else if (up && east && !down && !north && !south && !west) {
-                bits = 6;
-            } else if (up && south && west && !down && !north && !east) {
-                bits = 7;
-            } else if (up && south && !down && !north && !east && !west) {
-                bits = 8;
-            } else if (up && east && south && !down && !north && !west) {
-                bits = 9;
-            } else if (north && east && south && west && !up && !down && stem) {
-                bits = 10;
-            } else if (up && down && north && east && south && west) {
-                if (stem) {
-                    bits = 15;
-                } else {
-                    bits = 14;
-                }
-            }
-            auto states = States();
-            states->fValue.emplace("huge_mushroom_bits", Int(bits));
-            return Complete(tag, block, states, {"up", "down", "north", "east", "south", "west"});
-        };
-    }
-
-    static std::string TorchFacingDirectionFromFacing(std::string const& facing) {
-        if (facing == "east") {
-            return "west";
-        } else if (facing == "west") {
-            return "east";
-        } else if (facing == "north") {
-            return "south";
-        } else {
-            return "north";
-        }
-    }
-
-    static ConverterFunction AnyTorch(std::string const& prefix) {
-        using namespace std;
-        using namespace props;
-        string name = prefix + "torch";
-        return [=](Block const& block) {
-            auto tag = New(name);
-            auto states = States();
-            states->fValue.emplace("torch_facing_direction", String("top"));
-            return Complete(tag, block, states);
-        };
-    }
-
-    static ConverterFunction AnyWallTorch(std::string const& prefix) {
-        using namespace std;
-        using namespace props;
-        string name = prefix + "torch";
-        return [=](Block const& block) {
-            auto tag = New(name);
-            auto states = States();
-            auto facing = block.property("facing", "north");
-            auto direction = TorchFacingDirectionFromFacing(facing);
-            states->fValue.emplace("torch_facing_direction", String(direction));
-            return Complete(tag, block, states, { "facing" });
-        };
-    }
-
-    static ConverterFunction InfestedStone(std::string const& type) {
-        return Subtype("monster_egg", "monster_egg_stone_type", type);
-    }
-
-    static ConverterFunction Fence(std::string const& type) {
-        return Subtype("fence", "wood_type", type);
-    }
-
-    static BlockDataType EndRod(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("end_rod");
-        auto states = States();
-        auto facing = block.property("facing", "up");
-        int32_t direction = 1;
-        if (facing == "up") {
-            direction = 1;
-        } else if (facing == "east") {
-            direction = 4;
-        } else if (facing == "south") {
-            direction = 2;
-        } else if (facing == "north") {
-            direction = 3;
-        } else if (facing == "down") {
-            direction = 0;
-        } else if (facing == "west") {
-            direction = 5;
-        }
-        states->fValue.emplace("facing_direction", Int(direction));
-        return Complete(tag, block, states, {"facing"});
-    }
-
-    static BlockDataType SnowLayer(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("snow_layer");
-        auto states = States();
-        auto layers = stoi(block.property("layers", "1"));
-        states->fValue.emplace("height", Int(int32_t(layers - 1)));
-        states->fValue.emplace("covered_bit", Bool(false));
-        return Complete(tag, block, states, {"layers"});
-    }
-
-    static ConverterFunction CoralBlock(std::string const& color, bool dead) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New("coral_block");
-            auto states = States();
-            states->fValue.emplace("coral_color", String(color));
-            states->fValue.emplace("dead_bit", Bool(dead));
-            return Complete(tag, block, states);
-        };
-    }
-
-    static ConverterFunction Sapling(std::string const& type) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New("sapling");
-            auto states = States();
-            states->fValue.emplace("sapling_type", String(type));
-            auto stage = block.property("stage", "0");
-            states->fValue.emplace("age_bit", Bool(stage == "1"));
-            return Complete(tag, block, states, {"stage"});
-        };
-    }
-
-    static ConverterFunction StoneBrick(std::string const& type) {
-        return Subtype("stonebrick", "stone_brick_type", type);
-    }
-
-    static ConverterFunction Prismarine(std::string const& type) {
-        return Subtype("prismarine", "prismarine_block_type", type);
-    }
-
-    static ConverterFunction Terracotta(std::string const& color) {
-        return Subtype("stained_hardened_clay", "color", color);
-    }
-
-    static ConverterFunction Concrete(std::string const& color) {
-        return Subtype("concrete", "color", color);
-    }
-
-    static ConverterFunction ConcretePowder(std::string const& color) {
-        return Subtype("concretePowder", "color", color);
-    }
-
-    static ConverterFunction StainedGlass(std::string const& color) {
-        return Subtype("stained_glass", "color", color);
-    }
-
-    static BlockDataType LitPumpkin(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("lit_pumpkin");
-        auto states = States();
-        auto direction = DirectionFromFacing(block);
-        states->fValue.emplace("direction", Int(direction));
-        return Complete(tag, block, states, { "facing" });
-    }
-
-    static int32_t DirectionFromFacing(Block const& block) {
-        auto facing = block.property("facing", "north");
-        if (facing == "south") {
-            return 0;
-        } else if (facing == "east") {
-            return 3;
-        } else if (facing == "west") {
-            return 1;
-        } else {
-            return 2;
-        }
-    }
-
-    static int32_t FacingDirectionFromFacing(Block const& block) {
+    static int32_t GetFacingDirectionFromFacing(Block const& block) {
         auto facing = block.property("facing", "north");
         if (facing == "east") {
             return 5;
@@ -1121,325 +1281,6 @@ private:
             return 1;
         } else {
             return 0;
-        }
-    }
-
-    static BlockDataType FacingToFacingDirection(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New(block.fName, true);
-        auto states = States();
-        auto facing = block.property("facing", "north");
-        int32_t direction = FacingDirectionFromFacing(block);
-        states->fValue.emplace("facing_direction", Int(direction));
-        return Complete(tag, block, states, { "facing" });
-    }
-
-    static BlockDataType FacingToDirection(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New(block.fName, true);
-        auto states = States();
-        auto direction = DirectionFromFacing(block);
-        states->fValue.emplace("direction", Int(direction));
-        return Complete(tag, block, states, { "facing" });
-    }
-
-    static ConverterFunction PurpurBlock(std::string const& type) {
-        return Subtype("purpur_block", "chisel_type", type);
-    }
-
-    static ConverterFunction Planks(std::string const& type) {
-        return Subtype("planks", "wood_type", type);
-    }
-
-    static ConverterFunction Sand(std::string const& type) {
-        return Subtype("sand", "sand_type", type);
-    }
-
-    static ConverterFunction QuartzBlock(std::string const& type) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) {
-            auto tag = New("quartz_block");
-            auto states = States();
-            auto axis = block.property("axis", "y");
-            states->fValue.emplace("pillar_axis", String(axis));
-            states->fValue.emplace("chisel_type", String(type));
-            return Complete(tag, block, states);
-        };
-    }
-
-    static ConverterFunction Wool(std::string const& color) {
-        return Subtype("wool", "color", color);
-    }
-
-    static ConverterFunction RedSandstone(std::string const& type) {
-        return Subtype("red_sandstone", "sand_stone_type", type);
-    }
-
-    static ConverterFunction Sandstone(std::string const& type) {
-        return Subtype("sandstone", "sand_stone_type", type);
-    }
-
-    static ConverterFunction Sponge(std::string const& type) {
-        return Subtype("sponge", "sponge_type", type);
-    }
-
-    static ConverterFunction Stairs(std::optional<std::string> name = std::nullopt) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            string n = name ? "minecraft:"s + *name : block.fName;
-            auto tag = New(n, true);
-            auto states = States();
-
-            auto facing = block.property("facing", "north");
-            int32_t direction = 0;
-            if (facing == "east") {
-                direction = 0;
-            } else if (facing == "south") {
-                direction = 2;
-            } else if (facing == "north") {
-                direction = 3;
-            } else if (facing == "west") {
-                direction = 1;
-            }
-            states->fValue.emplace("weirdo_direction", Int(direction));
-
-            auto half = block.property("half", "bottom");
-            states->fValue.emplace("upside_down_bit", Bool(half == "top"));
-
-            return Complete(tag, block, states, { "facing", "half", "shape" });
-        };
-    }
-
-    static BlockDataType Vine(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("vine");
-        auto east = block.property("east", "false") == "true";
-        auto north = block.property("north", "false") == "true";
-        auto south = block.property("south", "false") == "true";
-        auto up = block.property("up", "false") == "true";
-        auto west = block.property("west", "false") == "true";
-        int32_t direction = 0;
-        if (east) {
-            direction |= 0x8;
-        }
-        if (north) {
-            direction |= 0x4;
-        }
-        if (west) {
-            direction |= 0x2;
-        }
-        if (south) {
-            direction |= 0x1;
-        }
-        auto states = States();
-        states->fValue.emplace("vine_direction_bits", Int(direction));
-        return Complete(tag, block, states, { "up", "east", "west", "north", "south" });
-    }
-
-    static ConverterFunction NetherVines(std::string const& type, int32_t age = -1) {
-        using namespace std;
-        using namespace props;
-        string name = type + "_vines";
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New(name);
-            auto states = States();
-            int32_t a = age;
-            if (a < 0) {
-                auto ageString = block.property("age", "0");
-                a = stoi(ageString);
-            }
-            states->fValue.emplace(type + "_vines_age", Int(a));
-            return Complete(tag, block, states, { "age" });
-        };
-    }
-
-    static ConverterFunction Liquid(std::string const& type) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto levelString = block.property("level", "0");
-            auto level = stoi(levelString);
-            BlockDataType tag;
-            if (level == 0) {
-                tag = New(type);
-            } else {
-                tag = New("flowing_"s + type);
-            }
-            auto states = States();
-            states->fValue.emplace("liquid_depth", Int(level));
-            return Complete(tag, block, states, { "level" });
-        };
-    }
-
-    static ConverterFunction Kelp(int32_t age = -1) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New("kelp");
-            auto states = States();
-            int32_t a = age;
-            if (age < 0) {
-                auto ageString = block.property("age", "0");
-                a = stoi(ageString);
-            }
-            states->fValue.emplace("kelp_age", Int(a));
-            return Complete(tag, block, states, {"age"});
-        };
-    }
-
-    static BlockDataType TallSeagrass(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("seagrass");
-        auto states = States();
-        auto half = block.property("half", "bottom");
-        string type = half == "bottom" ? "double_bot" : "double_top";
-        states->fValue.emplace("sea_grass_type", String(type));
-        return Complete(tag, block, states, {"half"});
-    }
-
-    static BlockDataType Seagrass(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("seagrass");
-        auto states = States();
-        states->fValue.emplace("sea_grass_type", String("default"));
-        return Complete(tag, block, states);
-    }
-
-    static ConverterFunction RedFlower(std::string const& type) {
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New("red_flower");
-            auto states = States();
-            states->fValue.emplace("flower_type", String(type));
-            return Complete(tag, block, states);
-        };
-    }
-    
-    static BlockDataType SeaPickle(Block const& block) {
-        using namespace std;
-        using namespace props;
-        auto tag = New("sea_pickle");
-        auto states = States();
-        auto waterlogged = block.property("waterlogged", "false");
-        states->fValue.emplace("dead_bit", Bool(waterlogged == "false"));
-        auto pickles = block.property("pickles", "1");
-        auto cluster = (min)((max)(stoi(pickles), 1), 4) - 1;
-        states->fValue.emplace("cluster_count", Int(cluster));
-        return Complete(tag, block, states, {"pickles"});
-    }
-    
-    static ConverterFunction DoublePlant(std::string const& type) {
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New("double_plant");
-            auto states = States();
-            states->fValue.emplace("double_plant_type", String(type));
-            auto half = block.property("half", "lower");
-            states->fValue.emplace("upper_block_bit", Bool(half == "upper"));
-            return Complete(tag, block, states);
-        };
-    }
-    
-    static ConverterFunction TallGrass(std::string const& type) {
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New("tallgrass");
-            auto states = States();
-            states->fValue.emplace("tall_grass_type", String(type));
-            return Complete(tag, block, states);
-        };
-    }
-    
-    static BlockDataType Identity(mcfile::Block const& block) {
-        using namespace std;
-
-        auto tag = New(block.fName, true);
-        auto states = States();
-        return Complete(tag, block, states);
-    }
-
-    static ConverterFunction Subtype(std::string const& name, std::string const& subtypeTitle, std::string const& subtype) {
-        using namespace std;
-        using namespace props;
-
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New(name);
-            auto states = States();
-            states->fValue.emplace(subtypeTitle, String(subtype));
-            return Complete(tag, block, states, {subtypeTitle});
-        };
-    }
-
-    static ConverterFunction Stone(std::string const& stoneType) {
-        return Subtype("stone", "stone_type", stoneType);
-    }
-
-    static ConverterFunction Dirt(std::string const& dirtType) {
-        return Subtype("dirt", "dirt_type", dirtType);
-    }
-
-    static ConverterFunction Rename(std::optional<std::string> to = std::nullopt , std::optional<std::map<std::string, std::string>> properties = std::nullopt) {
-        using namespace std;
-        using namespace props;
-
-        set<string> ignore;
-        if (properties) {
-            for_each(properties->begin(), properties->end(), [&ignore](auto& it) {
-                ignore.insert(it.first);
-            });
-        }
-
-        return [=](Block const& block) -> BlockDataType {
-            string name = to ? ("minecraft:"s + *to) : block.fName;
-            auto tag = New(name, true);
-            auto states = States();
-            if (properties) {
-                for_each(properties->begin(), properties->end(), [&block, &states](auto& it) {
-                    auto found = block.fProperties.find(it.first);
-                    if (found == block.fProperties.end()) {
-                        return;
-                    }
-                    states->fValue.emplace(it.second, props::String(found->second));
-                });
-            }
-            return Complete(tag, block, states, ignore);
-        };
-    }
-
-    static BlockDataType Complete(BlockDataType tag, Block const& block, StatesType states) {
-        MergeProperties(block, *states, std::nullopt);
-        tag->fValue.emplace("states", states);
-        return tag;
-    }
-
-    static BlockDataType Complete(BlockDataType tag, Block const& block, StatesType states, std::set<std::string> const& ignore) {
-        MergeProperties(block, *states, ignore);
-        tag->fValue.emplace("states", states);
-        return tag;
-    }
-
-    static void MergeProperties(mcfile::Block const& block, mcfile::nbt::CompoundTag& states, std::optional<std::set<std::string>> ignore) {
-        for (auto it = block.fProperties.begin(); it != block.fProperties.end(); it++) {
-            auto const& name = it->first;
-            if (name == "waterlogged") {
-                continue;
-            }
-            if (ignore && !ignore->empty()) {
-                auto found = ignore->find(name);
-                if (found != ignore->end()) {
-                    continue;
-                }
-            }
-#ifdef _DEBUG
-            std::cout << "Warning: Unhandled property " << block.fName << "[" << it->first << "=" << it->second << "]" << std::endl;
-#endif
         }
     }
 
@@ -1458,154 +1299,6 @@ private:
         return std::make_shared<mcfile::nbt::CompoundTag>();
     }
     
-    static ConverterFunction Log(std::string const& type) {
-        using namespace std;
-        using namespace props;
-
-        return [type](Block const& block) -> BlockDataType {
-            auto tag = New("log");
-            auto states = States();
-            states->fValue.emplace("old_log_type", String(type));
-            auto axis = block.property("axis", "y");
-            states->fValue.emplace("pillar_axis", String(axis));
-            return Complete(tag, block, states, {"axis", "pillar_axis", "old_log_type"});
-        };
-    }
-
-    static ConverterFunction Log2(std::string const& type) {
-        using namespace std;
-        using namespace props;
-
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New("log2");
-            auto states = States();
-            states->fValue.emplace("new_log_type", String(type));
-            string axis = block.property("axis", "y");
-            states->fValue.emplace("pillar_axis", String(axis));
-            return Complete(tag, block, states, {"axis", "pillar_axis", "new_log_type"});
-        };
-    }
-
-    static ConverterFunction Wood(std::string const& type, bool stripped) {
-        using namespace std;
-        using namespace props;
-
-        return [=](Block const& block) -> BlockDataType {
-            auto tag = New("wood");
-            auto states = States();
-            auto axis = block.property("axis", "y");
-            states->fValue.emplace("pillar_axis", String(axis));
-            states->fValue.emplace("wood_type", String(type));
-            states->fValue.emplace("stripped_bit", Bool(stripped));
-            return Complete(tag, block, states, {"axis"});
-        };
-    }
-
-    static ConverterFunction Leaves(std::string const& type) {
-        using namespace std;
-        using namespace props;
-
-        return [type](Block const& block) -> BlockDataType {
-            auto tag = New("leaves");
-            auto states = States();
-            states->fValue.emplace("old_leaf_type", String(type));
-
-            auto persistent = block.property("persistent", "false");
-            bool persistentV = persistent == "true";
-            states->fValue.emplace("persistent_bit", Bool(persistentV));
-
-            auto distance = block.property("distance", "7");
-            int distanceV = stoi(distance);
-            states->fValue.emplace("update_bit", Bool(distanceV > 4));
-
-            return Complete(tag, block, states, {"persistent", "distance"});
-        };
-    }
-
-    static ConverterFunction Leaves2(std::string const& type) {
-        using namespace std;
-        using namespace props;
-
-        return [type](Block const& block) -> BlockDataType {
-            auto tag = New("leaves2");
-            auto states = States();
-            states->fValue.emplace("new_leaf_type", String(type));
-
-            auto persistent = block.property("persistent", "false");
-            bool persistentV = persistent == "true";
-            states->fValue.emplace("persistent_bit", Bool(persistentV));
-
-            auto distance = block.property("distance", "7");
-            int distanceV = stoi(distance);
-            states->fValue.emplace("update_bit", Bool(distanceV > 4));
-
-            return Complete(tag, block, states, {"persistent", "distance"});
-        };
-    }
-
-    static ConverterFunction AxisToPillarAxis() {
-        using namespace std;
-        static map<string, string> const axisToPillarAxis = {
-            {"axis", "pillar_axis"}
-        };
-        return Rename(std::nullopt, axisToPillarAxis);
-    }
-
-    static ConverterFunction WoodenSlab(std::string const& type) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto states = States();
-            auto t = block.property("type", "bottom");
-            states->fValue.emplace("top_slot_bit", Bool(t == "top"));
-            states->fValue.emplace("wood_type", String(type));
-            auto tag = t == "double" ? New("double_wooden_slab") : New("wooden_slab");
-            return Complete(tag, block, states, {"type"});
-        };
-    }
-
-    static ConverterFunction StoneSlab(std::string const& type) {
-        return StoneSlabNumbered("", type);
-    }
-
-    static ConverterFunction StoneSlab2(std::string const& type) {
-        return StoneSlabNumbered("2", type);
-    }
-
-    static ConverterFunction StoneSlab3(std::string const& type) {
-        return StoneSlabNumbered("3", type);
-    }
-
-    static ConverterFunction StoneSlab4(std::string const& type) {
-        return StoneSlabNumbered("4", type);
-    }
-
-    static ConverterFunction StoneSlabNumbered(std::string const& number, std::string const& type) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto states = States();
-            auto t = block.property("type", "bottom");
-            states->fValue.emplace("top_slot_bit", Bool(t == "top"));
-            auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
-            states->fValue.emplace(typeKey, String(type));
-            auto tag = t == "double" ? New("double_stone_slab" + number) : New("stone_slab" + number);
-            return Complete(tag, block, states, {"type"});
-        };
-    }
-
-    static ConverterFunction StoneSlabNT(std::string const& doubledName) {
-        using namespace std;
-        using namespace props;
-        return [=](Block const& block) -> BlockDataType {
-            auto states = States();
-            auto t = block.property("type", "bottom");
-            states->fValue.emplace("top_slot_bit", Bool(t == "top"));
-            auto tag = t == "double" ? New(doubledName) : New(block.fName, true);
-            return Complete(tag, block, states, {"type"});
-        };
-    }
-
 private:
     static int32_t const kBlockDataVersion = 17825808;
 };
