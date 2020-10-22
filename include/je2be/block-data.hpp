@@ -42,7 +42,7 @@ private:
     static std::unordered_map<std::string, ConverterFunction>* CreateConverterTable() {
         using namespace std;
         auto table = new unordered_map<string, ConverterFunction>();
-#define E(__name, __func) table->emplace("minecraft:"##__name, __func);
+#define E(__name, __func) table->emplace("minecraft:" __name, __func);
         E("stone", Stone("stone"));
         E("granite", Stone("granite"));
         E("polished_granite", Stone("granite_smooth"));
