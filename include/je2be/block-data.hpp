@@ -146,7 +146,7 @@ private:
         };
     }
     
-    static PropertySpec HalfToUpperBlockBit(Block const& block) {
+    static PropertySpec UpperBlockBitToHalf(Block const& block) {
         auto half = block.property("half", "lower");
         return std::make_pair("upper_block_bit", props::Bool(half == "upper"));
     }
@@ -273,7 +273,7 @@ private:
     }
 
     static Converter DoublePlant(std::string const& type) {
-        return Converter(Fixed("double_plant"), AddStringProperty("double_plant_type", type), HalfToUpperBlockBit);
+        return Converter(Fixed("double_plant"), AddStringProperty("double_plant_type", type), UpperBlockBitToHalf);
     }
     
     static Converter Rename(std::string const& name) {
@@ -365,7 +365,7 @@ private:
         return Subtype("planks", "wood_type", type);
     }
 
-    static PropertyType Facing(Block const& block) {
+    static PropertyType FacingA(Block const& block) {
         auto facing = block.property("facing", "north");
         int32_t direction = 2;
         if (facing == "south") {
@@ -380,12 +380,50 @@ private:
         return props::Int(direction);
     }
 
-    static PropertySpec DirectionFromFacing(Block const& block) {
-        return std::make_pair("direction", Facing(block));
+    static PropertyType FacingB(Block const& block) {
+        auto facing = block.property("facing", "north");
+        int32_t direction = 0;
+        if (facing == "south") {
+            direction = 2;
+        } else if (facing == "east") {
+            direction = 0;
+        } else if (facing == "west") {
+            direction = 1;
+        } else {
+            direction = 3;
+        }
+        return props::Int(direction);
     }
-    
+
+    static PropertyType FacingC(Block const& b) {
+        auto facing = b.property("facing", "north");
+        int32_t direction = 0;
+        if (facing == "north") {
+            direction = 3;
+        } else if (facing == "east") {
+            direction = 0;
+        } else if (facing == "south") {
+            direction = 1;
+        } else {
+            direction = 2;
+        }
+        return props::Int(direction);
+    }
+
+    static PropertySpec DirectionFromFacingA(Block const& block) {
+        return std::make_pair("direction", FacingA(block));
+    }
+
+    static PropertySpec DirectionFromFacingB(Block const& block) {
+        return std::make_pair("direction", FacingB(block));
+    }
+
+    static PropertySpec DirectionFromFacingC(Block const& block) {
+        return std::make_pair("direction", FacingC(block));
+    }
+
     static Converter LitPumpkin() {
-        return Converter(Fixed("lit_pumpkin"), DirectionFromFacing);
+        return Converter(Fixed("lit_pumpkin"), DirectionFromFacingA);
     }
 
     static Converter StainedGlass(std::string const& color) {
@@ -547,7 +585,7 @@ private:
         return std::make_pair("end_portal_eye_bit", props::Bool(eye));
     }
 
-    static int32_t GetFacingDirectionFromFacing(Block const& block) {
+    static int32_t GetFacingDirectionFromFacingA(Block const& block) {
         auto facing = block.property("facing", "north");
         if (facing == "east") {
             return 5;
@@ -564,7 +602,7 @@ private:
         }
     }
 
-    static int32_t GetFacingDirectionFromFacing2(Block const& block) {
+    static int32_t GetFacingDirectionFromFacingB(Block const& block) {
         auto facing = block.property("facing", "north");
         if (facing == "east") {
             return 4;
@@ -581,13 +619,13 @@ private:
         }
     }
 
-    static PropertySpec FacingDirectionFromFacing(Block const& block) {
-        int32_t direction = GetFacingDirectionFromFacing(block);
+    static PropertySpec FacingDirectionFromFacingA(Block const& block) {
+        int32_t direction = GetFacingDirectionFromFacingA(block);
         return std::make_pair("facing_direction", props::Int(direction));
     }
 
-    static PropertySpec FacingDirectionFromFacing2(Block const& block) {
-        int32_t direction = GetFacingDirectionFromFacing2(block);
+    static PropertySpec FacingDirectionFromFacingB(Block const& block) {
+        int32_t direction = GetFacingDirectionFromFacingB(block);
         return std::make_pair("facing_direction", props::Int(direction));
     }
 
@@ -627,7 +665,7 @@ private:
     }
 
     static Converter Anvil(std::string const& damage) {
-        return Converter(Fixed("anvil"), AddStringProperty("damage", damage), DirectionFromFacing);
+        return Converter(Fixed("anvil"), AddStringProperty("damage", damage), DirectionFromFacingA);
     }
 
     static Converter Coral(std::string const& type, bool dead) {
@@ -640,7 +678,7 @@ private:
 
     static Converter WallSign(std::optional<std::string> prefix = std::nullopt) {
         std::string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
-        return Converter(Fixed(name), FacingDirectionFromFacing);
+        return Converter(Fixed(name), FacingDirectionFromFacingA);
     }
 
     static PropertyType Rotation(Block const& block) {
@@ -723,21 +761,9 @@ private:
     static std::unordered_map<std::string, Converter>* CreateConverterTable() {
         using namespace std;
         Converter axisToPillarAxis(Same, AxisToPillarAxis);
-        Converter directionFromFacing(Same, DirectionFromFacing);
-        Converter facingDirectionFromFacing(Same, FacingDirectionFromFacing);
-        Converter facingDirectionFromFacing2(Same, FacingDirectionFromFacing2);
-        Converter wall(Same,
-                       AddBoolProperty("wall_post_bit", false),
-                       WallConnectionType("east", "wall_connection_type_east"),
-                       WallConnectionType("north", "wall_connection_type_north"),
-                       WallConnectionType("south", "wall_connection_type_south"),
-                       WallConnectionType("west", "wall_connection_type_west"));
-        Converter bed(Fixed("bed"), DirectionFromFacing, PartToHeadPieceBit, OccupiedToOccupiedBit);
-        Converter pottedFlowerPot(Fixed("flower_pot"), AddBoolProperty("update_bit", true));
-        Converter wallBanner(Fixed("wall_banner"), FacingDirectionFromFacing);
-        Converter banner(Fixed("standing_banner"), WithName("ground_sign_direction", Rotation));
-        Converter lantern(Same, WithName("hanging", Hanging));
-        Converter campfire(Same, DirectionFromFacing, LitToExtinguished);
+        Converter directionFromFacing(Same, DirectionFromFacingA);
+        Converter facingDirectionFromFacing(Same, FacingDirectionFromFacingA);
+        Converter facingDirectionFromFacing2(Same, FacingDirectionFromFacingB);
 
         auto table = new unordered_map<string, Converter>();
 #define E(__name, __func) table->emplace("minecraft:" __name, __func);
@@ -1066,7 +1092,7 @@ private:
         E("red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false));
         E("brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false));
         E("mushroom_stem", AnyMushroomBlock("brown_mushroom_block", true));
-        E("end_portal_frame", Converter(Same, DirectionFromFacing, EyeToEndPortalEyeBit));
+        E("end_portal_frame", Converter(Same, DirectionFromFacingA, EyeToEndPortalEyeBit));
         E("white_shulker_box", ShulkerBox("white"));
         E("orange_shulker_box", ShulkerBox("orange"));
         E("magenta_shulker_box", ShulkerBox("magenta"));
@@ -1098,6 +1124,12 @@ private:
         E("red_nether_brick_wall", Wall("red_nether_brick"));
         E("sandstone_wall", Wall("sandstone"));
         E("end_stone_brick_wall", Wall("end_brick"));
+        Converter wall(Same,
+                       AddBoolProperty("wall_post_bit", false),
+                       WallConnectionType("east", "wall_connection_type_east"),
+                       WallConnectionType("north", "wall_connection_type_north"),
+                       WallConnectionType("south", "wall_connection_type_south"),
+                       WallConnectionType("west", "wall_connection_type_west"));
         E("blackstone_wall", wall);
         E("polished_blackstone_wall", wall);
         E("polished_blackstone_brick_wall", wall);
@@ -1145,7 +1177,7 @@ private:
         E("lime_glazed_terracotta", facingDirectionFromFacing);
         E("pink_glazed_terracotta", facingDirectionFromFacing);
         E("gray_glazed_terracotta", facingDirectionFromFacing);
-        E("light_gray_glazed_terracotta", Converter(Fixed("silver_glazed_terracotta"), FacingDirectionFromFacing));
+        E("light_gray_glazed_terracotta", Converter(Fixed("silver_glazed_terracotta"), FacingDirectionFromFacingA));
         E("cyan_glazed_terracotta", facingDirectionFromFacing);
         E("purple_glazed_terracotta", facingDirectionFromFacing);
         E("blue_glazed_terracotta", facingDirectionFromFacing);
@@ -1196,6 +1228,7 @@ private:
         E("crimson_wall_sign", WallSign("crimson"));
         E("warped_wall_sign", WallSign("warped"));
 
+        Converter bed(Fixed("bed"), DirectionFromFacingA, PartToHeadPieceBit, OccupiedToOccupiedBit);
         E("white_bed", bed);
         E("orange_bed", bed);
         E("magenta_bed", bed);
@@ -1213,6 +1246,7 @@ private:
         E("red_bed", bed);
         E("black_bed", bed);
 
+        Converter pottedFlowerPot(Fixed("flower_pot"), AddBoolProperty("update_bit", true));
         E("potted_oak_sapling", pottedFlowerPot);
         E("potted_spruce_sapling", pottedFlowerPot);
         E("potted_birch_sapling", pottedFlowerPot);
@@ -1244,6 +1278,7 @@ private:
 
         E("skeleton_skull", Converter(Fixed("skull"), AddIntProperty("facing_direction", 1), AddBoolProperty("no_drop_bit", false)));
 
+        Converter banner(Fixed("standing_banner"), WithName("ground_sign_direction", Rotation));
         E("white_banner", banner);
         E("orange_banner", banner);
         E("magenta_banner", banner);
@@ -1261,6 +1296,7 @@ private:
         E("red_banner", banner);
         E("black_banner", banner);
 
+        Converter wallBanner(Fixed("wall_banner"), FacingDirectionFromFacingA);
         E("white_wall_banner", wallBanner);
         E("orange_wall_banner", wallBanner);
         E("magenta_wall_banner", wallBanner);
@@ -1278,15 +1314,17 @@ private:
         E("red_wall_banner", wallBanner);
         E("black_wall_banner", wallBanner);
 
-        E("stonecutter", Converter(Fixed("stonecutter_block"), FacingDirectionFromFacing));
+        E("stonecutter", Converter(Fixed("stonecutter_block"), FacingDirectionFromFacingA));
         E("loom", directionFromFacing);
-        E("grindstone", Converter(Fixed("grindstone"), DirectionFromFacing, GrindstoneFaceToAttachment));
+        E("grindstone", Converter(Fixed("grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
         E("smoker", facingDirectionFromFacing);
         E("blast_furnace", facingDirectionFromFacing);
-        E("barrel", Converter(Fixed("barrel"), FacingDirectionFromFacing, WithName("open_bit", Open)));
+        E("barrel", Converter(Fixed("barrel"), FacingDirectionFromFacingA, WithName("open_bit", Open)));
+        Converter lantern(Same, WithName("hanging", Hanging));
         E("lantern", lantern);
         E("soul_lantern", lantern);
         E("bell", Converter(Fixed("bell"), BellDirectionFromFacing, BellAttachmentFromAttachment, WithName("toggle_bit", Powered)));
+        Converter campfire(Same, DirectionFromFacingA, LitToExtinguished);
         E("campfire", campfire);
         E("soul_campfire", campfire);
         E("piston", facingDirectionFromFacing2);
@@ -1294,12 +1332,220 @@ private:
         E("piston_head", facingDirectionFromFacing2);
         E("sticky_piston_head", facingDirectionFromFacing2);
         E("note_block", Rename("noteblock"));
-        E("dispenser", Converter(Same, FacingDirectionFromFacing, WithName("triggered_bit", Triggered)));
+        E("dispenser", Converter(Same, FacingDirectionFromFacingA, WithName("triggered_bit", Triggered)));
         E("lever", Converter(Same, LeverDirection, WithName("open_bit", Powered)));
+
+        Converter fenceGate(Same, DirectionFromFacingA, WithName("in_wall_bit", InWall), WithName("open_bit", Open));
+        E("oak_fence_gate", Converter(Fixed("fence_gate"), DirectionFromFacingA, WithName("in_wall_bit", InWall), WithName("open_bit", Open)));
+        E("spruce_fence_gate", fenceGate);
+        E("birch_fence_gate", fenceGate);
+        E("jungle_fence_gate", fenceGate);
+        E("acacia_fence_gate", fenceGate);
+        E("dark_oak_fence_gate", fenceGate);
+        E("crimson_fence_gate", fenceGate);
+        E("warped_fence_gate", fenceGate);
+        
+        Converter pressurePlate(Same, WithName("powered", Powered), WithName("power", Power));
+        E("oak_pressure_plate", Converter(Fixed("wooden_pressure_plate"), WithName("powered", Powered), WithName("power", Power)));
+        E("spruce_pressure_plate", pressurePlate);
+        E("birch_pressure_plate", pressurePlate);
+        E("jungle_pressure_plate", pressurePlate);
+        E("acacia_pressure_plate", pressurePlate);
+        E("dark_oak_pressure_plate", pressurePlate);
+        E("crimson_pressure_plate", pressurePlate);
+        E("warped_pressure_plate", pressurePlate);
+        E("stone_pressure_plate", pressurePlate);
+        E("light_weighted_pressure_plate", pressurePlate);
+        E("heavy_weighted_pressure_plate", pressurePlate);
+        E("polished_blackstone_pressure_plate", pressurePlate);
+        
+        Converter trapdoor(Same, DirectionFromFacingB, WithName("open_bit", Open), HalfToUpsideDownBit);
+        E("oak_trapdoor", Converter(Fixed("trapdoor"), DirectionFromFacingB, WithName("open_bit", Open), HalfToUpsideDownBit));
+        E("spruce_trapdoor", trapdoor);
+        E("birch_trapdoor", trapdoor);
+        E("jungle_trapdoor", trapdoor);
+        E("acacia_trapdoor", trapdoor);
+        E("dark_oak_trapdoor", trapdoor);
+        E("crimson_trapdoor", trapdoor);
+        E("warped_trapdoor", trapdoor);
+        E("iron_trapdoor", trapdoor);
+        
+        E("lily_pad", Rename("waterlily"));
+        
+        Converter button(Same, ButtonFacingDirection, WithName("button_pressed_bit", Powered));
+        E("oak_button", Converter(Fixed("wooden_button"), ButtonFacingDirection, WithName("button_pressed_bit", Powered)));
+        E("spruce_button", button);
+        E("birch_button", button);
+        E("jungle_button", button);
+        E("acacia_button", button);
+        E("dark_oak_button", button);
+        E("crimson_button", button);
+        E("warped_button", button);
+        E("stone_button", button);
+        E("polished_blackstone_button", button);
+        
+        E("tripwire_hook", Converter(Same, DirectionFromFacingA, WithName("attached_bit", Attached), WithName("powered_bit", Powered)));
+        E("trapped_chest", facingDirectionFromFacing);
+        E("daylight_detector", Converter(DaylightDetectorName, WithName("redstone_signal", Power)));
+        E("hopper", Converter(Same, FacingDirectionFromFacingA, ToggleBitFromEnabled));
+        E("dropper", Converter(Same, FacingDirectionFromFacingA, WithName("triggered_bit", Triggered)));
+        E("observer", Converter(Same, FacingDirectionFromFacingA, WithName("powered_bit", Powered)));
+
+        Converter door(Same, DirectionFromFacingC, WithName("open_bit", Open), UpperBlockBitToHalf, DoorHingeBitFromHinge);
+        E("oak_door", Converter(Fixed("wooden_door"), DirectionFromFacingC, WithName("open_bit", Open), UpperBlockBitToHalf, DoorHingeBitFromHinge));
+        E("iron_door", door);
+        E("spruce_door", door);
+        E("birch_door", door);
+        E("jungle_door", door);
+        E("acacia_door", door);
+        E("dark_oak_door", door);
+        E("crimson_door", door);
+        E("warped_door", door);
+
+        E("repeater", Converter(RepeaterName, WithName("repeater_delay", Delay), DirectionFromFacingA));
+        E("comparator", Converter(ComparatorName, DirectionFromFacingA, OutputSubtractBitFromMode), WithName("output_lit_bit", Powered));
+        E("powered_rail", Converter(Fixed("golden_rail"), RailDirectionFromShape, WithName("rail_data_bit", Powered)));
+        E("detector_rail", Converter(Same, RailDirectionFromShape, WithName("rail_data_bit", Powered)));
+        E("activator_rail", Converter(Same, RailDirectionFromShape, WithName("rail_data_bit", Powered)));
+        E("rail", Converter(Same, RailDirectionFromShape));
+        E("nether_portal", Converter(Fixed("portal"), WithName("portal_axis", Axis)));
+
+        E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, AgeBitFromAge, AddStringProperty("bamboo_stalk_thikness", "thin")));
 #undef E
         return table;
     }
 
+    static PropertySpec AgeBitFromAge(Block const& b) {
+        auto age = b.property("age", "0");
+        return std::make_pair("age", props::Bool(age == "1"));
+    }
+
+    static PropertySpec BambooLeafSizeFromLeaves(Block const& b) {
+        auto leaves = b.property("leaves", "none");
+        std::string size = "no_leaves";
+        if (leaves == "none") {
+            size = "no_leaves";
+        } else if (leaves == "large") {
+            size = "large_leaves";
+        } else if (leaves == "small") {
+            size = "small_leaves";
+        }
+        return std::make_pair("bamboo_leaf_size", props::String(size));
+    }
+
+    static PropertyType Axis(Block const& b) {
+        auto axis = b.property("axis", "x");
+        return props::String(axis);
+    }
+
+    static PropertySpec RailDirectionFromShape(Block const& b) {
+        auto shape = b.property("shape", "north_south");
+        int32_t direction = 0;
+        if (shape == "north_south") {
+            direction = 0;
+        } else if (shape == "east_west") {
+            direction = 1;
+        } else if (shape == "ascending_east") {
+            direction = 2;
+        } else if (shape == "ascending_south") {
+            direction = 5;
+        } else if (shape == "ascending_west") {
+            direction = 3;
+        } else if (shape == "ascending_north") {
+            direction = 4;
+        } else if (shape == "north_east") {
+            direction = 9;
+        } else if (shape == "north_west") {
+            direction = 8;
+        } else if (shape == "south_east") {
+            direction = 6;
+        } else if (shape == "south_west") {
+            direction = 7;
+        }
+        return std::make_pair("rail_direction", props::Int(direction));
+    }
+
+    static PropertySpec OutputSubtractBitFromMode(Block const& b) {
+        auto mode = b.property("mode", "compare");
+        return std::make_pair("output_subtract_bit", props::Bool(mode == "subtract"));
+    }
+
+    static PropertyType Delay(Block const& b) {
+        auto delay = std::stoi(b.property("delay", "1"));
+        return props::Int(delay - 1);
+    }
+
+    static std::string ComparatorName(Block const& b) {
+        auto powered = b.property("powered", "false") == "true";
+        if (powered) {
+            return "minecraft:powered_comparator";
+        } else {
+            return "minecraft:unpowered_comparator";
+        }
+    }
+
+    static std::string RepeaterName(Block const& b) {
+        auto powered = b.property("powered", "false") == "true";
+        if (powered) {
+            return "minecraft:powered_repeater";
+        } else {
+            return "minecraft:unpowered_repeater";
+        }
+    }
+
+    static PropertySpec DoorHingeBitFromHinge(Block const& b) {
+        auto hinge = b.property("hinge", "left");
+        return std::make_pair("door_hinge_bit", props::Bool(hinge == "right"));
+    }
+
+    static PropertySpec ToggleBitFromEnabled(Block const& b) {
+        auto enabled = b.property("enabled", "true") == "true";
+        return std::make_pair("toggle_bit", props::Bool(!enabled));
+    }
+
+    static std::string DaylightDetectorName(Block const& b) {
+        auto inverted = b.property("inverted", "false") == "true";
+        if (inverted) {
+            return "minecraft:daylight_detector_inverted";
+        } else {
+            return "minecraft:daylight_detector";
+        }
+    }
+
+    static PropertyType Attached(Block const& b) {
+        return props::Bool(b.property("attached", "false") == "true");
+    }
+
+    static PropertySpec ButtonFacingDirection(Block const& b) {
+        auto face = b.property("face", "wall");
+        auto facing = b.property("facing", "north");
+        int32_t direction = 0;
+        if (face == "floor") {
+            direction = 1;
+        } else if (face == "ceiling") {
+            direction = 0;
+        } else {
+            if (facing == "south") {
+                direction = 3;
+            } else if (facing == "north") {
+                direction = 2;
+            } else if (facing == "east") {
+                direction = 5;
+            } else if (facing == "west") {
+                direction = 4;
+            }
+        }
+        return std::make_pair("facing_direction", props::Int(direction));
+    }
+    
+    static PropertyType Power(Block const& b) {
+        return props::Int(std::stoi(b.property("power", "0")));
+    }
+    
+    static PropertyType InWall(Block const& b) {
+        return props::Bool(b.property("in_wall", "false") == "true");
+    }
+    
     static PropertySpec LeverDirection(Block const& b) {
         auto face = b.property("face", "wall");
         auto facing = b.property("facing", "north");
