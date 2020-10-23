@@ -41,6 +41,10 @@ public:
         return std::string(b.data(), b.size());
     }
 
+    static std::string Portals() {
+        return "portals";
+    }
+
 private:
     static void PlaceXZTag(std::vector<char>& out, int32_t chunkX, int32_t chunkZ, uint8_t tag) {
         out.clear();

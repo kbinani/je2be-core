@@ -71,32 +71,35 @@ public:
             return false;
         }
 
+        Portals portals;
         bool ok = true;
         //for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
         for (auto dim : { Dimension::Overworld }) { //TODO(kbinani): debug
                 auto dir = fInputOption.getWorldDirectory(fInput, dim);
             World world(dir);
-            ok &= convertWorld(world, dim, db);
+            ok &= convertWorld(world, dim, db, portals);
         }
+
+        portals.putInto(db);
 
         return ok;
     }
 
 private:
-    bool convertWorld(mcfile::World const& w, Dimension dim, Db &db) {
+    bool convertWorld(mcfile::World const& w, Dimension dim, Db &db, Portals &portals) {
         using namespace std;
         using namespace mcfile;
 
-        w.eachRegions([this, dim, &db](shared_ptr<Region> const& region) {
+        w.eachRegions([this, dim, &db, &portals](shared_ptr<Region> const& region) {
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
                 return true;
             }
             bool err;
-            region->loadAllChunks(err, [this, dim, &db](Chunk const& chunk) {
-                if (chunk.fChunkX != 0 || chunk.fChunkZ != 0) { //TODO(kbinani): debug
+            region->loadAllChunks(err, [this, dim, &db, &portals](Chunk const& chunk) {
+                if (!(0 <= chunk.fChunkX && chunk.fChunkX <= 6 && chunk.fChunkZ == 0)) { //TODO(kbinani): debug
                     return true;
                 }
-                putChunk(chunk, dim, db);
+                putChunk(chunk, dim, db, portals);
                 return true;
             });
             return true;
@@ -105,7 +108,7 @@ private:
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db) {
+    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, Portals &portals) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
@@ -115,7 +118,7 @@ private:
         ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, cd, hm);
+            putSubChunk(chunk, dim, chunkY, cd, hm, portals);
         }
         {
             int const y = 0;
@@ -139,7 +142,7 @@ private:
         cd.put(db);
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm, Portals &portals) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -183,6 +186,9 @@ private:
                         empty = false;
                         if (!IsAir(*block)) {
                             hm.update(x, by, z);
+                        }
+                        if (block->fName == "minecraft:nether_portal") {
+                            portals.add(bx, by, bz, *block, dim);
                         }
                     }
                     string paletteKey = block ? block->toString() : "minecraft:air"s;

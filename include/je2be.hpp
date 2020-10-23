@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <je2be/enums.hpp>
 #include <je2be/key.hpp>
@@ -19,4 +20,5 @@
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
 #include <je2be/chunk-data.hpp>
+#include <je2be/portals.hpp>
 #include <je2be/converter.hpp>
