@@ -86,6 +86,14 @@ public:
     }
 
 private:
+    class RegionData {
+    public:
+        explicit RegionData(Dimension dim) : fPortalBlocks(dim)
+        {}
+
+        PortalBlocks fPortalBlocks;
+    };
+
     bool convertWorld(mcfile::World const& w, Dimension dim, Db &db, Portals &portals) {
         using namespace std;
         using namespace mcfile;
@@ -94,21 +102,23 @@ private:
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
                 return true;
             }
+            RegionData rd(dim);
             bool err;
-            region->loadAllChunks(err, [this, dim, &db, &portals](Chunk const& chunk) {
+            region->loadAllChunks(err, [this, dim, &db, &rd](Chunk const& chunk) {
                 if (!(0 <= chunk.fChunkX && chunk.fChunkX <= 6 && chunk.fChunkZ == 0)) { //TODO(kbinani): debug
                     return true;
                 }
-                putChunk(chunk, dim, db, portals);
+                putChunk(chunk, dim, db, rd);
                 return true;
             });
+            portals.add(rd.fPortalBlocks, dim);
             return true;
         });
 
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, Portals &portals) {
+    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, RegionData &rd) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
@@ -118,7 +128,7 @@ private:
         ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, cd, hm, portals);
+            putSubChunk(chunk, dim, chunkY, cd, hm, rd);
         }
         {
             int const y = 0;
@@ -142,7 +152,7 @@ private:
         cd.put(db);
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm, Portals &portals) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm, RegionData &rd) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -188,7 +198,8 @@ private:
                             hm.update(x, by, z);
                         }
                         if (block->fName == "minecraft:nether_portal") {
-                            portals.add(bx, by, bz, *block, dim);
+                            bool xAxis = block->property("axis", "x") == "x";
+                            rd.fPortalBlocks.add(bx, by, bz, xAxis);
                         }
                     }
                     string paletteKey = block ? block->toString() : "minecraft:air"s;

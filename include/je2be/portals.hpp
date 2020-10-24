@@ -5,26 +5,15 @@ namespace j2b {
 class Portals {
 public:
     Portals()
-        : fOverworldX(Dimension::Overworld, true)
-        , fOverworldZ(Dimension::Overworld, false)
-        , fNetherX(Dimension::Nether, true)
-        , fNetherZ(Dimension::Nether, false)
+        : fOverworld(Dimension::Overworld)
+        , fNether(Dimension::Nether)
     {}
 
-    void add(int32_t x, int32_t y, int32_t z, mcfile::Block const& block, Dimension dim) {
-        auto axis = block.property("axis", "x");
+    void add(PortalBlocks& pb, Dimension dim) {
         if (dim == Dimension::Overworld) {
-            if (axis == "x") {
-                fOverworldX.add(x, y, z);
-            } else {
-                fOverworldZ.add(x, y, z);
-            }
+            pb.drain(fOverworld);
         } else if (dim == Dimension::Nether) {
-            if (axis == "x") {
-                fNetherX.add(x, y, z);
-            } else {
-                fNetherZ.add(x, y, z);
-            }
+            pb.drain(fNether);
         }
     }
 
@@ -33,10 +22,8 @@ public:
         using namespace mcfile::stream;
         using namespace mcfile::nbt;
         vector<Portal> portals;
-        fOverworldX.drain(portals);
-        fOverworldZ.drain(portals);
-        fNetherX.drain(portals);
-        fNetherZ.drain(portals);
+        fOverworld.extract(portals);
+        fNether.extract(portals);
 
         auto root = make_shared<CompoundTag>();
         auto data = make_shared<CompoundTag>();
@@ -64,10 +51,8 @@ public:
     }
 
 private:
-    PortalBlocks fOverworldX;
-    PortalBlocks fOverworldZ;
-    PortalBlocks fNetherX;
-    PortalBlocks fNetherZ;
+    PortalBlocks fOverworld;
+    PortalBlocks fNether;
 };
 
 }
