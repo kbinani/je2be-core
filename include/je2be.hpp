@@ -20,5 +20,7 @@
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
 #include <je2be/chunk-data.hpp>
+#include <je2be/portal.hpp>
+#include <je2be/portal-blocks.hpp>
 #include <je2be/portals.hpp>
 #include <je2be/converter.hpp>

@@ -19,6 +19,8 @@ set(je2be_srcs
   include/je2be/biome-map.hpp
   include/je2be/chunk-data.hpp
   include/je2be/portals.hpp
+  include/je2be/portal-blocks.hpp
+  include/je2be/portal.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
