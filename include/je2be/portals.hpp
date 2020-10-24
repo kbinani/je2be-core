@@ -11,32 +11,32 @@ public:
         , fNetherZ(Dimension::Nether, false)
     {}
 
-	void add(int32_t x, int32_t y, int32_t z, mcfile::Block const& block, Dimension dim) {
-		auto axis = block.property("axis", "x");
-		if (dim == Dimension::Overworld) {
-			if (axis == "x") {
-				fOverworldX.add(x, y, z);
-			} else {
-				fOverworldZ.add(x, y, z);
-			}
-		} else if (dim == Dimension::Nether) {
-			if (axis == "x") {
-				fNetherX.add(x, y, z);
-			} else {
-				fNetherZ.add(x, y, z);
-			}
-		}
-	}
+    void add(int32_t x, int32_t y, int32_t z, mcfile::Block const& block, Dimension dim) {
+        auto axis = block.property("axis", "x");
+        if (dim == Dimension::Overworld) {
+            if (axis == "x") {
+                fOverworldX.add(x, y, z);
+            } else {
+                fOverworldZ.add(x, y, z);
+            }
+        } else if (dim == Dimension::Nether) {
+            if (axis == "x") {
+                fNetherX.add(x, y, z);
+            } else {
+                fNetherZ.add(x, y, z);
+            }
+        }
+    }
 
-	void putInto(Db& db) {
-		using namespace std;
+    void putInto(Db& db) {
+        using namespace std;
         using namespace mcfile::stream;
         using namespace mcfile::nbt;
-		vector<Portal> portals;
-		fOverworldX.drain(portals);
-		fOverworldZ.drain(portals);
-		fNetherX.drain(portals);
-		fNetherZ.drain(portals);
+        vector<Portal> portals;
+        fOverworldX.drain(portals);
+        fOverworldZ.drain(portals);
+        fNetherX.drain(portals);
+        fNetherZ.drain(portals);
 
         auto root = make_shared<CompoundTag>();
         auto data = make_shared<CompoundTag>();
@@ -61,30 +61,30 @@ public:
 
         leveldb::Slice v((char*)buffer.data(), buffer.size());
         db.put(key, v);
-	}
+    }
 
 private:
-	class Pos {
-	public:
-		Pos(int x, int y, int z)
-			: fX(x), fZ(z), fY(y)
-		{}
+    class Pos {
+    public:
+        Pos(int x, int y, int z)
+            : fX(x), fZ(z), fY(y)
+        {}
 
-		bool operator==(Pos const& other) const {
-			return fX == other.fX && fZ == other.fZ && fY == other.fY;
-		}
+        bool operator==(Pos const& other) const {
+            return fX == other.fX && fZ == other.fZ && fY == other.fY;
+        }
 
-	public:
-		int fX;
-		int fZ;
-		int fY;
-	};
+    public:
+        int fX;
+        int fZ;
+        int fY;
+    };
 
-	class Portal {
-	public:
-		Portal(int32_t dimId, uint8_t span, int32_t tpX, int32_t tpY, int32_t tpZ, uint8_t xa, uint8_t za)
-			: fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa), fZa(za)
-		{}
+    class Portal {
+    public:
+        Portal(int32_t dimId, uint8_t span, int32_t tpX, int32_t tpY, int32_t tpZ, uint8_t xa, uint8_t za)
+            : fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa), fZa(za)
+        {}
 
         std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
             using namespace std;
@@ -103,35 +103,35 @@ private:
             return tag;
         }
 
-	private:
-		int32_t const fDimId;
-		uint8_t const fSpan;
-		int32_t const fTpX;
-		int32_t const fTpY;
-		int32_t const fTpZ;
-		uint8_t const fXa;
-		uint8_t const fZa;
-	};
+    private:
+        int32_t const fDimId;
+        uint8_t const fSpan;
+        int32_t const fTpX;
+        int32_t const fTpY;
+        int32_t const fTpZ;
+        uint8_t const fXa;
+        uint8_t const fZa;
+    };
 
-	struct PosHasher {
-		size_t operator()(Pos const& k) const {
-			size_t res = 17;
+    struct PosHasher {
+        size_t operator()(Pos const& k) const {
+            size_t res = 17;
             res = res * 31 + std::hash<int>{}(k.fX);
             res = res * 31 + std::hash<int>{}(k.fY);
             res = res * 31 + std::hash<int>{}(k.fZ);
-			return res;
-		}
-	};
+            return res;
+        }
+    };
 
-	class PortalCandidates {
-	public:
-		PortalCandidates(Dimension dim, bool xAxis) : fDimension(dim), fXAxis(xAxis) {}
+    class PortalCandidates {
+    public:
+        PortalCandidates(Dimension dim, bool xAxis) : fDimension(dim), fXAxis(xAxis) {}
 
-		void add(int x, int y, int z) {
-			fBlocks.emplace(x, y, z);
-		}
+        void add(int x, int y, int z) {
+            fBlocks.emplace(x, y, z);
+        }
 
-		void drain(std::vector<Portal>& buffer) {
+        void drain(std::vector<Portal>& buffer) {
             while (!fBlocks.empty()) {
                 Pos start = *fBlocks.begin();
                 Pos bottomNorthWest = lookupBottomNorthWestCorner(start);
@@ -148,7 +148,7 @@ private:
                 Portal portal((int32_t)fDimension, span, bottomNorthWest.fX, bottomNorthWest.fY, bottomNorthWest.fZ, fXAxis ? 1 : 0, fXAxis ? 0 : 1);
                 buffer.push_back(portal);
             }
-		}
+        }
 
     private:
         Pos lookupBottomNorthWestCorner(Pos start) {
@@ -219,17 +219,17 @@ private:
             return Pos(currentX, currentY, currentZ);
         }
         
-	private:
-		Dimension const fDimension;
-		bool const fXAxis;
-		std::unordered_set<Pos, PosHasher> fBlocks;
-	};
+    private:
+        Dimension const fDimension;
+        bool const fXAxis;
+        std::unordered_set<Pos, PosHasher> fBlocks;
+    };
 
 private:
-	PortalCandidates fOverworldX;
-	PortalCandidates fOverworldZ;
-	PortalCandidates fNetherX;
-	PortalCandidates fNetherZ;
+    PortalCandidates fOverworldX;
+    PortalCandidates fOverworldZ;
+    PortalCandidates fNetherX;
+    PortalCandidates fNetherZ;
 };
 
 }
