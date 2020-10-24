@@ -86,9 +86,9 @@ public:
     }
 
 private:
-    class RegionData {
+    class ChunkDataContainer {
     public:
-        RegionData() : fPortalBlocks(std::make_shared<PortalBlocks>())
+        ChunkDataContainer() : fPortalBlocks(std::make_shared<PortalBlocks>())
         {}
 
         std::shared_ptr<PortalBlocks> fPortalBlocks;
@@ -100,30 +100,35 @@ private:
 
         ThreadPool pool(concurrency);
         pool.init();
-        vector<future<RegionData>> futures;
+        vector<future<ChunkDataContainer>> futures;
 
         w.eachRegions([this, dim, &db, &pool, &futures](shared_ptr<Region> const& region) {
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
+                //return true;
+            }
+            int size = 1;
+            if (region->fX < -size || size < region->fX || region->fZ < -size || size < region->fZ) { //TODO(kbinani): debug
                 return true;
             }
-            futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Region> const& region) {
-                RegionData rd;
-                bool err;
-                region->loadAllChunks(err, [this, dim, &db, &rd](Chunk const& chunk) {
-                    if (!(0 <= chunk.fChunkX && chunk.fChunkX <= 6 && chunk.fChunkZ == 0)) { //TODO(kbinani): debug
-                        return true;
+            for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
+                for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
+                    auto const& chunk = region->chunkAt(cx, cz);
+                    if (!chunk) {
+                        continue;
                     }
-                    putChunk(chunk, dim, db, rd);
-                    return true;
-                });
-                return rd;
-            }, region)));
+                    futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Chunk> const& chunk) {
+                        ChunkDataContainer cd;
+                        putChunk(*chunk, dim, db, cd);
+                        return cd;
+                    }, chunk)));
+                }
+            }
             return true;
         });
 
         for (auto& f : futures) {
-            RegionData const& rd = f.get();
-            portals.add(*rd.fPortalBlocks, dim);
+            ChunkDataContainer const& cdc = f.get();
+            portals.add(*cdc.fPortalBlocks, dim);
         }
 
         pool.shutdown();
@@ -131,7 +136,7 @@ private:
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, RegionData &rd) {
+    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, ChunkDataContainer &cdc) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
@@ -141,7 +146,7 @@ private:
         ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, cd, hm, rd);
+            putSubChunk(chunk, dim, chunkY, cd, hm, cdc);
         }
         {
             int const y = 0;
@@ -165,7 +170,7 @@ private:
         cd.put(db);
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm, RegionData &rd) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm, ChunkDataContainer &cdc) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -212,7 +217,7 @@ private:
                         }
                         if (block->fName == "minecraft:nether_portal") {
                             bool xAxis = block->property("axis", "x") == "x";
-                            rd.fPortalBlocks->add(bx, by, bz, xAxis);
+                            cdc.fPortalBlocks->add(bx, by, bz, xAxis);
                         }
                     }
                     string paletteKey = block ? block->toString() : "minecraft:air"s;
