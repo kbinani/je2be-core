@@ -15,10 +15,7 @@ public:
 
         leveldb::WriteBatch batch;
 
-        auto const& versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
-        leveldb::Slice version(&kSubChunkVersion, 1);
-        batch.Put(versionKey, version);
-
+        bool empty = true;
         for (int i = 0; i < 16; i++) {
             auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
             if (fSubChunks[i].empty()) {
@@ -26,8 +23,16 @@ public:
             } else {
                 leveldb::Slice subchunk((char*)fSubChunks[i].data(), fSubChunks[i].size());
                 batch.Put(key, subchunk);
+                empty = false;
             }
         }
+        if (empty) {
+            return;
+        }
+
+        auto const& versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
+        leveldb::Slice version(&kSubChunkVersion, 1);
+        batch.Put(versionKey, version);
 
         leveldb::Slice data2D((char*)fData2D.data(), fData2D.size());
         auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
