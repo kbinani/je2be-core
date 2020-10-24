@@ -340,7 +340,7 @@ private:
 
     static bool IsWaterLogged(mcfile::Block const& block) {
         auto const& name = block.fName;
-        if (name == "minecraft:seagrass" || name == "minecraft:tall_seagrass" || name == "minecraft:kelp" || name == "minecraft:kelp_plant") {
+        if (name == "minecraft:seagrass" || name == "minecraft:tall_seagrass" || name == "minecraft:kelp" || name == "minecraft:kelp_plant" || name == "minecraft:bubble_column") {
             return true;
         }
         return block.property("waterlogged", "false") == "true";

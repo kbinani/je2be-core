@@ -1091,6 +1091,8 @@ private:
         E("wall_torch", AnyWallTorch(""));
         E("soul_torch", AnyTorch("soul_"));
         E("soul_wall_torch", AnyWallTorch("soul_"));
+        E("redstone_torch", AnyTorch("redstone_"));
+        E("redstone_wall_torch", AnyWallTorch("redstone_"));
         E("farmland", Converter(Same, Name(Moisture, "moisturized_amount")));
         E("red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false));
         E("brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false));
@@ -1414,8 +1416,48 @@ private:
         E("nether_portal", Converter(Name("portal"), Name(Axis, "portal_axis")));
 
         E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, AgeBitFromAge, AddStringProperty("bamboo_stalk_thikness", "thin")));
+        E("sweet_berry_bush", Converter(Same, GrowthFromAge));
+        E("bubble_column", Converter(Same, DragDownFromDrag));
+        E("cake", Converter(Same, BiteCounterFromBites));
+        E("beetroots", Converter(Name("beetroot"), GrowthFromAge));
+        E("potatoes", Converter(Same, Name(Age, "growth")));
+        E("carrots", Converter(Same, Name(Age, "growth")));
+        E("pumpkin_stem", Converter(Same, Name(Age, "growth")));
+        E("melon_stem", Converter(Same, Name(Age, "growth")));
+        E("attached_pumpkin_stem", Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
+        E("attached_melon_stem", Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
 #undef E
         return table;
+    }
+
+    static PropertySpec BiteCounterFromBites(Block const& b) {
+        auto bites = std::stoi(b.property("bites", "0"));
+        return std::make_pair("bite_counter", props::Int(bites));
+    }
+
+    static PropertySpec DragDownFromDrag(Block const& b) {
+        auto drag = b.property("drag", "true") == "true";
+        return std::make_pair("drag_down", props::Bool(drag));
+    }
+
+    static PropertySpec GrowthFromAge(Block const& b) {
+        auto age = std::stoi(b.property("age", "0"));
+        int32_t growth = 0;
+        switch (age) {
+        case 0:
+            growth = 0;
+            break;
+        case 1:
+            growth = 2;
+            break;
+        case 2:
+            growth = 4;
+            break;
+        case 3:
+            growth = 7;
+            break;
+        }
+        return std::make_pair("growth", props::Int(growth));
     }
 
     static PropertySpec AgeBitFromAge(Block const& b) {
