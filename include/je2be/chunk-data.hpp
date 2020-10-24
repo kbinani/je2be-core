@@ -11,10 +11,43 @@ public:
     {}
 
     void put(Db& db) {
-        char const kSubChunkVersion = 19;
-
         leveldb::WriteBatch batch;
 
+        if (putChunkSections(batch)) {
+            return;
+        }
+        putVersion(batch);
+        putData2D(batch);
+        putBlockEntity(batch);
+        putChecksums(batch);
+
+        db.write(batch);
+    }
+
+private:
+    void putChecksums(leveldb::WriteBatch& batch) {
+        auto sum = checksums();
+        auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
+        batch.Put(checksumKey, sum);
+    }
+
+    void putBlockEntity(leveldb::WriteBatch& batch) const {
+        auto key = Key::BlockEntity(fChunkX, fChunkZ, fDimension);
+        if (fBlockEntity.empty()) {
+            batch.Delete(key);
+        } else {
+            leveldb::Slice blockEntity((char*)fBlockEntity.data(), fBlockEntity.size());
+            batch.Put(key, blockEntity);
+        }
+    }
+
+    void putData2D(leveldb::WriteBatch& batch) const {
+        leveldb::Slice data2D((char*)fData2D.data(), fData2D.size());
+        auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
+        batch.Put(data2DKey, data2D);
+    }
+
+    bool putChunkSections(leveldb::WriteBatch& batch) const {
         bool empty = true;
         for (int i = 0; i < 16; i++) {
             auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
@@ -26,36 +59,17 @@ public:
                 empty = false;
             }
         }
-        if (empty) {
-            return;
-        }
+        return empty;
+    }
+
+    void putVersion(leveldb::WriteBatch& batch) const {
+        char const kSubChunkVersion = 19;
 
         auto const& versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
         leveldb::Slice version(&kSubChunkVersion, 1);
         batch.Put(versionKey, version);
-
-        leveldb::Slice data2D((char*)fData2D.data(), fData2D.size());
-        auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
-        batch.Put(data2DKey, data2D);
-
-        {
-            auto key = Key::BlockEntity(fChunkX, fChunkZ, fDimension);
-            if (fBlockEntity.empty()) {
-                batch.Delete(key);
-            } else {
-                leveldb::Slice blockEntity((char*)fBlockEntity.data(), fBlockEntity.size());
-                batch.Put(key, blockEntity);
-            }
-        }
-
-        auto sum = checksums();
-        auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
-        batch.Put(checksumKey, sum);
-
-        db.write(batch);
     }
 
-private:
     std::string checksums() const {
         using namespace std;
         using namespace mcfile::stream;
