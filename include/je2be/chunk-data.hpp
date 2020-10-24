@@ -18,12 +18,13 @@ public:
         db.put(versionKey, version);
 
         for (int i = 0; i < 16; i++) {
-            if (fSubChunks[i].empty()) {
-                continue;
-            }
-            leveldb::Slice subchunk((char *)fSubChunks[i].data(), fSubChunks[i].size());
             auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
-            db.put(key, subchunk);
+            if (fSubChunks[i].empty()) {
+                db.del(key);
+            } else {
+                leveldb::Slice subchunk((char*)fSubChunks[i].data(), fSubChunks[i].size());
+                db.put(key, subchunk);
+            }
         }
 
         leveldb::Slice data2D((char *)fData2D.data(), fData2D.size());

@@ -49,6 +49,11 @@ public:
         }
     }
 
+    void del(std::string const& key) {
+        assert(fValid);
+        fDb->Delete(leveldb::WriteOptions{}, key);
+    }
+
 private:
     leveldb::DB *fDb;
     bool fValid;
