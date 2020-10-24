@@ -106,7 +106,7 @@ private:
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
                 //return true;
             }
-            int size = 1;
+            int size = 2;
             if (region->fX < -size || size < region->fX || region->fZ < -size || size < region->fZ) { //TODO(kbinani): debug
                 return true;
             }
@@ -220,7 +220,7 @@ private:
                             cdc.fPortalBlocks->add(bx, by, bz, xAxis);
                         }
                     }
-                    string paletteKey = block ? block->toString() : "minecraft:air"s;
+                    string const& paletteKey = block ? block->toString() : "minecraft:air"s;
                     auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
                     if (found == paletteKeys.end()) {
                         uint16_t index = (uint16_t)paletteKeys.size();

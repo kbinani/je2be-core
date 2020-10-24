@@ -37,6 +37,11 @@ public:
         fDb->Put(fWriteOptions, key, value);
     }
 
+    void write(leveldb::WriteBatch& batch) {
+        assert(fValid);
+        fDb->Write(leveldb::WriteOptions{}, &batch);
+    }
+
     std::optional<std::string> get(std::string const& key) {
         assert(fValid);
         leveldb::ReadOptions o;

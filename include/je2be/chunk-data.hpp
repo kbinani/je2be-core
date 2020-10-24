@@ -10,30 +10,34 @@ public:
         , fDimension(dim)
     {}
 
-    void put(Db &db) {
+    void put(Db& db) {
         char const kSubChunkVersion = 19;
+
+        leveldb::WriteBatch batch;
 
         auto const& versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
         leveldb::Slice version(&kSubChunkVersion, 1);
-        db.put(versionKey, version);
+        batch.Put(versionKey, version);
 
         for (int i = 0; i < 16; i++) {
             auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
             if (fSubChunks[i].empty()) {
-                db.del(key);
+                batch.Delete(key);
             } else {
                 leveldb::Slice subchunk((char*)fSubChunks[i].data(), fSubChunks[i].size());
-                db.put(key, subchunk);
+                batch.Put(key, subchunk);
             }
         }
 
-        leveldb::Slice data2D((char *)fData2D.data(), fData2D.size());
+        leveldb::Slice data2D((char*)fData2D.data(), fData2D.size());
         auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
-        db.put(data2DKey, data2D);
+        batch.Put(data2DKey, data2D);
 
         auto sum = checksums();
         auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
-        db.put(checksumKey, sum);
+        batch.Put(checksumKey, sum);
+
+        db.write(batch);
     }
 
 private:
