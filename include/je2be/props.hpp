@@ -28,5 +28,9 @@ inline std::shared_ptr<mcfile::nbt::FloatTag> Float(float v) {
     return std::make_shared<mcfile::nbt::FloatTag>(v);
 }
 
+inline std::shared_ptr<mcfile::nbt::ShortTag> Short(int16_t v) {
+    return std::make_shared<mcfile::nbt::ShortTag>(v);
+}
+
 }
 }

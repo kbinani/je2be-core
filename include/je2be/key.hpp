@@ -45,6 +45,20 @@ public:
         return "portals";
     }
 
+    static std::string BlockEntity(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+        std::vector<char> b;
+        PlaceXZTag(b, chunkX, chunkZ, 0x31);
+        SetDimension(b, dim);
+        return std::string(b.data(), b.size());
+    }
+
+    static std::string Entity(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+        std::vector<char> b;
+        PlaceXZTag(b, chunkX, chunkZ, 0x32);
+        SetDimension(b, dim);
+        return std::string(b.data(), b.size());
+    }
+
 private:
     static void PlaceXZTag(std::vector<char>& out, int32_t chunkX, int32_t chunkZ, uint8_t tag) {
         out.clear();

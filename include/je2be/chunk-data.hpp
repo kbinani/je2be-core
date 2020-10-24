@@ -38,6 +38,16 @@ public:
         auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
         batch.Put(data2DKey, data2D);
 
+        {
+            auto key = Key::BlockEntity(fChunkX, fChunkZ, fDimension);
+            if (fBlockEntity.empty()) {
+                batch.Delete(key);
+            } else {
+                leveldb::Slice blockEntity((char*)fBlockEntity.data(), fBlockEntity.size());
+                batch.Put(key, blockEntity);
+            }
+        }
+
         auto sum = checksums();
         auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
         batch.Put(checksumKey, sum);
@@ -74,6 +84,16 @@ private:
             w.write(hash);
             count++;
         }
+
+        // BlockEntity
+        if (!fBlockEntity.empty()) {
+            w.write((uint8_t)0x31);
+            w.write((uint8_t)0);
+            uint64_t hash = GetXXHSum(fBlockEntity);
+            w.write(hash);
+            count++;
+        }
+
         s->seek(0);
         w.write(count);
 
@@ -100,6 +120,7 @@ public:
 
     std::vector<uint8_t> fData2D;
     std::vector<uint8_t> fSubChunks[16];
+    std::vector<uint8_t> fBlockEntity;
 };
 
 }

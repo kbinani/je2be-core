@@ -86,21 +86,13 @@ public:
     }
 
 private:
-    class ChunkDataContainer {
-    public:
-        ChunkDataContainer() : fPortalBlocks(std::make_shared<PortalBlocks>())
-        {}
-
-        std::shared_ptr<PortalBlocks> fPortalBlocks;
-    };
-
     bool convertWorld(mcfile::World const& w, Dimension dim, Db &db, Portals &portals, unsigned int concurrency) {
         using namespace std;
         using namespace mcfile;
 
         ThreadPool pool(concurrency);
         pool.init();
-        vector<future<ChunkDataContainer>> futures;
+        vector<future<WorldDataPackage>> futures;
 
         w.eachRegions([this, dim, &db, &pool, &futures](shared_ptr<Region> const& region) {
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
@@ -117,9 +109,9 @@ private:
                         continue;
                     }
                     futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Chunk> const& chunk) {
-                        ChunkDataContainer cd;
-                        putChunk(*chunk, dim, db, cd);
-                        return cd;
+                        WorldDataPackage wdp;
+                        putChunk(*chunk, dim, db, wdp);
+                        return wdp;
                     }, chunk)));
                 }
             }
@@ -127,8 +119,8 @@ private:
         });
 
         for (auto& f : futures) {
-            ChunkDataContainer const& cdc = f.get();
-            portals.add(*cdc.fPortalBlocks, dim);
+            WorldDataPackage const& wdp = f.get();
+            portals.add(*wdp.fPortalBlocks, dim);
         }
 
         pool.shutdown();
@@ -136,18 +128,19 @@ private:
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, ChunkDataContainer &cdc) {
+    void putChunk(mcfile::Chunk const& chunk, Dimension dim, Db& db, WorldDataPackage &wdp) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
+        using namespace mcfile::nbt;
 
-        HeightMap hm;
-        BiomeMap bm;
+        ChunkDataPackage cdp;
         ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, cd, hm, cdc);
+            putSubChunk(chunk, dim, chunkY, cd, cdp, wdp);
         }
+
         {
             int const y = 0;
             int const x0 = chunk.minBlockX();
@@ -155,22 +148,16 @@ private:
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     auto biome = chunk.biomeAt(x + x0, z + z0);
-                    bm.set(x, z, biome);
+                    cdp.fBiomeMap.set(x, z, biome);
                 }
             }
         }
-        {
-            auto s = make_shared<ByteStream>();
-            OutputStreamWriter w(s, { .fLittleEndian = true });
-            hm.write(w);
-            bm.write(w);
-            s->drain(cd.fData2D);
-        }
+        cdp.serialize(cd);
 
         cd.put(db);
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, HeightMap &hm, ChunkDataContainer &cdc) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, WorldDataPackage &wdp) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -213,11 +200,14 @@ private:
                     if (block) {
                         empty = false;
                         if (!IsAir(*block)) {
-                            hm.update(x, by, z);
+                            cdp.fHeightMap.update(x, by, z);
                         }
-                        if (block->fName == "minecraft:nether_portal") {
+                        if (block->fName == "minecraft:chest" || block->fName == "minecraft:trapped_chest") {
+                            auto chest = make_shared<entities::Chest>(bx, by, bz, *block);
+                            cdp.fContainerBlocks.push_back(chest);
+                        } else if (block->fName == "minecraft:nether_portal") {
                             bool xAxis = block->property("axis", "x") == "x";
-                            cdc.fPortalBlocks->add(bx, by, bz, xAxis);
+                            wdp.fPortalBlocks->add(bx, by, bz, xAxis);
                         }
                     }
                     string const& paletteKey = block ? block->toString() : "minecraft:air"s;
