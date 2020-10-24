@@ -642,21 +642,36 @@ private:
         }
     }
 
-    static PropertyMapFunction WallConnectionType(std::string const& jeName, std::string const& beName) {
-        return [=](Block const& block) {
-            auto v = block.property(jeName, "none");
-            auto type = GetWallConnectionType(v);
-            return std::make_pair(beName, props::String(type));
+    static PropertyMapFunction WallConnectionType(std::string const& direction) {
+        return [=](Block const& b) {
+            std::string beName = "wall_connection_type_" + direction;
+            auto v = b.property(direction, "none");
+            if (v == "true" || v == "false") {
+                if (v == "true") {
+                    return std::make_pair(beName, props::String("low"));
+                } else {
+                    return std::make_pair(beName, props::String("none"));
+                }
+            } else {
+                auto type = GetWallConnectionType(v);
+                return std::make_pair(beName, props::String(type));
+            }
         };
     }
-    
+
+    static PropertySpec WallPostBit(Block const& b) {
+        auto up = b.property("up", "false") == "true";
+        return std::make_pair("wall_post_bit", props::Bool(up));
+    }
+         
     static Converter Wall(std::string const& type) {
         return Converter(Name("cobblestone_wall"),
+                         WallPostBit,
                          AddStringProperty("wall_block_type", type),
-                         WallConnectionType("east", "wall_connection_type_east"),
-                         WallConnectionType("north", "wall_connection_type_north"),
-                         WallConnectionType("south", "wall_connection_type_south"),
-                         WallConnectionType("west", "wall_connection_type_west"));
+                         WallConnectionType("east"),
+                         WallConnectionType("north"),
+                         WallConnectionType("south"),
+                         WallConnectionType("west"));
     }
 
     static Converter Carpet(std::string const& color) {
@@ -1130,11 +1145,11 @@ private:
         E("sandstone_wall", Wall("sandstone"));
         E("end_stone_brick_wall", Wall("end_brick"));
         Converter wall(Same,
-                       AddBoolProperty("wall_post_bit", false),
-                       WallConnectionType("east", "wall_connection_type_east"),
-                       WallConnectionType("north", "wall_connection_type_north"),
-                       WallConnectionType("south", "wall_connection_type_south"),
-                       WallConnectionType("west", "wall_connection_type_west"));
+                       WallPostBit,
+                       WallConnectionType("east"),
+                       WallConnectionType("north"),
+                       WallConnectionType("south"),
+                       WallConnectionType("west"));
         E("blackstone_wall", wall);
         E("polished_blackstone_wall", wall);
         E("polished_blackstone_brick_wall", wall);
