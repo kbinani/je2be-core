@@ -4,11 +4,6 @@ namespace j2b {
 
 class Portals {
 public:
-    Portals()
-        : fOverworld(Dimension::Overworld)
-        , fNether(Dimension::Nether)
-    {}
-
     void add(PortalBlocks& pb, Dimension dim) {
         if (dim == Dimension::Overworld) {
             pb.drain(fOverworld);
@@ -22,14 +17,14 @@ public:
         using namespace mcfile::stream;
         using namespace mcfile::nbt;
         vector<Portal> portals;
-        fOverworld.extract(portals);
-        fNether.extract(portals);
+        fOverworld.extract(portals, Dimension::Overworld);
+        fNether.extract(portals, Dimension::Nether);
 
         auto root = make_shared<CompoundTag>();
         auto data = make_shared<CompoundTag>();
         auto portalRecords = make_shared<ListTag>();
         portalRecords->fType = Tag::TAG_Compound;
-        for (auto portal : portals) {
+        for (auto const& portal : portals) {
             portalRecords->fValue.push_back(portal.toCompoundTag());
         }
         data->fValue.emplace("PortalRecords", portalRecords);

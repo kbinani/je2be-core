@@ -75,9 +75,9 @@ public:
         bool ok = true;
         //for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
         for (auto dim : { Dimension::Overworld }) { //TODO(kbinani): debug
-                auto dir = fInputOption.getWorldDirectory(fInput, dim);
+            auto dir = fInputOption.getWorldDirectory(fInput, dim);
             World world(dir);
-            ok &= convertWorld(world, dim, db, portals);
+            ok &= convertWorld(world, dim, db, portals, concurrency);
         }
 
         portals.putInto(db);
@@ -88,32 +88,45 @@ public:
 private:
     class RegionData {
     public:
-        explicit RegionData(Dimension dim) : fPortalBlocks(dim)
+        RegionData() : fPortalBlocks(std::make_shared<PortalBlocks>())
         {}
 
-        PortalBlocks fPortalBlocks;
+        std::shared_ptr<PortalBlocks> fPortalBlocks;
     };
 
-    bool convertWorld(mcfile::World const& w, Dimension dim, Db &db, Portals &portals) {
+    bool convertWorld(mcfile::World const& w, Dimension dim, Db &db, Portals &portals, unsigned int concurrency) {
         using namespace std;
         using namespace mcfile;
 
-        w.eachRegions([this, dim, &db, &portals](shared_ptr<Region> const& region) {
+        ThreadPool pool(concurrency);
+        pool.init();
+        vector<future<RegionData>> futures;
+
+        w.eachRegions([this, dim, &db, &pool, &futures](shared_ptr<Region> const& region) {
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
                 return true;
             }
-            RegionData rd(dim);
-            bool err;
-            region->loadAllChunks(err, [this, dim, &db, &rd](Chunk const& chunk) {
-                if (!(0 <= chunk.fChunkX && chunk.fChunkX <= 6 && chunk.fChunkZ == 0)) { //TODO(kbinani): debug
+            futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Region> const& region) {
+                RegionData rd;
+                bool err;
+                region->loadAllChunks(err, [this, dim, &db, &rd](Chunk const& chunk) {
+                    if (!(0 <= chunk.fChunkX && chunk.fChunkX <= 6 && chunk.fChunkZ == 0)) { //TODO(kbinani): debug
+                        return true;
+                    }
+                    putChunk(chunk, dim, db, rd);
                     return true;
-                }
-                putChunk(chunk, dim, db, rd);
-                return true;
-            });
-            portals.add(rd.fPortalBlocks, dim);
+                });
+                return rd;
+            }, region)));
             return true;
         });
+
+        for (auto& f : futures) {
+            RegionData const& rd = f.get();
+            portals.add(*rd.fPortalBlocks, dim);
+        }
+
+        pool.shutdown();
 
         return true;
     }
@@ -199,7 +212,7 @@ private:
                         }
                         if (block->fName == "minecraft:nether_portal") {
                             bool xAxis = block->property("axis", "x") == "x";
-                            rd.fPortalBlocks.add(bx, by, bz, xAxis);
+                            rd.fPortalBlocks->add(bx, by, bz, xAxis);
                         }
                     }
                     string paletteKey = block ? block->toString() : "minecraft:air"s;

@@ -4,6 +4,7 @@
 #include <leveldb/db.h>
 #include <table/compression/zlib_compressor.h>
 #include <xxhash.h>
+#include <ThreadPool.h>
 
 #include <optional>
 #include <set>

@@ -4,7 +4,7 @@ namespace j2b {
 
 class PortalBlocks {
 public:
-    explicit PortalBlocks(Dimension dim) : fDimension(dim), fX(dim, true), fZ(dim, false)
+    explicit PortalBlocks() : fX(true), fZ(false)
     {}
 
     void add(int x, int y, int z, bool xAxis) {
@@ -15,19 +15,17 @@ public:
         }
     }
 
-    void extract(std::vector<Portal>& buffer) {
-        fX.extract(buffer);
-        fZ.extract(buffer);
+    void extract(std::vector<Portal>& buffer, Dimension dim) {
+        fX.extract(buffer, dim);
+        fZ.extract(buffer, dim);
     }
 
     void drain(PortalBlocks& out) {
-        assert(out.fDimension == fDimension);
         fX.drain(out.fX);
         fZ.drain(out.fZ);
     }
 
 private:
-    Dimension const fDimension;
     OrientedPortalBlocks fX;
     OrientedPortalBlocks fZ;
 };

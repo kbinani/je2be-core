@@ -13,3 +13,6 @@
 [submodule "ext/xxHash"]
 	path = ext/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
+[submodule "ext/thread-pool"]
+	path = ext/thread-pool
+	url = https://github.com/mtrebi/thread-pool.git

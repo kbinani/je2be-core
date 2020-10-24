@@ -4,13 +4,13 @@ namespace j2b {
 
 class OrientedPortalBlocks {
 public:
-    OrientedPortalBlocks(Dimension dim, bool xAxis) : fDimension(dim), fXAxis(xAxis) {}
+    explicit OrientedPortalBlocks(bool xAxis) : fXAxis(xAxis) {}
 
     void add(int x, int y, int z) {
         fBlocks.emplace(x, y, z);
     }
 
-    void extract(std::vector<Portal>& buffer) {
+    void extract(std::vector<Portal>& buffer, Dimension dim) {
         while (!fBlocks.empty()) {
             Pos start = *fBlocks.begin();
             Pos bottomNorthWest = lookupBottomNorthWestCorner(start);
@@ -24,13 +24,12 @@ public:
                 }
             }
             uint8_t span = (uint8_t)(std::max(topSouthEast.fX - bottomNorthWest.fX, topSouthEast.fZ - bottomNorthWest.fZ) + 1);
-            Portal portal((int32_t)fDimension, span, bottomNorthWest.fX, bottomNorthWest.fY, bottomNorthWest.fZ, fXAxis ? 1 : 0, fXAxis ? 0 : 1);
+            Portal portal((int32_t)dim, span, bottomNorthWest.fX, bottomNorthWest.fY, bottomNorthWest.fZ, fXAxis ? 1 : 0, fXAxis ? 0 : 1);
             buffer.push_back(portal);
         }
     }
 
     void drain(OrientedPortalBlocks& out) {
-        assert(out.fDimension == fDimension);
         assert(out.fXAxis == fXAxis);
         for (auto b : fBlocks) {
             out.fBlocks.insert(b);
@@ -128,7 +127,6 @@ private:
     }
 
 private:
-    Dimension const fDimension;
     bool const fXAxis;
     std::unordered_set<Pos, PosHasher> fBlocks;
 };

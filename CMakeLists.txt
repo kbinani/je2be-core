@@ -103,6 +103,7 @@ target_include_directories(je2be PRIVATE
   ext/libminecraft-file/include
   ext/leveldb/include
   ext/leveldb
+  ext/thread-pool/include
   ${je2be_include_directories})
 target_link_libraries(je2be ${je2be_link_libraries} leveldb)
 target_link_directories(je2be PRIVATE ${je2be_link_directories})
