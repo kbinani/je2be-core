@@ -12,7 +12,7 @@ public:
         }
     }
 
-    void putInto(Db& db) {
+    void putInto(DeferredDb& db) {
         using namespace std;
         using namespace mcfile::stream;
         using namespace mcfile::nbt;

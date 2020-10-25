@@ -10,64 +10,60 @@ public:
         , fDimension(dim)
     {}
 
-    void put(Db& db) {
-        leveldb::WriteBatch batch;
-
-        if (putChunkSections(batch)) {
+    void put(DeferredDb& db) {
+        if (putChunkSections(db)) {
             return;
         }
-        putVersion(batch);
-        putData2D(batch);
-        putBlockEntity(batch);
-        putChecksums(batch);
-
-        db.write(batch);
+        putVersion(db);
+        putData2D(db);
+        putBlockEntity(db);
+        putChecksums(db);
     }
 
 private:
-    void putChecksums(leveldb::WriteBatch& batch) {
+    void putChecksums(DeferredDb& db) {
         auto sum = checksums();
         auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
-        batch.Put(checksumKey, sum);
+        db.put(checksumKey, sum);
     }
 
-    void putBlockEntity(leveldb::WriteBatch& batch) const {
+    void putBlockEntity(DeferredDb& db) const {
         auto key = Key::BlockEntity(fChunkX, fChunkZ, fDimension);
         if (fBlockEntity.empty()) {
-            batch.Delete(key);
+            db.del(key);
         } else {
             leveldb::Slice blockEntity((char*)fBlockEntity.data(), fBlockEntity.size());
-            batch.Put(key, blockEntity);
+            db.put(key, blockEntity);
         }
     }
 
-    void putData2D(leveldb::WriteBatch& batch) const {
+    void putData2D(DeferredDb& db) const {
         leveldb::Slice data2D((char*)fData2D.data(), fData2D.size());
         auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
-        batch.Put(data2DKey, data2D);
+        db.put(data2DKey, data2D);
     }
 
-    bool putChunkSections(leveldb::WriteBatch& batch) const {
+    bool putChunkSections(DeferredDb& db) const {
         bool empty = true;
         for (int i = 0; i < 16; i++) {
             auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
             if (fSubChunks[i].empty()) {
-                batch.Delete(key);
+                db.del(key);
             } else {
                 leveldb::Slice subchunk((char*)fSubChunks[i].data(), fSubChunks[i].size());
-                batch.Put(key, subchunk);
+                db.put(key, subchunk);
                 empty = false;
             }
         }
         return empty;
     }
 
-    void putVersion(leveldb::WriteBatch& batch) const {
+    void putVersion(DeferredDb& db) const {
         char const kSubChunkVersion = 19;
 
         auto const& versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
         leveldb::Slice version(&kSubChunkVersion, 1);
-        batch.Put(versionKey, version);
+        db.put(versionKey, version);
     }
 
     std::string checksums() const {
