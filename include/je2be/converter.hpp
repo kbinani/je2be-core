@@ -216,15 +216,19 @@ private:
                         if (!IsAir(*block)) {
                             cdp.fHeightMap.update(x, by, z);
                         }
-                        if (block->fName == "minecraft:chest" || block->fName == "minecraft:trapped_chest") {
+                        static string const chest("minecraft:chest");
+                        static string const trapped_chest("minecraft:trapped_chest");
+                        static string const nether_portal("minecraft:nether_portal");
+                        if (StringEquals(block->fName, chest) || StringEquals(block->fName, trapped_chest)) {
                             auto chest = make_shared<entities::Chest>(bx, by, bz, *block);
                             cdp.fContainerBlocks.push_back(chest);
-                        } else if (block->fName == "minecraft:nether_portal") {
+                        } else if (StringEquals(block->fName, nether_portal)) {
                             bool xAxis = block->property("axis", "x") == "x";
                             wdp.fPortalBlocks->add(bx, by, bz, xAxis);
                         }
                     }
-                    string const& paletteKey = block ? block->toString() : "minecraft:air"s;
+                    static string const air("minecraft:air");
+                    string const& paletteKey = block ? block->toString() : air;
                     auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
                     if (found == paletteKeys.end()) {
                         uint16_t index = (uint16_t)paletteKeys.size();
@@ -347,17 +351,36 @@ private:
         stream->drain(cd.fSubChunks[chunkY]);
     }
 
-    static bool IsWaterLogged(mcfile::Block const& block) {
-        auto const& name = block.fName;
-        if (name == "minecraft:seagrass" || name == "minecraft:tall_seagrass" || name == "minecraft:kelp" || name == "minecraft:kelp_plant" || name == "minecraft:bubble_column") {
-            return true;
+    static bool StringEquals(std::string const& a, std::string const& b) {
+        if (a.size() != b.size()) {
+            return false;
         }
-        return block.property("waterlogged", "false") == "true";
+        return memcmp(a.c_str(), b.c_str(), a.size()) == 0;
+    }
+
+    static bool IsWaterLogged(mcfile::Block const& block) {
+        using namespace std;
+        static string const seagrass("minecraft:seagrass");
+        static string const tall_seagrass("minecraft:tall_seagrass");
+        static string const kelp("minecraft:kelp");
+        static string const kelp_plant("minecraft:kelp_plant");
+        static string const bubble_column("minecraft:bubble_column");
+        if (!block.fProperties.empty()) {
+            auto waterlogged = block.property("waterlogged", "");
+            if (StringEquals(waterlogged, "true")) {
+                return true;
+            }
+        }
+        auto const& name = block.fName;
+        return StringEquals(name, seagrass) || StringEquals(name, tall_seagrass) || StringEquals(name, kelp) || StringEquals(name, kelp_plant) || StringEquals(name, bubble_column);
     }
 
     static bool IsAir(mcfile::Block const& block) {
+        using namespace std;
         auto const& name = block.fName;
-        return name == "minecraft:air" || name == "minecraft:cave_air";
+        static string const air("minecraft:air");
+        static string const cave_air("minecraft:cave_air");
+        return StringEquals(name, air) || StringEquals(name, cave_air);
     }
 
 private:
