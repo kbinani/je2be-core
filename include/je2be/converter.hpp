@@ -97,9 +97,9 @@ private:
 
         ThreadPool pool(concurrency);
         pool.init();
-        vector<future<WorldDataPackage>> futures;
+        deque<future<WorldDataPackage>> futures;
 
-        w.eachRegions([this, dim, &db, &pool, &futures](shared_ptr<Region> const& region) {
+        w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &portals](shared_ptr<Region> const& region) {
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
                 //return true;
             }
@@ -113,6 +113,15 @@ private:
                     if (!chunk) {
                         continue;
                     }
+
+                    if (futures.size() > 10 * concurrency) {
+                        for (unsigned int i = 0; i < 5 * concurrency; i++) {
+                            WorldDataPackage const& wdp = futures.front().get();
+                            futures.pop_front();
+                            portals.add(*wdp.fPortalBlocks, dim);
+                        }
+                    }
+
                     futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Chunk> const& chunk) {
                         WorldDataPackage wdp;
                         putChunk(*chunk, dim, db, wdp);
