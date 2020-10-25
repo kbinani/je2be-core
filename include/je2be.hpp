@@ -29,6 +29,7 @@
 #include <je2be/db/db-interface.hpp>
 #include <je2be/db/db.hpp>
 #include <je2be/db/deferred-db.hpp>
+#include <je2be/db/null-db.hpp>
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
 #include <je2be/entities/entities.hpp>

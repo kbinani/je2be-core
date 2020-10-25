@@ -29,6 +29,7 @@ set(je2be_srcs
   include/je2be/world-data-package.hpp
   include/je2be/db/deferred-db.hpp
   include/je2be/file.hpp
+  include/je2be/db/null-db.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
