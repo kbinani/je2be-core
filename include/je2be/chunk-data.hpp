@@ -17,11 +17,22 @@ public:
         putVersion(db);
         putData2D(db);
         putBlockEntity(db);
+        putEntity(db);
         putChecksums(db);
     }
 
 private:
-    void putChecksums(DbInterface& db) {
+    void putEntity(DbInterface& db) const {
+        auto key = Key::Entity(fChunkX, fChunkZ, fDimension);
+        if (fEntity.empty()) {
+            db.del(key);
+        } else {
+            leveldb::Slice d((char*)fEntity.data(), fEntity.size());
+            db.put(key, d);
+        }
+    }
+
+    void putChecksums(DbInterface& db) const {
         auto sum = checksums();
         auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
         db.put(checksumKey, sum);
@@ -104,6 +115,15 @@ private:
             count++;
         }
 
+        // Entity
+        if (!fEntity.empty()) {
+            w.write((uint8_t)0x32);
+            w.write((uint8_t)0);
+            uint64_t hash = GetXXHSum(fEntity);
+            w.write(hash);
+            count++;
+        }
+
         s->seek(0);
         w.write(count);
 
@@ -131,6 +151,7 @@ public:
     std::vector<uint8_t> fData2D;
     std::vector<uint8_t> fSubChunks[16];
     std::vector<uint8_t> fBlockEntity;
+    std::vector<uint8_t> fEntity;
 };
 
 }

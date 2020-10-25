@@ -7,6 +7,7 @@ public:
     void serialize(ChunkData& cd) {
         serializeData2D(cd);
         serializeBlockEntity(cd);
+        serializeEntity(cd);
     }
 
 private:
@@ -40,10 +41,30 @@ private:
         s->drain(cd.fBlockEntity);
     }
 
+    void serializeEntity(ChunkData& cd) {
+        using namespace std;
+        using namespace mcfile::stream;
+        using namespace mcfile::nbt;
+
+        if (fEntities.empty()) {
+            return;
+        }
+        auto s = make_shared<ByteStream>();
+        OutputStreamWriter w(s, {.fLittleEndian = true});
+        for (auto const& tag : fEntities) {
+            w.write((uint8_t)Tag::TAG_Compound);
+            w.write(string());
+            tag->write(w);
+            w.write((uint8_t)Tag::TAG_End);
+        }
+        s->drain(cd.fEntity);
+    }
+
 public:
     HeightMap fHeightMap;
     BiomeMap fBiomeMap;
     std::vector<std::shared_ptr<entities::Chest>> fContainerBlocks; //TODO(kbinani): unordered_map<Pos, Container>
+    std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
 };
 
 }
