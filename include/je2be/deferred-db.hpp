@@ -8,33 +8,18 @@ public:
         using namespace std;
         namespace fs = mcfile::detail::filesystem;
         auto tmp = fs::temp_directory_path();
-#ifdef _WIN32
-        char *dir = tempnam(tmp.string().c_str(), "j2b-temporary-");
-        if (dir) {
-            fTmp = string(dir, strlen(dir));
-            fs::create_directory(fs::path(fTmp));
+        auto p = file::CreateTempDir(tmp);
+        if (p) {
+            fTmp = *p;
             fValid = true;
-            free(dir);
         }
-#else
-        string tmpl("j2b-temporary-XXXXXX");
-vector<char> buffer;
-copy(tmpl.begin(), tmpl.end(), back_inserter(buffer));
-buffer.push_back(0);
-char* dir = mkdtemp(buffer.data());
-if (dir) {
-    fTmp = string(dir, strlen(dir));
-    fValid = true;
-}
-#endif
     }
 
     ~DeferredDb() {
-        namespace fs = mcfile::detail::filesystem;
-        if (fValid) {
-            auto p = fs::path(fTmp);
-            fs::remove_all(p);
+        if (!fValid) {
+            return;
         }
+        file::RemoveAll(fTmp);
     }
 
     bool valid() const {
@@ -67,7 +52,7 @@ if (dir) {
         if (small) {
             if (!flushPutSmall.empty()) {
                 std::lock_guard<std::mutex> lk(fSmallMutex);
-                FILE* f = Open(fs::path(fTmp) / "SMALL", "a+b");
+                FILE* f = file::Open(fTmp / "SMALL", "a+b");
                 for (auto const& it : flushPutSmall) {
                     auto const& k = it.first;
                     auto const& v = it.second;
@@ -81,8 +66,8 @@ if (dir) {
                 fclose(f);
             }
         } else {
-            auto p = fs::path(fTmp) / (to_string(index) + ".bin");
-            FILE* f = Open(p, "wb");
+            auto p = fTmp / (to_string(index) + ".bin");
+            FILE* f = file::Open(p, "wb");
             uint32_t size = value.size();
             fwrite(&size, sizeof(size), 1, f);
             fwrite(value.data(), size, 1, f);
@@ -103,8 +88,8 @@ if (dir) {
         size_t kMaxBatchSize = 4086;
         for (size_t i = 0; i < fPut.size(); i++) {
             string key = fPut[i];
-            auto p = fs::path(fTmp) / (to_string(i) + ".bin");
-            FILE* f = Open(p, "rb");
+            auto p = fTmp / (to_string(i) + ".bin");
+            FILE* f = file::Open(p, "rb");
             uint32_t size = 0;
             fread(&size, sizeof(size), 1, f);
             vector<char> buffer(size);
@@ -125,7 +110,7 @@ if (dir) {
             }
         }
         {
-            FILE* f = Open(fs::path(fTmp) / "SMALL", "rb");
+            FILE* f = file::Open(fTmp / "SMALL", "rb");
             if (f) {
                 vector<char> buffer;
                 while (true) {
@@ -159,18 +144,7 @@ if (dir) {
     }
 
 private:
-    static FILE* Open(mcfile::detail::filesystem::path const& p, char const* mode) {
-#if defined(_WIN32)
-        wchar_t wmode[48] = {0};
-        mbstowcs(wmode, mode, 48);
-        return _wfopen(p.c_str(), wmode);
-#else
-        return fopen(p.c_str(), mode);
-#endif
-    }
-
-private:
-    std::string fTmp;
+    std::filesystem::path fTmp;
     bool fValid = false;
     std::mutex fMutex;
     std::vector<std::string> fDel;

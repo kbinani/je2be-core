@@ -1,5 +1,12 @@
 #pragma once
 
+#if defined(_MSC_VER)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
 #include <minecraft-file.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
@@ -12,6 +19,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <je2be/file.hpp>
 #include <je2be/enums.hpp>
 #include <je2be/key.hpp>
 #include <je2be/props.hpp>
