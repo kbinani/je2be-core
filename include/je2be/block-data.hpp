@@ -648,7 +648,7 @@ private:
             auto v = b.property(direction, "none");
             if (v == "true" || v == "false") {
                 if (v == "true") {
-                    return std::make_pair(beName, props::String("low"));
+                    return std::make_pair(beName, props::String("short"));
                 } else {
                     return std::make_pair(beName, props::String("none"));
                 }
