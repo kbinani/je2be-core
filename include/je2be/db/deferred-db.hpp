@@ -2,7 +2,7 @@
 
 namespace j2b {
 
-class DeferredDb {
+class DeferredDb : public DbInterface {
 public:
     DeferredDb() {
         using namespace std;
@@ -22,11 +22,11 @@ public:
         file::RemoveAll(fTmp);
     }
 
-    bool valid() const {
+    bool valid() const override {
         return fValid;
     }
 
-    void put(std::string const& key, leveldb::Slice const& value) {
+    void put(std::string const& key, leveldb::Slice const& value) override {
         namespace fs = mcfile::detail::filesystem;
         using namespace std;
         assert(fValid);
@@ -75,7 +75,7 @@ public:
         }
     }
 
-    void del(std::string const& key) {
+    void del(std::string const& key) override {
         std::lock_guard<std::mutex> lk(fMutex);
         fDel.push_back(key);
     }

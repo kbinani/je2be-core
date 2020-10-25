@@ -91,7 +91,7 @@ public:
     }
 
 private:
-    bool convertWorld(mcfile::World const& w, Dimension dim, DeferredDb &db, Portals &portals, unsigned int concurrency) {
+    bool convertWorld(mcfile::World const& w, Dimension dim, DbInterface &db, Portals &portals, unsigned int concurrency) {
         using namespace std;
         using namespace mcfile;
 
@@ -142,7 +142,7 @@ private:
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, DeferredDb& db, WorldDataPackage &wdp) {
+    void putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db, WorldDataPackage &wdp) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;

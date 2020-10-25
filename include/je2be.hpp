@@ -26,8 +26,9 @@
 #include <je2be/block-data.hpp>
 #include <je2be/biome-map.hpp>
 #include <je2be/version.hpp>
-#include <je2be/db.hpp>
-#include <je2be/deferred-db.hpp>
+#include <je2be/db/db-interface.hpp>
+#include <je2be/db/db.hpp>
+#include <je2be/db/deferred-db.hpp>
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
 #include <je2be/entities/entities.hpp>

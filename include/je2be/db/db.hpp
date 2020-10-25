@@ -2,7 +2,7 @@
 
 namespace j2b {
 
-class Db {
+class Db : public DbInterface {
 public:
     explicit Db(std::string const& dir)
         : fDb(nullptr)
@@ -28,11 +28,11 @@ public:
         }
     }
 
-    bool valid() const {
+    bool valid() const override {
         return fValid;
     }
 
-    void put(std::string const& key, leveldb::Slice const& value) {
+    void put(std::string const& key, leveldb::Slice const& value) override {
         assert(fValid);
         fDb->Put(fWriteOptions, key, value);
     }
@@ -54,7 +54,7 @@ public:
         }
     }
 
-    void del(std::string const& key) {
+    void del(std::string const& key) override {
         assert(fValid);
         fDb->Delete(leveldb::WriteOptions{}, key);
     }

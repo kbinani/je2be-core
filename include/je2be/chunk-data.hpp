@@ -10,7 +10,7 @@ public:
         , fDimension(dim)
     {}
 
-    void put(DeferredDb& db) {
+    void put(DbInterface& db) {
         if (putChunkSections(db)) {
             return;
         }
@@ -21,13 +21,13 @@ public:
     }
 
 private:
-    void putChecksums(DeferredDb& db) {
+    void putChecksums(DbInterface& db) {
         auto sum = checksums();
         auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
         db.put(checksumKey, sum);
     }
 
-    void putBlockEntity(DeferredDb& db) const {
+    void putBlockEntity(DbInterface& db) const {
         auto key = Key::BlockEntity(fChunkX, fChunkZ, fDimension);
         if (fBlockEntity.empty()) {
             db.del(key);
@@ -37,13 +37,13 @@ private:
         }
     }
 
-    void putData2D(DeferredDb& db) const {
+    void putData2D(DbInterface& db) const {
         leveldb::Slice data2D((char*)fData2D.data(), fData2D.size());
         auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
         db.put(data2DKey, data2D);
     }
 
-    bool putChunkSections(DeferredDb& db) const {
+    bool putChunkSections(DbInterface& db) const {
         bool empty = true;
         for (int i = 0; i < 16; i++) {
             auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
@@ -58,7 +58,7 @@ private:
         return empty;
     }
 
-    void putVersion(DeferredDb& db) const {
+    void putVersion(DbInterface& db) const {
         char const kSubChunkVersion = 19;
 
         auto const& versionKey = Key::Version(fChunkX, fChunkZ, fDimension);

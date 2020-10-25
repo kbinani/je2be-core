@@ -9,7 +9,8 @@ set(je2be_srcs
   include/je2be/level-data.hpp
   include/je2be/props.hpp
   include/je2be/version.hpp
-  include/je2be/db.hpp
+  include/je2be/db/db-interface.hpp
+  include/je2be/db/db.hpp
   include/je2be/enums.hpp
   include/je2be/key.hpp
   include/je2be.hpp
@@ -26,7 +27,7 @@ set(je2be_srcs
   include/je2be/entities/entities.hpp
   include/je2be/chunk-data-package.hpp
   include/je2be/world-data-package.hpp
-  include/je2be/deferred-db.hpp
+  include/je2be/db/deferred-db.hpp
   include/je2be/file.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
