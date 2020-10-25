@@ -155,40 +155,10 @@ private:
             putSubChunk(chunk, dim, chunkY, cd, cdp, wdp);
         }
 
-        ConstructBiomeMap(chunk, cdp.fBiomeMap);
-        ConstructEntities(chunk, cdp.fEntities);
-
+        cdp.build(chunk);
         cdp.serialize(cd);
 
         cd.put(db);
-    }
-
-    static void ConstructEntities(mcfile::Chunk const& chunk, std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> &out) {
-        using namespace std;
-        using namespace props;
-        for (auto e : chunk.fEntities) {
-            auto c = e->asCompound();
-            if (!c) {
-                continue;
-            }
-            auto e = Entity::From(*c);
-            if (!e) {
-                continue;
-            }
-            out.push_back(e);
-        }
-    }
-
-    static void ConstructBiomeMap(mcfile::Chunk const& chunk, BiomeMap &bm) {
-        int const y = 0;
-        int const x0 = chunk.minBlockX();
-        int const z0 = chunk.minBlockZ();
-        for (int z = 0; z < 16; z++) {
-            for (int x = 0; x < 16; x++) {
-                auto biome = chunk.biomeAt(x + x0, z + z0);
-                bm.set(x, z, biome);
-            }
-        }
     }
 
     void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, WorldDataPackage &wdp) {
@@ -234,14 +204,13 @@ private:
                     if (block) {
                         empty = false;
                         if (!IsAir(*block)) {
-                            cdp.fHeightMap.update(x, by, z);
+                            cdp.updateAltitude(x, by, z);
                         }
                         static string const chest("minecraft:chest");
                         static string const trapped_chest("minecraft:trapped_chest");
                         static string const nether_portal("minecraft:nether_portal");
                         if (StringEquals(block->fName, chest) || StringEquals(block->fName, trapped_chest)) {
-                            auto chest = make_shared<entities::Chest>(bx, by, bz, *block);
-                            cdp.fContainerBlocks.push_back(chest);
+                            cdp.addTileBlock(bx, by, bz, block);
                         } else if (StringEquals(block->fName, nether_portal)) {
                             bool xAxis = block->property("axis", "x") == "x";
                             wdp.fPortalBlocks->add(bx, by, bz, xAxis);
