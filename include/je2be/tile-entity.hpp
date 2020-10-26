@@ -57,6 +57,7 @@ private:
         E("dark_oak_wall_sign", Sign);
         E("crimson_wall_sign", Sign);
         E("warped_wall_sign", Sign);
+
         E("shulker_box", ShulkerBox);
         E("black_shulker_box", ShulkerBox);
         E("red_shulker_box", ShulkerBox);
@@ -74,6 +75,7 @@ private:
         E("magenta_shulker_box", ShulkerBox);
         E("orange_shulker_box", ShulkerBox);
         E("white_shulker_box", ShulkerBox);
+
         E("white_bed", Bed);
         E("orange_bed", Bed);
         E("magenta_bed", Bed);
@@ -90,45 +92,134 @@ private:
         E("green_bed", Bed);
         E("red_bed", Bed);
         E("black_bed", Bed);
+
+        E("white_banner", Banner);
+        E("orange_banner", Banner);
+        E("magenta_banner", Banner);
+        E("light_blue_banner", Banner);
+        E("yellow_banner", Banner);
+        E("lime_banner", Banner);
+        E("pink_banner", Banner);
+        E("gray_banner", Banner);
+        E("light_gray_banner", Banner);
+        E("cyan_banner", Banner);
+        E("purple_banner", Banner);
+        E("blue_banner", Banner);
+        E("brown_banner", Banner);
+        E("green_banner", Banner);
+        E("red_banner", Banner);
+        E("black_banner", Banner);
+
+        E("white_wall_banner", Banner);
+        E("orange_wall_banner", Banner);
+        E("magenta_wall_banner", Banner);
+        E("light_blue_wall_banner", Banner);
+        E("yellow_wall_banner", Banner);
+        E("lime_wall_banner", Banner);
+        E("pink_wall_banner", Banner);
+        E("gray_wall_banner", Banner);
+        E("light_gray_wall_banner", Banner);
+        E("cyan_wall_banner", Banner);
+        E("purple_wall_banner", Banner);
+        E("blue_wall_banner", Banner);
+        E("brown_wall_banner", Banner);
+        E("green_wall_banner", Banner);
+        E("red_wall_banner", Banner);
+        E("black_wall_banner", Banner);
 #undef E
         return table;
     }
 
-    static int8_t BedColor(std::string const& name) {
-        if (name == "minecraft:white_bed") {
-            return 0;
-        } else if (name == "minecraft:orange_bed") {
-            return 1;
-        } else if (name == "minecraft:magenta_bed") {
-            return 2;
-        } else if (name == "minecraft:light_blue_bed") {
-            return 3;
-        } else if (name == "minecraft:yellow_bed") {
-            return 4;
-        } else if (name == "minecraft:lime_bed") {
-            return 5;
-        } else if (name == "minecraft:pink_bed") {
-            return 6;
-        } else if (name == "minecraft:gray_bed") {
-            return 7;
-        } else if (name == "minecraft:light_gray_bed") {
-            return 8;
-        } else if (name == "minecraft:cyan_bed") {
-            return 9;
-        } else if (name == "minecraft:purple_bed") {
-            return 10;
-        } else if (name == "minecraft:blue_bed") {
-            return 11;
-        } else if (name == "minecraft:brown_bed") {
-            return 12;
-        } else if (name == "minecraft:green_bed") {
-            return 13;
-        } else if (name == "minecraft:red_bed") {
-            return 14;
-        } else if (name == "minecraft:black_bed") {
-            return 15;
+    static TileEntityData Banner(Pos const& pos, Block const& b, CompoundTag const& c) {
+        using namespace props;
+        auto tag = std::make_shared<CompoundTag>();
+
+        auto customName = GetJson(c, "CustomName");
+        int32_t type = 0;
+        if (customName) {
+            auto color = GetAsString(*customName, "color");
+            auto translate = GetAsString(*customName, "translate");
+            if (color == "gold" && translate == "block.minecraft.ominous_banner") {
+                type = 1; // Illager Banner
+            }
         }
-        return 0;
+
+        auto patterns = GetList(c, "Patterns");
+        if (patterns) {
+            //TODO:
+        }
+
+        int32_t base = BannerColor(b.fName);
+
+        tag->fValue = {
+            {"id", String("Banner")},
+            {"isMovable", Bool(true)},
+            {"Type", Int(type)},
+            {"Base", Int(base)},
+        };
+        Attach(pos, *tag);
+        return tag;
+    }
+
+    static int32_t BannerColor(std::string const& name) {
+        auto color = name.substr(10); // minecraft:
+        auto suffix = color.rfind("_wall_banner");
+        if (suffix != std::string::npos) {
+            color = color.substr(0, suffix);
+        }
+        suffix = color.rfind("_banner");
+        if (suffix != std::string::npos) {
+            color = color.substr(0, suffix);
+        }
+        static std::unordered_map<std::string, int32_t> const mapping = {
+            {"black", 0},
+            {"red", 1},
+            {"green", 2},
+            {"brown", 3},
+            {"blue", 4},
+            {"purple", 5},
+            {"cyan", 6},
+            {"light_gray", 7},
+            {"gray", 8},
+            {"pink", 9},
+            {"lime", 10},
+            {"yellow", 11},
+            {"light_blue", 12},
+            {"magenta", 13},
+            {"orange", 14},
+            {"white", 15},
+        };
+        auto found = mapping.find(color);
+        if (found == mapping.end()) {
+            return 0;
+        }
+        return found->second;
+    }
+
+    static int8_t BedColor(std::string const& name) {
+        static std::unordered_map<std::string, int8_t> const mapping = {
+            {"minecraft:white_bed", 0},
+            {"minecraft:orange_bed", 1},
+            {"minecraft:magenta_bed", 2},
+            {"minecraft:light_blue_bed", 3},
+            {"minecraft:yellow_bed", 4},
+            {"minecraft:lime_bed", 5},
+            {"minecraft:pink_bed", 6},
+            {"minecraft:gray_bed", 7},
+            {"minecraft:light_gray_bed", 8},
+            {"minecraft:cyan_bed", 9},
+            {"minecraft:purple_bed", 10},
+            {"minecraft:blue_bed", 11},
+            {"minecraft:brown_bed", 12},
+            {"minecraft:green_bed", 13},
+            {"minecraft:red_bed", 14},
+            {"minecraft:black_bed", 15},
+        };
+        auto found = mapping.find(name);
+        if (found == mapping.end()) {
+            return 0;
+        }
+        return found->second;
     }
 
     static TileEntityData Bed(Pos const& pos, Block const& b, CompoundTag const& c) {
@@ -239,12 +330,20 @@ private:
     static std::shared_ptr<mcfile::nbt::ListTag> GetItems(mcfile::nbt::CompoundTag const& c, std::string const& name) {
         auto tag = std::make_shared<mcfile::nbt::ListTag>();
         tag->fType = mcfile::nbt::Tag::TAG_Compound;
-        auto found = c.fValue.find(name);
-        if (found == c.fValue.end()) {
+        auto list = GetList(c, name);
+        if (list == nullptr) {
             return tag;
         }
         //TODO:
         return tag;
+    }
+
+    static mcfile::nbt::ListTag const* GetList(CompoundTag const& c, std::string const& name) {
+        auto found = c.fValue.find(name);
+        if (found == c.fValue.end()) {
+            return nullptr;
+        }
+        return found->second->asList();
     }
 
     static std::shared_ptr<mcfile::nbt::CompoundTag> Chest(Pos const& pos, mcfile::Block const& b, mcfile::nbt::CompoundTag const& comp) {
