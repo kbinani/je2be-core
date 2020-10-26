@@ -27,7 +27,41 @@ public:
         tag->fValue.emplace("states", states);
         return tag;
     }
-    
+
+    static int32_t GetFacingDirectionFromFacingA(mcfile::Block const& block) {
+        auto facing = block.property("facing", "north");
+        if (facing == "east") {
+            return 5;
+        } else if (facing == "south") {
+            return 3;
+        } else if (facing == "west") {
+            return 4;
+        } else if (facing == "north") {
+            return 2;
+        } else if (facing == "up") {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    static int32_t GetFacingDirectionFromFacingB(mcfile::Block const& block) {
+        auto facing = block.property("facing", "north");
+        if (facing == "east") {
+            return 4;
+        } else if (facing == "south") {
+            return 2;
+        } else if (facing == "west") {
+            return 5;
+        } else if (facing == "north") {
+            return 3;
+        } else if (facing == "up") {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
 private:
     BlockData() = delete;
 
@@ -586,40 +620,6 @@ private:
     static PropertySpec EyeToEndPortalEyeBit(Block const& block) {
         auto eye = block.property("eye", "false") == "true";
         return std::make_pair("end_portal_eye_bit", props::Bool(eye));
-    }
-
-    static int32_t GetFacingDirectionFromFacingA(Block const& block) {
-        auto facing = block.property("facing", "north");
-        if (facing == "east") {
-            return 5;
-        } else if (facing == "south") {
-            return 3;
-        } else if (facing == "west") {
-            return 4;
-        } else if (facing == "north") {
-            return 2;
-        } else if (facing == "up") {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    static int32_t GetFacingDirectionFromFacingB(Block const& block) {
-        auto facing = block.property("facing", "north");
-        if (facing == "east") {
-            return 4;
-        } else if (facing == "south") {
-            return 2;
-        } else if (facing == "west") {
-            return 5;
-        } else if (facing == "north") {
-            return 3;
-        } else if (facing == "up") {
-            return 1;
-        } else {
-            return 0;
-        }
     }
 
     static PropertySpec FacingDirectionFromFacingA(Block const& block) {

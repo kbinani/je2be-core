@@ -4,7 +4,10 @@ namespace j2b {
 
 class TileEntity {
 private:
-    using Converter = std::function<std::shared_ptr<mcfile::nbt::CompoundTag>(Pos const&, mcfile::Block const&, mcfile::nbt::CompoundTag const&)>;
+    using CompoundTag = mcfile::nbt::CompoundTag;
+    using Block = mcfile::Block;
+    using TileEntityData = std::shared_ptr<CompoundTag>;
+    using Converter = std::function<TileEntityData(Pos const&, Block const&, CompoundTag const&)>;
 
 public:
     static bool IsTileEntity(std::string const& name) {
@@ -54,8 +57,41 @@ private:
         E("dark_oak_wall_sign", Sign);
         E("crimson_wall_sign", Sign);
         E("warped_wall_sign", Sign);
+        E("shulker_box", ShulkerBox);
+        E("black_shulker_box", ShulkerBox);
+        E("red_shulker_box", ShulkerBox);
+        E("green_shulker_box", ShulkerBox);
+        E("brown_shulker_box", ShulkerBox);
+        E("blue_shulker_box", ShulkerBox);
+        E("purple_shulker_box", ShulkerBox);
+        E("cyan_shulker_box", ShulkerBox);
+        E("light_gray_shulker_box", ShulkerBox);
+        E("gray_shulker_box", ShulkerBox);
+        E("pink_shulker_box", ShulkerBox);
+        E("lime_shulker_box", ShulkerBox);
+        E("yellow_shulker_box", ShulkerBox);
+        E("light_blue_shulker_box", ShulkerBox);
+        E("magenta_shulker_box", ShulkerBox);
+        E("orange_shulker_box", ShulkerBox);
+        E("white_shulker_box", ShulkerBox);
 #undef E
         return table;
+    }
+
+    static TileEntityData ShulkerBox(Pos const& pos, Block const& b, CompoundTag const& c) {
+        using namespace props;
+        auto facing = BlockData::GetFacingDirectionFromFacingA(b);
+        auto items = GetItems(c, "Items");
+        auto tag = std::make_shared<CompoundTag>();
+        tag->fValue = {
+            {"id", String("ShulkerBox")},
+            {"facing", Byte((int8_t)facing)},
+            {"Findable", Bool(false)},
+            {"isMovable", Bool(true)},
+            {"Items", items},
+        };
+        Attach(pos, *tag);
+        return tag;
     }
 
     static std::string ColorCode(std::string const& color) {
@@ -134,6 +170,17 @@ private:
         tag.fValue.insert(std::make_pair("z", props::Int(pos.fZ)));
     }
 
+    static std::shared_ptr<mcfile::nbt::ListTag> GetItems(mcfile::nbt::CompoundTag const& c, std::string const& name) {
+        auto tag = std::make_shared<mcfile::nbt::ListTag>();
+        tag->fType = mcfile::nbt::Tag::TAG_Compound;
+        auto found = c.fValue.find(name);
+        if (found == c.fValue.end()) {
+            return tag;
+        }
+        //TODO:
+        return tag;
+    }
+
     static std::shared_ptr<mcfile::nbt::CompoundTag> Chest(Pos const& pos, mcfile::Block const& b, mcfile::nbt::CompoundTag const& comp) {
         using namespace props;
         using namespace mcfile::nbt;
@@ -153,8 +200,7 @@ private:
         }
 
         auto tag = std::make_shared<CompoundTag>();
-        auto items = std::make_shared<ListTag>();
-        items->fType = Tag::TAG_Compound;
+        auto items = GetItems(comp, "Items");
 
         tag->fValue = {
             {"Items", items},
@@ -167,7 +213,6 @@ private:
             tag->fValue.emplace("pairx", Int(pair->first));
             tag->fValue.emplace("pairz", Int(pair->second));
         }
-        //TODO(kbinani): Items
         Attach(pos, *tag);
         return tag;
     }
