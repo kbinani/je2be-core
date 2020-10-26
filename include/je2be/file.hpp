@@ -12,22 +12,6 @@ inline FILE *Open(std::filesystem::path const& p, char const* mode) {
 #endif
 }
 
-inline void RemoveAll(std::filesystem::path const& p) {
-    using namespace std;
-#if defined(_MSC_VER)
-    auto str = p.native();
-    vector<wchar_t> buf(str.size() + 2, 0); // needs double NULL characters for pFrom
-    copy_n(str.begin(), str.size(), buf.begin());
-    SHFILEOPSTRUCTW op = {0};
-    op.pFrom = buf.data();
-    op.wFunc = FO_DELETE;
-    op.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
-    SHFileOperationW(&op);
-#else
-    filesystem::remove_all(p);
-#endif
-}
-
 inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path const& tempDir) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path();

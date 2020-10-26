@@ -24,7 +24,6 @@ set(je2be_srcs
   include/je2be/portal.hpp
   include/je2be/oriented-portal-blocks.hpp
   include/je2be/chunk-data-package.hpp
-  include/je2be/db/deferred-db.hpp
   include/je2be/file.hpp
   include/je2be/db/null-db.hpp
   include/je2be/entity.hpp

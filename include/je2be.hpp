@@ -1,12 +1,5 @@
 #pragma once
 
-#if defined(_MSC_VER)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#include <shellapi.h>
-#endif
-
 #include <minecraft-file.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
@@ -29,7 +22,6 @@
 #include <je2be/version.hpp>
 #include <je2be/db/db-interface.hpp>
 #include <je2be/db/db.hpp>
-#include <je2be/db/deferred-db.hpp>
 #include <je2be/db/null-db.hpp>
 #include <je2be/db/async-db.hpp>
 #include <je2be/level-data.hpp>
