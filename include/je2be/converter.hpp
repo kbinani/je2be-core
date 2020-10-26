@@ -109,24 +109,24 @@ private:
             }
             for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
                 for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-                    auto const& chunk = region->chunkAt(cx, cz);
-                    if (!chunk) {
-                        continue;
-                    }
-
                     if (futures.size() > 10 * concurrency) {
                         for (unsigned int i = 0; i < 5 * concurrency; i++) {
                             auto const& pb = futures.front().get();
                             futures.pop_front();
+                            if (!pb) continue;
                             portals.add(*pb, dim);
                         }
                     }
 
-                    futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Chunk> const& chunk) {
+                    futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz]() -> shared_ptr<PortalBlocks> {
+                        auto const& chunk = region->chunkAt(cx, cz);
+                        if (!chunk) {
+                            return nullptr;
+                        }
                         auto const& pb = make_shared<PortalBlocks>();
                         putChunk(*chunk, dim, db, *pb);
                         return pb;
-                    }, chunk)));
+                    })));
                 }
             }
             return true;
@@ -134,6 +134,7 @@ private:
 
         for (auto& f : futures) {
             auto const& pb = f.get();
+            if (!pb) continue;
             portals.add(*pb, dim);
         }
 
