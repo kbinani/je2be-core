@@ -74,8 +74,74 @@ private:
         E("magenta_shulker_box", ShulkerBox);
         E("orange_shulker_box", ShulkerBox);
         E("white_shulker_box", ShulkerBox);
+        E("white_bed", Bed);
+        E("orange_bed", Bed);
+        E("magenta_bed", Bed);
+        E("light_blue_bed", Bed);
+        E("yellow_bed", Bed);
+        E("lime_bed", Bed);
+        E("pink_bed", Bed);
+        E("gray_bed", Bed);
+        E("light_gray_bed", Bed);
+        E("cyan_bed", Bed);
+        E("purple_bed", Bed);
+        E("blue_bed", Bed);
+        E("brown_bed", Bed);
+        E("green_bed", Bed);
+        E("red_bed", Bed);
+        E("black_bed", Bed);
 #undef E
         return table;
+    }
+
+    static int8_t BedColor(std::string const& name) {
+        if (name == "minecraft:white_bed") {
+            return 0;
+        } else if (name == "minecraft:orange_bed") {
+            return 1;
+        } else if (name == "minecraft:magenta_bed") {
+            return 2;
+        } else if (name == "minecraft:light_blue_bed") {
+            return 3;
+        } else if (name == "minecraft:yellow_bed") {
+            return 4;
+        } else if (name == "minecraft:lime_bed") {
+            return 5;
+        } else if (name == "minecraft:pink_bed") {
+            return 6;
+        } else if (name == "minecraft:gray_bed") {
+            return 7;
+        } else if (name == "minecraft:light_gray_bed") {
+            return 8;
+        } else if (name == "minecraft:cyan_bed") {
+            return 9;
+        } else if (name == "minecraft:purple_bed") {
+            return 10;
+        } else if (name == "minecraft:blue_bed") {
+            return 11;
+        } else if (name == "minecraft:brown_bed") {
+            return 12;
+        } else if (name == "minecraft:green_bed") {
+            return 13;
+        } else if (name == "minecraft:red_bed") {
+            return 14;
+        } else if (name == "minecraft:black_bed") {
+            return 15;
+        }
+        return 0;
+    }
+
+    static TileEntityData Bed(Pos const& pos, Block const& b, CompoundTag const& c) {
+        using namespace props;
+        auto tag = std::make_shared<CompoundTag>();
+        auto color = BedColor(b.fName);
+        tag->fValue = {
+            {"id", String("Bed")},
+            {"color", Byte(color)},
+            {"isMovable", Bool(true)},
+        };
+        Attach(pos, *tag);
+        return tag;
     }
 
     static TileEntityData ShulkerBox(Pos const& pos, Block const& b, CompoundTag const& c) {
