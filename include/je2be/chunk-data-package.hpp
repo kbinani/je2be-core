@@ -28,13 +28,22 @@ private:
     void buildTileEntities(mcfile::Chunk const& chunk) {
         using namespace std;
         using namespace mcfile;
-        for (auto const& it : fTileBlocks) {
-            Pos pos = it.first;
-            shared_ptr<Block const> const& block = it.second;
-            auto tag = TileEntity::From(pos, *block, nullptr/*TODO*/);
-            if (!tag) {
-                continue;
-            }
+        using namespace mcfile::nbt;
+        using namespace props;
+
+        for (shared_ptr<CompoundTag> const& e : chunk.fTileEntities) {
+            auto x = GetInt(*e, "x");
+            auto y = GetInt(*e, "y");
+            auto z = GetInt(*e, "z");
+            if (!x || !y || !z) continue;
+
+            Pos pos(*x, *y, *z);
+            auto found = fTileBlocks.find(pos);
+            if (found == fTileBlocks.end()) continue;
+
+            auto tag = TileEntity::From(pos, *found->second, e);
+            if (!tag) continue;
+
             fTileEntities.push_back(tag);
         }
     }
