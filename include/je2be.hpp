@@ -35,12 +35,10 @@
 #include <je2be/height-map.hpp>
 #include <je2be/entity.hpp>
 #include <je2be/tile-entity.hpp>
-#include <je2be/entities/entities.hpp>
 #include <je2be/chunk-data.hpp>
 #include <je2be/portal.hpp>
 #include <je2be/oriented-portal-blocks.hpp>
 #include <je2be/portal-blocks.hpp>
 #include <je2be/portals.hpp>
 #include <je2be/chunk-data-package.hpp>
-#include <je2be/world-data-package.hpp>
 #include <je2be/converter.hpp>

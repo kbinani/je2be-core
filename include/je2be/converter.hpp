@@ -97,7 +97,7 @@ private:
 
         ThreadPool pool(concurrency);
         pool.init();
-        deque<future<WorldDataPackage>> futures;
+        deque<future<shared_ptr<PortalBlocks>>> futures;
 
         w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &portals](shared_ptr<Region> const& region) {
             if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
@@ -116,16 +116,16 @@ private:
 
                     if (futures.size() > 10 * concurrency) {
                         for (unsigned int i = 0; i < 5 * concurrency; i++) {
-                            WorldDataPackage const& wdp = futures.front().get();
+                            auto const& pb = futures.front().get();
                             futures.pop_front();
-                            portals.add(*wdp.fPortalBlocks, dim);
+                            portals.add(*pb, dim);
                         }
                     }
 
                     futures.push_back(move(pool.submit([this, dim, &db](shared_ptr<Chunk> const& chunk) {
-                        WorldDataPackage wdp;
-                        putChunk(*chunk, dim, db, wdp);
-                        return wdp;
+                        auto const& pb = make_shared<PortalBlocks>();
+                        putChunk(*chunk, dim, db, *pb);
+                        return pb;
                     }, chunk)));
                 }
             }
@@ -133,8 +133,8 @@ private:
         });
 
         for (auto& f : futures) {
-            WorldDataPackage const& wdp = f.get();
-            portals.add(*wdp.fPortalBlocks, dim);
+            auto const& pb = f.get();
+            portals.add(*pb, dim);
         }
 
         pool.shutdown();
@@ -142,7 +142,7 @@ private:
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db, WorldDataPackage &wdp) {
+    void putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db, PortalBlocks &pb) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
@@ -152,7 +152,7 @@ private:
         ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, cd, cdp, wdp);
+            putSubChunk(chunk, dim, chunkY, cd, cdp, pb);
         }
 
         cdp.build(chunk);
@@ -161,7 +161,7 @@ private:
         cd.put(db);
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, WorldDataPackage &wdp) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, PortalBlocks &pb) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -213,7 +213,7 @@ private:
                             cdp.addTileBlock(bx, by, bz, block);
                         } else if (StringEquals(block->fName, nether_portal)) {
                             bool xAxis = block->property("axis", "x") == "x";
-                            wdp.fPortalBlocks->add(bx, by, bz, xAxis);
+                            pb.add(bx, by, bz, xAxis);
                         }
                     }
                     static string const air("minecraft:air");
