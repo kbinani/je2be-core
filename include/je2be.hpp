@@ -6,6 +6,7 @@
 #include <table/compression/zlib_compressor.h>
 #include <xxhash.h>
 #include <ThreadPool.h>
+#include <nlohmann/json.hpp>
 
 #include <optional>
 #include <set>
@@ -16,6 +17,8 @@
 #include <je2be/enums.hpp>
 #include <je2be/pos.hpp>
 #include <je2be/key.hpp>
+#include <je2be/vec.hpp>
+#include <je2be/rotation.hpp>
 #include <je2be/props.hpp>
 #include <je2be/block-data.hpp>
 #include <je2be/biome-map.hpp>

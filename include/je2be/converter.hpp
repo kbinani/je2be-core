@@ -66,7 +66,8 @@ public:
         }
         levelData.write(fOutput + string("/level.dat"));
 
-        DeferredDb db;
+        AsyncDb db(dbPath.string());
+        //NullDb db;
         if (!db.valid()) {
             return false;
         }
@@ -81,11 +82,6 @@ public:
         }
 
         portals.putInto(db);
-
-        Db d(dbPath.string());
-        if (d.valid()) {
-            db.flush(d);
-        }
 
         return ok;
     }
@@ -207,10 +203,8 @@ private:
                         if (!IsAir(*block)) {
                             cdp.updateAltitude(x, by, z);
                         }
-                        static string const chest("minecraft:chest");
-                        static string const trapped_chest("minecraft:trapped_chest");
                         static string const nether_portal("minecraft:nether_portal");
-                        if (StringEquals(block->fName, chest) || StringEquals(block->fName, trapped_chest)) {
+                        if (TileEntity::IsTileEntity(block->fName)) {
                             cdp.addTileBlock(bx, by, bz, block);
                         } else if (StringEquals(block->fName, nether_portal)) {
                             bool xAxis = block->property("axis", "x") == "x";

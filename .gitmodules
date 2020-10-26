@@ -16,3 +16,6 @@
 [submodule "ext/thread-pool"]
 	path = ext/thread-pool
 	url = https://github.com/mtrebi/thread-pool.git
+[submodule "ext/json"]
+	path = ext/json
+	url = https://github.com/nlohmann/json.git

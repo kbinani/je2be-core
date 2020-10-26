@@ -2,43 +2,6 @@
 
 namespace j2b {
 
-class Vec {
-public:
-    Vec(float x, float y, float z) : fX(x), fY(y), fZ(z) {}
-
-    std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
-        using namespace mcfile::nbt;
-        using namespace props;
-        auto tag = std::make_shared<ListTag>();
-        tag->fType = Tag::TAG_Float;
-        tag->fValue = {Float(fX), Float(fY), Float(fZ)};
-        return tag;
-    }
-
-public:
-    float const fX;
-    float const fY;
-    float const fZ;
-};
-
-class Rotation {
-public:
-    Rotation(float yaw, float pitch) : fYaw(yaw), fPitch(pitch) {}
-
-    std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
-        using namespace mcfile::nbt;
-        using namespace props;
-        auto tag = std::make_shared<ListTag>();
-        tag->fType = Tag::TAG_Float;
-        tag->fValue = {Float(fYaw), Float(fPitch)};
-        return tag;
-    }
-
-public:
-    float const fYaw;
-    float const fPitch;
-};
-
 class Entity {
 public:
     static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const& tag) {
@@ -162,79 +125,6 @@ private:
             return found->second;
         }
         return nullopt;
-    }
-
-    static std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
-        using namespace std;
-        using namespace mcfile::nbt;
-        auto found = tag.fValue.find(name);
-        if (found == tag.fValue.end()) {
-            return nullopt;
-        }
-        IntArrayTag const* list = found->second->asIntArray();
-        if (!list) {
-            return nullopt;
-        }
-        vector<int32_t> const& value = list->value();
-        if (value.size() != 4) {
-            return nullopt;
-        }
-
-        int32_t a = value[0];
-        int32_t b = value[1];
-        int32_t c = value[2];
-        int32_t d = value[3];
-
-        XXH64_state_t* state = XXH64_createState();
-        XXH64_hash_t seed = 0;
-        XXH64_reset(state, seed);
-        XXH64_update(state, &a, sizeof(a));
-        XXH64_update(state, &b, sizeof(b));
-        XXH64_update(state, &c, sizeof(c));
-        XXH64_update(state, &d, sizeof(d));
-        XXH64_hash_t hash = XXH64_digest(state);
-        XXH64_freeState(state);
-        return *(int64_t*)&hash;
-    }
-
-
-    static std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
-        using namespace std;
-        using namespace mcfile::nbt;
-        auto found = tag.fValue.find(name);
-        if (found == tag.fValue.end()) {
-            return nullopt;
-        }
-        auto list = found->second->asList();
-        if (!list) {
-            return nullopt;
-        }
-        if (list->fType != Tag::TAG_Double || list->fValue.size() != 3) {
-            return nullopt;
-        }
-        double x = list->fValue[0]->asDouble()->fValue;
-        double y = list->fValue[1]->asDouble()->fValue;
-        double z = list->fValue[2]->asDouble()->fValue;
-        return Vec((float)x, (float)y, (float)z);
-    }
-
-    static std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
-        using namespace std;
-        using namespace mcfile::nbt;
-        auto found = tag.fValue.find(name);
-        if (found == tag.fValue.end()) {
-            return nullopt;
-        }
-        auto list = found->second->asList();
-        if (!list) {
-            return nullopt;
-        }
-        if (list->fType != Tag::TAG_Float || list->fValue.size() != 2) {
-            return nullopt;
-        }
-        double yaw = list->fValue[0]->asFloat()->fValue;
-        double pitch = list->fValue[1]->asFloat()->fValue;
-        return Rotation(yaw, pitch);
     }
 };
 

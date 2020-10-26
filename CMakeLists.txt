@@ -30,6 +30,8 @@ set(je2be_srcs
   include/je2be/tile-entity.hpp
   include/je2be/pos.hpp
   include/je2be/db/async-db.hpp
+  include/je2be/vec.hpp
+  include/je2be/rotation.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
