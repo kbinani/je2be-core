@@ -32,6 +32,7 @@ set(je2be_srcs
   include/je2be/db/async-db.hpp
   include/je2be/vec.hpp
   include/je2be/rotation.hpp
+  include/je2be/db/raw-db.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
@@ -114,6 +115,7 @@ target_include_directories(je2be PRIVATE
   ext/leveldb/include
   ext/leveldb
   ext/thread-pool/include
+  ext/json/single_include
   ${je2be_include_directories})
 target_link_libraries(je2be ${je2be_link_libraries} leveldb)
 target_link_directories(je2be PRIVATE ${je2be_link_directories})

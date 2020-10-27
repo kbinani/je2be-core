@@ -3,7 +3,12 @@
 #include <minecraft-file.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
+#include <leveldb/comparator.h>
+#include <leveldb/table_builder.h>
+#include <leveldb/env.h>
+#include <leveldb/table.h>
 #include <table/compression/zlib_compressor.h>
+#include <db/dbformat.h>
 #include <xxhash.h>
 #include <ThreadPool.h>
 #include <nlohmann/json.hpp>
@@ -27,6 +32,7 @@
 #include <je2be/db/db.hpp>
 #include <je2be/db/null-db.hpp>
 #include <je2be/db/async-db.hpp>
+#include <je2be/db/raw-db.hpp>
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
 #include <je2be/entity.hpp>
