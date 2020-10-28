@@ -15,9 +15,9 @@ public:
     }
 
 public:
-    float const fX;
-    float const fY;
-    float const fZ;
+    float fX;
+    float fY;
+    float fZ;
 };
 
 }

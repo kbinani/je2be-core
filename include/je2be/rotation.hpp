@@ -15,8 +15,8 @@ public:
     }
 
 public:
-    float const fYaw;
-    float const fPitch;
+    float fYaw;
+    float fPitch;
 };
 
 }

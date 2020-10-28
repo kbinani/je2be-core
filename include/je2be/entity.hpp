@@ -3,89 +3,134 @@
 namespace j2b {
 
 class Entity {
+private:
+    using CompoundTag = mcfile::nbt::CompoundTag;
+    using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const&)>;
+
 public:
+    Entity() : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0) {}
+
     static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const& tag) {
         using namespace props;
         auto id = GetString(tag, "id");
         if (!id) return nullptr;
-        if (*id == "minecraft:painting") {
-            return Painting(tag);
+        static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateTable());
+        auto found = table->find(*id);
+        if (found == table->end()) {
+            return nullptr;
         }
-        return nullptr;
+        return found->second(tag);
+    }
+
+    std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+        using namespace std;
+        using namespace props;
+        using namespace mcfile::nbt;
+        auto tag = make_shared<CompoundTag>();
+        auto tags = make_shared<ListTag>();
+        tags->fType = Tag::TAG_Compound;
+        auto definitions = make_shared<ListTag>();
+        definitions->fType = Tag::TAG_String;
+        for (auto const& d : fDefinitions) {
+            definitions->fValue.push_back(String(d));
+        }
+        tag->fValue = {
+            {"definitions", definitions},
+            {"Motion", fMotion.toListTag()},
+            {"Pos", fPos.toListTag()},
+            {"Rotation", fRotation.toListTag()},
+            {"Tags", tags},
+            {"Chested", Bool(fChested)},
+            {"Color2", Byte(fColor2)},
+            {"Color", Byte(fColor)},
+            {"Dir", Byte(fDir)},
+            {"FallDistance", Float(fFallDistance)},
+            {"Fire", Short(fFire)},
+            {"identifier", String(fIdentifier)},
+            {"Invulnerable", Bool(fInvulnerable)},
+            {"IsAngry", Bool(fIsAngry)},
+            {"IsAutonomous", Bool(fIsAutonomous)},
+            {"IsBaby", Bool(fIsBaby)},
+            {"IsEating", Bool(fIsEating)},
+            {"IsGliding", Bool(fIsGliding)},
+            {"IsGlobal", Bool(fIsGlobal)},
+            {"IsIllagerCaptain", Bool(fIsIllagerCaptain)},
+            {"IsOrphaned", Bool(fIsOrphaned)},
+            {"IsRoaring", Bool(fIsRoaring)},
+            {"IsScared", Bool(fIsScared)},
+            {"IsStunned", Bool(fIsStunned)},
+            {"IsSwimming", Bool(fIsSwimming)},
+            {"IsTamed", Bool(fIsTamed)},
+            {"IsTrusting", Bool(fIsTrusting)},
+            {"LastDimensionId", Int(fLastDimensionId)},
+            {"LootDropped", Bool(fLootDropped)},
+            {"MarkVariant", Int(fMarkVariant)},
+            {"OnGround", Bool(fOnGround)},
+            {"OwnerNew", Int(fOwnerNew)},
+            {"PortalCooldown", Int(fPortalCooldown)},
+            {"Saddled", Bool(fSaddled)},
+            {"Sheared", Bool(fSheared)},
+            {"ShowBottom", Bool(fShowBottom)},
+            {"Sitting", Bool(fSitting)},
+            {"SkinID", Int(fSkinId)},
+            {"Strength", Int(fStrength)},
+            {"StrengthMax", Int(fStrengthMax)},
+            {"UniqueID", Long(fUniqueId)},
+            {"Variant", Int(fVariant)},
+        };
+        return tag;
     }
 
 private:
+    static std::unordered_map<std::string, Converter>* CreateTable() {
+        auto table = new std::unordered_map<std::string, Converter>();
+#define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
+        E("painting", Painting);
+#undef E
+        return table;
+    }
+
+    static void BaseProperties(CompoundTag const& tag, Entity& e) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+
+        auto fallDistance = GetFloat(tag, "FallDistance");
+        auto fire = GetShort(tag, "Fire");
+        auto invulnerable = GetBool(tag, "Invulnerable");
+        auto onGround = GetBool(tag, "OnGround");
+        auto portalCooldown = GetInt(tag, "PortalCooldown");
+        auto motion = GetVec(tag, "Motion");
+        auto pos = GetVec(tag, "Pos");
+        auto rotation = GetRotation(tag, "Rotation");
+        auto uuid = GetUUID(tag, "UUID");
+
+        if (motion) e.fMotion = *motion;
+        if (pos) e.fPos = *pos;
+        if (rotation) e.fRotation = *rotation;
+        if (fallDistance) e.fFallDistance = *fallDistance;
+        if (fire) e.fFire = *fire;
+        if (invulnerable) e.fInvulnerable = *invulnerable;
+        if (onGround) e.fOnGround = *onGround;
+        if (portalCooldown) e.fPortalCooldown = *portalCooldown;
+        if (uuid) e.fUniqueId = *uuid;
+    }
+
     static std::shared_ptr<mcfile::nbt::CompoundTag> Painting(mcfile::nbt::CompoundTag const& tag) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
 
         auto facing = GetByte(tag, "Facing");
-        auto fallDistance = GetFloat(tag, "FallDistance");
-        auto fire = GetShort(tag, "Fire");
-        auto invulnerable = GetBool(tag, "Invulnerable");
         auto motive = GetString(tag, "Motive");
-        auto onGround = GetBool(tag, "OnGround");
-        auto portalCooldown = GetInt(tag, "PortalCooldown");
-        auto x = GetInt(tag, "TileX");
-        auto y = GetInt(tag, "TileY");
-        auto z = GetInt(tag, "TileZ");
-        auto motion = GetVec(tag, "Motion");
-        auto pos = GetVec(tag, "Pos");
-        auto rotation = GetRotation(tag, "Rotation");
-        auto uuid = GetUUID(tag, "UUID");
         auto beMotive = PaintingMotive(*motive);
 
-        auto definitions = make_shared<ListTag>();
-        definitions->fType = Tag::TAG_String;
-
-        auto c = make_shared<CompoundTag>();
-        c->fValue = {
-            {"definitions", definitions},
-            {"Motion", motion->toListTag()},
-            {"Pos", pos->toListTag()},
-            {"Rotation", rotation->toListTag()},
-            //{"Tags", tags},
-            {"Chested", Bool(false)},
-            {"Color2", Byte(0)},
-            {"Color", Byte(0)},
-            {"Dir", Byte(0)},//TODO(kbinani)
-            {"Direction", Byte(*facing)},
-            {"FallDistance", Float(*fallDistance)},
-            {"Fire", Short(*fire)},
-            {"identifier", String("minecraft:painting")},
-            {"Invulnerable", Bool(*invulnerable)},
-            {"IsAngry", Bool(false)},
-            {"IsAutonomous", Bool(false)},
-            {"IsBaby", Bool(false)},
-            {"IsEating", Bool(false)},
-            {"IsGliding", Bool(false)},
-            {"IsGlobal", Bool(false)},
-            {"IsIllagerCaptain", Bool(false)},
-            {"IsOrphaned", Bool(false)},
-            {"IsRoaring", Bool(false)},
-            {"IsScared", Bool(false)},
-            {"IsStunned", Bool(false)},
-            {"IsSwimming", Bool(false)},
-            {"IsTamed", Bool(false)},
-            {"IsTrusting", Bool(false)},
-            {"LastDimensionId", Int(0)},
-            {"LootDropped", Bool(false)},
-            {"MarkVariant", Int(0)},
-            {"Motive", String(*beMotive)},
-            {"OnGround", Bool(*onGround)},
-            {"OwnerNew", Long(-1)},
-            {"PortalCooldown", Int(*portalCooldown)},
-            {"Saddled", Bool(false)},
-            {"Sheared", Bool(false)},
-            {"ShowBottom", Bool(false)},
-            {"Sitting", Bool(false)},
-            {"SkinID", Int(0)},
-            {"Strength", Int(0)},
-            {"StrengthMax", Int(0)},
-            {"UniqueID", Long(*uuid)},
-            {"Variant", Int(0)},
-        };
+        Entity e;
+        BaseProperties(tag, e);
+        e.fIdentifier = "minecraft:painting";
+        auto c = e.toCompoundTag();
+        c->fValue.emplace("Motive", String(*beMotive));
+        c->fValue.emplace("Direction", Byte(*facing));
         return c;
     }
 
@@ -126,6 +171,50 @@ private:
         }
         return nullopt;
     }
+
+public:
+    std::vector<std::string> fDefinitions;
+    Vec fMotion;
+    Vec fPos;
+    Rotation fRotation;
+    std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTags;
+    bool fChested = false;
+    int8_t fColor2 = 0;
+    int8_t fColor = 0;
+    int8_t fDir = 0;
+    float fFallDistance = 0;
+    int16_t fFire = 0;
+    std::string fIdentifier;
+    bool fInvulnerable = false;
+    bool fIsAngry = false;
+    bool fIsAutonomous = false;
+    bool fIsBaby = false;
+    bool fIsEating = false;
+    bool fIsGliding = false;
+    bool fIsGlobal = false;
+    bool fIsIllagerCaptain = false;
+    bool fIsOrphaned = false;
+    bool fIsRoaring = false;
+    bool fIsScared = false;
+    bool fIsStunned = false;
+    bool fIsSwimming = false;
+    bool fIsTamed = false;
+    bool fIsTrusting = false;
+    int32_t fLastDimensionId = 0;
+    bool fLootDropped = false;
+    int32_t fMarkVariant = 0;
+    bool fOnGround = true;
+    int64_t fOwnerNew = -1;
+    int32_t fPortalCooldown = 0;
+    bool fSaddled = false;
+    bool fSheared = false;
+    bool fShowBottom = false;
+    bool fSitting = false;
+    int32_t fSkinId = 0;
+    int32_t fStrength = 0;
+    int32_t fStrengthMax = 0;
+    int64_t fUniqueId;
+    int32_t fVariant = 0;
 };
 
 }
