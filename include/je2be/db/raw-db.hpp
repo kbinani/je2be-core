@@ -4,13 +4,13 @@ namespace j2b {
 
 class RawDb : public DbInterface {
 public:
-    explicit RawDb(std::string const& dir) : fValid(true), fDir(dir) {
+    RawDb(std::string const& dir, unsigned int concurrency) : fValid(true), fDir(dir) {
         using namespace std;
         using namespace leveldb;
         namespace fs = std::filesystem;
 
         fStop.store(false);
-        thread th([this]() {
+        thread th([this, concurrency]() {
             for (auto const& e : fs::directory_iterator(fs::path(fDir))) {
                 fs::remove_all(e.path());
             }
@@ -21,7 +21,12 @@ public:
             uint32_t fileNum = 1;
             uint64_t sequenceNumber = 1;
             uint64_t const kMaxFileSize = 2 * 1024 * 1024;
-            WriteBatch batch;
+            auto batch = make_shared<WriteBatch>();
+
+            ThreadPool pool(concurrency);
+            pool.init();
+
+            deque<future<void>> futures;
 
             while (true) {
                 unique_lock<std::mutex> lk(fMut);
@@ -36,10 +41,21 @@ public:
                     InternalKey ik(key, sequenceNumber, kTypeValue);
                     sequenceNumber++;
                     Slice k = ik.Encode();
-                    batch.Put(k, value);
-                    if (batch.ApproximateSize() > o.max_file_size) {
-                        drainWriteBatch(batch, fileNum, o);
+                    batch->Put(k, value);
+                    if (batch->ApproximateSize() > o.max_file_size) {
+                        if (futures.size() > 10 * concurrency) {
+                            for (unsigned int i = 0; i < 5 * concurrency; i++) {
+                                futures.front().get();
+                                futures.pop_front();
+                            }
+                        }
+
+                        futures.emplace_back(move(pool.submit([this, fileNum, o](shared_ptr<WriteBatch> b) {
+                            drainWriteBatch(*b, fileNum, o);
+                        }, batch)));
+
                         fileNum++;
+                        batch = make_shared<WriteBatch>();
                     }
                 }
                 if (stop) {
@@ -47,7 +63,13 @@ public:
                 }
             }
 
-            drainWriteBatch(batch, fileNum, o);
+            for (auto& f : futures) {
+                f.get();
+            }
+
+            pool.shutdown();
+
+            drainWriteBatch(*batch, fileNum, o);
 
             RepairDB(fDir.c_str(), o);
             DB* db = nullptr;
