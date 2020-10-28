@@ -75,6 +75,7 @@ public:
             DB* db = nullptr;
             Status st = DB::Open(o, fDir, &db);
             if (st.ok()) {
+                db->CompactRange(nullptr, nullptr);
                 delete db;
             }
         });
