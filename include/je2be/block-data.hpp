@@ -1661,7 +1661,7 @@ private:
         return std::make_shared<mcfile::nbt::CompoundTag>();
     }
     
-private:
+public:
     static int32_t const kBlockDataVersion = 17825808;
 };
 

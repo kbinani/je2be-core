@@ -41,9 +41,20 @@ private:
             auto found = fTileBlocks.find(pos);
             if (found == fTileBlocks.end()) continue;
 
-            auto tag = TileEntity::From(pos, *found->second, e);
+            shared_ptr<Block const> block = found->second;
+            fTileBlocks.erase(found);
+
+            auto tag = TileEntity::From(pos, *block, e);
             if (!tag) continue;
 
+            fTileEntities.push_back(tag);
+        }
+
+        for (auto const&it : fTileBlocks) {
+            Pos const& pos = it.first;
+            Block const& block = *it.second;
+            auto tag = TileEntity::From(pos, block, nullptr);
+            if (!tag) continue;
             fTileEntities.push_back(tag);
         }
     }

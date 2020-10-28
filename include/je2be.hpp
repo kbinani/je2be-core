@@ -20,6 +20,7 @@
 
 #include <je2be/file.hpp>
 #include <je2be/enums.hpp>
+#include <je2be/strings.hpp>
 #include <je2be/pos.hpp>
 #include <je2be/key.hpp>
 #include <je2be/vec.hpp>

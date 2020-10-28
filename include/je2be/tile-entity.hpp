@@ -126,8 +126,118 @@ private:
         E("green_wall_banner", Banner);
         E("red_wall_banner", Banner);
         E("black_wall_banner", Banner);
+
+        E("potted_oak_sapling", PottedSapling);
+        E("potted_spruce_sapling", PottedSapling);
+        E("potted_birch_sapling", PottedSapling);
+        E("potted_jungle_sapling", PottedSapling);
+        E("potted_acacia_sapling", PottedSapling);
+        E("potted_dark_oak_sapling", PottedSapling);
+        E("potted_poppy", PottedPlant("red_flower", {{"flower_type", "poppy"}}));
+        E("potted_blue_orchid", PottedPlant("red_flower", {{"flower_type", "orchid"}}));
+        E("potted_allium", PottedPlant("red_flower", {{"flower_type", "allium"}}));
+        E("potted_azure_bluet", PottedPlant("red_flower", {{"flower_type", "houstonia"}}));
+        E("potted_red_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_red"}}));
+        E("potted_orange_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_orange"}}));
+        E("potted_white_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_white"}}));
+        E("potted_pink_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_pink"}}));
+        E("potted_oxeye_daisy", PottedPlant("red_flower", {{"flower_type", "oxeye"}}));
+        E("potted_cornflower", PottedPlant("red_flower", {{"flower_type", "cornflower"}}));
+        E("potted_lily_of_the_valley", PottedPlant("red_flower", {{"flower_type", "lily_of_the_valley"}}));
+        E("potted_dandelion", PottedPlant("yellow_flower", {}));
+        E("potted_wither_rose", PottedPlant("wither_rose", {}));
+        E("potted_crimson_fungus", PottedPlant("crimson_fungus", {}));
+        E("potted_warped_fungus", PottedPlant("warped_fungus", {}));
+        E("potted_dead_bush", PottedPlant("deadbush", {}));
+        E("potted_red_mushroom", PottedPlant("red_mushroom", {}));
+        E("potted_brown_mushroom", PottedPlant("brown_mushroom", {}));
+        E("potted_fern", PottedPlant("tallgrass", {{"tall_grass_type", "fern"}}));
+        E("potted_bamboo", PottedBamboo);
+        E("potted_crimson_roots", PottedPlant("crimson_roots", {}));
+        E("potted_warped_roots", PottedPlant("warped_roots", {}));
 #undef E
         return table;
+    }
+
+    static TileEntityData PottedBamboo(Pos const& pos, Block const& b, CompoundTag const& c) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+
+        auto tag = make_shared<CompoundTag>();
+        auto plantBlock = make_shared<CompoundTag>();
+        auto states = make_shared<CompoundTag>();
+        states->fValue = {
+            {"age_bit", Byte(0)},
+            {"bamboo_leaf_size", String("no_leaves")},
+            {"mamboo_stalk_thickness", String("thin")},
+        };
+        plantBlock->fValue = {
+            {"states", states},
+            {"name", String("minecraft:bamboo")},
+            {"version", Int(BlockData::kBlockDataVersion)},
+        };
+        tag->fValue = {
+            {"id", String("FlowerPot")},
+            {"isMovable", Bool(true)},
+            {"PlantBlock", plantBlock},
+        };
+        Attach(pos, *tag);
+        return tag;
+    }
+
+    static Converter PottedPlant(std::string const& name, std::map<std::string, std::string> const& properties) {
+        return [=](Pos const& pos, Block const& b, CompoundTag const& c) -> TileEntityData {
+            using namespace props;
+            using namespace mcfile::nbt;
+            using namespace std;
+
+            auto tag = make_shared<CompoundTag>();
+            auto plantBlock = make_shared<CompoundTag>();
+            auto states = make_shared<CompoundTag>();
+            for (auto const& p : properties) {
+                states->fValue.emplace(p.first, String(p.second));
+            }
+            plantBlock->fValue = {
+                {"states", states},
+                {"name", String("minecraft:" + name)},
+                {"version", Int(BlockData::kBlockDataVersion)},
+            };
+            tag->fValue = {
+                {"id", String("FlowerPot")},
+                {"isMovable", Bool(true)},
+                {"PlantBlock", plantBlock},
+            };
+            Attach(pos, *tag);
+            return tag;
+        };
+    }
+
+    static TileEntityData PottedSapling(Pos const& pos, Block const& b, CompoundTag const& c) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+
+        auto tag = make_shared<CompoundTag>();
+        auto plantBlock = make_shared<CompoundTag>();
+        auto states = make_shared<CompoundTag>();
+        auto type = strings::RTrim(strings::LTrim(b.fName, "minecraft:potted_"), "_sapling");
+        states->fValue = {
+            {"age_bit", Byte(0)},
+            {"sapling_type", String(type)},
+        };
+        plantBlock->fValue = {
+            {"states", states},
+            {"name", String("minecraft:sapling")},
+            {"version", Int(BlockData::kBlockDataVersion)},
+        };
+        tag->fValue = {
+            {"id", String("FlowerPot")},
+            {"isMovable", Bool(true)},
+            {"PlantBlock", plantBlock},
+        };
+        Attach(pos, *tag);
+        return tag;
     }
 
     static TileEntityData Banner(Pos const& pos, Block const& b, CompoundTag const& c) {
