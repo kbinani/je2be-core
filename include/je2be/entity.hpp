@@ -5,7 +5,8 @@ namespace j2b {
 class Entity {
 private:
     using CompoundTag = mcfile::nbt::CompoundTag;
-    using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const&)>;
+    using EntityDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
+    using Converter = std::function<EntityDataType(CompoundTag const&)>;
 
 public:
     Entity() : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0) {}
@@ -86,6 +87,7 @@ private:
         auto table = new std::unordered_map<std::string, Converter>();
 #define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
         E("painting", Painting);
+        E("end_crystal", EndCrystal);
 #undef E
         return table;
     }
@@ -114,6 +116,16 @@ private:
         if (onGround) e.fOnGround = *onGround;
         if (portalCooldown) e.fPortalCooldown = *portalCooldown;
         if (uuid) e.fUniqueId = *uuid;
+    }
+
+    static EntityDataType EndCrystal(CompoundTag const& tag) {
+        using namespace props;
+        Entity e;
+        BaseProperties(tag, e);
+        e.fIdentifier = "minecraft:ender_crystal";
+        auto c = e.toCompoundTag();
+        c->fValue.emplace("ShowBottom", Bool(false));
+        return c;
     }
 
     static std::shared_ptr<mcfile::nbt::CompoundTag> Painting(mcfile::nbt::CompoundTag const& tag) {
