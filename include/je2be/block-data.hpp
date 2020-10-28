@@ -1296,7 +1296,13 @@ private:
         E("potted_warped_roots", pottedFlowerPot);
         E("potted_bamboo", pottedFlowerPot);
 
-        E("skeleton_skull", Converter(Name("skull"), AddIntProperty("facing_direction", 1), AddBoolProperty("no_drop_bit", false)));
+        Converter skull(Name("skull"), AddIntProperty("facing_direction", 1), AddBoolProperty("no_drop_bit", false));
+        E("skeleton_skull", skull);
+        E("wither_skeleton_skull", skull);
+        E("player_head", skull);
+        E("zombie_head", skull);
+        E("creeper_head", skull);
+        E("dragon_head", skull);
 
         Converter banner(Name("standing_banner"), Name(Rotation, "ground_sign_direction"));
         E("white_banner", banner);

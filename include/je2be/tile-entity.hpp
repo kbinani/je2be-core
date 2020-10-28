@@ -7,7 +7,7 @@ private:
     using CompoundTag = mcfile::nbt::CompoundTag;
     using Block = mcfile::Block;
     using TileEntityData = std::shared_ptr<CompoundTag>;
-    using Converter = std::function<TileEntityData(Pos const&, Block const&, CompoundTag const&)>;
+    using Converter = std::function<TileEntityData(Pos const&, Block const&, std::shared_ptr<CompoundTag> const&)>;
 
 public:
     static bool IsTileEntity(std::string const& name) {
@@ -23,7 +23,7 @@ public:
 
         string const& name = block.fName;
         auto const& table = Table();
-        return table.at(name)(pos, block, *tag);
+        return table.at(name)(pos, block, tag);
     }
 
 private:
@@ -155,11 +155,52 @@ private:
         E("potted_bamboo", PottedBamboo);
         E("potted_crimson_roots", PottedPlant("crimson_roots", {}));
         E("potted_warped_roots", PottedPlant("warped_roots", {}));
+
+        E("skeleton_skull", Skull);
+        E("wither_skeleton_skull", Skull);
+        E("player_head", Skull);
+        E("zombie_head", Skull);
+        E("creeper_head", Skull);
+        E("dragon_head", Skull);
 #undef E
         return table;
     }
 
-    static TileEntityData PottedBamboo(Pos const& pos, Block const& b, CompoundTag const& c) {
+    static TileEntityData Skull(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+        auto tag = make_shared<CompoundTag>();
+        int8_t type = 0;
+        auto const& name = b.fName;
+        if (name == "minecraft:player_head") {
+            type = 3;
+        } else if (name == "minecraft:zombie_head") {
+            type = 2;
+        } else if (name == "minecraft:creeper_head") {
+            type = 4;
+        } else if (name == "minecraft:dragon_head") {
+            type = 5;
+        } else if (name == "minecraft:skeleton_skull") {
+            type = 0;
+        } else if (name == "minecraft:wither_skeleton_skull") {
+            type = 1;
+        }
+        auto rot = stoi(b.property("rotation", "0"));
+        float rotation = rot / 16.0f * 360.0f;
+        tag->fValue = {
+            {"id", String("Skull")},
+            {"isMovable", Bool(true)},
+            {"MouthMoving", Bool(false)},
+            {"MouthTickCount", Int(0)},
+            {"SkullType", Byte(type)},
+            {"Rotation", Float(rotation)},
+        };
+        Attach(pos, *tag);
+        return tag;
+    }
+
+    static TileEntityData PottedBamboo(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -187,7 +228,7 @@ private:
     }
 
     static Converter PottedPlant(std::string const& name, std::map<std::string, std::string> const& properties) {
-        return [=](Pos const& pos, Block const& b, CompoundTag const& c) -> TileEntityData {
+        return [=](Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) -> TileEntityData {
             using namespace props;
             using namespace mcfile::nbt;
             using namespace std;
@@ -213,7 +254,7 @@ private:
         };
     }
 
-    static TileEntityData PottedSapling(Pos const& pos, Block const& b, CompoundTag const& c) {
+    static TileEntityData PottedSapling(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -240,12 +281,12 @@ private:
         return tag;
     }
 
-    static TileEntityData Banner(Pos const& pos, Block const& b, CompoundTag const& c) {
+    static TileEntityData Banner(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
         using namespace props;
         using namespace mcfile::nbt;
         auto tag = std::make_shared<CompoundTag>();
 
-        auto customName = GetJson(c, "CustomName");
+        auto customName = GetJson(*c, "CustomName");
         int32_t type = 0;
         if (customName) {
             auto color = GetAsString(*customName, "color");
@@ -255,7 +296,7 @@ private:
             }
         }
 
-        auto patterns = GetList(c, "Patterns");
+        auto patterns = GetList(*c, "Patterns");
         auto patternsBedrock = std::make_shared<ListTag>();
         patternsBedrock->fType = Tag::TAG_Compound;
         if (patterns && type != 1) {
@@ -386,7 +427,7 @@ private:
         return found->second;
     }
 
-    static TileEntityData Bed(Pos const& pos, Block const& b, CompoundTag const& c) {
+    static TileEntityData Bed(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
         using namespace props;
         auto tag = std::make_shared<CompoundTag>();
         auto color = BedColor(b.fName);
@@ -399,10 +440,10 @@ private:
         return tag;
     }
 
-    static TileEntityData ShulkerBox(Pos const& pos, Block const& b, CompoundTag const& c) {
+    static TileEntityData ShulkerBox(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
         using namespace props;
         auto facing = BlockData::GetFacingDirectionFromFacingA(b);
-        auto items = GetItems(c, "Items");
+        auto items = GetItems(*c, "Items");
         auto tag = std::make_shared<CompoundTag>();
         tag->fValue = {
             {"id", String("ShulkerBox")},
@@ -458,16 +499,16 @@ private:
         return found->get<std::string>();
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> Sign(Pos const& pos, mcfile::Block const& b, mcfile::nbt::CompoundTag const& c) {
+    static std::shared_ptr<mcfile::nbt::CompoundTag> Sign(Pos const& pos, mcfile::Block const& b, std::shared_ptr<CompoundTag> const& c) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
 
-        auto color = GetString(c, "Color");
-        auto text1 = GetJson(c, "Text1");
-        auto text2 = GetJson(c, "Text2");
-        auto text3 = GetJson(c, "Text3");
-        auto text4 = GetJson(c, "Text4");
+        auto color = GetString(*c, "Color");
+        auto text1 = GetJson(*c, "Text1");
+        auto text2 = GetJson(*c, "Text2");
+        auto text3 = GetJson(*c, "Text3");
+        auto text4 = GetJson(*c, "Text4");
         if (!color || !text1 || !text2 || !text3 || !text4) return nullptr;
         string text = "";
         if (*color != "black") {
@@ -510,7 +551,7 @@ private:
         return found->second->asList();
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> Chest(Pos const& pos, mcfile::Block const& b, mcfile::nbt::CompoundTag const& comp) {
+    static std::shared_ptr<mcfile::nbt::CompoundTag> Chest(Pos const& pos, mcfile::Block const& b, std::shared_ptr<CompoundTag> const& comp) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -529,7 +570,7 @@ private:
         }
 
         auto tag = std::make_shared<CompoundTag>();
-        auto items = GetItems(comp, "Items");
+        auto items = GetItems(*comp, "Items");
 
         tag->fValue = {
             {"Items", items},

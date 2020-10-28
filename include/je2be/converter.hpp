@@ -206,7 +206,7 @@ private:
                         static string const nether_portal("minecraft:nether_portal");
                         if (TileEntity::IsTileEntity(block->fName)) {
                             cdp.addTileBlock(bx, by, bz, block);
-                        } else if (StringEquals(block->fName, nether_portal)) {
+                        } else if (strings::Equals(block->fName, nether_portal)) {
                             bool xAxis = block->property("axis", "x") == "x";
                             pb.add(bx, by, bz, xAxis);
                         }
@@ -335,13 +335,6 @@ private:
         stream->drain(cd.fSubChunks[chunkY]);
     }
 
-    static bool StringEquals(std::string const& a, std::string const& b) {
-        if (a.size() != b.size()) {
-            return false;
-        }
-        return memcmp(a.c_str(), b.c_str(), a.size()) == 0;
-    }
-
     static bool IsWaterLogged(mcfile::Block const& block) {
         using namespace std;
         static string const seagrass("minecraft:seagrass");
@@ -351,12 +344,12 @@ private:
         static string const bubble_column("minecraft:bubble_column");
         if (!block.fProperties.empty()) {
             auto waterlogged = block.property("waterlogged", "");
-            if (StringEquals(waterlogged, "true")) {
+            if (strings::Equals(waterlogged, "true")) {
                 return true;
             }
         }
         auto const& name = block.fName;
-        return StringEquals(name, seagrass) || StringEquals(name, tall_seagrass) || StringEquals(name, kelp) || StringEquals(name, kelp_plant) || StringEquals(name, bubble_column);
+        return strings::Equals(name, seagrass) || strings::Equals(name, tall_seagrass) || strings::Equals(name, kelp) || strings::Equals(name, kelp_plant) || strings::Equals(name, bubble_column);
     }
 
     static bool IsAir(mcfile::Block const& block) {
@@ -364,7 +357,7 @@ private:
         auto const& name = block.fName;
         static string const air("minecraft:air");
         static string const cave_air("minecraft:cave_air");
-        return StringEquals(name, air) || StringEquals(name, cave_air);
+        return strings::Equals(name, air) || strings::Equals(name, cave_air);
     }
 
 private:
