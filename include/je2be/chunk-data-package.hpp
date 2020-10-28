@@ -57,6 +57,13 @@ private:
             if (!tag) continue;
             fTileEntities.push_back(tag);
         }
+
+        for (auto e : chunk.fEntities) {
+            if (!Entity::IsTileEntity(*e)) continue;
+            auto tag = Entity::ToTileEntityData(*e);
+            if (!tag) continue;
+            fTileEntities.push_back(tag);
+        }
     }
 
     void buildEntities(mcfile::Chunk const& chunk) {

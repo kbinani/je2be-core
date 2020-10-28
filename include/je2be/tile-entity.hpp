@@ -3,10 +3,12 @@
 namespace j2b {
 
 class TileEntity {
+public:
+    using TileEntityData = std::shared_ptr<mcfile::nbt::CompoundTag>;
+
 private:
     using CompoundTag = mcfile::nbt::CompoundTag;
     using Block = mcfile::Block;
-    using TileEntityData = std::shared_ptr<CompoundTag>;
     using Converter = std::function<TileEntityData(Pos const&, Block const&, std::shared_ptr<CompoundTag> const&)>;
 
 public:

@@ -15,12 +15,120 @@ public:
         using namespace props;
         auto id = GetString(tag, "id");
         if (!id) return nullptr;
-        static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateTable());
+        static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateEntityTable());
         auto found = table->find(*id);
         if (found == table->end()) {
             return nullptr;
         }
         return found->second(tag);
+    }
+
+    static bool DegAlmostEquals(float a, float b) {
+        a = fmod(fmod(a, 360) + 360, 360);
+        assert(0 <= a && a < 360);
+        b = fmod(fmod(b, 360) + 360, 360);
+        assert(0 <= b && b < 360);
+        float diff = fmod(fmod(a - b, 360) + 360, 360);
+        assert(0 <= diff && diff < 360);
+        float const tolerance = 1;
+        if (0 <= diff && diff < tolerance) {
+            return true;
+        } else if (360 - tolerance < diff) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static bool RotAlmostEquals(Rotation const& rot, float yaw, float pitch) {
+        return DegAlmostEquals(rot.fYaw, yaw) && DegAlmostEquals(rot.fPitch, pitch);
+    }
+
+    static std::tuple<Pos, std::shared_ptr<CompoundTag>, std::string> ToTileEntityBlock(CompoundTag const& c) {
+        using namespace std;
+        using namespace props;
+        auto id = GetString(c, "id");
+        assert(id);
+        if (*id == "minecraft:item_frame") {
+            auto tileX = GetInt(c, "TileX");
+            auto tileY = GetInt(c, "TileY");
+            auto tileZ = GetInt(c, "TileZ");
+
+            auto rot = GetRotation(c, "Rotation");
+            int32_t facing = 0;
+            if (RotAlmostEquals(*rot, 0, -90)) {
+                // up
+                facing = 1;
+            } else if (RotAlmostEquals(*rot, 180, 0)) {
+                // north
+                facing = 2;
+            } else if (RotAlmostEquals(*rot, 270, 0)) {
+                // east
+                facing = 5;
+            } else if (RotAlmostEquals(*rot, 0, 0)) {
+                // south
+                facing = 3;
+            } else if (RotAlmostEquals(*rot, 90, 0)) {
+                // west
+                facing = 4;
+            } else if (RotAlmostEquals(*rot, 0, 90)) {
+                // down
+                facing = 0;
+            }
+
+            bool map = false;
+            auto itemId = c.query("Item/id");
+            if (itemId) {
+                auto itemIdString = itemId->asString();
+                if (itemIdString) {
+                    string itemName = itemIdString->fValue;
+                    if (itemName == "minecraft:filled_map") {
+                        map = true;
+                    }
+                }
+            }
+
+            auto b = make_shared<CompoundTag>();
+            auto states = make_shared<CompoundTag>();
+            states->fValue = {
+                {"facing_direction", Int(facing)},
+                {"item_frame_map_bit", Bool(map)},
+            };
+            string key = "minecraft:frame[facing_direction=" + to_string(facing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
+            b->fValue = {
+                {"name", String("minecraft:frame")},
+                {"version", Int(BlockData::kBlockDataVersion)},
+                {"states", states},
+            };
+            Pos pos(*tileX, *tileY, *tileZ);
+            return make_tuple(pos, b, key);
+        }
+    }
+
+    static TileEntity::TileEntityData ToTileEntityData(CompoundTag const& c) {
+        using namespace props;
+        auto id = GetString(c, "id");
+        assert(id);
+        if (*id == "minecraft:item_frame") {
+            auto tag = std::make_shared<CompoundTag>();
+            auto tileX = GetInt(c, "TileX");
+            auto tileY = GetInt(c, "TileY");
+            auto tileZ = GetInt(c, "TileZ");
+            tag->fValue = {
+                {"id", String("ItemFrame")},
+                {"isMovable", Bool(true)},
+                {"x", Int(*tileX)},
+                {"y", Int(*tileY)},
+                {"z", Int(*tileZ)},
+            };
+            return tag;
+        }
+    }
+
+    static bool IsTileEntity(CompoundTag const& tag) {
+        auto id = props::GetString(tag, "id");
+        if (!id) return false;
+        return *id == "minecraft:item_frame";
     }
 
     std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
@@ -83,7 +191,7 @@ public:
     }
 
 private:
-    static std::unordered_map<std::string, Converter>* CreateTable() {
+    static std::unordered_map<std::string, Converter>* CreateEntityTable() {
         auto table = new std::unordered_map<std::string, Converter>();
 #define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
         E("painting", Painting);

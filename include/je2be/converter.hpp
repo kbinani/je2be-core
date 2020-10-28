@@ -234,7 +234,34 @@ private:
         if (empty) {
             return;
         }
-        
+
+        for (auto const& e : chunk.fEntities) {
+            if (!Entity::IsTileEntity(*e)) {
+                continue;
+            }
+            auto [pos, tag, paletteKey] = Entity::ToTileEntityBlock(*e);
+            if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
+                continue;
+            }
+
+            int32_t x = pos.fX - chunk.fChunkX * 16;
+            int32_t y = pos.fY - chunkY * 16;
+            int32_t z = pos.fZ - chunk.fChunkZ * 16;
+            if (x <0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) continue;
+            idx = (x * 16 + z) * 16 + y;
+
+            auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
+            if (found == paletteKeys.end()) {
+                uint16_t index = (uint16_t)palette.size();
+                indices[idx] = index;
+                palette.push_back(tag);
+                paletteKeys.push_back(paletteKey);
+            } else {
+                auto index = (uint16_t)distance(paletteKeys.begin(), found);
+                indices[idx] = index;
+            }
+        }
+
         int const numStorageBlocks = hasWaterlogged ? 2 : 1;
 
         auto stream = make_shared<mcfile::stream::ByteStream>();
