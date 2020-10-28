@@ -19,10 +19,10 @@ set(je2be_srcs
   include/je2be/height-map.hpp
   include/je2be/biome-map.hpp
   include/je2be/chunk-data.hpp
-  include/je2be/portals.hpp
-  include/je2be/portal-blocks.hpp
-  include/je2be/portal.hpp
-  include/je2be/oriented-portal-blocks.hpp
+  include/je2be/portal/portals.hpp
+  include/je2be/portal/portal-blocks.hpp
+  include/je2be/portal/portal.hpp
+  include/je2be/portal/oriented-portal-blocks.hpp
   include/je2be/chunk-data-package.hpp
   include/je2be/file.hpp
   include/je2be/db/null-db.hpp
