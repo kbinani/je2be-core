@@ -906,6 +906,8 @@ private:
         E("twisting_vines_plant", NetherVines("twisting", 25)); //TODO(kbinani): is 25 correct?
         E("twisting_vines", NetherVines("twisting"));
         E("vine", Converter(Name("vine"), VineDirectionBits));
+        E("cocoa", Converter(Same, Name(Age, "age"), DirectionFromFacingA));
+        E("nether_wart", Converter(Same, Name(Age, "age")));
         E("cobblestone_stairs", Stairs("stone_stairs"));
         E("stone_stairs", Stairs("normal_stone_stairs"));
         E("end_stone_brick_stairs", Stairs("end_brick_stairs"));
@@ -1447,6 +1449,7 @@ private:
         E("melon_stem", Converter(Same, Name(Age, "growth")));
         E("attached_pumpkin_stem", Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
         E("attached_melon_stem", Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
+        E("wheat", Converter(Same, Name(Age, "growth")));
 #undef E
         return table;
     }
