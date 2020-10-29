@@ -28,6 +28,24 @@ public:
         return table.at(name)(pos, block, tag);
     }
 
+    static int8_t GetSkullTypeFromBlockName(std::string const& name) {
+        int8_t type = 0;
+        if (name == "minecraft:player_head") {
+            type = 3;
+        } else if (name == "minecraft:zombie_head") {
+            type = 2;
+        } else if (name == "minecraft:creeper_head") {
+            type = 4;
+        } else if (name == "minecraft:dragon_head") {
+            type = 5;
+        } else if (name == "minecraft:skeleton_skull") {
+            type = 0;
+        } else if (name == "minecraft:wither_skeleton_skull") {
+            type = 1;
+        }
+        return type;
+    }
+
 private:
     TileEntity() = delete;
 
@@ -173,21 +191,8 @@ private:
         using namespace mcfile::nbt;
         using namespace std;
         auto tag = make_shared<CompoundTag>();
-        int8_t type = 0;
         auto const& name = b.fName;
-        if (name == "minecraft:player_head") {
-            type = 3;
-        } else if (name == "minecraft:zombie_head") {
-            type = 2;
-        } else if (name == "minecraft:creeper_head") {
-            type = 4;
-        } else if (name == "minecraft:dragon_head") {
-            type = 5;
-        } else if (name == "minecraft:skeleton_skull") {
-            type = 0;
-        } else if (name == "minecraft:wither_skeleton_skull") {
-            type = 1;
-        }
+        int8_t type = GetSkullTypeFromBlockName(name);
         auto rot = stoi(b.property("rotation", "0"));
         float rotation = rot / 16.0f * 360.0f;
         tag->fValue = {

@@ -1450,6 +1450,8 @@ private:
         E("attached_pumpkin_stem", Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
         E("attached_melon_stem", Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
         E("wheat", Converter(Same, Name(Age, "growth")));
+
+        E("cobweb", Converter(Name("web")));
 #undef E
         return table;
     }

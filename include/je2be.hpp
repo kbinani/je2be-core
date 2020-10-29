@@ -37,6 +37,7 @@
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
 #include <je2be/tile-entity.hpp>
+#include <je2be/item.hpp>
 #include <je2be/entity.hpp>
 #include <je2be/chunk-data.hpp>
 #include <je2be/portal/portal.hpp>

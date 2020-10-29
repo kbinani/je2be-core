@@ -34,6 +34,7 @@ set(je2be_srcs
   include/je2be/rotation.hpp
   include/je2be/db/raw-db.hpp
   include/je2be/strings.hpp
+  include/je2be/item.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp

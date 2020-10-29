@@ -114,6 +114,7 @@ public:
             auto tileX = GetInt(c, "TileX");
             auto tileY = GetInt(c, "TileY");
             auto tileZ = GetInt(c, "TileZ");
+            if (!tileX || !tileY || !tileZ) return nullptr;
             tag->fValue = {
                 {"id", String("ItemFrame")},
                 {"isMovable", Bool(true)},
@@ -121,6 +122,17 @@ public:
                 {"y", Int(*tileY)},
                 {"z", Int(*tileZ)},
             };
+            auto itemRotation = GetByteOrDefault(c, "ItemRotation", 0);
+            auto itemDropChange = GetFloatOrDefault(c, "ItemDropChange", 1);
+            auto item = c.query("Item")->asCompound();
+            if (item) {
+                auto m = Item::From(*item);
+                if (m) {
+                    tag->fValue.insert(make_pair("Item", m));
+                    tag->fValue.insert(make_pair("ItemRotation", Float(itemRotation)));
+                    tag->fValue.insert(make_pair("ItemDropChange", Float(itemDropChange)));
+                }
+            }
             return tag;
         }
     }
