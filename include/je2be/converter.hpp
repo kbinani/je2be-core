@@ -165,10 +165,6 @@ private:
         using namespace props;
         using namespace leveldb;
 
-        if (chunk.fSections[chunkY] == nullptr) {
-            return;
-        }
-
         size_t const kNumBlocksInSubChunk = 16 * 16 * 16;
 
         vector<uint16_t> indices(kNumBlocksInSubChunk);
@@ -185,20 +181,25 @@ private:
         // 1~4: paltte size (uint32 LE)
         //
 
-        vector<string> paletteKeys;
-        vector<shared_ptr<CompoundTag>> palette;
+        vector<string> paletteKeys = {"minecraft:air"};
+        vector<shared_ptr<CompoundTag>> palette = {BlockData::Air()};
+
 
         int idx = 0;
         bool empty = true;
         bool hasWaterlogged = false;
-        for (int x = 0; x < 16; x++) {
-            int const bx = chunk.minBlockX() + x;
-            for (int z = 0; z < 16; z++) {
-                int const bz = chunk.minBlockZ() + z;
-                for (int y = 0; y < 16; y++, idx++) {
-                    int const by = chunkY * 16 + y;
-                    auto block = chunk.blockAt(bx, by, bz);
-                    if (block) {
+
+        if (chunk.fSections[chunkY] != nullptr) {
+            for (int x = 0; x < 16; x++) {
+                int const bx = chunk.minBlockX() + x;
+                for (int z = 0; z < 16; z++) {
+                    int const bz = chunk.minBlockZ() + z;
+                    for (int y = 0; y < 16; y++, idx++) {
+                        int const by = chunkY * 16 + y;
+                        auto block = chunk.blockAt(bx, by, bz);
+                        if (!block) {
+                            continue;
+                        }
                         empty = false;
                         if (!IsAir(*block)) {
                             cdp.updateAltitude(x, by, z);
@@ -210,29 +211,25 @@ private:
                             bool xAxis = block->property("axis", "x") == "x";
                             pb.add(bx, by, bz, xAxis);
                         }
-                    }
-                    static string const air("minecraft:air");
-                    string const& paletteKey = block ? block->toString() : air;
-                    auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
-                    if (found == paletteKeys.end()) {
-                        uint16_t index = (uint16_t)paletteKeys.size();
-                        indices[idx] = index;
+                        string const& paletteKey = block->toString();
+                        auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
+                        if (found == paletteKeys.end()) {
+                            uint16_t index = (uint16_t)paletteKeys.size();
+                            indices[idx] = index;
 
-                        auto tag = block ? BlockData::From(block) : BlockData::Air();
-                        palette.push_back(tag);
-                        paletteKeys.push_back(paletteKey);
-                    } else {
-                        auto index = (uint16_t)distance(paletteKeys.begin(), found);
-                        indices[idx] = index;
+                            auto tag = block ? BlockData::From(block) : BlockData::Air();
+                            palette.push_back(tag);
+                            paletteKeys.push_back(paletteKey);
+                        } else {
+                            auto index = (uint16_t)distance(paletteKeys.begin(), found);
+                            indices[idx] = index;
+                        }
+                        bool waterlogged = block ? IsWaterLogged(*block) : false;
+                        waterloggedIndices[idx] = waterlogged;
+                        hasWaterlogged |= waterlogged;
                     }
-                    bool waterlogged = block ? IsWaterLogged(*block) : false;
-                    waterloggedIndices[idx] = waterlogged;
-                    hasWaterlogged |= waterlogged;
                 }
             }
-        }
-        if (empty) {
-            return;
         }
 
         for (auto const& e : chunk.fEntities) {
@@ -250,6 +247,8 @@ private:
             if (x <0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) continue;
             idx = (x * 16 + z) * 16 + y;
 
+            empty = false;
+
             auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
             if (found == paletteKeys.end()) {
                 uint16_t index = (uint16_t)palette.size();
@@ -260,6 +259,10 @@ private:
                 auto index = (uint16_t)distance(paletteKeys.begin(), found);
                 indices[idx] = index;
             }
+        }
+
+        if (empty) {
+            return;
         }
 
         int const numStorageBlocks = hasWaterlogged ? 2 : 1;
