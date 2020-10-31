@@ -9,7 +9,7 @@ private:
     using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
-    static std::shared_ptr<CompoundTag> From(CompoundTag const& item, std::vector<int32_t> &mapIdList) {
+    static std::shared_ptr<CompoundTag> From(CompoundTag const& item, JavaEditionMap const& mapInfo) {
         using namespace props;
         using namespace std;
         using namespace mcfile::nbt;
@@ -22,14 +22,7 @@ public:
         string const& name = *id;
 
         if (name == "minecraft:filled_map") {
-            auto m = Map(name, item);
-            if (m) {
-                auto [data, id] = *m;
-                mapIdList.push_back(id);
-                return data;
-            } else {
-                return nullptr;
-            }
+            return Map(name, item, mapInfo);
         }
 
         if (IsItem(name)) {
@@ -279,7 +272,7 @@ private:
         return table;
     }
 
-    static std::optional<std::tuple<ItemData, int32_t>> Map(std::string const& name, CompoundTag const& item) {
+    static ItemData Map(std::string const& name, CompoundTag const& item, JavaEditionMap const& mapInfo) {
         auto ret = New("map");
         auto count = props::GetByteOrDefault(item, "Count", 1);
         ret->fValue["Damage"] = props::Short(0);
@@ -287,11 +280,17 @@ private:
 
         auto number = item.query("tag/map")->asInt();
         if (!number) {
-            return std::nullopt;
+            return nullptr;
         }
-        int64_t uuid = Map::UUID(number->fValue);
+        int32_t mapId = number->fValue;
+
+        auto scale = mapInfo.scale(mapId);
+        if (!scale) return nullptr;
+        int64_t uuid = Map::UUID(mapId, *scale);
+
         auto tag = std::make_shared<CompoundTag>();
         tag->fValue["map_uuid"] = props::Long(uuid);
+        tag->fValue["map_display_players"] = props::Byte(1);
         ret->fValue["tag"] = tag;
 
         int16_t type = 0;
@@ -313,10 +312,12 @@ private:
                 }
             }
         }
+        if (type == 0) {
+            tag->fValue["map_name_index"] = props::Int(2);
+        }
         ret->fValue["Damage"] = props::Short(type);
 
-        auto data = Post(ret, item);
-        return std::make_tuple(data, number->fValue);
+        return Post(ret, item);
     }
 
     static ItemData AnyPotion(std::string const& name, CompoundTag const& item) {

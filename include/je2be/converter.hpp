@@ -73,14 +73,14 @@ public:
                 return false;
             }
 
-            WorldData worldData;
+            auto worldData = std::make_unique<WorldData>(fs::path(fInput));
             for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
                 auto dir = fInputOption.getWorldDirectory(fInput, dim);
                 World world(dir);
-                ok &= convertWorld(world, dim, db, worldData, concurrency);
+                ok &= convertWorld(world, dim, db, *worldData, concurrency);
             }
 
-            worldData.put(db, fs::path(fInput));
+            worldData->put(db);
         }
 
         return ok;
@@ -96,6 +96,7 @@ private:
         deque<future<shared_ptr<DimensionDataFragment>>> futures;
 
         w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &wd](shared_ptr<Region> const& region) {
+            JavaEditionMap const& mapInfo = wd.fJavaEditionMap;
             for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
                 for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
                     if (futures.size() > 10 * size_t(concurrency)) {
@@ -107,12 +108,12 @@ private:
                         }
                     }
 
-                    futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz]() -> shared_ptr<DimensionDataFragment> {
+                    futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz, mapInfo]() -> shared_ptr<DimensionDataFragment> {
                         auto const& chunk = region->chunkAt(cx, cz);
                         if (!chunk) {
                             return nullptr;
                         }
-                        return putChunk(*chunk, dim, db);
+                        return putChunk(*chunk, dim, db, mapInfo);
                     })));
                 }
             }
@@ -130,7 +131,7 @@ private:
         return true;
     }
 
-    std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db) {
+    std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db, JavaEditionMap const& mapInfo) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
@@ -145,7 +146,7 @@ private:
             putSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
         }
 
-        cdp.build(chunk, *ret);
+        cdp.build(chunk, mapInfo);
         cdp.serialize(cd);
 
         cd.put(db);

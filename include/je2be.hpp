@@ -39,6 +39,7 @@
 #include <je2be/tile-entity.hpp>
 #include <je2be/enchant-data.hpp>
 #include <je2be/potion-data.hpp>
+#include <je2be/java-edition-map.hpp>
 #include <je2be/map.hpp>
 #include <je2be/item.hpp>
 #include <je2be/entity.hpp>

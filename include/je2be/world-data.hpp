@@ -4,16 +4,21 @@ namespace j2b {
 
 class WorldData {
 public:
-	void put(DbInterface& db, std::filesystem::path const& input) {
+	explicit WorldData(std::filesystem::path const& input) : fInput(input), fJavaEditionMap(input) {}
+
+	void put(DbInterface& db) {
 		fPortals.putInto(db);
-		for (auto id : fMapIdList) {
-			Map::Convert(id, input, db);
-		}
+		fJavaEditionMap.each([this, &db](int32_t mapId) {
+			Map::Convert(mapId, fInput, db);
+		});
 	}
+
+private:
+	std::filesystem::path fInput;
 
 public:
 	Portals fPortals;
-	std::unordered_set<int32_t> fMapIdList;
+	JavaEditionMap fJavaEditionMap;
 };
 
 }

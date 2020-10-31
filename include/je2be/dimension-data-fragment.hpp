@@ -10,15 +10,8 @@ public:
         fPortalBlocks.add(x, y, z, xAxis);
     }
 
-    void addMapId(int32_t id) {
-        fMapIdList.insert(id);
-    }
-
     void drain(WorldData &wd) {
         wd.fPortals.add(fPortalBlocks, fDim);
-        for (auto id : fMapIdList) {
-            wd.fMapIdList.insert(id);
-        }
     }
 
 public:
@@ -26,7 +19,6 @@ public:
 
 private:
     PortalBlocks fPortalBlocks;
-    std::unordered_set<int32_t> fMapIdList;
 };
 
 }

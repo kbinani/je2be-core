@@ -40,6 +40,7 @@ set(je2be_srcs
   include/je2be/map.hpp
   include/je2be/world-data.hpp
   include/je2be/dimension-data-fragment.hpp
+  include/je2be/java-edition-map.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
