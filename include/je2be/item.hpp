@@ -892,9 +892,68 @@ private:
         return Post(tag, item);
     }
 
-    static ItemData Post(ItemData const& tag, CompoundTag const& item) {
-        //TODO: custom name, enchant, etc
-        return tag;
+    static ItemData Post(ItemData const& input, CompoundTag const& item) {
+        using namespace std;
+        using namespace mcfile::nbt;
+        using namespace props;
+
+        auto tag = item.query("tag")->asCompound();
+        if (!tag) return input;
+
+        auto beTag = make_shared<CompoundTag>();
+
+        auto storedEnchantments = tag->query("StoredEnchantments")->asList();
+        if (storedEnchantments) {
+            auto ench = make_shared<ListTag>();
+            ench->fType = Tag::TAG_Compound;
+            for (auto const& e : storedEnchantments->fValue) {
+                auto c = e->asCompound();
+                if (!c) continue;
+                auto be = EnchantData::From(*c);
+                if (!be) continue;
+                ench->fValue.push_back(be);
+            }
+            beTag->fValue["ench"] = ench;
+        } else {
+            auto enchantments = tag->query("Enchantments")->asList();
+            if (enchantments) {
+                auto ench = make_shared<ListTag>();
+                for (auto const& e : enchantments->fValue) {
+                    auto c = e->asCompound();
+                    if (!c) continue;
+                    auto be = EnchantData::From(*c);
+                    if (!be) continue;
+                    ench->fValue.push_back(be);
+                }
+                ench->fType = Tag::TAG_Compound;
+                auto damage = GetIntOrDefault(*tag, "Damage", 0);
+                auto repairCost = GetIntOrDefault(*tag, "RepairCost", 1);
+                beTag->fValue["Damage"] = Int(damage);
+                beTag->fValue["RepairCost"] = Int(repairCost);
+                beTag->fValue["ench"] = ench;
+            }
+        }
+
+        auto display = tag->query("display")->asCompound();
+        if (display) {
+            auto name = GetString(*display, "Name");
+            if (name) {
+                auto obj = nlohmann::json::parse(*name);
+                auto text = obj["text"];
+                if (text.is_string()) {
+                    auto n = text.get<string>();
+                    auto beDisplay = make_shared<CompoundTag>();
+                    beDisplay->fValue["Name"] = String(n);
+                    beTag->fValue["display"] = beDisplay;
+                }
+            }
+        }
+
+        if (!beTag->fValue.empty()) {
+            input->fValue["tag"] = beTag;
+        }
+
+        return input;
     }
 
     // converts block name (bedrock) to item name (bedrock)
