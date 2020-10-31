@@ -36,6 +36,7 @@ set(je2be_srcs
   include/je2be/strings.hpp
   include/je2be/item.hpp
   include/je2be/enchant-data.hpp
+  include/je2be/potion-data.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
