@@ -66,62 +66,53 @@ public:
         }
         levelData.write(fOutput + string("/level.dat"));
 
-        AsyncDb db(dbPath.string());
-        //NullDb db;
-        if (!db.valid()) {
-            return false;
-        }
-
-        Portals portals;
         bool ok = true;
-        //for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
-        for (auto dim : { Dimension::Overworld }) { //TODO(kbinani): debug
-            auto dir = fInputOption.getWorldDirectory(fInput, dim);
-            World world(dir);
-            ok &= convertWorld(world, dim, db, portals, concurrency);
-        }
+        {
+            RawDb db(dbPath.string(), concurrency);
+            if (!db.valid()) {
+                return false;
+            }
 
-        portals.putInto(db);
+            WorldData worldData;
+            for (auto dim : { Dimension::Overworld, Dimension::Nether, Dimension::End }) {
+                auto dir = fInputOption.getWorldDirectory(fInput, dim);
+                World world(dir);
+                ok &= convertWorld(world, dim, db, worldData, concurrency);
+            }
+
+            worldData.put(db, fs::path(fInput));
+        }
 
         return ok;
     }
 
 private:
-    bool convertWorld(mcfile::World const& w, Dimension dim, DbInterface &db, Portals &portals, unsigned int concurrency) {
+    bool convertWorld(mcfile::World const& w, Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency) {
         using namespace std;
         using namespace mcfile;
 
         ThreadPool pool(concurrency);
         pool.init();
-        deque<future<shared_ptr<PortalBlocks>>> futures;
+        deque<future<shared_ptr<DimensionDataFragment>>> futures;
 
-        w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &portals](shared_ptr<Region> const& region) {
-            if (region->fX != 0 || region->fZ != 0) { //TODO(kbinani): debug
-                //return true;
-            }
-            int size = 2;
-            if (region->fX < -size || size < region->fX || region->fZ < -size || size < region->fZ) { //TODO(kbinani): debug
-                return true;
-            }
+        w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &wd](shared_ptr<Region> const& region) {
             for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
                 for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-                    if (futures.size() > 10 * concurrency) {
+                    if (futures.size() > 10 * size_t(concurrency)) {
                         for (unsigned int i = 0; i < 5 * concurrency; i++) {
-                            auto const& pb = futures.front().get();
+                            auto const& pcr = futures.front().get();
                             futures.pop_front();
-                            if (!pb) continue;
-                            portals.add(*pb, dim);
+                            if (!pcr) continue;
+                            pcr->drain(wd);
                         }
                     }
 
-                    futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz]() -> shared_ptr<PortalBlocks> {
+                    futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz]() -> shared_ptr<DimensionDataFragment> {
                         auto const& chunk = region->chunkAt(cx, cz);
                         if (!chunk) {
                             return nullptr;
                         }
-                        auto const& pb = make_shared<PortalBlocks>();
-                        putChunk(*chunk, dim, db, *pb);
-                        return pb;
+                        return putChunk(*chunk, dim, db);
                     })));
                 }
             }
@@ -129,9 +120,9 @@ private:
         });
 
         for (auto& f : futures) {
-            auto const& pb = f.get();
-            if (!pb) continue;
-            portals.add(*pb, dim);
+            auto const& pcr = f.get();
+            if (!pcr) continue;
+            pcr->drain(wd);
         }
 
         pool.shutdown();
@@ -139,26 +130,31 @@ private:
         return true;
     }
 
-    void putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db, PortalBlocks &pb) {
+    std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const& chunk, Dimension dim, DbInterface& db) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::stream;
         using namespace mcfile::nbt;
 
+        auto ret = make_shared<DimensionDataFragment>(dim);
+
         ChunkDataPackage cdp;
         ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
         for (int chunkY = 0; chunkY < 16; chunkY++) {
-            putSubChunk(chunk, dim, chunkY, cd, cdp, pb);
+            putSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
         }
 
-        cdp.build(chunk);
+        cdp.build(chunk, *ret);
         cdp.serialize(cd);
 
         cd.put(db);
+        fNumChunks.fetch_add(1);
+
+        return ret;
     }
 
-    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, PortalBlocks &pb) {
+    void putSubChunk(mcfile::Chunk const& chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -184,7 +180,6 @@ private:
         vector<string> paletteKeys = {"minecraft:air"};
         vector<shared_ptr<CompoundTag>> palette = {BlockData::Air()};
 
-
         int idx = 0;
         bool empty = true;
         bool hasWaterlogged = false;
@@ -209,7 +204,7 @@ private:
                             cdp.addTileBlock(bx, by, bz, block);
                         } else if (strings::Equals(block->fName, nether_portal)) {
                             bool xAxis = block->property("axis", "x") == "x";
-                            pb.add(bx, by, bz, xAxis);
+                            ddf.addPortalBlock(bx, by, bz, xAxis);
                         }
                         string const& paletteKey = block->toString();
                         auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);

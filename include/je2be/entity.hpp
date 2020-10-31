@@ -105,7 +105,7 @@ public:
         }
     }
 
-    static TileEntity::TileEntityData ToTileEntityData(CompoundTag const& c) {
+    static TileEntity::TileEntityData ToTileEntityData(CompoundTag const& c, std::vector<int32_t> &mapIdList) {
         using namespace props;
         auto id = GetString(c, "id");
         assert(id);
@@ -126,7 +126,7 @@ public:
             auto itemDropChange = GetFloatOrDefault(c, "ItemDropChange", 1);
             auto item = c.query("Item")->asCompound();
             if (item) {
-                auto m = Item::From(*item);
+                auto m = Item::From(*item, mapIdList);
                 if (m) {
                     tag->fValue.insert(make_pair("Item", m));
                     tag->fValue.insert(make_pair("ItemRotation", Float(itemRotation)));

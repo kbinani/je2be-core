@@ -4,10 +4,10 @@ namespace j2b {
 
 class ChunkDataPackage {
 public:
-    void build(mcfile::Chunk const& chunk) {
+    void build(mcfile::Chunk const& chunk, DimensionDataFragment &ddf) {
         buildEntities(chunk);
         buildBiomeMap(chunk);
-        buildTileEntities(chunk);
+        buildTileEntities(chunk, ddf);
     }
 
     void serialize(ChunkData& cd) {
@@ -25,11 +25,13 @@ public:
     }
 
 private:
-    void buildTileEntities(mcfile::Chunk const& chunk) {
+    void buildTileEntities(mcfile::Chunk const& chunk, DimensionDataFragment &ddf) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
         using namespace props;
+
+        vector<int32_t> mapIdList;
 
         for (shared_ptr<CompoundTag> const& e : chunk.fTileEntities) {
             auto x = GetInt(*e, "x");
@@ -60,9 +62,13 @@ private:
 
         for (auto e : chunk.fEntities) {
             if (!Entity::IsTileEntity(*e)) continue;
-            auto tag = Entity::ToTileEntityData(*e);
+            auto tag = Entity::ToTileEntityData(*e, mapIdList);
             if (!tag) continue;
             fTileEntities.push_back(tag);
+        }
+
+        for (auto id : mapIdList) {
+            ddf.addMapId(id);
         }
     }
 

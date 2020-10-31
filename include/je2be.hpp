@@ -38,6 +38,8 @@
 #include <je2be/height-map.hpp>
 #include <je2be/tile-entity.hpp>
 #include <je2be/enchant-data.hpp>
+#include <je2be/potion-data.hpp>
+#include <je2be/map.hpp>
 #include <je2be/item.hpp>
 #include <je2be/entity.hpp>
 #include <je2be/chunk-data.hpp>
@@ -45,5 +47,7 @@
 #include <je2be/portal/oriented-portal-blocks.hpp>
 #include <je2be/portal/portal-blocks.hpp>
 #include <je2be/portal/portals.hpp>
+#include <je2be/world-data.hpp>
+#include <je2be/dimension-data-fragment.hpp>
 #include <je2be/chunk-data-package.hpp>
 #include <je2be/converter.hpp>

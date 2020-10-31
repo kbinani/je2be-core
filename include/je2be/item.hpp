@@ -9,7 +9,7 @@ private:
     using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
-    static std::shared_ptr<CompoundTag> From(CompoundTag const& item) {
+    static std::shared_ptr<CompoundTag> From(CompoundTag const& item, std::vector<int32_t> &mapIdList) {
         using namespace props;
         using namespace std;
         using namespace mcfile::nbt;
@@ -20,6 +20,17 @@ public:
         auto id = GetString(item, "id");
         if (!id) return nullptr;
         string const& name = *id;
+
+        if (name == "minecraft:filled_map") {
+            auto m = Map(name, item);
+            if (m) {
+                auto [data, id] = *m;
+                mapIdList.push_back(id);
+                return data;
+            } else {
+                return nullptr;
+            }
+        }
 
         if (IsItem(name)) {
             auto found = itemMapping->find(name);
@@ -266,6 +277,46 @@ private:
         E("lingering_potion", AnyPotion);
 #undef E
         return table;
+    }
+
+    static std::optional<std::tuple<ItemData, int32_t>> Map(std::string const& name, CompoundTag const& item) {
+        auto ret = New("map");
+        auto count = props::GetByteOrDefault(item, "Count", 1);
+        ret->fValue["Damage"] = props::Short(0);
+        ret->fValue["Count"] = props::Byte(count);
+
+        auto number = item.query("tag/map")->asInt();
+        if (!number) {
+            return std::nullopt;
+        }
+        int64_t uuid = Map::UUID(number->fValue);
+        auto tag = std::make_shared<CompoundTag>();
+        tag->fValue["map_uuid"] = props::Long(uuid);
+        ret->fValue["tag"] = tag;
+
+        int16_t type = 0;
+        auto display = item.query("tag/display")->asCompound();
+        if (display) {
+            auto name = props::GetString(*display, "Name");
+            if (name) {
+                auto nameJson = nlohmann::json::parse(*name);
+                auto translate = nameJson["translate"];
+                if (translate.is_string()) {
+                    auto translationKey = translate.get<std::string>();
+                    if (translationKey == "filled_map.buried_treasure") {
+                        type = 5;
+                    } else if (translationKey == "filled_map.mansion") {
+                        type = 4;
+                    } else if (translationKey == "filled_map.monument") {
+                        type = 3;
+                    }
+                }
+            }
+        }
+        ret->fValue["Damage"] = props::Short(type);
+
+        auto data = Post(ret, item);
+        return std::make_tuple(data, number->fValue);
     }
 
     static ItemData AnyPotion(std::string const& name, CompoundTag const& item) {
