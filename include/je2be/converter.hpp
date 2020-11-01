@@ -197,7 +197,7 @@ private:
                             continue;
                         }
                         empty = false;
-                        if (!IsAir(*block)) {
+                        if (!IsAir(block->fName)) {
                             cdp.updateAltitude(x, by, z);
                         }
                         static string const nether_portal("minecraft:nether_portal");
@@ -242,6 +242,9 @@ private:
             int32_t z = pos.fZ - chunk.fChunkZ * 16;
             if (x <0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) continue;
             idx = (x * 16 + z) * 16 + y;
+
+            string paletteKey = paletteKeys[indices[idx]];
+            if (!IsAir(paletteKey)) continue;
 
             empty = false;
 
@@ -378,11 +381,9 @@ private:
         return strings::Equals(name, seagrass) || strings::Equals(name, tall_seagrass) || strings::Equals(name, kelp) || strings::Equals(name, kelp_plant) || strings::Equals(name, bubble_column);
     }
 
-    static bool IsAir(mcfile::Block const& block) {
-        using namespace std;
-        auto const& name = block.fName;
-        static string const air("minecraft:air");
-        static string const cave_air("minecraft:cave_air");
+    static bool IsAir(std::string const& name) {
+        static std::string const air("minecraft:air");
+        static std::string const cave_air("minecraft:cave_air");
         return strings::Equals(name, air) || strings::Equals(name, cave_air);
     }
 
