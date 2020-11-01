@@ -105,7 +105,7 @@ public:
         }
     }
 
-    static TileEntity::TileEntityData ToTileEntityData(CompoundTag const& c, JavaEditionMap const& mapInfo) {
+    static TileEntity::TileEntityData ToTileEntityData(CompoundTag const& c, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
         using namespace props;
         auto id = GetString(c, "id");
         assert(id);
@@ -124,9 +124,10 @@ public:
             };
             auto itemRotation = GetByteOrDefault(c, "ItemRotation", 0);
             auto itemDropChange = GetFloatOrDefault(c, "ItemDropChange", 1);
-            auto item = c.query("Item")->asCompound();
-            if (item) {
-                auto m = Item::From(*item, mapInfo);
+            auto found = c.fValue.find("Item");
+            if (found != c.fValue.end() && found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
+                auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
+                auto m = Item::From(item, mapInfo, ddf);
                 if (m) {
                     tag->fValue.insert(make_pair("Item", m));
                     tag->fValue.insert(make_pair("ItemRotation", Float(itemRotation)));

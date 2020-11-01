@@ -17,7 +17,7 @@ public:
         return *(int64_t*)&s;
 	}
 
-    static bool Convert(int32_t javaMapId, std::filesystem::path const& input, DbInterface &db) {
+    static bool Convert(int32_t javaMapId, CompoundTag const& item, std::filesystem::path const& input, DbInterface &db) {
         using namespace std;
         namespace fs = std::filesystem;
         using namespace mcfile::stream;
@@ -69,6 +69,9 @@ public:
             ret->fValue["zCenter"] = Int(*zCenter);
 
             std::vector<uint8_t> outColors(65536);
+            auto decorations = make_shared<ListTag>();
+            decorations->fType = Tag::TAG_Compound;
+
             if (beScale == *scale) {
                 int i = 0;
                 int j = 0;
@@ -85,13 +88,99 @@ public:
                     }
                 }
 
-                //TODO: decorations
+                auto frames = data->query("frames")->asList();
+                if (frames) {
+                    for (auto const& it : frames->fValue) {
+                        auto frame = it->asCompound();
+                        if (!frame) continue;
+                        auto pos = frame->query("Pos")->asCompound();
+                        auto rotation = GetInt(*frame, "Rotation");
+                        if (!pos || !rotation) continue;
+                        auto x = GetInt(*pos, "X");
+                        auto y = GetInt(*pos, "Y");
+                        auto z = GetInt(*pos, "Z");
+                        if (!x || !y || !z) continue;
+
+                        int32_t rot = 0;
+                        if (*rotation == -90) {
+                            rot = 0; // top; arrow facing to east in Java, arrow facing to south in Bedrock
+                        } else if (*rotation == 180) {
+                            rot = 8; // north; arrow facing to north
+                        } else if (*rotation == 270) {
+                            rot = 12; // east; arrow facing to east
+                        } else if (*rotation == 0) {
+                            rot = 0; // south; arrow facing to south
+                        } else {
+                            // nop
+                            // west; *rotation == -90; arrow facing to west
+                            // bottom; *rotation == -90; arrow facing to east in Java, arrow facing to south in Bedrock
+                        }
+
+                        auto data = make_shared<CompoundTag>();
+                        data->fValue["rot"] = Int(rot);
+                        data->fValue["type"] = Int(1);
+                        auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+                        if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) continue;
+                        data->fValue["x"] = Int(markerX);
+                        data->fValue["y"] = Int(markerY);
+
+                        auto key = make_shared<CompoundTag>();
+                        key->fValue["blockX"] = Int(*x);
+                        key->fValue["blockY"] = Int(*y);
+                        key->fValue["blockZ"] = Int(*z);
+                        key->fValue["type"] = Int(1);
+
+                        auto decoration = make_shared<CompoundTag>();
+                        decoration->fValue["data"] = data;
+                        decoration->fValue["key"] = key;
+
+                        decorations->fValue.push_back(decoration);
+                    }
+                }
+
+                auto inDecorations = item.query("tag/Decorations")->asList();
+                if (inDecorations) {
+                    for (auto const& d : inDecorations->fValue) {
+                        auto e = d->asCompound();
+                        if (!e) continue;
+                        auto type = GetByte(*e, "type");
+                        auto x = GetDouble(*e, "x");
+                        auto z = GetDouble(*e, "z");
+                        if (!type || !x || !z) continue;
+                        int32_t outType = 1;
+                        if (*type == 9) {
+                            outType = 15; // id = "+", monument
+                        } else if (*type == 8) {
+                            outType = 14; // id = "+", mansion
+                        } else if (*type == 26) {
+                            outType = 4; // id = "+", buried treasure
+                        }
+
+                        auto data = make_shared<CompoundTag>();
+                        data->fValue["rot"] = Int(8);
+                        data->fValue["type"] = Int(outType);
+                        auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+                        if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) continue;
+                        data->fValue["x"] = Int(markerX);
+                        data->fValue["y"] = Int(markerY);
+
+                        auto key = make_shared<CompoundTag>();
+                        key->fValue["blockX"] = Int((int32_t)*x);
+                        key->fValue["blockZ"] = Int((int32_t)*z);
+                        key->fValue["blockY"] = Int(64); // fixed value?
+                        key->fValue["type"] = Int(1); //?
+
+                        auto decoration = make_shared<CompoundTag>();
+                        decoration->fValue["data"] = data;
+                        decoration->fValue["key"] = key;
+
+                        decorations->fValue.push_back(decoration);
+                    }
+                }
             }
             auto outColorsTag = make_shared<ByteArrayTag>(outColors);
             ret->fValue["colors"] = outColorsTag;
 
-            auto decorations = make_shared<ListTag>();
-            decorations->fType = Tag::TAG_Compound;
             ret->fValue["decorations"] = decorations;
 
             vector<uint8_t> serialized;
@@ -112,6 +201,19 @@ public:
     }
 
 private:
+    static std::tuple<int32_t, int32_t> MarkerPosition(int32_t blockX, int32_t blockZ, int32_t xCenter, int32_t zCenter, int32_t scale) {
+        int32_t size = 128 * (int32_t)ceil(pow(2, scale));
+        int32_t x0 = xCenter - size / 2;
+        int32_t z0 = zCenter - size / 2;
+        /*
+        * marker (-128, -128) corresponds to block (x0, z0)
+        * marker (128, 128) corresponds to block (x0 + size, z0 + size)
+        */
+        int32_t markerX = (blockX - xCenter) * 256 / size;
+        int32_t markerY = (blockZ - zCenter) * 256 / size;
+        return std::make_tuple(markerX, markerY);
+    }
+
     static Rgba RgbaFromId(uint8_t colorId) {
         static std::vector<Rgba> const mapping = {
             Rgba(0, 0, 0, 0),

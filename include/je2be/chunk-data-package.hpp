@@ -4,10 +4,10 @@ namespace j2b {
 
 class ChunkDataPackage {
 public:
-    void build(mcfile::Chunk const& chunk, JavaEditionMap const& mapInfo) {
+    void build(mcfile::Chunk const& chunk, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
         buildEntities(chunk);
         buildBiomeMap(chunk);
-        buildTileEntities(chunk, mapInfo);
+        buildTileEntities(chunk, mapInfo, ddf);
     }
 
     void serialize(ChunkData& cd) {
@@ -25,7 +25,7 @@ public:
     }
 
 private:
-    void buildTileEntities(mcfile::Chunk const& chunk, JavaEditionMap const& mapInfo) {
+    void buildTileEntities(mcfile::Chunk const& chunk, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
@@ -62,7 +62,7 @@ private:
 
         for (auto e : chunk.fEntities) {
             if (!Entity::IsTileEntity(*e)) continue;
-            auto tag = Entity::ToTileEntityData(*e, mapInfo);
+            auto tag = Entity::ToTileEntityData(*e, mapInfo, ddf);
             if (!tag) continue;
             fTileEntities.push_back(tag);
         }

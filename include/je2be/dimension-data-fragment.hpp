@@ -10,8 +10,15 @@ public:
         fPortalBlocks.add(x, y, z, xAxis);
     }
 
+    void addMap(int32_t javaMapId, std::shared_ptr<mcfile::nbt::CompoundTag> const& item) {
+        fMapItems[javaMapId] = item;
+    }
+
     void drain(WorldData &wd) {
         wd.fPortals.add(fPortalBlocks, fDim);
+        for (auto const& it : fMapItems) {
+            wd.fMapItems[it.first] = it.second;
+        }
     }
 
 public:
@@ -19,6 +26,7 @@ public:
 
 private:
     PortalBlocks fPortalBlocks;
+    std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>> fMapItems;
 };
 
 }

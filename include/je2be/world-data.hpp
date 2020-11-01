@@ -9,7 +9,9 @@ public:
 	void put(DbInterface& db) {
 		fPortals.putInto(db);
 		fJavaEditionMap.each([this, &db](int32_t mapId) {
-			Map::Convert(mapId, fInput, db);
+			auto found = fMapItems.find(mapId);
+			if (found == fMapItems.end()) return;
+			Map::Convert(mapId, *found->second, fInput, db);
 		});
 	}
 
@@ -19,6 +21,7 @@ private:
 public:
 	Portals fPortals;
 	JavaEditionMap fJavaEditionMap;
+	std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>> fMapItems;
 };
 
 }

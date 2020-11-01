@@ -9,7 +9,7 @@ private:
     using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
-    static std::shared_ptr<CompoundTag> From(CompoundTag const& item, JavaEditionMap const& mapInfo) {
+    static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const& item, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
         using namespace props;
         using namespace std;
         using namespace mcfile::nbt;
@@ -17,27 +17,34 @@ public:
         static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
         static unique_ptr<unordered_map<string, Converter> const> const itemMapping(CreateItemConverterTable());
 
-        auto id = GetString(item, "id");
+        auto id = GetString(*item, "id");
         if (!id) return nullptr;
         string const& name = *id;
 
         if (name == "minecraft:filled_map") {
-            return Map(name, item, mapInfo);
+            auto ret = Map(name, *item, mapInfo);
+            if (ret) {
+                auto [mapId, result] = *ret;
+                ddf.addMap(mapId, item);
+                return result;
+            } else {
+                return nullptr;
+            }
         }
 
         if (IsItem(name)) {
             auto found = itemMapping->find(name);
             if (found == itemMapping->end()) {
-                return DefaultItem(name, item);
+                return DefaultItem(name, *item);
             } else {
-                return found->second(name, item);
+                return found->second(name, *item);
             }
         } else {
             auto found = blockItemMapping->find(name);
             if (found == blockItemMapping->end()) {
-                return DefaultBlockItem(name, item);
+                return DefaultBlockItem(name, *item);
             } else {
-                return found->second(name, item);
+                return found->second(name, *item);
             }
         }
     }
@@ -272,7 +279,7 @@ private:
         return table;
     }
 
-    static ItemData Map(std::string const& name, CompoundTag const& item, JavaEditionMap const& mapInfo) {
+    static std::optional<std::tuple<int, ItemData>> Map(std::string const& name, CompoundTag const& item, JavaEditionMap const& mapInfo) {
         auto ret = New("map");
         auto count = props::GetByteOrDefault(item, "Count", 1);
         ret->fValue["Damage"] = props::Short(0);
@@ -280,12 +287,12 @@ private:
 
         auto number = item.query("tag/map")->asInt();
         if (!number) {
-            return nullptr;
+            return std::nullopt;
         }
         int32_t mapId = number->fValue;
 
         auto scale = mapInfo.scale(mapId);
-        if (!scale) return nullptr;
+        if (!scale) return std::nullopt;
         int64_t uuid = Map::UUID(mapId, *scale);
 
         auto tag = std::make_shared<CompoundTag>();
@@ -317,7 +324,8 @@ private:
         }
         ret->fValue["Damage"] = props::Short(type);
 
-        return Post(ret, item);
+        auto out = Post(ret, item);
+        return make_tuple(mapId, out);
     }
 
     static ItemData AnyPotion(std::string const& name, CompoundTag const& item) {

@@ -178,6 +178,27 @@ inline float GetFloatOrDefault(mcfile::nbt::CompoundTag const& tag, std::string 
     }
 }
 
+inline std::optional<double> GetDouble(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
+    auto found = tag.fValue.find(name);
+    if (found == tag.fValue.end()) {
+        return std::nullopt;
+    }
+    auto itag = found->second->asDouble();
+    if (!itag) {
+        return std::nullopt;
+    }
+    return itag->asDouble()->fValue;
+}
+
+inline float GetDoubleOrDefault(mcfile::nbt::CompoundTag const& tag, std::string const& name, double fallback) {
+    auto v = GetDouble(tag, name);
+    if (v) {
+        return *v;
+    } else {
+        return fallback;
+    }
+}
+
 inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
     using namespace std;
     using namespace mcfile::nbt;

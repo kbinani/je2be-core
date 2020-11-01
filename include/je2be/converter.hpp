@@ -146,7 +146,7 @@ private:
             putSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
         }
 
-        cdp.build(chunk, mapInfo);
+        cdp.build(chunk, mapInfo, *ret);
         cdp.serialize(cd);
 
         cd.put(db);
