@@ -199,37 +199,52 @@ inline float GetDoubleOrDefault(mcfile::nbt::CompoundTag const& tag, std::string
     }
 }
 
-inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
+inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag) {
     using namespace std;
     using namespace mcfile::nbt;
-    auto found = tag.fValue.find(name);
+    auto found = tag.fValue.find("UUID");
     if (found == tag.fValue.end()) {
-        return nullopt;
-    }
-    IntArrayTag const* list = found->second->asIntArray();
-    if (!list) {
-        return nullopt;
-    }
-    vector<int32_t> const& value = list->value();
-    if (value.size() != 4) {
-        return nullopt;
-    }
+        auto least = GetLong(tag, "UUIDLeast");
+        auto most = GetLong(tag, "UUIDMost");
+        if (!least || !most) return nullopt;
 
-    int32_t a = value[0];
-    int32_t b = value[1];
-    int32_t c = value[2];
-    int32_t d = value[3];
+        int64_t l = *least;
+        int64_t m = *most;
 
-    XXH64_state_t* state = XXH64_createState();
-    XXH64_hash_t seed = 0;
-    XXH64_reset(state, seed);
-    XXH64_update(state, &a, sizeof(a));
-    XXH64_update(state, &b, sizeof(b));
-    XXH64_update(state, &c, sizeof(c));
-    XXH64_update(state, &d, sizeof(d));
-    XXH64_hash_t hash = XXH64_digest(state);
-    XXH64_freeState(state);
-    return *(int64_t*)&hash;
+        XXH64_state_t* state = XXH64_createState();
+        XXH64_hash_t seed = 0;
+        XXH64_reset(state, seed);
+        XXH64_update(state, &m, sizeof(m));
+        XXH64_update(state, &l, sizeof(l));
+        XXH64_hash_t hash = XXH64_digest(state);
+        XXH64_freeState(state);
+        return *(int64_t*)&hash;
+    } else {
+        IntArrayTag const* list = found->second->asIntArray();
+        if (!list) {
+            return nullopt;
+        }
+        vector<int32_t> const& value = list->value();
+        if (value.size() != 4) {
+            return nullopt;
+        }
+
+        int32_t a = value[0];
+        int32_t b = value[1];
+        int32_t c = value[2];
+        int32_t d = value[3];
+
+        XXH64_state_t* state = XXH64_createState();
+        XXH64_hash_t seed = 0;
+        XXH64_reset(state, seed);
+        XXH64_update(state, &a, sizeof(a));
+        XXH64_update(state, &b, sizeof(b));
+        XXH64_update(state, &c, sizeof(c));
+        XXH64_update(state, &d, sizeof(d));
+        XXH64_hash_t hash = XXH64_digest(state);
+        XXH64_freeState(state);
+        return *(int64_t*)&hash;
+    }
 }
 
 inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const& tag, std::string const& name) {

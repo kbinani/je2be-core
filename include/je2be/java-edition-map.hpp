@@ -61,7 +61,12 @@ private:
         namespace fs = std::filesystem;
         std::unordered_map<int32_t, int8_t> table;
 
-        for (auto const& f : fs::directory_iterator(input / "data")) {
+        auto dataDir = input / "data";
+        if (!fs::exists(dataDir)) {
+            return table;
+        }
+
+        for (auto const& f : fs::directory_iterator(dataDir)) {
             if (!f.is_regular_file()) continue;
             auto name = f.path().filename().string();
             if (!name.starts_with("map_") || !name.ends_with(".dat")) continue;

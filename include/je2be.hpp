@@ -26,6 +26,7 @@
 #include <je2be/vec.hpp>
 #include <je2be/rotation.hpp>
 #include <je2be/rgba.hpp>
+#include <je2be/size.hpp>
 #include <je2be/props.hpp>
 #include <je2be/block-data.hpp>
 #include <je2be/biome-map.hpp>

@@ -604,6 +604,8 @@ private:
             if (it->id() != mcfile::nbt::Tag::TAG_Compound) continue;
             auto inItem = std::dynamic_pointer_cast<CompoundTag>(it);
             auto outItem = Item::From(inItem, mapInfo, ddf);
+            if (!outItem) continue;
+
             auto count = props::GetByteOrDefault(*inItem, "Count", 1);
             auto slot = props::GetByteOrDefault(*inItem, "Slot", 0);
             outItem->fValue["Slot"] = props::Byte(slot);
