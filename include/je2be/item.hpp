@@ -49,6 +49,24 @@ public:
         }
     }
 
+    static int8_t GetSkullTypeFromBlockName(std::string const& name) {
+        int8_t type = 0;
+        if (name == "minecraft:player_head") {
+            type = 3;
+        } else if (name == "minecraft:zombie_head") {
+            type = 2;
+        } else if (name == "minecraft:creeper_head") {
+            type = 4;
+        } else if (name == "minecraft:dragon_head") {
+            type = 5;
+        } else if (name == "minecraft:skeleton_skull") {
+            type = 0;
+        } else if (name == "minecraft:wither_skeleton_skull") {
+            type = 1;
+        }
+        return type;
+    }
+
 private:
     static std::unordered_map<std::string, Converter>* CreateBlockItemConverterTable() {
         using namespace std;
@@ -724,7 +742,7 @@ private:
     }
 
     static ItemData Skull(std::string const& name, CompoundTag const& item) {
-        int8_t type = TileEntity::GetSkullTypeFromBlockName(name);
+        int8_t type = GetSkullTypeFromBlockName(name);
         auto tag = New("skull");
         tag->fValue["Damage"] = props::Short(type);
         return Post(tag, item);

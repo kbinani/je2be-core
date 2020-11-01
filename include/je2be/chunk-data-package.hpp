@@ -46,7 +46,7 @@ private:
             shared_ptr<Block const> block = found->second;
             fTileBlocks.erase(found);
 
-            auto tag = TileEntity::From(pos, *block, e);
+            auto tag = TileEntity::From(pos, *block, e, mapInfo, ddf);
             if (!tag) continue;
 
             fTileEntities.push_back(tag);
@@ -55,7 +55,7 @@ private:
         for (auto const&it : fTileBlocks) {
             Pos const& pos = it.first;
             Block const& block = *it.second;
-            auto tag = TileEntity::From(pos, block, nullptr);
+            auto tag = TileEntity::From(pos, block, nullptr, mapInfo, ddf);
             if (!tag) continue;
             fTileEntities.push_back(tag);
         }

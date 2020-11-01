@@ -9,7 +9,7 @@ public:
 private:
     using CompoundTag = mcfile::nbt::CompoundTag;
     using Block = mcfile::Block;
-    using Converter = std::function<TileEntityData(Pos const&, Block const&, std::shared_ptr<CompoundTag> const&)>;
+    using Converter = std::function<TileEntityData(Pos const&, Block const&, std::shared_ptr<CompoundTag> const&, JavaEditionMap const&, DimensionDataFragment &)>;
 
 public:
     static bool IsTileEntity(std::string const& name) {
@@ -18,32 +18,14 @@ public:
         return found != table.end();
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> From(Pos const& pos, mcfile::Block const& block, std::shared_ptr<mcfile::nbt::CompoundTag> const& tag) {
+    static std::shared_ptr<mcfile::nbt::CompoundTag> From(Pos const& pos, mcfile::Block const& block, std::shared_ptr<mcfile::nbt::CompoundTag> const& tag, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace std;
         using namespace mcfile;
         using namespace mcfile::nbt;
 
         string const& name = block.fName;
         auto const& table = Table();
-        return table.at(name)(pos, block, tag);
-    }
-
-    static int8_t GetSkullTypeFromBlockName(std::string const& name) {
-        int8_t type = 0;
-        if (name == "minecraft:player_head") {
-            type = 3;
-        } else if (name == "minecraft:zombie_head") {
-            type = 2;
-        } else if (name == "minecraft:creeper_head") {
-            type = 4;
-        } else if (name == "minecraft:dragon_head") {
-            type = 5;
-        } else if (name == "minecraft:skeleton_skull") {
-            type = 0;
-        } else if (name == "minecraft:wither_skeleton_skull") {
-            type = 1;
-        }
-        return type;
+        return table.at(name)(pos, block, tag, mapInfo, ddf);
     }
 
 private:
@@ -182,17 +164,89 @@ private:
         E("zombie_head", Skull);
         E("creeper_head", Skull);
         E("dragon_head", Skull);
+
+        E("barrel", AnyStorage("Barrel"));
+        E("furnace", AnyStorage("Furnace"));
+        E("brewing_stand", BrewingStand);
+        E("blast_furnace", AnyStorage("BlastFurnace"));
+        E("smoker", AnyStorage("Smoker"));
+        E("hopper", AnyStorage("Hopper"));
+        E("dropper", AnyStorage("Dropper"));
+        E("dispenser", AnyStorage("Dispenser"));
 #undef E
         return table;
     }
 
-    static TileEntityData Skull(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData BrewingStand(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+
+        auto tag = std::make_shared<CompoundTag>();
+        auto items = GetItems(*c, "Items", mapInfo, ddf);
+        vector<shared_ptr<CompoundTag>> sorted(5);
+        for (auto const& it : items->fValue) {
+            auto item = it->asCompound();
+            if (!item) continue;
+            auto slot = GetByte(*item, "Slot");
+            if (!slot) continue;
+
+            auto newItem = make_shared<CompoundTag>();
+            for (auto const& prop : item->fValue) {
+                if (prop.first == "Slot") continue;
+                newItem->fValue[prop.first] = prop.second;
+            }
+            if (*slot < 0 || 4 < *slot) continue;
+            int mapping[5] = {1, 2, 3, 0, 4};
+            int newSlot = mapping[*slot];
+            newItem->fValue["Slot"] = Byte(newSlot);
+            sorted[newSlot] = newItem;
+        }
+
+        auto reordered = make_shared<ListTag>();
+        reordered->fType = Tag::TAG_Compound;
+        for (auto it : sorted) {
+            if (!it) continue;
+            reordered->fValue.push_back(it);
+        }
+
+        tag->fValue = {
+            {"Items", reordered},
+            {"Findable", Bool(false)},
+            {"id", String("BrewingStand")},
+            {"isMovable", Bool(true)},
+        };
+        Attach(pos, *tag);
+        return tag;
+    }
+
+    static Converter AnyStorage(std::string const& name) {
+        return [=](Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+            using namespace props;
+            using namespace mcfile::nbt;
+            using namespace std;
+
+            auto tag = std::make_shared<CompoundTag>();
+            auto items = GetItems(*c, "Items", mapInfo, ddf);
+
+            tag->fValue = {
+                {"Items", items},
+                {"Findable", Bool(false)},
+                {"id", String(name)},
+                {"isMovable", Bool(true)},
+            };
+            Attach(pos, *tag);
+            return tag;
+        };
+    }
+
+    static TileEntityData Skull(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
         auto tag = make_shared<CompoundTag>();
         auto const& name = b.fName;
-        int8_t type = GetSkullTypeFromBlockName(name);
+        int8_t type = Item::GetSkullTypeFromBlockName(name);
         auto rot = stoi(b.property("rotation", "0"));
         float rotation = rot / 16.0f * 360.0f;
         tag->fValue = {
@@ -207,7 +261,7 @@ private:
         return tag;
     }
 
-    static TileEntityData PottedBamboo(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData PottedBamboo(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -235,7 +289,7 @@ private:
     }
 
     static Converter PottedPlant(std::string const& name, std::map<std::string, std::string> const& properties) {
-        return [=](Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) -> TileEntityData {
+        return [=](Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) -> TileEntityData {
             using namespace props;
             using namespace mcfile::nbt;
             using namespace std;
@@ -261,7 +315,7 @@ private:
         };
     }
 
-    static TileEntityData PottedSapling(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData PottedSapling(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -288,7 +342,7 @@ private:
         return tag;
     }
 
-    static TileEntityData Banner(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData Banner(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
         using namespace props;
         using namespace mcfile::nbt;
         auto tag = std::make_shared<CompoundTag>();
@@ -434,7 +488,7 @@ private:
         return found->second;
     }
 
-    static TileEntityData Bed(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData Bed(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
         using namespace props;
         auto tag = std::make_shared<CompoundTag>();
         auto color = BedColor(b.fName);
@@ -447,10 +501,10 @@ private:
         return tag;
     }
 
-    static TileEntityData ShulkerBox(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData ShulkerBox(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace props;
         auto facing = BlockData::GetFacingDirectionFromFacingA(b);
-        auto items = GetItems(*c, "Items");
+        auto items = GetItems(*c, "Items", mapInfo, ddf);
         auto tag = std::make_shared<CompoundTag>();
         tag->fValue = {
             {"id", String("ShulkerBox")},
@@ -506,7 +560,7 @@ private:
         return found->get<std::string>();
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> Sign(Pos const& pos, mcfile::Block const& b, std::shared_ptr<CompoundTag> const& c) {
+    static TileEntityData Sign(Pos const& pos, mcfile::Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -539,14 +593,24 @@ private:
         tag.fValue.insert(std::make_pair("z", props::Int(pos.fZ)));
     }
 
-    static std::shared_ptr<mcfile::nbt::ListTag> GetItems(mcfile::nbt::CompoundTag const& c, std::string const& name) {
+    static std::shared_ptr<mcfile::nbt::ListTag> GetItems(mcfile::nbt::CompoundTag const& c, std::string const& name, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
         auto tag = std::make_shared<mcfile::nbt::ListTag>();
         tag->fType = mcfile::nbt::Tag::TAG_Compound;
         auto list = GetList(c, name);
         if (list == nullptr) {
             return tag;
         }
-        //TODO:
+        for (auto const& it : list->fValue) {
+            if (it->id() != mcfile::nbt::Tag::TAG_Compound) continue;
+            auto inItem = std::dynamic_pointer_cast<CompoundTag>(it);
+            auto outItem = Item::From(inItem, mapInfo, ddf);
+            auto count = props::GetByteOrDefault(*inItem, "Count", 1);
+            auto slot = props::GetByteOrDefault(*inItem, "Slot", 0);
+            outItem->fValue["Slot"] = props::Byte(slot);
+            outItem->fValue["Count"] = props::Byte(count);
+
+            tag->fValue.push_back(outItem);
+        }
         return tag;
     }
 
@@ -558,7 +622,7 @@ private:
         return found->second->asList();
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> Chest(Pos const& pos, mcfile::Block const& b, std::shared_ptr<CompoundTag> const& comp) {
+    static TileEntityData Chest(Pos const& pos, mcfile::Block const& b, std::shared_ptr<CompoundTag> const& comp, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -577,7 +641,7 @@ private:
         }
 
         auto tag = std::make_shared<CompoundTag>();
-        auto items = GetItems(*comp, "Items");
+        auto items = GetItems(*comp, "Items", mapInfo, ddf);
 
         tag->fValue = {
             {"Items", items},
