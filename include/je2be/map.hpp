@@ -69,26 +69,29 @@ public:
             ret->fValue["zCenter"] = Int(*zCenter);
 
             std::vector<uint8_t> outColors(65536);
-            int i = 0;
-            int j = 0;
-            vector<uint8_t> const& colorsArray = colors->value();
-            for (int y = 0; y < 128; y++) {
-                for (int x = 0; x < 128; x++, i++) {
-                    uint8_t colorId = colorsArray[i];
-                    Rgba color = RgbaFromId(colorId);
-                    outColors[j] = color.fR;
-                    outColors[j + 1] = color.fG;
-                    outColors[j + 2] = color.fB;
-                    outColors[j + 3] = color.fA;
-                    j += 4;
+            if (beScale == *scale) {
+                int i = 0;
+                int j = 0;
+                vector<uint8_t> const& colorsArray = colors->value();
+                for (int y = 0; y < 128; y++) {
+                    for (int x = 0; x < 128; x++, i++) {
+                        uint8_t colorId = colorsArray[i];
+                        Rgba color = RgbaFromId(colorId);
+                        outColors[j] = color.fR;
+                        outColors[j + 1] = color.fG;
+                        outColors[j + 2] = color.fB;
+                        outColors[j + 3] = color.fA;
+                        j += 4;
+                    }
                 }
+
+                //TODO: decorations
             }
             auto outColorsTag = make_shared<ByteArrayTag>(outColors);
             ret->fValue["colors"] = outColorsTag;
 
             auto decorations = make_shared<ListTag>();
             decorations->fType = Tag::TAG_Compound;
-            //TODO:
             ret->fValue["decorations"] = decorations;
 
             vector<uint8_t> serialized;
@@ -177,25 +180,10 @@ private:
             return mapping[0];
         }
         Rgba base = mapping[index];
-        int32_t mul = 255;
-        switch (variant) {
-        case 0:
-            mul = 180;
-            break;
-        case 1:
-            mul = 220;
-            break;
-        case 3:
-            mul = 135;
-            break;
-        case 2:
-        default:
-            mul = 255;
-            break;
-        }
-        uint8_t r = (uint8_t)((int32_t)base.fR * mul / 255);
-        uint8_t g = (uint8_t)((int32_t)base.fG * mul / 255);
-        uint8_t b = (uint8_t)((int32_t)base.fB * mul / 255);
+        static int32_t const mul[4] = {180, 220, 255, 135};
+        uint8_t r = (uint8_t)((int32_t)base.fR * mul[variant] / 255);
+        uint8_t g = (uint8_t)((int32_t)base.fG * mul[variant] / 255);
+        uint8_t b = (uint8_t)((int32_t)base.fB * mul[variant] / 255);
         return Rgba(r, g, b, base.fA);
     }
 
