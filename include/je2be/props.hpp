@@ -199,13 +199,14 @@ inline float GetDoubleOrDefault(mcfile::nbt::CompoundTag const& tag, std::string
     }
 }
 
-inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag) {
+inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
     using namespace std;
     using namespace mcfile::nbt;
-    auto found = tag.fValue.find("UUID");
+    auto found = tag.fValue.find(name);
     if (found == tag.fValue.end()) {
-        auto least = GetLong(tag, "UUIDLeast");
-        auto most = GetLong(tag, "UUIDMost");
+        auto least = GetLong(tag, name + "Least");
+        auto most = GetLong(tag, name + "Most");
+
         if (!least || !most) return nullopt;
 
         int64_t l = *least;
@@ -214,8 +215,10 @@ inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag) {
         XXH64_state_t* state = XXH64_createState();
         XXH64_hash_t seed = 0;
         XXH64_reset(state, seed);
-        XXH64_update(state, &m, sizeof(m));
-        XXH64_update(state, &l, sizeof(l));
+        XXH64_update(state, (int32_t*)&m + 1, sizeof(int32_t));
+        XXH64_update(state, (int32_t*)&m, sizeof(int32_t));
+        XXH64_update(state, (int32_t*)&l + 1, sizeof(int32_t));
+        XXH64_update(state, (int32_t*)&l, sizeof(int32_t));
         XXH64_hash_t hash = XXH64_digest(state);
         XXH64_freeState(state);
         return *(int64_t*)&hash;

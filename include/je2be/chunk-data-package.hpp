@@ -76,11 +76,11 @@ private:
             if (!c) {
                 continue;
             }
-            auto e = Entity::From(*c);
-            if (!e) {
+            auto converted = Entity::From(*c);
+            if (!converted) {
                 continue;
             }
-            fEntities.push_back(e);
+            fEntities.push_back(converted);
         }
     }
 

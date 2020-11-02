@@ -67,6 +67,15 @@ public:
         return type;
     }
 
+    static std::shared_ptr<CompoundTag> Empty() {
+        auto armor = std::make_shared<CompoundTag>();
+        armor->fValue["Count"] = props::Byte(0);
+        armor->fValue["Damage"] = props::Short(0);
+        armor->fValue["Name"] = props::String("");
+        armor->fValue["WasPickedUp"] = props::Bool(false);
+        return armor;
+    }
+
 private:
     static std::unordered_map<std::string, Converter>* CreateBlockItemConverterTable() {
         using namespace std;

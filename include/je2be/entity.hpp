@@ -9,7 +9,7 @@ private:
     using Converter = std::function<EntityDataType(CompoundTag const&)>;
 
 public:
-    Entity() : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0) {}
+    explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
     static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const& tag) {
         using namespace props;
@@ -18,7 +18,7 @@ public:
         static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateEntityTable());
         auto found = table->find(*id);
         if (found == table->end()) {
-            return nullptr;
+            return Default(tag);
         }
         return found->second(tag);
     }
@@ -167,7 +167,7 @@ public:
             {"Color", Byte(fColor)},
             {"Dir", Byte(fDir)},
             {"FallDistance", Float(fFallDistance)},
-            {"Fire", Short(fFire)},
+            {"Fire", Short(std::max((int16_t)0, fFire))},
             {"identifier", String(fIdentifier)},
             {"Invulnerable", Bool(fInvulnerable)},
             {"IsAngry", Bool(fIsAngry)},
@@ -200,6 +200,10 @@ public:
             {"UniqueID", Long(fUniqueId)},
             {"Variant", Int(fVariant)},
         };
+        if (fCustomName) {
+            tag->fValue["CustomName"] = String(*fCustomName);
+            tag->fValue["CustomNameVisible"] = Bool(fCustomNameVisible);
+        }
         return tag;
     }
 
@@ -209,11 +213,284 @@ private:
 #define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
         E("painting", Painting);
         E("end_crystal", EndCrystal);
+        E("chicken", Animal);
+        E("cow", Animal);
+        E("donkey", Animal);
+        E("cat", LivingEntity(Animal, Ageable("cat"), Tameable("cat"), Sittable, Cat));
+        E("dolphin", Animal);
+        E("cod", Animal);
+        E("bee", Animal);
+        E("bat", Bat);
 #undef E
         return table;
     }
 
-    static void BaseProperties(CompoundTag const& tag, Entity& e) {
+    static EntityDataType Bat(CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        auto ret = Animal(tag);
+        auto& c = *ret;
+        auto batFlags = props::GetBoolOrDefault(tag, "BatFlags", false);
+        c["BatFlags"] = props::Bool(batFlags);
+        AppendDefinition(ret, "+minecraft:bat");
+        return ret;
+    }
+
+    using Behavior = std::function<EntityDataType(EntityDataType const&, CompoundTag const& input)>;
+
+    struct LivingEntity {
+        template <class ...Arg>
+        LivingEntity(Converter base, Arg ...args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {
+        }
+
+        EntityDataType operator()(CompoundTag const& input) const {
+            auto c = fBase(input);
+            if (!c) return nullptr;
+            for (auto const& b : fBehaviors) {
+                auto next = b(c, input);
+                if (!next) continue;
+                c = next;
+            }
+            return c;
+        }
+
+    private:
+        Converter fBase;
+        std::vector<Behavior> fBehaviors;
+    };
+
+    static EntityDataType Cat(EntityDataType const& c, CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        using namespace std;
+        auto collarColor = props::GetByte(tag, "CollarColor");
+        if (collarColor && props::GetUUID(tag, "Owner")) {
+            c->fValue["Color"] = props::Byte(*collarColor);
+        }
+        auto catType = props::GetInt(tag, "CatType");
+        if (catType) {
+            int32_t variant = 0;
+            std::string type;
+            switch (*catType) {
+            case 0:
+                type = "tabby";
+                variant = 8;
+                break;
+            case 1:
+                type = "tuxedo";
+                variant = 1;
+                break;
+            case 2:
+                type = "red";
+                variant = 2;
+                break;
+            case 3:
+                type = "siamese";
+                variant = 3;
+                break;
+            case 4:
+                type = "british";
+                variant = 4;
+                break;
+            case 5:
+                type = "calico";
+                variant = 5;
+                break;
+            case 6:
+                type = "persian";
+                variant = 6;
+                break;
+            case 7:
+                type = "ragdoll";
+                variant = 7;
+                break;
+            case 8:
+                type = "white";
+                variant = 0;
+                break;
+            case 9:
+                type = "jellie";
+                variant = 10;
+                break;
+            case 10:
+                type = "black";
+                variant = 9;
+                break;
+            }
+            if (!type.empty()) {
+                AppendDefinition(c, "+minecraft:cat_" + type);
+            }
+            c->fValue["Variant"] = props::Int(variant);
+        }
+        c->fValue["DwellingUniqueID"] = props::String("00000000-0000-0000-0000-000000000000");
+        c->fValue["RewardPlayersOnFirstFounding"] = props::Bool(true);
+        auto attributes = std::make_shared<ListTag>();
+        attributes->fType = Tag::TAG_Compound;
+        attributes->fValue = {
+            Attribute(0, 0, 1024, "minecraft:luck"),
+            Attribute(10, 10, 10, "minecraft:health"),
+            Attribute(0, 0, 16, "minecraft:absorption"),
+            Attribute(0, 0, 1, "minecraft:knockback_resistance"),
+            Attribute(0.3f, 0.3f, std::numeric_limits<float>::max(), "minecraft:movement"),
+            Attribute(0.02f, 0.02f, std::numeric_limits<float>::max(), "minecraft:underwater_movement"),
+            Attribute(0.02f, 0.02f, std::numeric_limits<float>::max(), "minecraft:lava_movement"),
+            Attribute(16, 16, 2048, "minecraft:follow_range"),
+            Attribute(4, 4, std::numeric_limits<float>::max(), "minecraft:attack_damage"),
+        };
+        c->fValue["Attributes"] = attributes;
+        return c;
+    }
+
+    static std::shared_ptr<CompoundTag> Attribute(float base, float current, float max, std::string const& name) {
+        auto a = std::make_shared<CompoundTag>();
+        a->fValue["Base"] = props::Float(base);
+        a->fValue["Current"] = props::Float(current);
+        a->fValue["Max"] = props::Float(max);
+        a->fValue["Name"] = props::String(name);
+        return a;
+    }
+
+    static Behavior Ageable(std::string const& definitionKey) {
+        return [=](EntityDataType const& c, CompoundTag const& tag) {
+            auto age = props::GetIntOrDefault(tag, "Age", 0);
+            if (age < 0) {
+                AppendDefinition(c, "+minecraft:" + definitionKey + "_baby");
+                c->fValue["Age"] = props::Int(age);
+            } else {
+                AppendDefinition(c, "+minecraft:" + definitionKey + "_adult");
+                c->fValue.erase("Age");
+            }
+            c->fValue["IsBaby"] = props::Bool(age < 0);
+            return c;
+        };
+    }
+
+    static Behavior Tameable(std::string const& definitionKey) {
+        return [=](EntityDataType const& c, CompoundTag const& tag) {
+            auto owner = props::GetUUID(tag, "Owner");
+            if (owner) {
+                c->fValue["OwnerNew"] = props::Long(*owner);
+                AppendDefinition(c, "+minecraft:" + definitionKey + "_tame");
+                c->fValue["IsTamed"] = props::Bool(true);
+            }
+            AppendDefinition(c, "+minecraft:" + definitionKey + "_wild");
+            return c;
+        };
+    }
+
+    static void AppendDefinition(EntityDataType const& c, std::string const& definition) {
+        using namespace mcfile::nbt;
+
+        auto found = c->fValue.find("definitions");
+        auto d = std::make_shared<ListTag>();
+        d->fType = Tag::TAG_String;
+        if (found != c->fValue.end()) {
+            auto current = found->second->asList();
+            if (current && current->fType == Tag::TAG_String) {
+                for (auto c : current->fValue) {
+                    if (c->asString()) {
+                        d->fValue.push_back(props::String(c->asString()->fValue));
+                    }
+                }
+            }
+        }
+        d->fValue.push_back(props::String(definition));
+        c->fValue["definitions"] = d;
+    }
+
+    static EntityDataType Sittable(EntityDataType const& c, CompoundTag const& tag) {
+        auto sitting = props::GetBoolOrDefault(tag, "Sitting", false);
+        c->fValue["Sitting"] = props::Bool(sitting);
+        return c;
+    }
+
+    static EntityDataType Animal(CompoundTag const& tag) {
+        using namespace props;
+        auto e = BaseProperties(tag);
+        if (!e) return nullptr;
+        auto ret = e->toCompoundTag();
+        auto& c = *ret;
+        auto air = GetShortOrDefault(tag, "Air", 300);
+        auto armor = GetArmor(tag);
+        auto mainhand = GetMainhand(tag);
+        auto offhand = GetOffhand(tag);
+        auto canPickupLoot = GetBoolOrDefault(tag, "CanPickUpLoot", false);
+        auto deathTime = GetShortOrDefault(tag, "DeathTime", 0);
+        auto hurtTime = GetShortOrDefault(tag, "HurtTime", 0);
+        auto inLove = GetBoolOrDefault(tag, "InLove", false);
+        c["Armor"] = armor;
+        c["Mainhand"] = mainhand;
+        c["Offhand"] = offhand;
+        c["Air"] = Short(air);
+        c["AttackTime"] = Short(0);
+        c["BodyRot"] = Float(0);
+        c["boundX"] = Int(0);
+        c["boundY"] = Int(0);
+        c["boundZ"] = Int(0);
+        c["BreedCooldown"] = Int(0);
+        c["canPickupItems"] = Bool(canPickupLoot);
+        c["Dead"] = Bool(false);
+        c["DeathTime"] = Short(0);
+        c["hasBoundOrigin"] = Bool(false);
+        c["hasSetCanPickupItems"] = Bool(true);
+        c["HurtTime"] = Short(0);
+        c["InLove"] = Bool(false);
+        c["IsPregnant"] = Bool(false);
+        c["LeasherID"] = Long(-1);
+        c["limitedLife"] = Int(0);
+        c["LoveCause"] = Long(0);
+        c["NaturalSpawn"] = Bool(false);
+        c["Persistent"] = Bool(true);
+        c["Surface"] = Bool(false);
+        c["TargetID"] = Long(-1);
+        c["TradeExperience"] = Int(0);
+        c["TradeTier"] = Int(0);
+        AppendDefinition(ret, "+" + e->fIdentifier);
+        ret->fValue.erase("Motion");
+        ret->fValue.erase("Dir");
+        return ret;
+    }
+
+    static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        auto ret = std::make_shared<ListTag>();
+        ret->fType = Tag::TAG_Compound;
+
+        for (int i = 0; i < 4; i++) {
+            auto item = tag.query("ArmorItems/" + std::to_string(i))->asCompound();
+            std::shared_ptr<CompoundTag> armor;
+            if (item) {
+                //TODO: 
+            }
+            if (!armor) {
+                armor = Item::Empty();
+            }
+            ret->fValue.push_back(armor);
+        }
+        return ret;
+    }
+
+    static std::shared_ptr<mcfile::nbt::ListTag> GetMainhand(CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        auto ret = std::make_shared<ListTag>();
+        ret->fType = Tag::TAG_Compound;
+
+        auto armor = Item::Empty(); //TODO:
+        ret->fValue.push_back(armor);
+
+        return ret;
+    }
+
+    static std::shared_ptr<mcfile::nbt::ListTag> GetOffhand(CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        auto ret = std::make_shared<ListTag>();
+        ret->fType = Tag::TAG_Compound;
+
+        auto armor = Item::Empty(); //TODO:
+        ret->fValue.push_back(armor);
+
+        return ret;
+    }
+
+    static std::optional<Entity> BaseProperties(CompoundTag const& tag) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -226,8 +503,13 @@ private:
         auto motion = GetVec(tag, "Motion");
         auto pos = GetVec(tag, "Pos");
         auto rotation = GetRotation(tag, "Rotation");
-        auto uuid = GetUUID(tag);
+        auto uuid = GetUUID(tag, "UUID");
+        auto id = GetString(tag, "id");
+        auto customName = GetJson(tag, "CustomName");
 
+        if (!uuid) return nullopt;
+
+        Entity e(*uuid);
         if (motion) e.fMotion = *motion;
         if (pos) e.fPos = *pos;
         if (rotation) e.fRotation = *rotation;
@@ -236,20 +518,33 @@ private:
         if (invulnerable) e.fInvulnerable = *invulnerable;
         if (onGround) e.fOnGround = *onGround;
         if (portalCooldown) e.fPortalCooldown = *portalCooldown;
-        if (uuid) e.fUniqueId = *uuid;
+        if (id) e.fIdentifier = *id;
+        if (customName && (*customName)["text"].is_string()) {
+            auto text = (*customName)["text"].get<std::string>();
+            e.fCustomName = text;
+            e.fCustomNameVisible = true;
+        }
+
+        return e;
+    }
+
+    static EntityDataType Default(CompoundTag const& tag) {
+        auto e = BaseProperties(tag);
+        if (!e) {
+            return nullptr;
+        }
+        return e->toCompoundTag();
     }
 
     static EntityDataType EndCrystal(CompoundTag const& tag) {
-        using namespace props;
-        Entity e;
-        BaseProperties(tag, e);
-        e.fIdentifier = "minecraft:ender_crystal";
-        auto c = e.toCompoundTag();
-        c->fValue.emplace("ShowBottom", Bool(false));
+        auto e = BaseProperties(tag);
+        if (!e) return nullptr;
+        e->fIdentifier = "minecraft:ender_crystal";
+        auto c = e->toCompoundTag();
         return c;
     }
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> Painting(mcfile::nbt::CompoundTag const& tag) {
+    static EntityDataType Painting(CompoundTag const& tag) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;
@@ -301,11 +596,11 @@ private:
             z = *tileZ + 1 + dh - size->fWidth * 0.5f;
         }
 
-        Entity e;
-        BaseProperties(tag, e);
-        e.fIdentifier = "minecraft:painting";
-        e.fPos = Vec(x, y, z);
-        auto c = e.toCompoundTag();
+        auto e = BaseProperties(tag);
+        if (!e) return nullptr;
+        e->fIdentifier = "minecraft:painting";
+        e->fPos = Vec(x, y, z);
+        auto c = e->toCompoundTag();
         c->fValue.emplace("Motive", String(*beMotive));
         c->fValue.emplace("Direction", Byte(*facing));
         return c;
@@ -427,8 +722,10 @@ public:
     int32_t fSkinId = 0;
     int32_t fStrength = 0;
     int32_t fStrengthMax = 0;
-    int64_t fUniqueId;
+    int64_t const fUniqueId;
     int32_t fVariant = 0;
+    std::optional<std::string> fCustomName;
+    bool fCustomNameVisible = false;
 };
 
 }
