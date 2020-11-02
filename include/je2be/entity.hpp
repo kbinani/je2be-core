@@ -5,22 +5,54 @@ namespace j2b {
 class Entity {
 private:
     using CompoundTag = mcfile::nbt::CompoundTag;
-    using EntityDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
-    using Converter = std::function<EntityDataType(CompoundTag const&)>;
+    using EntityData = std::shared_ptr<mcfile::nbt::CompoundTag>;
+    using Converter = std::function<EntityData(CompoundTag const&, std::vector<EntityData> &/*passengers*/)>;
+
+    using Behavior = std::function<EntityData(EntityData const&, CompoundTag const& input)>;
+
+    struct LivingEntity {
+        template <class ...Arg>
+        LivingEntity(Converter base, Arg ...args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {
+        }
+
+        EntityData operator()(CompoundTag const& input, std::vector<EntityData>& passengers) const {
+            auto c = fBase(input, passengers);
+            if (!c) return nullptr;
+            for (auto const& b : fBehaviors) {
+                auto next = b(c, input);
+                if (!next) continue;
+                c = next;
+            }
+            return c;
+        }
+
+    private:
+        Converter fBase;
+        std::vector<Behavior> fBehaviors;
+    };
 
 public:
     explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
-    static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const& tag) {
+    static std::vector<EntityData> From(mcfile::nbt::CompoundTag const& tag) {
         using namespace props;
         auto id = GetString(tag, "id");
-        if (!id) return nullptr;
+        if (!id) return std::vector<EntityData>();
         static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateEntityTable());
         auto found = table->find(*id);
+        std::vector<EntityData> ret;
         if (found == table->end()) {
-            return Default(tag);
+            auto converted = Default(tag);
+            if (converted) {
+                ret.push_back(converted);
+            }
+            return ret;
         }
-        return found->second(tag);
+        auto converted = found->second(tag, ret);
+        if (converted) {
+            ret.push_back(converted);
+        }
+        return ret;
     }
 
     static bool DegAlmostEquals(float a, float b) {
@@ -213,52 +245,97 @@ private:
 #define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
         E("painting", Painting);
         E("end_crystal", EndCrystal);
-        E("chicken", Animal);
-        E("cow", Animal);
-        E("donkey", Animal);
-        E("cat", LivingEntity(Animal, Ageable("cat"), Tameable("cat"), Sittable, Cat));
-        E("dolphin", Animal);
-        E("cod", Animal);
-        E("bee", Animal);
-        E("bat", Bat);
+        E("chicken", Mob);
+        E("cow", Mob);
+        E("donkey", Mob);
+        E("cat", LivingEntity(Mob, Ageable("cat"), Tameable("cat"), Sittable, Cat));
+        E("dolphin", Mob);
+        E("cod", Mob);
+        E("bee", Mob);
+        E("bat", LivingEntity(Mob, Bat));
+        E("creeper", LivingEntity(Monster, Creeper));
+        E("evoker", LivingEntity(Monster, Rename("evocation_illager")));
+        E("boat", Boat);
 #undef E
         return table;
     }
 
-    static EntityDataType Bat(CompoundTag const& tag) {
+    static EntityData Boat(CompoundTag const& tag, std::vector<EntityData>& out) {
         using namespace mcfile::nbt;
-        auto ret = Animal(tag);
-        auto& c = *ret;
-        auto batFlags = props::GetBoolOrDefault(tag, "BatFlags", false);
-        c["BatFlags"] = props::Bool(batFlags);
-        AppendDefinition(ret, "+minecraft:bat");
-        return ret;
+
+        auto e = BaseProperties(tag);
+        if (!e) return nullptr;
+
+        auto links = std::make_shared<ListTag>();
+        links->fType = Tag::TAG_Compound;
+
+        auto passengers = tag.query("Passengers")->asList();
+        if (passengers) {
+            for (int i = 0; i < passengers->fValue.size(); i++) {
+                auto const& p = passengers->fValue[i];
+                auto comp = p->asCompound();
+                if (!comp) continue;
+
+                auto entities = From(*comp);
+                if (entities.empty()) continue;
+
+                auto const& passenger = entities[0];
+                auto uid = props::GetLong(*passenger, "UniqueID");
+                if (!uid) continue;
+                auto link = std::make_shared<CompoundTag>();
+                link->fValue["entityID"] = props::Long(*uid);
+                link->fValue["linkID"] = props::Int(i);
+                links->fValue.push_back(link);
+
+                out.push_back(passenger);
+            }
+        }
+
+        auto c = e->toCompoundTag();
+        c->fValue["LinksTag"] = links;
+        AppendDefinition(c, "+minecraft:boat");
+
+        auto type = props::GetStringOrDefault(tag, "Type", "oak"); //TODO: variant?
+
+        return c;
     }
 
-    using Behavior = std::function<EntityDataType(EntityDataType const&, CompoundTag const& input)>;
-
-    struct LivingEntity {
-        template <class ...Arg>
-        LivingEntity(Converter base, Arg ...args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {
-        }
-
-        EntityDataType operator()(CompoundTag const& input) const {
-            auto c = fBase(input);
-            if (!c) return nullptr;
-            for (auto const& b : fBehaviors) {
-                auto next = b(c, input);
-                if (!next) continue;
-                c = next;
-            }
+    static Behavior Rename(std::string const& name) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
+            auto id = props::GetString(tag, "id");
+            if (!id) return c;
+            RemoveDefinition(c, "+" + *id);
+            AppendDefinition(c, "+minecraft:" + name);
+            c->fValue["identifier"] = props::String("minecraft:" + name);
             return c;
+        };
+    }
+
+    static EntityData Creeper(EntityData const& c, CompoundTag const& tag) {
+        using namespace props;
+        auto powered = GetBoolOrDefault(tag, "powered", false);
+        if (powered) {
+            AppendDefinition(c, "+minecraft:charged_creeper");
+            AppendDefinition(c, "+minecraft:exploding");
         }
+        return c;
+    }
 
-    private:
-        Converter fBase;
-        std::vector<Behavior> fBehaviors;
-    };
+    static EntityData Monster(CompoundTag const& tag, std::vector<EntityData>& passengers) {
+        auto c = Mob(tag, passengers);
+        c->fValue["SpawnedByNight"] = props::Bool(false);
+        return c;
+    }
 
-    static EntityDataType Cat(EntityDataType const& c, CompoundTag const& tag) {
+    static EntityData Bat(EntityData const& c, CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        auto batFlags = props::GetBoolOrDefault(tag, "BatFlags", false);
+        c->fValue["BatFlags"] = props::Bool(batFlags);
+        AppendDefinition(c, "+minecraft:bat");
+        return c;
+    }
+
+    static EntityData Cat(EntityData const& c, CompoundTag const& tag) {
         using namespace mcfile::nbt;
         using namespace std;
         auto collarColor = props::GetByte(tag, "CollarColor");
@@ -349,7 +426,7 @@ private:
     }
 
     static Behavior Ageable(std::string const& definitionKey) {
-        return [=](EntityDataType const& c, CompoundTag const& tag) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
             auto age = props::GetIntOrDefault(tag, "Age", 0);
             if (age < 0) {
                 AppendDefinition(c, "+minecraft:" + definitionKey + "_baby");
@@ -364,7 +441,7 @@ private:
     }
 
     static Behavior Tameable(std::string const& definitionKey) {
-        return [=](EntityDataType const& c, CompoundTag const& tag) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
             auto owner = props::GetUUID(tag, "Owner");
             if (owner) {
                 c->fValue["OwnerNew"] = props::Long(*owner);
@@ -376,7 +453,7 @@ private:
         };
     }
 
-    static void AppendDefinition(EntityDataType const& c, std::string const& definition) {
+    static void AppendDefinition(EntityData const& c, std::string const& definition) {
         using namespace mcfile::nbt;
 
         auto found = c->fValue.find("definitions");
@@ -396,13 +473,32 @@ private:
         c->fValue["definitions"] = d;
     }
 
-    static EntityDataType Sittable(EntityDataType const& c, CompoundTag const& tag) {
+    static void RemoveDefinition(EntityData const& c, std::string const& definition) {
+        using namespace mcfile::nbt;
+
+        auto found = c->fValue.find("definitions");
+        auto d = std::make_shared<ListTag>();
+        d->fType = Tag::TAG_String;
+        if (found != c->fValue.end()) {
+            auto current = found->second->asList();
+            if (current && current->fType == Tag::TAG_String) {
+                for (auto c : current->fValue) {
+                    if (c->asString() && c->asString()->fValue != definition) {
+                        d->fValue.push_back(props::String(c->asString()->fValue));
+                    }
+                }
+            }
+        }
+        c->fValue["definitions"] = d;
+    }
+
+    static EntityData Sittable(EntityData const& c, CompoundTag const& tag) {
         auto sitting = props::GetBoolOrDefault(tag, "Sitting", false);
         c->fValue["Sitting"] = props::Bool(sitting);
         return c;
     }
 
-    static EntityDataType Animal(CompoundTag const& tag) {
+    static EntityData Mob(CompoundTag const& tag, std::vector<EntityData>& passengers) {
         using namespace props;
         auto e = BaseProperties(tag);
         if (!e) return nullptr;
@@ -528,7 +624,7 @@ private:
         return e;
     }
 
-    static EntityDataType Default(CompoundTag const& tag) {
+    static EntityData Default(CompoundTag const& tag) {
         auto e = BaseProperties(tag);
         if (!e) {
             return nullptr;
@@ -536,7 +632,7 @@ private:
         return e->toCompoundTag();
     }
 
-    static EntityDataType EndCrystal(CompoundTag const& tag) {
+    static EntityData EndCrystal(CompoundTag const& tag, std::vector<EntityData>& passengers) {
         auto e = BaseProperties(tag);
         if (!e) return nullptr;
         e->fIdentifier = "minecraft:ender_crystal";
@@ -544,7 +640,7 @@ private:
         return c;
     }
 
-    static EntityDataType Painting(CompoundTag const& tag) {
+    static EntityData Painting(CompoundTag const& tag, std::vector<EntityData> &) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;

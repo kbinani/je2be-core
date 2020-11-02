@@ -77,10 +77,7 @@ private:
                 continue;
             }
             auto converted = Entity::From(*c);
-            if (!converted) {
-                continue;
-            }
-            fEntities.push_back(converted);
+            copy_n(converted.begin(), converted.size(), back_inserter(fEntities));
         }
     }
 
