@@ -243,8 +243,8 @@ private:
             if (x <0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) continue;
             idx = (x * 16 + z) * 16 + y;
 
-            string paletteKey = paletteKeys[indices[idx]];
-            if (!IsAir(paletteKey)) continue;
+            string const& currentMaterial = paletteKeys[indices[idx]];
+            if (!IsAir(currentMaterial)) continue;
 
             empty = false;
 
