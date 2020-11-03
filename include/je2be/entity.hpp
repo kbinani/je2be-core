@@ -749,30 +749,7 @@ private:
         }
         c->fValue["DwellingUniqueID"] = props::String("00000000-0000-0000-0000-000000000000");
         c->fValue["RewardPlayersOnFirstFounding"] = props::Bool(true);
-        auto attributes = std::make_shared<ListTag>();
-        attributes->fType = Tag::TAG_Compound;
-        attributes->fValue = {
-            Attribute(0, 0, 1024, "minecraft:luck"),
-            Attribute(10, 10, 10, "minecraft:health"),
-            Attribute(0, 0, 16, "minecraft:absorption"),
-            Attribute(0, 0, 1, "minecraft:knockback_resistance"),
-            Attribute(0.3f, 0.3f, std::numeric_limits<float>::max(), "minecraft:movement"),
-            Attribute(0.02f, 0.02f, std::numeric_limits<float>::max(), "minecraft:underwater_movement"),
-            Attribute(0.02f, 0.02f, std::numeric_limits<float>::max(), "minecraft:lava_movement"),
-            Attribute(16, 16, 2048, "minecraft:follow_range"),
-            Attribute(4, 4, std::numeric_limits<float>::max(), "minecraft:attack_damage"),
-        };
-        c->fValue["Attributes"] = attributes;
         return c;
-    }
-
-    static std::shared_ptr<CompoundTag> Attribute(float base, float current, float max, std::string const& name) {
-        auto a = std::make_shared<CompoundTag>();
-        a->fValue["Base"] = props::Float(base);
-        a->fValue["Current"] = props::Float(current);
-        a->fValue["Max"] = props::Float(max);
-        a->fValue["Name"] = props::String(name);
-        return a;
     }
 
     static Behavior AgeableA(std::string const& definitionKey) {
@@ -917,6 +894,15 @@ private:
         AddDefinition(ret, "+" + e->fIdentifier);
         ret->fValue.erase("Motion");
         ret->fValue.erase("Dir");
+
+        auto id = GetString(tag, "id");
+        if (id) {
+            auto attributes = EntityAttributes::Mob(*id);
+            if (attributes) {
+                c["Attributes"] = attributes;
+            }
+        }
+
         return ret;
     }
 

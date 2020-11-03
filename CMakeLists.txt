@@ -43,6 +43,7 @@ set(je2be_srcs
   include/je2be/java-edition-map.hpp
   include/je2be/rgba.hpp
   include/je2be/size.hpp
+  include/je2be/entity-attributes.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
@@ -106,7 +107,7 @@ endif()
 
 message("${CMAKE_C_COMPILER_ID}")
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
-  add_definitions(/std:c++latest -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
+  add_definitions(/std:c++latest /bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
   list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
   list(APPEND je2be_include_directories "ext/zlib")
   list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/zlib/${CMAKE_BUILD_TYPE}")
