@@ -10,9 +10,9 @@ private:
 
     using Behavior = std::function<EntityData(EntityData const&, CompoundTag const& input)>;
 
-    struct LivingEntity {
+    struct Convert {
         template <class ...Arg>
-        LivingEntity(Converter base, Arg ...args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {
+        Convert(Converter base, Arg ...args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {
         }
 
         EntityData operator()(CompoundTag const& input, std::vector<EntityData>& passengers) const {
@@ -249,61 +249,152 @@ private:
         E("painting", Painting);
         E("end_crystal", EndCrystal);
 
-        E("bat", LivingEntity(Mob, Bat));
+        E("bat", Convert(Mob, Bat));
         A("bee");
         M("blaze");
-        E("cat", LivingEntity(Animal, AgeableA("cat"), Tameable("cat"), Sittable, Cat));
+        E("cat", Convert(Animal, AgeableA("cat"), Tameable("cat"), Sittable, Cat));
         M("cave_spider");
         A("chicken");
         A("cod");
 
-        E("cow", LivingEntity(Animal, AgeableA("cow")));
-        E("creeper", LivingEntity(Monster, Creeper));
+        E("cow", Convert(Animal, AgeableA("cow")));
+        E("creeper", Convert(Monster, Creeper));
         A("dolphin");
         A("donkey");
         M("drownd");
         M("elder_guardian");
         M("enderman");
         M("endermite");
-        E("evoker", LivingEntity(Monster, Rename("evocation_illager")));
+        E("evoker", Convert(Monster, Rename("evocation_illager")));
 
         A("fox");
         M("ghast");
         M("guardian");
         M("hoglin");
         A("horse");
-        E("husk", LivingEntity(Monster, AgeableA("husk")));
-        A("llama");
-        E("magma_cube", LivingEntity(Monster, Slime));
-        E("mooshroom", LivingEntity(Animal, AgeableA("mooshroom"), Mooshroom));
+        E("husk", Convert(Monster, AgeableA("husk")));
+        E("llama", Convert(Animal, AgeableA("llama"), Llama));
+        E("magma_cube", Convert(Monster, Slime));
+        E("mooshroom", Convert(Animal, AgeableA("mooshroom"), Mooshroom));
 
         A("mule");
         A("ocelot");
-        E("panda", LivingEntity(Animal, AgeableA("panda")));
-        A("parrot"); //TODO: color
+        E("panda", Convert(Animal, AgeableA("panda")));
+        E("parrot", Convert(Animal, Parrot));
         M("phantom");
-        E("pig", LivingEntity(Animal, AgeableA("pig"), Steerable("pig")));
+        E("pig", Convert(Animal, AgeableA("pig"), Steerable("pig")));
         M("piglin");
         M("piglin_brute");
         M("pillager");
 
         A("polar_bear");
         A("pufferfish");
-        E("rabbit", LivingEntity(Animal, AgeableC, Rabbit));
+        E("rabbit", Convert(Animal, AgeableC, Rabbit));
         M("ravager");
         A("salmon");
-        E("sheep", LivingEntity(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly")));
-        E("shulker", LivingEntity(Monster, Shulker));
+        E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly")));
+        E("shulker", Convert(Monster, Shulker));
         M("silverfish");
         M("skeleton"); // lefty skeleton does not exist in Bedrock?
 
-        E("zombified_piglin", LivingEntity(Monster, Rename("zombie_pigman"), Debug, AgeableB("pig_zombie")));
+        A("skeleton_horse");
+        E("slime", Convert(Monster, Slime));
+        M("spider");
+        A("squid");
+        M("stray");
+        A("strider");
+        E("trader_llama", Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
+        E("tropical_fish", Convert(Animal, Rename("tropicalfish"), TropicalFish));
+        A("turtle");
 
-        E("boat", Boat); //TODO: wooden type
+        M("vex");
+        E("villager", Convert(Animal, Rename("villager_v2")));
+        M("vindicator");
+        A("wandering_trader");
+        M("witch");
+        M("wither_skeleton");
+        A("wolf");
+        M("zoglin");
+        M("zombie");
+
+        M("zombie_horse");
+        E("zombie_villager", Convert(Animal, Rename("zombie_villager_v2")));
+        E("zombified_piglin", Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
+
+        E("boat", Convert(Vehicle, Boat));
+        E("minecart", Convert(Vehicle, Minecart));
 #undef A
 #undef M
 #undef E
         return table;
+    }
+
+    static EntityData Parrot(EntityData const& c, CompoundTag const& tag) {
+        auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+        c->fValue["Variant"] = props::Int(variant);
+        return c;
+    }
+
+    static EntityData Minecart(EntityData const& c, CompoundTag const& tag) {
+        AddDefinition(c, "+minecraft:minecart");
+        return c;
+    }
+
+    static EntityData TropicalFish(EntityData const& c, CompoundTag const& tag) {
+        auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+        auto small = (0xf & variant) == 0;
+        auto pattern = 0xf & (variant >> 8);
+        auto bodyColor = 0xf & (variant >> 16);
+        auto patternColor = 0xf & (variant >> 24);
+
+        c->fValue["Variant"] = props::Int(small ? 0 : 1);
+        c->fValue["MarkVariant"] = props::Int(pattern);
+        c->fValue["Color"] = props::Byte(bodyColor);
+        c->fValue["Color2"] = props::Byte(patternColor);
+        return c;
+    }
+
+    static EntityData TraderLlama(EntityData const& c, CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+        AddDefinition(c, "+minecraft:llama_wandering_trader");
+        AddDefinition(c, "-minecraft:llama_wild");
+        AddDefinition(c, "+minecraft:llama_tamed");
+        AddDefinition(c, "+minecraft:strength_3");
+        AddDefinition(c, "+minecraft:llama_unchested");
+        c->fValue["InventoryVersion"] = props::String("1.16.40");
+        auto chestItems = std::make_shared<ListTag>();
+        chestItems->fType = Tag::TAG_Compound;
+        for (int i = 0; i < 16; i++) {
+            auto item = Item::Empty();
+            item->fValue["Slot"] = props::Byte(i);
+            chestItems->fValue.push_back(item);
+        }
+        c->fValue["ChestItems"] = chestItems;
+        c->fValue["MarkVariant"] = props::Int(1);
+        c->fValue["IsTamed"] = props::Bool(true);
+        return c;
+    }
+
+    static EntityData Llama(EntityData const& c, CompoundTag const& tag) {
+        auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+        std::string color = "creamy";
+        switch (variant) {
+        case 3:
+            color = "gray";
+            break;
+        case 1:
+            color = "white";
+            break;
+        case 2:
+            color = "brown";
+            break;
+        case 0:
+            color = "creamy";
+            break;
+        }
+        c->fValue["Variant"] = props::Int(variant);
+        AddDefinition(c, "+minecraft:llama_" + color);
+        return c;
     }
 
     static EntityData Shulker(EntityData const& c, CompoundTag const& tag) {
@@ -411,7 +502,7 @@ private:
         return c;
     }
 
-    static EntityData Boat(CompoundTag const& tag, std::vector<EntityData>& out) {
+    static EntityData Vehicle(CompoundTag const& tag, std::vector<EntityData>& out) {
         using namespace mcfile::nbt;
 
         auto e = BaseProperties(tag);
@@ -444,9 +535,36 @@ private:
 
         auto c = e->toCompoundTag();
         c->fValue["LinksTag"] = links;
+        return c;
+    }
+
+    static EntityData Boat(EntityData const& c, CompoundTag const& tag) {
+        using namespace mcfile::nbt;
+
         AddDefinition(c, "+minecraft:boat");
 
-        auto type = props::GetStringOrDefault(tag, "Type", "oak"); //TODO: variant?
+        auto type = props::GetStringOrDefault(tag, "Type", "oak");
+        int32_t variant = 0;
+        if (type == "oak") {
+            variant = 0;
+        } else if (type == "spruce") {
+            variant = 1;
+        } else if (type == "birch") {
+            variant = 2;
+        } else if (type == "jungle") {
+            variant = 3;
+        } else if (type == "acacia") {
+            variant = 4;
+        } else if (type == "dark_oak") {
+            variant = 5;
+        }
+        c->fValue["Variant"] = props::Int(variant);
+
+        auto rotation = props::GetRotation(*c, "Rotation");
+        if (rotation) {
+            Rotation rot(rotation->fYaw + 90, rotation->fPitch);
+            c->fValue["Rotation"] = rot.toListTag();
+        }
 
         return c;
     }
