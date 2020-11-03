@@ -105,4 +105,41 @@ inline ColorCodeJava ColorCodeJavaFromName(std::string const& color) {
     }
 }
 
+inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
+    switch (code) {
+    case ColorCodeJava::Black:
+        return "black";
+    case ColorCodeJava::Blue:
+        return "blue";
+    case ColorCodeJava::Brown:
+        return "brown";
+    case ColorCodeJava::Cyan:
+        return "cyan";
+    case ColorCodeJava::Gray:
+        return "gray";
+    case ColorCodeJava::Green:
+        return "green";
+    case ColorCodeJava::LightBlue:
+        return "light_blue";
+    case ColorCodeJava::LightGray:
+        return "silver";
+    case ColorCodeJava::Lime:
+        return "lime";
+    case ColorCodeJava::Magenta:
+        return "magenta";
+    case ColorCodeJava::Orange:
+        return "orange";
+    case ColorCodeJava::Pink:
+        return "pink";
+    case ColorCodeJava::Purple:
+        return "purple";
+    case ColorCodeJava::Red:
+        return "red";
+    case ColorCodeJava::White:
+        return "white";
+    case ColorCodeJava::Yellow:
+        return "yellow";
+    }
+}
+
 }

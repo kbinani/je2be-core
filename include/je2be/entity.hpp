@@ -243,21 +243,172 @@ private:
     static std::unordered_map<std::string, Converter>* CreateEntityTable() {
         auto table = new std::unordered_map<std::string, Converter>();
 #define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
+#define A(__name) table->insert(std::make_pair("minecraft:" __name, Animal))
+#define M(__name) table->insert(std::make_pair("minecraft:" __name, Monster))
+
         E("painting", Painting);
         E("end_crystal", EndCrystal);
-        E("chicken", Mob);
-        E("cow", Mob);
-        E("donkey", Mob);
-        E("cat", LivingEntity(Mob, Ageable("cat"), Tameable("cat"), Sittable, Cat));
-        E("dolphin", Mob);
-        E("cod", Mob);
-        E("bee", Mob);
+
         E("bat", LivingEntity(Mob, Bat));
+        A("bee");
+        M("blaze");
+        E("cat", LivingEntity(Animal, AgeableA("cat"), Tameable("cat"), Sittable, Cat));
+        M("cave_spider");
+        A("chicken");
+        A("cod");
+
+        E("cow", LivingEntity(Animal, AgeableA("cow")));
         E("creeper", LivingEntity(Monster, Creeper));
+        A("dolphin");
+        A("donkey");
+        M("drownd");
+        M("elder_guardian");
+        M("enderman");
+        M("endermite");
         E("evoker", LivingEntity(Monster, Rename("evocation_illager")));
-        E("boat", Boat);
+
+        A("fox");
+        M("ghast");
+        M("guardian");
+        M("hoglin");
+        A("horse");
+        E("husk", LivingEntity(Monster, AgeableA("husk")));
+        A("llama");
+        E("magma_cube", LivingEntity(Monster, Slime));
+        E("mooshroom", LivingEntity(Animal, AgeableA("mooshroom"), Mooshroom));
+
+        A("mule");
+        A("ocelot");
+        E("panda", LivingEntity(Animal, AgeableA("panda")));
+        A("parrot"); //TODO: color
+        M("phantom");
+        E("pig", LivingEntity(Animal, AgeableA("pig"), Steerable("pig")));
+        M("piglin");
+        M("piglin_brute");
+        M("pillager");
+
+        A("polar_bear");
+        A("pufferfish");
+        E("rabbit", LivingEntity(Animal, AgeableC, Rabbit));
+        M("ravager");
+        A("salmon");
+        E("sheep", LivingEntity(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly")));
+        E("shulker", LivingEntity(Monster, Shulker));
+        M("silverfish");
+        M("skeleton"); // lefty skeleton does not exist in Bedrock?
+
+        E("zombified_piglin", LivingEntity(Monster, Rename("zombie_pigman"), Debug, AgeableB("pig_zombie")));
+
+        E("boat", Boat); //TODO: wooden type
+#undef A
+#undef M
 #undef E
         return table;
+    }
+
+    static EntityData Shulker(EntityData const& c, CompoundTag const& tag) {
+        auto color = props::GetByteOrDefault(tag, "Color", 16);
+        if (0 <= color && color <= 15) {
+            c->fValue["Color"] = props::Byte(color);
+            AddDefinition(c, "+minecraft:shulker_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
+        } else {
+            AddDefinition(c, "+minecraft:shulker_undyed");
+        }
+        c->fValue["Variant"] = props::Int(color);
+        return c;
+    }
+
+    template <class ...Arg>
+    static Behavior Definitions(Arg ...defs) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
+            for (std::string const& def : std::initializer_list<std::string>{defs...}) {
+                AddDefinition(c, def);
+            }
+            return c;
+        };
+    }
+
+    static Behavior Colorable(std::string const& definitionKey) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
+            auto color = props::GetByteOrDefault(tag, "Color", 0);
+            c->fValue["Color"] = props::Byte(color);
+            AddDefinition(c, "+minecraft:" + definitionKey + "_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
+            return c;
+        };
+    }
+
+    static EntityData Rabbit(EntityData const& c, CompoundTag const& tag) {
+        auto type = props::GetIntOrDefault(tag, "RabbitType", 0);
+        std::string coat = "brown";
+        int32_t variant = 0;
+        if (type == 0) {
+            coat = "brown";
+            variant = 0;
+        } else if (type == 2) {
+            coat = "black";
+            variant = 2;
+        } else if (type == 5) {
+            coat = "salt";
+            variant = 5;
+        } else if (type == 1) {
+            coat = "white";
+            variant = 1;
+        } else if (type == 3) {
+            coat = "splotched";
+            variant = 3;
+        } else if (type == 4) {
+            coat = "desert";
+            variant = 4;
+        } else if (type == 99) {
+            coat = "white";
+            variant = 1;
+            c->fValue["CustomName"] = props::String("The Killer Bunny");
+        }
+        c->fValue["Variant"] = props::Int(variant);
+        AddDefinition(c, "+coat_" + coat);
+        return c;
+    }
+
+    static EntityData Debug(EntityData const& c, CompoundTag const& tag) {
+        return c;
+    }
+
+    static Behavior Steerable(std::string const& definitionKey) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
+            auto saddle = props::GetBoolOrDefault(tag, "Saddle", false);
+            if (saddle) {
+                AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
+                AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
+            } else {
+                AddDefinition(c, "+minecraft:" + definitionKey + "_unsaddled");
+            }
+            c->fValue["Saddled"] = props::Bool(saddle);
+            return c;
+        };
+    }
+
+    static EntityData Mooshroom(EntityData const& c, CompoundTag const& tag) {
+        auto type = props::GetStringOrDefault(tag, "Type", "red");
+        int32_t variant = 0;
+        if (type == "brown") {
+            variant = 1;
+            AddDefinition(c, "+minecraft:mooshroom_brown");
+        } else {
+            AddDefinition(c, "+minecraft:mooshroom_red");
+        }
+        c->fValue["Variant"] = props::Int(variant);
+        return c;
+    }
+
+    static EntityData Slime(EntityData const& c, CompoundTag const& tag) {
+        auto size = props::GetInt(tag, "Size");
+        int8_t variant = 0;
+        if (size) {
+            variant = int8_t(*size) + 1;
+        }
+        c->fValue["Variant"] = props::Int(variant);
+        c->fValue["Size"] = props::Byte(variant);
+        return c;
     }
 
     static EntityData Boat(CompoundTag const& tag, std::vector<EntityData>& out) {
@@ -293,7 +444,7 @@ private:
 
         auto c = e->toCompoundTag();
         c->fValue["LinksTag"] = links;
-        AppendDefinition(c, "+minecraft:boat");
+        AddDefinition(c, "+minecraft:boat");
 
         auto type = props::GetStringOrDefault(tag, "Type", "oak"); //TODO: variant?
 
@@ -305,7 +456,7 @@ private:
             auto id = props::GetString(tag, "id");
             if (!id) return c;
             RemoveDefinition(c, "+" + *id);
-            AppendDefinition(c, "+minecraft:" + name);
+            AddDefinition(c, "+minecraft:" + name);
             c->fValue["identifier"] = props::String("minecraft:" + name);
             return c;
         };
@@ -315,8 +466,8 @@ private:
         using namespace props;
         auto powered = GetBoolOrDefault(tag, "powered", false);
         if (powered) {
-            AppendDefinition(c, "+minecraft:charged_creeper");
-            AppendDefinition(c, "+minecraft:exploding");
+            AddDefinition(c, "+minecraft:charged_creeper");
+            AddDefinition(c, "+minecraft:exploding");
         }
         return c;
     }
@@ -324,6 +475,23 @@ private:
     static EntityData Monster(CompoundTag const& tag, std::vector<EntityData>& passengers) {
         auto c = Mob(tag, passengers);
         c->fValue["SpawnedByNight"] = props::Bool(false);
+        auto persistenceRequired = props::GetBoolOrDefault(tag, "PersistenceRequired", true);
+        bool persistent = false;
+        if (persistenceRequired && props::GetString(tag, "CustomName")) {
+            persistent = true;
+        }
+        c->fValue["Persistent"] = props::Bool(persistent);
+        return c;
+    }
+
+    static EntityData Animal(CompoundTag const& tag, std::vector<EntityData>& passengers) {
+        auto c = Mob(tag, passengers);
+        auto persistenceRequired = props::GetBoolOrDefault(tag, "PersistenceRequired", false);
+        bool persistent = true;
+        if (persistenceRequired && !props::GetString(tag, "CustomName")) {
+            persistent = false;
+        }
+        c->fValue["Persistent"] = props::Bool(persistent);
         return c;
     }
 
@@ -331,7 +499,7 @@ private:
         using namespace mcfile::nbt;
         auto batFlags = props::GetBoolOrDefault(tag, "BatFlags", false);
         c->fValue["BatFlags"] = props::Bool(batFlags);
-        AppendDefinition(c, "+minecraft:bat");
+        AddDefinition(c, "+minecraft:bat");
         return c;
     }
 
@@ -393,7 +561,7 @@ private:
                 break;
             }
             if (!type.empty()) {
-                AppendDefinition(c, "+minecraft:cat_" + type);
+                AddDefinition(c, "+minecraft:cat_" + type);
             }
             c->fValue["Variant"] = props::Int(variant);
         }
@@ -425,14 +593,14 @@ private:
         return a;
     }
 
-    static Behavior Ageable(std::string const& definitionKey) {
+    static Behavior AgeableA(std::string const& definitionKey) {
         return [=](EntityData const& c, CompoundTag const& tag) {
             auto age = props::GetIntOrDefault(tag, "Age", 0);
             if (age < 0) {
-                AppendDefinition(c, "+minecraft:" + definitionKey + "_baby");
+                AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
                 c->fValue["Age"] = props::Int(age);
             } else {
-                AppendDefinition(c, "+minecraft:" + definitionKey + "_adult");
+                AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
                 c->fValue.erase("Age");
             }
             c->fValue["IsBaby"] = props::Bool(age < 0);
@@ -440,20 +608,46 @@ private:
         };
     }
 
+    static Behavior AgeableB(std::string const& definitionKey) {
+        return [=](EntityData const& c, CompoundTag const& tag) {
+            auto baby = props::GetBoolOrDefault(tag, "IsBaby", false);
+            if (baby) {
+                AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
+            } else {
+                AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
+            }
+            c->fValue["IsBaby"] = props::Bool(baby);
+            return c;
+        };
+    }
+
+    static EntityData AgeableC(EntityData const& c, CompoundTag const& tag) {
+        auto age = props::GetIntOrDefault(tag, "Age", 0);
+        if (age < 0) {
+            AddDefinition(c, "+baby");
+            c->fValue["Age"] = props::Int(age);
+        } else {
+            AddDefinition(c, "+adult");
+            c->fValue.erase("Age");
+        }
+        c->fValue["IsBaby"] = props::Bool(age < 0);
+        return c;
+    }
+
     static Behavior Tameable(std::string const& definitionKey) {
         return [=](EntityData const& c, CompoundTag const& tag) {
             auto owner = props::GetUUID(tag, "Owner");
             if (owner) {
                 c->fValue["OwnerNew"] = props::Long(*owner);
-                AppendDefinition(c, "+minecraft:" + definitionKey + "_tame");
+                AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
                 c->fValue["IsTamed"] = props::Bool(true);
             }
-            AppendDefinition(c, "+minecraft:" + definitionKey + "_wild");
+            AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
             return c;
         };
     }
 
-    static void AppendDefinition(EntityData const& c, std::string const& definition) {
+    static void AddDefinition(EntityData const& c, std::string const& definition) {
         using namespace mcfile::nbt;
 
         auto found = c->fValue.find("definitions");
@@ -534,12 +728,11 @@ private:
         c["limitedLife"] = Int(0);
         c["LoveCause"] = Long(0);
         c["NaturalSpawn"] = Bool(false);
-        c["Persistent"] = Bool(true);
         c["Surface"] = Bool(false);
         c["TargetID"] = Long(-1);
         c["TradeExperience"] = Int(0);
         c["TradeTier"] = Int(0);
-        AppendDefinition(ret, "+" + e->fIdentifier);
+        AddDefinition(ret, "+" + e->fIdentifier);
         ret->fValue.erase("Motion");
         ret->fValue.erase("Dir");
         return ret;
