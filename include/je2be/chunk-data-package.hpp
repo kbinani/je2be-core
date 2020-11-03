@@ -41,15 +41,20 @@ private:
 
             Pos pos(*x, *y, *z);
             auto found = fTileBlocks.find(pos);
-            if (found == fTileBlocks.end()) continue;
+            if (found == fTileBlocks.end()) {
+                auto sa = TileEntity::StandaloneTileEntityData(e);
+                if (!sa) continue;
 
-            shared_ptr<Block const> block = found->second;
-            fTileBlocks.erase(found);
+                fTileEntities.push_back(sa);
+            } else {
+                shared_ptr<Block const> block = found->second;
+                fTileBlocks.erase(found);
 
-            auto tag = TileEntity::From(pos, *block, e, mapInfo, ddf);
-            if (!tag) continue;
+                auto tag = TileEntity::From(pos, *block, e, mapInfo, ddf);
+                if (!tag) continue;
 
-            fTileEntities.push_back(tag);
+                fTileEntities.push_back(tag);
+            }
         }
 
         for (auto const&it : fTileBlocks) {

@@ -228,6 +228,38 @@ private:
             }
         }
 
+        for (auto const& e : chunk.fTileEntities) {
+            if (!TileEntity::IsStandaloneTileEntity(e)) {
+                continue;
+            }
+            auto ret = TileEntity::StandaloneTileEntityBlockdData(e);
+            if (!ret) continue;
+            auto [pos, tag, paletteKey] = *ret;
+
+            if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
+                continue;
+            }
+
+            int32_t x = pos.fX - chunk.fChunkX * 16;
+            int32_t y = pos.fY - chunkY * 16;
+            int32_t z = pos.fZ - chunk.fChunkZ * 16;
+            if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) continue;
+            idx = (x * 16 + z) * 16 + y;
+
+            empty = false;
+
+            auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
+            if (found == paletteKeys.end()) {
+                uint16_t index = (uint16_t)palette.size();
+                indices[idx] = index;
+                palette.push_back(tag);
+                paletteKeys.push_back(paletteKey);
+            } else {
+                auto index = (uint16_t)distance(paletteKeys.begin(), found);
+                indices[idx] = index;
+            }
+        }
+
         for (auto const& e : chunk.fEntities) {
             if (!Entity::IsTileEntity(*e)) {
                 continue;

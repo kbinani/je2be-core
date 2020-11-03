@@ -28,6 +28,48 @@ public:
         return table.at(name)(pos, block, tag, mapInfo, ddf);
     }
 
+    static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const& tag) {
+        auto id = props::GetString(*tag, "id");
+        if (!id) return nullptr;
+        auto const& name = *id;
+        std::cout << name << std::endl;
+        if (name == "minecraft:mob_spawner") {
+            return true;
+        }
+        return false;
+    }
+
+    static std::optional<std::tuple<Pos, std::shared_ptr<mcfile::nbt::CompoundTag>, std::string>> StandaloneTileEntityBlockdData(std::shared_ptr<CompoundTag> const& tag) {
+        auto id = props::GetString(*tag, "id");
+        if (!id) return std::nullopt;
+        auto const& name = *id;
+        if (name == "minecraft:mob_spawner") {
+            auto b = std::make_shared<CompoundTag>();
+            b->fValue = {
+                {"name", props::String("minecraft:mob_spawner")},
+                {"version", props::Int(BlockData::kBlockDataVersion)},
+                {"states", std::make_shared<CompoundTag>()},
+            };
+            auto x = props::GetInt(*tag, "x");
+            auto y = props::GetInt(*tag, "y");
+            auto z = props::GetInt(*tag, "z");
+            if (!x || !y || !z) return std::nullopt;
+            Pos p(*x, *y, *z);
+            return std::make_tuple(p, b, "minecraft:mob_spawner");
+        }
+        return std::nullopt;
+    }
+
+    static std::shared_ptr<mcfile::nbt::CompoundTag> StandaloneTileEntityData(std::shared_ptr<CompoundTag> const& tag) {
+        auto id = props::GetString(*tag, "id");
+        if (!id) return nullptr;
+        auto const& name = *id;
+        if (name == "minecraft:mob_spawner") {
+            return Spawner(tag);
+        }
+        return nullptr;
+    }
+
 private:
     TileEntity() = delete;
 
@@ -175,6 +217,53 @@ private:
         E("dispenser", AnyStorage("Dispenser"));
 #undef E
         return table;
+    }
+
+    static TileEntityData Spawner(std::shared_ptr<CompoundTag> const& c) {
+        using namespace props;
+
+        auto x = GetInt(*c, "x");
+        auto y = GetInt(*c, "y");
+        auto z = GetInt(*c, "z");
+        if (!x || !y || !z) return nullptr;
+
+        auto tag = std::make_shared<CompoundTag>();
+
+        auto delay = GetShortOrDefault(*c, "Delay", 0);
+        auto maxNearbyEntities = GetShortOrDefault(*c, "MaxNearbyEntities", 6);
+        auto maxSpawnDelay = GetShortOrDefault(*c, "MaxSpawnDelay", 800);
+        auto minSpawnDelay = GetShortOrDefault(*c, "MinSpawnDelay", 200);
+        auto requiredPlayerRange = GetShortOrDefault(*c, "RequiredPlayerRange", 16);
+        auto spawnCount = GetShortOrDefault(*c, "SpawnCount", 4);
+        auto spawnRange = GetShortOrDefault(*c, "SpawnRange", 4);
+
+        std::string mob;
+        auto spawnData = GetCompound(*c, "SpawnData");
+        if (spawnData) {
+            auto id = GetString(*spawnData, "id");
+            if (id) {
+                mob = *id;
+            }
+        }
+
+        tag->fValue = {
+            {"x", Int(*x)},
+            {"y", Int(*y)},
+            {"z", Int(*z)},
+            {"Delay", Short(delay)},
+            {"id", String("MobSpawner")},
+            {"isMovable", Bool(true)},
+            {"MaxNearbyEntities", Short(maxNearbyEntities)},
+            {"MaxSpawnDelay", Short(maxSpawnDelay)},
+            {"MinSpawnDelay", Short(minSpawnDelay)},
+            {"RequiredPlayerRange", Short(requiredPlayerRange)},
+            {"SpawnCount", Short(spawnCount)},
+            {"SpawnRange", Short(spawnRange)},
+        };
+        if (!mob.empty()) {
+            tag->fValue["EntityIdentifier"] = String(mob);
+        }
+        return tag;
     }
 
     static TileEntityData BrewingStand(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
