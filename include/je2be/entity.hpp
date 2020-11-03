@@ -324,10 +324,42 @@ private:
         E("boat", Convert(Vehicle, Boat));
         E("minecart", Convert(Vehicle, Minecart));
         E("armor_stand", Mob);
+        E("hopper_minecart", StorageMinecart);
+        E("chest_minecart", StorageMinecart);
 #undef A
 #undef M
 #undef E
         return table;
+    }
+
+    static EntityData StorageMinecart(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        using namespace mcfile::nbt;
+
+        auto e = BaseProperties(tag);
+        if (!e) return nullptr;
+        auto c = e->toCompoundTag();
+
+        auto chestItems = std::make_shared<ListTag>();
+        chestItems->fType = Tag::TAG_Compound;
+
+        auto items = props::GetList(tag, "Items");
+        if (items) {
+            for (auto const& it : items->fValue) {
+                if (it->id() != Tag::TAG_Compound) continue;
+                auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+                if (!item) continue;
+                auto converted = Item::From(item, mapInfo, ddf);
+                if (!converted) continue;
+                auto slot = props::GetByte(*item, "Slot");
+                if (!slot) continue;
+                converted->fValue["Slot"] = props::Byte(*slot);
+                chestItems->fValue.push_back(converted);
+            }
+        }
+
+        c->fValue["ChestItems"] = chestItems;
+
+        return c;
     }
 
     static EntityData Parrot(EntityData const& c, CompoundTag const& tag) {
