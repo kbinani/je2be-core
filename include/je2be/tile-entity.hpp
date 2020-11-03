@@ -32,7 +32,6 @@ public:
         auto id = props::GetString(*tag, "id");
         if (!id) return nullptr;
         auto const& name = *id;
-        std::cout << name << std::endl;
         if (name == "minecraft:mob_spawner") {
             return true;
         }
