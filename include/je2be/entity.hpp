@@ -638,6 +638,33 @@ private:
     static EntityData Animal(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         auto c = Mob(tag, passengers, mapInfo, ddf);
         c->fValue["Persistent"] = props::Bool(true);
+
+        auto leash = props::GetCompound(tag, "Leash");
+        if (leash) {
+            auto x = props::GetInt(*leash, "X");
+            auto y = props::GetInt(*leash, "Y");
+            auto z = props::GetInt(*leash, "Z");
+            auto uuid = props::GetUUID(tag, "UUID");
+            if (x && y && z && uuid) {
+                int64_t targetUUID = *uuid;
+                XXH64_state_t* state = XXH64_createState();
+                XXH64_hash_t seed = 0;
+                XXH64_reset(state, seed);
+                XXH64_update(state, &targetUUID, sizeof(targetUUID));
+                XXH64_hash_t hash = XXH64_digest(state);
+                XXH64_freeState(state);
+                int64_t leasherId = *(int64_t*)&hash;
+
+                Entity e(leasherId);
+                e.fPos = Vec(*x + 0.5f, *y + 0.25f, *z + 0.5f);
+                e.fIdentifier = "minecraft:leash_knot";
+                auto leashEntityData = e.toCompoundTag();
+                passengers.push_back(leashEntityData);
+
+                c->fValue["LeasherID"] = props::Long(leasherId);
+            }
+        }
+
         return c;
     }
 
