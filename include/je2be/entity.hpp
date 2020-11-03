@@ -486,12 +486,7 @@ private:
 
     static EntityData Animal(CompoundTag const& tag, std::vector<EntityData>& passengers) {
         auto c = Mob(tag, passengers);
-        auto persistenceRequired = props::GetBoolOrDefault(tag, "PersistenceRequired", false);
-        bool persistent = true;
-        if (persistenceRequired && !props::GetString(tag, "CustomName")) {
-            persistent = false;
-        }
-        c->fValue["Persistent"] = props::Bool(persistent);
+        c->fValue["Persistent"] = props::Bool(true);
         return c;
     }
 
