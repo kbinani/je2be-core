@@ -271,7 +271,7 @@ private:
         M("ghast");
         M("guardian");
         M("hoglin");
-        A("horse");
+        E("horse", Convert(Animal, AgeableA("horse"), Horse));
         E("husk", Convert(Monster, AgeableA("husk")));
         E("llama", Convert(Animal, AgeableA("llama"), Llama));
         E("magma_cube", Convert(Monster, Slime));
@@ -330,6 +330,15 @@ private:
 #undef M
 #undef E
         return table;
+    }
+
+    static EntityData Horse(EntityData const& c, CompoundTag const& tag) {
+        auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+        auto baseColor = 0xf & variant;
+        auto markings = 0xf & (variant >> 8);
+        c->fValue["Variant"] = props::Int(baseColor);
+        c->fValue["MarkVariant"] = props::Int(markings);
+        return c;
     }
 
     static EntityData StorageMinecart(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
