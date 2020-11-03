@@ -6,7 +6,7 @@ class Entity {
 private:
     using CompoundTag = mcfile::nbt::CompoundTag;
     using EntityData = std::shared_ptr<mcfile::nbt::CompoundTag>;
-    using Converter = std::function<EntityData(CompoundTag const&, std::vector<EntityData> &/*passengers*/)>;
+    using Converter = std::function<EntityData(CompoundTag const&, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf)>;
 
     using Behavior = std::function<EntityData(EntityData const&, CompoundTag const& input)>;
 
@@ -15,8 +15,8 @@ private:
         Convert(Converter base, Arg ...args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {
         }
 
-        EntityData operator()(CompoundTag const& input, std::vector<EntityData>& passengers) const {
-            auto c = fBase(input, passengers);
+        EntityData operator()(CompoundTag const& input, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) const {
+            auto c = fBase(input, passengers, mapInfo, ddf);
             if (!c) return nullptr;
             for (auto const& b : fBehaviors) {
                 auto next = b(c, input);
@@ -34,7 +34,7 @@ private:
 public:
     explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
-    static std::vector<EntityData> From(mcfile::nbt::CompoundTag const& tag) {
+    static std::vector<EntityData> From(mcfile::nbt::CompoundTag const& tag, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace props;
         auto id = GetString(tag, "id");
         if (!id) return std::vector<EntityData>();
@@ -48,7 +48,7 @@ public:
             }
             return ret;
         }
-        auto converted = found->second(tag, ret);
+        auto converted = found->second(tag, ret, mapInfo, ddf);
         if (converted) {
             ret.push_back(converted);
         }
@@ -323,6 +323,7 @@ private:
 
         E("boat", Convert(Vehicle, Boat));
         E("minecart", Convert(Vehicle, Minecart));
+        E("armor_stand", Mob);
 #undef A
 #undef M
 #undef E
@@ -502,7 +503,7 @@ private:
         return c;
     }
 
-    static EntityData Vehicle(CompoundTag const& tag, std::vector<EntityData>& out) {
+    static EntityData Vehicle(CompoundTag const& tag, std::vector<EntityData>& out, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace mcfile::nbt;
 
         auto e = BaseProperties(tag);
@@ -518,7 +519,7 @@ private:
                 auto comp = p->asCompound();
                 if (!comp) continue;
 
-                auto entities = From(*comp);
+                auto entities = From(*comp, mapInfo, ddf);
                 if (entities.empty()) continue;
 
                 auto const& passenger = entities[0];
@@ -590,8 +591,8 @@ private:
         return c;
     }
 
-    static EntityData Monster(CompoundTag const& tag, std::vector<EntityData>& passengers) {
-        auto c = Mob(tag, passengers);
+    static EntityData Monster(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        auto c = Mob(tag, passengers, mapInfo, ddf);
         c->fValue["SpawnedByNight"] = props::Bool(false);
         auto persistenceRequired = props::GetBoolOrDefault(tag, "PersistenceRequired", true);
         bool persistent = false;
@@ -602,8 +603,8 @@ private:
         return c;
     }
 
-    static EntityData Animal(CompoundTag const& tag, std::vector<EntityData>& passengers) {
-        auto c = Mob(tag, passengers);
+    static EntityData Animal(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        auto c = Mob(tag, passengers, mapInfo, ddf);
         c->fValue["Persistent"] = props::Bool(true);
         return c;
     }
@@ -805,16 +806,16 @@ private:
         return c;
     }
 
-    static EntityData Mob(CompoundTag const& tag, std::vector<EntityData>& passengers) {
+    static EntityData Mob(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace props;
         auto e = BaseProperties(tag);
         if (!e) return nullptr;
         auto ret = e->toCompoundTag();
         auto& c = *ret;
         auto air = GetShortOrDefault(tag, "Air", 300);
-        auto armor = GetArmor(tag);
-        auto mainhand = GetMainhand(tag);
-        auto offhand = GetOffhand(tag);
+        auto armor = GetArmor(tag, mapInfo, ddf);
+        auto mainhand = GetMainhand(tag, mapInfo, ddf);
+        auto offhand = GetOffhand(tag, mapInfo, ddf);
         auto canPickupLoot = GetBoolOrDefault(tag, "CanPickUpLoot", false);
         auto deathTime = GetShortOrDefault(tag, "DeathTime", 0);
         auto hurtTime = GetShortOrDefault(tag, "HurtTime", 0);
@@ -851,43 +852,77 @@ private:
         return ret;
     }
 
-    static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const& tag) {
+    static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const& tag, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace mcfile::nbt;
-        auto ret = std::make_shared<ListTag>();
-        ret->fType = Tag::TAG_Compound;
+        auto armors = std::make_shared<ListTag>();
+        armors->fType = Tag::TAG_Compound;
 
-        for (int i = 0; i < 4; i++) {
-            auto item = tag.query("ArmorItems/" + std::to_string(i))->asCompound();
-            std::shared_ptr<CompoundTag> armor;
-            if (item) {
-                //TODO: 
-            }
-            if (!armor) {
-                armor = Item::Empty();
-            }
-            ret->fValue.push_back(armor);
+        if (props::GetStringOrDefault(tag, "id", "") == "minecraft:armor_stand") {
+            int a = 0;
         }
+
+        auto found = tag.fValue.find("ArmorItems");
+        if (found != tag.fValue.end()) {
+            auto list = found->second->asList();
+            if (list && list->fType == Tag::TAG_Compound) {
+                for (int i = 0; i < 4 && i < list->fValue.size(); i++) {
+                    auto item = std::dynamic_pointer_cast<CompoundTag>(list->fValue[i]);
+                    if (item) {
+                        auto converted = Item::From(item, mapInfo, ddf);
+                        armors->fValue.push_back(converted);
+                    } else {
+                        armors->fValue.push_back(Item::Empty());
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            if (armors->fValue.size() < i + 1) {
+                armors->fValue.push_back(Item::Empty());
+            } else {
+                if (!armors->fValue[i]) {
+                    armors->fValue[i] = Item::Empty();
+                }
+            }
+        }
+
+        auto ret = std::make_shared<ListTag>();
+        ret->fType = Tag::TAG_Compound;
+        ret->fValue.push_back(armors->fValue[3]);
+        ret->fValue.push_back(armors->fValue[2]);
+        ret->fValue.push_back(armors->fValue[1]);
+        ret->fValue.push_back(armors->fValue[0]);
+
         return ret;
     }
 
-    static std::shared_ptr<mcfile::nbt::ListTag> GetMainhand(CompoundTag const& tag) {
+    static std::shared_ptr<mcfile::nbt::ListTag> GetMainhand(CompoundTag const& input, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        return HandItem<0>(input, mapInfo, ddf);
+    }
+
+    static std::shared_ptr<mcfile::nbt::ListTag> GetOffhand(CompoundTag const& input, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        return HandItem<1>(input, mapInfo, ddf);
+    }
+
+    template <size_t index>
+    static std::shared_ptr<mcfile::nbt::ListTag> HandItem(CompoundTag const& input, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace mcfile::nbt;
         auto ret = std::make_shared<ListTag>();
         ret->fType = Tag::TAG_Compound;
 
-        auto armor = Item::Empty(); //TODO:
-        ret->fValue.push_back(armor);
+        auto mainHand = props::GetList(input, "HandItems");
+        std::shared_ptr<CompoundTag> item;
 
-        return ret;
-    }
-
-    static std::shared_ptr<mcfile::nbt::ListTag> GetOffhand(CompoundTag const& tag) {
-        using namespace mcfile::nbt;
-        auto ret = std::make_shared<ListTag>();
-        ret->fType = Tag::TAG_Compound;
-
-        auto armor = Item::Empty(); //TODO:
-        ret->fValue.push_back(armor);
+        if (mainHand && mainHand->fType == Tag::TAG_Compound && index < mainHand->fValue.size()) {
+            auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
+            if (inItem) {
+                item = Item::From(inItem, mapInfo, ddf);
+            }
+        }
+        if (!item) {
+            item = Item::Empty();
+        }
+        ret->fValue.push_back(item);
 
         return ret;
     }
@@ -938,7 +973,7 @@ private:
         return e->toCompoundTag();
     }
 
-    static EntityData EndCrystal(CompoundTag const& tag, std::vector<EntityData>& passengers) {
+    static EntityData EndCrystal(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         auto e = BaseProperties(tag);
         if (!e) return nullptr;
         e->fIdentifier = "minecraft:ender_crystal";
@@ -946,7 +981,7 @@ private:
         return c;
     }
 
-    static EntityData Painting(CompoundTag const& tag, std::vector<EntityData> &) {
+    static EntityData Painting(CompoundTag const& tag, std::vector<EntityData> &, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace props;
         using namespace mcfile::nbt;
         using namespace std;

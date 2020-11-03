@@ -5,7 +5,7 @@ namespace j2b {
 class ChunkDataPackage {
 public:
     void build(mcfile::Chunk const& chunk, JavaEditionMap const& mapInfo, DimensionDataFragment &ddf) {
-        buildEntities(chunk);
+        buildEntities(chunk, mapInfo, ddf);
         buildBiomeMap(chunk);
         buildTileEntities(chunk, mapInfo, ddf);
     }
@@ -68,7 +68,7 @@ private:
         }
     }
 
-    void buildEntities(mcfile::Chunk const& chunk) {
+    void buildEntities(mcfile::Chunk const& chunk, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
         using namespace std;
         using namespace props;
         for (auto e : chunk.fEntities) {
@@ -76,7 +76,7 @@ private:
             if (!c) {
                 continue;
             }
-            auto converted = Entity::From(*c);
+            auto converted = Entity::From(*c, mapInfo, ddf);
             copy_n(converted.begin(), converted.size(), back_inserter(fEntities));
         }
     }

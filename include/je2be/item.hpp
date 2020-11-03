@@ -121,7 +121,7 @@ private:
         E("wither_skeleton_skull", Skull);
         E("player_head", Skull);
         E("zombie_head", Skull);
-        E("greeper_head", Skull);
+        E("creeper_head", Skull);
         E("dragon_head", Skull);
 
         E("item_frame", Rename("frame"));
@@ -809,7 +809,7 @@ private:
         }
         auto tag = std::make_shared<CompoundTag>();
         tag->fValue = {
-            {"Name", String(name)},
+            {"Name", String(n)},
             {"WasPickedUp", Bool(false)},
             {"Count", Byte(1)},
             {"Damage", Short(0)},
