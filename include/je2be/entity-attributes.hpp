@@ -152,7 +152,9 @@ private:
 		table->insert(make_pair("minecraft:hoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
 		table->insert(make_pair("minecraft:husk", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
 		table->insert(make_pair("minecraft:iron_golem", Attributes(Attribute(100, 100, 100), Attribute(1, 1, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(7, 7, 7))));
-		table->insert(make_pair("minecraft:llama", Attributes(Attribute(27, 27, 27), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(40, 40, 40), nullopt)));
+		Attributes llama(Attribute(27, 27, 27), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(40, 40, 40), nullopt);
+		table->insert(make_pair("minecraft:llama", llama));
+		table->insert(make_pair("minecraft:trader_llama", llama));
 		table->insert(make_pair("minecraft:magma_cube", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.75, 0.75), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(6, 6, 6))));
 		table->insert(make_pair("minecraft:mooshroom", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
 		table->insert(make_pair("minecraft:ocelot", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4))));

@@ -327,6 +327,8 @@ private:
         E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart")));
         E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
         E("tnt_minecart", Convert(Vehicle, Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
+        E("snow_golem", Mob);
+        E("iron_golem", Mob);
 #undef A
 #undef M
 #undef E
