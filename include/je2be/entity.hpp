@@ -897,9 +897,16 @@ private:
 
         auto id = GetString(tag, "id");
         if (id) {
-            auto attributes = EntityAttributes::Mob(*id);
-            if (attributes) {
-                c["Attributes"] = attributes;
+            if (*id == "minecraft:horse" || *id == "minecraft:donkey" || *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" || *id == "minecraft:zombie_horse") {
+                auto attributes = EntityAttributes::AnyHorse(tag);
+                if (attributes) {
+                    c["Attributes"] = attributes;
+                }
+            } else {
+                auto attributes = EntityAttributes::Mob(*id);
+                if (attributes) {
+                    c["Attributes"] = attributes;
+                }
             }
         }
 
