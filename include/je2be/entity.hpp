@@ -322,10 +322,11 @@ private:
         E("zombified_piglin", Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
         E("boat", Convert(Vehicle, Boat));
-        E("minecart", Convert(Vehicle, Minecart));
+        E("minecart", Convert(Vehicle, Minecart, Definitions("+minecraft:minecart")));
         E("armor_stand", Mob);
-        E("hopper_minecart", StorageMinecart);
-        E("chest_minecart", StorageMinecart);
+        E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart")));
+        E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
+        E("tnt_minecart", Convert(Vehicle, Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
 #undef A
 #undef M
 #undef E
@@ -378,7 +379,26 @@ private:
     }
 
     static EntityData Minecart(EntityData const& c, CompoundTag const& tag) {
-        AddDefinition(c, "+minecraft:minecart");
+        auto pos = props::GetVec(tag, "Pos");
+        auto onGround = props::GetBool(tag, "OnGround");
+        if (pos && onGround) {
+            // Java
+            //   on ground: ground level +0
+            //   on rail: ground level +0.0625
+            // Bedrock
+            //   on ground: graound level +0.35
+            //   on rail: ground level +0.5
+            int32_t iy = (int32_t)floor(pos->fY);
+            double dy = pos->fY - iy;
+            if (*onGround) {
+                // on ground
+                pos->fY = iy + 0.35;
+            } else if (1.0 / 16.0 <= dy && dy < 2.0 / 16.0) {
+                // on rail
+                pos->fY = iy + 0.5;
+            }
+            c->fValue["Pos"] = pos->toListTag();
+        }
         return c;
     }
 
