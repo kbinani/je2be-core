@@ -199,55 +199,118 @@ inline float GetDoubleOrDefault(mcfile::nbt::CompoundTag const& tag, std::string
     }
 }
 
-inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
+struct UUIDKeyName {
+    std::optional<std::string> fLeastAndMostPrefix = std::nullopt;
+    std::optional<std::string> fIntArray = std::nullopt;
+    std::optional<std::string> fHexString = std::nullopt;
+};
+
+inline std::optional<int64_t> GetUUIDWithFormatLeastAndMost(mcfile::nbt::CompoundTag const& tag, std::string const& namePrefix) {
     using namespace std;
     using namespace mcfile::nbt;
+    auto least = GetLong(tag, namePrefix + "Least");
+    auto most = GetLong(tag, namePrefix + "Most");
+
+    if (!least || !most) return nullopt;
+
+    int64_t l = *least;
+    int64_t m = *most;
+
+    XXH64_state_t* state = XXH64_createState();
+    XXH64_hash_t seed = 0;
+    XXH64_reset(state, seed);
+    XXH64_update(state, (int32_t*)&m + 1, sizeof(int32_t));
+    XXH64_update(state, (int32_t*)&m, sizeof(int32_t));
+    XXH64_update(state, (int32_t*)&l + 1, sizeof(int32_t));
+    XXH64_update(state, (int32_t*)&l, sizeof(int32_t));
+    XXH64_hash_t hash = XXH64_digest(state);
+    XXH64_freeState(state);
+    return *(int64_t*)&hash;
+}
+
+inline std::optional<int64_t> GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
+    using namespace std;
+    using namespace mcfile::nbt;
+
     auto found = tag.fValue.find(name);
-    if (found == tag.fValue.end()) {
-        auto least = GetLong(tag, name + "Least");
-        auto most = GetLong(tag, name + "Most");
+    if (found == tag.fValue.end()) return nullopt;
 
-        if (!least || !most) return nullopt;
-
-        int64_t l = *least;
-        int64_t m = *most;
-
-        XXH64_state_t* state = XXH64_createState();
-        XXH64_hash_t seed = 0;
-        XXH64_reset(state, seed);
-        XXH64_update(state, (int32_t*)&m + 1, sizeof(int32_t));
-        XXH64_update(state, (int32_t*)&m, sizeof(int32_t));
-        XXH64_update(state, (int32_t*)&l + 1, sizeof(int32_t));
-        XXH64_update(state, (int32_t*)&l, sizeof(int32_t));
-        XXH64_hash_t hash = XXH64_digest(state);
-        XXH64_freeState(state);
-        return *(int64_t*)&hash;
-    } else {
-        IntArrayTag const* list = found->second->asIntArray();
-        if (!list) {
-            return nullopt;
-        }
-        vector<int32_t> const& value = list->value();
-        if (value.size() != 4) {
-            return nullopt;
-        }
-
-        int32_t a = value[0];
-        int32_t b = value[1];
-        int32_t c = value[2];
-        int32_t d = value[3];
-
-        XXH64_state_t* state = XXH64_createState();
-        XXH64_hash_t seed = 0;
-        XXH64_reset(state, seed);
-        XXH64_update(state, &a, sizeof(a));
-        XXH64_update(state, &b, sizeof(b));
-        XXH64_update(state, &c, sizeof(c));
-        XXH64_update(state, &d, sizeof(d));
-        XXH64_hash_t hash = XXH64_digest(state);
-        XXH64_freeState(state);
-        return *(int64_t*)&hash;
+    IntArrayTag const* list = found->second->asIntArray();
+    if (!list) {
+        return nullopt;
     }
+    vector<int32_t> const& value = list->value();
+    if (value.size() != 4) {
+        return nullopt;
+    }
+
+    int32_t a = value[0];
+    int32_t b = value[1];
+    int32_t c = value[2];
+    int32_t d = value[3];
+
+    XXH64_state_t* state = XXH64_createState();
+    XXH64_hash_t seed = 0;
+    XXH64_reset(state, seed);
+    XXH64_update(state, &a, sizeof(a));
+    XXH64_update(state, &b, sizeof(b));
+    XXH64_update(state, &c, sizeof(c));
+    XXH64_update(state, &d, sizeof(d));
+    XXH64_hash_t hash = XXH64_digest(state);
+    XXH64_freeState(state);
+    return *(int64_t*)&hash;
+}
+
+inline std::optional<int64_t> GetUUIDWithFormatHexString(mcfile::nbt::CompoundTag const& tag, std::string const& name) {
+    using namespace std;
+    using namespace mcfile::nbt;
+
+    auto found = tag.fValue.find(name);
+    if (found == tag.fValue.end()) return nullopt;
+
+    auto hex = found->second->asString();
+    if (!hex) return nullopt;
+
+    auto s = strings::Replace(hex->fValue, "-");
+    if (s.size() != 32) return nullopt;
+    auto a0 = strings::Tol(s.substr(0, 8), 16);
+    auto b0 = strings::Tol(s.substr(8, 8), 16);
+    auto c0 = strings::Tol(s.substr(16, 8), 16);
+    auto d0 = strings::Tol(s.substr(24), 16);
+
+    if (!a0 || !b0 || !c0 || !d0) return nullopt;
+
+    uint32_t a = (uint32_t)*a0;
+    uint32_t b = (uint32_t)*b0;
+    uint32_t c = (uint32_t)*c0;
+    uint32_t d = (uint32_t)*d0;
+
+    XXH64_state_t* state = XXH64_createState();
+    XXH64_hash_t seed = 0;
+    XXH64_reset(state, seed);
+    XXH64_update(state, &a, sizeof(a));
+    XXH64_update(state, &b, sizeof(b));
+    XXH64_update(state, &c, sizeof(c));
+    XXH64_update(state, &d, sizeof(d));
+    XXH64_hash_t hash = XXH64_digest(state);
+    XXH64_freeState(state);
+    return *(int64_t*)&hash;
+}
+
+inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const& tag, UUIDKeyName keyName) {
+    if (keyName.fIntArray) {
+        auto ret = GetUUIDWithFormatIntArray(tag, *keyName.fIntArray);
+        if (ret) return ret;
+    }
+    if (keyName.fLeastAndMostPrefix) {
+        auto ret = GetUUIDWithFormatLeastAndMost(tag, *keyName.fIntArray);
+        if (ret) return ret;
+    }
+    if (keyName.fHexString) {
+        auto ret = GetUUIDWithFormatHexString(tag, *keyName.fHexString);
+        if (ret) return ret;
+    }
+    return std::nullopt;
 }
 
 inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const& tag, std::string const& name) {

@@ -673,7 +673,7 @@ private:
             auto x = props::GetInt(*leash, "X");
             auto y = props::GetInt(*leash, "Y");
             auto z = props::GetInt(*leash, "Z");
-            auto uuid = props::GetUUID(tag, "UUID");
+            auto uuid = GetEntityUUID(tag);
             if (x && y && z && uuid) {
                 int64_t targetUUID = *uuid;
                 XXH64_state_t* state = XXH64_createState();
@@ -705,11 +705,15 @@ private:
         return c;
     }
 
+    static std::optional<int64_t> GetOwnerUUID(CompoundTag const& tag) {
+        return props::GetUUID(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"});
+    }
+
     static EntityData Cat(EntityData const& c, CompoundTag const& tag) {
         using namespace mcfile::nbt;
         using namespace std;
         auto collarColor = props::GetByte(tag, "CollarColor");
-        if (collarColor && props::GetUUID(tag, "Owner")) {
+        if (collarColor && GetOwnerUUID(tag)) {
             c->fValue["Color"] = props::Byte(*collarColor);
         }
         auto catType = props::GetInt(tag, "CatType");
@@ -815,7 +819,7 @@ private:
 
     static Behavior Tameable(std::string const& definitionKey) {
         return [=](EntityData const& c, CompoundTag const& tag) {
-            auto owner = props::GetUUID(tag, "Owner");
+            auto owner = GetOwnerUUID(tag);
             if (owner) {
                 c->fValue["OwnerNew"] = props::Long(*owner);
                 AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
@@ -1008,6 +1012,10 @@ private:
         return ret;
     }
 
+    static std::optional<int64_t> GetEntityUUID(CompoundTag const& tag) {
+        return props::GetUUID(tag, {.fLeastAndMostPrefix = "UUID", .fIntArray = "UUID"});
+    }
+
     static std::optional<Entity> BaseProperties(CompoundTag const& tag) {
         using namespace props;
         using namespace mcfile::nbt;
@@ -1021,7 +1029,7 @@ private:
         auto motion = GetVec(tag, "Motion");
         auto pos = GetVec(tag, "Pos");
         auto rotation = GetRotation(tag, "Rotation");
-        auto uuid = GetUUID(tag, "UUID");
+        auto uuid = GetEntityUUID(tag);
         auto id = GetString(tag, "id");
         auto customName = GetJson(tag, "CustomName");
 
