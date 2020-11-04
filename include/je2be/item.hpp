@@ -410,14 +410,176 @@ private:
         return Post(tag, item);
     }
 
+    struct FireworksExplosion {
+        bool fFlicker = false;
+        bool fTrail = false;
+        int8_t fType;
+        std::optional<Rgba> fColor;
+        std::optional<Rgba> fFadeColor;
+
+        static FireworksExplosion From(CompoundTag const& tag) {
+            FireworksExplosion e;
+            e.fTrail = props::GetBoolOrDefault(tag, "Trail", false);
+            e.fFlicker = props::GetBoolOrDefault(tag, "Flicker", false);
+            auto colors = tag.query("Colors")->asIntArray();
+            if (colors && !colors->value().empty()) {
+                int32_t v = colors->value()[0];
+                uint8_t r = 0xff & ((*(uint32_t*)&v) >> 16);
+                uint8_t g = 0xff & ((*(uint32_t*)&v) >> 8);
+                uint8_t b = 0xff & (*(uint32_t*)&v);
+                e.fColor = Rgba(r, g, b);
+            }
+            auto fadeColors = tag.query("FadeColors")->asIntArray();
+            if (fadeColors && !fadeColors->value().empty()) {
+                int32_t v = fadeColors->value()[0];
+                uint8_t r = 0xff & ((*(uint32_t*)&v) >> 16);
+                uint8_t g = 0xff & ((*(uint32_t*)&v) >> 8);
+                uint8_t b = 0xff & (*(uint32_t*)&v);
+                e.fFadeColor = Rgba(r, g, b);
+            }
+            e.fType = props::GetByteOrDefault(tag, "Type", 0);
+            return e;
+
+            // Java
+            // Fireworks
+            //   Explosions
+            //     Type
+            //       1: large (firecharge)
+            //       2: star (gold nugget)
+            //       3: creeper (skull)
+            //       4: explosion (feather)
+            //    Flicker: true (glowstone dust)
+            //    Trail: true (diamond)
+            //    Colors: IntArray (RGB)
+            //    FadeColors: IntArray (RGB)
+        }
+
+        std::shared_ptr<CompoundTag> toCompoundTag() const {
+            using namespace props;
+            using namespace mcfile::nbt;
+            auto ret = std::make_shared<CompoundTag>();
+            std::vector<uint8_t> colors;
+            if (fColor) {
+                colors.push_back(GetBedrockColorCode(*fColor));
+            }
+            std::vector<uint8_t> fade;
+            if (fFadeColor) {
+                fade.push_back(GetBedrockColorCode(*fFadeColor));
+            }
+            ret->fValue = {
+                {"FireworkFlicker", Bool(fFlicker)},
+                {"FireworkTrail", Bool(fTrail)},
+                {"FireworkType", Byte(fType)},
+                {"FireworkColor", std::make_shared<ByteArrayTag>(colors)},
+                {"FireworkFade", std::make_shared<ByteArrayTag>(fade)},
+            };
+            return ret;
+        }
+
+        static int8_t GetBedrockColorCode(Rgba rgb) {
+            int32_t argb = rgb.toARGB();
+            int32_t c = 0xffffff & (*(uint32_t*)&argb);
+            switch (c) {
+            case 15790320:
+                return 15; // white
+            case 15435844:
+                return 14; // orange
+            case 12801229:
+                return 13; // magenta
+            case 6719955:
+                return 12; // light blue
+            case 14602026:
+                return 11; // yellow
+            case 4312372:
+                return 10; // lime
+            case 14188952:
+                return 9; // pink
+            case 4408131:
+                return 8; // gray
+            case 11250603:
+                return 7; // ligth gray
+            case 2651799:
+                return 6; // cyan
+            case 8073150:
+                return 5; // purple
+            case 2437522:
+                return 3; // brown
+            case 5320730:
+                return 2; // green
+            case 3887386:
+                return 1; // red
+            case 1973019:
+                return 0; // black
+            }
+            return 0;
+        }
+    };
+
+    struct FireworksData {
+        std::vector<FireworksExplosion> fExplosions;
+        int8_t fFlight = 1;
+
+        static FireworksData From(CompoundTag const& fireworks) {
+            FireworksData es;
+
+            es.fFlight = props::GetByteOrDefault(fireworks, "Flight", 1);
+
+            auto explosions = fireworks.query("Explosions")->asList();
+            if (explosions) {
+                for (auto const& it : explosions->fValue) {
+                    auto c = it->asCompound();
+                    if (!c) continue;
+                    FireworksExplosion e = FireworksExplosion::From(*c);
+                    es.fExplosions.push_back(e);
+                }
+            }
+
+            return es;
+        }
+
+        std::shared_ptr<CompoundTag> toCompoundTag() const {
+            using namespace mcfile::nbt;
+            auto ret = std::make_shared<CompoundTag>();
+            auto explosions = std::make_shared<ListTag>();
+            explosions->fType = Tag::TAG_Compound;
+            for (auto const& it : fExplosions) {
+                explosions->fValue.push_back(it.toCompoundTag());
+            }
+            ret->fValue["Explosions"] = explosions;
+            ret->fValue["Flight"] = props::Byte(fFlight);
+            return ret;
+        }
+    };
+
     static ItemData FireworkStar(std::string const& name, CompoundTag const& item) {
-        //TODO: colors and effects.
-        return Rename("fireworkscharge")(name, item);
+        auto data = Rename("fireworkscharge")(name, item);
+
+        auto explosion = item.query("tag/Explosion")->asCompound();
+        if (explosion) {
+            auto tag = std::make_shared<CompoundTag>();
+
+            auto e = FireworksExplosion::From(*explosion);
+            if (e.fColor) {
+                int32_t customColor = e.fColor->toARGB();
+                tag->fValue["customColor"] = props::Int(customColor);
+            }
+            tag->fValue["FireworksItem"] = e.toCompoundTag();
+            data->fValue["tag"] = tag;
+        }
+
+        return data;
     }
 
     static ItemData FireworkRocket(std::string const& name, CompoundTag const& item) {
-        //TODO: colors and effects.
-        return Rename("fireworks")(name, item);
+        auto data = Rename("fireworks")(name, item);
+        auto fireworks = item.query("tag/Fireworks")->asCompound();
+        if (fireworks) {
+            auto fireworksData = FireworksData::From(*fireworks);
+            auto tag = std::make_shared<CompoundTag>();
+            tag->fValue["Fireworks"] = fireworksData.toCompoundTag();
+            data->fValue["tag"] = tag;
+        }
+        return data;
     }
 
     static Converter SpawnEgg(std::string const& mob, int16_t damage) {

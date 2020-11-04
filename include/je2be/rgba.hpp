@@ -10,6 +10,11 @@ struct Rgba {
     uint8_t fG;
     uint8_t fB;
     uint8_t fA;
+
+    int32_t toARGB() const {
+        uint32_t c = 0xff000000 | ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
+        return *(int32_t*)&c;
+    }
 };
 
 }
