@@ -302,8 +302,35 @@ private:
         E("potion", AnyPotion);
         E("splash_potion", AnyPotion);
         E("lingering_potion", AnyPotion);
+
+        for (string type : {"helmet", "chestplate", "leggings", "boots"}) {
+            table->insert(std::make_pair("minecraft:leather_" + type, LeatherArmor));
+        }
 #undef E
         return table;
+    }
+
+    static ItemData LeatherArmor(std::string const& name, CompoundTag const& item) {
+        using namespace props;
+
+        auto count = GetByteOrDefault(item, "Count", 1);
+        auto tag = std::make_shared<CompoundTag>();
+        tag->fValue = {
+            {"Name", String(name)},
+            {"Count", Byte(count)},
+            {"WasPickedUp", Bool(false)},
+            {"Damage", Short(0)},
+        };
+
+        auto customColor = item.query("tag/display/color")->asInt();
+        if (customColor) {
+            uint32_t v = 0xff000000 | *(uint32_t*)&customColor->fValue;
+            auto t = std::make_shared<CompoundTag>();
+            t->fValue["customColor"] = Int(*(int32_t*)&v);
+            tag->fValue["tag"] = t;
+        }
+
+        return Post(tag, item);
     }
 
     static std::optional<std::tuple<int, ItemData>> Map(std::string const& name, CompoundTag const& item, JavaEditionMap const& mapInfo) {
@@ -646,7 +673,7 @@ private:
         E("flint_and_steel");
         for (string type : {"wooden", "stone", "golden", "iron", "diamond", "netherite"}) {
             for (string tool : {"shovel", "pickaxe", "axe", "hoe"}) {
-                table->insert(type + "_" + tool);
+                table->insert("minecraft:" + type + "_" + tool);
             }
         }
         E("compass");
@@ -668,7 +695,7 @@ private:
         E("netherite_sword");
         for (string type : {"leather", "chainmail", "iron", "diamond", "golden", "netherite"}) {
             for (string item : {"helmet", "chestplate", "leggings", "boots"}) {
-                table->insert(type + "_" + item);
+                table->insert("minecraft:" + type + "_" + item);
             }
         }
         E("spectral_arrow");
