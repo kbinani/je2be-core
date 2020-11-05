@@ -329,10 +329,36 @@ private:
         E("tnt_minecart", Convert(Vehicle, Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
         E("snow_golem", Mob);
         E("iron_golem", Mob);
+
+        E("item", Item);
 #undef A
 #undef M
 #undef E
         return table;
+    }
+
+    static EntityData Item(CompoundTag const& tag, std::vector<EntityData>& passengers, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        using namespace props;
+        auto e = BaseProperties(tag);
+        if (!e) return nullptr;
+
+        auto item = tag.compound("Item");
+        if (!item) return nullptr;
+        auto beItem = Item::From(item, mapInfo, ddf);
+        if (!beItem) return nullptr;
+
+        auto ret = e->toCompoundTag();
+        ret->fValue["Item"] = beItem;
+
+        auto thrower = GetUUID(tag, {.fIntArray = "Thrower"});
+        int64_t owner = -1;
+        if (thrower) {
+            owner = *thrower;
+        }
+        ret->fValue["OwnerID"] = Long(owner);
+        ret->fValue["OwnerNew"] = Long(owner);
+
+        return ret;
     }
 
     static EntityData Horse(EntityData const& c, CompoundTag const& tag) {
