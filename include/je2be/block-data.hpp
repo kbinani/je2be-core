@@ -130,18 +130,6 @@ private:
         };
     }
     
-    static NamingFunction FlowingLiquidName(std::string const& name) {
-        return [=](Block const& block) {
-            auto levelString = block.property("level", "0");
-            auto level = std::stoi(levelString);
-            if (level == 0) {
-                return "minecraft:" + name;
-            } else {
-                return "minecraft:flowing_" + name;
-            }
-        };
-    }
-    
     static PropertyMapFunction AddStringProperty(std::string const& name, std::string const& value) {
         return [=](Block const&) { return std::make_pair(name, props::String(value)); };
     }
@@ -334,7 +322,7 @@ private:
     }
 
     static Converter Liquid(std::string const& type) {
-        return Converter(FlowingLiquidName(type), Name(Level, "liquid_depth"));
+        return Converter(Same, Name(Level, "liquid_depth"));
     }
 
     static Converter NetherVines(std::string const& type, std::optional<int> age = std::nullopt) {

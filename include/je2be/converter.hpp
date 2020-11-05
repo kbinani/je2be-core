@@ -358,7 +358,6 @@ private:
 
         if (hasWaterlogged) {
             // layer 1
-            //TODO(kbinani): flowing_water
             int const numPaletteEntries = 2; // air or water
             uint8_t bitsPerBlock = 1;
             int blocksPerWord = 32;
