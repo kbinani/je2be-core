@@ -806,12 +806,53 @@ private:
     }
 
     static ItemData Banner(std::string const& name, CompoundTag const& item) {
+        using namespace mcfile::nbt;
+
         auto colorName = strings::RTrim(strings::LTrim(name, "minecraft:"), "_banner");
         BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
         int16_t damage = (int16_t)color;
-        auto tag = New("banner");
-        tag->fValue["Damage"] = props::Short(damage);
-        return Post(tag, item);
+        auto ret = New("banner");
+        ret->fValue["Damage"] = props::Short(damage);
+
+        auto patterns = item.query("tag/BlockEntityTag/Patterns")->asList();
+        auto display = item.query("tag/display")->asCompound();
+        bool omnious = false;
+        if (display) {
+            auto json = props::GetJson(*display, "Name");
+            if (json) {
+                auto translate = (*json)["translate"];
+                if (translate.is_string() && translate.get<std::string>() == "block.minecraft.ominous_banner") {
+                    omnious = true;
+                }
+            }
+        }
+
+        if (omnious) {
+            auto tag = std::make_shared<CompoundTag>();
+            tag->fValue["Type"] = props::Int(1);
+            ret->fValue["tag"] = tag;
+        } else if (patterns) {
+            auto bePatterns = std::make_shared<ListTag>();
+            bePatterns->fType = Tag::TAG_Compound;
+            for (auto const& it : patterns->fValue) {
+                auto c = it->asCompound();
+                if (!c) continue;
+                auto color = props::GetInt(*c, "Color");
+                auto pat = props::GetString(*c, "Pattern");
+                if (!color || !pat) continue;
+                auto ptag = std::make_shared<CompoundTag>();
+                ptag->fValue = {
+                    {"Color", props::Int(BannerColorCodeFromJava(*color))},
+                    {"Pattern", props::String(*pat)},
+                };
+                bePatterns->fValue.push_back(ptag);
+            }
+            auto tag = std::make_shared<CompoundTag>();
+            tag->fValue["Patterns"] = bePatterns;
+            ret->fValue["tag"] = tag;
+        }
+
+        return Post(ret, item);
     }
 
     static ItemData Bed(std::string const& name, CompoundTag const& item) {

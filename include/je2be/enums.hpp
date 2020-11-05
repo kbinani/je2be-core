@@ -142,4 +142,42 @@ inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
     }
 }
 
+inline int32_t BannerColorCodeFromJava(int32_t java) {
+    ColorCodeJava ccj = (ColorCodeJava)java;
+    switch (ccj) {
+    case ColorCodeJava::Red:
+        return (int32_t)BannerColorCodeBedrock::Red;
+    case ColorCodeJava::Black:
+        return (int32_t)BannerColorCodeBedrock::Black;
+    case ColorCodeJava::Blue:
+        return (int32_t)BannerColorCodeBedrock::Blue;
+    case ColorCodeJava::Brown:
+        return (int32_t)BannerColorCodeBedrock::Brown;
+    case ColorCodeJava::Cyan:
+        return (int32_t)BannerColorCodeBedrock::Cyan;
+    case ColorCodeJava::Gray:
+        return (int32_t)BannerColorCodeBedrock::Gray;
+    case ColorCodeJava::Green:
+        return (int32_t)BannerColorCodeBedrock::Green;
+    case ColorCodeJava::LightBlue:
+        return (int32_t)BannerColorCodeBedrock::LightBlue;
+    case ColorCodeJava::LightGray:
+        return (int32_t)BannerColorCodeBedrock::LightGray;
+    case ColorCodeJava::Lime:
+        return (int32_t)BannerColorCodeBedrock::Lime;
+    case ColorCodeJava::Magenta:
+        return (int32_t)BannerColorCodeBedrock::Magenta;
+    case ColorCodeJava::Orange:
+        return (int32_t)BannerColorCodeBedrock::Orange;
+    case ColorCodeJava::Pink:
+        return (int32_t)BannerColorCodeBedrock::Pink;
+    case ColorCodeJava::Purple:
+        return (int32_t)BannerColorCodeBedrock::Purple;
+    case ColorCodeJava::White:
+        return (int32_t)BannerColorCodeBedrock::White;
+    case ColorCodeJava::Yellow:
+        return (int32_t)BannerColorCodeBedrock::Yellow;
+    }
+}
+
 }
