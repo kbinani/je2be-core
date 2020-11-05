@@ -28,6 +28,7 @@
 #include <je2be/color/rgba.hpp>
 #include <je2be/color/lab.hpp>
 #include <je2be/size.hpp>
+#include <je2be/xxhash.hpp>
 #include <je2be/props.hpp>
 #include <je2be/block-data.hpp>
 #include <je2be/biome-map.hpp>

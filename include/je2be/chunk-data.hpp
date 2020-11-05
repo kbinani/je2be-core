@@ -133,14 +133,9 @@ private:
         return r;
     }
 
-    static XXH64_hash_t GetXXHSum(std::vector<uint8_t> const& v) {
-        XXH64_state_t* state = XXH64_createState();
-        XXH64_hash_t seed = 0;
-        XXH64_reset(state, seed);
-        XXH64_update(state, v.data(), v.size());
-        XXH64_hash_t hash = XXH64_digest(state);
-        XXH64_freeState(state);
-        return hash;
+    static uint64_t GetXXHSum(std::vector<uint8_t> const& v) {
+        int64_t d = XXHash::Digest(v.data(), v.size());
+        return *(uint64_t*)&d;
     }
 
 public:
