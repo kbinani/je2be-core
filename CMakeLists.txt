@@ -41,11 +41,12 @@ set(je2be_srcs
   include/je2be/world-data.hpp
   include/je2be/dimension-data-fragment.hpp
   include/je2be/java-edition-map.hpp
-  include/je2be/rgba.hpp
+  include/je2be/color/rgba.hpp
   include/je2be/size.hpp
   include/je2be/entity-attributes.hpp
   include/je2be/fireworks-explosion.hpp
   include/je2be/fireworks.hpp
+  include/je2be/color/lab.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp

@@ -17,8 +17,16 @@ struct Rgba {
     }
 
     int32_t toARGB() const {
-        uint32_t c = 0xff000000 | ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
+        uint32_t c = ((uint32_t)fA << 16) | ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
         return *(int32_t*)&c;
+    }
+
+    static Rgba FromRGB(int32_t rgb) {
+        uint32_t u = *(uint32_t*)&rgb;
+        uint8_t r = 0xff & (u >> 16);
+        uint8_t g = 0xff & (u >> 8);
+        uint8_t b = 0xff & u;
+        return Rgba(r, g, b);
     }
 };
 

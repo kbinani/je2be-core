@@ -65,9 +65,9 @@ public:
         return ret;
     }
 
+private:
     static int8_t GetBedrockColorCode(Rgba rgb) {
-        int32_t c = rgb.toRGB();
-        switch (c) {
+        switch (rgb.toRGB()) {
         case 15790320:
             return 15; // white
         case 15435844:
@@ -85,21 +85,57 @@ public:
         case 4408131:
             return 8; // gray
         case 11250603:
-            return 7; // ligth gray
+            return 7; // light gray
         case 2651799:
             return 6; // cyan
         case 8073150:
             return 5; // purple
         case 2437522:
-            return 3; // brown
+            return 4; // blue
         case 5320730:
-            return 2; // green
+            return 3; // brown
         case 3887386:
+            return 2; // green
+        case 11743532:
             return 1; // red
         case 1973019:
             return 0; // black
         }
-        return 0;
+        return MostSimilarColor(rgb);
+    }
+
+    static int8_t MostSimilarColor(Rgba rgb) {
+        struct Color {
+            Lab fColor;
+            int8_t fCode;
+        };
+        static std::vector<Color> colors = {
+            {Lab::From(Rgba::FromRGB(1973019)),0}, // black
+            {Lab::From(Rgba::FromRGB(11743532)), 1}, // red
+            {Lab::From(Rgba::FromRGB(3887386)),2}, // green
+            {Lab::From(Rgba::FromRGB(5320730)),3}, // brown
+            {Lab::From(Rgba::FromRGB(2437522)),4}, // blue
+            {Lab::From(Rgba::FromRGB(8073150)),5}, // purple
+            {Lab::From(Rgba::FromRGB(2651799)),6}, // cyan
+            {Lab::From(Rgba::FromRGB(11250603)),7}, // light gray
+            {Lab::From(Rgba::FromRGB(4408131)),8}, // gray
+            {Lab::From(Rgba::FromRGB(14188952)),9}, // pink
+            {Lab::From(Rgba::FromRGB(4312372)),10}, // lime
+            {Lab::From(Rgba::FromRGB(14602026)),11}, // yellow
+            {Lab::From(Rgba::FromRGB(6719955)),12}, // light blue
+            {Lab::From(Rgba::FromRGB(12801229)),13}, // magenta
+            {Lab::From(Rgba::FromRGB(15435844)),14}, // orange
+            {Lab::From(Rgba::FromRGB(15790320)),15}, // white
+        };
+        std::vector<Color> copy(colors);
+        Lab ref = Lab::From(rgb);
+        std::sort(copy.begin(), copy.end(), [ref](Color const& lhs, Color const& rhs) {
+            double dl = Lab::Difference(lhs.fColor, ref);
+            double dr = Lab::Difference(rhs.fColor, ref);
+            return dl < dr;
+        });
+        auto ret = copy[0];
+        return ret.fCode;
     }
 
 public:
