@@ -956,12 +956,19 @@ private:
         if (display) {
             auto name = GetString(*display, "Name");
             if (name) {
-                auto obj = nlohmann::json::parse(*name);
-                auto text = obj["text"];
-                if (text.is_string()) {
-                    auto n = text.get<string>();
+                try {
+                    auto obj = nlohmann::json::parse(*name);
+                    auto text = obj["text"];
+                    if (text.is_string()) {
+                        auto n = text.get<string>();
+                        auto beDisplay = make_shared<CompoundTag>();
+                        beDisplay->fValue["Name"] = String(n);
+                        beTag->fValue["display"] = beDisplay;
+                    }
+                } catch (nlohmann::json::exception&) {
+                    auto text = strings::RTrim(strings::LTrim(*name, "\""), "\"");
                     auto beDisplay = make_shared<CompoundTag>();
-                    beDisplay->fValue["Name"] = String(n);
+                    beDisplay->fValue["Name"] = String(text);
                     beTag->fValue["display"] = beDisplay;
                 }
             }
