@@ -214,8 +214,28 @@ private:
         E("hopper", AnyStorage("Hopper"));
         E("dropper", AnyStorage("Dropper"));
         E("dispenser", AnyStorage("Dispenser"));
+
+        E("note_block", Note);
 #undef E
         return table;
+    }
+
+    static TileEntityData Note(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+
+        auto note = strings::Toi(b.property("note", "0"));
+        if (!note) return nullptr;
+
+        auto tag = std::make_shared<CompoundTag>();
+        tag->fValue = {
+            {"id", String("Music")},
+            {"isMovable", Bool(true)},
+            {"note", Byte(*note)},
+        };
+        Attach(pos, *tag);
+        return tag;
     }
 
     static TileEntityData Spawner(std::shared_ptr<CompoundTag> const& c) {
