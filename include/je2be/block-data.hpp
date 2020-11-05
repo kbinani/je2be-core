@@ -1440,6 +1440,8 @@ private:
         E("wheat", Converter(Same, Name(Age, "growth")));
 
         E("cobweb", Converter(Name("web")));
+        E("lectern", Converter(Same, DirectionFromFacingA));
+        E("ender_chest", Converter(Same, FacingDirectionFromFacingA));
 #undef E
         return table;
     }
