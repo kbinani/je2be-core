@@ -48,6 +48,8 @@
 #include <je2be/dimension-data-fragment.hpp>
 #include <je2be/potion-data.hpp>
 #include <je2be/enchant-data.hpp>
+#include <je2be/fireworks-explosion.hpp>
+#include <je2be/fireworks.hpp>
 #include <je2be/item.hpp>
 #include <je2be/tile-entity.hpp>
 #include <je2be/entity-attributes.hpp>

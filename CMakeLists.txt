@@ -44,6 +44,8 @@ set(je2be_srcs
   include/je2be/rgba.hpp
   include/je2be/size.hpp
   include/je2be/entity-attributes.hpp
+  include/je2be/fireworks-explosion.hpp
+  include/je2be/fireworks.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
