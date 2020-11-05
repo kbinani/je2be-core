@@ -216,8 +216,32 @@ private:
         E("dispenser", AnyStorage("Dispenser"));
 
         E("note_block", Note);
+        E("jukebox", Jukebox);
 #undef E
         return table;
+    }
+
+    static TileEntityData Jukebox(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const& mapInfo, DimensionDataFragment& ddf) {
+        using namespace props;
+        using namespace mcfile::nbt;
+        using namespace std;
+
+        auto tag = std::make_shared<CompoundTag>();
+        tag->fValue = {
+            {"id", String("Jukebox")},
+            {"isMovable", Bool(true)},
+        };
+
+        auto recordItem = c->compound("RecordItem");
+        if (recordItem) {
+            auto beRecordItem = Item::From(recordItem, mapInfo, ddf);
+            if (beRecordItem) {
+                tag->fValue["RecordItem"] = beRecordItem;
+            }
+        }
+
+        Attach(pos, *tag);
+        return tag;
     }
 
     static TileEntityData Note(Pos const& pos, Block const& b, std::shared_ptr<CompoundTag> const& c, JavaEditionMap const&, DimensionDataFragment&) {
