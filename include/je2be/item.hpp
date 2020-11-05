@@ -912,12 +912,15 @@ private:
         using namespace mcfile::nbt;
         using namespace props;
 
-        auto tag = item.query("tag")->asCompound();
+        auto tag = item.compound("tag");
         if (!tag) return input;
 
-        auto beTag = make_shared<CompoundTag>();
+        shared_ptr<CompoundTag> beTag = input->compound("tag");
+        if (!beTag) {
+            beTag = make_shared<CompoundTag>();
+        }
 
-        auto storedEnchantments = tag->query("StoredEnchantments")->asList();
+        auto storedEnchantments = tag->list("StoredEnchantments");
         if (storedEnchantments) {
             auto ench = make_shared<ListTag>();
             ench->fType = Tag::TAG_Compound;
@@ -930,7 +933,7 @@ private:
             }
             beTag->fValue["ench"] = ench;
         } else {
-            auto enchantments = tag->query("Enchantments")->asList();
+            auto enchantments = tag->list("Enchantments");
             if (enchantments) {
                 auto ench = make_shared<ListTag>();
                 for (auto const& e : enchantments->fValue) {
@@ -949,7 +952,7 @@ private:
             }
         }
 
-        auto display = tag->query("display")->asCompound();
+        auto display = tag->compound("display");
         if (display) {
             auto name = GetString(*display, "Name");
             if (name) {
