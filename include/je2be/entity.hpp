@@ -630,6 +630,14 @@ private:
             c->fValue["Rotation"] = rot.toListTag();
         }
 
+        auto pos = props::GetVec(*c, "Pos");
+        auto onGround = props::GetBoolOrDefault(*c, "OnGround", false);
+        if (pos && onGround) {
+            int iy = (int)floor(pos->fY);
+            pos->fY = iy + 0.35f;
+            c->fValue["Pos"] = pos->toListTag();
+        }
+
         return c;
     }
 
