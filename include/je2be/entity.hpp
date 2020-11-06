@@ -340,7 +340,7 @@ private:
     M("wither_skeleton");
     A("wolf");
     M("zoglin");
-    M("zombie");
+    E("zombie", Convert(Monster, AgeableB("zombie")));
 
     M("zombie_horse");
     E("zombie_villager", Convert(Animal, Rename("zombie_villager_v2")));
