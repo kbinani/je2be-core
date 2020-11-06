@@ -240,8 +240,24 @@ private:
     E("note_block", Note);
     E("jukebox", Jukebox);
     E("cauldron", Cauldron);
+    E("end_portal", EndPortal);
 #undef E
     return table;
+  }
+
+  static TileEntityData EndPortal(Pos const &pos, Block const &b,
+                                  std::shared_ptr<CompoundTag> const &c,
+                                  JavaEditionMap const &mapInfo,
+                                  DimensionDataFragment &ddf) {
+    using namespace props;
+
+    auto tag = std::make_shared<CompoundTag>();
+    tag->fValue = {
+        {"id", String("EndPortal")},
+        {"isMovable", Bool(true)},
+    };
+    Attach(pos, *tag);
+    return tag;
   }
 
   static TileEntityData Cauldron(Pos const &pos, Block const &b,
