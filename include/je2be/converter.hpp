@@ -158,7 +158,6 @@ private:
     cdp.serialize(cd);
 
     cd.put(db);
-    fNumChunks.fetch_add(1);
 
     return ret;
   }

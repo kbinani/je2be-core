@@ -350,7 +350,7 @@ private:
     E("boat", Convert(Vehicle, Boat));
     E("minecart",
       Convert(Vehicle, Minecart, Definitions("+minecraft:minecart")));
-    E("armor_stand", Mob);
+    E("armor_stand", LivingEntity);
     E("hopper_minecart", Convert(StorageMinecart, Minecart,
                                  Definitions("+minecraft:hopper_minecart")));
     E("chest_minecart", Convert(StorageMinecart, Minecart,
@@ -971,10 +971,10 @@ private:
     return c;
   }
 
-  static EntityData Mob(CompoundTag const &tag,
-                        std::vector<EntityData> &passengers,
-                        JavaEditionMap const &mapInfo,
-                        DimensionDataFragment &ddf) {
+  static EntityData LivingEntity(CompoundTag const &tag,
+                                 std::vector<EntityData> &passengers,
+                                 JavaEditionMap const &mapInfo,
+                                 DimensionDataFragment &ddf) {
     using namespace props;
     auto e = BaseProperties(tag);
     if (!e)
@@ -1018,6 +1018,17 @@ private:
     AddDefinition(ret, "+" + e->fIdentifier);
     ret->fValue.erase("Motion");
     ret->fValue.erase("Dir");
+    return ret;
+  }
+
+  static EntityData Mob(CompoundTag const &tag,
+                        std::vector<EntityData> &passengers,
+                        JavaEditionMap const &mapInfo,
+                        DimensionDataFragment &ddf) {
+    using namespace props;
+    auto ret = LivingEntity(tag, passengers, mapInfo, ddf);
+    if (!ret)
+      return ret;
 
     auto id = GetString(tag, "id");
     if (id) {
@@ -1026,12 +1037,12 @@ private:
           *id == "minecraft:zombie_horse") {
         auto attributes = EntityAttributes::AnyHorse(tag);
         if (attributes) {
-          c["Attributes"] = attributes;
+          ret->fValue["Attributes"] = attributes;
         }
       } else {
         auto attributes = EntityAttributes::Mob(*id);
         if (attributes) {
-          c["Attributes"] = attributes;
+          ret->fValue["Attributes"] = attributes;
         }
       }
     }
