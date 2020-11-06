@@ -25,6 +25,18 @@ inline std::string RTrim(std::string const &s, std::string const &right) {
   return ret;
 }
 
+inline std::string Trim(std::string const &left, std::string const &s,
+                        std::string const &right) {
+  auto ret = s;
+  if (!left.empty()) {
+    ret = LTrim(ret, left);
+  }
+  if (!right.empty()) {
+    ret = RTrim(ret, right);
+  }
+  return ret;
+}
+
 inline std::string Replace(std::string const &s, std::string const &search) {
   if (search.empty()) {
     return s;

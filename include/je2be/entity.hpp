@@ -525,6 +525,9 @@ private:
   }
 
   static EntityData Llama(EntityData const &c, CompoundTag const &tag) {
+    using namespace props;
+    using namespace mcfile::nbt;
+
     auto variant = props::GetIntOrDefault(tag, "Variant", 0);
     std::string color = "creamy";
     switch (variant) {
@@ -541,8 +544,36 @@ private:
       color = "creamy";
       break;
     }
-    c->fValue["Variant"] = props::Int(variant);
+    c->fValue["Variant"] = Int(variant);
     AddDefinition(c, "+minecraft:llama_" + color);
+
+    auto armors = c->list("Armor");
+
+    auto decorItemId = tag.query("DecorItem/id")->asString();
+    if (decorItemId && decorItemId->fValue.starts_with("minecraft:") &&
+        decorItemId->fValue.ends_with("_carpet")) {
+      auto carpetColor =
+          strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
+      auto colorCode = ColorCodeJavaFromName(carpetColor);
+      auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
+      auto armor = std::make_shared<CompoundTag>();
+      armor->fValue = {{"Count", Byte(1)},
+                       {"Damage", Short(0)},
+                       {"Name", String("minecraft:carpet")},
+                       {"WasPickedUp", Bool(false)}};
+      auto block = std::make_shared<CompoundTag>();
+      block->fValue = {{"name", String("minecraft:carpet")},
+                       {"version", Int(BlockData::kBlockDataVersion)}};
+      auto states = std::make_shared<CompoundTag>();
+      states->fValue["color"] = String(beCarpetColor);
+      block->fValue["states"] = states;
+      armor->fValue["Block"] = block;
+
+      if (armors && armors->fValue.size() > 1) {
+        armors->fValue[1] = armor;
+      }
+    }
+
     return c;
   }
 
