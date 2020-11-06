@@ -273,7 +273,8 @@ private:
     E("bat", Convert(Mob, Bat));
     A("bee");
     M("blaze");
-    E("cat", Convert(Animal, AgeableA("cat"), Tameable("cat"), Sittable, Cat));
+    E("cat", Convert(Animal, AgeableA("cat"), Tameable("cat"), Sittable,
+                     CollarColorable, Cat));
     M("cave_spider");
     A("chicken");
     A("cod");
@@ -338,7 +339,7 @@ private:
     A("wandering_trader");
     M("witch");
     M("wither_skeleton");
-    A("wolf");
+    E("wolf", Convert(Animal, Tameable("wolf"), Sittable, CollarColorable));
     M("zoglin");
     E("zombie", Convert(Monster, AgeableB("zombie")));
 
@@ -601,6 +602,15 @@ private:
     return c;
   }
 
+  static EntityData CollarColorable(EntityData const &c,
+                                    CompoundTag const &tag) {
+    auto collarColor = props::GetByte(tag, "CollarColor");
+    if (collarColor && GetOwnerUUID(tag)) {
+      c->fValue["Color"] = props::Byte(*collarColor);
+    }
+    return c;
+  }
+
   static Behavior Steerable(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag) {
       auto saddle = props::GetBoolOrDefault(tag, "Saddle", false);
@@ -805,10 +815,6 @@ private:
   static EntityData Cat(EntityData const &c, CompoundTag const &tag) {
     using namespace mcfile::nbt;
     using namespace std;
-    auto collarColor = props::GetByte(tag, "CollarColor");
-    if (collarColor && GetOwnerUUID(tag)) {
-      c->fValue["Color"] = props::Byte(*collarColor);
-    }
     auto catType = props::GetInt(tag, "CatType");
     if (catType) {
       int32_t variant = 0;
