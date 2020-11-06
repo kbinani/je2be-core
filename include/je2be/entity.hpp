@@ -1076,10 +1076,6 @@ private:
     auto armors = std::make_shared<ListTag>();
     armors->fType = Tag::TAG_Compound;
 
-    if (props::GetStringOrDefault(tag, "id", "") == "minecraft:armor_stand") {
-      int a = 0;
-    }
-
     auto found = tag.fValue.find("ArmorItems");
     if (found != tag.fValue.end()) {
       auto list = found->second->asList();
