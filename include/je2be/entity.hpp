@@ -290,7 +290,7 @@ private:
     M("endermite");
     E("evoker", Convert(Monster, Rename("evocation_illager")));
 
-    A("fox");
+    E("fox", Convert(Animal, Fox));
     M("ghast");
     M("guardian");
     M("hoglin");
@@ -368,6 +368,18 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData Fox(EntityData const &c, CompoundTag const &tag) {
+    auto type = props::GetStringOrDefault(tag, "Type", "red");
+    int32_t variant = 0;
+    if (type == "red") {
+      variant = 0;
+    } else if (type == "snow") {
+      variant = 1;
+    }
+    c->fValue["Variant"] = props::Int(variant);
+    return c;
   }
 
   static EntityData Item(CompoundTag const &tag,
