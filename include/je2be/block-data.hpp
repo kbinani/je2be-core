@@ -1526,6 +1526,7 @@ private:
     E("cauldron",
       Converter(Same, CauldronFillLevelFromLevel,
                 AddStringProperty("cauldron_liquid_type", "water")));
+    E("hay_block", axisToPillarAxis);
 #undef E
     return table;
   }
