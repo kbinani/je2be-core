@@ -335,7 +335,7 @@ private:
     A("turtle");
 
     M("vex");
-    E("villager", Convert(Animal, Rename("villager_v2")));
+    E("villager", Convert(Animal, Rename("villager_v2"), Villager));
     M("vindicator");
     A("wandering_trader");
     M("witch");
@@ -368,6 +368,82 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData Villager(EntityData const &c, CompoundTag const &tag) {
+    using namespace std;
+    using namespace props;
+    auto data = tag.compound("VillagerData");
+    if (data) {
+      auto inProfession = GetString(*data, "profession");
+      auto inType = GetString(*data, "type");
+      auto level = GetIntOrDefault(*data, "level", 1);
+      if (inProfession && inType) {
+        auto profession = strings::LTrim(*inProfession, "minecraft:");
+        int32_t variant = 0;
+        if (profession == "shepherd") {
+          variant = 3;
+        } else if (profession == "farmer") {
+          variant = 1;
+        } else if (profession == "fisherman") {
+          variant = 2;
+        } else if (profession == "butcher") {
+          variant = 11;
+        } else if (profession == "armorer") {
+          variant = 8;
+        } else if (profession == "cartographer") {
+          variant = 6;
+        } else if (profession == "fletcher") {
+          variant = 4;
+        } else if (profession == "weaponsmith") {
+          variant = 9;
+        } else if (profession == "toolsmith") {
+          variant = 10;
+        } else if (profession == "mason") {
+          variant = 13;
+        } else if (profession == "leatherworker") {
+          variant = 12;
+        } else if (profession == "cleric") {
+          variant = 7;
+        } else if (profession == "librarian") {
+          variant = 5;
+        }
+        c->fValue["PreferredProfession"] = String(profession);
+        AddDefinition(c, "+" + profession);
+
+        auto type = strings::LTrim(*inType, "minecraft:");
+        int32_t mark = 0;
+        if (type == "savanna") {
+          mark = 3;
+        } else if (type == "plains") {
+          mark = 0;
+        } else if (type == "desert") {
+          mark = 1;
+        } else if (type == "jungle") {
+          mark = 2;
+        } else if (type == "snow") {
+          mark = 4;
+        } else if (type == "swamp") {
+          mark = 5;
+        } else if (type == "taiga") {
+          mark = 6;
+        }
+        AddDefinition(c, "+" + type + "_villager");
+
+        c->fValue["Variant"] = Int(variant);
+        c->fValue["MarkVariant"] = Int(mark);
+        c->fValue["TradeTier"] = Int(level - 1);
+      }
+    }
+    auto age = GetIntOrDefault(tag, "Age", 0);
+    if (age < 0) {
+      c->fValue["Age"] = Int(age);
+      AddDefinition(c, "+baby");
+    } else {
+      AddDefinition(c, "+adult");
+    }
+    AddDefinition(c, "+minecraft:villager_v2");
+    return c;
   }
 
   static EntityData Fox(EntityData const &c, CompoundTag const &tag) {
