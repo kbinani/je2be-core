@@ -180,7 +180,8 @@ public:
         auto m = Item::From(item, mapInfo, ddf);
         if (m) {
           tag->fValue.insert(make_pair("Item", m));
-          tag->fValue.insert(make_pair("ItemRotation", Float(itemRotation)));
+          tag->fValue.insert(
+              make_pair("ItemRotation", Float(itemRotation * 45)));
           tag->fValue.insert(
               make_pair("ItemDropChange", Float(itemDropChange)));
         }
