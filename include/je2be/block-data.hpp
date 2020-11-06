@@ -1523,8 +1523,16 @@ private:
     E("lectern", Converter(Same, DirectionFromFacingA));
     E("ender_chest", Converter(Same, FacingDirectionFromFacingA));
     E("bone_block", axisToPillarAxis);
+    E("cauldron",
+      Converter(Same, CauldronFillLevelFromLevel,
+                AddStringProperty("cauldron_liquid_type", "water")));
 #undef E
     return table;
+  }
+
+  static PropertySpec CauldronFillLevelFromLevel(Block const &b) {
+    auto level = strings::Toi(b.property("level", "0"));
+    return std::make_pair("fill_level", props::Int(*level * 2));
   }
 
   static PropertySpec BiteCounterFromBites(Block const &b) {

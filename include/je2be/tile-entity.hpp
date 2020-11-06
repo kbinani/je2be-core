@@ -239,8 +239,27 @@ private:
 
     E("note_block", Note);
     E("jukebox", Jukebox);
+    E("cauldron", Cauldron);
 #undef E
     return table;
+  }
+
+  static TileEntityData Cauldron(Pos const &pos, Block const &b,
+                                 std::shared_ptr<CompoundTag> const &c,
+                                 JavaEditionMap const &mapInfo,
+                                 DimensionDataFragment &ddf) {
+    using namespace props;
+    using namespace mcfile::nbt;
+    using namespace std;
+
+    auto tag = std::make_shared<CompoundTag>();
+    tag->fValue = {{"id", String("Cauldron")},
+                   {"isMovable", Bool(true)},
+                   {"PotionId", Short(-1)},
+                   {"PotionType", Short(-1)}};
+
+    Attach(pos, *tag);
+    return tag;
   }
 
   static TileEntityData Jukebox(Pos const &pos, Block const &b,
