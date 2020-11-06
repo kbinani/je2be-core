@@ -1522,6 +1522,7 @@ private:
     E("cobweb", Converter(Name("web")));
     E("lectern", Converter(Same, DirectionFromFacingA));
     E("ender_chest", Converter(Same, FacingDirectionFromFacingA));
+    E("bone_block", axisToPillarAxis);
 #undef E
     return table;
   }
