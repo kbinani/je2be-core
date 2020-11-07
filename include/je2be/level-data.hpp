@@ -3,6 +3,8 @@
 namespace j2b {
 
 class LevelData {
+  using CompoundTag = mcfile::nbt::CompoundTag;
+
 public:
   class Abilities {
   public:
@@ -259,6 +261,147 @@ public:
     w.write((uint32_t)pos - 8);
     stream->seek(pos);
     w.write((uint8_t)0);
+  }
+
+  static LevelData Import(CompoundTag const &tag) {
+    LevelData ret;
+    auto data = tag.query("/Data")->asCompound();
+    if (!data)
+      return ret;
+    auto allowCommand = data->byteTag("allowCommands");
+    if (allowCommand) {
+      ret.fCommandsEnabled = allowCommand->fValue != 0;
+    }
+    auto dayTime = data->longTag("DayTime");
+    if (dayTime) {
+      ret.fTime = dayTime->fValue;
+    }
+    auto difficulty = data->byteTag("Difficulty");
+    if (difficulty) {
+      ret.fDifficulty = (int32_t)difficulty->fValue;
+    }
+    auto gameType = data->intTag("GameType");
+    if (gameType) {
+      ret.fGameType = gameType->fValue;
+    }
+    auto levelName = data->stringTag("LevelName");
+    if (levelName) {
+      ret.fLevelName = levelName->fValue;
+    }
+    auto rainTime = data->intTag("rainTime");
+    if (rainTime) {
+      ret.fRainTime = rainTime->fValue;
+    }
+    auto spawnX = data->intTag("SpawnX");
+    if (spawnX) {
+      ret.fSpawnX = spawnX->fValue;
+    }
+    auto spawnY = data->intTag("SpawnY");
+    if (spawnY) {
+      ret.fSpawnY = spawnY->fValue;
+    }
+    auto spawnZ = data->intTag("SpawnZ");
+    if (spawnZ) {
+      ret.fSpawnZ = spawnZ->fValue;
+    }
+    auto thunderTime = data->intTag("thunderTime");
+    if (thunderTime) {
+      ret.fLightningTime = thunderTime->fValue;
+    }
+    auto time = data->longTag("Time");
+    if (time) {
+      ret.fTime = time->fValue;
+    }
+    auto lastPlayed = data->longTag("LastPlayed");
+    if (lastPlayed) {
+      ret.fLastPlayed = lastPlayed->fValue / 1000;
+    }
+    auto gameRules = data->compoundTag("GameRules");
+    if (gameRules) {
+#define S(__name, __var)                                                       \
+  auto __name = gameRules->stringTag(#__name);                                 \
+  if (__name) {                                                                \
+    __var = __name->fValue == "true";                                          \
+  }
+#define I(__name, __var)                                                       \
+  auto __name = gameRules->stringTag(#__name);                                 \
+  if (__name) {                                                                \
+    auto v = strings::Toi(__name->fValue);                                     \
+    if (v) {                                                                   \
+      __var = *v;                                                              \
+    }                                                                          \
+  }
+      // announceAdvancements
+      S(commandBlockOutput, ret.fCommandBlockOutput);
+      // disableElytraMovementCheck
+      // disableRaids
+      S(doDaylightCycle, ret.fDoDaylightCycle);
+      S(doEntityDrops, ret.fDoEntityDrops);
+      S(doFireTick, ret.fDoFireTick);
+      S(doImmediateRespawn, ret.fDoImmediateRespawn);
+      S(doInsomnia, ret.fDoInsomnia);
+      // doLimitedCrafting
+      S(doMobLoot, ret.fDoMobLoot);
+      S(doMobSpawning, ret.fDoMobSpawning);
+      S(doTileDrops, ret.fDoTileDrops);
+      S(doWeatherCycle, ret.fDoWeatherCycle);
+      S(drowningDamage, ret.fDrowningDamage);
+      S(fallDamage, ret.fFallDamage);
+      S(fireDamage, ret.fFireDamage);
+      // forgiveDeadPlayers
+      S(keepInventory, ret.fKeepInventory);
+      // logAdminCommands
+      I(maxCommandChainLength, ret.fMaxCommandChainLength);
+      // maxEntityCramming
+      S(mobGriefing, ret.fMobGriefing);
+      S(naturalRegeneration, ret.fNaturalRegeneration);
+      I(randomTickSpeed, ret.fRandomTickSpeed);
+      // reducedDebugInfo
+      S(sendCommandFeedback, ret.fSendCommandFeedback);
+      S(showDeathMessages, ret.fShowDeathMessages);
+      I(spawnRadius, ret.fSpawnRadius);
+      // spectatorsGenerateChunks
+      // universalAnger
+#undef S
+#undef I
+    }
+    return ret;
+  }
+
+  static std::shared_ptr<CompoundTag>
+  Read(std::filesystem::path const &javaEditionLevelDat) {
+    using namespace std;
+    namespace fs = std::filesystem;
+    using namespace mcfile::stream;
+
+    if (!fs::is_regular_file(javaEditionLevelDat))
+      return nullptr;
+
+    vector<uint8_t> buffer;
+    {
+      vector<char> buf(512);
+      auto p = javaEditionLevelDat.string();
+      gzFile f = gzopen(p.c_str(), "rb");
+      if (!f)
+        return nullptr;
+      while (true) {
+        int read = gzread(f, buf.data(), buf.size());
+        if (read <= 0)
+          break;
+        copy_n(buf.begin(), read, back_inserter(buffer));
+        if (read < buf.size()) {
+          break;
+        }
+      }
+      gzclose(f);
+    }
+
+    auto root = make_shared<mcfile::nbt::CompoundTag>();
+    auto bs = make_shared<ByteStream>(buffer);
+    InputStreamReader r(bs);
+    root->read(r);
+
+    return root;
   }
 };
 

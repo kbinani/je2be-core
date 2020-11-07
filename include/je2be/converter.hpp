@@ -56,7 +56,11 @@ public:
 
     fs::create_directory(rootPath);
     fs::create_directory(dbPath);
-    LevelData levelData;
+
+    auto data = LevelData::Read(fs::path(fInput) / "level.dat");
+    if (!data)
+      return false;
+    LevelData levelData = LevelData::Import(*data);
     if (true) {
       // TODO(kbinani): for debug
       levelData.fLevelName = "je2be-output";
