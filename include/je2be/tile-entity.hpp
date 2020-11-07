@@ -242,8 +242,42 @@ private:
     E("cauldron", Cauldron);
     E("end_portal", EndPortal);
     E("beacon", Beacon);
+    E("lectern", Lectern);
 #undef E
     return table;
+  }
+
+  static TileEntityData Lectern(Pos const &pos, Block const &b,
+                                std::shared_ptr<CompoundTag> const &c,
+                                JavaEditionMap const &mapInfo,
+                                DimensionDataFragment &ddf) {
+    using namespace props;
+
+    auto tag = std::make_shared<CompoundTag>();
+    tag->fValue = {
+        {"id", String("Lectern")},
+        {"isMovable", Bool(true)},
+    };
+    auto book = c->compoundTag("Book");
+    int32_t totalPages = 0;
+    if (book) {
+      auto item = Item::From(book, mapInfo, ddf);
+      if (item) {
+        tag->fValue["book"] = item;
+        auto pages = item->query("tag/pages")->asList();
+        if (pages) {
+          totalPages = pages->fValue.size();
+        }
+      }
+    }
+    tag->fValue["hasBook"] = Bool(totalPages > 0);
+    if (totalPages > 0) {
+      auto page = c->int32("Page", 0);
+      tag->fValue["page"] = Int(page);
+      tag->fValue["totalPages"] = Int(totalPages);
+    }
+    Attach(pos, *tag);
+    return tag;
   }
 
   static TileEntityData Beacon(Pos const &pos, Block const &b,

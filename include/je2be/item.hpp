@@ -323,8 +323,71 @@ private:
     for (string type : {"helmet", "chestplate", "leggings", "boots"}) {
       table->insert(std::make_pair("minecraft:leather_" + type, LeatherArmor));
     }
+
+    E("writable_book", WritableBook);
 #undef E
     return table;
+  }
+
+  static ItemData WritableBook(std::string const &name,
+                               CompoundTag const &item) {
+    using namespace props;
+    using namespace mcfile::nbt;
+
+    auto count = item.byte("Count", 1);
+    auto tag = std::make_shared<CompoundTag>();
+    tag->fValue = {
+        {"Name", String(name)},
+        {"Count", Byte(count)},
+        {"WasPickedUp", Bool(false)},
+        {"Damage", Short(0)},
+    };
+
+    auto tg = item.compoundTag("tag");
+    if (tg) {
+      auto outTag = std::make_shared<CompoundTag>();
+      auto author = tg->stringTag("author");
+      if (author) {
+        outTag->fValue["author"] = String(author->fValue);
+      }
+      auto title = tg->stringTag("title");
+      if (title) {
+        outTag->fValue["title"] = String(title->fValue);
+      }
+      if (title || author) {
+        outTag->fValue["generation"] = Int(0);
+      }
+      auto pages = tg->listTag("pages");
+      if (pages) {
+        auto outPages = std::make_shared<ListTag>();
+        outPages->fType = Tag::TAG_Compound;
+        for (auto const &it : pages->fValue) {
+          auto line = it->asString();
+          if (!line)
+            continue;
+          std::string lineText;
+          try {
+            auto obj = nlohmann::json::parse(line->fValue);
+            auto text = obj.find("text");
+            if (text != obj.end()) {
+              lineText = text->get<std::string>();
+            }
+          } catch (std::exception &e) {
+            lineText = line->fValue;
+          }
+          auto lineObj = std::make_shared<CompoundTag>();
+          lineObj->fValue = {
+              {"photoname", String("")},
+              {"text", String(lineText)},
+          };
+          outPages->fValue.push_back(lineObj);
+        }
+        outTag->fValue["pages"] = outPages;
+      }
+      tag->fValue["tag"] = outTag;
+    }
+
+    return Post(tag, item);
   }
 
   static ItemData LeatherArmor(std::string const &name,
