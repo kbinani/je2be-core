@@ -331,7 +331,7 @@ private:
                                CompoundTag const &item) {
     using namespace props;
 
-    auto count = GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
     auto tag = std::make_shared<CompoundTag>();
     tag->fValue = {
         {"Name", String(name)},
@@ -355,7 +355,7 @@ private:
   Map(std::string const &name, CompoundTag const &item,
       JavaEditionMap const &mapInfo) {
     auto ret = New("map");
-    auto count = props::GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
     ret->fValue["Damage"] = props::Short(0);
     ret->fValue["Count"] = props::Byte(count);
 
@@ -405,11 +405,11 @@ private:
 
   static ItemData AnyPotion(std::string const &name, CompoundTag const &item) {
     auto tag = New(name, true);
-    auto count = props::GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
     auto t = item.query("tag")->asCompound();
     int16_t type = 0;
     if (t) {
-      auto potion = props::GetStringOrDefault(*t, "Potion", "");
+      auto potion = t->string("Potion", "");
       type = PotionData::PotionType(potion);
     }
     tag->fValue["Damage"] = props::Short(type);
@@ -420,11 +420,11 @@ private:
   static ItemData TippedArrow(std::string const &name,
                               CompoundTag const &item) {
     auto tag = New("arrow");
-    auto count = props::GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
     auto t = item.query("tag")->asCompound();
     int16_t type = 0;
     if (t) {
-      auto potion = props::GetStringOrDefault(*t, "Potion", "");
+      auto potion = t->string("Potion", "");
       type = PotionData::TippedArrowPotionType(potion);
     }
     tag->fValue["Damage"] = props::Short(type);
@@ -800,7 +800,7 @@ private:
     using namespace std;
     using namespace props;
 
-    auto count = GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
 
     map<string, string> empty;
     auto block = make_shared<mcfile::Block>(name, empty);
@@ -903,7 +903,7 @@ private:
     using namespace std;
     using namespace props;
 
-    auto count = GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
 
     map<string, string> empty;
     auto block = make_shared<mcfile::Block>(name, empty);
@@ -948,7 +948,7 @@ private:
     using namespace props;
     using namespace mcfile::nbt;
 
-    auto count = GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
 
     map<string, string> p;
     auto block = make_shared<mcfile::Block>(id, p);
@@ -974,7 +974,7 @@ private:
                               CompoundTag const &item) {
     using namespace props;
 
-    auto count = GetByteOrDefault(item, "Count", 1);
+    auto count = item.byte("Count", 1);
     auto tag = std::make_shared<CompoundTag>();
     tag->fValue = {
         {"Name", String(name)},
@@ -990,16 +990,16 @@ private:
     using namespace mcfile::nbt;
     using namespace props;
 
-    auto tag = item.compound("tag");
+    auto tag = item.compoundTag("tag");
     if (!tag)
       return input;
 
-    shared_ptr<CompoundTag> beTag = input->compound("tag");
+    shared_ptr<CompoundTag> beTag = input->compoundTag("tag");
     if (!beTag) {
       beTag = make_shared<CompoundTag>();
     }
 
-    auto storedEnchantments = tag->list("StoredEnchantments");
+    auto storedEnchantments = tag->listTag("StoredEnchantments");
     if (storedEnchantments) {
       auto ench = make_shared<ListTag>();
       ench->fType = Tag::TAG_Compound;
@@ -1014,7 +1014,7 @@ private:
       }
       beTag->fValue["ench"] = ench;
     } else {
-      auto enchantments = tag->list("Enchantments");
+      auto enchantments = tag->listTag("Enchantments");
       if (enchantments) {
         auto ench = make_shared<ListTag>();
         for (auto const &e : enchantments->fValue) {
@@ -1027,15 +1027,15 @@ private:
           ench->fValue.push_back(be);
         }
         ench->fType = Tag::TAG_Compound;
-        auto damage = GetIntOrDefault(*tag, "Damage", 0);
-        auto repairCost = GetIntOrDefault(*tag, "RepairCost", 1);
+        auto damage = tag->int32("Damage", 0);
+        auto repairCost = tag->int32("RepairCost", 1);
         beTag->fValue["Damage"] = Int(damage);
         beTag->fValue["RepairCost"] = Int(repairCost);
         beTag->fValue["ench"] = ench;
       }
     }
 
-    auto display = tag->compound("display");
+    auto display = tag->compoundTag("display");
     if (display) {
       auto name = GetString(*display, "Name");
       if (name) {

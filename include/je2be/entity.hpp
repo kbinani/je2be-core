@@ -171,8 +171,8 @@ public:
           {"x", Int(*tileX)},          {"y", Int(*tileY)},
           {"z", Int(*tileZ)},
       };
-      auto itemRotation = GetByteOrDefault(c, "ItemRotation", 0);
-      auto itemDropChange = GetFloatOrDefault(c, "ItemDropChange", 1);
+      auto itemRotation = c.byte("ItemRotation", 0);
+      auto itemDropChange = c.float32("ItemDropChange", 1);
       auto found = c.fValue.find("Item");
       if (found != c.fValue.end() &&
           found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
@@ -373,11 +373,11 @@ private:
   static EntityData Villager(EntityData const &c, CompoundTag const &tag) {
     using namespace std;
     using namespace props;
-    auto data = tag.compound("VillagerData");
+    auto data = tag.compoundTag("VillagerData");
     if (data) {
       auto inProfession = GetString(*data, "profession");
       auto inType = GetString(*data, "type");
-      auto level = GetIntOrDefault(*data, "level", 1);
+      auto level = data->int32("level", 1);
       if (inProfession && inType) {
         auto profession = strings::LTrim(*inProfession, "minecraft:");
         int32_t variant = 0;
@@ -435,7 +435,7 @@ private:
         c->fValue["TradeTier"] = Int(level - 1);
       }
     }
-    auto age = GetIntOrDefault(tag, "Age", 0);
+    auto age = tag.int32("Age", 0);
     if (age < 0) {
       c->fValue["Age"] = Int(age);
       AddDefinition(c, "+baby");
@@ -447,7 +447,7 @@ private:
   }
 
   static EntityData Fox(EntityData const &c, CompoundTag const &tag) {
-    auto type = props::GetStringOrDefault(tag, "Type", "red");
+    auto type = tag.string("Type", "red");
     int32_t variant = 0;
     if (type == "red") {
       variant = 0;
@@ -467,7 +467,7 @@ private:
     if (!e)
       return nullptr;
 
-    auto item = tag.compound("Item");
+    auto item = tag.compoundTag("Item");
     if (!item)
       return nullptr;
     auto beItem = Item::From(item, mapInfo, ddf);
@@ -489,7 +489,7 @@ private:
   }
 
   static EntityData Horse(EntityData const &c, CompoundTag const &tag) {
-    auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+    auto variant = tag.int32("Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
     c->fValue["Variant"] = props::Int(baseColor);
@@ -536,7 +536,7 @@ private:
   }
 
   static EntityData Parrot(EntityData const &c, CompoundTag const &tag) {
-    auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+    auto variant = tag.int32("Variant", 0);
     c->fValue["Variant"] = props::Int(variant);
     return c;
   }
@@ -566,7 +566,7 @@ private:
   }
 
   static EntityData TropicalFish(EntityData const &c, CompoundTag const &tag) {
-    auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+    auto variant = tag.int32("Variant", 0);
     auto small = (0xf & variant) == 0;
     auto pattern = 0xf & (variant >> 8);
     auto bodyColor = 0xf & (variant >> 16);
@@ -604,7 +604,7 @@ private:
     using namespace props;
     using namespace mcfile::nbt;
 
-    auto variant = props::GetIntOrDefault(tag, "Variant", 0);
+    auto variant = tag.int32("Variant", 0);
     std::string color = "creamy";
     switch (variant) {
     case 3:
@@ -623,7 +623,7 @@ private:
     c->fValue["Variant"] = Int(variant);
     AddDefinition(c, "+minecraft:llama_" + color);
 
-    auto armors = c->list("Armor");
+    auto armors = c->listTag("Armor");
 
     auto decorItemId = tag.query("DecorItem/id")->asString();
     if (decorItemId && decorItemId->fValue.starts_with("minecraft:") &&
@@ -654,7 +654,7 @@ private:
   }
 
   static EntityData Shulker(EntityData const &c, CompoundTag const &tag) {
-    auto color = props::GetByteOrDefault(tag, "Color", 16);
+    auto color = tag.byte("Color", 16);
     if (0 <= color && color <= 15) {
       c->fValue["Color"] = props::Byte(color);
       AddDefinition(c, "+minecraft:shulker_" +
@@ -678,7 +678,7 @@ private:
 
   static Behavior Colorable(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag) {
-      auto color = props::GetByteOrDefault(tag, "Color", 0);
+      auto color = tag.byte("Color", 0);
       c->fValue["Color"] = props::Byte(color);
       AddDefinition(c, "+minecraft:" + definitionKey + "_" +
                            BedrockNameFromColorCodeJava((ColorCodeJava)color));
@@ -687,7 +687,7 @@ private:
   }
 
   static EntityData Rabbit(EntityData const &c, CompoundTag const &tag) {
-    auto type = props::GetIntOrDefault(tag, "RabbitType", 0);
+    auto type = tag.int32("RabbitType", 0);
     std::string coat = "brown";
     int32_t variant = 0;
     if (type == 0) {
@@ -733,7 +733,7 @@ private:
 
   static Behavior Steerable(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag) {
-      auto saddle = props::GetBoolOrDefault(tag, "Saddle", false);
+      auto saddle = tag.boolean("Saddle", false);
       if (saddle) {
         AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
         AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
@@ -746,7 +746,7 @@ private:
   }
 
   static EntityData Mooshroom(EntityData const &c, CompoundTag const &tag) {
-    auto type = props::GetStringOrDefault(tag, "Type", "red");
+    auto type = tag.string("Type", "red");
     int32_t variant = 0;
     if (type == "brown") {
       variant = 1;
@@ -817,7 +817,7 @@ private:
 
     AddDefinition(c, "+minecraft:boat");
 
-    auto type = props::GetStringOrDefault(tag, "Type", "oak");
+    auto type = tag.string("Type", "oak");
     int32_t variant = 0;
     if (type == "oak") {
       variant = 0;
@@ -841,7 +841,7 @@ private:
     }
 
     auto pos = props::GetVec(*c, "Pos");
-    auto onGround = props::GetBoolOrDefault(*c, "OnGround", false);
+    auto onGround = c->boolean("OnGround", false);
     if (pos && onGround) {
       int iy = (int)floor(pos->fY);
       pos->fY = iy + 0.35f;
@@ -865,7 +865,7 @@ private:
 
   static EntityData Creeper(EntityData const &c, CompoundTag const &tag) {
     using namespace props;
-    auto powered = GetBoolOrDefault(tag, "powered", false);
+    auto powered = tag.boolean("powered", false);
     if (powered) {
       AddDefinition(c, "+minecraft:charged_creeper");
       AddDefinition(c, "+minecraft:exploding");
@@ -879,8 +879,7 @@ private:
                             DimensionDataFragment &ddf) {
     auto c = Mob(tag, passengers, mapInfo, ddf);
     c->fValue["SpawnedByNight"] = props::Bool(false);
-    auto persistenceRequired =
-        props::GetBoolOrDefault(tag, "PersistenceRequired", true);
+    auto persistenceRequired = tag.boolean("PersistenceRequired", true);
     bool persistent = false;
     if (persistenceRequired && props::GetString(tag, "CustomName")) {
       persistent = true;
@@ -921,7 +920,7 @@ private:
 
   static EntityData Bat(EntityData const &c, CompoundTag const &tag) {
     using namespace mcfile::nbt;
-    auto batFlags = props::GetBoolOrDefault(tag, "BatFlags", false);
+    auto batFlags = tag.boolean("BatFlags", false);
     c->fValue["BatFlags"] = props::Bool(batFlags);
     AddDefinition(c, "+minecraft:bat");
     return c;
@@ -998,7 +997,7 @@ private:
 
   static Behavior AgeableA(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag) {
-      auto age = props::GetIntOrDefault(tag, "Age", 0);
+      auto age = tag.int32("Age", 0);
       if (age < 0) {
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
         c->fValue["Age"] = props::Int(age);
@@ -1013,7 +1012,7 @@ private:
 
   static Behavior AgeableB(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag) {
-      auto baby = props::GetBoolOrDefault(tag, "IsBaby", false);
+      auto baby = tag.boolean("IsBaby", false);
       if (baby) {
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
       } else {
@@ -1025,7 +1024,7 @@ private:
   }
 
   static EntityData AgeableC(EntityData const &c, CompoundTag const &tag) {
-    auto age = props::GetIntOrDefault(tag, "Age", 0);
+    auto age = tag.int32("Age", 0);
     if (age < 0) {
       AddDefinition(c, "+baby");
       c->fValue["Age"] = props::Int(age);
@@ -1092,7 +1091,7 @@ private:
   }
 
   static EntityData Sittable(EntityData const &c, CompoundTag const &tag) {
-    auto sitting = props::GetBoolOrDefault(tag, "Sitting", false);
+    auto sitting = tag.boolean("Sitting", false);
     c->fValue["Sitting"] = props::Bool(sitting);
     return c;
   }
@@ -1107,14 +1106,14 @@ private:
       return nullptr;
     auto ret = e->toCompoundTag();
     auto &c = *ret;
-    auto air = GetShortOrDefault(tag, "Air", 300);
+    auto air = tag.int16("Air", 300);
     auto armor = GetArmor(tag, mapInfo, ddf);
     auto mainhand = GetMainhand(tag, mapInfo, ddf);
     auto offhand = GetOffhand(tag, mapInfo, ddf);
-    auto canPickupLoot = GetBoolOrDefault(tag, "CanPickUpLoot", false);
-    auto deathTime = GetShortOrDefault(tag, "DeathTime", 0);
-    auto hurtTime = GetShortOrDefault(tag, "HurtTime", 0);
-    auto inLove = GetBoolOrDefault(tag, "InLove", false);
+    auto canPickupLoot = tag.boolean("CanPickUpLoot", false);
+    auto deathTime = tag.int16("DeathTime", 0);
+    auto hurtTime = tag.int16("HurtTime", 0);
+    auto inLove = tag.boolean("InLove", false);
     c["Armor"] = armor;
     c["Mainhand"] = mainhand;
     c["Offhand"] = offhand;

@@ -44,16 +44,6 @@ inline std::optional<int32_t> GetInt(mcfile::nbt::CompoundTag const &tag,
   return itag->asInt()->fValue;
 }
 
-inline int32_t GetIntOrDefault(mcfile::nbt::CompoundTag const &tag,
-                               std::string const &name, int32_t fallback) {
-  auto v = GetInt(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
-}
-
 inline std::optional<bool> GetBool(mcfile::nbt::CompoundTag const &tag,
                                    std::string const &name) {
   auto found = tag.fValue.find(name);
@@ -65,16 +55,6 @@ inline std::optional<bool> GetBool(mcfile::nbt::CompoundTag const &tag,
     return std::nullopt;
   }
   return itag->asByte()->fValue != 0;
-}
-
-inline bool GetBoolOrDefault(mcfile::nbt::CompoundTag const &tag,
-                             std::string const &name, bool fallback) {
-  auto v = GetBool(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
 }
 
 inline std::optional<int8_t> GetByte(mcfile::nbt::CompoundTag const &tag,
@@ -90,16 +70,6 @@ inline std::optional<int8_t> GetByte(mcfile::nbt::CompoundTag const &tag,
   return itag->asByte()->fValue;
 }
 
-inline int8_t GetByteOrDefault(mcfile::nbt::CompoundTag const &tag,
-                               std::string const &name, int8_t fallback) {
-  auto v = GetByte(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
-}
-
 inline std::optional<std::string> GetString(mcfile::nbt::CompoundTag const &tag,
                                             std::string const &name) {
   auto found = tag.fValue.find(name);
@@ -111,17 +81,6 @@ inline std::optional<std::string> GetString(mcfile::nbt::CompoundTag const &tag,
     return std::nullopt;
   }
   return itag->asString()->fValue;
-}
-
-inline std::string GetStringOrDefault(mcfile::nbt::CompoundTag const &tag,
-                                      std::string const &name,
-                                      std::string const &fallback) {
-  auto v = GetString(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
 }
 
 inline std::optional<int64_t> GetLong(mcfile::nbt::CompoundTag const &tag,
@@ -137,16 +96,6 @@ inline std::optional<int64_t> GetLong(mcfile::nbt::CompoundTag const &tag,
   return itag->asLong()->fValue;
 }
 
-inline int64_t GetLongOrDefault(mcfile::nbt::CompoundTag const &tag,
-                                std::string const &name, int64_t fallback) {
-  auto v = GetLong(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
-}
-
 inline std::optional<int16_t> GetShort(mcfile::nbt::CompoundTag const &tag,
                                        std::string const &name) {
   auto found = tag.fValue.find(name);
@@ -158,16 +107,6 @@ inline std::optional<int16_t> GetShort(mcfile::nbt::CompoundTag const &tag,
     return std::nullopt;
   }
   return itag->asShort()->fValue;
-}
-
-inline int16_t GetShortOrDefault(mcfile::nbt::CompoundTag const &tag,
-                                 std::string const &name, int16_t fallback) {
-  auto v = GetShort(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
 }
 
 inline std::optional<float> GetFloat(mcfile::nbt::CompoundTag const &tag,
@@ -183,16 +122,6 @@ inline std::optional<float> GetFloat(mcfile::nbt::CompoundTag const &tag,
   return itag->asFloat()->fValue;
 }
 
-inline float GetFloatOrDefault(mcfile::nbt::CompoundTag const &tag,
-                               std::string const &name, float fallback) {
-  auto v = GetFloat(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
-}
-
 inline std::optional<double> GetDouble(mcfile::nbt::CompoundTag const &tag,
                                        std::string const &name) {
   auto found = tag.fValue.find(name);
@@ -204,16 +133,6 @@ inline std::optional<double> GetDouble(mcfile::nbt::CompoundTag const &tag,
     return std::nullopt;
   }
   return itag->asDouble()->fValue;
-}
-
-inline float GetDoubleOrDefault(mcfile::nbt::CompoundTag const &tag,
-                                std::string const &name, double fallback) {
-  auto v = GetDouble(tag, name);
-  if (v) {
-    return *v;
-  } else {
-    return fallback;
-  }
 }
 
 struct UUIDKeyName {

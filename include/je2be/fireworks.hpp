@@ -7,7 +7,7 @@ public:
   static FireworksData From(mcfile::nbt::CompoundTag const &fireworks) {
     FireworksData es;
 
-    es.fFlight = props::GetByteOrDefault(fireworks, "Flight", 1);
+    es.fFlight = fireworks.byte("Flight", 1);
 
     auto explosions = fireworks.query("Explosions")->asList();
     if (explosions) {

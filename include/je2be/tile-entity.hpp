@@ -292,7 +292,7 @@ private:
         {"isMovable", Bool(true)},
     };
 
-    auto recordItem = c->compound("RecordItem");
+    auto recordItem = c->compoundTag("RecordItem");
     if (recordItem) {
       auto beRecordItem = Item::From(recordItem, mapInfo, ddf);
       if (beRecordItem) {
@@ -336,13 +336,13 @@ private:
 
     auto tag = std::make_shared<CompoundTag>();
 
-    auto delay = GetShortOrDefault(*c, "Delay", 0);
-    auto maxNearbyEntities = GetShortOrDefault(*c, "MaxNearbyEntities", 6);
-    auto maxSpawnDelay = GetShortOrDefault(*c, "MaxSpawnDelay", 800);
-    auto minSpawnDelay = GetShortOrDefault(*c, "MinSpawnDelay", 200);
-    auto requiredPlayerRange = GetShortOrDefault(*c, "RequiredPlayerRange", 16);
-    auto spawnCount = GetShortOrDefault(*c, "SpawnCount", 4);
-    auto spawnRange = GetShortOrDefault(*c, "SpawnRange", 4);
+    auto delay = c->int16("Delay", 0);
+    auto maxNearbyEntities = c->int16("MaxNearbyEntities", 6);
+    auto maxSpawnDelay = c->int16("MaxSpawnDelay", 800);
+    auto minSpawnDelay = c->int16("MinSpawnDelay", 200);
+    auto requiredPlayerRange = c->int16("RequiredPlayerRange", 16);
+    auto spawnCount = c->int16("SpawnCount", 4);
+    auto spawnRange = c->int16("SpawnRange", 4);
 
     std::string mob;
     auto spawnData = GetCompound(*c, "SpawnData");
@@ -783,8 +783,8 @@ private:
       if (!outItem)
         continue;
 
-      auto count = props::GetByteOrDefault(*inItem, "Count", 1);
-      auto slot = props::GetByteOrDefault(*inItem, "Slot", 0);
+      auto count = inItem->byte("Count", 1);
+      auto slot = inItem->byte("Slot", 0);
       outItem->fValue["Slot"] = props::Byte(slot);
       outItem->fValue["Count"] = props::Byte(count);
 

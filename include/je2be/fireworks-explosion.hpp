@@ -6,8 +6,8 @@ class FireworksExplosion {
 public:
   static FireworksExplosion From(mcfile::nbt::CompoundTag const &tag) {
     FireworksExplosion e;
-    e.fTrail = props::GetBoolOrDefault(tag, "Trail", false);
-    e.fFlicker = props::GetBoolOrDefault(tag, "Flicker", false);
+    e.fTrail = tag.boolean("Trail", false);
+    e.fFlicker = tag.boolean("Flicker", false);
     auto colors = tag.query("Colors")->asIntArray();
     if (colors) {
       for (auto v : colors->value()) {
@@ -26,7 +26,7 @@ public:
         e.fFadeColor.push_back(Rgba(r, g, b));
       }
     }
-    e.fType = props::GetByteOrDefault(tag, "Type", 0);
+    e.fType = tag.byte("Type", 0);
     return e;
 
     // Java
