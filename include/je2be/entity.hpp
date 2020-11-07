@@ -364,10 +364,25 @@ private:
     E("iron_golem", Mob);
 
     E("item", Item);
+    E("ender_dragon", EnderDragon);
 #undef A
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData EnderDragon(CompoundTag const &tag,
+                                std::vector<EntityData> &passengers,
+                                JavaEditionMap const &mapInfo,
+                                DimensionDataFragment &ddf) {
+    auto c = Monster(tag, passengers, mapInfo, ddf);
+    AddDefinition(c, "-dragon_sitting");
+    AddDefinition(c, "+dragon_flying");
+    c->fValue["Persistent"] = props::Bool(true);
+    c->fValue["IsAutonomous"] = props::Bool(true);
+    c->fValue["LastDimensionId"] = props::Int(2);
+    ddf.addAutonomousEntity(c);
+    return c;
   }
 
   static EntityData Villager(EntityData const &c, CompoundTag const &tag) {

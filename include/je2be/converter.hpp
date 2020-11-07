@@ -76,6 +76,11 @@ public:
         return false;
       }
 
+      auto theEnd = LevelData::TheEndData(*data);
+      if (theEnd) {
+        db.put(Key::TheEnd(), *theEnd);
+      }
+
       auto worldData = std::make_unique<WorldData>(fs::path(fInput));
       for (auto dim :
            {Dimension::Overworld, Dimension::Nether, Dimension::End}) {

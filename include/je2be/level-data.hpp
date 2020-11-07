@@ -368,6 +368,87 @@ public:
     return ret;
   }
 
+  static std::optional<std::string> TheEndData(CompoundTag const &tag) {
+    using namespace props;
+    using namespace mcfile::nbt;
+
+    auto data = tag.query("/Data")->asCompound();
+    if (!data)
+      return std::nullopt;
+
+    CompoundTag const *dragonFight = data->query("DragonFight")->asCompound();
+    if (!dragonFight) {
+      dragonFight = data->query("DimensionData/1/DragonFight")->asCompound();
+    }
+    if (!dragonFight)
+      return std::nullopt;
+
+    auto ret = std::make_shared<CompoundTag>();
+
+    ret->fValue["DragonFightVersion"] = Byte(1);
+
+    auto killed = dragonFight->boolean("DragonKilled", false);
+    ret->fValue["DragonKilled"] = Bool(killed);
+
+    auto previouslyKilled = dragonFight->byteTag("PreviouslyKilled");
+    if (previouslyKilled) {
+      ret->fValue["PreviouslyKilled"] = Bool(previouslyKilled->fValue != 0);
+    }
+
+    auto uuid = GetUUID(*dragonFight, {.fIntArray = "Dragon"});
+    if (uuid) {
+      ret->fValue["DragonUUID"] = Long(*uuid);
+      ret->fValue["DragonSpawned"] = Bool(true);
+    }
+
+    auto gateways = dragonFight->listTag("Gateways");
+    if (gateways) {
+      auto v = std::make_shared<ListTag>();
+      v->fType = Tag::TAG_Int;
+      for (auto const &it : gateways->fValue) {
+        auto p = it->asInt();
+        if (!p) {
+          v = nullptr;
+          break;
+        }
+        v->fValue.push_back(Int(p->fValue));
+      }
+      if (v) {
+        ret->fValue["Gateways"] = v;
+      }
+    }
+
+    auto exitPortalLocation = dragonFight->compoundTag("ExitPortalLocation");
+    if (exitPortalLocation) {
+      auto x = exitPortalLocation->intTag("X");
+      auto y = exitPortalLocation->intTag("Y");
+      auto z = exitPortalLocation->intTag("Z");
+      if (x && y && z) {
+        auto v = std::make_shared<ListTag>();
+        v->fType = Tag::TAG_Int;
+        v->fValue.push_back(Int(x->fValue));
+        v->fValue.push_back(Int(y->fValue));
+        v->fValue.push_back(Int(z->fValue));
+        ret->fValue["ExitPortalLocation"] = v;
+      }
+    }
+
+    auto root = std::make_shared<CompoundTag>();
+    root->fValue["data"] = ret;
+
+    auto s = std::make_shared<mcfile::stream::ByteStream>();
+    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    w.write((uint8_t)Tag::TAG_Compound);
+    w.write(std::string());
+    root->write(w);
+    w.write((uint8_t)Tag::TAG_End);
+
+    std::vector<uint8_t> buffer;
+    s->drain(buffer);
+    std::string str((char const *)buffer.data(), buffer.size());
+    return str;
+  }
+
   static std::shared_ptr<CompoundTag>
   Read(std::filesystem::path const &javaEditionLevelDat) {
     using namespace std;

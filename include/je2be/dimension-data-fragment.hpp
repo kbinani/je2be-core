@@ -15,10 +15,18 @@ public:
     fMapItems[javaMapId] = item;
   }
 
+  void
+  addAutonomousEntity(std::shared_ptr<mcfile::nbt::CompoundTag> const &entity) {
+    fAutonomousEntities.push_back(entity);
+  }
+
   void drain(WorldData &wd) {
     wd.fPortals.add(fPortalBlocks, fDim);
     for (auto const &it : fMapItems) {
       wd.fMapItems[it.first] = it.second;
+    }
+    for (auto const &e : fAutonomousEntities) {
+      wd.fAutonomousEntities.push_back(e);
     }
   }
 
@@ -29,6 +37,7 @@ private:
   PortalBlocks fPortalBlocks;
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>>
       fMapItems;
+  std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
 };
 
 } // namespace j2b

@@ -15,6 +15,34 @@ public:
         return;
       Map::Convert(mapId, *found->second, fInput, db);
     });
+    putAutonomousEntities(db);
+  }
+
+private:
+  void putAutonomousEntities(DbInterface &db) {
+    using namespace mcfile::nbt;
+    using namespace mcfile::stream;
+
+    auto list = std::make_shared<ListTag>();
+    list->fType = Tag::TAG_Compound;
+    for (auto const &e : fAutonomousEntities) {
+      list->fValue.push_back(e);
+    }
+    auto root = std::make_shared<CompoundTag>();
+    root->fValue["AutonomousEntityList"] = list;
+
+    auto s = std::make_shared<ByteStream>();
+    OutputStreamWriter w(s, {.fLittleEndian = true});
+    w.write((uint8_t)Tag::TAG_Compound);
+    w.write(std::string());
+    root->write(w);
+    w.write((uint8_t)Tag::TAG_End);
+
+    std::vector<uint8_t> buffer;
+    s->drain(buffer);
+
+    leveldb::Slice v((char const *)buffer.data(), buffer.size());
+    db.put(Key::AutonomousEntities(), v);
   }
 
 private:
@@ -25,6 +53,7 @@ public:
   JavaEditionMap fJavaEditionMap;
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>>
       fMapItems;
+  std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
 };
 
 } // namespace j2b

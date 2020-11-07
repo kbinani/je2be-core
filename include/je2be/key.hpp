@@ -63,6 +63,10 @@ public:
     return std::string("map_") + std::to_string(id);
   }
 
+  static std::string TheEnd() { return "TheEnd"; }
+
+  static std::string AutonomousEntities() { return "AutonomousEntities"; }
+
 private:
   static void PlaceXZTag(std::vector<char> &out, int32_t chunkX, int32_t chunkZ,
                          uint8_t tag) {
