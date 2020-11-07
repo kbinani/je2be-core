@@ -368,7 +368,9 @@ public:
     return ret;
   }
 
-  static std::optional<std::string> TheEndData(CompoundTag const &tag) {
+  static std::optional<std::string> TheEndData(
+      CompoundTag const &tag, size_t numAutonomousEntities,
+      std::unordered_set<Pos, PosHasher> const &endPortalsInEndDimension) {
     using namespace props;
     using namespace mcfile::nbt;
 
@@ -383,22 +385,26 @@ public:
     if (!dragonFight)
       return std::nullopt;
 
-    auto ret = std::make_shared<CompoundTag>();
+    auto fight = std::make_shared<CompoundTag>();
 
-    ret->fValue["DragonFightVersion"] = Byte(1);
+    fight->fValue["DragonFightVersion"] = Byte(0);
 
     auto killed = dragonFight->boolean("DragonKilled", false);
-    ret->fValue["DragonKilled"] = Bool(killed);
+    fight->fValue["DragonKilled"] = Bool(numAutonomousEntities == 0 && killed);
 
     auto previouslyKilled = dragonFight->byteTag("PreviouslyKilled");
     if (previouslyKilled) {
-      ret->fValue["PreviouslyKilled"] = Bool(previouslyKilled->fValue != 0);
+      fight->fValue["PreviouslyKilled"] = Bool(previouslyKilled->fValue != 0);
     }
 
     auto uuid = GetUUID(*dragonFight, {.fIntArray = "Dragon"});
     if (uuid) {
-      ret->fValue["DragonUUID"] = Long(*uuid);
-      ret->fValue["DragonSpawned"] = Bool(true);
+      fight->fValue["DragonUUID"] = Long(*uuid);
+      fight->fValue["DragonSpawned"] = Bool(true);
+    } else {
+      fight->fValue["DragonUUID"] = Long(-1);
+      fight->fValue["DragonSpawned"] = Bool(true);
+      fight->fValue["IsRespawning"] = Bool(false);
     }
 
     auto gateways = dragonFight->listTag("Gateways");
@@ -414,27 +420,39 @@ public:
         v->fValue.push_back(Int(p->fValue));
       }
       if (v) {
-        ret->fValue["Gateways"] = v;
+        fight->fValue["Gateways"] = v;
       }
     }
 
     auto exitPortalLocation = dragonFight->compoundTag("ExitPortalLocation");
+    std::optional<Pos> exitLocation;
     if (exitPortalLocation) {
       auto x = exitPortalLocation->intTag("X");
       auto y = exitPortalLocation->intTag("Y");
       auto z = exitPortalLocation->intTag("Z");
       if (x && y && z) {
-        auto v = std::make_shared<ListTag>();
-        v->fType = Tag::TAG_Int;
-        v->fValue.push_back(Int(x->fValue));
-        v->fValue.push_back(Int(y->fValue));
-        v->fValue.push_back(Int(z->fValue));
-        ret->fValue["ExitPortalLocation"] = v;
+        exitLocation = Pos(x->fValue, y->fValue, z->fValue);
       }
+    }
+    if (!exitLocation) {
+      auto y = ExitPortalAltitude(endPortalsInEndDimension);
+      if (y) {
+        exitLocation = Pos(0, *y, 0);
+      }
+    }
+    if (exitLocation) {
+      auto v = std::make_shared<ListTag>();
+      v->fType = Tag::TAG_Int;
+      v->fValue.push_back(Int(exitLocation->fX));
+      v->fValue.push_back(Int(exitLocation->fY));
+      v->fValue.push_back(Int(exitLocation->fZ));
+      fight->fValue["ExitPortalLocation"] = v;
     }
 
     auto root = std::make_shared<CompoundTag>();
-    root->fValue["data"] = ret;
+    auto d = std::make_shared<CompoundTag>();
+    d->fValue["DragonFight"] = fight;
+    root->fValue["data"] = d;
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
@@ -483,6 +501,58 @@ public:
     root->read(r);
 
     return root;
+  }
+
+private:
+  static std::optional<int32_t>
+  ExitPortalAltitude(std::unordered_set<Pos, PosHasher> const &blocks) {
+    for (auto const &pos : blocks) {
+      if (IsValidExitPortal(pos, blocks)) {
+        return pos.fY;
+      }
+    }
+    return std::nullopt;
+  }
+
+  static bool
+  IsValidExitPortal(Pos p, std::unordered_set<Pos, PosHasher> const &blocks) {
+    static std::vector<Pos> const portalPlacement = {
+        // line1
+        Pos(0, 0, 0),
+        Pos(1, 0, 0),
+        Pos(2, 0, 0),
+        // line2
+        Pos(-1, 0, 1),
+        Pos(0, 0, 1),
+        Pos(1, 0, 1),
+        Pos(2, 0, 1),
+        Pos(3, 0, 1),
+        // line3
+        Pos(-1, 0, 2),
+        Pos(0, 0, 2),
+        Pos(2, 0, 2),
+        Pos(3, 0, 2),
+        // line4
+        Pos(-1, 0, 3),
+        Pos(0, 0, 3),
+        Pos(1, 0, 3),
+        Pos(2, 0, 3),
+        Pos(3, 0, 3),
+        // line5
+        Pos(0, 0, 4),
+        Pos(1, 0, 4),
+        Pos(2, 0, 4),
+    };
+    if (blocks.size() < portalPlacement.size()) {
+      return false;
+    }
+    for (auto const &it : portalPlacement) {
+      Pos test(p.fX + it.fX, p.fY + it.fY, p.fZ + it.fZ);
+      if (blocks.find(test) == blocks.end()) {
+        return false;
+      }
+    }
+    return true;
   }
 };
 

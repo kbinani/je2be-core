@@ -76,11 +76,6 @@ public:
         return false;
       }
 
-      auto theEnd = LevelData::TheEndData(*data);
-      if (theEnd) {
-        db.put(Key::TheEnd(), *theEnd);
-      }
-
       auto worldData = std::make_unique<WorldData>(fs::path(fInput));
       for (auto dim :
            {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
@@ -89,7 +84,7 @@ public:
         ok &= convertWorld(world, dim, db, *worldData, concurrency);
       }
 
-      worldData->put(db);
+      worldData->put(db, *data);
     }
 
     return ok;
@@ -219,11 +214,16 @@ private:
               cdp.updateAltitude(x, by, z);
             }
             static string const nether_portal("minecraft:nether_portal");
+            static string const end_portal("minecraft:end_portal");
             if (TileEntity::IsTileEntity(block->fName)) {
               cdp.addTileBlock(bx, by, bz, block);
             } else if (strings::Equals(block->fName, nether_portal)) {
               bool xAxis = block->property("axis", "x") == "x";
               ddf.addPortalBlock(bx, by, bz, xAxis);
+            }
+            if (strings::Equals(block->fName, end_portal) &&
+                dim == Dimension::End) {
+              ddf.addEndPortal(bx, by, bz);
             }
             string const &paletteKey = block->toString();
             auto found =

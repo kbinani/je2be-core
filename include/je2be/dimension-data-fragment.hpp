@@ -20,6 +20,11 @@ public:
     fAutonomousEntities.push_back(entity);
   }
 
+  void addEndPortal(int32_t x, int32_t y, int32_t z) {
+    Pos p(x, y, z);
+    fEndPortalsInEndDimension.insert(p);
+  }
+
   void drain(WorldData &wd) {
     wd.fPortals.add(fPortalBlocks, fDim);
     for (auto const &it : fMapItems) {
@@ -27,6 +32,9 @@ public:
     }
     for (auto const &e : fAutonomousEntities) {
       wd.fAutonomousEntities.push_back(e);
+    }
+    for (auto const &pos : fEndPortalsInEndDimension) {
+      wd.fEndPortalsInEndDimension.insert(pos);
     }
   }
 
@@ -38,6 +46,7 @@ private:
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>>
       fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
+  std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
 };
 
 } // namespace j2b

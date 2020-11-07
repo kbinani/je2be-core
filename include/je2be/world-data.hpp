@@ -7,7 +7,7 @@ public:
   explicit WorldData(std::filesystem::path const &input)
       : fInput(input), fJavaEditionMap(input) {}
 
-  void put(DbInterface &db) {
+  void put(DbInterface &db, mcfile::nbt::CompoundTag const &javaLevelData) {
     fPortals.putInto(db);
     fJavaEditionMap.each([this, &db](int32_t mapId) {
       auto found = fMapItems.find(mapId);
@@ -16,6 +16,12 @@ public:
       Map::Convert(mapId, *found->second, fInput, db);
     });
     putAutonomousEntities(db);
+
+    auto theEnd = LevelData::TheEndData(
+        javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
+    if (theEnd) {
+      db.put(Key::TheEnd(), *theEnd);
+    }
   }
 
 private:
@@ -54,6 +60,7 @@ public:
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>>
       fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
+  std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
 };
 
 } // namespace j2b
