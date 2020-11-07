@@ -10,10 +10,22 @@ public:
     using namespace leveldb;
     namespace fs = std::filesystem;
 
+    leveldb::FileLock *lf = nullptr;
+    auto lockFileName = dir + "/LOCK";
+    auto env = leveldb::Env::Default();
+    Status st = env->LockFile(lockFileName, &lf);
+    if (!st.ok()) {
+      fValid = false;
+      return;
+    }
+    fFileLock = lf;
+
     fStop.store(false);
     thread th([this, concurrency]() {
       for (auto const &e : fs::directory_iterator(fs::path(fDir))) {
-        fs::remove_all(e.path());
+        if (e.path().filename() != "LOCK") {
+          fs::remove_all(e.path());
+        }
       }
 
       Options o;
@@ -73,6 +85,11 @@ public:
       pool.shutdown();
 
       drainWriteBatch(*batch, fileNum, o);
+
+      assert(fFileLock);
+      auto env = leveldb::Env::Default();
+      env->UnlockFile(fFileLock);
+      fFileLock = nullptr;
 
       RepairDB(fDir.c_str(), o);
       DB *db = nullptr;
@@ -162,6 +179,7 @@ private:
   std::atomic_bool fStop;
   bool fValid = false;
   std::string const fDir;
+  leveldb::FileLock *fFileLock = nullptr;
 };
 
 } // namespace j2b
