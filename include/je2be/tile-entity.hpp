@@ -241,8 +241,29 @@ private:
     E("jukebox", Jukebox);
     E("cauldron", Cauldron);
     E("end_portal", EndPortal);
+    E("beacon", Beacon);
 #undef E
     return table;
+  }
+
+  static TileEntityData Beacon(Pos const &pos, Block const &b,
+                               std::shared_ptr<CompoundTag> const &c,
+                               JavaEditionMap const &mapInfo,
+                               DimensionDataFragment &ddf) {
+    using namespace props;
+
+    auto primary = c->int32("Primary", -1);
+    auto secondary = c->int32("Secondary", -1);
+
+    auto tag = std::make_shared<CompoundTag>();
+    tag->fValue = {
+        {"id", String("Beacon")},
+        {"isMovable", Bool(true)},
+        {"primary", Int(primary)},
+        {"secondary", Int(secondary)},
+    };
+    Attach(pos, *tag);
+    return tag;
   }
 
   static TileEntityData EndPortal(Pos const &pos, Block const &b,
