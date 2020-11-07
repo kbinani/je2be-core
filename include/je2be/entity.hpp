@@ -511,7 +511,7 @@ private:
     auto chestItems = std::make_shared<ListTag>();
     chestItems->fType = Tag::TAG_Compound;
 
-    auto items = props::GetList(tag, "Items");
+    auto items = tag.listTag("Items");
     if (items) {
       for (auto const &it : items->fValue) {
         if (it->id() != Tag::TAG_Compound)
@@ -895,7 +895,7 @@ private:
     auto c = Mob(tag, passengers, mapInfo, ddf);
     c->fValue["Persistent"] = props::Bool(true);
 
-    auto leash = props::GetCompound(tag, "Leash");
+    auto leash = tag.compoundTag("Leash");
     if (leash) {
       auto x = props::GetInt(*leash, "X");
       auto y = props::GetInt(*leash, "Y");
@@ -1237,7 +1237,7 @@ private:
     auto ret = std::make_shared<ListTag>();
     ret->fType = Tag::TAG_Compound;
 
-    auto mainHand = props::GetList(input, "HandItems");
+    auto mainHand = input.listTag("HandItems");
     std::shared_ptr<CompoundTag> item;
 
     if (mainHand && mainHand->fType == Tag::TAG_Compound &&

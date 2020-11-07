@@ -311,30 +311,4 @@ GetJson(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   return obj;
 }
 
-inline std::shared_ptr<mcfile::nbt::CompoundTag>
-GetCompound(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
-  using namespace mcfile::nbt;
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return nullptr;
-  }
-  if (found->second->id() != Tag::TAG_Compound) {
-    return nullptr;
-  }
-  return std::dynamic_pointer_cast<CompoundTag>(found->second);
-}
-
-inline std::shared_ptr<mcfile::nbt::ListTag>
-GetList(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
-  using namespace mcfile::nbt;
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return nullptr;
-  }
-  if (found->second->id() != Tag::TAG_List) {
-    return nullptr;
-  }
-  return std::dynamic_pointer_cast<ListTag>(found->second);
-}
-
 } // namespace j2b::props

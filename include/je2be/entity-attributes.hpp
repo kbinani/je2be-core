@@ -90,24 +90,26 @@ public:
     using namespace props;
     using namespace mcfile::nbt;
 
-    auto attributes = props::GetList(tag, "Attributes");
+    auto attributes = tag.listTag("Attributes");
     Attribute health(15, 15, 15);
     Attribute movement(0.1125, 0.1125);
     Attribute jumpStrength(0.4, 0.4);
-    for (auto const &it : attributes->fValue) {
-      auto attrs = it->asCompound();
-      if (!attrs)
-        continue;
-      auto name = GetString(*attrs, "Name");
-      auto value = GetDouble(*attrs, "Base");
-      if (!name || !value)
-        continue;
-      if (*name == "minecraft:generic.max_health") {
-        health = Attribute(*value, *value, *value);
-      } else if (*name == "minecraft:generic.movement_speed") {
-        movement = Attribute(*value, *value);
-      } else if (*name == "minecraft:horse.jump_strength") {
-        jumpStrength = Attribute(*value, *value);
+    if (attributes) {
+      for (auto const &it : attributes->fValue) {
+        auto attrs = it->asCompound();
+        if (!attrs)
+          continue;
+        auto name = GetString(*attrs, "Name");
+        auto value = GetDouble(*attrs, "Base");
+        if (!name || !value)
+          continue;
+        if (*name == "minecraft:generic.max_health") {
+          health = Attribute(*value, *value, *value);
+        } else if (*name == "minecraft:generic.movement_speed") {
+          movement = Attribute(*value, *value);
+        } else if (*name == "minecraft:horse.jump_strength") {
+          jumpStrength = Attribute(*value, *value);
+        }
       }
     }
 

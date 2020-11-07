@@ -345,7 +345,7 @@ private:
     auto spawnRange = c->int16("SpawnRange", 4);
 
     std::string mob;
-    auto spawnData = GetCompound(*c, "SpawnData");
+    auto spawnData = c->compoundTag("SpawnData");
     if (spawnData) {
       auto id = GetString(*spawnData, "id");
       if (id) {
