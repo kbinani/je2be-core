@@ -9,12 +9,16 @@ public:
     buildEntities(chunk, mapInfo, ddf);
     buildBiomeMap(chunk);
     buildTileEntities(chunk, mapInfo, ddf);
+    if (chunk.fStatus == "full") {
+      fFinalizedState = 2;
+    }
   }
 
   void serialize(ChunkData &cd) {
     serializeData2D(cd);
     serializeBlockEntity(cd);
     serializeEntity(cd);
+    cd.fFinalizedState = fFinalizedState;
   }
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
@@ -162,6 +166,7 @@ private:
       fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
+  std::optional<int32_t> fFinalizedState;
 };
 
 } // namespace j2b

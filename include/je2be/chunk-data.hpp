@@ -8,17 +8,26 @@ public:
       : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
 
   void put(DbInterface &db) {
-    if (putChunkSections(db)) {
-      return;
-    }
+    putChunkSections(db);
     putVersion(db);
     putData2D(db);
     putBlockEntity(db);
     putEntity(db);
     putChecksums(db);
+    putFinalizedState(db);
   }
 
 private:
+  void putFinalizedState(DbInterface &db) const {
+    auto key = Key::FinalizedState(fChunkX, fChunkZ, fDimension);
+    if (fFinalizedState) {
+      int32_t v = *fFinalizedState;
+      db.put(key, leveldb::Slice((char const *)&v, sizeof(v)));
+    } else {
+      db.del(key);
+    }
+  }
+
   void putEntity(DbInterface &db) const {
     auto key = Key::Entity(fChunkX, fChunkZ, fDimension);
     if (fEntity.empty()) {
@@ -52,8 +61,7 @@ private:
     db.put(data2DKey, data2D);
   }
 
-  bool putChunkSections(DbInterface &db) const {
-    bool empty = true;
+  void putChunkSections(DbInterface &db) const {
     for (int i = 0; i < 16; i++) {
       auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
       if (fSubChunks[i].empty()) {
@@ -62,10 +70,8 @@ private:
         leveldb::Slice subchunk((char *)fSubChunks[i].data(),
                                 fSubChunks[i].size());
         db.put(key, subchunk);
-        empty = false;
       }
     }
-    return empty;
   }
 
   void putVersion(DbInterface &db) const {
@@ -146,6 +152,7 @@ public:
   std::vector<uint8_t> fSubChunks[16];
   std::vector<uint8_t> fBlockEntity;
   std::vector<uint8_t> fEntity;
+  std::optional<int32_t> fFinalizedState;
 };
 
 } // namespace j2b
