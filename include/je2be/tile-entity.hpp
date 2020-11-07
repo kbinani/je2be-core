@@ -749,6 +749,24 @@ private:
     return found->get<std::string>();
   }
 
+  static std::string GetSignLine(nlohmann::json const &json) {
+    std::string ret;
+    auto text = json.find("text");
+    if (text != json.end() && text->is_string()) {
+      ret += text->get<std::string>();
+    }
+    auto extra = json.find("extra");
+    if (extra != json.end() && extra->is_array()) {
+      for (auto it = extra->begin(); it != extra->end(); it++) {
+        auto t = it->find("text");
+        if (t != it->end() && t->is_string()) {
+          ret += t->get<std::string>();
+        }
+      }
+    }
+    return ret;
+  }
+
   static TileEntityData Sign(Pos const &pos, mcfile::Block const &b,
                              std::shared_ptr<CompoundTag> const &c,
                              JavaEditionMap const &, DimensionDataFragment &) {
@@ -767,9 +785,8 @@ private:
     if (*color != "black") {
       text += ColorCode(*color);
     }
-    text += GetAsString(*text1, "text") + "\x0a" + GetAsString(*text2, "text") +
-            "\x0a" + GetAsString(*text3, "text") + "\x0a" +
-            GetAsString(*text4, "text");
+    text += GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" +
+            GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
     auto tag = make_shared<CompoundTag>();
     tag->fValue = {
         {"id", String("Sign")},
