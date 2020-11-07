@@ -360,7 +360,7 @@ private:
     E("tnt_minecart",
       Convert(Vehicle, Minecart,
               Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
-    E("snow_golem", Mob);
+    E("snow_golem", Convert(Mob, SnowGolem));
     E("iron_golem", Mob);
 
     E("item", Item);
@@ -369,6 +369,14 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData SnowGolem(EntityData const &c, CompoundTag const &tag) {
+    auto pumpkin = tag.boolean("Pumpkin", true);
+    if (!pumpkin) {
+      AddDefinition(c, "+minecraft:snowman_sheared");
+    }
+    return c;
   }
 
   static EntityData EnderDragon(CompoundTag const &tag,
