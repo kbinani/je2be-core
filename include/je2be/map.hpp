@@ -34,21 +34,8 @@ public:
       return false;
 
     auto dimension = GetString(*data, "dimension");
-    auto locked = GetBool(*data, "locked");
-    auto scale = GetByte(*data, "scale");
-    auto xCenter = GetInt(*data, "xCenter");
-    auto zCenter = GetInt(*data, "zCenter");
-    auto colors = data->query("colors")->asByteArray();
-    auto unlimitedTracking = GetBool(*data, "unlimitedTracking");
-
-    if (!dimension || !locked || !scale || !xCenter || !zCenter || !colors ||
-        !unlimitedTracking)
-      return false;
-
-    for (int beScale = 0; beScale <= 4; beScale++) {
-      int64_t uuid = UUID(javaMapId, beScale);
-      auto ret = make_shared<CompoundTag>();
-      int8_t outDimension = 0;
+    int8_t outDimension = 0;
+    if (dimension) {
       if (*dimension == "minecraft:overworld") {
         outDimension = 0;
       } else if (*dimension == "minecraft:the_nether") {
@@ -56,6 +43,27 @@ public:
       } else if (*dimension == "minecraft:the_end") {
         outDimension = 2;
       }
+    } else {
+      // <= 1.15
+      auto dimensionInt = GetInt(*data, "dimension");
+      if (dimensionInt) {
+        outDimension = *dimensionInt;
+      }
+    }
+    auto locked = GetBool(*data, "locked");
+    auto scale = GetByte(*data, "scale");
+    auto xCenter = GetInt(*data, "xCenter");
+    auto zCenter = GetInt(*data, "zCenter");
+    auto colors = data->query("colors")->asByteArray();
+    auto unlimitedTracking = GetBool(*data, "unlimitedTracking");
+
+    if (!locked || !scale || !xCenter || !zCenter || !colors ||
+        !unlimitedTracking)
+      return false;
+
+    for (int beScale = 0; beScale <= 4; beScale++) {
+      int64_t uuid = UUID(javaMapId, beScale);
+      auto ret = make_shared<CompoundTag>();
       ret->fValue["dimension"] = Byte(outDimension);
       ret->fValue["fullyExplored"] = Bool(false); //?
       ret->fValue["height"] = Short(128);
