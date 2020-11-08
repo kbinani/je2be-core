@@ -2,7 +2,7 @@
 
 namespace j2b::strings {
 
-inline bool Equals(std::string const &a, std::string const &b) {
+inline bool Equal(std::string const &a, std::string const &b) {
   if (a.size() != b.size()) {
     return false;
   }
@@ -10,6 +10,9 @@ inline bool Equals(std::string const &a, std::string const &b) {
 }
 
 inline std::string LTrim(std::string const &s, std::string const &left) {
+  if (left.empty()) {
+    return s;
+  }
   std::string ret = s;
   while (ret.starts_with(left)) {
     ret = ret.substr(left.size());
@@ -18,6 +21,9 @@ inline std::string LTrim(std::string const &s, std::string const &left) {
 }
 
 inline std::string RTrim(std::string const &s, std::string const &right) {
+  if (right.empty()) {
+    return s;
+  }
   std::string ret = s;
   while (ret.ends_with(right)) {
     ret = ret.substr(0, ret.size() - right.size());
@@ -27,14 +33,7 @@ inline std::string RTrim(std::string const &s, std::string const &right) {
 
 inline std::string Trim(std::string const &left, std::string const &s,
                         std::string const &right) {
-  auto ret = s;
-  if (!left.empty()) {
-    ret = LTrim(ret, left);
-  }
-  if (!right.empty()) {
-    ret = RTrim(ret, right);
-  }
-  return ret;
+  return RTrim(LTrim(s, left), right);
 }
 
 inline std::string Replace(std::string const &s, std::string const &search) {

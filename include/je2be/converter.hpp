@@ -217,11 +217,11 @@ private:
             static string const end_portal("minecraft:end_portal");
             if (TileEntity::IsTileEntity(block->fName)) {
               cdp.addTileBlock(bx, by, bz, block);
-            } else if (strings::Equals(block->fName, nether_portal)) {
+            } else if (strings::Equal(block->fName, nether_portal)) {
               bool xAxis = block->property("axis", "x") == "x";
               ddf.addPortalBlock(bx, by, bz, xAxis);
             }
-            if (strings::Equals(block->fName, end_portal) &&
+            if (strings::Equal(block->fName, end_portal) &&
                 dim == Dimension::End) {
               ddf.addEndPortal(bx, by, bz);
             }
@@ -429,21 +429,21 @@ private:
     static string const bubble_column("minecraft:bubble_column");
     if (!block.fProperties.empty()) {
       auto waterlogged = block.property("waterlogged", "");
-      if (strings::Equals(waterlogged, "true")) {
+      if (strings::Equal(waterlogged, "true")) {
         return true;
       }
     }
     auto const &name = block.fName;
-    return strings::Equals(name, seagrass) ||
-           strings::Equals(name, tall_seagrass) ||
-           strings::Equals(name, kelp) || strings::Equals(name, kelp_plant) ||
-           strings::Equals(name, bubble_column);
+    return strings::Equal(name, seagrass) ||
+           strings::Equal(name, tall_seagrass) || strings::Equal(name, kelp) ||
+           strings::Equal(name, kelp_plant) ||
+           strings::Equal(name, bubble_column);
   }
 
   static bool IsAir(std::string const &name) {
     static std::string const air("minecraft:air");
     static std::string const cave_air("minecraft:cave_air");
-    return strings::Equals(name, air) || strings::Equals(name, cave_air);
+    return strings::Equal(name, air) || strings::Equal(name, cave_air);
   }
 
 private:
