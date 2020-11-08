@@ -1323,10 +1323,13 @@ private:
       e.fPortalCooldown = *portalCooldown;
     if (id)
       e.fIdentifier = *id;
-    if (customName && (*customName)["text"].is_string()) {
-      auto text = (*customName)["text"].get<std::string>();
-      e.fCustomName = text;
-      e.fCustomNameVisible = true;
+    if (customName) {
+      auto text = customName->find("text");
+      if (text != customName->end() && text->is_string()) {
+        auto t = text->get<std::string>();
+        e.fCustomName = t;
+        e.fCustomNameVisible = true;
+      }
     }
 
     return e;

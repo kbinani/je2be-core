@@ -366,13 +366,13 @@ private:
           if (!line)
             continue;
           std::string lineText;
-          try {
-            auto obj = nlohmann::json::parse(line->fValue);
-            auto text = obj.find("text");
-            if (text != obj.end()) {
+          auto obj = ParseAsJson(line->fValue);
+          if (obj) {
+            auto text = obj->find("text");
+            if (text != obj->end()) {
               lineText = text->get<std::string>();
             }
-          } catch (std::exception &e) {
+          } else {
             lineText = line->fValue;
           }
           auto lineObj = std::make_shared<CompoundTag>();
@@ -443,16 +443,18 @@ private:
     if (display) {
       auto name = props::GetString(*display, "Name");
       if (name) {
-        auto nameJson = nlohmann::json::parse(*name);
-        auto translate = nameJson["translate"];
-        if (translate.is_string()) {
-          auto translationKey = translate.get<std::string>();
-          if (translationKey == "filled_map.buried_treasure") {
-            type = 5;
-          } else if (translationKey == "filled_map.mansion") {
-            type = 4;
-          } else if (translationKey == "filled_map.monument") {
-            type = 3;
+        auto nameJson = props::ParseAsJson(*name);
+        if (nameJson) {
+          auto translate = nameJson->find("translate");
+          if (translate != nameJson->end() && translate->is_string()) {
+            auto translationKey = translate->get<std::string>();
+            if (translationKey == "filled_map.buried_treasure") {
+              type = 5;
+            } else if (translationKey == "filled_map.mansion") {
+              type = 4;
+            } else if (translationKey == "filled_map.monument") {
+              type = 3;
+            }
           }
         }
       }
@@ -912,9 +914,9 @@ private:
     if (display) {
       auto json = props::GetJson(*display, "Name");
       if (json) {
-        auto translate = (*json)["translate"];
-        if (translate.is_string() &&
-            translate.get<std::string>() == "block.minecraft.ominous_banner") {
+        auto translate = json->find("translate");
+        if (translate != json->end() && translate->is_string() &&
+            translate->get<std::string>() == "block.minecraft.ominous_banner") {
           omnious = true;
         }
       }
@@ -1102,16 +1104,16 @@ private:
     if (display) {
       auto name = GetString(*display, "Name");
       if (name) {
-        try {
-          auto obj = nlohmann::json::parse(*name);
-          auto text = obj["text"];
-          if (text.is_string()) {
-            auto n = text.get<string>();
+        auto obj = ParseAsJson(*name);
+        if (obj) {
+          auto text = obj->find("text");
+          if (text != obj->end() && text->is_string()) {
+            auto n = text->get<string>();
             auto beDisplay = make_shared<CompoundTag>();
             beDisplay->fValue["Name"] = String(n);
             beTag->fValue["display"] = beDisplay;
           }
-        } catch (nlohmann::json::exception &) {
+        } else {
           auto text = strings::RTrim(strings::LTrim(*name, "\""), "\"");
           auto beDisplay = make_shared<CompoundTag>();
           beDisplay->fValue["Name"] = String(text);

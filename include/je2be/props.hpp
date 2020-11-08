@@ -294,6 +294,14 @@ inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag,
   return Rotation(yaw, pitch);
 }
 
+inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
+  try {
+    return nlohmann::json::parse(s);
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
 inline std::optional<nlohmann::json>
 GetJson(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
@@ -307,8 +315,7 @@ GetJson(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   if (!s) {
     return nullopt;
   }
-  json obj = json::parse(s->fValue);
-  return obj;
+  return ParseAsJson(s->fValue);
 }
 
 } // namespace j2b::props
