@@ -18,14 +18,15 @@ public:
   }
 
   static bool Convert(int32_t javaMapId, CompoundTag const &item,
-                      std::filesystem::path const &input, DbInterface &db) {
+                      std::filesystem::path const &input,
+                      InputOption const &opt, DbInterface &db) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
     using namespace props;
     using namespace mcfile::nbt;
 
-    auto root = JavaEditionMap::Read(input, javaMapId);
+    auto root = JavaEditionMap::Read(input, opt, javaMapId);
     if (!root)
       return false;
 

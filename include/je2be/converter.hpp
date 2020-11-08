@@ -4,44 +4,6 @@ namespace j2b {
 
 class Converter {
 public:
-  class InputOption {
-  public:
-    LevelDirectoryStructure fLevelDirectoryStructure =
-        LevelDirectoryStructure::Vanilla;
-
-    std::string getWorldDirectory(std::string const &root,
-                                  Dimension dim) const {
-      switch (fLevelDirectoryStructure) {
-      case LevelDirectoryStructure::Vanilla: {
-        switch (dim) {
-        case Dimension::Overworld:
-          return root;
-        case Dimension::Nether:
-          return root + "/DIM-1";
-        case Dimension::End:
-          return root + "/DIM1";
-        }
-        break;
-      }
-      case LevelDirectoryStructure::Paper: {
-        switch (dim) {
-        case Dimension::Overworld:
-          return root + "/world";
-        case Dimension::Nether:
-          return root + "/world_nether/DIM-1";
-        case Dimension::End:
-          return root + "/world_the_end/DIM1";
-        }
-        break;
-      }
-      }
-    }
-  };
-
-  class OutputOption {
-  public:
-  };
-
   Converter(std::string const &input, InputOption io, std::string const &output,
             OutputOption oo)
       : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
@@ -57,7 +19,8 @@ public:
     fs::create_directory(rootPath);
     fs::create_directory(dbPath);
 
-    auto data = LevelData::Read(fs::path(fInput) / "level.dat");
+    auto data =
+        LevelData::Read(fInputOption.getLevelDatFilePath(fs::path(fInput)));
     if (!data)
       return false;
     LevelData levelData = LevelData::Import(*data);
@@ -76,11 +39,12 @@ public:
         return false;
       }
 
-      auto worldData = std::make_unique<WorldData>(fs::path(fInput));
+      auto worldData =
+          std::make_unique<WorldData>(fs::path(fInput), fInputOption);
       for (auto dim :
            {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
-        World world(dir);
+        World world(dir.string());
         ok &= convertWorld(world, dim, db, *worldData, concurrency);
       }
 

@@ -41,6 +41,7 @@
 #include <je2be/db/raw-db.hpp>
 #include <je2be/level-data.hpp>
 #include <je2be/height-map.hpp>
+#include <je2be/options.hpp>
 #include <je2be/java-edition-map.hpp>
 #include <je2be/portal/portal.hpp>
 #include <je2be/portal/oriented-portal-blocks.hpp>

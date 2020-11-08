@@ -4,8 +4,8 @@ namespace j2b {
 
 class WorldData {
 public:
-  explicit WorldData(std::filesystem::path const &input)
-      : fInput(input), fJavaEditionMap(input) {}
+  WorldData(std::filesystem::path const &input, InputOption const &opt)
+      : fInput(input), fJavaEditionMap(input, opt), fInputOption(opt) {}
 
   void put(DbInterface &db, mcfile::nbt::CompoundTag const &javaLevelData) {
     fPortals.putInto(db);
@@ -13,7 +13,7 @@ public:
       auto found = fMapItems.find(mapId);
       if (found == fMapItems.end())
         return;
-      Map::Convert(mapId, *found->second, fInput, db);
+      Map::Convert(mapId, *found->second, fInput, fInputOption, db);
     });
     putAutonomousEntities(db);
 
@@ -61,6 +61,7 @@ public:
       fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
+  InputOption fInputOption;
 };
 
 } // namespace j2b

@@ -49,6 +49,7 @@ set(je2be_srcs
   include/je2be/color/lab.hpp
   include/je2be/xxhash.hpp
   include/je2be/optional.hpp
+  include/je2be/options.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp

@@ -4,8 +4,8 @@ namespace j2b {
 
 class JavaEditionMap {
 public:
-  explicit JavaEditionMap(std::filesystem::path const &input)
-      : fScaleLookupTable(CreateScaleLookupTable(input)) {}
+  JavaEditionMap(std::filesystem::path const &input, InputOption const &opt)
+      : fScaleLookupTable(CreateScaleLookupTable(input, opt)) {}
 
   std::optional<int8_t> scale(int32_t mapId) const {
     auto found = fScaleLookupTable.find(mapId);
@@ -22,12 +22,14 @@ public:
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag>
-  Read(std::filesystem::path const &input, int32_t mapId) {
+  Read(std::filesystem::path const &input, InputOption const &opt,
+       int32_t mapId) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
 
-    auto jeFilePath = input / "data" / ("map_" + to_string(mapId) + ".dat");
+    auto jeFilePath =
+        opt.getDataDirectory(input) / ("map_" + to_string(mapId) + ".dat");
     if (!fs::is_regular_file(jeFilePath))
       return nullptr;
 
@@ -60,11 +62,12 @@ public:
 
 private:
   static std::unordered_map<int32_t, int8_t>
-  CreateScaleLookupTable(std::filesystem::path const &input) {
+  CreateScaleLookupTable(std::filesystem::path const &input,
+                         InputOption const &opt) {
     namespace fs = std::filesystem;
     std::unordered_map<int32_t, int8_t> table;
 
-    auto dataDir = input / "data";
+    auto dataDir = opt.getDataDirectory(input);
     if (!fs::exists(dataDir)) {
       return table;
     }
@@ -80,7 +83,7 @@ private:
       if (!number)
         continue;
 
-      auto map = Read(input, *number);
+      auto map = Read(input, opt, *number);
       if (!map)
         continue;
       auto data = map->query("/data")->asCompound();
