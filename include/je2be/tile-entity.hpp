@@ -510,7 +510,7 @@ private:
     auto tag = make_shared<CompoundTag>();
     auto const &name = b.fName;
     int8_t type = Item::GetSkullTypeFromBlockName(name);
-    auto rot = stoi(b.property("rotation", "0"));
+    auto rot = Wrap(strings::Toi(b.property("rotation", "0")), 0);
     float rotation = rot / 16.0f * 360.0f;
     tag->fValue = {
         {"id", String("Skull")},      {"isMovable", Bool(true)},

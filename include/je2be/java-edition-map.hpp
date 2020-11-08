@@ -76,9 +76,11 @@ private:
       if (!name.starts_with("map_") || !name.ends_with(".dat"))
         continue;
       auto numberStr = strings::RTrim(strings::LTrim(name, "map_"), ".dat");
-      int32_t number = std::stoi(numberStr);
+      auto number = strings::Toi(numberStr);
+      if (!number)
+        continue;
 
-      auto map = Read(input, number);
+      auto map = Read(input, *number);
       if (!map)
         continue;
       auto data = map->query("/data")->asCompound();
@@ -89,7 +91,7 @@ private:
       if (!scale)
         continue;
 
-      table[number] = *scale;
+      table[*number] = *scale;
     }
 
     return table;

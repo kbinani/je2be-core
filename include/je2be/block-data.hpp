@@ -162,7 +162,7 @@ private:
 
   static PropertySpec DistanceToUpdateBit(Block const &block) {
     auto distance = block.property("distance", "7");
-    int distanceV = std::stoi(distance);
+    auto distanceV = Wrap(strings::Toi(distance), 7);
     return std::make_pair("update_bit", props::Bool(distanceV > 4));
   }
 
@@ -192,7 +192,7 @@ private:
 
   static PropertySpec PicklesToClusterCount(Block const &block) {
     auto pickles = block.property("pickles", "1");
-    auto cluster = std::stoi(pickles) - 1;
+    auto cluster = Wrap(strings::Toi(pickles), 1) - 1;
     return std::make_pair("cluster_count", props::Int(cluster));
   }
 
@@ -203,7 +203,7 @@ private:
   }
 
   static PropertyType Age(Block const &block) {
-    auto age = std::stoi(block.property("age", "0"));
+    auto age = Wrap(strings::Toi(block.property("age", "0")), 0);
     return props::Int(age);
   }
 
@@ -215,7 +215,7 @@ private:
   }
 
   static PropertyType Level(Block const &block) {
-    auto level = std::stoi(block.property("level", "0"));
+    auto level = Wrap(strings::Toi(block.property("level", "0")), 0);
     return props::Int(level);
   }
 
@@ -520,7 +520,7 @@ private:
   }
 
   static PropertySpec LayersToHeight(Block const &block) {
-    auto layers = std::stoi(block.property("layers", "1"));
+    auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
     return std::make_pair("height", props::Int(layers - 1));
   }
 
@@ -585,7 +585,7 @@ private:
   }
 
   static PropertyType Moisture(Block const &block) {
-    auto v = std::stoi(block.property("moisture", "0"));
+    auto v = Wrap(strings::Toi(block.property("moisture", "0")), 0);
     return props::Int(v);
   }
 
@@ -723,8 +723,8 @@ private:
   }
 
   static PropertyType Rotation(Block const &block) {
-    auto r = block.property("rotation", "0");
-    return props::Int(std::stoi(r));
+    auto r = Wrap(strings::Toi(block.property("rotation", "0")), 0);
+    return props::Int(r);
   }
 
   static Converter Sign(std::optional<std::string> prefix = std::nullopt) {
@@ -1538,7 +1538,7 @@ private:
   }
 
   static PropertySpec BiteCounterFromBites(Block const &b) {
-    auto bites = std::stoi(b.property("bites", "0"));
+    auto bites = Wrap(strings::Toi(b.property("bites", "0")), 0);
     return std::make_pair("bite_counter", props::Int(bites));
   }
 
@@ -1548,7 +1548,7 @@ private:
   }
 
   static PropertySpec GrowthFromAge(Block const &b) {
-    auto age = std::stoi(b.property("age", "0"));
+    auto age = Wrap(strings::Toi(b.property("age", "0")), 0);
     int32_t growth = 0;
     switch (age) {
     case 0:
@@ -1624,7 +1624,7 @@ private:
   }
 
   static PropertyType Delay(Block const &b) {
-    auto delay = std::stoi(b.property("delay", "1"));
+    auto delay = Wrap(strings::Toi(b.property("delay", "1")), 1);
     return props::Int(delay - 1);
   }
 
@@ -1692,7 +1692,7 @@ private:
   }
 
   static PropertyType Power(Block const &b) {
-    return props::Int(std::stoi(b.property("power", "0")));
+    return props::Int(Wrap(strings::Toi(b.property("power", "0")), 0));
   }
 
   static PropertyType InWall(Block const &b) {
