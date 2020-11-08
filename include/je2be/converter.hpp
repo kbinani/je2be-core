@@ -24,12 +24,6 @@ public:
     if (!data)
       return false;
     LevelData levelData = LevelData::Import(*data);
-    if (true) {
-      // TODO(kbinani): for debug
-      levelData.fLevelName = "je2be-output";
-      levelData.fShowCoordinates = true;
-      levelData.fCommandsEnabled = true;
-    }
     levelData.write(fOutput + string("/level.dat"));
 
     bool ok = true;
