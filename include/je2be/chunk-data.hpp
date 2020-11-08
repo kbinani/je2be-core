@@ -8,13 +8,15 @@ public:
       : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
 
   void put(DbInterface &db) {
-    putChunkSections(db);
-    putVersion(db);
-    putData2D(db);
-    putBlockEntity(db);
-    putEntity(db);
-    putChecksums(db);
-    putFinalizedState(db);
+    auto status = putChunkSections(db);
+    if (status == ChunkStatus::NotEmpty) {
+      putVersion(db);
+      putData2D(db);
+      putBlockEntity(db);
+      putEntity(db);
+      putChecksums(db);
+      putFinalizedState(db);
+    }
   }
 
 private:
@@ -61,7 +63,13 @@ private:
     db.put(data2DKey, data2D);
   }
 
-  void putChunkSections(DbInterface &db) const {
+  enum class ChunkStatus {
+    Empty,
+    NotEmpty,
+  };
+
+  ChunkStatus putChunkSections(DbInterface &db) const {
+    bool empty = true;
     for (int i = 0; i < 16; i++) {
       auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
       if (fSubChunks[i].empty()) {
@@ -70,7 +78,17 @@ private:
         leveldb::Slice subchunk((char *)fSubChunks[i].data(),
                                 fSubChunks[i].size());
         db.put(key, subchunk);
+        empty = false;
       }
+    }
+    if (empty) {
+      if (fFinalizedState && *fFinalizedState == 2) {
+        return ChunkStatus::NotEmpty;
+      } else {
+        return ChunkStatus::Empty;
+      }
+    } else {
+      return ChunkStatus::NotEmpty;
     }
   }
 
