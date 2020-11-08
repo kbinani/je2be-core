@@ -76,9 +76,6 @@ public:
         table(CreateTable());
     auto found = table->find(name);
     if (found == table->end()) {
-#ifndef NDEBUG
-      std::cout << "Entity Attributes unknown for mob: " << name << std::endl;
-#endif
       return nullptr;
     }
     return found->second.toListTag();
