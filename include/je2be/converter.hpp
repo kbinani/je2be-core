@@ -116,6 +116,8 @@ private:
       putSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
     }
 
+    ret->addStructures(chunk);
+
     cdp.build(chunk, mapInfo, *ret);
     cdp.serialize(cd);
 

@@ -25,6 +25,28 @@ public:
     fEndPortalsInEndDimension.insert(p);
   }
 
+  void addStructures(mcfile::Chunk const &chunk) {
+    if (!chunk.fStructures) {
+      return;
+    }
+    auto start = chunk.fStructures->compoundTag("Starts");
+    if (!start) {
+      return;
+    }
+    auto fortress = start->compoundTag("fortress");
+    if (fortress) {
+      addStructures(*fortress, StructureType::Fortress);
+    }
+    auto monument = start->compoundTag("monument");
+    if (monument) {
+      addStructures(*monument, StructureType::Monument);
+    }
+    auto outpost = start->compoundTag("pillager_outpost");
+    if (outpost) {
+      addStructures(*outpost, StructureType::Outpost);
+    }
+  }
+
   void drain(WorldData &wd) {
     wd.fPortals.add(fPortalBlocks, fDim);
     for (auto const &it : fMapItems) {
@@ -35,6 +57,32 @@ public:
     }
     for (auto const &pos : fEndPortalsInEndDimension) {
       wd.fEndPortalsInEndDimension.insert(pos);
+    }
+    for (auto it = fStructures.begin(); it != fStructures.end(); it++) {
+      wd.fStructures.add(*it, fDim);
+    }
+  }
+
+private:
+  void addStructures(mcfile::nbt::CompoundTag const &structure,
+                     StructureType type) {
+    auto children = structure.listTag("Children");
+    if (!children)
+      return;
+    for (auto const &it : children->fValue) {
+      auto c = it->asCompound();
+      if (!c)
+        continue;
+      auto bb = c->intArrayTag("BB");
+      if (!bb)
+        continue;
+      auto const &value = bb->value();
+      if (value.size() < 6)
+        continue;
+      Pos start(value[0], value[1], value[2]);
+      Pos end(value[3], value[4], value[5]);
+      StructurePiece p(start, end, type);
+      fStructures.add(p);
     }
   }
 
@@ -47,6 +95,7 @@ private:
       fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
+  StructurePieceCollection fStructures;
 };
 
 } // namespace j2b

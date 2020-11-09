@@ -75,6 +75,15 @@ public:
     return std::string(b.data(), b.size());
   }
 
+  static std::string StructureBounds(int32_t chunkX, int32_t chunkZ,
+                                     Dimension dim) {
+    // HardCodedSpawnAreas
+    std::vector<char> b;
+    PlaceXZTag(b, chunkX, chunkZ, 0x39);
+    SetDimension(b, dim);
+    return std::string(b.data(), b.size());
+  }
+
 private:
   static void PlaceXZTag(std::vector<char> &out, int32_t chunkX, int32_t chunkZ,
                          uint8_t tag) {

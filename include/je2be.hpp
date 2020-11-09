@@ -22,6 +22,7 @@
 #include <je2be/enums.hpp>
 #include <je2be/strings.hpp>
 #include <je2be/pos.hpp>
+#include <je2be/volume.hpp>
 #include <je2be/optional.hpp>
 #include <je2be/db/key.hpp>
 #include <je2be/vec.hpp>
@@ -48,6 +49,9 @@
 #include <je2be/portal/portal-blocks.hpp>
 #include <je2be/portal/portals.hpp>
 #include <je2be/map.hpp>
+#include <je2be/structure/structure-piece.hpp>
+#include <je2be/structure/structure-piece-collection.hpp>
+#include <je2be/structure/structures.hpp>
 #include <je2be/world-data.hpp>
 #include <je2be/dimension-data-fragment.hpp>
 #include <je2be/potion-data.hpp>

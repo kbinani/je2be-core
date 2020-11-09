@@ -22,6 +22,8 @@ public:
     if (theEnd) {
       db.put(Key::TheEnd(), *theEnd);
     }
+
+    fStructures.put(db);
   }
 
 private:
@@ -62,6 +64,7 @@ public:
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
   InputOption fInputOption;
+  Structures fStructures;
 };
 
 } // namespace j2b

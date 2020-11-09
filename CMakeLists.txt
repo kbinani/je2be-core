@@ -50,6 +50,10 @@ set(je2be_srcs
   include/je2be/xxhash.hpp
   include/je2be/optional.hpp
   include/je2be/options.hpp
+  include/je2be/structure/structure-piece.hpp
+  include/je2be/structure/structure-piece-collection.hpp
+  include/je2be/structure/structures.hpp
+  include/je2be/volume.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
