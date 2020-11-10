@@ -73,17 +73,25 @@ private:
       auto c = it->asCompound();
       if (!c)
         continue;
-      auto bb = c->intArrayTag("BB");
+      auto bb = GetBoundingBox(*c, "BB");
       if (!bb)
         continue;
-      auto const &value = bb->value();
-      if (value.size() < 6)
-        continue;
-      Pos start(value[0], value[1], value[2]);
-      Pos end(value[3], value[4], value[5]);
-      StructurePiece p(start, end, type);
+      StructurePiece p(bb->fStart, bb->fEnd, type);
       fStructures.add(p);
     }
+  }
+
+  static std::optional<Volume>
+  GetBoundingBox(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
+    auto bb = tag.intArrayTag("BB");
+    if (!bb)
+      return std::nullopt;
+    auto const &value = bb->value();
+    if (value.size() < 6)
+      return std::nullopt;
+    Pos start(value[0], value[1], value[2]);
+    Pos end(value[3], value[4], value[5]);
+    return Volume(start, end);
   }
 
 public:
