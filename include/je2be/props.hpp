@@ -31,110 +31,6 @@ inline std::shared_ptr<mcfile::nbt::ShortTag> Short(int16_t v) {
   return std::make_shared<mcfile::nbt::ShortTag>(v);
 }
 
-inline std::optional<int32_t> GetInt(mcfile::nbt::CompoundTag const &tag,
-                                     std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asInt();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asInt()->fValue;
-}
-
-inline std::optional<bool> GetBool(mcfile::nbt::CompoundTag const &tag,
-                                   std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asByte();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asByte()->fValue != 0;
-}
-
-inline std::optional<int8_t> GetByte(mcfile::nbt::CompoundTag const &tag,
-                                     std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asByte();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asByte()->fValue;
-}
-
-inline std::optional<std::string> GetString(mcfile::nbt::CompoundTag const &tag,
-                                            std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asString();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asString()->fValue;
-}
-
-inline std::optional<int64_t> GetLong(mcfile::nbt::CompoundTag const &tag,
-                                      std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asLong();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asLong()->fValue;
-}
-
-inline std::optional<int16_t> GetShort(mcfile::nbt::CompoundTag const &tag,
-                                       std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asShort();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asShort()->fValue;
-}
-
-inline std::optional<float> GetFloat(mcfile::nbt::CompoundTag const &tag,
-                                     std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asFloat();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asFloat()->fValue;
-}
-
-inline std::optional<double> GetDouble(mcfile::nbt::CompoundTag const &tag,
-                                       std::string const &name) {
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
-    return std::nullopt;
-  }
-  auto itag = found->second->asDouble();
-  if (!itag) {
-    return std::nullopt;
-  }
-  return itag->asDouble()->fValue;
-}
-
 struct UUIDKeyName {
   std::optional<std::string> fLeastAndMostPrefix = std::nullopt;
   std::optional<std::string> fIntArray = std::nullopt;
@@ -146,8 +42,8 @@ GetUUIDWithFormatLeastAndMost(mcfile::nbt::CompoundTag const &tag,
                               std::string const &namePrefix) {
   using namespace std;
   using namespace mcfile::nbt;
-  auto least = GetLong(tag, namePrefix + "Least");
-  auto most = GetLong(tag, namePrefix + "Most");
+  auto least = tag.int64(namePrefix + "Least");
+  auto most = tag.int64(namePrefix + "Most");
 
   if (!least || !most)
     return nullopt;

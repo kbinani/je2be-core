@@ -47,7 +47,7 @@ public:
                                       JavaEditionMap const &mapInfo,
                                       DimensionDataFragment &ddf) {
     using namespace props;
-    auto id = GetString(tag, "id");
+    auto id = tag.string("id");
     if (!id)
       return std::vector<EntityData>();
     static std::unique_ptr<
@@ -94,12 +94,12 @@ public:
   ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
     using namespace props;
-    auto id = GetString(c, "id");
+    auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
-      auto tileX = GetInt(c, "TileX");
-      auto tileY = GetInt(c, "TileY");
-      auto tileZ = GetInt(c, "TileZ");
+      auto tileX = c.int32("TileX");
+      auto tileY = c.int32("TileY");
+      auto tileZ = c.int32("TileZ");
 
       auto rot = GetRotation(c, "Rotation");
       int32_t facing = 0;
@@ -157,13 +157,13 @@ public:
   ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo,
                    DimensionDataFragment &ddf) {
     using namespace props;
-    auto id = GetString(c, "id");
+    auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
       auto tag = std::make_shared<CompoundTag>();
-      auto tileX = GetInt(c, "TileX");
-      auto tileY = GetInt(c, "TileY");
-      auto tileZ = GetInt(c, "TileZ");
+      auto tileX = c.int32("TileX");
+      auto tileY = c.int32("TileY");
+      auto tileZ = c.int32("TileZ");
       if (!tileX || !tileY || !tileZ)
         return nullptr;
       tag->fValue = {
@@ -191,7 +191,7 @@ public:
   }
 
   static bool IsTileEntity(CompoundTag const &tag) {
-    auto id = props::GetString(tag, "id");
+    auto id = tag.string("id");
     if (!id)
       return false;
     return *id == "minecraft:item_frame";
@@ -398,8 +398,8 @@ private:
     using namespace props;
     auto data = tag.compoundTag("VillagerData");
     if (data) {
-      auto inProfession = GetString(*data, "profession");
-      auto inType = GetString(*data, "type");
+      auto inProfession = data->string("profession");
+      auto inType = data->string("type");
       auto level = data->int32("level", 1);
       if (inProfession && inType) {
         auto profession = strings::LTrim(*inProfession, "minecraft:");
@@ -545,7 +545,7 @@ private:
         auto converted = Item::From(item, mapInfo, ddf);
         if (!converted)
           continue;
-        auto slot = props::GetByte(*item, "Slot");
+        auto slot = item->byte("Slot");
         if (!slot)
           continue;
         converted->fValue["Slot"] = props::Byte(*slot);
@@ -566,7 +566,7 @@ private:
 
   static EntityData Minecart(EntityData const &c, CompoundTag const &tag) {
     auto pos = props::GetVec(tag, "Pos");
-    auto onGround = props::GetBool(tag, "OnGround");
+    auto onGround = tag.boolean("OnGround");
     if (pos && onGround) {
       // Java
       //   on ground: ground level +0
@@ -747,7 +747,7 @@ private:
 
   static EntityData CollarColorable(EntityData const &c,
                                     CompoundTag const &tag) {
-    auto collarColor = props::GetByte(tag, "CollarColor");
+    auto collarColor = tag.byte("CollarColor");
     if (collarColor && GetOwnerUUID(tag)) {
       c->fValue["Color"] = props::Byte(*collarColor);
     }
@@ -782,7 +782,7 @@ private:
   }
 
   static EntityData Slime(EntityData const &c, CompoundTag const &tag) {
-    auto size = props::GetInt(tag, "Size");
+    auto size = tag.int32("Size");
     int8_t variant = 0;
     if (size) {
       variant = int8_t(*size) + 1;
@@ -818,7 +818,7 @@ private:
           continue;
 
         auto const &passenger = entities[0];
-        auto uid = props::GetLong(*passenger, "UniqueID");
+        auto uid = passenger->int64("UniqueID");
         if (!uid)
           continue;
         auto link = std::make_shared<CompoundTag>();
@@ -876,7 +876,7 @@ private:
 
   static Behavior Rename(std::string const &name) {
     return [=](EntityData const &c, CompoundTag const &tag) {
-      auto id = props::GetString(tag, "id");
+      auto id = tag.string("id");
       if (!id)
         return c;
       RemoveDefinition(c, "+" + *id);
@@ -904,7 +904,7 @@ private:
     c->fValue["SpawnedByNight"] = props::Bool(false);
     auto persistenceRequired = tag.boolean("PersistenceRequired", true);
     bool persistent = false;
-    if (persistenceRequired && props::GetString(tag, "CustomName")) {
+    if (persistenceRequired && tag.string("CustomName")) {
       persistent = true;
     }
     c->fValue["Persistent"] = props::Bool(persistent);
@@ -920,9 +920,9 @@ private:
 
     auto leash = tag.compoundTag("Leash");
     if (leash) {
-      auto x = props::GetInt(*leash, "X");
-      auto y = props::GetInt(*leash, "Y");
-      auto z = props::GetInt(*leash, "Z");
+      auto x = leash->int32("X");
+      auto y = leash->int32("Y");
+      auto z = leash->int32("Z");
       auto uuid = GetEntityUUID(tag);
       if (x && y && z && uuid) {
         int64_t targetUUID = *uuid;
@@ -957,7 +957,7 @@ private:
   static EntityData Cat(EntityData const &c, CompoundTag const &tag) {
     using namespace mcfile::nbt;
     using namespace std;
-    auto catType = props::GetInt(tag, "CatType");
+    auto catType = tag.int32("CatType");
     if (catType) {
       int32_t variant = 0;
       std::string type;
@@ -1178,7 +1178,7 @@ private:
     if (!ret)
       return ret;
 
-    auto id = GetString(tag, "id");
+    auto id = tag.string("id");
     if (id) {
       if (*id == "minecraft:horse" || *id == "minecraft:donkey" ||
           *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" ||
@@ -1289,16 +1289,16 @@ private:
     using namespace mcfile::nbt;
     using namespace std;
 
-    auto fallDistance = GetFloat(tag, "FallDistance");
-    auto fire = GetShort(tag, "Fire");
-    auto invulnerable = GetBool(tag, "Invulnerable");
-    auto onGround = GetBool(tag, "OnGround");
-    auto portalCooldown = GetInt(tag, "PortalCooldown");
+    auto fallDistance = tag.float32("FallDistance");
+    auto fire = tag.int16("Fire");
+    auto invulnerable = tag.boolean("Invulnerable");
+    auto onGround = tag.boolean("OnGround");
+    auto portalCooldown = tag.int32("PortalCooldown");
     auto motion = GetVec(tag, "Motion");
     auto pos = GetVec(tag, "Pos");
     auto rotation = GetRotation(tag, "Rotation");
     auto uuid = GetEntityUUID(tag);
-    auto id = GetString(tag, "id");
+    auto id = tag.string("id");
     auto customName = GetJson(tag, "CustomName");
 
     if (!uuid)
@@ -1362,16 +1362,16 @@ private:
     using namespace mcfile::nbt;
     using namespace std;
 
-    auto facing = GetByte(tag, "Facing");
-    auto motive = GetString(tag, "Motive");
+    auto facing = tag.byte("Facing");
+    auto motive = tag.string("Motive");
     auto beMotive = PaintingMotive(*motive);
     auto size = PaintingSize(*motive);
     if (!beMotive || !size)
       return nullptr;
 
-    auto tileX = GetInt(tag, "TileX");
-    auto tileY = GetInt(tag, "TileY");
-    auto tileZ = GetInt(tag, "TileZ");
+    auto tileX = tag.int32("TileX");
+    auto tileY = tag.int32("TileY");
+    auto tileZ = tag.int32("TileZ");
     if (!tileX || !tileY || !tileZ)
       return nullptr;
 

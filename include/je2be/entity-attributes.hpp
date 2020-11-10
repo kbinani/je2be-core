@@ -96,8 +96,8 @@ public:
         auto attrs = it->asCompound();
         if (!attrs)
           continue;
-        auto name = GetString(*attrs, "Name");
-        auto value = GetDouble(*attrs, "Base");
+        auto name = attrs->string("Name");
+        auto value = attrs->float64("Base");
         if (!name || !value)
           continue;
         if (*name == "minecraft:generic.max_health") {

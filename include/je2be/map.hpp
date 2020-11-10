@@ -34,7 +34,7 @@ public:
     if (!data)
       return false;
 
-    auto dimension = GetString(*data, "dimension");
+    auto dimension = data->string("dimension");
     int8_t outDimension = 0;
     if (dimension) {
       if (*dimension == "minecraft:overworld") {
@@ -46,17 +46,17 @@ public:
       }
     } else {
       // <= 1.15
-      auto dimensionInt = GetInt(*data, "dimension");
+      auto dimensionInt = data->int32("dimension");
       if (dimensionInt) {
         outDimension = *dimensionInt;
       }
     }
-    auto locked = GetBool(*data, "locked");
-    auto scale = GetByte(*data, "scale");
-    auto xCenter = GetInt(*data, "xCenter");
-    auto zCenter = GetInt(*data, "zCenter");
+    auto locked = data->boolean("locked");
+    auto scale = data->byte("scale");
+    auto xCenter = data->int32("xCenter");
+    auto zCenter = data->int32("zCenter");
     auto colors = data->query("colors")->asByteArray();
-    auto unlimitedTracking = GetBool(*data, "unlimitedTracking");
+    auto unlimitedTracking = data->boolean("unlimitedTracking");
 
     if (!locked || !scale || !xCenter || !zCenter || !colors ||
         !unlimitedTracking)
@@ -109,12 +109,12 @@ public:
             if (!frame)
               continue;
             auto pos = frame->query("Pos")->asCompound();
-            auto rotation = GetInt(*frame, "Rotation");
+            auto rotation = frame->int32("Rotation");
             if (!pos || !rotation)
               continue;
-            auto x = GetInt(*pos, "X");
-            auto y = GetInt(*pos, "Y");
-            auto z = GetInt(*pos, "Z");
+            auto x = pos->int32("X");
+            auto y = pos->int32("Y");
+            auto z = pos->int32("Z");
             if (!x || !y || !z)
               continue;
 
@@ -166,9 +166,9 @@ public:
             auto e = d->asCompound();
             if (!e)
               continue;
-            auto type = GetByte(*e, "type");
-            auto x = GetDouble(*e, "x");
-            auto z = GetDouble(*e, "z");
+            auto type = e->byte("type");
+            auto x = e->float64("x");
+            auto z = e->float64("z");
             if (!type || !x || !z)
               continue;
             int32_t outType = 1;

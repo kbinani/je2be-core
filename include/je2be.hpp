@@ -13,7 +13,6 @@
 #include <ThreadPool.h>
 #include <nlohmann/json.hpp>
 
-#include <optional>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>

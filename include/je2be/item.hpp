@@ -22,7 +22,7 @@ public:
     static unique_ptr<unordered_map<string, Converter> const> const itemMapping(
         CreateItemConverterTable());
 
-    auto id = GetString(*item, "id");
+    auto id = item->string("id");
     if (!id)
       return nullptr;
     string const &name = *id;
@@ -441,7 +441,7 @@ private:
     int16_t type = 0;
     auto display = item.query("tag/display")->asCompound();
     if (display) {
-      auto name = props::GetString(*display, "Name");
+      auto name = display->string("Name");
       if (name) {
         auto nameJson = props::ParseAsJson(*name);
         if (nameJson) {
@@ -933,8 +933,8 @@ private:
         auto c = it->asCompound();
         if (!c)
           continue;
-        auto color = props::GetInt(*c, "Color");
-        auto pat = props::GetString(*c, "Pattern");
+        auto color = c->int32("Color");
+        auto pat = c->string("Pattern");
         if (!color || !pat)
           continue;
         auto ptag = std::make_shared<CompoundTag>();
@@ -1020,7 +1020,7 @@ private:
     auto blockData = BlockData::From(block);
     assert(blockData);
 
-    auto name = GetString(*blockData, "name");
+    auto name = blockData->string("name");
     if (!name)
       return nullptr;
 
@@ -1102,7 +1102,7 @@ private:
 
     auto display = tag->compoundTag("display");
     if (display) {
-      auto name = GetString(*display, "Name");
+      auto name = display->string("Name");
       if (name) {
         auto obj = ParseAsJson(*name);
         if (obj) {

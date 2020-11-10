@@ -34,7 +34,7 @@ public:
   }
 
   static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
-    auto id = props::GetString(*tag, "id");
+    auto id = tag->string("id");
     if (!id)
       return nullptr;
     auto const &name = *id;
@@ -47,7 +47,7 @@ public:
   static std::optional<
       std::tuple<Pos, std::shared_ptr<mcfile::nbt::CompoundTag>, std::string>>
   StandaloneTileEntityBlockdData(std::shared_ptr<CompoundTag> const &tag) {
-    auto id = props::GetString(*tag, "id");
+    auto id = tag->string("id");
     if (!id)
       return std::nullopt;
     auto const &name = *id;
@@ -58,9 +58,9 @@ public:
           {"version", props::Int(BlockData::kBlockDataVersion)},
           {"states", std::make_shared<CompoundTag>()},
       };
-      auto x = props::GetInt(*tag, "x");
-      auto y = props::GetInt(*tag, "y");
-      auto z = props::GetInt(*tag, "z");
+      auto x = tag->int32("x");
+      auto y = tag->int32("y");
+      auto z = tag->int32("z");
       if (!x || !y || !z)
         return std::nullopt;
       Pos p(*x, *y, *z);
@@ -71,7 +71,7 @@ public:
 
   static std::shared_ptr<mcfile::nbt::CompoundTag>
   StandaloneTileEntityData(std::shared_ptr<CompoundTag> const &tag) {
-    auto id = props::GetString(*tag, "id");
+    auto id = tag->string("id");
     if (!id)
       return nullptr;
     auto const &name = *id;
@@ -383,9 +383,9 @@ private:
   static TileEntityData Spawner(std::shared_ptr<CompoundTag> const &c) {
     using namespace props;
 
-    auto x = GetInt(*c, "x");
-    auto y = GetInt(*c, "y");
-    auto z = GetInt(*c, "z");
+    auto x = c->int32("x");
+    auto y = c->int32("y");
+    auto z = c->int32("z");
     if (!x || !y || !z)
       return nullptr;
 
@@ -402,7 +402,7 @@ private:
     std::string mob;
     auto spawnData = c->compoundTag("SpawnData");
     if (spawnData) {
-      auto id = GetString(*spawnData, "id");
+      auto id = spawnData->string("id");
       if (id) {
         mob = *id;
       }
@@ -443,7 +443,7 @@ private:
       auto item = it->asCompound();
       if (!item)
         continue;
-      auto slot = GetByte(*item, "Slot");
+      auto slot = item->byte("Slot");
       if (!slot)
         continue;
 
@@ -639,8 +639,8 @@ private:
         auto p = pattern->asCompound();
         if (!p)
           continue;
-        auto color = GetInt(*p, "Color");
-        auto pat = GetString(*p, "Pattern");
+        auto color = p->int32("Color");
+        auto pat = p->string("Pattern");
         if (!color || !pat)
           continue;
         auto ptag = std::make_shared<CompoundTag>();
@@ -808,7 +808,7 @@ private:
     using namespace mcfile::nbt;
     using namespace std;
 
-    auto color = GetString(*c, "Color");
+    auto color = c->string("Color");
     auto text1 = GetJson(*c, "Text1");
     auto text2 = GetJson(*c, "Text2");
     auto text3 = GetJson(*c, "Text3");

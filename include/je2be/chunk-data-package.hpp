@@ -40,9 +40,9 @@ private:
     vector<int32_t> mapIdList;
 
     for (shared_ptr<CompoundTag> const &e : chunk.fTileEntities) {
-      auto x = GetInt(*e, "x");
-      auto y = GetInt(*e, "y");
-      auto z = GetInt(*e, "z");
+      auto x = e->int32("x");
+      auto y = e->int32("y");
+      auto z = e->int32("z");
       if (!x || !y || !z)
         continue;
 

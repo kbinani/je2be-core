@@ -90,7 +90,7 @@ private:
       if (!data)
         continue;
 
-      auto scale = props::GetByte(*data, "scale");
+      auto scale = data->byte("scale");
       if (!scale)
         continue;
 

@@ -10,10 +10,10 @@ public:
     using namespace props;
     using namespace std;
     auto tag = std::make_shared<CompoundTag>();
-    auto name = GetString(item, "id");
+    auto name = item.string("id");
     if (!name)
       return nullptr;
-    auto lvl = GetShort(item, "lvl");
+    auto lvl = item.int16("lvl");
     if (!lvl)
       return nullptr;
     int16_t id = 0;
