@@ -100,24 +100,31 @@ private:
   }
 
   void buildBiomeMap(mcfile::Chunk const &chunk) {
+    if (chunk.fBiomes.empty())
+      return;
     int const y = 0;
     int const x0 = chunk.minBlockX();
     int const z0 = chunk.minBlockZ();
+    BiomeMap m;
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++) {
         auto biome = chunk.biomeAt(x + x0, z + z0);
-        fBiomeMap.set(x, z, biome);
+        m.set(x, z, biome);
       }
     }
+    fBiomeMap = m;
   }
 
   void serializeData2D(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
+    if (!fBiomeMap) {
+      return;
+    }
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
     fHeightMap.write(w);
-    fBiomeMap.write(w);
+    fBiomeMap->write(w);
     s->drain(cd.fData2D);
   }
 
@@ -161,7 +168,7 @@ private:
 
 private:
   HeightMap fHeightMap;
-  BiomeMap fBiomeMap;
+  std::optional<BiomeMap> fBiomeMap;
   std::unordered_map<Pos, std::shared_ptr<mcfile::Block const>, PosHasher>
       fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;

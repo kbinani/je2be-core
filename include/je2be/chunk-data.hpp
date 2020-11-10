@@ -58,9 +58,13 @@ private:
   }
 
   void putData2D(DbInterface &db) const {
-    leveldb::Slice data2D((char *)fData2D.data(), fData2D.size());
     auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
-    db.put(data2DKey, data2D);
+    if (fData2D.empty()) {
+      db.del(data2DKey);
+    } else {
+      leveldb::Slice data2D((char *)fData2D.data(), fData2D.size());
+      db.put(data2DKey, data2D);
+    }
   }
 
   enum class ChunkStatus {
@@ -121,7 +125,7 @@ private:
     }
 
     // Data2D
-    {
+    if (!fData2D.empty()) {
       w.write((uint8_t)0x2d);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fData2D);
