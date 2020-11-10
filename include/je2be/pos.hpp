@@ -10,6 +10,13 @@ public:
     return fX == other.fX && fZ == other.fZ && fY == other.fY;
   }
 
+  static double DistanceSquare(Pos const &a, Pos const &b) {
+    double dx = a.fX - b.fX;
+    double dy = a.fY - b.fY;
+    double dz = a.fZ - b.fZ;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
 public:
   int fX;
   int fZ;

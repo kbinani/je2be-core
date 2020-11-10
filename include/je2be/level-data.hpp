@@ -427,17 +427,17 @@ public:
     auto exitPortalLocation = dragonFight->compoundTag("ExitPortalLocation");
     std::optional<Pos> exitLocation;
     if (exitPortalLocation) {
-      auto x = exitPortalLocation->intTag("X");
-      auto y = exitPortalLocation->intTag("Y");
-      auto z = exitPortalLocation->intTag("Z");
+      auto x = exitPortalLocation->int32("X");
+      auto y = exitPortalLocation->int32("Y");
+      auto z = exitPortalLocation->int32("Z");
       if (x && y && z) {
-        exitLocation = Pos(x->fValue, y->fValue, z->fValue);
+        exitLocation = Pos(*x, *y, *z);
       }
     }
     if (!exitLocation) {
-      auto y = ExitPortalAltitude(endPortalsInEndDimension);
-      if (y) {
-        exitLocation = Pos(0, *y, 0);
+      auto pos = ExitPortalAltitude(endPortalsInEndDimension);
+      if (pos) {
+        exitLocation = *pos;
       }
     }
     if (exitLocation) {
@@ -504,14 +504,27 @@ public:
   }
 
 private:
-  static std::optional<int32_t>
+  static std::optional<Pos>
   ExitPortalAltitude(std::unordered_set<Pos, PosHasher> const &blocks) {
+    std::vector<Pos> candidates;
     for (auto const &pos : blocks) {
       if (IsValidExitPortal(pos, blocks)) {
-        return pos.fY;
+        candidates.push_back(Pos(pos.fX + 1, pos.fY, pos.fZ + 2));
       }
     }
-    return std::nullopt;
+    if (candidates.empty()) {
+      return std::nullopt;
+    }
+    if (candidates.size() > 1) {
+      Pos origin(0, 0, 0);
+      std::sort(candidates.begin(), candidates.end(),
+                [origin](Pos const &a, Pos const &b) {
+                  auto distanceA = Pos::DistanceSquare(a, origin);
+                  auto distanceB = Pos::DistanceSquare(b, origin);
+                  return distanceA < distanceB;
+                });
+    }
+    return candidates[0];
   }
 
   static bool
