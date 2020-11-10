@@ -27,15 +27,16 @@ CreateTempDir(std::filesystem::path const &tempDir) {
     return std::nullopt;
   }
 #else
+  using namespace std;
   string tmpl("j2b-tmp-XXXXXX");
   vector<char> buffer;
   copy(tmpl.begin(), tmpl.end(), back_inserter(buffer));
   buffer.push_back(0);
   char *dir = mkdtemp(buffer.data());
   if (dir) {
-    return std::string(dir, strlen(dir));
+    return string(dir, strlen(dir));
   } else {
-    return std::nullopt;
+    return nullopt;
   }
 #endif
 }
