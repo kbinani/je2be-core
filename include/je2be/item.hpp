@@ -901,8 +901,7 @@ private:
   static ItemData Banner(std::string const &name, CompoundTag const &item) {
     using namespace mcfile::nbt;
 
-    auto colorName =
-        strings::RTrim(strings::LTrim(name, "minecraft:"), "_banner");
+    auto colorName = strings::Trim("minecraft:", name, "_banner");
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     int16_t damage = (int16_t)color;
     auto ret = New("banner");
@@ -954,8 +953,7 @@ private:
 
   static ItemData Bed(std::string const &name, CompoundTag const &item) {
     using namespace std;
-    string colorName =
-        strings::RTrim(strings::LTrim(name, "minecraft:"), "_bed");
+    string colorName = strings::Trim("minecraft:", name, "_bed");
     ColorCodeJava color = ColorCodeJavaFromName(colorName);
     int16_t damage = (int16_t)color;
     auto tag = New("bed");
@@ -1114,7 +1112,7 @@ private:
             beTag->fValue["display"] = beDisplay;
           }
         } else {
-          auto text = strings::RTrim(strings::LTrim(*name, "\""), "\"");
+          auto text = strings::Trim("\"", *name, "\"");
           auto beDisplay = make_shared<CompoundTag>();
           beDisplay->fValue["Name"] = String(text);
           beTag->fValue["display"] = beDisplay;

@@ -593,8 +593,7 @@ private:
     auto tag = make_shared<CompoundTag>();
     auto plantBlock = make_shared<CompoundTag>();
     auto states = make_shared<CompoundTag>();
-    auto type = strings::RTrim(strings::LTrim(b.fName, "minecraft:potted_"),
-                               "_sapling");
+    auto type = strings::Trim("minecraft:potted_", b.fName, "_sapling");
     states->fValue = {
         {"age_bit", Byte(0)},
         {"sapling_type", String(type)},
