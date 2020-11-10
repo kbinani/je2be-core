@@ -9,9 +9,9 @@ public:
 
     es.fFlight = fireworks.byte("Flight", 1);
 
-    auto explosions = fireworks.query("Explosions")->asList();
+    auto explosions = fireworks.listTag("Explosions");
     if (explosions) {
-      for (auto const &it : explosions->fValue) {
+      for (auto const &it : *explosions) {
         auto c = it->asCompound();
         if (!c)
           continue;
@@ -29,10 +29,10 @@ public:
     auto explosions = std::make_shared<ListTag>();
     explosions->fType = Tag::TAG_Compound;
     for (auto const &it : fExplosions) {
-      explosions->fValue.push_back(it.toCompoundTag());
+      explosions->push_back(it.toCompoundTag());
     }
-    ret->fValue["Explosions"] = explosions;
-    ret->fValue["Flight"] = props::Byte(fFlight);
+    ret->set("Explosions", explosions);
+    ret->set("Flight", props::Byte(fFlight));
     return ret;
   }
 

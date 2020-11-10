@@ -137,17 +137,17 @@ public:
 
       auto b = make_shared<CompoundTag>();
       auto states = make_shared<CompoundTag>();
-      states->fValue = {
+      states->insert({
           {"facing_direction", Int(facing)},
           {"item_frame_map_bit", Bool(map)},
-      };
+      });
       string key = "minecraft:frame[facing_direction=" + to_string(facing) +
                    ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
-      b->fValue = {
+      b->insert({
           {"name", String("minecraft:frame")},
           {"version", Int(BlockData::kBlockDataVersion)},
           {"states", states},
-      };
+      });
       Pos pos(*tileX, *tileY, *tileZ);
       return make_tuple(pos, b, key);
     }
@@ -166,24 +166,24 @@ public:
       auto tileZ = c.int32("TileZ");
       if (!tileX || !tileY || !tileZ)
         return nullptr;
-      tag->fValue = {
-          {"id", String("ItemFrame")}, {"isMovable", Bool(true)},
-          {"x", Int(*tileX)},          {"y", Int(*tileY)},
+      tag->insert({
+          {"id", String("ItemFrame")},
+          {"isMovable", Bool(true)},
+          {"x", Int(*tileX)},
+          {"y", Int(*tileY)},
           {"z", Int(*tileZ)},
-      };
+      });
       auto itemRotation = c.byte("ItemRotation", 0);
       auto itemDropChange = c.float32("ItemDropChange", 1);
-      auto found = c.fValue.find("Item");
-      if (found != c.fValue.end() &&
+      auto found = c.find("Item");
+      if (found != c.end() &&
           found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
         auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
         auto m = Item::From(item, mapInfo, ddf);
         if (m) {
-          tag->fValue.insert(make_pair("Item", m));
-          tag->fValue.insert(
-              make_pair("ItemRotation", Float(itemRotation * 45)));
-          tag->fValue.insert(
-              make_pair("ItemDropChange", Float(itemDropChange)));
+          tag->insert(make_pair("Item", m));
+          tag->insert(make_pair("ItemRotation", Float(itemRotation * 45)));
+          tag->insert(make_pair("ItemDropChange", Float(itemDropChange)));
         }
       }
       return tag;
@@ -207,9 +207,9 @@ public:
     auto definitions = make_shared<ListTag>();
     definitions->fType = Tag::TAG_String;
     for (auto const &d : fDefinitions) {
-      definitions->fValue.push_back(String(d));
+      definitions->push_back(String(d));
     }
-    tag->fValue = {
+    tag->insert({
         {"definitions", definitions},
         {"Motion", fMotion.toListTag()},
         {"Pos", fPos.toListTag()},
@@ -252,10 +252,10 @@ public:
         {"StrengthMax", Int(fStrengthMax)},
         {"UniqueID", Long(fUniqueId)},
         {"Variant", Int(fVariant)},
-    };
+    });
     if (fCustomName) {
-      tag->fValue["CustomName"] = String(*fCustomName);
-      tag->fValue["CustomNameVisible"] = Bool(fCustomNameVisible);
+      tag->set("CustomName", String(*fCustomName));
+      tag->set("CustomNameVisible", Bool(fCustomNameVisible));
     }
     return tag;
   }
@@ -386,9 +386,9 @@ private:
     auto c = Monster(tag, passengers, mapInfo, ddf);
     AddDefinition(c, "-dragon_sitting");
     AddDefinition(c, "+dragon_flying");
-    c->fValue["Persistent"] = props::Bool(true);
-    c->fValue["IsAutonomous"] = props::Bool(true);
-    c->fValue["LastDimensionId"] = props::Int(2);
+    c->set("Persistent", props::Bool(true));
+    c->set("IsAutonomous", props::Bool(true));
+    c->set("LastDimensionId", props::Int(2));
     ddf.addAutonomousEntity(c);
     return c;
   }
@@ -431,7 +431,7 @@ private:
         } else if (profession == "librarian") {
           variant = 5;
         }
-        c->fValue["PreferredProfession"] = String(profession);
+        c->set("PreferredProfession", String(profession));
         AddDefinition(c, "+" + profession);
 
         auto type = strings::LTrim(*inType, "minecraft:");
@@ -453,14 +453,14 @@ private:
         }
         AddDefinition(c, "+" + type + "_villager");
 
-        c->fValue["Variant"] = Int(variant);
-        c->fValue["MarkVariant"] = Int(mark);
-        c->fValue["TradeTier"] = Int(level - 1);
+        c->set("Variant", Int(variant));
+        c->set("MarkVariant", Int(mark));
+        c->set("TradeTier", Int(level - 1));
       }
     }
     auto age = tag.int32("Age", 0);
     if (age < 0) {
-      c->fValue["Age"] = Int(age);
+      c->set("Age", Int(age));
       AddDefinition(c, "+baby");
     } else {
       AddDefinition(c, "+adult");
@@ -477,7 +477,7 @@ private:
     } else if (type == "snow") {
       variant = 1;
     }
-    c->fValue["Variant"] = props::Int(variant);
+    c->set("Variant", props::Int(variant));
     return c;
   }
 
@@ -498,15 +498,15 @@ private:
       return nullptr;
 
     auto ret = e->toCompoundTag();
-    ret->fValue["Item"] = beItem;
+    ret->set("Item", beItem);
 
     auto thrower = GetUUID(tag, {.fIntArray = "Thrower"});
     int64_t owner = -1;
     if (thrower) {
       owner = *thrower;
     }
-    ret->fValue["OwnerID"] = Long(owner);
-    ret->fValue["OwnerNew"] = Long(owner);
+    ret->set("OwnerID", Long(owner));
+    ret->set("OwnerNew", Long(owner));
 
     return ret;
   }
@@ -515,8 +515,8 @@ private:
     auto variant = tag.int32("Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
-    c->fValue["Variant"] = props::Int(baseColor);
-    c->fValue["MarkVariant"] = props::Int(markings);
+    c->set("Variant", props::Int(baseColor));
+    c->set("MarkVariant", props::Int(markings));
     return c;
   }
 
@@ -536,7 +536,7 @@ private:
 
     auto items = tag.listTag("Items");
     if (items) {
-      for (auto const &it : items->fValue) {
+      for (auto const &it : *items) {
         if (it->id() != Tag::TAG_Compound)
           continue;
         auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -548,19 +548,19 @@ private:
         auto slot = item->byte("Slot");
         if (!slot)
           continue;
-        converted->fValue["Slot"] = props::Byte(*slot);
-        chestItems->fValue.push_back(converted);
+        converted->set("Slot", props::Byte(*slot));
+        chestItems->push_back(converted);
       }
     }
 
-    c->fValue["ChestItems"] = chestItems;
+    c->set("ChestItems", chestItems);
 
     return c;
   }
 
   static EntityData Parrot(EntityData const &c, CompoundTag const &tag) {
     auto variant = tag.int32("Variant", 0);
-    c->fValue["Variant"] = props::Int(variant);
+    c->set("Variant", props::Int(variant));
     return c;
   }
 
@@ -583,7 +583,7 @@ private:
         // on rail
         pos->fY = iy + 0.5;
       }
-      c->fValue["Pos"] = pos->toListTag();
+      c->set("Pos", pos->toListTag());
     }
     return c;
   }
@@ -595,10 +595,10 @@ private:
     auto bodyColor = 0xf & (variant >> 16);
     auto patternColor = 0xf & (variant >> 24);
 
-    c->fValue["Variant"] = props::Int(small ? 0 : 1);
-    c->fValue["MarkVariant"] = props::Int(pattern);
-    c->fValue["Color"] = props::Byte(bodyColor);
-    c->fValue["Color2"] = props::Byte(patternColor);
+    c->set("Variant", props::Int(small ? 0 : 1));
+    c->set("MarkVariant", props::Int(pattern));
+    c->set("Color", props::Byte(bodyColor));
+    c->set("Color2", props::Byte(patternColor));
     return c;
   }
 
@@ -609,17 +609,17 @@ private:
     AddDefinition(c, "+minecraft:llama_tamed");
     AddDefinition(c, "+minecraft:strength_3");
     AddDefinition(c, "+minecraft:llama_unchested");
-    c->fValue["InventoryVersion"] = props::String("1.16.40");
+    c->set("InventoryVersion", props::String("1.16.40"));
     auto chestItems = std::make_shared<ListTag>();
     chestItems->fType = Tag::TAG_Compound;
     for (int i = 0; i < 16; i++) {
       auto item = Item::Empty();
-      item->fValue["Slot"] = props::Byte(i);
-      chestItems->fValue.push_back(item);
+      item->set("Slot", props::Byte(i));
+      chestItems->push_back(item);
     }
-    c->fValue["ChestItems"] = chestItems;
-    c->fValue["MarkVariant"] = props::Int(1);
-    c->fValue["IsTamed"] = props::Bool(true);
+    c->set("ChestItems", chestItems);
+    c->set("MarkVariant", props::Int(1));
+    c->set("IsTamed", props::Bool(true));
     return c;
   }
 
@@ -643,7 +643,7 @@ private:
       color = "creamy";
       break;
     }
-    c->fValue["Variant"] = Int(variant);
+    c->set("Variant", Int(variant));
     AddDefinition(c, "+minecraft:llama_" + color);
 
     auto armors = c->listTag("Armor");
@@ -656,20 +656,20 @@ private:
       auto colorCode = ColorCodeJavaFromName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
       auto armor = std::make_shared<CompoundTag>();
-      armor->fValue = {{"Count", Byte(1)},
-                       {"Damage", Short(0)},
-                       {"Name", String("minecraft:carpet")},
-                       {"WasPickedUp", Bool(false)}};
+      armor->insert({{"Count", Byte(1)},
+                     {"Damage", Short(0)},
+                     {"Name", String("minecraft:carpet")},
+                     {"WasPickedUp", Bool(false)}});
       auto block = std::make_shared<CompoundTag>();
-      block->fValue = {{"name", String("minecraft:carpet")},
-                       {"version", Int(BlockData::kBlockDataVersion)}};
+      block->insert({{"name", String("minecraft:carpet")},
+                     {"version", Int(BlockData::kBlockDataVersion)}});
       auto states = std::make_shared<CompoundTag>();
-      states->fValue["color"] = String(beCarpetColor);
-      block->fValue["states"] = states;
-      armor->fValue["Block"] = block;
+      states->set("color", String(beCarpetColor));
+      block->set("states", states);
+      armor->set("Block", block);
 
-      if (armors && armors->fValue.size() > 1) {
-        armors->fValue[1] = armor;
+      if (armors && armors->size() > 1) {
+        armors->at(1) = armor;
       }
     }
 
@@ -679,13 +679,13 @@ private:
   static EntityData Shulker(EntityData const &c, CompoundTag const &tag) {
     auto color = tag.byte("Color", 16);
     if (0 <= color && color <= 15) {
-      c->fValue["Color"] = props::Byte(color);
+      c->set("Color", props::Byte(color));
       AddDefinition(c, "+minecraft:shulker_" +
                            BedrockNameFromColorCodeJava((ColorCodeJava)color));
     } else {
       AddDefinition(c, "+minecraft:shulker_undyed");
     }
-    c->fValue["Variant"] = props::Int(color);
+    c->set("Variant", props::Int(color));
     return c;
   }
 
@@ -702,7 +702,7 @@ private:
   static Behavior Colorable(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag) {
       auto color = tag.byte("Color", 0);
-      c->fValue["Color"] = props::Byte(color);
+      c->set("Color", props::Byte(color));
       AddDefinition(c, "+minecraft:" + definitionKey + "_" +
                            BedrockNameFromColorCodeJava((ColorCodeJava)color));
       return c;
@@ -734,9 +734,9 @@ private:
     } else if (type == 99) {
       coat = "white";
       variant = 1;
-      c->fValue["CustomName"] = props::String("The Killer Bunny");
+      c->set("CustomName", props::String("The Killer Bunny"));
     }
-    c->fValue["Variant"] = props::Int(variant);
+    c->set("Variant", props::Int(variant));
     AddDefinition(c, "+coat_" + coat);
     return c;
   }
@@ -749,7 +749,7 @@ private:
                                     CompoundTag const &tag) {
     auto collarColor = tag.byte("CollarColor");
     if (collarColor && GetOwnerUUID(tag)) {
-      c->fValue["Color"] = props::Byte(*collarColor);
+      c->set("Color", props::Byte(*collarColor));
     }
     return c;
   }
@@ -763,7 +763,7 @@ private:
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_unsaddled");
       }
-      c->fValue["Saddled"] = props::Bool(saddle);
+      c->set("Saddled", props::Bool(saddle));
       return c;
     };
   }
@@ -777,7 +777,7 @@ private:
     } else {
       AddDefinition(c, "+minecraft:mooshroom_red");
     }
-    c->fValue["Variant"] = props::Int(variant);
+    c->set("Variant", props::Int(variant));
     return c;
   }
 
@@ -787,8 +787,8 @@ private:
     if (size) {
       variant = int8_t(*size) + 1;
     }
-    c->fValue["Variant"] = props::Int(variant);
-    c->fValue["Size"] = props::Byte(variant);
+    c->set("Variant", props::Int(variant));
+    c->set("Size", props::Byte(variant));
     return c;
   }
 
@@ -807,8 +807,8 @@ private:
 
     auto passengers = tag.query("Passengers")->asList();
     if (passengers) {
-      for (int i = 0; i < passengers->fValue.size(); i++) {
-        auto const &p = passengers->fValue[i];
+      for (int i = 0; i < passengers->size(); i++) {
+        auto const &p = passengers->at(i);
         auto comp = p->asCompound();
         if (!comp)
           continue;
@@ -822,16 +822,16 @@ private:
         if (!uid)
           continue;
         auto link = std::make_shared<CompoundTag>();
-        link->fValue["entityID"] = props::Long(*uid);
-        link->fValue["linkID"] = props::Int(i);
-        links->fValue.push_back(link);
+        link->set("entityID", props::Long(*uid));
+        link->set("linkID", props::Int(i));
+        links->push_back(link);
 
         out.push_back(passenger);
       }
     }
 
     auto c = e->toCompoundTag();
-    c->fValue["LinksTag"] = links;
+    c->set("LinksTag", links);
     return c;
   }
 
@@ -855,12 +855,12 @@ private:
     } else if (type == "dark_oak") {
       variant = 5;
     }
-    c->fValue["Variant"] = props::Int(variant);
+    c->set("Variant", props::Int(variant));
 
     auto rotation = props::GetRotation(*c, "Rotation");
     if (rotation) {
       Rotation rot(rotation->fYaw + 90, rotation->fPitch);
-      c->fValue["Rotation"] = rot.toListTag();
+      c->set("Rotation", rot.toListTag());
     }
 
     auto pos = props::GetVec(*c, "Pos");
@@ -868,7 +868,7 @@ private:
     if (pos && onGround) {
       int iy = (int)floor(pos->fY);
       pos->fY = iy + 0.35f;
-      c->fValue["Pos"] = pos->toListTag();
+      c->set("Pos", pos->toListTag());
     }
 
     return c;
@@ -881,7 +881,7 @@ private:
         return c;
       RemoveDefinition(c, "+" + *id);
       AddDefinition(c, "+minecraft:" + name);
-      c->fValue["identifier"] = props::String("minecraft:" + name);
+      c->set("identifier", props::String("minecraft:" + name));
       return c;
     };
   }
@@ -901,13 +901,13 @@ private:
                             JavaEditionMap const &mapInfo,
                             DimensionDataFragment &ddf) {
     auto c = Mob(tag, passengers, mapInfo, ddf);
-    c->fValue["SpawnedByNight"] = props::Bool(false);
+    c->set("SpawnedByNight", props::Bool(false));
     auto persistenceRequired = tag.boolean("PersistenceRequired", true);
     bool persistent = false;
     if (persistenceRequired && tag.string("CustomName")) {
       persistent = true;
     }
-    c->fValue["Persistent"] = props::Bool(persistent);
+    c->set("Persistent", props::Bool(persistent));
     return c;
   }
 
@@ -916,7 +916,7 @@ private:
                            JavaEditionMap const &mapInfo,
                            DimensionDataFragment &ddf) {
     auto c = Mob(tag, passengers, mapInfo, ddf);
-    c->fValue["Persistent"] = props::Bool(true);
+    c->set("Persistent", props::Bool(true));
 
     auto leash = tag.compoundTag("Leash");
     if (leash) {
@@ -934,7 +934,7 @@ private:
         auto leashEntityData = e.toCompoundTag();
         passengers.push_back(leashEntityData);
 
-        c->fValue["LeasherID"] = props::Long(leasherId);
+        c->set("LeasherID", props::Long(leasherId));
       }
     }
 
@@ -944,7 +944,7 @@ private:
   static EntityData Bat(EntityData const &c, CompoundTag const &tag) {
     using namespace mcfile::nbt;
     auto batFlags = tag.boolean("BatFlags", false);
-    c->fValue["BatFlags"] = props::Bool(batFlags);
+    c->set("BatFlags", props::Bool(batFlags));
     AddDefinition(c, "+minecraft:bat");
     return c;
   }
@@ -1010,11 +1010,11 @@ private:
       if (!type.empty()) {
         AddDefinition(c, "+minecraft:cat_" + type);
       }
-      c->fValue["Variant"] = props::Int(variant);
+      c->set("Variant", props::Int(variant));
     }
-    c->fValue["DwellingUniqueID"] =
-        props::String("00000000-0000-0000-0000-000000000000");
-    c->fValue["RewardPlayersOnFirstFounding"] = props::Bool(true);
+    c->set("DwellingUniqueID",
+           props::String("00000000-0000-0000-0000-000000000000"));
+    c->set("RewardPlayersOnFirstFounding", props::Bool(true));
     return c;
   }
 
@@ -1023,12 +1023,12 @@ private:
       auto age = tag.int32("Age", 0);
       if (age < 0) {
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
-        c->fValue["Age"] = props::Int(age);
+        c->set("Age", props::Int(age));
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
-        c->fValue.erase("Age");
+        c->erase("Age");
       }
-      c->fValue["IsBaby"] = props::Bool(age < 0);
+      c->set("IsBaby", props::Bool(age < 0));
       return c;
     };
   }
@@ -1041,7 +1041,7 @@ private:
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
       }
-      c->fValue["IsBaby"] = props::Bool(baby);
+      c->set("IsBaby", props::Bool(baby));
       return c;
     };
   }
@@ -1050,12 +1050,12 @@ private:
     auto age = tag.int32("Age", 0);
     if (age < 0) {
       AddDefinition(c, "+baby");
-      c->fValue["Age"] = props::Int(age);
+      c->set("Age", props::Int(age));
     } else {
       AddDefinition(c, "+adult");
-      c->fValue.erase("Age");
+      c->erase("Age");
     }
-    c->fValue["IsBaby"] = props::Bool(age < 0);
+    c->set("IsBaby", props::Bool(age < 0));
     return c;
   }
 
@@ -1063,9 +1063,9 @@ private:
     return [=](EntityData const &c, CompoundTag const &tag) {
       auto owner = GetOwnerUUID(tag);
       if (owner) {
-        c->fValue["OwnerNew"] = props::Long(*owner);
+        c->set("OwnerNew", props::Long(*owner));
         AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
-        c->fValue["IsTamed"] = props::Bool(true);
+        c->set("IsTamed", props::Bool(true));
       }
       AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
       return c;
@@ -1076,46 +1076,46 @@ private:
                             std::string const &definition) {
     using namespace mcfile::nbt;
 
-    auto found = c->fValue.find("definitions");
+    auto found = c->find("definitions");
     auto d = std::make_shared<ListTag>();
     d->fType = Tag::TAG_String;
-    if (found != c->fValue.end()) {
+    if (found != c->end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::TAG_String) {
-        for (auto c : current->fValue) {
+        for (auto c : *current) {
           if (c->asString()) {
-            d->fValue.push_back(props::String(c->asString()->fValue));
+            d->push_back(props::String(c->asString()->fValue));
           }
         }
       }
     }
-    d->fValue.push_back(props::String(definition));
-    c->fValue["definitions"] = d;
+    d->push_back(props::String(definition));
+    c->set("definitions", d);
   }
 
   static void RemoveDefinition(EntityData const &c,
                                std::string const &definition) {
     using namespace mcfile::nbt;
 
-    auto found = c->fValue.find("definitions");
+    auto found = c->find("definitions");
     auto d = std::make_shared<ListTag>();
     d->fType = Tag::TAG_String;
-    if (found != c->fValue.end()) {
+    if (found != c->end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::TAG_String) {
-        for (auto c : current->fValue) {
+        for (auto c : *current) {
           if (c->asString() && c->asString()->fValue != definition) {
-            d->fValue.push_back(props::String(c->asString()->fValue));
+            d->push_back(props::String(c->asString()->fValue));
           }
         }
       }
     }
-    c->fValue["definitions"] = d;
+    c->set("definitions", d);
   }
 
   static EntityData Sittable(EntityData const &c, CompoundTag const &tag) {
     auto sitting = tag.boolean("Sitting", false);
-    c->fValue["Sitting"] = props::Bool(sitting);
+    c->set("Sitting", props::Bool(sitting));
     return c;
   }
 
@@ -1164,8 +1164,8 @@ private:
     c["TradeExperience"] = Int(0);
     c["TradeTier"] = Int(0);
     AddDefinition(ret, "+" + e->fIdentifier);
-    ret->fValue.erase("Motion");
-    ret->fValue.erase("Dir");
+    ret->erase("Motion");
+    ret->erase("Dir");
     return ret;
   }
 
@@ -1185,12 +1185,12 @@ private:
           *id == "minecraft:zombie_horse") {
         auto attributes = EntityAttributes::AnyHorse(tag);
         if (attributes) {
-          ret->fValue["Attributes"] = attributes;
+          ret->set("Attributes", attributes);
         }
       } else {
         auto attributes = EntityAttributes::Mob(*id);
         if (attributes) {
-          ret->fValue["Attributes"] = attributes;
+          ret->set("Attributes", attributes);
         }
       }
     }
@@ -1205,37 +1205,37 @@ private:
     auto armors = std::make_shared<ListTag>();
     armors->fType = Tag::TAG_Compound;
 
-    auto found = tag.fValue.find("ArmorItems");
-    if (found != tag.fValue.end()) {
+    auto found = tag.find("ArmorItems");
+    if (found != tag.end()) {
       auto list = found->second->asList();
       if (list && list->fType == Tag::TAG_Compound) {
-        for (int i = 0; i < 4 && i < list->fValue.size(); i++) {
-          auto item = std::dynamic_pointer_cast<CompoundTag>(list->fValue[i]);
+        for (int i = 0; i < 4 && i < list->size(); i++) {
+          auto item = std::dynamic_pointer_cast<CompoundTag>(list->at(i));
           if (item) {
             auto converted = Item::From(item, mapInfo, ddf);
-            armors->fValue.push_back(converted);
+            armors->push_back(converted);
           } else {
-            armors->fValue.push_back(Item::Empty());
+            armors->push_back(Item::Empty());
           }
         }
       }
     }
     for (int i = 0; i < 4; i++) {
-      if (armors->fValue.size() < i + 1) {
-        armors->fValue.push_back(Item::Empty());
+      if (armors->size() < i + 1) {
+        armors->push_back(Item::Empty());
       } else {
-        if (!armors->fValue[i]) {
-          armors->fValue[i] = Item::Empty();
+        if (!armors->at(i)) {
+          armors->at(i) = Item::Empty();
         }
       }
     }
 
     auto ret = std::make_shared<ListTag>();
     ret->fType = Tag::TAG_Compound;
-    ret->fValue.push_back(armors->fValue[3]);
-    ret->fValue.push_back(armors->fValue[2]);
-    ret->fValue.push_back(armors->fValue[1]);
-    ret->fValue.push_back(armors->fValue[0]);
+    ret->push_back(armors->at(3));
+    ret->push_back(armors->at(2));
+    ret->push_back(armors->at(1));
+    ret->push_back(armors->at(0));
 
     return ret;
   }
@@ -1418,8 +1418,8 @@ private:
     e->fIdentifier = "minecraft:painting";
     e->fPos = Vec(x, y, z);
     auto c = e->toCompoundTag();
-    c->fValue.emplace("Motive", String(*beMotive));
-    c->fValue.emplace("Direction", Byte(*facing));
+    c->set("Motive", String(*beMotive));
+    c->set("Direction", Byte(*facing));
     return c;
   }
 

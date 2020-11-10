@@ -10,9 +10,9 @@ public:
     using namespace mcfile::nbt;
     auto tag = std::make_shared<ListTag>();
     tag->fType = Tag::TAG_Float;
-    tag->fValue = {std::make_shared<FloatTag>(fX),
-                   std::make_shared<FloatTag>(fY),
-                   std::make_shared<FloatTag>(fZ)};
+    tag->push_back(std::make_shared<FloatTag>(fX));
+    tag->push_back(std::make_shared<FloatTag>(fY));
+    tag->push_back(std::make_shared<FloatTag>(fZ));
     return tag;
   }
 

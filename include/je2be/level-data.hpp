@@ -30,7 +30,7 @@ public:
       using namespace props;
 
       auto a = std::make_shared<mcfile::nbt::CompoundTag>();
-      a->fValue = {
+      a->insert({
           {"attackmobs", Bool(fAttackMobs)},
           {"attackplayers", Bool(fAttackPlayers)},
           {"build", Bool(fBuild)},
@@ -48,7 +48,7 @@ public:
           {"playerPermissionsLevel", Int(fPlayerPermissionsLevel)},
           {"teleport", Bool(fTeleport)},
           {"walkSpeed", Float(fWalkSpeed)},
-      };
+      });
       return a;
     }
   };
@@ -149,7 +149,7 @@ public:
     using props::Byte;
 
     auto root = std::make_shared<mcfile::nbt::CompoundTag>();
-    root->fValue = {
+    root->insert({
         {"abilities", fAbilities.toCompoundTag()},
         {"MinimumCompatibleClientVersion",
          fMinimumCompatibleClientVersion.toListTag()},
@@ -243,7 +243,7 @@ public:
         {"limitedWorldDepth", Int(fLimitedWorldDepth)},
         {"limitedWorldWidth", Int(fLimitedWorldWidth)},
         {"maxcommandchainlength", Int(fMaxCommandChainLength)},
-    };
+    });
     return root;
   }
 
@@ -387,40 +387,40 @@ public:
 
     auto fight = std::make_shared<CompoundTag>();
 
-    fight->fValue["DragonFightVersion"] = Byte(0);
+    fight->set("DragonFightVersion", Byte(0));
 
     auto killed = dragonFight->boolean("DragonKilled", false);
-    fight->fValue["DragonKilled"] = Bool(numAutonomousEntities == 0 && killed);
+    fight->set("DragonKilled", Bool(numAutonomousEntities == 0 && killed));
 
     auto previouslyKilled = dragonFight->byteTag("PreviouslyKilled");
     if (previouslyKilled) {
-      fight->fValue["PreviouslyKilled"] = Bool(previouslyKilled->fValue != 0);
+      fight->set("PreviouslyKilled", Bool(previouslyKilled->fValue != 0));
     }
 
     auto uuid = GetUUID(*dragonFight, {.fIntArray = "Dragon"});
     if (uuid) {
-      fight->fValue["DragonUUID"] = Long(*uuid);
-      fight->fValue["DragonSpawned"] = Bool(true);
+      fight->set("DragonUUID", Long(*uuid));
+      fight->set("DragonSpawned", Bool(true));
     } else {
-      fight->fValue["DragonUUID"] = Long(-1);
-      fight->fValue["DragonSpawned"] = Bool(true);
-      fight->fValue["IsRespawning"] = Bool(false);
+      fight->set("DragonUUID", Long(-1));
+      fight->set("DragonSpawned", Bool(true));
+      fight->set("IsRespawning", Bool(false));
     }
 
     auto gateways = dragonFight->listTag("Gateways");
     if (gateways) {
       auto v = std::make_shared<ListTag>();
       v->fType = Tag::TAG_Int;
-      for (auto const &it : gateways->fValue) {
+      for (auto const &it : *gateways) {
         auto p = it->asInt();
         if (!p) {
           v = nullptr;
           break;
         }
-        v->fValue.push_back(Int(p->fValue));
+        v->push_back(Int(p->fValue));
       }
       if (v) {
-        fight->fValue["Gateways"] = v;
+        fight->set("Gateways", v);
       }
     }
 
@@ -443,16 +443,16 @@ public:
     if (exitLocation) {
       auto v = std::make_shared<ListTag>();
       v->fType = Tag::TAG_Int;
-      v->fValue.push_back(Int(exitLocation->fX));
-      v->fValue.push_back(Int(exitLocation->fY));
-      v->fValue.push_back(Int(exitLocation->fZ));
-      fight->fValue["ExitPortalLocation"] = v;
+      v->push_back(Int(exitLocation->fX));
+      v->push_back(Int(exitLocation->fY));
+      v->push_back(Int(exitLocation->fZ));
+      fight->set("ExitPortalLocation", v);
     }
 
     auto root = std::make_shared<CompoundTag>();
     auto d = std::make_shared<CompoundTag>();
-    d->fValue["DragonFight"] = fight;
-    root->fValue["data"] = d;
+    d->set("DragonFight", fight);
+    root->set("data", d);
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});

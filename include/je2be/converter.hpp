@@ -370,8 +370,8 @@ private:
 
       auto water = BlockData::Make("water");
       auto states = make_shared<CompoundTag>();
-      states->fValue.emplace("liquid_depth", Int(0));
-      water->fValue.emplace("states", states);
+      states->set("liquid_depth", Int(0));
+      water->set("states", states);
       w.write((uint8_t)Tag::TAG_Compound);
       w.write(string());
       water->write(w);

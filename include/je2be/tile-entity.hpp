@@ -53,11 +53,11 @@ public:
     auto const &name = *id;
     if (name == "minecraft:mob_spawner") {
       auto b = std::make_shared<CompoundTag>();
-      b->fValue = {
+      b->insert({
           {"name", props::String("minecraft:mob_spawner")},
           {"version", props::Int(BlockData::kBlockDataVersion)},
           {"states", std::make_shared<CompoundTag>()},
-      };
+      });
       auto x = tag->int32("x");
       auto y = tag->int32("y");
       auto z = tag->int32("z");
@@ -254,27 +254,27 @@ private:
     using namespace props;
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("Lectern")},
         {"isMovable", Bool(true)},
-    };
+    });
     auto book = c->compoundTag("Book");
     int32_t totalPages = 0;
     if (book) {
       auto item = Item::From(book, mapInfo, ddf);
       if (item) {
-        tag->fValue["book"] = item;
+        tag->set("book", item);
         auto pages = item->query("tag/pages")->asList();
         if (pages) {
-          totalPages = pages->fValue.size();
+          totalPages = pages->size();
         }
       }
     }
-    tag->fValue["hasBook"] = Bool(totalPages > 0);
+    tag->set("hasBook", Bool(totalPages > 0));
     if (totalPages > 0) {
       auto page = c->int32("Page", 0);
-      tag->fValue["page"] = Int(page);
-      tag->fValue["totalPages"] = Int(totalPages);
+      tag->set("page", Int(page));
+      tag->set("totalPages", Int(totalPages));
     }
     Attach(pos, *tag);
     return tag;
@@ -290,12 +290,12 @@ private:
     auto secondary = c->int32("Secondary", -1);
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("Beacon")},
         {"isMovable", Bool(true)},
         {"primary", Int(primary)},
         {"secondary", Int(secondary)},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -307,10 +307,10 @@ private:
     using namespace props;
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("EndPortal")},
         {"isMovable", Bool(true)},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -324,10 +324,10 @@ private:
     using namespace std;
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {{"id", String("Cauldron")},
-                   {"isMovable", Bool(true)},
-                   {"PotionId", Short(-1)},
-                   {"PotionType", Short(-1)}};
+    tag->insert({{"id", String("Cauldron")},
+                 {"isMovable", Bool(true)},
+                 {"PotionId", Short(-1)},
+                 {"PotionType", Short(-1)}});
 
     Attach(pos, *tag);
     return tag;
@@ -342,16 +342,16 @@ private:
     using namespace std;
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("Jukebox")},
         {"isMovable", Bool(true)},
-    };
+    });
 
     auto recordItem = c->compoundTag("RecordItem");
     if (recordItem) {
       auto beRecordItem = Item::From(recordItem, mapInfo, ddf);
       if (beRecordItem) {
-        tag->fValue["RecordItem"] = beRecordItem;
+        tag->set("RecordItem", beRecordItem);
       }
     }
 
@@ -371,11 +371,11 @@ private:
       return nullptr;
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("Music")},
         {"isMovable", Bool(true)},
         {"note", Byte(*note)},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -408,7 +408,7 @@ private:
       }
     }
 
-    tag->fValue = {
+    tag->insert({
         {"x", Int(*x)},
         {"y", Int(*y)},
         {"z", Int(*z)},
@@ -421,9 +421,9 @@ private:
         {"RequiredPlayerRange", Short(requiredPlayerRange)},
         {"SpawnCount", Short(spawnCount)},
         {"SpawnRange", Short(spawnRange)},
-    };
+    });
     if (!mob.empty()) {
-      tag->fValue["EntityIdentifier"] = String(mob);
+      tag->set("EntityIdentifier", String(mob));
     }
     return tag;
   }
@@ -439,7 +439,7 @@ private:
     auto tag = std::make_shared<CompoundTag>();
     auto items = GetItems(*c, "Items", mapInfo, ddf);
     vector<shared_ptr<CompoundTag>> sorted(5);
-    for (auto const &it : items->fValue) {
+    for (auto const &it : *items) {
       auto item = it->asCompound();
       if (!item)
         continue;
@@ -448,16 +448,16 @@ private:
         continue;
 
       auto newItem = make_shared<CompoundTag>();
-      for (auto const &prop : item->fValue) {
+      for (auto const &prop : *item) {
         if (prop.first == "Slot")
           continue;
-        newItem->fValue[prop.first] = prop.second;
+        newItem->set(prop.first, prop.second);
       }
       if (*slot < 0 || 4 < *slot)
         continue;
       int mapping[5] = {1, 2, 3, 0, 4};
       int newSlot = mapping[*slot];
-      newItem->fValue["Slot"] = Byte(newSlot);
+      newItem->set("Slot", Byte(newSlot));
       sorted[newSlot] = newItem;
     }
 
@@ -466,15 +466,15 @@ private:
     for (auto it : sorted) {
       if (!it)
         continue;
-      reordered->fValue.push_back(it);
+      reordered->push_back(it);
     }
 
-    tag->fValue = {
+    tag->insert({
         {"Items", reordered},
         {"Findable", Bool(false)},
         {"id", String("BrewingStand")},
         {"isMovable", Bool(true)},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -490,12 +490,12 @@ private:
       auto tag = std::make_shared<CompoundTag>();
       auto items = GetItems(*c, "Items", mapInfo, ddf);
 
-      tag->fValue = {
+      tag->insert({
           {"Items", items},
           {"Findable", Bool(false)},
           {"id", String(name)},
           {"isMovable", Bool(true)},
-      };
+      });
       Attach(pos, *tag);
       return tag;
     };
@@ -512,11 +512,14 @@ private:
     int8_t type = Item::GetSkullTypeFromBlockName(name);
     auto rot = Wrap(strings::Toi(b.property("rotation", "0")), 0);
     float rotation = rot / 16.0f * 360.0f;
-    tag->fValue = {
-        {"id", String("Skull")},      {"isMovable", Bool(true)},
-        {"MouthMoving", Bool(false)}, {"MouthTickCount", Int(0)},
-        {"SkullType", Byte(type)},    {"Rotation", Float(rotation)},
-    };
+    tag->insert({
+        {"id", String("Skull")},
+        {"isMovable", Bool(true)},
+        {"MouthMoving", Bool(false)},
+        {"MouthTickCount", Int(0)},
+        {"SkullType", Byte(type)},
+        {"Rotation", Float(rotation)},
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -532,21 +535,21 @@ private:
     auto tag = make_shared<CompoundTag>();
     auto plantBlock = make_shared<CompoundTag>();
     auto states = make_shared<CompoundTag>();
-    states->fValue = {
+    states->insert({
         {"age_bit", Byte(0)},
         {"bamboo_leaf_size", String("no_leaves")},
         {"mamboo_stalk_thickness", String("thin")},
-    };
-    plantBlock->fValue = {
+    });
+    plantBlock->insert({
         {"states", states},
         {"name", String("minecraft:bamboo")},
         {"version", Int(BlockData::kBlockDataVersion)},
-    };
-    tag->fValue = {
+    });
+    tag->insert({
         {"id", String("FlowerPot")},
         {"isMovable", Bool(true)},
         {"PlantBlock", plantBlock},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -565,18 +568,18 @@ private:
       auto plantBlock = make_shared<CompoundTag>();
       auto states = make_shared<CompoundTag>();
       for (auto const &p : properties) {
-        states->fValue.emplace(p.first, String(p.second));
+        states->set(p.first, String(p.second));
       }
-      plantBlock->fValue = {
+      plantBlock->insert({
           {"states", states},
           {"name", String("minecraft:" + name)},
           {"version", Int(BlockData::kBlockDataVersion)},
-      };
-      tag->fValue = {
+      });
+      tag->insert({
           {"id", String("FlowerPot")},
           {"isMovable", Bool(true)},
           {"PlantBlock", plantBlock},
-      };
+      });
       Attach(pos, *tag);
       return tag;
     };
@@ -594,20 +597,20 @@ private:
     auto plantBlock = make_shared<CompoundTag>();
     auto states = make_shared<CompoundTag>();
     auto type = strings::Trim("minecraft:potted_", b.fName, "_sapling");
-    states->fValue = {
+    states->insert({
         {"age_bit", Byte(0)},
         {"sapling_type", String(type)},
-    };
-    plantBlock->fValue = {
+    });
+    plantBlock->insert({
         {"states", states},
         {"name", String("minecraft:sapling")},
         {"version", Int(BlockData::kBlockDataVersion)},
-    };
-    tag->fValue = {
+    });
+    tag->insert({
         {"id", String("FlowerPot")},
         {"isMovable", Bool(true)},
         {"PlantBlock", plantBlock},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -634,7 +637,7 @@ private:
     auto patternsBedrock = std::make_shared<ListTag>();
     patternsBedrock->fType = Tag::TAG_Compound;
     if (patterns && type != 1) {
-      for (auto const &pattern : patterns->fValue) {
+      for (auto const &pattern : *patterns) {
         auto p = pattern->asCompound();
         if (!p)
           continue;
@@ -643,21 +646,23 @@ private:
         if (!color || !pat)
           continue;
         auto ptag = std::make_shared<CompoundTag>();
-        ptag->fValue = {
+        ptag->insert({
             {"Color", Int(BannerColorCodeFromJava(*color))},
             {"Pattern", String(*pat)},
-        };
-        patternsBedrock->fValue.push_back(ptag);
+        });
+        patternsBedrock->push_back(ptag);
       }
     }
 
     int32_t base = BannerColor(b.fName);
 
-    tag->fValue = {
-        {"id", String("Banner")},      {"isMovable", Bool(true)},
-        {"Type", Int(type)},           {"Base", Int(base)},
+    tag->insert({
+        {"id", String("Banner")},
+        {"isMovable", Bool(true)},
+        {"Type", Int(type)},
+        {"Base", Int(base)},
         {"Patterns", patternsBedrock},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -709,11 +714,11 @@ private:
     using namespace props;
     auto tag = std::make_shared<CompoundTag>();
     auto color = BedColor(b.fName);
-    tag->fValue = {
+    tag->insert({
         {"id", String("Bed")},
         {"color", Byte(color)},
         {"isMovable", Bool(true)},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -726,13 +731,13 @@ private:
     auto facing = BlockData::GetFacingDirectionFromFacingA(b);
     auto items = GetItems(*c, "Items", mapInfo, ddf);
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("ShulkerBox")},
         {"facing", Byte((int8_t)facing)},
         {"Findable", Bool(false)},
         {"isMovable", Bool(true)},
         {"Items", items},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
@@ -821,20 +826,20 @@ private:
     text += GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" +
             GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
     auto tag = make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"id", String("Sign")},
         {"isMovable", Bool(true)},
         {"Text", String(text)},
         {"TextOwner", String("")},
-    };
+    });
     Attach(pos, *tag);
     return tag;
   }
 
   static void Attach(Pos const &pos, mcfile::nbt::CompoundTag &tag) {
-    tag.fValue.insert(std::make_pair("x", props::Int(pos.fX)));
-    tag.fValue.insert(std::make_pair("y", props::Int(pos.fY)));
-    tag.fValue.insert(std::make_pair("z", props::Int(pos.fZ)));
+    tag.set("x", props::Int(pos.fX));
+    tag.set("y", props::Int(pos.fY));
+    tag.set("z", props::Int(pos.fZ));
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag>
@@ -846,7 +851,7 @@ private:
     if (list == nullptr) {
       return tag;
     }
-    for (auto const &it : list->fValue) {
+    for (auto const &it : *list) {
       if (it->id() != mcfile::nbt::Tag::TAG_Compound)
         continue;
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -856,18 +861,18 @@ private:
 
       auto count = inItem->byte("Count", 1);
       auto slot = inItem->byte("Slot", 0);
-      outItem->fValue["Slot"] = props::Byte(slot);
-      outItem->fValue["Count"] = props::Byte(count);
+      outItem->set("Slot", props::Byte(slot));
+      outItem->set("Count", props::Byte(count));
 
-      tag->fValue.push_back(outItem);
+      tag->push_back(outItem);
     }
     return tag;
   }
 
   static mcfile::nbt::ListTag const *GetList(CompoundTag const &c,
                                              std::string const &name) {
-    auto found = c.fValue.find(name);
-    if (found == c.fValue.end()) {
+    auto found = c.find(name);
+    if (found == c.end()) {
       return nullptr;
     }
     return found->second->asList();
@@ -897,16 +902,16 @@ private:
     auto tag = std::make_shared<CompoundTag>();
     auto items = GetItems(*comp, "Items", mapInfo, ddf);
 
-    tag->fValue = {
+    tag->insert({
         {"Items", items},
         {"Findable", Bool(false)},
         {"id", String(string("Chest"))},
         {"isMovable", Bool(true)},
-    };
+    });
     if (pair) {
-      tag->fValue.emplace("pairlead", Bool(true));
-      tag->fValue.emplace("pairx", Int(pair->first));
-      tag->fValue.emplace("pairz", Int(pair->second));
+      tag->set("pairlead", Bool(true));
+      tag->set("pairx", Int(pair->first));
+      tag->set("pairz", Int(pair->second));
     }
     Attach(pos, *tag);
     return tag;

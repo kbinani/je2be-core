@@ -65,8 +65,8 @@ GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag const &tag,
   using namespace std;
   using namespace mcfile::nbt;
 
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end())
+  auto found = tag.find(name);
+  if (found == tag.end())
     return nullopt;
 
   IntArrayTag const *list = found->second->asIntArray();
@@ -97,8 +97,8 @@ GetUUIDWithFormatHexString(mcfile::nbt::CompoundTag const &tag,
   using namespace std;
   using namespace mcfile::nbt;
 
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end())
+  auto found = tag.find(name);
+  if (found == tag.end())
     return nullopt;
 
   auto hex = found->second->asString();
@@ -153,20 +153,20 @@ inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const &tag,
                                  std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
+  auto found = tag.find(name);
+  if (found == tag.end()) {
     return nullopt;
   }
   auto list = found->second->asList();
   if (!list) {
     return nullopt;
   }
-  if (list->fType != Tag::TAG_Double || list->fValue.size() != 3) {
+  if (list->fType != Tag::TAG_Double || list->size() != 3) {
     return nullopt;
   }
-  double x = list->fValue[0]->asDouble()->fValue;
-  double y = list->fValue[1]->asDouble()->fValue;
-  double z = list->fValue[2]->asDouble()->fValue;
+  double x = list->at(0)->asDouble()->fValue;
+  double y = list->at(1)->asDouble()->fValue;
+  double z = list->at(2)->asDouble()->fValue;
   return Vec((float)x, (float)y, (float)z);
 }
 
@@ -174,19 +174,19 @@ inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag,
                                            std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
+  auto found = tag.find(name);
+  if (found == tag.end()) {
     return nullopt;
   }
   auto list = found->second->asList();
   if (!list) {
     return nullopt;
   }
-  if (list->fType != Tag::TAG_Float || list->fValue.size() != 2) {
+  if (list->fType != Tag::TAG_Float || list->size() != 2) {
     return nullopt;
   }
-  double yaw = list->fValue[0]->asFloat()->fValue;
-  double pitch = list->fValue[1]->asFloat()->fValue;
+  double yaw = list->at(0)->asFloat()->fValue;
+  double pitch = list->at(1)->asFloat()->fValue;
   return Rotation(yaw, pitch);
 }
 
@@ -203,8 +203,8 @@ GetJson(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
   using nlohmann::json;
-  auto found = tag.fValue.find(name);
-  if (found == tag.fValue.end()) {
+  auto found = tag.find(name);
+  if (found == tag.end()) {
     return nullopt;
   }
   auto s = found->second->asString();

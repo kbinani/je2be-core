@@ -18,10 +18,10 @@ class EntityAttributes {
 
     std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
       auto a = std::make_shared<CompoundTag>();
-      a->fValue["Base"] = props::Float(base);
-      a->fValue["Current"] = props::Float(current);
-      a->fValue["Max"] = props::Float(max);
-      a->fValue["Name"] = props::String("minecraft:" + name);
+      a->set("Base", props::Float(base));
+      a->set("Current", props::Float(current));
+      a->set("Max", props::Float(max));
+      a->set("Name", props::String("minecraft:" + name));
       return a;
     }
   };
@@ -52,18 +52,17 @@ class EntityAttributes {
 
       auto list = std::make_shared<ListTag>();
       list->fType = Tag::TAG_Compound;
-      list->fValue = {
-          luck.toCompoundTag("luck"),
-          health.toCompoundTag("health"),
-          absorption.toCompoundTag("absorption"),
-          knockback_resistance.toCompoundTag("knockback_resistance"),
-          movement.toCompoundTag("movement"),
-          underwater_movement.toCompoundTag("underwater_movement"),
-          lava_movement.toCompoundTag("lava_movement"),
-          follow_range.toCompoundTag("follow_range"),
-      };
+      list->push_back(luck.toCompoundTag("luck"));
+      list->push_back(health.toCompoundTag("health"));
+      list->push_back(absorption.toCompoundTag("absorption"));
+      list->push_back(
+          knockback_resistance.toCompoundTag("knockback_resistance"));
+      list->push_back(movement.toCompoundTag("movement"));
+      list->push_back(underwater_movement.toCompoundTag("underwater_movement"));
+      list->push_back(lava_movement.toCompoundTag("lava_movement"));
+      list->push_back(follow_range.toCompoundTag("follow_range"));
       if (attack_damage) {
-        list->fValue.push_back(attack_damage->toCompoundTag("attack_damage"));
+        list->push_back(attack_damage->toCompoundTag("attack_damage"));
       }
       return list;
     }
@@ -92,7 +91,7 @@ public:
     Attribute movement(0.1125, 0.1125);
     Attribute jumpStrength(0.4, 0.4);
     if (attributes) {
-      for (auto const &it : attributes->fValue) {
+      for (auto const &it : *attributes) {
         auto attrs = it->asCompound();
         if (!attrs)
           continue;
@@ -116,14 +115,12 @@ public:
 
     auto ret = make_shared<ListTag>();
     ret->fType = Tag::TAG_Compound;
-    ret->fValue = {
-        luck.toCompoundTag("luck"),
-        health.toCompoundTag("health"),
-        movement.toCompoundTag("movement"),
-        followRange.toCompoundTag("follow_range"),
-        absorption.toCompoundTag("absorption"),
-        jumpStrength.toCompoundTag("jump_strength"),
-    };
+    ret->push_back(luck.toCompoundTag("luck"));
+    ret->push_back(health.toCompoundTag("health"));
+    ret->push_back(movement.toCompoundTag("movement"));
+    ret->push_back(followRange.toCompoundTag("follow_range"));
+    ret->push_back(absorption.toCompoundTag("absorption"));
+    ret->push_back(jumpStrength.toCompoundTag("jump_strength"));
     return ret;
   }
 

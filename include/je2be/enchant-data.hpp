@@ -60,8 +60,8 @@ public:
     if (found != mapping.end()) {
       id = found->second;
     }
-    tag->fValue["id"] = props::Short(id);
-    tag->fValue["lvl"] = props::Short(*lvl);
+    tag->set("id", props::Short(id));
+    tag->set("lvl", props::Short(*lvl));
     return tag;
   }
 

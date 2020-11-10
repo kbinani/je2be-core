@@ -19,9 +19,11 @@ public:
 
     auto l = std::make_shared<mcfile::nbt::ListTag>();
     l->fType = mcfile::nbt::Tag::TAG_Int;
-    l->fValue = {
-        Int(fMajor), Int(fMinor), Int(fPatch), Int(fRevision), Int(fReserved),
-    };
+    l->push_back(Int(fMajor));
+    l->push_back(Int(fMinor));
+    l->push_back(Int(fPatch));
+    l->push_back(Int(fRevision));
+    l->push_back(Int(fReserved));
     return l;
   }
 };

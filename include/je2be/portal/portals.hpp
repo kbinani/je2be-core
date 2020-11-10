@@ -25,10 +25,10 @@ public:
     auto portalRecords = make_shared<ListTag>();
     portalRecords->fType = Tag::TAG_Compound;
     for (auto const &portal : portals) {
-      portalRecords->fValue.push_back(portal.toCompoundTag());
+      portalRecords->push_back(portal.toCompoundTag());
     }
-    data->fValue.emplace("PortalRecords", portalRecords);
-    root->fValue.emplace("data", data);
+    data->set("PortalRecords", portalRecords);
+    root->set("data", data);
 
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});

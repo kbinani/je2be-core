@@ -55,13 +55,13 @@ public:
     for (Rgba f : fFadeColor) {
       fade.push_back(GetBedrockColorCode(f));
     }
-    ret->fValue = {
+    ret->insert({
         {"FireworkFlicker", Bool(fFlicker)},
         {"FireworkTrail", Bool(fTrail)},
         {"FireworkType", Byte(fType)},
         {"FireworkColor", std::make_shared<ByteArrayTag>(colors)},
         {"FireworkFade", std::make_shared<ByteArrayTag>(fade)},
-    };
+    });
     return ret;
   }
 

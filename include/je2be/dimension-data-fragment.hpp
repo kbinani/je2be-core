@@ -69,7 +69,7 @@ private:
     auto children = structure.listTag("Children");
     if (!children)
       return;
-    for (auto const &it : children->fValue) {
+    for (auto const &it : *children) {
       auto c = it->asCompound();
       if (!c)
         continue;

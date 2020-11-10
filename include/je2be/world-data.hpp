@@ -34,10 +34,10 @@ private:
     auto list = std::make_shared<ListTag>();
     list->fType = Tag::TAG_Compound;
     for (auto const &e : fAutonomousEntities) {
-      list->fValue.push_back(e);
+      list->push_back(e);
     }
     auto root = std::make_shared<CompoundTag>();
-    root->fValue["AutonomousEntityList"] = list;
+    root->set("AutonomousEntityList", list);
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});

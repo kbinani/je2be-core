@@ -75,10 +75,10 @@ public:
 
   static std::shared_ptr<CompoundTag> Empty() {
     auto armor = std::make_shared<CompoundTag>();
-    armor->fValue["Count"] = props::Byte(0);
-    armor->fValue["Damage"] = props::Short(0);
-    armor->fValue["Name"] = props::String("");
-    armor->fValue["WasPickedUp"] = props::Bool(false);
+    armor->set("Count", props::Byte(0));
+    armor->set("Damage", props::Short(0));
+    armor->set("Name", props::String(""));
+    armor->set("WasPickedUp", props::Bool(false));
     return armor;
   }
 
@@ -336,32 +336,32 @@ private:
 
     auto count = item.byte("Count", 1);
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"Name", String(name)},
         {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
-    };
+    });
 
     auto tg = item.compoundTag("tag");
     if (tg) {
       auto outTag = std::make_shared<CompoundTag>();
       auto author = tg->stringTag("author");
       if (author) {
-        outTag->fValue["author"] = String(author->fValue);
+        outTag->set("author", String(author->fValue));
       }
       auto title = tg->stringTag("title");
       if (title) {
-        outTag->fValue["title"] = String(title->fValue);
+        outTag->set("title", String(title->fValue));
       }
       if (title || author) {
-        outTag->fValue["generation"] = Int(0);
+        outTag->set("generation", Int(0));
       }
       auto pages = tg->listTag("pages");
       if (pages) {
         auto outPages = std::make_shared<ListTag>();
         outPages->fType = Tag::TAG_Compound;
-        for (auto const &it : pages->fValue) {
+        for (auto const &it : *pages) {
           auto line = it->asString();
           if (!line)
             continue;
@@ -376,15 +376,15 @@ private:
             lineText = line->fValue;
           }
           auto lineObj = std::make_shared<CompoundTag>();
-          lineObj->fValue = {
+          lineObj->insert({
               {"photoname", String("")},
               {"text", String(lineText)},
-          };
-          outPages->fValue.push_back(lineObj);
+          });
+          outPages->push_back(lineObj);
         }
-        outTag->fValue["pages"] = outPages;
+        outTag->set("pages", outPages);
       }
-      tag->fValue["tag"] = outTag;
+      tag->set("tag", outTag);
     }
 
     return Post(tag, item);
@@ -396,19 +396,19 @@ private:
 
     auto count = item.byte("Count", 1);
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"Name", String(name)},
         {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
-    };
+    });
 
     auto customColor = item.query("tag/display/color")->asInt();
     if (customColor) {
       uint32_t v = 0xff000000 | *(uint32_t *)&customColor->fValue;
       auto t = std::make_shared<CompoundTag>();
-      t->fValue["customColor"] = Int(*(int32_t *)&v);
-      tag->fValue["tag"] = t;
+      t->set("customColor", Int(*(int32_t *)&v));
+      tag->set("tag", t);
     }
 
     return Post(tag, item);
@@ -419,8 +419,8 @@ private:
       JavaEditionMap const &mapInfo) {
     auto ret = New("map");
     auto count = item.byte("Count", 1);
-    ret->fValue["Damage"] = props::Short(0);
-    ret->fValue["Count"] = props::Byte(count);
+    ret->set("Damage", props::Short(0));
+    ret->set("Count", props::Byte(count));
 
     auto number = item.query("tag/map")->asInt();
     if (!number) {
@@ -434,9 +434,9 @@ private:
     int64_t uuid = Map::UUID(mapId, *scale);
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue["map_uuid"] = props::Long(uuid);
-    tag->fValue["map_display_players"] = props::Byte(1);
-    ret->fValue["tag"] = tag;
+    tag->set("map_uuid", props::Long(uuid));
+    tag->set("map_display_players", props::Byte(1));
+    ret->set("tag", tag);
 
     int16_t type = 0;
     auto display = item.query("tag/display")->asCompound();
@@ -460,9 +460,9 @@ private:
       }
     }
     if (type == 0) {
-      tag->fValue["map_name_index"] = props::Int(2);
+      tag->set("map_name_index", props::Int(2));
     }
-    ret->fValue["Damage"] = props::Short(type);
+    ret->set("Damage", props::Short(type));
 
     auto out = Post(ret, item);
     return make_tuple(mapId, out);
@@ -477,8 +477,8 @@ private:
       auto potion = t->string("Potion", "");
       type = PotionData::PotionType(potion);
     }
-    tag->fValue["Damage"] = props::Short(type);
-    tag->fValue["Count"] = props::Byte(count);
+    tag->set("Damage", props::Short(type));
+    tag->set("Count", props::Byte(count));
     return Post(tag, item);
   }
 
@@ -492,8 +492,8 @@ private:
       auto potion = t->string("Potion", "");
       type = PotionData::TippedArrowPotionType(potion);
     }
-    tag->fValue["Damage"] = props::Short(type);
-    tag->fValue["Count"] = props::Byte(count);
+    tag->set("Damage", props::Short(type));
+    tag->set("Count", props::Byte(count));
     return Post(tag, item);
   }
 
@@ -508,10 +508,10 @@ private:
       auto e = FireworksExplosion::From(*explosion);
       if (!e.fColor.empty()) {
         int32_t customColor = e.fColor[0].toARGB();
-        tag->fValue["customColor"] = props::Int(customColor);
+        tag->set("customColor", props::Int(customColor));
       }
-      tag->fValue["FireworksItem"] = e.toCompoundTag();
-      data->fValue["tag"] = tag;
+      tag->set("FireworksItem", e.toCompoundTag());
+      data->set("tag", tag);
     }
 
     return data;
@@ -524,8 +524,8 @@ private:
     if (fireworks) {
       auto fireworksData = FireworksData::From(*fireworks);
       auto tag = std::make_shared<CompoundTag>();
-      tag->fValue["Fireworks"] = fireworksData.toCompoundTag();
-      data->fValue["tag"] = tag;
+      tag->set("Fireworks", fireworksData.toCompoundTag());
+      data->set("tag", tag);
     }
     return data;
   }
@@ -534,8 +534,8 @@ private:
     using namespace std;
     return [=](string const &name, CompoundTag const &item) {
       auto tag = New("spawn_egg");
-      tag->fValue["Damage"] = props::Short(damage);
-      tag->fValue["Identifier"] = props::String("minecraft:"s + mob);
+      tag->set("Damage", props::Short(damage));
+      tag->set("Identifier", props::String("minecraft:"s + mob));
       return Post(tag, item);
     };
   }
@@ -543,7 +543,7 @@ private:
   static Converter Subtype(std::string const &newName, int16_t damage) {
     return [=](std::string const &name, CompoundTag const &item) {
       auto tag = New(newName);
-      tag->fValue["Damage"] = props::Short(damage);
+      tag->set("Damage", props::Short(damage));
       return Post(tag, item);
     };
   }
@@ -872,15 +872,13 @@ private:
     auto blockData = BlockData::From(block);
 
     auto states = make_shared<CompoundTag>();
-    states->fValue = {
-        {"torch_facing_direction", String("unknown")},
-    };
-    blockData->fValue["states"] = states;
+    states->set("torch_facing_direction", String("unknown"));
+    blockData->set("states", states);
 
     auto tag = New(name, true);
-    tag->fValue["Count"] = Byte(count);
-    tag->fValue["Damage"] = Short(0);
-    tag->fValue["Block"] = blockData;
+    tag->set("Count", Byte(count));
+    tag->set("Damage", Short(0));
+    tag->set("Block", blockData);
     return Post(tag, item);
   }
 
@@ -894,7 +892,7 @@ private:
   static ItemData Skull(std::string const &name, CompoundTag const &item) {
     int8_t type = GetSkullTypeFromBlockName(name);
     auto tag = New("skull");
-    tag->fValue["Damage"] = props::Short(type);
+    tag->set("Damage", props::Short(type));
     return Post(tag, item);
   }
 
@@ -905,7 +903,7 @@ private:
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     int16_t damage = (int16_t)color;
     auto ret = New("banner");
-    ret->fValue["Damage"] = props::Short(damage);
+    ret->set("Damage", props::Short(damage));
 
     auto patterns = item.query("tag/BlockEntityTag/Patterns")->asList();
     auto display = item.query("tag/display")->asCompound();
@@ -923,12 +921,12 @@ private:
 
     if (omnious) {
       auto tag = std::make_shared<CompoundTag>();
-      tag->fValue["Type"] = props::Int(1);
-      ret->fValue["tag"] = tag;
+      tag->set("Type", props::Int(1));
+      ret->set("tag", tag);
     } else if (patterns) {
       auto bePatterns = std::make_shared<ListTag>();
       bePatterns->fType = Tag::TAG_Compound;
-      for (auto const &it : patterns->fValue) {
+      for (auto const &it : *patterns) {
         auto c = it->asCompound();
         if (!c)
           continue;
@@ -937,15 +935,15 @@ private:
         if (!color || !pat)
           continue;
         auto ptag = std::make_shared<CompoundTag>();
-        ptag->fValue = {
+        ptag->insert({
             {"Color", props::Int(BannerColorCodeFromJava(*color))},
             {"Pattern", props::String(*pat)},
-        };
-        bePatterns->fValue.push_back(ptag);
+        });
+        bePatterns->push_back(ptag);
       }
       auto tag = std::make_shared<CompoundTag>();
-      tag->fValue["Patterns"] = bePatterns;
-      ret->fValue["tag"] = tag;
+      tag->set("Patterns", bePatterns);
+      ret->set("tag", tag);
     }
 
     return Post(ret, item);
@@ -957,7 +955,7 @@ private:
     ColorCodeJava color = ColorCodeJavaFromName(colorName);
     int16_t damage = (int16_t)color;
     auto tag = New("bed");
-    tag->fValue["Damage"] = props::Short(damage);
+    tag->set("Damage", props::Short(damage));
     return Post(tag, item);
   }
 
@@ -973,15 +971,13 @@ private:
     auto blockData = BlockData::From(block);
 
     auto states = make_shared<CompoundTag>();
-    states->fValue = {
-        {"huge_mushroom_bits", Int(14)},
-    };
-    blockData->fValue["states"] = states;
+    states->set("huge_mushroom_bits", Int(14));
+    blockData->set("states", states);
 
     auto tag = New(name, true);
-    tag->fValue["Count"] = Byte(count);
-    tag->fValue["Damage"] = Short(0);
-    tag->fValue["Block"] = blockData;
+    tag->set("Count", Byte(count));
+    tag->set("Damage", Short(0));
+    tag->set("Block", blockData);
     return Post(tag, item);
   }
 
@@ -994,12 +990,12 @@ private:
       n = "minecraft:" + name;
     }
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"Name", String(n)},
         {"WasPickedUp", Bool(false)},
         {"Count", Byte(1)},
         {"Damage", Short(0)},
-    };
+    });
     return tag;
   }
 
@@ -1023,13 +1019,13 @@ private:
       return nullptr;
 
     auto tag = make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"Name", String(ItemNameFromBlockName(*name))},
         {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
-    };
-    tag->fValue["Block"] = blockData;
+    });
+    tag->set("Block", blockData);
     return Post(tag, item);
   }
 
@@ -1039,12 +1035,12 @@ private:
 
     auto count = item.byte("Count", 1);
     auto tag = std::make_shared<CompoundTag>();
-    tag->fValue = {
+    tag->insert({
         {"Name", String(name)},
         {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
-    };
+    });
     return Post(tag, item);
   }
 
@@ -1066,35 +1062,35 @@ private:
     if (storedEnchantments) {
       auto ench = make_shared<ListTag>();
       ench->fType = Tag::TAG_Compound;
-      for (auto const &e : storedEnchantments->fValue) {
+      for (auto const &e : *storedEnchantments) {
         auto c = e->asCompound();
         if (!c)
           continue;
         auto be = EnchantData::From(*c);
         if (!be)
           continue;
-        ench->fValue.push_back(be);
+        ench->push_back(be);
       }
-      beTag->fValue["ench"] = ench;
+      beTag->set("ench", ench);
     } else {
       auto enchantments = tag->listTag("Enchantments");
       if (enchantments) {
         auto ench = make_shared<ListTag>();
-        for (auto const &e : enchantments->fValue) {
+        for (auto const &e : *enchantments) {
           auto c = e->asCompound();
           if (!c)
             continue;
           auto be = EnchantData::From(*c);
           if (!be)
             continue;
-          ench->fValue.push_back(be);
+          ench->push_back(be);
         }
         ench->fType = Tag::TAG_Compound;
         auto damage = tag->int32("Damage", 0);
         auto repairCost = tag->int32("RepairCost", 1);
-        beTag->fValue["Damage"] = Int(damage);
-        beTag->fValue["RepairCost"] = Int(repairCost);
-        beTag->fValue["ench"] = ench;
+        beTag->set("Damage", Int(damage));
+        beTag->set("RepairCost", Int(repairCost));
+        beTag->set("ench", ench);
       }
     }
 
@@ -1108,20 +1104,20 @@ private:
           if (text != obj->end() && text->is_string()) {
             auto n = text->get<string>();
             auto beDisplay = make_shared<CompoundTag>();
-            beDisplay->fValue["Name"] = String(n);
-            beTag->fValue["display"] = beDisplay;
+            beDisplay->set("Name", String(n));
+            beTag->set("display", beDisplay);
           }
         } else {
           auto text = strings::Trim("\"", *name, "\"");
           auto beDisplay = make_shared<CompoundTag>();
-          beDisplay->fValue["Name"] = String(text);
-          beTag->fValue["display"] = beDisplay;
+          beDisplay->set("Name", String(text));
+          beTag->set("display", beDisplay);
         }
       }
     }
 
-    if (!beTag->fValue.empty()) {
-      input->fValue["tag"] = beTag;
+    if (!beTag->empty()) {
+      input->set("tag", beTag);
     }
 
     return input;

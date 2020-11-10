@@ -14,11 +14,15 @@ public:
     using namespace mcfile::nbt;
     using namespace props;
     auto tag = make_shared<CompoundTag>();
-    tag->fValue = {
-        {"DimId", Int(fDimId)}, {"Span", Byte(fSpan)}, {"TpX", Int(fTpX)},
-        {"TpY", Int(fTpY)},     {"TpZ", Int(fTpZ)},    {"Xa", Byte(fXa)},
+    tag->insert({
+        {"DimId", Int(fDimId)},
+        {"Span", Byte(fSpan)},
+        {"TpX", Int(fTpX)},
+        {"TpY", Int(fTpY)},
+        {"TpZ", Int(fTpZ)},
+        {"Xa", Byte(fXa)},
         {"Za", Byte(fZa)},
-    };
+    });
     return tag;
   }
 

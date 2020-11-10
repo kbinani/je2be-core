@@ -27,7 +27,7 @@ public:
   Make(std::string const &name) {
     auto tag = New(name);
     auto states = States();
-    tag->fValue.emplace("states", states);
+    tag->set("states", states);
     return tag;
   }
 
@@ -93,9 +93,9 @@ private:
       auto states = States();
       for (auto const &p : fProperties) {
         auto const &kv = p(block);
-        states->fValue.insert(kv);
+        states->insert(kv);
       }
-      tag->fValue.emplace("states", states);
+      tag->set("states", states);
       return tag;
     }
 
@@ -107,7 +107,7 @@ private:
   static BlockDataType Identity(mcfile::Block const &block) {
     auto tag = New(block.fName, true);
     auto states = States();
-    tag->fValue.emplace("states", states);
+    tag->set("states", states);
     return tag;
   }
 
@@ -1745,8 +1745,8 @@ private:
     using namespace props;
     auto tag = make_shared<CompoundTag>();
     string fullName = nameIsFull ? name : "minecraft:"s + name;
-    tag->fValue.emplace("name", String(fullName));
-    tag->fValue.emplace("version", Int(kBlockDataVersion));
+    tag->set("name", String(fullName));
+    tag->set("version", Int(kBlockDataVersion));
     return tag;
   }
 

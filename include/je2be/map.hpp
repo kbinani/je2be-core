@@ -55,7 +55,7 @@ public:
     auto scale = data->byte("scale");
     auto xCenter = data->int32("xCenter");
     auto zCenter = data->int32("zCenter");
-    auto colors = data->query("colors")->asByteArray();
+    auto colors = data->byteArrayTag("colors");
     auto unlimitedTracking = data->boolean("unlimitedTracking");
 
     if (!locked || !scale || !xCenter || !zCenter || !colors ||
@@ -65,22 +65,22 @@ public:
     for (int beScale = 0; beScale <= 4; beScale++) {
       int64_t uuid = UUID(javaMapId, beScale);
       auto ret = make_shared<CompoundTag>();
-      ret->fValue["dimension"] = Byte(outDimension);
-      ret->fValue["fullyExplored"] = Bool(false); //?
-      ret->fValue["height"] = Short(128);
-      ret->fValue["mapId"] = Long(uuid);
-      ret->fValue["mapLocked"] = Bool(*locked);
+      ret->set("dimension", Byte(outDimension));
+      ret->set("fullyExplored", Bool(false)); //?
+      ret->set("height", Short(128));
+      ret->set("mapId", Long(uuid));
+      ret->set("mapLocked", Bool(*locked));
       if (beScale == 4) {
-        ret->fValue["parentMapId"] = Long(-1);
+        ret->set("parentMapId", Long(-1));
       } else {
         int64_t parent = UUID(javaMapId, beScale + 1);
-        ret->fValue["parentMapId"] = Long(parent);
+        ret->set("parentMapId", Long(parent));
       }
-      ret->fValue["scale"] = Byte(beScale);
-      ret->fValue["unlimitedTracking"] = Bool(*unlimitedTracking);
-      ret->fValue["width"] = Short(128);
-      ret->fValue["xCenter"] = Int(*xCenter);
-      ret->fValue["zCenter"] = Int(*zCenter);
+      ret->set("scale", Byte(beScale));
+      ret->set("unlimitedTracking", Bool(*unlimitedTracking));
+      ret->set("width", Short(128));
+      ret->set("xCenter", Int(*xCenter));
+      ret->set("zCenter", Int(*zCenter));
 
       std::vector<uint8_t> outColors(65536);
       auto decorations = make_shared<ListTag>();
@@ -102,13 +102,13 @@ public:
           }
         }
 
-        auto frames = data->query("frames")->asList();
+        auto frames = data->listTag("frames");
         if (frames) {
-          for (auto const &it : frames->fValue) {
+          for (auto const &it : *frames) {
             auto frame = it->asCompound();
             if (!frame)
               continue;
-            auto pos = frame->query("Pos")->asCompound();
+            auto pos = frame->compoundTag("Pos");
             auto rotation = frame->int32("Rotation");
             if (!pos || !rotation)
               continue;
@@ -136,33 +136,33 @@ public:
             }
 
             auto data = make_shared<CompoundTag>();
-            data->fValue["rot"] = Int(rot);
-            data->fValue["type"] = Int(1);
+            data->set("rot", Int(rot));
+            data->set("type", Int(1));
             auto [markerX, markerY] =
                 MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 ||
                 128 < markerY)
               continue;
-            data->fValue["x"] = Int(markerX);
-            data->fValue["y"] = Int(markerY);
+            data->set("x", Int(markerX));
+            data->set("y", Int(markerY));
 
             auto key = make_shared<CompoundTag>();
-            key->fValue["blockX"] = Int(*x);
-            key->fValue["blockY"] = Int(*y);
-            key->fValue["blockZ"] = Int(*z);
-            key->fValue["type"] = Int(1);
+            key->set("blockX", Int(*x));
+            key->set("blockY", Int(*y));
+            key->set("blockZ", Int(*z));
+            key->set("type", Int(1));
 
             auto decoration = make_shared<CompoundTag>();
-            decoration->fValue["data"] = data;
-            decoration->fValue["key"] = key;
+            decoration->set("data", data);
+            decoration->set("key", key);
 
-            decorations->fValue.push_back(decoration);
+            decorations->push_back(decoration);
           }
         }
 
         auto inDecorations = item.query("tag/Decorations")->asList();
         if (inDecorations) {
-          for (auto const &d : inDecorations->fValue) {
+          for (auto const &d : *inDecorations) {
             auto e = d->asCompound();
             if (!e)
               continue;
@@ -181,34 +181,34 @@ public:
             }
 
             auto data = make_shared<CompoundTag>();
-            data->fValue["rot"] = Int(8);
-            data->fValue["type"] = Int(outType);
+            data->set("rot", Int(8));
+            data->set("type", Int(outType));
             auto [markerX, markerY] =
                 MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 ||
                 128 < markerY)
               continue;
-            data->fValue["x"] = Int(markerX);
-            data->fValue["y"] = Int(markerY);
+            data->set("x", Int(markerX));
+            data->set("y", Int(markerY));
 
             auto key = make_shared<CompoundTag>();
-            key->fValue["blockX"] = Int((int32_t)*x);
-            key->fValue["blockZ"] = Int((int32_t)*z);
-            key->fValue["blockY"] = Int(64); // fixed value?
-            key->fValue["type"] = Int(1);    //?
+            key->set("blockX", Int((int32_t)*x));
+            key->set("blockZ", Int((int32_t)*z));
+            key->set("blockY", Int(64)); // fixed value?
+            key->set("type", Int(1));    //?
 
             auto decoration = make_shared<CompoundTag>();
-            decoration->fValue["data"] = data;
-            decoration->fValue["key"] = key;
+            decoration->set("data", data);
+            decoration->set("key", key);
 
-            decorations->fValue.push_back(decoration);
+            decorations->push_back(decoration);
           }
         }
       }
       auto outColorsTag = make_shared<ByteArrayTag>(outColors);
-      ret->fValue["colors"] = outColorsTag;
+      ret->set("colors", outColorsTag);
 
-      ret->fValue["decorations"] = decorations;
+      ret->set("decorations", decorations);
 
       vector<uint8_t> serialized;
       {
