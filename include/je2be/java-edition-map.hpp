@@ -39,7 +39,7 @@ public:
       auto p = jeFilePath.string();
       gzFile f = gzopen(p.c_str(), "rb");
       if (!f)
-        return false;
+        return nullptr;
       while (true) {
         int read = gzread(f, buf.data(), buf.size());
         if (read <= 0)
