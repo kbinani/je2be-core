@@ -36,7 +36,7 @@ public:
       uint64_t const kMaxFileSize = 2 * 1024 * 1024;
       auto batch = make_shared<WriteBatch>();
 
-      ThreadPool pool(concurrency);
+      ::ThreadPool pool(concurrency);
       pool.init();
 
       deque<future<void>> futures;
