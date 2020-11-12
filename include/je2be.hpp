@@ -63,4 +63,5 @@
 #include <je2be/entity.hpp>
 #include <je2be/chunk-data.hpp>
 #include <je2be/chunk-data-package.hpp>
+#include <je2be/progress.hpp>
 #include <je2be/converter.hpp>

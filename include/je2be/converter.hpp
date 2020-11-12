@@ -8,10 +8,12 @@ public:
             OutputOption oo)
       : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
 
-  bool run(unsigned int concurrency) {
+  bool run(unsigned int concurrency, Progress *progress = nullptr) {
     using namespace std;
     namespace fs = mcfile::detail::filesystem;
     using namespace mcfile;
+
+    double const numTotalChunks = getTotalNumChunks();
 
     auto rootPath = fs::path(fOutput);
     auto dbPath = rootPath / "db";
@@ -33,16 +35,31 @@ public:
         return false;
       }
 
+      uint32_t done = 0;
       auto worldData =
           std::make_unique<WorldData>(fs::path(fInput), fInputOption);
       for (auto dim :
            {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
         World world(dir.string());
-        ok &= convertWorld(world, dim, db, *worldData, concurrency);
+        bool complete = convertWorld(world, dim, db, *worldData, concurrency,
+                                     progress, done, numTotalChunks);
+        ok &= complete;
+        if (!complete) {
+          break;
+        }
       }
 
-      worldData->put(db, *data);
+      if (ok) {
+        worldData->put(db, *data);
+      }
+
+      if (progress) {
+        progress->report(Progress::Phase::LevelDbCompaction, 0, 1);
+      }
+    }
+    if (progress) {
+      progress->report(Progress::Phase::LevelDbCompaction, 1, 1);
     }
 
     return ok;
@@ -50,45 +67,61 @@ public:
 
 private:
   bool convertWorld(mcfile::World const &w, Dimension dim, DbInterface &db,
-                    WorldData &wd, unsigned int concurrency) {
+                    WorldData &wd, unsigned int concurrency, Progress *progress,
+                    uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
 
-    ThreadPool pool(concurrency);
+    ::ThreadPool pool(concurrency);
     pool.init();
     deque<future<shared_ptr<DimensionDataFragment>>> futures;
 
-    w.eachRegions([this, dim, &db, &pool, &futures, concurrency,
-                   &wd](shared_ptr<Region> const &region) {
-      JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
-      for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
-        for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-          if (futures.size() > 10 * size_t(concurrency)) {
-            for (unsigned int i = 0; i < 5 * concurrency; i++) {
-              auto const &pcr = futures.front().get();
-              futures.pop_front();
-              if (!pcr)
-                continue;
-              pcr->drain(wd);
+    bool completed = w.eachRegions(
+        [this, dim, &db, &pool, &futures, concurrency, &wd, &done, progress,
+         numTotalChunks](shared_ptr<Region> const &region) {
+          JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
+          for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
+            for (int cz = region->minChunkZ(); cz <= region->maxChunkZ();
+                 cz++) {
+              if (futures.size() > 10 * size_t(concurrency)) {
+                for (unsigned int i = 0; i < 5 * concurrency; i++) {
+                  auto const &pcr = futures.front().get();
+                  futures.pop_front();
+                  done++;
+                  if (!pcr)
+                    continue;
+                  pcr->drain(wd);
+                }
+              }
+
+              if (progress) {
+                bool continue_ = progress->report(Progress::Phase::Convert,
+                                                  done, numTotalChunks);
+                if (!continue_) {
+                  return false;
+                }
+              }
+
+              futures.push_back(move(
+                  pool.submit([this, dim, &db, region, cx, cz,
+                               mapInfo]() -> shared_ptr<DimensionDataFragment> {
+                    auto const &chunk = region->chunkAt(cx, cz);
+                    if (!chunk) {
+                      return nullptr;
+                    }
+                    return putChunk(*chunk, dim, db, mapInfo);
+                  })));
             }
           }
-
-          futures.push_back(move(
-              pool.submit([this, dim, &db, region, cx, cz,
-                           mapInfo]() -> shared_ptr<DimensionDataFragment> {
-                auto const &chunk = region->chunkAt(cx, cz);
-                if (!chunk) {
-                  return nullptr;
-                }
-                return putChunk(*chunk, dim, db, mapInfo);
-              })));
-        }
-      }
-      return true;
-    });
+          return true;
+        });
 
     for (auto &f : futures) {
       auto const &pcr = f.get();
+      done++;
+      if (progress) {
+        progress->report(Progress::Phase::Convert, done, numTotalChunks);
+      }
       if (!pcr)
         continue;
       pcr->drain(wd);
@@ -96,7 +129,7 @@ private:
 
     pool.shutdown();
 
-    return true;
+    return completed;
   }
 
   std::shared_ptr<DimensionDataFragment>
@@ -404,6 +437,24 @@ private:
     static std::string const air("minecraft:air");
     static std::string const cave_air("minecraft:cave_air");
     return strings::Equal(name, air) || strings::Equal(name, cave_air);
+  }
+
+  double getTotalNumChunks() const {
+    namespace fs = std::filesystem;
+    uint32_t num = 0;
+    for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+      auto dir = fInputOption.getWorldDirectory(fInput, dim) / "region";
+      for (auto const &e : fs::directory_iterator(dir)) {
+        if (!e.is_regular_file()) {
+          continue;
+        }
+        auto name = e.path().filename().string();
+        if (name.starts_with("r.") && name.ends_with(".mca")) {
+          num++;
+        }
+      }
+    }
+    return num * 32.0 * 32.0;
   }
 
 private:
