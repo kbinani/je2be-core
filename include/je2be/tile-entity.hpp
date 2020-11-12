@@ -36,7 +36,7 @@ public:
   static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
     auto id = tag->string("id");
     if (!id)
-      return nullptr;
+      return false;
     auto const &name = *id;
     if (name == "minecraft:mob_spawner") {
       return true;
