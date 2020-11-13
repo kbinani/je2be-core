@@ -444,6 +444,9 @@ private:
     uint32_t num = 0;
     for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
       auto dir = fInputOption.getWorldDirectory(fInput, dim) / "region";
+      if (!fs::exists(dir)) {
+        continue;
+      }
       for (auto const &e : fs::directory_iterator(dir)) {
         if (!e.is_regular_file()) {
           continue;
