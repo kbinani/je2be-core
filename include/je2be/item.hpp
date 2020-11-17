@@ -188,10 +188,7 @@ private:
     E("lava_bucket", Subtype("bucket", 10));
     E("cod_bucket", Subtype("bucket", 2));
     E("salmon_bucket", Subtype("bucket", 3));
-    E("tropical_fish_bucket",
-      Subtype(
-          "bucket",
-          4)); // TODO: tropical fish entity is in CompoundTag, key named "tag"
+    E("tropical_fish_bucket", TropicalFishBucket);
     E("pufferfish_bucket", Subtype("bucket", 5));
 
     E("ink_sac", Subtype("dye", 0));
@@ -327,6 +324,23 @@ private:
     E("writable_book", WritableBook);
 #undef E
     return table;
+  }
+
+  static ItemData TropicalFishBucket(std::string const &name,
+                                     CompoundTag const &item) {
+    using namespace props;
+    auto ret = New("bucket");
+    ret->set("Damage", Short(4));
+    auto tg = item.compoundTag("tag");
+    if (tg) {
+      auto variant = tg->intTag("BucketVariantTag");
+      if (variant) {
+        auto tf = TropicalFish::FromVariant(variant->fValue);
+        auto tag = tf.toBucketTag();
+        ret->set("tag", tag);
+      }
+    }
+    return Post(ret, item);
   }
 
   static ItemData WritableBook(std::string const &name,

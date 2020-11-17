@@ -589,16 +589,13 @@ private:
   }
 
   static EntityData TropicalFish(EntityData const &c, CompoundTag const &tag) {
+    using namespace props;
     auto variant = tag.int32("Variant", 0);
-    auto small = (0xf & variant) == 0;
-    auto pattern = 0xf & (variant >> 8);
-    auto bodyColor = 0xf & (variant >> 16);
-    auto patternColor = 0xf & (variant >> 24);
-
-    c->set("Variant", props::Int(small ? 0 : 1));
-    c->set("MarkVariant", props::Int(pattern));
-    c->set("Color", props::Byte(bodyColor));
-    c->set("Color2", props::Byte(patternColor));
+    auto tf = j2b::TropicalFish::FromVariant(variant);
+    c->set("Variant", Int(tf.fSmall ? 0 : 1));
+    c->set("MarkVariant", Int(tf.fPattern));
+    c->set("Color", Byte(tf.fBodyColor));
+    c->set("Color2", Byte(tf.fPatternColor));
     return c;
   }
 
