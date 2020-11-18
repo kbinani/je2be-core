@@ -51,6 +51,7 @@
 #include <je2be/structure/structure-piece.hpp>
 #include <je2be/structure/structure-piece-collection.hpp>
 #include <je2be/structure/structures.hpp>
+#include <je2be/statistics.hpp>
 #include <je2be/world-data.hpp>
 #include <je2be/dimension-data-fragment.hpp>
 #include <je2be/potion-data.hpp>

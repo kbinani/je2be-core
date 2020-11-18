@@ -6,6 +6,14 @@ class DimensionDataFragment {
 public:
   explicit DimensionDataFragment(Dimension dim) : fDim(dim) {}
 
+  void addChunkVersion(uint32_t chunkDataVersion) {
+    fStat.addChunkVersion(chunkDataVersion);
+  }
+  void add(uint64_t numChunks, uint64_t numBlockEntitites,
+           uint64_t numEntities) {
+    fStat.add(numChunks, numBlockEntitites, numEntities);
+  }
+
   void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) {
     fPortalBlocks.add(x, y, z, xAxis);
   }
@@ -61,6 +69,7 @@ public:
     for (auto it = fStructures.begin(); it != fStructures.end(); it++) {
       wd.fStructures.add(*it, fDim);
     }
+    wd.fStat.merge(fStat);
   }
 
 private:
@@ -104,6 +113,7 @@ private:
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
+  Statistics fStat;
 };
 
 } // namespace j2b

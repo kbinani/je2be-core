@@ -55,6 +55,7 @@ set(je2be_srcs
   include/je2be/structure/structures.hpp
   include/je2be/volume.hpp
   include/je2be/tropical-fish.hpp
+  include/je2be/statistics.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp

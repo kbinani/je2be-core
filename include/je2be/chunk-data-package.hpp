@@ -12,6 +12,8 @@ public:
     if (chunk.fStatus == "full") {
       fFinalizedState = 2;
     }
+    ddf.addChunkVersion(chunk.fDataVersion);
+    ddf.add(1, fTileEntities.size(), fEntities.size());
   }
 
   void serialize(ChunkData &cd) {

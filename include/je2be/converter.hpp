@@ -8,7 +8,8 @@ public:
             OutputOption oo)
       : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
 
-  bool run(unsigned int concurrency, Progress *progress = nullptr) {
+  std::optional<Statistics> run(unsigned int concurrency,
+                                Progress *progress = nullptr) {
     using namespace std;
     namespace fs = mcfile::detail::filesystem;
     using namespace mcfile;
@@ -24,20 +25,21 @@ public:
     auto data =
         LevelData::Read(fInputOption.getLevelDatFilePath(fs::path(fInput)));
     if (!data)
-      return false;
+      return nullopt;
     LevelData levelData = LevelData::Import(*data);
+    levelData.fLevelName = "jeb2-test";
     levelData.write(fOutput + string("/level.dat"));
 
     bool ok = true;
+    auto worldData =
+        std::make_unique<WorldData>(fs::path(fInput), fInputOption);
     {
       RawDb db(dbPath.string(), concurrency);
       if (!db.valid()) {
-        return false;
+        return nullopt;
       }
 
       uint32_t done = 0;
-      auto worldData =
-          std::make_unique<WorldData>(fs::path(fInput), fInputOption);
       for (auto dim :
            {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
@@ -62,7 +64,7 @@ public:
       progress->report(Progress::Phase::LevelDbCompaction, 1, 1);
     }
 
-    return ok;
+    return worldData->fStat;
   }
 
 private:

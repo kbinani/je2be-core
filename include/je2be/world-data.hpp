@@ -65,6 +65,7 @@ public:
   std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
   InputOption fInputOption;
   Structures fStructures;
+  Statistics fStat;
 };
 
 } // namespace j2b
