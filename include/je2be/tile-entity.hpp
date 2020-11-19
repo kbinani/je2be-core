@@ -243,9 +243,41 @@ private:
     E("end_portal", EndPortal);
     E("beacon", Beacon);
     E("lectern", Lectern);
+    E("piston_head", PistonArm(false));
+    E("sticky_piston_head", PistonArm(true));
 #undef E
     return table;
   }
+
+  struct PistonArm {
+    explicit PistonArm(bool sticky) : sticky(sticky) {}
+
+    TileEntityData operator()(Pos const &pos, Block const &b,
+                              std::shared_ptr<CompoundTag> const &c,
+                              JavaEditionMap const &mapInfo,
+                              DimensionDataFragment &ddf) const {
+      using namespace props;
+      using namespace mcfile::nbt;
+      auto ret = std::make_shared<CompoundTag>();
+      ret->set("id", String("PistonArm"));
+      ret->set("isMovable", Bool(false));
+      ret->set("LastProgress", Float(1));
+      ret->set("NewState", Byte(2));
+      ret->set("Progress", Float(1));
+      ret->set("State", Byte(2));
+      ret->set("Sticky", Bool(sticky));
+      auto attachedBlocks = std::make_shared<ListTag>();
+      attachedBlocks->fType = Tag::TAG_Compound;
+      auto breakBlocks = std::make_shared<ListTag>();
+      breakBlocks->fType = Tag::TAG_Compound;
+      ret->set("AttachedBlocks", attachedBlocks);
+      ret->set("BreakBlocks", breakBlocks);
+      Attach(pos, *ret);
+      return ret;
+    }
+
+    bool const sticky;
+  };
 
   static TileEntityData Lectern(Pos const &pos, Block const &b,
                                 std::shared_ptr<CompoundTag> const &c,

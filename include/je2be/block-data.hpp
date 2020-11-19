@@ -1394,8 +1394,8 @@ private:
     E("soul_campfire", campfire);
     E("piston", facingDirectionFromFacing2);
     E("sticky_piston", facingDirectionFromFacing2);
-    E("piston_head", facingDirectionFromFacing2);
-    E("sticky_piston_head", facingDirectionFromFacing2);
+    E("piston_head", Converter(Name("air")));
+    E("sticky_piston_head", Converter(Name("air")));
     E("note_block", Rename("noteblock"));
     E("dispenser", Converter(Same, FacingDirectionFromFacingA,
                              Name(Triggered, "triggered_bit")));
