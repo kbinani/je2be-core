@@ -27,7 +27,6 @@ public:
     if (!data)
       return nullopt;
     LevelData levelData = LevelData::Import(*data);
-    levelData.fLevelName = "jeb2-test";
     levelData.write(fOutput + string("/level.dat"));
 
     bool ok = true;
