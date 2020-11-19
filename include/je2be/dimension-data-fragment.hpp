@@ -6,12 +6,16 @@ class DimensionDataFragment {
 public:
   explicit DimensionDataFragment(Dimension dim) : fDim(dim) {}
 
-  void addChunkVersion(uint32_t chunkDataVersion) {
+  void addStatChunkVersion(uint32_t chunkDataVersion) {
     fStat.addChunkVersion(chunkDataVersion);
   }
-  void add(uint64_t numChunks, uint64_t numBlockEntitites,
-           uint64_t numEntities) {
+  void addStat(uint64_t numChunks, uint64_t numBlockEntitites,
+               uint64_t numEntities) {
     fStat.add(numChunks, numBlockEntitites, numEntities);
+  }
+
+  void addStatError(Dimension dim, int32_t chunkX, int32_t chunkZ) {
+    fStat.addError(dim, chunkX, chunkZ);
   }
 
   void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) {

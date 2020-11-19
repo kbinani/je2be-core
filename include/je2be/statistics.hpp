@@ -11,6 +11,9 @@ public:
     fNumChunks += o.fNumChunks;
     fNumBlockEntities += o.fNumBlockEntities;
     fNumEntities += o.fNumEntities;
+    for (auto const &e : o.fErrors) {
+      fErrors.push_back(e);
+    }
   }
 
   void addChunkVersion(uint32_t chunkVersion) {
@@ -24,11 +27,26 @@ public:
     fNumEntities = numEntities;
   }
 
+  struct Error {
+    Dimension fDim;
+    int32_t fChunkX;
+    int32_t fChunkZ;
+  };
+
+  void addError(Dimension dim, int32_t chunkX, int32_t chunkZ) {
+    Error e;
+    e.fDim = dim;
+    e.fChunkX = chunkX;
+    e.fChunkZ = chunkZ;
+    fErrors.push_back(e);
+  }
+
 public:
   std::unordered_map<uint32_t, uint64_t> fChunkDataVersions;
   uint64_t fNumChunks = 0;
   uint64_t fNumBlockEntities = 0;
   uint64_t fNumEntities = 0;
+  std::vector<Error> fErrors;
 };
 
 } // namespace j2b

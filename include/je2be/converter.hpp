@@ -76,7 +76,11 @@ private:
 
     ::ThreadPool pool(concurrency);
     pool.init();
-    deque<future<shared_ptr<DimensionDataFragment>>> futures;
+    struct Result {
+      shared_ptr<DimensionDataFragment> fData;
+      bool fOk;
+    };
+    deque<future<Result>> futures;
 
     bool completed = w.eachRegions(
         [this, dim, &db, &pool, &futures, concurrency, &wd, &done, progress,
@@ -87,12 +91,15 @@ private:
                  cz++) {
               if (futures.size() > 10 * size_t(concurrency)) {
                 for (unsigned int i = 0; i < 5 * concurrency; i++) {
-                  auto const &pcr = futures.front().get();
+                  Result const &result = futures.front().get();
                   futures.pop_front();
                   done++;
-                  if (!pcr)
+                  if (!result.fData)
                     continue;
-                  pcr->drain(wd);
+                  result.fData->drain(wd);
+                  if (!result.fOk) {
+                    return false;
+                  }
                 }
               }
 
@@ -104,14 +111,24 @@ private:
                 }
               }
 
-              futures.push_back(move(
-                  pool.submit([this, dim, &db, region, cx, cz,
-                               mapInfo]() -> shared_ptr<DimensionDataFragment> {
-                    auto const &chunk = region->chunkAt(cx, cz);
-                    if (!chunk) {
-                      return nullptr;
+              futures.push_back(move(pool.submit(
+                  [this, dim, &db, region, cx, cz, mapInfo]() -> Result {
+                    try {
+                      auto const &chunk = region->chunkAt(cx, cz);
+                      Result r;
+                      r.fOk = true;
+                      if (!chunk) {
+                        return r;
+                      }
+                      r.fData = putChunk(*chunk, dim, db, mapInfo);
+                      return r;
+                    } catch (...) {
+                      Result r;
+                      r.fData = make_shared<DimensionDataFragment>(dim);
+                      r.fData->addStatError(dim, cx, cz);
+                      r.fOk = false;
+                      return r;
                     }
-                    return putChunk(*chunk, dim, db, mapInfo);
                   })));
             }
           }
@@ -119,14 +136,14 @@ private:
         });
 
     for (auto &f : futures) {
-      auto const &pcr = f.get();
+      Result const &result = f.get();
       done++;
       if (progress) {
         progress->report(Progress::Phase::Convert, done, numTotalChunks);
       }
-      if (!pcr)
+      if (!result.fData)
         continue;
-      pcr->drain(wd);
+      result.fData->drain(wd);
     }
 
     pool.shutdown();
