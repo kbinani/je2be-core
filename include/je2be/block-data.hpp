@@ -1528,6 +1528,7 @@ private:
                 AddStringProperty("cauldron_liquid_type", "water")));
     E("hay_block", axisToPillarAxis);
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
+    E("cave_air", Rename("air"));
 #undef E
     return table;
   }
