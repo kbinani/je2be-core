@@ -1274,7 +1274,7 @@ private:
     E("birch_wall_sign", WallSign("birch"));
     E("jungle_wall_sign", WallSign("jungle"));
     E("acacia_wall_sign", WallSign("acacia"));
-    E("dark_wall_oak_sign", WallSign("darkoak"));
+    E("dark_oak_wall_sign", WallSign("darkoak"));
     E("crimson_wall_sign", WallSign("crimson"));
     E("warped_wall_sign", WallSign("warped"));
 
