@@ -1579,8 +1579,37 @@ private:
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
     E("cave_air", Rename("air"));
     E("void_air", Rename("air"));
+    E("turtle_egg", Converter(Same, TurtleEggCount, TurtleEggCrackedState));
 #undef E
     return table;
+  }
+
+  static PropertySpec TurtleEggCount(Block const &b) {
+    auto eggs = b.property("eggs", "1");
+    std::string eggCount = "one_egg";
+    if (eggs == "1") {
+      eggCount = "one_egg";
+    } else if (eggs == "2") {
+      eggCount = "two_egg";
+    } else if (eggs == "3") {
+      eggCount = "three_egg";
+    } else if (eggs == "4") {
+      eggCount = "four_egg";
+    }
+    return std::make_pair("turtle_egg_count", props::String(eggCount));
+  }
+
+  static PropertySpec TurtleEggCrackedState(Block const &b) {
+    auto hatch = b.property("hatch", "0");
+    std::string state = "no_cracks";
+    if (hatch == "0") {
+      state = "no_cracks";
+    } else if (hatch == "1") {
+      state = "cracked";
+    } else if (hatch == "2") {
+      state = "max_cracked";
+    }
+    return std::make_pair("cracked_state", props::String(state));
   }
 
   static PropertySpec WallSkullFacingDirection(Block const &b) {
