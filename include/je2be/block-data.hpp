@@ -1445,6 +1445,7 @@ private:
     E("sticky_piston", facingDirectionFromFacing2);
     E("piston_head", Converter(Name("air")));
     E("sticky_piston_head", Converter(Name("air")));
+    E("moving_piston", Converter(MovingPistonName, FacingDirectionFromFacingB));
     E("note_block", Rename("noteblock"));
     E("dispenser", Converter(Same, FacingDirectionFromFacingA,
                              Name(Triggered, "triggered_bit")));
@@ -1582,6 +1583,15 @@ private:
     E("turtle_egg", Converter(Same, TurtleEggCount, TurtleEggCrackedState));
 #undef E
     return table;
+  }
+
+  static std::string MovingPistonName(Block const &b) {
+    auto type = b.property("type", "normal");
+    if (type == "normal") {
+      return "minecraft:pistonArmCollision";
+    } else {
+      return "minecraft:stickyPistonArmCollision";
+    }
   }
 
   static PropertySpec TurtleEggCount(Block const &b) {
