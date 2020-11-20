@@ -227,6 +227,12 @@ private:
     E("zombie_head", Skull);
     E("creeper_head", Skull);
     E("dragon_head", Skull);
+    E("skeleton_wall_skull", Skull);
+    E("wither_skeleton_wall_skull", Skull);
+    E("player_wall_head", Skull);
+    E("zombie_wall_head", Skull);
+    E("creeper_wall_head", Skull);
+    E("dragon_wall_head", Skull);
 
     E("barrel", AnyStorage("Barrel"));
     E("furnace", AnyStorage("Furnace"));

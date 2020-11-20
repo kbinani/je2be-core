@@ -1337,6 +1337,15 @@ private:
     E("creeper_head", skull);
     E("dragon_head", skull);
 
+    Converter wallSkull(Name("skull"), AddBoolProperty("no_drop_bit", false),
+                        WallSkullFacingDirection);
+    E("skeleton_wall_skull", wallSkull);
+    E("wither_skeleton_wall_skull", wallSkull);
+    E("player_wall_head", wallSkull);
+    E("zombie_wall_head", wallSkull);
+    E("creeper_wall_head", wallSkull);
+    E("dragon_wall_head", wallSkull);
+
     Converter banner(Name("standing_banner"),
                      Name(Rotation, "ground_sign_direction"));
     E("white_banner", banner);
@@ -1531,6 +1540,21 @@ private:
     E("cave_air", Rename("air"));
 #undef E
     return table;
+  }
+
+  static PropertySpec WallSkullFacingDirection(Block const &b) {
+    auto facing = b.property("facing", "");
+    int32_t direction = 1;
+    if (facing == "south") {
+      direction = 3;
+    } else if (facing == "east") {
+      direction = 5;
+    } else if (facing == "north") {
+      direction = 2;
+    } else if (facing == "west") {
+      direction = 4;
+    }
+    return std::make_pair("facing_direction", props::Int(direction));
   }
 
   static PropertySpec CauldronFillLevelFromLevel(Block const &b) {
