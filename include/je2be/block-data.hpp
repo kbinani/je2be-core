@@ -149,6 +149,11 @@ private:
     return [=](Block const &) { return std::make_pair(name, props::Int(v)); };
   }
 
+  static PropertyMapFunction AddByteProperty(std::string const &name,
+                                             int8_t v) {
+    return [=](Block const &) { return std::make_pair(name, props::Byte(v)); };
+  }
+
   static PropertySpec AxisToPillarAxis(Block const &block) {
     auto v = block.property("axis", "y");
     return std::make_pair("pillar_axis", props::String(v));
@@ -463,6 +468,21 @@ private:
     return props::Int(direction);
   }
 
+  static PropertyType FacingD(Block const &b) {
+    auto facing = b.property("facing", "north");
+    int32_t direction = 2;
+    if (facing == "north") {
+      direction = 2;
+    } else if (facing == "east") {
+      direction = 1;
+    } else if (facing == "south") {
+      direction = 3;
+    } else if (facing == "west") {
+      direction = 0;
+    }
+    return props::Int(direction);
+  }
+
   static PropertySpec DirectionFromFacingA(Block const &block) {
     return std::make_pair("direction", FacingA(block));
   }
@@ -715,6 +735,14 @@ private:
     return Converter(Name(dead ? "coral_fan_dead" : "coral_fan"),
                      AddStringProperty("coral_color", type),
                      AddIntProperty("coral_fan_direction", 0));
+  }
+
+  static Converter CoralWallFan(std::string const &tail, bool dead,
+                                int8_t type) {
+    return Converter(Name("coral_fan_hang" + tail),
+                     AddByteProperty("coral_hang_type_bit", type),
+                     Name(FacingD, "coral_direction"),
+                     AddBoolProperty("dead_bit", dead));
   }
 
   static Converter WallSign(std::optional<std::string> prefix = std::nullopt) {
@@ -1259,6 +1287,18 @@ private:
     E("dead_bubble_coral_fan", CoralFan("purple", true));
     E("dead_fire_coral_fan", CoralFan("red", true));
     E("dead_horn_coral_fan", CoralFan("yellow", true));
+
+    E("tube_coral_wall_fan", CoralWallFan("", false, 0));
+    E("brain_coral_wall_fan", CoralWallFan("", false, 1));
+    E("bubble_coral_wall_fan", CoralWallFan("2", false, 0));
+    E("fire_coral_wall_fan", CoralWallFan("2", false, 1));
+    E("horn_coral_wall_fan", CoralWallFan("3", false, 0));
+
+    E("dead_tube_coral_wall_fan", CoralWallFan("", true, 0));
+    E("dead_brain_coral_wall_fan", CoralWallFan("", true, 1));
+    E("dead_bubble_coral_wall_fan", CoralWallFan("2", true, 0));
+    E("dead_fire_coral_wall_fan", CoralWallFan("2", true, 1));
+    E("dead_horn_coral_wall_fan", CoralWallFan("3", true, 0));
 
     E("oak_sign", Sign());
     E("spruce_sign", Sign("spruce"));
