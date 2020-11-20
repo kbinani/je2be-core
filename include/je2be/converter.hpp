@@ -454,7 +454,9 @@ private:
   static bool IsAir(std::string const &name) {
     static std::string const air("minecraft:air");
     static std::string const cave_air("minecraft:cave_air");
-    return strings::Equal(name, air) || strings::Equal(name, cave_air);
+    static std::string const void_air("minecraft:void_air");
+    return strings::Equal(name, air) || strings::Equal(name, cave_air) ||
+           strings::Equal(name, void_air);
   }
 
   double getTotalNumChunks() const {

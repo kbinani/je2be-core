@@ -1538,6 +1538,7 @@ private:
     E("hay_block", axisToPillarAxis);
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
     E("cave_air", Rename("air"));
+    E("void_air", Rename("air"));
 #undef E
     return table;
   }
