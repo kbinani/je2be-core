@@ -293,7 +293,8 @@ private:
     E("cow", Convert(Animal, AgeableA("cow")));
     E("creeper", Convert(Monster, Creeper));
     A("dolphin");
-    E("donkey", Convert(Animal, Tameable("donkey"), ChestedHorse("donkey")));
+    E("donkey", Convert(Animal, Tameable("donkey"), ChestedHorse("donkey"),
+                        Steerable("donkey")));
     M("drownd");
     M("elder_guardian");
     M("enderman");
@@ -304,14 +305,16 @@ private:
     M("ghast");
     M("guardian");
     M("hoglin");
-    E("horse", Convert(Animal, Tameable("horse"), AgeableA("horse"), Horse));
+    E("horse", Convert(Animal, Tameable("horse"), AgeableA("horse"),
+                       Steerable("horse"), Horse));
     E("husk", Convert(Monster, AgeableA("husk")));
     E("llama", Convert(Animal, AgeableA("llama"), Tameable("llama"),
                        ChestedHorse("llama"), Llama));
     E("magma_cube", Convert(Monster, Slime));
     E("mooshroom", Convert(Animal, AgeableA("mooshroom"), Mooshroom));
 
-    E("mule", Convert(Animal, Tameable("mule"), ChestedHorse("mule")));
+    E("mule", Convert(Animal, Tameable("mule"), ChestedHorse("mule"),
+                      Steerable("mule")));
     A("ocelot");
     E("panda", Convert(Animal, AgeableA("panda")));
     E("parrot", Convert(Animal, Parrot));
@@ -822,10 +825,21 @@ private:
 
   static Behavior Steerable(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
+      using namespace props;
       auto saddle = tag.boolean("Saddle", false);
-      if (saddle) {
+      auto saddleItem = tag.compoundTag("SaddleItem");
+      if (saddle || saddleItem) {
         AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
         AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
+        if (saddleItem) {
+          auto item = std::make_shared<CompoundTag>();
+          item->insert({
+              {"Damage", Byte(0)},
+              {"Name", String("minecraft:saddle")},
+              {"WasPickedUp", Bool(false)},
+          });
+          AddChestItem(c, item, 0, 1);
+        }
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_unsaddled");
       }
