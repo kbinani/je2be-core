@@ -321,6 +321,49 @@ public:
     if (inventory) {
       auto outInventory = ConvertAnyItemList(inventory, 36, mapInfo, ddf);
       entity->set("Inventory", outInventory);
+
+      // Armor
+      auto armor = InitItemList(4);
+      auto boots = ItemAtSlot(*inventory, 100);
+      if (boots) {
+        auto outBoots = Item::From(boots, mapInfo, ddf);
+        if (outBoots) {
+          armor->at(3) = outBoots;
+        }
+      }
+      auto leggings = ItemAtSlot(*inventory, 101);
+      if (leggings) {
+        auto outLeggings = Item::From(leggings, mapInfo, ddf);
+        if (outLeggings) {
+          armor->at(2) = outLeggings;
+        }
+      }
+      auto chestplate = ItemAtSlot(*inventory, 102);
+      if (chestplate) {
+        auto outChestplate = Item::From(chestplate, mapInfo, ddf);
+        if (outChestplate) {
+          armor->at(1) = outChestplate;
+        }
+      }
+      auto helmet = ItemAtSlot(*inventory, 103);
+      if (helmet) {
+        auto outHelmet = Item::From(helmet, mapInfo, ddf);
+        if (outHelmet) {
+          armor->at(0) = outHelmet;
+        }
+      }
+      entity->set("Armor", armor);
+
+      // Offhand
+      auto offhand = ItemAtSlot(*inventory, -106);
+      if (offhand) {
+        auto offhandItem = Item::From(offhand, mapInfo, ddf);
+        if (offhandItem) {
+          auto outOffhand = InitItemList(1);
+          outOffhand->at(0) = offhandItem;
+          entity->set("Offhand", outOffhand);
+        }
+      }
     }
 
     auto enderItems = tag.listTag("EnderItems");
@@ -329,10 +372,27 @@ public:
           ConvertAnyItemList(enderItems, 27, mapInfo, ddf);
       entity->set("EnderChestInventory", enderChestInventory);
     }
+
     return entity;
   }
 
 private:
+  static std::shared_ptr<CompoundTag>
+  ItemAtSlot(mcfile::nbt::ListTag const &items, uint32_t slot) {
+    for (auto const &it : items) {
+      auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+      if (!item)
+        continue;
+      auto s = item->byte("Slot");
+      if (!s)
+        continue;
+      if (*s == slot) {
+        return item;
+      }
+    }
+    return nullptr;
+  }
+
   static std::unordered_map<std::string, Converter> *CreateEntityTable() {
     auto table = new std::unordered_map<std::string, Converter>();
 #define E(__name, __func)                                                      \
@@ -713,6 +773,8 @@ private:
         continue;
       auto slot = item->byte("Slot");
       if (!slot)
+        continue;
+      if (*slot < 0 || capacity <= *slot)
         continue;
       auto count = item->byte("Count");
       if (!count)
