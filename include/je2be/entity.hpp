@@ -270,6 +270,32 @@ public:
     return tag;
   }
 
+  static EntityData LocalPlayer(CompoundTag const &tag,
+                                JavaEditionMap const &mapInfo,
+                                DimensionDataFragment &ddf) {
+    using namespace mcfile::nbt;
+
+    Context ctx(mapInfo, ddf);
+    auto entity = LivingEntity(tag, ctx);
+    if (!entity) {
+      return nullptr;
+    }
+
+    auto inventory = tag.listTag("Inventory");
+    if (inventory) {
+      auto outInventory = ConvertAnyItemList(inventory, 36, mapInfo, ddf);
+      entity->set("Inventory", outInventory);
+    }
+
+    auto enderItems = tag.listTag("EnderItems");
+    if (enderItems) {
+      auto enderChestInventory =
+          ConvertAnyItemList(enderItems, 27, mapInfo, ddf);
+      entity->set("EnderChestInventory", enderChestInventory);
+    }
+    return entity;
+  }
+
 private:
   static std::unordered_map<std::string, Converter> *CreateEntityTable() {
     auto table = new std::unordered_map<std::string, Converter>();
@@ -624,6 +650,44 @@ private:
     return c;
   }
 
+  static std::shared_ptr<mcfile::nbt::ListTag> InitItemList(uint32_t capacity) {
+    using namespace mcfile::nbt;
+    auto items = std::make_shared<ListTag>();
+    items->fType = Tag::TAG_Compound;
+    for (int i = 0; i < capacity; i++) {
+      auto empty = Item::Empty();
+      empty->set("Slot", props::Byte(i));
+      empty->set("Count", props::Byte(0));
+      items->push_back(empty);
+    }
+    return items;
+  }
+
+  static std::shared_ptr<mcfile::nbt::ListTag>
+  ConvertAnyItemList(std::shared_ptr<mcfile::nbt::ListTag> const &input,
+                     uint32_t capacity, JavaEditionMap const &mapInfo,
+                     DimensionDataFragment &ddf) {
+    auto ret = InitItemList(capacity);
+    for (auto const &it : *input) {
+      auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+      if (!item)
+        continue;
+      auto converted = Item::From(item, mapInfo, ddf);
+      if (!converted)
+        continue;
+      auto slot = item->byte("Slot");
+      if (!slot)
+        continue;
+      auto count = item->byte("Count");
+      if (!count)
+        continue;
+      converted->set("Slot", props::Byte(*slot));
+      converted->set("Count", props::Byte(*count));
+      ret->at(*slot) = converted;
+    }
+    return ret;
+  }
+
   static void AddChestItem(EntityData const &c,
                            std::shared_ptr<CompoundTag> const &item,
                            int8_t slot, int8_t count) {
@@ -633,14 +697,7 @@ private:
     item->set("Count", Byte(count));
     auto chestItems = c->listTag("ChestItems");
     if (!chestItems) {
-      chestItems = std::make_shared<ListTag>();
-      chestItems->fType = Tag::TAG_Compound;
-      for (int i = 0; i < 16; i++) {
-        auto empty = Item::Empty();
-        empty->set("Slot", Byte(i));
-        empty->set("Count", Byte(0));
-        chestItems->push_back(empty);
-      }
+      chestItems = InitItemList(16);
     }
     chestItems->at(slot) = item;
     c->set("ChestItems", chestItems);

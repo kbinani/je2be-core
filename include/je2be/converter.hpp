@@ -51,6 +51,12 @@ public:
         }
       }
 
+      auto localPlayerData = LocalPlayerData(*data, *worldData);
+      if (localPlayerData) {
+        auto k = Key::LocalPlayer();
+        db.put(k, *localPlayerData);
+      }
+
       if (ok) {
         worldData->put(db, *data);
       }
@@ -67,6 +73,38 @@ public:
   }
 
 private:
+  static std::optional<std::string>
+  LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
+    using namespace mcfile::stream;
+    using namespace mcfile::nbt;
+
+    auto root = tag.compoundTag("");
+    if (!root)
+      return std::nullopt;
+    auto data = root->compoundTag("Data");
+    if (!data)
+      return std::nullopt;
+    auto player = data->compoundTag("Player");
+    if (!player)
+      return std::nullopt;
+
+    DimensionDataFragment ddf(Dimension::Overworld);
+    auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, ddf);
+    ddf.drain(wd);
+
+    auto s = std::make_shared<ByteStream>();
+    OutputStreamWriter w(s, {.fLittleEndian = true});
+    w.write((uint8_t)Tag::TAG_Compound);
+    w.write(std::string());
+    entity->write(w);
+    w.write((uint8_t)Tag::TAG_End);
+
+    std::vector<uint8_t> buffer;
+    s->drain(buffer);
+    std::string ret((char const *)buffer.data(), buffer.size());
+    return ret;
+  }
+
   bool convertWorld(mcfile::World const &w, Dimension dim, DbInterface &db,
                     WorldData &wd, unsigned int concurrency, Progress *progress,
                     uint32_t &done, double const numTotalChunks) {
