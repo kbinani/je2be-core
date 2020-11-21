@@ -274,11 +274,47 @@ public:
                                 JavaEditionMap const &mapInfo,
                                 DimensionDataFragment &ddf) {
     using namespace mcfile::nbt;
+    using namespace props;
 
     Context ctx(mapInfo, ddf);
     auto entity = LivingEntity(tag, ctx);
     if (!entity) {
       return nullptr;
+    }
+
+    entity->set("format_version", String("1.12.0"));
+    entity->set("identifier", String("minecraft:player"));
+
+    auto xpLevel = tag.int32("XpLevel");
+    auto xpProgress = tag.float32("XpP");
+    if (xpLevel && xpProgress) {
+      entity->set("PlayerLevel", Int(*xpLevel));
+      entity->set("PlayerLevelProgress", Float(*xpProgress));
+    }
+
+    auto xpSeed = tag.int32("XpSeed");
+    if (xpSeed) {
+      entity->set("EnchantmentSeed", Int(*xpSeed));
+    }
+
+    auto selectedItemSlot = tag.int32("SelectedItemSlot");
+    if (selectedItemSlot) {
+      entity->set("SelectedInventorySlot", Int(*selectedItemSlot));
+    }
+
+    auto playerGameType = tag.int32("playerGameType");
+    if (playerGameType) {
+      entity->set("PlayerGameMode", Int(*playerGameType));
+    }
+
+    auto portalCooldown = tag.int32("PortalCooldown");
+    if (portalCooldown) {
+      entity->set("PortalCooldown", Int(*portalCooldown));
+    }
+
+    auto seenCredits = tag.boolean("seenCredits");
+    if (seenCredits) {
+      entity->set("HasSeenCredits", Bool(*seenCredits));
     }
 
     auto inventory = tag.listTag("Inventory");
