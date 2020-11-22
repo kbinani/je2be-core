@@ -246,19 +246,34 @@ private:
     bool empty = true;
     bool hasWaterlogged = false;
 
-    if (chunk.fSections[chunkY] != nullptr) {
+    auto const &section = chunk.fSections[chunkY];
+    if (section != nullptr) {
+      auto const &sectionPalette = section->palette();
+      int airPaletteIndex = -1;
+      int i = 0;
+      for (auto const &it : sectionPalette) {
+        auto const &paletteKey = it->toString();
+        if (paletteKey == "minecraft:air") {
+          airPaletteIndex = i;
+        } else {
+          auto tag = BlockData::From(it);
+          palette.push(paletteKey, tag);
+        }
+        i++;
+      }
       for (int x = 0; x < 16; x++) {
         int const bx = chunk.minBlockX() + x;
         for (int z = 0; z < 16; z++) {
           int const bz = chunk.minBlockZ() + z;
           for (int y = 0; y < 16; y++, idx++) {
             int const by = chunkY * 16 + y;
-            auto block = chunk.blockAt(bx, by, bz);
-            if (!block) {
+            auto index = section->paletteIndexAt(x, y, z);
+            if (!index) {
               continue;
             }
+            auto block = sectionPalette[*index];
             empty = false;
-            if (!IsAir(block->fName)) {
+            if (*index != airPaletteIndex && !IsAir(block->fName)) {
               cdp.updateAltitude(x, by, z);
             }
             static string const nether_portal("minecraft:nether_portal");
@@ -274,8 +289,11 @@ private:
               ddf.addEndPortal(bx, by, bz);
             }
 
-            uint16_t index = palette.add(block);
-            indices[idx] = index;
+            if (*index == airPaletteIndex) {
+              indices[idx] = 0;
+            } else {
+              indices[idx] = *index;
+            }
 
             bool waterlogged = block ? IsWaterLogged(*block) : false;
             waterloggedIndices[idx] = waterlogged;

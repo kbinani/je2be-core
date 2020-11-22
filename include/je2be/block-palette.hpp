@@ -3,39 +3,16 @@
 namespace j2b {
 
 class BlockPalette {
-  struct Key {
-    Key(std::string const &blockState, uintptr_t ptr)
-        : fBlockState(blockState), fBlockPtr(ptr) {}
-
-    std::string const fBlockState;
-    uintptr_t const fBlockPtr;
-  };
-
   using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
   BlockPalette()
-      : fBlockStateLut({{"minecraft:air", 0}}), fPalette({BlockData::Air()}) {}
+      : fPaletteKeys({"minecraft:air"}), fPalette({BlockData::Air()}) {}
 
-  uint16_t add(std::shared_ptr<mcfile::Block const> const &block) {
-    uintptr_t ptr = (uintptr_t)block.get();
-    auto i = findByBlockPtr(ptr);
-    if (i) {
-      return *i;
-    }
-    auto const &blockState = block->toString();
-    i = findByBlockState(blockState);
-    if (i) {
-      return *i;
-    }
-    uint16_t index = (uint16_t)size();
-
-    auto tag = BlockData::From(block);
+  void push(std::string const &blockState,
+            std::shared_ptr<CompoundTag> const &tag) {
+    fPaletteKeys.push_back(blockState);
     fPalette.push_back(tag);
-    fBlockPtrLut[ptr] = index;
-    fBlockStateLut[blockState] = index;
-
-    return index;
   }
 
   uint16_t add(std::string const &blockState,
@@ -46,7 +23,7 @@ public:
     }
     uint16_t index = (uint16_t)size();
     fPalette.push_back(tag);
-    fBlockStateLut[blockState] = index;
+    fPaletteKeys.push_back(blockState);
     return index;
   }
 
@@ -57,28 +34,19 @@ public:
   }
 
 private:
-  std::optional<uint16_t> findByBlockPtr(uintptr_t ptr) const {
-    auto found = fBlockPtrLut.find(ptr);
-    if (found == fBlockPtrLut.end()) {
-      return std::nullopt;
-    } else {
-      return found->second;
-    }
-  }
-
   std::optional<uint16_t>
   findByBlockState(std::string const &blockState) const {
-    auto found = fBlockStateLut.find(blockState);
-    if (found == fBlockStateLut.end()) {
+    auto found =
+        std::find(fPaletteKeys.begin(), fPaletteKeys.end(), blockState);
+    if (found == fPaletteKeys.end()) {
       return std::nullopt;
     } else {
-      return found->second;
+      return std::distance(fPaletteKeys.begin(), found);
     }
   }
 
 private:
-  std::unordered_map<uintptr_t, uint16_t> fBlockPtrLut;
-  std::unordered_map<std::string, uint16_t> fBlockStateLut;
+  std::vector<std::string> fPaletteKeys;
   std::vector<std::shared_ptr<CompoundTag>> fPalette;
 };
 
