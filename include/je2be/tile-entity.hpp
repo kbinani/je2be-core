@@ -220,6 +220,7 @@ private:
     E("potted_bamboo", PottedBamboo);
     E("potted_crimson_roots", PottedPlant("crimson_roots", {}));
     E("potted_warped_roots", PottedPlant("warped_roots", {}));
+    E("potted_cactus", PottedPlant("cactus", {}));
 
     E("skeleton_skull", Skull);
     E("wither_skeleton_skull", Skull);

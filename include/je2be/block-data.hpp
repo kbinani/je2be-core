@@ -1367,6 +1367,7 @@ private:
     E("potted_crimson_roots", pottedFlowerPot);
     E("potted_warped_roots", pottedFlowerPot);
     E("potted_bamboo", pottedFlowerPot);
+    E("potted_cactus", pottedFlowerPot);
 
     Converter skull(Name("skull"), AddIntProperty("facing_direction", 1),
                     AddBoolProperty("no_drop_bit", false));
