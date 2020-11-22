@@ -1582,8 +1582,18 @@ private:
     E("cave_air", Rename("air"));
     E("void_air", Rename("air"));
     E("turtle_egg", Converter(Same, TurtleEggCount, TurtleEggCrackedState));
+
+    Converter beehive(Same, Name(FacingA, "direction"), HoneyLevel);
+    E("bee_nest", beehive);
+    E("beehive", beehive);
 #undef E
     return table;
+  }
+
+  static PropertySpec HoneyLevel(Block const &b) {
+    auto v = strings::Toi(b.property("honey_level", "0"));
+    int32_t level = v ? *v : 0;
+    return std::make_pair("honey_level", props::Int(level));
   }
 
   static std::string MovingPistonName(Block const &b) {
