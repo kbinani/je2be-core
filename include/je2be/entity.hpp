@@ -406,7 +406,7 @@ private:
     E("bat", Convert(Mob, Bat));
     A("bee");
     M("blaze");
-    E("cat", Convert(Animal, AgeableA("cat"), Tameable("cat"), Sittable,
+    E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable,
                      CollarColorable, Cat));
     M("cave_spider");
     A("chicken");
@@ -415,7 +415,7 @@ private:
     E("cow", Convert(Animal, AgeableA("cow")));
     E("creeper", Convert(Monster, Creeper));
     A("dolphin");
-    E("donkey", Convert(Animal, Tameable("donkey"), ChestedHorse("donkey"),
+    E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"),
                         Steerable("donkey")));
     M("drownd");
     M("elder_guardian");
@@ -427,19 +427,19 @@ private:
     M("ghast");
     M("guardian");
     M("hoglin");
-    E("horse", Convert(Animal, Tameable("horse"), AgeableA("horse"),
+    E("horse", Convert(Animal, TameableB("horse"), AgeableA("horse"),
                        Steerable("horse"), Horse));
     E("husk", Convert(Monster, AgeableA("husk")));
-    E("llama", Convert(Animal, AgeableA("llama"), Tameable("llama"),
+    E("llama", Convert(Animal, AgeableA("llama"), TameableB("llama"),
                        ChestedHorse("llama"), Llama));
     E("magma_cube", Convert(Monster, Slime));
     E("mooshroom", Convert(Animal, AgeableA("mooshroom"), Mooshroom));
 
-    E("mule", Convert(Animal, Tameable("mule"), ChestedHorse("mule"),
+    E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"),
                       Steerable("mule")));
     A("ocelot");
     E("panda", Convert(Animal, AgeableA("panda")));
-    E("parrot", Convert(Animal, Parrot));
+    E("parrot", Convert(Animal, TameableA("parrot"), Sittable, Parrot));
     M("phantom");
     E("pig", Convert(Animal, AgeableA("pig"), Steerable("pig")));
     M("piglin");
@@ -476,7 +476,7 @@ private:
     A("wandering_trader");
     M("witch");
     M("wither_skeleton");
-    E("wolf", Convert(Animal, Tameable("wolf"), Sittable, CollarColorable));
+    E("wolf", Convert(Animal, TameableA("wolf"), Sittable, CollarColorable));
     M("zoglin");
     E("zombie", Convert(Monster, AgeableB("zombie")));
 
@@ -1292,7 +1292,22 @@ private:
     return c;
   }
 
-  static Behavior Tameable(std::string const &definitionKey) {
+  static Behavior TameableA(std::string const &definitionKey) {
+    return [=](EntityData const &c, CompoundTag const &tag, Context &) {
+      auto owner = GetOwnerUUID(tag);
+      if (owner) {
+        c->set("OwnerNew", props::Long(*owner));
+        AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
+        AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
+        c->set("IsTamed", props::Bool(true));
+      } else {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
+      }
+      return c;
+    };
+  }
+
+  static Behavior TameableB(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
       auto owner = GetOwnerUUID(tag);
       if (owner) {
