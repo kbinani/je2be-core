@@ -240,8 +240,7 @@ private:
     // 1~4: paltte size (uint32 LE)
     //
 
-    vector<string> paletteKeys = {"minecraft:air"};
-    vector<shared_ptr<CompoundTag>> palette = {BlockData::Air()};
+    BlockPalette palette;
 
     int idx = 0;
     bool empty = true;
@@ -274,20 +273,10 @@ private:
                 dim == Dimension::End) {
               ddf.addEndPortal(bx, by, bz);
             }
-            string const &paletteKey = block->toString();
-            auto found =
-                find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
-            if (found == paletteKeys.end()) {
-              uint16_t index = (uint16_t)paletteKeys.size();
-              indices[idx] = index;
 
-              auto tag = block ? BlockData::From(block) : BlockData::Air();
-              palette.push_back(tag);
-              paletteKeys.push_back(paletteKey);
-            } else {
-              auto index = (uint16_t)distance(paletteKeys.begin(), found);
-              indices[idx] = index;
-            }
+            uint16_t index = palette.add(block);
+            indices[idx] = index;
+
             bool waterlogged = block ? IsWaterLogged(*block) : false;
             waterloggedIndices[idx] = waterlogged;
             hasWaterlogged |= waterlogged;
@@ -318,16 +307,7 @@ private:
 
       empty = false;
 
-      auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
-      if (found == paletteKeys.end()) {
-        uint16_t index = (uint16_t)palette.size();
-        indices[idx] = index;
-        palette.push_back(tag);
-        paletteKeys.push_back(paletteKey);
-      } else {
-        auto index = (uint16_t)distance(paletteKeys.begin(), found);
-        indices[idx] = index;
-      }
+      indices[idx] = palette.add(paletteKey, tag);
     }
 
     for (auto const &e : chunk.fEntities) {
@@ -346,22 +326,14 @@ private:
         continue;
       idx = (x * 16 + z) * 16 + y;
 
-      string const &currentMaterial = paletteKeys[indices[idx]];
-      if (!IsAir(currentMaterial))
+      if (indices[idx] != 0) {
+        // Not an air block. Avoid replacing current block
         continue;
+      }
 
       empty = false;
 
-      auto found = find(paletteKeys.begin(), paletteKeys.end(), paletteKey);
-      if (found == paletteKeys.end()) {
-        uint16_t index = (uint16_t)palette.size();
-        indices[idx] = index;
-        palette.push_back(tag);
-        paletteKeys.push_back(paletteKey);
-      } else {
-        auto index = (uint16_t)distance(paletteKeys.begin(), found);
-        indices[idx] = index;
-      }
+      indices[idx] = palette.add(paletteKey, tag);
     }
 
     if (empty) {
