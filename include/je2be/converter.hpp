@@ -61,11 +61,16 @@ public:
         worldData->put(db, *data);
       }
 
-      if (progress) {
-        progress->report(Progress::Phase::LevelDbCompaction, 0, 1);
+      if (ok) {
+        if (progress) {
+          progress->report(Progress::Phase::LevelDbCompaction, 0, 1);
+        }
+      } else {
+        db.abandon();
       }
     }
-    if (progress) {
+
+    if (ok && progress) {
       progress->report(Progress::Phase::LevelDbCompaction, 1, 1);
     }
 

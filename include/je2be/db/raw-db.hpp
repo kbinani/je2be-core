@@ -21,6 +21,8 @@ public:
     fFileLock = lf;
 
     fStop.store(false);
+    fAbandoned.store(false);
+
     thread th([this, concurrency]() {
       for (auto const &e : fs::directory_iterator(fs::path(fDir))) {
         if (e.path().filename() != "LOCK") {
@@ -84,19 +86,23 @@ public:
 
       pool.shutdown();
 
-      drainWriteBatch(*batch, fileNum, o);
+      if (!fAbandoned) {
+        drainWriteBatch(*batch, fileNum, o);
+      }
 
       assert(fFileLock);
       auto env = leveldb::Env::Default();
       env->UnlockFile(fFileLock);
       fFileLock = nullptr;
 
-      RepairDB(fDir.c_str(), o);
-      DB *db = nullptr;
-      Status st = DB::Open(o, fDir, &db);
-      if (st.ok()) {
-        db->CompactRange(nullptr, nullptr);
-        delete db;
+      if (!fAbandoned) {
+        RepairDB(fDir.c_str(), o);
+        DB *db = nullptr;
+        Status st = DB::Open(o, fDir, &db);
+        if (st.ok()) {
+          db->CompactRange(nullptr, nullptr);
+          delete db;
+        }
       }
     });
     fTh.swap(th);
@@ -120,6 +126,8 @@ public:
     fCv.notify_one();
     fTh.join();
   }
+
+  void abandon() { fAbandoned.store(true); }
 
 private:
   void drainWriteBatch(leveldb::WriteBatch &b, uint32_t fileNum,
@@ -180,6 +188,7 @@ private:
   bool fValid = false;
   std::string const fDir;
   leveldb::FileLock *fFileLock = nullptr;
+  std::atomic_bool fAbandoned;
 };
 
 } // namespace j2b
