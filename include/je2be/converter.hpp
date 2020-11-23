@@ -95,6 +95,9 @@ private:
 
     DimensionDataFragment ddf(Dimension::Overworld);
     auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, ddf);
+    if (!entity) {
+      return std::nullopt;
+    }
     ddf.drain(wd);
 
     auto s = std::make_shared<ByteStream>();
