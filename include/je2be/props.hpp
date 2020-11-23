@@ -190,6 +190,21 @@ inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag,
   return Rotation(yaw, pitch);
 }
 
+inline std::optional<Pos> GetPos(mcfile::nbt::CompoundTag const &tag,
+                                 std::string const &name) {
+  auto xyz = tag.compoundTag(name);
+  if (!xyz) {
+    return std::nullopt;
+  }
+  auto x = xyz->int32("X");
+  auto y = xyz->int32("Y");
+  auto z = xyz->int32("Z");
+  if (!x || !y || !z) {
+    return std::nullopt;
+  }
+  return Pos(*x, *y, *z);
+}
+
 inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   try {
     return nlohmann::json::parse(s);

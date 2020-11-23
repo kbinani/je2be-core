@@ -163,7 +163,7 @@ public:
     }
   }
 
-  static TileEntity::TileEntityData
+  static std::shared_ptr<mcfile::nbt::CompoundTag>
   ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo,
                    DimensionDataFragment &ddf) {
     using namespace props;
@@ -404,7 +404,7 @@ private:
     E("end_crystal", EndCrystal);
 
     E("bat", Convert(Mob, Bat));
-    A("bee");
+    E("bee", Convert(Animal, AgeableA("bee"), Bee));
     M("blaze");
     E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable,
                      CollarColorable, Cat));
@@ -505,6 +505,24 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData Bee(EntityData const &c, CompoundTag const &tag,
+                        Context &) {
+    auto hivePos = props::GetPos(tag, "HivePos");
+    if (hivePos) {
+      Vec homePos(hivePos->fX, hivePos->fY, hivePos->fZ);
+      c->set("HomePos", homePos.toListTag());
+    }
+    AddDefinition(c, "+track_attacker");
+    AddDefinition(c, "+shelter_detection");
+    auto hasNectar = tag.boolean("HasNectar", false);
+    if (hasNectar) {
+      AddDefinition(c, "+has_nectar");
+    }
+    AddDefinition(c, "+default_sound");
+    AddDefinition(c, "+find_hive");
+    return c;
   }
 
   static EntityData SnowGolem(EntityData const &c, CompoundTag const &tag,
@@ -1146,6 +1164,9 @@ private:
 
   static EntityData Animal(CompoundTag const &tag, Context &ctx) {
     auto c = Mob(tag, ctx);
+    if (!c) {
+      return nullptr;
+    }
     c->set("Persistent", props::Bool(true));
 
     auto leash = tag.compoundTag("Leash");

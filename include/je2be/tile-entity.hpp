@@ -252,8 +252,81 @@ private:
     E("lectern", Lectern);
     E("piston_head", PistonArm(false));
     E("sticky_piston_head", PistonArm(true));
+    E("bee_nest", Beehive);
+    E("beehive", Beehive);
 #undef E
     return table;
+  }
+
+  static TileEntityData Beehive(Pos const &pos, Block const &b,
+                                std::shared_ptr<CompoundTag> const &c,
+                                JavaEditionMap const &mapInfo,
+                                DimensionDataFragment &ddf) {
+    using namespace props;
+    using namespace mcfile::nbt;
+
+    auto tag = std::make_shared<CompoundTag>();
+    tag->insert({
+        {"id", String("Beehive")},
+        {"isMovable", Bool(true)},
+    });
+
+    auto bees = c->listTag("Bees");
+    if (bees) {
+      auto occupants = std::make_shared<ListTag>();
+      occupants->fType = Tag::TAG_Compound;
+      int32_t index = 0;
+      for (auto const &it : *bees) {
+        index++;
+        auto bee = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!bee) {
+          continue;
+        }
+        auto entityData = bee->compoundTag("EntityData");
+        if (!entityData) {
+          continue;
+        }
+
+        // UUIDs are not stored in EntityData, so create a unique id.
+        XXHash h;
+        h.update(&ddf.fDim, sizeof(ddf.fDim));
+        h.update(&pos.fX, sizeof(pos.fX));
+        h.update(&pos.fZ, sizeof(pos.fZ));
+        int64_t hash = h.digest();
+        uint32_t a = ((uint32_t *)&hash)[0];
+        uint32_t b = ((uint32_t *)&hash)[1];
+        std::vector<int32_t> uuidSource = {*(int32_t *)&a, *(int32_t *)&b,
+                                           pos.fY, index};
+        auto uuid = std::make_shared<IntArrayTag>(uuidSource);
+        entityData->set("UUID", uuid);
+
+        auto converted = Entity::From(*entityData, mapInfo, ddf);
+        if (converted.empty()) {
+          continue;
+        }
+        auto saveData = converted[0];
+
+        auto outBee = std::make_shared<CompoundTag>();
+        outBee->set("SaveData", saveData);
+
+        auto minOccupationTicks = bee->int32("MinOccupationTicks");
+        auto ticksInHive = bee->int32("TicksInHive");
+        if (minOccupationTicks && ticksInHive) {
+          int32_t ticksLeftToStay =
+              std::max<int32_t>(0, *minOccupationTicks - *ticksInHive);
+          outBee->set("TicksLeftToStay", Int(ticksLeftToStay));
+        }
+
+        outBee->set("ActorIdentifier", String("minecraft:bee<>"));
+
+        occupants->push_back(outBee);
+      }
+      tag->set("Occupants", occupants);
+    }
+    tag->set("ShouldSpawnBees", Bool(!bees));
+
+    Attach(pos, *tag);
+    return tag;
   }
 
   struct PistonArm {
