@@ -1586,6 +1586,8 @@ private:
     Converter beehive(Same, Name(FacingA, "direction"), HoneyLevel);
     E("bee_nest", beehive);
     E("beehive", beehive);
+
+    E("chorus_flower", Converter(Same, Name(Age, "age")));
 #undef E
     return table;
   }
