@@ -505,7 +505,7 @@ private:
         continue;
       }
       for (auto const &e : fs::directory_iterator(dir)) {
-        if (!e.is_regular_file()) {
+        if (!fs::is_regular_file(e.path())) {
           continue;
         }
         auto name = e.path().filename().string();

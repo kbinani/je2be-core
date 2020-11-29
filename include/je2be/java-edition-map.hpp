@@ -73,7 +73,7 @@ private:
     }
 
     for (auto const &f : fs::directory_iterator(dataDir)) {
-      if (!f.is_regular_file())
+      if (!fs::is_regular_file(f.path()))
         continue;
       auto name = f.path().filename().string();
       if (!strings::StartsWith(name, "map_") ||
