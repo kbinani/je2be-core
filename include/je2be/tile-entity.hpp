@@ -549,7 +549,7 @@ private:
     using namespace std;
 
     auto tag = std::make_shared<CompoundTag>();
-    auto items = GetItems(*c, "Items", mapInfo, ddf);
+    auto items = GetItems(c, "Items", mapInfo, ddf);
     vector<shared_ptr<CompoundTag>> sorted(5);
     for (auto const &it : *items) {
       auto item = it->asCompound();
@@ -600,7 +600,7 @@ private:
       using namespace std;
 
       auto tag = std::make_shared<CompoundTag>();
-      auto items = GetItems(*c, "Items", mapInfo, ddf);
+      auto items = GetItems(c, "Items", mapInfo, ddf);
 
       tag->insert({
           {"Items", items},
@@ -745,7 +745,7 @@ private:
       }
     }
 
-    auto patterns = GetList(*c, "Patterns");
+    auto patterns = GetList(c, "Patterns");
     auto patternsBedrock = std::make_shared<ListTag>();
     patternsBedrock->fType = Tag::TAG_Compound;
     if (patterns && type != 1) {
@@ -841,7 +841,7 @@ private:
                                    DimensionDataFragment &ddf) {
     using namespace props;
     auto facing = BlockData::GetFacingDirectionFromFacingA(b);
-    auto items = GetItems(*c, "Items", mapInfo, ddf);
+    auto items = GetItems(c, "Items", mapInfo, ddf);
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
         {"id", String("ShulkerBox")},
@@ -955,7 +955,7 @@ private:
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag>
-  GetItems(mcfile::nbt::CompoundTag const &c, std::string const &name,
+  GetItems(std::shared_ptr<CompoundTag> const &c, std::string const &name,
            JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     auto tag = std::make_shared<mcfile::nbt::ListTag>();
     tag->fType = mcfile::nbt::Tag::TAG_Compound;
@@ -981,10 +981,13 @@ private:
     return tag;
   }
 
-  static mcfile::nbt::ListTag const *GetList(CompoundTag const &c,
-                                             std::string const &name) {
-    auto found = c.find(name);
-    if (found == c.end()) {
+  static mcfile::nbt::ListTag const *
+  GetList(std::shared_ptr<CompoundTag> const &c, std::string const &name) {
+    if (!c) {
+      return nullptr;
+    }
+    auto found = c->find(name);
+    if (found == c->end()) {
       return nullptr;
     }
     return found->second->asList();
@@ -1012,7 +1015,7 @@ private:
     }
 
     auto tag = std::make_shared<CompoundTag>();
-    auto items = GetItems(*comp, "Items", mapInfo, ddf);
+    auto items = GetItems(comp, "Items", mapInfo, ddf);
 
     tag->insert({
         {"Items", items},
