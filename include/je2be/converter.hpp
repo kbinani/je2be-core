@@ -509,7 +509,8 @@ private:
           continue;
         }
         auto name = e.path().filename().string();
-        if (name.starts_with("r.") && name.ends_with(".mca")) {
+        if (strings::StartsWith(name, "r.") &&
+            strings::EndsWith(name, ".mca")) {
           num++;
         }
       }

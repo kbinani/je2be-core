@@ -846,8 +846,8 @@ private:
     auto armors = c->listTag("Armor");
 
     auto decorItemId = tag.query("DecorItem/id")->asString();
-    if (decorItemId && decorItemId->fValue.starts_with("minecraft:") &&
-        decorItemId->fValue.ends_with("_carpet")) {
+    if (decorItemId && strings::StartsWith(decorItemId->fValue, "minecraft:") &&
+        strings::EndsWith(decorItemId->fValue, "_carpet")) {
       auto carpetColor =
           strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
       auto colorCode = ColorCodeJavaFromName(carpetColor);

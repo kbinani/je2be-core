@@ -9,12 +9,40 @@ inline bool Equal(std::string const &a, std::string const &b) {
   return memcmp(a.c_str(), b.c_str(), a.size()) == 0;
 }
 
+inline bool StartsWith(std::string const &s, std::string const &search) {
+  if (s.size() < search.size()) {
+    return false;
+  }
+  if (search.empty()) {
+    return false;
+  }
+  auto idx = s.find(search);
+  if (idx == std::string::npos) {
+    return false;
+  }
+  return idx == 0;
+}
+
+inline bool EndsWith(std::string const &s, std::string const &search) {
+  if (s.size() < search.size()) {
+    return false;
+  }
+  if (search.empty()) {
+    return false;
+  }
+  auto idx = s.rfind(search);
+  if (idx == std::string::npos) {
+    return false;
+  }
+  return idx + search.size() == s.size();
+}
+
 inline std::string LTrim(std::string const &s, std::string const &left) {
   if (left.empty()) {
     return s;
   }
   std::string ret = s;
-  while (ret.starts_with(left)) {
+  while (StartsWith(ret, left)) {
     ret = ret.substr(left.size());
   }
   return ret;
@@ -25,7 +53,7 @@ inline std::string RTrim(std::string const &s, std::string const &right) {
     return s;
   }
   std::string ret = s;
-  while (ret.ends_with(right)) {
+  while (EndsWith(ret, right)) {
     ret = ret.substr(0, ret.size() - right.size());
   }
   return ret;

@@ -76,7 +76,8 @@ private:
       if (!f.is_regular_file())
         continue;
       auto name = f.path().filename().string();
-      if (!name.starts_with("map_") || !name.ends_with(".dat"))
+      if (!strings::StartsWith(name, "map_") ||
+          !strings::EndsWith(name, ".dat"))
         continue;
       auto numberStr = strings::Trim("map_", name, ".dat");
       auto number = strings::Toi(numberStr);
