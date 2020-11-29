@@ -100,7 +100,8 @@ public:
     return DegAlmostEquals(rot.fYaw, yaw) && DegAlmostEquals(rot.fPitch, pitch);
   }
 
-  static std::tuple<Pos, std::shared_ptr<CompoundTag>, std::string>
+  static std::optional<
+      std::tuple<Pos, std::shared_ptr<CompoundTag>, std::string>>
   ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
     using namespace props;
@@ -161,6 +162,8 @@ public:
       Pos pos(*tileX, *tileY, *tileZ);
       return make_tuple(pos, b, key);
     }
+
+    return nullopt;
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag>
@@ -198,6 +201,8 @@ public:
       }
       return tag;
     }
+
+    return nullptr;
   }
 
   static bool IsTileEntity(CompoundTag const &tag) {

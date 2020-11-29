@@ -341,7 +341,11 @@ private:
       if (!Entity::IsTileEntity(*e)) {
         continue;
       }
-      auto [pos, tag, paletteKey] = Entity::ToTileEntityBlock(*e);
+      auto converted = Entity::ToTileEntityBlock(*e);
+      if (!converted) {
+        continue;
+      }
+      auto [pos, tag, paletteKey] = *converted;
       if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
         continue;
       }
