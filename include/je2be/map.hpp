@@ -18,10 +18,10 @@ public:
   }
 
   static bool Convert(int32_t javaMapId, CompoundTag const &item,
-                      std::filesystem::path const &input,
+                      j2b::filesystem::path const &input,
                       InputOption const &opt, DbInterface &db) {
     using namespace std;
-    namespace fs = std::filesystem;
+    namespace fs = j2b::filesystem;
     using namespace mcfile::stream;
     using namespace props;
     using namespace mcfile::nbt;

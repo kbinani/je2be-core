@@ -7,9 +7,9 @@ public:
   LevelDirectoryStructure fLevelDirectoryStructure =
       LevelDirectoryStructure::Vanilla;
 
-  std::filesystem::path getWorldDirectory(std::filesystem::path const &root,
+  j2b::filesystem::path getWorldDirectory(j2b::filesystem::path const &root,
                                           Dimension dim) const {
-    namespace fs = std::filesystem;
+    namespace fs = j2b::filesystem;
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla: {
       switch (dim) {
@@ -36,8 +36,8 @@ public:
     }
   }
 
-  std::filesystem::path
-  getDataDirectory(std::filesystem::path const &root) const {
+  j2b::filesystem::path
+  getDataDirectory(j2b::filesystem::path const &root) const {
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla:
       return root / "data";
@@ -46,8 +46,8 @@ public:
     }
   }
 
-  std::filesystem::path
-  getLevelDatFilePath(std::filesystem::path const &root) const {
+  j2b::filesystem::path
+  getLevelDatFilePath(j2b::filesystem::path const &root) const {
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla:
       return root / "level.dat";

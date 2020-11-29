@@ -4,7 +4,7 @@ namespace j2b {
 
 class JavaEditionMap {
 public:
-  JavaEditionMap(std::filesystem::path const &input, InputOption const &opt)
+  JavaEditionMap(j2b::filesystem::path const &input, InputOption const &opt)
       : fScaleLookupTable(CreateScaleLookupTable(input, opt)) {}
 
   std::optional<int8_t> scale(int32_t mapId) const {
@@ -22,10 +22,10 @@ public:
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag>
-  Read(std::filesystem::path const &input, InputOption const &opt,
+  Read(j2b::filesystem::path const &input, InputOption const &opt,
        int32_t mapId) {
     using namespace std;
-    namespace fs = std::filesystem;
+    namespace fs = j2b::filesystem;
     using namespace mcfile::stream;
 
     auto jeFilePath =
@@ -62,9 +62,9 @@ public:
 
 private:
   static std::unordered_map<int32_t, int8_t>
-  CreateScaleLookupTable(std::filesystem::path const &input,
+  CreateScaleLookupTable(j2b::filesystem::path const &input,
                          InputOption const &opt) {
-    namespace fs = std::filesystem;
+    namespace fs = j2b::filesystem;
     std::unordered_map<int32_t, int8_t> table;
 
     auto dataDir = opt.getDataDirectory(input);

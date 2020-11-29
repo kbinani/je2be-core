@@ -497,7 +497,7 @@ private:
   }
 
   double getTotalNumChunks() const {
-    namespace fs = std::filesystem;
+    namespace fs = j2b::filesystem;
     uint32_t num = 0;
     for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
       auto dir = fInputOption.getWorldDirectory(fInput, dim) / "region";

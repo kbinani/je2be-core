@@ -17,6 +17,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
+namespace j2b {
+    namespace filesystem = mcfile::detail::filesystem;
+}
+
 #include <je2be/file.hpp>
 #include <je2be/enums.hpp>
 #include <je2be/strings.hpp>

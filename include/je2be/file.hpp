@@ -2,7 +2,7 @@
 
 namespace j2b::file {
 
-inline FILE *Open(std::filesystem::path const &p, char const *mode) {
+inline FILE *Open(j2b::filesystem::path const &p, char const *mode) {
 #if defined(_MSC_VER)
   wchar_t wmode[48] = {0};
   mbstowcs(wmode, mode, 48);
@@ -12,9 +12,9 @@ inline FILE *Open(std::filesystem::path const &p, char const *mode) {
 #endif
 }
 
-inline std::optional<std::filesystem::path>
-CreateTempDir(std::filesystem::path const &tempDir) {
-  namespace fs = std::filesystem;
+inline std::optional<j2b::filesystem::path>
+CreateTempDir(j2b::filesystem::path const &tempDir) {
+  namespace fs = j2b::filesystem;
   auto tmp = fs::temp_directory_path();
 #if defined(_MSC_VER)
   wchar_t *dir = _wtempnam(tmp.native().c_str(), L"j2b-tmp-");
