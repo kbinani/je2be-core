@@ -1045,7 +1045,9 @@ private:
     E("acacia_planks", Planks("acacia"));
     E("dark_oak_planks", Planks("dark_oak"));
     E("purpur_block", PurpurBlock("default"));
-    E("purpur_pillar", Converter(Name("purpur_block"), AddStringProperty("chisel_type", "lines"), AxisToPillarAxis));
+    E("purpur_pillar",
+      Converter(Name("purpur_block"), AddStringProperty("chisel_type", "lines"),
+                AxisToPillarAxis));
     E("jack_o_lantern", LitPumpkin());
     E("carved_pumpkin", directionFromFacing);
     E("white_stained_glass", StainedGlass("white"));
