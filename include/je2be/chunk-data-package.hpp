@@ -9,7 +9,7 @@ public:
     buildEntities(chunk, mapInfo, ddf);
     buildBiomeMap(chunk);
     buildTileEntities(chunk, mapInfo, ddf);
-    if (chunk.fStatus == "full") {
+    if (chunk.status() == mcfile::Chunk::Status::FULL) {
       fFinalizedState = 2;
     }
     ddf.addStatChunkVersion(chunk.fDataVersion);
