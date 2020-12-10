@@ -119,7 +119,10 @@ if (TEST_RESULT_STDCXXFS)
   endif()
 endif()
 
-message("${CMAKE_C_COMPILER_ID}")
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+  list(APPEND je2be_link_libraries pthread)
+endif()
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/std:c++latest /bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
   list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
