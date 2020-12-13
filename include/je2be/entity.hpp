@@ -493,7 +493,7 @@ private:
     E("boat", Convert(Vehicle, Boat));
     E("minecart",
       Convert(Vehicle, Minecart, Definitions("+minecraft:minecart")));
-    E("armor_stand", LivingEntity);
+    E("armor_stand", Convert(LivingEntity, ArmorStand));
     E("hopper_minecart", Convert(StorageMinecart, Minecart,
                                  Definitions("+minecraft:hopper_minecart")));
     E("chest_minecart", Convert(StorageMinecart, Minecart,
@@ -510,6 +510,17 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData ArmorStand(EntityData const &c, CompoundTag const &tag,
+                               Context &) {
+    auto pos = props::GetVec(tag, "Pos");
+    if (!pos) {
+      return c;
+    }
+    pos->fY = std::round(pos->fY * 2) * 0.5;
+    c->set("Pos", pos->toListTag());
+    return c;
   }
 
   static EntityData Bee(EntityData const &c, CompoundTag const &tag,
