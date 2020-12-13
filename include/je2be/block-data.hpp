@@ -424,22 +424,22 @@ private:
   }
 
   static PropertyType FacingA(Block const &block) {
-    auto facing = block.property("facing", "north");
-    int32_t direction = 2;
-    if (facing == "south") {
-      direction = 0;
+    auto facing = block.property("facing");
+    int32_t direction = 0;
+    if (facing == "north") {
+      direction = 2;
     } else if (facing == "east") {
       direction = 3;
     } else if (facing == "west") {
       direction = 1;
-    } else {
-      direction = 2;
+    } else if (facing == "south") {
+      direction = 0;
     }
     return props::Int(direction);
   }
 
   static PropertyType FacingB(Block const &block) {
-    auto facing = block.property("facing", "north");
+    auto facing = block.property("facing");
     int32_t direction = 0;
     if (facing == "south") {
       direction = 2;
@@ -447,14 +447,14 @@ private:
       direction = 0;
     } else if (facing == "west") {
       direction = 1;
-    } else {
+    } else if (facing == "north") {
       direction = 3;
     }
     return props::Int(direction);
   }
 
   static PropertyType FacingC(Block const &b) {
-    auto facing = b.property("facing", "north");
+    auto facing = b.property("facing");
     int32_t direction = 0;
     if (facing == "north") {
       direction = 3;
@@ -462,15 +462,15 @@ private:
       direction = 0;
     } else if (facing == "south") {
       direction = 1;
-    } else {
+    } else if (facing == "west") {
       direction = 2;
     }
     return props::Int(direction);
   }
 
   static PropertyType FacingD(Block const &b) {
-    auto facing = b.property("facing", "north");
-    int32_t direction = 2;
+    auto facing = b.property("facing");
+    int32_t direction = 0;
     if (facing == "north") {
       direction = 2;
     } else if (facing == "east") {
