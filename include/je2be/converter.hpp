@@ -122,6 +122,7 @@ private:
     ::ThreadPool pool(concurrency);
     pool.init();
     struct Result {
+      Result() : fData(nullptr), fOk(false) {}
       shared_ptr<DimensionDataFragment> fData;
       bool fOk;
     };
