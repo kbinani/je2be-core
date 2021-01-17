@@ -414,7 +414,7 @@ private:
     E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable,
                      CollarColorable, Cat));
     M("cave_spider");
-    A("chicken");
+    A("chicken"); // E("chicken", Convert(Animal, Vehicle("chicken" <-? )));
     A("cod");
 
     E("cow", Convert(Animal, AgeableA("cow")));
@@ -466,11 +466,11 @@ private:
 
     A("skeleton_horse");
     E("slime", Convert(Monster, Slime));
-    M("spider");
+    E("spider", Convert(Monster, Vehicle("spider")));
     A("squid");
     M("stray");
     E("strider", Convert(Animal, Steerable("strider"), AgeableA("strider"),
-                         DetectSuffocation));
+                         DetectSuffocation, Vehicle("strider")));
     E("trader_llama",
       Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
     E("tropical_fish", Convert(Animal, Rename("tropicalfish"), TropicalFish));
@@ -491,16 +491,16 @@ private:
     E("zombified_piglin",
       Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
-    E("boat", Convert(Vehicle, Boat));
-    E("minecart",
-      Convert(Vehicle, Minecart, Definitions("+minecraft:minecart")));
+    E("boat", Convert(EntityBase, Vehicle(), Boat));
+    E("minecart", Convert(EntityBase, Vehicle(), Minecart,
+                          Definitions("+minecraft:minecart")));
     E("armor_stand", Convert(LivingEntity, ArmorStand));
     E("hopper_minecart", Convert(StorageMinecart, Minecart,
                                  Definitions("+minecraft:hopper_minecart")));
     E("chest_minecart", Convert(StorageMinecart, Minecart,
                                 Definitions("+minecraft:chest_minecart")));
     E("tnt_minecart",
-      Convert(Vehicle, Minecart,
+      Convert(EntityBase, Vehicle(), Minecart,
               Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
     E("snow_golem", Convert(Mob, SnowGolem));
     E("iron_golem", Mob);
@@ -1071,44 +1071,55 @@ private:
     return c;
   }
 
-  static EntityData Vehicle(CompoundTag const &tag, Context &ctx) {
-    using namespace mcfile::nbt;
-
+  static EntityData EntityBase(CompoundTag const &tag, Context &ctx) {
     auto e = BaseProperties(tag);
-    if (!e)
+    if (!e) {
       return nullptr;
-
-    auto links = std::make_shared<ListTag>();
-    links->fType = Tag::TAG_Compound;
-
-    auto passengers = tag.query("Passengers")->asList();
-    if (passengers) {
-      for (int i = 0; i < passengers->size(); i++) {
-        auto const &p = passengers->at(i);
-        auto comp = p->asCompound();
-        if (!comp)
-          continue;
-
-        auto entities = From(*comp, ctx.fMapInfo, ctx.fDimensionData);
-        if (entities.empty())
-          continue;
-
-        auto const &passenger = entities[0];
-        auto uid = passenger->int64("UniqueID");
-        if (!uid)
-          continue;
-        auto link = std::make_shared<CompoundTag>();
-        link->set("entityID", props::Long(*uid));
-        link->set("linkID", props::Int(i));
-        links->push_back(link);
-
-        ctx.fPassengers.push_back(passenger);
-      }
     }
+    return e->toCompoundTag();
+  }
 
-    auto c = e->toCompoundTag();
-    c->set("LinksTag", links);
-    return c;
+  static Behavior
+  Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
+    return [=](EntityData const &c, CompoundTag const &tag, Context &ctx) {
+      using namespace mcfile::nbt;
+
+      auto links = std::make_shared<ListTag>();
+      links->fType = Tag::TAG_Compound;
+
+      auto passengers = tag.query("Passengers")->asList();
+      if (passengers) {
+        for (int i = 0; i < passengers->size(); i++) {
+          auto const &p = passengers->at(i);
+          auto comp = p->asCompound();
+          if (!comp)
+            continue;
+
+          auto entities = From(*comp, ctx.fMapInfo, ctx.fDimensionData);
+          if (entities.empty())
+            continue;
+
+          auto const &passenger = entities[0];
+          auto uid = passenger->int64("UniqueID");
+          if (!uid)
+            continue;
+          auto link = std::make_shared<CompoundTag>();
+          link->set("entityID", props::Long(*uid));
+          link->set("linkID", props::Int(i));
+          links->push_back(link);
+
+          ctx.fPassengers.push_back(passenger);
+        }
+
+        if (jockeyDefinitionKey) {
+          AddDefinition(c, "+minecraft:" + *jockeyDefinitionKey +
+                               "_parent_jockey");
+        }
+      }
+
+      c->set("LinksTag", links);
+      return c;
+    };
   }
 
   static EntityData Boat(EntityData const &c, CompoundTag const &tag,
