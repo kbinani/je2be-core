@@ -469,7 +469,8 @@ private:
     M("spider");
     A("squid");
     M("stray");
-    A("strider");
+    E("strider", Convert(Animal, Steerable("strider"), AgeableA("strider"),
+                         DetectSuffocation));
     E("trader_llama",
       Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
     E("tropical_fish", Convert(Animal, Rename("tropicalfish"), TropicalFish));
@@ -510,6 +511,13 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData DetectSuffocation(EntityData const &c,
+                                      CompoundTag const &tag, Context &) {
+    AddDefinition(c, "-minecraft:start_suffocating");
+    AddDefinition(c, "+minecraft:detect_suffocating");
+    return c;
   }
 
   static EntityData ArmorStand(EntityData const &c, CompoundTag const &tag,
