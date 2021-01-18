@@ -414,7 +414,7 @@ private:
     E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable,
                      CollarColorable, Cat));
     M("cave_spider");
-    A("chicken"); // E("chicken", Convert(Animal, Vehicle("chicken" <-? )));
+    E("chicken", Convert(Animal, AgeableA("chicken"), Vehicle()));
     A("cod");
 
     E("cow", Convert(Animal, AgeableA("cow")));
@@ -1107,6 +1107,11 @@ private:
           link->set("entityID", props::Long(*uid));
           link->set("linkID", props::Int(i));
           links->push_back(link);
+
+          auto passengerId = passenger->string("identifier");
+          if (passengerId && *passengerId == "minecraft:zombie") {
+            AddDefinition(passenger, "+minecraft:zombie_jockey");
+          }
 
           ctx.fPassengers.push_back(passenger);
         }
