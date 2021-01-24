@@ -1554,8 +1554,8 @@ private:
     E("rail", Converter(Same, RailDirectionFromShape));
     E("nether_portal", Converter(Name("portal"), Name(Axis, "portal_axis")));
 
-    E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, AgeBitFromAge,
-                          AddStringProperty("bamboo_stalk_thikness", "thin")));
+    E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, BambooAgeFromStage,
+                          BambooStalkThisknessFromAge));
     E("sweet_berry_bush", Converter(Same, GrowthFromAge));
     E("bubble_column", Converter(Same, DragDownFromDrag));
     E("cake", Converter(Same, BiteCounterFromBites));
@@ -1592,6 +1592,24 @@ private:
     E("chorus_flower", Converter(Same, Name(Age, "age")));
 #undef E
     return table;
+  }
+
+  static PropertySpec BambooAgeFromStage(Block const &b) {
+    auto stage = b.property("stage", "0");
+    if (stage == "0") {
+      return std::make_pair("age", props::String("0"));
+    } else {
+      return std::make_pair("age", props::String("1"));
+    }
+  }
+
+  static PropertySpec BambooStalkThisknessFromAge(Block const &b) {
+    auto age = b.property("age", "0");
+    if (age == "0") {
+      return std::make_pair("bamboo_stalk_thikness", props::String("thin"));
+    } else {
+      return std::make_pair("bamboo_stalk_thikness", props::String("thick"));
+    }
   }
 
   static PropertySpec HoneyLevel(Block const &b) {
