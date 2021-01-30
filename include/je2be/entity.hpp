@@ -422,7 +422,7 @@ private:
     A("dolphin");
     E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"),
                         Steerable("donkey")));
-    M("drownd");
+    M("drowned");
     M("elder_guardian");
     M("enderman");
     M("endermite");
