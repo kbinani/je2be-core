@@ -507,10 +507,21 @@ private:
 
     E("item", Item);
     E("ender_dragon", EnderDragon);
+    E("experience_orb", Convert(LivingEntity, Rename("xp_orb"), ExperienceOrb));
 #undef A
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData ExperienceOrb(EntityData const &c, CompoundTag const &tag,
+                                  Context &) {
+    auto value = tag.int16("Value");
+    if (value) {
+      c->set("experience value", props::Int(*value));
+    }
+    AddDefinition(c, "+minecraft:xp_orb");
+    return c;
   }
 
   static EntityData DetectSuffocation(EntityData const &c,
