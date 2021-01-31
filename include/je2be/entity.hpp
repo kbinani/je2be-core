@@ -508,10 +508,15 @@ private:
     E("item", Item);
     E("ender_dragon", EnderDragon);
     E("experience_orb", Convert(LivingEntity, Rename("xp_orb"), ExperienceOrb));
+    E("item_frame", Null); // item_frame is tile entity in BE.
 #undef A
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData Null(CompoundTag const &tag, Context &ctx) {
+    return nullptr;
   }
 
   static EntityData ExperienceOrb(EntityData const &c, CompoundTag const &tag,
