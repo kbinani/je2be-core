@@ -255,7 +255,17 @@ private:
     bool empty = true;
     bool hasWaterlogged = false;
 
-    auto const &section = chunk.fSections[chunkY];
+    shared_ptr<ChunkSection> section;
+    for (int i = 0; i < chunk.fSections.size(); i++) {
+      auto const &s = chunk.fSections[i];
+      if (!s) {
+        continue;
+      }
+      if (s->y() == chunkY) {
+        section = s;
+        break;
+      }
+    }
     if (section != nullptr) {
       auto const &sectionPalette = section->palette();
       vector<uint16_t> mapping(sectionPalette.size());
