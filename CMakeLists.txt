@@ -57,6 +57,7 @@ set(je2be_srcs
   include/je2be/tropical-fish.hpp
   include/je2be/statistics.hpp
   include/je2be/block-palette.hpp
+  # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):ext/libminecraft-file/\1:g') | pbcopy
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
@@ -68,12 +69,15 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/blocks/name.hpp
   ext/libminecraft-file/include/mcfile/chunk-section.hpp
   ext/libminecraft-file/include/mcfile/chunk.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/block-states-parser-113.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/block-states-parser-116.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/chunk-section-112.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/chunk-section-113-base.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/chunk-section-113.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/chunk-section-116.hpp
+  ext/libminecraft-file/include/mcfile/chunksection/chunk-section-generator.hpp
   ext/libminecraft-file/include/mcfile/coordinate.hpp
   ext/libminecraft-file/include/mcfile/detail/chunk-data-source.hpp
-  ext/libminecraft-file/include/mcfile/detail/chunk-section-112.hpp
-  ext/libminecraft-file/include/mcfile/detail/chunk-section-113.hpp
-  ext/libminecraft-file/include/mcfile/detail/chunk-section-116.hpp
-  ext/libminecraft-file/include/mcfile/detail/chunk-section-generator.hpp
   ext/libminecraft-file/include/mcfile/detail/compression.hpp
   ext/libminecraft-file/include/mcfile/detail/endianness.hpp
   ext/libminecraft-file/include/mcfile/detail/filesystem.hpp
@@ -97,6 +101,7 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/nbt/tag-factory.hpp
   ext/libminecraft-file/include/mcfile/nbt/tag.hpp
   ext/libminecraft-file/include/mcfile/region.hpp
+  ext/libminecraft-file/include/mcfile/set-block-options.hpp
   ext/libminecraft-file/include/mcfile/stream/byte-stream.hpp
   ext/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
   ext/libminecraft-file/include/mcfile/stream/file-output-stream.hpp
