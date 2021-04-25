@@ -325,7 +325,8 @@ private:
       table->insert(std::make_pair("minecraft:leather_" + type, LeatherArmor));
     }
 
-    E("writable_book", WritableBook);
+    E("writable_book", BooksAndQuill);
+    E("written_book", BooksAndQuill);
 #undef E
     return table;
   }
@@ -347,8 +348,8 @@ private:
     return Post(ret, item);
   }
 
-  static ItemData WritableBook(std::string const &name,
-                               CompoundTag const &item) {
+  static ItemData BooksAndQuill(std::string const &name,
+                                CompoundTag const &item) {
     using namespace props;
     using namespace mcfile::nbt;
 
@@ -719,6 +720,7 @@ private:
     E("experience_bottole");
     E("fire_charge");
     E("writable_book");
+    E("written_book");
     E("emerald");
     E("map");
     E("nether_star");
