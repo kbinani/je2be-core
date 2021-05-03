@@ -80,7 +80,6 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/detail/chunk-data-source.hpp
   ext/libminecraft-file/include/mcfile/detail/compression.hpp
   ext/libminecraft-file/include/mcfile/detail/endianness.hpp
-  ext/libminecraft-file/include/mcfile/detail/filesystem.hpp
   ext/libminecraft-file/include/mcfile/detail/string.hpp
   ext/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
@@ -95,6 +94,7 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/nbt/list-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/long-array-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/long-tag.hpp
+  ext/libminecraft-file/include/mcfile/nbt/print-as-json.hpp
   ext/libminecraft-file/include/mcfile/nbt/short-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/string-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
