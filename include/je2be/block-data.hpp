@@ -32,6 +32,7 @@ public:
   }
 
   static int32_t GetFacingDirectionFromFacingA(mcfile::Block const &block) {
+    // 102534
     auto facing = block.property("facing", "north");
     if (facing == "east") {
       return 5;
@@ -49,6 +50,7 @@ public:
   }
 
   static int32_t GetFacingDirectionFromFacingB(mcfile::Block const &block) {
+    // 103425
     auto facing = block.property("facing", "north");
     if (facing == "east") {
       return 4;
@@ -1590,8 +1592,18 @@ private:
     E("beehive", beehive);
 
     E("chorus_flower", Converter(Same, Name(Age, "age")));
+
+    Converter commandBlock(Same, Conditional, FacingDirectionFromFacingA);
+    E("command_block", commandBlock);
+    E("chain_command_block", commandBlock);
+    E("repeating_command_block", commandBlock);
 #undef E
     return table;
+  }
+
+  static PropertySpec Conditional(Block const &b) {
+      auto conditional = b.property("conditional", "false");
+      return std::make_pair("conditional_bit", props::Bool(conditional == "true"));
   }
 
   static PropertySpec BambooAgeFromStage(Block const &b) {

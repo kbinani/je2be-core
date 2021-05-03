@@ -254,8 +254,51 @@ private:
     E("sticky_piston_head", PistonArm(true));
     E("bee_nest", Beehive);
     E("beehive", Beehive);
+    E("command_block", CommandBlock);
+    E("chain_command_block", CommandBlock);
+    E("repeating_command_block", CommandBlock);
 #undef E
     return table;
+  }
+
+  static TileEntityData CommandBlock(Pos const& pos, Block const& b,
+      std::shared_ptr<CompoundTag> const& c,
+      JavaEditionMap const& mapInfo,
+      DimensionDataFragment& ddf) {
+      using namespace props;
+      using namespace mcfile::nbt;
+
+      auto tag = std::make_shared<CompoundTag>();
+      auto powered = c->boolean("powered", false);
+      auto automatic = c->boolean("auto", false);
+      auto trackOutput = c->boolean("TrackOutput", true);
+      auto successCount = c->int32("SuccessCount", 0);
+      auto command = c->string("Command", "");
+      auto customNameJson = GetJson(*c, "CustomName");
+      std::string customName;
+      if (customNameJson) {
+          customName = GetAsString(*customNameJson, "text");
+          if (customName == "@") {
+              customName = "";
+          }
+      }
+      auto conditionMet = c->boolean("conditionMet", false);
+      tag->insert({
+          {"id", String("CommandBlock")},
+          {"isMovable", Bool(true)},
+          {"powered", Bool(powered)},
+          {"auto", Bool(automatic)},
+          {"TrackDelay", Int(0)},
+          {"TrackOutput", Bool(trackOutput)},
+          {"Version", Int(15)},
+          {"SuccessCount", Int(successCount)},
+          {"Command", String(command)},
+          {"CustomName", String(customName)},
+          {"ExecuteOnFirstTick", Bool(false)},
+          {"conditionMet", Bool(conditionMet)},
+      });
+      Attach(pos, *tag);
+      return tag;
   }
 
   static TileEntityData Beehive(Pos const &pos, Block const &b,
