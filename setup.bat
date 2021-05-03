@@ -39,5 +39,3 @@ cmake --build . --target xxhash --config Release
 popd
 
 popd
-
-cmake %dir%

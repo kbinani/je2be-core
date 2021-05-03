@@ -25,9 +25,3 @@ fi
 cmake --build . --target xxhash --config Debug
 cmake --build . --target xxhash --config Release
 popd
-
-if [ -z "$generator" ]; then
-	cmake "$dir"
-else
-	cmake "$dir" -G "$generator"
-fi
