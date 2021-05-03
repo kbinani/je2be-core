@@ -95,7 +95,6 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/nbt/list-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/long-array-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/long-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/print-as-json.hpp
   ext/libminecraft-file/include/mcfile/nbt/short-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/string-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
