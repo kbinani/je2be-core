@@ -4,7 +4,7 @@ namespace j2b {
 
 class WorldData {
 public:
-  WorldData(j2b::filesystem::path const &input, InputOption const &opt)
+  WorldData(std::filesystem::path const &input, InputOption const &opt)
       : fInput(input), fJavaEditionMap(input, opt), fInputOption(opt) {}
 
   void put(DbInterface &db, mcfile::nbt::CompoundTag const &javaLevelData) {
@@ -54,7 +54,7 @@ private:
   }
 
 private:
-  j2b::filesystem::path fInput;
+  std::filesystem::path fInput;
 
 public:
   Portals fPortals;

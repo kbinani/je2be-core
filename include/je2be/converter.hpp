@@ -11,7 +11,7 @@ public:
   std::optional<Statistics> run(unsigned int concurrency,
                                 Progress *progress = nullptr) {
     using namespace std;
-    namespace fs = mcfile::detail::filesystem;
+    namespace fs = std::filesystem;
     using namespace mcfile;
 
     double const numTotalChunks = getTotalNumChunks();
@@ -512,7 +512,7 @@ private:
   }
 
   double getTotalNumChunks() const {
-    namespace fs = j2b::filesystem;
+    namespace fs = std::filesystem;
     uint32_t num = 0;
     for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
       auto dir = fInputOption.getWorldDirectory(fInput, dim) / "region";

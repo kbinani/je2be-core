@@ -8,7 +8,7 @@ public:
       : fValid(true), fDir(dir) {
     using namespace std;
     using namespace leveldb;
-    namespace fs = j2b::filesystem;
+    namespace fs = std::filesystem;
 
     leveldb::FileLock *lf = nullptr;
     auto lockFileName = dir + "/LOCK";

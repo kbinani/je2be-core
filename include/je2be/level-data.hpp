@@ -468,9 +468,9 @@ public:
   }
 
   static std::shared_ptr<CompoundTag>
-  Read(j2b::filesystem::path const &javaEditionLevelDat) {
+  Read(std::filesystem::path const &javaEditionLevelDat) {
     using namespace std;
-    namespace fs = j2b::filesystem;
+    namespace fs = std::filesystem;
     using namespace mcfile::stream;
 
     if (!fs::is_regular_file(javaEditionLevelDat))
