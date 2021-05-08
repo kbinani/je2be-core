@@ -764,7 +764,22 @@ private:
       color = color.substr(0, suffix);
     }
     static std::unordered_map<std::string, int32_t> const mapping = {
-        {"black", 0}, {"red", 1}, {"green", 2}, {"brown", 3}, {"blue", 4}, {"purple", 5}, {"cyan", 6}, {"light_gray", 7}, {"gray", 8}, {"pink", 9}, {"lime", 10}, {"yellow", 11}, {"light_blue", 12}, {"magenta", 13}, {"orange", 14}, {"white", 15},
+        {"black", 0},
+        {"red", 1},
+        {"green", 2},
+        {"brown", 3},
+        {"blue", 4},
+        {"purple", 5},
+        {"cyan", 6},
+        {"light_gray", 7},
+        {"gray", 8},
+        {"pink", 9},
+        {"lime", 10},
+        {"yellow", 11},
+        {"light_blue", 12},
+        {"magenta", 13},
+        {"orange", 14},
+        {"white", 15},
     };
     auto found = mapping.find(color);
     if (found == mapping.end()) {
@@ -775,7 +790,22 @@ private:
 
   static int8_t BedColor(std::string const &name) {
     static std::unordered_map<std::string, int8_t> const mapping = {
-        {"minecraft:white_bed", 0}, {"minecraft:orange_bed", 1}, {"minecraft:magenta_bed", 2}, {"minecraft:light_blue_bed", 3}, {"minecraft:yellow_bed", 4}, {"minecraft:lime_bed", 5}, {"minecraft:pink_bed", 6}, {"minecraft:gray_bed", 7}, {"minecraft:light_gray_bed", 8}, {"minecraft:cyan_bed", 9}, {"minecraft:purple_bed", 10}, {"minecraft:blue_bed", 11}, {"minecraft:brown_bed", 12}, {"minecraft:green_bed", 13}, {"minecraft:red_bed", 14}, {"minecraft:black_bed", 15},
+        {"minecraft:white_bed", 0},
+        {"minecraft:orange_bed", 1},
+        {"minecraft:magenta_bed", 2},
+        {"minecraft:light_blue_bed", 3},
+        {"minecraft:yellow_bed", 4},
+        {"minecraft:lime_bed", 5},
+        {"minecraft:pink_bed", 6},
+        {"minecraft:gray_bed", 7},
+        {"minecraft:light_gray_bed", 8},
+        {"minecraft:cyan_bed", 9},
+        {"minecraft:purple_bed", 10},
+        {"minecraft:blue_bed", 11},
+        {"minecraft:brown_bed", 12},
+        {"minecraft:green_bed", 13},
+        {"minecraft:red_bed", 14},
+        {"minecraft:black_bed", 15},
     };
     auto found = mapping.find(name);
     if (found == mapping.end()) {

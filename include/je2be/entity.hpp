@@ -20,7 +20,8 @@ private:
   using Behavior = std::function<EntityData(EntityData const &, CompoundTag const &, Context &)>;
 
   struct Convert {
-    template <class... Arg> Convert(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
+    template <class... Arg>
+    Convert(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
 
     EntityData operator()(CompoundTag const &input, Context &ctx) const {
       auto c = fBase(input, ctx);
@@ -207,7 +208,48 @@ public:
       definitions->push_back(String(d));
     }
     tag->insert({
-        {"definitions", definitions}, {"Motion", fMotion.toListTag()}, {"Pos", fPos.toListTag()}, {"Rotation", fRotation.toListTag()}, {"Tags", tags}, {"Chested", Bool(fChested)}, {"Color2", Byte(fColor2)}, {"Color", Byte(fColor)}, {"Dir", Byte(fDir)}, {"FallDistance", Float(fFallDistance)}, {"Fire", Short(std::max((int16_t)0, fFire))}, {"identifier", String(fIdentifier)}, {"Invulnerable", Bool(fInvulnerable)}, {"IsAngry", Bool(fIsAngry)}, {"IsAutonomous", Bool(fIsAutonomous)}, {"IsBaby", Bool(fIsBaby)}, {"IsEating", Bool(fIsEating)}, {"IsGliding", Bool(fIsGliding)}, {"IsGlobal", Bool(fIsGlobal)}, {"IsIllagerCaptain", Bool(fIsIllagerCaptain)}, {"IsOrphaned", Bool(fIsOrphaned)}, {"IsRoaring", Bool(fIsRoaring)}, {"IsScared", Bool(fIsScared)}, {"IsStunned", Bool(fIsStunned)}, {"IsSwimming", Bool(fIsSwimming)}, {"IsTamed", Bool(fIsTamed)}, {"IsTrusting", Bool(fIsTrusting)}, {"LastDimensionId", Int(fLastDimensionId)}, {"LootDropped", Bool(fLootDropped)}, {"MarkVariant", Int(fMarkVariant)}, {"OnGround", Bool(fOnGround)}, {"OwnerNew", Int(fOwnerNew)}, {"PortalCooldown", Int(fPortalCooldown)}, {"Saddled", Bool(fSaddled)}, {"Sheared", Bool(fSheared)}, {"ShowBottom", Bool(fShowBottom)}, {"Sitting", Bool(fSitting)}, {"SkinID", Int(fSkinId)}, {"Strength", Int(fStrength)}, {"StrengthMax", Int(fStrengthMax)}, {"UniqueID", Long(fUniqueId)}, {"Variant", Int(fVariant)},
+        {"definitions", definitions},
+        {"Motion", fMotion.toListTag()},
+        {"Pos", fPos.toListTag()},
+        {"Rotation", fRotation.toListTag()},
+        {"Tags", tags},
+        {"Chested", Bool(fChested)},
+        {"Color2", Byte(fColor2)},
+        {"Color", Byte(fColor)},
+        {"Dir", Byte(fDir)},
+        {"FallDistance", Float(fFallDistance)},
+        {"Fire", Short(std::max((int16_t)0, fFire))},
+        {"identifier", String(fIdentifier)},
+        {"Invulnerable", Bool(fInvulnerable)},
+        {"IsAngry", Bool(fIsAngry)},
+        {"IsAutonomous", Bool(fIsAutonomous)},
+        {"IsBaby", Bool(fIsBaby)},
+        {"IsEating", Bool(fIsEating)},
+        {"IsGliding", Bool(fIsGliding)},
+        {"IsGlobal", Bool(fIsGlobal)},
+        {"IsIllagerCaptain", Bool(fIsIllagerCaptain)},
+        {"IsOrphaned", Bool(fIsOrphaned)},
+        {"IsRoaring", Bool(fIsRoaring)},
+        {"IsScared", Bool(fIsScared)},
+        {"IsStunned", Bool(fIsStunned)},
+        {"IsSwimming", Bool(fIsSwimming)},
+        {"IsTamed", Bool(fIsTamed)},
+        {"IsTrusting", Bool(fIsTrusting)},
+        {"LastDimensionId", Int(fLastDimensionId)},
+        {"LootDropped", Bool(fLootDropped)},
+        {"MarkVariant", Int(fMarkVariant)},
+        {"OnGround", Bool(fOnGround)},
+        {"OwnerNew", Int(fOwnerNew)},
+        {"PortalCooldown", Int(fPortalCooldown)},
+        {"Saddled", Bool(fSaddled)},
+        {"Sheared", Bool(fSheared)},
+        {"ShowBottom", Bool(fShowBottom)},
+        {"Sitting", Bool(fSitting)},
+        {"SkinID", Int(fSkinId)},
+        {"Strength", Int(fStrength)},
+        {"StrengthMax", Int(fStrengthMax)},
+        {"UniqueID", Long(fUniqueId)},
+        {"Variant", Int(fVariant)},
     });
     if (fCustomName) {
       tag->set("CustomName", String(*fCustomName));
@@ -861,7 +903,8 @@ private:
     return c;
   }
 
-  template <class... Arg> static Behavior Definitions(Arg... defs) {
+  template <class... Arg>
+  static Behavior Definitions(Arg... defs) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
       for (std::string const &def : std::initializer_list<std::string>{defs...}) {
         AddDefinition(c, def);
@@ -1431,7 +1474,8 @@ private:
 
   static std::shared_ptr<mcfile::nbt::ListTag> GetOffhand(CompoundTag const &input, Context &ctx) { return HandItem<1>(input, ctx); }
 
-  template <size_t index> static std::shared_ptr<mcfile::nbt::ListTag> HandItem(CompoundTag const &input, Context &ctx) {
+  template <size_t index>
+  static std::shared_ptr<mcfile::nbt::ListTag> HandItem(CompoundTag const &input, Context &ctx) {
     using namespace mcfile::nbt;
     auto ret = std::make_shared<ListTag>();
     ret->fType = Tag::TAG_Compound;
@@ -1592,7 +1636,32 @@ private:
   static std::optional<Size> PaintingSize(std::string const &motive) {
     using namespace std;
     static unordered_map<string, Size> const mapping = {
-        {"minecraft:pigscene", Size(4, 4)}, {"minecraft:burning_skull", Size(4, 4)}, {"minecraft:pointer", Size(4, 4)}, {"minecraft:skeleton", Size(4, 3)}, {"minecraft:donkey_kong", Size(4, 3)}, {"minecraft:fighters", Size(4, 2)}, {"minecraft:skull_and_roses", Size(2, 2)}, {"minecraft:match", Size(2, 2)}, {"minecraft:bust", Size(2, 2)}, {"minecraft:stage", Size(2, 2)}, {"minecraft:void", Size(2, 2)}, {"minecraft:wither", Size(2, 2)}, {"minecraft:sunset", Size(2, 1)}, {"minecraft:courbet", Size(2, 1)}, {"minecraft:creebet", Size(2, 1)}, {"minecraft:sea", Size(2, 1)}, {"minecraft:wanderer", Size(1, 2)}, {"minecraft:graham", Size(1, 2)}, {"minecraft:aztec2", Size(1, 1)}, {"minecraft:alban", Size(1, 1)}, {"minecraft:bomb", Size(1, 1)}, {"minecraft:kebab", Size(1, 1)}, {"minecraft:wasteland", Size(1, 1)}, {"minecraft:aztec", Size(1, 1)}, {"minecraft:plant", Size(1, 1)}, {"minecraft:pool", Size(2, 1)},
+        {"minecraft:pigscene", Size(4, 4)},
+        {"minecraft:burning_skull", Size(4, 4)},
+        {"minecraft:pointer", Size(4, 4)},
+        {"minecraft:skeleton", Size(4, 3)},
+        {"minecraft:donkey_kong", Size(4, 3)},
+        {"minecraft:fighters", Size(4, 2)},
+        {"minecraft:skull_and_roses", Size(2, 2)},
+        {"minecraft:match", Size(2, 2)},
+        {"minecraft:bust", Size(2, 2)},
+        {"minecraft:stage", Size(2, 2)},
+        {"minecraft:void", Size(2, 2)},
+        {"minecraft:wither", Size(2, 2)},
+        {"minecraft:sunset", Size(2, 1)},
+        {"minecraft:courbet", Size(2, 1)},
+        {"minecraft:creebet", Size(2, 1)},
+        {"minecraft:sea", Size(2, 1)},
+        {"minecraft:wanderer", Size(1, 2)},
+        {"minecraft:graham", Size(1, 2)},
+        {"minecraft:aztec2", Size(1, 1)},
+        {"minecraft:alban", Size(1, 1)},
+        {"minecraft:bomb", Size(1, 1)},
+        {"minecraft:kebab", Size(1, 1)},
+        {"minecraft:wasteland", Size(1, 1)},
+        {"minecraft:aztec", Size(1, 1)},
+        {"minecraft:plant", Size(1, 1)},
+        {"minecraft:pool", Size(2, 1)},
     };
     auto found = mapping.find(motive);
     if (found != mapping.end()) {
@@ -1604,7 +1673,33 @@ private:
   static std::optional<std::string> PaintingMotive(std::string const &je) {
     using namespace std;
     static unordered_map<string, string> const mapping = {
-        {"minecraft:bust", "Bust"}, {"minecraft:pigscene", "Pigscene"}, {"minecraft:burning_skull", "BurningSkull"}, {"minecraft:pointer", "Pointer"}, {"minecraft:skeleton", "Skeleton"}, {"minecraft:donkey_kong", "DonkeyKong"}, {"minecraft:fighters", "Fighters"}, {"minecraft:skull_and_roses", "SkullAndRoses"}, {"minecraft:match", "Match"}, {"minecraft:bust", "Bust"}, {"minecraft:stage", "Stage"}, {"minecraft:void", "Void"}, {"minecraft:wither", "Wither"}, {"minecraft:sunset", "Sunset"}, {"minecraft:courbet", "Courbet"}, {"minecraft:creebet", "Creebet"}, {"minecraft:sea", "Sea"}, {"minecraft:wanderer", "Wanderer"}, {"minecraft:graham", "Graham"}, {"minecraft:aztec2", "Aztec2"}, {"minecraft:alban", "Alban"}, {"minecraft:bomb", "Bomb"}, {"minecraft:kebab", "Kebab"}, {"minecraft:wasteland", "Wasteland"}, {"minecraft:aztec", "Aztec"}, {"minecraft:plant", "Plant"}, {"minecraft:pool", "Pool"},
+        {"minecraft:bust", "Bust"},
+        {"minecraft:pigscene", "Pigscene"},
+        {"minecraft:burning_skull", "BurningSkull"},
+        {"minecraft:pointer", "Pointer"},
+        {"minecraft:skeleton", "Skeleton"},
+        {"minecraft:donkey_kong", "DonkeyKong"},
+        {"minecraft:fighters", "Fighters"},
+        {"minecraft:skull_and_roses", "SkullAndRoses"},
+        {"minecraft:match", "Match"},
+        {"minecraft:bust", "Bust"},
+        {"minecraft:stage", "Stage"},
+        {"minecraft:void", "Void"},
+        {"minecraft:wither", "Wither"},
+        {"minecraft:sunset", "Sunset"},
+        {"minecraft:courbet", "Courbet"},
+        {"minecraft:creebet", "Creebet"},
+        {"minecraft:sea", "Sea"},
+        {"minecraft:wanderer", "Wanderer"},
+        {"minecraft:graham", "Graham"},
+        {"minecraft:aztec2", "Aztec2"},
+        {"minecraft:alban", "Alban"},
+        {"minecraft:bomb", "Bomb"},
+        {"minecraft:kebab", "Kebab"},
+        {"minecraft:wasteland", "Wasteland"},
+        {"minecraft:aztec", "Aztec"},
+        {"minecraft:plant", "Plant"},
+        {"minecraft:pool", "Pool"},
     };
     auto found = mapping.find(je);
     if (found != mapping.end()) {

@@ -79,7 +79,8 @@ private:
 
   class Converter {
   public:
-    template <class... Arg> Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyMapFunction>{args...}) {}
+    template <class... Arg>
+    Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyMapFunction>{args...}) {}
 
     BlockDataType operator()(Block const &block) const {
       using namespace std;

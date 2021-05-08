@@ -52,7 +52,8 @@ private:
     }
   }
 
-  template <int dx, int dy, int dz> Pos lookupCorner(Pos p) {
+  template <int dx, int dy, int dz>
+  Pos lookupCorner(Pos p) {
     int const x0 = p.fX;
     int const y0 = p.fY;
     int const z0 = p.fZ;
