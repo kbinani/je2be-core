@@ -465,7 +465,7 @@ private:
     E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
     E("tnt_minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
     E("snow_golem", Convert(Mob, SnowGolem));
-    E("iron_golem", Mob);
+    E("iron_golem", Convert(Mob, Definitions("+minecraft:iron_golem"), IronGolem));
 
     E("item", Item);
     E("ender_dragon", EnderDragon);
@@ -478,6 +478,25 @@ private:
   }
 
   static EntityData Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
+
+  static EntityData IronGolem(EntityData const &c, CompoundTag const &tag, Context &) {
+    using namespace props;
+
+    auto playerCreated = tag.boolean("PlayerCreated", false);
+    auto angryAt = GetUUID(tag, {.fIntArray = "AngryAt"});
+    auto angerTime = tag.int32("AngerTime", 0);
+
+    if (playerCreated) {
+      AddDefinition(c, "+minecraft:player_created");
+    } else {
+      AddDefinition(c, "+minecraft:village_created");
+    }
+    c->set("IsAngry", Bool(angerTime > 0));
+    if (angryAt) {
+      c->set("TargetID", Long(*angryAt));
+    }
+    return c;
+  }
 
   static EntityData ExperienceOrb(EntityData const &c, CompoundTag const &tag, Context &) {
     auto value = tag.int16("Value");
