@@ -4,8 +4,7 @@ namespace j2b {
 
 class RawDb : public DbInterface {
 public:
-  RawDb(std::string const &dir, unsigned int concurrency)
-      : fValid(true), fDir(dir) {
+  RawDb(std::string const &dir, unsigned int concurrency) : fValid(true), fDir(dir) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
@@ -65,11 +64,7 @@ public:
               }
             }
 
-            futures.emplace_back(move(pool.submit(
-                [this, fileNum, o](shared_ptr<WriteBatch> b) {
-                  drainWriteBatch(*b, fileNum, o);
-                },
-                batch)));
+            futures.emplace_back(move(pool.submit([this, fileNum, o](shared_ptr<WriteBatch> b) { drainWriteBatch(*b, fileNum, o); }, batch)));
 
             fileNum++;
             batch = make_shared<WriteBatch>();
@@ -130,8 +125,7 @@ public:
   void abandon() { fAbandoned.store(true); }
 
 private:
-  void drainWriteBatch(leveldb::WriteBatch &b, uint32_t fileNum,
-                       leveldb::Options o) {
+  void drainWriteBatch(leveldb::WriteBatch &b, uint32_t fileNum, leveldb::Options o) {
     using namespace leveldb;
     using namespace std;
     unique_ptr<WritableFile> file(open(fileNum));
@@ -147,10 +141,7 @@ private:
       std::vector<std::string> fKeys;
     } v;
     b.Iterate(&v);
-    sort(v.fKeys.begin(), v.fKeys.end(),
-         [](string const &lhs, string const &rhs) {
-           return BytewiseComparator()->Compare(lhs, rhs) < 0;
-         });
+    sort(v.fKeys.begin(), v.fKeys.end(), [](string const &lhs, string const &rhs) { return BytewiseComparator()->Compare(lhs, rhs) < 0; });
     for (auto const &k : v.fKeys) {
       tb->Add(k, v.fDrain[k]);
     }

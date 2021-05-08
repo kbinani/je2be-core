@@ -2,34 +2,22 @@
 
 namespace j2b::props {
 
-inline std::shared_ptr<mcfile::nbt::ByteTag> Bool(bool b) {
-  return std::make_shared<mcfile::nbt::ByteTag>(b ? 1 : 0);
-}
+inline std::shared_ptr<mcfile::nbt::ByteTag> Bool(bool b) { return std::make_shared<mcfile::nbt::ByteTag>(b ? 1 : 0); }
 
 inline std::shared_ptr<mcfile::nbt::ByteTag> Byte(int8_t v) {
   uint8_t t = *(uint8_t *)&v;
   return std::make_shared<mcfile::nbt::ByteTag>(t);
 }
 
-inline std::shared_ptr<mcfile::nbt::IntTag> Int(int32_t v) {
-  return std::make_shared<mcfile::nbt::IntTag>(v);
-}
+inline std::shared_ptr<mcfile::nbt::IntTag> Int(int32_t v) { return std::make_shared<mcfile::nbt::IntTag>(v); }
 
-inline std::shared_ptr<mcfile::nbt::LongTag> Long(int64_t v) {
-  return std::make_shared<mcfile::nbt::LongTag>(v);
-}
+inline std::shared_ptr<mcfile::nbt::LongTag> Long(int64_t v) { return std::make_shared<mcfile::nbt::LongTag>(v); }
 
-inline std::shared_ptr<mcfile::nbt::StringTag> String(std::string v) {
-  return std::make_shared<mcfile::nbt::StringTag>(v);
-}
+inline std::shared_ptr<mcfile::nbt::StringTag> String(std::string v) { return std::make_shared<mcfile::nbt::StringTag>(v); }
 
-inline std::shared_ptr<mcfile::nbt::FloatTag> Float(float v) {
-  return std::make_shared<mcfile::nbt::FloatTag>(v);
-}
+inline std::shared_ptr<mcfile::nbt::FloatTag> Float(float v) { return std::make_shared<mcfile::nbt::FloatTag>(v); }
 
-inline std::shared_ptr<mcfile::nbt::ShortTag> Short(int16_t v) {
-  return std::make_shared<mcfile::nbt::ShortTag>(v);
-}
+inline std::shared_ptr<mcfile::nbt::ShortTag> Short(int16_t v) { return std::make_shared<mcfile::nbt::ShortTag>(v); }
 
 struct UUIDKeyName {
   std::optional<std::string> fLeastAndMostPrefix = std::nullopt;
@@ -37,9 +25,7 @@ struct UUIDKeyName {
   std::optional<std::string> fHexString = std::nullopt;
 };
 
-inline std::optional<int64_t>
-GetUUIDWithFormatLeastAndMost(mcfile::nbt::CompoundTag const &tag,
-                              std::string const &namePrefix) {
+inline std::optional<int64_t> GetUUIDWithFormatLeastAndMost(mcfile::nbt::CompoundTag const &tag, std::string const &namePrefix) {
   using namespace std;
   using namespace mcfile::nbt;
   auto least = tag.int64(namePrefix + "Least");
@@ -59,9 +45,7 @@ GetUUIDWithFormatLeastAndMost(mcfile::nbt::CompoundTag const &tag,
   return h.digest();
 }
 
-inline std::optional<int64_t>
-GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag const &tag,
-                          std::string const &name) {
+inline std::optional<int64_t> GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
 
@@ -91,9 +75,7 @@ GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag const &tag,
   return h.digest();
 }
 
-inline std::optional<int64_t>
-GetUUIDWithFormatHexString(mcfile::nbt::CompoundTag const &tag,
-                           std::string const &name) {
+inline std::optional<int64_t> GetUUIDWithFormatHexString(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
 
@@ -129,8 +111,7 @@ GetUUIDWithFormatHexString(mcfile::nbt::CompoundTag const &tag,
   return h.digest();
 }
 
-inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const &tag,
-                                      UUIDKeyName keyName) {
+inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const &tag, UUIDKeyName keyName) {
   if (keyName.fIntArray) {
     auto ret = GetUUIDWithFormatIntArray(tag, *keyName.fIntArray);
     if (ret)
@@ -149,8 +130,7 @@ inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const &tag,
   return std::nullopt;
 }
 
-inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const &tag,
-                                 std::string const &name) {
+inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
   auto found = tag.find(name);
@@ -170,8 +150,7 @@ inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const &tag,
   return Vec((float)x, (float)y, (float)z);
 }
 
-inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag,
-                                           std::string const &name) {
+inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
   auto found = tag.find(name);
@@ -190,8 +169,7 @@ inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag,
   return Rotation(yaw, pitch);
 }
 
-inline std::optional<Pos> GetPos(mcfile::nbt::CompoundTag const &tag,
-                                 std::string const &name) {
+inline std::optional<Pos> GetPos(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   auto xyz = tag.compoundTag(name);
   if (!xyz) {
     return std::nullopt;
@@ -213,8 +191,7 @@ inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   }
 }
 
-inline std::optional<nlohmann::json>
-GetJson(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
+inline std::optional<nlohmann::json> GetJson(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
   using nlohmann::json;

@@ -4,11 +4,9 @@ namespace j2b {
 
 class InputOption {
 public:
-  LevelDirectoryStructure fLevelDirectoryStructure =
-      LevelDirectoryStructure::Vanilla;
+  LevelDirectoryStructure fLevelDirectoryStructure = LevelDirectoryStructure::Vanilla;
 
-  std::filesystem::path getWorldDirectory(std::filesystem::path const &root,
-                                          Dimension dim) const {
+  std::filesystem::path getWorldDirectory(std::filesystem::path const &root, Dimension dim) const {
     namespace fs = std::filesystem;
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla: {
@@ -36,8 +34,7 @@ public:
     }
   }
 
-  std::filesystem::path
-  getDataDirectory(std::filesystem::path const &root) const {
+  std::filesystem::path getDataDirectory(std::filesystem::path const &root) const {
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla:
       return root / "data";
@@ -46,8 +43,7 @@ public:
     }
   }
 
-  std::filesystem::path
-  getLevelDatFilePath(std::filesystem::path const &root) const {
+  std::filesystem::path getLevelDatFilePath(std::filesystem::path const &root) const {
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla:
       return root / "level.dat";

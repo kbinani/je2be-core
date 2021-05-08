@@ -4,8 +4,7 @@ namespace j2b {
 
 class ChunkDataPackage {
 public:
-  void build(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo,
-             DimensionDataFragment &ddf) {
+  void build(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     buildEntities(chunk, mapInfo, ddf);
     buildBiomeMap(chunk);
     buildTileEntities(chunk, mapInfo, ddf);
@@ -25,15 +24,10 @@ public:
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
 
-  void addTileBlock(int x, int y, int z,
-                    std::shared_ptr<mcfile::Block const> const &block) {
-    fTileBlocks.insert(make_pair(Pos(x, y, z), block));
-  }
+  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos(x, y, z), block)); }
 
 private:
-  void buildTileEntities(mcfile::Chunk const &chunk,
-                         JavaEditionMap const &mapInfo,
-                         DimensionDataFragment &ddf) {
+  void buildTileEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;
@@ -87,8 +81,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo,
-                     DimensionDataFragment &ddf) {
+  void buildEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace props;
     for (auto e : chunk.fEntities) {
@@ -171,8 +164,7 @@ private:
 private:
   HeightMap fHeightMap;
   std::optional<BiomeMap> fBiomeMap;
-  std::unordered_map<Pos, std::shared_ptr<mcfile::Block const>, PosHasher>
-      fTileBlocks;
+  std::unordered_map<Pos, std::shared_ptr<mcfile::Block const>, PosHasher> fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;

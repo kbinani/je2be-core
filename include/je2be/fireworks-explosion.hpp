@@ -129,12 +129,11 @@ private:
     };
     std::vector<Color> copy(colors);
     Lab ref = Lab::From(rgb);
-    std::sort(copy.begin(), copy.end(),
-              [ref](Color const &lhs, Color const &rhs) {
-                double dl = Lab::Difference(lhs.fColor, ref);
-                double dr = Lab::Difference(rhs.fColor, ref);
-                return dl < dr;
-              });
+    std::sort(copy.begin(), copy.end(), [ref](Color const &lhs, Color const &rhs) {
+      double dl = Lab::Difference(lhs.fColor, ref);
+      double dr = Lab::Difference(rhs.fColor, ref);
+      return dl < dr;
+    });
     auto ret = copy[0];
     return ret.fCode;
   }

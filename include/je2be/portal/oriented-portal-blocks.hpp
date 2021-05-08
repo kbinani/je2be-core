@@ -21,11 +21,8 @@ public:
           }
         }
       }
-      uint8_t span = (uint8_t)(std::max(topSouthEast.fX - bottomNorthWest.fX,
-                                        topSouthEast.fZ - bottomNorthWest.fZ) +
-                               1);
-      Portal portal((int32_t)dim, span, bottomNorthWest.fX, bottomNorthWest.fY,
-                    bottomNorthWest.fZ, fXAxis ? 1 : 0, fXAxis ? 0 : 1);
+      uint8_t span = (uint8_t)(std::max(topSouthEast.fX - bottomNorthWest.fX, topSouthEast.fZ - bottomNorthWest.fZ) + 1);
+      Portal portal((int32_t)dim, span, bottomNorthWest.fX, bottomNorthWest.fY, bottomNorthWest.fZ, fXAxis ? 1 : 0, fXAxis ? 0 : 1);
       buffer.push_back(portal);
     }
   }

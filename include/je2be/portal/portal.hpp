@@ -4,10 +4,7 @@ namespace j2b {
 
 class Portal {
 public:
-  Portal(int32_t dimId, uint8_t span, int32_t tpX, int32_t tpY, int32_t tpZ,
-         uint8_t xa, uint8_t za)
-      : fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa),
-        fZa(za) {}
+  Portal(int32_t dimId, uint8_t span, int32_t tpX, int32_t tpY, int32_t tpZ, uint8_t xa, uint8_t za) : fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa), fZa(za) {}
 
   std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
     using namespace std;

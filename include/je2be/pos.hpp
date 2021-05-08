@@ -6,9 +6,7 @@ class Pos {
 public:
   Pos(int x, int y, int z) : fX(x), fZ(z), fY(y) {}
 
-  bool operator==(Pos const &other) const {
-    return fX == other.fX && fZ == other.fZ && fY == other.fY;
-  }
+  bool operator==(Pos const &other) const { return fX == other.fX && fZ == other.fZ && fY == other.fY; }
 
   static double DistanceSquare(Pos const &a, Pos const &b) {
     double dx = a.fX - b.fX;

@@ -12,8 +12,7 @@ inline FILE *Open(std::filesystem::path const &p, char const *mode) {
 #endif
 }
 
-inline std::optional<std::filesystem::path>
-CreateTempDir(std::filesystem::path const &tempDir) {
+inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path const &tempDir) {
   namespace fs = std::filesystem;
   auto tmp = fs::temp_directory_path();
 #if defined(_MSC_VER)

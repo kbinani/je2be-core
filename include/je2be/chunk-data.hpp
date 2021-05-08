@@ -4,8 +4,7 @@ namespace j2b {
 
 class ChunkData {
 public:
-  ChunkData(int32_t chunkX, int32_t chunkZ, Dimension dim)
-      : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
+  ChunkData(int32_t chunkX, int32_t chunkZ, Dimension dim) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
 
   void put(DbInterface &db) {
     auto status = putChunkSections(db);
@@ -51,8 +50,7 @@ private:
     if (fBlockEntity.empty()) {
       db.del(key);
     } else {
-      leveldb::Slice blockEntity((char *)fBlockEntity.data(),
-                                 fBlockEntity.size());
+      leveldb::Slice blockEntity((char *)fBlockEntity.data(), fBlockEntity.size());
       db.put(key, blockEntity);
     }
   }
@@ -79,8 +77,7 @@ private:
       if (fSubChunks[i].empty()) {
         db.del(key);
       } else {
-        leveldb::Slice subchunk((char *)fSubChunks[i].data(),
-                                fSubChunks[i].size());
+        leveldb::Slice subchunk((char *)fSubChunks[i].data(), fSubChunks[i].size());
         db.put(key, subchunk);
         empty = false;
       }

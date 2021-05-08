@@ -20,13 +20,11 @@ public:
       int maxChunkZ = mcfile::Coordinate::ChunkFromBlock(it.fVolume.fEnd.fZ);
       for (int cx = minChunkX; cx <= maxChunkX; cx++) {
         for (int cz = minChunkZ; cz < maxChunkZ; cz++) {
-          Volume chunkVolume(Pos(cx * 16, 0, cz * 16),
-                             Pos(cx * 16 + 15, 255, cz * 16 + 15));
+          Volume chunkVolume(Pos(cx * 16, 0, cz * 16), Pos(cx * 16 + 15, 255, cz * 16 + 15));
           auto intersection = Volume::Intersection(chunkVolume, it.fVolume);
           if (intersection) {
             Pos idx(cx, 0, cz);
-            StructurePiece p(intersection->fStart, intersection->fEnd,
-                             it.fType);
+            StructurePiece p(intersection->fStart, intersection->fEnd, it.fType);
             splitted[idx].push_back(p);
           }
         }

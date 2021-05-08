@@ -17,9 +17,7 @@ public:
     return *(int64_t *)&s;
   }
 
-  static bool Convert(int32_t javaMapId, CompoundTag const &item,
-                      std::filesystem::path const &input,
-                      InputOption const &opt, DbInterface &db) {
+  static bool Convert(int32_t javaMapId, CompoundTag const &item, std::filesystem::path const &input, InputOption const &opt, DbInterface &db) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
@@ -58,8 +56,7 @@ public:
     auto colors = data->byteArrayTag("colors");
     auto unlimitedTracking = data->boolean("unlimitedTracking");
 
-    if (!locked || !scale || !xCenter || !zCenter || !colors ||
-        !unlimitedTracking)
+    if (!locked || !scale || !xCenter || !zCenter || !colors || !unlimitedTracking)
       return false;
 
     for (int beScale = 0; beScale <= 4; beScale++) {
@@ -138,10 +135,8 @@ public:
             auto data = make_shared<CompoundTag>();
             data->set("rot", Int(rot));
             data->set("type", Int(1));
-            auto [markerX, markerY] =
-                MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
-            if (markerX < -128 || 128 < markerX || markerY < -128 ||
-                128 < markerY)
+            auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY)
               continue;
             data->set("x", Int(markerX));
             data->set("y", Int(markerY));
@@ -183,10 +178,8 @@ public:
             auto data = make_shared<CompoundTag>();
             data->set("rot", Int(8));
             data->set("type", Int(outType));
-            auto [markerX, markerY] =
-                MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
-            if (markerX < -128 || 128 < markerX || markerY < -128 ||
-                128 < markerY)
+            auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY)
               continue;
             data->set("x", Int(markerX));
             data->set("y", Int(markerY));
@@ -228,9 +221,7 @@ public:
   }
 
 private:
-  static std::tuple<int32_t, int32_t>
-  MarkerPosition(int32_t blockX, int32_t blockZ, int32_t xCenter,
-                 int32_t zCenter, int32_t scale) {
+  static std::tuple<int32_t, int32_t> MarkerPosition(int32_t blockX, int32_t blockZ, int32_t xCenter, int32_t zCenter, int32_t scale) {
     int32_t size = 128 * (int32_t)ceil(pow(2, scale));
     int32_t x0 = xCenter - size / 2;
     int32_t z0 = zCenter - size / 2;
@@ -245,26 +236,7 @@ private:
 
   static Rgba RgbaFromId(uint8_t colorId) {
     static std::vector<Rgba> const mapping = {
-        Rgba(0, 0, 0, 0),    Rgba(127, 178, 56),  Rgba(247, 233, 163),
-        Rgba(199, 199, 199), Rgba(255, 0, 0),     Rgba(160, 160, 255),
-        Rgba(167, 167, 167), Rgba(0, 124, 0),     Rgba(255, 255, 255),
-        Rgba(164, 168, 184), Rgba(151, 109, 77),  Rgba(112, 112, 112),
-        Rgba(64, 64, 255),   Rgba(143, 119, 72),  Rgba(255, 252, 245),
-        Rgba(216, 127, 51),  Rgba(178, 76, 216),  Rgba(102, 153, 216),
-        Rgba(229, 229, 51),  Rgba(127, 204, 25),  Rgba(242, 127, 165),
-        Rgba(76, 76, 76),    Rgba(153, 153, 153), Rgba(76, 127, 153),
-        Rgba(127, 63, 178),  Rgba(51, 76, 178),   Rgba(102, 76, 51),
-        Rgba(102, 127, 51),  Rgba(153, 51, 51),   Rgba(25, 25, 25),
-        Rgba(250, 238, 77),  Rgba(92, 219, 213),  Rgba(74, 128, 255),
-        Rgba(0, 217, 58),    Rgba(129, 86, 49),   Rgba(112, 2, 0),
-        Rgba(209, 177, 161), Rgba(159, 82, 36),   Rgba(149, 87, 108),
-        Rgba(112, 108, 138), Rgba(186, 133, 36),  Rgba(103, 117, 53),
-        Rgba(160, 77, 78),   Rgba(57, 41, 35),    Rgba(135, 107, 98),
-        Rgba(87, 92, 92),    Rgba(122, 73, 88),   Rgba(76, 62, 92),
-        Rgba(76, 50, 35),    Rgba(76, 82, 42),    Rgba(142, 60, 46),
-        Rgba(37, 22, 16),    Rgba(189, 48, 49),   Rgba(148, 63, 97),
-        Rgba(92, 25, 29),    Rgba(22, 126, 134),  Rgba(58, 142, 140),
-        Rgba(86, 44, 62),    Rgba(20, 180, 133),
+        Rgba(0, 0, 0, 0), Rgba(127, 178, 56), Rgba(247, 233, 163), Rgba(199, 199, 199), Rgba(255, 0, 0), Rgba(160, 160, 255), Rgba(167, 167, 167), Rgba(0, 124, 0), Rgba(255, 255, 255), Rgba(164, 168, 184), Rgba(151, 109, 77), Rgba(112, 112, 112), Rgba(64, 64, 255), Rgba(143, 119, 72), Rgba(255, 252, 245), Rgba(216, 127, 51), Rgba(178, 76, 216), Rgba(102, 153, 216), Rgba(229, 229, 51), Rgba(127, 204, 25), Rgba(242, 127, 165), Rgba(76, 76, 76), Rgba(153, 153, 153), Rgba(76, 127, 153), Rgba(127, 63, 178), Rgba(51, 76, 178), Rgba(102, 76, 51), Rgba(102, 127, 51), Rgba(153, 51, 51), Rgba(25, 25, 25), Rgba(250, 238, 77), Rgba(92, 219, 213), Rgba(74, 128, 255), Rgba(0, 217, 58), Rgba(129, 86, 49), Rgba(112, 2, 0), Rgba(209, 177, 161), Rgba(159, 82, 36), Rgba(149, 87, 108), Rgba(112, 108, 138), Rgba(186, 133, 36), Rgba(103, 117, 53), Rgba(160, 77, 78), Rgba(57, 41, 35), Rgba(135, 107, 98), Rgba(87, 92, 92), Rgba(122, 73, 88), Rgba(76, 62, 92), Rgba(76, 50, 35), Rgba(76, 82, 42), Rgba(142, 60, 46), Rgba(37, 22, 16), Rgba(189, 48, 49), Rgba(148, 63, 97), Rgba(92, 25, 29), Rgba(22, 126, 134), Rgba(58, 142, 140), Rgba(86, 44, 62), Rgba(20, 180, 133),
     };
     uint8_t variant = 0x3 & colorId;
     uint8_t index = colorId / 4;

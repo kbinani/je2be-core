@@ -26,28 +26,14 @@ public:
     ret->set("EntityType", Int(9071));
     string bodyIdPrefix;
     if (fSmall) {
-      static vector<string> const m = {
-          "item.tropicalBodyFlopper", "item.tropicalBodyStripey",
-          "item.tropicalBodyGlitter", "item.tropicalBodyBlockfish",
-          "item.tropicalBodyBetty",   "item.tropicalBodyClayfish"};
+      static vector<string> const m = {"item.tropicalBodyFlopper", "item.tropicalBodyStripey", "item.tropicalBodyGlitter", "item.tropicalBodyBlockfish", "item.tropicalBodyBetty", "item.tropicalBodyClayfish"};
       bodyIdPrefix = m[std::clamp(fPattern, 0, 5)];
     } else {
-      static vector<string> const m = {
-          "item.tropicalBodyKob",     "item.tropicalBodySunstreak",
-          "item.tropicalBodySnooper", "item.tropicalBodyDasher",
-          "item.tropicalBodyBrinely", "item.tropicalBodySpotty"};
+      static vector<string> const m = {"item.tropicalBodyKob", "item.tropicalBodySunstreak", "item.tropicalBodySnooper", "item.tropicalBodyDasher", "item.tropicalBodyBrinely", "item.tropicalBodySpotty"};
       bodyIdPrefix = m[std::clamp(fPattern, 0, 5)];
     }
 
-    static vector<string> const colorIdMap = {
-        "item.tropicalColorWhite.name",   "item.tropicalColorOrange.name",
-        "item.tropicalColorMagenta.name", "item.tropicalColorSky.name",
-        "item.tropicalColorYellow.name",  "item.tropicalColorLime.name",
-        "item.tropicalColorRose.name",    "item.tropicalColorGray.name",
-        "item.tropicalColorSilver.name",  "item.tropicalColorTeal.name",
-        "item.tropicalColorPlum.name",    "item.tropicalColorBlue.name",
-        "item.tropicalColorBrown.name",   "item.tropicalColorGreen.name",
-        "item.tropicalColorRed.name"};
+    static vector<string> const colorIdMap = {"item.tropicalColorWhite.name", "item.tropicalColorOrange.name", "item.tropicalColorMagenta.name", "item.tropicalColorSky.name", "item.tropicalColorYellow.name", "item.tropicalColorLime.name", "item.tropicalColorRose.name", "item.tropicalColorGray.name", "item.tropicalColorSilver.name", "item.tropicalColorTeal.name", "item.tropicalColorPlum.name", "item.tropicalColorBlue.name", "item.tropicalColorBrown.name", "item.tropicalColorGreen.name", "item.tropicalColorRed.name"};
     string colorId = colorIdMap[std::clamp((int)fBodyColor, 0, 14)];
 
     string color2Id = colorIdMap[std::clamp((int)fPatternColor, 0, 14)];
@@ -68,10 +54,7 @@ public:
   }
 
 private:
-  TropicalFish(bool small, int32_t pattern, int8_t bodyColor,
-               int8_t patternColor)
-      : fSmall(small), fPattern(pattern), fBodyColor(bodyColor),
-        fPatternColor(patternColor) {}
+  TropicalFish(bool small, int32_t pattern, int8_t bodyColor, int8_t patternColor) : fSmall(small), fPattern(pattern), fBodyColor(bodyColor), fPatternColor(patternColor) {}
 
 public:
   bool fSmall;

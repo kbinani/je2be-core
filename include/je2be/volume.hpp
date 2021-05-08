@@ -20,13 +20,10 @@ public:
     return Volume(start, end);
   }
 
-  static bool Equals(Volume const &a, Volume const &b) {
-    return a.fStart == b.fStart && a.fEnd == b.fEnd;
-  }
+  static bool Equals(Volume const &a, Volume const &b) { return a.fStart == b.fStart && a.fEnd == b.fEnd; }
 
 private:
-  static std::optional<std::tuple<int32_t, int32_t>>
-  Intersection(int32_t a0, int32_t a1, int32_t b0, int32_t b1) {
+  static std::optional<std::tuple<int32_t, int32_t>> Intersection(int32_t a0, int32_t a1, int32_t b0, int32_t b1) {
     using namespace std;
     int32_t maxLowerBound = std::max(a0, b0);
     int32_t minUpperBound = std::min(a1, b1);

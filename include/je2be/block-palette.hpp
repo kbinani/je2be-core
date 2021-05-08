@@ -6,17 +6,14 @@ class BlockPalette {
   using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
-  BlockPalette()
-      : fPaletteKeys({"minecraft:air"}), fPalette({BlockData::Air()}) {}
+  BlockPalette() : fPaletteKeys({"minecraft:air"}), fPalette({BlockData::Air()}) {}
 
-  void push(std::string const &blockState,
-            std::shared_ptr<CompoundTag> const &tag) {
+  void push(std::string const &blockState, std::shared_ptr<CompoundTag> const &tag) {
     fPaletteKeys.push_back(blockState);
     fPalette.push_back(tag);
   }
 
-  uint16_t add(std::string const &blockState,
-               std::shared_ptr<CompoundTag> const &tag) {
+  uint16_t add(std::string const &blockState, std::shared_ptr<CompoundTag> const &tag) {
     auto i = findByBlockState(blockState);
     if (i) {
       return *i;
@@ -29,15 +26,11 @@ public:
 
   size_t size() const { return fPalette.size(); }
 
-  std::shared_ptr<CompoundTag> operator[](size_t index) const {
-    return fPalette[index];
-  }
+  std::shared_ptr<CompoundTag> operator[](size_t index) const { return fPalette[index]; }
 
 private:
-  std::optional<uint16_t>
-  findByBlockState(std::string const &blockState) const {
-    auto found =
-        std::find(fPaletteKeys.begin(), fPaletteKeys.end(), blockState);
+  std::optional<uint16_t> findByBlockState(std::string const &blockState) const {
+    auto found = std::find(fPaletteKeys.begin(), fPaletteKeys.end(), blockState);
     if (found == fPaletteKeys.end()) {
       return std::nullopt;
     } else {

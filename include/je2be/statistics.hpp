@@ -16,12 +16,9 @@ public:
     }
   }
 
-  void addChunkVersion(uint32_t chunkVersion) {
-    fChunkDataVersions[chunkVersion] += 1;
-  }
+  void addChunkVersion(uint32_t chunkVersion) { fChunkDataVersions[chunkVersion] += 1; }
 
-  void add(uint64_t numChunks, uint64_t numBlockEntities,
-           uint64_t numEntities) {
+  void add(uint64_t numChunks, uint64_t numBlockEntities, uint64_t numEntities) {
     fNumChunks += numChunks;
     fNumBlockEntities += numBlockEntities;
     fNumEntities = numEntities;

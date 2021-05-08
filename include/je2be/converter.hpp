@@ -4,12 +4,9 @@ namespace j2b {
 
 class Converter {
 public:
-  Converter(std::string const &input, InputOption io, std::string const &output,
-            OutputOption oo)
-      : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
+  Converter(std::string const &input, InputOption io, std::string const &output, OutputOption oo) : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
 
-  std::optional<Statistics> run(unsigned int concurrency,
-                                Progress *progress = nullptr) {
+  std::optional<Statistics> run(unsigned int concurrency, Progress *progress = nullptr) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile;
@@ -22,16 +19,14 @@ public:
     fs::create_directory(rootPath);
     fs::create_directory(dbPath);
 
-    auto data =
-        LevelData::Read(fInputOption.getLevelDatFilePath(fs::path(fInput)));
+    auto data = LevelData::Read(fInputOption.getLevelDatFilePath(fs::path(fInput)));
     if (!data)
       return nullopt;
     LevelData levelData = LevelData::Import(*data);
     levelData.write(fOutput + string("/level.dat"));
 
     bool ok = true;
-    auto worldData =
-        std::make_unique<WorldData>(fs::path(fInput), fInputOption);
+    auto worldData = std::make_unique<WorldData>(fs::path(fInput), fInputOption);
     {
       RawDb db(dbPath.string(), concurrency);
       if (!db.valid()) {
@@ -39,12 +34,10 @@ public:
       }
 
       uint32_t done = 0;
-      for (auto dim :
-           {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+      for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
         World world(dir.string());
-        bool complete = convertWorld(world, dim, db, *worldData, concurrency,
-                                     progress, done, numTotalChunks);
+        bool complete = convertWorld(world, dim, db, *worldData, concurrency, progress, done, numTotalChunks);
         ok &= complete;
         if (!complete) {
           break;
@@ -78,8 +71,7 @@ public:
   }
 
 private:
-  static std::optional<std::string>
-  LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
+  static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
 
@@ -113,9 +105,7 @@ private:
     return ret;
   }
 
-  bool convertWorld(mcfile::World const &w, Dimension dim, DbInterface &db,
-                    WorldData &wd, unsigned int concurrency, Progress *progress,
-                    uint32_t &done, double const numTotalChunks) {
+  bool convertWorld(mcfile::World const &w, Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
 
@@ -128,58 +118,53 @@ private:
     };
     deque<future<Result>> futures;
 
-    bool completed = w.eachRegions(
-        [this, dim, &db, &pool, &futures, concurrency, &wd, &done, progress,
-         numTotalChunks](shared_ptr<Region> const &region) {
-          JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
-          for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
-            for (int cz = region->minChunkZ(); cz <= region->maxChunkZ();
-                 cz++) {
-              if (futures.size() > 10 * size_t(concurrency)) {
-                for (unsigned int i = 0; i < 5 * concurrency; i++) {
-                  Result const &result = futures.front().get();
-                  futures.pop_front();
-                  done++;
-                  if (!result.fData)
-                    continue;
-                  result.fData->drain(wd);
-                  if (!result.fOk) {
-                    return false;
-                  }
-                }
+    bool completed = w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &wd, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+      JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
+      for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
+        for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
+          if (futures.size() > 10 * size_t(concurrency)) {
+            for (unsigned int i = 0; i < 5 * concurrency; i++) {
+              Result const &result = futures.front().get();
+              futures.pop_front();
+              done++;
+              if (!result.fData)
+                continue;
+              result.fData->drain(wd);
+              if (!result.fOk) {
+                return false;
               }
-
-              if (progress) {
-                bool continue_ = progress->report(Progress::Phase::Convert,
-                                                  done, numTotalChunks);
-                if (!continue_) {
-                  return false;
-                }
-              }
-
-              futures.push_back(move(pool.submit(
-                  [this, dim, &db, region, cx, cz, mapInfo]() -> Result {
-                    try {
-                      auto const &chunk = region->chunkAt(cx, cz);
-                      Result r;
-                      r.fOk = true;
-                      if (!chunk) {
-                        return r;
-                      }
-                      r.fData = putChunk(*chunk, dim, db, mapInfo);
-                      return r;
-                    } catch (...) {
-                      Result r;
-                      r.fData = make_shared<DimensionDataFragment>(dim);
-                      r.fData->addStatError(dim, cx, cz);
-                      r.fOk = false;
-                      return r;
-                    }
-                  })));
             }
           }
-          return true;
-        });
+
+          if (progress) {
+            bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
+            if (!continue_) {
+              return false;
+            }
+          }
+
+          futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz, mapInfo]() -> Result {
+            try {
+              auto const &chunk = region->chunkAt(cx, cz);
+              Result r;
+              r.fOk = true;
+              if (!chunk) {
+                return r;
+              }
+              r.fData = putChunk(*chunk, dim, db, mapInfo);
+              return r;
+            } catch (...) {
+              Result r;
+              r.fData = make_shared<DimensionDataFragment>(dim);
+              r.fData->addStatError(dim, cx, cz);
+              r.fOk = false;
+              return r;
+            }
+          })));
+        }
+      }
+      return true;
+    });
 
     for (auto &f : futures) {
       Result const &result = f.get();
@@ -197,9 +182,7 @@ private:
     return completed;
   }
 
-  std::shared_ptr<DimensionDataFragment>
-  putChunk(mcfile::Chunk const &chunk, Dimension dim, DbInterface &db,
-           JavaEditionMap const &mapInfo) {
+  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -224,9 +207,7 @@ private:
     return ret;
   }
 
-  void putSubChunk(mcfile::Chunk const &chunk, Dimension dim, int chunkY,
-                   ChunkData &cd, ChunkDataPackage &cdp,
-                   DimensionDataFragment &ddf) {
+  void putSubChunk(mcfile::Chunk const &chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;
@@ -308,8 +289,7 @@ private:
               bool xAxis = block->property("axis", "x") == "x";
               ddf.addPortalBlock(bx, by, bz, xAxis);
             }
-            if (strings::Equal(block->fName, end_portal) &&
-                dim == Dimension::End) {
+            if (strings::Equal(block->fName, end_portal) && dim == Dimension::End) {
               ddf.addEndPortal(bx, by, bz);
             }
 
@@ -425,8 +405,7 @@ private:
       uint32_t const mask = ~((~((uint32_t)0)) << bitsPerBlock);
       for (size_t i = 0; i < kNumBlocksInSubChunk; i += blocksPerWord) {
         uint32_t v = 0;
-        for (size_t j = 0; j < blocksPerWord && i + j < kNumBlocksInSubChunk;
-             j++) {
+        for (size_t j = 0; j < blocksPerWord && i + j < kNumBlocksInSubChunk; j++) {
           uint32_t const index = (uint32_t)indices[i + j];
           v = v | ((mask & index) << (j * bitsPerBlock));
         }
@@ -455,8 +434,7 @@ private:
       w.write((uint8_t)(bitsPerBlock * 2));
       for (size_t i = 0; i < kNumBlocksInSubChunk; i += blocksPerWord) {
         uint32_t v = 0;
-        for (size_t j = 0; j < blocksPerWord && i + j < kNumBlocksInSubChunk;
-             j++) {
+        for (size_t j = 0; j < blocksPerWord && i + j < kNumBlocksInSubChunk; j++) {
           bool waterlogged = waterloggedIndices[i + j];
           uint32_t const index = waterlogged ? paletteWater : paletteAir;
           v = v | (index << (j * bitsPerBlock));
@@ -497,18 +475,14 @@ private:
       }
     }
     auto const &name = block.fName;
-    return strings::Equal(name, seagrass) ||
-           strings::Equal(name, tall_seagrass) || strings::Equal(name, kelp) ||
-           strings::Equal(name, kelp_plant) ||
-           strings::Equal(name, bubble_column);
+    return strings::Equal(name, seagrass) || strings::Equal(name, tall_seagrass) || strings::Equal(name, kelp) || strings::Equal(name, kelp_plant) || strings::Equal(name, bubble_column);
   }
 
   static bool IsAir(std::string const &name) {
     static std::string const air("minecraft:air");
     static std::string const cave_air("minecraft:cave_air");
     static std::string const void_air("minecraft:void_air");
-    return strings::Equal(name, air) || strings::Equal(name, cave_air) ||
-           strings::Equal(name, void_air);
+    return strings::Equal(name, air) || strings::Equal(name, cave_air) || strings::Equal(name, void_air);
   }
 
   double getTotalNumChunks() const {
@@ -524,8 +498,7 @@ private:
           continue;
         }
         auto name = e.path().filename().string();
-        if (strings::StartsWith(name, "r.") &&
-            strings::EndsWith(name, ".mca")) {
+        if (strings::StartsWith(name, "r.") && strings::EndsWith(name, ".mca")) {
           num++;
         }
       }

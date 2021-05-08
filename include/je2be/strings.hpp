@@ -59,10 +59,7 @@ inline std::string RTrim(std::string const &s, std::string const &right) {
   return ret;
 }
 
-inline std::string Trim(std::string const &left, std::string const &s,
-                        std::string const &right) {
-  return RTrim(LTrim(s, left), right);
-}
+inline std::string Trim(std::string const &left, std::string const &s, std::string const &right) { return RTrim(LTrim(s, left), right); }
 
 inline std::string Replace(std::string const &s, std::string const &search) {
   if (search.empty()) {

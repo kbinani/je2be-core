@@ -32,27 +32,10 @@ enum class BannerColorCodeBedrock : int32_t {
   White = 15,
 };
 
-inline BannerColorCodeBedrock
-BannerColorCodeFromName(std::string const &color) {
-  static std::unordered_map<std::string, BannerColorCodeBedrock> const mapping =
-      {
-          {"white", BannerColorCodeBedrock::White},
-          {"orange", BannerColorCodeBedrock::Orange},
-          {"magenta", BannerColorCodeBedrock::Magenta},
-          {"light_blue", BannerColorCodeBedrock::LightBlue},
-          {"yellow", BannerColorCodeBedrock::Yellow},
-          {"lime", BannerColorCodeBedrock::Lime},
-          {"pink", BannerColorCodeBedrock::Pink},
-          {"gray", BannerColorCodeBedrock::Gray},
-          {"light_gray", BannerColorCodeBedrock::LightGray},
-          {"cyan", BannerColorCodeBedrock::Cyan},
-          {"purple", BannerColorCodeBedrock::Purple},
-          {"blue", BannerColorCodeBedrock::Blue},
-          {"brown", BannerColorCodeBedrock::Brown},
-          {"green", BannerColorCodeBedrock::Green},
-          {"red", BannerColorCodeBedrock::Red},
-          {"black", BannerColorCodeBedrock::Black},
-      };
+inline BannerColorCodeBedrock BannerColorCodeFromName(std::string const &color) {
+  static std::unordered_map<std::string, BannerColorCodeBedrock> const mapping = {
+      {"white", BannerColorCodeBedrock::White}, {"orange", BannerColorCodeBedrock::Orange}, {"magenta", BannerColorCodeBedrock::Magenta}, {"light_blue", BannerColorCodeBedrock::LightBlue}, {"yellow", BannerColorCodeBedrock::Yellow}, {"lime", BannerColorCodeBedrock::Lime}, {"pink", BannerColorCodeBedrock::Pink}, {"gray", BannerColorCodeBedrock::Gray}, {"light_gray", BannerColorCodeBedrock::LightGray}, {"cyan", BannerColorCodeBedrock::Cyan}, {"purple", BannerColorCodeBedrock::Purple}, {"blue", BannerColorCodeBedrock::Blue}, {"brown", BannerColorCodeBedrock::Brown}, {"green", BannerColorCodeBedrock::Green}, {"red", BannerColorCodeBedrock::Red}, {"black", BannerColorCodeBedrock::Black},
+  };
   auto found = mapping.find(color);
   if (found == mapping.end()) {
     return BannerColorCodeBedrock::White;
@@ -82,22 +65,7 @@ enum class ColorCodeJava : int32_t {
 
 inline ColorCodeJava ColorCodeJavaFromName(std::string const &color) {
   static std::unordered_map<std::string, ColorCodeJava> const mapping = {
-      {"white", ColorCodeJava::White},
-      {"orange", ColorCodeJava::Orange},
-      {"magenta", ColorCodeJava::Magenta},
-      {"light_blue", ColorCodeJava::LightBlue},
-      {"yellow", ColorCodeJava::Yellow},
-      {"lime", ColorCodeJava::Lime},
-      {"pink", ColorCodeJava::Pink},
-      {"gray", ColorCodeJava::Gray},
-      {"light_gray", ColorCodeJava::LightGray},
-      {"cyan", ColorCodeJava::Cyan},
-      {"purple", ColorCodeJava::Purple},
-      {"blue", ColorCodeJava::Blue},
-      {"brown", ColorCodeJava::Brown},
-      {"green", ColorCodeJava::Green},
-      {"red", ColorCodeJava::Red},
-      {"black", ColorCodeJava::Black},
+      {"white", ColorCodeJava::White}, {"orange", ColorCodeJava::Orange}, {"magenta", ColorCodeJava::Magenta}, {"light_blue", ColorCodeJava::LightBlue}, {"yellow", ColorCodeJava::Yellow}, {"lime", ColorCodeJava::Lime}, {"pink", ColorCodeJava::Pink}, {"gray", ColorCodeJava::Gray}, {"light_gray", ColorCodeJava::LightGray}, {"cyan", ColorCodeJava::Cyan}, {"purple", ColorCodeJava::Purple}, {"blue", ColorCodeJava::Blue}, {"brown", ColorCodeJava::Brown}, {"green", ColorCodeJava::Green}, {"red", ColorCodeJava::Red}, {"black", ColorCodeJava::Black},
   };
   auto found = mapping.find(color);
   if (found == mapping.end()) {

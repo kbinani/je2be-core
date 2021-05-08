@@ -48,8 +48,7 @@ public:
     double deltaLKlsl = deltaL / (1.0);
     double deltaCkcsc = deltaC / (sc);
     double deltaHkhsh = deltaH / (sh);
-    double i = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc +
-               deltaHkhsh * deltaHkhsh;
+    double i = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
     return i < 0 ? 0 : sqrt(i);
   }
 };

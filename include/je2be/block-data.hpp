@@ -4,11 +4,9 @@ namespace j2b {
 
 class BlockData {
 public:
-  static std::shared_ptr<mcfile::nbt::CompoundTag>
-  From(std::shared_ptr<mcfile::Block const> const &block) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::Block const> const &block) {
     using namespace std;
-    static unique_ptr<unordered_map<string, Converter> const> const table(
-        CreateConverterTable());
+    static unique_ptr<unordered_map<string, Converter> const> const table(CreateConverterTable());
 
     auto found = table->find(block->fName);
     if (found == table->end()) {
@@ -23,8 +21,7 @@ public:
     return air;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag>
-  Make(std::string const &name) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> Make(std::string const &name) {
     auto tag = New(name);
     auto states = States();
     tag->set("states", states);
@@ -78,15 +75,11 @@ private:
   using PropertySpec = std::pair<std::string, PropertyType>;
 
   using NamingFunction = std::function<std::string(Block const &)>;
-  using PropertyMapFunction =
-      std::function<std::pair<std::string, PropertyType>(Block const &)>;
+  using PropertyMapFunction = std::function<std::pair<std::string, PropertyType>(Block const &)>;
 
   class Converter {
   public:
-    template <class... Arg>
-    Converter(NamingFunction name, Arg... args)
-        : fName(name),
-          fProperties(std::initializer_list<PropertyMapFunction>{args...}) {}
+    template <class... Arg> Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyMapFunction>{args...}) {}
 
     BlockDataType operator()(Block const &block) const {
       using namespace std;
@@ -119,12 +112,10 @@ private:
 
   static std::string Same(Block const &block) { return block.fName; }
 
-  static NamingFunction SlabName(std::string const &name,
-                                 std::string const &tail) {
+  static NamingFunction SlabName(std::string const &name, std::string const &tail) {
     return [=](Block const &block) {
       auto t = block.property("type", "bottom");
-      return t == "double" ? ("minecraft:double_" + name + "_slab" + tail)
-                           : ("minecraft:" + name + "_slab" + tail);
+      return t == "double" ? ("minecraft:double_" + name + "_slab" + tail) : ("minecraft:" + name + "_slab" + tail);
     };
   }
 
@@ -135,24 +126,19 @@ private:
     };
   }
 
-  static PropertyMapFunction AddStringProperty(std::string const &name,
-                                               std::string const &value) {
-    return [=](Block const &) {
-      return std::make_pair(name, props::String(value));
-    };
+  static PropertyMapFunction AddStringProperty(std::string const &name, std::string const &value) {
+    return [=](Block const &) { return std::make_pair(name, props::String(value)); };
   }
 
   static PropertyMapFunction AddBoolProperty(std::string const &name, bool v) {
     return [=](Block const &) { return std::make_pair(name, props::Bool(v)); };
   }
 
-  static PropertyMapFunction AddIntProperty(std::string const &name,
-                                            int32_t v) {
+  static PropertyMapFunction AddIntProperty(std::string const &name, int32_t v) {
     return [=](Block const &) { return std::make_pair(name, props::Int(v)); };
   }
 
-  static PropertyMapFunction AddByteProperty(std::string const &name,
-                                             int8_t v) {
+  static PropertyMapFunction AddByteProperty(std::string const &name, int8_t v) {
     return [=](Block const &) { return std::make_pair(name, props::Byte(v)); };
   }
 
@@ -178,13 +164,9 @@ private:
     return std::make_pair("top_slot_bit", props::Bool(t == "top"));
   }
 
-  static PropertyMapFunction AddStoneSlabType(std::string const &number,
-                                              std::string const &type) {
-    auto typeKey =
-        number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
-    return [=](Block const &) {
-      return std::make_pair(typeKey, props::String(type));
-    };
+  static PropertyMapFunction AddStoneSlabType(std::string const &number, std::string const &type) {
+    auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
+    return [=](Block const &) { return std::make_pair(typeKey, props::String(type)); };
   }
 
   static PropertySpec UpperBlockBitToHalf(Block const &block) {
@@ -214,11 +196,8 @@ private:
     return props::Int(age);
   }
 
-  static PropertyMapFunction
-  Name(std::function<PropertyType(Block const &)> func,
-       std::string const &name) {
-    return
-        [=](Block const &block) { return std::make_pair(name, func(block)); };
+  static PropertyMapFunction Name(std::function<PropertyType(Block const &)> func, std::string const &name) {
+    return [=](Block const &block) { return std::make_pair(name, func(block)); };
   }
 
   static PropertyType Level(Block const &block) {
@@ -249,101 +228,45 @@ private:
     return std::make_pair("vine_direction_bits", props::Int(direction));
   }
 
-  static Converter Subtype(std::string const &name,
-                           std::string const &subtypeTitle,
-                           std::string const &subtype) {
-    return Converter(Name(name), AddStringProperty(subtypeTitle, subtype));
-  }
+  static Converter Subtype(std::string const &name, std::string const &subtypeTitle, std::string const &subtype) { return Converter(Name(name), AddStringProperty(subtypeTitle, subtype)); }
 
-  static Converter Stone(std::string const &stoneType) {
-    return Subtype("stone", "stone_type", stoneType);
-  }
+  static Converter Stone(std::string const &stoneType) { return Subtype("stone", "stone_type", stoneType); }
 
-  static Converter Dirt(std::string const &dirtType) {
-    return Subtype("dirt", "dirt_type", dirtType);
-  }
+  static Converter Dirt(std::string const &dirtType) { return Subtype("dirt", "dirt_type", dirtType); }
 
-  static Converter Log(std::string const &type) {
-    return Converter(Name("log"), AddStringProperty("old_log_type", type),
-                     AxisToPillarAxis);
-  }
+  static Converter Log(std::string const &type) { return Converter(Name("log"), AddStringProperty("old_log_type", type), AxisToPillarAxis); }
 
-  static Converter Log2(std::string const &type) {
-    return Converter(Name("log2"), AddStringProperty("new_log_type", type),
-                     AxisToPillarAxis);
-  }
+  static Converter Log2(std::string const &type) { return Converter(Name("log2"), AddStringProperty("new_log_type", type), AxisToPillarAxis); }
 
-  static Converter Wood(std::string const &type, bool stripped) {
-    return Converter(Name("wood"), AxisToPillarAxis,
-                     AddStringProperty("wood_type", type),
-                     AddBoolProperty("stripped_bit", stripped));
-  }
+  static Converter Wood(std::string const &type, bool stripped) { return Converter(Name("wood"), AxisToPillarAxis, AddStringProperty("wood_type", type), AddBoolProperty("stripped_bit", stripped)); }
 
-  static Converter Leaves(std::string const &type) {
-    return Converter(Name("leaves"), AddStringProperty("old_leaf_type", type),
-                     PersistentToPersistentBit, DistanceToUpdateBit);
-  }
+  static Converter Leaves(std::string const &type) { return Converter(Name("leaves"), AddStringProperty("old_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit); }
 
-  static Converter Leaves2(std::string const &type) {
-    return Converter(Name("leaves2"), AddStringProperty("new_leaf_type", type),
-                     PersistentToPersistentBit, DistanceToUpdateBit);
-  }
+  static Converter Leaves2(std::string const &type) { return Converter(Name("leaves2"), AddStringProperty("new_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit); }
 
-  static Converter WoodenSlab(std::string const &type) {
-    return Converter(SlabName("wooden", ""), TypeToTopSlotBit,
-                     AddStringProperty("wood_type", type));
-  }
+  static Converter WoodenSlab(std::string const &type) { return Converter(SlabName("wooden", ""), TypeToTopSlotBit, AddStringProperty("wood_type", type)); }
 
-  static Converter StoneSlab(std::string const &type) {
-    return StoneSlabNumbered("", type);
-  }
+  static Converter StoneSlab(std::string const &type) { return StoneSlabNumbered("", type); }
 
-  static Converter StoneSlab2(std::string const &type) {
-    return StoneSlabNumbered("2", type);
-  }
+  static Converter StoneSlab2(std::string const &type) { return StoneSlabNumbered("2", type); }
 
-  static Converter StoneSlab3(std::string const &type) {
-    return StoneSlabNumbered("3", type);
-  }
+  static Converter StoneSlab3(std::string const &type) { return StoneSlabNumbered("3", type); }
 
-  static Converter StoneSlab4(std::string const &type) {
-    return StoneSlabNumbered("4", type);
-  }
+  static Converter StoneSlab4(std::string const &type) { return StoneSlabNumbered("4", type); }
 
-  static Converter StoneSlabNumbered(std::string const &number,
-                                     std::string const &type) {
-    return Converter(SlabName("stone", number), TypeToTopSlotBit,
-                     AddStoneSlabType(number, type));
-  }
+  static Converter StoneSlabNumbered(std::string const &number, std::string const &type) { return Converter(SlabName("stone", number), TypeToTopSlotBit, AddStoneSlabType(number, type)); }
 
-  static Converter StoneSlabNT(std::string const &doubledName) {
-    return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit);
-  }
+  static Converter StoneSlabNT(std::string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit); }
 
-  static Converter TallGrass(std::string const &type) {
-    return Converter(Name("tallgrass"),
-                     AddStringProperty("tall_grass_type", type));
-  }
+  static Converter TallGrass(std::string const &type) { return Converter(Name("tallgrass"), AddStringProperty("tall_grass_type", type)); }
 
-  static Converter DoublePlant(std::string const &type) {
-    return Converter(Name("double_plant"),
-                     AddStringProperty("double_plant_type", type),
-                     UpperBlockBitToHalf);
-  }
+  static Converter DoublePlant(std::string const &type) { return Converter(Name("double_plant"), AddStringProperty("double_plant_type", type), UpperBlockBitToHalf); }
 
-  static Converter Rename(std::string const &name) {
-    return Converter(Name(name));
-  }
+  static Converter Rename(std::string const &name) { return Converter(Name(name)); }
 
-  static Converter SeaPickle() {
-    return Converter(Name("sea_pickle"), WaterloggedToDeadBit,
-                     PicklesToClusterCount);
-  }
+  static Converter SeaPickle() { return Converter(Name("sea_pickle"), WaterloggedToDeadBit, PicklesToClusterCount); }
 
-  static Converter RedFlower(std::string const &type) {
-    return Converter(Name("red_flower"),
-                     AddStringProperty("flower_type", type));
-  }
+  static Converter RedFlower(std::string const &type) { return Converter(Name("red_flower"), AddStringProperty("flower_type", type)); }
 
   static Converter Kelp(std::optional<int32_t> age = std::nullopt) {
     if (age) {
@@ -353,15 +276,11 @@ private:
     }
   }
 
-  static Converter Liquid(std::string const &type) {
-    return Converter(Same, Name(Level, "liquid_depth"));
-  }
+  static Converter Liquid(std::string const &type) { return Converter(Same, Name(Level, "liquid_depth")); }
 
-  static Converter NetherVines(std::string const &type,
-                               std::optional<int> age = std::nullopt) {
+  static Converter NetherVines(std::string const &type, std::optional<int> age = std::nullopt) {
     if (age) {
-      return Converter(Name(type + "_vines"),
-                       AddIntProperty(type + "_vines_age", *age));
+      return Converter(Name(type + "_vines"), AddIntProperty(type + "_vines_age", *age));
     } else {
       return Converter(Name(type + "_vines"), Name(Age, type + "_vines_age"));
     }
@@ -392,38 +311,21 @@ private:
     return Converter(naming, HalfToUpsideDownBit, StairsDirectionFromFacing);
   }
 
-  static Converter Sponge(std::string const &type) {
-    return Subtype("sponge", "sponge_type", type);
-  }
+  static Converter Sponge(std::string const &type) { return Subtype("sponge", "sponge_type", type); }
 
-  static Converter Wool(std::string const &color) {
-    return Subtype("wool", "color", color);
-  }
+  static Converter Wool(std::string const &color) { return Subtype("wool", "color", color); }
 
-  static Converter RedSandstone(std::string const &type) {
-    return Subtype("red_sandstone", "sand_stone_type", type);
-  }
+  static Converter RedSandstone(std::string const &type) { return Subtype("red_sandstone", "sand_stone_type", type); }
 
-  static Converter Sandstone(std::string const &type) {
-    return Subtype("sandstone", "sand_stone_type", type);
-  }
+  static Converter Sandstone(std::string const &type) { return Subtype("sandstone", "sand_stone_type", type); }
 
-  static Converter Sand(std::string const &type) {
-    return Subtype("sand", "sand_type", type);
-  }
+  static Converter Sand(std::string const &type) { return Subtype("sand", "sand_type", type); }
 
-  static Converter QuartzBlock(std::string const &type) {
-    return Converter(Name("quartz_block"), AxisToPillarAxis,
-                     AddStringProperty("chisel_type", type));
-  }
+  static Converter QuartzBlock(std::string const &type) { return Converter(Name("quartz_block"), AxisToPillarAxis, AddStringProperty("chisel_type", type)); }
 
-  static Converter PurpurBlock(std::string const &type) {
-    return Subtype("purpur_block", "chisel_type", type);
-  }
+  static Converter PurpurBlock(std::string const &type) { return Subtype("purpur_block", "chisel_type", type); }
 
-  static Converter Planks(std::string const &type) {
-    return Subtype("planks", "wood_type", type);
-  }
+  static Converter Planks(std::string const &type) { return Subtype("planks", "wood_type", type); }
 
   static PropertyType FacingA(Block const &block) {
     auto facing = block.property("facing");
@@ -485,71 +387,41 @@ private:
     return props::Int(direction);
   }
 
-  static PropertySpec DirectionFromFacingA(Block const &block) {
-    return std::make_pair("direction", FacingA(block));
-  }
+  static PropertySpec DirectionFromFacingA(Block const &block) { return std::make_pair("direction", FacingA(block)); }
 
-  static PropertySpec DirectionFromFacingB(Block const &block) {
-    return std::make_pair("direction", FacingB(block));
-  }
+  static PropertySpec DirectionFromFacingB(Block const &block) { return std::make_pair("direction", FacingB(block)); }
 
-  static PropertySpec DirectionFromFacingC(Block const &block) {
-    return std::make_pair("direction", FacingC(block));
-  }
+  static PropertySpec DirectionFromFacingC(Block const &block) { return std::make_pair("direction", FacingC(block)); }
 
-  static Converter LitPumpkin() {
-    return Converter(Name("lit_pumpkin"), DirectionFromFacingA);
-  }
+  static Converter LitPumpkin() { return Converter(Name("lit_pumpkin"), DirectionFromFacingA); }
 
-  static Converter StainedGlass(std::string const &color) {
-    return Subtype("stained_glass", "color", color);
-  }
+  static Converter StainedGlass(std::string const &color) { return Subtype("stained_glass", "color", color); }
 
-  static Converter Prismarine(std::string const &type) {
-    return Subtype("prismarine", "prismarine_block_type", type);
-  }
+  static Converter Prismarine(std::string const &type) { return Subtype("prismarine", "prismarine_block_type", type); }
 
-  static Converter Terracotta(std::string const &color) {
-    return Subtype("stained_hardened_clay", "color", color);
-  }
+  static Converter Terracotta(std::string const &color) { return Subtype("stained_hardened_clay", "color", color); }
 
-  static Converter Concrete(std::string const &color) {
-    return Subtype("concrete", "color", color);
-  }
+  static Converter Concrete(std::string const &color) { return Subtype("concrete", "color", color); }
 
-  static Converter ConcretePowder(std::string const &color) {
-    return Subtype("concretePowder", "color", color);
-  }
+  static Converter ConcretePowder(std::string const &color) { return Subtype("concretePowder", "color", color); }
 
-  static Converter CoralBlock(std::string const &color, bool dead) {
-    return Converter(Name("coral_block"),
-                     AddStringProperty("coral_color", color),
-                     AddBoolProperty("dead_bit", dead));
-  }
+  static Converter CoralBlock(std::string const &color, bool dead) { return Converter(Name("coral_block"), AddStringProperty("coral_color", color), AddBoolProperty("dead_bit", dead)); }
 
   static PropertySpec StageToAgeBit(Block const &block) {
     auto stage = block.property("stage", "0");
     return std::make_pair("age_bit", props::Bool(stage == "1"));
   }
 
-  static Converter Sapling(std::string const &type) {
-    return Converter(Name("sapling"), AddStringProperty("sapling_type", type),
-                     StageToAgeBit);
-  }
+  static Converter Sapling(std::string const &type) { return Converter(Name("sapling"), AddStringProperty("sapling_type", type), StageToAgeBit); }
 
-  static Converter StoneBrick(std::string const &type) {
-    return Subtype("stonebrick", "stone_brick_type", type);
-  }
+  static Converter StoneBrick(std::string const &type) { return Subtype("stonebrick", "stone_brick_type", type); }
 
   static PropertySpec LayersToHeight(Block const &block) {
     auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
     return std::make_pair("height", props::Int(layers - 1));
   }
 
-  static Converter SnowLayer() {
-    return Converter(Name("snow_layer"), LayersToHeight,
-                     AddBoolProperty("covered_bit", false));
-  }
+  static Converter SnowLayer() { return Converter(Name("snow_layer"), LayersToHeight, AddBoolProperty("covered_bit", false)); }
 
   static PropertySpec EndRodFacingDirectionFromFacing(Block const &block) {
     auto facing = block.property("facing", "up");
@@ -570,13 +442,9 @@ private:
     return std::make_pair("facing_direction", props::Int(direction));
   }
 
-  static Converter AnyTorch(std::string const &prefix) {
-    return Converter(Name(prefix + "torch"),
-                     AddStringProperty("torch_facing_direction", "top"));
-  }
+  static Converter AnyTorch(std::string const &prefix) { return Converter(Name(prefix + "torch"), AddStringProperty("torch_facing_direction", "top")); }
 
-  static std::string
-  GetTorchFacingDirectionFromFacing(std::string const &facing) {
+  static std::string GetTorchFacingDirectionFromFacing(std::string const &facing) {
     if (facing == "east") {
       return "west";
     } else if (facing == "west") {
@@ -594,17 +462,11 @@ private:
     return std::make_pair("torch_facing_direction", props::String(direction));
   }
 
-  static Converter AnyWallTorch(std::string const &prefix) {
-    return Converter(Name(prefix + "torch"), TorchFacingDirectionFromFacing);
-  }
+  static Converter AnyWallTorch(std::string const &prefix) { return Converter(Name(prefix + "torch"), TorchFacingDirectionFromFacing); }
 
-  static Converter InfestedStone(std::string const &type) {
-    return Subtype("monster_egg", "monster_egg_stone_type", type);
-  }
+  static Converter InfestedStone(std::string const &type) { return Subtype("monster_egg", "monster_egg_stone_type", type); }
 
-  static Converter Fence(std::string const &type) {
-    return Subtype("fence", "wood_type", type);
-  }
+  static Converter Fence(std::string const &type) { return Subtype("fence", "wood_type", type); }
 
   static PropertyType Moisture(Block const &block) {
     auto v = Wrap(strings::Toi(block.property("moisture", "0")), 0);
@@ -653,13 +515,9 @@ private:
     };
   }
 
-  static Converter AnyMushroomBlock(std::string const &name, bool stem) {
-    return Converter(Name(name), HugeMushroomBits(stem));
-  }
+  static Converter AnyMushroomBlock(std::string const &name, bool stem) { return Converter(Name(name), HugeMushroomBits(stem)); }
 
-  static Converter ShulkerBox(std::string const &color) {
-    return Subtype("shulker_box", "color", color);
-  }
+  static Converter ShulkerBox(std::string const &color) { return Subtype("shulker_box", "color", color); }
 
   static PropertySpec EyeToEndPortalEyeBit(Block const &block) {
     auto eye = block.property("eye", "false") == "true";
@@ -708,44 +566,19 @@ private:
     return std::make_pair("wall_post_bit", props::Bool(up));
   }
 
-  static Converter Wall(std::string const &type) {
-    return Converter(Name("cobblestone_wall"), WallPostBit,
-                     AddStringProperty("wall_block_type", type),
-                     WallConnectionType("east"), WallConnectionType("north"),
-                     WallConnectionType("south"), WallConnectionType("west"));
-  }
+  static Converter Wall(std::string const &type) { return Converter(Name("cobblestone_wall"), WallPostBit, AddStringProperty("wall_block_type", type), WallConnectionType("east"), WallConnectionType("north"), WallConnectionType("south"), WallConnectionType("west")); }
 
-  static Converter Carpet(std::string const &color) {
-    return Subtype("carpet", "color", color);
-  }
+  static Converter Carpet(std::string const &color) { return Subtype("carpet", "color", color); }
 
-  static Converter StainedGlassPane(std::string const &color) {
-    return Subtype("stained_glass_pane", "color", color);
-  }
+  static Converter StainedGlassPane(std::string const &color) { return Subtype("stained_glass_pane", "color", color); }
 
-  static Converter Anvil(std::string const &damage) {
-    return Converter(Name("anvil"), AddStringProperty("damage", damage),
-                     DirectionFromFacingA);
-  }
+  static Converter Anvil(std::string const &damage) { return Converter(Name("anvil"), AddStringProperty("damage", damage), DirectionFromFacingA); }
 
-  static Converter Coral(std::string const &type, bool dead) {
-    return Converter(Name("coral"), AddStringProperty("coral_color", type),
-                     AddBoolProperty("dead_bit", dead));
-  }
+  static Converter Coral(std::string const &type, bool dead) { return Converter(Name("coral"), AddStringProperty("coral_color", type), AddBoolProperty("dead_bit", dead)); }
 
-  static Converter CoralFan(std::string const &type, bool dead) {
-    return Converter(Name(dead ? "coral_fan_dead" : "coral_fan"),
-                     AddStringProperty("coral_color", type),
-                     AddIntProperty("coral_fan_direction", 0));
-  }
+  static Converter CoralFan(std::string const &type, bool dead) { return Converter(Name(dead ? "coral_fan_dead" : "coral_fan"), AddStringProperty("coral_color", type), AddIntProperty("coral_fan_direction", 0)); }
 
-  static Converter CoralWallFan(std::string const &tail, bool dead,
-                                int8_t type) {
-    return Converter(Name("coral_fan_hang" + tail),
-                     AddByteProperty("coral_hang_type_bit", type),
-                     Name(FacingD, "coral_direction"),
-                     AddBoolProperty("dead_bit", dead));
-  }
+  static Converter CoralWallFan(std::string const &tail, bool dead, int8_t type) { return Converter(Name("coral_fan_hang" + tail), AddByteProperty("coral_hang_type_bit", type), Name(FacingD, "coral_direction"), AddBoolProperty("dead_bit", dead)); }
 
   static Converter WallSign(std::optional<std::string> prefix = std::nullopt) {
     std::string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
@@ -772,9 +605,7 @@ private:
     return std::make_pair("occupied_bit", props::Bool(occupied));
   }
 
-  static PropertyType Open(Block const &block) {
-    return props::Bool(block.property("open", "false") == "true");
-  }
+  static PropertyType Open(Block const &block) { return props::Bool(block.property("open", "false") == "true"); }
 
   static PropertySpec GrindstoneFaceToAttachment(Block const &block) {
     auto face = block.property("face", "wall");
@@ -796,8 +627,7 @@ private:
 
   static PropertySpec BellAttachmentFromAttachment(Block const &block) {
     auto attachment = block.property("attachment", "floor");
-    return std::make_pair("attachment",
-                          props::String(GetAttachment(attachment)));
+    return std::make_pair("attachment", props::String(GetAttachment(attachment)));
   }
 
   static PropertySpec BellDirectionFromFacing(Block const &block) {
@@ -919,10 +749,8 @@ private:
     E("prismarine_slab", StoneSlab2("prismarine_rough"));
     E("purpur_slab", StoneSlab2("purpur"));
     E("cut_sandstone_slab", StoneSlab4("cut_sandstone"));
-    E("polished_blackstone_brick_slab",
-      StoneSlabNT("polished_blackstone_brick_double_slab"));
-    E("polished_blackstone_slab",
-      StoneSlabNT("polished_blackstone_double_slab"));
+    E("polished_blackstone_brick_slab", StoneSlabNT("polished_blackstone_brick_double_slab"));
+    E("polished_blackstone_slab", StoneSlabNT("polished_blackstone_double_slab"));
     E("blackstone_slab", StoneSlabNT("blackstone_double_slab"));
     E("polished_andesite_slab", StoneSlab3("polished_andesite"));
     E("red_nether_brick_slab", StoneSlab2("red_nether_brick"));
@@ -951,18 +779,15 @@ private:
     E("oxeye_daisy", RedFlower("oxeye"));
     E("cornflower", RedFlower("cornflower"));
     E("lily_of_the_valley", RedFlower("lily_of_the_valley"));
-    E("seagrass", Converter(Name("seagrass"),
-                            AddStringProperty("sea_grass_type", "default")));
+    E("seagrass", Converter(Name("seagrass"), AddStringProperty("sea_grass_type", "default")));
     E("tall_seagrass", Converter(Name("seagrass"), HalfToSeagrassType));
     E("kelp", Kelp());
     E("kelp_plant", Kelp(16));
     E("water", Liquid("water"));
     E("lava", Liquid("lava"));
-    E("weeping_vines_plant",
-      NetherVines("weeping", 25)); // TODO(kbinani): is 25 correct?
+    E("weeping_vines_plant", NetherVines("weeping", 25)); // TODO(kbinani): is 25 correct?
     E("weeping_vines", NetherVines("weeping"));
-    E("twisting_vines_plant",
-      NetherVines("twisting", 25)); // TODO(kbinani): is 25 correct?
+    E("twisting_vines_plant", NetherVines("twisting", 25)); // TODO(kbinani): is 25 correct?
     E("twisting_vines", NetherVines("twisting"));
     E("vine", Converter(Name("vine"), VineDirectionBits));
     E("cocoa", Converter(Same, Name(Age, "age"), DirectionFromFacingA));
@@ -1047,9 +872,7 @@ private:
     E("acacia_planks", Planks("acacia"));
     E("dark_oak_planks", Planks("dark_oak"));
     E("purpur_block", PurpurBlock("default"));
-    E("purpur_pillar",
-      Converter(Name("purpur_block"), AddStringProperty("chisel_type", "lines"),
-                AxisToPillarAxis));
+    E("purpur_pillar", Converter(Name("purpur_block"), AddStringProperty("chisel_type", "lines"), AxisToPillarAxis));
     E("jack_o_lantern", LitPumpkin());
     E("carved_pumpkin", directionFromFacing);
     E("white_stained_glass", StainedGlass("white"));
@@ -1175,8 +998,7 @@ private:
     E("red_mushroom_block", AnyMushroomBlock("red_mushroom_block", false));
     E("brown_mushroom_block", AnyMushroomBlock("brown_mushroom_block", false));
     E("mushroom_stem", AnyMushroomBlock("brown_mushroom_block", true));
-    E("end_portal_frame",
-      Converter(Same, DirectionFromFacingA, EyeToEndPortalEyeBit));
+    E("end_portal_frame", Converter(Same, DirectionFromFacingA, EyeToEndPortalEyeBit));
     E("white_shulker_box", ShulkerBox("white"));
     E("orange_shulker_box", ShulkerBox("orange"));
     E("magenta_shulker_box", ShulkerBox("magenta"));
@@ -1208,9 +1030,7 @@ private:
     E("red_nether_brick_wall", Wall("red_nether_brick"));
     E("sandstone_wall", Wall("sandstone"));
     E("end_stone_brick_wall", Wall("end_brick"));
-    Converter wall(Same, WallPostBit, WallConnectionType("east"),
-                   WallConnectionType("north"), WallConnectionType("south"),
-                   WallConnectionType("west"));
+    Converter wall(Same, WallPostBit, WallConnectionType("east"), WallConnectionType("north"), WallConnectionType("south"), WallConnectionType("west"));
     E("blackstone_wall", wall);
     E("polished_blackstone_wall", wall);
     E("polished_blackstone_brick_wall", wall);
@@ -1258,8 +1078,7 @@ private:
     E("lime_glazed_terracotta", facingDirectionFromFacing);
     E("pink_glazed_terracotta", facingDirectionFromFacing);
     E("gray_glazed_terracotta", facingDirectionFromFacing);
-    E("light_gray_glazed_terracotta",
-      Converter(Name("silver_glazed_terracotta"), FacingDirectionFromFacingA));
+    E("light_gray_glazed_terracotta", Converter(Name("silver_glazed_terracotta"), FacingDirectionFromFacingA));
     E("cyan_glazed_terracotta", facingDirectionFromFacing);
     E("purple_glazed_terracotta", facingDirectionFromFacing);
     E("blue_glazed_terracotta", facingDirectionFromFacing);
@@ -1322,8 +1141,7 @@ private:
     E("crimson_wall_sign", WallSign("crimson"));
     E("warped_wall_sign", WallSign("warped"));
 
-    Converter bed(Name("bed"), DirectionFromFacingA, PartToHeadPieceBit,
-                  OccupiedToOccupiedBit);
+    Converter bed(Name("bed"), DirectionFromFacingA, PartToHeadPieceBit, OccupiedToOccupiedBit);
     E("white_bed", bed);
     E("orange_bed", bed);
     E("magenta_bed", bed);
@@ -1341,8 +1159,7 @@ private:
     E("red_bed", bed);
     E("black_bed", bed);
 
-    Converter pottedFlowerPot(Name("flower_pot"),
-                              AddBoolProperty("update_bit", true));
+    Converter pottedFlowerPot(Name("flower_pot"), AddBoolProperty("update_bit", true));
     E("potted_oak_sapling", pottedFlowerPot);
     E("potted_spruce_sapling", pottedFlowerPot);
     E("potted_birch_sapling", pottedFlowerPot);
@@ -1373,8 +1190,7 @@ private:
     E("potted_bamboo", pottedFlowerPot);
     E("potted_cactus", pottedFlowerPot);
 
-    Converter skull(Name("skull"), AddIntProperty("facing_direction", 1),
-                    AddBoolProperty("no_drop_bit", false));
+    Converter skull(Name("skull"), AddIntProperty("facing_direction", 1), AddBoolProperty("no_drop_bit", false));
     E("skeleton_skull", skull);
     E("wither_skeleton_skull", skull);
     E("player_head", skull);
@@ -1382,8 +1198,7 @@ private:
     E("creeper_head", skull);
     E("dragon_head", skull);
 
-    Converter wallSkull(Name("skull"), AddBoolProperty("no_drop_bit", false),
-                        WallSkullFacingDirection);
+    Converter wallSkull(Name("skull"), AddBoolProperty("no_drop_bit", false), WallSkullFacingDirection);
     E("skeleton_wall_skull", wallSkull);
     E("wither_skeleton_wall_skull", wallSkull);
     E("player_wall_head", wallSkull);
@@ -1391,8 +1206,7 @@ private:
     E("creeper_wall_head", wallSkull);
     E("dragon_wall_head", wallSkull);
 
-    Converter banner(Name("standing_banner"),
-                     Name(Rotation, "ground_sign_direction"));
+    Converter banner(Name("standing_banner"), Name(Rotation, "ground_sign_direction"));
     E("white_banner", banner);
     E("orange_banner", banner);
     E("magenta_banner", banner);
@@ -1428,21 +1242,16 @@ private:
     E("red_wall_banner", wallBanner);
     E("black_wall_banner", wallBanner);
 
-    E("stonecutter",
-      Converter(Name("stonecutter_block"), FacingDirectionFromFacingA));
+    E("stonecutter", Converter(Name("stonecutter_block"), FacingDirectionFromFacingA));
     E("loom", directionFromFacing);
-    E("grindstone", Converter(Name("grindstone"), DirectionFromFacingA,
-                              GrindstoneFaceToAttachment));
+    E("grindstone", Converter(Name("grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
     E("smoker", facingDirectionFromFacing);
     E("blast_furnace", facingDirectionFromFacing);
-    E("barrel", Converter(Name("barrel"), FacingDirectionFromFacingA,
-                          Name(Open, "open_bit")));
+    E("barrel", Converter(Name("barrel"), FacingDirectionFromFacingA, Name(Open, "open_bit")));
     Converter lantern(Same, Name(Hanging, "hanging"));
     E("lantern", lantern);
     E("soul_lantern", lantern);
-    E("bell",
-      Converter(Name("bell"), BellDirectionFromFacing,
-                BellAttachmentFromAttachment, Name(Powered, "toggle_bit")));
+    E("bell", Converter(Name("bell"), BellDirectionFromFacing, BellAttachmentFromAttachment, Name(Powered, "toggle_bit")));
     Converter campfire(Same, DirectionFromFacingA, LitToExtinguished);
     E("campfire", campfire);
     E("soul_campfire", campfire);
@@ -1452,15 +1261,11 @@ private:
     E("sticky_piston_head", Converter(Name("air")));
     E("moving_piston", Converter(MovingPistonName, FacingDirectionFromFacingB));
     E("note_block", Rename("noteblock"));
-    E("dispenser", Converter(Same, FacingDirectionFromFacingA,
-                             Name(Triggered, "triggered_bit")));
+    E("dispenser", Converter(Same, FacingDirectionFromFacingA, Name(Triggered, "triggered_bit")));
     E("lever", Converter(Same, LeverDirection, Name(Powered, "open_bit")));
 
-    Converter fenceGate(Same, DirectionFromFacingA, Name(InWall, "in_wall_bit"),
-                        Name(Open, "open_bit"));
-    E("oak_fence_gate",
-      Converter(Name("fence_gate"), DirectionFromFacingA,
-                Name(InWall, "in_wall_bit"), Name(Open, "open_bit")));
+    Converter fenceGate(Same, DirectionFromFacingA, Name(InWall, "in_wall_bit"), Name(Open, "open_bit"));
+    E("oak_fence_gate", Converter(Name("fence_gate"), DirectionFromFacingA, Name(InWall, "in_wall_bit"), Name(Open, "open_bit")));
     E("spruce_fence_gate", fenceGate);
     E("birch_fence_gate", fenceGate);
     E("jungle_fence_gate", fenceGate);
@@ -1469,11 +1274,8 @@ private:
     E("crimson_fence_gate", fenceGate);
     E("warped_fence_gate", fenceGate);
 
-    Converter pressurePlate(Same, Name(Powered, "powered"),
-                            Name(Power, "power"));
-    E("oak_pressure_plate",
-      Converter(Name("wooden_pressure_plate"), Name(Powered, "powered"),
-                Name(Power, "power")));
+    Converter pressurePlate(Same, Name(Powered, "powered"), Name(Power, "power"));
+    E("oak_pressure_plate", Converter(Name("wooden_pressure_plate"), Name(Powered, "powered"), Name(Power, "power")));
     E("spruce_pressure_plate", pressurePlate);
     E("birch_pressure_plate", pressurePlate);
     E("jungle_pressure_plate", pressurePlate);
@@ -1486,10 +1288,8 @@ private:
     E("heavy_weighted_pressure_plate", pressurePlate);
     E("polished_blackstone_pressure_plate", pressurePlate);
 
-    Converter trapdoor(Same, DirectionFromFacingB, Name(Open, "open_bit"),
-                       HalfToUpsideDownBit);
-    E("oak_trapdoor", Converter(Name("trapdoor"), DirectionFromFacingB,
-                                Name(Open, "open_bit"), HalfToUpsideDownBit));
+    Converter trapdoor(Same, DirectionFromFacingB, Name(Open, "open_bit"), HalfToUpsideDownBit);
+    E("oak_trapdoor", Converter(Name("trapdoor"), DirectionFromFacingB, Name(Open, "open_bit"), HalfToUpsideDownBit));
     E("spruce_trapdoor", trapdoor);
     E("birch_trapdoor", trapdoor);
     E("jungle_trapdoor", trapdoor);
@@ -1501,10 +1301,8 @@ private:
 
     E("lily_pad", Rename("waterlily"));
 
-    Converter button(Same, ButtonFacingDirection,
-                     Name(Powered, "button_pressed_bit"));
-    E("oak_button", Converter(Name("wooden_button"), ButtonFacingDirection,
-                              Name(Powered, "button_pressed_bit")));
+    Converter button(Same, ButtonFacingDirection, Name(Powered, "button_pressed_bit"));
+    E("oak_button", Converter(Name("wooden_button"), ButtonFacingDirection, Name(Powered, "button_pressed_bit")));
     E("spruce_button", button);
     E("birch_button", button);
     E("jungle_button", button);
@@ -1515,24 +1313,15 @@ private:
     E("stone_button", button);
     E("polished_blackstone_button", button);
 
-    E("tripwire_hook",
-      Converter(Same, DirectionFromFacingA, Name(Attached, "attached_bit"),
-                Name(Powered, "powered_bit")));
+    E("tripwire_hook", Converter(Same, DirectionFromFacingA, Name(Attached, "attached_bit"), Name(Powered, "powered_bit")));
     E("trapped_chest", facingDirectionFromFacing);
-    E("daylight_detector",
-      Converter(DaylightDetectorName, Name(Power, "redstone_signal")));
-    E("hopper",
-      Converter(Same, FacingDirectionFromFacingA, ToggleBitFromEnabled));
-    E("dropper", Converter(Same, FacingDirectionFromFacingA,
-                           Name(Triggered, "triggered_bit")));
-    E("observer", Converter(Same, FacingDirectionFromFacingA,
-                            Name(Powered, "powered_bit")));
+    E("daylight_detector", Converter(DaylightDetectorName, Name(Power, "redstone_signal")));
+    E("hopper", Converter(Same, FacingDirectionFromFacingA, ToggleBitFromEnabled));
+    E("dropper", Converter(Same, FacingDirectionFromFacingA, Name(Triggered, "triggered_bit")));
+    E("observer", Converter(Same, FacingDirectionFromFacingA, Name(Powered, "powered_bit")));
 
-    Converter door(Same, DirectionFromFacingC, Name(Open, "open_bit"),
-                   UpperBlockBitToHalf, DoorHingeBitFromHinge);
-    E("oak_door", Converter(Name("wooden_door"), DirectionFromFacingC,
-                            Name(Open, "open_bit"), UpperBlockBitToHalf,
-                            DoorHingeBitFromHinge));
+    Converter door(Same, DirectionFromFacingC, Name(Open, "open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge);
+    E("oak_door", Converter(Name("wooden_door"), DirectionFromFacingC, Name(Open, "open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge));
     E("iron_door", door);
     E("spruce_door", door);
     E("birch_door", door);
@@ -1542,22 +1331,15 @@ private:
     E("crimson_door", door);
     E("warped_door", door);
 
-    E("repeater", Converter(RepeaterName, Name(Delay, "repeater_delay"),
-                            DirectionFromFacingA));
-    E("comparator",
-      Converter(ComparatorName, DirectionFromFacingA, OutputSubtractBitFromMode,
-                Name(Powered, "output_lit_bit")));
-    E("powered_rail", Converter(Name("golden_rail"), RailDirectionFromShape,
-                                Name(Powered, "rail_data_bit")));
-    E("detector_rail",
-      Converter(Same, RailDirectionFromShape, Name(Powered, "rail_data_bit")));
-    E("activator_rail",
-      Converter(Same, RailDirectionFromShape, Name(Powered, "rail_data_bit")));
+    E("repeater", Converter(RepeaterName, Name(Delay, "repeater_delay"), DirectionFromFacingA));
+    E("comparator", Converter(ComparatorName, DirectionFromFacingA, OutputSubtractBitFromMode, Name(Powered, "output_lit_bit")));
+    E("powered_rail", Converter(Name("golden_rail"), RailDirectionFromShape, Name(Powered, "rail_data_bit")));
+    E("detector_rail", Converter(Same, RailDirectionFromShape, Name(Powered, "rail_data_bit")));
+    E("activator_rail", Converter(Same, RailDirectionFromShape, Name(Powered, "rail_data_bit")));
     E("rail", Converter(Same, RailDirectionFromShape));
     E("nether_portal", Converter(Name("portal"), Name(Axis, "portal_axis")));
 
-    E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, BambooAgeFromStage,
-                          BambooStalkThisknessFromAge));
+    E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, BambooAgeFromStage, BambooStalkThisknessFromAge));
     E("sweet_berry_bush", Converter(Same, GrowthFromAge));
     E("bubble_column", Converter(Same, DragDownFromDrag));
     E("cake", Converter(Same, BiteCounterFromBites));
@@ -1566,21 +1348,15 @@ private:
     E("carrots", Converter(Same, Name(Age, "growth")));
     E("pumpkin_stem", Converter(Same, Name(Age, "growth")));
     E("melon_stem", Converter(Same, Name(Age, "growth")));
-    E("attached_pumpkin_stem",
-      Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7),
-                FacingDirectionFromFacingA));
-    E("attached_melon_stem",
-      Converter(Name("melon_stem"), AddIntProperty("growth", 7),
-                FacingDirectionFromFacingA));
+    E("attached_pumpkin_stem", Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
+    E("attached_melon_stem", Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
     E("wheat", Converter(Same, Name(Age, "growth")));
 
     E("cobweb", Converter(Name("web")));
     E("lectern", Converter(Same, DirectionFromFacingA));
     E("ender_chest", Converter(Same, FacingDirectionFromFacingA));
     E("bone_block", axisToPillarAxis);
-    E("cauldron",
-      Converter(Same, CauldronFillLevelFromLevel,
-                AddStringProperty("cauldron_liquid_type", "water")));
+    E("cauldron", Converter(Same, CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid_type", "water")));
     E("hay_block", axisToPillarAxis);
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
     E("cave_air", Rename("air"));
@@ -1602,8 +1378,8 @@ private:
   }
 
   static PropertySpec Conditional(Block const &b) {
-      auto conditional = b.property("conditional", "false");
-      return std::make_pair("conditional_bit", props::Bool(conditional == "true"));
+    auto conditional = b.property("conditional", "false");
+    return std::make_pair("conditional_bit", props::Bool(conditional == "true"));
   }
 
   static PropertySpec BambooAgeFromStage(Block const &b) {
@@ -1769,8 +1545,7 @@ private:
 
   static PropertySpec OutputSubtractBitFromMode(Block const &b) {
     auto mode = b.property("mode", "compare");
-    return std::make_pair("output_subtract_bit",
-                          props::Bool(mode == "subtract"));
+    return std::make_pair("output_subtract_bit", props::Bool(mode == "subtract"));
   }
 
   static PropertyType Delay(Block const &b) {
@@ -1815,9 +1590,7 @@ private:
     }
   }
 
-  static PropertyType Attached(Block const &b) {
-    return props::Bool(b.property("attached", "false") == "true");
-  }
+  static PropertyType Attached(Block const &b) { return props::Bool(b.property("attached", "false") == "true"); }
 
   static PropertySpec ButtonFacingDirection(Block const &b) {
     auto face = b.property("face", "wall");
@@ -1841,13 +1614,9 @@ private:
     return std::make_pair("facing_direction", props::Int(direction));
   }
 
-  static PropertyType Power(Block const &b) {
-    return props::Int(Wrap(strings::Toi(b.property("power", "0")), 0));
-  }
+  static PropertyType Power(Block const &b) { return props::Int(Wrap(strings::Toi(b.property("power", "0")), 0)); }
 
-  static PropertyType InWall(Block const &b) {
-    return props::Bool(b.property("in_wall", "false") == "true");
-  }
+  static PropertyType InWall(Block const &b) { return props::Bool(b.property("in_wall", "false") == "true"); }
 
   static PropertySpec LeverDirection(Block const &b) {
     auto face = b.property("face", "wall");
@@ -1900,9 +1669,7 @@ private:
     return tag;
   }
 
-  static StatesType States() {
-    return std::make_shared<mcfile::nbt::CompoundTag>();
-  }
+  static StatesType States() { return std::make_shared<mcfile::nbt::CompoundTag>(); }
 
 public:
   static int32_t const kBlockDataVersion = 17825808;

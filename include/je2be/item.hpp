@@ -5,22 +5,17 @@ namespace j2b {
 class Item {
 private:
   using ItemData = std::shared_ptr<mcfile::nbt::CompoundTag>;
-  using Converter = std::function<ItemData(std::string const &,
-                                           mcfile::nbt::CompoundTag const &)>;
+  using Converter = std::function<ItemData(std::string const &, mcfile::nbt::CompoundTag const &)>;
   using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
-  static std::shared_ptr<CompoundTag>
-  From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo,
-       DimensionDataFragment &ddf) {
+  static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     using namespace std;
     using namespace mcfile::nbt;
 
-    static unique_ptr<unordered_map<string, Converter> const> const
-        blockItemMapping(CreateBlockItemConverterTable());
-    static unique_ptr<unordered_map<string, Converter> const> const itemMapping(
-        CreateItemConverterTable());
+    static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
+    static unique_ptr<unordered_map<string, Converter> const> const itemMapping(CreateItemConverterTable());
 
     auto id = item->string("id");
     if (!id)
@@ -87,8 +82,7 @@ public:
   }
 
 private:
-  static std::unordered_map<std::string, Converter> *
-  CreateBlockItemConverterTable() {
+  static std::unordered_map<std::string, Converter> *CreateBlockItemConverterTable() {
     using namespace std;
     using namespace mcfile::nbt;
     auto table = new unordered_map<string, Converter>();
@@ -169,8 +163,7 @@ private:
     return table;
   }
 
-  static std::unordered_map<std::string, Converter> *
-  CreateItemConverterTable() {
+  static std::unordered_map<std::string, Converter> *CreateItemConverterTable() {
     using namespace std;
     using namespace mcfile::nbt;
     auto table = new unordered_map<string, Converter>();
@@ -216,9 +209,7 @@ private:
     E("blue_dye", Subtype("dye", 18));
     E("white_dye", Subtype("dye", 19));
 
-#define G(__mob, __id)                                                         \
-  table->insert(                                                               \
-      make_pair("minecraft:" __mob "_spawn_egg", SpawnEgg(__mob, __id)))
+#define G(__mob, __id) table->insert(make_pair("minecraft:" __mob "_spawn_egg", SpawnEgg(__mob, __id)))
     G("bee", 122);
     G("chicken", 10);
     G("mooshroom", 16);
@@ -296,11 +287,8 @@ private:
     E("diamond_horse_armor", Rename("horsearmordiamond"));
     E("popped_chorus_fruit", Rename("chorus_fruit_popped"));
     E("nether_brick", Rename("netherbrick"));
-    for (string title :
-         {"13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal",
-          "strad", "ward", "11", "wait", "pigstep"}) {
-      table->insert(make_pair("minecraft:music_disc_" + title,
-                              Rename("record_" + title)));
+    for (string title : {"13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "pigstep"}) {
+      table->insert(make_pair("minecraft:music_disc_" + title, Rename("record_" + title)));
     }
     E("flower_banner_pattern", Subtype("banner_pattern", 2));
     E("creeper_banner_pattern", Subtype("banner_pattern", 1));
@@ -331,8 +319,7 @@ private:
     return table;
   }
 
-  static ItemData TropicalFishBucket(std::string const &name,
-                                     CompoundTag const &item) {
+  static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item) {
     using namespace props;
     auto ret = New("bucket");
     ret->set("Damage", Short(4));
@@ -348,8 +335,7 @@ private:
     return Post(ret, item);
   }
 
-  static ItemData BooksAndQuill(std::string const &name,
-                                CompoundTag const &item) {
+  static ItemData BooksAndQuill(std::string const &name, CompoundTag const &item) {
     using namespace props;
     using namespace mcfile::nbt;
 
@@ -409,8 +395,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData LeatherArmor(std::string const &name,
-                               CompoundTag const &item) {
+  static ItemData LeatherArmor(std::string const &name, CompoundTag const &item) {
     using namespace props;
 
     auto count = item.byte("Count", 1);
@@ -433,9 +418,7 @@ private:
     return Post(tag, item);
   }
 
-  static std::optional<std::tuple<int, ItemData>>
-  Map(std::string const &name, CompoundTag const &item,
-      JavaEditionMap const &mapInfo) {
+  static std::optional<std::tuple<int, ItemData>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
     auto ret = New("map");
     auto count = item.byte("Count", 1);
     ret->set("Damage", props::Short(0));
@@ -501,8 +484,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData TippedArrow(std::string const &name,
-                              CompoundTag const &item) {
+  static ItemData TippedArrow(std::string const &name, CompoundTag const &item) {
     auto tag = New("arrow");
     auto count = item.byte("Count", 1);
     auto t = item.query("tag")->asCompound();
@@ -516,8 +498,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData FireworkStar(std::string const &name,
-                               CompoundTag const &item) {
+  static ItemData FireworkStar(std::string const &name, CompoundTag const &item) {
     auto data = Rename("fireworkscharge")(name, item);
 
     auto explosion = item.query("tag/Explosion")->asCompound();
@@ -536,8 +517,7 @@ private:
     return data;
   }
 
-  static ItemData FireworkRocket(std::string const &name,
-                                 CompoundTag const &item) {
+  static ItemData FireworkRocket(std::string const &name, CompoundTag const &item) {
     auto data = Rename("fireworks")(name, item);
     auto fireworks = item.query("tag/Fireworks")->asCompound();
     if (fireworks) {
@@ -802,8 +782,7 @@ private:
     E("honey_bottle");
 
     E("flint_and_steel");
-    for (string type :
-         {"wooden", "stone", "golden", "iron", "diamond", "netherite"}) {
+    for (string type : {"wooden", "stone", "golden", "iron", "diamond", "netherite"}) {
       for (string tool : {"shovel", "pickaxe", "axe", "hoe"}) {
         table->insert("minecraft:" + type + "_" + tool);
       }
@@ -825,8 +804,7 @@ private:
     E("iron_sword");
     E("diamond_sword");
     E("netherite_sword");
-    for (string type :
-         {"leather", "chainmail", "iron", "diamond", "golden", "netherite"}) {
+    for (string type : {"leather", "chainmail", "iron", "diamond", "golden", "netherite"}) {
       for (string item : {"helmet", "chestplate", "leggings", "boots"}) {
         table->insert("minecraft:" + type + "_" + item);
       }
@@ -876,8 +854,7 @@ private:
 
   static bool IsItem(std::string const &name) {
     using namespace std;
-    static unique_ptr<unordered_set<string> const> const list(
-        CreateItemNameList());
+    static unique_ptr<unordered_set<string> const> const list(CreateItemNameList());
     return list->find(name) != list->end();
   }
 
@@ -932,8 +909,7 @@ private:
       auto json = props::GetJson(*display, "Name");
       if (json) {
         auto translate = json->find("translate");
-        if (translate != json->end() && translate->is_string() &&
-            translate->get<std::string>() == "block.minecraft.ominous_banner") {
+        if (translate != json->end() && translate->is_string() && translate->get<std::string>() == "block.minecraft.ominous_banner") {
           omnious = true;
         }
       }
@@ -979,8 +955,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData MushroomBlock(std::string const &name,
-                                CompoundTag const &item) {
+  static ItemData MushroomBlock(std::string const &name, CompoundTag const &item) {
     using namespace std;
     using namespace props;
 
@@ -1021,8 +996,7 @@ private:
 
   Item() = delete;
 
-  static ItemData DefaultBlockItem(std::string const &id,
-                                   CompoundTag const &item) {
+  static ItemData DefaultBlockItem(std::string const &id, CompoundTag const &item) {
     using namespace std;
     using namespace props;
     using namespace mcfile::nbt;
@@ -1049,8 +1023,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData DefaultItem(std::string const &name,
-                              CompoundTag const &item) {
+  static ItemData DefaultItem(std::string const &name, CompoundTag const &item) {
     using namespace props;
 
     auto count = item.byte("Count", 1);

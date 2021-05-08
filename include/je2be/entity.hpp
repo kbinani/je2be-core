@@ -8,8 +8,7 @@ private:
   using EntityData = std::shared_ptr<mcfile::nbt::CompoundTag>;
 
   struct Context {
-    Context(JavaEditionMap const &mapInfo, DimensionDataFragment &ddf)
-        : fMapInfo(mapInfo), fDimensionData(ddf) {}
+    Context(JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) : fMapInfo(mapInfo), fDimensionData(ddf) {}
 
     std::vector<EntityData> fPassengers;
     JavaEditionMap const &fMapInfo;
@@ -18,13 +17,10 @@ private:
 
   using Converter = std::function<EntityData(CompoundTag const &, Context &)>;
 
-  using Behavior = std::function<EntityData(EntityData const &,
-                                            CompoundTag const &, Context &)>;
+  using Behavior = std::function<EntityData(EntityData const &, CompoundTag const &, Context &)>;
 
   struct Convert {
-    template <class... Arg>
-    Convert(Converter base, Arg... args)
-        : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
+    template <class... Arg> Convert(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
 
     EntityData operator()(CompoundTag const &input, Context &ctx) const {
       auto c = fBase(input, ctx);
@@ -45,19 +41,14 @@ private:
   };
 
 public:
-  explicit Entity(int64_t uid)
-      : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
+  explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
-  static std::vector<EntityData> From(mcfile::nbt::CompoundTag const &tag,
-                                      JavaEditionMap const &mapInfo,
-                                      DimensionDataFragment &ddf) {
+  static std::vector<EntityData> From(mcfile::nbt::CompoundTag const &tag, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     auto id = tag.string("id");
     if (!id)
       return std::vector<EntityData>();
-    static std::unique_ptr<
-        std::unordered_map<std::string, Converter> const> const
-        table(CreateEntityTable());
+    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateEntityTable());
     auto found = table->find(*id);
     std::vector<EntityData> ret;
     if (found == table->end()) {
@@ -70,8 +61,7 @@ public:
     Context ctx(mapInfo, ddf);
     auto converted = found->second(tag, ctx);
     if (!ctx.fPassengers.empty()) {
-      std::copy(ctx.fPassengers.begin(), ctx.fPassengers.end(),
-                std::back_inserter(ret));
+      std::copy(ctx.fPassengers.begin(), ctx.fPassengers.end(), std::back_inserter(ret));
     }
     if (converted) {
       ret.push_back(converted);
@@ -96,13 +86,9 @@ public:
     }
   }
 
-  static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) {
-    return DegAlmostEquals(rot.fYaw, yaw) && DegAlmostEquals(rot.fPitch, pitch);
-  }
+  static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return DegAlmostEquals(rot.fYaw, yaw) && DegAlmostEquals(rot.fPitch, pitch); }
 
-  static std::optional<
-      std::tuple<Pos, std::shared_ptr<CompoundTag>, std::string>>
-  ToTileEntityBlock(CompoundTag const &c) {
+  static std::optional<std::tuple<Pos, std::shared_ptr<CompoundTag>, std::string>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
     using namespace props;
     auto id = c.string("id");
@@ -152,8 +138,7 @@ public:
           {"facing_direction", Int(facing)},
           {"item_frame_map_bit", Bool(map)},
       });
-      string key = "minecraft:frame[facing_direction=" + to_string(facing) +
-                   ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
+      string key = "minecraft:frame[facing_direction=" + to_string(facing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
       b->insert({
           {"name", String("minecraft:frame")},
           {"version", Int(BlockData::kBlockDataVersion)},
@@ -166,9 +151,7 @@ public:
     return nullopt;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag>
-  ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo,
-                   DimensionDataFragment &ddf) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     auto id = c.string("id");
     assert(id);
@@ -189,8 +172,7 @@ public:
       auto itemRotation = c.byte("ItemRotation", 0);
       auto itemDropChange = c.float32("ItemDropChange", 1);
       auto found = c.find("Item");
-      if (found != c.end() &&
-          found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
+      if (found != c.end() && found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
         auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
         auto m = Item::From(item, mapInfo, ddf);
         if (m) {
@@ -225,48 +207,7 @@ public:
       definitions->push_back(String(d));
     }
     tag->insert({
-        {"definitions", definitions},
-        {"Motion", fMotion.toListTag()},
-        {"Pos", fPos.toListTag()},
-        {"Rotation", fRotation.toListTag()},
-        {"Tags", tags},
-        {"Chested", Bool(fChested)},
-        {"Color2", Byte(fColor2)},
-        {"Color", Byte(fColor)},
-        {"Dir", Byte(fDir)},
-        {"FallDistance", Float(fFallDistance)},
-        {"Fire", Short(std::max((int16_t)0, fFire))},
-        {"identifier", String(fIdentifier)},
-        {"Invulnerable", Bool(fInvulnerable)},
-        {"IsAngry", Bool(fIsAngry)},
-        {"IsAutonomous", Bool(fIsAutonomous)},
-        {"IsBaby", Bool(fIsBaby)},
-        {"IsEating", Bool(fIsEating)},
-        {"IsGliding", Bool(fIsGliding)},
-        {"IsGlobal", Bool(fIsGlobal)},
-        {"IsIllagerCaptain", Bool(fIsIllagerCaptain)},
-        {"IsOrphaned", Bool(fIsOrphaned)},
-        {"IsRoaring", Bool(fIsRoaring)},
-        {"IsScared", Bool(fIsScared)},
-        {"IsStunned", Bool(fIsStunned)},
-        {"IsSwimming", Bool(fIsSwimming)},
-        {"IsTamed", Bool(fIsTamed)},
-        {"IsTrusting", Bool(fIsTrusting)},
-        {"LastDimensionId", Int(fLastDimensionId)},
-        {"LootDropped", Bool(fLootDropped)},
-        {"MarkVariant", Int(fMarkVariant)},
-        {"OnGround", Bool(fOnGround)},
-        {"OwnerNew", Int(fOwnerNew)},
-        {"PortalCooldown", Int(fPortalCooldown)},
-        {"Saddled", Bool(fSaddled)},
-        {"Sheared", Bool(fSheared)},
-        {"ShowBottom", Bool(fShowBottom)},
-        {"Sitting", Bool(fSitting)},
-        {"SkinID", Int(fSkinId)},
-        {"Strength", Int(fStrength)},
-        {"StrengthMax", Int(fStrengthMax)},
-        {"UniqueID", Long(fUniqueId)},
-        {"Variant", Int(fVariant)},
+        {"definitions", definitions}, {"Motion", fMotion.toListTag()}, {"Pos", fPos.toListTag()}, {"Rotation", fRotation.toListTag()}, {"Tags", tags}, {"Chested", Bool(fChested)}, {"Color2", Byte(fColor2)}, {"Color", Byte(fColor)}, {"Dir", Byte(fDir)}, {"FallDistance", Float(fFallDistance)}, {"Fire", Short(std::max((int16_t)0, fFire))}, {"identifier", String(fIdentifier)}, {"Invulnerable", Bool(fInvulnerable)}, {"IsAngry", Bool(fIsAngry)}, {"IsAutonomous", Bool(fIsAutonomous)}, {"IsBaby", Bool(fIsBaby)}, {"IsEating", Bool(fIsEating)}, {"IsGliding", Bool(fIsGliding)}, {"IsGlobal", Bool(fIsGlobal)}, {"IsIllagerCaptain", Bool(fIsIllagerCaptain)}, {"IsOrphaned", Bool(fIsOrphaned)}, {"IsRoaring", Bool(fIsRoaring)}, {"IsScared", Bool(fIsScared)}, {"IsStunned", Bool(fIsStunned)}, {"IsSwimming", Bool(fIsSwimming)}, {"IsTamed", Bool(fIsTamed)}, {"IsTrusting", Bool(fIsTrusting)}, {"LastDimensionId", Int(fLastDimensionId)}, {"LootDropped", Bool(fLootDropped)}, {"MarkVariant", Int(fMarkVariant)}, {"OnGround", Bool(fOnGround)}, {"OwnerNew", Int(fOwnerNew)}, {"PortalCooldown", Int(fPortalCooldown)}, {"Saddled", Bool(fSaddled)}, {"Sheared", Bool(fSheared)}, {"ShowBottom", Bool(fShowBottom)}, {"Sitting", Bool(fSitting)}, {"SkinID", Int(fSkinId)}, {"Strength", Int(fStrength)}, {"StrengthMax", Int(fStrengthMax)}, {"UniqueID", Long(fUniqueId)}, {"Variant", Int(fVariant)},
     });
     if (fCustomName) {
       tag->set("CustomName", String(*fCustomName));
@@ -275,9 +216,7 @@ public:
     return tag;
   }
 
-  static EntityData LocalPlayer(CompoundTag const &tag,
-                                JavaEditionMap const &mapInfo,
-                                DimensionDataFragment &ddf) {
+  static EntityData LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace mcfile::nbt;
     using namespace props;
 
@@ -373,8 +312,7 @@ public:
 
     auto enderItems = tag.listTag("EnderItems");
     if (enderItems) {
-      auto enderChestInventory =
-          ConvertAnyItemList(enderItems, 27, mapInfo, ddf);
+      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, mapInfo, ddf);
       entity->set("EnderChestInventory", enderChestInventory);
     }
 
@@ -382,8 +320,7 @@ public:
   }
 
 private:
-  static std::shared_ptr<CompoundTag>
-  ItemAtSlot(mcfile::nbt::ListTag const &items, uint32_t slot) {
+  static std::shared_ptr<CompoundTag> ItemAtSlot(mcfile::nbt::ListTag const &items, uint32_t slot) {
     for (auto const &it : items) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item)
@@ -400,8 +337,7 @@ private:
 
   static std::unordered_map<std::string, Converter> *CreateEntityTable() {
     auto table = new std::unordered_map<std::string, Converter>();
-#define E(__name, __func)                                                      \
-  table->insert(std::make_pair("minecraft:" __name, __func))
+#define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
 #define A(__name) table->insert(std::make_pair("minecraft:" __name, Animal))
 #define M(__name) table->insert(std::make_pair("minecraft:" __name, Monster))
 
@@ -411,8 +347,7 @@ private:
     E("bat", Convert(Mob, Bat));
     E("bee", Convert(Animal, AgeableA("bee"), Bee));
     M("blaze");
-    E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable,
-                     CollarColorable, Cat));
+    E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable, CollarColorable, Cat));
     M("cave_spider");
     E("chicken", Convert(Animal, AgeableA("chicken"), Vehicle()));
     A("cod");
@@ -420,8 +355,7 @@ private:
     E("cow", Convert(Animal, AgeableA("cow")));
     E("creeper", Convert(Monster, Creeper));
     A("dolphin");
-    E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"),
-                        Steerable("donkey")));
+    E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey")));
     M("drowned");
     M("elder_guardian");
     M("enderman");
@@ -432,16 +366,13 @@ private:
     M("ghast");
     M("guardian");
     M("hoglin");
-    E("horse", Convert(Animal, TameableB("horse"), AgeableA("horse"),
-                       Steerable("horse"), Horse));
+    E("horse", Convert(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Horse));
     E("husk", Convert(Monster, AgeableA("husk")));
-    E("llama", Convert(Animal, AgeableA("llama"), TameableB("llama"),
-                       ChestedHorse("llama"), Llama));
+    E("llama", Convert(Animal, AgeableA("llama"), TameableB("llama"), ChestedHorse("llama"), Llama));
     E("magma_cube", Convert(Monster, Slime));
     E("mooshroom", Convert(Animal, AgeableA("mooshroom"), Mooshroom));
 
-    E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"),
-                      Steerable("mule")));
+    E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"), Steerable("mule")));
     A("ocelot");
     E("panda", Convert(Animal, AgeableA("panda")));
     E("parrot", Convert(Animal, TameableA("parrot"), Sittable, Parrot));
@@ -456,10 +387,7 @@ private:
     E("rabbit", Convert(Animal, AgeableC, Rabbit));
     M("ravager");
     A("salmon");
-    E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"),
-                       Definitions("+minecraft:sheep_dyeable",
-                                   "+minecraft:rideable_wooly",
-                                   "+minecraft:loot_wooly")));
+    E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly")));
     E("shulker", Convert(Monster, Shulker));
     M("silverfish");
     M("skeleton"); // lefty skeleton does not exist in Bedrock?
@@ -469,10 +397,8 @@ private:
     E("spider", Convert(Monster, Vehicle("spider")));
     A("squid");
     M("stray");
-    E("strider", Convert(Animal, Steerable("strider"), AgeableA("strider"),
-                         DetectSuffocation, Vehicle("strider")));
-    E("trader_llama",
-      Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
+    E("strider", Convert(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
+    E("trader_llama", Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
     E("tropical_fish", Convert(Animal, Rename("tropicalfish"), TropicalFish));
     A("turtle");
 
@@ -488,20 +414,14 @@ private:
 
     M("zombie_horse");
     E("zombie_villager", Convert(Animal, Rename("zombie_villager_v2")));
-    E("zombified_piglin",
-      Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
+    E("zombified_piglin", Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
     E("boat", Convert(EntityBase, Vehicle(), Boat));
-    E("minecart", Convert(EntityBase, Vehicle(), Minecart,
-                          Definitions("+minecraft:minecart")));
+    E("minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:minecart")));
     E("armor_stand", Convert(LivingEntity, ArmorStand));
-    E("hopper_minecart", Convert(StorageMinecart, Minecart,
-                                 Definitions("+minecraft:hopper_minecart")));
-    E("chest_minecart", Convert(StorageMinecart, Minecart,
-                                Definitions("+minecraft:chest_minecart")));
-    E("tnt_minecart",
-      Convert(EntityBase, Vehicle(), Minecart,
-              Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
+    E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart")));
+    E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
+    E("tnt_minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
     E("snow_golem", Convert(Mob, SnowGolem));
     E("iron_golem", Mob);
 
@@ -515,12 +435,9 @@ private:
     return table;
   }
 
-  static EntityData Null(CompoundTag const &tag, Context &ctx) {
-    return nullptr;
-  }
+  static EntityData Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
 
-  static EntityData ExperienceOrb(EntityData const &c, CompoundTag const &tag,
-                                  Context &) {
+  static EntityData ExperienceOrb(EntityData const &c, CompoundTag const &tag, Context &) {
     auto value = tag.int16("Value");
     if (value) {
       c->set("experience value", props::Int(*value));
@@ -529,15 +446,13 @@ private:
     return c;
   }
 
-  static EntityData DetectSuffocation(EntityData const &c,
-                                      CompoundTag const &tag, Context &) {
+  static EntityData DetectSuffocation(EntityData const &c, CompoundTag const &tag, Context &) {
     AddDefinition(c, "-minecraft:start_suffocating");
     AddDefinition(c, "+minecraft:detect_suffocating");
     return c;
   }
 
-  static EntityData ArmorStand(EntityData const &c, CompoundTag const &tag,
-                               Context &) {
+  static EntityData ArmorStand(EntityData const &c, CompoundTag const &tag, Context &) {
     auto pos = props::GetVec(tag, "Pos");
     if (!pos) {
       return c;
@@ -547,8 +462,7 @@ private:
     return c;
   }
 
-  static EntityData Bee(EntityData const &c, CompoundTag const &tag,
-                        Context &) {
+  static EntityData Bee(EntityData const &c, CompoundTag const &tag, Context &) {
     auto hivePos = props::GetPos(tag, "HivePos");
     if (hivePos) {
       Vec homePos(hivePos->fX, hivePos->fY, hivePos->fZ);
@@ -565,8 +479,7 @@ private:
     return c;
   }
 
-  static EntityData SnowGolem(EntityData const &c, CompoundTag const &tag,
-                              Context &) {
+  static EntityData SnowGolem(EntityData const &c, CompoundTag const &tag, Context &) {
     auto pumpkin = tag.boolean("Pumpkin", true);
     if (!pumpkin) {
       AddDefinition(c, "+minecraft:snowman_sheared");
@@ -585,8 +498,7 @@ private:
     return c;
   }
 
-  static EntityData Villager(EntityData const &c, CompoundTag const &tag,
-                             Context &) {
+  static EntityData Villager(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace std;
     using namespace props;
     auto data = tag.compoundTag("VillagerData");
@@ -662,8 +574,7 @@ private:
     return c;
   }
 
-  static EntityData Fox(EntityData const &c, CompoundTag const &tag,
-                        Context &) {
+  static EntityData Fox(EntityData const &c, CompoundTag const &tag, Context &) {
     auto type = tag.string("Type", "red");
     int32_t variant = 0;
     if (type == "red") {
@@ -702,8 +613,7 @@ private:
     return ret;
   }
 
-  static EntityData Horse(EntityData const &c, CompoundTag const &tag,
-                          Context &) {
+  static EntityData Horse(EntityData const &c, CompoundTag const &tag, Context &) {
     auto variant = tag.int32("Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
@@ -747,15 +657,13 @@ private:
     return c;
   }
 
-  static EntityData Parrot(EntityData const &c, CompoundTag const &tag,
-                           Context &) {
+  static EntityData Parrot(EntityData const &c, CompoundTag const &tag, Context &) {
     auto variant = tag.int32("Variant", 0);
     c->set("Variant", props::Int(variant));
     return c;
   }
 
-  static EntityData Minecart(EntityData const &c, CompoundTag const &tag,
-                             Context &) {
+  static EntityData Minecart(EntityData const &c, CompoundTag const &tag, Context &) {
     auto pos = props::GetVec(tag, "Pos");
     auto onGround = tag.boolean("OnGround");
     if (pos && onGround) {
@@ -779,8 +687,7 @@ private:
     return c;
   }
 
-  static EntityData TropicalFish(EntityData const &c, CompoundTag const &tag,
-                                 Context &) {
+  static EntityData TropicalFish(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
     auto variant = tag.int32("Variant", 0);
     auto tf = j2b::TropicalFish::FromVariant(variant);
@@ -791,8 +698,7 @@ private:
     return c;
   }
 
-  static EntityData TraderLlama(EntityData const &c, CompoundTag const &tag,
-                                Context &) {
+  static EntityData TraderLlama(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace mcfile::nbt;
     AddDefinition(c, "+minecraft:llama_wandering_trader");
     AddDefinition(c, "-minecraft:llama_wild");
@@ -817,10 +723,7 @@ private:
     return items;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag>
-  ConvertAnyItemList(std::shared_ptr<mcfile::nbt::ListTag> const &input,
-                     uint32_t capacity, JavaEditionMap const &mapInfo,
-                     DimensionDataFragment &ddf) {
+  static std::shared_ptr<mcfile::nbt::ListTag> ConvertAnyItemList(std::shared_ptr<mcfile::nbt::ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -844,9 +747,7 @@ private:
     return ret;
   }
 
-  static void AddChestItem(EntityData const &c,
-                           std::shared_ptr<CompoundTag> const &item,
-                           int8_t slot, int8_t count) {
+  static void AddChestItem(EntityData const &c, std::shared_ptr<CompoundTag> const &item, int8_t slot, int8_t count) {
     using namespace props;
     using namespace mcfile::nbt;
     item->set("Slot", Byte(slot));
@@ -859,8 +760,7 @@ private:
     c->set("ChestItems", chestItems);
   }
 
-  static EntityData Llama(EntityData const &c, CompoundTag const &tag,
-                          Context &) {
+  static EntityData Llama(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
     using namespace mcfile::nbt;
 
@@ -886,20 +786,14 @@ private:
     auto armors = c->listTag("Armor");
 
     auto decorItemId = tag.query("DecorItem/id")->asString();
-    if (decorItemId && strings::StartsWith(decorItemId->fValue, "minecraft:") &&
-        strings::EndsWith(decorItemId->fValue, "_carpet")) {
-      auto carpetColor =
-          strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
+    if (decorItemId && strings::StartsWith(decorItemId->fValue, "minecraft:") && strings::EndsWith(decorItemId->fValue, "_carpet")) {
+      auto carpetColor = strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
       auto colorCode = ColorCodeJavaFromName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
       auto armor = std::make_shared<CompoundTag>();
-      armor->insert({{"Count", Byte(1)},
-                     {"Damage", Short(0)},
-                     {"Name", String("minecraft:carpet")},
-                     {"WasPickedUp", Bool(false)}});
+      armor->insert({{"Count", Byte(1)}, {"Damage", Short(0)}, {"Name", String("minecraft:carpet")}, {"WasPickedUp", Bool(false)}});
       auto block = std::make_shared<CompoundTag>();
-      block->insert({{"name", String("minecraft:carpet")},
-                     {"version", Int(BlockData::kBlockDataVersion)}});
+      block->insert({{"name", String("minecraft:carpet")}, {"version", Int(BlockData::kBlockDataVersion)}});
       auto states = std::make_shared<CompoundTag>();
       states->set("color", String(beCarpetColor));
       block->set("states", states);
@@ -955,13 +849,11 @@ private:
     };
   }
 
-  static EntityData Shulker(EntityData const &c, CompoundTag const &tag,
-                            Context &) {
+  static EntityData Shulker(EntityData const &c, CompoundTag const &tag, Context &) {
     auto color = tag.byte("Color", 16);
     if (0 <= color && color <= 15) {
       c->set("Color", props::Byte(color));
-      AddDefinition(c, "+minecraft:shulker_" +
-                           BedrockNameFromColorCodeJava((ColorCodeJava)color));
+      AddDefinition(c, "+minecraft:shulker_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
     } else {
       AddDefinition(c, "+minecraft:shulker_undyed");
     }
@@ -971,8 +863,7 @@ private:
 
   template <class... Arg> static Behavior Definitions(Arg... defs) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
-      for (std::string const &def :
-           std::initializer_list<std::string>{defs...}) {
+      for (std::string const &def : std::initializer_list<std::string>{defs...}) {
         AddDefinition(c, def);
       }
       return c;
@@ -983,14 +874,12 @@ private:
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
       auto color = tag.byte("Color", 0);
       c->set("Color", props::Byte(color));
-      AddDefinition(c, "+minecraft:" + definitionKey + "_" +
-                           BedrockNameFromColorCodeJava((ColorCodeJava)color));
+      AddDefinition(c, "+minecraft:" + definitionKey + "_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
       return c;
     };
   }
 
-  static EntityData Rabbit(EntityData const &c, CompoundTag const &tag,
-                           Context &) {
+  static EntityData Rabbit(EntityData const &c, CompoundTag const &tag, Context &) {
     auto type = tag.int32("RabbitType", 0);
     std::string coat = "brown";
     int32_t variant = 0;
@@ -1022,13 +911,9 @@ private:
     return c;
   }
 
-  static EntityData Debug(EntityData const &c, CompoundTag const &tag,
-                          Context &) {
-    return c;
-  }
+  static EntityData Debug(EntityData const &c, CompoundTag const &tag, Context &) { return c; }
 
-  static EntityData CollarColorable(EntityData const &c, CompoundTag const &tag,
-                                    Context &) {
+  static EntityData CollarColorable(EntityData const &c, CompoundTag const &tag, Context &) {
     auto collarColor = tag.byte("CollarColor");
     if (collarColor && GetOwnerUUID(tag)) {
       c->set("Color", props::Byte(*collarColor));
@@ -1061,8 +946,7 @@ private:
     };
   }
 
-  static EntityData Mooshroom(EntityData const &c, CompoundTag const &tag,
-                              Context &) {
+  static EntityData Mooshroom(EntityData const &c, CompoundTag const &tag, Context &) {
     auto type = tag.string("Type", "red");
     int32_t variant = 0;
     if (type == "brown") {
@@ -1075,8 +959,7 @@ private:
     return c;
   }
 
-  static EntityData Slime(EntityData const &c, CompoundTag const &tag,
-                          Context &) {
+  static EntityData Slime(EntityData const &c, CompoundTag const &tag, Context &) {
     auto size = tag.int32("Size");
     int8_t variant = 0;
     if (size) {
@@ -1095,8 +978,7 @@ private:
     return e->toCompoundTag();
   }
 
-  static Behavior
-  Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
+  static Behavior Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &ctx) {
       using namespace mcfile::nbt;
 
@@ -1133,8 +1015,7 @@ private:
         }
 
         if (jockeyDefinitionKey) {
-          AddDefinition(c, "+minecraft:" + *jockeyDefinitionKey +
-                               "_parent_jockey");
+          AddDefinition(c, "+minecraft:" + *jockeyDefinitionKey + "_parent_jockey");
         }
       }
 
@@ -1143,8 +1024,7 @@ private:
     };
   }
 
-  static EntityData Boat(EntityData const &c, CompoundTag const &tag,
-                         Context &) {
+  static EntityData Boat(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace mcfile::nbt;
 
     AddDefinition(c, "+minecraft:boat");
@@ -1195,8 +1075,7 @@ private:
     };
   }
 
-  static EntityData Creeper(EntityData const &c, CompoundTag const &tag,
-                            Context &) {
+  static EntityData Creeper(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
     auto powered = tag.boolean("powered", false);
     if (powered) {
@@ -1248,8 +1127,7 @@ private:
     return c;
   }
 
-  static EntityData Bat(EntityData const &c, CompoundTag const &tag,
-                        Context &) {
+  static EntityData Bat(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace mcfile::nbt;
     auto batFlags = tag.boolean("BatFlags", false);
     c->set("BatFlags", props::Bool(batFlags));
@@ -1257,13 +1135,9 @@ private:
     return c;
   }
 
-  static std::optional<int64_t> GetOwnerUUID(CompoundTag const &tag) {
-    return props::GetUUID(tag,
-                          {.fIntArray = "Owner", .fHexString = "OwnerUUID"});
-  }
+  static std::optional<int64_t> GetOwnerUUID(CompoundTag const &tag) { return props::GetUUID(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"}); }
 
-  static EntityData Cat(EntityData const &c, CompoundTag const &tag,
-                        Context &) {
+  static EntityData Cat(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace mcfile::nbt;
     using namespace std;
     auto catType = tag.int32("CatType");
@@ -1321,8 +1195,7 @@ private:
       }
       c->set("Variant", props::Int(variant));
     }
-    c->set("DwellingUniqueID",
-           props::String("00000000-0000-0000-0000-000000000000"));
+    c->set("DwellingUniqueID", props::String("00000000-0000-0000-0000-000000000000"));
     c->set("RewardPlayersOnFirstFounding", props::Bool(true));
     return c;
   }
@@ -1355,8 +1228,7 @@ private:
     };
   }
 
-  static EntityData AgeableC(EntityData const &c, CompoundTag const &tag,
-                             Context &) {
+  static EntityData AgeableC(EntityData const &c, CompoundTag const &tag, Context &) {
     auto age = tag.int32("Age", 0);
     if (age < 0) {
       AddDefinition(c, "+baby");
@@ -1399,8 +1271,7 @@ private:
     };
   }
 
-  static void AddDefinition(EntityData const &c,
-                            std::string const &definition) {
+  static void AddDefinition(EntityData const &c, std::string const &definition) {
     using namespace mcfile::nbt;
 
     auto found = c->find("definitions");
@@ -1420,8 +1291,7 @@ private:
     c->set("definitions", d);
   }
 
-  static void RemoveDefinition(EntityData const &c,
-                               std::string const &definition) {
+  static void RemoveDefinition(EntityData const &c, std::string const &definition) {
     using namespace mcfile::nbt;
 
     auto found = c->find("definitions");
@@ -1440,8 +1310,7 @@ private:
     c->set("definitions", d);
   }
 
-  static EntityData Sittable(EntityData const &c, CompoundTag const &tag,
-                             Context &) {
+  static EntityData Sittable(EntityData const &c, CompoundTag const &tag, Context &) {
     auto sitting = tag.boolean("Sitting", false);
     c->set("Sitting", props::Bool(sitting));
     return c;
@@ -1502,9 +1371,7 @@ private:
 
     auto id = tag.string("id");
     if (id) {
-      if (*id == "minecraft:horse" || *id == "minecraft:donkey" ||
-          *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" ||
-          *id == "minecraft:zombie_horse") {
+      if (*id == "minecraft:horse" || *id == "minecraft:donkey" || *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" || *id == "minecraft:zombie_horse") {
         auto attributes = EntityAttributes::AnyHorse(tag);
         if (attributes) {
           ret->set("Attributes", attributes);
@@ -1520,8 +1387,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const &tag,
-                                                        Context &ctx) {
+  static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
     using namespace mcfile::nbt;
     auto armors = std::make_shared<ListTag>();
     armors->fType = Tag::TAG_Compound;
@@ -1561,19 +1427,11 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag>
-  GetMainhand(CompoundTag const &input, Context &ctx) {
-    return HandItem<0>(input, ctx);
-  }
+  static std::shared_ptr<mcfile::nbt::ListTag> GetMainhand(CompoundTag const &input, Context &ctx) { return HandItem<0>(input, ctx); }
 
-  static std::shared_ptr<mcfile::nbt::ListTag>
-  GetOffhand(CompoundTag const &input, Context &ctx) {
-    return HandItem<1>(input, ctx);
-  }
+  static std::shared_ptr<mcfile::nbt::ListTag> GetOffhand(CompoundTag const &input, Context &ctx) { return HandItem<1>(input, ctx); }
 
-  template <size_t index>
-  static std::shared_ptr<mcfile::nbt::ListTag>
-  HandItem(CompoundTag const &input, Context &ctx) {
+  template <size_t index> static std::shared_ptr<mcfile::nbt::ListTag> HandItem(CompoundTag const &input, Context &ctx) {
     using namespace mcfile::nbt;
     auto ret = std::make_shared<ListTag>();
     ret->fType = Tag::TAG_Compound;
@@ -1581,10 +1439,8 @@ private:
     auto mainHand = input.listTag("HandItems");
     std::shared_ptr<CompoundTag> item;
 
-    if (mainHand && mainHand->fType == Tag::TAG_Compound &&
-        index < mainHand->fValue.size()) {
-      auto inItem =
-          std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
+    if (mainHand && mainHand->fType == Tag::TAG_Compound && index < mainHand->fValue.size()) {
+      auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
       if (inItem) {
         item = Item::From(inItem, ctx.fMapInfo, ctx.fDimensionData);
       }
@@ -1597,10 +1453,7 @@ private:
     return ret;
   }
 
-  static std::optional<int64_t> GetEntityUUID(CompoundTag const &tag) {
-    return props::GetUUID(tag,
-                          {.fLeastAndMostPrefix = "UUID", .fIntArray = "UUID"});
-  }
+  static std::optional<int64_t> GetEntityUUID(CompoundTag const &tag) { return props::GetUUID(tag, {.fLeastAndMostPrefix = "UUID", .fIntArray = "UUID"}); }
 
   static std::optional<Entity> BaseProperties(CompoundTag const &tag) {
     using namespace props;
@@ -1739,32 +1592,7 @@ private:
   static std::optional<Size> PaintingSize(std::string const &motive) {
     using namespace std;
     static unordered_map<string, Size> const mapping = {
-        {"minecraft:pigscene", Size(4, 4)},
-        {"minecraft:burning_skull", Size(4, 4)},
-        {"minecraft:pointer", Size(4, 4)},
-        {"minecraft:skeleton", Size(4, 3)},
-        {"minecraft:donkey_kong", Size(4, 3)},
-        {"minecraft:fighters", Size(4, 2)},
-        {"minecraft:skull_and_roses", Size(2, 2)},
-        {"minecraft:match", Size(2, 2)},
-        {"minecraft:bust", Size(2, 2)},
-        {"minecraft:stage", Size(2, 2)},
-        {"minecraft:void", Size(2, 2)},
-        {"minecraft:wither", Size(2, 2)},
-        {"minecraft:sunset", Size(2, 1)},
-        {"minecraft:courbet", Size(2, 1)},
-        {"minecraft:creebet", Size(2, 1)},
-        {"minecraft:sea", Size(2, 1)},
-        {"minecraft:wanderer", Size(1, 2)},
-        {"minecraft:graham", Size(1, 2)},
-        {"minecraft:aztec2", Size(1, 1)},
-        {"minecraft:alban", Size(1, 1)},
-        {"minecraft:bomb", Size(1, 1)},
-        {"minecraft:kebab", Size(1, 1)},
-        {"minecraft:wasteland", Size(1, 1)},
-        {"minecraft:aztec", Size(1, 1)},
-        {"minecraft:plant", Size(1, 1)},
-        {"minecraft:pool", Size(2, 1)},
+        {"minecraft:pigscene", Size(4, 4)}, {"minecraft:burning_skull", Size(4, 4)}, {"minecraft:pointer", Size(4, 4)}, {"minecraft:skeleton", Size(4, 3)}, {"minecraft:donkey_kong", Size(4, 3)}, {"minecraft:fighters", Size(4, 2)}, {"minecraft:skull_and_roses", Size(2, 2)}, {"minecraft:match", Size(2, 2)}, {"minecraft:bust", Size(2, 2)}, {"minecraft:stage", Size(2, 2)}, {"minecraft:void", Size(2, 2)}, {"minecraft:wither", Size(2, 2)}, {"minecraft:sunset", Size(2, 1)}, {"minecraft:courbet", Size(2, 1)}, {"minecraft:creebet", Size(2, 1)}, {"minecraft:sea", Size(2, 1)}, {"minecraft:wanderer", Size(1, 2)}, {"minecraft:graham", Size(1, 2)}, {"minecraft:aztec2", Size(1, 1)}, {"minecraft:alban", Size(1, 1)}, {"minecraft:bomb", Size(1, 1)}, {"minecraft:kebab", Size(1, 1)}, {"minecraft:wasteland", Size(1, 1)}, {"minecraft:aztec", Size(1, 1)}, {"minecraft:plant", Size(1, 1)}, {"minecraft:pool", Size(2, 1)},
     };
     auto found = mapping.find(motive);
     if (found != mapping.end()) {
@@ -1776,33 +1604,7 @@ private:
   static std::optional<std::string> PaintingMotive(std::string const &je) {
     using namespace std;
     static unordered_map<string, string> const mapping = {
-        {"minecraft:bust", "Bust"},
-        {"minecraft:pigscene", "Pigscene"},
-        {"minecraft:burning_skull", "BurningSkull"},
-        {"minecraft:pointer", "Pointer"},
-        {"minecraft:skeleton", "Skeleton"},
-        {"minecraft:donkey_kong", "DonkeyKong"},
-        {"minecraft:fighters", "Fighters"},
-        {"minecraft:skull_and_roses", "SkullAndRoses"},
-        {"minecraft:match", "Match"},
-        {"minecraft:bust", "Bust"},
-        {"minecraft:stage", "Stage"},
-        {"minecraft:void", "Void"},
-        {"minecraft:wither", "Wither"},
-        {"minecraft:sunset", "Sunset"},
-        {"minecraft:courbet", "Courbet"},
-        {"minecraft:creebet", "Creebet"},
-        {"minecraft:sea", "Sea"},
-        {"minecraft:wanderer", "Wanderer"},
-        {"minecraft:graham", "Graham"},
-        {"minecraft:aztec2", "Aztec2"},
-        {"minecraft:alban", "Alban"},
-        {"minecraft:bomb", "Bomb"},
-        {"minecraft:kebab", "Kebab"},
-        {"minecraft:wasteland", "Wasteland"},
-        {"minecraft:aztec", "Aztec"},
-        {"minecraft:plant", "Plant"},
-        {"minecraft:pool", "Pool"},
+        {"minecraft:bust", "Bust"}, {"minecraft:pigscene", "Pigscene"}, {"minecraft:burning_skull", "BurningSkull"}, {"minecraft:pointer", "Pointer"}, {"minecraft:skeleton", "Skeleton"}, {"minecraft:donkey_kong", "DonkeyKong"}, {"minecraft:fighters", "Fighters"}, {"minecraft:skull_and_roses", "SkullAndRoses"}, {"minecraft:match", "Match"}, {"minecraft:bust", "Bust"}, {"minecraft:stage", "Stage"}, {"minecraft:void", "Void"}, {"minecraft:wither", "Wither"}, {"minecraft:sunset", "Sunset"}, {"minecraft:courbet", "Courbet"}, {"minecraft:creebet", "Creebet"}, {"minecraft:sea", "Sea"}, {"minecraft:wanderer", "Wanderer"}, {"minecraft:graham", "Graham"}, {"minecraft:aztec2", "Aztec2"}, {"minecraft:alban", "Alban"}, {"minecraft:bomb", "Bomb"}, {"minecraft:kebab", "Kebab"}, {"minecraft:wasteland", "Wasteland"}, {"minecraft:aztec", "Aztec"}, {"minecraft:plant", "Plant"}, {"minecraft:pool", "Pool"},
     };
     auto found = mapping.find(je);
     if (found != mapping.end()) {
