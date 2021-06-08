@@ -1374,6 +1374,8 @@ private:
     E("command_block", commandBlock);
     E("chain_command_block", commandBlock);
     E("repeating_command_block", commandBlock);
+
+    E("dirt_path", Converter(Name("grass_path")));
 #undef E
     return table;
   }
