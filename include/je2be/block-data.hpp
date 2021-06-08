@@ -72,15 +72,14 @@ private:
   using Block = mcfile::Block;
 
   using PropertyType = std::shared_ptr<mcfile::nbt::Tag>;
-  using PropertySpec = std::pair<std::string, PropertyType>;
 
   using NamingFunction = std::function<std::string(Block const &)>;
-  using PropertyMapFunction = std::function<std::pair<std::string, PropertyType>(Block const &)>;
+  using PropertyPickupFunction = std::function<void(StatesType const &, Block const &)>;
 
   class Converter {
   public:
     template <class... Arg>
-    Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyMapFunction>{args...}) {}
+    Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyPickupFunction>{args...}) {}
 
     BlockDataType operator()(Block const &block) const {
       using namespace std;
@@ -88,8 +87,7 @@ private:
       auto tag = New(name, true);
       auto states = States();
       for (auto const &p : fProperties) {
-        auto const &kv = p(block);
-        states->insert(kv);
+        p(states, block);
       }
       tag->set("states", states);
       return tag;
@@ -97,7 +95,7 @@ private:
 
   private:
     NamingFunction const fName;
-    std::vector<PropertyMapFunction> const fProperties;
+    std::vector<PropertyPickupFunction> const fProperties;
   };
 
   static BlockDataType Identity(mcfile::Block const &block) {
@@ -127,69 +125,69 @@ private:
     };
   }
 
-  static PropertyMapFunction AddStringProperty(std::string const &name, std::string const &value) {
-    return [=](Block const &) { return std::make_pair(name, props::String(value)); };
+  static PropertyPickupFunction AddStringProperty(std::string const &name, std::string const &value) {
+    return [=](StatesType const &s, Block const &b) { s->set(name, props::String(value)); };
   }
 
-  static PropertyMapFunction AddBoolProperty(std::string const &name, bool v) {
-    return [=](Block const &) { return std::make_pair(name, props::Bool(v)); };
+  static PropertyPickupFunction AddBoolProperty(std::string const &name, bool v) {
+    return [=](StatesType const &s, Block const &b) { s->set(name, props::Bool(v)); };
   }
 
-  static PropertyMapFunction AddIntProperty(std::string const &name, int32_t v) {
-    return [=](Block const &) { return std::make_pair(name, props::Int(v)); };
+  static PropertyPickupFunction AddIntProperty(std::string const &name, int32_t v) {
+    return [=](StatesType const &s, Block const &b) { s->set(name, props::Int(v)); };
   }
 
-  static PropertyMapFunction AddByteProperty(std::string const &name, int8_t v) {
-    return [=](Block const &) { return std::make_pair(name, props::Byte(v)); };
+  static PropertyPickupFunction AddByteProperty(std::string const &name, int8_t v) {
+    return [=](StatesType const &s, Block const &b) { s->set(name, props::Byte(v)); };
   }
 
-  static PropertySpec AxisToPillarAxis(Block const &block) {
+  static void AxisToPillarAxis(StatesType const &s, Block const &block) {
     auto v = block.property("axis", "y");
-    return std::make_pair("pillar_axis", props::String(v));
+    s->set("pillar_axis", props::String(v));
   }
 
-  static PropertySpec PersistentToPersistentBit(Block const &block) {
+  static void PersistentToPersistentBit(StatesType const &s, Block const &block) {
     auto persistent = block.property("persistent", "false");
     bool persistentV = persistent == "true";
-    return std::make_pair("persistent_bit", props::Bool(persistentV));
+    s->set("persistent_bit", props::Bool(persistentV));
   }
 
-  static PropertySpec DistanceToUpdateBit(Block const &block) {
+  static void DistanceToUpdateBit(StatesType const &s, Block const &block) {
     auto distance = block.property("distance", "7");
     auto distanceV = Wrap(strings::Toi(distance), 7);
-    return std::make_pair("update_bit", props::Bool(distanceV > 4));
+    s->set("update_bit", props::Bool(distanceV > 4));
   }
 
-  static PropertySpec TypeToTopSlotBit(Block const &block) {
+  static void TypeToTopSlotBit(StatesType const &s, Block const &block) {
     auto t = block.property("type", "bottom");
-    return std::make_pair("top_slot_bit", props::Bool(t == "top"));
+    s->set("top_slot_bit", props::Bool(t == "top"));
   }
 
-  static PropertyMapFunction AddStoneSlabType(std::string const &number, std::string const &type) {
+  static PropertyPickupFunction AddStoneSlabType(std::string const &number, std::string const &type) {
     auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
-    return [=](Block const &) { return std::make_pair(typeKey, props::String(type)); };
+    return [=](StatesType const &s, Block const &b) { s->set(typeKey, props::String(type)); };
   }
 
-  static PropertySpec UpperBlockBitToHalf(Block const &block) {
+  static void UpperBlockBitToHalf(StatesType const &s, Block const &block) {
     auto half = block.property("half", "lower");
-    return std::make_pair("upper_block_bit", props::Bool(half == "upper"));
+    s->set("upper_block_bit", props::Bool(half == "upper"));
   }
 
-  static PropertySpec WaterloggedToDeadBit(Block const &block) {
+  static void WaterloggedToDeadBit(StatesType const &s, Block const &block) {
     auto waterlogged = block.property("waterlogged", "false");
-    return std::make_pair("dead_bit", props::Bool(waterlogged == "false"));
+    s->set("dead_bit", props::Bool(waterlogged == "false"));
   }
 
-  static PropertySpec PicklesToClusterCount(Block const &block) {
+  static void PicklesToClusterCount(StatesType const &s, Block const &block) {
     auto pickles = block.property("pickles", "1");
     auto cluster = Wrap(strings::Toi(pickles), 1) - 1;
-    return std::make_pair("cluster_count", props::Int(cluster));
+    s->set("cluster_count", props::Int(cluster));
   }
 
-  static PropertySpec HalfToSeagrassType(Block const &block) {
+  static void HalfToSeagrassType(StatesType const &s, Block const &block) {
     auto half = block.property("half", "bottom");
     auto type = half == "bottom" ? "double_bot" : "double_top";
-    return std::make_pair("sea_grass_type", props::String(type));
+    s->set("sea_grass_type", props::String(type));
   }
 
   static PropertyType Age(Block const &block) {
@@ -197,8 +195,8 @@ private:
     return props::Int(age);
   }
 
-  static PropertyMapFunction Name(std::function<PropertyType(Block const &)> func, std::string const &name) {
-    return [=](Block const &block) { return std::make_pair(name, func(block)); };
+  static PropertyPickupFunction Name(std::function<PropertyType(Block const &)> func, std::string const &name) {
+    return [=](StatesType const &s, Block const &block) { s->set(name, func(block)); };
   }
 
   static PropertyType Level(Block const &block) {
@@ -206,7 +204,7 @@ private:
     return props::Int(level);
   }
 
-  static PropertySpec VineDirectionBits(Block const &block) {
+  static void VineDirectionBits(StatesType const &s, Block const &block) {
     auto east = block.property("east", "false") == "true";
     auto north = block.property("north", "false") == "true";
     auto south = block.property("south", "false") == "true";
@@ -225,8 +223,7 @@ private:
     if (south) {
       direction |= 0x1;
     }
-    auto states = States();
-    return std::make_pair("vine_direction_bits", props::Int(direction));
+    s->set("vine_direction_bits", props::Int(direction));
   }
 
   static Converter Subtype(std::string const &name, std::string const &subtypeTitle, std::string const &subtype) { return Converter(Name(name), AddStringProperty(subtypeTitle, subtype)); }
@@ -287,7 +284,7 @@ private:
     }
   }
 
-  static PropertySpec StairsDirectionFromFacing(Block const &block) {
+  static void StairsDirectionFromFacing(StatesType const &s, Block const &block) {
     auto facing = block.property("facing", "north");
     int32_t direction = 0;
     if (facing == "east") {
@@ -299,12 +296,12 @@ private:
     } else if (facing == "west") {
       direction = 1;
     }
-    return std::make_pair("weirdo_direction", props::Int(direction));
+    s->set("weirdo_direction", props::Int(direction));
   }
 
-  static PropertySpec HalfToUpsideDownBit(Block const &block) {
+  static void HalfToUpsideDownBit(StatesType const &s, Block const &block) {
     auto half = block.property("half", "bottom");
-    return std::make_pair("upside_down_bit", props::Bool(half == "top"));
+    s->set("upside_down_bit", props::Bool(half == "top"));
   }
 
   static Converter Stairs(std::optional<std::string> name = std::nullopt) {
@@ -388,11 +385,17 @@ private:
     return props::Int(direction);
   }
 
-  static PropertySpec DirectionFromFacingA(Block const &block) { return std::make_pair("direction", FacingA(block)); }
+  static void DirectionFromFacingA(StatesType const &s, Block const &block) {
+    s->set("direction", FacingA(block));
+  }
 
-  static PropertySpec DirectionFromFacingB(Block const &block) { return std::make_pair("direction", FacingB(block)); }
+  static void DirectionFromFacingB(StatesType const &s, Block const &block) {
+    s->set("direction", FacingB(block));
+  }
 
-  static PropertySpec DirectionFromFacingC(Block const &block) { return std::make_pair("direction", FacingC(block)); }
+  static void DirectionFromFacingC(StatesType const &s, Block const &block) {
+    s->set("direction", FacingC(block));
+  }
 
   static Converter LitPumpkin() { return Converter(Name("lit_pumpkin"), DirectionFromFacingA); }
 
@@ -408,23 +411,23 @@ private:
 
   static Converter CoralBlock(std::string const &color, bool dead) { return Converter(Name("coral_block"), AddStringProperty("coral_color", color), AddBoolProperty("dead_bit", dead)); }
 
-  static PropertySpec StageToAgeBit(Block const &block) {
+  static void StageToAgeBit(StatesType const &s, Block const &block) {
     auto stage = block.property("stage", "0");
-    return std::make_pair("age_bit", props::Bool(stage == "1"));
+    s->set("age_bit", props::Bool(stage == "1"));
   }
 
   static Converter Sapling(std::string const &type) { return Converter(Name("sapling"), AddStringProperty("sapling_type", type), StageToAgeBit); }
 
   static Converter StoneBrick(std::string const &type) { return Subtype("stonebrick", "stone_brick_type", type); }
 
-  static PropertySpec LayersToHeight(Block const &block) {
+  static void LayersToHeight(StatesType const &s, Block const &block) {
     auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
-    return std::make_pair("height", props::Int(layers - 1));
+    s->set("height", props::Int(layers - 1));
   }
 
   static Converter SnowLayer() { return Converter(Name("snow_layer"), LayersToHeight, AddBoolProperty("covered_bit", false)); }
 
-  static PropertySpec EndRodFacingDirectionFromFacing(Block const &block) {
+  static void EndRodFacingDirectionFromFacing(StatesType const &s, Block const &block) {
     auto facing = block.property("facing", "up");
     int32_t direction = 1;
     if (facing == "up") {
@@ -440,7 +443,7 @@ private:
     } else if (facing == "west") {
       direction = 5;
     }
-    return std::make_pair("facing_direction", props::Int(direction));
+    s->set("facing_direction", props::Int(direction));
   }
 
   static Converter AnyTorch(std::string const &prefix) { return Converter(Name(prefix + "torch"), AddStringProperty("torch_facing_direction", "top")); }
@@ -457,10 +460,10 @@ private:
     }
   }
 
-  static PropertySpec TorchFacingDirectionFromFacing(Block const &block) {
+  static void TorchFacingDirectionFromFacing(StatesType const &s, Block const &block) {
     auto facing = block.property("facing", "north");
     auto direction = GetTorchFacingDirectionFromFacing(facing);
-    return std::make_pair("torch_facing_direction", props::String(direction));
+    s->set("torch_facing_direction", props::String(direction));
   }
 
   static Converter AnyWallTorch(std::string const &prefix) { return Converter(Name(prefix + "torch"), TorchFacingDirectionFromFacing); }
@@ -474,8 +477,8 @@ private:
     return props::Int(v);
   }
 
-  static PropertyMapFunction HugeMushroomBits(bool stem) {
-    return [=](Block const &block) {
+  static PropertyPickupFunction HugeMushroomBits(bool stem) {
+    return [=](StatesType const &s, Block const &block) {
       auto up = block.property("up", "false") == "true";
       auto down = block.property("down", "false") == "true";
       auto north = block.property("north", "false") == "true";
@@ -512,7 +515,7 @@ private:
           bits = 14;
         }
       }
-      return std::make_pair("huge_mushroom_bits", props::Int(bits));
+      s->set("huge_mushroom_bits", props::Int(bits));
     };
   }
 
@@ -520,19 +523,19 @@ private:
 
   static Converter ShulkerBox(std::string const &color) { return Subtype("shulker_box", "color", color); }
 
-  static PropertySpec EyeToEndPortalEyeBit(Block const &block) {
+  static void EyeToEndPortalEyeBit(StatesType const &s, Block const &block) {
     auto eye = block.property("eye", "false") == "true";
-    return std::make_pair("end_portal_eye_bit", props::Bool(eye));
+    s->set("end_portal_eye_bit", props::Bool(eye));
   }
 
-  static PropertySpec FacingDirectionFromFacingA(Block const &block) {
+  static void FacingDirectionFromFacingA(StatesType const &s, Block const &block) {
     int32_t direction = GetFacingDirectionFromFacingA(block);
-    return std::make_pair("facing_direction", props::Int(direction));
+    s->set("facing_direction", props::Int(direction));
   }
 
-  static PropertySpec FacingDirectionFromFacingB(Block const &block) {
+  static void FacingDirectionFromFacingB(StatesType const &s, Block const &block) {
     int32_t direction = GetFacingDirectionFromFacingB(block);
-    return std::make_pair("facing_direction", props::Int(direction));
+    s->set("facing_direction", props::Int(direction));
   }
 
   static std::string GetWallConnectionType(std::string const &type) {
@@ -545,26 +548,26 @@ private:
     }
   }
 
-  static PropertyMapFunction WallConnectionType(std::string const &direction) {
-    return [=](Block const &b) {
+  static PropertyPickupFunction WallConnectionType(std::string const &direction) {
+    return [=](StatesType const &s, Block const &b) {
       std::string beName = "wall_connection_type_" + direction;
       auto v = b.property(direction, "none");
       if (v == "true" || v == "false") {
         if (v == "true") {
-          return std::make_pair(beName, props::String("short"));
+          s->set(beName, props::String("short"));
         } else {
-          return std::make_pair(beName, props::String("none"));
+          s->set(beName, props::String("none"));
         }
       } else {
         auto type = GetWallConnectionType(v);
-        return std::make_pair(beName, props::String(type));
+        s->set(beName, props::String(type));
       }
     };
   }
 
-  static PropertySpec WallPostBit(Block const &b) {
+  static void WallPostBit(StatesType const &s, Block const &b) {
     auto up = b.property("up", "false") == "true";
-    return std::make_pair("wall_post_bit", props::Bool(up));
+    s->set("wall_post_bit", props::Bool(up));
   }
 
   static Converter Wall(std::string const &type) { return Converter(Name("cobblestone_wall"), WallPostBit, AddStringProperty("wall_block_type", type), WallConnectionType("east"), WallConnectionType("north"), WallConnectionType("south"), WallConnectionType("west")); }
@@ -596,19 +599,19 @@ private:
     return Converter(Name(name), Name(Rotation, "ground_sign_direction"));
   }
 
-  static PropertySpec PartToHeadPieceBit(Block const &block) {
+  static void PartToHeadPieceBit(StatesType const &s, Block const &block) {
     auto head = block.property("part", "foot") == "head";
-    return std::make_pair("head_piece_bit", props::Bool(head));
+    s->set("head_piece_bit", props::Bool(head));
   }
 
-  static PropertySpec OccupiedToOccupiedBit(Block const &block) {
+  static void OccupiedToOccupiedBit(StatesType const &s, Block const &block) {
     auto occupied = block.property("occupied", "false") == "true";
-    return std::make_pair("occupied_bit", props::Bool(occupied));
+    s->set("occupied_bit", props::Bool(occupied));
   }
 
   static PropertyType Open(Block const &block) { return props::Bool(block.property("open", "false") == "true"); }
 
-  static PropertySpec GrindstoneFaceToAttachment(Block const &block) {
+  static void GrindstoneFaceToAttachment(StatesType const &s, Block const &block) {
     auto face = block.property("face", "wall");
     std::string attachment;
     if (face == "wall") {
@@ -618,7 +621,7 @@ private:
     } else {
       attachment = "hanging";
     }
-    return std::make_pair("attachment", props::String(attachment));
+    s->set("attachment", props::String(attachment));
   }
 
   static PropertyType Hanging(Block const &block) {
@@ -626,12 +629,12 @@ private:
     return props::Bool(hanging);
   }
 
-  static PropertySpec BellAttachmentFromAttachment(Block const &block) {
+  static void BellAttachmentFromAttachment(StatesType const &s, Block const &block) {
     auto attachment = block.property("attachment", "floor");
-    return std::make_pair("attachment", props::String(GetAttachment(attachment)));
+    s->set("attachment", props::String(GetAttachment(attachment)));
   }
 
-  static PropertySpec BellDirectionFromFacing(Block const &block) {
+  static void BellDirectionFromFacing(StatesType const &s, Block const &block) {
     auto facing = block.property("facing", "north");
     int32_t direction = 0;
     if (facing == "north") {
@@ -643,7 +646,7 @@ private:
     } else {
       direction = 3;
     }
-    return std::make_pair("direction", props::Int(direction));
+    s->set("direction", props::Int(direction));
   }
 
   static PropertyType Powered(Block const &block) {
@@ -656,9 +659,9 @@ private:
     return props::Bool(l);
   }
 
-  static PropertySpec LitToExtinguished(Block const &block) {
+  static void LitToExtinguished(StatesType const &s, Block const &block) {
     auto l = block.property("lit", "flase") == "true";
-    return std::make_pair("extinguished", props::Bool(!l));
+    s->set("extinguished", props::Bool(!l));
   }
 
   static std::unordered_map<std::string, Converter> *CreateConverterTable() {
@@ -1380,33 +1383,33 @@ private:
     return table;
   }
 
-  static PropertySpec Conditional(Block const &b) {
+  static void Conditional(StatesType const &s, Block const &b) {
     auto conditional = b.property("conditional", "false");
-    return std::make_pair("conditional_bit", props::Bool(conditional == "true"));
+    s->set("conditional_bit", props::Bool(conditional == "true"));
   }
 
-  static PropertySpec BambooAgeFromStage(Block const &b) {
+  static void BambooAgeFromStage(StatesType const &s, Block const &b) {
     auto stage = b.property("stage", "0");
     if (stage == "0") {
-      return std::make_pair("age", props::String("0"));
+      s->set("age", props::String("0"));
     } else {
-      return std::make_pair("age", props::String("1"));
+      s->set("age", props::String("1"));
     }
   }
 
-  static PropertySpec BambooStalkThisknessFromAge(Block const &b) {
+  static void BambooStalkThisknessFromAge(StatesType const &s, Block const &b) {
     auto age = b.property("age", "0");
     if (age == "0") {
-      return std::make_pair("bamboo_stalk_thikness", props::String("thin"));
+      s->set("bamboo_stalk_thikness", props::String("thin"));
     } else {
-      return std::make_pair("bamboo_stalk_thikness", props::String("thick"));
+      s->set("bamboo_stalk_thikness", props::String("thick"));
     }
   }
 
-  static PropertySpec HoneyLevel(Block const &b) {
+  static void HoneyLevel(StatesType const &s, Block const &b) {
     auto v = strings::Toi(b.property("honey_level", "0"));
     int32_t level = v ? *v : 0;
-    return std::make_pair("honey_level", props::Int(level));
+    s->set("honey_level", props::Int(level));
   }
 
   static std::string MovingPistonName(Block const &b) {
@@ -1418,7 +1421,7 @@ private:
     }
   }
 
-  static PropertySpec TurtleEggCount(Block const &b) {
+  static void TurtleEggCount(StatesType const &s, Block const &b) {
     auto eggs = b.property("eggs", "1");
     std::string eggCount = "one_egg";
     if (eggs == "1") {
@@ -1430,10 +1433,10 @@ private:
     } else if (eggs == "4") {
       eggCount = "four_egg";
     }
-    return std::make_pair("turtle_egg_count", props::String(eggCount));
+    s->set("turtle_egg_count", props::String(eggCount));
   }
 
-  static PropertySpec TurtleEggCrackedState(Block const &b) {
+  static void TurtleEggCrackedState(StatesType const &s, Block const &b) {
     auto hatch = b.property("hatch", "0");
     std::string state = "no_cracks";
     if (hatch == "0") {
@@ -1443,10 +1446,10 @@ private:
     } else if (hatch == "2") {
       state = "max_cracked";
     }
-    return std::make_pair("cracked_state", props::String(state));
+    s->set("cracked_state", props::String(state));
   }
 
-  static PropertySpec WallSkullFacingDirection(Block const &b) {
+  static void WallSkullFacingDirection(StatesType const &s, Block const &b) {
     auto facing = b.property("facing", "");
     int32_t direction = 1;
     if (facing == "south") {
@@ -1458,25 +1461,25 @@ private:
     } else if (facing == "west") {
       direction = 4;
     }
-    return std::make_pair("facing_direction", props::Int(direction));
+    s->set("facing_direction", props::Int(direction));
   }
 
-  static PropertySpec CauldronFillLevelFromLevel(Block const &b) {
+  static void CauldronFillLevelFromLevel(StatesType const &s, Block const &b) {
     auto level = strings::Toi(b.property("level", "0"));
-    return std::make_pair("fill_level", props::Int(*level * 2));
+    s->set("fill_level", props::Int(*level * 2));
   }
 
-  static PropertySpec BiteCounterFromBites(Block const &b) {
+  static void BiteCounterFromBites(StatesType const &s, Block const &b) {
     auto bites = Wrap(strings::Toi(b.property("bites", "0")), 0);
-    return std::make_pair("bite_counter", props::Int(bites));
+    s->set("bite_counter", props::Int(bites));
   }
 
-  static PropertySpec DragDownFromDrag(Block const &b) {
+  static void DragDownFromDrag(StatesType const &s, Block const &b) {
     auto drag = b.property("drag", "true") == "true";
-    return std::make_pair("drag_down", props::Bool(drag));
+    s->set("drag_down", props::Bool(drag));
   }
 
-  static PropertySpec GrowthFromAge(Block const &b) {
+  static void GrowthFromAge(StatesType const &s, Block const &b) {
     auto age = Wrap(strings::Toi(b.property("age", "0")), 0);
     int32_t growth = 0;
     switch (age) {
@@ -1493,15 +1496,15 @@ private:
       growth = 7;
       break;
     }
-    return std::make_pair("growth", props::Int(growth));
+    s->set("growth", props::Int(growth));
   }
 
-  static PropertySpec AgeBitFromAge(Block const &b) {
+  static void AgeBitFromAge(StatesType const &s, Block const &b) {
     auto age = b.property("age", "0");
-    return std::make_pair("age", props::Bool(age == "1"));
+    s->set("age", props::Bool(age == "1"));
   }
 
-  static PropertySpec BambooLeafSizeFromLeaves(Block const &b) {
+  static void BambooLeafSizeFromLeaves(StatesType const &s, Block const &b) {
     auto leaves = b.property("leaves", "none");
     std::string size = "no_leaves";
     if (leaves == "none") {
@@ -1511,7 +1514,7 @@ private:
     } else if (leaves == "small") {
       size = "small_leaves";
     }
-    return std::make_pair("bamboo_leaf_size", props::String(size));
+    s->set("bamboo_leaf_size", props::String(size));
   }
 
   static PropertyType Axis(Block const &b) {
@@ -1519,7 +1522,7 @@ private:
     return props::String(axis);
   }
 
-  static PropertySpec RailDirectionFromShape(Block const &b) {
+  static void RailDirectionFromShape(StatesType const &s, Block const &b) {
     auto shape = b.property("shape", "north_south");
     int32_t direction = 0;
     if (shape == "north_south") {
@@ -1543,12 +1546,12 @@ private:
     } else if (shape == "south_west") {
       direction = 7;
     }
-    return std::make_pair("rail_direction", props::Int(direction));
+    s->set("rail_direction", props::Int(direction));
   }
 
-  static PropertySpec OutputSubtractBitFromMode(Block const &b) {
+  static void OutputSubtractBitFromMode(StatesType const &s, Block const &b) {
     auto mode = b.property("mode", "compare");
-    return std::make_pair("output_subtract_bit", props::Bool(mode == "subtract"));
+    s->set("output_subtract_bit", props::Bool(mode == "subtract"));
   }
 
   static PropertyType Delay(Block const &b) {
@@ -1574,14 +1577,14 @@ private:
     }
   }
 
-  static PropertySpec DoorHingeBitFromHinge(Block const &b) {
+  static void DoorHingeBitFromHinge(StatesType const &s, Block const &b) {
     auto hinge = b.property("hinge", "left");
-    return std::make_pair("door_hinge_bit", props::Bool(hinge == "right"));
+    s->set("door_hinge_bit", props::Bool(hinge == "right"));
   }
 
-  static PropertySpec ToggleBitFromEnabled(Block const &b) {
+  static void ToggleBitFromEnabled(StatesType const &s, Block const &b) {
     auto enabled = b.property("enabled", "true") == "true";
-    return std::make_pair("toggle_bit", props::Bool(!enabled));
+    s->set("toggle_bit", props::Bool(!enabled));
   }
 
   static std::string DaylightDetectorName(Block const &b) {
@@ -1595,7 +1598,7 @@ private:
 
   static PropertyType Attached(Block const &b) { return props::Bool(b.property("attached", "false") == "true"); }
 
-  static PropertySpec ButtonFacingDirection(Block const &b) {
+  static void ButtonFacingDirection(StatesType const &s, Block const &b) {
     auto face = b.property("face", "wall");
     auto facing = b.property("facing", "north");
     int32_t direction = 0;
@@ -1614,14 +1617,14 @@ private:
         direction = 4;
       }
     }
-    return std::make_pair("facing_direction", props::Int(direction));
+    s->set("facing_direction", props::Int(direction));
   }
 
   static PropertyType Power(Block const &b) { return props::Int(Wrap(strings::Toi(b.property("power", "0")), 0)); }
 
   static PropertyType InWall(Block const &b) { return props::Bool(b.property("in_wall", "false") == "true"); }
 
-  static PropertySpec LeverDirection(Block const &b) {
+  static void LeverDirection(StatesType const &s, Block const &b) {
     auto face = b.property("face", "wall");
     auto facing = b.property("facing", "north");
     std::string result;
@@ -1640,7 +1643,7 @@ private:
     } else {
       result = facing;
     }
-    return std::make_pair("lever_direction", props::String(result));
+    s->set("lever_direction", props::String(result));
   }
 
   static PropertyType Triggered(Block const &b) {
