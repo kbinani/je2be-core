@@ -1360,7 +1360,9 @@ private:
     E("lectern", Converter(Same, DirectionFromFacingA));
     E("ender_chest", Converter(Same, FacingDirectionFromFacingA));
     E("bone_block", axisToPillarAxis);
-    E("cauldron", Converter(Same, CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid_type", "water")));
+    E("cauldron", Converter(Same));
+    E("water_cauldron", Converter(Name("cauldron"), CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid", "water")));
+    E("lava_cauldron", Converter(Name("lava_cauldron"), AddIntProperty("fill_level", 6), AddStringProperty("cauldron_liquid", "lava")));
     E("hay_block", axisToPillarAxis);
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
     E("cave_air", Rename("air"));
@@ -1381,6 +1383,10 @@ private:
     E("dirt_path", Converter(Name("grass_path")));
 #undef E
     return table;
+  }
+
+  static void Debug(StatesType const &s, Block const &b) {
+    (void)s;
   }
 
   static void Conditional(StatesType const &s, Block const &b) {
@@ -1678,7 +1684,7 @@ private:
   static StatesType States() { return std::make_shared<mcfile::nbt::CompoundTag>(); }
 
 public:
-  static int32_t const kBlockDataVersion = 17825808;
+  static int32_t const kBlockDataVersion = 17879555;
 };
 
 } // namespace j2b
