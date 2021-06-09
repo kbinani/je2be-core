@@ -6,7 +6,7 @@ class BlockData {
 public:
   static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::Block const> const &block) {
     using namespace std;
-    static unique_ptr<unordered_map<string, Converter> const> const table(CreateConverterTable());
+    static unique_ptr<unordered_map<string, AnyConverter> const> const table(CreateConverterTable());
 
     auto found = table->find(block->fName);
     if (found == table->end()) {
@@ -75,6 +75,8 @@ private:
 
   using NamingFunction = std::function<std::string(Block const &)>;
   using PropertyPickupFunction = std::function<void(StatesType const &, Block const &)>;
+
+  using AnyConverter = std::function<BlockDataType(Block const &)>;
 
   class Converter {
   public:
@@ -282,6 +284,10 @@ private:
     } else {
       return Converter(Name(type + "_vines"), Name(Age, type + "_vines_age"));
     }
+  }
+
+  static BlockDataType NotPresentInBedrock(Block const &block) {
+    return New("air");
   }
 
   static void StairsDirectionFromFacing(StatesType const &s, Block const &block) {
@@ -664,14 +670,14 @@ private:
     s->set("extinguished", props::Bool(!l));
   }
 
-  static std::unordered_map<std::string, Converter> *CreateConverterTable() {
+  static std::unordered_map<std::string, AnyConverter> *CreateConverterTable() {
     using namespace std;
     Converter axisToPillarAxis(Same, AxisToPillarAxis);
     Converter directionFromFacing(Same, DirectionFromFacingA);
     Converter facingDirectionFromFacing(Same, FacingDirectionFromFacingA);
     Converter facingDirectionFromFacing2(Same, FacingDirectionFromFacingB);
 
-    auto table = new unordered_map<string, Converter>();
+    auto table = new unordered_map<string, AnyConverter>();
 #define E(__name, __func) table->emplace("minecraft:" __name, __func);
     E("stone", Stone("stone"));
     E("granite", Stone("granite"));
@@ -1380,7 +1386,72 @@ private:
     E("chain_command_block", commandBlock);
     E("repeating_command_block", commandBlock);
 
-    E("dirt_path", Converter(Name("grass_path")));
+    E("dirt_path", Rename("grass_path"));
+    E("waxed_copper_block", Rename("waxed_copper"));
+    E("rooted_dirt", Rename("dirt_with_roots"));
+    E("flowering_azalea_leaves", Converter(Name("azalea_leaves_flowered"), PersistentToPersistentBit, DistanceToUpdateBit));
+
+    // "big_dripleaf_tilt": "none",
+    // "direction": /*int*/0
+    E("big_dripleaf", Converter(Same, AddByteProperty("big_dripleaf_head", true)));
+    E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", true)));
+
+    // "direction": /*int*/3,
+    // "upper_block_bit": /*byte*/1
+    E("small_dripleaf", Converter(Name("small_dripleaf_block")));
+
+    E("candle", NotPresentInBedrock);
+    E("white_candle", NotPresentInBedrock);
+    E("orange_candle", NotPresentInBedrock);
+    E("magenta_candle", NotPresentInBedrock);
+    E("light_blue_candle", NotPresentInBedrock);
+    E("yellow_candle", NotPresentInBedrock);
+    E("lime_candle", NotPresentInBedrock);
+    E("pink_candle", NotPresentInBedrock);
+    E("gray_candle", NotPresentInBedrock);
+    E("light_gray_candle", NotPresentInBedrock);
+    E("cyan_candle", NotPresentInBedrock);
+    E("purple_candle", NotPresentInBedrock);
+    E("blue_candle", NotPresentInBedrock);
+    E("brown_candle", NotPresentInBedrock);
+    E("green_candle", NotPresentInBedrock);
+    E("red_candle", NotPresentInBedrock);
+    E("black_candle", NotPresentInBedrock);
+
+    E("cut_copper_stairs", Stairs());
+    E("exposed_copper_stairs", Stairs());
+    E("weathered_cut_copper_stairs", Stairs());
+    E("oxidized_cut_copper_stairs", Stairs());
+
+    E("waxed_cut_copper_stairs", Stairs());
+    E("waxed_exposed_copper_stairs", Stairs());
+    E("waxed_weathered_cut_copper_stairs", Stairs());
+    E("waxed_oxidized_cut_copper_stairs", Stairs());
+
+    E("cobbled_deepslate_stairs", Stairs());
+    E("polished_deepslate_stairs", Stairs());
+    E("deepslate_brick_stairs", Stairs());
+    E("deepslate_tile_stairs", Stairs());
+
+    E("cut_copper_slab", StoneSlabNT("double_cut_copper_slab"));
+    E("exposed_cut_copper_slab", StoneSlabNT("exposed_double_cut_copper_slab"));
+    E("weathered_cut_copper_slab", StoneSlabNT("weathered_double_cut_copper_slab"));
+    E("oxidized_cut_copper_slab", StoneSlabNT("oxidized_double_cut_copper_slab"));
+
+    E("waxed_cut_copper_slab", StoneSlabNT("waxed_double_cut_copper_slab"));
+    E("waxed_exposed_cut_copper_slab", StoneSlabNT("waxed_exposed_double_cut_copper_slab"));
+    E("waxed_weathered_cut_copper_slab", StoneSlabNT("waxed_weathered_double_cut_copper_slab"));
+    E("waxed_oxidized_cut_copper_slab", StoneSlabNT("waxed_oxidized_double_cut_copper_slab"));
+
+    E("cobbled_deepslate_slab", StoneSlabNT("cobbled_deepslate_double_slab"));
+    E("polished_deepslate_slab", StoneSlabNT("polished_deepslate_double_slab"));
+    E("deepslate_brick_slab", StoneSlabNT("deepslate_brick_double_slab"));
+    E("deepslate_tile_slab", StoneSlabNT("deepslate_tile_double_slab"));
+
+    E("cobbled_deepslate_wall", wall);
+    E("polished_deepslate_wall", wall);
+    E("deepslate_brick_wall", wall);
+    E("deepslate_tile_wall", wall);
 #undef E
     return table;
   }
