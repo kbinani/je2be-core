@@ -680,8 +680,8 @@ private:
     using namespace std;
     Converter axisToPillarAxis(Same, AxisToPillarAxis);
     Converter directionFromFacing(Same, DirectionFromFacingA);
-    Converter facingDirectionFromFacing(Same, FacingDirectionFromFacingA);
-    Converter facingDirectionFromFacing2(Same, FacingDirectionFromFacingB);
+    Converter facingDirectionFromFacingA(Same, FacingDirectionFromFacingA);
+    Converter facingDirectionFromFacingB(Same, FacingDirectionFromFacingB);
 
     auto table = new unordered_map<string, AnyConverter>();
 #define E(__name, __func) table->emplace("minecraft:" __name, __func);
@@ -994,9 +994,9 @@ private:
     E("jungle_fence", Fence("jungle"));
     E("acacia_fence", Fence("acacia"));
     E("dark_oak_fence", Fence("dark_oak"));
-    E("ladder", facingDirectionFromFacing);
-    E("chest", facingDirectionFromFacing);
-    E("furnace", facingDirectionFromFacing);
+    E("ladder", facingDirectionFromFacingA);
+    E("chest", facingDirectionFromFacingA);
+    E("furnace", facingDirectionFromFacingA);
     E("nether_bricks", Rename("nether_brick"));
     E("infested_stone", InfestedStone("stone"));
     E("infested_cobblestone", InfestedStone("cobblestone"));
@@ -1086,22 +1086,22 @@ private:
     E("anvil", Anvil("undamaged"));
     E("chipped_anvil", Anvil("slightly_damaged"));
     E("damaged_anvil", Anvil("very_damaged"));
-    E("white_glazed_terracotta", facingDirectionFromFacing);
-    E("orange_glazed_terracotta", facingDirectionFromFacing);
-    E("magenta_glazed_terracotta", facingDirectionFromFacing);
-    E("light_blue_glazed_terracotta", facingDirectionFromFacing);
-    E("yellow_glazed_terracotta", facingDirectionFromFacing);
-    E("lime_glazed_terracotta", facingDirectionFromFacing);
-    E("pink_glazed_terracotta", facingDirectionFromFacing);
-    E("gray_glazed_terracotta", facingDirectionFromFacing);
+    E("white_glazed_terracotta", facingDirectionFromFacingA);
+    E("orange_glazed_terracotta", facingDirectionFromFacingA);
+    E("magenta_glazed_terracotta", facingDirectionFromFacingA);
+    E("light_blue_glazed_terracotta", facingDirectionFromFacingA);
+    E("yellow_glazed_terracotta", facingDirectionFromFacingA);
+    E("lime_glazed_terracotta", facingDirectionFromFacingA);
+    E("pink_glazed_terracotta", facingDirectionFromFacingA);
+    E("gray_glazed_terracotta", facingDirectionFromFacingA);
     E("light_gray_glazed_terracotta", Converter(Name("silver_glazed_terracotta"), FacingDirectionFromFacingA));
-    E("cyan_glazed_terracotta", facingDirectionFromFacing);
-    E("purple_glazed_terracotta", facingDirectionFromFacing);
-    E("blue_glazed_terracotta", facingDirectionFromFacing);
-    E("brown_glazed_terracotta", facingDirectionFromFacing);
-    E("green_glazed_terracotta", facingDirectionFromFacing);
-    E("red_glazed_terracotta", facingDirectionFromFacing);
-    E("black_glazed_terracotta", facingDirectionFromFacing);
+    E("cyan_glazed_terracotta", facingDirectionFromFacingA);
+    E("purple_glazed_terracotta", facingDirectionFromFacingA);
+    E("blue_glazed_terracotta", facingDirectionFromFacingA);
+    E("brown_glazed_terracotta", facingDirectionFromFacingA);
+    E("green_glazed_terracotta", facingDirectionFromFacingA);
+    E("red_glazed_terracotta", facingDirectionFromFacingA);
+    E("black_glazed_terracotta", facingDirectionFromFacingA);
 
     E("tube_coral", Coral("blue", false));
     E("brain_coral", Coral("pink", false));
@@ -1261,8 +1261,8 @@ private:
     E("stonecutter", Converter(Name("stonecutter_block"), FacingDirectionFromFacingA));
     E("loom", directionFromFacing);
     E("grindstone", Converter(Name("grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
-    E("smoker", facingDirectionFromFacing);
-    E("blast_furnace", facingDirectionFromFacing);
+    E("smoker", facingDirectionFromFacingA);
+    E("blast_furnace", facingDirectionFromFacingA);
     E("barrel", Converter(Name("barrel"), FacingDirectionFromFacingA, Name(Open, "open_bit")));
     Converter lantern(Same, Name(Hanging, "hanging"));
     E("lantern", lantern);
@@ -1271,8 +1271,8 @@ private:
     Converter campfire(Same, DirectionFromFacingA, LitToExtinguished);
     E("campfire", campfire);
     E("soul_campfire", campfire);
-    E("piston", facingDirectionFromFacing2);
-    E("sticky_piston", facingDirectionFromFacing2);
+    E("piston", facingDirectionFromFacingB);
+    E("sticky_piston", facingDirectionFromFacingB);
     E("piston_head", Converter(Name("air")));
     E("sticky_piston_head", Converter(Name("air")));
     E("moving_piston", Converter(MovingPistonName, FacingDirectionFromFacingB));
@@ -1330,7 +1330,7 @@ private:
     E("polished_blackstone_button", button);
 
     E("tripwire_hook", Converter(Same, DirectionFromFacingA, Name(Attached, "attached_bit"), Name(Powered, "powered_bit")));
-    E("trapped_chest", facingDirectionFromFacing);
+    E("trapped_chest", facingDirectionFromFacingA);
     E("daylight_detector", Converter(DaylightDetectorName, Name(Power, "redstone_signal")));
     E("hopper", Converter(Same, FacingDirectionFromFacingA, ToggleBitFromEnabled));
     E("dropper", Converter(Same, FacingDirectionFromFacingA, Name(Triggered, "triggered_bit")));
@@ -1454,7 +1454,7 @@ private:
     E("deepslate_brick_wall", wall);
     E("deepslate_tile_wall", wall);
 
-    E("lightning_rod", Converter(Same, FacingDirectionFromFacingA));
+    E("lightning_rod", facingDirectionFromFacingA);
 #undef E
     return table;
   }
