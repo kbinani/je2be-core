@@ -77,9 +77,9 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/chunksection/chunk-section-116.hpp
   ext/libminecraft-file/include/mcfile/chunksection/chunk-section-generator.hpp
   ext/libminecraft-file/include/mcfile/coordinate.hpp
-  ext/libminecraft-file/include/mcfile/detail/chunk-data-source.hpp
   ext/libminecraft-file/include/mcfile/detail/compression.hpp
   ext/libminecraft-file/include/mcfile/detail/endianness.hpp
+  ext/libminecraft-file/include/mcfile/detail/mca-data-source.hpp
   ext/libminecraft-file/include/mcfile/detail/string.hpp
   ext/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
