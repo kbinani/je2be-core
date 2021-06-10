@@ -1455,6 +1455,12 @@ private:
     E("deepslate_tile_wall", wall);
 
     E("lightning_rod", facingDirectionFromFacingA);
+
+    E("small_amethyst_bud", facingDirectionFromFacingA);
+    E("medium_amethyst_bud", facingDirectionFromFacingA);
+    E("large_amethyst_bud", facingDirectionFromFacingA);
+    E("small_amethyst_bud", facingDirectionFromFacingA);
+    E("amethyst_cluster", facingDirectionFromFacingA);
 #undef E
     return table;
   }
