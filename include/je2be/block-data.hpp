@@ -1453,6 +1453,8 @@ private:
     E("polished_deepslate_wall", wall);
     E("deepslate_brick_wall", wall);
     E("deepslate_tile_wall", wall);
+
+    E("lightning_rod", Converter(Same, FacingDirectionFromFacingA));
 #undef E
     return table;
   }
