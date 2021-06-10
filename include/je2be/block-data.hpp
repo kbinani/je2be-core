@@ -431,7 +431,13 @@ private:
     s->set("height", props::Int(layers - 1));
   }
 
-  static Converter SnowLayer() { return Converter(Name("snow_layer"), LayersToHeight, AddBoolProperty("covered_bit", false)); }
+  static BlockDataType SnowLayer(Block const &b) {
+    auto d = New("snow_layer");
+    auto s = States();
+    LayersToHeight(s, b);
+    AddBoolProperty("covered_bit", false)(s, b);
+    return d;
+  }
 
   static void EndRodFacingDirectionFromFacing(StatesType const &s, Block const &block) {
     auto facing = block.property("facing", "up");
@@ -979,7 +985,7 @@ private:
     E("dead_bubble_coral_block", CoralBlock("purple", true));
     E("dead_fire_coral_block", CoralBlock("red", true));
     E("dead_horn_coral_block", CoralBlock("yellow", true));
-    E("snow", SnowLayer());
+    E("snow", SnowLayer);
     E("sugar_cane", Rename("reeds"));
     E("end_rod", Converter(Same, EndRodFacingDirectionFromFacing));
     E("oak_fence", Fence("oak"));
