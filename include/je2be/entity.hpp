@@ -95,61 +95,69 @@ public:
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
-      auto tileX = c.int32("TileX");
-      auto tileY = c.int32("TileY");
-      auto tileZ = c.int32("TileZ");
-
-      auto rot = GetRotation(c, "Rotation");
-      int32_t facing = 0;
-      if (RotAlmostEquals(*rot, 0, -90)) {
-        // up
-        facing = 1;
-      } else if (RotAlmostEquals(*rot, 180, 0)) {
-        // north
-        facing = 2;
-      } else if (RotAlmostEquals(*rot, 270, 0)) {
-        // east
-        facing = 5;
-      } else if (RotAlmostEquals(*rot, 0, 0)) {
-        // south
-        facing = 3;
-      } else if (RotAlmostEquals(*rot, 90, 0)) {
-        // west
-        facing = 4;
-      } else if (RotAlmostEquals(*rot, 0, 90)) {
-        // down
-        facing = 0;
-      }
-
-      bool map = false;
-      auto itemId = c.query("Item/id");
-      if (itemId) {
-        auto itemIdString = itemId->asString();
-        if (itemIdString) {
-          string itemName = itemIdString->fValue;
-          if (itemName == "minecraft:filled_map") {
-            map = true;
-          }
-        }
-      }
-
-      auto b = make_shared<CompoundTag>();
-      auto states = make_shared<CompoundTag>();
-      states->insert({
-          {"facing_direction", Int(facing)},
-          {"item_frame_map_bit", Bool(map)},
-      });
-      string key = "minecraft:frame[facing_direction=" + to_string(facing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
-      b->insert({
-          {"name", String("minecraft:frame")},
-          {"version", Int(BlockData::kBlockDataVersion)},
-          {"states", states},
-      });
-      Pos pos(*tileX, *tileY, *tileZ);
-      return make_tuple(pos, b, key);
+      return ToItemFrameTileEntityBlock(c, "minecraft:frame");
+    } else if (*id == "minecraft:glow_item_frame") {
+      return ToItemFrameTileEntityBlock(c, "minecraft:glow_frame");
     }
 
     return nullopt;
+  }
+
+  static std::tuple<Pos, std::shared_ptr<CompoundTag>, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
+    using namespace std;
+    using namespace props;
+    auto tileX = c.int32("TileX");
+    auto tileY = c.int32("TileY");
+    auto tileZ = c.int32("TileZ");
+
+    auto rot = GetRotation(c, "Rotation");
+    int32_t facing = 0;
+    if (RotAlmostEquals(*rot, 0, -90)) {
+      // up
+      facing = 1;
+    } else if (RotAlmostEquals(*rot, 180, 0)) {
+      // north
+      facing = 2;
+    } else if (RotAlmostEquals(*rot, 270, 0)) {
+      // east
+      facing = 5;
+    } else if (RotAlmostEquals(*rot, 0, 0)) {
+      // south
+      facing = 3;
+    } else if (RotAlmostEquals(*rot, 90, 0)) {
+      // west
+      facing = 4;
+    } else if (RotAlmostEquals(*rot, 0, 90)) {
+      // down
+      facing = 0;
+    }
+
+    bool map = false;
+    auto itemId = c.query("Item/id");
+    if (itemId) {
+      auto itemIdString = itemId->asString();
+      if (itemIdString) {
+        string itemName = itemIdString->fValue;
+        if (itemName == "minecraft:filled_map") {
+          map = true;
+        }
+      }
+    }
+
+    auto b = make_shared<CompoundTag>();
+    auto states = make_shared<CompoundTag>();
+    states->insert({
+        {"facing_direction", Int(facing)},
+        {"item_frame_map_bit", Bool(map)},
+    });
+    string key = name + "[facing_direction=" + to_string(facing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
+    b->insert({
+        {"name", String(name)},
+        {"version", Int(BlockData::kBlockDataVersion)},
+        {"states", states},
+    });
+    Pos pos(*tileX, *tileY, *tileZ);
+    return make_tuple(pos, b, key);
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
@@ -157,42 +165,49 @@ public:
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
-      auto tag = std::make_shared<CompoundTag>();
-      auto tileX = c.int32("TileX");
-      auto tileY = c.int32("TileY");
-      auto tileZ = c.int32("TileZ");
-      if (!tileX || !tileY || !tileZ)
-        return nullptr;
-      tag->insert({
-          {"id", String("ItemFrame")},
-          {"isMovable", Bool(true)},
-          {"x", Int(*tileX)},
-          {"y", Int(*tileY)},
-          {"z", Int(*tileZ)},
-      });
-      auto itemRotation = c.byte("ItemRotation", 0);
-      auto itemDropChange = c.float32("ItemDropChange", 1);
-      auto found = c.find("Item");
-      if (found != c.end() && found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
-        auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
-        auto m = Item::From(item, mapInfo, ddf);
-        if (m) {
-          tag->insert(make_pair("Item", m));
-          tag->insert(make_pair("ItemRotation", Float(itemRotation * 45)));
-          tag->insert(make_pair("ItemDropChange", Float(itemDropChange)));
-        }
-      }
-      return tag;
+      return ToItemFrameTileEntityData(c, mapInfo, ddf, "ItemFrame");
+    } else if (*id == "minecraft:glow_item_frame") {
+      return ToItemFrameTileEntityData(c, mapInfo, ddf, "GlowItemFrame");
     }
-
     return nullptr;
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf, std::string const &name) {
+    using namespace props;
+    auto tag = std::make_shared<CompoundTag>();
+    auto tileX = c.int32("TileX");
+    auto tileY = c.int32("TileY");
+    auto tileZ = c.int32("TileZ");
+    if (!tileX || !tileY || !tileZ)
+      return nullptr;
+    tag->insert({
+        {"id", String(name)},
+        {"isMovable", Bool(true)},
+        {"x", Int(*tileX)},
+        {"y", Int(*tileY)},
+        {"z", Int(*tileZ)},
+    });
+    auto itemRotation = c.byte("ItemRotation", 0);
+    auto itemDropChange = c.float32("ItemDropChange", 1);
+    auto found = c.find("Item");
+    if (found != c.end() && found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
+      auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
+      auto m = Item::From(item, mapInfo, ddf);
+      if (m) {
+        tag->insert(make_pair("Item", m));
+        tag->insert(make_pair("ItemRotation", Float(itemRotation * 45)));
+        tag->insert(make_pair("ItemDropChange", Float(itemDropChange)));
+      }
+    }
+    return tag;
   }
 
   static bool IsTileEntity(CompoundTag const &tag) {
     auto id = tag.string("id");
-    if (!id)
+    if (!id) {
       return false;
-    return *id == "minecraft:item_frame";
+    }
+    return *id == "minecraft:item_frame" || *id == "minecraft:glow_item_frame";
   }
 
   std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
@@ -470,7 +485,8 @@ private:
     E("item", Item);
     E("ender_dragon", EnderDragon);
     E("experience_orb", Convert(LivingEntity, Rename("xp_orb"), ExperienceOrb));
-    E("item_frame", Null); // item_frame is tile entity in BE.
+    E("item_frame", Null);      // item_frame is tile entity in BE.
+    E("glow_item_frame", Null); // glow_item_frame is tile entity in BE.
 #undef A
 #undef M
 #undef E

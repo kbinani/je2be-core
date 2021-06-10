@@ -130,6 +130,7 @@ private:
     E("dragon_head", Skull);
 
     E("item_frame", Rename("frame"));
+    E("glow_item_frame", Rename("glow_frame"));
     E("repeater", DefaultItem);
     E("comparator", DefaultItem);
 
