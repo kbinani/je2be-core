@@ -436,7 +436,7 @@ private:
     auto s = States();
     LayersToHeight(s, b);
     AddBoolProperty("covered_bit", false)(s, b);
-    return d;
+    return AttachStates(d, s);
   }
 
   static void EndRodFacingDirectionFromFacing(StatesType const &s, Block const &block) {
@@ -1461,12 +1461,24 @@ private:
     E("large_amethyst_bud", facingDirectionFromFacingA);
     E("small_amethyst_bud", facingDirectionFromFacingA);
     E("amethyst_cluster", facingDirectionFromFacingA);
+
+    E("pointed_dripstone", PointedDripstone);
 #undef E
     return table;
   }
 
   static void Debug(StatesType const &s, Block const &b) {
     (void)s;
+  }
+
+  static BlockDataType PointedDripstone(Block const &b) {
+    auto c = New("pointed_dripstone");
+    auto s = States();
+    auto thickness = b.property("thickness", "tip");
+    auto direction = b.property("vertical_direction", "down");
+    s->set("dripstone_thickness", props::String(thickness));
+    s->set("hanging", props::Bool(direction == "down"));
+    return AttachStates(c, s);
   }
 
   static void Conditional(StatesType const &s, Block const &b) {
@@ -1762,6 +1774,11 @@ private:
   }
 
   static StatesType States() { return std::make_shared<mcfile::nbt::CompoundTag>(); }
+
+  static BlockDataType AttachStates(BlockDataType const &data, StatesType const &s) {
+    data->set("states", s);
+    return data;
+  }
 
 public:
   static int32_t const kBlockDataVersion = 17879555;
