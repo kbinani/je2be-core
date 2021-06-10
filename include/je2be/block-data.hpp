@@ -1391,14 +1391,9 @@ private:
     E("rooted_dirt", Rename("dirt_with_roots"));
     E("flowering_azalea_leaves", Converter(Name("azalea_leaves_flowered"), PersistentToPersistentBit, DistanceToUpdateBit));
 
-    // "big_dripleaf_tilt": "none",
-    // "direction": /*int*/0
-    E("big_dripleaf", Converter(Same, AddByteProperty("big_dripleaf_head", true)));
-    E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", true)));
-
-    // "direction": /*int*/3,
-    // "upper_block_bit": /*byte*/1
-    E("small_dripleaf", Converter(Name("small_dripleaf_block")));
+    E("big_dripleaf", Converter(Same, AddByteProperty("big_dripleaf_head", true), DirectionFromFacingA));
+    E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA));
+    E("small_dripleaf", Converter(Name("small_dripleaf_block"), DirectionFromFacingA, UpperBlockBitToHalf));
 
     E("candle", NotPresentInBedrock);
     E("white_candle", NotPresentInBedrock);
