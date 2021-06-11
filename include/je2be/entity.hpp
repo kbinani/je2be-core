@@ -489,6 +489,7 @@ private:
     E("glow_item_frame", Null); // glow_item_frame is tile entity in BE.
 
     E("glow_squid", Convert(Animal, Definitions("+minecraft:glow_squid")));
+    E("axolotl", Convert(Animal, AgeableA("axolotl"), Axolotl));
 #undef A
 #undef M
 #undef E
@@ -496,6 +497,40 @@ private:
   }
 
   static EntityData Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
+
+  static EntityData Axolotl(EntityData const &c, CompoundTag const &tag, Context &) {
+    using namespace props;
+    auto originalVariant = Clamp(tag.int32("Variant", 0), 0, 4);
+    static const int variantMapping[5] = {0, 3, 2, 1, 4};
+    static const std::string definitionMapping[5] = {
+        "+axolotl_lucy",
+        "+axolotl_wild",
+        "+axolotl_gold",
+        "+axolotl_cyan",
+        "+axolotl_blue"};
+    auto variant = variantMapping[originalVariant];
+    auto definition = definitionMapping[originalVariant];
+    c->set("Variant", Int(variant));
+    AddDefinition(c, definition);
+
+    auto onGround = tag.boolean("OnGround", false);
+    if (onGround) {
+      AddDefinition(c, "+axolotl_on_land");
+      AddDefinition(c, "-axolotl_in_water");
+    } else {
+      AddDefinition(c, "-axolotl_on_land");
+      AddDefinition(c, "+axolotl_in_water");
+    }
+
+    auto air = tag.int16("Air", 6000);
+    if (air < 0) {
+      AddDefinition(c, "+axolotl_dried");
+    } else {
+      AddDefinition(c, "-axolotl_dried");
+    }
+
+    return c;
+  }
 
   static EntityData IronGolem(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;

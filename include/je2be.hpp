@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <je2be/algorithm.hpp>
 #include <je2be/file.hpp>
 #include <je2be/enums.hpp>
 #include <je2be/strings.hpp>
