@@ -161,7 +161,8 @@ private:
     table->insert(make_pair("minecraft:slime", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.6, 0.6), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
     table->insert(make_pair("minecraft:snow_golem", Attributes(Attribute(4, 4, 4), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
     table->insert(make_pair("minecraft:spider", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:squid", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    Attributes squid(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt);
+    table->insert(make_pair("minecraft:squid", squid));
     table->insert(make_pair("minecraft:stray", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair("minecraft:strider", Attributes(Attribute(15, 10, 15), Attribute(0, 0, 1), Attribute(0.16, 0.16), Attribute(0.02, 0.02), Attribute(0.32, 0.32), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair("minecraft:tropical_fish", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
@@ -178,6 +179,10 @@ private:
     table->insert(make_pair("minecraft:zombie", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair("minecraft:zombified_piglin", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(5, 5, 5))));
     table->insert(make_pair("minecraft:zombie_villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+
+    // 1.17
+    table->insert(make_pair("minecraft:glow_squid", squid));
+
     return table;
   }
 };

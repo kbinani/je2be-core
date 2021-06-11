@@ -487,6 +487,8 @@ private:
     E("experience_orb", Convert(LivingEntity, Rename("xp_orb"), ExperienceOrb));
     E("item_frame", Null);      // item_frame is tile entity in BE.
     E("glow_item_frame", Null); // glow_item_frame is tile entity in BE.
+
+    E("glow_squid", Convert(Animal, Definitions("+minecraft:glow_squid")));
 #undef A
 #undef M
 #undef E
