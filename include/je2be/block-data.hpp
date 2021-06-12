@@ -228,6 +228,35 @@ private:
     s->set("vine_direction_bits", props::Int(direction));
   }
 
+  static void MultiFaceDirectionBits(StatesType const &s, Block const &block) {
+    auto down = block.property("down", "false") == "true";
+    auto up = block.property("up", "false") == "true";
+    auto east = block.property("east", "false") == "true";
+    auto west = block.property("west", "false") == "true";
+    auto north = block.property("north", "false") == "true";
+    auto south = block.property("south", "false") == "true";
+    int32_t bits = 0;
+    if (down) {
+      bits |= 0x1;
+    }
+    if (up) {
+      bits |= 0x2;
+    }
+    if (north) {
+      bits |= 0x4;
+    }
+    if (south) {
+      bits |= 0x8;
+    }
+    if (west) {
+      bits |= 0x10;
+    }
+    if (east) {
+      bits |= 0x20;
+    }
+    s->set("multi_face_direction_bits", props::Int(bits));
+  }
+
   static Converter Subtype(std::string const &name, std::string const &subtypeTitle, std::string const &subtype) { return Converter(Name(name), AddStringProperty(subtypeTitle, subtype)); }
 
   static Converter Stone(std::string const &stoneType) { return Subtype("stone", "stone_type", stoneType); }
@@ -805,7 +834,8 @@ private:
     E("weeping_vines", NetherVines("weeping"));
     E("twisting_vines_plant", NetherVines("twisting", 25)); // TODO(kbinani): is 25 correct?
     E("twisting_vines", NetherVines("twisting"));
-    E("vine", Converter(Name("vine"), VineDirectionBits));
+    E("vine", Converter(Same, VineDirectionBits));
+    E("glow_lichen", Converter(Same, MultiFaceDirectionBits));
     E("cocoa", Converter(Same, Name(Age, "age"), DirectionFromFacingA));
     E("nether_wart", Converter(Same, Name(Age, "age")));
     E("cobblestone_stairs", Stairs("stone_stairs"));
