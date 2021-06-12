@@ -490,6 +490,7 @@ private:
 
     E("glow_squid", Convert(Animal, Definitions("+minecraft:glow_squid")));
     E("axolotl", Convert(Animal, AgeableA("axolotl"), Axolotl));
+    E("goat", Convert(Animal, AgeableA("goat"), Goat));
 #undef A
 #undef M
 #undef E
@@ -497,6 +498,20 @@ private:
   }
 
   static EntityData Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
+
+  static EntityData Goat(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto screaming = tag.boolean("IsScreamingGoat", false);
+    if (screaming) {
+      AddDefinition(c, "+goat_screamer");
+      AddDefinition(c, "+ram_screamer");
+      AddDefinition(c, "+interact_screamer");
+    } else {
+      AddDefinition(c, "+goat_default");
+      AddDefinition(c, "+ram_default");
+      AddDefinition(c, "+interact_default");
+    }
+    return c;
+  }
 
   static EntityData Axolotl(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
