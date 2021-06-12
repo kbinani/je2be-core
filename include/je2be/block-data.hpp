@@ -315,7 +315,8 @@ private:
     }
   }
 
-  static BlockDataType NotPresentInBedrock(Block const &block) {
+  static BlockDataType Null(Block const &block) {
+    // not present in bedrock
     return New("air");
   }
 
@@ -1431,23 +1432,23 @@ private:
     E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA));
     E("small_dripleaf", Converter(Name("small_dripleaf_block"), DirectionFromFacingA, UpperBlockBitToHalf));
 
-    E("candle", NotPresentInBedrock);
-    E("white_candle", NotPresentInBedrock);
-    E("orange_candle", NotPresentInBedrock);
-    E("magenta_candle", NotPresentInBedrock);
-    E("light_blue_candle", NotPresentInBedrock);
-    E("yellow_candle", NotPresentInBedrock);
-    E("lime_candle", NotPresentInBedrock);
-    E("pink_candle", NotPresentInBedrock);
-    E("gray_candle", NotPresentInBedrock);
-    E("light_gray_candle", NotPresentInBedrock);
-    E("cyan_candle", NotPresentInBedrock);
-    E("purple_candle", NotPresentInBedrock);
-    E("blue_candle", NotPresentInBedrock);
-    E("brown_candle", NotPresentInBedrock);
-    E("green_candle", NotPresentInBedrock);
-    E("red_candle", NotPresentInBedrock);
-    E("black_candle", NotPresentInBedrock);
+    E("candle", Null);
+    E("white_candle", Null);
+    E("orange_candle", Null);
+    E("magenta_candle", Null);
+    E("light_blue_candle", Null);
+    E("yellow_candle", Null);
+    E("lime_candle", Null);
+    E("pink_candle", Null);
+    E("gray_candle", Null);
+    E("light_gray_candle", Null);
+    E("cyan_candle", Null);
+    E("purple_candle", Null);
+    E("blue_candle", Null);
+    E("brown_candle", Null);
+    E("green_candle", Null);
+    E("red_candle", Null);
+    E("black_candle", Null);
 
     E("cut_copper_stairs", Stairs());
     E("exposed_copper_stairs", Stairs());
