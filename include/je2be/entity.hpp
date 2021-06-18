@@ -188,15 +188,19 @@ public:
         {"z", Int(*tileZ)},
     });
     auto itemRotation = c.byte("ItemRotation", 0);
-    auto itemDropChange = c.float32("ItemDropChange", 1);
+    auto itemDropChance = c.float32("ItemDropChance", 1);
     auto found = c.find("Item");
     if (found != c.end() && found->second->id() == mcfile::nbt::Tag::TAG_Compound) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
       auto m = Item::From(item, mapInfo, ddf);
       if (m) {
+        if (m->string("Name", "") == "minecraft:axolotl_bucket") {
+          PrintAsJson(std::cout, *m);
+          int a = 0;
+        }
         tag->insert(make_pair("Item", m));
         tag->insert(make_pair("ItemRotation", Float(itemRotation * 45)));
-        tag->insert(make_pair("ItemDropChange", Float(itemDropChange)));
+        tag->insert(make_pair("ItemDropChance", Float(itemDropChance)));
       }
     }
     return tag;
