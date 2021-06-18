@@ -1506,6 +1506,9 @@ private:
     auto c = New("pointed_dripstone");
     auto s = States();
     auto thickness = b.property("thickness", "tip");
+    if (thickness == "tip_merge") {
+      thickness = "merge";
+    }
     auto direction = b.property("vertical_direction", "down");
     s->set("dripstone_thickness", props::String(thickness));
     s->set("hanging", props::Bool(direction == "down"));
