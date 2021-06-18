@@ -1494,8 +1494,17 @@ private:
     E("amethyst_cluster", facingDirectionFromFacingA);
 
     E("pointed_dripstone", PointedDripstone);
+    E("light", Light);
 #undef E
     return table;
+  }
+
+  static BlockDataType Light(Block const &b) {
+    auto c = New("light_block");
+    auto s = States();
+    auto level = strings::Toi(b.property("level", "15"));
+    s->set("block_light_level", props::Int(level ? *level : 15));
+    return AttachStates(c, s);
   }
 
   static void Debug(StatesType const &s, Block const &b) {
