@@ -235,8 +235,8 @@ static void DumpEntity(std::string const &dbDir, int cx, int cz, j2b::Dimension 
   delete db;
 }
 
-static std::optional<std::string> GetApplicationDirectory() {
-  int csidType = CSIDL_APPDATA;
+static std::optional<std::string> GetLocalApplicationDirectory() {
+  int csidType = CSIDL_LOCAL_APPDATA;
   char path[MAX_PATH + 256];
 
   if (SHGetSpecialFolderPathA(nullptr, path, csidType, FALSE)) {
@@ -274,12 +274,12 @@ int main(int argc, char *argv[]) {
     dir = d + "/db";
   }
   if (!fs::exists(fs::path(dir))) {
-    auto appDir = GetApplicationDirectory(); // X:/Users/whoami/AppData/Roaming
+    auto appDir = GetLocalApplicationDirectory(); // X:/Users/whoami/AppData/Local
     if (!appDir) {
       cerr << "Error: cannot get AppData directory" << endl;
       return 1;
     }
-    auto p = fs::path(*appDir).parent_path() / "Local" / "Packages" / "Microsoft.MinecraftUWP_8wekyb3d8bbwe" / "LocalState" / "games" / "com.mojang" / "minecraftWorlds" / d / "db";
+    auto p = fs::path(*appDir) / "Packages" / "Microsoft.MinecraftUWP_8wekyb3d8bbwe" / "LocalState" / "games" / "com.mojang" / "minecraftWorlds" / d / "db";
     dir = p.string();
   }
   if (!fs::exists(fs::path(dir))) {
