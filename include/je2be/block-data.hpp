@@ -1406,6 +1406,7 @@ private:
     E("cauldron", Converter(Same));
     E("water_cauldron", Converter(Name("cauldron"), CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid", "water")));
     E("lava_cauldron", Converter(Name("lava_cauldron"), AddIntProperty("fill_level", 6), AddStringProperty("cauldron_liquid", "lava")));
+    E("powder_snow_cauldron", Converter(Name("cauldron"), CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid", "powder_snow")));
     E("hay_block", axisToPillarAxis);
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
     E("cave_air", Rename("air"));
