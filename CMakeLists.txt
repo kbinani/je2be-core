@@ -5,7 +5,6 @@ include(CheckCCompilerFlag)
 include(ext/setup_source_groups/setup_source_groups.cmake)
 
 set(je2be_srcs
-  src/main.cpp
   include/je2be/level-data.hpp
   include/je2be/props.hpp
   include/je2be/version.hpp
@@ -114,8 +113,9 @@ set(je2be_srcs
   ext/libminecraft-file/include/minecraft-file.hpp
   .editorconfig
   .clang-format)
-add_executable(je2be ${je2be_srcs})
-setup_source_groups("${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(je2be src/main.cpp ${je2be_srcs})
+add_executable(dump src/dump.cpp ${je2be_srcs})
+setup_source_groups("src/main.cpp;src/dump.cpp;${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
@@ -128,6 +128,13 @@ endif()
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND je2be_link_libraries pthread)
 endif()
+
+list(APPEND je2be_include_directories "include")
+list(APPEND je2be_include_directories "ext/libminecraft-file/include")
+list(APPEND je2be_include_directories ext/leveldb/include)
+list(APPEND je2be_include_directories ext/leveldb)
+list(APPEND je2be_include_directories ext/thread-pool/include)
+list(APPEND je2be_include_directories ext/json/single_include)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/std:c++latest /bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
@@ -143,13 +150,10 @@ list(APPEND je2be_include_directories "ext/xxHash")
 list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
 list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/xxHash/${CMAKE_BUILD_TYPE}")
 
-target_include_directories(je2be PRIVATE
-  include
-  ext/libminecraft-file/include
-  ext/leveldb/include
-  ext/leveldb
-  ext/thread-pool/include
-  ext/json/single_include
-  ${je2be_include_directories})
+target_include_directories(je2be PRIVATE ${je2be_include_directories})
 target_link_libraries(je2be ${je2be_link_libraries} leveldb)
 target_link_directories(je2be PRIVATE ${je2be_link_directories})
+
+target_include_directories(dump PRIVATE ${je2be_include_directories})
+target_link_libraries(dump ${je2be_link_libraries} leveldb)
+target_link_directories(dump PRIVATE ${je2be_link_directories})
