@@ -203,6 +203,8 @@ private:
     E("potted_crimson_roots", PottedPlant("crimson_roots", {}));
     E("potted_warped_roots", PottedPlant("warped_roots", {}));
     E("potted_cactus", PottedPlant("cactus", {}));
+    E("potted_azalea_bush", PottedPlant("azalea", {}));
+    E("potted_flowering_azalea_bush", PottedPlant("flowering_azalea", {}));
 
     E("skeleton_skull", Skull);
     E("wither_skeleton_skull", Skull);
