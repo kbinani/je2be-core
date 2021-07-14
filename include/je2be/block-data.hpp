@@ -1433,23 +1433,24 @@ private:
     E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA));
     E("small_dripleaf", Converter(Name("small_dripleaf_block"), DirectionFromFacingA, UpperBlockBitToHalf));
 
-    E("candle", Null);
-    E("white_candle", Null);
-    E("orange_candle", Null);
-    E("magenta_candle", Null);
-    E("light_blue_candle", Null);
-    E("yellow_candle", Null);
-    E("lime_candle", Null);
-    E("pink_candle", Null);
-    E("gray_candle", Null);
-    E("light_gray_candle", Null);
-    E("cyan_candle", Null);
-    E("purple_candle", Null);
-    E("blue_candle", Null);
-    E("brown_candle", Null);
-    E("green_candle", Null);
-    E("red_candle", Null);
-    E("black_candle", Null);
+    Converter candle(Same, Name(Lit, "lit"), Name(Candles, "candles"));
+    E("candle", candle);
+    E("white_candle", candle);
+    E("orange_candle", candle);
+    E("magenta_candle", candle);
+    E("light_blue_candle", candle);
+    E("yellow_candle", candle);
+    E("lime_candle", candle);
+    E("pink_candle", candle);
+    E("gray_candle", candle);
+    E("light_gray_candle", candle);
+    E("cyan_candle", candle);
+    E("purple_candle", candle);
+    E("blue_candle", candle);
+    E("brown_candle", candle);
+    E("green_candle", candle);
+    E("red_candle", candle);
+    E("black_candle", candle);
 
     E("cut_copper_stairs", Stairs());
     E("exposed_copper_stairs", Stairs());
@@ -1498,6 +1499,16 @@ private:
     E("light", Light);
 #undef E
     return table;
+  }
+
+  static PropertyType Candles(Block const &block) {
+      auto candles = block.property("candles", "1");
+      auto num = strings::Toi(candles);
+      int i = 0;
+      if (num) {
+          i = Clamp(*num, 1, 4) - 1;
+      }
+      return props::Int(i);
   }
 
   static BlockDataType Light(Block const &b) {
