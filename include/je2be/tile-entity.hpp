@@ -923,6 +923,7 @@ private:
     if (*color != "black") {
       text += ColorCode(*color);
     }
+    bool glowing = c->boolean("GlowingText", false);
     text += GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
     auto tag = make_shared<CompoundTag>();
     tag->insert({
@@ -930,6 +931,7 @@ private:
         {"isMovable", Bool(true)},
         {"Text", String(text)},
         {"TextOwner", String("")},
+        {"IgnoreLighting", Bool(glowing)},
     });
     Attach(pos, *tag);
     return tag;
