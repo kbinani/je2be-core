@@ -1,9 +1,9 @@
 #include <iostream>
 #include <je2be.hpp>
+
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <shlobj_core.h>
-#include <windows.h>
 
 static std::optional<j2b::Dimension> DimensionFromString(std::string const &s) {
   if (s == "overworld" || s == "o" || s == "0") {
@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
         return 1;
       }
       DumpBlock(dir, *x, *y, *z, *dimension);
-    } else if (argc == 10 && args[3] == "entity" && args[4] == "at" && args[7] == "of") {
+    } else if (argc == 10 && args[3] == "entity" && args[4] == "at" && args[8] == "of") {
       auto x = strings::Toi(args[5]);
       if (!x) {
         cerr << "Error: invalid block x: " << args[5] << endl;
