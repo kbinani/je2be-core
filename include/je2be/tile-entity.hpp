@@ -978,6 +978,7 @@ private:
         {"Text", String(text)},
         {"TextOwner", String("")},
         {"IgnoreLighting", Bool(glowing)},
+        {"TextIgnoreLegacyBugResolved", Bool(glowing)},
     });
     Attach(pos, *tag);
     return tag;
