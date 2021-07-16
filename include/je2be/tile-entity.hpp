@@ -18,7 +18,11 @@ public:
     return found != table.end();
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> From(Pos const &pos, mcfile::Block const &block, std::shared_ptr<mcfile::nbt::CompoundTag> const &tag, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> FromBlockAndTileEntity(Pos const &pos,
+                                                                          mcfile::Block const &block,
+                                                                          std::shared_ptr<mcfile::nbt::CompoundTag> const &tag,
+                                                                          JavaEditionMap const &mapInfo,
+                                                                          DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;
@@ -26,6 +30,19 @@ public:
     string const &name = block.fName;
     auto const &table = Table();
     return table.at(name)(pos, block, tag, mapInfo, ddf);
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> FromBlock(Pos const &pos,
+                                                             mcfile::Block const &block,
+                                                             JavaEditionMap const &mapInfo,
+                                                             DimensionDataFragment &ddf) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+
+    string const &name = block.fName;
+    auto const &table = Table();
+    return table.at(name)(pos, block, nullptr, mapInfo, ddf);
   }
 
   static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
@@ -249,6 +266,10 @@ private:
     using namespace props;
     using namespace mcfile::nbt;
 
+    if (!c) {
+      return nullptr;
+    }
+
     auto tag = std::make_shared<CompoundTag>();
     auto powered = c->boolean("powered", false);
     auto automatic = c->boolean("auto", false);
@@ -285,21 +306,25 @@ private:
   static TileEntityData Beehive(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     using namespace mcfile::nbt;
+    using namespace std;
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"id", String("Beehive")},
         {"isMovable", Bool(true)},
     });
 
-    auto bees = c->listTag("Bees");
+    shared_ptr<ListTag> bees;
+    if (c) {
+      bees = c->listTag("Bees");
+    }
     if (bees) {
-      auto occupants = std::make_shared<ListTag>();
+      auto occupants = make_shared<ListTag>();
       occupants->fType = Tag::TAG_Compound;
       int32_t index = 0;
       for (auto const &it : *bees) {
         index++;
-        auto bee = std::dynamic_pointer_cast<CompoundTag>(it);
+        auto bee = dynamic_pointer_cast<CompoundTag>(it);
         if (!bee) {
           continue;
         }
@@ -316,8 +341,8 @@ private:
         int64_t hash = h.digest();
         uint32_t a = ((uint32_t *)&hash)[0];
         uint32_t b = ((uint32_t *)&hash)[1];
-        std::vector<int32_t> uuidSource = {*(int32_t *)&a, *(int32_t *)&b, pos.fY, index};
-        auto uuid = std::make_shared<IntArrayTag>(uuidSource);
+        vector<int32_t> uuidSource = {*(int32_t *)&a, *(int32_t *)&b, pos.fY, index};
+        auto uuid = make_shared<IntArrayTag>(uuidSource);
         entityData->set("UUID", uuid);
 
         auto converted = Entity::From(*entityData, mapInfo, ddf);
@@ -326,7 +351,7 @@ private:
         }
         auto saveData = converted[0];
 
-        auto outBee = std::make_shared<CompoundTag>();
+        auto outBee = make_shared<CompoundTag>();
         outBee->set("SaveData", saveData);
 
         auto minOccupationTicks = bee->int32("MinOccupationTicks");
@@ -351,7 +376,7 @@ private:
   struct PistonArm {
     explicit PistonArm(bool sticky) : sticky(sticky) {}
 
-    TileEntityData operator()(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) const {
+    TileEntityData operator()(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) const {
       using namespace props;
       using namespace mcfile::nbt;
       auto ret = std::make_shared<CompoundTag>();
@@ -377,13 +402,18 @@ private:
 
   static TileEntityData Lectern(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
+    using namespace std;
+    using namespace mcfile::nbt;
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"id", String("Lectern")},
         {"isMovable", Bool(true)},
     });
-    auto book = c->compoundTag("Book");
+    shared_ptr<CompoundTag> book;
+    if (c) {
+      book = c->compoundTag("Book");
+    }
     int32_t totalPages = 0;
     if (book) {
       auto item = Item::From(book, mapInfo, ddf);
@@ -396,7 +426,7 @@ private:
       }
     }
     tag->set("hasBook", Bool(totalPages > 0));
-    if (totalPages > 0) {
+    if (totalPages > 0 && c) {
       auto page = c->int32("Page", 0);
       tag->set("page", Int(page));
       tag->set("totalPages", Int(totalPages));
@@ -408,8 +438,12 @@ private:
   static TileEntityData Beacon(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
 
-    auto primary = c->int32("Primary", -1);
-    auto secondary = c->int32("Secondary", -1);
+    int primary = -1;
+    int secondary = -1;
+    if (c) {
+      primary = c->int32("Primary", -1);
+      secondary = c->int32("Secondary", -1);
+    }
 
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
@@ -422,7 +456,7 @@ private:
     return tag;
   }
 
-  static TileEntityData EndPortal(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static TileEntityData EndPortal(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
 
     auto tag = std::make_shared<CompoundTag>();
@@ -434,7 +468,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Cauldron(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static TileEntityData Cauldron(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -457,7 +491,10 @@ private:
         {"isMovable", Bool(true)},
     });
 
-    auto recordItem = c->compoundTag("RecordItem");
+    shared_ptr<CompoundTag> recordItem;
+    if (c) {
+      recordItem = c->compoundTag("RecordItem");
+    }
     if (recordItem) {
       auto beRecordItem = Item::From(recordItem, mapInfo, ddf);
       if (beRecordItem) {
@@ -469,7 +506,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Note(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Note(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -604,7 +641,7 @@ private:
     };
   }
 
-  static TileEntityData Skull(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Skull(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -625,7 +662,7 @@ private:
     return tag;
   }
 
-  static TileEntityData PottedBamboo(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData PottedBamboo(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -653,7 +690,7 @@ private:
   }
 
   static Converter PottedPlant(std::string const &name, std::map<std::string, std::string> const &properties) {
-    return [=](Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) -> TileEntityData {
+    return [=](Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) -> TileEntityData {
       using namespace props;
       using namespace mcfile::nbt;
       using namespace std;
@@ -679,7 +716,7 @@ private:
     };
   }
 
-  static TileEntityData PottedSapling(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData PottedSapling(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -709,9 +746,13 @@ private:
   static TileEntityData Banner(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
-    auto tag = std::make_shared<CompoundTag>();
+    using namespace std;
+    auto tag = make_shared<CompoundTag>();
 
-    auto customName = GetJson(*c, "CustomName");
+    optional<nlohmann::json> customName;
+    if (c) {
+      customName = GetJson(*c, "CustomName");
+    }
     int32_t type = 0;
     if (customName) {
       auto color = GetAsString(*customName, "color");
@@ -722,7 +763,7 @@ private:
     }
 
     auto patterns = GetList(c, "Patterns");
-    auto patternsBedrock = std::make_shared<ListTag>();
+    auto patternsBedrock = make_shared<ListTag>();
     patternsBedrock->fType = Tag::TAG_Compound;
     if (patterns && type != 1) {
       for (auto const &pattern : *patterns) {
@@ -733,7 +774,7 @@ private:
         auto pat = p->string("Pattern");
         if (!color || !pat)
           continue;
-        auto ptag = std::make_shared<CompoundTag>();
+        auto ptag = make_shared<CompoundTag>();
         ptag->insert({
             {"Color", Int(BannerColorCodeFromJava(*color))},
             {"Pattern", String(*pat)},
@@ -816,7 +857,7 @@ private:
     return found->second;
   }
 
-  static TileEntityData Bed(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Bed(Pos const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     auto tag = std::make_shared<CompoundTag>();
     auto color = BedColor(b.fName);
@@ -912,13 +953,18 @@ private:
     using namespace mcfile::nbt;
     using namespace std;
 
+    if (!c) {
+      return nullptr;
+    }
+
     auto color = c->string("Color");
     auto text1 = GetJson(*c, "Text1");
     auto text2 = GetJson(*c, "Text2");
     auto text3 = GetJson(*c, "Text3");
     auto text4 = GetJson(*c, "Text4");
-    if (!color || !text1 || !text2 || !text3 || !text4)
+    if (!color || !text1 || !text2 || !text3 || !text4) {
       return nullptr;
+    }
     string text = "";
     if (*color != "black") {
       text += ColorCode(*color);
