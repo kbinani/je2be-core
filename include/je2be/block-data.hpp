@@ -1504,13 +1504,13 @@ private:
   }
 
   static PropertyType Candles(Block const &block) {
-      auto candles = block.property("candles", "1");
-      auto num = strings::Toi(candles);
-      int i = 0;
-      if (num) {
-          i = Clamp(*num, 1, 4) - 1;
-      }
-      return props::Int(i);
+    auto candles = block.property("candles", "1");
+    auto num = strings::Toi(candles);
+    int i = 0;
+    if (num) {
+      i = Clamp(*num, 1, 4) - 1;
+    }
+    return props::Int(i);
   }
 
   static BlockDataType Light(Block const &b) {
