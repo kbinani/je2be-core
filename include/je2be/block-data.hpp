@@ -1501,6 +1501,7 @@ private:
     E("light", Light);
     E("cave_vines", Identity);
     E("cave_vines_plant", CaveVinesPlant);
+    E("chain", axisToPillarAxis);
 #undef E
     return table;
   }
