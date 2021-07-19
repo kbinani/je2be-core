@@ -17,7 +17,7 @@ struct Rgba {
   }
 
   int32_t toARGB() const {
-    uint32_t c = ((uint32_t)fA << 16) | ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
+    uint32_t c = ((uint32_t)fA << 24) | ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
     return *(int32_t *)&c;
   }
 
