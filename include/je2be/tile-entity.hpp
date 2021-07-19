@@ -965,18 +965,16 @@ private:
     if (!color || !text1 || !text2 || !text3 || !text4) {
       return nullptr;
     }
-    string text = "";
-    if (*color != "black") {
-      text += ColorCode(*color);
-    }
+    Rgba signTextColor = Sign::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromName(*color));
     bool glowing = c->boolean("GlowingText", false);
-    text += GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
+    string text = GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
     auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"id", String("Sign")},
         {"isMovable", Bool(true)},
         {"Text", String(text)},
         {"TextOwner", String("")},
+        {"SignTextColor", Int(signTextColor.toARGB())},
         {"IgnoreLighting", Bool(glowing)},
         {"TextIgnoreLegacyBugResolved", Bool(glowing)},
     });

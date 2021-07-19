@@ -29,6 +29,7 @@
 #include <je2be/rotation.hpp>
 #include <je2be/color/rgba.hpp>
 #include <je2be/color/lab.hpp>
+#include <je2be/sign.hpp>
 #include <je2be/size.hpp>
 #include <je2be/xxhash.hpp>
 #include <je2be/props.hpp>
