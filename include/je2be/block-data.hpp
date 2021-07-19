@@ -1499,8 +1499,18 @@ private:
 
     E("pointed_dripstone", PointedDripstone);
     E("light", Light);
+    E("cave_vines", Identity);
+    E("cave_vines_plant", CaveVinesPlant);
 #undef E
     return table;
+  }
+
+  static BlockDataType CaveVinesPlant(Block const &block) {
+    bool berries = block.property("berries", "false") == "true";
+    auto c = New(berries ? "cave_vines_body_with_berries" : "cave_vines");
+    auto s = States();
+    s->set("growing_plant_age", props::Int(24));
+    return AttachStates(c, s);
   }
 
   static PropertyType Candles(Block const &block) {
