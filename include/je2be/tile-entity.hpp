@@ -976,7 +976,7 @@ private:
         {"TextOwner", String("")},
         {"SignTextColor", Int(signTextColor.toARGB())},
         {"IgnoreLighting", Bool(glowing)},
-        {"TextIgnoreLegacyBugResolved", Bool(glowing)},
+        {"TextIgnoreLegacyBugResolved", Bool(true)},
     });
     Attach(pos, *tag);
     return tag;
