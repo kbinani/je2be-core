@@ -139,6 +139,7 @@ static void DumpBlockEntity(std::string const &dbDir, int x, int y, int z, j2b::
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
+    cerr << "Error: cannot open db: dbDir=" << dbDir << endl;
     return;
   }
 
@@ -154,6 +155,7 @@ static void DumpBlockEntity(std::string const &dbDir, int x, int y, int z, j2b::
   string value;
   st = db->Get(ro, key, &value);
   if (!st.ok()) {
+    cerr << "Error: cannot get Key::BlockEntity(" << cx << ", " << cz << ", " << (int)d << ")" << endl;
     return;
   }
   vector<uint8_t> buffer;
