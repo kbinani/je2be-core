@@ -17,8 +17,11 @@ jobs:
         with:
           languages: cpp
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
+      - name: Build
+        run: |
+          bash ./setup.sh
+          cmake . -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --target je2be --config Release --verbose
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
