@@ -24,7 +24,7 @@ jobs:
           mkdir -p ./build
           cd ./build
           bash ../setup.sh
-          cmake . -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target je2be --config Release --verbose
 
       - name: Perform CodeQL Analysis
