@@ -1,7 +1,8 @@
 name: CI
 
 on:
-  push: [ gh-actions-codeql ]
+  push:
+    branches: [ gh-actions-codeql ]
 
 jobs:
   CodeQL-Build:
