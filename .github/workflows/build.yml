@@ -5,7 +5,7 @@ on:
     branches: [ gh-actions-codeql ]
 
 jobs:
-  CodeQL-Build:
+  Build:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,8 +20,9 @@ jobs:
           languages: cpp
 
       - name: Build
+        working-directory: ./build
         run: |
-          bash ./setup.sh
+          bash ../setup.sh
           cmake . -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target je2be --config Release --verbose
 
