@@ -20,10 +20,9 @@ jobs:
           languages: cpp
 
       - name: Build
-        working-directory: ./build
         run: |
-          pwd
-          ls ../
+          mkdir -p ./build
+          cd ./build
           bash ../setup.sh
           cmake . -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target je2be --config Release --verbose
