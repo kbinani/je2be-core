@@ -22,6 +22,8 @@ jobs:
       - name: Build
         working-directory: ./build
         run: |
+          pwd
+          ls ../
           bash ../setup.sh
           cmake . -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target je2be --config Release --verbose
