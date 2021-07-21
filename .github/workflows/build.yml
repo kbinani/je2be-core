@@ -1,0 +1,35 @@
+name: CI
+
+on: push
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Check style
+        uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          clangFormatVersion: 12
+          exclude: ./ext
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: cpp
+
+      - name: Build
+        run: |
+          mkdir -p ./build
+          cd ./build
+          bash ../setup.sh
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --target je2be --config Release --verbose
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
