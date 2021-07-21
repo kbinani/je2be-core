@@ -17,7 +17,7 @@ jobs:
       - name: Check style
         uses: DoozyX/clang-format-lint-action@v0.12
         with:
-          clangFormatVersion: 11
+          clangFormatVersion: 12
           exclude: ./ext
 
       - name: Initialize CodeQL
