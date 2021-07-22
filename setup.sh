@@ -9,12 +9,12 @@ if [ -z "$generator" ]; then
 	for type in Debug Release; do
 		mkdir $type
 		pushd $type
-		cmake "$dir/ext/leveldb" -DLEVELDB_SNAPPY=OFF -DCMAKE_BUILD_TYPE=$type
+		cmake "$dir/ext/leveldb" -DLEVELDB_SNAPPY=OFF -DLEVELDB_ZSTD=OFF -DCMAKE_BUILD_TYPE=$type
 		cmake --build . --target leveldb --config $type
 		popd
 	done
 else
-	cmake "$dir/ext/leveldb" -DLEVELDB_SNAPPY=OFF -G "$generator"
+	cmake "$dir/ext/leveldb" -DLEVELDB_SNAPPY=OFF -DLEVELDB_ZSTD=OFF -G "$generator"
 	cmake --build . --target leveldb --config Debug
 	cmake --build . --target leveldb --config Release
 fi

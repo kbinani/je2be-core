@@ -30,7 +30,7 @@ public:
       }
 
       Options o;
-      o.compression = kZstdCompression;
+      o.compression = kZlibRawCompression;
 
       uint32_t fileNum = 1;
       uint64_t sequenceNumber = 1;
