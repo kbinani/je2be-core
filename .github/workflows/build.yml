@@ -30,6 +30,8 @@ jobs:
           bash ../setup.sh
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target je2be --config Release --verbose
+          cmake --build . --target test --config Relase --verbose
+          ./test
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
