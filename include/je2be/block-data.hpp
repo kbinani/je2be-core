@@ -763,6 +763,8 @@ private:
     E("warped_hyphae", axisToPillarAxis);
     E("stripped_crimson_hyphae", axisToPillarAxis);
     E("stripped_warped_hyphae", axisToPillarAxis);
+    E("stripped_crimson_stem", axisToPillarAxis);
+    E("stripped_warped_stem", axisToPillarAxis);
     E("oak_slab", WoodenSlab("oak"));
     E("birch_slab", WoodenSlab("birch"));
     E("spruce_slab", WoodenSlab("spruce"));
@@ -918,7 +920,7 @@ private:
     E("jungle_planks", Planks("jungle"));
     E("acacia_planks", Planks("acacia"));
     E("dark_oak_planks", Planks("dark_oak"));
-    E("purpur_block", PurpurBlock("default"));
+    E("purpur_block", Converter(Same, AddStringProperty("chisel_type", "default"), AddStringProperty("pillar_axis", "y")));
     E("purpur_pillar", Converter(Name("purpur_block"), AddStringProperty("chisel_type", "lines"), AxisToPillarAxis));
     E("jack_o_lantern", LitPumpkin());
     E("carved_pumpkin", directionFromFacing);
@@ -1017,7 +1019,7 @@ private:
     E("dead_fire_coral_block", CoralBlock("red", true));
     E("dead_horn_coral_block", CoralBlock("yellow", true));
     E("snow", SnowLayer);
-    E("sugar_cane", Rename("reeds"));
+    E("sugar_cane", Converter(Name("reeds"), Name(Age, "age")));
     E("end_rod", Converter(Same, EndRodFacingDirectionFromFacing));
     E("oak_fence", Fence("oak"));
     E("spruce_fence", Fence("spruce"));
@@ -1206,6 +1208,8 @@ private:
     E("red_bed", bed);
     E("black_bed", bed);
 
+    E("flower_pot", Converter(Same, AddBoolProperty("update_bit", false)));
+
     Converter pottedFlowerPot(Name("flower_pot"), AddBoolProperty("update_bit", true));
     E("potted_oak_sapling", pottedFlowerPot);
     E("potted_spruce_sapling", pottedFlowerPot);
@@ -1323,8 +1327,8 @@ private:
     E("crimson_fence_gate", fenceGate);
     E("warped_fence_gate", fenceGate);
 
-    Converter pressurePlate(Same, Name(Powered, "powered"), Name(Power, "power"));
-    E("oak_pressure_plate", Converter(Name("wooden_pressure_plate"), Name(Powered, "powered"), Name(Power, "power")));
+    Converter pressurePlate(Same, Name(Power, "redstone_signal"));
+    E("oak_pressure_plate", Converter(Name("wooden_pressure_plate"), Name(Power, "redstone_signal")));
     E("spruce_pressure_plate", pressurePlate);
     E("birch_pressure_plate", pressurePlate);
     E("jungle_pressure_plate", pressurePlate);
@@ -1388,28 +1392,28 @@ private:
     E("rail", Converter(Same, RailDirectionFromShape));
     E("nether_portal", Converter(Name("portal"), Name(Axis, "portal_axis")));
 
-    E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, BambooAgeFromStage, BambooStalkThisknessFromAge));
+    E("bamboo", Converter(Same, BambooLeafSizeFromLeaves, AddBoolProperty("age_bit", true), BambooStalkThicknessFromAge));
     E("sweet_berry_bush", Converter(Same, GrowthFromAge));
     E("bubble_column", Converter(Same, DragDownFromDrag));
     E("cake", Converter(Same, BiteCounterFromBites));
     E("beetroots", Converter(Name("beetroot"), GrowthFromAge));
     E("potatoes", Converter(Same, Name(Age, "growth")));
     E("carrots", Converter(Same, Name(Age, "growth")));
-    E("pumpkin_stem", Converter(Same, Name(Age, "growth")));
-    E("melon_stem", Converter(Same, Name(Age, "growth")));
+    E("pumpkin_stem", Converter(Same, Name(Age, "growth"), AddIntProperty("facing_direction", 0)));
+    E("melon_stem", Converter(Same, Name(Age, "growth"), AddIntProperty("facing_direction", 0)));
     E("attached_pumpkin_stem", Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
     E("attached_melon_stem", Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
     E("wheat", Converter(Same, Name(Age, "growth")));
 
     E("cobweb", Converter(Name("web")));
-    E("lectern", Converter(Same, DirectionFromFacingA));
+    E("lectern", Converter(Same, DirectionFromFacingA, Name(Powered, "powered_bit")));
     E("ender_chest", Converter(Same, FacingDirectionFromFacingA));
-    E("bone_block", axisToPillarAxis);
-    E("cauldron", Converter(Same));
+    E("bone_block", Converter(Same, AxisToPillarAxis, AddIntProperty("deprecated", 0)));
+    E("cauldron", Converter(Same, AddStringProperty("cauldron_liquid", "water"), AddIntProperty("fill_level", 0)));
     E("water_cauldron", Converter(Name("cauldron"), CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid", "water")));
     E("lava_cauldron", Converter(Name("lava_cauldron"), AddIntProperty("fill_level", 6), AddStringProperty("cauldron_liquid", "lava")));
     E("powder_snow_cauldron", Converter(Name("cauldron"), CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid", "powder_snow")));
-    E("hay_block", axisToPillarAxis);
+    E("hay_block", Converter(Same, AxisToPillarAxis, AddIntProperty("deprecated", 0)));
     E("composter", Converter(Same, Name(Level, "composter_fill_level")));
     E("cave_air", Rename("air"));
     E("void_air", Rename("air"));
@@ -1502,8 +1506,93 @@ private:
     E("cave_vines", Identity);
     E("cave_vines_plant", CaveVinesPlant);
     E("chain", axisToPillarAxis);
+
+    E("bamboo_sapling", Converter(Same, AddBoolProperty("age_bit", false), AddStringProperty("sapling_type", "oak")));
+    E("bedrock", Converter(Same, AddBoolProperty("infiniburn_bit", true)));
+    E("brewing_stand", BrewingStand);
+    E("cactus", Converter(Same, Name(Age, "age")));
+    E("fire", Converter(Same, Name(Age, "age")));
+    E("frosted_ice", Converter(Same, Name(Age, "age")));
+    E("pumpkin", Converter(Same, AddIntProperty("direction", 0)));
+    E("melon", Converter(Same, AddIntProperty("direction", 0)));
+    E("redstone_wire", Converter(Same, Name(Power, "redstone_signal")));
+    E("scaffolding", Scaffolding);
+    E("structure_block", StructureBlock);
+    E("structure_void", Converter(Same, AddStringProperty("structure_void_type", "void")));
+    E("tnt", Tnt);
+    E("tripwire", Tripwire);
+    E("basalt", axisToPillarAxis);
+    E("polished_basalt", axisToPillarAxis);
+    E("respawn_anchor", RespawnAnchor);
 #undef E
     return table;
+  }
+
+  static BlockDataType RespawnAnchor(Block const &block) {
+    auto c = New("respawn_anchor");
+    auto s = States();
+    auto charges = strings::Toi(block.property("charges", "0"));
+    int32_t charge = 0;
+    if (charges) {
+      charge = *charges;
+    }
+    s->set("respawn_anchor_charge", props::Int(charge));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType Tripwire(Block const &block) {
+    auto c = New("tripwire");
+    auto s = States();
+    auto attached = block.property("attached", "false") == "true";
+    auto disarmed = block.property("disarmed", "false") == "true";
+    auto powered = block.property("powered", "false") == "true";
+    s->set("attached_bit", props::Bool(attached));
+    s->set("disarmed_bit", props::Bool(disarmed));
+    s->set("powered_bit", props::Bool(powered));
+    s->set("suspended_bit", props::Bool(true));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType Tnt(Block const &block) {
+    auto c = New("tnt");
+    auto s = States();
+    auto unstable = block.property("unstable", "false") == "true";
+    s->set("explode_bit", props::Bool(unstable));
+    s->set("allow_underwater_bit", props::Bool(false));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType StructureBlock(Block const &block) {
+    auto c = New("structure_block");
+    auto s = States();
+    auto mode = block.property("mode", "save");
+    s->set("structure_block_type", props::String(mode));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType Scaffolding(Block const &block) {
+    auto c = New("scaffolding");
+    auto s = States();
+    auto distance = strings::Toi(block.property("distance", "0"));
+    int32_t stability = 0;
+    if (distance) {
+      stability = *distance;
+    }
+    s->set("stability", props::Int(stability));
+    s->set("stability_check", props::Bool(true));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType BrewingStand(Block const &block) {
+    auto c = New("brewing_stand");
+    auto has0 = block.property("has_bottle_0", "false") == "true";
+    auto has1 = block.property("has_bottle_1", "false") == "true";
+    auto has2 = block.property("has_bottle_2", "false") == "true";
+    auto s = States();
+    s->set("brewing_stand_slot_a_bit", props::Bool(has0));
+    s->set("brewing_stand_slot_b_bit", props::Bool(has1));
+    s->set("brewing_stand_slot_c_bit", props::Bool(has2));
+    return AttachStates(c, s);
   }
 
   static BlockDataType CaveVinesPlant(Block const &block) {
@@ -1554,21 +1643,12 @@ private:
     s->set("conditional_bit", props::Bool(conditional == "true"));
   }
 
-  static void BambooAgeFromStage(StatesType const &s, Block const &b) {
-    auto stage = b.property("stage", "0");
-    if (stage == "0") {
-      s->set("age", props::String("0"));
-    } else {
-      s->set("age", props::String("1"));
-    }
-  }
-
-  static void BambooStalkThisknessFromAge(StatesType const &s, Block const &b) {
+  static void BambooStalkThicknessFromAge(StatesType const &s, Block const &b) {
     auto age = b.property("age", "0");
     if (age == "0") {
-      s->set("bamboo_stalk_thikness", props::String("thin"));
+      s->set("bamboo_stalk_thickness", props::String("thin"));
     } else {
-      s->set("bamboo_stalk_thikness", props::String("thick"));
+      s->set("bamboo_stalk_thickness", props::String("thick"));
     }
   }
 
