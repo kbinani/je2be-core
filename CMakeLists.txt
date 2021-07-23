@@ -116,7 +116,8 @@ set(je2be_srcs
   .clang-format)
 add_executable(je2be src/main.cpp ${je2be_srcs})
 add_executable(dump src/dump.cpp ${je2be_srcs})
-setup_source_groups("src/main.cpp;src/dump.cpp;${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(test test/main.cpp test/block-data.test.cpp ${je2be_srcs})
+setup_source_groups("src/main.cpp;src/dump.cpp;test/main.cpp;test/block-data.test.cpp;${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
@@ -158,3 +159,7 @@ target_link_directories(je2be PRIVATE ${je2be_link_directories})
 target_include_directories(dump PRIVATE ${je2be_include_directories})
 target_link_libraries(dump ${je2be_link_libraries} leveldb)
 target_link_directories(dump PRIVATE ${je2be_link_directories})
+
+target_include_directories(test PRIVATE ext/doctest ${je2be_include_directories})
+target_link_libraries(test ${je2be_link_libraries} leveldb)
+target_link_directories(test PRIVATE ${je2be_link_directories})
