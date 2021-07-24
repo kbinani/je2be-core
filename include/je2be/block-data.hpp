@@ -1433,10 +1433,12 @@ private:
     E("dirt_path", Rename("grass_path"));
     E("waxed_copper_block", Rename("waxed_copper"));
     E("rooted_dirt", Rename("dirt_with_roots"));
+
+    E("azalea_leaves", Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
     E("flowering_azalea_leaves", Converter(Name("azalea_leaves_flowered"), PersistentToPersistentBit, DistanceToUpdateBit));
 
-    E("big_dripleaf", Converter(Same, AddByteProperty("big_dripleaf_head", true), DirectionFromFacingA));
-    E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA));
+    E("big_dripleaf", BigDripleaf);
+    E("big_dripleaf_stem", Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA, AddStringProperty("big_dripleaf_tilt", "none")));
     E("small_dripleaf", Converter(Name("small_dripleaf_block"), DirectionFromFacingA, UpperBlockBitToHalf));
 
     Converter candle(Same, Name(Lit, "lit"), Name(Candles, "candles"));
@@ -1458,13 +1460,32 @@ private:
     E("red_candle", candle);
     E("black_candle", candle);
 
+    Converter candleCake(Same, Name(Lit, "lit"));
+    E("candle_cake", candleCake);
+    E("white_candle_cake", candleCake);
+    E("orange_candle_cake", candleCake);
+    E("magenta_candle_cake", candleCake);
+    E("light_blue_candle_cake", candleCake);
+    E("yellow_candle_cake", candleCake);
+    E("lime_candle_cake", candleCake);
+    E("pink_candle_cake", candleCake);
+    E("gray_candle_cake", candleCake);
+    E("light_gray_candle_cake", candleCake);
+    E("cyan_candle_cake", candleCake);
+    E("purple_candle_cake", candleCake);
+    E("blue_candle_cake", candleCake);
+    E("brown_candle_cake", candleCake);
+    E("green_candle_cake", candleCake);
+    E("red_candle_cake", candleCake);
+    E("black_candle_cake", candleCake);
+
     E("cut_copper_stairs", Stairs());
-    E("exposed_copper_stairs", Stairs());
+    E("exposed_cut_copper_stairs", Stairs());
     E("weathered_cut_copper_stairs", Stairs());
     E("oxidized_cut_copper_stairs", Stairs());
 
     E("waxed_cut_copper_stairs", Stairs());
-    E("waxed_exposed_copper_stairs", Stairs());
+    E("waxed_exposed_cut_copper_stairs", Stairs());
     E("waxed_weathered_cut_copper_stairs", Stairs());
     E("waxed_oxidized_cut_copper_stairs", Stairs());
 
@@ -1498,12 +1519,11 @@ private:
     E("small_amethyst_bud", facingDirectionFromFacingA);
     E("medium_amethyst_bud", facingDirectionFromFacingA);
     E("large_amethyst_bud", facingDirectionFromFacingA);
-    E("small_amethyst_bud", facingDirectionFromFacingA);
     E("amethyst_cluster", facingDirectionFromFacingA);
 
     E("pointed_dripstone", PointedDripstone);
     E("light", Light);
-    E("cave_vines", Identity);
+    E("cave_vines", CaveVines);
     E("cave_vines_plant", CaveVinesPlant);
     E("chain", axisToPillarAxis);
 
@@ -1524,8 +1544,29 @@ private:
     E("basalt", axisToPillarAxis);
     E("polished_basalt", axisToPillarAxis);
     E("respawn_anchor", RespawnAnchor);
+    E("deepslate", axisToPillarAxis);
+    E("infested_deepslate", axisToPillarAxis);
 #undef E
     return table;
+  }
+
+  static BlockDataType BigDripleaf(Block const &block) {
+    auto c = New("big_dripleaf");
+    auto s = States();
+    s->set("big_dripleaf_head", props::Bool(true));
+    DirectionFromFacingA(s, block);
+    std::string tilt = block.property("tilt", "none");
+    if (tilt == "none") {
+      //nop
+    } else if (tilt == "partial") {
+      tilt = "partial_tilt";
+    } else if (tilt == "full") {
+      tilt = "full_tilt";
+    } else if (tilt == "unstable") {
+      //nop
+    }
+    s->set("big_dripleaf_tilt", props::String(tilt));
+    return AttachStates(c, s);
   }
 
   static BlockDataType RespawnAnchor(Block const &block) {
@@ -1592,6 +1633,14 @@ private:
     s->set("brewing_stand_slot_a_bit", props::Bool(has0));
     s->set("brewing_stand_slot_b_bit", props::Bool(has1));
     s->set("brewing_stand_slot_c_bit", props::Bool(has2));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType CaveVines(Block const &block) {
+    bool berries = block.property("berries", "false") == "true";
+    auto c = New(berries ? "cave_vines_head_with_berries" : "cave_vines");
+    auto s = States();
+    s->set("growing_plant_age", props::Int(23));
     return AttachStates(c, s);
   }
 
