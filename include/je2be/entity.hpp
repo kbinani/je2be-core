@@ -491,10 +491,35 @@ private:
     E("glow_squid", Convert(Animal, Definitions("+minecraft:glow_squid")));
     E("axolotl", Convert(Animal, AgeableA("axolotl"), Axolotl));
     E("goat", Convert(Animal, AgeableA("goat"), Goat));
+    E("falling_block", Convert(EntityBase, FallingBlock));
 #undef A
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData FallingBlock(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto blockState = tag.compoundTag("BlockState");
+    if (!blockState) {
+      return nullptr;
+    }
+    auto name = blockState->string("Name");
+    if (!name) {
+      return nullptr;
+    }
+    auto block = BlockData::From(std::make_shared<mcfile::Block>(*name));
+    if (!block) {
+      return nullptr;
+    }
+    c->set("FallingBlock", block);
+
+    auto fallDistance = tag.float32("FallDistance", 0);
+    c->set("FallDistance", props::Float(fallDistance));
+
+    auto time = Clamp(tag.int32("Time", 0), 0, 255);
+    c->set("Time", props::Byte(time));
+
+    return c;
   }
 
   static EntityData Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
