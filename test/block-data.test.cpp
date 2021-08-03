@@ -272,7 +272,7 @@ TEST_CASE("block-data") {
       {"minecraft:iron_door", {{"direction", "int32_t"}, {"door_hinge_bit", "uint8_t"}, {"open_bit", "uint8_t"}, {"upper_block_bit", "uint8_t"}}},
       {"minecraft:iron_ore", {}},
       {"minecraft:iron_trapdoor", {{"direction", "int32_t"}, {"open_bit", "uint8_t"}, {"upside_down_bit", "uint8_t"}}},
-      //{"minecraft:jigsaw", {{"facing_direction", "int32_t"}, {"rotation", "int32_t"}}},
+      {"minecraft:jigsaw", {{"facing_direction", "int32_t"}, {"rotation", "int32_t"}}},
       {"minecraft:jukebox", {}},
       {"minecraft:jungle_button", {{"button_pressed_bit", "uint8_t"}, {"facing_direction", "int32_t"}}},
       {"minecraft:jungle_door", {{"direction", "int32_t"}, {"door_hinge_bit", "uint8_t"}, {"open_bit", "uint8_t"}, {"upper_block_bit", "uint8_t"}}},
@@ -323,7 +323,7 @@ TEST_CASE("block-data") {
       {"minecraft:medium_amethyst_bud", {{"facing_direction", "int32_t"}}},
       {"minecraft:melon_block", {}},
       {"minecraft:melon_stem", {{"facing_direction", "int32_t"}, {"growth", "int32_t"}}},
-      //{"minecraft:mob_spawner", {}},
+      {"minecraft:mob_spawner", {}},
       {"minecraft:monster_egg", {{"monster_egg_stone_type", "string"}}},
       {"minecraft:moss_block", {}},
       {"minecraft:moss_carpet", {}},
@@ -588,6 +588,9 @@ TEST_CASE("block-data") {
   };
 
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+    if (id == mcfile::blocks::minecraft::jigsaw || id == mcfile::blocks::minecraft::spawner) {
+      continue;
+    }
     string blockName = mcfile::blocks::Name(id);
     CHECK(!blockName.empty());
     auto block = make_shared<mcfile::Block const>(blockName);
