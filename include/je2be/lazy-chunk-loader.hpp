@@ -40,23 +40,20 @@ public:
           if (!item) {
             continue;
           }
-          auto x = item->int32("x");
-          auto y = item->int32("y");
-          auto z = item->int32("z");
-          if (!x || !y || !z) {
+          auto pos = props::GetPos3<'x', 'y', 'z'>(*item);
+          if (!pos) {
             continue;
           }
-          if (*x < minBx || maxBx < *x) {
+          if (pos->fX < minBx || maxBx < pos->fX) {
             continue;
           }
-          if (*y < minBy || maxBy < *y) {
+          if (pos->fY < minBy || maxBy < pos->fY) {
             continue;
           }
-          if (*z < minBz || maxBz < *z) {
+          if (pos->fZ < minBz || maxBz < pos->fZ) {
             continue;
           }
-          Pos3 pos(*x, *y, *z);
-          if (!callback(*item, pos)) {
+          if (!callback(*item, *pos)) {
             return;
           }
         }
