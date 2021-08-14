@@ -12,7 +12,7 @@ public:
 
   void put(DbInterface &db, Dimension dim) {
     using namespace std;
-    unordered_map<Pos, vector<StructurePiece>, PosHasher> splitted;
+    unordered_map<Pos3, vector<StructurePiece>, Pos3Hasher> splitted;
     for (auto const &it : fPieces) {
       int minChunkX = mcfile::Coordinate::ChunkFromBlock(it.fVolume.fStart.fX);
       int minChunkZ = mcfile::Coordinate::ChunkFromBlock(it.fVolume.fStart.fZ);
@@ -20,10 +20,10 @@ public:
       int maxChunkZ = mcfile::Coordinate::ChunkFromBlock(it.fVolume.fEnd.fZ);
       for (int cx = minChunkX; cx <= maxChunkX; cx++) {
         for (int cz = minChunkZ; cz < maxChunkZ; cz++) {
-          Volume chunkVolume(Pos(cx * 16, 0, cz * 16), Pos(cx * 16 + 15, 255, cz * 16 + 15));
+          Volume chunkVolume(Pos3(cx * 16, 0, cz * 16), Pos3(cx * 16 + 15, 255, cz * 16 + 15));
           auto intersection = Volume::Intersection(chunkVolume, it.fVolume);
           if (intersection) {
-            Pos idx(cx, 0, cz);
+            Pos3 idx(cx, 0, cz);
             StructurePiece p(intersection->fStart, intersection->fEnd, it.fType);
             splitted[idx].push_back(p);
           }

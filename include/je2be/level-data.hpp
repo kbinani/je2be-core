@@ -365,7 +365,7 @@ public:
     return ret;
   }
 
-  static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos, PosHasher> const &endPortalsInEndDimension) {
+  static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3, Pos3Hasher> const &endPortalsInEndDimension) {
     using namespace props;
     using namespace mcfile::nbt;
 
@@ -420,13 +420,13 @@ public:
     }
 
     auto exitPortalLocation = dragonFight->compoundTag("ExitPortalLocation");
-    std::optional<Pos> exitLocation;
+    std::optional<Pos3> exitLocation;
     if (exitPortalLocation) {
       auto x = exitPortalLocation->int32("X");
       auto y = exitPortalLocation->int32("Y");
       auto z = exitPortalLocation->int32("Z");
       if (x && y && z) {
-        exitLocation = Pos(*x, *y, *z);
+        exitLocation = Pos3(*x, *y, *z);
       }
     }
     if (!exitLocation) {
@@ -498,60 +498,60 @@ public:
   }
 
 private:
-  static std::optional<Pos> ExitPortalAltitude(std::unordered_set<Pos, PosHasher> const &blocks) {
-    std::vector<Pos> candidates;
+  static std::optional<Pos3> ExitPortalAltitude(std::unordered_set<Pos3, Pos3Hasher> const &blocks) {
+    std::vector<Pos3> candidates;
     for (auto const &pos : blocks) {
       if (IsValidExitPortal(pos, blocks)) {
-        candidates.push_back(Pos(pos.fX + 1, pos.fY, pos.fZ + 2));
+        candidates.push_back(Pos3(pos.fX + 1, pos.fY, pos.fZ + 2));
       }
     }
     if (candidates.empty()) {
       return std::nullopt;
     }
     if (candidates.size() > 1) {
-      Pos origin(0, 0, 0);
-      std::sort(candidates.begin(), candidates.end(), [origin](Pos const &a, Pos const &b) {
-        auto distanceA = Pos::DistanceSquare(a, origin);
-        auto distanceB = Pos::DistanceSquare(b, origin);
+      Pos3 origin(0, 0, 0);
+      std::sort(candidates.begin(), candidates.end(), [origin](Pos3 const &a, Pos3 const &b) {
+        auto distanceA = Pos3::DistanceSquare(a, origin);
+        auto distanceB = Pos3::DistanceSquare(b, origin);
         return distanceA < distanceB;
       });
     }
     return candidates[0];
   }
 
-  static bool IsValidExitPortal(Pos p, std::unordered_set<Pos, PosHasher> const &blocks) {
-    static std::vector<Pos> const portalPlacement = {
+  static bool IsValidExitPortal(Pos3 p, std::unordered_set<Pos3, Pos3Hasher> const &blocks) {
+    static std::vector<Pos3> const portalPlacement = {
         // line1
-        Pos(0, 0, 0),
-        Pos(1, 0, 0),
-        Pos(2, 0, 0),
+        Pos3(0, 0, 0),
+        Pos3(1, 0, 0),
+        Pos3(2, 0, 0),
         // line2
-        Pos(-1, 0, 1),
-        Pos(0, 0, 1),
-        Pos(1, 0, 1),
-        Pos(2, 0, 1),
-        Pos(3, 0, 1),
+        Pos3(-1, 0, 1),
+        Pos3(0, 0, 1),
+        Pos3(1, 0, 1),
+        Pos3(2, 0, 1),
+        Pos3(3, 0, 1),
         // line3
-        Pos(-1, 0, 2),
-        Pos(0, 0, 2),
-        Pos(2, 0, 2),
-        Pos(3, 0, 2),
+        Pos3(-1, 0, 2),
+        Pos3(0, 0, 2),
+        Pos3(2, 0, 2),
+        Pos3(3, 0, 2),
         // line4
-        Pos(-1, 0, 3),
-        Pos(0, 0, 3),
-        Pos(1, 0, 3),
-        Pos(2, 0, 3),
-        Pos(3, 0, 3),
+        Pos3(-1, 0, 3),
+        Pos3(0, 0, 3),
+        Pos3(1, 0, 3),
+        Pos3(2, 0, 3),
+        Pos3(3, 0, 3),
         // line5
-        Pos(0, 0, 4),
-        Pos(1, 0, 4),
-        Pos(2, 0, 4),
+        Pos3(0, 0, 4),
+        Pos3(1, 0, 4),
+        Pos3(2, 0, 4),
     };
     if (blocks.size() < portalPlacement.size()) {
       return false;
     }
     for (auto const &it : portalPlacement) {
-      Pos test(p.fX + it.fX, p.fY + it.fY, p.fZ + it.fZ);
+      Pos3 test(p.fX + it.fX, p.fY + it.fY, p.fZ + it.fZ);
       if (blocks.find(test) == blocks.end()) {
         return false;
       }

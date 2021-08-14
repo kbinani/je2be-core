@@ -18,7 +18,7 @@ public:
   void addAutonomousEntity(std::shared_ptr<mcfile::nbt::CompoundTag> const &entity) { fAutonomousEntities.push_back(entity); }
 
   void addEndPortal(int32_t x, int32_t y, int32_t z) {
-    Pos p(x, y, z);
+    Pos3 p(x, y, z);
     fEndPortalsInEndDimension.insert(p);
   }
 
@@ -85,8 +85,8 @@ private:
     auto const &value = bb->value();
     if (value.size() < 6)
       return std::nullopt;
-    Pos start(value[0], value[1], value[2]);
-    Pos end(value[3], value[4], value[5]);
+    Pos3 start(value[0], value[1], value[2]);
+    Pos3 end(value[3], value[4], value[5]);
     return Volume(start, end);
   }
 
@@ -97,7 +97,7 @@ private:
   PortalBlocks fPortalBlocks;
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>> fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
-  std::unordered_set<Pos, PosHasher> fEndPortalsInEndDimension;
+  std::unordered_set<Pos3, Pos3Hasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
   Statistics fStat;
 };

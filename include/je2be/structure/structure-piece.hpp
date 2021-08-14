@@ -9,7 +9,7 @@ enum class StructureType : uint8_t {
 };
 
 struct StructurePiece {
-  StructurePiece(Pos start, Pos end, StructureType type) : fVolume(start, end), fType(type) {}
+  StructurePiece(Pos3 start, Pos3 end, StructureType type) : fVolume(start, end), fType(type) {}
 
   Volume fVolume;
   StructureType fType;

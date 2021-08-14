@@ -10,13 +10,13 @@ public:
 
   void extract(std::vector<Portal> &buffer, Dimension dim) {
     while (!fBlocks.empty()) {
-      Pos start = *fBlocks.begin();
-      Pos bottomNorthWest = lookupBottomNorthWestCorner(start);
-      Pos topSouthEast = lookupTopSouthEastCorner(start);
+      Pos3 start = *fBlocks.begin();
+      Pos3 bottomNorthWest = lookupBottomNorthWestCorner(start);
+      Pos3 topSouthEast = lookupTopSouthEastCorner(start);
       for (int x = bottomNorthWest.fX; x <= topSouthEast.fX; x++) {
         for (int z = bottomNorthWest.fZ; z <= topSouthEast.fZ; z++) {
           for (int y = bottomNorthWest.fY; y <= topSouthEast.fY; y++) {
-            Pos p(x, y, z);
+            Pos3 p(x, y, z);
             fBlocks.erase(p);
           }
         }
@@ -32,11 +32,11 @@ public:
     for (auto b : fBlocks) {
       out.fBlocks.insert(b);
     }
-    std::unordered_set<Pos, PosHasher>().swap(fBlocks);
+    std::unordered_set<Pos3, Pos3Hasher>().swap(fBlocks);
   }
 
 private:
-  Pos lookupBottomNorthWestCorner(Pos start) {
+  Pos3 lookupBottomNorthWestCorner(Pos3 start) {
     if (fXAxis) {
       return lookupCorner<-1, -1, 0>(start);
     } else {
@@ -44,7 +44,7 @@ private:
     }
   }
 
-  Pos lookupTopSouthEastCorner(Pos start) {
+  Pos3 lookupTopSouthEastCorner(Pos3 start) {
     if (fXAxis) {
       return lookupCorner<1, 1, 0>(start);
     } else {
@@ -53,7 +53,7 @@ private:
   }
 
   template <int dx, int dy, int dz>
-  Pos lookupCorner(Pos p) {
+  Pos3 lookupCorner(Pos3 p) {
     int const x0 = p.fX;
     int const y0 = p.fY;
     int const z0 = p.fZ;
@@ -65,7 +65,7 @@ private:
     while (true) {
       bool expandVertical = true;
       for (int xz = 0; xz < width; xz++) {
-        Pos test(x0 + dx * xz, currentY + dy, z0 + dz * xz);
+        Pos3 test(x0 + dx * xz, currentY + dy, z0 + dz * xz);
         if (fBlocks.find(test) == fBlocks.end()) {
           expandVertical = false;
           break;
@@ -78,7 +78,7 @@ private:
 
       bool expandHorizontal = true;
       for (int y = 0; y < height; y++) {
-        Pos test(currentX + dx, y0 + dy * y, currentZ + dz);
+        Pos3 test(currentX + dx, y0 + dy * y, currentZ + dz);
         if (fBlocks.find(test) == fBlocks.end()) {
           expandHorizontal = false;
           break;
@@ -94,12 +94,12 @@ private:
         currentZ += dz;
       }
     }
-    return Pos(currentX, currentY, currentZ);
+    return Pos3(currentX, currentY, currentZ);
   }
 
 private:
   bool const fXAxis;
-  std::unordered_set<Pos, PosHasher> fBlocks;
+  std::unordered_set<Pos3, Pos3Hasher> fBlocks;
 };
 
 } // namespace j2b

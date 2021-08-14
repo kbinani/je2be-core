@@ -24,7 +24,7 @@ public:
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
 
-  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos(x, y, z), block)); }
+  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3(x, y, z), block)); }
 
 private:
   void buildTileEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
@@ -42,7 +42,7 @@ private:
       if (!x || !y || !z)
         continue;
 
-      Pos pos(*x, *y, *z);
+      Pos3 pos(*x, *y, *z);
       auto found = fTileBlocks.find(pos);
       if (found == fTileBlocks.end()) {
         auto sa = TileEntity::StandaloneTileEntityData(e);
@@ -63,7 +63,7 @@ private:
     }
 
     for (auto const &it : fTileBlocks) {
-      Pos const &pos = it.first;
+      Pos3 const &pos = it.first;
       Block const &block = *it.second;
       auto tag = TileEntity::FromBlock(pos, block, mapInfo, ddf);
       if (!tag)
@@ -164,7 +164,7 @@ private:
 private:
   HeightMap fHeightMap;
   std::optional<BiomeMap> fBiomeMap;
-  std::unordered_map<Pos, std::shared_ptr<mcfile::Block const>, PosHasher> fTileBlocks;
+  std::unordered_map<Pos3, std::shared_ptr<mcfile::Block const>, Pos3Hasher> fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;

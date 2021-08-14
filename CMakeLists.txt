@@ -27,7 +27,7 @@ set(je2be_srcs
   include/je2be/db/null-db.hpp
   include/je2be/entity.hpp
   include/je2be/tile-entity.hpp
-  include/je2be/pos.hpp
+  include/je2be/pos3.hpp
   include/je2be/db/async-db.hpp
   include/je2be/vec.hpp
   include/je2be/rotation.hpp
@@ -114,10 +114,15 @@ set(je2be_srcs
   ext/libminecraft-file/include/minecraft-file.hpp
   .editorconfig
   .clang-format)
+set(test_srcs
+  test/main.cpp
+  test/block-data.test.cpp
+  test/converter.test.cpp
+  test/on-memory-db.hpp)
 add_executable(je2be src/main.cpp ${je2be_srcs})
 add_executable(dump src/dump.cpp ${je2be_srcs})
-add_executable(test test/main.cpp test/block-data.test.cpp ${je2be_srcs})
-setup_source_groups("src/main.cpp;src/dump.cpp;test/main.cpp;test/block-data.test.cpp;${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(test ${test_srcs} ${je2be_srcs})
+setup_source_groups("src/main.cpp;src/dump.cpp;${test_srcs};${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
