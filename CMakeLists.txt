@@ -27,6 +27,7 @@ set(je2be_srcs
   include/je2be/db/null-db.hpp
   include/je2be/entity.hpp
   include/je2be/tile-entity.hpp
+  include/je2be/pos2.hpp
   include/je2be/pos3.hpp
   include/je2be/db/async-db.hpp
   include/je2be/vec.hpp
