@@ -59,6 +59,7 @@ set(je2be_srcs
   include/je2be/block-palette.hpp
   include/je2be/algorithm.hpp
   include/je2be/sign.hpp
+  include/je2be/lazy-chunk-loader.hpp
   # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):ext/libminecraft-file/\1:g') | pbcopy
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
