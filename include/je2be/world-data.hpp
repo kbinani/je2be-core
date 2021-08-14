@@ -59,7 +59,7 @@ public:
   JavaEditionMap fJavaEditionMap;
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>> fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
-  std::unordered_set<Pos3, Pos3Hasher> fEndPortalsInEndDimension;
+  std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   InputOption fInputOption;
   Structures fStructures;
   Statistics fStat;

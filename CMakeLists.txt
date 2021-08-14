@@ -27,8 +27,6 @@ set(je2be_srcs
   include/je2be/db/null-db.hpp
   include/je2be/entity.hpp
   include/je2be/tile-entity.hpp
-  include/je2be/pos2.hpp
-  include/je2be/pos3.hpp
   include/je2be/db/async-db.hpp
   include/je2be/vec.hpp
   include/je2be/rotation.hpp
@@ -59,8 +57,9 @@ set(je2be_srcs
   include/je2be/block-palette.hpp
   include/je2be/algorithm.hpp
   include/je2be/sign.hpp
-  include/je2be/lazy-chunk-loader.hpp
-  # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):ext/libminecraft-file/\1:g') | pbcopy
+  include/je2be/pos2.hpp
+  include/je2be/pos3.hpp
+  # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
@@ -70,6 +69,7 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/blocks/from-name.hpp
   ext/libminecraft-file/include/mcfile/blocks/minecraft.hpp
   ext/libminecraft-file/include/mcfile/blocks/name.hpp
+  ext/libminecraft-file/include/mcfile/cached-chunk-loader.hpp
   ext/libminecraft-file/include/mcfile/chunk-section.hpp
   ext/libminecraft-file/include/mcfile/chunk.hpp
   ext/libminecraft-file/include/mcfile/chunksection/block-states-parser-113.hpp
@@ -103,6 +103,8 @@ set(je2be_srcs
   ext/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
   ext/libminecraft-file/include/mcfile/nbt/tag-factory.hpp
   ext/libminecraft-file/include/mcfile/nbt/tag.hpp
+  ext/libminecraft-file/include/mcfile/pos2.hpp
+  ext/libminecraft-file/include/mcfile/pos3.hpp
   ext/libminecraft-file/include/mcfile/region.hpp
   ext/libminecraft-file/include/mcfile/set-block-options.hpp
   ext/libminecraft-file/include/mcfile/stream/byte-stream.hpp

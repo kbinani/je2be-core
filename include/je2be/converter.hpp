@@ -309,14 +309,17 @@ private:
       }
     }
 
-    for (auto const &e : chunk.fTileEntities) {
+    for (auto it : chunk.fTileEntities) {
+      Pos3i pos = it.first;
+      shared_ptr<CompoundTag> const &e = it.second;
       if (!TileEntity::IsStandaloneTileEntity(e)) {
         continue;
       }
-      auto ret = TileEntity::StandaloneTileEntityBlockdData(e);
-      if (!ret)
+      auto ret = TileEntity::StandaloneTileEntityBlockdData(pos, e);
+      if (!ret) {
         continue;
-      auto [pos, tag, paletteKey] = *ret;
+      }
+      auto [tag, paletteKey] = *ret;
 
       if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
         continue;

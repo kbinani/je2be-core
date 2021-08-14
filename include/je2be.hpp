@@ -72,5 +72,4 @@
 #include <je2be/chunk-data-package.hpp>
 #include <je2be/progress.hpp>
 #include <je2be/block-palette.hpp>
-#include <je2be/lazy-chunk-loader.hpp>
 #include <je2be/converter.hpp>

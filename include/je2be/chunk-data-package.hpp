@@ -24,7 +24,7 @@ public:
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
 
-  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3(x, y, z), block)); }
+  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
 
 private:
   void buildTileEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
@@ -35,14 +35,10 @@ private:
 
     vector<int32_t> mapIdList;
 
-    for (shared_ptr<CompoundTag> const &e : chunk.fTileEntities) {
-      auto x = e->int32("x");
-      auto y = e->int32("y");
-      auto z = e->int32("z");
-      if (!x || !y || !z)
-        continue;
+    for (auto it : chunk.fTileEntities) {
+      Pos3i pos = it.first;
+      auto const &e = it.second;
 
-      Pos3 pos(*x, *y, *z);
       auto found = fTileBlocks.find(pos);
       if (found == fTileBlocks.end()) {
         auto sa = TileEntity::StandaloneTileEntityData(e);
@@ -63,7 +59,7 @@ private:
     }
 
     for (auto const &it : fTileBlocks) {
-      Pos3 const &pos = it.first;
+      Pos3i const &pos = it.first;
       Block const &block = *it.second;
       auto tag = TileEntity::FromBlock(pos, block, mapInfo, ddf);
       if (!tag)
@@ -164,7 +160,7 @@ private:
 private:
   HeightMap fHeightMap;
   std::optional<BiomeMap> fBiomeMap;
-  std::unordered_map<Pos3, std::shared_ptr<mcfile::Block const>, Pos3Hasher> fTileBlocks;
+  std::unordered_map<Pos3i, std::shared_ptr<mcfile::Block const>, Pos3iHasher> fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;
