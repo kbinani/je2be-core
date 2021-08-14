@@ -161,7 +161,8 @@ private:
                   chunk->fEntities.swap(entities);
                 }
               }
-              r.fData = putChunk(*chunk, dim, db, mapInfo, *region);
+              preprocessChunk(chunk, *region);
+              r.fData = putChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
               Result r;
@@ -192,7 +193,59 @@ private:
     return completed;
   }
 
-  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo, mcfile::Region const &region) {
+  void preprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region region) {
+    using namespace mcfile;
+    using namespace std;
+
+    CachedChunkLoader loader(region);
+    SetBlockOptions withoutRemovingTileEntity;
+    withoutRemovingTileEntity.fRemoveTileEntity = false;
+
+    for (auto it : chunk->fTileEntities) {
+      Pos3i pos = it.first;
+      auto const &item = it.second;
+      auto id = item->string("id");
+      if (!id) {
+        continue;
+      }
+      if (*id == "minecraft:piston") {
+        auto extending = item->boolean("extending");
+        if (!extending) {
+          continue;
+        }
+        auto source = item->boolean("source");
+        if (!source) {
+          continue;
+        }
+        if (*extending) {
+          if (*source) {
+            // extending = 1, source = 1
+            //TODO:
+          } else {
+            // extending = 1, source = 0
+            //TODO:
+          }
+        } else {
+          if (*source) {
+            // extending = 0, source = 1
+            auto block = chunk->blockAt(pos);
+            if (!block) {
+              continue;
+            }
+            auto newBlock = make_shared<Block>("minecraft:sticky_piston", block->fProperties);
+            chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
+
+            //TODO: lookup attached blocks
+          } else {
+            // extending = 0, source = 0
+            //TODO:
+          }
+        }
+      }
+    }
+  }
+
+  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
