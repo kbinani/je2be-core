@@ -170,7 +170,7 @@ inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag, 
 }
 
 template <char xKey, char yKey, char zKey>
-inline std::optional<Pos3i> GetPos3(mcfile::nbt::CompoundTag const &tag){
+inline std::optional<Pos3i> GetPos3(mcfile::nbt::CompoundTag const &tag) {
   auto x = tag.int32(std::string(1, xKey));
   auto y = tag.int32(std::string(1, yKey));
   auto z = tag.int32(std::string(1, zKey));

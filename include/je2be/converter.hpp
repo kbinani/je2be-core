@@ -70,7 +70,11 @@ public:
     return worldData->fStat;
   }
 
+#if defined(DOCTEST_VERSION)
+public:
+#else
 private:
+#endif
   static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
@@ -157,7 +161,7 @@ private:
                   chunk->fEntities.swap(entities);
                 }
               }
-              r.fData = putChunk(*chunk, dim, db, mapInfo);
+              r.fData = putChunk(*chunk, dim, db, mapInfo, *region);
               return r;
             } catch (...) {
               Result r;
@@ -188,7 +192,7 @@ private:
     return completed;
   }
 
-  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo, mcfile::Region const &region) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
