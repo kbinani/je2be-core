@@ -346,6 +346,51 @@ private:
     return e;
   }
 
+  struct PistonTileEntity {
+    std::string fName;
+    int fFacing;
+    bool fExtending;
+    bool fSource;
+    Pos3i fPos;
+
+    PistonTileEntity(std::string name, int facing, bool extending, bool source, Pos3i pos)
+        : fName(name), fFacing(facing), fExtending(extending), fSource(source), fPos(pos) {}
+
+    static std::optional<PistonTileEntity> From(std::shared_ptr<mcfile::nbt::CompoundTag const> const &tag, Pos3i pos) {
+      if (!tag) {
+        return std::nullopt;
+      }
+      auto id = tag->string("id");
+      if (!id) {
+        return std::nullopt;
+      }
+      if (*id != "minecraft:piston") {
+        return std::nullopt;
+      }
+      auto state = tag->compoundTag("blockState");
+      if (!state) {
+        return std::nullopt;
+      }
+      auto name = state->string("Name");
+      if (!name) {
+        return std::nullopt;
+      }
+      auto facing = tag->int32("facing");
+      if (!facing) {
+        return std::nullopt;
+      }
+      auto extending = tag->boolean("extending");
+      if (!extending) {
+        return std::nullopt;
+      }
+      auto source = tag->boolean("source");
+      if (!source) {
+        return std::nullopt;
+      }
+      return PistonTileEntity(*name, *facing, *extending, *source, pos);
+    }
+  };
+
   static void LookupAttachedBlocks(mcfile::CachedChunkLoader &loader, Pos3i center, bool extendingExpected, int facingExpected, std::unordered_set<Pos3i, Pos3iHasher> &attachedBlocks) {
     using namespace std;
     using namespace mcfile;
@@ -355,27 +400,29 @@ private:
 
     static int constexpr kMaxMovableBlocksByAPiston = 12;
 
-    unordered_map<Pos3i, shared_ptr<CompoundTag const>, Pos3iHasher> testedBlocks;
+    unordered_map<Pos3i, optional<PistonTileEntity>, Pos3iHasher> testedBlocks;
     unordered_set<Pos3i, Pos3iHasher> testBlocks;
 
     Pos3i const startPos = center + VectorOfFacing(facingExpected);
-    shared_ptr<CompoundTag const> startBlock = loader.tileEntityAt(startPos);
+    optional<PistonTileEntity> startBlock = PistonTileEntity::From(loader.tileEntityAt(startPos), startPos);
     if (!startBlock) {
       return;
     }
     attachedBlocks.insert(startPos);
-    testedBlocks.insert(make_pair(startPos, startBlock));
-    testedBlocks.insert(make_pair(center, loader.tileEntityAt(center)));
+    testedBlocks.insert(make_pair(startPos, *startBlock));
     testBlocks.insert(startPos);
 
     int const cx = Coordinate::ChunkFromBlock(center.fX);
     int const cz = Coordinate::ChunkFromBlock(center.fZ);
 
     while (!testBlocks.empty() && attachedBlocks.size() <= kMaxMovableBlocksByAPiston) {
-      vector<pair<Pos3i, shared_ptr<CompoundTag const>>> testing;
+      vector<pair<Pos3i, PistonTileEntity>> testing;
       for (Pos3i pos : testBlocks) {
         auto base = testedBlocks.find(pos);
         if (base == testedBlocks.end()) {
+          continue;
+        }
+        if (!base->second) {
           continue;
         }
         for (int facing = 0; facing < 6; facing++) {
@@ -383,7 +430,7 @@ private:
           if (testedBlocks.find(p) != testedBlocks.end()) {
             continue;
           }
-          testing.push_back(make_pair(p, base->second));
+          testing.push_back(make_pair(p, *base->second));
         }
       }
       testBlocks.clear();
@@ -400,13 +447,13 @@ private:
 
       for (auto it : testing) {
         Pos3i pos = it.first;
-        shared_ptr<CompoundTag const> base = it.second;
-        shared_ptr<CompoundTag const> target = loader.tileEntityAt(pos);
+        PistonTileEntity base = it.second;
+        auto target = PistonTileEntity::From(loader.tileEntityAt(pos), pos);
         testedBlocks.insert(make_pair(pos, target));
         if (!target) {
           continue;
         }
-        if (!IsBaseStickyAgainstTarget(*base, *target)) {
+        if (!IsBaseStickyAgainstTarget(base, *target)) {
           continue;
         }
         testBlocks.insert(pos);
@@ -415,7 +462,6 @@ private:
     }
   }
 
-  static bool IsBaseStickyAgainstTarget(mcfile::nbt::CompoundTag const &base, mcfile::nbt::CompoundTag const &target) {
     static std::string const slimeBlock = "minecraft:slime_block";
     static std::string const honeyBlock = "minecraft:honey_block";
 
@@ -428,42 +474,25 @@ private:
       return false;
     }
 
-    auto targetSource = target.boolean("source");
-    if (!targetSource) {
-      return false;
-    }
-    if (*targetSource) {
+  static bool IsBaseStickyAgainstTarget(PistonTileEntity const &base, PistonTileEntity const &target) {
+    static std::string const slimeBlock = "minecraft:slime_block";
+    static std::string const honeyBlock = "minecraft:honey_block";
+
+    if (base.fFacing != target.fFacing) {
       return false;
     }
 
-    auto baseName = NameFromPistonTileEntity(base);
-    auto targetName = NameFromPistonTileEntity(target);
-    if (!baseName || !targetName) {
+    if (target.fSource) {
       return false;
     }
 
-    if (baseName == slimeBlock) {
-      return targetName != honeyBlock;
-    } else if (baseName == honeyBlock) {
-      return targetName != slimeBlock;
+    if (base.fName == slimeBlock) {
+      return target.fName != honeyBlock;
+    } else if (base.fName == honeyBlock) {
+      return target.fName != slimeBlock;
     } else {
       return false;
     }
-  }
-
-  static std::optional<std::string> NameFromPistonTileEntity(mcfile::nbt::CompoundTag const &tag) {
-    auto id = tag.string("id");
-    if (!id) {
-      return std::nullopt;
-    }
-    if (*id != "minecraft:piston") {
-      return std::nullopt;
-    }
-    auto state = tag.compoundTag("blockState");
-    if (!state) {
-      return std::nullopt;
-    }
-    return state->string("Name");
   }
 
   static Pos3i VectorOfFacing(int facing) {
