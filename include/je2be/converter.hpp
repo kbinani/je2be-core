@@ -161,7 +161,7 @@ private:
                   chunk->fEntities.swap(entities);
                 }
               }
-              preprocessChunk(chunk, *region);
+              PreprocessChunk(chunk, *region);
               r.fData = putChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
@@ -193,7 +193,7 @@ private:
     return completed;
   }
 
-  void preprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region region) {
+  static void PreprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region region) {
     using namespace mcfile;
     using namespace std;
 
@@ -217,6 +217,10 @@ private:
         if (!source) {
           continue;
         }
+        auto facing = item->int32("facing");
+        if (!facing) {
+          continue;
+        }
         if (*extending) {
           if (*source) {
             // extending = 1, source = 1
@@ -235,13 +239,158 @@ private:
             auto newBlock = make_shared<Block>("minecraft:sticky_piston", block->fProperties);
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
-            //TODO: lookup attached blocks
+            std::unordered_set<Pos3i, Pos3iHasher> buffer;
+            LookupAttachedBlocks(loader, pos, *extending, *facing, buffer);
+
+            //TODO: create "PistonArm" block entity
           } else {
             // extending = 0, source = 0
             //TODO:
           }
         }
       }
+    }
+  }
+
+  static void LookupAttachedBlocks(mcfile::CachedChunkLoader &loader, Pos3i center, bool extendingExpected, int facingExpected, std::unordered_set<Pos3i, Pos3iHasher> &attachedBlocks) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+
+    attachedBlocks.clear();
+
+    static int constexpr kMaxMovableBlocksByAPiston = 12;
+
+    unordered_map<Pos3i, shared_ptr<CompoundTag const>, Pos3iHasher> testedBlocks;
+    unordered_set<Pos3i, Pos3iHasher> testBlocks;
+
+    Pos3i const startPos = center + VectorOfFacing(facingExpected);
+    shared_ptr<CompoundTag const> startBlock = loader.tileEntityAt(startPos);
+    if (!startBlock) {
+      return;
+    }
+    attachedBlocks.insert(startPos);
+    testedBlocks.insert(make_pair(startPos, startBlock));
+    testedBlocks.insert(make_pair(center, loader.tileEntityAt(center)));
+    testBlocks.insert(startPos);
+
+    int const cx = Coordinate::ChunkFromBlock(center.fX);
+    int const cz = Coordinate::ChunkFromBlock(center.fZ);
+
+    while (!testBlocks.empty() && attachedBlocks.size() <= kMaxMovableBlocksByAPiston) {
+      vector<pair<Pos3i, shared_ptr<CompoundTag const>>> testing;
+      for (Pos3i pos : testBlocks) {
+        auto base = testedBlocks.find(pos);
+        if (base == testedBlocks.end()) {
+          continue;
+        }
+        for (int facing = 0; facing < 6; facing++) {
+          Pos3i p = pos + VectorOfFacing(facing);
+          if (testedBlocks.find(p) != testedBlocks.end()) {
+            continue;
+          }
+          testing.push_back(make_pair(p, base->second));
+        }
+      }
+      testBlocks.clear();
+
+      sort(testing.begin(), testing.end(), [cx, cz](auto a, auto b) {
+        int const acx = Coordinate::ChunkFromBlock(a.first.fX);
+        int const acz = Coordinate::ChunkFromBlock(a.first.fZ);
+        int const bcx = Coordinate::ChunkFromBlock(b.first.fX);
+        int const bcz = Coordinate::ChunkFromBlock(b.first.fZ);
+        int const aCost = abs(acx - cx) + abs(acz - cz);
+        int const bCost = abs(bcx - cx) + abs(bcz - cz);
+        return aCost < bCost;
+      });
+
+      for (auto it : testing) {
+        Pos3i pos = it.first;
+        shared_ptr<CompoundTag const> base = it.second;
+        shared_ptr<CompoundTag const> target = loader.tileEntityAt(pos);
+        testedBlocks.insert(make_pair(pos, target));
+        if (!target) {
+          continue;
+        }
+        if (!IsBaseStickyAgainstTarget(*base, *target)) {
+          continue;
+        }
+        testBlocks.insert(pos);
+        attachedBlocks.insert(pos);
+      }
+    }
+  }
+
+  static bool IsBaseStickyAgainstTarget(mcfile::nbt::CompoundTag const &base, mcfile::nbt::CompoundTag const &target) {
+    static std::string const slimeBlock = "minecraft:slime_block";
+    static std::string const honeyBlock = "minecraft:honey_block";
+
+    auto baseFacing = base.int32("facing");
+    auto targetFacing = target.int32("facing");
+    if (!baseFacing || !targetFacing) {
+      return false;
+    }
+    if (*baseFacing != *targetFacing) {
+      return false;
+    }
+
+    auto targetSource = target.boolean("source");
+    if (!targetSource) {
+      return false;
+    }
+    if (*targetSource) {
+      return false;
+    }
+
+    auto baseName = NameFromPistonTileEntity(base);
+    auto targetName = NameFromPistonTileEntity(target);
+    if (!baseName || !targetName) {
+      return false;
+    }
+
+    if (baseName == slimeBlock) {
+      return targetName != honeyBlock;
+    } else if (baseName == honeyBlock) {
+      return targetName != slimeBlock;
+    } else {
+      return false;
+    }
+  }
+
+  static std::optional<std::string> NameFromPistonTileEntity(mcfile::nbt::CompoundTag const &tag) {
+    auto id = tag.string("id");
+    if (!id) {
+      return std::nullopt;
+    }
+    if (*id != "minecraft:piston") {
+      return std::nullopt;
+    }
+    auto state = tag.compoundTag("blockState");
+    if (!state) {
+      return std::nullopt;
+    }
+    return state->string("Name");
+  }
+
+  static Pos3i VectorOfFacing(int facing) {
+    if (facing == 1) {
+      // up
+      return Pos3i(0, 1, 0);
+    } else if (facing == 2) {
+      // north
+      return Pos3i(0, 0, -1);
+    } else if (facing == 3) {
+      // south
+      return Pos3i(0, 0, 1);
+    } else if (facing == 4) {
+      // west
+      return Pos3i(-1, 0, 0);
+    } else if (facing == 5) {
+      // east
+      return Pos3i(1, 0, 0);
+    } else {
+      // 0, down
+      return Pos3i(0, -1, 0);
     }
   }
 
