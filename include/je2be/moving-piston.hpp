@@ -95,7 +95,7 @@ public:
           }
         } else {
           // extending = *, source = 0
-          auto e = MovingBlockEntityFromPistonTileEntity(pos, item);
+          auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader);
           tileEntityReplacement[pos] = e;
         }
       }
@@ -113,7 +113,7 @@ public:
   }
 
 private:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, std::shared_ptr<mcfile::nbt::CompoundTag const> const &item) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<mcfile::nbt::CompoundTag const> const &item, mcfile::CachedChunkLoader &loader) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;
@@ -156,7 +156,12 @@ private:
     movingBlockExtra->set("version", Int(BlockData::kBlockDataVersion));
     e->set("movingBlockExtra", movingBlockExtra);
 
-    //TODO: pistonPosX/Y/Z
+    auto pistonPos = LookupPistonPos(loader, pos, facing);
+    if (pistonPos) {
+      e->set("pistonPosX", Int(pistonPos->fX));
+      e->set("pistonPosY", Int(pistonPos->fY));
+      e->set("pistonPosZ", Int(pistonPos->fZ));
+    }
 
     e->set("x", Int(pos.fX));
     e->set("y", Int(pos.fY));
@@ -279,6 +284,93 @@ private:
         attachedBlocks.insert(pos);
       }
     }
+  }
+
+  static std::optional<Pos3i> LookupPistonPos(mcfile::CachedChunkLoader &loader, Pos3i center, int facing) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+
+    Pos3i startPos = center;
+    optional<PistonTileEntity> startBlock = PistonTileEntity::From(loader.tileEntityAt(center), center);
+    if (!startBlock) {
+      return nullopt;
+    }
+
+    static std::string const slimeBlock = "minecraft:slime_block";
+    static std::string const honeyBlock = "minecraft:honey_block";
+    static int constexpr kMaxMovableBlocksByAPiston = 12;
+
+    unordered_map<Pos3i, optional<PistonTileEntity>, Pos3iHasher> testedBlocks;
+    unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
+
+    testedBlocks.insert(make_pair(startPos, startBlock));
+
+    unordered_set<Pos3i, Pos3iHasher> testBlocks;
+    testBlocks.insert(startPos);
+
+    int maxSize = kMaxMovableBlocksByAPiston * 2 + 1;
+    int maxTestedBlocks = maxSize * maxSize * maxSize;
+    while (!testBlocks.empty() && attachedBlocks.size() <= kMaxMovableBlocksByAPiston && testedBlocks.size() < maxTestedBlocks) {
+      for (Pos3i pos : testBlocks) {
+        Pos3i testPos = pos - VectorOfFacing(facing);
+        if (testedBlocks.find(testPos) != testedBlocks.end()) {
+          continue;
+        }
+        auto test = PistonTileEntity::From(loader.tileEntityAt(testPos), testPos);
+        testedBlocks.insert(make_pair(testPos, test));
+        if (!test) {
+          continue;
+        }
+        if (test->fFacing != facing) {
+          continue;
+        }
+        if (!test->fSource) {
+          continue;
+        }
+        if (test->fName == "minecraft:piston" || test->fName == "minecraft:sticky_piston") {
+          return testPos;
+        } else if (test->fName == "minecraft:piston_head") {
+          return testPos - VectorOfFacing(facing);
+        }
+      }
+
+      vector<pair<Pos3i, PistonTileEntity>> expanding;
+      for (Pos3i pos : testBlocks) {
+        auto found = testedBlocks.find(pos);
+        if (found == testedBlocks.end()) {
+          continue;
+        }
+        if (!found->second) {
+          continue;
+        }
+        PistonTileEntity base = *found->second;
+        for (int facing = 0; facing < 6; facing++) {
+          Pos3i testPos = pos + VectorOfFacing(facing);
+          if (testedBlocks.find(testPos) != testedBlocks.end()) {
+            continue;
+          }
+          expanding.push_back(make_pair(testPos, base));
+        }
+      }
+      testBlocks.clear();
+
+      //TODO: sort expanding
+
+      for (auto it : expanding) {
+        Pos3i pos = it.first;
+        PistonTileEntity base = it.second;
+        auto target = PistonTileEntity::From(loader.tileEntityAt(pos), pos);
+        testedBlocks.insert(make_pair(pos, target));
+        if (!target) {
+          continue;
+        }
+        if (IsBaseStickyAgainstTarget(*target, base)) {
+          testBlocks.insert(pos);
+        }
+      }
+    }
+    return nullopt;
   }
 
   static bool IsBaseStickyAgainstTarget(PistonTileEntity const &base, PistonTileEntity const &target) {
