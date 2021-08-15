@@ -252,10 +252,30 @@ private:
             auto newBlock = make_shared<Block>(name, block->fProperties);
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
-            unordered_set<Pos3i, Pos3iHasher> buffer;
-            LookupAttachedBlocks(loader, pos, *extending, *facing, buffer);
+            unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
+            LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
 
-            //TODO: create "PistonArm" block entity
+            auto pistonArm = make_shared<CompoundTag>();
+            vector<int32_t> buffer;
+            for (auto pos : attachedBlocks) {
+              buffer.push_back(pos.fX);
+              buffer.push_back(pos.fY);
+              buffer.push_back(pos.fZ);
+            }
+            pistonArm->set("AttachedBlocks", make_shared<IntArrayTag>(buffer));
+            pistonArm->set("BreakBlocks", make_shared<IntArrayTag>());
+            pistonArm->set("LastProgress", Float(0.5));
+            pistonArm->set("NewState", Byte(3));
+            pistonArm->set("Progress", Float(0));
+            pistonArm->set("State", Byte(3));
+            pistonArm->set("Sticky", Bool(sticky));
+            pistonArm->set("id", String("j2b:PistonArm"));
+            pistonArm->set("isMovable", Bool(false));
+            pistonArm->set("x", Int(pos.fX));
+            pistonArm->set("y", Int(pos.fY));
+            pistonArm->set("z", Int(pos.fZ));
+
+            tileEntityReplacement[pos] = pistonArm;
           }
         } else {
           // extending = *, source = 0

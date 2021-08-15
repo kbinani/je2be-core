@@ -245,8 +245,6 @@ private:
     E("end_portal", EndPortal);
     E("beacon", Beacon);
     E("lectern", Lectern);
-    E("piston_head", PistonArm(false));
-    E("sticky_piston_head", PistonArm(true));
     E("bee_nest", Beehive);
     E("beehive", Beehive);
     E("command_block", CommandBlock);
@@ -254,6 +252,8 @@ private:
     E("repeating_command_block", CommandBlock);
 
     E("moving_piston", MovingPiston);
+    E("sticky_piston", PistonArm(true));
+    E("piston", PistonArm(false));
 #undef E
     return table;
   }
@@ -386,25 +386,38 @@ private:
   struct PistonArm {
     explicit PistonArm(bool sticky) : sticky(sticky) {}
 
-    TileEntityData operator()(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) const {
+    TileEntityData operator()(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) const {
       using namespace props;
       using namespace mcfile::nbt;
-      auto ret = std::make_shared<CompoundTag>();
-      ret->set("id", String("PistonArm"));
-      ret->set("isMovable", Bool(false));
-      ret->set("LastProgress", Float(1));
-      ret->set("NewState", Byte(2));
-      ret->set("Progress", Float(1));
-      ret->set("State", Byte(2));
-      ret->set("Sticky", Bool(sticky));
-      auto attachedBlocks = std::make_shared<ListTag>();
-      attachedBlocks->fType = Tag::TAG_Compound;
-      auto breakBlocks = std::make_shared<ListTag>();
-      breakBlocks->fType = Tag::TAG_Compound;
-      ret->set("AttachedBlocks", attachedBlocks);
-      ret->set("BreakBlocks", breakBlocks);
-      Attach(pos, *ret);
-      return ret;
+
+      if (!c) {
+        return nullptr;
+      }
+      auto id = c->string("id");
+      if (!id) {
+        return nullptr;
+      }
+      if (*id == "j2b:PistonArm") {
+        c->set("id", String("PistonArm"));
+        return c;
+      } else {
+        auto ret = std::make_shared<CompoundTag>();
+        ret->set("id", String("PistonArm"));
+        ret->set("isMovable", Bool(false));
+        ret->set("LastProgress", Float(1));
+        ret->set("NewState", Byte(2));
+        ret->set("Progress", Float(1));
+        ret->set("State", Byte(2));
+        ret->set("Sticky", Bool(sticky));
+        auto attachedBlocks = std::make_shared<ListTag>();
+        attachedBlocks->fType = Tag::TAG_Compound;
+        auto breakBlocks = std::make_shared<ListTag>();
+        breakBlocks->fType = Tag::TAG_Compound;
+        ret->set("AttachedBlocks", attachedBlocks);
+        ret->set("BreakBlocks", breakBlocks);
+        Attach(pos, *ret);
+        return ret;
+      }
     }
 
     bool const sticky;
