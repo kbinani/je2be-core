@@ -6,16 +6,29 @@ using namespace mcfile;
 using namespace std;
 namespace fs = std::filesystem;
 
-TEST_CASE("moving-piston") {
+static std::tuple<shared_ptr<Chunk>, shared_ptr<Region>> Load(string type) {
   fs::path thisFile(__FILE__);
+  World world((thisFile.parent_path() / "data" / "piston" / type).string());
+  auto region = world.region(0, 0);
+  auto chunk = region->chunkAt(0, 0);
+  return make_pair(chunk, region);
+}
 
-  for (string extending : {"extending=0", "extending=1", "normal_extending=1"}) {
-    SUBCASE(extending.c_str()) {
-      fs::path rootDir = thisFile.parent_path() / "data" / "piston" / extending;
-      World world(rootDir.string());
-      auto region = world.region(0, 0);
-      auto chunk = region->chunkAt(0, 0);
-      MovingPiston::PreprocessChunk(chunk, *region);
-    }
+TEST_CASE("moving-piston") {
+  SUBCASE("extending=0") {
+    auto [chunk, region] = Load("extending=0");
+    MovingPiston::PreprocessChunk(chunk, *region);
+  }
+
+  SUBCASE("extending=1") {
+    auto [chunk, region] = Load("extending=1");
+    MovingPiston::PreprocessChunk(chunk, *region);
+  }
+
+  SUBCASE("normal_extending=1") {
+    auto [chunk, region] = Load("normal_extending=1");
+    MovingPiston::PreprocessChunk(chunk, *region);
+
+    int a = 0;
   }
 }

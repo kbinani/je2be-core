@@ -14,10 +14,65 @@ public:
     using namespace props;
 
     CachedChunkLoader loader(region);
+    loader.addToCache(chunk);
     SetBlockOptions withoutRemovingTileEntity;
     withoutRemovingTileEntity.fRemoveTileEntity = false;
 
     unordered_map<Pos3i, shared_ptr<CompoundTag>, Pos3iHasher> tileEntityReplacement;
+
+    for (int by = chunk->minBlockY(); by <= chunk->maxBlockY(); by++) {
+      for (int bx = chunk->minBlockX(); bx <= chunk->maxBlockX(); bx++) {
+        for (int bz = chunk->minBlockZ(); bz <= chunk->maxBlockZ(); bz++) {
+          Pos3i pos(bx, by, bz);
+          auto block = loader.blockAt(pos);
+          if (!block) {
+            continue;
+          }
+          if (block->fName != "minecraft:sticky_piston" && block->fName != "minecraft:piston") {
+            continue;
+          }
+          if (loader.tileEntityAt(pos)) {
+            continue;
+          }
+          int facing = BlockData::GetFacingDirectionFromFacingA(*block);
+          Pos3i pistonHeadPos = pos + VectorOfFacing(facing);
+          auto pistonHead = PistonTileEntity::From(loader.tileEntityAt(pistonHeadPos), pistonHeadPos);
+          if (!pistonHead) {
+            continue;
+          }
+          if (!pistonHead->fSource || !pistonHead->fExtending || pistonHead->fFacing != facing) {
+            continue;
+          }
+
+          unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
+          LookupAttachedBlocks(loader, pistonHeadPos, true, facing, attachedBlocks);
+
+          auto pistonArm = make_shared<CompoundTag>();
+          auto attachedBlocksTag = make_shared<ListTag>();
+          attachedBlocksTag->fType = Tag::TAG_Int;
+          for (auto pos : attachedBlocks) {
+            Pos3i actual = pos - VectorOfFacing(facing);
+            attachedBlocksTag->push_back(Int(actual.fX));
+            attachedBlocksTag->push_back(Int(actual.fY));
+            attachedBlocksTag->push_back(Int(actual.fZ));
+          }
+          pistonArm->set("AttachedBlocks", attachedBlocksTag);
+          pistonArm->set("BreakBlocks", make_shared<ListTag>());
+          pistonArm->set("LastProgress", Float(0));
+          pistonArm->set("NewState", Byte(1));
+          pistonArm->set("Progress", Float(0.5));
+          pistonArm->set("State", Byte(1));
+          pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
+          pistonArm->set("id", String("j2b:PistonArm"));
+          pistonArm->set("isMovable", Bool(false));
+          pistonArm->set("x", Int(pos.fX));
+          pistonArm->set("y", Int(pos.fY));
+          pistonArm->set("z", Int(pos.fZ));
+
+          tileEntityReplacement[pos] = pistonArm;
+        }
+      }
+    }
 
     for (auto it : chunk->fTileEntities) {
       Pos3i pos = it.first;
@@ -54,8 +109,6 @@ public:
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
             tileEntityReplacement[pos] = nullptr;
-
-            //TODO: PistonArm block entity for pos - VectorFromFacing(facing)
           } else {
             // extending = 0, source = 1
             auto block = chunk->blockAt(pos);
@@ -72,14 +125,15 @@ public:
             LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
 
             auto pistonArm = make_shared<CompoundTag>();
-            vector<int32_t> buffer;
+            auto attachedBlocksTag = make_shared<ListTag>();
+            attachedBlocksTag->fType = Tag::TAG_Int;
             for (auto pos : attachedBlocks) {
-              buffer.push_back(pos.fX);
-              buffer.push_back(pos.fY);
-              buffer.push_back(pos.fZ);
+              attachedBlocksTag->push_back(Int(pos.fX));
+              attachedBlocksTag->push_back(Int(pos.fY));
+              attachedBlocksTag->push_back(Int(pos.fZ));
             }
-            pistonArm->set("AttachedBlocks", make_shared<IntArrayTag>(buffer));
-            pistonArm->set("BreakBlocks", make_shared<IntArrayTag>());
+            pistonArm->set("AttachedBlocks", attachedBlocksTag);
+            pistonArm->set("BreakBlocks", make_shared<ListTag>());
             pistonArm->set("LastProgress", Float(0.5));
             pistonArm->set("NewState", Byte(3));
             pistonArm->set("Progress", Float(0));
