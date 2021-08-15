@@ -59,6 +59,7 @@ set(je2be_srcs
   include/je2be/sign.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
+  include/je2be/moving-piston.hpp
   # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
