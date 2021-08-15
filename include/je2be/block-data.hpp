@@ -1547,7 +1547,19 @@ private:
     E("deepslate", axisToPillarAxis);
     E("infested_deepslate", axisToPillarAxis);
 #undef E
+
+    // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
+    table->insert(make_pair("j2b:stickyPistonArmCollision", StickyPistonArmCollision));
+
     return table;
+  }
+
+  static BlockDataType StickyPistonArmCollision(Block const &block) {
+    auto c = New("stickyPistonArmCollision");
+    auto s = States();
+    auto direction = strings::Toi(block.property("facing_direction", "0"));
+    s->set("facing_direction", props::Int(Wrap(direction, 0)));
+    return AttachStates(c, s);
   }
 
   static BlockDataType MovingPiston(Block const &block) {

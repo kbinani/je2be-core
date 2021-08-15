@@ -225,80 +225,97 @@ private:
         if (!facing) {
           continue;
         }
-        if (*extending) {
-          if (*source) {
+        if (*source) {
+          if (*extending) {
             // extending = 1, source = 1
-            //TODO:
+
+            map<string, string> props;
+            props["facing_direction"] = to_string(*facing);
+            auto newBlock = make_shared<Block>("j2b:stickyPistonArmCollision", props);
+            chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
+
+            tileEntityReplacement[pos] = nullptr;
           } else {
-            // extending = 1, source = 0
-            //TODO:
-          }
-        } else {
-          if (*source) {
             // extending = 0, source = 1
             auto block = chunk->blockAt(pos);
             if (!block) {
               continue;
             }
-            auto newBlock = make_shared<Block>("minecraft:sticky_piston", block->fProperties);
+            auto newBlock = make_shared<Block>("minecraft:sticky_piston", block->fProperties); //TODO: always sticky?
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
             unordered_set<Pos3i, Pos3iHasher> buffer;
             LookupAttachedBlocks(loader, pos, *extending, *facing, buffer);
 
             //TODO: create "PistonArm" block entity
-          } else {
-            // extending = 0, source = 0
-            auto e = make_shared<CompoundTag>();
-            e->set("id", String("j2b:MovingBlock"));
-            e->set("isMovable", Bool(true));
-
-            auto blockState = item->compoundTag("blockState");
-            if (!blockState) {
-              continue;
-            }
-            auto name = blockState->string("Name");
-            if (!name) {
-              continue;
-            }
-            auto properties = blockState->compoundTag("Properties");
-            map<string, string> props;
-            if (properties) {
-              for (auto p : properties->fValue) {
-                string key = p.first;
-                StringTag const *s = p.second->asString();
-                if (s == nullptr) {
-                  continue;
-                }
-                props[key] = s->fValue;
-              }
-            }
-            auto block = make_shared<Block const>(*name, props);
-            auto movingBlock = BlockData::From(block);
-            if (!movingBlock) {
-              continue;
-            }
-            e->set("movingBlock", movingBlock);
-
-            auto movingBlockExtra = make_shared<CompoundTag>();
-            movingBlockExtra->set("name", String("minecraft:air"));
-            movingBlockExtra->set("states", make_shared<CompoundTag>());
-            movingBlockExtra->set("version", Int(BlockData::kBlockDataVersion));
-            e->set("movingBlockExtra", movingBlockExtra);
-
-            e->set("x", Int(pos.fX));
-            e->set("y", Int(pos.fY));
-            e->set("z", Int(pos.fZ));
-
-            tileEntityReplacement[pos] = e;
           }
+        } else {
+          // extending = *, source = 0
+          auto e = MovingBlockEntityFromPistonTileEntity(pos, item);
+          tileEntityReplacement[pos] = e;
         }
       }
     }
 
     for (auto it : tileEntityReplacement) {
-      chunk->fTileEntities[it.first] = it.second;
+      Pos3i pos = it.first;
+      auto tileEntity = it.second;
+      if (tileEntity) {
+        chunk->fTileEntities[pos] = tileEntity;
+      } else {
+        chunk->fTileEntities.erase(pos);
+      }
     }
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, std::shared_ptr<mcfile::nbt::CompoundTag const> const &item) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+    using namespace props;
+
+    auto e = make_shared<CompoundTag>();
+    e->set("id", String("j2b:MovingBlock"));
+    e->set("isMovable", Bool(true));
+
+    auto blockState = item->compoundTag("blockState");
+    if (!blockState) {
+      return nullptr;
+    }
+    auto name = blockState->string("Name");
+    if (!name) {
+      return nullptr;
+    }
+    auto properties = blockState->compoundTag("Properties");
+    map<string, string> props;
+    if (properties) {
+      for (auto p : properties->fValue) {
+        string key = p.first;
+        StringTag const *s = p.second->asString();
+        if (s == nullptr) {
+          continue;
+        }
+        props[key] = s->fValue;
+      }
+    }
+    auto block = make_shared<Block const>(*name, props);
+    auto movingBlock = BlockData::From(block);
+    if (!movingBlock) {
+      return nullptr;
+    }
+    e->set("movingBlock", movingBlock);
+
+    auto movingBlockExtra = make_shared<CompoundTag>();
+    movingBlockExtra->set("name", String("minecraft:air"));
+    movingBlockExtra->set("states", make_shared<CompoundTag>());
+    movingBlockExtra->set("version", Int(BlockData::kBlockDataVersion));
+    e->set("movingBlockExtra", movingBlockExtra);
+
+    e->set("x", Int(pos.fX));
+    e->set("y", Int(pos.fY));
+    e->set("z", Int(pos.fZ));
+
+    return e;
   }
 
   static void LookupAttachedBlocks(mcfile::CachedChunkLoader &loader, Pos3i center, bool extendingExpected, int facingExpected, std::unordered_set<Pos3i, Pos3iHasher> &attachedBlocks) {
