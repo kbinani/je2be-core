@@ -236,9 +236,6 @@ private:
     testedBlocks.insert(make_pair(startPos, *startBlock));
     testBlocks.insert(startPos);
 
-    int const cx = Coordinate::ChunkFromBlock(center.fX);
-    int const cz = Coordinate::ChunkFromBlock(center.fZ);
-
     while (!testBlocks.empty() && attachedBlocks.size() <= kMaxMovableBlocksByAPiston) {
       vector<pair<Pos3i, PistonTileEntity>> testing;
       for (Pos3i pos : testBlocks) {
@@ -259,15 +256,7 @@ private:
       }
       testBlocks.clear();
 
-      sort(testing.begin(), testing.end(), [cx, cz](auto a, auto b) {
-        int const acx = Coordinate::ChunkFromBlock(a.first.fX);
-        int const acz = Coordinate::ChunkFromBlock(a.first.fZ);
-        int const bcx = Coordinate::ChunkFromBlock(b.first.fX);
-        int const bcz = Coordinate::ChunkFromBlock(b.first.fZ);
-        int const aCost = abs(acx - cx) + abs(acz - cz);
-        int const bCost = abs(bcx - cx) + abs(bcz - cz);
-        return aCost < bCost;
-      });
+      sort(testing.begin(), testing.end(), CompareByChunkDistance(center.fX, center.fZ));
 
       for (auto it : testing) {
         Pos3i pos = it.first;
@@ -308,6 +297,7 @@ private:
 
     unordered_set<Pos3i, Pos3iHasher> testBlocks;
     testBlocks.insert(startPos);
+    attachedBlocks.insert(startPos);
 
     int maxSize = kMaxMovableBlocksByAPiston * 2 + 1;
     int maxTestedBlocks = maxSize * maxSize * maxSize;
@@ -355,7 +345,7 @@ private:
       }
       testBlocks.clear();
 
-      //TODO: sort expanding
+      sort(expanding.begin(), expanding.end(), CompareByChunkDistance(center.fX, center.fZ));
 
       for (auto it : expanding) {
         Pos3i pos = it.first;
@@ -367,10 +357,26 @@ private:
         }
         if (IsBaseStickyAgainstTarget(*target, base)) {
           testBlocks.insert(pos);
+          attachedBlocks.insert(pos);
         }
       }
     }
     return nullopt;
+  }
+
+  static std::function<bool(std::pair<Pos3i, PistonTileEntity> a, std::pair<Pos3i, PistonTileEntity> b)> CompareByChunkDistance(int bx, int bz) {
+    using namespace mcfile;
+    int cx = Coordinate::ChunkFromBlock(bx);
+    int cz = Coordinate::ChunkFromBlock(bz);
+    return [cx, cz](auto a, auto b) {
+      int const acx = Coordinate::ChunkFromBlock(a.first.fX);
+      int const acz = Coordinate::ChunkFromBlock(a.first.fZ);
+      int const bcx = Coordinate::ChunkFromBlock(b.first.fX);
+      int const bcz = Coordinate::ChunkFromBlock(b.first.fZ);
+      int const aCost = abs(acx - cx) + abs(acz - cz);
+      int const bCost = abs(bcx - cx) + abs(bcz - cz);
+      return aCost < bCost;
+    };
   }
 
   static bool IsBaseStickyAgainstTarget(PistonTileEntity const &base, PistonTileEntity const &target) {
