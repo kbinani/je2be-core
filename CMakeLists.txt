@@ -122,8 +122,7 @@ set(je2be_srcs
 set(test_srcs
   test/main.cpp
   test/block-data.test.cpp
-  test/converter.test.cpp
-  test/on-memory-db.hpp)
+  test/moving-piston.test.cpp)
 add_executable(je2be src/main.cpp ${je2be_srcs})
 add_executable(dump src/dump.cpp ${je2be_srcs})
 add_executable(test ${test_srcs} ${je2be_srcs})
