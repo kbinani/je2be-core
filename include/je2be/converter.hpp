@@ -228,10 +228,15 @@ private:
         if (*source) {
           if (*extending) {
             // extending = 1, source = 1
+            auto block = chunk->blockAt(pos);
+            if (!block) {
+              continue;
+            }
 
             map<string, string> props;
             props["facing_direction"] = to_string(*facing);
-            auto newBlock = make_shared<Block>("j2b:stickyPistonArmCollision", props);
+            string name = block->fName == "minecraft:sticky_piston" ? "j2b:stickyPistonArmCollision" : "j2b:pistonArmCollision";
+            auto newBlock = make_shared<Block>(name, props);
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
             tileEntityReplacement[pos] = nullptr;
@@ -241,7 +246,10 @@ private:
             if (!block) {
               continue;
             }
-            auto newBlock = make_shared<Block>("minecraft:sticky_piston", block->fProperties); //TODO: always sticky?
+
+            auto sticky = block->property("type", "normal") == "sticky";
+            string name = sticky ? "minecraft:sticky_piston" : "minecraft:piston";
+            auto newBlock = make_shared<Block>(name, block->fProperties);
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
             unordered_set<Pos3i, Pos3iHasher> buffer;

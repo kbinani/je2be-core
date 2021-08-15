@@ -1550,8 +1550,17 @@ private:
 
     // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
     table->insert(make_pair("j2b:stickyPistonArmCollision", StickyPistonArmCollision));
+    table->insert(make_pair("j2b:pistonArmCollision", PistonArmCollision));
 
     return table;
+  }
+
+  static BlockDataType PistonArmCollision(Block const &block) {
+    auto c = New("pistonArmCollision");
+    auto s = States();
+    auto direction = strings::Toi(block.property("facing_direction", "0"));
+    s->set("facing_direction", props::Int(Wrap(direction, 0)));
+    return AttachStates(c, s);
   }
 
   static BlockDataType StickyPistonArmCollision(Block const &block) {
