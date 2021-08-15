@@ -195,11 +195,15 @@ private:
 
   static void PreprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region region) {
     using namespace mcfile;
+    using namespace mcfile::nbt;
     using namespace std;
+    using namespace props;
 
     CachedChunkLoader loader(region);
     SetBlockOptions withoutRemovingTileEntity;
     withoutRemovingTileEntity.fRemoveTileEntity = false;
+
+    unordered_map<Pos3i, shared_ptr<CompoundTag>, Pos3iHasher> tileEntityReplacement;
 
     for (auto it : chunk->fTileEntities) {
       Pos3i pos = it.first;
@@ -239,16 +243,61 @@ private:
             auto newBlock = make_shared<Block>("minecraft:sticky_piston", block->fProperties);
             chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
-            std::unordered_set<Pos3i, Pos3iHasher> buffer;
+            unordered_set<Pos3i, Pos3iHasher> buffer;
             LookupAttachedBlocks(loader, pos, *extending, *facing, buffer);
 
             //TODO: create "PistonArm" block entity
           } else {
             // extending = 0, source = 0
-            //TODO:
+            auto e = make_shared<CompoundTag>();
+            e->set("id", String("j2b:MovingBlock"));
+            e->set("isMovable", Bool(true));
+
+            auto blockState = item->compoundTag("blockState");
+            if (!blockState) {
+              continue;
+            }
+            auto name = blockState->string("Name");
+            if (!name) {
+              continue;
+            }
+            auto properties = blockState->compoundTag("Properties");
+            map<string, string> props;
+            if (properties) {
+              for (auto p : properties->fValue) {
+                string key = p.first;
+                StringTag const *s = p.second->asString();
+                if (s == nullptr) {
+                  continue;
+                }
+                props[key] = s->fValue;
+              }
+            }
+            auto block = make_shared<Block const>(*name, props);
+            auto movingBlock = BlockData::From(block);
+            if (!movingBlock) {
+              continue;
+            }
+            e->set("movingBlock", movingBlock);
+
+            auto movingBlockExtra = make_shared<CompoundTag>();
+            movingBlockExtra->set("name", String("minecraft:air"));
+            movingBlockExtra->set("states", make_shared<CompoundTag>());
+            movingBlockExtra->set("version", Int(BlockData::kBlockDataVersion));
+            e->set("movingBlockExtra", movingBlockExtra);
+
+            e->set("x", Int(pos.fX));
+            e->set("y", Int(pos.fY));
+            e->set("z", Int(pos.fZ));
+
+            tileEntityReplacement[pos] = e;
           }
         }
       }
+    }
+
+    for (auto it : tileEntityReplacement) {
+      chunk->fTileEntities[it.first] = it.second;
     }
   }
 

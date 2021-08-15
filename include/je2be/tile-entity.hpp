@@ -252,8 +252,24 @@ private:
     E("command_block", CommandBlock);
     E("chain_command_block", CommandBlock);
     E("repeating_command_block", CommandBlock);
+
+    E("moving_piston", MovingPiston);
 #undef E
     return table;
+  }
+
+  static TileEntityData MovingPiston(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+    if (!c) {
+      return nullptr;
+    }
+    auto id = c->string("id");
+    // id = "j2b:MovingBlock" block entity was created in Converter::PreprocessChunk
+    if (id != "j2b:MovingBlock") {
+      return nullptr;
+    }
+    std::string newId = id->substr(4);
+    c->set("id", props::String(newId));
+    return c;
   }
 
   static TileEntityData CommandBlock(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
