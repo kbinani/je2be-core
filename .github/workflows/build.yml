@@ -29,7 +29,7 @@ jobs:
           cd ./build
           bash ../setup.sh
           cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --target test --config Release --verbose
+          cmake --build . --parallel $(nproc) --target test --config Release --verbose
           ./test
 
       - name: Perform CodeQL Analysis
