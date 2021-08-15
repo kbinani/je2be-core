@@ -72,4 +72,5 @@
 #include <je2be/chunk-data-package.hpp>
 #include <je2be/progress.hpp>
 #include <je2be/block-palette.hpp>
+#include <je2be/moving-piston.hpp>
 #include <je2be/converter.hpp>

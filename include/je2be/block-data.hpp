@@ -1312,7 +1312,7 @@ private:
     E("sticky_piston", facingDirectionFromFacingB);
     E("piston_head", Converter(Name("air")));
     E("sticky_piston_head", Converter(Name("air")));
-    E("moving_piston", Converter(MovingPistonName, FacingDirectionFromFacingB));
+    E("moving_piston", MovingPiston);
     E("note_block", Rename("noteblock"));
     E("dispenser", Converter(Same, FacingDirectionFromFacingA, Name(Triggered, "triggered_bit")));
     E("lever", Converter(Same, LeverDirection, Name(Powered, "open_bit")));
@@ -1547,7 +1547,34 @@ private:
     E("deepslate", axisToPillarAxis);
     E("infested_deepslate", axisToPillarAxis);
 #undef E
+
+    // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
+    table->insert(make_pair("j2b:stickyPistonArmCollision", StickyPistonArmCollision));
+    table->insert(make_pair("j2b:pistonArmCollision", PistonArmCollision));
+
     return table;
+  }
+
+  static BlockDataType PistonArmCollision(Block const &block) {
+    auto c = New("pistonArmCollision");
+    auto s = States();
+    auto direction = strings::Toi(block.property("facing_direction", "0"));
+    s->set("facing_direction", props::Int(Wrap(direction, 0)));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType StickyPistonArmCollision(Block const &block) {
+    auto c = New("stickyPistonArmCollision");
+    auto s = States();
+    auto direction = strings::Toi(block.property("facing_direction", "0"));
+    s->set("facing_direction", props::Int(Wrap(direction, 0)));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType MovingPiston(Block const &block) {
+    auto c = New("movingBlock");
+    auto s = States();
+    return AttachStates(c, s);
   }
 
   static BlockDataType BigDripleaf(Block const &block) {
@@ -1705,15 +1732,6 @@ private:
     auto v = strings::Toi(b.property("honey_level", "0"));
     int32_t level = v ? *v : 0;
     s->set("honey_level", props::Int(level));
-  }
-
-  static std::string MovingPistonName(Block const &b) {
-    auto type = b.property("type", "normal");
-    if (type == "normal") {
-      return "minecraft:pistonArmCollision";
-    } else {
-      return "minecraft:stickyPistonArmCollision";
-    }
   }
 
   static void TurtleEggCount(StatesType const &s, Block const &b) {

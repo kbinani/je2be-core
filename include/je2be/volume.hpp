@@ -4,7 +4,7 @@ namespace j2b {
 
 class Volume {
 public:
-  Volume(Pos3 start, Pos3 end) : fStart(start), fEnd(end) {}
+  Volume(Pos3i start, Pos3i end) : fStart(start), fEnd(end) {}
 
   static std::optional<Volume> Intersection(Volume const &a, Volume const &b) {
     auto x = Intersection(a.fStart.fX, a.fEnd.fX, b.fStart.fX, b.fEnd.fX);
@@ -15,8 +15,8 @@ public:
     auto [x0, x1] = *x;
     auto [y0, y1] = *y;
     auto [z0, z1] = *z;
-    Pos3 start(x0, y0, z0);
-    Pos3 end(x1, y1, z1);
+    Pos3i start(x0, y0, z0);
+    Pos3i end(x1, y1, z1);
     return Volume(start, end);
   }
 
@@ -35,8 +35,8 @@ private:
   }
 
 public:
-  Pos3 fStart;
-  Pos3 fEnd;
+  Pos3i fStart;
+  Pos3i fEnd;
 };
 
 } // namespace j2b

@@ -70,7 +70,11 @@ public:
     return worldData->fStat;
   }
 
+#if defined(DOCTEST_VERSION)
+public:
+#else
 private:
+#endif
   static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
@@ -157,6 +161,7 @@ private:
                   chunk->fEntities.swap(entities);
                 }
               }
+              MovingPiston::PreprocessChunk(chunk, *region);
               r.fData = putChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
@@ -188,7 +193,7 @@ private:
     return completed;
   }
 
-  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk const &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -309,14 +314,17 @@ private:
       }
     }
 
-    for (auto const &e : chunk.fTileEntities) {
+    for (auto it : chunk.fTileEntities) {
+      Pos3i pos = it.first;
+      shared_ptr<CompoundTag> const &e = it.second;
       if (!TileEntity::IsStandaloneTileEntity(e)) {
         continue;
       }
-      auto ret = TileEntity::StandaloneTileEntityBlockdData(e);
-      if (!ret)
+      auto ret = TileEntity::StandaloneTileEntityBlockdData(pos, e);
+      if (!ret) {
         continue;
-      auto [pos, tag, paletteKey] = *ret;
+      }
+      auto [tag, paletteKey] = *ret;
 
       if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
         continue;

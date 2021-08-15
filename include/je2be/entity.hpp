@@ -89,7 +89,7 @@ public:
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return DegAlmostEquals(rot.fYaw, yaw) && DegAlmostEquals(rot.fPitch, pitch); }
 
-  static std::optional<std::tuple<Pos3, std::shared_ptr<CompoundTag>, std::string>> ToTileEntityBlock(CompoundTag const &c) {
+  static std::optional<std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
     using namespace props;
     auto id = c.string("id");
@@ -103,7 +103,7 @@ public:
     return nullopt;
   }
 
-  static std::tuple<Pos3, std::shared_ptr<CompoundTag>, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
+  static std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
     using namespace std;
     using namespace props;
     auto tileX = c.int32("TileX");
@@ -156,7 +156,7 @@ public:
         {"version", Int(BlockData::kBlockDataVersion)},
         {"states", states},
     });
-    Pos3 pos(*tileX, *tileY, *tileZ);
+    Pos3i pos(*tileX, *tileY, *tileZ);
     return make_tuple(pos, b, key);
   }
 

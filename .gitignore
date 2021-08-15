@@ -1,2 +1,8 @@
 /build
 /xcode
+*.mca
+*.dat
+*.dat_old
+session.lock
+*.json
+icon.png
