@@ -362,7 +362,6 @@ private:
           continue;
         }
         auto test = PistonTileEntity::From(loader.tileEntityAt(testPos), testPos);
-        testedBlocks.insert(make_pair(testPos, test));
         if (!test) {
           continue;
         }
