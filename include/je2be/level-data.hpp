@@ -263,8 +263,9 @@ public:
   static LevelData Import(CompoundTag const &tag) {
     LevelData ret;
     auto data = tag.query("/Data")->asCompound();
-    if (!data)
+    if (!data) {
       return ret;
+    }
     auto allowCommand = data->byteTag("allowCommands");
     if (allowCommand) {
       ret.fCommandsEnabled = allowCommand->fValue != 0;
@@ -370,15 +371,17 @@ public:
     using namespace mcfile::nbt;
 
     auto data = tag.query("/Data")->asCompound();
-    if (!data)
+    if (!data) {
       return std::nullopt;
+    }
 
     CompoundTag const *dragonFight = data->query("DragonFight")->asCompound();
     if (!dragonFight) {
       dragonFight = data->query("DimensionData/1/DragonFight")->asCompound();
     }
-    if (!dragonFight)
+    if (!dragonFight) {
       return std::nullopt;
+    }
 
     auto fight = std::make_shared<CompoundTag>();
 
@@ -467,20 +470,23 @@ public:
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
 
-    if (!fs::is_regular_file(javaEditionLevelDat))
+    if (!fs::is_regular_file(javaEditionLevelDat)) {
       return nullptr;
+    }
 
     vector<uint8_t> buffer;
     {
       vector<char> buf(512);
       auto p = javaEditionLevelDat.string();
       gzFile f = gzopen(p.c_str(), "rb");
-      if (!f)
+      if (!f) {
         return nullptr;
+      }
       while (true) {
         int read = gzread(f, buf.data(), buf.size());
-        if (read <= 0)
+        if (read <= 0) {
           break;
+        }
         copy_n(buf.begin(), read, back_inserter(buffer));
         if (read < buf.size()) {
           break;

@@ -26,20 +26,23 @@ public:
     using namespace mcfile::stream;
 
     auto jeFilePath = opt.getDataDirectory(input) / ("map_" + to_string(mapId) + ".dat");
-    if (!fs::is_regular_file(jeFilePath))
+    if (!fs::is_regular_file(jeFilePath)) {
       return nullptr;
+    }
 
     vector<uint8_t> buffer;
     {
       vector<char> buf(512);
       auto p = jeFilePath.string();
       gzFile f = gzopen(p.c_str(), "rb");
-      if (!f)
+      if (!f) {
         return nullptr;
+      }
       while (true) {
         int read = gzread(f, buf.data(), buf.size());
-        if (read <= 0)
+        if (read <= 0) {
           break;
+        }
         copy_n(buf.begin(), read, back_inserter(buffer));
         if (read < buf.size()) {
           break;
@@ -67,26 +70,32 @@ private:
     }
 
     for (auto const &f : fs::directory_iterator(dataDir)) {
-      if (!fs::is_regular_file(f.path()))
+      if (!fs::is_regular_file(f.path())) {
         continue;
+      }
       auto name = f.path().filename().string();
-      if (!strings::StartsWith(name, "map_") || !strings::EndsWith(name, ".dat"))
+      if (!strings::StartsWith(name, "map_") || !strings::EndsWith(name, ".dat")) {
         continue;
+      }
       auto numberStr = strings::Trim("map_", name, ".dat");
       auto number = strings::Toi(numberStr);
-      if (!number)
+      if (!number) {
         continue;
+      }
 
       auto map = Read(input, opt, *number);
-      if (!map)
+      if (!map) {
         continue;
+      }
       auto data = map->query("/data")->asCompound();
-      if (!data)
+      if (!data) {
         continue;
+      }
 
       auto scale = data->byte("scale");
-      if (!scale)
+      if (!scale) {
         continue;
+      }
 
       table[*number] = *scale;
     }

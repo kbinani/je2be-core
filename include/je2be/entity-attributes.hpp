@@ -79,12 +79,14 @@ public:
     if (attributes) {
       for (auto const &it : *attributes) {
         auto attrs = it->asCompound();
-        if (!attrs)
+        if (!attrs) {
           continue;
+        }
         auto name = attrs->string("Name");
         auto value = attrs->float64("Base");
-        if (!name || !value)
+        if (!name || !value) {
           continue;
+        }
         if (*name == "minecraft:generic.max_health") {
           health = Attribute(*value, *value, *value);
         } else if (*name == "minecraft:generic.movement_speed") {

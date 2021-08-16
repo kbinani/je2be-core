@@ -11,11 +11,13 @@ public:
     using namespace std;
     auto tag = std::make_shared<CompoundTag>();
     auto name = item.string("id");
-    if (!name)
+    if (!name) {
       return nullptr;
+    }
     auto lvl = item.int16("lvl");
-    if (!lvl)
+    if (!lvl) {
       return nullptr;
+    }
     int16_t id = 0;
     static unordered_map<string, int16_t> const mapping = {
         {"minecraft:protection", 0},

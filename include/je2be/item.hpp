@@ -18,8 +18,9 @@ public:
     static unique_ptr<unordered_map<string, Converter> const> const itemMapping(CreateItemConverterTable());
 
     auto id = item->string("id");
-    if (!id)
+    if (!id) {
       return nullptr;
+    }
     string const &name = *id;
 
     if (name == "minecraft:filled_map") {
@@ -369,8 +370,9 @@ private:
         outPages->fType = Tag::TAG_Compound;
         for (auto const &it : *pages) {
           auto line = it->asString();
-          if (!line)
+          if (!line) {
             continue;
+          }
           std::string lineText;
           auto obj = ParseAsJson(line->fValue);
           if (obj) {
@@ -432,8 +434,9 @@ private:
     int32_t mapId = number->fValue;
 
     auto scale = mapInfo.scale(mapId);
-    if (!scale)
+    if (!scale) {
       return std::nullopt;
+    }
     int64_t uuid = Map::UUID(mapId, *scale);
 
     auto tag = std::make_shared<CompoundTag>();
@@ -925,12 +928,14 @@ private:
       bePatterns->fType = Tag::TAG_Compound;
       for (auto const &it : *patterns) {
         auto c = it->asCompound();
-        if (!c)
+        if (!c) {
           continue;
+        }
         auto color = c->int32("Color");
         auto pat = c->string("Pattern");
-        if (!color || !pat)
+        if (!color || !pat) {
           continue;
+        }
         auto ptag = std::make_shared<CompoundTag>();
         ptag->insert({
             {"Color", props::Int(BannerColorCodeFromJava(*color))},
@@ -1010,8 +1015,9 @@ private:
     assert(blockData);
 
     auto name = blockData->string("name");
-    if (!name)
+    if (!name) {
       return nullptr;
+    }
 
     auto tag = make_shared<CompoundTag>();
     tag->insert({
@@ -1044,8 +1050,9 @@ private:
     using namespace props;
 
     auto tag = item.compoundTag("tag");
-    if (!tag)
+    if (!tag) {
       return input;
+    }
 
     shared_ptr<CompoundTag> beTag = input->compoundTag("tag");
     if (!beTag) {
@@ -1058,11 +1065,13 @@ private:
       ench->fType = Tag::TAG_Compound;
       for (auto const &e : *storedEnchantments) {
         auto c = e->asCompound();
-        if (!c)
+        if (!c) {
           continue;
+        }
         auto be = EnchantData::From(*c);
-        if (!be)
+        if (!be) {
           continue;
+        }
         ench->push_back(be);
       }
       beTag->set("ench", ench);
@@ -1072,11 +1081,13 @@ private:
         auto ench = make_shared<ListTag>();
         for (auto const &e : *enchantments) {
           auto c = e->asCompound();
-          if (!c)
+          if (!c) {
             continue;
+          }
           auto be = EnchantData::From(*c);
-          if (!be)
+          if (!be) {
             continue;
+          }
           ench->push_back(be);
         }
         ench->fType = Tag::TAG_Compound;

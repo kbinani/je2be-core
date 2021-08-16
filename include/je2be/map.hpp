@@ -25,12 +25,14 @@ public:
     using namespace mcfile::nbt;
 
     auto root = JavaEditionMap::Read(input, opt, javaMapId);
-    if (!root)
+    if (!root) {
       return false;
+    }
 
     auto data = root->query("/data")->asCompound();
-    if (!data)
+    if (!data) {
       return false;
+    }
 
     auto dimension = data->string("dimension");
     int8_t outDimension = 0;
@@ -103,17 +105,20 @@ public:
         if (frames) {
           for (auto const &it : *frames) {
             auto frame = it->asCompound();
-            if (!frame)
+            if (!frame) {
               continue;
+            }
             auto pos = frame->compoundTag("Pos");
             auto rotation = frame->int32("Rotation");
-            if (!pos || !rotation)
+            if (!pos || !rotation) {
               continue;
+            }
             auto x = pos->int32("X");
             auto y = pos->int32("Y");
             auto z = pos->int32("Z");
-            if (!x || !y || !z)
+            if (!x || !y || !z) {
               continue;
+            }
 
             int32_t rot = 0;
             if (*rotation == -90) {
@@ -136,8 +141,9 @@ public:
             data->set("rot", Int(rot));
             data->set("type", Int(1));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
-            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY)
+            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
+            }
             data->set("x", Int(markerX));
             data->set("y", Int(markerY));
 
@@ -159,13 +165,15 @@ public:
         if (inDecorations) {
           for (auto const &d : *inDecorations) {
             auto e = d->asCompound();
-            if (!e)
+            if (!e) {
               continue;
+            }
             auto type = e->byte("type");
             auto x = e->float64("x");
             auto z = e->float64("z");
-            if (!type || !x || !z)
+            if (!type || !x || !z) {
               continue;
+            }
             int32_t outType = 1;
             if (*type == 9) {
               outType = 15; // id = "+", monument
@@ -179,8 +187,9 @@ public:
             data->set("rot", Int(8));
             data->set("type", Int(outType));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
-            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY)
+            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
+            }
             data->set("x", Int(markerX));
             data->set("y", Int(markerY));
 

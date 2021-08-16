@@ -13,8 +13,9 @@ public:
     if (explosions) {
       for (auto const &it : *explosions) {
         auto c = it->asCompound();
-        if (!c)
+        if (!c) {
           continue;
+        }
         FireworksExplosion e = FireworksExplosion::From(*c);
         es.fExplosions.push_back(e);
       }

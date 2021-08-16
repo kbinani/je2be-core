@@ -42,8 +42,9 @@ private:
       auto found = fTileBlocks.find(pos);
       if (found == fTileBlocks.end()) {
         auto sa = TileEntity::StandaloneTileEntityData(e);
-        if (!sa)
+        if (!sa) {
           continue;
+        }
 
         fTileEntities.push_back(sa);
       } else {
@@ -51,8 +52,9 @@ private:
         fTileBlocks.erase(found);
 
         auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, mapInfo, ddf);
-        if (!tag)
+        if (!tag) {
           continue;
+        }
 
         fTileEntities.push_back(tag);
       }
@@ -62,17 +64,20 @@ private:
       Pos3i const &pos = it.first;
       Block const &block = *it.second;
       auto tag = TileEntity::FromBlock(pos, block, mapInfo, ddf);
-      if (!tag)
+      if (!tag) {
         continue;
+      }
       fTileEntities.push_back(tag);
     }
 
     for (auto e : chunk.fEntities) {
-      if (!Entity::IsTileEntity(*e))
+      if (!Entity::IsTileEntity(*e)) {
         continue;
+      }
       auto tag = Entity::ToTileEntityData(*e, mapInfo, ddf);
-      if (!tag)
+      if (!tag) {
         continue;
+      }
       fTileEntities.push_back(tag);
     }
   }
@@ -91,8 +96,9 @@ private:
   }
 
   void buildBiomeMap(mcfile::Chunk const &chunk) {
-    if (chunk.fBiomes.empty())
+    if (chunk.fBiomes.empty()) {
       return;
+    }
     int const y = 0;
     int const x0 = chunk.minBlockX();
     int const z0 = chunk.minBlockZ();

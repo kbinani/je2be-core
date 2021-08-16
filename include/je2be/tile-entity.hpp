@@ -47,8 +47,9 @@ public:
 
   static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
     auto id = tag->string("id");
-    if (!id)
+    if (!id) {
       return false;
+    }
     auto const &name = *id;
     if (name == "minecraft:mob_spawner") {
       return true;
@@ -58,8 +59,9 @@ public:
 
   static std::optional<std::tuple<std::shared_ptr<mcfile::nbt::CompoundTag>, std::string>> StandaloneTileEntityBlockdData(Pos3i pos, std::shared_ptr<CompoundTag> const &tag) {
     auto id = tag->string("id");
-    if (!id)
+    if (!id) {
       return std::nullopt;
+    }
     auto const &name = *id;
     if (name == "minecraft:mob_spawner") {
       auto b = std::make_shared<CompoundTag>();
@@ -75,8 +77,9 @@ public:
 
   static std::shared_ptr<mcfile::nbt::CompoundTag> StandaloneTileEntityData(std::shared_ptr<CompoundTag> const &tag) {
     auto id = tag->string("id");
-    if (!id)
+    if (!id) {
       return nullptr;
+    }
     auto const &name = *id;
     if (name == "minecraft:mob_spawner") {
       return Spawner(tag);
@@ -535,8 +538,9 @@ private:
     using namespace std;
 
     auto note = strings::Toi(b.property("note", "0"));
-    if (!note)
+    if (!note) {
       return nullptr;
+    }
 
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
@@ -554,8 +558,9 @@ private:
     auto x = c->int32("x");
     auto y = c->int32("y");
     auto z = c->int32("z");
-    if (!x || !y || !z)
+    if (!x || !y || !z) {
       return nullptr;
+    }
 
     auto tag = std::make_shared<CompoundTag>();
 
@@ -606,20 +611,24 @@ private:
     vector<shared_ptr<CompoundTag>> sorted(5);
     for (auto const &it : *items) {
       auto item = it->asCompound();
-      if (!item)
+      if (!item) {
         continue;
+      }
       auto slot = item->byte("Slot");
-      if (!slot)
+      if (!slot) {
         continue;
+      }
 
       auto newItem = make_shared<CompoundTag>();
       for (auto const &prop : *item) {
-        if (prop.first == "Slot")
+        if (prop.first == "Slot") {
           continue;
+        }
         newItem->set(prop.first, prop.second);
       }
-      if (*slot < 0 || 4 < *slot)
+      if (*slot < 0 || 4 < *slot) {
         continue;
+      }
       int mapping[5] = {1, 2, 3, 0, 4};
       int newSlot = mapping[*slot];
       newItem->set("Slot", Byte(newSlot));
@@ -629,8 +638,9 @@ private:
     auto reordered = make_shared<ListTag>();
     reordered->fType = Tag::TAG_Compound;
     for (auto it : sorted) {
-      if (!it)
+      if (!it) {
         continue;
+      }
       reordered->push_back(it);
     }
 
@@ -791,12 +801,14 @@ private:
     if (patterns && type != 1) {
       for (auto const &pattern : *patterns) {
         auto p = pattern->asCompound();
-        if (!p)
+        if (!p) {
           continue;
+        }
         auto color = p->int32("Color");
         auto pat = p->string("Pattern");
-        if (!color || !pat)
+        if (!color || !pat) {
           continue;
+        }
         auto ptag = make_shared<CompoundTag>();
         ptag->insert({
             {"Color", Int(BannerColorCodeFromJava(*color))},
@@ -909,47 +921,11 @@ private:
     return tag;
   }
 
-  static std::string ColorCode(std::string const &color) {
-    if (color == "black") {
-      return "§0";
-    } else if (color == "red") {
-      return "§4";
-    } else if (color == "green") {
-      return "§2";
-    } else if (color == "brown") {
-      return ""; // no matching color for brown
-    } else if (color == "blue") {
-      return "§1";
-    } else if (color == "purple") {
-      return "§5";
-    } else if (color == "cyan") {
-      return "§3";
-    } else if (color == "light_gray") {
-      return "§7";
-    } else if (color == "gray") {
-      return "§8";
-    } else if (color == "pink") {
-      return "§d"; // not best match. same as magenta
-    } else if (color == "lime") {
-      return "§a";
-    } else if (color == "yellow") {
-      return "§e";
-    } else if (color == "light_blue") {
-      return "§b";
-    } else if (color == "magenta") {
-      return "§d";
-    } else if (color == "orange") {
-      return "§6";
-    } else if (color == "white") {
-      return "§f";
-    }
-    return "";
-  }
-
   static std::string GetAsString(nlohmann::json const &obj, std::string const &key) {
     auto found = obj.find(key);
-    if (found == obj.end())
+    if (found == obj.end()) {
       return "";
+    }
     return found->get<std::string>();
   }
 
@@ -1019,12 +995,14 @@ private:
       return tag;
     }
     for (auto const &it : *list) {
-      if (it->id() != mcfile::nbt::Tag::TAG_Compound)
+      if (it->id() != mcfile::nbt::Tag::TAG_Compound) {
         continue;
+      }
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(it);
       auto outItem = Item::From(inItem, mapInfo, ddf);
-      if (!outItem)
+      if (!outItem) {
         continue;
+      }
 
       auto count = inItem->byte("Count", 1);
       auto slot = inItem->byte("Slot", 0);

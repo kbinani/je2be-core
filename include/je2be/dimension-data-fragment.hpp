@@ -64,15 +64,18 @@ public:
 private:
   void addStructures(mcfile::nbt::CompoundTag const &structure, StructureType type) {
     auto children = structure.listTag("Children");
-    if (!children)
+    if (!children) {
       return;
+    }
     for (auto const &it : *children) {
       auto c = it->asCompound();
-      if (!c)
+      if (!c) {
         continue;
+      }
       auto bb = GetBoundingBox(*c, "BB");
-      if (!bb)
+      if (!bb) {
         continue;
+      }
       StructurePiece p(bb->fStart, bb->fEnd, type);
       fStructures.add(p);
     }
@@ -80,11 +83,13 @@ private:
 
   static std::optional<Volume> GetBoundingBox(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
     auto bb = tag.intArrayTag("BB");
-    if (!bb)
+    if (!bb) {
       return std::nullopt;
+    }
     auto const &value = bb->value();
-    if (value.size() < 6)
+    if (value.size() < 6) {
       return std::nullopt;
+    }
     Pos3i start(value[0], value[1], value[2]);
     Pos3i end(value[3], value[4], value[5]);
     return Volume(start, end);

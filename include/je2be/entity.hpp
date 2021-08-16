@@ -25,12 +25,14 @@ private:
 
     EntityData operator()(CompoundTag const &input, Context &ctx) const {
       auto c = fBase(input, ctx);
-      if (!c)
+      if (!c) {
         return nullptr;
+      }
       for (auto const &b : fBehaviors) {
         auto next = b(c, input, ctx);
-        if (!next)
+        if (!next) {
           continue;
+        }
         c = next;
       }
       return c;
@@ -47,8 +49,9 @@ public:
   static std::vector<EntityData> From(mcfile::nbt::CompoundTag const &tag, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     auto id = tag.string("id");
-    if (!id)
+    if (!id) {
       return std::vector<EntityData>();
+    }
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const table(CreateEntityTable());
     auto found = table->find(*id);
     std::vector<EntityData> ret;
@@ -178,8 +181,9 @@ public:
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
     auto tileZ = c.int32("TileZ");
-    if (!tileX || !tileY || !tileZ)
+    if (!tileX || !tileY || !tileZ) {
       return nullptr;
+    }
     tag->insert({
         {"id", String(name)},
         {"isMovable", Bool(true)},
@@ -380,11 +384,13 @@ private:
   static std::shared_ptr<CompoundTag> ItemAtSlot(mcfile::nbt::ListTag const &items, uint32_t slot) {
     for (auto const &it : items) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-      if (!item)
+      if (!item) {
         continue;
+      }
       auto s = item->byte("Slot");
-      if (!s)
+      if (!s) {
         continue;
+      }
       if (*s == slot) {
         return item;
       }
@@ -743,15 +749,18 @@ private:
   static EntityData Item(CompoundTag const &tag, Context &ctx) {
     using namespace props;
     auto e = BaseProperties(tag);
-    if (!e)
+    if (!e) {
       return nullptr;
+    }
 
     auto item = tag.compoundTag("Item");
-    if (!item)
+    if (!item) {
       return nullptr;
+    }
     auto beItem = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
-    if (!beItem)
+    if (!beItem) {
       return nullptr;
+    }
 
     auto ret = e->toCompoundTag();
     ret->set("Item", beItem);
@@ -780,8 +789,9 @@ private:
     using namespace mcfile::nbt;
 
     auto e = BaseProperties(tag);
-    if (!e)
+    if (!e) {
       return nullptr;
+    }
     auto c = e->toCompoundTag();
 
     auto chestItems = std::make_shared<ListTag>();
@@ -790,17 +800,21 @@ private:
     auto items = tag.listTag("Items");
     if (items) {
       for (auto const &it : *items) {
-        if (it->id() != Tag::TAG_Compound)
+        if (it->id() != Tag::TAG_Compound) {
           continue;
+        }
         auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!item)
+        if (!item) {
           continue;
+        }
         auto converted = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
-        if (!converted)
+        if (!converted) {
           continue;
+        }
         auto slot = item->byte("Slot");
-        if (!slot)
+        if (!slot) {
           continue;
+        }
         converted->set("Slot", props::Byte(*slot));
         chestItems->push_back(converted);
       }
@@ -881,19 +895,24 @@ private:
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-      if (!item)
+      if (!item) {
         continue;
+      }
       auto converted = Item::From(item, mapInfo, ddf);
-      if (!converted)
+      if (!converted) {
         continue;
+      }
       auto slot = item->byte("Slot");
-      if (!slot)
+      if (!slot) {
         continue;
-      if (*slot < 0 || capacity <= *slot)
+      }
+      if (*slot < 0 || capacity <= *slot) {
         continue;
+      }
       auto count = item->byte("Count");
-      if (!count)
+      if (!count) {
         continue;
+      }
       converted->set("Slot", props::Byte(*slot));
       converted->set("Count", props::Byte(*count));
       ret->at(*slot) = converted;
@@ -981,20 +1000,25 @@ private:
 
       for (auto const &it : *chestItems) {
         auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!item)
+        if (!item) {
           continue;
+        }
         auto slot = item->byte("Slot");
-        if (!slot)
+        if (!slot) {
           continue;
+        }
         int8_t idx = *slot - 1;
-        if (idx < 0 || 16 <= idx)
+        if (idx < 0 || 16 <= idx) {
           continue;
+        }
         auto count = item->byte("Count");
-        if (!count)
+        if (!count) {
           continue;
+        }
         auto outItem = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
-        if (!outItem)
+        if (!outItem) {
           continue;
+        }
         AddChestItem(c, outItem, idx, *count);
       }
       AddDefinition(c, "-minecraft:" + definitionKey + "_unchested");
@@ -1145,17 +1169,20 @@ private:
         for (int i = 0; i < passengers->size(); i++) {
           auto const &p = passengers->at(i);
           auto comp = p->asCompound();
-          if (!comp)
+          if (!comp) {
             continue;
+          }
 
           auto entities = From(*comp, ctx.fMapInfo, ctx.fDimensionData);
-          if (entities.empty())
+          if (entities.empty()) {
             continue;
+          }
 
           auto const &passenger = entities[0];
           auto uid = passenger->int64("UniqueID");
-          if (!uid)
+          if (!uid) {
             continue;
+          }
           auto link = std::make_shared<CompoundTag>();
           link->set("entityID", props::Long(*uid));
           link->set("linkID", props::Int(i));
@@ -1221,8 +1248,9 @@ private:
   static Behavior Rename(std::string const &name) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
       auto id = tag.string("id");
-      if (!id)
+      if (!id) {
         return c;
+      }
       RemoveDefinition(c, "+" + *id);
       AddDefinition(c, "+minecraft:" + name);
       c->set("identifier", props::String("minecraft:" + name));
@@ -1474,8 +1502,9 @@ private:
   static EntityData LivingEntity(CompoundTag const &tag, Context &ctx) {
     using namespace props;
     auto e = BaseProperties(tag);
-    if (!e)
+    if (!e) {
       return nullptr;
+    }
     auto ret = e->toCompoundTag();
     auto &c = *ret;
     auto air = tag.int16("Air", 300);
@@ -1521,8 +1550,9 @@ private:
   static EntityData Mob(CompoundTag const &tag, Context &ctx) {
     using namespace props;
     auto ret = LivingEntity(tag, ctx);
-    if (!ret)
+    if (!ret) {
       return ret;
+    }
 
     auto id = tag.string("id");
     if (id) {
@@ -1628,28 +1658,38 @@ private:
     auto id = tag.string("id");
     auto customName = GetJson(tag, "CustomName");
 
-    if (!uuid)
+    if (!uuid) {
       return nullopt;
+    }
 
     Entity e(*uuid);
-    if (motion)
+    if (motion) {
       e.fMotion = *motion;
-    if (pos)
+    }
+    if (pos) {
       e.fPos = *pos;
-    if (rotation)
+    }
+    if (rotation) {
       e.fRotation = *rotation;
-    if (fallDistance)
+    }
+    if (fallDistance) {
       e.fFallDistance = *fallDistance;
-    if (fire)
+    }
+    if (fire) {
       e.fFire = *fire;
-    if (invulnerable)
+    }
+    if (invulnerable) {
       e.fInvulnerable = *invulnerable;
-    if (onGround)
+    }
+    if (onGround) {
       e.fOnGround = *onGround;
-    if (portalCooldown)
+    }
+    if (portalCooldown) {
       e.fPortalCooldown = *portalCooldown;
-    if (id)
+    }
+    if (id) {
       e.fIdentifier = *id;
+    }
     if (customName) {
       auto text = customName->find("text");
       if (text != customName->end() && text->is_string()) {
@@ -1672,8 +1712,9 @@ private:
 
   static EntityData EndCrystal(CompoundTag const &tag, Context &ctx) {
     auto e = BaseProperties(tag);
-    if (!e)
+    if (!e) {
       return nullptr;
+    }
     e->fIdentifier = "minecraft:ender_crystal";
     auto c = e->toCompoundTag();
     return c;
@@ -1688,14 +1729,16 @@ private:
     auto motive = tag.string("Motive");
     auto beMotive = PaintingMotive(*motive);
     auto size = PaintingSize(*motive);
-    if (!beMotive || !size)
+    if (!beMotive || !size) {
       return nullptr;
+    }
 
     auto tileX = tag.int32("TileX");
     auto tileY = tag.int32("TileY");
     auto tileZ = tag.int32("TileZ");
-    if (!tileX || !tileY || !tileZ)
+    if (!tileX || !tileY || !tileZ) {
       return nullptr;
+    }
 
     Vec normals[4] = {Vec(0, 0, 1), Vec(-1, 0, 0), Vec(0, -1, 0), Vec(1, 0, 0)};
     Vec normal = normals[*facing];
@@ -1735,8 +1778,9 @@ private:
     }
 
     auto e = BaseProperties(tag);
-    if (!e)
+    if (!e) {
       return nullptr;
+    }
     e->fIdentifier = "minecraft:painting";
     e->fPos = Vec(x, y, z);
     auto c = e->toCompoundTag();

@@ -20,8 +20,9 @@ public:
     fs::create_directory(dbPath);
 
     auto data = LevelData::Read(fInputOption.getLevelDatFilePath(fs::path(fInput)));
-    if (!data)
+    if (!data) {
       return nullopt;
+    }
     LevelData levelData = LevelData::Import(*data);
     levelData.write(fOutput + string("/level.dat"));
 
@@ -70,24 +71,23 @@ public:
     return worldData->fStat;
   }
 
-#if defined(DOCTEST_VERSION)
-public:
-#else
 private:
-#endif
   static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
 
     auto root = tag.compoundTag("");
-    if (!root)
+    if (!root) {
       return std::nullopt;
+    }
     auto data = root->compoundTag("Data");
-    if (!data)
+    if (!data) {
       return std::nullopt;
+    }
     auto player = data->compoundTag("Player");
-    if (!player)
+    if (!player) {
       return std::nullopt;
+    }
 
     DimensionDataFragment ddf(Dimension::Overworld);
     auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, ddf);
@@ -131,8 +131,9 @@ private:
               Result const &result = futures.front().get();
               futures.pop_front();
               done++;
-              if (!result.fData)
+              if (!result.fData) {
                 continue;
+              }
               result.fData->drain(wd);
               if (!result.fOk) {
                 return false;
@@ -183,8 +184,9 @@ private:
       if (progress) {
         progress->report(Progress::Phase::Convert, done, numTotalChunks);
       }
-      if (!result.fData)
+      if (!result.fData) {
         continue;
+      }
       result.fData->drain(wd);
     }
 
@@ -333,8 +335,9 @@ private:
       int32_t x = pos.fX - chunk.fChunkX * 16;
       int32_t y = pos.fY - chunkY * 16;
       int32_t z = pos.fZ - chunk.fChunkZ * 16;
-      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z)
+      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
+      }
       idx = (x * 16 + z) * 16 + y;
 
       empty = false;
@@ -358,8 +361,9 @@ private:
       int32_t x = pos.fX - chunk.fChunkX * 16;
       int32_t y = pos.fY - chunkY * 16;
       int32_t z = pos.fZ - chunk.fChunkZ * 16;
-      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z)
+      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
+      }
       idx = (x * 16 + z) * 16 + y;
 
       if (indices[idx] != 0) {

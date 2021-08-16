@@ -31,8 +31,9 @@ inline std::optional<int64_t> GetUUIDWithFormatLeastAndMost(mcfile::nbt::Compoun
   auto least = tag.int64(namePrefix + "Least");
   auto most = tag.int64(namePrefix + "Most");
 
-  if (!least || !most)
+  if (!least || !most) {
     return nullopt;
+  }
 
   int64_t l = *least;
   int64_t m = *most;
@@ -50,8 +51,9 @@ inline std::optional<int64_t> GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag
   using namespace mcfile::nbt;
 
   auto found = tag.find(name);
-  if (found == tag.end())
+  if (found == tag.end()) {
     return nullopt;
+  }
 
   IntArrayTag const *list = found->second->asIntArray();
   if (!list) {
@@ -80,23 +82,27 @@ inline std::optional<int64_t> GetUUIDWithFormatHexString(mcfile::nbt::CompoundTa
   using namespace mcfile::nbt;
 
   auto found = tag.find(name);
-  if (found == tag.end())
+  if (found == tag.end()) {
     return nullopt;
+  }
 
   auto hex = found->second->asString();
-  if (!hex)
+  if (!hex) {
     return nullopt;
+  }
 
   auto s = strings::Replace(hex->fValue, "-");
-  if (s.size() != 32)
+  if (s.size() != 32) {
     return nullopt;
+  }
   auto a0 = strings::Tol(s.substr(0, 8), 16);
   auto b0 = strings::Tol(s.substr(8, 8), 16);
   auto c0 = strings::Tol(s.substr(16, 8), 16);
   auto d0 = strings::Tol(s.substr(24), 16);
 
-  if (!a0 || !b0 || !c0 || !d0)
+  if (!a0 || !b0 || !c0 || !d0) {
     return nullopt;
+  }
 
   uint32_t a = (uint32_t)*a0;
   uint32_t b = (uint32_t)*b0;
@@ -114,18 +120,21 @@ inline std::optional<int64_t> GetUUIDWithFormatHexString(mcfile::nbt::CompoundTa
 inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const &tag, UUIDKeyName keyName) {
   if (keyName.fIntArray) {
     auto ret = GetUUIDWithFormatIntArray(tag, *keyName.fIntArray);
-    if (ret)
+    if (ret) {
       return ret;
+    }
   }
   if (keyName.fLeastAndMostPrefix) {
     auto ret = GetUUIDWithFormatLeastAndMost(tag, *keyName.fIntArray);
-    if (ret)
+    if (ret) {
       return ret;
+    }
   }
   if (keyName.fHexString) {
     auto ret = GetUUIDWithFormatHexString(tag, *keyName.fHexString);
-    if (ret)
+    if (ret) {
       return ret;
+    }
   }
   return std::nullopt;
 }

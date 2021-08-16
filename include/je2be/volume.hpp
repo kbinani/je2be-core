@@ -10,8 +10,9 @@ public:
     auto x = Intersection(a.fStart.fX, a.fEnd.fX, b.fStart.fX, b.fEnd.fX);
     auto y = Intersection(a.fStart.fY, a.fEnd.fY, b.fStart.fY, b.fEnd.fY);
     auto z = Intersection(a.fStart.fZ, a.fEnd.fZ, b.fStart.fZ, b.fEnd.fZ);
-    if (!x || !y || !z)
+    if (!x || !y || !z) {
       return std::nullopt;
+    }
     auto [x0, x1] = *x;
     auto [y0, y1] = *y;
     auto [z0, z1] = *z;
