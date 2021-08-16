@@ -15,6 +15,7 @@ public:
       putEntity(db);
       putChecksums(db);
       putFinalizedState(db);
+      putPendingTicks(db);
     }
   }
 
@@ -101,6 +102,16 @@ private:
     db.put(versionKey, version);
   }
 
+  void putPendingTicks(DbInterface &db) const {
+    auto key = Key::PendingTicks(fChunkX, fChunkZ, fDimension);
+    if (fPendingTicks.empty()) {
+      db.del(key);
+    } else {
+      leveldb::Slice data((char *)fPendingTicks.data(), fPendingTicks.size());
+      db.put(key, data);
+    }
+  }
+
   std::string checksums() const {
     using namespace std;
     using namespace mcfile::stream;
@@ -148,6 +159,15 @@ private:
       count++;
     }
 
+    // PendingTicks
+    if (!fPendingTicks.empty()) {
+      w.write((uint8_t)0x33);
+      w.write((uint8_t)0);
+      uint64_t hash = GetXXHSum(fPendingTicks);
+      w.write(hash);
+      count++;
+    }
+
     s->seek(0);
     w.write(count);
 
@@ -172,6 +192,7 @@ public:
   std::vector<uint8_t> fBlockEntity;
   std::vector<uint8_t> fEntity;
   std::optional<int32_t> fFinalizedState;
+  std::vector<uint8_t> fPendingTicks;
 };
 
 } // namespace j2b

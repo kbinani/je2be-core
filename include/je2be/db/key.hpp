@@ -57,6 +57,13 @@ public:
     return std::string(b.data(), b.size());
   }
 
+  static std::string PendingTicks(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+    std::vector<char> b;
+    PlaceXZTag(b, chunkX, chunkZ, 0x33);
+    SetDimension(b, dim);
+    return std::string(b.data(), b.size());
+  }
+
   static std::string Map(int64_t id) { return std::string("map_") + std::to_string(id); }
 
   static std::string TheEnd() { return "TheEnd"; }

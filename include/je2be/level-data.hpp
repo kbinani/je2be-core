@@ -308,7 +308,7 @@ public:
     }
     auto time = data->longTag("Time");
     if (time) {
-      ret.fTime = time->fValue;
+      ret.fCurrentTick = time->fValue;
     }
     auto lastPlayed = data->longTag("LastPlayed");
     if (lastPlayed) {
