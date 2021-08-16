@@ -1546,6 +1546,7 @@ private:
     E("respawn_anchor", RespawnAnchor);
     E("deepslate", axisToPillarAxis);
     E("infested_deepslate", axisToPillarAxis);
+    E("redstone_lamp", RedstoneLamp);
 #undef E
 
     // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
@@ -1553,6 +1554,13 @@ private:
     table->insert(make_pair("j2b:pistonArmCollision", PistonArmCollision));
 
     return table;
+  }
+
+  static BlockDataType RedstoneLamp(Block const &block) {
+    auto lit = block.property("lit", "false") == "true";
+    auto c = New(lit ? "lit_redstone_lamp" : "redstone_lamp");
+    auto s = States();
+    return AttachStates(c, s);
   }
 
   static BlockDataType PistonArmCollision(Block const &block) {
