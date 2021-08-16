@@ -18,24 +18,24 @@ rem zlib
 mkdir zlib
 pushd zlib
 cmake %dir%\ext\zlib
-cmake --build . --config Debug
-cmake --build . --config Release
+cmake --build . --config Debug --parallel
+cmake --build . --config Release --parallel
 popd
 
 rem leveldb
 mkdir leveldb
 pushd leveldb
 cmake %dir%\ext\leveldb -DZLIB_LIBRARY=..\zlib\Release\zlib -DZLIB_INCLUDE_DIR=..\zlib
-cmake --build . --target leveldb --config Debug
-cmake --build . --target leveldb --config Release
+cmake --build . --target leveldb --config Debug --parallel
+cmake --build . --target leveldb --config Release --parallel
 popd
 
 rem xxHash
 mkdir xxHash
 pushd xxHash
 cmake %dir%\ext\xxHash\cmake_unofficial -DBUILD_SHARED_LIBS=OFF
-cmake --build . --target xxhash --config Debug
-cmake --build . --target xxhash --config Release
+cmake --build . --target xxhash --config Debug --parallel
+cmake --build . --target xxhash --config Release --parallel
 popd
 
 popd

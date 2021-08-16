@@ -10,13 +10,13 @@ if [ -z "$generator" ]; then
 		mkdir $type
 		pushd $type
 		cmake "$dir/ext/leveldb" -DLEVELDB_SNAPPY=OFF -DLEVELDB_ZSTD=OFF -DCMAKE_BUILD_TYPE=$type
-		cmake --build . --target leveldb --config $type --parallel $(nproc)
+		cmake --build . --target leveldb --config $type --parallel
 		popd
 	done
 else
 	cmake "$dir/ext/leveldb" -DLEVELDB_SNAPPY=OFF -DLEVELDB_ZSTD=OFF -G "$generator"
-	cmake --build . --target leveldb --config Debug --parallel $(nproc)
-	cmake --build . --target leveldb --config Release --parallel $(nproc)
+	cmake --build . --target leveldb --config Debug --parallel
+	cmake --build . --target leveldb --config Release --parallel
 fi
 popd
 
@@ -28,12 +28,12 @@ if [ -z "$generator" ]; then
 		mkdir $type
 		pushd $type
 		cmake "$dir/ext/xxHash/cmake_unofficial" -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=$type
-		cmake --build . --target xxhash --config $type --parallel $(nproc)
+		cmake --build . --target xxhash --config $type --parallel
 		popd
 	done
 else
 	cmake "$dir/ext/xxHash/cmake_unofficial" -DBUILD_SHARED_LIBS=OFF -G "$generator"
-	cmake --build . --target xxhash --config Debug --parallel $(nproc)
-	cmake --build . --target xxhash --config Release --parallel $(nproc)
+	cmake --build . --target xxhash --config Debug --parallel
+	cmake --build . --target xxhash --config Release --parallel
 fi
 popd
