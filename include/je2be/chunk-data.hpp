@@ -94,7 +94,7 @@ private:
   }
 
   void putVersion(DbInterface &db) const {
-    char const kSubChunkVersion = 19;
+    char const kSubChunkVersion = 0x16;
 
     auto const &versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
     leveldb::Slice version(&kSubChunkVersion, 1);

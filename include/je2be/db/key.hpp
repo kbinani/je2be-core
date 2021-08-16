@@ -15,7 +15,7 @@ public:
 
   static std::string Version(int32_t chunkX, int32_t chunkZ, Dimension dim) {
     std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x76);
+    PlaceXZTag(b, chunkX, chunkZ, 0x2c);
     SetDimension(b, dim);
     return std::string(b.data(), b.size());
   }
