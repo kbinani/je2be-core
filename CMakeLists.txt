@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
 include(CheckCCompilerFlag)
 include(ext/setup_source_groups/setup_source_groups.cmake)
 
-set(je2be_srcs
+set(je2be_files
   include/je2be/level-data.hpp
   include/je2be/props.hpp
   include/je2be/version.hpp
@@ -119,14 +119,14 @@ set(je2be_srcs
   ext/libminecraft-file/include/minecraft-file.hpp
   .editorconfig
   .clang-format)
-set(test_srcs
+set(test_files
   test/main.cpp
   test/block-data.test.cpp
   test/moving-piston.test.cpp)
-add_executable(je2be src/main.cpp ${je2be_srcs})
-add_executable(dump src/dump.cpp ${je2be_srcs})
-add_executable(test ${test_srcs} ${je2be_srcs})
-setup_source_groups("src/main.cpp;src/dump.cpp;${test_srcs};${je2be_srcs}" "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(cli src/cli.cpp ${je2be_files})
+add_executable(dump src/dump.cpp ${je2be_files})
+add_executable(test ${test_files} ${je2be_files})
+setup_source_groups("src/cli.cpp;src/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
 check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
@@ -161,14 +161,17 @@ list(APPEND je2be_include_directories "ext/xxHash")
 list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
 list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/xxHash/${CMAKE_BUILD_TYPE}")
 
-target_include_directories(je2be PRIVATE ${je2be_include_directories})
-target_link_libraries(je2be ${je2be_link_libraries} leveldb)
-target_link_directories(je2be PRIVATE ${je2be_link_directories})
+target_include_directories(cli PRIVATE ${je2be_include_directories})
+target_link_libraries(cli ${je2be_link_libraries} leveldb)
+target_link_directories(cli PRIVATE ${je2be_link_directories})
+target_precompile_headers(cli PRIVATE include/je2be.hpp)
 
 target_include_directories(dump PRIVATE ${je2be_include_directories})
 target_link_libraries(dump ${je2be_link_libraries} leveldb)
 target_link_directories(dump PRIVATE ${je2be_link_directories})
+target_precompile_headers(dump REUSE_FROM cli)
 
 target_include_directories(test PRIVATE ext/doctest ${je2be_include_directories})
 target_link_libraries(test ${je2be_link_libraries} leveldb)
 target_link_directories(test PRIVATE ${je2be_link_directories})
+target_precompile_headers(test REUSE_FROM cli)

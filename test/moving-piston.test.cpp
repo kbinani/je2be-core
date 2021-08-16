@@ -1,6 +1,5 @@
 #include <doctest/doctest.h>
 #include <iostream>
-#include <je2be.hpp>
 #include <sstream>
 
 using namespace j2b;
