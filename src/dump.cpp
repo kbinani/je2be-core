@@ -1,9 +1,11 @@
 #include <iostream>
 #include <je2be.hpp>
 
+#if __has_include(<shlobj_core.h>)
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <shlobj_core.h>
+#endif
 
 using namespace std;
 using namespace leveldb;
@@ -239,12 +241,14 @@ static bool DumpLevelDat(string const &dbDir) {
 }
 
 static optional<string> GetLocalApplicationDirectory() {
+#if __has_include(<shlobj_core.h>)
   int csidType = CSIDL_LOCAL_APPDATA;
   char path[MAX_PATH + 256];
 
   if (SHGetSpecialFolderPathA(nullptr, path, csidType, FALSE)) {
     return string(path);
   }
+#endif
   return nullopt;
 }
 
