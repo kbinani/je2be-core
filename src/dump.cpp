@@ -178,7 +178,7 @@ static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimen
   delete db;
 }
 
-static void DumpEntity(string const &dbDir, int cx, int cz, j2b::Dimension d) {
+static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, Key::Tag tag) {
   Options o;
   o.compression = kZstdCompression;
   DB *db;
@@ -191,7 +191,7 @@ static void DumpEntity(string const &dbDir, int cx, int cz, j2b::Dimension d) {
   nbt::JsonPrintOptions jopt;
   jopt.fTypeHint = true;
 
-  auto key = Key::Entity(cx, cz, d);
+  auto key = Key::ComposeChunkKey(cx, cz, d, tag);
 
   string value;
   st = db->Get(ro, key, &value);
@@ -251,6 +251,7 @@ static void PrintHelpMessage() {
   cerr << R"("dump.exe [world-dir] block at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
+  cerr << R"("dump.exe [world-dir] pending ticks in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] level.dat)" << endl;
 }
 
@@ -368,13 +369,37 @@ int main(int argc, char *argv[]) {
         PrintHelpMessage();
         return 1;
       }
-      DumpEntity(dir, *chunkX, *chunkZ, *dimension);
+      DumpChunkKey(dir, *chunkX, *chunkZ, *dimension, Key::Tag::Entity);
     } else {
       PrintHelpMessage();
       return 1;
     }
   } else if (verb == "level.dat") {
     return DumpLevelDat(dir) ? 0 : 1;
+  } else if (verb == "pending") {
+    if (argc != 9) {
+      PrintHelpMessage();
+      return 1;
+    }
+    if (args[3] != "ticks" || args[4] != "in" || args[7] != "of") {
+      PrintHelpMessage();
+      return 1;
+    }
+    auto cx = strings::Toi(args[5]);
+    if (!cx) {
+      cerr << "Error: invalid chunk x: " << args[5] << endl;
+    }
+    auto cz = strings::Toi(args[6]);
+    if (!cz) {
+      cerr << "Error: invalid chunk z: " << args[6] << endl;
+    }
+    auto dimension = DimensionFromString(args[8]);
+    if (!dimension) {
+      cerr << "Error: invalid dimension: " << args[7] << endl;
+      PrintHelpMessage();
+      return 1;
+    }
+    DumpChunkKey(dir, *cx, *cz, *dimension, Key::Tag::PendingTicks);
   } else {
     PrintHelpMessage();
     return 1;
