@@ -24,7 +24,6 @@ public:
       return nullopt;
     }
     LevelData levelData = LevelData::Import(*data);
-    levelData.write(fOutput + string("/level.dat"));
 
     bool ok = true;
     auto worldData = std::make_unique<WorldData>(fs::path(fInput), fInputOption);
@@ -52,6 +51,8 @@ public:
       }
 
       if (ok) {
+        levelData.fCurrentTick = max(levelData.fCurrentTick, worldData->fMaxChunkLastUpdate);
+        levelData.write(fOutput + string("/level.dat"));
         worldData->put(db, *data);
       }
 
@@ -214,6 +215,7 @@ private:
     }
 
     ret->addStructures(chunk);
+    ret->updateChunkLastUpdate(chunk);
 
     cdp.build(chunk, mapInfo, *ret);
     cdp.serialize(cd);

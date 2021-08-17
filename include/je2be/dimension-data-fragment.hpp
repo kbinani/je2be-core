@@ -44,6 +44,10 @@ public:
     }
   }
 
+  void updateChunkLastUpdate(mcfile::Chunk const &chunk) {
+    fMaxChunkLastUpdate = std::max(fMaxChunkLastUpdate, chunk.fLastUpdate);
+  }
+
   void drain(WorldData &wd) {
     wd.fPortals.add(fPortalBlocks, fDim);
     for (auto const &it : fMapItems) {
@@ -59,6 +63,7 @@ public:
       wd.fStructures.add(*it, fDim);
     }
     wd.fStat.merge(fStat);
+    wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
 private:
@@ -105,6 +110,7 @@ private:
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
   Statistics fStat;
+  int64_t fMaxChunkLastUpdate = 0;
 };
 
 } // namespace j2b

@@ -64,6 +64,7 @@ public:
   InputOption fInputOption;
   Structures fStructures;
   Statistics fStat;
+  int64_t fMaxChunkLastUpdate = 0;
 };
 
 } // namespace j2b
