@@ -4,6 +4,14 @@
 #define NOMINMAX
 #include <shlobj_core.h>
 
+using namespace std;
+using namespace leveldb;
+using namespace j2b;
+using namespace mcfile;
+using namespace mcfile::nbt;
+using namespace mcfile::stream;
+namespace fs = std::filesystem;
+
 static std::optional<j2b::Dimension> DimensionFromString(std::string const &s) {
   if (s == "overworld" || s == "o" || s == "0") {
     return j2b::Dimension::Overworld;
@@ -16,13 +24,6 @@ static std::optional<j2b::Dimension> DimensionFromString(std::string const &s) {
 }
 
 static void DumpBlock(std::string const &dbDir, int x, int y, int z, j2b::Dimension d) {
-  using namespace std;
-  using namespace leveldb;
-  using namespace j2b;
-  using namespace mcfile;
-  using namespace mcfile::nbt;
-  using namespace mcfile::stream;
-  namespace fs = std::filesystem;
 
   Options o;
   o.compression = kZstdCompression;
@@ -236,6 +237,23 @@ static void DumpEntity(std::string const &dbDir, int cx, int cz, j2b::Dimension 
   delete db;
 }
 
+static bool DumpLevelDat(string const &dbDir) {
+  auto datFile = fs::path(dbDir).parent_path() / "level.dat";
+  if (!fs::is_regular_file(datFile)) {
+    cerr << "Error: " << datFile << " does not exist" << endl;
+    return false;
+  }
+  auto stream = make_shared<FileInputStream>(datFile.string());
+  InputStreamReader reader(stream, {.fLittleEndian = true});
+  auto tag = make_shared<CompoundTag>();
+  stream->seek(8);
+  tag->read(reader);
+
+  JsonPrintOptions o;
+  o.fTypeHint = true;
+  PrintAsJson(cout, *tag, o);
+}
+
 static std::optional<std::string> GetLocalApplicationDirectory() {
   int csidType = CSIDL_LOCAL_APPDATA;
   char path[MAX_PATH + 256];
@@ -251,6 +269,7 @@ static void PrintHelpMessage() {
   cerr << R"("dump.exe [world-dir] block at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
+  cerr << R"("dump.exe [world-dir] level.dat)" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -377,6 +396,8 @@ int main(int argc, char *argv[]) {
       PrintHelpMessage();
       return 1;
     }
+  } else if (verb == "level.dat") {
+    return DumpLevelDat(dir) ? 0 : 1;
   } else {
     PrintHelpMessage();
     return 1;
