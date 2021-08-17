@@ -23,11 +23,17 @@ jobs:
         with:
           languages: cpp
 
+      - name: Cache deps
+        uses: actions/cache@v2
+        with:
+          key: ${{ hashFiles('.gitmodules', 'setup.sh') }}
+          path: build/deps
+
       - name: Build
         run: |
           mkdir -p ./build
           cd ./build
-          bash ../setup.sh
+          test -d deps || bash ../setup.sh
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
           ./test
