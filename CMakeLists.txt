@@ -165,14 +165,11 @@ list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/xxHash/${CMAKE_BUIL
 target_include_directories(cli PRIVATE ${je2be_include_directories})
 target_link_libraries(cli ${je2be_link_libraries} leveldb)
 target_link_directories(cli PRIVATE ${je2be_link_directories})
-target_precompile_headers(cli PRIVATE include/je2be.hpp)
 
 target_include_directories(dump PRIVATE ${je2be_include_directories})
 target_link_libraries(dump ${je2be_link_libraries} leveldb)
 target_link_directories(dump PRIVATE ${je2be_link_directories})
-target_precompile_headers(dump REUSE_FROM cli)
 
 target_include_directories(test PRIVATE ext/doctest ${je2be_include_directories})
 target_link_libraries(test ${je2be_link_libraries} leveldb)
 target_link_directories(test PRIVATE ${je2be_link_directories})
-target_precompile_headers(test REUSE_FROM cli)
