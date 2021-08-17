@@ -4,9 +4,24 @@ namespace j2b {
 
 class Key {
 public:
+  enum class Tag : uint8_t {
+    SubChunk = 0x2f,
+    Version = 0x2c,
+    VersionLegacy = 0x76,
+    Data2D = 0x2d,
+    BiomeState = 0x35,
+    Checksums = 0x3b,
+    BlockEntity = 0x31,
+    Entity = 0x32,
+    PendingTicks = 0x33,
+    FinalizedState = 0x36,
+    // HardCodedSpawnAreas
+    StructureBounds = 0x39,
+  };
+
   static std::string SubChunk(int32_t chunkX, int32_t chunkY, int32_t chunkZ, Dimension dim) {
     std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x2f);
+    PlaceXZTag(b, chunkX, chunkZ, Tag::SubChunk);
     SetDimension(b, dim);
     uint8_t const y = (uint8_t)(std::min)((std::max)(chunkY, 0), 255);
     b.push_back(y);
@@ -14,54 +29,37 @@ public:
   }
 
   static std::string Version(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x2c);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::Version);
+  }
+
+  static std::string VersionLegacy(int32_t chunkX, int32_t chunkZ, Dimension dim) {
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::VersionLegacy);
   }
 
   static std::string Data2D(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x2d);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::Data2D);
   }
 
   static std::string BiomeState(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x35);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::BiomeState);
   }
 
   static std::string Checksums(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x3b);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::Checksums);
   }
 
   static std::string Portals() { return "portals"; }
 
   static std::string BlockEntity(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x31);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::BlockEntity);
   }
 
   static std::string Entity(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x32);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::Entity);
   }
 
   static std::string PendingTicks(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x33);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::PendingTicks);
   }
 
   static std::string Map(int64_t id) { return std::string("map_") + std::to_string(id); }
@@ -71,23 +69,31 @@ public:
   static std::string AutonomousEntities() { return "AutonomousEntities"; }
 
   static std::string FinalizedState(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x36);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::FinalizedState);
   }
 
   static std::string StructureBounds(int32_t chunkX, int32_t chunkZ, Dimension dim) {
-    // HardCodedSpawnAreas
-    std::vector<char> b;
-    PlaceXZTag(b, chunkX, chunkZ, 0x39);
-    SetDimension(b, dim);
-    return std::string(b.data(), b.size());
+    return ComposeChunkKey(chunkX, chunkZ, dim, Tag::StructureBounds);
   }
 
   static std::string LocalPlayer() { return "~local_player"; }
 
+  static std::string ComposeChunkKey(int32_t chunkX, int32_t chunkZ, Dimension dim, uint8_t tag) {
+    std::vector<char> b;
+    PlaceXZTag(b, chunkX, chunkZ, tag);
+    SetDimension(b, dim);
+    return std::string(b.data(), b.size());
+  }
+
+  static std::string ComposeChunkKey(int32_t chunkX, int32_t chunkZ, Dimension dim, Tag tag) {
+    return ComposeChunkKey(chunkX, chunkZ, dim, static_cast<uint8_t>(tag));
+  }
+
 private:
+  static void PlaceXZTag(std::vector<char> &out, int32_t chunkX, int32_t chunkZ, Tag tag) {
+    PlaceXZTag(out, chunkX, chunkZ, static_cast<uint8_t>(tag));
+  }
+
   static void PlaceXZTag(std::vector<char> &out, int32_t chunkX, int32_t chunkZ, uint8_t tag) {
     out.clear();
     out.resize(9);
