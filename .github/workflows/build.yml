@@ -23,6 +23,12 @@ jobs:
         with:
           languages: cpp
 
+      - name: Cache deps
+        uses: actions/cache@v2
+        with:
+          key: ${{ hashFiles('.gitmodules', 'setup.sh') }}
+          path: build/deps
+
       - name: Build
         run: |
           mkdir -p ./build
