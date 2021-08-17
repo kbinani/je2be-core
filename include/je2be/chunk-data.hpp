@@ -100,6 +100,8 @@ private:
     auto const &versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
     leveldb::Slice version(&kSubChunkVersion, 1);
     db.put(versionKey, version);
+
+    db.del(Key::VersionLegacy(fChunkX, fChunkZ, fDimension));
   }
 
   void putPendingTicks(DbInterface &db) const {
