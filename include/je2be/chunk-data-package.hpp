@@ -13,18 +13,24 @@ public:
     }
     ddf.addStatChunkVersion(chunk.fDataVersion);
     ddf.addStat(1, fTileEntities.size(), fEntities.size());
+    fChunkLastUpdate = chunk.fLastUpdate;
   }
 
   void serialize(ChunkData &cd) {
     serializeData2D(cd);
     serializeBlockEntity(cd);
     serializeEntity(cd);
+    serializePendingTicks(cd);
     cd.fFinalizedState = fFinalizedState;
   }
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
 
   void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
+
+  void addPendingTick(int order, std::shared_ptr<mcfile::nbt::CompoundTag> const &pendingTick) {
+    fPendingTicks.insert(std::make_pair(order, pendingTick));
+  }
 
 private:
   void buildTileEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
@@ -163,6 +169,34 @@ private:
     s->drain(cd.fEntity);
   }
 
+  void serializePendingTicks(ChunkData &cd) {
+    if (fPendingTicks.empty()) {
+      return;
+    }
+    using namespace std;
+    using namespace mcfile::nbt;
+    using namespace mcfile::stream;
+    using namespace props;
+
+    auto tickList = make_shared<ListTag>();
+    tickList->fType = Tag::TAG_Compound;
+    for (auto it : fPendingTicks) {
+      tickList->push_back(it.second);
+    }
+
+    auto pendingTicks = make_shared<CompoundTag>();
+    pendingTicks->set("currentTick", Int(fChunkLastUpdate));
+    pendingTicks->set("tickList", tickList);
+
+    auto s = make_shared<mcfile::stream::ByteStream>();
+    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    w.write((uint8_t)Tag::TAG_Compound);
+    w.write(string());
+    pendingTicks->write(w);
+    w.write((uint8_t)Tag::TAG_End);
+    s->drain(cd.fPendingTicks);
+  }
+
 private:
   HeightMap fHeightMap;
   std::optional<BiomeMap> fBiomeMap;
@@ -170,6 +204,8 @@ private:
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;
+  std::map<int, std::shared_ptr<mcfile::nbt::CompoundTag>> fPendingTicks;
+  int64_t fChunkLastUpdate;
 };
 
 } // namespace j2b

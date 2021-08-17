@@ -1,4 +1,5 @@
 #include <doctest/doctest.h>
+#include <je2be.hpp>
 
 using namespace std;
 

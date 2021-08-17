@@ -163,6 +163,9 @@ private:
                 }
               }
               MovingPiston::PreprocessChunk(chunk, *region);
+              stable_sort(chunk->fTileTicks.begin(), chunk->fTileTicks.end(), [](auto a, auto b) {
+                return a.fP < b.fP;
+              });
               r.fData = putChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
@@ -477,6 +480,29 @@ private:
     }
 
     stream->drain(cd.fSubChunks[chunkY]);
+
+    int64_t currentTick = chunk.fLastUpdate;
+    for (int i = 0; i < chunk.fTileTicks.size(); i++) {
+      TileTick tt = chunk.fTileTicks[i];
+      int x = tt.fX - chunk.fChunkX * 16;
+      int y = tt.fY - chunkY * 16;
+      int z = tt.fZ - chunk.fChunkZ * 16;
+      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
+        continue;
+      }
+      int64_t time = currentTick + tt.fT;
+      int localIndex = (x * 16 + z) * 16 + y;
+      int paletteIndex = indices[localIndex];
+      auto block = palette[paletteIndex];
+
+      auto tick = make_shared<CompoundTag>();
+      tick->set("blockState", block);
+      tick->set("time", Long(time));
+      tick->set("x", Int(tt.fX));
+      tick->set("y", Int(tt.fY));
+      tick->set("z", Int(tt.fZ));
+      cdp.addPendingTick(i, tick);
+    }
   }
 
   static bool IsWaterLogged(mcfile::Block const &block) {
