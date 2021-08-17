@@ -8,11 +8,11 @@ using namespace std;
 using namespace leveldb;
 using namespace j2b;
 using namespace mcfile;
-using namespace mcfile::nbt;
-using namespace mcfile::stream;
-namespace fs = std::filesystem;
+using namespace nbt;
+using namespace stream;
+namespace fs = filesystem;
 
-static std::optional<j2b::Dimension> DimensionFromString(std::string const &s) {
+static optional<j2b::Dimension> DimensionFromString(string const &s) {
   if (s == "overworld" || s == "o" || s == "0") {
     return j2b::Dimension::Overworld;
   } else if (s == "nether" || s == "n" || s == "-1") {
@@ -20,11 +20,10 @@ static std::optional<j2b::Dimension> DimensionFromString(std::string const &s) {
   } else if (s == "end" || s == "e" || s == "1") {
     return j2b::Dimension::End;
   }
-  return std::nullopt;
+  return nullopt;
 }
 
-static void DumpBlock(std::string const &dbDir, int x, int y, int z, j2b::Dimension d) {
-
+static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
   o.compression = kZstdCompression;
   DB *db;
@@ -120,20 +119,12 @@ static void DumpBlock(std::string const &dbDir, int x, int y, int z, j2b::Dimens
   size_t idx = (lx * 16 + lz) * 16 + ly;
   uint16_t paletteIndex = index[idx];
   auto tag = palette[paletteIndex];
-  nbt::PrintAsJson(std::cout, *tag, jopt);
+  nbt::PrintAsJson(cout, *tag, jopt);
 
   delete db;
 }
 
-static void DumpBlockEntity(std::string const &dbDir, int x, int y, int z, j2b::Dimension d) {
-  using namespace std;
-  using namespace leveldb;
-  using namespace j2b;
-  using namespace mcfile;
-  using namespace mcfile::nbt;
-  using namespace mcfile::stream;
-  namespace fs = std::filesystem;
-
+static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
   o.compression = kZstdCompression;
   DB *db;
@@ -179,7 +170,7 @@ static void DumpBlockEntity(std::string const &dbDir, int x, int y, int z, j2b::
     auto bz = tag->int32("z");
     if (bx && by && bz) {
       if (*bx == x && *by == y && *bz == z) {
-        PrintAsJson(std::cout, *tag, jopt);
+        PrintAsJson(cout, *tag, jopt);
       }
     }
   }
@@ -187,15 +178,7 @@ static void DumpBlockEntity(std::string const &dbDir, int x, int y, int z, j2b::
   delete db;
 }
 
-static void DumpEntity(std::string const &dbDir, int cx, int cz, j2b::Dimension d) {
-  using namespace std;
-  using namespace leveldb;
-  using namespace j2b;
-  using namespace mcfile;
-  using namespace mcfile::nbt;
-  using namespace mcfile::stream;
-  namespace fs = std::filesystem;
-
+static void DumpEntity(string const &dbDir, int cx, int cz, j2b::Dimension d) {
   Options o;
   o.compression = kZstdCompression;
   DB *db;
@@ -231,7 +214,7 @@ static void DumpEntity(std::string const &dbDir, int cx, int cz, j2b::Dimension 
     auto tag = make_shared<CompoundTag>();
     tag->read(sr);
 
-    PrintAsJson(std::cout, *tag, jopt);
+    PrintAsJson(cout, *tag, jopt);
   }
 
   delete db;
@@ -254,18 +237,17 @@ static bool DumpLevelDat(string const &dbDir) {
   PrintAsJson(cout, *tag, o);
 }
 
-static std::optional<std::string> GetLocalApplicationDirectory() {
+static optional<string> GetLocalApplicationDirectory() {
   int csidType = CSIDL_LOCAL_APPDATA;
   char path[MAX_PATH + 256];
 
   if (SHGetSpecialFolderPathA(nullptr, path, csidType, FALSE)) {
-    return std::string(path);
+    return string(path);
   }
-  return std::nullopt;
+  return nullopt;
 }
 
 static void PrintHelpMessage() {
-  using namespace std;
   cerr << R"("dump.exe [world-dir] block at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
@@ -273,11 +255,6 @@ static void PrintHelpMessage() {
 }
 
 int main(int argc, char *argv[]) {
-  using namespace std;
-  using namespace leveldb;
-  using namespace j2b;
-  namespace fs = std::filesystem;
-
   if (argc < 2) {
     PrintHelpMessage();
     return 1;
