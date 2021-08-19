@@ -28,7 +28,7 @@ static optional<j2b::Dimension> DimensionFromString(string const &s) {
 
 static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
-  o.compression = kZstdCompression;
+  o.compression = kZlibRawCompression;
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
@@ -129,7 +129,7 @@ static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d
 
 static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
-  o.compression = kZstdCompression;
+  o.compression = kZlibRawCompression;
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
@@ -183,7 +183,7 @@ static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimen
 
 static void DumpKey(string const &dbDir, string const &key) {
   Options o;
-  o.compression = kZstdCompression;
+  o.compression = kZlibRawCompression;
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
