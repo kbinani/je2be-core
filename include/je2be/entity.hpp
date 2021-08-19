@@ -1557,7 +1557,7 @@ private:
       } else {
         auto attributes = EntityAttributes::Mob(*id);
         if (attributes) {
-          ret->set("Attributes", attributes);
+          ret->set("Attributes", attributes->toListTag());
         }
       }
     }

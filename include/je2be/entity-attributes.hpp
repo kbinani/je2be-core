@@ -14,6 +14,10 @@ class EntityAttributes {
 
     Attribute(double base, double current, double max = std::numeric_limits<float>::max()) : base(base), current(current), max(max) {}
 
+    void updateCurrent(float v) {
+      current = std::min(v, max);
+    }
+
     std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
       auto a = std::make_shared<CompoundTag>();
       a->set("Base", props::Float(base));
@@ -57,13 +61,13 @@ class EntityAttributes {
   };
 
 public:
-  static std::shared_ptr<mcfile::nbt::ListTag> Mob(std::string const &name) {
+  static std::optional<Attributes> Mob(std::string const &name) {
     static std::unique_ptr<std::unordered_map<std::string, Attributes> const> const table(CreateTable());
     auto found = table->find(name);
     if (found == table->end()) {
-      return nullptr;
+      return std::nullopt;
     }
-    return found->second.toListTag();
+    return found->second;
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> AnyHorse(CompoundTag const &tag) {
