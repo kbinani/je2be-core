@@ -465,6 +465,38 @@ public:
     return str;
   }
 
+  static std::optional<std::string> MobEvents(CompoundTag const &tag) {
+    using namespace std;
+    using namespace props;
+    using namespace mcfile::nbt;
+
+    auto gameRulesTag = tag.query("/Data/GameRules");
+    if (!gameRulesTag) {
+      return nullopt;
+    }
+    auto gameRules = gameRulesTag->asCompound();
+    if (!gameRules) {
+      return nullptr;
+    }
+    auto ret = make_shared<CompoundTag>();
+    ret->set("events_enabled", Bool(true));
+    ret->set("minecraft:ender_dragon_event", Bool(true));
+    ret->set("minecraft:pillager_patrols_event", Bool(gameRules->boolean("doPatrolSpawning", true)));
+    ret->set("minecraft:wandering_trader_event", Bool(gameRules->boolean("doTraderSpawning", true)));
+
+    auto s = std::make_shared<mcfile::stream::ByteStream>();
+    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    w.write((uint8_t)Tag::TAG_Compound);
+    w.write(std::string());
+    ret->write(w);
+    w.write((uint8_t)Tag::TAG_End);
+
+    std::vector<uint8_t> buffer;
+    s->drain(buffer);
+    std::string str((char const *)buffer.data(), buffer.size());
+    return str;
+  }
+
   static std::shared_ptr<CompoundTag> Read(std::filesystem::path const &javaEditionLevelDat) {
     using namespace std;
     namespace fs = std::filesystem;

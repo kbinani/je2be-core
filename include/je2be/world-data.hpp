@@ -20,9 +20,18 @@ public:
     auto theEnd = LevelData::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
     if (theEnd) {
       db.put(Key::TheEnd(), *theEnd);
+    } else {
+      db.del(Key::TheEnd());
     }
 
     fStructures.put(db);
+
+    auto mobEvents = LevelData::MobEvents(javaLevelData);
+    if (mobEvents) {
+      db.put(Key::MobEvents(), *mobEvents);
+    } else {
+      db.del(Key::MobEvents());
+    }
   }
 
 private:
