@@ -334,9 +334,16 @@ private:
       auto variant = tg->int32("Variant", 0);
       auto axltl = Axolotl(age, health, variant);
       auto tag = axltl.toBucketTag();
+
+      auto name = GetCustomName(*tg);
+      if (name) {
+        tag->set("CustomName", String(*name));
+        tag->set("CustomNameVisible", Bool(true));
+      }
+
       ret->set("tag", tag);
     }
-    return Post(ret, item);
+    return ret;
   }
 
   static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item) {
@@ -1114,26 +1121,11 @@ private:
       }
     }
 
-    auto display = tag->compoundTag("display");
-    if (display) {
-      auto name = display->string("Name");
-      if (name) {
-        auto obj = ParseAsJson(*name);
-        if (obj) {
-          auto text = obj->find("text");
-          if (text != obj->end() && text->is_string()) {
-            auto n = text->get<string>();
-            auto beDisplay = make_shared<CompoundTag>();
-            beDisplay->set("Name", String(n));
-            beTag->set("display", beDisplay);
-          }
-        } else {
-          auto text = strings::Trim("\"", *name, "\"");
-          auto beDisplay = make_shared<CompoundTag>();
-          beDisplay->set("Name", String(text));
-          beTag->set("display", beDisplay);
-        }
-      }
+    auto name = GetCustomName(*tag);
+    if (name) {
+      auto beDisplay = make_shared<CompoundTag>();
+      beDisplay->set("Name", String(*name));
+      beTag->set("display", beDisplay);
     }
 
     if (!beTag->empty()) {
@@ -1141,6 +1133,30 @@ private:
     }
 
     return input;
+  }
+
+  static std::optional<std::string> GetCustomName(mcfile::nbt::CompoundTag const &tag) {
+    using namespace std;
+    using namespace props;
+    auto display = tag.compoundTag("display");
+    if (!display) {
+      return nullopt;
+    }
+    auto name = display->string("Name");
+    if (!name) {
+      return nullopt;
+    }
+    auto obj = ParseAsJson(*name);
+    if (obj) {
+      auto text = obj->find("text");
+      if (text != obj->end() && text->is_string()) {
+        return text->get<string>();
+      } else {
+        return nullopt;
+      }
+    } else {
+      return strings::Trim("\"", *name, "\"");
+    }
   }
 
   // converts block name (bedrock) to item name (bedrock)
