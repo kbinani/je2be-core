@@ -261,6 +261,7 @@ static void PrintHelpMessage() {
   cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] pending ticks in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] level.dat)" << endl;
+  cerr << R"("dump.exe [world-dir] <any-string>)" << endl;
 }
 
 int main(int argc, char *argv[]) {
