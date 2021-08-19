@@ -14,6 +14,11 @@ public:
       return "+axolotl_" + name;
     }
 
+    std::string colorId() const {
+      return "item.axolotlColor" + Cap(colorName()) + ".name";
+    }
+
+  private:
     std::string colorName() const {
       switch (fBedrockRawValue) {
       case 1:
@@ -51,8 +56,7 @@ public:
     string bodyId = "item.axolotl" + age + "BodySingle.name";
     ret->set("BodyID", String(bodyId));
 
-    string colorId = "item.axolotlColor" + Cap(fVariant.colorName()) + ".name";
-    ret->set("ColorID", String(colorId));
+    ret->set("ColorID", String(fVariant.colorId()));
     ret->set("Variant", Int(fVariant.fBedrockRawValue));
 
     auto definitions = make_shared<mcfile::nbt::ListTag>(Tag::TAG_String);
@@ -63,7 +67,7 @@ public:
     } else {
       definitions->push_back(String("+axolotl_adult"));
     }
-    definitions->push_back(String("+axolotl_" + fVariant.colorName()));
+    definitions->push_back(String(fVariant.definition()));
     definitions->push_back(String("-axolotl_on_land"));
     definitions->push_back(String("-axolotl_dried"));
     definitions->push_back(String("+axolotl_in_water"));
