@@ -40,8 +40,7 @@ class EntityAttributes {
     std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
       using namespace mcfile::nbt;
 
-      auto list = std::make_shared<ListTag>();
-      list->fType = Tag::TAG_Compound;
+      auto list = std::make_shared<ListTag>(Tag::TAG_Compound);
       list->push_back(luck.toCompoundTag("luck"));
       list->push_back(health.toCompoundTag("health"));
       list->push_back(absorption.toCompoundTag("absorption"));
@@ -101,8 +100,7 @@ public:
     Attribute followRange(16, 16, 2048);
     Attribute absorption(0, 0, 16);
 
-    auto ret = make_shared<ListTag>();
-    ret->fType = Tag::TAG_Compound;
+    auto ret = make_shared<ListTag>(Tag::TAG_Compound);
     ret->push_back(luck.toCompoundTag("luck"));
     ret->push_back(health.toCompoundTag("health"));
     ret->push_back(movement.toCompoundTag("movement"));

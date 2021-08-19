@@ -82,8 +82,7 @@ public:
       ret->set("zCenter", Int(*zCenter));
 
       std::vector<uint8_t> outColors(65536);
-      auto decorations = make_shared<ListTag>();
-      decorations->fType = Tag::TAG_Compound;
+      auto decorations = make_shared<ListTag>(Tag::TAG_Compound);
 
       if (beScale == *scale) {
         int i = 0;

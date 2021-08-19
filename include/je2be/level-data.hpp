@@ -407,8 +407,7 @@ public:
 
     auto gateways = dragonFight->listTag("Gateways");
     if (gateways) {
-      auto v = std::make_shared<ListTag>();
-      v->fType = Tag::TAG_Int;
+      auto v = std::make_shared<ListTag>(Tag::TAG_Int);
       for (auto const &it : *gateways) {
         auto p = it->asInt();
         if (!p) {
@@ -439,8 +438,7 @@ public:
       }
     }
     if (exitLocation) {
-      auto v = std::make_shared<ListTag>();
-      v->fType = Tag::TAG_Int;
+      auto v = std::make_shared<ListTag>(Tag::TAG_Int);
       v->push_back(Int(exitLocation->fX));
       v->push_back(Int(exitLocation->fY));
       v->push_back(Int(exitLocation->fZ));

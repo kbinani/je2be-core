@@ -39,8 +39,7 @@ private:
     using namespace mcfile::nbt;
     using namespace mcfile::stream;
 
-    auto list = std::make_shared<ListTag>();
-    list->fType = Tag::TAG_Compound;
+    auto list = std::make_shared<ListTag>(Tag::TAG_Compound);
     for (auto const &e : fAutonomousEntities) {
       list->push_back(e);
     }

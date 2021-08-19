@@ -178,8 +178,7 @@ private:
     using namespace mcfile::stream;
     using namespace props;
 
-    auto tickList = make_shared<ListTag>();
-    tickList->fType = Tag::TAG_Compound;
+    auto tickList = make_shared<ListTag>(Tag::TAG_Compound);
     for (auto it : fPendingTicks) {
       tickList->push_back(it.second);
     }

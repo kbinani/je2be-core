@@ -22,8 +22,7 @@ public:
 
     auto root = make_shared<CompoundTag>();
     auto data = make_shared<CompoundTag>();
-    auto portalRecords = make_shared<ListTag>();
-    portalRecords->fType = Tag::TAG_Compound;
+    auto portalRecords = make_shared<ListTag>(Tag::TAG_Compound);
     for (auto const &portal : portals) {
       portalRecords->push_back(portal.toCompoundTag());
     }

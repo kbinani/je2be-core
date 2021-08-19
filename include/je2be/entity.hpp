@@ -219,10 +219,8 @@ public:
     using namespace props;
     using namespace mcfile::nbt;
     auto tag = make_shared<CompoundTag>();
-    auto tags = make_shared<ListTag>();
-    tags->fType = Tag::TAG_Compound;
-    auto definitions = make_shared<ListTag>();
-    definitions->fType = Tag::TAG_String;
+    auto tags = make_shared<ListTag>(Tag::TAG_Compound);
+    auto definitions = make_shared<ListTag>(Tag::TAG_String);
     for (auto const &d : fDefinitions) {
       definitions->push_back(String(d));
     }
@@ -794,8 +792,7 @@ private:
     }
     auto c = e->toCompoundTag();
 
-    auto chestItems = std::make_shared<ListTag>();
-    chestItems->fType = Tag::TAG_Compound;
+    auto chestItems = std::make_shared<ListTag>(Tag::TAG_Compound);
 
     auto items = tag.listTag("Items");
     if (items) {
@@ -880,8 +877,7 @@ private:
 
   static std::shared_ptr<mcfile::nbt::ListTag> InitItemList(uint32_t capacity) {
     using namespace mcfile::nbt;
-    auto items = std::make_shared<ListTag>();
-    items->fType = Tag::TAG_Compound;
+    auto items = std::make_shared<ListTag>(Tag::TAG_Compound);
     for (int i = 0; i < capacity; i++) {
       auto empty = Item::Empty();
       empty->set("Slot", props::Byte(i));
@@ -1161,8 +1157,7 @@ private:
     return [=](EntityData const &c, CompoundTag const &tag, Context &ctx) {
       using namespace mcfile::nbt;
 
-      auto links = std::make_shared<ListTag>();
-      links->fType = Tag::TAG_Compound;
+      auto links = std::make_shared<ListTag>(Tag::TAG_Compound);
 
       auto passengers = tag.query("Passengers")->asList();
       if (passengers) {
@@ -1458,8 +1453,7 @@ private:
     using namespace mcfile::nbt;
 
     auto found = c->find("definitions");
-    auto d = std::make_shared<ListTag>();
-    d->fType = Tag::TAG_String;
+    auto d = std::make_shared<ListTag>(Tag::TAG_String);
     if (found != c->end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::TAG_String) {
@@ -1478,8 +1472,7 @@ private:
     using namespace mcfile::nbt;
 
     auto found = c->find("definitions");
-    auto d = std::make_shared<ListTag>();
-    d->fType = Tag::TAG_String;
+    auto d = std::make_shared<ListTag>(Tag::TAG_String);
     if (found != c->end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::TAG_String) {
@@ -1574,8 +1567,7 @@ private:
 
   static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
     using namespace mcfile::nbt;
-    auto armors = std::make_shared<ListTag>();
-    armors->fType = Tag::TAG_Compound;
+    auto armors = std::make_shared<ListTag>(Tag::TAG_Compound);
 
     auto found = tag.find("ArmorItems");
     if (found != tag.end()) {
@@ -1602,8 +1594,7 @@ private:
       }
     }
 
-    auto ret = std::make_shared<ListTag>();
-    ret->fType = Tag::TAG_Compound;
+    auto ret = std::make_shared<ListTag>(Tag::TAG_Compound);
     ret->push_back(armors->at(3));
     ret->push_back(armors->at(2));
     ret->push_back(armors->at(1));
@@ -1619,8 +1610,7 @@ private:
   template <size_t index>
   static std::shared_ptr<mcfile::nbt::ListTag> HandItem(CompoundTag const &input, Context &ctx) {
     using namespace mcfile::nbt;
-    auto ret = std::make_shared<ListTag>();
-    ret->fType = Tag::TAG_Compound;
+    auto ret = std::make_shared<ListTag>(Tag::TAG_Compound);
 
     auto mainHand = input.listTag("HandItems");
     std::shared_ptr<CompoundTag> item;

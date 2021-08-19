@@ -332,8 +332,7 @@ private:
       bees = c->listTag("Bees");
     }
     if (bees) {
-      auto occupants = make_shared<ListTag>();
-      occupants->fType = Tag::TAG_Compound;
+      auto occupants = make_shared<ListTag>(Tag::TAG_Compound);
       int32_t index = 0;
       for (auto const &it : *bees) {
         index++;
@@ -412,10 +411,8 @@ private:
         ret->set("Progress", Float(1));
         ret->set("State", Byte(2));
         ret->set("Sticky", Bool(sticky));
-        auto attachedBlocks = std::make_shared<ListTag>();
-        attachedBlocks->fType = Tag::TAG_Compound;
-        auto breakBlocks = std::make_shared<ListTag>();
-        breakBlocks->fType = Tag::TAG_Compound;
+        auto attachedBlocks = std::make_shared<ListTag>(Tag::TAG_Int);
+        auto breakBlocks = std::make_shared<ListTag>(Tag::TAG_Int);
         ret->set("AttachedBlocks", attachedBlocks);
         ret->set("BreakBlocks", breakBlocks);
         Attach(pos, *ret);
@@ -635,8 +632,7 @@ private:
       sorted[newSlot] = newItem;
     }
 
-    auto reordered = make_shared<ListTag>();
-    reordered->fType = Tag::TAG_Compound;
+    auto reordered = make_shared<ListTag>(Tag::TAG_Compound);
     for (auto it : sorted) {
       if (!it) {
         continue;
@@ -796,8 +792,7 @@ private:
     }
 
     auto patterns = GetList(c, "Patterns");
-    auto patternsBedrock = make_shared<ListTag>();
-    patternsBedrock->fType = Tag::TAG_Compound;
+    auto patternsBedrock = make_shared<ListTag>(Tag::TAG_Compound);
     if (patterns && type != 1) {
       for (auto const &pattern : *patterns) {
         auto p = pattern->asCompound();
@@ -988,8 +983,7 @@ private:
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> GetItems(std::shared_ptr<CompoundTag> const &c, std::string const &name, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
-    auto tag = std::make_shared<mcfile::nbt::ListTag>();
-    tag->fType = mcfile::nbt::Tag::TAG_Compound;
+    auto tag = std::make_shared<mcfile::nbt::ListTag>(mcfile::nbt::Tag::TAG_Compound);
     auto list = GetList(c, name);
     if (list == nullptr) {
       return tag;
