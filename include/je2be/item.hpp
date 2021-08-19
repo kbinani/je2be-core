@@ -317,8 +317,26 @@ private:
 
     E("writable_book", BooksAndQuill);
     E("written_book", BooksAndQuill);
+
+    E("axolotl_bucket", AxolotlBucket);
 #undef E
     return table;
+  }
+
+  static ItemData AxolotlBucket(std::string const &name, CompoundTag const &item) {
+    using namespace props;
+    auto ret = New("axolotl_bucket");
+    ret->set("Damage", Short(0));
+    auto tg = item.compoundTag("tag");
+    if (tg) {
+      auto age = tg->int32("Age", 0);
+      auto health = tg->float32("Health", 14);
+      auto variant = tg->int32("Variant", 0);
+      auto axltl = Axolotl(age, health, variant);
+      auto tag = axltl.toBucketTag();
+      ret->set("tag", tag);
+    }
+    return Post(ret, item);
   }
 
   static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item) {
@@ -834,6 +852,7 @@ private:
     E("splash_potion");
     E("lingering_potion");
     E("phantom_membrane");
+    E("axolotl_bucket");
 
     // listed with blocks, but not block item
 
