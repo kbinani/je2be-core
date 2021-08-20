@@ -99,10 +99,7 @@ private:
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
-    w.write(std::string());
-    entity->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    entity->writeAsRoot(w);
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);
@@ -439,7 +436,7 @@ private:
 
       for (int i = 0; i < palette.size(); i++) {
         shared_ptr<CompoundTag> const &tag = palette[i];
-        w.write((uint8_t)Tag::TAG_Compound);
+        w.write(static_cast<uint8_t>(Tag::Type::Compound));
         w.write(std::string());
         tag->write(w);
       }
@@ -468,7 +465,7 @@ private:
       w.write((uint32_t)numPaletteEntries);
 
       auto air = BlockData::Air();
-      w.write((uint8_t)Tag::TAG_Compound);
+      w.write(static_cast<uint8_t>(Tag::Type::Compound));
       w.write(string());
       air->write(w);
 
@@ -476,7 +473,7 @@ private:
       auto states = make_shared<CompoundTag>();
       states->set("liquid_depth", Int(0));
       water->set("states", states);
-      w.write((uint8_t)Tag::TAG_Compound);
+      w.write(static_cast<uint8_t>(Tag::Type::Compound));
       w.write(string());
       water->write(w);
     }

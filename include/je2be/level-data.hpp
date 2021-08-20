@@ -249,7 +249,7 @@ public:
     mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
     w.write((uint32_t)8);
     w.write((uint32_t)0);
-    w.write(mcfile::nbt::Tag::TAG_Compound);
+    w.write(static_cast<uint8_t>(mcfile::nbt::Tag::Type::Compound));
     w.write(std::string(""));
     auto tag = this->toCompoundTag();
     tag->write(w);
@@ -407,7 +407,7 @@ public:
 
     auto gateways = dragonFight->listTag("Gateways");
     if (gateways) {
-      auto v = std::make_shared<ListTag>(Tag::TAG_Int);
+      auto v = std::make_shared<ListTag>(Tag::Type::Int);
       for (auto const &it : *gateways) {
         auto p = it->asInt();
         if (!p) {
@@ -438,7 +438,7 @@ public:
       }
     }
     if (exitLocation) {
-      auto v = std::make_shared<ListTag>(Tag::TAG_Int);
+      auto v = std::make_shared<ListTag>(Tag::Type::Int);
       v->push_back(Int(exitLocation->fX));
       v->push_back(Int(exitLocation->fY));
       v->push_back(Int(exitLocation->fZ));
@@ -452,10 +452,10 @@ public:
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
+    w.write((uint8_t)Tag::Type::Compound);
     w.write(std::string());
     root->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    w.write((uint8_t)Tag::Type::End);
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);
@@ -484,10 +484,7 @@ public:
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
-    w.write(std::string());
-    ret->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    ret->writeAsRoot(w);
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);

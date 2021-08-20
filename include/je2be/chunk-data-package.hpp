@@ -142,10 +142,7 @@ private:
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
     for (auto const &tag : fTileEntities) {
-      w.write((uint8_t)Tag::TAG_Compound);
-      w.write(string());
-      tag->write(w);
-      w.write((uint8_t)Tag::TAG_End);
+      tag->writeAsRoot(w);
     }
     s->drain(cd.fBlockEntity);
   }
@@ -161,10 +158,7 @@ private:
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
     for (auto const &tag : fEntities) {
-      w.write((uint8_t)Tag::TAG_Compound);
-      w.write(string());
-      tag->write(w);
-      w.write((uint8_t)Tag::TAG_End);
+      tag->writeAsRoot(w);
     }
     s->drain(cd.fEntity);
   }
@@ -178,7 +172,7 @@ private:
     using namespace mcfile::stream;
     using namespace props;
 
-    auto tickList = make_shared<ListTag>(Tag::TAG_Compound);
+    auto tickList = make_shared<ListTag>(Tag::Type::Compound);
     for (auto it : fPendingTicks) {
       tickList->push_back(it.second);
     }
@@ -189,10 +183,7 @@ private:
 
     auto s = make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
-    w.write(string());
-    pendingTicks->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    pendingTicks->writeAsRoot(w);
     s->drain(cd.fPendingTicks);
   }
 

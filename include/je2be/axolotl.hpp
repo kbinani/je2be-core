@@ -59,7 +59,7 @@ public:
     ret->set("ColorID", String(fVariant.colorId()));
     ret->set("Variant", Int(fVariant.fBedrockRawValue));
 
-    auto definitions = make_shared<mcfile::nbt::ListTag>(Tag::TAG_String);
+    auto definitions = make_shared<mcfile::nbt::ListTag>(Tag::Type::String);
     definitions->push_back(String("+minecraft:axolotl"));
     definitions->push_back(String("+"));
     if (fAge < 0) {

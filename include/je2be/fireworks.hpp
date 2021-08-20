@@ -27,7 +27,7 @@ public:
   std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
     using namespace mcfile::nbt;
     auto ret = std::make_shared<CompoundTag>();
-    auto explosions = std::make_shared<ListTag>(Tag::TAG_Compound);
+    auto explosions = std::make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toCompoundTag());
     }

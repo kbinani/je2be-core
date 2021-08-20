@@ -332,7 +332,7 @@ private:
       bees = c->listTag("Bees");
     }
     if (bees) {
-      auto occupants = make_shared<ListTag>(Tag::TAG_Compound);
+      auto occupants = make_shared<ListTag>(Tag::Type::Compound);
       int32_t index = 0;
       for (auto const &it : *bees) {
         index++;
@@ -411,8 +411,8 @@ private:
         ret->set("Progress", Float(1));
         ret->set("State", Byte(2));
         ret->set("Sticky", Bool(sticky));
-        auto attachedBlocks = std::make_shared<ListTag>(Tag::TAG_Int);
-        auto breakBlocks = std::make_shared<ListTag>(Tag::TAG_Int);
+        auto attachedBlocks = std::make_shared<ListTag>(Tag::Type::Int);
+        auto breakBlocks = std::make_shared<ListTag>(Tag::Type::Int);
         ret->set("AttachedBlocks", attachedBlocks);
         ret->set("BreakBlocks", breakBlocks);
         Attach(pos, *ret);
@@ -632,7 +632,7 @@ private:
       sorted[newSlot] = newItem;
     }
 
-    auto reordered = make_shared<ListTag>(Tag::TAG_Compound);
+    auto reordered = make_shared<ListTag>(Tag::Type::Compound);
     for (auto it : sorted) {
       if (!it) {
         continue;
@@ -792,7 +792,7 @@ private:
     }
 
     auto patterns = GetList(c, "Patterns");
-    auto patternsBedrock = make_shared<ListTag>(Tag::TAG_Compound);
+    auto patternsBedrock = make_shared<ListTag>(Tag::Type::Compound);
     if (patterns && type != 1) {
       for (auto const &pattern : *patterns) {
         auto p = pattern->asCompound();
@@ -983,13 +983,13 @@ private:
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> GetItems(std::shared_ptr<CompoundTag> const &c, std::string const &name, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
-    auto tag = std::make_shared<mcfile::nbt::ListTag>(mcfile::nbt::Tag::TAG_Compound);
+    auto tag = std::make_shared<mcfile::nbt::ListTag>(mcfile::nbt::Tag::Type::Compound);
     auto list = GetList(c, name);
     if (list == nullptr) {
       return tag;
     }
     for (auto const &it : *list) {
-      if (it->id() != mcfile::nbt::Tag::TAG_Compound) {
+      if (it->type() != mcfile::nbt::Tag::Type::Compound) {
         continue;
       }
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(it);

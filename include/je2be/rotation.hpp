@@ -8,7 +8,7 @@ public:
 
   std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
     using namespace mcfile::nbt;
-    auto tag = std::make_shared<ListTag>(Tag::TAG_Float);
+    auto tag = std::make_shared<ListTag>(Tag::Type::Float);
     tag->push_back(std::make_shared<FloatTag>(fYaw));
     tag->push_back(std::make_shared<FloatTag>(fPitch));
     return tag;

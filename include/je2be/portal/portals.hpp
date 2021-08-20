@@ -22,7 +22,7 @@ public:
 
     auto root = make_shared<CompoundTag>();
     auto data = make_shared<CompoundTag>();
-    auto portalRecords = make_shared<ListTag>(Tag::TAG_Compound);
+    auto portalRecords = make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &portal : portals) {
       portalRecords->push_back(portal.toCompoundTag());
     }
@@ -31,10 +31,7 @@ public:
 
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
-    w.write(string());
-    root->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    root->writeAsRoot(w);
 
     auto key = Key::Portals();
     vector<uint8_t> buffer;

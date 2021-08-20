@@ -82,7 +82,7 @@ public:
       ret->set("zCenter", Int(*zCenter));
 
       std::vector<uint8_t> outColors(65536);
-      auto decorations = make_shared<ListTag>(Tag::TAG_Compound);
+      auto decorations = make_shared<ListTag>(Tag::Type::Compound);
 
       if (beScale == *scale) {
         int i = 0;
@@ -215,10 +215,7 @@ public:
       {
         auto out = make_shared<ByteStream>();
         OutputStreamWriter w(out, {.fLittleEndian = true});
-        w.write((uint8_t)Tag::TAG_Compound);
-        w.write(string());
-        ret->write(w);
-        w.write((uint8_t)Tag::TAG_End);
+        ret->writeAsRoot(w);
         out->drain(serialized);
       }
       auto key = Key::Map(uuid);

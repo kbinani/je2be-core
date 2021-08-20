@@ -391,7 +391,7 @@ private:
       }
       auto pages = tg->listTag("pages");
       if (pages) {
-        auto outPages = std::make_shared<ListTag>(Tag::TAG_Compound);
+        auto outPages = std::make_shared<ListTag>(Tag::Type::Compound);
         for (auto const &it : *pages) {
           auto line = it->asString();
           if (!line) {
@@ -949,7 +949,7 @@ private:
       tag->set("Type", props::Int(1));
       ret->set("tag", tag);
     } else if (patterns) {
-      auto bePatterns = std::make_shared<ListTag>(Tag::TAG_Compound);
+      auto bePatterns = std::make_shared<ListTag>(Tag::Type::Compound);
       for (auto const &it : *patterns) {
         auto c = it->asCompound();
         if (!c) {
@@ -1085,7 +1085,7 @@ private:
 
     auto storedEnchantments = tag->listTag("StoredEnchantments");
     if (storedEnchantments) {
-      auto ench = make_shared<ListTag>(Tag::TAG_Compound);
+      auto ench = make_shared<ListTag>(Tag::Type::Compound);
       for (auto const &e : *storedEnchantments) {
         auto c = e->asCompound();
         if (!c) {
@@ -1101,7 +1101,7 @@ private:
     } else {
       auto enchantments = tag->listTag("Enchantments");
       if (enchantments) {
-        auto ench = make_shared<ListTag>(Tag::TAG_Compound);
+        auto ench = make_shared<ListTag>(Tag::Type::Compound);
         for (auto const &e : *enchantments) {
           auto c = e->asCompound();
           if (!c) {
