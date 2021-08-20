@@ -4,6 +4,8 @@ project(je2be)
 include(CheckCCompilerFlag)
 include(ext/setup_source_groups/setup_source_groups.cmake)
 
+set(BUILD_SHARED_LIBS OFF)
+
 set(je2be_files
   include/je2be/level-data.hpp
   include/je2be/props.hpp
@@ -142,35 +144,41 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND je2be_link_libraries pthread)
 endif()
 
-list(APPEND je2be_include_directories "include")
-list(APPEND je2be_include_directories "ext/libminecraft-file/include")
-list(APPEND je2be_include_directories ext/leveldb/include)
+list(APPEND je2be_include_directories include)
+list(APPEND je2be_include_directories ext/libminecraft-file/include)
 list(APPEND je2be_include_directories ext/leveldb)
 list(APPEND je2be_include_directories ext/thread-pool/include)
 list(APPEND je2be_include_directories ext/json/single_include)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/std:c++latest /bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
-  list(APPEND je2be_include_directories "${CMAKE_BINARY_DIR}/deps/zlib")
-  list(APPEND je2be_include_directories "ext/zlib")
-  list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/zlib/${CMAKE_BUILD_TYPE}")
-  list(APPEND je2be_link_libraries zlib xxhash)
+
+  set(ZLIB_COMPAT ON)
+  add_subdirectory(ext/zlib-ng)
+  list(APPEND je2be_include_directories ext/zlib-ng "${CMAKE_BINARY_DIR}/ext/zlib-ng")
+
+  add_subdirectory(ext/xxHash/cmake_unofficial)
+  add_subdirectory(ext/leveldb)
+
+  list(APPEND je2be_link_libraries zlibstatic)
 else()
   add_definitions(-std=c++17)
-  list(APPEND je2be_link_libraries z xxhash)
+
+  add_subdirectory(ext/xxHash/cmake_unofficial)
+  add_subdirectory(ext/leveldb)
+
+  list(APPEND je2be_link_libraries z)
 endif()
-list(APPEND je2be_include_directories "ext/xxHash")
-list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/leveldb/${CMAKE_BUILD_TYPE}")
-list(APPEND je2be_link_directories "${CMAKE_BINARY_DIR}/deps/xxHash/${CMAKE_BUILD_TYPE}")
+list(APPEND je2be_link_libraries xxhash leveldb)
 
 target_include_directories(cli PRIVATE ${je2be_include_directories})
-target_link_libraries(cli ${je2be_link_libraries} leveldb)
+target_link_libraries(cli ${je2be_link_libraries})
 target_link_directories(cli PRIVATE ${je2be_link_directories})
 
 target_include_directories(dump PRIVATE ${je2be_include_directories})
-target_link_libraries(dump ${je2be_link_libraries} leveldb)
+target_link_libraries(dump ${je2be_link_libraries})
 target_link_directories(dump PRIVATE ${je2be_link_directories})
 
 target_include_directories(test PRIVATE ext/doctest ${je2be_include_directories})
-target_link_libraries(test ${je2be_link_libraries} leveldb)
+target_link_libraries(test ${je2be_link_libraries})
 target_link_directories(test PRIVATE ${je2be_link_directories})
