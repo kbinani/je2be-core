@@ -4,9 +4,6 @@
 [submodule "ext/leveldb"]
 	path = ext/leveldb
 	url = https://github.com/pmmp/leveldb.git
-[submodule "ext/zlib"]
-	path = ext/zlib
-	url = https://github.com/commontk/zlib.git
 [submodule "ext/setup_source_groups"]
 	path = ext/setup_source_groups
 	url = https://gist.github.com/d042b6d630d175cc4941eaf6fd2c3a3c.git
@@ -22,3 +19,6 @@
 [submodule "ext/doctest"]
 	path = ext/doctest
 	url = https://github.com/onqtam/doctest.git
+[submodule "ext/zlib-ng"]
+	path = ext/zlib-ng
+	url = https://github.com/zlib-ng/zlib-ng.git
