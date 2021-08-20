@@ -1568,6 +1568,9 @@ private:
   static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
     using namespace mcfile::nbt;
     auto armors = std::make_shared<ListTag>(Tag::Type::Compound);
+    for (int i = 0; i < 4; i++) {
+      armors->push_back(Item::Empty());
+    }
 
     auto found = tag.find("ArmorItems");
     if (found != tag.end()) {
@@ -1575,21 +1578,13 @@ private:
       if (list && list->fType == Tag::Type::Compound) {
         for (int i = 0; i < 4 && i < list->size(); i++) {
           auto item = std::dynamic_pointer_cast<CompoundTag>(list->at(i));
-          if (item) {
-            auto converted = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
-            armors->push_back(converted);
-          } else {
-            armors->push_back(Item::Empty());
+          if (!item) {
+            continue;
           }
-        }
-      }
-    }
-    for (int i = 0; i < 4; i++) {
-      if (armors->size() < i + 1) {
-        armors->push_back(Item::Empty());
-      } else {
-        if (!armors->at(i)) {
-          armors->at(i) = Item::Empty();
+          auto converted = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
+          if (converted) {
+            armors->fValue[i] = converted;
+          }
         }
       }
     }
