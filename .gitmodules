@@ -3,7 +3,7 @@
 	url = https://github.com/kbinani/libminecraft-file.git
 [submodule "ext/leveldb"]
 	path = ext/leveldb
-	url = https://github.com/kbinani/leveldb.git
+	url = https://github.com/pmmp/leveldb.git
 [submodule "ext/zlib"]
 	path = ext/zlib
 	url = https://github.com/commontk/zlib.git
