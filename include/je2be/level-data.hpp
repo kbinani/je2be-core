@@ -452,10 +452,7 @@ public:
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::Type::Compound);
-    w.write(std::string());
-    root->write(w);
-    w.write((uint8_t)Tag::Type::End);
+    root->writeAsRoot(w);
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);
