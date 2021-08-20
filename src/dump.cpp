@@ -28,7 +28,7 @@ static optional<j2b::Dimension> DimensionFromString(string const &s) {
 
 static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
-  o.compression = kZstdCompression;
+  o.compression = kZlibRawCompression;
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
@@ -129,7 +129,7 @@ static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d
 
 static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
-  o.compression = kZstdCompression;
+  o.compression = kZlibRawCompression;
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
@@ -181,9 +181,9 @@ static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimen
   delete db;
 }
 
-static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, Key::Tag tag) {
+static void DumpKey(string const &dbDir, string const &key) {
   Options o;
-  o.compression = kZstdCompression;
+  o.compression = kZlibRawCompression;
   DB *db;
   Status st = DB::Open(o, dbDir, &db);
   if (!st.ok()) {
@@ -193,8 +193,6 @@ static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, Key::
   ReadOptions ro;
   nbt::JsonPrintOptions jopt;
   jopt.fTypeHint = true;
-
-  auto key = Key::ComposeChunkKey(cx, cz, d, tag);
 
   string value;
   st = db->Get(ro, key, &value);
@@ -221,6 +219,11 @@ static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, Key::
   }
 
   delete db;
+}
+
+static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, Key::Tag tag) {
+  auto key = Key::ComposeChunkKey(cx, cz, d, tag);
+  DumpKey(dbDir, key);
 }
 
 static bool DumpLevelDat(string const &dbDir) {
@@ -258,6 +261,7 @@ static void PrintHelpMessage() {
   cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] pending ticks in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] level.dat)" << endl;
+  cerr << R"("dump.exe [world-dir] <any-string>)" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -405,6 +409,10 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     DumpChunkKey(dir, *cx, *cz, *dimension, Key::Tag::PendingTicks);
+  } else if (args.size() == 3) {
+    auto key = verb;
+    DumpKey(dir, key);
+    return 0;
   } else {
     PrintHelpMessage();
     return 1;

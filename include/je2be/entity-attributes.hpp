@@ -14,6 +14,10 @@ class EntityAttributes {
 
     Attribute(double base, double current, double max = std::numeric_limits<float>::max()) : base(base), current(current), max(max) {}
 
+    void updateCurrent(float v) {
+      current = std::min(v, max);
+    }
+
     std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
       auto a = std::make_shared<CompoundTag>();
       a->set("Base", props::Float(base));
@@ -40,8 +44,7 @@ class EntityAttributes {
     std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
       using namespace mcfile::nbt;
 
-      auto list = std::make_shared<ListTag>();
-      list->fType = Tag::TAG_Compound;
+      auto list = std::make_shared<ListTag>(Tag::Type::Compound);
       list->push_back(luck.toCompoundTag("luck"));
       list->push_back(health.toCompoundTag("health"));
       list->push_back(absorption.toCompoundTag("absorption"));
@@ -58,13 +61,13 @@ class EntityAttributes {
   };
 
 public:
-  static std::shared_ptr<mcfile::nbt::ListTag> Mob(std::string const &name) {
+  static std::optional<Attributes> Mob(std::string const &name) {
     static std::unique_ptr<std::unordered_map<std::string, Attributes> const> const table(CreateTable());
     auto found = table->find(name);
     if (found == table->end()) {
-      return nullptr;
+      return std::nullopt;
     }
-    return found->second.toListTag();
+    return found->second;
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> AnyHorse(CompoundTag const &tag) {
@@ -101,8 +104,7 @@ public:
     Attribute followRange(16, 16, 2048);
     Attribute absorption(0, 0, 16);
 
-    auto ret = make_shared<ListTag>();
-    ret->fType = Tag::TAG_Compound;
+    auto ret = make_shared<ListTag>(Tag::Type::Compound);
     ret->push_back(luck.toCompoundTag("luck"));
     ret->push_back(health.toCompoundTag("health"));
     ret->push_back(movement.toCompoundTag("movement"));

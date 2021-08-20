@@ -150,7 +150,7 @@ inline std::optional<Vec> GetVec(mcfile::nbt::CompoundTag const &tag, std::strin
   if (!list) {
     return nullopt;
   }
-  if (list->fType != Tag::TAG_Double || list->size() != 3) {
+  if (list->fType != Tag::Type::Double || list->size() != 3) {
     return nullopt;
   }
   double x = list->at(0)->asDouble()->fValue;
@@ -170,7 +170,7 @@ inline std::optional<Rotation> GetRotation(mcfile::nbt::CompoundTag const &tag, 
   if (!list) {
     return nullopt;
   }
-  if (list->fType != Tag::TAG_Float || list->size() != 2) {
+  if (list->fType != Tag::Type::Float || list->size() != 2) {
     return nullopt;
   }
   double yaw = list->at(0)->asFloat()->fValue;

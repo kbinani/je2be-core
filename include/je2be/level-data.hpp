@@ -249,7 +249,7 @@ public:
     mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
     w.write((uint32_t)8);
     w.write((uint32_t)0);
-    w.write(mcfile::nbt::Tag::TAG_Compound);
+    w.write(static_cast<uint8_t>(mcfile::nbt::Tag::Type::Compound));
     w.write(std::string(""));
     auto tag = this->toCompoundTag();
     tag->write(w);
@@ -407,8 +407,7 @@ public:
 
     auto gateways = dragonFight->listTag("Gateways");
     if (gateways) {
-      auto v = std::make_shared<ListTag>();
-      v->fType = Tag::TAG_Int;
+      auto v = std::make_shared<ListTag>(Tag::Type::Int);
       for (auto const &it : *gateways) {
         auto p = it->asInt();
         if (!p) {
@@ -439,8 +438,7 @@ public:
       }
     }
     if (exitLocation) {
-      auto v = std::make_shared<ListTag>();
-      v->fType = Tag::TAG_Int;
+      auto v = std::make_shared<ListTag>(Tag::Type::Int);
       v->push_back(Int(exitLocation->fX));
       v->push_back(Int(exitLocation->fY));
       v->push_back(Int(exitLocation->fZ));
@@ -454,10 +452,36 @@ public:
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
-    w.write(std::string());
-    root->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    root->writeAsRoot(w);
+
+    std::vector<uint8_t> buffer;
+    s->drain(buffer);
+    std::string str((char const *)buffer.data(), buffer.size());
+    return str;
+  }
+
+  static std::optional<std::string> MobEvents(CompoundTag const &tag) {
+    using namespace std;
+    using namespace props;
+    using namespace mcfile::nbt;
+
+    auto gameRulesTag = tag.query("/Data/GameRules");
+    if (!gameRulesTag) {
+      return nullopt;
+    }
+    auto gameRules = gameRulesTag->asCompound();
+    if (!gameRules) {
+      return nullptr;
+    }
+    auto ret = make_shared<CompoundTag>();
+    ret->set("events_enabled", Bool(true));
+    ret->set("minecraft:ender_dragon_event", Bool(true));
+    ret->set("minecraft:pillager_patrols_event", Bool(gameRules->boolean("doPatrolSpawning", true)));
+    ret->set("minecraft:wandering_trader_event", Bool(gameRules->boolean("doTraderSpawning", true)));
+
+    auto s = std::make_shared<mcfile::stream::ByteStream>();
+    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    ret->writeAsRoot(w);
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);

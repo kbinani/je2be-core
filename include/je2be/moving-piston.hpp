@@ -48,8 +48,7 @@ public:
           LookupAttachedBlocks(loader, pistonHeadPos, true, facing, attachedBlocks);
 
           auto pistonArm = make_shared<CompoundTag>();
-          auto attachedBlocksTag = make_shared<ListTag>();
-          attachedBlocksTag->fType = Tag::TAG_Int;
+          auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
           for (auto pos : attachedBlocks) {
             Pos3i actual = pos - VectorOfFacing(facing);
             attachedBlocksTag->push_back(Int(actual.fX));
@@ -57,7 +56,7 @@ public:
             attachedBlocksTag->push_back(Int(actual.fZ));
           }
           pistonArm->set("AttachedBlocks", attachedBlocksTag);
-          pistonArm->set("BreakBlocks", make_shared<ListTag>());
+          pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
           pistonArm->set("LastProgress", Float(0));
           pistonArm->set("NewState", Byte(1));
           pistonArm->set("Progress", Float(0.5));
@@ -125,15 +124,14 @@ public:
             LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
 
             auto pistonArm = make_shared<CompoundTag>();
-            auto attachedBlocksTag = make_shared<ListTag>();
-            attachedBlocksTag->fType = Tag::TAG_Int;
+            auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
             for (auto pos : attachedBlocks) {
               attachedBlocksTag->push_back(Int(pos.fX));
               attachedBlocksTag->push_back(Int(pos.fY));
               attachedBlocksTag->push_back(Int(pos.fZ));
             }
             pistonArm->set("AttachedBlocks", attachedBlocksTag);
-            pistonArm->set("BreakBlocks", make_shared<ListTag>());
+            pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
             pistonArm->set("LastProgress", Float(0.5));
             pistonArm->set("NewState", Byte(3));
             pistonArm->set("Progress", Float(0));

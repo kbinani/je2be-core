@@ -64,6 +64,7 @@
 #include <je2be/fireworks.hpp>
 #include <je2be/entity-attributes.hpp>
 #include <je2be/tropical-fish.hpp>
+#include <je2be/axolotl.hpp>
 #include <je2be/item.hpp>
 #include <je2be/entity.hpp>
 #include <je2be/tile-entity.hpp>

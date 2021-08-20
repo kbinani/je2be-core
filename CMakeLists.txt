@@ -60,6 +60,7 @@ set(je2be_files
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
   include/je2be/moving-piston.hpp
+  include/je2be/axolotl.hpp
   # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp

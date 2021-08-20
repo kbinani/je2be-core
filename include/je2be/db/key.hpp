@@ -78,6 +78,8 @@ public:
 
   static std::string LocalPlayer() { return "~local_player"; }
 
+  static std::string MobEvents() { return "mobevents"; }
+
   static std::string ComposeChunkKey(int32_t chunkX, int32_t chunkZ, Dimension dim, uint8_t tag) {
     std::vector<char> b;
     PlaceXZTag(b, chunkX, chunkZ, tag);

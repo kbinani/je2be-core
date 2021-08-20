@@ -20,9 +20,18 @@ public:
     auto theEnd = LevelData::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
     if (theEnd) {
       db.put(Key::TheEnd(), *theEnd);
+    } else {
+      db.del(Key::TheEnd());
     }
 
     fStructures.put(db);
+
+    auto mobEvents = LevelData::MobEvents(javaLevelData);
+    if (mobEvents) {
+      db.put(Key::MobEvents(), *mobEvents);
+    } else {
+      db.del(Key::MobEvents());
+    }
   }
 
 private:
@@ -30,8 +39,7 @@ private:
     using namespace mcfile::nbt;
     using namespace mcfile::stream;
 
-    auto list = std::make_shared<ListTag>();
-    list->fType = Tag::TAG_Compound;
+    auto list = std::make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &e : fAutonomousEntities) {
       list->push_back(e);
     }
@@ -40,10 +48,7 @@ private:
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint8_t)Tag::TAG_Compound);
-    w.write(std::string());
-    root->write(w);
-    w.write((uint8_t)Tag::TAG_End);
+    root->writeAsRoot(w);
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);

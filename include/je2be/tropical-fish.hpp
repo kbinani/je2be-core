@@ -18,7 +18,9 @@ public:
     using namespace std;
     auto ret = make_shared<mcfile::nbt::CompoundTag>();
     auto attributes = EntityAttributes::Mob("minecraft:tropical_fish");
-    ret->set("Attributes", attributes);
+    if (attributes) {
+      ret->set("Attributes", attributes->toListTag());
+    }
     ret->set("Variant", Int(fSmall ? 0 : 1));
     ret->set("MarkVariant", Int(fPattern));
     ret->set("Color", Byte(fBodyColor));

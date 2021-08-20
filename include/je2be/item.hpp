@@ -317,8 +317,33 @@ private:
 
     E("writable_book", BooksAndQuill);
     E("written_book", BooksAndQuill);
+
+    E("axolotl_bucket", AxolotlBucket);
 #undef E
     return table;
+  }
+
+  static ItemData AxolotlBucket(std::string const &name, CompoundTag const &item) {
+    using namespace props;
+    auto ret = New("axolotl_bucket");
+    ret->set("Damage", Short(0));
+    auto tg = item.compoundTag("tag");
+    if (tg) {
+      auto age = tg->int32("Age", 0);
+      auto health = tg->float32("Health", 14);
+      auto variant = tg->int32("Variant", 0);
+      auto axltl = Axolotl(age, health, variant);
+      auto tag = axltl.toBucketTag();
+
+      auto name = GetCustomName(*tg);
+      if (name) {
+        tag->set("CustomName", String(*name));
+        tag->set("CustomNameVisible", Bool(true));
+      }
+
+      ret->set("tag", tag);
+    }
+    return ret;
   }
 
   static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item) {
@@ -366,8 +391,7 @@ private:
       }
       auto pages = tg->listTag("pages");
       if (pages) {
-        auto outPages = std::make_shared<ListTag>();
-        outPages->fType = Tag::TAG_Compound;
+        auto outPages = std::make_shared<ListTag>(Tag::Type::Compound);
         for (auto const &it : *pages) {
           auto line = it->asString();
           if (!line) {
@@ -835,6 +859,7 @@ private:
     E("splash_potion");
     E("lingering_potion");
     E("phantom_membrane");
+    E("axolotl_bucket");
 
     // listed with blocks, but not block item
 
@@ -924,8 +949,7 @@ private:
       tag->set("Type", props::Int(1));
       ret->set("tag", tag);
     } else if (patterns) {
-      auto bePatterns = std::make_shared<ListTag>();
-      bePatterns->fType = Tag::TAG_Compound;
+      auto bePatterns = std::make_shared<ListTag>(Tag::Type::Compound);
       for (auto const &it : *patterns) {
         auto c = it->asCompound();
         if (!c) {
@@ -1061,8 +1085,7 @@ private:
 
     auto storedEnchantments = tag->listTag("StoredEnchantments");
     if (storedEnchantments) {
-      auto ench = make_shared<ListTag>();
-      ench->fType = Tag::TAG_Compound;
+      auto ench = make_shared<ListTag>(Tag::Type::Compound);
       for (auto const &e : *storedEnchantments) {
         auto c = e->asCompound();
         if (!c) {
@@ -1078,7 +1101,7 @@ private:
     } else {
       auto enchantments = tag->listTag("Enchantments");
       if (enchantments) {
-        auto ench = make_shared<ListTag>();
+        auto ench = make_shared<ListTag>(Tag::Type::Compound);
         for (auto const &e : *enchantments) {
           auto c = e->asCompound();
           if (!c) {
@@ -1090,7 +1113,6 @@ private:
           }
           ench->push_back(be);
         }
-        ench->fType = Tag::TAG_Compound;
         auto damage = tag->int32("Damage", 0);
         auto repairCost = tag->int32("RepairCost", 1);
         beTag->set("Damage", Int(damage));
@@ -1099,26 +1121,11 @@ private:
       }
     }
 
-    auto display = tag->compoundTag("display");
-    if (display) {
-      auto name = display->string("Name");
-      if (name) {
-        auto obj = ParseAsJson(*name);
-        if (obj) {
-          auto text = obj->find("text");
-          if (text != obj->end() && text->is_string()) {
-            auto n = text->get<string>();
-            auto beDisplay = make_shared<CompoundTag>();
-            beDisplay->set("Name", String(n));
-            beTag->set("display", beDisplay);
-          }
-        } else {
-          auto text = strings::Trim("\"", *name, "\"");
-          auto beDisplay = make_shared<CompoundTag>();
-          beDisplay->set("Name", String(text));
-          beTag->set("display", beDisplay);
-        }
-      }
+    auto name = GetCustomName(*tag);
+    if (name) {
+      auto beDisplay = make_shared<CompoundTag>();
+      beDisplay->set("Name", String(*name));
+      beTag->set("display", beDisplay);
     }
 
     if (!beTag->empty()) {
@@ -1126,6 +1133,30 @@ private:
     }
 
     return input;
+  }
+
+  static std::optional<std::string> GetCustomName(mcfile::nbt::CompoundTag const &tag) {
+    using namespace std;
+    using namespace props;
+    auto display = tag.compoundTag("display");
+    if (!display) {
+      return nullopt;
+    }
+    auto name = display->string("Name");
+    if (!name) {
+      return nullopt;
+    }
+    auto obj = ParseAsJson(*name);
+    if (obj) {
+      auto text = obj->find("text");
+      if (text != obj->end() && text->is_string()) {
+        return text->get<string>();
+      } else {
+        return nullopt;
+      }
+    } else {
+      return strings::Trim("\"", *name, "\"");
+    }
   }
 
   // converts block name (bedrock) to item name (bedrock)
