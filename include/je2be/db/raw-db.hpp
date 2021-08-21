@@ -57,8 +57,9 @@ public:
           Slice k = ik.Encode();
           batch->Put(k, value);
           if (batch->ApproximateSize() > o.max_file_size) {
-            if (futures.size() > 10 * concurrency) {
-              for (unsigned int i = 0; i < 5 * concurrency; i++) {
+            if (futures.size() > concurrency) {
+              size_t pop = futures.size() - (size_t)(concurrency / 2);
+              for (size_t i = 0; i < pop; i++) {
                 futures.front().get();
                 futures.pop_front();
               }
