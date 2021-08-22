@@ -3,8 +3,8 @@ name: CI
 on: push
 
 jobs:
-  TestOnNix:
-    runs-on: [ubuntu-latest, macos-latest]
+  TestOnLinux:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
