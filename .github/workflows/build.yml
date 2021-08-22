@@ -20,7 +20,7 @@ jobs:
           cmake --build . --parallel --target test --config Release --verbose
           ./test
 
-  TestOnWin:
+  TestOnWindows:
     runs-on: windows-latest
 
     steps:
@@ -35,6 +35,7 @@ jobs:
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
+          cd Release
           test
 
   Lint:
