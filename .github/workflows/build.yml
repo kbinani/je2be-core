@@ -3,7 +3,41 @@ name: CI
 on: push
 
 jobs:
-  Build:
+  TestOnNix:
+    runs-on: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build
+        run: |
+          mkdir -p ./build
+          cd ./build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --parallel --target test --config Release --verbose
+          ./test
+
+  TestOnWin:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --parallel --target test --config Release --verbose
+          test
+
+  Lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +56,6 @@ jobs:
         uses: github/codeql-action/init@v1
         with:
           languages: cpp
-
-      - name: Build
-        run: |
-          mkdir -p ./build
-          cd ./build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --parallel --target test --config Release --verbose
-          ./test
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
