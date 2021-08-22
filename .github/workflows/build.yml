@@ -3,7 +3,7 @@ name: CI
 on: push
 
 jobs:
-  TestOnLinux:
+  Linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,7 +34,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
 
-  TestOnWindows:
+  Windows:
     runs-on: windows-latest
 
     steps:
