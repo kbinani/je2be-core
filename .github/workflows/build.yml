@@ -3,7 +3,7 @@ name: CI
 on: push
 
 jobs:
-  Build:
+  Linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,3 +33,21 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
+
+  Windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --parallel --target test --config Release --verbose
+          cd Release
+          cmd /c test.exe
