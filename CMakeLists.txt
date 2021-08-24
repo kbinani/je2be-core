@@ -12,7 +12,12 @@ set(je2be_files
   include/je2be/version.hpp
   include/je2be/db/db-interface.hpp
   include/je2be/db/db.hpp
-  include/je2be/enums.hpp
+  include/je2be/enums/banner-color-code-bedrock.hpp
+  include/je2be/enums/color-code-java.hpp
+  include/je2be/enums/dimension.hpp
+  include/je2be/enums/level-directory-structure.hpp
+  include/je2be/enums/villager-profession.hpp
+  include/je2be/enums/villager-type.hpp
   include/je2be/db/key.hpp
   include/je2be.hpp
   include/je2be/converter.hpp
