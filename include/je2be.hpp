@@ -17,11 +17,15 @@
 
 #include <set>
 #include <unordered_set>
-
 #include <je2be/algorithm.hpp>
 #include <je2be/file.hpp>
 #include <je2be/strings.hpp>
-#include <je2be/enums.hpp>
+#include <je2be/enums/banner-color-code-bedrock.hpp>
+#include <je2be/enums/color-code-java.hpp>
+#include <je2be/enums/dimension.hpp>
+#include <je2be/enums/level-directory-structure.hpp>
+#include <je2be/enums/villager-profession.hpp>
+#include <je2be/enums/villager-type.hpp>
 #include <je2be/pos2.hpp>
 #include <je2be/pos3.hpp>
 #include <je2be/volume.hpp>
