@@ -20,8 +20,8 @@
 
 #include <je2be/algorithm.hpp>
 #include <je2be/file.hpp>
-#include <je2be/enums.hpp>
 #include <je2be/strings.hpp>
+#include <je2be/enums.hpp>
 #include <je2be/pos2.hpp>
 #include <je2be/pos3.hpp>
 #include <je2be/volume.hpp>

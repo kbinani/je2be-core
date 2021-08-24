@@ -656,71 +656,37 @@ private:
     return c;
   }
 
-  static EntityData Villager(EntityData const &c, CompoundTag const &tag, Context &) {
+  static EntityData Villager(EntityData const &c, CompoundTag const &tag, Context &ctx) {
     using namespace std;
     using namespace props;
+    using namespace mcfile::nbt;
+
     auto data = tag.compoundTag("VillagerData");
+    optional<VillagerProfession> profession;
+    optional<VillagerType> type;
     if (data) {
       auto inProfession = data->string("profession");
+      if (inProfession) {
+        profession = VillagerProfession::FromJavaProfession(*inProfession);
+      }
+
       auto inType = data->string("type");
-      auto level = data->int32("level", 1);
-      if (inProfession && inType) {
-        auto profession = strings::LTrim(*inProfession, "minecraft:");
-        int32_t variant = 0;
-        if (profession == "shepherd") {
-          variant = 3;
-        } else if (profession == "farmer") {
-          variant = 1;
-        } else if (profession == "fisherman") {
-          variant = 2;
-        } else if (profession == "butcher") {
-          variant = 11;
-        } else if (profession == "armorer") {
-          variant = 8;
-        } else if (profession == "cartographer") {
-          variant = 6;
-        } else if (profession == "fletcher") {
-          variant = 4;
-        } else if (profession == "weaponsmith") {
-          variant = 9;
-        } else if (profession == "toolsmith") {
-          variant = 10;
-        } else if (profession == "mason") {
-          variant = 13;
-        } else if (profession == "leatherworker") {
-          variant = 12;
-        } else if (profession == "cleric") {
-          variant = 7;
-        } else if (profession == "librarian") {
-          variant = 5;
-        }
-        c->set("PreferredProfession", String(profession));
-        AddDefinition(c, "+" + profession);
-
-        auto type = strings::LTrim(*inType, "minecraft:");
-        int32_t mark = 0;
-        if (type == "savanna") {
-          mark = 3;
-        } else if (type == "plains") {
-          mark = 0;
-        } else if (type == "desert") {
-          mark = 1;
-        } else if (type == "jungle") {
-          mark = 2;
-        } else if (type == "snow") {
-          mark = 4;
-        } else if (type == "swamp") {
-          mark = 5;
-        } else if (type == "taiga") {
-          mark = 6;
-        }
-        AddDefinition(c, "+" + type + "_villager");
-
-        c->set("Variant", Int(variant));
-        c->set("MarkVariant", Int(mark));
-        c->set("TradeTier", Int(level - 1));
+      if (inType) {
+        type = VillagerType::FromJavaType(*inType);
       }
     }
+
+    if (profession) {
+      c->set("PreferredProfession", String(profession->string()));
+      AddDefinition(c, "+" + profession->string());
+      c->set("Variant", Int(profession->variant()));
+      c->set("TradeTablePath", String(profession->tradeTablePath()));
+    }
+    if (type) {
+      AddDefinition(c, "+" + type->string() + "_villager");
+      c->set("MarkVariant", Int(type->variant()));
+    }
+
     auto age = tag.int32("Age", 0);
     if (age < 0) {
       c->set("Age", Int(age));
@@ -729,7 +695,144 @@ private:
       AddDefinition(c, "+adult");
     }
     AddDefinition(c, "+minecraft:villager_v2");
+
+    auto offers = tag.compoundTag("Offers");
+    if (offers) {
+      auto recipes = offers->listTag("Recipes");
+      if (recipes) {
+        auto rs = make_shared<ListTag>(Tag::Type::Compound);
+        for (int i = 0; i < recipes->size(); i++) {
+          auto recipe = recipes->at(i);
+          auto r = recipe->asCompound();
+          if (!r) {
+            continue;
+          }
+          auto converted = BedrockRecipieFromJava(*r, ctx);
+          if (!converted) {
+            continue;
+          }
+          int tier = i / 2;
+          converted->set("tier", Int(tier));
+          rs->push_back(converted);
+        }
+        if (!rs->empty()) {
+          auto of = make_shared<CompoundTag>();
+          of->set("Recipes", rs);
+          auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
+          auto tier0 = make_shared<CompoundTag>();
+          tier0->set("0", Int(0));
+          auto tier1 = make_shared<CompoundTag>();
+          tier1->set("1", Int(10));
+          auto tier2 = make_shared<CompoundTag>();
+          tier2->set("2", Int(70));
+          auto tier3 = make_shared<CompoundTag>();
+          tier3->set("3", Int(150));
+          auto tier4 = make_shared<CompoundTag>();
+          tier4->set("4", Int(250));
+          expRequirements->push_back(tier0);
+          expRequirements->push_back(tier1);
+          expRequirements->push_back(tier2);
+          expRequirements->push_back(tier3);
+          expRequirements->push_back(tier4);
+          of->set("TierExpRequirements", expRequirements);
+          c->set("Offers", of);
+        }
+      }
+    }
+
+    auto tradeExp = tag.int32("Xp", 0);
+    c->set("TradeExperience", Int(tradeExp));
+
+    int tradeTier = 0;
+    if (tradeExp >= 250) {
+      tradeTier = 4;
+    } else if (tradeExp >= 150) {
+      tradeTier = 3;
+    } else if (tradeExp >= 70) {
+      tradeTier = 2;
+    } else if (tradeExp >= 10) {
+      tradeTier = 1;
+    }
+    c->set("TradeTier", Int(tradeTier));
+
     return c;
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> BedrockRecipieFromJava(mcfile::nbt::CompoundTag const &java, Context &ctx) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    using namespace props;
+
+    auto buyA = java.compoundTag("buy");
+    auto buyB = java.compoundTag("buyB");
+    auto sell = java.compoundTag("sell");
+
+    if (!buyA || !sell) {
+      return nullptr;
+    }
+    auto bedrock = make_shared<CompoundTag>();
+
+    {
+      auto count = buyA->byte("Count", 0);
+      auto item = Item::From(buyA, ctx.fMapInfo, ctx.fDimensionData);
+      if (item && count > 0) {
+        bedrock->set("buyA", item);
+        bedrock->set("buyCountA", Int(count));
+      } else {
+        return nullptr;
+      }
+    }
+
+    if (buyB) {
+      auto count = buyB->byte("Count", 0);
+      auto id = buyB->string("id", "minecraft:air");
+      auto item = Item::From(buyB, ctx.fMapInfo, ctx.fDimensionData);
+      if (id != "minecraft:air" && item && count > 0) {
+        bedrock->set("buyB", item);
+        bedrock->set("buyCountB", Int(count));
+      } else {
+        bedrock->set("buyCountB", Int(0));
+      }
+    } else {
+      bedrock->set("buyCountB", Int(0));
+    }
+
+    {
+      auto count = sell->byte("Count", 0);
+      if (count <= 0) {
+        return nullptr;
+      }
+      auto item = Item::From(sell, ctx.fMapInfo, ctx.fDimensionData);
+      if (!item) {
+        return nullptr;
+      }
+      bedrock->set("sell", item);
+    }
+
+    auto demand = java.int32("demand", 0);
+    bedrock->set("demand", Int(0)); //demand));
+
+    auto maxUses = java.int32("maxUses", 16);
+    bedrock->set("maxUses", Int(maxUses));
+
+    auto priceMultiplierA = java.float32("priceMultiplier", 0.05f);
+    bedrock->set("priceMultiplierA", Float(priceMultiplierA));
+
+    //BE: priceMultiplierB
+    bedrock->set("priceMultiplierB", Float(0));
+
+    auto rewardExp = java.boolean("rewardExp", true);
+    bedrock->set("rewardExp", Bool(rewardExp));
+
+    //JE: specialPrice(int)
+
+    auto xp = java.int32("xp", 1);
+    bedrock->set("traderExp", Int(xp));
+
+    auto uses = java.int32("uses", 0);
+    bedrock->set("uses", Int(uses));
+
+    return bedrock;
   }
 
   static EntityData Fox(EntityData const &c, CompoundTag const &tag, Context &) {
