@@ -3,18 +3,20 @@
 namespace j2b {
 
 class VillagerType {
+  VillagerType() = delete;
+
 public:
-  enum RawValue : uint8_t {
-    Savanna,
-    Plains,
-    Desert,
-    Jungle,
-    Snow,
-    Swamp,
-    Taiga,
+  enum Variant : int32_t {
+    Plains = 0,
+    Desert = 1,
+    Jungle = 2,
+    Savanna = 3,
+    Snow = 4,
+    Swamp = 5,
+    Taiga = 6,
   };
 
-  constexpr VillagerType(RawValue value) : fValue(value) {}
+  constexpr VillagerType(Variant variant) : fVariant(variant) {}
 
   static std::optional<VillagerType> FromJavaType(std::string type) {
     if (strings::StartsWith(type, "minecraft:")) {
@@ -39,26 +41,11 @@ public:
   }
 
   int32_t variant() const {
-    switch (fValue) {
-    case Savanna:
-      return 3;
-    case Plains:
-      return 0;
-    case Desert:
-      return 1;
-    case Jungle:
-      return 2;
-    case Snow:
-      return 4;
-    case Swamp:
-      return 5;
-    case Taiga:
-      return 6;
-    }
+    return fVariant;
   }
 
   std::string string() const {
-    switch (fValue) {
+    switch (fVariant) {
     case Savanna:
       return "savanna";
     case Plains:
@@ -77,7 +64,7 @@ public:
   }
 
 private:
-  RawValue fValue;
+  Variant fVariant;
 };
 
 } // namespace j2b

@@ -6,26 +6,26 @@ class VillagerProfession {
   VillagerProfession() = delete;
 
 public:
-  enum RawValue : uint8_t {
-    Fletcher,
-    Librarian,
-    Armorer,
-    Cartographer,
-    Shepherd,
-    ToolSmith,
-    Farmer,
-    Fisherman,
-    StoneMason,
-    Cleric,
-    LeatherWorker,
-    Butcher,
-    WeaponSmith,
+  enum Variant : int32_t {
+    Farmer = 1,
+    Fisherman = 2,
+    Shepherd = 3,
+    Fletcher = 4,
+    Librarian = 5,
+    Cartographer = 6,
+    Cleric = 7,
+    Armorer = 8,
+    WeaponSmith = 9,
+    ToolSmith = 10,
+    Butcher = 11,
+    LeatherWorker = 12,
+    StoneMason = 13,
   };
 
-  constexpr VillagerProfession(RawValue value) : fValue(value) {}
+  constexpr VillagerProfession(Variant variant) : fVariant(variant) {}
 
   std::string tradeTablePath() const {
-    switch (this->fValue) {
+    switch (fVariant) {
     case Fletcher:
       return "trading/economy_trades/fletcher_trades.json";
     case Librarian:
@@ -91,38 +91,11 @@ public:
   }
 
   int32_t variant() const {
-    switch (fValue) {
-    case Shepherd:
-      return 3;
-    case Farmer:
-      return 1;
-    case Fisherman:
-      return 2;
-    case Butcher:
-      return 11;
-    case Armorer:
-      return 8;
-    case Cartographer:
-      return 6;
-    case Fletcher:
-      return 4;
-    case WeaponSmith:
-      return 9;
-    case ToolSmith:
-      return 10;
-    case StoneMason:
-      return 13;
-    case LeatherWorker:
-      return 12;
-    case Cleric:
-      return 7;
-    case Librarian:
-      return 5;
-    }
+    return fVariant;
   }
 
   std::string string() const {
-    switch (fValue) {
+    switch (fVariant) {
     case Shepherd:
       return "shepherd";
     case Farmer:
@@ -153,6 +126,6 @@ public:
   }
 
 private:
-  RawValue fValue;
+  Variant fVariant;
 };
 } // namespace j2b
