@@ -810,7 +810,7 @@ private:
     }
 
     auto demand = java.int32("demand", 0);
-    bedrock->set("demand", Int(0)); //demand));
+    bedrock->set("demand", Int(demand));
 
     auto maxUses = java.int32("maxUses", 16);
     bedrock->set("maxUses", Int(maxUses));
