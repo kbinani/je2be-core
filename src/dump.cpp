@@ -243,6 +243,123 @@ static bool DumpLevelDat(string const &dbDir) {
   PrintAsJson(cout, *tag, o);
 }
 
+static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string dimension) {
+  switch (tag) {
+  case 0x2c:
+    cout << "ChunkVersion(0x2c) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x2d:
+    cout << "Data2D(0x2d) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x31:
+    cout << "BlockEntity(0x31) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x32:
+    cout << "Entity(0x32) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x33:
+    cout << "PendingTicks(0x33) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x35:
+    cout << "BiomeState(0x35) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x36:
+    cout << "FinalizedState(0x36) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x39:
+    cout << "StructureBounds(0x39) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x3a:
+    cout << "RandomTicks(0x3a) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x3b:
+    cout << "Checksums(0x3b) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  case 0x76:
+    cout << "ChunkVersionLegacy(0x76) [" << cx << ", " << cz << "] " << dimension << endl;
+    break;
+  default:
+    return false;
+  }
+  return true;
+}
+
+static string StringFromDimension(int32_t d) {
+  if (d == 1) {
+    return "end";
+  } else if (d == -1) {
+    return "nether";
+  } else {
+    return "(unknown: " + to_string(d) + ")";
+  }
+}
+
+static void DumpAllKeys(string const &dbDir) {
+  Options o;
+  o.compression = kZlibRawCompression;
+  DB *db;
+  Status st = DB::Open(o, dbDir, &db);
+  if (!st.ok()) {
+    return;
+  }
+
+  ReadOptions ro;
+  Iterator *itr = db->NewIterator(ro);
+  for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+    auto key = itr->key();
+    bool chunkTag = true;
+    switch (key.size()) {
+    case 9: {
+      uint8_t tag = key[8];
+      int32_t cx = *(int32_t *)key.data();
+      int32_t cz = *(int32_t *)(key.data() + 4);
+      chunkTag = PrintChunkKeyDescription(tag, cx, cz, "overworld");
+      break;
+    }
+    case 10: {
+      uint8_t tag = key[8];
+      if (tag == 0x2f) {
+        int32_t cx = *(int32_t *)key.data();
+        int32_t cz = *(int32_t *)(key.data() + 4);
+        uint8_t y = key[9];
+        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " overworld" << endl;
+      } else {
+        chunkTag = false;
+      }
+      break;
+    }
+    case 13: {
+      uint8_t tag = key[12];
+      int32_t cx = *(int32_t *)key.data();
+      int32_t cz = *(int32_t *)(key.data() + 4);
+      string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
+      chunkTag = PrintChunkKeyDescription(tag, cz, cz, dimension);
+      break;
+    }
+    case 14: {
+      uint8_t tag = key[12];
+      if (tag == 0x2f) {
+        int32_t cx = *(int32_t *)key.data();
+        int32_t cz = *(int32_t *)(key.data() + 4);
+        string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
+        uint8_t y = key[13];
+        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " " << dimension << endl;
+      } else {
+        chunkTag = false;
+      }
+      break;
+    }
+    default:
+      chunkTag = false;
+      break;
+    }
+    if (!chunkTag) {
+      cout << key.ToString() << endl;
+    }
+  }
+  delete itr;
+}
+
 static optional<string> GetLocalApplicationDirectory() {
 #if __has_include(<shlobj_core.h>)
   int csidType = CSIDL_LOCAL_APPDATA;
@@ -261,6 +378,7 @@ static void PrintHelpMessage() {
   cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] pending ticks in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"("dump.exe [world-dir] level.dat)" << endl;
+  cerr << R"("dump.exe [world-dir] keys)" << endl;
   cerr << R"("dump.exe [world-dir] <any-string>)" << endl;
 }
 
@@ -409,6 +527,9 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     DumpChunkKey(dir, *cx, *cz, *dimension, Key::Tag::PendingTicks);
+  } else if (verb == "keys") {
+    DumpAllKeys(dir);
+    return 0;
   } else if (args.size() == 3) {
     auto key = verb;
     DumpKey(dir, key);
