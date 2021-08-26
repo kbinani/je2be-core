@@ -221,7 +221,7 @@ static void DumpKey(string const &dbDir, string const &key) {
   delete db;
 }
 
-static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, Key::Tag tag) {
+static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = Key::ComposeChunkKey(cx, cz, d, tag);
   DumpKey(dbDir, key);
 }
@@ -373,13 +373,28 @@ static optional<string> GetLocalApplicationDirectory() {
 }
 
 static void PrintHelpMessage() {
-  cerr << R"("dump.exe [world-dir] block at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
-  cerr << R"("dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
-  cerr << R"("dump.exe [world-dir] entity in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
-  cerr << R"("dump.exe [world-dir] pending ticks in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
-  cerr << R"("dump.exe [world-dir] level.dat)" << endl;
-  cerr << R"("dump.exe [world-dir] keys)" << endl;
-  cerr << R"("dump.exe [world-dir] <any-string>)" << endl;
+  cerr << R"(dump.exe [world-dir] block at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
+  cerr << R"(dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
+  cerr << R"(dump.exe [world-dir] chunk-key [tag:uint8_t] in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
+  cerr << "    tag:" << endl;
+  cerr << "       44: ChunkVersion" << endl;
+  cerr << "       45: Data2D" << endl;
+  cerr << "       46: Data2DLegacy" << endl;
+  cerr << "       48: LegacyTerrian" << endl;
+  cerr << "       49: BlockEntity" << endl;
+  cerr << "       50: Entity" << endl;
+  cerr << "       51: PendingTicks" << endl;
+  cerr << "       52: BlockExtraData" << endl;
+  cerr << "       53: BiomeState" << endl;
+  cerr << "       54: FinalizedState" << endl;
+  cerr << "       56: BorderBlocks" << endl;
+  cerr << "       57: StructureBounds" << endl;
+  cerr << "       58: RandomTicks" << endl;
+  cerr << "       59: Checksums" << endl;
+  cerr << "       118: ChunkVersionLegacy" << endl;
+  cerr << "dump.exe [world-dir] level.dat" << endl;
+  cerr << "dump.exe [world-dir] keys" << endl;
+  cerr << "dump.exe [world-dir] key [any-string]" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -472,66 +487,58 @@ int main(int argc, char *argv[]) {
       PrintHelpMessage();
       return 1;
     }
-  } else if (verb == "entity") {
-    if (argc != 8) {
+  } else if (verb == "chunk-key") {
+    if (argc != 9) {
       PrintHelpMessage();
       return 1;
     }
-    if (args[3] == "in" && args[6] == "of") {
-      auto chunkX = strings::Toi(args[4]);
+    if (args[4] == "in" && args[7] == "of") {
+      auto tag = strings::Toi(args[3]);
+      if (!tag) {
+        cerr << "Error: invalid tag: " << args[3] << endl;
+        PrintHelpMessage();
+        return 1;
+      }
+      if (*tag < 0 || 255 < *tag) {
+        cerr << "Error: invalid tag range: " << args[3] << endl;
+        PrintHelpMessage();
+        return 1;
+      }
+      auto chunkX = strings::Toi(args[5]);
       if (!chunkX) {
-        cerr << "Error: invalid chunk x: " << args[4] << endl;
+        cerr << "Error: invalid chunk x: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto chunkZ = strings::Toi(args[5]);
+      auto chunkZ = strings::Toi(args[6]);
       if (!chunkZ) {
-        cerr << "Error: invalid chunk z: " << args[5] << endl;
+        cerr << "Error: invalid chunk z: " << args[6] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto dimension = DimensionFromString(args[7]);
+      auto dimension = DimensionFromString(args[8]);
       if (!dimension) {
-        cerr << "Error: invalid dimension: " << args[7] << endl;
+        cerr << "Error: invalid dimension: " << args[8] << endl;
         PrintHelpMessage();
         return 1;
       }
-      DumpChunkKey(dir, *chunkX, *chunkZ, *dimension, Key::Tag::Entity);
+      DumpChunkKey(dir, *chunkX, *chunkZ, *dimension, uint8_t(*tag));
     } else {
       PrintHelpMessage();
       return 1;
     }
   } else if (verb == "level.dat") {
     return DumpLevelDat(dir) ? 0 : 1;
-  } else if (verb == "pending") {
-    if (argc != 9) {
-      PrintHelpMessage();
-      return 1;
-    }
-    if (args[3] != "ticks" || args[4] != "in" || args[7] != "of") {
-      PrintHelpMessage();
-      return 1;
-    }
-    auto cx = strings::Toi(args[5]);
-    if (!cx) {
-      cerr << "Error: invalid chunk x: " << args[5] << endl;
-    }
-    auto cz = strings::Toi(args[6]);
-    if (!cz) {
-      cerr << "Error: invalid chunk z: " << args[6] << endl;
-    }
-    auto dimension = DimensionFromString(args[8]);
-    if (!dimension) {
-      cerr << "Error: invalid dimension: " << args[7] << endl;
-      PrintHelpMessage();
-      return 1;
-    }
-    DumpChunkKey(dir, *cx, *cz, *dimension, Key::Tag::PendingTicks);
   } else if (verb == "keys") {
     DumpAllKeys(dir);
     return 0;
-  } else if (args.size() == 3) {
-    auto key = verb;
+  } else if (verb == "key") {
+    if (args.size() < 4) {
+      cerr << "Error: too few arguments" << endl;
+      PrintHelpMessage();
+      return 1;
+    }
+    auto key = args[3];
     DumpKey(dir, key);
     return 0;
   } else {
