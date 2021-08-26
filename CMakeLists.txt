@@ -160,18 +160,18 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/std:c++latest /bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 
   set(ZLIB_COMPAT ON)
-  add_subdirectory(ext/zlib-ng)
+  add_subdirectory(ext/zlib-ng EXCLUDE_FROM_ALL)
   list(APPEND je2be_include_directories ext/zlib-ng "${CMAKE_BINARY_DIR}/ext/zlib-ng")
 
-  add_subdirectory(ext/xxHash/cmake_unofficial)
-  add_subdirectory(ext/leveldb)
+  add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
+  add_subdirectory(ext/leveldb EXCLUDE_FROM_ALL)
 
   list(APPEND je2be_link_libraries zlibstatic)
 else()
   add_definitions(-std=c++17)
 
-  add_subdirectory(ext/xxHash/cmake_unofficial)
-  add_subdirectory(ext/leveldb)
+  add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
+  add_subdirectory(ext/leveldb EXCLUDE_FROM_ALL)
 
   list(APPEND je2be_link_libraries z)
 endif()
