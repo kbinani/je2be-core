@@ -1,0 +1,26 @@
+#!/bin/bash
+
+(
+  cd "$(dirname "$0")"
+
+  je2be_start=$(cat CMakeLists.txt | grep -n '#begin je2be' | cut -f1 -d:)
+  je2be_end=$(cat CMakeLists.txt | grep -n '#end je2be' | cut -f1 -d:)
+
+  mcfile_start=$(cat CMakeLists.txt | grep -n '#begin libminecraft-file' | cut -f1 -d:)
+  mcfile_end=$(cat CMakeLists.txt | grep -n '#end libminecraft-file' | cut -f1 -d:)
+
+  tmp=$(mktemp)
+
+  cat CMakeLists.txt | head -n $je2be_start > "$tmp"
+  git ls-files | grep ^include | sed 's:\(.*\):  \1:g' >> "$tmp"
+  cat CMakeLists.txt | head -n $mcfile_start | tail -n +${je2be_end} >> "$tmp"
+
+  (
+    cd ext/libminecraft-file
+    git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g' >> "$tmp"
+  )
+
+  cat CMakeLists.txt | tail -n +${mcfile_end} >> "$tmp"
+
+  mv -f "$tmp" CMakeLists.txt
+)
