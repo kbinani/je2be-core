@@ -244,7 +244,7 @@ public:
     return root;
   }
 
-  void write(std::string path) const {
+  void write(std::filesystem::path path) const {
     auto stream = std::make_shared<mcfile::stream::FileOutputStream>(path);
     mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
     w.write((uint32_t)8);
@@ -501,8 +501,7 @@ public:
     vector<uint8_t> buffer;
     {
       vector<char> buf(512);
-      auto p = javaEditionLevelDat.string();
-      gzFile f = gzopen(p.c_str(), "rb");
+      gzFile f = mcfile::File::GzOpen(javaEditionLevelDat, mcfile::File::Mode::Read);
       if (!f) {
         return nullptr;
       }

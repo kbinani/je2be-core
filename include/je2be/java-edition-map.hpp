@@ -33,8 +33,8 @@ public:
     vector<uint8_t> buffer;
     {
       vector<char> buf(512);
-      auto p = jeFilePath.string();
-      gzFile f = gzopen(p.c_str(), "rb");
+      auto p = jeFilePath;
+      gzFile f = mcfile::File::GzOpen(p, mcfile::File::Mode::Read);
       if (!f) {
         return nullptr;
       }

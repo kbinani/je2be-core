@@ -4,7 +4,7 @@ namespace j2b {
 
 class Converter {
 public:
-  Converter(std::string const &input, InputOption io, std::string const &output, OutputOption oo) : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
+  Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo) : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
 
   std::optional<Statistics> run(unsigned int concurrency, Progress *progress = nullptr) {
     using namespace std;
@@ -13,20 +13,20 @@ public:
 
     double const numTotalChunks = getTotalNumChunks();
 
-    auto rootPath = fs::path(fOutput);
+    auto rootPath = fOutput;
     auto dbPath = rootPath / "db";
 
     fs::create_directory(rootPath);
     fs::create_directory(dbPath);
 
-    auto data = LevelData::Read(fInputOption.getLevelDatFilePath(fs::path(fInput)));
+    auto data = LevelData::Read(fInputOption.getLevelDatFilePath(fInput));
     if (!data) {
       return nullopt;
     }
     LevelData levelData = LevelData::Import(*data);
 
     bool ok = true;
-    auto worldData = std::make_unique<WorldData>(fs::path(fInput), fInputOption);
+    auto worldData = std::make_unique<WorldData>(fInput, fInputOption);
     {
       RawDb db(dbPath.string(), concurrency);
       if (!db.valid()) {
@@ -36,7 +36,7 @@ public:
       uint32_t done = 0;
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
-        World world(dir.string());
+        World world(dir);
         bool complete = convertWorld(world, dim, db, *worldData, concurrency, progress, done, numTotalChunks);
         ok &= complete;
         if (!complete) {
@@ -52,7 +52,7 @@ public:
 
       if (ok) {
         levelData.fCurrentTick = max(levelData.fCurrentTick, worldData->fMaxChunkLastUpdate);
-        levelData.write(fOutput + string("/level.dat"));
+        levelData.write(fOutput / "level.dat");
         worldData->put(db, *data);
       }
 
@@ -550,8 +550,8 @@ private:
   }
 
 private:
-  std::string const fInput;
-  std::string const fOutput;
+  std::filesystem::path const fInput;
+  std::filesystem::path const fOutput;
   InputOption const fInputOption;
   OutputOption const fOutputOption;
 

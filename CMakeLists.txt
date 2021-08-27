@@ -97,6 +97,7 @@ set(je2be_files
   ext/libminecraft-file/include/mcfile/detail/endianness.hpp
   ext/libminecraft-file/include/mcfile/detail/mca-data-source.hpp
   ext/libminecraft-file/include/mcfile/detail/string.hpp
+  ext/libminecraft-file/include/mcfile/file.hpp
   ext/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
   ext/libminecraft-file/include/mcfile/nbt/compound-tag.hpp
