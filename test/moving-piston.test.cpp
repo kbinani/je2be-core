@@ -11,7 +11,7 @@ namespace fs = std::filesystem;
 
 static tuple<shared_ptr<Chunk>, shared_ptr<Region>> Load(string type) {
   fs::path thisFile(__FILE__);
-  World world((thisFile.parent_path() / "data" / "piston" / type).string());
+  World world(thisFile.parent_path() / "data" / "piston" / type);
   auto region = world.region(0, 0);
   auto chunk = region->chunkAt(0, 0);
   return make_pair(chunk, region);

@@ -26,7 +26,7 @@ static optional<j2b::Dimension> DimensionFromString(string const &s) {
   return nullopt;
 }
 
-static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
+static void DumpBlock(fs::path const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
@@ -127,7 +127,7 @@ static void DumpBlock(string const &dbDir, int x, int y, int z, j2b::Dimension d
   delete db;
 }
 
-static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimension d) {
+static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, j2b::Dimension d) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
@@ -181,7 +181,7 @@ static void DumpBlockEntity(string const &dbDir, int x, int y, int z, j2b::Dimen
   delete db;
 }
 
-static void DumpKey(string const &dbDir, string const &key) {
+static void DumpKey(fs::path const &dbDir, string const &key) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
@@ -221,18 +221,18 @@ static void DumpKey(string const &dbDir, string const &key) {
   delete db;
 }
 
-static void DumpChunkKey(string const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
+static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = Key::ComposeChunkKey(cx, cz, d, tag);
   DumpKey(dbDir, key);
 }
 
-static bool DumpLevelDat(string const &dbDir) {
-  auto datFile = fs::path(dbDir).parent_path() / "level.dat";
+static bool DumpLevelDat(fs::path const &dbDir) {
+  auto datFile = dbDir.parent_path() / L"level.dat";
   if (!fs::is_regular_file(datFile)) {
     cerr << "Error: " << datFile << " does not exist" << endl;
     return false;
   }
-  auto stream = make_shared<FileInputStream>(datFile.string());
+  auto stream = make_shared<FileInputStream>(datFile);
   InputStreamReader reader(stream, {.fLittleEndian = true});
   auto tag = make_shared<CompoundTag>();
   stream->seek(8);
@@ -294,7 +294,7 @@ static string StringFromDimension(int32_t d) {
   }
 }
 
-static void DumpAllKeys(string const &dbDir) {
+static void DumpAllKeys(fs::path const &dbDir) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
@@ -360,13 +360,13 @@ static void DumpAllKeys(string const &dbDir) {
   delete itr;
 }
 
-static optional<string> GetLocalApplicationDirectory() {
+static optional<wstring> GetLocalApplicationDirectory() {
 #if __has_include(<shlobj_core.h>)
   int csidType = CSIDL_LOCAL_APPDATA;
-  char path[MAX_PATH + 256];
+  wchar_t path[MAX_PATH + 256];
 
-  if (SHGetSpecialFolderPathA(nullptr, path, csidType, FALSE)) {
-    return string(path);
+  if (SHGetSpecialFolderPathW(nullptr, path, csidType, FALSE)) {
+    return wstring(path);
   }
 #endif
   return nullopt;
@@ -409,20 +409,20 @@ int main(int argc, char *argv[]) {
   }
 
   string d = args[1];
-  string dir = d;
-  if (!fs::exists(fs::path(dir))) {
-    dir = d + "/db";
+  fs::path dir = d;
+  if (!fs::exists(dir)) {
+    dir = dir / L"db";
   }
-  if (!fs::exists(fs::path(dir))) {
+  if (!fs::exists(dir)) {
     auto appDir = GetLocalApplicationDirectory(); // X:/Users/whoami/AppData/Local
     if (!appDir) {
       cerr << "Error: cannot get AppData directory" << endl;
       return 1;
     }
-    auto p = fs::path(*appDir) / "Packages" / "Microsoft.MinecraftUWP_8wekyb3d8bbwe" / "LocalState" / "games" / "com.mojang" / "minecraftWorlds" / d / "db";
-    dir = p.string();
+    auto p = fs::path(*appDir) / L"Packages" / L"Microsoft.MinecraftUWP_8wekyb3d8bbwe" / L"LocalState" / L"games" / L"com.mojang" / L"minecraftWorlds" / d / L"db";
+    dir = p;
   }
-  if (!fs::exists(fs::path(dir))) {
+  if (!fs::exists(dir)) {
     cerr << "Error: directory not found: " << d << endl;
     PrintHelpMessage();
     return 1;

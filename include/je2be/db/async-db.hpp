@@ -32,7 +32,9 @@ private:
   };
 
 public:
-  explicit AsyncDb(std::string const &dir) {
+  AsyncDb(std::string const &dir) = delete;
+  AsyncDb(std::wstring const &dir) = delete;
+  explicit AsyncDb(std::filesystem::path const &dir) {
     fStop.store(false);
     Db *db = new Db(dir);
     fValid = db->valid();

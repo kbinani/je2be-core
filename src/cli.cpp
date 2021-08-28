@@ -77,6 +77,7 @@ int main(int argc, char *argv[]) {
   j2b::InputOption io;
   io.fLevelDirectoryStructure = structure;
   j2b::OutputOption oo;
-  j2b::Converter converter(input, io, output, oo);
+  j2b::Converter converter(std::filesystem::path(input), io,
+                           std::filesystem::path(output), oo);
   return converter.run(concurrency) ? 0 : -1;
 }

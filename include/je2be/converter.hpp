@@ -4,6 +4,10 @@ namespace j2b {
 
 class Converter {
 public:
+  Converter(std::string const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
+  Converter(std::string const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
+  Converter(std::wstring const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
+  Converter(std::wstring const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
   Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo) : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
 
   std::optional<Statistics> run(unsigned int concurrency, Progress *progress = nullptr) {
@@ -28,7 +32,7 @@ public:
     bool ok = true;
     auto worldData = std::make_unique<WorldData>(fInput, fInputOption);
     {
-      RawDb db(dbPath.string(), concurrency);
+      RawDb db(dbPath, concurrency);
       if (!db.valid()) {
         return nullopt;
       }

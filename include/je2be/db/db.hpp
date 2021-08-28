@@ -4,14 +4,16 @@ namespace j2b {
 
 class Db : public DbInterface {
 public:
-  explicit Db(std::string const &dir) : fDb(nullptr), fValid(false) {
+  Db(std::string const &) = delete;
+  Db(std::wstring const &) = delete;
+  explicit Db(std::filesystem::path const &dir) : fDb(nullptr), fValid(false) {
     using namespace leveldb;
 
     DB *db;
     Options options;
     options.compression = kZlibRawCompression;
     options.create_if_missing = true;
-    Status status = DB::Open(options, dir.c_str(), &db);
+    Status status = DB::Open(options, dir, &db);
     if (!status.ok()) {
       return;
     }

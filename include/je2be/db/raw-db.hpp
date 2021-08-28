@@ -4,13 +4,15 @@ namespace j2b {
 
 class RawDb : public DbInterface {
 public:
-  RawDb(std::string const &dir, unsigned int concurrency) : fValid(true), fDir(dir) {
+  RawDb(std::string const &, unsigned int concurrency) = delete;
+  RawDb(std::wstring const &, unsigned int concurrency) = delete;
+  RawDb(std::filesystem::path const &dir, unsigned int concurrency) : fValid(true), fDir(dir) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
 
     leveldb::FileLock *lf = nullptr;
-    auto lockFileName = dir + "/LOCK";
+    auto lockFileName = dir / "LOCK";
     auto env = leveldb::Env::Default();
     Status st = env->LockFile(lockFileName, &lf);
     if (!st.ok()) {
@@ -151,11 +153,11 @@ private:
     b.Clear();
   }
 
-  std::string tableFile(uint32_t tableNumber) const {
+  std::filesystem::path tableFile(uint32_t tableNumber) const {
     std::vector<char> buffer(11, (char)0);
     sprintf(buffer.data(), "%06d.ldb", tableNumber);
     std::string p(buffer.data(), 10);
-    return fDir + "/" + p;
+    return fDir / p;
   }
 
   leveldb::WritableFile *open(uint32_t tableNumber) const {
@@ -163,7 +165,7 @@ private:
     Env *env = Env::Default();
     WritableFile *f = nullptr;
     auto fname = tableFile(tableNumber);
-    Status s = env->NewWritableFile(fname.c_str(), &f);
+    Status s = env->NewWritableFile(fname, &f);
     if (!s.ok()) {
       return nullptr;
     }
@@ -178,7 +180,7 @@ private:
   std::condition_variable fCv;
   std::atomic_bool fStop;
   bool fValid = false;
-  std::string const fDir;
+  std::filesystem::path const fDir;
   leveldb::FileLock *fFileLock = nullptr;
   std::atomic_bool fAbandoned;
 };
