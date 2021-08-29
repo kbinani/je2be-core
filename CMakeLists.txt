@@ -128,7 +128,7 @@ set(je2be_files
   ext/libminecraft-file/include/mcfile/stream/input-stream.hpp
   ext/libminecraft-file/include/mcfile/stream/output-stream-writer.hpp
   ext/libminecraft-file/include/mcfile/stream/output-stream.hpp
-  ext/libminecraft-file/include/mcfile/tile-tick.hpp
+  ext/libminecraft-file/include/mcfile/ticking-block.hpp
   ext/libminecraft-file/include/mcfile/world.hpp
   ext/libminecraft-file/include/mcfile/writable-chunk.hpp
   ext/libminecraft-file/include/minecraft-file.hpp

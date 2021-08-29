@@ -1547,6 +1547,9 @@ private:
     E("deepslate", axisToPillarAxis);
     E("infested_deepslate", axisToPillarAxis);
     E("redstone_lamp", RedstoneLamp);
+
+    E("flowing_water", FlowingLiquid);
+    E("flowing_lava", FlowingLiquid);
 #undef E
 
     // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
@@ -1554,6 +1557,13 @@ private:
     table->insert(make_pair("j2b:pistonArmCollision", PistonArmCollision));
 
     return table;
+  }
+
+  static BlockDataType FlowingLiquid(Block const &block) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    s->set("liquid_depth", props::Int(8));
+    return AttachStates(c, s);
   }
 
   static BlockDataType RedstoneLamp(Block const &block) {

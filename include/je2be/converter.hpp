@@ -165,6 +165,7 @@ private:
                 }
               }
               MovingPiston::PreprocessChunk(chunk, *region);
+              InjectTickingLiquidAsABlock(*chunk);
               stable_sort(chunk->fTileTicks.begin(), chunk->fTileTicks.end(), [](auto a, auto b) {
                 return a.fP < b.fP;
               });
@@ -198,6 +199,13 @@ private:
     pool.shutdown();
 
     return completed;
+  }
+
+  static void InjectTickingLiquidAsABlock(mcfile::Chunk &chunk) {
+    for (mcfile::TickingBlock const &tb : chunk.fLiquidTicks) {
+      auto block = std::make_shared<mcfile::Block>(tb.fI);
+      chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, block);
+    }
   }
 
   std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
@@ -486,14 +494,14 @@ private:
 
     int64_t currentTick = chunk.fLastUpdate;
     for (int i = 0; i < chunk.fTileTicks.size(); i++) {
-      TileTick tt = chunk.fTileTicks[i];
-      int x = tt.fX - chunk.fChunkX * 16;
-      int y = tt.fY - chunkY * 16;
-      int z = tt.fZ - chunk.fChunkZ * 16;
+      TickingBlock tb = chunk.fTileTicks[i];
+      int x = tb.fX - chunk.fChunkX * 16;
+      int y = tb.fY - chunkY * 16;
+      int z = tb.fZ - chunk.fChunkZ * 16;
       if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
       }
-      int64_t time = currentTick + tt.fT;
+      int64_t time = currentTick + tb.fT;
       int localIndex = (x * 16 + z) * 16 + y;
       int paletteIndex = indices[localIndex];
       auto block = palette[paletteIndex];
@@ -501,9 +509,31 @@ private:
       auto tick = make_shared<CompoundTag>();
       tick->set("blockState", block);
       tick->set("time", Long(time));
-      tick->set("x", Int(tt.fX));
-      tick->set("y", Int(tt.fY));
-      tick->set("z", Int(tt.fZ));
+      tick->set("x", Int(tb.fX));
+      tick->set("y", Int(tb.fY));
+      tick->set("z", Int(tb.fZ));
+      cdp.addPendingTick(i, tick);
+    }
+
+    for (int i = 0; i < chunk.fLiquidTicks.size(); i++) {
+      TickingBlock tb = chunk.fLiquidTicks[i];
+      int x = tb.fX - chunk.fChunkX * 16;
+      int y = tb.fY - chunkY * 16;
+      int z = tb.fZ - chunk.fChunkZ * 16;
+      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
+        continue;
+      }
+      int64_t time = currentTick + tb.fT;
+      int localIndex = (x * 16 + z) * 16 + y;
+      int paletteIndex = indices[localIndex];
+      auto block = palette[paletteIndex];
+
+      auto tick = make_shared<CompoundTag>();
+      tick->set("blockState", block);
+      tick->set("time", Long(time));
+      tick->set("x", Int(tb.fX));
+      tick->set("y", Int(tb.fY));
+      tick->set("z", Int(tb.fZ));
       cdp.addPendingTick(i, tick);
     }
   }
