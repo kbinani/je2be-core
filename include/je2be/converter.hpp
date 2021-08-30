@@ -164,7 +164,7 @@ private:
                   chunk->fEntities.swap(entities);
                 }
               }
-              PreprocessChunk(*chunk, *region);
+              PreprocessChunk(chunk, *region);
               r.fData = putChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
