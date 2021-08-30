@@ -164,11 +164,7 @@ private:
                   chunk->fEntities.swap(entities);
                 }
               }
-              MovingPiston::PreprocessChunk(chunk, *region);
-              InjectTickingLiquidAsABlock(*chunk);
-              stable_sort(chunk->fTileTicks.begin(), chunk->fTileTicks.end(), [](auto a, auto b) {
-                return a.fP < b.fP;
-              });
+              PreprocessChunk(*chunk, *region);
               r.fData = putChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
@@ -201,7 +197,23 @@ private:
     return completed;
   }
 
-  static void InjectTickingLiquidAsABlock(mcfile::Chunk &chunk) {
+  static void PreprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region const &region) {
+    if (!chunk) {
+      return;
+    }
+    MovingPiston::PreprocessChunk(chunk, region);
+    InjectTickingLiquidBlocksAsBlocks(*chunk);
+    SortTickingBlocks(chunk->fTileTicks);
+    SortTickingBlocks(chunk->fLiquidTicks);
+  }
+
+  static void SortTickingBlocks(std::vector<mcfile::TickingBlock> &blocks) {
+    std::stable_sort(blocks.begin(), blocks.end(), [](auto a, auto b) {
+      return a.fP < b.fP;
+    });
+  }
+
+  static void InjectTickingLiquidBlocksAsBlocks(mcfile::Chunk &chunk) {
     for (mcfile::TickingBlock const &tb : chunk.fLiquidTicks) {
       auto block = std::make_shared<mcfile::Block>(tb.fI);
       chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, block);

@@ -13,6 +13,10 @@ public:
     using namespace std;
     using namespace props;
 
+    if (!chunk) {
+      return;
+    }
+
     CachedChunkLoader loader(region);
     loader.addToCache(chunk);
     SetBlockOptions withoutRemovingTileEntity;
