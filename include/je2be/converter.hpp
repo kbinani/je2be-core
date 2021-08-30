@@ -14,6 +14,7 @@ public:
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile;
+    using namespace mcfile::je;
 
     double const numTotalChunks = getTotalNumChunks();
 
@@ -111,9 +112,10 @@ private:
     return ret;
   }
 
-  bool convertWorld(mcfile::World const &w, Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  bool convertWorld(mcfile::je::World const &w, Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
+    using namespace mcfile::je;
 
     ::ThreadPool pool(concurrency);
     pool.init();
@@ -197,7 +199,7 @@ private:
     return completed;
   }
 
-  static void PreprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region const &region) {
+  static void PreprocessChunk(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region const &region) {
     if (!chunk) {
       return;
     }
@@ -207,20 +209,20 @@ private:
     SortTickingBlocks(chunk->fLiquidTicks);
   }
 
-  static void SortTickingBlocks(std::vector<mcfile::TickingBlock> &blocks) {
+  static void SortTickingBlocks(std::vector<mcfile::je::TickingBlock> &blocks) {
     std::stable_sort(blocks.begin(), blocks.end(), [](auto a, auto b) {
       return a.fP < b.fP;
     });
   }
 
-  static void InjectTickingLiquidBlocksAsBlocks(mcfile::Chunk &chunk) {
-    for (mcfile::TickingBlock const &tb : chunk.fLiquidTicks) {
-      auto block = std::make_shared<mcfile::Block>(tb.fI);
+  static void InjectTickingLiquidBlocksAsBlocks(mcfile::je::Chunk &chunk) {
+    for (mcfile::je::TickingBlock const &tb : chunk.fLiquidTicks) {
+      auto block = std::make_shared<mcfile::je::Block>(tb.fI);
       chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, block);
     }
   }
 
-  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::Chunk &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::je::Chunk &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -246,9 +248,10 @@ private:
     return ret;
   }
 
-  void putSubChunk(mcfile::Chunk const &chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
+  void putSubChunk(mcfile::je::Chunk const &chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
+    using namespace mcfile::je;
     using namespace mcfile::nbt;
     using namespace props;
     using namespace leveldb;
@@ -550,7 +553,7 @@ private:
     }
   }
 
-  static bool IsWaterLogged(mcfile::Block const &block) {
+  static bool IsWaterLogged(mcfile::je::Block const &block) {
     using namespace std;
     static string const seagrass("minecraft:seagrass");
     static string const tall_seagrass("minecraft:tall_seagrass");

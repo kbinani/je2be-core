@@ -4,7 +4,7 @@ namespace j2b {
 
 class BlockData {
 public:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::Block const> const &block) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::je::Block const> const &block) {
     using namespace std;
     static unique_ptr<unordered_map<string, AnyConverter> const> const table(CreateConverterTable());
 
@@ -28,7 +28,7 @@ public:
     return tag;
   }
 
-  static int32_t GetFacingDirectionFromFacingA(mcfile::Block const &block) {
+  static int32_t GetFacingDirectionFromFacingA(mcfile::je::Block const &block) {
     // 102534
     auto facing = block.property("facing", "north");
     if (facing == "east") {
@@ -46,7 +46,7 @@ public:
     }
   }
 
-  static int32_t GetFacingDirectionFromFacingB(mcfile::Block const &block) {
+  static int32_t GetFacingDirectionFromFacingB(mcfile::je::Block const &block) {
     // 103425
     auto facing = block.property("facing", "north");
     if (facing == "east") {
@@ -69,7 +69,7 @@ private:
 
   using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
   using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
-  using Block = mcfile::Block;
+  using Block = mcfile::je::Block;
 
   using PropertyType = std::shared_ptr<mcfile::nbt::Tag>;
 
@@ -100,7 +100,7 @@ private:
     std::vector<PropertyPickupFunction> const fProperties;
   };
 
-  static BlockDataType Identity(mcfile::Block const &block) {
+  static BlockDataType Identity(mcfile::je::Block const &block) {
     auto tag = New(block.fName, true);
     auto states = States();
     tag->set("states", states);

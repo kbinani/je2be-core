@@ -7,6 +7,7 @@ private:
   using ItemData = std::shared_ptr<mcfile::nbt::CompoundTag>;
   using Converter = std::function<ItemData(std::string const &, mcfile::nbt::CompoundTag const &)>;
   using CompoundTag = mcfile::nbt::CompoundTag;
+  using Block = mcfile::je::Block;
 
 public:
   static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
@@ -894,7 +895,7 @@ private:
     auto count = item.byte("Count", 1);
 
     map<string, string> empty;
-    auto block = make_shared<mcfile::Block>(name, empty);
+    auto block = make_shared<Block>(name, empty);
     auto blockData = BlockData::From(block);
 
     auto states = make_shared<CompoundTag>();
@@ -992,7 +993,7 @@ private:
     auto count = item.byte("Count", 1);
 
     map<string, string> empty;
-    auto block = make_shared<mcfile::Block>(name, empty);
+    auto block = make_shared<Block>(name, empty);
     auto blockData = BlockData::From(block);
 
     auto states = make_shared<CompoundTag>();
@@ -1034,7 +1035,7 @@ private:
     auto count = item.byte("Count", 1);
 
     map<string, string> p;
-    auto block = make_shared<mcfile::Block>(id, p);
+    auto block = make_shared<Block>(id, p);
     auto blockData = BlockData::From(block);
     assert(blockData);
 

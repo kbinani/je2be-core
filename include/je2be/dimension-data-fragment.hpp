@@ -22,7 +22,7 @@ public:
     fEndPortalsInEndDimension.insert(p);
   }
 
-  void addStructures(mcfile::Chunk const &chunk) {
+  void addStructures(mcfile::je::Chunk const &chunk) {
     if (!chunk.fStructures) {
       return;
     }
@@ -44,7 +44,7 @@ public:
     }
   }
 
-  void updateChunkLastUpdate(mcfile::Chunk const &chunk) {
+  void updateChunkLastUpdate(mcfile::je::Chunk const &chunk) {
     fMaxChunkLastUpdate = std::max(fMaxChunkLastUpdate, chunk.fLastUpdate);
   }
 

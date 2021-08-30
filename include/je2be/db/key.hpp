@@ -99,8 +99,8 @@ private:
   static void PlaceXZTag(std::vector<char> &out, int32_t chunkX, int32_t chunkZ, uint8_t tag) {
     out.clear();
     out.resize(9);
-    *(uint32_t *)out.data() = mcfile::detail::Int32LEFromNative(*(uint32_t *)&chunkX);
-    *(uint32_t *)(out.data() + 4) = mcfile::detail::Int32LEFromNative(*(uint32_t *)&chunkZ);
+    *(uint32_t *)out.data() = mcfile::Int32LEFromNative(*(uint32_t *)&chunkX);
+    *(uint32_t *)(out.data() + 4) = mcfile::Int32LEFromNative(*(uint32_t *)&chunkZ);
     out[8] = tag;
   }
 
@@ -112,7 +112,7 @@ private:
     uint8_t tag = out[8];
     out.resize(13);
     uint32_t const v = static_cast<uint8_t>(dim);
-    *(uint32_t *)(out.data() + 8) = mcfile::detail::Int32LEFromNative(v);
+    *(uint32_t *)(out.data() + 8) = mcfile::Int32LEFromNative(v);
     out[12] = tag;
   }
 

@@ -4,11 +4,11 @@ namespace j2b {
 
 class ChunkDataPackage {
 public:
-  void build(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     buildEntities(chunk, mapInfo, ddf);
     buildBiomeMap(chunk);
     buildTileEntities(chunk, mapInfo, ddf);
-    if (chunk.status() == mcfile::Chunk::Status::FULL) {
+    if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
     }
     ddf.addStatChunkVersion(chunk.fDataVersion);
@@ -26,16 +26,17 @@ public:
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
 
-  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
+  void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::je::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
 
   void addPendingTick(int order, std::shared_ptr<mcfile::nbt::CompoundTag> const &pendingTick) {
     fPendingTicks.insert(std::make_pair(order, pendingTick));
   }
 
 private:
-  void buildTileEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  void buildTileEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
+    using namespace mcfile::je;
     using namespace mcfile::nbt;
     using namespace props;
 
@@ -88,7 +89,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace props;
     for (auto e : chunk.fEntities) {
@@ -101,7 +102,7 @@ private:
     }
   }
 
-  void buildBiomeMap(mcfile::Chunk const &chunk) {
+  void buildBiomeMap(mcfile::je::Chunk const &chunk) {
     if (chunk.fBiomes.empty()) {
       return;
     }
@@ -190,7 +191,7 @@ private:
 private:
   HeightMap fHeightMap;
   std::optional<BiomeMap> fBiomeMap;
-  std::unordered_map<Pos3i, std::shared_ptr<mcfile::Block const>, Pos3iHasher> fTileBlocks;
+  std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;

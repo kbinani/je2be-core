@@ -8,7 +8,7 @@ public:
 
 private:
   using CompoundTag = mcfile::nbt::CompoundTag;
-  using Block = mcfile::Block;
+  using Block = mcfile::je::Block;
   using Converter = std::function<TileEntityData(Pos3i const &, Block const &, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &)>;
 
 public:
@@ -19,7 +19,7 @@ public:
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag> FromBlockAndTileEntity(Pos3i const &pos,
-                                                                          mcfile::Block const &block,
+                                                                          mcfile::je::Block const &block,
                                                                           std::shared_ptr<mcfile::nbt::CompoundTag> const &tag,
                                                                           JavaEditionMap const &mapInfo,
                                                                           DimensionDataFragment &ddf) {
@@ -33,7 +33,7 @@ public:
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag> FromBlock(Pos3i const &pos,
-                                                             mcfile::Block const &block,
+                                                             mcfile::je::Block const &block,
                                                              JavaEditionMap const &mapInfo,
                                                              DimensionDataFragment &ddf) {
     using namespace std;
@@ -942,7 +942,7 @@ private:
     return ret;
   }
 
-  static TileEntityData Sign(Pos3i const &pos, mcfile::Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Sign(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -1019,7 +1019,7 @@ private:
     return found->second->asList();
   }
 
-  static TileEntityData Chest(Pos3i const &pos, mcfile::Block const &b, std::shared_ptr<CompoundTag> const &comp, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static TileEntityData Chest(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &comp, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;

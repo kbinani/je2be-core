@@ -5,6 +5,7 @@
 
 using namespace j2b;
 using namespace mcfile;
+using namespace mcfile::je;
 using namespace mcfile::nbt;
 using namespace std;
 namespace fs = std::filesystem;

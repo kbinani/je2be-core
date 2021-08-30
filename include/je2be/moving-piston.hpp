@@ -7,8 +7,9 @@ private:
   MovingPiston() = delete;
 
 public:
-  static void PreprocessChunk(std::shared_ptr<mcfile::Chunk> const &chunk, mcfile::Region region) {
+  static void PreprocessChunk(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region region) {
     using namespace mcfile;
+    using namespace mcfile::je;
     using namespace mcfile::nbt;
     using namespace std;
     using namespace props;
@@ -169,9 +170,10 @@ public:
   }
 
 private:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<mcfile::nbt::CompoundTag const> const &item, mcfile::CachedChunkLoader &loader) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<mcfile::nbt::CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader) {
     using namespace std;
     using namespace mcfile;
+    using namespace mcfile::je;
     using namespace mcfile::nbt;
     using namespace props;
 
@@ -271,7 +273,7 @@ private:
     }
   };
 
-  static void LookupAttachedBlocks(mcfile::CachedChunkLoader &loader, Pos3i center, bool extendingExpected, int facingExpected, std::unordered_set<Pos3i, Pos3iHasher> &attachedBlocks) {
+  static void LookupAttachedBlocks(mcfile::je::CachedChunkLoader &loader, Pos3i center, bool extendingExpected, int facingExpected, std::unordered_set<Pos3i, Pos3iHasher> &attachedBlocks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;
@@ -331,7 +333,7 @@ private:
     }
   }
 
-  static std::optional<Pos3i> LookupPistonPos(mcfile::CachedChunkLoader &loader, Pos3i center, int facing) {
+  static std::optional<Pos3i> LookupPistonPos(mcfile::je::CachedChunkLoader &loader, Pos3i center, int facing) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;

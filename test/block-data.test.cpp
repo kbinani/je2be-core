@@ -593,7 +593,7 @@ TEST_CASE("block-data") {
     }
     string blockName = mcfile::blocks::Name(id);
     CHECK(!blockName.empty());
-    auto block = make_shared<mcfile::Block const>(blockName);
+    auto block = make_shared<mcfile::je::Block const>(blockName);
     shared_ptr<mcfile::nbt::CompoundTag> converted = j2b::BlockData::From(block);
     CHECK(converted != nullptr);
     if (!converted) {

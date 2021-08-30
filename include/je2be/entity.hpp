@@ -511,7 +511,7 @@ private:
     if (!name) {
       return nullptr;
     }
-    auto block = BlockData::From(std::make_shared<mcfile::Block>(*name));
+    auto block = BlockData::From(std::make_shared<mcfile::je::Block>(*name));
     if (!block) {
       return nullptr;
     }
