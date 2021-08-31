@@ -48,80 +48,25 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, j2b::Dimension
   if (!st.ok()) {
     return;
   }
-  vector<uint8_t> buffer;
-  copy(value.begin(), value.end(), back_inserter(buffer));
-  auto stream = make_shared<ByteStream>(buffer);
-  stream::InputStreamReader sr(stream, {.fLittleEndian = true});
-
-  uint8_t version;
-  if (!sr.read(&version)) {
+  auto section = mcfile::be::ChunkSection::Parse(value);
+  if (!section) {
     return;
-  }
-
-  uint8_t numLayers;
-  if (!sr.read(&numLayers)) {
-    return;
-  }
-
-  uint8_t bitsPerBlock;
-  if (!sr.read(&bitsPerBlock)) {
-    return;
-  }
-  bitsPerBlock = bitsPerBlock / 2;
-
-  int blocksPerWord = 32 / bitsPerBlock;
-  int numWords;
-  if (4096 % blocksPerWord == 0) {
-    numWords = 4096 / blocksPerWord;
-  } else {
-    numWords = (int)ceilf(4096.0 / blocksPerWord);
-  }
-  int numBytes = numWords * 4;
-  vector<uint8_t> indexBuffer(numBytes);
-  if (!sr.read(indexBuffer)) {
-    return;
-  }
-
-  uint32_t const mask = ~((~((uint32_t)0)) << bitsPerBlock);
-  vector<uint16_t> index;
-  index.reserve(4096);
-  auto indexBufferStream = make_shared<ByteStream>(indexBuffer);
-  InputStreamReader sr2(indexBufferStream, {.fLittleEndian = true});
-  for (int i = 0; i < numWords; i++) {
-    uint32_t word;
-    sr2.read(&word);
-    for (int j = 0; j < blocksPerWord && index.size() < 4096; j++) {
-      uint16_t v = word & mask;
-      index.push_back(v);
-      word = word >> bitsPerBlock;
-    }
-  }
-  assert(index.size() == 4096);
-
-  uint32_t numPaletteEntries;
-  if (!sr.read(&numPaletteEntries)) {
-    return;
-  }
-
-  vector<shared_ptr<CompoundTag>> palette;
-  palette.reserve(numPaletteEntries);
-
-  for (uint32_t i = 0; i < numPaletteEntries; i++) {
-    auto tag = make_shared<CompoundTag>();
-    uint8_t type;
-    sr.read(&type);
-    string empty;
-    sr.read(empty);
-    tag->read(sr);
-    palette.push_back(tag);
   }
 
   int lx = x - cx * 16;
   int ly = y - cy * 16;
   int lz = z - cz * 16;
-  size_t idx = (lx * 16 + lz) * 16 + ly;
-  uint16_t paletteIndex = index[idx];
-  auto tag = palette[paletteIndex];
+  auto block = section->blockAt(lx, ly, lz);
+  if (!block) {
+    return;
+  }
+
+  auto tag = make_shared<CompoundTag>();
+  tag->set("name", props::String(block->fName));
+  auto states = make_shared<CompoundTag>();
+  states->fValue = block->fStates;
+  tag->set("states", states);
+  tag->set("version", props::Int(block->fVersion));
   nbt::PrintAsJson(cout, *tag, jopt);
 
   delete db;
