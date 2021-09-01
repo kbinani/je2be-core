@@ -23,7 +23,6 @@
 #include <je2be/strings.hpp>
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
-#include <je2be/enums/dimension.hpp>
 #include <je2be/enums/level-directory-structure.hpp>
 #include <je2be/enums/villager-profession.hpp>
 #include <je2be/enums/villager-type.hpp>
@@ -31,7 +30,6 @@
 #include <je2be/pos3.hpp>
 #include <je2be/volume.hpp>
 #include <je2be/optional.hpp>
-#include <je2be/db/key.hpp>
 #include <je2be/vec.hpp>
 #include <je2be/rotation.hpp>
 #include <je2be/color/rgba.hpp>

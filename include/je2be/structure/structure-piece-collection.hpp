@@ -10,7 +10,7 @@ public:
 
   decltype(auto) end() const { return fPieces.end(); }
 
-  void put(DbInterface &db, Dimension dim) {
+  void put(DbInterface &db, mcfile::Dimension dim) {
     using namespace std;
     unordered_map<Pos3i, vector<StructurePiece>, Pos3iHasher> splitted;
     for (auto const &it : fPieces) {
@@ -48,7 +48,7 @@ public:
       vector<uint8_t> buffer;
       s->drain(buffer);
 
-      auto key = Key::StructureBounds(it.first.fX, it.first.fZ, dim);
+      auto key = mcfile::be::DbKey::StructureBounds(it.first.fX, it.first.fZ, dim);
       leveldb::Slice value((char const *)buffer.data(), buffer.size());
       db.put(key, value);
     }

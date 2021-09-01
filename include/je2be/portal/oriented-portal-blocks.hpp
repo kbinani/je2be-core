@@ -8,7 +8,7 @@ public:
 
   void add(int x, int y, int z) { fBlocks.emplace(x, y, z); }
 
-  void extract(std::vector<Portal> &buffer, Dimension dim) {
+  void extract(std::vector<Portal> &buffer, mcfile::Dimension dim) {
     while (!fBlocks.empty()) {
       Pos3i start = *fBlocks.begin();
       Pos3i bottomNorthWest = lookupBottomNorthWestCorner(start);

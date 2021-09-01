@@ -4,24 +4,24 @@ namespace j2b {
 
 class Structures {
 public:
-  void add(StructurePiece p, Dimension dim) {
+  void add(StructurePiece p, mcfile::Dimension dim) {
     switch (dim) {
-    case Dimension::Overworld:
+    case mcfile::Dimension::Overworld:
       fOverworld.add(p);
       break;
-    case Dimension::Nether:
+    case mcfile::Dimension::Nether:
       fNether.add(p);
       break;
-    case Dimension::End:
+    case mcfile::Dimension::End:
       fEnd.add(p);
       break;
     }
   }
 
   void put(DbInterface &db) {
-    fOverworld.put(db, Dimension::Overworld);
-    fNether.put(db, Dimension::Nether);
-    fEnd.put(db, Dimension::End);
+    fOverworld.put(db, mcfile::Dimension::Overworld);
+    fNether.put(db, mcfile::Dimension::Nether);
+    fEnd.put(db, mcfile::Dimension::End);
   }
 
 private:

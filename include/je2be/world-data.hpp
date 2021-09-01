@@ -19,18 +19,18 @@ public:
 
     auto theEnd = LevelData::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
     if (theEnd) {
-      db.put(Key::TheEnd(), *theEnd);
+      db.put(mcfile::be::DbKey::TheEnd(), *theEnd);
     } else {
-      db.del(Key::TheEnd());
+      db.del(mcfile::be::DbKey::TheEnd());
     }
 
     fStructures.put(db);
 
     auto mobEvents = LevelData::MobEvents(javaLevelData);
     if (mobEvents) {
-      db.put(Key::MobEvents(), *mobEvents);
+      db.put(mcfile::be::DbKey::MobEvents(), *mobEvents);
     } else {
-      db.del(Key::MobEvents());
+      db.del(mcfile::be::DbKey::MobEvents());
     }
   }
 
@@ -54,7 +54,7 @@ private:
     s->drain(buffer);
 
     leveldb::Slice v((char const *)buffer.data(), buffer.size());
-    db.put(Key::AutonomousEntities(), v);
+    db.put(mcfile::be::DbKey::AutonomousEntities(), v);
   }
 
 private:

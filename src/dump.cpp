@@ -15,18 +15,18 @@ using namespace nbt;
 using namespace stream;
 namespace fs = filesystem;
 
-static optional<j2b::Dimension> DimensionFromString(string const &s) {
+static optional<Dimension> DimensionFromString(string const &s) {
   if (s == "overworld" || s == "o" || s == "0") {
-    return j2b::Dimension::Overworld;
+    return Dimension::Overworld;
   } else if (s == "nether" || s == "n" || s == "-1") {
-    return j2b::Dimension::Nether;
+    return Dimension::Nether;
   } else if (s == "end" || s == "e" || s == "1") {
-    return j2b::Dimension::End;
+    return Dimension::End;
   }
   return nullopt;
 }
 
-static void DumpBlock(fs::path const &dbDir, int x, int y, int z, j2b::Dimension d) {
+static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
@@ -42,13 +42,13 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, j2b::Dimension
   int cx = Coordinate::ChunkFromBlock(x);
   int cy = Coordinate::ChunkFromBlock(y);
   int cz = Coordinate::ChunkFromBlock(z);
-  auto key = Key::SubChunk(cx, cy, cz, d);
+  auto key = mcfile::be::DbKey::SubChunk(cx, cy, cz, d);
   string value;
   st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }
-  auto section = mcfile::be::ChunkSection::Parse(value);
+  auto section = mcfile::be::SubChunk::Parse(value);
   if (!section) {
     return;
   }
@@ -72,7 +72,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, j2b::Dimension
   delete db;
 }
 
-static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, j2b::Dimension d) {
+static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
@@ -89,7 +89,7 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, j2b::Dim
   int cx = Coordinate::ChunkFromBlock(x);
   int cy = Coordinate::ChunkFromBlock(y);
   int cz = Coordinate::ChunkFromBlock(z);
-  auto key = Key::BlockEntity(cx, cz, d);
+  auto key = mcfile::be::DbKey::BlockEntity(cx, cz, d);
 
   string value;
   st = db->Get(ro, key, &value);
@@ -167,7 +167,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
 }
 
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
-  auto key = Key::ComposeChunkKey(cx, cz, d, tag);
+  auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   DumpKey(dbDir, key);
 }
 

@@ -14,7 +14,7 @@ public:
     }
   }
 
-  void extract(std::vector<Portal> &buffer, Dimension dim) {
+  void extract(std::vector<Portal> &buffer, mcfile::Dimension dim) {
     fX.extract(buffer, dim);
     fZ.extract(buffer, dim);
   }

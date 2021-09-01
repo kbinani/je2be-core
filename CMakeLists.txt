@@ -22,7 +22,6 @@ set(je2be_files
   include/je2be/db/async-db.hpp
   include/je2be/db/db-interface.hpp
   include/je2be/db/db.hpp
-  include/je2be/db/key.hpp
   include/je2be/db/null-db.hpp
   include/je2be/db/raw-db.hpp
   include/je2be/dimension-data-fragment.hpp
@@ -31,7 +30,6 @@ set(je2be_files
   include/je2be/entity.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp
-  include/je2be/enums/dimension.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/enums/villager-profession.hpp
   include/je2be/enums/villager-type.hpp
@@ -74,7 +72,10 @@ set(je2be_files
   # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
   ext/libminecraft-file/include/mcfile/be/block.hpp
-  ext/libminecraft-file/include/mcfile/be/chunk-section.hpp
+  ext/libminecraft-file/include/mcfile/be/chunk.hpp
+  ext/libminecraft-file/include/mcfile/be/db-interface.hpp
+  ext/libminecraft-file/include/mcfile/be/db-key.hpp
+  ext/libminecraft-file/include/mcfile/be/sub-chunk.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
   ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
@@ -85,6 +86,7 @@ set(je2be_files
   ext/libminecraft-file/include/mcfile/blocks/name.hpp
   ext/libminecraft-file/include/mcfile/compression.hpp
   ext/libminecraft-file/include/mcfile/coordinate.hpp
+  ext/libminecraft-file/include/mcfile/dimension.hpp
   ext/libminecraft-file/include/mcfile/endianness.hpp
   ext/libminecraft-file/include/mcfile/file.hpp
   ext/libminecraft-file/include/mcfile/je/block.hpp

@@ -4,16 +4,17 @@ namespace j2b {
 
 class Portals {
 public:
-  void add(PortalBlocks &pb, Dimension dim) {
-    if (dim == Dimension::Overworld) {
+  void add(PortalBlocks &pb, mcfile::Dimension dim) {
+    if (dim == mcfile::Dimension::Overworld) {
       pb.drain(fOverworld);
-    } else if (dim == Dimension::Nether) {
+    } else if (dim == mcfile::Dimension::Nether) {
       pb.drain(fNether);
     }
   }
 
   void putInto(DbInterface &db) {
     using namespace std;
+    using namespace mcfile;
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
     vector<Portal> portals;
@@ -33,7 +34,7 @@ public:
     OutputStreamWriter w(s, {.fLittleEndian = true});
     root->writeAsRoot(w);
 
-    auto key = Key::Portals();
+    auto key = mcfile::be::DbKey::Portals();
     vector<uint8_t> buffer;
     s->drain(buffer);
 

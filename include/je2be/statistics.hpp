@@ -25,12 +25,12 @@ public:
   }
 
   struct Error {
-    Dimension fDim;
+    mcfile::Dimension fDim;
     int32_t fChunkX;
     int32_t fChunkZ;
   };
 
-  void addError(Dimension dim, int32_t chunkX, int32_t chunkZ) {
+  void addError(mcfile::Dimension dim, int32_t chunkX, int32_t chunkZ) {
     Error e;
     e.fDim = dim;
     e.fChunkX = chunkX;

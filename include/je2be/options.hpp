@@ -6,7 +6,8 @@ class InputOption {
 public:
   LevelDirectoryStructure fLevelDirectoryStructure = LevelDirectoryStructure::Vanilla;
 
-  std::filesystem::path getWorldDirectory(std::filesystem::path const &root, Dimension dim) const {
+  std::filesystem::path getWorldDirectory(std::filesystem::path const &root, mcfile::Dimension dim) const {
+    using namespace mcfile;
     namespace fs = std::filesystem;
     switch (fLevelDirectoryStructure) {
     case LevelDirectoryStructure::Vanilla: {

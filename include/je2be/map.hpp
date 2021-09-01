@@ -218,7 +218,7 @@ public:
         ret->writeAsRoot(w);
         out->drain(serialized);
       }
-      auto key = Key::Map(uuid);
+      auto key = mcfile::be::DbKey::Map(uuid);
       db.put(key, leveldb::Slice((char *)serialized.data(), serialized.size()));
     }
 

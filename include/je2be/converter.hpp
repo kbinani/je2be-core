@@ -51,7 +51,7 @@ public:
 
       auto localPlayerData = LocalPlayerData(*data, *worldData);
       if (localPlayerData) {
-        auto k = Key::LocalPlayer();
+        auto k = mcfile::be::DbKey::LocalPlayer();
         db.put(k, *localPlayerData);
       }
 
@@ -95,7 +95,7 @@ private:
       return std::nullopt;
     }
 
-    DimensionDataFragment ddf(Dimension::Overworld);
+    DimensionDataFragment ddf(mcfile::Dimension::Overworld);
     auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, ddf);
     if (!entity) {
       return std::nullopt;
@@ -112,7 +112,7 @@ private:
     return ret;
   }
 
-  bool convertWorld(mcfile::je::World const &w, Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  bool convertWorld(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -222,7 +222,7 @@ private:
     }
   }
 
-  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::je::Chunk &chunk, Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::je::Chunk &chunk, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -248,7 +248,7 @@ private:
     return ret;
   }
 
-  void putSubChunk(mcfile::je::Chunk const &chunk, Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
+  void putSubChunk(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -580,7 +580,7 @@ private:
   double getTotalNumChunks() const {
     namespace fs = std::filesystem;
     uint32_t num = 0;
-    for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+    for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       auto dir = fInputOption.getWorldDirectory(fInput, dim) / "region";
       if (!fs::exists(dir)) {
         continue;

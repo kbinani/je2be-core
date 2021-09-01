@@ -4,7 +4,7 @@ namespace j2b {
 
 class ChunkData {
 public:
-  ChunkData(int32_t chunkX, int32_t chunkZ, Dimension dim) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
+  ChunkData(int32_t chunkX, int32_t chunkZ, mcfile::Dimension dim) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
 
   void put(DbInterface &db) {
     auto status = putChunkSections(db);
@@ -21,7 +21,7 @@ public:
 
 private:
   void putFinalizedState(DbInterface &db) const {
-    auto key = Key::FinalizedState(fChunkX, fChunkZ, fDimension);
+    auto key = mcfile::be::DbKey::FinalizedState(fChunkX, fChunkZ, fDimension);
     if (fFinalizedState) {
       int32_t v = *fFinalizedState;
       db.put(key, leveldb::Slice((char const *)&v, sizeof(v)));
@@ -31,7 +31,7 @@ private:
   }
 
   void putEntity(DbInterface &db) const {
-    auto key = Key::Entity(fChunkX, fChunkZ, fDimension);
+    auto key = mcfile::be::DbKey::Entity(fChunkX, fChunkZ, fDimension);
     if (fEntity.empty()) {
       db.del(key);
     } else {
@@ -42,12 +42,12 @@ private:
 
   void putChecksums(DbInterface &db) const {
     auto sum = checksums();
-    auto checksumKey = Key::Checksums(fChunkX, fChunkZ, fDimension);
+    auto checksumKey = mcfile::be::DbKey::Checksums(fChunkX, fChunkZ, fDimension);
     db.put(checksumKey, sum);
   }
 
   void putBlockEntity(DbInterface &db) const {
-    auto key = Key::BlockEntity(fChunkX, fChunkZ, fDimension);
+    auto key = mcfile::be::DbKey::BlockEntity(fChunkX, fChunkZ, fDimension);
     if (fBlockEntity.empty()) {
       db.del(key);
     } else {
@@ -57,7 +57,7 @@ private:
   }
 
   void putData2D(DbInterface &db) const {
-    auto data2DKey = Key::Data2D(fChunkX, fChunkZ, fDimension);
+    auto data2DKey = mcfile::be::DbKey::Data2D(fChunkX, fChunkZ, fDimension);
     if (fData2D.empty()) {
       db.del(data2DKey);
     } else {
@@ -74,7 +74,7 @@ private:
   ChunkStatus putChunkSections(DbInterface &db) const {
     bool empty = true;
     for (int i = 0; i < 16; i++) {
-      auto key = Key::SubChunk(fChunkX, i, fChunkZ, fDimension);
+      auto key = mcfile::be::DbKey::SubChunk(fChunkX, i, fChunkZ, fDimension);
       if (fSubChunks[i].empty()) {
         db.del(key);
       } else {
@@ -97,15 +97,15 @@ private:
   void putVersion(DbInterface &db) const {
     char const kSubChunkVersion = 0x16;
 
-    auto const &versionKey = Key::Version(fChunkX, fChunkZ, fDimension);
+    auto const &versionKey = mcfile::be::DbKey::Version(fChunkX, fChunkZ, fDimension);
     leveldb::Slice version(&kSubChunkVersion, 1);
     db.put(versionKey, version);
 
-    db.del(Key::VersionLegacy(fChunkX, fChunkZ, fDimension));
+    db.del(mcfile::be::DbKey::VersionLegacy(fChunkX, fChunkZ, fDimension));
   }
 
   void putPendingTicks(DbInterface &db) const {
-    auto key = Key::PendingTicks(fChunkX, fChunkZ, fDimension);
+    auto key = mcfile::be::DbKey::PendingTicks(fChunkX, fChunkZ, fDimension);
     if (fPendingTicks.empty()) {
       db.del(key);
     } else {
@@ -187,7 +187,7 @@ private:
 public:
   int32_t const fChunkX;
   int32_t const fChunkZ;
-  Dimension const fDimension;
+  mcfile::Dimension const fDimension;
 
   std::vector<uint8_t> fData2D;
   std::vector<uint8_t> fSubChunks[16];
