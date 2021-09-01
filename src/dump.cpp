@@ -4,6 +4,8 @@
 #if __has_include(<shlobj_core.h>)
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+#include <fcntl.h>
+#include <io.h>
 #include <shlobj_core.h>
 #endif
 
@@ -166,9 +168,36 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   delete db;
 }
 
+static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
+  Options o;
+  o.compression = kZlibRawCompression;
+  DB *db;
+  Status st = DB::Open(o, dbDir, &db);
+  if (!st.ok()) {
+    return;
+  }
+
+  ReadOptions ro;
+  nbt::JsonPrintOptions jopt;
+  jopt.fTypeHint = true;
+
+  string value;
+  st = db->Get(ro, key, &value);
+  if (!st.ok()) {
+    return;
+  }
+  _setmode(_fileno(stdout), _O_BINARY);
+  std::cout << value;
+}
+
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
-  DumpKey(dbDir, key);
+  using Tag = mcfile::be::DbKey::Tag;
+  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::Checksums)) {
+    DumpBinaryKey(dbDir, key);
+  } else {
+    DumpKey(dbDir, key);
+  }
 }
 
 static bool DumpLevelDat(fs::path const &dbDir) {
