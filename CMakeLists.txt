@@ -75,6 +75,7 @@ set(je2be_files
   ext/libminecraft-file/include/mcfile/be/chunk.hpp
   ext/libminecraft-file/include/mcfile/be/db-interface.hpp
   ext/libminecraft-file/include/mcfile/be/db-key.hpp
+  ext/libminecraft-file/include/mcfile/be/pending-tick.hpp
   ext/libminecraft-file/include/mcfile/be/sub-chunk.hpp
   ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
