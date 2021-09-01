@@ -128,6 +128,7 @@ private:
         continue;
       }
       w.write((uint8_t)0x2f);
+      w.write((uint8_t)0);
       w.write((uint8_t)i);
       uint64_t hash = GetXXHSum(fSubChunks[i]);
       w.write(hash);
@@ -138,6 +139,7 @@ private:
     if (!fData2D.empty()) {
       w.write((uint8_t)0x2d);
       w.write((uint8_t)0);
+      w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fData2D);
       w.write(hash);
       count++;
@@ -146,6 +148,7 @@ private:
     // BlockEntity
     if (!fBlockEntity.empty()) {
       w.write((uint8_t)0x31);
+      w.write((uint8_t)0);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fBlockEntity);
       w.write(hash);
@@ -156,6 +159,7 @@ private:
     if (!fEntity.empty()) {
       w.write((uint8_t)0x32);
       w.write((uint8_t)0);
+      w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fEntity);
       w.write(hash);
       count++;
@@ -164,6 +168,7 @@ private:
     // PendingTicks
     if (!fPendingTicks.empty()) {
       w.write((uint8_t)0x33);
+      w.write((uint8_t)0);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fPendingTicks);
       w.write(hash);
