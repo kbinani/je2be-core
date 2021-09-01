@@ -71,6 +71,7 @@ set(je2be_files
   #end je2be source files
   # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
+  ext/libminecraft-file/include/mcfile/be/biome.hpp
   ext/libminecraft-file/include/mcfile/be/block.hpp
   ext/libminecraft-file/include/mcfile/be/chunk.hpp
   ext/libminecraft-file/include/mcfile/be/db-interface.hpp
