@@ -193,7 +193,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   using Tag = mcfile::be::DbKey::Tag;
-  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::Checksums)) {
+  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::Checksums) || tag == static_cast<uint8_t>(Tag::Data2D)) {
     DumpBinaryKey(dbDir, key);
   } else {
     DumpKey(dbDir, key);
@@ -215,42 +215,43 @@ static bool DumpLevelDat(fs::path const &dbDir) {
   JsonPrintOptions o;
   o.fTypeHint = true;
   PrintAsJson(cout, *tag, o);
+  return true;
 }
 
 static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string dimension) {
   switch (tag) {
   case 0x2c:
-    cout << "ChunkVersion(0x2c) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "ChunkVersion(0x2c) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x2d:
-    cout << "Data2D(0x2d) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "Data2D(0x2d) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x31:
-    cout << "BlockEntity(0x31) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "BlockEntity(0x31) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x32:
-    cout << "Entity(0x32) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "Entity(0x32) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x33:
-    cout << "PendingTicks(0x33) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "PendingTicks(0x33) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x35:
-    cout << "BiomeState(0x35) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "BiomeState(0x35) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x36:
-    cout << "FinalizedState(0x36) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "FinalizedState(0x36) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x39:
-    cout << "StructureBounds(0x39) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "StructureBounds(0x39) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x3a:
-    cout << "RandomTicks(0x3a) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "RandomTicks(0x3a) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x3b:
-    cout << "Checksums(0x3b) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "Checksums(0x3b) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x76:
-    cout << "ChunkVersionLegacy(0x76) [" << cx << ", " << cz << "] " << dimension << endl;
+    cout << "ChunkVersionLegacy(0x76) [" << cx << ", " << cz << "] " << dimension;
     break;
   default:
     return false;
@@ -288,6 +289,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
       int32_t cx = *(int32_t *)key.data();
       int32_t cz = *(int32_t *)(key.data() + 4);
       chunkTag = PrintChunkKeyDescription(tag, cx, cz, "overworld");
+      cout << " " << itr->value().size() << "bytes" << endl;
       break;
     }
     case 10: {
@@ -296,7 +298,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
         int32_t cx = *(int32_t *)key.data();
         int32_t cz = *(int32_t *)(key.data() + 4);
         uint8_t y = key[9];
-        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " overworld" << endl;
+        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " overworld " << itr->value().size() << "bytes" << endl;
       } else {
         chunkTag = false;
       }
@@ -308,6 +310,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
       int32_t cz = *(int32_t *)(key.data() + 4);
       string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
       chunkTag = PrintChunkKeyDescription(tag, cz, cz, dimension);
+      cout << " " << itr->value().size() << "bytes" << endl;
       break;
     }
     case 14: {
@@ -317,7 +320,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
         int32_t cz = *(int32_t *)(key.data() + 4);
         string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
         uint8_t y = key[13];
-        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " " << dimension << endl;
+        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " " << dimension << " " << itr->value().size() << "bytes" << endl;
       } else {
         chunkTag = false;
       }
@@ -328,7 +331,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
       break;
     }
     if (!chunkTag) {
-      cout << key.ToString() << endl;
+      cout << key.ToString() << " " << itr->value().size() << "bytes" << endl;
     }
   }
   delete itr;
