@@ -11,7 +11,8 @@ public:
     assert(0 <= localZ && localZ < 16);
     assert(0 <= y && y < 256);
     size_t i = localZ * 16 + localX;
-    uint8_t height = (uint8_t)(std::max)((int)fHeight[i], y);
+    int16_t clamped = Clamp(y, (int)std::numeric_limits<int16_t>::lowest(), (int)std::numeric_limits<int16_t>::max());
+    int16_t height = (std::max)(fHeight[i], clamped);
     fHeight[i] = height;
   }
 
@@ -19,14 +20,14 @@ public:
     size_t i = 0;
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++, i++) {
-        uint16_t h = fHeight[i];
+        int16_t h = fHeight[i];
         w.write(h);
       }
     }
   }
 
 private:
-  uint8_t fHeight[256];
+  int16_t fHeight[256];
 };
 
 } // namespace j2b
