@@ -4,8 +4,6 @@ project(je2be)
 include(CheckCCompilerFlag)
 include(ext/setup_source_groups/setup_source_groups.cmake)
 
-set(BUILD_SHARED_LIBS OFF)
-
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
@@ -173,10 +171,10 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
 
   set(ZLIB_COMPAT ON)
   add_subdirectory(ext/zlib-ng EXCLUDE_FROM_ALL)
-  set(ZLIB_INCLUDE_DIR $<TARGET_PROPERTY:zlibstatic,INCLUDE_DIRECTORIES>)
-  set(ZLIB_LIBRARY $<TARGET_LINKER_FILE:zlibstatic>)
+  set(ZLIB_INCLUDE_DIR $<TARGET_PROPERTY:zlib,INCLUDE_DIRECTORIES>)
+  set(ZLIB_LIBRARY $<TARGET_LINKER_FILE:zlib>)
 
-  list(APPEND je2be_link_libraries zlibstatic)
+  list(APPEND je2be_link_libraries zlib)
 else()
   add_definitions(-std=c++17)
 
