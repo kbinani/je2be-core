@@ -127,7 +127,7 @@ private:
       if (fSubChunks[i].empty()) {
         continue;
       }
-      w.write((uint8_t)mcfile::be::DbKey::Tag::SubChunk);
+      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::SubChunk));
       w.write((uint8_t)0);
       w.write((uint8_t)i);
       uint64_t hash = GetXXHSum(fSubChunks[i]);
@@ -137,7 +137,7 @@ private:
 
     // Data2D
     if (!fData2D.empty()) {
-      w.write((uint8_t)mcfile::be::DbKey::Tag::Data2D);
+      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D));
       w.write((uint8_t)0);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fData2D);
@@ -147,7 +147,7 @@ private:
 
     // BlockEntity
     if (!fBlockEntity.empty()) {
-      w.write((uint8_t)mcfile::be::DbKey::Tag::BlockEntity);
+      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::BlockEntity));
       w.write((uint8_t)0);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fBlockEntity);
@@ -157,7 +157,7 @@ private:
 
     // Entity
     if (!fEntity.empty()) {
-      w.write((uint8_t)mcfile::be::DbKey::Entity);
+      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::Entity));
       w.write((uint8_t)0);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fEntity);
@@ -167,7 +167,7 @@ private:
 
     // PendingTicks
     if (!fPendingTicks.empty()) {
-      w.write((uint8_t)mcfile::be::DbKey::PendingTicks);
+      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::PendingTicks));
       w.write((uint8_t)0);
       w.write((uint8_t)0);
       uint64_t hash = GetXXHSum(fPendingTicks);
