@@ -173,20 +173,21 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
 
   set(ZLIB_COMPAT ON)
   add_subdirectory(ext/zlib-ng EXCLUDE_FROM_ALL)
-  list(APPEND je2be_include_directories ext/zlib-ng "${CMAKE_BINARY_DIR}/ext/zlib-ng")
-
-  add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
-  add_subdirectory(ext/leveldb EXCLUDE_FROM_ALL)
+  set(ZLIB_INCLUDE_DIR $<TARGET_PROPERTY:zlibstatic,INCLUDE_DIRECTORIES>)
+  set(ZLIB_LIBRARY $<TARGET_LINKER_FILE:zlibstatic>)
 
   list(APPEND je2be_link_libraries zlibstatic)
 else()
   add_definitions(-std=c++17)
 
-  add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
-  add_subdirectory(ext/leveldb EXCLUDE_FROM_ALL)
-
   list(APPEND je2be_link_libraries z)
 endif()
+
+add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
+
+set(LEVELDB_ZSTD OFF)
+add_subdirectory(ext/leveldb EXCLUDE_FROM_ALL)
+
 list(APPEND je2be_link_libraries xxhash leveldb)
 
 target_include_directories(cli PRIVATE ${je2be_include_directories})
