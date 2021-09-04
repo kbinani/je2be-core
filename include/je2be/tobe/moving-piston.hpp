@@ -211,7 +211,7 @@ private:
     auto movingBlockExtra = make_shared<CompoundTag>();
     movingBlockExtra->set("name", String("minecraft:air"));
     movingBlockExtra->set("states", make_shared<CompoundTag>());
-    movingBlockExtra->set("version", Int(BlockData::kBlockDataVersion));
+    movingBlockExtra->set("version", Int(kBlockDataVersion));
     e->set("movingBlockExtra", movingBlockExtra);
 
     auto pistonPos = LookupPistonPos(loader, pos, facing);

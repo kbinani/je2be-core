@@ -54,7 +54,7 @@ public:
   };
 
   Abilities fAbilities;
-  Version fMinimumCompatibleClientVersion = Version(1, 16, 0, 0, 0);
+  Version fMinimumCompatibleClientVersion = kMinimumCompatibleClientVersion;
   std::string fBaseGameVersion = "*";
   std::string fBiomeOverride = "";
   bool fBonusChestEnabled = false;
@@ -90,7 +90,7 @@ public:
   bool fHasLockedBehaviorPack = false;
   bool fHasLockedResourcePack = false;
   bool fImmutableWorld = false;
-  std::string fInventoryVersion = "1.16.40";
+  std::string fInventoryVersion = kInventoryVersion;
   bool fLANBroadcast = true;
   bool fLANBroadcastIntent = true;
   int64_t fLastPlayed = 0;
@@ -102,7 +102,7 @@ public:
   bool fMultiplayerGameIntent = true;
   bool fNaturalRegeneration = true;
   int32_t fNetherScale = 8;
-  int32_t fNetworkVersion = 408;
+  int32_t fNetworkVersion = kNetworkVersion;
   int32_t fPlatform = 2;
   int32_t fPlatformBroadcastIntent = 3;
   std::string fPrid = "";
@@ -124,7 +124,7 @@ public:
   int32_t fSpawnY = 0;
   int32_t fSpawnZ = 0;
   bool fStartWithMapEnabled = false;
-  int32_t fStorageVersion = 8;
+  int32_t fStorageVersion = kSubChunkBlockStorageVersion;
   bool fTexturePacksRequired = false;
   int64_t fTime = 0;
   bool fTntExplodes = true;
@@ -137,7 +137,7 @@ public:
   bool fIsWorldTemplateOptionLocked = false;
   bool fKeepInventory = false;
   bool fMobGriefing = true;
-  Version fLastOpenedWithVersion = Version(1, 16, 40, 2, 0);
+  Version fLastOpenedWithVersion = kSupportVersion;
   float fLightningLevel = 0;
   int32_t fLightningTime = 0;
   int32_t fLimitedWorldDepth = 16;
@@ -385,7 +385,7 @@ public:
 
     auto fight = std::make_shared<CompoundTag>();
 
-    fight->set("DragonFightVersion", Byte(0));
+    fight->set("DragonFightVersion", Byte(kDragonFightVersion));
 
     auto killed = dragonFight->boolean("DragonKilled", false);
     fight->set("DragonKilled", Bool(numAutonomousEntities == 0 && killed));

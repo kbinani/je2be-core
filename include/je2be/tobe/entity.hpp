@@ -156,7 +156,7 @@ public:
     string key = name + "[facing_direction=" + to_string(facing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
     b->insert({
         {"name", String(name)},
-        {"version", Int(BlockData::kBlockDataVersion)},
+        {"version", Int(kBlockDataVersion)},
         {"states", states},
     });
     Pos3i pos(*tileX, *tileY, *tileZ);
@@ -1065,7 +1065,7 @@ private:
       auto armor = std::make_shared<CompoundTag>();
       armor->insert({{"Count", Byte(1)}, {"Damage", Short(0)}, {"Name", String("minecraft:carpet")}, {"WasPickedUp", Bool(false)}});
       auto block = std::make_shared<CompoundTag>();
-      block->insert({{"name", String("minecraft:carpet")}, {"version", Int(BlockData::kBlockDataVersion)}});
+      block->insert({{"name", String("minecraft:carpet")}, {"version", Int(kBlockDataVersion)}});
       auto states = std::make_shared<CompoundTag>();
       states->set("color", String(beCarpetColor));
       block->set("states", states);

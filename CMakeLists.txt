@@ -30,6 +30,7 @@ set(je2be_files
   include/je2be/tobe/block-palette.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
+  include/je2be/tobe/constants.hpp
   include/je2be/tobe/converter.hpp
   include/je2be/tobe/db/async-db.hpp
   include/je2be/tobe/db/db-interface.hpp

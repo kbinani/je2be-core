@@ -2012,9 +2012,6 @@ private:
     data->set("states", s);
     return data;
   }
-
-public:
-  static int32_t const kBlockDataVersion = 17879555;
 };
 
 } // namespace je2be::tobe

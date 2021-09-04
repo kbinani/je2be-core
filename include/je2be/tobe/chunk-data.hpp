@@ -95,8 +95,6 @@ private:
   }
 
   void putVersion(DbInterface &db) const {
-    char const kSubChunkVersion = 0x16;
-
     auto const &versionKey = mcfile::be::DbKey::Version(fChunkX, fChunkZ, fDimension);
     leveldb::Slice version(&kSubChunkVersion, 1);
     db.put(versionKey, version);

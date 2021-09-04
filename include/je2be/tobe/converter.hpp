@@ -414,7 +414,7 @@ private:
     auto stream = make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
 
-    w.write(kBlockStorageVersion);
+    w.write(kSubChunkBlockStorageVersion);
     w.write((uint8_t)numStorageBlocks);
 
     {
@@ -603,9 +603,6 @@ private:
   std::filesystem::path const fOutput;
   InputOption const fInputOption;
   OutputOption const fOutputOption;
-
-private:
-  uint8_t const kBlockStorageVersion = 8;
 };
 
 } // namespace je2be::tobe

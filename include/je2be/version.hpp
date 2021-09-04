@@ -10,7 +10,7 @@ public:
   int fRevision;
   int fReserved;
 
-  Version(int major, int minor, int patch, int revision, int reserved) : fMajor(major), fMinor(minor), fPatch(patch), fRevision(revision), fReserved(reserved) {}
+  constexpr Version(int major, int minor, int patch, int revision, int reserved) : fMajor(major), fMinor(minor), fPatch(patch), fRevision(revision), fReserved(reserved) {}
 
   std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
     using namespace props;

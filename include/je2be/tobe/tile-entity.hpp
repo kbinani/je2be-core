@@ -67,7 +67,7 @@ public:
       auto b = std::make_shared<CompoundTag>();
       b->insert({
           {"name", props::String("minecraft:mob_spawner")},
-          {"version", props::Int(BlockData::kBlockDataVersion)},
+          {"version", props::Int(kBlockDataVersion)},
           {"states", std::make_shared<CompoundTag>()},
       });
       return std::make_tuple(b, "minecraft:mob_spawner");
@@ -707,7 +707,7 @@ private:
     plantBlock->insert({
         {"states", states},
         {"name", String("minecraft:bamboo")},
-        {"version", Int(BlockData::kBlockDataVersion)},
+        {"version", Int(kBlockDataVersion)},
     });
     tag->insert({
         {"id", String("FlowerPot")},
@@ -733,7 +733,7 @@ private:
       plantBlock->insert({
           {"states", states},
           {"name", String("minecraft:" + name)},
-          {"version", Int(BlockData::kBlockDataVersion)},
+          {"version", Int(kBlockDataVersion)},
       });
       tag->insert({
           {"id", String("FlowerPot")},
@@ -761,7 +761,7 @@ private:
     plantBlock->insert({
         {"states", states},
         {"name", String("minecraft:sapling")},
-        {"version", Int(BlockData::kBlockDataVersion)},
+        {"version", Int(kBlockDataVersion)},
     });
     tag->insert({
         {"id", String("FlowerPot")},
