@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b::strings {
+namespace je2be::strings {
 
 inline bool Equal(std::string const &a, std::string const &b) {
   if (a.size() != b.size()) {
@@ -92,4 +92,4 @@ inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
   }
 }
 
-} // namespace j2b::strings
+} // namespace je2be::strings

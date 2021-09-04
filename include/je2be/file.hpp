@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b::file {
+namespace je2be::file {
 
 inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path const &tempDir) {
   namespace fs = std::filesystem;
@@ -30,4 +30,4 @@ inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path 
 #endif
 }
 
-} // namespace j2b::file
+} // namespace je2be::file

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 struct Rgba {
   Rgba(uint8_t r, uint8_t g, uint8_t b) : fR(r), fG(g), fB(b), fA(255) {}
@@ -30,4 +30,4 @@ struct Rgba {
   }
 };
 
-} // namespace j2b
+} // namespace je2be

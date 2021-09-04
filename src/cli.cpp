@@ -11,7 +11,7 @@ static void PrintHelpMessage() {
 int main(int argc, char *argv[]) {
   std::string input;
   std::string output;
-  j2b::LevelDirectoryStructure structure = j2b::LevelDirectoryStructure::Vanilla;
+  je2be::LevelDirectoryStructure structure = je2be::LevelDirectoryStructure::Vanilla;
   unsigned int concurrency = std::thread::hardware_concurrency();
 
   char opt = 0;
@@ -36,16 +36,16 @@ int main(int argc, char *argv[]) {
         break;
       case 's':
         if (arg == "vanilla") {
-          structure = j2b::LevelDirectoryStructure::Vanilla;
+          structure = je2be::LevelDirectoryStructure::Vanilla;
         } else if (arg == "paper") {
-          structure = j2b::LevelDirectoryStructure::Paper;
+          structure = je2be::LevelDirectoryStructure::Paper;
         } else {
           std::cerr << "error: unknown LevelDirectoryStructure name; should be \"vanilla\" or \"paper\"" << std::endl;
           return -1;
         }
         break;
       case 'n': {
-        auto n = j2b::strings::Toi(arg);
+        auto n = je2be::strings::Toi(arg);
         if (!n) {
           std::cerr << "error: -n option must be an integer" << std::endl;
           return -1;
@@ -74,10 +74,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  j2b::InputOption io;
+  je2be::tobe::InputOption io;
   io.fLevelDirectoryStructure = structure;
-  j2b::OutputOption oo;
-  j2b::Converter converter(std::filesystem::path(input), io,
-                           std::filesystem::path(output), oo);
+  je2be::tobe::OutputOption oo;
+  je2be::tobe::Converter converter(std::filesystem::path(input), io,
+                                   std::filesystem::path(output), oo);
   return converter.run(concurrency) ? 0 : -1;
 }

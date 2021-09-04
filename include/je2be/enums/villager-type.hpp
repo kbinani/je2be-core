@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class VillagerType {
   VillagerType() = delete;
@@ -67,4 +67,4 @@ private:
   Variant fVariant;
 };
 
-} // namespace j2b
+} // namespace je2be

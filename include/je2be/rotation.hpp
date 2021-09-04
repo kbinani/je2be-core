@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class Rotation {
 public:
@@ -19,4 +19,4 @@ public:
   float fPitch;
 };
 
-} // namespace j2b
+} // namespace je2be

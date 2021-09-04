@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 enum class BannerColorCodeBedrock : int32_t {
   Red = 1,
@@ -48,4 +48,4 @@ inline BannerColorCodeBedrock BannerColorCodeFromName(std::string const &color) 
   }
 }
 
-} // namespace j2b
+} // namespace je2be

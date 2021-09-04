@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace leveldb;
-using namespace j2b;
+using namespace je2be;
 using namespace mcfile;
 using namespace nbt;
 using namespace stream;

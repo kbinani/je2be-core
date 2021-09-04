@@ -3,7 +3,7 @@
 #include <je2be.hpp>
 #include <sstream>
 
-using namespace j2b;
+using namespace je2be;
 using namespace mcfile;
 using namespace mcfile::je;
 using namespace mcfile::nbt;
@@ -117,7 +117,7 @@ static void CheckPistonArm(shared_ptr<CompoundTag const> const &actual, Expected
 TEST_CASE("moving-piston") {
   SUBCASE("extending=0") {
     auto [chunk, region] = Load("extending=0");
-    MovingPiston::PreprocessChunk(chunk, *region);
+    tobe::MovingPiston::PreprocessChunk(chunk, *region);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 5, 8)], {.id = "j2b:MovingBlock",
                                                              .isMovable = true,
                                                              .movingBlock = {
@@ -125,8 +125,8 @@ TEST_CASE("moving-piston") {
                                                                  .states = {
                                                                      {"stone_type", "stone"},
                                                                  },
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -139,8 +139,8 @@ TEST_CASE("moving-piston") {
                                                                  .name = "minecraft:wool",
                                                                  .states = {
                                                                      {"color", "blue"}},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -152,8 +152,8 @@ TEST_CASE("moving-piston") {
                                                              .movingBlock = {
                                                                  .name = "minecraft:slime",
                                                                  .states = {},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -165,8 +165,8 @@ TEST_CASE("moving-piston") {
                                                              .movingBlock = {
                                                                  .name = "minecraft:slime",
                                                                  .states = {},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -203,8 +203,8 @@ TEST_CASE("moving-piston") {
                                                               .movingBlock = {
                                                                   .name = "minecraft:cobblestone",
                                                                   .states = {},
-                                                                  .version = BlockData::kBlockDataVersion},
-                                                              .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                  .version = tobe::BlockData::kBlockDataVersion},
+                                                              .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                               .pistonPosX = 14,
                                                               .pistonPosY = 4,
                                                               .pistonPosZ = 9,
@@ -215,15 +215,15 @@ TEST_CASE("moving-piston") {
 
   SUBCASE("extending=1") {
     auto [chunk, region] = Load("extending=1");
-    MovingPiston::PreprocessChunk(chunk, *region);
+    tobe::MovingPiston::PreprocessChunk(chunk, *region);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 8)], {.id = "j2b:MovingBlock",
                                                              .isMovable = 1,
                                                              .movingBlock = {
                                                                  .name = "minecraft:stone",
                                                                  .states = {
                                                                      {"stone_type", "stone"}},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -235,8 +235,8 @@ TEST_CASE("moving-piston") {
                                                              .movingBlock = {
                                                                  .name = "minecraft:slime",
                                                                  .states = {},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -249,8 +249,8 @@ TEST_CASE("moving-piston") {
                                                                  .name = "minecraft:wool",
                                                                  .states = {
                                                                      {"color", "blue"}},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -262,8 +262,8 @@ TEST_CASE("moving-piston") {
                                                              .movingBlock = {
                                                                  .name = "minecraft:slime",
                                                                  .states = {},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,
@@ -275,8 +275,8 @@ TEST_CASE("moving-piston") {
                                                               .movingBlock = {
                                                                   .name = "minecraft:cobblestone",
                                                                   .states = {},
-                                                                  .version = BlockData::kBlockDataVersion},
-                                                              .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                  .version = tobe::BlockData::kBlockDataVersion},
+                                                              .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                               .pistonPosX = 14,
                                                               .pistonPosY = 4,
                                                               .pistonPosZ = 9,
@@ -308,15 +308,15 @@ TEST_CASE("moving-piston") {
 
   SUBCASE("normal_extending=1") {
     auto [chunk, region] = Load("normal_extending=1");
-    MovingPiston::PreprocessChunk(chunk, *region);
+    tobe::MovingPiston::PreprocessChunk(chunk, *region);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 9)], {.id = "j2b:MovingBlock",
                                                              .isMovable = 1,
                                                              .movingBlock = {
                                                                  .name = "minecraft:sand",
                                                                  .states = {
                                                                      {"sand_type", "normal"}},
-                                                                 .version = BlockData::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = BlockData::kBlockDataVersion},
+                                                                 .version = tobe::BlockData::kBlockDataVersion},
+                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::BlockData::kBlockDataVersion},
                                                              .pistonPosX = 14,
                                                              .pistonPosY = 4,
                                                              .pistonPosZ = 9,

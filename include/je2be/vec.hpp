@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class Vec {
 public:
@@ -21,4 +21,4 @@ public:
   float fZ;
 };
 
-} // namespace j2b
+} // namespace je2be

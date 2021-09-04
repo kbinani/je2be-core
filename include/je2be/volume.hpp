@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class Volume {
 public:
@@ -40,4 +40,4 @@ public:
   Pos3i fEnd;
 };
 
-} // namespace j2b
+} // namespace je2be

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class XXHash {
 public:
@@ -32,4 +32,4 @@ private:
   XXH64_state_t *fState = nullptr;
 };
 
-} // namespace j2b
+} // namespace je2be

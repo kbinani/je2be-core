@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 enum class ColorCodeJava : int32_t {
   White = 0,
@@ -123,4 +123,4 @@ inline int32_t BannerColorCodeFromJava(int32_t java) {
   }
 }
 
-} // namespace j2b
+} // namespace je2be

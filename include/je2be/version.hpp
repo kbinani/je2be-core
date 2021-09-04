@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class Version {
 public:
@@ -25,4 +25,4 @@ public:
   }
 };
 
-} // namespace j2b
+} // namespace je2be

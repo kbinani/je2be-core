@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 struct Size {
   Size(int32_t w, int32_t h) : fWidth(w), fHeight(h) {}
@@ -9,4 +9,4 @@ struct Size {
   int32_t fHeight;
 };
 
-} // namespace j2b
+} // namespace je2be

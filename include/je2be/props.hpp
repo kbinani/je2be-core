@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b::props {
+namespace je2be::props {
 
 inline std::shared_ptr<mcfile::nbt::ByteTag> Bool(bool b) { return std::make_shared<mcfile::nbt::ByteTag>(b ? 1 : 0); }
 
@@ -220,4 +220,4 @@ inline std::optional<nlohmann::json> GetJson(mcfile::nbt::CompoundTag const &tag
   return ParseAsJson(s->fValue);
 }
 
-} // namespace j2b::props
+} // namespace je2be::props

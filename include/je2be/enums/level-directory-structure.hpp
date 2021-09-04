@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 enum class LevelDirectoryStructure {
   Vanilla,

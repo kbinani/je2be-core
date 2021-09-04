@@ -1,6 +1,6 @@
 #pragma once
 
-namespace j2b {
+namespace je2be {
 
 class Lab {
 public:
@@ -53,4 +53,4 @@ public:
   }
 };
 
-} // namespace j2b
+} // namespace je2be
