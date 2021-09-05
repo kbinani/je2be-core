@@ -2,12 +2,11 @@
 #include <je2be.hpp>
 
 #if __has_include(<shlobj_core.h>)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <fcntl.h>
-#include <io.h>
 #include <shlobj_core.h>
 #endif
+
+#include <fcntl.h>
+#include <io.h>
 
 using namespace std;
 using namespace leveldb;
@@ -193,7 +192,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   using Tag = mcfile::be::DbKey::Tag;
-  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::Checksums) || tag == static_cast<uint8_t>(Tag::Data2D)) {
+  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::Checksums) || tag == static_cast<uint8_t>(Tag::Data2D) || tag == static_cast<uint8_t>(Tag::Version)) {
     DumpBinaryKey(dbDir, key);
   } else {
     DumpKey(dbDir, key);
