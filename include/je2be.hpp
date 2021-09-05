@@ -11,6 +11,8 @@
 #include <leveldb/table.h>
 #include <table/compression/zlib_compressor.h>
 #include <db/dbformat.h>
+#include <db/version_edit.h>
+#include <db/log_writer.h>
 #include <xxhash.h>
 #include <ThreadPool.h>
 #include <nlohmann/json.hpp>
@@ -49,6 +51,7 @@
 #include <je2be/tobe/db/null-db.hpp>
 #include <je2be/tobe/db/async-db.hpp>
 #include <je2be/tobe/db/raw-db.hpp>
+#include <je2be/tobe/db/buffered-db.hpp>
 #include <je2be/tobe/level-data.hpp>
 #include <je2be/tobe/height-map.hpp>
 #include <je2be/tobe/options.hpp>
