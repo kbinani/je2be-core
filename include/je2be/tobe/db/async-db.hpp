@@ -85,6 +85,10 @@ public:
     fCv.notify_one();
   }
 
+  void abandon() override {
+    fStop.store(true);
+  }
+
   ~AsyncDb() {
     fStop.store(true);
     fCv.notify_one();

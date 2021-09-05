@@ -125,7 +125,9 @@ public:
     fTh.join();
   }
 
-  void abandon() { fAbandoned.store(true); }
+  void abandon() override {
+    fAbandoned.store(true);
+  }
 
 private:
   void drainWriteBatch(leveldb::WriteBatch &b, uint32_t fileNum, leveldb::Options o) {

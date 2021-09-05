@@ -53,6 +53,10 @@ public:
     //nop because write-only
   }
 
+  void abandon() override {
+    fAbandoned = true;
+  }
+
 private:
   void unsafeFinalize() {
     using namespace std;
@@ -64,6 +68,12 @@ private:
     }
     fclose(fBuffer);
     fBuffer = nullptr;
+
+    if (fAbandoned) {
+      error_code ec;
+      fs::remove(fDir / "tmp.bin", ec);
+      return;
+    }
 
     vector<string> internalKeys;
     for (uint64_t sequence = 0; sequence < fEntries.size(); sequence++) {
@@ -220,6 +230,7 @@ private:
   std::filesystem::path const fDir;
   std::mutex fMut;
   std::vector<Entry> fEntries;
+  bool fAbandoned = false;
 };
 
 } // namespace je2be::tobe

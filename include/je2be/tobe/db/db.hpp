@@ -56,6 +56,9 @@ public:
     fDb->Delete(leveldb::WriteOptions{}, key);
   }
 
+  void abandon() override {
+  }
+
 private:
   leveldb::DB *fDb;
   bool fValid;
