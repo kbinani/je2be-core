@@ -30,4 +30,27 @@ inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path 
 #endif
 }
 
+class ScopedFile {
+public:
+  explicit ScopedFile(FILE *file) : fFile(file) {
+  }
+
+  ~ScopedFile() {
+    if (fFile) {
+      fclose(fFile);
+    }
+  }
+
+  operator FILE *() const {
+    return fFile;
+  }
+
+  operator bool() const {
+    return fFile != nullptr;
+  }
+
+private:
+  FILE *const fFile;
+};
+
 } // namespace je2be::file
