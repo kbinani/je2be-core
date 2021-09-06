@@ -107,17 +107,16 @@ private:
       return;
     }
 
-    vector<string> internalKeys;
+    vector<InternalKey> internalKeys;
     for (uint64_t sequence = 0; sequence < fEntries.size(); sequence++) {
       Entry entry = fEntries[sequence];
       InternalKey ik(entry.fKey, sequence, kTypeValue);
-      string encoded = ik.Encode().ToString();
-      internalKeys.push_back(encoded);
+      internalKeys.push_back(ik);
     }
 
     Comparator const *cmp = BytewiseComparator();
     InternalKeyComparator icmp(cmp);
-    sort(internalKeys.begin(), internalKeys.end(), [&icmp](string const &lhs, string const &rhs) {
+    sort(internalKeys.begin(), internalKeys.end(), [&icmp](InternalKey const &lhs, InternalKey const &rhs) {
       return icmp.Compare(lhs, rhs) < 0;
     });
 
@@ -140,21 +139,17 @@ private:
     vector<uint8_t> buffer;
     optional<InternalKey> smallest = nullopt;
     InternalKey largest;
-    for (string const &internalKey : internalKeys) {
-      ParsedInternalKey pik;
-      if (!ParseInternalKey(internalKey, &pik)) {
-        continue;
-      }
-      InternalKey ik(pik.user_key, pik.sequence, pik.type);
+    for (SequenceNumber sequence = 0; sequence < internalKeys.size(); sequence++) {
+      InternalKey ik = internalKeys[sequence];
       if (!smallest) {
         smallest = ik;
       }
       largest = ik;
 
-      if (fEntries.size() <= pik.sequence) {
+      if (fEntries.size() <= sequence) {
         continue;
       }
-      Entry entry = fEntries[pik.sequence];
+      Entry entry = fEntries[sequence];
       buffer.resize(entry.fSizeCompressed);
 #if defined(_WIN32)
       auto ret = _fseeki64(fp, entry.fOffsetCompressed, SEEK_SET);
