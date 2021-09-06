@@ -62,16 +62,15 @@ public:
       }
 
       if (ok) {
-        if (progress) {
-          progress->report(Progress::Phase::LevelDbCompaction, 0, 1);
-        }
+        ok = db.close([progress](double p) {
+          if (!progress) {
+            return;
+          }
+          progress->report(Progress::Phase::LevelDbCompaction, p, 1);
+        });
       } else {
         db.abandon();
       }
-    }
-
-    if (ok && progress) {
-      progress->report(Progress::Phase::LevelDbCompaction, 1, 1);
     }
 
     return worldData->fStat;

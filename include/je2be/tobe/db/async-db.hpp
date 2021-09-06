@@ -65,6 +65,10 @@ public:
     fTh.swap(th);
   }
 
+  ~AsyncDb() {
+    close(std::nullopt);
+  }
+
   bool valid() const override { return fValid; }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
@@ -85,11 +89,28 @@ public:
     fCv.notify_one();
   }
 
-  void abandon() override {
+  bool close(std::optional<std::function<void(double progress)>> progress = std::nullopt) override {
+    if (fClosed) {
+      return false;
+    }
+    fClosed = true;
+    if (progress) {
+      (*progress)(0.0);
+    }
     fStop.store(true);
+    fCv.notify_one();
+    fTh.join();
+    if (progress) {
+      (*progress)(1.0);
+    }
+    return true;
   }
 
-  ~AsyncDb() {
+  void abandon() override {
+    if (fClosed) {
+      return;
+    }
+    fClosed = true;
     fStop.store(true);
     fCv.notify_one();
     fTh.join();
@@ -103,6 +124,7 @@ private:
   std::condition_variable fCv;
   std::atomic_bool fStop;
   bool fValid = false;
+  bool fClosed = false;
 };
 
 } // namespace je2be::tobe

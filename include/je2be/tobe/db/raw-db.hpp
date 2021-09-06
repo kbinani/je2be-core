@@ -37,10 +37,7 @@ public:
   RawDb &operator=(RawDb &&) = delete;
 
   ~RawDb() {
-    try {
-      unsafeFinalize();
-    } catch (...) {
-    }
+    close();
   }
 
   bool valid() const override {
@@ -77,39 +74,23 @@ public:
     }
   }
 
-  void putImpl(std::string key, std::string value) {
-    if (!fBuffer) {
-      return;
-    }
-
-    if (fwrite(value.data(), value.size(), 1, fBuffer) != 1) {
-      fclose(fBuffer);
-      fBuffer = nullptr;
-      return;
-    }
-    Entry entry;
-    entry.fKey = key;
-    entry.fSequenceNumber = fEntries.size();
-    entry.fOffsetCompressed = fPos;
-    entry.fSizeCompressed = value.size();
-    fEntries.push_back(entry);
-    fPos += value.size();
-  }
-
   void del(std::string const &key) override {
     //nop because write-only
   }
 
-  void abandon() override {
-    fAbandoned = true;
-  }
-
-private:
-  void unsafeFinalize() {
+  bool close(std::optional<std::function<void(double progress)>> progress = std::nullopt) override {
     using namespace std;
     using namespace std::placeholders;
     using namespace leveldb;
     namespace fs = std::filesystem;
+
+    if (fClosed) {
+      return false;
+    }
+    fClosed = true;
+    if (progress) {
+      (*progress)(0.0);
+    }
 
     for (auto &f : fFutures) {
       f.get();
@@ -117,16 +98,10 @@ private:
     fPool.shutdown();
 
     if (!fBuffer) {
-      return;
+      return false;
     }
     fclose(fBuffer);
     fBuffer = nullptr;
-
-    if (fAbandoned) {
-      error_code ec;
-      fs::remove(fDir / "tmp.bin", ec);
-      return;
-    }
 
     Comparator const *cmp = BytewiseComparator();
     InternalKeyComparator icmp(cmp);
@@ -163,6 +138,8 @@ private:
     pool.init();
 
     VersionEdit edit;
+    uint64_t done = 0;
+    uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
     deque<future<optional<TableBuildResult>>> futures;
     for (size_t idx = 0; idx < plans.size(); idx++) {
@@ -176,6 +153,11 @@ private:
         Entry smallest = fEntries[result->fPlan.fFrom];
         Entry largest = fEntries[result->fPlan.fTo];
         edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest.internalKey(), largest.internalKey());
+        done++;
+        if (progress) {
+          double p = (double)done / (double)total;
+          (*progress)(p);
+        }
       }
 
       TableBuildPlan plan = plans[idx];
@@ -190,6 +172,11 @@ private:
       Entry smallest = fEntries[result->fPlan.fFrom];
       Entry largest = fEntries[result->fPlan.fTo];
       edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest.internalKey(), largest.internalKey());
+      done++;
+      if (progress) {
+        double p = (double)done / (double)total;
+        (*progress)(p);
+      }
     }
 
     pool.shutdown();
@@ -211,7 +198,7 @@ private:
     leveldb::log::Writer writer(meta.get());
     Status st = writer.AddRecord(manifestRecord);
     if (!st.ok()) {
-      return;
+      return false;
     }
     meta->Close();
     meta.reset();
@@ -219,10 +206,56 @@ private:
     unique_ptr<WritableFile> current(OpenWritable(fDir / "CURRENT"));
     st = current->Append(manifestFileName + "\x0a");
     if (!st.ok()) {
-      return;
+      return false;
     }
     current->Close();
     current.reset();
+    if (progress) {
+      (*progress)(1.0);
+    }
+    return true;
+  }
+
+  void abandon() override {
+    using namespace std;
+    namespace fs = std::filesystem;
+    if (fClosed) {
+      return;
+    }
+    for (auto &f : fFutures) {
+      f.get();
+    }
+    fPool.shutdown();
+    if (fBuffer) {
+      fclose(fBuffer);
+      fBuffer = nullptr;
+    }
+    error_code ec;
+    fs::remove(fDir / "tmp.bin", ec);
+    fClosed = true;
+  }
+
+private:
+  void putImpl(std::string key, std::string value) {
+    if (!fBuffer) {
+      return;
+    }
+
+    if (fwrite(value.data(), value.size(), 1, fBuffer) != 1) {
+      fclose(fBuffer);
+      fBuffer = nullptr;
+      return;
+    }
+    Entry entry;
+    entry.fKey = key;
+    entry.fSequenceNumber = fEntries.size();
+    entry.fOffsetCompressed = fPos;
+    entry.fSizeCompressed = value.size();
+    fEntries.push_back(entry);
+    fPos += value.size();
+  }
+
+  void unsafeFinalize() {
   }
 
   std::optional<TableBuildResult> buildTable(TableBuildPlan plan, size_t idx) const {
@@ -309,10 +342,10 @@ private:
   std::filesystem::path const fDir;
   std::mutex fMut;
   std::vector<Entry> fEntries;
-  bool fAbandoned = false;
   ::ThreadPool fPool;
   std::deque<std::future<void>> fFutures;
   unsigned int const fConcurrency;
+  bool fClosed = false;
 };
 
 } // namespace je2be::tobe
