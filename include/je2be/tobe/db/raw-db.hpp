@@ -3,159 +3,296 @@
 namespace je2be::tobe {
 
 class RawDb : public DbInterface {
+  struct Entry {
+    std::string fKey;
+    leveldb::SequenceNumber fSequenceNumber;
+    uint64_t fSizeCompressed;
+    uint64_t fOffsetCompressed;
+
+    leveldb::InternalKey internalKey() const {
+      leveldb::InternalKey ik(fKey, fSequenceNumber, leveldb::kTypeValue);
+      return ik;
+    }
+  };
+
+  struct TableBuildPlan {
+    size_t fFrom;
+    size_t fTo;
+  };
+
+  struct TableBuildResult {
+    TableBuildPlan fPlan;
+    uint64_t fFileNumber;
+    uint64_t fFileSize;
+  };
+
 public:
-  RawDb(std::string const &, unsigned int concurrency) = delete;
-  RawDb(std::wstring const &, unsigned int concurrency) = delete;
-  RawDb(std::filesystem::path const &dir, unsigned int concurrency) : fValid(true), fDir(dir) {
-    using namespace std;
-    using namespace leveldb;
-    namespace fs = std::filesystem;
-
-    leveldb::FileLock *lf = nullptr;
-    auto lockFileName = dir / "LOCK";
-    auto env = leveldb::Env::Default();
-    Status st = env->LockFile(lockFileName, &lf);
-    if (!st.ok()) {
-      fValid = false;
-      return;
-    }
-    fFileLock = lf;
-
-    fStop.store(false);
-    fAbandoned.store(false);
-
-    thread th([this, concurrency]() {
-      for (auto const &e : fs::directory_iterator(fs::path(fDir))) {
-        if (e.path().filename() != "LOCK") {
-          fs::remove_all(e.path());
-        }
-      }
-
-      Options o;
-      o.compression = kZlibRawCompression;
-
-      uint32_t fileNum = 1;
-      uint64_t sequenceNumber = 1;
-      uint64_t const kMaxFileSize = 2 * 1024 * 1024;
-      auto batch = make_shared<WriteBatch>();
-
-      ::ThreadPool pool(concurrency);
-      pool.init();
-
-      deque<future<void>> futures;
-
-      while (true) {
-        unique_lock<std::mutex> lk(fMut);
-        fCv.wait(lk, [this] { return !fQueue.empty() || fStop.load(); });
-        vector<pair<string, string>> commands;
-        fQueue.swap(commands);
-        bool const stop = fStop.load();
-        lk.unlock();
-        for (auto const &c : commands) {
-          auto const &key = c.first;
-          auto const &value = c.second;
-          InternalKey ik(key, sequenceNumber, kTypeValue);
-          sequenceNumber++;
-          Slice k = ik.Encode();
-          batch->Put(k, value);
-          if (batch->ApproximateSize() > o.max_file_size) {
-            if (futures.size() > concurrency) {
-              size_t pop = futures.size() - (size_t)(concurrency / 2);
-              for (size_t i = 0; i < pop; i++) {
-                futures.front().get();
-                futures.pop_front();
-              }
-            }
-
-            futures.emplace_back(move(pool.submit([this, fileNum, o](shared_ptr<WriteBatch> b) { drainWriteBatch(*b, fileNum, o); }, batch)));
-
-            fileNum++;
-            batch = make_shared<WriteBatch>();
-          }
-        }
-        if (stop) {
-          break;
-        }
-      }
-
-      for (auto &f : futures) {
-        f.get();
-      }
-
-      pool.shutdown();
-
-      if (!fAbandoned) {
-        drainWriteBatch(*batch, fileNum, o);
-      }
-
-      assert(fFileLock);
-      auto env = leveldb::Env::Default();
-      env->UnlockFile(fFileLock);
-      fFileLock = nullptr;
-
-      if (!fAbandoned) {
-        RepairDB(fDir.c_str(), o);
-        DB *db = nullptr;
-        Status st = DB::Open(o, fDir, &db);
-        if (st.ok()) {
-          db->CompactRange(nullptr, nullptr);
-          delete db;
-        }
-      }
-    });
-    fTh.swap(th);
+  RawDb(std::filesystem::path const &dir, unsigned int concurrency)
+      : fDir(dir), fPool(1), fConcurrency(concurrency) {
+    fBuffer = mcfile::File::Open(dir / "tmp.bin", mcfile::File::Mode::Write);
+    fPool.init();
   }
 
-  bool valid() const override { return fValid; }
-
-  void put(std::string const &key, leveldb::Slice const &value) override {
-    auto cmd = std::make_pair(key, value.ToString());
-    {
-      std::lock_guard<std::mutex> lk(fMut);
-      fQueue.push_back(cmd);
-    }
-    fCv.notify_one();
-  }
-
-  void del(std::string const &key) override {}
+  RawDb(RawDb &&) = delete;
+  RawDb &operator=(RawDb &&) = delete;
 
   ~RawDb() {
-    fStop.store(true);
-    fCv.notify_one();
-    fTh.join();
+    try {
+      unsafeFinalize();
+    } catch (...) {
+    }
+  }
+
+  bool valid() const override {
+    return fBuffer != nullptr;
+  }
+
+  void put(std::string const &key, leveldb::Slice const &value) override {
+    using namespace std;
+    using namespace std::placeholders;
+
+    vector<uint8_t> buffer;
+    buffer.resize(value.size());
+    copy_n(value.data(), value.size(), buffer.begin());
+    if (!mcfile::Compression::compress(buffer, Z_BEST_SPEED)) {
+      return;
+    }
+    string cvalue((char const *)buffer.data(), buffer.size());
+    vector<uint8_t>().swap(buffer);
+
+    vector<future<void>> popped;
+
+    {
+      std::lock_guard<std::mutex> lk(fMut);
+      int pop = fFutures.size() - 2;
+      for (int i = 0; i < pop; i++) {
+        popped.emplace_back(move(fFutures.front()));
+        fFutures.pop_front();
+      }
+      fFutures.push_back(std::move(fPool.submit(std::bind(&RawDb::putImpl, this, _1, _2), key, cvalue)));
+    }
+
+    for (auto &f : popped) {
+      f.get();
+    }
+  }
+
+  void putImpl(std::string key, std::string value) {
+    if (!fBuffer) {
+      return;
+    }
+
+    if (fwrite(value.data(), value.size(), 1, fBuffer) != 1) {
+      fclose(fBuffer);
+      fBuffer = nullptr;
+      return;
+    }
+    Entry entry;
+    entry.fKey = key;
+    entry.fSequenceNumber = fEntries.size();
+    entry.fOffsetCompressed = fPos;
+    entry.fSizeCompressed = value.size();
+    fEntries.push_back(entry);
+    fPos += value.size();
+  }
+
+  void del(std::string const &key) override {
+    //nop because write-only
   }
 
   void abandon() override {
-    fAbandoned.store(true);
+    fAbandoned = true;
   }
 
 private:
-  void drainWriteBatch(leveldb::WriteBatch &b, uint32_t fileNum, leveldb::Options o) {
-    using namespace leveldb;
+  void unsafeFinalize() {
     using namespace std;
-    unique_ptr<WritableFile> file(open(fileNum));
-    unique_ptr<TableBuilder> tb(new TableBuilder(o, file.get()));
-    struct Visitor : public WriteBatch::Handler {
-      void Put(const Slice &key, const Slice &value) override {
-        fDrain.insert(make_pair(key.ToString(), value.ToString()));
-        fKeys.push_back(key.ToString());
-      }
-      void Delete(const Slice &key) override {}
+    using namespace std::placeholders;
+    using namespace leveldb;
+    namespace fs = std::filesystem;
 
-      std::unordered_map<std::string, std::string> fDrain;
-      std::vector<std::string> fKeys;
-    } v;
-    b.Iterate(&v);
-    sort(v.fKeys.begin(), v.fKeys.end(), [](string const &lhs, string const &rhs) { return BytewiseComparator()->Compare(lhs, rhs) < 0; });
-    for (auto const &k : v.fKeys) {
-      tb->Add(k, v.fDrain[k]);
+    for (auto &f : fFutures) {
+      f.get();
     }
-    tb->Finish();
-    file->Close();
-    b.Clear();
+    fPool.shutdown();
+
+    if (!fBuffer) {
+      return;
+    }
+    fclose(fBuffer);
+    fBuffer = nullptr;
+
+    if (fAbandoned) {
+      error_code ec;
+      fs::remove(fDir / "tmp.bin", ec);
+      return;
+    }
+
+    Comparator const *cmp = BytewiseComparator();
+    InternalKeyComparator icmp(cmp);
+    sort(fEntries.begin(), fEntries.end(), [&icmp](Entry const &lhs, Entry const &rhs) {
+      return icmp.Compare(lhs.internalKey(), rhs.internalKey()) < 0;
+    });
+
+    Options o;
+    o.compression = kZlibRawCompression;
+
+    vector<TableBuildPlan> plans;
+    uint64_t currentSize = 0;
+    TableBuildPlan currentPlan;
+    currentPlan.fFrom = 0;
+    currentPlan.fTo = 0;
+
+    for (size_t index = 0; index < fEntries.size(); index++) {
+      Entry entry = fEntries[index];
+      currentSize += entry.fSizeCompressed;
+      currentPlan.fTo = index;
+      if (currentSize > o.max_file_size) {
+        plans.push_back(currentPlan);
+        currentPlan.fFrom = index + 1;
+        currentPlan.fTo = index + 1;
+        currentSize = 0;
+      }
+    }
+    currentPlan.fTo = fEntries.size() - 1;
+    if (currentPlan.fTo >= currentPlan.fFrom) {
+      plans.push_back(currentPlan);
+    }
+
+    ::ThreadPool pool(fConcurrency);
+    pool.init();
+
+    VersionEdit edit;
+
+    deque<future<optional<TableBuildResult>>> futures;
+    for (size_t idx = 0; idx < plans.size(); idx++) {
+      int pop = (int)futures.size() - (int)fConcurrency / 2;
+      for (int i = 0; i < pop; i++) {
+        auto result = futures.front().get();
+        futures.pop_front();
+        if (!result) {
+          continue;
+        }
+        Entry smallest = fEntries[result->fPlan.fFrom];
+        Entry largest = fEntries[result->fPlan.fTo];
+        edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest.internalKey(), largest.internalKey());
+      }
+
+      TableBuildPlan plan = plans[idx];
+      futures.push_back(move(pool.submit(bind(&RawDb::buildTable, this, _1, _2), plan, idx)));
+    }
+
+    for (auto &f : futures) {
+      auto result = f.get();
+      if (!result) {
+        continue;
+      }
+      Entry smallest = fEntries[result->fPlan.fFrom];
+      Entry largest = fEntries[result->fPlan.fTo];
+      edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest.internalKey(), largest.internalKey());
+    }
+
+    pool.shutdown();
+
+    error_code ec;
+    fs::remove(fDir / "tmp.bin", ec);
+
+    Env *env = Env::Default();
+
+    edit.SetLastSequence(fEntries.size() + 1);
+    edit.SetNextFile(plans.size() + 1);
+    edit.SetLogNumber(0);
+    string manifestRecord;
+    edit.EncodeTo(&manifestRecord);
+
+    string manifestFileName = "MANIFEST-000001";
+
+    unique_ptr<WritableFile> meta(OpenWritable(fDir / manifestFileName));
+    leveldb::log::Writer writer(meta.get());
+    Status st = writer.AddRecord(manifestRecord);
+    if (!st.ok()) {
+      return;
+    }
+    meta->Close();
+    meta.reset();
+
+    unique_ptr<WritableFile> current(OpenWritable(fDir / "CURRENT"));
+    st = current->Append(manifestFileName + "\x0a");
+    if (!st.ok()) {
+      return;
+    }
+    current->Close();
+    current.reset();
   }
 
-  std::filesystem::path tableFile(uint32_t tableNumber) const {
+  std::optional<TableBuildResult> buildTable(TableBuildPlan plan, size_t idx) const {
+    using namespace std;
+    using namespace leveldb;
+    file::ScopedFile fp(mcfile::File::Open(fDir / "tmp.bin", mcfile::File::Mode::Read));
+    if (!fp) {
+      return nullopt;
+    }
+    Options bo;
+    bo.compression = kZlibRawCompression;
+    InternalKeyComparator icmp(BytewiseComparator());
+    bo.comparator = &icmp;
+
+    uint64_t fileNumber = idx + 1;
+    unique_ptr<WritableFile> file(openTableFile(fileNumber));
+    if (!file) {
+      return nullopt;
+    }
+    unique_ptr<TableBuilder> builder(new TableBuilder(bo, file.get()));
+
+    vector<uint8_t> buffer;
+    for (size_t index = plan.fFrom; index <= plan.fTo; index++) {
+      Entry entry = fEntries[index];
+      buffer.resize(entry.fSizeCompressed);
+#if defined(_WIN32)
+      auto ret = _fseeki64(fp, entry.fOffsetCompressed, SEEK_SET);
+#else
+      auto ret = fseeko(fp, entry.fOffsetCompressed, SEEK_SET);
+#endif
+      if (ret != 0) {
+        return nullopt;
+      }
+      if (fread(buffer.data(), entry.fSizeCompressed, 1, fp) != 1) {
+        return nullopt;
+      }
+      if (!mcfile::Compression::decompress(buffer)) {
+        return nullopt;
+      }
+      Slice value((char const *)buffer.data(), buffer.size());
+
+      InternalKey ik = entry.internalKey();
+      builder->Add(ik.Encode(), value);
+    }
+    builder->Finish();
+    file->Close();
+
+    TableBuildResult result;
+    result.fPlan = plan;
+    result.fFileSize = builder->FileSize();
+    result.fFileNumber = fileNumber;
+    return result;
+  }
+
+  static leveldb::WritableFile *OpenWritable(std::filesystem::path const &path) {
+    using namespace leveldb;
+    Env *env = Env::Default();
+    WritableFile *file = nullptr;
+    Status st = env->NewWritableFile(path, &file);
+    if (!st.ok()) {
+      return nullptr;
+    }
+    return file;
+  }
+
+  leveldb::WritableFile *openTableFile(uint64_t tableNumber) const {
+    return OpenWritable(tableFilePath(tableNumber));
+  }
+
+  std::filesystem::path tableFilePath(uint32_t tableNumber) const {
     std::vector<char> buffer(11, (char)0);
 #if defined(_WIN32)
     sprintf_s(buffer.data(), buffer.size(), "%06d.ldb", tableNumber);
@@ -166,29 +303,16 @@ private:
     return fDir / p;
   }
 
-  leveldb::WritableFile *open(uint32_t tableNumber) const {
-    using namespace leveldb;
-    Env *env = Env::Default();
-    WritableFile *f = nullptr;
-    auto fname = tableFile(tableNumber);
-    Status s = env->NewWritableFile(fname, &f);
-    if (!s.ok()) {
-      return nullptr;
-    }
-    return f;
-  }
-
 private:
-  std::thread fTh;
-  std::mutex fMut;
-  bool fReady = false;
-  std::vector<std::pair<std::string, std::string>> fQueue;
-  std::condition_variable fCv;
-  std::atomic_bool fStop;
-  bool fValid = false;
+  uint64_t fPos = 0;
+  FILE *fBuffer;
   std::filesystem::path const fDir;
-  leveldb::FileLock *fFileLock = nullptr;
-  std::atomic_bool fAbandoned;
+  std::mutex fMut;
+  std::vector<Entry> fEntries;
+  bool fAbandoned = false;
+  ::ThreadPool fPool;
+  std::deque<std::future<void>> fFutures;
+  unsigned int const fConcurrency;
 };
 
 } // namespace je2be::tobe

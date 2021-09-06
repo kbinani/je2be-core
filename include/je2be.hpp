@@ -51,7 +51,6 @@
 #include <je2be/tobe/db/null-db.hpp>
 #include <je2be/tobe/db/async-db.hpp>
 #include <je2be/tobe/db/raw-db.hpp>
-#include <je2be/tobe/db/buffered-db.hpp>
 #include <je2be/tobe/level-data.hpp>
 #include <je2be/tobe/height-map.hpp>
 #include <je2be/tobe/options.hpp>

@@ -33,7 +33,7 @@ public:
     bool ok = true;
     auto worldData = std::make_unique<WorldData>(fInput, fInputOption);
     {
-      BufferedDb db(dbPath, concurrency);
+      RawDb db(dbPath, concurrency);
       if (!db.valid()) {
         return nullopt;
       }

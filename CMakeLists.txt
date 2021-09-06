@@ -32,7 +32,6 @@ set(je2be_files
   include/je2be/tobe/chunk-data.hpp
   include/je2be/tobe/converter.hpp
   include/je2be/tobe/db/async-db.hpp
-  include/je2be/tobe/db/buffered-db.hpp
   include/je2be/tobe/db/db-interface.hpp
   include/je2be/tobe/db/db.hpp
   include/je2be/tobe/db/null-db.hpp
