@@ -28,7 +28,7 @@ class RawDb : public DbInterface {
 
 public:
   RawDb(std::filesystem::path const &dir, unsigned int concurrency)
-      : fDir(dir), fPool(1), fConcurrency(concurrency) {
+      : fDir(dir), fPool(1), fConcurrency(std::max(1u, concurrency)) {
     fBuffer = mcfile::File::Open(dir / "tmp.bin", mcfile::File::Mode::Write);
     fPool.init();
   }
