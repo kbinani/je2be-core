@@ -188,8 +188,12 @@ private:
     builder->Finish();
     file->Close();
 
+    uint64_t nextFile;
     if (smallest) {
       edit.AddFile(1, fileNumber, builder->FileSize(), *smallest, largest);
+      nextFile = fileNumber + 1;
+    } else {
+      nextFile = fileNumber;
     }
 
     builder.reset();
@@ -198,7 +202,7 @@ private:
     Env *env = Env::Default();
 
     edit.SetLastSequence(fEntries.size());
-    edit.SetNextFile(fileNumber + 1);
+    edit.SetNextFile(nextFile);
     edit.SetLogNumber(0);
     string manifestRecord;
     edit.EncodeTo(&manifestRecord);
