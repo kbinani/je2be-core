@@ -5,14 +5,15 @@ namespace je2be::tobe {
 class BufferedDb : public DbInterface {
   struct Entry {
     std::string fKey;
-    uint64_t fSize;
-    uint64_t fOffset;
+    uint64_t fSizeCompressed;
+    uint64_t fOffsetCompressed;
   };
 
 public:
   explicit BufferedDb(std::filesystem::path const &dir)
-      : fDir(dir) {
+      : fDir(dir), fPool(1) {
     fBuffer = mcfile::File::Open(dir / "tmp.bin", mcfile::File::Mode::Write);
+    fPool.init();
   }
 
   BufferedDb(BufferedDb &&) = delete;
@@ -30,8 +31,34 @@ public:
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
-    std::lock_guard<std::mutex> lk(fMut);
+    using namespace std;
+    using namespace std::placeholders;
 
+    vector<uint8_t> buffer;
+    buffer.resize(value.size());
+    copy_n(value.data(), value.size(), buffer.begin());
+    mcfile::Compression::compress(buffer);
+    string cvalue((char const *)buffer.data(), buffer.size());
+    vector<uint8_t>().swap(buffer);
+
+    vector<future<void>> popped;
+
+    {
+      std::lock_guard<std::mutex> lk(fMut);
+      int pop = fFutures.size() - 2;
+      for (int i = 0; i < pop; i++) {
+        popped.emplace_back(move(fFutures.front()));
+        fFutures.pop_front();
+      }
+      fFutures.push_back(std::move(fPool.submit(std::bind(&BufferedDb::putImpl, this, _1, _2), key, cvalue)));
+    }
+
+    for (auto &f : popped) {
+      f.get();
+    }
+  }
+
+  void putImpl(std::string key, std::string value) {
     if (!fBuffer) {
       return;
     }
@@ -43,8 +70,8 @@ public:
     }
     Entry entry;
     entry.fKey = key;
-    entry.fOffset = fPos;
-    entry.fSize = value.size();
+    entry.fOffsetCompressed = fPos;
+    entry.fSizeCompressed = value.size();
     fEntries.push_back(entry);
     fPos += value.size();
   }
@@ -62,6 +89,11 @@ private:
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
+
+    for (auto &f : fFutures) {
+      f.get();
+    }
+    fPool.shutdown();
 
     if (!fBuffer) {
       return;
@@ -105,7 +137,7 @@ private:
     uint64_t fileNumber = 1;
     unique_ptr<WritableFile> file(openTableFile(fileNumber));
     unique_ptr<TableBuilder> builder(new TableBuilder(bo, file.get()));
-    vector<char> buffer;
+    vector<uint8_t> buffer;
     optional<InternalKey> smallest = nullopt;
     InternalKey largest;
     for (string const &internalKey : internalKeys) {
@@ -123,19 +155,21 @@ private:
         continue;
       }
       Entry entry = fEntries[pik.sequence];
-      buffer.resize(entry.fSize);
+      buffer.resize(entry.fSizeCompressed);
 #if defined(_WIN32)
-      auto ret = _fseeki64(fp, entry.fOffset, SEEK_SET);
+      auto ret = _fseeki64(fp, entry.fOffsetCompressed, SEEK_SET);
 #else
       auto ret = fseeko(fp, entry.fOffset, SEEK_SET);
 #endif
       if (ret != 0) {
         break;
       }
-      if (fread(buffer.data(), entry.fSize, 1, fp) != 1) {
+      if (fread(buffer.data(), entry.fSizeCompressed, 1, fp) != 1) {
         break;
       }
-      Slice value(buffer.data(), entry.fSize);
+      mcfile::Compression::decompress(buffer);
+      Slice value((char const *)buffer.data(), buffer.size());
+
       builder->Add(ik.Encode(), value);
 
       if (builder->FileSize() > o.max_file_size) {
@@ -231,6 +265,8 @@ private:
   std::mutex fMut;
   std::vector<Entry> fEntries;
   bool fAbandoned = false;
+  ::ThreadPool fPool;
+  std::deque<std::future<void>> fFutures;
 };
 
 } // namespace je2be::tobe
