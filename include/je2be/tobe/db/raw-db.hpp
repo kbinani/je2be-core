@@ -104,69 +104,8 @@ public:
     o.compression = kZlibRawCompression;
 
     vector<TableBuildPlan> plans;
-    {
-      struct Key {
-        string fKey;
-        SequenceNumber fSequenceNumber;
-        uint64_t fSizeCompressed;
-      };
-
-      ScopedFile keys(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
-      vector<Key> internalKeys;
-      for (SequenceNumber i = 0; i < fEntries.size(); i++) {
-        Entry entry = fEntries[i];
-        if (!File::Fseek(keys, entry.fOffset + sizeof(uint64_t), SEEK_SET)) {
-          return false;
-        }
-        uint64_t sizeCompressed = 0;
-        if (fread(&sizeCompressed, sizeof(sizeCompressed), 1, keys) != 1) {
-          return false;
-        }
-        size_t keyLength = 0;
-        if (fread(&keyLength, sizeof(keyLength), 1, keys) != 1) {
-          return false;
-        }
-        vector<char> buffer;
-        buffer.resize(keyLength);
-        if (fread(buffer.data(), keyLength, 1, keys) != 1) {
-          return false;
-        }
-        string key(buffer.data(), buffer.size());
-        Key k;
-        k.fKey = key;
-        k.fSequenceNumber = i;
-        k.fSizeCompressed = sizeCompressed;
-        internalKeys.push_back(k);
-      }
-
-      Comparator const *cmp = BytewiseComparator();
-      InternalKeyComparator icmp(cmp);
-      std::sort(std::execution::par_unseq, internalKeys.begin(), internalKeys.end(), [&icmp](Key const &lhs, Key const &rhs) {
-        InternalKey ikL(lhs.fKey, lhs.fSequenceNumber, kTypeValue);
-        InternalKey ikR(rhs.fKey, rhs.fSequenceNumber, kTypeValue);
-        return icmp.Compare(ikL, ikR) < 0;
-      });
-
-      uint64_t currentSize = 0;
-      TableBuildPlan currentPlan;
-      currentPlan.fFrom = 0;
-      currentPlan.fTo = 0;
-      for (size_t i = 0; i < internalKeys.size(); i++) {
-        Key k = internalKeys[i];
-        fSortedEntryIndices.push_back(k.fSequenceNumber);
-        currentSize += k.fSizeCompressed;
-        currentPlan.fTo = i;
-        if (currentSize > o.max_file_size) {
-          plans.push_back(currentPlan);
-          currentPlan.fFrom = i + 1;
-          currentPlan.fTo = i + 1;
-          currentSize = 0;
-        }
-      }
-      currentPlan.fTo = internalKeys.size() - 1;
-      if (currentPlan.fTo >= currentPlan.fFrom) {
-        plans.push_back(currentPlan);
-      }
+    if (!createPlans(plans, o)) {
+      return false;
     }
 
     ::ThreadPool pool(fConcurrency);
@@ -273,6 +212,75 @@ public:
   }
 
 private:
+  bool createPlans(std::vector<TableBuildPlan> &plans, leveldb::Options const &o) {
+    using namespace std;
+    using namespace leveldb;
+    using namespace mcfile;
+    struct Key {
+      string fKey;
+      SequenceNumber fSequenceNumber;
+      uint64_t fSizeCompressed;
+    };
+
+    ScopedFile keys(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
+    vector<Key> internalKeys;
+    for (SequenceNumber i = 0; i < fEntries.size(); i++) {
+      Entry entry = fEntries[i];
+      if (!File::Fseek(keys, entry.fOffset + sizeof(uint64_t), SEEK_SET)) {
+        return false;
+      }
+      uint64_t sizeCompressed = 0;
+      if (fread(&sizeCompressed, sizeof(sizeCompressed), 1, keys) != 1) {
+        return false;
+      }
+      size_t keyLength = 0;
+      if (fread(&keyLength, sizeof(keyLength), 1, keys) != 1) {
+        return false;
+      }
+      vector<char> buffer;
+      buffer.resize(keyLength);
+      if (fread(buffer.data(), keyLength, 1, keys) != 1) {
+        return false;
+      }
+      string key(buffer.data(), buffer.size());
+      Key k;
+      k.fKey = key;
+      k.fSequenceNumber = i;
+      k.fSizeCompressed = sizeCompressed;
+      internalKeys.push_back(k);
+    }
+
+    Comparator const *cmp = BytewiseComparator();
+    InternalKeyComparator icmp(cmp);
+    std::sort(std::execution::par_unseq, internalKeys.begin(), internalKeys.end(), [&icmp](Key const &lhs, Key const &rhs) {
+      InternalKey ikL(lhs.fKey, lhs.fSequenceNumber, kTypeValue);
+      InternalKey ikR(rhs.fKey, rhs.fSequenceNumber, kTypeValue);
+      return icmp.Compare(ikL, ikR) < 0;
+    });
+
+    uint64_t currentSize = 0;
+    TableBuildPlan currentPlan;
+    currentPlan.fFrom = 0;
+    currentPlan.fTo = 0;
+    for (size_t i = 0; i < internalKeys.size(); i++) {
+      Key k = internalKeys[i];
+      fSortedEntryIndices.push_back(k.fSequenceNumber);
+      currentSize += k.fSizeCompressed;
+      currentPlan.fTo = i;
+      if (currentSize > o.max_file_size) {
+        plans.push_back(currentPlan);
+        currentPlan.fFrom = i + 1;
+        currentPlan.fTo = i + 1;
+        currentSize = 0;
+      }
+    }
+    currentPlan.fTo = internalKeys.size() - 1;
+    if (currentPlan.fTo >= currentPlan.fFrom) {
+      plans.push_back(currentPlan);
+    }
+    return true;
+  }
+
   void putImpl(std::string key, std::string value) {
     if (!fValuesFile) {
       return;
