@@ -139,7 +139,7 @@ public:
     deque<future<optional<TableBuildResult>>> futures;
     for (size_t idx = 0; idx < plans.size(); idx++) {
       vector<future<optional<TableBuildResult>>> drain;
-      FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency / 2, futures, drain);
+      FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency + 1, futures, drain);
       for (auto &f : drain) {
         auto result = f.get();
         Entry smallest = fEntries[result->fPlan.fFrom];

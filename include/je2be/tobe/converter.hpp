@@ -130,7 +130,7 @@ private:
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
           vector<future<Result>> drain;
-          FutureSupport::Drain<Result>(10 * concurrency, futures, drain);
+          FutureSupport::Drain<Result>(concurrency + 1, futures, drain);
           for (auto &f : drain) {
             Result result = f.get();
             done++;
