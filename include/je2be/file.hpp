@@ -35,9 +35,16 @@ public:
   explicit ScopedFile(FILE *file) : fFile(file) {
   }
 
+  ScopedFile() : fFile(nullptr) {}
+
   ~ScopedFile() {
+    close();
+  }
+
+  void close() {
     if (fFile) {
       fclose(fFile);
+      fFile = nullptr;
     }
   }
 
@@ -50,7 +57,7 @@ public:
   }
 
 private:
-  FILE *const fFile;
+  FILE *fFile;
 };
 
 } // namespace je2be::file
