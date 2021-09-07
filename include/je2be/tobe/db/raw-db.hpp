@@ -72,6 +72,7 @@ public:
     using namespace std;
     using namespace std::placeholders;
     using namespace leveldb;
+    using namespace mcfile;
     namespace fs = std::filesystem;
 
     if (fClosed) {
@@ -114,7 +115,7 @@ public:
       vector<Key> internalKeys;
       for (SequenceNumber i = 0; i < fEntries.size(); i++) {
         Entry entry = fEntries[i];
-        if (_fseeki64(keys, entry.fOffset + sizeof(uint64_t), SEEK_SET) != 0) {
+        if (!File::Fseek(keys, entry.fOffset + sizeof(uint64_t), SEEK_SET)) {
           return false;
         }
         uint64_t sizeCompressed = 0;
@@ -321,7 +322,8 @@ private:
   std::optional<TableBuildResult> buildTable(TableBuildPlan plan, size_t idx) const {
     using namespace std;
     using namespace leveldb;
-    ScopedFile fp(mcfile::File::Open(valuesFile(), mcfile::File::Mode::Read));
+    using namespace mcfile;
+    ScopedFile fp(File::Open(valuesFile(), mcfile::File::Mode::Read));
     if (!fp) {
       return nullopt;
     }
@@ -337,7 +339,7 @@ private:
     }
     unique_ptr<TableBuilder> builder(new TableBuilder(bo, file.get()));
 
-    ScopedFile key(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
+    ScopedFile key(File::Open(keysFile(), mcfile::File::Mode::Read));
     if (!key) {
       return nullopt;
     }
@@ -351,7 +353,7 @@ private:
     for (size_t index = plan.fFrom; index <= plan.fTo; index++) {
       size_t entryIndex = fSortedEntryIndices[index];
       Entry entry = fEntries[entryIndex];
-      if (_fseeki64(key, entry.fOffset, SEEK_SET) != 0) {
+      if (!File::Fseek(key, entry.fOffset, SEEK_SET)) {
         return nullopt;
       }
       uint64_t offsetCompressed = 0;
@@ -371,18 +373,13 @@ private:
         return nullopt;
       }
       valueBuffer.resize(sizeCompressed);
-#if defined(_WIN32)
-      auto ret = _fseeki64(fp, offsetCompressed, SEEK_SET);
-#else
-      auto ret = fseeko(fp, entry.fOffsetCompressed, SEEK_SET);
-#endif
-      if (ret != 0) {
+      if (!File::Fseek(fp, offsetCompressed, SEEK_SET)) {
         return nullopt;
       }
       if (fread(valueBuffer.data(), sizeCompressed, 1, fp) != 1) {
         return nullopt;
       }
-      if (!mcfile::Compression::decompress(valueBuffer)) {
+      if (!Compression::decompress(valueBuffer)) {
         return nullopt;
       }
       Slice value((char const *)valueBuffer.data(), valueBuffer.size());
