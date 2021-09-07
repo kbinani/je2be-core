@@ -58,14 +58,9 @@ public:
     vector<uint8_t>().swap(buffer);
 
     vector<future<void>> popped;
-
     {
       std::lock_guard<std::mutex> lk(fMut);
-      int pop = fFutures.size() - 2;
-      for (int i = 0; i < pop; i++) {
-        popped.emplace_back(move(fFutures.front()));
-        fFutures.pop_front();
-      }
+      FutureSupport::Drain(2, fFutures, popped);
       fFutures.push_back(std::move(fPool.submit(std::bind(&RawDb::putImpl, this, _1, _2), key, cvalue)));
     }
 
@@ -143,13 +138,10 @@ public:
 
     deque<future<optional<TableBuildResult>>> futures;
     for (size_t idx = 0; idx < plans.size(); idx++) {
-      int pop = (int)futures.size() - (int)fConcurrency / 2;
-      for (int i = 0; i < pop; i++) {
-        auto result = futures.front().get();
-        futures.pop_front();
-        if (!result) {
-          continue;
-        }
+      vector<future<optional<TableBuildResult>>> drain;
+      FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency / 2, futures, drain);
+      for (auto &f : drain) {
+        auto result = f.get();
         Entry smallest = fEntries[result->fPlan.fFrom];
         Entry largest = fEntries[result->fPlan.fTo];
         edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest.internalKey(), largest.internalKey());

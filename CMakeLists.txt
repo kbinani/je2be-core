@@ -16,6 +16,7 @@ set(je2be_files
   include/je2be/enums/villager-profession.hpp
   include/je2be/enums/villager-type.hpp
   include/je2be/file.hpp
+  include/je2be/future-support.hpp
   include/je2be/optional.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp

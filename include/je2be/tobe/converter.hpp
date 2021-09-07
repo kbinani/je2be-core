@@ -129,18 +129,17 @@ private:
       JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-          if (futures.size() > 10 * size_t(concurrency)) {
-            for (unsigned int i = 0; i < 5 * concurrency; i++) {
-              Result const &result = futures.front().get();
-              futures.pop_front();
-              done++;
-              if (!result.fData) {
-                continue;
-              }
-              result.fData->drain(wd);
-              if (!result.fOk) {
-                return false;
-              }
+          vector<future<Result>> drain;
+          FutureSupport::Drain<Result>(10 * concurrency, futures, drain);
+          for (auto &f : drain) {
+            Result result = f.get();
+            done++;
+            if (!result.fData) {
+              continue;
+            }
+            result.fData->drain(wd);
+            if (!result.fOk) {
+              return false;
             }
           }
 
