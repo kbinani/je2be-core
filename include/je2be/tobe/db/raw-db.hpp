@@ -100,7 +100,7 @@ public:
 
     Comparator const *cmp = BytewiseComparator();
     InternalKeyComparator icmp(cmp);
-    sort(fEntries.begin(), fEntries.end(), [&icmp](Entry const &lhs, Entry const &rhs) {
+    std::sort(std::execution::par_unseq, fEntries.begin(), fEntries.end(), [&icmp](Entry const &lhs, Entry const &rhs) {
       return icmp.Compare(lhs.internalKey(), rhs.internalKey()) < 0;
     });
 
