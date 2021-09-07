@@ -110,7 +110,7 @@ public:
         uint64_t fSizeCompressed;
       };
 
-      file::ScopedFile keys(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
+      ScopedFile keys(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
       vector<Key> internalKeys;
       for (SequenceNumber i = 0; i < fEntries.size(); i++) {
         Entry entry = fEntries[i];
@@ -321,7 +321,7 @@ private:
   std::optional<TableBuildResult> buildTable(TableBuildPlan plan, size_t idx) const {
     using namespace std;
     using namespace leveldb;
-    file::ScopedFile fp(mcfile::File::Open(valuesFile(), mcfile::File::Mode::Read));
+    ScopedFile fp(mcfile::File::Open(valuesFile(), mcfile::File::Mode::Read));
     if (!fp) {
       return nullopt;
     }
@@ -337,7 +337,7 @@ private:
     }
     unique_ptr<TableBuilder> builder(new TableBuilder(bo, file.get()));
 
-    file::ScopedFile key(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
+    ScopedFile key(mcfile::File::Open(keysFile(), mcfile::File::Mode::Read));
     if (!key) {
       return nullopt;
     }

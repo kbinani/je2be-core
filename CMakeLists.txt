@@ -23,6 +23,7 @@ set(je2be_files
   include/je2be/progress.hpp
   include/je2be/props.hpp
   include/je2be/rotation.hpp
+  include/je2be/scoped-file.hpp
   include/je2be/size.hpp
   include/je2be/strings.hpp
   include/je2be/tobe/axolotl.hpp

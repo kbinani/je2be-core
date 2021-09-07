@@ -23,6 +23,7 @@
 
 #include <je2be/algorithm.hpp>
 #include <je2be/file.hpp>
+#include <je2be/scoped-file.hpp>
 #include <je2be/strings.hpp>
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
