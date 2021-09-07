@@ -36,7 +36,7 @@ public:
   }
 
   void write(leveldb::WriteBatch &batch) {
-    assert(fValid);
+    assert(fDb);
     if (fDb) {
       fDb->Write(leveldb::WriteOptions{}, &batch);
     }
