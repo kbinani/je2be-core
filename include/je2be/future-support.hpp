@@ -7,7 +7,7 @@ private:
 
 public:
   template <class T>
-  static bool Drain(size_t maxRunningTasks, std::deque<std::future<T>> &futures, std::vector<std::future<T>> &drain) {
+  static void Drain(size_t maxRunningTasks, std::deque<std::future<T>> &futures, std::vector<std::future<T>> &drain) {
     using namespace std;
     for (int i = 0; i < futures.size(); i++) {
       auto status = futures[i].wait_for(chrono::nanoseconds(0));
