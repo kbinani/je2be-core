@@ -42,7 +42,7 @@ public:
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
         World world(dir);
-        bool complete = convertWorld(world, dim, db, *worldData, concurrency, progress, done, numTotalChunks);
+        bool complete = ConvertWorld(world, dim, db, *worldData, concurrency, progress, done, numTotalChunks);
         ok &= complete;
         if (!complete) {
           break;
@@ -111,7 +111,7 @@ private:
     return ret;
   }
 
-  bool convertWorld(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  static bool ConvertWorld(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -125,7 +125,7 @@ private:
     };
     deque<future<Result>> futures;
 
-    bool completed = w.eachRegions([this, dim, &db, &pool, &futures, concurrency, &wd, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+    bool completed = w.eachRegions([dim, &db, &pool, &futures, concurrency, &wd, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
       JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
@@ -150,7 +150,7 @@ private:
             }
           }
 
-          futures.push_back(move(pool.submit([this, dim, &db, region, cx, cz, mapInfo]() -> Result {
+          futures.push_back(move(pool.submit([dim, &db, region, cx, cz, mapInfo]() -> Result {
             try {
               auto const &chunk = region->chunkAt(cx, cz);
               Result r;
@@ -165,7 +165,7 @@ private:
                 }
               }
               PreprocessChunk(chunk, *region);
-              r.fData = putChunk(*chunk, dim, db, mapInfo);
+              r.fData = PutChunk(*chunk, dim, db, mapInfo);
               return r;
             } catch (...) {
               Result r;
@@ -220,7 +220,7 @@ private:
     }
   }
 
-  std::shared_ptr<DimensionDataFragment> putChunk(mcfile::je::Chunk &chunk, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  static std::shared_ptr<DimensionDataFragment> PutChunk(mcfile::je::Chunk &chunk, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -232,7 +232,7 @@ private:
     ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
     for (int chunkY = 0; chunkY < 16; chunkY++) {
-      putSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
+      PutSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
     }
 
     ret->addStructures(chunk);
@@ -246,7 +246,7 @@ private:
     return ret;
   }
 
-  void putSubChunk(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
+  static void PutSubChunk(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
