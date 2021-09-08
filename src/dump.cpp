@@ -1,12 +1,11 @@
 #include <iostream>
 #include <je2be.hpp>
 
-#if __has_include(<shlobj_core.h>)
-#include <shlobj_core.h>
-#endif
-
+#if defined(_WIN32)
 #include <fcntl.h>
 #include <io.h>
+#include <shlobj_core.h>
+#endif
 
 using namespace std;
 using namespace leveldb;
@@ -185,7 +184,9 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
   if (!st.ok()) {
     return;
   }
+#if defined(_WIN32)
   _setmode(_fileno(stdout), _O_BINARY);
+#endif
   std::cout << value;
 }
 
