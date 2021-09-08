@@ -25,6 +25,7 @@ jobs:
 
       - name: Build
         run: |
+          sudo apt install libtbb-dev
           mkdir -p ./build
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release

@@ -181,7 +181,7 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
 else()
   add_definitions(-std=c++17)
 
-  list(APPEND je2be_link_libraries z)
+  list(APPEND je2be_link_libraries z tbb)
 endif()
 
 add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
