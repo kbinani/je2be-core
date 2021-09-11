@@ -1552,12 +1552,12 @@ private:
     };
   }
 
-  static void AddDefinition(EntityData const &c, std::string const &definition) {
+  static void AddDefinition(EntityData const &tag, std::string const &definition) {
     using namespace mcfile::nbt;
 
-    auto found = c->find("definitions");
+    auto found = tag->find("definitions");
     auto d = std::make_shared<ListTag>(Tag::Type::String);
-    if (found != c->end()) {
+    if (found != tag->end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::Type::String) {
         for (auto c : *current) {
@@ -1568,15 +1568,15 @@ private:
       }
     }
     d->push_back(props::String(definition));
-    c->set("definitions", d);
+    tag->set("definitions", d);
   }
 
-  static void RemoveDefinition(EntityData const &c, std::string const &definition) {
+  static void RemoveDefinition(EntityData const &tag, std::string const &definition) {
     using namespace mcfile::nbt;
 
-    auto found = c->find("definitions");
+    auto found = tag->find("definitions");
     auto d = std::make_shared<ListTag>(Tag::Type::String);
-    if (found != c->end()) {
+    if (found != tag->end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::Type::String) {
         for (auto c : *current) {
@@ -1586,7 +1586,7 @@ private:
         }
       }
     }
-    c->set("definitions", d);
+    tag->set("definitions", d);
   }
 
   static EntityData Sittable(EntityData const &c, CompoundTag const &tag, Context &) {

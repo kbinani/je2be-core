@@ -312,7 +312,7 @@ private:
             if (!rawIndex) {
               continue;
             }
-            if (*rawIndex < 0 || palette.size() <= *rawIndex) {
+            if (palette.size() <= *rawIndex) {
               continue;
             }
             auto block = sectionPalette[*rawIndex];

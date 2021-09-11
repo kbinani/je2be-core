@@ -336,9 +336,9 @@ private:
       auto axltl = Axolotl(age, health, variant);
       auto tag = axltl.toBucketTag();
 
-      auto name = GetCustomName(*tg);
-      if (name) {
-        tag->set("CustomName", String(*name));
+      auto customName = GetCustomName(*tg);
+      if (customName) {
+        tag->set("CustomName", String(*customName));
         tag->set("CustomNameVisible", Bool(true));
       }
 
@@ -472,9 +472,9 @@ private:
     int16_t type = 0;
     auto display = item.query("tag/display")->asCompound();
     if (display) {
-      auto name = display->string("Name");
-      if (name) {
-        auto nameJson = props::ParseAsJson(*name);
+      auto displayName = display->string("Name");
+      if (displayName) {
+        auto nameJson = props::ParseAsJson(*displayName);
         if (nameJson) {
           auto translate = nameJson->find("translate");
           if (translate != nameJson->end() && translate->is_string()) {

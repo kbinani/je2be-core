@@ -182,8 +182,6 @@ public:
     fs::remove(valuesFile(), ec);
     removeKeysFiles();
 
-    Env *env = Env::Default();
-
     edit.SetLastSequence(fNumKeys + 1);
     edit.SetNextFile(plans.size() + 1);
     edit.SetLogNumber(0);

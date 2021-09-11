@@ -136,15 +136,15 @@ public:
               // facing to south in Bedrock
             }
 
-            auto data = make_shared<CompoundTag>();
-            data->set("rot", Int(rot));
-            data->set("type", Int(1));
+            auto frameData = make_shared<CompoundTag>();
+            frameData->set("rot", Int(rot));
+            frameData->set("type", Int(1));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
             }
-            data->set("x", Int(markerX));
-            data->set("y", Int(markerY));
+            frameData->set("x", Int(markerX));
+            frameData->set("y", Int(markerY));
 
             auto key = make_shared<CompoundTag>();
             key->set("blockX", Int(*x));
@@ -153,7 +153,7 @@ public:
             key->set("type", Int(1));
 
             auto decoration = make_shared<CompoundTag>();
-            decoration->set("data", data);
+            decoration->set("data", frameData);
             decoration->set("key", key);
 
             decorations->push_back(decoration);
@@ -182,15 +182,15 @@ public:
               outType = 4; // id = "+", buried treasure
             }
 
-            auto data = make_shared<CompoundTag>();
-            data->set("rot", Int(8));
-            data->set("type", Int(outType));
+            auto frameData = make_shared<CompoundTag>();
+            frameData->set("rot", Int(8));
+            frameData->set("type", Int(outType));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
             }
-            data->set("x", Int(markerX));
-            data->set("y", Int(markerY));
+            frameData->set("x", Int(markerX));
+            frameData->set("y", Int(markerY));
 
             auto key = make_shared<CompoundTag>();
             key->set("blockX", Int((int32_t)*x));
@@ -199,7 +199,7 @@ public:
             key->set("type", Int(1));    //?
 
             auto decoration = make_shared<CompoundTag>();
-            decoration->set("data", data);
+            decoration->set("data", frameData);
             decoration->set("key", key);
 
             decorations->push_back(decoration);

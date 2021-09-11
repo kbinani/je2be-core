@@ -54,8 +54,8 @@ public:
 
           auto pistonArm = make_shared<CompoundTag>();
           auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
-          for (auto pos : attachedBlocks) {
-            Pos3i actual = pos - VectorOfFacing(facing);
+          for (auto attachedBlock : attachedBlocks) {
+            Pos3i actual = attachedBlock - VectorOfFacing(facing);
             attachedBlocksTag->push_back(Int(actual.fX));
             attachedBlocksTag->push_back(Int(actual.fY));
             attachedBlocksTag->push_back(Int(actual.fZ));
@@ -130,10 +130,10 @@ public:
 
             auto pistonArm = make_shared<CompoundTag>();
             auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
-            for (auto pos : attachedBlocks) {
-              attachedBlocksTag->push_back(Int(pos.fX));
-              attachedBlocksTag->push_back(Int(pos.fY));
-              attachedBlocksTag->push_back(Int(pos.fZ));
+            for (auto attachedBlock : attachedBlocks) {
+              attachedBlocksTag->push_back(Int(attachedBlock.fX));
+              attachedBlocksTag->push_back(Int(attachedBlock.fY));
+              attachedBlocksTag->push_back(Int(attachedBlock.fZ));
             }
             pistonArm->set("AttachedBlocks", attachedBlocksTag);
             pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));

@@ -36,14 +36,14 @@ public:
       auto s = std::make_shared<ByteStream>();
       OutputStreamWriter w(s, {.fLittleEndian = true});
       w.write((uint32_t)it.second.size());
-      for (auto const &s : it.second) {
-        w.write(s.fVolume.fStart.fX);
-        w.write(s.fVolume.fStart.fY);
-        w.write(s.fVolume.fStart.fZ);
-        w.write(s.fVolume.fEnd.fX);
-        w.write(s.fVolume.fEnd.fY);
-        w.write(s.fVolume.fEnd.fZ);
-        w.write((uint8_t)s.fType);
+      for (auto const &piece : it.second) {
+        w.write(piece.fVolume.fStart.fX);
+        w.write(piece.fVolume.fStart.fY);
+        w.write(piece.fVolume.fStart.fZ);
+        w.write(piece.fVolume.fEnd.fX);
+        w.write(piece.fVolume.fEnd.fY);
+        w.write(piece.fVolume.fEnd.fZ);
+        w.write((uint8_t)piece.fType);
       }
       vector<uint8_t> buffer;
       s->drain(buffer);
