@@ -253,7 +253,7 @@ public:
     w.write(std::string(""));
     auto tag = this->toCompoundTag();
     tag->write(w);
-    long pos = stream->pos();
+    uint64_t pos = stream->pos();
     stream->seek(4);
     w.write((uint32_t)pos - 8);
     stream->seek(pos);
