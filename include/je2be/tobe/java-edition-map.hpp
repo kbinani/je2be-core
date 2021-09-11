@@ -59,6 +59,9 @@ public:
     auto bs = make_shared<ByteStream>(buffer);
     InputStreamReader r(bs);
     root->read(r);
+    if (!root->valid()) {
+      return nullptr;
+    }
 
     return root;
   }
