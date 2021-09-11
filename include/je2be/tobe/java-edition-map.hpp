@@ -26,7 +26,11 @@ public:
     using namespace mcfile::stream;
 
     auto jeFilePath = opt.getDataDirectory(input) / ("map_" + to_string(mapId) + ".dat");
-    if (!fs::is_regular_file(jeFilePath)) {
+    error_code ec;
+    if (!fs::is_regular_file(jeFilePath, ec)) {
+      return nullptr;
+    }
+    if (ec) {
       return nullptr;
     }
 
@@ -69,8 +73,17 @@ private:
       return table;
     }
 
-    for (auto const &f : fs::directory_iterator(dataDir)) {
-      if (!fs::is_regular_file(f.path())) {
+    std::error_code ec;
+    fs::directory_iterator itr(dataDir, ec);
+    if (ec) {
+      return table;
+    }
+    for (auto const &f : itr) {
+      ec.clear();
+      if (!fs::is_regular_file(f.path(), ec)) {
+        continue;
+      }
+      if (ec) {
         continue;
       }
       auto name = f.path().filename().string();

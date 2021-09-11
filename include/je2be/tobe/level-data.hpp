@@ -494,7 +494,11 @@ public:
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
 
-    if (!fs::is_regular_file(javaEditionLevelDat)) {
+    error_code ec;
+    if (!fs::is_regular_file(javaEditionLevelDat, ec)) {
+      return nullptr;
+    }
+    if (ec) {
       return nullptr;
     }
 

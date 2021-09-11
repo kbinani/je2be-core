@@ -583,8 +583,17 @@ private:
       if (!fs::exists(dir)) {
         continue;
       }
-      for (auto const &e : fs::directory_iterator(dir)) {
-        if (!fs::is_regular_file(e.path())) {
+      std::error_code ec;
+      fs::directory_iterator itr(dir, ec);
+      if (ec) {
+        continue;
+      }
+      for (auto const &e : itr) {
+        ec.clear();
+        if (!fs::is_regular_file(e.path(), ec)) {
+          continue;
+        }
+        if (ec) {
           continue;
         }
         auto name = e.path().filename().string();
