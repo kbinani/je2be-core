@@ -58,8 +58,7 @@ public:
     auto root = make_shared<mcfile::nbt::CompoundTag>();
     auto bs = make_shared<ByteStream>(buffer);
     InputStreamReader r(bs);
-    root->read(r);
-    if (!root->valid()) {
+    if (!root->read(r)) {
       return nullptr;
     }
 
