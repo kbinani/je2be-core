@@ -16,12 +16,21 @@ public:
     fChunkLastUpdate = chunk.fLastUpdate;
   }
 
-  void serialize(ChunkData &cd) {
-    serializeData2D(cd);
-    serializeBlockEntity(cd);
-    serializeEntity(cd);
-    serializePendingTicks(cd);
+  [[nodiscard]] bool serialize(ChunkData &cd) {
+    if (!serializeData2D(cd)) {
+      return false;
+    }
+    if (!serializeBlockEntity(cd)) {
+      return false;
+    }
+    if (!serializeEntity(cd)) {
+      return false;
+    }
+    if (!serializePendingTicks(cd)) {
+      return false;
+    }
     cd.fFinalizedState = fFinalizedState;
+    return true;
   }
 
   void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
@@ -119,54 +128,65 @@ private:
     fBiomeMap = m;
   }
 
-  void serializeData2D(ChunkData &cd) {
+  [[nodiscard]] bool serializeData2D(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
     if (!fBiomeMap) {
-      return;
+      return true;
     }
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    fHeightMap.write(w);
-    fBiomeMap->write(w);
+    if (!fHeightMap.write(w)) {
+      return false;
+    }
+    if (!fBiomeMap->write(w)) {
+      return false;
+    }
     s->drain(cd.fData2D);
+    return true;
   }
 
-  void serializeBlockEntity(ChunkData &cd) {
+  [[nodiscard]] bool serializeBlockEntity(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
 
     if (fTileEntities.empty()) {
-      return;
+      return true;
     }
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
     for (auto const &tag : fTileEntities) {
-      tag->writeAsRoot(w);
+      if (!tag->writeAsRoot(w)) {
+        return false;
+      }
     }
     s->drain(cd.fBlockEntity);
+    return true;
   }
 
-  void serializeEntity(ChunkData &cd) {
+  [[nodiscard]] bool serializeEntity(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
 
     if (fEntities.empty()) {
-      return;
+      return true;
     }
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
     for (auto const &tag : fEntities) {
-      tag->writeAsRoot(w);
+      if (!tag->writeAsRoot(w)) {
+        return false;
+      }
     }
     s->drain(cd.fEntity);
+    return true;
   }
 
-  void serializePendingTicks(ChunkData &cd) {
+  [[nodiscard]] bool serializePendingTicks(ChunkData &cd) {
     if (fPendingTicks.empty()) {
-      return;
+      return true;
     }
     using namespace std;
     using namespace mcfile::nbt;
@@ -184,8 +204,11 @@ private:
 
     auto s = make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    pendingTicks->writeAsRoot(w);
+    if (!pendingTicks->writeAsRoot(w)) {
+      return false;
+    }
     s->drain(cd.fPendingTicks);
+    return true;
   }
 
 private:

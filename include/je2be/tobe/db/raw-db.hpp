@@ -4,6 +4,9 @@ namespace je2be::tobe {
 
 class RawDb : public DbInterface {
   struct ShardLocator {
+    ShardLocator(uint8_t shard, uint64_t indexInShard, uint64_t keyFileOffset, leveldb::SequenceNumber sequence)
+        : fShard(shard), fIndexInShard(indexInShard), fKeyFileOffset(keyFileOffset), fSequence(sequence) {}
+
     uint8_t fShard;
     uint64_t fIndexInShard;
     uint64_t fKeyFileOffset;
@@ -11,11 +14,15 @@ class RawDb : public DbInterface {
   };
 
   struct TableBuildPlan {
+    TableBuildPlan(ShardLocator from, ShardLocator to) : fFrom(from), fTo(to) {}
     ShardLocator fFrom;
     ShardLocator fTo;
   };
 
   struct TableBuildResult {
+    TableBuildResult(TableBuildPlan plan, uint64_t fileNumber, uint64_t fileSize, leveldb::InternalKey smallest, leveldb::InternalKey largest)
+        : fPlan(plan), fFileNumber(fileNumber), fFileSize(fileSize), fSmallest(smallest), fLargest(largest) {}
+
     TableBuildPlan fPlan;
     uint64_t fFileNumber;
     uint64_t fFileSize;
@@ -325,6 +332,9 @@ private:
     using namespace mcfile;
 
     struct Key {
+      Key(string key, uint64_t offsetCompressed, uint64_t sizeCompressed)
+          : fKey(key), fOffsetCompressed(offsetCompressed), fSizeCompressed(sizeCompressed) {}
+
       string fKey;
       uint64_t fOffsetCompressed;
       uint64_t fSizeCompressed;
@@ -334,7 +344,7 @@ private:
 
     uint64_t size = 0;
     optional<ShardLocator> from;
-    ShardLocator last;
+    optional<ShardLocator> last;
 
     vector<char> keyBuffer;
     vector<Key> keys;
@@ -366,10 +376,7 @@ private:
           }
           keyBuffer[0] = shard;
           string key(keyBuffer.data(), keyBuffer.size());
-          Key k;
-          k.fKey = key;
-          k.fOffsetCompressed = offsetCompressed;
-          k.fSizeCompressed = sizeCompressed;
+          Key k(key, offsetCompressed, sizeCompressed);
           keys.push_back(k);
         }
         Comparator const *cmp = BytewiseComparator();
@@ -398,17 +405,12 @@ private:
             return false;
           }
           size += key.fSizeCompressed;
-          last.fShard = shard;
-          last.fIndexInShard = i;
-          last.fKeyFileOffset = offset;
-          last.fSequence = sequence;
+          last = ShardLocator(shard, i, offset, sequence);
           if (!from) {
             from = last;
           }
           if (size >= o.max_file_size) {
-            TableBuildPlan plan;
-            plan.fFrom = *from;
-            plan.fTo = last;
+            TableBuildPlan plan(*from, *last);
 
             plans.push_back(plan);
             size = 0;
@@ -421,9 +423,7 @@ private:
     }
 
     if (from) {
-      TableBuildPlan plan;
-      plan.fFrom = *from;
-      plan.fTo = last;
+      TableBuildPlan plan(*from, *last);
       plans.push_back(plan);
     }
     return true;
@@ -497,7 +497,7 @@ private:
 
     vector<uint8_t> valueBuffer;
     vector<char> keyBuffer;
-    SequenceNumber sequence;
+    SequenceNumber sequence = plan.fFrom.fSequence;
 
     optional<InternalKey> smallest;
     InternalKey largest;
@@ -506,7 +506,6 @@ private:
       uint64_t localIndex = 0;
       if (shard == plan.fFrom.fShard) {
         localIndex = plan.fFrom.fIndexInShard;
-        sequence = plan.fFrom.fSequence;
       }
 
       if (fNumKeysPerShard.find(shard) == fNumKeysPerShard.end()) {
@@ -575,12 +574,7 @@ private:
     builder->Finish();
     file->Close();
 
-    TableBuildResult result;
-    result.fPlan = plan;
-    result.fFileSize = builder->FileSize();
-    result.fFileNumber = fileNumber;
-    result.fSmallest = *smallest;
-    result.fLargest = largest;
+    TableBuildResult result(plan, fileNumber, builder->FileSize(), *smallest, largest);
     return result;
   }
 
@@ -599,10 +593,10 @@ private:
     return OpenWritable(tableFilePath(tableNumber));
   }
 
-  std::filesystem::path tableFilePath(uint32_t tableNumber) const {
+  std::filesystem::path tableFilePath(uint64_t tableNumber) const {
     std::vector<char> buffer(11, (char)0);
 #if defined(_WIN32)
-    sprintf_s(buffer.data(), buffer.size(), "%06d.ldb", tableNumber);
+    sprintf_s(buffer.data(), buffer.size(), "%06lld.ldb", tableNumber);
 #else
     sprintf(buffer.data(), "%06d.ldb", tableNumber);
 #endif

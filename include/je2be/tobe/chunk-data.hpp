@@ -6,17 +6,20 @@ class ChunkData {
 public:
   ChunkData(int32_t chunkX, int32_t chunkZ, mcfile::Dimension dim) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
 
-  void put(DbInterface &db) {
+  [[nodiscard]] bool put(DbInterface &db) {
     auto status = putChunkSections(db);
     if (status == ChunkStatus::NotEmpty) {
       putVersion(db);
       putData2D(db);
       putBlockEntity(db);
       putEntity(db);
-      putChecksums(db);
+      if (!putChecksums(db)) {
+        return false;
+      }
       putFinalizedState(db);
       putPendingTicks(db);
     }
+    return true;
   }
 
 private:
@@ -40,10 +43,14 @@ private:
     }
   }
 
-  void putChecksums(DbInterface &db) const {
+  [[nodiscard]] bool putChecksums(DbInterface &db) const {
     auto sum = checksums();
+    if (!sum) {
+      return false;
+    }
     auto checksumKey = mcfile::be::DbKey::Checksums(fChunkX, fChunkZ, fDimension);
-    db.put(checksumKey, sum);
+    db.put(checksumKey, *sum);
+    return true;
   }
 
   void putBlockEntity(DbInterface &db) const {
@@ -112,12 +119,14 @@ private:
     }
   }
 
-  std::string checksums() const {
+  std::optional<std::string> checksums() const {
     using namespace std;
     using namespace mcfile::stream;
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    w.write((uint32_t)0);
+    if (!w.write((uint32_t)0)) {
+      return nullopt;
+    }
 
     // SubChunk
     uint32_t count = 0;
@@ -125,56 +134,100 @@ private:
       if (fSubChunks[i].empty()) {
         continue;
       }
-      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::SubChunk));
-      w.write((uint8_t)0);
-      w.write((uint8_t)i);
+      if (!w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::SubChunk))) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)i)) {
+        return nullopt;
+      }
       uint64_t hash = GetXXHSum(fSubChunks[i]);
-      w.write(hash);
+      if (!w.write(hash)) {
+        return nullopt;
+      }
       count++;
     }
 
     // Data2D
     if (!fData2D.empty()) {
-      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D));
-      w.write((uint8_t)0);
-      w.write((uint8_t)0);
+      if (!w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D))) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
       uint64_t hash = GetXXHSum(fData2D);
-      w.write(hash);
+      if (!w.write(hash)) {
+        return nullopt;
+      }
       count++;
     }
 
     // BlockEntity
     if (!fBlockEntity.empty()) {
-      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::BlockEntity));
-      w.write((uint8_t)0);
-      w.write((uint8_t)0);
+      if (!w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::BlockEntity))) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
       uint64_t hash = GetXXHSum(fBlockEntity);
-      w.write(hash);
+      if (!w.write(hash)) {
+        return nullopt;
+      }
       count++;
     }
 
     // Entity
     if (!fEntity.empty()) {
-      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::Entity));
-      w.write((uint8_t)0);
-      w.write((uint8_t)0);
+      if (!w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::Entity))) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
       uint64_t hash = GetXXHSum(fEntity);
-      w.write(hash);
+      if (!w.write(hash)) {
+        return nullopt;
+      }
       count++;
     }
 
     // PendingTicks
     if (!fPendingTicks.empty()) {
-      w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::PendingTicks));
-      w.write((uint8_t)0);
-      w.write((uint8_t)0);
+      if (!w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::PendingTicks))) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
+      if (!w.write((uint8_t)0)) {
+        return nullopt;
+      }
       uint64_t hash = GetXXHSum(fPendingTicks);
-      w.write(hash);
+      if (!w.write(hash)) {
+        return nullopt;
+      }
       count++;
     }
 
-    s->seek(0);
-    w.write(count);
+    if (!s->seek(0)) {
+      return nullopt;
+    }
+    if (!w.write(count)) {
+      return nullopt;
+    }
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);

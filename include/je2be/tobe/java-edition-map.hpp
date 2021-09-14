@@ -14,10 +14,13 @@ public:
     return found->second;
   }
 
-  void each(std::function<void(int32_t /* javaMapId */)> cb) {
+  [[nodiscard]] bool each(std::function<bool(int32_t /* javaMapId */)> cb) {
     for (auto it : fScaleLookupTable) {
-      cb(it.first);
+      if (!cb(it.first)) {
+        return false;
+      }
     }
+    return true;
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag> Read(std::filesystem::path const &input, InputOption const &opt, int32_t mapId) {

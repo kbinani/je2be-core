@@ -956,14 +956,14 @@ private:
         if (!c) {
           continue;
         }
-        auto color = c->int32("Color");
+        auto patternColor = c->int32("Color");
         auto pat = c->string("Pattern");
-        if (!color || !pat) {
+        if (!patternColor || !pat) {
           continue;
         }
         auto ptag = std::make_shared<CompoundTag>();
         ptag->insert({
-            {"Color", props::Int(BannerColorCodeFromJava(*color))},
+            {"Color", props::Int(BannerColorCodeFromJava(*patternColor))},
             {"Pattern", props::String(*pat)},
         });
         bePatterns->push_back(ptag);

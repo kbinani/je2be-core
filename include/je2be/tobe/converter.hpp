@@ -57,8 +57,10 @@ public:
 
       if (ok) {
         levelData.fCurrentTick = max(levelData.fCurrentTick, worldData->fMaxChunkLastUpdate);
-        levelData.write(fOutput / "level.dat");
-        worldData->put(db, *data);
+        ok = levelData.write(fOutput / "level.dat");
+        if (ok) {
+          ok = worldData->put(db, *data);
+        }
       }
 
       if (ok) {
@@ -103,7 +105,9 @@ private:
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    entity->writeAsRoot(w);
+    if (!entity->writeAsRoot(w)) {
+      return std::nullopt;
+    }
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);
@@ -111,7 +115,7 @@ private:
     return ret;
   }
 
-  static bool ConvertWorld(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  [[nodiscard]] static bool ConvertWorld(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -232,21 +236,27 @@ private:
     ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
     for (int chunkY = 0; chunkY < 16; chunkY++) {
-      PutSubChunk(chunk, dim, chunkY, cd, cdp, *ret);
+      if (!PutSubChunk(chunk, dim, chunkY, cd, cdp, *ret)) {
+        return nullptr;
+      }
     }
 
     ret->addStructures(chunk);
     ret->updateChunkLastUpdate(chunk);
 
     cdp.build(chunk, mapInfo, *ret);
-    cdp.serialize(cd);
+    if (!cdp.serialize(cd)) {
+      return nullptr;
+    }
 
-    cd.put(db);
+    if (!cd.put(db)) {
+      return nullptr;
+    }
 
     return ret;
   }
 
-  static void PutSubChunk(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
+  [[nodiscard]] static bool PutSubChunk(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -404,7 +414,7 @@ private:
     }
 
     if (empty) {
-      return;
+      return true;
     }
 
     int const numStorageBlocks = hasWaterlogged ? 2 : 1;
@@ -412,8 +422,12 @@ private:
     auto stream = make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
 
-    w.write(kSubChunkBlockStorageVersion);
-    w.write((uint8_t)numStorageBlocks);
+    if (!w.write(kSubChunkBlockStorageVersion)) {
+      return false;
+    }
+    if (!w.write((uint8_t)numStorageBlocks)) {
+      return false;
+    }
 
     {
       // layer 0
@@ -446,7 +460,9 @@ private:
         blocksPerWord = 2;
       }
 
-      w.write((uint8_t)(bitsPerBlock * 2));
+      if (!w.write((uint8_t)(bitsPerBlock * 2))) {
+        return false;
+      }
       uint32_t const mask = ~((~((uint32_t)0)) << bitsPerBlock);
       for (size_t i = 0; i < kNumBlocksInSubChunk; i += blocksPerWord) {
         uint32_t v = 0;
@@ -454,16 +470,26 @@ private:
           uint32_t const index = (uint32_t)indices[i + j];
           v = v | ((mask & index) << (j * bitsPerBlock));
         }
-        w.write(v);
+        if (!w.write(v)) {
+          return false;
+        }
       }
 
-      w.write((uint32_t)numPaletteEntries);
+      if (!w.write((uint32_t)numPaletteEntries)) {
+        return false;
+      }
 
       for (int i = 0; i < palette.size(); i++) {
         shared_ptr<CompoundTag> const &tag = palette[i];
-        w.write(static_cast<uint8_t>(Tag::Type::Compound));
-        w.write(std::string());
-        tag->write(w);
+        if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
+          return false;
+        }
+        if (!w.write(std::string())) {
+          return false;
+        }
+        if (!tag->write(w)) {
+          return false;
+        }
       }
     }
 
@@ -476,7 +502,9 @@ private:
       uint32_t const paletteAir = 0;
       uint32_t const paletteWater = 1;
 
-      w.write((uint8_t)(bitsPerBlock * 2));
+      if (!w.write((uint8_t)(bitsPerBlock * 2))) {
+        return false;
+      }
       for (size_t i = 0; i < kNumBlocksInSubChunk; i += blocksPerWord) {
         uint32_t v = 0;
         for (size_t j = 0; j < blocksPerWord && i + j < kNumBlocksInSubChunk; j++) {
@@ -484,23 +512,39 @@ private:
           uint32_t const index = waterlogged ? paletteWater : paletteAir;
           v = v | (index << (j * bitsPerBlock));
         }
-        w.write(v);
+        if (!w.write(v)) {
+          return false;
+        }
       }
 
-      w.write((uint32_t)numPaletteEntries);
+      if (!w.write((uint32_t)numPaletteEntries)) {
+        return false;
+      }
 
       auto air = BlockData::Air();
-      w.write(static_cast<uint8_t>(Tag::Type::Compound));
-      w.write(string());
-      air->write(w);
+      if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
+        return false;
+      }
+      if (!w.write(string())) {
+        return false;
+      }
+      if (!air->write(w)) {
+        return false;
+      }
 
       auto water = BlockData::Make("water");
       auto states = make_shared<CompoundTag>();
       states->set("liquid_depth", Int(0));
       water->set("states", states);
-      w.write(static_cast<uint8_t>(Tag::Type::Compound));
-      w.write(string());
-      water->write(w);
+      if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
+        return false;
+      }
+      if (!w.write(string())) {
+        return false;
+      }
+      if (!water->write(w)) {
+        return false;
+      }
     }
 
     stream->drain(cd.fSubChunks[chunkY]);
@@ -549,6 +593,8 @@ private:
       tick->set("z", Int(tb.fZ));
       cdp.addPendingTick(i, tick);
     }
+
+    return true;
   }
 
   static bool IsWaterLogged(mcfile::je::Block const &block) {

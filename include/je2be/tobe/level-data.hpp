@@ -244,20 +244,36 @@ public:
     return root;
   }
 
-  void write(std::filesystem::path path) const {
+  [[nodiscard]] bool write(std::filesystem::path path) const {
     auto stream = std::make_shared<mcfile::stream::FileOutputStream>(path);
     mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
-    w.write((uint32_t)8);
-    w.write((uint32_t)0);
-    w.write(static_cast<uint8_t>(mcfile::nbt::Tag::Type::Compound));
-    w.write(std::string(""));
+    if (!w.write((uint32_t)8)) {
+      return false;
+    }
+    if (!w.write((uint32_t)0)) {
+      return false;
+    }
+    if (!w.write(static_cast<uint8_t>(mcfile::nbt::Tag::Type::Compound))) {
+      return false;
+    }
+    if (!w.write(std::string(""))) {
+      return false;
+    }
     auto tag = this->toCompoundTag();
-    tag->write(w);
+    if (!tag->write(w)) {
+      return false;
+    }
     uint64_t pos = stream->pos();
-    stream->seek(4);
-    w.write((uint32_t)pos - 8);
-    stream->seek(pos);
-    w.write((uint8_t)0);
+    if (!stream->seek(4)) {
+      return false;
+    }
+    if (!w.write((uint32_t)pos - 8)) {
+      return false;
+    }
+    if (!stream->seek(pos)) {
+      return false;
+    }
+    return w.write((uint8_t)0);
   }
 
   static LevelData Import(CompoundTag const &tag) {
@@ -452,7 +468,9 @@ public:
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    root->writeAsRoot(w);
+    if (!root->writeAsRoot(w)) {
+      return std::nullopt;
+    }
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);
@@ -471,7 +489,7 @@ public:
     }
     auto gameRules = gameRulesTag->asCompound();
     if (!gameRules) {
-      return nullptr;
+      return nullopt;
     }
     auto ret = make_shared<CompoundTag>();
     ret->set("events_enabled", Bool(true));
@@ -481,7 +499,9 @@ public:
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
-    ret->writeAsRoot(w);
+    if (!ret->writeAsRoot(w)) {
+      return std::nullopt;
+    }
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);

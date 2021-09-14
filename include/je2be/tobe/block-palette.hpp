@@ -34,7 +34,12 @@ private:
     if (found == fPaletteKeys.end()) {
       return std::nullopt;
     } else {
-      return std::distance(fPaletteKeys.begin(), found);
+      ptrdiff_t d = std::distance(fPaletteKeys.begin(), found);
+      if (d < 0 || std::numeric_limits<uint16_t>::max() < d) {
+        return std::nullopt;
+      } else {
+        return (uint16_t)d;
+      }
     }
   }
 

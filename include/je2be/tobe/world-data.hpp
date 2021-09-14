@@ -6,16 +6,23 @@ class WorldData {
 public:
   WorldData(std::filesystem::path const &input, InputOption const &opt) : fInput(input), fJavaEditionMap(input, opt), fInputOption(opt) {}
 
-  void put(DbInterface &db, mcfile::nbt::CompoundTag const &javaLevelData) {
-    fPortals.putInto(db);
-    fJavaEditionMap.each([this, &db](int32_t mapId) {
+  [[nodiscard]] bool put(DbInterface &db, mcfile::nbt::CompoundTag const &javaLevelData) {
+    if (!fPortals.putInto(db)) {
+      return false;
+    }
+    bool ok = fJavaEditionMap.each([this, &db](int32_t mapId) {
       auto found = fMapItems.find(mapId);
       if (found == fMapItems.end()) {
-        return;
+        return true;
       }
-      Map::Convert(mapId, *found->second, fInput, fInputOption, db);
+      return Map::Convert(mapId, *found->second, fInput, fInputOption, db);
     });
-    putAutonomousEntities(db);
+    if (!ok) {
+      return false;
+    }
+    if (!putAutonomousEntities(db)) {
+      return false;
+    }
 
     auto theEnd = LevelData::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
     if (theEnd) {
@@ -24,7 +31,9 @@ public:
       db.del(mcfile::be::DbKey::TheEnd());
     }
 
-    fStructures.put(db);
+    if (!fStructures.put(db)) {
+      return false;
+    }
 
     auto mobEvents = LevelData::MobEvents(javaLevelData);
     if (mobEvents) {
@@ -32,10 +41,12 @@ public:
     } else {
       db.del(mcfile::be::DbKey::MobEvents());
     }
+
+    return true;
   }
 
 private:
-  void putAutonomousEntities(DbInterface &db) {
+  [[nodiscard]] bool putAutonomousEntities(DbInterface &db) {
     using namespace mcfile::nbt;
     using namespace mcfile::stream;
 
@@ -48,13 +59,17 @@ private:
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    root->writeAsRoot(w);
+    if (!root->writeAsRoot(w)) {
+      return false;
+    }
 
     std::vector<uint8_t> buffer;
     s->drain(buffer);
 
     leveldb::Slice v((char const *)buffer.data(), buffer.size());
     db.put(mcfile::be::DbKey::AutonomousEntities(), v);
+
+    return true;
   }
 
 private:

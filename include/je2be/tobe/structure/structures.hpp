@@ -18,10 +18,17 @@ public:
     }
   }
 
-  void put(DbInterface &db) {
-    fOverworld.put(db, mcfile::Dimension::Overworld);
-    fNether.put(db, mcfile::Dimension::Nether);
-    fEnd.put(db, mcfile::Dimension::End);
+  [[nodiscard]] bool put(DbInterface &db) {
+    if (!fOverworld.put(db, mcfile::Dimension::Overworld)) {
+      return false;
+    }
+    if (!fNether.put(db, mcfile::Dimension::Nether)) {
+      return false;
+    }
+    if (!fEnd.put(db, mcfile::Dimension::End)) {
+      return false;
+    }
+    return true;
   }
 
 private:

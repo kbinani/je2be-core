@@ -12,7 +12,7 @@ public:
     }
   }
 
-  void putInto(DbInterface &db) {
+  [[nodiscard]] bool putInto(DbInterface &db) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -32,7 +32,9 @@ public:
 
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    root->writeAsRoot(w);
+    if (!root->writeAsRoot(w)) {
+      return false;
+    }
 
     auto key = mcfile::be::DbKey::Portals();
     vector<uint8_t> buffer;
@@ -40,6 +42,7 @@ public:
 
     leveldb::Slice v((char *)buffer.data(), buffer.size());
     db.put(key, v);
+    return true;
   }
 
 private:

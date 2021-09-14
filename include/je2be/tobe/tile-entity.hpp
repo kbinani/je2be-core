@@ -626,8 +626,8 @@ private:
       if (*slot < 0 || 4 < *slot) {
         continue;
       }
-      int mapping[5] = {1, 2, 3, 0, 4};
-      int newSlot = mapping[*slot];
+      uint8_t mapping[5] = {1, 2, 3, 0, 4};
+      uint8_t newSlot = mapping[*slot];
       newItem->set("Slot", Byte(newSlot));
       sorted[newSlot] = newItem;
     }

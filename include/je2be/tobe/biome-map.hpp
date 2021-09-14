@@ -16,14 +16,17 @@ public:
     fBiome[i] = mcfile::be::Biome::ToUint8(biome);
   }
 
-  void write(mcfile::stream::OutputStreamWriter &w) {
+  [[nodiscard]] bool write(mcfile::stream::OutputStreamWriter &w) {
     size_t i = 0;
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++, i++) {
         uint8_t h = fBiome[i];
-        w.write(h);
+        if (!w.write(h)) {
+          return false;
+        }
       }
     }
+    return true;
   }
 
 private:

@@ -87,7 +87,7 @@ private:
   }
 
   static std::optional<Volume> GetBoundingBox(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
-    auto bb = tag.intArrayTag("BB");
+    auto bb = tag.intArrayTag(name);
     if (!bb) {
       return std::nullopt;
     }

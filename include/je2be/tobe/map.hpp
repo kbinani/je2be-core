@@ -61,7 +61,7 @@ public:
     if (!locked || !scale || !xCenter || !zCenter || !colors || !unlimitedTracking)
       return false;
 
-    for (int beScale = 0; beScale <= 4; beScale++) {
+    for (uint8_t beScale = 0; beScale <= 4; beScale++) {
       int64_t uuid = UUID(javaMapId, beScale);
       auto ret = make_shared<CompoundTag>();
       ret->set("dimension", Byte(outDimension));
@@ -215,7 +215,9 @@ public:
       {
         auto out = make_shared<ByteStream>();
         OutputStreamWriter w(out, {.fLittleEndian = true});
-        ret->writeAsRoot(w);
+        if (!ret->writeAsRoot(w)) {
+          return false;
+        }
         out->drain(serialized);
       }
       auto key = mcfile::be::DbKey::Map(uuid);

@@ -10,7 +10,7 @@ public:
 
   decltype(auto) end() const { return fPieces.end(); }
 
-  void put(DbInterface &db, mcfile::Dimension dim) {
+  [[nodiscard]] bool put(DbInterface &db, mcfile::Dimension dim) {
     using namespace std;
     unordered_map<Pos3i, vector<StructurePiece>, Pos3iHasher> splitted;
     for (auto const &it : fPieces) {
@@ -35,15 +35,31 @@ public:
       using namespace mcfile::stream;
       auto s = std::make_shared<ByteStream>();
       OutputStreamWriter w(s, {.fLittleEndian = true});
-      w.write((uint32_t)it.second.size());
+      if (!w.write((uint32_t)it.second.size())) {
+        return false;
+      }
       for (auto const &piece : it.second) {
-        w.write(piece.fVolume.fStart.fX);
-        w.write(piece.fVolume.fStart.fY);
-        w.write(piece.fVolume.fStart.fZ);
-        w.write(piece.fVolume.fEnd.fX);
-        w.write(piece.fVolume.fEnd.fY);
-        w.write(piece.fVolume.fEnd.fZ);
-        w.write((uint8_t)piece.fType);
+        if (!w.write(piece.fVolume.fStart.fX)) {
+          return false;
+        }
+        if (!w.write(piece.fVolume.fStart.fY)) {
+          return false;
+        }
+        if (!w.write(piece.fVolume.fStart.fZ)) {
+          return false;
+        }
+        if (!w.write(piece.fVolume.fEnd.fX)) {
+          return false;
+        }
+        if (!w.write(piece.fVolume.fEnd.fY)) {
+          return false;
+        }
+        if (!w.write(piece.fVolume.fEnd.fZ)) {
+          return false;
+        }
+        if (!w.write((uint8_t)piece.fType)) {
+          return false;
+        }
       }
       vector<uint8_t> buffer;
       s->drain(buffer);
@@ -52,6 +68,8 @@ public:
       leveldb::Slice value((char const *)buffer.data(), buffer.size());
       db.put(key, value);
     }
+
+    return true;
   }
 
 private:
