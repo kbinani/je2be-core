@@ -32,10 +32,26 @@ class RawDb : public DbInterface {
 
 public:
   RawDb(std::filesystem::path const &dir, unsigned int concurrency)
-      : fDir(dir), fPool(1), fConcurrency(std::max(1u, concurrency)) {
+      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fPool(1), fConcurrency(std::max(1u, concurrency)), fLock(nullptr) {
+    fPool.init();
+
+    leveldb::DestroyDB(dir, {});
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    if (ec) {
+      return;
+    }
+
+    auto env = leveldb::Env::Default();
+    leveldb::FileLock *lock = nullptr;
+    auto st = env->LockFile(dir / "LOCK", &lock);
+    if (!st.ok()) {
+      return;
+    }
+    fLock = lock;
+
     fValuesFile = mcfile::File::Open(valuesFile(), mcfile::File::Mode::Write);
     fKeysFile = mcfile::File::Open(keysFile(), mcfile::File::Mode::Write);
-    fPool.init();
   }
 
   RawDb(RawDb &&) = delete;
@@ -43,6 +59,13 @@ public:
 
   ~RawDb() {
     close();
+
+    if (fLock) {
+      auto env = leveldb::Env::Default();
+      env->UnlockFile(fLock);
+      env->RemoveFile(fDir / "LOCK");
+      fLock = nullptr;
+    }
   }
 
   bool valid() const override {
@@ -634,6 +657,7 @@ private:
   std::deque<std::future<bool>> fFutures;
   unsigned int const fConcurrency;
   bool fClosed = false;
+  leveldb::FileLock *fLock;
 };
 
 } // namespace je2be::tobe
