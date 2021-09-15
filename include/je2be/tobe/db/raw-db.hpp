@@ -335,6 +335,11 @@ private:
       Key(string key, uint64_t offsetCompressed, uint64_t sizeCompressed)
           : fKey(key), fOffsetCompressed(offsetCompressed), fSizeCompressed(sizeCompressed) {}
 
+#if defined(TBB_INTERFACE_VERSION)
+      // The backend of std::sort(execution::par_unseq, ...) requires the element type to be default constructive.
+      Key() = default;
+#endif
+
       string fKey;
       uint64_t fOffsetCompressed;
       uint64_t fSizeCompressed;
