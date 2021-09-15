@@ -603,7 +603,7 @@ private:
 #if defined(_WIN32)
     sprintf_s(buffer.data(), buffer.size(), "%06lld.ldb", tableNumber);
 #else
-    sprintf(buffer.data(), "%06d.ldb", tableNumber);
+    sprintf(buffer.data(), "%06ld.ldb", tableNumber);
 #endif
     std::string p(buffer.data(), 10);
     return fDir / p;
