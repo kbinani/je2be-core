@@ -297,7 +297,8 @@ static void DumpAllKeys(fs::path const &dbDir) {
       if (tag == 0x2f) {
         int32_t cx = *(int32_t *)key.data();
         int32_t cz = *(int32_t *)(key.data() + 4);
-        uint8_t y = key[9];
+        uint8_t rawY = key[9];
+        int8_t y = *(int8_t *)&rawY;
         cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " overworld " << itr->value().size() << "bytes" << endl;
       } else {
         chunkTag = false;
@@ -319,7 +320,8 @@ static void DumpAllKeys(fs::path const &dbDir) {
         int32_t cx = *(int32_t *)key.data();
         int32_t cz = *(int32_t *)(key.data() + 4);
         string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
-        uint8_t y = key[13];
+        uint8_t rawY = key[13];
+        int8_t y = *(int8_t *)&rawY;
         cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " " << dimension << " " << itr->value().size() << "bytes" << endl;
       } else {
         chunkTag = false;
