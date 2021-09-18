@@ -7,7 +7,6 @@ include(ext/setup_source_groups/setup_source_groups.cmake)
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
-  include/je2be/algorithm.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
@@ -71,6 +70,7 @@ set(je2be_files
   #end je2be source files
   # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
+  ext/libminecraft-file/include/mcfile/algorithm.hpp
   ext/libminecraft-file/include/mcfile/be/biome.hpp
   ext/libminecraft-file/include/mcfile/be/block.hpp
   ext/libminecraft-file/include/mcfile/be/chunk.hpp
