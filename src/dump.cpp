@@ -48,7 +48,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   if (!st.ok()) {
     return;
   }
-  auto section = mcfile::be::SubChunk::Parse(value);
+  auto section = mcfile::be::SubChunk::Parse(value, cy);
   if (!section) {
     return;
   }

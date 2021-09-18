@@ -520,7 +520,7 @@ private:
     auto fallDistance = tag.float32("FallDistance", 0);
     c->set("FallDistance", props::Float(fallDistance));
 
-    auto time = Clamp(tag.int32("Time", 0), 0, 255);
+    auto time = std::clamp(tag.int32("Time", 0), 0, 255);
     c->set("Time", props::Byte(time));
 
     return c;
@@ -544,7 +544,7 @@ private:
 
   static EntityData Axolotl(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
-    auto originalVariant = Clamp(tag.int32("Variant", 0), 0, 4);
+    auto originalVariant = std::clamp(tag.int32("Variant", 0), 0, 4);
     static const int variantMapping[5] = {0, 3, 2, 1, 4};
     static const std::string definitionMapping[5] = {
         "+axolotl_lucy",

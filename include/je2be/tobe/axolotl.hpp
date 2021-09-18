@@ -83,7 +83,7 @@ public:
 
   static Variant VariantFromJava(int32_t javaVariant) {
     static const int variantMapping[5] = {0, 3, 2, 1, 4};
-    int32_t v = variantMapping[Clamp(javaVariant, 0, 4)];
+    int32_t v = variantMapping[std::clamp(javaVariant, 0, 4)];
     return Variant(v);
   }
 

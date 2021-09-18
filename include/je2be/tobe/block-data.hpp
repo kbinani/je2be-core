@@ -1702,7 +1702,7 @@ private:
     auto num = strings::Toi(candles);
     int i = 0;
     if (num) {
-      i = Clamp(*num, 1, 4) - 1;
+      i = std::clamp(*num, 1, 4) - 1;
     }
     return props::Int(i);
   }

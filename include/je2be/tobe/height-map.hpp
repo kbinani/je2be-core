@@ -11,7 +11,7 @@ public:
     assert(0 <= localZ && localZ < 16);
     assert(0 <= y && y < 256);
     size_t i = localZ * 16 + localX;
-    int16_t clamped = (int16_t)Clamp(y, (int)std::numeric_limits<int16_t>::lowest(), (int)std::numeric_limits<int16_t>::max());
+    int16_t clamped = mcfile::Clamp<int16_t>(y);
     int16_t height = (std::max)(fHeight[i], clamped);
     fHeight[i] = height;
   }

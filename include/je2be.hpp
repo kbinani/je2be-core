@@ -21,7 +21,6 @@
 #include <unordered_set>
 #include <execution>
 
-#include <je2be/algorithm.hpp>
 #include <je2be/file.hpp>
 #include <je2be/scoped-file.hpp>
 #include <je2be/strings.hpp>
