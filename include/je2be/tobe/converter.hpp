@@ -21,8 +21,11 @@ public:
     auto rootPath = fOutput;
     auto dbPath = rootPath / "db";
 
-    fs::create_directory(rootPath);
-    fs::create_directory(dbPath);
+    error_code ec;
+    fs::create_directories(dbPath, ec);
+    if (ec) {
+      return nullopt;
+    }
 
     auto data = LevelData::Read(fInputOption.getLevelDatFilePath(fInput));
     if (!data) {
