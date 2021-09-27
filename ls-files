@@ -16,8 +16,8 @@
   cat CMakeLists.txt | head -n $mcfile_start | tail -n +${je2be_end} >> "$tmp"
 
   (
-    cd ext/libminecraft-file
-    git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g' >> "$tmp"
+    cd deps/libminecraft-file
+    git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g' >> "$tmp"
   )
 
   cat CMakeLists.txt | tail -n +${mcfile_end} >> "$tmp"

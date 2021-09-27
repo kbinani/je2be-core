@@ -1,24 +1,24 @@
 [submodule "ext/libminecraft-file"]
-	path = ext/libminecraft-file
+	path = deps/libminecraft-file
 	url = https://github.com/kbinani/libminecraft-file.git
 [submodule "ext/leveldb"]
-	path = ext/leveldb
+	path = deps/leveldb
 	url = https://github.com/kbinani/leveldb-stdfs.git
 [submodule "ext/setup_source_groups"]
-	path = ext/setup_source_groups
+	path = deps/setup_source_groups
 	url = https://gist.github.com/d042b6d630d175cc4941eaf6fd2c3a3c.git
 [submodule "ext/xxHash"]
-	path = ext/xxHash
+	path = deps/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
 [submodule "ext/thread-pool"]
-	path = ext/thread-pool
+	path = deps/thread-pool
 	url = https://github.com/mtrebi/thread-pool.git
 [submodule "ext/json"]
-	path = ext/json
+	path = deps/json
 	url = https://github.com/nlohmann/json.git
 [submodule "ext/doctest"]
-	path = ext/doctest
+	path = deps/doctest
 	url = https://github.com/onqtam/doctest.git
 [submodule "ext/zlib-ng"]
-	path = ext/zlib-ng
+	path = deps/zlib-ng
 	url = https://github.com/zlib-ng/zlib-ng.git

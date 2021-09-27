@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
-include(ext/setup_source_groups/setup_source_groups.cmake)
+include(deps/setup_source_groups/setup_source_groups.cmake)
 
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 20)
@@ -73,77 +73,77 @@ set(je2be_files
   include/je2be/volume.hpp
   include/je2be/xxhash.hpp
   #end je2be source files
-  # (cd ext/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  ext/libminecraft-file/\1:g') | pbcopy
+  # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
-  ext/libminecraft-file/include/mcfile/algorithm.hpp
-  ext/libminecraft-file/include/mcfile/be/biome.hpp
-  ext/libminecraft-file/include/mcfile/be/block.hpp
-  ext/libminecraft-file/include/mcfile/be/chunk.hpp
-  ext/libminecraft-file/include/mcfile/be/db-interface.hpp
-  ext/libminecraft-file/include/mcfile/be/db-key.hpp
-  ext/libminecraft-file/include/mcfile/be/db.hpp
-  ext/libminecraft-file/include/mcfile/be/pending-tick.hpp
-  ext/libminecraft-file/include/mcfile/be/sub-chunk.hpp
-  ext/libminecraft-file/include/mcfile/biomes/biome-id.hpp
-  ext/libminecraft-file/include/mcfile/biomes/from-int.hpp
-  ext/libminecraft-file/include/mcfile/biomes/minecraft.hpp
-  ext/libminecraft-file/include/mcfile/biomes/name.hpp
-  ext/libminecraft-file/include/mcfile/blocks/block-id.hpp
-  ext/libminecraft-file/include/mcfile/blocks/from-name.hpp
-  ext/libminecraft-file/include/mcfile/blocks/minecraft.hpp
-  ext/libminecraft-file/include/mcfile/blocks/name.hpp
-  ext/libminecraft-file/include/mcfile/compression.hpp
-  ext/libminecraft-file/include/mcfile/coordinate.hpp
-  ext/libminecraft-file/include/mcfile/dimension.hpp
-  ext/libminecraft-file/include/mcfile/endianness.hpp
-  ext/libminecraft-file/include/mcfile/file.hpp
-  ext/libminecraft-file/include/mcfile/je/block.hpp
-  ext/libminecraft-file/include/mcfile/je/cached-chunk-loader.hpp
-  ext/libminecraft-file/include/mcfile/je/chunk-section.hpp
-  ext/libminecraft-file/include/mcfile/je/chunk.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/block-states-parser-113.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/block-states-parser-116.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/chunk-section-112.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113-base.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/chunk-section-116.hpp
-  ext/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
-  ext/libminecraft-file/include/mcfile/je/mca-data-source.hpp
-  ext/libminecraft-file/include/mcfile/je/region.hpp
-  ext/libminecraft-file/include/mcfile/je/set-block-options.hpp
-  ext/libminecraft-file/include/mcfile/je/ticking-block.hpp
-  ext/libminecraft-file/include/mcfile/je/world.hpp
-  ext/libminecraft-file/include/mcfile/je/writable-chunk.hpp
-  ext/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/compound-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/detail/scalar-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/detail/vector-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/double-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/end-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/float-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/int-array-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/int-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/list-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/long-array-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/long-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/print-as-json.hpp
-  ext/libminecraft-file/include/mcfile/nbt/short-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/string-tag.hpp
-  ext/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
-  ext/libminecraft-file/include/mcfile/nbt/tag-factory.hpp
-  ext/libminecraft-file/include/mcfile/nbt/tag.hpp
-  ext/libminecraft-file/include/mcfile/pos2.hpp
-  ext/libminecraft-file/include/mcfile/pos3.hpp
-  ext/libminecraft-file/include/mcfile/stream/byte-stream.hpp
-  ext/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
-  ext/libminecraft-file/include/mcfile/stream/file-output-stream.hpp
-  ext/libminecraft-file/include/mcfile/stream/input-stream-reader.hpp
-  ext/libminecraft-file/include/mcfile/stream/input-stream.hpp
-  ext/libminecraft-file/include/mcfile/stream/output-stream-writer.hpp
-  ext/libminecraft-file/include/mcfile/stream/output-stream.hpp
-  ext/libminecraft-file/include/mcfile/string.hpp
-  ext/libminecraft-file/include/minecraft-file.hpp
+  deps/libminecraft-file/include/mcfile/algorithm.hpp
+  deps/libminecraft-file/include/mcfile/be/biome.hpp
+  deps/libminecraft-file/include/mcfile/be/block.hpp
+  deps/libminecraft-file/include/mcfile/be/chunk.hpp
+  deps/libminecraft-file/include/mcfile/be/db-interface.hpp
+  deps/libminecraft-file/include/mcfile/be/db-key.hpp
+  deps/libminecraft-file/include/mcfile/be/db.hpp
+  deps/libminecraft-file/include/mcfile/be/pending-tick.hpp
+  deps/libminecraft-file/include/mcfile/be/sub-chunk.hpp
+  deps/libminecraft-file/include/mcfile/biomes/biome-id.hpp
+  deps/libminecraft-file/include/mcfile/biomes/from-int.hpp
+  deps/libminecraft-file/include/mcfile/biomes/minecraft.hpp
+  deps/libminecraft-file/include/mcfile/biomes/name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/block-id.hpp
+  deps/libminecraft-file/include/mcfile/blocks/from-name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/minecraft.hpp
+  deps/libminecraft-file/include/mcfile/blocks/name.hpp
+  deps/libminecraft-file/include/mcfile/compression.hpp
+  deps/libminecraft-file/include/mcfile/coordinate.hpp
+  deps/libminecraft-file/include/mcfile/dimension.hpp
+  deps/libminecraft-file/include/mcfile/endianness.hpp
+  deps/libminecraft-file/include/mcfile/file.hpp
+  deps/libminecraft-file/include/mcfile/je/block.hpp
+  deps/libminecraft-file/include/mcfile/je/cached-chunk-loader.hpp
+  deps/libminecraft-file/include/mcfile/je/chunk-section.hpp
+  deps/libminecraft-file/include/mcfile/je/chunk.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/block-states-parser-113.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/block-states-parser-116.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-112.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113-base.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-116.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
+  deps/libminecraft-file/include/mcfile/je/mca-data-source.hpp
+  deps/libminecraft-file/include/mcfile/je/region.hpp
+  deps/libminecraft-file/include/mcfile/je/set-block-options.hpp
+  deps/libminecraft-file/include/mcfile/je/ticking-block.hpp
+  deps/libminecraft-file/include/mcfile/je/world.hpp
+  deps/libminecraft-file/include/mcfile/je/writable-chunk.hpp
+  deps/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/compound-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/detail/scalar-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/detail/vector-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/double-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/end-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/float-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/int-array-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/int-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/list-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/long-array-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/long-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/print-as-json.hpp
+  deps/libminecraft-file/include/mcfile/nbt/short-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/string-tag.hpp
+  deps/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
+  deps/libminecraft-file/include/mcfile/nbt/tag-factory.hpp
+  deps/libminecraft-file/include/mcfile/nbt/tag.hpp
+  deps/libminecraft-file/include/mcfile/pos2.hpp
+  deps/libminecraft-file/include/mcfile/pos3.hpp
+  deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
+  deps/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
+  deps/libminecraft-file/include/mcfile/stream/file-output-stream.hpp
+  deps/libminecraft-file/include/mcfile/stream/input-stream-reader.hpp
+  deps/libminecraft-file/include/mcfile/stream/input-stream.hpp
+  deps/libminecraft-file/include/mcfile/stream/output-stream-writer.hpp
+  deps/libminecraft-file/include/mcfile/stream/output-stream.hpp
+  deps/libminecraft-file/include/mcfile/string.hpp
+  deps/libminecraft-file/include/minecraft-file.hpp
   #end libminecraft-file source files
   .editorconfig
   .clang-format)
@@ -151,10 +151,10 @@ set(test_files
   test/main.cpp
   test/block-data.test.cpp
   test/moving-piston.test.cpp)
-add_executable(cli src/cli.cpp ${je2be_files})
-add_executable(dump src/dump.cpp ${je2be_files})
+add_executable(cli example/cli.cpp ${je2be_files})
+add_executable(dump example/dump.cpp ${je2be_files})
 add_executable(test ${test_files} ${je2be_files})
-setup_source_groups("src/cli.cpp;src/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
+setup_source_groups("example/cli.cpp;dxample/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
@@ -162,16 +162,16 @@ endif()
 
 list(APPEND je2be_include_directories
   include
-  ext/libminecraft-file/include
-  ext/leveldb
-  ext/thread-pool/include
-  ext/json/single_include)
+  deps/libminecraft-file/include
+  deps/leveldb
+  deps/thread-pool/include
+  deps/json/single_include)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 
   set(ZLIB_COMPAT ON)
-  add_subdirectory(ext/zlib-ng EXCLUDE_FROM_ALL)
+  add_subdirectory(deps/zlib-ng EXCLUDE_FROM_ALL)
   set(ZLIB_INCLUDE_DIR $<TARGET_PROPERTY:zlib,INCLUDE_DIRECTORIES>)
   set(ZLIB_LIBRARY $<TARGET_LINKER_FILE:zlib>)
 
@@ -180,10 +180,10 @@ else()
   list(APPEND je2be_link_libraries z tbb)
 endif()
 
-add_subdirectory(ext/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
+add_subdirectory(deps/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
 
 set(LEVELDB_ZSTD OFF)
-add_subdirectory(ext/leveldb EXCLUDE_FROM_ALL)
+add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
 list(APPEND je2be_link_libraries xxhash leveldb)
 
@@ -195,6 +195,6 @@ target_include_directories(dump PRIVATE ${je2be_include_directories})
 target_link_libraries(dump ${je2be_link_libraries})
 target_link_directories(dump PRIVATE ${je2be_link_directories})
 
-target_include_directories(test PRIVATE ext/doctest ${je2be_include_directories})
+target_include_directories(test PRIVATE deps/doctest ${je2be_include_directories})
 target_link_libraries(test ${je2be_link_libraries})
 target_link_directories(test PRIVATE ${je2be_link_directories})
