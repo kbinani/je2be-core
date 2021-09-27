@@ -16,7 +16,7 @@ jobs:
         uses: DoozyX/clang-format-lint-action@v0.12
         with:
           clangFormatVersion: 12
-          exclude: ./ext
+          exclude: ./deps
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
