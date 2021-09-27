@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
-include(CheckCCompilerFlag)
 include(ext/setup_source_groups/setup_source_groups.cmake)
+
+if (NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 set(je2be_files
   #begin je2be source files
@@ -151,26 +156,19 @@ add_executable(dump src/dump.cpp ${je2be_files})
 add_executable(test ${test_files} ${je2be_files})
 setup_source_groups("src/cli.cpp;src/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(CMAKE_REQUIRED_FLAGS "-lstdc++fs")
-check_c_compiler_flag("" TEST_RESULT_STDCXXFS)
-if (TEST_RESULT_STDCXXFS)
-  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-    list(APPEND je2be_link_libraries stdc++fs)
-  endif()
-endif()
-
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
 endif()
 
-list(APPEND je2be_include_directories include)
-list(APPEND je2be_include_directories ext/libminecraft-file/include)
-list(APPEND je2be_include_directories ext/leveldb)
-list(APPEND je2be_include_directories ext/thread-pool/include)
-list(APPEND je2be_include_directories ext/json/single_include)
+list(APPEND je2be_include_directories
+  include
+  ext/libminecraft-file/include
+  ext/leveldb
+  ext/thread-pool/include
+  ext/json/single_include)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
-  add_definitions(/std:c++latest /bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
+  add_definitions(/bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 
   set(ZLIB_COMPAT ON)
   add_subdirectory(ext/zlib-ng EXCLUDE_FROM_ALL)
@@ -179,8 +177,6 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
 
   list(APPEND je2be_link_libraries zlib)
 else()
-  add_definitions(-std=c++17)
-
   list(APPEND je2be_link_libraries z tbb)
 endif()
 
