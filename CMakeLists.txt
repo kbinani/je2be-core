@@ -164,7 +164,7 @@ list(APPEND je2be_include_directories
   include
   deps/libminecraft-file/include
   deps/leveldb
-  deps/thread-pool/include
+  deps/hwm.task
   deps/json/single_include)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")

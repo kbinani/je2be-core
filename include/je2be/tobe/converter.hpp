@@ -123,8 +123,7 @@ private:
     using namespace mcfile;
     using namespace mcfile::je;
 
-    ::ThreadPool pool(concurrency);
-    pool.init();
+    auto queue = make_unique<hwm::task_queue>(concurrency);
     struct Result {
       Result() : fData(nullptr), fOk(false) {}
       shared_ptr<DimensionDataFragment> fData;
@@ -132,7 +131,7 @@ private:
     };
     deque<future<Result>> futures;
 
-    bool completed = w.eachRegions([dim, &db, &pool, &futures, concurrency, &wd, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &wd, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
       JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
@@ -157,7 +156,7 @@ private:
             }
           }
 
-          futures.push_back(move(pool.submit([dim, &db, region, cx, cz, mapInfo]() -> Result {
+          futures.push_back(move(queue->enqueue([dim, &db, region, cx, cz, mapInfo]() -> Result {
             try {
               auto const &chunk = region->chunkAt(cx, cz);
               Result r;
@@ -198,8 +197,6 @@ private:
       }
       result.fData->drain(wd);
     }
-
-    pool.shutdown();
 
     return completed;
   }

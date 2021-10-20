@@ -14,7 +14,7 @@
 #include <db/version_edit.h>
 #include <db/log_writer.h>
 #include <xxhash.h>
-#include <ThreadPool.h>
+#include <hwm/task/task_queue.hpp>
 #include <nlohmann/json.hpp>
 
 #include <set>

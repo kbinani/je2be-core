@@ -32,8 +32,7 @@ class RawDb : public DbInterface {
 
 public:
   RawDb(std::filesystem::path const &dir, unsigned int concurrency)
-      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fPool(1), fConcurrency(std::max(1u, concurrency)), fLock(nullptr) {
-    fPool.init();
+      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fQueue(std::make_unique<hwm::task_queue>(1)), fConcurrency(std::max(1u, concurrency)), fLock(nullptr) {
 
     leveldb::DestroyDB(dir, {});
     std::error_code ec;
@@ -93,7 +92,7 @@ public:
     {
       std::lock_guard<std::mutex> lk(fMut);
       FutureSupport::Drain(2, fFutures, popped);
-      fFutures.push_back(std::move(fPool.submit(std::bind(&RawDb::putImpl, this, _1, _2), key, cvalue)));
+      fFutures.push_back(std::move(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2), key, cvalue)));
     }
 
     bool ok = true;
@@ -135,7 +134,7 @@ public:
     for (auto &f : fFutures) {
       f.get();
     }
-    fPool.shutdown();
+    fQueue.reset();
 
     if (!fValuesFile) {
       return false;
@@ -161,8 +160,7 @@ public:
       return false;
     }
 
-    ::ThreadPool pool(fConcurrency);
-    pool.init();
+    auto queue = make_unique<hwm::task_queue>(fConcurrency);
 
     VersionEdit edit;
     uint64_t done = 0;
@@ -188,7 +186,7 @@ public:
       }
 
       TableBuildPlan plan = plans[idx];
-      futures.push_back(move(pool.submit(bind(&RawDb::buildTable, this, _1, _2), plan, idx)));
+      futures.push_back(move(queue->enqueue(bind(&RawDb::buildTable, this, _1, _2), plan, idx)));
     }
 
     for (auto &f : futures) {
@@ -206,7 +204,7 @@ public:
       }
     }
 
-    pool.shutdown();
+    queue.reset();
 
     error_code ec;
     fs::remove(valuesFile(), ec);
@@ -251,7 +249,7 @@ public:
     for (auto &f : fFutures) {
       f.get();
     }
-    fPool.shutdown();
+    fQueue.reset();
     if (fValuesFile) {
       fclose(fValuesFile);
       fValuesFile = nullptr;
@@ -653,7 +651,7 @@ private:
   std::filesystem::path const fDir;
   std::mutex fMut;
   std::map<uint8_t, uint64_t> fNumKeysPerShard;
-  ::ThreadPool fPool;
+  std::unique_ptr<hwm::task_queue> fQueue;
   std::deque<std::future<bool>> fFutures;
   unsigned int const fConcurrency;
   bool fClosed = false;

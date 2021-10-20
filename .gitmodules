@@ -10,9 +10,6 @@
 [submodule "ext/xxHash"]
 	path = deps/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
-[submodule "ext/thread-pool"]
-	path = deps/thread-pool
-	url = https://github.com/mtrebi/thread-pool.git
 [submodule "ext/json"]
 	path = deps/json
 	url = https://github.com/nlohmann/json.git
@@ -22,3 +19,6 @@
 [submodule "ext/zlib-ng"]
 	path = deps/zlib-ng
 	url = https://github.com/zlib-ng/zlib-ng.git
+[submodule "deps/hwm.task"]
+	path = deps/hwm.task
+	url = https://github.com/hotwatermorning/hwm.task.git
