@@ -124,7 +124,7 @@ public:
   int32_t fSpawnY = 0;
   int32_t fSpawnZ = 0;
   bool fStartWithMapEnabled = false;
-  int32_t fStorageVersion = kSubChunkBlockStorageVersion;
+  int32_t fStorageVersion = kStorageVersion;
   bool fTexturePacksRequired = false;
   int64_t fTime = 0;
   bool fTntExplodes = true;
