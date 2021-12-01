@@ -5,7 +5,7 @@
 #include <thread>
 
 static void PrintHelpMessage() {
-  std::cerr << "je2be -i [INPUT:directory] -o [OUTPUT:directory] [-n [NUM_THREADS:number]] [-s [DIRECTORY_STRUCTURE:\"vanilla\"|\"paper\"]]" << std::endl;
+  std::cerr << "cli -i [INPUT:directory] -o [OUTPUT:directory] [-n [NUM_THREADS:number]] [-s [DIRECTORY_STRUCTURE:\"vanilla\"|\"paper\"]]" << std::endl;
 }
 
 int main(int argc, char *argv[]) {
