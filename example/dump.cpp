@@ -220,6 +220,9 @@ static bool DumpLevelDat(fs::path const &dbDir) {
 
 static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string dimension) {
   switch (tag) {
+  case 0x2b:
+    cout << "Tag2b(0x2b) [" << cx << ", " << cz << "] " << dimension;
+    break;
   case 0x2c:
     cout << "ChunkVersion(0x2c) [" << cx << ", " << cz << "] " << dimension;
     break;
@@ -250,6 +253,10 @@ static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string
   case 0x3b:
     cout << "Checksums(0x3b) [" << cx << ", " << cz << "] " << dimension;
     break;
+  case 0x3d:
+    cout << "Tag3d(0x3d) [" << cx << ", " << cz << "] " << dimension;
+    break;
+
   case 0x76:
     cout << "ChunkVersionLegacy(0x76) [" << cx << ", " << cz << "] " << dimension;
     break;
@@ -263,6 +270,8 @@ static string StringFromDimension(int32_t d) {
   if (d == 1) {
     return "end";
   } else if (d == -1) {
+    return "nether(legacy)";
+  } else if (d == 2) {
     return "nether";
   } else {
     return "(unknown: " + to_string(d) + ")";
@@ -288,8 +297,12 @@ static void DumpAllKeys(fs::path const &dbDir) {
       uint8_t tag = key[8];
       int32_t cx = *(int32_t *)key.data();
       int32_t cz = *(int32_t *)(key.data() + 4);
-      chunkTag = PrintChunkKeyDescription(tag, cx, cz, "overworld");
-      cout << " " << itr->value().size() << "bytes" << endl;
+      if (key == "BiomeData" || key == "Overworld" || key == "mobevents") {
+        chunkTag = false;
+      } else {
+        chunkTag = PrintChunkKeyDescription(tag, cx, cz, "overworld");
+        cout << " " << itr->value().size() << "bytes" << endl;
+      }
       break;
     }
     case 10: {
@@ -300,8 +313,10 @@ static void DumpAllKeys(fs::path const &dbDir) {
         uint8_t rawY = key[9];
         int8_t y = *(int8_t *)&rawY;
         cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " overworld " << itr->value().size() << "bytes" << endl;
-      } else {
+      } else if (key == "scoreboard") {
         chunkTag = false;
+      } else {
+        cout << " " << itr->value().size() << "bytes" << endl;
       }
       break;
     }
@@ -309,9 +324,13 @@ static void DumpAllKeys(fs::path const &dbDir) {
       uint8_t tag = key[12];
       int32_t cx = *(int32_t *)key.data();
       int32_t cz = *(int32_t *)(key.data() + 4);
-      string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
-      chunkTag = PrintChunkKeyDescription(tag, cz, cz, dimension);
-      cout << " " << itr->value().size() << "bytes" << endl;
+      if (key == "~local_player") {
+        chunkTag = false;
+      } else {
+        string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
+        chunkTag = PrintChunkKeyDescription(tag, cz, cz, dimension);
+        cout << " " << itr->value().size() << "bytes" << endl;
+      }
       break;
     }
     case 14: {
