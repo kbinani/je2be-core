@@ -267,6 +267,10 @@ private:
     using namespace props;
     using namespace leveldb;
 
+    if (chunk.fChunkX == -32 && chunk.fChunkZ == -32 && chunkY == -4) {
+      int a = 0;
+    }
+
     size_t const kNumBlocksInSubChunk = 16 * 16 * 16;
 
     vector<uint16_t> indices(kNumBlocksInSubChunk);
@@ -433,9 +437,9 @@ private:
     }
     int8_t cy = Clamp<int8_t>(chunkY);
     if (cy != chunkY) {
-        return false;
+      return false;
     }
-    if (!w.write(*(uint8_t*)&cy)) {
+    if (!w.write(*(uint8_t *)&cy)) {
       return false;
     }
 
