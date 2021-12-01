@@ -235,8 +235,11 @@ private:
     ChunkDataPackage cdp;
     ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
-    for (int chunkY = 0; chunkY < 16; chunkY++) {
-      if (!PutSubChunk(chunk, dim, chunkY, cd, cdp, *ret)) {
+    for (auto const &section : chunk.fSections) {
+      if (!section) {
+        continue;
+      }
+      if (!PutSubChunk(chunk, dim, section->y(), cd, cdp, *ret)) {
         return nullptr;
       }
     }

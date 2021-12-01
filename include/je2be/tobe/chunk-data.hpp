@@ -67,12 +67,14 @@ private:
 
   ChunkStatus putChunkSections(DbInterface &db) const {
     bool empty = true;
-    for (int i = 0; i < 16; i++) {
-      auto key = mcfile::be::DbKey::SubChunk(fChunkX, i, fChunkZ, fDimension);
-      if (fSubChunks[i].empty()) {
+    for (auto const &it : fSubChunks) {
+      int8_t y = it.first;
+      auto const &section = it.second;
+      auto key = mcfile::be::DbKey::SubChunk(fChunkX, y, fChunkZ, fDimension);
+      if (section.empty()) {
         db.del(key);
       } else {
-        leveldb::Slice subchunk((char *)fSubChunks[i].data(), fSubChunks[i].size());
+        leveldb::Slice subchunk((char *)section.data(), section.size());
         db.put(key, subchunk);
         empty = false;
       }
@@ -117,8 +119,10 @@ private:
 
     // SubChunk
     uint32_t count = 0;
-    for (int i = 0; i < 16; i++) {
-      if (fSubChunks[i].empty()) {
+    for (auto const &it : fSubChunks) {
+      int8_t y = it.first;
+      auto const &section = it.second;
+      if (section.empty()) {
         continue;
       }
       if (!w.write(static_cast<uint8_t>(mcfile::be::DbKey::Tag::SubChunk))) {
@@ -127,10 +131,10 @@ private:
       if (!w.write((uint8_t)0)) {
         return nullopt;
       }
-      if (!w.write((uint8_t)i)) {
+      if (!w.write(*(uint8_t *)&y)) {
         return nullopt;
       }
-      uint64_t hash = GetXXHSum(fSubChunks[i]);
+      uint64_t hash = GetXXHSum(section);
       if (!w.write(hash)) {
         return nullopt;
       }
@@ -233,7 +237,7 @@ public:
   mcfile::Dimension const fDimension;
 
   std::vector<uint8_t> fData2D;
-  std::vector<uint8_t> fSubChunks[16];
+  std::map<int8_t, std::vector<uint8_t>> fSubChunks;
   std::vector<uint8_t> fBlockEntity;
   std::vector<uint8_t> fEntity;
   std::optional<int32_t> fFinalizedState;
