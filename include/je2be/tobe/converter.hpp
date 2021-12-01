@@ -428,6 +428,13 @@ private:
     if (!w.write((uint8_t)numStorageBlocks)) {
       return false;
     }
+    int8_t cy = Clamp<int8_t>(chunkY);
+    if (cy != chunkY) {
+        return false;
+    }
+    if (!w.write(*(uint8_t*)&cy)) {
+      return false;
+    }
 
     {
       // layer 0
