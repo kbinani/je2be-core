@@ -86,6 +86,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/be/sub-chunk.hpp
   deps/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   deps/libminecraft-file/include/mcfile/biomes/from-int.hpp
+  deps/libminecraft-file/include/mcfile/biomes/from-name.hpp
   deps/libminecraft-file/include/mcfile/biomes/minecraft.hpp
   deps/libminecraft-file/include/mcfile/biomes/name.hpp
   deps/libminecraft-file/include/mcfile/blocks/block-id.hpp
@@ -107,6 +108,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113-base.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-116.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-118.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
   deps/libminecraft-file/include/mcfile/je/mca-data-source.hpp
   deps/libminecraft-file/include/mcfile/je/region.hpp

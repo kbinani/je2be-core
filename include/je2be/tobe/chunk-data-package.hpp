@@ -112,9 +112,6 @@ private:
   }
 
   void buildBiomeMap(mcfile::je::Chunk const &chunk) {
-    if (chunk.fBiomes.empty()) {
-      return;
-    }
     int const y = 0;
     int const x0 = chunk.minBlockX();
     int const z0 = chunk.minBlockZ();
