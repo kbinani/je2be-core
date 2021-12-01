@@ -221,13 +221,13 @@ static bool DumpLevelDat(fs::path const &dbDir) {
 static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string dimension) {
   switch (tag) {
   case 0x2b:
-    cout << "Tag2b(0x2b) [" << cx << ", " << cz << "] " << dimension;
+    cout << "Data2D(0x2b) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x2c:
     cout << "ChunkVersion(0x2c) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x2d:
-    cout << "Data2D(0x2d) [" << cx << ", " << cz << "] " << dimension;
+    cout << "Data2DLegacy(0x2d) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x31:
     cout << "BlockEntity(0x31) [" << cx << ", " << cz << "] " << dimension;
@@ -251,12 +251,11 @@ static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string
     cout << "RandomTicks(0x3a) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x3b:
-    cout << "Checksums(0x3b) [" << cx << ", " << cz << "] " << dimension;
+    cout << "ChecksumsLegacy(0x3b) [" << cx << ", " << cz << "] " << dimension;
     break;
   case 0x3d:
     cout << "Tag3d(0x3d) [" << cx << ", " << cz << "] " << dimension;
     break;
-
   case 0x76:
     cout << "ChunkVersionLegacy(0x76) [" << cx << ", " << cz << "] " << dimension;
     break;

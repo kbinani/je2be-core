@@ -13,9 +13,6 @@ public:
       putData2D(db);
       putBlockEntity(db);
       putEntity(db);
-      if (!putChecksums(db)) {
-        return false;
-      }
       putFinalizedState(db);
       putPendingTicks(db);
     }
@@ -41,16 +38,6 @@ private:
       leveldb::Slice d((char *)fEntity.data(), fEntity.size());
       db.put(key, d);
     }
-  }
-
-  [[nodiscard]] bool putChecksums(DbInterface &db) const {
-    auto sum = checksums();
-    if (!sum) {
-      return false;
-    }
-    auto checksumKey = mcfile::be::DbKey::Checksums(fChunkX, fChunkZ, fDimension);
-    db.put(checksumKey, *sum);
-    return true;
   }
 
   void putBlockEntity(DbInterface &db) const {
