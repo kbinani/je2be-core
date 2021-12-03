@@ -4,6 +4,10 @@ namespace je2be::tobe {
 
 class ChunkDataPackage {
 public:
+  explicit ChunkDataPackage(int minChunkY) {
+    fHeightMap = std::make_shared<HeightMap>(minChunkY);
+  }
+
   void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     buildEntities(chunk, mapInfo, ddf);
     buildBiomeMap(chunk);
@@ -33,7 +37,9 @@ public:
     return true;
   }
 
-  void updateAltitude(int x, int y, int z) { fHeightMap.update(x, y, z); }
+  void updateAltitude(int x, int y, int z) {
+    fHeightMap->update(x, y, z);
+  }
 
   void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::je::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
 
@@ -114,29 +120,40 @@ private:
   void buildBiomeMap(mcfile::je::Chunk const &chunk) {
     int const y = 0;
     int const x0 = chunk.minBlockX();
+    int const y0 = chunk.minBlockY();
     int const z0 = chunk.minBlockZ();
-    BiomeMap m;
-    for (int z = 0; z < 16; z++) {
-      for (int x = 0; x < 16; x++) {
-        auto biome = chunk.biomeAt(x + x0, z + z0);
-        m.set(x, z, biome);
+    fBiomeMap = std::make_shared<mcfile::be::BiomeMap>(chunk.chunkY());
+    for (int y = y0; y <= chunk.maxBlockY(); y++) {
+      for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 16; x++) {
+          auto biome = chunk.biomeAt(x + x0, y + y0, z + z0);
+          fBiomeMap->set(x, y, z, biome);
+        }
       }
     }
-    fBiomeMap = m;
   }
 
   [[nodiscard]] bool serializeData2D(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
     if (!fBiomeMap) {
+      //NOTE: BE client is permissive for the lack of Data2D
       return true;
     }
     auto s = make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    if (!fHeightMap.write(w)) {
+    if (!fHeightMap->write(w)) {
       return false;
     }
-    if (!fBiomeMap->write(w)) {
+    auto encoded = fBiomeMap->encode();
+    if (!encoded) {
+      return false;
+    }
+    if (!w.write(encoded->data(), encoded->size())) {
+      return false;
+    }
+    string trailing(16, 0xff);
+    if (!w.write(trailing.data(), trailing.size())) {
       return false;
     }
     s->drain(cd.fData2D);
@@ -209,8 +226,8 @@ private:
   }
 
 private:
-  HeightMap fHeightMap;
-  std::optional<BiomeMap> fBiomeMap;
+  std::shared_ptr<HeightMap> fHeightMap;
+  std::shared_ptr<mcfile::be::BiomeMap> fBiomeMap;
   std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;

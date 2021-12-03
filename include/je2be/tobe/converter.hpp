@@ -232,7 +232,7 @@ private:
 
     auto ret = make_shared<DimensionDataFragment>(dim);
 
-    ChunkDataPackage cdp;
+    ChunkDataPackage cdp(chunk.chunkY());
     ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
 
     for (auto const &section : chunk.fSections) {

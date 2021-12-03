@@ -31,7 +31,6 @@ set(je2be_files
   include/je2be/size.hpp
   include/je2be/strings.hpp
   include/je2be/tobe/axolotl.hpp
-  include/je2be/tobe/biome-map.hpp
   include/je2be/tobe/block-data.hpp
   include/je2be/tobe/block-palette.hpp
   include/je2be/tobe/chunk-data-package.hpp
@@ -76,6 +75,8 @@ set(je2be_files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
   deps/libminecraft-file/include/mcfile/algorithm.hpp
+  deps/libminecraft-file/include/mcfile/be/biome-map.hpp
+  deps/libminecraft-file/include/mcfile/be/biome-section.hpp
   deps/libminecraft-file/include/mcfile/be/biome.hpp
   deps/libminecraft-file/include/mcfile/be/block.hpp
   deps/libminecraft-file/include/mcfile/be/chunk.hpp

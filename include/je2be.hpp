@@ -47,7 +47,6 @@
 #include <je2be/tobe/versions.hpp>
 #include <je2be/tobe/sign.hpp>
 #include <je2be/tobe/block-data.hpp>
-#include <je2be/tobe/biome-map.hpp>
 #include <je2be/tobe/db/db-interface.hpp>
 #include <je2be/tobe/db/db.hpp>
 #include <je2be/tobe/db/null-db.hpp>
