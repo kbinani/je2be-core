@@ -282,54 +282,22 @@ public:
     if (!data) {
       return ret;
     }
-    auto allowCommand = data->byteTag("allowCommands");
-    if (allowCommand) {
-      ret.fCommandsEnabled = allowCommand->fValue != 0;
-    }
-    auto dayTime = data->longTag("DayTime");
-    if (dayTime) {
-      ret.fTime = dayTime->fValue;
-    }
-    auto difficulty = data->byteTag("Difficulty");
-    if (difficulty) {
-      ret.fDifficulty = (int32_t)difficulty->fValue;
-    }
-    auto gameType = data->intTag("GameType");
-    if (gameType) {
-      ret.fGameType = gameType->fValue;
-    }
-    auto levelName = data->stringTag("LevelName");
-    if (levelName) {
-      ret.fLevelName = levelName->fValue;
-    }
-    auto rainTime = data->intTag("rainTime");
-    if (rainTime) {
-      ret.fRainTime = rainTime->fValue;
-    }
-    auto spawnX = data->intTag("SpawnX");
-    if (spawnX) {
-      ret.fSpawnX = spawnX->fValue;
-    }
-    auto spawnY = data->intTag("SpawnY");
-    if (spawnY) {
-      ret.fSpawnY = spawnY->fValue;
-    }
-    auto spawnZ = data->intTag("SpawnZ");
-    if (spawnZ) {
-      ret.fSpawnZ = spawnZ->fValue;
-    }
-    auto thunderTime = data->intTag("thunderTime");
-    if (thunderTime) {
-      ret.fLightningTime = thunderTime->fValue;
-    }
-    auto time = data->longTag("Time");
-    if (time) {
-      ret.fCurrentTick = time->fValue;
-    }
-    auto lastPlayed = data->longTag("LastPlayed");
-    if (lastPlayed) {
-      ret.fLastPlayed = lastPlayed->fValue / 1000;
-    }
+
+#define I(__name, __type, __key) ret.__name = data->__type(__key, ret.__name)
+    I(fCommandsEnabled, boolean, "allowCommands");
+    I(fTime, int64, "DayTime");
+    I(fDifficulty, byte, "Difficulty");
+    I(fGameType, int32, "GameType");
+    I(fLevelName, string, "LevelName");
+    I(fRainTime, int32, "rainTime");
+    I(fSpawnX, int32, "SpawnX");
+    I(fSpawnY, int32, "SpawnY");
+    I(fSpawnZ, int32, "SpawnZ");
+    I(fLightningTime, int32, "thunderTime");
+    I(fCurrentTick, int64, "Time");
+    ret.fLastPlayed = data->int64("LastPlayed", ret.fLastPlayed * 1000) / 1000;
+#undef I
+
     auto gameRules = data->compoundTag("GameRules");
     if (gameRules) {
 #define S(__name, __var)                       \
@@ -378,6 +346,11 @@ public:
       // universalAnger
 #undef S
 #undef I
+
+      auto worldGenSettings = data->compoundTag("WorldGenSettings");
+      if (worldGenSettings) {
+        ret.fRandomSeed = worldGenSettings->int64("seed", ret.fRandomSeed);
+      }
     }
     return ret;
   }
