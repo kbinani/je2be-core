@@ -193,7 +193,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   using Tag = mcfile::be::DbKey::Tag;
-  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::Checksums) || tag == static_cast<uint8_t>(Tag::Data2D) || tag == static_cast<uint8_t>(Tag::Version)) {
+  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::ChecksumsLegacy) || tag == static_cast<uint8_t>(Tag::Data2D) || tag == static_cast<uint8_t>(Tag::Data2DLegacy) || tag == static_cast<uint8_t>(Tag::Version)) {
     DumpBinaryKey(dbDir, key);
   } else {
     DumpKey(dbDir, key);
@@ -374,9 +374,9 @@ static void PrintHelpMessage() {
   cerr << R"(dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"(dump.exe [world-dir] chunk-key [tag:uint8_t] in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << "    tag:" << endl;
+  cerr << "       43: Data2D" << endl;
   cerr << "       44: ChunkVersion" << endl;
-  cerr << "       45: Data2D" << endl;
-  cerr << "       46: Data2DLegacy" << endl;
+  cerr << "       45: Data2DLegacy" << endl;
   cerr << "       48: LegacyTerrian" << endl;
   cerr << "       49: BlockEntity" << endl;
   cerr << "       50: Entity" << endl;
@@ -387,7 +387,7 @@ static void PrintHelpMessage() {
   cerr << "       56: BorderBlocks" << endl;
   cerr << "       57: StructureBounds" << endl;
   cerr << "       58: RandomTicks" << endl;
-  cerr << "       59: Checksums" << endl;
+  cerr << "       59: ChecksumsLegacy" << endl;
   cerr << "       118: ChunkVersionLegacy" << endl;
   cerr << "dump.exe [world-dir] level.dat" << endl;
   cerr << "dump.exe [world-dir] keys" << endl;
