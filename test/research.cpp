@@ -129,9 +129,8 @@ void Data2D(string const &k, string const &value, leveldb::DB *db) {
     cerr << "extra data contained in Data2D" << endl;
   }
 }
+
 } // namespace
 
 TEST_CASE("research") {
-  string name = "DBWoYX5RAAA=";
-  VisitDb(name, Data2D);
 }

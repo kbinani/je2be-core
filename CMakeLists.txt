@@ -152,7 +152,6 @@ set(je2be_files
   .clang-format)
 set(test_files
   test/main.cpp
-  test/block-data.test.cpp
   test/moving-piston.test.cpp
   test/research.cpp)
 add_executable(cli example/cli.cpp ${je2be_files})
