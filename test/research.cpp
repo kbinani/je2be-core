@@ -11,6 +11,7 @@
 #endif
 
 using namespace std;
+using namespace mcfile;
 namespace fs = std::filesystem;
 
 namespace {
@@ -74,10 +75,58 @@ void VisitDb(string const &name, function<void(string const &key, string const &
   });
 }
 
-void Data2D(string const &k, string const &v, leveldb::DB *db) {
-  auto p = mcfile::be::DbKey::Parse(k);
+void Data2D(string const &k, string const &value, leveldb::DB *db) {
+  using namespace mcfile::be;
+  auto p = DbKey::Parse(k);
   if (!p) {
     return;
+  }
+  if (!p->fIsTagged) {
+    return;
+  }
+  if (p->fTagged.fTag != static_cast<uint8_t>(DbKey::Tag::Version)) {
+    return;
+  }
+  auto dim = p->fTagged.dimension();
+  if (!dim) {
+    return;
+  }
+  int const cx = p->fTagged.fChunk.fX;
+  int const cz = p->fTagged.fChunk.fZ;
+  int maxChunkY = -99;
+  leveldb::ReadOptions ro;
+  for (int cy = -4; cy <= 20; cy++) {
+    auto key = DbKey::SubChunk(cx, cy, cz, *dim);
+    string v;
+    auto st = db->Get(ro, key, &v);
+    if (!st.ok()) {
+      continue;
+    }
+    maxChunkY = (std::max)(maxChunkY, cy);
+  }
+  int minChunkY = 0;
+  if (*dim == Dimension::Overworld) {
+    minChunkY = -4;
+  }
+  int numSubChunks = maxChunkY - minChunkY + 1;
+  if (numSubChunks < 1) {
+    return;
+  }
+  string data2d;
+  {
+    auto key = DbKey::Data2D(cx, cz, *dim);
+    if (!db->Get(ro, key, &data2d).ok()) {
+      cerr << "can't get Data2D" << endl;
+      return;
+    }
+  }
+  auto map = BiomeMap::Decode(minChunkY, data2d, 512);
+  if (!map) {
+    cerr << "failed decoding BiomeMap" << endl;
+    return;
+  }
+  if (map->numSections() != numSubChunks) {
+    cerr << "extra data contained in Data2D" << endl;
   }
 }
 } // namespace

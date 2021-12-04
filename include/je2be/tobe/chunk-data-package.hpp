@@ -122,7 +122,7 @@ private:
     int const x0 = chunk.minBlockX();
     int const y0 = chunk.minBlockY();
     int const z0 = chunk.minBlockZ();
-    fBiomeMap = std::make_shared<mcfile::be::BiomeMap>(chunk.chunkY());
+    fBiomeMap = std::make_shared<mcfile::be::BiomeMap>(chunk.chunkY(), mcfile::Coordinate::ChunkFromBlock(chunk.maxBlockY()));
     for (int y = y0; y <= chunk.maxBlockY(); y++) {
       for (int z = 0; z < 16; z++) {
         for (int x = 0; x < 16; x++) {
