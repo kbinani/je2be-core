@@ -118,16 +118,21 @@ private:
   }
 
   void buildBiomeMap(mcfile::je::Chunk const &chunk) {
-    int const y = 0;
     int const x0 = chunk.minBlockX();
-    int const y0 = chunk.minBlockY();
     int const z0 = chunk.minBlockZ();
-    fBiomeMap = std::make_shared<mcfile::be::BiomeMap>(chunk.chunkY(), mcfile::Coordinate::ChunkFromBlock(chunk.maxBlockY()));
-    for (int y = y0; y <= chunk.maxBlockY(); y++) {
-      for (int z = 0; z < 16; z++) {
-        for (int x = 0; x < 16; x++) {
-          auto biome = chunk.biomeAt(x + x0, y + y0, z + z0);
-          fBiomeMap->set(x, y, z, biome);
+    int minChunkY = chunk.chunkY();
+    int maxChunkY = minChunkY + chunk.fSections.size() - 1;
+    fBiomeMap = std::make_shared<mcfile::be::BiomeMap>(minChunkY, maxChunkY);
+    for (int cy = minChunkY; cy <= maxChunkY; cy++) {
+      for (int ly = 0; ly < 16; ly++) {
+        int by = ly + cy * 16;
+        for (int lz = 0; lz < 16; lz++) {
+          int bz = lz + z0;
+          for (int lx = 0; lx < 16; lx++) {
+            int bx = lx + x0;
+            auto biome = chunk.biomeAt(bx, by, bz);
+            fBiomeMap->set(lx, by, lz, biome);
+          }
         }
       }
     }
