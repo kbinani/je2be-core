@@ -17,6 +17,19 @@ public:
     fHeight[i] = (std::max)(fHeight[i], clamped);
   }
 
+  void offset(int newMinChunkY) {
+    if (newMinChunkY == fMinChunkY) {
+      return;
+    }
+    int delta = (fMinChunkY - newMinChunkY) * 16;
+    for (int i = 0; i < 256; i++) {
+      uint16_t prev = fHeight[i];
+      uint16_t next = mcfile::Clamp<uint16_t>((int)prev + delta);
+      fHeight[i] = next;
+    }
+    fMinChunkY = newMinChunkY;
+  }
+
   [[nodiscard]] bool write(mcfile::stream::OutputStreamWriter &w) {
     size_t i = 0;
     for (int z = 0; z < 16; z++) {
@@ -31,7 +44,7 @@ public:
   }
 
 private:
-  int const fMinChunkY;
+  int fMinChunkY;
   uint16_t fHeight[256];
 };
 

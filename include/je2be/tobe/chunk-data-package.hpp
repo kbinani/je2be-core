@@ -10,7 +10,8 @@ public:
 
   void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     buildEntities(chunk, mapInfo, ddf);
-    buildBiomeMap(chunk);
+    buildHeightMap(ddf.fDim);
+    buildBiomeMap(chunk, ddf.fDim);
     buildTileEntities(chunk, mapInfo, ddf);
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
@@ -117,13 +118,73 @@ private:
     }
   }
 
-  void buildBiomeMap(mcfile::je::Chunk const &chunk) {
+  void buildHeightMap(mcfile::Dimension dim) {
+    int minChunkY = 0;
+    if (dim == mcfile::Dimension::Overworld) {
+      minChunkY = -4;
+    }
+    fHeightMap->offset(minChunkY);
+  }
+
+  void buildBiomeMap(mcfile::je::Chunk const &chunk, mcfile::Dimension dim) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::be;
+    using namespace mcfile::biomes;
+
     int const x0 = chunk.minBlockX();
+    int const y0 = chunk.minBlockY();
     int const z0 = chunk.minBlockZ();
-    int minChunkY = chunk.chunkY();
-    int maxChunkY = minChunkY + chunk.fSections.size() - 1;
-    fBiomeMap = std::make_shared<mcfile::be::BiomeMap>(minChunkY, maxChunkY);
-    for (int cy = minChunkY; cy <= maxChunkY; cy++) {
+    int minChunkY = 0;
+    if (dim == Dimension::Overworld) {
+      minChunkY = -4;
+    }
+    int maxChunkY = chunk.chunkY() + chunk.fSections.size() - 1;
+    fBiomeMap = make_shared<BiomeMap>(minChunkY, maxChunkY);
+    if (minChunkY < chunk.chunkY()) {
+      // Extend BiomeMap below chunk.chunkY()
+
+      // Lookup most used biome in lowest chunk section
+      unordered_map<BiomeId, int> used;
+      for (int ly = 0; ly < 16; ly++) {
+        for (int lz = 0; lz < 16; lz++) {
+          for (int lx = 0; lx < 16; lx++) {
+            auto biome = chunk.biomeAt(x0 + lx, y0 + ly, z0 + lz);
+            used[biome] += 1;
+          }
+        }
+      }
+      vector<pair<BiomeId, int>> sorted;
+      copy(used.begin(), used.end(), back_inserter(sorted));
+      stable_sort(sorted.begin(), sorted.end(), [](auto lhs, auto rhs) {
+        return lhs.second > rhs.second;
+      });
+
+      // Copy biome to below y < chunk.chunkY()
+      BiomeId biome;
+      if (sorted.empty()) {
+        if (dim == Dimension::Nether) {
+          biome = minecraft::nether_wastes;
+        } else if (dim == Dimension::End) {
+          biome = minecraft::the_end;
+        } else {
+          biome = minecraft::plains;
+        }
+      } else {
+        biome = sorted.front().first;
+      }
+      for (int cy = minChunkY; cy < chunk.chunkY(); cy++) {
+        for (int ly = 0; ly < 16; ly++) {
+          int by = ly + cy * 16;
+          for (int lz = 0; lz < 16; lz++) {
+            for (int lx = 0; lx < 16; lx++) {
+              fBiomeMap->set(lx, by, lz, biome);
+            }
+          }
+        }
+      }
+    }
+    for (int cy = chunk.chunkY(); cy <= maxChunkY; cy++) {
       for (int ly = 0; ly < 16; ly++) {
         int by = ly + cy * 16;
         for (int lz = 0; lz < 16; lz++) {
