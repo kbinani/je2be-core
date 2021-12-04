@@ -153,7 +153,8 @@ set(je2be_files
 set(test_files
   test/main.cpp
   test/block-data.test.cpp
-  test/moving-piston.test.cpp)
+  test/moving-piston.test.cpp
+  test/research.cpp)
 add_executable(cli example/cli.cpp ${je2be_files})
 add_executable(dump example/dump.cpp ${je2be_files})
 add_executable(test ${test_files} ${je2be_files})
