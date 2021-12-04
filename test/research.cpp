@@ -2,6 +2,8 @@
 
 #include <je2be.hpp>
 
+#include <iostream>
+
 #if defined(_WIN32)
 #include <fcntl.h>
 #include <io.h>
@@ -48,7 +50,7 @@ leveldb::DB *Open(string const &name) {
   return db;
 }
 
-void Iterate(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
+void VisitDbUntil(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
   using namespace leveldb;
   unique_ptr<DB> db(Open(name));
   if (!db) {
@@ -65,12 +67,22 @@ void Iterate(string const &name, function<bool(string const &key, string const &
   }
 }
 
-bool Data2D(string const &k, string const &v, leveldb::DB *db) {
-  return true;
+void VisitDb(string const &name, function<void(string const &key, string const &value, leveldb::DB *db)> callback) {
+  VisitDbUntil(name, [callback](string const &k, string const &v, leveldb::DB *db) {
+    callback(k, v, db);
+    return true;
+  });
+}
+
+void Data2D(string const &k, string const &v, leveldb::DB *db) {
+  auto p = mcfile::be::DbKey::Parse(k);
+  if (!p) {
+    return;
+  }
 }
 } // namespace
 
 TEST_CASE("research") {
   string name = "DBWoYX5RAAA=";
-  Iterate(name, Data2D);
+  VisitDb(name, Data2D);
 }
