@@ -164,6 +164,9 @@ private:
               if (!chunk) {
                 return r;
               }
+              if (chunk->status() != Chunk::Status::FULL) {
+                return r;
+              }
               if (chunk->fDataVersion >= 2724) {
                 vector<shared_ptr<nbt::CompoundTag>> entities;
                 if (region->entitiesAt(cx, cz, entities)) {
