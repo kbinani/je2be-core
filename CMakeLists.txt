@@ -155,20 +155,6 @@ set(test_files
 
 add_subdirectory(deps/libminecraft-file)
 
-add_executable(cli example/cli.cpp ${je2be_files})
-add_executable(dump example/dump.cpp ${je2be_files})
-add_executable(test ${test_files} ${je2be_files})
-add_library(je2be INTERFACE ${je2be_files})
-target_include_directories(je2be INTERFACE
-  ./include
-  deps/leveldb
-  deps/leveldb/include
-  deps/xxHash
-  deps/hwm.task
-  deps/json/include)
-
-setup_source_groups("example/cli.cpp;dxample/dump.cpp;${test_files};${je2be_files};${mcfile_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
-
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
 endif()
@@ -186,14 +172,25 @@ add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
 list(APPEND je2be_link_libraries mcfile xxhash leveldb)
 
+
+add_library(je2be INTERFACE ${je2be_files})
+target_include_directories(je2be INTERFACE
+  ./include
+  deps/leveldb
+  deps/leveldb/include
+  deps/xxHash
+  deps/hwm.task
+  deps/json/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 
+add_executable(cli example/cli.cpp ${je2be_files})
 target_link_libraries(cli je2be)
-target_link_directories(cli PRIVATE ${je2be_link_directories})
 
+add_executable(dump example/dump.cpp ${je2be_files})
 target_link_libraries(dump je2be)
-target_link_directories(dump PRIVATE ${je2be_link_directories})
 
+add_executable(test ${test_files} ${je2be_files})
 target_include_directories(test PRIVATE deps/doctest)
 target_link_libraries(test je2be)
-target_link_directories(test PRIVATE ${je2be_link_directories})
+
+setup_source_groups("example/cli.cpp;example/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
