@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
-include(deps/setup_source_groups/setup_source_groups.cmake)
-
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -154,33 +152,31 @@ set(test_files
   test/main.cpp
   test/moving-piston.test.cpp
   test/research.cpp)
+
+add_subdirectory(deps/libminecraft-file)
+
 add_executable(cli example/cli.cpp ${je2be_files})
 add_executable(dump example/dump.cpp ${je2be_files})
 add_executable(test ${test_files} ${je2be_files})
-setup_source_groups("example/cli.cpp;dxample/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(je2be INTERFACE ${je2be_files})
+target_include_directories(je2be INTERFACE
+  ./include
+  deps/leveldb
+  deps/leveldb/include
+  deps/xxHash
+  deps/hwm.task
+  deps/json/include)
+
+setup_source_groups("example/cli.cpp;dxample/dump.cpp;${test_files};${je2be_files};${mcfile_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
 endif()
 
-list(APPEND je2be_include_directories
-  include
-  deps/libminecraft-file/include
-  deps/leveldb
-  deps/hwm.task
-  deps/json/single_include)
-
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
-
-  set(ZLIB_COMPAT ON)
-  add_subdirectory(deps/zlib-ng EXCLUDE_FROM_ALL)
-  set(ZLIB_INCLUDE_DIR $<TARGET_PROPERTY:zlib,INCLUDE_DIRECTORIES>)
-  set(ZLIB_LIBRARY $<TARGET_LINKER_FILE:zlib>)
-
-  list(APPEND je2be_link_libraries zlib)
 else()
-  list(APPEND je2be_link_libraries z tbb)
+  list(APPEND je2be_link_libraries tbb)
 endif()
 
 add_subdirectory(deps/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
@@ -188,16 +184,16 @@ add_subdirectory(deps/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
 set(LEVELDB_ZSTD OFF)
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
-list(APPEND je2be_link_libraries xxhash leveldb)
+list(APPEND je2be_link_libraries mcfile xxhash leveldb)
 
-target_include_directories(cli PRIVATE ${je2be_include_directories})
-target_link_libraries(cli ${je2be_link_libraries})
+target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
+
+target_link_libraries(cli je2be)
 target_link_directories(cli PRIVATE ${je2be_link_directories})
 
-target_include_directories(dump PRIVATE ${je2be_include_directories})
-target_link_libraries(dump ${je2be_link_libraries})
+target_link_libraries(dump je2be)
 target_link_directories(dump PRIVATE ${je2be_link_directories})
 
-target_include_directories(test PRIVATE deps/doctest ${je2be_include_directories})
-target_link_libraries(test ${je2be_link_libraries})
+target_include_directories(test PRIVATE deps/doctest)
+target_link_libraries(test je2be)
 target_link_directories(test PRIVATE ${je2be_link_directories})
