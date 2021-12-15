@@ -290,7 +290,7 @@ private:
     // 1~4: paltte size (uint32 LE)
     //
 
-    BlockPalette palette;
+    je2be::tobe::BlockPalette palette;
 
     int idx = 0;
     bool empty = true;
@@ -308,49 +308,40 @@ private:
       }
     }
     if (section != nullptr) {
-      auto const &sectionPalette = section->palette();
-      vector<uint16_t> mapping(sectionPalette.size());
-      int i = 0;
-      for (auto const &it : sectionPalette) {
-        auto const &paletteKey = it->toString();
-        if (paletteKey == "minecraft:air") {
-          mapping[i] = 0;
-        } else {
-          auto tag = BlockData::From(it);
-          palette.push(paletteKey, tag);
-          mapping[i] = palette.size() - 1;
-        }
-        i++;
-      }
       for (int x = 0; x < 16; x++) {
         int const bx = chunk.minBlockX() + x;
         for (int z = 0; z < 16; z++) {
           int const bz = chunk.minBlockZ() + z;
           for (int y = 0; y < 16; y++, idx++) {
             int const by = chunkY * 16 + y;
-            auto rawIndex = section->paletteIndexAt(x, y, z);
-            if (!rawIndex) {
-              continue;
-            }
-            if (palette.size() <= *rawIndex) {
-              continue;
-            }
-            auto block = sectionPalette[*rawIndex];
-            uint16_t index = mapping[*rawIndex];
-            empty = false;
-            if (index != 0 && !IsAir(block->fName)) {
-              cdp.updateAltitude(x, by, z);
-            }
-            static string const nether_portal("minecraft:nether_portal");
-            static string const end_portal("minecraft:end_portal");
-            if (TileEntity::IsTileEntity(block->fName)) {
-              cdp.addTileBlock(bx, by, bz, block);
-            } else if (strings::Equal(block->fName, nether_portal)) {
-              bool xAxis = block->property("axis", "x") == "x";
-              ddf.addPortalBlock(bx, by, bz, xAxis);
-            }
-            if (strings::Equal(block->fName, end_portal) && dim == Dimension::End) {
-              ddf.addEndPortal(bx, by, bz);
+            uint16_t index;
+            auto block = section->blockAt(x, y, z);
+            if (block && !IsAir(block->fName)) {
+              string paletteKey = block->toString();
+              auto found = palette.findByBlockState(paletteKey);
+              if (found) {
+                index = *found;
+              } else {
+                auto tag = BlockData::From(block);
+                index = palette.add(paletteKey, tag);
+              }
+              empty = false;
+              if (index != 0) {
+                cdp.updateAltitude(x, by, z);
+              }
+              static string const nether_portal("minecraft:nether_portal");
+              static string const end_portal("minecraft:end_portal");
+              if (TileEntity::IsTileEntity(block->fName)) {
+                cdp.addTileBlock(bx, by, bz, block);
+              } else if (strings::Equal(block->fName, nether_portal)) {
+                bool xAxis = block->property("axis", "x") == "x";
+                ddf.addPortalBlock(bx, by, bz, xAxis);
+              }
+              if (strings::Equal(block->fName, end_portal) && dim == Dimension::End) {
+                ddf.addEndPortal(bx, by, bz);
+              }
+            } else {
+              index = 0;
             }
 
             indices[idx] = index;

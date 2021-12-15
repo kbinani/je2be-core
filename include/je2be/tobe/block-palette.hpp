@@ -28,7 +28,6 @@ public:
 
   std::shared_ptr<CompoundTag> operator[](size_t index) const { return fPalette[index]; }
 
-private:
   std::optional<uint16_t> findByBlockState(std::string const &blockState) const {
     auto found = std::find(fPaletteKeys.begin(), fPaletteKeys.end(), blockState);
     if (found == fPaletteKeys.end()) {

@@ -83,6 +83,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/be/db.hpp
   deps/libminecraft-file/include/mcfile/be/pending-tick.hpp
   deps/libminecraft-file/include/mcfile/be/sub-chunk.hpp
+  deps/libminecraft-file/include/mcfile/biome-palette.hpp
   deps/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   deps/libminecraft-file/include/mcfile/biomes/from-int.hpp
   deps/libminecraft-file/include/mcfile/biomes/from-name.hpp
@@ -97,6 +98,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/dimension.hpp
   deps/libminecraft-file/include/mcfile/endianness.hpp
   deps/libminecraft-file/include/mcfile/file.hpp
+  deps/libminecraft-file/include/mcfile/je/block-palette.hpp
   deps/libminecraft-file/include/mcfile/je/block.hpp
   deps/libminecraft-file/include/mcfile/je/cached-chunk-loader.hpp
   deps/libminecraft-file/include/mcfile/je/chunk-section.hpp
@@ -134,6 +136,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
   deps/libminecraft-file/include/mcfile/nbt/tag-factory.hpp
   deps/libminecraft-file/include/mcfile/nbt/tag.hpp
+  deps/libminecraft-file/include/mcfile/palette-list.hpp
   deps/libminecraft-file/include/mcfile/pos2.hpp
   deps/libminecraft-file/include/mcfile/pos3.hpp
   deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
