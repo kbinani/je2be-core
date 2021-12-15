@@ -34,32 +34,35 @@ public:
       return false;
     }
 
-    auto dimension = data->string("dimension");
+    auto dimensionString = data->string("dimension");
+    auto dimensionInt = data->int32("dimension");
+    auto dimensionByte = data->byte("dimension");
+
     int8_t outDimension = 0;
-    if (dimension) {
-      if (*dimension == "minecraft:overworld") {
+    if (dimensionString) {
+      if (*dimensionString == "minecraft:overworld") {
         outDimension = 0;
-      } else if (*dimension == "minecraft:the_nether") {
+      } else if (*dimensionString == "minecraft:the_nether") {
         outDimension = 1;
-      } else if (*dimension == "minecraft:the_end") {
+      } else if (*dimensionString == "minecraft:the_end") {
         outDimension = 2;
       }
-    } else {
+    } else if (dimensionInt) {
       // <= 1.15
-      auto dimensionInt = data->int32("dimension");
-      if (dimensionInt) {
-        outDimension = *dimensionInt;
-      }
+      outDimension = *dimensionInt;
+    } else if (dimensionByte) {
+      outDimension = *dimensionByte;
     }
-    auto locked = data->boolean("locked");
+    auto locked = data->boolean("locked", false);
     auto scale = data->byte("scale");
     auto xCenter = data->int32("xCenter");
     auto zCenter = data->int32("zCenter");
     auto colors = data->byteArrayTag("colors");
-    auto unlimitedTracking = data->boolean("unlimitedTracking");
+    auto unlimitedTracking = data->boolean("unlimitedTracking", false);
 
-    if (!locked || !scale || !xCenter || !zCenter || !colors || !unlimitedTracking)
+    if (!scale || !xCenter || !zCenter || !colors) {
       return false;
+    }
 
     for (uint8_t beScale = 0; beScale <= 4; beScale++) {
       int64_t uuid = UUID(javaMapId, beScale);
@@ -68,7 +71,7 @@ public:
       ret->set("fullyExplored", Bool(false)); //?
       ret->set("height", Short(128));
       ret->set("mapId", Long(uuid));
-      ret->set("mapLocked", Bool(*locked));
+      ret->set("mapLocked", Bool(locked));
       if (beScale == 4) {
         ret->set("parentMapId", Long(-1));
       } else {
@@ -76,7 +79,7 @@ public:
         ret->set("parentMapId", Long(parent));
       }
       ret->set("scale", Byte(beScale));
-      ret->set("unlimitedTracking", Bool(*unlimitedTracking));
+      ret->set("unlimitedTracking", Bool(unlimitedTracking));
       ret->set("width", Short(128));
       ret->set("xCenter", Int(*xCenter));
       ret->set("zCenter", Int(*zCenter));
