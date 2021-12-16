@@ -289,14 +289,6 @@ private:
     auto trackOutput = c->boolean("TrackOutput", true);
     auto successCount = c->int32("SuccessCount", 0);
     auto command = c->string("Command", "");
-    auto customNameJson = GetJson(*c, "CustomName");
-    std::string customName;
-    if (customNameJson) {
-      customName = GetAsString(*customNameJson, "text");
-      if (customName == "@") {
-        customName = "";
-      }
-    }
     auto conditionMet = c->boolean("conditionMet", false);
     tag->insert({
         {"id", String("CommandBlock")},
@@ -308,11 +300,10 @@ private:
         {"Version", Int(15)},
         {"SuccessCount", Int(successCount)},
         {"Command", String(command)},
-        {"CustomName", String(customName)},
         {"ExecuteOnFirstTick", Bool(false)},
         {"conditionMet", Bool(conditionMet)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -381,7 +372,7 @@ private:
     }
     tag->set("ShouldSpawnBees", Bool(!bees));
 
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -415,7 +406,7 @@ private:
         auto breakBlocks = std::make_shared<ListTag>(Tag::Type::Int);
         ret->set("AttachedBlocks", attachedBlocks);
         ret->set("BreakBlocks", breakBlocks);
-        Attach(pos, *ret);
+        Attach(c, pos, *ret);
         return ret;
       }
     }
@@ -454,7 +445,7 @@ private:
       tag->set("page", Int(page));
       tag->set("totalPages", Int(totalPages));
     }
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -475,11 +466,11 @@ private:
         {"primary", Int(primary)},
         {"secondary", Int(secondary)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
-  static TileEntityData EndPortal(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static TileEntityData EndPortal(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
 
     auto tag = std::make_shared<CompoundTag>();
@@ -487,11 +478,11 @@ private:
         {"id", String("EndPortal")},
         {"isMovable", Bool(true)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
-  static TileEntityData Cauldron(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static TileEntityData Cauldron(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -499,7 +490,7 @@ private:
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({{"id", String("Cauldron")}, {"isMovable", Bool(true)}, {"PotionId", Short(-1)}, {"PotionType", Short(-1)}});
 
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -525,11 +516,11 @@ private:
       }
     }
 
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
-  static TileEntityData Note(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Note(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -545,7 +536,7 @@ private:
         {"isMovable", Bool(true)},
         {"note", Byte(*note)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -646,7 +637,7 @@ private:
         {"id", String("BrewingStand")},
         {"isMovable", Bool(true)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -665,12 +656,12 @@ private:
           {"id", String(name)},
           {"isMovable", Bool(true)},
       });
-      Attach(pos, *tag);
+      Attach(c, pos, *tag);
       return tag;
     };
   }
 
-  static TileEntityData Skull(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Skull(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -687,11 +678,11 @@ private:
         {"SkullType", Byte(type)},
         {"Rotation", Float(rotation)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
-  static TileEntityData PottedBamboo(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData PottedBamboo(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -714,12 +705,12 @@ private:
         {"isMovable", Bool(true)},
         {"PlantBlock", plantBlock},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
   static Converter PottedPlant(std::string const &name, std::map<std::string, std::string> const &properties) {
-    return [=](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) -> TileEntityData {
+    return [=](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) -> TileEntityData {
       using namespace props;
       using namespace mcfile::nbt;
       using namespace std;
@@ -740,12 +731,12 @@ private:
           {"isMovable", Bool(true)},
           {"PlantBlock", plantBlock},
       });
-      Attach(pos, *tag);
+      Attach(c, pos, *tag);
       return tag;
     };
   }
 
-  static TileEntityData PottedSapling(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData PottedSapling(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     using namespace mcfile::nbt;
     using namespace std;
@@ -768,7 +759,7 @@ private:
         {"isMovable", Bool(true)},
         {"PlantBlock", plantBlock},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -822,7 +813,7 @@ private:
         {"Base", Int(base)},
         {"Patterns", patternsBedrock},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -887,7 +878,7 @@ private:
     return found->second;
   }
 
-  static TileEntityData Bed(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, DimensionDataFragment &) {
+  static TileEntityData Bed(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &, DimensionDataFragment &) {
     using namespace props;
     auto tag = std::make_shared<CompoundTag>();
     auto color = BedColor(b.fName);
@@ -896,7 +887,7 @@ private:
         {"color", Byte(color)},
         {"isMovable", Bool(true)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -912,14 +903,14 @@ private:
         {"isMovable", Bool(true)},
         {"Items", items},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
-  static std::string GetAsString(nlohmann::json const &obj, std::string const &key) {
+  static std::optional<std::string> GetAsString(nlohmann::json const &obj, std::string const &key) {
     auto found = obj.find(key);
     if (found == obj.end()) {
-      return "";
+      return std::nullopt;
     }
     return found->get<std::string>();
   }
@@ -972,14 +963,26 @@ private:
         {"IgnoreLighting", Bool(glowing)},
         {"TextIgnoreLegacyBugResolved", Bool(true)},
     });
-    Attach(pos, *tag);
+    Attach(c, pos, *tag);
     return tag;
   }
 
-  static void Attach(Pos3i const &pos, mcfile::nbt::CompoundTag &tag) {
-    tag.set("x", props::Int(pos.fX));
-    tag.set("y", props::Int(pos.fY));
-    tag.set("z", props::Int(pos.fZ));
+  static void Attach(std::shared_ptr<mcfile::nbt::CompoundTag> const &c, Pos3i const &pos, mcfile::nbt::CompoundTag &tag) {
+    using namespace props;
+
+    tag.set("x", Int(pos.fX));
+    tag.set("y", Int(pos.fY));
+    tag.set("z", Int(pos.fZ));
+
+    if (c) {
+      auto customName = GetJson(*c, "CustomName");
+      if (customName) {
+        auto text = GetAsString(*customName, "text");
+        if (text) {
+          tag.set("CustomName", String(*text));
+        }
+      }
+    }
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> GetItems(std::shared_ptr<CompoundTag> const &c, std::string const &name, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
@@ -1051,7 +1054,7 @@ private:
       tag->set("pairx", Int(pair->first));
       tag->set("pairz", Int(pair->second));
     }
-    Attach(pos, *tag);
+    Attach(comp, pos, *tag);
     return tag;
   }
 };
