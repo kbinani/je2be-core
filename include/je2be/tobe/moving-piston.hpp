@@ -25,55 +25,57 @@ public:
 
     unordered_map<Pos3i, shared_ptr<CompoundTag>, Pos3iHasher> tileEntityReplacement;
 
-    for (int by = chunk->minBlockY(); by <= chunk->maxBlockY(); by++) {
-      for (int bx = chunk->minBlockX(); bx <= chunk->maxBlockX(); bx++) {
-        for (int bz = chunk->minBlockZ(); bz <= chunk->maxBlockZ(); bz++) {
-          Pos3i pos(bx, by, bz);
-          auto block = loader.blockAt(pos);
-          if (!block) {
-            continue;
-          }
-          if (block->fName != "minecraft:sticky_piston" && block->fName != "minecraft:piston") {
-            continue;
-          }
-          if (loader.tileEntityAt(pos)) {
-            continue;
-          }
-          int facing = BlockData::GetFacingDirectionFromFacingA(*block);
-          Pos3i pistonHeadPos = pos + VectorOfFacing(facing);
-          auto pistonHead = PistonTileEntity::From(loader.tileEntityAt(pistonHeadPos), pistonHeadPos);
-          if (!pistonHead) {
-            continue;
-          }
-          if (!pistonHead->fSource || !pistonHead->fExtending || pistonHead->fFacing != facing) {
-            continue;
-          }
+    if (ChunkHasPiston(*chunk)) {
+      for (int by = chunk->minBlockY(); by <= chunk->maxBlockY(); by++) {
+        for (int bx = chunk->minBlockX(); bx <= chunk->maxBlockX(); bx++) {
+          for (int bz = chunk->minBlockZ(); bz <= chunk->maxBlockZ(); bz++) {
+            Pos3i pos(bx, by, bz);
+            auto block = loader.blockAt(pos);
+            if (!block) {
+              continue;
+            }
+            if (block->fName != "minecraft:sticky_piston" && block->fName != "minecraft:piston") {
+              continue;
+            }
+            if (loader.tileEntityAt(pos)) {
+              continue;
+            }
+            int facing = BlockData::GetFacingDirectionFromFacingA(*block);
+            Pos3i pistonHeadPos = pos + VectorOfFacing(facing);
+            auto pistonHead = PistonTileEntity::From(loader.tileEntityAt(pistonHeadPos), pistonHeadPos);
+            if (!pistonHead) {
+              continue;
+            }
+            if (!pistonHead->fSource || !pistonHead->fExtending || pistonHead->fFacing != facing) {
+              continue;
+            }
 
-          unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
-          LookupAttachedBlocks(loader, pistonHeadPos, true, facing, attachedBlocks);
+            unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
+            LookupAttachedBlocks(loader, pistonHeadPos, true, facing, attachedBlocks);
 
-          auto pistonArm = make_shared<CompoundTag>();
-          auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
-          for (auto attachedBlock : attachedBlocks) {
-            Pos3i actual = attachedBlock - VectorOfFacing(facing);
-            attachedBlocksTag->push_back(Int(actual.fX));
-            attachedBlocksTag->push_back(Int(actual.fY));
-            attachedBlocksTag->push_back(Int(actual.fZ));
+            auto pistonArm = make_shared<CompoundTag>();
+            auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
+            for (auto attachedBlock : attachedBlocks) {
+              Pos3i actual = attachedBlock - VectorOfFacing(facing);
+              attachedBlocksTag->push_back(Int(actual.fX));
+              attachedBlocksTag->push_back(Int(actual.fY));
+              attachedBlocksTag->push_back(Int(actual.fZ));
+            }
+            pistonArm->set("AttachedBlocks", attachedBlocksTag);
+            pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
+            pistonArm->set("LastProgress", Float(0));
+            pistonArm->set("NewState", Byte(1));
+            pistonArm->set("Progress", Float(0.5));
+            pistonArm->set("State", Byte(1));
+            pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
+            pistonArm->set("id", String("j2b:PistonArm"));
+            pistonArm->set("isMovable", Bool(false));
+            pistonArm->set("x", Int(pos.fX));
+            pistonArm->set("y", Int(pos.fY));
+            pistonArm->set("z", Int(pos.fZ));
+
+            tileEntityReplacement[pos] = pistonArm;
           }
-          pistonArm->set("AttachedBlocks", attachedBlocksTag);
-          pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
-          pistonArm->set("LastProgress", Float(0));
-          pistonArm->set("NewState", Byte(1));
-          pistonArm->set("Progress", Float(0.5));
-          pistonArm->set("State", Byte(1));
-          pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
-          pistonArm->set("id", String("j2b:PistonArm"));
-          pistonArm->set("isMovable", Bool(false));
-          pistonArm->set("x", Int(pos.fX));
-          pistonArm->set("y", Int(pos.fY));
-          pistonArm->set("z", Int(pos.fZ));
-
-          tileEntityReplacement[pos] = pistonArm;
         }
       }
     }
@@ -85,76 +87,77 @@ public:
       if (!id) {
         continue;
       }
-      if (*id == "minecraft:piston") {
-        auto extending = item->boolean("extending");
-        if (!extending) {
-          continue;
-        }
-        auto source = item->boolean("source");
-        if (!source) {
-          continue;
-        }
-        auto facing = item->int32("facing");
-        if (!facing) {
-          continue;
-        }
-        if (*source) {
-          if (*extending) {
-            // extending = 1, source = 1
-            auto block = chunk->blockAt(pos);
-            if (!block) {
-              continue;
-            }
-
-            map<string, string> props;
-            props["facing_direction"] = to_string(*facing);
-            string name = block->fName == "minecraft:sticky_piston" ? "j2b:stickyPistonArmCollision" : "j2b:pistonArmCollision";
-            auto newBlock = make_shared<Block>(name, props);
-            chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
-
-            tileEntityReplacement[pos] = nullptr;
-          } else {
-            // extending = 0, source = 1
-            auto block = chunk->blockAt(pos);
-            if (!block) {
-              continue;
-            }
-
-            auto sticky = block->property("type", "normal") == "sticky";
-            string name = sticky ? "minecraft:sticky_piston" : "minecraft:piston";
-            auto newBlock = make_shared<Block>(name, block->fProperties);
-            chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
-
-            unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
-            LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
-
-            auto pistonArm = make_shared<CompoundTag>();
-            auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
-            for (auto attachedBlock : attachedBlocks) {
-              attachedBlocksTag->push_back(Int(attachedBlock.fX));
-              attachedBlocksTag->push_back(Int(attachedBlock.fY));
-              attachedBlocksTag->push_back(Int(attachedBlock.fZ));
-            }
-            pistonArm->set("AttachedBlocks", attachedBlocksTag);
-            pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
-            pistonArm->set("LastProgress", Float(0.5));
-            pistonArm->set("NewState", Byte(3));
-            pistonArm->set("Progress", Float(0));
-            pistonArm->set("State", Byte(3));
-            pistonArm->set("Sticky", Bool(sticky));
-            pistonArm->set("id", String("j2b:PistonArm"));
-            pistonArm->set("isMovable", Bool(false));
-            pistonArm->set("x", Int(pos.fX));
-            pistonArm->set("y", Int(pos.fY));
-            pistonArm->set("z", Int(pos.fZ));
-
-            tileEntityReplacement[pos] = pistonArm;
+      if (id != "minecraft:piston") {
+        continue;
+      }
+      auto extending = item->boolean("extending");
+      if (!extending) {
+        continue;
+      }
+      auto source = item->boolean("source");
+      if (!source) {
+        continue;
+      }
+      auto facing = item->int32("facing");
+      if (!facing) {
+        continue;
+      }
+      if (*source) {
+        if (*extending) {
+          // extending = 1, source = 1
+          auto block = chunk->blockAt(pos);
+          if (!block) {
+            continue;
           }
+
+          map<string, string> props;
+          props["facing_direction"] = to_string(*facing);
+          string name = block->fName == "minecraft:sticky_piston" ? "j2b:stickyPistonArmCollision" : "j2b:pistonArmCollision";
+          auto newBlock = make_shared<Block>(name, props);
+          chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
+
+          tileEntityReplacement[pos] = nullptr;
         } else {
-          // extending = *, source = 0
-          auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader);
-          tileEntityReplacement[pos] = e;
+          // extending = 0, source = 1
+          auto block = chunk->blockAt(pos);
+          if (!block) {
+            continue;
+          }
+
+          auto sticky = block->property("type", "normal") == "sticky";
+          string name = sticky ? "minecraft:sticky_piston" : "minecraft:piston";
+          auto newBlock = make_shared<Block>(name, block->fProperties);
+          chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
+
+          unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
+          LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
+
+          auto pistonArm = make_shared<CompoundTag>();
+          auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
+          for (auto attachedBlock : attachedBlocks) {
+            attachedBlocksTag->push_back(Int(attachedBlock.fX));
+            attachedBlocksTag->push_back(Int(attachedBlock.fY));
+            attachedBlocksTag->push_back(Int(attachedBlock.fZ));
+          }
+          pistonArm->set("AttachedBlocks", attachedBlocksTag);
+          pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
+          pistonArm->set("LastProgress", Float(0.5));
+          pistonArm->set("NewState", Byte(3));
+          pistonArm->set("Progress", Float(0));
+          pistonArm->set("State", Byte(3));
+          pistonArm->set("Sticky", Bool(sticky));
+          pistonArm->set("id", String("j2b:PistonArm"));
+          pistonArm->set("isMovable", Bool(false));
+          pistonArm->set("x", Int(pos.fX));
+          pistonArm->set("y", Int(pos.fY));
+          pistonArm->set("z", Int(pos.fZ));
+
+          tileEntityReplacement[pos] = pistonArm;
         }
+      } else {
+        // extending = *, source = 0
+        auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader);
+        tileEntityReplacement[pos] = e;
       }
     }
 
@@ -477,6 +480,26 @@ private:
       // 0, down
       return Pos3i(0, -1, 0);
     }
+  }
+
+  static bool ChunkHasPiston(mcfile::je::Chunk const &chunk) {
+    for (auto const &section : chunk.fSections) {
+      if (!section) {
+        continue;
+      }
+      bool has = false;
+      section->eachBlockPalette([&has](mcfile::je::Block const &b) {
+        if (b.fName == "minecraft:sticky_piston" || b.fName == "minecraft:piston") {
+          has = true;
+          return false;
+        }
+        return true;
+      });
+      if (has) {
+        return true;
+      }
+    }
+    return false;
   }
 };
 
