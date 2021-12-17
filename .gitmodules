@@ -4,9 +4,6 @@
 [submodule "ext/leveldb"]
 	path = deps/leveldb
 	url = https://github.com/kbinani/leveldb-stdfs.git
-[submodule "ext/xxHash"]
-	path = deps/xxHash
-	url = https://github.com/Cyan4973/xxHash.git
 [submodule "ext/json"]
 	path = deps/json
 	url = https://github.com/nlohmann/json.git
@@ -16,3 +13,6 @@
 [submodule "deps/hwm.task"]
 	path = deps/hwm.task
 	url = https://github.com/hotwatermorning/hwm.task.git
+[submodule "deps/xxhash"]
+	path = deps/xxhash
+	url = https://github.com/stbrumme/xxhash.git

@@ -168,12 +168,10 @@ else()
   list(APPEND je2be_link_libraries tbb)
 endif()
 
-add_subdirectory(deps/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
-
 set(LEVELDB_ZSTD OFF)
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
-list(APPEND je2be_link_libraries mcfile xxhash leveldb)
+list(APPEND je2be_link_libraries mcfile leveldb)
 
 
 add_library(je2be INTERFACE ${je2be_files})
@@ -181,7 +179,7 @@ target_include_directories(je2be INTERFACE
   ./include
   deps/leveldb
   deps/leveldb/include
-  deps/xxHash
+  deps/xxhash
   deps/hwm.task
   deps/json/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})

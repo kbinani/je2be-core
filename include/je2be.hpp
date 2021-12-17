@@ -13,7 +13,8 @@
 #include <db/dbformat.h>
 #include <db/version_edit.h>
 #include <db/log_writer.h>
-#include <xxhash.h>
+#include <xxhash32.h>
+#include <xxhash64.h>
 #include <hwm/task/task_queue.hpp>
 #include <nlohmann/json.hpp>
 

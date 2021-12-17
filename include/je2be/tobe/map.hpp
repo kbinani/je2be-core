@@ -7,12 +7,8 @@ class Map {
 
 public:
   static int64_t UUID(int32_t javaMapId, uint8_t scale) {
-    XXH32_state_t *state = XXH32_createState();
-    XXH32_hash_t seed = 0;
-    XXH32_reset(state, seed);
-    XXH32_update(state, &javaMapId, sizeof(javaMapId));
-    XXH32_hash_t hash = XXH32_digest(state);
-    XXH32_freeState(state);
+    uint32_t const seed = 0;
+    uint32_t hash = XXHash32::hash(&javaMapId, sizeof(javaMapId), 0);
     uint64_t s = (uint64_t)hash * 10 + (4 - scale);
     return *(int64_t *)&s;
   }
