@@ -384,9 +384,9 @@ public:
       fight->set("PreviouslyKilled", Bool(previouslyKilled->fValue != 0));
     }
 
-    auto uuid = GetUUID(*dragonFight, {.fIntArray = "Dragon"});
+    auto uuid = GetUuid(*dragonFight, {.fIntArray = "Dragon"});
     if (uuid) {
-      fight->set("DragonUUID", Long(*uuid));
+      fight->set("DragonUUID", Long(UuidRegistrar::ToId(*uuid)));
       fight->set("DragonSpawned", Bool(true));
     } else {
       fight->set("DragonUUID", Long(-1));

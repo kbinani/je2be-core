@@ -25,7 +25,7 @@ struct UUIDKeyName {
   std::optional<std::string> fHexString = std::nullopt;
 };
 
-inline std::optional<int64_t> GetUUIDWithFormatLeastAndMost(mcfile::nbt::CompoundTag const &tag, std::string const &namePrefix) {
+inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(mcfile::nbt::CompoundTag const &tag, std::string const &namePrefix) {
   using namespace std;
   using namespace mcfile::nbt;
   auto least = tag.int64(namePrefix + "Least");
@@ -38,15 +38,15 @@ inline std::optional<int64_t> GetUUIDWithFormatLeastAndMost(mcfile::nbt::Compoun
   int64_t l = *least;
   int64_t m = *most;
 
-  XXHash h;
-  h.update((int32_t *)&m + 1, sizeof(int32_t));
-  h.update((int32_t *)&m, sizeof(int32_t));
-  h.update((int32_t *)&l + 1, sizeof(int32_t));
-  h.update((int32_t *)&l, sizeof(int32_t));
-  return h.digest();
+  Uuid uuid;
+  uuid.f1 = *(uint32_t *)&m;
+  uuid.f2 = *((uint32_t *)&m + 1);
+  uuid.f3 = *(uint32_t *)&l;
+  uuid.f4 = *((uint32_t *)&l + 1);
+  return uuid;
 }
 
-inline std::optional<int64_t> GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
+inline std::optional<Uuid> GetUuidWithFormatIntArray(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
 
@@ -69,15 +69,15 @@ inline std::optional<int64_t> GetUUIDWithFormatIntArray(mcfile::nbt::CompoundTag
   int32_t c = value[2];
   int32_t d = value[3];
 
-  XXHash h;
-  h.update(&a, sizeof(a));
-  h.update(&b, sizeof(b));
-  h.update(&c, sizeof(c));
-  h.update(&d, sizeof(d));
-  return h.digest();
+  Uuid uuid;
+  uuid.f1 = *(uint32_t *)&a;
+  uuid.f2 = *(uint32_t *)&b;
+  uuid.f3 = *(uint32_t *)&c;
+  uuid.f4 = *(uint32_t *)&d;
+  return uuid;
 }
 
-inline std::optional<int64_t> GetUUIDWithFormatHexString(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
+inline std::optional<Uuid> GetUuidWithFormatHexString(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using namespace mcfile::nbt;
 
@@ -104,34 +104,29 @@ inline std::optional<int64_t> GetUUIDWithFormatHexString(mcfile::nbt::CompoundTa
     return nullopt;
   }
 
-  uint32_t a = (uint32_t)*a0;
-  uint32_t b = (uint32_t)*b0;
-  uint32_t c = (uint32_t)*c0;
-  uint32_t d = (uint32_t)*d0;
-
-  XXHash h;
-  h.update(&a, sizeof(a));
-  h.update(&b, sizeof(b));
-  h.update(&c, sizeof(c));
-  h.update(&d, sizeof(d));
-  return h.digest();
+  Uuid uuid;
+  uuid.f1 = (uint32_t)*a0;
+  uuid.f2 = (uint32_t)*b0;
+  uuid.f3 = (uint32_t)*c0;
+  uuid.f4 = (uint32_t)*d0;
+  return uuid;
 }
 
-inline std::optional<int64_t> GetUUID(mcfile::nbt::CompoundTag const &tag, UUIDKeyName keyName) {
+inline std::optional<Uuid> GetUuid(mcfile::nbt::CompoundTag const &tag, UUIDKeyName keyName) {
   if (keyName.fIntArray) {
-    auto ret = GetUUIDWithFormatIntArray(tag, *keyName.fIntArray);
+    auto ret = GetUuidWithFormatIntArray(tag, *keyName.fIntArray);
     if (ret) {
       return ret;
     }
   }
   if (keyName.fLeastAndMostPrefix) {
-    auto ret = GetUUIDWithFormatLeastAndMost(tag, *keyName.fIntArray);
+    auto ret = GetUuidWithFormatLeastAndMost(tag, *keyName.fIntArray);
     if (ret) {
       return ret;
     }
   }
   if (keyName.fHexString) {
-    auto ret = GetUUIDWithFormatHexString(tag, *keyName.fHexString);
+    auto ret = GetUuidWithFormatHexString(tag, *keyName.fHexString);
     if (ret) {
       return ret;
     }

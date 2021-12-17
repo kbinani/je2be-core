@@ -40,11 +40,13 @@
 #include <je2be/color/lab.hpp>
 #include <je2be/size.hpp>
 #include <je2be/xxhash.hpp>
+#include <je2be/uuid.hpp>
 #include <je2be/props.hpp>
 #include <je2be/progress.hpp>
 #include <je2be/version.hpp>
 #include <je2be/future-support.hpp>
 
+#include <je2be/tobe/uuid-registrar.hpp>
 #include <je2be/tobe/versions.hpp>
 #include <je2be/tobe/sign.hpp>
 #include <je2be/tobe/block-data.hpp>

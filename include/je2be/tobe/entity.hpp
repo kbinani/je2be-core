@@ -580,7 +580,7 @@ private:
     using namespace props;
 
     auto playerCreated = tag.boolean("PlayerCreated", false);
-    auto angryAt = GetUUID(tag, {.fIntArray = "AngryAt"});
+    auto angryAt = GetUuid(tag, {.fIntArray = "AngryAt"});
     auto angerTime = tag.int32("AngerTime", 0);
 
     if (playerCreated) {
@@ -590,7 +590,8 @@ private:
     }
     c->set("IsAngry", Bool(angerTime > 0));
     if (angryAt) {
-      c->set("TargetID", Long(*angryAt));
+      int64_t targetId = UuidRegistrar::ToId(*angryAt);
+      c->set("TargetID", Long(targetId));
     }
     return c;
   }
@@ -866,10 +867,10 @@ private:
     auto ret = e->toCompoundTag();
     ret->set("Item", beItem);
 
-    auto thrower = GetUUID(tag, {.fIntArray = "Thrower"});
+    auto thrower = GetUuid(tag, {.fIntArray = "Thrower"});
     int64_t owner = -1;
     if (thrower) {
-      owner = *thrower;
+      owner = UuidRegistrar::ToId(*thrower);
     }
     ret->set("OwnerID", Long(owner));
     ret->set("OwnerNew", Long(owner));
@@ -1193,7 +1194,7 @@ private:
 
   static EntityData CollarColorable(EntityData const &c, CompoundTag const &tag, Context &) {
     auto collarColor = tag.byte("CollarColor");
-    if (collarColor && GetOwnerUUID(tag)) {
+    if (collarColor && GetOwnerUuid(tag)) {
       c->set("Color", props::Byte(*collarColor));
     }
     return c;
@@ -1390,10 +1391,9 @@ private:
       auto x = leash->int32("X");
       auto y = leash->int32("Y");
       auto z = leash->int32("Z");
-      auto uuid = GetEntityUUID(tag);
+      auto uuid = GetEntityUuid(tag);
       if (x && y && z && uuid) {
-        int64_t targetUUID = *uuid;
-        int64_t leasherId = XXHash::Digest(&targetUUID, sizeof(targetUUID));
+        int64_t leasherId = UuidRegistrar::LeasherIdFor(*uuid);
 
         Entity e(leasherId);
         e.fPos = Vec(*x + 0.5f, *y + 0.25f, *z + 0.5f);
@@ -1416,7 +1416,13 @@ private:
     return c;
   }
 
-  static std::optional<int64_t> GetOwnerUUID(CompoundTag const &tag) { return props::GetUUID(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"}); }
+  static std::optional<int64_t> GetOwnerUuid(CompoundTag const &tag) {
+    auto uuid = props::GetUuid(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"});
+    if (!uuid) {
+      return std::nullopt;
+    }
+    return UuidRegistrar::ToId(*uuid);
+  }
 
   static EntityData Cat(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace mcfile::nbt;
@@ -1524,7 +1530,7 @@ private:
 
   static Behavior TameableA(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
-      auto owner = GetOwnerUUID(tag);
+      auto owner = GetOwnerUuid(tag);
       if (owner) {
         c->set("OwnerNew", props::Long(*owner));
         AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
@@ -1539,7 +1545,7 @@ private:
 
   static Behavior TameableB(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &) {
-      auto owner = GetOwnerUUID(tag);
+      auto owner = GetOwnerUuid(tag);
       if (owner) {
         c->set("OwnerNew", props::Long(*owner));
         AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
@@ -1727,7 +1733,13 @@ private:
     return ret;
   }
 
-  static std::optional<int64_t> GetEntityUUID(CompoundTag const &tag) { return props::GetUUID(tag, {.fLeastAndMostPrefix = "UUID", .fIntArray = "UUID"}); }
+  static std::optional<int64_t> GetEntityUuid(CompoundTag const &tag) {
+    auto uuid = props::GetUuid(tag, {.fLeastAndMostPrefix = "UUID", .fIntArray = "UUID"});
+    if (!uuid) {
+      return std::nullopt;
+    }
+    return UuidRegistrar::ToId(*uuid);
+  }
 
   static std::optional<Entity> BaseProperties(CompoundTag const &tag) {
     using namespace props;
@@ -1742,7 +1754,7 @@ private:
     auto motion = GetVec(tag, "Motion");
     auto pos = GetVec(tag, "Pos");
     auto rotation = GetRotation(tag, "Rotation");
-    auto uuid = GetEntityUUID(tag);
+    auto uuid = GetEntityUuid(tag);
     auto id = tag.string("id");
     auto customName = GetJson(tag, "CustomName");
 

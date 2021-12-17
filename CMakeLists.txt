@@ -63,8 +63,10 @@ set(je2be_files
   include/je2be/tobe/structure/structures.hpp
   include/je2be/tobe/tile-entity.hpp
   include/je2be/tobe/tropical-fish.hpp
+  include/je2be/tobe/uuid-registrar.hpp
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
+  include/je2be/uuid.hpp
   include/je2be/vec.hpp
   include/je2be/version.hpp
   include/je2be/volume.hpp

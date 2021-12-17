@@ -12,7 +12,8 @@ public:
   }
 
   int64_t digest() const {
-    return fHasher.hash();
+    uint64_t h = fHasher.hash();
+    return *(int64_t *)&h;
   }
 
   static int64_t Digest(void const *p, size_t size) {
