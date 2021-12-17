@@ -134,7 +134,7 @@ private:
       double dr = Lab::Difference(rhs.fColor, ref);
       return dl < dr;
     });
-    auto ret = copy[0];
+    auto const &ret = copy[0];
     return ret.fCode;
   }
 
