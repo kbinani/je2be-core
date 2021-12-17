@@ -146,9 +146,9 @@ private:
 
       // Lookup most used biome in lowest chunk section
       unordered_map<BiomeId, int> used;
-      for (int ly = 0; ly < 16; ly++) {
-        for (int lz = 0; lz < 16; lz++) {
-          for (int lx = 0; lx < 16; lx++) {
+      for (int ly = 0; ly < 16; ly += 4) {
+        for (int lz = 0; lz < 16; lz += 4) {
+          for (int lx = 0; lx < 16; lx += 4) {
             auto biome = chunk.biomeAt(x0 + lx, y0 + ly, z0 + lz);
             used[biome] += 1;
           }
