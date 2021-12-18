@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class ChunkData {
 public:
-  ChunkData(int32_t chunkX, int32_t chunkZ, mcfile::Dimension dim) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim) {}
+  ChunkData(int32_t chunkX, int32_t chunkZ, mcfile::Dimension dim, ChunkConversionMode mode) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim), fMode(mode) {}
 
   [[nodiscard]] bool put(DbInterface &db) {
     auto status = putChunkSections(db);
@@ -51,12 +51,21 @@ private:
   }
 
   void putData2D(DbInterface &db) const {
-    auto data2DKey = mcfile::be::DbKey::Data2D(fChunkX, fChunkZ, fDimension);
+    std::string key;
+    switch (fMode) {
+    case ChunkConversionMode::Legacy:
+      key = mcfile::be::DbKey::Data2DLegacy(fChunkX, fChunkZ, fDimension);
+      break;
+    case ChunkConversionMode::CavesAndCliffs2:
+    default:
+      key = mcfile::be::DbKey::Data2D(fChunkX, fChunkZ, fDimension);
+      break;
+    }
     if (fData2D.empty()) {
-      db.del(data2DKey);
+      db.del(key);
     } else {
       leveldb::Slice data2D((char *)fData2D.data(), fData2D.size());
-      db.put(data2DKey, data2D);
+      db.put(key, data2D);
     }
   }
 
@@ -92,7 +101,18 @@ private:
 
   void putVersion(DbInterface &db) const {
     auto const &versionKey = mcfile::be::DbKey::Version(fChunkX, fChunkZ, fDimension);
-    leveldb::Slice version(&kSubChunkVersion, 1);
+    char vernum;
+    switch (fMode) {
+    case ChunkConversionMode::Legacy:
+      vernum = 16;
+      break;
+    case ChunkConversionMode::CavesAndCliffs2:
+    default:
+      vernum = kSubChunkVersion;
+      break;
+    }
+
+    leveldb::Slice version(&vernum, sizeof(vernum));
     db.put(versionKey, version);
 
     db.del(mcfile::be::DbKey::VersionLegacy(fChunkX, fChunkZ, fDimension));
@@ -112,6 +132,7 @@ public:
   int32_t const fChunkX;
   int32_t const fChunkZ;
   mcfile::Dimension const fDimension;
+  ChunkConversionMode const fMode;
 
   std::vector<uint8_t> fData2D;
   std::map<int8_t, std::vector<uint8_t>> fSubChunks;

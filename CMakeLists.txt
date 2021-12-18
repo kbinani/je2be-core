@@ -29,8 +29,10 @@ set(je2be_files
   include/je2be/size.hpp
   include/je2be/strings.hpp
   include/je2be/tobe/axolotl.hpp
+  include/je2be/tobe/biome-map-legacy.hpp
   include/je2be/tobe/block-data.hpp
   include/je2be/tobe/block-palette.hpp
+  include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
   include/je2be/tobe/converter.hpp

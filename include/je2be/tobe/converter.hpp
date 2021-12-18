@@ -227,6 +227,14 @@ private:
     }
   }
 
+  static ChunkConversionMode ConversionMode(mcfile::je::Chunk const &chunk) {
+    if (chunk.minBlockY() < 0 || 256 < chunk.maxBlockY()) {
+      return ChunkConversionMode::CavesAndCliffs2;
+    } else {
+      return ChunkConversionMode::Legacy;
+    }
+  }
+
   static std::shared_ptr<DimensionDataFragment> PutChunk(mcfile::je::Chunk &chunk, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
@@ -234,9 +242,10 @@ private:
     using namespace mcfile::nbt;
 
     auto ret = make_shared<DimensionDataFragment>(dim);
+    ChunkConversionMode mode = ConversionMode(chunk);
 
-    ChunkDataPackage cdp(chunk.chunkY());
-    ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim);
+    ChunkDataPackage cdp(mode);
+    ChunkData cd(chunk.fChunkX, chunk.fChunkZ, dim, mode);
 
     for (auto const &section : chunk.fSections) {
       if (!section) {

@@ -4,14 +4,14 @@ namespace je2be::tobe {
 
 class ChunkDataPackage {
 public:
-  explicit ChunkDataPackage(int minChunkY) {
-    fHeightMap = std::make_shared<HeightMap>(minChunkY);
+  explicit ChunkDataPackage(ChunkConversionMode mode)
+      : fMode(mode),
+        fHeightMap(std::make_shared<HeightMap>(mode == ChunkConversionMode::CavesAndCliffs2 ? -4 : 0)) {
   }
 
   void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
     buildEntities(chunk, mapInfo, ddf);
-    buildHeightMap(ddf.fDim);
-    buildBiomeMap(chunk, ddf.fDim);
+    buildData2D(chunk, ddf.fDim);
     buildTileEntities(chunk, mapInfo, ddf);
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
@@ -118,28 +118,35 @@ private:
     }
   }
 
-  void buildHeightMap(mcfile::Dimension dim) {
-    int minChunkY = 0;
-    if (dim == mcfile::Dimension::Overworld) {
-      minChunkY = -4;
+  void buildData2D(mcfile::je::Chunk const &chunk, mcfile::Dimension dim) {
+    switch (fMode) {
+    case ChunkConversionMode::Legacy:
+      buildData2DLegacy(chunk, dim);
+      break;
+    case ChunkConversionMode::CavesAndCliffs2:
+    default:
+      buildData2DCavesAndCliffs2(chunk, dim);
+      break;
     }
-    fHeightMap->offset(minChunkY);
   }
 
-  void buildBiomeMap(mcfile::je::Chunk const &chunk, mcfile::Dimension dim) {
+  void buildData2DCavesAndCliffs2(mcfile::je::Chunk const &chunk, mcfile::Dimension dim) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::be;
     using namespace mcfile::biomes;
 
-    int const x0 = chunk.minBlockX();
-    int const y0 = chunk.minBlockY();
-    int const z0 = chunk.minBlockZ();
     int minChunkY = 0;
-    if (dim == Dimension::Overworld) {
+    if (dim == mcfile::Dimension::Overworld) {
       minChunkY = -4;
     }
     int maxChunkY = chunk.chunkY() + chunk.fSections.size() - 1;
+
+    fHeightMap->offset(minChunkY);
+
+    int const x0 = chunk.minBlockX();
+    int const y0 = chunk.minBlockY();
+    int const z0 = chunk.minBlockZ();
     fBiomeMap = make_shared<BiomeMap>(minChunkY, maxChunkY);
     if (minChunkY < chunk.chunkY()) {
       // Extend BiomeMap below chunk.chunkY()
@@ -199,7 +206,31 @@ private:
     }
   }
 
+  void buildData2DLegacy(mcfile::je::Chunk const &chunk, mcfile::Dimension dim) {
+    int const y = 0;
+    int const x0 = chunk.minBlockX();
+    int const z0 = chunk.minBlockZ();
+    BiomeMapLegacy m;
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        auto biome = chunk.biomeAt(x + x0, z + z0);
+        m.set(x, z, biome);
+      }
+    }
+    fBiomeMapLegacy = m;
+  }
+
   [[nodiscard]] bool serializeData2D(ChunkData &cd) {
+    switch (fMode) {
+    case ChunkConversionMode::Legacy:
+      return serializeData2DLegacy(cd);
+    case ChunkConversionMode::CavesAndCliffs2:
+    default:
+      return serializeData2DCavesAndCliffs2(cd);
+    }
+  }
+
+  [[nodiscard]] bool serializeData2DCavesAndCliffs2(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
     if (!fBiomeMap) {
@@ -220,6 +251,24 @@ private:
     }
     string trailing(16, 0xff);
     if (!w.write(trailing.data(), trailing.size())) {
+      return false;
+    }
+    s->drain(cd.fData2D);
+    return true;
+  }
+
+  [[nodiscard]] bool serializeData2DLegacy(ChunkData &cd) {
+    using namespace std;
+    using namespace mcfile::stream;
+    if (!fBiomeMapLegacy) {
+      return true;
+    }
+    auto s = make_shared<ByteStream>();
+    OutputStreamWriter w(s, {.fLittleEndian = true});
+    if (!fHeightMap->write(w)) {
+      return false;
+    }
+    if (!fBiomeMapLegacy->write(w)) {
       return false;
     }
     s->drain(cd.fData2D);
@@ -292,8 +341,10 @@ private:
   }
 
 private:
+  ChunkConversionMode fMode;
   std::shared_ptr<HeightMap> fHeightMap;
   std::shared_ptr<mcfile::be::BiomeMap> fBiomeMap;
+  std::optional<BiomeMapLegacy> fBiomeMapLegacy;
   std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;

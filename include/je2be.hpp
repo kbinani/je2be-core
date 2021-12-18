@@ -50,6 +50,7 @@
 #include <je2be/tobe/versions.hpp>
 #include <je2be/tobe/sign.hpp>
 #include <je2be/tobe/block-data.hpp>
+#include <je2be/tobe/biome-map-legacy.hpp>
 #include <je2be/tobe/db/db-interface.hpp>
 #include <je2be/tobe/db/db.hpp>
 #include <je2be/tobe/db/null-db.hpp>
@@ -79,6 +80,7 @@
 #include <je2be/tobe/item.hpp>
 #include <je2be/tobe/entity.hpp>
 #include <je2be/tobe/tile-entity.hpp>
+#include <je2be/tobe/chunk-conversion-mode.hpp>
 #include <je2be/tobe/chunk-data.hpp>
 #include <je2be/tobe/chunk-data-package.hpp>
 #include <je2be/tobe/block-palette.hpp>
