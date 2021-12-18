@@ -53,6 +53,7 @@ set(je2be_files
   include/je2be/tobe/map.hpp
   include/je2be/tobe/moving-piston.hpp
   include/je2be/tobe/options.hpp
+  include/je2be/tobe/player-abilities.hpp
   include/je2be/tobe/portal/oriented-portal-blocks.hpp
   include/je2be/tobe/portal/portal-blocks.hpp
   include/je2be/tobe/portal/portal.hpp

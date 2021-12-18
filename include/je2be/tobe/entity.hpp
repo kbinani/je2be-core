@@ -375,6 +375,12 @@ public:
       entity->set("EnderChestInventory", enderChestInventory);
     }
 
+    auto abilities = tag.compoundTag("abilities");
+    if (abilities) {
+      auto converted = PlayerAbilities::Import(*abilities);
+      entity->set("abilities", converted.toCompoundTag());
+    }
+
     return entity;
   }
 

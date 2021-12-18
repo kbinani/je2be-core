@@ -55,6 +55,7 @@
 #include <je2be/tobe/db/db.hpp>
 #include <je2be/tobe/db/null-db.hpp>
 #include <je2be/tobe/db/raw-db.hpp>
+#include <je2be/tobe/player-abilities.hpp>
 #include <je2be/tobe/level-data.hpp>
 #include <je2be/tobe/height-map.hpp>
 #include <je2be/tobe/options.hpp>
