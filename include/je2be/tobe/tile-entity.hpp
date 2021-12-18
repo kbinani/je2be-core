@@ -304,6 +304,13 @@ private:
         {"conditionMet", Bool(conditionMet)},
     });
     Attach(c, pos, *tag);
+    auto customName = GetJson(*c, "CustomName");
+    if (customName) {
+      auto text = GetAsString(*customName, "text");
+      if (text == "@") {
+        tag->erase("CustomName");
+      }
+    }
     return tag;
   }
 
