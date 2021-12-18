@@ -257,8 +257,43 @@ private:
     E("moving_piston", MovingPiston);
     E("sticky_piston", PistonArm(true));
     E("piston", PistonArm(false));
+
+    E("end_gateway", EndGateway);
 #undef E
     return table;
+  }
+
+  static TileEntityData EndGateway(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    using namespace props;
+    if (!c) {
+      return nullptr;
+    }
+    auto tag = make_shared<CompoundTag>();
+    tag->insert({
+        {"id", String("EndGateway")},
+        {"isMovable", Bool(true)},
+    });
+
+    auto age = c->int64("Age", 0);
+    tag->set("Age", Int(age));
+
+    auto exitPortal = c->compoundTag("ExitPortal");
+    if (exitPortal) {
+      auto x = exitPortal->int32("X");
+      auto y = exitPortal->int32("Y");
+      auto z = exitPortal->int32("Z");
+      if (x && y && z) {
+        auto ep = make_shared<ListTag>(Tag::Type::Int);
+        ep->push_back(Int(*x));
+        ep->push_back(Int(*y));
+        ep->push_back(Int(*z));
+        tag->set("ExitPortal", ep);
+      }
+    }
+    Attach(c, pos, *tag);
+    return tag;
   }
 
   static TileEntityData MovingPiston(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
