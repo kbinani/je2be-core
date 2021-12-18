@@ -218,65 +218,6 @@ static bool DumpLevelDat(fs::path const &dbDir) {
   return true;
 }
 
-static bool PrintChunkKeyDescription(uint8_t tag, int32_t cx, int32_t cz, string dimension) {
-  switch (tag) {
-  case 0x2b:
-    cout << "Data2D(0x2b) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x2c:
-    cout << "ChunkVersion(0x2c) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x2d:
-    cout << "Data2DLegacy(0x2d) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x31:
-    cout << "BlockEntity(0x31) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x32:
-    cout << "Entity(0x32) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x33:
-    cout << "PendingTicks(0x33) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x35:
-    cout << "BiomeState(0x35) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x36:
-    cout << "FinalizedState(0x36) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x39:
-    cout << "StructureBounds(0x39) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x3a:
-    cout << "RandomTicks(0x3a) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x3b:
-    cout << "ChecksumsLegacy(0x3b) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x3d:
-    cout << "Tag3d(0x3d) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  case 0x76:
-    cout << "ChunkVersionLegacy(0x76) [" << cx << ", " << cz << "] " << dimension;
-    break;
-  default:
-    return false;
-  }
-  return true;
-}
-
-static string StringFromDimension(int32_t d) {
-  if (d == 1) {
-    return "end";
-  } else if (d == -1) {
-    return "nether(legacy)";
-  } else if (d == 2) {
-    return "nether";
-  } else {
-    return "(unknown: " + to_string(d) + ")";
-  }
-}
-
 static void DumpAllKeys(fs::path const &dbDir) {
   Options o;
   o.compression = kZlibRawCompression;
@@ -287,74 +228,24 @@ static void DumpAllKeys(fs::path const &dbDir) {
   }
 
   ReadOptions ro;
-  Iterator *itr = db->NewIterator(ro);
+  unique_ptr<Iterator> itr(db->NewIterator(ro));
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
-    auto key = itr->key();
-    bool chunkTag = true;
-    switch (key.size()) {
-    case 9: {
-      uint8_t tag = key[8];
-      int32_t cx = *(int32_t *)key.data();
-      int32_t cz = *(int32_t *)(key.data() + 4);
-      if (key == "BiomeData" || key == "Overworld" || key == "mobevents") {
-        chunkTag = false;
-      } else {
-        chunkTag = PrintChunkKeyDescription(tag, cx, cz, "overworld");
-        cout << " " << itr->value().size() << "bytes" << endl;
+    auto key = itr->key().ToString();
+    auto parsed = be::DbKey::Parse(key);
+    if (!parsed) {
+      cout << "unknown key: ";
+      for (size_t i = 0; i < key.size(); i++) {
+        char ch = key[i];
+        cout << hex << (int)ch << dec << (0 < i && i < key.size() - 1 ? ", " : "");
       }
-      break;
-    }
-    case 10: {
-      uint8_t tag = key[8];
-      if (tag == 0x2f) {
-        int32_t cx = *(int32_t *)key.data();
-        int32_t cz = *(int32_t *)(key.data() + 4);
-        uint8_t rawY = key[9];
-        int8_t y = *(int8_t *)&rawY;
-        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " overworld " << itr->value().size() << "bytes" << endl;
-      } else if (key == "scoreboard") {
-        chunkTag = false;
-      } else {
-        cout << " " << itr->value().size() << "bytes" << endl;
-      }
-      break;
-    }
-    case 13: {
-      uint8_t tag = key[12];
-      int32_t cx = *(int32_t *)key.data();
-      int32_t cz = *(int32_t *)(key.data() + 4);
-      if (key == "~local_player") {
-        chunkTag = false;
-      } else {
-        string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
-        chunkTag = PrintChunkKeyDescription(tag, cz, cz, dimension);
-        cout << " " << itr->value().size() << "bytes" << endl;
-      }
-      break;
-    }
-    case 14: {
-      uint8_t tag = key[12];
-      if (tag == 0x2f) {
-        int32_t cx = *(int32_t *)key.data();
-        int32_t cz = *(int32_t *)(key.data() + 4);
-        string dimension = StringFromDimension(*(int32_t *)(key.data() + 8));
-        uint8_t rawY = key[13];
-        int8_t y = *(int8_t *)&rawY;
-        cout << "SubChunk(0x2f) [" << cx << ", " << cz << "] y=" << (int)y << " " << dimension << " " << itr->value().size() << "bytes" << endl;
-      } else {
-        chunkTag = false;
-      }
-      break;
-    }
-    default:
-      chunkTag = false;
-      break;
-    }
-    if (!chunkTag) {
-      cout << key.ToString() << " " << itr->value().size() << "bytes" << endl;
+      cout << endl;
+    } else {
+      cout << parsed->toString() << endl;
     }
   }
-  delete itr;
+
+  itr.reset();
+  delete db;
 }
 
 static optional<wstring> GetLocalApplicationDirectory() {
