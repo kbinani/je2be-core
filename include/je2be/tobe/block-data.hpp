@@ -1528,7 +1528,6 @@ private:
     E("chain", axisToPillarAxis);
 
     E("bamboo_sapling", Converter(Same, AddBoolProperty("age_bit", false), AddStringProperty("sapling_type", "oak")));
-    E("bedrock", Converter(Same, AddBoolProperty("infiniburn_bit", true)));
     E("brewing_stand", BrewingStand);
     E("cactus", Converter(Same, Name(Age, "age")));
     E("fire", Converter(Same, Name(Age, "age")));
