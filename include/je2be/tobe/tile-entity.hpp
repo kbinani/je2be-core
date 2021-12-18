@@ -605,9 +605,17 @@ private:
     std::string mob;
     auto spawnData = c->compoundTag("SpawnData");
     if (spawnData) {
-      auto id = spawnData->string("id");
-      if (id) {
-        mob = *id;
+      auto entity = spawnData->compoundTag("entity");
+      if (entity) {
+        auto id = entity->string("id");
+        if (id) {
+          mob = *id;
+        }
+      } else {
+        auto id = spawnData->string("id");
+        if (id) {
+          mob = *id;
+        }
       }
     }
 
