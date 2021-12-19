@@ -92,4 +92,13 @@ inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
   }
 }
 
+inline bool Iequals(std::string const &a, std::string const &b) {
+  if (a.size() != b.size()) {
+    return false;
+  }
+  return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char ca, char cb) {
+    return tolower(ca) == tolower(cb);
+  });
+}
+
 } // namespace je2be::strings

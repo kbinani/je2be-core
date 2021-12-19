@@ -21,6 +21,7 @@
 #include <set>
 #include <unordered_set>
 #include <execution>
+#include <random>
 
 #include <je2be/file.hpp>
 #include <je2be/scoped-file.hpp>
@@ -45,6 +46,7 @@
 #include <je2be/progress.hpp>
 #include <je2be/version.hpp>
 #include <je2be/future-support.hpp>
+#include <je2be/fs.hpp>
 
 #include <je2be/tobe/uuid-registrar.hpp>
 #include <je2be/tobe/versions.hpp>
@@ -86,4 +88,5 @@
 #include <je2be/tobe/chunk-data-package.hpp>
 #include <je2be/tobe/block-palette.hpp>
 #include <je2be/tobe/moving-piston.hpp>
+#include <je2be/tobe/datapacks.hpp>
 #include <je2be/tobe/converter.hpp>

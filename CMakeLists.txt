@@ -18,6 +18,7 @@ set(je2be_files
   include/je2be/enums/villager-profession.hpp
   include/je2be/enums/villager-type.hpp
   include/je2be/file.hpp
+  include/je2be/fs.hpp
   include/je2be/future-support.hpp
   include/je2be/optional.hpp
   include/je2be/pos2.hpp
@@ -36,6 +37,7 @@ set(je2be_files
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
   include/je2be/tobe/converter.hpp
+  include/je2be/tobe/datapacks.hpp
   include/je2be/tobe/db/db-interface.hpp
   include/je2be/tobe/db/db.hpp
   include/je2be/tobe/db/null-db.hpp

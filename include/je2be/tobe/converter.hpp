@@ -33,7 +33,8 @@ public:
     }
     LevelData levelData = LevelData::Import(*data);
 
-    bool ok = true;
+    bool ok = Datapacks::Import(fInput, fOutput);
+
     auto worldData = std::make_unique<WorldData>(fInput, fInputOption);
     {
       RawDb db(dbPath, concurrency);
