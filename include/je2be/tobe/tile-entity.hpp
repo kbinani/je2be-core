@@ -323,7 +323,7 @@ private:
     auto automatic = c->boolean("auto", false);
     auto trackOutput = c->boolean("TrackOutput", true);
     auto successCount = c->int32("SuccessCount", 0);
-    auto command = c->string("Command", "");
+    auto command = Command::Transpile(c->string("Command", ""));
     auto conditionMet = c->boolean("conditionMet", false);
     tag->insert({
         {"id", String("CommandBlock")},

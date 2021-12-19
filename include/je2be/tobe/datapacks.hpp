@@ -116,12 +116,7 @@ private:
           continue;
         }
         auto to = packDir / "functions" / moduleName / path.filename();
-        if (Fs::Exists(to)) {
-          if (!Fs::Delete(to)) {
-            return false;
-          }
-        }
-        if (!Fs::CopyFile(path, to)) {
+        if (!ConvertFunction(path, to)) {
           return false;
         }
         hasMcfunction = true;
@@ -194,29 +189,45 @@ private:
 
   static std::optional<std::string> ReadDescriptionFromMcmeta(std::filesystem::path mcmeta) {
     using namespace std;
-    using namespace mcfile;
-    if (!Fs::Exists(mcmeta)) {
-      return nullopt;
-    }
-    auto size = Fs::FileSize(mcmeta);
-    if (!size) {
-      return nullopt;
-    }
-    ScopedFile fp(mcfile::File::Open(mcmeta, mcfile::File::Mode::Read));
-    if (!fp) {
-      return nullopt;
-    }
-    vector<char> content(*size);
-    if (!File::Fread(content.data(), *size, 1, fp)) {
-      return nullopt;
-    }
+    auto content = file::GetContents(mcmeta);
     nlohmann::json json;
     try {
-      json = nlohmann::json::parse(content);
+      json = nlohmann::json::parse(*content);
       return json["pack"]["description"];
     } catch (...) {
       return nullopt;
     }
+  }
+
+  static bool ConvertFunction(std::filesystem::path from, std::filesystem::path to) {
+    using namespace std;
+    using namespace mcfile;
+
+    if (Fs::Exists(to)) {
+      if (!Fs::Delete(to)) {
+        return false;
+      }
+    }
+    auto content = file::GetContents(from);
+    if (!content) {
+      return false;
+    }
+    vector<string> lines = String::Split(*content, '\x0a');
+    ostringstream s;
+    for (auto const &line : lines) {
+      auto hasCr = strings::EndsWith(line, "\x0d");
+      s << Command::Transpile(line);
+      s << "\x0a";
+    }
+    string transpiled = s.str();
+    ScopedFile fp(File::Open(to, File::Mode::Write));
+    if (!fp) {
+      return false;
+    }
+    if (!File::Fwrite(transpiled.c_str(), transpiled.size(), 1, fp)) {
+      return false;
+    }
+    return true;
   }
 };
 

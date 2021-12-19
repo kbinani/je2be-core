@@ -36,6 +36,7 @@ set(je2be_files
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
+  include/je2be/tobe/command.hpp
   include/je2be/tobe/converter.hpp
   include/je2be/tobe/datapacks.hpp
   include/je2be/tobe/db/db-interface.hpp
@@ -161,6 +162,7 @@ set(je2be_files
 set(test_files
   test/main.cpp
   test/moving-piston.test.cpp
+  test/command.test.cpp
   test/research.cpp)
 
 add_subdirectory(deps/libminecraft-file)

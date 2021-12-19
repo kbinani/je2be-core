@@ -23,8 +23,9 @@
 #include <execution>
 #include <random>
 
-#include <je2be/file.hpp>
+#include <je2be/fs.hpp>
 #include <je2be/scoped-file.hpp>
+#include <je2be/file.hpp>
 #include <je2be/strings.hpp>
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
@@ -46,8 +47,8 @@
 #include <je2be/progress.hpp>
 #include <je2be/version.hpp>
 #include <je2be/future-support.hpp>
-#include <je2be/fs.hpp>
 
+#include <je2be/tobe/command.hpp>
 #include <je2be/tobe/uuid-registrar.hpp>
 #include <je2be/tobe/versions.hpp>
 #include <je2be/tobe/sign.hpp>
