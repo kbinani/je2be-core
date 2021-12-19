@@ -11,4 +11,5 @@ TEST_CASE("command") {
   CHECK(Command::Transpile("say \"function foo:bar\"") == "say \"function foo:bar\"");
   CHECK(Command::Transpile("say  \"incomplete quoated string") == "say  \"incomplete quoated string");
   CHECK(Command::Transpile("say \"function foo:bar\\\"\"") == "say \"function foo:bar\\\"\"");
+  CHECK(Command::Transpile("  say \"foo#\" #  function foo:bar #baz") == "  say \"foo#\" #  function foo:bar #baz");
 }

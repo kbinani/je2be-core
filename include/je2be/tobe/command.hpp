@@ -42,7 +42,8 @@ public:
     int state = 0;
     char prev = 0;
     string current;
-    for (size_t i = 0; i < line.size(); i++) {
+    bool exit = false;
+    for (size_t i = 0; i < line.size() && !exit; i++) {
       char ch = line[i];
       switch (state) {
       case 0: {
@@ -80,6 +81,9 @@ public:
           state = 1;
           spaces.push_back(current);
           current = ch;
+        } else if (ch == '#') {
+          suffix = line.substr(i) + suffix;
+          exit = true;
         } else {
           state = 0;
           spaces.push_back(current);
@@ -95,8 +99,8 @@ public:
       tokens.push_back(current);
     } else if (state == 1) {
       spaces.push_back(current);
-    } else if (state == 2 && current.empty()) {
-      // nop
+    } else if (state == 2) {
+      suffix = current + suffix;
     } else {
       return inLine;
     }
