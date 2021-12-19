@@ -9,9 +9,12 @@ struct Uuid {
 
   static Uuid Gen() {
     std::random_device r;
+    GenWithSeed(r());
+  }
 
-    std::mt19937 mt(r());
+  static Uuid GenWithSeed(size_t seed) {
     std::uniform_int_distribution<uint32_t> distribution;
+    std::mt19937 mt(seed);
 
     Uuid ret;
     ret.f1 = distribution(mt);

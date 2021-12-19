@@ -5,7 +5,6 @@ namespace je2be::tobe {
 class Datapacks {
 public:
   struct Pack {
-    std::string fNamespace;
     Uuid fId;
     int fVersion[3];
   };
@@ -88,28 +87,21 @@ private:
       return false;
     }
 
-    string description = packName.string();
-    auto mcmeta = packRootDir / "pack.mcmeta";
-    auto desc = ReadDescriptionFromMcmeta(mcmeta);
-    if (desc) {
-      description = *desc;
-    }
+    vector<pair<std::string, Uuid>> modules;
 
-    std::mt19937 mt;
     for (auto const &item : *itr) {
       if (!item.is_directory()) {
         continue;
       }
-      string nameSpace = item.path().filename().string();
-      if (!Fs::CreateDirectories(packDir / "functions" / nameSpace)) {
+      string moduleName = item.path().filename().string();
+      if (!Fs::CreateDirectories(packDir / "functions" / moduleName)) {
         return false;
       }
       auto mcfunctionItr = Fs::DirectoryIterator(item.path() / "functions");
       if (!mcfunctionItr) {
         continue;
       }
-      auto packId = Uuid::Gen();
-      auto moduleId = Uuid::Gen();
+      bool hasMcfunction = false;
       for (auto const &mcfunction : *mcfunctionItr) {
         if (!mcfunction.is_regular_file()) {
           continue;
@@ -123,7 +115,7 @@ private:
         if (!strings::Iequals(ext, ".mcfunction")) {
           continue;
         }
-        auto to = packDir / "functions" / nameSpace / path.filename();
+        auto to = packDir / "functions" / moduleName / path.filename();
         if (Fs::Exists(to)) {
           if (!Fs::Delete(to)) {
             return false;
@@ -132,41 +124,70 @@ private:
         if (!Fs::CopyFile(path, to)) {
           return false;
         }
+        hasMcfunction = true;
       }
-      Pack pack;
-      pack.fNamespace = nameSpace;
-      pack.fId = packId;
-      pack.fVersion[0] = 0;
-      pack.fVersion[1] = 0;
-      pack.fVersion[2] = 1;
-      packs.push_back(pack);
-      ostringstream s;
-      s << R"({)" << endl;
-      s << R"(  "format_version": 2,)" << endl;
-      s << R"(  "header": {)" << endl;
-      s << R"(    "description": ")" << description << R"(",)" << endl;
-      s << R"(    "name": ")" << nameSpace << R"(",)" << endl;
-      s << R"(    "uuid": ")" << packId.toString() << R"(",)" << endl;
-      s << R"(    "version": [)" << pack.fVersion[0] << ", " << pack.fVersion[1] << ", " << pack.fVersion[2] << R"(],)" << endl;
-      s << R"(    "min_engine_version": [1, 17, 40])" << endl;
-      s << R"(  },)" << endl;
-      s << R"(  "modules": [)" << endl;
+      if (hasMcfunction) {
+        size_t hash = std::hash<std::string>()(moduleName);
+        Uuid moduleId = Uuid::GenWithSeed(hash);
+        modules.push_back(make_pair(moduleName, moduleId));
+      }
+    }
+
+    if (modules.empty()) {
+      return true;
+    }
+
+    string description = packName.string();
+    auto mcmeta = packRootDir / "pack.mcmeta";
+    auto desc = ReadDescriptionFromMcmeta(mcmeta);
+    if (desc) {
+      description = *desc;
+    }
+
+    size_t packNameHash = std::hash<std::string>()(packName.string());
+    auto packId = Uuid::GenWithSeed(packNameHash);
+
+    Pack pack;
+    pack.fId = packId;
+    pack.fVersion[0] = 0;
+    pack.fVersion[1] = 0;
+    pack.fVersion[2] = 1;
+    packs.push_back(pack);
+    ostringstream s;
+    s << R"({)" << endl;
+    s << R"(  "format_version": 2,)" << endl;
+    s << R"(  "header": {)" << endl;
+    s << R"(    "description": ")" << description << R"(",)" << endl;
+    s << R"(    "name": ")" << packName.string() << R"(",)" << endl;
+    s << R"(    "uuid": ")" << packId.toString() << R"(",)" << endl;
+    s << R"(    "version": [)" << pack.fVersion[0] << ", " << pack.fVersion[1] << ", " << pack.fVersion[2] << R"(],)" << endl;
+    s << R"(    "min_engine_version": [1, 17, 40])" << endl;
+    s << R"(  },)" << endl;
+    s << R"(  "modules": [)" << endl;
+    for (size_t i = 0; i < modules.size(); i++) {
+      auto const &it = modules[i];
+      string name = it.first;
+      Uuid moduleId = it.second;
       s << R"(    {)" << endl;
-      s << R"(      "description": ")" << description << R"(",)" << endl;
+      s << R"(      "description": ")" << name << R"(",)" << endl;
       s << R"(      "type": "data",)" << endl;
       s << R"(      "uuid": ")" << moduleId.toString() << R"(",)" << endl;
       s << R"(      "version": [0, 0, 1])" << endl;
-      s << R"(    })" << endl;
-      s << R"(  ])" << endl;
-      s << R"(})" << endl;
-      string json = s.str();
-      ScopedFile fp(mcfile::File::Open(packDir / "manifest.json", mcfile::File::Mode::Write));
-      if (!fp) {
-        return false;
+      s << R"(    })";
+      if (i + 1 < modules.size()) {
+        s << ",";
       }
-      if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp)) {
-        return false;
-      }
+      s << endl;
+    }
+    s << R"(  ])" << endl;
+    s << R"(})" << endl;
+    string json = s.str();
+    ScopedFile fp(mcfile::File::Open(packDir / "manifest.json", mcfile::File::Mode::Write));
+    if (!fp) {
+      return false;
+    }
+    if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp)) {
+      return false;
     }
     return true;
   }
