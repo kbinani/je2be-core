@@ -88,6 +88,13 @@ private:
       return false;
     }
 
+    string description = packName.string();
+    auto mcmeta = packRootDir / "pack.mcmeta";
+    auto desc = ReadDescriptionFromMcmeta(mcmeta);
+    if (desc) {
+      description = *desc;
+    }
+
     std::mt19937 mt;
     for (auto const &item : *itr) {
       if (!item.is_directory()) {
@@ -137,7 +144,7 @@ private:
       s << R"({)" << endl;
       s << R"(  "format_version": 2,)" << endl;
       s << R"(  "header": {)" << endl;
-      s << R"(    "description": ")" << nameSpace << R"(",)" << endl;
+      s << R"(    "description": ")" << description << R"(",)" << endl;
       s << R"(    "name": ")" << nameSpace << R"(",)" << endl;
       s << R"(    "uuid": ")" << packId.toString() << R"(",)" << endl;
       s << R"(    "version": [)" << pack.fVersion[0] << ", " << pack.fVersion[1] << ", " << pack.fVersion[2] << R"(],)" << endl;
@@ -145,7 +152,7 @@ private:
       s << R"(  },)" << endl;
       s << R"(  "modules": [)" << endl;
       s << R"(    {)" << endl;
-      s << R"(      "description": ")" << nameSpace << R"(",)" << endl;
+      s << R"(      "description": ")" << description << R"(",)" << endl;
       s << R"(      "type": "data",)" << endl;
       s << R"(      "uuid": ")" << moduleId.toString() << R"(",)" << endl;
       s << R"(      "version": [0, 0, 1])" << endl;
@@ -162,6 +169,33 @@ private:
       }
     }
     return true;
+  }
+
+  static std::optional<std::string> ReadDescriptionFromMcmeta(std::filesystem::path mcmeta) {
+    using namespace std;
+    using namespace mcfile;
+    if (!Fs::Exists(mcmeta)) {
+      return nullopt;
+    }
+    auto size = Fs::FileSize(mcmeta);
+    if (!size) {
+      return nullopt;
+    }
+    ScopedFile fp(mcfile::File::Open(mcmeta, mcfile::File::Mode::Read));
+    if (!fp) {
+      return nullopt;
+    }
+    vector<char> content(*size);
+    if (!File::Fread(content.data(), *size, 1, fp)) {
+      return nullopt;
+    }
+    nlohmann::json json;
+    try {
+      json = nlohmann::json::parse(content);
+      return json["pack"]["description"];
+    } catch (...) {
+      return nullopt;
+    }
   }
 };
 

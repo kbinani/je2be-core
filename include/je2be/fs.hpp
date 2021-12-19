@@ -57,6 +57,15 @@ public:
     }
   }
 
+  static std::optional<uintmax_t> FileSize(std::filesystem::path p) {
+    std::error_code ec;
+    uintmax_t size = std::filesystem::file_size(p, ec);
+    if (ec) {
+      return std::nullopt;
+    }
+    return size;
+  }
+
 private:
   Fs() = delete;
 };
