@@ -8,11 +8,11 @@ private:
   using EntityData = std::shared_ptr<mcfile::nbt::CompoundTag>;
 
   struct Context {
-    Context(JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) : fMapInfo(mapInfo), fDimensionData(ddf) {}
+    Context(JavaEditionMap const &mapInfo, WorldDataFragment &wdf) : fMapInfo(mapInfo), fWorldData(wdf) {}
 
     std::vector<EntityData> fPassengers;
     JavaEditionMap const &fMapInfo;
-    DimensionDataFragment &fDimensionData;
+    WorldDataFragment &fWorldData;
   };
 
   using Converter = std::function<EntityData(CompoundTag const &, Context &)>;
@@ -46,7 +46,7 @@ private:
 public:
   explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
-  static std::vector<EntityData> From(mcfile::nbt::CompoundTag const &tag, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static std::vector<EntityData> From(mcfile::nbt::CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
     using namespace props;
     auto id = tag.string("id");
     if (!id) {
@@ -62,7 +62,7 @@ public:
       }
       return ret;
     }
-    Context ctx(mapInfo, ddf);
+    Context ctx(mapInfo, wdf);
     auto converted = found->second(tag, ctx);
     if (!ctx.fPassengers.empty()) {
       std::copy(ctx.fPassengers.begin(), ctx.fPassengers.end(), std::back_inserter(ret));
@@ -163,19 +163,19 @@ public:
     return make_tuple(pos, b, key);
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
     using namespace props;
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
-      return ToItemFrameTileEntityData(c, mapInfo, ddf, "ItemFrame");
+      return ToItemFrameTileEntityData(c, mapInfo, wdf, "ItemFrame");
     } else if (*id == "minecraft:glow_item_frame") {
-      return ToItemFrameTileEntityData(c, mapInfo, ddf, "GlowItemFrame");
+      return ToItemFrameTileEntityData(c, mapInfo, wdf, "GlowItemFrame");
     }
     return nullptr;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf, std::string const &name) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldDataFragment &wdf, std::string const &name) {
     using namespace props;
     auto tag = std::make_shared<CompoundTag>();
     auto tileX = c.int32("TileX");
@@ -196,7 +196,7 @@ public:
     auto found = c.find("Item");
     if (found != c.end() && found->second->type() == mcfile::nbt::Tag::Type::Compound) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
-      auto m = Item::From(item, mapInfo, ddf);
+      auto m = Item::From(item, mapInfo, wdf);
       if (m) {
         tag->insert(make_pair("Item", m));
         tag->insert(make_pair("ItemRotation", Float(itemRotation * 45)));
@@ -275,11 +275,11 @@ public:
     return tag;
   }
 
-  static EntityData LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static EntityData LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
     using namespace mcfile::nbt;
     using namespace props;
 
-    Context ctx(mapInfo, ddf);
+    Context ctx(mapInfo, wdf);
     auto entity = LivingEntity(tag, ctx);
     if (!entity) {
       return nullptr;
@@ -322,35 +322,35 @@ public:
 
     auto inventory = tag.listTag("Inventory");
     if (inventory) {
-      auto outInventory = ConvertAnyItemList(inventory, 36, mapInfo, ddf);
+      auto outInventory = ConvertAnyItemList(inventory, 36, mapInfo, wdf);
       entity->set("Inventory", outInventory);
 
       // Armor
       auto armor = InitItemList(4);
       auto boots = ItemAtSlot(*inventory, 100);
       if (boots) {
-        auto outBoots = Item::From(boots, mapInfo, ddf);
+        auto outBoots = Item::From(boots, mapInfo, wdf);
         if (outBoots) {
           armor->at(3) = outBoots;
         }
       }
       auto leggings = ItemAtSlot(*inventory, 101);
       if (leggings) {
-        auto outLeggings = Item::From(leggings, mapInfo, ddf);
+        auto outLeggings = Item::From(leggings, mapInfo, wdf);
         if (outLeggings) {
           armor->at(2) = outLeggings;
         }
       }
       auto chestplate = ItemAtSlot(*inventory, 102);
       if (chestplate) {
-        auto outChestplate = Item::From(chestplate, mapInfo, ddf);
+        auto outChestplate = Item::From(chestplate, mapInfo, wdf);
         if (outChestplate) {
           armor->at(1) = outChestplate;
         }
       }
       auto helmet = ItemAtSlot(*inventory, 103);
       if (helmet) {
-        auto outHelmet = Item::From(helmet, mapInfo, ddf);
+        auto outHelmet = Item::From(helmet, mapInfo, wdf);
         if (outHelmet) {
           armor->at(0) = outHelmet;
         }
@@ -360,7 +360,7 @@ public:
       // Offhand
       auto offhand = ItemAtSlot(*inventory, -106);
       if (offhand) {
-        auto offhandItem = Item::From(offhand, mapInfo, ddf);
+        auto offhandItem = Item::From(offhand, mapInfo, wdf);
         if (offhandItem) {
           auto outOffhand = InitItemList(1);
           outOffhand->at(0) = offhandItem;
@@ -371,7 +371,7 @@ public:
 
     auto enderItems = tag.listTag("EnderItems");
     if (enderItems) {
-      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, mapInfo, ddf);
+      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, mapInfo, wdf);
       entity->set("EnderChestInventory", enderChestInventory);
     }
 
@@ -659,7 +659,7 @@ private:
     c->set("Persistent", props::Bool(true));
     c->set("IsAutonomous", props::Bool(true));
     c->set("LastDimensionId", props::Int(2));
-    ctx.fDimensionData.addAutonomousEntity(c);
+    ctx.fWorldData.addAutonomousEntity(c);
     return c;
   }
 
@@ -781,7 +781,7 @@ private:
 
     {
       auto count = buyA->byte("Count", 0);
-      auto item = Item::From(buyA, ctx.fMapInfo, ctx.fDimensionData);
+      auto item = Item::From(buyA, ctx.fMapInfo, ctx.fWorldData);
       if (item && count > 0) {
         bedrock->set("buyA", item);
         bedrock->set("buyCountA", Int(count));
@@ -793,7 +793,7 @@ private:
     if (buyB) {
       auto count = buyB->byte("Count", 0);
       auto id = buyB->string("id", "minecraft:air");
-      auto item = Item::From(buyB, ctx.fMapInfo, ctx.fDimensionData);
+      auto item = Item::From(buyB, ctx.fMapInfo, ctx.fWorldData);
       if (id != "minecraft:air" && item && count > 0) {
         bedrock->set("buyB", item);
         bedrock->set("buyCountB", Int(count));
@@ -809,7 +809,7 @@ private:
       if (count <= 0) {
         return nullptr;
       }
-      auto item = Item::From(sell, ctx.fMapInfo, ctx.fDimensionData);
+      auto item = Item::From(sell, ctx.fMapInfo, ctx.fWorldData);
       if (!item) {
         return nullptr;
       }
@@ -865,7 +865,7 @@ private:
     if (!item) {
       return nullptr;
     }
-    auto beItem = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
+    auto beItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
     if (!beItem) {
       return nullptr;
     }
@@ -914,7 +914,7 @@ private:
         if (!item) {
           continue;
         }
-        auto converted = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
+        auto converted = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
         if (!converted) {
           continue;
         }
@@ -997,14 +997,14 @@ private:
     return items;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> ConvertAnyItemList(std::shared_ptr<mcfile::nbt::ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  static std::shared_ptr<mcfile::nbt::ListTag> ConvertAnyItemList(std::shared_ptr<mcfile::nbt::ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item) {
         continue;
       }
-      auto converted = Item::From(item, mapInfo, ddf);
+      auto converted = Item::From(item, mapInfo, wdf);
       if (!converted) {
         continue;
       }
@@ -1121,7 +1121,7 @@ private:
         if (!count) {
           continue;
         }
-        auto outItem = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
+        auto outItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
         if (!outItem) {
           continue;
         }
@@ -1278,7 +1278,7 @@ private:
             continue;
           }
 
-          auto entities = From(*comp, ctx.fMapInfo, ctx.fDimensionData);
+          auto entities = From(*comp, ctx.fMapInfo, ctx.fWorldData);
           if (entities.empty()) {
             continue;
           }
@@ -1696,7 +1696,7 @@ private:
           if (!item) {
             continue;
           }
-          auto converted = Item::From(item, ctx.fMapInfo, ctx.fDimensionData);
+          auto converted = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
           if (converted) {
             armors->fValue[i] = converted;
           }
@@ -1728,7 +1728,7 @@ private:
     if (mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
       if (inItem) {
-        item = Item::From(inItem, ctx.fMapInfo, ctx.fDimensionData);
+        item = Item::From(inItem, ctx.fMapInfo, ctx.fWorldData);
       }
     }
     if (!item) {

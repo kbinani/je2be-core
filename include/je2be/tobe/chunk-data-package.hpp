@@ -9,15 +9,15 @@ public:
         fHeightMap(std::make_shared<HeightMap>(mode == ChunkConversionMode::CavesAndCliffs2 ? -4 : 0)) {
   }
 
-  void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
-    buildEntities(chunk, mapInfo, ddf);
-    buildData2D(chunk, ddf.fDim);
-    buildTileEntities(chunk, mapInfo, ddf);
+  void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
+    buildEntities(chunk, mapInfo, wdf);
+    buildData2D(chunk, wdf.fDim);
+    buildTileEntities(chunk, mapInfo, wdf);
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
     }
-    ddf.addStatChunkVersion(chunk.fDataVersion);
-    ddf.addStat(1, fTileEntities.size(), fEntities.size());
+    wdf.addStatChunkVersion(chunk.fDataVersion);
+    wdf.addStat(1, fTileEntities.size(), fEntities.size());
     fChunkLastUpdate = chunk.fLastUpdate;
   }
 
@@ -49,7 +49,7 @@ public:
   }
 
 private:
-  void buildTileEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  void buildTileEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -74,7 +74,7 @@ private:
         shared_ptr<Block const> block = found->second;
         fTileBlocks.erase(found);
 
-        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, mapInfo, ddf);
+        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, mapInfo, wdf);
         if (!tag) {
           continue;
         }
@@ -86,7 +86,7 @@ private:
     for (auto const &it : fTileBlocks) {
       Pos3i const &pos = it.first;
       Block const &block = *it.second;
-      auto tag = TileEntity::FromBlock(pos, block, mapInfo, ddf);
+      auto tag = TileEntity::FromBlock(pos, block, mapInfo, wdf);
       if (!tag) {
         continue;
       }
@@ -97,7 +97,7 @@ private:
       if (!Entity::IsTileEntity(*e)) {
         continue;
       }
-      auto tag = Entity::ToTileEntityData(*e, mapInfo, ddf);
+      auto tag = Entity::ToTileEntityData(*e, mapInfo, wdf);
       if (!tag) {
         continue;
       }
@@ -105,7 +105,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, DimensionDataFragment &ddf) {
+  void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
     using namespace std;
     using namespace props;
     for (auto e : chunk.fEntities) {
@@ -113,7 +113,7 @@ private:
       if (!c) {
         continue;
       }
-      auto converted = Entity::From(*c, mapInfo, ddf);
+      auto converted = Entity::From(*c, mapInfo, wdf);
       copy_n(converted.begin(), converted.size(), back_inserter(fEntities));
     }
   }

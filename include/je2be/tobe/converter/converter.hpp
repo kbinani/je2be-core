@@ -100,12 +100,12 @@ private:
       return std::nullopt;
     }
 
-    DimensionDataFragment ddf(mcfile::Dimension::Overworld);
-    auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, ddf);
+    WorldDataFragment wdf(mcfile::Dimension::Overworld);
+    auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, wdf);
     if (!entity) {
       return std::nullopt;
     }
-    ddf.drain(wd);
+    wdf.drain(wd);
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});

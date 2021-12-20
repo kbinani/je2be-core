@@ -2,9 +2,9 @@
 
 namespace je2be::tobe {
 
-class DimensionDataFragment {
+class WorldDataFragment {
 public:
-  explicit DimensionDataFragment(mcfile::Dimension dim) : fDim(dim) {}
+  explicit WorldDataFragment(mcfile::Dimension dim) : fDim(dim) {}
 
   void addStatChunkVersion(uint32_t chunkDataVersion) { fStat.addChunkVersion(chunkDataVersion); }
   void addStat(uint64_t numChunks, uint64_t numBlockEntitites, uint64_t numEntities) { fStat.add(numChunks, numBlockEntitites, numEntities); }

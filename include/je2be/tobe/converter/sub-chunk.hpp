@@ -6,7 +6,7 @@ class SubChunk {
   SubChunk() = delete;
 
 public:
-  [[nodiscard]] static bool Convert(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, DimensionDataFragment &ddf) {
+  [[nodiscard]] static bool Convert(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, WorldDataFragment &wdf) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -79,10 +79,10 @@ public:
                 cdp.addTileBlock(bx, by, bz, block);
               } else if (strings::Equal(block->fName, nether_portal)) {
                 bool xAxis = block->property("axis", "x") == "x";
-                ddf.addPortalBlock(bx, by, bz, xAxis);
+                wdf.addPortalBlock(bx, by, bz, xAxis);
               }
               if (strings::Equal(block->fName, end_portal) && dim == Dimension::End) {
-                ddf.addEndPortal(bx, by, bz);
+                wdf.addEndPortal(bx, by, bz);
               }
             } else {
               index = 0;
