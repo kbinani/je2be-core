@@ -90,4 +90,7 @@
 #include <je2be/tobe/block-palette.hpp>
 #include <je2be/tobe/moving-piston.hpp>
 #include <je2be/tobe/datapacks.hpp>
+#include <je2be/tobe/sub-chunk.hpp>
+#include <je2be/tobe/chunk.hpp>
+#include <je2be/tobe/world.hpp>
 #include <je2be/tobe/converter.hpp>

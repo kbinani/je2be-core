@@ -36,6 +36,7 @@ set(je2be_files
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
+  include/je2be/tobe/chunk.hpp
   include/je2be/tobe/command.hpp
   include/je2be/tobe/converter.hpp
   include/je2be/tobe/datapacks.hpp
@@ -67,11 +68,13 @@ set(je2be_files
   include/je2be/tobe/structure/structure-piece-collection.hpp
   include/je2be/tobe/structure/structure-piece.hpp
   include/je2be/tobe/structure/structures.hpp
+  include/je2be/tobe/sub-chunk.hpp
   include/je2be/tobe/tile-entity.hpp
   include/je2be/tobe/tropical-fish.hpp
   include/je2be/tobe/uuid-registrar.hpp
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
+  include/je2be/tobe/world.hpp
   include/je2be/uuid.hpp
   include/je2be/vec.hpp
   include/je2be/version.hpp
