@@ -48,7 +48,7 @@ set(je2be_files
   include/je2be/tobe/converter/height-map.hpp
   include/je2be/tobe/converter/item.hpp
   include/je2be/tobe/converter/java-edition-map.hpp
-  include/je2be/tobe/converter/level-data.hpp
+  include/je2be/tobe/converter/level.hpp
   include/je2be/tobe/converter/map.hpp
   include/je2be/tobe/converter/moving-piston.hpp
   include/je2be/tobe/converter/player-abilities.hpp
@@ -62,7 +62,7 @@ set(je2be_files
   include/je2be/tobe/db/db.hpp
   include/je2be/tobe/db/null-db.hpp
   include/je2be/tobe/db/raw-db.hpp
-  include/je2be/tobe/dimension-data-fragment.hpp
+  include/je2be/tobe/level-data.hpp
   include/je2be/tobe/options.hpp
   include/je2be/tobe/portal/oriented-portal-blocks.hpp
   include/je2be/tobe/portal/portal-blocks.hpp

@@ -6,7 +6,7 @@ class World {
   World() = delete;
 
 public:
-  [[nodiscard]] static bool Convert(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, WorldData &wd, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  [[nodiscard]] static bool Convert(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, LevelData &ld, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -14,8 +14,8 @@ public:
     auto queue = make_unique<hwm::task_queue>(concurrency);
     deque<future<Chunk::Result>> futures;
 
-    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &wd, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
-      JavaEditionMap const &mapInfo = wd.fJavaEditionMap;
+    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+      JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
           vector<future<Chunk::Result>> drain;
@@ -26,7 +26,7 @@ public:
             if (!result.fData) {
               continue;
             }
-            result.fData->drain(wd);
+            result.fData->drain(ld);
             if (!result.fOk) {
               return false;
             }
@@ -54,7 +54,7 @@ public:
       if (!result.fData) {
         continue;
       }
-      result.fData->drain(wd);
+      result.fData->drain(ld);
     }
 
     return completed;

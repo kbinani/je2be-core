@@ -4,85 +4,111 @@ namespace je2be::tobe {
 
 class WorldData {
 public:
-  WorldData(std::filesystem::path const &input, InputOption const &opt) : fInput(input), fJavaEditionMap(input, opt), fInputOption(opt) {}
+  explicit WorldData(mcfile::Dimension dim) : fDim(dim) {}
 
-  [[nodiscard]] bool put(DbInterface &db, mcfile::nbt::CompoundTag const &javaLevelData) {
-    if (!fPortals.putInto(db)) {
-      return false;
-    }
-    bool ok = fJavaEditionMap.each([this, &db](int32_t mapId) {
-      auto found = fMapItems.find(mapId);
-      if (found == fMapItems.end()) {
-        return true;
-      }
-      return Map::Convert(mapId, *found->second, fInput, fInputOption, db);
-    });
-    if (!ok) {
-      return false;
-    }
-    if (!putAutonomousEntities(db)) {
-      return false;
-    }
+  void addStatChunkVersion(uint32_t chunkDataVersion) { fStat.addChunkVersion(chunkDataVersion); }
+  void addStat(uint64_t numChunks, uint64_t numBlockEntitites, uint64_t numEntities) { fStat.add(numChunks, numBlockEntitites, numEntities); }
 
-    auto theEnd = LevelData::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
-    if (theEnd) {
-      db.put(mcfile::be::DbKey::TheEnd(), *theEnd);
-    } else {
-      db.del(mcfile::be::DbKey::TheEnd());
-    }
+  void addStatError(mcfile::Dimension dim, int32_t chunkX, int32_t chunkZ) { fStat.addError(dim, chunkX, chunkZ); }
 
-    if (!fStructures.put(db)) {
-      return false;
-    }
+  void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) { fPortalBlocks.add(x, y, z, xAxis); }
 
-    auto mobEvents = LevelData::MobEvents(javaLevelData);
-    if (mobEvents) {
-      db.put(mcfile::be::DbKey::MobEvents(), *mobEvents);
-    } else {
-      db.del(mcfile::be::DbKey::MobEvents());
-    }
+  void addMap(int32_t javaMapId, std::shared_ptr<mcfile::nbt::CompoundTag> const &item) { fMapItems[javaMapId] = item; }
 
-    return true;
+  void addAutonomousEntity(std::shared_ptr<mcfile::nbt::CompoundTag> const &entity) { fAutonomousEntities.push_back(entity); }
+
+  void addEndPortal(int32_t x, int32_t y, int32_t z) {
+    Pos3i p(x, y, z);
+    fEndPortalsInEndDimension.insert(p);
   }
 
-private:
-  [[nodiscard]] bool putAutonomousEntities(DbInterface &db) {
-    using namespace mcfile::nbt;
-    using namespace mcfile::stream;
+  void addStructures(mcfile::je::Chunk const &chunk) {
+    if (!chunk.fStructures) {
+      return;
+    }
+    auto start = chunk.fStructures->compoundTag("Starts");
+    if (!start) {
+      return;
+    }
+    auto fortress = start->compoundTag("fortress");
+    if (fortress) {
+      addStructures(*fortress, StructureType::Fortress);
+    }
+    auto monument = start->compoundTag("monument");
+    if (monument) {
+      addStructures(*monument, StructureType::Monument);
+    }
+    auto outpost = start->compoundTag("pillager_outpost");
+    if (outpost) {
+      addStructures(*outpost, StructureType::Outpost);
+    }
+  }
 
-    auto list = std::make_shared<ListTag>(Tag::Type::Compound);
+  void updateChunkLastUpdate(mcfile::je::Chunk const &chunk) {
+    fMaxChunkLastUpdate = std::max(fMaxChunkLastUpdate, chunk.fLastUpdate);
+  }
+
+  void drain(LevelData &wd) {
+    wd.fPortals.add(fPortalBlocks, fDim);
+    for (auto const &it : fMapItems) {
+      wd.fMapItems[it.first] = it.second;
+    }
     for (auto const &e : fAutonomousEntities) {
-      list->push_back(e);
+      wd.fAutonomousEntities.push_back(e);
     }
-    auto root = std::make_shared<CompoundTag>();
-    root->set("AutonomousEntityList", list);
-
-    auto s = std::make_shared<ByteStream>();
-    OutputStreamWriter w(s, {.fLittleEndian = true});
-    if (!root->writeAsRoot(w)) {
-      return false;
+    for (auto const &pos : fEndPortalsInEndDimension) {
+      wd.fEndPortalsInEndDimension.insert(pos);
     }
-
-    std::vector<uint8_t> buffer;
-    s->drain(buffer);
-
-    leveldb::Slice v((char const *)buffer.data(), buffer.size());
-    db.put(mcfile::be::DbKey::AutonomousEntities(), v);
-
-    return true;
+    for (auto it = fStructures.begin(); it != fStructures.end(); it++) {
+      wd.fStructures.add(*it, fDim);
+    }
+    wd.fStat.merge(fStat);
+    wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
 private:
-  std::filesystem::path fInput;
+  void addStructures(mcfile::nbt::CompoundTag const &structure, StructureType type) {
+    auto children = structure.listTag("Children");
+    if (!children) {
+      return;
+    }
+    for (auto const &it : *children) {
+      auto c = it->asCompound();
+      if (!c) {
+        continue;
+      }
+      auto bb = GetBoundingBox(*c, "BB");
+      if (!bb) {
+        continue;
+      }
+      StructurePiece p(bb->fStart, bb->fEnd, type);
+      fStructures.add(p);
+    }
+  }
+
+  static std::optional<Volume> GetBoundingBox(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
+    auto bb = tag.intArrayTag(name);
+    if (!bb) {
+      return std::nullopt;
+    }
+    auto const &value = bb->value();
+    if (value.size() < 6) {
+      return std::nullopt;
+    }
+    Pos3i start(value[0], value[1], value[2]);
+    Pos3i end(value[3], value[4], value[5]);
+    return Volume(start, end);
+  }
 
 public:
-  Portals fPortals;
-  JavaEditionMap fJavaEditionMap;
+  mcfile::Dimension const fDim;
+
+private:
+  PortalBlocks fPortalBlocks;
   std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>> fMapItems;
   std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
-  InputOption fInputOption;
-  Structures fStructures;
+  StructurePieceCollection fStructures;
   Statistics fStat;
   int64_t fMaxChunkLastUpdate = 0;
 };

@@ -9,7 +9,7 @@ public:
   struct Result {
     Result() : fData(nullptr), fOk(false) {}
 
-    std::shared_ptr<WorldDataFragment> fData;
+    std::shared_ptr<WorldData> fData;
     bool fOk;
   };
 
@@ -33,18 +33,18 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldDataFragment(chunk, region, dim, db, mapInfo);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo);
       return r;
     } catch (...) {
       Chunk::Result r;
-      r.fData = make_shared<WorldDataFragment>(dim);
+      r.fData = make_shared<WorldData>(dim);
       r.fData->addStatError(dim, cx, cz);
       r.fOk = false;
       return r;
     }
   }
 
-  static std::shared_ptr<WorldDataFragment> MakeWorldDataFragment(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region region, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  static std::shared_ptr<WorldData> MakeWorldData(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region region, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -55,7 +55,7 @@ public:
     }
     PreprocessChunk(chunk, region);
 
-    auto ret = make_shared<WorldDataFragment>(dim);
+    auto ret = make_shared<WorldData>(dim);
     ChunkConversionMode mode = ConversionMode(*chunk);
 
     ChunkDataPackage cdp(mode);

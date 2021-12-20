@@ -27,15 +27,15 @@ public:
       return nullopt;
     }
 
-    auto data = LevelData::Read(fInputOption.getLevelDatFilePath(fInput));
+    auto data = Level::Read(fInputOption.getLevelDatFilePath(fInput));
     if (!data) {
       return nullopt;
     }
-    LevelData levelData = LevelData::Import(*data);
+    Level level = Level::Import(*data);
 
     bool ok = Datapacks::Import(fInput, fOutput);
 
-    auto worldData = std::make_unique<WorldData>(fInput, fInputOption);
+    auto levelData = std::make_unique<LevelData>(fInput, fInputOption);
     {
       RawDb db(dbPath, concurrency);
       if (!db.valid()) {
@@ -46,24 +46,24 @@ public:
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
         mcfile::je::World world(dir);
-        bool complete = World::Convert(world, dim, db, *worldData, concurrency, progress, done, numTotalChunks);
+        bool complete = World::Convert(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks);
         ok &= complete;
         if (!complete) {
           break;
         }
       }
 
-      auto localPlayerData = LocalPlayerData(*data, *worldData);
+      auto localPlayerData = LocalPlayerData(*data, *levelData);
       if (localPlayerData) {
         auto k = mcfile::be::DbKey::LocalPlayer();
         db.put(k, *localPlayerData);
       }
 
       if (ok) {
-        levelData.fCurrentTick = max(levelData.fCurrentTick, worldData->fMaxChunkLastUpdate);
-        ok = levelData.write(fOutput / "level.dat");
+        level.fCurrentTick = max(level.fCurrentTick, levelData->fMaxChunkLastUpdate);
+        ok = level.write(fOutput / "level.dat");
         if (ok) {
-          ok = worldData->put(db, *data);
+          ok = levelData->put(db, *data);
         }
       }
 
@@ -79,11 +79,11 @@ public:
       }
     }
 
-    return worldData->fStat;
+    return levelData->fStat;
   }
 
 private:
-  static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, WorldData &wd) {
+  static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, LevelData &ld) {
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
 
@@ -100,12 +100,12 @@ private:
       return std::nullopt;
     }
 
-    WorldDataFragment wdf(mcfile::Dimension::Overworld);
-    auto entity = Entity::LocalPlayer(*player, wd.fJavaEditionMap, wdf);
+    WorldData wd(mcfile::Dimension::Overworld);
+    auto entity = Entity::LocalPlayer(*player, ld.fJavaEditionMap, wd);
     if (!entity) {
       return std::nullopt;
     }
-    wdf.drain(wd);
+    wd.drain(ld);
 
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});

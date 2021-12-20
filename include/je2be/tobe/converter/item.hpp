@@ -10,7 +10,7 @@ private:
   using Block = mcfile::je::Block;
 
 public:
-  static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo, WorldDataFragment &wdf) {
+  static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace props;
     using namespace std;
     using namespace mcfile::nbt;
@@ -28,7 +28,7 @@ public:
       auto ret = Map(name, *item, mapInfo);
       if (ret) {
         auto [mapId, result] = *ret;
-        wdf.addMap(mapId, item);
+        wd.addMap(mapId, item);
         return result;
       } else {
         return nullptr;

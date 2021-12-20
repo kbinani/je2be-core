@@ -2,7 +2,7 @@
 
 namespace je2be::tobe {
 
-class LevelData {
+class Level {
   using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
@@ -229,8 +229,8 @@ public:
     return w.write((uint8_t)0);
   }
 
-  static LevelData Import(CompoundTag const &tag) {
-    LevelData ret;
+  static Level Import(CompoundTag const &tag) {
+    Level ret;
     auto data = tag.query("/Data")->asCompound();
     if (!data) {
       return ret;

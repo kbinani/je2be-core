@@ -53,6 +53,7 @@
 #include <je2be/tobe/versions.hpp>
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/statistics.hpp>
+#include <je2be/tobe/chunk-conversion-mode.hpp>
 
 #include <je2be/tobe/db/db-interface.hpp>
 #include <je2be/tobe/db/db.hpp>
@@ -73,7 +74,7 @@
 #include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/biome-map-legacy.hpp>
 #include <je2be/tobe/converter/player-abilities.hpp>
-#include <je2be/tobe/converter/level-data.hpp>
+#include <je2be/tobe/converter/level.hpp>
 #include <je2be/tobe/converter/height-map.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
 #include <je2be/tobe/converter/map.hpp>
@@ -88,9 +89,8 @@
 #include <je2be/tobe/converter/moving-piston.hpp>
 #include <je2be/tobe/converter/datapacks.hpp>
 
+#include <je2be/tobe/level-data.hpp>
 #include <je2be/tobe/world-data.hpp>
-#include <je2be/tobe/world-data-fragment.hpp>
-#include <je2be/tobe/chunk-conversion-mode.hpp>
 #include <je2be/tobe/chunk-data.hpp>
 
 #include <je2be/tobe/converter/item.hpp>
