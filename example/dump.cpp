@@ -26,12 +26,20 @@ static optional<Dimension> DimensionFromString(string const &s) {
   return nullopt;
 }
 
-static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
+static DB *Open(fs::path dir) {
   Options o;
   o.compression = kZlibRawCompression;
-  DB *db;
-  Status st = DB::Open(o, dbDir, &db);
+  DB *db = nullptr;
+  Status st = DB::Open(o, dir, &db);
   if (!st.ok()) {
+    return nullptr;
+  }
+  return db;
+}
+
+static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
     return;
   }
 
@@ -44,7 +52,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   int cz = Coordinate::ChunkFromBlock(z);
   auto key = mcfile::be::DbKey::SubChunk(cx, cy, cz, d);
   string value;
-  st = db->Get(ro, key, &value);
+  Status st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }
@@ -68,16 +76,11 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   tag->set("states", states);
   tag->set("version", props::Int(block->fVersion));
   nbt::PrintAsJson(cout, *tag, jopt);
-
-  delete db;
 }
 
 static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimension d) {
-  Options o;
-  o.compression = kZlibRawCompression;
-  DB *db;
-  Status st = DB::Open(o, dbDir, &db);
-  if (!st.ok()) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
     cerr << "Error: cannot open db: dbDir=" << dbDir << endl;
     return;
   }
@@ -92,7 +95,7 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimensio
   auto key = mcfile::be::DbKey::BlockEntity(cx, cz, d);
 
   string value;
-  st = db->Get(ro, key, &value);
+  Status st = db->Get(ro, key, &value);
   if (!st.ok()) {
     cerr << "Error: cannot get Key::BlockEntity(" << cx << ", " << cz << ", " << (int)d << ")" << endl;
     return;
@@ -122,16 +125,11 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimensio
       }
     }
   }
-
-  delete db;
 }
 
 static void DumpKey(fs::path const &dbDir, string const &key) {
-  Options o;
-  o.compression = kZlibRawCompression;
-  DB *db;
-  Status st = DB::Open(o, dbDir, &db);
-  if (!st.ok()) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
     return;
   }
 
@@ -140,7 +138,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   jopt.fTypeHint = true;
 
   string value;
-  st = db->Get(ro, key, &value);
+  Status st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }
@@ -162,16 +160,11 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
 
     PrintAsJson(cout, *tag, jopt);
   }
-
-  delete db;
 }
 
 static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
-  Options o;
-  o.compression = kZlibRawCompression;
-  DB *db;
-  Status st = DB::Open(o, dbDir, &db);
-  if (!st.ok()) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
     return;
   }
 
@@ -180,7 +173,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
   jopt.fTypeHint = true;
 
   string value;
-  st = db->Get(ro, key, &value);
+  Status st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }
@@ -219,11 +212,8 @@ static bool DumpLevelDat(fs::path const &dbDir) {
 }
 
 static void DumpAllKeys(fs::path const &dbDir) {
-  Options o;
-  o.compression = kZlibRawCompression;
-  DB *db;
-  Status st = DB::Open(o, dbDir, &db);
-  if (!st.ok()) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
     return;
   }
 
@@ -245,7 +235,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
   }
 
   itr.reset();
-  delete db;
+  db.reset();
 }
 
 static optional<wstring> GetLocalApplicationDirectory() {
