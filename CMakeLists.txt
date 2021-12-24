@@ -40,6 +40,7 @@ set(je2be_files
   include/je2be/tobe/converter/command.hpp
   include/je2be/tobe/converter/converter.hpp
   include/je2be/tobe/converter/datapacks.hpp
+  include/je2be/tobe/converter/dimension.hpp
   include/je2be/tobe/converter/enchant-data.hpp
   include/je2be/tobe/converter/entity-attributes.hpp
   include/je2be/tobe/converter/entity.hpp

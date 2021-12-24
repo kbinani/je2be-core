@@ -276,6 +276,8 @@ public:
   }
 
   static EntityData LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
+    using namespace std;
+    using namespace mcfile;
     using namespace mcfile::nbt;
     using namespace props;
 
@@ -287,6 +289,22 @@ public:
 
     entity->set("format_version", String("1.12.0"));
     entity->set("identifier", String("minecraft:player"));
+    entity->set("IsOutOfControl", Bool(false));
+    entity->set("OwnerNew", Long(-1));
+    entity->set("SleepTimer", Short(0));
+    entity->set("Sleeping", Bool(false));
+    entity->set("Sneaking", Bool(false));
+    entity->set("TicksSinceLastWarning", Int(0));
+    entity->set("WarningCooldownTicks", Int(0));
+    entity->set("WarningLevel", Int(0));
+
+    entity->erase("LastDimensionId");
+    entity->erase("BodyRot");
+    entity->erase("BreedCooldown");
+    entity->erase("Fire");
+    entity->erase("InLove");
+    entity->erase("LoveCause");
+    entity->erase("limitedLife");
 
     auto xpLevel = tag.int32("XpLevel");
     auto xpProgress = tag.float32("XpP");
@@ -304,6 +322,7 @@ public:
     if (selectedItemSlot) {
       entity->set("SelectedInventorySlot", Int(*selectedItemSlot));
     }
+    entity->set("SelectedContainerId", Int(0));
 
     auto playerGameType = tag.int32("playerGameType");
     if (playerGameType) {
@@ -380,6 +399,47 @@ public:
       auto converted = PlayerAbilities::Import(*abilities);
       entity->set("abilities", converted.toCompoundTag());
     }
+
+    auto spawnX = tag.int32("SpawnX");
+    auto spawnY = tag.int32("SpawnY");
+    auto spawnZ = tag.int32("SpawnZ");
+    auto spawnDimensionString = tag.string("SpawnDimension");
+    std::optional<mcfile::Dimension> spawnDimension;
+    if (spawnDimensionString) {
+      spawnDimension = DimensionFromString(*spawnDimensionString);
+    }
+    if (spawnX && spawnY && spawnZ && spawnDimension) {
+      entity->set("SpawnX", Int(*spawnX));
+      entity->set("SpawnY", Int(*spawnY));
+      entity->set("SpawnZ", Int(*spawnZ));
+      int dimension = IntFromDimension(*spawnDimension);
+      entity->set("SpawnDimension", Int(dimension));
+      entity->set("SpawnBlockPositionX", Int(*spawnX));
+      entity->set("SpawnBlockPositionY", Int(*spawnY));
+      entity->set("SpawnBlockPositionZ", Int(*spawnZ));
+    }
+
+    auto dimensionString = tag.string("Dimension");
+    if (dimensionString) {
+      auto dimension = DimensionFromString(*dimensionString);
+      if (dimension) {
+        entity->set("DimensionId", Int(IntFromDimension(*dimension)));
+      }
+    }
+
+    auto pos = GetVec(tag, "Pos");
+    if (pos) {
+      //ng 1.620001f
+      //ok 1.62001f
+      float offset = 1.62001f;
+      pos->fY += offset;
+      entity->set("Pos", pos->toListTag());
+    }
+
+    auto definitions = make_shared<ListTag>(Tag::Type::String);
+    definitions->push_back(String("+minecraft:player"));
+    definitions->push_back(String("+"));
+    entity->set("definitions", definitions);
 
     return entity;
   }
@@ -1649,7 +1709,9 @@ private:
     c["TargetID"] = Long(-1);
     c["TradeExperience"] = Int(0);
     c["TradeTier"] = Int(0);
-    AddDefinition(ret, "+" + e->fIdentifier);
+    if (!e->fIdentifier.empty()) {
+      AddDefinition(ret, "+" + e->fIdentifier);
+    }
     ret->erase("Motion");
     ret->erase("Dir");
     return ret;
@@ -1870,7 +1932,6 @@ private:
     // 3: east
     if (*facing == 0) {
       x = *tileX - dh + size->fWidth * 0.5f;
-      ;
       z = *tileZ + thickness;
     } else if (*facing == 1) {
       x = *tileX + 1 - thickness;
