@@ -9,7 +9,7 @@ struct Uuid {
 
   static Uuid Gen() {
     std::random_device r;
-    GenWithSeed(r());
+    return GenWithSeed(r());
   }
 
   static Uuid GenWithSeed(size_t seed) {
