@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
   std::string input;
   std::string output;
   je2be::LevelDirectoryStructure structure = je2be::LevelDirectoryStructure::Vanilla;
-  unsigned int concurrency = std::thread::hardware_concurrency();
+  int concurrency = std::thread::hardware_concurrency();
 
   char opt = 0;
   for (int i = 1; i < argc; i++) {
@@ -48,10 +48,6 @@ int main(int argc, char *argv[]) {
         auto n = je2be::strings::Toi(arg);
         if (!n) {
           std::cerr << "error: -n option must be an integer" << std::endl;
-          return -1;
-        }
-        if (*n < 1) {
-          std::cerr << "error: -n option must be > 0" << std::endl;
           return -1;
         }
         concurrency = *n;

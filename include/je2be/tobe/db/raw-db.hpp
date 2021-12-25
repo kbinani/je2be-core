@@ -31,8 +31,12 @@ class RawDb : public DbInterface {
   };
 
 public:
-  RawDb(std::filesystem::path const &dir, unsigned int concurrency)
-      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fQueue(std::make_unique<hwm::task_queue>(1)), fConcurrency(std::max(1u, concurrency)), fLock(nullptr) {
+  RawDb(std::filesystem::path const &dir, int concurrency)
+      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fConcurrency(concurrency), fLock(nullptr) {
+
+    if (concurrency > 0) {
+      fQueue.reset(new hwm::task_queue(1));
+    }
 
     leveldb::DestroyDB(dir, {});
     std::error_code ec;
@@ -88,16 +92,20 @@ public:
     string cvalue((char const *)buffer.data(), buffer.size());
     vector<uint8_t>().swap(buffer);
 
-    vector<future<bool>> popped;
-    {
-      std::lock_guard<std::mutex> lk(fMut);
-      FutureSupport::Drain(2, fFutures, popped);
-      fFutures.push_back(std::move(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2), key, cvalue)));
-    }
-
     bool ok = true;
-    for (auto &f : popped) {
-      ok &= f.get();
+    if (fQueue) {
+      vector<future<bool>> popped;
+      {
+        std::lock_guard<std::mutex> lk(fMut);
+        FutureSupport::Drain(2, fFutures, popped);
+        fFutures.push_back(std::move(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2), key, cvalue)));
+      }
+
+      for (auto &f : popped) {
+        ok &= f.get();
+      }
+    } else {
+      ok = putImpl(key, cvalue);
     }
 
     if (!ok) {
@@ -160,17 +168,37 @@ public:
       return false;
     }
 
-    auto queue = make_unique<hwm::task_queue>(fConcurrency);
-
     VersionEdit edit;
     uint64_t done = 0;
     uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
-    deque<future<optional<TableBuildResult>>> futures;
-    for (size_t idx = 0; idx < plans.size(); idx++) {
-      vector<future<optional<TableBuildResult>>> drain;
-      FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency + 1, futures, drain);
-      for (auto &f : drain) {
+    if (fConcurrency > 0) {
+      auto queue = make_unique<hwm::task_queue>(fConcurrency);
+
+      deque<future<optional<TableBuildResult>>> futures;
+      for (size_t idx = 0; idx < plans.size(); idx++) {
+        vector<future<optional<TableBuildResult>>> drain;
+        FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency + 1, futures, drain);
+        for (auto &f : drain) {
+          auto result = f.get();
+          if (!result) {
+            continue;
+          }
+          InternalKey smallest = result->fSmallest;
+          InternalKey largest = result->fLargest;
+          edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
+          done++;
+          if (progress) {
+            double p = (double)done / (double)total;
+            (*progress)(p);
+          }
+        }
+
+        TableBuildPlan plan = plans[idx];
+        futures.push_back(move(queue->enqueue(bind(&RawDb::buildTable, this, _1, _2), plan, idx)));
+      }
+
+      for (auto &f : futures) {
         auto result = f.get();
         if (!result) {
           continue;
@@ -184,27 +212,20 @@ public:
           (*progress)(p);
         }
       }
-
-      TableBuildPlan plan = plans[idx];
-      futures.push_back(move(queue->enqueue(bind(&RawDb::buildTable, this, _1, _2), plan, idx)));
-    }
-
-    for (auto &f : futures) {
-      auto result = f.get();
-      if (!result) {
-        continue;
-      }
-      InternalKey smallest = result->fSmallest;
-      InternalKey largest = result->fLargest;
-      edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-      done++;
-      if (progress) {
-        double p = (double)done / (double)total;
-        (*progress)(p);
+    } else {
+      for (size_t idx = 0; idx < plans.size(); idx++) {
+        TableBuildPlan plan = plans[idx];
+        auto result = buildTable(plan, idx);
+        InternalKey smallest = result->fSmallest;
+        InternalKey largest = result->fLargest;
+        edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
+        done++;
+        if (progress) {
+          double p = (double)done / (double)total;
+          (*progress)(p);
+        }
       }
     }
-
-    queue.reset();
 
     error_code ec;
     fs::remove(valuesFile(), ec);
@@ -658,7 +679,7 @@ private:
   std::map<uint8_t, uint64_t> fNumKeysPerShard;
   std::unique_ptr<hwm::task_queue> fQueue;
   std::deque<std::future<bool>> fFutures;
-  unsigned int const fConcurrency;
+  int const fConcurrency;
   bool fClosed = false;
   leveldb::FileLock *fLock;
 };

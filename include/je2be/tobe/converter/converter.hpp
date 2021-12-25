@@ -10,7 +10,7 @@ public:
   Converter(std::wstring const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
   Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo) : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
 
-  std::optional<Statistics> run(unsigned int concurrency, Progress *progress = nullptr) {
+  std::optional<Statistics> run(int concurrency, Progress *progress = nullptr) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile;
@@ -46,7 +46,12 @@ public:
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
         mcfile::je::World world(dir);
-        bool complete = World::Convert(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks);
+        bool complete;
+        if (concurrency > 0) {
+          complete = World::ConvertMultiThread(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks);
+        } else {
+          complete = World::ConvertSingleThread(world, dim, db, *levelData, progress, done, numTotalChunks);
+        }
         ok &= complete;
         if (!complete) {
           break;

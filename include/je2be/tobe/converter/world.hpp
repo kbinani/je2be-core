@@ -6,7 +6,37 @@ class World {
   World() = delete;
 
 public:
-  [[nodiscard]] static bool Convert(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, LevelData &ld, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  [[nodiscard]] static bool ConvertSingleThread(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, LevelData &ld, Progress *progress, uint32_t &done, double const numTotalChunks) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::je;
+    return w.eachRegions([dim, &db, &ld, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+      JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
+      for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
+        for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
+          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo);
+          done++;
+          if (progress) {
+            bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
+            if (!continue_) {
+              return false;
+            }
+          }
+
+          if (!result.fData) {
+            continue;
+          }
+          result.fData->drain(ld);
+          if (!result.fOk) {
+            return false;
+          }
+        }
+      }
+      return true;
+    });
+  }
+
+  [[nodiscard]] static bool ConvertMultiThread(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, LevelData &ld, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
