@@ -407,9 +407,14 @@ private:
         }
         Comparator const *cmp = BytewiseComparator();
         InternalKeyComparator icmp(cmp);
-        sort(execution::par_unseq, keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
-          return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
-        });
+#if defined(EMSCRIPTEN)
+        std::sort(
+#else
+        std::sort(execution::par_unseq,
+#endif
+            keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
+              return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
+            });
       }
       {
         ScopedFile fp(File::Open(keysShardFile(shard), File::Mode::Write));

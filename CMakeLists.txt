@@ -177,7 +177,7 @@ endif()
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
-else()
+elseif(NOT "${EMSCRIPTEN}" STREQUAL "1")
   list(APPEND je2be_link_libraries tbb)
 endif()
 
