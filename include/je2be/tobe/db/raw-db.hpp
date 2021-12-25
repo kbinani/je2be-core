@@ -627,9 +627,9 @@ private:
   std::filesystem::path tableFilePath(uint64_t tableNumber) const {
     std::vector<char> buffer(11, (char)0);
 #if defined(_WIN32)
-    sprintf_s(buffer.data(), buffer.size(), "%06lld.ldb", tableNumber);
+    sprintf_s(buffer.data(), buffer.size(), "%06llu.ldb", tableNumber);
 #else
-    sprintf(buffer.data(), "%06ld.ldb", tableNumber);
+    sprintf(buffer.data(), "%06llu.ldb", tableNumber);
 #endif
     std::string p(buffer.data(), 10);
     return fDir / p;
