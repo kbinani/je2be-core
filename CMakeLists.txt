@@ -46,6 +46,7 @@ set(je2be_files
   include/je2be/tobe/converter/entity.hpp
   include/je2be/tobe/converter/fireworks-explosion.hpp
   include/je2be/tobe/converter/fireworks.hpp
+  include/je2be/tobe/converter/flat-world-layers.hpp
   include/je2be/tobe/converter/height-map.hpp
   include/je2be/tobe/converter/item.hpp
   include/je2be/tobe/converter/java-edition-map.hpp

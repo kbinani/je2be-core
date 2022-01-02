@@ -75,6 +75,7 @@
 #include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/biome-map-legacy.hpp>
 #include <je2be/tobe/converter/player-abilities.hpp>
+#include <je2be/tobe/converter/flat-world-layers.hpp>
 #include <je2be/tobe/converter/level.hpp>
 #include <je2be/tobe/converter/height-map.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
