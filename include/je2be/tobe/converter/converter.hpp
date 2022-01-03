@@ -16,6 +16,11 @@ public:
     using namespace mcfile;
     using namespace mcfile::je;
 
+    SessionLock lock(fInput);
+    if (!lock.lock()) {
+      return nullopt;
+    }
+
     double const numTotalChunks = getTotalNumChunks();
 
     auto rootPath = fOutput;

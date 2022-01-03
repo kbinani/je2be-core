@@ -18,6 +18,13 @@
 #include <hwm/task/task_queue.hpp>
 #include <nlohmann/json.hpp>
 
+#if __has_include(<windows.h>)
+#define NOMINMAX
+#include <windows.h>
+#undef small
+#include <io.h>
+#endif
+
 #include <set>
 #include <unordered_set>
 #include <execution>
@@ -54,6 +61,7 @@
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/statistics.hpp>
 #include <je2be/tobe/chunk-conversion-mode.hpp>
+#include <je2be/tobe/session-lock.hpp>
 
 #include <je2be/tobe/db/db-interface.hpp>
 #include <je2be/tobe/db/db.hpp>

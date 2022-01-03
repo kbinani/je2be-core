@@ -70,6 +70,7 @@ set(je2be_files
   include/je2be/tobe/portal/portal-blocks.hpp
   include/je2be/tobe/portal/portal.hpp
   include/je2be/tobe/portal/portals.hpp
+  include/je2be/tobe/session-lock.hpp
   include/je2be/tobe/statistics.hpp
   include/je2be/tobe/structure/structure-piece-collection.hpp
   include/je2be/tobe/structure/structure-piece.hpp
