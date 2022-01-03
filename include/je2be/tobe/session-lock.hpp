@@ -64,7 +64,7 @@ private:
     lk.l_whence = SEEK_SET;
     lk.l_start = 0;
     lk.l_len = 0;
-    return fcntl(fd, F_SETLKW, &fl) != -1;
+    return fcntl(fd, F_SETLKW, &lk) != -1;
 #endif
   }
 
