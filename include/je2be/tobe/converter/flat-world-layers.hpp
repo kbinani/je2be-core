@@ -42,7 +42,7 @@ public:
     }
     nlohmann::json obj;
     obj["biome_id"] = mcfile::be::Biome::ToUint32(*biome);
-    obj["block_layers"].array();
+    (void)obj["block_layers"].array();
     for (auto const &layer : *layers) {
       auto c = layer->asCompound();
       if (!c) {
@@ -110,7 +110,7 @@ public:
     }
     nlohmann::json obj;
     obj["biome_id"] = mcfile::be::Biome::ToUint32(*biome);
-    obj["block_layers"].array();
+    (void)obj["block_layers"].array();
     for (auto const &layer : *layers) {
       auto c = layer->asCompound();
       if (!c) {
