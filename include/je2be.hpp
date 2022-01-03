@@ -25,6 +25,10 @@
 #include <io.h>
 #endif
 
+#if __has_include(<fcntl.h>)
+#include <fcntl.h>
+#endif
+
 #include <set>
 #include <unordered_set>
 #include <execution>
