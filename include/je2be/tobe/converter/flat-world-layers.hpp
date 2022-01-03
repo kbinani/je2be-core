@@ -52,6 +52,7 @@ public:
     } else if (version == "3") {
       return UsingStringGeneratorOptionsV3(trailing, dataVersion);
     }
+    return nullopt;
   }
 
   static std::optional<std::string> UsingStringGeneratorOptionsV3(std::string const &options, int dataVersion) {
