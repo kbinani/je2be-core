@@ -4,6 +4,7 @@ namespace je2be::tobe {
 
 class JavaEditionMap {
 public:
+  explicit JavaEditionMap(std::unordered_map<int32_t, int8_t> const &lookupTable) : fScaleLookupTable(lookupTable) {}
   JavaEditionMap(std::filesystem::path const &input, InputOption const &opt) : fScaleLookupTable(CreateScaleLookupTable(input, opt)) {}
 
   std::optional<int8_t> scale(int32_t mapId) const {
@@ -121,7 +122,7 @@ private:
     return table;
   }
 
-private:
+public:
   std::unordered_map<int32_t, int8_t> const fScaleLookupTable;
 };
 
