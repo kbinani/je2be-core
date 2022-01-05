@@ -66,6 +66,27 @@ public:
     wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
+  void drain(WorldData &out) {
+    fPortalBlocks.drain(out.fPortalBlocks);
+    for (auto const &it : fMapItems) {
+      out.fMapItems[it.first] = it.second;
+    }
+    std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>>().swap(fMapItems);
+    for (auto const &it : fAutonomousEntities) {
+      out.fAutonomousEntities.push_back(it);
+    }
+    std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>>().swap(fAutonomousEntities);
+    for (auto const &pos : fEndPortalsInEndDimension) {
+      out.fEndPortalsInEndDimension.insert(pos);
+    }
+    std::unordered_set<Pos3i, Pos3iHasher>().swap(fEndPortalsInEndDimension);
+    for (auto const &piece : fStructures) {
+      out.fStructures.add(piece);
+    }
+    out.fStat.merge(fStat);
+    out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
+  }
+
   std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
     using namespace std;
     using namespace mcfile;
