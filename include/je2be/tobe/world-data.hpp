@@ -59,11 +59,129 @@ public:
     for (auto const &pos : fEndPortalsInEndDimension) {
       wd.fEndPortalsInEndDimension.insert(pos);
     }
-    for (auto it = fStructures.begin(); it != fStructures.end(); it++) {
-      wd.fStructures.add(*it, fDim);
+    for (StructurePiece const &p : fStructures) {
+      wd.fStructures.add(p, fDim);
     }
     wd.fStat.merge(fStat);
     wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
+  }
+
+  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+    auto tag = make_shared<CompoundTag>();
+    CompoundTag &c = *tag;
+    c["dim"] = make_shared<ByteTag>(static_cast<uint8_t>(fDim));
+    c["maxChunkLastUpdate"] = make_shared<LongTag>(fMaxChunkLastUpdate);
+    c["portalBlocks"] = fPortalBlocks.toNbt();
+
+    auto mapItems = make_shared<ListTag>(Tag::Type::Compound);
+    for (auto it : fMapItems) {
+      int number = it.first;
+      auto tag = it.second;
+      auto c = make_shared<CompoundTag>();
+      (*c)["number"] = make_shared<IntTag>(number);
+      (*c)["tag"] = tag->clone();
+      mapItems->push_back(c);
+    }
+    c["mapItems"] = mapItems;
+
+    auto autonomousEntities = make_shared<ListTag>(Tag::Type::Compound);
+    for (auto it : fAutonomousEntities) {
+      autonomousEntities->push_back(it->clone());
+    }
+    c["autonomousEntities"] = autonomousEntities;
+
+    auto endPortalsInEndDimension = make_shared<ListTag>(Tag::Type::Compound);
+    for (Pos3i const &pos : fEndPortalsInEndDimension) {
+      endPortalsInEndDimension->push_back(Pos3iToNbt(pos));
+    }
+    c["endPortalsInEndDimension"] = endPortalsInEndDimension;
+
+    c["structures"] = fStructures.toNbt();
+
+    return tag;
+  }
+
+  static std::shared_ptr<WorldData> FromNbt(mcfile::nbt::Tag const &tag) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+    auto c = tag.asCompound();
+    if (!c) {
+      return nullptr;
+    }
+    auto dim = c->byte("dim");
+    if (!dim) {
+      return nullptr;
+    }
+    auto ret = make_shared<WorldData>(static_cast<Dimension>(*dim));
+
+    auto maxChunkLastUpdate = c->int64("maxChunkLastUpdate");
+    if (!maxChunkLastUpdate) {
+      return nullptr;
+    }
+    ret->fMaxChunkLastUpdate = *maxChunkLastUpdate;
+
+    auto portalBlocksTag = c->tag("portalBlocks");
+    if (!portalBlocksTag) {
+      return nullptr;
+    }
+    auto portalBlocks = PortalBlocks::FromNbt(*portalBlocksTag);
+    if (!portalBlocks) {
+      return nullptr;
+    }
+    ret->fPortalBlocks = *portalBlocks;
+
+    auto mapItemsTag = c->listTag("mapItems");
+    if (!mapItemsTag) {
+      return nullptr;
+    }
+    for (auto const &it : *mapItemsTag) {
+      auto c = it->asCompound();
+      if (!c) {
+        return nullptr;
+      }
+      auto number = c->int32("number");
+      auto t = c->compoundTag("tag");
+      if (!number || !t) {
+        return nullptr;
+      }
+      ret->fMapItems[*number] = t->copy();
+    }
+
+    auto autonomousEntitiesTag = c->listTag("autonomousEntities");
+    if (!autonomousEntitiesTag) {
+      return nullptr;
+    }
+    for (auto const &it : *autonomousEntitiesTag) {
+      auto c = it->asCompound();
+      ret->fAutonomousEntities.push_back(c->copy());
+    }
+
+    auto endPortalsInEndDimensionTag = c->listTag("endPortalsInEndDimension");
+    if (!endPortalsInEndDimensionTag) {
+      return nullptr;
+    }
+    for (auto const &it : *endPortalsInEndDimensionTag) {
+      auto pos = Pos3iFromNbt(*it);
+      if (!pos) {
+        return nullptr;
+      }
+      ret->fEndPortalsInEndDimension.insert(*pos);
+    }
+
+    auto structuresTag = c->tag("structures");
+    if (!structuresTag) {
+      return nullptr;
+    }
+    auto structures = StructurePieceCollection::FromNbt(*structuresTag);
+    if (!structures) {
+      ret->fStructures = *structures;
+    }
+
+    return ret;
   }
 
 private:

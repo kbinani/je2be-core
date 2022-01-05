@@ -72,6 +72,34 @@ public:
     return true;
   }
 
+  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto ret = make_shared<ListTag>(Tag::Type::Compound);
+    for (auto const &piece : fPieces) {
+      ret->push_back(piece.toNbt());
+    }
+    return ret;
+  }
+
+  static std::optional<StructurePieceCollection> FromNbt(mcfile::nbt::Tag const &tag) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto list = tag.asList();
+    if (!list) {
+      return nullopt;
+    }
+    StructurePieceCollection ret;
+    for (auto const &it : *list) {
+      auto piece = StructurePiece::FromNbt(*it);
+      if (!piece) {
+        return nullopt;
+      }
+      ret.fPieces.push_back(*piece);
+    }
+    return ret;
+  }
+
 private:
   std::vector<StructurePiece> fPieces;
 };

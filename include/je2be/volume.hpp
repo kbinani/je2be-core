@@ -23,6 +23,37 @@ public:
 
   static bool Equals(Volume const &a, Volume const &b) { return a.fStart == b.fStart && a.fEnd == b.fEnd; }
 
+  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+    auto tag = make_shared<CompoundTag>();
+    (*tag)["start"] = Pos3iToNbt(fStart);
+    (*tag)["end"] = Pos3iToNbt(fEnd);
+    return tag;
+  }
+
+  static std::optional<Volume> FromNbt(mcfile::nbt::Tag const &tag) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::nbt;
+    auto c = tag.asCompound();
+    if (!c) {
+      return nullopt;
+    }
+    auto startTag = c->compoundTag("start");
+    auto endTag = c->compoundTag("end");
+    if (!startTag || !endTag) {
+      return nullopt;
+    }
+    auto start = Pos3iFromNbt(*startTag);
+    auto end = Pos3iFromNbt(*endTag);
+    if (!start || !end) {
+      return nullopt;
+    }
+    return Volume(*start, *end);
+  }
+
 private:
   static std::optional<std::tuple<int32_t, int32_t>> Intersection(int32_t a0, int32_t a1, int32_t b0, int32_t b1) {
     using namespace std;
