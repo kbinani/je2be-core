@@ -92,7 +92,6 @@ public:
     return levelData->fStat;
   }
 
-private:
   static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, LevelData &ld) {
     using namespace mcfile::stream;
     using namespace mcfile::nbt;
@@ -129,6 +128,7 @@ private:
     return ret;
   }
 
+private:
   double getTotalNumChunks() const {
     namespace fs = std::filesystem;
     uint32_t num = 0;
