@@ -67,6 +67,10 @@ public:
   }
 
   void drain(WorldData &out) {
+    assert(fDim == out.fDim);
+    if (fDim != out.fDim) {
+      return;
+    }
     fPortalBlocks.drain(out.fPortalBlocks);
     for (auto const &it : fMapItems) {
       out.fMapItems[it.first] = it.second;
