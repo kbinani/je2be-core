@@ -91,6 +91,16 @@ public:
     }
     string cvalue((char const *)buffer.data(), buffer.size());
     vector<uint8_t>().swap(buffer);
+    putCompressed(key, cvalue);
+  }
+
+  void putCompressed(std::string const &key, std::string const &cvalue) {
+    using namespace std;
+    using namespace std::placeholders;
+
+    if (!valid()) {
+      return;
+    }
 
     bool ok = true;
     if (fQueue) {
