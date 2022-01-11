@@ -248,8 +248,8 @@ public:
     edit.EncodeTo(&manifestRecord);
 
     string manifestFileName = "MANIFEST-000001";
-
-    unique_ptr<WritableFile> meta(OpenWritable(fDir / manifestFileName));
+    fs::path manifestFile = fDir / manifestFileName;
+    unique_ptr<WritableFile> meta(OpenWritable(manifestFile));
     leveldb::log::Writer writer(meta.get());
     Status st = writer.AddRecord(manifestRecord);
     if (!st.ok()) {
@@ -257,14 +257,21 @@ public:
     }
     meta->Close();
     meta.reset();
+    if (fOnFileCreated) {
+      (*fOnFileCreated)(manifestFile);
+    }
 
-    unique_ptr<WritableFile> current(OpenWritable(fDir / "CURRENT"));
+    fs::path currentFile = fDir / "CURRENT";
+    unique_ptr<WritableFile> current(OpenWritable(currentFile));
     st = current->Append(manifestFileName + "\x0a");
     if (!st.ok()) {
       return false;
     }
     current->Close();
     current.reset();
+    if (fOnFileCreated) {
+      (*fOnFileCreated)(currentFile);
+    }
     if (progress) {
       (*progress)(1.0);
     }
@@ -541,6 +548,7 @@ private:
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
+    namespace fs = std::filesystem;
     ScopedFile fp(File::Open(valuesFile(), File::Mode::Read));
     if (!fp) {
       return nullopt;
@@ -551,7 +559,8 @@ private:
     bo.comparator = &icmp;
 
     uint64_t fileNumber = idx + 1;
-    unique_ptr<WritableFile> file(openTableFile(fileNumber));
+    fs::path tableFilePath = this->tableFilePath(fileNumber);
+    unique_ptr<WritableFile> file(OpenWritable(tableFilePath));
     if (!file) {
       return nullopt;
     }
@@ -636,6 +645,10 @@ private:
     builder->Finish();
     file->Close();
 
+    if (fOnFileCreated) {
+      (*fOnFileCreated)(tableFilePath);
+    }
+
     TableBuildResult result(plan, fileNumber, builder->FileSize(), *smallest, largest);
     return result;
   }
@@ -677,6 +690,9 @@ private:
   std::filesystem::path keysShardFile(uint8_t shared) const {
     return fDir / ("keys" + std::to_string((int)shared) + ".bin");
   }
+
+public:
+  std::optional<std::function<void(std::filesystem::path)>> fOnFileCreated;
 
 private:
   uint64_t fValuesPos = 0;
