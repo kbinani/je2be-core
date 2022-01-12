@@ -185,6 +185,14 @@ elseif(NOT "${EMSCRIPTEN}" STREQUAL "1")
 endif()
 
 set(LEVELDB_ZSTD OFF)
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
+  set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng")
+  set(ZLIB_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng")
+  include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng"
+    "${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng")
+  link_directories("${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng")
+endif()
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
 list(APPEND je2be_link_libraries mcfile leveldb)
