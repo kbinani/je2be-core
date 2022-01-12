@@ -187,8 +187,8 @@ private:
   }
 
   static void HalfToSeagrassType(StatesType const &s, Block const &block) {
-    auto half = block.property("half", "bottom");
-    auto type = half == "bottom" ? "double_bot" : "double_top";
+    auto half = block.property("half", "lower");
+    auto type = half == "lower" ? "double_bot" : "double_top";
     s->set("sea_grass_type", props::String(type));
   }
 
