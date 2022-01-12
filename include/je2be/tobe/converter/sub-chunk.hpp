@@ -14,10 +14,6 @@ public:
     using namespace props;
     using namespace leveldb;
 
-    if (chunk.fChunkX == -32 && chunk.fChunkZ == -32 && chunkY == -4) {
-      int a = 0;
-    }
-
     size_t const kNumBlocksInSubChunk = 16 * 16 * 16;
 
     vector<uint16_t> indices(kNumBlocksInSubChunk);

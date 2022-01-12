@@ -91,6 +91,7 @@ private:
     InjectTickingLiquidBlocksAsBlocks(*chunk);
     SortTickingBlocks(chunk->fTileTicks);
     SortTickingBlocks(chunk->fLiquidTicks);
+    CompensateKelp(*chunk);
   }
 
   static void SortTickingBlocks(std::vector<mcfile::je::TickingBlock> &blocks) {
@@ -111,6 +112,66 @@ private:
       return ChunkConversionMode::CavesAndCliffs2;
     } else {
       return ChunkConversionMode::Legacy;
+    }
+  }
+
+  static void CompensateKelp(mcfile::je::Chunk &chunk) {
+    using namespace std;
+    using namespace mcfile::je;
+    bool hasKelp = false;
+    for (auto const &section : chunk.fSections) {
+      if (!section) {
+        continue;
+      }
+      section->eachBlockPalette([&hasKelp](Block const &block) {
+        if (block.fName == "minecraft:kelp_plant") {
+          hasKelp = true;
+          return false;
+        }
+        return true;
+      });
+      if (hasKelp) {
+        break;
+      }
+    }
+    if (!hasKelp) {
+      return;
+    }
+    for (int x = chunk.minBlockX(); x <= chunk.maxBlockX(); x++) {
+      for (int z = chunk.minBlockZ(); z <= chunk.maxBlockZ(); z++) {
+        int minY = chunk.minBlockY();
+        int maxY = chunk.maxBlockY();
+        shared_ptr<Block const> lower;
+        for (int y = minY; y <= maxY; y++) {
+          auto block = chunk.blockAt(x, y, z);
+          if (!block) {
+            break;
+          }
+          if (lower) {
+            if ((block->fName == "minecraft:kelp_plant" || block->fName == "minecraft:kelp") && lower->fName == "minecraft:water") {
+              auto kelpPlant = make_shared<Block const>("minecraft:kelp_plant");
+              for (int i = y - 1; i >= minY; i--) {
+                auto b = chunk.blockAt(x, i, z);
+                if (!b) {
+                  break;
+                }
+                if (b->fName == "minecraft:water") {
+                  chunk.setBlockAt(x, i, z, kelpPlant);
+                } else {
+                  break;
+                }
+              }
+            } else if (block->fName == "minecraft:water" && lower->fName == "minecraft:kelp_plant") {
+              map<string, string> props;
+              props["age"] = "22";
+              auto kelp = make_shared<Block const>("minecraft:kelp", props);
+              chunk.setBlockAt(x, y, z, kelp);
+              block = kelp;
+            }
+          }
+          lower = block;
+        }
+      }
     }
   }
 };
