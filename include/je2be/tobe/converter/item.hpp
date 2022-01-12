@@ -364,11 +364,12 @@ private:
   }
 
   static ItemData BooksAndQuill(std::string const &name, CompoundTag const &item) {
+    using namespace std;
     using namespace props;
     using namespace mcfile::nbt;
 
     auto count = item.byte("Count", 1);
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"Name", String(name)},
         {"Count", Byte(count)},
@@ -378,7 +379,7 @@ private:
 
     auto tg = item.compoundTag("tag");
     if (tg) {
-      auto outTag = std::make_shared<CompoundTag>();
+      auto outTag = make_shared<CompoundTag>();
       auto author = tg->stringTag("author");
       if (author) {
         outTag->set("author", String(author->fValue));
@@ -392,23 +393,43 @@ private:
       }
       auto pages = tg->listTag("pages");
       if (pages) {
-        auto outPages = std::make_shared<ListTag>(Tag::Type::Compound);
+        auto outPages = make_shared<ListTag>(Tag::Type::Compound);
         for (auto const &it : *pages) {
           auto line = it->asString();
           if (!line) {
             continue;
           }
-          std::string lineText;
+          string lineText;
           auto obj = ParseAsJson(line->fValue);
           if (obj) {
             auto text = obj->find("text");
-            if (text != obj->end()) {
-              lineText = text->get<std::string>();
+            auto extra = obj->find("extra");
+            if (extra != obj->end() && extra->is_array()) {
+              vector<string> lines;
+              for (auto const &line : *extra) {
+                auto t = line.find("text");
+                if (t != line.end() && t->is_string()) {
+                  string l = t->get<string>();
+                  if (l == "\x0d\x0a") {
+                    l = "";
+                  }
+                  lines.push_back(l);
+                }
+              }
+              lineText = "";
+              for (int i = 0; i < lines.size(); i++) {
+                lineText += lines[i];
+                if (i + 1 < lines.size()) {
+                  lineText += "\x0d\x0a";
+                }
+              }
+            } else if (text != obj->end()) {
+              lineText = text->get<string>();
             }
           } else {
             lineText = line->fValue;
           }
-          auto lineObj = std::make_shared<CompoundTag>();
+          auto lineObj = make_shared<CompoundTag>();
           lineObj->insert({
               {"photoname", String("")},
               {"text", String(lineText)},
