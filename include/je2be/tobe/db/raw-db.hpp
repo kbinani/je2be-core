@@ -4,13 +4,12 @@ namespace je2be::tobe {
 
 class RawDb : public DbInterface {
   struct ShardLocator {
-    ShardLocator(uint8_t shard, uint64_t indexInShard, uint64_t keyFileOffset, leveldb::SequenceNumber sequence)
-        : fShard(shard), fIndexInShard(indexInShard), fKeyFileOffset(keyFileOffset), fSequence(sequence) {}
+    ShardLocator(uint8_t shard, uint64_t indexInShard, uint64_t keyFileOffset)
+        : fShard(shard), fIndexInShard(indexInShard), fKeyFileOffset(keyFileOffset) {}
 
     uint8_t fShard;
     uint64_t fIndexInShard;
     uint64_t fKeyFileOffset;
-    leveldb::SequenceNumber fSequence;
   };
 
   struct TableBuildPlan {
@@ -724,7 +723,7 @@ private:
             return false;
           }
           size += key.fSizeCompressed;
-          last = ShardLocator(shard, i, offset, sequence);
+          last = ShardLocator(shard, i, offset);
           if (!from) {
             from = last;
           }
