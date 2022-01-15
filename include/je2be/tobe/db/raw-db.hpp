@@ -42,6 +42,7 @@ class RawDb : public DbInterface {
             pending_index_entry(false) {
         index_block_options.block_restart_interval = 1;
         assert(opt.filter_policy == nullptr);
+        assert(opt.compression == kZlibRawCompression);
       }
 
       leveldb::Options options;
@@ -185,6 +186,31 @@ class RawDb : public DbInterface {
     // Finish() call, returns the size of the final generated file.
     uint64_t FileSize() const { return rep_->offset; }
 
+    static void Compress(leveldb::Slice const &c, std::string &ret) {
+      ret.resize(compressBound(c.size()));
+
+      z_stream strm;
+      strm.zalloc = 0;
+      strm.zfree = 0;
+      strm.next_in = (unsigned char *)c.data();
+      strm.avail_in = (uint32_t)c.size();
+      strm.next_out = (unsigned char *)ret.data();
+      strm.avail_out = ret.size();
+      int compressionLevel = 9;
+      int window = -15;
+      int memLevel = 8;
+
+      auto res = deflateInit2(&strm, compressionLevel, Z_DEFLATED, window, memLevel, Z_DEFAULT_STRATEGY);
+      assert(res == Z_OK);
+
+      res = deflate(&strm, Z_FINISH);
+      assert(res == Z_STREAM_END);
+
+      ret.resize(strm.total_out);
+
+      deflateEnd(&strm);
+    }
+
   private:
     bool ok() const { return status().ok(); }
     void WriteBlock(leveldb::BlockBuilder *block, leveldb::BlockHandle *handle) {
@@ -198,22 +224,15 @@ class RawDb : public DbInterface {
       Slice raw = block->Finish();
 
       Slice block_contents;
-      CompressionType type = r->options.compression;
+      CompressionType type = kZlibRawCompression;
 
-      auto compressor = CompressorFactory::GetCompressor(type);
-      if (compressor) {
-        std::string *compressed = &r->compressed_output;
-
-        compressor->compress(raw.data(), raw.size(), *compressed);
-        if (compressed->size() < raw.size() - (raw.size() / 8u)) {
-          block_contents = *compressed;
-        } else {
-          // Compression type not supported, or compressed less than 12.5%, so just
-          // store uncompressed form
-          block_contents = raw;
-          type = kNoCompression;
-        }
+      std::string *compressed = &r->compressed_output;
+      Compress(raw, *compressed);
+      if (compressed->size() < raw.size() - (raw.size() / 8u)) {
+        block_contents = *compressed;
       } else {
+        // Compression type not supported, or compressed less than 12.5%, so just
+        // store uncompressed form
         block_contents = raw;
         type = kNoCompression;
       }
@@ -305,28 +324,7 @@ public:
     Slice c = bb.Finish();
 
     string ret;
-    ret.resize(compressBound(c.size()));
-
-    z_stream strm;
-    strm.zalloc = 0;
-    strm.zfree = 0;
-    strm.next_in = (unsigned char *)c.data();
-    strm.avail_in = (uint32_t)c.size();
-    strm.next_out = (unsigned char *)ret.data();
-    strm.avail_out = ret.size();
-    int compressionLevel = 9;
-    int window = -15;
-    int memLevel = 8;
-
-    auto res = deflateInit2(&strm, compressionLevel, Z_DEFLATED, window, memLevel, Z_DEFAULT_STRATEGY);
-    assert(res == Z_OK);
-
-    res = deflate(&strm, Z_FINISH);
-    assert(res == Z_STREAM_END);
-
-    ret.resize(strm.total_out);
-
-    deflateEnd(&strm);
+    ZlibRawTableBuilder::Compress(c, ret);
 
     return ret;
   }
