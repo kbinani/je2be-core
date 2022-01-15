@@ -11,7 +11,6 @@
 #include <leveldb/env.h>
 #include <leveldb/table.h>
 #include <table/compression/compressor_factory.h>
-#include <table/compression/zlib_compressor.h>
 #include <table/block_builder.h>
 #include <table/filter_block.h>
 #include <table/format.h>

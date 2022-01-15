@@ -304,9 +304,29 @@ public:
     bb.Add(ik.Encode(), value);
     Slice c = bb.Finish();
 
-    ZlibCompressorRaw compressor(9);
     string ret;
-    compressor.compress(c.data(), c.size(), ret);
+    ret.resize(compressBound(c.size()));
+
+    z_stream strm;
+    strm.zalloc = 0;
+    strm.zfree = 0;
+    strm.next_in = (unsigned char *)c.data();
+    strm.avail_in = (uint32_t)c.size();
+    strm.next_out = (unsigned char *)ret.data();
+    strm.avail_out = ret.size();
+    int compressionLevel = 9;
+    int window = -15;
+    int memLevel = 8;
+
+    auto res = deflateInit2(&strm, compressionLevel, Z_DEFLATED, window, memLevel, Z_DEFAULT_STRATEGY);
+    assert(res == Z_OK);
+
+    res = deflate(&strm, Z_FINISH);
+    assert(res == Z_STREAM_END);
+
+    ret.resize(strm.total_out);
+
+    deflateEnd(&strm);
 
     return ret;
   }
@@ -326,16 +346,6 @@ public:
     if (!block) {
       return;
     }
-    putCompressed(key, *block, sequence);
-  }
-
-  void putCompressed(std::string const &key, std::string const &cvalue, uint64_t sequence) {
-    using namespace std;
-    using namespace std::placeholders;
-
-    if (!valid()) {
-      return;
-    }
 
     bool ok = true;
     if (fQueue) {
@@ -343,14 +353,14 @@ public:
       {
         std::lock_guard<std::mutex> lk(fMut);
         FutureSupport::Drain(2, fFutures, popped);
-        fFutures.push_back(std::move(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, cvalue, sequence)));
+        fFutures.push_back(std::move(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, *block, sequence)));
       }
 
       for (auto &f : popped) {
         ok &= f.get();
       }
     } else {
-      ok = putImpl(key, cvalue, sequence);
+      ok = putImpl(key, *block, sequence);
     }
 
     if (!ok) {
