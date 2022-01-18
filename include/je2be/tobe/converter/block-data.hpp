@@ -6,24 +6,26 @@ class BlockData {
 public:
   static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::je::Block const> const &block) {
     using namespace std;
-    static unique_ptr<unordered_map<mcfile::blocks::BlockId, AnyConverter> const> const table(CreateConverterTable());
+    static unique_ptr<vector<AnyConverter> const> const table(CreateConverterTable());
 
-    auto found = table->find(block->fId);
-    if (found == table->end()) {
-      // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
-      if (block->fName == "j2b:stickyPistonArmCollision") {
-        return StickyPistonArmCollision(*block);
-      } else if (block->fName == "j2b:pistonArmCollision") {
-        return PistonArmCollision(*block);
-      } else if (block->fName == "minecraft:flowing_water" || block->fName == "minecraft:flowing_lava") {
-        return FlowingLiquid(*block);
-      } else if (block->fName == "minecraft:sticky_piston_head") {
-        return Converter(Name("air"))(*block);
-      } else {
-        return Identity(*block);
+    uint32_t index = static_cast<uint32_t>(block->fId);
+    if (index < table->size()) {
+      AnyConverter func = (*table)[index];
+      if (func) {
+        return func(*block);
       }
+    }
+    // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
+    if (block->fName == "j2b:stickyPistonArmCollision") {
+      return StickyPistonArmCollision(*block);
+    } else if (block->fName == "j2b:pistonArmCollision") {
+      return PistonArmCollision(*block);
+    } else if (block->fName == "minecraft:flowing_water" || block->fName == "minecraft:flowing_lava") {
+      return FlowingLiquid(*block);
+    } else if (block->fName == "minecraft:sticky_piston_head") {
+      return Converter(Name("air"))(*block);
     } else {
-      return found->second(*block);
+      return Identity(*block);
     }
   }
 
@@ -717,15 +719,15 @@ private:
     s->set("extinguished", props::Bool(!l));
   }
 
-  static std::unordered_map<mcfile::blocks::BlockId, AnyConverter> *CreateConverterTable() {
+  static std::vector<AnyConverter> *CreateConverterTable() {
     using namespace std;
     Converter axisToPillarAxis(Same, AxisToPillarAxis);
     Converter directionFromFacing(Same, DirectionFromFacingA);
     Converter facingDirectionFromFacingA(Same, FacingDirectionFromFacingA);
     Converter facingDirectionFromFacingB(Same, FacingDirectionFromFacingB);
 
-    auto table = new unordered_map<mcfile::blocks::BlockId, AnyConverter>();
-#define E(__name, __func) table->emplace(mcfile::blocks::minecraft::__name, __func);
+    auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
+#define E(__name, __func) (*table)[static_cast<uint32_t>(mcfile::blocks::minecraft::__name)] = __func;
     E(stone, Stone("stone"));
     E(granite, Stone("granite"));
     E(polished_granite, Stone("granite_smooth"));
