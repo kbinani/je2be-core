@@ -13,15 +13,11 @@ namespace fs = std::filesystem;
 TEST_CASE("block-data") {
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
-  int ok = 0;
-  int total = 0;
   for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / "1.18.1")) {
     auto path = it.path();
     if (!fs::is_regular_file(path)) {
       continue;
     }
-
-    total++;
 
     fs::path filename = path.filename();
     string javaBlockData = string("minecraft:") + filename.replace_extension().string();
@@ -38,21 +34,7 @@ TEST_CASE("block-data") {
     CHECK(block);
     auto convertedToBe = je2be::tobe::BlockData::From(block);
     CheckTag::Check(convertedToBe.get(), bedrockBlockData.get());
-
-    // bedrock -> java
-    auto convertedToJe = je2be::toje::BlockData::From(*bedrockBlockData);
-    if (convertedToJe && convertedToJe->toString() == javaBlockData) {
-      ok++;
-    } else {
-      cout << "-------------------------------------------------------------------------------" << endl;
-      cout << "input=" << endl;
-      mcfile::nbt::PrintAsJson(cout, *bedrockBlockData, {.fTypeHint = true});
-      cout << "expected=" << javaBlockData << endl;
-    }
-    //TODO: CHECK(convertedToJe);
-    //TODO: CHECK(convertedToJe->toString() == javaBlockData);
   }
-  cout << ok << "/" << total << " (" << ((float)ok / (float)total * 100.0f) << "%)" << endl;
 }
 
 #if 0
