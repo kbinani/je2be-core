@@ -170,7 +170,8 @@ set(test_files
   test/main.cpp
   test/moving-piston.test.cpp
   test/command.test.cpp
-  test/research.cpp)
+  test/research.cpp
+  test/block-data.cpp)
 
 add_subdirectory(deps/libminecraft-file)
 
