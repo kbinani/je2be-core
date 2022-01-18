@@ -727,7 +727,10 @@ private:
     Converter facingDirectionFromFacingB(Same, FacingDirectionFromFacingB);
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
-#define E(__name, __func) (*table)[static_cast<uint32_t>(mcfile::blocks::minecraft::__name)] = __func;
+#define E(__name, __func)                                                                                    \
+  assert(!(*table)[static_cast<uint32_t>(mcfile::blocks::minecraft::__name)] && "converter is already set"); \
+  (*table)[static_cast<uint32_t>(mcfile::blocks::minecraft::__name)] = __func;
+
     E(stone, Stone("stone"));
     E(granite, Stone("granite"));
     E(polished_granite, Stone("granite_smooth"));
@@ -872,12 +875,10 @@ private:
     E(polished_diorite_stairs, Stairs());
     E(andesite_stairs, Stairs());
     E(polished_andesite_stairs, Stairs());
-    E(cobblestone_stairs, Stairs());
     E(mossy_cobblestone_stairs, Stairs());
     E(stone_brick_stairs, Stairs());
     E(mossy_stone_brick_stairs, Stairs());
     E(brick_stairs, Stairs());
-    E(end_stone_brick_stairs, Stairs());
     E(nether_brick_stairs, Stairs());
     E(red_nether_brick_stairs, Stairs());
     E(sandstone_stairs, Stairs());
@@ -888,7 +889,6 @@ private:
     E(smooth_quartz_stairs, Stairs());
     E(purpur_stairs, Stairs());
     E(prismarine_stairs, Stairs());
-    E(prismarine_brick_stairs, Stairs());
     E(dark_prismarine_stairs, Stairs());
     E(blackstone_stairs, Stairs());
     E(polished_blackstone_stairs, Stairs());
@@ -1544,7 +1544,6 @@ private:
     E(fire, Converter(Same, Name(Age, "age")));
     E(frosted_ice, Converter(Same, Name(Age, "age")));
     E(pumpkin, Converter(Same, AddIntProperty("direction", 0)));
-    E(melon, Converter(Same, AddIntProperty("direction", 0)));
     E(redstone_wire, Converter(Same, Name(Power, "redstone_signal")));
     E(scaffolding, Scaffolding);
     E(structure_block, StructureBlock);
