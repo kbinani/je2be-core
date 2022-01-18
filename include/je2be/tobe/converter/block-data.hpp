@@ -23,7 +23,7 @@ public:
     } else if (block->fName == "minecraft:flowing_water" || block->fName == "minecraft:flowing_lava") {
       return FlowingLiquid(*block);
     } else if (block->fName == "minecraft:sticky_piston_head") {
-      return Converter(Name("air"))(*block);
+      return Air();
     } else {
       return Identity(*block);
     }
