@@ -42,7 +42,7 @@ class RawDb : public DbInterface {
             pending_index_entry(false) {
         index_block_options.block_restart_interval = 1;
         assert(opt.filter_policy == nullptr);
-        assert(opt.compression == kZlibRawCompression);
+        assert(opt.compression == leveldb::kZlibRawCompression);
       }
 
       leveldb::Options options;
