@@ -81,6 +81,7 @@ set(je2be_files
   include/je2be/tobe/world-data.hpp
   include/je2be/toje/block-data.hpp
   include/je2be/toje/converter.hpp
+  include/je2be/toje/level-data.hpp
   include/je2be/toje/toje.hpp
   include/je2be/uuid.hpp
   include/je2be/vec.hpp
