@@ -15,6 +15,7 @@ public:
   bool run(unsigned concurrency) {
     using namespace std;
     using namespace leveldb;
+    using namespace mcfile;
     namespace fs = std::filesystem;
 
     unique_ptr<DB> db(Open(fInput / "db"));
@@ -32,6 +33,12 @@ public:
     }
     if (!levelDat->write(fOutput / "level.dat")) {
       return false;
+    }
+
+    for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+      if (World::Convert(d, *db, fOutput)) {
+        return false;
+      }
     }
 
     return true;
