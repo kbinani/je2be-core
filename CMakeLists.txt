@@ -215,8 +215,11 @@ target_include_directories(je2be INTERFACE
   deps/json/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 
-add_executable(cli example/cli.cpp ${je2be_files})
-target_link_libraries(cli je2be)
+add_executable(j2b example/j2b.cpp ${je2be_files})
+target_link_libraries(j2b je2be)
+
+add_executable(b2j example/b2j.cpp ${je2be_files})
+target_link_libraries(b2j je2be)
 
 add_executable(dump example/dump.cpp ${je2be_files})
 target_link_libraries(dump je2be)
