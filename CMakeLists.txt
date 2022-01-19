@@ -80,6 +80,7 @@ set(je2be_files
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
   include/je2be/toje/block-data.hpp
+  include/je2be/toje/converter.hpp
   include/je2be/toje/toje.hpp
   include/je2be/uuid.hpp
   include/je2be/vec.hpp
@@ -100,6 +101,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/be/db.hpp
   deps/libminecraft-file/include/mcfile/be/pending-tick.hpp
   deps/libminecraft-file/include/mcfile/be/sub-chunk.hpp
+  deps/libminecraft-file/include/mcfile/be/wrap-db.hpp
   deps/libminecraft-file/include/mcfile/biome-palette.hpp
   deps/libminecraft-file/include/mcfile/biomes/biome-id.hpp
   deps/libminecraft-file/include/mcfile/biomes/from-int.hpp
