@@ -37,7 +37,7 @@ private:
     auto const &s = *b.fStates;
     auto railData = s.boolean("rail_data_bit", false);
     auto railDirection = s.int32("rail_direction", 0);
-    auto props = Submergible();
+    auto props = Empty();
     props["powered"] = Bool(railData);
     props["shape"] = ShapeFromRailDirection(railDirection);
     return make_shared<Block const>(b.fName, props);
@@ -156,7 +156,7 @@ private:
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto facingDirection = s.int32("facing_direction", 0);
-    auto props = Submergible();
+    auto props = Empty();
     props["facing"] = FacingDirectionFromFacingA(facingDirection);
     return make_shared<Block const>(b.fName, props);
   }
@@ -274,7 +274,7 @@ private:
       facing = "east";
       break;
     }
-    auto props = Submergible();
+    auto props = Empty();
     props["facing"] = facing;
     props["half"] = upsideDown ? "top" : "bottom";
     return make_shared<Block const>(b.fName, props);
@@ -286,7 +286,7 @@ private:
     auto const &s = *b.fStates;
     auto type = VariantFromName(b.fName, "_standing_sign");
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
-    auto props = Submergible();
+    auto props = Empty();
     props["rotation"] = to_string(groundSignRotation);
     return make_shared<Block const>(Ns() + type + "_sign");
   }
@@ -302,7 +302,7 @@ private:
     auto direction = s.int32("direction", 0);
     auto open = s.boolean("open_bit", false);
     auto upsideDown = s.boolean("upside_down_bit", false);
-    auto props = Submergible();
+    auto props = Empty();
     props["facing"] = FacingBFromDirection(direction);
     props["half"] = upsideDown ? "top" : "bottom";
     props["open"] = Bool(open);
@@ -319,7 +319,7 @@ private:
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto facingDirection = s.int32("facing_direction", 0);
-    auto props = Submergible();
+    auto props = Empty();
     props["facing"] = FacingDirectionFromFacingA(facingDirection);
     return make_shared<Block const>(b.fName, props);
   }
@@ -343,7 +343,7 @@ private:
     auto const &s = *b.fStates;
     auto topSlot = s.boolean("top_slot_bit", false);
     auto woodType = s.string("wood_type", "acacia");
-    auto props = Submergible();
+    auto props = Empty();
     props["type"] = topSlot ? "top" : "bottom";
     return make_shared<Block const>(Ns() + woodType + "_slab", props);
   }
@@ -633,11 +633,6 @@ private:
 
   static inline std::map<std::string, std::string> Empty() {
     static std::map<std::string, std::string> const sP;
-    return sP;
-  }
-
-  static inline std::map<std::string, std::string> Submergible() {
-    static std::map<std::string, std::string> const sP({{"waterlogged", "false"}});
     return sP;
   }
 
