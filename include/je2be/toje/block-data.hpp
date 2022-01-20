@@ -7,12 +7,10 @@ class BlockData {
   using Return = std::shared_ptr<mcfile::je::Block const>;
 
 public:
-  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
-    //TODO:
-    return Identity(b);
+  static Return From(Input const &b) {
+    return nullptr;
   }
 
-private:
   static Return Identity(Input const &b) {
     return std::make_shared<mcfile::je::Block const>(b.fName);
   }

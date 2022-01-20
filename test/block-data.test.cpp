@@ -13,6 +13,17 @@ namespace fs = std::filesystem;
 TEST_CASE("block-data") {
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
+
+  int total = 0;
+  for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / "1.18.1")) {
+    auto path = it.path();
+    if (!fs::is_regular_file(path)) {
+      continue;
+    }
+    total++;
+  }
+
+  int ok = 0;
   for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / "1.18.1")) {
     auto path = it.path();
     if (!fs::is_regular_file(path)) {
@@ -30,11 +41,25 @@ TEST_CASE("block-data") {
     CHECK(bedrockBlockData);
 
     // java -> bedrock
-    auto block = mcfile::je::Block::FromBlockData(javaBlockData, 2865);
-    CHECK(block);
-    auto convertedToBe = je2be::tobe::BlockData::From(block);
+    auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, 2865);
+    CHECK(blockJ);
+    auto convertedToBe = je2be::tobe::BlockData::From(blockJ);
     CheckTag::Check(convertedToBe.get(), bedrockBlockData.get());
+
+    // bedrock -> java
+    shared_ptr<mcfile::be::Block> blockB = mcfile::be::Block::FromCompound(*convertedToBe);
+    CHECK(blockB);
+    auto convertedJe = je2be::toje::BlockData::From(*blockB);
+    if (convertedJe) {
+      ok++;
+    } else {
+      cerr << "-------------------------------------------------------------------------------" << endl;
+      cerr << "input=" << endl;
+      mcfile::nbt::PrintAsJson(cerr, *convertedToBe);
+    }
   }
+  cout << ok << "/" << total << " (" << ((float)ok / (float)total * 100.0f) << "%)" << endl;
+  CHECK(ok == total);
 }
 
 #if 0

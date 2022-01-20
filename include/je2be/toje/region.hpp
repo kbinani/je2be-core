@@ -42,7 +42,7 @@ public:
           auto const &blockB = subChunk->fPalette[idx];
           auto blockJ = BlockData::From(*blockB);
           if (!blockJ) {
-            return false;
+            blockJ = BlockData::Identity(*blockB);
           }
           palette.push_back(blockJ);
         }
