@@ -10,6 +10,7 @@ private:
   int32_t fSpawnX = 0;
   int32_t fSpawnY = 64;
   int32_t fSpawnZ = 0;
+  bool fAllowCommands = false;
 
 public:
   static std::optional<LevelData> Import(std::filesystem::path levelDatFile) {
@@ -43,6 +44,7 @@ public:
     d.fSpawnX = t->int32("SpawnX", d.fSpawnX);
     d.fSpawnY = t->int32("SpawnY", d.fSpawnY);
     d.fSpawnZ = t->int32("SpawnZ", d.fSpawnZ);
+    d.fAllowCommands = t->boolean("commandsEnabled", d.fAllowCommands);
     return d;
   }
 
@@ -59,6 +61,7 @@ public:
     t["SpawnX"] = Int(fSpawnX);
     t["SpawnY"] = Int(fSpawnY);
     t["SpawnZ"] = Int(fSpawnZ);
+    t["allowCommands"] = Bool(fAllowCommands);
     auto root = make_shared<CompoundTag>();
     root->set("Data", ret);
     return root;
