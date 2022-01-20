@@ -29,6 +29,22 @@ public:
 private:
   BlockData() = delete;
 
+#pragma region Converters : A
+
+  static Return RailCanBePowered(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto railData = s.boolean("rail_data_bit", false);
+    auto railDirection = s.int32("rail_direction", 0);
+    auto props = Submergible();
+    props["powered"] = Bool(railData);
+    props["shape"] = ShapeFromRailDirection(railDirection);
+    return make_shared<Block const>(b.fName, props);
+  }
+
+#pragma endregion
+
 #pragma region Converters : B
 
   static Return Button(Input const &b) {
@@ -75,7 +91,7 @@ private:
 
 #pragma endregion
 
-#pragma region Converter : D
+#pragma region Converters : D
 
   static Return Door(Input const &b) {
     using namespace std;
@@ -135,9 +151,19 @@ private:
     return make_shared<Block const>(b.fName, props);
   }
 
+  static Return BlockWithFacingAFromFacingDirection(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto facingDirection = s.int32("facing_direction", 0);
+    auto props = Submergible();
+    props["facing"] = FacingDirectionFromFacingA(facingDirection);
+    return make_shared<Block const>(b.fName, props);
+  }
+
 #pragma endregion
 
-#pragma region Converter : L
+#pragma region Converters : L
 
   static Return Leaves2(Input const &b) {
     using namespace std;
@@ -163,7 +189,7 @@ private:
 
 #pragma endregion
 
-#pragma region Converter : P
+#pragma region Converters : P
 
   static Return PressurePlate(Input const &b) {
     using namespace std;
@@ -185,7 +211,35 @@ private:
 
 #pragma endregion
 
-#pragma region Converter : S
+#pragma region Converters : R
+
+  static Return RedFlower(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto flowerType = s.string("flower_type", "poppy");
+    string name = flowerType;
+    if (flowerType == "orchid") {
+      name = "blue_orchid";
+    } else if (flowerType == "houstonia") {
+      name = "azure_bluet";
+    } else if (flowerType == "tulip_red") {
+      name = "red_tulip";
+    } else if (flowerType == "tulip_orange") {
+      name = "orange_tulip";
+    } else if (flowerType == "tulip_white") {
+      name = "white_tulip";
+    } else if (flowerType == "tulip_pink") {
+      name = "pink_tulip";
+    } else if (flowerType == "oxeye") {
+      name = "oxeye_daisy";
+    }
+    return make_shared<Block const>(Ns() + name);
+  }
+
+#pragma endregion
+
+#pragma region Converters : S
 
   static Return Sapling(Input const &b) {
     using namespace std;
@@ -368,6 +422,32 @@ private:
     }
   }
 
+  static std::string ShapeFromRailDirection(int32_t railDirection) {
+    switch (railDirection) {
+    case 1:
+      return "east_west";
+    case 2:
+      return "ascending_east";
+    case 5:
+      return "ascending_south";
+    case 3:
+      return "ascending_west";
+    case 4:
+      return "ascending_north";
+    case 9:
+      return "north_east";
+    case 8:
+      return "north_west";
+    case 6:
+      return "south_east";
+    case 7:
+      return "south_west";
+    case 0:
+    default:
+      return "north_south";
+    }
+  }
+
 #pragma endregion
 
   static std::unordered_map<std::string, Converter> *CreateTable() {
@@ -409,6 +489,9 @@ private:
     E(acacia_trapdoor, Trapdoor);
     E(acacia_wall_sign, WallSign);
     E(wood, Wood);
+    E(activator_rail, RailCanBePowered);
+    E(red_flower, RedFlower);
+    E(amethyst_cluster, BlockWithFacingAFromFacingDirection);
 
 #undef E
 
