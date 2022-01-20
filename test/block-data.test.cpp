@@ -55,7 +55,8 @@ TEST_CASE("block-data") {
     } else {
       cerr << "-------------------------------------------------------------------------------" << endl;
       cerr << "input=" << endl;
-      mcfile::nbt::PrintAsJson(cerr, *convertedToBe);
+      mcfile::nbt::PrintAsJson(cerr, *convertedToBe, {.fTypeHint = true});
+      cerr << "java=" << javaBlockData << endl;
     }
   }
   cout << ok << "/" << total << " (" << ((float)ok / (float)total * 100.0f) << "%)" << endl;
