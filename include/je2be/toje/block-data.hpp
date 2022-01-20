@@ -198,12 +198,39 @@ private:
     return make_shared<Block const>(Ns() + saplingType + "_sapling");
   }
 
+  static Return Stairs(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto upsideDown = s.boolean("upside_down_bit", false);
+    auto weirdoDirection = s.int32("weirdo_direction", 0);
+    string facing = "east";
+    switch (weirdoDirection) {
+    case 2:
+      facing = "south";
+      break;
+    case 3:
+      facing = "north";
+      break;
+    case 1:
+      facing = "west";
+      break;
+    case 0:
+    default:
+      facing = "east";
+      break;
+    }
+    auto props = Submergible();
+    props["facing"] = facing;
+    props["half"] = upsideDown ? "top" : "bottom";
+    return make_shared<Block const>(b.fName, props);
+  }
+
   static Return StandingSign(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto idx = b.fName.find("_standing_sign");
-    string type = b.fName.substr(0, idx).substr(10);
+    auto type = VariantFromName(b.fName, "_standing_sign");
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
     auto props = Submergible();
     props["rotation"] = to_string(groundSignRotation);
@@ -212,7 +239,49 @@ private:
 
 #pragma endregion
 
+#pragma region Converters : T
+
+  static Return Trapdoor(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto direction = s.int32("direction", 0);
+    auto open = s.boolean("open_bit", false);
+    auto upsideDown = s.boolean("upside_down_bit", false);
+    auto props = Submergible();
+    props["facing"] = FacingBFromDirection(direction);
+    props["half"] = upsideDown ? "top" : "bottom";
+    props["open"] = Bool(open);
+    props["powered"] = "false";
+    return make_shared<Block const>(b.fName, props);
+  }
+
+#pragma endregion
+
 #pragma region Converters : W
+
+  static Return WallSign(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto facingDirection = s.int32("facing_direction", 0);
+    auto props = Submergible();
+    props["facing"] = FacingDirectionFromFacingA(facingDirection);
+    return make_shared<Block const>(b.fName, props);
+  }
+
+  static Return Wood(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto pillarAxis = s.string("pillar_axis", "y");
+    auto stripped = s.boolean("stripped_bit", false);
+    auto woodType = s.string("wood_type", "oak");
+    auto name = stripped ? "stripped_" + woodType + "_wood" : woodType + "_wood";
+    auto props = Empty();
+    props["axis"] = pillarAxis;
+    return make_shared<Block const>(Ns() + name, props);
+  }
 
   static Return WoodenSlab(Input const &b) {
     using namespace std;
@@ -238,20 +307,6 @@ private:
 
 #pragma region Properties
 
-  static std::string FacingCFromDirection(int32_t direction) {
-    switch (direction) {
-    case 1:
-      return "south";
-    case 2:
-      return "west";
-    case 3:
-      return "north";
-    case 0:
-    default:
-      return "east";
-    }
-  }
-
   static std::string FacingAFromDirection(int32_t direction) {
     switch (direction) {
     case 2:
@@ -266,9 +321,54 @@ private:
     }
   }
 
-#pragma endregion
+  static std::string FacingBFromDirection(int32_t direction) {
+    switch (direction) {
+    case 2:
+      return "south";
+    case 1:
+      return "west";
+    case 3:
+      return "north";
+    case 0:
+    default:
+      return "east";
+    }
+  }
 
-#pragma region Utilities
+  static std::string FacingCFromDirection(int32_t direction) {
+    switch (direction) {
+    case 1:
+      return "south";
+    case 2:
+      return "west";
+    case 3:
+      return "north";
+    case 0:
+    default:
+      return "east";
+    }
+  }
+
+  static std::string FacingDirectionFromFacingA(int32_t facingDirection) {
+    // 102534
+    switch (facingDirection) {
+    case 5:
+      return "east";
+    case 3:
+      return "south";
+    case 4:
+      return "west";
+    case 2:
+      return "north";
+    case 1:
+      return "up";
+    case 0:
+    default:
+      return "down";
+    }
+  }
+
+#pragma endregion
 
   static std::unordered_map<std::string, Converter> *CreateTable() {
     using namespace std;
@@ -305,11 +405,17 @@ private:
     E(acacia_standing_sign, StandingSign);
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
+    E(acacia_stairs, Stairs);
+    E(acacia_trapdoor, Trapdoor);
+    E(acacia_wall_sign, WallSign);
+    E(wood, Wood);
 
 #undef E
 
     return table;
   }
+
+#pragma region Utilities
 
   static std::string Bool(bool b) {
     return b ? "true" : "false";
@@ -327,6 +433,12 @@ private:
   static inline std::map<std::string, std::string> Submergible() {
     static std::map<std::string, std::string> const sP({{"waterlogged", "false"}});
     return sP;
+  }
+
+  // Get "acacia" from "minecraft:acacia_pressure_plate" when suffix is "_pressure_plate"
+  static inline std::string VariantFromName(std::string const &name, std::string const &suffix) {
+    auto idx = name.find(suffix);
+    return name.substr(0, idx).substr(Ns().size());
   }
 
 #pragma endregion
