@@ -66,7 +66,7 @@ private:
     default:
       break;
     }
-    map<string, string> props;
+    auto props = Empty();
     props["face"] = face;
     props["facing"] = facing;
     props["powered"] = Bool(buttonPressedBit);
@@ -88,13 +88,24 @@ private:
     auto openBit = s.boolean("open_bit", false);
     auto upperBlockBit = s.boolean("upper_block_bit", false);
 
-    map<string, string> props;
+    auto props = Empty();
     props["hinge"] = doorHingeBit ? "right" : "left";
     props["half"] = upperBlockBit ? "upper" : "lower";
     props["open"] = Bool(openBit);
     props["facing"] = FacingCFromDirection(direction);
     props["powered"] = "false";
     return make_shared<Block const>(b.fName, props);
+  }
+
+  static Return DoubleWoodenSlab(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto woodType = s.string("wood_type", "oak");
+    auto props = Empty();
+    props["type"] = "double";
+    props["waterlogged"] = "false";
+    return make_shared<Block const>(Ns() + woodType + "_slab", props);
   }
 
 #pragma endregion
@@ -106,7 +117,7 @@ private:
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto woodType = s.string("wood_type", "oak");
-    return make_shared<Block const>("minecraft:" + woodType + "_fence");
+    return make_shared<Block const>(Ns() + woodType + "_fence");
   }
 
   static Return FenceGate(Input const &b) {
@@ -116,7 +127,7 @@ private:
     auto direction = s.int32("direction", 0);
     auto inWall = s.boolean("in_wall_bit", false);
     auto open = s.boolean("open_bit", false);
-    map<string, string> props;
+    auto props = Empty();
     props["in_wall"] = Bool(inWall);
     props["open"] = Bool(open);
     props["powered"] = Bool(false);
@@ -134,9 +145,9 @@ private:
     auto const &s = *b.fStates;
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     auto persistent = s.boolean("persistent_bit", false);
-    map<string, string> props;
+    auto props = Empty();
     props["persistent"] = Bool(persistent);
-    return make_shared<Block const>("minecraft:" + newLeafType + "_leaves", props);
+    return make_shared<Block const>(Ns() + newLeafType + "_leaves", props);
   }
 
   static Return Log2(Input const &b) {
@@ -145,30 +156,83 @@ private:
     auto const &s = *b.fStates;
     auto newLogType = s.string("new_log_type", "acacia"); //TODO: acacia?
     auto pillarAxis = s.string("pillar_axis", "y");
-    map<string, string> props;
+    auto props = Empty();
     props["axis"] = pillarAxis;
-    return make_shared<Block const>("minecraft:" + newLogType + "_log", props);
+    return make_shared<Block const>(Ns() + newLogType + "_log", props);
   }
 
 #pragma endregion
 
-#pragma region : P
+#pragma region Converter : P
+
+  static Return PressurePlate(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto redstoneSignal = s.int32("redstone_signal", 0);
+    auto props = Empty();
+    props["powered"] = Bool(redstoneSignal > 0);
+    return make_shared<Block const>(b.fName, props);
+  }
 
   static Return Planks(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
-    return make_shared<Block const>("minecraft:" + woodType + "_planks");
+    return make_shared<Block const>(Ns() + woodType + "_planks");
+  }
+
+#pragma endregion
+
+#pragma region Converter : S
+
+  static Return Sapling(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto age = s.byte("age_bit", 0);
+    auto saplingType = s.string("sapling_type", "acacia");
+    auto props = Empty();
+    props["stage"] = to_string(age);
+    return make_shared<Block const>(Ns() + saplingType + "_sapling");
+  }
+
+  static Return StandingSign(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto idx = b.fName.find("_standing_sign");
+    string type = b.fName.substr(0, idx).substr(10);
+    auto groundSignRotation = s.int32("ground_sign_direction", 0);
+    auto props = Submergible();
+    props["rotation"] = to_string(groundSignRotation);
+    return make_shared<Block const>(Ns() + type + "_sign");
+  }
+
+#pragma endregion
+
+#pragma region Converters : W
+
+  static Return WoodenSlab(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto topSlot = s.boolean("top_slot_bit", false);
+    auto woodType = s.string("wood_type", "acacia");
+    auto props = Submergible();
+    props["type"] = topSlot ? "top" : "bottom";
+    return make_shared<Block const>(Ns() + woodType + "_slab", props);
   }
 
 #pragma endregion
 
   /*
-  static Return ***(Input const &b) {
+  static Return _(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
+    return make_shared<Block const>();
   }
 */
 
@@ -236,6 +300,11 @@ private:
     E(leaves2, Leaves2);
     E(log2, Log2);
     E(planks, Planks);
+    E(acacia_pressure_plate, PressurePlate);
+    E(sapling, Sapling);
+    E(acacia_standing_sign, StandingSign);
+    E(wooden_slab, WoodenSlab);
+    E(double_wooden_slab, DoubleWoodenSlab);
 
 #undef E
 
@@ -245,6 +314,21 @@ private:
   static std::string Bool(bool b) {
     return b ? "true" : "false";
   }
+
+  static inline std::string Ns() {
+    return "minecraft:";
+  }
+
+  static inline std::map<std::string, std::string> Empty() {
+    static std::map<std::string, std::string> const sP;
+    return sP;
+  }
+
+  static inline std::map<std::string, std::string> Submergible() {
+    static std::map<std::string, std::string> const sP({{"waterlogged", "false"}});
+    return sP;
+  }
+
 #pragma endregion
 };
 

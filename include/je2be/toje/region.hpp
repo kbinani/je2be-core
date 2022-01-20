@@ -70,6 +70,7 @@ public:
 
       //TODO: properties of fence
       //TODO: "distance" of leaves
+      //TODO: waterlogged property
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {
