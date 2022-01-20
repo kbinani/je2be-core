@@ -39,6 +39,7 @@
 #include <unordered_set>
 #include <execution>
 #include <random>
+#include <iostream>
 
 #include <je2be/fs.hpp>
 #include <je2be/scoped-file.hpp>
@@ -59,6 +60,7 @@
 #include <je2be/progress.hpp>
 #include <je2be/version.hpp>
 #include <je2be/future-support.hpp>
+#include <je2be/defer.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>

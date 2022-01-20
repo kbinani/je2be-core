@@ -12,6 +12,7 @@ set(je2be_files
   include/je2be.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
+  include/je2be/defer.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp
   include/je2be/enums/level-directory-structure.hpp

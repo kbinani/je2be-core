@@ -41,7 +41,7 @@ public:
 
     for (auto const &region : regions) {
       Pos2i r = region.first;
-      if (!Region::Convert(region.second.fChunks, r.fX, r.fZ, db)) {
+      if (!Region::Convert(d, region.second.fChunks, r.fX, r.fZ, db, dir)) {
         return false;
       }
     }
