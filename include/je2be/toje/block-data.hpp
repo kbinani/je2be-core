@@ -113,6 +113,16 @@ private:
     return make_shared<Block const>(b.fName, props);
   }
 
+  static Return DoubleStoneSlab3(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto stoneSlabType = s.string("stone_slab_type3", "andesite");
+    auto props = Empty();
+    props["type"] = "double";
+    return make_shared<Block const>(Ns() + stoneSlabType + "_slab", props);
+  }
+
   static Return DoubleWoodenSlab(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
@@ -289,6 +299,26 @@ private:
     auto props = Empty();
     props["rotation"] = to_string(groundSignRotation);
     return make_shared<Block const>(Ns() + type + "_sign");
+  }
+
+  static Return Stone(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto stoneType = s.string("stone_type");
+    string name = stoneType ? *stoneType : "stone";
+    return make_shared<Block const>(Ns() + name);
+  }
+
+  static Return StoneSlab3(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto stoneSlabType = s.string("stone_slab_type3", "andesite");
+    auto topSlot = s.boolean("top_slot_bit", false);
+    auto props = Empty();
+    props["type"] = topSlot ? "top" : "bottom";
+    return make_shared<Block const>(Ns() + stoneSlabType + "_slab", props);
   }
 
 #pragma endregion
@@ -609,12 +639,16 @@ private:
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
     E(acacia_stairs, Stairs);
+    E(andesite_stairs, Stairs);
     E(acacia_trapdoor, Trapdoor);
     E(acacia_wall_sign, WallSign);
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
     E(red_flower, RedFlower);
     E(amethyst_cluster, BlockWithFacingAFromFacingDirection);
+    E(stone, Stone);
+    E(stone_slab3, StoneSlab3);
+    E(double_stone_slab3, DoubleStoneSlab3);
 
 #undef E
 
