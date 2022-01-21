@@ -31,15 +31,15 @@ public:
         continue;
       }
 
-      for (auto const &subChunk : b->fSubChunks) {
-        if (!subChunk) {
+      for (auto const &sectionB : b->fSubChunks) {
+        if (!sectionB) {
           continue;
         }
-        auto sectionJ = mcfile::je::chunksection::ChunkSection118::MakeEmpty(subChunk->fChunkY);
+        auto sectionJ = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB->fChunkY);
         vector<shared_ptr<mcfile::je::Block const>> palette;
 
-        for (size_t idx = 0; idx < subChunk->fPalette.size(); idx++) {
-          auto const &blockB = subChunk->fPalette[idx];
+        for (size_t idx = 0; idx < sectionB->fPalette.size(); idx++) {
+          auto const &blockB = sectionB->fPalette[idx];
           auto blockJ = BlockData::From(*blockB);
           if (!blockJ) {
             blockJ = BlockData::Identity(*blockB);
@@ -53,7 +53,7 @@ public:
           for (int z = 0; z < 16; z++) {
             for (int y = 0; y < 16; y++, indexB++) {
               int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
-              indices[indexJ] = subChunk->fPaletteIndices[indexB];
+              indices[indexJ] = sectionB->fPaletteIndices[indexB];
             }
           }
         }
