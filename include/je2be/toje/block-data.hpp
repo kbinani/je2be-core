@@ -31,16 +31,24 @@ private:
 
 #pragma region Converters : A
 
-  static Return RailCanBePowered(Input const &b) {
+  static Return Anvil(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto railData = s.boolean("rail_data_bit", false);
-    auto railDirection = s.int32("rail_direction", 0);
+    auto damage = s.string("damage", "undamaged");
+    auto direction = s.int32("direction", 0);
+    string name = "anvil";
+    if (damage == "slightly_damaged") {
+      name = "chipped_anvil";
+    } else if (damage == "very_damaged") {
+      name = "damaged_anvil";
+    } else {
+      // undamaged
+      name = "anvil";
+    }
     auto props = Empty();
-    props["powered"] = Bool(railData);
-    props["shape"] = ShapeFromRailDirection(railDirection);
-    return make_shared<Block const>(b.fName, props);
+    props["facing"] = FacingAFromDirection(direction);
+    return make_shared<Block const>(Ns() + name, props);
   }
 
 #pragma endregion
@@ -223,6 +231,18 @@ private:
 
 #pragma region Converters : R
 
+  static Return RailCanBePowered(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto railData = s.boolean("rail_data_bit", false);
+    auto railDirection = s.int32("rail_direction", 0);
+    auto props = Empty();
+    props["powered"] = Bool(railData);
+    props["shape"] = ShapeFromRailDirection(railDirection);
+    return make_shared<Block const>(b.fName, props);
+  }
+
   static Return RedFlower(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
@@ -343,6 +363,25 @@ private:
 #pragma endregion
 
 #pragma region Converters : W
+
+  static Return Wall(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto blockType = s.string("wall_block_type", "andesite");
+    auto connectionTypeEast = s.string("wall_connection_type_east", "short");
+    auto connectionTypeNorth = s.string("wall_connection_type_north", "short");
+    auto connectionTypeSouth = s.string("wall_connection_type_south", "short");
+    auto connectionTypeWest = s.string("wall_connection_type_west", "short");
+    auto post = s.boolean("wall_post_bit", false);
+    auto props = Empty();
+    props["east"] = WallConnectionType(connectionTypeEast);
+    props["north"] = WallConnectionType(connectionTypeNorth);
+    props["south"] = WallConnectionType(connectionTypeSouth);
+    props["west"] = WallConnectionType(connectionTypeWest);
+    props["up"] = Bool(post);
+    return make_shared<Block const>(Ns() + blockType + "_wall");
+  }
 
   static Return WallSign(Input const &b) {
     using namespace std;
@@ -475,6 +514,15 @@ private:
     case 0:
     default:
       return "north_south";
+    }
+  }
+
+  static std::string WallConnectionType(std::string const &type) {
+    // short,tall,none => low,tall,none
+    if (type == "short") {
+      return "low";
+    } else {
+      return type;
     }
   }
 
@@ -649,6 +697,8 @@ private:
     E(stone, Stone);
     E(stone_slab3, StoneSlab3);
     E(double_stone_slab3, DoubleStoneSlab3);
+    E(cobblestone_wall, Wall);
+    E(anvil, Anvil);
 
 #undef E
 
@@ -672,8 +722,8 @@ private:
 
   // Get "acacia" from "minecraft:acacia_pressure_plate" when suffix is "_pressure_plate"
   static inline std::string VariantFromName(std::string const &name, std::string const &suffix) {
-    auto idx = name.find(suffix);
-    return name.substr(0, idx).substr(Ns().size());
+    assert(name.starts_with(Ns()) && name.ends_with(suffix));
+    return name.substr(Ns().size()).substr(0, name.size() - Ns().size() - suffix.size());
   }
 
 #pragma endregion
