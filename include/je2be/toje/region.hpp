@@ -71,6 +71,8 @@ public:
       //TODO: properties of fence
       //TODO: "distance" of leaves
       //TODO: waterlogged property
+      //TODO: colored standing banner
+      //TODO: colored bed
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {

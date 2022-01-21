@@ -116,6 +116,17 @@ private:
     return std::make_shared<mcfile::je::Block const>(Ns() + "beetroots", p);
   }
 
+  static Return Bed(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    FacingAFromDirection(s, p);
+    auto headPiece = s.boolean("head_piece_bit", false);
+    auto occupied = s.boolean("occupied_bit", false);
+    p["part"] = headPiece ? "head" : "foot";
+    p["occupied"] = Bool(occupied);
+    return std::make_shared<mcfile::je::Block const>(Ns() + "white_bed", p);
+  }
+
   static Return Bell(Input const &b) {
     auto const &s = *b.fStates;
     auto attachment = s.string("attachment", "floor");
@@ -211,6 +222,13 @@ private:
     return make_shared<Block const>(b.fName, props);
   }
 
+  static Return BlockWithRotationFromGroundSignDirection(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    RotationFromGroundSignDirection(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return BlockWithTypeFromTopSlotBit(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
@@ -267,6 +285,25 @@ private:
     props["facing"] = facing;
     props["powered"] = Bool(buttonPressedBit);
     return make_shared<mcfile::je::Block const>(b.fName, props);
+  }
+
+#pragma endregion
+
+#pragma region Converters : C
+  static Return Candle(Input const &b) {
+    auto const &s = *b.fStates;
+    auto candles = s.int32("candles", 0);
+    auto p = Empty();
+    p["candles"] = std::to_string(candles + 1);
+    Lit(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return CandleCake(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    Lit(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
 #pragma endregion
@@ -516,14 +553,12 @@ private:
   }
 
   static Return StandingSign(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto type = VariantFromName(b.fName, "_standing_sign");
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
-    auto props = Empty();
-    props["rotation"] = to_string(groundSignRotation);
-    return make_shared<Block const>(Ns() + type + "_sign");
+    auto p = Empty();
+    RotationFromGroundSignDirection(s, p);
+    return std::make_shared<mcfile::je::Block const>(Ns() + type + "_sign", p);
   }
 
   static Return Stone(Input const &b) {
@@ -714,6 +749,11 @@ private:
     props["facing"] = facing;
   }
 
+  static void Lit(States const &s, Props &p) {
+    auto lit = s.boolean("lit", false);
+    p["lit"] = Bool(lit);
+  }
+
   static void OpenFromOpenBit(States const &s, Props &props) {
     auto open = s.boolean("open_bit", false);
     props["open"] = Bool(open);
@@ -722,6 +762,11 @@ private:
   static void PersistentFromPersistentBit(States const &s, Props &props) {
     auto persistent = s.boolean("persistent_bit", false);
     props["persistent"] = Bool(persistent);
+  }
+
+  static void RotationFromGroundSignDirection(States const &s, Props &p) {
+    auto groundSignRotation = s.int32("ground_sign_direction", 0);
+    p["rotation"] = std::to_string(groundSignRotation);
   }
 
   static std::string ShapeFromRailDirection(int32_t railDirection) {
@@ -993,6 +1038,10 @@ private:
     E(big_dripleaf, BigDripleaf);
     E(blackstone_slab, BlockWithTypeFromTopSlotBit);
     E(blackstone_double_slab, BlackstoneDoubleSlab);
+    E(standing_banner, BlockWithRotationFromGroundSignDirection);
+    E(bed, Bed);
+    E(black_candle, Candle);
+    E(black_candle_cake, CandleCake);
 
 #undef E
 
