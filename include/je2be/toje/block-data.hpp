@@ -581,6 +581,18 @@ private:
     return std::make_shared<mcfile::je::Block const>(Ns() + color + "_stained_glass");
   }
 
+  static Return StainedGlassPane(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_stained_glass_pane");
+  }
+
+  static Return StainedHardenedClay(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_terracotta");
+  }
+
   static Return StandingSign(Input const &b) {
     auto const &s = *b.fStates;
     auto type = VariantFromName(b.fName, "_standing_sign");
@@ -1077,6 +1089,8 @@ private:
     E(black_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
+    E(stained_glass_pane, StainedGlassPane);
+    E(stained_hardened_clay, StainedHardenedClay);
 
 #undef E
 
