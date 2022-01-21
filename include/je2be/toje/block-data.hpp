@@ -100,6 +100,45 @@ private:
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
+  static Return Beehive(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    FacingAFromDirection(s, p);
+    auto honeyLevel = s.int32("honey_level", 0);
+    p["honey_level"] = std::to_string(honeyLevel);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return Beetroot(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    AgeFromGrowth(s, p);
+    return std::make_shared<mcfile::je::Block const>(Ns() + "beetroots", p);
+  }
+
+  static Return BlockWithAgeFromGrowth(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    AgeFromGrowth(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return BlockWithAxisFromPillarAxis(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    AxisFromPillarAxis(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return BlockWithFacingAFromFacingDirection(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto props = Empty();
+    FacingAFromFacingDirection(s, props);
+    return make_shared<Block const>(b.fName, props);
+  }
+
   static Return Button(Input const &b) {
     using namespace std;
     auto const &s = *b.fStates;
@@ -208,22 +247,6 @@ private:
     FacingAFromDirection(s, props);
     OpenFromOpenBit(s, props);
     return make_shared<Block const>(b.fName, props);
-  }
-
-  static Return BlockWithFacingAFromFacingDirection(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
-    auto props = Empty();
-    FacingAFromFacingDirection(s, props);
-    return make_shared<Block const>(b.fName, props);
-  }
-
-  static Return BlockWithAxisFromPillarAxis(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
-    AxisFromPillarAxis(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
 #pragma endregion
@@ -495,6 +518,21 @@ private:
 */
 
 #pragma region Properties
+
+  static void AgeFromGrowth(States const &s, Props &p) {
+    auto growth = s.int32("growth", 0);
+    int age = 0;
+    if (growth < 2) {
+      age = 0;
+    } else if (growth < 4) {
+      age = 1;
+    } else if (growth < 7) {
+      age = 2;
+    } else {
+      age = 3;
+    }
+    p["age"] = std::to_string(age);
+  }
 
   static void AxisFromPillarAxis(States const &s, Props &props) {
     auto pillarAxis = s.string("pillar_axis", "y");
@@ -821,6 +859,9 @@ private:
     E(bamboo_sapling, Identity);
     E(barrel, Barrel);
     E(basalt, BlockWithAxisFromPillarAxis);
+    E(beehive, Beehive);
+    E(beetroot, Beetroot);
+    E(bee_nest, Beehive);
 
 #undef E
 
