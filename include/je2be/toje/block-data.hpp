@@ -5,6 +5,8 @@ namespace je2be::toje {
 class BlockData {
   using Input = mcfile::be::Block;
   using Return = std::shared_ptr<mcfile::je::Block const>;
+  using States = mcfile::nbt::CompoundTag;
+  using Props = std::map<std::string, std::string>;
   using Converter = std::function<Return(Input const &)>;
 
 public:
@@ -36,7 +38,6 @@ private:
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto damage = s.string("damage", "undamaged");
-    auto direction = s.int32("direction", 0);
     string name = "anvil";
     if (damage == "slightly_damaged") {
       name = "chipped_anvil";
@@ -47,8 +48,17 @@ private:
       name = "anvil";
     }
     auto props = Empty();
-    props["facing"] = FacingAFromDirection(direction);
+    FacingAFromDirection(s, props);
     return make_shared<Block const>(Ns() + name, props);
+  }
+
+  static Return AzaleaLeaves(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto props = Empty();
+    PersistentFromPersistentBit(s, props);
+    return make_shared<Block const>(b.fName, props);
   }
 
 #pragma endregion
@@ -107,16 +117,14 @@ private:
 
     auto const &s = *b.fStates;
 
-    auto direction = s.int32("direction", 0);
     auto doorHingeBit = s.boolean("door_hinge_bit", false);
-    auto openBit = s.boolean("open_bit", false);
     auto upperBlockBit = s.boolean("upper_block_bit", false);
 
     auto props = Empty();
+    OpenFromOpenBit(s, props);
+    FacingCFromDirection(s, props);
     props["hinge"] = doorHingeBit ? "right" : "left";
     props["half"] = upperBlockBit ? "upper" : "lower";
-    props["open"] = Bool(openBit);
-    props["facing"] = FacingCFromDirection(direction);
     props["powered"] = "false";
     return make_shared<Block const>(b.fName, props);
   }
@@ -158,14 +166,12 @@ private:
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto direction = s.int32("direction", 0);
     auto inWall = s.boolean("in_wall_bit", false);
-    auto open = s.boolean("open_bit", false);
     auto props = Empty();
     props["in_wall"] = Bool(inWall);
-    props["open"] = Bool(open);
     props["powered"] = Bool(false);
-    props["facing"] = FacingAFromDirection(direction);
+    FacingAFromDirection(s, props);
+    OpenFromOpenBit(s, props);
     return make_shared<Block const>(b.fName, props);
   }
 
@@ -173,9 +179,8 @@ private:
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto facingDirection = s.int32("facing_direction", 0);
     auto props = Empty();
-    props["facing"] = FacingDirectionFromFacingA(facingDirection);
+    FacingAFromFacingDirection(s, props);
     return make_shared<Block const>(b.fName, props);
   }
 
@@ -188,9 +193,8 @@ private:
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
-    auto persistent = s.boolean("persistent_bit", false);
     auto props = Empty();
-    props["persistent"] = Bool(persistent);
+    PersistentFromPersistentBit(s, props);
     return make_shared<Block const>(Ns() + newLeafType + "_leaves", props);
   }
 
@@ -199,15 +203,43 @@ private:
     using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto newLogType = s.string("new_log_type", "acacia"); //TODO: acacia?
-    auto pillarAxis = s.string("pillar_axis", "y");
     auto props = Empty();
-    props["axis"] = pillarAxis;
+    AxisFromPillarAxis(s, props);
     return make_shared<Block const>(Ns() + newLogType + "_log", props);
   }
 
 #pragma endregion
 
+#pragma region Converters : M
+
+  static Return MelonStem(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto growth = s.int32("growth", 0);
+    auto props = Empty();
+    string name;
+    if (growth >= 7) {
+      name = "attached_melon_stem";
+    } else {
+      name = "melon_stem";
+      props["age"] = to_string(growth);
+    }
+    FacingAFromDirection(s, props, "facing_direction");
+    return make_shared<Block const>(Ns() + name, props);
+  }
+
+#pragma endregion
+
 #pragma region Converters : P
+
+  static Return Planks(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
+    return make_shared<Block const>(Ns() + woodType + "_planks");
+  }
 
   static Return PressurePlate(Input const &b) {
     using namespace std;
@@ -219,12 +251,21 @@ private:
     return make_shared<Block const>(b.fName, props);
   }
 
-  static Return Planks(Input const &b) {
+  static Return PumpkinStem(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
-    return make_shared<Block const>(Ns() + woodType + "_planks");
+    auto growth = s.int32("growth", 0);
+    auto props = Empty();
+    string name;
+    if (growth >= 7) {
+      name = "attached_pumpkin_stem";
+    } else {
+      name = "pumpkin_stem";
+      props["age"] = to_string(growth);
+    }
+    FacingAFromDirection(s, props, "facing_direction");
+    return make_shared<Block const>(Ns() + name, props);
   }
 
 #pragma endregion
@@ -286,7 +327,6 @@ private:
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto upsideDown = s.boolean("upside_down_bit", false);
     auto weirdoDirection = s.int32("weirdo_direction", 0);
     string facing = "east";
     switch (weirdoDirection) {
@@ -306,7 +346,7 @@ private:
     }
     auto props = Empty();
     props["facing"] = facing;
-    props["half"] = upsideDown ? "top" : "bottom";
+    HalfFromUpsideDownBit(s, props);
     return make_shared<Block const>(b.fName, props);
   }
 
@@ -349,13 +389,10 @@ private:
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto direction = s.int32("direction", 0);
-    auto open = s.boolean("open_bit", false);
-    auto upsideDown = s.boolean("upside_down_bit", false);
     auto props = Empty();
-    props["facing"] = FacingBFromDirection(direction);
-    props["half"] = upsideDown ? "top" : "bottom";
-    props["open"] = Bool(open);
+    FacingBFromDirection(s, props);
+    OpenFromOpenBit(s, props);
+    HalfFromUpsideDownBit(s, props);
     props["powered"] = "false";
     return make_shared<Block const>(b.fName, props);
   }
@@ -383,26 +420,15 @@ private:
     return make_shared<Block const>(Ns() + blockType + "_wall");
   }
 
-  static Return WallSign(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
-    auto facingDirection = s.int32("facing_direction", 0);
-    auto props = Empty();
-    props["facing"] = FacingDirectionFromFacingA(facingDirection);
-    return make_shared<Block const>(b.fName, props);
-  }
-
   static Return Wood(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto pillarAxis = s.string("pillar_axis", "y");
     auto stripped = s.boolean("stripped_bit", false);
     auto woodType = s.string("wood_type", "oak");
     auto name = stripped ? "stripped_" + woodType + "_wood" : woodType + "_wood";
     auto props = Empty();
-    props["axis"] = pillarAxis;
+    AxisFromPillarAxis(s, props);
     return make_shared<Block const>(Ns() + name, props);
   }
 
@@ -430,65 +456,109 @@ private:
 
 #pragma region Properties
 
-  static std::string FacingAFromDirection(int32_t direction) {
-    switch (direction) {
-    case 2:
-      return "north";
-    case 3:
-      return "east";
-    case 1:
-      return "west";
-    case 0:
-    default:
-      return "south";
-    }
+  static void AxisFromPillarAxis(States const &s, Props &props) {
+    auto pillarAxis = s.string("pillar_axis", "y");
+    props["axis"] = pillarAxis;
   }
 
-  static std::string FacingBFromDirection(int32_t direction) {
+  static void FacingAFromDirection(States const &s, Props &props, std::string const &key = "direction") {
+    auto direction = s.int32(key, 0);
+    std::string facing;
     switch (direction) {
     case 2:
-      return "south";
-    case 1:
-      return "west";
+      facing = "north";
+      break;
     case 3:
-      return "north";
+      facing = "east";
+      break;
+    case 1:
+      facing = "west";
+      break;
     case 0:
     default:
-      return "east";
+      facing = "south";
+      break;
     }
+    props["facing"] = facing;
   }
 
-  static std::string FacingCFromDirection(int32_t direction) {
+  static void FacingBFromDirection(States const &s, Props &props) {
+    auto direction = s.int32("direction", 0);
+    std::string facing;
+    switch (direction) {
+    case 2:
+      facing = "south";
+      break;
+    case 1:
+      facing = "west";
+      break;
+    case 3:
+      facing = "north";
+      break;
+    case 0:
+    default:
+      facing = "east";
+      break;
+    }
+    props["facing"] = facing;
+  }
+
+  static void FacingCFromDirection(States const &s, Props &props) {
+    auto direction = s.int32("direction", 0);
+    std::string facing;
     switch (direction) {
     case 1:
-      return "south";
+      facing = "south";
+      break;
     case 2:
-      return "west";
+      facing = "west";
+      break;
     case 3:
-      return "north";
+      facing = "north";
+      break;
     case 0:
     default:
-      return "east";
+      facing = "east";
+      break;
     }
+    props["facing"] = facing;
   }
 
-  static std::string FacingDirectionFromFacingA(int32_t facingDirection) {
+  static void FacingAFromFacingDirection(States const &s, Props &props) {
+    auto facingDirection = s.int32("facing_direction", 0);
+    std::string facing;
     // 102534
     switch (facingDirection) {
     case 5:
-      return "east";
+      facing = "east";
+      break;
     case 3:
-      return "south";
+      facing = "south";
+      break;
     case 4:
-      return "west";
+      facing = "west";
+      break;
     case 2:
-      return "north";
+      facing = "north";
+      break;
     case 1:
-      return "up";
+      facing = "up";
+      break;
     case 0:
     default:
-      return "down";
+      facing = "down";
     }
+    props["facing"] = facing;
+  }
+
+  static void OpenFromOpenBit(States const &s, Props &props) {
+    auto open = s.boolean("open_bit", false);
+    props["open"] = Bool(open);
+  }
+
+  static void PersistentFromPersistentBit(States const &s, Props &props) {
+    auto persistent = s.boolean("persistent_bit", false);
+    props["persistent"] = Bool(persistent);
   }
 
   static std::string ShapeFromRailDirection(int32_t railDirection) {
@@ -515,6 +585,11 @@ private:
     default:
       return "north_south";
     }
+  }
+
+  static void HalfFromUpsideDownBit(States const &s, Props &props) {
+    auto upsideDown = s.boolean("upside_down_bit", false);
+    props["half"] = upsideDown ? "top" : "bottom";
   }
 
   static std::string WallConnectionType(std::string const &type) {
@@ -689,7 +764,7 @@ private:
     E(acacia_stairs, Stairs);
     E(andesite_stairs, Stairs);
     E(acacia_trapdoor, Trapdoor);
-    E(acacia_wall_sign, WallSign);
+    E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
     E(red_flower, RedFlower);
@@ -699,6 +774,9 @@ private:
     E(double_stone_slab3, DoubleStoneSlab3);
     E(cobblestone_wall, Wall);
     E(anvil, Anvil);
+    E(melon_stem, MelonStem);
+    E(pumpkin_stem, PumpkinStem);
+    E(azalea_leaves, AzaleaLeaves);
 
 #undef E
 
