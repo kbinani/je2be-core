@@ -50,7 +50,7 @@ TEST_CASE("block-data") {
     shared_ptr<mcfile::be::Block> blockB = mcfile::be::Block::FromCompound(*convertedToBe);
     CHECK(blockB);
     auto convertedJe = je2be::toje::BlockData::From(*blockB);
-    if (convertedJe) {
+    if (convertedJe && convertedJe->fName == blockJ->fName) {
       ok++;
     } else {
       cerr << "-------------------------------------------------------------------------------" << endl;
