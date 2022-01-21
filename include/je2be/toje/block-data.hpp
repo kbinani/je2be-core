@@ -349,6 +349,46 @@ private:
     name += type + "_block";
     return std::make_shared<mcfile::je::Block const>(Ns() + name);
   }
+
+  static Return CoralFan(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("coral_color", "pink");
+    auto dead = b.fName.ends_with("_dead");
+    auto type = CoralTypeFromCoralColor(color);
+    std::string name;
+    if (dead) {
+      name = "dead_";
+    }
+    name += type + "_fan";
+    return std::make_shared<mcfile::je::Block const>(Ns() + name);
+  }
+
+  static Return CoralFanHang(Input const &b) {
+    auto const &s = *b.fStates;
+    auto direction = s.int32("coral_direction", 0);
+    auto hangType = s.boolean("coral_hang_type_bit", false);
+    auto dead = s.boolean("dead", false);
+    std::string name;
+    if (dead) {
+      name = "dead_";
+    }
+    if (b.fName.ends_with("2")) {
+      if (hangType) {
+        name += "fire";
+      } else {
+        name += "bubble";
+      }
+    } else if (b.fName.ends_with("3")) {
+      name += "horn";
+    } else {
+      if (hangType) {
+        name += "brain";
+      } else {
+        name += "tube";
+      }
+    }
+    return std::make_shared<mcfile::je::Block const>(Ns() + name + "_wall_fan");
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -1147,6 +1187,8 @@ private:
     E(bone_block, BlockWithAxisFromPillarAxis);
     E(coral, Coral);
     E(coral_block, CoralBlock);
+    E(coral_fan_hang, CoralFanHang);
+    E(coral_fan, CoralFan);
 
 #undef E
 
