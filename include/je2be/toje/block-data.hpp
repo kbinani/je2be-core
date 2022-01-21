@@ -112,7 +112,18 @@ private:
   static Return Beetroot(Input const &b) {
     auto const &s = *b.fStates;
     auto p = Empty();
-    AgeFromGrowth(s, p);
+    auto growth = s.int32("growth", 0);
+    int age = 0;
+    if (growth < 2) {
+      age = 0;
+    } else if (growth < 4) {
+      age = 1;
+    } else if (growth < 7) {
+      age = 2;
+    } else {
+      age = 3;
+    }
+    p["age"] = std::to_string(age);
     return std::make_shared<mcfile::je::Block const>(Ns() + "beetroots", p);
   }
 
@@ -199,6 +210,13 @@ private:
     return std::make_shared<mcfile::je::Block const>(Ns() + "blackstone_slab", p);
   }
 
+  static Return BlockWithAge(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    Age(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return BlockWithAgeFromGrowth(Input const &b) {
     auto const &s = *b.fStates;
     auto p = Empty();
@@ -210,6 +228,13 @@ private:
     auto const &s = *b.fStates;
     auto p = Empty();
     AxisFromPillarAxis(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return BlockWithFacingAFromDirection(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    FacingAFromDirection(s, p);
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
@@ -327,6 +352,23 @@ private:
 #pragma endregion
 
 #pragma region Converters : C
+  static Return Cake(Input const &b) {
+    auto const &s = *b.fStates;
+    auto biteCounter = s.int32("bite_counter", 0);
+    auto p = Empty();
+    p["bites"] = std::to_string(biteCounter);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return Campfire(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    FacingAFromDirection(s, p);
+    auto extinguished = s.boolean("extinguished", false);
+    p["lit"] = Bool(!extinguished);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return Candle(Input const &b) {
     auto const &s = *b.fStates;
     auto candles = s.int32("candles", 0);
@@ -347,6 +389,26 @@ private:
     auto const &s = *b.fStates;
     auto color = s.string("color", "white");
     return std::make_shared<mcfile::je::Block const>(Ns() + color + "_carpet");
+  }
+
+  static Return Cauldron(Input const &b) {
+    auto const &s = *b.fStates;
+    auto liquid = s.string("cauldron_liquid", "water");
+    std::string name = "cauldron";
+    auto p = Empty();
+    auto fillLevel = s.int32("fill_level", 0);
+    if (fillLevel < 1) {
+      name = "cauldron";
+    } else if (liquid == "water") {
+      name = "water_cauldron";
+      p["level"] = std::to_string((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
+    } else if (liquid == "lava") {
+      name = "lava_cauldron";
+    } else if (liquid == "powder_snow") {
+      name = "powder_snow_cauldron";
+      p["level"] = std::to_string((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
+    }
+    return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
   }
 
   static Return Concrete(Input const &b) {
@@ -803,18 +865,13 @@ private:
 
 #pragma region Properties
 
+  static void Age(States const &s, Props &p) {
+    auto age = s.int32("age", 0);
+    p["age"] = std::to_string(age);
+  }
+
   static void AgeFromGrowth(States const &s, Props &p) {
-    auto growth = s.int32("growth", 0);
-    int age = 0;
-    if (growth < 2) {
-      age = 0;
-    } else if (growth < 4) {
-      age = 1;
-    } else if (growth < 7) {
-      age = 2;
-    } else {
-      age = 3;
-    }
+    auto age = s.int32("growth", 0);
     p["age"] = std::to_string(age);
   }
 
@@ -1338,10 +1395,12 @@ private:
     E(black_candle, Candle);
     E(blue_candle, Candle);
     E(brown_candle, Candle);
+    E(candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
     E(brown_candle_cake, CandleCake);
+    E(candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1370,6 +1429,12 @@ private:
     E(double_stone_slab, DoubleStoneSlab);
     E(brown_mushroom_block, BrownMushroomBlock);
     E(bubble_column, BubbleColumn);
+    E(cactus, BlockWithAge);
+    E(cake, Cake);
+    E(campfire, Campfire);
+    E(carrots, BlockWithAgeFromGrowth);
+    E(carved_pumpkin, BlockWithFacingAFromDirection);
+    E(cauldron, Cauldron);
 
 #undef E
 
