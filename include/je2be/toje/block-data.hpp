@@ -306,6 +306,17 @@ private:
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
+  static Return Carpet(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_carpet");
+  }
+
+  static Return Concrete(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_concrete");
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -1042,6 +1053,8 @@ private:
     E(bed, Bed);
     E(black_candle, Candle);
     E(black_candle_cake, CandleCake);
+    E(carpet, Carpet);
+    E(concrete, Concrete);
 
 #undef E
 
