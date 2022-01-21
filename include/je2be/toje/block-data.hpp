@@ -317,6 +317,12 @@ private:
     auto color = s.string("color", "white");
     return std::make_shared<mcfile::je::Block const>(Ns() + color + "_concrete");
   }
+
+  static Return ConcretePowder(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_concrete_powder");
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -1055,6 +1061,7 @@ private:
     E(black_candle_cake, CandleCake);
     E(carpet, Carpet);
     E(concrete, Concrete);
+    E(concretePowder, ConcretePowder);
 
 #undef E
 
