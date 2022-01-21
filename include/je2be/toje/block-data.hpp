@@ -542,6 +542,12 @@ private:
     return make_shared<Block const>(Ns() + saplingType + "_sapling");
   }
 
+  static Return ShulkerBox(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_shulker_box");
+  }
+
   static Return Stairs(Input const &b) {
     using namespace std;
     using namespace mcfile::je;
@@ -567,6 +573,12 @@ private:
     props["facing"] = facing;
     HalfFromUpsideDownBit(s, props);
     return make_shared<Block const>(b.fName, props);
+  }
+
+  static Return StainedGlass(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_stained_glass");
   }
 
   static Return StandingSign(Input const &b) {
@@ -1062,6 +1074,9 @@ private:
     E(carpet, Carpet);
     E(concrete, Concrete);
     E(concretePowder, ConcretePowder);
+    E(black_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(shulker_box, ShulkerBox);
+    E(stained_glass, StainedGlass);
 
 #undef E
 
