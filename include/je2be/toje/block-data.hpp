@@ -181,6 +181,13 @@ private:
     return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
   }
 
+  static Return BlackstoneDoubleSlab(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    p["type"] = "double";
+    return std::make_shared<mcfile::je::Block const>(Ns() + "blackstone_slab", p);
+  }
+
   static Return BlockWithAgeFromGrowth(Input const &b) {
     auto const &s = *b.fStates;
     auto p = Empty();
@@ -202,6 +209,22 @@ private:
     auto props = Empty();
     FacingAFromFacingDirection(s, props);
     return make_shared<Block const>(b.fName, props);
+  }
+
+  static Return BlockWithTypeFromTopSlotBit(Input const &b) {
+    using namespace std;
+    using namespace mcfile::je;
+    auto const &s = *b.fStates;
+    auto props = Empty();
+    TypeFromTopSlotBit(s, props);
+    return make_shared<Block const>(b.fName, props);
+  }
+
+  static Return BlockWithWallProperties(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    WallProperties(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
   static Return Button(Input const &b) {
@@ -513,14 +536,11 @@ private:
   }
 
   static Return StoneSlab3(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
-    auto topSlot = s.boolean("top_slot_bit", false);
-    auto props = Empty();
-    props["type"] = topSlot ? "top" : "bottom";
-    return make_shared<Block const>(Ns() + stoneSlabType + "_slab", props);
+    auto p = Empty();
+    TypeFromTopSlotBit(s, p);
+    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
   }
 
 #pragma endregion
@@ -543,23 +563,12 @@ private:
 
 #pragma region Converters : W
 
-  static Return Wall(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
+  static Return WallWithBlockType(Input const &b) {
     auto const &s = *b.fStates;
     auto blockType = s.string("wall_block_type", "andesite");
-    auto connectionTypeEast = s.string("wall_connection_type_east", "short");
-    auto connectionTypeNorth = s.string("wall_connection_type_north", "short");
-    auto connectionTypeSouth = s.string("wall_connection_type_south", "short");
-    auto connectionTypeWest = s.string("wall_connection_type_west", "short");
-    auto post = s.boolean("wall_post_bit", false);
-    auto props = Empty();
-    props["east"] = WallConnectionType(connectionTypeEast);
-    props["north"] = WallConnectionType(connectionTypeNorth);
-    props["south"] = WallConnectionType(connectionTypeSouth);
-    props["west"] = WallConnectionType(connectionTypeWest);
-    props["up"] = Bool(post);
-    return make_shared<Block const>(Ns() + blockType + "_wall");
+    auto p = Empty();
+    WallProperties(s, p);
+    return std::make_shared<mcfile::je::Block const>(Ns() + blockType + "_wall", p);
   }
 
   static Return Wood(Input const &b) {
@@ -578,11 +587,10 @@ private:
     using namespace std;
     using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto topSlot = s.boolean("top_slot_bit", false);
     auto woodType = s.string("wood_type", "acacia");
-    auto props = Empty();
-    props["type"] = topSlot ? "top" : "bottom";
-    return make_shared<Block const>(Ns() + woodType + "_slab", props);
+    auto p = Empty();
+    TypeFromTopSlotBit(s, p);
+    return make_shared<Block const>(Ns() + woodType + "_slab", p);
   }
 
 #pragma endregion
@@ -747,6 +755,11 @@ private:
     props["half"] = upsideDown ? "top" : "bottom";
   }
 
+  static void TypeFromTopSlotBit(States const &s, Props &p) {
+    auto topSlot = s.boolean("top_slot_bit", false);
+    p["type"] = topSlot ? "top" : "bottom";
+  }
+
   static std::string WallConnectionType(std::string const &type) {
     // short,tall,none => low,tall,none
     if (type == "short") {
@@ -754,6 +767,19 @@ private:
     } else {
       return type;
     }
+  }
+
+  static void WallProperties(States const &s, Props &p) {
+    auto connectionTypeEast = s.string("wall_connection_type_east", "short");
+    auto connectionTypeNorth = s.string("wall_connection_type_north", "short");
+    auto connectionTypeSouth = s.string("wall_connection_type_south", "short");
+    auto connectionTypeWest = s.string("wall_connection_type_west", "short");
+    auto post = s.boolean("wall_post_bit", false);
+    p["east"] = WallConnectionType(connectionTypeEast);
+    p["north"] = WallConnectionType(connectionTypeNorth);
+    p["south"] = WallConnectionType(connectionTypeSouth);
+    p["west"] = WallConnectionType(connectionTypeWest);
+    p["up"] = Bool(post);
   }
 
 #pragma endregion
@@ -918,15 +944,29 @@ private:
     E(log2, Log2);
     E(log, Log);
     E(planks, Planks);
+
     E(acacia_pressure_plate, PressurePlate);
+    E(birch_pressure_plate, PressurePlate);
+
     E(sapling, Sapling);
+
     E(acacia_standing_sign, StandingSign);
+    E(birch_standing_sign, StandingSign);
+
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
+
     E(acacia_stairs, Stairs);
     E(andesite_stairs, Stairs);
+    E(birch_stairs, Stairs);
+    E(blackstone_stairs, Stairs);
+
     E(acacia_trapdoor, Trapdoor);
+    E(birch_trapdoor, Trapdoor);
+
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
+    E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
+
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
     E(red_flower, RedFlower);
@@ -934,7 +974,10 @@ private:
     E(stone, Stone);
     E(stone_slab3, StoneSlab3);
     E(double_stone_slab3, DoubleStoneSlab3);
-    E(cobblestone_wall, Wall);
+
+    E(cobblestone_wall, WallWithBlockType);
+    E(blackstone_wall, BlockWithWallProperties);
+
     E(anvil, Anvil);
     E(melon_stem, MelonStem);
     E(pumpkin_stem, PumpkinStem);
@@ -948,6 +991,8 @@ private:
     E(bee_nest, Beehive);
     E(bell, Bell);
     E(big_dripleaf, BigDripleaf);
+    E(blackstone_slab, BlockWithTypeFromTopSlotBit);
+    E(blackstone_double_slab, BlackstoneDoubleSlab);
 
 #undef E
 
