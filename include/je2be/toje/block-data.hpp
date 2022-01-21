@@ -245,6 +245,22 @@ private:
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
+  static Return BrewingStand(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    auto slotA = s.boolean("brewing_stand_slot_a_bit", false);
+    auto slotB = s.boolean("brewing_stand_slot_b_bit", false);
+    auto slotC = s.boolean("brewing_stand_slot_c_bit", false);
+    p["has_bottle_0"] = Bool(slotA);
+    p["has_bottle_1"] = Bool(slotB);
+    p["has_bottle_2"] = Bool(slotC);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
+  static Return BrickBlock(Input const &b) {
+    return std::make_shared<mcfile::je::Block const>(Ns() + "bricks");
+  }
+
   static Return Button(Input const &b) {
     using namespace std;
     auto const &s = *b.fStates;
@@ -675,6 +691,14 @@ private:
     auto stoneType = s.string("stone_type");
     string name = stoneType ? *stoneType : "stone";
     return make_shared<Block const>(Ns() + name);
+  }
+
+  static Return StoneSlab(Input const &b) {
+    auto const &s = *b.fStates;
+    auto stoneSlabType = s.string("stone_slab_type", "stone");
+    auto p = Empty();
+    TypeFromTopSlotBit(s, p);
+    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
   }
 
   static Return StoneSlab3(Input const &b) {
@@ -1189,6 +1213,9 @@ private:
     E(coral_block, CoralBlock);
     E(coral_fan_hang, CoralFanHang);
     E(coral_fan, CoralFan);
+    E(brewing_stand, BrewingStand);
+    E(brick_block, BrickBlock);
+    E(stone_slab, StoneSlab);
 
 #undef E
 
