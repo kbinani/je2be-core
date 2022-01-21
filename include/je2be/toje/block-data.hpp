@@ -318,24 +318,36 @@ private:
 
 #pragma region Converters : L
 
+  static Return Leaves(Input const &b) {
+    auto const &s = *b.fStates;
+    auto leafType = s.string("old_leaf_type", "oak");
+    auto props = Empty();
+    PersistentFromPersistentBit(s, props);
+    return std::make_shared<mcfile::je::Block const>(Ns() + leafType + "_leaves", props);
+  }
+
   static Return Leaves2(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     auto props = Empty();
     PersistentFromPersistentBit(s, props);
-    return make_shared<Block const>(Ns() + newLeafType + "_leaves", props);
+    return std::make_shared<mcfile::je::Block const>(Ns() + newLeafType + "_leaves", props);
+  }
+
+  static Return Log(Input const &b) {
+    auto const &s = *b.fStates;
+    auto logType = s.string("old_log_type", "oak");
+    auto props = Empty();
+    AxisFromPillarAxis(s, props);
+    return std::make_shared<mcfile::je::Block const>(Ns() + logType + "_log", props);
   }
 
   static Return Log2(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
     auto const &s = *b.fStates;
-    auto newLogType = s.string("new_log_type", "acacia"); //TODO: acacia?
+    auto logType = s.string("new_log_type", "acacia"); //TODO: acacia?
     auto props = Empty();
     AxisFromPillarAxis(s, props);
-    return make_shared<Block const>(Ns() + newLogType + "_log", props);
+    return std::make_shared<mcfile::je::Block const>(Ns() + logType + "_log", props);
   }
 
 #pragma endregion
@@ -885,6 +897,7 @@ private:
     E(crimson_button, Button);
     E(warped_button, Button);
     E(polished_blackstone_button, Button);
+
     E(wooden_door, Door);
     E(iron_door, Door);
     E(spruce_door, Door);
@@ -894,10 +907,16 @@ private:
     E(dark_oak_door, Door);
     E(crimson_door, Door);
     E(warped_door, Door);
+
     E(fence, Fence);
+
     E(acacia_fence_gate, FenceGate);
+    E(birch_fence_gate, FenceGate);
+
+    E(leaves, Leaves);
     E(leaves2, Leaves2);
     E(log2, Log2);
+    E(log, Log);
     E(planks, Planks);
     E(acacia_pressure_plate, PressurePlate);
     E(sapling, Sapling);
