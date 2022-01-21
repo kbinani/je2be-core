@@ -669,6 +669,12 @@ private:
     return make_shared<Block const>(Ns() + woodType + "_slab", p);
   }
 
+  static Return Wool(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("color", "white");
+    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_wool");
+  }
+
 #pragma endregion
 
   /*
@@ -1091,6 +1097,8 @@ private:
     E(stained_glass, StainedGlass);
     E(stained_glass_pane, StainedGlassPane);
     E(stained_hardened_clay, StainedHardenedClay);
+    E(wall_banner, BlockWithFacingAFromFacingDirection);
+    E(wool, Wool);
 
 #undef E
 
