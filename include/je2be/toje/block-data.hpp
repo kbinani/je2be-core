@@ -261,6 +261,27 @@ private:
     return std::make_shared<mcfile::je::Block const>(Ns() + "bricks");
   }
 
+  static Return BrownMushroomBlock(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    bool stem = MushroomProperties(s, p);
+    std::string name;
+    if (stem) {
+      name = "mushroom_stem";
+    } else {
+      name = "brown_mushroom_block";
+    }
+    return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
+  }
+
+  static Return BubbleColumn(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    auto dragDown = s.boolean("drag_down", false);
+    p["drag"] = Bool(dragDown);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return Button(Input const &b) {
     using namespace std;
     auto const &s = *b.fStates;
@@ -427,14 +448,20 @@ private:
     return make_shared<Block const>(b.fName, props);
   }
 
+  static Return DoubleStoneSlab(Input const &b) {
+    auto const &s = *b.fStates;
+    auto stoneSlabType = s.string("stone_slab_type", "stone");
+    auto p = Empty();
+    p["type"] = "double";
+    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
+  }
+
   static Return DoubleStoneSlab3(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
     auto const &s = *b.fStates;
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
-    auto props = Empty();
-    props["type"] = "double";
-    return make_shared<Block const>(Ns() + stoneSlabType + "_slab", props);
+    auto p = Empty();
+    p["type"] = "double";
+    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
   }
 
   static Return DoubleWoodenSlab(Input const &b) {
@@ -952,6 +979,120 @@ private:
     props["half"] = upsideDown ? "top" : "bottom";
   }
 
+  static bool MushroomProperties(States const &s, Props &p) {
+    auto bits = s.int32("huge_mushroom_bits", 0);
+    bool up = false;
+    bool down = false;
+    bool north = false;
+    bool east = false;
+    bool south = false;
+    bool west = false;
+    bool stem = false;
+    switch (bits) {
+    case 0:
+      up = false;
+      down = false;
+      north = false;
+      east = false;
+      south = false;
+      west = false;
+      break;
+    case 1:
+      up = true;
+      west = true;
+      north = true;
+      down = false;
+      east = false;
+      south = false;
+      break;
+    case 2:
+      up = true;
+      north = true;
+      down = false;
+      east = false;
+      south = false;
+      west = false;
+      break;
+    case 3:
+      up = true;
+      north = true;
+      east = true;
+      down = false;
+      south = false;
+      west = false;
+      break;
+    case 4:
+      up = true;
+      west = true;
+      down = false;
+      north = false;
+      east = false;
+      south = false;
+      break;
+    case 5:
+      up = true;
+      down = false;
+      north = false;
+      east = false;
+      south = false;
+      west = false;
+      break;
+    case 6:
+      up = true;
+      east = true;
+      down = false;
+      north = false;
+      south = false;
+      west = false;
+      break;
+    case 7:
+      up = true;
+      south = true;
+      west = true;
+      down = false;
+      north = false;
+      east = false;
+      break;
+    case 8:
+      up = true;
+      south = true;
+      down = false;
+      north = false;
+      east = false;
+      west = false;
+      break;
+    case 9:
+      up = true;
+      east = true;
+      south = true;
+      down = false;
+      north = false;
+      west = false;
+      break;
+    case 10:
+      north = true;
+      east = true;
+      south = true;
+      west = true;
+      up = false;
+      down = false;
+      stem = true;
+      break;
+    case 15:
+      stem = true;
+      // fallthrough
+    case 14:
+      up = true;
+      down = true;
+      north = true;
+      east = true;
+      south = true;
+      west = true;
+      break;
+    }
+    return stem;
+  }
+
   static void TypeFromTopSlotBit(States const &s, Props &p) {
     auto topSlot = s.boolean("top_slot_bit", false);
     p["type"] = topSlot ? "top" : "bottom";
@@ -1157,6 +1298,7 @@ private:
     E(andesite_stairs, Stairs);
     E(birch_stairs, Stairs);
     E(blackstone_stairs, Stairs);
+    E(brick_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1192,15 +1334,23 @@ private:
     E(blackstone_double_slab, BlackstoneDoubleSlab);
     E(standing_banner, BlockWithRotationFromGroundSignDirection);
     E(bed, Bed);
+
     E(black_candle, Candle);
     E(blue_candle, Candle);
+    E(brown_candle, Candle);
+
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
+    E(brown_candle_cake, CandleCake);
+
     E(carpet, Carpet);
     E(concrete, Concrete);
     E(concretePowder, ConcretePowder);
+
     E(black_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(brown_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
     E(stained_glass_pane, StainedGlassPane);
@@ -1212,10 +1362,14 @@ private:
     E(coral, Coral);
     E(coral_block, CoralBlock);
     E(coral_fan_hang, CoralFanHang);
+    E(coral_fan_hang2, CoralFanHang);
     E(coral_fan, CoralFan);
     E(brewing_stand, BrewingStand);
     E(brick_block, BrickBlock);
     E(stone_slab, StoneSlab);
+    E(double_stone_slab, DoubleStoneSlab);
+    E(brown_mushroom_block, BrownMushroomBlock);
+    E(bubble_column, BubbleColumn);
 
 #undef E
 
