@@ -156,6 +156,31 @@ private:
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
+  static Return BigDripleaf(Input const &b) {
+    auto const &s = *b.fStates;
+    auto head = s.boolean("big_dripleaf_head", false);
+    auto p = Empty();
+    FacingAFromDirection(s, p);
+    std::string name;
+    if (head) {
+      // none,partial_tilt,unstable,full_tilt => none,partial,unstable,full
+      auto tilt = s.string("big_dripleaf_tilt", "full_tilt");
+      std::string t;
+      if (tilt == "partial_tilt") {
+        t = "partial";
+      } else if (tilt == "full_tilt") {
+        t = "full";
+      } else {
+        t = tilt;
+      }
+      p["tilt"] = t;
+      name = "big_dripleaf";
+    } else {
+      name = "big_dripleaf_stem";
+    }
+    return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
+  }
+
   static Return BlockWithAgeFromGrowth(Input const &b) {
     auto const &s = *b.fStates;
     auto p = Empty();
@@ -903,6 +928,7 @@ private:
     E(beetroot, Beetroot);
     E(bee_nest, Beehive);
     E(bell, Bell);
+    E(big_dripleaf, BigDripleaf);
 
 #undef E
 
