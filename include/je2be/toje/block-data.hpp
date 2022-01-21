@@ -116,6 +116,46 @@ private:
     return std::make_shared<mcfile::je::Block const>(Ns() + "beetroots", p);
   }
 
+  static Return Bell(Input const &b) {
+    auto const &s = *b.fStates;
+    auto attachment = s.string("attachment", "floor");
+    auto direction = s.int32("direction", 0);
+    auto toggle = s.boolean("toggle_bit", false);
+    std::string facing;
+    switch (direction) {
+    case 1:
+      facing = "east";
+      break;
+    case 2:
+      facing = "south";
+      break;
+    case 3:
+      facing = "west";
+      break;
+    case 0:
+    default:
+      facing = "north";
+      break;
+    }
+    std::string a;
+    if (attachment == "standing") {
+      a = "floor";
+    } else if (attachment == "hanging") {
+      a = "ceiling";
+    } else if (attachment == "multiple") {
+      a = "double_wall";
+    } else if (attachment == "side") {
+      a = "single_wall";
+    } else {
+      a = attachment;
+    }
+    auto p = Empty();
+    p["facing"] = facing;
+    p["attachment"] = a;
+    p["powered"] = Bool(toggle);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return BlockWithAgeFromGrowth(Input const &b) {
     auto const &s = *b.fStates;
     auto p = Empty();
@@ -862,6 +902,7 @@ private:
     E(beehive, Beehive);
     E(beetroot, Beetroot);
     E(bee_nest, Beehive);
+    E(bell, Bell);
 
 #undef E
 
