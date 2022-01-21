@@ -92,6 +92,14 @@ private:
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
+  static Return Barrel(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    OpenFromOpenBit(s, p);
+    FacingAFromFacingDirection(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return Button(Input const &b) {
     using namespace std;
     auto const &s = *b.fStates;
@@ -209,6 +217,13 @@ private:
     auto props = Empty();
     FacingAFromFacingDirection(s, props);
     return make_shared<Block const>(b.fName, props);
+  }
+
+  static Return BlockWithAxisFromPillarAxis(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+    AxisFromPillarAxis(s, p);
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
 #pragma endregion
@@ -474,10 +489,8 @@ private:
 
   /*
   static Return _(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
     auto const &s = *b.fStates;
-    return make_shared<Block const>();
+    return std::make_shared<mcfile::je::Block const>();
   }
 */
 
@@ -805,6 +818,9 @@ private:
     E(pumpkin_stem, PumpkinStem);
     E(azalea_leaves, AzaleaLeaves);
     E(bamboo, Bamboo);
+    E(bamboo_sapling, Identity);
+    E(barrel, Barrel);
+    E(basalt, BlockWithAxisFromPillarAxis);
 
 #undef E
 
