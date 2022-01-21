@@ -323,6 +323,32 @@ private:
     auto color = s.string("color", "white");
     return std::make_shared<mcfile::je::Block const>(Ns() + color + "_concrete_powder");
   }
+
+  static Return Coral(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("coral_color", "pink");
+    auto dead = s.boolean("dead_bit", false);
+    auto type = CoralTypeFromCoralColor(color);
+    std::string name;
+    if (dead) {
+      name = "dead_";
+    }
+    name += type;
+    return std::make_shared<mcfile::je::Block const>(Ns() + name);
+  }
+
+  static Return CoralBlock(Input const &b) {
+    auto const &s = *b.fStates;
+    auto color = s.string("coral_color", "pink");
+    auto dead = s.boolean("dead_bit", false);
+    auto type = CoralTypeFromCoralColor(color);
+    std::string name;
+    if (dead) {
+      name = "dead_";
+    }
+    name += type + "_block";
+    return std::make_shared<mcfile::je::Block const>(Ns() + name);
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -704,6 +730,21 @@ private:
   static void AxisFromPillarAxis(States const &s, Props &props) {
     auto pillarAxis = s.string("pillar_axis", "y");
     props["axis"] = pillarAxis;
+  }
+
+  static std::string CoralTypeFromCoralColor(std::string const color) {
+    if (color == "blue") {
+      return "tube";
+    } else if (color == "pink") {
+      return "brain";
+    } else if (color == "purple") {
+      return "bubble";
+    } else if (color == "red") {
+      return "fire";
+    } else if (color == "yellow") {
+      return "horn";
+    }
+    return "brain";
   }
 
   static void FacingAFromDirection(States const &s, Props &props, std::string const &key = "direction") {
@@ -1088,17 +1129,24 @@ private:
     E(standing_banner, BlockWithRotationFromGroundSignDirection);
     E(bed, Bed);
     E(black_candle, Candle);
+    E(blue_candle, Candle);
     E(black_candle_cake, CandleCake);
+    E(blue_candle_cake, CandleCake);
     E(carpet, Carpet);
     E(concrete, Concrete);
     E(concretePowder, ConcretePowder);
     E(black_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
     E(stained_glass_pane, StainedGlassPane);
     E(stained_hardened_clay, StainedHardenedClay);
     E(wall_banner, BlockWithFacingAFromFacingDirection);
     E(wool, Wool);
+    E(blast_furnace, BlockWithFacingAFromFacingDirection);
+    E(bone_block, BlockWithAxisFromPillarAxis);
+    E(coral, Coral);
+    E(coral_block, CoralBlock);
 
 #undef E
 
