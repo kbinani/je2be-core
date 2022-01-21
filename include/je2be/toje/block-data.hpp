@@ -65,6 +65,33 @@ private:
 
 #pragma region Converters : B
 
+  static Return Bamboo(Input const &b) {
+    auto const &s = *b.fStates;
+    auto p = Empty();
+
+    auto leafSize = s.string("bamboo_leaf_size", "large_leaves");
+    std::string leaves = "none";
+    if (leafSize == "no_leaves") {
+      leaves = "none";
+    } else if (leafSize == "large_leaves") {
+      leaves = "large";
+    } else if (leafSize == "small_leaves") {
+      leaves = "small";
+    }
+    p["leaves"] = leaves;
+
+    auto stalkThickness = s.string("bamboo_stalk_thickness", "thin");
+    int age = 0; // thin
+    if (stalkThickness == "thick") {
+      age = 1;
+    }
+    p["age"] = std::to_string(age);
+
+    auto ageBit = s.boolean("age_bit", false);
+    p["stage"] = ageBit ? "1" : "0";
+    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+  }
+
   static Return Button(Input const &b) {
     using namespace std;
     auto const &s = *b.fStates;
@@ -777,6 +804,7 @@ private:
     E(melon_stem, MelonStem);
     E(pumpkin_stem, PumpkinStem);
     E(azalea_leaves, AzaleaLeaves);
+    E(bamboo, Bamboo);
 
 #undef E
 
