@@ -630,7 +630,11 @@ private:
     p["powered"] = Bool(false);
     FacingAFromDirection(s, p);
     OpenFromOpenBit(s, p);
-    return bName;
+    if (bName.ends_with(":fence_gate")) {
+      return Ns() + ":oak_fence_gate";
+    } else {
+      return bName;
+    }
   }
 #pragma endregion
 
@@ -807,6 +811,11 @@ private:
   static String Planks(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
     return Ns() + woodType + "_planks";
+  }
+
+  static String Portal(String const &bName, States const &s, Props &p) {
+    AxisFromPillarAxis(s, p);
+    return Ns() + "nether_portal";
   }
 
   static String PressurePlate(String const &bName, States const &s, Props &p) {
@@ -1054,6 +1063,12 @@ private:
     auto name = stripped ? "stripped_" + woodType + "_wood" : woodType + "_wood";
     AxisFromPillarAxis(s, p);
     return Ns() + name;
+  }
+
+  static String WoodenPressurePlate(String const &bName, States const &s, Props &p) {
+    auto signal = s.int32("restone_signal", 0);
+    p["powered"] = Bool(signal > 0);
+    return Ns() + "oak_pressure_plate";
   }
 
   static String WoodenSlab(String const &bName, States const &s, Props &p) {
@@ -1586,12 +1601,14 @@ private:
 
     E(fence, Fence);
     E(crimson_fence, Same);
+    E(nether_brick_fence, Same);
 
     E(acacia_fence_gate, FenceGate);
     E(birch_fence_gate, FenceGate);
     E(crimson_fence_gate, FenceGate);
     E(dark_oak_fence_gate, FenceGate);
     E(jungle_fence_gate, FenceGate);
+    E(fence_gate, FenceGate);
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
@@ -1632,6 +1649,9 @@ private:
     E(exposed_cut_copper_stairs, Stairs);
     E(granite_stairs, Stairs);
     E(jungle_stairs, Stairs);
+    E(mossy_cobblestone_stairs, Stairs);
+    E(mossy_stone_brick_stairs, Stairs);
+    E(nether_brick_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1685,6 +1705,7 @@ private:
     E(light_blue_candle, Candle);
     E(light_gray_candle, Candle);
     E(lime_candle, Candle);
+    E(magenta_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
@@ -1696,6 +1717,7 @@ private:
     E(light_blue_candle_cake, CandleCake);
     E(light_gray_candle_cake, CandleCake);
     E(lime_candle_cake, CandleCake);
+    E(magenta_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1710,6 +1732,7 @@ private:
     E(light_blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(silver_glazed_terracotta, SilverGlazedTerracotta);
     E(lime_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(magenta_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -1833,6 +1856,17 @@ private:
     E(light_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(waterlily, Rename("lily_pad"));
     E(loom, BlockWithFacingAFromDirection);
+    E(magma, Rename("magma_block"));
+    E(medium_amethyst_bud, BlockWithFacingAFromFacingDirection);
+    E(melon_block, Rename("melon"));
+    E(movingBlock, Same);
+    E(mycelium, Same); // No "snowy" property in BE
+    E(nether_brick, Rename("nether_bricks"));
+    E(portal, Portal);
+    E(quartz_ore, Rename("nether_quartz_ore"));
+    E(nether_wart, BlockWithAge);
+    E(noteblock, Rename("note_block"));
+    E(wooden_pressure_plate, WoodenPressurePlate);
 
 #undef E
 
