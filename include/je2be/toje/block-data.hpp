@@ -503,6 +503,25 @@ private:
     return bName;
   }
 
+  static String DoublePlant(String const &bName, States const &s, Props &p) {
+    auto type = s.string("double_plant_type", "rose");
+    std::string name;
+    if (type == "fern") {
+      name = "large_fern";
+    } else if (type == "syringa") {
+      name = "lilac";
+    } else if (type == "paenoia") {
+      name = "peony";
+    } else if (type == "sunflower") {
+      name = "sunflower";
+    } else { // rose
+      name = "rose_bush";
+    }
+    auto upper = s.boolean("upper_block_bit", false);
+    p["type"] = upper ? "upper" : "lower";
+    return Ns() + name;
+  }
+
   static Converter DoubleSlab(std::string name) {
     return [name](String const &bName, States const &s, Props &p) {
       p["type"] = "double";
@@ -671,6 +690,19 @@ private:
   static String Lantern(String const &bName, States const &s, Props &p) {
     auto hanging = s.boolean("hanging", false);
     p["hanging"] = Bool(hanging);
+    return bName;
+  }
+
+  static String Lava(String const &bName, States const &s, Props &p) {
+    auto depth = s.int32("liquid_depth", 0);
+    p["level"] = Int(depth);
+    return bName;
+  }
+
+  static String Lectern(String const &bName, States const &s, Props &p) {
+    auto powered = s.boolean("powered_bit", false);
+    p["powered"] = Bool(powered);
+    FacingAFromDirection(s, p);
     return bName;
   }
 
@@ -1659,6 +1691,7 @@ private:
     E(carrots, BlockWithAgeFromGrowth);
     E(carved_pumpkin, BlockWithFacingAFromDirection);
     E(cauldron, Cauldron);
+    E(lava_cauldron, Cauldron);
     E(cave_vines, CaveVines);
     E(cave_vines_with_berries, CaveVines);
     E(cave_vines_head_with_berries, CaveVines);
@@ -1744,6 +1777,9 @@ private:
     E(ladder, BlockWithFacingAFromFacingDirection);
     E(lantern, Lantern);
     E(large_amethyst_bud, BlockWithFacingAFromFacingDirection);
+    E(double_plant, DoublePlant);
+    E(lava, Lava);
+    E(lectern, Lectern);
 
 #undef E
 
