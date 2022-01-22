@@ -492,6 +492,20 @@ private:
     return Ns() + "daylight_detector";
   }
 
+  static String Deadbush(String const &bName, States const &s, Props &p) {
+    return Ns() + "dead_bush";
+  }
+
+  static String DeepslateBrickDoubleSlab(String const &bName, States const &s, Props &p) {
+    p["type"] = "double";
+    return "deepslate_brick_slab";
+  }
+
+  static String DeepslateTileDoubleSlab(String const &bName, States const &s, Props &p) {
+    p["type"] = "double";
+    return "deepslate_tile_slab";
+  }
+
   static String Dirt(String const &bName, States const &s, Props &p) {
     auto type = s.string("type", "normal");
     std::string prefix;
@@ -1412,6 +1426,8 @@ private:
     E(cut_copper_stairs, Stairs);
     E(dark_oak_stairs, Stairs);
     E(dark_prismarine_stairs, Stairs);
+    E(deepslate_brick_stairs, Stairs);
+    E(deepslate_tile_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1484,7 +1500,9 @@ private:
     E(coral_block, CoralBlock);
     E(coral_fan_hang, CoralFanHang);
     E(coral_fan_hang2, CoralFanHang);
+    E(coral_fan_hang3, CoralFanHang);
     E(coral_fan, CoralFan);
+    E(coral_fan_dead, CoralFan);
     E(brewing_stand, BrewingStand);
     E(brick_block, BrickBlock);
     E(stone_slab, StoneSlab);
@@ -1539,6 +1557,15 @@ private:
     E(double_stone_slab2, DoubleStoneSlab2);
     E(daylight_detector, DaylightDetector);
     E(daylight_detector_inverted, DaylightDetector);
+    E(deadbush, Deadbush);
+    E(deepslate, BlockWithAxisFromPillarAxis);
+    E(deepslate_brick_slab, BlockWithTypeFromTopSlotBit);
+    E(deepslate_brick_double_slab, DeepslateBrickDoubleSlab);
+    E(deepslate_brick_wall, BlockWithWallProperties);
+    E(deepslate_redstone_ore, Same);
+    E(deepslate_tile_slab, BlockWithTypeFromTopSlotBit);
+    E(deepslate_tile_double_slab, DeepslateTileDoubleSlab);
+    E(deepslate_tile_wall, BlockWithWallProperties);
 
 #undef E
 
