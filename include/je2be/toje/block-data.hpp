@@ -699,13 +699,6 @@ private:
     return bName;
   }
 
-  static String Lectern(String const &bName, States const &s, Props &p) {
-    auto powered = s.boolean("powered_bit", false);
-    p["powered"] = Bool(powered);
-    FacingAFromDirection(s, p);
-    return bName;
-  }
-
   static String Leaves(String const &bName, States const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
     PersistentFromPersistentBit(s, p);
@@ -716,6 +709,46 @@ private:
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     PersistentFromPersistentBit(s, p);
     return Ns() + newLeafType + "_leaves";
+  }
+
+  static String Lectern(String const &bName, States const &s, Props &p) {
+    auto powered = s.boolean("powered_bit", false);
+    p["powered"] = Bool(powered);
+    FacingAFromDirection(s, p);
+    return bName;
+  }
+
+  static String Lever(String const &bName, States const &s, Props &p) {
+    auto direction = s.string("lever_direction", "up_north_south");
+    std::string face;
+    std::string facing;
+    if (direction == "up_east_west") {
+      face = "floor";
+      facing = "west";
+    } else if (direction == "up_north_south") {
+      face = "floor";
+      facing = "north";
+    } else if (direction == "down_east_west") {
+      face = "ceiling";
+      facing = "west";
+    } else if (direction == "down_north_south") {
+      face = "ceiling";
+      facing = "north";
+    } else {
+      face = "wall";
+      facing = direction;
+    }
+    p["face"] = face;
+    p["facing"] = facing;
+    auto open = s.boolean("open_bit", false);
+    p["powered"] = Bool(open);
+    return bName;
+  }
+
+  static String LightBlock(String const &bName, States const &s, Props &p) {
+    auto level = s.int32("block_light_level", 0);
+    p["level"] = Int(level);
+    return bName;
   }
 
   static String LitPumpkin(String const &bName, States const &s, Props &p) {
@@ -908,6 +941,11 @@ private:
   static String ShulkerBox(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
     return Ns() + color + "_shulker_box";
+  }
+
+  static String SilverGlazedTerracotta(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    return Ns() + "light_gray_glazed_terracotta";
   }
 
   static String Stairs(String const &bName, States const &s, Props &p) {
@@ -1644,6 +1682,9 @@ private:
     E(cyan_candle, Candle);
     E(gray_candle, Candle);
     E(green_candle, Candle);
+    E(light_blue_candle, Candle);
+    E(light_gray_candle, Candle);
+    E(lime_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
@@ -1652,6 +1693,9 @@ private:
     E(cyan_candle_cake, CandleCake);
     E(gray_candle_cake, CandleCake);
     E(green_candle_cake, CandleCake);
+    E(light_blue_candle_cake, CandleCake);
+    E(light_gray_candle_cake, CandleCake);
+    E(lime_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1663,6 +1707,9 @@ private:
     E(cyan_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(gray_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(green_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(light_blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(silver_glazed_terracotta, SilverGlazedTerracotta);
+    E(lime_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -1780,6 +1827,12 @@ private:
     E(double_plant, DoublePlant);
     E(lava, Lava);
     E(lectern, Lectern);
+    E(lever, Lever);
+    E(lightning_rod, BlockWithFacingAFromFacingDirection);
+    E(light_block, LightBlock);
+    E(light_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
+    E(waterlily, Rename("lily_pad"));
+    E(loom, BlockWithFacingAFromDirection);
 
 #undef E
 
