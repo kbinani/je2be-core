@@ -568,9 +568,18 @@ private:
 
 #pragma region Converters : Q
   static String QuartzBlock(String const &bName, States const &s, Props &p) {
-    AxisFromPillarAxis(s, p);
-    auto chiselType = s.string("chisel_type", "chiseled");
-    return Ns() + chiselType + "_quartz_block";
+    auto type = s.string("chisel_type", "chiseled");
+    std::string prefix;
+    if (type == "lines") {
+      AxisFromPillarAxis(s, p);
+      return Ns() + "quartz_pillar";
+    } else if (type == "smooth") {
+      return Ns() + "smooth_quartz_block";
+    } else if (type == "chiseled") {
+      return Ns() + "chiseled_quartz_block";
+    } else { // "default";
+      return Ns() + "quartz_block";
+    }
   }
 #pragma endregion
 
