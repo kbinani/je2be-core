@@ -348,8 +348,24 @@ private:
   static String CaveVines(String const &bName, States const &s, Props &p) {
     auto berries = bName.ends_with("_with_berries");
     auto growingPlantAge = s.int32("growing_plant_age", 1);
-    p["age"] = Int(growingPlantAge);
-    return Ns() + "cave_vines";
+    if (growingPlantAge > 24) {
+      return Ns() + "cave_vines_plant";
+    } else {
+      p["age"] = Int(growingPlantAge);
+      return Ns() + "cave_vines";
+    }
+  }
+
+  static String CaveVinesBody(String const &bName, States const &s, Props &p) {
+    auto berries = bName.ends_with("_with_berries");
+    p["berries"] = Bool(berries);
+    return Ns() + "cave_vines_plant";
+  }
+
+  static String CommandBlock(String const &bName, States const &s, Props &p) {
+    auto conditional = s.boolean("conditional_bit", false);
+    FacingAFromFacingDirection(s, p);
+    return bName;
   }
 
   static String Concrete(String const &bName, States const &s, Props &p) {
@@ -1271,6 +1287,10 @@ private:
     E(cauldron, Cauldron);
     E(cave_vines, CaveVines);
     E(cave_vines_with_berries, CaveVines);
+    E(cave_vines_head_with_berries, CaveVines);
+    E(cave_vines_body_with_berries, CaveVinesBody);
+    E(chain, BlockWithAxisFromPillarAxis);
+    E(chain_command_block, CommandBlock);
 
 #undef E
 
