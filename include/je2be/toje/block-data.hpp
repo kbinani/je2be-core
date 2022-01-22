@@ -210,6 +210,11 @@ private:
     return bName;
   }
 
+  static String BlockWithFacingBFromFacingDirection(String const &bName, States const &s, Props &p) {
+    FacingBFromFacingDirection(s, p);
+    return bName;
+  }
+
   static String BlockWithPowerFromRedstoneSignal(String const &bName, States const &s, Props &p) {
     PowerFromRedstoneSignal(s, p);
     return bName;
@@ -807,10 +812,40 @@ private:
   }
 #pragma endregion
 
+#pragma region Converters : O
+  static String OakWallSign(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    return Ns() + "oak_wall_sign";
+  }
+
+  static String Observer(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    auto powered = s.boolean("powered", false);
+    p["powered"] = Bool(powered);
+    return bName;
+  }
+#pragma endregion
+
 #pragma region Converters : P
   static String Planks(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
     return Ns() + woodType + "_planks";
+  }
+
+  static String PointedDripstone(String const &bName, States const &s, Props &p) {
+    auto thickness = s.string("dripstone_thickness", "base");
+    std::string t;
+    if (thickness == "base") {
+      t = "base";
+    } else if (thickness == "merge") {
+      t = "tip_merge";
+    } else { //tip
+      t = "tip";
+    }
+    p["thickness"] = t;
+    auto hanging = s.boolean("hanging", false);
+    p["vertical_direction"] = hanging ? "down" : "up";
+    return bName;
   }
 
   static String Portal(String const &bName, States const &s, Props &p) {
@@ -979,9 +1014,15 @@ private:
   }
 
   static String StandingSign(String const &bName, States const &s, Props &p) {
-    auto type = VariantFromName(bName, "_standing_sign");
+    std::string name;
+    if (bName.ends_with(":standing_sign")) {
+      name = "oak_sign";
+    } else {
+      auto type = VariantFromName(bName, "_standing_sign");
+      name = type + "_sign";
+    }
     RotationFromGroundSignDirection(s, p);
-    return Ns() + type + "_sign";
+    return Ns() + name;
   }
 
   static String Stone(String const &bName, States const &s, Props &p) {
@@ -1046,7 +1087,11 @@ private:
     OpenFromOpenBit(s, p);
     HalfFromUpsideDownBit(s, p);
     p["powered"] = "false";
-    return bName;
+    if (bName.ends_with(":trapdoor")) {
+      return Ns() + "oak_trapdoor";
+    } else {
+      return bName;
+    }
   }
 #pragma endregion
 
@@ -1143,6 +1188,27 @@ private:
 
   static void FacingBFromDirection(States const &s, Props &props) {
     auto direction = s.int32("direction", 0);
+    std::string facing;
+    switch (direction) {
+    case 2:
+      facing = "south";
+      break;
+    case 1:
+      facing = "west";
+      break;
+    case 3:
+      facing = "north";
+      break;
+    case 0:
+    default:
+      facing = "east";
+      break;
+    }
+    props["facing"] = facing;
+  }
+
+  static void FacingBFromFacingDirection(States const &s, Props &props) {
+    auto direction = s.int32("facing_direction", 0);
     std::string facing;
     switch (direction) {
     case 2:
@@ -1621,6 +1687,7 @@ private:
     E(crimson_pressure_plate, PressurePlate);
     E(dark_oak_pressure_plate, PressurePlate);
     E(jungle_pressure_plate, PressurePlate);
+    E(polished_blackstone_pressure_plate, PressurePlate);
 
     E(sapling, Sapling);
 
@@ -1628,6 +1695,7 @@ private:
     E(birch_standing_sign, StandingSign);
     E(crimson_standing_sign, StandingSign);
     E(jungle_standing_sign, StandingSign);
+    E(standing_sign, StandingSign);
 
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
@@ -1652,6 +1720,14 @@ private:
     E(mossy_cobblestone_stairs, Stairs);
     E(mossy_stone_brick_stairs, Stairs);
     E(nether_brick_stairs, Stairs);
+    E(oak_stairs, Stairs);
+    E(oxidized_cut_copper_stairs, Stairs);
+    E(polished_andesite_stairs, Stairs);
+    E(polished_blackstone_brick_stairs, Stairs);
+    E(polished_blackstone_stairs, Stairs);
+    E(polished_deepslate_stairs, Stairs);
+    E(polished_diorite_stairs, Stairs);
+    E(polished_granite_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1659,6 +1735,7 @@ private:
     E(dark_oak_trapdoor, Trapdoor);
     E(iron_trapdoor, Trapdoor);
     E(jungle_trapdoor, Trapdoor);
+    E(trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
@@ -1706,6 +1783,8 @@ private:
     E(light_gray_candle, Candle);
     E(lime_candle, Candle);
     E(magenta_candle, Candle);
+    E(orange_candle, Candle);
+    E(pink_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
@@ -1718,6 +1797,8 @@ private:
     E(light_gray_candle_cake, CandleCake);
     E(lime_candle_cake, CandleCake);
     E(magenta_candle_cake, CandleCake);
+    E(orange_candle_cake, CandleCake);
+    E(pink_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1733,6 +1814,8 @@ private:
     E(silver_glazed_terracotta, SilverGlazedTerracotta);
     E(lime_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(magenta_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(orange_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(pink_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -1867,6 +1950,23 @@ private:
     E(nether_wart, BlockWithAge);
     E(noteblock, Rename("note_block"));
     E(wooden_pressure_plate, WoodenPressurePlate);
+    E(wall_sign, OakWallSign);
+    E(observer, Observer);
+    E(oxidized_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(oxidized_double_cut_copper_slab, DoubleSlab("oxidized_cut_copper_slab"));
+    E(piston, BlockWithFacingBFromFacingDirection);
+    E(podzol, Same); // No "snowy" property in BE
+    E(pointed_dripstone, PointedDripstone);
+    E(polished_basalt, BlockWithAxisFromPillarAxis);
+    E(polished_blackstone_brick_slab, BlockWithTypeFromTopSlotBit);
+    E(polished_blackstone_brick_double_slab, DoubleSlab("polished_blackstone_brick_slab"));
+    E(polished_blackstone_brick_wall, BlockWithWallProperties);
+    E(polished_blackstone_slab, BlockWithTypeFromTopSlotBit);
+    E(polished_blackstone_double_slab, DoubleSlab("polished_blackstone_slab"));
+    E(polished_blackstone_wall, BlockWithWallProperties);
+    E(polished_deepslate_slab, BlockWithTypeFromTopSlotBit);
+    E(polished_deepslate_double_slab, DoubleSlab("polished_deepslate_slab"));
+    E(polished_deepslate_wall, BlockWithWallProperties);
 
 #undef E
 
