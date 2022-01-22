@@ -442,6 +442,15 @@ private:
 #pragma endregion
 
 #pragma region Converters : D
+  static String Dirt(String const &bName, States const &s, Props &p) {
+    auto type = s.string("type", "normal");
+    std::string prefix;
+    if (type != "normal") {
+      prefix = type + "_";
+    }
+    return Ns() + prefix + "dirt";
+  }
+
   static String Door(String const &bName, States const &s, Props &p) {
     auto doorHingeBit = s.boolean("door_hinge_bit", false);
     auto upperBlockBit = s.boolean("upper_block_bit", false);
@@ -1343,6 +1352,8 @@ private:
     E(sandstone, Sandstone);
     E(stonebrick, Stonebrick);
     E(chorus_flower, BlockWithAge);
+    E(chorus_plant, Same);
+    E(dirt, Dirt);
 
 #undef E
 

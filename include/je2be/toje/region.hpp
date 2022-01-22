@@ -74,6 +74,7 @@ public:
       //TODO: colored standing banner
       //TODO: colored bed
       //TODO: "type" of chest
+      //TODO: down,east,north,south,up,west properties in chorus_plant
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {
