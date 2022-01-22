@@ -367,6 +367,12 @@ private:
     return Ns() + "cobbled_deepslate_slab";
   }
 
+  static String Cocoa(String const &bName, States const &s, Props &p) {
+    FacingAFromDirection(s, p);
+    Age(s, p);
+    return bName;
+  }
+
   static String CommandBlock(String const &bName, States const &s, Props &p) {
     auto conditional = s.boolean("conditional_bit", false);
     FacingAFromFacingDirection(s, p);
@@ -743,6 +749,10 @@ private:
     auto blockType = s.string("wall_block_type", "andesite");
     WallProperties(s, p);
     return Ns() + blockType + "_wall";
+  }
+
+  static String Web(String const &bName, States const &s, Props &p) {
+    return Ns() + "cobweb";
   }
 
   static String Wood(String const &bName, States const &s, Props &p) {
@@ -1371,6 +1381,7 @@ private:
     E(cave_vines_body_with_berries, CaveVinesBody);
     E(chain, BlockWithAxisFromPillarAxis);
     E(chain_command_block, CommandBlock);
+    E(command_block, CommandBlock);
     E(chest, BlockWithFacingAFromFacingDirection);
     E(quartz_block, QuartzBlock);
     E(red_sandstone, RedSandstone);
@@ -1383,6 +1394,8 @@ private:
     E(cobbled_deepslate_double_slab, CobbledDeepslateDoubleSlab);
     E(cobbled_deepslate_wall, BlockWithWallProperties);
     E(stone_stairs, StoneStairs);
+    E(web, Web);
+    E(cocoa, Cocoa);
 
 #undef E
 
