@@ -210,6 +210,11 @@ private:
     return bName;
   }
 
+  static String BlockWithPowerFromRedstoneSignal(String const &bName, States const &s, Props &p) {
+    PowerFromRedstoneSignal(s, p);
+    return bName;
+  }
+
   static String BlockWithRotationFromGroundSignDirection(String const &bName, States const &s, Props &p) {
     RotationFromGroundSignDirection(s, p);
     return bName;
@@ -471,10 +476,9 @@ private:
   }
 
   static String DaylightDetector(String const &bName, States const &s, Props &p) {
-    auto signal = s.int32("redstone_signal", 0);
     auto inverted = bName.ends_with("_inverted");
-    p["power"] = Int(signal);
     p["inverted"] = Bool(inverted);
+    PowerFromRedstoneSignal(s, p);
     return Ns() + "daylight_detector";
   }
 
@@ -646,6 +650,15 @@ private:
 
 #pragma endregion
 
+#pragma region Converters : H
+  static String Hopper(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    auto toggle = s.boolean("toggle_bit", false);
+    p["enabled"] = Bool(toggle);
+    return bName;
+  }
+#pragma endregion
+
 #pragma region Converters : L
   static String Leaves(String const &bName, States const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
@@ -684,6 +697,25 @@ private:
     }
     FacingAFromDirection(s, p, "facing_direction");
     return Ns() + name;
+  }
+
+  static String MonsterEgg(String const &bName, States const &s, Props &p) {
+    auto type = s.string("monster_egg_stone_type", "stone");
+    std::string name;
+    if (type == "cobblestone") {
+      name = type;
+    } else if (type == "stone_brick") {
+      name = "stone_bricks";
+    } else if (type == "mossy_stone_brick") {
+      name = "mossy_stone_bricks";
+    } else if (type == "cracked_stone_brick") {
+      name = "cracked_stone_bricks";
+    } else if (type == "chiseled_stone_brick") {
+      name = "chiseled_stone_bricks";
+    } else { // stone
+      name = "stone";
+    }
+    return Ns() + "infested_" + name;
   }
 #pragma endregion
 
@@ -1110,6 +1142,11 @@ private:
     props["persistent"] = Bool(persistent);
   }
 
+  static void PowerFromRedstoneSignal(States const &s, Props &p) {
+    auto signal = s.int32("redstone_signal", 0);
+    p["power"] = Int(signal);
+  }
+
   static void RotationFromGroundSignDirection(States const &s, Props &p) {
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
     p["rotation"] = Int(groundSignRotation);
@@ -1507,6 +1544,7 @@ private:
     E(birch_trapdoor, Trapdoor);
     E(crimson_trapdoor, Trapdoor);
     E(dark_oak_trapdoor, Trapdoor);
+    E(iron_trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
@@ -1667,6 +1705,13 @@ private:
     E(glow_lichen, GlowLichen);
     E(grass, Rename("grass_block"));
     E(grindstone, Grindstone);
+    E(hanging_roots, Same);
+    E(hay_block, BlockWithAxisFromPillarAxis);
+    E(heavy_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
+    E(hopper, Hopper);
+    E(monster_egg, MonsterEgg);
+    E(infested_deepslate, BlockWithAxisFromPillarAxis);
+    E(iron_bars, Same);
 
 #undef E
 

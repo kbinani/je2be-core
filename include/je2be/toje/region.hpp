@@ -78,6 +78,7 @@ public:
       //TODO: type of skull
       //TODO: "lit" of furnace
       //TODO: east,north,south,west of glass_pane
+      //TODO: east,north,south,west of iron_bars
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {
