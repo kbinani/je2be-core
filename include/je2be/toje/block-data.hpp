@@ -532,9 +532,65 @@ private:
     p["waterlogged"] = "false";
     return Ns() + woodType + "_slab";
   }
+
+  static String Dispenser(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    auto triggered = s.boolean("triggered_bit", false);
+    p["triggered"] = Bool(triggered);
+    return bName;
+  }
+
+  static String Dropper(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    auto triggered = s.boolean("triggered_bit", false);
+    p["triggered"] = Bool(triggered);
+    return bName;
+  }
+#pragma endregion
+
+#pragma region Converters : E
+  static String EndPortalFrame(String const &bName, States const &s, Props &p) {
+    FacingAFromDirection(s, p);
+    auto eye = s.boolean("end_portal_eye_bit", false);
+    p["eye"] = Bool(eye);
+    return bName;
+  }
+
+  static String EndRod(String const &bName, States const &s, Props &p) {
+    std::string facing;
+    switch (s.int32("facing_direction", 0)) {
+    case 1:
+      facing = "up";
+      break;
+    case 2:
+      facing = "south";
+      break;
+    case 3:
+      facing = "north";
+      break;
+    case 4:
+      facing = "east";
+      break;
+    case 5:
+      facing = "west";
+      break;
+    case 0:
+    default:
+      facing = "down";
+      break;
+    }
+    p["facing"] = facing;
+    return bName;
+  }
 #pragma endregion
 
 #pragma region Converter : F
+  static String Farmland(String const &bName, States const &s, Props &p) {
+    auto moisture = s.int32("moisturized_amount", 0);
+    p["moisture"] = Int(moisture);
+    return bName;
+  }
+
   static String Fence(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
     return Ns() + woodType + "_fence";
@@ -806,6 +862,15 @@ private:
 #pragma endregion
 
 #pragma region Converters : T
+  static String Tallgrass(String const &bName, States const &s, Props &p) {
+    auto type = s.string("tall_grass_type", "tall");
+    if (type == "fern") {
+      return Ns() + "fern";
+    } else { // "tall"
+      return Ns() + "grass";
+    }
+  }
+
   static String Trapdoor(String const &bName, States const &s, Props &p) {
     FacingBFromDirection(s, p);
     OpenFromOpenBit(s, p);
@@ -1394,6 +1459,8 @@ private:
     E(deepslate_brick_stairs, Stairs);
     E(deepslate_tile_stairs, Stairs);
     E(diorite_stairs, Stairs);
+    E(end_brick_stairs, Stairs);
+    E(exposed_cut_copper_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1533,6 +1600,18 @@ private:
     E(deepslate_tile_slab, BlockWithTypeFromTopSlotBit);
     E(deepslate_tile_double_slab, DoubleSlab("deepslate_tile_slab"));
     E(deepslate_tile_wall, BlockWithWallProperties);
+    E(grass_path, Rename("dirt_path"));
+    E(dispenser, Dispenser);
+    E(dropper, Dropper);
+    E(ender_chest, BlockWithFacingAFromFacingDirection);
+    E(end_portal_frame, EndPortalFrame);
+    E(end_rod, EndRod);
+    E(end_bricks, Rename("end_stone_bricks"));
+    E(exposed_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(exposed_double_cut_copper_slab, DoubleSlab("exposed_cut_copper_slab"));
+    E(farmland, Farmland);
+    E(tallgrass, Tallgrass);
+    E(fire, BlockWithAge);
 
 #undef E
 
