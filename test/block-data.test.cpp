@@ -53,15 +53,12 @@ TEST_CASE("block-data") {
     auto convertedJe = je2be::toje::BlockData::From(*blockB);
     if (convertedJe) {
       ok++;
-    } else {
+    } else if (ng < 10) {
       cerr << "-------------------------------------------------------------------------------" << endl;
       cerr << "input=" << endl;
       mcfile::nbt::PrintAsJson(cerr, *convertedToBe, {.fTypeHint = true});
       cerr << "java=" << javaBlockData << endl;
       ng++;
-      if (ng >= 10) {
-        break;
-      }
     }
   }
   cout << ok << "/" << total << " (" << ((float)ok / (float)total * 100.0f) << "%)" << endl;
