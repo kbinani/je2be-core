@@ -661,6 +661,14 @@ private:
     return bName;
   }
 
+  static String GoldenRail(String const &bName, States const &s, Props &p) {
+    auto railData = s.boolean("rail_data_bit", false);
+    auto railDirection = s.int32("rail_direction", 0);
+    p["powered"] = Bool(railData);
+    p["shape"] = ShapeFromRailDirection(railDirection);
+    return Ns() + "powered_rail";
+  }
+
   static String Grindstone(String const &bName, States const &s, Props &p) {
     auto attachment = s.string("attachment", "floor");
     std::string face;
@@ -675,7 +683,6 @@ private:
     FacingAFromDirection(s, p);
     return bName;
   }
-
 #pragma endregion
 
 #pragma region Converters : H
@@ -884,6 +891,18 @@ private:
     FacingAFromDirection(s, p, "facing_direction");
     return Ns() + name;
   }
+
+  static String PurpurBlock(String const &bName, States const &s, Props &p) {
+    auto chisel = s.string("chisel_type", "default");
+    std::string name;
+    if (chisel == "lines") {
+      name = "purpur_pillar";
+      AxisFromPillarAxis(s, p);
+    } else { // "default"
+      name = "purpur_block";
+    }
+    return Ns() + name;
+  }
 #pragma endregion
 
 #pragma region Converters : Q
@@ -904,6 +923,12 @@ private:
 #pragma endregion
 
 #pragma region Converters : R
+  static String Rail(String const &bName, States const &s, Props &p) {
+    auto railDirection = s.int32("rail_direction", 0);
+    p["shape"] = ShapeFromRailDirection(railDirection);
+    return bName;
+  }
+
   static String RailCanBePowered(String const &bName, States const &s, Props &p) {
     auto railData = s.boolean("rail_data_bit", false);
     auto railDirection = s.int32("rail_direction", 0);
@@ -946,6 +971,12 @@ private:
       name = "red_sandstone";
     }
     return Ns() + name;
+  }
+
+  static String RedstoneLamp(String const &bName, States const &s, Props &p) {
+    auto lit = bName == "minecraft:lit_redstone_lamp";
+    p["lit"] = Bool(lit);
+    return Ns() + "redstone_lamp";
   }
 
   static Converter Rename(std::string name) {
@@ -1728,6 +1759,10 @@ private:
     E(polished_deepslate_stairs, Stairs);
     E(polished_diorite_stairs, Stairs);
     E(polished_granite_stairs, Stairs);
+    E(prismarine_bricks_stairs, Stairs);
+    E(prismarine_stairs, Stairs);
+    E(purpur_stairs, Stairs);
+    E(quartz_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1785,6 +1820,7 @@ private:
     E(magenta_candle, Candle);
     E(orange_candle, Candle);
     E(pink_candle, Candle);
+    E(purple_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
@@ -1799,6 +1835,7 @@ private:
     E(magenta_candle_cake, CandleCake);
     E(orange_candle_cake, CandleCake);
     E(pink_candle_cake, CandleCake);
+    E(purple_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1816,6 +1853,7 @@ private:
     E(magenta_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(orange_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(pink_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(purple_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -1967,6 +2005,13 @@ private:
     E(polished_deepslate_slab, BlockWithTypeFromTopSlotBit);
     E(polished_deepslate_double_slab, DoubleSlab("polished_deepslate_slab"));
     E(polished_deepslate_wall, BlockWithWallProperties);
+    E(potatoes, BlockWithAgeFromGrowth);
+    E(golden_rail, GoldenRail);
+    E(pumpkin, Same);
+    E(purpur_block, PurpurBlock);
+    E(rail, Rail);
+    E(redstone_lamp, RedstoneLamp);
+    E(lit_redstone_lamp, RedstoneLamp);
 
 #undef E
 
