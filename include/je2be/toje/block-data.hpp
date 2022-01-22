@@ -484,6 +484,14 @@ private:
     return Ns() + "dark_oak_wall_sign";
   }
 
+  static String DaylightDetector(String const &bName, States const &s, Props &p) {
+    auto signal = s.int32("redstone_signal", 0);
+    auto inverted = bName.ends_with("_inverted");
+    p["power"] = Int(signal);
+    p["inverted"] = Bool(inverted);
+    return Ns() + "daylight_detector";
+  }
+
   static String Dirt(String const &bName, States const &s, Props &p) {
     auto type = s.string("type", "normal");
     std::string prefix;
@@ -514,6 +522,13 @@ private:
     auto stoneSlabType = s.string("stone_slab_type", "stone");
     p["type"] = "double";
     return Ns() + stoneSlabType + "_slab";
+  }
+
+  static String DoubleStoneSlab2(String const &bName, States const &s, Props &p) {
+    auto stoneSlabType = s.string("stone_slab_type_2", "prismarine_dark");
+    auto name = StoneTypeFromStone2(stoneSlabType);
+    p["type"] = "double";
+    return Ns() + name + "_slab";
   }
 
   static String DoubleStoneSlab3(String const &bName, States const &s, Props &p) {
@@ -775,6 +790,13 @@ private:
     return Ns() + stoneSlabType + "_slab";
   }
 
+  static String StoneSlab2(String const &bName, States const &s, Props &p) {
+    auto type = s.string("stone_slab_type_2", "prismarine_dark");
+    TypeFromTopSlotBit(s, p);
+    auto name = StoneTypeFromStone2(type);
+    return Ns() + name + "_slab";
+  }
+
   static String StoneSlab3(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
     TypeFromTopSlotBit(s, p);
@@ -1033,6 +1055,24 @@ private:
     default:
       return "north_south";
     }
+  }
+
+  static std::string StoneTypeFromStone2(std::string const &stoneType2) {
+    std::string name;
+    if (stoneType2 == "prismarine_dark") {
+      name = "dark_prismarine";
+    } else if (stoneType2 == "prismarine_rough") {
+      name = "prismarine";
+    } else {
+      // smooth_sandstone
+      // red_sandstone
+      // mossy_cobblestone
+      // prismarine_brick
+      // purpur
+      // red_nether_brick
+      name = stoneType2;
+    }
+    return name;
   }
 
   static void HalfFromUpsideDownBit(States const &s, Props &props) {
@@ -1371,6 +1411,7 @@ private:
     E(crimson_stairs, Stairs);
     E(cut_copper_stairs, Stairs);
     E(dark_oak_stairs, Stairs);
+    E(dark_prismarine_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1494,6 +1535,10 @@ private:
     E(darkoak_standing_sign, DarkoakStandingSign);
     E(darkoak_wall_sign, DarkoakWallSign);
     E(prismarine, Prismarine);
+    E(stone_slab2, StoneSlab2);
+    E(double_stone_slab2, DoubleStoneSlab2);
+    E(daylight_detector, DaylightDetector);
+    E(daylight_detector_inverted, DaylightDetector);
 
 #undef E
 
