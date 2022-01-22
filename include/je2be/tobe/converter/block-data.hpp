@@ -709,6 +709,11 @@ private:
     return props::Bool(p);
   }
 
+  static void RedstoneSignalFromPowered(StatesType const &s, Block const &block) {
+    auto powered = block.property("powered", "false") == "true";
+    s->set("redstone_signal", props::Int(powered ? 1 : 0));
+  }
+
   static PropertyType Lit(Block const &block) {
     auto l = block.property("lit", "flase") == "true";
     return props::Bool(l);
@@ -1339,8 +1344,8 @@ private:
     E(crimson_fence_gate, fenceGate);
     E(warped_fence_gate, fenceGate);
 
-    Converter pressurePlate(Same, Name(Power, "redstone_signal"));
-    E(oak_pressure_plate, Converter(Name("wooden_pressure_plate"), Name(Power, "redstone_signal")));
+    Converter pressurePlate(Same, RedstoneSignalFromPowered);
+    E(oak_pressure_plate, Converter(Name("wooden_pressure_plate"), RedstoneSignalFromPowered));
     E(spruce_pressure_plate, pressurePlate);
     E(birch_pressure_plate, pressurePlate);
     E(jungle_pressure_plate, pressurePlate);
