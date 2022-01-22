@@ -54,6 +54,11 @@ private:
     PersistentFromPersistentBit(s, p);
     return bName;
   }
+
+  static String AzaleaLeavesFlowered(String const &bName, States const &s, Props &p) {
+    PersistentFromPersistentBit(s, p);
+    return Ns() + "flowering_azalea_leaves";
+  }
 #pragma endregion
 
 #pragma region Converters : B
@@ -604,6 +609,41 @@ private:
     OpenFromOpenBit(s, p);
     return bName;
   }
+#pragma endregion
+
+#pragma region Converters : G
+  static String GlowLichen(String const &bName, States const &s, Props &p) {
+    auto bits = s.int32("multi_face_direction_bits", 0);
+    bool down = (bits & 0x1) == 0x1;
+    bool up = (bits & 0x2) == 0x2;
+    bool north = (bits & 0x4) == 0x4;
+    bool south = (bits & 0x8) == 0x8;
+    bool west = (bits & 0x10) == 0x10;
+    bool east = (bits & 0x20) == 0x20;
+    p["down"] = Bool(down);
+    p["up"] = Bool(up);
+    p["north"] = Bool(north);
+    p["south"] = Bool(south);
+    p["west"] = Bool(west);
+    p["east"] = Bool(east);
+    return bName;
+  }
+
+  static String Grindstone(String const &bName, States const &s, Props &p) {
+    auto attachment = s.string("attachment", "floor");
+    std::string face;
+    if (attachment == "side") {
+      face = "wall";
+    } else if (attachment == "hanging") {
+      face = "ceiling";
+    } else { // standing
+      face = "floor";
+    }
+    p["face"] = face;
+    FacingAFromDirection(s, p);
+    return bName;
+  }
+
 #pragma endregion
 
 #pragma region Converters : L
@@ -1461,6 +1501,7 @@ private:
     E(diorite_stairs, Stairs);
     E(end_brick_stairs, Stairs);
     E(exposed_cut_copper_stairs, Stairs);
+    E(granite_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1506,12 +1547,16 @@ private:
     E(brown_candle, Candle);
     E(candle, Candle);
     E(cyan_candle, Candle);
+    E(gray_candle, Candle);
+    E(green_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
     E(brown_candle_cake, CandleCake);
     E(candle_cake, CandleCake);
     E(cyan_candle_cake, CandleCake);
+    E(gray_candle_cake, CandleCake);
+    E(green_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1521,6 +1566,8 @@ private:
     E(blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(brown_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(cyan_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(gray_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(green_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -1612,6 +1659,14 @@ private:
     E(farmland, Farmland);
     E(tallgrass, Tallgrass);
     E(fire, BlockWithAge);
+    E(azalea_leaves_flowered, AzaleaLeavesFlowered);
+    E(flower_pot, Same);
+    E(frosted_ice, BlockWithAge);
+    E(furnace, BlockWithFacingAFromFacingDirection);
+    E(glass_pane, Same);
+    E(glow_lichen, GlowLichen);
+    E(grass, Rename("grass_block"));
+    E(grindstone, Grindstone);
 
 #undef E
 
