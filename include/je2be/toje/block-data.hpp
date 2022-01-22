@@ -659,7 +659,21 @@ private:
   }
 #pragma endregion
 
+#pragma region Converters : K
+  static String Kelp(String const &bName, States const &s, Props &p) {
+    auto age = s.int32("kelp_age", 0);
+    p["age"] = Int(age);
+    return bName;
+  }
+#pragma endregion
+
 #pragma region Converters : L
+  static String Lantern(String const &bName, States const &s, Props &p) {
+    auto hanging = s.boolean("hanging", false);
+    p["hanging"] = Bool(hanging);
+    return bName;
+  }
+
   static String Leaves(String const &bName, States const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
     PersistentFromPersistentBit(s, p);
@@ -670,6 +684,11 @@ private:
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     PersistentFromPersistentBit(s, p);
     return Ns() + newLeafType + "_leaves";
+  }
+
+  static String LitPumpkin(String const &bName, States const &s, Props &p) {
+    FacingAFromDirection(s, p);
+    return Ns() + "jack_o_lantern";
   }
 
   static String Log(String const &bName, States const &s, Props &p) {
@@ -1502,6 +1521,7 @@ private:
     E(birch_fence_gate, FenceGate);
     E(crimson_fence_gate, FenceGate);
     E(dark_oak_fence_gate, FenceGate);
+    E(jungle_fence_gate, FenceGate);
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
@@ -1513,12 +1533,14 @@ private:
     E(birch_pressure_plate, PressurePlate);
     E(crimson_pressure_plate, PressurePlate);
     E(dark_oak_pressure_plate, PressurePlate);
+    E(jungle_pressure_plate, PressurePlate);
 
     E(sapling, Sapling);
 
     E(acacia_standing_sign, StandingSign);
     E(birch_standing_sign, StandingSign);
     E(crimson_standing_sign, StandingSign);
+    E(jungle_standing_sign, StandingSign);
 
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
@@ -1539,16 +1561,19 @@ private:
     E(end_brick_stairs, Stairs);
     E(exposed_cut_copper_stairs, Stairs);
     E(granite_stairs, Stairs);
+    E(jungle_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
     E(crimson_trapdoor, Trapdoor);
     E(dark_oak_trapdoor, Trapdoor);
     E(iron_trapdoor, Trapdoor);
+    E(jungle_trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
     E(crimson_wall_sign, BlockWithFacingAFromFacingDirection);
+    E(jungle_wall_sign, BlockWithFacingAFromFacingDirection);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
@@ -1712,6 +1737,13 @@ private:
     E(monster_egg, MonsterEgg);
     E(infested_deepslate, BlockWithAxisFromPillarAxis);
     E(iron_bars, Same);
+    E(lit_pumpkin, LitPumpkin);
+    E(jigsaw, Same);
+    E(jukebox, Same);
+    E(kelp, Kelp);
+    E(ladder, BlockWithFacingAFromFacingDirection);
+    E(lantern, Lantern);
+    E(large_amethyst_bud, BlockWithFacingAFromFacingDirection);
 
 #undef E
 
