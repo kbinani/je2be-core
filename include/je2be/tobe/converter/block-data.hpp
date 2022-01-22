@@ -370,8 +370,6 @@ private:
 
   static Converter QuartzBlock(std::string const &type) { return Converter(Name("quartz_block"), AxisToPillarAxis, AddStringProperty("chisel_type", type)); }
 
-  static Converter PurpurBlock(std::string const &type) { return Subtype("purpur_block", "chisel_type", type); }
-
   static Converter Planks(std::string const &type) { return Subtype("planks", "wood_type", type); }
 
   static PropertyType FacingA(Block const &block) {
