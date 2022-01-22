@@ -180,11 +180,6 @@ private:
     return Ns() + name;
   }
 
-  static String BlackstoneDoubleSlab(String const &bName, States const &s, Props &p) {
-    p["type"] = "double";
-    return Ns() + "blackstone_slab";
-  }
-
   static String BlockWithAge(String const &bName, States const &s, Props &p) {
     Age(s, p);
     return bName;
@@ -233,10 +228,6 @@ private:
     p["has_bottle_1"] = Bool(slotB);
     p["has_bottle_2"] = Bool(slotC);
     return bName;
-  }
-
-  static String BrickBlock(String const &bName, States const &s, Props &p) {
-    return Ns() + "bricks";
   }
 
   static String BrownMushroomBlock(String const &bName, States const &s, Props &p) {
@@ -362,11 +353,6 @@ private:
     return Ns() + "cave_vines_plant";
   }
 
-  static String CobbledDeepslateDoubleSlab(String const &bName, States const &s, Props &p) {
-    p["type"] = "double";
-    return Ns() + "cobbled_deepslate_slab";
-  }
-
   static String Cocoa(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     Age(s, p);
@@ -466,11 +452,6 @@ private:
     }
     return Ns() + name + "_wall_fan";
   }
-
-  static String CrimsonDoubleSlab(String const &bName, States const &s, Props &p) {
-    p["type"] = "double";
-    return Ns() + "crimson_slab";
-  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -490,20 +471,6 @@ private:
     p["power"] = Int(signal);
     p["inverted"] = Bool(inverted);
     return Ns() + "daylight_detector";
-  }
-
-  static String Deadbush(String const &bName, States const &s, Props &p) {
-    return Ns() + "dead_bush";
-  }
-
-  static String DeepslateBrickDoubleSlab(String const &bName, States const &s, Props &p) {
-    p["type"] = "double";
-    return "deepslate_brick_slab";
-  }
-
-  static String DeepslateTileDoubleSlab(String const &bName, States const &s, Props &p) {
-    p["type"] = "double";
-    return "deepslate_tile_slab";
   }
 
   static String Dirt(String const &bName, States const &s, Props &p) {
@@ -527,9 +494,11 @@ private:
     return bName;
   }
 
-  static String DoubleCutCopperSlab(String const &bName, States const &s, Props &p) {
-    p["type"] = "double";
-    return Ns() + "cut_copper_slab";
+  static Converter DoubleSlab(std::string name) {
+    return [name](String const &bName, States const &s, Props &p) {
+      p["type"] = "double";
+      return Ns() + name;
+    };
   }
 
   static String DoubleStoneSlab(String const &bName, States const &s, Props &p) {
@@ -722,6 +691,12 @@ private:
     }
     return Ns() + name;
   }
+
+  static Converter Rename(std::string name) {
+    return [name](String const &bName, States const &s, Props &p) {
+      return Ns() + name;
+    };
+  }
 #pragma endregion
 
 #pragma region Converters : S
@@ -847,10 +822,6 @@ private:
     return Ns() + blockType + "_wall";
   }
 
-  static String Web(String const &bName, States const &s, Props &p) {
-    return Ns() + "cobweb";
-  }
-
   static String Wood(String const &bName, States const &s, Props &p) {
     auto stripped = s.boolean("stripped_bit", false);
     auto woodType = s.string("wood_type", "oak");
@@ -868,12 +839,6 @@ private:
   static String Wool(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
     return Ns() + color + "_wool";
-  }
-#pragma endregion
-
-#pragma region Converters : Y
-  static String YellowFlower(String const &bName, States const &s, Props &p) {
-    return Ns() + "dandelion";
   }
 #pragma endregion
 
@@ -1428,6 +1393,7 @@ private:
     E(dark_prismarine_stairs, Stairs);
     E(deepslate_brick_stairs, Stairs);
     E(deepslate_tile_stairs, Stairs);
+    E(diorite_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1440,6 +1406,7 @@ private:
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
+    E(detector_rail, RailCanBePowered);
     E(red_flower, RedFlower);
     E(amethyst_cluster, BlockWithFacingAFromFacingDirection);
     E(stone, Stone);
@@ -1463,7 +1430,7 @@ private:
     E(bell, Bell);
     E(big_dripleaf, BigDripleaf);
     E(blackstone_slab, BlockWithTypeFromTopSlotBit);
-    E(blackstone_double_slab, BlackstoneDoubleSlab);
+    E(blackstone_double_slab, DoubleSlab("blackstone_slab"));
     E(standing_banner, BlockWithRotationFromGroundSignDirection);
     E(bed, Bed);
 
@@ -1504,7 +1471,7 @@ private:
     E(coral_fan, CoralFan);
     E(coral_fan_dead, CoralFan);
     E(brewing_stand, BrewingStand);
-    E(brick_block, BrickBlock);
+    E(brick_block, Rename("bricks"));
     E(stone_slab, StoneSlab);
     E(double_stone_slab, DoubleStoneSlab);
     E(brown_mushroom_block, BrownMushroomBlock);
@@ -1531,10 +1498,10 @@ private:
     E(chorus_plant, Same);
     E(dirt, Dirt);
     E(cobbled_deepslate_slab, BlockWithTypeFromTopSlotBit);
-    E(cobbled_deepslate_double_slab, CobbledDeepslateDoubleSlab);
+    E(cobbled_deepslate_double_slab, DoubleSlab("cobbled_deepslate_slab"));
     E(cobbled_deepslate_wall, BlockWithWallProperties);
     E(stone_stairs, StoneStairs);
-    E(web, Web);
+    E(web, Rename("cobweb"));
     E(cocoa, Cocoa);
     E(powered_comparator, Comparator);
     E(unpowered_comparator, Comparator);
@@ -1543,13 +1510,13 @@ private:
     E(skull, Same);
     E(crimson_hyphae, BlockWithAxisFromPillarAxis);
     E(crimson_slab, BlockWithTypeFromTopSlotBit);
-    E(crimson_double_slab, CrimsonDoubleSlab);
+    E(crimson_double_slab, DoubleSlab("crimson_slab"));
     E(crimson_stem, BlockWithAxisFromPillarAxis);
     E(cut_copper_slab, BlockWithTypeFromTopSlotBit);
-    E(double_cut_copper_slab, DoubleCutCopperSlab);
+    E(double_cut_copper_slab, DoubleSlab("cut_copper_slab"));
     E(stone_slab4, StoneSlab4);
     E(double_stone_slab4, DoubleStoneSlab4);
-    E(yellow_flower, YellowFlower);
+    E(yellow_flower, Rename("dandelion"));
     E(darkoak_standing_sign, DarkoakStandingSign);
     E(darkoak_wall_sign, DarkoakWallSign);
     E(prismarine, Prismarine);
@@ -1557,14 +1524,14 @@ private:
     E(double_stone_slab2, DoubleStoneSlab2);
     E(daylight_detector, DaylightDetector);
     E(daylight_detector_inverted, DaylightDetector);
-    E(deadbush, Deadbush);
+    E(deadbush, Rename("dead_bush"));
     E(deepslate, BlockWithAxisFromPillarAxis);
     E(deepslate_brick_slab, BlockWithTypeFromTopSlotBit);
-    E(deepslate_brick_double_slab, DeepslateBrickDoubleSlab);
+    E(deepslate_brick_double_slab, DoubleSlab("deepslate_brick_slab"));
     E(deepslate_brick_wall, BlockWithWallProperties);
     E(deepslate_redstone_ore, Same);
     E(deepslate_tile_slab, BlockWithTypeFromTopSlotBit);
-    E(deepslate_tile_double_slab, DeepslateTileDoubleSlab);
+    E(deepslate_tile_double_slab, DoubleSlab("deepslate_tile_slab"));
     E(deepslate_tile_wall, BlockWithWallProperties);
 
 #undef E
