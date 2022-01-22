@@ -3,11 +3,10 @@
 namespace je2be::toje {
 
 class BlockData {
-  using Input = mcfile::be::Block;
-  using Return = std::shared_ptr<mcfile::je::Block const>;
+  using String = std::string;
   using States = mcfile::nbt::CompoundTag;
   using Props = std::map<std::string, std::string>;
-  using Converter = std::function<Return(Input const &)>;
+  using Converter = std::function<String(String const &bName, States const &s, Props &p)>;
 
 public:
   static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
@@ -20,7 +19,11 @@ public:
     if (found == sTable->end()) {
       return nullptr;
     } else {
-      return found->second(b);
+      static CompoundTag const sEmpty;
+      CompoundTag const &states = b.fStates ? *b.fStates : sEmpty;
+      map<string, string> props;
+      auto name = found->second(b.fName, states, props);
+      return make_shared<mcfile::je::Block const>(name, props);
     }
   }
 
@@ -32,13 +35,9 @@ private:
   BlockData() = delete;
 
 #pragma region Converters : A
-
-  static Return Anvil(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Anvil(String const &bName, States const &s, Props &p) {
     auto damage = s.string("damage", "undamaged");
-    string name = "anvil";
+    std::string name = "anvil";
     if (damage == "slightly_damaged") {
       name = "chipped_anvil";
     } else if (damage == "very_damaged") {
@@ -47,28 +46,18 @@ private:
       // undamaged
       name = "anvil";
     }
-    auto props = Empty();
-    FacingAFromDirection(s, props);
-    return make_shared<Block const>(Ns() + name, props);
+    FacingAFromDirection(s, p);
+    return Ns() + name;
   }
 
-  static Return AzaleaLeaves(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
-    auto props = Empty();
-    PersistentFromPersistentBit(s, props);
-    return make_shared<Block const>(b.fName, props);
+  static String AzaleaLeaves(String const &bName, States const &s, Props &p) {
+    PersistentFromPersistentBit(s, p);
+    return bName;
   }
-
 #pragma endregion
 
 #pragma region Converters : B
-
-  static Return Bamboo(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
-
+  static String Bamboo(String const &bName, States const &s, Props &p) {
     auto leafSize = s.string("bamboo_leaf_size", "large_leaves");
     std::string leaves = "none";
     if (leafSize == "no_leaves") {
@@ -89,29 +78,23 @@ private:
 
     auto ageBit = s.boolean("age_bit", false);
     p["stage"] = ageBit ? "1" : "0";
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Barrel(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String Barrel(String const &bName, States const &s, Props &p) {
     OpenFromOpenBit(s, p);
     FacingAFromFacingDirection(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Beehive(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String Beehive(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     auto honeyLevel = s.int32("honey_level", 0);
     p["honey_level"] = Int(honeyLevel);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Beetroot(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String Beetroot(String const &bName, States const &s, Props &p) {
     auto growth = s.int32("growth", 0);
     int age = 0;
     if (growth < 2) {
@@ -124,22 +107,19 @@ private:
       age = 3;
     }
     p["age"] = Int(age);
-    return std::make_shared<mcfile::je::Block const>(Ns() + "beetroots", p);
+    return Ns() + "beetroots";
   }
 
-  static Return Bed(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String Bed(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     auto headPiece = s.boolean("head_piece_bit", false);
     auto occupied = s.boolean("occupied_bit", false);
     p["part"] = headPiece ? "head" : "foot";
     p["occupied"] = Bool(occupied);
-    return std::make_shared<mcfile::je::Block const>(Ns() + "white_bed", p);
+    return Ns() + "white_bed";
   }
 
-  static Return Bell(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Bell(String const &bName, States const &s, Props &p) {
     auto attachment = s.string("attachment", "floor");
     auto direction = s.int32("direction", 0);
     auto toggle = s.boolean("toggle_bit", false);
@@ -171,17 +151,14 @@ private:
     } else {
       a = attachment;
     }
-    auto p = Empty();
     p["facing"] = facing;
     p["attachment"] = a;
     p["powered"] = Bool(toggle);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BigDripleaf(Input const &b) {
-    auto const &s = *b.fStates;
+  static String BigDripleaf(String const &bName, States const &s, Props &p) {
     auto head = s.boolean("big_dripleaf_head", false);
-    auto p = Empty();
     FacingAFromDirection(s, p);
     std::string name;
     if (head) {
@@ -200,95 +177,69 @@ private:
     } else {
       name = "big_dripleaf_stem";
     }
-    return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
+    return Ns() + name;
   }
 
-  static Return BlackstoneDoubleSlab(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlackstoneDoubleSlab(String const &bName, States const &s, Props &p) {
     p["type"] = "double";
-    return std::make_shared<mcfile::je::Block const>(Ns() + "blackstone_slab", p);
+    return Ns() + "blackstone_slab";
   }
 
-  static Return BlockWithAge(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlockWithAge(String const &bName, States const &s, Props &p) {
     Age(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BlockWithAgeFromGrowth(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlockWithAgeFromGrowth(String const &bName, States const &s, Props &p) {
     AgeFromGrowth(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BlockWithAxisFromPillarAxis(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlockWithAxisFromPillarAxis(String const &bName, States const &s, Props &p) {
     AxisFromPillarAxis(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BlockWithFacingAFromDirection(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlockWithFacingAFromDirection(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BlockWithFacingAFromFacingDirection(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
-    auto props = Empty();
-    FacingAFromFacingDirection(s, props);
-    return make_shared<Block const>(b.fName, props);
+  static String BlockWithFacingAFromFacingDirection(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    return bName;
   }
 
-  static Return BlockWithRotationFromGroundSignDirection(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlockWithRotationFromGroundSignDirection(String const &bName, States const &s, Props &p) {
     RotationFromGroundSignDirection(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BlockWithTypeFromTopSlotBit(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
-    auto props = Empty();
-    TypeFromTopSlotBit(s, props);
-    return make_shared<Block const>(b.fName, props);
+  static String BlockWithTypeFromTopSlotBit(String const &bName, States const &s, Props &p) {
+    TypeFromTopSlotBit(s, p);
+    return bName;
   }
 
-  static Return BlockWithWallProperties(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BlockWithWallProperties(String const &bName, States const &s, Props &p) {
     WallProperties(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BrewingStand(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BrewingStand(String const &bName, States const &s, Props &p) {
     auto slotA = s.boolean("brewing_stand_slot_a_bit", false);
     auto slotB = s.boolean("brewing_stand_slot_b_bit", false);
     auto slotC = s.boolean("brewing_stand_slot_c_bit", false);
     p["has_bottle_0"] = Bool(slotA);
     p["has_bottle_1"] = Bool(slotB);
     p["has_bottle_2"] = Bool(slotC);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return BrickBlock(Input const &b) {
-    return std::make_shared<mcfile::je::Block const>(Ns() + "bricks");
+  static String BrickBlock(String const &bName, States const &s, Props &p) {
+    return Ns() + "bricks";
   }
 
-  static Return BrownMushroomBlock(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BrownMushroomBlock(String const &bName, States const &s, Props &p) {
     bool stem = MushroomProperties(s, p);
     std::string name;
     if (stem) {
@@ -296,24 +247,20 @@ private:
     } else {
       name = "brown_mushroom_block";
     }
-    return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
+    return Ns() + name;
   }
 
-  static Return BubbleColumn(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String BubbleColumn(String const &bName, States const &s, Props &p) {
     auto dragDown = s.boolean("drag_down", false);
     p["drag"] = Bool(dragDown);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Button(Input const &b) {
-    using namespace std;
-    auto const &s = *b.fStates;
+  static String Button(String const &bName, States const &s, Props &p) {
     auto buttonPressedBit = s.boolean("button_pressed_bit", false);
     auto facingDirection = s.int32("facing_direction", 0);
-    string facing = "south";
-    string face = "ceiling";
+    std::string facing = "south";
+    std::string face = "ceiling";
     switch (facingDirection) {
     case 0:
       face = "ceiling";
@@ -342,60 +289,47 @@ private:
     default:
       break;
     }
-    auto props = Empty();
-    props["face"] = face;
-    props["facing"] = facing;
-    props["powered"] = Bool(buttonPressedBit);
-    return make_shared<mcfile::je::Block const>(b.fName, props);
+    p["face"] = face;
+    p["facing"] = facing;
+    p["powered"] = Bool(buttonPressedBit);
+    return bName;
   }
-
 #pragma endregion
 
 #pragma region Converters : C
-  static Return Cake(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Cake(String const &bName, States const &s, Props &p) {
     auto biteCounter = s.int32("bite_counter", 0);
-    auto p = Empty();
     p["bites"] = Int(biteCounter);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Campfire(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String Campfire(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     auto extinguished = s.boolean("extinguished", false);
     p["lit"] = Bool(!extinguished);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Candle(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Candle(String const &bName, States const &s, Props &p) {
     auto candles = s.int32("candles", 0);
-    auto p = Empty();
     p["candles"] = Int(candles + 1);
     Lit(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return CandleCake(Input const &b) {
-    auto const &s = *b.fStates;
-    auto p = Empty();
+  static String CandleCake(String const &bName, States const &s, Props &p) {
     Lit(s, p);
-    return std::make_shared<mcfile::je::Block const>(b.fName, p);
+    return bName;
   }
 
-  static Return Carpet(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Carpet(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_carpet");
+    return Ns() + color + "_carpet";
   }
 
-  static Return Cauldron(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Cauldron(String const &bName, States const &s, Props &p) {
     auto liquid = s.string("cauldron_liquid", "water");
     std::string name = "cauldron";
-    auto p = Empty();
     auto fillLevel = s.int32("fill_level", 0);
     if (fillLevel < 1) {
       name = "cauldron";
@@ -408,32 +342,27 @@ private:
       name = "powder_snow_cauldron";
       p["level"] = Int((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
     }
-    return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
+    return Ns() + name;
   }
 
-  static Return CaveVines(Input const &b) {
-    auto const &s = *b.fStates;
-    auto berries = b.fName.ends_with("_with_berries");
-    auto p = Empty();
+  static String CaveVines(String const &bName, States const &s, Props &p) {
+    auto berries = bName.ends_with("_with_berries");
     auto growingPlantAge = s.int32("growing_plant_age", 1);
     p["age"] = Int(growingPlantAge);
-    return std::make_shared<mcfile::je::Block const>(Ns() + "cave_vines", p);
+    return Ns() + "cave_vines";
   }
 
-  static Return Concrete(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Concrete(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_concrete");
+    return Ns() + color + "_concrete";
   }
 
-  static Return ConcretePowder(Input const &b) {
-    auto const &s = *b.fStates;
+  static String ConcretePowder(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_concrete_powder");
+    return Ns() + color + "_concrete_powder";
   }
 
-  static Return Coral(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Coral(String const &bName, States const &s, Props &p) {
     auto color = s.string("coral_color", "pink");
     auto dead = s.boolean("dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -442,11 +371,10 @@ private:
       name = "dead_";
     }
     name += type;
-    return std::make_shared<mcfile::je::Block const>(Ns() + name);
+    return Ns() + name;
   }
 
-  static Return CoralBlock(Input const &b) {
-    auto const &s = *b.fStates;
+  static String CoralBlock(String const &bName, States const &s, Props &p) {
     auto color = s.string("coral_color", "pink");
     auto dead = s.boolean("dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -455,24 +383,22 @@ private:
       name = "dead_";
     }
     name += type + "_block";
-    return std::make_shared<mcfile::je::Block const>(Ns() + name);
+    return Ns() + name;
   }
 
-  static Return CoralFan(Input const &b) {
-    auto const &s = *b.fStates;
+  static String CoralFan(String const &bName, States const &s, Props &p) {
     auto color = s.string("coral_color", "pink");
-    auto dead = b.fName.ends_with("_dead");
+    auto dead = bName.ends_with("_dead");
     auto type = CoralTypeFromCoralColor(color);
     std::string name;
     if (dead) {
       name = "dead_";
     }
     name += type + "_fan";
-    return std::make_shared<mcfile::je::Block const>(Ns() + name);
+    return Ns() + name;
   }
 
-  static Return CoralFanHang(Input const &b) {
-    auto const &s = *b.fStates;
+  static String CoralFanHang(String const &bName, States const &s, Props &p) {
     auto direction = s.int32("coral_direction", 0);
     auto hangType = s.boolean("coral_hang_type_bit", false);
     auto dead = s.boolean("dead", false);
@@ -480,13 +406,13 @@ private:
     if (dead) {
       name = "dead_";
     }
-    if (b.fName.ends_with("2")) {
+    if (bName.ends_with("2")) {
       if (hangType) {
         name += "fire";
       } else {
         name += "bubble";
       }
-    } else if (b.fName.ends_with("3")) {
+    } else if (bName.ends_with("3")) {
       name += "horn";
     } else {
       if (hangType) {
@@ -495,200 +421,138 @@ private:
         name += "tube";
       }
     }
-    return std::make_shared<mcfile::je::Block const>(Ns() + name + "_wall_fan");
+    return Ns() + name + "_wall_fan";
   }
 #pragma endregion
 
 #pragma region Converters : D
-
-  static Return Door(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-
-    auto const &s = *b.fStates;
-
+  static String Door(String const &bName, States const &s, Props &p) {
     auto doorHingeBit = s.boolean("door_hinge_bit", false);
     auto upperBlockBit = s.boolean("upper_block_bit", false);
 
-    auto props = Empty();
-    OpenFromOpenBit(s, props);
-    FacingCFromDirection(s, props);
-    props["hinge"] = doorHingeBit ? "right" : "left";
-    props["half"] = upperBlockBit ? "upper" : "lower";
-    props["powered"] = "false";
-    return make_shared<Block const>(b.fName, props);
+    OpenFromOpenBit(s, p);
+    FacingCFromDirection(s, p);
+    p["hinge"] = doorHingeBit ? "right" : "left";
+    p["half"] = upperBlockBit ? "upper" : "lower";
+    p["powered"] = "false";
+    return bName;
   }
 
-  static Return DoubleStoneSlab(Input const &b) {
-    auto const &s = *b.fStates;
+  static String DoubleStoneSlab(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
-    auto p = Empty();
     p["type"] = "double";
-    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
+    return Ns() + stoneSlabType + "_slab";
   }
 
-  static Return DoubleStoneSlab3(Input const &b) {
-    auto const &s = *b.fStates;
+  static String DoubleStoneSlab3(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
-    auto p = Empty();
     p["type"] = "double";
-    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
+    return Ns() + stoneSlabType + "_slab";
   }
 
-  static Return DoubleWoodenSlab(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String DoubleWoodenSlab(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
-    auto props = Empty();
-    props["type"] = "double";
-    props["waterlogged"] = "false";
-    return make_shared<Block const>(Ns() + woodType + "_slab", props);
+    p["type"] = "double";
+    p["waterlogged"] = "false";
+    return Ns() + woodType + "_slab";
   }
-
 #pragma endregion
 
 #pragma region Converter : F
-
-  static Return Fence(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Fence(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
-    return make_shared<Block const>(Ns() + woodType + "_fence");
+    return Ns() + woodType + "_fence";
   }
 
-  static Return FenceGate(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String FenceGate(String const &bName, States const &s, Props &p) {
     auto inWall = s.boolean("in_wall_bit", false);
-    auto props = Empty();
-    props["in_wall"] = Bool(inWall);
-    props["powered"] = Bool(false);
-    FacingAFromDirection(s, props);
-    OpenFromOpenBit(s, props);
-    return make_shared<Block const>(b.fName, props);
+    p["in_wall"] = Bool(inWall);
+    p["powered"] = Bool(false);
+    FacingAFromDirection(s, p);
+    OpenFromOpenBit(s, p);
+    return bName;
   }
-
 #pragma endregion
 
 #pragma region Converters : L
-
-  static Return Leaves(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Leaves(String const &bName, States const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
-    auto props = Empty();
-    PersistentFromPersistentBit(s, props);
-    return std::make_shared<mcfile::je::Block const>(Ns() + leafType + "_leaves", props);
+    PersistentFromPersistentBit(s, p);
+    return Ns() + leafType + "_leaves";
   }
 
-  static Return Leaves2(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Leaves2(String const &bName, States const &s, Props &p) {
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
-    auto props = Empty();
-    PersistentFromPersistentBit(s, props);
-    return std::make_shared<mcfile::je::Block const>(Ns() + newLeafType + "_leaves", props);
+    PersistentFromPersistentBit(s, p);
+    return Ns() + newLeafType + "_leaves";
   }
 
-  static Return Log(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Log(String const &bName, States const &s, Props &p) {
     auto logType = s.string("old_log_type", "oak");
-    auto props = Empty();
-    AxisFromPillarAxis(s, props);
-    return std::make_shared<mcfile::je::Block const>(Ns() + logType + "_log", props);
+    AxisFromPillarAxis(s, p);
+    return Ns() + logType + "_log";
   }
 
-  static Return Log2(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Log2(String const &bName, States const &s, Props &p) {
     auto logType = s.string("new_log_type", "acacia"); //TODO: acacia?
-    auto props = Empty();
-    AxisFromPillarAxis(s, props);
-    return std::make_shared<mcfile::je::Block const>(Ns() + logType + "_log", props);
+    AxisFromPillarAxis(s, p);
+    return Ns() + logType + "_log";
   }
-
 #pragma endregion
 
 #pragma region Converters : M
-
-  static Return MelonStem(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String MelonStem(String const &bName, States const &s, Props &p) {
     auto growth = s.int32("growth", 0);
-    auto props = Empty();
-    string name;
+    std::string name;
     if (growth >= 7) {
       name = "attached_melon_stem";
     } else {
       name = "melon_stem";
-      props["age"] = to_string(growth);
+      p["age"] = Int(growth);
     }
-    FacingAFromDirection(s, props, "facing_direction");
-    return make_shared<Block const>(Ns() + name, props);
+    FacingAFromDirection(s, p, "facing_direction");
+    return Ns() + name;
   }
-
 #pragma endregion
 
 #pragma region Converters : P
-
-  static Return Planks(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Planks(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
-    return make_shared<Block const>(Ns() + woodType + "_planks");
+    return Ns() + woodType + "_planks";
   }
 
-  static Return PressurePlate(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String PressurePlate(String const &bName, States const &s, Props &p) {
     auto redstoneSignal = s.int32("redstone_signal", 0);
-    auto props = Empty();
-    props["powered"] = Bool(redstoneSignal > 0);
-    return make_shared<Block const>(b.fName, props);
+    p["powered"] = Bool(redstoneSignal > 0);
+    return bName;
   }
 
-  static Return PumpkinStem(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String PumpkinStem(String const &bName, States const &s, Props &p) {
     auto growth = s.int32("growth", 0);
-    auto props = Empty();
-    string name;
+    std::string name;
     if (growth >= 7) {
       name = "attached_pumpkin_stem";
     } else {
       name = "pumpkin_stem";
-      props["age"] = to_string(growth);
+      p["age"] = Int(growth);
     }
-    FacingAFromDirection(s, props, "facing_direction");
-    return make_shared<Block const>(Ns() + name, props);
+    FacingAFromDirection(s, p, "facing_direction");
+    return Ns() + name;
   }
-
 #pragma endregion
 
 #pragma region Converters : R
-
-  static Return RailCanBePowered(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String RailCanBePowered(String const &bName, States const &s, Props &p) {
     auto railData = s.boolean("rail_data_bit", false);
     auto railDirection = s.int32("rail_direction", 0);
-    auto props = Empty();
-    props["powered"] = Bool(railData);
-    props["shape"] = ShapeFromRailDirection(railDirection);
-    return make_shared<Block const>(b.fName, props);
+    p["powered"] = Bool(railData);
+    p["shape"] = ShapeFromRailDirection(railDirection);
+    return bName;
   }
 
-  static Return RedFlower(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String RedFlower(String const &bName, States const &s, Props &p) {
     auto flowerType = s.string("flower_type", "poppy");
-    string name = flowerType;
+    std::string name = flowerType;
     if (flowerType == "orchid") {
       name = "blue_orchid";
     } else if (flowerType == "houstonia") {
@@ -704,36 +568,30 @@ private:
     } else if (flowerType == "oxeye") {
       name = "oxeye_daisy";
     }
-    return make_shared<Block const>(Ns() + name);
+    return Ns() + name;
   }
-
 #pragma endregion
 
 #pragma region Converters : S
+  static String Same(String const &bName, States const &s, Props &p) {
+    return bName;
+  }
 
-  static Return Sapling(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Sapling(String const &bName, States const &s, Props &p) {
     auto age = s.byte("age_bit", 0);
     auto saplingType = s.string("sapling_type", "acacia");
-    auto props = Empty();
-    props["stage"] = to_string(age);
-    return make_shared<Block const>(Ns() + saplingType + "_sapling");
+    p["stage"] = Int(age);
+    return Ns() + saplingType + "_sapling";
   }
 
-  static Return ShulkerBox(Input const &b) {
-    auto const &s = *b.fStates;
+  static String ShulkerBox(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_shulker_box");
+    return Ns() + color + "_shulker_box";
   }
 
-  static Return Stairs(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Stairs(String const &bName, States const &s, Props &p) {
     auto weirdoDirection = s.int32("weirdo_direction", 0);
-    string facing = "east";
+    std::string facing = "east";
     switch (weirdoDirection) {
     case 2:
       facing = "south";
@@ -749,131 +607,97 @@ private:
       facing = "east";
       break;
     }
-    auto props = Empty();
-    props["facing"] = facing;
-    HalfFromUpsideDownBit(s, props);
-    return make_shared<Block const>(b.fName, props);
+    p["facing"] = facing;
+    HalfFromUpsideDownBit(s, p);
+    return bName;
   }
 
-  static Return StainedGlass(Input const &b) {
-    auto const &s = *b.fStates;
+  static String StainedGlass(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_stained_glass");
+    return Ns() + color + "_stained_glass";
   }
 
-  static Return StainedGlassPane(Input const &b) {
-    auto const &s = *b.fStates;
+  static String StainedGlassPane(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_stained_glass_pane");
+    return Ns() + color + "_stained_glass_pane";
   }
 
-  static Return StainedHardenedClay(Input const &b) {
-    auto const &s = *b.fStates;
+  static String StainedHardenedClay(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_terracotta");
+    return Ns() + color + "_terracotta";
   }
 
-  static Return StandingSign(Input const &b) {
-    auto const &s = *b.fStates;
-    auto type = VariantFromName(b.fName, "_standing_sign");
+  static String StandingSign(String const &bName, States const &s, Props &p) {
+    auto type = VariantFromName(bName, "_standing_sign");
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
-    auto p = Empty();
     RotationFromGroundSignDirection(s, p);
-    return std::make_shared<mcfile::je::Block const>(Ns() + type + "_sign", p);
+    return Ns() + type + "_sign";
   }
 
-  static Return Stone(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Stone(String const &bName, States const &s, Props &p) {
     auto stoneType = s.string("stone_type");
-    string name = stoneType ? *stoneType : "stone";
-    return make_shared<Block const>(Ns() + name);
+    std::string name = stoneType ? *stoneType : "stone";
+    return Ns() + name;
   }
 
-  static Return StoneSlab(Input const &b) {
-    auto const &s = *b.fStates;
+  static String StoneSlab(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
-    auto p = Empty();
     TypeFromTopSlotBit(s, p);
-    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
+    return Ns() + stoneSlabType + "_slab";
   }
 
-  static Return StoneSlab3(Input const &b) {
-    auto const &s = *b.fStates;
+  static String StoneSlab3(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
-    auto p = Empty();
     TypeFromTopSlotBit(s, p);
-    return std::make_shared<mcfile::je::Block const>(Ns() + stoneSlabType + "_slab", p);
+    return Ns() + stoneSlabType + "_slab";
   }
-
 #pragma endregion
 
 #pragma region Converters : T
-
-  static Return Trapdoor(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
-    auto props = Empty();
-    FacingBFromDirection(s, props);
-    OpenFromOpenBit(s, props);
-    HalfFromUpsideDownBit(s, props);
-    props["powered"] = "false";
-    return make_shared<Block const>(b.fName, props);
+  static String Trapdoor(String const &bName, States const &s, Props &p) {
+    FacingBFromDirection(s, p);
+    OpenFromOpenBit(s, p);
+    HalfFromUpsideDownBit(s, p);
+    p["powered"] = "false";
+    return bName;
   }
-
 #pragma endregion
 
 #pragma region Converters : W
-
-  static Return WallWithBlockType(Input const &b) {
-    auto const &s = *b.fStates;
+  static String WallWithBlockType(String const &bName, States const &s, Props &p) {
     auto blockType = s.string("wall_block_type", "andesite");
-    auto p = Empty();
     WallProperties(s, p);
-    return std::make_shared<mcfile::je::Block const>(Ns() + blockType + "_wall", p);
+    return Ns() + blockType + "_wall";
   }
 
-  static Return Wood(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String Wood(String const &bName, States const &s, Props &p) {
     auto stripped = s.boolean("stripped_bit", false);
     auto woodType = s.string("wood_type", "oak");
     auto name = stripped ? "stripped_" + woodType + "_wood" : woodType + "_wood";
-    auto props = Empty();
-    AxisFromPillarAxis(s, props);
-    return make_shared<Block const>(Ns() + name, props);
+    AxisFromPillarAxis(s, p);
+    return Ns() + name;
   }
 
-  static Return WoodenSlab(Input const &b) {
-    using namespace std;
-    using namespace mcfile::je;
-    auto const &s = *b.fStates;
+  static String WoodenSlab(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia");
-    auto p = Empty();
     TypeFromTopSlotBit(s, p);
-    return make_shared<Block const>(Ns() + woodType + "_slab", p);
+    return Ns() + woodType + "_slab";
   }
 
-  static Return Wool(Input const &b) {
-    auto const &s = *b.fStates;
+  static String Wool(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
-    return std::make_shared<mcfile::je::Block const>(Ns() + color + "_wool");
+    return Ns() + color + "_wool";
   }
-
 #pragma endregion
 
   /*
-  static Return _(Input const &b) {
+  static String _(Input const &b) {
     auto const &s = *b.fStates;
     return std::make_shared<mcfile::je::Block const>();
   }
 */
 
 #pragma region Properties
-
   static void Age(States const &s, Props &p) {
     auto age = s.int32("age", 0);
     p["age"] = Int(age);
@@ -1185,7 +1009,6 @@ private:
     p["west"] = WallConnectionType(connectionTypeWest);
     p["up"] = Bool(post);
   }
-
 #pragma endregion
 
   static std::unordered_map<std::string, Converter> *CreateTable() {
@@ -1195,129 +1018,129 @@ private:
   assert(table->find("minecraft:" #__name) == table->end()); \
   table->emplace("minecraft:" #__name, __converter);
 
-    //TODO: remove these "identity" blocks
-#pragma region Identity
-    E(air, Identity);
-    E(amethyst_block, Identity);
-    E(ancient_debris, Identity);
-    E(azalea, Identity);
-    E(barrier, Identity);
-    E(beacon, Identity);
-    E(bedrock, Identity);
-    E(blackstone, Identity);
-    E(blue_ice, Identity);
-    E(bookshelf, Identity);
-    E(brown_mushroom, Identity);
-    E(budding_amethyst, Identity);
-    E(calcite, Identity);
-    E(cartography_table, Identity);
-    E(chiseled_deepslate, Identity);
-    E(chiseled_nether_bricks, Identity);
-    E(chiseled_polished_blackstone, Identity);
-    E(clay, Identity);
-    E(coal_block, Identity);
-    E(coal_ore, Identity);
-    E(cobbled_deepslate, Identity);
-    E(cobblestone, Identity);
-    E(copper_block, Identity);
-    E(copper_ore, Identity);
-    E(cracked_deepslate_bricks, Identity);
-    E(cracked_deepslate_tiles, Identity);
-    E(cracked_nether_bricks, Identity);
-    E(cracked_polished_blackstone_bricks, Identity);
-    E(crafting_table, Identity);
-    E(crimson_fungus, Identity);
-    E(crimson_nylium, Identity);
-    E(crimson_planks, Identity);
-    E(crimson_roots, Identity);
-    E(crying_obsidian, Identity);
-    E(cut_copper, Identity);
-    E(deepslate_bricks, Identity);
-    E(deepslate_coal_ore, Identity);
-    E(deepslate_copper_ore, Identity);
-    E(deepslate_diamond_ore, Identity);
-    E(deepslate_emerald_ore, Identity);
-    E(deepslate_gold_ore, Identity);
-    E(deepslate_iron_ore, Identity);
-    E(deepslate_lapis_ore, Identity);
-    E(deepslate_tiles, Identity);
-    E(diamond_block, Identity);
-    E(diamond_ore, Identity);
-    E(dragon_egg, Identity);
-    E(dried_kelp_block, Identity);
-    E(dripstone_block, Identity);
-    E(emerald_block, Identity);
-    E(emerald_ore, Identity);
-    E(enchanting_table, Identity);
-    E(end_gateway, Identity);
-    E(end_portal, Identity);
-    E(end_stone, Identity);
-    E(exposed_copper, Identity);
-    E(exposed_cut_copper, Identity);
-    E(fletching_table, Identity);
-    E(flowering_azalea, Identity);
-    E(gilded_blackstone, Identity);
-    E(glass, Identity);
-    E(glowstone, Identity);
-    E(gold_block, Identity);
-    E(gold_ore, Identity);
-    E(gravel, Identity);
-    E(honeycomb_block, Identity);
-    E(honey_block, Identity);
-    E(ice, Identity);
-    E(iron_block, Identity);
-    E(iron_ore, Identity);
-    E(lapis_block, Identity);
-    E(lapis_ore, Identity);
-    E(lodestone, Identity);
-    E(mossy_cobblestone, Identity);
-    E(moss_block, Identity);
-    E(moss_carpet, Identity);
-    E(netherite_block, Identity);
-    E(netherrack, Identity);
-    E(nether_gold_ore, Identity);
-    E(nether_sprouts, Identity);
-    E(nether_wart_block, Identity);
-    E(obsidian, Identity);
-    E(oxidized_copper, Identity);
-    E(oxidized_cut_copper, Identity);
-    E(packed_ice, Identity);
-    E(polished_blackstone, Identity);
-    E(polished_blackstone_bricks, Identity);
-    E(polished_deepslate, Identity);
-    E(powder_snow, Identity);
-    E(quartz_bricks, Identity);
-    E(raw_copper_block, Identity);
-    E(raw_gold_block, Identity);
-    E(raw_iron_block, Identity);
-    E(redstone_block, Identity);
-    E(red_mushroom, Identity);
-    E(shroomlight, Identity);
-    E(smithing_table, Identity);
-    E(smooth_basalt, Identity);
-    E(smooth_stone, Identity);
-    E(soul_fire, Identity);
-    E(soul_sand, Identity);
-    E(soul_soil, Identity);
-    E(spawner, Identity);
-    E(spore_blossom, Identity);
-    E(tinted_glass, Identity);
-    E(tuff, Identity);
-    E(warped_fungus, Identity);
-    E(warped_nylium, Identity);
-    E(warped_planks, Identity);
-    E(warped_roots, Identity);
-    E(warped_wart_block, Identity);
-    E(waxed_cut_copper, Identity);
-    E(waxed_exposed_copper, Identity);
-    E(waxed_exposed_cut_copper, Identity);
-    E(waxed_oxidized_copper, Identity);
-    E(waxed_oxidized_cut_copper, Identity);
-    E(waxed_weathered_copper, Identity);
-    E(waxed_weathered_cut_copper, Identity);
-    E(weathered_copper, Identity);
-    E(weathered_cut_copper, Identity);
-    E(wither_rose, Identity);
+    //TODO: remove these "same" blocks
+#pragma region Same
+    E(air, Same);
+    E(amethyst_block, Same);
+    E(ancient_debris, Same);
+    E(azalea, Same);
+    E(barrier, Same);
+    E(beacon, Same);
+    E(bedrock, Same);
+    E(blackstone, Same);
+    E(blue_ice, Same);
+    E(bookshelf, Same);
+    E(brown_mushroom, Same);
+    E(budding_amethyst, Same);
+    E(calcite, Same);
+    E(cartography_table, Same);
+    E(chiseled_deepslate, Same);
+    E(chiseled_nether_bricks, Same);
+    E(chiseled_polished_blackstone, Same);
+    E(clay, Same);
+    E(coal_block, Same);
+    E(coal_ore, Same);
+    E(cobbled_deepslate, Same);
+    E(cobblestone, Same);
+    E(copper_block, Same);
+    E(copper_ore, Same);
+    E(cracked_deepslate_bricks, Same);
+    E(cracked_deepslate_tiles, Same);
+    E(cracked_nether_bricks, Same);
+    E(cracked_polished_blackstone_bricks, Same);
+    E(crafting_table, Same);
+    E(crimson_fungus, Same);
+    E(crimson_nylium, Same);
+    E(crimson_planks, Same);
+    E(crimson_roots, Same);
+    E(crying_obsidian, Same);
+    E(cut_copper, Same);
+    E(deepslate_bricks, Same);
+    E(deepslate_coal_ore, Same);
+    E(deepslate_copper_ore, Same);
+    E(deepslate_diamond_ore, Same);
+    E(deepslate_emerald_ore, Same);
+    E(deepslate_gold_ore, Same);
+    E(deepslate_iron_ore, Same);
+    E(deepslate_lapis_ore, Same);
+    E(deepslate_tiles, Same);
+    E(diamond_block, Same);
+    E(diamond_ore, Same);
+    E(dragon_egg, Same);
+    E(dried_kelp_block, Same);
+    E(dripstone_block, Same);
+    E(emerald_block, Same);
+    E(emerald_ore, Same);
+    E(enchanting_table, Same);
+    E(end_gateway, Same);
+    E(end_portal, Same);
+    E(end_stone, Same);
+    E(exposed_copper, Same);
+    E(exposed_cut_copper, Same);
+    E(fletching_table, Same);
+    E(flowering_azalea, Same);
+    E(gilded_blackstone, Same);
+    E(glass, Same);
+    E(glowstone, Same);
+    E(gold_block, Same);
+    E(gold_ore, Same);
+    E(gravel, Same);
+    E(honeycomb_block, Same);
+    E(honey_block, Same);
+    E(ice, Same);
+    E(iron_block, Same);
+    E(iron_ore, Same);
+    E(lapis_block, Same);
+    E(lapis_ore, Same);
+    E(lodestone, Same);
+    E(mossy_cobblestone, Same);
+    E(moss_block, Same);
+    E(moss_carpet, Same);
+    E(netherite_block, Same);
+    E(netherrack, Same);
+    E(nether_gold_ore, Same);
+    E(nether_sprouts, Same);
+    E(nether_wart_block, Same);
+    E(obsidian, Same);
+    E(oxidized_copper, Same);
+    E(oxidized_cut_copper, Same);
+    E(packed_ice, Same);
+    E(polished_blackstone, Same);
+    E(polished_blackstone_bricks, Same);
+    E(polished_deepslate, Same);
+    E(powder_snow, Same);
+    E(quartz_bricks, Same);
+    E(raw_copper_block, Same);
+    E(raw_gold_block, Same);
+    E(raw_iron_block, Same);
+    E(redstone_block, Same);
+    E(red_mushroom, Same);
+    E(shroomlight, Same);
+    E(smithing_table, Same);
+    E(smooth_basalt, Same);
+    E(smooth_stone, Same);
+    E(soul_fire, Same);
+    E(soul_sand, Same);
+    E(soul_soil, Same);
+    E(spawner, Same);
+    E(spore_blossom, Same);
+    E(tinted_glass, Same);
+    E(tuff, Same);
+    E(warped_fungus, Same);
+    E(warped_nylium, Same);
+    E(warped_planks, Same);
+    E(warped_roots, Same);
+    E(warped_wart_block, Same);
+    E(waxed_cut_copper, Same);
+    E(waxed_exposed_copper, Same);
+    E(waxed_exposed_cut_copper, Same);
+    E(waxed_oxidized_copper, Same);
+    E(waxed_oxidized_cut_copper, Same);
+    E(waxed_weathered_copper, Same);
+    E(waxed_weathered_cut_copper, Same);
+    E(weathered_copper, Same);
+    E(weathered_cut_copper, Same);
+    E(wither_rose, Same);
 #pragma endregion
 
     E(acacia_button, Button);
@@ -1390,7 +1213,7 @@ private:
     E(pumpkin_stem, PumpkinStem);
     E(azalea_leaves, AzaleaLeaves);
     E(bamboo, Bamboo);
-    E(bamboo_sapling, Identity);
+    E(bamboo_sapling, Same);
     E(barrel, Barrel);
     E(basalt, BlockWithAxisFromPillarAxis);
     E(beehive, Beehive);
@@ -1455,7 +1278,6 @@ private:
   }
 
 #pragma region Utilities
-
   static std::string Bool(bool b) {
     return b ? "true" : "false";
   }
@@ -1468,17 +1290,11 @@ private:
     return "minecraft:";
   }
 
-  static inline std::map<std::string, std::string> Empty() {
-    static std::map<std::string, std::string> const sP;
-    return sP;
-  }
-
   // Get "acacia" from "minecraft:acacia_pressure_plate" when suffix is "_pressure_plate"
   static inline std::string VariantFromName(std::string const &name, std::string const &suffix) {
     assert(name.starts_with(Ns()) && name.ends_with(suffix));
     return name.substr(Ns().size()).substr(0, name.size() - Ns().size() - suffix.size());
   }
-
 #pragma endregion
 };
 
