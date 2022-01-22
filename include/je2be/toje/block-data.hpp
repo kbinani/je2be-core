@@ -379,6 +379,22 @@ private:
     return bName;
   }
 
+  static String Comparator(String const &bName, States const &s, Props &p) {
+    auto powered = bName.starts_with(Ns() + "powered_");
+    auto lit = s.boolean("output_lit_bit", false);
+    auto subtract = s.boolean("output_subtract_bit", false);
+    FacingAFromDirection(s, p);
+    p["powered"] = Bool(lit);
+    p["mode"] = subtract ? "subtract" : "compare";
+    return Ns() + "comparator";
+  }
+
+  static String Composter(String const &bName, States const &s, Props &p) {
+    auto level = s.int32("composter_fill_level", 0);
+    p["level"] = Int(level);
+    return bName;
+  }
+
   static String Concrete(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
     return Ns() + color + "_concrete";
@@ -450,6 +466,11 @@ private:
     }
     return Ns() + name + "_wall_fan";
   }
+
+  static String CrimsonDoubleSlab(String const &bName, States const &s, Props &p) {
+    p["type"] = "double";
+    return Ns() + "crimson_slab";
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -472,6 +493,11 @@ private:
     p["half"] = upperBlockBit ? "upper" : "lower";
     p["powered"] = "false";
     return bName;
+  }
+
+  static String DoubleCutCopperSlab(String const &bName, States const &s, Props &p) {
+    p["type"] = "double";
+    return Ns() + "cut_copper_slab";
   }
 
   static String DoubleStoneSlab(String const &bName, States const &s, Props &p) {
@@ -1269,9 +1295,11 @@ private:
     E(warped_door, Door);
 
     E(fence, Fence);
+    E(crimson_fence, Same);
 
     E(acacia_fence_gate, FenceGate);
     E(birch_fence_gate, FenceGate);
+    E(crimson_fence_gate, FenceGate);
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
@@ -1281,11 +1309,13 @@ private:
 
     E(acacia_pressure_plate, PressurePlate);
     E(birch_pressure_plate, PressurePlate);
+    E(crimson_pressure_plate, PressurePlate);
 
     E(sapling, Sapling);
 
     E(acacia_standing_sign, StandingSign);
     E(birch_standing_sign, StandingSign);
+    E(crimson_standing_sign, StandingSign);
 
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
@@ -1296,12 +1326,16 @@ private:
     E(blackstone_stairs, Stairs);
     E(brick_stairs, Stairs);
     E(cobbled_deepslate_stairs, Stairs);
+    E(crimson_stairs, Stairs);
+    E(cut_copper_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
+    E(crimson_trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
+    E(crimson_wall_sign, BlockWithFacingAFromFacingDirection);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
@@ -1396,6 +1430,17 @@ private:
     E(stone_stairs, StoneStairs);
     E(web, Web);
     E(cocoa, Cocoa);
+    E(powered_comparator, Comparator);
+    E(unpowered_comparator, Comparator);
+    E(composter, Composter);
+    E(conduit, Same);
+    E(skull, Same);
+    E(crimson_hyphae, BlockWithAxisFromPillarAxis);
+    E(crimson_slab, BlockWithTypeFromTopSlotBit);
+    E(crimson_double_slab, CrimsonDoubleSlab);
+    E(crimson_stem, BlockWithAxisFromPillarAxis);
+    E(cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(double_cut_copper_slab, DoubleCutCopperSlab);
 
 #undef E
 
