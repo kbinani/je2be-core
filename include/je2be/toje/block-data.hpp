@@ -85,7 +85,7 @@ private:
     if (stalkThickness == "thick") {
       age = 1;
     }
-    p["age"] = std::to_string(age);
+    p["age"] = Int(age);
 
     auto ageBit = s.boolean("age_bit", false);
     p["stage"] = ageBit ? "1" : "0";
@@ -105,7 +105,7 @@ private:
     auto p = Empty();
     FacingAFromDirection(s, p);
     auto honeyLevel = s.int32("honey_level", 0);
-    p["honey_level"] = std::to_string(honeyLevel);
+    p["honey_level"] = Int(honeyLevel);
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
@@ -123,7 +123,7 @@ private:
     } else {
       age = 3;
     }
-    p["age"] = std::to_string(age);
+    p["age"] = Int(age);
     return std::make_shared<mcfile::je::Block const>(Ns() + "beetroots", p);
   }
 
@@ -356,7 +356,7 @@ private:
     auto const &s = *b.fStates;
     auto biteCounter = s.int32("bite_counter", 0);
     auto p = Empty();
-    p["bites"] = std::to_string(biteCounter);
+    p["bites"] = Int(biteCounter);
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
 
@@ -373,7 +373,7 @@ private:
     auto const &s = *b.fStates;
     auto candles = s.int32("candles", 0);
     auto p = Empty();
-    p["candles"] = std::to_string(candles + 1);
+    p["candles"] = Int(candles + 1);
     Lit(s, p);
     return std::make_shared<mcfile::je::Block const>(b.fName, p);
   }
@@ -401,14 +401,23 @@ private:
       name = "cauldron";
     } else if (liquid == "water") {
       name = "water_cauldron";
-      p["level"] = std::to_string((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
+      p["level"] = Int((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
     } else if (liquid == "lava") {
       name = "lava_cauldron";
     } else if (liquid == "powder_snow") {
       name = "powder_snow_cauldron";
-      p["level"] = std::to_string((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
+      p["level"] = Int((std::min)((std::max)((int)ceil(fillLevel * 0.5), 1), 3));
     }
     return std::make_shared<mcfile::je::Block const>(Ns() + name, p);
+  }
+
+  static Return CaveVines(Input const &b) {
+    auto const &s = *b.fStates;
+    auto berries = b.fName.ends_with("_with_berries");
+    auto p = Empty();
+    auto growingPlantAge = s.int32("growing_plant_age", 1);
+    p["age"] = Int(growingPlantAge);
+    return std::make_shared<mcfile::je::Block const>(Ns() + "cave_vines", p);
   }
 
   static Return Concrete(Input const &b) {
@@ -867,12 +876,12 @@ private:
 
   static void Age(States const &s, Props &p) {
     auto age = s.int32("age", 0);
-    p["age"] = std::to_string(age);
+    p["age"] = Int(age);
   }
 
   static void AgeFromGrowth(States const &s, Props &p) {
     auto age = s.int32("growth", 0);
-    p["age"] = std::to_string(age);
+    p["age"] = Int(age);
   }
 
   static void AxisFromPillarAxis(States const &s, Props &props) {
@@ -1002,7 +1011,7 @@ private:
 
   static void RotationFromGroundSignDirection(States const &s, Props &p) {
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
-    p["rotation"] = std::to_string(groundSignRotation);
+    p["rotation"] = Int(groundSignRotation);
   }
 
   static std::string ShapeFromRailDirection(int32_t railDirection) {
@@ -1187,6 +1196,7 @@ private:
   table->emplace("minecraft:" #__name, __converter);
 
     //TODO: remove these "identity" blocks
+#pragma region Identity
     E(air, Identity);
     E(amethyst_block, Identity);
     E(ancient_debris, Identity);
@@ -1308,6 +1318,7 @@ private:
     E(weathered_copper, Identity);
     E(weathered_cut_copper, Identity);
     E(wither_rose, Identity);
+#pragma endregion
 
     E(acacia_button, Button);
     E(wooden_button, Button);
@@ -1435,6 +1446,8 @@ private:
     E(carrots, BlockWithAgeFromGrowth);
     E(carved_pumpkin, BlockWithFacingAFromDirection);
     E(cauldron, Cauldron);
+    E(cave_vines, CaveVines);
+    E(cave_vines_with_berries, CaveVines);
 
 #undef E
 
@@ -1445,6 +1458,10 @@ private:
 
   static std::string Bool(bool b) {
     return b ? "true" : "false";
+  }
+
+  static std::string Int(int32_t i) {
+    return std::to_string(i);
   }
 
   static inline std::string Ns() {

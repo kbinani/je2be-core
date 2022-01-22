@@ -1685,9 +1685,10 @@ private:
 
   static BlockDataType CaveVines(Block const &block) {
     bool berries = block.property("berries", "false") == "true";
+    auto age = Wrap(strings::Toi(block.property("age", "1")), 1);
     auto c = New(berries ? "cave_vines_head_with_berries" : "cave_vines");
     auto s = States();
-    s->set("growing_plant_age", props::Int(23));
+    s->set("growing_plant_age", props::Int(age));
     return AttachStates(c, s);
   }
 
