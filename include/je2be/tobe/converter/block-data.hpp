@@ -1561,6 +1561,7 @@ private:
     E(deepslate, axisToPillarAxis);
     E(infested_deepslate, axisToPillarAxis);
     E(redstone_lamp, RedstoneLamp);
+    E(redstone_ore, RedstoneOre);
 #undef E
 
     return table;
@@ -1570,6 +1571,13 @@ private:
     auto c = New(block.fName, true);
     auto s = States();
     s->set("liquid_depth", props::Int(8));
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType RedstoneOre(Block const &block) {
+    auto lit = block.property("lit", "false") == "true";
+    auto c = New(lit ? "lit_redstone_ore" : "redstone_ore");
+    auto s = States();
     return AttachStates(c, s);
   }
 
