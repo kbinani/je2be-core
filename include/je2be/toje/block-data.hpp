@@ -362,6 +362,11 @@ private:
     return Ns() + "cave_vines_plant";
   }
 
+  static String CobbledDeepslateDoubleSlab(String const &bName, States const &s, Props &p) {
+    p["type"] = "double";
+    return Ns() + "cobbled_deepslate_slab";
+  }
+
   static String CommandBlock(String const &bName, States const &s, Props &p) {
     auto conditional = s.boolean("conditional_bit", false);
     FacingAFromFacingDirection(s, p);
@@ -662,24 +667,7 @@ private:
   }
 
   static String Stairs(String const &bName, States const &s, Props &p) {
-    auto weirdoDirection = s.int32("weirdo_direction", 0);
-    std::string facing = "east";
-    switch (weirdoDirection) {
-    case 2:
-      facing = "south";
-      break;
-    case 3:
-      facing = "north";
-      break;
-    case 1:
-      facing = "west";
-      break;
-    case 0:
-    default:
-      facing = "east";
-      break;
-    }
-    p["facing"] = facing;
+    FacingFromWeirdoDirection(s, p);
     HalfFromUpsideDownBit(s, p);
     return bName;
   }
@@ -731,6 +719,12 @@ private:
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
     TypeFromTopSlotBit(s, p);
     return Ns() + stoneSlabType + "_slab";
+  }
+
+  static String StoneStairs(String const &bName, States const &s, Props &p) {
+    FacingFromWeirdoDirection(s, p);
+    HalfFromUpsideDownBit(s, p);
+    return Ns() + "cobblestone_stairs";
   }
 #pragma endregion
 
@@ -896,6 +890,27 @@ private:
       facing = "down";
     }
     props["facing"] = facing;
+  }
+
+  static void FacingFromWeirdoDirection(States const &s, Props &p) {
+    auto weirdoDirection = s.int32("weirdo_direction", 0);
+    std::string facing = "east";
+    switch (weirdoDirection) {
+    case 2:
+      facing = "south";
+      break;
+    case 3:
+      facing = "north";
+      break;
+    case 1:
+      facing = "west";
+      break;
+    case 0:
+    default:
+      facing = "east";
+      break;
+    }
+    p["facing"] = facing;
   }
 
   static void Lit(States const &s, Props &p) {
@@ -1270,6 +1285,7 @@ private:
     E(birch_stairs, Stairs);
     E(blackstone_stairs, Stairs);
     E(brick_stairs, Stairs);
+    E(cobbled_deepslate_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1363,6 +1379,10 @@ private:
     E(chorus_flower, BlockWithAge);
     E(chorus_plant, Same);
     E(dirt, Dirt);
+    E(cobbled_deepslate_slab, BlockWithTypeFromTopSlotBit);
+    E(cobbled_deepslate_double_slab, CobbledDeepslateDoubleSlab);
+    E(cobbled_deepslate_wall, BlockWithWallProperties);
+    E(stone_stairs, StoneStairs);
 
 #undef E
 
