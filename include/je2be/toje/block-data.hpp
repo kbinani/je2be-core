@@ -474,6 +474,16 @@ private:
 #pragma endregion
 
 #pragma region Converters : D
+  static String DarkoakStandingSign(String const &bName, States const &s, Props &p) {
+    RotationFromGroundSignDirection(s, p);
+    return Ns() + "dark_oak_sign";
+  }
+
+  static String DarkoakWallSign(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    return Ns() + "dark_oak_wall_sign";
+  }
+
   static String Dirt(String const &bName, States const &s, Props &p) {
     auto type = s.string("type", "normal");
     std::string prefix;
@@ -508,6 +518,12 @@ private:
 
   static String DoubleStoneSlab3(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
+    p["type"] = "double";
+    return Ns() + stoneSlabType + "_slab";
+  }
+
+  static String DoubleStoneSlab4(String const &bName, States const &s, Props &p) {
+    auto stoneSlabType = s.string("stone_slab_type4", "stone");
     p["type"] = "double";
     return Ns() + stoneSlabType + "_slab";
   }
@@ -587,6 +603,19 @@ private:
     auto redstoneSignal = s.int32("redstone_signal", 0);
     p["powered"] = Bool(redstoneSignal > 0);
     return bName;
+  }
+
+  static String Prismarine(String const &bName, States const &s, Props &p) {
+    auto type = s.string("prismarine_block_type", "default");
+    std::string name;
+    if (type == "bricks") {
+      name = "prismarine_bricks";
+    } else if (type == "dark") {
+      name = "dark_prismarine";
+    } else { // default
+      name = "prismarine";
+    }
+    return Ns() + name;
   }
 
   static String PumpkinStem(String const &bName, States const &s, Props &p) {
@@ -721,7 +750,6 @@ private:
 
   static String StandingSign(String const &bName, States const &s, Props &p) {
     auto type = VariantFromName(bName, "_standing_sign");
-    auto groundSignRotation = s.int32("ground_sign_direction", 0);
     RotationFromGroundSignDirection(s, p);
     return Ns() + type + "_sign";
   }
@@ -751,6 +779,12 @@ private:
     auto stoneSlabType = s.string("stone_slab_type3", "andesite");
     TypeFromTopSlotBit(s, p);
     return Ns() + stoneSlabType + "_slab";
+  }
+
+  static String StoneSlab4(String const &bName, States const &s, Props &p) {
+    auto type = s.string("stone_slab_type4", "stone");
+    TypeFromTopSlotBit(s, p);
+    return Ns() + type + "_slab";
   }
 
   static String StoneStairs(String const &bName, States const &s, Props &p) {
@@ -798,6 +832,12 @@ private:
   static String Wool(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
     return Ns() + color + "_wool";
+  }
+#pragma endregion
+
+#pragma region Converters : Y
+  static String YellowFlower(String const &bName, States const &s, Props &p) {
+    return Ns() + "dandelion";
   }
 #pragma endregion
 
@@ -1300,6 +1340,7 @@ private:
     E(acacia_fence_gate, FenceGate);
     E(birch_fence_gate, FenceGate);
     E(crimson_fence_gate, FenceGate);
+    E(dark_oak_fence_gate, FenceGate);
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
@@ -1310,6 +1351,7 @@ private:
     E(acacia_pressure_plate, PressurePlate);
     E(birch_pressure_plate, PressurePlate);
     E(crimson_pressure_plate, PressurePlate);
+    E(dark_oak_pressure_plate, PressurePlate);
 
     E(sapling, Sapling);
 
@@ -1328,10 +1370,12 @@ private:
     E(cobbled_deepslate_stairs, Stairs);
     E(crimson_stairs, Stairs);
     E(cut_copper_stairs, Stairs);
+    E(dark_oak_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
     E(crimson_trapdoor, Trapdoor);
+    E(dark_oak_trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
@@ -1370,11 +1414,13 @@ private:
     E(blue_candle, Candle);
     E(brown_candle, Candle);
     E(candle, Candle);
+    E(cyan_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
     E(brown_candle_cake, CandleCake);
     E(candle_cake, CandleCake);
+    E(cyan_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1383,6 +1429,7 @@ private:
     E(black_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(brown_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(cyan_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -1441,6 +1488,12 @@ private:
     E(crimson_stem, BlockWithAxisFromPillarAxis);
     E(cut_copper_slab, BlockWithTypeFromTopSlotBit);
     E(double_cut_copper_slab, DoubleCutCopperSlab);
+    E(stone_slab4, StoneSlab4);
+    E(double_stone_slab4, DoubleStoneSlab4);
+    E(yellow_flower, YellowFlower);
+    E(darkoak_standing_sign, DarkoakStandingSign);
+    E(darkoak_wall_sign, DarkoakWallSign);
+    E(prismarine, Prismarine);
 
 #undef E
 
