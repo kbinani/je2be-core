@@ -73,6 +73,7 @@ public:
       //TODO: waterlogged property
       //TODO: colored standing banner
       //TODO: colored bed
+      //TODO: "type" of chest
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {

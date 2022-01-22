@@ -557,6 +557,14 @@ private:
   }
 #pragma endregion
 
+#pragma region Converters : Q
+  static String QuartzBlock(String const &bName, States const &s, Props &p) {
+    AxisFromPillarAxis(s, p);
+    auto chiselType = s.string("chisel_type", "chiseled");
+    return Ns() + chiselType + "_quartz_block";
+  }
+#pragma endregion
+
 #pragma region Converters : R
   static String RailCanBePowered(String const &bName, States const &s, Props &p) {
     auto railData = s.boolean("rail_data_bit", false);
@@ -586,11 +594,41 @@ private:
     }
     return Ns() + name;
   }
+
+  static String RedSandstone(String const &bName, States const &s, Props &p) {
+    auto type = s.string("sand_stone_type", "default");
+    std::string name = "red_sandstone";
+    if (type == "hieroglyphs") {
+      name = "chiseled_red_sandstone";
+    } else if (type == "cut") {
+      name = "cut_red_sandstone";
+    } else if (type == "smooth") {
+      name = "smooth_red_sandstone";
+    } else { // "default"
+      name = "red_sandstone";
+    }
+    return Ns() + name;
+  }
 #pragma endregion
 
 #pragma region Converters : S
   static String Same(String const &bName, States const &s, Props &p) {
     return bName;
+  }
+
+  static String Sandstone(String const &bName, States const &s, Props &p) {
+    auto type = s.string("sand_stone_type", "default");
+    std::string name = "sandstone";
+    if (type == "hieroglyphs") {
+      name = "chiseled_sandstone";
+    } else if (type == "cut") {
+      name = "cut_sandstone";
+    } else if (type == "smooth") {
+      name = "smooth_sandstone";
+    } else { // "default"
+      name = "sandstone";
+    }
+    return Ns() + name;
   }
 
   static String Sapling(String const &bName, States const &s, Props &p) {
@@ -656,6 +694,15 @@ private:
     return Ns() + name;
   }
 
+  static String Stonebrick(String const &bName, States const &s, Props &p) {
+    auto type = s.string("stone_brick_type", "default");
+    std::string prefix;
+    if (type != "default") {
+      prefix = type + "_";
+    }
+    return Ns() + prefix + "stone_bricks";
+  }
+
   static String StoneSlab(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
     TypeFromTopSlotBit(s, p);
@@ -707,9 +754,8 @@ private:
 #pragma endregion
 
   /*
-  static String _(Input const &b) {
-    auto const &s = *b.fStates;
-    return std::make_shared<mcfile::je::Block const>();
+  static String _(String const &bName, States const &s, Props &p) {
+    return bName;
   }
 */
 
@@ -1291,6 +1337,12 @@ private:
     E(cave_vines_body_with_berries, CaveVinesBody);
     E(chain, BlockWithAxisFromPillarAxis);
     E(chain_command_block, CommandBlock);
+    E(chest, BlockWithFacingAFromFacingDirection);
+    E(quartz_block, QuartzBlock);
+    E(red_sandstone, RedSandstone);
+    E(sandstone, Sandstone);
+    E(stonebrick, Stonebrick);
+    E(chorus_flower, BlockWithAge);
 
 #undef E
 
