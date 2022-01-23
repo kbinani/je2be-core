@@ -318,8 +318,9 @@ private:
   }
 
   static String Carpet(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_carpet";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorB + "_carpet";
   }
 
   static String Cauldron(String const &bName, States const &s, Props &p) {
@@ -386,13 +387,15 @@ private:
   }
 
   static String Concrete(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_concrete";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorJ + "_concrete";
   }
 
   static String ConcretePowder(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_concrete_powder";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorJ + "_concrete_powder";
   }
 
   static String Coral(String const &bName, States const &s, Props &p) {
@@ -1097,8 +1100,9 @@ private:
   }
 
   static String ShulkerBox(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_shulker_box";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorB + "_shulker_box";
   }
 
   static String SilverGlazedTerracotta(String const &bName, States const &s, Props &p) {
@@ -1135,18 +1139,21 @@ private:
   }
 
   static String StainedGlass(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_stained_glass";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorB + "_stained_glass";
   }
 
   static String StainedGlassPane(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_stained_glass_pane";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorJ + "_stained_glass_pane";
   }
 
   static String StainedHardenedClay(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_terracotta";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorJ + "_terracotta";
   }
 
   static String StandingSign(String const &bName, States const &s, Props &p) {
@@ -1322,8 +1329,9 @@ private:
   }
 
   static String Wool(String const &bName, States const &s, Props &p) {
-    auto color = s.string("color", "white");
-    return Ns() + color + "_wool";
+    auto colorB = s.string("color", "white");
+    auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    return Ns() + colorJ + "_wool";
   }
 #pragma endregion
 
