@@ -8,12 +8,12 @@ public:
   ChunkCache(mcfile::Dimension d, int cx, int cz) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz) {
   }
 
-  std::shared_ptr<mcfile::be::Chunk> const &at(int cx, int cz) const {
+  std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
     int index = this->index(cx, cz);
     return fCache[index];
   }
 
-  std::shared_ptr<mcfile::be::Block const> const &blockAt(int bx, int by, int bz) const {
+  std::shared_ptr<mcfile::be::Block const> blockAt(int bx, int by, int bz) const {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
     int index = this->index(cx, cz);

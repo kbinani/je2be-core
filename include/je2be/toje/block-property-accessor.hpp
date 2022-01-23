@@ -10,7 +10,7 @@ public:
 
   static uint8_t BlockProperties(mcfile::be::Block const &b) {
     uint8_t p = 0;
-    if (b.fName.ends_with("_stairs")) {
+    if (IsStairs(b)) {
       p |= STAIRS;
     }
     return p;
@@ -18,6 +18,10 @@ public:
 
   static bool IsStairs(uint8_t p) {
     return (p & STAIRS) == STAIRS;
+  }
+
+  static bool IsStairs(mcfile::be::Block const &b) {
+    return b.fName.ends_with("_stairs");
   }
 
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {

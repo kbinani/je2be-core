@@ -139,19 +139,7 @@ public:
         BlockPropertyAccessor accessor(*b);
 
         // "shape" of stairs
-        for (int y = -64; y < 304; y++) {
-          for (int lz = 0; lz < 16; lz++) {
-            int z = cz * 16 + lz;
-            for (int lx = 0; lx < 16; lx++) {
-              int x = cx * 16 + lx;
-              auto p = accessor.property(x, y, z);
-              if (BlockPropertyAccessor::IsStairs(p)) {
-                auto stair = b->blockAt(x, y, z);
-                //TODO:
-              }
-            }
-          }
-        }
+        ShapeOfStairs::Do(*j, cache, accessor);
 
         cache.purge(cx, cz - 1);
         if (cx == rx * 32) {
