@@ -698,12 +698,6 @@ private:
     return bName;
   }
 
-  static String Lava(String const &bName, States const &s, Props &p) {
-    auto depth = s.int32("liquid_depth", 0);
-    p["level"] = Int(depth);
-    return bName;
-  }
-
   static String Leaves(String const &bName, States const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
     PersistentFromPersistentBit(s, p);
@@ -753,6 +747,12 @@ private:
   static String LightBlock(String const &bName, States const &s, Props &p) {
     auto level = s.int32("block_light_level", 0);
     p["level"] = Int(level);
+    return bName;
+  }
+
+  static String Liquid(String const &bName, States const &s, Props &p) {
+    auto depth = s.int32("liquid_depth", 0);
+    p["level"] = Int(depth);
     return bName;
   }
 
@@ -809,6 +809,18 @@ private:
 #pragma endregion
 
 #pragma region Converters : N
+  static Converter NetherVines(std::string type) {
+    return [type](String const &bName, States const &s, Props &p) {
+      auto age = s.int32(type + "_vines_age", 0);
+      if (age > 24) {
+        return bName + "_plant";
+      } else {
+        p["age"] = Int(age);
+        return bName;
+      }
+    };
+  }
+
   static String NormalStoneStairs(String const &bName, States const &s, Props &p) {
     FacingFromWeirdoDirection(s, p);
     HalfFromUpsideDownBit(s, p);
@@ -1312,6 +1324,21 @@ private:
   static String Wool(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
     return Ns() + color + "_wool";
+  }
+#pragma endregion
+
+#pragma region Converters : V
+  static String Vine(String const &bName, States const &s, Props &p) {
+    auto d = s.int16("vine_direction_bits", 0);
+    bool east = (d & 0x8) == 0x8;
+    bool north = (d & 0x4) == 0x4;
+    bool west = (d & 0x2) == 0x2;
+    bool south = (d & 0x1) == 0x1;
+    p["east"] = Bool(east);
+    p["north"] = Bool(north);
+    p["west"] = Bool(west);
+    p["south"] = Bool(south);
+    return bName;
   }
 #pragma endregion
 
@@ -1893,6 +1920,7 @@ private:
     E(fence, Fence);
     E(crimson_fence, Same);
     E(nether_brick_fence, Same);
+    E(warped_fence, Same);
 
     E(acacia_fence_gate, FenceGate);
     E(birch_fence_gate, FenceGate);
@@ -1901,6 +1929,7 @@ private:
     E(jungle_fence_gate, FenceGate);
     E(fence_gate, FenceGate);
     E(spruce_fence_gate, FenceGate);
+    E(warped_fence_gate, FenceGate);
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
@@ -1916,6 +1945,7 @@ private:
     E(polished_blackstone_pressure_plate, PressurePlate);
     E(spruce_pressure_plate, PressurePlate);
     E(stone_pressure_plate, PressurePlate);
+    E(warped_pressure_plate, PressurePlate);
 
     E(sapling, Sapling);
 
@@ -1925,6 +1955,7 @@ private:
     E(jungle_standing_sign, StandingSign);
     E(standing_sign, StandingSign);
     E(spruce_standing_sign, StandingSign);
+    E(warped_standing_sign, StandingSign);
 
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
@@ -1970,6 +2001,7 @@ private:
     E(spruce_stairs, Stairs);
     E(stone_brick_stairs, Stairs);
     E(normal_stone_stairs, NormalStoneStairs);
+    E(warped_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1979,12 +2011,14 @@ private:
     E(jungle_trapdoor, Trapdoor);
     E(trapdoor, Trapdoor);
     E(spruce_trapdoor, Trapdoor);
+    E(warped_trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
     E(crimson_wall_sign, BlockWithFacingAFromFacingDirection);
     E(jungle_wall_sign, BlockWithFacingAFromFacingDirection);
     E(spruce_wall_sign, BlockWithFacingAFromFacingDirection);
+    E(warped_wall_sign, BlockWithFacingAFromFacingDirection);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
@@ -2183,7 +2217,7 @@ private:
     E(soul_lantern, Lantern);
     E(large_amethyst_bud, BlockWithFacingAFromFacingDirection);
     E(double_plant, DoublePlant);
-    E(lava, Lava);
+    E(lava, Liquid);
     E(lectern, Lectern);
     E(lever, Lever);
     E(lightning_rod, BlockWithFacingAFromFacingDirection);
@@ -2276,6 +2310,13 @@ private:
     E(tripwire, Tripwire);
     E(tripwire_hook, TripwireHook);
     E(turtle_egg, TurtleEgg);
+    E(twisting_vines, NetherVines("twisting"));
+    E(vine, Vine);
+    E(warped_hyphae, BlockWithAxisFromPillarAxis);
+    E(warped_slab, BlockWithTypeFromTopSlotBit);
+    E(warped_double_slab, DoubleSlab("warped_slab"));
+    E(warped_stem, BlockWithAxisFromPillarAxis);
+    E(water, Liquid);
 
 #undef E
 
