@@ -90,6 +90,7 @@ public:
       //TODO: "bottom" of scafforlding
       //TODO: power,sculk_sensor_phase of sculk_sensor
       //TODO: facing of shulker_box, undyed_shulker_box
+      //TODO: "lit" of smoker
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {

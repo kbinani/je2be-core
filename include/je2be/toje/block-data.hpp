@@ -994,11 +994,6 @@ private:
     return Ns() + "redstone_ore";
   }
 
-  static String RedstoneTorch(String const &bName, States const &s, Props &p) {
-    FacingFromTorchFacingDirection(s, p);
-    return bName;
-  }
-
   static Converter Rename(std::string name) {
     return [name](String const &bName, States const &s, Props &p) {
       return Ns() + name;
@@ -1101,6 +1096,21 @@ private:
     auto upper = s.boolean("upper_block_bit", false);
     p["half"] = upper ? "upper" : "lower";
     return Ns() + "small_dripleaf";
+  }
+
+  static String SnowLayer(String const &bName, States const &s, Props &p) {
+    auto height = s.int32("height", 0);
+    p["layers"] = Int(height + 1);
+    return Ns() + "snow";
+  }
+
+  static String Sponge(String const &bName, States const &s, Props &p) {
+    auto type = s.string("sponge_type", "dry");
+    if (type == "wet") {
+      return Ns() + "wet_sponge";
+    } else { // "dry"
+      return Ns() + "sponge";
+    }
   }
 
   static String Stairs(String const &bName, States const &s, Props &p) {
@@ -1387,19 +1397,26 @@ private:
     props["facing"] = facing;
   }
 
-  static void FacingFromTorchFacingDirection(States const &s, Props &p) {
-    auto t = s.string("torch_fecing_direction", "south");
-    std::string f;
-    if (t == "west") {
-      f = "east";
-    } else if (t == "east") {
-      f = "west";
-    } else if (t == "south") {
-      f = "north";
-    } else { // north
-      f = "south";
-    }
-    p["facing"] = f;
+  static Converter Torch(std::string prefix) {
+    return [prefix](String const &bName, States const &s, Props &p) -> String {
+      auto t = s.string("torch_fecing_direction");
+      if (t) {
+        std::string f;
+        if (t == "west") {
+          f = "east";
+        } else if (t == "east") {
+          f = "west";
+        } else if (t == "south") {
+          f = "north";
+        } else { // north
+          f = "south";
+        }
+        p["facing"] = f;
+        return Ns() + prefix + "wall_torch";
+      } else {
+        return Ns() + prefix + "torch";
+      }
+    };
   }
 
   static void FacingFromWeirdoDirection(States const &s, Props &p) {
@@ -1861,6 +1878,9 @@ private:
     E(red_nether_brick_stairs, Stairs);
     E(red_sandstone_stairs, Stairs);
     E(sandstone_stairs, Stairs);
+    E(smooth_quartz_stairs, Stairs);
+    E(smooth_red_sandstone_stairs, Stairs);
+    E(smooth_sandstone_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1980,6 +2000,7 @@ private:
     E(cactus, BlockWithAge);
     E(cake, Cake);
     E(campfire, Campfire);
+    E(soul_campfire, Campfire);
     E(carrots, BlockWithAgeFromGrowth);
     E(carved_pumpkin, BlockWithFacingAFromDirection);
     E(cauldron, Cauldron);
@@ -2068,6 +2089,7 @@ private:
     E(kelp, Kelp);
     E(ladder, BlockWithFacingAFromFacingDirection);
     E(lantern, Lantern);
+    E(soul_lantern, Lantern);
     E(large_amethyst_bud, BlockWithFacingAFromFacingDirection);
     E(double_plant, DoublePlant);
     E(lava, Lava);
@@ -2115,7 +2137,7 @@ private:
     E(lit_redstone_lamp, RedstoneLamp);
     E(redstone_ore, RedstoneOre);
     E(lit_redstone_ore, RedstoneOre);
-    E(redstone_torch, RedstoneTorch);
+    E(redstone_torch, Torch("redstone_"));
     E(redstone_wire, BlockWithPowerFromRedstoneSignal);
     E(red_mushroom_block, RedMushroomBlock);
     E(red_nether_brick, Rename("red_nether_bricks"));
@@ -2134,6 +2156,11 @@ private:
     E(slime, Rename("slime_block"));
     E(small_amethyst_bud, BlockWithFacingAFromFacingDirection);
     E(small_dripleaf_block, SmallDripleafBlock);
+    E(smoker, BlockWithFacingAFromDirection);
+    E(snow_layer, SnowLayer);
+    E(snow, Rename("snow_block"));
+    E(soul_torch, Torch("soul_"));
+    E(sponge, Sponge);
 
 #undef E
 
