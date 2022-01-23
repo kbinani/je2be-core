@@ -83,7 +83,7 @@ public:
       //TODO: change kelp to kelp_plant
       //TODO: movingBlock
       //TODO: "instrument", "note", "powered" of noteblock
-      //TODO: "extended" of piston
+      //TODO: "extended" of piston, sticky_piston
       //TODO: "lit" of redstone_torch
       //TODO: east,north,south,west of redstone_wire
       //TODO: "locked" of repeater

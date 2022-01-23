@@ -819,6 +819,15 @@ private:
   }
 #pragma endregion
 
+#pragma region Converters : N
+  static String NormalStoneStairs(String const &bName, States const &s, Props &p) {
+    FacingFromWeirdoDirection(s, p);
+    HalfFromUpsideDownBit(s, p);
+    return Ns() + "stone_stairs";
+  }
+
+#pragma endregion
+
 #pragma region Converters : O
   static String OakWallSign(String const &bName, States const &s, Props &p) {
     FacingAFromFacingDirection(s, p);
@@ -1159,6 +1168,11 @@ private:
       prefix = type + "_";
     }
     return Ns() + prefix + "stone_bricks";
+  }
+
+  static String StonecutterBlock(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    return Ns() + "stonecutter";
   }
 
   static String StoneSlab(String const &bName, States const &s, Props &p) {
@@ -1797,6 +1811,7 @@ private:
     E(crimson_button, Button);
     E(warped_button, Button);
     E(polished_blackstone_button, Button);
+    E(spruce_button, Button);
 
     E(wooden_door, Door);
     E(iron_door, Door);
@@ -1818,6 +1833,7 @@ private:
     E(dark_oak_fence_gate, FenceGate);
     E(jungle_fence_gate, FenceGate);
     E(fence_gate, FenceGate);
+    E(spruce_fence_gate, FenceGate);
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
@@ -1831,6 +1847,8 @@ private:
     E(dark_oak_pressure_plate, PressurePlate);
     E(jungle_pressure_plate, PressurePlate);
     E(polished_blackstone_pressure_plate, PressurePlate);
+    E(spruce_pressure_plate, PressurePlate);
+    E(stone_pressure_plate, PressurePlate);
 
     E(sapling, Sapling);
 
@@ -1839,6 +1857,7 @@ private:
     E(crimson_standing_sign, StandingSign);
     E(jungle_standing_sign, StandingSign);
     E(standing_sign, StandingSign);
+    E(spruce_standing_sign, StandingSign);
 
     E(wooden_slab, WoodenSlab);
     E(double_wooden_slab, DoubleWoodenSlab);
@@ -1881,6 +1900,9 @@ private:
     E(smooth_quartz_stairs, Stairs);
     E(smooth_red_sandstone_stairs, Stairs);
     E(smooth_sandstone_stairs, Stairs);
+    E(spruce_stairs, Stairs);
+    E(stone_brick_stairs, Stairs);
+    E(normal_stone_stairs, NormalStoneStairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1889,11 +1911,13 @@ private:
     E(iron_trapdoor, Trapdoor);
     E(jungle_trapdoor, Trapdoor);
     E(trapdoor, Trapdoor);
+    E(spruce_trapdoor, Trapdoor);
 
     E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
     E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
     E(crimson_wall_sign, BlockWithFacingAFromFacingDirection);
     E(jungle_wall_sign, BlockWithFacingAFromFacingDirection);
+    E(spruce_wall_sign, BlockWithFacingAFromFacingDirection);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
@@ -2116,6 +2140,7 @@ private:
     E(oxidized_cut_copper_slab, BlockWithTypeFromTopSlotBit);
     E(oxidized_double_cut_copper_slab, DoubleSlab("oxidized_cut_copper_slab"));
     E(piston, BlockWithFacingBFromFacingDirection);
+    E(sticky_piston, BlockWithFacingBFromFacingDirection);
     E(podzol, Same); // No "snowy" property in BE
     E(pointed_dripstone, PointedDripstone);
     E(polished_basalt, BlockWithAxisFromPillarAxis);
@@ -2161,6 +2186,17 @@ private:
     E(snow, Rename("snow_block"));
     E(soul_torch, Torch("soul_"));
     E(sponge, Sponge);
+    E(stonecutter_block, StonecutterBlock);
+    E(stripped_acacia_log, BlockWithAxisFromPillarAxis);
+    E(stripped_birch_log, BlockWithAxisFromPillarAxis);
+    E(stripped_crimson_hyphae, BlockWithAxisFromPillarAxis);
+    E(stripped_crimson_stem, BlockWithAxisFromPillarAxis);
+    E(stripped_dark_oak_log, BlockWithAxisFromPillarAxis);
+    E(stripped_jungle_log, BlockWithAxisFromPillarAxis);
+    E(stripped_oak_log, BlockWithAxisFromPillarAxis);
+    E(stripped_spruce_log, BlockWithAxisFromPillarAxis);
+    E(stripped_warped_hyphae, BlockWithAxisFromPillarAxis);
+    E(stripped_warped_stem, BlockWithAxisFromPillarAxis);
 
 #undef E
 
