@@ -84,6 +84,9 @@ public:
       //TODO: movingBlock
       //TODO: "instrument", "note", "powered" of noteblock
       //TODO: "extended" of piston
+      //TODO: "lit" of redstone_torch
+      //TODO: east,north,south,west of redstone_wire
+      //TODO: "locked" of repeater
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {

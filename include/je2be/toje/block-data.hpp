@@ -958,6 +958,15 @@ private:
     return Ns() + name;
   }
 
+  static String RedMushroomBlock(String const &bName, States const &s, Props &p) {
+    bool stem = MushroomProperties(s, p);
+    if (stem) {
+      return Ns() + "mushroom_stem";
+    } else {
+      return bName;
+    }
+  }
+
   static String RedSandstone(String const &bName, States const &s, Props &p) {
     auto type = s.string("sand_stone_type", "default");
     std::string name = "red_sandstone";
@@ -979,16 +988,45 @@ private:
     return Ns() + "redstone_lamp";
   }
 
+  static String RedstoneOre(String const &bName, States const &s, Props &p) {
+    auto lit = bName == "minecraft:lit_redstone_ore";
+    p["lit"] = Bool(lit);
+    return Ns() + "redstone_ore";
+  }
+
+  static String RedstoneTorch(String const &bName, States const &s, Props &p) {
+    FacingFromTorchFacingDirection(s, p);
+    return bName;
+  }
+
   static Converter Rename(std::string name) {
     return [name](String const &bName, States const &s, Props &p) {
       return Ns() + name;
     };
+  }
+
+  static String Repeater(String const &bName, States const &s, Props &p) {
+    auto powered = bName == "minecraft:powered_repeater";
+    p["powered"] = Bool(powered);
+    FacingAFromFacingDirection(s, p);
+    auto delay = s.int32("repeater_delay", 0);
+    p["delay"] = Int(delay);
+    return bName;
   }
 #pragma endregion
 
 #pragma region Converters : S
   static String Same(String const &bName, States const &s, Props &p) {
     return bName;
+  }
+
+  static String Sand(String const &bName, States const &s, Props &p) {
+    auto type = s.string("sand_type", "normal");
+    if (type == "red") {
+      return Ns() + "red_sand";
+    } else { // "normal"
+      return bName;
+    }
   }
 
   static String Sandstone(String const &bName, States const &s, Props &p) {
@@ -1305,6 +1343,21 @@ private:
       facing = "down";
     }
     props["facing"] = facing;
+  }
+
+  static void FacingFromTorchFacingDirection(States const &s, Props &p) {
+    auto t = s.string("torch_fecing_direction", "south");
+    std::string f;
+    if (t == "west") {
+      f = "east";
+    } else if (t == "east") {
+      f = "west";
+    } else if (t == "south") {
+      f = "north";
+    } else { // north
+      f = "south";
+    }
+    p["facing"] = f;
   }
 
   static void FacingFromWeirdoDirection(States const &s, Props &p) {
@@ -1763,6 +1816,8 @@ private:
     E(prismarine_stairs, Stairs);
     E(purpur_stairs, Stairs);
     E(quartz_stairs, Stairs);
+    E(red_nether_brick_stairs, Stairs);
+    E(red_sandstone_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -1821,6 +1876,7 @@ private:
     E(orange_candle, Candle);
     E(pink_candle, Candle);
     E(purple_candle, Candle);
+    E(red_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
@@ -1836,6 +1892,7 @@ private:
     E(orange_candle_cake, CandleCake);
     E(pink_candle_cake, CandleCake);
     E(purple_candle_cake, CandleCake);
+    E(red_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -1854,6 +1911,7 @@ private:
     E(orange_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(pink_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(purple_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(red_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -2012,6 +2070,16 @@ private:
     E(rail, Rail);
     E(redstone_lamp, RedstoneLamp);
     E(lit_redstone_lamp, RedstoneLamp);
+    E(redstone_ore, RedstoneOre);
+    E(lit_redstone_ore, RedstoneOre);
+    E(redstone_torch, RedstoneTorch);
+    E(redstone_wire, BlockWithPowerFromRedstoneSignal);
+    E(red_mushroom_block, RedMushroomBlock);
+    E(red_nether_brick, Rename("red_nether_bricks"));
+    E(sand, Sand);
+    E(powered_repeater, Repeater);
+    E(unpowered_repeater, Repeater);
+    E(repeating_command_block, CommandBlock);
 
 #undef E
 
