@@ -1013,6 +1013,12 @@ private:
     p["delay"] = Int(delay);
     return bName;
   }
+
+  static String RespawnAnchor(String const &bName, States const &s, Props &p) {
+    auto charges = s.int32("respawn_anchor_charge", 0);
+    p["charges"] = Int(charges);
+    return bName;
+  }
 #pragma endregion
 
 #pragma region Converters : S
@@ -1051,6 +1057,35 @@ private:
     return Ns() + saplingType + "_sapling";
   }
 
+  static String Seagrass(String const &bName, States const &s, Props &p) {
+    auto type = s.string("sea_grass_type", "default");
+    std::string name;
+    if (type == "double_bot") {
+      name = "tall_seagrass";
+      p["half"] = "lower";
+    } else if (type == "double_top") {
+      name = "tall_seagrass";
+      p["half"] = "upper";
+    } else { // "default"
+      name = "seagrass";
+    }
+    return Ns() + name;
+  }
+
+  static String SeaPickle(String const &bName, States const &s, Props &p) {
+    auto count = s.int32("cluster_count", 0);
+    p["pickles"] = Int(count + 1);
+    auto dead = s.boolean("dead_bit", false);
+    p["waterlogged"] = Bool(!dead);
+    return bName;
+  }
+
+  static String Scaffolding(String const &bName, States const &s, Props &p) {
+    auto stability = s.int32("stability", 0);
+    p["distance"] = Int(stability);
+    return bName;
+  }
+
   static String ShulkerBox(String const &bName, States const &s, Props &p) {
     auto color = s.string("color", "white");
     return Ns() + color + "_shulker_box";
@@ -1059,6 +1094,13 @@ private:
   static String SilverGlazedTerracotta(String const &bName, States const &s, Props &p) {
     FacingAFromFacingDirection(s, p);
     return Ns() + "light_gray_glazed_terracotta";
+  }
+
+  static String SmallDripleafBlock(String const &bName, States const &s, Props &p) {
+    FacingAFromDirection(s, p);
+    auto upper = s.boolean("upper_block_bit", false);
+    p["half"] = upper ? "upper" : "lower";
+    return Ns() + "small_dripleaf";
   }
 
   static String Stairs(String const &bName, States const &s, Props &p) {
@@ -1818,6 +1860,7 @@ private:
     E(quartz_stairs, Stairs);
     E(red_nether_brick_stairs, Stairs);
     E(red_sandstone_stairs, Stairs);
+    E(sandstone_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -2080,6 +2123,17 @@ private:
     E(powered_repeater, Repeater);
     E(unpowered_repeater, Repeater);
     E(repeating_command_block, CommandBlock);
+    E(respawn_anchor, RespawnAnchor);
+    E(dirt_with_roots, Rename("rooted_dirt"));
+    E(scaffolding, Scaffolding);
+    E(sculk_sensor, Same);
+    E(seagrass, Seagrass);
+    E(sea_pickle, SeaPickle);
+    E(seaLantern, Rename("sea_lantern"));
+    E(undyed_shulker_box, Rename("shulker_box"));
+    E(slime, Rename("slime_block"));
+    E(small_amethyst_bud, BlockWithFacingAFromFacingDirection);
+    E(small_dripleaf_block, SmallDripleafBlock);
 
 #undef E
 
