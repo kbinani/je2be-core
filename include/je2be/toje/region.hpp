@@ -73,7 +73,7 @@ public:
       //TODO: waterlogged property
       //TODO: colored standing banner
       //TODO: colored bed
-      //TODO: "type" of chest
+      //TODO: "type" of chest, trapped_chest
       //TODO: down,east,north,south,up,west properties in chorus_plant
       //TODO: type of skull
       //TODO: "lit" of furnace
@@ -91,6 +91,8 @@ public:
       //TODO: power,sculk_sensor_phase of sculk_sensor
       //TODO: facing of shulker_box, undyed_shulker_box
       //TODO: "lit" of smoker
+      //TODO: "power" of target
+      //TODO: east,north,south,west of tripwire
 
       auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
       if (!fos) {

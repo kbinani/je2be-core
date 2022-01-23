@@ -100,18 +100,7 @@ private:
   }
 
   static String Beetroot(String const &bName, States const &s, Props &p) {
-    auto growth = s.int32("growth", 0);
-    int age = 0;
-    if (growth < 2) {
-      age = 0;
-    } else if (growth < 4) {
-      age = 1;
-    } else if (growth < 7) {
-      age = 2;
-    } else {
-      age = 3;
-    }
-    p["age"] = Int(age);
+    AgeFromGrowthNonLinear(s, p);
     return Ns() + "beetroots";
   }
 
@@ -1003,6 +992,11 @@ private:
     return Ns() + "redstone_ore";
   }
 
+  static String Reeds(String const &bName, States const &s, Props &p) {
+    Age(s, p);
+    return Ns() + "sugar_cane";
+  }
+
   static Converter Rename(std::string name) {
     return [name](String const &bName, States const &s, Props &p) {
       return Ns() + name;
@@ -1205,6 +1199,17 @@ private:
     HalfFromUpsideDownBit(s, p);
     return Ns() + "cobblestone_stairs";
   }
+
+  static String StructureBlock(String const &bName, States const &s, Props &p) {
+    auto type = s.string("structure_block_type", "save");
+    p["mode"] = type;
+    return bName;
+  }
+
+  static String SweetBerryBush(String const &bName, States const &s, Props &p) {
+    AgeFromGrowthNonLinear(s, p);
+    return bName;
+  }
 #pragma endregion
 
 #pragma region Converters : T
@@ -1217,6 +1222,12 @@ private:
     }
   }
 
+  static String Tnt(String const &bName, States const &s, Props &p) {
+    auto explode = s.boolean("explode_bit", true);
+    p["unstable"] = Bool(!explode);
+    return bName;
+  }
+
   static String Trapdoor(String const &bName, States const &s, Props &p) {
     FacingBFromDirection(s, p);
     OpenFromOpenBit(s, p);
@@ -1227,6 +1238,47 @@ private:
     } else {
       return bName;
     }
+  }
+
+  static String Tripwire(String const &bName, States const &s, Props &p) {
+    auto attached = s.boolean("attached_bit", false);
+    auto disarmed = s.boolean("disarmed_bit", false);
+    auto powered = s.boolean("powered_bit", false);
+    p["attached"] = Bool(attached);
+    p["disarmed"] = Bool(disarmed);
+    p["powered"] = Bool(powered);
+    return bName;
+  }
+
+  static String TripwireHook(String const &bName, States const &s, Props &p) {
+    auto attached = s.boolean("attached_bit", false);
+    auto powered = s.boolean("powered_bit", false);
+    FacingAFromDirection(s, p);
+    p["attached"] = Bool(attached);
+    p["powered"] = Bool(powered);
+    return bName;
+  }
+
+  static String TurtleEgg(String const &bName, States const &s, Props &p) {
+    auto eggs = s.string("turtle_egg_count", "one_egg");
+    if (eggs == "two_egg") {
+      p["eggs"] = "2";
+    } else if (eggs == "three_egg") {
+      p["eggs"] = "3";
+    } else if (eggs == "four_egg") {
+      p["eggs"] = "4";
+    } else { // "one_egg"
+      p["eggs"] = "1";
+    }
+    auto cracked = s.string("cracked_state", "no_cracks");
+    if (cracked == "cracked") {
+      p["hatch"] = "1";
+    } else if (cracked == "max_cracked") {
+      p["hatch"] = "2";
+    } else { // "no_cracks"
+      p["hatch"] = "0";
+    }
+    return bName;
   }
 #pragma endregion
 
@@ -1277,6 +1329,21 @@ private:
 
   static void AgeFromGrowth(States const &s, Props &p) {
     auto age = s.int32("growth", 0);
+    p["age"] = Int(age);
+  }
+
+  static void AgeFromGrowthNonLinear(States const &s, Props &p) {
+    auto growth = s.int32("growth", 0);
+    int age = 0;
+    if (growth < 2) {
+      age = 0;
+    } else if (growth < 4) {
+      age = 1;
+    } else if (growth < 7) {
+      age = 2;
+    } else {
+      age = 3;
+    }
     p["age"] = Int(age);
   }
 
@@ -2197,6 +2264,18 @@ private:
     E(stripped_spruce_log, BlockWithAxisFromPillarAxis);
     E(stripped_warped_hyphae, BlockWithAxisFromPillarAxis);
     E(stripped_warped_stem, BlockWithAxisFromPillarAxis);
+    E(structure_block, StructureBlock);
+    E(structure_void, Same);
+    E(reeds, Reeds);
+    E(sweet_berry_bush, SweetBerryBush);
+    E(target, Same);
+    E(hardened_clay, Rename("terracotta"));
+    E(tnt, Tnt);
+    E(torch, Torch(""));
+    E(trapped_chest, BlockWithFacingAFromFacingDirection);
+    E(tripwire, Tripwire);
+    E(tripwire_hook, TripwireHook);
+    E(turtle_egg, TurtleEgg);
 
 #undef E
 
