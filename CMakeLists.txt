@@ -81,6 +81,7 @@ set(je2be_files
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
   include/je2be/toje/block-data.hpp
+  include/je2be/toje/block-property-accessor.hpp
   include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/converter.hpp
   include/je2be/toje/level-data.hpp
