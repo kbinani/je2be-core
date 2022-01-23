@@ -41,9 +41,7 @@ public:
         for (size_t idx = 0; idx < sectionB->fPalette.size(); idx++) {
           auto const &blockB = sectionB->fPalette[idx];
           auto blockJ = BlockData::From(*blockB);
-          if (!blockJ) {
-            blockJ = BlockData::Identity(*blockB);
-          }
+          assert(blockJ);
           palette.push_back(blockJ);
         }
 
@@ -55,6 +53,39 @@ public:
               int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
               indices[indexJ] = sectionB->fPaletteIndices[indexB];
             }
+          }
+        }
+
+        // waterlogged=true variant of palette[index] is stored at palette[waterLogged[index]], if waterLogged[index] >= 0.
+        vector<int> waterLogged(palette.size(), -1);
+
+        if (sectionB->fWaterPaletteIndices.size() == 4096) {
+          shared_ptr<mcfile::be::Block const> water;
+          for (size_t i = 0; i < sectionB->fWaterPalette.size(); i++) {
+            if (sectionB->fWaterPalette[i]->fName == "minecraft:water") {
+              water = sectionB->fWaterPalette[i];
+            }
+          }
+          for (size_t i = 0; i < 4096; i++) {
+            uint16_t index = sectionB->fWaterPaletteIndices[i];
+            if (sectionB->fWaterPalette[index] != water) {
+              continue;
+            }
+
+            // indices[i] block is waterlogged
+
+            uint16_t indexDry = indices[i];
+            int waterLoggedIndex = waterLogged[indexDry];
+            if (waterLoggedIndex < 0) {
+              auto dryBlockJ = palette[indexDry];
+              map<string, string> props(dryBlockJ->fProperties);
+              props["waterlogged"] = "true";
+              auto waterLoggedBlockJ = make_shared<mcfile::je::Block const>(dryBlockJ->fName, props);
+              waterLoggedIndex = palette.size();
+              palette.push_back(waterLoggedBlockJ);
+              waterLogged[indexDry] = waterLoggedIndex;
+            }
+            indices[i] = waterLoggedIndex;
           }
         }
 
@@ -70,7 +101,6 @@ public:
 
       //TODO: properties of fence
       //TODO: "distance" of leaves
-      //TODO: waterlogged property
       //TODO: colored standing banner
       //TODO: colored bed
       //TODO: "type" of chest, trapped_chest
