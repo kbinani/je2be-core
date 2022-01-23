@@ -14,17 +14,6 @@ TEST_CASE("block-data") {
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
 
-  int total = 0;
-  for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / "1.18.1")) {
-    auto path = it.path();
-    if (!fs::is_regular_file(path)) {
-      continue;
-    }
-    total++;
-  }
-
-  int ok = 0;
-  int ng = 0;
   for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / "1.18.1")) {
     auto path = it.path();
     if (!fs::is_regular_file(path)) {
@@ -51,18 +40,8 @@ TEST_CASE("block-data") {
     shared_ptr<mcfile::be::Block> blockB = mcfile::be::Block::FromCompound(*convertedToBe);
     CHECK(blockB);
     auto convertedJe = je2be::toje::BlockData::From(*blockB);
-    if (convertedJe) {
-      ok++;
-    } else if (ng < 10) {
-      cerr << "-------------------------------------------------------------------------------" << endl;
-      cerr << "input=" << endl;
-      mcfile::nbt::PrintAsJson(cerr, *convertedToBe, {.fTypeHint = true});
-      cerr << "java=" << javaBlockData << endl;
-      ng++;
-    }
+    CHECK(convertedJe != nullptr);
   }
-  cout << ok << "/" << total << " (" << ((float)ok / (float)total * 100.0f) << "%)" << endl;
-  CHECK(ok == total);
 }
 
 #if 0

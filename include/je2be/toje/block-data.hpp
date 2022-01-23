@@ -17,7 +17,7 @@ public:
 
     auto found = sTable->find(b.fName);
     if (found == sTable->end()) {
-      return nullptr;
+      return Identity(b);
     } else {
       static CompoundTag const sEmpty;
       CompoundTag const &states = b.fStates ? *b.fStates : sEmpty;
@@ -1342,12 +1342,6 @@ private:
   }
 #pragma endregion
 
-  /*
-  static String _(String const &bName, States const &s, Props &p) {
-    return bName;
-  }
-*/
-
 #pragma region Properties
   static void Age(States const &s, Props &p) {
     auto age = s.int32("age", 0);
@@ -1770,131 +1764,6 @@ private:
 #define E(__name, __converter)                               \
   assert(table->find("minecraft:" #__name) == table->end()); \
   table->emplace("minecraft:" #__name, __converter);
-
-    //TODO: remove these "same" blocks
-#pragma region Same
-    E(air, Same);
-    E(amethyst_block, Same);
-    E(ancient_debris, Same);
-    E(azalea, Same);
-    E(barrier, Same);
-    E(beacon, Same);
-    E(bedrock, Same);
-    E(blackstone, Same);
-    E(blue_ice, Same);
-    E(bookshelf, Same);
-    E(brown_mushroom, Same);
-    E(budding_amethyst, Same);
-    E(calcite, Same);
-    E(cartography_table, Same);
-    E(chiseled_deepslate, Same);
-    E(chiseled_nether_bricks, Same);
-    E(chiseled_polished_blackstone, Same);
-    E(clay, Same);
-    E(coal_block, Same);
-    E(coal_ore, Same);
-    E(cobbled_deepslate, Same);
-    E(cobblestone, Same);
-    E(copper_block, Same);
-    E(copper_ore, Same);
-    E(cracked_deepslate_bricks, Same);
-    E(cracked_deepslate_tiles, Same);
-    E(cracked_nether_bricks, Same);
-    E(cracked_polished_blackstone_bricks, Same);
-    E(crafting_table, Same);
-    E(crimson_fungus, Same);
-    E(crimson_nylium, Same);
-    E(crimson_planks, Same);
-    E(crimson_roots, Same);
-    E(crying_obsidian, Same);
-    E(cut_copper, Same);
-    E(deepslate_bricks, Same);
-    E(deepslate_coal_ore, Same);
-    E(deepslate_copper_ore, Same);
-    E(deepslate_diamond_ore, Same);
-    E(deepslate_emerald_ore, Same);
-    E(deepslate_gold_ore, Same);
-    E(deepslate_iron_ore, Same);
-    E(deepslate_lapis_ore, Same);
-    E(deepslate_tiles, Same);
-    E(diamond_block, Same);
-    E(diamond_ore, Same);
-    E(dragon_egg, Same);
-    E(dried_kelp_block, Same);
-    E(dripstone_block, Same);
-    E(emerald_block, Same);
-    E(emerald_ore, Same);
-    E(enchanting_table, Same);
-    E(end_gateway, Same);
-    E(end_portal, Same);
-    E(end_stone, Same);
-    E(exposed_copper, Same);
-    E(exposed_cut_copper, Same);
-    E(fletching_table, Same);
-    E(flowering_azalea, Same);
-    E(gilded_blackstone, Same);
-    E(glass, Same);
-    E(glowstone, Same);
-    E(gold_block, Same);
-    E(gold_ore, Same);
-    E(gravel, Same);
-    E(honeycomb_block, Same);
-    E(honey_block, Same);
-    E(ice, Same);
-    E(iron_block, Same);
-    E(iron_ore, Same);
-    E(lapis_block, Same);
-    E(lapis_ore, Same);
-    E(lodestone, Same);
-    E(mossy_cobblestone, Same);
-    E(moss_block, Same);
-    E(moss_carpet, Same);
-    E(netherite_block, Same);
-    E(netherrack, Same);
-    E(nether_gold_ore, Same);
-    E(nether_sprouts, Same);
-    E(nether_wart_block, Same);
-    E(obsidian, Same);
-    E(oxidized_copper, Same);
-    E(oxidized_cut_copper, Same);
-    E(packed_ice, Same);
-    E(polished_blackstone, Same);
-    E(polished_blackstone_bricks, Same);
-    E(polished_deepslate, Same);
-    E(powder_snow, Same);
-    E(quartz_bricks, Same);
-    E(raw_copper_block, Same);
-    E(raw_gold_block, Same);
-    E(raw_iron_block, Same);
-    E(redstone_block, Same);
-    E(red_mushroom, Same);
-    E(shroomlight, Same);
-    E(smithing_table, Same);
-    E(smooth_basalt, Same);
-    E(smooth_stone, Same);
-    E(soul_fire, Same);
-    E(soul_sand, Same);
-    E(soul_soil, Same);
-    E(spawner, Same);
-    E(spore_blossom, Same);
-    E(tinted_glass, Same);
-    E(tuff, Same);
-    E(warped_fungus, Same);
-    E(warped_nylium, Same);
-    E(warped_planks, Same);
-    E(warped_roots, Same);
-    E(warped_wart_block, Same);
-    E(waxed_cut_copper, Same);
-    E(waxed_exposed_copper, Same);
-    E(waxed_exposed_cut_copper, Same);
-    E(waxed_oxidized_copper, Same);
-    E(waxed_oxidized_cut_copper, Same);
-    E(waxed_weathered_copper, Same);
-    E(waxed_weathered_cut_copper, Same);
-    E(weathered_copper, Same);
-    E(weathered_cut_copper, Same);
-    E(wither_rose, Same);
-#pragma endregion
 
     E(acacia_button, Button);
     E(wooden_button, Button);
