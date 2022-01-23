@@ -2002,6 +2002,11 @@ private:
     E(stone_brick_stairs, Stairs);
     E(normal_stone_stairs, NormalStoneStairs);
     E(warped_stairs, Stairs);
+    E(waxed_cut_copper_stairs, Stairs);
+    E(waxed_exposed_cut_copper_stairs, Stairs);
+    E(waxed_oxidized_cut_copper_stairs, Stairs);
+    E(waxed_weathered_cut_copper_stairs, Stairs);
+    E(weathered_cut_copper_stairs, Stairs);
 
     E(acacia_trapdoor, Trapdoor);
     E(birch_trapdoor, Trapdoor);
@@ -2065,6 +2070,8 @@ private:
     E(pink_candle, Candle);
     E(purple_candle, Candle);
     E(red_candle, Candle);
+    E(white_candle, Candle);
+    E(yellow_candle, Candle);
 
     E(black_candle_cake, CandleCake);
     E(blue_candle_cake, CandleCake);
@@ -2081,6 +2088,8 @@ private:
     E(pink_candle_cake, CandleCake);
     E(purple_candle_cake, CandleCake);
     E(red_candle_cake, CandleCake);
+    E(white_candle_cake, CandleCake);
+    E(yellow_candle_cake, CandleCake);
 
     E(carpet, Carpet);
     E(concrete, Concrete);
@@ -2100,6 +2109,8 @@ private:
     E(pink_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(purple_glazed_terracotta, BlockWithFacingAFromFacingDirection);
     E(red_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(white_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(yellow_glazed_terracotta, BlockWithFacingAFromFacingDirection);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
@@ -2317,6 +2328,19 @@ private:
     E(warped_double_slab, DoubleSlab("warped_slab"));
     E(warped_stem, BlockWithAxisFromPillarAxis);
     E(water, Liquid);
+    E(waxed_copper, Rename("waxed_copper_block"));
+    E(waxed_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_double_cut_copper_slab, DoubleSlab("waxed_cut_copper_slab"));
+    E(waxed_exposed_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_exposed_double_cut_copper_slab, DoubleSlab("waxed_exposed_cut_copper_slab"));
+    E(waxed_oxidized_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_oxidized_double_cut_copper_slab, DoubleSlab("waxed_oxidized_cut_copper_slab"));
+    E(waxed_weathered_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_weathered_double_cut_copper_slab, DoubleSlab("waxed_weathered_cut_copper_slab"));
+    E(weathered_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(weathered_double_cut_copper_slab, DoubleSlab("weathered_cut_copper_slab"));
+    E(weeping_vines, NetherVines("weeping"));
+    E(wheat, BlockWithAgeFromGrowth);
 
 #undef E
 
