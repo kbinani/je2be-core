@@ -1000,7 +1000,7 @@ private:
   static ItemData Bed(std::string const &name, CompoundTag const &item) {
     using namespace std;
     string colorName = strings::Trim("minecraft:", name, "_bed");
-    ColorCodeJava color = ColorCodeJavaFromName(colorName);
+    ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
     int16_t damage = (int16_t)color;
     auto tag = New("bed");
     tag->set("Damage", props::Short(damage));

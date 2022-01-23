@@ -1127,7 +1127,7 @@ private:
     auto decorItemId = tag.query("DecorItem/id")->asString();
     if (decorItemId && strings::StartsWith(decorItemId->fValue, "minecraft:") && strings::EndsWith(decorItemId->fValue, "_carpet")) {
       auto carpetColor = strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
-      auto colorCode = ColorCodeJavaFromName(carpetColor);
+      auto colorCode = ColorCodeJavaFromJavaName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
       auto armor = std::make_shared<CompoundTag>();
       armor->insert({{"Count", Byte(1)}, {"Damage", Short(0)}, {"Name", String("minecraft:carpet")}, {"WasPickedUp", Bool(false)}});

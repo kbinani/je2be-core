@@ -1000,7 +1000,7 @@ private:
     if (!color || !text1 || !text2 || !text3 || !text4) {
       return nullptr;
     }
-    Rgba signTextColor = Sign::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromName(*color));
+    Rgba signTextColor = Sign::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(*color));
     bool glowing = c->boolean("GlowingText", false);
     string text = GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
     auto tag = make_shared<CompoundTag>();
