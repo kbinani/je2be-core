@@ -320,7 +320,7 @@ private:
   static String Carpet(String const &bName, States const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
-    return Ns() + colorB + "_carpet";
+    return Ns() + colorJ + "_carpet";
   }
 
   static String Cauldron(String const &bName, States const &s, Props &p) {
@@ -480,7 +480,7 @@ private:
   }
 
   static String Dirt(String const &bName, States const &s, Props &p) {
-    auto type = s.string("type", "normal");
+    auto type = s.string("dirt_type", "normal");
     std::string prefix;
     if (type != "normal") {
       prefix = type + "_";
@@ -490,12 +490,11 @@ private:
 
   static String Door(String const &bName, States const &s, Props &p) {
     auto doorHingeBit = s.boolean("door_hinge_bit", false);
-    auto upperBlockBit = s.boolean("upper_block_bit", false);
 
     OpenFromOpenBit(s, p);
     FacingCFromDirection(s, p);
+    HalfFromUpperBlockBit(s, p);
     p["hinge"] = doorHingeBit ? "right" : "left";
-    p["half"] = upperBlockBit ? "upper" : "lower";
     p["powered"] = "false";
     return bName;
   }
@@ -511,11 +510,12 @@ private:
       name = "peony";
     } else if (type == "sunflower") {
       name = "sunflower";
-    } else { // rose
+    } else if (type == "rose") {
       name = "rose_bush";
+    } else { // "grass"
+      name = "tall_grass";
     }
-    auto upper = s.boolean("upper_block_bit", false);
-    p["type"] = upper ? "upper" : "lower";
+    HalfFromUpperBlockBit(s, p);
     return Ns() + name;
   }
 
@@ -540,13 +540,13 @@ private:
   }
 
   static String DoubleStoneSlab3(String const &bName, States const &s, Props &p) {
-    auto stoneSlabType = s.string("stone_slab_type3", "andesite");
+    auto stoneSlabType = s.string("stone_slab_type_3", "andesite");
     p["type"] = "double";
     return Ns() + stoneSlabType + "_slab";
   }
 
   static String DoubleStoneSlab4(String const &bName, States const &s, Props &p) {
-    auto stoneSlabType = s.string("stone_slab_type4", "stone");
+    auto stoneSlabType = s.string("stone_slab_type_4", "stone");
     p["type"] = "double";
     return Ns() + stoneSlabType + "_slab";
   }
@@ -1102,7 +1102,7 @@ private:
   static String ShulkerBox(String const &bName, States const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
-    return Ns() + colorB + "_shulker_box";
+    return Ns() + colorJ + "_shulker_box";
   }
 
   static String SilverGlazedTerracotta(String const &bName, States const &s, Props &p) {
@@ -1112,8 +1112,7 @@ private:
 
   static String SmallDripleafBlock(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
-    auto upper = s.boolean("upper_block_bit", false);
-    p["half"] = upper ? "upper" : "lower";
+    HalfFromUpperBlockBit(s, p);
     return Ns() + "small_dripleaf";
   }
 
@@ -1141,7 +1140,7 @@ private:
   static String StainedGlass(String const &bName, States const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
-    return Ns() + colorB + "_stained_glass";
+    return Ns() + colorJ + "_stained_glass";
   }
 
   static String StainedGlassPane(String const &bName, States const &s, Props &p) {
@@ -1169,8 +1168,15 @@ private:
   }
 
   static String Stone(String const &bName, States const &s, Props &p) {
-    auto stoneType = s.string("stone_type");
-    std::string name = stoneType ? *stoneType : "stone";
+    auto type = s.string("stone_type");
+    std::string name = "stone";
+    if (type == "diorite_smooth") {
+      name = "polished_diorite";
+    } else if (type == "andesite_smooth") {
+      name = "polished_andesite";
+    } else if (type == "granite_smooth") {
+      name = "polished_granite";
+    }
     return Ns() + name;
   }
 
@@ -1619,6 +1625,11 @@ private:
     return name;
   }
 
+  static void HalfFromUpperBlockBit(States const &s, Props &props) {
+    auto upper = s.boolean("upper_block_bit", false);
+    props["half"] = upper ? "upper" : "lower";
+  }
+
   static void HalfFromUpsideDownBit(States const &s, Props &props) {
     auto upsideDown = s.boolean("upside_down_bit", false);
     props["half"] = upsideDown ? "top" : "bottom";
@@ -1877,6 +1888,7 @@ private:
     E(smooth_sandstone_stairs, Stairs);
     E(spruce_stairs, Stairs);
     E(stone_brick_stairs, Stairs);
+    E(stone_stairs, StoneStairs);
     E(normal_stone_stairs, NormalStoneStairs);
     E(warped_stairs, Stairs);
     E(waxed_cut_copper_stairs, Stairs);
@@ -2036,7 +2048,6 @@ private:
     E(cobbled_deepslate_slab, BlockWithTypeFromTopSlotBit);
     E(cobbled_deepslate_double_slab, DoubleSlab("cobbled_deepslate_slab"));
     E(cobbled_deepslate_wall, BlockWithWallProperties);
-    E(stone_stairs, StoneStairs);
     E(web, Rename("cobweb"));
     E(cocoa, Cocoa);
     E(powered_comparator, Comparator);
