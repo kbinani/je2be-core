@@ -820,12 +820,6 @@ private:
     };
   }
 
-  static String NormalStoneStairs(String const &bName, States const &s, Props &p) {
-    FacingFromWeirdoDirection(s, p);
-    HalfFromUpsideDownBit(s, p);
-    return Ns() + "stone_stairs";
-  }
-
 #pragma endregion
 
 #pragma region Converters : O
@@ -1010,6 +1004,14 @@ private:
 
   static Converter Rename(std::string name) {
     return [name](String const &bName, States const &s, Props &p) {
+      return Ns() + name;
+    };
+  }
+
+  static Converter RenameStairs(std::string name) {
+    return [name](String const &bName, States const &s, Props &p) {
+      FacingFromWeirdoDirection(s, p);
+      HalfFromUpsideDownBit(s, p);
       return Ns() + name;
     };
   }
@@ -1215,12 +1217,6 @@ private:
     auto type = s.string("stone_slab_type_4", "stone");
     TypeFromTopSlotBit(s, p);
     return Ns() + type + "_slab";
-  }
-
-  static String StoneStairs(String const &bName, States const &s, Props &p) {
-    FacingFromWeirdoDirection(s, p);
-    HalfFromUpsideDownBit(s, p);
-    return Ns() + "cobblestone_stairs";
   }
 
   static String StructureBlock(String const &bName, States const &s, Props &p) {
@@ -1859,7 +1855,7 @@ private:
     E(deepslate_brick_stairs, Stairs);
     E(deepslate_tile_stairs, Stairs);
     E(diorite_stairs, Stairs);
-    E(end_brick_stairs, Stairs);
+    E(end_brick_stairs, RenameStairs("end_stone_brick_stairs"));
     E(exposed_cut_copper_stairs, Stairs);
     E(granite_stairs, Stairs);
     E(jungle_stairs, Stairs);
@@ -1874,7 +1870,7 @@ private:
     E(polished_deepslate_stairs, Stairs);
     E(polished_diorite_stairs, Stairs);
     E(polished_granite_stairs, Stairs);
-    E(prismarine_bricks_stairs, Stairs);
+    E(prismarine_bricks_stairs, RenameStairs("prismarine_brick_stairs"));
     E(prismarine_stairs, Stairs);
     E(purpur_stairs, Stairs);
     E(quartz_stairs, Stairs);
@@ -1886,8 +1882,8 @@ private:
     E(smooth_sandstone_stairs, Stairs);
     E(spruce_stairs, Stairs);
     E(stone_brick_stairs, Stairs);
-    E(stone_stairs, StoneStairs);
-    E(normal_stone_stairs, NormalStoneStairs);
+    E(stone_stairs, RenameStairs("cobblestone_stairs"));
+    E(normal_stone_stairs, RenameStairs("stone_stairs"));
     E(warped_stairs, Stairs);
     E(waxed_cut_copper_stairs, Stairs);
     E(waxed_exposed_cut_copper_stairs, Stairs);
