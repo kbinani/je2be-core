@@ -49,13 +49,18 @@ public:
 
       uint32_t done = 0;
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+        if (!fInputOption.fDimensionFilter.empty()) {
+          if (fInputOption.fDimensionFilter.find(dim) != fInputOption.fDimensionFilter.end()) {
+            continue;
+          }
+        }
         auto dir = fInputOption.getWorldDirectory(fInput, dim);
         mcfile::je::World world(dir);
         bool complete;
         if (concurrency > 0) {
-          complete = World::ConvertMultiThread(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks);
+          complete = World::ConvertMultiThread(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks, fInputOption);
         } else {
-          complete = World::ConvertSingleThread(world, dim, db, *levelData, progress, done, numTotalChunks);
+          complete = World::ConvertSingleThread(world, dim, db, *levelData, progress, done, numTotalChunks, fInputOption);
         }
         ok &= complete;
         if (!complete) {

@@ -6,16 +6,29 @@ class World {
   World() = delete;
 
 public:
-  [[nodiscard]] static bool ConvertSingleThread(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, LevelData &ld, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  [[nodiscard]] static bool ConvertSingleThread(
+      mcfile::je::World const &w,
+      mcfile::Dimension dim,
+      DbInterface &db,
+      LevelData &ld,
+      Progress *progress,
+      uint32_t &done,
+      double const numTotalChunks,
+      InputOption const &options) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    return w.eachRegions([dim, &db, &ld, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+    return w.eachRegions([dim, &db, &ld, &done, progress, numTotalChunks, &options](shared_ptr<Region> const &region) {
       JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo);
           done++;
+          if (!options.fChunkFilter.empty()) {
+            if (options.fChunkFilter.find(Pos2i(cx, cz)) != options.fChunkFilter.end()) {
+              continue;
+            }
+          }
+          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo);
           if (progress) {
             bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
             if (!continue_) {
@@ -36,7 +49,16 @@ public:
     });
   }
 
-  [[nodiscard]] static bool ConvertMultiThread(mcfile::je::World const &w, mcfile::Dimension dim, DbInterface &db, LevelData &ld, unsigned int concurrency, Progress *progress, uint32_t &done, double const numTotalChunks) {
+  [[nodiscard]] static bool ConvertMultiThread(
+      mcfile::je::World const &w,
+      mcfile::Dimension dim,
+      DbInterface &db,
+      LevelData &ld,
+      unsigned int concurrency,
+      Progress *progress,
+      uint32_t &done,
+      double const numTotalChunks,
+      InputOption const &options) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -44,10 +66,16 @@ public:
     auto queue = make_unique<hwm::task_queue>(concurrency);
     deque<future<Chunk::Result>> futures;
 
-    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks](shared_ptr<Region> const &region) {
+    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks, &options](shared_ptr<Region> const &region) {
       JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
+          if (!options.fChunkFilter.empty()) {
+            if (options.fChunkFilter.find(Pos2i(cx, cz)) != options.fChunkFilter.end()) {
+              done++;
+              continue;
+            }
+          }
           vector<future<Chunk::Result>> drain;
           FutureSupport::Drain<Chunk::Result>(concurrency + 1, futures, drain);
           for (auto &f : drain) {
