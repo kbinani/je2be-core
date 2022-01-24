@@ -93,7 +93,8 @@ public:
       } else if (Right90(vec) == o) {
         return "outer_right";
       }
-    } else if (inner) {
+    }
+    if (inner) {
       Pos2i i = VecFromWeirdoDirection(*inner);
       if (Left90(vec) == i) {
         return "inner_left";
@@ -127,10 +128,10 @@ public:
   }
 
   static Pos2i Left90(Pos2i vec) {
-    constexpr int cos－90 = 0;
-    constexpr int sin－90 = -1;
-    int x = cos－90 * vec.fX - sin－90 * vec.fZ;
-    int z = sin－90 * vec.fX + cos－90 * vec.fZ;
+    constexpr int cosM90 = 0;
+    constexpr int sinM90 = -1;
+    int x = cosM90 * vec.fX - sinM90 * vec.fZ;
+    int z = sinM90 * vec.fX + cosM90 * vec.fZ;
     return Pos2i(x, z);
   }
 };
