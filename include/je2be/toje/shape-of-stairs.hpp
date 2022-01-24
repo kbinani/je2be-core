@@ -6,7 +6,7 @@ class ShapeOfStairs {
   ShapeOfStairs() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<34, 34> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     int cx = out.fChunkX;

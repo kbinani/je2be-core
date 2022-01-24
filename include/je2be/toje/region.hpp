@@ -22,10 +22,9 @@ public:
       fs::remove_all(*dir, ec);
     };
 
-    ChunkCache<34, 34> cache(d, rx * 32 - 1, rz * 32 - 1);
-
     for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
       for (int cx = rx * 32; cx < rx * 32 + 32; cx++) {
+        ChunkCache<3, 3> cache(d, cx - 1, cz - 1);
         Pos2i p(cx, cz);
         auto found = chunks.find(p);
         if (found == chunks.end()) {
@@ -140,17 +139,6 @@ public:
 
         // "shape" of stairs
         ShapeOfStairs::Do(*j, cache, accessor);
-
-        cache.purge(cx, cz - 1);
-        if (cx == rx * 32) {
-          cache.purge(cx - 1, cz);
-        }
-        if (cx == rx * 32 + 31) {
-          cache.purge(cx + 1, cz);
-        }
-        if (cz == rz * 32 + 31) {
-          cache.purge(cx, cz + 1);
-        }
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {
