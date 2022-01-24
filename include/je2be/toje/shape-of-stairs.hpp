@@ -12,12 +12,6 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
-    Pos2i north(0, -1);
-    auto west = Left90(north);
-    auto south = Left90(west);
-    auto east = Left90(south);
-    auto north2 = Left90(east);
-
     auto const &in = cache.at(cx, cz);
     if (!in) {
       return;
