@@ -506,7 +506,7 @@ private:
       name = "large_fern";
     } else if (type == "syringa") {
       name = "lilac";
-    } else if (type == "paenoia") {
+    } else if (type == "paeonia") {
       name = "peony";
     } else if (type == "sunflower") {
       name = "sunflower";
