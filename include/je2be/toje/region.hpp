@@ -6,7 +6,7 @@ class Region {
 public:
   std::unordered_set<Pos2i, Pos2iHasher> fChunks;
 
-  static bool Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> const &chunks, int rx, int rz, leveldb::DB &db, std::filesystem::path destination) {
+  static bool Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -31,15 +31,15 @@ public:
         if (found == chunks.end()) {
           continue;
         }
-        cache.load(cx, cz, db);
+        cache.load(cx, cz, *db);
         auto b = cache.at(cx, cz);
         if (!b) {
           continue;
         }
-        cache.load(cx, cz - 1, db);
-        cache.load(cx + 1, cz, db);
-        cache.load(cx, cz + 1, db);
-        cache.load(cx - 1, cz, db);
+        cache.load(cx, cz - 1, *db);
+        cache.load(cx + 1, cz, *db);
+        cache.load(cx, cz + 1, *db);
+        cache.load(cx - 1, cz, *db);
 
         auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cz);
 

@@ -36,7 +36,7 @@ public:
     }
 
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      if (!World::Convert(d, *db, fOutput)) {
+      if (!World::Convert(d, *db, fOutput, concurrency)) {
         return false;
       }
     }

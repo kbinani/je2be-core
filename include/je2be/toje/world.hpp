@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class World {
 public:
-  static bool Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root) {
+  static bool Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -39,14 +39,32 @@ public:
       regions[r].fChunks.insert(c);
     });
 
+    hwm::task_queue queue(concurrency);
+    deque<future<bool>> futures;
+
+    bool ok = true;
     for (auto const &region : regions) {
       Pos2i r = region.first;
-      if (!Region::Convert(d, region.second.fChunks, r.fX, r.fZ, db, dir)) {
-        return false;
+      vector<future<bool>> drain;
+      FutureSupport::Drain(concurrency + 1, futures, drain);
+      for (auto &d : drain) {
+        if (!d.get()) {
+          ok = false;
+        }
+      }
+      if (!ok) {
+        break;
+      }
+      futures.emplace_back(queue.enqueue(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir));
+    }
+
+    for (auto &f : futures) {
+      if (!f.get()) {
+        ok = false;
       }
     }
 
-    return true;
+    return ok;
   }
 
 private:
