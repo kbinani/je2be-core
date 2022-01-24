@@ -1168,14 +1168,16 @@ private:
   }
 
   static String Stone(String const &bName, States const &s, Props &p) {
-    auto type = s.string("stone_type");
-    std::string name = "stone";
+    auto type = s.string("stone_type", "stone");
+    std::string name;
     if (type == "diorite_smooth") {
       name = "polished_diorite";
     } else if (type == "andesite_smooth") {
       name = "polished_andesite";
     } else if (type == "granite_smooth") {
       name = "polished_granite";
+    } else {
+      name = type;
     }
     return Ns() + name;
   }
