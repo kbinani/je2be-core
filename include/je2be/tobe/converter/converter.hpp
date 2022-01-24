@@ -49,8 +49,8 @@ public:
 
       uint32_t done = 0;
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-        if (!fInputOption.fDimensionFilter.empty()) {
-          if (fInputOption.fDimensionFilter.find(dim) != fInputOption.fDimensionFilter.end()) {
+        if (!fInputOption.fDimensionFilter.empty()) [[unlikely]] {
+          if (fInputOption.fDimensionFilter.find(dim) == fInputOption.fDimensionFilter.end()) {
             continue;
           }
         }

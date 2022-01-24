@@ -23,8 +23,8 @@ public:
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
           done++;
-          if (!options.fChunkFilter.empty()) {
-            if (options.fChunkFilter.find(Pos2i(cx, cz)) != options.fChunkFilter.end()) {
+          if (!options.fChunkFilter.empty()) [[unlikely]] {
+            if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
               continue;
             }
           }
@@ -70,8 +70,8 @@ public:
       JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-          if (!options.fChunkFilter.empty()) {
-            if (options.fChunkFilter.find(Pos2i(cx, cz)) != options.fChunkFilter.end()) {
+          if (!options.fChunkFilter.empty()) [[unlikely]] {
+            if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
               done++;
               continue;
             }
