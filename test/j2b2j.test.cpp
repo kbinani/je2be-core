@@ -34,6 +34,14 @@ TEST_CASE("j2b2j") {
   CHECK(toje.run(thread::hardware_concurrency()));
 
   // Compare initial Java input and final Java output.
+
+  unordered_map<string, string> fallbackJtoB;
+  fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
+  fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
+
+  unordered_map<string, string> fallbackBtoJ;
+  fallbackBtoJ["minecraft:frame"] = "minecraft:air"; // frame should be converted as an entity.
+
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!io.fDimensionFilter.empty()) {
       if (io.fDimensionFilter.find(dim) == io.fDimensionFilter.end()) {
@@ -79,9 +87,23 @@ TEST_CASE("j2b2j") {
               for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
-                CHECK(blockA);
-                CHECK(blockE);
-                CHECK(blockA->fName == blockE->fName);
+                if (blockA && blockE) {
+                  auto foundJtoB = fallbackJtoB.find(blockE->fName);
+                  if (foundJtoB == fallbackJtoB.end()) {
+                    auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
+                    if (foundBtoJ == fallbackBtoJ.end()) {
+                      CHECK(blockA->fName == blockE->fName);
+                    } else {
+                      CHECK(foundBtoJ->second == blockE->fName);
+                    }
+                  } else {
+                    CHECK(blockA->fName == foundJtoB->second);
+                  }
+                } else if (blockA) {
+                  CHECK(blockA->fName == "minecraft:air");
+                } else if (blockE) {
+                  CHECK(blockE->fName == "minecraft:air");
+                }
               }
             }
           }
