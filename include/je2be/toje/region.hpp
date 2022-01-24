@@ -142,8 +142,8 @@ public:
 
         BlockPropertyAccessor accessor(*b);
 
-        // "shape" of stairs
         ShapeOfStairs::Do(*j, *cache, accessor);
+        Kelp::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

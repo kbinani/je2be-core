@@ -3,15 +3,19 @@
 namespace je2be::toje {
 
 class BlockPropertyAccessor {
-public:
   enum Properties : uint8_t {
     STAIRS = 0x1,
+    KELP = 0x1 << 1,
   };
 
+public:
   static uint8_t BlockProperties(mcfile::be::Block const &b) {
     uint8_t p = 0;
     if (IsStairs(b)) {
       p |= STAIRS;
+    }
+    if (IsKelp(b)) {
+      p |= KELP;
     }
     return p;
   }
@@ -20,8 +24,16 @@ public:
     return (p & STAIRS) == STAIRS;
   }
 
+  static bool IsKelp(uint8_t p) {
+    return (p & KELP) == KELP;
+  }
+
   static bool IsStairs(mcfile::be::Block const &b) {
     return b.fName.ends_with("_stairs");
+  }
+
+  static bool IsKelp(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:kelp";
   }
 
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
