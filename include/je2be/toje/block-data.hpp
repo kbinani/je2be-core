@@ -1210,13 +1210,13 @@ private:
   }
 
   static String StoneSlab3(String const &bName, States const &s, Props &p) {
-    auto stoneSlabType = s.string("stone_slab_type3", "andesite");
+    auto stoneSlabType = s.string("stone_slab_type_3", "andesite");
     TypeFromTopSlotBit(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
   static String StoneSlab4(String const &bName, States const &s, Props &p) {
-    auto type = s.string("stone_slab_type4", "stone");
+    auto type = s.string("stone_slab_type_4", "stone");
     TypeFromTopSlotBit(s, p);
     return Ns() + type + "_slab";
   }
