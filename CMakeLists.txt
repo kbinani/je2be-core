@@ -184,7 +184,8 @@ set(test_files
   test/command.test.cpp
   test/research.cpp
   test/block-data.test.cpp
-  test/CheckTag.hpp)
+  test/CheckTag.hpp
+  test/j2b2j.test.cpp)
 
 add_subdirectory(deps/libminecraft-file)
 
