@@ -90,6 +90,7 @@ set(je2be_files
   include/je2be/toje/shape-of-stairs.hpp
   include/je2be/toje/toje.hpp
   include/je2be/toje/twisting_vines.hpp
+  include/je2be/toje/weeping_vines.hpp
   include/je2be/toje/world.hpp
   include/je2be/uuid.hpp
   include/je2be/vec.hpp

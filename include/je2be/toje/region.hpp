@@ -145,6 +145,7 @@ public:
         ShapeOfStairs::Do(*j, *cache, accessor);
         Kelp::Do(*j, *cache, accessor);
         TwistingVines::Do(*j, *cache, accessor);
+        WeepingVines::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

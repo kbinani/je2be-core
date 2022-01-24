@@ -7,6 +7,7 @@ class BlockPropertyAccessor {
     STAIRS = 1,
     KELP = 2,
     TWISTING_VINES = 3,
+    WEEPING_VINES = 4,
   };
 
 public:
@@ -18,6 +19,8 @@ public:
       p = KELP;
     } else if (IsTwistingVines(b)) {
       p = TWISTING_VINES;
+    } else if (IsWeepingVines(b)) {
+      p = WEEPING_VINES;
     }
     return p;
   }
@@ -34,6 +37,10 @@ public:
     return p == TWISTING_VINES;
   }
 
+  static bool IsWeepingVines(uint8_t p) {
+    return p == WEEPING_VINES;
+  }
+
   static bool IsStairs(mcfile::be::Block const &b) {
     return b.fName.ends_with("_stairs");
   }
@@ -44,6 +51,10 @@ public:
 
   static bool IsTwistingVines(mcfile::be::Block const &b) {
     return b.fName == "minecraft:twisting_vines";
+  }
+
+  static bool IsWeepingVines(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:weeping_vines";
   }
 
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
