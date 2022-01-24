@@ -815,12 +815,8 @@ private:
   static Converter NetherVines(std::string type) {
     return [type](String const &bName, States const &s, Props &p) {
       auto age = s.int32(type + "_vines_age", 0);
-      if (age > 24) {
-        return bName + "_plant";
-      } else {
-        p["age"] = Int(age);
-        return bName;
-      }
+      p["age"] = Int(age);
+      return bName;
     };
   }
 

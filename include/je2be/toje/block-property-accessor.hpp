@@ -4,28 +4,34 @@ namespace je2be::toje {
 
 class BlockPropertyAccessor {
   enum Properties : uint8_t {
-    STAIRS = 0x1,
-    KELP = 0x1 << 1,
+    STAIRS = 1,
+    KELP = 2,
+    TWISTING_VINES = 3,
   };
 
 public:
   static uint8_t BlockProperties(mcfile::be::Block const &b) {
     uint8_t p = 0;
     if (IsStairs(b)) {
-      p |= STAIRS;
-    }
-    if (IsKelp(b)) {
-      p |= KELP;
+      p = STAIRS;
+    } else if (IsKelp(b)) {
+      p = KELP;
+    } else if (IsTwistingVines(b)) {
+      p = TWISTING_VINES;
     }
     return p;
   }
 
   static bool IsStairs(uint8_t p) {
-    return (p & STAIRS) == STAIRS;
+    return p == STAIRS;
   }
 
   static bool IsKelp(uint8_t p) {
-    return (p & KELP) == KELP;
+    return p == KELP;
+  }
+
+  static bool IsTwistingVines(uint8_t p) {
+    return p == TWISTING_VINES;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -34,6 +40,10 @@ public:
 
   static bool IsKelp(mcfile::be::Block const &b) {
     return b.fName == "minecraft:kelp";
+  }
+
+  static bool IsTwistingVines(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:twisting_vines";
   }
 
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
