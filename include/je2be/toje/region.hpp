@@ -23,22 +23,27 @@ public:
     };
 
     for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
+      unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32, cz));
       for (int cx = rx * 32; cx < rx * 32 + 32; cx++) {
-        ChunkCache<3, 3> cache(d, cx - 1, cz - 1);
+        defer {
+          unique_ptr<ChunkCache<3, 3>> next(new ChunkCache<3, 3>(d, cx + 1, cz));
+          next->set(cx + 1, cz, cache->at(cx + 1, cz));
+          cache.swap(next);
+        };
         Pos2i p(cx, cz);
         auto found = chunks.find(p);
         if (found == chunks.end()) {
           continue;
         }
-        cache.load(cx, cz, *db);
-        auto b = cache.at(cx, cz);
+        cache->load(cx, cz, *db);
+        auto b = cache->at(cx, cz);
         if (!b) {
           continue;
         }
-        cache.load(cx, cz - 1, *db);
-        cache.load(cx + 1, cz, *db);
-        cache.load(cx, cz + 1, *db);
-        cache.load(cx - 1, cz, *db);
+        cache->load(cx, cz - 1, *db);
+        cache->load(cx + 1, cz, *db);
+        cache->load(cx, cz + 1, *db);
+        cache->load(cx - 1, cz, *db);
 
         auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cz);
 
@@ -138,7 +143,7 @@ public:
         BlockPropertyAccessor accessor(*b);
 
         // "shape" of stairs
-        ShapeOfStairs::Do(*j, cache, accessor);
+        ShapeOfStairs::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

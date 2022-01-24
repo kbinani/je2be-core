@@ -13,6 +13,15 @@ public:
     return fCache[index];
   }
 
+  void set(int cx, int cz, std::shared_ptr<mcfile::be::Chunk> const &chunk) {
+    if (!chunk) {
+      return;
+    }
+    int index = this->index(cx, cz);
+    fCache[index] = chunk;
+    fCacheLoaded[index] = true;
+  }
+
   std::shared_ptr<mcfile::be::Block const> blockAt(int bx, int by, int bz) const {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
