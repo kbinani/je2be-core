@@ -287,7 +287,11 @@ private:
     p["face"] = face;
     p["facing"] = facing;
     p["powered"] = Bool(buttonPressedBit);
-    return bName;
+    if (bName == "minecraft:wooden_button") {
+      return Ns() + "oak_button";
+    } else {
+      return bName;
+    }
   }
 #pragma endregion
 
@@ -628,7 +632,7 @@ private:
     FacingAFromDirection(s, p);
     OpenFromOpenBit(s, p);
     if (bName.ends_with(":fence_gate")) {
-      return Ns() + ":oak_fence_gate";
+      return Ns() + "oak_fence_gate";
     } else {
       return bName;
     }
@@ -1016,7 +1020,7 @@ private:
     FacingAFromFacingDirection(s, p);
     auto delay = s.int32("repeater_delay", 0);
     p["delay"] = Int(delay);
-    return bName;
+    return Ns() + "repeater";
   }
 
   static String RespawnAnchor(String const &bName, States const &s, Props &p) {
