@@ -214,6 +214,11 @@ private:
     return bName;
   }
 
+  static String BlockWithSnowy(String const &bName, States const &s, Props &p) {
+    p["snowy"] = "false";
+    return bName;
+  }
+
   static String BlockWithTypeFromTopSlotBit(String const &bName, States const &s, Props &p) {
     TypeFromTopSlotBit(s, p);
     return bName;
@@ -1558,6 +1563,16 @@ private:
     p["facing"] = facing;
   }
 
+  static void HalfFromUpperBlockBit(States const &s, Props &props) {
+    auto upper = s.boolean("upper_block_bit", false);
+    props["half"] = upper ? "upper" : "lower";
+  }
+
+  static void HalfFromUpsideDownBit(States const &s, Props &props) {
+    auto upsideDown = s.boolean("upside_down_bit", false);
+    props["half"] = upsideDown ? "top" : "bottom";
+  }
+
   static void Lit(States const &s, Props &p) {
     auto lit = s.boolean("lit", false);
     p["lit"] = Bool(lit);
@@ -1627,14 +1642,8 @@ private:
     return name;
   }
 
-  static void HalfFromUpperBlockBit(States const &s, Props &props) {
-    auto upper = s.boolean("upper_block_bit", false);
-    props["half"] = upper ? "upper" : "lower";
-  }
-
-  static void HalfFromUpsideDownBit(States const &s, Props &props) {
-    auto upsideDown = s.boolean("upside_down_bit", false);
-    props["half"] = upsideDown ? "top" : "bottom";
+  static void Submergible(States const &s, Props &p) {
+    p["waterlogged"] = "false";
   }
 
   static bool MushroomProperties(States const &s, Props &p) {
@@ -2131,7 +2140,7 @@ private:
     E(medium_amethyst_bud, BlockWithFacingAFromFacingDirection);
     E(melon_block, Rename("melon"));
     E(movingBlock, Same);
-    E(mycelium, Same); // No "snowy" property in BE
+    E(mycelium, BlockWithSnowy); // No "snowy" property in BE
     E(nether_brick, Rename("nether_bricks"));
     E(portal, Portal);
     E(quartz_ore, Rename("nether_quartz_ore"));
@@ -2144,7 +2153,7 @@ private:
     E(oxidized_double_cut_copper_slab, DoubleSlab("oxidized_cut_copper_slab"));
     E(piston, BlockWithFacingBFromFacingDirection);
     E(sticky_piston, BlockWithFacingBFromFacingDirection);
-    E(podzol, Same); // No "snowy" property in BE
+    E(podzol, BlockWithSnowy); // No "snowy" property in BE
     E(pointed_dripstone, PointedDripstone);
     E(polished_basalt, BlockWithAxisFromPillarAxis);
     E(polished_blackstone_brick_slab, BlockWithTypeFromTopSlotBit);
