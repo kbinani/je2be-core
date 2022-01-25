@@ -9,6 +9,10 @@ public:
   static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
+    if (!accessor.fHasStairs) {
+      return;
+    }
+
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 

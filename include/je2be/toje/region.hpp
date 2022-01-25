@@ -126,7 +126,6 @@ public:
         //TODO: east,north,south,west of glass_pane
         //TODO: east,north,south,west of iron_bars
         //TODO: "has_record" of jukebox
-        //TODO: change kelp to kelp_plant
         //TODO: movingBlock
         //TODO: "instrument", "note", "powered" of noteblock
         //TODO: "extended" of piston, sticky_piston
@@ -146,6 +145,7 @@ public:
         Kelp::Do(*j, *cache, accessor);
         TwistingVines::Do(*j, *cache, accessor);
         WeepingVines::Do(*j, *cache, accessor);
+        AttachedStem::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

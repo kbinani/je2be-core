@@ -787,7 +787,7 @@ private:
       name = "melon_stem";
       p["age"] = Int(growth);
     }
-    FacingAFromDirection(s, p, "facing_direction");
+    FacingAFromFacingDirection(s, p);
     return Ns() + name;
   }
 
@@ -884,15 +884,9 @@ private:
 
   static String PumpkinStem(String const &bName, States const &s, Props &p) {
     auto growth = s.int32("growth", 0);
-    std::string name;
-    if (growth >= 7) {
-      name = "attached_pumpkin_stem";
-    } else {
-      name = "pumpkin_stem";
-      p["age"] = Int(growth);
-    }
-    FacingAFromDirection(s, p, "facing_direction");
-    return Ns() + name;
+    p["age"] = Int(growth);
+    FacingAFromFacingDirection(s, p);
+    return bName;
   }
 
   static String PurpurBlock(String const &bName, States const &s, Props &p) {
@@ -973,7 +967,7 @@ private:
   static String RedSandstone(String const &bName, States const &s, Props &p) {
     auto type = s.string("sand_stone_type", "default");
     std::string name = "red_sandstone";
-    if (type == "hieroglyphs") {
+    if (type == "heiroglyphs") {
       name = "chiseled_red_sandstone";
     } else if (type == "cut") {
       name = "cut_red_sandstone";
@@ -1396,8 +1390,8 @@ private:
     return "brain";
   }
 
-  static void FacingAFromDirection(States const &s, Props &props, std::string const &key = "direction") {
-    auto direction = s.int32(key, 0);
+  static void FacingAFromDirection(States const &s, Props &props) {
+    auto direction = s.int32("direction", 0);
     std::string facing;
     switch (direction) {
     case 2:
@@ -1413,6 +1407,33 @@ private:
     default:
       facing = "south";
       break;
+    }
+    props["facing"] = facing;
+  }
+
+  static void FacingAFromFacingDirection(States const &s, Props &props) {
+    auto facingDirection = s.int32("facing_direction", 0);
+    std::string facing;
+    // UpDownNorthEastSouthWest = 102534
+    switch (facingDirection) {
+    case 5:
+      facing = "east";
+      break;
+    case 3:
+      facing = "south";
+      break;
+    case 4:
+      facing = "west";
+      break;
+    case 2:
+      facing = "north";
+      break;
+    case 1:
+      facing = "up";
+      break;
+    case 0:
+    default:
+      facing = "down";
     }
     props["facing"] = facing;
   }
@@ -1476,33 +1497,6 @@ private:
     default:
       facing = "east";
       break;
-    }
-    props["facing"] = facing;
-  }
-
-  static void FacingAFromFacingDirection(States const &s, Props &props) {
-    auto facingDirection = s.int32("facing_direction", 0);
-    std::string facing;
-    // 102534
-    switch (facingDirection) {
-    case 5:
-      facing = "east";
-      break;
-    case 3:
-      facing = "south";
-      break;
-    case 4:
-      facing = "west";
-      break;
-    case 2:
-      facing = "north";
-      break;
-    case 1:
-      facing = "up";
-      break;
-    case 0:
-    default:
-      facing = "down";
     }
     props["facing"] = facing;
   }

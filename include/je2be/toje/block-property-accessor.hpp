@@ -8,6 +8,7 @@ class BlockPropertyAccessor {
     KELP = 2,
     TWISTING_VINES = 3,
     WEEPING_VINES = 4,
+    PUMPKIN_STEM = 5,
   };
 
 public:
@@ -21,6 +22,8 @@ public:
       p = TWISTING_VINES;
     } else if (IsWeepingVines(b)) {
       p = WEEPING_VINES;
+    } else if (IsPumpkinStem(b)) {
+      p = PUMPKIN_STEM;
     }
     return p;
   }
@@ -41,6 +44,10 @@ public:
     return p == WEEPING_VINES;
   }
 
+  static bool IsPumpkinStem(uint8_t p) {
+    return p == PUMPKIN_STEM;
+  }
+
   static bool IsStairs(mcfile::be::Block const &b) {
     return b.fName.ends_with("_stairs");
   }
@@ -57,19 +64,28 @@ public:
     return b.fName == "minecraft:weeping_vines";
   }
 
+  static bool IsPumpkinStem(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:pumpkin_stem";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
-    using namespace mcfile::be;
-    fSections.resize(Chunk::kNumSubChunks);
-    for (int i = 0; i < Chunk::kNumSubChunks; i++) {
+    fSections.resize(mcfile::be::Chunk::kNumSubChunks);
+    for (int i = 0; i < mcfile::be::Chunk::kNumSubChunks; i++) {
       auto const &section = chunk.fSubChunks[i];
       if (!section) {
         continue;
       }
       fSections[i].resize(section->fPalette.size());
       for (int j = 0; j < section->fPalette.size(); j++) {
-        shared_ptr<Block const> const &blockB = section->fPalette[j];
-        fSections[i][j] = BlockProperties(*blockB);
+        shared_ptr<mcfile::be::Block const> const &blockB = section->fPalette[j];
+        auto p = BlockProperties(*blockB);
+        fHasStairs |= IsStairs(p);
+        fHasKelp |= IsKelp(p);
+        fHasTwistingVines |= IsTwistingVines(p);
+        fHasWeepingVines |= IsWeepingVines(p);
+        fHasPumpkinStem |= IsPumpkinStem(p);
+        fSections[i][j] = p;
       }
     }
   }
@@ -92,6 +108,13 @@ public:
     auto i = section->fPaletteIndices[index];
     return fSections[sectionIndex][i];
   }
+
+public:
+  bool fHasStairs = false;
+  bool fHasKelp = false;
+  bool fHasTwistingVines = false;
+  bool fHasWeepingVines = false;
+  bool fHasPumpkinStem = false;
 
 private:
   std::vector<std::vector<uint8_t>> fSections;
