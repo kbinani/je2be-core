@@ -407,7 +407,7 @@ private:
       name = "dead_";
     }
     name += type;
-    return Ns() + name;
+    return Ns() + name + "_coral";
   }
 
   static String CoralBlock(String const &bName, States const &s, Props &p) {
@@ -430,14 +430,14 @@ private:
     if (dead) {
       name = "dead_";
     }
-    name += type + "_fan";
+    name += type + "_coral_fan";
     return Ns() + name;
   }
 
   static String CoralFanHang(String const &bName, States const &s, Props &p) {
     auto direction = s.int32("coral_direction", 0);
     auto hangType = s.boolean("coral_hang_type_bit", false);
-    auto dead = s.boolean("dead", false);
+    auto dead = s.boolean("dead_bit", false);
     std::string name;
     if (dead) {
       name = "dead_";
