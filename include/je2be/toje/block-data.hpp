@@ -457,7 +457,7 @@ private:
         name += "tube";
       }
     }
-    return Ns() + name + "_wall_fan";
+    return Ns() + name + "_coral_wall_fan";
   }
 #pragma endregion
 
@@ -1297,9 +1297,13 @@ private:
 
 #pragma region Converters : W
   static String WallWithBlockType(String const &bName, States const &s, Props &p) {
-    auto blockType = s.string("wall_block_type", "andesite");
+    auto type = s.string("wall_block_type", "andesite");
+    std::string name = type;
+    if (type == "end_brick") {
+      name = "end_stone_brick";
+    }
     WallProperties(s, p);
-    return Ns() + blockType + "_wall";
+    return Ns() + name + "_wall";
   }
 
   static String Wood(String const &bName, States const &s, Props &p) {
