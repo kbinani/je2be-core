@@ -219,11 +219,6 @@ private:
     return bName;
   }
 
-  static String BlockWithTypeFromTopSlotBit(String const &bName, States const &s, Props &p) {
-    TypeFromTopSlotBit(s, p);
-    return bName;
-  }
-
   static String BlockWithWallProperties(String const &bName, States const &s, Props &p) {
     WallProperties(s, p);
     return bName;
@@ -538,6 +533,7 @@ private:
   static String DoubleStoneSlab(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
     p["type"] = "double";
+    Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
@@ -563,7 +559,7 @@ private:
   static String DoubleWoodenSlab(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
     p["type"] = "double";
-    p["waterlogged"] = "false";
+    Submergible(s, p);
     return Ns() + woodType + "_slab";
   }
 
@@ -828,7 +824,6 @@ private:
       return bName;
     };
   }
-
 #pragma endregion
 
 #pragma region Converters : O
@@ -1117,6 +1112,12 @@ private:
     return Ns() + "light_gray_glazed_terracotta";
   }
 
+  static String Slab(String const &bName, States const &s, Props &p) {
+    Submergible(s, p);
+    TypeFromTopSlotBit(s, p);
+    return bName;
+  }
+
   static String SmallDripleafBlock(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     HalfFromUpperBlockBit(s, p);
@@ -1141,6 +1142,7 @@ private:
   static String Stairs(String const &bName, States const &s, Props &p) {
     FacingFromWeirdoDirection(s, p);
     HalfFromUpsideDownBit(s, p);
+    Submergible(s, p);
     return bName;
   }
 
@@ -1206,12 +1208,14 @@ private:
   static String StoneSlab(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
     TypeFromTopSlotBit(s, p);
+    Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
   static String StoneSlab2(String const &bName, States const &s, Props &p) {
     auto type = s.string("stone_slab_type_2", "prismarine_dark");
     TypeFromTopSlotBit(s, p);
+    Submergible(s, p);
     auto name = StoneTypeFromStone2(type);
     return Ns() + name + "_slab";
   }
@@ -1219,12 +1223,14 @@ private:
   static String StoneSlab3(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_3", "andesite");
     TypeFromTopSlotBit(s, p);
+    Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
   static String StoneSlab4(String const &bName, States const &s, Props &p) {
     auto type = s.string("stone_slab_type_4", "stone");
     TypeFromTopSlotBit(s, p);
+    Submergible(s, p);
     return Ns() + type + "_slab";
   }
 
@@ -1338,6 +1344,7 @@ private:
   static String WoodenSlab(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia");
     TypeFromTopSlotBit(s, p);
+    Submergible(s, p);
     return Ns() + woodType + "_slab";
   }
 
@@ -1950,7 +1957,7 @@ private:
     E(bee_nest, Beehive);
     E(bell, Bell);
     E(big_dripleaf, BigDripleaf);
-    E(blackstone_slab, BlockWithTypeFromTopSlotBit);
+    E(blackstone_slab, Slab);
     E(blackstone_double_slab, DoubleSlab("blackstone_slab"));
     E(standing_banner, BlockWithRotationFromGroundSignDirection);
     E(bed, Bed);
@@ -2056,7 +2063,7 @@ private:
     E(chorus_flower, BlockWithAge);
     E(chorus_plant, Same);
     E(dirt, Dirt);
-    E(cobbled_deepslate_slab, BlockWithTypeFromTopSlotBit);
+    E(cobbled_deepslate_slab, Slab);
     E(cobbled_deepslate_double_slab, DoubleSlab("cobbled_deepslate_slab"));
     E(cobbled_deepslate_wall, BlockWithWallProperties);
     E(web, Rename("cobweb"));
@@ -2067,10 +2074,10 @@ private:
     E(conduit, Same);
     E(skull, Same);
     E(crimson_hyphae, BlockWithAxisFromPillarAxis);
-    E(crimson_slab, BlockWithTypeFromTopSlotBit);
+    E(crimson_slab, Slab);
     E(crimson_double_slab, DoubleSlab("crimson_slab"));
     E(crimson_stem, BlockWithAxisFromPillarAxis);
-    E(cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(cut_copper_slab, Slab);
     E(double_cut_copper_slab, DoubleSlab("cut_copper_slab"));
     E(stone_slab4, StoneSlab4);
     E(double_stone_slab4, DoubleStoneSlab4);
@@ -2084,12 +2091,12 @@ private:
     E(daylight_detector_inverted, DaylightDetector);
     E(deadbush, Rename("dead_bush"));
     E(deepslate, BlockWithAxisFromPillarAxis);
-    E(deepslate_brick_slab, BlockWithTypeFromTopSlotBit);
+    E(deepslate_brick_slab, Slab);
     E(deepslate_brick_double_slab, DoubleSlab("deepslate_brick_slab"));
     E(deepslate_brick_wall, BlockWithWallProperties);
     E(deepslate_redstone_ore, RedstoneOre);
     E(lit_deepslate_redstone_ore, RedstoneOre);
-    E(deepslate_tile_slab, BlockWithTypeFromTopSlotBit);
+    E(deepslate_tile_slab, Slab);
     E(deepslate_tile_double_slab, DoubleSlab("deepslate_tile_slab"));
     E(deepslate_tile_wall, BlockWithWallProperties);
     E(grass_path, Rename("dirt_path"));
@@ -2099,7 +2106,7 @@ private:
     E(end_portal_frame, EndPortalFrame);
     E(end_rod, EndRod);
     E(end_bricks, Rename("end_stone_bricks"));
-    E(exposed_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(exposed_cut_copper_slab, Slab);
     E(exposed_double_cut_copper_slab, DoubleSlab("exposed_cut_copper_slab"));
     E(farmland, Farmland);
     E(tallgrass, Tallgrass);
@@ -2149,20 +2156,20 @@ private:
     E(wooden_pressure_plate, WoodenPressurePlate);
     E(wall_sign, OakWallSign);
     E(observer, Observer);
-    E(oxidized_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(oxidized_cut_copper_slab, Slab);
     E(oxidized_double_cut_copper_slab, DoubleSlab("oxidized_cut_copper_slab"));
     E(piston, BlockWithFacingBFromFacingDirection);
     E(sticky_piston, BlockWithFacingBFromFacingDirection);
     E(podzol, BlockWithSnowy); // No "snowy" property in BE
     E(pointed_dripstone, PointedDripstone);
     E(polished_basalt, BlockWithAxisFromPillarAxis);
-    E(polished_blackstone_brick_slab, BlockWithTypeFromTopSlotBit);
+    E(polished_blackstone_brick_slab, Slab);
     E(polished_blackstone_brick_double_slab, DoubleSlab("polished_blackstone_brick_slab"));
     E(polished_blackstone_brick_wall, BlockWithWallProperties);
-    E(polished_blackstone_slab, BlockWithTypeFromTopSlotBit);
+    E(polished_blackstone_slab, Slab);
     E(polished_blackstone_double_slab, DoubleSlab("polished_blackstone_slab"));
     E(polished_blackstone_wall, BlockWithWallProperties);
-    E(polished_deepslate_slab, BlockWithTypeFromTopSlotBit);
+    E(polished_deepslate_slab, Slab);
     E(polished_deepslate_double_slab, DoubleSlab("polished_deepslate_slab"));
     E(polished_deepslate_wall, BlockWithWallProperties);
     E(potatoes, BlockWithAgeFromGrowth);
@@ -2224,20 +2231,20 @@ private:
     E(twisting_vines, NetherVines("twisting"));
     E(vine, Vine);
     E(warped_hyphae, BlockWithAxisFromPillarAxis);
-    E(warped_slab, BlockWithTypeFromTopSlotBit);
+    E(warped_slab, Slab);
     E(warped_double_slab, DoubleSlab("warped_slab"));
     E(warped_stem, BlockWithAxisFromPillarAxis);
     E(water, Liquid);
     E(waxed_copper, Rename("waxed_copper_block"));
-    E(waxed_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_cut_copper_slab, Slab);
     E(waxed_double_cut_copper_slab, DoubleSlab("waxed_cut_copper_slab"));
-    E(waxed_exposed_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_exposed_cut_copper_slab, Slab);
     E(waxed_exposed_double_cut_copper_slab, DoubleSlab("waxed_exposed_cut_copper_slab"));
-    E(waxed_oxidized_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_oxidized_cut_copper_slab, Slab);
     E(waxed_oxidized_double_cut_copper_slab, DoubleSlab("waxed_oxidized_cut_copper_slab"));
-    E(waxed_weathered_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(waxed_weathered_cut_copper_slab, Slab);
     E(waxed_weathered_double_cut_copper_slab, DoubleSlab("waxed_weathered_cut_copper_slab"));
-    E(weathered_cut_copper_slab, BlockWithTypeFromTopSlotBit);
+    E(weathered_cut_copper_slab, Slab);
     E(weathered_double_cut_copper_slab, DoubleSlab("weathered_cut_copper_slab"));
     E(weeping_vines, NetherVines("weeping"));
     E(wheat, BlockWithAgeFromGrowth);
