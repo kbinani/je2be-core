@@ -916,7 +916,7 @@ private:
       AxisFromPillarAxis(s, p);
       return Ns() + "quartz_pillar";
     } else if (type == "smooth") {
-      return Ns() + "smooth_quartz_block";
+      return Ns() + "smooth_quartz";
     } else if (type == "chiseled") {
       return Ns() + "chiseled_quartz_block";
     } else { // "default";
@@ -1049,7 +1049,7 @@ private:
   static String Sandstone(String const &bName, States const &s, Props &p) {
     auto type = s.string("sand_stone_type", "default");
     std::string name = "sandstone";
-    if (type == "hieroglyphs") {
+    if (type == "heiroglyphs") {
       name = "chiseled_sandstone";
     } else if (type == "cut") {
       name = "cut_sandstone";
