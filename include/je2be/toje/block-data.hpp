@@ -35,18 +35,6 @@ private:
   BlockData() = delete;
 
 #pragma region Converters : A
-  static String AmethystBud(String const &bName, States const &s, Props &p) {
-    Submergible(s, p);
-    FacingAFromFacingDirection(s, p);
-    return bName;
-  }
-
-  static String AmethystCluster(String const &bName, States const &s, Props &p) {
-    Submergible(s, p);
-    FacingAFromFacingDirection(s, p);
-    return bName;
-  }
-
   static String Anvil(String const &bName, States const &s, Props &p) {
     auto damage = s.string("damage", "undamaged");
     std::string name = "anvil";
@@ -183,6 +171,7 @@ private:
     } else {
       name = "big_dripleaf_stem";
     }
+    Submergible(s, p);
     return Ns() + name;
   }
 
@@ -211,6 +200,12 @@ private:
     return bName;
   }
 
+  static String BlockWithFacingAFromFacingDirectionAndSubmergible(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String BlockWithFacingBFromFacingDirection(String const &bName, States const &s, Props &p) {
     FacingBFromFacingDirection(s, p);
     return bName;
@@ -228,6 +223,11 @@ private:
 
   static String BlockWithSnowy(String const &bName, States const &s, Props &p) {
     p["snowy"] = "false";
+    return bName;
+  }
+
+  static String BlockWithSubmergible(String const &bName, States const &s, Props &p) {
+    Submergible(s, p);
     return bName;
   }
 
@@ -317,6 +317,7 @@ private:
 
   static String Campfire(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
+    Submergible(s, p);
     auto extinguished = s.boolean("extinguished", false);
     p["lit"] = Bool(!extinguished);
     return bName;
@@ -326,6 +327,7 @@ private:
     auto candles = s.int32("candles", 0);
     p["candles"] = Int(candles + 1);
     Lit(s, p);
+    Submergible(s, p);
     return bName;
   }
 
@@ -372,8 +374,8 @@ private:
     return Ns() + "cave_vines_plant";
   }
 
-  static String Chest(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+  static String Chain(String const &bName, States const &s, Props &p) {
+    AxisFromPillarAxis(s, p);
     Submergible(s, p);
     return bName;
   }
@@ -427,6 +429,7 @@ private:
       name = "dead_";
     }
     name += type;
+    Submergible(s, p);
     return Ns() + name + "_coral";
   }
 
@@ -451,6 +454,7 @@ private:
       name = "dead_";
     }
     name += type + "_coral_fan";
+    Submergible(s, p);
     return Ns() + name;
   }
 
@@ -477,6 +481,7 @@ private:
         name += "tube";
       }
     }
+    Submergible(s, p);
     return Ns() + name + "_coral_wall_fan";
   }
 #pragma endregion
@@ -648,6 +653,7 @@ private:
 
   static String Fence(String const &bName, States const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
+    Submergible(s, p);
     return Ns() + woodType + "_fence";
   }
 
@@ -689,6 +695,7 @@ private:
     auto railDirection = s.int32("rail_direction", 0);
     p["powered"] = Bool(railData);
     p["shape"] = ShapeFromRailDirection(railDirection);
+    Submergible(s, p);
     return Ns() + "powered_rail";
   }
 
@@ -734,6 +741,7 @@ private:
   static String Lantern(String const &bName, States const &s, Props &p) {
     auto hanging = s.boolean("hanging", false);
     p["hanging"] = Bool(hanging);
+    Submergible(s, p);
     return bName;
   }
 
@@ -786,6 +794,7 @@ private:
   static String LightBlock(String const &bName, States const &s, Props &p) {
     auto level = s.int32("block_light_level", 0);
     p["level"] = Int(level);
+    Submergible(s, p);
     return Ns() + "light";
   }
 
@@ -891,6 +900,7 @@ private:
     p["thickness"] = t;
     auto hanging = s.boolean("hanging", false);
     p["vertical_direction"] = hanging ? "down" : "up";
+    Submergible(s, p);
     return bName;
   }
 
@@ -959,6 +969,7 @@ private:
   static String Rail(String const &bName, States const &s, Props &p) {
     auto railDirection = s.int32("rail_direction", 0);
     p["shape"] = ShapeFromRailDirection(railDirection);
+    Submergible(s, p);
     return bName;
   }
 
@@ -967,6 +978,7 @@ private:
     auto railDirection = s.int32("rail_direction", 0);
     p["powered"] = Bool(railData);
     p["shape"] = ShapeFromRailDirection(railDirection);
+    Submergible(s, p);
     return bName;
   }
 
@@ -1131,6 +1143,7 @@ private:
   static String Scaffolding(String const &bName, States const &s, Props &p) {
     auto stability = s.int32("stability", 0);
     p["distance"] = Int(stability);
+    Submergible(s, p);
     return bName;
   }
 
@@ -1154,6 +1167,7 @@ private:
   static String SmallDripleafBlock(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     HalfFromUpperBlockBit(s, p);
+    Submergible(s, p);
     return Ns() + "small_dripleaf";
   }
 
@@ -1188,6 +1202,7 @@ private:
   static String StainedGlassPane(String const &bName, States const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
+    Submergible(s, p);
     return Ns() + colorJ + "_stained_glass_pane";
   }
 
@@ -1300,6 +1315,7 @@ private:
     FacingBFromDirection(s, p);
     OpenFromOpenBit(s, p);
     HalfFromUpsideDownBit(s, p);
+    Submergible(s, p);
     p["powered"] = "false";
     if (bName.ends_with(":trapdoor")) {
       return Ns() + "oak_trapdoor";
@@ -1402,14 +1418,6 @@ private:
     p["west"] = Bool(west);
     p["south"] = Bool(south);
     p["up"] = "false";
-    return bName;
-  }
-#pragma endregion
-
-#pragma region Convertes : W
-  static String WallSign(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
-    Submergible(s, p);
     return bName;
   }
 #pragma endregion
@@ -1975,18 +1983,18 @@ private:
     E(spruce_trapdoor, Trapdoor);
     E(warped_trapdoor, Trapdoor);
 
-    E(acacia_wall_sign, WallSign);
-    E(birch_wall_sign, WallSign);
-    E(crimson_wall_sign, WallSign);
-    E(jungle_wall_sign, WallSign);
-    E(spruce_wall_sign, WallSign);
-    E(warped_wall_sign, WallSign);
+    E(acacia_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(birch_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(crimson_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(jungle_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(spruce_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(warped_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
     E(detector_rail, RailCanBePowered);
     E(red_flower, RedFlower);
-    E(amethyst_cluster, AmethystCluster);
+    E(amethyst_cluster, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(stone, Stone);
     E(stone_slab3, StoneSlab3);
     E(double_stone_slab3, DoubleStoneSlab3);
@@ -2102,10 +2110,10 @@ private:
     E(cave_vines_with_berries, CaveVines);
     E(cave_vines_head_with_berries, CaveVines);
     E(cave_vines_body_with_berries, CaveVinesBody);
-    E(chain, BlockWithAxisFromPillarAxis);
+    E(chain, Chain);
     E(chain_command_block, CommandBlock);
     E(command_block, CommandBlock);
-    E(chest, Chest);
+    E(chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(quartz_block, QuartzBlock);
     E(red_sandstone, RedSandstone);
     E(sandstone, Sandstone);
@@ -2121,7 +2129,7 @@ private:
     E(powered_comparator, Comparator);
     E(unpowered_comparator, Comparator);
     E(composter, Composter);
-    E(conduit, Same);
+    E(conduit, BlockWithSubmergible);
     E(skull, Same);
     E(crimson_hyphae, BlockWithAxisFromPillarAxis);
     E(crimson_slab, Slab);
@@ -2152,7 +2160,7 @@ private:
     E(grass_path, Rename("dirt_path"));
     E(dispenser, Dispenser);
     E(dropper, Dropper);
-    E(ender_chest, BlockWithFacingAFromFacingDirection);
+    E(ender_chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(end_portal_frame, EndPortalFrame);
     E(end_rod, EndRod);
     E(end_bricks, Rename("end_stone_bricks"));
@@ -2165,36 +2173,36 @@ private:
     E(flower_pot, Same);
     E(frosted_ice, BlockWithAge);
     E(furnace, BlockWithFacingAFromFacingDirection);
-    E(glass_pane, Same);
+    E(glass_pane, BlockWithSubmergible);
     E(glow_lichen, GlowLichen);
     E(grass, Grass);
     E(grindstone, Grindstone);
-    E(hanging_roots, Same);
+    E(hanging_roots, BlockWithSubmergible);
     E(hay_block, BlockWithAxisFromPillarAxis);
     E(heavy_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(hopper, Hopper);
     E(monster_egg, MonsterEgg);
     E(infested_deepslate, BlockWithAxisFromPillarAxis);
-    E(iron_bars, Same);
+    E(iron_bars, BlockWithSubmergible);
     E(lit_pumpkin, LitPumpkin);
     E(jigsaw, Same);
     E(jukebox, Same);
     E(kelp, Kelp);
-    E(ladder, BlockWithFacingAFromFacingDirection);
+    E(ladder, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(lantern, Lantern);
     E(soul_lantern, Lantern);
-    E(large_amethyst_bud, AmethystBud);
+    E(large_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(double_plant, DoublePlant);
     E(lava, Liquid);
     E(lectern, Lectern);
     E(lever, Lever);
-    E(lightning_rod, BlockWithFacingAFromFacingDirection);
+    E(lightning_rod, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(light_block, LightBlock);
     E(light_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(waterlily, Rename("lily_pad"));
     E(loom, BlockWithFacingAFromDirection);
     E(magma, Rename("magma_block"));
-    E(medium_amethyst_bud, AmethystBud);
+    E(medium_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(melon_block, Rename("melon"));
     E(movingBlock, Same);
     E(mycelium, BlockWithSnowy); // No "snowy" property in BE
@@ -2248,7 +2256,7 @@ private:
     E(seaLantern, Rename("sea_lantern"));
     E(undyed_shulker_box, Rename("shulker_box"));
     E(slime, Rename("slime_block"));
-    E(small_amethyst_bud, AmethystBud);
+    E(small_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(small_dripleaf_block, SmallDripleafBlock);
     E(smoker, BlockWithFacingAFromDirection);
     E(snow_layer, SnowLayer);
@@ -2274,7 +2282,7 @@ private:
     E(hardened_clay, Rename("terracotta"));
     E(tnt, Tnt);
     E(torch, Torch(""));
-    E(trapped_chest, Chest);
+    E(trapped_chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(tripwire, Tripwire);
     E(tripwire_hook, TripwireHook);
     E(turtle_egg, TurtleEgg);
