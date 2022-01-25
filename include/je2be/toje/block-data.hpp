@@ -1503,9 +1503,11 @@ private:
 
   static Converter Torch(std::string prefix) {
     return [prefix](String const &bName, States const &s, Props &p) -> String {
-      auto t = s.string("torch_fecing_direction");
-      if (t) {
-        std::string f;
+      auto t = s.string("torch_facing_direction", "top");
+      std::string f;
+      if (t == "top") {
+        return Ns() + prefix + "torch";
+      } else {
         if (t == "west") {
           f = "east";
         } else if (t == "east") {
@@ -1517,8 +1519,6 @@ private:
         }
         p["facing"] = f;
         return Ns() + prefix + "wall_torch";
-      } else {
-        return Ns() + prefix + "torch";
       }
     };
   }
