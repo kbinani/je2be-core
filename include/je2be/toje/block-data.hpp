@@ -665,6 +665,7 @@ private:
     p["south"] = Bool(south);
     p["west"] = Bool(west);
     p["east"] = Bool(east);
+    Submergible(s, p);
     return bName;
   }
 
@@ -674,6 +675,11 @@ private:
     p["powered"] = Bool(railData);
     p["shape"] = ShapeFromRailDirection(railDirection);
     return Ns() + "powered_rail";
+  }
+
+  static String Grass(String const &bName, States const &s, Props &p) {
+    p["snowy"] = "false";
+    return Ns() + "grass_block";
   }
 
   static String Grindstone(String const &bName, States const &s, Props &p) {
@@ -1026,6 +1032,7 @@ private:
     return [name](String const &bName, States const &s, Props &p) {
       FacingFromWeirdoDirection(s, p);
       HalfFromUpsideDownBit(s, p);
+      Submergible(s, p);
       return Ns() + name;
     };
   }
@@ -2128,7 +2135,7 @@ private:
     E(furnace, BlockWithFacingAFromFacingDirection);
     E(glass_pane, Same);
     E(glow_lichen, GlowLichen);
-    E(grass, Rename("grass_block"));
+    E(grass, Grass);
     E(grindstone, Grindstone);
     E(hanging_roots, Same);
     E(hay_block, BlockWithAxisFromPillarAxis);
