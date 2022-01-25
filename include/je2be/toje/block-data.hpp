@@ -418,7 +418,7 @@ private:
     if (dead) {
       name = "dead_";
     }
-    name += type + "_block";
+    name += type + "_coral_block";
     return Ns() + name;
   }
 
