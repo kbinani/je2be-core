@@ -21,7 +21,7 @@ public:
       return;
     }
 
-    for (int y = -64; y < 304; y++) {
+    for (int y = mcfile::be::Chunk::kMinBlockY; y <= mcfile::be::Chunk::kMaxBlockY; y++) {
       for (int lz = 0; lz < 16; lz++) {
         int z = cz * 16 + lz;
         for (int lx = 0; lx < 16; lx++) {

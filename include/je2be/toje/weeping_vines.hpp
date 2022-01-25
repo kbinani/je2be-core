@@ -16,7 +16,7 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
-    for (int y = mcfile::be::Chunk::kMinChunkY * 16 + 1; y < mcfile::be::Chunk::kMaxChunkY * 16; y++) {
+    for (int y = mcfile::be::Chunk::kMinBlockY + 1; y <= mcfile::be::Chunk::kMaxBlockY; y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
