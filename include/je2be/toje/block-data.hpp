@@ -494,13 +494,16 @@ private:
 
   static String Door(String const &bName, States const &s, Props &p) {
     auto doorHingeBit = s.boolean("door_hinge_bit", false);
-
     OpenFromOpenBit(s, p);
     FacingCFromDirection(s, p);
     HalfFromUpperBlockBit(s, p);
     p["hinge"] = doorHingeBit ? "right" : "left";
     p["powered"] = "false";
-    return bName;
+    if (bName == "minecraft:wooden_door") {
+      return Ns() + "oak_door";
+    } else {
+      return bName;
+    }
   }
 
   static String DoublePlant(String const &bName, States const &s, Props &p) {
@@ -754,7 +757,7 @@ private:
   static String LightBlock(String const &bName, States const &s, Props &p) {
     auto level = s.int32("block_light_level", 0);
     p["level"] = Int(level);
-    return bName;
+    return Ns() + "light";
   }
 
   static String Liquid(String const &bName, States const &s, Props &p) {
@@ -2225,6 +2228,9 @@ private:
     E(weathered_double_cut_copper_slab, DoubleSlab("weathered_cut_copper_slab"));
     E(weeping_vines, NetherVines("weeping"));
     E(wheat, BlockWithAgeFromGrowth);
+    E(mob_spawner, Rename("spawner"));
+    E(frame, Rename("air"));
+    E(glow_frame, Rename("air"));
 
 #undef E
 
