@@ -12,6 +12,7 @@
 #include <je2be/toje/attached_stem.hpp>
 #include <je2be/toje/cave_vines.hpp>
 #include <je2be/toje/snowy.hpp>
+#include <je2be/toje/chorus_plant.hpp>
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>
 #include <je2be/toje/converter.hpp>

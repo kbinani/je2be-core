@@ -126,7 +126,6 @@ public:
         //TODO: colored standing banner
         //TODO: colored bed
         //TODO: "type" of chest, trapped_chest
-        //TODO: down,east,north,south,up,west properties in chorus_plant
         //TODO: type of skull
         //TODO: "lit" of furnace
         //TODO: east,north,south,west of glass_pane
@@ -154,6 +153,7 @@ public:
         AttachedStem::Do(*j, *cache, accessor);
         CaveVines::Do(*j, *cache, accessor);
         Snowy::Do(*j, *cache, accessor);
+        ChorusPlant::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

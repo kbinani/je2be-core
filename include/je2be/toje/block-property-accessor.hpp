@@ -11,6 +11,7 @@ class BlockPropertyAccessor {
     PUMPKIN_STEM = 5,
     CAVE_VINES = 6,
     SNOWY = 7,
+    CHORUS_PLANT = 8,
   };
 
 public:
@@ -29,6 +30,8 @@ public:
       return CAVE_VINES;
     } else if (IsSnowy(b)) {
       return SNOWY;
+    } else if (IsChorusPlant(b)) {
+      return CHORUS_PLANT;
     }
     return 0;
   }
@@ -59,6 +62,10 @@ public:
 
   static bool IsSnowy(uint8_t p) {
     return p == SNOWY;
+  }
+
+  static bool IsChorusPlant(uint8_t p) {
+    return p == CHORUS_PLANT;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -93,6 +100,11 @@ public:
            b.fName == "minecraft:mycelium";
   }
 
+  static bool IsChorusPlant(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:chorus_plant" ||
+           b.fName == "minecraft:chorus_flower";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(mcfile::be::Chunk::kNumSubChunks);
@@ -112,6 +124,7 @@ public:
         fHasPumpkinStem |= IsPumpkinStem(p);
         fHasCaveVines |= IsCaveVines(p);
         fHasSnowy |= IsSnowy(p);
+        fHasChorusPlant |= IsChorusPlant(p);
         fSections[i][j] = p;
       }
     }
@@ -144,6 +157,7 @@ public:
   bool fHasPumpkinStem = false;
   bool fHasCaveVines = false;
   bool fHasSnowy = false;
+  bool fHasChorusPlant = false;
 
 private:
   std::vector<std::vector<uint8_t>> fSections;
