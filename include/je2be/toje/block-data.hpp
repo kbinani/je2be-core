@@ -359,6 +359,12 @@ private:
     return Ns() + "cave_vines_plant";
   }
 
+  static String Chest(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String Cocoa(String const &bName, States const &s, Props &p) {
     FacingAFromDirection(s, p);
     Age(s, p);
@@ -526,6 +532,7 @@ private:
   static Converter DoubleSlab(std::string name) {
     return [name](String const &bName, States const &s, Props &p) {
       p["type"] = "double";
+      Submergible(s, p);
       return Ns() + name;
     };
   }
@@ -541,18 +548,21 @@ private:
     auto stoneSlabType = s.string("stone_slab_type_2", "prismarine_dark");
     auto name = StoneTypeFromStone2(stoneSlabType);
     p["type"] = "double";
+    Submergible(s, p);
     return Ns() + name + "_slab";
   }
 
   static String DoubleStoneSlab3(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_3", "andesite");
     p["type"] = "double";
+    Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
   static String DoubleStoneSlab4(String const &bName, States const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_4", "stone");
     p["type"] = "double";
+    Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
@@ -1357,7 +1367,7 @@ private:
 
 #pragma region Converters : V
   static String Vine(String const &bName, States const &s, Props &p) {
-    auto d = s.int16("vine_direction_bits", 0);
+    auto d = s.int32("vine_direction_bits", 0);
     bool east = (d & 0x8) == 0x8;
     bool north = (d & 0x4) == 0x4;
     bool west = (d & 0x2) == 0x2;
@@ -1366,6 +1376,7 @@ private:
     p["north"] = Bool(north);
     p["west"] = Bool(west);
     p["south"] = Bool(south);
+    p["up"] = "false";
     return bName;
   }
 #pragma endregion
@@ -2055,7 +2066,7 @@ private:
     E(chain, BlockWithAxisFromPillarAxis);
     E(chain_command_block, CommandBlock);
     E(command_block, CommandBlock);
-    E(chest, BlockWithFacingAFromFacingDirection);
+    E(chest, Chest);
     E(quartz_block, QuartzBlock);
     E(red_sandstone, RedSandstone);
     E(sandstone, Sandstone);
@@ -2224,7 +2235,7 @@ private:
     E(hardened_clay, Rename("terracotta"));
     E(tnt, Tnt);
     E(torch, Torch(""));
-    E(trapped_chest, BlockWithFacingAFromFacingDirection);
+    E(trapped_chest, Chest);
     E(tripwire, Tripwire);
     E(tripwire_hook, TripwireHook);
     E(turtle_egg, TurtleEgg);
