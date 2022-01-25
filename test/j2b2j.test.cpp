@@ -5,6 +5,23 @@ using namespace std;
 using namespace je2be;
 namespace fs = std::filesystem;
 
+static void CheckBlock(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore = {}) {
+  using namespace std;
+  CHECK(e.fName == a.fName);
+  map<string, string> propsE(e.fProperties);
+  map<string, string> propsA(a.fProperties);
+  for (std::string const &p : ignore) {
+    propsE.erase(p);
+    propsA.erase(p);
+  }
+  CHECK(propsE.size() == propsA.size());
+  for (auto it : propsE) {
+    auto found = propsA.find(it.first);
+    CHECK(found != propsA.end());
+    CHECK(found->second == it.second);
+  }
+}
+
 TEST_CASE("j2b2j") {
   fs::path thisFile(__FILE__);
   auto dataDir = thisFile.parent_path() / "data";
@@ -111,7 +128,11 @@ TEST_CASE("j2b2j") {
                   if (foundJtoB == fallbackJtoB.end()) {
                     auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
                     if (foundBtoJ == fallbackBtoJ.end()) {
-                      CHECK(blockA->fName == blockE->fName);
+                      if (blockE->fName.ends_with("_leaves")) {
+                        CheckBlock(*blockE, *blockA, {"distance"});
+                      } else {
+                        CHECK(blockA->toString() == blockE->toString());
+                      }
                     } else {
                       CHECK(foundBtoJ->second == blockE->fName);
                     }

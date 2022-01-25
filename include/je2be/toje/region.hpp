@@ -94,12 +94,18 @@ public:
               int waterLoggedIndex = waterLogged[indexDry];
               if (waterLoggedIndex < 0) {
                 auto dryBlockJ = palette[indexDry];
-                map<string, string> props(dryBlockJ->fProperties);
-                props["waterlogged"] = "true";
-                auto waterLoggedBlockJ = make_shared<mcfile::je::Block const>(dryBlockJ->fName, props);
-                waterLoggedIndex = palette.size();
-                palette.push_back(waterLoggedBlockJ);
-                waterLogged[indexDry] = waterLoggedIndex;
+                if (dryBlockJ->fProperties.find("waterlogged") == dryBlockJ->fProperties.end()) {
+                  // This block can't be waterlogged in Java.
+                  waterLoggedIndex = indexDry;
+                  waterLogged[indexDry] = indexDry;
+                } else {
+                  map<string, string> props(dryBlockJ->fProperties);
+                  props["waterlogged"] = "true";
+                  auto waterLoggedBlockJ = make_shared<mcfile::je::Block const>(dryBlockJ->fName, props);
+                  waterLoggedIndex = palette.size();
+                  palette.push_back(waterLoggedBlockJ);
+                  waterLogged[indexDry] = waterLoggedIndex;
+                }
               }
               indices[i] = waterLoggedIndex;
             }
