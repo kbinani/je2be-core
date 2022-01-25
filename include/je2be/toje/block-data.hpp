@@ -1808,6 +1808,12 @@ private:
       west = true;
       break;
     }
+    p["up"] = Bool(up);
+    p["down"] = Bool(down);
+    p["north"] = Bool(north);
+    p["east"] = Bool(east);
+    p["south"] = Bool(south);
+    p["west"] = Bool(west);
     return stem;
   }
 
