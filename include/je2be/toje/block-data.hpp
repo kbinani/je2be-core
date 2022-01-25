@@ -35,6 +35,18 @@ private:
   BlockData() = delete;
 
 #pragma region Converters : A
+  static String AmethystBud(String const &bName, States const &s, Props &p) {
+    Submergible(s, p);
+    FacingAFromFacingDirection(s, p);
+    return bName;
+  }
+
+  static String AmethystCluster(String const &bName, States const &s, Props &p) {
+    Submergible(s, p);
+    FacingAFromFacingDirection(s, p);
+    return bName;
+  }
+
   static String Anvil(String const &bName, States const &s, Props &p) {
     auto damage = s.string("damage", "undamaged");
     std::string name = "anvil";
@@ -221,6 +233,7 @@ private:
 
   static String BlockWithWallProperties(String const &bName, States const &s, Props &p) {
     WallProperties(s, p);
+    Submergible(s, p);
     return bName;
   }
 
@@ -471,11 +484,13 @@ private:
 #pragma region Converters : D
   static String DarkoakStandingSign(String const &bName, States const &s, Props &p) {
     RotationFromGroundSignDirection(s, p);
+    Submergible(s, p);
     return Ns() + "dark_oak_sign";
   }
 
   static String DarkoakWallSign(String const &bName, States const &s, Props &p) {
     FacingAFromFacingDirection(s, p);
+    Submergible(s, p);
     return Ns() + "dark_oak_wall_sign";
   }
 
@@ -845,6 +860,7 @@ private:
 #pragma region Converters : O
   static String OakWallSign(String const &bName, States const &s, Props &p) {
     FacingAFromFacingDirection(s, p);
+    Submergible(s, p);
     return Ns() + "oak_wall_sign";
   }
 
@@ -1190,6 +1206,7 @@ private:
       name = type + "_sign";
     }
     RotationFromGroundSignDirection(s, p);
+    Submergible(s, p);
     return Ns() + name;
   }
 
@@ -1341,6 +1358,7 @@ private:
       name = "end_stone_brick";
     }
     WallProperties(s, p);
+    Submergible(s, p);
     return Ns() + name + "_wall";
   }
 
@@ -1384,6 +1402,14 @@ private:
     p["west"] = Bool(west);
     p["south"] = Bool(south);
     p["up"] = "false";
+    return bName;
+  }
+#pragma endregion
+
+#pragma region Convertes : W
+  static String WallSign(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    Submergible(s, p);
     return bName;
   }
 #pragma endregion
@@ -1943,18 +1969,18 @@ private:
     E(spruce_trapdoor, Trapdoor);
     E(warped_trapdoor, Trapdoor);
 
-    E(acacia_wall_sign, BlockWithFacingAFromFacingDirection);
-    E(birch_wall_sign, BlockWithFacingAFromFacingDirection);
-    E(crimson_wall_sign, BlockWithFacingAFromFacingDirection);
-    E(jungle_wall_sign, BlockWithFacingAFromFacingDirection);
-    E(spruce_wall_sign, BlockWithFacingAFromFacingDirection);
-    E(warped_wall_sign, BlockWithFacingAFromFacingDirection);
+    E(acacia_wall_sign, WallSign);
+    E(birch_wall_sign, WallSign);
+    E(crimson_wall_sign, WallSign);
+    E(jungle_wall_sign, WallSign);
+    E(spruce_wall_sign, WallSign);
+    E(warped_wall_sign, WallSign);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
     E(detector_rail, RailCanBePowered);
     E(red_flower, RedFlower);
-    E(amethyst_cluster, BlockWithFacingAFromFacingDirection);
+    E(amethyst_cluster, AmethystCluster);
     E(stone, Stone);
     E(stone_slab3, StoneSlab3);
     E(double_stone_slab3, DoubleStoneSlab3);
@@ -2151,7 +2177,7 @@ private:
     E(ladder, BlockWithFacingAFromFacingDirection);
     E(lantern, Lantern);
     E(soul_lantern, Lantern);
-    E(large_amethyst_bud, BlockWithFacingAFromFacingDirection);
+    E(large_amethyst_bud, AmethystBud);
     E(double_plant, DoublePlant);
     E(lava, Liquid);
     E(lectern, Lectern);
@@ -2162,7 +2188,7 @@ private:
     E(waterlily, Rename("lily_pad"));
     E(loom, BlockWithFacingAFromDirection);
     E(magma, Rename("magma_block"));
-    E(medium_amethyst_bud, BlockWithFacingAFromFacingDirection);
+    E(medium_amethyst_bud, AmethystBud);
     E(melon_block, Rename("melon"));
     E(movingBlock, Same);
     E(mycelium, BlockWithSnowy); // No "snowy" property in BE
@@ -2216,7 +2242,7 @@ private:
     E(seaLantern, Rename("sea_lantern"));
     E(undyed_shulker_box, Rename("shulker_box"));
     E(slime, Rename("slime_block"));
-    E(small_amethyst_bud, BlockWithFacingAFromFacingDirection);
+    E(small_amethyst_bud, AmethystBud);
     E(small_dripleaf_block, SmallDripleafBlock);
     E(smoker, BlockWithFacingAFromDirection);
     E(snow_layer, SnowLayer);
