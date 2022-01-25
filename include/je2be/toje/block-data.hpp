@@ -990,9 +990,15 @@ private:
   }
 
   static String RedstoneOre(String const &bName, States const &s, Props &p) {
-    auto lit = bName == "minecraft:lit_redstone_ore";
+    auto lit = bName.starts_with("minecraft:lit_");
+    std::string name;
+    if (lit) {
+      name = bName.substr(14);
+    } else {
+      name = bName.substr(10);
+    }
     p["lit"] = Bool(lit);
-    return Ns() + "redstone_ore";
+    return Ns() + name;
   }
 
   static String Reeds(String const &bName, States const &s, Props &p) {
@@ -2072,7 +2078,8 @@ private:
     E(deepslate_brick_slab, BlockWithTypeFromTopSlotBit);
     E(deepslate_brick_double_slab, DoubleSlab("deepslate_brick_slab"));
     E(deepslate_brick_wall, BlockWithWallProperties);
-    E(deepslate_redstone_ore, Same);
+    E(deepslate_redstone_ore, RedstoneOre);
+    E(lit_deepslate_redstone_ore, RedstoneOre);
     E(deepslate_tile_slab, BlockWithTypeFromTopSlotBit);
     E(deepslate_tile_double_slab, DoubleSlab("deepslate_tile_slab"));
     E(deepslate_tile_wall, BlockWithWallProperties);

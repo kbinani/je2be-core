@@ -1558,8 +1558,9 @@ private:
     E(respawn_anchor, RespawnAnchor);
     E(deepslate, axisToPillarAxis);
     E(infested_deepslate, axisToPillarAxis);
-    E(redstone_lamp, RedstoneLamp);
-    E(redstone_ore, RedstoneOre);
+    E(redstone_lamp, Converter(PrefixLit));
+    E(redstone_ore, Converter(PrefixLit));
+    E(deepslate_redstone_ore, Converter(PrefixLit));
 #undef E
 
     return table;
@@ -1569,20 +1570,6 @@ private:
     auto c = New(block.fName, true);
     auto s = States();
     s->set("liquid_depth", props::Int(8));
-    return AttachStates(c, s);
-  }
-
-  static BlockDataType RedstoneOre(Block const &block) {
-    auto lit = block.property("lit", "false") == "true";
-    auto c = New(lit ? "lit_redstone_ore" : "redstone_ore");
-    auto s = States();
-    return AttachStates(c, s);
-  }
-
-  static BlockDataType RedstoneLamp(Block const &block) {
-    auto lit = block.property("lit", "false") == "true";
-    auto c = New(lit ? "lit_redstone_lamp" : "redstone_lamp");
-    auto s = States();
     return AttachStates(c, s);
   }
 
@@ -1919,6 +1906,16 @@ private:
       return "minecraft:powered_repeater";
     } else {
       return "minecraft:unpowered_repeater";
+    }
+  }
+
+  static std::string PrefixLit(Block const &b) {
+    auto lit = b.property("lit", "false") == "true";
+    if (lit) {
+      auto name = b.fName.substr(10);
+      return "minecraft:lit_" + name;
+    } else {
+      return b.fName;
     }
   }
 
