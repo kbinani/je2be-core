@@ -9,23 +9,25 @@ class BlockPropertyAccessor {
     TWISTING_VINES = 3,
     WEEPING_VINES = 4,
     PUMPKIN_STEM = 5,
+    CAVE_VINES = 6,
   };
 
 public:
   static uint8_t BlockProperties(mcfile::be::Block const &b) {
-    uint8_t p = 0;
     if (IsStairs(b)) {
-      p = STAIRS;
+      return STAIRS;
     } else if (IsKelp(b)) {
-      p = KELP;
+      return KELP;
     } else if (IsTwistingVines(b)) {
-      p = TWISTING_VINES;
+      return TWISTING_VINES;
     } else if (IsWeepingVines(b)) {
-      p = WEEPING_VINES;
+      return WEEPING_VINES;
     } else if (IsPumpkinStem(b)) {
-      p = PUMPKIN_STEM;
+      return PUMPKIN_STEM;
+    } else if (IsCaveVines(b)) {
+      return CAVE_VINES;
     }
-    return p;
+    return 0;
   }
 
   static bool IsStairs(uint8_t p) {
@@ -48,6 +50,10 @@ public:
     return p == PUMPKIN_STEM;
   }
 
+  static bool IsCaveVines(uint8_t p) {
+    return p == CAVE_VINES;
+  }
+
   static bool IsStairs(mcfile::be::Block const &b) {
     return b.fName.ends_with("_stairs");
   }
@@ -68,6 +74,12 @@ public:
     return b.fName == "minecraft:pumpkin_stem";
   }
 
+  static bool IsCaveVines(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:cave_vines" ||
+           b.fName == "minecraft:cave_vines_head_with_berries" ||
+           b.fName == "minecraft:cave_vines_body_with_berries";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(mcfile::be::Chunk::kNumSubChunks);
@@ -85,6 +97,7 @@ public:
         fHasTwistingVines |= IsTwistingVines(p);
         fHasWeepingVines |= IsWeepingVines(p);
         fHasPumpkinStem |= IsPumpkinStem(p);
+        fHasCaveVines |= IsCaveVines(p);
         fSections[i][j] = p;
       }
     }
@@ -115,6 +128,7 @@ public:
   bool fHasTwistingVines = false;
   bool fHasWeepingVines = false;
   bool fHasPumpkinStem = false;
+  bool fHasCaveVines = false;
 
 private:
   std::vector<std::vector<uint8_t>> fSections;

@@ -146,6 +146,7 @@ public:
         TwistingVines::Do(*j, *cache, accessor);
         WeepingVines::Do(*j, *cache, accessor);
         AttachedStem::Do(*j, *cache, accessor);
+        CaveVines::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

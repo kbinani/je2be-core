@@ -348,12 +348,9 @@ private:
   static String CaveVines(String const &bName, States const &s, Props &p) {
     auto berries = bName.ends_with("_with_berries");
     auto growingPlantAge = s.int32("growing_plant_age", 1);
-    if (growingPlantAge > 24) {
-      return Ns() + "cave_vines_plant";
-    } else {
-      p["age"] = Int(growingPlantAge);
-      return Ns() + "cave_vines";
-    }
+    p["age"] = Int(growingPlantAge);
+    p["berries"] = Bool(berries);
+    return Ns() + "cave_vines";
   }
 
   static String CaveVinesBody(String const &bName, States const &s, Props &p) {

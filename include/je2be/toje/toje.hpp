@@ -10,6 +10,7 @@
 #include <je2be/toje/twisting_vines.hpp>
 #include <je2be/toje/weeping_vines.hpp>
 #include <je2be/toje/attached_stem.hpp>
+#include <je2be/toje/cave_vines.hpp>
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>
 #include <je2be/toje/converter.hpp>
