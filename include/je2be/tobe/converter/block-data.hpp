@@ -1407,7 +1407,7 @@ private:
     E(rail, Converter(Same, RailDirectionFromShape));
     E(nether_portal, Converter(Name("portal"), Name(Axis, "portal_axis")));
 
-    E(bamboo, Converter(Same, BambooLeafSizeFromLeaves, AddBoolProperty("age_bit", true), BambooStalkThicknessFromAge));
+    E(bamboo, Bamboo);
     E(sweet_berry_bush, Converter(Same, GrowthFromAge));
     E(bubble_column, Converter(Same, DragDownFromDrag));
     E(cake, Converter(Same, BiteCounterFromBites));
@@ -1564,6 +1564,16 @@ private:
 #undef E
 
     return table;
+  }
+
+  static BlockDataType Bamboo(Block const &block) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    BambooLeafSizeFromLeaves(s, block);
+    auto stage = Wrap(strings::Toi(block.property("stage", "0")), 0);
+    s->set("age_bit", props::Bool(stage > 0));
+    BambooStalkThicknessFromAge(s, block);
+    return AttachStates(c, s);
   }
 
   static BlockDataType FlowingLiquid(Block const &block) {
