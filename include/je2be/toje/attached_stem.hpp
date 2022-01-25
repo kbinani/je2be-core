@@ -29,18 +29,28 @@ public:
           }
           auto d = stem->fStates->int32("facing_direction", 0);
           auto growth = stem->fStates->int32("growth", 0);
-          if (growth < 7) {
+          auto blockJ = out.blockAt(x, y, z);
+          if (!blockJ) {
             continue;
           }
-          auto vec = VecFromFacingDirection(d);
-          auto cropPos = Pos2i(x, z) + vec;
-          auto crop = cache.blockAt(cropPos.fX, y, cropPos.fZ);
-          if (crop && crop->fName == "minecraft:pumpkin") {
-            map<string, string> props;
-            props["facing"] = FacingFromFacingDirection(d);
-            auto attachedStem = make_shared<mcfile::je::Block const>("minecraft:attached_pumpkin_stem", props);
-            out.setBlockAt(x, y, z, attachedStem);
+          map<string, string> props(blockJ->fProperties);
+          string name = blockJ->fName;
+          if (growth < 7) {
+            props.erase("facing");
+          } else {
+            auto vec = VecFromFacingDirection(d);
+            auto cropPos = Pos2i(x, z) + vec;
+            auto crop = cache.blockAt(cropPos.fX, y, cropPos.fZ);
+            if (crop && crop->fName == "minecraft:pumpkin") {
+              props["facing"] = FacingFromFacingDirection(d);
+              props.erase("age");
+              name = "minecraft:attached_pumpkin_stem";
+            } else {
+              props.erase("facing");
+            }
           }
+          auto replace = make_shared<mcfile::je::Block const>(name, props);
+          out.setBlockAt(x, y, z, replace);
         }
       }
     }
@@ -54,9 +64,10 @@ public:
       return Pos2i(-1, 0); // west
     case 2:
       return Pos2i(0, -1); // north
-    default:
     case 3:
       return Pos2i(0, 1); // south
+    default:
+      return Pos2i(0, 0); // up, down
     }
   }
 
