@@ -1081,9 +1081,9 @@ private:
   static String Repeater(String const &bName, States const &s, Props &p) {
     auto powered = bName == "minecraft:powered_repeater";
     p["powered"] = Bool(powered);
-    FacingAFromFacingDirection(s, p);
+    FacingAFromDirection(s, p);
     auto delay = s.int32("repeater_delay", 0);
-    p["delay"] = Int(delay);
+    p["delay"] = Int(delay + 1 + 0);
     return Ns() + "repeater";
   }
 
@@ -1155,7 +1155,7 @@ private:
 
   static String Scaffolding(String const &bName, States const &s, Props &p) {
     auto stability = s.int32("stability", 0);
-    p["distance"] = Int(stability);
+    p["bottom"] = Bool(stability > 0);
     Submergible(s, p);
     return bName;
   }

@@ -148,6 +148,8 @@ TEST_CASE("j2b2j") {
                         CHECK(blockE->fName == blockA->fName);
                       } else if (blockE->fName == "minecraft:scaffolding") {
                         CheckBlock(*blockE, *blockA, {"distance"});
+                      } else if (blockE->fName == "minecraft:repeater") {
+                        CheckBlock(*blockE, *blockA, {"locked"});
                       } else {
                         CHECK(blockA->toString() == blockE->toString());
                       }
