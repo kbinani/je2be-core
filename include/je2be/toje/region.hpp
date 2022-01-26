@@ -52,66 +52,72 @@ public:
             continue;
           }
           auto sectionJ = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB->fChunkY);
-          vector<shared_ptr<mcfile::je::Block const>> palette;
+          vector<shared_ptr<mcfile::je::Block const>> paletteJ;
 
           for (size_t idx = 0; idx < sectionB->fPalette.size(); idx++) {
             auto const &blockB = sectionB->fPalette[idx];
             auto blockJ = BlockData::From(*blockB);
             assert(blockJ);
-            palette.push_back(blockJ);
+            paletteJ.push_back(blockJ);
           }
 
-          vector<uint16_t> indices(4096);
-          int indexB = 0;
-          for (int x = 0; x < 16; x++) {
+          vector<uint16_t> indicesJ(4096);
+          for (int x = 0, indexB = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
               for (int y = 0; y < 16; y++, indexB++) {
                 int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
-                indices[indexJ] = sectionB->fPaletteIndices[indexB];
+                indicesJ[indexJ] = sectionB->fPaletteIndices[indexB];
               }
             }
           }
 
           // waterlogged=true variant of palette[index] is stored at palette[waterLogged[index]], if waterLogged[index] >= 0.
-          vector<int> waterLogged(palette.size(), -1);
+          vector<int> waterLoggedJ(paletteJ.size(), -1);
+
+          if (sectionB->fChunkY == 4) {
+            int a = 0;
+          }
 
           if (sectionB->fWaterPaletteIndices.size() == 4096) {
-            shared_ptr<mcfile::be::Block const> water;
+            vector<bool> isWaterB(sectionB->fWaterPalette.size());
             for (size_t i = 0; i < sectionB->fWaterPalette.size(); i++) {
-              if (sectionB->fWaterPalette[i]->fName == "minecraft:water") {
-                water = sectionB->fWaterPalette[i];
-              }
+              isWaterB[i] = sectionB->fWaterPalette[i]->fName == "minecraft:water";
             }
-            for (size_t i = 0; i < 4096; i++) {
-              uint16_t index = sectionB->fWaterPaletteIndices[i];
-              if (sectionB->fWaterPalette[index] != water) {
-                continue;
-              }
+            for (int x = 0, indexB = 0; x < 16; x++) {
+              for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 16; y++, indexB++) {
+                  uint16_t waterPaletteIndexB = sectionB->fWaterPaletteIndices[indexB];
+                  if (!isWaterB[waterPaletteIndexB]) {
+                    continue;
+                  }
 
-              // indices[i] block is waterlogged
+                  // (x, y, z) block is waterlogged
+                  int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
 
-              uint16_t indexDry = indices[i];
-              int waterLoggedIndex = waterLogged[indexDry];
-              if (waterLoggedIndex < 0) {
-                auto dryBlockJ = palette[indexDry];
-                if (dryBlockJ->fProperties.find("waterlogged") == dryBlockJ->fProperties.end()) {
-                  // This block can't be waterlogged in Java.
-                  waterLoggedIndex = indexDry;
-                  waterLogged[indexDry] = indexDry;
-                } else {
-                  map<string, string> props(dryBlockJ->fProperties);
-                  props["waterlogged"] = "true";
-                  auto waterLoggedBlockJ = make_shared<mcfile::je::Block const>(dryBlockJ->fName, props);
-                  waterLoggedIndex = palette.size();
-                  palette.push_back(waterLoggedBlockJ);
-                  waterLogged[indexDry] = waterLoggedIndex;
+                  uint16_t indexDryJ = indicesJ[indexJ];
+                  auto dryBlockJ = paletteJ[indexDryJ];
+                  int waterLoggedIndexJ = waterLoggedJ[indexDryJ];
+                  if (waterLoggedIndexJ < 0) {
+                    if (dryBlockJ->fProperties.find("waterlogged") == dryBlockJ->fProperties.end()) {
+                      // This block can't be waterlogged in Java.
+                      waterLoggedIndexJ = indexDryJ;
+                      waterLoggedJ[indexDryJ] = indexDryJ;
+                    } else {
+                      map<string, string> props(dryBlockJ->fProperties);
+                      props["waterlogged"] = "true";
+                      auto waterLoggedBlockJ = make_shared<mcfile::je::Block const>(dryBlockJ->fName, props);
+                      waterLoggedIndexJ = paletteJ.size();
+                      paletteJ.push_back(waterLoggedBlockJ);
+                      waterLoggedJ[indexDryJ] = waterLoggedIndexJ;
+                    }
+                  }
+                  indicesJ[indexJ] = waterLoggedIndexJ;
                 }
               }
-              indices[i] = waterLoggedIndex;
             }
           }
 
-          if (!sectionJ->fBlocks.reset(palette, indices)) {
+          if (!sectionJ->fBlocks.reset(paletteJ, indicesJ)) {
             return false;
           }
           int sectionIndex = sectionJ->fY - j->fChunkY;
