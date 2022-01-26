@@ -72,10 +72,21 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   auto tag = make_shared<CompoundTag>();
   tag->set("name", props::String(block->fName));
   auto states = make_shared<CompoundTag>();
-  states->fValue = block->fStates;
+  states = block->fStates;
   tag->set("states", states);
   tag->set("version", props::Int(block->fVersion));
   nbt::PrintAsJson(cout, *tag, jopt);
+  if (section->fWaterPaletteIndices.size() == 4096) {
+    auto index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
+    auto idx = section->fWaterPaletteIndices[index];
+    cout << "layer2 ---" << endl;
+    auto layer2Block = section->fWaterPalette[idx];
+    auto t = make_shared<CompoundTag>();
+    t->set("name", props::String(layer2Block->fName));
+    t->set("states", layer2Block->fStates);
+    t->set("version", props::Int(layer2Block->fVersion));
+    nbt::PrintAsJson(cout, *t, jopt);
+  }
 }
 
 static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimension d) {
