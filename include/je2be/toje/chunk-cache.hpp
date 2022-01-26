@@ -9,24 +9,33 @@ public:
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
-    int index = this->index(cx, cz);
-    return fCache[index];
+    auto index = this->index(cx, cz);
+    if (!index) {
+      return nullptr;
+    }
+    return fCache[*index];
   }
 
   void set(int cx, int cz, std::shared_ptr<mcfile::be::Chunk> const &chunk) {
     if (!chunk) {
       return;
     }
-    int index = this->index(cx, cz);
-    fCache[index] = chunk;
-    fCacheLoaded[index] = true;
+    auto index = this->index(cx, cz);
+    if (!index) {
+      return;
+    }
+    fCache[*index] = chunk;
+    fCacheLoaded[*index] = true;
   }
 
   std::shared_ptr<mcfile::be::Block const> blockAt(int bx, int by, int bz) const {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
-    int index = this->index(cx, cz);
-    auto const &chunk = fCache[index];
+    auto index = this->index(cx, cz);
+    if (!index) {
+      return nullptr;
+    }
+    auto const &chunk = fCache[*index];
     if (!chunk) {
       return nullptr;
     }
@@ -34,28 +43,33 @@ public:
   }
 
   void load(int cx, int cz, leveldb::DB &db) {
-    int index = this->index(cx, cz);
-    if (fCacheLoaded[index]) {
+    auto index = this->index(cx, cz);
+    if (!index) {
       return;
     }
-    fCache[index] = mcfile::be::Chunk::Load(cx, cz, fDim, &db);
-    fCacheLoaded[index] = true;
+    if (fCacheLoaded[*index]) {
+      return;
+    }
+    fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, &db);
+    fCacheLoaded[*index] = true;
   }
 
-  int index(int cx, int cz) const {
+  std::optional<int> index(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
     if (0 <= x && x < width && 0 <= z && z < height) {
       return z * width + x;
     } else {
-      assert(false);
-      return 0;
+      return std::nullopt;
     }
   }
 
   void purge(int cx, int cz) {
-    int index = this->index(cx, cz);
-    fCache[index] = nullptr;
+    auto index = this->index(cx, cz);
+    if (!index) {
+      return;
+    }
+    fCache[*index] = nullptr;
   }
 
 private:
