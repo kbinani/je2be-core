@@ -53,7 +53,8 @@ public:
     if (!chunk) {
       return nullptr;
     }
-    PreprocessChunk(chunk, region);
+    mcfile::je::CachedChunkLoader loader(region);
+    PreprocessChunk(loader, *chunk);
 
     auto ret = make_shared<WorldData>(dim);
     ChunkConversionMode mode = ConversionMode(*chunk);
@@ -86,12 +87,13 @@ public:
   }
 
 private:
-  static void PreprocessChunk(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region const &region) {
-    MovingPiston::PreprocessChunk(chunk, region);
-    InjectTickingLiquidBlocksAsBlocks(*chunk);
-    SortTickingBlocks(chunk->fTileTicks);
-    SortTickingBlocks(chunk->fLiquidTicks);
-    CompensateKelp(*chunk);
+  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
+    MovingPiston::PreprocessChunk(loader, chunk);
+    InjectTickingLiquidBlocksAsBlocks(chunk);
+    SortTickingBlocks(chunk.fTileTicks);
+    SortTickingBlocks(chunk.fLiquidTicks);
+    CompensateKelp(chunk);
+    MushroomBlock(loader, chunk);
   }
 
   static void SortTickingBlocks(std::vector<mcfile::je::TickingBlock> &blocks) {
@@ -170,6 +172,64 @@ private:
             }
           }
           lower = block;
+        }
+      }
+    }
+  }
+
+  static void MushroomBlock(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
+    using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::je;
+    using namespace mcfile::blocks::minecraft;
+    bool hasMsurhoom = false;
+    for (auto const &section : chunk.fSections) {
+      if (!section) {
+        continue;
+      }
+      section->eachBlockPalette([&hasMsurhoom](Block const &block) {
+        if (block.fId == red_mushroom_block || block.fId == brown_mushroom) {
+          hasMsurhoom = true;
+          return false;
+        }
+        return true;
+      });
+      if (hasMsurhoom) {
+        break;
+      }
+    }
+    if (!hasMsurhoom) {
+      return;
+    }
+    static vector<pair<string, Pos3i>> directions({{"up", Pos3i(0, 1, 0)},
+                                                   {"down", Pos3i(0, -1, 0)},
+                                                   {"north", Pos3i(0, 0, -1)},
+                                                   {"east", Pos3i(1, 0, 0)},
+                                                   {"south", Pos3i(0, 0, 1)},
+                                                   {"west", Pos3i(-1, 0, 0)}});
+    for (int x = chunk.minBlockX(); x <= chunk.maxBlockX(); x++) {
+      for (int z = chunk.minBlockZ(); z <= chunk.maxBlockZ(); z++) {
+        int minY = chunk.minBlockY();
+        int maxY = chunk.maxBlockY();
+        for (int y = minY; y <= maxY; y++) {
+          auto center = chunk.blockAt(x, y, z);
+          if (!center) {
+            continue;
+          }
+          auto id = center->fId;
+          if (id != red_mushroom_block && id != brown_mushroom_block) {
+            continue;
+          }
+          map<string, string> props(center->fProperties);
+          for (auto const &dir : directions) {
+            auto pos = Pos3i(x, y, z) + dir.second;
+            auto block = loader.blockAt(pos);
+            if (block && !mcfile::blocks::IsTransparent(block->fId)) {
+              props.erase(dir.first);
+            }
+          }
+          auto replace = make_shared<mcfile::je::Block const>(center->fName, props);
+          chunk.setBlockAt(x, y, z, replace);
         }
       }
     }

@@ -530,38 +530,53 @@ private:
     return props::Int(v);
   }
 
+  static bool On(std::string const &actual) {
+    if (actual.empty()) {
+      return true;
+    }
+    return actual == "true";
+  }
+
+  static bool Off(std::string const &actual) {
+    if (actual.empty()) {
+      return true;
+    }
+    return actual == "false";
+  }
+
   static PropertyPickupFunction HugeMushroomBits(bool stem) {
     return [=](StatesType const &s, Block const &block) {
-      auto up = block.property("up", "false") == "true";
-      auto down = block.property("down", "false") == "true";
-      auto north = block.property("north", "false") == "true";
-      auto east = block.property("east", "false") == "true";
-      auto south = block.property("south", "false") == "true";
-      auto west = block.property("west", "false") == "true";
+      auto up = block.property("up");
+      auto down = block.property("down");
+      auto north = block.property("north");
+      auto east = block.property("east");
+      auto south = block.property("south");
+      auto west = block.property("west");
+
       int32_t bits = stem ? 15 : 14;
-      if (!up && !down && !north && !east && !south && !west) {
+      if (Off(up) && Off(down) && Off(north) && Off(east) && Off(south) && Off(west)) {
         bits = 0;
-      } else if (up && west && north && !down && !east && !south) {
+      } else if (On(up) && Off(down) && On(north) && Off(east) && Off(south) && On(west)) {
         bits = 1;
-      } else if (up && north && !down && !east && !south && !west) {
+      } else if (On(up) && Off(down) && On(north) && Off(east) && Off(south) && Off(west)) {
         bits = 2;
-      } else if (up && north && east && !down && !south && !west) {
+      } else if (On(up) && Off(down) && On(north) && On(east) && Off(south) && Off(west)) {
         bits = 3;
-      } else if (up && west && !down && !north && !east && !south) {
+      } else if (On(up) && Off(down) && Off(north) && Off(east) && Off(south) && On(west)) {
         bits = 4;
-      } else if (up && !down && !north && !east && !south && !west) {
+      } else if (On(up) && Off(down) && Off(north) && Off(east) && Off(south) && Off(west)) {
         bits = 5;
-      } else if (up && east && !down && !north && !south && !west) {
+      } else if (On(up) && Off(down) && Off(north) && On(east) && Off(south) && Off(west)) {
         bits = 6;
-      } else if (up && south && west && !down && !north && !east) {
+      } else if (On(up) && Off(down) && Off(north) && Off(east) && On(south) && On(west)) {
         bits = 7;
-      } else if (up && south && !down && !north && !east && !west) {
+      } else if (On(up) && Off(down) && Off(north) && Off(east) && On(south) && Off(west)) {
         bits = 8;
-      } else if (up && east && south && !down && !north && !west) {
+      } else if (On(up) && Off(down) && Off(north) && On(east) && On(south) && Off(west)) {
         bits = 9;
-      } else if (north && east && south && west && !up && !down && stem) {
+      } else if (Off(up) && Off(down) && On(north) && On(east) && On(south) && On(west) && stem) {
         bits = 10;
-      } else if (up && down && north && east && south && west) {
+      } else if (On(up) && On(down) && On(north) && On(east) && On(south) && On(west)) {
         if (stem) {
           bits = 15;
         } else {

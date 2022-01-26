@@ -117,7 +117,9 @@ static void CheckPistonArm(shared_ptr<CompoundTag const> const &actual, Expected
 TEST_CASE("moving-piston") {
   SUBCASE("extending=0") {
     auto [chunk, region] = Load("extending=0");
-    tobe::MovingPiston::PreprocessChunk(chunk, *region);
+    CachedChunkLoader loader(*region);
+    loader.addToCache(chunk);
+    tobe::MovingPiston::PreprocessChunk(loader, *chunk);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 5, 8)], {.id = "j2b:MovingBlock",
                                                              .isMovable = true,
                                                              .movingBlock = {
@@ -215,7 +217,9 @@ TEST_CASE("moving-piston") {
 
   SUBCASE("extending=1") {
     auto [chunk, region] = Load("extending=1");
-    tobe::MovingPiston::PreprocessChunk(chunk, *region);
+    CachedChunkLoader loader(*region);
+    loader.addToCache(chunk);
+    tobe::MovingPiston::PreprocessChunk(loader, *chunk);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 8)], {.id = "j2b:MovingBlock",
                                                              .isMovable = 1,
                                                              .movingBlock = {
@@ -308,7 +312,9 @@ TEST_CASE("moving-piston") {
 
   SUBCASE("normal_extending=1") {
     auto [chunk, region] = Load("normal_extending=1");
-    tobe::MovingPiston::PreprocessChunk(chunk, *region);
+    CachedChunkLoader loader(*region);
+    loader.addToCache(chunk);
+    tobe::MovingPiston::PreprocessChunk(loader, *chunk);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 9)], {.id = "j2b:MovingBlock",
                                                              .isMovable = 1,
                                                              .movingBlock = {

@@ -7,28 +7,22 @@ private:
   MovingPiston() = delete;
 
 public:
-  static void PreprocessChunk(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region region) {
+  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
     using namespace mcfile;
     using namespace mcfile::je;
     using namespace mcfile::nbt;
     using namespace std;
     using namespace props;
 
-    if (!chunk) {
-      return;
-    }
-
-    CachedChunkLoader loader(region);
-    loader.addToCache(chunk);
     SetBlockOptions withoutRemovingTileEntity;
     withoutRemovingTileEntity.fRemoveTileEntity = false;
 
     unordered_map<Pos3i, shared_ptr<CompoundTag>, Pos3iHasher> tileEntityReplacement;
 
-    if (ChunkHasPiston(*chunk)) {
-      for (int by = chunk->minBlockY(); by <= chunk->maxBlockY(); by++) {
-        for (int bx = chunk->minBlockX(); bx <= chunk->maxBlockX(); bx++) {
-          for (int bz = chunk->minBlockZ(); bz <= chunk->maxBlockZ(); bz++) {
+    if (ChunkHasPiston(chunk)) {
+      for (int by = chunk.minBlockY(); by <= chunk.maxBlockY(); by++) {
+        for (int bx = chunk.minBlockX(); bx <= chunk.maxBlockX(); bx++) {
+          for (int bz = chunk.minBlockZ(); bz <= chunk.maxBlockZ(); bz++) {
             Pos3i pos(bx, by, bz);
             auto block = loader.blockAt(pos);
             if (!block) {
@@ -80,7 +74,7 @@ public:
       }
     }
 
-    for (auto it : chunk->fTileEntities) {
+    for (auto it : chunk.fTileEntities) {
       Pos3i pos = it.first;
       auto const &item = it.second;
       auto id = item->string("id");
@@ -105,7 +99,7 @@ public:
       if (*source) {
         if (*extending) {
           // extending = 1, source = 1
-          auto block = chunk->blockAt(pos);
+          auto block = chunk.blockAt(pos);
           if (!block) {
             continue;
           }
@@ -114,12 +108,12 @@ public:
           props["facing_direction"] = to_string(*facing);
           string name = block->fName == "minecraft:sticky_piston" ? "j2b:stickyPistonArmCollision" : "j2b:pistonArmCollision";
           auto newBlock = make_shared<Block>(name, props);
-          chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
+          chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
           tileEntityReplacement[pos] = nullptr;
         } else {
           // extending = 0, source = 1
-          auto block = chunk->blockAt(pos);
+          auto block = chunk.blockAt(pos);
           if (!block) {
             continue;
           }
@@ -127,7 +121,7 @@ public:
           auto sticky = block->property("type", "normal") == "sticky";
           string name = sticky ? "minecraft:sticky_piston" : "minecraft:piston";
           auto newBlock = make_shared<Block>(name, block->fProperties);
-          chunk->setBlockAt(pos, newBlock, withoutRemovingTileEntity);
+          chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
           unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
           LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
@@ -165,9 +159,9 @@ public:
       Pos3i pos = it.first;
       auto tileEntity = it.second;
       if (tileEntity) {
-        chunk->fTileEntities[pos] = tileEntity;
+        chunk.fTileEntities[pos] = tileEntity;
       } else {
-        chunk->fTileEntities.erase(pos);
+        chunk.fTileEntities.erase(pos);
       }
     }
   }
