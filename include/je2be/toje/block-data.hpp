@@ -459,7 +459,6 @@ private:
   }
 
   static String CoralFanHang(String const &bName, States const &s, Props &p) {
-    auto direction = s.int32("coral_direction", 0);
     auto hangType = s.boolean("coral_hang_type_bit", false);
     auto dead = s.boolean("dead_bit", false);
     std::string name;
@@ -481,6 +480,7 @@ private:
         name += "tube";
       }
     }
+    CoralDirection(s, p);
     Submergible(s, p);
     return Ns() + name + "_coral_wall_fan";
   }
@@ -1577,6 +1577,27 @@ private:
       break;
     }
     props["facing"] = facing;
+  }
+
+  static void CoralDirection(States const &s, Props &p) {
+    auto d = s.int32("coral_direction", 0);
+    std::string facing;
+    switch (d) {
+    case 2:
+      facing = "north";
+      break;
+    case 1:
+      facing = "east";
+      break;
+    case 3:
+      facing = "south";
+      break;
+    case 0:
+    default:
+      facing = "west";
+      break;
+    }
+    p["facing"] = facing;
   }
 
   static Converter Torch(std::string prefix) {
