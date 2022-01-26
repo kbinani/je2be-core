@@ -124,7 +124,7 @@ public:
   }
 
   static bool IsGlassPaneOrIronBars(mcfile::be::Block const &b) {
-    return b.fName.ends_with("_glass_pane") ||
+    return b.fName.ends_with("glass_pane") ||
            b.fName == "minecraft:iron_bars";
   }
 
