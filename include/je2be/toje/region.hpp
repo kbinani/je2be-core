@@ -121,15 +121,12 @@ public:
           j->fSections[sectionIndex] = sectionJ;
         }
 
-        //TODO: properties of fence
         //TODO: "distance" of leaves
         //TODO: colored standing banner
         //TODO: colored bed
         //TODO: "type" of chest, trapped_chest
         //TODO: type of skull
         //TODO: "lit" of furnace
-        //TODO: east,north,south,west of glass_pane
-        //TODO: east,north,south,west of iron_bars
         //TODO: "has_record" of jukebox
         //TODO: movingBlock
         //TODO: "instrument", "note", "powered" of noteblock
@@ -154,6 +151,7 @@ public:
         CaveVines::Do(*j, *cache, accessor);
         Snowy::Do(*j, *cache, accessor);
         ChorusPlant::Do(*j, *cache, accessor);
+        FenceConnectable::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

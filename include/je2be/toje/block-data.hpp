@@ -1882,9 +1882,9 @@ private:
     E(warped_door, Door);
 
     E(fence, Fence);
-    E(crimson_fence, Same);
-    E(nether_brick_fence, Same);
-    E(warped_fence, Same);
+    E(crimson_fence, BlockWithSubmergible);
+    E(nether_brick_fence, BlockWithSubmergible);
+    E(warped_fence, BlockWithSubmergible);
 
     E(acacia_fence_gate, FenceGate);
     E(birch_fence_gate, FenceGate);
