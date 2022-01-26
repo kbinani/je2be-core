@@ -112,7 +112,7 @@ TEST_CASE("j2b2j") {
                   if (blockA->fName == "minecraft:skull") {
                     continue; //TODO: remove this
                   }
-                  if (blockE->fName == "minecraft:piston_head") {
+                  if (blockE->fName == "minecraft:piston_head" || blockE->fName == "minecraft:piston" || blockE->fName == "minecraft:sticky_piston") {
                     continue; //TODO: remove this
                   }
                   if (blockA->fName == "minecraft:white_bed") {
@@ -124,11 +124,29 @@ TEST_CASE("j2b2j") {
                   if (blockA->fName == "minecraft:wall_banner") {
                     continue; //TODO: remove this
                   }
+                  if (blockE->fName == "minecraft:chest" || blockE->fName == "minecraft:trapped_chest") {
+                    continue; //TODO: remove this
+                  }
+                  if (blockE->fName == "minecraft:furnace") {
+                    continue; //TODO: remove this
+                  }
+                  if (blockE->fName == "minecraft:jukebox") {
+                    continue; //TODO: remove this
+                  }
+                  if (blockA->fName.ends_with("shulker_box")) {
+                    continue;
+                  }
                   auto foundJtoB = fallbackJtoB.find(blockE->fName);
                   if (foundJtoB == fallbackJtoB.end()) {
                     auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
                     if (foundBtoJ == fallbackBtoJ.end()) {
                       if (blockE->fName.ends_with("_leaves")) {
+                        CheckBlock(*blockE, *blockA, {"distance"});
+                      } else if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
+                        CheckBlock(*blockE, *blockA, {"lit"});
+                      } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block") {
+                        CHECK(blockE->fName == blockA->fName);
+                      } else if (blockE->fName == "minecraft:scaffolding") {
                         CheckBlock(*blockE, *blockA, {"distance"});
                       } else {
                         CHECK(blockA->toString() == blockE->toString());

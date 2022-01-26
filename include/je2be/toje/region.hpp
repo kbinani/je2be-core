@@ -127,7 +127,6 @@ public:
           j->fSections[sectionIndex] = sectionJ;
         }
 
-        //TODO: "distance" of leaves
         //TODO: colored standing banner
         //TODO: colored bed
         //TODO: "type" of chest, trapped_chest
@@ -140,7 +139,6 @@ public:
         //TODO: "lit" of redstone_torch
         //TODO: east,north,south,west of redstone_wire
         //TODO: "locked" of repeater
-        //TODO: "bottom" of scafforlding
         //TODO: power,sculk_sensor_phase of sculk_sensor
         //TODO: facing of shulker_box, undyed_shulker_box
         //TODO: "lit" of smoker
