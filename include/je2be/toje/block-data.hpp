@@ -669,6 +669,19 @@ private:
       return bName;
     }
   }
+
+  static String FurnaceAndSimilar(String const &bName, States const &s, Props &p) {
+    FacingAFromFacingDirection(s, p);
+    auto lit = bName.starts_with("minecraft:lit_");
+    std::string name;
+    if (lit) {
+      name = bName.substr(14);
+    } else {
+      name = bName.substr(10);
+    }
+    p["lit"] = Bool(lit);
+    return Ns() + name;
+  }
 #pragma endregion
 
 #pragma region Converters : G
@@ -2104,7 +2117,8 @@ private:
     E(stained_hardened_clay, StainedHardenedClay);
     E(wall_banner, BlockWithFacingAFromFacingDirection);
     E(wool, Wool);
-    E(blast_furnace, BlockWithFacingAFromFacingDirection);
+    E(blast_furnace, FurnaceAndSimilar);
+    E(lit_blast_furnace, FurnaceAndSimilar);
     E(bone_block, BlockWithAxisFromPillarAxis);
     E(coral, Coral);
     E(coral_block, CoralBlock);
@@ -2193,7 +2207,8 @@ private:
     E(azalea_leaves_flowered, AzaleaLeavesFlowered);
     E(flower_pot, Same);
     E(frosted_ice, BlockWithAge);
-    E(furnace, BlockWithFacingAFromFacingDirection);
+    E(furnace, FurnaceAndSimilar);
+    E(lit_furnace, FurnaceAndSimilar);
     E(glass_pane, BlockWithSubmergible);
     E(glow_lichen, GlowLichen);
     E(grass, Grass);
@@ -2279,7 +2294,8 @@ private:
     E(slime, Rename("slime_block"));
     E(small_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
     E(small_dripleaf_block, SmallDripleafBlock);
-    E(smoker, BlockWithFacingAFromDirection);
+    E(smoker, FurnaceAndSimilar);
+    E(lit_smoker, FurnaceAndSimilar);
     E(snow_layer, SnowLayer);
     E(snow, Rename("snow_block"));
     E(soul_torch, Torch("soul_"));

@@ -1060,7 +1060,7 @@ private:
     E(dark_oak_fence, Fence("dark_oak"));
     E(ladder, facingDirectionFromFacingA);
     E(chest, facingDirectionFromFacingA);
-    E(furnace, facingDirectionFromFacingA);
+    E(furnace, Converter(PrefixLit, FacingDirectionFromFacingA));
     E(nether_bricks, Rename("nether_brick"));
     E(infested_stone, InfestedStone("stone"));
     E(infested_cobblestone, InfestedStone("cobblestone"));
@@ -1329,8 +1329,8 @@ private:
     E(stonecutter, Converter(Name("stonecutter_block"), FacingDirectionFromFacingA));
     E(loom, directionFromFacing);
     E(grindstone, Converter(Name("grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
-    E(smoker, facingDirectionFromFacingA);
-    E(blast_furnace, facingDirectionFromFacingA);
+    E(smoker, Converter(PrefixLit, FacingDirectionFromFacingA));
+    E(blast_furnace, Converter(PrefixLit, FacingDirectionFromFacingA));
     E(barrel, Converter(Name("barrel"), FacingDirectionFromFacingA, Name(Open, "open_bit")));
     Converter lantern(Same, Name(Hanging, "hanging"));
     E(lantern, lantern);
