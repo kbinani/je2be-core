@@ -389,6 +389,7 @@ private:
   static String CommandBlock(String const &bName, States const &s, Props &p) {
     auto conditional = s.boolean("conditional_bit", false);
     FacingAFromFacingDirection(s, p);
+    p["conditional"] = Bool(conditional);
     return bName;
   }
 
