@@ -3,7 +3,11 @@
 namespace je2be::toje {
 
 class BlockPropertyAccessor {
-  enum Properties : uint8_t {
+public:
+  using DataType = uint8_t;
+
+private:
+  enum Properties : DataType {
     STAIRS = 1,
     KELP = 2,
     TWISTING_VINES = 3,
@@ -20,7 +24,7 @@ class BlockPropertyAccessor {
   };
 
 public:
-  static uint8_t BlockProperties(mcfile::be::Block const &b) {
+  static DataType BlockProperties(mcfile::be::Block const &b) {
     if (IsStairs(b)) {
       return STAIRS;
     } else if (IsKelp(b)) {
@@ -51,55 +55,55 @@ public:
     return 0;
   }
 
-  static bool IsStairs(uint8_t p) {
+  static bool IsStairs(DataType p) {
     return p == STAIRS;
   }
 
-  static bool IsKelp(uint8_t p) {
+  static bool IsKelp(DataType p) {
     return p == KELP;
   }
 
-  static bool IsTwistingVines(uint8_t p) {
+  static bool IsTwistingVines(DataType p) {
     return p == TWISTING_VINES;
   }
 
-  static bool IsWeepingVines(uint8_t p) {
+  static bool IsWeepingVines(DataType p) {
     return p == WEEPING_VINES;
   }
 
-  static bool IsPumpkinStem(uint8_t p) {
+  static bool IsPumpkinStem(DataType p) {
     return p == PUMPKIN_STEM;
   }
 
-  static bool IsCaveVines(uint8_t p) {
+  static bool IsCaveVines(DataType p) {
     return p == CAVE_VINES;
   }
 
-  static bool IsSnowy(uint8_t p) {
+  static bool IsSnowy(DataType p) {
     return p == SNOWY;
   }
 
-  static bool IsChorusPlant(uint8_t p) {
+  static bool IsChorusPlant(DataType p) {
     return p == CHORUS_PLANT;
   }
 
-  static bool IsFence(uint8_t p) {
+  static bool IsFence(DataType p) {
     return p == FENCE;
   }
 
-  static bool IsGlassPaneOrIronBars(uint8_t p) {
+  static bool IsGlassPaneOrIronBars(DataType p) {
     return p == GLASS_PANE_OR_IRON_BARS;
   }
 
-  static bool IsCampfire(uint8_t p) {
+  static bool IsCampfire(DataType p) {
     return p == CAMPFIRE;
   }
 
-  static bool IsNoteBlock(uint8_t p) {
+  static bool IsNoteBlock(DataType p) {
     return p == NOTE_BLOCK;
   }
 
-  static bool IsRedstoneWire(uint8_t p) {
+  static bool IsRedstoneWire(DataType p) {
     return p == REDSTONE_WIRE;
   }
 
@@ -191,7 +195,7 @@ public:
     }
   }
 
-  uint8_t property(int bx, int by, int bz) const {
+  DataType property(int bx, int by, int bz) const {
     using namespace mcfile;
     using namespace mcfile::be;
     int cx = Coordinate::ChunkFromBlock(bx);
@@ -226,7 +230,7 @@ public:
   bool fHasRedstoneWire = false;
 
 private:
-  std::vector<std::vector<uint8_t>> fSections;
+  std::vector<std::vector<DataType>> fSections;
   int const fChunkX;
   int const fChunkZ;
   mcfile::be::Chunk const &fChunk;
