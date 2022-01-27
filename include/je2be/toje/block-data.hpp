@@ -918,7 +918,8 @@ private:
   }
 
   static String Portal(String const &bName, States const &s, Props &p) {
-    AxisFromPillarAxis(s, p);
+    auto axis = s.string("portal_axis", "y");
+    p["axis"] = axis;
     return Ns() + "nether_portal";
   }
 
