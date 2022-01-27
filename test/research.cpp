@@ -242,8 +242,85 @@ static void NoteBlock() {
   code << endl;
 }
 
+void RedstoneWire() {
+  set<string> uniq;
+  for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+    string name = mcfile::blocks::Name(id);
+    if (name.ends_with("slab")) {
+      continue;
+    }
+    if (name.ends_with("rail")) {
+      continue;
+    }
+    if (!mcfile::blocks::IsTransparent(id)) {
+      continue;
+    }
+    uniq.insert(name);
+  }
+  vector<string> names(uniq.begin(), uniq.end());
+
+  int const x0 = -42;
+  int const z0 = 165;
+  int const y = 4;
+  int x = x0;
+  int x1 = x0;
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/labo");
+  {
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_redstone_wire.mcfunction").string());
+    os << "fill " << x0 << " " << y << " " << (z0 - 1) << " " << (x0 + 2 * names.size()) << " " << (y + 2) << " " << (z0 + 1) << " air" << endl;
+    for (string const &name : names) {
+      os << "setblock " << x << " " << (y - 1) << " " << z0 << " air" << endl;
+      os << "setblock " << x << " " << (y - 2) << " " << z0 << " redstone_wire" << endl;
+      os << "setblock " << x << " " << (y - 1) << " " << (z0 - 1) << " redstone_wire" << endl;
+      os << "setblock " << x << " " << (y - 1) << " " << (z0 + 1) << " redstone_wire" << endl;
+      os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << endl;
+      x += 2;
+    }
+    x1 = x0 + 2 * names.size();
+  }
+
+  // login the game, then execute /function je2be:research_redstone_wire
+
+  mcfile::je::World w(root);
+  shared_ptr<mcfile::je::Chunk> chunk;
+  int cz = mcfile::Coordinate::ChunkFromBlock(z0);
+  set<string> transparent;
+  int i = 0;
+  for (int x = x0; x < x1; x += 2, i++) {
+    int cx = mcfile::Coordinate::ChunkFromBlock(x);
+    if (!chunk || (chunk && chunk->fChunkX != cx)) {
+      chunk = w.chunkAt(cx, cz);
+    }
+    auto center = chunk->blockAt(x, y - 1, z0);
+    auto expected = names[i];
+    if (expected != center->fName) {
+      cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
+    } else {
+      auto wire = chunk->blockAt(x, y - 2, z0);
+      auto north = wire->property("north", "");
+      auto south = wire->property("south", "");
+      if (north != "up" && south != "up") {
+        transparent.insert(expected);
+      }
+    }
+  }
+
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
+  code << "static bool IsAlwaysTransparentAgainstRedstoneWire(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto const &it : transparent) {
+    code << "  case " << it.substr(10) << ":" << endl;
+  }
+  code << "    true false;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+}
+
 } // namespace
 
 TEST_CASE("research") {
-  NoteBlock();
+  RedstoneWire();
 }

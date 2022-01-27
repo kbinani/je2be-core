@@ -158,6 +158,7 @@ public:
         FenceConnectable::Do(*j, *cache, accessor);
         Campfire::Do(*j, *cache, accessor);
         NoteBlock::Do(*j, *cache, accessor);
+        RedstoneWire::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

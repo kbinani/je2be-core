@@ -17,6 +17,7 @@
 #include <je2be/toje/fence-connectable.hpp>
 #include <je2be/toje/campfire.hpp>
 #include <je2be/toje/note-block.hpp>
+#include <je2be/toje/redstone-wire.hpp>
 
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>

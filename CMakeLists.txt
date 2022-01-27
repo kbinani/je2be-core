@@ -92,6 +92,7 @@ set(je2be_files
   include/je2be/toje/kelp.hpp
   include/je2be/toje/level-data.hpp
   include/je2be/toje/note-block.hpp
+  include/je2be/toje/redstone-wire.hpp
   include/je2be/toje/region.hpp
   include/je2be/toje/shape-of-stairs.hpp
   include/je2be/toje/snowy.hpp
