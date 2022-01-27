@@ -1345,7 +1345,7 @@ private:
     p["attached"] = Bool(attached);
     p["disarmed"] = Bool(disarmed);
     p["powered"] = Bool(powered);
-    return bName;
+    return Ns() + "tripwire";
   }
 
   static String TripwireHook(String const &bName, States const &s, Props &p) {
@@ -2321,7 +2321,7 @@ private:
     E(tnt, Tnt);
     E(torch, Torch(""));
     E(trapped_chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
-    E(tripwire, Tripwire);
+    E(tripWire, Tripwire);
     E(tripwire_hook, TripwireHook);
     E(turtle_egg, TurtleEgg);
     E(twisting_vines, NetherVines("twisting"));

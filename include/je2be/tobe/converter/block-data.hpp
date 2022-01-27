@@ -1652,7 +1652,7 @@ private:
   }
 
   static BlockDataType Tripwire(Block const &block) {
-    auto c = New("tripwire");
+    auto c = New("tripWire");
     auto s = States();
     auto attached = block.property("attached", "false") == "true";
     auto disarmed = block.property("disarmed", "false") == "true";
