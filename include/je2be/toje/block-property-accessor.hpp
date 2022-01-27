@@ -15,6 +15,7 @@ class BlockPropertyAccessor {
     FENCE = 9,
     GLASS_PANE_OR_IRON_BARS = 10,
     CAMPFIRE = 11,
+    NOTE_BLOCK = 12,
   };
 
 public:
@@ -41,6 +42,8 @@ public:
       return GLASS_PANE_OR_IRON_BARS;
     } else if (IsCampfire(b)) {
       return CAMPFIRE;
+    } else if (IsNoteBlock(b)) {
+      return NOTE_BLOCK;
     }
     return 0;
   }
@@ -87,6 +90,10 @@ public:
 
   static bool IsCampfire(uint8_t p) {
     return p == CAMPFIRE;
+  }
+
+  static bool IsNoteBlock(uint8_t p) {
+    return p == NOTE_BLOCK;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -139,6 +146,10 @@ public:
     return b.fName.ends_with("campfire");
   }
 
+  static bool IsNoteBlock(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:noteblock";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(mcfile::be::Chunk::kNumSubChunks);
@@ -162,6 +173,7 @@ public:
         fHasFence |= IsFence(p);
         fHasGlassPaneOrIronBars |= IsGlassPaneOrIronBars(p);
         fHasCampfire |= IsCampfire(p);
+        fHasNoteBlock |= IsNoteBlock(p);
         fSections[i][j] = p;
       }
     }
@@ -198,6 +210,7 @@ public:
   bool fHasFence = false;
   bool fHasGlassPaneOrIronBars = false;
   bool fHasCampfire = false;
+  bool fHasNoteBlock = false;
 
 private:
   std::vector<std::vector<uint8_t>> fSections;

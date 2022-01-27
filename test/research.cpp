@@ -170,8 +170,80 @@ static void FenceGlassPaneIronBarsConnectable() {
   code << "}" << endl;
 }
 
+static void NoteBlock() {
+  set<string> uniq;
+  for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+    string name = mcfile::blocks::Name(id);
+    uniq.insert(name);
+  }
+  vector<string> names(uniq.begin(), uniq.end());
+
+  int const x0 = -42;
+  int const z0 = 165;
+  int const y = 4;
+  int x = x0;
+  int x1 = x0;
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/labo");
+  {
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block.mcfunction").string());
+    for (string const &name : names) {
+      os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << endl;
+      os << "setblock " << x << " " << y << " " << z0 << " note_block" << endl;
+      x += 2;
+    }
+    x1 = x;
+  }
+
+  // login the game, then execute /function je2be:research_note_block
+
+  mcfile::je::World w(root);
+  shared_ptr<mcfile::je::Chunk> chunk;
+  int cz = mcfile::Coordinate::ChunkFromBlock(z0);
+  map<string, set<string>> instruments;
+  int i = 0;
+  for (int x = x0; x < x1; x += 2, i++) {
+    int cx = mcfile::Coordinate::ChunkFromBlock(x);
+    if (!chunk || (chunk && chunk->fChunkX != cx)) {
+      chunk = w.chunkAt(cx, cz);
+    }
+    auto center = chunk->blockAt(x, y - 1, z0);
+    auto expected = names[i];
+    if (expected != center->fName) {
+      cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
+    } else {
+      auto noteBlock = chunk->blockAt(x, y, z0);
+      auto instrument = noteBlock->property("instrument", "");
+      if (instrument.empty()) {
+        cerr << "empty instrument: [" << x << ", " << z0 << "]" << endl;
+      } else {
+        instruments[instrument].insert(center->fName);
+      }
+    }
+  }
+
+  instruments.erase("harp");
+
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
+  code << "static std::string NoteBlockInstrument(mcfile::blocks::BlockId id) {" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto const &it : instruments) {
+    string instrument = it.first;
+    set<string> const &blocks = it.second;
+    for (string const &block : blocks) {
+      code << "  case mcfile::blocks::minecraft::" << block.substr(10) << ":" << endl;
+    }
+    code << "    return \"" + instrument << "\";" << endl;
+  }
+  code << "  default:" << endl;
+  code << "    return \"harp\"" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+}
+
 } // namespace
 
 TEST_CASE("research") {
-  FenceGlassPaneIronBarsConnectable();
+  NoteBlock();
 }

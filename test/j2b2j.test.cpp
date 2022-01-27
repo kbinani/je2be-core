@@ -127,14 +127,14 @@ TEST_CASE("j2b2j") {
                   if (blockE->fName == "minecraft:chest" || blockE->fName == "minecraft:trapped_chest") {
                     continue; //TODO: remove this
                   }
-                  if (blockE->fName == "minecraft:furnace") {
-                    continue; //TODO: remove this
-                  }
                   if (blockE->fName == "minecraft:jukebox") {
                     continue; //TODO: remove this
                   }
                   if (blockA->fName.ends_with("shulker_box")) {
-                    continue;
+                    continue; //TODO: remove this
+                  }
+                  if (blockE->fName == "minecraft:note_block") {
+                    continue; //TODO: remote this
                   }
                   auto foundJtoB = fallbackJtoB.find(blockE->fName);
                   if (foundJtoB == fallbackJtoB.end()) {
@@ -150,6 +150,8 @@ TEST_CASE("j2b2j") {
                         CheckBlock(*blockE, *blockA, {"distance"});
                       } else if (blockE->fName == "minecraft:repeater") {
                         CheckBlock(*blockE, *blockA, {"locked"});
+                      } else if (blockE->fName == "minecraft:note_block") {
+                        CheckBlock(*blockE, *blockA, {"powered"});
                       } else {
                         CHECK(blockA->toString() == blockE->toString());
                       }
