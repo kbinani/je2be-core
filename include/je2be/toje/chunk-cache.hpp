@@ -72,12 +72,14 @@ public:
     fCache[*index] = nullptr;
   }
 
-private:
+public:
   mcfile::Dimension const fDim;
-  std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
-  std::vector<bool> fCacheLoaded;
   int const fChunkX;
   int const fChunkZ;
+
+private:
+  std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
+  std::vector<bool> fCacheLoaded;
 };
 
 } // namespace je2be::toje

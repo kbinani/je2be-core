@@ -23,13 +23,16 @@ public:
     };
 
     for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
-      unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32, cz));
+      unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32 - 1, cz - 1));
       for (int cx = rx * 32; cx < rx * 32 + 32; cx++) {
         defer {
-          unique_ptr<ChunkCache<3, 3>> next(new ChunkCache<3, 3>(d, cx + 1, cz));
+          unique_ptr<ChunkCache<3, 3>> next(new ChunkCache<3, 3>(d, cx, cz - 1));
           next->set(cx + 1, cz, cache->at(cx + 1, cz));
           cache.swap(next);
         };
+
+        assert(cache->fChunkX == cx - 1);
+        assert(cache->fChunkZ == cz - 1);
         Pos2i p(cx, cz);
         auto found = chunks.find(p);
         if (found == chunks.end()) {
