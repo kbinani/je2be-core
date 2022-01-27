@@ -134,7 +134,7 @@ public:
     }
     if (name == "powered_repeater" || name == "unpowered_repeater") {
       auto d = VecFromDirection(block.fStates->int32("direction", 0));
-      return (d.fX == -direction.fX && d.fZ == -direction.fZ);
+      return (d.fX == -direction.fX && d.fZ == -direction.fZ) || (d.fX == direction.fX && d.fZ == direction.fZ);
     }
     if (name == "observer") {
       auto d3 = VecFromFacingDirectionAsFacingA(block.fStates->int32("facing_direction", 0));
