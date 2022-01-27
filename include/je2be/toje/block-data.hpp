@@ -737,7 +737,7 @@ private:
   static String Hopper(String const &bName, States const &s, Props &p) {
     FacingAFromFacingDirection(s, p);
     auto toggle = s.boolean("toggle_bit", false);
-    p["enabled"] = Bool(toggle);
+    p["enabled"] = Bool(!toggle);
     return bName;
   }
 #pragma endregion
@@ -1319,8 +1319,8 @@ private:
   }
 
   static String Tnt(String const &bName, States const &s, Props &p) {
-    auto explode = s.boolean("explode_bit", true);
-    p["unstable"] = Bool(!explode);
+    auto explode = s.boolean("explode_bit", false);
+    p["unstable"] = Bool(explode);
     return bName;
   }
 
