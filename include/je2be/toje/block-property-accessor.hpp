@@ -21,6 +21,7 @@ private:
     CAMPFIRE = 11,
     NOTE_BLOCK = 12,
     REDSTONE_WIRE = 13,
+    TRIPWIRE = 14,
   };
 
 public:
@@ -51,6 +52,8 @@ public:
       return NOTE_BLOCK;
     } else if (IsRedstoneWire(b)) {
       return REDSTONE_WIRE;
+    } else if (IsTripwire(b)) {
+      return TRIPWIRE;
     }
     return 0;
   }
@@ -105,6 +108,10 @@ public:
 
   static bool IsRedstoneWire(DataType p) {
     return p == REDSTONE_WIRE;
+  }
+
+  static bool IsTripwire(DataType p) {
+    return p == TRIPWIRE;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -165,6 +172,10 @@ public:
     return b.fName == "minecraft:redstone_wire";
   }
 
+  static bool IsTripwire(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:tripWire";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(mcfile::be::Chunk::kNumSubChunks);
@@ -190,6 +201,7 @@ public:
         fHasCampfire |= IsCampfire(p);
         fHasNoteBlock |= IsNoteBlock(p);
         fHasRedstoneWire |= IsRedstoneWire(p);
+        fHasTripwire |= IsTripwire(p);
         fSections[i][j] = p;
       }
     }
@@ -228,6 +240,7 @@ public:
   bool fHasCampfire = false;
   bool fHasNoteBlock = false;
   bool fHasRedstoneWire = false;
+  bool fHasTripwire = false;
 
 private:
   std::vector<std::vector<DataType>> fSections;

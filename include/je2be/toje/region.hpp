@@ -134,19 +134,13 @@ public:
         //TODO: colored bed
         //TODO: "type" of chest, trapped_chest
         //TODO: type of skull
-        //TODO: "lit" of furnace
         //TODO: "has_record" of jukebox
         //TODO: movingBlock
-        //TODO: "instrument", "note", "powered" of noteblock
         //TODO: "extended" of piston, sticky_piston
         //TODO: "lit" of redstone_torch
-        //TODO: east,north,south,west of redstone_wire
         //TODO: "locked" of repeater
         //TODO: power,sculk_sensor_phase of sculk_sensor
         //TODO: facing of shulker_box, undyed_shulker_box
-        //TODO: "lit" of smoker
-        //TODO: "power" of target
-        //TODO: east,north,south,west of tripwire
 
         BlockPropertyAccessor accessor(*b);
 
@@ -162,6 +156,7 @@ public:
         Campfire::Do(*j, *cache, accessor);
         NoteBlock::Do(*j, *cache, accessor);
         RedstoneWire::Do(*j, *cache, accessor);
+        Tripwire::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {
