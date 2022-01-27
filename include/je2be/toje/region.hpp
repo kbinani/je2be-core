@@ -156,6 +156,7 @@ public:
         Snowy::Do(*j, *cache, accessor);
         ChorusPlant::Do(*j, *cache, accessor);
         FenceConnectable::Do(*j, *cache, accessor);
+        Campfire::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

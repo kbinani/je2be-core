@@ -14,6 +14,7 @@ class BlockPropertyAccessor {
     CHORUS_PLANT = 8,
     FENCE = 9,
     GLASS_PANE_OR_IRON_BARS = 10,
+    CAMPFIRE = 11,
   };
 
 public:
@@ -38,6 +39,8 @@ public:
       return FENCE;
     } else if (IsGlassPaneOrIronBars(b)) {
       return GLASS_PANE_OR_IRON_BARS;
+    } else if (IsCampfire(b)) {
+      return CAMPFIRE;
     }
     return 0;
   }
@@ -80,6 +83,10 @@ public:
 
   static bool IsGlassPaneOrIronBars(uint8_t p) {
     return p == GLASS_PANE_OR_IRON_BARS;
+  }
+
+  static bool IsCampfire(uint8_t p) {
+    return p == CAMPFIRE;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -128,6 +135,10 @@ public:
            b.fName == "minecraft:iron_bars";
   }
 
+  static bool IsCampfire(mcfile::be::Block const &b) {
+    return b.fName.ends_with("campfire");
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(mcfile::be::Chunk::kNumSubChunks);
@@ -150,6 +161,7 @@ public:
         fHasChorusPlant |= IsChorusPlant(p);
         fHasFence |= IsFence(p);
         fHasGlassPaneOrIronBars |= IsGlassPaneOrIronBars(p);
+        fHasCampfire |= IsCampfire(p);
         fSections[i][j] = p;
       }
     }
@@ -185,6 +197,7 @@ public:
   bool fHasChorusPlant = false;
   bool fHasFence = false;
   bool fHasGlassPaneOrIronBars = false;
+  bool fHasCampfire = false;
 
 private:
   std::vector<std::vector<uint8_t>> fSections;
