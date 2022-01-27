@@ -134,7 +134,10 @@ TEST_CASE("j2b2j") {
                     continue; //TODO: remove this
                   }
                   if (blockE->fName == "minecraft:note_block") {
-                    continue; //TODO: remote this
+                    continue; //TODO: pickup "note" from block entity
+                  }
+                  if (blockE->fName == "minecraft:lectern") {
+                    continue; //TODO: pickup "has_book" from block entity
                   }
                   auto foundJtoB = fallbackJtoB.find(blockE->fName);
                   if (foundJtoB == fallbackJtoB.end()) {
@@ -144,14 +147,18 @@ TEST_CASE("j2b2j") {
                         CheckBlock(*blockE, *blockA, {"distance"});
                       } else if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
                         CheckBlock(*blockE, *blockA, {"lit"});
-                      } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block") {
+                      } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
                         CHECK(blockE->fName == blockA->fName);
                       } else if (blockE->fName == "minecraft:scaffolding") {
                         CheckBlock(*blockE, *blockA, {"distance"});
                       } else if (blockE->fName == "minecraft:repeater") {
                         CheckBlock(*blockE, *blockA, {"locked"});
-                      } else if (blockE->fName == "minecraft:note_block") {
+                      } else if (blockE->fName == "minecraft:note_block" || blockE->fName.ends_with("_trapdoor") || blockE->fName.ends_with("_fence_gate") || blockE->fName == "minecraft:lectern" || blockE->fName.ends_with("_door") || blockE->fName == "minecraft:lightning_rod") {
                         CheckBlock(*blockE, *blockA, {"powered"});
+                      } else if (blockE->fName.ends_with("_button")) {
+                        CheckBlock(*blockE, *blockA, {"facing", "powered"});
+                      } else if (blockE->fName == "minecraft:target") {
+                        CheckBlock(*blockE, *blockA, {"power"});
                       } else {
                         CHECK(blockA->toString() == blockE->toString());
                       }
