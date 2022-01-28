@@ -1317,6 +1317,11 @@ private:
     }
   }
 
+  static String Target(String const &bName, States const &s, Props &p) {
+    p["power"] = "0";
+    return bName;
+  }
+
   static String Tnt(String const &bName, States const &s, Props &p) {
     auto explode = s.boolean("explode_bit", false);
     p["unstable"] = Bool(explode);
@@ -2314,7 +2319,7 @@ private:
     E(structure_void, Same);
     E(reeds, Reeds);
     E(sweet_berry_bush, SweetBerryBush);
-    E(target, Same);
+    E(target, Target);
     E(hardened_clay, Rename("terracotta"));
     E(tnt, Tnt);
     E(torch, Torch(""));
