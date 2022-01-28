@@ -1,6 +1,8 @@
 #include <doctest/doctest.h>
 #include <je2be.hpp>
 
+#include "CheckTag.hpp"
+
 using namespace std;
 using namespace je2be;
 namespace fs = std::filesystem;
@@ -173,6 +175,14 @@ TEST_CASE("j2b2j") {
                 }
               }
             }
+          }
+
+          for (auto const &it : chunkE->fTileEntities) {
+            Pos3i pos = it.first;
+            shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
+            auto found = chunkA->fTileEntities.find(pos);
+            CHECK(found != chunkA->fTileEntities.end());
+            CheckTag::Check(tileE.get(), found->second.get());
           }
         }
       }
