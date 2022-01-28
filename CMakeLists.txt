@@ -81,13 +81,13 @@ set(je2be_files
   include/je2be/tobe/uuid-registrar.hpp
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
-  include/je2be/toje/attached_stem.hpp
+  include/je2be/toje/attached-stem.hpp
   include/je2be/toje/block-data.hpp
   include/je2be/toje/block-entity.hpp
   include/je2be/toje/block-property-accessor.hpp
   include/je2be/toje/campfire.hpp
-  include/je2be/toje/cave_vines.hpp
-  include/je2be/toje/chorus_plant.hpp
+  include/je2be/toje/cave-vines.hpp
+  include/je2be/toje/chorus-plant.hpp
   include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/converter.hpp
   include/je2be/toje/fence-connectable.hpp
@@ -100,8 +100,8 @@ set(je2be_files
   include/je2be/toje/snowy.hpp
   include/je2be/toje/toje.hpp
   include/je2be/toje/tripwire.hpp
-  include/je2be/toje/twisting_vines.hpp
-  include/je2be/toje/weeping_vines.hpp
+  include/je2be/toje/twisting-vines.hpp
+  include/je2be/toje/weeping-vines.hpp
   include/je2be/toje/world.hpp
   include/je2be/uuid.hpp
   include/je2be/vec.hpp

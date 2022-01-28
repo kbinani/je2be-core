@@ -10,12 +10,12 @@
 
 #include <je2be/toje/shape-of-stairs.hpp>
 #include <je2be/toje/kelp.hpp>
-#include <je2be/toje/twisting_vines.hpp>
-#include <je2be/toje/weeping_vines.hpp>
-#include <je2be/toje/attached_stem.hpp>
-#include <je2be/toje/cave_vines.hpp>
+#include <je2be/toje/twisting-vines.hpp>
+#include <je2be/toje/weeping-vines.hpp>
+#include <je2be/toje/attached-stem.hpp>
+#include <je2be/toje/cave-vines.hpp>
 #include <je2be/toje/snowy.hpp>
-#include <je2be/toje/chorus_plant.hpp>
+#include <je2be/toje/chorus-plant.hpp>
 #include <je2be/toje/fence-connectable.hpp>
 #include <je2be/toje/campfire.hpp>
 #include <je2be/toje/note-block.hpp>
