@@ -58,29 +58,33 @@ public:
           auto sectionJ = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB->fChunkY);
           vector<shared_ptr<mcfile::je::Block const>> paletteJ;
 
-          for (size_t idx = 0; idx < sectionB->fPalette.size(); idx++) {
-            auto const &blockB = sectionB->fPalette[idx];
-            auto blockJ = BlockData::From(*blockB);
-            assert(blockJ);
-            paletteJ.push_back(blockJ);
-          }
-
-          vector<uint16_t> indicesJ(4096);
-          for (int x = 0, indexB = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-              for (int y = 0; y < 16; y++, indexB++) {
-                int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
-                indicesJ[indexJ] = sectionB->fPaletteIndices[indexB];
+          vector<uint16_t> indicesJ(4096, 0);
+          if (sectionB->fPaletteIndices.size() != 4096 || sectionB->fPalette.empty()) {
+            paletteJ.push_back(make_shared<mcfile::je::Block const>("minecraft:air"));
+          } else {
+            for (size_t idx = 0; idx < sectionB->fPalette.size(); idx++) {
+              auto const &blockB = sectionB->fPalette[idx];
+              auto blockJ = BlockData::From(*blockB);
+              assert(blockJ);
+              if (true) { //TODO:debug
+                if (blockJ->fName == "minecraft:spawner") {
+                  cout << cx << ", " << cz << endl;
+                }
+              }
+              paletteJ.push_back(blockJ);
+            }
+            for (int x = 0, indexB = 0; x < 16; x++) {
+              for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 16; y++, indexB++) {
+                  int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
+                  indicesJ[indexJ] = sectionB->fPaletteIndices[indexB];
+                }
               }
             }
           }
 
           // waterlogged=true variant of palette[index] is stored at palette[waterLogged[index]], if waterLogged[index] >= 0.
           vector<int> waterLoggedJ(paletteJ.size(), -1);
-
-          if (sectionB->fChunkY == 4) {
-            int a = 0;
-          }
 
           if (sectionB->fWaterPaletteIndices.size() == 4096) {
             vector<bool> isWaterB(sectionB->fWaterPalette.size());
