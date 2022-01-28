@@ -66,11 +66,6 @@ public:
               auto const &blockB = sectionB->fPalette[idx];
               auto blockJ = BlockData::From(*blockB);
               assert(blockJ);
-              if (true) { //TODO:debug
-                if (blockJ->fName == "minecraft:spawner") {
-                  cout << cx << ", " << cz << endl;
-                }
-              }
               paletteJ.push_back(blockJ);
             }
             for (int x = 0, indexB = 0; x < 16; x++) {
