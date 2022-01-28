@@ -2,13 +2,6 @@
 
 namespace je2be::strings {
 
-inline bool Equal(std::string const &a, std::string const &b) {
-  if (a.size() != b.size()) {
-    return false;
-  }
-  return memcmp(a.c_str(), b.c_str(), a.size()) == 0;
-}
-
 inline bool StartsWith(std::string const &s, std::string const &search) {
   if (s.size() < search.size()) {
     return false;

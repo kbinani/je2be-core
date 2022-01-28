@@ -56,7 +56,7 @@ public:
             int const by = chunkY * 16 + y;
             uint16_t index;
             auto block = section->blockAt(x, y, z);
-            if (block && !IsAir(block->fName)) {
+            if (block && !IsAir(block->fId)) {
               string paletteKey = block->toString();
               auto found = palette.findByBlockState(paletteKey);
               if (found) {
@@ -69,15 +69,13 @@ public:
               if (index != 0) {
                 cdp.updateAltitude(x, by, z);
               }
-              static string const nether_portal("minecraft:nether_portal");
-              static string const end_portal("minecraft:end_portal");
-              if (TileEntity::IsTileEntity(block->fName)) {
+              if (TileEntity::IsTileEntity(block->fId)) {
                 cdp.addTileBlock(bx, by, bz, block);
-              } else if (strings::Equal(block->fName, nether_portal)) {
+              } else if (block->fId == mcfile::blocks::minecraft::nether_portal) {
                 bool xAxis = block->property("axis", "x") == "x";
                 wd.addPortalBlock(bx, by, bz, xAxis);
               }
-              if (strings::Equal(block->fName, end_portal) && dim == Dimension::End) {
+              if (block->fId == mcfile::blocks::minecraft::end_portal && dim == Dimension::End) {
                 wd.addEndPortal(bx, by, bz);
               }
             } else {
@@ -346,28 +344,21 @@ public:
   }
 
 private:
-  static bool IsAir(std::string const &name) {
-    static std::string const air("minecraft:air");
-    static std::string const cave_air("minecraft:cave_air");
-    static std::string const void_air("minecraft:void_air");
-    return strings::Equal(name, air) || strings::Equal(name, cave_air) || strings::Equal(name, void_air);
+  static bool IsAir(mcfile::blocks::BlockId id) {
+    using namespace mcfile::blocks;
+    return id == minecraft::air || id == minecraft::cave_air || id == minecraft::void_air;
   }
 
   static bool IsWaterLogged(mcfile::je::Block const &block) {
-    using namespace std;
-    static string const seagrass("minecraft:seagrass");
-    static string const tall_seagrass("minecraft:tall_seagrass");
-    static string const kelp("minecraft:kelp");
-    static string const kelp_plant("minecraft:kelp_plant");
-    static string const bubble_column("minecraft:bubble_column");
+    using namespace mcfile::blocks;
     if (!block.fProperties.empty()) {
       auto waterlogged = block.property("waterlogged", "");
-      if (strings::Equal(waterlogged, "true")) {
+      if (waterlogged == "true") {
         return true;
       }
     }
-    auto const &name = block.fName;
-    return strings::Equal(name, seagrass) || strings::Equal(name, tall_seagrass) || strings::Equal(name, kelp) || strings::Equal(name, kelp_plant) || strings::Equal(name, bubble_column);
+    BlockId id = block.fId;
+    return id == minecraft::seagrass || id == minecraft::tall_seagrass || id == minecraft::kelp || id == minecraft::kelp_plant || id == minecraft::bubble_column;
   }
 };
 

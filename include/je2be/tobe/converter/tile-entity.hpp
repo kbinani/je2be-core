@@ -12,9 +12,9 @@ private:
   using Converter = std::function<TileEntityData(Pos3i const &, Block const &, std::shared_ptr<CompoundTag> const &, JavaEditionMap const &, WorldData &)>;
 
 public:
-  static bool IsTileEntity(std::string const &name) {
+  static bool IsTileEntity(mcfile::blocks::BlockId id) {
     auto const &table = Table();
-    auto found = table.find(name);
+    auto found = table.find(id);
     return found != table.end();
   }
 
@@ -27,9 +27,8 @@ public:
     using namespace mcfile;
     using namespace mcfile::nbt;
 
-    string const &name = block.fName;
     auto const &table = Table();
-    return table.at(name)(pos, block, tag, mapInfo, wd);
+    return table.at(block.fId)(pos, block, tag, mapInfo, wd);
   }
 
   static std::shared_ptr<mcfile::nbt::CompoundTag> FromBlock(Pos3i const &pos,
@@ -40,9 +39,8 @@ public:
     using namespace mcfile;
     using namespace mcfile::nbt;
 
-    string const &name = block.fName;
     auto const &table = Table();
-    return table.at(name)(pos, block, nullptr, mapInfo, wd);
+    return table.at(block.fId)(pos, block, nullptr, mapInfo, wd);
   }
 
   static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
@@ -90,175 +88,179 @@ public:
 private:
   TileEntity() = delete;
 
-  static std::unordered_map<std::string, Converter> const &Table() {
+  static std::unordered_map<mcfile::blocks::BlockId, Converter> const &Table() {
     using namespace std;
-    static unique_ptr<unordered_map<string, Converter> const> const table(CreateTable());
+    static unique_ptr<unordered_map<mcfile::blocks::BlockId, Converter> const> const table(CreateTable());
     return *table;
   }
 
-  static std::unordered_map<std::string, Converter> *CreateTable() {
+  static std::unordered_map<mcfile::blocks::BlockId, Converter> *CreateTable() {
     using namespace std;
-    auto table = new unordered_map<string, Converter>();
-#define E(__name, __func) table->insert(make_pair("minecraft:" __name, __func))
-    E("chest", Chest);
-    E("trapped_chest", Chest);
-    E("oak_sign", Sign);
-    E("spruce_sign", Sign);
-    E("birch_sign", Sign);
-    E("jungle_sign", Sign);
-    E("acacia_sign", Sign);
-    E("dark_oak_sign", Sign);
-    E("crimson_sign", Sign);
-    E("warped_sign", Sign);
-    E("oak_wall_sign", Sign);
-    E("spruce_wall_sign", Sign);
-    E("birch_wall_sign", Sign);
-    E("jungle_wall_sign", Sign);
-    E("acacia_wall_sign", Sign);
-    E("dark_oak_wall_sign", Sign);
-    E("crimson_wall_sign", Sign);
-    E("warped_wall_sign", Sign);
+    auto table = new unordered_map<mcfile::blocks::BlockId, Converter>();
+#define E(__name, __func)                                                 \
+  assert(table->find(mcfile::blocks::minecraft::__name) == table->end()); \
+  table->insert(make_pair(mcfile::blocks::minecraft::__name, __func))
+    E(chest, Chest);
+    E(trapped_chest, Chest);
+    E(oak_sign, Sign);
+    E(spruce_sign, Sign);
+    E(birch_sign, Sign);
+    E(jungle_sign, Sign);
+    E(acacia_sign, Sign);
+    E(dark_oak_sign, Sign);
+    E(crimson_sign, Sign);
+    E(warped_sign, Sign);
+    E(oak_wall_sign, Sign);
+    E(spruce_wall_sign, Sign);
+    E(birch_wall_sign, Sign);
+    E(jungle_wall_sign, Sign);
+    E(acacia_wall_sign, Sign);
+    E(dark_oak_wall_sign, Sign);
+    E(crimson_wall_sign, Sign);
+    E(warped_wall_sign, Sign);
 
-    E("shulker_box", ShulkerBox);
-    E("black_shulker_box", ShulkerBox);
-    E("red_shulker_box", ShulkerBox);
-    E("green_shulker_box", ShulkerBox);
-    E("brown_shulker_box", ShulkerBox);
-    E("blue_shulker_box", ShulkerBox);
-    E("purple_shulker_box", ShulkerBox);
-    E("cyan_shulker_box", ShulkerBox);
-    E("light_gray_shulker_box", ShulkerBox);
-    E("gray_shulker_box", ShulkerBox);
-    E("pink_shulker_box", ShulkerBox);
-    E("lime_shulker_box", ShulkerBox);
-    E("yellow_shulker_box", ShulkerBox);
-    E("light_blue_shulker_box", ShulkerBox);
-    E("magenta_shulker_box", ShulkerBox);
-    E("orange_shulker_box", ShulkerBox);
-    E("white_shulker_box", ShulkerBox);
+    E(shulker_box, ShulkerBox);
+    E(black_shulker_box, ShulkerBox);
+    E(red_shulker_box, ShulkerBox);
+    E(green_shulker_box, ShulkerBox);
+    E(brown_shulker_box, ShulkerBox);
+    E(blue_shulker_box, ShulkerBox);
+    E(purple_shulker_box, ShulkerBox);
+    E(cyan_shulker_box, ShulkerBox);
+    E(light_gray_shulker_box, ShulkerBox);
+    E(gray_shulker_box, ShulkerBox);
+    E(pink_shulker_box, ShulkerBox);
+    E(lime_shulker_box, ShulkerBox);
+    E(yellow_shulker_box, ShulkerBox);
+    E(light_blue_shulker_box, ShulkerBox);
+    E(magenta_shulker_box, ShulkerBox);
+    E(orange_shulker_box, ShulkerBox);
+    E(white_shulker_box, ShulkerBox);
 
-    E("white_bed", Bed);
-    E("orange_bed", Bed);
-    E("magenta_bed", Bed);
-    E("light_blue_bed", Bed);
-    E("yellow_bed", Bed);
-    E("lime_bed", Bed);
-    E("pink_bed", Bed);
-    E("gray_bed", Bed);
-    E("light_gray_bed", Bed);
-    E("cyan_bed", Bed);
-    E("purple_bed", Bed);
-    E("blue_bed", Bed);
-    E("brown_bed", Bed);
-    E("green_bed", Bed);
-    E("red_bed", Bed);
-    E("black_bed", Bed);
+    E(white_bed, Bed);
+    E(orange_bed, Bed);
+    E(magenta_bed, Bed);
+    E(light_blue_bed, Bed);
+    E(yellow_bed, Bed);
+    E(lime_bed, Bed);
+    E(pink_bed, Bed);
+    E(gray_bed, Bed);
+    E(light_gray_bed, Bed);
+    E(cyan_bed, Bed);
+    E(purple_bed, Bed);
+    E(blue_bed, Bed);
+    E(brown_bed, Bed);
+    E(green_bed, Bed);
+    E(red_bed, Bed);
+    E(black_bed, Bed);
 
-    E("white_banner", Banner);
-    E("orange_banner", Banner);
-    E("magenta_banner", Banner);
-    E("light_blue_banner", Banner);
-    E("yellow_banner", Banner);
-    E("lime_banner", Banner);
-    E("pink_banner", Banner);
-    E("gray_banner", Banner);
-    E("light_gray_banner", Banner);
-    E("cyan_banner", Banner);
-    E("purple_banner", Banner);
-    E("blue_banner", Banner);
-    E("brown_banner", Banner);
-    E("green_banner", Banner);
-    E("red_banner", Banner);
-    E("black_banner", Banner);
+    E(white_banner, Banner);
+    E(orange_banner, Banner);
+    E(magenta_banner, Banner);
+    E(light_blue_banner, Banner);
+    E(yellow_banner, Banner);
+    E(lime_banner, Banner);
+    E(pink_banner, Banner);
+    E(gray_banner, Banner);
+    E(light_gray_banner, Banner);
+    E(cyan_banner, Banner);
+    E(purple_banner, Banner);
+    E(blue_banner, Banner);
+    E(brown_banner, Banner);
+    E(green_banner, Banner);
+    E(red_banner, Banner);
+    E(black_banner, Banner);
 
-    E("white_wall_banner", Banner);
-    E("orange_wall_banner", Banner);
-    E("magenta_wall_banner", Banner);
-    E("light_blue_wall_banner", Banner);
-    E("yellow_wall_banner", Banner);
-    E("lime_wall_banner", Banner);
-    E("pink_wall_banner", Banner);
-    E("gray_wall_banner", Banner);
-    E("light_gray_wall_banner", Banner);
-    E("cyan_wall_banner", Banner);
-    E("purple_wall_banner", Banner);
-    E("blue_wall_banner", Banner);
-    E("brown_wall_banner", Banner);
-    E("green_wall_banner", Banner);
-    E("red_wall_banner", Banner);
-    E("black_wall_banner", Banner);
+    E(white_wall_banner, Banner);
+    E(orange_wall_banner, Banner);
+    E(magenta_wall_banner, Banner);
+    E(light_blue_wall_banner, Banner);
+    E(yellow_wall_banner, Banner);
+    E(lime_wall_banner, Banner);
+    E(pink_wall_banner, Banner);
+    E(gray_wall_banner, Banner);
+    E(light_gray_wall_banner, Banner);
+    E(cyan_wall_banner, Banner);
+    E(purple_wall_banner, Banner);
+    E(blue_wall_banner, Banner);
+    E(brown_wall_banner, Banner);
+    E(green_wall_banner, Banner);
+    E(red_wall_banner, Banner);
+    E(black_wall_banner, Banner);
 
-    E("potted_oak_sapling", PottedSapling);
-    E("potted_spruce_sapling", PottedSapling);
-    E("potted_birch_sapling", PottedSapling);
-    E("potted_jungle_sapling", PottedSapling);
-    E("potted_acacia_sapling", PottedSapling);
-    E("potted_dark_oak_sapling", PottedSapling);
-    E("potted_poppy", PottedPlant("red_flower", {{"flower_type", "poppy"}}));
-    E("potted_blue_orchid", PottedPlant("red_flower", {{"flower_type", "orchid"}}));
-    E("potted_allium", PottedPlant("red_flower", {{"flower_type", "allium"}}));
-    E("potted_azure_bluet", PottedPlant("red_flower", {{"flower_type", "houstonia"}}));
-    E("potted_red_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_red"}}));
-    E("potted_orange_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_orange"}}));
-    E("potted_white_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_white"}}));
-    E("potted_pink_tulip", PottedPlant("red_flower", {{"flower_type", "tulip_pink"}}));
-    E("potted_oxeye_daisy", PottedPlant("red_flower", {{"flower_type", "oxeye"}}));
-    E("potted_cornflower", PottedPlant("red_flower", {{"flower_type", "cornflower"}}));
-    E("potted_lily_of_the_valley", PottedPlant("red_flower", {{"flower_type", "lily_of_the_valley"}}));
-    E("potted_dandelion", PottedPlant("yellow_flower", {}));
-    E("potted_wither_rose", PottedPlant("wither_rose", {}));
-    E("potted_crimson_fungus", PottedPlant("crimson_fungus", {}));
-    E("potted_warped_fungus", PottedPlant("warped_fungus", {}));
-    E("potted_dead_bush", PottedPlant("deadbush", {}));
-    E("potted_red_mushroom", PottedPlant("red_mushroom", {}));
-    E("potted_brown_mushroom", PottedPlant("brown_mushroom", {}));
-    E("potted_fern", PottedPlant("tallgrass", {{"tall_grass_type", "fern"}}));
-    E("potted_bamboo", PottedBamboo);
-    E("potted_crimson_roots", PottedPlant("crimson_roots", {}));
-    E("potted_warped_roots", PottedPlant("warped_roots", {}));
-    E("potted_cactus", PottedPlant("cactus", {}));
-    E("potted_azalea_bush", PottedPlant("azalea", {}));
-    E("potted_flowering_azalea_bush", PottedPlant("flowering_azalea", {}));
+    E(potted_oak_sapling, PottedSapling);
+    E(potted_spruce_sapling, PottedSapling);
+    E(potted_birch_sapling, PottedSapling);
+    E(potted_jungle_sapling, PottedSapling);
+    E(potted_acacia_sapling, PottedSapling);
+    E(potted_dark_oak_sapling, PottedSapling);
+    E(potted_poppy, PottedPlant("red_flower", {{"flower_type", "poppy"}}));
+    E(potted_blue_orchid, PottedPlant("red_flower", {{"flower_type", "orchid"}}));
+    E(potted_allium, PottedPlant("red_flower", {{"flower_type", "allium"}}));
+    E(potted_azure_bluet, PottedPlant("red_flower", {{"flower_type", "houstonia"}}));
+    E(potted_red_tulip, PottedPlant("red_flower", {{"flower_type", "tulip_red"}}));
+    E(potted_orange_tulip, PottedPlant("red_flower", {{"flower_type", "tulip_orange"}}));
+    E(potted_white_tulip, PottedPlant("red_flower", {{"flower_type", "tulip_white"}}));
+    E(potted_pink_tulip, PottedPlant("red_flower", {{"flower_type", "tulip_pink"}}));
+    E(potted_oxeye_daisy, PottedPlant("red_flower", {{"flower_type", "oxeye"}}));
+    E(potted_cornflower, PottedPlant("red_flower", {{"flower_type", "cornflower"}}));
+    E(potted_lily_of_the_valley, PottedPlant("red_flower", {{"flower_type", "lily_of_the_valley"}}));
+    E(potted_dandelion, PottedPlant("yellow_flower", {}));
+    E(potted_wither_rose, PottedPlant("wither_rose", {}));
+    E(potted_crimson_fungus, PottedPlant("crimson_fungus", {}));
+    E(potted_warped_fungus, PottedPlant("warped_fungus", {}));
+    E(potted_dead_bush, PottedPlant("deadbush", {}));
+    E(potted_red_mushroom, PottedPlant("red_mushroom", {}));
+    E(potted_brown_mushroom, PottedPlant("brown_mushroom", {}));
+    E(potted_fern, PottedPlant("tallgrass", {{"tall_grass_type", "fern"}}));
+    E(potted_bamboo, PottedBamboo);
+    E(potted_crimson_roots, PottedPlant("crimson_roots", {}));
+    E(potted_warped_roots, PottedPlant("warped_roots", {}));
+    E(potted_cactus, PottedPlant("cactus", {}));
+    E(potted_azalea_bush, PottedPlant("azalea", {}));
+    E(potted_flowering_azalea_bush, PottedPlant("flowering_azalea", {}));
 
-    E("skeleton_skull", Skull);
-    E("wither_skeleton_skull", Skull);
-    E("player_head", Skull);
-    E("zombie_head", Skull);
-    E("creeper_head", Skull);
-    E("dragon_head", Skull);
-    E("skeleton_wall_skull", Skull);
-    E("wither_skeleton_wall_skull", Skull);
-    E("player_wall_head", Skull);
-    E("zombie_wall_head", Skull);
-    E("creeper_wall_head", Skull);
-    E("dragon_wall_head", Skull);
+    E(skeleton_skull, Skull);
+    E(wither_skeleton_skull, Skull);
+    E(player_head, Skull);
+    E(zombie_head, Skull);
+    E(creeper_head, Skull);
+    E(dragon_head, Skull);
+    E(skeleton_wall_skull, Skull);
+    E(wither_skeleton_wall_skull, Skull);
+    E(player_wall_head, Skull);
+    E(zombie_wall_head, Skull);
+    E(creeper_wall_head, Skull);
+    E(dragon_wall_head, Skull);
 
-    E("barrel", AnyStorage("Barrel"));
-    E("furnace", AnyStorage("Furnace"));
-    E("brewing_stand", BrewingStand);
-    E("blast_furnace", AnyStorage("BlastFurnace"));
-    E("smoker", AnyStorage("Smoker"));
-    E("hopper", AnyStorage("Hopper"));
-    E("dropper", AnyStorage("Dropper"));
-    E("dispenser", AnyStorage("Dispenser"));
+    E(barrel, AnyStorage("Barrel"));
+    E(furnace, AnyStorage("Furnace"));
+    E(brewing_stand, BrewingStand);
+    E(blast_furnace, AnyStorage("BlastFurnace"));
+    E(smoker, AnyStorage("Smoker"));
+    E(hopper, AnyStorage("Hopper"));
+    E(dropper, AnyStorage("Dropper"));
+    E(dispenser, AnyStorage("Dispenser"));
 
-    E("note_block", Note);
-    E("jukebox", Jukebox);
-    E("cauldron", Cauldron);
-    E("end_portal", EndPortal);
-    E("beacon", Beacon);
-    E("lectern", Lectern);
-    E("bee_nest", Beehive);
-    E("beehive", Beehive);
-    E("command_block", CommandBlock);
-    E("chain_command_block", CommandBlock);
-    E("repeating_command_block", CommandBlock);
+    E(note_block, Note);
+    E(jukebox, Jukebox);
+    E(water_cauldron, Cauldron);
+    E(lava_cauldron, Cauldron);
+    E(powder_snow_cauldron, Cauldron);
+    E(end_portal, EndPortal);
+    E(beacon, Beacon);
+    E(lectern, Lectern);
+    E(bee_nest, Beehive);
+    E(beehive, Beehive);
+    E(command_block, CommandBlock);
+    E(chain_command_block, CommandBlock);
+    E(repeating_command_block, CommandBlock);
 
-    E("moving_piston", MovingPiston);
-    E("sticky_piston", PistonArm(true));
-    E("piston", PistonArm(false));
+    E(moving_piston, MovingPiston);
+    E(sticky_piston, PistonArm(true));
+    E(piston, PistonArm(false));
 
-    E("end_gateway", EndGateway);
+    E(end_gateway, EndGateway);
 #undef E
     return table;
   }
