@@ -215,4 +215,15 @@ inline std::optional<nlohmann::json> GetJson(mcfile::nbt::CompoundTag const &tag
   return ParseAsJson(s->fValue);
 }
 
+inline int32_t SquashI64ToI32(int64_t v) {
+  if (v < (int64_t)std::numeric_limits<int32_t>::min() || (int64_t)std::numeric_limits<int32_t>::max() < v) {
+    XXHash32 x(0);
+    x.add(&v, sizeof(v));
+    uint32_t u = x.hash();
+    return *(int32_t *)&u;
+  } else {
+    return static_cast<int32_t>(v);
+  }
+}
+
 } // namespace je2be::props

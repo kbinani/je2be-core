@@ -1104,7 +1104,7 @@ private:
       tag->set("pairx", Int(pair->first));
       tag->set("pairz", Int(pair->second));
     }
-    auto lootTable = comp->string("LootTable");
+    auto lootTable = comp->string("LootTable"); // "minecraft:chests/simple_dungeon"
     auto lootTableSeed = comp->int64("LootTableSeed");
     if (lootTable && lootTableSeed) {
       auto slash = lootTable->find('/');
@@ -1112,7 +1112,7 @@ private:
         auto type = lootTable->substr(0, slash).substr(10);                        // "chests"
         string table = "loot_tables/" + type + lootTable->substr(slash) + ".json"; // "loot_tables/chests/simple_dungeon.json"
         tag->set("LootTable", String(table));
-        tag->set("LootTableSeed", Int(Clamp<int32_t>(*lootTableSeed)));
+        tag->set("LootTableSeed", Int(SquashI64ToI32(*lootTableSeed)));
       }
     }
     Attach(comp, pos, *tag);
