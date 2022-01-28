@@ -31,6 +31,26 @@ public:
     return std::make_shared<mcfile::je::Block const>(b.fName);
   }
 
+  static std::string FlowerNameFromRedFlowerType(std::string const &flowerType) {
+    std::string name = flowerType;
+    if (flowerType == "orchid") {
+      name = "blue_orchid";
+    } else if (flowerType == "houstonia") {
+      name = "azure_bluet";
+    } else if (flowerType == "tulip_red") {
+      name = "red_tulip";
+    } else if (flowerType == "tulip_orange") {
+      name = "orange_tulip";
+    } else if (flowerType == "tulip_white") {
+      name = "white_tulip";
+    } else if (flowerType == "tulip_pink") {
+      name = "pink_tulip";
+    } else if (flowerType == "oxeye") {
+      name = "oxeye_daisy";
+    }
+    return name;
+  }
+
 private:
   BlockData() = delete;
 
@@ -996,22 +1016,7 @@ private:
 
   static String RedFlower(String const &bName, States const &s, Props &p) {
     auto flowerType = s.string("flower_type", "poppy");
-    std::string name = flowerType;
-    if (flowerType == "orchid") {
-      name = "blue_orchid";
-    } else if (flowerType == "houstonia") {
-      name = "azure_bluet";
-    } else if (flowerType == "tulip_red") {
-      name = "red_tulip";
-    } else if (flowerType == "tulip_orange") {
-      name = "orange_tulip";
-    } else if (flowerType == "tulip_white") {
-      name = "white_tulip";
-    } else if (flowerType == "tulip_pink") {
-      name = "pink_tulip";
-    } else if (flowerType == "oxeye") {
-      name = "oxeye_daisy";
-    }
+    auto name = FlowerNameFromRedFlowerType(flowerType);
     return Ns() + name;
   }
 

@@ -142,11 +142,19 @@ public:
           if (!blockB) {
             continue;
           }
-          auto tagJ = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB);
-          if (!tagJ) {
+          if (blockB->fName == "minecraft:flower_pot") { //TODO:debug
+            int a = 0;
+          }
+          auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB);
+          if (!result) {
             continue;
           }
-          j->fTileEntities[pos] = tagJ;
+          if (result->fTileEntity) {
+            j->fTileEntities[pos] = result->fTileEntity;
+          }
+          if (result->fBlock) {
+            j->setBlockAt(pos, result->fBlock);
+          }
         }
 
         //TODO: colored standing banner

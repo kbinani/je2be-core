@@ -106,9 +106,6 @@ TEST_CASE("j2b2j") {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
                 if (blockA && blockE) {
-                  if (blockE->fName.starts_with("minecraft:potted_")) {
-                    continue; //TODO: remove this
-                  }
                   if (blockA->fName == "minecraft:skull") {
                     continue; //TODO: remove this
                   }
