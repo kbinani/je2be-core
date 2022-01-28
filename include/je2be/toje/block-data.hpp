@@ -903,13 +903,10 @@ private:
 
   static String PointedDripstone(String const &bName, States const &s, Props &p) {
     auto thickness = s.string("dripstone_thickness", "base");
-    std::string t;
-    if (thickness == "base") {
-      t = "base";
-    } else if (thickness == "merge") {
+    std::string t = thickness;
+    // base, middle, frustum, tip , tip_merge
+    if (thickness == "merge") {
       t = "tip_merge";
-    } else { //tip
-      t = "tip";
     }
     p["thickness"] = t;
     auto hanging = s.boolean("hanging", false);
