@@ -67,6 +67,7 @@
 #include <je2be/enums/level-directory-structure.hpp>
 #include <je2be/enums/villager-profession.hpp>
 #include <je2be/enums/villager-type.hpp>
+#include <je2be/enums/red-flower.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

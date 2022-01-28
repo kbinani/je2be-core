@@ -55,7 +55,11 @@ public:
       if (!type) {
         return nullopt;
       }
-      suffix = BlockData::FlowerNameFromRedFlowerType(*type);
+      auto rf = RedFlowerFromBedrockName(*type);
+      if (!rf) {
+        return nullopt;
+      }
+      suffix = JavaNameFromRedFlower(*rf);
     } else if (name == "yellow_flower") {
       suffix = "dandelion";
     } else if (name == "deadbush") {
