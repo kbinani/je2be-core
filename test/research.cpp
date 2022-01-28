@@ -321,6 +321,8 @@ void RedstoneWire() {
 
 } // namespace
 
+#if 0
 TEST_CASE("research") {
   RedstoneWire();
 }
+#endif
