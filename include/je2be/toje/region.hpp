@@ -9,6 +9,7 @@ public:
   static bool Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination) {
     using namespace std;
     using namespace mcfile;
+    using namespace mcfile::nbt;
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
 
@@ -128,6 +129,24 @@ public:
             j->fSections.resize(sectionIndex + 1);
           }
           j->fSections[sectionIndex] = sectionJ;
+        }
+
+        for (auto const &it : b->fBlockEntities) {
+          Pos3i const &pos = it.first;
+          shared_ptr<CompoundTag> const &tagB = it.second;
+          assert(tagB);
+          if (!tagB) {
+            continue;
+          }
+          auto const &blockB = b->blockAt(pos);
+          if (!blockB) {
+            continue;
+          }
+          auto tagJ = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB);
+          if (!tagJ) {
+            continue;
+          }
+          j->fTileEntities[pos] = tagJ;
         }
 
         //TODO: colored standing banner

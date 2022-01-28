@@ -82,6 +82,7 @@ set(je2be_files
   include/je2be/tobe/world-data.hpp
   include/je2be/toje/attached_stem.hpp
   include/je2be/toje/block-data.hpp
+  include/je2be/toje/block-entity.hpp
   include/je2be/toje/block-property-accessor.hpp
   include/je2be/toje/campfire.hpp
   include/je2be/toje/cave_vines.hpp

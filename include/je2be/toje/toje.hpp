@@ -4,6 +4,8 @@
 #include <je2be/toje/block-data.hpp>
 #include <je2be/toje/level-data.hpp>
 #include <je2be/toje/chunk-cache.hpp>
+
+#include <je2be/toje/block-entity.hpp>
 #include <je2be/toje/block-property-accessor.hpp>
 
 #include <je2be/toje/shape-of-stairs.hpp>
