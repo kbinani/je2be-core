@@ -28,6 +28,7 @@ public:
         defer {
           unique_ptr<ChunkCache<3, 3>> next(new ChunkCache<3, 3>(d, cx, cz - 1));
           next->set(cx + 1, cz, cache->at(cx + 1, cz));
+          next->set(cx, cz, cache->at(cx, cz));
           cache.swap(next);
         };
 
