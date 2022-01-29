@@ -117,6 +117,10 @@ public:
             } else if (notNone == "west") {
               props["east"] = "side";
             }
+          } else if (noneCount == 4) {
+            for (auto it : nesw) {
+              props[it.first] = "side";
+            }
           }
 
           auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
