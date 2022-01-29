@@ -849,7 +849,7 @@ private:
         }
         auto ptag = make_shared<CompoundTag>();
         ptag->insert({
-            {"Color", Int(BannerColorCodeFromJava(*color))},
+            {"Color", Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
             {"Pattern", String(*pat)},
         });
         patternsBedrock->push_back(ptag);

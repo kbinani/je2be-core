@@ -973,7 +973,7 @@ private:
         }
         auto ptag = std::make_shared<CompoundTag>();
         ptag->insert({
-            {"Color", props::Int(BannerColorCodeFromJava(*patternColor))},
+            {"Color", props::Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
             {"Pattern", props::String(*pat)},
         });
         bePatterns->push_back(ptag);
