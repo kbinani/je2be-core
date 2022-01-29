@@ -362,17 +362,8 @@ private:
 
   static PropertyType FacingA(Block const &block) {
     auto facing = block.property("facing");
-    int32_t direction = 0;
-    if (facing == "north") {
-      direction = 2;
-    } else if (facing == "east") {
-      direction = 3;
-    } else if (facing == "west") {
-      direction = 1;
-    } else if (facing == "south") {
-      direction = 0;
-    }
-    return props::Int(direction);
+    Facing4 f4 = Facing4FromJavaName(facing);
+    return props::Int(BedrockDirectionFromFacing4(f4));
   }
 
   static PropertyType FacingB(Block const &block) {

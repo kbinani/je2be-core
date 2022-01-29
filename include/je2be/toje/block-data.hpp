@@ -1476,50 +1476,14 @@ private:
 
   static void FacingAFromDirection(States const &s, Props &props) {
     auto direction = s.int32("direction", 0);
-    std::string facing;
-    switch (direction) {
-    case 2:
-      facing = "north";
-      break;
-    case 3:
-      facing = "east";
-      break;
-    case 1:
-      facing = "west";
-      break;
-    case 0:
-    default:
-      facing = "south";
-      break;
-    }
-    props["facing"] = facing;
+    Facing4 f4 = Facing4FromBedrockDirection(direction);
+    props["facing"] = JavaNameFromFacing4(f4);
   }
 
   static void FacingAFromFacingDirection(States const &s, Props &props) {
     auto facingDirection = s.int32("facing_direction", 0);
-    std::string facing;
-    // UpDownNorthEastSouthWest = 102534
-    switch (facingDirection) {
-    case 5:
-      facing = "east";
-      break;
-    case 3:
-      facing = "south";
-      break;
-    case 4:
-      facing = "west";
-      break;
-    case 2:
-      facing = "north";
-      break;
-    case 1:
-      facing = "up";
-      break;
-    case 0:
-    default:
-      facing = "down";
-    }
-    props["facing"] = facing;
+    Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
+    props["facing"] = JavaNameFromFacing6(f6);
   }
 
   static void FacingBFromDirection(States const &s, Props &props) {
