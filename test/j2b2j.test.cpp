@@ -172,6 +172,7 @@ TEST_CASE("j2b2j") {
             }
           }
 
+#if 0
           for (auto const &it : chunkE->fTileEntities) {
             Pos3i pos = it.first;
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
@@ -184,6 +185,7 @@ TEST_CASE("j2b2j") {
             mcfile::nbt::PrintAsJson(a, *tileA, {.fTypeHint = true});
             CHECK(e.str() == a.str());
           }
+#endif
         }
       }
     }
