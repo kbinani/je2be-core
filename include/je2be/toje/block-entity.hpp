@@ -67,7 +67,7 @@ public:
       }
     }
     Result r;
-    r.fBlock = Block(name, inout.fProperties);
+    r.fBlock = BlockShortName(name, inout.fProperties);
     r.fTileEntity = te;
     return r;
   }
@@ -77,7 +77,7 @@ public:
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
     auto name = JavaNameFromColorCodeJava(ccj);
     Result r;
-    r.fBlock = Block(name + "_bed", inout.fProperties);
+    r.fBlock = BlockShortName(name + "_bed", inout.fProperties);
     r.fTileEntity = Empty("bed", pos);
     return r;
   }
@@ -135,7 +135,7 @@ public:
       suffix = name;
     }
     Result r;
-    r.fBlock = Block("potted_" + suffix);
+    r.fBlock = BlockShortName("potted_" + suffix);
     return r;
   }
 
@@ -152,7 +152,24 @@ public:
       }
     }
     Result r;
-    r.fBlock = Block("jukebox", p);
+    r.fBlock = BlockShortName("jukebox", p);
+    r.fTileEntity = te;
+    return r;
+  }
+
+  static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+    using namespace std;
+    auto facing = tag.byte("facing", 0);
+    auto f6 = Facing6FromBedrockFacingDirectionA(facing);
+    map<string, string> p(inout.fProperties);
+    p["facing"] = JavaNameFromFacing6(f6);
+    auto te = Empty("shulker_box", pos);
+    auto items = ContainerItems(tag, "Items");
+    if (items) {
+      te->set("Items", items);
+    }
+    Result r;
+    r.fBlock = BlockFullName(inout.fName, p);
     r.fTileEntity = te;
     return r;
   }
@@ -180,7 +197,7 @@ public:
       p["facing"] = JavaNameFromFacing6(f);
     }
     Result r;
-    r.fBlock = Block(skullName, p);
+    r.fBlock = BlockShortName(skullName, p);
     auto te = Empty("skull", pos);
     r.fTileEntity = te;
     return r;
@@ -200,11 +217,14 @@ public:
     E(standing_banner, Banner);
     E(wall_banner, Banner);
     E(jukebox, Jukebox);
+    E(shulker_box, ShulkerBox);
+    E(undyed_shulker_box, ShulkerBox);
 
 #undef E
     return t;
   }
 
+#pragma region Utilities
   static std::shared_ptr<mcfile::nbt::CompoundTag> BannerPattern(int32_t color, std::string const &pattern) {
     auto c = std::make_shared<mcfile::nbt::CompoundTag>();
     c->set("Color", props::Int(color));
@@ -212,8 +232,49 @@ public:
     return c;
   }
 
-  static std::string ToString(bool b) {
-    return b ? "true" : "false";
+  static std::shared_ptr<mcfile::je::Block const> BlockShortName(std::string const &name, std::map<std::string, std::string> props = {}) {
+    return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
+  }
+
+  static std::shared_ptr<mcfile::je::Block const> BlockFullName(std::string const &name, std::map<std::string, std::string> props = {}) {
+    return std::make_shared<mcfile::je::Block const>(name, props);
+  }
+
+  static std::shared_ptr<mcfile::nbt::ListTag> ContainerItems(mcfile::nbt::CompoundTag const &parent, std::string const &key) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto tag = parent.listTag(key);
+    if (!tag) {
+      return nullptr;
+    }
+    auto ret = make_shared<ListTag>(Tag::Type::Compound);
+    for (auto const &it : *tag) {
+      CompoundTag const *c = it->asCompound();
+      if (!c) {
+        continue;
+      }
+      auto converted = Item::From(*c);
+      if (!converted) {
+        continue;
+      }
+      auto slot = c->byte("Slot");
+      if (!slot) {
+        continue;
+      }
+      converted->set("Slot", props::Byte(*slot));
+      ret->push_back(converted);
+    }
+    return ret;
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> Empty(std::string const &id, Pos3i const &pos) {
+    auto tag = std::make_shared<mcfile::nbt::CompoundTag>();
+    tag->set("id", props::String("minecraft:" + id));
+    tag->set("x", props::Int(pos.fX));
+    tag->set("y", props::Int(pos.fY));
+    tag->set("z", props::Int(pos.fZ));
+    tag->set("keepPacked", props::Bool(false));
+    return tag;
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> OmniousBannerPatterns() {
@@ -229,19 +290,10 @@ public:
     return p;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> Empty(std::string const &id, Pos3i const &pos) {
-    auto tag = std::make_shared<mcfile::nbt::CompoundTag>();
-    tag->set("id", props::String("minecraft:" + id));
-    tag->set("x", props::Int(pos.fX));
-    tag->set("y", props::Int(pos.fY));
-    tag->set("z", props::Int(pos.fZ));
-    tag->set("keepPacked", props::Bool(false));
-    return tag;
+  static std::string ToString(bool b) {
+    return b ? "true" : "false";
   }
-
-  static std::shared_ptr<mcfile::je::Block const> Block(std::string const &name, std::map<std::string, std::string> props = {}) {
-    return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
-  }
+#pragma endregion
 };
 
 } // namespace je2be::toje

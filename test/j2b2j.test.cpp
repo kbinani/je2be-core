@@ -112,9 +112,6 @@ TEST_CASE("j2b2j") {
                   if (blockE->fName == "minecraft:chest" || blockE->fName == "minecraft:trapped_chest") {
                     continue; //TODO: remove this
                   }
-                  if (blockA->fName.ends_with("shulker_box")) {
-                    continue; //TODO: remove this
-                  }
                   if (blockE->fName == "minecraft:note_block") {
                     continue; //TODO: pickup "note" from block entity
                   }
