@@ -45,6 +45,24 @@ static inline Facing6 Facing6FromJavaName(std::string const &n) {
   return Facing6::Down;
 }
 
+static Pos3i Pos3iFromFacing6(Facing6 f6) {
+  switch (f6) {
+  case Facing6::East:
+    return Pos3i(1, 0, 0);
+  case Facing6::South:
+    return Pos3i(0, 0, 1);
+  case Facing6::West:
+    return Pos3i(-1, 0, 0);
+  case Facing6::North:
+    return Pos3i(0, 0, -1);
+  case Facing6::Up:
+    return Pos3i(0, 1, 0);
+  case Facing6::Down:
+  default:
+    return Pos3i(0, -1, 0);
+  }
+}
+
 static inline int BedrockFacingDirectionAFromFacing6(Facing6 f) {
   switch (f) {
   case Facing6::North:

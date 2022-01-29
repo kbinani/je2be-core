@@ -137,47 +137,17 @@ public:
       return true;
     }
     if (name == "powered_repeater" || name == "unpowered_repeater") {
-      auto d = VecFromDirection(block.fStates->int32("direction", 0));
+      auto f4 = Facing4FromBedrockDirection(block.fStates->int32("direction", 0));
+      Pos2i d = Pos2iFromFacing4(f4);
       return (d.fX == -direction.fX && d.fZ == -direction.fZ) || (d.fX == direction.fX && d.fZ == direction.fZ);
     }
     if (name == "observer") {
-      auto d3 = VecFromFacingDirectionAsFacingA(block.fStates->int32("facing_direction", 0));
+      auto f6 = Facing6FromBedrockFacingDirectionA(block.fStates->int32("facing_direction", 0));
+      Pos3i d3 = Pos3iFromFacing6(f6);
       auto d2 = Pos2i(d3.fX, d3.fZ);
       return d3.fX == direction.fX && d3.fZ == direction.fZ;
     }
     return false;
-  }
-
-  static Pos2i VecFromDirection(int32_t direction) {
-    switch (direction) {
-    case 2:
-      return Pos2i(0, -1); // north
-    case 3:
-      return Pos2i(1, 0); // east
-    case 1:
-      return Pos2i(-1, 0); // west
-    case 0:
-    default:
-      return Pos2i(0, 1); // south
-    }
-  }
-
-  static Pos3i VecFromFacingDirectionAsFacingA(int32_t facingDirection) {
-    switch (facingDirection) {
-    case 5:
-      return Pos3i(1, 0, 0); // east
-    case 3:
-      return Pos3i(0, 0, 1); // south
-    case 4:
-      return Pos3i(-1, 0, 0); // west
-    case 2:
-      return Pos3i(0, 0, -1); // north
-    case 1:
-      return Pos3i(0, 1, 0); // up
-    case 0:
-    default:
-      return Pos3i(0, -1, 0); // down
-    }
   }
 
   static bool IsTransparentAgainstRedstoneWire(mcfile::je::Block const &block) {

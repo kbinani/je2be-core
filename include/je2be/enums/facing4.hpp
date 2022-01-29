@@ -64,4 +64,18 @@ static Facing4 Facing4FromBedrockDirection(int d) {
   }
 }
 
+static Pos2i Pos2iFromFacing4(Facing4 f4) {
+  switch (f4) {
+  case Facing4::North:
+    return Pos2i(0, -1);
+  case Facing4::East:
+    return Pos2i(1, 0);
+  case Facing4::West:
+    return Pos2i(-1, 0);
+  case Facing4::South:
+  default:
+    return Pos2i(0, 1);
+  }
+}
+
 } // namespace je2be

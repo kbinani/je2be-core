@@ -82,6 +82,39 @@ public:
     return r;
   }
 
+  static std::optional<Result> Chest(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    auto px = tagB.int32("pairx");
+    auto pz = tagB.int32("pairz");
+    string type = "single";
+
+    if (px && pz) {
+      auto facingDirectionA = block.fStates->int32("facing_direction", 0);
+      Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirectionA);
+      Pos3i vec = Pos3iFromFacing6(f6);
+      Pos2i d2(vec.fX, vec.fZ);
+      Pos2i pos2d(pos.fX, pos.fZ);
+      Pos2i pair(*px, *pz);
+
+      if (pair + Right90(d2) == pos2d) {
+        type = "right";
+      } else if (pair + Left90(d2) == pos2d) {
+        type = "left";
+      }
+    }
+    map<string, string> p(blockJ.fProperties);
+    p["type"] = type;
+    Result r;
+    r.fBlock = BlockFullName(blockJ.fName, p);
+    auto te = Empty("chest", pos);
+    auto items = ContainerItems(tagB, "Items");
+    if (items && !items->empty()) {
+      te->set("Items", items);
+    }
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &inout) {
     using namespace std;
     auto plantBlock = tagB.compoundTag("PlantBlock");
@@ -232,6 +265,8 @@ public:
     E(shulker_box, ShulkerBox);
     E(undyed_shulker_box, ShulkerBox);
     E(noteblock, Noteblock);
+    E(chest, Chest);
+    E(trapped_chest, Chest);
 
 #undef E
     return t;

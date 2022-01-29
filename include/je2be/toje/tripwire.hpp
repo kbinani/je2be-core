@@ -38,7 +38,8 @@ public:
               if (BlockPropertyAccessor::IsTripwire(*block)) {
                 connect = true;
               } else if (block->fName == "minecraft:tripwire_hook") {
-                auto direction = RedstoneWire::VecFromDirection(block->fStates->int32("direction", 0));
+                Facing4 f4 = Facing4FromBedrockDirection(block->fStates->int32("direction", 0));
+                Pos2i direction = Pos2iFromFacing4(f4);
                 connect = direction.fX == -vec.fX && direction.fZ == -vec.fZ;
               } else {
                 connect = false;

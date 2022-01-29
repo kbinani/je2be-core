@@ -1082,14 +1082,14 @@ private:
     auto type = b.property("type", "single");
     auto facing = b.property("facing", "north");
     optional<pair<int, int>> pair;
-    if (type == "left" && facing == "north") {
-      pair = make_pair(pos.fX + 1, pos.fZ);
-    } else if (type == "right" && facing == "south") {
-      pair = make_pair(pos.fX + 1, pos.fZ);
-    } else if (type == "right" && facing == "west") {
-      pair = make_pair(pos.fX, pos.fZ + 1);
-    } else if (type == "left" && facing == "east") {
-      pair = make_pair(pos.fX, pos.fZ + 1);
+    Facing4 f4 = Facing4FromJavaName(facing);
+    Pos2i direction = Pos2iFromFacing4(f4);
+    if (type == "left") {
+      Pos2i pairPos = Pos2i(pos.fX, pos.fZ) + Right90(direction);
+      pair = make_pair(pairPos.fX, pairPos.fZ);
+    } else if (type == "right") {
+      Pos2i pairPos = Pos2i(pos.fX, pos.fZ) + Left90(direction);
+      pair = make_pair(pairPos.fX, pairPos.fZ);
     }
 
     auto tag = std::make_shared<CompoundTag>();
