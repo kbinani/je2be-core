@@ -46,7 +46,7 @@ private:
       // undamaged
       name = "anvil";
     }
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     return Ns() + name;
   }
 
@@ -88,12 +88,12 @@ private:
 
   static String Barrel(String const &bName, States const &s, Props &p) {
     OpenFromOpenBit(s, p);
-    FacingAFromFacingDirection(s, p);
+    Facing6FromFacingDirectionA(s, p);
     return bName;
   }
 
   static String Beehive(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     auto honeyLevel = s.int32("honey_level", 0);
     p["honey_level"] = Int(honeyLevel);
     return bName;
@@ -105,7 +105,7 @@ private:
   }
 
   static String Bed(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     auto headPiece = s.boolean("head_piece_bit", false);
     auto occupied = s.boolean("occupied_bit", false);
     p["part"] = headPiece ? "head" : "foot";
@@ -153,7 +153,7 @@ private:
 
   static String BigDripleaf(String const &bName, States const &s, Props &p) {
     auto head = s.boolean("big_dripleaf_head", false);
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     std::string name;
     if (head) {
       // none,partial_tilt,unstable,full_tilt => none,partial,unstable,full
@@ -190,18 +190,29 @@ private:
     return bName;
   }
 
-  static String BlockWithFacingAFromDirection(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+  static String BlockWithFacing4FromDirectionA(String const &bName, States const &s, Props &p) {
+    Facing4FromDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacingAFromFacingDirection(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+  static String BlockWithFacing4FromFacingDirectionA(String const &bName, States const &s, Props &p) {
+    Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacingAFromFacingDirectionAndSubmergible(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+  static String BlockWithFacing6FromFacingDirectionA(String const &bName, States const &s, Props &p) {
+    Facing6FromFacingDirectionA(s, p);
+    return bName;
+  }
+
+  static String BlockWithFacing6FromFacingDirectionASubmergible(String const &bName, States const &s, Props &p) {
+    Facing6FromFacingDirectionA(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
+  static String BlockWithFacing4FromFacingDirectionASubmergible(String const &bName, States const &s, Props &p) {
+    Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
@@ -316,7 +327,7 @@ private:
   }
 
   static String Campfire(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     Submergible(s, p);
     auto extinguished = s.boolean("extinguished", false);
     p["lit"] = Bool(!extinguished);
@@ -381,14 +392,14 @@ private:
   }
 
   static String Cocoa(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     Age(s, p);
     return bName;
   }
 
   static String CommandBlock(String const &bName, States const &s, Props &p) {
     auto conditional = s.boolean("conditional_bit", false);
-    FacingAFromFacingDirection(s, p);
+    Facing6FromFacingDirectionA(s, p);
     p["conditional"] = Bool(conditional);
     return bName;
   }
@@ -397,7 +408,7 @@ private:
     auto powered = bName.starts_with(Ns() + "powered_");
     auto lit = s.boolean("output_lit_bit", false);
     auto subtract = s.boolean("output_subtract_bit", false);
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     p["powered"] = Bool(lit);
     p["mode"] = subtract ? "subtract" : "compare";
     return Ns() + "comparator";
@@ -495,7 +506,7 @@ private:
   }
 
   static String DarkoakWallSign(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return Ns() + "dark_oak_wall_sign";
   }
@@ -595,14 +606,14 @@ private:
   }
 
   static String Dispenser(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean("triggered_bit", false);
     p["triggered"] = Bool(triggered);
     return bName;
   }
 
   static String Dropper(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean("triggered_bit", false);
     p["triggered"] = Bool(triggered);
     return bName;
@@ -611,7 +622,7 @@ private:
 
 #pragma region Converters : E
   static String EndPortalFrame(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     auto eye = s.boolean("end_portal_eye_bit", false);
     p["eye"] = Bool(eye);
     return bName;
@@ -662,7 +673,7 @@ private:
     auto inWall = s.boolean("in_wall_bit", false);
     p["in_wall"] = Bool(inWall);
     p["powered"] = Bool(false);
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     OpenFromOpenBit(s, p);
     if (bName.ends_with(":fence_gate")) {
       return Ns() + "oak_fence_gate";
@@ -672,7 +683,7 @@ private:
   }
 
   static String FurnaceAndSimilar(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     auto lit = bName.starts_with("minecraft:lit_");
     std::string name;
     if (lit) {
@@ -729,14 +740,14 @@ private:
       face = "floor";
     }
     p["face"] = face;
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     return bName;
   }
 #pragma endregion
 
 #pragma region Converters : H
   static String Hopper(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing6FromFacingDirectionA(s, p);
     auto toggle = s.boolean("toggle_bit", false);
     p["enabled"] = Bool(!toggle);
     return bName;
@@ -774,7 +785,7 @@ private:
   static String Lectern(String const &bName, States const &s, Props &p) {
     auto powered = s.boolean("powered_bit", false);
     p["powered"] = Bool(powered);
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     return bName;
   }
 
@@ -819,7 +830,7 @@ private:
   }
 
   static String LitPumpkin(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     return Ns() + "jack_o_lantern";
   }
 
@@ -846,7 +857,7 @@ private:
       name = "melon_stem";
       p["age"] = Int(growth);
     }
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     return Ns() + name;
   }
 
@@ -882,13 +893,13 @@ private:
 
 #pragma region Converters : O
   static String OakWallSign(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return Ns() + "oak_wall_sign";
   }
 
   static String Observer(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing6FromFacingDirectionA(s, p);
     auto powered = s.boolean("powered", false);
     p["powered"] = Bool(powered);
     return bName;
@@ -943,7 +954,7 @@ private:
   static String PumpkinStem(String const &bName, States const &s, Props &p) {
     auto growth = s.int32("growth", 0);
     p["age"] = Int(growth);
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
@@ -1069,7 +1080,7 @@ private:
   static String Repeater(String const &bName, States const &s, Props &p) {
     auto powered = bName == "minecraft:powered_repeater";
     p["powered"] = Bool(powered);
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     auto delay = s.int32("repeater_delay", 0);
     p["delay"] = Int(delay + 1 + 0);
     return Ns() + "repeater";
@@ -1155,7 +1166,7 @@ private:
   }
 
   static String SilverGlazedTerracotta(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     return Ns() + "light_gray_glazed_terracotta";
   }
 
@@ -1166,7 +1177,7 @@ private:
   }
 
   static String SmallDripleafBlock(String const &bName, States const &s, Props &p) {
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     HalfFromUpperBlockBit(s, p);
     Submergible(s, p);
     return Ns() + "small_dripleaf";
@@ -1251,7 +1262,7 @@ private:
   }
 
   static String StonecutterBlock(String const &bName, States const &s, Props &p) {
-    FacingAFromFacingDirection(s, p);
+    Facing4FromFacingDirectionA(s, p);
     return Ns() + "stonecutter";
   }
 
@@ -1343,7 +1354,7 @@ private:
   static String TripwireHook(String const &bName, States const &s, Props &p) {
     auto attached = s.boolean("attached_bit", false);
     auto powered = s.boolean("powered_bit", false);
-    FacingAFromDirection(s, p);
+    Facing4FromDirectionA(s, p);
     p["attached"] = Bool(attached);
     p["powered"] = Bool(powered);
     return bName;
@@ -1474,16 +1485,38 @@ private:
     return "brain";
   }
 
-  static void FacingAFromDirection(States const &s, Props &props) {
+  static void Facing4FromDirectionA(States const &s, Props &props) {
     auto direction = s.int32("direction", 0);
     Facing4 f4 = Facing4FromBedrockDirection(direction);
     props["facing"] = JavaNameFromFacing4(f4);
   }
 
-  static void FacingAFromFacingDirection(States const &s, Props &props) {
+  static void Facing6FromFacingDirectionA(States const &s, Props &props) {
     auto facingDirection = s.int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
     props["facing"] = JavaNameFromFacing6(f6);
+  }
+
+  static void Facing4FromFacingDirectionA(States const &s, Props &props) {
+    auto facingDirection = s.int32("facing_direction", 0);
+    Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
+    Facing4 f4;
+    switch (f6) {
+    case Facing6::North:
+      f4 = Facing4::North;
+      break;
+    case Facing6::East:
+      f4 = Facing4::East;
+      break;
+    case Facing6::West:
+      f4 = Facing4::West;
+      break;
+    case Facing6::South:
+    default:
+      f4 = Facing4::South;
+      break;
+    }
+    props["facing"] = JavaNameFromFacing4(f4);
   }
 
   static void FacingBFromDirection(States const &s, Props &props) {
@@ -1974,18 +2007,18 @@ private:
     E(spruce_trapdoor, Trapdoor);
     E(warped_trapdoor, Trapdoor);
 
-    E(acacia_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
-    E(birch_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
-    E(crimson_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
-    E(jungle_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
-    E(spruce_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
-    E(warped_wall_sign, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(acacia_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(birch_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(crimson_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(jungle_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(spruce_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(warped_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
 
     E(wood, Wood);
     E(activator_rail, RailCanBePowered);
     E(detector_rail, RailCanBePowered);
     E(red_flower, RedFlower);
-    E(amethyst_cluster, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(amethyst_cluster, BlockWithFacing6FromFacingDirectionASubmergible);
     E(stone, Stone);
     E(stone_slab3, StoneSlab3);
     E(double_stone_slab3, DoubleStoneSlab3);
@@ -2051,28 +2084,28 @@ private:
     E(concrete, Concrete);
     E(concretePowder, ConcretePowder);
 
-    E(black_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(brown_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(cyan_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(gray_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(green_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(light_blue_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(black_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(blue_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(brown_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(cyan_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(gray_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(green_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(light_blue_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
     E(silver_glazed_terracotta, SilverGlazedTerracotta);
-    E(lime_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(magenta_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(orange_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(pink_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(purple_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(red_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(white_glazed_terracotta, BlockWithFacingAFromFacingDirection);
-    E(yellow_glazed_terracotta, BlockWithFacingAFromFacingDirection);
+    E(lime_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(magenta_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(orange_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(pink_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(purple_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(red_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(white_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
+    E(yellow_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
 
     E(shulker_box, ShulkerBox);
     E(stained_glass, StainedGlass);
     E(stained_glass_pane, StainedGlassPane);
     E(stained_hardened_clay, StainedHardenedClay);
-    E(wall_banner, BlockWithFacingAFromFacingDirection);
+    E(wall_banner, BlockWithFacing4FromFacingDirectionA);
     E(wool, Wool);
     E(blast_furnace, FurnaceAndSimilar);
     E(lit_blast_furnace, FurnaceAndSimilar);
@@ -2095,7 +2128,7 @@ private:
     E(campfire, Campfire);
     E(soul_campfire, Campfire);
     E(carrots, BlockWithAgeFromGrowth);
-    E(carved_pumpkin, BlockWithFacingAFromDirection);
+    E(carved_pumpkin, BlockWithFacing4FromDirectionA);
     E(cauldron, Cauldron);
     E(lava_cauldron, Cauldron);
     E(cave_vines, CaveVines);
@@ -2105,7 +2138,7 @@ private:
     E(chain, Chain);
     E(chain_command_block, CommandBlock);
     E(command_block, CommandBlock);
-    E(chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(chest, BlockWithFacing4FromFacingDirectionASubmergible);
     E(quartz_block, QuartzBlock);
     E(red_sandstone, RedSandstone);
     E(sandstone, Sandstone);
@@ -2152,7 +2185,7 @@ private:
     E(grass_path, Rename("dirt_path"));
     E(dispenser, Dispenser);
     E(dropper, Dropper);
-    E(ender_chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(ender_chest, BlockWithFacing4FromFacingDirectionASubmergible);
     E(end_portal_frame, EndPortalFrame);
     E(end_rod, EndRod);
     E(end_bricks, Rename("end_stone_bricks"));
@@ -2181,21 +2214,21 @@ private:
     E(jigsaw, Same);
     E(jukebox, Same);
     E(kelp, Kelp);
-    E(ladder, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(ladder, BlockWithFacing4FromFacingDirectionASubmergible);
     E(lantern, Lantern);
     E(soul_lantern, Lantern);
-    E(large_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(large_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
     E(double_plant, DoublePlant);
     E(lava, Liquid);
     E(lectern, Lectern);
     E(lever, Lever);
-    E(lightning_rod, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(lightning_rod, BlockWithFacing6FromFacingDirectionASubmergible);
     E(light_block, LightBlock);
     E(light_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(waterlily, Rename("lily_pad"));
-    E(loom, BlockWithFacingAFromDirection);
+    E(loom, BlockWithFacing4FromDirectionA);
     E(magma, Rename("magma_block"));
-    E(medium_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(medium_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
     E(melon_block, Rename("melon"));
     E(movingBlock, Same);
     E(mycelium, BlockWithSnowy); // No "snowy" property in BE
@@ -2249,7 +2282,7 @@ private:
     E(seaLantern, Rename("sea_lantern"));
     E(undyed_shulker_box, Rename("shulker_box"));
     E(slime, Rename("slime_block"));
-    E(small_amethyst_bud, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(small_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
     E(small_dripleaf_block, SmallDripleafBlock);
     E(smoker, FurnaceAndSimilar);
     E(lit_smoker, FurnaceAndSimilar);
@@ -2276,7 +2309,7 @@ private:
     E(hardened_clay, Rename("terracotta"));
     E(tnt, Tnt);
     E(torch, Torch(""));
-    E(trapped_chest, BlockWithFacingAFromFacingDirectionAndSubmergible);
+    E(trapped_chest, BlockWithFacing4FromFacingDirectionASubmergible);
     E(tripWire, Tripwire);
     E(tripwire_hook, TripwireHook);
     E(turtle_egg, TurtleEgg);
