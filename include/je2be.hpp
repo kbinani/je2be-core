@@ -68,6 +68,8 @@
 #include <je2be/enums/villager-profession.hpp>
 #include <je2be/enums/villager-type.hpp>
 #include <je2be/enums/red-flower.hpp>
+#include <je2be/enums/skull-type.hpp>
+#include <je2be/enums/facing6.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

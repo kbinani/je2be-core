@@ -54,7 +54,7 @@ inline std::string RTrim(std::string const &s, std::string const &right) {
 
 inline std::string Trim(std::string const &left, std::string const &s, std::string const &right) { return RTrim(LTrim(s, left), right); }
 
-inline std::string Replace(std::string const &s, std::string const &search) {
+inline std::string Remove(std::string const &s, std::string const &search) {
   if (search.empty()) {
     return s;
   }
@@ -65,6 +65,27 @@ inline std::string Replace(std::string const &s, std::string const &search) {
       break;
     }
     ret = ret.substr(0, i) + ret.substr(i + search.size());
+  }
+  return ret;
+}
+
+inline std::string Replace(std::string const &target, std::string const &search, std::string const &replace) {
+  using namespace std;
+  if (search.empty()) {
+    return target;
+  }
+  if (search == replace) {
+    return target;
+  }
+  size_t offset = 0;
+  string ret = target;
+  while (true) {
+    auto found = ret.find(search, offset);
+    if (found == string::npos) {
+      break;
+    }
+    ret = ret.substr(0, found) + replace + ret.substr(found + search.size());
+    offset = found + replace.size();
   }
   return ret;
 }

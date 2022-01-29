@@ -55,21 +55,10 @@ public:
   static int8_t GetSkullTypeFromBlockName(std::string const &name) {
     int8_t type = 0;
     std::string n = strings::LTrim(name, "minecraft:");
-    n = strings::RTrim(n, "_skull");
-    n = strings::RTrim(n, "_head");
-    n = strings::RTrim(n, "_wall");
-    if (n == "player") {
-      type = 3;
-    } else if (n == "zombie") {
-      type = 2;
-    } else if (n == "creeper") {
-      type = 4;
-    } else if (n == "dragon") {
-      type = 5;
-    } else if (n == "skeleton") {
-      type = 0;
-    } else if (n == "wither_skeleton") {
-      type = 1;
+    n = strings::Remove(n, "_wall");
+    auto st = SkullTypeFromJavaName(n);
+    if (st) {
+      type = static_cast<uint8_t>(*st);
     }
     return type;
   }

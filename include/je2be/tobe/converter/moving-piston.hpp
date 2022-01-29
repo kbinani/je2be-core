@@ -34,7 +34,7 @@ public:
             if (loader.tileEntityAt(pos)) {
               continue;
             }
-            int facing = BlockData::GetFacingDirectionFromFacingA(*block);
+            int facing = BlockData::GetFacingDirectionAFromFacing(*block);
             Pos3i pistonHeadPos = pos + VectorOfFacing(facing);
             auto pistonHead = PistonTileEntity::From(loader.tileEntityAt(pistonHeadPos), pistonHeadPos);
             if (!pistonHead) {

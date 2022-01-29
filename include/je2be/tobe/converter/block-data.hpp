@@ -41,22 +41,10 @@ public:
     return tag;
   }
 
-  static int32_t GetFacingDirectionFromFacingA(mcfile::je::Block const &block) {
-    // 102534
+  static int32_t GetFacingDirectionAFromFacing(mcfile::je::Block const &block) {
     auto facing = block.property("facing", "north");
-    if (facing == "east") {
-      return 5;
-    } else if (facing == "south") {
-      return 3;
-    } else if (facing == "west") {
-      return 4;
-    } else if (facing == "north") {
-      return 2;
-    } else if (facing == "up") {
-      return 1;
-    } else {
-      return 0;
-    }
+    auto f6 = Facing6FromJavaName(facing);
+    return BedrockFacingDirectionAFromFacing6(f6);
   }
 
   static int32_t GetFacingDirectionFromFacingB(mcfile::je::Block const &block) {
@@ -596,8 +584,8 @@ private:
     s->set("end_portal_eye_bit", props::Bool(eye));
   }
 
-  static void FacingDirectionFromFacingA(StatesType const &s, Block const &block) {
-    int32_t direction = GetFacingDirectionFromFacingA(block);
+  static void FacingDirectionAFromFacing(StatesType const &s, Block const &block) {
+    int32_t direction = GetFacingDirectionAFromFacing(block);
     s->set("facing_direction", props::Int(direction));
   }
 
@@ -654,7 +642,7 @@ private:
 
   static Converter WallSign(std::optional<std::string> prefix = std::nullopt) {
     std::string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
-    return Converter(Name(name), FacingDirectionFromFacingA);
+    return Converter(Name(name), FacingDirectionAFromFacing);
   }
 
   static PropertyType Rotation(Block const &block) {
@@ -741,7 +729,7 @@ private:
     using namespace std;
     Converter axisToPillarAxis(Same, AxisToPillarAxis);
     Converter directionFromFacing(Same, DirectionFromFacingA);
-    Converter facingDirectionFromFacingA(Same, FacingDirectionFromFacingA);
+    Converter facingDirectionFromFacingA(Same, FacingDirectionAFromFacing);
     Converter facingDirectionFromFacingB(Same, FacingDirectionFromFacingB);
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
@@ -1060,7 +1048,7 @@ private:
     E(dark_oak_fence, Fence("dark_oak"));
     E(ladder, facingDirectionFromFacingA);
     E(chest, facingDirectionFromFacingA);
-    E(furnace, Converter(PrefixLit, FacingDirectionFromFacingA));
+    E(furnace, Converter(PrefixLit, FacingDirectionAFromFacing));
     E(nether_bricks, Rename("nether_brick"));
     E(infested_stone, InfestedStone("stone"));
     E(infested_cobblestone, InfestedStone("cobblestone"));
@@ -1158,7 +1146,7 @@ private:
     E(lime_glazed_terracotta, facingDirectionFromFacingA);
     E(pink_glazed_terracotta, facingDirectionFromFacingA);
     E(gray_glazed_terracotta, facingDirectionFromFacingA);
-    E(light_gray_glazed_terracotta, Converter(Name("silver_glazed_terracotta"), FacingDirectionFromFacingA));
+    E(light_gray_glazed_terracotta, Converter(Name("silver_glazed_terracotta"), FacingDirectionAFromFacing));
     E(cyan_glazed_terracotta, facingDirectionFromFacingA);
     E(purple_glazed_terracotta, facingDirectionFromFacingA);
     E(blue_glazed_terracotta, facingDirectionFromFacingA);
@@ -1308,7 +1296,7 @@ private:
     E(red_banner, banner);
     E(black_banner, banner);
 
-    Converter wallBanner(Name("wall_banner"), FacingDirectionFromFacingA);
+    Converter wallBanner(Name("wall_banner"), FacingDirectionAFromFacing);
     E(white_wall_banner, wallBanner);
     E(orange_wall_banner, wallBanner);
     E(magenta_wall_banner, wallBanner);
@@ -1326,12 +1314,12 @@ private:
     E(red_wall_banner, wallBanner);
     E(black_wall_banner, wallBanner);
 
-    E(stonecutter, Converter(Name("stonecutter_block"), FacingDirectionFromFacingA));
+    E(stonecutter, Converter(Name("stonecutter_block"), FacingDirectionAFromFacing));
     E(loom, directionFromFacing);
     E(grindstone, Converter(Name("grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
-    E(smoker, Converter(PrefixLit, FacingDirectionFromFacingA));
-    E(blast_furnace, Converter(PrefixLit, FacingDirectionFromFacingA));
-    E(barrel, Converter(Name("barrel"), FacingDirectionFromFacingA, Name(Open, "open_bit")));
+    E(smoker, Converter(PrefixLit, FacingDirectionAFromFacing));
+    E(blast_furnace, Converter(PrefixLit, FacingDirectionAFromFacing));
+    E(barrel, Converter(Name("barrel"), FacingDirectionAFromFacing, Name(Open, "open_bit")));
     Converter lantern(Same, Name(Hanging, "hanging"));
     E(lantern, lantern);
     E(soul_lantern, lantern);
@@ -1344,7 +1332,7 @@ private:
     E(piston_head, Converter(Name("air")));
     E(moving_piston, MovingPiston);
     E(note_block, Rename("noteblock"));
-    E(dispenser, Converter(Same, FacingDirectionFromFacingA, Name(Triggered, "triggered_bit")));
+    E(dispenser, Converter(Same, FacingDirectionAFromFacing, Name(Triggered, "triggered_bit")));
     E(lever, Converter(Same, LeverDirection, Name(Powered, "open_bit")));
 
     Converter fenceGate(Same, DirectionFromFacingA, Name(InWall, "in_wall_bit"), Name(Open, "open_bit"));
@@ -1399,9 +1387,9 @@ private:
     E(tripwire_hook, Converter(Same, DirectionFromFacingA, Name(Attached, "attached_bit"), Name(Powered, "powered_bit")));
     E(trapped_chest, facingDirectionFromFacingA);
     E(daylight_detector, Converter(DaylightDetectorName, Name(Power, "redstone_signal")));
-    E(hopper, Converter(Same, FacingDirectionFromFacingA, ToggleBitFromEnabled));
-    E(dropper, Converter(Same, FacingDirectionFromFacingA, Name(Triggered, "triggered_bit")));
-    E(observer, Converter(Same, FacingDirectionFromFacingA, Name(Powered, "powered_bit")));
+    E(hopper, Converter(Same, FacingDirectionAFromFacing, ToggleBitFromEnabled));
+    E(dropper, Converter(Same, FacingDirectionAFromFacing, Name(Triggered, "triggered_bit")));
+    E(observer, Converter(Same, FacingDirectionAFromFacing, Name(Powered, "powered_bit")));
 
     Converter door(Same, DirectionFromFacingC, Name(Open, "open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge);
     E(oak_door, Converter(Name("wooden_door"), DirectionFromFacingC, Name(Open, "open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge));
@@ -1431,13 +1419,13 @@ private:
     E(carrots, Converter(Same, Name(Age, "growth")));
     E(pumpkin_stem, Converter(Same, Name(Age, "growth"), AddIntProperty("facing_direction", 0)));
     E(melon_stem, Converter(Same, Name(Age, "growth"), AddIntProperty("facing_direction", 0)));
-    E(attached_pumpkin_stem, Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
-    E(attached_melon_stem, Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionFromFacingA));
+    E(attached_pumpkin_stem, Converter(Name("pumpkin_stem"), AddIntProperty("growth", 7), FacingDirectionAFromFacing));
+    E(attached_melon_stem, Converter(Name("melon_stem"), AddIntProperty("growth", 7), FacingDirectionAFromFacing));
     E(wheat, Converter(Same, Name(Age, "growth")));
 
     E(cobweb, Converter(Name("web")));
     E(lectern, Converter(Same, DirectionFromFacingA, Name(Powered, "powered_bit")));
-    E(ender_chest, Converter(Same, FacingDirectionFromFacingA));
+    E(ender_chest, Converter(Same, FacingDirectionAFromFacing));
     E(bone_block, Converter(Same, AxisToPillarAxis, AddIntProperty("deprecated", 0)));
     E(water_cauldron, Converter(Name("cauldron"), CauldronFillLevelFromLevel, AddStringProperty("cauldron_liquid", "water")));
     E(lava_cauldron, Converter(Name("lava_cauldron"), AddIntProperty("fill_level", 6), AddStringProperty("cauldron_liquid", "lava")));
@@ -1454,7 +1442,7 @@ private:
 
     E(chorus_flower, Converter(Same, Name(Age, "age")));
 
-    Converter commandBlock(Same, Conditional, FacingDirectionFromFacingA);
+    Converter commandBlock(Same, Conditional, FacingDirectionAFromFacing);
     E(command_block, commandBlock);
     E(chain_command_block, commandBlock);
     E(repeating_command_block, commandBlock);

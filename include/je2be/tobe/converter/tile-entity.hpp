@@ -945,7 +945,7 @@ private:
 
   static TileEntityData ShulkerBox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace props;
-    auto facing = BlockData::GetFacingDirectionFromFacingA(b);
+    auto facing = BlockData::GetFacingDirectionAFromFacing(b);
     auto items = GetItems(c, "Items", mapInfo, wd);
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({

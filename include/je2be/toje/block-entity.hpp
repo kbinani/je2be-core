@@ -82,6 +82,38 @@ public:
     return r;
   }
 
+  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    using namespace props;
+
+    SkullType type = static_cast<SkullType>(tag.byte("SkullType", 0));
+    string skullName = JavaNameFromSkullType(type);
+
+    map<string, string> p;
+
+    int facingDirection = block.fStates->int32("facing_direction", 1);
+    Facing6 f = Facing6FromBedrockFacingDirectionA(facingDirection);
+    bool floorPlaced = f == Facing6::Up || f == Facing6::Down;
+    if (floorPlaced) {
+      int rotation = (int)std::round(tag.float32("Rotation", 0) + 0.5f);
+      int rot = rotation * 16 / 360;
+      p["rotation"] = to_string(rot);
+    } else {
+      skullName = strings::Replace(skullName, "_head", "_wall_head");
+      skullName = strings::Replace(skullName, "_skull", "_wall_skull");
+      p["facing"] = JavaNameFromFacing6(f);
+    }
+    Result r;
+    r.fBlock = Block(skullName, p);
+    auto te = make_shared<CompoundTag>();
+    te->set("id", String("minecraft:skull"));
+    te->set("keepPacked", Bool(false));
+    Pos(*te, pos);
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::unordered_map<std::string, Converter> *CreateTable() {
     using namespace std;
     auto *t = new unordered_map<string, Converter>();
@@ -90,9 +122,16 @@ public:
   t->insert(make_pair("minecraft:" #__name, __conv))
 
     E(flower_pot, FlowerPot);
+    E(skull, Skull);
 
 #undef E
     return t;
+  }
+
+  static void Pos(mcfile::nbt::CompoundTag &tag, Pos3i const &pos) {
+    tag.set("x", props::Int(pos.fX));
+    tag.set("y", props::Int(pos.fY));
+    tag.set("z", props::Int(pos.fZ));
   }
 
   static std::shared_ptr<mcfile::je::Block const> Block(std::string const &name, std::map<std::string, std::string> props = {}) {

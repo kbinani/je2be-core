@@ -91,7 +91,7 @@ inline std::optional<Uuid> GetUuidWithFormatHexString(mcfile::nbt::CompoundTag c
     return nullopt;
   }
 
-  auto s = strings::Replace(hex->fValue, "-");
+  auto s = strings::Remove(hex->fValue, "-");
   if (s.size() != 32) {
     return nullopt;
   }
