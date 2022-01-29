@@ -141,9 +141,6 @@ TEST_CASE("j2b2j") {
                   if (blockE->fName == "minecraft:piston_head" || blockE->fName == "minecraft:piston" || blockE->fName == "minecraft:sticky_piston") {
                     continue; //TODO: remove this
                   }
-                  if (blockE->fName == "minecraft:lectern") {
-                    continue; //TODO: pickup "has_book" from block entity
-                  }
                   auto foundJtoB = fallbackJtoB.find(blockE->fName);
                   if (foundJtoB == fallbackJtoB.end()) {
                     auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
@@ -187,7 +184,7 @@ TEST_CASE("j2b2j") {
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
             auto id = tileE->string("id");
             static unordered_set<string> const sWhitelist{
-                "minecraft:banner", "minecraft:skull", "minecraft:bed", "minecraft:jukebox", "minecraft:shulker_box"};
+                "minecraft:banner", "minecraft:skull", "minecraft:bed", "minecraft:jukebox", "minecraft:shulker_box", "minecraft:lectern"};
             if (sWhitelist.find(*id) == sWhitelist.end()) {
               continue; //TODO: remove this
             }

@@ -483,10 +483,12 @@ private:
         }
       }
     }
-    tag->set("hasBook", Bool(totalPages > 0));
-    if (totalPages > 0 && c) {
-      auto page = c->int32("Page", 0);
-      tag->set("page", Int(page));
+    tag->set("hasBook", Bool(book != nullptr));
+    auto page = c->int32("Page");
+    if (page) {
+      tag->set("page", Int(*page));
+    }
+    if (totalPages > 0) {
       tag->set("totalPages", Int(totalPages));
     }
     Attach(c, pos, *tag);

@@ -190,6 +190,29 @@ public:
     return r;
   }
 
+  static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    auto te = Empty("lectern", pos);
+    map<string, string> p(blockJ.fProperties);
+    auto page = tag.int32("page");
+    auto bookB = tag.compoundTag("book");
+    shared_ptr<mcfile::nbt::CompoundTag> bookJ;
+    if (bookB) {
+      bookJ = Item::From(*bookB);
+    }
+    p["has_book"] = ToString(bookJ != nullptr);
+    Result r;
+    r.fBlock = BlockFullName(blockJ.fName, p);
+    if (page) {
+      te->set("Page", props::Int(*page));
+    }
+    if (bookJ) {
+      te->set("Book", bookJ);
+    }
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto note = tag.byte("note");
@@ -267,6 +290,7 @@ public:
     E(noteblock, Noteblock);
     E(chest, Chest);
     E(trapped_chest, Chest);
+    E(lectern, Lectern);
 
 #undef E
     return t;
