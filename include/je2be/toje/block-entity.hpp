@@ -165,7 +165,7 @@ public:
     p["facing"] = JavaNameFromFacing6(f6);
     auto te = Empty("shulker_box", pos);
     auto items = ContainerItems(tag, "Items");
-    if (items) {
+    if (items && !items->empty()) {
       te->set("Items", items);
     }
     Result r;
