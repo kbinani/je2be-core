@@ -14,12 +14,9 @@ static void CheckBlock(mcfile::je::Block const &e, mcfile::je::Block const &a, s
     propsE.erase(p);
     propsA.erase(p);
   }
-  CHECK(propsE.size() == propsA.size());
-  for (auto it : propsE) {
-    auto found = propsA.find(it.first);
-    CHECK(found != propsA.end());
-    CHECK(found->second == it.second);
-  }
+  auto blockE = make_shared<mcfile::je::Block>(e.fName, propsE);
+  auto blockA = make_shared<mcfile::je::Block>(a.fName, propsA);
+  CHECK(blockA->toString() == blockE->toString());
 }
 
 static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nbt::CompoundTag const &actual) {
