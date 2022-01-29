@@ -112,9 +112,6 @@ TEST_CASE("j2b2j") {
                   if (blockE->fName == "minecraft:chest" || blockE->fName == "minecraft:trapped_chest") {
                     continue; //TODO: remove this
                   }
-                  if (blockE->fName == "minecraft:jukebox") {
-                    continue; //TODO: remove this
-                  }
                   if (blockA->fName.ends_with("shulker_box")) {
                     continue; //TODO: remove this
                   }
@@ -164,8 +161,10 @@ TEST_CASE("j2b2j") {
             Pos3i pos = it.first;
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
             auto id = tileE->string("id");
-            if (id != "minecraft:banner" && id != "minecraft:skull" && id != "minecraft:bed") {
-              continue;
+            static unordered_set<string> const sWhitelist{
+                "minecraft:banner", "minecraft:skull", "minecraft:bed", "minecraft:jukebox"};
+            if (sWhitelist.find(*id) == sWhitelist.end()) {
+              continue; //TODO: remove this
             }
             auto found = chunkA->fTileEntities.find(pos);
             CHECK(found != chunkA->fTileEntities.end());

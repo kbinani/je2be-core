@@ -279,9 +279,8 @@ private:
     E("diamond_horse_armor", Rename("horsearmordiamond"));
     E("popped_chorus_fruit", Rename("chorus_fruit_popped"));
     E("nether_brick", Rename("netherbrick"));
-    for (string title : {"13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "pigstep"}) {
-      table->insert(make_pair("minecraft:music_disc_" + title, Rename("record_" + title)));
-    }
+    // "13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "otherside", "pigstep"
+    // E("music_disc_pigstep", Same);
     E("flower_banner_pattern", Subtype("banner_pattern", 2));
     E("creeper_banner_pattern", Subtype("banner_pattern", 1));
     E("skull_banner_pattern", Subtype("banner_pattern", 0));

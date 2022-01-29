@@ -38,10 +38,7 @@ public:
     } else {
       name = colorNameJ + "_wall_banner";
     }
-    auto te = make_shared<CompoundTag>();
-    te->set("id", props::String("minecraft:banner"));
-    Pos(*te, pos);
-    te->set("keepPacked", props::Bool(false));
+    auto te = Empty("banner", pos);
     auto type = tag.int32("Type", 0);
     if (type == 1) {
       // Illager Banner
@@ -81,11 +78,7 @@ public:
     auto name = JavaNameFromColorCodeJava(ccj);
     Result r;
     r.fBlock = Block(name + "_bed", inout.fProperties);
-    auto te = std::make_shared<mcfile::nbt::CompoundTag>();
-    te->set("id", props::String("minecraft:bed"));
-    te->set("keepPacked", props::Bool(false));
-    Pos(*te, pos);
-    r.fTileEntity = te;
+    r.fTileEntity = Empty("bed", pos);
     return r;
   }
 
@@ -146,6 +139,24 @@ public:
     return r;
   }
 
+  static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+    using namespace std;
+    auto record = tag.compoundTag("RecordItem");
+    map<string, string> p(inout.fProperties);
+    p["has_record"] = ToString(record != nullptr);
+    auto te = Empty("jukebox", pos);
+    if (record) {
+      auto itemJ = Item::From(*record);
+      if (itemJ) {
+        te->set("RecordItem", itemJ);
+      }
+    }
+    Result r;
+    r.fBlock = Block("jukebox", p);
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
     using namespace std;
     using namespace mcfile::nbt;
@@ -170,10 +181,7 @@ public:
     }
     Result r;
     r.fBlock = Block(skullName, p);
-    auto te = make_shared<CompoundTag>();
-    te->set("id", String("minecraft:skull"));
-    te->set("keepPacked", Bool(false));
-    Pos(*te, pos);
+    auto te = Empty("skull", pos);
     r.fTileEntity = te;
     return r;
   }
@@ -191,6 +199,7 @@ public:
     E(bed, Bed);
     E(standing_banner, Banner);
     E(wall_banner, Banner);
+    E(jukebox, Jukebox);
 
 #undef E
     return t;
@@ -201,6 +210,10 @@ public:
     c->set("Color", props::Int(color));
     c->set("Pattern", props::String(pattern));
     return c;
+  }
+
+  static std::string ToString(bool b) {
+    return b ? "true" : "false";
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> OmniousBannerPatterns() {
@@ -216,10 +229,14 @@ public:
     return p;
   }
 
-  static void Pos(mcfile::nbt::CompoundTag &tag, Pos3i const &pos) {
-    tag.set("x", props::Int(pos.fX));
-    tag.set("y", props::Int(pos.fY));
-    tag.set("z", props::Int(pos.fZ));
+  static std::shared_ptr<mcfile::nbt::CompoundTag> Empty(std::string const &id, Pos3i const &pos) {
+    auto tag = std::make_shared<mcfile::nbt::CompoundTag>();
+    tag->set("id", props::String("minecraft:" + id));
+    tag->set("x", props::Int(pos.fX));
+    tag->set("y", props::Int(pos.fY));
+    tag->set("z", props::Int(pos.fZ));
+    tag->set("keepPacked", props::Bool(false));
+    return tag;
   }
 
   static std::shared_ptr<mcfile::je::Block const> Block(std::string const &name, std::map<std::string, std::string> props = {}) {

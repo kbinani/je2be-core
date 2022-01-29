@@ -94,6 +94,7 @@ set(je2be_files
   include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/converter.hpp
   include/je2be/toje/fence-connectable.hpp
+  include/je2be/toje/item.hpp
   include/je2be/toje/kelp.hpp
   include/je2be/toje/level-data.hpp
   include/je2be/toje/note-block.hpp
