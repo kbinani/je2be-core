@@ -139,6 +139,8 @@ TEST_CASE("j2b2j") {
                         CheckBlock(*blockE, *blockA, {"powered"});
                       } else if (blockE->fName.ends_with("_button")) {
                         CheckBlock(*blockE, *blockA, {"facing", "powered"});
+                      } else if (blockE->fName == "minecraft:fire") {
+                        CheckBlock(*blockE, *blockA, {"east", "north", "south", "west", "up"});
                       } else {
                         CHECK(blockA->toString() == blockE->toString());
                       }
