@@ -157,6 +157,18 @@ public:
     return r;
   }
 
+  static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    auto note = tag.byte("note");
+    map<string, string> p(blockJ.fProperties);
+    if (note) {
+      p["note"] = to_string(*note);
+    }
+    Result r;
+    r.fBlock = BlockFullName(blockJ.fName, p);
+    return r;
+  }
+
   static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
     using namespace std;
     auto facing = tag.byte("facing", 0);
@@ -219,6 +231,7 @@ public:
     E(jukebox, Jukebox);
     E(shulker_box, ShulkerBox);
     E(undyed_shulker_box, ShulkerBox);
+    E(noteblock, Noteblock);
 
 #undef E
     return t;
