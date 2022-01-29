@@ -12,20 +12,34 @@ public:
 private:
   BlockEntity() = delete;
 
-  using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, mcfile::nbt::CompoundTag const &)>;
+  using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, mcfile::nbt::CompoundTag const &, mcfile::je::Block const &)>;
 
 public:
-  static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag) {
+  static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
     using namespace std;
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
     auto found = sTable->find(block.fName);
     if (found == sTable->end()) {
       return nullopt;
     }
-    return found->second(pos, block, tag);
+    return found->second(pos, block, tag, inout);
   }
 
-  static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB) {
+  static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &inout) {
+    auto color = tagB.byte("color", 0);
+    ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
+    auto name = JavaNameFromColorCodeJava(ccj);
+    Result r;
+    r.fBlock = Block(name + "_bed", inout.fProperties);
+    auto te = std::make_shared<mcfile::nbt::CompoundTag>();
+    te->set("id", props::String("minecraft:bed"));
+    te->set("keepPacked", props::Bool(false));
+    Pos(*te, pos);
+    r.fTileEntity = te;
+    return r;
+  }
+
+  static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &inout) {
     using namespace std;
     auto plantBlock = tagB.compoundTag("PlantBlock");
     if (!plantBlock) {
@@ -82,7 +96,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag) {
+  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
     using namespace std;
     using namespace mcfile::nbt;
     using namespace props;
@@ -123,6 +137,7 @@ public:
 
     E(flower_pot, FlowerPot);
     E(skull, Skull);
+    E(bed, Bed);
 
 #undef E
     return t;

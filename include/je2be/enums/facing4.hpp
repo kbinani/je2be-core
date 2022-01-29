@@ -1,0 +1,67 @@
+#pragma once
+
+namespace je2be {
+
+enum class Facing4 {
+  North,
+  East,
+  South,
+  West,
+};
+
+static inline std::string JavaNameFromFacing4(Facing4 f) {
+  switch (f) {
+  case Facing4::North:
+    return "north";
+  case Facing4::East:
+    return "east";
+  case Facing4::South:
+    return "south";
+  case Facing4::West:
+    return "west";
+  }
+  assert(false);
+  return "";
+}
+
+static inline Facing4 Facing4FromJavaName(std::string const &n) {
+  if (n == "north") {
+    return Facing4::North;
+  } else if (n == "east") {
+    return Facing4::East;
+  } else if (n == "west") {
+    return Facing4::West;
+  }
+  return Facing4::South;
+}
+
+static inline int BedrockDirectionFromFacing4(Facing4 f) {
+  switch (f) {
+  case Facing4::North:
+    return 2;
+  case Facing4::East:
+    return 3;
+  case Facing4::West:
+    return 1;
+  case Facing4::South:
+    return 0;
+  }
+  assert(false);
+  return 0;
+}
+
+static Facing4 Facing4FromBedrockDirection(int d) {
+  switch (d) {
+  case 2:
+    return Facing4::North;
+  case 3:
+    return Facing4::East;
+  case 1:
+    return Facing4::West;
+  case 0:
+  default:
+    return Facing4::South;
+  }
+}
+
+} // namespace je2be

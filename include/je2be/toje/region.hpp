@@ -142,10 +142,11 @@ public:
           if (!blockB) {
             continue;
           }
-          if (blockB->fName == "minecraft:flower_pot") { //TODO:debug
-            int a = 0;
+          auto const &blockJ = j->blockAt(pos);
+          if (!blockJ) {
+            continue;
           }
-          auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB);
+          auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ);
           if (!result) {
             continue;
           }

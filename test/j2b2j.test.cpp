@@ -109,9 +109,6 @@ TEST_CASE("j2b2j") {
                   if (blockE->fName == "minecraft:piston_head" || blockE->fName == "minecraft:piston" || blockE->fName == "minecraft:sticky_piston") {
                     continue; //TODO: remove this
                   }
-                  if (blockA->fName == "minecraft:white_bed") {
-                    continue; //TODO: remove this
-                  }
                   if (blockA->fName == "minecraft:standing_banner") {
                     continue; //TODO: remove this
                   }

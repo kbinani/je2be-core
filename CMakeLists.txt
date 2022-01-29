@@ -15,6 +15,7 @@ set(je2be_files
   include/je2be/defer.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp
+  include/je2be/enums/facing4.hpp
   include/je2be/enums/facing6.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/enums/red-flower.hpp

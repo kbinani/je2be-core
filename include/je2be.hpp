@@ -70,6 +70,7 @@
 #include <je2be/enums/red-flower.hpp>
 #include <je2be/enums/skull-type.hpp>
 #include <je2be/enums/facing6.hpp>
+#include <je2be/enums/facing4.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>
