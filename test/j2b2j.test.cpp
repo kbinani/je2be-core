@@ -160,10 +160,13 @@ TEST_CASE("j2b2j") {
             }
           }
 
-#if 0
           for (auto const &it : chunkE->fTileEntities) {
             Pos3i pos = it.first;
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
+            auto id = tileE->string("id");
+            if (id != "minecraft:banner" && id != "minecraft:skull" && id != "minecraft:bed") {
+              continue;
+            }
             auto found = chunkA->fTileEntities.find(pos);
             CHECK(found != chunkA->fTileEntities.end());
             auto tileA = found->second;
@@ -171,9 +174,25 @@ TEST_CASE("j2b2j") {
             mcfile::nbt::PrintAsJson(e, *tileE, {.fTypeHint = true});
             ostringstream a;
             mcfile::nbt::PrintAsJson(a, *tileA, {.fTypeHint = true});
-            CHECK(e.str() == a.str());
+            string es = e.str();
+            string as = a.str();
+            if (es == as) {
+              CHECK(true);
+            } else {
+              cerr << "actual:" << endl;
+              cerr << as << endl;
+              cerr << "expected:" << endl;
+              cerr << es << endl;
+              vector<string> linesE = mcfile::String::Split(es, '\n');
+              vector<string> linesA = mcfile::String::Split(as, '\n');
+              for (int i = 0; i < std::min(linesE.size(), linesA.size()); i++) {
+                string lineE = linesE[i];
+                string lineA = linesA[i];
+                string prefix = "#" + to_string(i);
+                CHECK(prefix + lineA == prefix + lineE);
+              }
+            }
           }
-#endif
         }
       }
     }

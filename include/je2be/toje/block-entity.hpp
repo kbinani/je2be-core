@@ -26,6 +26,55 @@ public:
   }
 
 #pragma region Converters
+  static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto base = tag.int32("Base", 0);
+    BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(base);
+    auto colorNameJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(bccb));
+    string name;
+    if (block.fName == "minecraft:standing_banner") {
+      name = colorNameJ + "_banner";
+    } else {
+      name = colorNameJ + "_wall_banner";
+    }
+    auto te = make_shared<CompoundTag>();
+    te->set("id", props::String("minecraft:banner"));
+    Pos(*te, pos);
+    te->set("keepPacked", props::Bool(false));
+    auto type = tag.int32("Type", 0);
+    if (type == 1) {
+      // Illager Banner
+      te->set("CustomName", props::String(R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
+      te->set("Patterns", OmniousBannerPatterns());
+    } else {
+      auto patternsB = tag.listTag("Patterns");
+      if (patternsB) {
+        auto patternsJ = make_shared<ListTag>(Tag::Type::Compound);
+        for (auto const &pB : *patternsB) {
+          CompoundTag const *c = pB->asCompound();
+          if (!c) {
+            continue;
+          }
+          auto pColorB = c->int32("Color");
+          auto pPatternB = c->string("Pattern");
+          if (!pColorB || !pPatternB) {
+            continue;
+          }
+          auto pJ = make_shared<CompoundTag>();
+          pJ->set("Color", props::Int(static_cast<int32_t>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+          pJ->set("Pattern", props::String(*pPatternB));
+          patternsJ->push_back(pJ);
+        }
+        te->set("Patterns", patternsJ);
+      }
+    }
+    Result r;
+    r.fBlock = Block(name, inout.fProperties);
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &inout) {
     auto color = tagB.byte("color", 0);
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
@@ -125,54 +174,6 @@ public:
     te->set("id", String("minecraft:skull"));
     te->set("keepPacked", Bool(false));
     Pos(*te, pos);
-    r.fTileEntity = te;
-    return r;
-  }
-
-  static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
-    using namespace std;
-    using namespace mcfile::nbt;
-    auto base = tag.int32("Base", 0);
-    BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(base);
-    auto colorNameJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(bccb));
-    string name;
-    if (block.fName == "minecraft:standing_banner") {
-      name = colorNameJ + "_banner";
-    } else {
-      name = colorNameJ + "_wall_banner";
-    }
-    auto te = make_shared<CompoundTag>();
-    te->set("id", props::String("minecraft:banner"));
-    Pos(*te, pos);
-    te->set("keepPacked", props::Bool(false));
-    auto type = tag.int32("Type", 0);
-    if (type == 1) {
-      // Illager Banner
-      te->set("CustomName", props::String(R"({"color":"gold","translate":"block.minecraft.omnious_banner"})"));
-      te->set("Patterns", OmniousBannerPatterns());
-    } else {
-      auto patternsB = tag.listTag("Patterns");
-      if (patternsB) {
-        auto patternsJ = make_shared<ListTag>(Tag::Type::Compound);
-        for (auto const &pB : *patternsB) {
-          CompoundTag const *c = pB->asCompound();
-          if (!c) {
-            continue;
-          }
-          auto pColorB = c->int32("Color");
-          auto pPatternB = c->string("Pattern");
-          if (!pColorB || !pPatternB) {
-            continue;
-          }
-          auto pJ = make_shared<CompoundTag>();
-          pJ->set("Color", props::Int(static_cast<int32_t>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set("Pattern", props::String(*pPatternB));
-        }
-        te->set("Patterns", patternsJ);
-      }
-    }
-    Result r;
-    r.fBlock = Block(name, inout.fProperties);
     r.fTileEntity = te;
     return r;
   }

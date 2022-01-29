@@ -154,14 +154,13 @@ public:
             j->fTileEntities[pos] = result->fTileEntity;
           }
           if (result->fBlock) {
-            j->setBlockAt(pos, result->fBlock);
+            mcfile::je::SetBlockOptions o;
+            o.fRemoveTileEntity = false;
+            j->setBlockAt(pos, result->fBlock, o);
           }
         }
 
-        //TODO: colored standing banner
-        //TODO: colored bed
         //TODO: "type" of chest, trapped_chest
-        //TODO: type of skull
         //TODO: "has_record" of jukebox
         //TODO: movingBlock
         //TODO: "extended" of piston, sticky_piston
