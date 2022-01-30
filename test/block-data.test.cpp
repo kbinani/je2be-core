@@ -72,6 +72,7 @@ TEST_CASE("prepare-test-data") {
           auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
           mcfile::stream::OutputStreamWriter osw(fos);
           CHECK(converted->writeAsRoot(osw));
+          osw.write((uint8_t)0);
           return true;
         });
       }
