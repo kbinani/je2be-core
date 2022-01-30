@@ -261,6 +261,7 @@ private:
     E(piston, PistonArm(false));
 
     E(end_gateway, EndGateway);
+    E(ender_chest, AnyStorage("EnderChest"));
 #undef E
     return table;
   }

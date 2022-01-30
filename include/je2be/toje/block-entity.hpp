@@ -255,6 +255,12 @@ public:
     return r;
   }
 
+  static std::optional<Result> SameNameEmpty(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    Result r;
+    r.fTileEntity = EmptyFullName(block.fName, pos);
+    return r;
+  }
+
   static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto facing = tag.byte("facing", 0);
@@ -362,9 +368,9 @@ public:
     E(birch_standing_sign, Sign);
     E(crimson_standing_sign, Sign);
     E(jungle_standing_sign, Sign);
-    E(standing_sign, Sign);
     E(spruce_standing_sign, Sign);
     E(warped_standing_sign, Sign);
+    E(ender_chest, SameNameEmpty);
 
 #undef E
     return t;
