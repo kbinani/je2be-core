@@ -30,6 +30,12 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
   tagE->erase("Items");
   tagA->erase("Items");
 
+  static unordered_set<string> blackList({"LootTableSeed"});
+  for (string b : blackList) {
+    tagE->erase(b);
+    tagA->erase(b);
+  }
+
   ostringstream streamE;
   PrintAsJson(streamE, *tagE, {.fTypeHint = true});
   ostringstream streamA;
@@ -187,12 +193,6 @@ TEST_CASE("j2b2j") {
           for (auto const &it : chunkE->fTileEntities) {
             Pos3i pos = it.first;
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
-            auto id = tileE->string("id");
-            static unordered_set<string> const sWhitelist{
-                "minecraft:banner", "minecraft:skull", "minecraft:bed", "minecraft:jukebox", "minecraft:shulker_box", "minecraft:lectern", "minecraft:piston"};
-            if (sWhitelist.find(*id) == sWhitelist.end()) {
-              continue; //TODO: remove this
-            }
             auto found = chunkA->fTileEntities.find(pos);
             CHECK(found != chunkA->fTileEntities.end());
             auto tileA = found->second;

@@ -38,7 +38,7 @@ public:
     } else {
       name = colorNameJ + "_wall_banner";
     }
-    auto te = Empty("banner", pos);
+    auto te = EmptyShortName("banner", pos);
     auto type = tag.int32("Type", 0);
     if (type == 1) {
       // Illager Banner
@@ -78,7 +78,7 @@ public:
     auto name = JavaNameFromColorCodeJava(ccj);
     Result r;
     r.fBlock = BlockShortName(name + "_bed", inout.fProperties);
-    r.fTileEntity = Empty("bed", pos);
+    r.fTileEntity = EmptyShortName("bed", pos);
     return r;
   }
 
@@ -106,10 +106,19 @@ public:
     p["type"] = type;
     Result r;
     r.fBlock = BlockFullName(blockJ.fName, p);
-    auto te = Empty("chest", pos);
+    auto te = EmptyFullName(block.fName, pos);
     auto items = ContainerItems(tagB, "Items");
     if (items && !items->empty()) {
       te->set("Items", items);
+    }
+    auto lootTable = tagB.string("LootTable");
+    if (lootTable && lootTable->starts_with("loot_tables/") && lootTable->ends_with(".json")) {
+      string name = strings::RTrim(lootTable->substr(12), ".json");
+      te->set("LootTable", props::String("minecraft:" + name));
+      auto lootTableSeed = tagB.int32("LootTableSeed");
+      if (lootTableSeed) {
+        te->set("LootTableSeed", props::Long(*lootTableSeed));
+      }
     }
     r.fTileEntity = te;
     return r;
@@ -177,7 +186,7 @@ public:
     auto record = tag.compoundTag("RecordItem");
     map<string, string> p(inout.fProperties);
     p["has_record"] = ToString(record != nullptr);
-    auto te = Empty("jukebox", pos);
+    auto te = EmptyShortName("jukebox", pos);
     if (record) {
       auto itemJ = Item::From(*record);
       if (itemJ) {
@@ -192,7 +201,7 @@ public:
 
   static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
-    auto te = Empty("lectern", pos);
+    auto te = EmptyShortName("lectern", pos);
     map<string, string> p(blockJ.fProperties);
     auto page = tag.int32("page");
     auto bookB = tag.compoundTag("book");
@@ -231,7 +240,7 @@ public:
     auto f6 = Facing6FromBedrockFacingDirectionA(facing);
     map<string, string> p(inout.fProperties);
     p["facing"] = JavaNameFromFacing6(f6);
-    auto te = Empty("shulker_box", pos);
+    auto te = EmptyShortName("shulker_box", pos);
     auto items = ContainerItems(tag, "Items");
     if (items && !items->empty()) {
       te->set("Items", items);
@@ -266,7 +275,7 @@ public:
     }
     Result r;
     r.fBlock = BlockShortName(skullName, p);
-    auto te = Empty("skull", pos);
+    auto te = EmptyShortName("skull", pos);
     r.fTileEntity = te;
     return r;
   }
@@ -339,14 +348,18 @@ public:
     return ret;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> Empty(std::string const &id, Pos3i const &pos) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> EmptyFullName(std::string const &id, Pos3i const &pos) {
     auto tag = std::make_shared<mcfile::nbt::CompoundTag>();
-    tag->set("id", props::String("minecraft:" + id));
+    tag->set("id", props::String(id));
     tag->set("x", props::Int(pos.fX));
     tag->set("y", props::Int(pos.fY));
     tag->set("z", props::Int(pos.fZ));
     tag->set("keepPacked", props::Bool(false));
     return tag;
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> EmptyShortName(std::string const &id, Pos3i const &pos) {
+    return EmptyFullName("minecraft:" + id, pos);
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> OmniousBannerPatterns() {
