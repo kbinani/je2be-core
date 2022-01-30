@@ -160,16 +160,9 @@ public:
           }
         }
 
-        //TODO: "type" of chest, trapped_chest
-        //TODO: "has_record" of jukebox
-        //TODO: movingBlock
-        //TODO: "extended" of piston, sticky_piston
-        //TODO: "lit" of redstone_torch
-        //TODO: "locked" of repeater
-        //TODO: power,sculk_sensor_phase of sculk_sensor
-        //TODO: facing of shulker_box, undyed_shulker_box
-
         BlockPropertyAccessor accessor(*b);
+
+        Piston::Do(*j, *cache, accessor);
 
         ShapeOfStairs::Do(*j, *cache, accessor);
         Kelp::Do(*j, *cache, accessor);

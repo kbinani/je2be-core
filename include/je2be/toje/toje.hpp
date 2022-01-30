@@ -22,6 +22,7 @@
 #include <je2be/toje/note-block.hpp>
 #include <je2be/toje/redstone-wire.hpp>
 #include <je2be/toje/tripwire.hpp>
+#include <je2be/toje/piston.hpp>
 
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>

@@ -42,6 +42,20 @@ public:
     return chunk->blockAt(bx, by, bz);
   }
 
+  std::shared_ptr<mcfile::nbt::CompoundTag const> blockEntityAt(Pos3i const &pos) const {
+    int cx = mcfile::Coordinate::ChunkFromBlock(pos.fX);
+    int cz = mcfile::Coordinate::ChunkFromBlock(pos.fZ);
+    auto index = this->index(cx, cz);
+    if (!index) {
+      return nullptr;
+    }
+    auto const &chunk = fCache[*index];
+    if (!chunk) {
+      return nullptr;
+    }
+    return chunk->blockEntityAt(pos);
+  }
+
   void load(int cx, int cz, leveldb::DB &db) {
     auto index = this->index(cx, cz);
     if (!index) {

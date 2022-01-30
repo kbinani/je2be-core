@@ -217,8 +217,8 @@ private:
     return bName;
   }
 
-  static String BlockWithFacingBFromFacingDirection(String const &bName, States const &s, Props &p) {
-    FacingBFromFacingDirection(s, p);
+  static String BlockWithFacing6FromFacingDirection6(String const &bName, States const &s, Props &p) {
+    Facing6FromFacingDirectionB(s, p);
     return bName;
   }
 
@@ -1551,24 +1551,10 @@ private:
     props["facing"] = facing;
   }
 
-  static void FacingBFromFacingDirection(States const &s, Props &props) {
+  static void Facing6FromFacingDirectionB(States const &s, Props &props) {
     auto direction = s.int32("facing_direction", 0);
-    std::string facing;
-    switch (direction) {
-    case 2:
-      facing = "south";
-      break;
-    case 1:
-      facing = "west";
-      break;
-    case 3:
-      facing = "north";
-      break;
-    case 0:
-    default:
-      facing = "east";
-      break;
-    }
+    Facing6 f6 = Facing6FromBedrockFacingDirectionB(direction);
+    std::string facing = JavaNameFromFacing6(f6);
     props["facing"] = facing;
   }
 
@@ -2253,8 +2239,8 @@ private:
     E(observer, Observer);
     E(oxidized_cut_copper_slab, Slab);
     E(oxidized_double_cut_copper_slab, DoubleSlab("oxidized_cut_copper_slab"));
-    E(piston, BlockWithFacingBFromFacingDirection);
-    E(sticky_piston, BlockWithFacingBFromFacingDirection);
+    E(piston, BlockWithFacing6FromFacingDirection6);
+    E(sticky_piston, BlockWithFacing6FromFacingDirection6);
     E(podzol, BlockWithSnowy); // No "snowy" property in BE
     E(pointed_dripstone, PointedDripstone);
     E(polished_basalt, BlockWithAxisFromPillarAxis);

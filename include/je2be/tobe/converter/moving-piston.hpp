@@ -34,25 +34,27 @@ public:
             if (loader.tileEntityAt(pos)) {
               continue;
             }
-            int facing = BlockData::GetFacingDirectionAFromFacing(*block);
-            Pos3i pistonHeadPos = pos + VectorOfFacing(facing);
+            Facing6 f6 = Facing6FromJavaName(block->property("facing", ""));
+            Pos3i vec = Pos3iFromFacing6(f6);
+            Pos3i pistonHeadPos = pos + vec;
+            int facingDirectionB = BedrockFacingDirectionBFromFacing6(f6);
             auto pistonHeadTileEntity = loader.tileEntityAt(pistonHeadPos);
             if (pistonHeadTileEntity) {
               auto pistonHead = PistonTileEntity::From(pistonHeadTileEntity, pistonHeadPos);
               if (!pistonHead) {
                 continue;
               }
-              if (!pistonHead->fSource || !pistonHead->fExtending || pistonHead->fFacing != facing) {
+              if (!pistonHead->fSource || !pistonHead->fExtending || pistonHead->fFacing != facingDirectionB) {
                 continue;
               }
 
               unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
-              LookupAttachedBlocks(loader, pistonHeadPos, true, facing, attachedBlocks);
+              LookupAttachedBlocks(loader, pistonHeadPos, true, facingDirectionB, attachedBlocks);
 
               auto pistonArm = make_shared<CompoundTag>();
               auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
               for (auto attachedBlock : attachedBlocks) {
-                Pos3i actual = attachedBlock - VectorOfFacing(facing);
+                Pos3i actual = attachedBlock - vec;
                 attachedBlocksTag->push_back(Int(actual.fX));
                 attachedBlocksTag->push_back(Int(actual.fY));
                 attachedBlocksTag->push_back(Int(actual.fZ));
@@ -73,14 +75,15 @@ public:
               tileEntityReplacement[pos] = pistonArm;
             } else {
               // Tile entity doesn't exist at piston_head position.
-              // This means the piston is in static and already extended state.
+              // This means the piston is in static state.
+              bool extended = block->property("extended", "false") == "true";
               auto pistonArm = make_shared<CompoundTag>();
               pistonArm->set("AttachedBlocks", make_shared<ListTag>(Tag::Type::Int));
               pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
-              pistonArm->set("LastProgress", Float(1));
-              pistonArm->set("NewState", Byte(2));
-              pistonArm->set("Progress", Float(1));
-              pistonArm->set("State", Byte(2));
+              pistonArm->set("LastProgress", Float(extended ? 1 : 0));
+              pistonArm->set("NewState", Byte(extended ? 2 : 0));
+              pistonArm->set("Progress", Float(extended ? 1 : 0));
+              pistonArm->set("State", Byte(extended ? 2 : 0));
               pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
               pistonArm->set("id", String("j2b:PistonArm"));
               pistonArm->set("isMovable", Bool(false));
