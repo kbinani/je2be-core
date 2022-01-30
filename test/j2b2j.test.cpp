@@ -138,9 +138,6 @@ TEST_CASE("j2b2j") {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
                 if (blockA && blockE) {
-                  if (blockE->fName == "minecraft:piston_head" || blockE->fName == "minecraft:piston" || blockE->fName == "minecraft:sticky_piston") {
-                    continue; //TODO: remove this
-                  }
                   auto foundJtoB = fallbackJtoB.find(blockE->fName);
                   if (foundJtoB == fallbackJtoB.end()) {
                     auto foundBtoJ = fallbackBtoJ.find(blockA->fName);

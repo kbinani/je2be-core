@@ -1237,6 +1237,17 @@ private:
     return Ns() + name;
   }
 
+  static String PistonArmCollision(String const &bName, States const &s, Props &p) {
+    bool sticky = bName == "minecraft:stickyPistonArmCollision";
+    std::string type = sticky ? "sticky" : "normal";
+    auto f6 = Facing6FromBedrockFacingDirectionB(s.int32("facing_direction", 0));
+    auto facing = JavaNameFromFacing6(f6);
+    p["facing"] = facing;
+    p["type"] = type;
+    p["short"] = "false"; //?
+    return Ns() + "piston_head";
+  }
+
   static String Stone(String const &bName, States const &s, Props &p) {
     auto type = s.string("stone_type", "stone");
     std::string name;
@@ -2336,6 +2347,8 @@ private:
     E(mob_spawner, Rename("spawner"));
     E(frame, Rename("air"));
     E(glow_frame, Rename("air"));
+    E(pistonArmCollision, PistonArmCollision);
+    E(stickyPistonArmCollision, PistonArmCollision);
 
 #undef E
 
