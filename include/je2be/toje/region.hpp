@@ -24,12 +24,10 @@ public:
     };
 
     for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
-      unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32 - 1, cz - 1));
+      unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32 - 1, cz - 1, db));
       for (int cx = rx * 32; cx < rx * 32 + 32; cx++) {
         defer {
-          unique_ptr<ChunkCache<3, 3>> next(new ChunkCache<3, 3>(d, cx, cz - 1));
-          next->set(cx + 1, cz, cache->at(cx + 1, cz));
-          next->set(cx, cz, cache->at(cx, cz));
+          unique_ptr<ChunkCache<3, 3>> next(cache->makeRelocated(cx, cz - 1));
           cache.swap(next);
         };
 
@@ -40,15 +38,10 @@ public:
         if (found == chunks.end()) {
           continue;
         }
-        cache->load(cx, cz, *db);
-        auto b = cache->at(cx, cz);
+        auto b = cache->ensureLoadedAt(cx, cz);
         if (!b) {
           continue;
         }
-        cache->load(cx, cz - 1, *db);
-        cache->load(cx + 1, cz, *db);
-        cache->load(cx, cz + 1, *db);
-        cache->load(cx - 1, cz, *db);
 
         auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cz);
 
