@@ -124,9 +124,9 @@ public:
           j->fSections[sectionIndex] = sectionJ;
         }
 
-        for (int y = j->minBlockY(); y <= j->maxBlockY(); y++) {
-          for (int z = j->minBlockZ(); z <= j->maxBlockZ(); z++) {
-            for (int x = j->minBlockX(); x <= j->maxBlockX(); x++) {
+        for (int y = j->minBlockY(); y <= j->maxBlockY(); y += 4) {
+          for (int z = j->minBlockZ(); z <= j->maxBlockZ(); z += 4) {
+            for (int x = j->minBlockX(); x <= j->maxBlockX(); x += 4) {
               auto biome = b->biomeAt(x, y, z);
               if (biome) {
                 j->setBiomeAt(x, y, z, *biome);
