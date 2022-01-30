@@ -100,4 +100,40 @@ static inline Facing6 Facing6FromBedrockFacingDirectionA(int facingDirectionA) {
   }
 }
 
+static inline Facing6 Facing6FromBedrockFacingDirectionB(int direction) {
+  switch (direction) {
+  case 4:
+    return Facing6::East;
+  case 2:
+    return Facing6::South;
+  case 5:
+    return Facing6::West;
+  case 3:
+    return Facing6::North;
+  case 1:
+    return Facing6::Up;
+  case 0:
+  default:
+    return Facing6::Down;
+  }
+}
+
+static inline int32_t BedrockFacingDirectionBFromFacing6(Facing6 f6) {
+  switch (f6) {
+  case Facing6::East:
+    return 4;
+  case Facing6::South:
+    return 2;
+  case Facing6::West:
+    return 5;
+  case Facing6::North:
+    return 3;
+  case Facing6::Up:
+    return 1;
+  case Facing6::Down:
+  default:
+    return 0;
+  }
+}
+
 } // namespace je2be

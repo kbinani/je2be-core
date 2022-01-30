@@ -47,24 +47,6 @@ public:
     return BedrockFacingDirectionAFromFacing6(f6);
   }
 
-  static int32_t GetFacingDirectionFromFacingB(mcfile::je::Block const &block) {
-    // 103425
-    auto facing = block.property("facing", "north");
-    if (facing == "east") {
-      return 4;
-    } else if (facing == "south") {
-      return 2;
-    } else if (facing == "west") {
-      return 5;
-    } else if (facing == "north") {
-      return 3;
-    } else if (facing == "up") {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
 private:
   BlockData() = delete;
 
@@ -580,8 +562,10 @@ private:
     s->set("facing_direction", props::Int(direction));
   }
 
-  static void FacingDirectionFromFacingB(StatesType const &s, Block const &block) {
-    int32_t direction = GetFacingDirectionFromFacingB(block);
+  static void PistonFacingDirectionFromFacing6(StatesType const &s, Block const &block) {
+    std::string facing = block.property("facing", "");
+    Facing6 f6 = Facing6FromJavaName(facing);
+    int32_t direction = BedrockFacingDirectionBFromFacing6(f6);
     s->set("facing_direction", props::Int(direction));
   }
 
@@ -721,7 +705,7 @@ private:
     Converter axisToPillarAxis(Same, AxisToPillarAxis);
     Converter directionFromFacing(Same, DirectionFromFacingA);
     Converter facingDirectionFromFacingA(Same, FacingDirectionAFromFacing);
-    Converter facingDirectionFromFacingB(Same, FacingDirectionFromFacingB);
+    Converter facingDirectionFromFacingB(Same, PistonFacingDirectionFromFacing6);
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
 #define E(__name, __func)                                                                                    \
@@ -1320,7 +1304,7 @@ private:
     E(soul_campfire, campfire);
     E(piston, facingDirectionFromFacingB);
     E(sticky_piston, facingDirectionFromFacingB);
-    E(piston_head, Converter(Name("air")));
+    E(piston_head, PistonHead);
     E(moving_piston, MovingPiston);
     E(note_block, Rename("noteblock"));
     E(dispenser, Converter(Same, FacingDirectionAFromFacing, Name(Triggered, "triggered_bit")));
@@ -1596,6 +1580,16 @@ private:
   static BlockDataType MovingPiston(Block const &block) {
     auto c = New("movingBlock");
     auto s = States();
+    return AttachStates(c, s);
+  }
+
+  static BlockDataType PistonHead(Block const &block) {
+    auto type = block.property("type", "normal");
+    auto c = New(type == "normal" ? "pistonArmCollision" : "stickyPistonArmCollision");
+    auto f6 = Facing6FromJavaName(block.property("facing", ""));
+    auto direction = BedrockFacingDirectionBFromFacing6(f6);
+    auto s = States();
+    s->set("facing_direction", props::Int(direction));
     return AttachStates(c, s);
   }
 
