@@ -181,7 +181,7 @@ TEST_CASE("j2b2j") {
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
             auto id = tileE->string("id");
             static unordered_set<string> const sWhitelist{
-                "minecraft:banner", "minecraft:skull", "minecraft:bed", "minecraft:jukebox", "minecraft:shulker_box", "minecraft:lectern"};
+                "minecraft:banner", "minecraft:skull", "minecraft:bed", "minecraft:jukebox", "minecraft:shulker_box", "minecraft:lectern", "minecraft:piston"};
             if (sWhitelist.find(*id) == sWhitelist.end()) {
               continue; //TODO: remove this
             }
