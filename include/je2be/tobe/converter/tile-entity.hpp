@@ -234,7 +234,7 @@ private:
     E(dragon_wall_head, Skull);
 
     E(barrel, AnyStorage("Barrel"));
-    E(furnace, AnyStorage("Furnace"));
+    E(furnace, Furnace);
     E(brewing_stand, BrewingStand);
     E(blast_furnace, AnyStorage("BlastFurnace"));
     E(smoker, AnyStorage("Smoker"));
@@ -1121,6 +1121,25 @@ private:
     }
     Attach(comp, pos, *tag);
     return tag;
+  }
+
+  static TileEntityData Furnace(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &comp, JavaEditionMap const &mapInfo, WorldData &wd) {
+    auto ret = AnyStorage("Furnace")(pos, b, comp, mapInfo, wd);
+    if (comp) {
+      auto burnTime = comp->int16("BurnTime");
+      if (burnTime) {
+        ret->set("BurnDuration", props::Short(*burnTime));
+      }
+      auto cookTime = comp->int16("CookTime");
+      if (cookTime) {
+        ret->set("CookTime", props::Short(*cookTime));
+      }
+      auto cookTimeTotal = comp->int16("CookTimeTotal");
+      if (cookTimeTotal) {
+        ret->set("BurnTime", props::Short(*cookTimeTotal));
+      }
+    }
+    return ret;
   }
 };
 

@@ -181,6 +181,27 @@ public:
     return r;
   }
 
+  static std::optional<Result> Furnace(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    auto te = EmptyShortName("furnace", pos);
+    auto burnDuration = tagB.int16("BurnDuration");
+    if (burnDuration) {
+      te->set("BurnTime", props::Short(*burnDuration));
+    }
+    auto cookTime = tagB.int16("CookTime");
+    if (cookTime) {
+      te->set("CookTime", props::Short(*cookTime));
+    }
+    auto burnTime = tagB.int16("BurnTime");
+    if (burnTime) {
+      te->set("CookTimeTotal", props::Short(*burnTime));
+    }
+    te->set("RecipesUsed", make_shared<mcfile::nbt::CompoundTag>());
+    Result r;
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
     using namespace std;
     auto record = tag.compoundTag("RecordItem");
@@ -300,6 +321,7 @@ public:
     E(chest, Chest);
     E(trapped_chest, Chest);
     E(lectern, Lectern);
+    E(furnace, Furnace);
 
 #undef E
     return t;
