@@ -124,6 +124,17 @@ public:
           j->fSections[sectionIndex] = sectionJ;
         }
 
+        for (int y = j->minBlockY(); y <= j->maxBlockY(); y++) {
+          for (int z = j->minBlockZ(); z <= j->maxBlockZ(); z++) {
+            for (int x = j->minBlockX(); x <= j->maxBlockX(); x++) {
+              auto biome = b->biomeAt(x, y, z);
+              if (biome) {
+                j->setBiomeAt(x, y, z, *biome);
+              }
+            }
+          }
+        }
+
         for (auto const &it : b->fBlockEntities) {
           Pos3i const &pos = it.first;
           shared_ptr<CompoundTag> const &tagB = it.second;

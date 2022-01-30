@@ -176,6 +176,14 @@ TEST_CASE("j2b2j") {
             }
           }
 
+          for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
+            for (int z = chunkE->minBlockZ(); z <= chunkE->maxBlockZ(); z++) {
+              for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
+                CHECK(chunkA->biomeAt(x, y, z) == chunkE->biomeAt(x, y, z));
+              }
+            }
+          }
+
           for (auto const &it : chunkE->fTileEntities) {
             Pos3i pos = it.first;
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
