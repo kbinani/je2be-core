@@ -3,8 +3,8 @@
 namespace je2be {
 
 struct Rgba {
-  Rgba(uint8_t r, uint8_t g, uint8_t b) : fR(r), fG(g), fB(b), fA(255) {}
-  Rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : fR(r), fG(g), fB(b), fA(a) {}
+  constexpr Rgba(uint8_t r, uint8_t g, uint8_t b) : fR(r), fG(g), fB(b), fA(255) {}
+  constexpr Rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : fR(r), fG(g), fB(b), fA(a) {}
 
   uint8_t fR;
   uint8_t fG;

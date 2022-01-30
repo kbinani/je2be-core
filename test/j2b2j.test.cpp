@@ -194,7 +194,10 @@ TEST_CASE("j2b2j") {
             Pos3i pos = it.first;
             shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
             auto found = chunkA->fTileEntities.find(pos);
-            CHECK(found != chunkA->fTileEntities.end());
+            if (found == chunkA->fTileEntities.end()) {
+              mcfile::nbt::PrintAsJson(cerr, *tileE, {.fTypeHint = true});
+              CHECK(false);
+            }
             auto tileA = found->second;
             CheckTileEntity(*tileE, *tileA);
           }

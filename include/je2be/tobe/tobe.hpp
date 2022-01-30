@@ -24,7 +24,6 @@
 
 #include <je2be/tobe/converter/dimension.hpp>
 #include <je2be/tobe/converter/command.hpp>
-#include <je2be/tobe/converter/sign.hpp>
 #include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/biome-map-legacy.hpp>
 #include <je2be/tobe/converter/player-abilities.hpp>

@@ -72,5 +72,7 @@
 #include <je2be/enums/facing6.hpp>
 #include <je2be/enums/facing4.hpp>
 
+#include <je2be/color/sign-color.hpp>
+
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

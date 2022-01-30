@@ -12,6 +12,7 @@ set(je2be_files
   include/je2be.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
+  include/je2be/color/sign-color.hpp
   include/je2be/defer.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp
@@ -60,7 +61,6 @@ set(je2be_files
   include/je2be/tobe/converter/moving-piston.hpp
   include/je2be/tobe/converter/player-abilities.hpp
   include/je2be/tobe/converter/potion-data.hpp
-  include/je2be/tobe/converter/sign.hpp
   include/je2be/tobe/converter/sub-chunk.hpp
   include/je2be/tobe/converter/tile-entity.hpp
   include/je2be/tobe/converter/tropical-fish.hpp

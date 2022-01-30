@@ -106,35 +106,29 @@ private:
 
   static int8_t MostSimilarColor(Rgba rgb) {
     struct Color {
-      Lab fColor;
+      Rgba fColor;
       int8_t fCode;
     };
-    static std::vector<Color> colors = {
-        {Lab::From(Rgba::FromRGB(1973019)), 0},   // black
-        {Lab::From(Rgba::FromRGB(11743532)), 1},  // red
-        {Lab::From(Rgba::FromRGB(3887386)), 2},   // green
-        {Lab::From(Rgba::FromRGB(5320730)), 3},   // brown
-        {Lab::From(Rgba::FromRGB(2437522)), 4},   // blue
-        {Lab::From(Rgba::FromRGB(8073150)), 5},   // purple
-        {Lab::From(Rgba::FromRGB(2651799)), 6},   // cyan
-        {Lab::From(Rgba::FromRGB(11250603)), 7},  // light gray
-        {Lab::From(Rgba::FromRGB(4408131)), 8},   // gray
-        {Lab::From(Rgba::FromRGB(14188952)), 9},  // pink
-        {Lab::From(Rgba::FromRGB(4312372)), 10},  // lime
-        {Lab::From(Rgba::FromRGB(14602026)), 11}, // yellow
-        {Lab::From(Rgba::FromRGB(6719955)), 12},  // light blue
-        {Lab::From(Rgba::FromRGB(12801229)), 13}, // magenta
-        {Lab::From(Rgba::FromRGB(15435844)), 14}, // orange
-        {Lab::From(Rgba::FromRGB(15790320)), 15}, // white
+    std::vector<Color> colors = {
+        {Rgba::FromRGB(1973019), 0},   // black
+        {Rgba::FromRGB(11743532), 1},  // red
+        {Rgba::FromRGB(3887386), 2},   // green
+        {Rgba::FromRGB(5320730), 3},   // brown
+        {Rgba::FromRGB(2437522), 4},   // blue
+        {Rgba::FromRGB(8073150), 5},   // purple
+        {Rgba::FromRGB(2651799), 6},   // cyan
+        {Rgba::FromRGB(11250603), 7},  // light gray
+        {Rgba::FromRGB(4408131), 8},   // gray
+        {Rgba::FromRGB(14188952), 9},  // pink
+        {Rgba::FromRGB(4312372), 10},  // lime
+        {Rgba::FromRGB(14602026), 11}, // yellow
+        {Rgba::FromRGB(6719955), 12},  // light blue
+        {Rgba::FromRGB(12801229), 13}, // magenta
+        {Rgba::FromRGB(15435844), 14}, // orange
+        {Rgba::FromRGB(15790320), 15}, // white
     };
-    std::vector<Color> copy(colors);
-    Lab ref = Lab::From(rgb);
-    std::sort(copy.begin(), copy.end(), [ref](Color const &lhs, Color const &rhs) {
-      double dl = Lab::Difference(lhs.fColor, ref);
-      double dr = Lab::Difference(rhs.fColor, ref);
-      return dl < dr;
-    });
-    auto const &ret = copy[0];
+    std::sort(colors.begin(), colors.end(), [rgb](Color const &lhs, Color const &rhs) { return Lab::CompareBySimirality(rgb)(lhs.fColor, rhs.fColor); });
+    auto const &ret = colors[0];
     return ret.fCode;
   }
 

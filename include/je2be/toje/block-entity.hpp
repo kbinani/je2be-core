@@ -15,18 +15,18 @@ private:
   using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, mcfile::nbt::CompoundTag const &, mcfile::je::Block const &)>;
 
 public:
-  static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+  static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
     auto found = sTable->find(block.fName);
     if (found == sTable->end()) {
       return nullopt;
     }
-    return found->second(pos, block, tag, inout);
+    return found->second(pos, block, tag, blockJ);
   }
 
 #pragma region Converters
-  static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+  static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     using namespace mcfile::nbt;
     auto base = tag.int32("Base", 0);
@@ -67,17 +67,17 @@ public:
       }
     }
     Result r;
-    r.fBlock = BlockShortName(name, inout.fProperties);
+    r.fBlock = BlockShortName(name, blockJ.fProperties);
     r.fTileEntity = te;
     return r;
   }
 
-  static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &inout) {
+  static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     auto color = tagB.byte("color", 0);
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
     auto name = JavaNameFromColorCodeJava(ccj);
     Result r;
-    r.fBlock = BlockShortName(name + "_bed", inout.fProperties);
+    r.fBlock = BlockShortName(name + "_bed", blockJ.fProperties);
     r.fTileEntity = EmptyShortName("bed", pos);
     return r;
   }
@@ -124,7 +124,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &inout) {
+  static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto plantBlock = tagB.compoundTag("PlantBlock");
     if (!plantBlock) {
@@ -202,10 +202,10 @@ public:
     return r;
   }
 
-  static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+  static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto record = tag.compoundTag("RecordItem");
-    map<string, string> p(inout.fProperties);
+    map<string, string> p(blockJ.fProperties);
     p["has_record"] = ToString(record != nullptr);
     auto te = EmptyShortName("jukebox", pos);
     if (record) {
@@ -255,11 +255,11 @@ public:
     return r;
   }
 
-  static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+  static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto facing = tag.byte("facing", 0);
     auto f6 = Facing6FromBedrockFacingDirectionA(facing);
-    map<string, string> p(inout.fProperties);
+    map<string, string> p(blockJ.fProperties);
     p["facing"] = JavaNameFromFacing6(f6);
     auto te = EmptyShortName("shulker_box", pos);
     auto items = ContainerItems(tag, "Items");
@@ -267,12 +267,38 @@ public:
       te->set("Items", items);
     }
     Result r;
-    r.fBlock = BlockFullName(inout.fName, p);
+    r.fBlock = BlockFullName(blockJ.fName, p);
     r.fTileEntity = te;
     return r;
   }
 
-  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &inout) {
+  static std::optional<Result> Sign(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    using namespace props;
+    auto te = EmptyShortName("sign", pos);
+    auto glowing = tag.boolean("IgnoreLighting", false);
+    te->set("GlowingText", Bool(glowing));
+    auto color = tag.int32("SignTextColor");
+    if (color) {
+      Rgba rgba = Rgba::FromRGB(*color);
+      ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
+      te->set("Color", String(JavaNameFromColorCodeJava(jcc)));
+    }
+    auto text = tag.string("Text", "");
+    vector<string> lines = mcfile::String::Split(text, '\n');
+    for (int i = 0; i < 4; i++) {
+      string key = "Text" + to_string(i + 1);
+      string line = i < lines.size() ? lines[i] : "";
+      nlohmann::json json;
+      json["text"] = line;
+      te->set(key, String(nlohmann::to_string(json)));
+    }
+    Result r;
+    r.fTileEntity = te;
+    return r;
+  }
+
+  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     using namespace mcfile::nbt;
     using namespace props;
@@ -322,6 +348,23 @@ public:
     E(trapped_chest, Chest);
     E(lectern, Lectern);
     E(furnace, Furnace);
+    E(wall_sign, Sign);
+    E(standing_sign, Sign);
+    E(acacia_wall_sign, Sign);
+    E(birch_wall_sign, Sign);
+    E(crimson_wall_sign, Sign);
+    E(jungle_wall_sign, Sign);
+    E(spruce_wall_sign, Sign);
+    E(warped_wall_sign, Sign);
+    E(darkoak_wall_sign, Sign);
+    E(darkoak_standing_sign, Sign);
+    E(acacia_standing_sign, Sign);
+    E(birch_standing_sign, Sign);
+    E(crimson_standing_sign, Sign);
+    E(jungle_standing_sign, Sign);
+    E(standing_sign, Sign);
+    E(spruce_standing_sign, Sign);
+    E(warped_standing_sign, Sign);
 
 #undef E
     return t;

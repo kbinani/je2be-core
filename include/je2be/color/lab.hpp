@@ -51,6 +51,15 @@ public:
     double i = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
     return i < 0 ? 0 : sqrt(i);
   }
+
+  static std::function<bool(Rgba const &lhs, Rgba const &rhs)> CompareBySimirality(Rgba const &base) {
+    Lab ref = Lab::From(base);
+    return [ref](Rgba const &lhs, Rgba const &rhs) {
+      double dl = Lab::Difference(Lab::From(lhs), ref);
+      double dr = Lab::Difference(Lab::From(rhs), ref);
+      return dl < dr;
+    };
+  }
 };
 
 } // namespace je2be
