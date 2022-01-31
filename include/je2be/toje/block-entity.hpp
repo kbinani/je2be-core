@@ -101,7 +101,7 @@ public:
       }
       auto time = tagB.int32("ItemTime" + to_string(i + 1), 0);
       times.push_back(time);
-      totalTimes.push_back(itemAdded ? 600 : 0);
+      totalTimes.push_back((itemAdded || time > 0) ? 600 : 0);
     }
     auto timesTag = make_shared<IntArrayTag>(times);
     auto totalTimesTag = make_shared<IntArrayTag>(totalTimes);
@@ -216,7 +216,8 @@ public:
 
   static std::optional<Result> Furnace(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     using namespace std;
-    auto te = EmptyFullName(block.fName, pos);
+    string name = strings::LTrim(block.fName.substr(10), "lit_");
+    auto te = EmptyShortName(name, pos);
     auto burnDuration = tagB.int16("BurnDuration");
     if (burnDuration) {
       te->set("BurnTime", props::Short(*burnDuration));
@@ -476,7 +477,6 @@ public:
     E(chest, Chest);
     E(trapped_chest, Chest);
     E(lectern, Lectern);
-    E(furnace, Furnace);
     E(wall_sign, Sign);
     E(standing_sign, Sign);
     E(acacia_wall_sign, Sign);
@@ -497,10 +497,16 @@ public:
     E(enchanting_table, SameNameEmpty);
     E(barrel, AnyStorage("barrel"));
     E(bell, SameNameEmpty);
-    E(blast_furnace, Furnace);
     E(conduit, SameNameEmpty);
     E(campfire, Campfire);
     E(soul_campfire, Campfire);
+
+    E(furnace, Furnace);
+    E(lit_furnace, Furnace);
+    E(blast_furnace, Furnace);
+    E(lit_blast_furnace, Furnace);
+    E(smoker, Furnace);
+    E(lit_smoker, Furnace);
 
 #undef E
     return t;

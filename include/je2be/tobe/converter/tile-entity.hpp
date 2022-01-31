@@ -237,7 +237,7 @@ private:
     E(furnace, Furnace("Furnace"));
     E(brewing_stand, BrewingStand);
     E(blast_furnace, Furnace("BlastFurnace"));
-    E(smoker, AnyStorage("Smoker"));
+    E(smoker, Furnace("Smoker"));
     E(hopper, AnyStorage("Hopper"));
     E(dropper, AnyStorage("Dropper"));
     E(dispenser, AnyStorage("Dispenser"));
