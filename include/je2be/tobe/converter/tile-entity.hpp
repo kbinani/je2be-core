@@ -238,7 +238,7 @@ private:
     E(brewing_stand, BrewingStand);
     E(blast_furnace, Furnace("BlastFurnace"));
     E(smoker, Furnace("Smoker"));
-    E(hopper, AnyStorage("Hopper"));
+    E(hopper, Hopper);
     E(dropper, AnyStorage("Dropper"));
     E(dispenser, AnyStorage("Dispenser"));
 
@@ -270,6 +270,16 @@ private:
     E(comparator, Comparator);
 #undef E
     return table;
+  }
+
+  static TileEntityData Hopper(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = AnyStorage("Hopper")(pos, b, c, mapInfo, wd);
+    auto transferCooldown = c->int32("TransferCooldown", 0);
+    t->set("TransferCooldown", props::Int(transferCooldown));
+    return t;
   }
 
   static TileEntityData Comparator(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {

@@ -282,6 +282,19 @@ public:
     return r;
   }
 
+  static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    auto t = EmptyShortName("hopper", pos);
+    auto items = ContainerItems(tag, "Items");
+    if (items && !items->empty()) {
+      t->set("Items", items);
+    }
+    auto transferCooldown = tag.int32("TransferCooldown", 0);
+    t->set("TransferCooldown", props::Int(transferCooldown));
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto record = tag.compoundTag("RecordItem");
@@ -558,6 +571,7 @@ public:
     E(unpowered_comparator, Comparator);
     E(dropper, AnyStorage("dropper"));
     E(brewing_stand, BrewingStand);
+    E(hopper, Hopper);
 
 #undef E
     return t;
