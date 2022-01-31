@@ -262,8 +262,31 @@ private:
 
     E(end_gateway, EndGateway);
     E(ender_chest, AnyStorage("EnderChest"));
+    E(enchanting_table, EnchantingTable);
 #undef E
     return table;
+  }
+
+  static TileEntityData EnchantingTable(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty("EnchantTable", *c, pos);
+
+    // "rott"
+    // [-pi, pi] float, an angle of enchant table and player's position who placed the table.
+    // Java doesn't store such data in tile entity, so generate rott based on its xyz position.
+    XXHash32 xx(0);
+    xx.add(&pos.fX, sizeof(pos.fX));
+    xx.add(&pos.fY, sizeof(pos.fY));
+    xx.add(&pos.fZ, sizeof(pos.fZ));
+    uint32_t seed = xx.hash();
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<float> distribution(-std::numbers::pi, std::numbers::pi);
+    float rott = distribution(gen);
+    t->set("rott", props::Float(rott));
+
+    return t;
   }
 
   static TileEntityData EndGateway(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
@@ -1022,7 +1045,7 @@ private:
     return tag;
   }
 
-  static void Attach(std::shared_ptr<mcfile::nbt::CompoundTag> const &c, Pos3i const &pos, mcfile::nbt::CompoundTag &tag) {
+  [[deprecated]] static void Attach(std::shared_ptr<mcfile::nbt::CompoundTag> const &c, Pos3i const &pos, mcfile::nbt::CompoundTag &tag) {
     using namespace props;
 
     tag.set("x", Int(pos.fX));
@@ -1038,6 +1061,24 @@ private:
         }
       }
     }
+  }
+
+  static std::shared_ptr<mcfile::nbt::CompoundTag> Empty(std::string const &name, mcfile::nbt::CompoundTag const &tagJ, Pos3i const &pos) {
+    using namespace props;
+    auto ret = std::make_shared<mcfile::nbt::CompoundTag>();
+    ret->set("id", String(name));
+    ret->set("x", Int(pos.fX));
+    ret->set("y", Int(pos.fY));
+    ret->set("z", Int(pos.fZ));
+
+    auto customName = GetJson(tagJ, "CustomName");
+    if (customName) {
+      auto text = GetAsString(*customName, "text");
+      if (text) {
+        ret->set("CustomName", String(*text));
+      }
+    }
+    return ret;
   }
 
   static std::shared_ptr<mcfile::nbt::ListTag> GetItems(std::shared_ptr<CompoundTag> const &c, std::string const &name, JavaEditionMap const &mapInfo, WorldData &wd) {

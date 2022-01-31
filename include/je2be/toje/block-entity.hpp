@@ -371,6 +371,7 @@ public:
     E(spruce_standing_sign, Sign);
     E(warped_standing_sign, Sign);
     E(ender_chest, SameNameEmpty);
+    E(enchanting_table, SameNameEmpty);
 
 #undef E
     return t;

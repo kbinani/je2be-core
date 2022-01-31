@@ -40,6 +40,7 @@
 #include <execution>
 #include <random>
 #include <iostream>
+#include <numbers>
 
 #include <je2be/fs.hpp>
 #include <je2be/scoped-file.hpp>
