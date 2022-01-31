@@ -738,6 +738,10 @@ private:
     using namespace mcfile::nbt;
     using namespace std;
 
+    if (!c) {
+      return nullptr;
+    }
+
     auto tag = std::make_shared<CompoundTag>();
     auto items = GetItems(c, "Items", mapInfo, wd);
     vector<shared_ptr<CompoundTag>> sorted(5);
@@ -774,6 +778,13 @@ private:
       }
       reordered->push_back(it);
     }
+
+    auto brewTime = c->int16("BrewTime", 0);
+    tag->set("CookTime", Short(brewTime));
+
+    auto fuel = c->byte("Fuel", 0);
+    tag->set("FuelAmount", Short(fuel));
+    tag->set("FuelTotal", Short(20));
 
     tag->insert({
         {"Items", reordered},

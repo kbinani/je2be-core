@@ -82,6 +82,43 @@ public:
     return r;
   }
 
+  static std::optional<Result> BrewingStand(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto t = EmptyShortName("brewing_stand", pos);
+    auto itemsB = ContainerItems(tagB, "Items");
+    if (itemsB) {
+      uint8_t mapping[5] = {3, 0, 1, 2, 4};
+      auto itemsJ = make_shared<ListTag>(Tag::Type::Compound);
+      for (int i = 0; i < 5 && i < itemsB->size(); i++) {
+        auto itemTag = itemsB->at(i);
+        CompoundTag const *item = itemTag->asCompound();
+        if (!item) {
+          continue;
+        }
+        auto slot = item->byte("Slot");
+        if (!slot) {
+          continue;
+        }
+        if (5 <= *slot) {
+          continue;
+        }
+        auto newSlot = mapping[*slot];
+        shared_ptr<CompoundTag> copy = item->copy();
+        copy->set("Slot", props::Byte(newSlot));
+        itemsJ->push_back(copy);
+      }
+      t->set("Items", itemsJ);
+    }
+    auto cookTime = tagB.int16("CookTime", 0);
+    t->set("BrewTime", props::Short(cookTime));
+    auto fuelAmount = tagB.int16("FuelAmount", 0);
+    t->set("Fuel", props::Byte(fuelAmount));
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     using namespace std;
     using namespace mcfile::nbt;
@@ -520,6 +557,7 @@ public:
     E(powered_comparator, Comparator);
     E(unpowered_comparator, Comparator);
     E(dropper, AnyStorage("dropper"));
+    E(brewing_stand, BrewingStand);
 
 #undef E
     return t;
