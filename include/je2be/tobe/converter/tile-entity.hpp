@@ -268,8 +268,18 @@ private:
     E(campfire, Campfire);
     E(soul_campfire, Campfire);
     E(comparator, Comparator);
+    E(daylight_detector, NamedEmpty("DaylightDetector"));
 #undef E
     return table;
+  }
+
+  static Converter NamedEmpty(std::string id) {
+    return [id](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) -> TileEntityData {
+      if (!c) {
+        return nullptr;
+      }
+      return Empty(id, *c, pos);
+    };
   }
 
   static TileEntityData Hopper(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {

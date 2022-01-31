@@ -440,6 +440,14 @@ public:
       return r;
     };
   }
+
+  static Converter NamedEmpty(std::string id) {
+    return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+      Result r;
+      r.fTileEntity = EmptyShortName(id, pos);
+      return r;
+    };
+  }
 #pragma endregion
 
 #pragma region Utilities
@@ -572,6 +580,8 @@ public:
     E(dropper, AnyStorage("dropper"));
     E(brewing_stand, BrewingStand);
     E(hopper, Hopper);
+    E(daylight_detector, NamedEmpty("daylight_detector"));
+    E(daylight_detector_inverted, NamedEmpty("daylight_detector"));
 
 #undef E
     return t;
