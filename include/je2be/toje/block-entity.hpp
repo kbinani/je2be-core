@@ -349,6 +349,41 @@ public:
     return r;
   }
 
+  static std::optional<Result> MobSpawner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    using namespace props;
+    auto t = EmptyShortName("mob_spawner", pos);
+
+    unordered_set<string> u16Properties({"Delay", "MaxNearbyEntities", "MaxSpawnDelay", "MinSpawnDelay", "RequiredPlayerRange", "SpawnCount", "SpawnRange"});
+    for (auto const &name : u16Properties) {
+      auto value = tag.int16(name);
+      if (value) {
+        t->set(name, Short(*value));
+      }
+    }
+
+    auto entity = tag.string("EntityIdentifier");
+    if (entity) {
+      auto entityTag = make_shared<CompoundTag>();
+      entityTag->set("id", String(*entity));
+      auto spawnData = make_shared<CompoundTag>();
+      spawnData->set("entity", entityTag);
+      t->set("SpawnData", spawnData);
+
+      auto potentials = make_shared<ListTag>(Tag::Type::Compound);
+      auto potential = make_shared<CompoundTag>();
+      potential->set("data", spawnData->clone());
+      potential->set("weight", Int(1));
+      potentials->push_back(potential);
+      t->set("SpawnPotentials", potentials);
+    }
+
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto note = tag.byte("note");
@@ -587,6 +622,7 @@ public:
     E(lit_blast_furnace, Furnace);
     E(smoker, Furnace);
     E(lit_smoker, Furnace);
+
     E(dispenser, AnyStorage("dispenser"));
     E(powered_comparator, Comparator);
     E(unpowered_comparator, Comparator);
@@ -597,6 +633,7 @@ public:
     E(daylight_detector_inverted, NamedEmpty("daylight_detector"));
     E(end_portal, SameNameEmpty);
     E(beacon, Beacon);
+    E(mob_spawner, MobSpawner);
 
 #undef E
     return t;
