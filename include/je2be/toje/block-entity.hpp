@@ -183,7 +183,7 @@ public:
 
   static std::optional<Result> Furnace(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     using namespace std;
-    auto te = EmptyShortName("furnace", pos);
+    auto te = EmptyFullName(block.fName, pos);
     auto burnDuration = tagB.int16("BurnDuration");
     if (burnDuration) {
       te->set("BurnTime", props::Short(*burnDuration));
@@ -349,51 +349,6 @@ public:
   }
 #pragma endregion
 
-  static std::unordered_map<std::string, Converter> *CreateTable() {
-    using namespace std;
-    auto *t = new unordered_map<string, Converter>();
-#define E(__name, __conv)                            \
-  assert(t->find("minecraft:" #__name) == t->end()); \
-  t->insert(make_pair("minecraft:" #__name, __conv))
-
-    E(flower_pot, FlowerPot);
-    E(skull, Skull);
-    E(bed, Bed);
-    E(standing_banner, Banner);
-    E(wall_banner, Banner);
-    E(jukebox, Jukebox);
-    E(shulker_box, ShulkerBox);
-    E(undyed_shulker_box, ShulkerBox);
-    E(noteblock, Noteblock);
-    E(chest, Chest);
-    E(trapped_chest, Chest);
-    E(lectern, Lectern);
-    E(furnace, Furnace);
-    E(wall_sign, Sign);
-    E(standing_sign, Sign);
-    E(acacia_wall_sign, Sign);
-    E(birch_wall_sign, Sign);
-    E(crimson_wall_sign, Sign);
-    E(jungle_wall_sign, Sign);
-    E(spruce_wall_sign, Sign);
-    E(warped_wall_sign, Sign);
-    E(darkoak_wall_sign, Sign);
-    E(darkoak_standing_sign, Sign);
-    E(acacia_standing_sign, Sign);
-    E(birch_standing_sign, Sign);
-    E(crimson_standing_sign, Sign);
-    E(jungle_standing_sign, Sign);
-    E(spruce_standing_sign, Sign);
-    E(warped_standing_sign, Sign);
-    E(ender_chest, SameNameEmpty);
-    E(enchanting_table, SameNameEmpty);
-    E(barrel, AnyStorage("barrel"));
-    E(bell, SameNameEmpty);
-
-#undef E
-    return t;
-  }
-
 #pragma region Utilities
   static std::shared_ptr<mcfile::nbt::CompoundTag> BannerPattern(int32_t color, std::string const &pattern) {
     auto c = std::make_shared<mcfile::nbt::CompoundTag>();
@@ -468,6 +423,52 @@ public:
     return b ? "true" : "false";
   }
 #pragma endregion
+
+  static std::unordered_map<std::string, Converter> *CreateTable() {
+    using namespace std;
+    auto *t = new unordered_map<string, Converter>();
+#define E(__name, __conv)                            \
+  assert(t->find("minecraft:" #__name) == t->end()); \
+  t->insert(make_pair("minecraft:" #__name, __conv))
+
+    E(flower_pot, FlowerPot);
+    E(skull, Skull);
+    E(bed, Bed);
+    E(standing_banner, Banner);
+    E(wall_banner, Banner);
+    E(jukebox, Jukebox);
+    E(shulker_box, ShulkerBox);
+    E(undyed_shulker_box, ShulkerBox);
+    E(noteblock, Noteblock);
+    E(chest, Chest);
+    E(trapped_chest, Chest);
+    E(lectern, Lectern);
+    E(furnace, Furnace);
+    E(wall_sign, Sign);
+    E(standing_sign, Sign);
+    E(acacia_wall_sign, Sign);
+    E(birch_wall_sign, Sign);
+    E(crimson_wall_sign, Sign);
+    E(jungle_wall_sign, Sign);
+    E(spruce_wall_sign, Sign);
+    E(warped_wall_sign, Sign);
+    E(darkoak_wall_sign, Sign);
+    E(darkoak_standing_sign, Sign);
+    E(acacia_standing_sign, Sign);
+    E(birch_standing_sign, Sign);
+    E(crimson_standing_sign, Sign);
+    E(jungle_standing_sign, Sign);
+    E(spruce_standing_sign, Sign);
+    E(warped_standing_sign, Sign);
+    E(ender_chest, SameNameEmpty);
+    E(enchanting_table, SameNameEmpty);
+    E(barrel, AnyStorage("barrel"));
+    E(bell, SameNameEmpty);
+    E(blast_furnace, Furnace);
+
+#undef E
+    return t;
+  }
 };
 
 } // namespace je2be::toje
