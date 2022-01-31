@@ -157,6 +157,15 @@ public:
     return r;
   }
 
+  static std::optional<Result> Comparator(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    auto t = EmptyShortName("comparator", pos);
+    auto outputSignal = tagB.int32("OutputSignal", 0);
+    t->set("OutputSignal", props::Int(outputSignal));
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto plantBlock = tagB.compoundTag("PlantBlock");
@@ -508,6 +517,8 @@ public:
     E(smoker, Furnace);
     E(lit_smoker, Furnace);
     E(dispenser, AnyStorage("dispenser"));
+    E(powered_comparator, Comparator);
+    E(unpowered_comparator, Comparator);
 
 #undef E
     return t;

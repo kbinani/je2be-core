@@ -267,8 +267,19 @@ private:
     E(conduit, Conduit);
     E(campfire, Campfire);
     E(soul_campfire, Campfire);
+    E(comparator, Comparator);
 #undef E
     return table;
+  }
+
+  static TileEntityData Comparator(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty("Comparator", *c, pos);
+    auto outputSignal = c->int32("OutputSignal", 0);
+    t->set("OutputSignal", props::Int(outputSignal));
+    return t;
   }
 
   static TileEntityData Campfire(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
