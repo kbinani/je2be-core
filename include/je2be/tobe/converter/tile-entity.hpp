@@ -264,8 +264,20 @@ private:
     E(ender_chest, AnyStorage("EnderChest"));
     E(enchanting_table, EnchantingTable);
     E(bell, Bell);
+    E(conduit, Conduit);
 #undef E
     return table;
+  }
+
+  static TileEntityData Conduit(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    using namespace props;
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty("Conduit", *c, pos);
+    t->set("Active", Bool(false));
+    t->set("Target", Long(-1));
+    return t;
   }
 
   static TileEntityData Bell(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {

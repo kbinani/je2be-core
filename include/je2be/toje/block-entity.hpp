@@ -465,6 +465,7 @@ public:
     E(barrel, AnyStorage("barrel"));
     E(bell, SameNameEmpty);
     E(blast_furnace, Furnace);
+    E(conduit, SameNameEmpty);
 
 #undef E
     return t;
