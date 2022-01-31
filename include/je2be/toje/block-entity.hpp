@@ -22,7 +22,18 @@ public:
     if (found == sTable->end()) {
       return nullopt;
     }
-    return found->second(pos, block, tag, blockJ);
+    auto result = found->second(pos, block, tag, blockJ);
+    if (result && result->fTileEntity) {
+      if (!result->fTileEntity->string("CustomName")) {
+        auto customName = tag.string("CustomName");
+        if (customName) {
+          nlohmann::json json;
+          json["text"] = *customName;
+          result->fTileEntity->set("CustomName", props::String(nlohmann::to_string(json)));
+        }
+      }
+    }
+    return result;
   }
 
 #pragma region Dedicated converters
@@ -204,6 +215,30 @@ public:
       }
     }
     r.fTileEntity = te;
+    return r;
+  }
+
+  static std::optional<Result> CommandBlock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    auto t = EmptyShortName("command_block", pos);
+
+    //TODO: transpile "Command"
+    CopyStringValues(tagB, *t, {{"Command", "Command"}});
+    CopyIntValues(tagB, *t, {{"SuccessCount", "SuccessCount"}});
+    CopyBoolValues(tagB, *t, {{"auto", "auto"}, {"powered", "powered"}, {"conditionMet", "conditionMet"}, {"TrackOutput", "TrackOutput"}});
+    CopyLongValues(tagB, *t, {{"LastExecution", "LastExecution"}});
+
+    t->set("UpdateLastExecution", props::Bool(true));
+
+    auto customName = tagB.string("CustomName", "");
+    if (customName == "") {
+      customName = "@";
+    }
+    nlohmann::json json;
+    json["text"] = customName;
+    t->set("CustomName", props::String(nlohmann::to_string(json)));
+
+    Result r;
+    r.fTileEntity = t;
     return r;
   }
 
@@ -541,6 +576,42 @@ public:
     return ret;
   }
 
+  static void CopyBoolValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.byte(it.first);
+      if (value) {
+        dest.set(it.second, props::Byte(*value));
+      }
+    }
+  }
+
+  static void CopyIntValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.int32(it.first);
+      if (value) {
+        dest.set(it.second, props::Int(*value));
+      }
+    }
+  }
+
+  static void CopyLongValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.int64(it.first);
+      if (value) {
+        dest.set(it.second, props::Long(*value));
+      }
+    }
+  }
+
+  static void CopyStringValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.string(it.first);
+      if (value) {
+        dest.set(it.second, props::String(*value));
+      }
+    }
+  }
+
   static std::shared_ptr<mcfile::nbt::CompoundTag> EmptyFullName(std::string const &id, Pos3i const &pos) {
     auto tag = std::make_shared<mcfile::nbt::CompoundTag>();
     tag->set("id", props::String(id));
@@ -634,6 +705,9 @@ public:
     E(end_portal, SameNameEmpty);
     E(beacon, Beacon);
     E(mob_spawner, MobSpawner);
+    E(command_block, CommandBlock);
+    E(chain_command_block, CommandBlock);
+    E(repeating_command_block, CommandBlock);
 
 #undef E
     return t;

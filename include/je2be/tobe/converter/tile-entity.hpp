@@ -437,6 +437,12 @@ private:
     auto successCount = c->int32("SuccessCount", 0);
     auto command = Command::Transpile(c->string("Command", ""));
     auto conditionMet = c->boolean("conditionMet", false);
+
+    auto lastExecution = c->int64("LastExecution");
+    if (lastExecution) {
+      tag->set("LastExecution", Long(*lastExecution));
+    }
+
     tag->insert({
         {"id", String("CommandBlock")},
         {"isMovable", Bool(true)},
@@ -444,7 +450,7 @@ private:
         {"auto", Bool(automatic)},
         {"TrackDelay", Int(0)},
         {"TrackOutput", Bool(trackOutput)},
-        {"Version", Int(15)},
+        {"Version", Int(17)},
         {"SuccessCount", Int(successCount)},
         {"Command", String(command)},
         {"ExecuteOnFirstTick", Bool(false)},

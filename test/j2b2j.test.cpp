@@ -30,7 +30,11 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
   tagE->erase("Items");
   tagA->erase("Items");
 
-  static unordered_set<string> blackList({"LootTableSeed", "RecipesUsed"});
+  static unordered_set<string> blackList({
+      "LootTableSeed", // chest in dungeon etc.
+      "RecipesUsed",   // furnace, blast_furnace, and smoker
+      "LastOutput",    // command_block
+  });
   for (string b : blackList) {
     tagE->erase(b);
     tagA->erase(b);
