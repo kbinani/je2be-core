@@ -36,7 +36,9 @@ public:
             }
           }
           auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
-          out.setBlockAt(x, y, z, replace);
+          mcfile::je::SetBlockOptions o;
+          o.fRemoveTileEntity = false;
+          out.setBlockAt(x, y, z, replace, o);
         }
       }
     }

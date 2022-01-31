@@ -82,6 +82,39 @@ public:
     return r;
   }
 
+  static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto items = make_shared<ListTag>(Tag::Type::Compound);
+    vector<int> times;
+    vector<int> totalTimes;
+    for (int i = 0; i < 4; i++) {
+      auto itemTag = tagB.compoundTag("Item" + to_string(i + 1));
+      bool itemAdded = false;
+      if (itemTag) {
+        auto item = Item::From(*itemTag);
+        if (item) {
+          item->set("Slot", props::Byte(i));
+          items->push_back(item);
+          itemAdded = true;
+        }
+      }
+      auto time = tagB.int32("ItemTime" + to_string(i + 1), 0);
+      times.push_back(time);
+      totalTimes.push_back(itemAdded ? 600 : 0);
+    }
+    auto timesTag = make_shared<IntArrayTag>(times);
+    auto totalTimesTag = make_shared<IntArrayTag>(totalTimes);
+    auto t = EmptyShortName("campfire", pos);
+    t->set("Items", items);
+    t->set("CookingTimes", timesTag);
+    t->set("CookingTotalTimes", totalTimesTag);
+
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> Chest(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     using namespace std;
     auto px = tagB.int32("pairx");
@@ -466,6 +499,8 @@ public:
     E(bell, SameNameEmpty);
     E(blast_furnace, Furnace);
     E(conduit, SameNameEmpty);
+    E(campfire, Campfire);
+    E(soul_campfire, Campfire);
 
 #undef E
     return t;

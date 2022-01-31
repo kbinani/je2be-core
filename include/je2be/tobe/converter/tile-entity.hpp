@@ -265,8 +265,38 @@ private:
     E(enchanting_table, EnchantingTable);
     E(bell, Bell);
     E(conduit, Conduit);
+    E(campfire, Campfire);
+    E(soul_campfire, Campfire);
 #undef E
     return table;
+  }
+
+  static TileEntityData Campfire(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    using namespace std;
+    using namespace props;
+    using namespace mcfile::nbt;
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty("Campfire", *c, pos);
+    auto timesTag = c->intArrayTag("CookingTimes");
+    if (timesTag) {
+      auto const &times = timesTag->value();
+      for (int i = 0; i < 4 && i < times.size(); i++) {
+        int time = times[i];
+        t->set("ItemTime" + to_string(i + 1), Int(time));
+      }
+    }
+    auto items = GetItems(c, "Items", mapInfo, wd);
+    if (items) {
+      for (int i = 0; i < 4 && i < items->size(); i++) {
+        auto item = items->at(i);
+        if (item) {
+          t->set("Item" + to_string(i + 1), item);
+        }
+      }
+    }
+    return t;
   }
 
   static TileEntityData Conduit(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
