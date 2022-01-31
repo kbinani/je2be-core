@@ -507,6 +507,7 @@ public:
     E(lit_blast_furnace, Furnace);
     E(smoker, Furnace);
     E(lit_smoker, Furnace);
+    E(dispenser, AnyStorage("dispenser"));
 
 #undef E
     return t;
