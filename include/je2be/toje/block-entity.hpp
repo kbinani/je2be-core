@@ -508,6 +508,83 @@ public:
     r.fTileEntity = te;
     return r;
   }
+
+  static std::optional<Result> StructureBlock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    auto t = EmptyShortName("structure_block", pos);
+
+    t->set("showair", props::Bool(false));
+
+    CopyBoolValues(tag, *t, {{"ignoreEntities", "ignoreEntities"}, {"isPowered", "powered"}, {"showBoundingBox", "showboundingbox"}});
+    CopyFloatValues(tag, *t, {{"integrity", "integrity"}});
+    CopyStringValues(tag, *t, {{"structureName", "name"}, {"dataField", "metadata"}});
+    CopyIntValues(tag, *t, {
+                               {"xStructureOffset", "posX"},
+                               {"yStructureOffset", "posY"},
+                               {"zStructureOffset", "posZ"},
+                               {"xStructureSize", "sizeX"},
+                               {"yStructureSize", "sizeY"},
+                               {"zStructureSize", "sizeZ"},
+                           });
+    CopyLongValues(tag, *t, {{"seed", "seed"}});
+
+    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "ª«")
+    auto mirrorB = tag.byte("mirror", 0);
+    std::string mirrorJ = "NONE";
+    switch (mirrorB) {
+    case 1:
+      mirrorJ = "LEFT_RIGHT";
+      break;
+    case 2:
+      mirrorJ = "FRONT_BACK";
+      break;
+    case 0:
+    default:
+      mirrorJ = "NONE";
+      break;
+    }
+    t->set("mirror", props::String(mirrorJ));
+
+    // "LOAD", "SAVE", "CORNER"
+    auto dataB = tag.int32("data", 1);
+    std::string mode = "LOAD";
+    switch (dataB) {
+    case 1:
+      mode = "SAVE";
+      break;
+    case 3:
+      mode = "CORNER";
+      break;
+    case 2:
+    default:
+      mode = "LOAD";
+      break;
+    }
+    t->set("mode", props::String(mode));
+
+    // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
+    auto rotationB = tag.byte("rotation", 0);
+    std::string rotationJ = "NONE";
+    switch (rotationB) {
+    case 1:
+      rotationJ = "CLOCKWISE_90";
+      break;
+    case 2:
+      rotationJ = "CLOCKWISE_180";
+      break;
+    case 3:
+      rotationJ = "COUNTERCLOCKWISE_90";
+      break;
+    case 0:
+    default:
+      rotationJ = "NONE";
+      break;
+    }
+    t->set("rotation", props::String(rotationJ));
+
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -581,6 +658,15 @@ public:
       auto value = src.byte(it.first);
       if (value) {
         dest.set(it.second, props::Byte(*value));
+      }
+    }
+  }
+
+  static void CopyFloatValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.float32(it.first);
+      if (value) {
+        dest.set(it.second, props::Float(*value));
       }
     }
   }
@@ -708,6 +794,7 @@ public:
     E(command_block, CommandBlock);
     E(chain_command_block, CommandBlock);
     E(repeating_command_block, CommandBlock);
+    E(structure_block, StructureBlock);
 
 #undef E
     return t;

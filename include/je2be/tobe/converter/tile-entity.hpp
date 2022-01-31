@@ -269,8 +269,120 @@ private:
     E(soul_campfire, Campfire);
     E(comparator, Comparator);
     E(daylight_detector, NamedEmpty("DaylightDetector"));
+    E(structure_block, StructureBlock);
 #undef E
     return table;
+  }
+
+  static TileEntityData StructureBlock(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    using namespace props;
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty("StructureBlock", *c, pos);
+
+    t->set("animationMode", props::Bool(false));
+    t->set("animationSeconds", Float(0));
+    t->set("dataField", String(""));
+    t->set("includePlayers", Bool(false));
+    t->set("redstoneSaveMode", Int(0));
+    t->set("removeBlocks", Bool(false));
+
+    CopyBoolValues(*c, *t, {{"ignoreEntities", "ignoreEntities"}, {"powered", "isPowered"}, {"showboundingbox", "showBoundingBox"}});
+    CopyFloatValues(*c, *t, {{"integrity", "integrity"}});
+    CopyStringValues(*c, *t, {{"name", "structureName"}, {"metadata", "dataField"}});
+    CopyIntValues(*c, *t, {
+                              {"posX", "xStructureOffset"},
+                              {"posY", "yStructureOffset"},
+                              {"posZ", "zStructureOffset"},
+                              {"sizeX", "xStructureSize"},
+                              {"sizeY", "yStructureSize"},
+                              {"sizeZ", "zStructureSize"},
+                          });
+    CopyLongValues(*c, *t, {{"seed", "seed"}});
+
+    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "ª«")
+    auto mirror = c->string("mirror", "NONE");
+    int8_t mirrorMode = 0; // NONE
+    if (mirror == "LEFT_RIGHT") {
+      mirrorMode = 1;
+    } else if (mirror == "FRONT_BACK") {
+      mirrorMode = 2;
+    }
+    t->set("mirror", props::Byte(mirrorMode));
+
+    // "LOAD", "SAVE", "CORNER"
+    auto mode = c->string("mode", "LOAD");
+    int data = 2;
+    if (mode == "LOAD") {
+      data = 2;
+    } else if (mode == "SAVE") {
+      data = 1;
+    } else if (mode == "CORNER") {
+      data = 3;
+    }
+    t->set("data", Int(data));
+
+    // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
+    auto rotation = c->string("rotation", "NONE");
+    int8_t rot = 0;
+    if (rotation == "NONE") {
+      rot = 0;
+    } else if (rotation == "CLOCKWISE_90") {
+      rot = 1;
+    } else if (rotation == "CLOCKWISE_180") {
+      rot = 2;
+    } else if (rotation == "COUNTERCLOCKWISE_90") {
+      rot = 3;
+    }
+    t->set("rotation", props::Byte(rot));
+
+    return t;
+  }
+
+  static void CopyBoolValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.byte(it.first);
+      if (value) {
+        dest.set(it.second, props::Byte(*value));
+      }
+    }
+  }
+
+  static void CopyFloatValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.float32(it.first);
+      if (value) {
+        dest.set(it.second, props::Float(*value));
+      }
+    }
+  }
+
+  static void CopyIntValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.int32(it.first);
+      if (value) {
+        dest.set(it.second, props::Int(*value));
+      }
+    }
+  }
+
+  static void CopyLongValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.int64(it.first);
+      if (value) {
+        dest.set(it.second, props::Long(*value));
+      }
+    }
+  }
+
+  static void CopyStringValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
+    for (auto const &it : keys) {
+      auto value = src.string(it.first);
+      if (value) {
+        dest.set(it.second, props::String(*value));
+      }
+    }
   }
 
   static Converter NamedEmpty(std::string id) {

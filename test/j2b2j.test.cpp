@@ -34,6 +34,7 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
       "LootTableSeed", // chest in dungeon etc.
       "RecipesUsed",   // furnace, blast_furnace, and smoker
       "LastOutput",    // command_block
+      "author",        // structure_block
   });
   for (string b : blackList) {
     tagE->erase(b);
