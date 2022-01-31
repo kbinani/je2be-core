@@ -519,6 +519,7 @@ public:
     E(dispenser, AnyStorage("dispenser"));
     E(powered_comparator, Comparator);
     E(unpowered_comparator, Comparator);
+    E(dropper, AnyStorage("dropper"));
 
 #undef E
     return t;
