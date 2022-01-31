@@ -181,6 +181,7 @@ public:
         NoteBlock::Do(*j, *cache, accessor);
         RedstoneWire::Do(*j, *cache, accessor);
         Tripwire::Do(*j, *cache, accessor);
+        Beacon::Do(*j, *cache, accessor);
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {

@@ -72,6 +72,19 @@ public:
     return r;
   }
 
+  static std::optional<Result> Beacon(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+    auto t = EmptyShortName("beacon", pos);
+    auto primary = tagB.int32("primary", -1);
+    auto secondary = tagB.int32("secondary", -1);
+    t->set("Primary", props::Int(primary));
+    t->set("Secondary", props::Int(secondary));
+    //NOTE: "Levels" need to be defined by terrain around the beacon.
+    //See also beacon.hpp
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
     auto color = tagB.byte("color", 0);
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
@@ -583,6 +596,7 @@ public:
     E(daylight_detector, NamedEmpty("daylight_detector"));
     E(daylight_detector_inverted, NamedEmpty("daylight_detector"));
     E(end_portal, SameNameEmpty);
+    E(beacon, Beacon);
 
 #undef E
     return t;

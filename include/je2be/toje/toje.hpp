@@ -23,6 +23,7 @@
 #include <je2be/toje/redstone-wire.hpp>
 #include <je2be/toje/tripwire.hpp>
 #include <je2be/toje/piston.hpp>
+#include <je2be/toje/beacon.hpp>
 
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>

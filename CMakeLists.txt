@@ -85,6 +85,7 @@ set(je2be_files
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
   include/je2be/toje/attached-stem.hpp
+  include/je2be/toje/beacon.hpp
   include/je2be/toje/block-data.hpp
   include/je2be/toje/block-entity.hpp
   include/je2be/toje/block-property-accessor.hpp

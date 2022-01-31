@@ -23,6 +23,7 @@ private:
     REDSTONE_WIRE = 13,
     TRIPWIRE = 14,
     PISTON = 16,
+    BEACON = 17,
   };
 
 public:
@@ -57,6 +58,8 @@ public:
       return TRIPWIRE;
     } else if (IsPiston(b)) {
       return PISTON;
+    } else if (IsBeacon(b)) {
+      return BEACON;
     }
     return 0;
   }
@@ -119,6 +122,10 @@ public:
 
   static bool IsPiston(DataType p) {
     return p == PISTON;
+  }
+
+  static bool IsBeacon(DataType p) {
+    return p == BEACON;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -191,6 +198,10 @@ public:
            b.fName == "minecraft:movingBlock";
   }
 
+  static bool IsBeacon(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:beacon";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(mcfile::be::Chunk::kNumSubChunks);
@@ -218,6 +229,7 @@ public:
         fHasRedstoneWire |= IsRedstoneWire(p);
         fHasTripwire |= IsTripwire(p);
         fHasPiston |= IsPiston(p);
+        fHasBeacon |= IsBeacon(p);
         fSections[i][j] = p;
       }
     }
@@ -258,6 +270,7 @@ public:
   bool fHasRedstoneWire = false;
   bool fHasTripwire = false;
   bool fHasPiston = false;
+  bool fHasBeacon = false;
 
 private:
   std::vector<std::vector<DataType>> fSections;
