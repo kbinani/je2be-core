@@ -582,6 +582,7 @@ public:
     E(hopper, Hopper);
     E(daylight_detector, NamedEmpty("daylight_detector"));
     E(daylight_detector_inverted, NamedEmpty("daylight_detector"));
+    E(end_portal, SameNameEmpty);
 
 #undef E
     return t;
