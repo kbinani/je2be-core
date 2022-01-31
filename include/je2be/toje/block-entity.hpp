@@ -25,7 +25,7 @@ public:
     return found->second(pos, block, tag, blockJ);
   }
 
-#pragma region Converters
+#pragma region Dedicated converters
   static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     using namespace std;
     using namespace mcfile::nbt;
@@ -334,6 +334,21 @@ public:
   }
 #pragma endregion
 
+#pragma region Converter generators
+  static Converter AnyStorage(std::string const &id) {
+    return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+      auto te = EmptyFullName("minecraft:" + id, pos);
+      auto items = ContainerItems(tag, "Items");
+      if (items && !items->empty()) {
+        te->set("Items", items);
+      }
+      Result r;
+      r.fTileEntity = te;
+      return r;
+    };
+  }
+#pragma endregion
+
   static std::unordered_map<std::string, Converter> *CreateTable() {
     using namespace std;
     auto *t = new unordered_map<string, Converter>();
@@ -372,6 +387,8 @@ public:
     E(warped_standing_sign, Sign);
     E(ender_chest, SameNameEmpty);
     E(enchanting_table, SameNameEmpty);
+    E(barrel, AnyStorage("barrel"));
+    E(bell, SameNameEmpty);
 
 #undef E
     return t;

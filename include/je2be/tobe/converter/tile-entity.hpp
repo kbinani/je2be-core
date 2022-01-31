@@ -263,8 +263,21 @@ private:
     E(end_gateway, EndGateway);
     E(ender_chest, AnyStorage("EnderChest"));
     E(enchanting_table, EnchantingTable);
+    E(bell, Bell);
 #undef E
     return table;
+  }
+
+  static TileEntityData Bell(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+    using namespace props;
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty("Bell", *c, pos);
+    t->set("Direction", Int(0));
+    t->set("Ringing", Bool(false));
+    t->set("Ticks", Int(0));
+    return t;
   }
 
   static TileEntityData EnchantingTable(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
