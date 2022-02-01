@@ -40,9 +40,27 @@ public:
         tagJ = make_shared<CompoundTag>();
       }
 
-      auto damage = tagB->int32("Damage");
-      if (damage) {
-        tagJ->set("Damage", props::Int(*damage));
+      CopyIntValues(*tagB, *tagJ, {{"Damage", "Damage"}, {"RepairCost", "RepairCost"}});
+
+      auto displayB = tagB->compoundTag("display");
+      if (displayB) {
+        auto displayJ = make_shared<CompoundTag>();
+
+        auto displayName = displayB->string("Name");
+        if (displayName) {
+          nlohmann::json json;
+          json["text"] = *displayName;
+          displayJ->set("Name", props::String(nlohmann::to_string(json)));
+        }
+
+        auto customColor = displayB->int32("customColor");
+        if (customColor) {
+          int32_t c = *customColor;
+          uint32_t rgb = 0xffffff & *(uint32_t *)&c;
+          displayJ->set("color", props::Int(*(int32_t *)&rgb));
+        }
+
+        tagJ->set("display", displayJ);
       }
 
       itemJ.set("tag", tagJ);

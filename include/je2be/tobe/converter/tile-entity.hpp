@@ -340,51 +340,6 @@ private:
     return t;
   }
 
-  static void CopyBoolValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
-    for (auto const &it : keys) {
-      auto value = src.byte(it.first);
-      if (value) {
-        dest.set(it.second, props::Byte(*value));
-      }
-    }
-  }
-
-  static void CopyFloatValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
-    for (auto const &it : keys) {
-      auto value = src.float32(it.first);
-      if (value) {
-        dest.set(it.second, props::Float(*value));
-      }
-    }
-  }
-
-  static void CopyIntValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
-    for (auto const &it : keys) {
-      auto value = src.int32(it.first);
-      if (value) {
-        dest.set(it.second, props::Int(*value));
-      }
-    }
-  }
-
-  static void CopyLongValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
-    for (auto const &it : keys) {
-      auto value = src.int64(it.first);
-      if (value) {
-        dest.set(it.second, props::Long(*value));
-      }
-    }
-  }
-
-  static void CopyStringValues(mcfile::nbt::CompoundTag const &src, mcfile::nbt::CompoundTag &dest, std::initializer_list<std::pair<std::string, std::string>> keys) {
-    for (auto const &it : keys) {
-      auto value = src.string(it.first);
-      if (value) {
-        dest.set(it.second, props::String(*value));
-      }
-    }
-  }
-
   static Converter NamedEmpty(std::string id) {
     return [id](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) -> TileEntityData {
       if (!c) {

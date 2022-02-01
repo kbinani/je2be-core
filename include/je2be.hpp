@@ -63,6 +63,7 @@
 #include <je2be/future-support.hpp>
 #include <je2be/defer.hpp>
 #include <je2be/map-ext.hpp>
+#include <je2be/nbt-ext.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
