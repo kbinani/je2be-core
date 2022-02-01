@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class Item {
   Item() = delete;
-  using Converter = std::function<std::string(std::string const &, mcfile::nbt::CompoundTag const &in, mcfile::nbt::CompoundTag &out)>;
+  using Converter = std::function<std::string(std::string const &, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ)>;
 
 public:
   static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const &tagB) {
@@ -31,11 +31,25 @@ public:
     };
   }
 
-  static void Default(std::string const &name, mcfile::nbt::CompoundTag const &in, mcfile::nbt::CompoundTag &out) {
-    auto count = in.byte("Count");
-    out.set("id", props::String(name));
+  static void Default(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ) {
+    using namespace std;
+    using namespace mcfile::nbt;
+    auto count = itemB.byte("Count");
+    itemJ.set("id", props::String(name));
     if (count) {
-      out.set("Count", props::Byte(*count));
+      itemJ.set("Count", props::Byte(*count));
+    }
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      shared_ptr<CompoundTag> tagJ = itemJ.compoundTag("tag");
+      if (!tagJ) {
+        tagJ = make_shared<CompoundTag>();
+      }
+      auto damage = tagB->int32("Damage");
+      if (damage) {
+        tagJ->set("Damage", props::Int(*damage));
+      }
+      itemJ.set("tag", tagJ);
     }
   }
 

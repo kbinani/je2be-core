@@ -1068,14 +1068,14 @@ private:
     using namespace props;
 
     auto count = item.byte("Count", 1);
-    auto tag = std::make_shared<CompoundTag>();
-    tag->insert({
+    auto ret = std::make_shared<CompoundTag>();
+    ret->insert({
         {"Name", String(name)},
         {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
     });
-    return Post(tag, item);
+    return Post(ret, item);
   }
 
   static ItemData Post(ItemData const &input, CompoundTag const &item) {
@@ -1136,6 +1136,11 @@ private:
       auto beDisplay = make_shared<CompoundTag>();
       beDisplay->set("Name", String(*name));
       beTag->set("display", beDisplay);
+    }
+
+    auto damage = tag->int32("Damage");
+    if (damage) {
+      beTag->set("Damage", Int(*damage));
     }
 
     if (!beTag->empty()) {
