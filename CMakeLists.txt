@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
-if (NOT CMAKE_CXX_STANDARD)
+if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
+  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+    add_definitions(
+      /source-charset:utf-8
+      /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
+    )
+  endif()
 endif()
 
 set(je2be_files

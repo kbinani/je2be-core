@@ -527,7 +527,7 @@ public:
                            });
     CopyLongValues(tag, *t, {{"seed", "seed"}});
 
-    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "Å™Å´")
+    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
     auto mirrorB = tag.byte("mirror", 0);
     std::string mirrorJ = "NONE";
     switch (mirrorB) {

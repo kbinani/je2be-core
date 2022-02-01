@@ -301,7 +301,7 @@ private:
                           });
     CopyLongValues(*c, *t, {{"seed", "seed"}});
 
-    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "Å™Å´")
+    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
     auto mirror = c->string("mirror", "NONE");
     int8_t mirrorMode = 0; // NONE
     if (mirror == "LEFT_RIGHT") {
