@@ -6,7 +6,7 @@ class Region {
 public:
   std::unordered_set<Pos2i, Pos2iHasher> fChunks;
 
-  static bool Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::nbt;
@@ -15,8 +15,10 @@ public:
 
     auto dir = File::CreateTempDir(fs::temp_directory_path());
     if (!dir) {
-      return false;
+      return nullptr;
     }
+
+    auto ctx = make_shared<Context>();
 
     defer {
       error_code ec;
@@ -115,7 +117,7 @@ public:
           }
 
           if (!sectionJ->fBlocks.reset(paletteJ, indicesJ)) {
-            return false;
+            return nullptr;
           }
           int sectionIndex = sectionJ->fY - j->fChunkY;
           if (j->fSections.size() <= sectionIndex) {
@@ -150,7 +152,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ);
+          auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ, *ctx);
           if (!result) {
             continue;
           }
@@ -185,16 +187,19 @@ public:
 
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {
-          return false;
+          return nullptr;
         }
         if (!j->write(*fos)) {
-          return false;
+          return nullptr;
         }
       }
     }
 
     auto mca = destination / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, *dir, mca);
+    if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *dir, mca)) {
+      return nullptr;
+    }
+    return ctx;
   }
 };
 

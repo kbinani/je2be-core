@@ -268,7 +268,7 @@ private:
 #undef G
 
     E("fire_charge", Rename("fireball"));
-    E("map", Subtype("emptymap", 2));
+    E("map", Subtype("empty_map", 2));
     E("firework_rocket", FireworkRocket);
     E("nether_star", Rename("netherstar"));
     E("firework_star", FireworkStar);
@@ -456,7 +456,7 @@ private:
   }
 
   static std::optional<std::tuple<int, ItemData>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
-    auto ret = New("map");
+    auto ret = New(name, true);
     auto count = item.byte("Count", 1);
     ret->set("Damage", props::Short(0));
     ret->set("Count", props::Byte(count));
@@ -499,9 +499,7 @@ private:
         }
       }
     }
-    if (type == 0) {
-      tag->set("map_name_index", props::Int(2));
-    }
+    tag->set("map_name_index", props::Int(number->fValue));
     ret->set("Damage", props::Short(type));
 
     auto out = Post(ret, item);

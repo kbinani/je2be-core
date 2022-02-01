@@ -35,13 +35,17 @@ public:
       return false;
     }
 
+    auto bin = make_shared<Context>();
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      if (!World::Convert(d, *db, fOutput, concurrency)) {
+      auto result = World::Convert(d, *db, fOutput, concurrency);
+      if (result) {
+        result->mergeInto(*bin);
+      } else {
         return false;
       }
     }
 
-    return true;
+    return bin->postProcess(fInput, *db);
   }
 
 private:

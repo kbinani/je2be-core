@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class World {
 public:
-  static bool Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -21,13 +21,13 @@ public:
       dir = root / "DIM1" / "region";
       break;
     default:
-      return false;
+      return nullptr;
     }
 
     error_code ec;
     fs::create_directories(dir, ec);
     if (ec) {
-      return false;
+      return nullptr;
     }
 
     unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher> regions;
@@ -40,15 +40,19 @@ public:
     });
 
     hwm::task_queue queue(concurrency);
-    deque<future<bool>> futures;
+    deque<future<shared_ptr<Context>>> futures;
+    auto bin = make_shared<Context>();
 
     bool ok = true;
     for (auto const &region : regions) {
       Pos2i r = region.first;
-      vector<future<bool>> drain;
+      vector<future<shared_ptr<Context>>> drain;
       FutureSupport::Drain(concurrency + 1, futures, drain);
       for (auto &d : drain) {
-        if (!d.get()) {
+        auto result = d.get();
+        if (result) {
+          result->mergeInto(*bin);
+        } else {
           ok = false;
         }
       }
@@ -59,12 +63,19 @@ public:
     }
 
     for (auto &f : futures) {
-      if (!f.get()) {
+      auto result = f.get();
+      if (result) {
+        result->mergeInto(*bin);
+      } else {
         ok = false;
       }
     }
 
-    return ok;
+    if (ok) {
+      return bin;
+    } else {
+      return nullptr;
+    }
   }
 
 private:

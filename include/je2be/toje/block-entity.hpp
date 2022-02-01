@@ -12,17 +12,17 @@ public:
 private:
   BlockEntity() = delete;
 
-  using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, mcfile::nbt::CompoundTag const &, mcfile::je::Block const &)>;
+  using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, mcfile::nbt::CompoundTag const &, mcfile::je::Block const &, Context &ctx)>;
 
 public:
-  static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
     auto found = sTable->find(block.fName);
     if (found == sTable->end()) {
       return nullopt;
     }
-    auto result = found->second(pos, block, tag, blockJ);
+    auto result = found->second(pos, block, tag, blockJ, ctx);
     if (result && result->fTileEntity) {
       if (!result->fTileEntity->string("CustomName")) {
         auto customName = tag.string("CustomName");
@@ -37,7 +37,7 @@ public:
   }
 
 #pragma region Dedicated converters
-  static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     auto base = tag.int32("Base", 0);
@@ -83,7 +83,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Beacon(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Beacon(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("beacon", pos);
     auto primary = tagB.int32("primary", -1);
     auto secondary = tagB.int32("secondary", -1);
@@ -96,7 +96,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto color = tagB.byte("color", 0);
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
     auto name = JavaNameFromColorCodeJava(ccj);
@@ -106,11 +106,11 @@ public:
     return r;
   }
 
-  static std::optional<Result> BrewingStand(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> BrewingStand(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     auto t = EmptyShortName("brewing_stand", pos);
-    auto itemsB = ContainerItems(tagB, "Items");
+    auto itemsB = ContainerItems(tagB, "Items", ctx);
     if (itemsB) {
       uint8_t mapping[5] = {3, 0, 1, 2, 4};
       map<int, shared_ptr<CompoundTag>> items;
@@ -147,7 +147,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     auto items = make_shared<ListTag>(Tag::Type::Compound);
@@ -157,7 +157,7 @@ public:
       auto itemTag = tagB.compoundTag("Item" + to_string(i + 1));
       bool itemAdded = false;
       if (itemTag) {
-        auto item = Item::From(*itemTag);
+        auto item = Item::From(*itemTag, ctx);
         if (item) {
           item->set("Slot", props::Byte(i));
           items->push_back(item);
@@ -180,7 +180,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Chest(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Chest(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto px = tagB.int32("pairx");
     auto pz = tagB.int32("pairz");
@@ -214,7 +214,7 @@ public:
         te->set("LootTableSeed", props::Long(*lootTableSeed));
       }
     } else {
-      auto items = ContainerItems(tagB, "Items");
+      auto items = ContainerItems(tagB, "Items", ctx);
       if (items) {
         te->set("Items", items);
       }
@@ -223,7 +223,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> CommandBlock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> CommandBlock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("command_block", pos);
 
     //TODO: transpile "Command"
@@ -247,7 +247,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Comparator(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Comparator(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("comparator", pos);
     auto outputSignal = tagB.int32("OutputSignal", 0);
     t->set("OutputSignal", props::Int(outputSignal));
@@ -256,7 +256,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto plantBlock = tagB.compoundTag("PlantBlock");
     if (!plantBlock) {
@@ -313,7 +313,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Furnace(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Furnace(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     string name = strings::LTrim(block.fName.substr(10), "lit_");
     auto te = EmptyShortName(name, pos);
@@ -330,7 +330,7 @@ public:
       te->set("CookTimeTotal", props::Short(*burnTime));
     }
     te->set("RecipesUsed", make_shared<mcfile::nbt::CompoundTag>());
-    auto items = ContainerItems(tagB, "Items");
+    auto items = ContainerItems(tagB, "Items", ctx);
     if (items) {
       te->set("Items", items);
     }
@@ -339,9 +339,9 @@ public:
     return r;
   }
 
-  static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("hopper", pos);
-    auto items = ContainerItems(tag, "Items");
+    auto items = ContainerItems(tag, "Items", ctx);
     if (items) {
       t->set("Items", items);
     }
@@ -352,14 +352,14 @@ public:
     return r;
   }
 
-  static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto record = tag.compoundTag("RecordItem");
     map<string, string> p(blockJ.fProperties);
     p["has_record"] = ToString(record != nullptr);
     auto te = EmptyShortName("jukebox", pos);
     if (record) {
-      auto itemJ = Item::From(*record);
+      auto itemJ = Item::From(*record, ctx);
       if (itemJ) {
         te->set("RecordItem", itemJ);
       }
@@ -370,7 +370,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto te = EmptyShortName("lectern", pos);
     map<string, string> p(blockJ.fProperties);
@@ -378,7 +378,7 @@ public:
     auto bookB = tag.compoundTag("book");
     shared_ptr<mcfile::nbt::CompoundTag> bookJ;
     if (bookB) {
-      bookJ = Item::From(*bookB);
+      bookJ = Item::From(*bookB, ctx);
     }
     p["has_book"] = ToString(bookJ != nullptr);
     Result r;
@@ -393,7 +393,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> MobSpawner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> MobSpawner(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     using namespace props;
@@ -428,7 +428,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto note = tag.byte("note");
     map<string, string> p(blockJ.fProperties);
@@ -440,20 +440,20 @@ public:
     return r;
   }
 
-  static std::optional<Result> SameNameEmpty(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> SameNameEmpty(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     Result r;
     r.fTileEntity = EmptyFullName(block.fName, pos);
     return r;
   }
 
-  static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto facing = tag.byte("facing", 0);
     auto f6 = Facing6FromBedrockFacingDirectionA(facing);
     map<string, string> p(blockJ.fProperties);
     p["facing"] = JavaNameFromFacing6(f6);
     auto te = EmptyShortName("shulker_box", pos);
-    auto items = ContainerItems(tag, "Items");
+    auto items = ContainerItems(tag, "Items", ctx);
     if (items) {
       te->set("Items", items);
     }
@@ -463,7 +463,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Sign(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Sign(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     using namespace props;
     auto te = EmptyShortName("sign", pos);
@@ -489,7 +489,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     using namespace props;
@@ -518,7 +518,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> StructureBlock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+  static std::optional<Result> StructureBlock(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("structure_block", pos);
 
     t->set("showair", props::Bool(false));
@@ -598,9 +598,9 @@ public:
 
 #pragma region Converter generators
   static Converter AnyStorage(std::string const &id) {
-    return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
       auto te = EmptyFullName("minecraft:" + id, pos);
-      auto items = ContainerItems(tag, "Items");
+      auto items = ContainerItems(tag, "Items", ctx);
       if (items) {
         te->set("Items", items);
       }
@@ -611,7 +611,7 @@ public:
   }
 
   static Converter NamedEmpty(std::string id) {
-    return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
+    return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
       Result r;
       r.fTileEntity = EmptyShortName(id, pos);
       return r;
@@ -635,7 +635,7 @@ public:
     return std::make_shared<mcfile::je::Block const>(name, props);
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> ContainerItems(mcfile::nbt::CompoundTag const &parent, std::string const &key) {
+  static std::shared_ptr<mcfile::nbt::ListTag> ContainerItems(mcfile::nbt::CompoundTag const &parent, std::string const &key, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     auto tag = parent.listTag(key);
@@ -648,7 +648,7 @@ public:
       if (!c) {
         continue;
       }
-      auto converted = Item::From(*c);
+      auto converted = Item::From(*c, ctx);
       if (!converted) {
         continue;
       }

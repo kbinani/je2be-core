@@ -4,10 +4,10 @@ namespace je2be::toje {
 
 class Item {
   Item() = delete;
-  using Converter = std::function<std::string(std::string const &, mcfile::nbt::CompoundTag const&itemB, mcfile::nbt::CompoundTag &itemJ)>;
+  using Converter = std::function<std::string(std::string const &, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx)>;
 
 public:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const &tagB) {
+  static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const &tagB, Context &ctx) {
     using namespace std;
     auto name = tagB.string("Name");
     if (!name) {
@@ -17,15 +17,15 @@ public:
     auto ret = make_shared<mcfile::nbt::CompoundTag>();
     auto found = sTable->find(*name);
     if (found == sTable->end()) {
-      Default(*name, tagB, *ret);
+      Default(*name, tagB, *ret, ctx);
     } else {
-      auto renamed = found->second(*name, tagB, *ret);
-      Default(renamed, tagB, *ret);
+      auto renamed = found->second(*name, tagB, *ret, ctx);
+      Default(renamed, tagB, *ret, ctx);
     }
     return ret;
   }
 
-  static void Default(std::string const &name, mcfile::nbt::CompoundTag const&itemB, mcfile::nbt::CompoundTag &itemJ) {
+  static void Default(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     auto count = itemB.byte("Count");
@@ -50,7 +50,7 @@ public:
   }
 
 #pragma region Converters
-  static std::string Book(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ) {
+  static std::string Book(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
     using namespace std;
     using namespace mcfile::nbt;
     auto tagB = itemB.compoundTag("tag");
@@ -95,7 +95,22 @@ public:
     return name;
   }
 
-  static std::string Potion(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ) {
+  static std::string Map(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      auto tagJ = std::make_shared<mcfile::nbt::CompoundTag>();
+      auto index = tagB->int32("map_name_index");
+      auto uuid = tagB->int64("map_uuid");
+      if (index && uuid) {
+        tagJ->set("map", props::Int(*index));
+        ctx.addMap(*index, *uuid);
+      }
+      itemJ.set("tag", tagJ);
+    }
+    return name;
+  }
+
+  static std::string Potion(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
     auto damage = itemB.int16("Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
     auto tagJ = std::make_shared<mcfile::nbt::CompoundTag>();
@@ -107,7 +122,7 @@ public:
 
 #pragma region Converter generators
   static Converter Rename(std::string name) {
-    return [name](std::string const &, mcfile::nbt::CompoundTag const&itemB, mcfile::nbt::CompoundTag &itemJ) {
+    return [name](std::string const &, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
       return "minecraft:" + name;
     };
   }
@@ -125,6 +140,7 @@ public:
     E(written_book, Book);
     E(fish, Rename("cod"));
     E(potion, Potion);
+    E(filled_map, Map);
 
 #undef E
     return ret;

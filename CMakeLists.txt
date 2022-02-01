@@ -100,6 +100,7 @@ set(je2be_files
   include/je2be/toje/cave-vines.hpp
   include/je2be/toje/chorus-plant.hpp
   include/je2be/toje/chunk-cache.hpp
+  include/je2be/toje/context.hpp
   include/je2be/toje/converter.hpp
   include/je2be/toje/fence-connectable.hpp
   include/je2be/toje/item.hpp
