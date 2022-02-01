@@ -201,10 +201,6 @@ public:
     Result r;
     r.fBlock = BlockFullName(blockJ.fName, p);
     auto te = EmptyFullName(block.fName, pos);
-    auto items = ContainerItems(tagB, "Items");
-    if (items && !items->empty()) {
-      te->set("Items", items);
-    }
     auto lootTable = tagB.string("LootTable");
     if (lootTable && lootTable->starts_with("loot_tables/") && lootTable->ends_with(".json")) {
       string name = strings::RTrim(lootTable->substr(12), ".json");
@@ -212,6 +208,11 @@ public:
       auto lootTableSeed = tagB.int32("LootTableSeed");
       if (lootTableSeed) {
         te->set("LootTableSeed", props::Long(*lootTableSeed));
+      }
+    } else {
+      auto items = ContainerItems(tagB, "Items");
+      if (items) {
+        te->set("Items", items);
       }
     }
     r.fTileEntity = te;
@@ -325,6 +326,10 @@ public:
       te->set("CookTimeTotal", props::Short(*burnTime));
     }
     te->set("RecipesUsed", make_shared<mcfile::nbt::CompoundTag>());
+    auto items = ContainerItems(tagB, "Items");
+    if (items) {
+      te->set("Items", items);
+    }
     Result r;
     r.fTileEntity = te;
     return r;
@@ -333,7 +338,7 @@ public:
   static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
     auto t = EmptyShortName("hopper", pos);
     auto items = ContainerItems(tag, "Items");
-    if (items && !items->empty()) {
+    if (items) {
       t->set("Items", items);
     }
     auto transferCooldown = tag.int32("TransferCooldown", 0);
@@ -445,7 +450,7 @@ public:
     p["facing"] = JavaNameFromFacing6(f6);
     auto te = EmptyShortName("shulker_box", pos);
     auto items = ContainerItems(tag, "Items");
-    if (items && !items->empty()) {
+    if (items) {
       te->set("Items", items);
     }
     Result r;
@@ -592,7 +597,7 @@ public:
     return [id](Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ) {
       auto te = EmptyFullName("minecraft:" + id, pos);
       auto items = ContainerItems(tag, "Items");
-      if (items && !items->empty()) {
+      if (items) {
         te->set("Items", items);
       }
       Result r;

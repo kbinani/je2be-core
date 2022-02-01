@@ -882,6 +882,9 @@ private:
 
     auto tag = std::make_shared<CompoundTag>();
     auto items = GetItems(c, "Items", mapInfo, wd);
+    if (!items) {
+      return nullptr;
+    }
     vector<shared_ptr<CompoundTag>> sorted(5);
     for (auto const &it : *items) {
       auto item = it->asCompound();
@@ -942,9 +945,11 @@ private:
 
       auto tag = std::make_shared<CompoundTag>();
       auto items = GetItems(c, "Items", mapInfo, wd);
+      if (items) {
+        tag->set("Items", items);
+      }
 
       tag->insert({
-          {"Items", items},
           {"Findable", Bool(false)},
           {"id", String(name)},
           {"isMovable", Bool(true)},
@@ -1187,15 +1192,17 @@ private:
   static TileEntityData ShulkerBox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace props;
     auto facing = BlockData::GetFacingDirectionAFromFacing(b);
-    auto items = GetItems(c, "Items", mapInfo, wd);
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
         {"id", String("ShulkerBox")},
         {"facing", Byte((int8_t)facing)},
         {"Findable", Bool(false)},
         {"isMovable", Bool(true)},
-        {"Items", items},
     });
+    auto items = GetItems(c, "Items", mapInfo, wd);
+    if (items) {
+      tag->set("Items", items);
+    }
     Attach(c, pos, *tag);
     return tag;
   }
@@ -1300,7 +1307,7 @@ private:
     auto tag = std::make_shared<mcfile::nbt::ListTag>(mcfile::nbt::Tag::Type::Compound);
     auto list = GetList(c, name);
     if (list == nullptr) {
-      return tag;
+      return nullptr;
     }
     for (auto const &it : *list) {
       if (it->type() != mcfile::nbt::Tag::Type::Compound) {
@@ -1353,9 +1360,11 @@ private:
 
     auto tag = std::make_shared<CompoundTag>();
     auto items = GetItems(comp, "Items", mapInfo, wd);
+    if (items) {
+      tag->set("Items", items);
+    }
 
     tag->insert({
-        {"Items", items},
         {"Findable", Bool(false)},
         {"id", String(string("Chest"))},
         {"isMovable", Bool(true)},

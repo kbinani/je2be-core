@@ -26,10 +26,6 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
   auto tagE = expected.copy();
   auto tagA = actual.copy();
 
-  //TODO: remove this
-  tagE->erase("Items");
-  tagA->erase("Items");
-
   static unordered_set<string> blackList({
       "LootTableSeed", // chest in dungeon etc.
       "RecipesUsed",   // furnace, blast_furnace, and smoker
