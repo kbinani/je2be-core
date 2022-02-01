@@ -25,12 +25,6 @@ public:
     return ret;
   }
 
-  static Converter Rename(std::string name) {
-    return [name](std::string const &, mcfile::nbt::CompoundTag const &in, mcfile::nbt::CompoundTag &out) {
-      return "minecraft:" + name;
-    };
-  }
-
   static void Default(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ) {
     using namespace std;
     using namespace mcfile::nbt;
@@ -100,6 +94,14 @@ public:
   }
 #pragma endregion
 
+#pragma region Converter generators
+  static Converter Rename(std::string name) {
+    return [name](std::string const &, mcfile::nbt::CompoundTag const &in, mcfile::nbt::CompoundTag &out) {
+      return "minecraft:" + name;
+    };
+  }
+#pragma endregion
+
   static std::unordered_map<std::string, Converter> *CreateTable() {
     using namespace std;
     auto *ret = new unordered_map<string, Converter>();
@@ -110,6 +112,7 @@ public:
 
     E(writable_book, Book);
     E(written_book, Book);
+    E(fish, Rename("cod"));
 
 #undef E
     return ret;
