@@ -24,6 +24,9 @@ jobs:
           languages: cpp
 
       - name: Build
+        env:
+          CC: gcc-10
+          CXX: g++-10
         run: |
           sudo apt install libtbb-dev
           mkdir -p ./build
