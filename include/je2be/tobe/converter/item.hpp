@@ -171,7 +171,6 @@ private:
     E("dark_oak_boat", Subtype("boat", 5));
     E("carrot_on_a_stick", Rename("carrotonastick"));
     E("scute", Rename("turtle_shell_piece"));
-    E("charcoal", Subtype("coal", 1));
     E("milk_bucket", Subtype("bucket", 1));
     E("water_bucket", Subtype("bucket", 8));
     E("lava_bucket", Subtype("bucket", 10));
