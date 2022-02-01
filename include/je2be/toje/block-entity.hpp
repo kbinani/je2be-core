@@ -113,7 +113,7 @@ public:
     auto itemsB = ContainerItems(tagB, "Items");
     if (itemsB) {
       uint8_t mapping[5] = {3, 0, 1, 2, 4};
-      auto itemsJ = make_shared<ListTag>(Tag::Type::Compound);
+      map<int, shared_ptr<CompoundTag>> items;
       for (int i = 0; i < 5 && i < itemsB->size(); i++) {
         auto itemTag = itemsB->at(i);
         CompoundTag const *item = itemTag->asCompound();
@@ -130,7 +130,11 @@ public:
         auto newSlot = mapping[*slot];
         shared_ptr<CompoundTag> copy = item->copy();
         copy->set("Slot", props::Byte(newSlot));
-        itemsJ->push_back(copy);
+        items[newSlot] = copy;
+      }
+      auto itemsJ = make_shared<ListTag>(Tag::Type::Compound);
+      for (auto it : items) {
+        itemsJ->push_back(it.second);
       }
       t->set("Items", itemsJ);
     }
