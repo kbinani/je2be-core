@@ -515,7 +515,7 @@ private:
     int16_t type = 0;
     if (t) {
       auto potion = t->string("Potion", "");
-      type = PotionData::PotionType(potion);
+      type = Potion::BedrockPotionTypeFromJava(potion);
     }
     tag->set("Damage", props::Short(type));
     tag->set("Count", props::Byte(count));
@@ -529,7 +529,7 @@ private:
     int16_t type = 0;
     if (t) {
       auto potion = t->string("Potion", "");
-      type = PotionData::TippedArrowPotionType(potion);
+      type = Potion::TippedArrowPotionType(potion);
     }
     tag->set("Damage", props::Short(type));
     tag->set("Count", props::Byte(count));

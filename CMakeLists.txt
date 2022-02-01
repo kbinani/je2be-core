@@ -32,6 +32,8 @@ set(je2be_files
   include/je2be/file.hpp
   include/je2be/fs.hpp
   include/je2be/future-support.hpp
+  include/je2be/item/potion.hpp
+  include/je2be/map-ext.hpp
   include/je2be/optional.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
@@ -66,7 +68,6 @@ set(je2be_files
   include/je2be/tobe/converter/map.hpp
   include/je2be/tobe/converter/moving-piston.hpp
   include/je2be/tobe/converter/player-abilities.hpp
-  include/je2be/tobe/converter/potion-data.hpp
   include/je2be/tobe/converter/sub-chunk.hpp
   include/je2be/tobe/converter/tile-entity.hpp
   include/je2be/tobe/converter/tropical-fish.hpp

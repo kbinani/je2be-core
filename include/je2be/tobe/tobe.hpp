@@ -32,7 +32,6 @@
 #include <je2be/tobe/converter/height-map.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
 #include <je2be/tobe/converter/map.hpp>
-#include <je2be/tobe/converter/potion-data.hpp>
 #include <je2be/tobe/converter/enchant-data.hpp>
 #include <je2be/tobe/converter/fireworks-explosion.hpp>
 #include <je2be/tobe/converter/fireworks.hpp>
