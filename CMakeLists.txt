@@ -32,6 +32,7 @@ set(je2be_files
   include/je2be/file.hpp
   include/je2be/fs.hpp
   include/je2be/future-support.hpp
+  include/je2be/item/enchantments.hpp
   include/je2be/item/potion.hpp
   include/je2be/map-ext.hpp
   include/je2be/nbt-ext.hpp
@@ -40,6 +41,7 @@ set(je2be_files
   include/je2be/pos3.hpp
   include/je2be/progress.hpp
   include/je2be/props.hpp
+  include/je2be/reversible-map.hpp
   include/je2be/rotation.hpp
   include/je2be/scoped-file.hpp
   include/je2be/size.hpp

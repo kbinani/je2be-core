@@ -64,6 +64,7 @@
 #include <je2be/defer.hpp>
 #include <je2be/map-ext.hpp>
 #include <je2be/nbt-ext.hpp>
+#include <je2be/reversible-map.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
@@ -78,6 +79,7 @@
 #include <je2be/color/sign-color.hpp>
 
 #include <je2be/item/potion.hpp>
+#include <je2be/item/enchantments.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>
