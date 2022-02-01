@@ -46,16 +46,20 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
   if (jsonE == jsonA) {
     CHECK(true);
   } else {
-    cerr << "actual:" << endl;
-    cerr << jsonA << endl;
-    cerr << "expected:" << endl;
-    cerr << jsonE << endl;
     vector<string> linesE = mcfile::String::Split(jsonE, '\n');
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
+    cerr << "actual:" << endl;
+    for (int i = 0; i < linesA.size(); i++) {
+      cerr << i << ":" << linesA[i] << endl;
+    }
+    cerr << "expected:" << endl;
+    for (int i = 0; i < linesE.size(); i++) {
+      cerr << i << ":" << linesE[i] << endl;
+    }
     for (int i = 0; i < std::min(linesE.size(), linesA.size()); i++) {
       string lineE = linesE[i];
       string lineA = linesA[i];
-      string prefix = "#" + to_string(i);
+      string prefix = to_string(i) + ":";
       CHECK(prefix + lineA == prefix + lineE);
     }
   }
