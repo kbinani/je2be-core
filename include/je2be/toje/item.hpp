@@ -132,12 +132,10 @@ public:
     auto author = tagB->string("author");
     if (author) {
       tagJ->set("author", props::String(*author));
-      tagJ->set("resolved", props::Bool(true));
     }
     auto title = tagB->string("title");
     if (title) {
       tagJ->set("title", props::String(*title));
-      tagJ->set("filtered_title", props::String(*title));
     }
     itemJ.set("tag", tagJ);
     return name;

@@ -19,28 +19,49 @@ static void CheckBlock(mcfile::je::Block const &e, mcfile::je::Block const &a, s
   CHECK(blockA->toString() == blockE->toString());
 }
 
+static void Erase(shared_ptr<mcfile::nbt::CompoundTag> t, string path) {
+  auto keys = mcfile::String::Split(path, '/');
+  for (int i = 0; i < keys.size() - 1 && t; i++) {
+    string key = keys[i];
+    t = t->compoundTag(key);
+  }
+  if (!t) {
+    return;
+  }
+  t->erase(keys[keys.size() - 1]);
+}
+
 static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nbt::CompoundTag const &actual) {
   using namespace std;
   using namespace mcfile::nbt;
 
-  auto tagE = expected.copy();
-  auto tagA = actual.copy();
+  auto copyE = expected.copy();
+  auto copyA = actual.copy();
 
-  static unordered_set<string> blackList({
+  static unordered_set<string> sBlackList({
       "LootTableSeed", // chest in dungeon etc.
       "RecipesUsed",   // furnace, blast_furnace, and smoker
       "LastOutput",    // command_block
       "author",        // structure_block
   });
-  for (string b : blackList) {
-    tagE->erase(b);
-    tagA->erase(b);
+  for (string b : sBlackList) {
+    copyE->erase(b);
+    copyA->erase(b);
+  }
+
+  static unordered_set<string> sTagBlacklist({
+      "Book/tag/resolved",       // written_book
+      "Book/tag/filtered_title", // written_book
+  });
+  for (string b : sTagBlacklist) {
+    Erase(copyE, b);
+    Erase(copyA, b);
   }
 
   ostringstream streamE;
-  PrintAsJson(streamE, *tagE, {.fTypeHint = true});
+  PrintAsJson(streamE, *copyE, {.fTypeHint = true});
   ostringstream streamA;
-  PrintAsJson(streamA, *tagA, {.fTypeHint = true});
+  PrintAsJson(streamA, *copyA, {.fTypeHint = true});
   string jsonE = streamE.str();
   string jsonA = streamA.str();
   if (jsonE == jsonA) {
@@ -50,11 +71,11 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
     cerr << "actual:" << endl;
     for (int i = 0; i < linesA.size(); i++) {
-      cerr << i << ":" << linesA[i] << endl;
+      cerr << i << ":\t" << linesA[i] << endl;
     }
     cerr << "expected:" << endl;
     for (int i = 0; i < linesE.size(); i++) {
-      cerr << i << ":" << linesE[i] << endl;
+      cerr << i << ":\t" << linesE[i] << endl;
     }
     for (int i = 0; i < std::min(linesE.size(), linesA.size()); i++) {
       string lineE = linesE[i];
