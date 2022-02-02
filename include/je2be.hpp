@@ -62,7 +62,7 @@
 #include <je2be/version.hpp>
 #include <je2be/future-support.hpp>
 #include <je2be/defer.hpp>
-#include <je2be/map-ext.hpp>
+#include <je2be/rename-pair.hpp>
 #include <je2be/nbt-ext.hpp>
 #include <je2be/reversible-map.hpp>
 

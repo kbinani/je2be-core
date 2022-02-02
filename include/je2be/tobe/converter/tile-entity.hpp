@@ -288,8 +288,8 @@ private:
     t->set("redstoneSaveMode", Int(0));
     t->set("removeBlocks", Bool(false));
 
-    CopyBoolValues(*c, *t, {{"ignoreEntities", "ignoreEntities"}, {"powered", "isPowered"}, {"showboundingbox", "showBoundingBox"}});
-    CopyFloatValues(*c, *t, {{"integrity", "integrity"}});
+    CopyBoolValues(*c, *t, {{"ignoreEntities"}, {"powered", "isPowered"}, {"showboundingbox", "showBoundingBox"}});
+    CopyFloatValues(*c, *t, {{"integrity"}});
     CopyStringValues(*c, *t, {{"name", "structureName"}, {"metadata", "dataField"}});
     CopyIntValues(*c, *t, {
                               {"posX", "xStructureOffset"},
@@ -299,7 +299,7 @@ private:
                               {"sizeY", "yStructureSize"},
                               {"sizeZ", "zStructureSize"},
                           });
-    CopyLongValues(*c, *t, {{"seed", "seed"}});
+    CopyLongValues(*c, *t, {{"seed"}});
 
     // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
     auto mirror = c->string("mirror", "NONE");

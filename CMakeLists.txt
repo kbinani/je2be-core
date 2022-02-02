@@ -34,13 +34,13 @@ set(je2be_files
   include/je2be/future-support.hpp
   include/je2be/item/enchantments.hpp
   include/je2be/item/potion.hpp
-  include/je2be/map-ext.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/optional.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
   include/je2be/progress.hpp
   include/je2be/props.hpp
+  include/je2be/rename-pair.hpp
   include/je2be/reversible-map.hpp
   include/je2be/rotation.hpp
   include/je2be/scoped-file.hpp

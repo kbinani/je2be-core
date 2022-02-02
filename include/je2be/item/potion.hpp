@@ -6,18 +6,13 @@ class Potion {
   using CompoundTag = mcfile::nbt::CompoundTag;
 
 public:
-  static std::unordered_map<std::string, int16_t> const *GetPotionTypeTableJtoB() {
-    static std::unique_ptr<std::unordered_map<std::string, int16_t> const> const sTable(CreatePotionTypeTableJtoB());
+  static ReversibleMap<std::string, int16_t> const *GetPotionTypeTableJtoB() {
+    static std::unique_ptr<ReversibleMap<std::string, int16_t> const> const sTable(CreatePotionTypeTableJtoB());
     return sTable.get();
   }
 
-  static std::unordered_map<int16_t, std::string> const *GetPotionTypeTableBtoJ() {
-    static std::unique_ptr<std::unordered_map<int16_t, std::string> const> const sTable(CreatePotionTypeTableBtoJ());
-    return sTable.get();
-  }
-
-  static std::unordered_map<std::string, int16_t> const *CreatePotionTypeTableJtoB() {
-    return new std::unordered_map<std::string, int16_t>({
+  static ReversibleMap<std::string, int16_t> const *CreatePotionTypeTableJtoB() {
+    return new ReversibleMap<std::string, int16_t>({
         {"minecraft:water", 0},
         {"minecraft:mundane", 1},
         {"minecraft:night_vision", 5},
@@ -62,29 +57,22 @@ public:
     });
   }
 
-  static std::unordered_map<int16_t, std::string> const *CreatePotionTypeTableBtoJ() {
-    auto t = new std::unordered_map<int16_t, std::string>();
-    auto const *j2b = GetPotionTypeTableJtoB();
-    Invert(*j2b, *t);
-    return t;
-  }
-
   static int16_t BedrockPotionTypeFromJava(std::string const &name) {
     int16_t type = 0;
     auto table = GetPotionTypeTableJtoB();
-    auto found = table->find(name);
-    if (found != table->end()) {
-      type = found->second;
+    auto found = table->backward(name);
+    if (found) {
+      type = *found;
     }
     return type;
   }
 
   static std::string JavaPotionTypeFromBedrock(int16_t t) {
     std::string name = "minecraft:water";
-    auto table = GetPotionTypeTableBtoJ();
-    auto found = table->find(t);
-    if (found != table->end()) {
-      name = found->second;
+    auto table = GetPotionTypeTableJtoB();
+    auto found = table->forward(t);
+    if (found) {
+      name = *found;
     }
     return name;
   }

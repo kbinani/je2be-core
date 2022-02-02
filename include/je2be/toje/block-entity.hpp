@@ -227,10 +227,10 @@ public:
     auto t = EmptyShortName("command_block", pos);
 
     //TODO: transpile "Command"
-    CopyStringValues(tagB, *t, {{"Command", "Command"}});
-    CopyIntValues(tagB, *t, {{"SuccessCount", "SuccessCount"}});
-    CopyBoolValues(tagB, *t, {{"auto", "auto"}, {"powered", "powered"}, {"conditionMet", "conditionMet"}, {"TrackOutput", "TrackOutput"}});
-    CopyLongValues(tagB, *t, {{"LastExecution", "LastExecution"}});
+    CopyStringValues(tagB, *t, {{"Command"}});
+    CopyIntValues(tagB, *t, {{"SuccessCount"}});
+    CopyBoolValues(tagB, *t, {{"auto"}, {"powered"}, {"conditionMet"}, {"TrackOutput"}});
+    CopyLongValues(tagB, *t, {{"LastExecution"}});
 
     t->set("UpdateLastExecution", props::Bool(true));
 
@@ -523,8 +523,8 @@ public:
 
     t->set("showair", props::Bool(false));
 
-    CopyBoolValues(tag, *t, {{"ignoreEntities", "ignoreEntities"}, {"isPowered", "powered"}, {"showBoundingBox", "showboundingbox"}});
-    CopyFloatValues(tag, *t, {{"integrity", "integrity"}});
+    CopyBoolValues(tag, *t, {{"ignoreEntities"}, {"isPowered", "powered"}, {"showBoundingBox", "showboundingbox"}});
+    CopyFloatValues(tag, *t, {{"integrity"}});
     CopyStringValues(tag, *t, {{"structureName", "name"}, {"dataField", "metadata"}});
     CopyIntValues(tag, *t, {
                                {"xStructureOffset", "posX"},
@@ -534,7 +534,7 @@ public:
                                {"yStructureSize", "sizeY"},
                                {"zStructureSize", "sizeZ"},
                            });
-    CopyLongValues(tag, *t, {{"seed", "seed"}});
+    CopyLongValues(tag, *t, {{"seed"}});
 
     // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
     auto mirrorB = tag.byte("mirror", 0);

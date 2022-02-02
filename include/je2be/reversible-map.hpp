@@ -4,35 +4,28 @@ namespace je2be {
 
 template <class T1, class T2>
 class ReversibleMap {
-  std::unordered_map<T1, T2> fNormal;
-  std::unordered_map<T2, T1> fReverse;
+  std::unordered_map<T1, T2> fForward;
+  std::unordered_map<T2, T1> fBackward;
 
 public:
   explicit ReversibleMap(std::initializer_list<std::pair<T1, T2>> list) {
     for (auto it : list) {
-      fNormal[it.first] = it.second;
-      fReverse[it.second] = it.first;
+      fForward[it.first] = it.second;
+      fBackward[it.second] = it.first;
     }
   }
 
-  explicit ReversibleMap(std::initializer_list<std::pair<T2, T1>> list) {
-    for (auto it : list) {
-      fReverse[it.first] = it.second;
-      fNormal[it.second] = it.first;
-    }
-  }
-
-  std::optional<T1> find(T2 const &v) const {
-    auto found = fReverse.find(v);
-    if (found == fReverse.end()) {
+  std::optional<T1> forward(T2 const &v) const {
+    auto found = fBackward.find(v);
+    if (found == fBackward.end()) {
       return std::nullopt;
     }
     return found->second;
   }
 
-  std::optional<T2> find(T1 const &v) const {
-    auto found = fNormal.find(v);
-    if (found == fNormal.end()) {
+  std::optional<T2> backward(T1 const &v) const {
+    auto found = fForward.find(v);
+    if (found == fForward.end()) {
       return std::nullopt;
     }
     return found->second;
