@@ -540,12 +540,12 @@ private:
     if (explosion) {
       auto tag = std::make_shared<CompoundTag>();
 
-      auto e = FireworksExplosion::From(*explosion);
+      auto e = FireworksExplosion::BedrockFromJava(*explosion);
       if (!e.fColor.empty()) {
         int32_t customColor = e.fColor[0].toARGB();
         tag->set("customColor", props::Int(customColor));
       }
-      tag->set("FireworksItem", e.toCompoundTag());
+      tag->set("FireworksItem", e.toBedrockCompoundTag());
       data->set("tag", tag);
     }
 
@@ -556,9 +556,9 @@ private:
     auto data = Rename("fireworks")(name, item);
     auto fireworks = item.query("tag/Fireworks")->asCompound();
     if (fireworks) {
-      auto fireworksData = FireworksData::From(*fireworks);
+      auto fireworksData = FireworksData::BedrockFromJava(*fireworks);
       auto tag = std::make_shared<CompoundTag>();
-      tag->set("Fireworks", fireworksData.toCompoundTag());
+      tag->set("Fireworks", fireworksData.toBedrockCompoundTag());
       data->set("tag", tag);
     }
     return data;

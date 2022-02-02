@@ -1,10 +1,10 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class FireworksExplosion {
 public:
-  static FireworksExplosion From(mcfile::nbt::CompoundTag const &tag) {
+  static FireworksExplosion BedrockFromJava(mcfile::nbt::CompoundTag const &tag) {
     FireworksExplosion e;
     e.fTrail = tag.boolean("Trail", false);
     e.fFlicker = tag.boolean("Flicker", false);
@@ -43,7 +43,7 @@ public:
     //    FadeColors: IntArray (RGB)
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<mcfile::nbt::CompoundTag> toBedrockCompoundTag() const {
     using namespace props;
     using namespace mcfile::nbt;
     auto ret = std::make_shared<CompoundTag>();
@@ -140,4 +140,4 @@ public:
   std::vector<Rgba> fFadeColor;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

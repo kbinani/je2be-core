@@ -80,6 +80,8 @@
 
 #include <je2be/item/potion.hpp>
 #include <je2be/item/enchantments.hpp>
+#include <je2be/item/fireworks-explosion.hpp>
+#include <je2be/item/fireworks.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

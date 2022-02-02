@@ -33,8 +33,6 @@
 #include <je2be/tobe/converter/java-edition-map.hpp>
 #include <je2be/tobe/converter/map.hpp>
 #include <je2be/tobe/converter/enchant-data.hpp>
-#include <je2be/tobe/converter/fireworks-explosion.hpp>
-#include <je2be/tobe/converter/fireworks.hpp>
 #include <je2be/tobe/converter/entity-attributes.hpp>
 #include <je2be/tobe/converter/tropical-fish.hpp>
 #include <je2be/tobe/converter/axolotl.hpp>

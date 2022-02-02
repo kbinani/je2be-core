@@ -33,6 +33,8 @@ set(je2be_files
   include/je2be/fs.hpp
   include/je2be/future-support.hpp
   include/je2be/item/enchantments.hpp
+  include/je2be/item/fireworks-explosion.hpp
+  include/je2be/item/fireworks.hpp
   include/je2be/item/potion.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/optional.hpp
@@ -61,8 +63,6 @@ set(je2be_files
   include/je2be/tobe/converter/enchant-data.hpp
   include/je2be/tobe/converter/entity-attributes.hpp
   include/je2be/tobe/converter/entity.hpp
-  include/je2be/tobe/converter/fireworks-explosion.hpp
-  include/je2be/tobe/converter/fireworks.hpp
   include/je2be/tobe/converter/flat-world-layers.hpp
   include/je2be/tobe/converter/height-map.hpp
   include/je2be/tobe/converter/item.hpp

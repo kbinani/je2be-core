@@ -1,10 +1,10 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class FireworksData {
 public:
-  static FireworksData From(mcfile::nbt::CompoundTag const &fireworks) {
+  static FireworksData BedrockFromJava(mcfile::nbt::CompoundTag const &fireworks) {
     FireworksData es;
 
     es.fFlight = fireworks.byte("Flight", 1);
@@ -16,7 +16,7 @@ public:
         if (!c) {
           continue;
         }
-        FireworksExplosion e = FireworksExplosion::From(*c);
+        FireworksExplosion e = FireworksExplosion::BedrockFromJava(*c);
         es.fExplosions.push_back(e);
       }
     }
@@ -24,12 +24,12 @@ public:
     return es;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<mcfile::nbt::CompoundTag> toBedrockCompoundTag() const {
     using namespace mcfile::nbt;
     auto ret = std::make_shared<CompoundTag>();
     auto explosions = std::make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &it : fExplosions) {
-      explosions->push_back(it.toCompoundTag());
+      explosions->push_back(it.toBedrockCompoundTag());
     }
     ret->set("Explosions", explosions);
     ret->set("Flight", props::Byte(fFlight));
@@ -41,4 +41,4 @@ public:
   int8_t fFlight = 1;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be
