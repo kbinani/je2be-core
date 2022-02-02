@@ -3,6 +3,7 @@
 
 using namespace std;
 using namespace je2be;
+using namespace mcfile::nbt;
 namespace fs = std::filesystem;
 
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
@@ -65,7 +66,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
   }
 }
 
-static void Erase(shared_ptr<mcfile::nbt::CompoundTag> t, string path) {
+static void Erase(shared_ptr<CompoundTag> t, string path) {
   auto keys = mcfile::String::Split(path, '/');
   for (int i = 0; i < keys.size() - 1 && t; i++) {
     string key = keys[i];
@@ -77,37 +78,11 @@ static void Erase(shared_ptr<mcfile::nbt::CompoundTag> t, string path) {
   t->erase(keys[keys.size() - 1]);
 }
 
-static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nbt::CompoundTag const &actual) {
-  using namespace std;
-  using namespace mcfile::nbt;
-
-  auto copyE = expected.copy();
-  auto copyA = actual.copy();
-
-  static unordered_set<string> sBlackList({
-      "LootTableSeed", // chest in dungeon etc.
-      "RecipesUsed",   // furnace, blast_furnace, and smoker
-      "LastOutput",    // command_block
-      "author",        // structure_block
-  });
-  for (string b : sBlackList) {
-    copyE->erase(b);
-    copyA->erase(b);
-  }
-
-  static unordered_set<string> sTagBlacklist({
-      "Book/tag/resolved",       // written_book
-      "Book/tag/filtered_title", // written_book
-  });
-  for (string b : sTagBlacklist) {
-    Erase(copyE, b);
-    Erase(copyA, b);
-  }
-
+static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
   ostringstream streamE;
-  PrintAsJson(streamE, *copyE, {.fTypeHint = true});
+  PrintAsJson(streamE, e, {.fTypeHint = true});
   ostringstream streamA;
-  PrintAsJson(streamA, *copyA, {.fTypeHint = true});
+  PrintAsJson(streamA, a, {.fTypeHint = true});
   string jsonE = streamE.str();
   string jsonA = streamA.str();
   if (jsonE == jsonA) {
@@ -135,6 +110,58 @@ static void CheckTileEntity(mcfile::nbt::CompoundTag const &expected, mcfile::nb
     }
     CHECK(false);
   }
+}
+
+static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual) {
+  using namespace std;
+
+  auto copyE = expected.copy();
+  auto copyA = actual.copy();
+
+  static unordered_set<string> sBlackList({
+      "LootTableSeed", // chest in dungeon etc.
+      "RecipesUsed",   // furnace, blast_furnace, and smoker
+      "LastOutput",    // command_block
+      "author",        // structure_block
+  });
+  for (string b : sBlackList) {
+    copyE->erase(b);
+    copyA->erase(b);
+  }
+
+  static unordered_set<string> sTagBlacklist({
+      "Book/tag/resolved",       // written_book
+      "Book/tag/filtered_title", // written_book
+  });
+  for (string b : sTagBlacklist) {
+    Erase(copyE, b);
+    Erase(copyA, b);
+  }
+  DiffCompoundTag(*copyE, *copyA);
+}
+
+static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) {
+  DiffCompoundTag(entityE, entityA);
+}
+
+static shared_ptr<CompoundTag> FindNearestEntity(Vec pos, vector<shared_ptr<CompoundTag>> const &entities) {
+  shared_ptr<CompoundTag> ret = nullptr;
+  double minDistance = numeric_limits<double>::max();
+  for (auto const &entity : entities) {
+    auto p = props::GetVec(*entity, "Pos");
+    if (!p) {
+      continue;
+    }
+    double dx = p->fX - pos.fX;
+    double dy = p->fY - pos.fY;
+    double dz = p->fZ - pos.fZ;
+    double distance = hypot(dx, dy, dz);
+    if (distance < minDistance) {
+      minDistance = distance;
+      ret = entity;
+    }
+  }
+  return ret;
 }
 
 TEST_CASE("j2b2j") {
@@ -201,8 +228,11 @@ TEST_CASE("j2b2j") {
           if (!chunkA) {
             continue;
           }
+          regionA->entitiesAt(chunkA->fChunkX, chunkA->fChunkZ, chunkA->fEntities);
+
           auto chunkE = regionE->chunkAt(cx, cz);
           CHECK(chunkE);
+          regionE->entitiesAt(chunkE->fChunkX, chunkE->fChunkZ, chunkE->fEntities);
 
           CHECK(chunkA->minBlockY() == chunkE->minBlockY());
           CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
@@ -227,7 +257,7 @@ TEST_CASE("j2b2j") {
 
           for (auto const &it : chunkE->fTileEntities) {
             Pos3i pos = it.first;
-            shared_ptr<mcfile::nbt::CompoundTag> const &tileE = it.second;
+            shared_ptr<CompoundTag> const &tileE = it.second;
             static unordered_set<string> blacklist({"minecraft:sculk_sensor"});
             blacklist.insert("minecraft:beehive"); //TODO: remove this
             if (blacklist.find(tileE->string("id", "")) != blacklist.end()) {
@@ -235,11 +265,22 @@ TEST_CASE("j2b2j") {
             }
             auto found = chunkA->fTileEntities.find(pos);
             if (found == chunkA->fTileEntities.end()) {
-              mcfile::nbt::PrintAsJson(cerr, *tileE, {.fTypeHint = true});
+              PrintAsJson(cerr, *tileE, {.fTypeHint = true});
               CHECK(false);
             }
             auto tileA = found->second;
             CheckTileEntity(*tileE, *tileA);
+          }
+
+          for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
+            Vec posE = *props::GetVec(*entityE, "Pos");
+            shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, chunkA->fEntities);
+            if (entityA) {
+              CheckEntity(*entityE, *entityA);
+            } else {
+              PrintAsJson(cerr, *entityE, {.fTypeHint = true});
+              CHECK(false);
+            }
           }
         }
       }
