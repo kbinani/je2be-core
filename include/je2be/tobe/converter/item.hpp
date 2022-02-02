@@ -1120,12 +1120,18 @@ private:
           }
           ench->push_back(be);
         }
-        auto damage = tag->int32("Damage", 0);
-        auto repairCost = tag->int32("RepairCost", 1);
-        beTag->set("Damage", Int(damage));
-        beTag->set("RepairCost", Int(repairCost));
         beTag->set("ench", ench);
       }
+    }
+
+    auto damage = tag->int32("Damage");
+    if (damage) {
+      beTag->set("Damage", Int(*damage));
+    }
+
+    auto repairCost = tag->int32("RepairCost");
+    if (repairCost) {
+      beTag->set("RepairCost", Int(*repairCost));
     }
 
     auto name = GetCustomName(*tag);
@@ -1133,11 +1139,6 @@ private:
       auto beDisplay = make_shared<CompoundTag>();
       beDisplay->set("Name", String(*name));
       beTag->set("display", beDisplay);
-    }
-
-    auto damage = tag->int32("Damage");
-    if (damage) {
-      beTag->set("Damage", Int(*damage));
     }
 
     if (!beTag->empty()) {

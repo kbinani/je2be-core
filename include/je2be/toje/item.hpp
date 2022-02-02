@@ -34,67 +34,68 @@ public:
       itemJ.set("Count", props::Byte(*count));
     }
     auto tagB = itemB.compoundTag("tag");
-    if (tagB) {
-      shared_ptr<CompoundTag> tagJ = itemJ.compoundTag("tag");
-      if (!tagJ) {
-        tagJ = make_shared<CompoundTag>();
-      }
-
-      shared_ptr<CompoundTag> displayJ = make_shared<CompoundTag>();
-
-      CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
-
-      auto customColor = tagB->int32("customColor");
-      if (customColor) {
-        int32_t c = *customColor;
-        uint32_t rgb = 0xffffff & *(uint32_t *)&c;
-        if (!displayJ) {
-          displayJ = make_shared<CompoundTag>();
-        }
-        displayJ->set("color", props::Int(*(int32_t *)&rgb));
-      }
-
-      auto displayB = tagB->compoundTag("display");
-      if (displayB) {
-        if (!displayJ) {
-          displayJ = make_shared<CompoundTag>();
-        }
-
-        auto displayName = displayB->string("Name");
-        if (displayName) {
-          nlohmann::json json;
-          json["text"] = *displayName;
-          displayJ->set("Name", props::String(nlohmann::to_string(json)));
-        }
-
-        auto enchB = tagB->listTag("ench");
-        if (enchB) {
-          auto enchJ = make_shared<ListTag>(Tag::Type::Compound);
-          for (auto const &it : *enchB) {
-            auto cB = it->asCompound();
-            if (!cB) {
-              continue;
-            }
-            auto idB = cB->int16("id");
-            auto lvlB = cB->int16("lvl");
-            if (idB && lvlB) {
-              auto cJ = make_shared<CompoundTag>();
-              auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
-              cJ->set("id", props::String(idJ));
-              cJ->set("lvl", props::Short(*lvlB));
-              enchJ->push_back(cJ);
-            }
-          }
-          tagJ->set("Enchantments", enchJ);
-        }
-      }
-
-      if (displayJ && !displayJ->empty()) {
-        tagJ->set("display", displayJ);
-      }
-
-      itemJ.set("tag", tagJ);
+    if (!tagB) {
+      return;
     }
+    shared_ptr<CompoundTag> tagJ = itemJ.compoundTag("tag");
+    if (!tagJ) {
+      tagJ = make_shared<CompoundTag>();
+    }
+
+    shared_ptr<CompoundTag> displayJ = make_shared<CompoundTag>();
+
+    CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
+
+    auto customColor = tagB->int32("customColor");
+    if (customColor) {
+      int32_t c = *customColor;
+      uint32_t rgb = 0xffffff & *(uint32_t *)&c;
+      if (!displayJ) {
+        displayJ = make_shared<CompoundTag>();
+      }
+      displayJ->set("color", props::Int(*(int32_t *)&rgb));
+    }
+
+    auto displayB = tagB->compoundTag("display");
+    if (displayB) {
+      if (!displayJ) {
+        displayJ = make_shared<CompoundTag>();
+      }
+
+      auto displayName = displayB->string("Name");
+      if (displayName) {
+        nlohmann::json json;
+        json["text"] = *displayName;
+        displayJ->set("Name", props::String(nlohmann::to_string(json)));
+      }
+    }
+
+    auto enchB = tagB->listTag("ench");
+    if (enchB) {
+      auto enchJ = make_shared<ListTag>(Tag::Type::Compound);
+      for (auto const &it : *enchB) {
+        auto cB = it->asCompound();
+        if (!cB) {
+          continue;
+        }
+        auto idB = cB->int16("id");
+        auto lvlB = cB->int16("lvl");
+        if (idB && lvlB) {
+          auto cJ = make_shared<CompoundTag>();
+          auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
+          cJ->set("id", props::String(idJ));
+          cJ->set("lvl", props::Short(*lvlB));
+          enchJ->push_back(cJ);
+        }
+      }
+      tagJ->set("Enchantments", enchJ);
+    }
+
+    if (displayJ && !displayJ->empty()) {
+      tagJ->set("display", displayJ);
+    }
+
+    itemJ.set("tag", tagJ);
   }
 
 #pragma region Converters
