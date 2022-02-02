@@ -4,10 +4,10 @@ namespace je2be {
 
 class FireworksExplosion {
 public:
-  static FireworksExplosion BedrockFromJava(mcfile::nbt::CompoundTag const &tag) {
+  static FireworksExplosion FromJava(mcfile::nbt::CompoundTag const &tag) {
     FireworksExplosion e;
-    e.fTrail = tag.boolean("Trail", false);
-    e.fFlicker = tag.boolean("Flicker", false);
+    e.fTrail = tag.boolean("Trail");
+    e.fFlicker = tag.boolean("Flicker");
     auto colors = tag.query("Colors")->asIntArray();
     if (colors) {
       for (auto v : colors->value()) {
@@ -26,7 +26,7 @@ public:
         e.fFadeColor.push_back(Rgba(r, g, b));
       }
     }
-    e.fType = tag.byte("Type", 0);
+    e.fType = tag.byte("Type");
     return e;
 
     // Java
@@ -43,65 +43,130 @@ public:
     //    FadeColors: IntArray (RGB)
   }
 
+  static FireworksExplosion FromBedrock(mcfile::nbt::CompoundTag const &tag) {
+    FireworksExplosion e;
+    e.fFlicker = tag.boolean("FireworkFlicker");
+    e.fTrail = tag.boolean("FireworkTrail");
+    auto colorB = tag.byteArrayTag("FireworkColor");
+    auto const *table = GetTable();
+    if (colorB) {
+      for (int8_t code : colorB->value()) {
+        auto found = table->find(code);
+        if (found != table->end()) {
+          e.fColor.push_back(found->second);
+        }
+      }
+    }
+    auto fade = tag.byteArrayTag("FireworkFade");
+    if (fade) {
+      for (int8_t code : fade->value()) {
+        auto found = table->find(code);
+        if (found != table->end()) {
+          e.fFadeColor.push_back(found->second);
+        }
+      }
+    }
+    e.fType = tag.byte("FireworkType");
+    return e;
+  }
+
   std::shared_ptr<mcfile::nbt::CompoundTag> toBedrockCompoundTag() const {
     using namespace props;
     using namespace mcfile::nbt;
     auto ret = std::make_shared<CompoundTag>();
-    std::vector<uint8_t> colors;
-    for (Rgba c : fColor) {
-      colors.push_back(GetBedrockColorCode(c));
+    if (fFlicker) {
+      ret->set("FireworkFlicker", Bool(*fFlicker));
     }
-    std::vector<uint8_t> fade;
-    for (Rgba f : fFadeColor) {
-      fade.push_back(GetBedrockColorCode(f));
+    if (fTrail) {
+      ret->set("FireworkTrail", Bool(*fTrail));
     }
-    ret->insert({
-        {"FireworkFlicker", Bool(fFlicker)},
-        {"FireworkTrail", Bool(fTrail)},
-        {"FireworkType", Byte(fType)},
-        {"FireworkColor", std::make_shared<ByteArrayTag>(colors)},
-        {"FireworkFade", std::make_shared<ByteArrayTag>(fade)},
-    });
+    if (fType) {
+      ret->set("FireworkType", Byte(*fType));
+    }
+    if (!fColor.empty()) {
+      std::vector<uint8_t> colors;
+      for (Rgba c : fColor) {
+        colors.push_back(GetBedrockColorCode(c));
+      }
+      ret->set("FireworkColor", std::make_shared<ByteArrayTag>(colors));
+    }
+    if (!fFadeColor.empty()) {
+      std::vector<uint8_t> fade;
+      for (Rgba f : fFadeColor) {
+        fade.push_back(GetBedrockColorCode(f));
+      }
+      ret->set("FireworkFade", std::make_shared<ByteArrayTag>(fade));
+    }
+    return ret;
+  }
+
+  std::shared_ptr<mcfile::nbt::CompoundTag> toJavaCompoundTag() const {
+    using namespace std;
+    using namespace mcfile::nbt;
+    using namespace props;
+    auto ret = make_shared<CompoundTag>();
+    if (fTrail) {
+      ret->set("Trail", Bool(*fTrail));
+    }
+    if (fFlicker) {
+      ret->set("Flicker", Bool(*fFlicker));
+    }
+    if (fType) {
+      ret->set("Type", Byte(*fType));
+    }
+    if (!fColor.empty()) {
+      vector<int32_t> colors;
+      for (auto const &it : fColor) {
+        colors.push_back(it.toRGB());
+      }
+      ret->set("Colors", make_shared<IntArrayTag>(colors));
+    }
+    if (!fFadeColor.empty()) {
+      vector<int32_t> fade;
+      for (auto const &it : fFadeColor) {
+        fade.push_back(it.toRGB());
+      }
+      ret->set("FadeColors", make_shared<IntArrayTag>(fade));
+    }
     return ret;
   }
 
 private:
   static int8_t GetBedrockColorCode(Rgba rgb) {
-    switch (rgb.toRGB()) {
-    case 15790320:
-      return 15; // white
-    case 15435844:
-      return 14; // orange
-    case 12801229:
-      return 13; // magenta
-    case 6719955:
-      return 12; // light blue
-    case 14602026:
-      return 11; // yellow
-    case 4312372:
-      return 10; // lime
-    case 14188952:
-      return 9; // pink
-    case 4408131:
-      return 8; // gray
-    case 11250603:
-      return 7; // light gray
-    case 2651799:
-      return 6; // cyan
-    case 8073150:
-      return 5; // purple
-    case 2437522:
-      return 4; // blue
-    case 5320730:
-      return 3; // brown
-    case 3887386:
-      return 2; // green
-    case 11743532:
-      return 1; // red
-    case 1973019:
-      return 0; // black
+    auto const *table = GetTable();
+    int32_t code = rgb.toRGB();
+    for (auto const &it : *table) {
+      if (it.second.toRGB() == code) {
+        return it.first;
+      }
     }
     return MostSimilarColor(rgb);
+  }
+
+  static std::unordered_map<int8_t, Rgba> const *GetTable() {
+    static std::unique_ptr<std::unordered_map<int8_t, Rgba> const> const sTable(CreateTable());
+    return sTable.get();
+  }
+
+  static std::unordered_map<int8_t, Rgba> *CreateTable() {
+    return new std::unordered_map<int8_t, Rgba>({
+        {0, Rgba::FromRGB(1973019)},   // black
+        {1, Rgba::FromRGB(11743532)},  // red
+        {2, Rgba::FromRGB(3887386)},   // green
+        {3, Rgba::FromRGB(5320730)},   // brown
+        {4, Rgba::FromRGB(2437522)},   // blue
+        {5, Rgba::FromRGB(8073150)},   // purple
+        {6, Rgba::FromRGB(2651799)},   // cyan
+        {7, Rgba::FromRGB(11250603)},  // light gray
+        {8, Rgba::FromRGB(4408131)},   // gray
+        {9, Rgba::FromRGB(14188952)},  // pink
+        {10, Rgba::FromRGB(4312372)},  // lime
+        {11, Rgba::FromRGB(14602026)}, // yellow
+        {12, Rgba::FromRGB(6719955)},  // light blue
+        {13, Rgba::FromRGB(12801229)}, // magenta
+        {14, Rgba::FromRGB(15435844)}, // orange
+        {15, Rgba::FromRGB(15790320)}, // white
+    });
   }
 
   static int8_t MostSimilarColor(Rgba rgb) {
@@ -109,33 +174,20 @@ private:
       Rgba fColor;
       int8_t fCode;
     };
-    std::vector<Color> colors = {
-        {Rgba::FromRGB(1973019), 0},   // black
-        {Rgba::FromRGB(11743532), 1},  // red
-        {Rgba::FromRGB(3887386), 2},   // green
-        {Rgba::FromRGB(5320730), 3},   // brown
-        {Rgba::FromRGB(2437522), 4},   // blue
-        {Rgba::FromRGB(8073150), 5},   // purple
-        {Rgba::FromRGB(2651799), 6},   // cyan
-        {Rgba::FromRGB(11250603), 7},  // light gray
-        {Rgba::FromRGB(4408131), 8},   // gray
-        {Rgba::FromRGB(14188952), 9},  // pink
-        {Rgba::FromRGB(4312372), 10},  // lime
-        {Rgba::FromRGB(14602026), 11}, // yellow
-        {Rgba::FromRGB(6719955), 12},  // light blue
-        {Rgba::FromRGB(12801229), 13}, // magenta
-        {Rgba::FromRGB(15435844), 14}, // orange
-        {Rgba::FromRGB(15790320), 15}, // white
-    };
+    std::vector<Color> colors;
+    auto const *table = GetTable();
+    for (auto const &it : *table) {
+      colors.push_back({it.second, it.first});
+    }
     std::sort(colors.begin(), colors.end(), [rgb](Color const &lhs, Color const &rhs) { return Lab::CompareBySimirality(rgb)(lhs.fColor, rhs.fColor); });
     auto const &ret = colors[0];
     return ret.fCode;
   }
 
 public:
-  bool fFlicker = false;
-  bool fTrail = false;
-  int8_t fType;
+  std::optional<bool> fFlicker;
+  std::optional<bool> fTrail;
+  std::optional<int8_t> fType;
   std::vector<Rgba> fColor;
   std::vector<Rgba> fFadeColor;
 };

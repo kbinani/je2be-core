@@ -141,6 +141,21 @@ public:
     return name;
   }
 
+  static std::string FireworkRocket(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      auto tagJ = std::make_shared<mcfile::nbt::CompoundTag>();
+      auto fireworksB = tagB->compoundTag("Fireworks");
+      if (fireworksB) {
+        FireworksData data = FireworksData::FromBedrock(*fireworksB);
+        auto fireworksJ = data.toJavaCompoundTag();
+        tagJ->set("Fireworks", fireworksJ);
+      }
+      itemJ.set("tag", tagJ);
+    }
+    return name;
+  }
+
   static std::string Map(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
@@ -187,6 +202,8 @@ public:
     E(fish, Rename("cod"));
     E(potion, Potion);
     E(filled_map, Map);
+    E(firework_rocket, FireworkRocket);
+    E(fireworks, FireworkRocket); // legacy
 
 #undef E
     return ret;

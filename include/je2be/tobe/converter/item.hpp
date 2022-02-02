@@ -534,13 +534,13 @@ private:
   }
 
   static ItemData FireworkStar(std::string const &name, CompoundTag const &item) {
-    auto data = Rename("fireworkscharge")(name, item);
+    auto data = Rename("firework_star")(name, item);
 
     auto explosion = item.query("tag/Explosion")->asCompound();
     if (explosion) {
       auto tag = std::make_shared<CompoundTag>();
 
-      auto e = FireworksExplosion::BedrockFromJava(*explosion);
+      auto e = FireworksExplosion::FromJava(*explosion);
       if (!e.fColor.empty()) {
         int32_t customColor = e.fColor[0].toARGB();
         tag->set("customColor", props::Int(customColor));
@@ -553,15 +553,15 @@ private:
   }
 
   static ItemData FireworkRocket(std::string const &name, CompoundTag const &item) {
-    auto data = Rename("fireworks")(name, item);
+    auto data = New("firework_rocket");
     auto fireworks = item.query("tag/Fireworks")->asCompound();
     if (fireworks) {
-      auto fireworksData = FireworksData::BedrockFromJava(*fireworks);
+      auto fireworksData = FireworksData::FromJava(*fireworks);
       auto tag = std::make_shared<CompoundTag>();
       tag->set("Fireworks", fireworksData.toBedrockCompoundTag());
       data->set("tag", tag);
     }
-    return data;
+    return Post(data, item);
   }
 
   static Converter SpawnEgg(std::string const &mob, int16_t damage) {
