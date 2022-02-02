@@ -5,7 +5,7 @@ using namespace std;
 using namespace je2be;
 namespace fs = std::filesystem;
 
-static void CheckBlock(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore = {}) {
+static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
   using namespace std;
   CHECK(e.fName == a.fName);
   map<string, string> propsE(e.fProperties);
@@ -17,6 +17,52 @@ static void CheckBlock(mcfile::je::Block const &e, mcfile::je::Block const &a, s
   auto blockE = make_shared<mcfile::je::Block>(e.fName, propsE);
   auto blockA = make_shared<mcfile::je::Block>(a.fName, propsA);
   CHECK(blockA->toString() == blockE->toString());
+}
+
+static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA) {
+  unordered_map<string, string> fallbackJtoB;
+  fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
+  fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
+
+  unordered_map<string, string> fallbackBtoJ;
+  fallbackBtoJ["minecraft:frame"] = "minecraft:air";      // frame should be converted as an entity.
+  fallbackBtoJ["minecraft:glow_frame"] = "minecraft:air"; // frame should be converted as an entity.
+
+  if (blockA && blockE) {
+    auto foundJtoB = fallbackJtoB.find(blockE->fName);
+    if (foundJtoB == fallbackJtoB.end()) {
+      auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
+      if (foundBtoJ == fallbackBtoJ.end()) {
+        if (blockE->fName.ends_with("_leaves")) {
+          CheckBlockWithIgnore(*blockE, *blockA, {"distance"});
+        } else if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
+          CheckBlockWithIgnore(*blockE, *blockA, {"lit"});
+        } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
+          CHECK(blockE->fName == blockA->fName);
+        } else if (blockE->fName == "minecraft:scaffolding") {
+          CheckBlockWithIgnore(*blockE, *blockA, {"distance"});
+        } else if (blockE->fName == "minecraft:repeater") {
+          CheckBlockWithIgnore(*blockE, *blockA, {"locked"});
+        } else if (blockE->fName == "minecraft:note_block" || blockE->fName.ends_with("_trapdoor") || blockE->fName.ends_with("_fence_gate") || blockE->fName == "minecraft:lectern" || blockE->fName.ends_with("_door") || blockE->fName == "minecraft:lightning_rod") {
+          CheckBlockWithIgnore(*blockE, *blockA, {"powered"});
+        } else if (blockE->fName.ends_with("_button")) {
+          CheckBlockWithIgnore(*blockE, *blockA, {"facing", "powered"});
+        } else if (blockE->fName == "minecraft:fire") {
+          CheckBlockWithIgnore(*blockE, *blockA, {"east", "north", "south", "west", "up"});
+        } else {
+          CHECK(blockA->toString() == blockE->toString());
+        }
+      } else {
+        CHECK(foundBtoJ->second == blockE->fName);
+      }
+    } else {
+      CHECK(blockA->fName == foundJtoB->second);
+    }
+  } else if (blockA) {
+    CHECK(blockA->fName == "minecraft:air");
+  } else if (blockE) {
+    CHECK(blockE->fName == "minecraft:air");
+  }
 }
 
 static void Erase(shared_ptr<mcfile::nbt::CompoundTag> t, string path) {
@@ -121,14 +167,6 @@ TEST_CASE("j2b2j") {
 
   // Compare initial Java input and final Java output.
 
-  unordered_map<string, string> fallbackJtoB;
-  fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
-  fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
-
-  unordered_map<string, string> fallbackBtoJ;
-  fallbackBtoJ["minecraft:frame"] = "minecraft:air";      // frame should be converted as an entity.
-  fallbackBtoJ["minecraft:glow_frame"] = "minecraft:air"; // frame should be converted as an entity.
-
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!io.fDimensionFilter.empty()) {
       if (io.fDimensionFilter.find(dim) == io.fDimensionFilter.end()) {
@@ -174,41 +212,7 @@ TEST_CASE("j2b2j") {
               for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
-                if (blockA && blockE) {
-                  auto foundJtoB = fallbackJtoB.find(blockE->fName);
-                  if (foundJtoB == fallbackJtoB.end()) {
-                    auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
-                    if (foundBtoJ == fallbackBtoJ.end()) {
-                      if (blockE->fName.ends_with("_leaves")) {
-                        CheckBlock(*blockE, *blockA, {"distance"});
-                      } else if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
-                        CheckBlock(*blockE, *blockA, {"lit"});
-                      } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
-                        CHECK(blockE->fName == blockA->fName);
-                      } else if (blockE->fName == "minecraft:scaffolding") {
-                        CheckBlock(*blockE, *blockA, {"distance"});
-                      } else if (blockE->fName == "minecraft:repeater") {
-                        CheckBlock(*blockE, *blockA, {"locked"});
-                      } else if (blockE->fName == "minecraft:note_block" || blockE->fName.ends_with("_trapdoor") || blockE->fName.ends_with("_fence_gate") || blockE->fName == "minecraft:lectern" || blockE->fName.ends_with("_door") || blockE->fName == "minecraft:lightning_rod") {
-                        CheckBlock(*blockE, *blockA, {"powered"});
-                      } else if (blockE->fName.ends_with("_button")) {
-                        CheckBlock(*blockE, *blockA, {"facing", "powered"});
-                      } else if (blockE->fName == "minecraft:fire") {
-                        CheckBlock(*blockE, *blockA, {"east", "north", "south", "west", "up"});
-                      } else {
-                        CHECK(blockA->toString() == blockE->toString());
-                      }
-                    } else {
-                      CHECK(foundBtoJ->second == blockE->fName);
-                    }
-                  } else {
-                    CHECK(blockA->fName == foundJtoB->second);
-                  }
-                } else if (blockA) {
-                  CHECK(blockA->fName == "minecraft:air");
-                } else if (blockE) {
-                  CHECK(blockE->fName == "minecraft:air");
-                }
+                CheckBlock(blockE, blockA);
               }
             }
           }
