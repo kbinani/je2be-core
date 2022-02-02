@@ -185,6 +185,20 @@ public:
         Tripwire::Do(*j, *cache, accessor);
         Beacon::Do(*j, *cache, accessor);
 
+        for (auto const &it : b->fBlockEntities) {
+          auto id = it.second->string("id");
+          if (!id) {
+            continue;
+          }
+          if (id != "ItemFrame" && id != "GlowItemFrame") {
+            continue;
+          }
+          auto frameJ = Entity::ItemFrameFromBedrock(it.first, *it.second);
+          if (frameJ) {
+            j->fEntities.push_back(frameJ);
+          }
+        }
+
         auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!fos) {
           return nullptr;
