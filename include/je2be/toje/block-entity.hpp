@@ -54,7 +54,7 @@ public:
     if (type == 1) {
       // Illager Banner
       te->set("CustomName", props::String(R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
-      te->set("Patterns", OmniousBannerPatterns());
+      te->set("Patterns", OminousBannerPatterns());
     } else {
       auto patternsB = tag.listTag("Patterns");
       if (patternsB) {
@@ -676,7 +676,7 @@ public:
     return EmptyFullName("minecraft:" + id, pos);
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> OmniousBannerPatterns() {
+  static std::shared_ptr<mcfile::nbt::ListTag> OminousBannerPatterns() {
     auto p = std::make_shared<mcfile::nbt::ListTag>(mcfile::nbt::Tag::Type::Compound);
     p->push_back(BannerPattern(9, "mr"));
     p->push_back(BannerPattern(8, "bs"));
