@@ -6,9 +6,8 @@ class Portal {
 public:
   Portal(int32_t dimId, uint8_t span, int32_t tpX, int32_t tpY, int32_t tpZ, uint8_t xa, uint8_t za) : fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa), fZa(za) {}
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace props;
     auto tag = make_shared<CompoundTag>();
     tag->insert({

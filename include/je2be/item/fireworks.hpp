@@ -4,7 +4,7 @@ namespace je2be {
 
 class FireworksData {
 public:
-  static FireworksData FromJava(mcfile::nbt::CompoundTag const &fireworks) {
+  static FireworksData FromJava(CompoundTag const &fireworks) {
     FireworksData es;
 
     es.fFlight = fireworks.byte("Flight", 1);
@@ -24,7 +24,7 @@ public:
     return es;
   }
 
-  static FireworksData FromBedrock(mcfile::nbt::CompoundTag const &tagB) {
+  static FireworksData FromBedrock(CompoundTag const &tagB) {
     FireworksData fd;
     fd.fFlight = tagB.byte("Flight", 1);
     auto explosions = tagB.listTag("Explosions");
@@ -41,8 +41,7 @@ public:
     return fd;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toBedrockCompoundTag() const {
-    using namespace mcfile::nbt;
+  std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
     auto ret = std::make_shared<CompoundTag>();
     auto explosions = std::make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &it : fExplosions) {
@@ -53,8 +52,7 @@ public:
     return ret;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toJavaCompoundTag() const {
-    using namespace mcfile::nbt;
+  std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
     auto ret = std::make_shared<CompoundTag>();
     auto explosions = std::make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &it : fExplosions) {

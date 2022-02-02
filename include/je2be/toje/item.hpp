@@ -4,17 +4,17 @@ namespace je2be::toje {
 
 class Item {
   Item() = delete;
-  using Converter = std::function<std::string(std::string const &, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx)>;
+  using Converter = std::function<std::string(std::string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx)>;
 
 public:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> From(mcfile::nbt::CompoundTag const &tagB, Context &ctx) {
+  static std::shared_ptr<CompoundTag> From(CompoundTag const &tagB, Context &ctx) {
     using namespace std;
     auto name = tagB.string("Name");
     if (!name) {
       return nullptr;
     }
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
-    auto ret = make_shared<mcfile::nbt::CompoundTag>();
+    auto ret = make_shared<CompoundTag>();
     auto found = sTable->find(*name);
     if (found == sTable->end()) {
       Default(*name, tagB, *ret, ctx);
@@ -25,9 +25,8 @@ public:
     return ret;
   }
 
-  static void Default(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+  static void Default(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
-    using namespace mcfile::nbt;
     auto count = itemB.byte("Count");
     itemJ.set("id", props::String(name));
     if (count) {
@@ -99,9 +98,8 @@ public:
   }
 
 #pragma region Converters
-  static std::string Book(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+  static std::string Book(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
-    using namespace mcfile::nbt;
     auto tagB = itemB.compoundTag("tag");
     if (!tagB) {
       return name;
@@ -142,10 +140,10 @@ public:
     return name;
   }
 
-  static std::string FireworkRocket(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+  static std::string FireworkRocket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
-      auto tagJ = std::make_shared<mcfile::nbt::CompoundTag>();
+      auto tagJ = std::make_shared<CompoundTag>();
       auto fireworksB = tagB->compoundTag("Fireworks");
       if (fireworksB) {
         FireworksData data = FireworksData::FromBedrock(*fireworksB);
@@ -157,10 +155,10 @@ public:
     return name;
   }
 
-  static std::string Map(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+  static std::string Map(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
-      auto tagJ = std::make_shared<mcfile::nbt::CompoundTag>();
+      auto tagJ = std::make_shared<CompoundTag>();
       auto index = tagB->int32("map_name_index");
       auto uuid = tagB->int64("map_uuid");
       if (index && uuid) {
@@ -172,10 +170,10 @@ public:
     return name;
   }
 
-  static std::string Potion(std::string const &name, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+  static std::string Potion(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto damage = itemB.int16("Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
-    auto tagJ = std::make_shared<mcfile::nbt::CompoundTag>();
+    auto tagJ = std::make_shared<CompoundTag>();
     tagJ->set("Potion", props::String(potionName));
     itemJ.set("tag", tagJ);
     return name;
@@ -184,7 +182,7 @@ public:
 
 #pragma region Converter generators
   static Converter Rename(std::string name) {
-    return [name](std::string const &, mcfile::nbt::CompoundTag const &itemB, mcfile::nbt::CompoundTag &itemJ, Context &ctx) {
+    return [name](std::string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
       return "minecraft:" + name;
     };
   }

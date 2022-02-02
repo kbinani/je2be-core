@@ -72,9 +72,8 @@ public:
     return true;
   }
 
-  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+  std::shared_ptr<Tag> toNbt() const {
     using namespace std;
-    using namespace mcfile::nbt;
     auto ret = make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &piece : fPieces) {
       ret->push_back(piece.toNbt());
@@ -82,9 +81,8 @@ public:
     return ret;
   }
 
-  static std::optional<StructurePieceCollection> FromNbt(mcfile::nbt::Tag const &tag) {
+  static std::optional<StructurePieceCollection> FromNbt(Tag const &tag) {
     using namespace std;
-    using namespace mcfile::nbt;
     auto list = tag.asList();
     if (!list) {
       return nullopt;

@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class Entity {
 public:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> ItemFrameFromBedrock(Pos3i pos, mcfile::nbt::CompoundTag const &data) {
+  static std::shared_ptr<CompoundTag> ItemFrameFromBedrock(Pos3i pos, CompoundTag const &data) {
     //TODO:
     return nullptr;
   }

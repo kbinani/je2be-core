@@ -16,7 +16,6 @@ public:
   static std::optional<LevelData> Import(std::filesystem::path levelDatFile) {
     using namespace std;
     using namespace mcfile::stream;
-    using namespace mcfile::nbt;
     auto fis = make_shared<FileInputStream>(levelDatFile);
     if (!fis) {
       return nullopt;
@@ -48,10 +47,9 @@ public:
     return d;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
     using namespace props;
     auto ret = make_shared<CompoundTag>();
     CompoundTag &t = *ret;

@@ -5,7 +5,7 @@ class FlatWorldLayers {
   FlatWorldLayers() = delete;
 
 public:
-  static std::optional<std::string> FromLevelData(mcfile::nbt::CompoundTag const &data) {
+  static std::optional<std::string> FromLevelData(CompoundTag const &data) {
     using namespace std;
     auto compoundGeneratorOptions = data.compoundTag("generatorOptions");
     auto worldGenSettings = data.compoundTag("WorldGenSettings");
@@ -196,7 +196,7 @@ public:
     return nlohmann::to_string(obj) + "\x0a";
   }
 
-  static std::optional<std::string> UsingCompoundGeneratorOptions(mcfile::nbt::CompoundTag const &generatorOptions, int dataVersion) {
+  static std::optional<std::string> UsingCompoundGeneratorOptions(CompoundTag const &generatorOptions, int dataVersion) {
     using namespace std;
     auto layers = generatorOptions.listTag("layers");
     auto biomeString = generatorOptions.string("biome");
@@ -245,7 +245,7 @@ public:
     return nlohmann::to_string(obj) + "\x0a";
   }
 
-  static std::optional<std::string> UsingWorldGenSettings(mcfile::nbt::CompoundTag const &worldGenSettings, int dataVersion) {
+  static std::optional<std::string> UsingWorldGenSettings(CompoundTag const &worldGenSettings, int dataVersion) {
     using namespace std;
     auto dimensions = worldGenSettings.compoundTag("dimensions");
     if (!dimensions) {

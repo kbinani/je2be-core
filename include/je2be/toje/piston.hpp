@@ -8,7 +8,6 @@ class Piston {
 public:
   static void Do(mcfile::je::Chunk &chunkJ, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace props;
 
     if (!accessor.fHasPiston) {
@@ -150,7 +149,7 @@ public:
     }
   }
 
-  static std::shared_ptr<mcfile::je::Block const> MovingBlock(mcfile::nbt::CompoundTag const &blockEntity) {
+  static std::shared_ptr<mcfile::je::Block const> MovingBlock(CompoundTag const &blockEntity) {
     auto movingBlock = blockEntity.compoundTag("MovingBlock");
     if (!movingBlock) {
       return nullptr;
@@ -164,10 +163,10 @@ public:
 
   struct PistonBody {
     std::shared_ptr<mcfile::be::Block const> fBlock;
-    std::shared_ptr<mcfile::nbt::CompoundTag const> fBlockEntity;
+    std::shared_ptr<CompoundTag const> fBlockEntity;
   };
 
-  static std::optional<PistonBody> PistonBodyFromPistonPos(mcfile::nbt::CompoundTag const &blockEntity, ChunkCache<3, 3> &loader) {
+  static std::optional<PistonBody> PistonBodyFromPistonPos(CompoundTag const &blockEntity, ChunkCache<3, 3> &loader) {
     auto x = blockEntity.int32("pistonPosX");
     auto y = blockEntity.int32("pistonPosY");
     auto z = blockEntity.int32("pistonPosZ");

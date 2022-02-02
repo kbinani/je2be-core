@@ -7,7 +7,6 @@ using namespace mcfile::nbt;
 namespace fs = std::filesystem;
 
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
-  using namespace std;
   CHECK(e.fName == a.fName);
   map<string, string> propsE(e.fProperties);
   map<string, string> propsA(a.fProperties);
@@ -113,8 +112,6 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
 }
 
 static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual) {
-  using namespace std;
-
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 

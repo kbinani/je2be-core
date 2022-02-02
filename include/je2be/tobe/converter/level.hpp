@@ -3,8 +3,6 @@
 namespace je2be::tobe {
 
 class Level {
-  using CompoundTag = mcfile::nbt::CompoundTag;
-
 public:
   PlayerAbilities fAbilities;
   Version fMinimumCompatibleClientVersion = kMinimumCompatibleClientVersion;
@@ -97,11 +95,11 @@ public:
   int32_t fLimitedWorldWidth = 16;
   int32_t fMaxCommandChainLength = 65535;
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace props;
     using props::Byte;
 
-    auto root = std::make_shared<mcfile::nbt::CompoundTag>();
+    auto root = std::make_shared<CompoundTag>();
     root->insert({
         {"abilities", fAbilities.toCompoundTag()},
         {"MinimumCompatibleClientVersion", fMinimumCompatibleClientVersion.toListTag()},
@@ -206,7 +204,7 @@ public:
     if (!w.write((uint32_t)0)) {
       return false;
     }
-    if (!w.write(static_cast<uint8_t>(mcfile::nbt::Tag::Type::Compound))) {
+    if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
       return false;
     }
     if (!w.write(std::string(""))) {
@@ -316,7 +314,6 @@ public:
 
   static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension) {
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto data = tag.query("/Data")->asCompound();
     if (!data) {
@@ -413,7 +410,6 @@ public:
   static std::optional<std::string> MobEvents(CompoundTag const &tag) {
     using namespace std;
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto gameRulesTag = tag.query("/Data/GameRules");
     if (!gameRulesTag) {
@@ -474,7 +470,7 @@ public:
       gzclose(f);
     }
 
-    auto root = make_shared<mcfile::nbt::CompoundTag>();
+    auto root = make_shared<CompoundTag>();
     auto bs = make_shared<ByteStream>(buffer);
     InputStreamReader r(bs);
     if (!root->read(r)) {

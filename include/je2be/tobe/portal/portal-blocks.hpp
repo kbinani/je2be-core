@@ -24,14 +24,14 @@ public:
     fZ.drain(out.fZ);
   }
 
-  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
-    auto tag = std::make_shared<mcfile::nbt::CompoundTag>();
+  std::shared_ptr<Tag> toNbt() const {
+    auto tag = std::make_shared<CompoundTag>();
     (*tag)["x"] = fX.toNbt();
     (*tag)["z"] = fZ.toNbt();
     return tag;
   }
 
-  static std::optional<PortalBlocks> FromNbt(mcfile::nbt::Tag const &nbt) {
+  static std::optional<PortalBlocks> FromNbt(Tag const &nbt) {
     using namespace std;
     auto tag = nbt.asCompound();
     if (!tag) {

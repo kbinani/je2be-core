@@ -6,8 +6,7 @@ class Vec {
 public:
   Vec(float x, float y, float z) : fX(x), fY(y), fZ(z) {}
 
-  std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
-    using namespace mcfile::nbt;
+  std::shared_ptr<ListTag> toListTag() const {
     auto tag = std::make_shared<ListTag>(Tag::Type::Float);
     tag->push_back(std::make_shared<FloatTag>(fX));
     tag->push_back(std::make_shared<FloatTag>(fY));

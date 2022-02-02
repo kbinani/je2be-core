@@ -22,10 +22,10 @@ public:
   bool fTeleport = false;
   float fWalkSpeed = 0.1f;
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace props;
 
-    auto a = std::make_shared<mcfile::nbt::CompoundTag>();
+    auto a = std::make_shared<CompoundTag>();
     a->insert({
         {"attackmobs", Bool(fAttackMobs)},
         {"attackplayers", Bool(fAttackPlayers)},
@@ -48,7 +48,7 @@ public:
     return a;
   }
 
-  static PlayerAbilities Import(mcfile::nbt::CompoundTag const &tag) {
+  static PlayerAbilities Import(CompoundTag const &tag) {
     PlayerAbilities ret;
     ret.fFlying = tag.boolean("flying", ret.fFlying);
     ret.fFlySpeed = tag.float32("flySpeed", ret.fFlySpeed);

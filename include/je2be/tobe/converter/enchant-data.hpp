@@ -3,8 +3,6 @@
 namespace je2be::tobe {
 
 class EnchantData {
-  using CompoundTag = mcfile::nbt::CompoundTag;
-
 public:
   static std::shared_ptr<CompoundTag> From(CompoundTag const &item) {
     using namespace props;

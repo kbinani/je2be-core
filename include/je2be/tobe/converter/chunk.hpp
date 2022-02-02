@@ -48,7 +48,6 @@ public:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
-    using namespace mcfile::nbt;
 
     if (!chunk) {
       return nullptr;

@@ -3,8 +3,6 @@
 namespace je2be::tobe {
 
 class BlockPalette {
-  using CompoundTag = mcfile::nbt::CompoundTag;
-
 public:
   BlockPalette() : fPaletteKeys({"minecraft:air"}), fPalette({BlockData::Air()}) {}
 

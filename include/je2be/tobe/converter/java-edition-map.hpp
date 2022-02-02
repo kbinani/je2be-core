@@ -24,7 +24,7 @@ public:
     return true;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> Read(std::filesystem::path const &input, InputOption const &opt, int32_t mapId) {
+  static std::shared_ptr<CompoundTag> Read(std::filesystem::path const &input, InputOption const &opt, int32_t mapId) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
@@ -59,7 +59,7 @@ public:
       gzclose(f);
     }
 
-    auto root = make_shared<mcfile::nbt::CompoundTag>();
+    auto root = make_shared<CompoundTag>();
     auto bs = make_shared<ByteStream>(buffer);
     InputStreamReader r(bs);
     if (!root->read(r)) {

@@ -13,9 +13,9 @@ public:
 
   void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) { fPortalBlocks.add(x, y, z, xAxis); }
 
-  void addMap(int32_t javaMapId, std::shared_ptr<mcfile::nbt::CompoundTag> const &item) { fMapItems[javaMapId] = item; }
+  void addMap(int32_t javaMapId, std::shared_ptr<CompoundTag> const &item) { fMapItems[javaMapId] = item; }
 
-  void addAutonomousEntity(std::shared_ptr<mcfile::nbt::CompoundTag> const &entity) { fAutonomousEntities.push_back(entity); }
+  void addAutonomousEntity(std::shared_ptr<CompoundTag> const &entity) { fAutonomousEntities.push_back(entity); }
 
   void addEndPortal(int32_t x, int32_t y, int32_t z) {
     Pos3i p(x, y, z);
@@ -75,11 +75,11 @@ public:
     for (auto const &it : fMapItems) {
       out.fMapItems[it.first] = it.second;
     }
-    std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>>().swap(fMapItems);
+    std::unordered_map<int32_t, std::shared_ptr<CompoundTag>>().swap(fMapItems);
     for (auto const &it : fAutonomousEntities) {
       out.fAutonomousEntities.push_back(it);
     }
-    std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>>().swap(fAutonomousEntities);
+    std::vector<std::shared_ptr<CompoundTag>>().swap(fAutonomousEntities);
     for (auto const &pos : fEndPortalsInEndDimension) {
       out.fEndPortalsInEndDimension.insert(pos);
     }
@@ -91,10 +91,9 @@ public:
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
-  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+  std::shared_ptr<Tag> toNbt() const {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
     auto tag = make_shared<CompoundTag>();
     CompoundTag &c = *tag;
     c["dim"] = make_shared<ByteTag>(static_cast<uint8_t>(fDim));
@@ -129,10 +128,9 @@ public:
     return tag;
   }
 
-  static std::shared_ptr<WorldData> FromNbt(mcfile::nbt::Tag const &tag) {
+  static std::shared_ptr<WorldData> FromNbt(Tag const &tag) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
     auto c = tag.asCompound();
     if (!c) {
       return nullptr;
@@ -210,7 +208,7 @@ public:
   }
 
 private:
-  void addStructures(mcfile::nbt::CompoundTag const &structure, StructureType type) {
+  void addStructures(CompoundTag const &structure, StructureType type) {
     auto children = structure.listTag("Children");
     if (!children) {
       return;
@@ -229,7 +227,7 @@ private:
     }
   }
 
-  static std::optional<Volume> GetBoundingBox(mcfile::nbt::CompoundTag const &tag, std::string const &name) {
+  static std::optional<Volume> GetBoundingBox(CompoundTag const &tag, std::string const &name) {
     auto bb = tag.intArrayTag(name);
     if (!bb) {
       return std::nullopt;
@@ -248,8 +246,8 @@ public:
 
 private:
   PortalBlocks fPortalBlocks;
-  std::unordered_map<int32_t, std::shared_ptr<mcfile::nbt::CompoundTag>> fMapItems;
-  std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fAutonomousEntities;
+  std::unordered_map<int32_t, std::shared_ptr<CompoundTag>> fMapItems;
+  std::vector<std::shared_ptr<CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
   Statistics fStat;

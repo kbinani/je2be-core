@@ -97,9 +97,8 @@ public:
     return levelData->fStat;
   }
 
-  static std::optional<std::string> LocalPlayerData(mcfile::nbt::CompoundTag const &tag, LevelData &ld) {
+  static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld) {
     using namespace mcfile::stream;
-    using namespace mcfile::nbt;
 
     auto root = tag.compoundTag("");
     if (!root) {

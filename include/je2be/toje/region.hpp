@@ -9,7 +9,6 @@ public:
   static std::shared_ptr<Context> Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
 

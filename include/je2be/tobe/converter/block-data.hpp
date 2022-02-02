@@ -2006,7 +2006,6 @@ private:
 
   static BlockDataType New(std::string const &name, bool nameIsFull = false) {
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace props;
     auto tag = make_shared<CompoundTag>();
     string fullName = nameIsFull ? name : "minecraft:"s + name;

@@ -44,7 +44,7 @@ public:
 
   void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::je::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
 
-  void addPendingTick(int order, std::shared_ptr<mcfile::nbt::CompoundTag> const &pendingTick) {
+  void addPendingTick(int order, std::shared_ptr<CompoundTag> const &pendingTick) {
     fPendingTicks.insert(std::make_pair(order, pendingTick));
   }
 
@@ -53,7 +53,6 @@ private:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    using namespace mcfile::nbt;
     using namespace props;
 
     vector<int32_t> mapIdList;
@@ -278,7 +277,6 @@ private:
   [[nodiscard]] bool serializeBlockEntity(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
-    using namespace mcfile::nbt;
 
     if (fTileEntities.empty()) {
       return true;
@@ -297,7 +295,6 @@ private:
   [[nodiscard]] bool serializeEntity(ChunkData &cd) {
     using namespace std;
     using namespace mcfile::stream;
-    using namespace mcfile::nbt;
 
     if (fEntities.empty()) {
       return true;
@@ -318,7 +315,6 @@ private:
       return true;
     }
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace mcfile::stream;
     using namespace props;
 
@@ -346,10 +342,10 @@ private:
   std::shared_ptr<mcfile::be::BiomeMap> fBiomeMap;
   std::optional<BiomeMapLegacy> fBiomeMapLegacy;
   std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
-  std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTileEntities;
-  std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fEntities;
+  std::vector<std::shared_ptr<CompoundTag>> fTileEntities;
+  std::vector<std::shared_ptr<CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;
-  std::map<int, std::shared_ptr<mcfile::nbt::CompoundTag>> fPendingTicks;
+  std::map<int, std::shared_ptr<CompoundTag>> fPendingTicks;
   int64_t fChunkLastUpdate;
 };
 

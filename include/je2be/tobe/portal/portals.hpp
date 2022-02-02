@@ -16,7 +16,6 @@ public:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
-    using namespace mcfile::nbt;
     vector<Portal> portals;
     fOverworld.extract(portals, Dimension::Overworld);
     fNether.extract(portals, Dimension::Nether);

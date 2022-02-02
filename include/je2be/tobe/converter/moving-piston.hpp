@@ -10,7 +10,6 @@ public:
   static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
     using namespace mcfile;
     using namespace mcfile::je;
-    using namespace mcfile::nbt;
     using namespace std;
     using namespace props;
 
@@ -191,11 +190,10 @@ public:
   }
 
 private:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<mcfile::nbt::CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader) {
+  static std::shared_ptr<CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    using namespace mcfile::nbt;
     using namespace props;
 
     auto e = make_shared<CompoundTag>();
@@ -259,7 +257,7 @@ private:
     PistonTileEntity(std::string name, int facing, bool extending, bool source, Pos3i pos)
         : fName(name), fFacing(facing), fExtending(extending), fSource(source), fPos(pos) {}
 
-    static std::optional<PistonTileEntity> From(std::shared_ptr<mcfile::nbt::CompoundTag const> const &tag, Pos3i pos) {
+    static std::optional<PistonTileEntity> From(std::shared_ptr<CompoundTag const> const &tag, Pos3i pos) {
       if (!tag) {
         return std::nullopt;
       }
@@ -297,7 +295,6 @@ private:
   static void LookupAttachedBlocks(mcfile::je::CachedChunkLoader &loader, Pos3i center, bool extendingExpected, int facingExpected, std::unordered_set<Pos3i, Pos3iHasher> &attachedBlocks) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
 
     attachedBlocks.clear();
 
@@ -357,7 +354,6 @@ private:
   static std::optional<Pos3i> LookupPistonPos(mcfile::je::CachedChunkLoader &loader, Pos3i center, int facing) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
 
     Pos3i startPos = center;
     optional<PistonTileEntity> startBlock = PistonTileEntity::From(loader.tileEntityAt(center), center);

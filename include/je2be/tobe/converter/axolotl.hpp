@@ -40,12 +40,11 @@ public:
       : fAge(age), fHealth(health), fVariant(VariantFromJava(javaVariant)) {
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toBucketTag() {
-    using namespace mcfile::nbt;
+  std::shared_ptr<CompoundTag> toBucketTag() {
     using namespace std;
     using namespace props;
 
-    auto ret = std::make_shared<mcfile::nbt::CompoundTag>();
+    auto ret = std::make_shared<CompoundTag>();
 
     auto attributes = EntityAttributes::Mob("minecraft:axolotl");
     if (attributes) {
@@ -59,7 +58,7 @@ public:
     ret->set("ColorID", String(fVariant.colorId()));
     ret->set("Variant", Int(fVariant.fBedrockRawValue));
 
-    auto definitions = make_shared<mcfile::nbt::ListTag>(Tag::Type::String);
+    auto definitions = make_shared<ListTag>(Tag::Type::String);
     definitions->push_back(String("+minecraft:axolotl"));
     definitions->push_back(String("+"));
     if (fAge < 0) {

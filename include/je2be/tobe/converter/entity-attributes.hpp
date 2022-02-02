@@ -3,9 +3,8 @@
 namespace je2be::tobe {
 
 class EntityAttributes {
-  using AttributesData = std::shared_ptr<mcfile::nbt::ListTag>;
+  using AttributesData = std::shared_ptr<ListTag>;
   using Provider = std::function<AttributesData(void)>;
-  using CompoundTag = mcfile::nbt::CompoundTag;
 
   struct Attribute {
     float base;
@@ -41,9 +40,7 @@ class EntityAttributes {
 
     Attributes(Attribute health, Attribute knockback_resistance, Attribute movement, Attribute underwater_movement, Attribute lava_movement, Attribute follow_range, std::optional<Attribute> attack_damage) : luck(0, 0, 1024), health(health), absorption(0, 0, 16), knockback_resistance(knockback_resistance), movement(movement), underwater_movement(underwater_movement), lava_movement(lava_movement), follow_range(follow_range), attack_damage(attack_damage) {}
 
-    std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
-      using namespace mcfile::nbt;
-
+    std::shared_ptr<ListTag> toListTag() const {
       auto list = std::make_shared<ListTag>(Tag::Type::Compound);
       list->push_back(luck.toCompoundTag("luck"));
       list->push_back(health.toCompoundTag("health"));
@@ -70,10 +67,9 @@ public:
     return found->second;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> AnyHorse(CompoundTag const &tag) {
+  static std::shared_ptr<ListTag> AnyHorse(CompoundTag const &tag) {
     using namespace std;
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto attributes = tag.listTag("Attributes");
     Attribute health(15, 15, 15);

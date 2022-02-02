@@ -13,10 +13,10 @@ public:
     return tf;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toBucketTag() const {
+  std::shared_ptr<CompoundTag> toBucketTag() const {
     using namespace props;
     using namespace std;
-    auto ret = make_shared<mcfile::nbt::CompoundTag>();
+    auto ret = make_shared<CompoundTag>();
     auto attributes = EntityAttributes::Mob("minecraft:tropical_fish");
     if (attributes) {
       ret->set("Attributes", attributes->toListTag());

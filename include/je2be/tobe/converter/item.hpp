@@ -4,16 +4,14 @@ namespace je2be::tobe {
 
 class Item {
 private:
-  using ItemData = std::shared_ptr<mcfile::nbt::CompoundTag>;
-  using Converter = std::function<ItemData(std::string const &, mcfile::nbt::CompoundTag const &)>;
-  using CompoundTag = mcfile::nbt::CompoundTag;
+  using ItemData = std::shared_ptr<CompoundTag>;
+  using Converter = std::function<ItemData(std::string const &, CompoundTag const &)>;
   using Block = mcfile::je::Block;
 
 public:
   static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace props;
     using namespace std;
-    using namespace mcfile::nbt;
 
     static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
     static unique_ptr<unordered_map<string, Converter> const> const itemMapping(CreateItemConverterTable());
@@ -75,7 +73,6 @@ public:
 private:
   static std::unordered_map<std::string, Converter> *CreateBlockItemConverterTable() {
     using namespace std;
-    using namespace mcfile::nbt;
     auto table = new unordered_map<string, Converter>();
 #define E(__name, __func) table->insert(make_pair("minecraft:" __name, __func))
     E("brown_mushroom_block", MushroomBlock);
@@ -157,7 +154,6 @@ private:
 
   static std::unordered_map<std::string, Converter> *CreateItemConverterTable() {
     using namespace std;
-    using namespace mcfile::nbt;
     auto table = new unordered_map<string, Converter>();
 #define E(__name, __func) table->insert(make_pair("minecraft:" __name, __func))
     E("oak_door", Rename("wooden_door"));
@@ -353,7 +349,6 @@ private:
   static ItemData BooksAndQuill(std::string const &name, CompoundTag const &item) {
     using namespace std;
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto count = item.byte("Count", 1);
     auto tag = make_shared<CompoundTag>();
@@ -930,8 +925,6 @@ private:
   }
 
   static ItemData Banner(std::string const &name, CompoundTag const &item) {
-    using namespace mcfile::nbt;
-
     auto colorName = strings::Trim("minecraft:", name, "_banner");
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     int16_t damage = (int16_t)color;
@@ -1036,7 +1029,6 @@ private:
   static ItemData DefaultBlockItem(std::string const &id, CompoundTag const &item) {
     using namespace std;
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto count = item.byte("Count", 1);
 
@@ -1077,7 +1069,6 @@ private:
 
   static ItemData Post(ItemData const &input, CompoundTag const &item) {
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace props;
 
     auto tag = item.compoundTag("tag");
@@ -1148,7 +1139,7 @@ private:
     return input;
   }
 
-  static std::optional<std::string> GetCustomName(mcfile::nbt::CompoundTag const &tag) {
+  static std::optional<std::string> GetCustomName(CompoundTag const &tag) {
     using namespace std;
     using namespace props;
     auto display = tag.compoundTag("display");

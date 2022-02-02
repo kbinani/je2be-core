@@ -3,8 +3,6 @@
 namespace je2be {
 
 class Potion {
-  using CompoundTag = mcfile::nbt::CompoundTag;
-
 public:
   static ReversibleMap<std::string, int16_t> const *GetPotionTypeTableJtoB() {
     static std::unique_ptr<ReversibleMap<std::string, int16_t> const> const sTable(CreatePotionTypeTableJtoB());

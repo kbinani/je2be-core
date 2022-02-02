@@ -3,8 +3,6 @@
 namespace je2be::tobe {
 
 class Map {
-  using CompoundTag = mcfile::nbt::CompoundTag;
-
 public:
   static int64_t UUID(int32_t javaMapId, uint8_t scale) {
     uint32_t const seed = 0;
@@ -18,7 +16,6 @@ public:
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto root = JavaEditionMap::Read(input, opt, javaMapId);
     if (!root) {

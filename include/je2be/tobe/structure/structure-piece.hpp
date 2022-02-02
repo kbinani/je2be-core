@@ -14,18 +14,16 @@ struct StructurePiece {
   Volume fVolume;
   StructureType fType;
 
-  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+  std::shared_ptr<Tag> toNbt() const {
     using namespace std;
-    using namespace mcfile::nbt;
     auto tag = make_shared<CompoundTag>();
     (*tag)["type"] = make_shared<ByteTag>(static_cast<uint8_t>(fType));
     (*tag)["volume"] = fVolume.toNbt();
     return tag;
   }
 
-  static std::optional<StructurePiece> FromNbt(mcfile::nbt::Tag const &tag) {
+  static std::optional<StructurePiece> FromNbt(Tag const &tag) {
     using namespace std;
-    using namespace mcfile::nbt;
     auto c = tag.asCompound();
     if (!c) {
       return nullopt;

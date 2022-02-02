@@ -12,7 +12,6 @@ public:
   static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
 
     auto found = sTable->find(b.fName);

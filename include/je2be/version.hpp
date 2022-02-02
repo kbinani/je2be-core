@@ -12,10 +12,10 @@ public:
 
   constexpr Version(int major, int minor, int patch, int revision, int reserved) : fMajor(major), fMinor(minor), fPatch(patch), fRevision(revision), fReserved(reserved) {}
 
-  std::shared_ptr<mcfile::nbt::ListTag> toListTag() const {
+  std::shared_ptr<ListTag> toListTag() const {
     using namespace props;
 
-    auto l = std::make_shared<mcfile::nbt::ListTag>(mcfile::nbt::Tag::Type::Int);
+    auto l = std::make_shared<ListTag>(Tag::Type::Int);
     l->push_back(Int(fMajor));
     l->push_back(Int(fMinor));
     l->push_back(Int(fPatch));

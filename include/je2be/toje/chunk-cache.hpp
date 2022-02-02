@@ -26,7 +26,7 @@ public:
     return chunk->blockAt(bx, by, bz);
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag const> blockEntityAt(Pos3i const &pos) {
+  std::shared_ptr<CompoundTag const> blockEntityAt(Pos3i const &pos) {
     int cx = mcfile::Coordinate::ChunkFromBlock(pos.fX);
     int cz = mcfile::Coordinate::ChunkFromBlock(pos.fZ);
     auto const &chunk = ensureLoadedAt(cx, cz);

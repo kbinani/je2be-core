@@ -35,9 +35,8 @@ public:
     std::unordered_set<Pos3i, Pos3iHasher>().swap(fBlocks);
   }
 
-  std::shared_ptr<mcfile::nbt::Tag> toNbt() const {
+  std::shared_ptr<Tag> toNbt() const {
     using namespace std;
-    using namespace mcfile::nbt;
     auto tag = make_shared<CompoundTag>();
     CompoundTag &c = *tag;
     c["x"] = make_shared<ByteTag>(fXAxis ? 1 : 0);
@@ -53,7 +52,7 @@ public:
     return tag;
   }
 
-  static std::optional<OrientedPortalBlocks> FromNbt(mcfile::nbt::Tag const &nbt) {
+  static std::optional<OrientedPortalBlocks> FromNbt(Tag const &nbt) {
     using namespace std;
     auto tag = nbt.asCompound();
     if (!tag) {

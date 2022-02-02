@@ -4,8 +4,7 @@ namespace je2be::tobe {
 
 class Entity {
 private:
-  using CompoundTag = mcfile::nbt::CompoundTag;
-  using EntityData = std::shared_ptr<mcfile::nbt::CompoundTag>;
+  using EntityData = std::shared_ptr<CompoundTag>;
 
   struct Context {
     Context(JavaEditionMap const &mapInfo, WorldData &wd) : fMapInfo(mapInfo), fWorldData(wd) {}
@@ -46,7 +45,7 @@ private:
 public:
   explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
-  static std::vector<EntityData> From(mcfile::nbt::CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::vector<EntityData> From(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace props;
     auto id = tag.string("id");
     if (!id) {
@@ -163,7 +162,7 @@ public:
     return make_tuple(pos, b, key);
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::shared_ptr<CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace props;
     auto id = c.string("id");
     assert(id);
@@ -175,7 +174,7 @@ public:
     return nullptr;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldData &wd, std::string const &name) {
+  static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldData &wd, std::string const &name) {
     using namespace props;
     auto tag = std::make_shared<CompoundTag>();
     auto tileX = c.int32("TileX");
@@ -194,7 +193,7 @@ public:
     auto itemRotation = c.byte("ItemRotation", 0);
     auto itemDropChance = c.float32("ItemDropChance", 1);
     auto found = c.find("Item");
-    if (found != c.end() && found->second->type() == mcfile::nbt::Tag::Type::Compound) {
+    if (found != c.end() && found->second->type() == Tag::Type::Compound) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
       auto m = Item::From(item, mapInfo, wd);
       if (m) {
@@ -214,10 +213,9 @@ public:
     return *id == "minecraft:item_frame" || *id == "minecraft:glow_item_frame";
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toCompoundTag() const {
+  std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
     using namespace props;
-    using namespace mcfile::nbt;
     auto tag = make_shared<CompoundTag>();
     auto tags = make_shared<ListTag>(Tag::Type::Compound);
     auto definitions = make_shared<ListTag>(Tag::Type::String);
@@ -278,7 +276,6 @@ public:
   static EntityData LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::nbt;
     using namespace props;
 
     Context ctx(mapInfo, wd);
@@ -445,7 +442,7 @@ public:
   }
 
 private:
-  static std::shared_ptr<CompoundTag> ItemAtSlot(mcfile::nbt::ListTag const &items, uint32_t slot) {
+  static std::shared_ptr<CompoundTag> ItemAtSlot(ListTag const &items, uint32_t slot) {
     for (auto const &it : items) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item) {
@@ -726,7 +723,6 @@ private:
   static EntityData Villager(EntityData const &c, CompoundTag const &tag, Context &ctx) {
     using namespace std;
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto data = tag.compoundTag("VillagerData");
     optional<VillagerProfession> profession;
@@ -825,9 +821,8 @@ private:
     return c;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> BedrockRecipieFromJava(mcfile::nbt::CompoundTag const &java, Context &ctx) {
+  static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, Context &ctx) {
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace props;
 
     auto buyA = java.compoundTag("buy");
@@ -954,8 +949,6 @@ private:
   }
 
   static EntityData StorageMinecart(CompoundTag const &tag, Context &ctx) {
-    using namespace mcfile::nbt;
-
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1034,7 +1027,6 @@ private:
   }
 
   static EntityData TraderLlama(EntityData const &c, CompoundTag const &tag, Context &) {
-    using namespace mcfile::nbt;
     AddDefinition(c, "+minecraft:llama_wandering_trader");
     AddDefinition(c, "-minecraft:llama_wild");
     AddDefinition(c, "+minecraft:llama_tamed");
@@ -1045,8 +1037,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> InitItemList(uint32_t capacity) {
-    using namespace mcfile::nbt;
+  static std::shared_ptr<ListTag> InitItemList(uint32_t capacity) {
     auto items = std::make_shared<ListTag>(Tag::Type::Compound);
     for (int i = 0; i < capacity; i++) {
       auto empty = Item::Empty();
@@ -1057,7 +1048,7 @@ private:
     return items;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> ConvertAnyItemList(std::shared_ptr<mcfile::nbt::ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::shared_ptr<ListTag> ConvertAnyItemList(std::shared_ptr<ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, WorldData &wd) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -1088,7 +1079,6 @@ private:
 
   static void AddChestItem(EntityData const &c, std::shared_ptr<CompoundTag> const &item, int8_t slot, int8_t count) {
     using namespace props;
-    using namespace mcfile::nbt;
     item->set("Slot", Byte(slot));
     item->set("Count", Byte(count));
     auto chestItems = c->listTag("ChestItems");
@@ -1101,7 +1091,6 @@ private:
 
   static EntityData Llama(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
-    using namespace mcfile::nbt;
 
     auto variant = tag.int32("Variant", 0);
     std::string color = "creamy";
@@ -1151,7 +1140,6 @@ private:
   static Behavior ChestedHorse(std::string const &definitionKey) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &ctx) {
       using namespace props;
-      using namespace mcfile::nbt;
       auto chested = tag.boolean("ChestedHorse", false);
       c->set("Chested", Bool(chested));
       if (!chested) {
@@ -1325,8 +1313,6 @@ private:
 
   static Behavior Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
     return [=](EntityData const &c, CompoundTag const &tag, Context &ctx) {
-      using namespace mcfile::nbt;
-
       auto links = std::make_shared<ListTag>(Tag::Type::Compound);
 
       auto passengers = tag.query("Passengers")->asList();
@@ -1372,8 +1358,6 @@ private:
   }
 
   static EntityData Boat(EntityData const &c, CompoundTag const &tag, Context &) {
-    using namespace mcfile::nbt;
-
     AddDefinition(c, "+minecraft:boat");
 
     auto type = tag.string("Type", "oak");
@@ -1475,7 +1459,6 @@ private:
   }
 
   static EntityData Bat(EntityData const &c, CompoundTag const &tag, Context &) {
-    using namespace mcfile::nbt;
     auto batFlags = tag.boolean("BatFlags", false);
     c->set("BatFlags", props::Bool(batFlags));
     AddDefinition(c, "+minecraft:bat");
@@ -1491,7 +1474,6 @@ private:
   }
 
   static EntityData Cat(EntityData const &c, CompoundTag const &tag, Context &) {
-    using namespace mcfile::nbt;
     using namespace std;
     auto catType = tag.int32("CatType");
     if (catType) {
@@ -1625,8 +1607,6 @@ private:
   }
 
   static void AddDefinition(EntityData const &tag, std::string const &definition) {
-    using namespace mcfile::nbt;
-
     auto found = tag->find("definitions");
     auto d = std::make_shared<ListTag>(Tag::Type::String);
     if (found != tag->end()) {
@@ -1644,8 +1624,6 @@ private:
   }
 
   static void RemoveDefinition(EntityData const &tag, std::string const &definition) {
-    using namespace mcfile::nbt;
-
     auto found = tag->find("definitions");
     auto d = std::make_shared<ListTag>(Tag::Type::String);
     if (found != tag->end()) {
@@ -1742,8 +1720,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
-    using namespace mcfile::nbt;
+  static std::shared_ptr<ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
     auto armors = std::make_shared<ListTag>(Tag::Type::Compound);
     for (int i = 0; i < 4; i++) {
       armors->push_back(Item::Empty());
@@ -1775,13 +1752,12 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> GetMainhand(CompoundTag const &input, Context &ctx) { return HandItem<0>(input, ctx); }
+  static std::shared_ptr<ListTag> GetMainhand(CompoundTag const &input, Context &ctx) { return HandItem<0>(input, ctx); }
 
-  static std::shared_ptr<mcfile::nbt::ListTag> GetOffhand(CompoundTag const &input, Context &ctx) { return HandItem<1>(input, ctx); }
+  static std::shared_ptr<ListTag> GetOffhand(CompoundTag const &input, Context &ctx) { return HandItem<1>(input, ctx); }
 
   template <size_t index>
-  static std::shared_ptr<mcfile::nbt::ListTag> HandItem(CompoundTag const &input, Context &ctx) {
-    using namespace mcfile::nbt;
+  static std::shared_ptr<ListTag> HandItem(CompoundTag const &input, Context &ctx) {
     auto ret = std::make_shared<ListTag>(Tag::Type::Compound);
 
     auto mainHand = input.listTag("HandItems");
@@ -1811,7 +1787,6 @@ private:
 
   static std::optional<Entity> BaseProperties(CompoundTag const &tag) {
     using namespace props;
-    using namespace mcfile::nbt;
     using namespace std;
 
     auto fallDistance = tag.float32("FallDistance");
@@ -1890,7 +1865,6 @@ private:
 
   static EntityData Painting(CompoundTag const &tag, Context &ctx) {
     using namespace props;
-    using namespace mcfile::nbt;
     using namespace std;
 
     auto facing = tag.byte("Facing");
@@ -2036,7 +2010,7 @@ public:
   Vec fMotion;
   Vec fPos;
   Rotation fRotation;
-  std::vector<std::shared_ptr<mcfile::nbt::CompoundTag>> fTags;
+  std::vector<std::shared_ptr<CompoundTag>> fTags;
   bool fChested = false;
   int8_t fColor2 = 0;
   int8_t fColor = 0;

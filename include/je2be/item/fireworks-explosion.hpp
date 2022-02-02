@@ -4,7 +4,7 @@ namespace je2be {
 
 class FireworksExplosion {
 public:
-  static FireworksExplosion FromJava(mcfile::nbt::CompoundTag const &tag) {
+  static FireworksExplosion FromJava(CompoundTag const &tag) {
     FireworksExplosion e;
     e.fTrail = tag.boolean("Trail");
     e.fFlicker = tag.boolean("Flicker");
@@ -43,7 +43,7 @@ public:
     //    FadeColors: IntArray (RGB)
   }
 
-  static FireworksExplosion FromBedrock(mcfile::nbt::CompoundTag const &tag) {
+  static FireworksExplosion FromBedrock(CompoundTag const &tag) {
     FireworksExplosion e;
     e.fFlicker = tag.boolean("FireworkFlicker");
     e.fTrail = tag.boolean("FireworkTrail");
@@ -70,9 +70,8 @@ public:
     return e;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toBedrockCompoundTag() const {
+  std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
     using namespace props;
-    using namespace mcfile::nbt;
     auto ret = std::make_shared<CompoundTag>();
     if (fFlicker) {
       ret->set("FireworkFlicker", Bool(*fFlicker));
@@ -100,9 +99,8 @@ public:
     return ret;
   }
 
-  std::shared_ptr<mcfile::nbt::CompoundTag> toJavaCompoundTag() const {
+  std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
     using namespace std;
-    using namespace mcfile::nbt;
     using namespace props;
     auto ret = make_shared<CompoundTag>();
     if (fTrail) {
