@@ -354,8 +354,7 @@ private:
       return nullptr;
     }
     auto t = AnyStorage("Hopper")(pos, b, c, mapInfo, wd);
-    auto transferCooldown = c->int32("TransferCooldown", 0);
-    t->set("TransferCooldown", props::Int(transferCooldown));
+    CopyIntValues(*c, *t, {{"TransferCooldown", "TransferCooldown", 0}});
     return t;
   }
 
@@ -364,8 +363,7 @@ private:
       return nullptr;
     }
     auto t = Empty("Comparator", *c, pos);
-    auto outputSignal = c->int32("OutputSignal", 0);
-    t->set("OutputSignal", props::Int(outputSignal));
+    CopyIntValues(*c, *t, {{"OutputSignal", "OutputSignal", 0}});
     return t;
   }
 
@@ -781,14 +779,6 @@ private:
 
     auto tag = std::make_shared<CompoundTag>();
 
-    auto delay = c->int16("Delay", 0);
-    auto maxNearbyEntities = c->int16("MaxNearbyEntities", 6);
-    auto maxSpawnDelay = c->int16("MaxSpawnDelay", 800);
-    auto minSpawnDelay = c->int16("MinSpawnDelay", 200);
-    auto requiredPlayerRange = c->int16("RequiredPlayerRange", 16);
-    auto spawnCount = c->int16("SpawnCount", 4);
-    auto spawnRange = c->int16("SpawnRange", 4);
-
     std::string mob;
     auto spawnData = c->compoundTag("SpawnData");
     if (spawnData) {
@@ -806,19 +796,14 @@ private:
       }
     }
 
+    CopyShortValues(*c, *tag, {{"MaxNearbyEntities", "MaxNearbyEntities", 6}, {"MaxSpawnDelay", "MaxSpawnDelay", 800}, {"MinSpawnDelay", "MinSpawnDelay", 200}, {"RequiredPlayerRange", "RequiredPlayerRange", 16}, {"Delay", "Delay", 0}, {"SpawnCount", "SpawnCount", 4}, {"SpawnRange", "SpawnRange", 4}});
+
     tag->insert({
         {"x", Int(*x)},
         {"y", Int(*y)},
         {"z", Int(*z)},
-        {"Delay", Short(delay)},
         {"id", String("MobSpawner")},
         {"isMovable", Bool(true)},
-        {"MaxNearbyEntities", Short(maxNearbyEntities)},
-        {"MaxSpawnDelay", Short(maxSpawnDelay)},
-        {"MinSpawnDelay", Short(minSpawnDelay)},
-        {"RequiredPlayerRange", Short(requiredPlayerRange)},
-        {"SpawnCount", Short(spawnCount)},
-        {"SpawnRange", Short(spawnRange)},
     });
     if (!mob.empty()) {
       tag->set("EntityIdentifier", String(mob));
@@ -875,8 +860,7 @@ private:
       reordered->push_back(it);
     }
 
-    auto brewTime = c->int16("BrewTime", 0);
-    tag->set("CookTime", Short(brewTime));
+    CopyShortValues(*c, *tag, {{"BrewTime", "CookTime", 0}});
 
     auto fuel = c->byte("Fuel", 0);
     tag->set("FuelAmount", Short(fuel));

@@ -85,10 +85,7 @@ public:
 
   static std::optional<Result> Beacon(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("beacon", pos);
-    auto primary = tagB.int32("primary", -1);
-    auto secondary = tagB.int32("secondary", -1);
-    t->set("Primary", props::Int(primary));
-    t->set("Secondary", props::Int(secondary));
+    CopyIntValues(tagB, *t, {{"primary", "Primary", -1}, {"secondary", "Secondary", -1}});
     //NOTE: "Levels" need to be defined by terrain around the beacon.
     //See also beacon.hpp
     Result r;
@@ -138,8 +135,7 @@ public:
       }
       t->set("Items", itemsJ);
     }
-    auto cookTime = tagB.int16("CookTime", 0);
-    t->set("BrewTime", props::Short(cookTime));
+    CopyShortValues(tagB, *t, {{"CookTime", "BrewTime", 0}});
     auto fuelAmount = tagB.int16("FuelAmount", 0);
     t->set("Fuel", props::Byte(fuelAmount));
     Result r;
@@ -249,8 +245,7 @@ public:
 
   static std::optional<Result> Comparator(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("comparator", pos);
-    auto outputSignal = tagB.int32("OutputSignal", 0);
-    t->set("OutputSignal", props::Int(outputSignal));
+    CopyIntValues(tagB, *t, {{"OutputSignal", "OutputSignal", 0}});
     Result r;
     r.fTileEntity = t;
     return r;
@@ -317,18 +312,7 @@ public:
     using namespace std;
     string name = strings::LTrim(block.fName.substr(10), "lit_");
     auto te = EmptyShortName(name, pos);
-    auto burnDuration = tagB.int16("BurnDuration");
-    if (burnDuration) {
-      te->set("BurnTime", props::Short(*burnDuration));
-    }
-    auto cookTime = tagB.int16("CookTime");
-    if (cookTime) {
-      te->set("CookTime", props::Short(*cookTime));
-    }
-    auto burnTime = tagB.int16("BurnTime");
-    if (burnTime) {
-      te->set("CookTimeTotal", props::Short(*burnTime));
-    }
+    CopyShortValues(tagB, *te, {{"BurnDuration", "BurnTime"}, {"CookTime"}, {"BurnTime", "CookTimeTotal"}});
     te->set("RecipesUsed", make_shared<mcfile::nbt::CompoundTag>());
     auto items = ContainerItems(tagB, "Items", ctx);
     if (items) {
@@ -339,14 +323,13 @@ public:
     return r;
   }
 
-  static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
+  static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, mcfile::nbt::CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("hopper", pos);
-    auto items = ContainerItems(tag, "Items", ctx);
+    auto items = ContainerItems(tagB, "Items", ctx);
     if (items) {
       t->set("Items", items);
     }
-    auto transferCooldown = tag.int32("TransferCooldown", 0);
-    t->set("TransferCooldown", props::Int(transferCooldown));
+    CopyIntValues(tagB, *t, {{"TransferCooldown", "TransferCooldown", 0}});
     Result r;
     r.fTileEntity = t;
     return r;
@@ -399,13 +382,7 @@ public:
     using namespace props;
     auto t = EmptyShortName("mob_spawner", pos);
 
-    unordered_set<string> u16Properties({"Delay", "MaxNearbyEntities", "MaxSpawnDelay", "MinSpawnDelay", "RequiredPlayerRange", "SpawnCount", "SpawnRange"});
-    for (auto const &name : u16Properties) {
-      auto value = tag.int16(name);
-      if (value) {
-        t->set(name, Short(*value));
-      }
-    }
+    CopyShortValues(tag, *t, {{"Delay"}, {"MaxNearbyEntities"}, {"MaxSpawnDelay"}, {"MinSpawnDelay"}, {"RequiredPlayerRange"}, {"SpawnCount"}, {"SpawnRange"}});
 
     auto entity = tag.string("EntityIdentifier");
     if (entity) {
@@ -467,8 +444,7 @@ public:
     using namespace std;
     using namespace props;
     auto te = EmptyShortName("sign", pos);
-    auto glowing = tag.boolean("IgnoreLighting", false);
-    te->set("GlowingText", Bool(glowing));
+    CopyBoolValues(tag, *te, {{"IgnoreLighting", "GlowingText", false}});
     auto color = tag.int32("SignTextColor");
     if (color) {
       Rgba rgba = Rgba::FromRGB(*color);

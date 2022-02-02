@@ -42,7 +42,7 @@ public:
 
       shared_ptr<CompoundTag> displayJ = make_shared<CompoundTag>();
 
-      CopyIntValues(*tagB, *tagJ, {{"Damage", "Damage"}, {"RepairCost", "RepairCost"}});
+      CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
 
       auto customColor = tagB->int32("customColor");
       if (customColor) {
