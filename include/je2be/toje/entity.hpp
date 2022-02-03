@@ -55,7 +55,7 @@ public:
     h.add(&position.fY, sizeof(position.fY));
     h.add(&position.fZ, sizeof(position.fZ));
     auto uuid = Uuid::GenWithU64Seed(h.hash());
-    t["UUID"] = uuid.toListTag();
+    t["UUID"] = uuid.toIntArrayTag();
 
     auto itemB = blockEntityB.compoundTag("Item");
     if (itemB) {
@@ -314,7 +314,7 @@ public:
     }
     int64_t v = *id;
     Uuid uuid = Uuid::GenWithU64Seed(*(uint64_t *)&v);
-    j["UUID"] = uuid.toListTag();
+    j["UUID"] = uuid.toIntArrayTag();
   }
 #pragma endregion
 

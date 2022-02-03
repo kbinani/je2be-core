@@ -88,6 +88,11 @@ struct Uuid {
     ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f4));
     return ret;
   }
+
+  std::shared_ptr<IntArrayTag> toIntArrayTag() const {
+    std::vector<int32_t> uuidValues({*(int32_t *)&f1, *(int32_t *)&f2, *(int32_t *)&f3, *(int32_t *)&f4});
+    return std::make_shared<IntArrayTag>(uuidValues);
+  }
 };
 
 struct UuidHasher {

@@ -141,6 +141,9 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
+  CHECK(copyE->intArrayTag("UUID"));
+  CHECK(copyA->intArrayTag("UUID"));
+
   static unordered_set<string> const sBlacklist({
       "UUID",
       "Attributes",
