@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class BlockData {
   using String = std::string;
-  using States = mcfile::nbt::CompoundTag;
+  using States = CompoundTag;
   using Props = std::map<std::string, std::string>;
   using Converter = std::function<String(String const &bName, States const &s, Props &p)>;
 

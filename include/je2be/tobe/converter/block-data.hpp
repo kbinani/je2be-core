@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class BlockData {
 public:
-  static std::shared_ptr<mcfile::nbt::CompoundTag> From(std::shared_ptr<mcfile::je::Block const> const &block) {
+  static std::shared_ptr<CompoundTag> From(std::shared_ptr<mcfile::je::Block const> const &block) {
     using namespace std;
     static unique_ptr<vector<AnyConverter> const> const table(CreateConverterTable());
 
@@ -29,12 +29,12 @@ public:
     }
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> Air() {
-    static std::shared_ptr<mcfile::nbt::CompoundTag> const air = Make("air");
+  static std::shared_ptr<CompoundTag> Air() {
+    static std::shared_ptr<CompoundTag> const air = Make("air");
     return air;
   }
 
-  static std::shared_ptr<mcfile::nbt::CompoundTag> Make(std::string const &name) {
+  static std::shared_ptr<CompoundTag> Make(std::string const &name) {
     auto tag = New(name);
     auto states = States();
     tag->set("states", states);
@@ -50,11 +50,11 @@ public:
 private:
   BlockData() = delete;
 
-  using BlockDataType = std::shared_ptr<mcfile::nbt::CompoundTag>;
-  using StatesType = std::shared_ptr<mcfile::nbt::CompoundTag>;
+  using BlockDataType = std::shared_ptr<CompoundTag>;
+  using StatesType = std::shared_ptr<CompoundTag>;
   using Block = mcfile::je::Block;
 
-  using PropertyType = std::shared_ptr<mcfile::nbt::Tag>;
+  using PropertyType = std::shared_ptr<Tag>;
 
   using NamingFunction = std::function<std::string(Block const &)>;
   using PropertyPickupFunction = std::function<void(StatesType const &, Block const &)>;
@@ -2014,7 +2014,7 @@ private:
     return tag;
   }
 
-  static StatesType States() { return std::make_shared<mcfile::nbt::CompoundTag>(); }
+  static StatesType States() { return std::make_shared<CompoundTag>(); }
 
   static BlockDataType AttachStates(BlockDataType const &data, StatesType const &s) {
     data->set("states", s);
