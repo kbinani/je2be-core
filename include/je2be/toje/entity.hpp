@@ -125,6 +125,19 @@ public:
     return nameB;
   }
 
+#pragma region Dedicated Behaviors
+  static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["StrayConversionTime"] = props::Int(-1);
+  }
+
+  static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    using namespace props;
+    j["ExplosionRadius"] = Byte(3);
+    j["Fuse"] = Short(30);
+    j["ignited"] = Bool(false);
+  }
+#pragma endregion
+
 #pragma region Behaviors
   static void AbsorptionAmount(CompoundTag const &entityB, CompoundTag &entityJ, Context &) {
     entityJ["AbsorptionAmount"] = props::Float(0);
@@ -288,10 +301,6 @@ public:
     entityJ["Rotation"] = rotB->clone();
   }
 
-  static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["StrayConversionTime"] = props::Int(-1);
-  }
-
   static void UUID(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto id = b.int64("UniqueID");
     if (!id) {
@@ -330,6 +339,11 @@ public:
     return ret;
   }
 
+  static std::unordered_map<std::string, Converter> const *GetTable() {
+    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
+    return sTable.get();
+  }
+
   static std::unordered_map<std::string, Converter> *CreateTable() {
     auto ret = new std::unordered_map<std::string, Converter>();
 
@@ -337,15 +351,11 @@ public:
   assert(ret->find("minecraft:" #__name) == ret->end()); \
   ret->insert(std::make_pair("minecraft:" #__name, __conv));
 
-    E(skeleton, Convert(Same, Base, StrayConversionTime));
+    E(skeleton, Convert(Same, Base, Skeleton));
+    E(creeper, Convert(Same, Base, Creeper));
 
 #undef E
     return ret;
-  }
-
-  static std::unordered_map<std::string, Converter> const *GetTable() {
-    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
-    return sTable.get();
   }
 };
 
