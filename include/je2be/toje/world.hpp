@@ -12,20 +12,24 @@ public:
     fs::path dir;
     switch (d) {
     case Dimension::Overworld:
-      dir = root / "region";
+      dir = root;
       break;
     case Dimension::Nether:
-      dir = root / "DIM-1" / "region";
+      dir = root / "DIM-1";
       break;
     case Dimension::End:
-      dir = root / "DIM1" / "region";
+      dir = root / "DIM1";
       break;
     default:
       return nullptr;
     }
 
     error_code ec;
-    fs::create_directories(dir, ec);
+    fs::create_directories(dir / "region", ec);
+    if (ec) {
+      return nullptr;
+    }
+    fs::create_directories(dir / "entities", ec);
     if (ec) {
       return nullptr;
     }

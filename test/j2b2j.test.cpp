@@ -141,11 +141,11 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
   DiffCompoundTag(entityE, entityA);
 }
 
-static shared_ptr<CompoundTag> FindNearestEntity(Vec pos, vector<shared_ptr<CompoundTag>> const &entities) {
+static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, vector<shared_ptr<CompoundTag>> const &entities) {
   shared_ptr<CompoundTag> ret = nullptr;
   double minDistance = numeric_limits<double>::max();
   for (auto const &entity : entities) {
-    auto p = props::GetVec(*entity, "Pos");
+    auto p = props::GetPos3d(*entity, "Pos");
     if (!p) {
       continue;
     }
@@ -270,7 +270,7 @@ TEST_CASE("j2b2j") {
           }
 
           for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
-            Vec posE = *props::GetVec(*entityE, "Pos");
+            Pos3d posE = *props::GetPos3d(*entityE, "Pos");
             shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, chunkA->fEntities);
             if (entityA) {
               CheckEntity(*entityE, *entityA);

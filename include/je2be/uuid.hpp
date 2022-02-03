@@ -33,6 +33,27 @@ struct Uuid {
     return ret;
   }
 
+  static Uuid GenWithU64Seed(uint64_t seed) {
+    std::uniform_int_distribution<uint32_t> distribution;
+    std::mt19937_64 mt(seed);
+
+    Uuid ret;
+    ret.f1 = distribution(mt);
+    ret.f2 = distribution(mt);
+    ret.f3 = distribution(mt);
+    ret.f4 = distribution(mt);
+
+    // Variant
+    *((uint8_t *)&ret.f1 + 8) &= 0xBF;
+    *((uint8_t *)&ret.f1 + 8) |= 0x80;
+
+    // Version
+    *((uint8_t *)&ret.f1 + 6) &= 0x4F;
+    *((uint8_t *)&ret.f1 + 6) |= 0x40;
+
+    return ret;
+  }
+
   std::string toString() const {
     std::ostringstream s;
     s << std::hex << std::setfill('0')
@@ -57,6 +78,15 @@ struct Uuid {
       << std::setw(2) << (int)(*((uint8_t *)&f3 + 2))
       << std::setw(2) << (int)(*((uint8_t *)&f3 + 3));
     return s.str();
+  }
+
+  std::shared_ptr<ListTag> toListTag() const {
+    auto ret = std::make_shared<ListTag>(Tag::Type::Int);
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f1));
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f2));
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f3));
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f4));
+    return ret;
   }
 };
 

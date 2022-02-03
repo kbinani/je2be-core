@@ -424,13 +424,13 @@ public:
       }
     }
 
-    auto pos = GetVec(tag, "Pos");
+    auto pos = GetPos3d(tag, "Pos");
     if (pos) {
       //ng 1.620001f
       //ok 1.62001f
-      float offset = 1.62001f;
+      double offset = 1.62001;
       pos->fY += offset;
-      entity->set("Pos", pos->toListTag());
+      entity->set("Pos", pos->toF().toListTag());
     }
 
     auto definitions = make_shared<ListTag>(Tag::Type::String);
@@ -675,19 +675,19 @@ private:
   }
 
   static EntityData ArmorStand(EntityData const &c, CompoundTag const &tag, Context &) {
-    auto pos = props::GetVec(tag, "Pos");
+    auto pos = props::GetPos3d(tag, "Pos");
     if (!pos) {
       return c;
     }
     pos->fY = std::round(pos->fY * 2) * 0.5;
-    c->set("Pos", pos->toListTag());
+    c->set("Pos", pos->toF().toListTag());
     return c;
   }
 
   static EntityData Bee(EntityData const &c, CompoundTag const &tag, Context &) {
-    auto hivePos = props::GetPos3(tag, "HivePos");
+    auto hivePos = props::GetPos3d(tag, "HivePos");
     if (hivePos) {
-      Vec homePos(hivePos->fX, hivePos->fY, hivePos->fZ);
+      Pos3f homePos = hivePos->toF();
       c->set("HomePos", homePos.toListTag());
     }
     AddDefinition(c, "+track_attacker");
@@ -992,7 +992,7 @@ private:
   }
 
   static EntityData Minecart(EntityData const &c, CompoundTag const &tag, Context &) {
-    auto pos = props::GetVec(tag, "Pos");
+    auto pos = props::GetPos3d(tag, "Pos");
     auto onGround = tag.boolean("OnGround");
     if (pos && onGround) {
       // Java
@@ -1010,7 +1010,7 @@ private:
         // on rail
         pos->fY = iy + 0.5;
       }
-      c->set("Pos", pos->toListTag());
+      c->set("Pos", pos->toF().toListTag());
     }
     return c;
   }
@@ -1383,12 +1383,12 @@ private:
       c->set("Rotation", rot.toListTag());
     }
 
-    auto pos = props::GetVec(*c, "Pos");
+    auto pos = props::GetPos3d(*c, "Pos");
     auto onGround = c->boolean("OnGround", false);
     if (pos && onGround) {
       int iy = (int)floor(pos->fY);
-      pos->fY = iy + 0.35f;
-      c->set("Pos", pos->toListTag());
+      pos->fY = iy + 0.35;
+      c->set("Pos", pos->toF().toListTag());
     }
 
     return c;
@@ -1446,7 +1446,7 @@ private:
         int64_t leasherId = UuidRegistrar::LeasherIdFor(*uuid);
 
         Entity e(leasherId);
-        e.fPos = Vec(*x + 0.5f, *y + 0.25f, *z + 0.5f);
+        e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
         e.fIdentifier = "minecraft:leash_knot";
         auto leashEntityData = e.toCompoundTag();
         ctx.fPassengers.push_back(leashEntityData);
@@ -1794,8 +1794,8 @@ private:
     auto invulnerable = tag.boolean("Invulnerable");
     auto onGround = tag.boolean("OnGround");
     auto portalCooldown = tag.int32("PortalCooldown");
-    auto motion = GetVec(tag, "Motion");
-    auto pos = GetVec(tag, "Pos");
+    auto motion = GetPos3d(tag, "Motion");
+    auto pos = GetPos3d(tag, "Pos");
     auto rotation = GetRotation(tag, "Rotation");
     auto uuid = GetEntityUuid(tag);
     auto id = tag.string("id");
@@ -1807,10 +1807,10 @@ private:
 
     Entity e(*uuid);
     if (motion) {
-      e.fMotion = *motion;
+      e.fMotion = motion->toF();
     }
     if (pos) {
-      e.fPos = *pos;
+      e.fPos = pos->toF();
     }
     if (rotation) {
       e.fRotation = *rotation;
@@ -1882,8 +1882,8 @@ private:
       return nullptr;
     }
 
-    Vec normals[4] = {Vec(0, 0, 1), Vec(-1, 0, 0), Vec(0, -1, 0), Vec(1, 0, 0)};
-    Vec normal = normals[*facing];
+    Pos3f normals[4] = {Pos3f(0, 0, 1), Pos3f(-1, 0, 0), Pos3f(0, -1, 0), Pos3f(1, 0, 0)};
+    Pos3f normal = normals[*facing];
 
     float const thickness = 1.0f / 32.0f;
 
@@ -1923,7 +1923,7 @@ private:
       return nullptr;
     }
     e->fIdentifier = "minecraft:painting";
-    e->fPos = Vec(x, y, z);
+    e->fPos = Pos3f(x, y, z);
     auto c = e->toCompoundTag();
     c->set("Motive", String(*beMotive));
     c->set("Direction", Byte(*facing));
@@ -2007,8 +2007,8 @@ private:
 
 public:
   std::vector<std::string> fDefinitions;
-  Vec fMotion;
-  Vec fPos;
+  Pos3f fMotion;
+  Pos3f fPos;
   Rotation fRotation;
   std::vector<std::shared_ptr<CompoundTag>> fTags;
   bool fChested = false;

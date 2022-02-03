@@ -131,7 +131,7 @@ inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName keyName) 
   return std::nullopt;
 }
 
-inline std::optional<Vec> GetVec(CompoundTag const &tag, std::string const &name) {
+inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -147,7 +147,7 @@ inline std::optional<Vec> GetVec(CompoundTag const &tag, std::string const &name
   double x = list->at(0)->asDouble()->fValue;
   double y = list->at(1)->asDouble()->fValue;
   double z = list->at(2)->asDouble()->fValue;
-  return Vec((float)x, (float)y, (float)z);
+  return Pos3d(x, y, z);
 }
 
 inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string const &name) {
@@ -169,7 +169,7 @@ inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string c
 }
 
 template <char xKey, char yKey, char zKey>
-inline std::optional<Pos3i> GetPos3(CompoundTag const &tag) {
+inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag) {
   auto x = tag.int32(std::string(1, xKey));
   auto y = tag.int32(std::string(1, yKey));
   auto z = tag.int32(std::string(1, zKey));
@@ -179,12 +179,12 @@ inline std::optional<Pos3i> GetPos3(CompoundTag const &tag) {
   return Pos3i(*x, *y, *z);
 }
 
-inline std::optional<Pos3i> GetPos3(CompoundTag const &tag, std::string const &name) {
+inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::string const &name) {
   auto xyz = tag.compoundTag(name);
   if (!xyz) {
     return std::nullopt;
   }
-  return GetPos3<'X', 'Y', 'Z'>(*xyz);
+  return GetPos3i<'X', 'Y', 'Z'>(*xyz);
 }
 
 inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {

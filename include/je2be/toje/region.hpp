@@ -12,16 +12,22 @@ public:
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
 
-    auto dir = File::CreateTempDir(fs::temp_directory_path());
-    if (!dir) {
+    auto regionDir = File::CreateTempDir(fs::temp_directory_path());
+    if (!regionDir) {
+      return nullptr;
+    }
+    auto entityDir = File::CreateTempDir(fs::temp_directory_path());
+    if (!entityDir) {
       return nullptr;
     }
 
     auto ctx = make_shared<Context>();
 
     defer {
-      error_code ec;
-      fs::remove_all(*dir, ec);
+      error_code ec1;
+      fs::remove_all(*regionDir, ec1);
+      error_code ec2;
+      fs::remove_all(*entityDir, ec2);
     };
 
     for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
@@ -192,26 +198,39 @@ public:
           if (id != "ItemFrame" && id != "GlowItemFrame") {
             continue;
           }
-          auto frameJ = Entity::ItemFrameFromBedrock(it.first, *it.second);
+          Pos3i pos = it.first;
+          auto blockB = cache->blockAt(pos.fX, pos.fY, pos.fZ);
+          if (!blockB) {
+            continue;
+          }
+          auto frameJ = Entity::ItemFrameFromBedrock(d, pos, *blockB, *it.second, *ctx);
           if (frameJ) {
             j->fEntities.push_back(frameJ);
           }
         }
 
-        auto fos = make_shared<FileOutputStream>(*dir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
-        if (!fos) {
+        auto streamTerrain = make_shared<FileOutputStream>(*regionDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
+        if (!j->write(*streamTerrain)) {
           return nullptr;
         }
-        if (!j->write(*fos)) {
+
+        auto streamEntities = make_shared<FileOutputStream>(*entityDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
+        if (!j->writeEntities(*streamEntities)) {
           return nullptr;
         }
       }
     }
 
-    auto mca = destination / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *dir, mca)) {
+    auto terrainMca = destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *regionDir, terrainMca)) {
       return nullptr;
     }
+
+    auto entitiesMca = destination / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *entityDir, entitiesMca)) {
+      return nullptr;
+    }
+
     return ctx;
   }
 };

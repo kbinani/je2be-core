@@ -51,7 +51,6 @@
 #include <je2be/pos3.hpp>
 #include <je2be/volume.hpp>
 #include <je2be/optional.hpp>
-#include <je2be/vec.hpp>
 #include <je2be/rotation.hpp>
 #include <je2be/color/rgba.hpp>
 #include <je2be/color/lab.hpp>
