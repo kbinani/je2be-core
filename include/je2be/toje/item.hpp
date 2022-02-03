@@ -152,7 +152,23 @@ public:
       }
       itemJ.set("tag", tagJ);
     }
-    return name;
+    return "minecraft:firework_rocket";
+  }
+
+  static std::string FireworkStar(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      tagB->erase("customColor");
+      auto tagJ = std::make_shared<CompoundTag>();
+      auto fireworksB = tagB->compoundTag("FireworksItem");
+      if (fireworksB) {
+        FireworksExplosion explosion = FireworksExplosion::FromBedrock(*fireworksB);
+        auto explosionJ = explosion.toJavaCompoundTag();
+        tagJ->set("Explosion", explosionJ);
+        itemJ["tag"] = tagJ;
+      }
+    }
+    return "minecraft:firework_star";
   }
 
   static std::string Map(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
@@ -203,6 +219,8 @@ public:
     E(filled_map, Map);
     E(firework_rocket, FireworkRocket);
     E(fireworks, FireworkRocket); // legacy
+    E(firework_star, FireworkStar);
+    E(fireworkscharge, FireworkStar); // legacy
 
 #undef E
     return ret;

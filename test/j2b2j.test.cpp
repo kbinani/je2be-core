@@ -138,7 +138,16 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
 }
 
 static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) {
-  DiffCompoundTag(entityE, entityA);
+  auto copyE = entityE.copy();
+  auto copyA = entityA.copy();
+
+  static unordered_set<string> const sBlacklist({"UUID"});
+  for (string const &it : sBlacklist) {
+    copyE->erase(it);
+    copyA->erase(it);
+  }
+
+  DiffCompoundTag(*copyE, *copyA);
 }
 
 static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, vector<shared_ptr<CompoundTag>> const &entities) {

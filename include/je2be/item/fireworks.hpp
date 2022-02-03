@@ -7,7 +7,7 @@ public:
   static FireworksData FromJava(CompoundTag const &fireworks) {
     FireworksData es;
 
-    es.fFlight = fireworks.byte("Flight", 1);
+    es.fFlight = fireworks.byte("Flight");
 
     auto explosions = fireworks.listTag("Explosions");
     if (explosions) {
@@ -26,7 +26,7 @@ public:
 
   static FireworksData FromBedrock(CompoundTag const &tagB) {
     FireworksData fd;
-    fd.fFlight = tagB.byte("Flight", 1);
+    fd.fFlight = tagB.byte("Flight");
     auto explosions = tagB.listTag("Explosions");
     if (explosions) {
       for (auto const &it : *explosions) {
@@ -48,7 +48,9 @@ public:
       explosions->push_back(it.toBedrockCompoundTag());
     }
     ret->set("Explosions", explosions);
-    ret->set("Flight", props::Byte(fFlight));
+    if (fFlight) {
+      ret->set("Flight", props::Byte(*fFlight));
+    }
     return ret;
   }
 
@@ -59,13 +61,15 @@ public:
       explosions->push_back(it.toJavaCompoundTag());
     }
     ret->set("Explosions", explosions);
-    ret->set("Flight", props::Byte(fFlight));
+    if (fFlight) {
+      ret->set("Flight", props::Byte(*fFlight));
+    }
     return ret;
   }
 
 public:
   std::vector<FireworksExplosion> fExplosions;
-  int8_t fFlight = 1;
+  std::optional<int8_t> fFlight;
 };
 
 } // namespace je2be

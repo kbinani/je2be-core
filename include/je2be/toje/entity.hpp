@@ -71,13 +71,14 @@ public:
     Pos3d motion(0, 0, 0);
     t["Motion"] = motion.toListTag();
 
+    CopyFloatValues(blockEntityB, t, {{"ItemDropChance"}});
+
     t["Air"] = Short(300);
     t["FallDistance"] = Float(0);
     t["Fire"] = Short(-1);
     t["Fixed"] = Bool(false);
     t["Invisible"] = Bool(false);
     t["Invulnerable"] = Bool(false);
-    t["ItemDropChance"] = Bool(true);
     t["OnGround"] = Bool(false);
     t["PortalCooldown"] = Int(0);
 
