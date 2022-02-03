@@ -141,7 +141,12 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
-  static unordered_set<string> const sBlacklist({"UUID", "Attributes", "Motion"});
+  static unordered_set<string> const sBlacklist({
+      "UUID",
+      "Attributes",
+      "Motion",
+      "LeftHanded", // left handed skeleton does not exist in BE
+  });
   for (string const &it : sBlacklist) {
     copyE->erase(it);
     copyA->erase(it);

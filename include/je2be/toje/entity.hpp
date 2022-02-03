@@ -138,6 +138,10 @@ public:
     j["Fuse"] = Short(30);
     j["ignited"] = Bool(false);
   }
+
+  static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"BatFlags"}});
+  }
 #pragma endregion
 
 #pragma region Behaviors
@@ -358,6 +362,7 @@ public:
     E(skeleton, Convert(Same, Base, Skeleton));
     E(creeper, Convert(Same, Base, Creeper));
     E(spider, Convert(Same, Base));
+    E(bat, Convert(Same, Base, Bat));
 
 #undef E
     return ret;
