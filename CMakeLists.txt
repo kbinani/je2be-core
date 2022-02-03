@@ -123,7 +123,6 @@ set(je2be_files
   include/je2be/toje/weeping-vines.hpp
   include/je2be/toje/world.hpp
   include/je2be/uuid.hpp
-  include/je2be/vec.hpp
   include/je2be/version.hpp
   include/je2be/volume.hpp
   include/je2be/xxhash.hpp
