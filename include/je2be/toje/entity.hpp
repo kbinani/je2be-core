@@ -121,9 +121,11 @@ public:
     std::vector<Behavior> fBehaviors;
   };
 
+#pragma region Namers
   static std::string Same(std::string const &nameB, CompoundTag const &entityB) {
     return nameB;
   }
+#pragma endregion
 
 #pragma region Dedicated Behaviors
   static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -312,6 +314,7 @@ public:
   }
 #pragma endregion
 
+#pragma region Converters
   static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = std::make_shared<CompoundTag>();
     CompoundTag &j = *ret;
@@ -338,6 +341,7 @@ public:
     UUID(b, j, ctx);
     return ret;
   }
+#pragma endregion
 
   static std::unordered_map<std::string, Converter> const *GetTable() {
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
@@ -353,6 +357,7 @@ public:
 
     E(skeleton, Convert(Same, Base, Skeleton));
     E(creeper, Convert(Same, Base, Creeper));
+    E(spider, Convert(Same, Base));
 
 #undef E
     return ret;
