@@ -1882,9 +1882,6 @@ private:
       return nullptr;
     }
 
-    Pos3f normals[4] = {Pos3f(0, 0, 1), Pos3f(-1, 0, 0), Pos3f(0, -1, 0), Pos3f(1, 0, 0)};
-    Pos3f normal = normals[*facing];
-
     float const thickness = 1.0f / 32.0f;
 
     int dh = 0;
