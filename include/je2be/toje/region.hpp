@@ -209,6 +209,13 @@ public:
           }
         }
 
+        for (auto const &entityB : b->fEntities) {
+          auto entityJ = Entity::From(*entityB, *ctx);
+          if (entityJ) {
+            j->fEntities.push_back(entityJ);
+          }
+        }
+
         auto streamTerrain = make_shared<FileOutputStream>(*regionDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!j->write(*streamTerrain)) {
           return nullptr;

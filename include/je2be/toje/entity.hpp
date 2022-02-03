@@ -16,7 +16,7 @@ public:
 
     int32_t facingDirectionA = blockJ.fStates->int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirectionA);
-    Rotation rot(0, 0);
+    je2be::Rotation rot(0, 0);
     switch (f6) {
     case Facing6::Up:
       rot.fPitch = -90;
@@ -83,6 +83,269 @@ public:
     t["PortalCooldown"] = Int(0);
 
     return ret;
+  }
+
+  static std::shared_ptr<CompoundTag> From(CompoundTag const &entityB, Context &ctx) {
+    auto id = entityB.string("identifier");
+    if (!id) {
+      return nullptr;
+    }
+    auto const *table = GetTable();
+    auto found = table->find(*id);
+    if (found == table->end()) {
+      return nullptr;
+    }
+    return found->second(*id, entityB, ctx);
+  }
+
+  using Converter = std::function<std::shared_ptr<CompoundTag>(std::string const &id, CompoundTag const &eneityB, Context &ctx)>;
+  using Namer = std::function<std::string(std::string const &nameB, CompoundTag const &entityB)>;
+  using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx)>;
+
+  struct Convert {
+    template <class... Arg>
+    Convert(Namer namer, Converter base, Arg... behaviors) : fNamer(namer), fBase(base), fBehaviors(std::initializer_list<Behavior>{behaviors...}) {}
+
+    std::shared_ptr<CompoundTag> operator()(std::string const &id, CompoundTag const &entityB, Context &ctx) const {
+      auto name = fNamer(id, entityB);
+      auto t = fBase(id, entityB, ctx);
+      t->set("id", props::String(name));
+      for (auto behavior : fBehaviors) {
+        behavior(entityB, *t, ctx);
+      }
+      return t;
+    }
+
+    Namer fNamer;
+    Converter fBase;
+    std::vector<Behavior> fBehaviors;
+  };
+
+  static std::string Same(std::string const &nameB, CompoundTag const &entityB) {
+    return nameB;
+  }
+
+#pragma region Behaviors
+  static void AbsorptionAmount(CompoundTag const &entityB, CompoundTag &entityJ, Context &) {
+    entityJ["AbsorptionAmount"] = props::Float(0);
+  }
+
+  static void Air(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
+    CopyShortValues(entityB, entityJ, {{"Air"}});
+  }
+
+  static void ArmorItems(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
+    auto armorsB = entityB.listTag("Armor");
+    auto armorsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto chances = std::make_shared<ListTag>(Tag::Type::Float);
+    if (armorsB) {
+      for (auto const &it : *armorsB) {
+        auto armorB = it->asCompound();
+        std::shared_ptr<CompoundTag> armorJ;
+        if (armorB) {
+          armorJ = Item::From(*armorB, ctx);
+        }
+        if (!armorJ) {
+          armorJ = std::make_shared<CompoundTag>();
+        }
+        armorsJ->push_back(armorJ);
+        chances->push_back(props::Float(0.085));
+      }
+    }
+    entityJ["ArmorItems"] = armorsJ;
+    entityJ["ArmorDropChances"] = chances;
+  }
+
+  static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto memories = std::make_shared<CompoundTag>();
+    auto brain = std::make_shared<CompoundTag>();
+    brain->set("memories", memories);
+    j["Brain"] = brain;
+  }
+
+  static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"canPickupItems", "CanPickUpLoot"}});
+  }
+
+  static void DeathTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyShortValues(b, j, {{"DeathTime"}});
+  }
+
+  static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyFloatValues(b, j, {{"FallDistance"}});
+  }
+
+  static void FallFlying(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["FallFlying"] = props::Bool(false);
+  }
+
+  static void Fire(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["Fire"] = props::Short(-1);
+  }
+
+  static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto chances = std::make_shared<ListTag>(Tag::Type::Float);
+    for (std::string key : {"Mainhand", "Offhand"}) {
+      auto listB = b.listTag(key);
+      std::shared_ptr<CompoundTag> itemJ;
+      if (listB && !listB->empty()) {
+        auto c = listB->at(0)->asCompound();
+        if (c) {
+          itemJ = Item::From(*c, ctx);
+        }
+      }
+      if (!itemJ) {
+        itemJ = std::make_shared<CompoundTag>();
+      }
+      itemsJ->push_back(itemJ);
+      chances->push_back(props::Float(0.085));
+    }
+    j["HandItems"] = itemsJ;
+    j["HandDropChances"] = chances;
+  }
+
+  static void Health(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto attributesB = b.listTag("Attributes");
+    if (!attributesB) {
+      return;
+    }
+    for (auto const &it : *attributesB) {
+      auto c = it->asCompound();
+      if (!c) {
+        continue;
+      }
+      auto name = c->string("Name");
+      if (name != "minecraft:health") {
+        continue;
+      }
+      auto current = c->float32("Current");
+      if (!current) {
+        continue;
+      }
+      j["Health"] = props::Float(*current);
+      return;
+    }
+  }
+
+  static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["HurtByTimestamp"] = props::Int(0);
+  }
+
+  static void HurtTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyShortValues(b, j, {{"HurtTime"}});
+  }
+
+  static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"Invulnerable"}});
+  }
+
+  static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["LeftHanded"] = props::Bool(false);
+  }
+
+  static void OnGround(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"OnGround"}});
+  }
+
+  static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["PersistenceRequired"] = props::Bool(false);
+  }
+
+  static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyIntValues(b, j, {{"PortalCooldown"}});
+  }
+
+  static void Pos(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
+    auto posB = entityB.listTag("Pos");
+    if (!posB) {
+      return;
+    }
+    if (posB->size() != 3) {
+      return;
+    }
+    if (posB->fType != Tag::Type::Float) {
+      return;
+    }
+    double x = posB->at(0)->asFloat()->fValue;
+    double y = posB->at(1)->asFloat()->fValue;
+    double z = posB->at(2)->asFloat()->fValue;
+    Pos3d posJ(x, y, z);
+    entityJ["Pos"] = posJ.toListTag();
+  }
+
+  static void Rotation(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
+    auto rotB = entityB.listTag("Rotation");
+    if (!rotB) {
+      return;
+    }
+    if (rotB->size() != 2) {
+      return;
+    }
+    if (rotB->fType != Tag::Type::Float) {
+      return;
+    }
+    entityJ["Rotation"] = rotB->clone();
+  }
+
+  static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["StrayConversionTime"] = props::Int(-1);
+  }
+
+  static void UUID(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto id = b.int64("UniqueID");
+    if (!id) {
+      return;
+    }
+    int64_t v = *id;
+    Uuid uuid = Uuid::GenWithU64Seed(*(uint64_t *)&v);
+    j["UUID"] = uuid.toListTag();
+  }
+#pragma endregion
+
+  static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
+    auto ret = std::make_shared<CompoundTag>();
+    CompoundTag &j = *ret;
+    AbsorptionAmount(b, j, ctx);
+    Air(b, j, ctx);
+    ArmorItems(b, j, ctx);
+    OnGround(b, j, ctx);
+    Pos(b, j, ctx);
+    Rotation(b, j, ctx);
+    PortalCooldown(b, j, ctx);
+    Brain(b, j, ctx);
+    CanPickUpLoot(b, j, ctx);
+    FallDistance(b, j, ctx);
+    FallFlying(b, j, ctx);
+    Fire(b, j, ctx);
+    DeathTime(b, j, ctx);
+    HandItems(b, j, ctx);
+    Health(b, j, ctx);
+    HurtByTimestamp(b, j, ctx);
+    HurtTime(b, j, ctx);
+    Invulnerable(b, j, ctx);
+    LeftHanded(b, j, ctx);
+    PersistenceRequired(b, j, ctx);
+    UUID(b, j, ctx);
+    return ret;
+  }
+
+  static std::unordered_map<std::string, Converter> *CreateTable() {
+    auto ret = new std::unordered_map<std::string, Converter>();
+
+#define E(__name, __conv)                                \
+  assert(ret->find("minecraft:" #__name) == ret->end()); \
+  ret->insert(std::make_pair("minecraft:" #__name, __conv));
+
+    E(skeleton, Convert(Same, Base, StrayConversionTime));
+
+#undef E
+    return ret;
+  }
+
+  static std::unordered_map<std::string, Converter> const *GetTable() {
+    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
+    return sTable.get();
   }
 };
 

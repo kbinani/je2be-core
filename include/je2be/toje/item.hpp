@@ -15,6 +15,9 @@ public:
     }
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
     auto ret = make_shared<CompoundTag>();
+    if (name == "") {
+      return ret;
+    }
     auto found = sTable->find(*name);
     if (found == sTable->end()) {
       Default(*name, tagB, *ret, ctx);
