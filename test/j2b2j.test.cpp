@@ -287,6 +287,7 @@ TEST_CASE("j2b2j") {
             if (found == chunkA->fTileEntities.end()) {
               PrintAsJson(cerr, *tileE, {.fTypeHint = true});
               CHECK(false);
+              break;
             }
             auto tileA = found->second;
             CheckTileEntity(*tileE, *tileA);
@@ -301,6 +302,7 @@ TEST_CASE("j2b2j") {
             } else {
               PrintAsJson(cerr, *entityE, {.fTypeHint = true});
               CHECK(false);
+              break;
             }
           }
         }
