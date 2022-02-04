@@ -112,6 +112,7 @@ set(je2be_files
   include/je2be/toje/item.hpp
   include/je2be/toje/kelp.hpp
   include/je2be/toje/level-data.hpp
+  include/je2be/toje/map-info.hpp
   include/je2be/toje/note-block.hpp
   include/je2be/toje/piston.hpp
   include/je2be/toje/redstone-wire.hpp

@@ -17,6 +17,8 @@ inline std::shared_ptr<StringTag> String(std::string v) { return std::make_share
 
 inline std::shared_ptr<FloatTag> Float(float v) { return std::make_shared<FloatTag>(v); }
 
+inline std::shared_ptr<DoubleTag> Double(double v) { return std::make_shared<DoubleTag>(v); }
+
 inline std::shared_ptr<ShortTag> Short(int16_t v) { return std::make_shared<ShortTag>(v); }
 
 struct UUIDKeyName {

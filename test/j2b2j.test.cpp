@@ -151,10 +151,11 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
       "LeftHanded", // left handed skeleton does not exist in BE
       "ForcedAge",
       "IsChickenJockey", //TODO: remove this
+      "Item/tag/map",
   });
   for (string const &it : sBlacklist) {
-    copyE->erase(it);
-    copyA->erase(it);
+    Erase(copyE, it);
+    Erase(copyA, it);
   }
 
   DiffCompoundTag(*copyE, *copyA);

@@ -6,7 +6,7 @@ class Region {
 public:
   std::unordered_set<Pos2i, Pos2iHasher> fChunks;
 
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination, Context const &parentContext) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -21,7 +21,7 @@ public:
       return nullptr;
     }
 
-    auto ctx = make_shared<Context>();
+    auto ctx = parentContext.make();
 
     defer {
       error_code ec1;

@@ -176,16 +176,44 @@ public:
 
   static std::string Map(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
-    if (tagB) {
-      auto tagJ = std::make_shared<CompoundTag>();
-      auto index = tagB->int32("map_name_index");
-      auto uuid = tagB->int64("map_uuid");
-      if (index && uuid) {
-        tagJ->set("map", props::Int(*index));
-        ctx.addMap(*index, *uuid);
-      }
-      itemJ.set("tag", tagJ);
+    if (!tagB) {
+      return name;
     }
+    auto tagJ = std::make_shared<CompoundTag>();
+    auto uuid = tagB->int64("map_uuid");
+    if (!uuid) {
+      return name;
+    }
+    auto info = ctx.mapFromUuid(*uuid);
+    if (info) {
+      tagJ->set("map", props::Int(info->fNumber));
+      ctx.markMapUuidAsUsed(*uuid);
+
+      if (!info->fDecorations.empty()) {
+        auto decorationsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+        for (MapInfo::Decoration const &decoration : info->fDecorations) {
+          decorationsJ->push_back(decoration.toCompoundTag());
+        }
+        tagJ->set("Decorations", decorationsJ);
+      }
+    }
+    auto damage = itemB.int16("Damage");
+    std::string translate;
+    if (damage == 3) {
+      translate = "filled_map.monument";
+    } else if (damage == 4) {
+      translate = "filled_map.mansion";
+    } else if (damage == 5) {
+      translate = "filled_map.buried_treasure";
+    }
+    if (!translate.empty()) {
+      auto displayJ = std::make_shared<CompoundTag>();
+      nlohmann::json json;
+      json["translate"] = translate;
+      displayJ->set("Name", props::String(nlohmann::to_string(json)));
+      tagJ->set("display", displayJ);
+    }
+    itemJ.set("tag", tagJ);
     return name;
   }
 

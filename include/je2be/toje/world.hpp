@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class World {
 public:
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency, Context const &parentContext) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -45,7 +45,7 @@ public:
 
     hwm::task_queue queue(concurrency);
     deque<future<shared_ptr<Context>>> futures;
-    auto bin = make_shared<Context>();
+    auto ctx = parentContext.make();
 
     bool ok = true;
     for (auto const &region : regions) {
@@ -55,7 +55,7 @@ public:
       for (auto &d : drain) {
         auto result = d.get();
         if (result) {
-          result->mergeInto(*bin);
+          result->mergeInto(*ctx);
         } else {
           ok = false;
         }
@@ -63,20 +63,20 @@ public:
       if (!ok) {
         break;
       }
-      futures.emplace_back(queue.enqueue(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir));
+      futures.emplace_back(queue.enqueue(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx));
     }
 
     for (auto &f : futures) {
       auto result = f.get();
       if (result) {
-        result->mergeInto(*bin);
+        result->mergeInto(*ctx);
       } else {
         ok = false;
       }
     }
 
     if (ok) {
-      return bin;
+      return ctx;
     } else {
       return nullptr;
     }

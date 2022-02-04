@@ -5,6 +5,7 @@
 #include <je2be/toje/level-data.hpp>
 #include <je2be/toje/chunk-cache.hpp>
 
+#include <je2be/toje/map-info.hpp>
 #include <je2be/toje/context.hpp>
 
 #include <je2be/toje/item.hpp>

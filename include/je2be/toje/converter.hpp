@@ -35,9 +35,10 @@ public:
       return false;
     }
 
-    auto bin = make_shared<Context>();
+    auto mapInfo = make_shared<MapInfo>(*db);
+    auto bin = make_shared<Context>(mapInfo);
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      auto result = World::Convert(d, *db, fOutput, concurrency);
+      auto result = World::Convert(d, *db, fOutput, concurrency, *bin);
       if (result) {
         result->mergeInto(*bin);
       } else {

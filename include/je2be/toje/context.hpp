@@ -4,13 +4,15 @@ namespace je2be::toje {
 
 class Context {
 public:
-  void addMap(int index, int64_t uuid) {
-    fMaps[index] = uuid;
+  explicit Context(std::shared_ptr<MapInfo const> const &mapInfo) : fMapInfo(mapInfo) {}
+
+  void markMapUuidAsUsed(int64_t uuid) {
+    fUsedMapUuids.insert(uuid);
   }
 
   void mergeInto(Context &other) const {
-    for (auto it : fMaps) {
-      other.fMaps[it.first] = it.second;
+    for (int64_t uuid : fUsedMapUuids) {
+      other.fUsedMapUuids.insert(uuid);
     }
   }
 
@@ -19,8 +21,17 @@ public:
     return true;
   }
 
-public:
-  std::unordered_map<int, int64_t> fMaps;
+  std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const {
+    return fMapInfo->mapFronUuid(mapUuid);
+  }
+
+  std::shared_ptr<Context> make() const {
+    return std::make_shared<Context>(fMapInfo);
+  }
+
+private:
+  std::shared_ptr<MapInfo const> fMapInfo;
+  std::unordered_set<int64_t> fUsedMapUuids;
 };
 
 } // namespace je2be::toje
