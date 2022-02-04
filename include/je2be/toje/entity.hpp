@@ -159,6 +159,18 @@ public:
     j["ignited"] = Bool(false);
   }
 
+  static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["PickupDelay"] = props::Short(0);
+    auto itemB = b.compoundTag("Item");
+    if (itemB) {
+      auto itemJ = toje::Item::From(*itemB, ctx);
+      if (itemJ) {
+        j["Item"] = itemJ;
+      }
+    }
+    CopyShortValues(b, j, {{"Age"}, {"Health"}});
+  }
+
   static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["StrayConversionTime"] = props::Int(-1);
   }
@@ -466,6 +478,7 @@ public:
     E(painting, Convert(Same, Base, Painting));
     E(zombie, Convert(Same, LivingEntity, IsBaby, Zombie));
     E(chicken, Convert(Same, Animal, Chicken));
+    E(item, Convert(Same, Base, Entity::Item));
 
 #undef E
     return ret;

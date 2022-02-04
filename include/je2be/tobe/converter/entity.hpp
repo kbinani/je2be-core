@@ -936,6 +936,8 @@ private:
     ret->set("OwnerID", Long(owner));
     ret->set("OwnerNew", Long(owner));
 
+    CopyShortValues(tag, *ret, {{"Health"}, {"Age"}});
+
     return ret;
   }
 
