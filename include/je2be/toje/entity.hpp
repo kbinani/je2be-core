@@ -144,6 +144,12 @@ public:
   static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"BatFlags"}});
   }
+
+  static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["DrowndConversionTime"] = props::Int(-1);
+    j["CanBreakDoors"] = props::Bool(false);
+    j["InWaterTime"] = props::Int(0);
+  }
 #pragma endregion
 
 #pragma region Behaviors
@@ -259,6 +265,10 @@ public:
 
   static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Invulnerable"}});
+  }
+
+  static void IsBaby(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"IsBaby"}});
   }
 
   static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -404,6 +414,7 @@ public:
     E(spider, Convert(Same, LivingEntity));
     E(bat, Convert(Same, LivingEntity, Bat));
     E(painting, Convert(Same, Base, Painting));
+    E(zombie, Convert(Same, LivingEntity, IsBaby, Zombie));
 
 #undef E
     return ret;
