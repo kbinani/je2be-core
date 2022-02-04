@@ -65,8 +65,10 @@ public:
       }
     }
 
-    auto itemRotationB = blockEntityB.float32("ItemRotation", 0);
-    t["ItemRotation"] = Byte(static_cast<int8_t>(std::roundf(itemRotationB / 45.0f)));
+    auto itemRotationB = blockEntityB.float32("ItemRotation");
+    if (itemRotationB) {
+      t["ItemRotation"] = Byte(static_cast<int8_t>(std::roundf(*itemRotationB / 45.0f)));
+    }
 
     Pos3d motion(0, 0, 0);
     t["Motion"] = motion.toListTag();
