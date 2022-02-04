@@ -473,7 +473,7 @@ private:
     M("blaze");
     E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable, CollarColorable, Cat));
     M("cave_spider");
-    E("chicken", Convert(Animal, AgeableA("chicken"), Vehicle()));
+    E("chicken", Convert(Animal, AgeableA("chicken"), Vehicle(), Chicken));
     A("cod");
 
     E("cow", Convert(Animal, AgeableA("cow")));
@@ -1532,6 +1532,20 @@ private:
     }
     c->set("DwellingUniqueID", props::String("00000000-0000-0000-0000-000000000000"));
     c->set("RewardPlayersOnFirstFounding", props::Bool(true));
+    return c;
+  }
+
+  static EntityData Chicken(EntityData const &c, CompoundTag const &tag, Context &) {
+    using namespace std;
+    auto eggLayTime = tag.int32("EggLayTime");
+    if (eggLayTime) {
+      auto entries = make_shared<ListTag>(Tag::Type::Compound);
+      auto timer = make_shared<CompoundTag>();
+      timer->set("SpawnTimer", props::Int(*eggLayTime));
+      timer->set("StopSpawning", props::Bool(false));
+      entries->push_back(timer);
+      c->set("entries", entries);
+    }
     return c;
   }
 

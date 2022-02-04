@@ -130,8 +130,26 @@ public:
 #pragma endregion
 
 #pragma region Dedicated Behaviors
-  static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["StrayConversionTime"] = props::Int(-1);
+  static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"BatFlags"}});
+  }
+
+  static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto entries = b.listTag("entries");
+    if (entries) {
+      for (auto const &it : *entries) {
+        auto c = it->asCompound();
+        if (!c) {
+          continue;
+        }
+        auto spawnTimer = c->int32("SpawnTimer");
+        if (!spawnTimer) {
+          continue;
+        }
+        j["EggLayTime"] = props::Int(*spawnTimer);
+        break;
+      }
+    }
   }
 
   static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -141,28 +159,32 @@ public:
     j["ignited"] = Bool(false);
   }
 
-  static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    CopyBoolValues(b, j, {{"BatFlags"}});
+  static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["StrayConversionTime"] = props::Int(-1);
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["DrowndConversionTime"] = props::Int(-1);
+    j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
-    j["InWaterTime"] = props::Int(0);
+    j["InWaterTime"] = props::Int(-1);
   }
 #pragma endregion
 
 #pragma region Behaviors
-  static void AbsorptionAmount(CompoundTag const &entityB, CompoundTag &entityJ, Context &) {
-    entityJ["AbsorptionAmount"] = props::Float(0);
+  static void AbsorptionAmount(CompoundTag const &b, CompoundTag &j, Context &) {
+    j["AbsorptionAmount"] = props::Float(0);
   }
 
-  static void Air(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
-    CopyShortValues(entityB, entityJ, {{"Air", "Air", 300}});
+  static void Age(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyIntValues(b, j, {{"Age", "Age", 0}});
   }
 
-  static void ArmorItems(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
-    auto armorsB = entityB.listTag("Armor");
+  static void Air(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyShortValues(b, j, {{"Air", "Air", 300}});
+  }
+
+  static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto armorsB = b.listTag("Armor");
     auto armorsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
     if (armorsB) {
@@ -179,8 +201,8 @@ public:
         chances->push_back(props::Float(0.085));
       }
     }
-    entityJ["ArmorItems"] = armorsJ;
-    entityJ["ArmorDropChances"] = chances;
+    j["ArmorItems"] = armorsJ;
+    j["ArmorDropChances"] = chances;
   }
 
   static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -192,6 +214,16 @@ public:
 
   static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"canPickupItems", "CanPickUpLoot"}});
+  }
+
+  static void CustomName(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto name = b.string("CustomName");
+    if (!name) {
+      return;
+    }
+    nlohmann::json json;
+    json["text"] = *name;
+    j["CustomName"] = props::String(nlohmann::to_string(json));
   }
 
   static void DeathTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -263,6 +295,10 @@ public:
     CopyShortValues(b, j, {{"HurtTime"}});
   }
 
+  static void InLove(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyIntValues(b, j, {{"InLove", "InLove", 0}});
+  }
+
   static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Invulnerable"}});
   }
@@ -311,8 +347,12 @@ public:
     j["TileZ"] = props::Int(std::round(tile->fZ));
   }
 
-  static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PersistenceRequiredFalse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["PersistenceRequired"] = props::Bool(false);
+  }
+
+  static void PersistenceRequiredTrue(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["PersistenceRequired"] = props::Bool(true);
   }
 
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -385,6 +425,7 @@ public:
     ArmorItems(b, j, ctx);
     Brain(b, j, ctx);
     CanPickUpLoot(b, j, ctx);
+    CustomName(b, j, ctx);
     DeathTime(b, j, ctx);
     FallFlying(b, j, ctx);
     HandItems(b, j, ctx);
@@ -392,7 +433,16 @@ public:
     HurtByTimestamp(b, j, ctx);
     HurtTime(b, j, ctx);
     LeftHanded(b, j, ctx);
-    PersistenceRequired(b, j, ctx);
+    PersistenceRequiredFalse(b, j, ctx);
+    return ret;
+  }
+
+  static std::shared_ptr<CompoundTag> Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
+    auto ret = LivingEntity(id, b, ctx);
+    CompoundTag &j = *ret;
+    Age(b, j, ctx);
+    InLove(b, j, ctx);
+    PersistenceRequiredTrue(b, j, ctx);
     return ret;
   }
 #pragma endregion
@@ -415,6 +465,7 @@ public:
     E(bat, Convert(Same, LivingEntity, Bat));
     E(painting, Convert(Same, Base, Painting));
     E(zombie, Convert(Same, LivingEntity, IsBaby, Zombie));
+    E(chicken, Convert(Same, Animal, Chicken));
 
 #undef E
     return ret;

@@ -149,6 +149,8 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
       "Attributes",
       "Motion",
       "LeftHanded", // left handed skeleton does not exist in BE
+      "ForcedAge",
+      "IsChickenJockey", //TODO: remove this
   });
   for (string const &it : sBlacklist) {
     copyE->erase(it);
@@ -158,10 +160,13 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, vector<shared_ptr<CompoundTag>> const &entities) {
+static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, std::string const &id, vector<shared_ptr<CompoundTag>> const &entities) {
   shared_ptr<CompoundTag> ret = nullptr;
   double minDistance = numeric_limits<double>::max();
   for (auto const &entity : entities) {
+    if (entity->string("id") != id) {
+      continue;
+    }
     auto p = props::GetPos3d(*entity, "Pos");
     if (!p) {
       continue;
@@ -288,7 +293,8 @@ TEST_CASE("j2b2j") {
 
           for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
             Pos3d posE = *props::GetPos3d(*entityE, "Pos");
-            shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, chunkA->fEntities);
+            auto id = entityE->string("id");
+            shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, *id, chunkA->fEntities);
             if (entityA) {
               CheckEntity(*entityE, *entityA);
             } else {
