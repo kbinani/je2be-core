@@ -58,7 +58,7 @@ public:
   static int16_t BedrockPotionTypeFromJava(std::string const &name) {
     int16_t type = 0;
     auto table = GetPotionTypeTableJtoB();
-    auto found = table->backward(name);
+    auto found = table->forward(name);
     if (found) {
       type = *found;
     }
@@ -68,7 +68,7 @@ public:
   static std::string JavaPotionTypeFromBedrock(int16_t t) {
     std::string name = "minecraft:water";
     auto table = GetPotionTypeTableJtoB();
-    auto found = table->forward(t);
+    auto found = table->backward(t);
     if (found) {
       name = *found;
     }

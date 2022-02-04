@@ -150,7 +150,7 @@ public:
   }
 
   static void Air(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
-    CopyShortValues(entityB, entityJ, {{"Air"}});
+    CopyShortValues(entityB, entityJ, {{"Air", "Air", 300}});
   }
 
   static void ArmorItems(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
@@ -267,6 +267,38 @@ public:
     CopyBoolValues(b, j, {{"OnGround"}});
   }
 
+  static void Painting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto directionB = b.byte("Direction", 0);
+    Facing4 direction = Facing4FromBedrockDirection(directionB);
+    auto motiveB = b.string("Motive", "Aztec");
+    Painting::Motive motive = Painting::MotiveFromBedrock(motiveB);
+    auto motiveJ = Painting::JavaFromMotive(motive);
+    auto posB = b.listTag("Pos");
+    if (!posB) {
+      return;
+    }
+    if (posB->size() != 3) {
+      return;
+    }
+    if (posB->fType != Tag::Type::Float) {
+      return;
+    }
+    float x = posB->at(0)->asFloat()->fValue;
+    float y = posB->at(1)->asFloat()->fValue;
+    float z = posB->at(2)->asFloat()->fValue;
+
+    auto tile = Painting::JavaTilePosFromBedrockPos(Pos3f(x, y, z), direction, motive);
+    if (!tile) {
+      return;
+    }
+
+    j["Motive"] = props::String(motiveJ);
+    j["Facing"] = props::Byte(directionB);
+    j["TileX"] = props::Int(std::round(tile->fX));
+    j["TileY"] = props::Int(std::round(tile->fY));
+    j["TileZ"] = props::Int(std::round(tile->fZ));
+  }
+
   static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["PersistenceRequired"] = props::Bool(false);
   }
@@ -322,27 +354,33 @@ public:
   static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = std::make_shared<CompoundTag>();
     CompoundTag &j = *ret;
-    AbsorptionAmount(b, j, ctx);
     Air(b, j, ctx);
-    ArmorItems(b, j, ctx);
     OnGround(b, j, ctx);
     Pos(b, j, ctx);
     Rotation(b, j, ctx);
     PortalCooldown(b, j, ctx);
+    FallDistance(b, j, ctx);
+    Fire(b, j, ctx);
+    Invulnerable(b, j, ctx);
+    UUID(b, j, ctx);
+    return ret;
+  }
+
+  static std::shared_ptr<CompoundTag> LivingEntity(std::string const &id, CompoundTag const &b, Context &ctx) {
+    auto ret = Base(id, b, ctx);
+    CompoundTag &j = *ret;
+    AbsorptionAmount(b, j, ctx);
+    ArmorItems(b, j, ctx);
     Brain(b, j, ctx);
     CanPickUpLoot(b, j, ctx);
-    FallDistance(b, j, ctx);
-    FallFlying(b, j, ctx);
-    Fire(b, j, ctx);
     DeathTime(b, j, ctx);
+    FallFlying(b, j, ctx);
     HandItems(b, j, ctx);
     Health(b, j, ctx);
     HurtByTimestamp(b, j, ctx);
     HurtTime(b, j, ctx);
-    Invulnerable(b, j, ctx);
     LeftHanded(b, j, ctx);
     PersistenceRequired(b, j, ctx);
-    UUID(b, j, ctx);
     return ret;
   }
 #pragma endregion
@@ -359,10 +397,11 @@ public:
   assert(ret->find("minecraft:" #__name) == ret->end()); \
   ret->insert(std::make_pair("minecraft:" #__name, __conv));
 
-    E(skeleton, Convert(Same, Base, Skeleton));
-    E(creeper, Convert(Same, Base, Creeper));
-    E(spider, Convert(Same, Base));
-    E(bat, Convert(Same, Base, Bat));
+    E(skeleton, Convert(Same, LivingEntity, Skeleton));
+    E(creeper, Convert(Same, LivingEntity, Creeper));
+    E(spider, Convert(Same, LivingEntity));
+    E(bat, Convert(Same, LivingEntity, Bat));
+    E(painting, Convert(Same, Base, Painting));
 
 #undef E
     return ret;

@@ -15,17 +15,23 @@ public:
     }
   }
 
-  std::optional<T1> forward(T2 const &v) const {
-    auto found = fBackward.find(v);
-    if (found == fBackward.end()) {
+  explicit ReversibleMap(std::unordered_map<T1, T2> const &forward) : fForward(forward) {
+    for (auto it : forward) {
+      fBackward[it.second] = it.first;
+    }
+  }
+
+  std::optional<T2> forward(T1 const &v) const {
+    auto found = fForward.find(v);
+    if (found == fForward.end()) {
       return std::nullopt;
     }
     return found->second;
   }
 
-  std::optional<T2> backward(T1 const &v) const {
-    auto found = fForward.find(v);
-    if (found == fForward.end()) {
+  std::optional<T1> backward(T2 const &v) const {
+    auto found = fBackward.find(v);
+    if (found == fBackward.end()) {
       return std::nullopt;
     }
     return found->second;

@@ -8,7 +8,7 @@ class Enchantments {
 public:
   static int16_t BedrockEnchantmentIdFromJava(std::string const &id) {
     auto const *table = GetTable();
-    auto found = table->backward(id);
+    auto found = table->forward(id);
     if (found) {
       return *found;
     } else {
@@ -18,7 +18,7 @@ public:
 
   static std::string JavaEnchantmentIdFromBedrock(int16_t id) {
     auto const *table = GetTable();
-    auto found = table->forward(id);
+    auto found = table->backward(id);
     if (found) {
       return *found;
     } else {

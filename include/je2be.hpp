@@ -83,5 +83,7 @@
 #include <je2be/item/fireworks-explosion.hpp>
 #include <je2be/item/fireworks.hpp>
 
+#include <je2be/entity/painting.hpp>
+
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

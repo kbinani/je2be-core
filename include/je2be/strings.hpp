@@ -115,4 +115,44 @@ inline bool Iequals(std::string const &a, std::string const &b) {
   });
 }
 
+inline std::string Capitalize(std::string const &s) {
+  if (s.empty()) {
+    return s;
+  }
+  return std::string(1, (char)std::toupper((unsigned char)s[0])) + s.substr(1);
+}
+
+inline std::string Uncapitalize(std::string const &s) {
+  if (s.empty()) {
+    return s;
+  }
+  return std::string(1, (char)std::tolower((unsigned char)s[0])) + s.substr(1);
+}
+
+inline std::string UpperCamelFromSnake(std::string const &s) {
+  auto tokens = mcfile::String::Split(s, '_');
+  std::string ret;
+  for (auto const &t : tokens) {
+    ret += Capitalize(t);
+  }
+  return ret;
+}
+
+inline std::string SnakeFromUpperCamel(std::string const &s) {
+  std::string ret;
+  for (size_t i = 0; i < s.size(); i++) {
+    char ch = s[i];
+    char lower = (char)std::tolower((unsigned char)ch);
+    if (lower == ch) {
+      ret.push_back(ch);
+    } else {
+      if (!ret.empty()) {
+        ret.push_back('_');
+      }
+      ret.push_back(lower);
+    }
+  }
+  return ret;
+}
+
 } // namespace je2be::strings

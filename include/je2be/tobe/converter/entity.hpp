@@ -1867,13 +1867,11 @@ private:
     using namespace props;
     using namespace std;
 
-    auto facing = tag.byte("Facing");
-    auto motive = tag.string("Motive");
-    auto beMotive = PaintingMotive(*motive);
-    auto size = PaintingSize(*motive);
-    if (!beMotive || !size) {
-      return nullptr;
-    }
+    auto facing = tag.byte("Facing", 0);
+    Facing4 f4 = Facing4FromBedrockDirection(facing);
+    auto motiveJ = tag.string("Motive", "minecraft:aztec");
+    Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
+    auto motiveB = Painting::BedrockFromMotive(motive);
 
     auto tileX = tag.int32("TileX");
     auto tileY = tag.int32("TileY");
@@ -1881,38 +1879,9 @@ private:
     if (!tileX || !tileY || !tileZ) {
       return nullptr;
     }
-
-    float const thickness = 1.0f / 32.0f;
-
-    int dh = 0;
-    int dv = 0;
-    if (size->fWidth >= 4) {
-      dh = 1;
-    }
-    if (size->fHeight >= 3) {
-      dv = 1;
-    }
-
-    float x, z;
-    float y = *tileY - dv + size->fHeight * 0.5f;
-
-    // facing
-    // 0: south
-    // 1: west
-    // 2: north
-    // 3: east
-    if (*facing == 0) {
-      x = *tileX - dh + size->fWidth * 0.5f;
-      z = *tileZ + thickness;
-    } else if (*facing == 1) {
-      x = *tileX + 1 - thickness;
-      z = *tileZ - dh + size->fWidth * 0.5f;
-    } else if (*facing == 2) {
-      x = *tileX + 1 + dh - size->fWidth * 0.5f;
-      z = *tileZ + 1 - thickness;
-    } else {
-      x = *tileX + thickness;
-      z = *tileZ + 1 + dh - size->fWidth * 0.5f;
+    auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(*tileX, *tileY, *tileZ), f4, motive);
+    if (!pos) {
+      return nullptr;
     }
 
     auto e = BaseProperties(tag);
@@ -1920,86 +1889,11 @@ private:
       return nullptr;
     }
     e->fIdentifier = "minecraft:painting";
-    e->fPos = Pos3f(x, y, z);
+    e->fPos = *pos;
     auto c = e->toCompoundTag();
-    c->set("Motive", String(*beMotive));
-    c->set("Direction", Byte(*facing));
+    c->set("Motive", String(motiveB));
+    c->set("Direction", Byte(facing));
     return c;
-  }
-
-  static std::optional<Size> PaintingSize(std::string const &motive) {
-    using namespace std;
-    static unordered_map<string, Size> const mapping = {
-        {"minecraft:pigscene", Size(4, 4)},
-        {"minecraft:burning_skull", Size(4, 4)},
-        {"minecraft:pointer", Size(4, 4)},
-        {"minecraft:skeleton", Size(4, 3)},
-        {"minecraft:donkey_kong", Size(4, 3)},
-        {"minecraft:fighters", Size(4, 2)},
-        {"minecraft:skull_and_roses", Size(2, 2)},
-        {"minecraft:match", Size(2, 2)},
-        {"minecraft:bust", Size(2, 2)},
-        {"minecraft:stage", Size(2, 2)},
-        {"minecraft:void", Size(2, 2)},
-        {"minecraft:wither", Size(2, 2)},
-        {"minecraft:sunset", Size(2, 1)},
-        {"minecraft:courbet", Size(2, 1)},
-        {"minecraft:creebet", Size(2, 1)},
-        {"minecraft:sea", Size(2, 1)},
-        {"minecraft:wanderer", Size(1, 2)},
-        {"minecraft:graham", Size(1, 2)},
-        {"minecraft:aztec2", Size(1, 1)},
-        {"minecraft:alban", Size(1, 1)},
-        {"minecraft:bomb", Size(1, 1)},
-        {"minecraft:kebab", Size(1, 1)},
-        {"minecraft:wasteland", Size(1, 1)},
-        {"minecraft:aztec", Size(1, 1)},
-        {"minecraft:plant", Size(1, 1)},
-        {"minecraft:pool", Size(2, 1)},
-    };
-    auto found = mapping.find(motive);
-    if (found != mapping.end()) {
-      return found->second;
-    }
-    return nullopt;
-  }
-
-  static std::optional<std::string> PaintingMotive(std::string const &je) {
-    using namespace std;
-    static unordered_map<string, string> const mapping = {
-        {"minecraft:bust", "Bust"},
-        {"minecraft:pigscene", "Pigscene"},
-        {"minecraft:burning_skull", "BurningSkull"},
-        {"minecraft:pointer", "Pointer"},
-        {"minecraft:skeleton", "Skeleton"},
-        {"minecraft:donkey_kong", "DonkeyKong"},
-        {"minecraft:fighters", "Fighters"},
-        {"minecraft:skull_and_roses", "SkullAndRoses"},
-        {"minecraft:match", "Match"},
-        {"minecraft:bust", "Bust"},
-        {"minecraft:stage", "Stage"},
-        {"minecraft:void", "Void"},
-        {"minecraft:wither", "Wither"},
-        {"minecraft:sunset", "Sunset"},
-        {"minecraft:courbet", "Courbet"},
-        {"minecraft:creebet", "Creebet"},
-        {"minecraft:sea", "Sea"},
-        {"minecraft:wanderer", "Wanderer"},
-        {"minecraft:graham", "Graham"},
-        {"minecraft:aztec2", "Aztec2"},
-        {"minecraft:alban", "Alban"},
-        {"minecraft:bomb", "Bomb"},
-        {"minecraft:kebab", "Kebab"},
-        {"minecraft:wasteland", "Wasteland"},
-        {"minecraft:aztec", "Aztec"},
-        {"minecraft:plant", "Plant"},
-        {"minecraft:pool", "Pool"},
-    };
-    auto found = mapping.find(je);
-    if (found != mapping.end()) {
-      return found->second;
-    }
-    return nullopt;
   }
 
 public:
