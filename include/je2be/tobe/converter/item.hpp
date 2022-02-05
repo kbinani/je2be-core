@@ -157,15 +157,7 @@ private:
     auto table = new unordered_map<string, Converter>();
 #define E(__name, __func) table->insert(make_pair("minecraft:" __name, __func))
     E("oak_door", Rename("wooden_door"));
-    E("furnace_minecart",
-      Rename("minecart")); // furnace minecart does not exist in bedrock
-    E("oak_boat", Subtype("boat", 0));
-    E("spruce_boat", Subtype("boat", 1));
-    E("birch_boat", Subtype("boat", 2));
-    E("jungle_boat", Subtype("boat", 3));
-    E("acacia_boat", Subtype("boat", 4));
-    E("dark_oak_boat", Subtype("boat", 5));
-    E("carrot_on_a_stick", Rename("carrotonastick"));
+    E("furnace_minecart", Rename("minecart")); // furnace minecart does not exist in bedrock
     E("scute", Rename("turtle_shell_piece"));
     E("milk_bucket", Subtype("bucket", 1));
     E("water_bucket", Subtype("bucket", 8));

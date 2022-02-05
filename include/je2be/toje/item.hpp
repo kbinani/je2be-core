@@ -253,6 +253,33 @@ public:
     return "minecraft:firework_star";
   }
 
+  static std::string LegacyBoat(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    std::string type = "oak";
+    switch (damage) {
+    case 1:
+      type = "spruce";
+      break;
+    case 2:
+      type = "birch";
+      break;
+    case 3:
+      type = "jungle";
+      break;
+    case 4:
+      type = "acacia";
+      break;
+    case 5:
+      type = "dark_oak";
+      break;
+    case 0:
+    default:
+      type = "oak";
+      break;
+    }
+    return "minecraft:" + type + "_boat";
+  }
+
   static std::string Map(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (!tagB) {
@@ -353,6 +380,10 @@ public:
     E(sign, Rename("oak_sign"));              // legacy
     E(darkoak_sign, Rename("dark_oak_sign")); // legacy
     E(bed, Bed);
+    E(frame, Rename("item_frame"));
+    E(glow_frame, Rename("glow_item_frame"));
+    E(carrotonastick, Rename("carrot_on_a_stick")); // legacy
+    E(boat, LegacyBoat);                            // legacy
 
 #undef E
     return ret;
