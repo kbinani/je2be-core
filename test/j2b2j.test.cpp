@@ -71,6 +71,7 @@ static void Erase(shared_ptr<CompoundTag> t, string path) {
     t->erase(keys[0]);
     return;
   }
+  auto index = strings::Toi(keys[1]);
   if (keys[1] == "*") {
     assert(keys.size() >= 3);
     auto next = t->listTag(keys[0]);
@@ -83,13 +84,22 @@ static void Erase(shared_ptr<CompoundTag> t, string path) {
     }
     for (auto const &it : *next) {
       if (it->type() != Tag::Type::Compound) {
-          continue;
+        continue;
       }
       shared_ptr<CompoundTag> c = dynamic_pointer_cast<CompoundTag>(it);
       if (!c) {
         continue;
       }
       Erase(c, nextPath);
+    }
+  } else if (index) {
+    assert(keys.size() == 2);
+    auto next = t->listTag(keys[0]);
+    if (!next) {
+      return;
+    }
+    if (0 <= *index && *index < next->size()) {
+      next->fValue.erase(next->fValue.begin() + *index);
     }
   } else {
     t = t->compoundTag(keys[0]);
@@ -177,6 +187,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
     blacklist.insert("Health"); // Default health differs. B = 6, J = 20
+    blacklist.insert("Pos/1"); // y is aligned 0.5 block in BE
   }
   for (string const &it : blacklist) {
     Erase(copyE, it);
