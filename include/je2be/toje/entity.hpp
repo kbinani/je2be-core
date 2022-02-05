@@ -216,6 +216,7 @@ public:
     auto armorsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
     if (armorsB) {
+      std::vector<std::shared_ptr<CompoundTag>> armors;
       for (auto const &it : *armorsB) {
         auto armorB = it->asCompound();
         std::shared_ptr<CompoundTag> armorJ;
@@ -225,8 +226,14 @@ public:
         if (!armorJ) {
           armorJ = std::make_shared<CompoundTag>();
         }
-        armorsJ->push_back(armorJ);
+        armors.push_back(armorJ);
         chances->push_back(props::Float(0.085));
+      }
+      if (armors.size() == 4) {
+        armorsJ->push_back(armors[3]);
+        armorsJ->push_back(armors[2]);
+        armorsJ->push_back(armors[1]);
+        armorsJ->push_back(armors[0]);
       }
     }
     j["ArmorItems"] = armorsJ;
