@@ -152,7 +152,7 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 
-  static unordered_set<string> sTagBlacklist({
+  static unordered_set<string> sTagBlacklist = {
       "LootTableSeed",           // chest in dungeon etc.
       "RecipesUsed",             // furnace, blast_furnace, and smoker
       "LastOutput",              // command_block
@@ -160,7 +160,8 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
       "Book/tag/resolved",       // written_book
       "Book/tag/filtered_title", // written_book
       "Items/*/tag/map",
-  });
+      "Levels", // beacon. Sometimes reset to 0 in JE
+  };
   for (string b : sTagBlacklist) {
     Erase(copyE, b);
     Erase(copyA, b);
