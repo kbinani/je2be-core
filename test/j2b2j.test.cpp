@@ -189,6 +189,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("Pose");
     blacklist.insert("Health"); // Default health differs. B = 6, J = 20
     blacklist.insert("Pos/1");  // y is aligned 0.5 block in BE
+  } else if (id == "minecraft:slime") {
+    blacklist.insert("wasOnGround"); // wasOnGround does not exists in BE
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString() && itemId->asString()->fValue == "minecraft:petrified_oak_slab") {

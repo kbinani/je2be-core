@@ -110,6 +110,30 @@ public:
     return ret;
   }
 
+  static Attributes Slime(int sizeB) {
+    float sizeScale = std::max(1.0f, (float)sizeB);
+    float strengthScale = sizeScale * sizeScale;
+    float logScale = log2f(sizeScale);
+
+    float health = strengthScale;
+    float movement = 0.3f + 0.1f * logScale;
+    float attackDamage = sizeScale;
+    /*
+    sizeB  health movement attack_damage
+    1      1      0.3      0
+    2      4      0.4      2
+    4      16     0.6      4
+    */
+    Attributes attrs(Attribute(health, health, health),                    // health
+                     Attribute(0, 0, 1),                                   // knockback_resistance
+                     Attribute(movement, movement),                        // movement
+                     Attribute(0.02, 0.02),                                // underwater_movement
+                     Attribute(0.02, 0.02),                                // lava_movement
+                     Attribute(16, 16, 2048),                              // follow_range
+                     Attribute(attackDamage, attackDamage, attackDamage)); // attack_damage
+    return attrs;
+  }
+
 private:
   static std::unordered_map<std::string, Attributes> *CreateTable() {
     using namespace std;
@@ -166,7 +190,6 @@ private:
     table->insert(make_pair("minecraft:shulker", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0, 0, 0), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair("minecraft:silverfish", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(1, 1, 1))));
     table->insert(make_pair("minecraft:skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:slime", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.6, 0.6), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
     table->insert(make_pair("minecraft:snow_golem", Attributes(Attribute(4, 4, 4), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
     table->insert(make_pair("minecraft:spider", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     Attributes squid(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt);

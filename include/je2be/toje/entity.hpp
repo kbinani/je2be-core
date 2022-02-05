@@ -201,6 +201,11 @@ public:
     j["StrayConversionTime"] = props::Int(-1);
   }
 
+  static void Slime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto sizeB = b.byte("Size", 1);
+    j["Size"] = props::Int(sizeB - 1);
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -586,6 +591,7 @@ public:
     E(chest_minecart, Convert(Same, Base, StorageMinecart));
     E(hopper_minecart, Convert(Same, Base, StorageMinecart, HopperMinecart));
     E(boat, Convert(Same, Base, Boat));
+    E(slime, Convert(Same, LivingEntity, Slime));
 
 #undef E
     return ret;

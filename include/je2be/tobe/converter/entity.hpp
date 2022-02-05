@@ -1307,13 +1307,14 @@ private:
   }
 
   static EntityData Slime(EntityData const &c, CompoundTag const &tag, Context &) {
-    auto size = tag.int32("Size");
-    int8_t variant = 0;
-    if (size) {
-      variant = int8_t(*size) + 1;
-    }
-    c->set("Variant", props::Int(variant));
-    c->set("Size", props::Byte(variant));
+    auto sizeJ = tag.int32("Size", 0);
+    int sizeB = sizeJ + 1;
+    c->set("Variant", props::Int(sizeB));
+    c->set("Size", props::Byte(sizeB));
+
+    auto attributes = EntityAttributes::Slime(sizeB);
+    c->set("Attributes", attributes.toListTag());
+
     return c;
   }
 
