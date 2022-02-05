@@ -28,9 +28,21 @@ public:
     return ret;
   }
 
-  static void Default(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+  static void Default(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
-    itemJ.set("id", props::String(name));
+
+    string nameJ = nameB;
+    auto blockTag = itemB.compoundTag("Block");
+    if (blockTag) {
+      auto blockB = mcfile::be::Block::FromCompound(*blockTag);
+      if (blockB) {
+        auto blockJ = BlockData::From(*blockB);
+        if (blockJ) {
+          nameJ = blockJ->fName;
+        }
+      }
+    }
+    itemJ.set("id", props::String(nameJ));
 
     CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
 
