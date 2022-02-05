@@ -543,7 +543,7 @@ private:
     E("boat", Convert(EntityBase, Vehicle(), Boat));
     E("minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:minecart")));
     E("armor_stand", Convert(LivingEntity, ArmorStand));
-    E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart")));
+    E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
     E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
     E("tnt_minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
     E("snow_golem", Convert(Mob, SnowGolem));
@@ -1017,6 +1017,14 @@ private:
         pos->fY = iy + 0.5;
       }
       c->set("Pos", pos->toF().toListTag());
+    }
+    return c;
+  }
+
+  static EntityData HopperMinecart(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto enabled = tag.boolean("Enabled", true);
+    if (enabled) {
+      AddDefinition(c, "+minecraft:hopper_active");
     }
     return c;
   }

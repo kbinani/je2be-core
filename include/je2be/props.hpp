@@ -152,6 +152,25 @@ inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string const &
   return Pos3d(x, y, z);
 }
 
+inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::string const &name) {
+  using namespace std;
+  auto found = tag.find(name);
+  if (found == tag.end()) {
+    return nullopt;
+  }
+  auto list = found->second->asList();
+  if (!list) {
+    return nullopt;
+  }
+  if (list->fType != Tag::Type::Float || list->size() != 3) {
+    return nullopt;
+  }
+  float x = list->at(0)->asFloat()->fValue;
+  float y = list->at(1)->asFloat()->fValue;
+  float z = list->at(2)->asFloat()->fValue;
+  return Pos3f(x, y, z);
+}
+
 inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string const &name) {
   using namespace std;
   auto found = tag.find(name);

@@ -4,6 +4,17 @@ namespace je2be {
 
 static inline void CopyBoolValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<bool>> keys) {
   for (auto const &it : keys) {
+    auto value = src.boolean(it.fBefore);
+    if (value) {
+      dest.set(it.fAfter, props::Bool(*value));
+    } else if (it.fDefault) {
+      dest.set(it.fAfter, props::Bool(*it.fDefault));
+    }
+  }
+}
+
+static inline void CopyByteValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<int8_t>> keys) {
+  for (auto const &it : keys) {
     auto value = src.byte(it.fBefore);
     if (value) {
       dest.set(it.fAfter, props::Byte(*value));

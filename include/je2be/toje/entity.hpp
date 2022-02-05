@@ -322,6 +322,13 @@ public:
     }
   }
 
+  static void HopperMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto enabled = HasDefinition(b, "+minecraft:hopper_active");
+    j["Enabled"] = props::Bool(enabled);
+
+    j["TransferCooldown"] = props::Int(0);
+  }
+
   static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["HurtByTimestamp"] = props::Int(0);
   }
@@ -340,6 +347,45 @@ public:
 
   static void IsBaby(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"IsBaby"}});
+  }
+
+  static void StorageMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto itemsB = b.listTag("ChestItems");
+    if (itemsB) {
+      auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+      for (auto const &it : *itemsB) {
+        auto itemB = it->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto nameB = itemB->string("Name");
+        if (!nameB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx);
+        if (!itemJ) {
+          continue;
+        }
+        itemsJ->push_back(itemJ);
+      }
+      j["Items"] = itemsJ;
+    }
+
+    auto posB = props::GetPos3f(b, "Pos");
+    auto onGround = b.boolean("OnGround");
+    if (posB && onGround) {
+      Pos3d posJ = posB->toD();
+      if (*onGround) {
+        // JE: GroundLevel
+        // BE: GroundLevel + 0.35
+        posJ.fY = posB->fY - 0.35;
+      } else {
+        // JE: GroundLevel + 0.0625
+        // BE: GroundLevel + 0.5
+        posJ.fY = posB->fY - 0.5 + 0.0625;
+      }
+      j["Pos"] = posJ.toListTag();
+    }
   }
 
   static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -442,6 +488,15 @@ public:
 #pragma endregion
 
 #pragma region Converters
+  static std::shared_ptr<CompoundTag> Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
+    auto ret = LivingEntity(id, b, ctx);
+    CompoundTag &j = *ret;
+    Age(b, j, ctx);
+    InLove(b, j, ctx);
+    PersistenceRequiredTrue(b, j, ctx);
+    return ret;
+  }
+
   static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = std::make_shared<CompoundTag>();
     CompoundTag &j = *ret;
@@ -475,14 +530,24 @@ public:
     PersistenceRequiredFalse(b, j, ctx);
     return ret;
   }
+#pragma endregion
 
-  static std::shared_ptr<CompoundTag> Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
-    auto ret = LivingEntity(id, b, ctx);
-    CompoundTag &j = *ret;
-    Age(b, j, ctx);
-    InLove(b, j, ctx);
-    PersistenceRequiredTrue(b, j, ctx);
-    return ret;
+#pragma region Utilities
+  static bool HasDefinition(CompoundTag const &entityB, std::string const &definitionToSearch) {
+    auto definitions = entityB.listTag("definitions");
+    if (!definitions) {
+      return false;
+    }
+    for (auto const &it : *definitions) {
+      auto definition = it->asString();
+      if (!definition) {
+        continue;
+      }
+      if (definition->fValue == definitionToSearch) {
+        return true;
+      }
+    }
+    return false;
   }
 #pragma endregion
 
@@ -508,6 +573,8 @@ public:
     E(item, Convert(Same, Base, Entity::Item));
     E(armor_stand, Convert(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, Convert(Rename("end_crystal"), Base, ShowBottom));
+    E(chest_minecart, Convert(Same, Base, StorageMinecart));
+    E(hopper_minecart, Convert(Same, Base, StorageMinecart, HopperMinecart));
 
 #undef E
     return ret;
