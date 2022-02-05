@@ -33,6 +33,7 @@ set(je2be_files
   include/je2be/file.hpp
   include/je2be/fs.hpp
   include/je2be/future-support.hpp
+  include/je2be/item/banner.hpp
   include/je2be/item/enchantments.hpp
   include/je2be/item/fireworks-explosion.hpp
   include/je2be/item/fireworks.hpp

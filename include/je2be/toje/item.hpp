@@ -101,6 +101,69 @@ public:
   }
 
 #pragma region Converters
+  static std::string Banner(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    std::string nameJ = nameB;
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      auto tagJ = std::make_shared<CompoundTag>();
+      auto typeB = tagB->int32("Type");
+      bool ominous = typeB == 1;
+      if (ominous) {
+        nameJ = "minecraft:white_banner";
+
+        auto bannerPatterns = Banner::OminousBannerPatterns();
+        auto blockEntityTag = std::make_shared<CompoundTag>();
+        blockEntityTag->set("Patterns", bannerPatterns);
+        blockEntityTag->set("id", props::String("minecraft:banner"));
+        tagJ->set("BlockEntityTag", blockEntityTag);
+
+        auto displayJ = std::make_shared<CompoundTag>();
+        nlohmann::json json;
+        json["color"] = "gold";
+        json["translate"] = "block.minecraft.ominous_banner";
+        displayJ->set("Name", props::String(nlohmann::to_string(json)));
+        tagJ->set("display", displayJ);
+      } else {
+        auto damageB = itemB.int16("Damage", 0);
+        BannerColorCodeBedrock colorB = static_cast<BannerColorCodeBedrock>(damageB);
+        ColorCodeJava colorJ = ColorCodeJavaFromBannerColorCodeBedrock(colorB);
+        std::string colorNameJ = JavaNameFromColorCodeJava(colorJ);
+        nameJ = "minecraft:" + colorNameJ + "_banner";
+
+        auto blockEntityTag = std::make_shared<CompoundTag>();
+        blockEntityTag->set("id", props::String("minecraft:banner"));
+
+        auto patternsB = tagB->listTag("Patterns");
+        if (patternsB) {
+          auto patternsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+          for (auto const &it : *patternsB) {
+            auto patternB = it->asCompound();
+            if (!patternB) {
+              continue;
+            }
+            auto colorB = patternB->int32("Color");
+            auto patternStringB = patternB->string("Pattern");
+            if (!colorB || !patternStringB) {
+              continue;
+            }
+            auto patternJ = std::make_shared<CompoundTag>();
+            BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*colorB);
+            ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
+            patternJ->set("Color", props::Int(static_cast<int32_t>(ccj)));
+            patternJ->set("Pattern", props::String(*patternStringB));
+
+            patternsJ->push_back(patternJ);
+          }
+          blockEntityTag->set("Patterns", patternsJ);
+        }
+
+        tagJ->set("BlockEntityTag", blockEntityTag);
+      }
+      itemJ.set("tag", tagJ);
+    }
+    return nameJ;
+  }
+
   static std::string Book(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
     auto tagB = itemB.compoundTag("tag");
@@ -252,6 +315,7 @@ public:
     E(fireworks, FireworkRocket); // legacy
     E(firework_star, FireworkStar);
     E(fireworkscharge, FireworkStar); // legacy
+    E(banner, Banner);
 
 #undef E
     return ret;

@@ -933,18 +933,18 @@ private:
 
     auto patterns = item.query("tag/BlockEntityTag/Patterns")->asList();
     auto display = item.query("tag/display")->asCompound();
-    bool omnious = false;
+    bool ominous = false;
     if (display) {
       auto json = props::GetJson(*display, "Name");
       if (json) {
         auto translate = json->find("translate");
         if (translate != json->end() && translate->is_string() && translate->get<std::string>() == "block.minecraft.ominous_banner") {
-          omnious = true;
+          ominous = true;
         }
       }
     }
 
-    if (omnious) {
+    if (ominous) {
       auto tag = std::make_shared<CompoundTag>();
       tag->set("Type", props::Int(1));
       ret->set("tag", tag);

@@ -53,7 +53,7 @@ public:
     if (type == 1) {
       // Illager Banner
       te->set("CustomName", props::String(R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
-      te->set("Patterns", OminousBannerPatterns());
+      te->set("Patterns", Banner::OminousBannerPatterns());
     } else {
       auto patternsB = tag.listTag("Patterns");
       if (patternsB) {
@@ -591,13 +591,6 @@ public:
 #pragma endregion
 
 #pragma region Utilities
-  static std::shared_ptr<CompoundTag> BannerPattern(int32_t color, std::string const &pattern) {
-    auto c = std::make_shared<CompoundTag>();
-    c->set("Color", props::Int(color));
-    c->set("Pattern", props::String(pattern));
-    return c;
-  }
-
   static std::shared_ptr<mcfile::je::Block const> BlockShortName(std::string const &name, std::map<std::string, std::string> props = {}) {
     return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
   }
@@ -644,19 +637,6 @@ public:
 
   static std::shared_ptr<CompoundTag> EmptyShortName(std::string const &id, Pos3i const &pos) {
     return EmptyFullName("minecraft:" + id, pos);
-  }
-
-  static std::shared_ptr<ListTag> OminousBannerPatterns() {
-    auto p = std::make_shared<ListTag>(Tag::Type::Compound);
-    p->push_back(BannerPattern(9, "mr"));
-    p->push_back(BannerPattern(8, "bs"));
-    p->push_back(BannerPattern(7, "cs"));
-    p->push_back(BannerPattern(8, "bo"));
-    p->push_back(BannerPattern(15, "ms"));
-    p->push_back(BannerPattern(8, "hh"));
-    p->push_back(BannerPattern(8, "mc"));
-    p->push_back(BannerPattern(15, "bo"));
-    return p;
   }
 
   static std::string ToString(bool b) {
