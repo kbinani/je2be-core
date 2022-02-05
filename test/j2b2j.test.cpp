@@ -67,14 +67,41 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
 
 static void Erase(shared_ptr<CompoundTag> t, string path) {
   auto keys = mcfile::String::Split(path, '/');
-  for (int i = 0; i < keys.size() - 1 && t; i++) {
-    string key = keys[i];
-    t = t->compoundTag(key);
-  }
-  if (!t) {
+  if (keys.size() == 1) {
+    t->erase(keys[0]);
     return;
   }
-  t->erase(keys[keys.size() - 1]);
+  if (keys[1] == "*") {
+    assert(keys.size() >= 3);
+    auto next = t->listTag(keys[0]);
+    if (!next) {
+      return;
+    }
+    string nextPath = keys[2];
+    for (int i = 3; i < keys.size(); i++) {
+      nextPath += "/" + keys[i];
+    }
+    for (auto const &it : *next) {
+      if (it->type() != Tag::Type::Compound) {
+          continue;
+      }
+      shared_ptr<CompoundTag> c = dynamic_pointer_cast<CompoundTag>(it);
+      if (!c) {
+        continue;
+      }
+      Erase(c, nextPath);
+    }
+  } else {
+    t = t->compoundTag(keys[0]);
+    if (!t) {
+      return;
+    }
+    string nextPath = keys[1];
+    for (int i = 2; i < keys.size(); i++) {
+      nextPath += "/" + keys[i];
+    }
+    Erase(t, nextPath);
+  }
 }
 
 static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
@@ -115,20 +142,14 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 
-  static unordered_set<string> sBlackList({
-      "LootTableSeed", // chest in dungeon etc.
-      "RecipesUsed",   // furnace, blast_furnace, and smoker
-      "LastOutput",    // command_block
-      "author",        // structure_block
-  });
-  for (string b : sBlackList) {
-    copyE->erase(b);
-    copyA->erase(b);
-  }
-
   static unordered_set<string> sTagBlacklist({
+      "LootTableSeed",           // chest in dungeon etc.
+      "RecipesUsed",             // furnace, blast_furnace, and smoker
+      "LastOutput",              // command_block
+      "author",                  // structure_block
       "Book/tag/resolved",       // written_book
       "Book/tag/filtered_title", // written_book
+      "Items/*/tag/map",
   });
   for (string b : sTagBlacklist) {
     Erase(copyE, b);
