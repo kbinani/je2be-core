@@ -288,6 +288,12 @@ public:
     itemJ.set("tag", tagJ);
     return name;
   }
+
+  static std::string Skull(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    SkullType st = static_cast<SkullType>(damage);
+    return "minecraft:" + JavaNameFromSkullType(st);
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -316,6 +322,7 @@ public:
     E(firework_star, FireworkStar);
     E(fireworkscharge, FireworkStar); // legacy
     E(banner, Banner);
+    E(skull, Skull);
 
 #undef E
     return ret;
