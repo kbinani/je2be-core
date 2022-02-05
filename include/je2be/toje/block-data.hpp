@@ -1603,7 +1603,8 @@ private:
     return [prefix](String const &bName, States const &s, Props &p) -> String {
       auto t = s.string("torch_facing_direction", "top");
       std::string f;
-      if (t == "top") {
+      if (t == "top" || t == "unknown") {
+        // "unknown" can be seen when torch as an item
         return Ns() + prefix + "torch";
       } else {
         if (t == "west") {
