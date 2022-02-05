@@ -345,6 +345,8 @@ public:
     E(fireworkscharge, FireworkStar); // legacy
     E(banner, Banner);
     E(skull, Skull);
+    E(sign, Rename("oak_sign"));              // legacy
+    E(darkoak_sign, Rename("dark_oak_sign")); // legacy
 
 #undef E
     return ret;

@@ -140,12 +140,12 @@ private:
     E("soul_torch", AnyTorch);
     E("redstone_torch", AnyTorch);
 
-    E("oak_sign", Rename("sign"));
+    E("oak_sign", DefaultItem);
     E("birch_sign", DefaultItem);
     E("spruce_sign", DefaultItem);
     E("jungle_sign", DefaultItem);
     E("acacia_sign", DefaultItem);
-    E("dark_oak_sign", Rename("darkoak_sign"));
+    E("dark_oak_sign", DefaultItem);
     E("crimson_sign", DefaultItem);
     E("warped_sign", DefaultItem);
 #undef E
