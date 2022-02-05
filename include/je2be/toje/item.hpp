@@ -30,11 +30,10 @@ public:
 
   static void Default(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
-    auto count = itemB.byte("Count");
     itemJ.set("id", props::String(name));
-    if (count) {
-      itemJ.set("Count", props::Byte(*count));
-    }
+
+    CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
+
     auto tagB = itemB.compoundTag("tag");
     if (!tagB) {
       return;
@@ -247,20 +246,8 @@ public:
     if (!uuid) {
       return name;
     }
-    auto info = ctx.mapFromUuid(*uuid);
-    if (info) {
-      tagJ->set("map", props::Int(info->fNumber));
-      ctx.markMapUuidAsUsed(*uuid);
 
-      if (!info->fDecorations.empty()) {
-        auto decorationsJ = std::make_shared<ListTag>(Tag::Type::Compound);
-        for (MapInfo::Decoration const &decoration : info->fDecorations) {
-          decorationsJ->push_back(decoration.toCompoundTag());
-        }
-        tagJ->set("Decorations", decorationsJ);
-      }
-    }
-    auto damage = itemB.int16("Damage");
+    auto damage = itemB.int16("Damage", 0);
     std::string translate;
     std::optional<int32_t> mapColor;
     if (damage == 3) {
@@ -268,6 +255,7 @@ public:
       mapColor =3830373;
     } else if (damage == 4) {
       translate = "filled_map.mansion";
+      mapColor = 5393476;
     } else if (damage == 5) {
       translate = "filled_map.buried_treasure";
     }
@@ -283,6 +271,21 @@ public:
 
       tagJ->set("display", displayJ);
     }
+
+    auto info = ctx.mapFromUuid(*uuid);
+    if (info) {
+      tagJ->set("map", props::Int(info->fNumber));
+      ctx.markMapUuidAsUsed(*uuid);
+
+      if (damage != 0 && !info->fDecorations.empty()) {
+        auto decorationsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+        for (MapInfo::Decoration const &decoration : info->fDecorations) {
+          decorationsJ->push_back(decoration.toCompoundTag());
+        }
+        tagJ->set("Decorations", decorationsJ);
+      }
+    }
+
     itemJ.set("tag", tagJ);
     return name;
   }
