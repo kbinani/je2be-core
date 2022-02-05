@@ -175,6 +175,12 @@ public:
     return nameJ;
   }
 
+  static std::string Bed(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    ColorCodeJava ccj = static_cast<ColorCodeJava>(damage);
+    return "minecraft:" + JavaNameFromColorCodeJava(ccj) + "_bed";
+  }
+
   static std::string Book(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
     auto tagB = itemB.compoundTag("tag");
@@ -347,6 +353,7 @@ public:
     E(skull, Skull);
     E(sign, Rename("oak_sign"));              // legacy
     E(darkoak_sign, Rename("dark_oak_sign")); // legacy
+    E(bed, Bed);
 
 #undef E
     return ret;
