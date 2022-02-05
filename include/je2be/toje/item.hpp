@@ -262,8 +262,10 @@ public:
     }
     auto damage = itemB.int16("Damage");
     std::string translate;
+    std::optional<int32_t> mapColor;
     if (damage == 3) {
       translate = "filled_map.monument";
+      mapColor =3830373;
     } else if (damage == 4) {
       translate = "filled_map.mansion";
     } else if (damage == 5) {
@@ -274,6 +276,11 @@ public:
       nlohmann::json json;
       json["translate"] = translate;
       displayJ->set("Name", props::String(nlohmann::to_string(json)));
+
+      if (mapColor) {
+        displayJ->set("MapColor", props::Int(*mapColor));
+      }
+
       tagJ->set("display", displayJ);
     }
     itemJ.set("tag", tagJ);
