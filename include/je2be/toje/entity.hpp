@@ -124,6 +124,12 @@ public:
   };
 
 #pragma region Namers
+  static Namer Rename(std::string name) {
+    return [name](std::string const &nameB, CompoundTag const &entityB) {
+      return "minecraft:" + name;
+    };
+  }
+
   static std::string Same(std::string const &nameB, CompoundTag const &entityB) {
     return nameB;
   }
@@ -381,8 +387,8 @@ public:
     CopyIntValues(b, j, {{"PortalCooldown"}});
   }
 
-  static void Pos(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
-    auto posB = entityB.listTag("Pos");
+  static void Pos(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto posB = b.listTag("Pos");
     if (!posB) {
       return;
     }
@@ -396,11 +402,11 @@ public:
     double y = posB->at(1)->asFloat()->fValue;
     double z = posB->at(2)->asFloat()->fValue;
     Pos3d posJ(x, y, z);
-    entityJ["Pos"] = posJ.toListTag();
+    j["Pos"] = posJ.toListTag();
   }
 
-  static void Rotation(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx) {
-    auto rotB = entityB.listTag("Rotation");
+  static void Rotation(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto rotB = b.listTag("Rotation");
     if (!rotB) {
       return;
     }
@@ -410,7 +416,11 @@ public:
     if (rotB->fType != Tag::Type::Float) {
       return;
     }
-    entityJ["Rotation"] = rotB->clone();
+    j["Rotation"] = rotB->clone();
+  }
+
+  static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"ShowBottom"}});
   }
 
   static void UUID(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -490,6 +500,7 @@ public:
     E(chicken, Convert(Same, Animal, Chicken));
     E(item, Convert(Same, Base, Entity::Item));
     E(armor_stand, Convert(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
+    E(ender_crystal, Convert(Rename("end_crystal"), Base, ShowBottom));
 
 #undef E
     return ret;

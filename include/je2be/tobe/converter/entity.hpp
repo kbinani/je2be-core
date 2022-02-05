@@ -1880,6 +1880,7 @@ private:
     }
     e->fIdentifier = "minecraft:ender_crystal";
     auto c = e->toCompoundTag();
+    CopyBoolValues(tag, *c, {{"ShowBottom"}});
     return c;
   }
 
