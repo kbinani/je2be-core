@@ -515,7 +515,9 @@ private:
       auto west = block.property("west");
 
       int32_t bits = stem ? 15 : 14;
-      if (Off(up) && Off(down) && Off(north) && Off(east) && Off(south) && Off(west)) {
+      if (up.empty() && down.empty() && north.empty() && east.empty() && south.empty() && west.empty() && stem) {
+        bits = 15;
+      } else if (Off(up) && Off(down) && Off(north) && Off(east) && Off(south) && Off(west)) {
         bits = 0;
       } else if (On(up) && Off(down) && On(north) && Off(east) && Off(south) && On(west)) {
         bits = 1;
