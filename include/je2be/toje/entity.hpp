@@ -150,6 +150,12 @@ public:
     CopyBoolValues(b, j, {{"BatFlags"}});
   }
 
+  static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto variant = b.int32("Variant", 0);
+    auto type = Boat::JavaTypeFromBedrockVariant(variant);
+    j["Type"] = props::String(type);
+  }
+
   static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto entries = b.listTag("entries");
     if (entries) {
@@ -575,6 +581,7 @@ public:
     E(ender_crystal, Convert(Rename("end_crystal"), Base, ShowBottom));
     E(chest_minecart, Convert(Same, Base, StorageMinecart));
     E(hopper_minecart, Convert(Same, Base, StorageMinecart, HopperMinecart));
+    E(boat, Convert(Same, Base, Boat));
 
 #undef E
     return ret;

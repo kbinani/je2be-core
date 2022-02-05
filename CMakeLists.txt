@@ -20,6 +20,7 @@ set(je2be_files
   include/je2be/color/rgba.hpp
   include/je2be/color/sign-color.hpp
   include/je2be/defer.hpp
+  include/je2be/entity/boat.hpp
   include/je2be/entity/painting.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp
@@ -50,6 +51,7 @@ set(je2be_files
   include/je2be/rotation.hpp
   include/je2be/scoped-file.hpp
   include/je2be/size.hpp
+  include/je2be/static-reversible-map.hpp
   include/je2be/strings.hpp
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp

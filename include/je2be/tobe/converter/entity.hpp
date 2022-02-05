@@ -1375,20 +1375,7 @@ private:
     AddDefinition(c, "+minecraft:boat");
 
     auto type = tag.string("Type", "oak");
-    int32_t variant = 0;
-    if (type == "oak") {
-      variant = 0;
-    } else if (type == "spruce") {
-      variant = 1;
-    } else if (type == "birch") {
-      variant = 2;
-    } else if (type == "jungle") {
-      variant = 3;
-    } else if (type == "acacia") {
-      variant = 4;
-    } else if (type == "dark_oak") {
-      variant = 5;
-    }
+    int32_t variant = Boat::BedrockVariantFromJavaType(type);
     c->set("Variant", props::Int(variant));
 
     auto rotation = props::GetRotation(*c, "Rotation");
