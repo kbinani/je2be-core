@@ -285,11 +285,11 @@ TEST_CASE("j2b2j") {
           if (!chunkA) {
             continue;
           }
-          regionA->entitiesAt(chunkA->fChunkX, chunkA->fChunkZ, chunkA->fEntities);
+          CHECK(regionA->entitiesAt(chunkA->fChunkX, chunkA->fChunkZ, chunkA->fEntities));
 
           auto chunkE = regionE->chunkAt(cx, cz);
           CHECK(chunkE);
-          regionE->entitiesAt(chunkE->fChunkX, chunkE->fChunkZ, chunkE->fEntities);
+          CHECK(regionE->entitiesAt(chunkE->fChunkX, chunkE->fChunkZ, chunkE->fEntities));
 
           CHECK(chunkA->minBlockY() == chunkE->minBlockY());
           CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
