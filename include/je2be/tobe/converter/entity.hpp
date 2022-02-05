@@ -1380,7 +1380,7 @@ private:
 
     auto rotation = props::GetRotation(*c, "Rotation");
     if (rotation) {
-      Rotation rot(rotation->fYaw + 90, rotation->fPitch);
+      Rotation rot(Rotation::ClampAngleBetweenMinus180To180(rotation->fYaw + 90), rotation->fPitch);
       c->set("Rotation", rot.toListTag());
     }
 

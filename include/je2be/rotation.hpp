@@ -13,6 +13,14 @@ public:
     return tag;
   }
 
+  static float ClampAngleBetween0To360(float v) {
+    return std::fmodf(std::fmodf(v, 360.0f) + 360.0f, 360.0f);
+  }
+
+  static float ClampAngleBetweenMinus180To180(float v) {
+    return ClampAngleBetween0To360(v + 180) - 180;
+  }
+
 public:
   float fYaw;
   float fPitch;

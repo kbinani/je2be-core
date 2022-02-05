@@ -154,6 +154,10 @@ public:
     auto variant = b.int32("Variant", 0);
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j["Type"] = props::String(type);
+
+    auto rotB = props::GetRotation(b, "Rotation");
+    je2be::Rotation rotJ(Rotation::ClampAngleBetweenMinus180To180(rotB->fYaw - 90), rotB->fPitch);
+    j["Rotation"] = rotJ.toListTag();
   }
 
   static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx) {
