@@ -114,6 +114,14 @@ private:
   static std::unordered_map<std::string, Attributes> *CreateTable() {
     using namespace std;
     auto table = new unordered_map<string, Attributes>();
+    table->insert(make_pair("minecraft:armor_stand", Attributes(
+                                                         Attribute(6, 6, 6),      // health
+                                                         Attribute(1, 1, 1),      // knockback_resistance
+                                                         Attribute(0.7, 0.7),     // movement
+                                                         Attribute(0.2, 0.2),     // underwater_movement
+                                                         Attribute(0.02, 0.02),   // lava_movement
+                                                         Attribute(16, 16, 2048), // follow_range
+                                                         nullopt)));              // attack_damage
     table->insert(make_pair("minecraft:bat", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair("minecraft:bee", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
     table->insert(make_pair("minecraft:blaze", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(48, 48, 48), Attribute(6, 6, 6))));

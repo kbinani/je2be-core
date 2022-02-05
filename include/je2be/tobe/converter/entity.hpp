@@ -681,6 +681,10 @@ private:
     }
     pos->fY = std::round(pos->fY * 2) * 0.5;
     c->set("Pos", pos->toF().toListTag());
+    auto attributes = EntityAttributes::Mob("minecraft:armor_stand");
+    if (attributes) {
+      c->set("Attributes", attributes->toListTag());
+    }
     return c;
   }
 

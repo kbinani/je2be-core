@@ -137,14 +137,14 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) {
+static void CheckEntity(std::string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
   CHECK(copyE->intArrayTag("UUID"));
   CHECK(copyA->intArrayTag("UUID"));
 
-  static unordered_set<string> const sBlacklist({
+  unordered_set<string> blacklist = {
       "UUID",
       "Attributes",
       "Motion",
@@ -152,8 +152,12 @@ static void CheckEntity(CompoundTag const &entityE, CompoundTag const &entityA) 
       "ForcedAge",
       "IsChickenJockey", //TODO: remove this
       "Item/tag/map",
-  });
-  for (string const &it : sBlacklist) {
+  };
+  if (id == "minecraft:armor_stand") {
+    blacklist.insert("Pose");
+    blacklist.insert("Health"); // Default health differs. B = 6, J = 20
+  }
+  for (string const &it : blacklist) {
     Erase(copyE, it);
     Erase(copyA, it);
   }
@@ -298,7 +302,7 @@ TEST_CASE("j2b2j") {
             auto id = entityE->string("id");
             shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, *id, chunkA->fEntities);
             if (entityA) {
-              CheckEntity(*entityE, *entityA);
+              CheckEntity(*id, *entityE, *entityA);
             } else {
               PrintAsJson(cerr, *entityE, {.fTypeHint = true});
               CHECK(false);

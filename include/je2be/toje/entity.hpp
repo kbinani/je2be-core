@@ -130,6 +130,16 @@ public:
 #pragma endregion
 
 #pragma region Dedicated Behaviors
+  static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j.erase("ArmorDropChances");
+    j.erase("HandDropChances");
+    j["DisabledSlots"] = props::Int(false);
+    j["Invisible"] = props::Bool(false);
+    j["NoBasePlate"] = props::Bool(false);
+    j["ShowArms"] = props::Bool(false);
+    j["Small"] = props::Bool(false);
+  }
+
   static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"BatFlags"}});
   }
@@ -479,6 +489,7 @@ public:
     E(zombie, Convert(Same, LivingEntity, IsBaby, Zombie));
     E(chicken, Convert(Same, Animal, Chicken));
     E(item, Convert(Same, Base, Entity::Item));
+    E(armor_stand, Convert(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
 
 #undef E
     return ret;
