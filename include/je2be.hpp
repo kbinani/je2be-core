@@ -85,6 +85,7 @@
 #include <je2be/item/banner.hpp>
 
 #include <je2be/entity/painting.hpp>
+#include <je2be/entity/boat.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

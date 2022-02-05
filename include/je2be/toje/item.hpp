@@ -264,7 +264,7 @@ public:
     std::optional<int32_t> mapColor;
     if (damage == 3) {
       translate = "filled_map.monument";
-      mapColor =3830373;
+      mapColor = 3830373;
     } else if (damage == 4) {
       translate = "filled_map.mansion";
       mapColor = 5393476;
