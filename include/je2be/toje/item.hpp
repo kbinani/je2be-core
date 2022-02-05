@@ -113,7 +113,12 @@ public:
 
 #pragma region Converters
   static std::string Banner(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
-    std::string nameJ = nameB;
+    auto damageB = itemB.int16("Damage", 0);
+    BannerColorCodeBedrock colorB = static_cast<BannerColorCodeBedrock>(damageB);
+    ColorCodeJava colorJ = ColorCodeJavaFromBannerColorCodeBedrock(colorB);
+    std::string colorNameJ = JavaNameFromColorCodeJava(colorJ);
+    std::string nameJ = "minecraft:" + colorNameJ + "_banner";
+
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
       auto tagJ = std::make_shared<CompoundTag>();
@@ -135,12 +140,6 @@ public:
         displayJ->set("Name", props::String(nlohmann::to_string(json)));
         tagJ->set("display", displayJ);
       } else {
-        auto damageB = itemB.int16("Damage", 0);
-        BannerColorCodeBedrock colorB = static_cast<BannerColorCodeBedrock>(damageB);
-        ColorCodeJava colorJ = ColorCodeJavaFromBannerColorCodeBedrock(colorB);
-        std::string colorNameJ = JavaNameFromColorCodeJava(colorJ);
-        nameJ = "minecraft:" + colorNameJ + "_banner";
-
         auto blockEntityTag = std::make_shared<CompoundTag>();
         blockEntityTag->set("id", props::String("minecraft:banner"));
 
