@@ -245,6 +245,17 @@ public:
     case 10:
       prefix = "lava_";
       break;
+    case 4: {
+      prefix = "tropical_fish_";
+      auto tagB = itemB.compoundTag("tag");
+      if (tagB) {
+        TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
+        auto tagJ = std::make_shared<CompoundTag>();
+        tagJ->set("BucketVariantTag", props::Int(tf.toJavaVariant()));
+        itemJ["tag"] = tagJ;
+      }
+      break;
+    }
     }
     return "minecraft:" + prefix + "bucket";
   }
@@ -571,10 +582,6 @@ public:
     case 116:
       prefix = "zombie_villager_";
       break;
-    case 4:
-      prefix = "tropical_fish_";
-      //TODO: BucketVariantTag
-      break;
     }
     return "minecraft:" + prefix + "spawn_egg";
   }
@@ -647,6 +654,17 @@ public:
     SkullType st = static_cast<SkullType>(damage);
     return "minecraft:" + JavaNameFromSkullType(st);
   }
+
+  static std::string TropicalFishBucket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
+      auto tagJ = std::make_shared<CompoundTag>();
+      tagJ->set("BucketVariantTag", props::Int(tf.toJavaVariant()));
+      itemJ["tag"] = tagJ;
+    }
+    return name;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -709,6 +727,7 @@ public:
     E(muttonraw, Rename("mutton"));                        // legacy
     E(cooked_fish, Rename("cooked_cod"));                  // legacy
     E(clownfish, Rename("tropical_fish"));                 // legacy
+    E(tropical_fish_bucket, TropicalFishBucket);
 
 #undef E
     return ret;

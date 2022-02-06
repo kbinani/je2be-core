@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class EntityAttributes {
   using AttributesData = std::shared_ptr<ListTag>;
@@ -234,4 +234,4 @@ private:
   }
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

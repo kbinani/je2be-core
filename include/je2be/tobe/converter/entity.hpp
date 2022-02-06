@@ -1055,7 +1055,7 @@ private:
   static EntityData TropicalFish(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
     auto variant = tag.int32("Variant", 0);
-    auto tf = TropicalFish::FromVariant(variant);
+    auto tf = TropicalFish::FromJavaVariant(variant);
     c->set("Variant", Int(tf.fSmall ? 0 : 1));
     c->set("MarkVariant", Int(tf.fPattern));
     c->set("Color", Byte(tf.fBodyColor));

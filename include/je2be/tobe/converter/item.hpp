@@ -218,8 +218,8 @@ private:
     if (tg) {
       auto variant = tg->intTag("BucketVariantTag");
       if (variant) {
-        auto tf = TropicalFish::FromVariant(variant->fValue);
-        auto tag = tf.toBucketTag();
+        auto tf = TropicalFish::FromJavaVariant(variant->fValue);
+        auto tag = tf.toBedrockBucketTag();
         ret->set("tag", tag);
       }
     }

@@ -1,19 +1,37 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class TropicalFish {
 public:
-  static TropicalFish FromVariant(int32_t variant) {
-    bool small = (0xf & variant) == 0;
-    int32_t pattern = 0xf & (variant >> 8);
-    int32_t bodyColor = 0xf & (variant >> 16);
-    int32_t patternColor = 0xf & (variant >> 24);
+  static TropicalFish FromJavaVariant(int32_t variant) {
+    uint32_t u = *(uint32_t *)&variant;
+    bool small = (0xf & u) == 0;
+    int32_t pattern = 0xf & (u >> 8);
+    int32_t bodyColor = 0xf & (u >> 16);
+    int32_t patternColor = 0xf & (u >> 24);
     TropicalFish tf(small, pattern, (int8_t)bodyColor, (int8_t)patternColor);
     return tf;
   }
 
-  std::shared_ptr<CompoundTag> toBucketTag() const {
+  static TropicalFish FromBedrockBucketTag(CompoundTag const &tag) {
+    bool small = tag.int32("Variant", 0) == 0;
+    int32_t pattern = tag.int32("MarkVariant", 0);
+    int8_t bodyColor = tag.byte("Color", 0);
+    int8_t patternColor = tag.byte("Color2", 0);
+    return TropicalFish(small, pattern, bodyColor, patternColor);
+  }
+
+  int32_t toJavaVariant() const {
+    uint32_t u = 0;
+    u |= fSmall ? 0 : 1;
+    u |= (0xf & (uint32_t)fPattern) << 8;
+    u |= (0xf & (uint32_t)fBodyColor) << 16;
+    u |= (0xf & (uint32_t)fPatternColor) << 24;
+    return *(int32_t *)&u;
+  }
+
+  std::shared_ptr<CompoundTag> toBedrockBucketTag() const {
     using namespace props;
     using namespace std;
     auto ret = make_shared<CompoundTag>();
@@ -65,4 +83,4 @@ public:
   int8_t fPatternColor;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

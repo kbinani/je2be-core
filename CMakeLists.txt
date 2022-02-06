@@ -22,7 +22,9 @@ set(je2be_files
   include/je2be/defer.hpp
   include/je2be/entity/armor-stand.hpp
   include/je2be/entity/boat.hpp
+  include/je2be/entity/entity-attributes.hpp
   include/je2be/entity/painting.hpp
+  include/je2be/entity/tropical-fish.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp
   include/je2be/enums/facing4.hpp
@@ -67,7 +69,6 @@ set(je2be_files
   include/je2be/tobe/converter/datapacks.hpp
   include/je2be/tobe/converter/dimension.hpp
   include/je2be/tobe/converter/enchant-data.hpp
-  include/je2be/tobe/converter/entity-attributes.hpp
   include/je2be/tobe/converter/entity.hpp
   include/je2be/tobe/converter/flat-world-layers.hpp
   include/je2be/tobe/converter/height-map.hpp
@@ -79,7 +80,6 @@ set(je2be_files
   include/je2be/tobe/converter/player-abilities.hpp
   include/je2be/tobe/converter/sub-chunk.hpp
   include/je2be/tobe/converter/tile-entity.hpp
-  include/je2be/tobe/converter/tropical-fish.hpp
   include/je2be/tobe/converter/world.hpp
   include/je2be/tobe/db/db-interface.hpp
   include/je2be/tobe/db/db.hpp
