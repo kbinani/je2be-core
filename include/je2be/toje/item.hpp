@@ -116,6 +116,19 @@ public:
   }
 
 #pragma region Converters
+  static std::string Arrow(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    if (damage == 0) {
+      return nameB;
+    } else {
+      auto potionJ = TippedArrowPotion::JavaPotionType(damage);
+      auto tagJ = std::make_shared<CompoundTag>();
+      tagJ->set("Potion", props::String(potionJ));
+      itemJ.set("tag", tagJ);
+      return Ns() + "tipped_arrow";
+    }
+  }
+
   static std::string Banner(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto damageB = itemB.int16("Damage", 0);
     BannerColorCodeBedrock colorB = static_cast<BannerColorCodeBedrock>(damageB);
@@ -728,6 +741,7 @@ public:
     E(cooked_fish, Rename("cooked_cod"));                  // legacy
     E(clownfish, Rename("tropical_fish"));                 // legacy
     E(tropical_fish_bucket, TropicalFishBucket);
+    E(arrow, Arrow);
 
 #undef E
     return ret;

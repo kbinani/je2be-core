@@ -401,7 +401,7 @@ private:
     int16_t type = 0;
     if (t) {
       auto potion = t->string("Potion", "");
-      type = Potion::TippedArrowPotionType(potion);
+      type = TippedArrowPotion::BedrockPotionType(potion);
     }
     tag->set("Damage", props::Short(type));
     tag->set("Count", props::Byte(count));
