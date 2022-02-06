@@ -199,6 +199,23 @@ public:
     j["ignited"] = Bool(false);
   }
 
+  static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["AngerTime"] = props::Int(0);
+
+    auto carriedBlockTagB = b.compoundTag("carriedBlock");
+    if (carriedBlockTagB) {
+      auto carriedBlockB = mcfile::be::Block::FromCompound(*carriedBlockTagB);
+      if (carriedBlockB) {
+        auto carriedBlockJ = BlockData::From(*carriedBlockB);
+        if (carriedBlockJ) {
+          auto carriedBlockTagJ = std::make_shared<CompoundTag>();
+          carriedBlockTagJ->set("Name", props::String(carriedBlockJ->fName));
+          j["carriedBlockState"] = carriedBlockTagJ;
+        }
+      }
+    }
+  }
+
   static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["PickupDelay"] = props::Short(0);
     auto itemB = b.compoundTag("Item");
@@ -629,6 +646,7 @@ public:
     E(slime, C(Same, LivingEntity, Slime));
     E(salmon, C(Same, LivingEntity, FromBucket));
     E(parrot, C(Same, Animal, PersistenceRequiredFalse, Owner, Sitting, Parrot));
+    E(enderman, C(Same, LivingEntity, Enderman));
 
 #undef E
     return ret;

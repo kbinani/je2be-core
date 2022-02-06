@@ -465,7 +465,7 @@ private:
     E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey")));
     M("drowned");
     M("elder_guardian");
-    M("enderman");
+    E("enderman", Convert(Monster, Enderman));
     M("endermite");
     E("evoker", Convert(Monster, Rename("evocation_illager")));
 
@@ -546,6 +546,21 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData Enderman(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto carriedBlockTagJ = tag.compoundTag("carriedBlockState");
+    if (carriedBlockTagJ) {
+      auto name = carriedBlockTagJ->string("Name");
+      if (name) {
+        auto carriedBlockJ = std::make_shared<mcfile::je::Block const>(*name);
+        auto carriedBlockB = BlockData::From(carriedBlockJ);
+        if (carriedBlockB) {
+          c->set("carriedBlock", carriedBlockB);
+        }
+      }
+    }
+    return c;
   }
 
   static EntityData Salmon(EntityData const &c, CompoundTag const &tag, Context &) {
