@@ -219,6 +219,9 @@ public:
     j["ExplosionRadius"] = Byte(3);
     j["Fuse"] = Short(30);
     j["ignited"] = Bool(false);
+    if (HasDefinition(b, "+minecraft:charged_creeper")) {
+      j["powered"] = Bool(true);
+    }
   }
 
   static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {

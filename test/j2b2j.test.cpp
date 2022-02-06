@@ -185,6 +185,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "IsChickenJockey", //TODO: remove this
       "Item/tag/map",
       "Owner",
+      "HurtByTimestamp",
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
@@ -194,7 +195,6 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("wasOnGround"); // wasOnGround does not exist in BE
   } else if (id == "minecraft:bee") {
     blacklist.insert("TicksSincePollination"); // TicksSincePollination does not exist in BE
-    blacklist.insert("HurtByTimestamp");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
