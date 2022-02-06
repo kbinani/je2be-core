@@ -191,7 +191,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("Health"); // Default health differs. B = 6, J = 20
     blacklist.insert("Pos/1");  // y is aligned 0.5 block in BE
   } else if (id == "minecraft:slime") {
-    blacklist.insert("wasOnGround"); // wasOnGround does not exists in BE
+    blacklist.insert("wasOnGround"); // wasOnGround does not exist in BE
   } else if (id == "minecraft:salmon") {
     blacklist.insert("Health"); // Health differs. B = 6, J = 3
   }
@@ -202,6 +202,19 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       blacklist.insert("Item/id");
     }
   }
+  auto storedEnchantment = entityE.query("Item/tag/StoredEnchantments/0/id");
+  if (storedEnchantment && storedEnchantment->asString()) {
+    if (storedEnchantment->asString()->fValue == "minecraft:sweeping") { // sweeping does not exist in BE
+      blacklist.insert("Item/tag/StoredEnchantments/*/id");
+    }
+  }
+  auto tippedArrowPotion = entityE.query("Item/tag/Potion");
+  if (tippedArrowPotion && tippedArrowPotion->asString()) {
+    if (tippedArrowPotion->asString()->fValue == "minecraft:luck") { // luck does not exist in BE
+      blacklist.insert("Item/tag/Potion");
+    }
+  }
+
   for (string const &it : blacklist) {
     Erase(copyE, it);
     Erase(copyA, it);
