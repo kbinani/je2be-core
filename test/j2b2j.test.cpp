@@ -199,6 +199,14 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Item/tag/map",
       "Owner",
       "HurtByTimestamp",
+
+      "Passengers/*/UUID",
+      "Passengers/*/Pos",
+      "Passengers/*/Attributes",
+      "Passengers/*/Motion",
+      "Passengers/*/LeftHanded",
+      "Passengers/*/ForcedAge",
+      "Passengers/*/HurtByTimestamp",
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");

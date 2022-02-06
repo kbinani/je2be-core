@@ -209,11 +209,38 @@ public:
           }
         }
 
+        ChunkContext cctx(*ctx);
+        unordered_map<Uuid, shared_ptr<CompoundTag>, UuidHasher, UuidPred> entities;
         for (auto const &entityB : b->fEntities) {
-          auto entityJ = Entity::From(*entityB, *ctx);
-          if (entityJ) {
-            j->fEntities.push_back(entityJ);
+          auto result = Entity::From(*entityB, cctx);
+          if (!result) {
+            continue;
           }
+          entities[result->fUuid] = result->fEntity;
+        }
+        for (auto const &it : cctx.fPassengers) {
+          Uuid vehicleUuid = it.first;
+          auto found = entities.find(vehicleUuid);
+          if (found == entities.end()) {
+            continue;
+          }
+          shared_ptr<CompoundTag> vehicle = found->second;
+          auto passengers = make_shared<ListTag>(Tag::Type::Compound);
+          for (auto const &passenger : it.second) {
+            size_t passengerIndex = passenger.first;
+            Uuid passengerUuid = passenger.second;
+            auto f = entities.find(passengerUuid);
+            if (f == entities.end()) {
+              continue;
+            }
+            auto passenger = f->second;
+            passengers->push_back(passenger);
+            entities.erase(f);
+          }
+          vehicle->set("Passengers", passengers);
+        }
+        for (auto const &it : entities) {
+          j->fEntities.push_back(it.second);
         }
 
         auto streamTerrain = make_shared<FileOutputStream>(*regionDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));

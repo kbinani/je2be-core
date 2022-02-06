@@ -112,9 +112,10 @@ public:
         if (!beeB) {
           continue;
         }
-        auto beeJ = Entity::From(*beeB, ctx);
-        if (beeJ) {
-          bees->push_back(beeJ);
+        ChunkContext cctx(ctx);
+        auto result = Entity::From(*beeB, cctx);
+        if (result) {
+          bees->push_back(result->fEntity);
         }
       }
       te->set("Bees", bees);
