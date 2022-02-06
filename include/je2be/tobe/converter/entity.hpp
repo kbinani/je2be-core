@@ -1462,7 +1462,13 @@ private:
     if (!c) {
       return nullptr;
     }
-    c->set("Persistent", props::Bool(true));
+
+    auto fromBucket = tag.boolean("FromBucket");
+    if (fromBucket) {
+      c->set("Persistent", props::Bool(*fromBucket));
+    } else {
+      c->set("Persistent", props::Bool(true));
+    }
 
     auto leash = tag.compoundTag("Leash");
     if (leash) {
