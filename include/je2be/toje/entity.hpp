@@ -677,6 +677,7 @@ public:
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
     E(bee, C(Same, Animal, AngerTime, NoGravity, PersistenceRequiredTrue, Bee));
+    E(blaze, C(Same, LivingEntity, PersistenceRequiredTrue));
 
 #undef E
     return ret;
