@@ -9,8 +9,8 @@
 #include <je2be/toje/context.hpp>
 
 #include <je2be/toje/item.hpp>
-#include <je2be/toje/block-entity.hpp>
 #include <je2be/toje/entity.hpp>
+#include <je2be/toje/block-entity.hpp>
 #include <je2be/toje/block-property-accessor.hpp>
 
 #include <je2be/toje/shape-of-stairs.hpp>

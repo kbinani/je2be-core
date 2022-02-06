@@ -192,6 +192,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("Pos/1");  // y is aligned 0.5 block in BE
   } else if (id == "minecraft:slime") {
     blacklist.insert("wasOnGround"); // wasOnGround does not exist in BE
+  } else if (id == "minecraft:bee") {
+    blacklist.insert("TicksSincePollination"); // TicksSincePollination does not exist in BE
+    blacklist.insert("HurtByTimestamp");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
@@ -339,9 +342,8 @@ TEST_CASE("j2b2j") {
             Pos3i pos = it.first;
             shared_ptr<CompoundTag> const &tileE = it.second;
             static unordered_set<string> blacklist({"minecraft:sculk_sensor"});
-            blacklist.insert("minecraft:beehive"); //TODO: remove this
             if (blacklist.find(tileE->string("id", "")) != blacklist.end()) {
-              continue; //TODO: remove this
+              continue;
             }
             auto found = chunkA->fTileEntities.find(pos);
             if (found == chunkA->fTileEntities.end()) {

@@ -164,6 +164,28 @@ public:
     CopyBoolValues(b, j, {{"BatFlags"}});
   }
 
+  static void Bee(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["CannotEnterHiveTicks"] = props::Int(0);
+    j["CropsGrownSincePollination"] = props::Int(0);
+    auto hasNectar = HasDefinition(b, "+has_nectar");
+    j["HasNectar"] = props::Bool(hasNectar);
+    /*
+    after stunged a player, bee has these definitions:
+    "+minecraft:bee",
+    "+",
+    "+bee_adult",
+    "+shelter_detection",
+    "+normal_attack",
+    "-track_attacker",
+    "-take_nearest_target",
+    "-look_for_food",
+    "-angry_bee",
+    "-find_hive",
+    "+countdown_to_perish"
+    */
+    j["HasStung"] = props::Bool(false);
+  }
+
   static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
@@ -404,6 +426,10 @@ public:
 
   static void IsBaby(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"IsBaby"}});
+  }
+
+  static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["NoGravity"] = props::Bool(true);
   }
 
   static void StorageMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -650,6 +676,7 @@ public:
     E(parrot, C(Same, Animal, PersistenceRequiredFalse, Owner, Sitting, Parrot));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
+    E(bee, C(Same, Animal, AngerTime, NoGravity, PersistenceRequiredTrue, Bee));
 
 #undef E
     return ret;

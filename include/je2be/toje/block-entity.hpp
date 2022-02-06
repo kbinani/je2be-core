@@ -102,6 +102,28 @@ public:
     return r;
   }
 
+  static std::optional<Result> Beehive(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    auto te = EmptyShortName("beehive", pos);
+    auto occupants = tagB.listTag("Occupants");
+    if (occupants) {
+      auto bees = std::make_shared<ListTag>(Tag::Type::Compound);
+      for (auto const &it : *occupants) {
+        auto beeB = it->asCompound();
+        if (!beeB) {
+          continue;
+        }
+        auto beeJ = Entity::From(*beeB, ctx);
+        if (beeJ) {
+          bees->push_back(beeJ);
+        }
+      }
+      te->set("Bees", bees);
+    }
+    Result r;
+    r.fTileEntity = te;
+    return r;
+  }
+
   static std::optional<Result> BrewingStand(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto t = EmptyShortName("brewing_stand", pos);
@@ -709,7 +731,8 @@ public:
     E(chain_command_block, CommandBlock);
     E(repeating_command_block, CommandBlock);
     E(structure_block, StructureBlock);
-
+    E(beehive, Beehive);
+    E(bee_nest, Beehive);
 #undef E
     return t;
   }
