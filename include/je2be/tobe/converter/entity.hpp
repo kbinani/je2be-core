@@ -935,6 +935,33 @@ private:
       variant = 1;
     }
     c->set("Variant", props::Int(variant));
+
+    if (tag.boolean("Sleeping", false)) {
+      AddDefinition(c, "+minecraft:fox_ambient_sleep");
+    }
+
+    auto trustedJ = tag.listTag("Trusted");
+    if (trustedJ) {
+      int index = 0;
+      for (auto const &it : *trustedJ) {
+        auto uuidTag = it->asIntArray();
+        if (!uuidTag) {
+          continue;
+        }
+        auto uuidJ = Uuid::FromIntArrayTag(*uuidTag);
+        if (!uuidJ) {
+          continue;
+        }
+        int64_t uuidB = UuidRegistrar::ToId(*uuidJ);
+        std::string key = "TrustedPlayer" + std::to_string(index);
+        c->set(key, props::Long(uuidB));
+        index++;
+      }
+      if (index > 0) {
+        c->set("TrustedPlayersAmount", props::Int(index));
+      }
+    }
+
     return c;
   }
 

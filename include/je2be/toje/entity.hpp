@@ -239,6 +239,34 @@ public:
     }
   }
 
+  static void Fox(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto variant = b.int32("Variant", 0);
+    std::string type;
+    if (variant == 1) {
+      type = "snow";
+    } else {
+      type = "red";
+    }
+    j["Type"] = props::String(type);
+
+    j["Sleeping"] = props::Bool(HasDefinition(b, "+minecraft:fox_ambient_sleep"));
+    j["Crouching"] = props::Bool(false);
+
+    auto trusted = std::make_shared<ListTag>(Tag::Type::IntArray);
+    auto trustedPlayers = b.int32("TrustedPlayersAmount", 0);
+    if (trustedPlayers > 0) {
+      for (int i = 0; i < trustedPlayers; i++) {
+        auto uuidB = b.int64("TrustedPlayer" + std::to_string(i));
+        if (!uuidB) {
+          continue;
+        }
+        Uuid uuidJ = Uuid::GenWithI64Seed(*uuidB);
+        trusted->push_back(uuidJ.toIntArrayTag());
+      }
+    }
+    j["Trusted"] = trusted;
+  }
+
   static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["PickupDelay"] = props::Short(0);
     auto itemB = b.compoundTag("Item");
@@ -675,6 +703,7 @@ public:
     E(cow, C(Same, Animal));
     E(elder_guardian, C(Same, LivingEntity));
     E(cod, C(Same, LivingEntity, FromBucket));
+    E(fox, C(Same, Animal, Sitting, Fox));
 
 #undef E
     return ret;

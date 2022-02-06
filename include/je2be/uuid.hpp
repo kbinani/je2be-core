@@ -98,6 +98,23 @@ struct Uuid {
     std::vector<int32_t> uuidValues({*(int32_t *)&f1, *(int32_t *)&f2, *(int32_t *)&f3, *(int32_t *)&f4});
     return std::make_shared<IntArrayTag>(uuidValues);
   }
+
+  static std::optional<Uuid> FromIntArrayTag(IntArrayTag const &tag) {
+    auto const &values = tag.value();
+    if (values.size() != 4) {
+      return std::nullopt;
+    }
+    int32_t f1 = values[0];
+    int32_t f2 = values[1];
+    int32_t f3 = values[2];
+    int32_t f4 = values[3];
+    Uuid u;
+    u.f1 = *(uint32_t *)&f1;
+    u.f2 = *(uint32_t *)&f2;
+    u.f3 = *(uint32_t *)&f3;
+    u.f4 = *(uint32_t *)&f4;
+    return u;
+  }
 };
 
 struct UuidHasher {
