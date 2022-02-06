@@ -222,6 +222,29 @@ public:
     return name;
   }
 
+  static std::string Bucket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    std::string prefix = "";
+    switch (damage) {
+    case 1:
+      prefix = "milk_";
+      break;
+    case 2:
+      prefix = "cod_";
+      break;
+    case 3:
+      prefix = "salmon_";
+      break;
+    case 5:
+      prefix = "pufferfish_";
+      break;
+    case 10:
+      prefix = "lava_";
+      break;
+    }
+    return "minecraft:" + prefix + "bucket";
+  }
+
   static std::string FireworkRocket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
@@ -278,6 +301,235 @@ public:
       break;
     }
     return "minecraft:" + type + "_boat";
+  }
+
+  static std::string LegacyDye(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    switch (damage) {
+    case 1:
+      return Ns() + "red_dye";
+    case 2:
+      return Ns() + "green_dye";
+    case 3:
+      return Ns() + "cocoa_beans";
+    case 4:
+      return Ns() + "lapis_lazuli";
+    case 5:
+      return Ns() + "purple_dye";
+    case 6:
+      return Ns() + "cyan_dye";
+    case 7:
+      return Ns() + "light_gray_dye";
+    case 8:
+      return Ns() + "gray_dye";
+    case 9:
+      return Ns() + "pink_dye";
+    case 10:
+      return Ns() + "lime_dye";
+    case 11:
+      return Ns() + "yellow_dye";
+    case 12:
+      return Ns() + "light_blue_dye";
+    case 13:
+      return Ns() + "magenta_dye";
+    case 14:
+      return Ns() + "orange_dye";
+    case 15:
+      return Ns() + "bone_meal";
+    case 16:
+      return Ns() + "black_dye";
+    case 17:
+      return Ns() + "brown_dye";
+    case 18:
+      return Ns() + "blue_dye";
+    case 19:
+      return Ns() + "white_dye";
+    case 0:
+    default:
+      return Ns() + "ink_sac";
+    }
+  }
+
+  static std::string LegacySpawnEgg(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    std::string prefix;
+    switch (damage) {
+    case 122:
+      prefix = "bee_";
+      break;
+    case 10:
+      prefix = "chicken_";
+      break;
+    case 16:
+      prefix = "mooshroom_";
+      break;
+    case 28:
+      prefix = "polar_bear_";
+      break;
+    case 11:
+      prefix = "cow_";
+      break;
+    case 12:
+      prefix = "pig_";
+      break;
+    case 13:
+      prefix = "sheep_";
+      break;
+    case 14:
+      prefix = "wolf_";
+      break;
+    case 22:
+      prefix = "ocelot_";
+      break;
+    case 75:
+      prefix = "cat_";
+      break;
+    case 30:
+      prefix = "parrot_";
+      break;
+    case 19:
+      prefix = "bat_";
+      break;
+    case 74:
+      prefix = "turtle_";
+      break;
+    case 25:
+      prefix = "mule_";
+      break;
+    case 18:
+      prefix = "rabbit_";
+      break;
+    case 29:
+      prefix = "llama_";
+      break;
+    case 23:
+      prefix = "horse_";
+      break;
+    case 24:
+      prefix = "donkey_";
+      break;
+    case 26:
+      prefix = "skeleton_horse_";
+      break;
+    case 27:
+      prefix = "zombie_horse_";
+      break;
+    case 121:
+      prefix = "fox_";
+      break;
+    case 113:
+      prefix = "panda_";
+      break;
+    case 31:
+      prefix = "dolphin_";
+      break;
+    case 108:
+      prefix = "pufferfish_";
+      break;
+    case 109:
+      prefix = "salmon_";
+      break;
+    case 112:
+      prefix = "cod_";
+      break;
+    case 38:
+      prefix = "enderman_";
+      break;
+    case 33:
+      prefix = "creeper_";
+      break;
+    case 39:
+      prefix = "silverfish_";
+      break;
+    case 34:
+      prefix = "skeleton_";
+      break;
+    case 45:
+      prefix = "witch_";
+      break;
+    case 37:
+      prefix = "slime_";
+      break;
+    case 48:
+      prefix = "wither_skeleton_";
+      break;
+    case 46:
+      prefix = "stray_";
+      break;
+    case 35:
+      prefix = "spider_";
+      break;
+    case 32:
+      prefix = "zombie_";
+      break;
+    case 50:
+      prefix = "elder_guardian_";
+      break;
+    case 49:
+      prefix = "guardian_";
+      break;
+    case 40:
+      prefix = "cave_spider_";
+      break;
+    case 17:
+      prefix = "squid_";
+      break;
+    case 110:
+      prefix = "drowned_";
+      break;
+    case 47:
+      prefix = "husk_";
+      break;
+    case 42:
+      prefix = "magma_cube_";
+      break;
+    case 55:
+      prefix = "endermite_";
+      break;
+    case 118:
+      prefix = "wandering_trader_";
+      break;
+    case 127:
+      prefix = "piglin_brute_";
+      break;
+    case 125:
+      prefix = "strider_";
+      break;
+    case 124:
+      prefix = "hoglin_";
+      break;
+    case 123:
+      prefix = "piglin_";
+      break;
+    case 126:
+      prefix = "zoglin_";
+      break;
+    case 41:
+      prefix = "ghast_";
+      break;
+    case 43:
+      prefix = "blaze_";
+      break;
+    case 58:
+      prefix = "phantom_";
+      break;
+    case 105:
+      prefix = "vex_";
+      break;
+    case 57:
+      prefix = "vindicator_";
+      break;
+    case 54:
+      prefix = "shulker_";
+      break;
+    case 59:
+      prefix = "ravager_";
+      break;
+    case 114:
+      prefix = "pillager_";
+      break;
+    }
+    return "minecraft:" + prefix + "spawn_egg";
   }
 
   static std::string Map(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
@@ -358,6 +610,10 @@ public:
   }
 #pragma endregion
 
+  static std::string Ns() {
+    return "minecraft:";
+  }
+
   static std::unordered_map<std::string, Converter> *CreateTable() {
     using namespace std;
     auto *ret = new unordered_map<string, Converter>();
@@ -384,6 +640,11 @@ public:
     E(glow_frame, Rename("glow_item_frame"));
     E(carrotonastick, Rename("carrot_on_a_stick")); // legacy
     E(boat, LegacyBoat);                            // legacy
+    E(wooden_door, Rename("oak_door"));
+    E(turtle_shell_piece, Rename("scute")); // legacy
+    E(bucket, Bucket);
+    E(dye, LegacyDye);            // legacy
+    E(spawn_egg, LegacySpawnEgg); // legacy
 
 #undef E
     return ret;
