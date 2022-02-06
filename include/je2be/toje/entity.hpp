@@ -200,8 +200,6 @@ public:
   }
 
   static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["AngerTime"] = props::Int(0);
-
     auto carriedBlockTagB = b.compoundTag("carriedBlock");
     if (carriedBlockTagB) {
       auto carriedBlockB = mcfile::be::Block::FromCompound(*carriedBlockTagB);
@@ -259,6 +257,10 @@ public:
 
   static void Air(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyShortValues(b, j, {{"Air", "Air", 300}});
+  }
+
+  static void AngerTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["AngerTime"] = props::Int(0);
   }
 
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -646,7 +648,8 @@ public:
     E(slime, C(Same, LivingEntity, Slime));
     E(salmon, C(Same, LivingEntity, FromBucket));
     E(parrot, C(Same, Animal, PersistenceRequiredFalse, Owner, Sitting, Parrot));
-    E(enderman, C(Same, LivingEntity, Enderman));
+    E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
+    E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
 
 #undef E
     return ret;
