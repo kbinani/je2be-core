@@ -697,11 +697,14 @@ private:
     auto poseJ = tag.compoundTag("Pose");
     if (poseJ) {
       auto indexB = ArmorStand::BedrockMostSimilarPoseIndexFromJava(*poseJ);
+      auto showArms = tag.boolean("ShowArms", false);
       if (indexB) {
-        auto poseB = std::make_shared<CompoundTag>();
-        poseB->set("PoseIndex", props::Int(*indexB));
-        poseB->set("LastSignal", props::Int(0));
-        c->set("Pose", poseB);
+        if (indexB != 1 || showArms) {
+          auto poseB = std::make_shared<CompoundTag>();
+          poseB->set("PoseIndex", props::Int(*indexB));
+          poseB->set("LastSignal", props::Int(0));
+          c->set("Pose", poseB);
+        }
       }
     }
 

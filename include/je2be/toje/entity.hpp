@@ -153,8 +153,8 @@ public:
         auto poseJ = pose->toCompoundTag();
         if (!poseJ->empty()) {
           j["Pose"] = poseJ;
-          showArms = true;
         }
+        showArms = true;
       }
     }
     j["ShowArms"] = props::Bool(showArms);
