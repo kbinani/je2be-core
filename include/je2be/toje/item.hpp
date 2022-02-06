@@ -101,7 +101,11 @@ public:
           enchJ->push_back(cJ);
         }
       }
-      tagJ->set("Enchantments", enchJ);
+      if (nameB == "minecraft:enchanted_book") {
+        tagJ->set("StoredEnchantments", enchJ);
+      } else {
+        tagJ->set("Enchantments", enchJ);
+      }
     }
 
     if (displayJ && !displayJ->empty()) {
@@ -274,6 +278,30 @@ public:
       }
     }
     return "minecraft:firework_star";
+  }
+
+  static std::string LegacyBannerPattern(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    std::string prefix;
+    switch (damage) {
+    case 2:
+      prefix = "flower_";
+      break;
+    case 1:
+      prefix = "creeper_";
+      break;
+    case 6:
+      prefix = "piglin_";
+      break;
+    case 3:
+      prefix = "mojang_";
+      break;
+    case 0:
+    default:
+      prefix = "skull_";
+      break;
+    }
+    return Ns() + prefix + "banner_pattern";
   }
 
   static std::string LegacyBoat(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
@@ -674,6 +702,13 @@ public:
     E(horsearmordiamond, Rename("diamond_horse_armor")); // legacy
     E(empty_map, Rename("map"));
     E(chorus_fruit_popped, Rename("popped_chorus_fruit")); // legacy
+    E(banner_pattern, LegacyBannerPattern);                // legacy
+    E(appleenchanted, Rename("enchanted_golden_apple"));   // legacy
+    E(melon, Rename("melon_slice"));                       // legacy
+    E(muttoncooked, Rename("cooked_mutton"));              // legacy
+    E(muttonraw, Rename("mutton"));                        // legacy
+    E(cooked_fish, Rename("cooked_cod"));                  // legacy
+    E(clownfish, Rename("tropical_fish"));                 // legacy
 
 #undef E
     return ret;

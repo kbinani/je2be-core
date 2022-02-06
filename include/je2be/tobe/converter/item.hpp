@@ -167,19 +167,8 @@ private:
 
     // "13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "otherside", "pigstep"
     // E("music_disc_pigstep", Same);
-    E("flower_banner_pattern", Subtype("banner_pattern", 2));
-    E("creeper_banner_pattern", Subtype("banner_pattern", 1));
-    E("skull_banner_pattern", Subtype("banner_pattern", 0));
-    E("piglin_banner_pattern", Subtype("banner_pattern", 6));
-    E("mojang_banner_pattern", Subtype("banner_pattern", 3));
 
     E("cod", Rename("fish"));
-    E("enchanted_golden_apple", Rename("appleenchanted"));
-    E("cooked_cod", Rename("cooked_fish"));
-    E("cooked_mutton", Rename("muttoncooked"));
-    E("tropical_fish", Rename("clownfish"));
-    E("melon_slice", Rename("melon"));
-    E("mutton", Rename("muttonraw"));
     E("tipped_arrow", TippedArrow);
     E("totem_of_undying", Rename("totem"));
     E("potion", AnyPotion);
