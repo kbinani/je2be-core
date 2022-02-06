@@ -176,8 +176,21 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   CHECK(copyE->intArrayTag("UUID"));
   CHECK(copyA->intArrayTag("UUID"));
 
+  auto posE = props::GetPos3d(*copyE, "Pos");
+  auto posA = props::GetPos3d(*copyA, "Pos");
+  CHECK(posE);
+  CHECK(posA);
+  CHECK(fabs(posE->fX - posA->fX) <= 0.001);
+  if (id == "minecraft:armor_stand") {
+    // y is aligned 0.5 block in BE
+  } else {
+    CHECK(fabs(posE->fY - posA->fY) <= 0.001);
+  }
+  CHECK(fabs(posE->fZ - posA->fZ) <= 0.001);
+
   unordered_set<string> blacklist = {
       "UUID",
+      "Pos",
       "Attributes",
       "Motion",
       "LeftHanded", // left handed skeleton does not exist in BE
@@ -190,7 +203,6 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
     blacklist.insert("Health"); // Default health differs. B = 6, J = 20
-    blacklist.insert("Pos/1");  // y is aligned 0.5 block in BE
   } else if (id == "minecraft:slime") {
     blacklist.insert("wasOnGround"); // wasOnGround does not exist in BE
   } else if (id == "minecraft:bee") {
