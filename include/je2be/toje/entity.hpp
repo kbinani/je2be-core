@@ -327,12 +327,12 @@ public:
 
   static void CustomName(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto name = b.string("CustomName");
-    if (!name) {
-      return;
+    if (name) {
+      nlohmann::json json;
+      json["text"] = *name;
+      j["CustomName"] = props::String(nlohmann::to_string(json));
     }
-    nlohmann::json json;
-    json["text"] = *name;
-    j["CustomName"] = props::String(nlohmann::to_string(json));
+    j["PersistenceRequired"] = props::Bool(!!name);
   }
 
   static void DeathTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -520,14 +520,6 @@ public:
     j["TileZ"] = props::Int(std::round(tile->fZ));
   }
 
-  static void PersistenceRequiredFalse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["PersistenceRequired"] = props::Bool(false);
-  }
-
-  static void PersistenceRequiredTrue(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["PersistenceRequired"] = props::Bool(true);
-  }
-
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"PortalCooldown"}});
   }
@@ -622,7 +614,6 @@ public:
     HurtByTimestamp(b, j, ctx);
     HurtTime(b, j, ctx);
     LeftHanded(b, j, ctx);
-    PersistenceRequiredFalse(b, j, ctx);
     return ret;
   }
 #pragma endregion
@@ -664,7 +655,7 @@ public:
     E(bat, C(Same, LivingEntity, Bat));
     E(painting, C(Same, Base, Painting));
     E(zombie, C(Same, LivingEntity, IsBaby, Zombie));
-    E(chicken, C(Same, Animal, PersistenceRequiredTrue, Chicken));
+    E(chicken, C(Same, Animal, Chicken));
     E(item, C(Same, Base, Entity::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom));
@@ -673,11 +664,12 @@ public:
     E(boat, C(Same, Base, Boat));
     E(slime, C(Same, LivingEntity, Slime));
     E(salmon, C(Same, LivingEntity, FromBucket));
-    E(parrot, C(Same, Animal, PersistenceRequiredFalse, Owner, Sitting, Parrot));
+    E(parrot, C(Same, Animal, Owner, Sitting, Parrot));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
-    E(bee, C(Same, Animal, AngerTime, NoGravity, PersistenceRequiredTrue, Bee));
-    E(blaze, C(Same, LivingEntity, PersistenceRequiredTrue));
+    E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
+    E(blaze, C(Same, LivingEntity));
+    E(cow, C(Same, Animal));
 
 #undef E
     return ret;
