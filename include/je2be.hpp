@@ -87,6 +87,7 @@
 
 #include <je2be/entity/painting.hpp>
 #include <je2be/entity/boat.hpp>
+#include <je2be/entity/armor-stand.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

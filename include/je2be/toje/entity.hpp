@@ -144,6 +144,15 @@ public:
     j["NoBasePlate"] = props::Bool(false);
     j["ShowArms"] = props::Bool(false);
     j["Small"] = props::Bool(false);
+
+    auto poseB = b.compoundTag("Pose");
+    if (poseB) {
+      auto poseIndexB = poseB->int32("PoseIndex");
+      if (poseIndexB) {
+        auto pose = ArmorStand::JavaPoseFromBedrockPoseIndex(*poseIndexB);
+        j["Pose"] = pose->toCompoundTag();
+      }
+    }
   }
 
   static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -156,7 +165,7 @@ public:
     j["Type"] = props::String(type);
 
     auto rotB = props::GetRotation(b, "Rotation");
-    je2be::Rotation rotJ(Rotation::ClampAngleBetweenMinus180To180(rotB->fYaw - 90), rotB->fPitch);
+    je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
     j["Rotation"] = rotJ.toListTag();
   }
 

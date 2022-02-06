@@ -72,24 +72,7 @@ public:
     return ret;
   }
 
-  static bool DegAlmostEquals(float a, float b) {
-    a = fmod(fmod(a, 360) + 360, 360);
-    assert(0 <= a && a < 360);
-    b = fmod(fmod(b, 360) + 360, 360);
-    assert(0 <= b && b < 360);
-    float diff = fmod(fmod(a - b, 360) + 360, 360);
-    assert(0 <= diff && diff < 360);
-    float const tolerance = 1;
-    if (0 <= diff && diff < tolerance) {
-      return true;
-    } else if (360 - tolerance < diff) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return DegAlmostEquals(rot.fYaw, yaw) && DegAlmostEquals(rot.fPitch, pitch); }
+  static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
   static std::optional<std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
@@ -685,6 +668,18 @@ private:
     if (attributes) {
       c->set("Attributes", attributes->toListTag());
     }
+
+    auto poseJ = tag.compoundTag("Pose");
+    if (poseJ) {
+      auto indexB = ArmorStand::BedrockMostSimilarPoseIndexFromJava(*poseJ);
+      if (indexB) {
+        auto poseB = std::make_shared<CompoundTag>();
+        poseB->set("PoseIndex", props::Int(*indexB));
+        poseB->set("LastSignal", props::Int(0));
+        c->set("Pose", poseB);
+      }
+    }
+
     return c;
   }
 
@@ -1381,7 +1376,7 @@ private:
 
     auto rotation = props::GetRotation(*c, "Rotation");
     if (rotation) {
-      Rotation rot(Rotation::ClampAngleBetweenMinus180To180(rotation->fYaw + 90), rotation->fPitch);
+      Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
       c->set("Rotation", rot.toListTag());
     }
 
