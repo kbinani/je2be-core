@@ -54,6 +54,11 @@ struct Uuid {
     return ret;
   }
 
+  static Uuid GenWithI64Seed(int64_t seed) {
+    uint64_t u = *(uint64_t *)&seed;
+    return GenWithU64Seed(u);
+  }
+
   std::string toString() const {
     std::ostringstream s;
     s << std::hex << std::setfill('0')

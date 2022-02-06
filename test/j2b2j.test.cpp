@@ -184,6 +184,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "ForcedAge",
       "IsChickenJockey", //TODO: remove this
       "Item/tag/map",
+      "Owner",
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");

@@ -104,9 +104,9 @@ public:
   using Namer = std::function<std::string(std::string const &nameB, CompoundTag const &entityB)>;
   using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx)>;
 
-  struct Convert {
+  struct C {
     template <class... Arg>
-    Convert(Namer namer, Converter base, Arg... behaviors) : fNamer(namer), fBase(base), fBehaviors(std::initializer_list<Behavior>{behaviors...}) {}
+    C(Namer namer, Converter base, Arg... behaviors) : fNamer(namer), fBase(base), fBehaviors(std::initializer_list<Behavior>{behaviors...}) {}
 
     std::shared_ptr<CompoundTag> operator()(std::string const &id, CompoundTag const &entityB, Context &ctx) const {
       auto name = fNamer(id, entityB);
@@ -142,17 +142,22 @@ public:
     j["DisabledSlots"] = props::Int(false);
     j["Invisible"] = props::Bool(false);
     j["NoBasePlate"] = props::Bool(false);
-    j["ShowArms"] = props::Bool(false);
     j["Small"] = props::Bool(false);
 
+    bool showArms = false;
     auto poseB = b.compoundTag("Pose");
     if (poseB) {
       auto poseIndexB = poseB->int32("PoseIndex");
       if (poseIndexB) {
         auto pose = ArmorStand::JavaPoseFromBedrockPoseIndex(*poseIndexB);
-        j["Pose"] = pose->toCompoundTag();
+        auto poseJ = pose->toCompoundTag();
+        if (!poseJ->empty()) {
+          j["Pose"] = poseJ;
+          showArms = true;
+        }
       }
     }
+    j["ShowArms"] = props::Bool(showArms);
   }
 
   static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -204,6 +209,10 @@ public:
       }
     }
     CopyShortValues(b, j, {{"Age"}, {"Health"}});
+  }
+
+  static void Parrot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyIntValues(b, j, {{"Variant"}});
   }
 
   static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -425,6 +434,15 @@ public:
     CopyBoolValues(b, j, {{"OnGround"}});
   }
 
+  static void Owner(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto ownerNew = b.int64("OwnerNew");
+    if (!ownerNew) {
+      return;
+    }
+    Uuid uuid = Uuid::GenWithI64Seed(*ownerNew);
+    j["Owner"] = uuid.toIntArrayTag();
+  }
+
   static void Painting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto directionB = b.byte("Direction", 0);
     Facing4 direction = Facing4FromBedrockDirection(directionB);
@@ -505,6 +523,10 @@ public:
     CopyBoolValues(b, j, {{"ShowBottom"}});
   }
 
+  static void Sitting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{"Sitting", "Sitting", false}});
+  }
+
   static void UUID(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto id = b.int64("UniqueID");
     if (!id) {
@@ -522,7 +544,6 @@ public:
     CompoundTag &j = *ret;
     Age(b, j, ctx);
     InLove(b, j, ctx);
-    PersistenceRequiredTrue(b, j, ctx);
     return ret;
   }
 
@@ -592,21 +613,22 @@ public:
   assert(ret->find("minecraft:" #__name) == ret->end()); \
   ret->insert(std::make_pair("minecraft:" #__name, __conv));
 
-    E(skeleton, Convert(Same, LivingEntity, Skeleton));
-    E(creeper, Convert(Same, LivingEntity, Creeper));
-    E(spider, Convert(Same, LivingEntity));
-    E(bat, Convert(Same, LivingEntity, Bat));
-    E(painting, Convert(Same, Base, Painting));
-    E(zombie, Convert(Same, LivingEntity, IsBaby, Zombie));
-    E(chicken, Convert(Same, Animal, Chicken));
-    E(item, Convert(Same, Base, Entity::Item));
-    E(armor_stand, Convert(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
-    E(ender_crystal, Convert(Rename("end_crystal"), Base, ShowBottom));
-    E(chest_minecart, Convert(Same, Base, StorageMinecart));
-    E(hopper_minecart, Convert(Same, Base, StorageMinecart, HopperMinecart));
-    E(boat, Convert(Same, Base, Boat));
-    E(slime, Convert(Same, LivingEntity, Slime));
-    E(salmon, Convert(Same, LivingEntity, FromBucket));
+    E(skeleton, C(Same, LivingEntity, Skeleton));
+    E(creeper, C(Same, LivingEntity, Creeper));
+    E(spider, C(Same, LivingEntity));
+    E(bat, C(Same, LivingEntity, Bat));
+    E(painting, C(Same, Base, Painting));
+    E(zombie, C(Same, LivingEntity, IsBaby, Zombie));
+    E(chicken, C(Same, Animal, PersistenceRequiredTrue, Chicken));
+    E(item, C(Same, Base, Entity::Item));
+    E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
+    E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom));
+    E(chest_minecart, C(Same, Base, StorageMinecart));
+    E(hopper_minecart, C(Same, Base, StorageMinecart, HopperMinecart));
+    E(boat, C(Same, Base, Boat));
+    E(slime, C(Same, LivingEntity, Slime));
+    E(salmon, C(Same, LivingEntity, FromBucket));
+    E(parrot, C(Same, Animal, PersistenceRequiredFalse, Owner, Sitting, Parrot));
 
 #undef E
     return ret;

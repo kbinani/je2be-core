@@ -78,7 +78,7 @@ public:
         {.fBody = {0.0f, 0.0f, 0.0f}, .fHead = {16.0f, 11.0f, 0.0f}, .fLeftLeg = {0.0f, 38.0f, 353.0f}, .fRightLeg = {10.0f, 11.0f, 6.0f}, .fLeftArm = {180.0f, 86.0f, 60.0f}, .fRightArm = {282.0f, 331.0f, 0.0f}},
         {.fBody = {0.0f, 0.0f, 0.0f}, .fHead = {351.0f, 345.0f, 0.0f}, .fLeftLeg = {16.0f, 0.0f, 0.0f}, .fRightLeg = {330.0f, 0.0f, 0.0f}, .fLeftArm = {255.0f, 4.0f, 360.0f}, .fRightArm = {255.0f, 352.0f, 0.0f}},
         {.fBody = {0.0f, 4.0f, 6.0f}, .fHead = {357.0f, 106.0f, 12.0f}, .fLeftLeg = {255.0f, 45.0f, 0.0f}, .fRightLeg = {3.0f, 31.0f, 0.0f}, .fLeftArm = {173.0f, 52.0f, 53.0f}, .fRightArm = {201.0f, 113.0f, 319.0f}},
-        {.fBody = {0.0f, 0.0f, 353.f}, .fHead = {357.0f, 79.0f, 360.0f}, .fLeftLeg = {351.0f, 31.0f, 6.0f}, .fRightLeg = {228.0f, 331.0f, 46.0f}, .fLeftArm = {160.0f, 120.0f, 53.0f}, .fRightArm = {201.0f, 0.0f, 299.0}},
+        {.fBody = {0.0f, 0.0f, 353.f}, .fHead = {357.0f, 79.0f, 360.0f}, .fLeftLeg = {351.0f, 31.0f, 6.0f}, .fRightLeg = {228.0f, 331.0f, 46.0f}, .fLeftArm = {160.0f, 120.0f, 53.0f}, .fRightArm = {201.0f, 0.0f, 299.0f}},
         {.fBody = {0.0f, 0.0f, 0.0f}, .fHead = {0.0f, 0.0f, 0.0f}, .fLeftLeg = {0.0f, 38.0f, 353.0f}, .fRightLeg = {3.0f, 243.0f, 0.0f}, .fLeftArm = {16.0f, 0.0f, 0.0f}, .fRightArm = {248.0f, 38.0f, 0.0f}},
     };
     return std::ref(sPoses);
