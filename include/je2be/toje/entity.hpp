@@ -670,6 +670,8 @@ public:
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
     E(blaze, C(Same, LivingEntity));
     E(cow, C(Same, Animal));
+    E(elder_guardian, C(Same, LivingEntity));
+    E(cod, C(Same, LivingEntity, FromBucket));
 
 #undef E
     return ret;
