@@ -159,14 +159,8 @@ private:
     E("oak_door", Rename("wooden_door"));
     E("furnace_minecart", Rename("minecart")); // furnace minecart does not exist in bedrock
     E("tropical_fish_bucket", TropicalFishBucket);
+    E("zombified_piglin_spawn_egg", Rename("zombified_pigman_spawn_egg"));
 
-    E("tropical_fish_spawn_egg", SpawnEgg("tropicalfish", 111));
-    E("zombified_piglin_spawn_egg", SpawnEgg("zombie_pigman", 36));
-    E("zombie_villager_spawn_egg", SpawnEgg("zombie_villager_v2", 116));
-    E("villager_spawn_egg", SpawnEgg("villager_v2", 115));
-    E("evoker_spawn_egg", SpawnEgg("evocation_illager", 104));
-
-    E("fire_charge", Rename("fireball"));
     E("map", Subtype("empty_map", 2));
     E("firework_rocket", FireworkRocket);
     E("nether_star", Rename("netherstar"));
@@ -177,7 +171,6 @@ private:
     E("golden_horse_armor", Rename("horsearmorgold"));
     E("diamond_horse_armor", Rename("horsearmordiamond"));
     E("popped_chorus_fruit", Rename("chorus_fruit_popped"));
-    E("nether_brick", Rename("netherbrick"));
     // "13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "otherside", "pigstep"
     // E("music_disc_pigstep", Same);
     E("flower_banner_pattern", Subtype("banner_pattern", 2));
@@ -236,8 +229,8 @@ private:
 
   static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item) {
     using namespace props;
-    auto ret = New("bucket");
-    ret->set("Damage", Short(4));
+    auto ret = New("tropical_fish_bucket");
+    ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
     if (tg) {
       auto variant = tg->intTag("BucketVariantTag");
@@ -461,16 +454,6 @@ private:
       data->set("tag", tag);
     }
     return Post(data, item);
-  }
-
-  static Converter SpawnEgg(std::string const &mob, int16_t damage) {
-    using namespace std;
-    return [=](string const &name, CompoundTag const &item) {
-      auto tag = New("spawn_egg");
-      tag->set("Damage", props::Short(damage));
-      tag->set("Identifier", props::String("minecraft:"s + mob));
-      return Post(tag, item);
-    };
   }
 
   static Converter Subtype(std::string const &newName, int16_t damage) {

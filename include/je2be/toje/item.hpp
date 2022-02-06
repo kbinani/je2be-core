@@ -528,6 +528,25 @@ public:
     case 114:
       prefix = "pillager_";
       break;
+    case 36:
+      prefix = "zombified_piglin_";
+      break;
+    case 111:
+      prefix = "tropical_fish_";
+      break;
+    case 115:
+      prefix = "villager_";
+      break;
+    case 104:
+      prefix = "evoker_";
+      break;
+    case 116:
+      prefix = "zombie_villager_";
+      break;
+    case 4:
+      prefix = "tropical_fish_";
+      //TODO: BucketVariantTag
+      break;
     }
     return "minecraft:" + prefix + "spawn_egg";
   }
@@ -643,8 +662,11 @@ public:
     E(wooden_door, Rename("oak_door"));
     E(turtle_shell_piece, Rename("scute")); // legacy
     E(bucket, Bucket);
-    E(dye, LegacyDye);            // legacy
-    E(spawn_egg, LegacySpawnEgg); // legacy
+    E(dye, LegacyDye);                  // legacy
+    E(spawn_egg, LegacySpawnEgg);       // legacy
+    E(fireball, Rename("fire_charge")); // legacy
+    E(zombified_pigman_spawn_egg, Rename("zombified_piglin_spawn_egg"));
+    E(netherbrick, Rename("nether_brick"));
 
 #undef E
     return ret;
