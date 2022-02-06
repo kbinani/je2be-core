@@ -46,9 +46,8 @@ public:
 
     auto ret = std::make_shared<CompoundTag>();
 
-    auto attributes = EntityAttributes::Mob("minecraft:axolotl");
+    auto attributes = EntityAttributes::Mob("minecraft:axolotl", fHealth);
     if (attributes) {
-      attributes->health.updateCurrent(fHealth);
       ret->set("Attributes", attributes->toListTag());
     }
     string age = fAge < 0 ? "Baby" : "Adult";

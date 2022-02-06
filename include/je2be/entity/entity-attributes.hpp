@@ -58,16 +58,20 @@ class EntityAttributes {
   };
 
 public:
-  static std::optional<Attributes> Mob(std::string const &name) {
+  static std::optional<Attributes> Mob(std::string const &name, std::optional<float> health) {
     static std::unique_ptr<std::unordered_map<std::string, Attributes> const> const table(CreateTable());
     auto found = table->find(name);
     if (found == table->end()) {
       return std::nullopt;
     }
-    return found->second;
+    Attributes attrs = found->second;
+    if (health) {
+      attrs.health.updateCurrent(*health);
+    }
+    return attrs;
   }
 
-  static std::shared_ptr<ListTag> AnyHorse(CompoundTag const &tag) {
+  static std::shared_ptr<ListTag> AnyHorse(CompoundTag const &tag, std::optional<float> currentHealth) {
     using namespace std;
     using namespace props;
 
@@ -100,6 +104,10 @@ public:
     Attribute followRange(16, 16, 2048);
     Attribute absorption(0, 0, 16);
 
+    if (currentHealth) {
+      health.updateCurrent(*currentHealth);
+    }
+
     auto ret = make_shared<ListTag>(Tag::Type::Compound);
     ret->push_back(luck.toCompoundTag("luck"));
     ret->push_back(health.toCompoundTag("health"));
@@ -110,7 +118,7 @@ public:
     return ret;
   }
 
-  static Attributes Slime(int sizeB) {
+  static Attributes Slime(int sizeB, std::optional<float> currentHealth) {
     float sizeScale = std::max(1.0f, (float)sizeB);
     float strengthScale = sizeScale * sizeScale;
     float logScale = log2f(sizeScale);
@@ -131,6 +139,9 @@ public:
                      Attribute(0.02, 0.02),                                // lava_movement
                      Attribute(16, 16, 2048),                              // follow_range
                      Attribute(attackDamage, attackDamage, attackDamage)); // attack_damage
+    if (currentHealth) {
+      attrs.health.updateCurrent(*currentHealth);
+    }
     return attrs;
   }
 

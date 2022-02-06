@@ -689,7 +689,9 @@ private:
     }
     pos->fY = std::round(pos->fY * 2) * 0.5;
     c->set("Pos", pos->toF().toListTag());
-    auto attributes = EntityAttributes::Mob("minecraft:armor_stand");
+
+    auto health = tag.float32("Health");
+    auto attributes = EntityAttributes::Mob("minecraft:armor_stand", health);
     if (attributes) {
       c->set("Attributes", attributes->toListTag());
     }
@@ -1335,7 +1337,8 @@ private:
     c->set("Variant", props::Int(sizeB));
     c->set("Size", props::Byte(sizeB));
 
-    auto attributes = EntityAttributes::Slime(sizeB);
+    auto health = tag.float32("Health");
+    auto attributes = EntityAttributes::Slime(sizeB, health);
     c->set("Attributes", attributes.toListTag());
 
     return c;
@@ -1743,13 +1746,14 @@ private:
 
     auto id = tag.string("id");
     if (id) {
+      auto health = tag.float32("Health");
       if (*id == "minecraft:horse" || *id == "minecraft:donkey" || *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" || *id == "minecraft:zombie_horse") {
-        auto attributes = EntityAttributes::AnyHorse(tag);
+        auto attributes = EntityAttributes::AnyHorse(tag, health);
         if (attributes) {
           ret->set("Attributes", attributes);
         }
       } else {
-        auto attributes = EntityAttributes::Mob(*id);
+        auto attributes = EntityAttributes::Mob(*id, health);
         if (attributes) {
           ret->set("Attributes", attributes->toListTag());
         }

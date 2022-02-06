@@ -35,7 +35,7 @@ public:
     using namespace props;
     using namespace std;
     auto ret = make_shared<CompoundTag>();
-    auto attributes = EntityAttributes::Mob("minecraft:tropical_fish");
+    auto attributes = EntityAttributes::Mob("minecraft:tropical_fish", nullopt);
     if (attributes) {
       ret->set("Attributes", attributes->toListTag());
     }
