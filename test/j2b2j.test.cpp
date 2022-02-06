@@ -196,8 +196,11 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("Health"); // Health differs. B = 6, J = 3
   }
   auto itemId = entityE.query("Item/id");
-  if (itemId && itemId->asString() && itemId->asString()->fValue == "minecraft:petrified_oak_slab") {
-    blacklist.insert("Item/id");
+  if (itemId && itemId->asString()) {
+    auto name = itemId->asString()->fValue;
+    if (name == "minecraft:petrified_oak_slab" || name == "minecraft:furnace_minecart") {
+      blacklist.insert("Item/id");
+    }
   }
   for (string const &it : blacklist) {
     Erase(copyE, it);
