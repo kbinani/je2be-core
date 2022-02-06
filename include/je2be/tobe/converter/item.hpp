@@ -170,7 +170,6 @@ private:
 
     E("cod", Rename("fish"));
     E("tipped_arrow", TippedArrow);
-    E("totem_of_undying", Rename("totem"));
     E("potion", AnyPotion);
     E("splash_potion", AnyPotion);
     E("lingering_potion", AnyPotion);

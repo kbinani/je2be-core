@@ -742,6 +742,7 @@ public:
     E(clownfish, Rename("tropical_fish"));                 // legacy
     E(tropical_fish_bucket, TropicalFishBucket);
     E(arrow, Arrow);
+    E(totem, Rename("totem_of_undying")); // legacy
 
 #undef E
     return ret;
