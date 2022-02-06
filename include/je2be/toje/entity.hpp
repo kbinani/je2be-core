@@ -609,6 +609,10 @@ public:
     j["Rotation"] = rotB->clone();
   }
 
+  static void Saddle(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["Saddle"] = props::Bool(HasDefinitionWithPrefixAndSuffix(b, "+minecraft:", "_saddled"));
+  }
+
   static void ShowBottom(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"ShowBottom"}});
   }
@@ -678,6 +682,27 @@ public:
     return false;
   }
 
+  static bool HasDefinitionWithPrefixAndSuffix(CompoundTag const &entityB, std::string const &prefix, std::string const &suffix) {
+    auto definitions = entityB.listTag("definitions");
+    if (!definitions) {
+      return false;
+    }
+    for (auto const &it : *definitions) {
+      auto definition = it->asString();
+      if (!definition) {
+        continue;
+      }
+      if (!prefix.empty() && !definition->fValue.starts_with(prefix)) {
+        continue;
+      }
+      if (!suffix.empty() && !definition->fValue.ends_with(suffix)) {
+        continue;
+      }
+      return true;
+    }
+    return false;
+  }
+
   static void Passengers(Uuid const &uid, CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     auto links = b.listTag("LinksTag");
     if (!links) {
@@ -734,6 +759,7 @@ public:
     E(elder_guardian, C(Same, LivingEntity));
     E(cod, C(Same, LivingEntity, FromBucket));
     E(fox, C(Same, Animal, Sitting, Fox));
+    E(pig, C(Same, Animal, Saddle));
 
 #undef E
     return ret;
