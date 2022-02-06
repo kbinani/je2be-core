@@ -672,6 +672,8 @@ public:
     E(horsearmoriron, Rename("iron_horse_armor"));       // legacy
     E(horsearmorgold, Rename("golden_horse_armor"));     // legacy
     E(horsearmordiamond, Rename("diamond_horse_armor")); // legacy
+    E(empty_map, Rename("map"));
+    E(chorus_fruit_popped, Rename("popped_chorus_fruit")); // legacy
 
 #undef E
     return ret;

@@ -165,7 +165,6 @@ private:
     E("firework_rocket", FireworkRocket);
     E("firework_star", FireworkStar);
 
-    E("popped_chorus_fruit", Rename("chorus_fruit_popped"));
     // "13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "otherside", "pigstep"
     // E("music_disc_pigstep", Same);
     E("flower_banner_pattern", Subtype("banner_pattern", 2));
