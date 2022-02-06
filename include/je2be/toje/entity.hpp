@@ -301,6 +301,11 @@ public:
     j["Fire"] = props::Short(-1);
   }
 
+  static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto persistent = b.boolean("Persistent", false);
+    j["FromBucket"] = props::Bool(persistent);
+  }
+
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
@@ -601,6 +606,7 @@ public:
     E(hopper_minecart, Convert(Same, Base, StorageMinecart, HopperMinecart));
     E(boat, Convert(Same, Base, Boat));
     E(slime, Convert(Same, LivingEntity, Slime));
+    E(salmon, Convert(Same, LivingEntity, FromBucket));
 
 #undef E
     return ret;

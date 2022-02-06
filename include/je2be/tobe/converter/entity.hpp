@@ -493,7 +493,7 @@ private:
     A("pufferfish");
     E("rabbit", Convert(Animal, AgeableC, Rabbit));
     M("ravager");
-    A("salmon");
+    E("salmon", Convert(Mob, Salmon));
     E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly")));
     E("shulker", Convert(Monster, Shulker));
     M("silverfish");
@@ -546,6 +546,16 @@ private:
 #undef M
 #undef E
     return table;
+  }
+
+  static EntityData Salmon(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto fromBucket = tag.boolean("FromBucket", false);
+    if (fromBucket) {
+      c->set("Persistent", props::Bool(true));
+    } else {
+      c->set("NaturalSpawn", props::Bool(true));
+    }
+    return c;
   }
 
   static EntityData FallingBlock(EntityData const &c, CompoundTag const &tag, Context &) {
