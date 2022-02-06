@@ -666,7 +666,12 @@ public:
     E(spawn_egg, LegacySpawnEgg);       // legacy
     E(fireball, Rename("fire_charge")); // legacy
     E(zombified_pigman_spawn_egg, Rename("zombified_piglin_spawn_egg"));
-    E(netherbrick, Rename("nether_brick"));
+    E(netherbrick, Rename("nether_brick"));              // legacy
+    E(netherstar, Rename("nether_star"));                // legacy
+    E(horsearmorleather, Rename("leather_horse_armor")); // legacy
+    E(horsearmoriron, Rename("iron_horse_armor"));       // legacy
+    E(horsearmorgold, Rename("golden_horse_armor"));     // legacy
+    E(horsearmordiamond, Rename("diamond_horse_armor")); // legacy
 
 #undef E
     return ret;
