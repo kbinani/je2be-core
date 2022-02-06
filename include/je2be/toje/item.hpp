@@ -704,6 +704,8 @@ public:
     E(written_book, Book);
     E(fish, Rename("cod"));
     E(potion, Potion);
+    E(splash_potion, Potion);
+    E(lingering_potion, Potion);
     E(filled_map, Map);
     E(firework_rocket, FireworkRocket);
     E(fireworks, FireworkRocket); // legacy
