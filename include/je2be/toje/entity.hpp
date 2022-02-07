@@ -841,6 +841,7 @@ public:
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
     E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, Items, Tame, Temper));
+    E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
 
 #undef E
     return ret;
