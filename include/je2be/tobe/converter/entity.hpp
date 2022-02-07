@@ -462,7 +462,7 @@ private:
     E("cow", Convert(Animal, AgeableA("cow")));
     E("creeper", Convert(Monster, Creeper));
     A("dolphin");
-    E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey")));
+    E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey"), Temper));
     M("drowned");
     M("elder_guardian");
     E("enderman", Convert(Monster, Enderman));

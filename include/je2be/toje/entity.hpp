@@ -297,9 +297,6 @@ public:
     armorDropChances->push_back(props::Float(0.085));
     j["ArmorDropChances"] = armorDropChances;
 
-    j["Bred"] = props::Bool(false);
-    j["EatingHaystack"] = props::Bool(false);
-
     int32_t variantB = b.int32("Variant", 0);
     int32_t markVariantB = b.int32("MarkVariant", 0);
     uint32_t uVariantB = *(uint32_t *)&variantB;
@@ -398,8 +395,16 @@ public:
     j["Brain"] = brain;
   }
 
+  static void Bred(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["Bred"] = props::Bool(false);
+  }
+
   static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"canPickupItems", "CanPickUpLoot"}});
+  }
+
+  static void ChestedHorse(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyBoolValues(b, j, {{"Chested", "ChestedHorse", false}});
   }
 
   static void CustomName(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -414,6 +419,10 @@ public:
 
   static void DeathTime(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyShortValues(b, j, {{"DeathTime"}});
+  }
+
+  static void EatingHaystack(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["EatingHaystack"] = props::Bool(false);
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -503,6 +512,40 @@ public:
 
   static void IsBaby(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"IsBaby"}});
+  }
+
+  static void Items(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto chestItems = b.listTag("ChestItems");
+    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
+    if (chestItems) {
+      std::shared_ptr<CompoundTag> saddle;
+      for (auto const &it : *chestItems) {
+        auto itemB = it->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx.fCtx);
+        if (!itemJ) {
+          continue;
+        }
+        auto slot = itemJ->byte("Slot");
+        if (!slot) {
+          continue;
+        }
+        if (*slot == 0) {
+          itemJ->erase("Slot");
+          saddle = itemJ;
+        } else {
+          itemJ->set("Slot", props::Byte(*slot + 1));
+          items->push_back(itemJ);
+        }
+      }
+
+      if (saddle) {
+        j["SaddleItem"] = saddle;
+      }
+    }
+    j["Items"] = items;
   }
 
   static void NoGravity(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -793,9 +836,11 @@ public:
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
-    E(horse, C(Same, Animal, Tame, Temper, Horse));
+    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
+    E(cave_spider, C(Same, LivingEntity));
+    E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, Items, Tame, Temper));
 
 #undef E
     return ret;
