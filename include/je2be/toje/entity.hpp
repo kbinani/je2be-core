@@ -397,6 +397,15 @@ public:
     CopyShortValues(b, j, {{"Age"}, {"Health"}});
   }
 
+  static void Mooshroom(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto variant = b.int32("Variant", 0);
+    std::string type = "red";
+    if (variant == 1) {
+      type = "brown";
+    }
+    j["Type"] = props::String(type);
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -1002,6 +1011,7 @@ public:
     E(guardian, C(Same, LivingEntity));
     E(llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, CopyVariant, Strength));
     E(magma_cube, C(Same, LivingEntity, Size));
+    E(mooshroom, C(Same, Animal, Mooshroom));
 
 #undef E
     return ret;
