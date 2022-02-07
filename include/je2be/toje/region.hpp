@@ -233,8 +233,8 @@ public:
             if (f == entities.end()) {
               continue;
             }
-            auto passenger = f->second;
-            passengers->push_back(passenger);
+            auto p = f->second;
+            passengers->push_back(p);
             entities.erase(f);
           }
           vehicle->set("Passengers", passengers);
