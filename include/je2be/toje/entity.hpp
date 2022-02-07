@@ -397,10 +397,6 @@ public:
     CopyShortValues(b, j, {{"Age"}, {"Health"}});
   }
 
-  static void Parrot(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
-    CopyIntValues(b, j, {{"Variant"}});
-  }
-
   static void Sheep(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -497,6 +493,10 @@ public:
       return;
     }
     CopyByteValues(b, j, {{"Color", "CollarColor"}});
+  }
+
+  static void CopyVariant(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyIntValues(b, j, {{"Variant"}});
   }
 
   static void CustomName(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -606,38 +606,21 @@ public:
     CopyBoolValues(b, j, {{"IsBaby"}});
   }
 
-  static void Items(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
-    auto chestItems = b.listTag("ChestItems");
-    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
-    if (chestItems) {
-      std::shared_ptr<CompoundTag> saddle;
-      for (auto const &it : *chestItems) {
-        auto itemB = it->asCompound();
-        if (!itemB) {
-          continue;
-        }
-        auto itemJ = Item::From(*itemB, ctx.fCtx);
-        if (!itemJ) {
-          continue;
-        }
-        auto slot = itemJ->byte("Slot");
-        if (!slot) {
-          continue;
-        }
-        if (*slot == 0) {
-          itemJ->erase("Slot");
-          saddle = itemJ;
-        } else {
-          itemJ->set("Slot", props::Byte(*slot + 1));
-          items->push_back(itemJ);
-        }
-      }
+  static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    Items("DecorItem", b, j, ctx);
 
-      if (saddle) {
-        j["SaddleItem"] = saddle;
-      }
+    auto armorsJ = j.listTag("ArmorItems");
+    if (!armorsJ) {
+      return;
     }
-    j["Items"] = items;
+    if (armorsJ->size() < 3) {
+      return;
+    }
+    armorsJ->fValue[2] = std::make_shared<CompoundTag>();
+  }
+
+  static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    Items("SaddleItem", b, j, ctx);
   }
 
   static void NoGravity(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -681,6 +664,10 @@ public:
       }
       j["Pos"] = posJ.toListTag();
     }
+  }
+
+  static void Strength(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyIntValues(b, j, {{"Strength"}});
   }
 
   static void Tame(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -911,6 +898,40 @@ public:
     return false;
   }
 
+  static void Items(std::string subItemKey, CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto chestItems = b.listTag("ChestItems");
+    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
+    if (chestItems) {
+      std::shared_ptr<CompoundTag> subItem;
+      for (auto const &it : *chestItems) {
+        auto itemB = it->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx.fCtx);
+        if (!itemJ) {
+          continue;
+        }
+        auto slot = itemJ->byte("Slot");
+        if (!slot) {
+          continue;
+        }
+        if (*slot == 0) {
+          itemJ->erase("Slot");
+          subItem = itemJ;
+        } else {
+          itemJ->set("Slot", props::Byte(*slot + 1));
+          items->push_back(itemJ);
+        }
+      }
+
+      if (subItem) {
+        j[subItemKey] = subItem;
+      }
+    }
+    j["Items"] = items;
+  }
+
   static void Passengers(Uuid const &uid, CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     auto links = b.listTag("LinksTag");
     if (!links) {
@@ -958,7 +979,7 @@ public:
     E(boat, C(Same, Base, Boat));
     E(slime, C(Same, LivingEntity, Slime));
     E(salmon, C(Same, LivingEntity, FromBucket));
-    E(parrot, C(Same, Animal, Owner, Sitting, Parrot));
+    E(parrot, C(Same, Animal, Owner, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
@@ -973,11 +994,13 @@ public:
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
-    E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, Items, Tame, Temper));
+    E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
     E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
     E(endermite, C(Same, LivingEntity, Endermite));
     E(evocation_illager, C(Rename("evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
+    E(guardian, C(Same, LivingEntity));
+    E(llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, CopyVariant, Strength));
 
 #undef E
     return ret;

@@ -1210,6 +1210,8 @@ private:
       AddChestItem(c, armor, 0, 1);
     }
 
+    CopyIntValues(tag, *c, {{"Strength"}});
+
     return c;
   }
 
