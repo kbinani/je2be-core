@@ -431,6 +431,10 @@ public:
     }
   }
 
+  static void Phantom(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["Size"] = props::Int(0);
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -1039,6 +1043,7 @@ public:
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
     E(panda, C(Same, Animal, Panda));
+    E(phantom, C(Same, LivingEntity, Phantom));
 
 #undef E
     return ret;

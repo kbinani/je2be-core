@@ -212,6 +212,10 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("TicksSincePollination"); // TicksSincePollination does not exist in BE
   } else if (id == "minecraft:llama") {
     blacklist.insert("Temper"); // Temper does not exist in BE
+  } else if (id == "minecraft:phantom") {
+    blacklist.insert("AX");
+    blacklist.insert("AY");
+    blacklist.insert("AZ");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
