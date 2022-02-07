@@ -29,7 +29,7 @@ public:
   }
 
   static float ClampDegreesBetween0And360(float v) {
-    return std::fmodf(std::fmodf(v, 360.0f) + 360.0f, 360.0f);
+    return std::fmod(std::fmod(v, 360.0f) + 360.0f, 360.0f);
   }
 
   static float ClampDegreesBetweenMinus180And180(float v) {
