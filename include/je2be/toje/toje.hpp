@@ -7,7 +7,6 @@
 
 #include <je2be/toje/map-info.hpp>
 #include <je2be/toje/context.hpp>
-#include <je2be/toje/chunk-context.hpp>
 
 #include <je2be/toje/item.hpp>
 #include <je2be/toje/entity.hpp>

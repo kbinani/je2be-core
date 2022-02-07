@@ -209,16 +209,19 @@ public:
           }
         }
 
-        ChunkContext cctx(*ctx);
         unordered_map<Uuid, shared_ptr<CompoundTag>, UuidHasher, UuidPred> entities;
         for (auto const &entityB : b->fEntities) {
-          auto result = Entity::From(*entityB, cctx);
-          if (!result) {
-            continue;
+          auto result = Entity::From(*entityB, *ctx);
+          if (result) {
+            entities[result->fUuid] = result->fEntity;
+          } else if (entityB->string("identifier") == "minecraft:leash_knot") {
+            auto id = entityB->int64("UniqueID");
+            if (id) {
+              ctx->fLeashKnots.insert(make_pair(*id, entityB));
+            }
           }
-          entities[result->fUuid] = result->fEntity;
         }
-        for (auto const &it : cctx.fPassengers) {
+        for (auto const &it : ctx->fPassengers) {
           Uuid vehicleUuid = it.first;
           auto found = entities.find(vehicleUuid);
           if (found == entities.end()) {

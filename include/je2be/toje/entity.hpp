@@ -92,7 +92,7 @@ public:
     std::shared_ptr<CompoundTag> fEntity;
   };
 
-  static std::optional<Result> From(CompoundTag const &entityB, ChunkContext &ctx) {
+  static std::optional<Result> From(CompoundTag const &entityB, Context &ctx) {
     auto id = entityB.string("identifier");
     if (!id) {
       return std::nullopt;
@@ -122,15 +122,15 @@ public:
     return r;
   }
 
-  using Converter = std::function<std::shared_ptr<CompoundTag>(std::string const &id, CompoundTag const &eneityB, ChunkContext &ctx)>;
+  using Converter = std::function<std::shared_ptr<CompoundTag>(std::string const &id, CompoundTag const &eneityB, Context &ctx)>;
   using Namer = std::function<std::string(std::string const &nameB, CompoundTag const &entityB)>;
-  using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, ChunkContext &ctx)>;
+  using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx)>;
 
   struct C {
     template <class... Arg>
     C(Namer namer, Converter base, Arg... behaviors) : fNamer(namer), fBase(base), fBehaviors(std::initializer_list<Behavior>{behaviors...}) {}
 
-    std::shared_ptr<CompoundTag> operator()(std::string const &id, CompoundTag const &entityB, ChunkContext &ctx) const {
+    std::shared_ptr<CompoundTag> operator()(std::string const &id, CompoundTag const &entityB, Context &ctx) const {
       auto name = fNamer(id, entityB);
       auto t = fBase(id, entityB, ctx);
       t->set("id", props::String(name));
@@ -158,7 +158,7 @@ public:
 #pragma endregion
 
 #pragma region Dedicated Behaviors
-  static void ArmorStand(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j.erase("ArmorDropChances");
     j.erase("HandDropChances");
     j["DisabledSlots"] = props::Int(false);
@@ -182,11 +182,11 @@ public:
     j["ShowArms"] = props::Bool(showArms);
   }
 
-  static void Bat(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"BatFlags"}});
   }
 
-  static void Bee(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Bee(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["CannotEnterHiveTicks"] = props::Int(0);
     j["CropsGrownSincePollination"] = props::Int(0);
     auto hasNectar = HasDefinition(b, "+has_nectar");
@@ -208,7 +208,7 @@ public:
     j["HasStung"] = props::Bool(false);
   }
 
-  static void Boat(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j["Type"] = props::String(type);
@@ -218,13 +218,13 @@ public:
     j["Rotation"] = rotJ.toListTag();
   }
 
-  static void Cat(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variantB = b.int32("Variant", 8);
     int32_t catType = Cat::JavaCatTypeFromBedrockVariant(variantB);
     j["CatType"] = props::Int(catType);
   }
 
-  static void Chicken(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto entries = b.listTag("entries");
     if (entries) {
       for (auto const &it : *entries) {
@@ -242,7 +242,7 @@ public:
     }
   }
 
-  static void Creeper(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     using namespace props;
     j["ExplosionRadius"] = Byte(3);
     j["Fuse"] = Short(30);
@@ -252,7 +252,7 @@ public:
     }
   }
 
-  static void Enderman(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto carriedBlockTagB = b.compoundTag("carriedBlock");
     if (carriedBlockTagB) {
       auto carriedBlockB = mcfile::be::Block::FromCompound(*carriedBlockTagB);
@@ -267,11 +267,11 @@ public:
     }
   }
 
-  static void Endermite(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Endermite(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"Lifetime"}});
   }
 
-  static void Evoker(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Evoker(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["SpellTicks"] = props::Int(0);
     /* {
       "Chested": 0, // byte
@@ -341,7 +341,7 @@ public:
     */
   }
 
-  static void Fox(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Fox(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     std::string type;
     if (variant == 1) {
@@ -369,7 +369,7 @@ public:
     j["Trusted"] = trusted;
   }
 
-  static void Ghast(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Ghast(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["ExplosionPower"] = props::Byte(1);
   }
 
@@ -389,11 +389,11 @@ public:
     j["Variant"] = props::Int(*(int32_t *)&uVariantJ);
   }
 
-  static void Item(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["PickupDelay"] = props::Short(0);
     auto itemB = b.compoundTag("Item");
     if (itemB) {
-      auto itemJ = toje::Item::From(*itemB, ctx.fCtx);
+      auto itemJ = toje::Item::From(*itemB, ctx);
       if (itemJ) {
         j["Item"] = itemJ;
       }
@@ -401,7 +401,7 @@ public:
     CopyShortValues(b, j, {{"Age"}, {"Health"}});
   }
 
-  static void Mooshroom(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Mooshroom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     std::string type = "red";
     if (variant == 1) {
@@ -410,7 +410,7 @@ public:
     j["Type"] = props::String(type);
   }
 
-  static void Panda(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Panda(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto genes = b.listTag("GeneArray");
     if (genes) {
       std::optional<int32_t> main;
@@ -435,20 +435,20 @@ public:
     }
   }
 
-  static void Phantom(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Phantom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Size"] = props::Int(0);
   }
 
-  static void Sheep(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
   }
 
-  static void Skeleton(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["StrayConversionTime"] = props::Int(-1);
   }
 
-  static void Zombie(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
     j["InWaterTime"] = props::Int(-1);
@@ -456,23 +456,23 @@ public:
 #pragma endregion
 
 #pragma region Behaviors
-  static void AbsorptionAmount(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void AbsorptionAmount(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["AbsorptionAmount"] = props::Float(0);
   }
 
-  static void Age(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Age(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"Age", "Age", 0}});
   }
 
-  static void Air(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Air(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyShortValues(b, j, {{"Air", "Air", 300}});
   }
 
-  static void AngerTime(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void AngerTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["AngerTime"] = props::Int(0);
   }
 
-  static void ArmorItems(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorsB = b.listTag("Armor");
     auto armorsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
@@ -482,7 +482,7 @@ public:
         auto armorB = it->asCompound();
         std::shared_ptr<CompoundTag> armorJ;
         if (armorB) {
-          armorJ = Item::From(*armorB, ctx.fCtx);
+          armorJ = Item::From(*armorB, ctx);
         }
         if (!armorJ) {
           armorJ = std::make_shared<CompoundTag>();
@@ -501,30 +501,30 @@ public:
     j["ArmorDropChances"] = chances;
   }
 
-  static void Brain(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto memories = std::make_shared<CompoundTag>();
     auto brain = std::make_shared<CompoundTag>();
     brain->set("memories", memories);
     j["Brain"] = brain;
   }
 
-  static void Bred(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Bred(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Bred"] = props::Bool(false);
   }
 
-  static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["CanJoinRaid"] = props::Bool(true);
   }
 
-  static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"canPickupItems", "CanPickUpLoot"}});
   }
 
-  static void ChestedHorse(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void ChestedHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Chested", "ChestedHorse", false}});
   }
 
-  static void CollarColor(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void CollarColor(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto owner = b.int64("OwnerNew", -1);
     if (owner == -1) {
       return;
@@ -532,11 +532,11 @@ public:
     CopyByteValues(b, j, {{"Color", "CollarColor"}});
   }
 
-  static void CopyVariant(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void CopyVariant(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"Variant"}});
   }
 
-  static void CustomName(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void CustomName(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto name = b.string("CustomName");
     if (name) {
       nlohmann::json json;
@@ -545,33 +545,33 @@ public:
     }
   }
 
-  static void DeathTime(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void DeathTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyShortValues(b, j, {{"DeathTime"}});
   }
 
-  static void EatingHaystack(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["EatingHaystack"] = props::Bool(false);
   }
 
-  static void FallDistance(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyFloatValues(b, j, {{"FallDistance"}});
   }
 
-  static void FallFlying(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void FallFlying(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["FallFlying"] = props::Bool(false);
   }
 
-  static void Fire(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Fire(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Fire"] = props::Short(-1);
   }
 
-  static void FromBucket(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Persistent", "FromBucket", false}});
     auto name = b.string("CustomName");
     j["PersistenceRequired"] = props::Bool(!!name);
   }
 
-  static void HandItems(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
     for (std::string key : {"Mainhand", "Offhand"}) {
@@ -580,7 +580,7 @@ public:
       if (listB && !listB->empty()) {
         auto c = listB->at(0)->asCompound();
         if (c) {
-          itemJ = Item::From(*c, ctx.fCtx);
+          itemJ = Item::From(*c, ctx);
         }
       }
       if (!itemJ) {
@@ -593,7 +593,7 @@ public:
     j["HandDropChances"] = chances;
   }
 
-  static void Health(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Health(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto attributesB = b.listTag("Attributes");
     if (!attributesB) {
       return;
@@ -616,34 +616,34 @@ public:
     }
   }
 
-  static void HopperMinecart(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void HopperMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto enabled = HasDefinition(b, "+minecraft:hopper_active");
     j["Enabled"] = props::Bool(enabled);
 
     j["TransferCooldown"] = props::Int(0);
   }
 
-  static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["HurtByTimestamp"] = props::Int(0);
   }
 
-  static void HurtTime(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void HurtTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyShortValues(b, j, {{"HurtTime"}});
   }
 
-  static void InLove(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void InLove(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"InLove", "InLove", 0}});
   }
 
-  static void Invulnerable(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Invulnerable"}});
   }
 
-  static void IsBaby(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void IsBaby(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"IsBaby"}});
   }
 
-  static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     Items("DecorItem", b, j, ctx);
 
     auto armorsJ = j.listTag("ArmorItems");
@@ -656,20 +656,20 @@ public:
     armorsJ->fValue[2] = std::make_shared<CompoundTag>();
   }
 
-  static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     Items("SaddleItem", b, j, ctx);
   }
 
-  static void NoGravity(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["NoGravity"] = props::Bool(true);
   }
 
-  static void Size(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto sizeB = b.byte("Size", 1);
     j["Size"] = props::Int(sizeB - 1);
   }
 
-  static void StorageMinecart(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void StorageMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto itemsB = b.listTag("ChestItems");
     if (itemsB) {
       auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
@@ -682,7 +682,7 @@ public:
         if (!nameB) {
           continue;
         }
-        auto itemJ = Item::From(*itemB, ctx.fCtx);
+        auto itemJ = Item::From(*itemB, ctx);
         if (!itemJ) {
           continue;
         }
@@ -708,27 +708,27 @@ public:
     }
   }
 
-  static void Strength(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Strength(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"Strength"}});
   }
 
-  static void Tame(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Tame(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"IsTamed", "Tame", false}});
   }
 
-  static void Temper(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Temper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"Temper", "Temper", 0}});
   }
 
-  static void LeftHanded(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["LeftHanded"] = props::Bool(false);
   }
 
-  static void OnGround(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void OnGround(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"OnGround"}});
   }
 
-  static void Owner(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Owner(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto ownerNew = b.int64("OwnerNew");
     if (!ownerNew) {
       return;
@@ -737,7 +737,7 @@ public:
     j["Owner"] = uuid.toIntArrayTag();
   }
 
-  static void Painting(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Painting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto directionB = b.byte("Direction", 0);
     Facing4 direction = Facing4FromBedrockDirection(directionB);
     auto motiveB = b.string("Motive", "Aztec");
@@ -769,23 +769,23 @@ public:
     j["TileZ"] = props::Int(std::round(tile->fZ));
   }
 
-  static void PatrolLeader(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void PatrolLeader(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"IsIllagerCaptain", "PatrolLeader"}});
   }
 
-  static void Patrolling(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Patrolling(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Patrolling"] = props::Bool(false);
   }
 
-  static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Persistent", "PersistenceRequired", false}});
   }
 
-  static void PortalCooldown(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"PortalCooldown"}});
   }
 
-  static void Pos(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Pos(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto posB = b.listTag("Pos");
     if (!posB) {
       return;
@@ -803,7 +803,7 @@ public:
     j["Pos"] = posJ.toListTag();
   }
 
-  static void Rotation(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Rotation(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto rotB = b.listTag("Rotation");
     if (!rotB) {
       return;
@@ -817,19 +817,19 @@ public:
     j["Rotation"] = rotB->clone();
   }
 
-  static void Saddle(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Saddle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Saddle"] = props::Bool(HasDefinitionWithPrefixAndSuffix(b, "+minecraft:", "_saddled"));
   }
 
-  static void ShowBottom(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"ShowBottom"}});
   }
 
-  static void Sitting(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Sitting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Sitting", "Sitting", false}});
   }
 
-  static void Wave(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Wave(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     /*
       uuid := b.int64("DwellingUniqueID")
       c := db.Get("VILLAGE_(uuid)_RAID")
@@ -859,7 +859,7 @@ public:
 #pragma endregion
 
 #pragma region Converters
-  static std::shared_ptr<CompoundTag> Animal(std::string const &id, CompoundTag const &b, ChunkContext &ctx) {
+  static std::shared_ptr<CompoundTag> Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = LivingEntity(id, b, ctx);
     CompoundTag &j = *ret;
     Age(b, j, ctx);
@@ -867,7 +867,7 @@ public:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, ChunkContext &ctx) {
+  static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = std::make_shared<CompoundTag>();
     CompoundTag &j = *ret;
     Air(b, j, ctx);
@@ -881,7 +881,7 @@ public:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> LivingEntity(std::string const &id, CompoundTag const &b, ChunkContext &ctx) {
+  static std::shared_ptr<CompoundTag> LivingEntity(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = Base(id, b, ctx);
     CompoundTag &j = *ret;
     AbsorptionAmount(b, j, ctx);
@@ -940,7 +940,7 @@ public:
     return false;
   }
 
-  static void Items(std::string subItemKey, CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Items(std::string subItemKey, CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto chestItems = b.listTag("ChestItems");
     auto items = std::make_shared<ListTag>(Tag::Type::Compound);
     if (chestItems) {
@@ -950,7 +950,7 @@ public:
         if (!itemB) {
           continue;
         }
-        auto itemJ = Item::From(*itemB, ctx.fCtx);
+        auto itemJ = Item::From(*itemB, ctx);
         if (!itemJ) {
           continue;
         }
@@ -974,7 +974,7 @@ public:
     j["Items"] = items;
   }
 
-  static void Passengers(Uuid const &uid, CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Passengers(Uuid const &uid, CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto links = b.listTag("LinksTag");
     if (!links) {
       return;

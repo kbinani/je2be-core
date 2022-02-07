@@ -14,6 +14,18 @@ public:
     for (int64_t uuid : fUsedMapUuids) {
       other.fUsedMapUuids.insert(uuid);
     }
+    for (auto const &it : fPassengers) {
+      if (it.second.empty()) {
+        continue;
+      }
+      other.fPassengers[it.first] = it.second;
+    }
+    for (auto const &it : fLeashedEntities) {
+      other.fLeashedEntities[it.first] = it.second;
+    }
+    for (auto const &it : fLeashKnots) {
+      other.fLeashKnots[it.first] = it.second;
+    }
   }
 
   bool postProcess(std::filesystem::path root, leveldb::DB &db) {
@@ -28,6 +40,11 @@ public:
   std::shared_ptr<Context> make() const {
     return std::make_shared<Context>(fMapInfo);
   }
+
+public:
+  std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred> fPassengers;
+  std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred> fLeashedEntities;
+  std::unordered_map<int64_t, std::shared_ptr<CompoundTag>> fLeashKnots;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

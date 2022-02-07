@@ -112,8 +112,7 @@ public:
         if (!beeB) {
           continue;
         }
-        ChunkContext cctx(ctx);
-        auto result = Entity::From(*beeB, cctx);
+        auto result = Entity::From(*beeB, ctx);
         if (result) {
           bees->push_back(result->fEntity);
         }
