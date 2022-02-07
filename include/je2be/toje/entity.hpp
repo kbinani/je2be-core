@@ -1012,6 +1012,7 @@ public:
     E(llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, CopyVariant, Strength));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
+    E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
 
 #undef E
     return ret;

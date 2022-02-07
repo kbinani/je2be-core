@@ -479,7 +479,7 @@ private:
     E("magma_cube", Convert(Monster, Slime));
     E("mooshroom", Convert(Animal, AgeableA("mooshroom"), Mooshroom));
 
-    E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"), Steerable("mule")));
+    E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"), Steerable("mule"), Temper));
     A("ocelot");
     E("panda", Convert(Animal, AgeableA("panda")));
     E("parrot", Convert(Animal, TameableA("parrot"), Sittable, Parrot));
