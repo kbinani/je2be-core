@@ -92,6 +92,7 @@
 #include <je2be/entity/entity-attributes.hpp>
 #include <je2be/entity/tropical-fish.hpp>
 #include <je2be/entity/cat.hpp>
+#include <je2be/entity/panda.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

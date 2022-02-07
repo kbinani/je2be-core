@@ -481,7 +481,7 @@ private:
 
     E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"), Steerable("mule"), Temper));
     A("ocelot");
-    E("panda", Convert(Animal, AgeableA("panda")));
+    E("panda", Convert(Animal, AgeableA("panda"), Panda));
     E("parrot", Convert(Animal, TameableA("parrot"), Sittable, Parrot));
     M("phantom");
     E("pig", Convert(Animal, AgeableA("pig"), Steerable("pig")));
@@ -1050,6 +1050,23 @@ private:
 
     c->set("ChestItems", chestItems);
 
+    return c;
+  }
+
+  static EntityData Panda(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto mainGene = tag.string("MainGene", "normal");
+    auto hiddenGene = tag.string("HiddenGene", "normal");
+
+    Panda::Gene main = Panda::GeneFromJavaName(mainGene);
+    Panda::Gene hidden = Panda::GeneFromJavaName(hiddenGene);
+
+    auto genes = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto gene = std::make_shared<CompoundTag>();
+    gene->set("MainAllele", props::Int(Panda::BedrockAlleleFromGene(main)));
+    gene->set("HiddenAllele", props::Int(Panda::BedrockAlleleFromGene(hidden)));
+    genes->push_back(gene);
+
+    c->set("GeneArray", genes);
     return c;
   }
 

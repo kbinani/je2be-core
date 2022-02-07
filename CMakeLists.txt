@@ -25,6 +25,7 @@ set(je2be_files
   include/je2be/entity/cat.hpp
   include/je2be/entity/entity-attributes.hpp
   include/je2be/entity/painting.hpp
+  include/je2be/entity/panda.hpp
   include/je2be/entity/tropical-fish.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
   include/je2be/enums/color-code-java.hpp

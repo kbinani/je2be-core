@@ -406,6 +406,31 @@ public:
     j["Type"] = props::String(type);
   }
 
+  static void Panda(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto genes = b.listTag("GeneArray");
+    if (genes) {
+      std::optional<int32_t> main;
+      std::optional<int32_t> hidden;
+      for (auto const &it : *genes) {
+        auto gene = it->asCompound();
+        if (!gene) {
+          continue;
+        }
+        auto m = gene->int32("MainAllele");
+        auto h = gene->int32("HiddenAllele");
+        if (m && h) {
+          main = m;
+          hidden = h;
+          break;
+        }
+      }
+      if (main && hidden) {
+        j["MainGene"] = props::String(Panda::JavaGeneNameFromGene(Panda::GeneFromBedrockAllele(*main)));
+        j["HiddenGene"] = props::String(Panda::JavaGeneNameFromGene(Panda::GeneFromBedrockAllele(*hidden)));
+      }
+    }
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -1013,7 +1038,7 @@ public:
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
-    E(panda, C(Same, Animal));
+    E(panda, C(Same, Animal, Panda));
 
 #undef E
     return ret;
