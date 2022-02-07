@@ -473,7 +473,7 @@ private:
     M("ghast");
     M("guardian");
     M("hoglin");
-    E("horse", Convert(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Horse));
+    E("horse", Convert(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Temper, Horse));
     E("husk", Convert(Monster, AgeableA("husk")));
     E("llama", Convert(Animal, AgeableA("llama"), TameableB("llama"), ChestedHorse("llama"), Llama));
     E("magma_cube", Convert(Monster, Slime));
@@ -1712,6 +1712,11 @@ private:
       }
     }
     tag->set("definitions", d);
+  }
+
+  static EntityData Temper(EntityData const &c, CompoundTag const &tag, Context &) {
+    CopyIntValues(tag, *c, {{"Temper"}});
+    return c;
   }
 
   static EntityData Sittable(EntityData const &c, CompoundTag const &tag, Context &) {

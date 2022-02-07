@@ -289,6 +289,25 @@ public:
     j["Trusted"] = trusted;
   }
 
+  static void Horse(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
+    armorDropChances->push_back(props::Float(0.085));
+    armorDropChances->push_back(props::Float(0.085));
+    armorDropChances->push_back(props::Float(0));
+    armorDropChances->push_back(props::Float(0.085));
+    j["ArmorDropChances"] = armorDropChances;
+
+    j["Bred"] = props::Bool(false);
+    j["EatingHaystack"] = props::Bool(false);
+
+    int32_t variantB = b.int32("Variant", 0);
+    int32_t markVariantB = b.int32("MarkVariant", 0);
+    uint32_t uVariantB = *(uint32_t *)&variantB;
+    uint32_t uMarkVariantB = *(uint32_t *)&markVariantB;
+    uint32_t uVariantJ = (0xf & uVariantB) | ((0xf & uMarkVariantB) << 8);
+    j["Variant"] = props::Int(*(int32_t *)&uVariantJ);
+  }
+
   static void Item(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     j["PickupDelay"] = props::Short(0);
     auto itemB = b.compoundTag("Item");
@@ -522,6 +541,14 @@ public:
       }
       j["Pos"] = posJ.toListTag();
     }
+  }
+
+  static void Tame(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyBoolValues(b, j, {{"IsTamed", "Tame", false}});
+  }
+
+  static void Temper(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyIntValues(b, j, {{"Temper", "Temper", 0}});
   }
 
   static void LeftHanded(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -760,6 +787,8 @@ public:
     E(cod, C(Same, LivingEntity, FromBucket));
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
+    E(zoglin, C(Same, LivingEntity));
+    E(horse, C(Same, Animal, Tame, Temper, Horse));
 
 #undef E
     return ret;
