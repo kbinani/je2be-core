@@ -369,7 +369,11 @@ public:
     j["Trusted"] = trusted;
   }
 
-  static void Horse(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+  static void Ghast(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["ExplosionPower"] = props::Byte(1);
+  }
+
+  static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
     armorDropChances->push_back(props::Float(0.085));
     armorDropChances->push_back(props::Float(0.085));
@@ -1044,6 +1048,7 @@ public:
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
     E(panda, C(Same, Animal, Panda));
     E(phantom, C(Same, LivingEntity, Phantom));
+    E(ghast, C(Same, LivingEntity, Ghast));
 
 #undef E
     return ret;
