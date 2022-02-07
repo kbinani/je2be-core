@@ -789,6 +789,7 @@ public:
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
     E(horse, C(Same, Animal, Tame, Temper, Horse));
+    E(husk, C(Same, LivingEntity, IsBaby, Zombie));
 
 #undef E
     return ret;
