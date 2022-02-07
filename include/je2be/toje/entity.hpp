@@ -324,6 +324,11 @@ public:
     CopyIntValues(b, j, {{"Variant"}});
   }
 
+  static void Sheep(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyBoolValues(b, j, {{"Sheared"}});
+    CopyByteValues(b, j, {{"Color"}});
+  }
+
   static void Skeleton(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     j["StrayConversionTime"] = props::Int(-1);
   }
@@ -790,6 +795,7 @@ public:
     E(zoglin, C(Same, LivingEntity));
     E(horse, C(Same, Animal, Tame, Temper, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
+    E(sheep, C(Same, Animal, Sheep));
 
 #undef E
     return ret;

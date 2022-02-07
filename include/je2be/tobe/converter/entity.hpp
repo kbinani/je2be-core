@@ -494,7 +494,7 @@ private:
     E("rabbit", Convert(Animal, AgeableC, Rabbit));
     M("ravager");
     E("salmon", Convert(Mob, Salmon));
-    E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly")));
+    E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
     E("shulker", Convert(Monster, Shulker));
     M("silverfish");
     M("skeleton"); // lefty skeleton does not exist in Bedrock?
@@ -570,6 +570,11 @@ private:
     } else {
       c->set("NaturalSpawn", props::Bool(true));
     }
+    return c;
+  }
+
+  static EntityData Sheep(EntityData const &c, CompoundTag const &tag, Context &) {
+    CopyBoolValues(tag, *c, {{"Sheared", "Sheared", false}});
     return c;
   }
 
