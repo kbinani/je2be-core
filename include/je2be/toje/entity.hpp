@@ -1013,6 +1013,7 @@ public:
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
+    E(panda, C(Same, Animal));
 
 #undef E
     return ret;
