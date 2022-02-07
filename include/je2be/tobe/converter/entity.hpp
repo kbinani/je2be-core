@@ -1485,12 +1485,6 @@ private:
   static EntityData Monster(CompoundTag const &tag, Context &ctx) {
     auto c = Mob(tag, ctx);
     c->set("SpawnedByNight", props::Bool(false));
-    auto persistenceRequired = tag.boolean("PersistenceRequired", true);
-    bool persistent = false;
-    if (persistenceRequired && tag.string("CustomName")) {
-      persistent = true;
-    }
-    c->set("Persistent", props::Bool(persistent));
     return c;
   }
 
@@ -1498,13 +1492,6 @@ private:
     auto c = Mob(tag, ctx);
     if (!c) {
       return nullptr;
-    }
-
-    auto fromBucket = tag.boolean("FromBucket");
-    if (fromBucket) {
-      c->set("Persistent", props::Bool(*fromBucket));
-    } else {
-      c->set("Persistent", props::Bool(true));
     }
 
     auto leash = tag.compoundTag("Leash");
@@ -1745,6 +1732,14 @@ private:
     auto ret = LivingEntity(tag, ctx);
     if (!ret) {
       return ret;
+    }
+
+    auto fromBucket = tag.boolean("FromBucket");
+    if (fromBucket) {
+      ret->set("Persistent", props::Bool(*fromBucket));
+      ret->set("PersistenceRequired", props::Bool(false));
+    } else {
+      CopyBoolValues(tag, *ret, {{"PersistenceRequired", "Persistent", false}});
     }
 
     auto id = tag.string("id");

@@ -218,6 +218,12 @@ public:
     j["Rotation"] = rotJ.toListTag();
   }
 
+  static void Cat(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto variantB = b.int32("Variant", 8);
+    int32_t catType = Cat::JavaCatTypeFromBedrockVariant(variantB);
+    j["CatType"] = props::Int(catType);
+  }
+
   static void Chicken(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     auto entries = b.listTag("entries");
     if (entries) {
@@ -485,6 +491,14 @@ public:
     CopyBoolValues(b, j, {{"Chested", "ChestedHorse", false}});
   }
 
+  static void CollarColor(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto owner = b.int64("OwnerNew", -1);
+    if (owner == -1) {
+      return;
+    }
+    CopyByteValues(b, j, {{"Color", "CollarColor"}});
+  }
+
   static void CustomName(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     auto name = b.string("CustomName");
     if (name) {
@@ -492,7 +506,6 @@ public:
       json["text"] = *name;
       j["CustomName"] = props::String(nlohmann::to_string(json));
     }
-    j["PersistenceRequired"] = props::Bool(!!name);
   }
 
   static void DeathTime(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -516,8 +529,9 @@ public:
   }
 
   static void FromBucket(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
-    auto persistent = b.boolean("Persistent", false);
-    j["FromBucket"] = props::Bool(persistent);
+    CopyBoolValues(b, j, {{"Persistent", "FromBucket", false}});
+    auto name = b.string("CustomName");
+    j["PersistenceRequired"] = props::Bool(!!name);
   }
 
   static void HandItems(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -734,6 +748,10 @@ public:
     j["Patrolling"] = props::Bool(false);
   }
 
+  static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyBoolValues(b, j, {{"Persistent", "PersistenceRequired", false}});
+  }
+
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyIntValues(b, j, {{"PortalCooldown"}});
   }
@@ -849,6 +867,7 @@ public:
     HurtByTimestamp(b, j, ctx);
     HurtTime(b, j, ctx);
     LeftHanded(b, j, ctx);
+    PersistenceRequired(b, j, ctx);
     return ret;
   }
 #pragma endregion
