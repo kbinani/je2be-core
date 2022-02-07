@@ -406,11 +406,6 @@ public:
     j["StrayConversionTime"] = props::Int(-1);
   }
 
-  static void Slime(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
-    auto sizeB = b.byte("Size", 1);
-    j["Size"] = props::Int(sizeB - 1);
-  }
-
   static void Zombie(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -625,6 +620,11 @@ public:
 
   static void NoGravity(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     j["NoGravity"] = props::Bool(true);
+  }
+
+  static void Size(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    auto sizeB = b.byte("Size", 1);
+    j["Size"] = props::Int(sizeB - 1);
   }
 
   static void StorageMinecart(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -977,7 +977,7 @@ public:
     E(chest_minecart, C(Same, Base, StorageMinecart));
     E(hopper_minecart, C(Same, Base, StorageMinecart, HopperMinecart));
     E(boat, C(Same, Base, Boat));
-    E(slime, C(Same, LivingEntity, Slime));
+    E(slime, C(Same, LivingEntity, Size));
     E(salmon, C(Same, LivingEntity, FromBucket));
     E(parrot, C(Same, Animal, Owner, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
@@ -1001,6 +1001,7 @@ public:
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
     E(llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, CopyVariant, Strength));
+    E(magma_cube, C(Same, LivingEntity, Size));
 
 #undef E
     return ret;

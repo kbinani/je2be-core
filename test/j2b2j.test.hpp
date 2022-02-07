@@ -206,7 +206,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
     blacklist.insert("Health"); // Default health differs. B = 6, J = 20
-  } else if (id == "minecraft:slime") {
+  } else if (id == "minecraft:slime" || id == "minecraft:magma_cube") {
     blacklist.insert("wasOnGround"); // wasOnGround does not exist in BE
   } else if (id == "minecraft:bee") {
     blacklist.insert("TicksSincePollination"); // TicksSincePollination does not exist in BE
