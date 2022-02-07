@@ -466,7 +466,7 @@ private:
     M("drowned");
     M("elder_guardian");
     E("enderman", Convert(Monster, Enderman));
-    M("endermite");
+    E("endermite", Convert(Monster, Endermite));
     E("evoker", Convert(Monster, Rename("evocation_illager")));
 
     E("fox", Convert(Animal, Fox));
@@ -560,6 +560,11 @@ private:
         }
       }
     }
+    return c;
+  }
+
+  static EntityData Endermite(EntityData const &c, CompoundTag const &tag, Context &) {
+    CopyIntValues(tag, *c, {{"Lifetime"}});
     return c;
   }
 

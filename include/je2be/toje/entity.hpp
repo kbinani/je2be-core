@@ -261,6 +261,10 @@ public:
     }
   }
 
+  static void Endermite(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyIntValues(b, j, {{"Lifetime"}});
+  }
+
   static void Fox(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     auto variant = b.int32("Variant", 0);
     std::string type;
@@ -842,6 +846,7 @@ public:
     E(cave_spider, C(Same, LivingEntity));
     E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, Items, Tame, Temper));
     E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
+    E(endermite, C(Same, LivingEntity, Endermite));
 
 #undef E
     return ret;
