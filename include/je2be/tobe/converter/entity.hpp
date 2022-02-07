@@ -1548,54 +1548,9 @@ private:
     using namespace std;
     auto catType = tag.int32("CatType");
     if (catType) {
-      int32_t variant = 0;
-      std::string type;
-      switch (*catType) {
-      case 0:
-        type = "tabby";
-        variant = 8;
-        break;
-      case 1:
-        type = "tuxedo";
-        variant = 1;
-        break;
-      case 2:
-        type = "red";
-        variant = 2;
-        break;
-      case 3:
-        type = "siamese";
-        variant = 3;
-        break;
-      case 4:
-        type = "british";
-        variant = 4;
-        break;
-      case 5:
-        type = "calico";
-        variant = 5;
-        break;
-      case 6:
-        type = "persian";
-        variant = 6;
-        break;
-      case 7:
-        type = "ragdoll";
-        variant = 7;
-        break;
-      case 8:
-        type = "white";
-        variant = 0;
-        break;
-      case 9:
-        type = "jellie";
-        variant = 10;
-        break;
-      case 10:
-        type = "black";
-        variant = 9;
-        break;
-      }
+      Cat::Type ct = Cat::CatTypeFromJavaCatType(*catType);
+      int32_t variant = Cat::BedrockVariantFromJavaCatType(ct);
+      std::string type = Cat::BedrockNameFromCatType(ct);
       if (!type.empty()) {
         AddDefinition(c, "+minecraft:cat_" + type);
       }

@@ -22,6 +22,7 @@ set(je2be_files
   include/je2be/defer.hpp
   include/je2be/entity/armor-stand.hpp
   include/je2be/entity/boat.hpp
+  include/je2be/entity/cat.hpp
   include/je2be/entity/entity-attributes.hpp
   include/je2be/entity/painting.hpp
   include/je2be/entity/tropical-fish.hpp

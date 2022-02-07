@@ -958,6 +958,7 @@ public:
     E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
     E(endermite, C(Same, LivingEntity, Endermite));
     E(evocation_illager, C(Rename("evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
+    E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
 
 #undef E
     return ret;
