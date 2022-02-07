@@ -1,10 +1,4 @@
-#include <doctest/doctest.h>
-#include <je2be.hpp>
-
-using namespace std;
-using namespace je2be;
-using namespace mcfile::nbt;
-namespace fs = std::filesystem;
+#pragma once
 
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
   CHECK(e.fName == a.fName);

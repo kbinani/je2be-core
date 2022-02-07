@@ -1,14 +1,4 @@
-#include <doctest/doctest.h>
-#include <je2be.hpp>
-
-#include <iostream>
-
-#include "CheckTag.hpp"
-
-using namespace std;
-using namespace mcfile;
-using namespace mcfile::je;
-namespace fs = std::filesystem;
+#pragma once
 
 TEST_CASE("block-data") {
   fs::path thisFile(__FILE__);

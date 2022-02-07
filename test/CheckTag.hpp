@@ -1,8 +1,5 @@
 #pragma once
 
-#include <doctest/doctest.h>
-#include <je2be.hpp>
-
 class CheckTag {
 public:
   static void Check(mcfile::nbt::Tag const *va, mcfile::nbt::Tag const *vb) {

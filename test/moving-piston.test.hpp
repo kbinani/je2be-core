@@ -1,18 +1,8 @@
-#include <doctest/doctest.h>
-#include <iostream>
-#include <je2be.hpp>
-#include <sstream>
+#pragma once
 
-using namespace je2be;
-using namespace mcfile;
-using namespace mcfile::je;
-using namespace mcfile::nbt;
-using namespace std;
-namespace fs = std::filesystem;
-
-static tuple<shared_ptr<Chunk>, shared_ptr<Region>> Load(string type) {
+static tuple<shared_ptr<mcfile::je::Chunk>, shared_ptr<mcfile::je::Region>> Load(string type) {
   fs::path thisFile(__FILE__);
-  World world(thisFile.parent_path() / "data" / "piston" / type);
+  mcfile::je::World world(thisFile.parent_path() / "data" / "piston" / type);
   auto region = world.region(0, 0);
   auto chunk = region->chunkAt(0, 0);
   return make_pair(chunk, region);
@@ -117,7 +107,7 @@ static void CheckPistonArm(shared_ptr<CompoundTag const> const &actual, Expected
 TEST_CASE("moving-piston") {
   SUBCASE("extending=0") {
     auto [chunk, region] = Load("extending=0");
-    CachedChunkLoader loader(*region);
+    mcfile::je::CachedChunkLoader loader(*region);
     loader.addToCache(chunk);
     tobe::MovingPiston::PreprocessChunk(loader, *chunk);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 5, 8)], {.id = "j2b:MovingBlock",
@@ -217,7 +207,7 @@ TEST_CASE("moving-piston") {
 
   SUBCASE("extending=1") {
     auto [chunk, region] = Load("extending=1");
-    CachedChunkLoader loader(*region);
+    mcfile::je::CachedChunkLoader loader(*region);
     loader.addToCache(chunk);
     tobe::MovingPiston::PreprocessChunk(loader, *chunk);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 8)], {.id = "j2b:MovingBlock",
@@ -312,7 +302,7 @@ TEST_CASE("moving-piston") {
 
   SUBCASE("normal_extending=1") {
     auto [chunk, region] = Load("normal_extending=1");
-    CachedChunkLoader loader(*region);
+    mcfile::je::CachedChunkLoader loader(*region);
     loader.addToCache(chunk);
     tobe::MovingPiston::PreprocessChunk(loader, *chunk);
     CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 9)], {.id = "j2b:MovingBlock",

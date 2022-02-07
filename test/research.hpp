@@ -1,19 +1,4 @@
-#include <doctest/doctest.h>
-
-#include <je2be.hpp>
-
-#include <fstream>
-#include <iostream>
-
-#if defined(_WIN32)
-#include <fcntl.h>
-#include <io.h>
-#include <shlobj_core.h>
-#endif
-
-using namespace std;
-using namespace mcfile;
-namespace fs = std::filesystem;
+#pragma once
 
 namespace {
 optional<wstring> GetLocalApplicationDirectory() {

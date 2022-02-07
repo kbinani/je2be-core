@@ -220,12 +220,12 @@ set(je2be_files
   .clang-format)
 set(test_files
   test/main.cpp
-  test/moving-piston.test.cpp
-  test/command.test.cpp
-  test/research.cpp
-  test/block-data.test.cpp
+  test/moving-piston.test.hpp
+  test/command.test.hpp
+  test/research.hpp
+  test/block-data.test.hpp
   test/CheckTag.hpp
-  test/j2b2j.test.cpp)
+  test/j2b2j.test.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 
