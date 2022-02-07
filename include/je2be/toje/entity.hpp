@@ -265,6 +265,76 @@ public:
     CopyIntValues(b, j, {{"Lifetime"}});
   }
 
+  static void Evoker(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["SpellTicks"] = props::Int(0);
+    /* {
+      "Chested": 0, // byte
+      "Color": 0, // byte
+      "Color2": 0, // byte
+      "FallDistance": 0, // float
+      "Invulnerable": 0, // byte
+      "IsAngry": 0, // byte
+      "IsAutonomous": 0, // byte
+      "IsBaby": 0, // byte
+      "IsEating": 0, // byte
+      "IsGliding": 0, // byte
+      "IsGlobal": 0, // byte
+      "IsIllagerCaptain": 0, // byte
+      "IsOrphaned": 0, // byte
+      "IsOutOfControl": 0, // byte
+      "IsRoaring": 0, // byte
+      "IsScared": 0, // byte
+      "IsStunned": 0, // byte
+      "IsSwimming": 0, // byte
+      "IsTamed": 0, // byte
+      "IsTrusting": 0, // byte
+      "LastDimensionId": 0, // int
+      "LeasherID": -1, // long
+      "LootDropped": 0, // byte
+      "MarkVariant": 0, // int
+      "Motion": [
+        0, // float
+        0, // float
+        0 // float
+      ],
+      "OnGround": 1, // byte
+      "OwnerNew": -1644972474284, // long
+      "PortalCooldown": 0, // int
+      "Pos": [
+        7, // float
+        96, // float
+        3 // float
+      ],
+      "Rotation": [
+        0, // float
+        0 // float
+      ],
+      "Saddled": 0, // byte
+      "Sheared": 0, // byte
+      "ShowBottom": 0, // byte
+      "Sitting": 0, // byte
+      "SkinID": 0, // int
+      "Strength": 0, // int
+      "StrengthMax": 0, // int
+      "Tags": [
+      ],
+      "TradeExperience": 0, // int
+      "TradeTier": 0, // int
+      "UniqueID": -1649267441647, // long
+      "Variant": 0, // int
+      "canPickupItems": 1, // byte
+      "definitions": [
+      ],
+      "hasSetCanPickupItems": 1, // byte
+      "identifier": "minecraft:evocation_fang",
+      "internalComponents": {
+        "ActorLimitedLifetimeComponent": {
+          "limitedLife": 12 // int
+        }
+      }
+    */
+  }
+
   static void Fox(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     auto variant = b.int32("Variant", 0);
     std::string type;
@@ -401,6 +471,10 @@ public:
 
   static void Bred(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     j["Bred"] = props::Bool(false);
+  }
+
+  static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["CanJoinRaid"] = props::Bool(true);
   }
 
   static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
@@ -652,6 +726,14 @@ public:
     j["TileZ"] = props::Int(std::round(tile->fZ));
   }
 
+  static void PatrolLeader(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    CopyBoolValues(b, j, {{"IsIllagerCaptain", "PatrolLeader"}});
+  }
+
+  static void Patrolling(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    j["Patrolling"] = props::Bool(false);
+  }
+
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyIntValues(b, j, {{"PortalCooldown"}});
   }
@@ -698,6 +780,34 @@ public:
 
   static void Sitting(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
     CopyBoolValues(b, j, {{"Sitting", "Sitting", false}});
+  }
+
+  static void Wave(CompoundTag const &b, CompoundTag &j, ChunkContext &ctx) {
+    /*
+      uuid := b.int64("DwellingUniqueID")
+      c := db.Get("VILLAGE_(uuid)_RAID")
+      c => {
+        "Raid": {
+          "GroupNum": 2, // byte
+          "NumGroups": 7, // byte
+          "NumRaiders": 4, // byte
+          "Raiders": [
+            -1640677507038, // long
+            -1640677507037, // long
+            -1640677507036, // long
+            -1640677507035 // long
+          ],
+          "SpawnFails": 0, // byte
+          "SpawnX": 46, // float
+          "SpawnY": 83, // float
+          "SpawnZ": -26, // float
+          "State": 3, // int
+          "Ticks": 428, // long
+          "TotalMaxHealth": 172 // float
+        }
+      }
+      */
+    j["Wave"] = props::Int(0);
   }
 #pragma endregion
 
@@ -847,6 +957,7 @@ public:
     E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, Items, Tame, Temper));
     E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
     E(endermite, C(Same, LivingEntity, Endermite));
+    E(evocation_illager, C(Rename("evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
 
 #undef E
     return ret;
