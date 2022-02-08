@@ -617,9 +617,10 @@ public:
   static void CollarColor(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto owner = b.int64("OwnerNew", -1);
     if (owner == -1) {
-      return;
+      j["CollarColor"] = props::Byte(14);
+    } else {
+      CopyByteValues(b, j, {{"Color", "CollarColor"}});
     }
-    CopyByteValues(b, j, {{"Color", "CollarColor"}});
   }
 
   static void CopyVariant(CompoundTag const &b, CompoundTag &j, Context &ctx) {
