@@ -483,6 +483,17 @@ public:
     j["Fire"] = props::Short(0);
   }
 
+  static void Turtle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto homePos = props::GetPos3f(b, "HomePos");
+    if (homePos) {
+      j["HomePosX"] = props::Int(roundf(homePos->fX));
+      j["HomePosY"] = props::Int(roundf(homePos->fY));
+      j["HomePosZ"] = props::Int(roundf(homePos->fZ));
+    }
+
+    j["HasEgg"] = props::Bool(HasDefinition(b, "-minecraft:wants_to_lay_egg") || HasDefinition(b, "+minecraft:wants_to_lay_egg"));
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -1111,6 +1122,7 @@ public:
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
     E(squid, C(Same, LivingEntity));
     E(strider, C(Same, Animal, Saddle, Strider));
+    E(turtle, C(Same, Animal, Turtle));
 
 #undef E
     return ret;

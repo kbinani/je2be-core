@@ -507,7 +507,7 @@ private:
     E("strider", Convert(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
     E("trader_llama", Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
     E("tropical_fish", Convert(Animal, Rename("tropicalfish"), TropicalFish));
-    A("turtle");
+    E("turtle", Convert(Animal, Turtle));
 
     M("vex");
     E("villager", Convert(Animal, Rename("villager_v2"), Villager));
@@ -1105,6 +1105,26 @@ private:
     if (enabled) {
       AddDefinition(c, "+minecraft:hopper_active");
     }
+    return c;
+  }
+
+  static EntityData Turtle(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto x = tag.int32("HomePosX");
+    auto y = tag.int32("HomePosY");
+    auto z = tag.int32("HomePosZ");
+    if (x && y && z) {
+      auto homePos = std::make_shared<ListTag>(Tag::Type::Float);
+      homePos->push_back(props::Float(*x));
+      homePos->push_back(props::Float(*y));
+      homePos->push_back(props::Float(*z));
+      c->set("HomePos", homePos);
+    }
+
+    if (tag.boolean("HasEgg", false)) {
+      AddDefinition(c, "-minecraft:pregnant");
+      AddDefinition(c, "-minecraft:wants_to_lay_egg");
+    }
+
     return c;
   }
 

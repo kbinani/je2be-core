@@ -218,6 +218,10 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("AZ");
   } else if (id == "minecraft:item") {
     blacklist.insert("Fire"); // Fire is -1 or 0 in JE. Fire does not exist in BE
+  } else if (id == "minecraft:turtle") {
+    blacklist.insert("TravelPosX");
+    blacklist.insert("TravelPosY");
+    blacklist.insert("TravelPosZ");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
