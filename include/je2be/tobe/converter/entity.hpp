@@ -492,7 +492,7 @@ private:
     A("polar_bear");
     E("pufferfish", Convert(Animal, Pufferfish));
     E("rabbit", Convert(Animal, AgeableC, Rabbit));
-    E("ravager", Convert(Monster), AttackTime);
+    E("ravager", Convert(Monster, AttackTime));
     E("salmon", Convert(Mob, Salmon));
     E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
     E("shulker", Convert(Monster, Shulker));
