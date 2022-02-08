@@ -1090,6 +1090,7 @@ public:
     E(pufferfish, C(Same, LivingEntity, FromBucket, Pufferfish));
     E(rabbit, C(Same, Animal, Rabbit));
     E(ravager, C(Same, LivingEntity, AttackTick, CanJoinRaid, PatrolLeader, Patrolling, Wave, Ravager));
+    E(silverfish, C(Same, LivingEntity));
 
 #undef E
     return ret;
