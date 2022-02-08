@@ -1098,6 +1098,7 @@ public:
     E(ravager, C(Same, LivingEntity, AttackTick, CanJoinRaid, PatrolLeader, Patrolling, Wave, Ravager));
     E(silverfish, C(Same, LivingEntity));
     E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, SkeletonHorse));
+    E(polar_bear, C(Same, Animal, AngerTime));
 
 #undef E
     return ret;
