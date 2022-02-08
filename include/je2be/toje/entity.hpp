@@ -479,6 +479,10 @@ public:
     j["SkeletonTrapTime"] = props::Int(0);
   }
 
+  static void Strider(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["Fire"] = props::Short(0);
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -1106,6 +1110,7 @@ public:
     E(polar_bear, C(Same, Animal, AngerTime));
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
     E(squid, C(Same, LivingEntity));
+    E(strider, C(Same, Animal, Saddle, Strider));
 
 #undef E
     return ret;
