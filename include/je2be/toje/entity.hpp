@@ -473,10 +473,6 @@ public:
     CopyByteValues(b, j, {{"Color"}});
   }
 
-  static void Skeleton(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["StrayConversionTime"] = props::Int(-1);
-  }
-
   static void SkeletonHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     // summon minecraft:skeleton_horse ~ ~ ~ minecraft:set_trap
     j["SkeletonTrap"] = props::Bool(HasDefinition(b, "+minecraft:skeleton_trap"));
@@ -753,6 +749,10 @@ public:
       }
       j["Pos"] = posJ.toListTag();
     }
+  }
+
+  static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["StrayConversionTime"] = props::Int(-1);
   }
 
   static void Strength(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1053,7 +1053,8 @@ public:
   assert(ret->find("minecraft:" #__name) == ret->end()); \
   ret->insert(std::make_pair("minecraft:" #__name, __conv));
 
-    E(skeleton, C(Same, LivingEntity, Skeleton));
+    E(skeleton, C(Same, LivingEntity, StrayConversionTime));
+    E(stray, C(Same, LivingEntity));
     E(creeper, C(Same, LivingEntity, Creeper));
     E(spider, C(Same, LivingEntity));
     E(bat, C(Same, LivingEntity, Bat));
