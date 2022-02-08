@@ -459,6 +459,11 @@ public:
     CopyIntValues(b, j, {{"Variant", "RabbitType", 0}});
   }
 
+  static void Ravager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["RoarTick"] = props::Int(0);
+    j["StunTick"] = props::Int(0);
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -519,6 +524,13 @@ public:
     }
     j["ArmorItems"] = armorsJ;
     j["ArmorDropChances"] = chances;
+  }
+
+  static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto attackTime = b.int16("AttackTime");
+    if (attackTime) {
+      j["AttackTick"] = props::Int(*attackTime);
+    }
   }
 
   static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1077,6 +1089,7 @@ public:
     E(pillager, C(Same, LivingEntity, CanJoinRaid, Inventory, PatrolLeader, Patrolling, Wave));
     E(pufferfish, C(Same, LivingEntity, FromBucket, Pufferfish));
     E(rabbit, C(Same, Animal, Rabbit));
+    E(ravager, C(Same, LivingEntity, AttackTick, CanJoinRaid, PatrolLeader, Patrolling, Wave, Ravager));
 
 #undef E
     return ret;

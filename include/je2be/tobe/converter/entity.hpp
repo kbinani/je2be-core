@@ -492,7 +492,7 @@ private:
     A("polar_bear");
     E("pufferfish", Convert(Animal, Pufferfish));
     E("rabbit", Convert(Animal, AgeableC, Rabbit));
-    M("ravager");
+    E("ravager", Convert(Monster), AttackTime);
     E("salmon", Convert(Mob, Salmon));
     E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
     E("shulker", Convert(Monster, Shulker));
@@ -1660,6 +1660,12 @@ private:
       c->erase("Age");
     }
     c->set("IsBaby", props::Bool(age < 0));
+    return c;
+  }
+
+  static EntityData AttackTime(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto attackTick = tag.int32("AttackTick", 0);
+    c->set("AttackTime", props::Short(attackTick));
     return c;
   }
 
