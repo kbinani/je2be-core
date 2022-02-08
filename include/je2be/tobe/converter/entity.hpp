@@ -237,7 +237,7 @@ public:
         {"LootDropped", Bool(fLootDropped)},
         {"MarkVariant", Int(fMarkVariant)},
         {"OnGround", Bool(fOnGround)},
-        {"OwnerNew", Int(fOwnerNew)},
+        {"OwnerNew", Long(fOwnerNew)},
         {"PortalCooldown", Int(fPortalCooldown)},
         {"Saddled", Bool(fSaddled)},
         {"Sheared", Bool(fSheared)},
