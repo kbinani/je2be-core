@@ -499,7 +499,7 @@ private:
     M("silverfish");
     M("skeleton"); // lefty skeleton does not exist in Bedrock?
 
-    A("skeleton_horse");
+    E("skeleton_horse", Convert(Animal, SkeletonHorse));
     E("slime", Convert(Monster, Slime));
     E("spider", Convert(Monster, Vehicle("spider")));
     A("squid");
@@ -1285,6 +1285,15 @@ private:
       AddDefinition(c, "+minecraft:shulker_undyed");
     }
     c->set("Variant", props::Int(color));
+    return c;
+  }
+
+  static EntityData SkeletonHorse(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto trap = tag.boolean("SkeletonTrap", false);
+    if (trap) {
+      AddDefinition(c, "+minecraft:skeleton_trap");
+      AddDefinition(c, "+minecraft:lightning_immune");
+    }
     return c;
   }
 

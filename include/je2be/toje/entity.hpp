@@ -473,6 +473,12 @@ public:
     j["StrayConversionTime"] = props::Int(-1);
   }
 
+  static void SkeletonHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    // summon minecraft:skeleton_horse ~ ~ ~ minecraft:set_trap
+    j["SkeletonTrap"] = props::Bool(HasDefinition(b, "+minecraft:skeleton_trap"));
+    j["SkeletonTrapTime"] = props::Int(0);
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -1091,6 +1097,7 @@ public:
     E(rabbit, C(Same, Animal, Rabbit));
     E(ravager, C(Same, LivingEntity, AttackTick, CanJoinRaid, PatrolLeader, Patrolling, Wave, Ravager));
     E(silverfish, C(Same, LivingEntity));
+    E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, SkeletonHorse));
 
 #undef E
     return ret;
