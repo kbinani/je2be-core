@@ -48,8 +48,6 @@ public:
     switch (fVariant) {
     case Savanna:
       return "savanna";
-    case Plains:
-      return "plains";
     case Desert:
       return "desert";
     case Jungle:
@@ -60,6 +58,9 @@ public:
       return "swamp";
     case Taiga:
       return "taiga";
+    case Plains:
+    default:
+      return "plains";
     }
   }
 

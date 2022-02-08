@@ -495,6 +495,31 @@ public:
     j["HasEgg"] = props::Bool(HasDefinition(b, "-minecraft:wants_to_lay_egg") || HasDefinition(b, "+minecraft:wants_to_lay_egg"));
   }
 
+  static void Villager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyIntValues(b, j, {{"TradeExperience", "Xp", 0}});
+    j["FoodLevel"] = props::Byte(0);
+
+    j.erase("InLove");
+
+    auto dataJ = std::make_shared<CompoundTag>();
+
+    auto variantB = b.int32("Variant", 0);
+    auto professionVariant = static_cast<VillagerProfession::Variant>(variantB);
+    VillagerProfession profession(professionVariant);
+    dataJ->set("profession", props::String("minecraft:" + profession.string()));
+
+    auto markVariantB = b.int32("MarkVariant", 0);
+    auto typeVariant = static_cast<VillagerType::Variant>(markVariantB);
+    VillagerType type(typeVariant);
+    dataJ->set("type", props::String("minecraft:" + type.string()));
+
+    dataJ->set("level", props::Int(1));
+
+    j["VillagerData"] = dataJ;
+
+    //TODO: offers
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -1129,6 +1154,7 @@ public:
     E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
     E(minecart, C(Same, Base, Minecart));
     E(vex, C(Same, LivingEntity, NoGravity));
+    E(villager_v2, C(Rename("villager"), Animal, Inventory, Villager));
 
 #undef E
     return ret;

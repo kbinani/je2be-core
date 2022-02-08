@@ -123,6 +123,7 @@ public:
     case Librarian:
       return "librarian";
     }
+    return "none";
   }
 
 private:

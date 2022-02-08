@@ -224,6 +224,12 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("TravelPosX");
     blacklist.insert("TravelPosY");
     blacklist.insert("TravelPosZ");
+  } else if (id == "minecraft:villager") {
+    blacklist.insert("Brain/memories");
+    blacklist.insert("Gossips");
+    blacklist.insert("LastGossipDecay");
+    blacklist.insert("LastRestock");
+    blacklist.insert("RestocksToday");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
