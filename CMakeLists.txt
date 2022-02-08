@@ -112,6 +112,7 @@ set(je2be_files
   include/je2be/toje/cave-vines.hpp
   include/je2be/toje/chorus-plant.hpp
   include/je2be/toje/chunk-cache.hpp
+  include/je2be/toje/chunk.hpp
   include/je2be/toje/context.hpp
   include/je2be/toje/converter.hpp
   include/je2be/toje/entity.hpp
@@ -126,6 +127,7 @@ set(je2be_files
   include/je2be/toje/region.hpp
   include/je2be/toje/shape-of-stairs.hpp
   include/je2be/toje/snowy.hpp
+  include/je2be/toje/sub-chunk.hpp
   include/je2be/toje/toje.hpp
   include/je2be/toje/tripwire.hpp
   include/je2be/toje/twisting-vines.hpp

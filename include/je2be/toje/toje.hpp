@@ -29,6 +29,8 @@
 #include <je2be/toje/piston.hpp>
 #include <je2be/toje/beacon.hpp>
 
+#include <je2be/toje/sub-chunk.hpp>
+#include <je2be/toje/chunk.hpp>
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>
 #include <je2be/toje/converter.hpp>
