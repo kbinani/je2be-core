@@ -483,6 +483,11 @@ public:
     j["Fire"] = props::Short(0);
   }
 
+  static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto tf = TropicalFish::FromBedrockBucketTag(b);
+    j["Variant"] = props::Int(tf.toJavaVariant());
+  }
+
   static void Turtle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto homePos = props::GetPos3f(b, "HomePos");
     if (homePos) {
@@ -1123,6 +1128,7 @@ public:
     E(squid, C(Same, LivingEntity));
     E(strider, C(Same, Animal, Saddle, Strider));
     E(turtle, C(Same, Animal, Turtle));
+    E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
 
 #undef E
     return ret;
