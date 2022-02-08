@@ -1374,6 +1374,9 @@ private:
     }
     c->set("Variant", props::Int(variant));
     AddDefinition(c, "+coat_" + coat);
+
+    CopyIntValues(tag, *c, {{"MoreCarrotTicks"}});
+
     return c;
   }
 

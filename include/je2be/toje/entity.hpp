@@ -454,6 +454,11 @@ public:
     j["PuffState"] = props::Int(state);
   }
 
+  static void Rabbit(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyIntValues(b, j, {{"MoreCarrotTicks"}});
+    CopyIntValues(b, j, {{"Variant", "RabbitType", 0}});
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -1071,6 +1076,7 @@ public:
     E(ghast, C(Same, LivingEntity, Ghast));
     E(pillager, C(Same, LivingEntity, CanJoinRaid, Inventory, PatrolLeader, Patrolling, Wave));
     E(pufferfish, C(Same, LivingEntity, FromBucket, Pufferfish));
+    E(rabbit, C(Same, Animal, Rabbit));
 
 #undef E
     return ret;
