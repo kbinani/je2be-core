@@ -640,6 +640,11 @@ public:
     CopyIntValues(b, j, {{"InLove", "InLove", 0}});
   }
 
+  static void Inventory(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    //TODO:
+    j["Inventory"] = std::make_shared<ListTag>(Tag::Type::Compound);
+  }
+
   static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Invulnerable"}});
   }
@@ -1054,6 +1059,7 @@ public:
     E(panda, C(Same, Animal, Panda));
     E(phantom, C(Same, LivingEntity, Phantom));
     E(ghast, C(Same, LivingEntity, Ghast));
+    E(pillager, C(Same, LivingEntity, CanJoinRaid, Inventory, PatrolLeader, Patrolling, Wave));
 
 #undef E
     return ret;
