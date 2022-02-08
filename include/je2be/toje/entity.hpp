@@ -378,6 +378,10 @@ public:
     j["ExplosionPower"] = props::Byte(1);
   }
 
+  static void GlowSquid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["DarkTicksRemaining"] = props::Int(0);
+  }
+
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
     armorDropChances->push_back(props::Float(0.085));
@@ -1099,6 +1103,7 @@ public:
     E(silverfish, C(Same, LivingEntity));
     E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, SkeletonHorse));
     E(polar_bear, C(Same, Animal, AngerTime));
+    E(glow_squid, C(Same, LivingEntity, GlowSquid));
 
 #undef E
     return ret;
