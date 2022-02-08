@@ -1104,6 +1104,7 @@ public:
     E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, SkeletonHorse));
     E(polar_bear, C(Same, Animal, AngerTime));
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
+    E(squid, C(Same, LivingEntity));
 
 #undef E
     return ret;
