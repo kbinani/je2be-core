@@ -1128,6 +1128,7 @@ public:
     E(turtle, C(Same, Animal, Turtle));
     E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
     E(minecart, C(Same, Base, Minecart));
+    E(vex, C(Same, LivingEntity, NoGravity));
 
 #undef E
     return ret;
