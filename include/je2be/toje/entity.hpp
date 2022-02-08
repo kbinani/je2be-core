@@ -479,10 +479,6 @@ public:
     j["SkeletonTrapTime"] = props::Int(0);
   }
 
-  static void Strider(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Fire"] = props::Short(0);
-  }
-
   static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto tf = TropicalFish::FromBedrockBucketTag(b);
     j["Variant"] = props::Int(tf.toJavaVariant());
@@ -1128,7 +1124,7 @@ public:
     E(polar_bear, C(Same, Animal, AngerTime));
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
     E(squid, C(Same, LivingEntity));
-    E(strider, C(Same, Animal, Saddle, Strider));
+    E(strider, C(Same, Animal, Saddle));
     E(turtle, C(Same, Animal, Turtle));
     E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
     E(minecart, C(Same, Base, Minecart));
