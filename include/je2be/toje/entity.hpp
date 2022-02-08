@@ -723,6 +723,24 @@ public:
     Items("SaddleItem", b, j, ctx);
   }
 
+  static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto posB = props::GetPos3f(b, "Pos");
+    auto onGround = b.boolean("OnGround");
+    if (posB && onGround) {
+      Pos3d posJ = posB->toD();
+      if (*onGround) {
+        // JE: GroundLevel
+        // BE: GroundLevel + 0.35
+        posJ.fY = posB->fY - 0.35;
+      } else {
+        // JE: GroundLevel + 0.0625
+        // BE: GroundLevel + 0.5
+        posJ.fY = posB->fY - 0.5 + 0.0625;
+      }
+      j["Pos"] = posJ.toListTag();
+    }
+  }
+
   static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["NoGravity"] = props::Bool(true);
   }
@@ -752,22 +770,6 @@ public:
         itemsJ->push_back(itemJ);
       }
       j["Items"] = itemsJ;
-    }
-
-    auto posB = props::GetPos3f(b, "Pos");
-    auto onGround = b.boolean("OnGround");
-    if (posB && onGround) {
-      Pos3d posJ = posB->toD();
-      if (*onGround) {
-        // JE: GroundLevel
-        // BE: GroundLevel + 0.35
-        posJ.fY = posB->fY - 0.35;
-      } else {
-        // JE: GroundLevel + 0.0625
-        // BE: GroundLevel + 0.5
-        posJ.fY = posB->fY - 0.5 + 0.0625;
-      }
-      j["Pos"] = posJ.toListTag();
     }
   }
 
@@ -1084,8 +1086,8 @@ public:
     E(item, C(Same, Base, Entity::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom));
-    E(chest_minecart, C(Same, Base, StorageMinecart));
-    E(hopper_minecart, C(Same, Base, StorageMinecart, HopperMinecart));
+    E(chest_minecart, C(Same, Base, Minecart, StorageMinecart));
+    E(hopper_minecart, C(Same, Base, Minecart, StorageMinecart, HopperMinecart));
     E(boat, C(Same, Base, Boat));
     E(slime, C(Same, LivingEntity, Size));
     E(salmon, C(Same, LivingEntity, FromBucket));
@@ -1129,6 +1131,7 @@ public:
     E(strider, C(Same, Animal, Saddle, Strider));
     E(turtle, C(Same, Animal, Turtle));
     E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
+    E(minecart, C(Same, Base, Minecart));
 
 #undef E
     return ret;
