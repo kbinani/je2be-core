@@ -1253,6 +1253,7 @@ public:
     E(vex, C(Same, LivingEntity, NoGravity));
     E(villager_v2, C(Rename("villager"), Animal, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
+    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
 
 #undef E
     return ret;
