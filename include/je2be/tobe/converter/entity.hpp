@@ -490,7 +490,7 @@ private:
     M("pillager");
 
     A("polar_bear");
-    A("pufferfish");
+    E("pufferfish", Convert(Animal, Pufferfish));
     E("rabbit", Convert(Animal, AgeableC, Rabbit));
     M("ravager");
     E("salmon", Convert(Mob, Salmon));
@@ -1305,6 +1305,44 @@ private:
       AddDefinition(c, "+minecraft:" + definitionKey + "_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
       return c;
     };
+  }
+
+  static EntityData Pufferfish(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto puffState = tag.int32("PuffState", 0);
+
+    /*
+    "+minecraft:normal_puff"
+
+    "-minecraft:normal_puff",
+    "+minecraft:half_puff_primary"
+
+    "-minecraft:full_puff",
+    "-minecraft:normal_puff",
+    "+minecraft:half_puff_primary"
+
+    "-minecraft:full_puff",
+    "+minecraft:half_puff_secondary"
+
+    "+minecraft:full_puff",
+    "-minecraft:deflate_sensor",
+    "+minecraft:start_deflate"
+    */
+
+    std::string def;
+    switch (puffState) {
+    case 1:
+      def = "+minecraft:half_puff_primary";
+      break;
+    case 2:
+      def = "+minecraft:full_puff";
+      break;
+    case 0:
+    default:
+      def = "+minecraft:normal_puff";
+      break;
+    }
+    AddDefinition(c, def);
+    return c;
   }
 
   static EntityData Rabbit(EntityData const &c, CompoundTag const &tag, Context &) {

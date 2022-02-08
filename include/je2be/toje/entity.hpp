@@ -444,6 +444,16 @@ public:
     j["Size"] = props::Int(0);
   }
 
+  static void Pufferfish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    int state = 0;
+    if (HasDefinition(b, "+minecraft:half_puff_primary") || HasDefinition(b, "+minecraft:half_puff_secondary")) {
+      state = 1;
+    } else if (HasDefinition(b, "+minecraft:full_puff")) {
+      state = 2;
+    }
+    j["PuffState"] = props::Int(state);
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Sheared"}});
     CopyByteValues(b, j, {{"Color"}});
@@ -1060,6 +1070,7 @@ public:
     E(phantom, C(Same, LivingEntity, Phantom));
     E(ghast, C(Same, LivingEntity, Ghast));
     E(pillager, C(Same, LivingEntity, CanJoinRaid, Inventory, PatrolLeader, Patrolling, Wave));
+    E(pufferfish, C(Same, LivingEntity, FromBucket, Pufferfish));
 
 #undef E
     return ret;
