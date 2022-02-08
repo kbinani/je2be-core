@@ -516,8 +516,19 @@ public:
     dataJ->set("level", props::Int(1));
 
     j["VillagerData"] = dataJ;
+  }
 
-    //TODO: offers
+  static void WanderingTrader(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    /*
+      // spawned with spawn egg
+      "entries": [
+        {
+          "SpawnTimer": -1, // int
+          "StopSpawning": 1 // byte
+        }
+      ],
+  */
+    j["DespawnDelay"] = props::Int(0);
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -764,6 +775,34 @@ public:
 
   static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["NoGravity"] = props::Bool(true);
+  }
+
+  static void Offers(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto offersB = b.compoundTag("Offers");
+    if (!offersB) {
+      return;
+    }
+    auto recipesB = offersB->listTag("Recipes");
+    if (!recipesB) {
+      return;
+    }
+
+    auto recipesJ = std::make_shared<ListTag>(Tag::Type::Compound);
+    for (auto const &it : *recipesB) {
+      auto recipeB = it->asCompound();
+      if (!recipeB) {
+        continue;
+      }
+      auto recipeJ = Recipe(*recipeB, ctx);
+      if (!recipeJ) {
+        continue;
+      }
+      recipesJ->push_back(recipeJ);
+    }
+
+    auto offersJ = std::make_shared<CompoundTag>();
+    offersJ->set("Recipes", recipesJ);
+    j["Offers"] = offersJ;
   }
 
   static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1082,6 +1121,63 @@ public:
       ctx.fVehicleEntities[uid][index] = passengerUid;
     }
   }
+
+  static std::shared_ptr<CompoundTag> BuyItem(CompoundTag const &recipeB, std::string const &suffix, Context &ctx) {
+    using namespace std;
+    auto buy = recipeB.compoundTag("buy" + suffix);
+    if (!buy) {
+      return nullptr;
+    }
+    auto item = Item::From(*buy, ctx);
+    if (!item) {
+      return nullptr;
+    }
+    auto count = recipeB.int32("buyCount" + suffix);
+    if (!count) {
+      return nullptr;
+    }
+    item->set("Count", props::Byte(*count));
+    return item;
+  }
+
+  static std::shared_ptr<CompoundTag> Recipe(CompoundTag const &recipeB, Context &ctx) {
+    auto sellB = recipeB.compoundTag("sell");
+    if (!sellB) {
+      return nullptr;
+    }
+    auto sellJ = Item::From(*sellB, ctx);
+    if (!sellJ) {
+      return nullptr;
+    }
+
+    auto buyA = BuyItem(recipeB, "A", ctx);
+    auto buyB = BuyItem(recipeB, "B", ctx);
+    if (!buyA) {
+      return nullptr;
+    }
+
+    auto ret = std::make_shared<CompoundTag>();
+
+    ret->set("sell", sellJ);
+
+    ret->set("buy", buyA);
+    if (buyB) {
+      ret->set("buyB", buyB);
+    } else {
+      auto air = std::make_shared<CompoundTag>();
+      air->set("id", props::String("minecraft:air"));
+      air->set("Count", props::Byte(1));
+      ret->set("buyB", air);
+    }
+
+    ret->set("specialPrice", props::Int(0));
+
+    CopyIntValues(recipeB, *ret, {{"demand"}, {"maxUses"}, {"uses"}, {"traderExp", "xp"}});
+    CopyByteValues(recipeB, *ret, {{"rewardExp"}});
+    CopyFloatValues(recipeB, *ret, {{"priceMultiplierA", "priceMultiplier"}, {"priceMultiplierB"}});
+
+    return ret;
+  }
 #pragma endregion
 
   static std::unordered_map<std::string, Converter> const *GetTable() {
@@ -1154,7 +1250,8 @@ public:
     E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
     E(minecart, C(Same, Base, Minecart));
     E(vex, C(Same, LivingEntity, NoGravity));
-    E(villager_v2, C(Rename("villager"), Animal, Inventory, Villager));
+    E(villager_v2, C(Rename("villager"), Animal, Inventory, Offers, Villager));
+    E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
 
 #undef E
     return ret;

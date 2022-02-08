@@ -510,9 +510,9 @@ private:
     E("turtle", Convert(Animal, Turtle));
 
     M("vex");
-    E("villager", Convert(Animal, Rename("villager_v2"), Villager));
+    E("villager", Convert(Animal, Rename("villager_v2"), Offers(4), Villager));
     M("vindicator");
-    A("wandering_trader");
+    E("wandering_trader", Convert(Animal, Offers(0)));
     M("witch");
     M("wither_skeleton");
     E("wolf", Convert(Animal, TameableA("wolf"), Sittable, CollarColorable));
@@ -798,50 +798,6 @@ private:
     }
     AddDefinition(c, "+minecraft:villager_v2");
 
-    auto offers = tag.compoundTag("Offers");
-    if (offers) {
-      auto recipes = offers->listTag("Recipes");
-      if (recipes) {
-        auto rs = make_shared<ListTag>(Tag::Type::Compound);
-        for (int i = 0; i < recipes->size(); i++) {
-          auto recipe = recipes->at(i);
-          auto r = recipe->asCompound();
-          if (!r) {
-            continue;
-          }
-          auto converted = BedrockRecipieFromJava(*r, ctx);
-          if (!converted) {
-            continue;
-          }
-          int tier = i / 2;
-          converted->set("tier", Int(tier));
-          rs->push_back(converted);
-        }
-        if (!rs->empty()) {
-          auto of = make_shared<CompoundTag>();
-          of->set("Recipes", rs);
-          auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
-          auto tier0 = make_shared<CompoundTag>();
-          tier0->set("0", Int(0));
-          auto tier1 = make_shared<CompoundTag>();
-          tier1->set("1", Int(10));
-          auto tier2 = make_shared<CompoundTag>();
-          tier2->set("2", Int(70));
-          auto tier3 = make_shared<CompoundTag>();
-          tier3->set("3", Int(150));
-          auto tier4 = make_shared<CompoundTag>();
-          tier4->set("4", Int(250));
-          expRequirements->push_back(tier0);
-          expRequirements->push_back(tier1);
-          expRequirements->push_back(tier2);
-          expRequirements->push_back(tier3);
-          expRequirements->push_back(tier4);
-          of->set("TierExpRequirements", expRequirements);
-          c->set("Offers", of);
-        }
-      }
-    }
-
     auto tradeExp = tag.int32("Xp", 0);
     c->set("TradeExperience", Int(tradeExp));
 
@@ -858,6 +814,68 @@ private:
     c->set("TradeTier", Int(tradeTier));
 
     return c;
+  }
+
+  static Behavior Offers(int maxTradeTier) {
+    return [maxTradeTier](EntityData const &c, CompoundTag const &tag, Context &ctx) -> EntityData {
+      using namespace std;
+      using namespace props;
+
+      auto offers = tag.compoundTag("Offers");
+      if (offers) {
+        auto recipes = offers->listTag("Recipes");
+        if (recipes) {
+          auto rs = make_shared<ListTag>(Tag::Type::Compound);
+          for (int i = 0; i < recipes->size(); i++) {
+            auto recipe = recipes->at(i);
+            auto r = recipe->asCompound();
+            if (!r) {
+              continue;
+            }
+            auto converted = BedrockRecipieFromJava(*r, ctx);
+            if (!converted) {
+              continue;
+            }
+            int tier = min(i / 2, maxTradeTier);
+            converted->set("tier", Int(tier));
+            rs->push_back(converted);
+          }
+          if (!rs->empty()) {
+            auto of = make_shared<CompoundTag>();
+            of->set("Recipes", rs);
+            auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
+            if (maxTradeTier >= 0) {
+              auto tier0 = make_shared<CompoundTag>();
+              tier0->set("0", Int(0));
+              expRequirements->push_back(tier0);
+            }
+            if (maxTradeTier >= 1) {
+              auto tier1 = make_shared<CompoundTag>();
+              tier1->set("1", Int(10));
+              expRequirements->push_back(tier1);
+            }
+            if (maxTradeTier >= 2) {
+              auto tier2 = make_shared<CompoundTag>();
+              tier2->set("2", Int(70));
+              expRequirements->push_back(tier2);
+            }
+            if (maxTradeTier >= 3) {
+              auto tier3 = make_shared<CompoundTag>();
+              tier3->set("3", Int(150));
+              expRequirements->push_back(tier3);
+            }
+            if (maxTradeTier >= 4) {
+              auto tier4 = make_shared<CompoundTag>();
+              tier4->set("4", Int(250));
+              expRequirements->push_back(tier4);
+            }
+            of->set("TierExpRequirements", expRequirements);
+            c->set("Offers", of);
+          }
+        }
+      }
+      return c;
+    };
   }
 
   static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, Context &ctx) {
@@ -910,28 +928,9 @@ private:
       bedrock->set("sell", item);
     }
 
-    auto demand = java.int32("demand", 0);
-    bedrock->set("demand", Int(demand));
-
-    auto maxUses = java.int32("maxUses", 16);
-    bedrock->set("maxUses", Int(maxUses));
-
-    auto priceMultiplierA = java.float32("priceMultiplier", 0.05f);
-    bedrock->set("priceMultiplierA", Float(priceMultiplierA));
-
-    //BE: priceMultiplierB
-    bedrock->set("priceMultiplierB", Float(0));
-
-    auto rewardExp = java.boolean("rewardExp", true);
-    bedrock->set("rewardExp", Bool(rewardExp));
-
-    //JE: specialPrice(int)
-
-    auto xp = java.int32("xp", 1);
-    bedrock->set("traderExp", Int(xp));
-
-    auto uses = java.int32("uses", 0);
-    bedrock->set("uses", Int(uses));
+    CopyIntValues(java, *bedrock, {{"demand"}, {"maxUses"}, {"uses"}, {"xp", "traderExp"}});
+    CopyByteValues(java, *bedrock, {{"rewardExp"}});
+    CopyFloatValues(java, *bedrock, {{"priceMultiplier", "priceMultiplierA"}, {"priceMultiplierB"}});
 
     return bedrock;
   }
