@@ -112,20 +112,75 @@ public:
         entities[result->fUuid] = result->fEntity;
       } else if (entityB->string("identifier") == "minecraft:leash_knot") {
         auto id = entityB->int64("UniqueID");
-        if (id) {
-          ctx.fLeashKnots.insert(make_pair(*id, entityB));
+        auto posf = props::GetPos3f(*entityB, "Pos");
+        if (id && posf) {
+          int x = (int)roundf(posf->fX - 0.5f);
+          int y = (int)roundf(posf->fY - 0.25f);
+          int z = (int)roundf(posf->fZ - 0.5f);
+          Pos3i posi(x, y, z);
+          ctx.fLeashKnots[*id] = posi;
         }
       }
     }
-    for (auto const &it : ctx.fPassengers) {
+
+    AttachPassengers(ctx, entities);
+    AttachLeash(ctx, entities);
+
+    for (auto const &it : entities) {
+      j->fEntities.push_back(it.second);
+    }
+
+    return j;
+  }
+
+  static void AttachLeash(Context &ctx, std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities) {
+    using namespace std;
+    unordered_set<Uuid, UuidHasher, UuidPred> resolvedLeashedEntities;
+    for (auto &it : ctx.fLeashedEntities) {
+      Uuid leashedEntityUuid = it.first;
+      int64_t leasherId = it.second;
+      auto foundLeashedEntity = entities.find(leashedEntityUuid);
+      if (foundLeashedEntity == entities.end()) {
+        continue;
+      }
+      shared_ptr<CompoundTag> const &leashedEntity = foundLeashedEntity->second;
+      auto foundLeash = ctx.fLeashKnots.find(leasherId);
+      if (foundLeash == ctx.fLeashKnots.end()) {
+        continue;
+      }
+      Pos3i leashPos = foundLeash->second;
+      auto leashTag = make_shared<CompoundTag>();
+      leashTag->set("X", props::Int(leashPos.fX));
+      leashTag->set("Y", props::Int(leashPos.fY));
+      leashTag->set("Z", props::Int(leashPos.fZ));
+      leashedEntity->set("Leash", leashTag);
+
+      ctx.fLeashKnots.erase(leasherId);
+      resolvedLeashedEntities.insert(leashedEntityUuid);
+    }
+    for (Uuid resolvedLeashedEntity : resolvedLeashedEntities) {
+      ctx.fLeashedEntities.erase(resolvedLeashedEntity);
+    }
+  }
+
+  static void AttachPassengers(Context &ctx, std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities) {
+    using namespace std;
+    unordered_set<Uuid, UuidHasher, UuidPred> resolvedVehicleEntities;
+    for (auto &it : ctx.fVehicleEntities) {
       Uuid vehicleUuid = it.first;
+      std::map<size_t, Uuid> &passengers = it.second;
       auto found = entities.find(vehicleUuid);
       if (found == entities.end()) {
         continue;
       }
       shared_ptr<CompoundTag> vehicle = found->second;
-      auto passengers = make_shared<ListTag>(Tag::Type::Compound);
-      for (auto const &passenger : it.second) {
+      shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
+      if (!passengersTag) {
+        passengersTag = make_shared<ListTag>(Tag::Type::Compound);
+        vehicle->set("Passengers", passengersTag);
+      }
+      unordered_set<size_t> resolvedPassengers;
+      for (auto const &passenger : passengers) {
         size_t passengerIndex = passenger.first;
         Uuid passengerUuid = passenger.second;
         auto f = entities.find(passengerUuid);
@@ -133,16 +188,20 @@ public:
           continue;
         }
         auto p = f->second;
-        passengers->push_back(p);
+        passengersTag->push_back(p);
         entities.erase(f);
+        resolvedPassengers.insert(passengerIndex);
       }
-      vehicle->set("Passengers", passengers);
+      for (size_t resolvedPassenger : resolvedPassengers) {
+        passengers.erase(resolvedPassenger);
+      }
+      if (passengers.empty()) {
+        resolvedVehicleEntities.insert(vehicleUuid);
+      }
     }
-    for (auto const &it : entities) {
-      j->fEntities.push_back(it.second);
+    for (Uuid resolvedVehicleEntity : resolvedVehicleEntities) {
+      ctx.fVehicleEntities.erase(resolvedVehicleEntity);
     }
-
-    return j;
   }
 };
 

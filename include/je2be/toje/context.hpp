@@ -14,11 +14,11 @@ public:
     for (int64_t uuid : fUsedMapUuids) {
       other.fUsedMapUuids.insert(uuid);
     }
-    for (auto const &it : fPassengers) {
+    for (auto const &it : fVehicleEntities) {
       if (it.second.empty()) {
         continue;
       }
-      other.fPassengers[it.first] = it.second;
+      other.fVehicleEntities[it.first] = it.second;
     }
     for (auto const &it : fLeashedEntities) {
       other.fLeashedEntities[it.first] = it.second;
@@ -42,9 +42,9 @@ public:
   }
 
 public:
-  std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred> fPassengers;
+  std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred> fVehicleEntities;
   std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred> fLeashedEntities;
-  std::unordered_map<int64_t, std::shared_ptr<CompoundTag>> fLeashKnots;
+  std::unordered_map<int64_t, Pos3i> fLeashKnots;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

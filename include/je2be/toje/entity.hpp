@@ -116,6 +116,11 @@ public:
     e->set("UUID", uuid.toIntArrayTag());
     Passengers(uuid, entityB, *e, ctx);
 
+    auto leasherId = entityB.int64("LeasherID", -1);
+    if (leasherId != -1) {
+      ctx.fLeashedEntities[uuid] = leasherId;
+    }
+
     Result r;
     r.fUuid = uuid;
     r.fEntity = e;
@@ -989,7 +994,7 @@ public:
         continue;
       }
       Uuid passengerUid = Uuid::GenWithI64Seed(*id);
-      ctx.fPassengers[uid].insert(std::make_pair(index, passengerUid));
+      ctx.fVehicleEntities[uid][index] = passengerUid;
     }
   }
 #pragma endregion
