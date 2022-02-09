@@ -827,6 +827,10 @@ private:
         AddDefinition(c, "+" + profession->string());
       }
     }
+    auto offers = tag.compoundTag("Offers");
+    if (offers) {
+      c->set("Persistent", props::Bool(true));
+    }
     return c;
   }
 
