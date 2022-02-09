@@ -687,6 +687,9 @@ public:
     CopyShortValues(b, j, {{"DeathTime"}});
   }
 
+  static void Debug(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  }
+
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["EatingHaystack"] = props::Bool(false);
   }
@@ -1309,7 +1312,7 @@ public:
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
-    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Zombie, Villager));
+    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
     E(wither_skeleton, C(Same, LivingEntity));
