@@ -545,7 +545,8 @@ public:
     VillagerType type(typeVariant);
     dataJ->set("type", props::String("minecraft:" + type.string()));
 
-    dataJ->set("level", props::Int(1));
+    auto tradeTier = b.int32("TradeTier", 0);
+    dataJ->set("level", props::Int(tradeTier + 1));
 
     j["VillagerData"] = dataJ;
   }
