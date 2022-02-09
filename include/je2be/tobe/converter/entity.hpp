@@ -626,14 +626,13 @@ private:
   static EntityData Axolotl(EntityData const &c, CompoundTag const &tag, Context &) {
     using namespace props;
     auto originalVariant = std::clamp(tag.int32("Variant", 0), 0, 4);
-    static const int variantMapping[5] = {0, 3, 2, 1, 4};
     static const std::string definitionMapping[5] = {
         "+axolotl_lucy",
         "+axolotl_wild",
         "+axolotl_gold",
         "+axolotl_cyan",
         "+axolotl_blue"};
-    auto variant = variantMapping[originalVariant];
+    auto variant = je2be::Axolotl::BedrockVariantFromJavaVariant(originalVariant);
     auto definition = definitionMapping[originalVariant];
     c->set("Variant", Int(variant));
     AddDefinition(c, definition);

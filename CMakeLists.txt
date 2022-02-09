@@ -21,6 +21,7 @@ set(je2be_files
   include/je2be/color/sign-color.hpp
   include/je2be/defer.hpp
   include/je2be/entity/armor-stand.hpp
+  include/je2be/entity/axolotl.hpp
   include/je2be/entity/boat.hpp
   include/je2be/entity/cat.hpp
   include/je2be/entity/effect.hpp

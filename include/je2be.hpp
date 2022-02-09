@@ -94,6 +94,7 @@
 #include <je2be/entity/cat.hpp>
 #include <je2be/entity/panda.hpp>
 #include <je2be/entity/effect.hpp>
+#include <je2be/entity/axolotl.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

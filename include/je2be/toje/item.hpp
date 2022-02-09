@@ -83,6 +83,17 @@ public:
       }
     }
 
+    auto customName = tagB->string("CustomName");
+    auto customNameVisible = tagB->boolean("CustomNameVisible", false);
+    if (customName && customNameVisible) {
+      if (!displayJ) {
+        displayJ = make_shared<CompoundTag>();
+      }
+      nlohmann::json json;
+      json["text"] = *customName;
+      displayJ->set("Name", props::String(nlohmann::to_string(json)));
+    }
+
     auto enchB = tagB->listTag("ench");
     if (enchB) {
       auto enchJ = make_shared<ListTag>(Tag::Type::Compound);
@@ -127,6 +138,39 @@ public:
       itemJ.set("tag", tagJ);
       return Ns() + "tipped_arrow";
     }
+  }
+
+  static std::string AxolotlBucket(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto tagB = itemB.compoundTag("tag");
+    if (tagB) {
+      auto tagJ = std::make_shared<CompoundTag>();
+
+      CopyIntValues(*tagB, *tagJ, {{"Age", "Age", 0}});
+
+      auto attributes = tagB->listTag("Attributes");
+      for (auto const &it : *attributes) {
+        auto c = it->asCompound();
+        if (!c) {
+          continue;
+        }
+        auto name = c->string("Name");
+        if (name != "minecraft:health") {
+          continue;
+        }
+        auto current = c->float32("Current");
+        if (!current) {
+          continue;
+        }
+        tagJ->set("Health", props::Float(*current));
+        break;
+      }
+
+      auto variantB = tagB->int32("Variant", 0);
+      tagJ->set("Variant", props::Int(Axolotl::JavaVariantFromBedrockVariant(variantB)));
+
+      itemJ["tag"] = tagJ;
+    }
+    return nameB;
   }
 
   static std::string Banner(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
@@ -760,6 +804,7 @@ public:
     E(arrow, Arrow);
     E(totem, Rename("totem_of_undying")); // legacy
     E(suspicious_stew, SuspiciousStew);
+    E(axolotl_bucket, AxolotlBucket);
 
 #undef E
     return ret;
