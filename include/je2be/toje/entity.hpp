@@ -1254,6 +1254,7 @@ public:
     E(villager_v2, C(Rename("villager"), Animal, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
+    E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
 
 #undef E
     return ret;
