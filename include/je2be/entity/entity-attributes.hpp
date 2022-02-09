@@ -145,6 +145,28 @@ public:
     return attrs;
   }
 
+  static Attributes Wolf(bool tamed, std::optional<float> currentHealth) {
+    Attributes wildAttrs(Attribute(8, 8, 8),       // health
+                         Attribute(0, 0, 1),       // knockback_resistance
+                         Attribute(0.3, 0.3),      // movement
+                         Attribute(0.02, 0.02),    // underwater_movement
+                         Attribute(0.02, 0.02),    // lava_movement
+                         Attribute(16, 16, 2048),  // follow_range
+                         Attribute(3, 3, 3));      // attack_damage
+    Attributes tamedAttrs(Attribute(20, 20, 20),   // health
+                          Attribute(0, 0, 1),      // knockback_resistance
+                          Attribute(0.3, 0.3),     // movement
+                          Attribute(0.02, 0.02),   // underwater_movement
+                          Attribute(0.02, 0.02),   // lava_movement
+                          Attribute(16, 16, 2048), // follow_range
+                          Attribute(4, 4, 4));     // attack_damage
+    Attributes attrs = tamed ? tamedAttrs : wildAttrs;
+    if (currentHealth) {
+      attrs.health.updateCurrent(*currentHealth);
+    }
+    return attrs;
+  }
+
 private:
   static std::unordered_map<std::string, Attributes> *CreateTable() {
     using namespace std;
@@ -216,7 +238,6 @@ private:
     table->insert(make_pair("minecraft:witch", Attributes(Attribute(26, 26, 26), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
     table->insert(make_pair("minecraft:wither", Attributes(Attribute(600, 600, 600), Attribute(0, 0, 1), Attribute(0.6, 0.6), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(70, 70, 2048), nullopt)));
     table->insert(make_pair("minecraft:wither_skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
-    table->insert(make_pair("minecraft:wolf", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair("minecraft:zoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair("minecraft:zombie", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair("minecraft:zombified_piglin", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(5, 5, 5))));

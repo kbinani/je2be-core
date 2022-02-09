@@ -515,7 +515,7 @@ private:
     E("wandering_trader", Convert(Animal, Offers(0, "Offers")));
     M("witch");
     M("wither_skeleton");
-    E("wolf", Convert(Animal, TameableA("wolf"), Sittable, CollarColorable));
+    E("wolf", Convert(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
     M("zoglin");
     E("zombie", Convert(Monster, AgeableB("zombie")));
 
@@ -1471,6 +1471,16 @@ private:
       AddDefinition(c, "+minecraft:mooshroom_red");
     }
     c->set("Variant", props::Int(variant));
+    return c;
+  }
+
+  static EntityData Wolf(EntityData const &c, CompoundTag const &tag, Context &) {
+    auto health = tag.float32("Health");
+    auto owner = GetOwnerUuid(tag);
+
+    auto attributes = EntityAttributes::Wolf(!!owner, health);
+    c->set("Attributes", attributes.toListTag());
+
     return c;
   }
 
