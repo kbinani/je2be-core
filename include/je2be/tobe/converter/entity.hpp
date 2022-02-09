@@ -826,6 +826,40 @@ private:
         profession = VillagerProfession::FromJavaProfession(*inProfession);
         AddDefinition(c, "+" + profession->string());
       }
+      auto inType = data->string("type");
+      if (inType) {
+        auto type = VillagerType::FromJavaType(*inType);
+        if (type) {
+          switch (type->variant()) {
+          case VillagerType::Plains:
+            AddDefinition(c, "+villager_skin_1");
+            break;
+          case VillagerType::Desert:
+            AddDefinition(c, "+villager_skin_4");
+            AddDefinition(c, "+desert_villager");
+            break;
+          case VillagerType::Jungle:
+            AddDefinition(c, "+villager_skin_4");
+            AddDefinition(c, "+jungle_villager");
+            break;
+          case VillagerType::Savanna:
+            AddDefinition(c, "+villager_skin_5");
+            AddDefinition(c, "+savanna_villager");
+            break;
+          case VillagerType::Snow:
+            AddDefinition(c, "+villager_skin_3");
+            AddDefinition(c, "+snow_villager");
+            break;
+          case VillagerType::Swamp:
+            AddDefinition(c, "+villager_skin_1");
+            AddDefinition(c, "+swamp_villager");
+            break;
+          case VillagerType::Taiga:
+            AddDefinition(c, "+villager_skin_2");
+            break;
+          }
+        }
+      }
     }
     auto offers = tag.compoundTag("Offers");
     if (offers) {

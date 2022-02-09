@@ -550,9 +550,35 @@ public:
     }
     dataJ->set("profession", props::String("minecraft:" + profession.string()));
 
+    VillagerType::Variant variant = VillagerType::Plains;
     auto markVariantB = b.int32("MarkVariant", 0);
-    auto typeVariant = static_cast<VillagerType::Variant>(markVariantB);
-    VillagerType type(typeVariant);
+    if (markVariantB == 0) {
+      /*
+        Plains: "+villager_skin_1"
+        Desert: "+villager_skin_4", "+desert_villager"
+        Jungle: "+villager_skin_1", "+jungle_villager"
+        Savanna: "+villager_skin_5", "+savanna_villager"
+        Snow: "+villager_skin_3", "+snow_villager"
+        Swamp: "+villager_skin_1", "+swamp_villager"
+        Taiga: "+villager_skin_2"
+      */
+      if (HasDefinition(b, "+desert_villager")) {
+        variant = VillagerType::Desert;
+      } else if (HasDefinition(b, "+jungle_villager")) {
+        variant = VillagerType::Jungle;
+      } else if (HasDefinition(b, "+savanna_villager")) {
+        variant = VillagerType::Savanna;
+      } else if (HasDefinition(b, "+snow_villager")) {
+        variant = VillagerType::Snow;
+      } else if (HasDefinition(b, "+swamp_villager")) {
+        variant = VillagerType::Swamp;
+      } else if (HasDefinition(b, "+villager_skin_2")) {
+        variant = VillagerType::Taiga;
+      }
+    } else {
+      variant = static_cast<VillagerType::Variant>(markVariantB);
+    }
+    VillagerType type(variant);
     dataJ->set("type", props::String("minecraft:" + type.string()));
 
     auto tradeTier = b.int32("TradeTier", 0);
@@ -578,6 +604,15 @@ public:
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
     j["InWaterTime"] = props::Int(-1);
+  }
+
+  static void ZombieVillager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto persistingOffers = b.compoundTag("persistingOffers");
+    auto customName = b.string("CustomName");
+    if (persistingOffers || customName) {
+      // Overwrite "PersistenceRequired" originally converted from "Persistent". BE requires "Persistent" = true to keep them alive, but JE doesn't
+      j["PersistenceRequired"] = props::Bool(false);
+    }
   }
 #pragma endregion
 
@@ -1312,7 +1347,7 @@ public:
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
-    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
+    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager, ZombieVillager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
     E(wither_skeleton, C(Same, LivingEntity));
