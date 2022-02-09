@@ -861,10 +861,14 @@ private:
         }
       }
     }
+
     auto offers = tag.compoundTag("Offers");
     if (offers) {
       c->set("Persistent", props::Bool(true));
     }
+
+    CopyIntValues(tag, *c, {{"Xp", "TradeExperience"}});
+
     return c;
   }
 

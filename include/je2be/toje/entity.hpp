@@ -605,15 +605,6 @@ public:
     j["CanBreakDoors"] = props::Bool(false);
     j["InWaterTime"] = props::Int(-1);
   }
-
-  static void ZombieVillager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto persistingOffers = b.compoundTag("persistingOffers");
-    auto customName = b.string("CustomName");
-    if (persistingOffers || customName) {
-      // Overwrite "PersistenceRequired" originally converted from "Persistent". BE requires "Persistent" = true to keep them alive, but JE doesn't
-      j["PersistenceRequired"] = props::Bool(false);
-    }
-  }
 #pragma endregion
 
 #pragma region Behaviors
@@ -1347,7 +1338,7 @@ public:
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
-    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager, ZombieVillager));
+    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
     E(wither_skeleton, C(Same, LivingEntity));
