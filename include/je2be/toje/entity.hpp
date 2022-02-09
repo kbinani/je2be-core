@@ -615,6 +615,10 @@ public:
     j["DespawnDelay"] = props::Int(0);
   }
 
+  static void Wither(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["Invul"] = props::Int(0);
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["DrownedConversionTime"] = props::Int(-1);
     j["CanBreakDoors"] = props::Bool(false);
@@ -1362,6 +1366,7 @@ public:
     E(tnt_minecart, C(Same, Base, Minecart, TntMinecart));
     E(goat, C(Same, Animal, Goat));
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
+    E(wither, C(Same, LivingEntity, Wither));
 
 #undef E
     return ret;

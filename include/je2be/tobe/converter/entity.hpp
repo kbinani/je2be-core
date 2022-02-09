@@ -542,6 +542,7 @@ private:
     E("axolotl", Convert(Animal, AgeableA("axolotl"), Axolotl));
     E("goat", Convert(Animal, AgeableA("goat"), Goat));
     E("falling_block", Convert(EntityBase, FallingBlock));
+    E("wither", Convert(Mob, Definitions("+minecraft:wither")));
 #undef A
 #undef M
 #undef E
