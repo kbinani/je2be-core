@@ -229,11 +229,9 @@ private:
     using namespace std;
     using namespace props;
 
-    auto count = item.byte("Count", 1);
     auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"Name", String(name)},
-        {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
     });
@@ -308,11 +306,9 @@ private:
   static ItemData LeatherArmor(std::string const &name, CompoundTag const &item) {
     using namespace props;
 
-    auto count = item.byte("Count", 1);
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
         {"Name", String(name)},
-        {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
     });
@@ -330,9 +326,7 @@ private:
 
   static std::optional<std::tuple<int, ItemData>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
     auto ret = New(name, true);
-    auto count = item.byte("Count", 1);
     ret->set("Damage", props::Short(0));
-    ret->set("Count", props::Byte(count));
 
     auto number = item.query("tag/map")->asInt();
     if (!number) {
@@ -381,7 +375,6 @@ private:
 
   static ItemData AnyPotion(std::string const &name, CompoundTag const &item) {
     auto tag = New(name, true);
-    auto count = item.byte("Count", 1);
     auto t = item.query("tag")->asCompound();
     int16_t type = 0;
     if (t) {
@@ -389,13 +382,11 @@ private:
       type = Potion::BedrockPotionTypeFromJava(potion);
     }
     tag->set("Damage", props::Short(type));
-    tag->set("Count", props::Byte(count));
     return Post(tag, item);
   }
 
   static ItemData TippedArrow(std::string const &name, CompoundTag const &item) {
     auto tag = New("arrow");
-    auto count = item.byte("Count", 1);
     auto t = item.query("tag")->asCompound();
     int16_t type = 0;
     if (t) {
@@ -403,7 +394,6 @@ private:
       type = TippedArrowPotion::BedrockPotionType(potion);
     }
     tag->set("Damage", props::Short(type));
-    tag->set("Count", props::Byte(count));
     return Post(tag, item);
   }
 
@@ -762,8 +752,6 @@ private:
     using namespace std;
     using namespace props;
 
-    auto count = item.byte("Count", 1);
-
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
     auto blockData = BlockData::From(block);
@@ -773,7 +761,6 @@ private:
     blockData->set("states", states);
 
     auto tag = New(name, true);
-    tag->set("Count", Byte(count));
     tag->set("Damage", Short(0));
     tag->set("Block", blockData);
     return Post(tag, item);
@@ -858,8 +845,6 @@ private:
     using namespace std;
     using namespace props;
 
-    auto count = item.byte("Count", 1);
-
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
     auto blockData = BlockData::From(block);
@@ -869,7 +854,6 @@ private:
     blockData->set("states", states);
 
     auto tag = New(name, true);
-    tag->set("Count", Byte(count));
     tag->set("Damage", Short(0));
     tag->set("Block", blockData);
     return Post(tag, item);
@@ -899,8 +883,6 @@ private:
     using namespace std;
     using namespace props;
 
-    auto count = item.byte("Count", 1);
-
     map<string, string> p;
     auto block = make_shared<Block>(id, p);
     auto blockData = BlockData::From(block);
@@ -914,7 +896,6 @@ private:
     auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"Name", String(ItemNameFromBlockName(*name))},
-        {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
     });
@@ -925,11 +906,9 @@ private:
   static ItemData DefaultItem(std::string const &name, CompoundTag const &item) {
     using namespace props;
 
-    auto count = item.byte("Count", 1);
     auto ret = std::make_shared<CompoundTag>();
     ret->insert({
         {"Name", String(name)},
-        {"Count", Byte(count)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
     });
@@ -939,6 +918,8 @@ private:
   static ItemData Post(ItemData const &input, CompoundTag const &item) {
     using namespace std;
     using namespace props;
+
+    CopyByteValues(item, *input, {{"Count"}});
 
     auto tag = item.compoundTag("tag");
     if (!tag) {
