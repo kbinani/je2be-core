@@ -473,6 +473,11 @@ public:
     CopyByteValues(b, j, {{"Color"}});
   }
 
+  static void Shulker(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto variant = b.int32("Variant", 16);
+    j["Color"] = props::Byte(variant);
+  }
+
   static void SkeletonHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     // summon minecraft:skeleton_horse ~ ~ ~ minecraft:set_trap
     j["SkeletonTrap"] = props::Bool(HasDefinition(b, "+minecraft:skeleton_trap"));
@@ -1295,6 +1300,7 @@ public:
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
     E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
+    E(shulker, C(Same, LivingEntity, Shulker));
 
 #undef E
     return ret;

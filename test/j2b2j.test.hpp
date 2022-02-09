@@ -230,6 +230,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("LastGossipDecay");
     blacklist.insert("LastRestock");
     blacklist.insert("RestocksToday");
+  } else if (id == "minecraft:shulker") {
+    blacklist.insert("AttachFace"); // not exists in BE
+    blacklist.insert("Peek");       // not exists in BE
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
