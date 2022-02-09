@@ -247,6 +247,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     auto name = itemId->asString()->fValue;
     if (name == "minecraft:petrified_oak_slab" || name == "minecraft:furnace_minecart") {
       blacklist.insert("Item/id");
+    } else if (name == "minecraft:bundle") {
+      // bundle does not exist in BE
+      return;
     }
   }
   auto storedEnchantment = entityE.query("Item/tag/StoredEnchantments/0/id");
