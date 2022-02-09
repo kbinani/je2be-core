@@ -239,6 +239,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("AngryAt");
   } else if (id == "minecraft:zombie_villager") {
     blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
+  } else if (id == "minecraft:goat") {
+    blacklist.insert("Brain/memories"); // long_jump_cooling_down, ram_cooldown_ticks memories
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {

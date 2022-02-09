@@ -382,6 +382,11 @@ public:
     j["DarkTicksRemaining"] = props::Int(0);
   }
 
+  static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    bool screamer = HasDefinition(b, "+goat_screamer") || HasDefinition(b, "+ram_screamer") || HasDefinition(b, "+interact_screamer");
+    j["IsScreamingGoat"] = props::Bool(screamer);
+  }
+
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
     armorDropChances->push_back(props::Float(0.085));
@@ -1350,6 +1355,7 @@ public:
     E(witch, C(Same, LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave));
     E(iron_golem, C(Same, LivingEntity, AngerTime, IronGolem));
     E(tnt_minecart, C(Same, Base, Minecart, TntMinecart));
+    E(goat, C(Same, Animal, Goat));
 
 #undef E
     return ret;
