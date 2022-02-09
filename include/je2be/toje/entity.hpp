@@ -1301,6 +1301,7 @@ public:
     E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
+    E(wither_skeleton, C(Same, LivingEntity));
 
 #undef E
     return ret;
