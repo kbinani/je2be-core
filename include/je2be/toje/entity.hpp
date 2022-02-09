@@ -398,6 +398,16 @@ public:
     j["Variant"] = props::Int(*(int32_t *)&uVariantJ);
   }
 
+  static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto target = b.int64("TargetID", -1);
+    if (target != -1) {
+      auto angryAt = Uuid::GenWithI64Seed(target);
+      j["AngryAt"] = angryAt.toIntArrayTag();
+    }
+
+    j["PlayerCreated"] = props::Bool(HasDefinition(b, "+minecraft:player_created"));
+  }
+
   static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["PickupDelay"] = props::Short(0);
     auto itemB = b.compoundTag("Item");
@@ -1304,6 +1314,7 @@ public:
     E(shulker, C(Same, LivingEntity, Shulker));
     E(wither_skeleton, C(Same, LivingEntity));
     E(witch, C(Same, LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave));
+    E(iron_golem, C(Same, LivingEntity, AngerTime, IronGolem));
 
 #undef E
     return ret;

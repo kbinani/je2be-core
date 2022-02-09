@@ -234,6 +234,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   } else if (id == "minecraft:shulker") {
     blacklist.insert("AttachFace"); // not exists in BE
     blacklist.insert("Peek");       // not exists in BE
+  } else if (id == "minecraft:iron_golem") {
+    blacklist.insert("AngerTime");
+    blacklist.insert("AngryAt");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
