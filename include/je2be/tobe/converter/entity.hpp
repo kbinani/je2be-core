@@ -510,9 +510,9 @@ private:
     E("turtle", Convert(Animal, Turtle));
 
     M("vex");
-    E("villager", Convert(Animal, Rename("villager_v2"), Offers(4), Villager));
+    E("villager", Convert(Animal, Rename("villager_v2"), Offers(4, "Offers"), Villager));
     M("vindicator");
-    E("wandering_trader", Convert(Animal, Offers(0)));
+    E("wandering_trader", Convert(Animal, Offers(0, "Offers")));
     M("witch");
     M("wither_skeleton");
     E("wolf", Convert(Animal, TameableA("wolf"), Sittable, CollarColorable));
@@ -520,7 +520,7 @@ private:
     E("zombie", Convert(Monster, AgeableB("zombie")));
 
     M("zombie_horse");
-    E("zombie_villager", Convert(Animal, Rename("zombie_villager_v2")));
+    E("zombie_villager", Convert(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), ZombieVillager));
     E("zombified_piglin", Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
     E("boat", Convert(EntityBase, Vehicle(), Boat));
@@ -816,8 +816,22 @@ private:
     return c;
   }
 
-  static Behavior Offers(int maxTradeTier) {
-    return [maxTradeTier](EntityData const &c, CompoundTag const &tag, Context &ctx) -> EntityData {
+  static EntityData ZombieVillager(EntityData const &c, CompoundTag const &tag, Context &ctx) {
+    using namespace std;
+    auto data = tag.compoundTag("VillagerData");
+    optional<VillagerProfession> profession;
+    if (data) {
+      auto inProfession = data->string("profession");
+      if (inProfession) {
+        profession = VillagerProfession::FromJavaProfession(*inProfession);
+        AddDefinition(c, "+" + profession->string());
+      }
+    }
+    return c;
+  }
+
+  static Behavior Offers(int maxTradeTier, std::string offersKey) {
+    return [maxTradeTier, offersKey](EntityData const &c, CompoundTag const &tag, Context &ctx) -> EntityData {
       using namespace std;
       using namespace props;
 
@@ -870,7 +884,7 @@ private:
               expRequirements->push_back(tier4);
             }
             of->set("TierExpRequirements", expRequirements);
-            c->set("Offers", of);
+            c->set(offersKey, of);
           }
         }
       }

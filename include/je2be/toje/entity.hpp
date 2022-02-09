@@ -497,15 +497,37 @@ public:
 
   static void Villager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"TradeExperience", "Xp", 0}});
-    j["FoodLevel"] = props::Byte(0);
 
     j.erase("InLove");
 
     auto dataJ = std::make_shared<CompoundTag>();
 
+    VillagerProfession profession(static_cast<VillagerProfession::Variant>(0));
     auto variantB = b.int32("Variant", 0);
-    auto professionVariant = static_cast<VillagerProfession::Variant>(variantB);
-    VillagerProfession profession(professionVariant);
+    if (variantB == 0) {
+      // "Variant" of zombie villager is always 0
+      auto definitions = b.listTag("definitions");
+      if (definitions) {
+        for (auto const &it : *definitions) {
+          auto str = it->asString();
+          if (!str) {
+            continue;
+          }
+          std::string def = str->fValue;
+          if (!def.starts_with("+")) {
+            continue;
+          }
+          auto p = VillagerProfession::FromJavaProfession(def.substr(1));
+          if (p) {
+            profession = *p;
+            break;
+          }
+        }
+      }
+    } else {
+      auto professionVariant = static_cast<VillagerProfession::Variant>(variantB);
+      profession = VillagerProfession(professionVariant);
+    }
     dataJ->set("profession", props::String("minecraft:" + profession.string()));
 
     auto markVariantB = b.int32("MarkVariant", 0);
@@ -623,6 +645,10 @@ public:
     }
   }
 
+  static void ConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["ConversionTime"] = props::Int(-1);
+  }
+
   static void CopyVariant(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyIntValues(b, j, {{"Variant"}});
   }
@@ -654,6 +680,10 @@ public:
 
   static void Fire(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Fire"] = props::Short(-1);
+  }
+
+  static void FoodLevel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    j["FoodLevel"] = props::Byte(0);
   }
 
   static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -779,7 +809,10 @@ public:
   }
 
   static void Offers(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto offersB = b.compoundTag("Offers");
+    std::shared_ptr<CompoundTag> offersB = b.compoundTag("Offers");
+    if (!offersB) {
+      offersB = b.compoundTag("persistingOffers");
+    }
     if (!offersB) {
       return;
     }
@@ -1251,10 +1284,11 @@ public:
     E(tropicalfish, C(Rename("tropical_fish"), LivingEntity, FromBucket, TropicalFish));
     E(minecart, C(Same, Base, Minecart));
     E(vex, C(Same, LivingEntity, NoGravity));
-    E(villager_v2, C(Rename("villager"), Animal, Inventory, Offers, Villager));
+    E(villager_v2, C(Rename("villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
+    E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Zombie, Villager));
 
 #undef E
     return ret;
