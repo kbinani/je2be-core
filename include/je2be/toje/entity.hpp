@@ -479,6 +479,11 @@ public:
     j["SkeletonTrapTime"] = props::Int(0);
   }
 
+  static void SnowGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    bool pumpkin = !HasDefinition(b, "+minecraft:snowman_sheared");
+    j["Pumpkin"] = props::Bool(pumpkin);
+  }
+
   static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto tf = TropicalFish::FromBedrockBucketTag(b);
     j["Variant"] = props::Int(tf.toJavaVariant());
@@ -1289,6 +1294,7 @@ public:
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
     E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Zombie, Villager));
+    E(snow_golem, C(Same, LivingEntity, SnowGolem));
 
 #undef E
     return ret;
