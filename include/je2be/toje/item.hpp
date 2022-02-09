@@ -668,6 +668,20 @@ public:
     return "minecraft:" + JavaNameFromSkullType(st);
   }
 
+  static std::string SuspiciousStew(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    Effect::SuspiciousStewEffect sse = Effect::JavaEffectFromBedrockSuspiciousStew(damage);
+    auto effects = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto effect = std::make_shared<CompoundTag>();
+    effect->set("EffectId", props::Byte(sse.fEffectId));
+    effect->set("EffectDuration", props::Int(sse.fDuration));
+    effects->push_back(effect);
+    auto tag = std::make_shared<CompoundTag>();
+    tag->set("Effects", effects);
+    itemJ["tag"] = tag;
+    return name;
+  }
+
   static std::string TropicalFishBucket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
@@ -745,6 +759,7 @@ public:
     E(tropical_fish_bucket, TropicalFishBucket);
     E(arrow, Arrow);
     E(totem, Rename("totem_of_undying")); // legacy
+    E(suspicious_stew, SuspiciousStew);
 
 #undef E
     return ret;

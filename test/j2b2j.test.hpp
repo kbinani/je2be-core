@@ -195,6 +195,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "HurtByTimestamp",
       "NoAI",
       "Fire",
+      "Offers/Recipes/*/sell/tag/Effects/*/EffectDuration", // EffectDuration of suspicious_stew is random
 
       "Passengers/*/UUID",
       "Passengers/*/Pos",

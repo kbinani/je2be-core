@@ -148,6 +148,8 @@ private:
     E("dark_oak_sign", DefaultItem);
     E("crimson_sign", DefaultItem);
     E("warped_sign", DefaultItem);
+
+    E("suspicious_stew", SuspiciousStew);
 #undef E
     return table;
   }
@@ -778,6 +780,33 @@ private:
     auto tag = New("skull");
     tag->set("Damage", props::Short(type));
     return Post(tag, item);
+  }
+
+  static ItemData SuspiciousStew(std::string const &name, CompoundTag const &j) {
+    auto b = New("suspicious_stew");
+    auto tagJ = j.compoundTag("tag");
+    if (tagJ) {
+      auto effectsJ = tagJ->listTag("Effects");
+      if (effectsJ) {
+        int16_t damage = -1;
+        for (auto const &it : *effectsJ) {
+          auto effectJ = it->asCompound();
+          if (!effectJ) {
+            continue;
+          }
+          auto id = effectJ->byte("EffectId");
+          if (!id) {
+            continue;
+          }
+          damage = Effect::BedrockSuspiciousStewFromJavaEffect(*id);
+          break;
+        }
+        if (damage >= 0) {
+          b->set("Damage", props::Short(damage));
+        }
+      }
+    }
+    return Post(b, j);
   }
 
   static ItemData Banner(std::string const &name, CompoundTag const &item) {
