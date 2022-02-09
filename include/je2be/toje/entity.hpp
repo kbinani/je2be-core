@@ -499,6 +499,11 @@ public:
     j["Pumpkin"] = props::Bool(pumpkin);
   }
 
+  static void TntMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto fuse = b.byte("Fuse", -1);
+    j["TNTFuse"] = props::Int(fuse);
+  }
+
   static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto tf = TropicalFish::FromBedrockBucketTag(b);
     j["Variant"] = props::Int(tf.toJavaVariant());
@@ -1344,6 +1349,7 @@ public:
     E(wither_skeleton, C(Same, LivingEntity));
     E(witch, C(Same, LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave));
     E(iron_golem, C(Same, LivingEntity, AngerTime, IronGolem));
+    E(tnt_minecart, C(Same, Base, Minecart, TntMinecart));
 
 #undef E
     return ret;

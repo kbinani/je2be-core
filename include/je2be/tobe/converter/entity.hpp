@@ -528,7 +528,7 @@ private:
     E("armor_stand", Convert(LivingEntity, ArmorStand));
     E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
     E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
-    E("tnt_minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:tnt_minecart", "+minecraft:inactive")));
+    E("tnt_minecart", Convert(EntityBase, Vehicle(), Minecart, TntMinecart));
     E("snow_golem", Convert(Mob, SnowGolem));
     E("iron_golem", Convert(Mob, Definitions("+minecraft:iron_golem"), IronGolem));
 
@@ -1159,6 +1159,19 @@ private:
     auto enabled = tag.boolean("Enabled", true);
     if (enabled) {
       AddDefinition(c, "+minecraft:hopper_active");
+    }
+    return c;
+  }
+
+  static EntityData TntMinecart(EntityData const &c, CompoundTag const &tag, Context &) {
+    AddDefinition(c, "+minecraft:tnt_minecart");
+    auto fuse = tag.int32("TNTFuse", -1);
+    if (fuse < 0) {
+      AddDefinition(c, "+minecraft:inactive");
+    } else {
+      c->set("Fuse", props::Byte(fuse));
+      AddDefinition(c, "-minecraft:inactive");
+      AddDefinition(c, "+minecraft:primed_tnt");
     }
     return c;
   }
