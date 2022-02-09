@@ -1302,6 +1302,7 @@ public:
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
     E(wither_skeleton, C(Same, LivingEntity));
+    E(witch, C(Same, LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave));
 
 #undef E
     return ret;
