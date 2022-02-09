@@ -187,6 +187,11 @@ public:
     j["ShowArms"] = props::Bool(showArms);
   }
 
+  static void Axolotl(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto variantB = b.int32("Variant", 0);
+    j["Variant"] = props::Int(je2be::Axolotl::JavaVariantFromBedrockVariant(variantB));
+  }
+
   static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"BatFlags"}});
   }
@@ -1356,6 +1361,7 @@ public:
     E(iron_golem, C(Same, LivingEntity, AngerTime, IronGolem));
     E(tnt_minecart, C(Same, Base, Minecart, TntMinecart));
     E(goat, C(Same, Animal, Goat));
+    E(axolotl, C(Same, Animal, FromBucket, Axolotl));
 
 #undef E
     return ret;
