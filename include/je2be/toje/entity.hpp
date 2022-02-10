@@ -474,6 +474,41 @@ public:
     j["Size"] = props::Int(0);
   }
 
+  static void PiglinBrute(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto homePos = props::GetPos3f(b, "HomePos");
+    if (!homePos) {
+      return;
+    }
+    auto homeDimensionId = b.int32("HomeDimensionId");
+    if (!homeDimensionId) {
+      return;
+    }
+    auto dim = DimensionFromBedrockDimension(*homeDimensionId);
+    if (!dim) {
+      return;
+    }
+
+    auto value = std::make_shared<CompoundTag>();
+    value->set("dimension", props::String(JavaStringFromDimension(*dim)));
+    std::vector<int32_t> pos;
+    pos.push_back((int)round(homePos->fX));
+    pos.push_back((int)round(homePos->fY));
+    pos.push_back((int)round(homePos->fZ));
+    auto posTag = std::make_shared<IntArrayTag>(pos);
+    value->set("pos", posTag);
+
+    auto homeTag = std::make_shared<CompoundTag>();
+    homeTag->set("value", value);
+
+    auto memories = std::make_shared<CompoundTag>();
+    memories->set("minecraft:home", homeTag);
+
+    auto brain = std::make_shared<CompoundTag>();
+    brain->set("memories", memories);
+
+    j["Brain"] = brain;
+  }
+
   static void Pufferfish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     int state = 0;
     if (HasDefinition(b, "+minecraft:half_puff_primary") || HasDefinition(b, "+minecraft:half_puff_secondary")) {
@@ -1374,6 +1409,7 @@ public:
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
     E(wither, C(Same, LivingEntity, Wither));
     E(piglin, C(Same, LivingEntity, Inventory));
+    E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal));
 
 #undef E

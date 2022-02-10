@@ -381,13 +381,13 @@ public:
     auto spawnDimensionString = tag.string("SpawnDimension");
     std::optional<mcfile::Dimension> spawnDimension;
     if (spawnDimensionString) {
-      spawnDimension = DimensionFromString(*spawnDimensionString);
+      spawnDimension = DimensionFromJavaString(*spawnDimensionString);
     }
     if (spawnX && spawnY && spawnZ && spawnDimension) {
       entity->set("SpawnX", Int(*spawnX));
       entity->set("SpawnY", Int(*spawnY));
       entity->set("SpawnZ", Int(*spawnZ));
-      int dimension = IntFromDimension(*spawnDimension);
+      int dimension = BedrockDimensionFromDimension(*spawnDimension);
       entity->set("SpawnDimension", Int(dimension));
       entity->set("SpawnBlockPositionX", Int(*spawnX));
       entity->set("SpawnBlockPositionY", Int(*spawnY));
@@ -396,9 +396,9 @@ public:
 
     auto dimensionString = tag.string("Dimension");
     if (dimensionString) {
-      auto dimension = DimensionFromString(*dimensionString);
+      auto dimension = DimensionFromJavaString(*dimensionString);
       if (dimension) {
-        entity->set("DimensionId", Int(IntFromDimension(*dimension)));
+        entity->set("DimensionId", Int(BedrockDimensionFromDimension(*dimension)));
       }
     }
 
@@ -481,7 +481,7 @@ private:
     M(phantom);
     E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
     M(piglin);
-    M(piglin_brute);
+    E(piglin_brute, C(Monster, PiglinBrute));
     M(pillager);
 
     A(polar_bear);
@@ -916,6 +916,23 @@ private:
 
   static void Parrot(CompoundTag &c, CompoundTag const &tag, Context &) {
     CopyIntValues(tag, c, {{"Variant"}});
+  }
+
+  static void PiglinBrute(CompoundTag &c, CompoundTag const &tag, Context &) {
+    if (auto homeTag = tag.query("Brain/memories/minecraft:home/value"); homeTag) {
+      if (auto home = homeTag->asCompound(); home) {
+        auto dimension = home->string("dimension");
+        auto pos = home->intArrayTag("pos");
+        if (dimension && pos && pos->value().size() == 3) {
+          if (auto d = DimensionFromJavaString(*dimension); d) {
+            auto const &posv = pos->value();
+            Pos3f posB(posv[0], posv[1], posv[2]);
+            c["HomeDimensionId"] = props::Int(BedrockDimensionFromDimension(*d));
+            c["HomePos"] = posB.toListTag();
+          }
+        }
+      }
+    }
   }
 
   static void Pufferfish(CompoundTag &c, CompoundTag const &tag, Context &) {

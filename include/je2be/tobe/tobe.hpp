@@ -22,7 +22,6 @@
 #include <je2be/tobe/portal/portal-blocks.hpp>
 #include <je2be/tobe/portal/portals.hpp>
 
-#include <je2be/tobe/converter/dimension.hpp>
 #include <je2be/tobe/converter/command.hpp>
 #include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/biome-map-legacy.hpp>

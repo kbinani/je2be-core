@@ -239,7 +239,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
   } else if (id == "minecraft:goat") {
     blacklist.insert("Brain/memories"); // long_jump_cooling_down, ram_cooldown_ticks memories
-  } else if (id == "minecraft:piglin") {
+  } else if (id == "minecraft:piglin" || id == "minecraft:piglin_brute") {
     blacklist.insert("TimeInOverworld");
   } else if (id == "minecraft:hoglin") {
     blacklist.insert("TimeInOverworld");
