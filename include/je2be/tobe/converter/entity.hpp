@@ -544,70 +544,33 @@ private:
     return table;
   }
 
-  static void Enderman(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto carriedBlockTagJ = tag.compoundTag("carriedBlockState");
-    if (carriedBlockTagJ) {
-      auto name = carriedBlockTagJ->string("Name");
-      if (name) {
-        auto carriedBlockJ = std::make_shared<mcfile::je::Block const>(*name);
-        auto carriedBlockB = BlockData::From(carriedBlockJ);
-        if (carriedBlockB) {
-          c["carriedBlock"] = carriedBlockB;
+#pragma region Dedicated Behaviors
+  static void ArmorStand(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto pos = props::GetPos3d(tag, "Pos");
+    if (!pos) {
+      return;
+    }
+    pos->fY = std::round(pos->fY * 2) * 0.5;
+    c["Pos"] = pos->toF().toListTag();
+
+    auto health = tag.float32("Health");
+    auto attributes = EntityAttributes::Mob("minecraft:armor_stand", health);
+    if (attributes) {
+      c["Attributes"] = attributes->toListTag();
+    }
+
+    auto poseJ = tag.compoundTag("Pose");
+    if (poseJ) {
+      auto indexB = ArmorStand::BedrockMostSimilarPoseIndexFromJava(*poseJ);
+      auto showArms = tag.boolean("ShowArms", false);
+      if (indexB) {
+        if (indexB != 1 || showArms) {
+          auto poseB = std::make_shared<CompoundTag>();
+          poseB->set("PoseIndex", props::Int(*indexB));
+          poseB->set("LastSignal", props::Int(0));
+          c["Pose"] = poseB;
         }
       }
-    }
-  }
-
-  static void Endermite(CompoundTag &c, CompoundTag const &tag, Context &) {
-    CopyIntValues(tag, c, {{"Lifetime"}});
-  }
-
-  static void Salmon(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto fromBucket = tag.boolean("FromBucket", false);
-    if (fromBucket) {
-      c["Persistent"] = props::Bool(true);
-    } else {
-      c["NaturalSpawn"] = props::Bool(true);
-    }
-  }
-
-  static void Sheep(CompoundTag &c, CompoundTag const &tag, Context &) {
-    CopyBoolValues(tag, c, {{"Sheared", "Sheared", false}});
-  }
-
-  static void FallingBlock(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto blockState = tag.compoundTag("BlockState");
-    if (!blockState) {
-      return;
-    }
-    auto name = blockState->string("Name");
-    if (!name) {
-      return;
-    }
-    auto block = BlockData::From(std::make_shared<mcfile::je::Block>(*name));
-    if (!block) {
-      return;
-    }
-    c["FallingBlock"] = block;
-
-    CopyFloatValues(tag, c, {{"FallDistance"}});
-
-    auto time = std::clamp(tag.int32("Time", 0), 0, 255);
-    c["Time"] = props::Byte(time);
-  }
-
-  static std::shared_ptr<CompoundTag> Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
-
-  static void Goat(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto screaming = tag.boolean("IsScreamingGoat", false);
-    if (screaming) {
-      AddDefinition(c, "+goat_screamer");
-      AddDefinition(c, "+ram_screamer");
-      AddDefinition(c, "+interact_screamer");
-    } else {
-      AddDefinition(c, "+goat_default");
-      AddDefinition(c, "+ram_default");
-      AddDefinition(c, "+interact_default");
     }
   }
 
@@ -642,65 +605,9 @@ private:
     }
   }
 
-  static void IronGolem(CompoundTag &c, CompoundTag const &tag, Context &) {
-    using namespace props;
-
-    auto playerCreated = tag.boolean("PlayerCreated", false);
-    auto angryAt = GetUuid(tag, {.fIntArray = "AngryAt"});
-    auto angerTime = tag.int32("AngerTime", 0);
-
-    if (playerCreated) {
-      AddDefinition(c, "+minecraft:player_created");
-    } else {
-      AddDefinition(c, "+minecraft:village_created");
-    }
-    c["IsAngry"] = Bool(angerTime > 0);
-    if (angryAt) {
-      int64_t targetId = UuidRegistrar::ToId(*angryAt);
-      c["TargetID"] = Long(targetId);
-    }
-  }
-
-  static void ExperienceOrb(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto value = tag.int16("Value");
-    if (value) {
-      c["experience value"] = props::Int(*value);
-    }
-    AddDefinition(c, "+minecraft:xp_orb");
-  }
-
-  static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, Context &) {
-    AddDefinition(c, "-minecraft:start_suffocating");
-    AddDefinition(c, "+minecraft:detect_suffocating");
-  }
-
-  static void ArmorStand(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto pos = props::GetPos3d(tag, "Pos");
-    if (!pos) {
-      return;
-    }
-    pos->fY = std::round(pos->fY * 2) * 0.5;
-    c["Pos"] = pos->toF().toListTag();
-
-    auto health = tag.float32("Health");
-    auto attributes = EntityAttributes::Mob("minecraft:armor_stand", health);
-    if (attributes) {
-      c["Attributes"] = attributes->toListTag();
-    }
-
-    auto poseJ = tag.compoundTag("Pose");
-    if (poseJ) {
-      auto indexB = ArmorStand::BedrockMostSimilarPoseIndexFromJava(*poseJ);
-      auto showArms = tag.boolean("ShowArms", false);
-      if (indexB) {
-        if (indexB != 1 || showArms) {
-          auto poseB = std::make_shared<CompoundTag>();
-          poseB->set("PoseIndex", props::Int(*indexB));
-          poseB->set("LastSignal", props::Int(0));
-          c["Pose"] = poseB;
-        }
-      }
-    }
+  static void Bat(CompoundTag &c, CompoundTag const &tag, Context &) {
+    CopyBoolValues(tag, c, {{"BatFlags"}});
+    AddDefinition(c, "+minecraft:bat");
   }
 
   static void Bee(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -719,249 +626,109 @@ private:
     AddDefinition(c, "+find_hive");
   }
 
-  static void SnowGolem(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto pumpkin = tag.boolean("Pumpkin", true);
-    if (!pumpkin) {
-      AddDefinition(c, "+minecraft:snowman_sheared");
+  static void Boat(CompoundTag &c, CompoundTag const &tag, Context &) {
+    AddDefinition(c, "+minecraft:boat");
+
+    auto type = tag.string("Type", "oak");
+    int32_t variant = Boat::BedrockVariantFromJavaType(type);
+    c["Variant"] = props::Int(variant);
+
+    auto rotation = props::GetRotation(c, "Rotation");
+    if (rotation) {
+      Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
+      c["Rotation"] = rot.toListTag();
+    }
+
+    auto pos = props::GetPos3d(c, "Pos");
+    auto onGround = c.boolean("OnGround", false);
+    if (pos && onGround) {
+      int iy = (int)floor(pos->fY);
+      pos->fY = iy + 0.35;
+      c["Pos"] = pos->toF().toListTag();
     }
   }
 
-  static std::shared_ptr<CompoundTag> EnderDragon(CompoundTag const &tag, Context &ctx) {
-    auto c = Monster(tag, ctx);
-    AddDefinition(*c, "-dragon_sitting");
-    AddDefinition(*c, "+dragon_flying");
-    c->set("Persistent", props::Bool(true));
-    c->set("IsAutonomous", props::Bool(true));
-    c->set("LastDimensionId", props::Int(2));
-    ctx.fWorldData.addAutonomousEntity(c);
-    return c;
+  static void Cat(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto catType = tag.int32("CatType");
+    if (catType) {
+      Cat::Type ct = Cat::CatTypeFromJavaCatType(*catType);
+      int32_t variant = Cat::BedrockVariantFromJavaCatType(ct);
+      std::string type = Cat::BedrockNameFromCatType(ct);
+      if (!type.empty()) {
+        AddDefinition(c, "+minecraft:cat_" + type);
+      }
+      c["Variant"] = props::Int(variant);
+    }
+    c["DwellingUniqueID"] = props::String("00000000-0000-0000-0000-000000000000");
+    c["RewardPlayersOnFirstFounding"] = props::Bool(true);
   }
 
-  static void Villager(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+  static void Chicken(CompoundTag &c, CompoundTag const &tag, Context &) {
     using namespace std;
-    using namespace props;
-
-    auto data = tag.compoundTag("VillagerData");
-    optional<VillagerProfession> profession;
-    optional<VillagerType> type;
-    if (data) {
-      auto inProfession = data->string("profession");
-      if (inProfession) {
-        profession = VillagerProfession::FromJavaProfession(*inProfession);
-      }
-
-      auto inType = data->string("type");
-      if (inType) {
-        type = VillagerType::FromJavaType(*inType);
-      }
+    auto eggLayTime = tag.int32("EggLayTime");
+    if (eggLayTime) {
+      auto entries = make_shared<ListTag>(Tag::Type::Compound);
+      auto timer = make_shared<CompoundTag>();
+      timer->set("SpawnTimer", props::Int(*eggLayTime));
+      timer->set("StopSpawning", props::Bool(false));
+      entries->push_back(timer);
+      c["entries"] = entries;
     }
-
-    if (profession) {
-      c["PreferredProfession"] = String(profession->string());
-      AddDefinition(c, "+" + profession->string());
-      c["Variant"] = Int(profession->variant());
-      c["TradeTablePath"] = String(profession->tradeTablePath());
-    }
-    if (type) {
-      AddDefinition(c, "+" + type->string() + "_villager");
-      c["MarkVariant"] = Int(type->variant());
-    }
-
-    auto age = tag.int32("Age", 0);
-    if (age < 0) {
-      c["Age"] = Int(age);
-      AddDefinition(c, "+baby");
-    } else {
-      AddDefinition(c, "+adult");
-    }
-    AddDefinition(c, "+minecraft:villager_v2");
-
-    auto tradeExp = tag.int32("Xp", 0);
-    c["TradeExperience"] = Int(tradeExp);
-
-    int tradeTier = 0;
-    if (tradeExp >= 250) {
-      tradeTier = 4;
-    } else if (tradeExp >= 150) {
-      tradeTier = 3;
-    } else if (tradeExp >= 70) {
-      tradeTier = 2;
-    } else if (tradeExp >= 10) {
-      tradeTier = 1;
-    }
-    c["TradeTier"] = Int(tradeTier);
   }
 
-  static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
-    using namespace std;
-    auto data = tag.compoundTag("VillagerData");
-    optional<VillagerProfession> profession;
-    if (data) {
-      auto inProfession = data->string("profession");
-      if (inProfession) {
-        profession = VillagerProfession::FromJavaProfession(*inProfession);
-        AddDefinition(c, "+" + profession->string());
-      }
-      auto inType = data->string("type");
-      if (inType) {
-        auto type = VillagerType::FromJavaType(*inType);
-        if (type) {
-          switch (type->variant()) {
-          case VillagerType::Plains:
-            AddDefinition(c, "+villager_skin_1");
-            break;
-          case VillagerType::Desert:
-            AddDefinition(c, "+villager_skin_4");
-            AddDefinition(c, "+desert_villager");
-            break;
-          case VillagerType::Jungle:
-            AddDefinition(c, "+villager_skin_4");
-            AddDefinition(c, "+jungle_villager");
-            break;
-          case VillagerType::Savanna:
-            AddDefinition(c, "+villager_skin_5");
-            AddDefinition(c, "+savanna_villager");
-            break;
-          case VillagerType::Snow:
-            AddDefinition(c, "+villager_skin_3");
-            AddDefinition(c, "+snow_villager");
-            break;
-          case VillagerType::Swamp:
-            AddDefinition(c, "+villager_skin_1");
-            AddDefinition(c, "+swamp_villager");
-            break;
-          case VillagerType::Taiga:
-            AddDefinition(c, "+villager_skin_2");
-            break;
-          }
+  static void Creeper(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto powered = tag.boolean("powered", false);
+    if (powered) {
+      AddDefinition(c, "+minecraft:charged_creeper");
+      AddDefinition(c, "+minecraft:exploding");
+    }
+  }
+
+  static void Enderman(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto carriedBlockTagJ = tag.compoundTag("carriedBlockState");
+    if (carriedBlockTagJ) {
+      auto name = carriedBlockTagJ->string("Name");
+      if (name) {
+        auto carriedBlockJ = std::make_shared<mcfile::je::Block const>(*name);
+        auto carriedBlockB = BlockData::From(carriedBlockJ);
+        if (carriedBlockB) {
+          c["carriedBlock"] = carriedBlockB;
         }
       }
     }
-
-    auto offers = tag.compoundTag("Offers");
-    if (offers) {
-      c["Persistent"] = props::Bool(true);
-    }
-
-    CopyIntValues(tag, c, {{"Xp", "TradeExperience"}});
   }
 
-  static Behavior Offers(int maxTradeTier, std::string offersKey) {
-    return [maxTradeTier, offersKey](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
-      using namespace std;
-      using namespace props;
-
-      auto offers = tag.compoundTag("Offers");
-      if (offers) {
-        auto recipes = offers->listTag("Recipes");
-        if (recipes) {
-          auto rs = make_shared<ListTag>(Tag::Type::Compound);
-          for (int i = 0; i < recipes->size(); i++) {
-            auto recipe = recipes->at(i);
-            auto r = recipe->asCompound();
-            if (!r) {
-              continue;
-            }
-            auto converted = BedrockRecipieFromJava(*r, ctx);
-            if (!converted) {
-              continue;
-            }
-            int tier = min(i / 2, maxTradeTier);
-            converted->set("tier", Int(tier));
-            rs->push_back(converted);
-          }
-          if (!rs->empty()) {
-            auto of = make_shared<CompoundTag>();
-            of->set("Recipes", rs);
-            auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
-            if (maxTradeTier >= 0) {
-              auto tier0 = make_shared<CompoundTag>();
-              tier0->set("0", Int(0));
-              expRequirements->push_back(tier0);
-            }
-            if (maxTradeTier >= 1) {
-              auto tier1 = make_shared<CompoundTag>();
-              tier1->set("1", Int(10));
-              expRequirements->push_back(tier1);
-            }
-            if (maxTradeTier >= 2) {
-              auto tier2 = make_shared<CompoundTag>();
-              tier2->set("2", Int(70));
-              expRequirements->push_back(tier2);
-            }
-            if (maxTradeTier >= 3) {
-              auto tier3 = make_shared<CompoundTag>();
-              tier3->set("3", Int(150));
-              expRequirements->push_back(tier3);
-            }
-            if (maxTradeTier >= 4) {
-              auto tier4 = make_shared<CompoundTag>();
-              tier4->set("4", Int(250));
-              expRequirements->push_back(tier4);
-            }
-            of->set("TierExpRequirements", expRequirements);
-            c[offersKey] = of;
-          }
-        }
-      }
-    };
+  static void Endermite(CompoundTag &c, CompoundTag const &tag, Context &) {
+    CopyIntValues(tag, c, {{"Lifetime"}});
   }
 
-  static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, Context &ctx) {
-    using namespace std;
-    using namespace props;
-
-    auto buyA = java.compoundTag("buy");
-    auto buyB = java.compoundTag("buyB");
-    auto sell = java.compoundTag("sell");
-
-    if (!buyA || !sell) {
-      return nullptr;
+  static void ExperienceOrb(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto value = tag.int16("Value");
+    if (value) {
+      c["experience value"] = props::Int(*value);
     }
-    auto bedrock = make_shared<CompoundTag>();
+    AddDefinition(c, "+minecraft:xp_orb");
+  }
 
-    {
-      auto count = buyA->byte("Count", 0);
-      auto item = Item::From(buyA, ctx.fMapInfo, ctx.fWorldData);
-      if (item && count > 0) {
-        bedrock->set("buyA", item);
-        bedrock->set("buyCountA", Int(count));
-      } else {
-        return nullptr;
-      }
+  static void FallingBlock(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto blockState = tag.compoundTag("BlockState");
+    if (!blockState) {
+      return;
     }
-
-    if (buyB) {
-      auto count = buyB->byte("Count", 0);
-      auto id = buyB->string("id", "minecraft:air");
-      auto item = Item::From(buyB, ctx.fMapInfo, ctx.fWorldData);
-      if (id != "minecraft:air" && item && count > 0) {
-        bedrock->set("buyB", item);
-        bedrock->set("buyCountB", Int(count));
-      } else {
-        bedrock->set("buyCountB", Int(0));
-      }
-    } else {
-      bedrock->set("buyCountB", Int(0));
+    auto name = blockState->string("Name");
+    if (!name) {
+      return;
     }
-
-    {
-      auto count = sell->byte("Count", 0);
-      if (count <= 0) {
-        return nullptr;
-      }
-      auto item = Item::From(sell, ctx.fMapInfo, ctx.fWorldData);
-      if (!item) {
-        return nullptr;
-      }
-      bedrock->set("sell", item);
+    auto block = BlockData::From(std::make_shared<mcfile::je::Block>(*name));
+    if (!block) {
+      return;
     }
+    c["FallingBlock"] = block;
 
-    CopyIntValues(java, *bedrock, {{"demand"}, {"maxUses"}, {"uses"}, {"xp", "traderExp"}});
-    CopyByteValues(java, *bedrock, {{"rewardExp"}});
-    CopyFloatValues(java, *bedrock, {{"priceMultiplier", "priceMultiplierA"}, {"priceMultiplierB"}});
+    CopyFloatValues(tag, c, {{"FallDistance"}});
 
-    return bedrock;
+    auto time = std::clamp(tag.int32("Time", 0), 0, 255);
+    c["Time"] = props::Byte(time);
   }
 
   static void Fox(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -1001,36 +768,17 @@ private:
     }
   }
 
-  static std::shared_ptr<CompoundTag> Item(CompoundTag const &tag, Context &ctx) {
-    using namespace props;
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
+  static void Goat(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto screaming = tag.boolean("IsScreamingGoat", false);
+    if (screaming) {
+      AddDefinition(c, "+goat_screamer");
+      AddDefinition(c, "+ram_screamer");
+      AddDefinition(c, "+interact_screamer");
+    } else {
+      AddDefinition(c, "+goat_default");
+      AddDefinition(c, "+ram_default");
+      AddDefinition(c, "+interact_default");
     }
-
-    auto item = tag.compoundTag("Item");
-    if (!item) {
-      return nullptr;
-    }
-    auto beItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
-    if (!beItem) {
-      return nullptr;
-    }
-
-    auto ret = e->toCompoundTag();
-    ret->set("Item", beItem);
-
-    auto thrower = GetUuid(tag, {.fIntArray = "Thrower"});
-    int64_t owner = -1;
-    if (thrower) {
-      owner = UuidRegistrar::ToId(*thrower);
-    }
-    ret->set("OwnerID", Long(owner));
-    ret->set("OwnerNew", Long(owner));
-
-    CopyShortValues(tag, *ret, {{"Health"}, {"Age"}});
-
-    return ret;
   }
 
   static void Horse(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -1041,86 +789,6 @@ private:
     c["MarkVariant"] = props::Int(markings);
   }
 
-  static std::shared_ptr<CompoundTag> StorageMinecart(CompoundTag const &tag, Context &ctx) {
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
-    }
-    auto c = e->toCompoundTag();
-
-    auto chestItems = std::make_shared<ListTag>(Tag::Type::Compound);
-
-    auto items = tag.listTag("Items");
-    if (items) {
-      for (auto const &it : *items) {
-        if (it->type() != Tag::Type::Compound) {
-          continue;
-        }
-        auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!item) {
-          continue;
-        }
-        auto converted = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
-        if (!converted) {
-          continue;
-        }
-        auto slot = item->byte("Slot");
-        if (!slot) {
-          continue;
-        }
-        converted->set("Slot", props::Byte(*slot));
-        chestItems->push_back(converted);
-      }
-    }
-
-    c->set("ChestItems", chestItems);
-
-    return c;
-  }
-
-  static void Panda(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto mainGene = tag.string("MainGene", "normal");
-    auto hiddenGene = tag.string("HiddenGene", "normal");
-
-    Panda::Gene main = Panda::GeneFromJavaName(mainGene);
-    Panda::Gene hidden = Panda::GeneFromJavaName(hiddenGene);
-
-    auto genes = std::make_shared<ListTag>(Tag::Type::Compound);
-    auto gene = std::make_shared<CompoundTag>();
-    gene->set("MainAllele", props::Int(Panda::BedrockAlleleFromGene(main)));
-    gene->set("HiddenAllele", props::Int(Panda::BedrockAlleleFromGene(hidden)));
-    genes->push_back(gene);
-
-    c["GeneArray"] = genes;
-  }
-
-  static void Parrot(CompoundTag &c, CompoundTag const &tag, Context &) {
-    CopyIntValues(tag, c, {{"Variant"}});
-  }
-
-  static void Minecart(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto pos = props::GetPos3d(tag, "Pos");
-    auto onGround = tag.boolean("OnGround");
-    if (pos && onGround) {
-      // Java
-      //   on ground: ground level +0
-      //   on rail: ground level +0.0625
-      // Bedrock
-      //   on ground: graound level +0.35
-      //   on rail: ground level +0.5
-      int32_t iy = (int32_t)floor(pos->fY);
-      double dy = pos->fY - iy;
-      if (*onGround) {
-        // on ground
-        pos->fY = iy + 0.35;
-      } else if (1.0 / 16.0 <= dy && dy < 2.0 / 16.0) {
-        // on rail
-        pos->fY = iy + 0.5;
-      }
-      c["Pos"] = pos->toF().toListTag();
-    }
-  }
-
   static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
     auto enabled = tag.boolean("Enabled", true);
     if (enabled) {
@@ -1128,106 +796,23 @@ private:
     }
   }
 
-  static void TntMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
-    AddDefinition(c, "+minecraft:tnt_minecart");
-    auto fuse = tag.int32("TNTFuse", -1);
-    if (fuse < 0) {
-      AddDefinition(c, "+minecraft:inactive");
+  static void IronGolem(CompoundTag &c, CompoundTag const &tag, Context &) {
+    using namespace props;
+
+    auto playerCreated = tag.boolean("PlayerCreated", false);
+    auto angryAt = GetUuid(tag, {.fIntArray = "AngryAt"});
+    auto angerTime = tag.int32("AngerTime", 0);
+
+    if (playerCreated) {
+      AddDefinition(c, "+minecraft:player_created");
     } else {
-      c["Fuse"] = props::Byte(fuse);
-      AddDefinition(c, "-minecraft:inactive");
-      AddDefinition(c, "+minecraft:primed_tnt");
+      AddDefinition(c, "+minecraft:village_created");
     }
-  }
-
-  static void Turtle(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto x = tag.int32("HomePosX");
-    auto y = tag.int32("HomePosY");
-    auto z = tag.int32("HomePosZ");
-    if (x && y && z) {
-      auto homePos = std::make_shared<ListTag>(Tag::Type::Float);
-      homePos->push_back(props::Float(*x));
-      homePos->push_back(props::Float(*y));
-      homePos->push_back(props::Float(*z));
-      c["HomePos"] = homePos;
+    c["IsAngry"] = Bool(angerTime > 0);
+    if (angryAt) {
+      int64_t targetId = UuidRegistrar::ToId(*angryAt);
+      c["TargetID"] = Long(targetId);
     }
-
-    if (tag.boolean("HasEgg", false)) {
-      AddDefinition(c, "-minecraft:pregnant");
-      AddDefinition(c, "-minecraft:wants_to_lay_egg");
-    }
-  }
-
-  static void TropicalFish(CompoundTag &c, CompoundTag const &tag, Context &) {
-    using namespace props;
-    auto variant = tag.int32("Variant", 0);
-    auto tf = TropicalFish::FromJavaVariant(variant);
-    c["Variant"] = Int(tf.fSmall ? 0 : 1);
-    c["MarkVariant"] = Int(tf.fPattern);
-    c["Color"] = Byte(tf.fBodyColor);
-    c["Color2"] = Byte(tf.fPatternColor);
-  }
-
-  static void TraderLlama(CompoundTag &c, CompoundTag const &tag, Context &) {
-    AddDefinition(c, "+minecraft:llama_wandering_trader");
-    AddDefinition(c, "-minecraft:llama_wild");
-    AddDefinition(c, "+minecraft:llama_tamed");
-    AddDefinition(c, "+minecraft:strength_3");
-    c["InventoryVersion"] = props::String("1.16.40");
-    c["MarkVariant"] = props::Int(1);
-    c["IsTamed"] = props::Bool(true);
-  }
-
-  static std::shared_ptr<ListTag> InitItemList(uint32_t capacity) {
-    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
-    for (int i = 0; i < capacity; i++) {
-      auto empty = Item::Empty();
-      empty->set("Slot", props::Byte(i));
-      empty->set("Count", props::Byte(0));
-      items->push_back(empty);
-    }
-    return items;
-  }
-
-  static std::shared_ptr<ListTag> ConvertAnyItemList(std::shared_ptr<ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, WorldData &wd) {
-    auto ret = InitItemList(capacity);
-    for (auto const &it : *input) {
-      auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-      if (!item) {
-        continue;
-      }
-      auto converted = Item::From(item, mapInfo, wd);
-      if (!converted) {
-        continue;
-      }
-      auto slot = item->byte("Slot");
-      if (!slot) {
-        continue;
-      }
-      if (*slot < 0 || capacity <= *slot) {
-        continue;
-      }
-      auto count = item->byte("Count");
-      if (!count) {
-        continue;
-      }
-      converted->set("Slot", props::Byte(*slot));
-      converted->set("Count", props::Byte(*count));
-      ret->at(*slot) = converted;
-    }
-    return ret;
-  }
-
-  static void AddChestItem(CompoundTag &c, std::shared_ptr<CompoundTag> const &item, int8_t slot, int8_t count) {
-    using namespace props;
-    item->set("Slot", Byte(slot));
-    item->set("Count", Byte(count));
-    auto chestItems = c.listTag("ChestItems");
-    if (!chestItems) {
-      chestItems = InitItemList(16);
-    }
-    chestItems->at(slot) = item;
-    c["ChestItems"] = chestItems;
   }
 
   static void Llama(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -1278,84 +863,59 @@ private:
     CopyIntValues(tag, c, {{"Strength"}});
   }
 
-  static Behavior ChestedHorse(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
-      using namespace props;
-      auto chested = tag.boolean("ChestedHorse", false);
-      c["Chested"] = Bool(chested);
-      if (!chested) {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_unchested");
-        return;
+  static void Minecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto pos = props::GetPos3d(tag, "Pos");
+    auto onGround = tag.boolean("OnGround");
+    if (pos && onGround) {
+      // Java
+      //   on ground: ground level +0
+      //   on rail: ground level +0.0625
+      // Bedrock
+      //   on ground: graound level +0.35
+      //   on rail: ground level +0.5
+      int32_t iy = (int32_t)floor(pos->fY);
+      double dy = pos->fY - iy;
+      if (*onGround) {
+        // on ground
+        pos->fY = iy + 0.35;
+      } else if (1.0 / 16.0 <= dy && dy < 2.0 / 16.0) {
+        // on rail
+        pos->fY = iy + 0.5;
       }
-      auto chestItems = tag.listTag("Items");
-      if (!chestItems) {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_unchested");
-        return;
-      }
-
-      for (auto const &it : *chestItems) {
-        auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!item) {
-          continue;
-        }
-        auto slot = item->byte("Slot");
-        if (!slot) {
-          continue;
-        }
-        int8_t idx = *slot - 1;
-        if (idx < 0 || 16 <= idx) {
-          continue;
-        }
-        auto count = item->byte("Count");
-        if (!count) {
-          continue;
-        }
-        auto outItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
-        if (!outItem) {
-          continue;
-        }
-        AddChestItem(c, outItem, idx, *count);
-      }
-      AddDefinition(c, "-minecraft:" + definitionKey + "_unchested");
-      AddDefinition(c, "+minecraft:" + definitionKey + "_chested");
-    };
+      c["Pos"] = pos->toF().toListTag();
+    }
   }
 
-  static void Shulker(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto color = tag.byte("Color", 16);
-    if (0 <= color && color <= 15) {
-      c["Color"] = props::Byte(color);
-      AddDefinition(c, "+minecraft:shulker_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
+  static void Mooshroom(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto type = tag.string("Type", "red");
+    int32_t variant = 0;
+    if (type == "brown") {
+      variant = 1;
+      AddDefinition(c, "+minecraft:mooshroom_brown");
     } else {
-      AddDefinition(c, "+minecraft:shulker_undyed");
+      AddDefinition(c, "+minecraft:mooshroom_red");
     }
-    c["Variant"] = props::Int(color);
+    c["Variant"] = props::Int(variant);
   }
 
-  static void SkeletonHorse(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto trap = tag.boolean("SkeletonTrap", false);
-    if (trap) {
-      AddDefinition(c, "+minecraft:skeleton_trap");
-      AddDefinition(c, "+minecraft:lightning_immune");
-    }
+  static void Panda(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto mainGene = tag.string("MainGene", "normal");
+    auto hiddenGene = tag.string("HiddenGene", "normal");
+
+    Panda::Gene main = Panda::GeneFromJavaName(mainGene);
+    Panda::Gene hidden = Panda::GeneFromJavaName(hiddenGene);
+
+    auto genes = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto gene = std::make_shared<CompoundTag>();
+    gene->set("MainAllele", props::Int(Panda::BedrockAlleleFromGene(main)));
+    gene->set("HiddenAllele", props::Int(Panda::BedrockAlleleFromGene(hidden)));
+    genes->push_back(gene);
+
+    c["GeneArray"] = genes;
   }
 
-  template <class... Arg>
-  static Behavior Definitions(Arg... defs) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      for (std::string const &def : std::initializer_list<std::string>{defs...}) {
-        AddDefinition(c, def);
-      }
-    };
-  }
-
-  static Behavior Colorable(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      auto color = tag.byte("Color", 0);
-      c["Color"] = props::Byte(color);
-      CopyByteValues(tag, c, {{"Color"}});
-      AddDefinition(c, "+minecraft:" + definitionKey + "_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
-    };
+  static void Parrot(CompoundTag &c, CompoundTag const &tag, Context &) {
+    CopyIntValues(tag, c, {{"Variant"}});
   }
 
   static void Pufferfish(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -1428,57 +988,36 @@ private:
     CopyIntValues(tag, c, {{"MoreCarrotTicks"}});
   }
 
-  static void Debug(CompoundTag &c, CompoundTag const &tag, Context &) {}
-
-  static void CollarColorable(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto collarColor = tag.byte("CollarColor");
-    if (collarColor && GetOwnerUuid(tag)) {
-      c["Color"] = props::Byte(*collarColor);
-    }
-  }
-
-  static Behavior Steerable(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      using namespace props;
-      auto saddle = tag.boolean("Saddle", false);
-      auto saddleItem = tag.compoundTag("SaddleItem");
-      if (saddle || saddleItem) {
-        AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
-        AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
-        if (saddleItem) {
-          auto item = std::make_shared<CompoundTag>();
-          item->insert({
-              {"Damage", Byte(0)},
-              {"Name", String("minecraft:saddle")},
-              {"WasPickedUp", Bool(false)},
-          });
-          AddChestItem(c, item, 0, 1);
-        }
-      } else {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_unsaddled");
-      }
-      c["Saddled"] = props::Bool(saddle);
-    };
-  }
-
-  static void Mooshroom(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto type = tag.string("Type", "red");
-    int32_t variant = 0;
-    if (type == "brown") {
-      variant = 1;
-      AddDefinition(c, "+minecraft:mooshroom_brown");
+  static void Salmon(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto fromBucket = tag.boolean("FromBucket", false);
+    if (fromBucket) {
+      c["Persistent"] = props::Bool(true);
     } else {
-      AddDefinition(c, "+minecraft:mooshroom_red");
+      c["NaturalSpawn"] = props::Bool(true);
     }
-    c["Variant"] = props::Int(variant);
   }
 
-  static void Wolf(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto health = tag.float32("Health");
-    auto owner = GetOwnerUuid(tag);
+  static void Sheep(CompoundTag &c, CompoundTag const &tag, Context &) {
+    CopyBoolValues(tag, c, {{"Sheared", "Sheared", false}});
+  }
 
-    auto attributes = EntityAttributes::Wolf(!!owner, health);
-    c["Attributes"] = attributes.toListTag();
+  static void Shulker(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto color = tag.byte("Color", 16);
+    if (0 <= color && color <= 15) {
+      c["Color"] = props::Byte(color);
+      AddDefinition(c, "+minecraft:shulker_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
+    } else {
+      AddDefinition(c, "+minecraft:shulker_undyed");
+    }
+    c["Variant"] = props::Int(color);
+  }
+
+  static void SkeletonHorse(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto trap = tag.boolean("SkeletonTrap", false);
+    if (trap) {
+      AddDefinition(c, "+minecraft:skeleton_trap");
+      AddDefinition(c, "+minecraft:lightning_immune");
+    }
   }
 
   static void Slime(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -1492,107 +1031,223 @@ private:
     c["Attributes"] = attributes.toListTag();
   }
 
-  static std::shared_ptr<CompoundTag> EntityBase(CompoundTag const &tag, Context &ctx) {
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
+  static void SnowGolem(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto pumpkin = tag.boolean("Pumpkin", true);
+    if (!pumpkin) {
+      AddDefinition(c, "+minecraft:snowman_sheared");
     }
-    return e->toCompoundTag();
   }
 
-  static Behavior Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
-      auto links = std::make_shared<ListTag>(Tag::Type::Compound);
+  static void TntMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+    AddDefinition(c, "+minecraft:tnt_minecart");
+    auto fuse = tag.int32("TNTFuse", -1);
+    if (fuse < 0) {
+      AddDefinition(c, "+minecraft:inactive");
+    } else {
+      c["Fuse"] = props::Byte(fuse);
+      AddDefinition(c, "-minecraft:inactive");
+      AddDefinition(c, "+minecraft:primed_tnt");
+    }
+  }
 
-      auto passengers = tag.query("Passengers")->asList();
-      if (passengers) {
-        for (int i = 0; i < passengers->size(); i++) {
-          auto const &p = passengers->at(i);
-          auto comp = p->asCompound();
-          if (!comp) {
-            continue;
-          }
+  static void TraderLlama(CompoundTag &c, CompoundTag const &tag, Context &) {
+    AddDefinition(c, "+minecraft:llama_wandering_trader");
+    AddDefinition(c, "-minecraft:llama_wild");
+    AddDefinition(c, "+minecraft:llama_tamed");
+    AddDefinition(c, "+minecraft:strength_3");
+    c["InventoryVersion"] = props::String("1.16.40");
+    c["MarkVariant"] = props::Int(1);
+    c["IsTamed"] = props::Bool(true);
+  }
 
-          auto entities = From(*comp, ctx.fMapInfo, ctx.fWorldData);
-          if (entities.empty()) {
-            continue;
-          }
+  static void TropicalFish(CompoundTag &c, CompoundTag const &tag, Context &) {
+    using namespace props;
+    auto variant = tag.int32("Variant", 0);
+    auto tf = TropicalFish::FromJavaVariant(variant);
+    c["Variant"] = Int(tf.fSmall ? 0 : 1);
+    c["MarkVariant"] = Int(tf.fPattern);
+    c["Color"] = Byte(tf.fBodyColor);
+    c["Color2"] = Byte(tf.fPatternColor);
+  }
 
-          auto const &passenger = entities[0];
-          auto uid = passenger->int64("UniqueID");
-          if (!uid) {
-            continue;
-          }
-          auto link = std::make_shared<CompoundTag>();
-          link->set("entityID", props::Long(*uid));
-          link->set("linkID", props::Int(i));
-          links->push_back(link);
+  static void Turtle(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto x = tag.int32("HomePosX");
+    auto y = tag.int32("HomePosY");
+    auto z = tag.int32("HomePosZ");
+    if (x && y && z) {
+      auto homePos = std::make_shared<ListTag>(Tag::Type::Float);
+      homePos->push_back(props::Float(*x));
+      homePos->push_back(props::Float(*y));
+      homePos->push_back(props::Float(*z));
+      c["HomePos"] = homePos;
+    }
 
-          auto passengerId = passenger->string("identifier");
-          if (passengerId && *passengerId == "minecraft:zombie") {
-            AddDefinition(*passenger, "+minecraft:zombie_jockey");
-          }
+    if (tag.boolean("HasEgg", false)) {
+      AddDefinition(c, "-minecraft:pregnant");
+      AddDefinition(c, "-minecraft:wants_to_lay_egg");
+    }
+  }
 
-          ctx.fPassengers.push_back(passenger);
-        }
+  static void Villager(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    using namespace std;
+    using namespace props;
 
-        if (jockeyDefinitionKey) {
-          AddDefinition(c, "+minecraft:" + *jockeyDefinitionKey + "_parent_jockey");
-        }
+    auto data = tag.compoundTag("VillagerData");
+    optional<VillagerProfession> profession;
+    optional<VillagerType> type;
+    if (data) {
+      auto inProfession = data->string("profession");
+      if (inProfession) {
+        profession = VillagerProfession::FromJavaProfession(*inProfession);
       }
 
-      c["LinksTag"] = links;
-    };
-  }
-
-  static void Boat(CompoundTag &c, CompoundTag const &tag, Context &) {
-    AddDefinition(c, "+minecraft:boat");
-
-    auto type = tag.string("Type", "oak");
-    int32_t variant = Boat::BedrockVariantFromJavaType(type);
-    c["Variant"] = props::Int(variant);
-
-    auto rotation = props::GetRotation(c, "Rotation");
-    if (rotation) {
-      Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
-      c["Rotation"] = rot.toListTag();
-    }
-
-    auto pos = props::GetPos3d(c, "Pos");
-    auto onGround = c.boolean("OnGround", false);
-    if (pos && onGround) {
-      int iy = (int)floor(pos->fY);
-      pos->fY = iy + 0.35;
-      c["Pos"] = pos->toF().toListTag();
-    }
-  }
-
-  static Behavior Rename(std::string const &name) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      auto id = tag.string("id");
-      if (!id) {
-        return;
+      auto inType = data->string("type");
+      if (inType) {
+        type = VillagerType::FromJavaType(*inType);
       }
-      RemoveDefinition(c, "+" + *id);
-      AddDefinition(c, "+minecraft:" + name);
-      c["identifier"] = props::String("minecraft:" + name);
-    };
+    }
+
+    if (profession) {
+      c["PreferredProfession"] = String(profession->string());
+      AddDefinition(c, "+" + profession->string());
+      c["Variant"] = Int(profession->variant());
+      c["TradeTablePath"] = String(profession->tradeTablePath());
+    }
+    if (type) {
+      AddDefinition(c, "+" + type->string() + "_villager");
+      c["MarkVariant"] = Int(type->variant());
+    }
+
+    auto age = tag.int32("Age", 0);
+    if (age < 0) {
+      c["Age"] = Int(age);
+      AddDefinition(c, "+baby");
+    } else {
+      AddDefinition(c, "+adult");
+    }
+    AddDefinition(c, "+minecraft:villager_v2");
+
+    auto tradeExp = tag.int32("Xp", 0);
+    c["TradeExperience"] = Int(tradeExp);
+
+    int tradeTier = 0;
+    if (tradeExp >= 250) {
+      tradeTier = 4;
+    } else if (tradeExp >= 150) {
+      tradeTier = 3;
+    } else if (tradeExp >= 70) {
+      tradeTier = 2;
+    } else if (tradeExp >= 10) {
+      tradeTier = 1;
+    }
+    c["TradeTier"] = Int(tradeTier);
   }
 
-  static void Creeper(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto powered = tag.boolean("powered", false);
-    if (powered) {
-      AddDefinition(c, "+minecraft:charged_creeper");
-      AddDefinition(c, "+minecraft:exploding");
+  static void Wolf(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto health = tag.float32("Health");
+    auto owner = GetOwnerUuid(tag);
+
+    auto attributes = EntityAttributes::Wolf(!!owner, health);
+    c["Attributes"] = attributes.toListTag();
+  }
+
+  static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    using namespace std;
+    auto data = tag.compoundTag("VillagerData");
+    optional<VillagerProfession> profession;
+    if (data) {
+      auto inProfession = data->string("profession");
+      if (inProfession) {
+        profession = VillagerProfession::FromJavaProfession(*inProfession);
+        AddDefinition(c, "+" + profession->string());
+      }
+      auto inType = data->string("type");
+      if (inType) {
+        auto type = VillagerType::FromJavaType(*inType);
+        if (type) {
+          switch (type->variant()) {
+          case VillagerType::Plains:
+            AddDefinition(c, "+villager_skin_1");
+            break;
+          case VillagerType::Desert:
+            AddDefinition(c, "+villager_skin_4");
+            AddDefinition(c, "+desert_villager");
+            break;
+          case VillagerType::Jungle:
+            AddDefinition(c, "+villager_skin_4");
+            AddDefinition(c, "+jungle_villager");
+            break;
+          case VillagerType::Savanna:
+            AddDefinition(c, "+villager_skin_5");
+            AddDefinition(c, "+savanna_villager");
+            break;
+          case VillagerType::Snow:
+            AddDefinition(c, "+villager_skin_3");
+            AddDefinition(c, "+snow_villager");
+            break;
+          case VillagerType::Swamp:
+            AddDefinition(c, "+villager_skin_1");
+            AddDefinition(c, "+swamp_villager");
+            break;
+          case VillagerType::Taiga:
+            AddDefinition(c, "+villager_skin_2");
+            break;
+          }
+        }
+      }
+    }
+
+    auto offers = tag.compoundTag("Offers");
+    if (offers) {
+      c["Persistent"] = props::Bool(true);
+    }
+
+    CopyIntValues(tag, c, {{"Xp", "TradeExperience"}});
+  }
+#pragma endregion
+
+#pragma region Behaviors
+  static void AgeableC(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto age = tag.int32("Age", 0);
+    if (age < 0) {
+      AddDefinition(c, "+baby");
+      c["Age"] = props::Int(age);
+    } else {
+      AddDefinition(c, "+adult");
+      c.erase("Age");
+    }
+    c["IsBaby"] = props::Bool(age < 0);
+  }
+
+  static void AttackTime(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto attackTick = tag.int32("AttackTick", 0);
+    c["AttackTime"] = props::Short(attackTick);
+  }
+
+  static void CollarColorable(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto collarColor = tag.byte("CollarColor");
+    if (collarColor && GetOwnerUuid(tag)) {
+      c["Color"] = props::Byte(*collarColor);
     }
   }
 
-  static std::shared_ptr<CompoundTag> Monster(CompoundTag const &tag, Context &ctx) {
-    auto c = Mob(tag, ctx);
-    c->set("SpawnedByNight", props::Bool(false));
-    return c;
+  static void Debug(CompoundTag &c, CompoundTag const &tag, Context &) {}
+
+  static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, Context &) {
+    AddDefinition(c, "-minecraft:start_suffocating");
+    AddDefinition(c, "+minecraft:detect_suffocating");
   }
 
+  static void Sittable(CompoundTag &c, CompoundTag const &tag, Context &) {
+    CopyBoolValues(tag, c, {{"Sitting"}});
+  }
+
+  static void Temper(CompoundTag &c, CompoundTag const &tag, Context &) {
+    CopyIntValues(tag, c, {{"Temper"}});
+  }
+#pragma endregion
+
+#pragma region Converters
   static std::shared_ptr<CompoundTag> Animal(CompoundTag const &tag, Context &ctx) {
     auto c = Mob(tag, ctx);
     if (!c) {
@@ -1621,157 +1276,74 @@ private:
     return c;
   }
 
-  static void Bat(CompoundTag &c, CompoundTag const &tag, Context &) {
-    CopyBoolValues(tag, c, {{"BatFlags"}});
-    AddDefinition(c, "+minecraft:bat");
-  }
-
-  static std::optional<int64_t> GetOwnerUuid(CompoundTag const &tag) {
-    auto uuid = props::GetUuid(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"});
-    if (!uuid) {
-      return std::nullopt;
+  static std::shared_ptr<CompoundTag> Default(CompoundTag const &tag) {
+    auto e = BaseProperties(tag);
+    if (!e) {
+      return nullptr;
     }
-    return UuidRegistrar::ToId(*uuid);
+    return e->toCompoundTag();
   }
 
-  static void Cat(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto catType = tag.int32("CatType");
-    if (catType) {
-      Cat::Type ct = Cat::CatTypeFromJavaCatType(*catType);
-      int32_t variant = Cat::BedrockVariantFromJavaCatType(ct);
-      std::string type = Cat::BedrockNameFromCatType(ct);
-      if (!type.empty()) {
-        AddDefinition(c, "+minecraft:cat_" + type);
-      }
-      c["Variant"] = props::Int(variant);
+  static std::shared_ptr<CompoundTag> EndCrystal(CompoundTag const &tag, Context &ctx) {
+    auto e = BaseProperties(tag);
+    if (!e) {
+      return nullptr;
     }
-    c["DwellingUniqueID"] = props::String("00000000-0000-0000-0000-000000000000");
-    c["RewardPlayersOnFirstFounding"] = props::Bool(true);
+    e->fIdentifier = "minecraft:ender_crystal";
+    auto c = e->toCompoundTag();
+    CopyBoolValues(tag, *c, {{"ShowBottom"}});
+    return c;
   }
 
-  static void Chicken(CompoundTag &c, CompoundTag const &tag, Context &) {
-    using namespace std;
-    auto eggLayTime = tag.int32("EggLayTime");
-    if (eggLayTime) {
-      auto entries = make_shared<ListTag>(Tag::Type::Compound);
-      auto timer = make_shared<CompoundTag>();
-      timer->set("SpawnTimer", props::Int(*eggLayTime));
-      timer->set("StopSpawning", props::Bool(false));
-      entries->push_back(timer);
-      c["entries"] = entries;
+  static std::shared_ptr<CompoundTag> EnderDragon(CompoundTag const &tag, Context &ctx) {
+    auto c = Monster(tag, ctx);
+    AddDefinition(*c, "-dragon_sitting");
+    AddDefinition(*c, "+dragon_flying");
+    c->set("Persistent", props::Bool(true));
+    c->set("IsAutonomous", props::Bool(true));
+    c->set("LastDimensionId", props::Int(2));
+    ctx.fWorldData.addAutonomousEntity(c);
+    return c;
+  }
+
+  static std::shared_ptr<CompoundTag> EntityBase(CompoundTag const &tag, Context &ctx) {
+    auto e = BaseProperties(tag);
+    if (!e) {
+      return nullptr;
     }
+    return e->toCompoundTag();
   }
 
-  static Behavior AgeableA(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      auto age = tag.int32("Age", 0);
-      if (age < 0) {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
-        c["Age"] = props::Int(age);
-      } else {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
-        c.erase("Age");
-      }
-      c["IsBaby"] = props::Bool(age < 0);
-    };
-  }
-
-  static Behavior AgeableB(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      auto baby = tag.boolean("IsBaby", false);
-      if (baby) {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
-      } else {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
-      }
-      c["IsBaby"] = props::Bool(baby);
-    };
-  }
-
-  static void AgeableC(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto age = tag.int32("Age", 0);
-    if (age < 0) {
-      AddDefinition(c, "+baby");
-      c["Age"] = props::Int(age);
-    } else {
-      AddDefinition(c, "+adult");
-      c.erase("Age");
+  static std::shared_ptr<CompoundTag> Item(CompoundTag const &tag, Context &ctx) {
+    using namespace props;
+    auto e = BaseProperties(tag);
+    if (!e) {
+      return nullptr;
     }
-    c["IsBaby"] = props::Bool(age < 0);
-  }
 
-  static void AttackTime(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto attackTick = tag.int32("AttackTick", 0);
-    c["AttackTime"] = props::Short(attackTick);
-  }
-
-  static Behavior TameableA(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      auto owner = GetOwnerUuid(tag);
-      if (owner) {
-        c["OwnerNew"] = props::Long(*owner);
-        AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
-        AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
-        c["IsTamed"] = props::Bool(true);
-      } else {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
-      }
-    };
-  }
-
-  static Behavior TameableB(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
-      auto owner = GetOwnerUuid(tag);
-      if (owner) {
-        c["OwnerNew"] = props::Long(*owner);
-        AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
-        AddDefinition(c, "+minecraft:" + definitionKey + "_tamed");
-        c["IsTamed"] = props::Bool(true);
-      } else {
-        AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
-      }
-    };
-  }
-
-  static void AddDefinition(CompoundTag &tag, std::string const &definition) {
-    auto found = tag.find("definitions");
-    auto d = std::make_shared<ListTag>(Tag::Type::String);
-    if (found != tag.end()) {
-      auto current = found->second->asList();
-      if (current && current->fType == Tag::Type::String) {
-        for (auto c : *current) {
-          if (c->asString()) {
-            d->push_back(props::String(c->asString()->fValue));
-          }
-        }
-      }
+    auto item = tag.compoundTag("Item");
+    if (!item) {
+      return nullptr;
     }
-    d->push_back(props::String(definition));
-    tag["definitions"] = d;
-  }
-
-  static void RemoveDefinition(CompoundTag &tag, std::string const &definition) {
-    auto found = tag.find("definitions");
-    auto d = std::make_shared<ListTag>(Tag::Type::String);
-    if (found != tag.end()) {
-      auto current = found->second->asList();
-      if (current && current->fType == Tag::Type::String) {
-        for (auto c : *current) {
-          if (c->asString() && c->asString()->fValue != definition) {
-            d->push_back(props::String(c->asString()->fValue));
-          }
-        }
-      }
+    auto beItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+    if (!beItem) {
+      return nullptr;
     }
-    tag["definitions"] = d;
-  }
 
-  static void Temper(CompoundTag &c, CompoundTag const &tag, Context &) {
-    CopyIntValues(tag, c, {{"Temper"}});
-  }
+    auto ret = e->toCompoundTag();
+    ret->set("Item", beItem);
 
-  static void Sittable(CompoundTag &c, CompoundTag const &tag, Context &) {
-    CopyBoolValues(tag, c, {{"Sitting"}});
+    auto thrower = GetUuid(tag, {.fIntArray = "Thrower"});
+    int64_t owner = -1;
+    if (thrower) {
+      owner = UuidRegistrar::ToId(*thrower);
+    }
+    ret->set("OwnerID", Long(owner));
+    ret->set("OwnerNew", Long(owner));
+
+    CopyShortValues(tag, *ret, {{"Health"}, {"Age"}});
+
+    return ret;
   }
 
   static std::shared_ptr<CompoundTag> LivingEntity(CompoundTag const &tag, Context &ctx) {
@@ -1856,6 +1428,494 @@ private:
     }
 
     return ret;
+  }
+
+  static std::shared_ptr<CompoundTag> Monster(CompoundTag const &tag, Context &ctx) {
+    auto c = Mob(tag, ctx);
+    c->set("SpawnedByNight", props::Bool(false));
+    return c;
+  }
+
+  static std::shared_ptr<CompoundTag> Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
+
+  static std::shared_ptr<CompoundTag> Painting(CompoundTag const &tag, Context &ctx) {
+    using namespace props;
+
+    auto facing = tag.byte("Facing", 0);
+    Facing4 f4 = Facing4FromBedrockDirection(facing);
+    auto motiveJ = tag.string("Motive", "minecraft:aztec");
+    Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
+    auto motiveB = Painting::BedrockFromMotive(motive);
+
+    auto tileX = tag.int32("TileX");
+    auto tileY = tag.int32("TileY");
+    auto tileZ = tag.int32("TileZ");
+    if (!tileX || !tileY || !tileZ) {
+      return nullptr;
+    }
+    auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(*tileX, *tileY, *tileZ), f4, motive);
+    if (!pos) {
+      return nullptr;
+    }
+
+    auto e = BaseProperties(tag);
+    if (!e) {
+      return nullptr;
+    }
+    e->fIdentifier = "minecraft:painting";
+    e->fPos = *pos;
+    auto c = e->toCompoundTag();
+    c->set("Motive", String(motiveB));
+    c->set("Direction", Byte(facing));
+    return c;
+  }
+
+  static std::shared_ptr<CompoundTag> StorageMinecart(CompoundTag const &tag, Context &ctx) {
+    auto e = BaseProperties(tag);
+    if (!e) {
+      return nullptr;
+    }
+    auto c = e->toCompoundTag();
+
+    auto chestItems = std::make_shared<ListTag>(Tag::Type::Compound);
+
+    auto items = tag.listTag("Items");
+    if (items) {
+      for (auto const &it : *items) {
+        if (it->type() != Tag::Type::Compound) {
+          continue;
+        }
+        auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!item) {
+          continue;
+        }
+        auto converted = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+        if (!converted) {
+          continue;
+        }
+        auto slot = item->byte("Slot");
+        if (!slot) {
+          continue;
+        }
+        converted->set("Slot", props::Byte(*slot));
+        chestItems->push_back(converted);
+      }
+    }
+
+    c->set("ChestItems", chestItems);
+
+    return c;
+  }
+#pragma endregion
+
+#pragma region Behavior Generators
+  static Behavior AgeableA(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto age = tag.int32("Age", 0);
+      if (age < 0) {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
+        c["Age"] = props::Int(age);
+      } else {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
+        c.erase("Age");
+      }
+      c["IsBaby"] = props::Bool(age < 0);
+    };
+  }
+
+  static Behavior AgeableB(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto baby = tag.boolean("IsBaby", false);
+      if (baby) {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
+      } else {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
+      }
+      c["IsBaby"] = props::Bool(baby);
+    };
+  }
+
+  static Behavior ChestedHorse(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+      using namespace props;
+      auto chested = tag.boolean("ChestedHorse", false);
+      c["Chested"] = Bool(chested);
+      if (!chested) {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_unchested");
+        return;
+      }
+      auto chestItems = tag.listTag("Items");
+      if (!chestItems) {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_unchested");
+        return;
+      }
+
+      for (auto const &it : *chestItems) {
+        auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!item) {
+          continue;
+        }
+        auto slot = item->byte("Slot");
+        if (!slot) {
+          continue;
+        }
+        int8_t idx = *slot - 1;
+        if (idx < 0 || 16 <= idx) {
+          continue;
+        }
+        auto count = item->byte("Count");
+        if (!count) {
+          continue;
+        }
+        auto outItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+        if (!outItem) {
+          continue;
+        }
+        AddChestItem(c, outItem, idx, *count);
+      }
+      AddDefinition(c, "-minecraft:" + definitionKey + "_unchested");
+      AddDefinition(c, "+minecraft:" + definitionKey + "_chested");
+    };
+  }
+
+  static Behavior Colorable(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto color = tag.byte("Color", 0);
+      c["Color"] = props::Byte(color);
+      CopyByteValues(tag, c, {{"Color"}});
+      AddDefinition(c, "+minecraft:" + definitionKey + "_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
+    };
+  }
+
+  template <class... Arg>
+  static Behavior Definitions(Arg... defs) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      for (std::string const &def : std::initializer_list<std::string>{defs...}) {
+        AddDefinition(c, def);
+      }
+    };
+  }
+
+  static Behavior Offers(int maxTradeTier, std::string offersKey) {
+    return [maxTradeTier, offersKey](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+      using namespace std;
+      using namespace props;
+
+      auto offers = tag.compoundTag("Offers");
+      if (offers) {
+        auto recipes = offers->listTag("Recipes");
+        if (recipes) {
+          auto rs = make_shared<ListTag>(Tag::Type::Compound);
+          for (int i = 0; i < recipes->size(); i++) {
+            auto recipe = recipes->at(i);
+            auto r = recipe->asCompound();
+            if (!r) {
+              continue;
+            }
+            auto converted = BedrockRecipieFromJava(*r, ctx);
+            if (!converted) {
+              continue;
+            }
+            int tier = min(i / 2, maxTradeTier);
+            converted->set("tier", Int(tier));
+            rs->push_back(converted);
+          }
+          if (!rs->empty()) {
+            auto of = make_shared<CompoundTag>();
+            of->set("Recipes", rs);
+            auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
+            if (maxTradeTier >= 0) {
+              auto tier0 = make_shared<CompoundTag>();
+              tier0->set("0", Int(0));
+              expRequirements->push_back(tier0);
+            }
+            if (maxTradeTier >= 1) {
+              auto tier1 = make_shared<CompoundTag>();
+              tier1->set("1", Int(10));
+              expRequirements->push_back(tier1);
+            }
+            if (maxTradeTier >= 2) {
+              auto tier2 = make_shared<CompoundTag>();
+              tier2->set("2", Int(70));
+              expRequirements->push_back(tier2);
+            }
+            if (maxTradeTier >= 3) {
+              auto tier3 = make_shared<CompoundTag>();
+              tier3->set("3", Int(150));
+              expRequirements->push_back(tier3);
+            }
+            if (maxTradeTier >= 4) {
+              auto tier4 = make_shared<CompoundTag>();
+              tier4->set("4", Int(250));
+              expRequirements->push_back(tier4);
+            }
+            of->set("TierExpRequirements", expRequirements);
+            c[offersKey] = of;
+          }
+        }
+      }
+    };
+  }
+
+  static Behavior Rename(std::string const &name) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto id = tag.string("id");
+      if (!id) {
+        return;
+      }
+      RemoveDefinition(c, "+" + *id);
+      AddDefinition(c, "+minecraft:" + name);
+      c["identifier"] = props::String("minecraft:" + name);
+    };
+  }
+
+  static Behavior Steerable(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      using namespace props;
+      auto saddle = tag.boolean("Saddle", false);
+      auto saddleItem = tag.compoundTag("SaddleItem");
+      if (saddle || saddleItem) {
+        AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
+        AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
+        if (saddleItem) {
+          auto item = std::make_shared<CompoundTag>();
+          item->insert({
+              {"Damage", Byte(0)},
+              {"Name", String("minecraft:saddle")},
+              {"WasPickedUp", Bool(false)},
+          });
+          AddChestItem(c, item, 0, 1);
+        }
+      } else {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_unsaddled");
+      }
+      c["Saddled"] = props::Bool(saddle);
+    };
+  }
+
+  static Behavior TameableA(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto owner = GetOwnerUuid(tag);
+      if (owner) {
+        c["OwnerNew"] = props::Long(*owner);
+        AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
+        AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
+        c["IsTamed"] = props::Bool(true);
+      } else {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
+      }
+    };
+  }
+
+  static Behavior TameableB(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto owner = GetOwnerUuid(tag);
+      if (owner) {
+        c["OwnerNew"] = props::Long(*owner);
+        AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
+        AddDefinition(c, "+minecraft:" + definitionKey + "_tamed");
+        c["IsTamed"] = props::Bool(true);
+      } else {
+        AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
+      }
+    };
+  }
+
+  static Behavior Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+      auto links = std::make_shared<ListTag>(Tag::Type::Compound);
+
+      auto passengers = tag.query("Passengers")->asList();
+      if (passengers) {
+        for (int i = 0; i < passengers->size(); i++) {
+          auto const &p = passengers->at(i);
+          auto comp = p->asCompound();
+          if (!comp) {
+            continue;
+          }
+
+          auto entities = From(*comp, ctx.fMapInfo, ctx.fWorldData);
+          if (entities.empty()) {
+            continue;
+          }
+
+          auto const &passenger = entities[0];
+          auto uid = passenger->int64("UniqueID");
+          if (!uid) {
+            continue;
+          }
+          auto link = std::make_shared<CompoundTag>();
+          link->set("entityID", props::Long(*uid));
+          link->set("linkID", props::Int(i));
+          links->push_back(link);
+
+          auto passengerId = passenger->string("identifier");
+          if (passengerId && *passengerId == "minecraft:zombie") {
+            AddDefinition(*passenger, "+minecraft:zombie_jockey");
+          }
+
+          ctx.fPassengers.push_back(passenger);
+        }
+
+        if (jockeyDefinitionKey) {
+          AddDefinition(c, "+minecraft:" + *jockeyDefinitionKey + "_parent_jockey");
+        }
+      }
+
+      c["LinksTag"] = links;
+    };
+  }
+#pragma endregion
+
+#pragma region Utilities
+  static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, Context &ctx) {
+    using namespace std;
+    using namespace props;
+
+    auto buyA = java.compoundTag("buy");
+    auto buyB = java.compoundTag("buyB");
+    auto sell = java.compoundTag("sell");
+
+    if (!buyA || !sell) {
+      return nullptr;
+    }
+    auto bedrock = make_shared<CompoundTag>();
+
+    {
+      auto count = buyA->byte("Count", 0);
+      auto item = Item::From(buyA, ctx.fMapInfo, ctx.fWorldData);
+      if (item && count > 0) {
+        bedrock->set("buyA", item);
+        bedrock->set("buyCountA", Int(count));
+      } else {
+        return nullptr;
+      }
+    }
+
+    if (buyB) {
+      auto count = buyB->byte("Count", 0);
+      auto id = buyB->string("id", "minecraft:air");
+      auto item = Item::From(buyB, ctx.fMapInfo, ctx.fWorldData);
+      if (id != "minecraft:air" && item && count > 0) {
+        bedrock->set("buyB", item);
+        bedrock->set("buyCountB", Int(count));
+      } else {
+        bedrock->set("buyCountB", Int(0));
+      }
+    } else {
+      bedrock->set("buyCountB", Int(0));
+    }
+
+    {
+      auto count = sell->byte("Count", 0);
+      if (count <= 0) {
+        return nullptr;
+      }
+      auto item = Item::From(sell, ctx.fMapInfo, ctx.fWorldData);
+      if (!item) {
+        return nullptr;
+      }
+      bedrock->set("sell", item);
+    }
+
+    CopyIntValues(java, *bedrock, {{"demand"}, {"maxUses"}, {"uses"}, {"xp", "traderExp"}});
+    CopyByteValues(java, *bedrock, {{"rewardExp"}});
+    CopyFloatValues(java, *bedrock, {{"priceMultiplier", "priceMultiplierA"}, {"priceMultiplierB"}});
+
+    return bedrock;
+  }
+
+  static std::shared_ptr<ListTag> InitItemList(uint32_t capacity) {
+    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
+    for (int i = 0; i < capacity; i++) {
+      auto empty = Item::Empty();
+      empty->set("Slot", props::Byte(i));
+      empty->set("Count", props::Byte(0));
+      items->push_back(empty);
+    }
+    return items;
+  }
+
+  static std::shared_ptr<ListTag> ConvertAnyItemList(std::shared_ptr<ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, WorldData &wd) {
+    auto ret = InitItemList(capacity);
+    for (auto const &it : *input) {
+      auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+      if (!item) {
+        continue;
+      }
+      auto converted = Item::From(item, mapInfo, wd);
+      if (!converted) {
+        continue;
+      }
+      auto slot = item->byte("Slot");
+      if (!slot) {
+        continue;
+      }
+      if (*slot < 0 || capacity <= *slot) {
+        continue;
+      }
+      auto count = item->byte("Count");
+      if (!count) {
+        continue;
+      }
+      converted->set("Slot", props::Byte(*slot));
+      converted->set("Count", props::Byte(*count));
+      ret->at(*slot) = converted;
+    }
+    return ret;
+  }
+
+  static void AddChestItem(CompoundTag &c, std::shared_ptr<CompoundTag> const &item, int8_t slot, int8_t count) {
+    using namespace props;
+    item->set("Slot", Byte(slot));
+    item->set("Count", Byte(count));
+    auto chestItems = c.listTag("ChestItems");
+    if (!chestItems) {
+      chestItems = InitItemList(16);
+    }
+    chestItems->at(slot) = item;
+    c["ChestItems"] = chestItems;
+  }
+
+  static std::optional<int64_t> GetOwnerUuid(CompoundTag const &tag) {
+    auto uuid = props::GetUuid(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"});
+    if (!uuid) {
+      return std::nullopt;
+    }
+    return UuidRegistrar::ToId(*uuid);
+  }
+
+  static void AddDefinition(CompoundTag &tag, std::string const &definition) {
+    auto found = tag.find("definitions");
+    auto d = std::make_shared<ListTag>(Tag::Type::String);
+    if (found != tag.end()) {
+      auto current = found->second->asList();
+      if (current && current->fType == Tag::Type::String) {
+        for (auto c : *current) {
+          if (c->asString()) {
+            d->push_back(props::String(c->asString()->fValue));
+          }
+        }
+      }
+    }
+    d->push_back(props::String(definition));
+    tag["definitions"] = d;
+  }
+
+  static void RemoveDefinition(CompoundTag &tag, std::string const &definition) {
+    auto found = tag.find("definitions");
+    auto d = std::make_shared<ListTag>(Tag::Type::String);
+    if (found != tag.end()) {
+      auto current = found->second->asList();
+      if (current && current->fType == Tag::Type::String) {
+        for (auto c : *current) {
+          if (c->asString() && c->asString()->fValue != definition) {
+            d->push_back(props::String(c->asString()->fValue));
+          }
+        }
+      }
+    }
+    tag["definitions"] = d;
   }
 
   static std::shared_ptr<ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
@@ -1982,57 +2042,7 @@ private:
 
     return e;
   }
-
-  static std::shared_ptr<CompoundTag> Default(CompoundTag const &tag) {
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
-    }
-    return e->toCompoundTag();
-  }
-
-  static std::shared_ptr<CompoundTag> EndCrystal(CompoundTag const &tag, Context &ctx) {
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
-    }
-    e->fIdentifier = "minecraft:ender_crystal";
-    auto c = e->toCompoundTag();
-    CopyBoolValues(tag, *c, {{"ShowBottom"}});
-    return c;
-  }
-
-  static std::shared_ptr<CompoundTag> Painting(CompoundTag const &tag, Context &ctx) {
-    using namespace props;
-
-    auto facing = tag.byte("Facing", 0);
-    Facing4 f4 = Facing4FromBedrockDirection(facing);
-    auto motiveJ = tag.string("Motive", "minecraft:aztec");
-    Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
-    auto motiveB = Painting::BedrockFromMotive(motive);
-
-    auto tileX = tag.int32("TileX");
-    auto tileY = tag.int32("TileY");
-    auto tileZ = tag.int32("TileZ");
-    if (!tileX || !tileY || !tileZ) {
-      return nullptr;
-    }
-    auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(*tileX, *tileY, *tileZ), f4, motive);
-    if (!pos) {
-      return nullptr;
-    }
-
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
-    }
-    e->fIdentifier = "minecraft:painting";
-    e->fPos = *pos;
-    auto c = e->toCompoundTag();
-    c->set("Motive", String(motiveB));
-    c->set("Direction", Byte(facing));
-    return c;
-  }
+#pragma endregion
 
 public:
   std::vector<std::string> fDefinitions;
