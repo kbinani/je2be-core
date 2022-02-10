@@ -36,6 +36,12 @@ public:
   }
 
 public:
+  struct VehicleEntity {
+    Pos2i fChunk;
+    std::map<size_t, Uuid> fPassengers;
+  };
+  std::unordered_map<Uuid, VehicleEntity, UuidHasher, UuidPred> fVehicleEntities;
+
   struct LeashedEntity {
     Pos2i fChunk;
     int64_t fLeasherId;
@@ -43,6 +49,7 @@ public:
   std::unordered_map<Uuid, LeashedEntity, UuidHasher, UuidPred> fLeashedEntities;
 
   std::unordered_map<int64_t, Pos3i> fLeashKnots;
+  std::unordered_map<Uuid, Pos2i, UuidHasher, UuidPred> fEntities;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

@@ -87,8 +87,16 @@ public:
       chunks.insert(it.second.fChunk);
     }
 
+    unordered_map<Pos2i, unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> vehicleEntities;
+    for (auto const &it : ctx->fVehicleEntities) {
+      if (!it.second.fPassengers.empty()) {
+        vehicleEntities[it.second.fChunk][it.first] = it.second.fPassengers;
+        chunks.insert(it.second.fChunk);
+      }
+    }
+
     for (Pos2i const &chunk : chunks) {
-      AttachLeash(chunk, dir, *ctx, leashedEntities);
+      AttachLeashAndPassengers(chunk, dir, *ctx, leashedEntities, vehicleEntities);
     }
 
     for (auto const &region : regions) {
@@ -108,10 +116,11 @@ public:
     return ctx;
   }
 
-  static bool AttachLeash(Pos2i chunk,
-                          std::filesystem::path dir,
-                          Context &ctx,
-                          std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities) {
+  static bool AttachLeashAndPassengers(Pos2i chunk,
+                                       std::filesystem::path dir,
+                                       Context &ctx,
+                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
+                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
@@ -139,8 +148,120 @@ public:
       return false;
     }
     AttachLeash(chunk, ctx, *entities, leashedEntities);
+    if (!AttachPassengers(chunk, ctx, entities, dir, vehicleEntities)) {
+      return false;
+    }
 
     return CompoundTag::WriteCompressed(*rootTag, nbt);
+  }
+
+  static bool AttachPassengers(Pos2i chunk,
+                               Context &ctx,
+                               std::shared_ptr<ListTag> const &entities,
+                               std::filesystem::path dir,
+                               std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+    using namespace std;
+    namespace fs = std::filesystem;
+    auto vehicleEntitiesFound = vehicleEntities.find(chunk);
+    if (vehicleEntitiesFound == vehicleEntities.end()) {
+      return true;
+    }
+    for (auto const &it : vehicleEntitiesFound->second) {
+      Uuid vehicleId = it.first;
+      map<size_t, Uuid> const &passengers = it.second;
+
+      auto vehicle = FindEntity(*entities, vehicleId);
+      if (!vehicle) {
+        continue;
+      }
+
+      // Classify passengers per chunk
+      unordered_map<Pos2i, vector<Uuid>, Pos2iHasher> passengersInChunk;
+      for (auto const &j : passengers) {
+        Uuid passengerId = j.second;
+        auto passengerFound = ctx.fEntities.find(passengerId);
+        if (passengerFound == ctx.fEntities.end()) {
+          continue;
+        }
+        Pos2i passengerChunk = passengerFound->second;
+        passengersInChunk[passengerChunk].push_back(passengerId);
+      }
+
+      // Collect passenger entities
+      map<size_t, shared_ptr<CompoundTag>> collectedPassengers;
+      for (auto const &j : passengersInChunk) {
+        Pos2i passengerChunk = j.first;
+        shared_ptr<ListTag> entitiesInChunk;
+        if (chunk == passengerChunk) {
+          entitiesInChunk = entities;
+        } else {
+          int cx = passengerChunk.fX;
+          int cz = passengerChunk.fZ;
+          int rx = mcfile::Coordinate::RegionFromChunk(cx);
+          int rz = mcfile::Coordinate::RegionFromChunk(cz);
+          fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
+          fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+          vector<uint8_t> buffer;
+          if (file::GetContents(nbt, buffer)) {
+            buffer.clear();
+            if (auto root = CompoundTag::Read(buffer); root) {
+              if (auto tag = root->compoundTag(""); tag) {
+                entitiesInChunk = tag->listTag("Entities");
+              }
+            }
+          }
+        }
+        if (!entitiesInChunk) {
+          continue;
+        }
+        for (Uuid passengerId : j.second) {
+          auto passenger = FindEntity(*entitiesInChunk, passengerId);
+          if (!passenger) {
+            continue;
+          }
+          entitiesInChunk->fValue.erase(remove(entitiesInChunk->fValue.begin(), entitiesInChunk->fValue.end(), passenger));
+          for (auto k : passengers) {
+            if (UuidPred{}(k.second, passengerId)) {
+              collectedPassengers[k.first] = passenger;
+              break;
+            }
+          }
+        }
+        if (chunk != passengerChunk) {
+          auto root = make_shared<CompoundTag>();
+          auto data = make_shared<CompoundTag>();
+          data->set("Entities", entitiesInChunk);
+          root->set("", data);
+          int cx = passengerChunk.fX;
+          int cz = passengerChunk.fZ;
+          int rx = mcfile::Coordinate::RegionFromChunk(cx);
+          int rz = mcfile::Coordinate::RegionFromChunk(cz);
+          fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
+          fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+          if (!CompoundTag::WriteCompressed(*root, nbt)) {
+            return false;
+          }
+        }
+      }
+
+      // Attach passengers to vehicle
+      shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
+      if (!passengersTag) {
+        passengersTag = make_shared<ListTag>(Tag::Type::Compound);
+        vehicle->set("Passengers", passengersTag);
+      }
+      for (auto const &it : collectedPassengers) {
+        size_t index = it.first;
+        auto passenger = it.second;
+        if (index >= passengersTag->size()) {
+          for (int i = passengersTag->size(); i < index + 1; i++) {
+            passengersTag->push_back(make_shared<CompoundTag>());
+          }
+        }
+        passengersTag->fValue[index] = passenger;
+      }
+    }
+    return true;
   }
 
   static void AttachLeash(Pos2i chunk,
