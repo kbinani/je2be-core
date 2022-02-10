@@ -202,10 +202,10 @@ public:
     return b.fName == "minecraft:beacon";
   }
 
-  explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
+  explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkY(chunk.fChunkY), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
-    fSections.resize(mcfile::be::Chunk::kNumSubChunks);
-    for (int i = 0; i < mcfile::be::Chunk::kNumSubChunks; i++) {
+    fSections.resize(chunk.fSubChunks.size());
+    for (int i = 0; i < chunk.fSubChunks.size(); i++) {
       auto const &section = chunk.fSubChunks[i];
       if (!section) {
         continue;
@@ -241,7 +241,10 @@ public:
     int cx = Coordinate::ChunkFromBlock(bx);
     int cy = Coordinate::ChunkFromBlock(by);
     int cz = Coordinate::ChunkFromBlock(bz);
-    int sectionIndex = cy - Chunk::kMinChunkY;
+    int sectionIndex = cy - fChunkY;
+    if (sectionIndex < 0 || fChunk.fSubChunks.size() <= sectionIndex) {
+      return 0;
+    }
     auto const &section = fChunk.fSubChunks[sectionIndex];
     if (!section) {
       return 0;
@@ -249,9 +252,17 @@ public:
     int lx = bx - cx * 16;
     int ly = by - cy * 16;
     int lz = bz - cz * 16;
-    int index = SubChunk::BlockIndex(lx, ly, lz);
+    int index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
     auto i = section->fPaletteIndices[index];
     return fSections[sectionIndex][i];
+  }
+
+  int minBlockY() const {
+    return fChunk.minBlockY();
+  }
+
+  int maxBlockY() const {
+    return fChunk.maxBlockY();
   }
 
 public:
@@ -275,6 +286,7 @@ public:
 private:
   std::vector<std::vector<DataType>> fSections;
   int const fChunkX;
+  int const fChunkY;
   int const fChunkZ;
   mcfile::be::Chunk const &fChunk;
 };

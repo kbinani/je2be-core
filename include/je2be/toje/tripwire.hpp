@@ -18,7 +18,7 @@ public:
 
     vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
 
-    for (int y = mcfile::be::Chunk::kMinBlockY; y <= mcfile::be::Chunk::kMaxBlockY; y++) {
+    for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
