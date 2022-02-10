@@ -6,7 +6,13 @@ class Region {
 public:
   std::unordered_set<Pos2i, Pos2iHasher> fChunks;
 
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d, std::unordered_set<Pos2i, Pos2iHasher> chunks, int rx, int rz, leveldb::DB *db, std::filesystem::path destination, Context const &parentContext) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d,
+                                          std::unordered_set<Pos2i, Pos2iHasher> chunks,
+                                          int rx,
+                                          int rz,
+                                          leveldb::DB *db,
+                                          std::filesystem::path destination,
+                                          Context const &parentContext) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -16,8 +22,8 @@ public:
     if (!regionDir) {
       return nullptr;
     }
-    auto entityDir = File::CreateTempDir(fs::temp_directory_path());
-    if (!entityDir) {
+    auto entityDir = destination / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
+    if (!Fs::CreateDirectories(entityDir)) {
       return nullptr;
     }
 
@@ -26,8 +32,6 @@ public:
     defer {
       error_code ec1;
       fs::remove_all(*regionDir, ec1);
-      error_code ec2;
-      fs::remove_all(*entityDir, ec2);
     };
 
     for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
@@ -57,7 +61,7 @@ public:
           return nullptr;
         }
 
-        auto streamEntities = make_shared<FileOutputStream>(*entityDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
+        auto streamEntities = make_shared<FileOutputStream>(entityDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
         if (!j->writeEntities(*streamEntities)) {
           return nullptr;
         }
@@ -66,11 +70,6 @@ public:
 
     auto terrainMca = destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *regionDir, terrainMca)) {
-      return nullptr;
-    }
-
-    auto entitiesMca = destination / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *entityDir, entitiesMca)) {
       return nullptr;
     }
 

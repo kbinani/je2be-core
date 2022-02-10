@@ -90,6 +90,9 @@ public:
   struct Result {
     Uuid fUuid;
     std::shared_ptr<CompoundTag> fEntity;
+
+    std::map<size_t, Uuid> fPassengers;
+    std::optional<int64_t> fLeasherId;
   };
 
   static std::optional<Result> From(CompoundTag const &entityB, Context &ctx) {
@@ -113,15 +116,17 @@ public:
     if (!e) {
       return std::nullopt;
     }
+
+    Result r;
+
     e->set("UUID", uuid.toIntArrayTag());
-    Passengers(uuid, entityB, *e, ctx);
+    Passengers(uuid, entityB, r.fPassengers);
 
     auto leasherId = entityB.int64("LeasherID", -1);
     if (leasherId != -1) {
-      ctx.fLeashedEntities[uuid] = leasherId;
+      r.fLeasherId = leasherId;
     }
 
-    Result r;
     r.fUuid = uuid;
     r.fEntity = e;
     return r;
@@ -1206,7 +1211,7 @@ public:
     j["Items"] = items;
   }
 
-  static void Passengers(Uuid const &uid, CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Passengers(Uuid const &uid, CompoundTag const &b, std::map<size_t, Uuid> &passengers) {
     auto links = b.listTag("LinksTag");
     if (!links) {
       return;
@@ -1221,7 +1226,7 @@ public:
         continue;
       }
       Uuid passengerUid = Uuid::GenWithI64Seed(*id);
-      ctx.fVehicleEntities[uid][index] = passengerUid;
+      passengers[index] = passengerUid;
     }
   }
 

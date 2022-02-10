@@ -38,6 +38,9 @@ public:
     mcfile::be::Chunk::ForAll(&db, d, [&regions](int cx, int cz) {
       int rx = Coordinate::RegionFromChunk(cx);
       int rz = Coordinate::RegionFromChunk(cz);
+      if (fabs(cx) > 1 || fabs(cz) > 1) {
+        return;
+      }
       Pos2i c(cx, cz);
       Pos2i r(rx, rz);
       regions[r].fChunks.insert(c);
@@ -75,11 +78,113 @@ public:
       }
     }
 
-    if (ok) {
-      return ctx;
-    } else {
+    if (!ok) {
       return nullptr;
     }
+
+    unordered_set<Pos2i, Pos2iHasher> chunks;
+
+    unordered_map<Pos2i, unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> leashedEntities;
+    for (auto const &it : ctx->fLeashedEntities) {
+      leashedEntities[it.second.fChunk][it.first] = it.second.fLeasherId;
+      chunks.insert(it.second.fChunk);
+    }
+
+    unordered_map<Pos2i, unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> vehicleEntities;
+    for (auto const &it : ctx->fVehicleEntities) {
+      if (!it.second.fPassengers.empty()) {
+        vehicleEntities[it.second.fChunk][it.first] = it.second.fPassengers;
+        chunks.insert(it.second.fChunk);
+      }
+    }
+
+    for (Pos2i const &chunk : chunks) {
+      AttachPassengersAndLeash(chunk, dir, *ctx, leashedEntities, vehicleEntities);
+    }
+
+    for (auto const &region : regions) {
+      int rx = region.first.fX;
+      int rz = region.first.fZ;
+      fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
+      fs::path entitiesMca = dir / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+      defer {
+        error_code ec1;
+        fs::remove_all(entitiesDir, ec1);
+      };
+      if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
+        return nullptr;
+      }
+    }
+
+    return ctx;
+  }
+
+  static bool AttachPassengersAndLeash(Pos2i chunk,
+                                       std::filesystem::path dir,
+                                       Context &ctx,
+                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
+                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+    using namespace std;
+    using namespace mcfile::stream;
+    namespace fs = std::filesystem;
+    int cx = chunk.fX;
+    int cz = chunk.fZ;
+    int rx = mcfile::Coordinate::RegionFromChunk(cx);
+    int rz = mcfile::Coordinate::RegionFromChunk(cz);
+    fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
+    fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+
+    vector<uint8_t> buffer;
+    if (!je2be::file::GetContents(nbt, buffer)) {
+      return false;
+    }
+    auto rootTag = CompoundTag::ReadCompressed(buffer);
+    if (!rootTag) {
+      return false;
+    }
+    auto content = rootTag->compoundTag("");
+    if (!content) {
+      return false;
+    }
+    auto entities = content->listTag("Entities");
+    if (!entities) {
+      return false;
+    }
+    auto leashedEntitiesFound = leashedEntities.find(chunk);
+    if (leashedEntitiesFound != leashedEntities.end()) {
+      for (auto const &it : leashedEntitiesFound->second) {
+        Uuid entityId = it.first;
+        int64_t leasherId = it.second;
+        auto leasherFound = ctx.fLeashKnots.find(leasherId);
+        if (leasherFound == ctx.fLeashKnots.end()) {
+          continue;
+        }
+        for (auto &entity : *entities) {
+          auto entityCompound = std::dynamic_pointer_cast<CompoundTag>(entity);
+          if (!entityCompound) {
+            continue;
+          }
+          auto uuid = props::GetUuidWithFormatIntArray(*entityCompound, "UUID");
+          if (!uuid) {
+            continue;
+          }
+          if (UuidPred{}(entityId, *uuid)) {
+            Pos3i leashPos = leasherFound->second;
+            auto leashTag = make_shared<CompoundTag>();
+            leashTag->set("X", props::Int(leashPos.fX));
+            leashTag->set("Y", props::Int(leashPos.fY));
+            leashTag->set("Z", props::Int(leashPos.fZ));
+            entityCompound->set("Leash", leashTag);
+            break;
+          }
+        }
+      }
+    }
+
+    auto vehicleEntitiesFound = vehicleEntities.find(chunk);
+    //TODO:
+
+    return CompoundTag::WriteCompressed(*rootTag, nbt);
   }
 
 private:

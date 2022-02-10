@@ -30,25 +30,25 @@ inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path 
 #endif
 }
 
-inline std::optional<std::string> GetContents(std::filesystem::path p) {
+[[nodiscard]] inline bool GetContents(std::filesystem::path p, std::vector<uint8_t> &buffer) {
   using namespace std;
   using namespace mcfile;
   if (!Fs::Exists(p)) {
-    return nullopt;
+    return false;
   }
   auto size = Fs::FileSize(p);
   if (!size) {
-    return nullopt;
+    return false;
   }
   ScopedFile fp(mcfile::File::Open(p, mcfile::File::Mode::Read));
   if (!fp) {
-    return nullopt;
+    return false;
   }
-  string content(*size, (char)0);
-  if (!File::Fread(content.data(), *size, 1, fp)) {
-    return nullopt;
+  buffer.resize(*size);
+  if (!File::Fread(buffer.data(), *size, 1, fp)) {
+    return false;
   }
-  return content;
+  return true;
 }
 
 } // namespace je2be::file

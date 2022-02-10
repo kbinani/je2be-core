@@ -110,6 +110,15 @@ public:
       auto result = Entity::From(*entityB, ctx);
       if (result) {
         entities[result->fUuid] = result->fEntity;
+        if (result->fLeasherId) {
+          ctx.fLeashedEntities[result->fUuid] = {.fChunk = Pos2i(cx, cz), .fLeasherId = *result->fLeasherId};
+        }
+        if (!result->fPassengers.empty()) {
+          Context::VehicleEntity ve;
+          ve.fChunk = Pos2i(cx, cz);
+          ve.fPassengers.swap(result->fPassengers);
+          ctx.fVehicleEntities[result->fUuid] = ve;
+        }
       } else if (entityB->string("identifier") == "minecraft:leash_knot") {
         auto id = entityB->int64("UniqueID");
         auto posf = props::GetPos3f(*entityB, "Pos");
@@ -138,7 +147,8 @@ public:
     unordered_set<Uuid, UuidHasher, UuidPred> resolvedLeashedEntities;
     for (auto &it : ctx.fLeashedEntities) {
       Uuid leashedEntityUuid = it.first;
-      int64_t leasherId = it.second;
+      Context::LeashedEntity const &le = it.second;
+      int64_t leasherId = le.fLeasherId;
       auto foundLeashedEntity = entities.find(leashedEntityUuid);
       if (foundLeashedEntity == entities.end()) {
         continue;
@@ -168,7 +178,8 @@ public:
     unordered_set<Uuid, UuidHasher, UuidPred> resolvedVehicleEntities;
     for (auto &it : ctx.fVehicleEntities) {
       Uuid vehicleUuid = it.first;
-      std::map<size_t, Uuid> &passengers = it.second;
+      Context::VehicleEntity &ve = it.second;
+      std::map<size_t, Uuid> &passengers = ve.fPassengers;
       auto found = entities.find(vehicleUuid);
       if (found == entities.end()) {
         continue;

@@ -189,10 +189,13 @@ private:
 
   static std::optional<std::string> ReadDescriptionFromMcmeta(std::filesystem::path mcmeta) {
     using namespace std;
-    auto content = file::GetContents(mcmeta);
+    std::vector<uint8_t> buffer;
+    if (!file::GetContents(mcmeta, buffer)) {
+      return nullopt;
+    }
     nlohmann::json json;
     try {
-      json = nlohmann::json::parse(*content);
+      json = nlohmann::json::parse(buffer.begin(), buffer.end());
       return json["pack"]["description"];
     } catch (...) {
       return nullopt;
@@ -208,11 +211,13 @@ private:
         return false;
       }
     }
-    auto content = file::GetContents(from);
-    if (!content) {
+    vector<uint8_t> buffer;
+    if (!file::GetContents(from, buffer)) {
       return false;
     }
-    vector<string> lines = String::Split(*content, '\x0a');
+    std::string content(buffer.begin(), buffer.end());
+    buffer.clear();
+    vector<string> lines = String::Split(content, '\x0a');
     ostringstream s;
     for (auto const &line : lines) {
       auto hasCr = line.ends_with("\x0d");
