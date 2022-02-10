@@ -38,9 +38,6 @@ public:
     mcfile::be::Chunk::ForAll(&db, d, [&regions](int cx, int cz) {
       int rx = Coordinate::RegionFromChunk(cx);
       int rz = Coordinate::RegionFromChunk(cz);
-      if (fabs(cx) > 1 || fabs(cz) > 1) {
-        return;
-      }
       Pos2i c(cx, cz);
       Pos2i r(rx, rz);
       regions[r].fChunks.insert(c);
