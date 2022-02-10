@@ -14,12 +14,6 @@ public:
     for (int64_t uuid : fUsedMapUuids) {
       other.fUsedMapUuids.insert(uuid);
     }
-    for (auto const &it : fVehicleEntities) {
-      if (it.second.fPassengers.empty()) {
-        continue;
-      }
-      other.fVehicleEntities[it.first] = it.second;
-    }
     for (auto const &it : fLeashedEntities) {
       other.fLeashedEntities[it.first] = it.second;
     }
@@ -42,12 +36,6 @@ public:
   }
 
 public:
-  struct VehicleEntity {
-    Pos2i fChunk;
-    std::map<size_t, Uuid> fPassengers;
-  };
-  std::unordered_map<Uuid, VehicleEntity, UuidHasher, UuidPred> fVehicleEntities;
-
   struct LeashedEntity {
     Pos2i fChunk;
     int64_t fLeasherId;

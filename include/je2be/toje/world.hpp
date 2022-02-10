@@ -90,16 +90,8 @@ public:
       chunks.insert(it.second.fChunk);
     }
 
-    unordered_map<Pos2i, unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> vehicleEntities;
-    for (auto const &it : ctx->fVehicleEntities) {
-      if (!it.second.fPassengers.empty()) {
-        vehicleEntities[it.second.fChunk][it.first] = it.second.fPassengers;
-        chunks.insert(it.second.fChunk);
-      }
-    }
-
     for (Pos2i const &chunk : chunks) {
-      AttachPassengersAndLeash(chunk, dir, *ctx, leashedEntities, vehicleEntities);
+      AttachLeash(chunk, dir, *ctx, leashedEntities);
     }
 
     for (auto const &region : regions) {
@@ -119,11 +111,10 @@ public:
     return ctx;
   }
 
-  static bool AttachPassengersAndLeash(Pos2i chunk,
-                                       std::filesystem::path dir,
-                                       Context &ctx,
-                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
-                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+  static bool AttachLeash(Pos2i chunk,
+                          std::filesystem::path dir,
+                          Context &ctx,
+                          std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities) {
     using namespace std;
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
@@ -150,41 +141,53 @@ public:
     if (!entities) {
       return false;
     }
-    auto leashedEntitiesFound = leashedEntities.find(chunk);
-    if (leashedEntitiesFound != leashedEntities.end()) {
-      for (auto const &it : leashedEntitiesFound->second) {
-        Uuid entityId = it.first;
-        int64_t leasherId = it.second;
-        auto leasherFound = ctx.fLeashKnots.find(leasherId);
-        if (leasherFound == ctx.fLeashKnots.end()) {
-          continue;
-        }
-        for (auto &entity : *entities) {
-          auto entityCompound = std::dynamic_pointer_cast<CompoundTag>(entity);
-          if (!entityCompound) {
-            continue;
-          }
-          auto uuid = props::GetUuidWithFormatIntArray(*entityCompound, "UUID");
-          if (!uuid) {
-            continue;
-          }
-          if (UuidPred{}(entityId, *uuid)) {
-            Pos3i leashPos = leasherFound->second;
-            auto leashTag = make_shared<CompoundTag>();
-            leashTag->set("X", props::Int(leashPos.fX));
-            leashTag->set("Y", props::Int(leashPos.fY));
-            leashTag->set("Z", props::Int(leashPos.fZ));
-            entityCompound->set("Leash", leashTag);
-            break;
-          }
-        }
-      }
-    }
-
-    auto vehicleEntitiesFound = vehicleEntities.find(chunk);
-    //TODO:
+    AttachLeash(chunk, ctx, *entities, leashedEntities);
 
     return CompoundTag::WriteCompressed(*rootTag, nbt);
+  }
+
+  static void AttachLeash(Pos2i chunk,
+                          Context &ctx,
+                          ListTag const &entities,
+                          std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities) {
+    auto leashedEntitiesFound = leashedEntities.find(chunk);
+    if (leashedEntitiesFound == leashedEntities.end()) {
+      return;
+    }
+    for (auto const &it : leashedEntitiesFound->second) {
+      Uuid entityId = it.first;
+      int64_t leasherId = it.second;
+      auto leasherFound = ctx.fLeashKnots.find(leasherId);
+      if (leasherFound == ctx.fLeashKnots.end()) {
+        continue;
+      }
+      auto entity = FindEntity(entities, entityId);
+      if (entity) {
+        Pos3i leashPos = leasherFound->second;
+        auto leashTag = std::make_shared<CompoundTag>();
+        leashTag->set("X", props::Int(leashPos.fX));
+        leashTag->set("Y", props::Int(leashPos.fY));
+        leashTag->set("Z", props::Int(leashPos.fZ));
+        entity->set("Leash", leashTag);
+      }
+    }
+  }
+
+  static std::shared_ptr<CompoundTag> FindEntity(ListTag const &entities, Uuid entityId) {
+    for (auto &entity : entities) {
+      auto entityCompound = std::dynamic_pointer_cast<CompoundTag>(entity);
+      if (!entityCompound) {
+        continue;
+      }
+      auto uuid = props::GetUuidWithFormatIntArray(*entityCompound, "UUID");
+      if (!uuid) {
+        continue;
+      }
+      if (UuidPred{}(entityId, *uuid)) {
+        return entityCompound;
+      }
+    }
+    return nullptr;
   }
 
 private:

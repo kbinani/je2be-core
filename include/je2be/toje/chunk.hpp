@@ -5,6 +5,11 @@ namespace je2be::toje {
 class Chunk {
   Chunk() = delete;
 
+  struct VehicleEntity {
+    Pos2i fChunk;
+    std::map<size_t, Uuid> fPassengers;
+  };
+
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
     using namespace std;
@@ -105,19 +110,21 @@ public:
       }
     }
 
+    unordered_map<Uuid, VehicleEntity, UuidHasher, UuidPred> vehicleEntities;
     unordered_map<Uuid, shared_ptr<CompoundTag>, UuidHasher, UuidPred> entities;
     for (auto const &entityB : b.fEntities) {
       auto result = Entity::From(*entityB, ctx);
       if (result) {
+        Pos2i pos(cx, cz);
         entities[result->fUuid] = result->fEntity;
         if (result->fLeasherId) {
-          ctx.fLeashedEntities[result->fUuid] = {.fChunk = Pos2i(cx, cz), .fLeasherId = *result->fLeasherId};
+          ctx.fLeashedEntities[result->fUuid] = {.fChunk = pos, .fLeasherId = *result->fLeasherId};
         }
         if (!result->fPassengers.empty()) {
-          Context::VehicleEntity ve;
-          ve.fChunk = Pos2i(cx, cz);
+          VehicleEntity ve;
+          ve.fChunk = pos;
           ve.fPassengers.swap(result->fPassengers);
-          ctx.fVehicleEntities[result->fUuid] = ve;
+          vehicleEntities[result->fUuid] = ve;
         }
       } else if (entityB->string("identifier") == "minecraft:leash_knot") {
         auto id = entityB->int64("UniqueID");
@@ -132,7 +139,7 @@ public:
       }
     }
 
-    AttachPassengers(ctx, entities);
+    AttachPassengers(ctx, entities, vehicleEntities);
     AttachLeash(ctx, entities);
 
     for (auto const &it : entities) {
@@ -173,12 +180,14 @@ public:
     }
   }
 
-  static void AttachPassengers(Context &ctx, std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities) {
+  static void AttachPassengers(Context &ctx,
+                               std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities,
+                               std::unordered_map<Uuid, VehicleEntity, UuidHasher, UuidPred> &vehicleEntities) {
     using namespace std;
     unordered_set<Uuid, UuidHasher, UuidPred> resolvedVehicleEntities;
-    for (auto &it : ctx.fVehicleEntities) {
+    for (auto &it : vehicleEntities) {
       Uuid vehicleUuid = it.first;
-      Context::VehicleEntity &ve = it.second;
+      VehicleEntity &ve = it.second;
       std::map<size_t, Uuid> &passengers = ve.fPassengers;
       auto found = entities.find(vehicleUuid);
       if (found == entities.end()) {
@@ -211,7 +220,7 @@ public:
       }
     }
     for (Uuid resolvedVehicleEntity : resolvedVehicleEntities) {
-      ctx.fVehicleEntities.erase(resolvedVehicleEntity);
+      vehicleEntities.erase(resolvedVehicleEntity);
     }
   }
 };
