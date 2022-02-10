@@ -255,6 +255,7 @@ public:
         break;
       }
     }
+    j["IsChickenJockey"] = props::Bool(false);
   }
 
   static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx) {

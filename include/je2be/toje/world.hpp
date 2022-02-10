@@ -250,6 +250,9 @@ public:
         passengersTag = make_shared<ListTag>(Tag::Type::Compound);
         vehicle->set("Passengers", passengersTag);
       }
+      if (vehicle->string("id") == "minecraft:chicken") {
+        vehicle->set("IsChickenJockey", props::Bool(true));
+      }
       for (auto const &it : collectedPassengers) {
         size_t index = it.first;
         auto passenger = it.second;

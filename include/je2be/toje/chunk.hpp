@@ -193,6 +193,9 @@ public:
         passengersTag = make_shared<ListTag>(Tag::Type::Compound);
         vehicle->set("Passengers", passengersTag);
       }
+      if (vehicle->string("id") == "minecraft:chicken") {
+        vehicle->set("IsChickenJockey", props::Bool(true));
+      }
       unordered_set<size_t> resolvedPassengers;
       for (auto const &passenger : passengers) {
         size_t passengerIndex = passenger.first;

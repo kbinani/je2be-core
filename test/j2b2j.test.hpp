@@ -189,7 +189,6 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Motion",
       "LeftHanded", // left handed skeleton does not exist in BE
       "ForcedAge",
-      "IsChickenJockey", //TODO: remove this
       "Item/tag/map",
       "Owner",
       "HurtByTimestamp",
@@ -204,7 +203,6 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Passengers/*/LeftHanded",
       "Passengers/*/ForcedAge",
       "Passengers/*/HurtByTimestamp",
-      "Passengers/*/IsChickenJockey", //TODO: remove this
       "Passengers/*/NoAI",
       "Passengers/*/Fire",
   };
