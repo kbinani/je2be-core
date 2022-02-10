@@ -16,9 +16,9 @@ private:
 
   using Behavior = std::function<void(CompoundTag &, CompoundTag const &, Context &)>;
 
-  struct Convert {
+  struct C {
     template <class... Arg>
-    Convert(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
+    C(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
 
     std::shared_ptr<CompoundTag> operator()(CompoundTag const &input, Context &ctx) const {
       auto c = fBase(input, ctx);
@@ -439,105 +439,105 @@ private:
 
   static std::unordered_map<std::string, Converter> *CreateEntityTable() {
     auto table = new std::unordered_map<std::string, Converter>();
-#define E(__name, __func) table->insert(std::make_pair("minecraft:" __name, __func))
-#define A(__name) table->insert(std::make_pair("minecraft:" __name, Animal))
-#define M(__name) table->insert(std::make_pair("minecraft:" __name, Monster))
+#define E(__name, __func) table->insert(std::make_pair("minecraft:" #__name, __func))
+#define A(__name) table->insert(std::make_pair("minecraft:" #__name, Animal))
+#define M(__name) table->insert(std::make_pair("minecraft:" #__name, Monster))
 
-    E("painting", Painting);
-    E("end_crystal", EndCrystal);
+    E(painting, Painting);
+    E(end_crystal, EndCrystal);
 
-    E("bat", Convert(Mob, Bat));
-    E("bee", Convert(Animal, AgeableA("bee"), Bee));
-    M("blaze");
-    E("cat", Convert(Animal, AgeableA("cat"), TameableA("cat"), Sittable, CollarColorable, Cat));
-    M("cave_spider");
-    E("chicken", Convert(Animal, AgeableA("chicken"), Vehicle(), Chicken));
-    A("cod");
+    E(bat, C(Mob, Bat));
+    E(bee, C(Animal, AgeableA("bee"), Bee));
+    M(blaze);
+    E(cat, C(Animal, AgeableA("cat"), TameableA("cat"), Sittable, CollarColorable, Cat));
+    M(cave_spider);
+    E(chicken, C(Animal, AgeableA("chicken"), Vehicle(), Chicken));
+    A(cod);
 
-    E("cow", Convert(Animal, AgeableA("cow")));
-    E("creeper", Convert(Monster, Creeper));
-    A("dolphin");
-    E("donkey", Convert(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey"), Temper));
-    M("drowned");
-    M("elder_guardian");
-    E("enderman", Convert(Monster, Enderman));
-    E("endermite", Convert(Monster, Endermite));
-    E("evoker", Convert(Monster, Rename("evocation_illager")));
+    E(cow, C(Animal, AgeableA("cow")));
+    E(creeper, C(Monster, Creeper));
+    A(dolphin);
+    E(donkey, C(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey"), Temper));
+    M(drowned);
+    M(elder_guardian);
+    E(enderman, C(Monster, Enderman));
+    E(endermite, C(Monster, Endermite));
+    E(evoker, C(Monster, Rename("evocation_illager")));
 
-    E("fox", Convert(Animal, Fox));
-    M("ghast");
-    M("guardian");
-    M("hoglin");
-    E("horse", Convert(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Temper, Horse));
-    E("husk", Convert(Monster, AgeableA("husk")));
-    E("llama", Convert(Animal, AgeableA("llama"), TameableB("llama"), ChestedHorse("llama"), Llama));
-    E("magma_cube", Convert(Monster, Slime));
-    E("mooshroom", Convert(Animal, AgeableA("mooshroom"), Mooshroom));
+    E(fox, C(Animal, Fox));
+    M(ghast);
+    M(guardian);
+    M(hoglin);
+    E(horse, C(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Temper, Horse));
+    E(husk, C(Monster, AgeableA("husk")));
+    E(llama, C(Animal, AgeableA("llama"), TameableB("llama"), ChestedHorse("llama"), Llama));
+    E(magma_cube, C(Monster, Slime));
+    E(mooshroom, C(Animal, AgeableA("mooshroom"), Mooshroom));
 
-    E("mule", Convert(Animal, TameableB("mule"), ChestedHorse("mule"), Steerable("mule"), Temper));
-    A("ocelot");
-    E("panda", Convert(Animal, AgeableA("panda"), Panda));
-    E("parrot", Convert(Animal, TameableA("parrot"), Sittable, Parrot));
-    M("phantom");
-    E("pig", Convert(Animal, AgeableA("pig"), Steerable("pig")));
-    M("piglin");
-    M("piglin_brute");
-    M("pillager");
+    E(mule, C(Animal, TameableB("mule"), ChestedHorse("mule"), Steerable("mule"), Temper));
+    A(ocelot);
+    E(panda, C(Animal, AgeableA("panda"), Panda));
+    E(parrot, C(Animal, TameableA("parrot"), Sittable, Parrot));
+    M(phantom);
+    E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
+    M(piglin);
+    M(piglin_brute);
+    M(pillager);
 
-    A("polar_bear");
-    E("pufferfish", Convert(Animal, Pufferfish));
-    E("rabbit", Convert(Animal, AgeableC, Rabbit));
-    E("ravager", Convert(Monster, AttackTime));
-    E("salmon", Convert(Mob, Salmon));
-    E("sheep", Convert(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
-    E("shulker", Convert(Monster, Shulker));
-    M("silverfish");
-    M("skeleton"); // lefty skeleton does not exist in Bedrock?
+    A(polar_bear);
+    E(pufferfish, C(Animal, Pufferfish));
+    E(rabbit, C(Animal, AgeableC, Rabbit));
+    E(ravager, C(Monster, AttackTime));
+    E(salmon, C(Mob, Salmon));
+    E(sheep, C(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
+    E(shulker, C(Monster, Shulker));
+    M(silverfish);
+    M(skeleton); // lefty skeleton does not exist in Bedrock?
 
-    E("skeleton_horse", Convert(Animal, SkeletonHorse));
-    E("slime", Convert(Monster, Slime));
-    E("spider", Convert(Monster, Vehicle("spider")));
-    A("squid");
-    M("stray");
-    E("strider", Convert(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
-    E("trader_llama", Convert(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
-    E("tropical_fish", Convert(Animal, Rename("tropicalfish"), TropicalFish));
-    E("turtle", Convert(Animal, Turtle));
+    E(skeleton_horse, C(Animal, SkeletonHorse));
+    E(slime, C(Monster, Slime));
+    E(spider, C(Monster, Vehicle("spider")));
+    A(squid);
+    M(stray);
+    E(strider, C(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
+    E(trader_llama, C(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
+    E(tropical_fish, C(Animal, Rename("tropicalfish"), TropicalFish));
+    E(turtle, C(Animal, Turtle));
 
-    M("vex");
-    E("villager", Convert(Animal, Rename("villager_v2"), Offers(4, "Offers"), Villager));
-    M("vindicator");
-    E("wandering_trader", Convert(Animal, Offers(0, "Offers")));
-    M("witch");
-    M("wither_skeleton");
-    E("wolf", Convert(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
-    M("zoglin");
-    E("zombie", Convert(Monster, AgeableB("zombie")));
+    M(vex);
+    E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), Villager));
+    M(vindicator);
+    E(wandering_trader, C(Animal, Offers(0, "Offers")));
+    M(witch);
+    M(wither_skeleton);
+    E(wolf, C(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
+    M(zoglin);
+    E(zombie, C(Monster, AgeableB("zombie")));
 
-    M("zombie_horse");
-    E("zombie_villager", Convert(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), ZombieVillager));
-    E("zombified_piglin", Convert(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
+    M(zombie_horse);
+    E(zombie_villager, C(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), ZombieVillager));
+    E(zombified_piglin, C(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
-    E("boat", Convert(EntityBase, Vehicle(), Boat));
-    E("minecart", Convert(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:minecart")));
-    E("armor_stand", Convert(LivingEntity, ArmorStand));
-    E("hopper_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
-    E("chest_minecart", Convert(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
-    E("tnt_minecart", Convert(EntityBase, Vehicle(), Minecart, TntMinecart));
-    E("snow_golem", Convert(Mob, SnowGolem));
-    E("iron_golem", Convert(Mob, Definitions("+minecraft:iron_golem"), IronGolem));
+    E(boat, C(EntityBase, Vehicle(), Boat));
+    E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:minecart")));
+    E(armor_stand, C(LivingEntity, ArmorStand));
+    E(hopper_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
+    E(chest_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
+    E(tnt_minecart, C(EntityBase, Vehicle(), Minecart, TntMinecart));
+    E(snow_golem, C(Mob, SnowGolem));
+    E(iron_golem, C(Mob, Definitions("+minecraft:iron_golem"), IronGolem));
 
-    E("item", Item);
-    E("ender_dragon", EnderDragon);
-    E("experience_orb", Convert(LivingEntity, Rename("xp_orb"), ExperienceOrb));
-    E("item_frame", Null);      // item_frame is tile entity in BE.
-    E("glow_item_frame", Null); // glow_item_frame is tile entity in BE.
+    E(item, Item);
+    E(ender_dragon, EnderDragon);
+    E(experience_orb, C(LivingEntity, Rename("xp_orb"), ExperienceOrb));
+    E(item_frame, Null);      // item_frame is tile entity in BE.
+    E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
-    E("glow_squid", Convert(Animal, Definitions("+minecraft:glow_squid")));
-    E("axolotl", Convert(Animal, AgeableA("axolotl"), Axolotl));
-    E("goat", Convert(Animal, AgeableA("goat"), Goat));
-    E("falling_block", Convert(EntityBase, FallingBlock));
-    E("wither", Convert(Mob, Definitions("+minecraft:wither")));
+    E(glow_squid, C(Animal, Definitions("+minecraft:glow_squid")));
+    E(axolotl, C(Animal, AgeableA("axolotl"), Axolotl));
+    E(goat, C(Animal, AgeableA("goat"), Goat));
+    E(falling_block, C(EntityBase, FallingBlock));
+    E(wither, C(Mob, Definitions("+minecraft:wither")));
 #undef A
 #undef M
 #undef E
