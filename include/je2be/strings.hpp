@@ -63,17 +63,19 @@ inline std::string Replace(std::string const &target, std::string const &search,
 }
 
 inline std::optional<int32_t> Toi(std::string const &s, int base = 10) {
-  try {
-    return std::stoi(s, nullptr, base);
-  } catch (...) {
+  int32_t v = 0;
+  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+    return v;
+  } else {
     return std::nullopt;
   }
 }
 
 inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
-  try {
-    return std::stoll(s, nullptr, base);
-  } catch (...) {
+  int64_t v = 0;
+  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+    return v;
+  } else {
     return std::nullopt;
   }
 }

@@ -41,6 +41,7 @@
 #include <random>
 #include <iostream>
 #include <numbers>
+#include <charconv>
 
 #include <je2be/nbt.hpp>
 #include <je2be/fs.hpp>
