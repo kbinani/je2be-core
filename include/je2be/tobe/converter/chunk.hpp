@@ -109,7 +109,7 @@ private:
   }
 
   static ChunkConversionMode ConversionMode(mcfile::je::Chunk const &chunk) {
-    if (chunk.minBlockY() < 0 || 256 < chunk.maxBlockY()) {
+    if (chunk.minBlockY() < 0 || 256 <= chunk.maxBlockY() || chunk.fDataVersion >= mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection118) {
       return ChunkConversionMode::CavesAndCliffs2;
     } else {
       return ChunkConversionMode::Legacy;

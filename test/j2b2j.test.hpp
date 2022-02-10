@@ -377,10 +377,19 @@ TEST_CASE("j2b2j") {
             }
           }
 
-          for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
+          int minChunkY = chunkE->fChunkY;
+          int maxChunkY = minChunkY;
+          for (auto const &sectionE : chunkE->fSections) {
+            if (sectionE) {
+              maxChunkY = (std::max)(maxChunkY, sectionE->y());
+            }
+          }
+          for (int y = minChunkY * 16; y <= maxChunkY * 16 + 15; y++) {
             for (int z = chunkE->minBlockZ(); z <= chunkE->maxBlockZ(); z++) {
               for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
-                CHECK(chunkA->biomeAt(x, y, z) == chunkE->biomeAt(x, y, z));
+                auto a = chunkA->biomeAt(x, y, z);
+                auto e = chunkE->biomeAt(x, y, z);
+                CHECK(a == e);
               }
             }
           }

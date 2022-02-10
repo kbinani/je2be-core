@@ -32,7 +32,6 @@ public:
     je2be::tobe::BlockPalette palette;
 
     int idx = 0;
-    bool empty = true;
     bool hasWaterlogged = false;
 
     shared_ptr<ChunkSection> section;
@@ -64,7 +63,6 @@ public:
                 auto tag = BlockData::From(block);
                 index = palette.add(paletteKey, tag);
               }
-              empty = false;
               if (index != 0) {
                 cdp.updateAltitude(x, by, z);
               }
@@ -115,8 +113,6 @@ public:
       }
       idx = (x * 16 + z) * 16 + y;
 
-      empty = false;
-
       indices[idx] = palette.add(paletteKey, tag);
     }
 
@@ -146,13 +142,7 @@ public:
         continue;
       }
 
-      empty = false;
-
       indices[idx] = palette.add(paletteKey, tag);
-    }
-
-    if (empty) {
-      return true;
     }
 
     int const numStorageBlocks = hasWaterlogged ? 2 : 1;

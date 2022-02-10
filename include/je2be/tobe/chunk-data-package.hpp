@@ -139,7 +139,13 @@ private:
     if (dim == mcfile::Dimension::Overworld) {
       minChunkY = -4;
     }
-    int maxChunkY = chunk.chunkY() + chunk.fSections.size() - 1;
+    int maxChunkY = minChunkY;
+    for (auto const &section : chunk.fSections) {
+      if (!section) {
+        continue;
+      }
+      maxChunkY = (std::max)(maxChunkY, section->y());
+    }
 
     fHeightMap->offset(minChunkY);
 

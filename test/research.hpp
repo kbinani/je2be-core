@@ -304,10 +304,22 @@ void RedstoneWire() {
   code << endl;
 }
 
+static void Data2D() {
+  unique_ptr<leveldb::DB> db(Open("1.18be"));
+  auto key = mcfile::be::DbKey::Data2D(0, 0, mcfile::Dimension::End);
+  leveldb::ReadOptions ro;
+  std::string value;
+  if (auto st = db->Get(ro, key, &value); !st.ok()) {
+    return;
+  }
+  auto bmap = mcfile::be::BiomeMap::Decode(0, value, 512);
+  std::cout << bmap->numSections() << std::endl; // 11(or more) for overworld, 8 for nether, 4 for end
+}
+
 } // namespace
 
 #if 0
 TEST_CASE("research") {
-  RedstoneWire();
+  Data2D();
 }
 #endif

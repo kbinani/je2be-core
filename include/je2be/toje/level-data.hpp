@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class LevelData {
 private:
-  int32_t fDataVersion = 2865;
+  int32_t fDataVersion = mcfile::je::Chunk::kDataVersion;
   std::string fLevelName;
   int32_t fVersion = 19133;
   int32_t fSpawnX = 0;

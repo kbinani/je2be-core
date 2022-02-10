@@ -8,8 +8,10 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
     using namespace std;
-    auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cz);
+    int cy = d == mcfile::Dimension::Overworld ? -4 : 0;
+    auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
 
+    int maxChunkY = cy;
     for (auto const &sectionB : b.fSubChunks) {
       if (!sectionB) {
         continue;
@@ -25,9 +27,10 @@ public:
         j->fSections.resize(sectionIndex + 1);
       }
       j->fSections[sectionIndex] = sectionJ;
+      maxChunkY = (std::max)(maxChunkY, (int)sectionB->fChunkY);
     }
 
-    for (int y = j->minBlockY(); y <= j->maxBlockY(); y += 4) {
+    for (int y = cy * 16; y <= maxChunkY * 16 + 15; y += 4) {
       for (int z = j->minBlockZ(); z <= j->maxBlockZ(); z += 4) {
         for (int x = j->minBlockX(); x <= j->maxBlockX(); x += 4) {
           auto biome = b.biomeAt(x, y, z);
