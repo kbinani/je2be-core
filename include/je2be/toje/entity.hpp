@@ -1374,6 +1374,7 @@ public:
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
     E(wither, C(Same, LivingEntity, Wither));
     E(piglin, C(Same, LivingEntity, Inventory));
+    E(hoglin, C(Same, Animal));
 
 #undef E
     return ret;

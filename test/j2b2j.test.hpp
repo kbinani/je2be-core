@@ -241,6 +241,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("Brain/memories"); // long_jump_cooling_down, ram_cooldown_ticks memories
   } else if (id == "minecraft:piglin") {
     blacklist.insert("TimeInOverworld");
+  } else if (id == "minecraft:hoglin") {
+    blacklist.insert("TimeInOverworld");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
