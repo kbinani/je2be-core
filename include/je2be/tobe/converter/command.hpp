@@ -10,10 +10,10 @@ public:
     string prefix;
     string suffix;
     while (true) {
-      if (strings::StartsWith(line, " ")) {
+      if (line.starts_with(" ")) {
         prefix += " ";
         line = line.substr(1);
-      } else if (strings::StartsWith(line, "/")) {
+      } else if (line.starts_with("/")) {
         prefix += "/";
         line = line.substr(1);
         break;
@@ -22,10 +22,10 @@ public:
       }
     }
     while (true) {
-      if (strings::EndsWith(line, "\x0d")) {
+      if (line.ends_with("\x0d")) {
         suffix = "\x0d" + suffix;
         line = line.substr(0, line.size() - 1);
-      } else if (strings::EndsWith(line, " ")) {
+      } else if (line.ends_with(" ")) {
         suffix = " " + suffix;
         line = line.substr(0, line.size() - 1);
       } else {

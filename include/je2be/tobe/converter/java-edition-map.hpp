@@ -93,7 +93,7 @@ private:
         continue;
       }
       auto name = f.path().filename().string();
-      if (!strings::StartsWith(name, "map_") || !strings::EndsWith(name, ".dat")) {
+      if (!name.starts_with("map_") || !name.ends_with(".dat")) {
         continue;
       }
       auto numberStr = strings::Trim("map_", name, ".dat");

@@ -57,7 +57,7 @@ public:
   }
 
   static std::optional<VillagerProfession> FromJavaProfession(std::string profession) {
-    if (strings::StartsWith(profession, "minecraft:")) {
+    if (profession.starts_with("minecraft:")) {
       profession = profession.substr(10);
     }
     if (profession == "shepherd") {

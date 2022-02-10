@@ -215,7 +215,7 @@ private:
     vector<string> lines = String::Split(*content, '\x0a');
     ostringstream s;
     for (auto const &line : lines) {
-      auto hasCr = strings::EndsWith(line, "\x0d");
+      auto hasCr = line.ends_with("\x0d");
       s << Command::Transpile(line);
       s << "\x0a";
     }

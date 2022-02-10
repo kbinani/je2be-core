@@ -19,7 +19,7 @@ public:
   constexpr VillagerType(Variant variant) : fVariant(variant) {}
 
   static std::optional<VillagerType> FromJavaType(std::string type) {
-    if (strings::StartsWith(type, "minecraft:")) {
+    if (type.starts_with("minecraft:")) {
       type = type.substr(10);
     }
     if (type == "savanna") {
