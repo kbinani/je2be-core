@@ -954,13 +954,17 @@ public:
     auto onGround = b.boolean("OnGround");
     if (posB && onGround) {
       Pos3d posJ = posB->toD();
+      int iy = (int)floor(posJ.fY);
+      double dy = posJ.fY - iy;
+      // Java
+      //   on ground: ground level +0
+      //   on rail: ground level +0.0625
+      // Bedrock
+      //   on ground: graound level +0.35
+      //   on rail: ground level +0.5
       if (*onGround) {
-        // JE: GroundLevel
-        // BE: GroundLevel + 0.35
         posJ.fY = posB->fY - 0.35;
-      } else {
-        // JE: GroundLevel + 0.0625
-        // BE: GroundLevel + 0.5
+      } else if (dy == 0.5) {
         posJ.fY = posB->fY - 0.5 + 0.0625;
       }
       j["Pos"] = posJ.toListTag();
