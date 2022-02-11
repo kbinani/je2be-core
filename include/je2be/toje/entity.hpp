@@ -873,8 +873,27 @@ public:
   }
 
   static void Inventory(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    //TODO:
-    j["Inventory"] = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto itemsB = b.listTag("ChestItems");
+    if (itemsB) {
+      auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+      for (auto const &it : *itemsB) {
+        auto itemB = it->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto nameB = itemB->string("Name");
+        if (!nameB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx);
+        if (!itemJ) {
+          continue;
+        }
+        itemJ->erase("Slot");
+        itemsJ->push_back(itemJ);
+      }
+      j["Inventory"] = itemsJ;
+    }
   }
 
   static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {

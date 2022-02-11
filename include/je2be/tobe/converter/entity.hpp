@@ -480,9 +480,9 @@ private:
     E(parrot, C(Animal, TameableA("parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
-    M(piglin);
+    E(piglin, C(Monster, ChestItems));
     E(piglin_brute, C(Monster, PiglinBrute));
-    E(pillager, C(Monster, CanJoinRaid));
+    E(pillager, C(Monster, CanJoinRaid, ChestItems));
 
     A(polar_bear);
     E(pufferfish, C(Animal, Pufferfish));
@@ -505,9 +505,9 @@ private:
     E(turtle, C(Animal, Turtle));
 
     M(vex);
-    E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), Villager));
+    E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), ChestItems, Villager));
     M(vindicator);
-    E(wandering_trader, C(Animal, Offers(0, "Offers")));
+    E(wandering_trader, C(Animal, Offers(0, "Offers"), ChestItems));
     E(witch, C(Monster, CanJoinRaid));
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
@@ -1264,6 +1264,33 @@ private:
   static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, Context &) {
     AddDefinition(c, "-minecraft:start_suffocating");
     AddDefinition(c, "+minecraft:detect_suffocating");
+  }
+
+  static void ChestItems(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    auto inventory = tag.listTag("Inventory");
+    auto chestItems = std::make_shared<ListTag>(Tag::Type::Compound);
+    if (inventory) {
+      // items in "Inventory" does not have "Slot" property. So we can't use ConvertAnyItemList here.
+      int8_t slot = 0;
+      for (auto const &it : *inventory) {
+        auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!itemJ) {
+          continue;
+        }
+        std::shared_ptr<CompoundTag> itemB = Item::From(itemJ, ctx.fMapInfo, ctx.fWorldData);
+        if (!itemB) {
+          itemB = std::make_shared<CompoundTag>();
+          itemB->set("Count", props::Byte(0));
+          itemB->set("Damage", props::Short(0));
+          itemB->set("Name", props::String(""));
+          itemB->set("WasPickedUp", props::Bool(false));
+        }
+        itemB->set("Slot", props::Byte(slot));
+        chestItems->push_back(itemB);
+        slot++;
+      }
+    }
+    c["ChestItems"] = chestItems;
   }
 
   static void Sittable(CompoundTag &c, CompoundTag const &tag, Context &) {
