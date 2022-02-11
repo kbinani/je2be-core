@@ -386,8 +386,8 @@ TEST_CASE("j2b2j") {
           CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
 
           for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
-            for (int z = chunkE->minBlockZ(); z <= chunkE->maxBlockZ(); z++) {
-              for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
+            for (int z = chunkE->minBlockZ() + 1; z < chunkE->maxBlockZ(); z++) {
+              for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
                 CheckBlock(blockE, blockA);
