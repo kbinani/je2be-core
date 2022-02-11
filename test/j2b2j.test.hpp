@@ -13,7 +13,7 @@ static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block c
   CHECK(blockA->toString() == blockE->toString());
 }
 
-static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA) {
+static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, int x, int y, int z) {
   unordered_map<string, string> fallbackJtoB;
   fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
@@ -55,6 +55,9 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
             CHECK(blockA->toString() == blockE->toString());
           }
         } else {
+          if (blockA->toString() != blockE->toString()) {
+            cout << "[" << x << ", " << y << ", " << z << "]" << endl;
+          }
           CHECK(blockA->toString() == blockE->toString());
         }
       } else {
@@ -435,12 +438,7 @@ TEST_CASE("j2b2j") {
               for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
-#if 0
-                if (blockA->toString() != blockE->toString()) {
-                  cout << "[" << x << ", " << y << ", " << z << "]" << endl;
-                }
-#endif
-                CheckBlock(blockE, blockA);
+                CheckBlock(blockE, blockA, x, y, z);
               }
             }
           }
