@@ -403,10 +403,13 @@ public:
       t->set("SpawnData", spawnData);
 
       auto potentials = make_shared<ListTag>(Tag::Type::Compound);
-      auto potential = make_shared<CompoundTag>();
-      potential->set("data", spawnData->clone());
-      potential->set("weight", Int(1));
-      potentials->push_back(potential);
+      if (entity != "minecraft:skeleton") {
+        //NOTE: skeleton spawner has no SpawnPotentials item
+        auto potential = make_shared<CompoundTag>();
+        potential->set("data", spawnData->clone());
+        potential->set("weight", Int(1));
+        potentials->push_back(potential);
+      }
       t->set("SpawnPotentials", potentials);
     }
 
