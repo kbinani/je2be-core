@@ -154,7 +154,8 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
       "Book/tag/resolved",       // written_book
       "Book/tag/filtered_title", // written_book
       "Items/*/tag/map",
-      "Levels", // beacon. Sometimes reset to 0 in JE
+      "Levels",          // beacon. Sometimes reset to 0 in JE
+      "SpawnPotentials", // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
   };
   for (string b : sTagBlacklist) {
     Erase(copyE, b);
