@@ -929,7 +929,9 @@ public:
   }
 
   static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    Items("DecorItem", b, j, ctx);
+    if (auto chested = b.boolean("Chested", false); chested) {
+      Items("DecorItem", b, j, ctx);
+    }
 
     auto armorsJ = j.listTag("ArmorItems");
     if (!armorsJ) {
@@ -942,7 +944,9 @@ public:
   }
 
   static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    Items("SaddleItem", b, j, ctx);
+    if (auto chested = b.boolean("Chested", false); chested) {
+      Items("SaddleItem", b, j, ctx);
+    }
   }
 
   static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
