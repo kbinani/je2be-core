@@ -738,7 +738,7 @@ public:
   }
 
   static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["CanJoinRaid"] = props::Bool(true);
+    j["CanJoinRaid"] = props::Bool(HasDefinition(b, "+minecraft:raid_configuration"));
   }
 
   static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx) {

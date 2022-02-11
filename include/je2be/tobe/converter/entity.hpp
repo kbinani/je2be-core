@@ -462,7 +462,7 @@ private:
     M(elder_guardian);
     E(enderman, C(Monster, Enderman));
     E(endermite, C(Monster, Endermite));
-    E(evoker, C(Monster, Rename("evocation_illager")));
+    E(evoker, C(Monster, Rename("evocation_illager"), CanJoinRaid));
 
     E(fox, C(Animal, Fox));
     M(ghast);
@@ -482,12 +482,12 @@ private:
     E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
     M(piglin);
     E(piglin_brute, C(Monster, PiglinBrute));
-    M(pillager);
+    E(pillager, C(Monster, CanJoinRaid));
 
     A(polar_bear);
     E(pufferfish, C(Animal, Pufferfish));
     E(rabbit, C(Animal, AgeableC, Rabbit));
-    E(ravager, C(Monster, AttackTime));
+    E(ravager, C(Monster, AttackTime, CanJoinRaid));
     E(salmon, C(Mob, Salmon));
     E(sheep, C(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
     E(shulker, C(Monster, Shulker));
@@ -508,7 +508,7 @@ private:
     E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), Villager));
     M(vindicator);
     E(wandering_trader, C(Animal, Offers(0, "Offers")));
-    M(witch);
+    E(witch, C(Monster, CanJoinRaid));
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
     M(zoglin);
@@ -1243,6 +1243,13 @@ private:
   static void AttackTime(CompoundTag &c, CompoundTag const &tag, Context &) {
     auto attackTick = tag.int32("AttackTick", 0);
     c["AttackTime"] = props::Short(attackTick);
+  }
+
+  static void CanJoinRaid(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto canJoin = tag.boolean("CanJoinRaid");
+    if (canJoin == true) {
+      AddDefinition(c, "+minecraft:raid_configuration");
+    }
   }
 
   static void CollarColorable(CompoundTag &c, CompoundTag const &tag, Context &) {
