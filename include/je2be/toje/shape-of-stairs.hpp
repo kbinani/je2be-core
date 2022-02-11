@@ -51,10 +51,11 @@ public:
           Pos2i vec = VecFromWeirdoDirection(*direction);
           optional<int> outerWeirdoDirection;
           optional<int> innerWeirdoDirection;
+          optional<int> leftWeirdoDirection;
+          optional<int> rightWeirdoDirection;
 
           Pos2i outer = Pos2i(x, z) + vec;
-          auto outerBlock = cache.blockAt(outer.fX, y, outer.fZ);
-          if (outerBlock) {
+          if (auto outerBlock = cache.blockAt(outer.fX, y, outer.fZ); outerBlock) {
             if (BlockPropertyAccessor::IsStairs(*outerBlock)) {
               if (*upsideDown == outerBlock->fStates->boolean("upside_down_bit")) {
                 outerWeirdoDirection = outerBlock->fStates->int32("weirdo_direction");
@@ -63,8 +64,7 @@ public:
           }
 
           Pos2i inner = Pos2i(x, z) + Pos2i(-vec.fX, -vec.fZ);
-          auto innerBlock = cache.blockAt(inner.fX, y, inner.fZ);
-          if (innerBlock) {
+          if (auto innerBlock = cache.blockAt(inner.fX, y, inner.fZ); innerBlock) {
             if (BlockPropertyAccessor::IsStairs(*innerBlock)) {
               if (*upsideDown == innerBlock->fStates->boolean("upside_down_bit")) {
                 innerWeirdoDirection = innerBlock->fStates->int32("weirdo_direction");
@@ -72,7 +72,25 @@ public:
             }
           }
 
-          auto shape = Shape(*direction, outerWeirdoDirection, innerWeirdoDirection);
+          Pos2i left = Pos2i(x, z) + Left90(vec);
+          if (auto leftBlock = cache.blockAt(left.fX, y, left.fZ); leftBlock) {
+            if (BlockPropertyAccessor::IsStairs(*leftBlock)) {
+              if (*upsideDown == leftBlock->fStates->boolean("upside_down_bit")) {
+                leftWeirdoDirection = leftBlock->fStates->int32("weirdo_direction");
+              }
+            }
+          }
+
+          Pos2i right = Pos2i(x, z) + Right90(vec);
+          if (auto rightBlock = cache.blockAt(right.fX, y, right.fZ); rightBlock) {
+            if (BlockPropertyAccessor::IsStairs(*rightBlock)) {
+              if (*upsideDown == rightBlock->fStates->boolean("upside_down_bit")) {
+                rightWeirdoDirection = rightBlock->fStates->int32("weirdo_direction");
+              }
+            }
+          }
+
+          auto shape = Shape(*direction, outerWeirdoDirection, innerWeirdoDirection, leftWeirdoDirection, rightWeirdoDirection);
           map<string, string> props(blockJ->fProperties);
           props["shape"] = shape;
           auto newBlock = make_shared<mcfile::je::Block const>(blockJ->fName, props);
@@ -82,21 +100,21 @@ public:
     }
   }
 
-  static std::string Shape(int direction, std::optional<int> outer, std::optional<int> inner) {
+  static std::string Shape(int direction, std::optional<int> outer, std::optional<int> inner, std::optional<int> left, std::optional<int> right) {
     Pos2i vec = VecFromWeirdoDirection(direction);
     if (outer) {
       Pos2i o = VecFromWeirdoDirection(*outer);
-      if (Left90(vec) == o) {
+      if (Left90(vec) == o && direction != right) {
         return "outer_left";
-      } else if (Right90(vec) == o) {
+      } else if (Right90(vec) == o && direction != left) {
         return "outer_right";
       }
     }
     if (inner) {
       Pos2i i = VecFromWeirdoDirection(*inner);
-      if (Left90(vec) == i) {
+      if (Left90(vec) == i && direction != left) {
         return "inner_left";
-      } else if (Right90(vec) == i) {
+      } else if (Right90(vec) == i && direction != right) {
         return "inner_right";
       }
     }
