@@ -333,7 +333,6 @@ TEST_CASE("j2b2j") {
   for (int cx = 0; cx <= 20; cx++) {
     io.fChunkFilter.insert(Pos2i(cx, 0));
   }
-  io.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   je2be::tobe::OutputOption oo;
   je2be::tobe::Converter tobe(in, io, *outB, oo);
   CHECK(tobe.run(thread::hardware_concurrency()));
