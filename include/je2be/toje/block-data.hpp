@@ -828,6 +828,16 @@ private:
     return bName;
   }
 
+  static String LiquidFlowing(String const &bName, States const &s, Props &p) {
+    auto depth = s.int32("liquid_depth", 0);
+    p["level"] = Int(depth);
+    if (bName.ends_with("lava")) {
+      return Ns() + "lava";
+    } else {
+      return Ns() + "water";
+    }
+  }
+
   static String LitPumpkin(String const &bName, States const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     return Ns() + "jack_o_lantern";
@@ -2329,6 +2339,8 @@ private:
     E(glow_frame, Rename("air"));
     E(pistonArmCollision, PistonArmCollision);
     E(stickyPistonArmCollision, PistonArmCollision);
+    E(flowing_lava, LiquidFlowing);
+    E(flowing_water, LiquidFlowing);
 
 #undef E
 
