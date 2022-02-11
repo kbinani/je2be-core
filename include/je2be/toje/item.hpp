@@ -317,6 +317,22 @@ public:
     return "minecraft:" + prefix + "bucket";
   }
 
+  static std::string Crossbow(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    if (auto tagB = itemB.compoundTag("tag"); tagB) {
+      auto tagJ = std::make_shared<CompoundTag>();
+      auto chargedProjectiles = std::make_shared<ListTag>(Tag::Type::Compound);
+      if (auto chargedItem = tagB->compoundTag("chargedItem"); chargedItem) {
+        if (auto projectileJ = From(*chargedItem, ctx); projectileJ) {
+          chargedProjectiles->push_back(projectileJ);
+        }
+        tagJ->set("ChargedProjectiles", chargedProjectiles);
+        tagJ->set("Charged", props::Bool(!chargedProjectiles->empty()));
+        itemJ["tag"] = tagJ;
+      }
+    }
+    return name;
+  }
+
   static std::string FireworkRocket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
@@ -805,6 +821,7 @@ public:
     E(totem, Rename("totem_of_undying")); // legacy
     E(suspicious_stew, SuspiciousStew);
     E(axolotl_bucket, AxolotlBucket);
+    E(crossbow, Crossbow);
 
 #undef E
     return ret;

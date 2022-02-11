@@ -148,8 +148,6 @@ private:
     E("dark_oak_sign", DefaultItem);
     E("crimson_sign", DefaultItem);
     E("warped_sign", DefaultItem);
-
-    E("suspicious_stew", SuspiciousStew);
 #undef E
     return table;
   }
@@ -184,6 +182,9 @@ private:
     E("written_book", BooksAndQuill);
 
     E("axolotl_bucket", AxolotlBucket);
+
+    E("suspicious_stew", SuspiciousStew);
+    E("crossbow", Crossbow);
 #undef E
     return table;
   }
@@ -803,6 +804,34 @@ private:
         }
         if (damage >= 0) {
           b->set("Damage", props::Short(damage));
+        }
+      }
+    }
+    return Post(b, j);
+  }
+
+  static ItemData Crossbow(std::string const &name, CompoundTag const &j) {
+    auto b = New("crossbow");
+
+    if (auto tagJ = j.compoundTag("tag"); tagJ) {
+      auto charged = tagJ->boolean("Charged");
+      auto chargedProjectiles = tagJ->listTag("ChargedProjectiles");
+      if (charged && chargedProjectiles) {
+        for (auto const &it : *chargedProjectiles) {
+          auto projectileJ = std::dynamic_pointer_cast<CompoundTag>(it);
+          if (!projectileJ) {
+            continue;
+          }
+          std::unordered_map<int32_t, int8_t> m;
+          JavaEditionMap jem(m);
+          WorldData wd(mcfile::Dimension::Overworld);
+          auto projectileB = From(projectileJ, jem, wd);
+          if (projectileB) {
+            auto beTag = std::make_shared<CompoundTag>();
+            beTag->set("chargedItem", projectileB);
+            b->set("tag", beTag);
+            break;
+          }
         }
       }
     }
