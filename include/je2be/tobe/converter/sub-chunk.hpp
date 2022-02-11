@@ -6,7 +6,13 @@ class SubChunk {
   SubChunk() = delete;
 
 public:
-  [[nodiscard]] static bool Convert(mcfile::je::Chunk const &chunk, mcfile::Dimension dim, int chunkY, ChunkData &cd, ChunkDataPackage &cdp, WorldData &wd) {
+  [[nodiscard]] static bool Convert(mcfile::je::Chunk const &chunk,
+                                    mcfile::Dimension dim,
+                                    int chunkY,
+                                    ChunkData &cd,
+                                    ChunkDataPackage &cdp,
+                                    WorldData &wd,
+                                    std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> const &tickingLiquidOriginalBlocks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -318,7 +324,16 @@ public:
       int64_t time = currentTick + tb.fT;
       int localIndex = (x * 16 + z) * 16 + y;
       int paletteIndex = indices[localIndex];
-      auto block = palette[paletteIndex];
+      auto block = palette[paletteIndex]->copy();
+
+      if (auto found = tickingLiquidOriginalBlocks.find(Pos3i(tb.fX, tb.fY, tb.fZ)); found != tickingLiquidOriginalBlocks.end()) {
+        auto original = found->second;
+        if (auto level = strings::Toi(original->property("level")); level) {
+          if (auto st = block->compoundTag("states"); st) {
+            st->set("liquid_depth", props::Int(*level));
+          }
+        }
+      }
 
       auto tick = make_shared<CompoundTag>();
       tick->set("blockState", block);

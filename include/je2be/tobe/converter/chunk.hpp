@@ -53,6 +53,17 @@ public:
       return nullptr;
     }
     mcfile::je::CachedChunkLoader loader(region);
+
+    unordered_map<Pos3i, shared_ptr<mcfile::je::Block const>, Pos3iHasher> tickingLiquidOriginalBlocks;
+    for (auto const &it : chunk->fLiquidTicks) {
+      Pos3i pos(it.fX, it.fY, it.fZ);
+      auto block = chunk->blockAt(pos.fX, pos.fY, pos.fZ);
+      if (!block) {
+        continue;
+      }
+      tickingLiquidOriginalBlocks[pos] = block;
+    }
+
     PreprocessChunk(loader, *chunk);
 
     auto ret = make_shared<WorldData>(dim);
@@ -65,7 +76,7 @@ public:
       if (!section) {
         continue;
       }
-      if (!SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret)) {
+      if (!SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret, tickingLiquidOriginalBlocks)) {
         return nullptr;
       }
     }
