@@ -434,9 +434,17 @@ TEST_CASE("j2b2j") {
           CHECK(chunkA->minBlockY() == chunkE->minBlockY());
           CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
 
+          unordered_set<Pos3i, Pos3iHasher> liquidTicking;
+          for (auto const &it : chunkE->fLiquidTicks) {
+            liquidTicking.insert(Pos3i(it.fX, it.fY, it.fZ));
+          }
+
           for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
             for (int z = chunkE->minBlockZ() + 1; z < chunkE->maxBlockZ(); z++) {
               for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
+                if (liquidTicking.find(Pos3i(x, y, z)) != liquidTicking.end()) {
+                  continue;
+                }
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
                 CheckBlock(blockE, blockA, x, y, z);
