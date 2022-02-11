@@ -277,9 +277,10 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, std::string const &id, vector<shared_ptr<CompoundTag>> const &entities) {
+static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, Rotation rot, std::string const &id, vector<shared_ptr<CompoundTag>> const &entities) {
   shared_ptr<CompoundTag> ret = nullptr;
   double minDistance = numeric_limits<double>::max();
+  double minRotDifference = numeric_limits<double>::max();
   for (auto const &entity : entities) {
     if (entity->string("id") != id) {
       continue;
@@ -288,12 +289,23 @@ static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, std::string const &i
     if (!p) {
       continue;
     }
+    auto r = props::GetRotation(*entity, "Rotation");
+    if (!r) {
+      continue;
+    }
     double dx = p->fX - pos.fX;
     double dy = p->fY - pos.fY;
     double dz = p->fZ - pos.fZ;
     double distance = hypot(dx, dy, dz);
-    if (distance < minDistance) {
+    double rotDifference = Rotation::DiffDegrees(r->fPitch, rot.fPitch) + Rotation::DiffDegrees(r->fYaw, rot.fYaw);
+    if (distance == minDistance) {
+      if (rotDifference < minRotDifference) {
+        minRotDifference = rotDifference;
+        ret = entity;
+      }
+    } else if (distance < minDistance) {
       minDistance = distance;
+      minRotDifference = rotDifference;
       ret = entity;
     }
   }
@@ -419,8 +431,9 @@ TEST_CASE("j2b2j") {
 
           for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
             Pos3d posE = *props::GetPos3d(*entityE, "Pos");
+            Rotation rotE = *props::GetRotation(*entityE, "Rotation");
             auto id = entityE->string("id");
-            shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, *id, chunkA->fEntities);
+            shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, rotE, *id, chunkA->fEntities);
             if (entityA) {
               CheckEntity(*id, *entityE, *entityA);
             } else {
