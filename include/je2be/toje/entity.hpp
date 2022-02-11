@@ -239,6 +239,12 @@ public:
     j["CatType"] = props::Int(catType);
   }
 
+  static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (auto st = LootTable::BedrockToJava(b, j); st == LootTable::State::HasLootTable) {
+      j.erase("Items");
+    }
+  }
+
   static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto entries = b.listTag("entries");
     if (entries) {
@@ -1347,7 +1353,7 @@ public:
     E(item, C(Same, Base, Entity::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom));
-    E(chest_minecart, C(Same, Base, Minecart, StorageMinecart));
+    E(chest_minecart, C(Same, Base, Minecart, StorageMinecart, ChestMinecart));
     E(hopper_minecart, C(Same, Base, Minecart, StorageMinecart, HopperMinecart));
     E(boat, C(Same, Base, Boat));
     E(slime, C(Same, LivingEntity, Size));

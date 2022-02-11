@@ -522,7 +522,7 @@ private:
     E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:minecart")));
     E(armor_stand, C(LivingEntity, ArmorStand));
     E(hopper_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
-    E(chest_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart")));
+    E(chest_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart"), ChestMinecart));
     E(tnt_minecart, C(EntityBase, Vehicle(), Minecart, TntMinecart));
     E(snow_golem, C(Mob, SnowGolem));
     E(iron_golem, C(Mob, Definitions("+minecraft:iron_golem"), IronGolem));
@@ -661,6 +661,10 @@ private:
     }
     c["DwellingUniqueID"] = props::String("00000000-0000-0000-0000-000000000000");
     c["RewardPlayersOnFirstFounding"] = props::Bool(true);
+  }
+
+  static void ChestMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+    LootTable::JavaToBedrock(tag, c);
   }
 
   static void Chicken(CompoundTag &c, CompoundTag const &tag, Context &) {

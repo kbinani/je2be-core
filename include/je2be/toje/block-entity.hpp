@@ -220,15 +220,7 @@ public:
     Result r;
     r.fBlock = BlockFullName(blockJ.fName, p);
     auto te = EmptyFullName(block.fName, pos);
-    auto lootTable = tagB.string("LootTable");
-    if (lootTable && lootTable->starts_with("loot_tables/") && lootTable->ends_with(".json")) {
-      string name = strings::RTrim(lootTable->substr(12), ".json");
-      te->set("LootTable", props::String("minecraft:" + name));
-      auto lootTableSeed = tagB.int32("LootTableSeed");
-      if (lootTableSeed) {
-        te->set("LootTableSeed", props::Long(*lootTableSeed));
-      }
-    } else {
+    if (auto st = LootTable::BedrockToJava(tagB, *te); st == LootTable::State::NoLootTable) {
       auto items = ContainerItems(tagB, "Items", ctx);
       if (items) {
         te->set("Items", items);

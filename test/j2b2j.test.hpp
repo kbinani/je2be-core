@@ -243,6 +243,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("TimeInOverworld");
   } else if (id == "minecraft:hoglin") {
     blacklist.insert("TimeInOverworld");
+  } else if (id == "minecraft:chest_minecart") {
+    blacklist.insert("LootTableSeed");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {

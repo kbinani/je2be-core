@@ -48,6 +48,7 @@ set(je2be_files
   include/je2be/item/fireworks.hpp
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
+  include/je2be/loot-table.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
   include/je2be/optional.hpp
@@ -73,7 +74,6 @@ set(je2be_files
   include/je2be/tobe/converter/command.hpp
   include/je2be/tobe/converter/converter.hpp
   include/je2be/tobe/converter/datapacks.hpp
-  include/je2be/tobe/converter/dimension.hpp
   include/je2be/tobe/converter/enchant-data.hpp
   include/je2be/tobe/converter/entity.hpp
   include/je2be/tobe/converter/flat-world-layers.hpp
