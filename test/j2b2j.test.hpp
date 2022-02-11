@@ -253,12 +253,15 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       }
     */
     blacklist.insert("Brain/memories");
+
+    blacklist.insert("IsBaby");
+    CHECK(copyE->boolean("IsBaby", false) == copyA->boolean("IsBaby", false));
   } else if (id == "minecraft:piglin_brute") {
     blacklist.insert("TimeInOverworld");
   } else if (id == "minecraft:hoglin") {
     blacklist.insert("TimeInOverworld");
-    blacklist.insert("IsBaby");
 
+    blacklist.insert("IsBaby");
     CHECK(copyE->boolean("IsBaby", false) == copyA->boolean("IsBaby", false));
   } else if (id == "minecraft:chest_minecart") {
     blacklist.insert("LootTableSeed");

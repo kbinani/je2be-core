@@ -1433,7 +1433,7 @@ public:
     E(goat, C(Same, Animal, Goat));
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
     E(wither, C(Same, LivingEntity, Wither));
-    E(piglin, C(Same, LivingEntity, Inventory));
+    E(piglin, C(Same, LivingEntity, Inventory, IsBaby));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal, IsBaby));
 

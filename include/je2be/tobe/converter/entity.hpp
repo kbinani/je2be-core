@@ -480,7 +480,7 @@ private:
     E(parrot, C(Animal, TameableA("parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
-    E(piglin, C(Monster, ChestItems));
+    E(piglin, C(Monster, ChestItems, AgeableB("piglin")));
     E(piglin_brute, C(Monster, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItems));
 
