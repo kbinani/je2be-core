@@ -19,4 +19,9 @@ static inline Pos2i Left90(Pos2i vec) {
   int z = sinM90 * vec.fX + cosM90 * vec.fZ;
   return Pos2i(x, z);
 }
+
+static inline bool IsOrthogonal(Pos2i a, Pos2i b) {
+  int innerProduct = a.fX * b.fX + a.fZ * b.fZ;
+  return innerProduct == 0;
+}
 } // namespace je2be

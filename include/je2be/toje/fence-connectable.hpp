@@ -75,6 +75,11 @@ public:
       }
     } else if (target.fName.ends_with("slab") && target.fName.find("double") != std::string::npos) {
       return true;
+    } else if (target.fName.ends_with("fence_gate")) {
+      auto direction = target.fStates->int32("direction", 0);
+      Facing4 f4 = Facing4FromBedrockDirection(direction);
+      Pos2i gateDirection = Pos2iFromFacing4(f4);
+      return IsOrthogonal(gateDirection, targetDirection);
     }
     return false;
   }
