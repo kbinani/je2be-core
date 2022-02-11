@@ -1358,6 +1358,18 @@ private:
     e->fIdentifier = "minecraft:ender_crystal";
     auto c = e->toCompoundTag();
     CopyBoolValues(tag, *c, {{"ShowBottom"}});
+
+    if (auto beamTarget = tag.compoundTag("BeamTarget"); beamTarget) {
+      auto x = beamTarget->int32("X");
+      auto y = beamTarget->int32("Y");
+      auto z = beamTarget->int32("Z");
+      if (x && y && z) {
+        c->set("BlockTargetX", props::Int(*x));
+        c->set("BlockTargetY", props::Int(*y));
+        c->set("BlockTargetZ", props::Int(*z));
+      }
+    }
+
     return c;
   }
 
@@ -1368,6 +1380,15 @@ private:
     c->set("Persistent", props::Bool(true));
     c->set("IsAutonomous", props::Bool(true));
     c->set("LastDimensionId", props::Int(2));
+
+    auto dragonDeathTime = tag.int32("DragonDeathTime", 0);
+    if (dragonDeathTime > 0) {
+      c->set("DeathTime", props::Int(dragonDeathTime));
+      RemoveDefinition(*c, "+dragon_flying");
+      AddDefinition(*c, "-dragon_flying");
+      AddDefinition(*c, "+dragon_death");
+    }
+
     ctx.fWorldData.addAutonomousEntity(c);
     return c;
   }

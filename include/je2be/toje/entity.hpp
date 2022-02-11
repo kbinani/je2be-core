@@ -274,6 +274,30 @@ public:
     }
   }
 
+  static void EnderCrystal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto x = b.int32("BlockTargetX");
+    auto y = b.int32("BlockTargetY");
+    auto z = b.int32("BlockTargetZ");
+    if (x && y && z) {
+      auto beamTarget = std::make_shared<CompoundTag>();
+      beamTarget->set("X", props::Int(*x));
+      beamTarget->set("Y", props::Int(*y));
+      beamTarget->set("Z", props::Int(*z));
+      j["BeamTarget"] = beamTarget;
+    }
+  }
+
+  static void EnderDragon(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto deathTime = b.int32("DeathTime", 0);
+    j["DragonDeathTime"] = props::Int(deathTime);
+    if (deathTime > 0) {
+      j["DragonPhase"] = props::Int(9);
+    } else {
+      j["DragonPhase"] = props::Int(0);
+    }
+    j["PersistenceRequired"] = props::Bool(false);
+  }
+
   static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto carriedBlockTagB = b.compoundTag("carriedBlock");
     if (carriedBlockTagB) {
@@ -1371,7 +1395,7 @@ public:
     E(chicken, C(Same, Animal, Chicken));
     E(item, C(Same, Base, Entity::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
-    E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom));
+    E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom, EnderCrystal));
     E(chest_minecart, C(Same, Base, Minecart, StorageMinecart, ChestMinecart));
     E(hopper_minecart, C(Same, Base, Minecart, StorageMinecart, HopperMinecart));
     E(boat, C(Same, Base, Boat));
@@ -1437,6 +1461,7 @@ public:
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal, IsBaby));
     E(arrow, C(Same, Base, Owner));
+    E(ender_dragon, C(Same, LivingEntity, EnderDragon));
 
 #undef E
     return ret;
