@@ -43,6 +43,17 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           CheckBlockWithIgnore(*blockE, *blockA, {"facing", "powered"});
         } else if (blockE->fName == "minecraft:fire") {
           CheckBlockWithIgnore(*blockE, *blockA, {"east", "north", "south", "west", "up"});
+        } else if (blockE->fName == "minecraft:weeping_vines_plant") {
+          if (blockA->toString() == "minecraft:weeping_vines[age=25]") {
+            // JE: weeping_vines -> tip
+            //     weeping_vines_plant -> body
+            // BE: weeping_vines -> tip / body
+
+            // "weeping_vines_plant without tip" sometimes seen in vanilla JE. tobe::Converter recognize this as a tip of vines
+            CHECK(true);
+          } else {
+            CHECK(blockA->toString() == blockE->toString());
+          }
         } else {
           CHECK(blockA->toString() == blockE->toString());
         }
