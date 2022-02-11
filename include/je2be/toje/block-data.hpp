@@ -849,15 +849,9 @@ private:
 #pragma region Converters : M
   static String MelonStem(String const &bName, States const &s, Props &p) {
     auto growth = s.int32("growth", 0);
-    std::string name;
-    if (growth >= 7) {
-      name = "attached_melon_stem";
-    } else {
-      name = "melon_stem";
-      p["age"] = Int(growth);
-    }
+    p["age"] = Int(growth);
     Facing4FromFacingDirectionA(s, p);
-    return Ns() + name;
+    return bName;
   }
 
   static String MonsterEgg(String const &bName, States const &s, Props &p) {

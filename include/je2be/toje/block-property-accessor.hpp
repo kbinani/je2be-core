@@ -24,6 +24,7 @@ private:
     TRIPWIRE = 14,
     PISTON = 16,
     BEACON = 17,
+    MELON_STEM = 18,
   };
 
 public:
@@ -60,6 +61,8 @@ public:
       return PISTON;
     } else if (IsBeacon(b)) {
       return BEACON;
+    } else if (IsMelonStem(b)) {
+      return MELON_STEM;
     }
     return 0;
   }
@@ -126,6 +129,10 @@ public:
 
   static bool IsBeacon(DataType p) {
     return p == BEACON;
+  }
+
+  static bool IsMelonStem(DataType p) {
+    return p == MELON_STEM;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -202,6 +209,10 @@ public:
     return b.fName == "minecraft:beacon";
   }
 
+  static bool IsMelonStem(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:melon_stem";
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkY(chunk.fChunkY), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(chunk.fSubChunks.size());
@@ -230,6 +241,7 @@ public:
         fHasTripwire |= IsTripwire(p);
         fHasPiston |= IsPiston(p);
         fHasBeacon |= IsBeacon(p);
+        fHasMelonStem |= IsMelonStem(p);
         fSections[i][j] = p;
       }
     }
@@ -282,6 +294,7 @@ public:
   bool fHasTripwire = false;
   bool fHasPiston = false;
   bool fHasBeacon = false;
+  bool fHasMelonStem = false;
 
 private:
   std::vector<std::vector<DataType>> fSections;

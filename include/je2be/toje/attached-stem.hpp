@@ -7,11 +7,28 @@ class AttachedStem {
 
 public:
   static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
-    using namespace std;
-
-    if (!accessor.fHasPumpkinStem) {
-      return;
+    if (accessor.fHasPumpkinStem) {
+      DoImpl(out, cache, accessor, "minecraft:pumpkin", "minecraft:attached_pumpkin_stem", IsPumpkinStem);
     }
+    if (accessor.fHasMelonStem) {
+      DoImpl(out, cache, accessor, "minecraft:melon_block", "minecraft:attached_melon_stem", IsMelonStem);
+    }
+  }
+
+  static bool IsPumpkinStem(BlockPropertyAccessor::DataType p) {
+    return BlockPropertyAccessor::IsPumpkinStem(p);
+  }
+
+  static bool IsMelonStem(BlockPropertyAccessor::DataType p) {
+    return BlockPropertyAccessor::IsMelonStem(p);
+  }
+
+  static void DoImpl(mcfile::je::Chunk &out,
+                     ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor,
+                     std::string const &cropFullNameBE,
+                     std::string const &stemFullNameJE,
+                     std::function<bool(BlockPropertyAccessor::DataType)> pred) {
+    using namespace std;
 
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
@@ -20,7 +37,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsPumpkinStem(p)) {
+          if (!pred(p)) {
             continue;
           }
           auto stem = cache.blockAt(x, y, z);
@@ -41,10 +58,10 @@ public:
             auto vec = VecFromFacingDirection(d);
             auto cropPos = Pos2i(x, z) + vec;
             auto crop = cache.blockAt(cropPos.fX, y, cropPos.fZ);
-            if (crop && crop->fName == "minecraft:pumpkin") {
+            if (crop && crop->fName == cropFullNameBE) {
               props["facing"] = FacingFromFacingDirection(d);
               props.erase("age");
-              name = "minecraft:attached_pumpkin_stem";
+              name = stemFullNameJE;
             } else {
               props.erase("facing");
             }
