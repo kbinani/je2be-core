@@ -1464,7 +1464,7 @@ private:
     c["DeathTime"] = Short(0);
     c["hasBoundOrigin"] = Bool(false);
     c["hasSetCanPickupItems"] = Bool(true);
-    c["HurtTime"] = Short(0);
+    c["HurtTime"] = Short(tag.int16("HurtTime", 0));
     c["InLove"] = Bool(false);
     c["IsPregnant"] = Bool(false);
     c["LeasherID"] = Long(-1);
