@@ -393,6 +393,11 @@ TEST_CASE("j2b2j") {
               for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
                 auto blockA = chunkA->blockAt(x, y, z);
                 auto blockE = chunkE->blockAt(x, y, z);
+#if 0
+                if (blockA->toString() != blockE->toString()) {
+                  cout << "[" << x << ", " << y << ", " << z << "]" << endl;
+                }
+#endif
                 CheckBlock(blockE, blockA);
               }
             }
