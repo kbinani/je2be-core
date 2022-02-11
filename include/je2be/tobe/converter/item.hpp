@@ -724,6 +724,7 @@ private:
     E("lingering_potion");
     E("phantom_membrane");
     E("axolotl_bucket");
+    E("suspicious_stew");
 
     // listed with blocks, but not block item
 
