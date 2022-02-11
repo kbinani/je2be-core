@@ -467,7 +467,7 @@ private:
     E(fox, C(Animal, Fox));
     M(ghast);
     M(guardian);
-    M(hoglin);
+    E(hoglin, C(Animal, AgeableA("hoglin")));
     E(horse, C(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Temper, Horse));
     E(husk, C(Monster, AgeableA("husk")));
     E(llama, C(Animal, AgeableA("llama"), TameableB("llama"), ChestedHorse("llama"), Llama));

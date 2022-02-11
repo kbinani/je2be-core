@@ -241,10 +241,25 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
   } else if (id == "minecraft:goat") {
     blacklist.insert("Brain/memories"); // long_jump_cooling_down, ram_cooldown_ticks memories
-  } else if (id == "minecraft:piglin" || id == "minecraft:piglin_brute") {
+  } else if (id == "minecraft:piglin") {
+    blacklist.insert("TimeInOverworld");
+
+    /*
+      "memories": {
+        "minecraft:hunted_recently": {
+          "ttl": 962, // long
+          "value": 1 // byte
+        }
+      }
+    */
+    blacklist.insert("Brain/memories");
+  } else if (id == "minecraft:piglin_brute") {
     blacklist.insert("TimeInOverworld");
   } else if (id == "minecraft:hoglin") {
     blacklist.insert("TimeInOverworld");
+    blacklist.insert("IsBaby");
+
+    CHECK(copyE->boolean("IsBaby", false) == copyA->boolean("IsBaby", false));
   } else if (id == "minecraft:chest_minecart") {
     blacklist.insert("LootTableSeed");
   } else if (id == "minecraft:zombie") {
