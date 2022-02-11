@@ -267,6 +267,19 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("LootTableSeed");
   } else if (id == "minecraft:zombie") {
     blacklist.insert("CanBreakDoors");
+  } else if (id == "minecraft:arrow") {
+    blacklist.insert("HasBeenShot");
+    blacklist.insert("LeftOwner");
+    blacklist.insert("PierceLevel");
+    blacklist.insert("ShotFromCrossbow");
+    blacklist.insert("crit");
+    blacklist.insert("damage");
+    blacklist.insert("inGround");
+    blacklist.insert("life");
+    blacklist.insert("pickup");
+    blacklist.insert("shake");
+    blacklist.insert("inBlockState");
+    blacklist.insert("SoundEvent");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {

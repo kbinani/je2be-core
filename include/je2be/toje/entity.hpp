@@ -1436,6 +1436,7 @@ public:
     E(piglin, C(Same, LivingEntity, Inventory, IsBaby));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal, IsBaby));
+    E(arrow, C(Same, Base, Owner));
 
 #undef E
     return ret;

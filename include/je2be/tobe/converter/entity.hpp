@@ -538,6 +538,7 @@ private:
     E(goat, C(Animal, AgeableA("goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
     E(wither, C(Mob, Definitions("+minecraft:wither")));
+    E(arrow, C(EntityBase, Arrow));
 #undef A
 #undef M
 #undef E
@@ -571,6 +572,14 @@ private:
           c["Pose"] = poseB;
         }
       }
+    }
+  }
+
+  static void Arrow(CompoundTag &c, CompoundTag const &tag, Context &) {
+    auto owner = GetOwnerUuid(tag);
+    if (owner) {
+      c["OwnerID"] = props::Long(*owner);
+      c["OwnerNew"] = props::Long(*owner);
     }
   }
 
