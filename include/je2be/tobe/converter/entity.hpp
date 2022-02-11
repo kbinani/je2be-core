@@ -1132,7 +1132,9 @@ private:
       c["PreferredProfession"] = String(profession->string());
       AddDefinition(c, "+" + profession->string());
       c["Variant"] = Int(profession->variant());
-      c["TradeTablePath"] = String(profession->tradeTablePath());
+      if (auto tradeTablePath = profession->tradeTablePath(); tradeTablePath) {
+        c["TradeTablePath"] = String(*tradeTablePath);
+      }
     }
     if (type) {
       AddDefinition(c, "+" + type->string() + "_villager");

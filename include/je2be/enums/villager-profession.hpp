@@ -20,11 +20,12 @@ public:
     Butcher = 11,
     LeatherWorker = 12,
     StoneMason = 13,
+    Nitwit = 14,
   };
 
   constexpr VillagerProfession(Variant variant) : fVariant(variant) {}
 
-  std::string tradeTablePath() const {
+  std::optional<std::string> tradeTablePath() const {
     switch (fVariant) {
     case Fletcher:
       return "trading/economy_trades/fletcher_trades.json";
@@ -52,8 +53,10 @@ public:
       return "trading/economy_trades/butcher_trades.json";
     case WeaponSmith:
       return "trading/economy_trades/weapon_smith_trades.json";
+    case Nitwit:
+      return std::nullopt;
     }
-    return "";
+    return std::nullopt;
   }
 
   static std::optional<VillagerProfession> FromJavaProfession(std::string profession) {
@@ -86,6 +89,8 @@ public:
       return Cleric;
     } else if (profession == "librarian") {
       return Librarian;
+    } else if (profession == "nitwit") {
+      return Nitwit;
     }
     return std::nullopt;
   }
@@ -122,6 +127,8 @@ public:
       return "cleric";
     case Librarian:
       return "librarian";
+    case Nitwit:
+      return "nitwit";
     }
     return "none";
   }
