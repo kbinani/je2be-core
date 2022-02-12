@@ -458,7 +458,7 @@ private:
     E(creeper, C(Monster, Creeper));
     A(dolphin);
     E(donkey, C(Animal, TameableB("donkey"), ChestedHorse("donkey"), Steerable("donkey"), Temper));
-    M(drowned);
+    E(drowned, C(Monster, AgeableD("drowned")));
     M(elder_guardian);
     E(enderman, C(Monster, Enderman));
     E(endermite, C(Monster, Endermite));
@@ -1640,6 +1640,18 @@ private:
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
+      }
+      c["IsBaby"] = props::Bool(baby);
+    };
+  }
+
+  static Behavior AgeableD(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+      auto baby = tag.boolean("IsBaby", false);
+      if (baby) {
+        AddDefinition(c, "+minecraft:baby_" + definitionKey);
+      } else {
+        AddDefinition(c, "+minecraft:adult_" + definitionKey);
       }
       c["IsBaby"] = props::Bool(baby);
     };
