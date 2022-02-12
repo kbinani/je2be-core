@@ -8,7 +8,7 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
     using namespace std;
-    int cy = d == mcfile::Dimension::Overworld ? -4 : 0;
+    int const cy = b.fChunkY;
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
 
     int maxChunkY = cy;
