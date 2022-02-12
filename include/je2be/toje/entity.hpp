@@ -863,6 +863,7 @@ public:
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
+    auto identifier = b.string("identifier");
     for (std::string key : {"Mainhand", "Offhand"}) {
       auto listB = b.listTag(key);
       std::shared_ptr<CompoundTag> itemJ;
@@ -876,7 +877,11 @@ public:
         itemJ = std::make_shared<CompoundTag>();
       }
       itemsJ->push_back(itemJ);
-      chances->push_back(props::Float(0.085));
+      if (itemJ->string("id") == "minecraft:nautilus_shell" && identifier == "minecraft:drowned") {
+        chances->push_back(props::Float(2));
+      } else {
+        chances->push_back(props::Float(0.085));
+      }
     }
     j["HandItems"] = itemsJ;
     j["HandDropChances"] = chances;
