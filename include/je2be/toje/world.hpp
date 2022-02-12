@@ -135,11 +135,7 @@ public:
     if (!je2be::file::GetContents(nbt, buffer)) {
       return false;
     }
-    auto rootTag = CompoundTag::ReadCompressed(buffer);
-    if (!rootTag) {
-      return false;
-    }
-    auto content = rootTag->compoundTag("");
+    auto content = CompoundTag::ReadCompressed(buffer, {.fLittleEndian = false});
     if (!content) {
       return false;
     }
@@ -152,7 +148,7 @@ public:
       return false;
     }
 
-    return CompoundTag::WriteCompressed(*rootTag, nbt);
+    return CompoundTag::WriteCompressed(*content, nbt, {.fLittleEndian = false});
   }
 
   static bool AttachPassengers(Pos2i chunk,
@@ -204,10 +200,8 @@ public:
           vector<uint8_t> buffer;
           if (file::GetContents(nbt, buffer)) {
             buffer.clear();
-            if (auto root = CompoundTag::Read(buffer); root) {
-              if (auto tag = root->compoundTag(""); tag) {
-                entitiesInChunk = tag->listTag("Entities");
-              }
+            if (auto tag = CompoundTag::ReadCompressed(buffer, {.fLittleEndian = false}); tag) {
+              entitiesInChunk = tag->listTag("Entities");
             }
           }
         }
@@ -228,17 +222,15 @@ public:
           }
         }
         if (chunk != passengerChunk) {
-          auto root = make_shared<CompoundTag>();
           auto data = make_shared<CompoundTag>();
           data->set("Entities", entitiesInChunk);
-          root->set("", data);
           int cx = passengerChunk.fX;
           int cz = passengerChunk.fZ;
           int rx = mcfile::Coordinate::RegionFromChunk(cx);
           int rz = mcfile::Coordinate::RegionFromChunk(cz);
           fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-          if (!CompoundTag::WriteCompressed(*root, nbt)) {
+          if (!CompoundTag::WriteCompressed(*data, nbt, {.fLittleEndian = false})) {
             return false;
           }
         }
