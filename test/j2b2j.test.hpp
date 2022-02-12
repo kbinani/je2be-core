@@ -256,6 +256,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("AngryAt");
   } else if (id == "minecraft:zombie_villager") {
     blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
+    blacklist.insert("InWaterTime");
   } else if (id == "minecraft:goat") {
     blacklist.insert("Brain/memories"); // long_jump_cooling_down, ram_cooldown_ticks memories
   } else if (id == "minecraft:piglin") {
@@ -284,6 +285,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("LootTableSeed");
   } else if (id == "minecraft:zombie") {
     blacklist.insert("CanBreakDoors");
+    blacklist.insert("InWaterTime");
   } else if (id == "minecraft:arrow") {
     blacklist.insert("HasBeenShot");
     blacklist.insert("LeftOwner");
