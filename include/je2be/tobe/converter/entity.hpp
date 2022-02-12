@@ -467,7 +467,7 @@ private:
     E(fox, C(Animal, Fox));
     M(ghast);
     M(guardian);
-    E(hoglin, C(Animal, AgeableA("hoglin")));
+    E(hoglin, C(Animal, AgeableA("hoglin"), Hoglin));
     E(horse, C(Animal, TameableB("horse"), AgeableA("horse"), Steerable("horse"), Temper, Horse));
     E(husk, C(Monster, AgeableA("husk")));
     E(llama, C(Animal, AgeableA("llama"), TameableB("llama"), ChestedHorse("llama"), Llama));
@@ -800,6 +800,14 @@ private:
       AddDefinition(c, "+goat_default");
       AddDefinition(c, "+ram_default");
       AddDefinition(c, "+interact_default");
+    }
+  }
+
+  static void Hoglin(CompoundTag &c, CompoundTag const &tag, Context &) {
+    AddDefinition(c, "+huntable_adult");
+    AddDefinition(c, "+zombification_sensor");
+    if (tag.boolean("CannotBeHunted", false)) {
+      AddDefinition(c, "-angry_hoglin");
     }
   }
 

@@ -444,6 +444,12 @@ public:
     j["IsScreamingGoat"] = props::Bool(screamer);
   }
 
+  static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (HasDefinition(b, "-angry_hoglin")) {
+      j["CannotBeHunted"] = props::Bool(true);
+    }
+  }
+
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
     armorDropChances->push_back(props::Float(0.085));
@@ -1489,7 +1495,7 @@ public:
     E(wither, C(Same, LivingEntity, Wither));
     E(piglin, C(Same, LivingEntity, Inventory, IsBaby, Piglin));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
-    E(hoglin, C(Same, Animal, IsBaby));
+    E(hoglin, C(Same, Animal, IsBaby, Hoglin));
     E(arrow, C(Same, Base, Owner));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
