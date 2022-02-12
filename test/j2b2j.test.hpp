@@ -375,6 +375,89 @@ static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, Rotation rot, std::s
   return ret;
 }
 
+static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, int cx, int cz) {
+  auto chunkA = regionA.chunkAt(cx, cz);
+  if (!chunkA) {
+    return;
+  }
+  CHECK(regionA.entitiesAt(chunkA->fChunkX, chunkA->fChunkZ, chunkA->fEntities));
+
+  auto chunkE = regionE.chunkAt(cx, cz);
+  CHECK(chunkE);
+  CHECK(regionE.entitiesAt(chunkE->fChunkX, chunkE->fChunkZ, chunkE->fEntities));
+
+  CHECK(chunkA->minBlockY() == chunkE->minBlockY());
+  CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
+
+  unordered_set<Pos3i, Pos3iHasher> liquidTicking;
+  for (auto const &it : chunkE->fLiquidTicks) {
+    liquidTicking.insert(Pos3i(it.fX, it.fY, it.fZ));
+  }
+
+  for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
+    for (int z = chunkE->minBlockZ() + 1; z < chunkE->maxBlockZ(); z++) {
+      for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
+        if (liquidTicking.find(Pos3i(x, y, z)) != liquidTicking.end()) {
+          continue;
+        }
+        auto blockA = chunkA->blockAt(x, y, z);
+        auto blockE = chunkE->blockAt(x, y, z);
+        CheckBlock(blockE, blockA, x, y, z);
+      }
+    }
+  }
+
+  int minChunkY = chunkE->fChunkY;
+  int maxChunkY = minChunkY;
+  for (auto const &sectionE : chunkE->fSections) {
+    if (sectionE) {
+      maxChunkY = (std::max)(maxChunkY, sectionE->y());
+    }
+  }
+  for (int y = minChunkY * 16; y <= maxChunkY * 16 + 15; y++) {
+    for (int z = chunkE->minBlockZ(); z <= chunkE->maxBlockZ(); z++) {
+      for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
+        auto a = chunkA->biomeAt(x, y, z);
+        auto e = chunkE->biomeAt(x, y, z);
+        CHECK(a == e);
+      }
+    }
+  }
+
+  for (auto const &it : chunkE->fTileEntities) {
+    Pos3i pos = it.first;
+    shared_ptr<CompoundTag> const &tileE = it.second;
+    static unordered_set<string> blacklist({"minecraft:sculk_sensor"});
+    if (blacklist.find(tileE->string("id", "")) != blacklist.end()) {
+      continue;
+    }
+    auto found = chunkA->fTileEntities.find(pos);
+    if (found == chunkA->fTileEntities.end()) {
+      PrintAsJson(cerr, *tileE, {.fTypeHint = true});
+      CHECK(false);
+      break;
+    }
+    auto tileA = found->second;
+    CheckTileEntity(*tileE, *tileA);
+  }
+
+  for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
+    Pos3d posE = *props::GetPos3d(*entityE, "Pos");
+    Rotation rotE = *props::GetRotation(*entityE, "Rotation");
+    auto id = entityE->string("id");
+    shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, rotE, *id, chunkA->fEntities);
+    if (entityA) {
+      CheckEntity(*id, *entityE, *entityA);
+    } else {
+      PrintAsJson(cerr, *entityE, {.fTypeHint = true});
+      CHECK(false);
+      break;
+    }
+  }
+
+  //TODO: check fLiquidTicks
+}
+
 TEST_CASE("j2b2j") {
   fs::path thisFile(__FILE__);
   auto dataDir = thisFile.parent_path() / "data";
@@ -412,6 +495,7 @@ TEST_CASE("j2b2j") {
     }
     auto regionDirA = io.getWorldDirectory(*outJ, dim) / "region";
     auto regionDirE = io.getWorldDirectory(in, dim) / "region";
+
     for (auto it : fs::directory_iterator(regionDirA)) {
       if (!it.is_regular_file()) {
         continue;
@@ -420,6 +504,10 @@ TEST_CASE("j2b2j") {
       if (fileA.extension() != ".mca") {
         continue;
       }
+
+      deque<future<void>> futures;
+      hwm::task_queue pool(thread::hardware_concurrency());
+
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
       CHECK(regionA);
 
@@ -433,86 +521,13 @@ TEST_CASE("j2b2j") {
             if (io.fChunkFilter.find(Pos2i(cx, cz)) == io.fChunkFilter.end()) {
               continue;
             }
-          }
-          auto chunkA = regionA->chunkAt(cx, cz);
-          if (!chunkA) {
-            continue;
-          }
-          CHECK(regionA->entitiesAt(chunkA->fChunkX, chunkA->fChunkZ, chunkA->fEntities));
-
-          auto chunkE = regionE->chunkAt(cx, cz);
-          CHECK(chunkE);
-          CHECK(regionE->entitiesAt(chunkE->fChunkX, chunkE->fChunkZ, chunkE->fEntities));
-
-          CHECK(chunkA->minBlockY() == chunkE->minBlockY());
-          CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
-
-          unordered_set<Pos3i, Pos3iHasher> liquidTicking;
-          for (auto const &it : chunkE->fLiquidTicks) {
-            liquidTicking.insert(Pos3i(it.fX, it.fY, it.fZ));
-          }
-
-          for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
-            for (int z = chunkE->minBlockZ() + 1; z < chunkE->maxBlockZ(); z++) {
-              for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
-                if (liquidTicking.find(Pos3i(x, y, z)) != liquidTicking.end()) {
-                  continue;
-                }
-                auto blockA = chunkA->blockAt(x, y, z);
-                auto blockE = chunkE->blockAt(x, y, z);
-                CheckBlock(blockE, blockA, x, y, z);
-              }
-            }
-          }
-
-          int minChunkY = chunkE->fChunkY;
-          int maxChunkY = minChunkY;
-          for (auto const &sectionE : chunkE->fSections) {
-            if (sectionE) {
-              maxChunkY = (std::max)(maxChunkY, sectionE->y());
-            }
-          }
-          for (int y = minChunkY * 16; y <= maxChunkY * 16 + 15; y++) {
-            for (int z = chunkE->minBlockZ(); z <= chunkE->maxBlockZ(); z++) {
-              for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
-                auto a = chunkA->biomeAt(x, y, z);
-                auto e = chunkE->biomeAt(x, y, z);
-                CHECK(a == e);
-              }
-            }
-          }
-
-          for (auto const &it : chunkE->fTileEntities) {
-            Pos3i pos = it.first;
-            shared_ptr<CompoundTag> const &tileE = it.second;
-            static unordered_set<string> blacklist({"minecraft:sculk_sensor"});
-            if (blacklist.find(tileE->string("id", "")) != blacklist.end()) {
-              continue;
-            }
-            auto found = chunkA->fTileEntities.find(pos);
-            if (found == chunkA->fTileEntities.end()) {
-              PrintAsJson(cerr, *tileE, {.fTypeHint = true});
-              CHECK(false);
-              break;
-            }
-            auto tileA = found->second;
-            CheckTileEntity(*tileE, *tileA);
-          }
-
-          for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
-            Pos3d posE = *props::GetPos3d(*entityE, "Pos");
-            Rotation rotE = *props::GetRotation(*entityE, "Rotation");
-            auto id = entityE->string("id");
-            shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, rotE, *id, chunkA->fEntities);
-            if (entityA) {
-              CheckEntity(*id, *entityE, *entityA);
-            } else {
-              PrintAsJson(cerr, *entityE, {.fTypeHint = true});
-              CHECK(false);
-              break;
-            }
+            futures.push_back(move(pool.enqueue(CheckChunk, *regionE, *regionA, cx, cz)));
           }
         }
+      }
+
+      for (auto &f : futures) {
+        f.get();
       }
     }
   }
