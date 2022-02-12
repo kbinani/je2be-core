@@ -54,6 +54,12 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           } else {
             CHECK(blockA->toString() == blockE->toString());
           }
+        } else if (blockE->fName == "minecraft:twisting_vines_plant") {
+          if (blockA->toString() == "minecraft:twisting_vines[age=25]") {
+            CHECK(true);
+          } else {
+            CHECK(blockA->toString() == blockE->toString());
+          }
         } else if (blockE->fName == "minecraft:vine") {
           CheckBlockWithIgnore(*blockE, *blockA, {"up"});
         } else {
