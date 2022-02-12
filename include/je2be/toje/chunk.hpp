@@ -144,6 +144,40 @@ public:
       j->fEntities.push_back(it.second);
     }
 
+    for (mcfile::be::PendingTick const &pt : b.fPendingTicks) {
+      mcfile::je::TickingBlock tb;
+      auto nameB = pt.fBlockState->fName;
+      tb.fX = pt.fX;
+      tb.fY = pt.fY;
+      tb.fZ = pt.fZ;
+      tb.fT = pt.fTime - b.fCurrentTick;
+      tb.fP = 0;
+      if (nameB == "minecraft:lava" || nameB == "minecraft:water" || nameB == "minecraft:flowing_water" || nameB == "minecraft:flowing_lava" || nameB == "minecraft:gravel" || nameB == "minecraft:sand") {
+        tb.fI = nameB;
+        j->fLiquidTicks.push_back(tb);
+
+        // Copy liquid_depth to block if exists
+        if (auto depth = pt.fBlockState->fStates->int32("liquid_depth"); depth) {
+          if (auto blockJ = j->blockAt(pt.fX, pt.fY, pt.fZ); blockJ) {
+            if (blockJ->property("level") != "") {
+              map<string, string> props(blockJ->fProperties);
+              props["level"] = to_string(*depth);
+              auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+              mcfile::je::SetBlockOptions sbo;
+              sbo.fRemoveTileEntity = false;
+              j->setBlockAt(pt.fX, pt.fY, pt.fZ, replace, sbo);
+            }
+          }
+        }
+      } else {
+        auto blockJ = BlockData::From(*pt.fBlockState);
+        if (blockJ) {
+          tb.fI = blockJ->fName;
+          j->fTileTicks.push_back(tb);
+        }
+      }
+    }
+
     return j;
   }
 

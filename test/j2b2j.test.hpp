@@ -384,6 +384,15 @@ static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, Rotation rot, std::s
   return ret;
 }
 
+static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlock a) {
+  CHECK(e.fI == a.fI);
+  CHECK(e.fP == a.fP);
+  CHECK(e.fT == a.fT);
+  CHECK(e.fX == a.fX);
+  CHECK(e.fY == a.fY);
+  CHECK(e.fZ == a.fZ);
+}
+
 static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, int cx, int cz) {
   auto chunkA = regionA.chunkAt(cx, cz);
   if (!chunkA) {
@@ -398,17 +407,9 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
   CHECK(chunkA->minBlockY() == chunkE->minBlockY());
   CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
 
-  unordered_set<Pos3i, Pos3iHasher> liquidTicking;
-  for (auto const &it : chunkE->fLiquidTicks) {
-    liquidTicking.insert(Pos3i(it.fX, it.fY, it.fZ));
-  }
-
   for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
     for (int z = chunkE->minBlockZ() + 1; z < chunkE->maxBlockZ(); z++) {
       for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
-        if (liquidTicking.find(Pos3i(x, y, z)) != liquidTicking.end()) {
-          continue;
-        }
         auto blockA = chunkA->blockAt(x, y, z);
         auto blockE = chunkE->blockAt(x, y, z);
         CheckBlock(blockE, blockA, x, y, z);
@@ -464,7 +465,12 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
     }
   }
 
-  //TODO: check fLiquidTicks
+  CHECK(chunkE->fLiquidTicks.size() == chunkA->fLiquidTicks.size());
+  for (size_t i = 0; i < chunkE->fLiquidTicks.size(); i++) {
+    mcfile::je::TickingBlock tbE = chunkE->fLiquidTicks[i];
+    mcfile::je::TickingBlock tbA = chunkA->fLiquidTicks[i];
+    CheckTickingBlock(tbE, tbA);
+  }
 }
 
 TEST_CASE("j2b2j") {
