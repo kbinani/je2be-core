@@ -309,6 +309,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("FallHurtMax");
     blacklist.insert("HurtEntities");
     blacklist.insert("Time"); // JE: int, BE: byte
+  } else if (id == "minecraft:item") {
+    blacklist.insert("PickupDelay");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
