@@ -480,7 +480,7 @@ private:
     E(parrot, C(Animal, TameableA("parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
-    E(piglin, C(Monster, ChestItems, AgeableB("piglin")));
+    E(piglin, C(Monster, ChestItems, AgeableB("piglin"), Piglin));
     E(piglin_brute, C(Monster, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItems));
 
@@ -938,6 +938,12 @@ private:
 
   static void Parrot(CompoundTag &c, CompoundTag const &tag, Context &) {
     CopyIntValues(tag, c, {{"Variant"}});
+  }
+
+  static void Piglin(CompoundTag &c, CompoundTag const &tag, Context &) {
+    if (auto cannotHant = tag.boolean("CannotHunt", false); cannotHant) {
+      AddDefinition(c, "+not_hunter");
+    }
   }
 
   static void PiglinBrute(CompoundTag &c, CompoundTag const &tag, Context &) {

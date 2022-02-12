@@ -520,6 +520,12 @@ public:
     j["Size"] = props::Int(0);
   }
 
+  static void Piglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (HasDefinition(b, "+not_hunter")) {
+      j["CannotHunt"] = props::Bool(true);
+    }
+  }
+
   static void PiglinBrute(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto homePos = props::GetPos3f(b, "HomePos");
     if (!homePos) {
@@ -1481,7 +1487,7 @@ public:
     E(goat, C(Same, Animal, Goat));
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
     E(wither, C(Same, LivingEntity, Wither));
-    E(piglin, C(Same, LivingEntity, Inventory, IsBaby));
+    E(piglin, C(Same, LivingEntity, Inventory, IsBaby, Piglin));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal, IsBaby));
     E(arrow, C(Same, Base, Owner));
