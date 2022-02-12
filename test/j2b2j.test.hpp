@@ -472,6 +472,7 @@ TEST_CASE("j2b2j") {
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
   je2be::tobe::InputOption io;
+  bool multithread = true;
 #if 1
   int radius = 20;
   for (int cz = -radius; cz <= radius; cz++) {
@@ -482,6 +483,7 @@ TEST_CASE("j2b2j") {
 #else
   io.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   io.fChunkFilter.insert(Pos2i(0, 0));
+  multithread = false;
 #endif
   je2be::tobe::OutputOption oo;
   je2be::tobe::Converter tobe(in, io, *outB, oo);
@@ -514,7 +516,10 @@ TEST_CASE("j2b2j") {
       }
 
       deque<future<void>> futures;
-      hwm::task_queue pool(thread::hardware_concurrency());
+      unique_ptr<hwm::task_queue> pool;
+      if (multithread) {
+        pool.reset(new hwm::task_queue(thread::hardware_concurrency()));
+      }
 
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
       CHECK(regionA);
@@ -529,7 +534,11 @@ TEST_CASE("j2b2j") {
             if (io.fChunkFilter.find(Pos2i(cx, cz)) == io.fChunkFilter.end()) {
               continue;
             }
-            futures.push_back(move(pool.enqueue(CheckChunk, *regionE, *regionA, cx, cz)));
+            if (multithread) {
+              futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz)));
+            } else {
+              CheckChunk(*regionE, *regionA, cx, cz);
+            }
           }
         }
       }
