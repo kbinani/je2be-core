@@ -297,6 +297,13 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("shake");
     blacklist.insert("inBlockState");
     blacklist.insert("SoundEvent");
+  } else if (id == "minecraft:falling_block") {
+    blacklist.insert("DropItem");
+    blacklist.insert("FallDistance");
+    blacklist.insert("FallHurtAmount");
+    blacklist.insert("FallHurtMax");
+    blacklist.insert("HurtEntities");
+    blacklist.insert("Time"); // JE: int, BE: byte
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {

@@ -387,6 +387,22 @@ public:
     */
   }
 
+  static void FallingBlock(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (auto fallingBlockB = b.compoundTag("FallingBlock"); fallingBlockB) {
+      if (auto blockB = mcfile::be::Block::FromCompound(*fallingBlockB); blockB) {
+        if (auto blockJ = BlockData::From(*blockB); blockJ) {
+          j["BlockState"] = blockJ->toCompoundTag();
+        }
+      }
+    }
+
+    if (auto time = b.byte("Time"); time) {
+      int8_t i8 = *time;
+      uint8_t u8 = *(uint8_t *)&i8;
+      j["Time"] = props::Int(u8);
+    }
+  }
+
   static void Fox(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     std::string type;
@@ -1470,6 +1486,7 @@ public:
     E(hoglin, C(Same, Animal, IsBaby));
     E(arrow, C(Same, Base, Owner));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
+    E(falling_block, C(Same, Base, FallingBlock));
 
 #undef E
     return ret;

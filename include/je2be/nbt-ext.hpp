@@ -13,7 +13,7 @@ static inline void CopyBoolValues(CompoundTag const &src, CompoundTag &dest, std
   }
 }
 
-static inline void CopyByteValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<int8_t>> keys) {
+static inline void CopyByteValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<uint8_t>> keys) {
   for (auto const &it : keys) {
     auto value = src.byte(it.fBefore);
     if (value) {

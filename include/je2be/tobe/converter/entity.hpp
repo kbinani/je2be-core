@@ -740,8 +740,17 @@ private:
 
     CopyFloatValues(tag, c, {{"FallDistance"}});
 
-    auto time = std::clamp(tag.int32("Time", 0), 0, 255);
-    c["Time"] = props::Byte(time);
+    uint8_t time = mcfile::Clamp<uint8_t>(tag.int32("Time", 0));
+    c["Time"] = props::Byte(*(int8_t *)&time);
+
+    /*
+    Variant:
+    152 anvil
+    6707 sand
+    6708 red_sand
+    3660 concretepowder
+    3661 orange concretepowder
+    */
   }
 
   static void Fox(CompoundTag &c, CompoundTag const &tag, Context &) {
