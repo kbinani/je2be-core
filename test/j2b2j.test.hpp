@@ -483,7 +483,7 @@ TEST_CASE("j2b2j") {
   je2be::tobe::InputOption io;
   bool multithread = true;
 #if 1
-  int radius = 20;
+  int radius = 32;
   for (int cz = -radius; cz <= radius; cz++) {
     for (int cx = -radius; cx <= radius; cx++) {
       io.fChunkFilter.insert(Pos2i(cx, cz));
