@@ -472,9 +472,17 @@ TEST_CASE("j2b2j") {
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
   je2be::tobe::InputOption io;
-  for (int cx = 0; cx <= 20; cx++) {
-    io.fChunkFilter.insert(Pos2i(cx, 0));
+#if 1
+  int radius = 20;
+  for (int cz = -radius; cz <= radius; cz++) {
+    for (int cx = -radius; cx <= radius; cx++) {
+      io.fChunkFilter.insert(Pos2i(cx, cz));
+    }
   }
+#else
+  io.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+  io.fChunkFilter.insert(Pos2i(0, 0));
+#endif
   je2be::tobe::OutputOption oo;
   je2be::tobe::Converter tobe(in, io, *outB, oo);
   CHECK(tobe.run(thread::hardware_concurrency()));
