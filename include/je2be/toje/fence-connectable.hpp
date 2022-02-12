@@ -39,7 +39,7 @@ public:
             Pos2i targetPos = pos + direction;
             auto target = cache.blockAt(targetPos.fX, y, targetPos.fZ);
             if (target) {
-              props[it.first] = ToString(IsFenceConnectable(*target, direction));
+              props[it.first] = ToString(IsFenceConnectable(*blockJ, *target, direction));
             } else {
               props[it.first] = ToString(false);
             }
@@ -55,10 +55,15 @@ public:
     return b ? "true" : "false";
   }
 
-  static bool IsFenceConnectable(mcfile::be::Block const &target, Pos2i const &targetDirection) {
+  static bool IsFenceConnectable(mcfile::je::Block const &center, mcfile::be::Block const &target, Pos2i const &targetDirection) {
     auto targetJ = BlockData::From(target);
     if (!targetJ) {
       return false;
+    }
+    if (center.fId == mcfile::blocks::minecraft::nether_brick_fence) {
+      if (target.fName.ends_with("fence")) {
+        return target.fName == "minecraft:nether_brick_fence";
+      }
     }
     if (IsFenceAlwaysConnectable(targetJ->fId)) {
       return true;
