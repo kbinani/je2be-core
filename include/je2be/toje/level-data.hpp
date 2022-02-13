@@ -11,6 +11,55 @@ private:
   int32_t fSpawnY = 64;
   int32_t fSpawnZ = 0;
   bool fAllowCommands = false;
+  int64_t fDayTime = 0;
+  int8_t fDifficulty = 2;
+  std::shared_ptr<CompoundTag> fGameRules;
+
+  struct GameRules {
+    static std::shared_ptr<CompoundTag> Import(CompoundTag const &b) {
+      auto ret = std::make_shared<CompoundTag>();
+      CompoundTag &j = *ret;
+#define B(__nameJ, __nameB, __default) j[#__nameJ] = props::String(b.boolean(#__nameB, __default) ? "true" : "false");
+#define I(__nameJ, __nameB, __default) j[#__nameJ] = props::String(std::to_string(b.int32(#__nameB, __default)));
+      // announceAdvancements
+      B(commandBlockOutput, commandblockoutput, true);
+      // disableElytraMovementCheck
+      // disableRaids
+      B(doDaylightCycle, dodaylightcycle, true);
+      B(doEntityDrops, doentitydrops, true);
+      B(doFireTick, dofiretick, true);
+      B(doImmediateRespawn, doimmediaterespawn, false);
+      B(doInsomnia, doinsomnia, true);
+      // doLimitedCrafting
+      B(doMobLoot, domobloot, true);
+      B(doMobSpawning, domobspawning, true);
+      // doPatrolSpawning
+      B(doTileDrops, dotiledrops, true);
+      // doTraderSpawning
+      B(doWeatherCycle, doweathercycle, true);
+      B(drowningDamage, drowningdamage, true);
+      B(fallDamage, falldamage, true);
+      B(fireDamage, firedamage, true);
+      // forgiveDeadPlayers
+      B(freezeDamage, freezedamage, true);
+      B(keepInventory, keepinventory, false);
+      // logAdminCommands
+      I(maxCommandChainLength, maxcommandchainlength, 65536);
+      // maxEntityCramming
+      B(mobGriefing, mobgriefing, true);
+      B(naturalRegeneration, naturalregeneration, true);
+      I(randomTickSpeed, randomtickspeed, 3);
+      // reducedDebugInfo
+      B(sendCommandFeedback, sendcommandfeedback, true);
+      B(showDeathMessages, showdeathmessages, true);
+      I(spawnRadius, spawnradius, 10);
+      // spectatorsGenerateChunks
+      // universalAnger
+#undef B
+#undef I
+      return ret;
+    }
+  };
 
 public:
   static std::optional<LevelData> Import(std::filesystem::path levelDatFile) {
@@ -44,6 +93,9 @@ public:
     d.fSpawnY = t->int32("SpawnY", d.fSpawnY);
     d.fSpawnZ = t->int32("SpawnZ", d.fSpawnZ);
     d.fAllowCommands = t->boolean("commandsEnabled", d.fAllowCommands);
+    d.fDayTime = t->int64("Time", d.fDayTime);
+    d.fDifficulty = t->int32("Difficulty", d.fDifficulty);
+    d.fGameRules = GameRules::Import(*t);
     return d;
   }
 
@@ -60,6 +112,17 @@ public:
     t["SpawnY"] = Int(fSpawnY);
     t["SpawnZ"] = Int(fSpawnZ);
     t["allowCommands"] = Bool(fAllowCommands);
+    t["DayTime"] = Long(fDayTime);
+    t["Difficulty"] = Byte(fDifficulty);
+    {
+      auto dataPacks = make_shared<CompoundTag>();
+      dataPacks->set("Disabled", make_shared<ListTag>(Tag::Type::String));
+      auto enabled = make_shared<ListTag>(Tag::Type::String);
+      enabled->push_back(String("vanilla"));
+      dataPacks->set("Enabled", enabled);
+      t["DataPacks"] = dataPacks;
+    }
+    t["GameRules"] = fGameRules->copy();
     auto root = make_shared<CompoundTag>();
     root->set("Data", ret);
     return root;

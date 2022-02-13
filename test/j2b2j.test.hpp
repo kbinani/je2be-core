@@ -480,6 +480,65 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
   }
 }
 
+static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path p) {
+  vector<uint8_t> buffer;
+  if (!file::GetGzContents(p, buffer)) {
+    return nullptr;
+  }
+  return CompoundTag::Read(buffer, {.fLittleEndian = false});
+}
+
+static void CheckLevelDat(fs::path pathE, fs::path pathA) {
+  auto e = ReadLevelDat(pathE);
+  auto a = ReadLevelDat(pathA);
+  CHECK(e);
+  CHECK(a);
+
+  auto dataE = e->compoundTag("Data");
+  auto dataA = a->compoundTag("Data");
+  CHECK(dataE);
+  CHECK(dataA);
+
+  unordered_set<string> blacklist = {
+      "BorderCenterX",
+      "BorderCenterY",
+      "BorderCenterZ",
+      "BorderSafeZone",
+      "BorderSize",
+      "BorderSizeLerpTarget",
+      "BorderSizeLerpTime",
+      "BorderWarningBlocks",
+      "BorderWarningTime",
+      "BorderDamagePerBlock",
+      "CustomBossEvents",
+      "DifficultyLocked",
+      "DragonFight", //TODO: remove this
+  };
+  unordered_set<string> ignoredGameRules = {
+      "announceAdvancements",
+      "disableElytraMovementCheck",
+      "disableRaids",
+      "doLimitedCrafting",
+      "doPatrolSpawning",
+      "doTraderSpawning",
+      "forgiveDeadPlayers",
+      "logAdminCommands",
+      "maxEntityCramming",
+      "reducedDebugInfo",
+      "spectatorsGenerateChunks",
+      "universalAnger",
+      "playersSleepingPercentage",
+  };
+  for (string rule : ignoredGameRules) {
+    blacklist.insert("GameRules/" + rule);
+  }
+  for (string const &s : blacklist) {
+    Erase(dataE, s);
+    Erase(dataA, s);
+  }
+  DiffCompoundTag(*dataE, *dataA);
+}
+
 TEST_CASE("j2b2j") {
   fs::path thisFile(__FILE__);
   auto dataDir = thisFile.parent_path() / "data";
@@ -518,6 +577,8 @@ TEST_CASE("j2b2j") {
   CHECK(toje.run(thread::hardware_concurrency()));
 
   // Compare initial Java input and final Java output.
+
+  CheckLevelDat(in / "level.dat", *outJ / "level.dat");
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!io.fDimensionFilter.empty()) {

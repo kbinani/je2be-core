@@ -33,6 +33,7 @@ public:
   bool fExperimentalGamePlay = false;
   bool fFallDamage = true;
   bool fFireDamage = true;
+  bool fFreezeDamage = true;
   bool fForceGameType = false;
   int32_t fFunctionCommandLimit = 10000;
   int32_t fGameType = 1;
@@ -130,6 +131,7 @@ public:
         {"experimentalgameplay", Bool(fExperimentalGamePlay)},
         {"falldamage", Bool(fFallDamage)},
         {"firedamage", Bool(fFireDamage)},
+        {"freezedamage", Bool(fFreezeDamage)},
         {"ForceGameType", Bool(fForceGameType)},
         {"functioncommandlimit", Int(fFunctionCommandLimit)},
         {"GameType", Int(fGameType)},
@@ -281,6 +283,7 @@ public:
       S(drowningDamage, ret.fDrowningDamage);
       S(fallDamage, ret.fFallDamage);
       S(fireDamage, ret.fFireDamage);
+      S(freezeDamage, ret.fFreezeDamage);
       // forgiveDeadPlayers
       S(keepInventory, ret.fKeepInventory);
       // logAdminCommands
