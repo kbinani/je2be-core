@@ -142,8 +142,9 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
   } else {
     vector<string> linesE = mcfile::String::Split(jsonE, '\n');
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
+    int lines = (std::min)(linesE.size(), linesA.size());
     cerr << "actual:" << endl;
-    for (int i = 0; i < linesA.size(); i++) {
+    for (int i = 0; i < lines; i++) {
       if (i < linesE.size() && linesA[i] != linesE[i]) {
         cerr << ">> ";
       } else {
@@ -152,7 +153,7 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
       cerr << i << ":\t" << linesA[i] << endl;
     }
     cerr << "expected:" << endl;
-    for (int i = 0; i < linesE.size(); i++) {
+    for (int i = 0; i < lines; i++) {
       if (i < linesA.size() && linesA[i] != linesE[i]) {
         cerr << ">> ";
       } else {
