@@ -513,9 +513,9 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "BorderDamagePerBlock",
       "CustomBossEvents",
       "DifficultyLocked",
-      "DragonFight", //TODO: remove this
-      "LastPlayed",  // JE: milli-seconds, BE: seconds
-      "Player",      //TODO: remove this
+      "DragonFight/Dragon",
+      "LastPlayed", // JE: milli-seconds, BE: seconds
+      "Player",     //TODO: remove this
       "ScheduledEvents",
       "SpawnAngle",
       "WanderingTraderId",

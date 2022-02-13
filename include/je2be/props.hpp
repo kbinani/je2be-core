@@ -208,6 +208,23 @@ inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::string const &
   return GetPos3i<'X', 'Y', 'Z'>(*xyz);
 }
 
+inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, std::string const &name) {
+  auto arr = tag.listTag(name);
+  if (!arr) {
+    return std::nullopt;
+  }
+  if (arr->size() != 3) {
+    return std::nullopt;
+  }
+  auto x = arr->at(0)->asInt();
+  auto y = arr->at(1)->asInt();
+  auto z = arr->at(2)->asInt();
+  if (!x || !y || !z) {
+    return std::nullopt;
+  }
+  return Pos3i(x->fValue, y->fValue, z->fValue);
+}
+
 inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   try {
     return nlohmann::json::parse(s);

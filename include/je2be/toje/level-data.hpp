@@ -187,9 +187,50 @@ public:
     j["raining"] = Bool(b->float32("rainLevel", 0) >= 1);
     j["thundering"] = Bool(b->float32("lightningLevel", 0) >= 1);
 
+    if (auto dragonFight = DragonFight(db); dragonFight) {
+      j["DragonFight"] = dragonFight;
+    }
+
     auto root = std::make_shared<CompoundTag>();
     root->set("Data", data);
     return root;
+  }
+
+  static std::shared_ptr<CompoundTag> DragonFight(leveldb::DB &db) {
+    std::string str;
+    if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::TheEnd(), &str); !st.ok()) {
+      return nullptr;
+    }
+    auto tag = CompoundTag::Read(str, {.fLittleEndian = true});
+    if (!tag) {
+      return nullptr;
+    }
+    auto data = tag->compoundTag("data");
+    if (!data) {
+      return nullptr;
+    }
+    auto fightB = data->compoundTag("DragonFight");
+    if (!fightB) {
+      return nullptr;
+    }
+    auto fightJ = std::make_shared<CompoundTag>();
+    if (auto exitPortalLocation = props::GetPos3iFromListTag(*fightB, "ExitPortalLocation"); exitPortalLocation) {
+      auto exitPortalLocationJ = std::make_shared<CompoundTag>();
+      exitPortalLocationJ->set("X", props::Int(exitPortalLocation->fX));
+      exitPortalLocationJ->set("Y", props::Int(exitPortalLocation->fY));
+      exitPortalLocationJ->set("Z", props::Int(exitPortalLocation->fZ));
+      fightJ->set("ExitPortalLocation", exitPortalLocationJ);
+    }
+    CopyBoolValues(*fightB, *fightJ, {{"DragonKilled"}, {"PreviouslyKilled"}});
+    if (auto dragonUidB = fightB->int64("DragonUUID"); dragonUidB) {
+      auto dragonUidJ = Uuid::GenWithI64Seed(*dragonUidB);
+      fightJ->set("Dragon", dragonUidJ.toIntArrayTag());
+    }
+    if (auto gateways = fightB->listTag("Gateways"); gateways) {
+      fightJ->set("Gateways", gateways);
+    }
+    fightJ->set("NeedsStateScanning", props::Bool(false));
+    return fightJ;
   }
 
   [[nodiscard]] static bool Write(CompoundTag const &tag, std::filesystem::path file) {

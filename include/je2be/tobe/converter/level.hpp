@@ -407,9 +407,8 @@ public:
       return std::nullopt;
     }
 
-    std::vector<uint8_t> buffer;
-    s->drain(buffer);
-    std::string str((char const *)buffer.data(), buffer.size());
+    std::string str;
+    s->drain(str);
     return str;
   }
 
