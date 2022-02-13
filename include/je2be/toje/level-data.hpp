@@ -5,7 +5,7 @@ namespace je2be::toje {
 class LevelData {
 public:
   struct GameRules {
-    static std::shared_ptr<CompoundTag> Import(CompoundTag const &b) {
+    static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db) {
       auto ret = std::make_shared<CompoundTag>();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[#__nameJ] = props::String(b.boolean(#__nameB, __default) ? "true" : "false");
@@ -46,6 +46,18 @@ public:
       // universalAnger
 #undef B
 #undef I
+
+      std::string mobEventsData;
+      if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::MobEvents(), &mobEventsData); st.ok()) {
+        if (auto mobEvents = CompoundTag::Read(mobEventsData, {.fLittleEndian = true}); mobEvents) {
+          auto doPatrolSpawning = mobEvents->boolean("minecraft:pillager_patrols_event", true);
+          auto doTraderSpawning = mobEvents->boolean("minecraft:wandering_trader_event", true);
+
+          ret->set("doPatrolSpawning", props::String(doPatrolSpawning ? "true" : "false"));
+          ret->set("doTraderSpawning", props::String(doTraderSpawning ? "true" : "false"));
+        }
+      }
+
       return ret;
     }
   };
@@ -56,7 +68,7 @@ public:
     int version = 19133;
   };
 
-  static std::shared_ptr<CompoundTag> Import(std::filesystem::path levelDatFile, LevelDataInit init = {}) {
+  static std::shared_ptr<CompoundTag> Import(std::filesystem::path levelDatFile, leveldb::DB &db, LevelDataInit init = {}) {
     using namespace std;
     using namespace mcfile::stream;
     using namespace props;
@@ -91,7 +103,7 @@ public:
     CopyLongValues(*b, j, {{"Time", "DayTime"}, {"currentTick", "Time"}});
 
     j["Difficulty"] = Byte(b->int32("Difficulty", 2));
-    j["GameRules"] = GameRules::Import(*b);
+    j["GameRules"] = GameRules::Import(*b, db);
     j["LastPlayed"] = Long(b->int64("LastPlayed", 0) * 1000);
 
     j["DataVersion"] = Int(init.DataVersion);

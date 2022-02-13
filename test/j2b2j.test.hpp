@@ -531,8 +531,6 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "disableElytraMovementCheck",
       "disableRaids",
       "doLimitedCrafting",
-      "doPatrolSpawning",
-      "doTraderSpawning",
       "forgiveDeadPlayers",
       "logAdminCommands",
       "maxEntityCramming",

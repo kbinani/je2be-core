@@ -27,7 +27,7 @@ public:
       return false;
     }
 
-    auto levelDat = LevelData::Import(fInput / "level.dat");
+    auto levelDat = LevelData::Import(fInput / "level.dat", *db);
     if (!levelDat) {
       return false;
     }

@@ -321,7 +321,7 @@ public:
   static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension) {
     using namespace props;
 
-    auto data = tag.query("/Data")->asCompound();
+    auto data = tag.query("Data")->asCompound();
     if (!data) {
       return std::nullopt;
     }
@@ -417,7 +417,7 @@ public:
     using namespace std;
     using namespace props;
 
-    auto gameRulesTag = tag.query("/Data/GameRules");
+    auto gameRulesTag = tag.query("Data/GameRules");
     if (!gameRulesTag) {
       return nullopt;
     }
@@ -428,8 +428,8 @@ public:
     auto ret = make_shared<CompoundTag>();
     ret->set("events_enabled", Bool(true));
     ret->set("minecraft:ender_dragon_event", Bool(true));
-    ret->set("minecraft:pillager_patrols_event", Bool(gameRules->boolean("doPatrolSpawning", true)));
-    ret->set("minecraft:wandering_trader_event", Bool(gameRules->boolean("doTraderSpawning", true)));
+    ret->set("minecraft:pillager_patrols_event", Bool(gameRules->string("doPatrolSpawning", "true") == "true"));
+    ret->set("minecraft:wandering_trader_event", Bool(gameRules->string("doTraderSpawning", "true") == "true"));
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
