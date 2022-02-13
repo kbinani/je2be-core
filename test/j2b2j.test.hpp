@@ -641,11 +641,11 @@ TEST_CASE("j2b2j") {
             if (io.fChunkFilter.find(Pos2i(cx, cz)) == io.fChunkFilter.end()) {
               continue;
             }
-            if (multithread) {
-              futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz, dim)));
-            } else {
-              CheckChunk(*regionE, *regionA, cx, cz, dim);
-            }
+          }
+          if (multithread) {
+            futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz, dim)));
+          } else {
+            CheckChunk(*regionE, *regionA, cx, cz, dim);
           }
         }
       }
