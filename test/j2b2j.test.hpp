@@ -471,6 +471,13 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
     mcfile::je::TickingBlock tbA = chunkA->fLiquidTicks[i];
     CheckTickingBlock(tbE, tbA);
   }
+
+  CHECK(chunkE->fTileTicks.size() == chunkA->fTileTicks.size());
+  for (size_t i = 0; i < chunkE->fTileTicks.size(); i++) {
+    mcfile::je::TickingBlock tbE = chunkE->fTileTicks[i];
+    mcfile::je::TickingBlock tbA = chunkA->fTileTicks[i];
+    CheckTickingBlock(tbE, tbA);
+  }
 }
 
 TEST_CASE("j2b2j") {
