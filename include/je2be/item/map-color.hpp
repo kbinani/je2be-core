@@ -77,11 +77,36 @@ class MapColor {
     });
   }
 
-public:
-  static Rgba RgbaFromId(uint8_t colorId) {
+  struct Colors {
+    uint8_t fColorId;
+    Lab fLab;
+  };
+
+  static std::unordered_map<int32_t, Colors> const *CreateLabTable() {
+    auto const &table = *GetTable();
+
+    auto ret = new std::unordered_map<int32_t, Colors>();
+    for (uint8_t i = 0; i < table.size(); i++) {
+      for (uint8_t v = 0; v < 4; v++) {
+        Rgba rgb = RgbaFromIndexAndVariant(i, v);
+        Lab lab = Lab::From(rgb);
+        uint8_t colorId = i * 4 + v;
+        Colors cs;
+        cs.fColorId = colorId;
+        cs.fLab = lab;
+        ret->insert(std::make_pair(rgb.toARGB(), cs));
+      }
+    }
+    return ret;
+  }
+
+  static std::unordered_map<int32_t, Colors> const *GetLabTable() {
+    static std::unique_ptr<std::unordered_map<int32_t, Colors> const> const sTable(CreateLabTable());
+    return sTable.get();
+  }
+
+  static Rgba RgbaFromIndexAndVariant(uint8_t index, uint8_t variant) {
     auto const &mapping = *GetTable();
-    uint8_t variant = 0x3 & colorId;
-    uint8_t index = colorId / 4;
     if (index >= mapping.size()) {
       return mapping[0];
     }
@@ -93,36 +118,39 @@ public:
     return Rgba(r, g, b, base.fA);
   }
 
+public:
+  static Rgba RgbaFromId(uint8_t colorId) {
+    uint8_t variant = 0x3 & colorId;
+    uint8_t index = colorId / 4;
+    return RgbaFromIndexAndVariant(index, variant);
+  }
+
   static uint8_t MostSimilarColorId(Rgba color) {
-    auto const &table = *GetTable();
-    static int32_t const mul[4] = {180, 220, 255, 135};
+    auto const &table = *GetLabTable();
 
     if (color.fA == 0) {
       return 0;
     }
 
+    int32_t rgba = color.toARGB();
+    auto found = table.find(rgba);
+    if (found != table.end()) {
+      return found->second.fColorId;
+    }
+
     Lab ref = Lab::From(color);
-    uint8_t variant = 0;
-    uint8_t index = 0;
+    uint8_t colorId = 0;
 
     double minDifference = std::numeric_limits<double>::max();
-    for (uint8_t i = 0; i < table.size(); i++) {
-      Rgba base = table[i];
-      for (uint8_t v = 0; v < 4; v++) {
-        uint8_t r = (uint8_t)((int32_t)base.fR * mul[v] / 255);
-        uint8_t g = (uint8_t)((int32_t)base.fG * mul[v] / 255);
-        uint8_t b = (uint8_t)((int32_t)base.fB * mul[v] / 255);
-        Rgba rgb(r, g, b);
-        Lab lab = Lab::From(rgb);
-        double difference = Lab::Difference(ref, lab);
-        if (difference < minDifference) {
-          minDifference = difference;
-          variant = v;
-          index = i;
-        }
+    for (auto const &it : table) {
+      Lab lab = it.second.fLab;
+      double difference = Lab::Difference(ref, lab);
+      if (difference < minDifference) {
+        minDifference = difference;
+        colorId = it.second.fColorId;
       }
     }
-    return index * 4 + variant;
+    return colorId;
   }
 };
 } // namespace je2be
