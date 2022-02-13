@@ -88,6 +88,7 @@
 #include <je2be/item/fireworks.hpp>
 #include <je2be/item/banner.hpp>
 #include <je2be/item/tipped-arrow-potion.hpp>
+#include <je2be/item/map-color.hpp>
 
 #include <je2be/entity/painting.hpp>
 #include <je2be/entity/boat.hpp>

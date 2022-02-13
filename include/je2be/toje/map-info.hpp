@@ -121,7 +121,7 @@ public:
     }
   }
 
-  std::optional<Map> mapFronUuid(int64_t uuid) const {
+  std::optional<Map> mapFromUuid(int64_t uuid) const {
     auto found = fMaps.find(uuid);
     if (found == fMaps.end()) {
       return std::nullopt;

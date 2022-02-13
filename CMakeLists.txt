@@ -46,6 +46,7 @@ set(je2be_files
   include/je2be/item/enchantments.hpp
   include/je2be/item/fireworks-explosion.hpp
   include/je2be/item/fireworks.hpp
+  include/je2be/item/map-color.hpp
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
   include/je2be/loot-table.hpp
@@ -216,6 +217,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/file-output-stream.hpp
+  deps/libminecraft-file/include/mcfile/stream/gz-file-output-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/input-stream-reader.hpp
   deps/libminecraft-file/include/mcfile/stream/input-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/output-stream-writer.hpp

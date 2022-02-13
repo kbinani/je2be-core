@@ -47,7 +47,7 @@ public:
       }
     }
 
-    return bin->postProcess(fInput, *db);
+    return bin->postProcess(fOutput, *db);
   }
 
 private:
