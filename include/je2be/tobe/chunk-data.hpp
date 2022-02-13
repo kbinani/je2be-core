@@ -58,7 +58,7 @@ private:
       break;
     case ChunkConversionMode::CavesAndCliffs2:
     default:
-      key = mcfile::be::DbKey::Data2D(fChunkX, fChunkZ, fDimension);
+      key = mcfile::be::DbKey::Data3D(fChunkX, fChunkZ, fDimension);
       break;
     }
     if (fData2D.empty()) {

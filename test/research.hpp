@@ -304,9 +304,9 @@ void RedstoneWire() {
   code << endl;
 }
 
-static void Data2D() {
+static void Data3D() {
   unique_ptr<leveldb::DB> db(Open("1.18be"));
-  auto key = mcfile::be::DbKey::Data2D(0, 0, mcfile::Dimension::End);
+  auto key = mcfile::be::DbKey::Data3D(0, 0, mcfile::Dimension::End);
   leveldb::ReadOptions ro;
   std::string value;
   if (auto st = db->Get(ro, key, &value); !st.ok()) {
@@ -320,6 +320,6 @@ static void Data2D() {
 
 #if 0
 TEST_CASE("research") {
-  Data2D();
+  Data3D();
 }
 #endif
