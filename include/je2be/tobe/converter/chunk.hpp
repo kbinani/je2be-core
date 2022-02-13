@@ -76,9 +76,41 @@ public:
       if (!section) {
         continue;
       }
-      if (!SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret, tickingLiquidOriginalBlocks)) {
+      if (!SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret)) {
         return nullptr;
       }
+    }
+
+    for (int i = 0; i < chunk->fLiquidTicks.size(); i++) {
+      mcfile::je::TickingBlock tb = chunk->fLiquidTicks[i];
+
+      int64_t time = chunk->fLastUpdate + tb.fT;
+
+      auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
+      if (!blockJ) {
+        continue;
+      }
+      auto blockB = BlockData::From(blockJ);
+      if (!blockB) {
+        continue;
+      }
+
+      if (auto found = tickingLiquidOriginalBlocks.find(Pos3i(tb.fX, tb.fY, tb.fZ)); found != tickingLiquidOriginalBlocks.end()) {
+        auto original = found->second;
+        if (auto level = strings::Toi(original->property("level")); level) {
+          if (auto st = blockB->compoundTag("states"); st) {
+            st->set("liquid_depth", props::Int(*level));
+          }
+        }
+      }
+
+      auto tick = make_shared<CompoundTag>();
+      tick->set("blockState", blockB);
+      tick->set("time", props::Long(time));
+      tick->set("x", props::Int(tb.fX));
+      tick->set("y", props::Int(tb.fY));
+      tick->set("z", props::Int(tb.fZ));
+      cdp.addPendingTick(i, tick);
     }
 
     ret->addStructures(*chunk);
@@ -114,8 +146,20 @@ private:
 
   static void InjectTickingLiquidBlocksAsBlocks(mcfile::je::Chunk &chunk) {
     for (mcfile::je::TickingBlock const &tb : chunk.fLiquidTicks) {
-      auto block = std::make_shared<mcfile::je::Block>(tb.fI);
-      chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, block);
+      auto liquid = std::make_shared<mcfile::je::Block>(tb.fI);
+      auto before = chunk.blockAt(tb.fX, tb.fY, tb.fZ);
+      if (!before) {
+        continue;
+      }
+      if (before->fName == "minecraft:lava") {
+        if (liquid->fName == "minecraft:lava" || liquid->fName == "minecraft:flowing_lava") {
+          chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, liquid);
+        }
+      } else if (before->fName == "minecraft:water") {
+        if (liquid->fName == "minecraft:water" || liquid->fName == "minecraft:flowing_water") {
+          chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, liquid);
+        }
+      }
     }
   }
 

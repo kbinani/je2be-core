@@ -11,8 +11,7 @@ public:
                                     int chunkY,
                                     ChunkData &cd,
                                     ChunkDataPackage &cdp,
-                                    WorldData &wd,
-                                    std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> const &tickingLiquidOriginalBlocks) {
+                                    WorldData &wd) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -303,37 +302,6 @@ public:
       int localIndex = (x * 16 + z) * 16 + y;
       int paletteIndex = indices[localIndex];
       auto block = palette[paletteIndex];
-
-      auto tick = make_shared<CompoundTag>();
-      tick->set("blockState", block);
-      tick->set("time", Long(time));
-      tick->set("x", Int(tb.fX));
-      tick->set("y", Int(tb.fY));
-      tick->set("z", Int(tb.fZ));
-      cdp.addPendingTick(i, tick);
-    }
-
-    for (int i = 0; i < chunk.fLiquidTicks.size(); i++) {
-      TickingBlock tb = chunk.fLiquidTicks[i];
-      int x = tb.fX - chunk.fChunkX * 16;
-      int y = tb.fY - chunkY * 16;
-      int z = tb.fZ - chunk.fChunkZ * 16;
-      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
-        continue;
-      }
-      int64_t time = currentTick + tb.fT;
-      int localIndex = (x * 16 + z) * 16 + y;
-      int paletteIndex = indices[localIndex];
-      auto block = palette[paletteIndex]->copy();
-
-      if (auto found = tickingLiquidOriginalBlocks.find(Pos3i(tb.fX, tb.fY, tb.fZ)); found != tickingLiquidOriginalBlocks.end()) {
-        auto original = found->second;
-        if (auto level = strings::Toi(original->property("level")); level) {
-          if (auto st = block->compoundTag("states"); st) {
-            st->set("liquid_depth", props::Int(*level));
-          }
-        }
-      }
 
       auto tick = make_shared<CompoundTag>();
       tick->set("blockState", block);
