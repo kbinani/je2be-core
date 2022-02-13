@@ -201,7 +201,7 @@ static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uin
   case static_cast<uint8_t>(Tag::StructureBounds):
   case static_cast<uint8_t>(Tag::ChecksumsLegacy):
   case static_cast<uint8_t>(Tag::Data3D):
-  case static_cast<uint8_t>(Tag::Data2DLegacy):
+  case static_cast<uint8_t>(Tag::Data2D):
   case static_cast<uint8_t>(Tag::Version):
   case static_cast<uint8_t>(Tag::FinalizedState):
     DumpBinaryKey(dbDir, key);

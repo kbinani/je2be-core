@@ -54,7 +54,7 @@ private:
     std::string key;
     switch (fMode) {
     case ChunkConversionMode::Legacy:
-      key = mcfile::be::DbKey::Data2DLegacy(fChunkX, fChunkZ, fDimension);
+      key = mcfile::be::DbKey::Data2D(fChunkX, fChunkZ, fDimension);
       break;
     case ChunkConversionMode::CavesAndCliffs2:
     default:
