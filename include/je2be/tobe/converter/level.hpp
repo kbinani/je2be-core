@@ -229,7 +229,7 @@ public:
 
   static Level Import(CompoundTag const &tag) {
     Level ret;
-    auto data = tag.query("/Data")->asCompound();
+    auto data = tag.compoundTag("Data");
     if (!data) {
       return ret;
     }
@@ -451,33 +451,11 @@ public:
     }
 
     vector<uint8_t> buffer;
-    {
-      vector<char> buf(512);
-      gzFile f = mcfile::File::GzOpen(javaEditionLevelDat, mcfile::File::Mode::Read);
-      if (!f) {
-        return nullptr;
-      }
-      while (true) {
-        int read = gzread(f, buf.data(), buf.size());
-        if (read <= 0) {
-          break;
-        }
-        copy_n(buf.begin(), read, back_inserter(buffer));
-        if (read < buf.size()) {
-          break;
-        }
-      }
-      gzclose(f);
-    }
-
-    auto root = make_shared<CompoundTag>();
-    auto bs = make_shared<ByteStream>(buffer);
-    InputStreamReader r(bs);
-    if (!root->read(r)) {
+    if (!file::GetGzContents(javaEditionLevelDat, buffer)) {
       return nullptr;
     }
 
-    return root;
+    return CompoundTag::Read(buffer, {.fLittleEndian = false});
   }
 
 private:

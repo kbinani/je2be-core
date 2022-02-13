@@ -2,7 +2,7 @@
 
 namespace je2be::file {
 
-inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path const &tempDir) {
+static inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path const &tempDir) {
   namespace fs = std::filesystem;
   auto tmp = fs::temp_directory_path();
 #if defined(_MSC_VER)
@@ -30,7 +30,7 @@ inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path 
 #endif
 }
 
-[[nodiscard]] inline bool GetContents(std::filesystem::path p, std::vector<uint8_t> &buffer) {
+[[nodiscard]] static inline bool GetContents(std::filesystem::path p, std::vector<uint8_t> &buffer) {
   using namespace std;
   using namespace mcfile;
   if (!Fs::Exists(p)) {
@@ -49,6 +49,26 @@ inline std::optional<std::filesystem::path> CreateTempDir(std::filesystem::path 
     return false;
   }
   return true;
+}
+
+[[nodiscard]] static inline bool GetGzContents(std::filesystem::path p, std::vector<uint8_t> &buffer) {
+  buffer.clear();
+  std::vector<char> buf(512);
+  gzFile f = mcfile::File::GzOpen(p, mcfile::File::Mode::Read);
+  if (!f) {
+    return false;
+  }
+  while (true) {
+    int read = gzread(f, buf.data(), buf.size());
+    if (read <= 0) {
+      break;
+    }
+    std::copy_n(buf.begin(), read, back_inserter(buffer));
+    if (read < buf.size()) {
+      break;
+    }
+  }
+  return gzclose_r(f) == Z_OK;
 }
 
 } // namespace je2be::file
