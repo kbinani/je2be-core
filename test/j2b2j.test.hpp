@@ -515,7 +515,6 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "DifficultyLocked",
       "DragonFight/Dragon",
       "LastPlayed", // JE: milli-seconds, BE: seconds
-      "Player",     //TODO: remove this
       "ScheduledEvents",
       "SpawnAngle",
       "WanderingTraderId",
@@ -541,6 +540,21 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
   };
   for (string rule : ignoredGameRules) {
     blacklist.insert("GameRules/" + rule);
+  }
+  unordered_set<string> ignoredPlayerAttributes = {
+      "Attributes",
+      "EnderItems/*/tag/HideFlags", //?
+      "EnderItems/*/tag/map",
+      "Fire",
+      "Motion",
+      "Score",
+      "UUID",
+      "foodTickTimer",
+      "previousPlayerGameType",
+      "recipeBook",
+  };
+  for (string rule : ignoredPlayerAttributes) {
+    blacklist.insert("Player/" + rule);
   }
   for (string const &s : blacklist) {
     Erase(dataE, s);

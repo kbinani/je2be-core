@@ -4,7 +4,6 @@
 #include <je2be/toje/constants.hpp>
 
 #include <je2be/toje/block-data.hpp>
-#include <je2be/toje/level-data.hpp>
 #include <je2be/toje/chunk-cache.hpp>
 
 #include <je2be/toje/map-info.hpp>
@@ -35,4 +34,5 @@
 #include <je2be/toje/chunk.hpp>
 #include <je2be/toje/region.hpp>
 #include <je2be/toje/world.hpp>
+#include <je2be/toje/level-data.hpp>
 #include <je2be/toje/converter.hpp>

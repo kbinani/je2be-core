@@ -6,6 +6,7 @@ class EntityAttributes {
   using AttributesData = std::shared_ptr<ListTag>;
   using Provider = std::function<AttributesData(void)>;
 
+public:
   struct Attribute {
     float base;
     float current;
@@ -57,7 +58,6 @@ class EntityAttributes {
     }
   };
 
-public:
   static std::optional<Attributes> Mob(std::string const &name, std::optional<float> health) {
     static std::unique_ptr<std::unordered_map<std::string, Attributes> const> const table(CreateTable());
     auto found = table->find(name);
@@ -161,6 +161,20 @@ public:
                           Attribute(16, 16, 2048), // follow_range
                           Attribute(4, 4, 4));     // attack_damage
     Attributes attrs = tamed ? tamedAttrs : wildAttrs;
+    if (currentHealth) {
+      attrs.health.updateCurrent(*currentHealth);
+    }
+    return attrs;
+  }
+
+  static Attributes Player(std::optional<float> currentHealth) {
+    Attributes attrs(Attribute(20, 20, 20),   // health
+                     Attribute(0, 0, 16),     // knockback_resistance
+                     Attribute(0.1, 0.1),     // movement
+                     Attribute(0.02, 0.02),   // underwater_movement
+                     Attribute(0.02, 0.02),   // lava_movement
+                     Attribute(16, 16, 2048), // follow_range
+                     Attribute(1, 1, 1));     // attack_damage
     if (currentHealth) {
       attrs.health.updateCurrent(*currentHealth);
     }

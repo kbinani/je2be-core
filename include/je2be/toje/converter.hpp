@@ -27,7 +27,10 @@ public:
       return false;
     }
 
-    auto levelDat = LevelData::Import(fInput / "level.dat", *db);
+    auto mapInfo = make_shared<MapInfo>(*db);
+    auto bin = make_shared<Context>(mapInfo);
+
+    auto levelDat = LevelData::Import(fInput / "level.dat", *db, *bin);
     if (!levelDat) {
       return false;
     }
@@ -35,8 +38,6 @@ public:
       return false;
     }
 
-    auto mapInfo = make_shared<MapInfo>(*db);
-    auto bin = make_shared<Context>(mapInfo);
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
       auto result = World::Convert(d, *db, fOutput, concurrency, *bin);
       if (result) {

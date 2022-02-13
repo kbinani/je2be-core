@@ -100,11 +100,7 @@ public:
   static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld) {
     using namespace mcfile::stream;
 
-    auto root = tag.compoundTag("");
-    if (!root) {
-      return std::nullopt;
-    }
-    auto data = root->compoundTag("Data");
+    auto data = tag.compoundTag("Data");
     if (!data) {
       return std::nullopt;
     }

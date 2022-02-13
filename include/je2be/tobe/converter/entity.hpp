@@ -281,38 +281,11 @@ public:
     entity->erase("LoveCause");
     entity->erase("limitedLife");
 
-    auto xpLevel = tag.int32("XpLevel");
-    auto xpProgress = tag.float32("XpP");
-    if (xpLevel && xpProgress) {
-      entity->set("PlayerLevel", Int(*xpLevel));
-      entity->set("PlayerLevelProgress", Float(*xpProgress));
-    }
+    CopyIntValues(tag, *entity, {{"SelectedItemSlot", "SelectedInventorySlot"}, {"XpSeed", "EnchantmentSeed"}, {"playerGameType", "PlayerGameMode"}, {"PortalCooldown"}});
+    CopyFloatValues(tag, *entity, {{"XpP", "PlayerLevelProgress"}});
+    CopyBoolValues(tag, *entity, {{"seenCredits", "HasSeenCredits"}});
 
-    auto xpSeed = tag.int32("XpSeed");
-    if (xpSeed) {
-      entity->set("EnchantmentSeed", Int(*xpSeed));
-    }
-
-    auto selectedItemSlot = tag.int32("SelectedItemSlot");
-    if (selectedItemSlot) {
-      entity->set("SelectedInventorySlot", Int(*selectedItemSlot));
-    }
     entity->set("SelectedContainerId", Int(0));
-
-    auto playerGameType = tag.int32("playerGameType");
-    if (playerGameType) {
-      entity->set("PlayerGameMode", Int(*playerGameType));
-    }
-
-    auto portalCooldown = tag.int32("PortalCooldown");
-    if (portalCooldown) {
-      entity->set("PortalCooldown", Int(*portalCooldown));
-    }
-
-    auto seenCredits = tag.boolean("seenCredits");
-    if (seenCredits) {
-      entity->set("HasSeenCredits", Bool(*seenCredits));
-    }
 
     auto inventory = tag.listTag("Inventory");
     if (inventory) {
@@ -415,6 +388,31 @@ public:
     definitions->push_back(String("+minecraft:player"));
     definitions->push_back(String("+"));
     entity->set("definitions", definitions);
+
+    auto xpLevel = tag.int32("XpLevel", 0);
+    entity->set("PlayerLevel", Int(xpLevel));
+
+    auto attrs = EntityAttributes::Player(tag.float32("Health"));
+    auto attrsTag = attrs.toListTag();
+    if (auto xpTotal = tag.int32("XpTotal"); xpTotal) {
+      EntityAttributes::Attribute level(*xpTotal, xpLevel, 24791);
+      attrsTag->push_back(level.toCompoundTag("player.level"));
+    }
+    if (auto foodExhaustionLevel = tag.float32("foodExhaustionLevel"); foodExhaustionLevel) {
+      EntityAttributes::Attribute exhaustion(0, *foodExhaustionLevel, 4);
+      attrsTag->push_back(exhaustion.toCompoundTag("player.exhaustion"));
+    }
+    if (auto foodLevel = tag.int32("foodLevel"); foodLevel) {
+      EntityAttributes::Attribute hunger(20, *foodLevel, 20);
+      attrsTag->push_back(hunger.toCompoundTag("player.hunger"));
+    }
+    if (auto foodSaturatonLevel = tag.float32("foodSaturationLevel"); foodSaturatonLevel) {
+      EntityAttributes::Attribute saturation(20, *foodSaturatonLevel, 20);
+      attrsTag->push_back(saturation.toCompoundTag("player.saturation"));
+    }
+    entity->set("Attributes", attrsTag);
+
+    CopyShortValues(tag, *entity, {{"SleepTimer"}});
 
     return entity;
   }

@@ -1045,26 +1045,7 @@ public:
   }
 
   static void StorageMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto itemsB = b.listTag("ChestItems");
-    if (itemsB) {
-      auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
-      for (auto const &it : *itemsB) {
-        auto itemB = it->asCompound();
-        if (!itemB) {
-          continue;
-        }
-        auto nameB = itemB->string("Name");
-        if (!nameB) {
-          continue;
-        }
-        auto itemJ = Item::From(*itemB, ctx);
-        if (!itemJ) {
-          continue;
-        }
-        itemsJ->push_back(itemJ);
-      }
-      j["Items"] = itemsJ;
-    }
+    CopyChestItems(b, "ChestItems", j, "Items", ctx, false);
   }
 
   static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1337,6 +1318,32 @@ public:
     j["Items"] = items;
   }
 
+  static void CopyChestItems(CompoundTag const &b, std::string const &keyB, CompoundTag &j, std::string const &keyJ, Context &ctx, bool skipEmpty) {
+    auto itemsB = b.listTag(keyB);
+    if (itemsB) {
+      auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+      for (auto const &it : *itemsB) {
+        auto itemB = it->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto nameB = itemB->string("Name");
+        if (!nameB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx);
+        if (!itemJ) {
+          continue;
+        }
+        if (itemJ->empty() && skipEmpty) {
+          continue;
+        }
+        itemsJ->push_back(itemJ);
+      }
+      j[keyJ] = itemsJ;
+    }
+  }
+
   static void Passengers(Uuid const &uid, CompoundTag const &b, std::map<size_t, Uuid> &passengers) {
     auto links = b.listTag("LinksTag");
     if (!links) {
@@ -1413,6 +1420,89 @@ public:
     return ret;
   }
 #pragma endregion
+
+  static std::shared_ptr<CompoundTag> LocalPlayer(CompoundTag const &b, Context &ctx) {
+    using namespace props;
+
+    auto ret = Base("", b, ctx);
+    CompoundTag &j = *ret;
+
+    AbsorptionAmount(b, j, ctx);
+    Brain(b, j, ctx);
+    DeathTime(b, j, ctx);
+    FallFlying(b, j, ctx);
+    Health(b, j, ctx);
+    HurtByTimestamp(b, j, ctx);
+    HurtTime(b, j, ctx);
+
+    CopyChestItems(b, "EnderChestInventory", j, "EnderItems", ctx, true);
+    CopyChestItems(b, "Inventory", j, "Inventory", ctx, true);
+
+    CopyIntValues(b, j, {{"SelectedInventorySlot", "SelectedItemSlot"}, {"PlayerLevel", "XpLevel"}, {"EnchantmentSeed", "XpSeed"}, {"PlayerGameMode", "playerGameType"}});
+    CopyShortValues(b, j, {{"SleepTimer"}});
+    CopyFloatValues(b, j, {{"PlayerLevelProgress", "XpP"}});
+    CopyBoolValues(b, j, {{"HasSeenCredits", "seenCredits"}});
+
+    auto dimensionB = b.int32("DimensionId", 0);
+    if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
+      j["Dimension"] = String(JavaStringFromDimension(*dimension));
+    }
+
+    j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
+
+    if (auto posB = props::GetPos3f(b, "Pos"); posB) {
+      Pos3d posJ = posB->toD();
+      posJ.fY -= 1.62;
+      j["Pos"] = posJ.toListTag();
+    }
+
+    if (auto uidB = b.int64("UniqueID"); uidB) {
+      int64_t v = *uidB;
+      Uuid uidJ = Uuid::GenWithU64Seed(*(uint64_t *)&v);
+      j["UUID"] = uidJ.toIntArrayTag();
+    }
+
+    if (auto attributes = b.listTag("Attributes"); attributes) {
+      for (auto const &it : *attributes) {
+        auto attribute = it->asCompound();
+        if (!attribute) {
+          continue;
+        }
+        auto name = attribute->string("Name");
+        if (!name) {
+          continue;
+        }
+        if (name == "minecraft:player.level") {
+          if (auto base = attribute->float32("Base"); base) {
+            j["XpTotal"] = Int((int)roundf(*base));
+          }
+        } else if (name == "minecraft:player.exhaustion") {
+          if (auto current = attribute->float32("Current"); current) {
+            j["foodExhaustionLevel"] = Float(*current);
+          }
+        } else if (name == "minecraft:player.hunger") {
+          if (auto current = attribute->float32("Current"); current) {
+            j["foodLevel"] = Int((int)roundf(*current));
+          }
+        } else if (name == "minecraft:player.saturation") {
+          if (auto current = attribute->float32("Current"); current) {
+            j["foodSaturationLevel"] = Float(*current);
+          }
+        }
+      }
+    }
+
+    if (auto abilitiesB = b.compoundTag("abilities"); abilitiesB) {
+      auto abilitiesJ = std::make_shared<CompoundTag>();
+      CopyBoolValues(*abilitiesB, *abilitiesJ, {{"flying"}, {"instabuild"}, {"invulnerable"}, {"build", "mayBuild"}, {"mayfly"}});
+      CopyFloatValues(*abilitiesB, *abilitiesJ, {{"flySpeed"}, {"walkSpeed"}});
+      j["abilities"] = abilitiesJ;
+    }
+
+    ret->erase("id");
+
+    return ret;
+  }
 
   static std::unordered_map<std::string, Converter> const *GetTable() {
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
