@@ -13,7 +13,7 @@ static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block c
   CHECK(blockA->toString() == blockE->toString());
 }
 
-static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, int x, int y, int z) {
+static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, Dimension dim, int x, int y, int z) {
   unordered_map<string, string> fallbackJtoB;
   fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
@@ -64,7 +64,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           CheckBlockWithIgnore(*blockE, *blockA, {"up"});
         } else {
           if (blockA->toString() != blockE->toString()) {
-            cout << "[" << x << ", " << y << ", " << z << "]" << endl;
+            cout << "[" << x << ", " << y << ", " << z << "] " << JavaStringFromDimension(dim) << endl;
           }
           CHECK(blockA->toString() == blockE->toString());
         }
@@ -393,7 +393,7 @@ static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlo
   CHECK(e.fZ == a.fZ);
 }
 
-static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, int cx, int cz) {
+static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, int cx, int cz, Dimension dim) {
   auto chunkA = regionA.chunkAt(cx, cz);
   if (!chunkA) {
     return;
@@ -412,7 +412,7 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
       for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
         auto blockA = chunkA->blockAt(x, y, z);
         auto blockE = chunkE->blockAt(x, y, z);
-        CheckBlock(blockE, blockA, x, y, z);
+        CheckBlock(blockE, blockA, dim, x, y, z);
       }
     }
   }
@@ -550,9 +550,9 @@ TEST_CASE("j2b2j") {
               continue;
             }
             if (multithread) {
-              futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz)));
+              futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz, dim)));
             } else {
-              CheckChunk(*regionE, *regionA, cx, cz);
+              CheckChunk(*regionE, *regionA, cx, cz, dim);
             }
           }
         }
