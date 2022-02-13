@@ -116,6 +116,7 @@ set(je2be_files
   include/je2be/toje/chorus-plant.hpp
   include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/chunk.hpp
+  include/je2be/toje/constants.hpp
   include/je2be/toje/context.hpp
   include/je2be/toje/converter.hpp
   include/je2be/toje/entity.hpp

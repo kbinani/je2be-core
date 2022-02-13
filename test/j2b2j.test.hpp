@@ -514,6 +514,17 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "CustomBossEvents",
       "DifficultyLocked",
       "DragonFight", //TODO: remove this
+      "LastPlayed",  // JE: milli-seconds, BE: seconds
+      "Player",      //TODO: remove this
+      "ScheduledEvents",
+      "SpawnAngle",
+      "WanderingTraderId",
+      "WanderingTraderSpawnChance",
+      "WanderingTraderSpawnDelay",
+      "WasModded",
+      "clearWeatherTime",
+      "hardcore",
+      "initialized",
   };
   unordered_set<string> ignoredGameRules = {
       "announceAdvancements",

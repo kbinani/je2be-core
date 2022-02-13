@@ -31,7 +31,7 @@ public:
     if (!levelDat) {
       return false;
     }
-    if (!levelDat->write(fOutput / "level.dat")) {
+    if (!LevelData::Write(*levelDat, fOutput / "level.dat")) {
       return false;
     }
 

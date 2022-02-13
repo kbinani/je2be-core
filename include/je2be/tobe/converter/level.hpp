@@ -242,11 +242,9 @@ public:
     I(fDifficulty, byte, "Difficulty");
     I(fGameType, int32, "GameType");
     I(fLevelName, string, "LevelName");
-    I(fRainTime, int32, "rainTime");
     I(fSpawnX, int32, "SpawnX");
     I(fSpawnY, int32, "SpawnY");
     I(fSpawnZ, int32, "SpawnZ");
-    I(fLightningTime, int32, "thunderTime");
     I(fCurrentTick, int64, "Time");
     ret.fLastPlayed = data->int64("LastPlayed", ret.fLastPlayed * 1000) / 1000;
 #undef I
@@ -311,6 +309,11 @@ public:
         ret.fFlatWorldLayers = *flatWorldLayers;
         ret.fGenerator = 2;
       }
+
+      ret.fRainLevel = data->boolean("raining", false) ? 1 : 0;
+      ret.fRainTime = data->int32("rainTime", ret.fRainTime);
+      ret.fLightningLevel = data->boolean("thundering", false) ? 1 : 0;
+      ret.fLightningTime = data->int32("thunderTime", ret.fLightningTime);
     }
     return ret;
   }
