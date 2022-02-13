@@ -197,10 +197,18 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   using Tag = mcfile::be::DbKey::Tag;
-  if (tag == static_cast<uint8_t>(Tag::StructureBounds) || tag == static_cast<uint8_t>(Tag::ChecksumsLegacy) || tag == static_cast<uint8_t>(Tag::Data2D) || tag == static_cast<uint8_t>(Tag::Data2DLegacy) || tag == static_cast<uint8_t>(Tag::Version)) {
+  switch (tag) {
+  case static_cast<uint8_t>(Tag::StructureBounds):
+  case static_cast<uint8_t>(Tag::ChecksumsLegacy):
+  case static_cast<uint8_t>(Tag::Data2D):
+  case static_cast<uint8_t>(Tag::Data2DLegacy):
+  case static_cast<uint8_t>(Tag::Version):
+  case static_cast<uint8_t>(Tag::FinalizedState):
     DumpBinaryKey(dbDir, key);
-  } else {
+    break;
+  default:
     DumpKey(dbDir, key);
+    break;
   }
 }
 
