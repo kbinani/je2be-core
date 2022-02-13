@@ -44,8 +44,12 @@ public:
 
   void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::je::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
 
-  void addPendingTick(int order, std::shared_ptr<CompoundTag> const &pendingTick) {
-    fPendingTicks.insert(std::make_pair(order, pendingTick));
+  void addLiquidTick(int order, std::shared_ptr<CompoundTag> const &pendingTick) {
+    fLiquidTicks.insert(std::make_pair(order, pendingTick));
+  }
+
+  void addTileTick(int order, std::shared_ptr<CompoundTag> const &pendingTick) {
+    fTileTicks.insert(std::make_pair(order, pendingTick));
   }
 
 private:
@@ -317,7 +321,7 @@ private:
   }
 
   [[nodiscard]] bool serializePendingTicks(ChunkData &cd) {
-    if (fPendingTicks.empty()) {
+    if (fLiquidTicks.empty() && fTileTicks.empty()) {
       return true;
     }
     using namespace std;
@@ -325,7 +329,10 @@ private:
     using namespace props;
 
     auto tickList = make_shared<ListTag>(Tag::Type::Compound);
-    for (auto it : fPendingTicks) {
+    for (auto it : fLiquidTicks) {
+      tickList->push_back(it.second);
+    }
+    for (auto it : fTileTicks) {
       tickList->push_back(it.second);
     }
 
@@ -351,7 +358,8 @@ private:
   std::vector<std::shared_ptr<CompoundTag>> fTileEntities;
   std::vector<std::shared_ptr<CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;
-  std::map<int, std::shared_ptr<CompoundTag>> fPendingTicks;
+  std::map<int, std::shared_ptr<CompoundTag>> fLiquidTicks;
+  std::map<int, std::shared_ptr<CompoundTag>> fTileTicks;
   int64_t fChunkLastUpdate;
 };
 

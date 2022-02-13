@@ -309,7 +309,7 @@ public:
       tick->set("x", Int(tb.fX));
       tick->set("y", Int(tb.fY));
       tick->set("z", Int(tb.fZ));
-      cdp.addPendingTick(i, tick);
+      cdp.addTileTick(i, tick);
     }
 
     return true;

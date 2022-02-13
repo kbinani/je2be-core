@@ -152,7 +152,7 @@ public:
       tb.fZ = pt.fZ;
       tb.fT = pt.fTime - b.fCurrentTick;
       tb.fP = 0;
-      if (nameB == "minecraft:lava" || nameB == "minecraft:water" || nameB == "minecraft:flowing_water" || nameB == "minecraft:flowing_lava" || nameB == "minecraft:gravel" || nameB == "minecraft:sand") {
+      if (nameB == "minecraft:lava" || nameB == "minecraft:water" || nameB == "minecraft:flowing_water" || nameB == "minecraft:flowing_lava") {
         tb.fI = nameB;
         j->fLiquidTicks.push_back(tb);
 

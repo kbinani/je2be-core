@@ -87,9 +87,6 @@ public:
       int64_t time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
-      if (!blockJ) {
-        continue;
-      }
       auto blockB = BlockData::From(blockJ);
       if (!blockB) {
         continue;
@@ -110,7 +107,7 @@ public:
       tick->set("x", props::Int(tb.fX));
       tick->set("y", props::Int(tb.fY));
       tick->set("z", props::Int(tb.fZ));
-      cdp.addPendingTick(i, tick);
+      cdp.addLiquidTick(i, tick);
     }
 
     ret->addStructures(*chunk);
