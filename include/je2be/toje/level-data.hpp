@@ -247,30 +247,9 @@ public:
   }
 
   [[nodiscard]] static bool Write(CompoundTag const &tag, std::filesystem::path file) {
-    using namespace std;
-    using namespace mcfile;
-    using namespace mcfile::stream;
-
-    auto bs = make_shared<ByteStream>();
-    OutputStreamWriter osw(bs);
-    if (!tag.writeAsRoot(osw)) {
-      return false;
-    }
-    vector<uint8_t> buffer;
-    bs->drain(buffer);
-
-    gzFile fp = mcfile::File::GzOpen(file, mcfile::File::Mode::Write);
-    if (!fp) {
-      return false;
-    }
-    if (gzwrite(fp, buffer.data(), buffer.size()) == 0) {
-      return false;
-    }
-    if (gzclose(fp) != Z_OK) {
-      return false;
-    }
-
-    return true;
+    auto gzs = std::make_shared<mcfile::stream::GzFileOutputStream>(file);
+    mcfile::stream::OutputStreamWriter osw(gzs);
+    return tag.writeAsRoot(osw);
   }
 };
 
