@@ -63,12 +63,7 @@ public:
   };
 
 public:
-  struct LevelDataInit {
-    int DataVersion = mcfile::je::Chunk::kDataVersion;
-    int version = 19133;
-  };
-
-  static std::shared_ptr<CompoundTag> Import(std::filesystem::path levelDatFile, leveldb::DB &db, Context &ctx, LevelDataInit init = {}) {
+  static std::shared_ptr<CompoundTag> Import(std::filesystem::path levelDatFile, leveldb::DB &db, Context &ctx) {
     using namespace std;
     using namespace mcfile::stream;
     using namespace props;
@@ -106,8 +101,8 @@ public:
     j["GameRules"] = GameRules::Import(*b, db);
     j["LastPlayed"] = Long(b->int64("LastPlayed", 0) * 1000);
 
-    j["DataVersion"] = Int(init.DataVersion);
-    j["version"] = Int(init.version);
+    j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
+    j["version"] = Int(kLevelVersion);
 
     {
       auto dataPacks = make_shared<CompoundTag>();
@@ -125,7 +120,7 @@ public:
     {
       auto version = make_shared<CompoundTag>();
       version->set("Id", Int(mcfile::je::Chunk::kDataVersion));
-      version->set("Name", String(kVersion));
+      version->set("Name", String(kVersionString));
       version->set("Series", String("main"));
       version->set("Snapshot", Byte(0));
       j["Version"] = version;
