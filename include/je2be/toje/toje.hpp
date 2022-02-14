@@ -14,21 +14,21 @@
 #include <je2be/toje/block-entity.hpp>
 #include <je2be/toje/block-property-accessor.hpp>
 
-#include <je2be/toje/shape-of-stairs.hpp>
-#include <je2be/toje/kelp.hpp>
-#include <je2be/toje/twisting-vines.hpp>
-#include <je2be/toje/weeping-vines.hpp>
-#include <je2be/toje/attached-stem.hpp>
-#include <je2be/toje/cave-vines.hpp>
-#include <je2be/toje/snowy.hpp>
-#include <je2be/toje/chorus-plant.hpp>
-#include <je2be/toje/fence-connectable.hpp>
-#include <je2be/toje/campfire.hpp>
-#include <je2be/toje/note-block.hpp>
-#include <je2be/toje/redstone-wire.hpp>
-#include <je2be/toje/tripwire.hpp>
-#include <je2be/toje/piston.hpp>
-#include <je2be/toje/beacon.hpp>
+#include <je2be/toje/terraform/shape-of-stairs.hpp>
+#include <je2be/toje/terraform/kelp.hpp>
+#include <je2be/toje/terraform/twisting-vines.hpp>
+#include <je2be/toje/terraform/weeping-vines.hpp>
+#include <je2be/toje/terraform/attached-stem.hpp>
+#include <je2be/toje/terraform/cave-vines.hpp>
+#include <je2be/toje/terraform/snowy.hpp>
+#include <je2be/toje/terraform/chorus-plant.hpp>
+#include <je2be/toje/terraform/fence-connectable.hpp>
+#include <je2be/toje/terraform/campfire.hpp>
+#include <je2be/toje/terraform/note-block.hpp>
+#include <je2be/toje/terraform/redstone-wire.hpp>
+#include <je2be/toje/terraform/tripwire.hpp>
+#include <je2be/toje/terraform/piston.hpp>
+#include <je2be/toje/terraform/beacon.hpp>
 
 #include <je2be/toje/sub-chunk.hpp>
 #include <je2be/toje/chunk.hpp>
