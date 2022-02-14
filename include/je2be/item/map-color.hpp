@@ -86,7 +86,8 @@ class MapColor {
     auto const &table = *GetTable();
 
     auto ret = new std::unordered_map<int32_t, Colors>();
-    for (uint8_t i = 0; i < table.size(); i++) {
+    uint8_t tableSize = mcfile::Clamp<uint8_t>(table.size());
+    for (uint8_t i = 0; i < tableSize; i++) {
       for (uint8_t v = 0; v < 4; v++) {
         Rgba rgb = RgbaFromIndexAndVariant(i, v);
         Lab lab = Lab::From(rgb);
