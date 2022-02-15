@@ -105,10 +105,11 @@ inline std::string JavaNameFromColorCodeJava(ColorCodeJava code) {
     return "purple";
   case ColorCodeJava::Red:
     return "red";
-  case ColorCodeJava::White:
-    return "white";
   case ColorCodeJava::Yellow:
     return "yellow";
+  case ColorCodeJava::White:
+  default:
+    return "white";
   }
 }
 
