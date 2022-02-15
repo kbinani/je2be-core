@@ -12,7 +12,8 @@ public:
                                           int rz,
                                           leveldb::DB *db,
                                           std::filesystem::path destination,
-                                          Context const &parentContext) {
+                                          Context const &parentContext,
+                                          std::function<bool(void)> progress) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -34,9 +35,10 @@ public:
       fs::remove_all(*regionDir, ec1);
     };
 
-    for (int cz = rz * 32; cz < rz * 32 + 32; cz++) {
+    bool ok = true;
+    for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
       unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32 - 1, cz - 1, db));
-      for (int cx = rx * 32; cx < rx * 32 + 32; cx++) {
+      for (int cx = rx * 32; ok && cx < rx * 32 + 32; cx++) {
         defer {
           unique_ptr<ChunkCache<3, 3>> next(cache->makeRelocated(cx, cz - 1));
           cache.swap(next);
@@ -49,6 +51,11 @@ public:
         if (found == chunks.end()) {
           continue;
         }
+
+        defer {
+          ok = progress();
+        };
+
         auto b = cache->ensureLoadedAt(cx, cz);
         if (!b) {
           continue;
@@ -66,6 +73,10 @@ public:
           return nullptr;
         }
       }
+    }
+
+    if (!ok) {
+      return nullptr;
     }
 
     auto terrainMca = destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);

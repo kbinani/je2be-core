@@ -35,12 +35,14 @@ public:
     }
 
     unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher> regions;
-    mcfile::be::Chunk::ForAll(&db, d, [&regions](int cx, int cz) {
+    int total = 0;
+    mcfile::be::Chunk::ForAll(&db, d, [&regions, &total](int cx, int cz) {
       int rx = Coordinate::RegionFromChunk(cx);
       int rz = Coordinate::RegionFromChunk(cz);
       Pos2i c(cx, cz);
       Pos2i r(rx, rz);
       regions[r].fChunks.insert(c);
+      total++;
     });
 
     hwm::task_queue queue(concurrency);
@@ -48,13 +50,26 @@ public:
     auto ctx = parentContext.make();
 
     if (progress) {
-      if (!progress->report(phase, 0, regions.size())) {
+      if (!progress->report(phase, 0, total)) {
         return nullptr;
       }
     }
 
-    int const total = regions.size() + 1; // +1 stands for postprocess
-    int done = 0;
+    atomic<bool> cancelRequested = false;
+    atomic<int> done = 0;
+    auto reportProgress = [progress, &done, phase, total, &cancelRequested]() -> bool {
+      int d = done.fetch_add(1);
+      if (progress) {
+        bool ok = progress->report(phase, d, total);
+        if (!ok) {
+          cancelRequested = true;
+        }
+        return ok;
+      } else {
+        return true;
+      }
+    };
+
     bool ok = true;
     for (auto const &region : regions) {
       Pos2i r = region.first;
@@ -62,31 +77,23 @@ public:
       FutureSupport::Drain(concurrency + 1, futures, drain);
       for (auto &d : drain) {
         auto result = d.get();
-        done++;
-        if (progress) {
-          if (!progress->report(phase, done, total)) {
-            ok = false;
-            break;
-          }
-        }
         if (result) {
           result->mergeInto(*ctx);
         } else {
           ok = false;
         }
+        if (cancelRequested.load() || !ok) {
+          break;
+        }
       }
-      if (!ok) {
+      if (cancelRequested.load() || !ok) {
         break;
       }
-      futures.emplace_back(queue.enqueue(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx));
+      futures.emplace_back(queue.enqueue(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx, reportProgress));
     }
 
     for (auto &f : futures) {
       auto result = f.get();
-      done++;
-      if (progress) {
-        progress->report(phase, done, total);
-      }
       if (result) {
         result->mergeInto(*ctx);
       } else {
@@ -94,7 +101,7 @@ public:
       }
     }
 
-    if (!ok) {
+    if (cancelRequested.load() || !ok) {
       return nullptr;
     }
 
