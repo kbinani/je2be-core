@@ -1882,7 +1882,9 @@ private:
         }
       }
 
-      c["LinksTag"] = links;
+      if (!links->empty()) {
+        c["LinksTag"] = links;
+      }
     };
   }
 #pragma endregion
