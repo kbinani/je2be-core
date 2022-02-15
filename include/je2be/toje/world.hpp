@@ -4,7 +4,13 @@ namespace je2be::toje {
 
 class World {
 public:
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency, Context const &parentContext, Progress *progress, Progress::Phase phase) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d,
+                                          std::unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher> const &regions,
+                                          leveldb::DB &db,
+                                          std::filesystem::path root,
+                                          unsigned concurrency,
+                                          Context const &parentContext,
+                                          std::function<bool(void)> progress) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -34,33 +40,14 @@ public:
       return nullptr;
     }
 
-    unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher> regions;
-    int total = 0;
-    mcfile::be::Chunk::ForAll(&db, d, [&regions, &total](int cx, int cz) {
-      int rx = Coordinate::RegionFromChunk(cx);
-      int rz = Coordinate::RegionFromChunk(cz);
-      Pos2i c(cx, cz);
-      Pos2i r(rx, rz);
-      regions[r].fChunks.insert(c);
-      total++;
-    });
-
     hwm::task_queue queue(concurrency);
     deque<future<shared_ptr<Context>>> futures;
     auto ctx = parentContext.make();
 
-    if (progress) {
-      if (!progress->report(phase, 0, total)) {
-        return nullptr;
-      }
-    }
-
     atomic<bool> cancelRequested = false;
-    atomic<int> done = 0;
-    auto reportProgress = [progress, &done, phase, total, &cancelRequested]() -> bool {
-      int d = done.fetch_add(1);
+    auto reportProgress = [progress, &cancelRequested]() -> bool {
       if (progress) {
-        bool ok = progress->report(phase, d, total);
+        bool ok = progress();
         if (!ok) {
           cancelRequested = true;
         }
@@ -137,10 +124,6 @@ public:
       if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
         return nullptr;
       }
-    }
-
-    if (progress) {
-      progress->report(phase, total, total);
     }
 
     return ctx;

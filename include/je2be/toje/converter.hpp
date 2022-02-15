@@ -38,23 +38,42 @@ public:
       return false;
     }
 
+    std::map<Dimension, unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher>> regions;
+    int total = 0;
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      Progress::Phase p;
-      switch (d) {
-      case Dimension::Overworld:
-        p = Progress::Phase::Dimension1;
-        break;
-      case Dimension::Nether:
-        p = Progress::Phase::Dimension2;
-        break;
-      default:
-        p = Progress::Phase::Dimension3;
-        break;
+      mcfile::be::Chunk::ForAll(db.get(), d, [&regions, &total, d](int cx, int cz) {
+        int rx = Coordinate::RegionFromChunk(cx);
+        int rz = Coordinate::RegionFromChunk(cz);
+        Pos2i c(cx, cz);
+        Pos2i r(rx, rz);
+        regions[d][r].fChunks.insert(c);
+        total++;
+      });
+    }
+
+    std::atomic<int> done = 0;
+    std::atomic<bool> cancelRequested = false;
+    auto reportProgress = [progress, &done, total, &cancelRequested]() -> bool {
+      int d = done.fetch_add(1);
+      if (progress) {
+        bool ok = progress->report(d, total);
+        if (!ok) {
+          cancelRequested = true;
+        }
+        return ok;
+      } else {
+        return true;
       }
-      auto result = World::Convert(d, *db, fOutput, concurrency, *bin, progress, p);
+    };
+
+    for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+      auto result = World::Convert(d, regions[d], *db, fOutput, concurrency, *bin, reportProgress);
       if (result) {
         result->mergeInto(*bin);
       } else {
+        return false;
+      }
+      if (cancelRequested.load()) {
         return false;
       }
     }
