@@ -59,7 +59,6 @@
 #include <je2be/xxhash.hpp>
 #include <je2be/uuid.hpp>
 #include <je2be/props.hpp>
-#include <je2be/progress.hpp>
 #include <je2be/version.hpp>
 #include <je2be/future-support.hpp>
 #include <je2be/defer.hpp>

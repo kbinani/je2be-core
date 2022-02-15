@@ -2,6 +2,7 @@
 
 // clang-format off
 #include <je2be/toje/constants.hpp>
+#include <je2be/toje/progress.hpp>
 
 #include <je2be/toje/block-data.hpp>
 #include <je2be/toje/chunk-cache.hpp>

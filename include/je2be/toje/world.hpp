@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class World {
 public:
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency, Context const &parentContext) {
+  static std::shared_ptr<Context> Convert(mcfile::Dimension d, leveldb::DB &db, std::filesystem::path root, unsigned concurrency, Context const &parentContext, Progress *progress, Progress::Phase phase) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -47,6 +47,14 @@ public:
     deque<future<shared_ptr<Context>>> futures;
     auto ctx = parentContext.make();
 
+    if (progress) {
+      if (!progress->report(phase, 0, regions.size())) {
+        return nullptr;
+      }
+    }
+
+    int const total = regions.size() + 1; // +1 stands for postprocess
+    int done = 0;
     bool ok = true;
     for (auto const &region : regions) {
       Pos2i r = region.first;
@@ -54,6 +62,13 @@ public:
       FutureSupport::Drain(concurrency + 1, futures, drain);
       for (auto &d : drain) {
         auto result = d.get();
+        done++;
+        if (progress) {
+          if (!progress->report(phase, done, total)) {
+            ok = false;
+            break;
+          }
+        }
         if (result) {
           result->mergeInto(*ctx);
         } else {
@@ -68,6 +83,10 @@ public:
 
     for (auto &f : futures) {
       auto result = f.get();
+      done++;
+      if (progress) {
+        progress->report(phase, done, total);
+      }
       if (result) {
         result->mergeInto(*ctx);
       } else {
@@ -111,6 +130,10 @@ public:
       if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
         return nullptr;
       }
+    }
+
+    if (progress) {
+      progress->report(phase, total, total);
     }
 
     return ctx;

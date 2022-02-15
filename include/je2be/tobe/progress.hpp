@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::tobe {
 
 class Progress {
 public:
@@ -13,4 +13,4 @@ public:
   virtual bool report(Phase phase, double progress, double total) = 0;
 };
 
-} // namespace je2be
+} // namespace je2be::tobe

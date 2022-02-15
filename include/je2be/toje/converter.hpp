@@ -12,7 +12,7 @@ public:
       : fInput(input), fOutput(output) {
   }
 
-  bool run(unsigned concurrency) {
+  bool run(unsigned concurrency, Progress *progress = nullptr) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
@@ -39,7 +39,19 @@ public:
     }
 
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      auto result = World::Convert(d, *db, fOutput, concurrency, *bin);
+      Progress::Phase p;
+      switch (d) {
+      case Dimension::Overworld:
+        p = Progress::Phase::Dimension1;
+        break;
+      case Dimension::Nether:
+        p = Progress::Phase::Dimension2;
+        break;
+      default:
+        p = Progress::Phase::Dimension3;
+        break;
+      }
+      auto result = World::Convert(d, *db, fOutput, concurrency, *bin, progress, p);
       if (result) {
         result->mergeInto(*bin);
       } else {

@@ -55,7 +55,6 @@ set(je2be_files
   include/je2be/optional.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
-  include/je2be/progress.hpp
   include/je2be/props.hpp
   include/je2be/rename-pair.hpp
   include/je2be/reversible-map.hpp
@@ -98,6 +97,7 @@ set(je2be_files
   include/je2be/tobe/portal/portal-blocks.hpp
   include/je2be/tobe/portal/portal.hpp
   include/je2be/tobe/portal/portals.hpp
+  include/je2be/tobe/progress.hpp
   include/je2be/tobe/session-lock.hpp
   include/je2be/tobe/statistics.hpp
   include/je2be/tobe/structure/structure-piece-collection.hpp
@@ -119,6 +119,7 @@ set(je2be_files
   include/je2be/toje/item.hpp
   include/je2be/toje/level-data.hpp
   include/je2be/toje/map-info.hpp
+  include/je2be/toje/progress.hpp
   include/je2be/toje/region.hpp
   include/je2be/toje/sub-chunk.hpp
   include/je2be/toje/terraform/attached-stem.hpp
