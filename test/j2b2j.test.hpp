@@ -230,6 +230,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Passengers/*/Motion",
       "Passengers/*/LeftHanded",
       "Passengers/*/ForcedAge",
+      "Passengers/*/Owner",
       "Passengers/*/HurtByTimestamp",
       "Passengers/*/NoAI",
       "Passengers/*/Fire",
