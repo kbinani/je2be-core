@@ -1208,6 +1208,7 @@ public:
     CompoundTag &j = *ret;
     Age(b, j, ctx);
     InLove(b, j, ctx);
+    Owner(b, j, ctx);
     return ret;
   }
 
@@ -1532,7 +1533,7 @@ public:
     E(boat, C(Same, Base, Boat));
     E(slime, C(Same, LivingEntity, Size));
     E(salmon, C(Same, LivingEntity, FromBucket));
-    E(parrot, C(Same, Animal, Owner, Sitting, CopyVariant));
+    E(parrot, C(Same, Animal, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
