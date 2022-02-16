@@ -385,9 +385,22 @@ static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, Rotation rot, std::s
   return ret;
 }
 
+static std::optional<mcfile::je::TickingBlock> FindNearestTickingBlock(int x, int y, int z, std::vector<mcfile::je::TickingBlock> const &list) {
+  double minDistance = std::numeric_limits<double>::max();
+  std::optional<mcfile::je::TickingBlock> ret;
+  for (mcfile::je::TickingBlock const &tb : list) {
+    double distance = hypot(tb.fX - x, tb.fY - y, tb.fZ - z);
+    if (distance < minDistance) {
+      ret = tb;
+      minDistance = distance;
+    }
+  }
+  return ret;
+}
+
 static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlock a) {
   CHECK(e.fI == a.fI);
-  CHECK(e.fP == a.fP);
+  //CHECK(e.fP == a.fP); "P" does not exist in BE
   CHECK(e.fT == a.fT);
   CHECK(e.fX == a.fX);
   CHECK(e.fY == a.fY);
@@ -469,15 +482,17 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
   CHECK(chunkE->fLiquidTicks.size() == chunkA->fLiquidTicks.size());
   for (size_t i = 0; i < chunkE->fLiquidTicks.size(); i++) {
     mcfile::je::TickingBlock tbE = chunkE->fLiquidTicks[i];
-    mcfile::je::TickingBlock tbA = chunkA->fLiquidTicks[i];
-    CheckTickingBlock(tbE, tbA);
+    auto tbA = FindNearestTickingBlock(tbE.fX, tbE.fY, tbE.fZ, chunkA->fLiquidTicks);
+    CHECK(tbA);
+    CheckTickingBlock(tbE, *tbA);
   }
 
   CHECK(chunkE->fTileTicks.size() == chunkA->fTileTicks.size());
   for (size_t i = 0; i < chunkE->fTileTicks.size(); i++) {
     mcfile::je::TickingBlock tbE = chunkE->fTileTicks[i];
-    mcfile::je::TickingBlock tbA = chunkA->fTileTicks[i];
-    CheckTickingBlock(tbE, tbA);
+    auto tbA = FindNearestTickingBlock(tbE.fX, tbE.fY, tbE.fZ, chunkA->fTileTicks);
+    CHECK(tbA);
+    CheckTickingBlock(tbE, *tbA);
   }
 }
 
