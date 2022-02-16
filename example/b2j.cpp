@@ -5,6 +5,10 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+static void PrintHelpMessage() {
+  std::cerr << "b2j -i [INPUT:directory] -o [OUTPUT:directory] [-n [NUM_THREADS:number]]" << std::endl;
+}
+
 int main(int argc, char *argv[]) {
   string input;
   string output;
@@ -18,6 +22,10 @@ int main(int argc, char *argv[]) {
     }
     if (arg[0] == '-' && arg.size() > 1) {
       opt = arg[1];
+      if (opt == 'h') {
+        PrintHelpMessage();
+        return 0;
+      }
     } else {
       switch (opt) {
       case 'i':
@@ -37,6 +45,7 @@ int main(int argc, char *argv[]) {
       }
       default:
         cerr << "error: unknown option" << endl;
+        PrintHelpMessage();
         return -1;
       }
     }
