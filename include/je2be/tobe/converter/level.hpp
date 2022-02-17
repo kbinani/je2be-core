@@ -234,7 +234,6 @@ public:
     I(fCommandsEnabled, boolean, "allowCommands");
     I(fTime, int64, "DayTime");
     I(fDifficulty, byte, "Difficulty");
-    I(fGameType, int32, "GameType");
     I(fLevelName, string, "LevelName");
     I(fSpawnX, int32, "SpawnX");
     I(fSpawnY, int32, "SpawnY");
@@ -308,6 +307,7 @@ public:
       ret.fRainTime = data->int32("rainTime", ret.fRainTime);
       ret.fLightningLevel = data->boolean("thundering", false) ? 1 : 0;
       ret.fLightningTime = data->int32("thunderTime", ret.fLightningTime);
+      ret.fGameType = std::clamp(data->int32("GameType", 0), 0, 2);
     }
     return ret;
   }
