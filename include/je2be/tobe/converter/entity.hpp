@@ -281,10 +281,11 @@ public:
     entity->erase("LoveCause");
     entity->erase("limitedLife");
 
-    CopyIntValues(tag, *entity, {{"SelectedItemSlot", "SelectedInventorySlot"}, {"XpSeed", "EnchantmentSeed"}, {"playerGameType", "PlayerGameMode"}, {"PortalCooldown"}});
+    CopyIntValues(tag, *entity, {{"SelectedItemSlot", "SelectedInventorySlot"}, {"XpSeed", "EnchantmentSeed"}, {"PortalCooldown"}});
     CopyFloatValues(tag, *entity, {{"XpP", "PlayerLevelProgress"}});
     CopyBoolValues(tag, *entity, {{"seenCredits", "HasSeenCredits"}});
 
+    entity->set("PlayerGameMode", Int(std::clamp(tag.int32("playerGameType", 0), 0, 2)));
     entity->set("SelectedContainerId", Int(0));
 
     auto inventory = tag.listTag("Inventory");
