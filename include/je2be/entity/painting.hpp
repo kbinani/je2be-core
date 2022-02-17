@@ -208,7 +208,7 @@ public:
       tileZ = pos.fZ - thickness;
       break;
     }
-    return Pos3i(tileX, tileY, tileZ);
+    return Pos3i((int)round(tileX), (int)round(tileY), (int)round(tileZ));
   }
 
   static std::optional<Pos3f> BedrockPosFromJavaTilePos(Pos3i tile, Facing4 direction, Motive motive) {

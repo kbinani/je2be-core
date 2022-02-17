@@ -206,14 +206,8 @@ public:
     if (!w.write((uint32_t)0)) {
       return false;
     }
-    if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
-      return false;
-    }
-    if (!w.write(std::string(""))) {
-      return false;
-    }
     auto tag = this->toCompoundTag();
-    if (!tag->write(w)) {
+    if (!tag->writeAsRoot(w)) {
       return false;
     }
     uint64_t pos = stream->pos();

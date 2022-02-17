@@ -12,7 +12,7 @@ public:
     float current;
     float max;
 
-    Attribute(double base, double current, double max = std::numeric_limits<float>::max()) : base(base), current(current), max(max) {}
+    Attribute(float base, float current, float max = std::numeric_limits<float>::max()) : base(base), current(current), max(max) {}
 
     void updateCurrent(float v) {
       current = std::min(v, max);

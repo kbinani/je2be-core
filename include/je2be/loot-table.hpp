@@ -11,7 +11,7 @@ public:
     NoLootTable,
   };
 
-  [[nodiscard]] static State JavaToBedrock(CompoundTag const &j, CompoundTag &b) {
+  static State JavaToBedrock(CompoundTag const &j, CompoundTag &b) {
     auto lootTable = j.string("LootTable"); // "minecraft:chests/simple_dungeon"
     auto lootTableSeed = j.int64("LootTableSeed");
     if (lootTable && lootTableSeed) {
@@ -27,7 +27,7 @@ public:
     return State::NoLootTable;
   }
 
-  [[nodiscart]] static State BedrockToJava(CompoundTag const &b, CompoundTag &j) {
+  static State BedrockToJava(CompoundTag const &b, CompoundTag &j) {
     auto lootTable = b.string("LootTable");
     auto lootTableSeed = b.int32("LootTableSeed");
     if (lootTable && lootTable->starts_with("loot_tables/") && lootTable->ends_with(".json") && lootTableSeed) {

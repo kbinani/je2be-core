@@ -143,10 +143,11 @@ inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
     return "purple";
   case ColorCodeJava::Red:
     return "red";
-  case ColorCodeJava::White:
-    return "white";
   case ColorCodeJava::Yellow:
     return "yellow";
+  case ColorCodeJava::White:
+  default:
+    return "white";
   }
 }
 
@@ -180,10 +181,11 @@ inline BannerColorCodeBedrock BannerColorCodeFromJava(ColorCodeJava ccj) {
     return BannerColorCodeBedrock::Pink;
   case ColorCodeJava::Purple:
     return BannerColorCodeBedrock::Purple;
-  case ColorCodeJava::White:
-    return BannerColorCodeBedrock::White;
   case ColorCodeJava::Yellow:
     return BannerColorCodeBedrock::Yellow;
+  case ColorCodeJava::White:
+  default:
+    return BannerColorCodeBedrock::White;
   }
 }
 

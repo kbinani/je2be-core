@@ -9,6 +9,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
     add_definitions(
       /source-charset:utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
+      /wd4100 # Suppress "unreferenced formal parameter" warnings
     )
   endif()
 endif()

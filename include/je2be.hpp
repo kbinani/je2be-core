@@ -25,7 +25,9 @@
 #include <nlohmann/json.hpp>
 
 #if __has_include(<windows.h>)
+#if !defined(NOMINMAX)
 #define NOMINMAX
+#endif
 #include <windows.h>
 #undef small
 #include <io.h>
