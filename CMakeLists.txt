@@ -236,7 +236,8 @@ set(test_files
   test/research.hpp
   test/block-data.test.hpp
   test/CheckTag.hpp
-  test/j2b2j.test.hpp)
+  test/j2b2j.test.hpp
+  test/volume.test.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 
