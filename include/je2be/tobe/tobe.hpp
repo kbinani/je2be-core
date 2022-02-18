@@ -14,7 +14,6 @@
 #include <je2be/tobe/db/null-db.hpp>
 #include <je2be/tobe/db/raw-db.hpp>
 
-#include <je2be/tobe/structure/structure-piece.hpp>
 #include <je2be/tobe/structure/structure-piece-collection.hpp>
 #include <je2be/tobe/structure/structures.hpp>
 

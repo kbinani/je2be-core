@@ -64,6 +64,7 @@ set(je2be_files
   include/je2be/size.hpp
   include/je2be/static-reversible-map.hpp
   include/je2be/strings.hpp
+  include/je2be/structure/structure-piece.hpp
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
@@ -102,7 +103,6 @@ set(je2be_files
   include/je2be/tobe/session-lock.hpp
   include/je2be/tobe/statistics.hpp
   include/je2be/tobe/structure/structure-piece-collection.hpp
-  include/je2be/tobe/structure/structure-piece.hpp
   include/je2be/tobe/structure/structures.hpp
   include/je2be/tobe/tobe.hpp
   include/je2be/tobe/uuid-registrar.hpp

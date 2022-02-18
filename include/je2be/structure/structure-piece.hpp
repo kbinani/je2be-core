@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 enum class StructureType : uint8_t {
   Fortress = 1,

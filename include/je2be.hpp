@@ -101,5 +101,7 @@
 #include <je2be/entity/effect.hpp>
 #include <je2be/entity/axolotl.hpp>
 
+#include <je2be/structure/structure-piece.hpp>
+
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>
