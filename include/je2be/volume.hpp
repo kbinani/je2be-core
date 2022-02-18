@@ -53,45 +53,123 @@ public:
   }
 
   static void Connect(std::vector<Volume> &volumes) {
-  }
-
-  static std::optional<Volume> Connected(Volume const &a, Volume const &b) {
     using namespace std;
-    auto minX = (min)(a.fStart.fX, b.fStart.fX);
-    auto maxX = (max)(a.fEnd.fX, b.fEnd.fX);
-    if (maxX - minX + 1 != a.size<0>() + b.size<0>()) {
-      return nullopt;
+    while (true) {
+      int before = volumes.size();
+      CollectAndConnect<0, 1, 2>(volumes);
+      CollectAndConnect<0, 2, 1>(volumes);
+      CollectAndConnect<1, 2, 0>(volumes);
+      if (before == volumes.size()) {
+        break;
+      }
     }
-
-    auto minY = (min)(a.fStart.fY, b.fStart.fY);
-    auto maxY = (max)(a.fEnd.fY, b.fEnd.fY);
-    if (maxY - minY + 1 != a.size<1>() + b.size<1>()) {
-      return nullopt;
-    }
-
-    auto minZ = (min)(a.fStart.fZ, b.fStart.fZ);
-    auto maxZ = (max)(a.fEnd.fZ, b.fEnd.fZ);
-    if (maxZ - minZ + 1 != a.size<2>() + b.size<2>()) {
-      return nullopt;
-    }
-    return Volume(Pos3i(minX, minY, minZ), Pos3i(maxX, maxY, maxZ));
   }
 
   template <size_t dimension> // = 0 for X, = 1 for Y, = 2 for Z
   int32_t size() const {
+    return end<dimension>() - start<dimension>() + 1;
+  }
+
+  template <size_t dimension>
+  int32_t start() const {
+    static_assert(dimension < 3);
     switch (dimension) {
     case 0:
-      return fEnd.fX - fStart.fX + 1;
+      return fStart.fX;
     case 1:
-      return fEnd.fY - fStart.fY + 1;
+      return fStart.fY;
     case 2:
-      return fEnd.fZ - fStart.fZ + 1;
+      return fStart.fZ;
+    default:
+      return 0;
+    }
+  }
+
+  template <size_t dimension>
+  int32_t end() const {
+    static_assert(dimension < 3);
+    switch (dimension) {
+    case 0:
+      return fEnd.fX;
+    case 1:
+      return fEnd.fY;
+    case 2:
+      return fEnd.fZ;
     default:
       return 0;
     }
   }
 
 private:
+  template <size_t d1, size_t d2, size_t d3>
+  static void CollectAndConnect(std::vector<Volume> &volumes) {
+    static_assert(d1 < 3 && d2 < 3 && d3 < 3 && d1 != d2 && d2 != d3 && d1 != d3);
+    using namespace std;
+    vector<Volume> tmp;
+    vector<vector<Volume>> buffer;
+    CollectCuboidWithSamePlane<d1, d2>(volumes, buffer);
+    for (auto &collected : buffer) {
+      ConnectCuboidWithSamePlane<d3>(collected);
+      copy(collected.begin(), collected.end(), back_inserter(tmp));
+    }
+    tmp.swap(volumes);
+  }
+
+  template <size_t d1, size_t d2>
+  static void CollectCuboidWithSamePlane(std::vector<Volume> const &input, std::vector<std::vector<Volume>> &output) {
+    static_assert(d1 < 3 && d2 < 3 && d1 != d2);
+    using namespace std;
+    map<tuple<int32_t, int32_t, int32_t, int32_t>, vector<Volume>> categorized;
+    for (Volume const &v : input) {
+      int32_t s1 = v.start<d1>();
+      int32_t e1 = v.end<d1>();
+      int32_t s2 = v.start<d2>();
+      int32_t e2 = v.end<d2>();
+      tuple<int32_t, int32_t, int32_t, int32_t> key(s1, e1, s2, e2);
+      categorized[key].push_back(v);
+    }
+    output.clear();
+    for (auto const &it : categorized) {
+      output.push_back(it.second);
+    }
+  }
+
+  template <size_t d3>
+  static void ConnectCuboidWithSamePlane(std::vector<Volume> &inout) {
+    static_assert(d3 < 3);
+    using namespace std;
+    while (true) {
+      vector<Volume> buffer;
+      unordered_set<int> ignore;
+      for (int i = 0; i < inout.size() - 1 && ignore.find(i) == ignore.end(); i++) {
+        Volume v1 = inout[i];
+        int32_t s1 = v1.start<d3>();
+        int32_t e1 = v1.end<d3>();
+        for (int j = i + 1; j < inout.size() && ignore.find(j) == ignore.end(); j++) {
+          Volume v2 = inout[j];
+          int32_t s2 = v2.start<d3>();
+          int32_t e2 = v2.end<d3>();
+          if (e1 + 1 == s2 || e2 + 1 == s1) {
+            Pos3i start((min)(v1.start<0>(), v2.start<0>()), (min)(v1.start<1>(), v2.start<1>()), (min)(v1.start<2>(), v2.start<2>()));
+            Pos3i end((max)(v1.end<0>(), v2.end<0>()), (max)(v1.end<1>(), v2.end<1>()), (max)(v1.end<2>(), v2.end<2>()));
+            Volume connected(start, end);
+            buffer.push_back(connected);
+            ignore.insert(i);
+            ignore.insert(j);
+            break;
+          }
+        }
+      }
+      for (int i = 0; i < inout.size() && ignore.find(i) == ignore.end(); i++) {
+        buffer.push_back(inout[i]);
+      }
+      if (buffer.size() == inout.size()) {
+        break;
+      }
+      buffer.swap(inout);
+    }
+  }
+
   static std::optional<std::tuple<int32_t, int32_t>> Intersection(int32_t a0, int32_t a1, int32_t b0, int32_t b1) {
     using namespace std;
     int32_t maxLowerBound = std::max(a0, b0);

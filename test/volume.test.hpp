@@ -1,6 +1,6 @@
 TEST_CASE("volume") {
   SUBCASE("Connect") {
-    vector<Volume> input = {
+    vector<Volume> volumes = {
         {{747, 39, -341}, {751, 61, -337}},
         {{747, 39, -336}, {751, 61, -321}},
         {{747, 39, -320}, {751, 61, -305}},
@@ -151,7 +151,12 @@ TEST_CASE("volume") {
         {{3280, 39, 3584}, {3284, 61, 3599}},
         {{3280, 39, 3600}, {3284, 61, 3615}},
         {{3280, 39, 3616}, {3284, 61, 3620}}};
-    Volume::Connect(input);
-    CHECK(input.size() == 4);
+    Volume::Connect(volumes);
+    CHECK(volumes.size() == 6);
+    for (Volume const &v : volumes) {
+      CHECK(v.size<0>() == 21);
+      CHECK(v.size<1>() == 23);
+      CHECK(v.size<2>() == 21);
+    }
   }
 }
