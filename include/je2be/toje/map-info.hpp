@@ -27,98 +27,83 @@ public:
     std::vector<Decoration> fDecorations;
   };
 
-  explicit MapInfo(leveldb::DB &db) {
+  static std::optional<Map> Parse(std::string const &value, int64_t &outMapId) {
     using namespace std;
     using namespace leveldb;
-    ReadOptions ro;
-    ro.fill_cache = false;
-    unique_ptr<leveldb::Iterator> itr(db.NewIterator(ro));
-    int mapNumber = 0;
-    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
-      string dbKey = itr->key().ToString();
-      if (!dbKey.starts_with("map_")) {
-        continue;
-      }
-      Slice value = itr->value();
-      auto root = make_shared<CompoundTag>();
-      vector<uint8_t> buffer;
-      buffer.reserve(value.size());
-      copy_n(value.data(), value.size(), back_inserter(buffer));
-      auto s = make_shared<mcfile::stream::ByteStream>(buffer);
-      mcfile::stream::InputStreamReader isr(s, {.fLittleEndian = true});
-      if (!root->read(isr)) {
-        continue;
-      }
-      auto tag = root->compoundTag("");
-      if (!tag) {
-        continue;
-      }
-      auto mapId = tag->int64("mapId");
-      if (!mapId) {
-        continue;
-      }
-      Map map;
-      map.fNumber = mapNumber;
-      auto xCenter = tag->int32("xCenter");
-      auto zCenter = tag->int32("zCenter");
-      if (!xCenter || !zCenter) {
-        continue;
-      }
-      auto scale = tag->byte("scale");
-      if (!scale) {
-        continue;
-      }
-      auto decorationsB = tag->listTag("decorations");
-      if (decorationsB) {
-        for (auto const &it : *decorationsB) {
-          auto decorationB = it->asCompound();
-          if (!decorationB) {
-            continue;
-          }
-          Decoration decorationJ;
-          decorationJ.fId = "+";
-          auto data = decorationB->compoundTag("data");
-          if (!data) {
-            continue;
-          }
-          auto typeB = data->int32("type");
-          if (!typeB) {
-            continue;
-          }
-          auto rotB = data->int32("rot");
-          if (!rotB) {
-            continue;
-          }
-          auto markerX = data->int32("x");
-          auto markerY = data->int32("y");
-          if (!markerX || !markerY) {
-            continue;
-          }
-          decorationJ.fRot = 0;
-          if (rotB == 0) {
-            decorationJ.fRot = 0;
-          } else if (rotB == 8) {
-            decorationJ.fRot = 180;
-          } else if (rotB == 12) {
-            decorationJ.fRot = 270;
-          }
-          decorationJ.fType = 0;
-          if (typeB == 15) {
-            decorationJ.fType = 9;
-          } else if (typeB == 14) {
-            decorationJ.fType = 8;
-          } else if (typeB == 4) {
-            decorationJ.fType = 26;
-          }
-          auto pos = BlockPosFromMarkerPosition(*xCenter, *zCenter, *scale, *markerX, *markerY);
-          decorationJ.fX = pos.fX;
-          decorationJ.fZ = pos.fZ;
-          map.fDecorations.push_back(decorationJ);
-        }
-      }
-      fMaps.insert(make_pair(*mapId, map));
-      mapNumber++;
+    auto tag = CompoundTag::Read(value, {.fLittleEndian = true});
+    if (!tag) {
+      return nullopt;
     }
+    auto mapId = tag->int64("mapId");
+    if (!mapId) {
+      return nullopt;
+    }
+    outMapId = *mapId;
+
+    Map map;
+    auto xCenter = tag->int32("xCenter");
+    auto zCenter = tag->int32("zCenter");
+    if (!xCenter || !zCenter) {
+      return nullopt;
+    }
+    auto scale = tag->byte("scale");
+    if (!scale) {
+      return nullopt;
+    }
+    auto decorationsB = tag->listTag("decorations");
+    if (decorationsB) {
+      for (auto const &it : *decorationsB) {
+        auto decorationB = it->asCompound();
+        if (!decorationB) {
+          continue;
+        }
+        Decoration decorationJ;
+        decorationJ.fId = "+";
+        auto data = decorationB->compoundTag("data");
+        if (!data) {
+          continue;
+        }
+        auto typeB = data->int32("type");
+        if (!typeB) {
+          continue;
+        }
+        auto rotB = data->int32("rot");
+        if (!rotB) {
+          continue;
+        }
+        auto markerX = data->int32("x");
+        auto markerY = data->int32("y");
+        if (!markerX || !markerY) {
+          continue;
+        }
+        decorationJ.fRot = 0;
+        if (rotB == 0) {
+          decorationJ.fRot = 0;
+        } else if (rotB == 8) {
+          decorationJ.fRot = 180;
+        } else if (rotB == 12) {
+          decorationJ.fRot = 270;
+        }
+        decorationJ.fType = 0;
+        if (typeB == 15) {
+          decorationJ.fType = 9;
+        } else if (typeB == 14) {
+          decorationJ.fType = 8;
+        } else if (typeB == 4) {
+          decorationJ.fType = 26;
+        }
+        auto pos = BlockPosFromMarkerPosition(*xCenter, *zCenter, *scale, *markerX, *markerY);
+        decorationJ.fX = pos.fX;
+        decorationJ.fZ = pos.fZ;
+        map.fDecorations.push_back(decorationJ);
+      }
+    }
+    return map;
+  }
+
+  void add(Map map, int64_t mapId) {
+    map.fNumber = fMaps.size();
+    fMaps.insert(std::make_pair(mapId, map));
   }
 
   std::optional<Map> mapFromUuid(int64_t uuid) const {

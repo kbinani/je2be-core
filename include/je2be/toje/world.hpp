@@ -5,7 +5,7 @@ namespace je2be::toje {
 class World {
 public:
   static std::shared_ptr<Context> Convert(mcfile::Dimension d,
-                                          std::unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher> const &regions,
+                                          std::unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher> const &regions,
                                           leveldb::DB &db,
                                           std::filesystem::path root,
                                           unsigned concurrency,

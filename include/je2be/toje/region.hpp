@@ -4,8 +4,6 @@ namespace je2be::toje {
 
 class Region {
 public:
-  std::unordered_set<Pos2i, Pos2iHasher> fChunks;
-
   static std::shared_ptr<Context> Convert(mcfile::Dimension d,
                                           std::unordered_set<Pos2i, Pos2iHasher> chunks,
                                           int rx,

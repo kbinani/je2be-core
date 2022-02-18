@@ -3,8 +3,96 @@
 namespace je2be::toje {
 
 class Context {
+  Context(std::shared_ptr<MapInfo const> const &mapInfo, std::shared_ptr<StructureInfo const> const &structureInfo) : fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
+
 public:
-  explicit Context(std::shared_ptr<MapInfo const> const &mapInfo) : fMapInfo(mapInfo) {}
+  struct ChunksInRegion {
+    std::unordered_set<Pos2i, Pos2iHasher> fChunks;
+  };
+
+  static std::shared_ptr<Context> Init(leveldb::DB &db, std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions, int &totalChunks) {
+    using namespace std;
+    using namespace leveldb;
+    using namespace mcfile;
+
+    totalChunks = 0;
+
+    auto mapInfo = make_shared<MapInfo>();
+    auto structureInfo = make_shared<StructureInfo>();
+    unordered_map<Dimension, vector<StructurePiece>> pieces;
+
+    unique_ptr<Iterator> itr(db.NewIterator({}));
+    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+      auto key = itr->key();
+      auto parsed = mcfile::be::DbKey::Parse(key.ToString());
+      if (!parsed) {
+        continue;
+      }
+      if (parsed->fIsTagged) {
+        uint8_t tag = parsed->fTagged.fTag;
+        Dimension d = parsed->fTagged.fDimension;
+        switch (tag) {
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Version):
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::VersionLegacy): {
+          int cx = parsed->fTagged.fChunk.fX;
+          int cz = parsed->fTagged.fChunk.fZ;
+          int rx = Coordinate::RegionFromChunk(cx);
+          int rz = Coordinate::RegionFromChunk(cz);
+          Pos2i c(cx, cz);
+          Pos2i r(rx, rz);
+          regions[d][r].fChunks.insert(c);
+          totalChunks++;
+          break;
+        }
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::StructureBounds): {
+          vector<StructurePiece> buffer;
+          StructurePiece::Parse(itr->value().ToString(), buffer);
+          copy(buffer.begin(), buffer.end(), back_inserter(pieces[d]));
+          break;
+        }
+        }
+      } else if (parsed->fUnTagged.starts_with("map_")) {
+        int64_t mapId;
+        auto parsed = MapInfo::Parse(itr->value().ToString(), mapId);
+        if (!parsed) {
+          continue;
+        }
+        mapInfo->add(*parsed, mapId);
+      }
+    }
+
+    for (auto const &i : pieces) {
+      Dimension d = i.first;
+      unordered_map<StructureType, vector<StructurePiece>> categorized;
+      for (StructurePiece const &piece : i.second) {
+        StructureType type = piece.fType;
+        switch (type) {
+        case StructureType::Monument:
+        case StructureType::Fortress:
+        case StructureType::Outpost:
+          categorized[type].push_back(piece);
+          break;
+        }
+      }
+      for (auto const &i : categorized) {
+        StructureType type = i.first;
+        vector<Volume> volumes;
+        for (StructurePiece const &piece : i.second) {
+          volumes.push_back(piece.fVolume);
+        }
+        Volume::Connect(volumes);
+        for (Volume const &v : volumes) {
+          int x = v.fStart.fX + v.size<0>() / 2;
+          int z = v.fStart.fZ + v.size<2>() / 2;
+          int cx = Coordinate::ChunkFromBlock(x);
+          int cz = Coordinate::ChunkFromBlock(z);
+          structureInfo->add(d, Pos2i(cx, cz), {type, v});
+        }
+      }
+    }
+
+    return std::shared_ptr<Context>(new Context(mapInfo, structureInfo));
+  }
 
   void markMapUuidAsUsed(int64_t uuid) {
     fUsedMapUuids.insert(uuid);
@@ -113,7 +201,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    return std::make_shared<Context>(fMapInfo);
+    return std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo));
   }
 
 public:
@@ -134,6 +222,7 @@ public:
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;
+  std::shared_ptr<StructureInfo const> fStructureInfo;
   std::unordered_set<int64_t> fUsedMapUuids;
 };
 

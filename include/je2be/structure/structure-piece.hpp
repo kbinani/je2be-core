@@ -93,4 +93,4 @@ struct StructurePiece {
   }
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

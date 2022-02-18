@@ -27,8 +27,9 @@ public:
       return false;
     }
 
-    auto mapInfo = make_shared<MapInfo>(*db);
-    auto bin = make_shared<Context>(mapInfo);
+    int total = 0;
+    map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
+    auto bin = Context::Init(*db, regions, total);
 
     auto levelDat = LevelData::Import(fInput / "level.dat", *db, *bin);
     if (!levelDat) {
@@ -38,21 +39,8 @@ public:
       return false;
     }
 
-    std::map<Dimension, unordered_map<Pos2i, je2be::toje::Region, Pos2iHasher>> regions;
-    int total = 0;
-    for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      mcfile::be::Chunk::ForAll(db.get(), d, [&regions, &total, d](int cx, int cz) {
-        int rx = Coordinate::RegionFromChunk(cx);
-        int rz = Coordinate::RegionFromChunk(cz);
-        Pos2i c(cx, cz);
-        Pos2i r(rx, rz);
-        regions[d][r].fChunks.insert(c);
-        total++;
-      });
-    }
-
-    std::atomic<int> done = 0;
-    std::atomic<bool> cancelRequested = false;
+    atomic<int> done = 0;
+    atomic<bool> cancelRequested = false;
     auto reportProgress = [progress, &done, total, &cancelRequested]() -> bool {
       int d = done.fetch_add(1);
       if (progress) {

@@ -122,6 +122,7 @@ set(je2be_files
   include/je2be/toje/map-info.hpp
   include/je2be/toje/progress.hpp
   include/je2be/toje/region.hpp
+  include/je2be/toje/structure-info.hpp
   include/je2be/toje/sub-chunk.hpp
   include/je2be/toje/terraform/attached-stem.hpp
   include/je2be/toje/terraform/beacon.hpp
