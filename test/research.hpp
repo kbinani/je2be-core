@@ -316,10 +316,52 @@ static void Data3D() {
   std::cout << bmap->numSections() << std::endl; // 11(or more) for overworld, 8 for nether, 4 for end
 }
 
+static void MonumentBedrock() {
+  using namespace std;
+  using namespace leveldb;
+  using namespace mcfile;
+  using namespace mcfile::be;
+  using namespace je2be;
+  using namespace je2be::tobe;
+
+  unique_ptr<DB> db(Open("1.18be"));
+  unique_ptr<Iterator> itr(db->NewIterator({}));
+  for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+    auto key = itr->key();
+    auto parsed = DbKey::Parse(key.ToString());
+    if (!parsed->fIsTagged) {
+      continue;
+    }
+    if (parsed->fTagged.fTag != static_cast<uint8_t>(DbKey::Tag::StructureBounds)) {
+      continue;
+    }
+    string value;
+    if (auto st = db->Get({}, key, &value); !st.ok()) {
+      continue;
+    }
+    vector<StructurePiece> buffer;
+    StructurePiece::Parse(itr->value().ToString(), buffer);
+    int count = 0;
+    for (auto const &it : buffer) {
+      if (it.fType != StructureType::Monument) {
+        continue;
+      }
+      if (count == 0) {
+        cout << "==============" << endl;
+        cout << "cx: " << parsed->fTagged.fChunk.fX << endl;
+        cout << "cz: " << parsed->fTagged.fChunk.fZ << endl;
+      }
+      count++;
+      Volume v = it.fVolume;
+      cout << (int)it.fType << " [" << v.fStart.fX << ", " << v.fStart.fY << ", " << v.fStart.fZ << "] - [" << v.fEnd.fX << ", " << v.fEnd.fY << ", " << v.fEnd.fZ << "]" << endl;
+    }
+  }
+}
+
 } // namespace
 
-#if 0
+#if 1
 TEST_CASE("research") {
-  Data3D();
+  MonumentBedrock();
 }
 #endif
