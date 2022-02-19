@@ -21,20 +21,25 @@ optional<fs::path> GetWorldDirectory(string const &name) {
   return fs::path(*appDir) / L"Packages" / L"Microsoft.MinecraftUWP_8wekyb3d8bbwe" / L"LocalState" / L"games" / L"com.mojang" / L"minecraftWorlds" / name / L"db";
 }
 
+leveldb::DB *OpenF(fs::path p) {
+  using namespace leveldb;
+  Options o;
+  o.compression = kZlibRawCompression;
+  DB *db;
+  Status st = DB::Open(o, p, &db);
+  if (!st.ok()) {
+    return nullptr;
+  }
+  return db;
+}
+
 leveldb::DB *Open(string const &name) {
   using namespace leveldb;
   auto dir = GetWorldDirectory(name);
   if (!dir) {
     return nullptr;
   }
-  Options o;
-  o.compression = kZlibRawCompression;
-  DB *db;
-  Status st = DB::Open(o, *dir, &db);
-  if (!st.ok()) {
-    return nullptr;
-  }
-  return db;
+  return OpenF(*dir);
 }
 
 void VisitDbUntil(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
@@ -358,10 +363,89 @@ static void MonumentBedrock() {
   }
 }
 
+static void Structures() {
+  using namespace leveldb;
+  using namespace mcfile;
+  using namespace mcfile::be;
+  unique_ptr<DB> db(Open("1.18stronghold"));
+  unique_ptr<Iterator> itr(db->NewIterator({}));
+  for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+    auto key = itr->key().ToString();
+    auto parsed = DbKey::Parse(key);
+    if (!parsed) {
+      continue;
+    }
+    if (!parsed->fIsTagged) {
+      continue;
+    }
+    uint8_t tag = parsed->fTagged.fTag;
+    if (tag != static_cast<uint8_t>(DbKey::Tag::StructureBounds)) {
+      continue;
+    }
+    vector<StructurePiece> buffer;
+    StructurePiece::Parse(itr->value().ToString(), buffer);
+    for (StructurePiece const &p : buffer) {
+      switch (p.fType) {
+      case StructureType::Fortress:
+      case StructureType::Monument:
+      case StructureType::Outpost:
+        break;
+      default:
+        auto chunk = parsed->fTagged.fChunk;
+        cout << "unknown structure type: " << (int)p.fType << " at chunk (" << chunk.fX << ", " << chunk.fZ << "), block (" << (chunk.fX * 16) << ", " << (chunk.fZ * 16) << ")" << endl;
+        break;
+      }
+    }
+  }
+}
+
+static void Keys(leveldb::DB &db, unordered_set<string> &buffer) {
+  unique_ptr<leveldb::Iterator> itr(db.NewIterator({}));
+  for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+    buffer.insert(itr->key().ToString());
+  }
+}
+
+static void Stronghold() {
+  using namespace leveldb;
+  using namespace mcfile;
+  using namespace mcfile::be;
+
+  fs::path pathB("C:/Users/kbinani/Documents/Projects/je2be-gui/1.18stronghold.after");
+  fs::path pathA("C:/Users/kbinani/Documents/Projects/je2be-gui/1.18stronghold.before");
+  unique_ptr<DB> b(OpenF(pathB / "db"));
+  unique_ptr<DB> a(OpenF(pathA / "db"));
+
+  unordered_set<string> keysA;
+  unordered_set<string> keysB;
+  Keys(*a, keysA);
+  Keys(*b, keysB);
+
+  unordered_set<string> common;
+  for (string s : keysA) {
+    if (keysB.find(s) == keysB.end()) {
+      auto p = DbKey::Parse(s);
+      cout << "new: " << p->toString() << endl;
+    } else {
+      common.insert(s);
+    }
+  }
+
+  auto levelAStream = make_shared<mcfile::stream::GzFileInputStream>(pathA / "level.dat");
+  levelAStream->seek(8);
+  auto levelA = CompoundTag::Read(levelAStream, {.fLittleEndian = true});
+
+  auto levelBStream = make_shared<mcfile::stream::GzFileInputStream>(pathB / "level.dat");
+  levelBStream->seek(8);
+  auto levelB = CompoundTag::Read(levelBStream, {.fLittleEndian = true});
+
+  DiffCompoundTag(*levelB, *levelA);
+}
+
 } // namespace
 
-#if 1
+#if 0
 TEST_CASE("research") {
-  MonumentBedrock();
+  Stronghold();
 }
 #endif
