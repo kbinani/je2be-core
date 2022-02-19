@@ -199,7 +199,11 @@ public:
           auto child = make_shared<CompoundTag>();
           child->set("id", String("minecraft:omb"));
           child->set("GD", Int(0));
-          child->set("O", Int(0)); // TODO: detect orientation of the monument
+          child->set("O", Int(0));
+          // IdentifyFacingOfOceanMonument https://github.com/kbinani/je2be/commit/6ca28383bc557bcf60b8203e655fdbb7a87d39d7
+          // O=0: north
+          // O=1: east
+          // O=3: west
           vector<int> bbv;
           bbv.push_back(s.fBounds.fStart.fX);
           bbv.push_back(s.fBounds.fStart.fY);
