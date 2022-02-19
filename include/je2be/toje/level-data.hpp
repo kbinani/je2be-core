@@ -63,10 +63,9 @@ public:
   };
 
 public:
-  static std::shared_ptr<CompoundTag> Import(std::filesystem::path levelDatFile, leveldb::DB &db, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Read(std::filesystem::path levelDatFile) {
     using namespace std;
     using namespace mcfile::stream;
-    using namespace props;
     auto fis = make_shared<FileInputStream>(levelDatFile);
     if (!fis) {
       return nullptr;
@@ -84,22 +83,24 @@ public:
     if (!tag->read(isr)) {
       return nullptr;
     }
-    auto b = tag->compoundTag("");
-    if (!b) {
-      return nullptr;
-    }
+    return tag->compoundTag("");
+  }
+
+  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, Context &ctx) {
+    using namespace std;
+    using namespace props;
 
     auto data = std::make_shared<CompoundTag>();
     CompoundTag &j = *data;
 
-    CopyStringValues(*b, j, {{"LevelName"}});
-    CopyIntValues(*b, j, {{"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"GameType"}, {"rainTime"}, {"lightningTime", "thunderTime"}});
-    CopyBoolValues(*b, j, {{"commandsEnabled", "allowCommands", false}});
-    CopyLongValues(*b, j, {{"Time", "DayTime"}, {"currentTick", "Time"}});
+    CopyStringValues(b, j, {{"LevelName"}});
+    CopyIntValues(b, j, {{"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"GameType"}, {"rainTime"}, {"lightningTime", "thunderTime"}});
+    CopyBoolValues(b, j, {{"commandsEnabled", "allowCommands", false}});
+    CopyLongValues(b, j, {{"Time", "DayTime"}, {"currentTick", "Time"}});
 
-    j["Difficulty"] = Byte(b->int32("Difficulty", 2));
-    j["GameRules"] = GameRules::Import(*b, db);
-    j["LastPlayed"] = Long(b->int64("LastPlayed", 0) * 1000);
+    j["Difficulty"] = Byte(b.int32("Difficulty", 2));
+    j["GameRules"] = GameRules::Import(b, db);
+    j["LastPlayed"] = Long(b.int64("LastPlayed", 0) * 1000);
 
     j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
     j["version"] = Int(kLevelVersion);
@@ -127,9 +128,9 @@ public:
     }
     {
       auto worldGenSettings = make_shared<CompoundTag>();
-      CopyBoolValues(*b, *worldGenSettings, {{"bonusChestEnabled", "bonus_chest"}});
+      CopyBoolValues(b, *worldGenSettings, {{"bonusChestEnabled", "bonus_chest"}});
       worldGenSettings->set("generate_features", Bool(true));
-      if (auto seed = b->int64("RandomSeed"); seed) {
+      if (auto seed = b.int64("RandomSeed"); seed) {
         worldGenSettings->set("seed", Long(*seed));
         auto dimensions = make_shared<CompoundTag>();
         {
@@ -179,8 +180,8 @@ public:
       j["WorldGenSettings"] = worldGenSettings;
     }
 
-    j["raining"] = Bool(b->float32("rainLevel", 0) >= 1);
-    j["thundering"] = Bool(b->float32("lightningLevel", 0) >= 1);
+    j["raining"] = Bool(b.float32("rainLevel", 0) >= 1);
+    j["thundering"] = Bool(b.float32("lightningLevel", 0) >= 1);
 
     if (auto dragonFight = DragonFight(db); dragonFight) {
       j["DragonFight"] = dragonFight;

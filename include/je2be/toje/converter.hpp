@@ -27,11 +27,16 @@ public:
       return false;
     }
 
+    auto dat = LevelData::Read(fInput / "level.dat");
+    if (!dat) {
+      return false;
+    }
+
     int total = 0;
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
     auto bin = Context::Init(*db, regions, total);
 
-    auto levelDat = LevelData::Import(fInput / "level.dat", *db, *bin);
+    auto levelDat = LevelData::Import(*dat, *db, *bin);
     if (!levelDat) {
       return false;
     }

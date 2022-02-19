@@ -82,11 +82,23 @@ public:
         }
         Volume::Connect(volumes);
         for (Volume const &v : volumes) {
-          int x = v.fStart.fX + v.size<0>() / 2;
-          int z = v.fStart.fZ + v.size<2>() / 2;
-          int cx = Coordinate::ChunkFromBlock(x);
-          int cz = Coordinate::ChunkFromBlock(z);
-          structureInfo->add(d, Pos2i(cx, cz), {type, v});
+          int cx;
+          int cz;
+          if (type == StructureType::Monument) {
+            // TODO: this is for Java monument converted -> Bedrock -> Java conversion. Consider for Bedrock vanilla monument
+            int x = v.fStart.fX;
+            int z = v.fStart.fZ;
+            cx = Coordinate::ChunkFromBlock(x) + 2;
+            cz = Coordinate::ChunkFromBlock(z) + 2;
+          } else {
+            int x = v.fStart.fX + v.size<0>() / 2;
+            int z = v.fStart.fZ + v.size<2>() / 2;
+            cx = Coordinate::ChunkFromBlock(x);
+            cz = Coordinate::ChunkFromBlock(z);
+          }
+          Pos2i chunk(cx, cz);
+          StructureInfo::Structure s(type, v, chunk);
+          structureInfo->add(d, s);
         }
       }
     }
@@ -198,6 +210,10 @@ public:
 
   std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const {
     return fMapInfo->mapFromUuid(mapUuid);
+  }
+
+  void structures(mcfile::Dimension d, Pos2i chunk, std::vector<StructureInfo::Structure> &buffer) {
+    fStructureInfo->structures(d, chunk, buffer);
   }
 
   std::shared_ptr<Context> make() const {

@@ -8,6 +8,8 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
     using namespace std;
+    using namespace props;
+
     int const cy = b.fChunkY;
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
 
@@ -126,7 +128,7 @@ public:
         ctx.fEntities[result->fUuid] = pos;
       } else if (entityB->string("identifier") == "minecraft:leash_knot") {
         auto id = entityB->int64("UniqueID");
-        auto posf = props::GetPos3f(*entityB, "Pos");
+        auto posf = GetPos3f(*entityB, "Pos");
         if (id && posf) {
           int x = (int)roundf(posf->fX - 0.5f);
           int y = (int)roundf(posf->fY - 0.25f);
@@ -176,6 +178,56 @@ public:
           j->fTileTicks.push_back(tb);
         }
       }
+    }
+
+    vector<StructureInfo::Structure> structures;
+    ctx.structures(d, Pos2i(cx, cz), structures);
+
+    auto structuresTag = make_shared<CompoundTag>();
+    auto startsTag = make_shared<CompoundTag>();
+    auto referencesTag = make_shared<CompoundTag>();
+    for (auto const &s : structures) {
+      switch (s.fType) {
+      case StructureType::Monument: {
+        if (s.fStartChunk == Pos2i(cx, cz)) {
+          auto monument = make_shared<CompoundTag>();
+          monument->set("ChunkX", Int(cx));
+          monument->set("ChunkZ", Int(cz));
+          monument->set("id", String("minecraft:monument"));
+          monument->set("references", Int(0));
+          auto children = make_shared<ListTag>(Tag::Type::Compound);
+          auto child = make_shared<CompoundTag>();
+          child->set("id", String("minecraft:omb"));
+          child->set("GD", Int(0));
+          child->set("O", Int(0)); // TODO: detect orientation of the monument
+          vector<int> bbv;
+          bbv.push_back(s.fBounds.fStart.fX);
+          bbv.push_back(s.fBounds.fStart.fY);
+          bbv.push_back(s.fBounds.fStart.fZ);
+          bbv.push_back(s.fBounds.fEnd.fX);
+          bbv.push_back(s.fBounds.fEnd.fY);
+          bbv.push_back(s.fBounds.fEnd.fZ);
+          auto bb = make_shared<IntArrayTag>(bbv);
+          child->set("BB", bb);
+          children->push_back(child);
+          monument->set("Children", children);
+          startsTag->set("monument", monument);
+        }
+        vector<int64_t> references;
+        references.push_back(StructureInfo::PackStructureStartsReference(s.fStartChunk.fX, s.fStartChunk.fZ));
+        referencesTag->set("monument", make_shared<LongArrayTag>(references));
+        break;
+      }
+      }
+    }
+    if (!startsTag->empty()) {
+      structuresTag->set("starts", startsTag);
+    }
+    if (!referencesTag->empty()) {
+      structuresTag->set("References", referencesTag);
+    }
+    if (!structuresTag->empty()) {
+      j->fStructures = structuresTag;
     }
 
     return j;

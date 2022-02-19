@@ -141,11 +141,17 @@ private:
     while (true) {
       vector<Volume> buffer;
       unordered_set<int> ignore;
-      for (int i = 0; i < inout.size() - 1 && ignore.find(i) == ignore.end(); i++) {
+      for (int i = 0; i < inout.size() - 1; i++) {
+        if (ignore.find(i) != ignore.end()) {
+          continue;
+        }
         Volume v1 = inout[i];
         int32_t s1 = v1.start<d3>();
         int32_t e1 = v1.end<d3>();
-        for (int j = i + 1; j < inout.size() && ignore.find(j) == ignore.end(); j++) {
+        for (int j = i + 1; j < inout.size(); j++) {
+          if (ignore.find(j) != ignore.end()) {
+            continue;
+          }
           Volume v2 = inout[j];
           int32_t s2 = v2.start<d3>();
           int32_t e2 = v2.end<d3>();
@@ -160,8 +166,10 @@ private:
           }
         }
       }
-      for (int i = 0; i < inout.size() && ignore.find(i) == ignore.end(); i++) {
-        buffer.push_back(inout[i]);
+      for (int i = 0; i < inout.size(); i++) {
+        if (ignore.find(i) == ignore.end()) {
+          buffer.push_back(inout[i]);
+        }
       }
       if (buffer.size() == inout.size()) {
         break;

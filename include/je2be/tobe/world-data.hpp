@@ -26,19 +26,31 @@ public:
     if (!chunk.fStructures) {
       return;
     }
-    auto start = chunk.fStructures->compoundTag("Starts");
+    auto start = chunk.fStructures->compoundTag("starts"); // 1.18~
+    if (!start) {
+      start = chunk.fStructures->compoundTag("Starts"); // ~1.17
+    }
     if (!start) {
       return;
     }
     auto fortress = start->compoundTag("fortress");
+    if (!fortress) {
+      fortress = start->compoundTag("Fortress");
+    }
     if (fortress) {
       addStructures(*fortress, StructureType::Fortress);
     }
-    auto monument = start->compoundTag("monument");
+    auto monument = start->compoundTag("monument"); // 1.16~
+    if (!monument) {
+      monument = start->compoundTag("Monument"); // ~1.15
+    }
     if (monument) {
       addStructures(*monument, StructureType::Monument);
     }
     auto outpost = start->compoundTag("pillager_outpost");
+    if (!outpost) {
+      outpost = start->compoundTag("Pillager_Outpost");
+    }
     if (outpost) {
       addStructures(*outpost, StructureType::Outpost);
     }
