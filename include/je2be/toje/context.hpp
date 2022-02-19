@@ -95,6 +95,7 @@ public:
               // JE: (3, 3)
             } else {
               // TODO: bounds is incomplete for monument
+              continue;
             }
           } else {
             int x = v.fStart.fX + v.size<0>() / 2;
