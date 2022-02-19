@@ -85,11 +85,17 @@ public:
           int cx;
           int cz;
           if (type == StructureType::Monument) {
-            // TODO: this is for Java monument converted -> Bedrock -> Java conversion. Consider for Bedrock vanilla monument
-            int x = v.fStart.fX;
-            int z = v.fStart.fZ;
-            cx = Coordinate::ChunkFromBlock(x) + 2;
-            cz = Coordinate::ChunkFromBlock(z) + 2;
+            if (v.size<0>() == 58 && v.size<1>() == 23 && v.size<2>() == 58) {
+              int x = v.fStart.fX;
+              int z = v.fStart.fZ;
+              cx = Coordinate::ChunkFromBlock(x) + 2;
+              cz = Coordinate::ChunkFromBlock(z) + 2;
+              // NW corner offset from chunk:
+              // BE: (11, 11)
+              // JE: (3, 3)
+            } else {
+              // TODO: bounds is incomplete for monument
+            }
           } else {
             int x = v.fStart.fX + v.size<0>() / 2;
             int z = v.fStart.fZ + v.size<2>() / 2;
