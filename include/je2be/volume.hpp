@@ -107,16 +107,16 @@ private:
     using namespace std;
     vector<Volume> tmp;
     vector<vector<Volume>> buffer;
-    CollectCuboidWithSamePlane<d1, d2>(volumes, buffer);
+    CollectAlignedCuboids<d1, d2>(volumes, buffer);
     for (auto &collected : buffer) {
-      ConnectCuboidWithSamePlane<d3>(collected);
+      ConnectAdjacentCuboids<d3>(collected);
       copy(collected.begin(), collected.end(), back_inserter(tmp));
     }
     tmp.swap(volumes);
   }
 
   template <size_t d1, size_t d2>
-  static void CollectCuboidWithSamePlane(std::vector<Volume> const &input, std::vector<std::vector<Volume>> &output) {
+  static void CollectAlignedCuboids(std::vector<Volume> const &input, std::vector<std::vector<Volume>> &output) {
     static_assert(d1 < 3 && d2 < 3 && d1 != d2);
     using namespace std;
     map<tuple<int32_t, int32_t, int32_t, int32_t>, vector<Volume>> categorized;
@@ -135,7 +135,7 @@ private:
   }
 
   template <size_t d3>
-  static void ConnectCuboidWithSamePlane(std::vector<Volume> &inout) {
+  static void ConnectAdjacentCuboids(std::vector<Volume> &inout) {
     static_assert(d3 < 3);
     using namespace std;
     while (true) {
