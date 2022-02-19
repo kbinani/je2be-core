@@ -32,8 +32,8 @@ public:
         uint8_t tag = parsed->fTagged.fTag;
         Dimension d = parsed->fTagged.fDimension;
         switch (tag) {
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Version):
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::VersionLegacy): {
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data3D):
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D): {
           int cx = parsed->fTagged.fChunk.fX;
           int cz = parsed->fTagged.fChunk.fZ;
           int rx = Coordinate::RegionFromChunk(cx);
