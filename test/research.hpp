@@ -14680,7 +14680,7 @@ static void MonumentBedrock() {
     }
   }
   Volume::Connect(volumes);
-  unordered_map<string, unordered_map<Pos3i, string, Pos3iHasher>> blocks;
+  unordered_map<Pos3i, string, Pos3iHasher> blocks;
   unordered_set<string> ignore = {
       "water",
       "kelp",
@@ -14721,46 +14721,46 @@ static void MonumentBedrock() {
 
     string facing;
     if (start.fX == 8891 && start.fZ == 13979) {
-      facing = "north"; // ok
+      facing = "north"; // OK
     } else if (start.fX == 9435 && start.fZ == 8315) {
-      facing = "east"; // ok
+      facing = "east"; // OK
     } else if (start.fX == 9275 && start.fZ == 7259) {
-      facing = "south"; // ok
+      facing = "south"; // OK
     } else if (start.fX == 9195 && start.fZ == 6827) {
-      facing = "west"; // ok
+      facing = "west"; // OK
     } else if (start == Pos2i(2715, -3349)) {
-      facing = "south"; // ok
+      facing = "south"; // OK
     } else if (start == Pos2i(763, -629)) {
-      facing = "west"; // ok
+      facing = "west"; // OK
     } else if (start == Pos2i(747, -341)) {
       // broken
       continue;
     } else if (start == Pos2i(3227, 3563)) {
-      facing = "south"; // ok
+      facing = "south"; // OK
     } else if (start == Pos2i(9339, 5419)) {
-      facing = "east"; // ok
+      facing = "east"; // OK
     } else if (start == Pos2i(9771, 5819)) {
-      facing = "south"; // ok
+      facing = "south"; // OK
     } else if (start == Pos2i(10491, 6651)) {
-      facing = "east"; // ok
+      facing = "east"; // OK
     } else if (start == Pos2i(8891, 13979)) {
-      facing = "north"; // ok
+      facing = "north"; // OK
     } else if (start == Pos2i(9275, 7259)) {
-      facing = "south"; // ok
+      facing = "south"; // OK
     } else if (start == Pos2i(9387, 7819)) {
-      facing = "north"; // ok
+      facing = "north"; // OK
     } else if (start == Pos2i(9435, 8315)) {
-      facing = "east"; // ok
+      facing = "east"; // OK
     } else if (start == Pos2i(8747, 9003)) {
-      facing = "north"; // ok
+      facing = "north"; // OK
     } else if (start == Pos2i(8939, 9307)) {
-      facing = "north"; // ok
+      facing = "north"; // OK
     } else if (start == Pos2i(9195, 6827)) {
-      facing = "west"; // ok
+      facing = "west"; // OK
     } else if (start == Pos2i(8491, 8411)) {
-      facing = "north"; // ok
+      facing = "north"; // OK
     } else if (start == Pos2i(8363, 8859)) {
-      facing = "east"; // ok
+      facing = "east"; //
     } else {
       cout << "unknown facing monument at (" << start.fX << ", " << start.fZ << ")" << endl;
     }
@@ -14769,7 +14769,7 @@ static void MonumentBedrock() {
     } else {
       cout << "estimated: " << (estimated ? JavaNameFromFacing4(*estimated) : "(unknown)") << ", actual=" << facing << endl;
     }
-    auto &b = blocks[facing];
+    auto &b = blocks;
     for (int y = v.fStart.fY; y <= v.fEnd.fY; y++) {
       for (int z = z0; z <= end.fZ; z++) {
         for (int x = x0; x <= end.fX; x++) {
@@ -14780,12 +14780,41 @@ static void MonumentBedrock() {
           }
           string name = bl->fName.substr(10);
           Pos3i local(x - x0, y - y0, z - z0);
+          Pos2i radius(29, 29);
+          Pos2i xz(local.fX, local.fZ);
+          xz = xz - radius;
+          int l90 = 0;
+          int dx = 0;
+          int dz = 0;
+          if (facing == "east") {
+            l90 = 1;
+            dz = -1;
+          } else if (facing == "south") {
+            l90 = 2;
+            dx = -1;
+            dz = -1;
+          } else if (facing == "west") {
+            l90 = 3;
+            dx = -1;
+          }
+          for (int k = 0; k < l90; k++) {
+            xz = Left90(xz);
+          }
+          xz = xz + radius;
+          local = Pos3i(xz.fX + dx, local.fY, xz.fZ + dz);
+          CHECK(0 <= local.fX);
+          CHECK(local.fX < 58);
+          CHECK(0 <= local.fY);
+          CHECK(local.fY < 23);
+          CHECK(0 <= local.fZ);
+          CHECK(local.fZ < 58);
+
           auto found = b.find(local);
           if (ignore.find(name) != ignore.end()) {
             if (found == b.end()) {
               b[local] = "";
             } else if (found->second != "") {
-              cout << "(" << local.fX << ", " << local.fY << ", " << local.fZ << ") was \"" << found->second << "\", current \"" << name << "\", facing=" << facing << ", pos=(" << x << ", " << y << ", " << z << ")" << endl;
+              //cout << "(" << local.fX << ", " << local.fY << ", " << local.fZ << ") was \"" << found->second << "\", current \"" << name << "\", facing=" << facing << ", pos=(" << x << ", " << y << ", " << z << ")" << endl;
               b[local] = "";
             }
             continue;
@@ -14794,7 +14823,7 @@ static void MonumentBedrock() {
             if (found == b.end()) {
               b[local] = name;
             } else if (found->second != name) {
-              cout << "(" << local.fX << ", " << local.fY << ", " << local.fZ << ") was \"" << found->second << "\", current \"" << name << "\", facing=" << facing << ", pos=(" << x << ", " << y << ", " << z << ")" << endl;
+              //cout << "(" << local.fX << ", " << local.fY << ", " << local.fZ << ") was \"" << found->second << "\", current \"" << name << "\", facing=" << facing << ", pos=(" << x << ", " << y << ", " << z << ")" << endl;
               b[local] = "";
             }
             continue;
@@ -14805,59 +14834,21 @@ static void MonumentBedrock() {
       }
     }
   }
-  for (int y = 0; y < 23; y++) {
-    for (int z = 0; z < 58; z++) {
-      for (int x = 0; x < 58; x++) {
-        auto &north = blocks["north"];
-        auto &east = blocks["east"];
-        auto &south = blocks["south"];
-        auto &west = blocks["west"];
-        Pos3i pos(x, y, z);
-        auto n = north.find(pos);
-        auto e = east.find(pos);
-        auto s = south.find(pos);
-        auto w = west.find(pos);
-        string nb = n == north.end() ? "" : n->second;
-        string eb = e == east.end() ? "" : e->second;
-        string sb = s == south.end() ? "" : s->second;
-        string wb = w == west.end() ? "" : w->second;
-        unordered_map<string, int> combined;
-        combined[nb] += 1;
-        combined[eb] += 1;
-        combined[sb] += 1;
-        combined[wb] += 1;
-        int maxCount = 0;
-        for (auto kk : combined) {
-          maxCount = (std::max)(maxCount, kk.second);
-        }
-        if (maxCount == 1 || maxCount == 3) {
-          // ok: the block can be used to identify the orientation
-        } else {
-          north.erase(pos);
-          east.erase(pos);
-          south.erase(pos);
-          west.erase(pos);
-        }
-      }
-    }
-  }
 #if 1
   for (auto const &it : blocks) {
-    string facing = it.first;
-    cout << "auto &" << facing << " = (*ret)[\"" << facing << "\"];" << endl;
-    for (auto const &j : it.second) {
-      Pos3i p = j.first;
-      string block = j.second;
-      if (block.empty()) {
-        continue;
-      }
-      cout << facing << "[{" << p.fX << ", " << p.fY << ", " << p.fZ << "}] = \"" << block << "\";" << endl;
+    Pos3i p = it.first;
+    string block = it.second;
+    if (block.empty()) {
+      continue;
     }
+    //cout << "blocks[{" << p.fX << ", " << p.fY << ", " << p.fZ << "}] = \"" << block << "\";" << endl;
+    string n = block;
+    if (block == "seaLantern") {
+      n = "sea_lantern";
+    }
+    cout << "setblock " << p.fX << " " << p.fY << " " << p.fZ << " " << n << endl;
   }
 #endif
-  for (auto const &it : blocks) {
-    cout << it.first << " : " << it.second.size() << endl;
-  }
 }
 
 } // namespace
