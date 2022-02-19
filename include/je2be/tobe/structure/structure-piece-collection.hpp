@@ -19,8 +19,8 @@ public:
       int maxChunkX = mcfile::Coordinate::ChunkFromBlock(it.fVolume.fEnd.fX);
       int maxChunkZ = mcfile::Coordinate::ChunkFromBlock(it.fVolume.fEnd.fZ);
       for (int cx = minChunkX; cx <= maxChunkX; cx++) {
-        for (int cz = minChunkZ; cz < maxChunkZ; cz++) {
-          Volume chunkVolume(Pos3i(cx * 16, 0, cz * 16), Pos3i(cx * 16 + 15, 255, cz * 16 + 15));
+        for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+          Volume chunkVolume(Pos3i(cx * 16, -64, cz * 16), Pos3i(cx * 16 + 15, 320, cz * 16 + 15));
           auto intersection = Volume::Intersection(chunkVolume, it.fVolume);
           if (intersection) {
             Pos3i idx(cx, 0, cz);
