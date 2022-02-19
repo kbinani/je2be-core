@@ -265,6 +265,9 @@ public:
     int ly = by - cy * 16;
     int lz = bz - cz * 16;
     int index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
+    if (index < 0 || section->fPaletteIndices.size() <= index) {
+      return 0;
+    }
     auto i = section->fPaletteIndices[index];
     return fSections[sectionIndex][i];
   }
