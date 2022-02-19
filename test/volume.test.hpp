@@ -154,9 +154,9 @@ TEST_CASE("volume") {
     Volume::Connect(volumes);
     CHECK(volumes.size() == 6);
     for (Volume const &v : volumes) {
-      CHECK(v.size<0>() == 21);
+      CHECK(v.size<0>() == 58);
       CHECK(v.size<1>() == 23);
-      CHECK(v.size<2>() == 21);
+      CHECK(v.size<2>() == 58);
     }
   }
 }
