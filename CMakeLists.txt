@@ -220,6 +220,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/file-output-stream.hpp
+  deps/libminecraft-file/include/mcfile/stream/gz-file-input-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/gz-file-output-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/input-stream-reader.hpp
   deps/libminecraft-file/include/mcfile/stream/input-stream.hpp
