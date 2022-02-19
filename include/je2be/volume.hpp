@@ -140,16 +140,17 @@ private:
     using namespace std;
     while (true) {
       vector<Volume> buffer;
+      vector<bool> used(inout.size(), false);
       unordered_set<int> ignore;
       for (int i = 0; i < inout.size() - 1; i++) {
-        if (ignore.find(i) != ignore.end()) {
+        if (used[i]) {
           continue;
         }
         Volume v1 = inout[i];
         int32_t s1 = v1.start<d3>();
         int32_t e1 = v1.end<d3>();
         for (int j = i + 1; j < inout.size(); j++) {
-          if (ignore.find(j) != ignore.end()) {
+          if (used[j]) {
             continue;
           }
           Volume v2 = inout[j];
@@ -160,14 +161,14 @@ private:
             Pos3i end((max)(v1.end<0>(), v2.end<0>()), (max)(v1.end<1>(), v2.end<1>()), (max)(v1.end<2>(), v2.end<2>()));
             Volume connected(start, end);
             buffer.push_back(connected);
-            ignore.insert(i);
-            ignore.insert(j);
+            used[i] = true;
+            used[j] = true;
             break;
           }
         }
       }
       for (int i = 0; i < inout.size(); i++) {
-        if (ignore.find(i) == ignore.end()) {
+        if (!used[i]) {
           buffer.push_back(inout[i]);
         }
       }
