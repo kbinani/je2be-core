@@ -1129,8 +1129,13 @@ public:
     j["Patrolling"] = props::Bool(false);
   }
 
-  static void PersistenceRequired(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PersistenceRequiredDefault(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Persistent", "PersistenceRequired", false}});
+  }
+
+  static void PersistenceRequiredAnimal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto customName = b.string("CustomName");
+    j["PersistenceRequired"] = props::Bool(customName != std::nullopt);
   }
 
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1217,6 +1222,7 @@ public:
     Age(b, j, ctx);
     InLove(b, j, ctx);
     Owner(b, j, ctx);
+    PersistenceRequiredAnimal(b, j, ctx);
     return ret;
   }
 
@@ -1249,7 +1255,7 @@ public:
     HurtByTimestamp(b, j, ctx);
     HurtTime(b, j, ctx);
     LeftHanded(b, j, ctx);
-    PersistenceRequired(b, j, ctx);
+    PersistenceRequiredDefault(b, j, ctx);
     return ret;
   }
 #pragma endregion
