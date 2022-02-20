@@ -1350,6 +1350,8 @@ private:
       return nullptr;
     }
 
+    c->set("Persistent", props::Bool(true));
+
     auto leash = tag.compoundTag("Leash");
     if (leash) {
       auto x = leash->int32("X");
