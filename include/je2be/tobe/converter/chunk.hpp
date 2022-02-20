@@ -14,7 +14,12 @@ public:
   };
 
 public:
-  static Result Convert(mcfile::Dimension dim, DbInterface &db, mcfile::je::Region region, int cx, int cz, JavaEditionMap mapInfo) {
+  static Result Convert(mcfile::Dimension dim,
+                        DbInterface &db,
+                        mcfile::je::Region region,
+                        int cx, int cz,
+                        JavaEditionMap mapInfo,
+                        std::filesystem::path entitiesDir) {
     using namespace std;
     using namespace mcfile;
     try {
@@ -33,7 +38,7 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir);
       return r;
     } catch (...) {
       Chunk::Result r;
@@ -44,7 +49,12 @@ public:
     }
   }
 
-  static std::shared_ptr<WorldData> MakeWorldData(std::shared_ptr<mcfile::je::Chunk> const &chunk, mcfile::je::Region region, mcfile::Dimension dim, DbInterface &db, JavaEditionMap const &mapInfo) {
+  static std::shared_ptr<WorldData> MakeWorldData(std::shared_ptr<mcfile::je::Chunk> const &chunk,
+                                                  mcfile::je::Region region,
+                                                  mcfile::Dimension dim,
+                                                  DbInterface &db,
+                                                  JavaEditionMap const &mapInfo,
+                                                  std::filesystem::path entitiesDir) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -120,6 +130,24 @@ public:
 
     if (!cd.put(db)) {
       return nullptr;
+    }
+
+    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
+    ret->drainEntities(entities);
+    if (!entities.empty()) {
+      Fs::CreateDirectories(entitiesDir);
+
+      for (auto const &it : entities) {
+        Pos2i p = it.first;
+        auto file = entitiesDir / ("c." + to_string(p.fX) + "." + to_string(p.fZ) + ".nbt");
+        auto stream = make_shared<FileOutputStream>(file);
+        OutputStreamWriter writer(stream, {.fLittleEndian = true});
+        for (auto const &e : it.second) {
+          if (!e->writeAsRoot(writer)) {
+            return nullptr;
+          }
+        }
+      }
     }
 
     return ret;
