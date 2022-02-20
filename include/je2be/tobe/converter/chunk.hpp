@@ -120,6 +120,26 @@ public:
       cdp.addLiquidTick(i, tick);
     }
 
+    for (int i = 0; i < chunk->fTileTicks.size(); i++) {
+      mcfile::je::TickingBlock tb = chunk->fTileTicks[i];
+
+      int64_t time = chunk->fLastUpdate + tb.fT;
+
+      auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
+      auto blockB = BlockData::From(blockJ);
+      if (!blockB) {
+        continue;
+      }
+
+      auto tick = make_shared<CompoundTag>();
+      tick->set("blockState", blockB);
+      tick->set("time", props::Long(time));
+      tick->set("x", props::Int(tb.fX));
+      tick->set("y", props::Int(tb.fY));
+      tick->set("z", props::Int(tb.fZ));
+      cdp.addTileTick(i, tick);
+    }
+
     ret->addStructures(*chunk);
     ret->updateChunkLastUpdate(*chunk);
 

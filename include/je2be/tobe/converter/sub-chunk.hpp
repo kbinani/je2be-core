@@ -289,29 +289,6 @@ public:
 
     stream->drain(cd.fSubChunks[chunkY]);
 
-    int64_t currentTick = chunk.fLastUpdate;
-    for (int i = 0; i < chunk.fTileTicks.size(); i++) {
-      TickingBlock tb = chunk.fTileTicks[i];
-      int x = tb.fX - chunk.fChunkX * 16;
-      int y = tb.fY - chunkY * 16;
-      int z = tb.fZ - chunk.fChunkZ * 16;
-      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
-        continue;
-      }
-      int64_t time = currentTick + tb.fT;
-      int localIndex = (x * 16 + z) * 16 + y;
-      int paletteIndex = indices[localIndex];
-      auto block = palette[paletteIndex];
-
-      auto tick = make_shared<CompoundTag>();
-      tick->set("blockState", block);
-      tick->set("time", Long(time));
-      tick->set("x", Int(tb.fX));
-      tick->set("y", Int(tb.fY));
-      tick->set("z", Int(tb.fZ));
-      cdp.addTileTick(i, tick);
-    }
-
     return true;
   }
 
