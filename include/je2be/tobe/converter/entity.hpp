@@ -459,7 +459,7 @@ private:
     E(cat, C(Animal, AgeableA("cat"), TameableA("cat"), Sittable, CollarColorable, Cat));
     M(cave_spider);
     E(chicken, C(Animal, AgeableA("chicken"), Vehicle(), Chicken));
-    A(cod);
+    E(cod, C(Mob, PersistentFromFromBucket));
 
     E(cow, C(Animal, AgeableA("cow")));
     E(creeper, C(Monster, Creeper));
@@ -492,10 +492,10 @@ private:
     E(pillager, C(Monster, CanJoinRaid, ChestItems));
 
     A(polar_bear);
-    E(pufferfish, C(Animal, Pufferfish));
+    E(pufferfish, C(Mob, PersistentFromFromBucket, Pufferfish));
     E(rabbit, C(Animal, AgeableC, Rabbit));
     E(ravager, C(Monster, AttackTime, CanJoinRaid));
-    E(salmon, C(Mob, Salmon));
+    E(salmon, C(Mob, PersistentFromFromBucket));
     E(sheep, C(Animal, AgeableA("sheep"), Colorable("sheep"), Definitions("+minecraft:sheep_dyeable", "+minecraft:rideable_wooly", "+minecraft:loot_wooly"), Sheep));
     E(shulker, C(Monster, Shulker));
     M(silverfish);
@@ -508,7 +508,7 @@ private:
     M(stray);
     E(strider, C(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
     E(trader_llama, C(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
-    E(tropical_fish, C(Animal, Rename("tropicalfish"), TropicalFish));
+    E(tropical_fish, C(Mob, Rename("tropicalfish"), PersistentFromFromBucket, TropicalFish));
     E(turtle, C(Animal, Turtle));
 
     M(vex);
@@ -552,7 +552,7 @@ private:
     return table;
   }
 
-#pragma region Dedicated Behaviors
+#pragma region DedicatedBehaviors
   static void ArmorStand(CompoundTag &c, CompoundTag const &tag, Context &) {
     auto pos = props::GetPos3d(tag, "Pos");
     if (!pos) {
@@ -1048,15 +1048,6 @@ private:
     CopyIntValues(tag, c, {{"MoreCarrotTicks"}});
   }
 
-  static void Salmon(CompoundTag &c, CompoundTag const &tag, Context &) {
-    auto fromBucket = tag.boolean("FromBucket", false);
-    if (fromBucket) {
-      c["Persistent"] = props::Bool(true);
-    } else {
-      c["NaturalSpawn"] = props::Bool(true);
-    }
-  }
-
   static void Sheep(CompoundTag &c, CompoundTag const &tag, Context &) {
     CopyBoolValues(tag, c, {{"Sheared", "Sheared", false}});
   }
@@ -1332,6 +1323,15 @@ private:
       }
     }
     c["ChestItems"] = chestItems;
+  }
+
+  static void PersistentFromFromBucket(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    auto fromBucket = tag.boolean("FromBucket", false);
+    if (fromBucket) {
+      c["Persistent"] = props::Bool(true);
+    } else {
+      c["NaturalSpawn"] = props::Bool(true);
+    }
   }
 
   static void Sittable(CompoundTag &c, CompoundTag const &tag, Context &) {
@@ -1629,7 +1629,7 @@ private:
   }
 #pragma endregion
 
-#pragma region Behavior Generators
+#pragma region BehaviorGenerators
   static Behavior AgeableA(std::string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
       auto age = tag.int32("Age", 0);

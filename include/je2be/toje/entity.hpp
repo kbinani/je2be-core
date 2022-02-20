@@ -864,8 +864,6 @@ public:
 
   static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"Persistent", "FromBucket", false}});
-    auto name = b.string("CustomName");
-    j["PersistenceRequired"] = props::Bool(!!name);
   }
 
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
