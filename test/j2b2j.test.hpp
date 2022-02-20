@@ -570,6 +570,8 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "previousPlayerGameType",
       "recipeBook",
       "HurtByTimestamp",
+      "SpawnAngle",
+      "SpawnForced",
   };
   for (string rule : ignoredPlayerAttributes) {
     blacklist.insert("Player/" + rule);

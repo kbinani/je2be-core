@@ -1464,7 +1464,7 @@ public:
     CopyChestItems(b, "EnderChestInventory", j, "EnderItems", ctx, true);
     CopyChestItems(b, "Inventory", j, "Inventory", ctx, true);
 
-    CopyIntValues(b, j, {{"SelectedInventorySlot", "SelectedItemSlot"}, {"PlayerLevel", "XpLevel"}, {"EnchantmentSeed", "XpSeed"}, {"PlayerGameMode", "playerGameType"}});
+    CopyIntValues(b, j, {{"SelectedInventorySlot", "SelectedItemSlot"}, {"PlayerLevel", "XpLevel"}, {"EnchantmentSeed", "XpSeed"}, {"PlayerGameMode", "playerGameType"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}});
     CopyShortValues(b, j, {{"SleepTimer"}});
     CopyFloatValues(b, j, {{"PlayerLevelProgress", "XpP"}});
     CopyBoolValues(b, j, {{"HasSeenCredits", "seenCredits"}});
@@ -1472,6 +1472,13 @@ public:
     auto dimensionB = b.int32("DimensionId", 0);
     if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
       j["Dimension"] = String(JavaStringFromDimension(*dimension));
+    }
+
+    auto spawnDimensionB = b.int32("SpawnDimension");
+    if (spawnDimensionB) {
+      if (auto dimension = DimensionFromBedrockDimension(*spawnDimensionB); dimension) {
+        j["SpawnDimension"] = String(JavaStringFromDimension(*dimension));
+      }
     }
 
     j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
