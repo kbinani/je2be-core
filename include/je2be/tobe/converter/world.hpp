@@ -59,7 +59,7 @@ public:
     if (!ok) {
       return false;
     }
-    return PutEntities(dim, db, tempDir);
+    return PutWorldEntities(dim, db, tempDir, 0);
   }
 
   [[nodiscard]] static bool ConvertMultiThread(
@@ -143,12 +143,11 @@ public:
     if (!completed) {
       return false;
     }
-    return PutEntities(dim, db, tempDir);
+    return PutWorldEntities(dim, db, tempDir, concurrency);
   }
 
-  static bool PutEntities(mcfile::Dimension d, DbInterface &db, std::filesystem::path temp) {
+  static bool PutWorldEntities(mcfile::Dimension d, DbInterface &db, std::filesystem::path temp, unsigned int concurrency) {
     using namespace std;
-    using namespace mcfile::stream;
     namespace fs = std::filesystem;
     error_code ec;
     unordered_map<Pos2i, vector<fs::path>, Pos2iHasher> files;
@@ -179,29 +178,58 @@ public:
         files[{*cx, *cz}].push_back(p);
       }
     }
+    deque<future<bool>> futures;
+    unique_ptr<hwm::task_queue> pool;
+    if (concurrency > 0) {
+      pool.reset(new hwm::task_queue(concurrency));
+    }
+    bool ok = true;
     for (auto const &i : files) {
-      Pos2i chunk = i.first;
-      vector<shared_ptr<CompoundTag>> entities;
-      for (auto const &file : i.second) {
-        auto s = make_shared<FileInputStream>(file);
-        InputStreamReader r(s, {.fLittleEndian = true});
-        CompoundTag::ReadUntilEos(r, [&entities](auto const &c) { entities.push_back(c); });
-      }
-      auto buffer = make_shared<ByteStream>();
-      OutputStreamWriter writer(buffer, {.fLittleEndian = true});
-      for (auto const &tag : entities) {
-        if (!tag->writeAsRoot(writer)) {
+      if (pool) {
+        vector<future<bool>> drained;
+        FutureSupport::Drain(concurrency + 1, futures, drained);
+        for (auto &f : drained) {
+          ok = ok && f.get();
+        }
+        if (!ok) {
+          break;
+        }
+        futures.push_back(move(pool->enqueue(PutChunkEntities, d, i.first, i.second, ref(db))));
+      } else {
+        if (!PutChunkEntities(d, i.first, i.second, db)) {
           return false;
         }
       }
-      auto key = mcfile::be::DbKey::Entity(chunk.fX, chunk.fZ, d);
-      string value;
-      buffer->drain(value);
-      if (value.empty()) {
-        db.del(key);
-      } else {
-        db.put(key, leveldb::Slice(value));
+    }
+    for (auto &f : futures) {
+      ok = ok && f.get();
+    }
+    return ok;
+  }
+
+  static bool PutChunkEntities(mcfile::Dimension d, Pos2i chunk, std::vector<std::filesystem::path> files, DbInterface &db) {
+    using namespace std;
+    using namespace mcfile::stream;
+    vector<shared_ptr<CompoundTag>> entities;
+    for (auto const &file : files) {
+      auto s = make_shared<FileInputStream>(file);
+      InputStreamReader r(s, {.fLittleEndian = true});
+      CompoundTag::ReadUntilEos(r, [&entities](auto const &c) { entities.push_back(c); });
+    }
+    auto buffer = make_shared<ByteStream>();
+    OutputStreamWriter writer(buffer, {.fLittleEndian = true});
+    for (auto const &tag : entities) {
+      if (!tag->writeAsRoot(writer)) {
+        return false;
       }
+    }
+    auto key = mcfile::be::DbKey::Entity(chunk.fX, chunk.fZ, d);
+    string value;
+    buffer->drain(value);
+    if (value.empty()) {
+      db.del(key);
+    } else {
+      db.put(key, leveldb::Slice(value));
     }
     return true;
   }
