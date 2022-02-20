@@ -1079,6 +1079,9 @@ public:
     if (!ownerNew) {
       return;
     }
+    if (ownerNew == -1) {
+      return;
+    }
     Uuid uuid = Uuid::GenWithI64Seed(*ownerNew);
     j["Owner"] = uuid.toIntArrayTag();
   }
