@@ -9,8 +9,8 @@ public:
         fHeightMap(std::make_shared<HeightMap>(mode == ChunkConversionMode::CavesAndCliffs2 ? -4 : 0)) {
   }
 
-  void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd) {
-    buildEntities(chunk, mapInfo, wd);
+  void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
+    buildEntities(chunk, mapInfo, wd, entities);
     buildData2D(chunk, wd.fDim);
     buildTileEntities(chunk, mapInfo, wd);
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
@@ -104,7 +104,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd) {
+  void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
     using namespace std;
     using namespace props;
     Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
@@ -114,9 +114,9 @@ private:
         continue;
       }
       auto result = Entity::From(*c, mapInfo, wd);
-      wd.addEntities(chunkPos, result.fEntities);
+      copy(result.fEntities.begin(), result.fEntities.end(), back_inserter(entities[chunkPos]));
       for (auto const &it : result.fLeashKnots) {
-        wd.addEntities(it.first, it.second);
+        copy(it.second.begin(), it.second.end(), back_inserter(entities[it.first]));
       }
     }
   }

@@ -123,7 +123,8 @@ public:
     ret->addStructures(*chunk);
     ret->updateChunkLastUpdate(*chunk);
 
-    cdp.build(*chunk, mapInfo, *ret);
+    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
+    cdp.build(*chunk, mapInfo, *ret, entities);
     if (!cdp.serialize(cd)) {
       return nullptr;
     }
@@ -132,8 +133,6 @@ public:
       return nullptr;
     }
 
-    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
-    ret->drainEntities(entities);
     if (!entities.empty()) {
       Fs::CreateDirectories(entitiesDir);
 
