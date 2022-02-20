@@ -1131,9 +1131,7 @@ public:
   }
 
   static void PersistenceRequiredAnimal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto customName = b.string("CustomName");
-    auto owner = b.int64("OwnerNew");
-    j["PersistenceRequired"] = props::Bool(customName || owner);
+    j["PersistenceRequired"] = props::Bool(false);
   }
 
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1574,7 +1572,7 @@ public:
     E(cow, C(Same, Animal));
     E(elder_guardian, C(Same, LivingEntity));
     E(cod, C(Same, LivingEntity, FromBucket));
-    E(fox, C(Same, Animal, Sitting, Fox));
+    E(fox, C(Same, Animal, Sitting, Fox, Debug));
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
     E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, Horse));
