@@ -1135,7 +1135,8 @@ public:
 
   static void PersistenceRequiredAnimal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto customName = b.string("CustomName");
-    j["PersistenceRequired"] = props::Bool(customName != std::nullopt);
+    auto owner = b.int64("OwnerNew");
+    j["PersistenceRequired"] = props::Bool(customName || owner);
   }
 
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
