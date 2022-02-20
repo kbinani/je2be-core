@@ -22,6 +22,10 @@ public:
     fEndPortalsInEndDimension.insert(p);
   }
 
+  void addEntities(Pos2i chunk, std::vector<std::shared_ptr<CompoundTag>> const &entities) {
+    std::copy(entities.begin(), entities.end(), std::back_inserter(fEntities[chunk]));
+  }
+
   void addStructures(mcfile::je::Chunk const &chunk) {
     if (!chunk.fStructures) {
       return;
@@ -78,29 +82,47 @@ public:
     wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
+  void drainEntities(std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
+    using namespace std;
+    for (auto const &it : fEntities) {
+      copy(it.second.begin(), it.second.end(), back_inserter(entities[it.first]));
+    }
+    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher>().swap(fEntities);
+  }
+
   void drain(WorldData &out) {
+    using namespace std;
     assert(fDim == out.fDim);
     if (fDim != out.fDim) {
       return;
     }
     fPortalBlocks.drain(out.fPortalBlocks);
+
     for (auto const &it : fMapItems) {
       out.fMapItems[it.first] = it.second;
     }
-    std::unordered_map<int32_t, std::shared_ptr<CompoundTag>>().swap(fMapItems);
+    unordered_map<int32_t, shared_ptr<CompoundTag>>().swap(fMapItems);
+
     for (auto const &it : fAutonomousEntities) {
       out.fAutonomousEntities.push_back(it);
     }
-    std::vector<std::shared_ptr<CompoundTag>>().swap(fAutonomousEntities);
+    vector<shared_ptr<CompoundTag>>().swap(fAutonomousEntities);
+
     for (auto const &pos : fEndPortalsInEndDimension) {
       out.fEndPortalsInEndDimension.insert(pos);
     }
-    std::unordered_set<Pos3i, Pos3iHasher>().swap(fEndPortalsInEndDimension);
+    unordered_set<Pos3i, Pos3iHasher>().swap(fEndPortalsInEndDimension);
+
     for (auto const &piece : fStructures) {
       out.fStructures.add(piece);
     }
     out.fStat.merge(fStat);
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
+
+    for (auto const &it : fEntities) {
+      copy(it.second.begin(), it.second.end(), back_inserter(out.fEntities[it.first]));
+    }
+    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher>().swap(fEntities);
   }
 
   std::shared_ptr<Tag> toNbt() const {
@@ -264,6 +286,7 @@ private:
   StructurePieceCollection fStructures;
   Statistics fStat;
   int64_t fMaxChunkLastUpdate = 0;
+  std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fEntities; //TODO: toNbt, FromNbt
 };
 
 } // namespace je2be::tobe

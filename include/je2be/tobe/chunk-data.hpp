@@ -12,7 +12,6 @@ public:
       putVersion(db);
       putData2D(db);
       putBlockEntity(db);
-      putEntity(db);
       putFinalizedState(db);
       putPendingTicks(db);
     }
@@ -27,16 +26,6 @@ private:
       db.put(key, leveldb::Slice((char const *)&v, sizeof(v)));
     } else {
       db.del(key);
-    }
-  }
-
-  void putEntity(DbInterface &db) const {
-    auto key = mcfile::be::DbKey::Entity(fChunkX, fChunkZ, fDimension);
-    if (fEntity.empty()) {
-      db.del(key);
-    } else {
-      leveldb::Slice d((char *)fEntity.data(), fEntity.size());
-      db.put(key, d);
     }
   }
 
@@ -137,7 +126,6 @@ public:
   std::vector<uint8_t> fData2D;
   std::map<int8_t, std::vector<uint8_t>> fSubChunks;
   std::vector<uint8_t> fBlockEntity;
-  std::vector<uint8_t> fEntity;
   std::optional<int32_t> fFinalizedState;
   std::vector<uint8_t> fPendingTicks;
 };

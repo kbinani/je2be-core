@@ -8,6 +8,7 @@ private:
     Context(JavaEditionMap const &mapInfo, WorldData &wd) : fMapInfo(mapInfo), fWorldData(wd) {}
 
     std::vector<std::shared_ptr<CompoundTag>> fPassengers;
+    std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
     JavaEditionMap const &fMapInfo;
     WorldData &fWorldData;
   };
@@ -39,32 +40,39 @@ private:
 public:
   explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
-  static std::vector<std::shared_ptr<CompoundTag>> From(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
+  struct Result {
+    std::vector<std::shared_ptr<CompoundTag>> fEntities;
+    std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
+  };
+
+  static Result From(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace std;
     using namespace props;
     auto id = tag.string("id");
+    Result result;
     if (!id) {
-      return vector<shared_ptr<CompoundTag>>();
+      return result;
     }
     static unique_ptr<unordered_map<string, Converter> const> const table(CreateEntityTable());
     auto found = table->find(*id);
-    vector<shared_ptr<CompoundTag>> ret;
     if (found == table->end()) {
       auto converted = Default(tag);
       if (converted) {
-        ret.push_back(converted);
+        result.fEntities.push_back(converted);
       }
-      return ret;
+      return result;
     }
     Context ctx(mapInfo, wd);
     auto converted = found->second(tag, ctx);
-    if (!ctx.fPassengers.empty()) {
-      copy(ctx.fPassengers.begin(), ctx.fPassengers.end(), back_inserter(ret));
-    }
     if (converted) {
-      ret.push_back(converted);
+      result.fEntities.push_back(converted);
     }
-    return ret;
+    copy(ctx.fPassengers.begin(), ctx.fPassengers.end(), back_inserter(result.fEntities));
+    for (auto const &it : ctx.fLeashKnots) {
+      auto const &leashKnots = it.second;
+      copy(leashKnots.begin(), leashKnots.end(), back_inserter(result.fLeashKnots[it.first]));
+    }
+    return result;
   }
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
@@ -1355,7 +1363,9 @@ private:
         e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
         e.fIdentifier = "minecraft:leash_knot";
         auto leashEntityData = e.toCompoundTag();
-        ctx.fPassengers.push_back(leashEntityData);
+        int cx = mcfile::Coordinate::ChunkFromBlock(*x);
+        int cz = mcfile::Coordinate::ChunkFromBlock(*z);
+        ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
 
         c->set("LeasherID", props::Long(leasherId));
       }
@@ -1855,12 +1865,12 @@ private:
             continue;
           }
 
-          auto entities = From(*comp, ctx.fMapInfo, ctx.fWorldData);
-          if (entities.empty()) {
+          auto ret = From(*comp, ctx.fMapInfo, ctx.fWorldData);
+          if (ret.fEntities.empty()) {
             continue;
           }
 
-          auto const &passenger = entities[0];
+          auto const &passenger = ret.fEntities[0];
           auto uid = passenger->int64("UniqueID");
           if (!uid) {
             continue;

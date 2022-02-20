@@ -17,7 +17,6 @@ public:
       fFinalizedState = 2;
     }
     wd.addStatChunkVersion(chunk.fDataVersion);
-    wd.addStat(1, fTileEntities.size(), fEntities.size());
     fChunkLastUpdate = chunk.fLastUpdate;
   }
 
@@ -26,9 +25,6 @@ public:
       return false;
     }
     if (!serializeBlockEntity(cd)) {
-      return false;
-    }
-    if (!serializeEntity(cd)) {
       return false;
     }
     if (!serializePendingTicks(cd)) {
@@ -111,13 +107,17 @@ private:
   void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace std;
     using namespace props;
+    Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
     for (auto e : chunk.fEntities) {
       auto c = e->asCompound();
       if (!c) {
         continue;
       }
-      auto converted = Entity::From(*c, mapInfo, wd);
-      copy_n(converted.begin(), converted.size(), back_inserter(fEntities));
+      auto result = Entity::From(*c, mapInfo, wd);
+      wd.addEntities(chunkPos, result.fEntities);
+      for (auto const &it : result.fLeashKnots) {
+        wd.addEntities(it.first, it.second);
+      }
     }
   }
 
@@ -302,24 +302,6 @@ private:
     return true;
   }
 
-  [[nodiscard]] bool serializeEntity(ChunkData &cd) {
-    using namespace std;
-    using namespace mcfile::stream;
-
-    if (fEntities.empty()) {
-      return true;
-    }
-    auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, {.fLittleEndian = true});
-    for (auto const &tag : fEntities) {
-      if (!tag->writeAsRoot(w)) {
-        return false;
-      }
-    }
-    s->drain(cd.fEntity);
-    return true;
-  }
-
   [[nodiscard]] bool serializePendingTicks(ChunkData &cd) {
     if (fLiquidTicks.empty() && fTileTicks.empty()) {
       return true;
@@ -356,7 +338,6 @@ private:
   std::optional<BiomeMapLegacy> fBiomeMapLegacy;
   std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
   std::vector<std::shared_ptr<CompoundTag>> fTileEntities;
-  std::vector<std::shared_ptr<CompoundTag>> fEntities;
   std::optional<int32_t> fFinalizedState;
   std::map<int, std::shared_ptr<CompoundTag>> fLiquidTicks;
   std::map<int, std::shared_ptr<CompoundTag>> fTileTicks;

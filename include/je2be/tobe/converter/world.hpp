@@ -18,7 +18,8 @@ public:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    return w.eachRegions([dim, &db, &ld, &done, progress, numTotalChunks, &options](shared_ptr<Region> const &region) {
+    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
+    bool ok = w.eachRegions([dim, &db, &ld, &done, progress, numTotalChunks, &options, &entities](shared_ptr<Region> const &region) {
       JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
@@ -40,6 +41,7 @@ public:
             continue;
           }
           result.fData->drain(ld);
+          result.fData->drainEntities(entities);
           if (!result.fOk) {
             return false;
           }
@@ -47,6 +49,10 @@ public:
       }
       return true;
     });
+    if (ok) {
+      ok = PutEntities(dim, db, entities);
+    }
+    return ok;
   }
 
   [[nodiscard]] static bool ConvertMultiThread(
@@ -65,8 +71,9 @@ public:
 
     auto queue = make_unique<hwm::task_queue>(concurrency);
     deque<future<Chunk::Result>> futures;
+    unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
 
-    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks, &options](shared_ptr<Region> const &region) {
+    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks, &options, &entities](shared_ptr<Region> const &region) {
       JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
@@ -85,6 +92,7 @@ public:
               continue;
             }
             result.fData->drain(ld);
+            result.fData->drainEntities(entities);
             if (!result.fOk) {
               return false;
             }
@@ -113,9 +121,38 @@ public:
         continue;
       }
       result.fData->drain(ld);
+      result.fData->drainEntities(entities);
+    }
+
+    if (completed) {
+      completed = PutEntities(dim, db, entities);
     }
 
     return completed;
+  }
+
+  static bool PutEntities(mcfile::Dimension d, DbInterface &db, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> const &entities) {
+    using namespace std;
+    using namespace mcfile::stream;
+    for (auto const &it : entities) {
+      Pos2i chunk = it.first;
+      auto buffer = make_shared<ByteStream>();
+      OutputStreamWriter writer(buffer, {.fLittleEndian = true});
+      for (auto const &tag : it.second) {
+        if (!tag->writeAsRoot(writer)) {
+          return false;
+        }
+      }
+      auto key = mcfile::be::DbKey::Entity(chunk.fX, chunk.fZ, d);
+      string value;
+      buffer->drain(value);
+      if (value.empty()) {
+        db.del(key);
+      } else {
+        db.put(key, leveldb::Slice(value));
+      }
+    }
+    return true;
   }
 };
 
