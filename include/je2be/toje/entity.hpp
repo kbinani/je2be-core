@@ -871,7 +871,7 @@ public:
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
     auto chances = std::make_shared<ListTag>(Tag::Type::Float);
-    auto identifier = b.string("identifier");
+    auto identifier = b.string("identifier", "");
     for (std::string key : {"Mainhand", "Offhand"}) {
       auto listB = b.listTag(key);
       std::shared_ptr<CompoundTag> itemJ;
@@ -885,11 +885,7 @@ public:
         itemJ = std::make_shared<CompoundTag>();
       }
       itemsJ->push_back(itemJ);
-      if (itemJ->string("id") == "minecraft:nautilus_shell" && identifier == "minecraft:drowned") {
-        chances->push_back(props::Float(2));
-      } else {
-        chances->push_back(props::Float(0.085));
-      }
+      chances->push_back(props::Float(HandDropChance(*itemJ, identifier)));
     }
     j["HandItems"] = itemsJ;
     j["HandDropChances"] = chances;
@@ -1434,6 +1430,20 @@ public:
     CopyFloatValues(recipeB, *ret, {{"priceMultiplierA", "priceMultiplier"}, {"priceMultiplierB"}});
 
     return ret;
+  }
+
+  static float HandDropChance(CompoundTag const &itemJ, std::string const &entityId) {
+    auto itemId = itemJ.string("id");
+    if (!itemId) {
+      return 0.085;
+    }
+    if (*itemId == "minecraft:nautilus_shell" && entityId == "minecraft:drowned") {
+      return 2;
+    }
+    if (*itemId == "minecraft:bone" && entityId == "minecraft:zombie") {
+      return 2;
+    }
+    return 0.085;
   }
 #pragma endregion
 
