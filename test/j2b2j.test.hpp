@@ -568,6 +568,7 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "foodTickTimer",
       "previousPlayerGameType",
       "recipeBook",
+      "HurtByTimestamp",
   };
   for (string rule : ignoredPlayerAttributes) {
     blacklist.insert("Player/" + rule);
