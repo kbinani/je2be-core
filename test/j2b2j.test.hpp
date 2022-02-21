@@ -596,28 +596,38 @@ TEST_CASE("j2b2j") {
   // java -> bedrock
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
-  je2be::tobe::InputOption io;
+  je2be::tobe::InputOption ioB;
+  je2be::toje::InputOption ioJ;
   bool multithread = true;
 #if 1
   int radius = 32;
   for (int cz = -radius; cz < radius; cz++) {
     for (int cx = -radius; cx < radius; cx++) {
-      io.fChunkFilter.insert(Pos2i(cx, cz));
+      Pos2i p(cx, cz);
+      ioB.fChunkFilter.insert(p);
+      ioJ.fChunkFilter.insert(p);
     }
   }
 #else
-  io.fDimensionFilter.insert(mcfile::Dimension::Overworld);
-  io.fChunkFilter.insert(Pos2i(0, 0));
+  {
+    mcfile::Dimension d = mcfile::Dimension::Overworld;
+    Pos2i p(0, 0);
+    ioB.fDimensionFilter.insert(d);
+    ioB.fChunkFilter.insert(p);
+    ioJ.fDimensionFilter.insert(d);
+    ioJ.fChunkFilter.insert(p);
+  }
   multithread = false;
 #endif
-  je2be::tobe::OutputOption oo;
-  je2be::tobe::Converter tobe(in, io, *outB, oo);
+  je2be::tobe::OutputOption ooB;
+  je2be::tobe::Converter tobe(in, ioB, *outB, ooB);
   CHECK(tobe.run(thread::hardware_concurrency()));
 
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   CHECK(outJ);
-  je2be::toje::Converter toje(*outB, *outJ);
+  je2be::toje::OutputOption ooJ;
+  je2be::toje::Converter toje(*outB, ioJ, *outJ, ooJ);
   CHECK(toje.run(thread::hardware_concurrency()));
 
   // Compare initial Java input and final Java output.
@@ -625,13 +635,13 @@ TEST_CASE("j2b2j") {
   CheckLevelDat(in / "level.dat", *outJ / "level.dat");
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-    if (!io.fDimensionFilter.empty()) {
-      if (io.fDimensionFilter.find(dim) == io.fDimensionFilter.end()) {
+    if (!ioB.fDimensionFilter.empty()) {
+      if (ioB.fDimensionFilter.find(dim) != ioB.fDimensionFilter.end()) {
         continue;
       }
     }
-    auto regionDirA = io.getWorldDirectory(*outJ, dim) / "region";
-    auto regionDirE = io.getWorldDirectory(in, dim) / "region";
+    auto regionDirA = ioB.getWorldDirectory(*outJ, dim) / "region";
+    auto regionDirE = ioB.getWorldDirectory(in, dim) / "region";
 
     for (auto it : fs::directory_iterator(regionDirA)) {
       if (!it.is_regular_file()) {
@@ -657,8 +667,8 @@ TEST_CASE("j2b2j") {
 
       for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
         for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
-          if (!io.fChunkFilter.empty()) {
-            if (io.fChunkFilter.find(Pos2i(cx, cz)) == io.fChunkFilter.end()) {
+          if (!ioB.fChunkFilter.empty()) {
+            if (ioB.fChunkFilter.find(Pos2i(cx, cz)) == ioB.fChunkFilter.end()) {
               continue;
             }
           }

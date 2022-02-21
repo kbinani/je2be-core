@@ -46,7 +46,7 @@ public:
           int cz = parsed->fTagged.fChunk.fZ;
           Pos2i c(cx, cz);
           if (!io.fChunkFilter.empty()) {
-            if (io.fChunkFilter.find(c) != io.fChunkFilter.end()) {
+            if (io.fChunkFilter.find(c) == io.fChunkFilter.end()) {
               continue;
             }
           }

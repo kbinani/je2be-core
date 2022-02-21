@@ -4,10 +4,10 @@ namespace je2be::toje {
 
 class Converter {
 public:
-  Converter(std::string const &input, std::string const &output) = delete;
-  Converter(std::string const &input, std::wstring const &output) = delete;
-  Converter(std::wstring const &input, std::string const &output) = delete;
-  Converter(std::wstring const &input, std::wstring const &output) = delete;
+  Converter(std::string const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
+  Converter(std::string const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
+  Converter(std::wstring const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
+  Converter(std::wstring const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
   Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo)
       : fInput(input), fInputOption(io), fOutput(output), fOutputOption(oo) {
   }
@@ -64,6 +64,11 @@ public:
     };
 
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+      if (!fInputOption.fDimensionFilter.empty()) {
+        if (fInputOption.fDimensionFilter.find(d) == fInputOption.fDimensionFilter.end()) {
+          continue;
+        }
+      }
       auto result = World::Convert(d, regions[d], *db, fOutput, concurrency, *bin, reportProgress);
       if (result) {
         result->mergeInto(*bin);
