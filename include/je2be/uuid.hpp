@@ -76,26 +76,34 @@ struct Uuid {
       << std::setw(2) << (int)(*((uint8_t *)&f3 + 0))
       << std::setw(2) << (int)(*((uint8_t *)&f3 + 1))
       << '-'
-      << std::setw(2) << (int)(*((uint8_t *)&f2 + 2))
-      << std::setw(2) << (int)(*((uint8_t *)&f2 + 3))
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 0))
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 1))
       << std::setw(2) << (int)(*((uint8_t *)&f3 + 2))
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 3));
+      << std::setw(2) << (int)(*((uint8_t *)&f3 + 3))
+      << std::setw(2) << (int)(*((uint8_t *)&f4 + 0))
+      << std::setw(2) << (int)(*((uint8_t *)&f4 + 1))
+      << std::setw(2) << (int)(*((uint8_t *)&f4 + 2))
+      << std::setw(2) << (int)(*((uint8_t *)&f4 + 3));
     return s.str();
   }
 
   std::shared_ptr<ListTag> toListTag() const {
     auto ret = std::make_shared<ListTag>(Tag::Type::Int);
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f1));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f2));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f3));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&f4));
+    uint32_t v1 = mcfile::Int32BEFromNative(*(int32_t *)&f1);
+    uint32_t v2 = mcfile::Int32BEFromNative(*(int32_t *)&f2);
+    uint32_t v3 = mcfile::Int32BEFromNative(*(int32_t *)&f3);
+    uint32_t v4 = mcfile::Int32BEFromNative(*(int32_t *)&f4);
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v1));
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v2));
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v3));
+    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v4));
     return ret;
   }
 
   std::shared_ptr<IntArrayTag> toIntArrayTag() const {
-    std::vector<int32_t> uuidValues({*(int32_t *)&f1, *(int32_t *)&f2, *(int32_t *)&f3, *(int32_t *)&f4});
+    uint32_t v1 = mcfile::Int32BEFromNative(*(int32_t *)&f1);
+    uint32_t v2 = mcfile::Int32BEFromNative(*(int32_t *)&f2);
+    uint32_t v3 = mcfile::Int32BEFromNative(*(int32_t *)&f3);
+    uint32_t v4 = mcfile::Int32BEFromNative(*(int32_t *)&f4);
+    std::vector<int32_t> uuidValues({*(int32_t *)&v1, *(int32_t *)&v2, *(int32_t *)&v3, *(int32_t *)&v4});
     return std::make_shared<IntArrayTag>(uuidValues);
   }
 
