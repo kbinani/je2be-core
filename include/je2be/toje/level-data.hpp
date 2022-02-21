@@ -86,7 +86,7 @@ public:
     return tag->compoundTag("");
   }
 
-  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, InputOption io, Context &ctx, int64_t &originalUuid) {
     using namespace std;
     using namespace props;
 
@@ -187,7 +187,7 @@ public:
       j["DragonFight"] = dragonFight;
     }
 
-    if (auto player = Player(db, ctx); player) {
+    if (auto player = Player(db, ctx, io.fLocalPlayer, originalUuid); player) {
       j["Player"] = player;
     }
 
@@ -196,7 +196,7 @@ public:
     return root;
   }
 
-  static std::shared_ptr<CompoundTag> Player(leveldb::DB &db, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Player(leveldb::DB &db, Context &ctx, std::optional<Uuid> uuid, int64_t &originalUuid) {
     std::string str;
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::LocalPlayer(), &str); !st.ok()) {
       return nullptr;
@@ -207,7 +207,7 @@ public:
       return nullptr;
     }
 
-    return Entity::LocalPlayer(*tag, ctx);
+    return Entity::LocalPlayer(*tag, ctx, uuid, originalUuid);
   }
 
   static std::shared_ptr<CompoundTag> DragonFight(leveldb::DB &db) {

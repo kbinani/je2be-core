@@ -8,8 +8,8 @@ public:
   Converter(std::string const &input, std::wstring const &output) = delete;
   Converter(std::wstring const &input, std::string const &output) = delete;
   Converter(std::wstring const &input, std::wstring const &output) = delete;
-  Converter(std::filesystem::path const &input, std::filesystem::path const &output)
-      : fInput(input), fOutput(output) {
+  Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo)
+      : fInput(input), fInputOption(io), fOutput(output), fOutputOption(oo) {
   }
 
   bool run(unsigned concurrency, Progress *progress = nullptr) {
@@ -34,11 +34,15 @@ public:
 
     int total = 0;
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
-    auto bin = Context::Init(*db, regions, total);
+    auto bin = Context::Init(*db, fInputOption, regions, total);
 
-    auto levelDat = LevelData::Import(*dat, *db, *bin);
+    int64_t originalUuid = -1;
+    auto levelDat = LevelData::Import(*dat, *db, fInputOption, *bin, ref(originalUuid));
     if (!levelDat) {
       return false;
+    }
+    if (fInputOption.fLocalPlayer && originalUuid != -1) {
+      bin->setLocalPlayerOriginalUuid(originalUuid, *fInputOption.fLocalPlayer);
     }
     if (!LevelData::Write(*levelDat, fOutput / "level.dat")) {
       return false;
@@ -110,8 +114,10 @@ private:
   }
 
 private:
-  std::filesystem::path fInput;
-  std::filesystem::path fOutput;
+  std::filesystem::path const fInput;
+  InputOption const fInputOption;
+  std::filesystem::path const fOutput;
+  OutputOption const fOutputOption;
 };
 
 } // namespace je2be::toje

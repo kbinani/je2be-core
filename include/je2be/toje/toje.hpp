@@ -7,6 +7,7 @@
 #include <je2be/toje/block-data.hpp>
 #include <je2be/toje/chunk-cache.hpp>
 
+#include <je2be/toje/options.hpp>
 #include <je2be/toje/map-info.hpp>
 #include <je2be/toje/structure-info.hpp>
 #include <je2be/toje/context.hpp>

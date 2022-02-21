@@ -117,7 +117,11 @@ public:
         Pos2i pos(cx, cz);
         entities[result->fUuid] = result->fEntity;
         if (result->fLeasherId) {
-          ctx.fLeashedEntities[result->fUuid] = {.fChunk = pos, .fLeasherId = *result->fLeasherId};
+          if (auto localPlayer = ctx.mapLocalPlayerId(*result->fLeasherId); localPlayer) {
+            // Nop here.
+          } else {
+            ctx.fLeashedEntities[result->fUuid] = {.fChunk = pos, .fLeasherId = *result->fLeasherId};
+          }
         }
         if (!result->fPassengers.empty()) {
           Context::VehicleEntity ve;

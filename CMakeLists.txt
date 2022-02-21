@@ -120,6 +120,7 @@ set(je2be_files
   include/je2be/toje/item.hpp
   include/je2be/toje/level-data.hpp
   include/je2be/toje/map-info.hpp
+  include/je2be/toje/options.hpp
   include/je2be/toje/progress.hpp
   include/je2be/toje/region.hpp
   include/je2be/toje/structure-info.hpp

@@ -10,7 +10,10 @@ public:
     std::unordered_set<Pos2i, Pos2iHasher> fChunks;
   };
 
-  static std::shared_ptr<Context> Init(leveldb::DB &db, std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions, int &totalChunks) {
+  static std::shared_ptr<Context> Init(leveldb::DB &db,
+                                       InputOption io,
+                                       std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
+                                       int &totalChunks) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
@@ -31,14 +34,24 @@ public:
       if (parsed->fIsTagged) {
         uint8_t tag = parsed->fTagged.fTag;
         Dimension d = parsed->fTagged.fDimension;
+        if (!io.fDimensionFilter.empty()) {
+          if (io.fDimensionFilter.find(d) == io.fDimensionFilter.end()) {
+            continue;
+          }
+        }
         switch (tag) {
         case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data3D):
         case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D): {
           int cx = parsed->fTagged.fChunk.fX;
           int cz = parsed->fTagged.fChunk.fZ;
+          Pos2i c(cx, cz);
+          if (!io.fChunkFilter.empty()) {
+            if (io.fChunkFilter.find(c) != io.fChunkFilter.end()) {
+              continue;
+            }
+          }
           int rx = Coordinate::RegionFromChunk(cx);
           int rz = Coordinate::RegionFromChunk(cz);
-          Pos2i c(cx, cz);
           Pos2i r(rx, rz);
           regions[d][r].fChunks.insert(c);
           totalChunks++;
@@ -224,7 +237,25 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    return std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo));
+    auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo));
+    for (auto const &it : fEntityIdMapping) {
+      ret->fEntityIdMapping.insert(it);
+    }
+    return ret;
+  }
+
+  void setLocalPlayerOriginalUuid(int64_t entityIdB, Uuid entityIdJ) {
+    if (entityIdB == -1) {
+      return;
+    }
+    fEntityIdMapping[entityIdB] = entityIdJ;
+  }
+
+  std::optional<Uuid> mapLocalPlayerId(int64_t entityIdB) const {
+    if (auto found = fEntityIdMapping.find(entityIdB); found != fEntityIdMapping.end()) {
+      return found->second;
+    }
+    return std::nullopt;
   }
 
 public:
@@ -247,6 +278,7 @@ private:
   std::shared_ptr<MapInfo const> fMapInfo;
   std::shared_ptr<StructureInfo const> fStructureInfo;
   std::unordered_set<int64_t> fUsedMapUuids;
+  std::unordered_map<int64_t, Uuid> fEntityIdMapping;
 };
 
 } // namespace je2be::toje

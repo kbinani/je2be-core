@@ -120,7 +120,8 @@ public:
     Result r;
 
     e->set("UUID", uuid.toIntArrayTag());
-    Passengers(uuid, entityB, r.fPassengers);
+    Passengers(uuid, entityB, ctx, r.fPassengers);
+    // TODO: When passenger is the local player.
 
     auto leasherId = entityB.int64("LeasherID", -1);
     if (leasherId != -1) {
@@ -432,7 +433,12 @@ public:
         if (!uuidB) {
           continue;
         }
-        Uuid uuidJ = Uuid::GenWithI64Seed(*uuidB);
+        Uuid uuidJ;
+        if (auto mapped = ctx.mapLocalPlayerId(*uuidB); mapped) {
+          uuidJ = *mapped;
+        } else {
+          uuidJ = Uuid::GenWithI64Seed(*uuidB);
+        }
         trusted->push_back(uuidJ.toIntArrayTag());
       }
     }
@@ -1082,7 +1088,12 @@ public:
     if (ownerNew == -1) {
       return;
     }
-    Uuid uuid = Uuid::GenWithI64Seed(*ownerNew);
+    Uuid uuid;
+    if (auto mapped = ctx.mapLocalPlayerId(*ownerNew); mapped) {
+      uuid = *mapped;
+    } else {
+      uuid = Uuid::GenWithI64Seed(*ownerNew);
+    }
     j["Owner"] = uuid.toIntArrayTag();
   }
 
@@ -1355,7 +1366,7 @@ public:
     }
   }
 
-  static void Passengers(Uuid const &uid, CompoundTag const &b, std::map<size_t, Uuid> &passengers) {
+  static void Passengers(Uuid const &uid, CompoundTag const &b, Context &ctx, std::map<size_t, Uuid> &passengers) {
     auto links = b.listTag("LinksTag");
     if (!links) {
       return;
@@ -1369,7 +1380,12 @@ public:
       if (!id) {
         continue;
       }
-      Uuid passengerUid = Uuid::GenWithI64Seed(*id);
+      Uuid passengerUid;
+      if (auto localPlayer = ctx.mapLocalPlayerId(*id); localPlayer) {
+        passengerUid = *localPlayer;
+      } else {
+        passengerUid = Uuid::GenWithI64Seed(*id);
+      }
       passengers[index] = passengerUid;
     }
   }
@@ -1446,7 +1462,7 @@ public:
   }
 #pragma endregion
 
-  static std::shared_ptr<CompoundTag> LocalPlayer(CompoundTag const &b, Context &ctx) {
+  static std::shared_ptr<CompoundTag> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid, int64_t &originalUuid) {
     using namespace props;
 
     auto ret = Base("", b, ctx);
@@ -1489,9 +1505,14 @@ public:
     }
 
     if (auto uidB = b.int64("UniqueID"); uidB) {
-      int64_t v = *uidB;
-      Uuid uidJ = Uuid::GenWithU64Seed(*(uint64_t *)&v);
-      j["UUID"] = uidJ.toIntArrayTag();
+      if (uuid) {
+        j["UUID"] = uuid->toIntArrayTag();
+      } else {
+        int64_t v = *uidB;
+        Uuid uidJ = Uuid::GenWithU64Seed(*(uint64_t *)&v);
+        j["UUID"] = uidJ.toIntArrayTag();
+      }
+      originalUuid = *uidB;
     }
 
     if (auto attributes = b.listTag("Attributes"); attributes) {
