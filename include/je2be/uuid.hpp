@@ -90,23 +90,23 @@ struct Uuid {
 
   std::shared_ptr<ListTag> toListTag() const {
     auto ret = std::make_shared<ListTag>(Tag::Type::Int);
-    uint32_t v1 = mcfile::Int32FromBE(*(uint32_t *)fData);
-    uint32_t v2 = mcfile::Int32FromBE(*((uint32_t *)fData + 1));
-    uint32_t v3 = mcfile::Int32FromBE(*((uint32_t *)fData + 2));
-    uint32_t v4 = mcfile::Int32FromBE(*((uint32_t *)fData + 3));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v1));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v2));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v3));
-    ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v4));
+    int32_t v1 = mcfile::I32FromBE(*(int32_t *)fData);
+    int32_t v2 = mcfile::I32FromBE(*((int32_t *)fData + 1));
+    int32_t v3 = mcfile::I32FromBE(*((int32_t *)fData + 2));
+    int32_t v4 = mcfile::I32FromBE(*((int32_t *)fData + 3));
+    ret->push_back(std::make_shared<IntTag>(v1));
+    ret->push_back(std::make_shared<IntTag>(v2));
+    ret->push_back(std::make_shared<IntTag>(v3));
+    ret->push_back(std::make_shared<IntTag>(v4));
     return ret;
   }
 
   std::shared_ptr<IntArrayTag> toIntArrayTag() const {
-    uint32_t v1 = mcfile::Int32FromBE(*(uint32_t *)fData);
-    uint32_t v2 = mcfile::Int32FromBE(*((uint32_t *)fData + 1));
-    uint32_t v3 = mcfile::Int32FromBE(*((uint32_t *)fData + 2));
-    uint32_t v4 = mcfile::Int32FromBE(*((uint32_t *)fData + 3));
-    std::vector<int32_t> uuidValues({*(int32_t *)&v1, *(int32_t *)&v2, *(int32_t *)&v3, *(int32_t *)&v4});
+    int32_t v1 = mcfile::I32FromBE(*(int32_t *)fData);
+    int32_t v2 = mcfile::I32FromBE(*((int32_t *)fData + 1));
+    int32_t v3 = mcfile::I32FromBE(*((int32_t *)fData + 2));
+    int32_t v4 = mcfile::I32FromBE(*((int32_t *)fData + 3));
+    std::vector<int32_t> uuidValues({v1, v2, v3, v4});
     return std::make_shared<IntArrayTag>(uuidValues);
   }
 
