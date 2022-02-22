@@ -37,7 +37,14 @@ public:
             }
           }
           fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir);
+          optional<Chunk::RootVehicle> rootVehicle;
+          if (ld.fRootVehicle && ld.fRootVehicle->fDim == dim && ld.fRootVehicle->fChunk == Pos2i(cx, cz)) {
+            Chunk::RootVehicle rv;
+            rv.fLocalPlayerUid = ld.fRootVehicle->fLocalPlayerUid;
+            rv.fVehicle = ld.fRootVehicle->fVehicle;
+            rootVehicle = rv;
+          }
+          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, rootVehicle);
           if (progress) {
             bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
             if (!continue_) {
@@ -118,7 +125,14 @@ public:
           }
 
           fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir)));
+          optional<Chunk::RootVehicle> rootVehicle;
+          if (ld.fRootVehicle && ld.fRootVehicle->fDim == dim && ld.fRootVehicle->fChunk == Pos2i(cx, cz)) {
+            Chunk::RootVehicle rv;
+            rv.fLocalPlayerUid = ld.fRootVehicle->fLocalPlayerUid;
+            rv.fVehicle = ld.fRootVehicle->fVehicle;
+            rootVehicle = rv;
+          }
+          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, rootVehicle)));
         }
       }
       return true;

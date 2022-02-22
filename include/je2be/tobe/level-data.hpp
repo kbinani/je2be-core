@@ -84,6 +84,14 @@ public:
   Structures fStructures;
   Statistics fStat;
   int64_t fMaxChunkLastUpdate = 0;
+
+  struct RootVehicle {
+    mcfile::Dimension fDim;
+    Pos2i fChunk;
+    int64_t fLocalPlayerUid;
+    std::shared_ptr<CompoundTag> fVehicle;
+  };
+  std::optional<RootVehicle> fRootVehicle;
 };
 
 } // namespace je2be::tobe

@@ -47,6 +47,12 @@ public:
         return nullopt;
       }
 
+      auto localPlayerData = LocalPlayerData(*data, *levelData);
+      if (localPlayerData) {
+        auto k = mcfile::be::DbKey::LocalPlayer();
+        db.put(k, *localPlayerData);
+      }
+
       uint32_t done = 0;
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
         if (!fInputOption.fDimensionFilter.empty()) [[unlikely]] {
@@ -66,12 +72,6 @@ public:
         if (!complete) {
           break;
         }
-      }
-
-      auto localPlayerData = LocalPlayerData(*data, *levelData);
-      if (localPlayerData) {
-        auto k = mcfile::be::DbKey::LocalPlayer();
-        db.put(k, *localPlayerData);
       }
 
       if (ok) {
@@ -110,15 +110,26 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    auto entity = Entity::LocalPlayer(*player, ld.fJavaEditionMap, wd);
-    if (!entity) {
+    auto converted = Entity::LocalPlayer(*player, ld.fJavaEditionMap, wd);
+    if (!converted) {
       return std::nullopt;
     }
     wd.drain(ld);
 
+    if (auto rootVehicle = player->compoundTag("RootVehicle"); rootVehicle) {
+      if (auto entity = rootVehicle->compoundTag("Entity"); entity) {
+        LevelData::RootVehicle rv;
+        rv.fDim = converted->fDimension;
+        rv.fLocalPlayerUid = converted->fUid;
+        rv.fVehicle = entity;
+        rv.fChunk = converted->fChunk;
+        ld.fRootVehicle = rv;
+      }
+    }
+
     auto s = std::make_shared<ByteStream>();
     OutputStreamWriter w(s, {.fLittleEndian = true});
-    if (!entity->writeAsRoot(w)) {
+    if (!converted->fEntity->writeAsRoot(w)) {
       return std::nullopt;
     }
 

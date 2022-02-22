@@ -41,7 +41,8 @@ public:
   explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
   struct Result {
-    std::vector<std::shared_ptr<CompoundTag>> fEntities;
+    std::shared_ptr<CompoundTag> fEntity;
+    std::vector<std::shared_ptr<CompoundTag>> fPassengers;
     std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
   };
 
@@ -58,16 +59,16 @@ public:
     if (found == table->end()) {
       auto converted = Default(tag);
       if (converted) {
-        result.fEntities.push_back(converted);
+        result.fEntity = converted;
       }
       return result;
     }
     Context ctx(mapInfo, wd);
     auto converted = found->second(tag, ctx);
     if (converted) {
-      result.fEntities.push_back(converted);
+      result.fEntity = converted;
     }
-    copy(ctx.fPassengers.begin(), ctx.fPassengers.end(), back_inserter(result.fEntities));
+    result.fPassengers.swap(ctx.fPassengers);
     for (auto const &it : ctx.fLeashKnots) {
       auto const &leashKnots = it.second;
       copy(leashKnots.begin(), leashKnots.end(), back_inserter(result.fLeashKnots[it.first]));
@@ -259,7 +260,13 @@ public:
     return tag;
   }
 
-  static std::shared_ptr<CompoundTag> LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
+  struct LocalPlayerResult {
+    std::shared_ptr<CompoundTag> fEntity;
+    int64_t fUid;
+    mcfile::Dimension fDimension;
+    Pos2i fChunk;
+  };
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
     using namespace std;
     using namespace mcfile;
     using namespace props;
@@ -267,8 +274,22 @@ public:
     Context ctx(mapInfo, wd);
     auto entity = LivingEntity(tag, ctx);
     if (!entity) {
-      return nullptr;
+      return nullopt;
     }
+    auto uuid = GetEntityUuid(tag);
+    if (!uuid) {
+      return nullopt;
+    }
+
+    auto pos = GetPos3d(tag, "Pos");
+    if (!pos) {
+      return nullopt;
+    }
+    // ng 1.620001f
+    // ok 1.62001f
+    double offset = 1.62001;
+    pos->fY += offset;
+    entity->set("Pos", pos->toF().toListTag());
 
     entity->set("format_version", String("1.12.0"));
     entity->set("identifier", String("minecraft:player"));
@@ -377,20 +398,13 @@ public:
     }
 
     auto dimensionString = tag.string("Dimension");
+    mcfile::Dimension dim = mcfile::Dimension::Overworld;
     if (dimensionString) {
       auto dimension = DimensionFromJavaString(*dimensionString);
       if (dimension) {
+        dim = *dimension;
         entity->set("DimensionId", Int(BedrockDimensionFromDimension(*dimension)));
       }
-    }
-
-    auto pos = GetPos3d(tag, "Pos");
-    if (pos) {
-      //ng 1.620001f
-      //ok 1.62001f
-      double offset = 1.62001;
-      pos->fY += offset;
-      entity->set("Pos", pos->toF().toListTag());
     }
 
     auto definitions = make_shared<ListTag>(Tag::Type::String);
@@ -423,7 +437,15 @@ public:
 
     CopyShortValues(tag, *entity, {{"SleepTimer"}});
 
-    return entity;
+    LocalPlayerResult result;
+    result.fEntity = entity;
+    result.fDimension = dim;
+    result.fUid = *uuid;
+    int cx = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fX));
+    int cz = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fZ));
+    result.fChunk = Pos2i(cx, cz);
+
+    return result;
   }
 
 private:
@@ -1868,11 +1890,11 @@ private:
           }
 
           auto ret = From(*comp, ctx.fMapInfo, ctx.fWorldData);
-          if (ret.fEntities.empty()) {
+          if (!ret.fEntity) {
             continue;
           }
 
-          auto const &passenger = ret.fEntities[0];
+          auto const &passenger = ret.fEntity;
           auto uid = passenger->int64("UniqueID");
           if (!uid) {
             continue;

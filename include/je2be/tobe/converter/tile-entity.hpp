@@ -567,10 +567,10 @@ private:
         entityData->set("UUID", uuid);
 
         auto converted = Entity::From(*entityData, mapInfo, wd);
-        if (converted.fEntities.empty()) {
+        if (!converted.fEntity) {
           continue;
         }
-        auto saveData = converted.fEntities[0];
+        auto saveData = converted.fEntity;
 
         auto outBee = make_shared<CompoundTag>();
         outBee->set("SaveData", saveData);

@@ -13,13 +13,19 @@ public:
     bool fOk;
   };
 
+  struct RootVehicle {
+    std::shared_ptr<CompoundTag> fVehicle;
+    int64_t fLocalPlayerUid;
+  };
+
 public:
   static Result Convert(mcfile::Dimension dim,
                         DbInterface &db,
                         mcfile::je::Region region,
                         int cx, int cz,
                         JavaEditionMap mapInfo,
-                        std::filesystem::path entitiesDir) {
+                        std::filesystem::path entitiesDir,
+                        std::optional<RootVehicle> rootVehicle) {
     using namespace std;
     using namespace mcfile;
     try {
@@ -38,7 +44,7 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, rootVehicle);
       return r;
     } catch (...) {
       Chunk::Result r;
@@ -54,7 +60,8 @@ public:
                                                   mcfile::Dimension dim,
                                                   DbInterface &db,
                                                   JavaEditionMap const &mapInfo,
-                                                  std::filesystem::path entitiesDir) {
+                                                  std::filesystem::path entitiesDir,
+                                                  std::optional<RootVehicle> rootVehicle) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -147,6 +154,29 @@ public:
     cdp.build(*chunk, mapInfo, *ret, entities);
     if (!cdp.serialize(cd)) {
       return nullptr;
+    }
+
+    if (rootVehicle) {
+      if (auto result = Entity::From(*rootVehicle->fVehicle, mapInfo, *ret); result.fEntity) {
+        if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
+          auto replace = make_shared<ListTag>(Tag::Type::Compound);
+          auto localPlayer = make_shared<CompoundTag>();
+          localPlayer->set("entityID", props::Long(rootVehicle->fLocalPlayerUid));
+          localPlayer->set("linkID", props::Int(0));
+          replace->push_back(localPlayer);
+          for (int i = 0; i < linksTag->size(); i++) {
+            auto item = linksTag->at(i);
+            if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
+              link->set("linkID", props::Int(i + 1));
+              replace->push_back(link);
+            }
+          }
+          result.fEntity->set("LinksTag", replace);
+        }
+        Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
+        entities[chunkPos].push_back(result.fEntity);
+        copy(result.fPassengers.begin(), result.fPassengers.end(), back_inserter(entities[chunkPos]));
+      }
     }
 
     if (!cd.put(db)) {

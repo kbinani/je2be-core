@@ -114,7 +114,11 @@ private:
         continue;
       }
       auto result = Entity::From(*c, mapInfo, wd);
-      copy(result.fEntities.begin(), result.fEntities.end(), back_inserter(entities[chunkPos]));
+      if (!result.fEntity) {
+        continue;
+      }
+      entities[chunkPos].push_back(result.fEntity);
+      copy(result.fPassengers.begin(), result.fPassengers.end(), back_inserter(entities[chunkPos]));
       for (auto const &it : result.fLeashKnots) {
         copy(it.second.begin(), it.second.end(), back_inserter(entities[it.first]));
       }
