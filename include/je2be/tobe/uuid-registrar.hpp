@@ -53,10 +53,7 @@ private:
 
   static int64_t FirstCandidate(Uuid uuid) {
     XXHash h;
-    h.update(&uuid.f1, sizeof(uuid.f1));
-    h.update(&uuid.f2, sizeof(uuid.f2));
-    h.update(&uuid.f3, sizeof(uuid.f3));
-    h.update(&uuid.f4, sizeof(uuid.f4));
+    h.update(uuid.fData, sizeof(uuid.fData));
     return h.digest();
   }
 

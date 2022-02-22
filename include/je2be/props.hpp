@@ -40,10 +40,10 @@ inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag const &tag,
   int64_t m = *most;
 
   Uuid uuid;
-  uuid.f1 = *(uint32_t *)&m;
-  uuid.f2 = *((uint32_t *)&m + 1);
-  uuid.f3 = *(uint32_t *)&l;
-  uuid.f4 = *((uint32_t *)&l + 1);
+  *(uint32_t *)uuid.fData = *(uint32_t *)&m;
+  *((uint32_t *)uuid.fData + 1) = *((uint32_t *)&m + 1);
+  *((uint32_t *)uuid.fData + 2) = *(uint32_t *)&l;
+  *((uint32_t *)uuid.fData + 3) = *((uint32_t *)&l + 1);
   return uuid;
 }
 
@@ -69,12 +69,7 @@ inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &tag, std
   int32_t c = value[2];
   int32_t d = value[3];
 
-  Uuid uuid;
-  uuid.f1 = *(uint32_t *)&a;
-  uuid.f2 = *(uint32_t *)&b;
-  uuid.f3 = *(uint32_t *)&c;
-  uuid.f4 = *(uint32_t *)&d;
-  return uuid;
+  return Uuid::FromInt32(a, b, c, d);
 }
 
 inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, std::string const &name) {
@@ -103,12 +98,7 @@ inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, st
     return nullopt;
   }
 
-  Uuid uuid;
-  uuid.f1 = (uint32_t)*a0;
-  uuid.f2 = (uint32_t)*b0;
-  uuid.f3 = (uint32_t)*c0;
-  uuid.f4 = (uint32_t)*d0;
-  return uuid;
+  return Uuid::FromInt32((int32_t)*a0, (int32_t)*b0, (int32_t)*c0, (int32_t)*d0);
 }
 
 inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName keyName) {

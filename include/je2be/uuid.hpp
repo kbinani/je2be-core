@@ -2,56 +2,59 @@
 
 namespace je2be {
 struct Uuid {
-  uint32_t f1;
-  uint32_t f2;
-  uint32_t f3;
-  uint32_t f4;
+  uint8_t fData[16];
 
   static Uuid Gen() {
     std::random_device r;
     return GenWithSeed(r());
   }
 
+  static Uuid FromData(uint8_t data[16]) {
+    Uuid u;
+    for (int i = 0; i < 16; i++) {
+      u.fData[i] = data[i];
+    }
+    return u;
+  }
+
+  static Uuid FromInt32(int32_t f1, int32_t f2, int32_t f3, int32_t f4) {
+    Uuid u;
+    *(uint32_t *)u.fData = *(uint32_t *)&f1;
+    *((uint32_t *)u.fData + 1) = *(uint32_t *)&f2;
+    *((uint32_t *)u.fData + 2) = *(uint32_t *)&f3;
+    *((uint32_t *)u.fData + 3) = *(uint32_t *)&f4;
+    return u;
+  }
+
   static Uuid GenWithSeed(size_t seed) {
-    std::uniform_int_distribution<uint32_t> distribution;
     std::mt19937 mt(seed);
+    return GenWithGenerator(mt);
+  }
+
+  template <class Generator>
+  static Uuid GenWithGenerator(Generator &g) {
+    std::uniform_int_distribution<uint32_t> distribution;
 
     Uuid ret;
-    ret.f1 = distribution(mt);
-    ret.f2 = distribution(mt);
-    ret.f3 = distribution(mt);
-    ret.f4 = distribution(mt);
+    *(uint32_t *)ret.fData = distribution(g);
+    *((uint32_t *)ret.fData + 1) = distribution(g);
+    *((uint32_t *)ret.fData + 2) = distribution(g);
+    *((uint32_t *)ret.fData + 3) = distribution(g);
 
     // Variant
-    *((uint8_t *)&ret.f1 + 8) &= 0xBF;
-    *((uint8_t *)&ret.f1 + 8) |= 0x80;
+    ret.fData[8] &= 0xBF;
+    ret.fData[8] |= 0x80;
 
     // Version
-    *((uint8_t *)&ret.f1 + 6) &= 0x4F;
-    *((uint8_t *)&ret.f1 + 6) |= 0x40;
+    ret.fData[6] &= 0x4F;
+    ret.fData[6] |= 0x40;
 
     return ret;
   }
 
   static Uuid GenWithU64Seed(uint64_t seed) {
-    std::uniform_int_distribution<uint32_t> distribution;
     std::mt19937_64 mt(seed);
-
-    Uuid ret;
-    ret.f1 = distribution(mt);
-    ret.f2 = distribution(mt);
-    ret.f3 = distribution(mt);
-    ret.f4 = distribution(mt);
-
-    // Variant
-    *((uint8_t *)&ret.f1 + 8) &= 0xBF;
-    *((uint8_t *)&ret.f1 + 8) |= 0x80;
-
-    // Version
-    *((uint8_t *)&ret.f1 + 6) &= 0x4F;
-    *((uint8_t *)&ret.f1 + 6) |= 0x40;
-
-    return ret;
+    return GenWithGenerator(mt);
   }
 
   static Uuid GenWithI64Seed(int64_t seed) {
@@ -62,35 +65,35 @@ struct Uuid {
   std::string toString() const {
     std::ostringstream s;
     s << std::hex << std::setfill('0')
-      << std::setw(2) << (int)(*((uint8_t *)&f1 + 0))
-      << std::setw(2) << (int)(*((uint8_t *)&f1 + 1))
-      << std::setw(2) << (int)(*((uint8_t *)&f1 + 2))
-      << std::setw(2) << (int)(*((uint8_t *)&f1 + 3))
+      << std::setw(2) << (int)fData[0]
+      << std::setw(2) << (int)fData[1]
+      << std::setw(2) << (int)fData[2]
+      << std::setw(2) << (int)fData[3]
       << '-'
-      << std::setw(2) << (int)(*((uint8_t *)&f2 + 0))
-      << std::setw(2) << (int)(*((uint8_t *)&f2 + 1))
+      << std::setw(2) << (int)fData[4]
+      << std::setw(2) << (int)fData[5]
       << '-'
-      << std::setw(2) << (int)(*((uint8_t *)&f2 + 2))
-      << std::setw(2) << (int)(*((uint8_t *)&f2 + 3))
+      << std::setw(2) << (int)fData[6]
+      << std::setw(2) << (int)fData[7]
       << '-'
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 0))
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 1))
+      << std::setw(2) << (int)fData[8]
+      << std::setw(2) << (int)fData[9]
       << '-'
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 2))
-      << std::setw(2) << (int)(*((uint8_t *)&f3 + 3))
-      << std::setw(2) << (int)(*((uint8_t *)&f4 + 0))
-      << std::setw(2) << (int)(*((uint8_t *)&f4 + 1))
-      << std::setw(2) << (int)(*((uint8_t *)&f4 + 2))
-      << std::setw(2) << (int)(*((uint8_t *)&f4 + 3));
+      << std::setw(2) << (int)fData[10]
+      << std::setw(2) << (int)fData[11]
+      << std::setw(2) << (int)fData[12]
+      << std::setw(2) << (int)fData[13]
+      << std::setw(2) << (int)fData[14]
+      << std::setw(2) << (int)fData[15];
     return s.str();
   }
 
   std::shared_ptr<ListTag> toListTag() const {
     auto ret = std::make_shared<ListTag>(Tag::Type::Int);
-    uint32_t v1 = mcfile::Int32BEFromNative(*(int32_t *)&f1);
-    uint32_t v2 = mcfile::Int32BEFromNative(*(int32_t *)&f2);
-    uint32_t v3 = mcfile::Int32BEFromNative(*(int32_t *)&f3);
-    uint32_t v4 = mcfile::Int32BEFromNative(*(int32_t *)&f4);
+    uint32_t v1 = mcfile::Int32FromBE(*(uint32_t *)fData);
+    uint32_t v2 = mcfile::Int32FromBE(*((uint32_t *)fData + 1));
+    uint32_t v3 = mcfile::Int32FromBE(*((uint32_t *)fData + 2));
+    uint32_t v4 = mcfile::Int32FromBE(*((uint32_t *)fData + 3));
     ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v1));
     ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v2));
     ret->push_back(std::make_shared<IntTag>(*(int32_t *)&v3));
@@ -99,10 +102,10 @@ struct Uuid {
   }
 
   std::shared_ptr<IntArrayTag> toIntArrayTag() const {
-    uint32_t v1 = mcfile::Int32BEFromNative(*(int32_t *)&f1);
-    uint32_t v2 = mcfile::Int32BEFromNative(*(int32_t *)&f2);
-    uint32_t v3 = mcfile::Int32BEFromNative(*(int32_t *)&f3);
-    uint32_t v4 = mcfile::Int32BEFromNative(*(int32_t *)&f4);
+    uint32_t v1 = mcfile::Int32FromBE(*(uint32_t *)fData);
+    uint32_t v2 = mcfile::Int32FromBE(*((uint32_t *)fData + 1));
+    uint32_t v3 = mcfile::Int32FromBE(*((uint32_t *)fData + 2));
+    uint32_t v4 = mcfile::Int32FromBE(*((uint32_t *)fData + 3));
     std::vector<int32_t> uuidValues({*(int32_t *)&v1, *(int32_t *)&v2, *(int32_t *)&v3, *(int32_t *)&v4});
     return std::make_shared<IntArrayTag>(uuidValues);
   }
@@ -117,10 +120,10 @@ struct Uuid {
     int32_t f3 = values[2];
     int32_t f4 = values[3];
     Uuid u;
-    u.f1 = *(uint32_t *)&f1;
-    u.f2 = *(uint32_t *)&f2;
-    u.f3 = *(uint32_t *)&f3;
-    u.f4 = *(uint32_t *)&f4;
+    *(int32_t *)u.fData = values[0];
+    *((int32_t *)u.fData + 1) = values[1];
+    *((int32_t *)u.fData + 2) = values[2];
+    *((int32_t *)u.fData + 3) = values[3];
     return u;
   }
 };
@@ -128,20 +131,21 @@ struct Uuid {
 struct UuidHasher {
   size_t operator()(Uuid const &k) const {
     size_t res = 17;
-    res = res * 31 + std::hash<uint32_t>{}(k.f1);
-    res = res * 31 + std::hash<uint32_t>{}(k.f2);
-    res = res * 31 + std::hash<uint32_t>{}(k.f3);
-    res = res * 31 + std::hash<uint32_t>{}(k.f4);
+    for (int i = 0; i < 16; i++) {
+      res = res * 31 + std::hash<uint8_t>{}(k.fData[i]);
+    }
     return res;
   };
 };
 
 struct UuidPred {
   bool operator()(Uuid const &a, Uuid const &b) const {
-    return a.f1 == b.f1 &&
-           a.f2 == b.f2 &&
-           a.f3 == b.f3 &&
-           a.f4 == b.f4;
+    for (int i = 0; i < 16; i++) {
+      if (a.fData[i] != b.fData[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 };
 } // namespace je2be
