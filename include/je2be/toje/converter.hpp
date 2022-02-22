@@ -36,15 +36,8 @@ public:
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
     auto bin = Context::Init(*db, fInputOption, regions, total);
 
-    int64_t originalUuid = -1;
-    auto levelDat = LevelData::Import(*dat, *db, fInputOption, *bin, ref(originalUuid));
+    auto levelDat = LevelData::Import(*dat, *db, fInputOption, *bin);
     if (!levelDat) {
-      return false;
-    }
-    if (fInputOption.fLocalPlayer && originalUuid != -1) {
-      bin->setLocalPlayerOriginalUuid(originalUuid, *fInputOption.fLocalPlayer);
-    }
-    if (!LevelData::Write(*levelDat, fOutput / "level.dat")) {
       return false;
     }
 
@@ -78,6 +71,37 @@ public:
       if (cancelRequested.load()) {
         return false;
       }
+    }
+
+    if (auto rootVehicle = bin->drainRootVehicle(); rootVehicle) {
+      Uuid vehicleUuid = rootVehicle->first;
+      auto entity = rootVehicle->second;
+      if (auto data = levelDat->compoundTag("Data"); data) {
+        if (auto player = data->compoundTag("Player"); player) {
+          if (auto vehiclePos = props::GetPos3d(*entity, "Pos"); vehiclePos) {
+            if (auto playerPos = props::GetPos3d(*player, "Pos"); playerPos) {
+              auto vehicleId = entity->string("id", "");
+              if (vehicleId == "minecraft:boat") {
+                playerPos->fY = vehiclePos->fY - 0.45;
+              } else if (vehicleId == "minecraft:minecart") {
+                if (entity->boolean("OnGround", false)) {
+                  playerPos->fY = vehiclePos->fY - 0.35;
+                } else {
+                  playerPos->fY = vehiclePos->fY - 0.2875;
+                }
+              }
+              player->set("Pos", playerPos->toListTag());
+            }
+          }
+          auto rootVehicleTag = make_shared<CompoundTag>();
+          rootVehicleTag->set("Entity", entity);
+          rootVehicleTag->set("Attach", vehicleUuid.toIntArrayTag());
+          player->set("RootVehicle", rootVehicleTag);
+        }
+      }
+    }
+    if (!LevelData::Write(*levelDat, fOutput / "level.dat")) {
+      return false;
     }
 
     return bin->postProcess(fOutput, *db);

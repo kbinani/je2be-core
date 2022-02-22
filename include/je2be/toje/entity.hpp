@@ -112,16 +112,19 @@ public:
     if (found == table->end()) {
       return std::nullopt;
     }
+
     auto e = found->second(*id, entityB, ctx);
     if (!e) {
       return std::nullopt;
     }
+    e->set("UUID", uuid.toIntArrayTag());
 
     Result r;
 
-    e->set("UUID", uuid.toIntArrayTag());
-    Passengers(uuid, entityB, ctx, r.fPassengers);
-    // TODO: When passenger is the local player.
+    auto st = Passengers(uuid, entityB, ctx, r.fPassengers);
+    if (st == PassengerStatus::ContainsLocalPlayer) {
+      ctx.setRootVehicle(uuid);
+    }
 
     auto leasherId = entityB.int64("LeasherID", -1);
     if (leasherId != -1) {
@@ -1366,10 +1369,15 @@ public:
     }
   }
 
-  static void Passengers(Uuid const &uid, CompoundTag const &b, Context &ctx, std::map<size_t, Uuid> &passengers) {
+  enum class PassengerStatus {
+    Normal,
+    ContainsLocalPlayer,
+  };
+  [[nodiscard]] static PassengerStatus Passengers(Uuid const &uid, CompoundTag const &b, Context &ctx, std::map<size_t, Uuid> &passengers) {
     auto links = b.listTag("LinksTag");
+    PassengerStatus st = PassengerStatus::Normal;
     if (!links) {
-      return;
+      return st;
     }
     for (size_t index = 0; index < links->size(); index++) {
       auto link = links->at(index)->asCompound();
@@ -1383,11 +1391,13 @@ public:
       Uuid passengerUid;
       if (auto localPlayer = ctx.mapLocalPlayerId(*id); localPlayer) {
         passengerUid = *localPlayer;
+        st = PassengerStatus::ContainsLocalPlayer;
       } else {
         passengerUid = Uuid::GenWithI64Seed(*id);
       }
       passengers[index] = passengerUid;
     }
+    return st;
   }
 
   static std::shared_ptr<CompoundTag> BuyItem(CompoundTag const &recipeB, std::string const &suffix, Context &ctx) {
@@ -1462,11 +1472,19 @@ public:
   }
 #pragma endregion
 
-  static std::shared_ptr<CompoundTag> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid, int64_t &originalUuid) {
+  struct LocalPlayerData {
+    std::shared_ptr<CompoundTag> fEntity;
+    int64_t fEntityIdBedrock;
+    Uuid fEntityIdJava;
+  };
+
+  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
     using namespace props;
 
-    auto ret = Base("", b, ctx);
-    CompoundTag &j = *ret;
+    LocalPlayerData data;
+
+    data.fEntity = Base("", b, ctx);
+    CompoundTag &j = *data.fEntity;
 
     AbsorptionAmount(b, j, ctx);
     Brain(b, j, ctx);
@@ -1504,16 +1522,21 @@ public:
       j["Pos"] = posJ.toListTag();
     }
 
-    if (auto uidB = b.int64("UniqueID"); uidB) {
-      if (uuid) {
-        j["UUID"] = uuid->toIntArrayTag();
-      } else {
-        int64_t v = *uidB;
-        Uuid uidJ = Uuid::GenWithU64Seed(*(uint64_t *)&v);
-        j["UUID"] = uidJ.toIntArrayTag();
-      }
-      originalUuid = *uidB;
+    auto uidB = b.int64("UniqueID");
+    if (!uidB) {
+      return std::nullopt;
     }
+    Uuid uidJ;
+    if (uuid) {
+      uidJ = *uuid;
+    } else {
+      int64_t v = *uidB;
+      uidJ = Uuid::GenWithU64Seed(*(uint64_t *)&v);
+    }
+    j["UUID"] = uidJ.toIntArrayTag();
+
+    data.fEntityIdBedrock = *uidB;
+    data.fEntityIdJava = uidJ;
 
     if (auto attributes = b.listTag("Attributes"); attributes) {
       for (auto const &it : *attributes) {
@@ -1552,9 +1575,9 @@ public:
       j["abilities"] = abilitiesJ;
     }
 
-    ret->erase("id");
+    data.fEntity->erase("id");
 
-    return ret;
+    return data;
   }
 
   static std::unordered_map<std::string, Converter> const *GetTable() {

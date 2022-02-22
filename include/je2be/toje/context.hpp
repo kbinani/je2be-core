@@ -140,6 +140,9 @@ public:
     for (auto const &it : fLeashKnots) {
       other.fLeashKnots[it.first] = it.second;
     }
+    if (!other.fRootVehicle && fRootVehicle) {
+      other.fRootVehicle = fRootVehicle;
+    }
   }
 
   bool postProcess(std::filesystem::path root, leveldb::DB &db) {
@@ -238,22 +241,67 @@ public:
 
   std::shared_ptr<Context> make() const {
     auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo));
-    for (auto const &it : fEntityIdMapping) {
-      ret->fEntityIdMapping.insert(it);
+    ret->fLocalPlayer = fLocalPlayer;
+    if (fRootVehicle) {
+      ret->fRootVehicle = *fRootVehicle;
     }
     return ret;
   }
 
-  void setLocalPlayerOriginalUuid(int64_t entityIdB, Uuid entityIdJ) {
-    if (entityIdB == -1) {
-      return;
-    }
-    fEntityIdMapping[entityIdB] = entityIdJ;
+  void setLocalPlayerIds(int64_t entityIdB, Uuid entityIdJ) {
+    LocalPlayer lp;
+    lp.fBedrockId = entityIdB;
+    lp.fJavaId = entityIdJ;
+    fLocalPlayer = lp;
   }
 
   std::optional<Uuid> mapLocalPlayerId(int64_t entityIdB) const {
-    if (auto found = fEntityIdMapping.find(entityIdB); found != fEntityIdMapping.end()) {
-      return found->second;
+    if (fLocalPlayer && fLocalPlayer->fBedrockId == entityIdB) {
+      return fLocalPlayer->fJavaId;
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  bool isLocalPlayerId(Uuid uuid) const {
+    if (fLocalPlayer) {
+      return UuidPred{}(uuid, fLocalPlayer->fJavaId);
+    } else {
+      return false;
+    }
+  }
+
+  void setRootVehicle(Uuid vehicleUid) {
+    RootVehicle rv;
+    rv.fUid = vehicleUid;
+    fRootVehicle = rv;
+  }
+
+  void setRootVehicleEntity(std::shared_ptr<CompoundTag> const &vehicleEntity) {
+    assert(fRootVehicle);
+    if (!fRootVehicle) {
+      return;
+    }
+    fRootVehicle->fVehicle = vehicleEntity;
+  }
+
+  bool isRootVehicle(Uuid uuid) const {
+    if (fRootVehicle) {
+      return UuidPred{}(uuid, fRootVehicle->fUid);
+    } else {
+      return false;
+    }
+  }
+
+  std::optional<std::pair<Uuid, std::shared_ptr<CompoundTag>>> drainRootVehicle() {
+    if (!fRootVehicle) {
+      return std::nullopt;
+    }
+    auto uid = fRootVehicle->fUid;
+    auto vehicle = fRootVehicle->fVehicle;
+    fRootVehicle = std::nullopt;
+    if (vehicle) {
+      return std::make_pair(uid, vehicle);
     }
     return std::nullopt;
   }
@@ -278,7 +326,18 @@ private:
   std::shared_ptr<MapInfo const> fMapInfo;
   std::shared_ptr<StructureInfo const> fStructureInfo;
   std::unordered_set<int64_t> fUsedMapUuids;
-  std::unordered_map<int64_t, Uuid> fEntityIdMapping;
+
+  struct LocalPlayer {
+    int64_t fBedrockId;
+    Uuid fJavaId;
+  };
+  std::optional<LocalPlayer> fLocalPlayer;
+
+  struct RootVehicle {
+    Uuid fUid;
+    std::shared_ptr<CompoundTag> fVehicle;
+  };
+  std::optional<RootVehicle> fRootVehicle;
 };
 
 } // namespace je2be::toje

@@ -227,7 +227,7 @@ public:
             continue;
           }
           entitiesInChunk->fValue.erase(remove(entitiesInChunk->fValue.begin(), entitiesInChunk->fValue.end(), passenger));
-          for (auto k : passengers) {
+          for (auto const &k : passengers) {
             if (UuidPred{}(k.second, passengerId)) {
               collectedPassengers[k.first] = passenger;
               break;
@@ -267,6 +267,12 @@ public:
           }
         }
         passengersTag->fValue[index] = passenger;
+      }
+
+      // Remove vehicle from entities if it is a root vehicle
+      if (ctx.isRootVehicle(vehicleId)) {
+        entities->fValue.erase(remove(entities->fValue.begin(), entities->fValue.end(), vehicle));
+        ctx.setRootVehicleEntity(vehicle);
       }
     }
     return true;

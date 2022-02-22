@@ -147,7 +147,9 @@ public:
     AttachLeash(ctx, entities);
 
     for (auto const &it : entities) {
-      j->fEntities.push_back(it.second);
+      if (!ctx.isRootVehicle(it.first)) {
+        j->fEntities.push_back(it.second);
+      }
     }
 
     for (mcfile::be::PendingTick const &pt : b.fPendingTicks) {
@@ -297,6 +299,10 @@ public:
       for (auto const &passenger : passengers) {
         size_t passengerIndex = passenger.first;
         Uuid passengerUuid = passenger.second;
+        if (ctx.isLocalPlayerId(passengerUuid)) {
+          resolvedPassengers.insert(passengerIndex);
+          continue;
+        }
         auto f = entities.find(passengerUuid);
         if (f == entities.end()) {
           continue;
@@ -311,6 +317,11 @@ public:
       }
       if (passengers.empty()) {
         resolvedVehicleEntities.insert(vehicleUuid);
+        if (ctx.isRootVehicle(vehicleUuid)) {
+          ctx.setRootVehicle(vehicleUuid);
+          ctx.setRootVehicleEntity(vehicle);
+          entities.erase(vehicleUuid);
+        }
       }
     }
     for (Uuid resolvedVehicleEntity : resolvedVehicleEntities) {

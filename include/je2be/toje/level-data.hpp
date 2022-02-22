@@ -86,7 +86,7 @@ public:
     return tag->compoundTag("");
   }
 
-  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, InputOption io, Context &ctx, int64_t &originalUuid) {
+  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, InputOption io, Context &ctx) {
     using namespace std;
     using namespace props;
 
@@ -187,8 +187,9 @@ public:
       j["DragonFight"] = dragonFight;
     }
 
-    if (auto player = Player(db, ctx, io.fLocalPlayer, originalUuid); player) {
-      j["Player"] = player;
+    if (auto playerData = Player(db, ctx, io.fLocalPlayer); playerData) {
+      ctx.setLocalPlayerIds(playerData->fEntityIdBedrock, playerData->fEntityIdJava);
+      j["Player"] = playerData->fEntity;
     }
 
     auto root = std::make_shared<CompoundTag>();
@@ -196,18 +197,18 @@ public:
     return root;
   }
 
-  static std::shared_ptr<CompoundTag> Player(leveldb::DB &db, Context &ctx, std::optional<Uuid> uuid, int64_t &originalUuid) {
+  static std::optional<Entity::LocalPlayerData> Player(leveldb::DB &db, Context &ctx, std::optional<Uuid> uuid) {
     std::string str;
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::LocalPlayer(), &str); !st.ok()) {
-      return nullptr;
+      return std::nullopt;
     }
 
     auto tag = CompoundTag::Read(str, {.fLittleEndian = true});
     if (!tag) {
-      return nullptr;
+      return std::nullopt;
     }
 
-    return Entity::LocalPlayer(*tag, ctx, uuid, originalUuid);
+    return Entity::LocalPlayer(*tag, ctx, uuid);
   }
 
   static std::shared_ptr<CompoundTag> DragonFight(leveldb::DB &db) {
