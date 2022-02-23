@@ -224,6 +224,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Offers/Recipes/*/sell/tag/map",
       "EatingHaystack",
       "PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
+      "Leash/UUID",
 
       "Passengers/*/UUID",
       "Passengers/*/Pos",

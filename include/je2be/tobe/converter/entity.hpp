@@ -1384,9 +1384,10 @@ private:
       auto x = leash->int32("X");
       auto y = leash->int32("Y");
       auto z = leash->int32("Z");
-      auto uuid = GetEntityUuid(tag);
-      if (x && y && z && uuid) {
-        int64_t leasherId = UuidRegistrar::LeasherIdFor(*uuid);
+      auto leashedUuid = GetEntityUuid(tag);
+      auto leasherUuid = props::GetUuid(*leash, {.fIntArray = "UUID"});
+      if (x && y && z && leashedUuid) {
+        int64_t leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
 
         Entity e(leasherId);
         e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
@@ -1397,6 +1398,9 @@ private:
         ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
 
         c->set("LeasherID", props::Long(leasherId));
+      } else if (leasherUuid) {
+        auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
+        c->set("LeasherID", props::Long(leasherUuidB));
       }
     }
 
