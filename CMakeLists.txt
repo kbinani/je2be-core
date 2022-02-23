@@ -68,6 +68,7 @@ set(je2be_files
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
+  include/je2be/tobe/context.hpp
   include/je2be/tobe/converter/axolotl.hpp
   include/je2be/tobe/converter/biome-map-legacy.hpp
   include/je2be/tobe/converter/block-data.hpp

@@ -40,6 +40,7 @@
 #include <je2be/tobe/level-data.hpp>
 #include <je2be/tobe/world-data.hpp>
 #include <je2be/tobe/chunk-data.hpp>
+#include <je2be/tobe/context.hpp>
 
 #include <je2be/tobe/converter/item.hpp>
 #include <je2be/tobe/converter/entity.hpp>
