@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class LevelData {
 public:
-  LevelData(std::filesystem::path const &input, Options const &opt) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt) {}
+  LevelData(std::filesystem::path const &input, Options const &opt, int64_t gameTick) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick) {}
 
   [[nodiscard]] bool put(DbInterface &db, CompoundTag const &javaLevelData) {
     if (!fPortals.putInto(db)) {
@@ -84,6 +84,7 @@ public:
   Structures fStructures;
   Statistics fStat;
   int64_t fMaxChunkLastUpdate = 0;
+  int64_t const fGameTick;
 
   struct RootVehicle {
     mcfile::Dimension fDim;

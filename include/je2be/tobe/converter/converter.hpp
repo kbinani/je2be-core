@@ -40,14 +40,14 @@ public:
 
     bool ok = Datapacks::Import(fInput, fOutput);
 
-    auto levelData = std::make_unique<LevelData>(fInput, fOptions);
+    auto levelData = std::make_unique<LevelData>(fInput, fOptions, level.fCurrentTick);
     {
       RawDb db(dbPath, concurrency);
       if (!db.valid()) {
         return nullopt;
       }
 
-      auto localPlayerData = LocalPlayerData(*data, *levelData, level.fTime);
+      auto localPlayerData = LocalPlayerData(*data, *levelData);
       if (localPlayerData) {
         auto k = mcfile::be::DbKey::LocalPlayer();
         db.put(k, *localPlayerData);
@@ -97,7 +97,7 @@ public:
     return levelData->fStat;
   }
 
-  static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld, int64_t time) {
+  static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld) {
     using namespace mcfile::stream;
 
     auto data = tag.compoundTag("Data");
@@ -110,8 +110,8 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    Context ctx(ld.fJavaEditionMap, wd);
-    auto converted = Entity::LocalPlayer(*player, ctx, time);
+    Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick);
+    auto converted = Entity::LocalPlayer(*player, ctx);
     if (!converted) {
       return std::nullopt;
     }

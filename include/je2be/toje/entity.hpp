@@ -732,7 +732,11 @@ public:
         }
       ],
   */
-    j["DespawnDelay"] = props::Int(0);
+    int despawnDelay = 0;
+    if (auto timestamp = b.int64("TimeStamp"); timestamp) {
+      despawnDelay = std::max<int64_t>(0, *timestamp - ctx.fGameTick);
+    }
+    j["DespawnDelay"] = props::Int(despawnDelay);
   }
 
   static void Wither(CompoundTag const &b, CompoundTag &j, Context &ctx) {

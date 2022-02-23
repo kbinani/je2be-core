@@ -564,7 +564,7 @@ private:
         auto uuid = make_shared<IntArrayTag>(uuidSource);
         entityData->set("UUID", uuid);
 
-        auto converted = Entity::From(*entityData, ctx, nullopt);
+        auto converted = Entity::From(*entityData, ctx);
         if (!converted.fEntity) {
           continue;
         }

@@ -113,7 +113,7 @@ private:
       if (!c) {
         continue;
       }
-      auto result = Entity::From(*c, ctx, chunk.fLastUpdate);
+      auto result = Entity::From(*c, ctx);
       if (!result.fEntity) {
         continue;
       }

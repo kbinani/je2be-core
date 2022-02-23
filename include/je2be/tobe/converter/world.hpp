@@ -44,7 +44,7 @@ public:
             rv.fVehicle = ld.fRootVehicle->fVehicle;
             rootVehicle = rv;
           }
-          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, rootVehicle);
+          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, rootVehicle, ld.fGameTick);
           if (progress) {
             bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
             if (!continue_) {
@@ -132,7 +132,7 @@ public:
             rv.fVehicle = ld.fRootVehicle->fVehicle;
             rootVehicle = rv;
           }
-          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, rootVehicle)));
+          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, rootVehicle, ld.fGameTick)));
         }
       }
       return true;

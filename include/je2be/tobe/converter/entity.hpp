@@ -5,12 +5,11 @@ namespace je2be::tobe {
 class Entity {
 private:
   struct ConverterContext {
-    explicit ConverterContext(Context const &ctx, std::optional<int64_t> chunkLastUpdated) : fCtx(ctx), fChunkLastUpdated(chunkLastUpdated) {}
+    explicit ConverterContext(Context const &ctx) : fCtx(ctx) {}
 
     Context const &fCtx;
     std::vector<std::shared_ptr<CompoundTag>> fPassengers;
     std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
-    std::optional<int64_t> const fChunkLastUpdated;
   };
   using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const &, ConverterContext &)>;
 
@@ -45,7 +44,7 @@ public:
     std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
   };
 
-  static Result From(CompoundTag const &tag, Context const &ctx, std::optional<int64_t> chunkLastUpdated) {
+  static Result From(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
     using namespace props;
     auto id = tag.string("id");
@@ -62,7 +61,7 @@ public:
       }
       return result;
     }
-    ConverterContext cctx(ctx, chunkLastUpdated);
+    ConverterContext cctx(ctx);
     auto converted = found->second(tag, cctx);
     if (converted) {
       result.fEntity = converted;
@@ -265,12 +264,12 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx, int64_t time) {
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
     using namespace mcfile;
     using namespace props;
 
-    ConverterContext cctx(ctx, time);
+    ConverterContext cctx(ctx);
     auto entity = LivingEntity(tag, cctx);
     if (!entity) {
       return nullopt;
@@ -1218,8 +1217,8 @@ private:
   }
 
   static void WanderingTrader(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    if (auto despawnDelay = tag.int32("DespawnDelay"); despawnDelay && ctx.fChunkLastUpdated) {
-      int64_t timestamp = *ctx.fChunkLastUpdated + *despawnDelay;
+    if (auto despawnDelay = tag.int32("DespawnDelay"); despawnDelay) {
+      int64_t timestamp = ctx.fCtx.fGameTick + *despawnDelay;
       c["TimeStamp"] = props::Long(timestamp);
     }
   }
@@ -1895,7 +1894,7 @@ private:
             continue;
           }
 
-          auto ret = From(*comp, ctx.fCtx, ctx.fChunkLastUpdated);
+          auto ret = From(*comp, ctx.fCtx);
           if (!ret.fEntity) {
             continue;
           }

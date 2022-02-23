@@ -3,7 +3,7 @@
 namespace je2be::toje {
 
 class Context {
-  Context(std::shared_ptr<MapInfo const> const &mapInfo, std::shared_ptr<StructureInfo const> const &structureInfo) : fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
+  Context(std::shared_ptr<MapInfo const> const &mapInfo, std::shared_ptr<StructureInfo const> const &structureInfo, int64_t gameTick) : fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick) {}
 
 public:
   struct ChunksInRegion {
@@ -13,7 +13,8 @@ public:
   static std::shared_ptr<Context> Init(leveldb::DB &db,
                                        Options opt,
                                        std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
-                                       int &totalChunks) {
+                                       int &totalChunks,
+                                       int64_t gameTick) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
@@ -123,7 +124,7 @@ public:
       }
     }
 
-    return std::shared_ptr<Context>(new Context(mapInfo, structureInfo));
+    return std::shared_ptr<Context>(new Context(mapInfo, structureInfo, gameTick));
   }
 
   void markMapUuidAsUsed(int64_t uuid) {
@@ -240,7 +241,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo));
+    auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo, fGameTick));
     ret->fLocalPlayer = fLocalPlayer;
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
@@ -321,6 +322,8 @@ public:
 
   std::unordered_map<int64_t, Pos3i> fLeashKnots;
   std::unordered_map<Uuid, Pos2i, UuidHasher, UuidPred> fEntities;
+
+  int64_t const fGameTick;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

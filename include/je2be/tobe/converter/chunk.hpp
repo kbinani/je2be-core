@@ -25,7 +25,8 @@ public:
                         int cx, int cz,
                         JavaEditionMap mapInfo,
                         std::filesystem::path entitiesDir,
-                        std::optional<RootVehicle> rootVehicle) {
+                        std::optional<RootVehicle> rootVehicle,
+                        int64_t gameTick) {
     using namespace std;
     using namespace mcfile;
     try {
@@ -44,7 +45,7 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, rootVehicle);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, rootVehicle, gameTick);
       return r;
     } catch (...) {
       Chunk::Result r;
@@ -61,7 +62,8 @@ public:
                                                   DbInterface &db,
                                                   JavaEditionMap const &mapInfo,
                                                   std::filesystem::path entitiesDir,
-                                                  std::optional<RootVehicle> rootVehicle) {
+                                                  std::optional<RootVehicle> rootVehicle,
+                                                  int64_t gameTick) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -151,14 +153,14 @@ public:
     ret->updateChunkLastUpdate(*chunk);
 
     unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
-    Context ctx(mapInfo, *ret);
+    Context ctx(mapInfo, *ret, gameTick);
     cdp.build(*chunk, ctx, entities);
     if (!cdp.serialize(cd)) {
       return nullptr;
     }
 
     if (rootVehicle) {
-      if (auto result = Entity::From(*rootVehicle->fVehicle, ctx, chunk->fLastUpdate); result.fEntity) {
+      if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
           auto replace = make_shared<ListTag>(Tag::Type::Compound);
           auto localPlayer = make_shared<CompoundTag>();

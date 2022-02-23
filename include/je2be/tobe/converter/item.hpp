@@ -826,7 +826,7 @@ private:
           std::unordered_map<int32_t, int8_t> m;
           JavaEditionMap jem(m);
           WorldData wd(mcfile::Dimension::Overworld);
-          Context ctx(jem, wd);
+          Context ctx(jem, wd, 0);
           auto projectileB = From(projectileJ, ctx);
           if (projectileB) {
             auto beTag = std::make_shared<CompoundTag>();

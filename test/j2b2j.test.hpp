@@ -320,6 +320,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("Time"); // JE: int, BE: byte
   } else if (id == "minecraft:item") {
     blacklist.insert("PickupDelay");
+  } else if (id == "minecraft:trader_llama") {
+    blacklist.insert("DespawnDelay"); // "TimeStamp" does not exist in BE.
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
