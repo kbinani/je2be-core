@@ -611,11 +611,12 @@ TEST_CASE("j2b2j") {
 #else
   {
     mcfile::Dimension d = mcfile::Dimension::Overworld;
-    Pos2i p(0, 0);
-    optB.fDimensionFilter.insert(d);
-    optB.fChunkFilter.insert(p);
-    optJ.fDimensionFilter.insert(d);
-    optJ.fChunkFilter.insert(p);
+    for (Pos2i const &p : initializer_list<Pos2i>({{0, 0}})) {
+      optB.fDimensionFilter.insert(d);
+      optB.fChunkFilter.insert(p);
+      optJ.fDimensionFilter.insert(d);
+      optJ.fChunkFilter.insert(p);
+    }
   }
   multithread = false;
 #endif
@@ -634,7 +635,7 @@ TEST_CASE("j2b2j") {
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!optB.fDimensionFilter.empty()) {
-      if (optB.fDimensionFilter.find(dim) != optB.fDimensionFilter.end()) {
+      if (optB.fDimensionFilter.find(dim) == optB.fDimensionFilter.end()) {
         continue;
       }
     }
