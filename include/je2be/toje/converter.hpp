@@ -35,7 +35,7 @@ public:
     int total = 0;
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
     int64_t gameTick = dat->int64("currentTick", 0);
-    auto bin = Context::Init(*db, fOptions, regions, total, gameTick);
+    auto bin = Context::Init(*db, fOptions, regions, total, gameTick, BlockEntity::FromBlockAndBlockEntity);
 
     auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
     if (!levelDat) {

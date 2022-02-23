@@ -31,6 +31,16 @@ public:
   static void Default(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
 
+    auto tagB = itemB.compoundTag("tag");
+    if (!tagB) {
+      tagB = make_shared<CompoundTag>();
+    }
+
+    auto tagJ = itemJ.compoundTag("tag");
+    if (!tagJ) {
+      tagJ = make_shared<CompoundTag>();
+    }
+
     string nameJ = nameB;
     auto blockTag = itemB.compoundTag("Block");
     if (blockTag) {
@@ -39,25 +49,25 @@ public:
         auto blockJ = BlockData::From(*blockB);
         if (blockJ) {
           nameJ = blockJ->fName;
+
+          Pos3i dummy(0, 0, 0);
+          if (auto converted = ctx.fFromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
+            static std::unordered_set<std::string> const sExclude({"id", "x", "y", "z"});
+            auto blockEntityTag = converted->fTileEntity;
+            for (auto const &e : sExclude) {
+              blockEntityTag->erase(e);
+            }
+            tagJ->set("BlockEntityTag", blockEntityTag);
+          }
         }
       }
     }
     itemJ.set("id", props::String(nameJ));
 
     CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
-
-    auto tagB = itemB.compoundTag("tag");
-    if (!tagB) {
-      return;
-    }
-    shared_ptr<CompoundTag> tagJ = itemJ.compoundTag("tag");
-    if (!tagJ) {
-      tagJ = make_shared<CompoundTag>();
-    }
+    CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
 
     shared_ptr<CompoundTag> displayJ = make_shared<CompoundTag>();
-
-    CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
 
     auto customColor = tagB->int32("customColor");
     if (customColor) {
@@ -80,6 +90,20 @@ public:
         nlohmann::json json;
         json["text"] = *displayName;
         displayJ->set("Name", props::String(nlohmann::to_string(json)));
+      }
+
+      if (auto loreB = displayB->listTag("Lore"); loreB) {
+        auto loreJ = make_shared<ListTag>(Tag::Type::String);
+        for (auto const &it : *loreB) {
+          if (auto item = it->asString(); item) {
+            if (item->fValue == "(+DATA)") {
+              loreJ->push_back(props::String("\"(+NBT)\""));
+            } else {
+              loreJ->push_back(props::String(item->fValue));
+            }
+          }
+        }
+        displayJ->set("Lore", loreJ);
       }
     }
 
@@ -123,7 +147,9 @@ public:
       tagJ->set("display", displayJ);
     }
 
-    itemJ.set("tag", tagJ);
+    if (!tagJ->empty()) {
+      itemJ["tag"] = tagJ;
+    }
   }
 
 #pragma region Converters

@@ -10,6 +10,7 @@
 #include <je2be/toje/options.hpp>
 #include <je2be/toje/map-info.hpp>
 #include <je2be/toje/structure-info.hpp>
+#include <je2be/toje/block-entity-convert-result.hpp>
 #include <je2be/toje/context.hpp>
 
 #include <je2be/toje/item.hpp>

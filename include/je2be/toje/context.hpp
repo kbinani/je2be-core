@@ -3,7 +3,10 @@
 namespace je2be::toje {
 
 class Context {
-  Context(std::shared_ptr<MapInfo const> const &mapInfo, std::shared_ptr<StructureInfo const> const &structureInfo, int64_t gameTick) : fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick) {}
+  Context(std::shared_ptr<MapInfo const> const &mapInfo,
+          std::shared_ptr<StructureInfo const> const &structureInfo,
+          int64_t gameTick,
+          std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) : fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
 
 public:
   struct ChunksInRegion {
@@ -14,7 +17,8 @@ public:
                                        Options opt,
                                        std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
                                        int &totalChunks,
-                                       int64_t gameTick) {
+                                       int64_t gameTick,
+                                       std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
@@ -124,7 +128,7 @@ public:
       }
     }
 
-    return std::shared_ptr<Context>(new Context(mapInfo, structureInfo, gameTick));
+    return std::shared_ptr<Context>(new Context(mapInfo, structureInfo, gameTick, fromBlockAndBlockEntity));
   }
 
   void markMapUuidAsUsed(int64_t uuid) {
@@ -241,7 +245,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo, fGameTick));
+    auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo, fGameTick, fFromBlockAndBlockEntity));
     ret->fLocalPlayer = fLocalPlayer;
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
@@ -324,6 +328,9 @@ public:
   std::unordered_map<Uuid, Pos2i, UuidHasher, UuidPred> fEntities;
 
   int64_t const fGameTick;
+
+  // NOTE: This std::function must be BlockEntity::FromBlockAndBlockEntity. By doing this, the "Item" class can use the function (the "Item" class is #includ'ed before "BlockEntity")
+  std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> const fFromBlockAndBlockEntity;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

@@ -3,14 +3,9 @@
 namespace je2be::toje {
 
 class BlockEntity {
-public:
-  struct Result {
-    std::shared_ptr<CompoundTag> fTileEntity;
-    std::shared_ptr<mcfile::je::Block const> fBlock;
-  };
-
 private:
   BlockEntity() = delete;
+  using Result = BlockEntityConvertResult;
 
   using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, CompoundTag const &, mcfile::je::Block const &, Context &ctx)>;
 
