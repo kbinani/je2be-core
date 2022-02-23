@@ -158,7 +158,7 @@ public:
     }
 
     if (rootVehicle) {
-      if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
+      if (auto result = Entity::From(*rootVehicle->fVehicle, ctx, chunk->fLastUpdate); result.fEntity) {
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
           auto replace = make_shared<ListTag>(Tag::Type::Compound);
           auto localPlayer = make_shared<CompoundTag>();

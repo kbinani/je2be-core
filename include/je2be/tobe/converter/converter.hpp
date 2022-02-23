@@ -47,7 +47,7 @@ public:
         return nullopt;
       }
 
-      auto localPlayerData = LocalPlayerData(*data, *levelData);
+      auto localPlayerData = LocalPlayerData(*data, *levelData, level.fTime);
       if (localPlayerData) {
         auto k = mcfile::be::DbKey::LocalPlayer();
         db.put(k, *localPlayerData);
@@ -97,7 +97,7 @@ public:
     return levelData->fStat;
   }
 
-  static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld) {
+  static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld, int64_t time) {
     using namespace mcfile::stream;
 
     auto data = tag.compoundTag("Data");
@@ -111,7 +111,7 @@ public:
 
     WorldData wd(mcfile::Dimension::Overworld);
     Context ctx(ld.fJavaEditionMap, wd);
-    auto converted = Entity::LocalPlayer(*player, ctx);
+    auto converted = Entity::LocalPlayer(*player, ctx, time);
     if (!converted) {
       return std::nullopt;
     }

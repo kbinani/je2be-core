@@ -5,11 +5,12 @@ namespace je2be::tobe {
 class Entity {
 private:
   struct ConverterContext {
-    explicit ConverterContext(Context const &ctx) : fCtx(ctx) {}
+    explicit ConverterContext(Context const &ctx, std::optional<int64_t> chunkLastUpdated) : fCtx(ctx), fChunkLastUpdated(chunkLastUpdated) {}
 
     Context const &fCtx;
     std::vector<std::shared_ptr<CompoundTag>> fPassengers;
     std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
+    std::optional<int64_t> const fChunkLastUpdated;
   };
   using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const &, ConverterContext &)>;
 
@@ -44,7 +45,7 @@ public:
     std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
   };
 
-  static Result From(CompoundTag const &tag, Context const &ctx) {
+  static Result From(CompoundTag const &tag, Context const &ctx, std::optional<int64_t> chunkLastUpdated) {
     using namespace std;
     using namespace props;
     auto id = tag.string("id");
@@ -61,7 +62,7 @@ public:
       }
       return result;
     }
-    ConverterContext cctx(ctx);
+    ConverterContext cctx(ctx, chunkLastUpdated);
     auto converted = found->second(tag, cctx);
     if (converted) {
       result.fEntity = converted;
@@ -264,12 +265,12 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx, int64_t time) {
     using namespace std;
     using namespace mcfile;
     using namespace props;
 
-    ConverterContext cctx(ctx);
+    ConverterContext cctx(ctx, time);
     auto entity = LivingEntity(tag, cctx);
     if (!entity) {
       return nullopt;
@@ -1887,7 +1888,7 @@ private:
             continue;
           }
 
-          auto ret = From(*comp, ctx.fCtx);
+          auto ret = From(*comp, ctx.fCtx, ctx.fChunkLastUpdated);
           if (!ret.fEntity) {
             continue;
           }
