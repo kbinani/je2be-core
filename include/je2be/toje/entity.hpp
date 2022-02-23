@@ -515,6 +515,14 @@ public:
     CopyShortValues(b, j, {{"Age"}, {"Health"}});
   }
 
+  static void Llama(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (HasDefinition(b, "+minecraft:llama_wandering_trader")) {
+      // Ignoring "IsTamed" property here, because it is always true for natural spawned wandering trader llama.
+      auto tamed = b.int64("OwnerNew", -1) != -1;
+      j["Tame"] = props::Bool(tamed);
+    }
+  }
+
   static void Mooshroom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     std::string type = "red";
@@ -1643,7 +1651,7 @@ public:
     E(evocation_illager, C(Rename("evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
-    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, CopyVariant, Strength));
+    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
