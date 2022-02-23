@@ -535,7 +535,7 @@ private:
     M(vex);
     E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), ChestItems, Villager));
     M(vindicator);
-    E(wandering_trader, C(Animal, Offers(0, "Offers"), ChestItems));
+    E(wandering_trader, C(Animal, Offers(0, "Offers"), ChestItems, WanderingTrader));
     E(witch, C(Monster, CanJoinRaid));
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
@@ -1215,6 +1215,13 @@ private:
       tradeTier = 1;
     }
     c["TradeTier"] = Int(tradeTier);
+  }
+
+  static void WanderingTrader(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    if (auto despawnDelay = tag.int32("DespawnDelay"); despawnDelay && ctx.fChunkLastUpdated) {
+      int64_t timestamp = *ctx.fChunkLastUpdated + *despawnDelay;
+      c["TimeStamp"] = props::Long(timestamp);
+    }
   }
 
   static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
