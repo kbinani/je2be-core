@@ -110,7 +110,8 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    auto converted = Entity::LocalPlayer(*player, ld.fJavaEditionMap, wd);
+    Context ctx(ld.fJavaEditionMap, wd);
+    auto converted = Entity::LocalPlayer(*player, ctx);
     if (!converted) {
       return std::nullopt;
     }

@@ -4,15 +4,22 @@ namespace je2be::tobe {
 
 class Entity {
 private:
-  using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const &, Context &)>;
+  struct ConverterContext {
+    explicit ConverterContext(Context const &ctx) : fCtx(ctx) {}
 
-  using Behavior = std::function<void(CompoundTag &, CompoundTag const &, Context &)>;
+    Context const &fCtx;
+    std::vector<std::shared_ptr<CompoundTag>> fPassengers;
+    std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
+  };
+  using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const &, ConverterContext &)>;
+
+  using Behavior = std::function<void(CompoundTag &, CompoundTag const &, ConverterContext &)>;
 
   struct C {
     template <class... Arg>
     C(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
 
-    std::shared_ptr<CompoundTag> operator()(CompoundTag const &input, Context &ctx) const {
+    std::shared_ptr<CompoundTag> operator()(CompoundTag const &input, ConverterContext &ctx) const {
       auto c = fBase(input, ctx);
       if (!c) {
         return nullptr;
@@ -37,7 +44,7 @@ public:
     std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
   };
 
-  static Result From(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static Result From(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
     using namespace props;
     auto id = tag.string("id");
@@ -54,13 +61,13 @@ public:
       }
       return result;
     }
-    Context ctx(mapInfo, wd);
-    auto converted = found->second(tag, ctx);
+    ConverterContext cctx(ctx);
+    auto converted = found->second(tag, cctx);
     if (converted) {
       result.fEntity = converted;
     }
-    result.fPassengers.swap(ctx.fPassengers);
-    for (auto const &it : ctx.fLeashKnots) {
+    result.fPassengers.swap(cctx.fPassengers);
+    for (auto const &it : cctx.fLeashKnots) {
       auto const &leashKnots = it.second;
       copy(leashKnots.begin(), leashKnots.end(), back_inserter(result.fLeashKnots[it.first]));
     }
@@ -140,19 +147,19 @@ public:
     return make_tuple(pos, b, key);
   }
 
-  static std::shared_ptr<CompoundTag> ToTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::shared_ptr<CompoundTag> ToTileEntityData(CompoundTag const &c, Context const &ctx) {
     using namespace props;
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
-      return ToItemFrameTileEntityData(c, mapInfo, wd, "ItemFrame");
+      return ToItemFrameTileEntityData(c, ctx, "ItemFrame");
     } else if (*id == "minecraft:glow_item_frame") {
-      return ToItemFrameTileEntityData(c, mapInfo, wd, "GlowItemFrame");
+      return ToItemFrameTileEntityData(c, ctx, "GlowItemFrame");
     }
     return nullptr;
   }
 
-  static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, JavaEditionMap const &mapInfo, WorldData &wd, std::string const &name) {
+  static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
     using namespace props;
     auto tag = std::make_shared<CompoundTag>();
     auto tileX = c.int32("TileX");
@@ -173,7 +180,7 @@ public:
     auto found = c.find("Item");
     if (found != c.end() && found->second->type() == Tag::Type::Compound) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
-      auto m = Item::From(item, mapInfo, wd);
+      auto m = Item::From(item, ctx);
       if (m) {
         tag->insert(make_pair("Item", m));
         tag->insert(make_pair("ItemRotation", Float(itemRotation * 45)));
@@ -257,13 +264,13 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
     using namespace mcfile;
     using namespace props;
 
-    Context ctx(mapInfo, wd);
-    auto entity = LivingEntity(tag, ctx);
+    ConverterContext cctx(ctx);
+    auto entity = LivingEntity(tag, cctx);
     if (!entity) {
       return nullopt;
     }
@@ -310,35 +317,35 @@ public:
 
     auto inventory = tag.listTag("Inventory");
     if (inventory) {
-      auto outInventory = ConvertAnyItemList(inventory, 36, mapInfo, wd);
+      auto outInventory = ConvertAnyItemList(inventory, 36, ctx);
       entity->set("Inventory", outInventory);
 
       // Armor
       auto armor = InitItemList(4);
       auto boots = ItemAtSlot(*inventory, 100);
       if (boots) {
-        auto outBoots = Item::From(boots, mapInfo, wd);
+        auto outBoots = Item::From(boots, ctx);
         if (outBoots) {
           armor->at(3) = outBoots;
         }
       }
       auto leggings = ItemAtSlot(*inventory, 101);
       if (leggings) {
-        auto outLeggings = Item::From(leggings, mapInfo, wd);
+        auto outLeggings = Item::From(leggings, ctx);
         if (outLeggings) {
           armor->at(2) = outLeggings;
         }
       }
       auto chestplate = ItemAtSlot(*inventory, 102);
       if (chestplate) {
-        auto outChestplate = Item::From(chestplate, mapInfo, wd);
+        auto outChestplate = Item::From(chestplate, ctx);
         if (outChestplate) {
           armor->at(1) = outChestplate;
         }
       }
       auto helmet = ItemAtSlot(*inventory, 103);
       if (helmet) {
-        auto outHelmet = Item::From(helmet, mapInfo, wd);
+        auto outHelmet = Item::From(helmet, ctx);
         if (outHelmet) {
           armor->at(0) = outHelmet;
         }
@@ -348,7 +355,7 @@ public:
       // Offhand
       auto offhand = ItemAtSlot(*inventory, -106);
       if (offhand) {
-        auto offhandItem = Item::From(offhand, mapInfo, wd);
+        auto offhandItem = Item::From(offhand, ctx);
         if (offhandItem) {
           auto outOffhand = InitItemList(1);
           outOffhand->at(0) = offhandItem;
@@ -359,7 +366,7 @@ public:
 
     auto enderItems = tag.listTag("EnderItems");
     if (enderItems) {
-      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, mapInfo, wd);
+      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, ctx);
       entity->set("EnderChestInventory", enderChestInventory);
     }
 
@@ -566,7 +573,7 @@ private:
   }
 
 #pragma region DedicatedBehaviors
-  static void ArmorStand(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void ArmorStand(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto pos = props::GetPos3d(tag, "Pos");
     if (!pos) {
       return;
@@ -595,7 +602,7 @@ private:
     }
   }
 
-  static void Arrow(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Arrow(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto owner = GetOwnerUuid(tag);
     if (owner) {
       c["OwnerID"] = props::Long(*owner);
@@ -603,7 +610,7 @@ private:
     }
   }
 
-  static void Axolotl(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Axolotl(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     using namespace props;
     auto originalVariant = std::clamp(tag.int32("Variant", 0), 0, 4);
     static const std::string definitionMapping[5] = {
@@ -634,12 +641,12 @@ private:
     }
   }
 
-  static void Bat(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Bat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyBoolValues(tag, c, {{"BatFlags"}});
     AddDefinition(c, "+minecraft:bat");
   }
 
-  static void Bee(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Bee(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto hivePos = props::GetPos3d(tag, "HivePos");
     if (hivePos) {
       Pos3f homePos = hivePos->toF();
@@ -655,7 +662,7 @@ private:
     AddDefinition(c, "+find_hive");
   }
 
-  static void Boat(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Boat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "+minecraft:boat");
 
     auto type = tag.string("Type", "oak");
@@ -677,7 +684,7 @@ private:
     }
   }
 
-  static void Cat(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto catType = tag.int32("CatType");
     if (catType) {
       Cat::Type ct = Cat::CatTypeFromJavaCatType(*catType);
@@ -692,11 +699,11 @@ private:
     c["RewardPlayersOnFirstFounding"] = props::Bool(true);
   }
 
-  static void ChestMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void ChestMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     LootTable::JavaToBedrock(tag, c);
   }
 
-  static void Chicken(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Chicken(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     using namespace std;
     auto eggLayTime = tag.int32("EggLayTime");
     if (eggLayTime) {
@@ -709,7 +716,7 @@ private:
     }
   }
 
-  static void Creeper(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Creeper(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto powered = tag.boolean("powered", false);
     if (powered) {
       AddDefinition(c, "+minecraft:charged_creeper");
@@ -717,7 +724,7 @@ private:
     }
   }
 
-  static void Enderman(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Enderman(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto carriedBlockTagJ = tag.compoundTag("carriedBlockState");
     if (carriedBlockTagJ) {
       auto name = carriedBlockTagJ->string("Name");
@@ -731,11 +738,11 @@ private:
     }
   }
 
-  static void Endermite(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Endermite(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyIntValues(tag, c, {{"Lifetime"}});
   }
 
-  static void ExperienceOrb(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void ExperienceOrb(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto value = tag.int16("Value");
     if (value) {
       c["experience value"] = props::Int(*value);
@@ -743,7 +750,7 @@ private:
     AddDefinition(c, "+minecraft:xp_orb");
   }
 
-  static void FallingBlock(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void FallingBlock(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto blockState = tag.compoundTag("BlockState");
     if (!blockState) {
       return;
@@ -773,7 +780,7 @@ private:
     */
   }
 
-  static void Fox(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Fox(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto type = tag.string("Type", "red");
     int32_t variant = 0;
     if (type == "red") {
@@ -810,7 +817,7 @@ private:
     }
   }
 
-  static void Goat(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Goat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto screaming = tag.boolean("IsScreamingGoat", false);
     if (screaming) {
       AddDefinition(c, "+goat_screamer");
@@ -823,7 +830,7 @@ private:
     }
   }
 
-  static void Hoglin(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "+huntable_adult");
     AddDefinition(c, "+zombification_sensor");
     if (tag.boolean("CannotBeHunted", false)) {
@@ -831,7 +838,7 @@ private:
     }
   }
 
-  static void Horse(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Horse(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto variant = tag.int32("Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
@@ -839,14 +846,14 @@ private:
     c["MarkVariant"] = props::Int(markings);
   }
 
-  static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto enabled = tag.boolean("Enabled", true);
     if (enabled) {
       AddDefinition(c, "+minecraft:hopper_active");
     }
   }
 
-  static void IronGolem(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void IronGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     using namespace props;
 
     auto playerCreated = tag.boolean("PlayerCreated", false);
@@ -865,7 +872,7 @@ private:
     }
   }
 
-  static void Llama(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Llama(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     using namespace props;
 
     auto variant = tag.int32("Variant", 0);
@@ -913,7 +920,7 @@ private:
     CopyIntValues(tag, c, {{"Strength"}});
   }
 
-  static void Minecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Minecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto pos = props::GetPos3d(tag, "Pos");
     auto onGround = tag.boolean("OnGround");
     if (pos && onGround) {
@@ -936,7 +943,7 @@ private:
     }
   }
 
-  static void Mooshroom(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Mooshroom(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto type = tag.string("Type", "red");
     int32_t variant = 0;
     if (type == "brown") {
@@ -948,7 +955,7 @@ private:
     c["Variant"] = props::Int(variant);
   }
 
-  static void Panda(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Panda(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto mainGene = tag.string("MainGene", "normal");
     auto hiddenGene = tag.string("HiddenGene", "normal");
 
@@ -964,17 +971,17 @@ private:
     c["GeneArray"] = genes;
   }
 
-  static void Parrot(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Parrot(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyIntValues(tag, c, {{"Variant"}});
   }
 
-  static void Piglin(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Piglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     if (auto cannotHant = tag.boolean("CannotHunt", false); cannotHant) {
       AddDefinition(c, "+not_hunter");
     }
   }
 
-  static void PiglinBrute(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void PiglinBrute(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     if (auto homeTag = tag.query("Brain/memories/minecraft:home/value"); homeTag) {
       if (auto home = homeTag->asCompound(); home) {
         auto dimension = home->string("dimension");
@@ -991,7 +998,7 @@ private:
     }
   }
 
-  static void Pufferfish(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Pufferfish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto puffState = tag.int32("PuffState", 0);
 
     /*
@@ -1028,7 +1035,7 @@ private:
     AddDefinition(c, def);
   }
 
-  static void Rabbit(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Rabbit(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto type = tag.int32("RabbitType", 0);
     std::string coat = "brown";
     int32_t variant = 0;
@@ -1061,11 +1068,11 @@ private:
     CopyIntValues(tag, c, {{"MoreCarrotTicks"}});
   }
 
-  static void Sheep(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Sheep(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyBoolValues(tag, c, {{"Sheared", "Sheared", false}});
   }
 
-  static void Shulker(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Shulker(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto color = tag.byte("Color", 16);
     if (0 <= color && color <= 15) {
       c["Color"] = props::Byte(color);
@@ -1076,7 +1083,7 @@ private:
     c["Variant"] = props::Int(color);
   }
 
-  static void SkeletonHorse(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void SkeletonHorse(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto trap = tag.boolean("SkeletonTrap", false);
     if (trap) {
       AddDefinition(c, "+minecraft:skeleton_trap");
@@ -1084,7 +1091,7 @@ private:
     }
   }
 
-  static void Slime(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Slime(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto sizeJ = tag.int32("Size", 0);
     int sizeB = sizeJ + 1;
     c["Variant"] = props::Int(sizeB);
@@ -1095,14 +1102,14 @@ private:
     c["Attributes"] = attributes.toListTag();
   }
 
-  static void SnowGolem(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void SnowGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto pumpkin = tag.boolean("Pumpkin", true);
     if (!pumpkin) {
       AddDefinition(c, "+minecraft:snowman_sheared");
     }
   }
 
-  static void TntMinecart(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void TntMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "+minecraft:tnt_minecart");
     auto fuse = tag.int32("TNTFuse", -1);
     if (fuse < 0) {
@@ -1114,7 +1121,7 @@ private:
     }
   }
 
-  static void TraderLlama(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void TraderLlama(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "+minecraft:llama_wandering_trader");
     AddDefinition(c, "-minecraft:llama_wild");
     AddDefinition(c, "+minecraft:llama_tamed");
@@ -1124,7 +1131,7 @@ private:
     c["IsTamed"] = props::Bool(true);
   }
 
-  static void TropicalFish(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void TropicalFish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     using namespace props;
     auto variant = tag.int32("Variant", 0);
     auto tf = TropicalFish::FromJavaVariant(variant);
@@ -1134,7 +1141,7 @@ private:
     c["Color2"] = Byte(tf.fPatternColor);
   }
 
-  static void Turtle(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Turtle(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto x = tag.int32("HomePosX");
     auto y = tag.int32("HomePosY");
     auto z = tag.int32("HomePosZ");
@@ -1152,7 +1159,7 @@ private:
     }
   }
 
-  static void Villager(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+  static void Villager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     using namespace std;
     using namespace props;
 
@@ -1209,7 +1216,7 @@ private:
     c["TradeTier"] = Int(tradeTier);
   }
 
-  static void Wolf(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto health = tag.float32("Health");
     auto owner = GetOwnerUuid(tag);
 
@@ -1217,7 +1224,7 @@ private:
     c["Attributes"] = attributes.toListTag();
   }
 
-  static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+  static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     using namespace std;
     auto data = tag.compoundTag("VillagerData");
     optional<VillagerProfession> profession;
@@ -1273,7 +1280,7 @@ private:
 #pragma endregion
 
 #pragma region Behaviors
-  static void AgeableC(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void AgeableC(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto age = tag.int32("Age", 0);
     if (age < 0) {
       AddDefinition(c, "+baby");
@@ -1285,33 +1292,33 @@ private:
     c["IsBaby"] = props::Bool(age < 0);
   }
 
-  static void AttackTime(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void AttackTime(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto attackTick = tag.int32("AttackTick", 0);
     c["AttackTime"] = props::Short(attackTick);
   }
 
-  static void CanJoinRaid(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void CanJoinRaid(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto canJoin = tag.boolean("CanJoinRaid");
     if (canJoin == true) {
       AddDefinition(c, "+minecraft:raid_configuration");
     }
   }
 
-  static void CollarColorable(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void CollarColorable(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto collarColor = tag.byte("CollarColor");
     if (collarColor && GetOwnerUuid(tag)) {
       c["Color"] = props::Byte(*collarColor);
     }
   }
 
-  static void Debug(CompoundTag &c, CompoundTag const &tag, Context &) {}
+  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
 
-  static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "-minecraft:start_suffocating");
     AddDefinition(c, "+minecraft:detect_suffocating");
   }
 
-  static void ChestItems(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+  static void ChestItems(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto inventory = tag.listTag("Inventory");
     auto chestItems = std::make_shared<ListTag>(Tag::Type::Compound);
     if (inventory) {
@@ -1322,7 +1329,7 @@ private:
         if (!itemJ) {
           continue;
         }
-        std::shared_ptr<CompoundTag> itemB = Item::From(itemJ, ctx.fMapInfo, ctx.fWorldData);
+        std::shared_ptr<CompoundTag> itemB = Item::From(itemJ, ctx.fCtx);
         if (!itemB) {
           itemB = std::make_shared<CompoundTag>();
           itemB->set("Count", props::Byte(0));
@@ -1338,7 +1345,7 @@ private:
     c["ChestItems"] = chestItems;
   }
 
-  static void PersistentFromFromBucket(CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+  static void PersistentFromFromBucket(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto fromBucket = tag.boolean("FromBucket", false);
     if (fromBucket) {
       c["Persistent"] = props::Bool(true);
@@ -1347,17 +1354,17 @@ private:
     }
   }
 
-  static void Sittable(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Sittable(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyBoolValues(tag, c, {{"Sitting"}});
   }
 
-  static void Temper(CompoundTag &c, CompoundTag const &tag, Context &) {
+  static void Temper(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyIntValues(tag, c, {{"Temper"}});
   }
 #pragma endregion
 
 #pragma region Converters
-  static std::shared_ptr<CompoundTag> Animal(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Animal(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Mob(tag, ctx);
     if (!c) {
       return nullptr;
@@ -1397,7 +1404,7 @@ private:
     return e->toCompoundTag();
   }
 
-  static std::shared_ptr<CompoundTag> EndCrystal(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> EndCrystal(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1420,7 +1427,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> EnderDragon(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> EnderDragon(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Monster(tag, ctx);
     AddDefinition(*c, "-dragon_sitting");
     AddDefinition(*c, "+dragon_flying");
@@ -1436,11 +1443,11 @@ private:
       AddDefinition(*c, "+dragon_death");
     }
 
-    ctx.fWorldData.addAutonomousEntity(c);
+    ctx.fCtx.fWorldData.addAutonomousEntity(c);
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> EntityBase(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> EntityBase(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1448,7 +1455,7 @@ private:
     return e->toCompoundTag();
   }
 
-  static std::shared_ptr<CompoundTag> Item(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Item(CompoundTag const &tag, ConverterContext &ctx) {
     using namespace props;
     auto e = BaseProperties(tag);
     if (!e) {
@@ -1459,7 +1466,7 @@ private:
     if (!item) {
       return nullptr;
     }
-    auto beItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+    auto beItem = Item::From(item, ctx.fCtx);
     if (!beItem) {
       return nullptr;
     }
@@ -1480,7 +1487,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> LivingEntity(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> LivingEntity(CompoundTag const &tag, ConverterContext &ctx) {
     using namespace props;
     auto e = BaseProperties(tag);
     if (!e) {
@@ -1530,7 +1537,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> Mob(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Mob(CompoundTag const &tag, ConverterContext &ctx) {
     using namespace props;
     auto ret = LivingEntity(tag, ctx);
     if (!ret) {
@@ -1564,15 +1571,15 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> Monster(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Monster(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Mob(tag, ctx);
     c->set("SpawnedByNight", props::Bool(false));
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> Null(CompoundTag const &tag, Context &ctx) { return nullptr; }
+  static std::shared_ptr<CompoundTag> Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
-  static std::shared_ptr<CompoundTag> Painting(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Painting(CompoundTag const &tag, ConverterContext &ctx) {
     using namespace props;
 
     auto facing = tag.byte("Facing", 0);
@@ -1604,7 +1611,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> StorageMinecart(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<CompoundTag> StorageMinecart(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1623,7 +1630,7 @@ private:
         if (!item) {
           continue;
         }
-        auto converted = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+        auto converted = Item::From(item, ctx.fCtx);
         if (!converted) {
           continue;
         }
@@ -1644,7 +1651,7 @@ private:
 
 #pragma region BehaviorGenerators
   static Behavior AgeableA(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto age = tag.int32("Age", 0);
       if (age < 0) {
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
@@ -1658,7 +1665,7 @@ private:
   }
 
   static Behavior AgeableB(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto baby = tag.boolean("IsBaby", false);
       if (baby) {
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
@@ -1670,7 +1677,7 @@ private:
   }
 
   static Behavior AgeableD(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto baby = tag.boolean("IsBaby", false);
       if (baby) {
         AddDefinition(c, "+minecraft:baby_" + definitionKey);
@@ -1682,7 +1689,7 @@ private:
   }
 
   static Behavior ChestedHorse(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
       using namespace props;
       auto chested = tag.boolean("ChestedHorse", false);
       c["Chested"] = Bool(chested);
@@ -1713,7 +1720,7 @@ private:
         if (!count) {
           continue;
         }
-        auto outItem = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+        auto outItem = Item::From(item, ctx.fCtx);
         if (!outItem) {
           continue;
         }
@@ -1725,7 +1732,7 @@ private:
   }
 
   static Behavior Colorable(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto color = tag.byte("Color", 0);
       c["Color"] = props::Byte(color);
       CopyByteValues(tag, c, {{"Color"}});
@@ -1735,7 +1742,7 @@ private:
 
   template <class... Arg>
   static Behavior Definitions(Arg... defs) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       for (std::string const &def : std::initializer_list<std::string>{defs...}) {
         AddDefinition(c, def);
       }
@@ -1743,7 +1750,7 @@ private:
   }
 
   static Behavior Offers(int maxTradeTier, std::string offersKey) {
-    return [maxTradeTier, offersKey](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    return [maxTradeTier, offersKey](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
       using namespace std;
       using namespace props;
 
@@ -1804,7 +1811,7 @@ private:
   }
 
   static Behavior Rename(std::string const &name) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto id = tag.string("id");
       if (!id) {
         return;
@@ -1816,7 +1823,7 @@ private:
   }
 
   static Behavior Steerable(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       using namespace props;
       auto saddle = tag.boolean("Saddle", false);
       auto saddleItem = tag.compoundTag("SaddleItem");
@@ -1840,7 +1847,7 @@ private:
   }
 
   static Behavior TameableA(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto owner = GetOwnerUuid(tag);
       if (owner) {
         c["OwnerNew"] = props::Long(*owner);
@@ -1854,7 +1861,7 @@ private:
   }
 
   static Behavior TameableB(std::string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto owner = GetOwnerUuid(tag);
       if (owner) {
         c["OwnerNew"] = props::Long(*owner);
@@ -1868,7 +1875,7 @@ private:
   }
 
   static Behavior Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
-    return [=](CompoundTag &c, CompoundTag const &tag, Context &ctx) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
       auto links = std::make_shared<ListTag>(Tag::Type::Compound);
 
       auto passengers = tag.query("Passengers")->asList();
@@ -1880,7 +1887,7 @@ private:
             continue;
           }
 
-          auto ret = From(*comp, ctx.fMapInfo, ctx.fWorldData);
+          auto ret = From(*comp, ctx.fCtx);
           if (!ret.fEntity) {
             continue;
           }
@@ -1916,7 +1923,7 @@ private:
 #pragma endregion
 
 #pragma region Utilities
-  static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, Context &ctx) {
+  static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, ConverterContext &ctx) {
     using namespace std;
     using namespace props;
 
@@ -1931,7 +1938,7 @@ private:
 
     {
       auto count = buyA->byte("Count", 0);
-      auto item = Item::From(buyA, ctx.fMapInfo, ctx.fWorldData);
+      auto item = Item::From(buyA, ctx.fCtx);
       if (item && count > 0) {
         bedrock->set("buyA", item);
         bedrock->set("buyCountA", Int(count));
@@ -1943,7 +1950,7 @@ private:
     if (buyB) {
       auto count = buyB->byte("Count", 0);
       auto id = buyB->string("id", "minecraft:air");
-      auto item = Item::From(buyB, ctx.fMapInfo, ctx.fWorldData);
+      auto item = Item::From(buyB, ctx.fCtx);
       if (id != "minecraft:air" && item && count > 0) {
         bedrock->set("buyB", item);
         bedrock->set("buyCountB", Int(count));
@@ -1959,7 +1966,7 @@ private:
       if (count <= 0) {
         return nullptr;
       }
-      auto item = Item::From(sell, ctx.fMapInfo, ctx.fWorldData);
+      auto item = Item::From(sell, ctx.fCtx);
       if (!item) {
         return nullptr;
       }
@@ -1984,14 +1991,14 @@ private:
     return items;
   }
 
-  static std::shared_ptr<ListTag> ConvertAnyItemList(std::shared_ptr<ListTag> const &input, uint32_t capacity, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::shared_ptr<ListTag> ConvertAnyItemList(std::shared_ptr<ListTag> const &input, uint32_t capacity, Context const &ctx) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item) {
         continue;
       }
-      auto converted = Item::From(item, mapInfo, wd);
+      auto converted = Item::From(item, ctx);
       if (!converted) {
         continue;
       }
@@ -2066,7 +2073,7 @@ private:
     tag["definitions"] = d;
   }
 
-  static std::shared_ptr<ListTag> GetArmor(CompoundTag const &tag, Context &ctx) {
+  static std::shared_ptr<ListTag> GetArmor(CompoundTag const &tag, ConverterContext &ctx) {
     auto armors = std::make_shared<ListTag>(Tag::Type::Compound);
     for (int i = 0; i < 4; i++) {
       armors->push_back(Item::Empty());
@@ -2081,7 +2088,7 @@ private:
           if (!item) {
             continue;
           }
-          auto converted = Item::From(item, ctx.fMapInfo, ctx.fWorldData);
+          auto converted = Item::From(item, ctx.fCtx);
           if (converted) {
             armors->fValue[i] = converted;
           }
@@ -2098,12 +2105,12 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<ListTag> GetMainhand(CompoundTag const &input, Context &ctx) { return HandItem<0>(input, ctx); }
+  static std::shared_ptr<ListTag> GetMainhand(CompoundTag const &input, ConverterContext &ctx) { return HandItem<0>(input, ctx); }
 
-  static std::shared_ptr<ListTag> GetOffhand(CompoundTag const &input, Context &ctx) { return HandItem<1>(input, ctx); }
+  static std::shared_ptr<ListTag> GetOffhand(CompoundTag const &input, ConverterContext &ctx) { return HandItem<1>(input, ctx); }
 
   template <size_t index>
-  static std::shared_ptr<ListTag> HandItem(CompoundTag const &input, Context &ctx) {
+  static std::shared_ptr<ListTag> HandItem(CompoundTag const &input, ConverterContext &ctx) {
     auto ret = std::make_shared<ListTag>(Tag::Type::Compound);
 
     auto mainHand = input.listTag("HandItems");
@@ -2112,7 +2119,7 @@ private:
     if (mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
       if (inItem) {
-        item = Item::From(inItem, ctx.fMapInfo, ctx.fWorldData);
+        item = Item::From(inItem, ctx.fCtx);
       }
     }
     if (!item) {

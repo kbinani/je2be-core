@@ -9,14 +9,14 @@ public:
         fHeightMap(std::make_shared<HeightMap>(mode == ChunkConversionMode::CavesAndCliffs2 ? -4 : 0)) {
   }
 
-  void build(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
-    buildEntities(chunk, mapInfo, wd, entities);
-    buildData2D(chunk, wd.fDim);
-    buildTileEntities(chunk, mapInfo, wd);
+  void build(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
+    buildEntities(chunk, ctx, entities);
+    buildData2D(chunk, ctx.fWorldData.fDim);
+    buildTileEntities(chunk, ctx);
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
     }
-    wd.addStatChunkVersion(chunk.fDataVersion);
+    ctx.fWorldData.addStatChunkVersion(chunk.fDataVersion);
     fChunkLastUpdate = chunk.fLastUpdate;
   }
 
@@ -49,7 +49,7 @@ public:
   }
 
 private:
-  void buildTileEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd) {
+  void buildTileEntities(mcfile::je::Chunk const &chunk, Context const &ctx) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -73,7 +73,7 @@ private:
         shared_ptr<Block const> block = found->second;
         fTileBlocks.erase(found);
 
-        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, mapInfo, wd);
+        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, ctx);
         if (!tag) {
           continue;
         }
@@ -85,7 +85,7 @@ private:
     for (auto const &it : fTileBlocks) {
       Pos3i const &pos = it.first;
       Block const &block = *it.second;
-      auto tag = TileEntity::FromBlock(pos, block, mapInfo, wd);
+      auto tag = TileEntity::FromBlock(pos, block, ctx);
       if (!tag) {
         continue;
       }
@@ -96,7 +96,7 @@ private:
       if (!Entity::IsTileEntity(*e)) {
         continue;
       }
-      auto tag = Entity::ToTileEntityData(*e, mapInfo, wd);
+      auto tag = Entity::ToTileEntityData(*e, ctx);
       if (!tag) {
         continue;
       }
@@ -104,7 +104,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::je::Chunk const &chunk, JavaEditionMap const &mapInfo, WorldData &wd, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
+  void buildEntities(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
     using namespace std;
     using namespace props;
     Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
@@ -113,7 +113,7 @@ private:
       if (!c) {
         continue;
       }
-      auto result = Entity::From(*c, mapInfo, wd);
+      auto result = Entity::From(*c, ctx);
       if (!result.fEntity) {
         continue;
       }

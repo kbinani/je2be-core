@@ -151,13 +151,14 @@ public:
     ret->updateChunkLastUpdate(*chunk);
 
     unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
-    cdp.build(*chunk, mapInfo, *ret, entities);
+    Context ctx(mapInfo, *ret);
+    cdp.build(*chunk, ctx, entities);
     if (!cdp.serialize(cd)) {
       return nullptr;
     }
 
     if (rootVehicle) {
-      if (auto result = Entity::From(*rootVehicle->fVehicle, mapInfo, *ret); result.fEntity) {
+      if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
           auto replace = make_shared<ListTag>(Tag::Type::Compound);
           auto localPlayer = make_shared<CompoundTag>();

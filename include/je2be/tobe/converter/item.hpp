@@ -9,7 +9,7 @@ private:
   using Block = mcfile::je::Block;
 
 public:
-  static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, JavaEditionMap const &mapInfo, WorldData &wd) {
+  static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, Context const &ctx) {
     using namespace props;
     using namespace std;
 
@@ -23,10 +23,10 @@ public:
     string const &name = *id;
 
     if (name == "minecraft:filled_map") {
-      auto ret = Map(name, *item, mapInfo);
+      auto ret = Map(name, *item, ctx.fMapInfo);
       if (ret) {
         auto [mapId, result] = *ret;
-        wd.addMap(mapId, item);
+        ctx.fWorldData.addMap(mapId, item);
         return result;
       } else {
         return nullptr;
@@ -826,7 +826,8 @@ private:
           std::unordered_map<int32_t, int8_t> m;
           JavaEditionMap jem(m);
           WorldData wd(mcfile::Dimension::Overworld);
-          auto projectileB = From(projectileJ, jem, wd);
+          Context ctx(jem, wd);
+          auto projectileB = From(projectileJ, ctx);
           if (projectileB) {
             auto beTag = std::make_shared<CompoundTag>();
             beTag->set("chargedItem", projectileB);
