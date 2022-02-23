@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class LevelData {
 public:
-  LevelData(std::filesystem::path const &input, InputOption const &opt) : fInput(input), fJavaEditionMap(input, opt), fInputOption(opt) {}
+  LevelData(std::filesystem::path const &input, Options const &opt) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt) {}
 
   [[nodiscard]] bool put(DbInterface &db, CompoundTag const &javaLevelData) {
     if (!fPortals.putInto(db)) {
@@ -15,7 +15,7 @@ public:
       if (found == fMapItems.end()) {
         return true;
       }
-      return Map::Convert(mapId, *found->second, fInput, fInputOption, db);
+      return Map::Convert(mapId, *found->second, fInput, fOptions, db);
     });
     if (!ok) {
       return false;
@@ -80,7 +80,7 @@ public:
   std::unordered_map<int32_t, std::shared_ptr<CompoundTag>> fMapItems;
   std::vector<std::shared_ptr<CompoundTag>> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
-  InputOption fInputOption;
+  Options fOptions;
   Structures fStructures;
   Statistics fStat;
   int64_t fMaxChunkLastUpdate = 0;

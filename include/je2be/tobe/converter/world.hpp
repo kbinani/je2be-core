@@ -14,7 +14,7 @@ public:
       Progress *progress,
       uint32_t &done,
       double const numTotalChunks,
-      InputOption const &options) {
+      Options const &options) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -78,7 +78,7 @@ public:
       Progress *progress,
       uint32_t &done,
       double const numTotalChunks,
-      InputOption const &options) {
+      Options const &options) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;

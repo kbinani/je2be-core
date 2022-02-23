@@ -11,7 +11,7 @@ public:
   };
 
   static std::shared_ptr<Context> Init(leveldb::DB &db,
-                                       InputOption io,
+                                       Options opt,
                                        std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
                                        int &totalChunks) {
     using namespace std;
@@ -34,8 +34,8 @@ public:
       if (parsed->fIsTagged) {
         uint8_t tag = parsed->fTagged.fTag;
         Dimension d = parsed->fTagged.fDimension;
-        if (!io.fDimensionFilter.empty()) {
-          if (io.fDimensionFilter.find(d) == io.fDimensionFilter.end()) {
+        if (!opt.fDimensionFilter.empty()) {
+          if (opt.fDimensionFilter.find(d) == opt.fDimensionFilter.end()) {
             continue;
           }
         }
@@ -45,8 +45,8 @@ public:
           int cx = parsed->fTagged.fChunk.fX;
           int cz = parsed->fTagged.fChunk.fZ;
           Pos2i c(cx, cz);
-          if (!io.fChunkFilter.empty()) {
-            if (io.fChunkFilter.find(c) == io.fChunkFilter.end()) {
+          if (!opt.fChunkFilter.empty()) {
+            if (opt.fChunkFilter.find(c) == opt.fChunkFilter.end()) {
               continue;
             }
           }

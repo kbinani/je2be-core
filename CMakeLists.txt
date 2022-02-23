@@ -291,4 +291,4 @@ add_executable(test ${test_files} ${je2be_files})
 target_include_directories(test PRIVATE deps/doctest)
 target_link_libraries(test je2be)
 
-setup_source_groups("example/cli.cpp;example/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
+setup_source_groups("example/j2b.cpp;example/b2j.cpp;example/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")

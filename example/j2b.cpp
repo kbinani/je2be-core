@@ -70,10 +70,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  je2be::tobe::InputOption io;
-  io.fLevelDirectoryStructure = structure;
-  je2be::tobe::OutputOption oo;
-  je2be::tobe::Converter converter(std::filesystem::path(input), io,
-                                   std::filesystem::path(output), oo);
+  je2be::tobe::Options options;
+  options.fLevelDirectoryStructure = structure;
+  je2be::tobe::Converter converter(std::filesystem::path(input), std::filesystem::path(output), options);
   return converter.run(concurrency) ? 0 : -1;
 }

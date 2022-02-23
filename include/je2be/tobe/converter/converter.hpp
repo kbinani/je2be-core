@@ -4,11 +4,11 @@ namespace je2be::tobe {
 
 class Converter {
 public:
-  Converter(std::string const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
-  Converter(std::string const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
-  Converter(std::wstring const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
-  Converter(std::wstring const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
-  Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo) : fInput(input), fOutput(output), fInputOption(io), fOutputOption(oo) {}
+  Converter(std::string const &input, std::string const &output, Options o) = delete;
+  Converter(std::string const &input, std::wstring const &output, Options o) = delete;
+  Converter(std::wstring const &input, std::string const &output, Options o) = delete;
+  Converter(std::wstring const &input, std::wstring const &output, Options o) = delete;
+  Converter(std::filesystem::path const &input, std::filesystem::path const &output, Options o) : fInput(input), fOutput(output), fOptions(o) {}
 
   std::optional<Statistics> run(int concurrency, Progress *progress = nullptr) {
     using namespace std;
@@ -32,7 +32,7 @@ public:
       return nullopt;
     }
 
-    auto data = Level::Read(fInputOption.getLevelDatFilePath(fInput));
+    auto data = Level::Read(fOptions.getLevelDatFilePath(fInput));
     if (!data) {
       return nullopt;
     }
@@ -40,7 +40,7 @@ public:
 
     bool ok = Datapacks::Import(fInput, fOutput);
 
-    auto levelData = std::make_unique<LevelData>(fInput, fInputOption);
+    auto levelData = std::make_unique<LevelData>(fInput, fOptions);
     {
       RawDb db(dbPath, concurrency);
       if (!db.valid()) {
@@ -55,18 +55,18 @@ public:
 
       uint32_t done = 0;
       for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-        if (!fInputOption.fDimensionFilter.empty()) [[unlikely]] {
-          if (fInputOption.fDimensionFilter.find(dim) == fInputOption.fDimensionFilter.end()) {
+        if (!fOptions.fDimensionFilter.empty()) [[unlikely]] {
+          if (fOptions.fDimensionFilter.find(dim) == fOptions.fDimensionFilter.end()) {
             continue;
           }
         }
-        auto dir = fInputOption.getWorldDirectory(fInput, dim);
+        auto dir = fOptions.getWorldDirectory(fInput, dim);
         mcfile::je::World world(dir);
         bool complete;
         if (concurrency > 0) {
-          complete = World::ConvertMultiThread(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks, fInputOption);
+          complete = World::ConvertMultiThread(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks, fOptions);
         } else {
-          complete = World::ConvertSingleThread(world, dim, db, *levelData, progress, done, numTotalChunks, fInputOption);
+          complete = World::ConvertSingleThread(world, dim, db, *levelData, progress, done, numTotalChunks, fOptions);
         }
         ok &= complete;
         if (!complete) {
@@ -144,7 +144,7 @@ private:
     namespace fs = std::filesystem;
     uint32_t num = 0;
     for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-      auto dir = fInputOption.getWorldDirectory(fInput, dim) / "region";
+      auto dir = fOptions.getWorldDirectory(fInput, dim) / "region";
       if (!fs::exists(dir)) {
         continue;
       }
@@ -173,8 +173,7 @@ private:
 private:
   std::filesystem::path const fInput;
   std::filesystem::path const fOutput;
-  InputOption const fInputOption;
-  OutputOption const fOutputOption;
+  Options const fOptions;
 };
 
 } // namespace je2be::tobe

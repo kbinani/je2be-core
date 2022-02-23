@@ -81,7 +81,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
   }
 }
 
-static void Erase(shared_ptr<CompoundTag> t, string path) {
+static void Erase(shared_ptr<CompoundTag> t, string const &path) {
   auto keys = mcfile::String::Split(path, '/');
   if (keys.size() == 1) {
     t->erase(keys[0]);
@@ -142,9 +142,9 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
   } else {
     vector<string> linesE = mcfile::String::Split(jsonE, '\n');
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
-    int lines = (std::min)(linesE.size(), linesA.size());
+    size_t lines = (std::min)(linesE.size(), linesA.size());
     cerr << "actual:" << endl;
-    for (int i = 0; i < lines; i++) {
+    for (size_t i = 0; i < lines; i++) {
       if (i < linesE.size() && linesA[i] != linesE[i]) {
         cerr << ">> ";
       } else {
@@ -180,7 +180,7 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
       "Levels",          // beacon. Sometimes reset to 0 in JE
       "SpawnPotentials", // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
   };
-  for (string b : sTagBlacklist) {
+  for (string const &b : sTagBlacklist) {
     Erase(copyE, b);
     Erase(copyA, b);
   }
@@ -409,7 +409,7 @@ static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlo
   CHECK(e.fZ == a.fZ);
 }
 
-static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, int cx, int cz, Dimension dim) {
+static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
   auto chunkA = regionA.chunkAt(cx, cz);
   if (!chunkA) {
     return;
@@ -498,7 +498,7 @@ static void CheckChunk(mcfile::je::Region regionE, mcfile::je::Region regionA, i
   }
 }
 
-static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path p) {
+static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
   vector<uint8_t> buffer;
   if (!file::GetGzContents(p, buffer)) {
     return nullptr;
@@ -506,7 +506,7 @@ static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path p) {
   return CompoundTag::Read(buffer, {.fLittleEndian = false});
 }
 
-static void CheckLevelDat(fs::path pathE, fs::path pathA) {
+static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
   auto e = ReadLevelDat(pathE);
   auto a = ReadLevelDat(pathA);
   CHECK(e);
@@ -555,7 +555,7 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "universalAnger",
       "playersSleepingPercentage",
   };
-  for (string rule : ignoredGameRules) {
+  for (string const &rule : ignoredGameRules) {
     blacklist.insert("GameRules/" + rule);
   }
   unordered_set<string> ignoredPlayerAttributes = {
@@ -573,7 +573,7 @@ static void CheckLevelDat(fs::path pathE, fs::path pathA) {
       "SpawnAngle",
       "SpawnForced",
   };
-  for (string rule : ignoredPlayerAttributes) {
+  for (string const &rule : ignoredPlayerAttributes) {
     blacklist.insert("Player/" + rule);
   }
   for (string const &s : blacklist) {
@@ -596,38 +596,36 @@ TEST_CASE("j2b2j") {
   // java -> bedrock
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
-  je2be::tobe::InputOption ioB;
-  je2be::toje::InputOption ioJ;
+  je2be::tobe::Options optB;
+  je2be::toje::Options optJ;
   bool multithread = true;
 #if 1
   int radius = 32;
   for (int cz = -radius; cz < radius; cz++) {
     for (int cx = -radius; cx < radius; cx++) {
       Pos2i p(cx, cz);
-      ioB.fChunkFilter.insert(p);
-      ioJ.fChunkFilter.insert(p);
+      optB.fChunkFilter.insert(p);
+      optJ.fChunkFilter.insert(p);
     }
   }
 #else
   {
     mcfile::Dimension d = mcfile::Dimension::Overworld;
     Pos2i p(0, 0);
-    ioB.fDimensionFilter.insert(d);
-    ioB.fChunkFilter.insert(p);
-    ioJ.fDimensionFilter.insert(d);
-    ioJ.fChunkFilter.insert(p);
+    optB.fDimensionFilter.insert(d);
+    optB.fChunkFilter.insert(p);
+    optJ.fDimensionFilter.insert(d);
+    optJ.fChunkFilter.insert(p);
   }
   multithread = false;
 #endif
-  je2be::tobe::OutputOption ooB;
-  je2be::tobe::Converter tobe(in, ioB, *outB, ooB);
+  je2be::tobe::Converter tobe(in, *outB, optB);
   CHECK(tobe.run(thread::hardware_concurrency()));
 
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   CHECK(outJ);
-  je2be::toje::OutputOption ooJ;
-  je2be::toje::Converter toje(*outB, ioJ, *outJ, ooJ);
+  je2be::toje::Converter toje(*outB, *outJ, optJ);
   CHECK(toje.run(thread::hardware_concurrency()));
 
   // Compare initial Java input and final Java output.
@@ -635,19 +633,20 @@ TEST_CASE("j2b2j") {
   CheckLevelDat(in / "level.dat", *outJ / "level.dat");
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-    if (!ioB.fDimensionFilter.empty()) {
-      if (ioB.fDimensionFilter.find(dim) != ioB.fDimensionFilter.end()) {
+    if (!optB.fDimensionFilter.empty()) {
+      if (optB.fDimensionFilter.find(dim) != optB.fDimensionFilter.end()) {
         continue;
       }
     }
-    auto regionDirA = ioB.getWorldDirectory(*outJ, dim) / "region";
-    auto regionDirE = ioB.getWorldDirectory(in, dim) / "region";
+    auto regionDirA = optB.getWorldDirectory(*outJ, dim) / "region";
+    auto regionDirE = optB.getWorldDirectory(in, dim) / "region";
 
-    for (auto it : fs::directory_iterator(regionDirA)) {
+    error_code ec;
+    for (auto const &it : fs::directory_iterator(regionDirA, ec)) {
       if (!it.is_regular_file()) {
         continue;
       }
-      auto fileA = it.path();
+      auto const &fileA = it.path();
       if (fileA.extension() != ".mca") {
         continue;
       }
@@ -655,7 +654,7 @@ TEST_CASE("j2b2j") {
       deque<future<void>> futures;
       unique_ptr<hwm::task_queue> pool;
       if (multithread) {
-        pool.reset(new hwm::task_queue(thread::hardware_concurrency()));
+        pool = make_unique<hwm::task_queue>(thread::hardware_concurrency());
       }
 
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
@@ -667,8 +666,8 @@ TEST_CASE("j2b2j") {
 
       for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
         for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
-          if (!ioB.fChunkFilter.empty()) {
-            if (ioB.fChunkFilter.find(Pos2i(cx, cz)) == ioB.fChunkFilter.end()) {
+          if (!optB.fChunkFilter.empty()) {
+            if (optB.fChunkFilter.find(Pos2i(cx, cz)) == optB.fChunkFilter.end()) {
               continue;
             }
           }

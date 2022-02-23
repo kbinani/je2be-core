@@ -10,7 +10,7 @@ public:
     using namespace leveldb;
 
     DB *db;
-    Options options;
+    leveldb::Options options;
     options.compression = kZlibRawCompression;
     options.create_if_missing = true;
     Status status = DB::Open(options, dir, &db);

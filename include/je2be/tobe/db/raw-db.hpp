@@ -313,7 +313,7 @@ public:
     using namespace std;
     using namespace leveldb;
 
-    Options o;
+    leveldb::Options o;
     o.compression = kZlibRawCompression;
     InternalKeyComparator icmp(BytewiseComparator());
     o.comparator = &icmp;
@@ -409,7 +409,7 @@ public:
     fclose(fKeysFile);
     fKeysFile = nullptr;
 
-    Options o;
+    leveldb::Options o;
     o.compression = kZlibRawCompression;
 
     if (!shardKeysFile()) {
@@ -814,7 +814,7 @@ private:
     if (!fp) {
       return nullopt;
     }
-    Options bo;
+    leveldb::Options bo;
     bo.compression = kZlibRawCompression;
     InternalKeyComparator icmp(BytewiseComparator());
     bo.comparator = &icmp;

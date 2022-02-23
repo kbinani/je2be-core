@@ -2,7 +2,7 @@
 
 namespace je2be::tobe {
 
-class InputOption {
+class Options {
 public:
   LevelDirectoryStructure fLevelDirectoryStructure = LevelDirectoryStructure::Vanilla;
   std::unordered_set<mcfile::Dimension> fDimensionFilter;
@@ -59,10 +59,6 @@ public:
       return root / "level.dat";
     }
   }
-};
-
-class OutputOption {
-public:
 };
 
 } // namespace je2be::tobe

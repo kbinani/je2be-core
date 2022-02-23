@@ -4,12 +4,12 @@ namespace je2be::toje {
 
 class Converter {
 public:
-  Converter(std::string const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
-  Converter(std::string const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
-  Converter(std::wstring const &input, InputOption io, std::string const &output, OutputOption oo) = delete;
-  Converter(std::wstring const &input, InputOption io, std::wstring const &output, OutputOption oo) = delete;
-  Converter(std::filesystem::path const &input, InputOption io, std::filesystem::path const &output, OutputOption oo)
-      : fInput(input), fInputOption(io), fOutput(output), fOutputOption(oo) {
+  Converter(std::string const &input, std::string const &output, Options) = delete;
+  Converter(std::string const &input, std::wstring const &output, Options) = delete;
+  Converter(std::wstring const &input, std::string const &output, Options) = delete;
+  Converter(std::wstring const &input, std::wstring const &output, Options) = delete;
+  Converter(std::filesystem::path const &input, std::filesystem::path const &output, Options o)
+      : fInput(input), fOutput(output), fOptions(o) {
   }
 
   bool run(unsigned concurrency, Progress *progress = nullptr) {
@@ -34,9 +34,9 @@ public:
 
     int total = 0;
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
-    auto bin = Context::Init(*db, fInputOption, regions, total);
+    auto bin = Context::Init(*db, fOptions, regions, total);
 
-    auto levelDat = LevelData::Import(*dat, *db, fInputOption, *bin);
+    auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
     if (!levelDat) {
       return false;
     }
@@ -57,8 +57,8 @@ public:
     };
 
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-      if (!fInputOption.fDimensionFilter.empty()) {
-        if (fInputOption.fDimensionFilter.find(d) == fInputOption.fDimensionFilter.end()) {
+      if (!fOptions.fDimensionFilter.empty()) {
+        if (fOptions.fDimensionFilter.find(d) == fOptions.fDimensionFilter.end()) {
           continue;
         }
       }
@@ -132,7 +132,7 @@ private:
 
   static leveldb::DB *Open(std::filesystem::path name) {
     using namespace leveldb;
-    Options o;
+    leveldb::Options o;
     o.compression = kZlibRawCompression;
     DB *db;
     Status st = DB::Open(o, name, &db);
@@ -144,9 +144,8 @@ private:
 
 private:
   std::filesystem::path const fInput;
-  InputOption const fInputOption;
+  Options const fOptions;
   std::filesystem::path const fOutput;
-  OutputOption const fOutputOption;
 };
 
 } // namespace je2be::toje

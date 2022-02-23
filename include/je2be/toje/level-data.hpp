@@ -86,7 +86,7 @@ public:
     return tag->compoundTag("");
   }
 
-  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, InputOption io, Context &ctx) {
+  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
     using namespace std;
     using namespace props;
 
@@ -187,7 +187,7 @@ public:
       j["DragonFight"] = dragonFight;
     }
 
-    if (auto playerData = Player(db, ctx, io.fLocalPlayer); playerData) {
+    if (auto playerData = Player(db, ctx, opt.fLocalPlayer); playerData) {
       ctx.setLocalPlayerIds(playerData->fEntityIdBedrock, playerData->fEntityIdJava);
       j["Player"] = playerData->fEntity;
     }

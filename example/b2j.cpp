@@ -64,6 +64,7 @@ int main(int argc, char *argv[]) {
 
   fs::path i(input);
   fs::path o(output);
-  Converter converter(i, o);
+  Options options;
+  Converter converter(i, o, options);
   return converter.run(concurrency) ? 0 : -1;
 }

@@ -11,7 +11,7 @@ public:
     return *(int64_t *)&s;
   }
 
-  static bool Convert(int32_t javaMapId, CompoundTag const &item, std::filesystem::path const &input, InputOption const &opt, DbInterface &db) {
+  static bool Convert(int32_t javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
