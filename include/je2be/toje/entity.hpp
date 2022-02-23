@@ -311,15 +311,19 @@ public:
   }
 
   static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    using namespace std;
     auto carriedBlockTagB = b.compoundTag("carriedBlock");
     if (carriedBlockTagB) {
       auto carriedBlockB = mcfile::be::Block::FromCompound(*carriedBlockTagB);
       if (carriedBlockB) {
         auto carriedBlockJ = BlockData::From(*carriedBlockB);
         if (carriedBlockJ) {
-          auto carriedBlockTagJ = std::make_shared<CompoundTag>();
-          carriedBlockTagJ->set("Name", props::String(carriedBlockJ->fName));
-          j["carriedBlockState"] = carriedBlockTagJ;
+          if (carriedBlockJ->fId == mcfile::blocks::minecraft::grass_block) {
+            map<string, string> props(carriedBlockJ->fProperties);
+            props["snowy"] = "false";
+            carriedBlockJ = make_shared<mcfile::je::Block const>(carriedBlockJ->fName, props);
+          }
+          j["carriedBlockState"] = carriedBlockJ->toCompoundTag();
         }
       }
     }
