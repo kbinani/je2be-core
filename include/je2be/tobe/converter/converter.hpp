@@ -110,7 +110,7 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick);
+    Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick, TileEntity::FromBlockAndTileEntity);
     auto converted = Entity::LocalPlayer(*player, ctx);
     if (!converted) {
       return std::nullopt;

@@ -153,7 +153,7 @@ public:
     ret->updateChunkLastUpdate(*chunk);
 
     unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
-    Context ctx(mapInfo, *ret, gameTick);
+    Context ctx(mapInfo, *ret, gameTick, TileEntity::FromBlockAndTileEntity);
     cdp.build(*chunk, ctx, entities);
     if (!cdp.serialize(cd)) {
       return nullptr;
