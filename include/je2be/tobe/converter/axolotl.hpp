@@ -42,7 +42,7 @@ public:
 
   std::shared_ptr<CompoundTag> toBucketTag() {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto ret = std::make_shared<CompoundTag>();
 

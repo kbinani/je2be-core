@@ -152,7 +152,7 @@ public:
 
   bool postProcess(std::filesystem::path root, leveldb::DB &db) {
     using namespace mcfile;
-    using namespace props;
+    using namespace je2be::nbt;
 
     if (!Fs::CreateDirectories(root / "data")) {
       return false;

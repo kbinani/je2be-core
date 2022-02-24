@@ -11,7 +11,7 @@ public:
     using namespace mcfile;
     using namespace mcfile::je;
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     SetBlockOptions withoutRemovingTileEntity;
     withoutRemovingTileEntity.fRemoveTileEntity = false;
@@ -194,7 +194,7 @@ private:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto e = make_shared<CompoundTag>();
     e->set("id", String("j2b:MovingBlock"));

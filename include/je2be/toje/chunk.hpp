@@ -8,7 +8,7 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     int const cy = b.fChunkY;
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
@@ -115,7 +115,7 @@ public:
         ctx.fEntities[result->fUuid] = pos;
       } else if (entityB->string("identifier") == "minecraft:leash_knot") {
         auto id = entityB->int64("UniqueID");
-        auto posf = GetPos3f(*entityB, "Pos");
+        auto posf = props::GetPos3f(*entityB, "Pos");
         if (id && posf) {
           int x = (int)roundf(posf->fX - 0.5f);
           int y = (int)roundf(posf->fY - 0.25f);
@@ -266,9 +266,9 @@ public:
       }
       Pos3i leashPos = foundLeash->second;
       auto leashTag = make_shared<CompoundTag>();
-      leashTag->set("X", props::Int(leashPos.fX));
-      leashTag->set("Y", props::Int(leashPos.fY));
-      leashTag->set("Z", props::Int(leashPos.fZ));
+      leashTag->set("X", nbt::Int(leashPos.fX));
+      leashTag->set("Y", nbt::Int(leashPos.fY));
+      leashTag->set("Z", nbt::Int(leashPos.fZ));
       leashedEntity->set("Leash", leashTag);
 
       ctx.fLeashKnots.erase(leasherId);
@@ -298,7 +298,7 @@ public:
         vehicle->set("Passengers", passengersTag);
       }
       if (vehicle->string("id") == "minecraft:chicken") {
-        vehicle->set("IsChickenJockey", props::Bool(true));
+        vehicle->set("IsChickenJockey", nbt::Bool(true));
       }
       unordered_set<size_t> resolvedPassengers;
       for (auto const &passenger : passengers) {

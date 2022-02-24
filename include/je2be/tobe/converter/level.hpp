@@ -97,8 +97,7 @@ public:
   int32_t fMaxCommandChainLength = 65535;
 
   std::shared_ptr<CompoundTag> toCompoundTag() const {
-    using namespace props;
-    using props::Byte;
+    using namespace nbt;
 
     auto root = std::make_shared<CompoundTag>();
     root->insert({
@@ -313,7 +312,7 @@ public:
   }
 
   static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto data = tag.query("Data")->asCompound();
     if (!data) {
@@ -340,7 +339,7 @@ public:
       fight->set("PreviouslyKilled", Bool(previouslyKilled->fValue != 0));
     }
 
-    auto uuid = GetUuid(*dragonFight, {.fIntArray = "Dragon"});
+    auto uuid = props::GetUuid(*dragonFight, {.fIntArray = "Dragon"});
     if (uuid) {
       fight->set("DragonUUID", Long(UuidRegistrar::ToId(*uuid)));
       fight->set("DragonSpawned", Bool(true));
@@ -408,7 +407,7 @@ public:
 
   static std::optional<std::string> MobEvents(CompoundTag const &tag) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto gameRulesTag = tag.query("Data/GameRules");
     if (!gameRulesTag) {

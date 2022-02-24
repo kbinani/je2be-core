@@ -8,7 +8,7 @@ public:
 
   std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto tag = make_shared<CompoundTag>();
     tag->insert({
         {"DimId", Int(fDimId)},

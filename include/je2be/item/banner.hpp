@@ -8,8 +8,8 @@ class Banner {
 public:
   static std::shared_ptr<CompoundTag> BannerPattern(int32_t color, std::string const &pattern) {
     auto c = std::make_shared<CompoundTag>();
-    c->set("Color", props::Int(color));
-    c->set("Pattern", props::String(pattern));
+    c->set("Color", nbt::Int(color));
+    c->set("Pattern", nbt::String(pattern));
     return c;
   }
 

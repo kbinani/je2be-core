@@ -59,8 +59,8 @@ public:
     if (name == "minecraft:mob_spawner") {
       auto b = std::make_shared<CompoundTag>();
       b->insert({
-          {"name", props::String("minecraft:mob_spawner")},
-          {"version", props::Int(kBlockDataVersion)},
+          {"name", nbt::String("minecraft:mob_spawner")},
+          {"version", nbt::Int(kBlockDataVersion)},
           {"states", std::make_shared<CompoundTag>()},
       });
       return std::make_tuple(b, "minecraft:mob_spawner");
@@ -270,13 +270,13 @@ private:
   }
 
   static TileEntityData StructureBlock(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     if (!c) {
       return nullptr;
     }
     auto t = Empty("StructureBlock", *c, pos);
 
-    t->set("animationMode", props::Bool(false));
+    t->set("animationMode", Bool(false));
     t->set("animationSeconds", Float(0));
     t->set("dataField", String(""));
     t->set("includePlayers", Bool(false));
@@ -304,7 +304,7 @@ private:
     } else if (mirror == "FRONT_BACK") {
       mirrorMode = 2;
     }
-    t->set("mirror", props::Byte(mirrorMode));
+    t->set("mirror", nbt::Byte(mirrorMode));
 
     // "LOAD", "SAVE", "CORNER"
     auto mode = c->string("mode", "LOAD");
@@ -330,7 +330,7 @@ private:
     } else if (rotation == "COUNTERCLOCKWISE_90") {
       rot = 3;
     }
-    t->set("rotation", props::Byte(rot));
+    t->set("rotation", nbt::Byte(rot));
 
     return t;
   }
@@ -364,7 +364,6 @@ private:
 
   static TileEntityData Campfire(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace std;
-    using namespace props;
     if (!c) {
       return nullptr;
     }
@@ -374,7 +373,7 @@ private:
       auto const &times = timesTag->value();
       for (int i = 0; i < 4 && i < times.size(); i++) {
         int time = times[i];
-        t->set("ItemTime" + to_string(i + 1), Int(time));
+        t->set("ItemTime" + to_string(i + 1), nbt::Int(time));
       }
     }
     auto items = GetItems(c, "Items", ctx);
@@ -390,7 +389,7 @@ private:
   }
 
   static TileEntityData Conduit(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     if (!c) {
       return nullptr;
     }
@@ -401,7 +400,7 @@ private:
   }
 
   static TileEntityData Bell(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     if (!c) {
       return nullptr;
     }
@@ -429,14 +428,14 @@ private:
     std::mt19937 gen(seed);
     std::uniform_real_distribution<float> distribution(-std::numbers::pi, std::numbers::pi);
     float rott = distribution(gen);
-    t->set("rott", props::Float(rott));
+    t->set("rott", nbt::Float(rott));
 
     return t;
   }
 
   static TileEntityData EndGateway(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     if (!c) {
       return nullptr;
     }
@@ -476,12 +475,12 @@ private:
       return nullptr;
     }
     std::string newId = id->substr(4);
-    c->set("id", props::String(newId));
+    c->set("id", nbt::String(newId));
     return c;
   }
 
   static TileEntityData CommandBlock(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     if (!c) {
       return nullptr;
@@ -514,7 +513,7 @@ private:
         {"conditionMet", Bool(conditionMet)},
     });
     Attach(c, pos, *tag);
-    auto customName = GetJson(*c, "CustomName");
+    auto customName = props::GetJson(*c, "CustomName");
     if (customName) {
       auto text = GetAsString(*customName, "text");
       if (text == "@") {
@@ -525,7 +524,7 @@ private:
   }
 
   static TileEntityData Beehive(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto tag = make_shared<CompoundTag>();
@@ -596,7 +595,7 @@ private:
     explicit PistonArm(bool sticky) : sticky(sticky) {}
 
     TileEntityData operator()(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) const {
-      using namespace props;
+      using namespace je2be::nbt;
 
       if (!c) {
         return nullptr;
@@ -630,7 +629,7 @@ private:
   };
 
   static TileEntityData Lectern(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto tag = make_shared<CompoundTag>();
@@ -666,7 +665,7 @@ private:
   }
 
   static TileEntityData Beacon(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     int primary = -1;
     int secondary = -1;
@@ -687,7 +686,7 @@ private:
   }
 
   static TileEntityData EndPortal(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
@@ -699,7 +698,7 @@ private:
   }
 
   static TileEntityData Cauldron(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto tag = std::make_shared<CompoundTag>();
@@ -710,7 +709,7 @@ private:
   }
 
   static TileEntityData Jukebox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto tag = std::make_shared<CompoundTag>();
@@ -735,7 +734,7 @@ private:
   }
 
   static TileEntityData Note(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto note = strings::Toi(b.property("note", "0"));
@@ -754,7 +753,7 @@ private:
   }
 
   static TileEntityData Spawner(std::shared_ptr<CompoundTag> const &c) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto x = c->int32("x");
     auto y = c->int32("y");
@@ -798,7 +797,7 @@ private:
   }
 
   static TileEntityData BrewingStand(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     if (!c) {
@@ -863,7 +862,7 @@ private:
 
   static Converter AnyStorage(std::string const &name) {
     return [=](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-      using namespace props;
+      using namespace je2be::nbt;
       using namespace std;
 
       auto tag = std::make_shared<CompoundTag>();
@@ -883,7 +882,7 @@ private:
   }
 
   static TileEntityData Skull(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
     auto tag = make_shared<CompoundTag>();
     auto const &name = b.fName;
@@ -903,7 +902,7 @@ private:
   }
 
   static TileEntityData PottedBamboo(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto tag = make_shared<CompoundTag>();
@@ -930,7 +929,7 @@ private:
 
   static Converter PottedPlant(std::string const &name, std::map<std::string, std::string> const &properties) {
     return [=](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) -> TileEntityData {
-      using namespace props;
+      using namespace je2be::nbt;
       using namespace std;
 
       auto tag = make_shared<CompoundTag>();
@@ -955,7 +954,7 @@ private:
   }
 
   static TileEntityData PottedSapling(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto tag = make_shared<CompoundTag>();
@@ -981,13 +980,13 @@ private:
   }
 
   static TileEntityData Banner(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
     auto tag = make_shared<CompoundTag>();
 
     optional<nlohmann::json> customName;
     if (c) {
-      customName = GetJson(*c, "CustomName");
+      customName = props::GetJson(*c, "CustomName");
     }
     int32_t type = 0;
     if (customName) {
@@ -1095,7 +1094,7 @@ private:
   }
 
   static TileEntityData Bed(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto tag = std::make_shared<CompoundTag>();
     auto color = BedColor(b.fName);
     tag->insert({
@@ -1108,7 +1107,7 @@ private:
   }
 
   static TileEntityData ShulkerBox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto facing = BlockData::GetFacingDirectionAFromFacing(b);
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
@@ -1152,7 +1151,8 @@ private:
   }
 
   static TileEntityData Sign(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
+    using namespace je2be::props;
     using namespace std;
 
     if (!c) {
@@ -1185,14 +1185,14 @@ private:
   }
 
   [[deprecated]] static void Attach(std::shared_ptr<CompoundTag> const &c, Pos3i const &pos, CompoundTag &tag) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     tag.set("x", Int(pos.fX));
     tag.set("y", Int(pos.fY));
     tag.set("z", Int(pos.fZ));
 
     if (c) {
-      auto customName = GetJson(*c, "CustomName");
+      auto customName = props::GetJson(*c, "CustomName");
       if (customName) {
         auto text = GetAsString(*customName, "text");
         if (text) {
@@ -1203,14 +1203,14 @@ private:
   }
 
   static std::shared_ptr<CompoundTag> Empty(std::string const &name, CompoundTag const &tagJ, Pos3i const &pos) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto ret = std::make_shared<CompoundTag>();
     ret->set("id", String(name));
     ret->set("x", Int(pos.fX));
     ret->set("y", Int(pos.fY));
     ret->set("z", Int(pos.fZ));
 
-    auto customName = GetJson(tagJ, "CustomName");
+    auto customName = props::GetJson(tagJ, "CustomName");
     if (customName) {
       auto text = GetAsString(*customName, "text");
       if (text) {
@@ -1238,8 +1238,8 @@ private:
 
       auto count = inItem->byte("Count", 1);
       auto slot = inItem->byte("Slot", 0);
-      outItem->set("Slot", props::Byte(slot));
-      outItem->set("Count", props::Byte(count));
+      outItem->set("Slot", nbt::Byte(slot));
+      outItem->set("Count", nbt::Byte(count));
 
       tag->push_back(outItem);
     }
@@ -1258,7 +1258,7 @@ private:
   }
 
   static TileEntityData Chest(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &comp, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     using namespace std;
 
     auto type = b.property("type", "single");
@@ -1302,15 +1302,15 @@ private:
       if (comp) {
         auto burnTime = comp->int16("BurnTime");
         if (burnTime) {
-          ret->set("BurnDuration", props::Short(*burnTime));
+          ret->set("BurnDuration", nbt::Short(*burnTime));
         }
         auto cookTime = comp->int16("CookTime");
         if (cookTime) {
-          ret->set("CookTime", props::Short(*cookTime));
+          ret->set("CookTime", nbt::Short(*cookTime));
         }
         auto cookTimeTotal = comp->int16("CookTimeTotal");
         if (cookTimeTotal) {
-          ret->set("BurnTime", props::Short(*cookTimeTotal));
+          ret->set("BurnTime", nbt::Short(*cookTimeTotal));
         }
       }
       return ret;

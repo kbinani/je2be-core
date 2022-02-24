@@ -15,7 +15,6 @@ public:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    using namespace props;
     using namespace leveldb;
 
     size_t const kNumBlocksInSubChunk = 16 * 16 * 16;
@@ -274,7 +273,7 @@ public:
 
       auto water = BlockData::Make("water");
       auto states = make_shared<CompoundTag>();
-      states->set("liquid_depth", Int(0));
+      states->set("liquid_depth", nbt::Int(0));
       water->set("states", states);
       if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
         return false;

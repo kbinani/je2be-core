@@ -13,7 +13,7 @@ public:
   constexpr Version(int major, int minor, int patch, int revision, int reserved) : fMajor(major), fMinor(minor), fPatch(patch), fRevision(revision), fReserved(reserved) {}
 
   std::shared_ptr<ListTag> toListTag() const {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto l = std::make_shared<ListTag>(Tag::Type::Int);
     l->push_back(Int(fMajor));

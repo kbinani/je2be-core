@@ -2,25 +2,6 @@
 
 namespace je2be::props {
 
-inline std::shared_ptr<ByteTag> Bool(bool b) { return std::make_shared<ByteTag>(b ? 1 : 0); }
-
-inline std::shared_ptr<ByteTag> Byte(int8_t v) {
-  uint8_t t = *(uint8_t *)&v;
-  return std::make_shared<ByteTag>(t);
-}
-
-inline std::shared_ptr<IntTag> Int(int32_t v) { return std::make_shared<IntTag>(v); }
-
-inline std::shared_ptr<LongTag> Long(int64_t v) { return std::make_shared<LongTag>(v); }
-
-inline std::shared_ptr<StringTag> String(std::string v) { return std::make_shared<StringTag>(v); }
-
-inline std::shared_ptr<FloatTag> Float(float v) { return std::make_shared<FloatTag>(v); }
-
-inline std::shared_ptr<DoubleTag> Double(double v) { return std::make_shared<DoubleTag>(v); }
-
-inline std::shared_ptr<ShortTag> Short(int16_t v) { return std::make_shared<ShortTag>(v); }
-
 struct UUIDKeyName {
   std::optional<std::string> fLeastAndMostPrefix = std::nullopt;
   std::optional<std::string> fIntArray = std::nullopt;

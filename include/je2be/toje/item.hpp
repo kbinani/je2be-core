@@ -64,7 +64,7 @@ public:
         }
       }
     }
-    itemJ.set("id", props::String(nameJ));
+    itemJ.set("id", nbt::String(nameJ));
 
     CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
     CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
@@ -78,7 +78,7 @@ public:
       if (!displayJ) {
         displayJ = make_shared<CompoundTag>();
       }
-      displayJ->set("color", props::Int(*(int32_t *)&rgb));
+      displayJ->set("color", nbt::Int(*(int32_t *)&rgb));
     }
 
     auto displayB = tagB->compoundTag("display");
@@ -91,7 +91,7 @@ public:
       if (displayName) {
         nlohmann::json json;
         json["text"] = *displayName;
-        displayJ->set("Name", props::String(nlohmann::to_string(json)));
+        displayJ->set("Name", nbt::String(nlohmann::to_string(json)));
       }
 
       if (auto loreB = displayB->listTag("Lore"); loreB) {
@@ -99,9 +99,9 @@ public:
         for (auto const &it : *loreB) {
           if (auto item = it->asString(); item) {
             if (item->fValue == "(+DATA)") {
-              loreJ->push_back(props::String("\"(+NBT)\""));
+              loreJ->push_back(nbt::String("\"(+NBT)\""));
             } else {
-              loreJ->push_back(props::String(item->fValue));
+              loreJ->push_back(nbt::String(item->fValue));
             }
           }
         }
@@ -117,7 +117,7 @@ public:
       }
       nlohmann::json json;
       json["text"] = *customName;
-      displayJ->set("Name", props::String(nlohmann::to_string(json)));
+      displayJ->set("Name", nbt::String(nlohmann::to_string(json)));
     }
 
     auto enchB = tagB->listTag("ench");
@@ -133,8 +133,8 @@ public:
         if (idB && lvlB) {
           auto cJ = make_shared<CompoundTag>();
           auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
-          cJ->set("id", props::String(idJ));
-          cJ->set("lvl", props::Short(*lvlB));
+          cJ->set("id", nbt::String(idJ));
+          cJ->set("lvl", nbt::Short(*lvlB));
           enchJ->push_back(cJ);
         }
       }
@@ -162,7 +162,7 @@ public:
     } else {
       auto potionJ = TippedArrowPotion::JavaPotionType(damage);
       auto tagJ = std::make_shared<CompoundTag>();
-      tagJ->set("Potion", props::String(potionJ));
+      tagJ->set("Potion", nbt::String(potionJ));
       itemJ.set("tag", tagJ);
       return Ns() + "tipped_arrow";
     }
@@ -189,12 +189,12 @@ public:
         if (!current) {
           continue;
         }
-        tagJ->set("Health", props::Float(*current));
+        tagJ->set("Health", nbt::Float(*current));
         break;
       }
 
       auto variantB = tagB->int32("Variant", 0);
-      tagJ->set("Variant", props::Int(Axolotl::JavaVariantFromBedrockVariant(variantB)));
+      tagJ->set("Variant", nbt::Int(Axolotl::JavaVariantFromBedrockVariant(variantB)));
 
       itemJ["tag"] = tagJ;
     }
@@ -219,18 +219,18 @@ public:
         auto bannerPatterns = Banner::OminousBannerPatterns();
         auto blockEntityTag = std::make_shared<CompoundTag>();
         blockEntityTag->set("Patterns", bannerPatterns);
-        blockEntityTag->set("id", props::String("minecraft:banner"));
+        blockEntityTag->set("id", nbt::String("minecraft:banner"));
         tagJ->set("BlockEntityTag", blockEntityTag);
 
         auto displayJ = std::make_shared<CompoundTag>();
         nlohmann::json json;
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
-        displayJ->set("Name", props::String(nlohmann::to_string(json)));
+        displayJ->set("Name", nbt::String(nlohmann::to_string(json)));
         tagJ->set("display", displayJ);
       } else {
         auto blockEntityTag = std::make_shared<CompoundTag>();
-        blockEntityTag->set("id", props::String("minecraft:banner"));
+        blockEntityTag->set("id", nbt::String("minecraft:banner"));
 
         auto patternsB = tagB->listTag("Patterns");
         if (patternsB) {
@@ -248,8 +248,8 @@ public:
             auto patternJ = std::make_shared<CompoundTag>();
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*colorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
-            patternJ->set("Color", props::Int(static_cast<int32_t>(ccj)));
-            patternJ->set("Pattern", props::String(*patternStringB));
+            patternJ->set("Color", nbt::Int(static_cast<int32_t>(ccj)));
+            patternJ->set("Pattern", nbt::String(*patternStringB));
 
             patternsJ->push_back(patternJ);
           }
@@ -292,20 +292,20 @@ public:
           nlohmann::json json;
           json["text"] = *text;
           string jsonString = nlohmann::to_string(json);
-          pagesJ->push_back(props::String(jsonString));
+          pagesJ->push_back(nbt::String(jsonString));
         } else {
-          pagesJ->push_back(props::String(*text));
+          pagesJ->push_back(nbt::String(*text));
         }
       }
       tagJ->set("pages", pagesJ);
     }
     auto author = tagB->string("author");
     if (author) {
-      tagJ->set("author", props::String(*author));
+      tagJ->set("author", nbt::String(*author));
     }
     auto title = tagB->string("title");
     if (title) {
-      tagJ->set("title", props::String(*title));
+      tagJ->set("title", nbt::String(*title));
     }
     itemJ.set("tag", tagJ);
     return name;
@@ -336,7 +336,7 @@ public:
       if (tagB) {
         TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
         auto tagJ = std::make_shared<CompoundTag>();
-        tagJ->set("BucketVariantTag", props::Int(tf.toJavaVariant()));
+        tagJ->set("BucketVariantTag", nbt::Int(tf.toJavaVariant()));
         itemJ["tag"] = tagJ;
       }
       break;
@@ -354,7 +354,7 @@ public:
           chargedProjectiles->push_back(projectileJ);
         }
         tagJ->set("ChargedProjectiles", chargedProjectiles);
-        tagJ->set("Charged", props::Bool(!chargedProjectiles->empty()));
+        tagJ->set("Charged", nbt::Bool(!chargedProjectiles->empty()));
         itemJ["tag"] = tagJ;
       }
     }
@@ -714,10 +714,10 @@ public:
       auto displayJ = std::make_shared<CompoundTag>();
       nlohmann::json json;
       json["translate"] = translate;
-      displayJ->set("Name", props::String(nlohmann::to_string(json)));
+      displayJ->set("Name", nbt::String(nlohmann::to_string(json)));
 
       if (mapColor) {
-        displayJ->set("MapColor", props::Int(*mapColor));
+        displayJ->set("MapColor", nbt::Int(*mapColor));
       }
 
       tagJ->set("display", displayJ);
@@ -725,7 +725,7 @@ public:
 
     auto info = ctx.mapFromUuid(*uuid);
     if (info) {
-      tagJ->set("map", props::Int(info->fNumber));
+      tagJ->set("map", nbt::Int(info->fNumber));
       ctx.markMapUuidAsUsed(*uuid);
 
       if (damage != 0 && !info->fDecorations.empty()) {
@@ -745,7 +745,7 @@ public:
     auto damage = itemB.int16("Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
     auto tagJ = std::make_shared<CompoundTag>();
-    tagJ->set("Potion", props::String(potionName));
+    tagJ->set("Potion", nbt::String(potionName));
     itemJ.set("tag", tagJ);
     return name;
   }
@@ -761,8 +761,8 @@ public:
     Effect::SuspiciousStewEffect sse = Effect::JavaEffectFromBedrockSuspiciousStew(damage);
     auto effects = std::make_shared<ListTag>(Tag::Type::Compound);
     auto effect = std::make_shared<CompoundTag>();
-    effect->set("EffectId", props::Byte(sse.fEffectId));
-    effect->set("EffectDuration", props::Int(sse.fDuration));
+    effect->set("EffectId", nbt::Byte(sse.fEffectId));
+    effect->set("EffectDuration", nbt::Int(sse.fDuration));
     effects->push_back(effect);
     auto tag = std::make_shared<CompoundTag>();
     tag->set("Effects", effects);
@@ -775,7 +775,7 @@ public:
     if (tagB) {
       TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
       auto tagJ = std::make_shared<CompoundTag>();
-      tagJ->set("BucketVariantTag", props::Int(tf.toJavaVariant()));
+      tagJ->set("BucketVariantTag", nbt::Int(tf.toJavaVariant()));
       itemJ["tag"] = tagJ;
     }
     return name;

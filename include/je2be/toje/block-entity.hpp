@@ -24,7 +24,7 @@ public:
         if (customName) {
           nlohmann::json json;
           json["text"] = *customName;
-          result->fTileEntity->set("CustomName", props::String(nlohmann::to_string(json)));
+          result->fTileEntity->set("CustomName", nbt::String(nlohmann::to_string(json)));
         }
       }
     }
@@ -47,7 +47,7 @@ public:
     auto type = tag.int32("Type", 0);
     if (type == 1) {
       // Illager Banner
-      te->set("CustomName", props::String(R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
+      te->set("CustomName", nbt::String(R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
       te->set("Patterns", Banner::OminousBannerPatterns());
     } else {
       auto patternsB = tag.listTag("Patterns");
@@ -64,8 +64,8 @@ public:
             continue;
           }
           auto pJ = make_shared<CompoundTag>();
-          pJ->set("Color", props::Int(static_cast<int32_t>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set("Pattern", props::String(*pPatternB));
+          pJ->set("Color", nbt::Int(static_cast<int32_t>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+          pJ->set("Pattern", nbt::String(*pPatternB));
           patternsJ->push_back(pJ);
         }
         te->set("Patterns", patternsJ);
@@ -141,7 +141,7 @@ public:
         }
         auto newSlot = mapping[*slot];
         shared_ptr<CompoundTag> copy = item->copy();
-        copy->set("Slot", props::Byte(newSlot));
+        copy->set("Slot", nbt::Byte(newSlot));
         items[newSlot] = copy;
       }
       auto itemsJ = make_shared<ListTag>(Tag::Type::Compound);
@@ -152,7 +152,7 @@ public:
     }
     CopyShortValues(tagB, *t, {{"CookTime", "BrewTime", 0}});
     auto fuelAmount = tagB.int16("FuelAmount", 0);
-    t->set("Fuel", props::Byte(fuelAmount));
+    t->set("Fuel", nbt::Byte(fuelAmount));
     Result r;
     r.fTileEntity = t;
     return r;
@@ -169,7 +169,7 @@ public:
       if (itemTag) {
         auto item = Item::From(*itemTag, ctx);
         if (item) {
-          item->set("Slot", props::Byte(i));
+          item->set("Slot", nbt::Byte(i));
           items->push_back(item);
           itemAdded = true;
         }
@@ -234,7 +234,7 @@ public:
     CopyBoolValues(tagB, *t, {{"auto"}, {"powered"}, {"conditionMet"}, {"TrackOutput"}});
     CopyLongValues(tagB, *t, {{"LastExecution"}});
 
-    t->set("UpdateLastExecution", props::Bool(true));
+    t->set("UpdateLastExecution", nbt::Bool(true));
 
     auto customName = tagB.string("CustomName", "");
     if (customName == "") {
@@ -242,7 +242,7 @@ public:
     }
     nlohmann::json json;
     json["text"] = customName;
-    t->set("CustomName", props::String(nlohmann::to_string(json)));
+    t->set("CustomName", nbt::String(nlohmann::to_string(json)));
 
     Result r;
     r.fTileEntity = t;
@@ -373,7 +373,7 @@ public:
     Result r;
     r.fBlock = BlockFullName(blockJ.fName, p);
     if (page) {
-      te->set("Page", props::Int(*page));
+      te->set("Page", nbt::Int(*page));
     }
     if (bookJ) {
       te->set("Book", bookJ);
@@ -384,7 +384,7 @@ public:
 
   static std::optional<Result> MobSpawner(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto t = EmptyShortName("mob_spawner", pos);
 
     CopyShortValues(tag, *t, {{"Delay"}, {"MaxNearbyEntities"}, {"MaxSpawnDelay"}, {"MinSpawnDelay"}, {"RequiredPlayerRange"}, {"SpawnCount"}, {"SpawnRange"}});
@@ -447,7 +447,7 @@ public:
 
   static std::optional<Result> Sign(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto te = EmptyShortName("sign", pos);
     CopyBoolValues(tag, *te, {{"IgnoreLighting", "GlowingText", false}});
     auto color = tag.int32("SignTextColor");
@@ -472,7 +472,7 @@ public:
 
   static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     SkullType type = static_cast<SkullType>(tag.byte("SkullType", 0));
     string skullName = JavaNameFromSkullType(type);
@@ -501,7 +501,7 @@ public:
   static std::optional<Result> StructureBlock(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("structure_block", pos);
 
-    t->set("showair", props::Bool(false));
+    t->set("showair", nbt::Bool(false));
 
     CopyBoolValues(tag, *t, {{"ignoreEntities"}, {"isPowered", "powered"}, {"showBoundingBox", "showboundingbox"}});
     CopyFloatValues(tag, *t, {{"integrity"}});
@@ -531,7 +531,7 @@ public:
       mirrorJ = "NONE";
       break;
     }
-    t->set("mirror", props::String(mirrorJ));
+    t->set("mirror", nbt::String(mirrorJ));
 
     // "LOAD", "SAVE", "CORNER"
     auto dataB = tag.int32("data", 1);
@@ -548,7 +548,7 @@ public:
       mode = "LOAD";
       break;
     }
-    t->set("mode", props::String(mode));
+    t->set("mode", nbt::String(mode));
 
     // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
     auto rotationB = tag.byte("rotation", 0);
@@ -568,7 +568,7 @@ public:
       rotationJ = "NONE";
       break;
     }
-    t->set("rotation", props::String(rotationJ));
+    t->set("rotation", nbt::String(rotationJ));
 
     Result r;
     r.fTileEntity = t;
@@ -628,7 +628,7 @@ public:
       if (!slot) {
         continue;
       }
-      converted->set("Slot", props::Byte(*slot));
+      converted->set("Slot", nbt::Byte(*slot));
       ret->push_back(converted);
     }
     return ret;
@@ -636,11 +636,11 @@ public:
 
   static std::shared_ptr<CompoundTag> EmptyFullName(std::string const &id, Pos3i const &pos) {
     auto tag = std::make_shared<CompoundTag>();
-    tag->set("id", props::String(id));
-    tag->set("x", props::Int(pos.fX));
-    tag->set("y", props::Int(pos.fY));
-    tag->set("z", props::Int(pos.fZ));
-    tag->set("keepPacked", props::Bool(false));
+    tag->set("id", nbt::String(id));
+    tag->set("x", nbt::Int(pos.fX));
+    tag->set("y", nbt::Int(pos.fY));
+    tag->set("z", nbt::Int(pos.fZ));
+    tag->set("keepPacked", nbt::Bool(false));
     return tag;
   }
 

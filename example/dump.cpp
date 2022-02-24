@@ -10,18 +10,17 @@
 using namespace std;
 using namespace leveldb;
 using namespace je2be;
-using namespace mcfile;
-using namespace nbt;
-using namespace stream;
+using namespace je2be::nbt;
+using namespace mcfile::stream;
 namespace fs = filesystem;
 
-static optional<Dimension> DimensionFromString(string const &s) {
+static optional<mcfile::Dimension> DimensionFromString(string const &s) {
   if (s == "overworld" || s == "o" || s == "0") {
-    return Dimension::Overworld;
+    return mcfile::Dimension::Overworld;
   } else if (s == "nether" || s == "n" || s == "-1") {
-    return Dimension::Nether;
+    return mcfile::Dimension::Nether;
   } else if (s == "end" || s == "e" || s == "1") {
-    return Dimension::End;
+    return mcfile::Dimension::End;
   }
   return nullopt;
 }
@@ -37,19 +36,19 @@ static DB *Open(fs::path dir) {
   return db;
 }
 
-static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
+static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimension d) {
   unique_ptr<DB> db(Open(dbDir));
   if (!db) {
     return;
   }
 
   ReadOptions ro;
-  nbt::JsonPrintOptions jopt;
+  mcfile::nbt::JsonPrintOptions jopt;
   jopt.fTypeHint = true;
 
-  int cx = Coordinate::ChunkFromBlock(x);
-  int cy = Coordinate::ChunkFromBlock(y);
-  int cz = Coordinate::ChunkFromBlock(z);
+  int cx = mcfile::Coordinate::ChunkFromBlock(x);
+  int cy = mcfile::Coordinate::ChunkFromBlock(y);
+  int cz = mcfile::Coordinate::ChunkFromBlock(z);
   auto key = mcfile::be::DbKey::SubChunk(cx, cy, cz, d);
   string value;
   Status st = db->Get(ro, key, &value);
@@ -70,26 +69,26 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, Dimension d) {
   }
 
   auto tag = make_shared<CompoundTag>();
-  tag->set("name", props::String(block->fName));
+  tag->set("name", String(block->fName));
   auto states = make_shared<CompoundTag>();
   states = block->fStates;
   tag->set("states", states);
-  tag->set("version", props::Int(block->fVersion));
-  nbt::PrintAsJson(cout, *tag, jopt);
+  tag->set("version", Int(block->fVersion));
+  mcfile::nbt::PrintAsJson(cout, *tag, jopt);
   if (section->fWaterPaletteIndices.size() == 4096) {
     auto index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
     auto idx = section->fWaterPaletteIndices[index];
     cout << "layer2 ---" << endl;
     auto layer2Block = section->fWaterPalette[idx];
     auto t = make_shared<CompoundTag>();
-    t->set("name", props::String(layer2Block->fName));
+    t->set("name", String(layer2Block->fName));
     t->set("states", layer2Block->fStates);
-    t->set("version", props::Int(layer2Block->fVersion));
-    nbt::PrintAsJson(cout, *t, jopt);
+    t->set("version", Int(layer2Block->fVersion));
+    mcfile::nbt::PrintAsJson(cout, *t, jopt);
   }
 }
 
-static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimension d) {
+static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, mcfile::Dimension d) {
   unique_ptr<DB> db(Open(dbDir));
   if (!db) {
     cerr << "Error: cannot open db: dbDir=" << dbDir << endl;
@@ -97,12 +96,12 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimensio
   }
 
   ReadOptions ro;
-  nbt::JsonPrintOptions jopt;
+  mcfile::nbt::JsonPrintOptions jopt;
   jopt.fTypeHint = true;
 
-  int cx = Coordinate::ChunkFromBlock(x);
-  int cy = Coordinate::ChunkFromBlock(y);
-  int cz = Coordinate::ChunkFromBlock(z);
+  int cx = mcfile::Coordinate::ChunkFromBlock(x);
+  int cy = mcfile::Coordinate::ChunkFromBlock(y);
+  int cz = mcfile::Coordinate::ChunkFromBlock(z);
   auto key = mcfile::be::DbKey::BlockEntity(cx, cz, d);
 
   string value;
@@ -114,7 +113,7 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, Dimensio
   vector<uint8_t> buffer;
   copy(value.begin(), value.end(), back_inserter(buffer));
   auto stream = make_shared<ByteStream>(buffer);
-  stream::InputStreamReader sr(stream, {.fLittleEndian = true});
+  InputStreamReader sr(stream, {.fLittleEndian = true});
   while (true) {
     uint8_t type;
     if (!sr.read(&type)) {
@@ -145,7 +144,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   }
 
   ReadOptions ro;
-  nbt::JsonPrintOptions jopt;
+  mcfile::nbt::JsonPrintOptions jopt;
   jopt.fTypeHint = true;
 
   string value;
@@ -156,7 +155,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   vector<uint8_t> buffer;
   copy(value.begin(), value.end(), back_inserter(buffer));
   auto stream = make_shared<ByteStream>(buffer);
-  stream::InputStreamReader sr(stream, {.fLittleEndian = true});
+  InputStreamReader sr(stream, {.fLittleEndian = true});
   while (true) {
     uint8_t type;
     if (!sr.read(&type)) {
@@ -180,7 +179,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
   }
 
   ReadOptions ro;
-  nbt::JsonPrintOptions jopt;
+  mcfile::nbt::JsonPrintOptions jopt;
   jopt.fTypeHint = true;
 
   string value;
@@ -194,7 +193,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
   std::cout << value;
 }
 
-static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, Dimension d, uint8_t tag) {
+static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, mcfile::Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   using Tag = mcfile::be::DbKey::Tag;
   switch (tag) {
@@ -224,7 +223,7 @@ static bool DumpLevelDat(fs::path const &dbDir) {
   stream->seek(8);
   tag->read(reader);
 
-  JsonPrintOptions o;
+  mcfile::nbt::JsonPrintOptions o;
   o.fTypeHint = true;
   PrintAsJson(cout, *tag, o);
   return true;
@@ -240,7 +239,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
   unique_ptr<Iterator> itr(db->NewIterator(ro));
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
     auto key = itr->key().ToString();
-    auto parsed = be::DbKey::Parse(key);
+    auto parsed = mcfile::be::DbKey::Parse(key);
     if (!parsed) {
       cout << "unknown key: ";
       for (size_t i = 0; i < key.size(); i++) {

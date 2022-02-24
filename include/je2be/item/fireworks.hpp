@@ -49,7 +49,7 @@ public:
     }
     ret->set("Explosions", explosions);
     if (fFlight) {
-      ret->set("Flight", props::Byte(*fFlight));
+      ret->set("Flight", nbt::Byte(*fFlight));
     }
     return ret;
   }
@@ -62,7 +62,7 @@ public:
     }
     ret->set("Explosions", explosions);
     if (fFlight) {
-      ret->set("Flight", props::Byte(*fFlight));
+      ret->set("Flight", nbt::Byte(*fFlight));
     }
     return ret;
   }

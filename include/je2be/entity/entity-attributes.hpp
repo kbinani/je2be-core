@@ -20,10 +20,10 @@ public:
 
     std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
       auto a = std::make_shared<CompoundTag>();
-      a->set("Base", props::Float(base));
-      a->set("Current", props::Float(current));
-      a->set("Max", props::Float(max));
-      a->set("Name", props::String("minecraft:" + name));
+      a->set("Base", nbt::Float(base));
+      a->set("Current", nbt::Float(current));
+      a->set("Max", nbt::Float(max));
+      a->set("Name", nbt::String("minecraft:" + name));
       return a;
     }
   };
@@ -73,7 +73,7 @@ public:
 
   static std::shared_ptr<ListTag> AnyHorse(CompoundTag const &tag, std::optional<float> currentHealth) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto attributes = tag.listTag("Attributes");
     Attribute health(15, 15, 15);

@@ -5,7 +5,7 @@ namespace je2be::toje {
 class Entity {
 public:
   static std::shared_ptr<CompoundTag> ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto ret = std::make_shared<CompoundTag>();
     CompoundTag &t = *ret;
     if (blockJ.fName == "minecraft:glow_frame") {
@@ -153,7 +153,7 @@ public:
     std::shared_ptr<CompoundTag> operator()(std::string const &id, CompoundTag const &entityB, Context &ctx) const {
       auto name = fNamer(id, entityB);
       auto t = fBase(id, entityB, ctx);
-      t->set("id", props::String(name));
+      t->set("id", nbt::String(name));
       for (auto behavior : fBehaviors) {
         behavior(entityB, *t, ctx);
       }
@@ -189,10 +189,10 @@ public:
   static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j.erase("ArmorDropChances");
     j.erase("HandDropChances");
-    j["DisabledSlots"] = props::Int(false);
-    j["Invisible"] = props::Bool(false);
-    j["NoBasePlate"] = props::Bool(false);
-    j["Small"] = props::Bool(false);
+    j["DisabledSlots"] = nbt::Int(false);
+    j["Invisible"] = nbt::Bool(false);
+    j["NoBasePlate"] = nbt::Bool(false);
+    j["Small"] = nbt::Bool(false);
 
     bool showArms = false;
     auto poseB = b.compoundTag("Pose");
@@ -207,12 +207,12 @@ public:
         showArms = true;
       }
     }
-    j["ShowArms"] = props::Bool(showArms);
+    j["ShowArms"] = nbt::Bool(showArms);
   }
 
   static void Axolotl(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variantB = b.int32("Variant", 0);
-    j["Variant"] = props::Int(je2be::Axolotl::JavaVariantFromBedrockVariant(variantB));
+    j["Variant"] = nbt::Int(je2be::Axolotl::JavaVariantFromBedrockVariant(variantB));
   }
 
   static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -220,10 +220,10 @@ public:
   }
 
   static void Bee(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["CannotEnterHiveTicks"] = props::Int(0);
-    j["CropsGrownSincePollination"] = props::Int(0);
+    j["CannotEnterHiveTicks"] = nbt::Int(0);
+    j["CropsGrownSincePollination"] = nbt::Int(0);
     auto hasNectar = HasDefinition(b, "+has_nectar");
-    j["HasNectar"] = props::Bool(hasNectar);
+    j["HasNectar"] = nbt::Bool(hasNectar);
     /*
     after stunged a player, bee has these definitions:
     "+minecraft:bee",
@@ -238,13 +238,13 @@ public:
     "-find_hive",
     "+countdown_to_perish"
     */
-    j["HasStung"] = props::Bool(false);
+    j["HasStung"] = nbt::Bool(false);
   }
 
   static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 0);
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
-    j["Type"] = props::String(type);
+    j["Type"] = nbt::String(type);
 
     auto rotB = props::GetRotation(b, "Rotation");
     je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
@@ -254,7 +254,7 @@ public:
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variantB = b.int32("Variant", 8);
     int32_t catType = Cat::JavaCatTypeFromBedrockVariant(variantB);
-    j["CatType"] = props::Int(catType);
+    j["CatType"] = nbt::Int(catType);
   }
 
   static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -275,15 +275,15 @@ public:
         if (!spawnTimer) {
           continue;
         }
-        j["EggLayTime"] = props::Int(*spawnTimer);
+        j["EggLayTime"] = nbt::Int(*spawnTimer);
         break;
       }
     }
-    j["IsChickenJockey"] = props::Bool(false);
+    j["IsChickenJockey"] = nbt::Bool(false);
   }
 
   static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     j["ExplosionRadius"] = Byte(3);
     j["Fuse"] = Short(30);
     j["ignited"] = Bool(false);
@@ -298,22 +298,22 @@ public:
     auto z = b.int32("BlockTargetZ");
     if (x && y && z) {
       auto beamTarget = std::make_shared<CompoundTag>();
-      beamTarget->set("X", props::Int(*x));
-      beamTarget->set("Y", props::Int(*y));
-      beamTarget->set("Z", props::Int(*z));
+      beamTarget->set("X", nbt::Int(*x));
+      beamTarget->set("Y", nbt::Int(*y));
+      beamTarget->set("Z", nbt::Int(*z));
       j["BeamTarget"] = beamTarget;
     }
   }
 
   static void EnderDragon(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto deathTime = b.int32("DeathTime", 0);
-    j["DragonDeathTime"] = props::Int(deathTime);
+    j["DragonDeathTime"] = nbt::Int(deathTime);
     if (deathTime > 0) {
-      j["DragonPhase"] = props::Int(9);
+      j["DragonPhase"] = nbt::Int(9);
     } else {
-      j["DragonPhase"] = props::Int(0);
+      j["DragonPhase"] = nbt::Int(0);
     }
-    j["PersistenceRequired"] = props::Bool(false);
+    j["PersistenceRequired"] = nbt::Bool(false);
   }
 
   static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -340,7 +340,7 @@ public:
   }
 
   static void Evoker(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["SpellTicks"] = props::Int(0);
+    j["SpellTicks"] = nbt::Int(0);
     /* {
       "Chested": 0, // byte
       "Color": 0, // byte
@@ -421,7 +421,7 @@ public:
     if (auto time = b.byte("Time"); time) {
       int8_t i8 = *time;
       uint8_t u8 = *(uint8_t *)&i8;
-      j["Time"] = props::Int(u8);
+      j["Time"] = nbt::Int(u8);
     }
   }
 
@@ -433,10 +433,10 @@ public:
     } else {
       type = "red";
     }
-    j["Type"] = props::String(type);
+    j["Type"] = nbt::String(type);
 
-    j["Sleeping"] = props::Bool(HasDefinition(b, "+minecraft:fox_ambient_sleep"));
-    j["Crouching"] = props::Bool(false);
+    j["Sleeping"] = nbt::Bool(HasDefinition(b, "+minecraft:fox_ambient_sleep"));
+    j["Crouching"] = nbt::Bool(false);
 
     auto trusted = std::make_shared<ListTag>(Tag::Type::IntArray);
     auto trustedPlayers = b.int32("TrustedPlayersAmount", 0);
@@ -459,30 +459,30 @@ public:
   }
 
   static void Ghast(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["ExplosionPower"] = props::Byte(1);
+    j["ExplosionPower"] = nbt::Byte(1);
   }
 
   static void GlowSquid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["DarkTicksRemaining"] = props::Int(0);
+    j["DarkTicksRemaining"] = nbt::Int(0);
   }
 
   static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     bool screamer = HasDefinition(b, "+goat_screamer") || HasDefinition(b, "+ram_screamer") || HasDefinition(b, "+interact_screamer");
-    j["IsScreamingGoat"] = props::Bool(screamer);
+    j["IsScreamingGoat"] = nbt::Bool(screamer);
   }
 
   static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     if (HasDefinition(b, "-angry_hoglin")) {
-      j["CannotBeHunted"] = props::Bool(true);
+      j["CannotBeHunted"] = nbt::Bool(true);
     }
   }
 
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
-    armorDropChances->push_back(props::Float(0.085));
-    armorDropChances->push_back(props::Float(0.085));
-    armorDropChances->push_back(props::Float(0));
-    armorDropChances->push_back(props::Float(0.085));
+    armorDropChances->push_back(nbt::Float(0.085));
+    armorDropChances->push_back(nbt::Float(0.085));
+    armorDropChances->push_back(nbt::Float(0));
+    armorDropChances->push_back(nbt::Float(0.085));
     j["ArmorDropChances"] = armorDropChances;
 
     int32_t variantB = b.int32("Variant", 0);
@@ -490,7 +490,7 @@ public:
     uint32_t uVariantB = *(uint32_t *)&variantB;
     uint32_t uMarkVariantB = *(uint32_t *)&markVariantB;
     uint32_t uVariantJ = (0xf & uVariantB) | ((0xf & uMarkVariantB) << 8);
-    j["Variant"] = props::Int(*(int32_t *)&uVariantJ);
+    j["Variant"] = nbt::Int(*(int32_t *)&uVariantJ);
   }
 
   static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -500,11 +500,11 @@ public:
       j["AngryAt"] = angryAt.toIntArrayTag();
     }
 
-    j["PlayerCreated"] = props::Bool(HasDefinition(b, "+minecraft:player_created"));
+    j["PlayerCreated"] = nbt::Bool(HasDefinition(b, "+minecraft:player_created"));
   }
 
   static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["PickupDelay"] = props::Short(0);
+    j["PickupDelay"] = nbt::Short(0);
     auto itemB = b.compoundTag("Item");
     if (itemB) {
       auto itemJ = toje::Item::From(*itemB, ctx);
@@ -519,7 +519,7 @@ public:
     if (HasDefinition(b, "+minecraft:llama_wandering_trader")) {
       // Ignoring "IsTamed" property here, because it is always true for natural spawned wandering trader llama.
       auto tamed = b.int64("OwnerNew", -1) != -1;
-      j["Tame"] = props::Bool(tamed);
+      j["Tame"] = nbt::Bool(tamed);
     }
   }
 
@@ -529,7 +529,7 @@ public:
     if (variant == 1) {
       type = "brown";
     }
-    j["Type"] = props::String(type);
+    j["Type"] = nbt::String(type);
   }
 
   static void Panda(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -551,19 +551,19 @@ public:
         }
       }
       if (main && hidden) {
-        j["MainGene"] = props::String(Panda::JavaGeneNameFromGene(Panda::GeneFromBedrockAllele(*main)));
-        j["HiddenGene"] = props::String(Panda::JavaGeneNameFromGene(Panda::GeneFromBedrockAllele(*hidden)));
+        j["MainGene"] = nbt::String(Panda::JavaGeneNameFromGene(Panda::GeneFromBedrockAllele(*main)));
+        j["HiddenGene"] = nbt::String(Panda::JavaGeneNameFromGene(Panda::GeneFromBedrockAllele(*hidden)));
       }
     }
   }
 
   static void Phantom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Size"] = props::Int(0);
+    j["Size"] = nbt::Int(0);
   }
 
   static void Piglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     if (HasDefinition(b, "+not_hunter")) {
-      j["CannotHunt"] = props::Bool(true);
+      j["CannotHunt"] = nbt::Bool(true);
     }
   }
 
@@ -582,7 +582,7 @@ public:
     }
 
     auto value = std::make_shared<CompoundTag>();
-    value->set("dimension", props::String(JavaStringFromDimension(*dim)));
+    value->set("dimension", nbt::String(JavaStringFromDimension(*dim)));
     std::vector<int32_t> pos;
     pos.push_back((int)round(homePos->fX));
     pos.push_back((int)round(homePos->fY));
@@ -609,7 +609,7 @@ public:
     } else if (HasDefinition(b, "+minecraft:full_puff")) {
       state = 2;
     }
-    j["PuffState"] = props::Int(state);
+    j["PuffState"] = nbt::Int(state);
   }
 
   static void Rabbit(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -618,8 +618,8 @@ public:
   }
 
   static void Ravager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["RoarTick"] = props::Int(0);
-    j["StunTick"] = props::Int(0);
+    j["RoarTick"] = nbt::Int(0);
+    j["StunTick"] = nbt::Int(0);
   }
 
   static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -629,39 +629,39 @@ public:
 
   static void Shulker(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variant = b.int32("Variant", 16);
-    j["Color"] = props::Byte(variant);
+    j["Color"] = nbt::Byte(variant);
   }
 
   static void SkeletonHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     // summon minecraft:skeleton_horse ~ ~ ~ minecraft:set_trap
-    j["SkeletonTrap"] = props::Bool(HasDefinition(b, "+minecraft:skeleton_trap"));
-    j["SkeletonTrapTime"] = props::Int(0);
+    j["SkeletonTrap"] = nbt::Bool(HasDefinition(b, "+minecraft:skeleton_trap"));
+    j["SkeletonTrapTime"] = nbt::Int(0);
   }
 
   static void SnowGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     bool pumpkin = !HasDefinition(b, "+minecraft:snowman_sheared");
-    j["Pumpkin"] = props::Bool(pumpkin);
+    j["Pumpkin"] = nbt::Bool(pumpkin);
   }
 
   static void TntMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto fuse = b.byte("Fuse", -1);
-    j["TNTFuse"] = props::Int(fuse);
+    j["TNTFuse"] = nbt::Int(fuse);
   }
 
   static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto tf = TropicalFish::FromBedrockBucketTag(b);
-    j["Variant"] = props::Int(tf.toJavaVariant());
+    j["Variant"] = nbt::Int(tf.toJavaVariant());
   }
 
   static void Turtle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto homePos = props::GetPos3f(b, "HomePos");
     if (homePos) {
-      j["HomePosX"] = props::Int(roundf(homePos->fX));
-      j["HomePosY"] = props::Int(roundf(homePos->fY));
-      j["HomePosZ"] = props::Int(roundf(homePos->fZ));
+      j["HomePosX"] = nbt::Int(roundf(homePos->fX));
+      j["HomePosY"] = nbt::Int(roundf(homePos->fY));
+      j["HomePosZ"] = nbt::Int(roundf(homePos->fZ));
     }
 
-    j["HasEgg"] = props::Bool(HasDefinition(b, "-minecraft:wants_to_lay_egg") || HasDefinition(b, "+minecraft:wants_to_lay_egg"));
+    j["HasEgg"] = nbt::Bool(HasDefinition(b, "-minecraft:wants_to_lay_egg") || HasDefinition(b, "+minecraft:wants_to_lay_egg"));
   }
 
   static void Villager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -697,7 +697,7 @@ public:
       auto professionVariant = static_cast<VillagerProfession::Variant>(variantB);
       profession = VillagerProfession(professionVariant);
     }
-    dataJ->set("profession", props::String("minecraft:" + profession.string()));
+    dataJ->set("profession", nbt::String("minecraft:" + profession.string()));
 
     VillagerType::Variant variant = VillagerType::Plains;
     auto markVariantB = b.int32("MarkVariant", 0);
@@ -728,10 +728,10 @@ public:
       variant = static_cast<VillagerType::Variant>(markVariantB);
     }
     VillagerType type(variant);
-    dataJ->set("type", props::String("minecraft:" + type.string()));
+    dataJ->set("type", nbt::String("minecraft:" + type.string()));
 
     auto tradeTier = b.int32("TradeTier", 0);
-    dataJ->set("level", props::Int(tradeTier + 1));
+    dataJ->set("level", nbt::Int(tradeTier + 1));
 
     j["VillagerData"] = dataJ;
   }
@@ -750,23 +750,23 @@ public:
     if (auto timestamp = b.int64("TimeStamp"); timestamp) {
       despawnDelay = std::max<int64_t>(0, *timestamp - ctx.fGameTick);
     }
-    j["DespawnDelay"] = props::Int(despawnDelay);
+    j["DespawnDelay"] = nbt::Int(despawnDelay);
   }
 
   static void Wither(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Invul"] = props::Int(0);
+    j["Invul"] = nbt::Int(0);
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["DrownedConversionTime"] = props::Int(-1);
-    j["CanBreakDoors"] = props::Bool(false);
-    j["InWaterTime"] = props::Int(-1);
+    j["DrownedConversionTime"] = nbt::Int(-1);
+    j["CanBreakDoors"] = nbt::Bool(false);
+    j["InWaterTime"] = nbt::Int(-1);
   }
 #pragma endregion
 
 #pragma region Behaviors
   static void AbsorptionAmount(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["AbsorptionAmount"] = props::Float(0);
+    j["AbsorptionAmount"] = nbt::Float(0);
   }
 
   static void Age(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -778,7 +778,7 @@ public:
   }
 
   static void AngerTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["AngerTime"] = props::Int(0);
+    j["AngerTime"] = nbt::Int(0);
   }
 
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -797,7 +797,7 @@ public:
           armorJ = std::make_shared<CompoundTag>();
         }
         armors.push_back(armorJ);
-        chances->push_back(props::Float(0.085));
+        chances->push_back(nbt::Float(0.085));
       }
       if (armors.size() == 4) {
         armorsJ->push_back(armors[3]);
@@ -813,7 +813,7 @@ public:
   static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto attackTime = b.int16("AttackTime");
     if (attackTime) {
-      j["AttackTick"] = props::Int(*attackTime);
+      j["AttackTick"] = nbt::Int(*attackTime);
     }
   }
 
@@ -825,11 +825,11 @@ public:
   }
 
   static void Bred(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Bred"] = props::Bool(false);
+    j["Bred"] = nbt::Bool(false);
   }
 
   static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["CanJoinRaid"] = props::Bool(HasDefinition(b, "+minecraft:raid_configuration"));
+    j["CanJoinRaid"] = nbt::Bool(HasDefinition(b, "+minecraft:raid_configuration"));
   }
 
   static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -843,14 +843,14 @@ public:
   static void CollarColor(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto owner = b.int64("OwnerNew", -1);
     if (owner == -1) {
-      j["CollarColor"] = props::Byte(14);
+      j["CollarColor"] = nbt::Byte(14);
     } else {
       CopyByteValues(b, j, {{"Color", "CollarColor"}});
     }
   }
 
   static void ConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["ConversionTime"] = props::Int(-1);
+    j["ConversionTime"] = nbt::Int(-1);
   }
 
   static void CopyVariant(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -862,7 +862,7 @@ public:
     if (name) {
       nlohmann::json json;
       json["text"] = *name;
-      j["CustomName"] = props::String(nlohmann::to_string(json));
+      j["CustomName"] = nbt::String(nlohmann::to_string(json));
     }
   }
 
@@ -874,7 +874,7 @@ public:
   }
 
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["EatingHaystack"] = props::Bool(false);
+    j["EatingHaystack"] = nbt::Bool(false);
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -882,15 +882,15 @@ public:
   }
 
   static void FallFlying(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["FallFlying"] = props::Bool(false);
+    j["FallFlying"] = nbt::Bool(false);
   }
 
   static void Fire(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Fire"] = props::Short(-1);
+    j["Fire"] = nbt::Short(-1);
   }
 
   static void FoodLevel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["FoodLevel"] = props::Byte(0);
+    j["FoodLevel"] = nbt::Byte(0);
   }
 
   static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -914,7 +914,7 @@ public:
         itemJ = std::make_shared<CompoundTag>();
       }
       itemsJ->push_back(itemJ);
-      chances->push_back(props::Float(HandDropChance(*itemJ, identifier)));
+      chances->push_back(nbt::Float(HandDropChance(*itemJ, identifier)));
     }
     j["HandItems"] = itemsJ;
     j["HandDropChances"] = chances;
@@ -938,20 +938,20 @@ public:
       if (!current) {
         continue;
       }
-      j["Health"] = props::Float(*current);
+      j["Health"] = nbt::Float(*current);
       return;
     }
   }
 
   static void HopperMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto enabled = HasDefinition(b, "+minecraft:hopper_active");
-    j["Enabled"] = props::Bool(enabled);
+    j["Enabled"] = nbt::Bool(enabled);
 
-    j["TransferCooldown"] = props::Int(0);
+    j["TransferCooldown"] = nbt::Int(0);
   }
 
   static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["HurtByTimestamp"] = props::Int(0);
+    j["HurtByTimestamp"] = nbt::Int(0);
   }
 
   static void HurtTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1038,7 +1038,7 @@ public:
   }
 
   static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["NoGravity"] = props::Bool(true);
+    j["NoGravity"] = nbt::Bool(true);
   }
 
   static void Offers(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1074,7 +1074,7 @@ public:
 
   static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto sizeB = b.byte("Size", 1);
-    j["Size"] = props::Int(sizeB - 1);
+    j["Size"] = nbt::Int(sizeB - 1);
   }
 
   static void StorageMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1082,7 +1082,7 @@ public:
   }
 
   static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["StrayConversionTime"] = props::Int(-1);
+    j["StrayConversionTime"] = nbt::Int(-1);
   }
 
   static void Strength(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1098,7 +1098,7 @@ public:
   }
 
   static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["LeftHanded"] = props::Bool(false);
+    j["LeftHanded"] = nbt::Bool(false);
   }
 
   static void OnGround(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1147,11 +1147,11 @@ public:
       return;
     }
 
-    j["Motive"] = props::String(motiveJ);
-    j["Facing"] = props::Byte(directionB);
-    j["TileX"] = props::Int(std::round(tile->fX));
-    j["TileY"] = props::Int(std::round(tile->fY));
-    j["TileZ"] = props::Int(std::round(tile->fZ));
+    j["Motive"] = nbt::String(motiveJ);
+    j["Facing"] = nbt::Byte(directionB);
+    j["TileX"] = nbt::Int(std::round(tile->fX));
+    j["TileY"] = nbt::Int(std::round(tile->fY));
+    j["TileZ"] = nbt::Int(std::round(tile->fZ));
   }
 
   static void PatrolLeader(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1159,7 +1159,7 @@ public:
   }
 
   static void Patrolling(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Patrolling"] = props::Bool(false);
+    j["Patrolling"] = nbt::Bool(false);
   }
 
   static void PersistenceRequiredDefault(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1167,7 +1167,7 @@ public:
   }
 
   static void PersistenceRequiredAnimal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["PersistenceRequired"] = props::Bool(false);
+    j["PersistenceRequired"] = nbt::Bool(false);
   }
 
   static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1207,7 +1207,7 @@ public:
   }
 
   static void Saddle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    j["Saddle"] = props::Bool(HasDefinitionWithPrefixAndSuffix(b, "+minecraft:", "_saddled"));
+    j["Saddle"] = nbt::Bool(HasDefinitionWithPrefixAndSuffix(b, "+minecraft:", "_saddled"));
   }
 
   static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1243,7 +1243,7 @@ public:
         }
       }
       */
-    j["Wave"] = props::Int(0);
+    j["Wave"] = nbt::Int(0);
   }
 #pragma endregion
 
@@ -1353,7 +1353,7 @@ public:
           itemJ->erase("Slot");
           subItem = itemJ;
         } else {
-          itemJ->set("Slot", props::Byte(*slot + 1));
+          itemJ->set("Slot", nbt::Byte(*slot + 1));
           items->push_back(itemJ);
         }
       }
@@ -1436,7 +1436,7 @@ public:
     if (!count) {
       return nullptr;
     }
-    item->set("Count", props::Byte(*count));
+    item->set("Count", nbt::Byte(*count));
     return item;
   }
 
@@ -1465,12 +1465,12 @@ public:
       ret->set("buyB", buyB);
     } else {
       auto air = std::make_shared<CompoundTag>();
-      air->set("id", props::String("minecraft:air"));
-      air->set("Count", props::Byte(1));
+      air->set("id", nbt::String("minecraft:air"));
+      air->set("Count", nbt::Byte(1));
       ret->set("buyB", air);
     }
 
-    ret->set("specialPrice", props::Int(0));
+    ret->set("specialPrice", nbt::Int(0));
 
     CopyIntValues(recipeB, *ret, {{"demand"}, {"maxUses"}, {"uses"}, {"traderExp", "xp"}});
     CopyByteValues(recipeB, *ret, {{"rewardExp"}});
@@ -1501,7 +1501,7 @@ public:
   };
 
   static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     LocalPlayerData data;
 

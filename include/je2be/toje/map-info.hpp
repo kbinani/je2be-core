@@ -13,11 +13,11 @@ public:
 
     std::shared_ptr<CompoundTag> toCompoundTag() const {
       auto ret = std::make_shared<CompoundTag>();
-      ret->set("id", props::String(fId));
-      ret->set("rot", props::Double(fRot));
-      ret->set("type", props::Byte(fType));
-      ret->set("x", props::Double(fX));
-      ret->set("z", props::Double(fZ));
+      ret->set("id", nbt::String(fId));
+      ret->set("rot", nbt::Double(fRot));
+      ret->set("type", nbt::Byte(fType));
+      ret->set("x", nbt::Double(fX));
+      ret->set("z", nbt::Double(fZ));
       return ret;
     }
   };

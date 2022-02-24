@@ -10,7 +10,6 @@ private:
 
 public:
   static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, Context const &ctx) {
-    using namespace props;
     using namespace std;
 
     static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
@@ -63,10 +62,10 @@ public:
 
   static std::shared_ptr<CompoundTag> Empty() {
     auto armor = std::make_shared<CompoundTag>();
-    armor->set("Count", props::Byte(0));
-    armor->set("Damage", props::Short(0));
-    armor->set("Name", props::String(""));
-    armor->set("WasPickedUp", props::Bool(false));
+    armor->set("Count", nbt::Byte(0));
+    armor->set("Damage", nbt::Short(0));
+    armor->set("Name", nbt::String(""));
+    armor->set("WasPickedUp", nbt::Bool(false));
     return armor;
   }
 
@@ -190,7 +189,7 @@ private:
   }
 
   static ItemData AxolotlBucket(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto ret = New("axolotl_bucket");
     ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
@@ -213,7 +212,7 @@ private:
   }
 
   static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto ret = New("tropical_fish_bucket");
     ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
@@ -230,7 +229,7 @@ private:
 
   static ItemData BooksAndQuill(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto tag = make_shared<CompoundTag>();
     tag->insert({
@@ -262,7 +261,7 @@ private:
             continue;
           }
           string lineText;
-          auto obj = ParseAsJson(line->fValue);
+          auto obj = props::ParseAsJson(line->fValue);
           if (obj) {
             auto text = obj->find("text");
             auto extra = obj->find("extra");
@@ -307,7 +306,7 @@ private:
   }
 
   static ItemData LeatherArmor(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto tag = std::make_shared<CompoundTag>();
     tag->insert({
@@ -329,7 +328,7 @@ private:
 
   static std::optional<std::tuple<int, ItemData>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
     auto ret = New(name, true);
-    ret->set("Damage", props::Short(0));
+    ret->set("Damage", nbt::Short(0));
 
     auto number = item.query("tag/map")->asInt();
     if (!number) {
@@ -344,8 +343,8 @@ private:
     int64_t uuid = Map::UUID(mapId, *scale);
 
     auto tag = std::make_shared<CompoundTag>();
-    tag->set("map_uuid", props::Long(uuid));
-    tag->set("map_display_players", props::Byte(1));
+    tag->set("map_uuid", nbt::Long(uuid));
+    tag->set("map_display_players", nbt::Byte(1));
     ret->set("tag", tag);
 
     int16_t type = 0;
@@ -369,8 +368,8 @@ private:
         }
       }
     }
-    tag->set("map_name_index", props::Int(number->fValue));
-    ret->set("Damage", props::Short(type));
+    tag->set("map_name_index", nbt::Int(number->fValue));
+    ret->set("Damage", nbt::Short(type));
 
     auto out = Post(ret, item);
     return make_tuple(mapId, out);
@@ -384,7 +383,7 @@ private:
       auto potion = t->string("Potion", "");
       type = Potion::BedrockPotionTypeFromJava(potion);
     }
-    tag->set("Damage", props::Short(type));
+    tag->set("Damage", nbt::Short(type));
     return Post(tag, item);
   }
 
@@ -396,7 +395,7 @@ private:
       auto potion = t->string("Potion", "");
       type = TippedArrowPotion::BedrockPotionType(potion);
     }
-    tag->set("Damage", props::Short(type));
+    tag->set("Damage", nbt::Short(type));
     return Post(tag, item);
   }
 
@@ -410,7 +409,7 @@ private:
       auto e = FireworksExplosion::FromJava(*explosion);
       if (!e.fColor.empty()) {
         int32_t customColor = e.fColor[0].toARGB();
-        tag->set("customColor", props::Int(customColor));
+        tag->set("customColor", nbt::Int(customColor));
       }
       tag->set("FireworksItem", e.toBedrockCompoundTag());
       data->set("tag", tag);
@@ -434,7 +433,7 @@ private:
   static Converter Subtype(std::string const &newName, int16_t damage) {
     return [=](std::string const &name, CompoundTag const &item, Context const &) {
       auto tag = New(newName);
-      tag->set("Damage", props::Short(damage));
+      tag->set("Damage", nbt::Short(damage));
       return Post(tag, item);
     };
   }
@@ -754,7 +753,7 @@ private:
 
   static ItemData AnyTorch(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
@@ -780,7 +779,7 @@ private:
   static ItemData Skull(std::string const &name, CompoundTag const &item, Context const &) {
     int8_t type = GetSkullTypeFromBlockName(name);
     auto tag = New("skull");
-    tag->set("Damage", props::Short(type));
+    tag->set("Damage", nbt::Short(type));
     return Post(tag, item);
   }
 
@@ -804,7 +803,7 @@ private:
           break;
         }
         if (damage >= 0) {
-          b->set("Damage", props::Short(damage));
+          b->set("Damage", nbt::Short(damage));
         }
       }
     }
@@ -842,7 +841,7 @@ private:
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     int16_t damage = (int16_t)color;
     auto ret = New("banner");
-    ret->set("Damage", props::Short(damage));
+    ret->set("Damage", nbt::Short(damage));
 
     auto patterns = item.query("tag/BlockEntityTag/Patterns")->asList();
     auto display = item.query("tag/display")->asCompound();
@@ -859,7 +858,7 @@ private:
 
     if (ominous) {
       auto tag = std::make_shared<CompoundTag>();
-      tag->set("Type", props::Int(1));
+      tag->set("Type", nbt::Int(1));
       ret->set("tag", tag);
     } else if (patterns) {
       auto bePatterns = std::make_shared<ListTag>(Tag::Type::Compound);
@@ -875,8 +874,8 @@ private:
         }
         auto ptag = std::make_shared<CompoundTag>();
         ptag->insert({
-            {"Color", props::Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
-            {"Pattern", props::String(*pat)},
+            {"Color", nbt::Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
+            {"Pattern", nbt::String(*pat)},
         });
         bePatterns->push_back(ptag);
       }
@@ -894,13 +893,13 @@ private:
     ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
     int16_t damage = (int16_t)color;
     auto tag = New("bed");
-    tag->set("Damage", props::Short(damage));
+    tag->set("Damage", nbt::Short(damage));
     return Post(tag, item);
   }
 
   static ItemData MushroomBlock(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
@@ -917,7 +916,7 @@ private:
   }
 
   static ItemData New(std::string const &name, bool fullname = false) {
-    using namespace props;
+    using namespace je2be::nbt;
     std::string n;
     if (fullname) {
       n = name;
@@ -938,7 +937,7 @@ private:
 
   static ItemData DefaultBlockItem(std::string const &id, CompoundTag const &item, Context const &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     map<string, string> p;
     auto block = make_shared<Block>(id, p);
@@ -975,9 +974,9 @@ private:
             for (auto const &item : *loreJ) {
               if (auto str = item->asString(); str) {
                 if (str->fValue == "\"(+NBT)\"") {
-                  loreB->push_back(props::String("(+Data)"));
+                  loreB->push_back(nbt::String("(+Data)"));
                 } else {
-                  loreB->push_back(props::String(str->fValue));
+                  loreB->push_back(nbt::String(str->fValue));
                 }
               }
             }
@@ -995,7 +994,7 @@ private:
   }
 
   static ItemData DefaultItem(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto ret = std::make_shared<CompoundTag>();
     ret->insert({
@@ -1008,7 +1007,7 @@ private:
 
   static ItemData Post(ItemData const &input, CompoundTag const &item) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     CopyByteValues(item, *input, {{"Count"}});
 
@@ -1082,7 +1081,7 @@ private:
 
   static std::optional<std::string> GetCustomName(CompoundTag const &tag) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::props;
     auto display = tag.compoundTag("display");
     if (!display) {
       return nullopt;

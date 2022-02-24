@@ -256,7 +256,7 @@ public:
         vehicle->set("Passengers", passengersTag);
       }
       if (vehicle->string("id") == "minecraft:chicken") {
-        vehicle->set("IsChickenJockey", props::Bool(true));
+        vehicle->set("IsChickenJockey", nbt::Bool(true));
       }
       for (auto const &it : collectedPassengers) {
         size_t index = it.first;
@@ -297,9 +297,9 @@ public:
       if (entity) {
         Pos3i leashPos = leasherFound->second;
         auto leashTag = std::make_shared<CompoundTag>();
-        leashTag->set("X", props::Int(leashPos.fX));
-        leashTag->set("Y", props::Int(leashPos.fY));
-        leashTag->set("Z", props::Int(leashPos.fZ));
+        leashTag->set("X", nbt::Int(leashPos.fX));
+        leashTag->set("Y", nbt::Int(leashPos.fY));
+        leashTag->set("Z", nbt::Int(leashPos.fZ));
         entity->set("Leash", leashTag);
       }
     }

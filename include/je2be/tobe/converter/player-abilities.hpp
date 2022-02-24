@@ -23,9 +23,8 @@ public:
   float fWalkSpeed = 0.1f;
 
   std::shared_ptr<CompoundTag> toCompoundTag() const {
-    using namespace props;
-
-    auto a = std::make_shared<CompoundTag>();
+    using namespace je2be::nbt;
+    auto a = Compound();
     a->insert({
         {"attackmobs", Bool(fAttackMobs)},
         {"attackplayers", Bool(fAttackPlayers)},

@@ -71,16 +71,15 @@ public:
   }
 
   std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
-    using namespace props;
     auto ret = std::make_shared<CompoundTag>();
     if (fFlicker) {
-      ret->set("FireworkFlicker", Bool(*fFlicker));
+      ret->set("FireworkFlicker", nbt::Bool(*fFlicker));
     }
     if (fTrail) {
-      ret->set("FireworkTrail", Bool(*fTrail));
+      ret->set("FireworkTrail", nbt::Bool(*fTrail));
     }
     if (fType) {
-      ret->set("FireworkType", Byte(*fType));
+      ret->set("FireworkType", nbt::Byte(*fType));
     }
     if (!fColor.empty()) {
       std::vector<uint8_t> colors;
@@ -101,16 +100,15 @@ public:
 
   std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
     using namespace std;
-    using namespace props;
     auto ret = make_shared<CompoundTag>();
     if (fTrail) {
-      ret->set("Trail", Bool(*fTrail));
+      ret->set("Trail", nbt::Bool(*fTrail));
     }
     if (fFlicker) {
-      ret->set("Flicker", Bool(*fFlicker));
+      ret->set("Flicker", nbt::Bool(*fFlicker));
     }
     if (fType) {
-      ret->set("Type", Byte(*fType));
+      ret->set("Type", nbt::Byte(*fType));
     }
     if (!fColor.empty()) {
       vector<int32_t> colors;

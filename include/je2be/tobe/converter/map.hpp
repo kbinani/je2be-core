@@ -15,7 +15,7 @@ public:
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto root = JavaEditionMap::Read(input, opt, javaMapId);
     if (!root) {

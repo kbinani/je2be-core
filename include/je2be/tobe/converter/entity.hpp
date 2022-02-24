@@ -46,7 +46,7 @@ public:
 
   static Result From(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto id = tag.string("id");
     Result result;
     if (!id) {
@@ -78,7 +78,7 @@ public:
 
   static std::optional<std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
@@ -92,12 +92,12 @@ public:
 
   static std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
     auto tileZ = c.int32("TileZ");
 
-    auto rot = GetRotation(c, "Rotation");
+    auto rot = props::GetRotation(c, "Rotation");
     int32_t facing = 0;
     if (RotAlmostEquals(*rot, 0, -90)) {
       // up
@@ -148,7 +148,7 @@ public:
   }
 
   static std::shared_ptr<CompoundTag> ToTileEntityData(CompoundTag const &c, Context const &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
@@ -160,7 +160,7 @@ public:
   }
 
   static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto tag = std::make_shared<CompoundTag>();
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
@@ -200,7 +200,7 @@ public:
 
   std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
     auto tag = make_shared<CompoundTag>();
     auto tags = make_shared<ListTag>(Tag::Type::Compound);
     auto definitions = make_shared<ListTag>(Tag::Type::String);
@@ -267,7 +267,7 @@ public:
   static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
     using namespace mcfile;
-    using namespace props;
+    using namespace je2be::nbt;
 
     ConverterContext cctx(ctx);
     auto entity = LivingEntity(tag, cctx);
@@ -279,7 +279,7 @@ public:
       return nullopt;
     }
 
-    auto pos = GetPos3d(tag, "Pos");
+    auto pos = props::GetPos3d(tag, "Pos");
     if (!pos) {
       return nullopt;
     }
@@ -594,8 +594,8 @@ private:
       if (indexB) {
         if (indexB != 1 || showArms) {
           auto poseB = std::make_shared<CompoundTag>();
-          poseB->set("PoseIndex", props::Int(*indexB));
-          poseB->set("LastSignal", props::Int(0));
+          poseB->set("PoseIndex", nbt::Int(*indexB));
+          poseB->set("LastSignal", nbt::Int(0));
           c["Pose"] = poseB;
         }
       }
@@ -605,13 +605,13 @@ private:
   static void Arrow(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto owner = GetOwnerUuid(tag);
     if (owner) {
-      c["OwnerID"] = props::Long(*owner);
-      c["OwnerNew"] = props::Long(*owner);
+      c["OwnerID"] = nbt::Long(*owner);
+      c["OwnerNew"] = nbt::Long(*owner);
     }
   }
 
   static void Axolotl(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto originalVariant = std::clamp(tag.int32("Variant", 0), 0, 4);
     static const std::string definitionMapping[5] = {
         "+axolotl_lucy",
@@ -667,7 +667,7 @@ private:
 
     auto type = tag.string("Type", "oak");
     int32_t variant = Boat::BedrockVariantFromJavaType(type);
-    c["Variant"] = props::Int(variant);
+    c["Variant"] = nbt::Int(variant);
 
     auto rotation = props::GetRotation(c, "Rotation");
     if (rotation) {
@@ -693,10 +693,10 @@ private:
       if (!type.empty()) {
         AddDefinition(c, "+minecraft:cat_" + type);
       }
-      c["Variant"] = props::Int(variant);
+      c["Variant"] = nbt::Int(variant);
     }
-    c["DwellingUniqueID"] = props::String("00000000-0000-0000-0000-000000000000");
-    c["RewardPlayersOnFirstFounding"] = props::Bool(true);
+    c["DwellingUniqueID"] = nbt::String("00000000-0000-0000-0000-000000000000");
+    c["RewardPlayersOnFirstFounding"] = nbt::Bool(true);
   }
 
   static void ChestMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -709,8 +709,8 @@ private:
     if (eggLayTime) {
       auto entries = make_shared<ListTag>(Tag::Type::Compound);
       auto timer = make_shared<CompoundTag>();
-      timer->set("SpawnTimer", props::Int(*eggLayTime));
-      timer->set("StopSpawning", props::Bool(false));
+      timer->set("SpawnTimer", nbt::Int(*eggLayTime));
+      timer->set("StopSpawning", nbt::Bool(false));
       entries->push_back(timer);
       c["entries"] = entries;
     }
@@ -745,7 +745,7 @@ private:
   static void ExperienceOrb(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto value = tag.int16("Value");
     if (value) {
-      c["experience value"] = props::Int(*value);
+      c["experience value"] = nbt::Int(*value);
     }
     AddDefinition(c, "+minecraft:xp_orb");
   }
@@ -768,7 +768,7 @@ private:
     CopyFloatValues(tag, c, {{"FallDistance"}});
 
     uint8_t time = mcfile::Clamp<uint8_t>(tag.int32("Time", 0));
-    c["Time"] = props::Byte(*(int8_t *)&time);
+    c["Time"] = nbt::Byte(*(int8_t *)&time);
 
     /*
     Variant:
@@ -788,7 +788,7 @@ private:
     } else if (type == "snow") {
       variant = 1;
     }
-    c["Variant"] = props::Int(variant);
+    c["Variant"] = nbt::Int(variant);
 
     if (tag.boolean("Sleeping", false)) {
       AddDefinition(c, "+minecraft:fox_ambient_sleep");
@@ -808,11 +808,11 @@ private:
         }
         int64_t uuidB = UuidRegistrar::ToId(*uuidJ);
         std::string key = "TrustedPlayer" + std::to_string(index);
-        c[key] = props::Long(uuidB);
+        c[key] = nbt::Long(uuidB);
         index++;
       }
       if (index > 0) {
-        c["TrustedPlayersAmount"] = props::Int(index);
+        c["TrustedPlayersAmount"] = nbt::Int(index);
       }
     }
   }
@@ -842,8 +842,8 @@ private:
     auto variant = tag.int32("Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
-    c["Variant"] = props::Int(baseColor);
-    c["MarkVariant"] = props::Int(markings);
+    c["Variant"] = nbt::Int(baseColor);
+    c["MarkVariant"] = nbt::Int(markings);
   }
 
   static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -854,10 +854,10 @@ private:
   }
 
   static void IronGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto playerCreated = tag.boolean("PlayerCreated", false);
-    auto angryAt = GetUuid(tag, {.fIntArray = "AngryAt"});
+    auto angryAt = props::GetUuid(tag, {.fIntArray = "AngryAt"});
     auto angerTime = tag.int32("AngerTime", 0);
 
     if (playerCreated) {
@@ -873,7 +873,7 @@ private:
   }
 
   static void Llama(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto variant = tag.int32("Variant", 0);
     std::string color = "creamy";
@@ -952,7 +952,7 @@ private:
     } else {
       AddDefinition(c, "+minecraft:mooshroom_red");
     }
-    c["Variant"] = props::Int(variant);
+    c["Variant"] = nbt::Int(variant);
   }
 
   static void Panda(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -964,8 +964,8 @@ private:
 
     auto genes = std::make_shared<ListTag>(Tag::Type::Compound);
     auto gene = std::make_shared<CompoundTag>();
-    gene->set("MainAllele", props::Int(Panda::BedrockAlleleFromGene(main)));
-    gene->set("HiddenAllele", props::Int(Panda::BedrockAlleleFromGene(hidden)));
+    gene->set("MainAllele", nbt::Int(Panda::BedrockAlleleFromGene(main)));
+    gene->set("HiddenAllele", nbt::Int(Panda::BedrockAlleleFromGene(hidden)));
     genes->push_back(gene);
 
     c["GeneArray"] = genes;
@@ -990,7 +990,7 @@ private:
           if (auto d = DimensionFromJavaString(*dimension); d) {
             auto const &posv = pos->value();
             Pos3f posB(posv[0], posv[1], posv[2]);
-            c["HomeDimensionId"] = props::Int(BedrockDimensionFromDimension(*d));
+            c["HomeDimensionId"] = nbt::Int(BedrockDimensionFromDimension(*d));
             c["HomePos"] = posB.toListTag();
           }
         }
@@ -1060,9 +1060,9 @@ private:
     } else if (type == 99) {
       coat = "white";
       variant = 1;
-      c["CustomName"] = props::String("The Killer Bunny");
+      c["CustomName"] = nbt::String("The Killer Bunny");
     }
-    c["Variant"] = props::Int(variant);
+    c["Variant"] = nbt::Int(variant);
     AddDefinition(c, "+coat_" + coat);
 
     CopyIntValues(tag, c, {{"MoreCarrotTicks"}});
@@ -1075,12 +1075,12 @@ private:
   static void Shulker(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto color = tag.byte("Color", 16);
     if (0 <= color && color <= 15) {
-      c["Color"] = props::Byte(color);
+      c["Color"] = nbt::Byte(color);
       AddDefinition(c, "+minecraft:shulker_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
     } else {
       AddDefinition(c, "+minecraft:shulker_undyed");
     }
-    c["Variant"] = props::Int(color);
+    c["Variant"] = nbt::Int(color);
   }
 
   static void SkeletonHorse(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1094,8 +1094,8 @@ private:
   static void Slime(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto sizeJ = tag.int32("Size", 0);
     int sizeB = sizeJ + 1;
-    c["Variant"] = props::Int(sizeB);
-    c["Size"] = props::Byte(sizeB);
+    c["Variant"] = nbt::Int(sizeB);
+    c["Size"] = nbt::Byte(sizeB);
 
     auto health = tag.float32("Health");
     auto attributes = EntityAttributes::Slime(sizeB, health);
@@ -1115,7 +1115,7 @@ private:
     if (fuse < 0) {
       AddDefinition(c, "+minecraft:inactive");
     } else {
-      c["Fuse"] = props::Byte(fuse);
+      c["Fuse"] = nbt::Byte(fuse);
       AddDefinition(c, "-minecraft:inactive");
       AddDefinition(c, "+minecraft:primed_tnt");
     }
@@ -1126,13 +1126,13 @@ private:
     AddDefinition(c, "-minecraft:llama_wild");
     AddDefinition(c, "+minecraft:llama_tamed");
     AddDefinition(c, "+minecraft:strength_3");
-    c["InventoryVersion"] = props::String("1.16.40");
-    c["MarkVariant"] = props::Int(1);
-    c["IsTamed"] = props::Bool(true);
+    c["InventoryVersion"] = nbt::String("1.16.40");
+    c["MarkVariant"] = nbt::Int(1);
+    c["IsTamed"] = nbt::Bool(true);
   }
 
   static void TropicalFish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto variant = tag.int32("Variant", 0);
     auto tf = TropicalFish::FromJavaVariant(variant);
     c["Variant"] = Int(tf.fSmall ? 0 : 1);
@@ -1147,9 +1147,9 @@ private:
     auto z = tag.int32("HomePosZ");
     if (x && y && z) {
       auto homePos = std::make_shared<ListTag>(Tag::Type::Float);
-      homePos->push_back(props::Float(*x));
-      homePos->push_back(props::Float(*y));
-      homePos->push_back(props::Float(*z));
+      homePos->push_back(nbt::Float(*x));
+      homePos->push_back(nbt::Float(*y));
+      homePos->push_back(nbt::Float(*z));
       c["HomePos"] = homePos;
     }
 
@@ -1161,7 +1161,7 @@ private:
 
   static void Villager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto data = tag.compoundTag("VillagerData");
     optional<VillagerProfession> profession;
@@ -1219,7 +1219,7 @@ private:
   static void WanderingTrader(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     if (auto despawnDelay = tag.int32("DespawnDelay"); despawnDelay) {
       int64_t timestamp = ctx.fCtx.fGameTick + *despawnDelay;
-      c["TimeStamp"] = props::Long(timestamp);
+      c["TimeStamp"] = nbt::Long(timestamp);
     }
   }
 
@@ -1279,7 +1279,7 @@ private:
 
     auto offers = tag.compoundTag("Offers");
     if (offers) {
-      c["Persistent"] = props::Bool(true);
+      c["Persistent"] = nbt::Bool(true);
     }
 
     CopyIntValues(tag, c, {{"Xp", "TradeExperience"}});
@@ -1291,17 +1291,17 @@ private:
     auto age = tag.int32("Age", 0);
     if (age < 0) {
       AddDefinition(c, "+baby");
-      c["Age"] = props::Int(age);
+      c["Age"] = nbt::Int(age);
     } else {
       AddDefinition(c, "+adult");
       c.erase("Age");
     }
-    c["IsBaby"] = props::Bool(age < 0);
+    c["IsBaby"] = nbt::Bool(age < 0);
   }
 
   static void AttackTime(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto attackTick = tag.int32("AttackTick", 0);
-    c["AttackTime"] = props::Short(attackTick);
+    c["AttackTime"] = nbt::Short(attackTick);
   }
 
   static void CanJoinRaid(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1314,7 +1314,7 @@ private:
   static void CollarColorable(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto collarColor = tag.byte("CollarColor");
     if (collarColor && GetOwnerUuid(tag)) {
-      c["Color"] = props::Byte(*collarColor);
+      c["Color"] = nbt::Byte(*collarColor);
     }
   }
 
@@ -1339,12 +1339,12 @@ private:
         std::shared_ptr<CompoundTag> itemB = Item::From(itemJ, ctx.fCtx);
         if (!itemB) {
           itemB = std::make_shared<CompoundTag>();
-          itemB->set("Count", props::Byte(0));
-          itemB->set("Damage", props::Short(0));
-          itemB->set("Name", props::String(""));
-          itemB->set("WasPickedUp", props::Bool(false));
+          itemB->set("Count", nbt::Byte(0));
+          itemB->set("Damage", nbt::Short(0));
+          itemB->set("Name", nbt::String(""));
+          itemB->set("WasPickedUp", nbt::Bool(false));
         }
-        itemB->set("Slot", props::Byte(slot));
+        itemB->set("Slot", nbt::Byte(slot));
         chestItems->push_back(itemB);
         slot++;
       }
@@ -1355,9 +1355,9 @@ private:
   static void PersistentFromFromBucket(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto fromBucket = tag.boolean("FromBucket", false);
     if (fromBucket) {
-      c["Persistent"] = props::Bool(true);
+      c["Persistent"] = nbt::Bool(true);
     } else {
-      c["NaturalSpawn"] = props::Bool(true);
+      c["NaturalSpawn"] = nbt::Bool(true);
     }
   }
 
@@ -1377,7 +1377,7 @@ private:
       return nullptr;
     }
 
-    c->set("Persistent", props::Bool(true));
+    c->set("Persistent", nbt::Bool(true));
 
     auto leash = tag.compoundTag("Leash");
     if (leash) {
@@ -1397,10 +1397,10 @@ private:
         int cz = mcfile::Coordinate::ChunkFromBlock(*z);
         ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
 
-        c->set("LeasherID", props::Long(leasherId));
+        c->set("LeasherID", nbt::Long(leasherId));
       } else if (leasherUuid) {
         auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
-        c->set("LeasherID", props::Long(leasherUuidB));
+        c->set("LeasherID", nbt::Long(leasherUuidB));
       }
     }
 
@@ -1429,9 +1429,9 @@ private:
       auto y = beamTarget->int32("Y");
       auto z = beamTarget->int32("Z");
       if (x && y && z) {
-        c->set("BlockTargetX", props::Int(*x));
-        c->set("BlockTargetY", props::Int(*y));
-        c->set("BlockTargetZ", props::Int(*z));
+        c->set("BlockTargetX", nbt::Int(*x));
+        c->set("BlockTargetY", nbt::Int(*y));
+        c->set("BlockTargetZ", nbt::Int(*z));
       }
     }
 
@@ -1442,13 +1442,13 @@ private:
     auto c = Monster(tag, ctx);
     AddDefinition(*c, "-dragon_sitting");
     AddDefinition(*c, "+dragon_flying");
-    c->set("Persistent", props::Bool(true));
-    c->set("IsAutonomous", props::Bool(true));
-    c->set("LastDimensionId", props::Int(2));
+    c->set("Persistent", nbt::Bool(true));
+    c->set("IsAutonomous", nbt::Bool(true));
+    c->set("LastDimensionId", nbt::Int(2));
 
     auto dragonDeathTime = tag.int32("DragonDeathTime", 0);
     if (dragonDeathTime > 0) {
-      c->set("DeathTime", props::Int(dragonDeathTime));
+      c->set("DeathTime", nbt::Int(dragonDeathTime));
       RemoveDefinition(*c, "+dragon_flying");
       AddDefinition(*c, "-dragon_flying");
       AddDefinition(*c, "+dragon_death");
@@ -1467,7 +1467,7 @@ private:
   }
 
   static std::shared_ptr<CompoundTag> Item(CompoundTag const &tag, ConverterContext &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1485,7 +1485,7 @@ private:
     auto ret = e->toCompoundTag();
     ret->set("Item", beItem);
 
-    auto thrower = GetUuid(tag, {.fIntArray = "Thrower"});
+    auto thrower = props::GetUuid(tag, {.fIntArray = "Thrower"});
     int64_t owner = -1;
     if (thrower) {
       owner = UuidRegistrar::ToId(*thrower);
@@ -1499,7 +1499,7 @@ private:
   }
 
   static std::shared_ptr<CompoundTag> LivingEntity(CompoundTag const &tag, ConverterContext &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1549,7 +1549,7 @@ private:
   }
 
   static std::shared_ptr<CompoundTag> Mob(CompoundTag const &tag, ConverterContext &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
     auto ret = LivingEntity(tag, ctx);
     if (!ret) {
       return ret;
@@ -1557,8 +1557,8 @@ private:
 
     auto fromBucket = tag.boolean("FromBucket");
     if (fromBucket) {
-      ret->set("Persistent", props::Bool(*fromBucket));
-      ret->set("PersistenceRequired", props::Bool(false));
+      ret->set("Persistent", nbt::Bool(*fromBucket));
+      ret->set("PersistenceRequired", nbt::Bool(false));
     } else {
       CopyBoolValues(tag, *ret, {{"PersistenceRequired", "Persistent", false}});
     }
@@ -1584,14 +1584,14 @@ private:
 
   static std::shared_ptr<CompoundTag> Monster(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Mob(tag, ctx);
-    c->set("SpawnedByNight", props::Bool(false));
+    c->set("SpawnedByNight", nbt::Bool(false));
     return c;
   }
 
   static std::shared_ptr<CompoundTag> Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
   static std::shared_ptr<CompoundTag> Painting(CompoundTag const &tag, ConverterContext &ctx) {
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto facing = tag.byte("Facing", 0);
     Facing4 f4 = Facing4FromBedrockDirection(facing);
@@ -1649,7 +1649,7 @@ private:
         if (!slot) {
           continue;
         }
-        converted->set("Slot", props::Byte(*slot));
+        converted->set("Slot", nbt::Byte(*slot));
         chestItems->push_back(converted);
       }
     }
@@ -1666,12 +1666,12 @@ private:
       auto age = tag.int32("Age", 0);
       if (age < 0) {
         AddDefinition(c, "+minecraft:" + definitionKey + "_baby");
-        c["Age"] = props::Int(age);
+        c["Age"] = nbt::Int(age);
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
         c.erase("Age");
       }
-      c["IsBaby"] = props::Bool(age < 0);
+      c["IsBaby"] = nbt::Bool(age < 0);
     };
   }
 
@@ -1683,7 +1683,7 @@ private:
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_adult");
       }
-      c["IsBaby"] = props::Bool(baby);
+      c["IsBaby"] = nbt::Bool(baby);
     };
   }
 
@@ -1695,13 +1695,13 @@ private:
       } else {
         AddDefinition(c, "+minecraft:adult_" + definitionKey);
       }
-      c["IsBaby"] = props::Bool(baby);
+      c["IsBaby"] = nbt::Bool(baby);
     };
   }
 
   static Behavior ChestedHorse(std::string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-      using namespace props;
+      using namespace je2be::nbt;
       auto chested = tag.boolean("ChestedHorse", false);
       c["Chested"] = Bool(chested);
       if (!chested) {
@@ -1745,7 +1745,7 @@ private:
   static Behavior Colorable(std::string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto color = tag.byte("Color", 0);
-      c["Color"] = props::Byte(color);
+      c["Color"] = nbt::Byte(color);
       CopyByteValues(tag, c, {{"Color"}});
       AddDefinition(c, "+minecraft:" + definitionKey + "_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
     };
@@ -1763,7 +1763,7 @@ private:
   static Behavior Offers(int maxTradeTier, std::string offersKey) {
     return [maxTradeTier, offersKey](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
       using namespace std;
-      using namespace props;
+      using namespace je2be::nbt;
 
       auto offers = tag.compoundTag("Offers");
       if (offers) {
@@ -1829,13 +1829,13 @@ private:
       }
       RemoveDefinition(c, "+" + *id);
       AddDefinition(c, "+minecraft:" + name);
-      c["identifier"] = props::String("minecraft:" + name);
+      c["identifier"] = nbt::String("minecraft:" + name);
     };
   }
 
   static Behavior Steerable(std::string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      using namespace props;
+      using namespace je2be::nbt;
       auto saddle = tag.boolean("Saddle", false);
       auto saddleItem = tag.compoundTag("SaddleItem");
       if (saddle || saddleItem) {
@@ -1853,7 +1853,7 @@ private:
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_unsaddled");
       }
-      c["Saddled"] = props::Bool(saddle);
+      c["Saddled"] = nbt::Bool(saddle);
     };
   }
 
@@ -1861,10 +1861,10 @@ private:
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto owner = GetOwnerUuid(tag);
       if (owner) {
-        c["OwnerNew"] = props::Long(*owner);
+        c["OwnerNew"] = nbt::Long(*owner);
         AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
         AddDefinition(c, "+minecraft:" + definitionKey + "_tame");
-        c["IsTamed"] = props::Bool(true);
+        c["IsTamed"] = nbt::Bool(true);
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
       }
@@ -1875,10 +1875,10 @@ private:
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto owner = GetOwnerUuid(tag);
       if (owner) {
-        c["OwnerNew"] = props::Long(*owner);
+        c["OwnerNew"] = nbt::Long(*owner);
         AddDefinition(c, "-minecraft:" + definitionKey + "_wild");
         AddDefinition(c, "+minecraft:" + definitionKey + "_tamed");
-        c["IsTamed"] = props::Bool(true);
+        c["IsTamed"] = nbt::Bool(true);
       } else {
         AddDefinition(c, "+minecraft:" + definitionKey + "_wild");
       }
@@ -1909,8 +1909,8 @@ private:
             continue;
           }
           auto link = std::make_shared<CompoundTag>();
-          link->set("entityID", props::Long(*uid));
-          link->set("linkID", props::Int(i));
+          link->set("entityID", nbt::Long(*uid));
+          link->set("linkID", nbt::Int(i));
           links->push_back(link);
 
           auto passengerId = passenger->string("identifier");
@@ -1936,7 +1936,7 @@ private:
 #pragma region Utilities
   static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, ConverterContext &ctx) {
     using namespace std;
-    using namespace props;
+    using namespace je2be::nbt;
 
     auto buyA = java.compoundTag("buy");
     auto buyB = java.compoundTag("buyB");
@@ -1995,8 +1995,8 @@ private:
     auto items = std::make_shared<ListTag>(Tag::Type::Compound);
     for (int i = 0; i < capacity; i++) {
       auto empty = Item::Empty();
-      empty->set("Slot", props::Byte(i));
-      empty->set("Count", props::Byte(0));
+      empty->set("Slot", nbt::Byte(i));
+      empty->set("Count", nbt::Byte(0));
       items->push_back(empty);
     }
     return items;
@@ -2024,15 +2024,15 @@ private:
       if (!count) {
         continue;
       }
-      converted->set("Slot", props::Byte(*slot));
-      converted->set("Count", props::Byte(*count));
+      converted->set("Slot", nbt::Byte(*slot));
+      converted->set("Count", nbt::Byte(*count));
       ret->at(*slot) = converted;
     }
     return ret;
   }
 
   static void AddChestItem(CompoundTag &c, std::shared_ptr<CompoundTag> const &item, int8_t slot, int8_t count) {
-    using namespace props;
+    using namespace je2be::nbt;
     item->set("Slot", Byte(slot));
     item->set("Count", Byte(count));
     auto chestItems = c.listTag("ChestItems");
@@ -2059,12 +2059,12 @@ private:
       if (current && current->fType == Tag::Type::String) {
         for (auto c : *current) {
           if (c->asString()) {
-            d->push_back(props::String(c->asString()->fValue));
+            d->push_back(nbt::String(c->asString()->fValue));
           }
         }
       }
     }
-    d->push_back(props::String(definition));
+    d->push_back(nbt::String(definition));
     tag["definitions"] = d;
   }
 
@@ -2076,7 +2076,7 @@ private:
       if (current && current->fType == Tag::Type::String) {
         for (auto c : *current) {
           if (c->asString() && c->asString()->fValue != definition) {
-            d->push_back(props::String(c->asString()->fValue));
+            d->push_back(nbt::String(c->asString()->fValue));
           }
         }
       }
@@ -2150,7 +2150,7 @@ private:
   }
 
   static std::optional<Entity> BaseProperties(CompoundTag const &tag) {
-    using namespace props;
+    using namespace je2be::props;
     using namespace std;
 
     auto fallDistance = tag.float32("FallDistance");

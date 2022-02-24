@@ -40,7 +40,7 @@ public:
         return r;
       }
       if (chunk->fDataVersion >= 2724) {
-        vector<shared_ptr<nbt::CompoundTag>> entities;
+        vector<shared_ptr<CompoundTag>> entities;
         if (region.entitiesAt(cx, cz, entities)) {
           chunk->fEntities.swap(entities);
         }
@@ -115,17 +115,17 @@ public:
         auto original = found->second;
         if (auto level = strings::Toi(original->property("level")); level) {
           if (auto st = blockB->compoundTag("states"); st) {
-            st->set("liquid_depth", props::Int(*level));
+            st->set("liquid_depth", nbt::Int(*level));
           }
         }
       }
 
       auto tick = make_shared<CompoundTag>();
       tick->set("blockState", blockB);
-      tick->set("time", props::Long(time));
-      tick->set("x", props::Int(tb.fX));
-      tick->set("y", props::Int(tb.fY));
-      tick->set("z", props::Int(tb.fZ));
+      tick->set("time", nbt::Long(time));
+      tick->set("x", nbt::Int(tb.fX));
+      tick->set("y", nbt::Int(tb.fY));
+      tick->set("z", nbt::Int(tb.fZ));
       cdp.addLiquidTick(i, tick);
     }
 
@@ -142,10 +142,10 @@ public:
 
       auto tick = make_shared<CompoundTag>();
       tick->set("blockState", blockB);
-      tick->set("time", props::Long(time));
-      tick->set("x", props::Int(tb.fX));
-      tick->set("y", props::Int(tb.fY));
-      tick->set("z", props::Int(tb.fZ));
+      tick->set("time", nbt::Long(time));
+      tick->set("x", nbt::Int(tb.fX));
+      tick->set("y", nbt::Int(tb.fY));
+      tick->set("z", nbt::Int(tb.fZ));
       cdp.addTileTick(i, tick);
     }
 
@@ -164,13 +164,13 @@ public:
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
           auto replace = make_shared<ListTag>(Tag::Type::Compound);
           auto localPlayer = make_shared<CompoundTag>();
-          localPlayer->set("entityID", props::Long(rootVehicle->fLocalPlayerUid));
-          localPlayer->set("linkID", props::Int(0));
+          localPlayer->set("entityID", nbt::Long(rootVehicle->fLocalPlayerUid));
+          localPlayer->set("linkID", nbt::Int(0));
           replace->push_back(localPlayer);
           for (int i = 0; i < linksTag->size(); i++) {
             auto item = linksTag->at(i);
             if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
-              link->set("linkID", props::Int(i + 1));
+              link->set("linkID", nbt::Int(i + 1));
               replace->push_back(link);
             }
           }
