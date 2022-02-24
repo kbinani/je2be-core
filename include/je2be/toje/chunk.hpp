@@ -72,25 +72,7 @@ public:
       }
     }
 
-    BlockPropertyAccessor accessor(b);
-
-    Piston::Do(*j, cache, accessor);
-
-    ShapeOfStairs::Do(*j, cache, accessor);
-    Kelp::Do(*j, cache, accessor);
-    TwistingVines::Do(*j, cache, accessor);
-    WeepingVines::Do(*j, cache, accessor);
-    AttachedStem::Do(*j, cache, accessor);
-    CaveVines::Do(*j, cache, accessor);
-    Snowy::Do(*j, cache, accessor);
-    ChorusPlant::Do(*j, cache, accessor);
-    FenceConnectable::Do(*j, cache, accessor);
-    Campfire::Do(*j, cache, accessor);
-    NoteBlock::Do(*j, cache, accessor);
-    RedstoneWire::Do(*j, cache, accessor);
-    Tripwire::Do(*j, cache, accessor);
-    Beacon::Do(*j, cache, accessor);
-    Door::Do(*j, cache, accessor);
+    Terraform(b, *j, cache);
 
     for (auto const &it : b.fBlockEntities) {
       auto id = it.second->string("id");
@@ -242,6 +224,28 @@ public:
     }
 
     return j;
+  }
+
+  static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, ChunkCache<3, 3> &cache) {
+    BlockPropertyAccessor accessor(b);
+
+    Piston::Do(j, cache, accessor);
+
+    ShapeOfStairs::Do(j, cache, accessor);
+    Kelp::Do(j, cache, accessor);
+    TwistingVines::Do(j, cache, accessor);
+    WeepingVines::Do(j, cache, accessor);
+    AttachedStem::Do(j, cache, accessor);
+    CaveVines::Do(j, cache, accessor);
+    Snowy::Do(j, cache, accessor);
+    ChorusPlant::Do(j, cache, accessor);
+    FenceConnectable::Do(j, cache, accessor);
+    Campfire::Do(j, cache, accessor);
+    NoteBlock::Do(j, cache, accessor);
+    RedstoneWire::Do(j, cache, accessor);
+    Tripwire::Do(j, cache, accessor);
+    Beacon::Do(j, cache, accessor);
+    Door::Do(j, cache, accessor);
   }
 
   static void AttachLeash(Context &ctx, std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities) {
