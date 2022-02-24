@@ -42,7 +42,6 @@ public:
 
   std::shared_ptr<CompoundTag> toBucketTag() {
     using namespace std;
-    using namespace je2be::nbt;
 
     auto ret = Compound();
 

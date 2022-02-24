@@ -15,10 +15,10 @@ public:
     Rot fRightArm;
 
     static std::shared_ptr<ListTag> ListTagFromRot(Rot r) {
-      auto ret = nbt::List<Tag::Type::Float>();
-      ret->push_back(nbt::Float(std::get<0>(r)));
-      ret->push_back(nbt::Float(std::get<1>(r)));
-      ret->push_back(nbt::Float(std::get<2>(r)));
+      auto ret = List<Tag::Type::Float>();
+      ret->push_back(Float(std::get<0>(r)));
+      ret->push_back(Float(std::get<1>(r)));
+      ret->push_back(Float(std::get<2>(r)));
       return ret;
     }
 
@@ -43,7 +43,7 @@ public:
     }
 
     std::shared_ptr<CompoundTag> toCompoundTag() const {
-      auto ret = nbt::Compound();
+      auto ret = Compound();
       SetRot(fBody, "Body", *ret);
       SetRot(fHead, "Head", *ret);
       SetRot(fLeftLeg, "LeftLeg", *ret);

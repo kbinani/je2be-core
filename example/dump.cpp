@@ -10,7 +10,6 @@
 using namespace std;
 using namespace leveldb;
 using namespace je2be;
-using namespace je2be::nbt;
 using namespace mcfile::stream;
 namespace fs = filesystem;
 

@@ -25,7 +25,7 @@ public:
   }
 
   std::shared_ptr<Tag> toNbt() const {
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     (*tag)["x"] = fX.toNbt();
     (*tag)["z"] = fZ.toNbt();
     return tag;

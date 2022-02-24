@@ -42,27 +42,27 @@ public:
   }
 
   std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
-    auto ret = nbt::Compound();
-    auto explosions = nbt::List<Tag::Type::Compound>();
+    auto ret = Compound();
+    auto explosions = List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toBedrockCompoundTag());
     }
     ret->set("Explosions", explosions);
     if (fFlight) {
-      ret->set("Flight", nbt::Byte(*fFlight));
+      ret->set("Flight", Byte(*fFlight));
     }
     return ret;
   }
 
   std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
-    auto ret = nbt::Compound();
-    auto explosions = nbt::List<Tag::Type::Compound>();
+    auto ret = Compound();
+    auto explosions = List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toJavaCompoundTag());
     }
     ret->set("Explosions", explosions);
     if (fFlight) {
-      ret->set("Flight", nbt::Byte(*fFlight));
+      ret->set("Flight", Byte(*fFlight));
     }
     return ret;
   }

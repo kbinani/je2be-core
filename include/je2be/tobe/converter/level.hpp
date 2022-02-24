@@ -97,8 +97,6 @@ public:
   int32_t fMaxCommandChainLength = 65535;
 
   std::shared_ptr<CompoundTag> toCompoundTag() const {
-    using namespace nbt;
-
     auto root = Compound();
     root->insert({
         {"abilities", fAbilities.toCompoundTag()},
@@ -312,8 +310,6 @@ public:
   }
 
   static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension) {
-    using namespace je2be::nbt;
-
     auto data = tag.query("Data")->asCompound();
     if (!data) {
       return std::nullopt;
@@ -407,7 +403,6 @@ public:
 
   static std::optional<std::string> MobEvents(CompoundTag const &tag) {
     using namespace std;
-    using namespace je2be::nbt;
 
     auto gameRulesTag = tag.query("Data/GameRules");
     if (!gameRulesTag) {

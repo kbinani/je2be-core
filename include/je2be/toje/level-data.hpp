@@ -6,10 +6,10 @@ class LevelData {
 public:
   struct GameRules {
     static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db) {
-      auto ret = nbt::Compound();
+      auto ret = Compound();
       CompoundTag &j = *ret;
-#define B(__nameJ, __nameB, __default) j[#__nameJ] = nbt::String(b.boolean(#__nameB, __default) ? "true" : "false");
-#define I(__nameJ, __nameB, __default) j[#__nameJ] = nbt::String(std::to_string(b.int32(#__nameB, __default)));
+#define B(__nameJ, __nameB, __default) j[#__nameJ] = String(b.boolean(#__nameB, __default) ? "true" : "false");
+#define I(__nameJ, __nameB, __default) j[#__nameJ] = String(std::to_string(b.int32(#__nameB, __default)));
       // announceAdvancements
       B(commandBlockOutput, commandblockoutput, true);
       // disableElytraMovementCheck
@@ -53,8 +53,8 @@ public:
           auto doPatrolSpawning = mobEvents->boolean("minecraft:pillager_patrols_event", true);
           auto doTraderSpawning = mobEvents->boolean("minecraft:wandering_trader_event", true);
 
-          ret->set("doPatrolSpawning", nbt::String(doPatrolSpawning ? "true" : "false"));
-          ret->set("doTraderSpawning", nbt::String(doTraderSpawning ? "true" : "false"));
+          ret->set("doPatrolSpawning", String(doPatrolSpawning ? "true" : "false"));
+          ret->set("doTraderSpawning", String(doTraderSpawning ? "true" : "false"));
         }
       }
 
@@ -79,7 +79,7 @@ public:
     if (!isr.read(&v1)) {
       return nullptr;
     }
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     if (!tag->read(isr)) {
       return nullptr;
     }
@@ -88,7 +88,6 @@ public:
 
   static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
     using namespace std;
-    using namespace je2be::nbt;
 
     auto data = Compound();
     CompoundTag &j = *data;
@@ -228,12 +227,12 @@ public:
     if (!fightB) {
       return nullptr;
     }
-    auto fightJ = nbt::Compound();
+    auto fightJ = Compound();
     if (auto exitPortalLocation = props::GetPos3iFromListTag(*fightB, "ExitPortalLocation"); exitPortalLocation) {
-      auto exitPortalLocationJ = nbt::Compound();
-      exitPortalLocationJ->set("X", nbt::Int(exitPortalLocation->fX));
-      exitPortalLocationJ->set("Y", nbt::Int(exitPortalLocation->fY));
-      exitPortalLocationJ->set("Z", nbt::Int(exitPortalLocation->fZ));
+      auto exitPortalLocationJ = Compound();
+      exitPortalLocationJ->set("X", Int(exitPortalLocation->fX));
+      exitPortalLocationJ->set("Y", Int(exitPortalLocation->fY));
+      exitPortalLocationJ->set("Z", Int(exitPortalLocation->fZ));
       fightJ->set("ExitPortalLocation", exitPortalLocationJ);
     }
     CopyBoolValues(*fightB, *fightJ, {{"DragonKilled"}, {"PreviouslyKilled"}});
@@ -244,7 +243,7 @@ public:
     if (auto gateways = fightB->listTag("Gateways"); gateways) {
       fightJ->set("Gateways", gateways);
     }
-    fightJ->set("NeedsStateScanning", nbt::Bool(false));
+    fightJ->set("NeedsStateScanning", Bool(false));
     return fightJ;
   }
 

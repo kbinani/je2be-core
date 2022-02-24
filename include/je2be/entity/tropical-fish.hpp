@@ -33,16 +33,16 @@ public:
 
   std::shared_ptr<CompoundTag> toBedrockBucketTag() const {
     using namespace std;
-    auto ret = nbt::Compound();
+    auto ret = Compound();
     auto attributes = EntityAttributes::Mob("minecraft:tropical_fish", nullopt);
     if (attributes) {
       ret->set("Attributes", attributes->toListTag());
     }
-    ret->set("Variant", nbt::Int(fSmall ? 0 : 1));
-    ret->set("MarkVariant", nbt::Int(fPattern));
-    ret->set("Color", nbt::Byte(fBodyColor));
-    ret->set("Color2", nbt::Byte(fPatternColor));
-    ret->set("EntityType", nbt::Int(9071));
+    ret->set("Variant", Int(fSmall ? 0 : 1));
+    ret->set("MarkVariant", Int(fPattern));
+    ret->set("Color", Byte(fBodyColor));
+    ret->set("Color2", Byte(fPatternColor));
+    ret->set("EntityType", Int(9071));
     string bodyIdPrefix;
     if (fSmall) {
       static vector<string> const m = {"item.tropicalBodyFlopper", "item.tropicalBodyStripey", "item.tropicalBodyGlitter", "item.tropicalBodyBlockfish", "item.tropicalBodyBetty", "item.tropicalBodyClayfish"};
@@ -63,12 +63,12 @@ public:
     } else {
       bodyId = bodyIdPrefix + "Multi.name";
     }
-    ret->set("BodyID", nbt::String(bodyId));
-    ret->set("ColorID", nbt::String(colorId));
+    ret->set("BodyID", String(bodyId));
+    ret->set("ColorID", String(colorId));
     if (!color2Id.empty()) {
-      ret->set("Color2ID", nbt::String(color2Id));
+      ret->set("Color2ID", String(color2Id));
     }
-    ret->set("AppendCustomName", nbt::Bool(true));
+    ret->set("AppendCustomName", Bool(true));
     return ret;
   }
 

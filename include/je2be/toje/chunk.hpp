@@ -8,7 +8,6 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
     using namespace std;
-    using namespace je2be::nbt;
 
     int const cy = b.fChunkY;
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
@@ -265,10 +264,10 @@ public:
         continue;
       }
       Pos3i leashPos = foundLeash->second;
-      auto leashTag = nbt::Compound();
-      leashTag->set("X", nbt::Int(leashPos.fX));
-      leashTag->set("Y", nbt::Int(leashPos.fY));
-      leashTag->set("Z", nbt::Int(leashPos.fZ));
+      auto leashTag = Compound();
+      leashTag->set("X", Int(leashPos.fX));
+      leashTag->set("Y", Int(leashPos.fY));
+      leashTag->set("Z", Int(leashPos.fZ));
       leashedEntity->set("Leash", leashTag);
 
       ctx.fLeashKnots.erase(leasherId);
@@ -294,11 +293,11 @@ public:
       shared_ptr<CompoundTag> vehicle = found->second;
       shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
       if (!passengersTag) {
-        passengersTag = nbt::List<Tag::Type::Compound>();
+        passengersTag = List<Tag::Type::Compound>();
         vehicle->set("Passengers", passengersTag);
       }
       if (vehicle->string("id") == "minecraft:chicken") {
-        vehicle->set("IsChickenJockey", nbt::Bool(true));
+        vehicle->set("IsChickenJockey", Bool(true));
       }
       unordered_set<size_t> resolvedPassengers;
       for (auto const &passenger : passengers) {

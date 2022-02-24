@@ -16,8 +16,6 @@ using ShortTag = mcfile::nbt::ShortTag;
 using StringTag = mcfile::nbt::StringTag;
 using Tag = mcfile::nbt::Tag;
 
-namespace nbt {
-
 static inline std::shared_ptr<ByteTag> Bool(bool b) {
   return std::make_shared<ByteTag>(b ? 1 : 0);
 }
@@ -59,7 +57,5 @@ template <Tag::Type type>
 static inline std::shared_ptr<ListTag> List() {
   return std::make_shared<ListTag>(type);
 };
-
-} // namespace nbt
 
 } // namespace je2be

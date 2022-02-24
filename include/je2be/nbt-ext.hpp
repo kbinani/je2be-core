@@ -6,9 +6,9 @@ static inline void CopyBoolValues(CompoundTag const &src, CompoundTag &dest, std
   for (auto const &it : keys) {
     auto value = src.boolean(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::Bool(*value));
+      dest.set(it.fAfter, Bool(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::Bool(*it.fDefault));
+      dest.set(it.fAfter, Bool(*it.fDefault));
     }
   }
 }
@@ -17,9 +17,9 @@ static inline void CopyByteValues(CompoundTag const &src, CompoundTag &dest, std
   for (auto const &it : keys) {
     auto value = src.byte(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::Byte(*value));
+      dest.set(it.fAfter, Byte(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::Byte(*it.fDefault));
+      dest.set(it.fAfter, Byte(*it.fDefault));
     }
   }
 }
@@ -28,9 +28,9 @@ static inline void CopyFloatValues(CompoundTag const &src, CompoundTag &dest, st
   for (auto const &it : keys) {
     auto value = src.float32(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::Float(*value));
+      dest.set(it.fAfter, Float(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::Float(*it.fDefault));
+      dest.set(it.fAfter, Float(*it.fDefault));
     }
   }
 }
@@ -39,9 +39,9 @@ static inline void CopyIntValues(CompoundTag const &src, CompoundTag &dest, std:
   for (auto const &it : keys) {
     auto value = src.int32(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::Int(*value));
+      dest.set(it.fAfter, Int(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::Int(*it.fDefault));
+      dest.set(it.fAfter, Int(*it.fDefault));
     }
   }
 }
@@ -50,9 +50,9 @@ static inline void CopyLongValues(CompoundTag const &src, CompoundTag &dest, std
   for (auto const &it : keys) {
     auto value = src.int64(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::Long(*value));
+      dest.set(it.fAfter, Long(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::Long(*it.fDefault));
+      dest.set(it.fAfter, Long(*it.fDefault));
     }
   }
 }
@@ -61,9 +61,9 @@ static inline void CopyShortValues(CompoundTag const &src, CompoundTag &dest, st
   for (auto const &it : keys) {
     auto value = src.int16(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::Short(*value));
+      dest.set(it.fAfter, Short(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::Short(*it.fDefault));
+      dest.set(it.fAfter, Short(*it.fDefault));
     }
   }
 }
@@ -72,9 +72,9 @@ static inline void CopyStringValues(CompoundTag const &src, CompoundTag &dest, s
   for (auto const &it : keys) {
     auto value = src.string(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, nbt::String(*value));
+      dest.set(it.fAfter, String(*value));
     } else if (it.fDefault) {
-      dest.set(it.fAfter, nbt::String(*it.fDefault));
+      dest.set(it.fAfter, String(*it.fDefault));
     }
   }
 }

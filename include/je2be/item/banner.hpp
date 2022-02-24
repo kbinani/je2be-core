@@ -7,14 +7,14 @@ class Banner {
 
 public:
   static std::shared_ptr<CompoundTag> BannerPattern(int32_t color, std::string const &pattern) {
-    auto c = nbt::Compound();
-    c->set("Color", nbt::Int(color));
-    c->set("Pattern", nbt::String(pattern));
+    auto c = Compound();
+    c->set("Color", Int(color));
+    c->set("Pattern", String(pattern));
     return c;
   }
 
   static std::shared_ptr<ListTag> OminousBannerPatterns() {
-    auto p = nbt::List<Tag::Type::Compound>();
+    auto p = List<Tag::Type::Compound>();
     p->push_back(BannerPattern(9, "mr"));
     p->push_back(BannerPattern(8, "bs"));
     p->push_back(BannerPattern(7, "cs"));

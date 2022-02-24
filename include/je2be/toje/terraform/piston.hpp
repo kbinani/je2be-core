@@ -8,7 +8,6 @@ class Piston {
 public:
   static void Do(mcfile::je::Chunk &chunkJ, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
-    using namespace je2be::nbt;
 
     if (!accessor.fHasPiston) {
       return;

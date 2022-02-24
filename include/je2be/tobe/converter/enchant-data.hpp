@@ -5,7 +5,6 @@ namespace je2be::tobe {
 class EnchantData {
 public:
   static std::shared_ptr<CompoundTag> From(CompoundTag const &item) {
-    using namespace je2be::nbt;
     using namespace std;
     auto tag = Compound();
     auto name = item.string("id");

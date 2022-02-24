@@ -61,11 +61,11 @@ public:
   }
 
   static std::shared_ptr<CompoundTag> Empty() {
-    auto armor = nbt::Compound();
-    armor->set("Count", nbt::Byte(0));
-    armor->set("Damage", nbt::Short(0));
-    armor->set("Name", nbt::String(""));
-    armor->set("WasPickedUp", nbt::Bool(false));
+    auto armor = Compound();
+    armor->set("Count", Byte(0));
+    armor->set("Damage", Short(0));
+    armor->set("Name", String(""));
+    armor->set("WasPickedUp", Bool(false));
     return armor;
   }
 
@@ -189,7 +189,6 @@ private:
   }
 
   static ItemData AxolotlBucket(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace je2be::nbt;
     auto ret = New("axolotl_bucket");
     ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
@@ -212,7 +211,6 @@ private:
   }
 
   static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace je2be::nbt;
     auto ret = New("tropical_fish_bucket");
     ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
@@ -229,7 +227,6 @@ private:
 
   static ItemData BooksAndQuill(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    using namespace je2be::nbt;
 
     auto tag = Compound();
     tag->insert({
@@ -306,8 +303,6 @@ private:
   }
 
   static ItemData LeatherArmor(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace je2be::nbt;
-
     auto tag = Compound();
     tag->insert({
         {"Name", String(name)},
@@ -328,7 +323,7 @@ private:
 
   static std::optional<std::tuple<int, ItemData>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
     auto ret = New(name, true);
-    ret->set("Damage", nbt::Short(0));
+    ret->set("Damage", Short(0));
 
     auto number = item.query("tag/map")->asInt();
     if (!number) {
@@ -342,9 +337,9 @@ private:
     }
     int64_t uuid = Map::UUID(mapId, *scale);
 
-    auto tag = nbt::Compound();
-    tag->set("map_uuid", nbt::Long(uuid));
-    tag->set("map_display_players", nbt::Byte(1));
+    auto tag = Compound();
+    tag->set("map_uuid", Long(uuid));
+    tag->set("map_display_players", Byte(1));
     ret->set("tag", tag);
 
     int16_t type = 0;
@@ -368,8 +363,8 @@ private:
         }
       }
     }
-    tag->set("map_name_index", nbt::Int(number->fValue));
-    ret->set("Damage", nbt::Short(type));
+    tag->set("map_name_index", Int(number->fValue));
+    ret->set("Damage", Short(type));
 
     auto out = Post(ret, item);
     return make_tuple(mapId, out);
@@ -383,7 +378,7 @@ private:
       auto potion = t->string("Potion", "");
       type = Potion::BedrockPotionTypeFromJava(potion);
     }
-    tag->set("Damage", nbt::Short(type));
+    tag->set("Damage", Short(type));
     return Post(tag, item);
   }
 
@@ -395,7 +390,7 @@ private:
       auto potion = t->string("Potion", "");
       type = TippedArrowPotion::BedrockPotionType(potion);
     }
-    tag->set("Damage", nbt::Short(type));
+    tag->set("Damage", Short(type));
     return Post(tag, item);
   }
 
@@ -404,12 +399,12 @@ private:
 
     auto explosion = item.query("tag/Explosion")->asCompound();
     if (explosion) {
-      auto tag = nbt::Compound();
+      auto tag = Compound();
 
       auto e = FireworksExplosion::FromJava(*explosion);
       if (!e.fColor.empty()) {
         int32_t customColor = e.fColor[0].toARGB();
-        tag->set("customColor", nbt::Int(customColor));
+        tag->set("customColor", Int(customColor));
       }
       tag->set("FireworksItem", e.toBedrockCompoundTag());
       data->set("tag", tag);
@@ -423,7 +418,7 @@ private:
     auto fireworks = item.query("tag/Fireworks")->asCompound();
     if (fireworks) {
       auto fireworksData = FireworksData::FromJava(*fireworks);
-      auto tag = nbt::Compound();
+      auto tag = Compound();
       tag->set("Fireworks", fireworksData.toBedrockCompoundTag());
       data->set("tag", tag);
     }
@@ -433,7 +428,7 @@ private:
   static Converter Subtype(std::string const &newName, int16_t damage) {
     return [=](std::string const &name, CompoundTag const &item, Context const &) {
       auto tag = New(newName);
-      tag->set("Damage", nbt::Short(damage));
+      tag->set("Damage", Short(damage));
       return Post(tag, item);
     };
   }
@@ -753,7 +748,6 @@ private:
 
   static ItemData AnyTorch(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    using namespace je2be::nbt;
 
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
@@ -779,7 +773,7 @@ private:
   static ItemData Skull(std::string const &name, CompoundTag const &item, Context const &) {
     int8_t type = GetSkullTypeFromBlockName(name);
     auto tag = New("skull");
-    tag->set("Damage", nbt::Short(type));
+    tag->set("Damage", Short(type));
     return Post(tag, item);
   }
 
@@ -803,7 +797,7 @@ private:
           break;
         }
         if (damage >= 0) {
-          b->set("Damage", nbt::Short(damage));
+          b->set("Damage", Short(damage));
         }
       }
     }
@@ -825,7 +819,7 @@ private:
           std::unordered_map<int32_t, int8_t> m;
           auto projectileB = From(projectileJ, ctx);
           if (projectileB) {
-            auto beTag = nbt::Compound();
+            auto beTag = Compound();
             beTag->set("chargedItem", projectileB);
             b->set("tag", beTag);
             break;
@@ -841,7 +835,7 @@ private:
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     int16_t damage = (int16_t)color;
     auto ret = New("banner");
-    ret->set("Damage", nbt::Short(damage));
+    ret->set("Damage", Short(damage));
 
     auto patterns = item.query("tag/BlockEntityTag/Patterns")->asList();
     auto display = item.query("tag/display")->asCompound();
@@ -857,11 +851,11 @@ private:
     }
 
     if (ominous) {
-      auto tag = nbt::Compound();
-      tag->set("Type", nbt::Int(1));
+      auto tag = Compound();
+      tag->set("Type", Int(1));
       ret->set("tag", tag);
     } else if (patterns) {
-      auto bePatterns = nbt::List<Tag::Type::Compound>();
+      auto bePatterns = List<Tag::Type::Compound>();
       for (auto const &it : *patterns) {
         auto c = it->asCompound();
         if (!c) {
@@ -872,14 +866,14 @@ private:
         if (!patternColor || !pat) {
           continue;
         }
-        auto ptag = nbt::Compound();
+        auto ptag = Compound();
         ptag->insert({
-            {"Color", nbt::Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
-            {"Pattern", nbt::String(*pat)},
+            {"Color", Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
+            {"Pattern", String(*pat)},
         });
         bePatterns->push_back(ptag);
       }
-      auto tag = nbt::Compound();
+      auto tag = Compound();
       tag->set("Patterns", bePatterns);
       ret->set("tag", tag);
     }
@@ -893,13 +887,12 @@ private:
     ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
     int16_t damage = (int16_t)color;
     auto tag = New("bed");
-    tag->set("Damage", nbt::Short(damage));
+    tag->set("Damage", Short(damage));
     return Post(tag, item);
   }
 
   static ItemData MushroomBlock(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    using namespace je2be::nbt;
 
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
@@ -916,7 +909,6 @@ private:
   }
 
   static ItemData New(std::string const &name, bool fullname = false) {
-    using namespace je2be::nbt;
     std::string n;
     if (fullname) {
       n = name;
@@ -937,7 +929,6 @@ private:
 
   static ItemData DefaultBlockItem(std::string const &id, CompoundTag const &item, Context const &ctx) {
     using namespace std;
-    using namespace je2be::nbt;
 
     map<string, string> p;
     auto block = make_shared<Block>(id, p);
@@ -974,9 +965,9 @@ private:
             for (auto const &item : *loreJ) {
               if (auto str = item->asString(); str) {
                 if (str->fValue == "\"(+NBT)\"") {
-                  loreB->push_back(nbt::String("(+Data)"));
+                  loreB->push_back(String("(+Data)"));
                 } else {
-                  loreB->push_back(nbt::String(str->fValue));
+                  loreB->push_back(String(str->fValue));
                 }
               }
             }
@@ -994,8 +985,6 @@ private:
   }
 
   static ItemData DefaultItem(std::string const &name, CompoundTag const &item, Context const &) {
-    using namespace je2be::nbt;
-
     auto ret = Compound();
     ret->insert({
         {"Name", String(name)},
@@ -1007,7 +996,6 @@ private:
 
   static ItemData Post(ItemData const &input, CompoundTag const &item) {
     using namespace std;
-    using namespace je2be::nbt;
 
     CopyByteValues(item, *input, {{"Count"}});
 

@@ -111,7 +111,6 @@ public:
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
     using namespace mcfile;
-    using namespace je2be::nbt;
     auto tag = Compound();
     CompoundTag &c = *tag;
     c["dim"] = Byte(static_cast<uint8_t>(fDim));

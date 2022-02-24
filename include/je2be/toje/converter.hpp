@@ -94,7 +94,7 @@ public:
               player->set("Pos", playerPos->toListTag());
             }
           }
-          auto rootVehicleTag = nbt::Compound();
+          auto rootVehicleTag = Compound();
           rootVehicleTag->set("Entity", entity);
           rootVehicleTag->set("Attach", vehicleUuid.toIntArrayTag());
           player->set("RootVehicle", rootVehicleTag);

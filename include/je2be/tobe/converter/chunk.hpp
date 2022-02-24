@@ -115,17 +115,17 @@ public:
         auto original = found->second;
         if (auto level = strings::Toi(original->property("level")); level) {
           if (auto st = blockB->compoundTag("states"); st) {
-            st->set("liquid_depth", nbt::Int(*level));
+            st->set("liquid_depth", Int(*level));
           }
         }
       }
 
-      auto tick = nbt::Compound();
+      auto tick = Compound();
       tick->set("blockState", blockB);
-      tick->set("time", nbt::Long(time));
-      tick->set("x", nbt::Int(tb.fX));
-      tick->set("y", nbt::Int(tb.fY));
-      tick->set("z", nbt::Int(tb.fZ));
+      tick->set("time", Long(time));
+      tick->set("x", Int(tb.fX));
+      tick->set("y", Int(tb.fY));
+      tick->set("z", Int(tb.fZ));
       cdp.addLiquidTick(i, tick);
     }
 
@@ -140,12 +140,12 @@ public:
         continue;
       }
 
-      auto tick = nbt::Compound();
+      auto tick = Compound();
       tick->set("blockState", blockB);
-      tick->set("time", nbt::Long(time));
-      tick->set("x", nbt::Int(tb.fX));
-      tick->set("y", nbt::Int(tb.fY));
-      tick->set("z", nbt::Int(tb.fZ));
+      tick->set("time", Long(time));
+      tick->set("x", Int(tb.fX));
+      tick->set("y", Int(tb.fY));
+      tick->set("z", Int(tb.fZ));
       cdp.addTileTick(i, tick);
     }
 
@@ -162,15 +162,15 @@ public:
     if (rootVehicle) {
       if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
-          auto replace = nbt::List<Tag::Type::Compound>();
-          auto localPlayer = nbt::Compound();
-          localPlayer->set("entityID", nbt::Long(rootVehicle->fLocalPlayerUid));
-          localPlayer->set("linkID", nbt::Int(0));
+          auto replace = List<Tag::Type::Compound>();
+          auto localPlayer = Compound();
+          localPlayer->set("entityID", Long(rootVehicle->fLocalPlayerUid));
+          localPlayer->set("linkID", Int(0));
           replace->push_back(localPlayer);
           for (int i = 0; i < linksTag->size(); i++) {
             auto item = linksTag->at(i);
             if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
-              link->set("linkID", nbt::Int(i + 1));
+              link->set("linkID", Int(i + 1));
               replace->push_back(link);
             }
           }

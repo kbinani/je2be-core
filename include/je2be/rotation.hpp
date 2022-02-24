@@ -7,7 +7,7 @@ public:
   Rotation(float yaw, float pitch) : fYaw(yaw), fPitch(pitch) {}
 
   std::shared_ptr<ListTag> toListTag() const {
-    auto tag = nbt::List<Tag::Type::Float>();
+    auto tag = List<Tag::Type::Float>();
     tag->push_back(std::make_shared<FloatTag>(fYaw));
     tag->push_back(std::make_shared<FloatTag>(fPitch));
     return tag;

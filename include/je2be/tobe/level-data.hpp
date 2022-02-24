@@ -49,11 +49,11 @@ private:
   [[nodiscard]] bool putAutonomousEntities(DbInterface &db) {
     using namespace mcfile::stream;
 
-    auto list = nbt::List<Tag::Type::Compound>();
+    auto list = List<Tag::Type::Compound>();
     for (auto const &e : fAutonomousEntities) {
       list->push_back(e);
     }
-    auto root = nbt::Compound();
+    auto root = Compound();
     root->set("AutonomousEntityList", list);
 
     auto s = std::make_shared<ByteStream>();

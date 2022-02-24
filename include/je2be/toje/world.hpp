@@ -235,7 +235,7 @@ public:
           }
         }
         if (chunk != passengerChunk) {
-          auto data = nbt::Compound();
+          auto data = Compound();
           data->set("Entities", entitiesInChunk);
           int cx = passengerChunk.fX;
           int cz = passengerChunk.fZ;
@@ -252,18 +252,18 @@ public:
       // Attach passengers to vehicle
       shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
       if (!passengersTag) {
-        passengersTag = nbt::List<Tag::Type::Compound>();
+        passengersTag = List<Tag::Type::Compound>();
         vehicle->set("Passengers", passengersTag);
       }
       if (vehicle->string("id") == "minecraft:chicken") {
-        vehicle->set("IsChickenJockey", nbt::Bool(true));
+        vehicle->set("IsChickenJockey", Bool(true));
       }
       for (auto const &it : collectedPassengers) {
         size_t index = it.first;
         auto passenger = it.second;
         if (index >= passengersTag->size()) {
           for (int i = passengersTag->size(); i < index + 1; i++) {
-            passengersTag->push_back(nbt::Compound());
+            passengersTag->push_back(Compound());
           }
         }
         passengersTag->fValue[index] = passenger;
@@ -296,10 +296,10 @@ public:
       auto entity = FindEntity(entities, entityId);
       if (entity) {
         Pos3i leashPos = leasherFound->second;
-        auto leashTag = nbt::Compound();
-        leashTag->set("X", nbt::Int(leashPos.fX));
-        leashTag->set("Y", nbt::Int(leashPos.fY));
-        leashTag->set("Z", nbt::Int(leashPos.fZ));
+        auto leashTag = Compound();
+        leashTag->set("X", Int(leashPos.fX));
+        leashTag->set("Y", Int(leashPos.fY));
+        leashTag->set("Z", Int(leashPos.fZ));
         entity->set("Leash", leashTag);
       }
     }

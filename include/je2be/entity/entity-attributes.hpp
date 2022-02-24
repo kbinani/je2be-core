@@ -19,11 +19,11 @@ public:
     }
 
     std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
-      auto a = nbt::Compound();
-      a->set("Base", nbt::Float(base));
-      a->set("Current", nbt::Float(current));
-      a->set("Max", nbt::Float(max));
-      a->set("Name", nbt::String("minecraft:" + name));
+      auto a = Compound();
+      a->set("Base", Float(base));
+      a->set("Current", Float(current));
+      a->set("Max", Float(max));
+      a->set("Name", String("minecraft:" + name));
       return a;
     }
   };
@@ -42,7 +42,7 @@ public:
     Attributes(Attribute health, Attribute knockback_resistance, Attribute movement, Attribute underwater_movement, Attribute lava_movement, Attribute follow_range, std::optional<Attribute> attack_damage) : luck(0, 0, 1024), health(health), absorption(0, 0, 16), knockback_resistance(knockback_resistance), movement(movement), underwater_movement(underwater_movement), lava_movement(lava_movement), follow_range(follow_range), attack_damage(attack_damage) {}
 
     std::shared_ptr<ListTag> toListTag() const {
-      auto list = nbt::List<Tag::Type::Compound>();
+      auto list = List<Tag::Type::Compound>();
       list->push_back(luck.toCompoundTag("luck"));
       list->push_back(health.toCompoundTag("health"));
       list->push_back(absorption.toCompoundTag("absorption"));
@@ -73,7 +73,6 @@ public:
 
   static std::shared_ptr<ListTag> AnyHorse(CompoundTag const &tag, std::optional<float> currentHealth) {
     using namespace std;
-    using namespace je2be::nbt;
 
     auto attributes = tag.listTag("Attributes");
     Attribute health(15, 15, 15);

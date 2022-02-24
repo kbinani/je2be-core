@@ -19,8 +19,8 @@ public:
       if (lootTable->starts_with("minecraft:") && slash != std::string::npos) {
         auto type = lootTable->substr(0, slash).substr(10);                             // "chests"
         std::string table = "loot_tables/" + type + lootTable->substr(slash) + ".json"; // "loot_tables/chests/simple_dungeon.json"
-        b["LootTable"] = nbt::String(table);
-        b["LootTableSeed"] = nbt::Int(props::SquashI64ToI32(*lootTableSeed));
+        b["LootTable"] = String(table);
+        b["LootTableSeed"] = Int(props::SquashI64ToI32(*lootTableSeed));
         return State::HasLootTable;
       }
     }
@@ -32,8 +32,8 @@ public:
     auto lootTableSeed = b.int32("LootTableSeed");
     if (lootTable && lootTable->starts_with("loot_tables/") && lootTable->ends_with(".json") && lootTableSeed) {
       std::string name = strings::RTrim(lootTable->substr(12), ".json");
-      j["LootTable"] = nbt::String("minecraft:" + name);
-      j["LootTableSeed"] = nbt::Long(*lootTableSeed);
+      j["LootTable"] = String("minecraft:" + name);
+      j["LootTableSeed"] = Long(*lootTableSeed);
       return State::HasLootTable;
     }
     return State::NoLootTable;

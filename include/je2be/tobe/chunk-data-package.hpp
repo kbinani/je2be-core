@@ -53,7 +53,6 @@ private:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
-    using namespace je2be::nbt;
 
     vector<int32_t> mapIdList;
 
@@ -106,7 +105,6 @@ private:
 
   void buildEntities(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
     using namespace std;
-    using namespace je2be::nbt;
     Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
     for (auto e : chunk.fEntities) {
       auto c = e->asCompound();
@@ -312,7 +310,6 @@ private:
     }
     using namespace std;
     using namespace mcfile::stream;
-    using namespace je2be::nbt;
 
     auto tickList = List<Tag::Type::Compound>();
     for (auto it : fLiquidTicks) {

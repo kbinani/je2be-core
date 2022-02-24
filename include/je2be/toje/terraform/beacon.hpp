@@ -29,7 +29,7 @@ public:
             continue;
           }
           int level = BeaconLevel(x, y, z, cache);
-          tileEntity->set("Levels", nbt::Int(level));
+          tileEntity->set("Levels", Int(level));
         }
       }
     }
