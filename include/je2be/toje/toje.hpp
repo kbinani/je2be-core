@@ -33,6 +33,7 @@
 #include <je2be/toje/terraform/tripwire.hpp>
 #include <je2be/toje/terraform/piston.hpp>
 #include <je2be/toje/terraform/beacon.hpp>
+#include <je2be/toje/terraform/door.hpp>
 
 #include <je2be/toje/sub-chunk.hpp>
 #include <je2be/toje/chunk.hpp>

@@ -25,6 +25,7 @@ private:
     PISTON = 16,
     BEACON = 17,
     MELON_STEM = 18,
+    DOOR = 19,
   };
 
 public:
@@ -63,6 +64,8 @@ public:
       return BEACON;
     } else if (IsMelonStem(b)) {
       return MELON_STEM;
+    } else if (IsDoor(b)) {
+      return DOOR;
     }
     return 0;
   }
@@ -133,6 +136,10 @@ public:
 
   static bool IsMelonStem(DataType p) {
     return p == MELON_STEM;
+  }
+
+  static bool IsDoor(DataType p) {
+    return p == DOOR;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -213,6 +220,10 @@ public:
     return b.fName == "minecraft:melon_stem";
   }
 
+  static bool IsDoor(mcfile::be::Block const &b) {
+    return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
+  }
+
   explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkY(chunk.fChunkY), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(chunk.fSubChunks.size());
@@ -242,6 +253,7 @@ public:
         fHasPiston |= IsPiston(p);
         fHasBeacon |= IsBeacon(p);
         fHasMelonStem |= IsMelonStem(p);
+        fHasDoor |= IsDoor(p);
         fSections[i][j] = p;
       }
     }
@@ -298,6 +310,7 @@ public:
   bool fHasPiston = false;
   bool fHasBeacon = false;
   bool fHasMelonStem = false;
+  bool fHasDoor = false;
 
 private:
   std::vector<std::vector<DataType>> fSections;

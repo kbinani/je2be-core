@@ -90,6 +90,7 @@ public:
     RedstoneWire::Do(*j, cache, accessor);
     Tripwire::Do(*j, cache, accessor);
     Beacon::Do(*j, cache, accessor);
+    Door::Do(*j, cache, accessor);
 
     for (auto const &it : b.fBlockEntities) {
       auto id = it.second->string("id");
