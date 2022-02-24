@@ -14,7 +14,7 @@ public:
       return nullptr;
     }
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
-    auto ret = make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     if (name == "") {
       return ret;
     }
@@ -33,12 +33,12 @@ public:
 
     auto tagB = itemB.compoundTag("tag");
     if (!tagB) {
-      tagB = make_shared<CompoundTag>();
+      tagB = nbt::Compound();
     }
 
     auto tagJ = itemJ.compoundTag("tag");
     if (!tagJ) {
-      tagJ = make_shared<CompoundTag>();
+      tagJ = nbt::Compound();
     }
 
     string nameJ = nameB;
@@ -69,14 +69,14 @@ public:
     CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
     CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
 
-    shared_ptr<CompoundTag> displayJ = make_shared<CompoundTag>();
+    shared_ptr<CompoundTag> displayJ = nbt::Compound();
 
     auto customColor = tagB->int32("customColor");
     if (customColor) {
       int32_t c = *customColor;
       uint32_t rgb = 0xffffff & *(uint32_t *)&c;
       if (!displayJ) {
-        displayJ = make_shared<CompoundTag>();
+        displayJ = nbt::Compound();
       }
       displayJ->set("color", nbt::Int(*(int32_t *)&rgb));
     }
@@ -84,7 +84,7 @@ public:
     auto displayB = tagB->compoundTag("display");
     if (displayB) {
       if (!displayJ) {
-        displayJ = make_shared<CompoundTag>();
+        displayJ = nbt::Compound();
       }
 
       auto displayName = displayB->string("Name");
@@ -113,7 +113,7 @@ public:
     auto customNameVisible = tagB->boolean("CustomNameVisible", false);
     if (customName && customNameVisible) {
       if (!displayJ) {
-        displayJ = make_shared<CompoundTag>();
+        displayJ = nbt::Compound();
       }
       nlohmann::json json;
       json["text"] = *customName;
@@ -131,7 +131,7 @@ public:
         auto idB = cB->int16("id");
         auto lvlB = cB->int16("lvl");
         if (idB && lvlB) {
-          auto cJ = make_shared<CompoundTag>();
+          auto cJ = nbt::Compound();
           auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
           cJ->set("id", nbt::String(idJ));
           cJ->set("lvl", nbt::Short(*lvlB));
@@ -161,7 +161,7 @@ public:
       return nameB;
     } else {
       auto potionJ = TippedArrowPotion::JavaPotionType(damage);
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       tagJ->set("Potion", nbt::String(potionJ));
       itemJ.set("tag", tagJ);
       return Ns() + "tipped_arrow";
@@ -171,7 +171,7 @@ public:
   static std::string AxolotlBucket(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
 
       CopyIntValues(*tagB, *tagJ, {{"Age", "Age", 0}});
 
@@ -210,26 +210,26 @@ public:
 
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       auto typeB = tagB->int32("Type");
       bool ominous = typeB == 1;
       if (ominous) {
         nameJ = "minecraft:white_banner";
 
         auto bannerPatterns = Banner::OminousBannerPatterns();
-        auto blockEntityTag = std::make_shared<CompoundTag>();
+        auto blockEntityTag = nbt::Compound();
         blockEntityTag->set("Patterns", bannerPatterns);
         blockEntityTag->set("id", nbt::String("minecraft:banner"));
         tagJ->set("BlockEntityTag", blockEntityTag);
 
-        auto displayJ = std::make_shared<CompoundTag>();
+        auto displayJ = nbt::Compound();
         nlohmann::json json;
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
         displayJ->set("Name", nbt::String(nlohmann::to_string(json)));
         tagJ->set("display", displayJ);
       } else {
-        auto blockEntityTag = std::make_shared<CompoundTag>();
+        auto blockEntityTag = nbt::Compound();
         blockEntityTag->set("id", nbt::String("minecraft:banner"));
 
         auto patternsB = tagB->listTag("Patterns");
@@ -245,7 +245,7 @@ public:
             if (!colorB || !patternStringB) {
               continue;
             }
-            auto patternJ = std::make_shared<CompoundTag>();
+            auto patternJ = nbt::Compound();
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*colorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
             patternJ->set("Color", nbt::Int(static_cast<int32_t>(ccj)));
@@ -275,7 +275,7 @@ public:
     if (!tagB) {
       return name;
     }
-    auto tagJ = make_shared<CompoundTag>();
+    auto tagJ = nbt::Compound();
     auto pagesB = tagB->listTag("pages");
     if (pagesB) {
       auto pagesJ = make_shared<ListTag>(Tag::Type::String);
@@ -335,7 +335,7 @@ public:
       auto tagB = itemB.compoundTag("tag");
       if (tagB) {
         TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
-        auto tagJ = std::make_shared<CompoundTag>();
+        auto tagJ = nbt::Compound();
         tagJ->set("BucketVariantTag", nbt::Int(tf.toJavaVariant()));
         itemJ["tag"] = tagJ;
       }
@@ -347,7 +347,7 @@ public:
 
   static std::string Crossbow(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     if (auto tagB = itemB.compoundTag("tag"); tagB) {
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       auto chargedProjectiles = std::make_shared<ListTag>(Tag::Type::Compound);
       if (auto chargedItem = tagB->compoundTag("chargedItem"); chargedItem) {
         if (auto projectileJ = From(*chargedItem, ctx); projectileJ) {
@@ -364,7 +364,7 @@ public:
   static std::string FireworkRocket(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       auto fireworksB = tagB->compoundTag("Fireworks");
       if (fireworksB) {
         FireworksData data = FireworksData::FromBedrock(*fireworksB);
@@ -380,7 +380,7 @@ public:
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
       tagB->erase("customColor");
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       auto fireworksB = tagB->compoundTag("FireworksItem");
       if (fireworksB) {
         FireworksExplosion explosion = FireworksExplosion::FromBedrock(*fireworksB);
@@ -692,7 +692,7 @@ public:
     if (!tagB) {
       return name;
     }
-    auto tagJ = std::make_shared<CompoundTag>();
+    auto tagJ = nbt::Compound();
     auto uuid = tagB->int64("map_uuid");
     if (!uuid) {
       return name;
@@ -711,7 +711,7 @@ public:
       translate = "filled_map.buried_treasure";
     }
     if (!translate.empty()) {
-      auto displayJ = std::make_shared<CompoundTag>();
+      auto displayJ = nbt::Compound();
       nlohmann::json json;
       json["translate"] = translate;
       displayJ->set("Name", nbt::String(nlohmann::to_string(json)));
@@ -744,7 +744,7 @@ public:
   static std::string Potion(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto damage = itemB.int16("Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
-    auto tagJ = std::make_shared<CompoundTag>();
+    auto tagJ = nbt::Compound();
     tagJ->set("Potion", nbt::String(potionName));
     itemJ.set("tag", tagJ);
     return name;
@@ -760,11 +760,11 @@ public:
     auto damage = itemB.int16("Damage", 0);
     Effect::SuspiciousStewEffect sse = Effect::JavaEffectFromBedrockSuspiciousStew(damage);
     auto effects = std::make_shared<ListTag>(Tag::Type::Compound);
-    auto effect = std::make_shared<CompoundTag>();
+    auto effect = nbt::Compound();
     effect->set("EffectId", nbt::Byte(sse.fEffectId));
     effect->set("EffectDuration", nbt::Int(sse.fDuration));
     effects->push_back(effect);
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->set("Effects", effects);
     itemJ["tag"] = tag;
     return name;
@@ -774,7 +774,7 @@ public:
     auto tagB = itemB.compoundTag("tag");
     if (tagB) {
       TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       tagJ->set("BucketVariantTag", nbt::Int(tf.toJavaVariant()));
       itemJ["tag"] = tagJ;
     }

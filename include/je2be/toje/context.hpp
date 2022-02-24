@@ -175,7 +175,7 @@ public:
       if (!b) {
         continue;
       }
-      auto j = std::make_shared<CompoundTag>();
+      auto j = nbt::Compound();
       auto dimensionB = b->byte("dimension", 0);
       Dimension dim = Dimension::Overworld;
       if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
@@ -204,7 +204,7 @@ public:
         colorsJ[i] = id;
       }
       j->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
-      auto tagJ = std::make_shared<CompoundTag>();
+      auto tagJ = nbt::Compound();
       tagJ->set("data", j);
       tagJ->set("DataVersion", Int(mcfile::je::Chunk::kDataVersion));
 
@@ -221,8 +221,8 @@ public:
       }
     }
     if (maxMapNumber) {
-      auto idcounts = std::make_shared<CompoundTag>();
-      auto d = std::make_shared<CompoundTag>();
+      auto idcounts = nbt::Compound();
+      auto d = nbt::Compound();
       d->set("map", Int(*maxMapNumber));
       idcounts->set("data", d);
       idcounts->set("DataVersion", Int(mcfile::je::Chunk::kDataVersion));

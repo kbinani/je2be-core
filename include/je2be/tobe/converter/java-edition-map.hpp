@@ -59,7 +59,7 @@ public:
       gzclose(f);
     }
 
-    auto root = make_shared<CompoundTag>();
+    auto root = nbt::Compound();
     auto bs = make_shared<ByteStream>(buffer);
     InputStreamReader r(bs);
     if (!root->read(r)) {

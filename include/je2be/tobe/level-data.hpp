@@ -53,7 +53,7 @@ private:
     for (auto const &e : fAutonomousEntities) {
       list->push_back(e);
     }
-    auto root = std::make_shared<CompoundTag>();
+    auto root = nbt::Compound();
     root->set("AutonomousEntityList", list);
 
     auto s = std::make_shared<ByteStream>();

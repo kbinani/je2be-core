@@ -63,7 +63,7 @@ public:
           if (!pColorB || !pPatternB) {
             continue;
           }
-          auto pJ = make_shared<CompoundTag>();
+          auto pJ = nbt::Compound();
           pJ->set("Color", nbt::Int(static_cast<int32_t>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
           pJ->set("Pattern", nbt::String(*pPatternB));
           patternsJ->push_back(pJ);
@@ -319,7 +319,7 @@ public:
     string name = strings::LTrim(block.fName.substr(10), "lit_");
     auto te = EmptyShortName(name, pos);
     CopyShortValues(tagB, *te, {{"BurnDuration", "BurnTime"}, {"CookTime"}, {"BurnTime", "CookTimeTotal"}});
-    te->set("RecipesUsed", make_shared<CompoundTag>());
+    te->set("RecipesUsed", nbt::Compound());
     auto items = ContainerItems(tagB, "Items", ctx);
     if (items) {
       te->set("Items", items);
@@ -391,14 +391,14 @@ public:
 
     auto entity = tag.string("EntityIdentifier");
     if (entity) {
-      auto entityTag = make_shared<CompoundTag>();
+      auto entityTag = nbt::Compound();
       entityTag->set("id", String(*entity));
-      auto spawnData = make_shared<CompoundTag>();
+      auto spawnData = nbt::Compound();
       spawnData->set("entity", entityTag);
       t->set("SpawnData", spawnData);
 
       auto potentials = make_shared<ListTag>(Tag::Type::Compound);
-      auto potential = make_shared<CompoundTag>();
+      auto potential = nbt::Compound();
       potential->set("data", spawnData->clone());
       potential->set("weight", Int(1));
       potentials->push_back(potential);
@@ -635,7 +635,7 @@ public:
   }
 
   static std::shared_ptr<CompoundTag> EmptyFullName(std::string const &id, Pos3i const &pos) {
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->set("id", nbt::String(id));
     tag->set("x", nbt::Int(pos.fX));
     tag->set("y", nbt::Int(pos.fY));

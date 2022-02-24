@@ -16,7 +16,7 @@ struct StructurePiece {
 
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     (*tag)["type"] = make_shared<ByteTag>(static_cast<uint8_t>(fType));
     (*tag)["volume"] = fVolume.toNbt();
     return tag;

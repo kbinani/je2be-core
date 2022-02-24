@@ -68,9 +68,9 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
     return;
   }
 
-  auto tag = make_shared<CompoundTag>();
+  auto tag = nbt::Compound();
   tag->set("name", String(block->fName));
-  auto states = make_shared<CompoundTag>();
+  auto states = nbt::Compound();
   states = block->fStates;
   tag->set("states", states);
   tag->set("version", Int(block->fVersion));
@@ -80,7 +80,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
     auto idx = section->fWaterPaletteIndices[index];
     cout << "layer2 ---" << endl;
     auto layer2Block = section->fWaterPalette[idx];
-    auto t = make_shared<CompoundTag>();
+    auto t = nbt::Compound();
     t->set("name", String(layer2Block->fName));
     t->set("states", layer2Block->fStates);
     t->set("version", Int(layer2Block->fVersion));
@@ -123,7 +123,7 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, mcfile::
     if (!sr.read(name)) {
       break;
     }
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->read(sr);
 
     auto bx = tag->int32("x");
@@ -165,7 +165,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
     if (!sr.read(name)) {
       break;
     }
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->read(sr);
 
     PrintAsJson(cout, *tag, jopt);
@@ -219,7 +219,7 @@ static bool DumpLevelDat(fs::path const &dbDir) {
   }
   auto stream = make_shared<FileInputStream>(datFile);
   InputStreamReader reader(stream, {.fLittleEndian = true});
-  auto tag = make_shared<CompoundTag>();
+  auto tag = nbt::Compound();
   stream->seek(8);
   tag->read(reader);
 

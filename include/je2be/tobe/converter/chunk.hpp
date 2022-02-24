@@ -120,7 +120,7 @@ public:
         }
       }
 
-      auto tick = make_shared<CompoundTag>();
+      auto tick = nbt::Compound();
       tick->set("blockState", blockB);
       tick->set("time", nbt::Long(time));
       tick->set("x", nbt::Int(tb.fX));
@@ -140,7 +140,7 @@ public:
         continue;
       }
 
-      auto tick = make_shared<CompoundTag>();
+      auto tick = nbt::Compound();
       tick->set("blockState", blockB);
       tick->set("time", nbt::Long(time));
       tick->set("x", nbt::Int(tb.fX));
@@ -163,7 +163,7 @@ public:
       if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
           auto replace = make_shared<ListTag>(Tag::Type::Compound);
-          auto localPlayer = make_shared<CompoundTag>();
+          auto localPlayer = nbt::Compound();
           localPlayer->set("entityID", nbt::Long(rootVehicle->fLocalPlayerUid));
           localPlayer->set("linkID", nbt::Int(0));
           replace->push_back(localPlayer);

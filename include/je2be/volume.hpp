@@ -26,7 +26,7 @@ public:
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
     using namespace mcfile;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     (*tag)["start"] = Pos3iToNbt(fStart);
     (*tag)["end"] = Pos3iToNbt(fEnd);
     return tag;

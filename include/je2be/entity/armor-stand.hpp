@@ -43,7 +43,7 @@ public:
     }
 
     std::shared_ptr<CompoundTag> toCompoundTag() const {
-      auto ret = std::make_shared<CompoundTag>();
+      auto ret = nbt::Compound();
       SetRot(fBody, "Body", *ret);
       SetRot(fHead, "Head", *ret);
       SetRot(fLeftLeg, "LeftLeg", *ret);

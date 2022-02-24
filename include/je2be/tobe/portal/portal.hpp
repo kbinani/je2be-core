@@ -9,7 +9,7 @@ public:
   std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
     using namespace je2be::nbt;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"DimId", Int(fDimId)},
         {"Span", Byte(fSpan)},

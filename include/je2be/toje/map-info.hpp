@@ -12,7 +12,7 @@ public:
     double fZ;
 
     std::shared_ptr<CompoundTag> toCompoundTag() const {
-      auto ret = std::make_shared<CompoundTag>();
+      auto ret = nbt::Compound();
       ret->set("id", nbt::String(fId));
       ret->set("rot", nbt::Double(fRot));
       ret->set("type", nbt::Byte(fType));

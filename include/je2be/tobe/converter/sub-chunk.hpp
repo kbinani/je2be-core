@@ -272,7 +272,7 @@ public:
       }
 
       auto water = BlockData::Make("water");
-      auto states = make_shared<CompoundTag>();
+      auto states = nbt::Compound();
       states->set("liquid_depth", nbt::Int(0));
       water->set("states", states);
       if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {

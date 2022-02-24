@@ -6,7 +6,7 @@ class Entity {
 public:
   static std::shared_ptr<CompoundTag> ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
     using namespace je2be::nbt;
-    auto ret = std::make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     CompoundTag &t = *ret;
     if (blockJ.fName == "minecraft:glow_frame") {
       t["id"] = String("minecraft:glow_item_frame");
@@ -132,7 +132,7 @@ public:
 
       // NOTE: This "UUID" property will be replaced to "X", "Y", and "Z" when the leasher is a leash_knot.
       auto leasherIdJ = Uuid::GenWithI64Seed(leasherId);
-      auto leash = std::make_shared<CompoundTag>();
+      auto leash = nbt::Compound();
       leash->set("UUID", leasherIdJ.toIntArrayTag());
       e->set("Leash", leash);
     }
@@ -297,7 +297,7 @@ public:
     auto y = b.int32("BlockTargetY");
     auto z = b.int32("BlockTargetZ");
     if (x && y && z) {
-      auto beamTarget = std::make_shared<CompoundTag>();
+      auto beamTarget = nbt::Compound();
       beamTarget->set("X", nbt::Int(*x));
       beamTarget->set("Y", nbt::Int(*y));
       beamTarget->set("Z", nbt::Int(*z));
@@ -581,7 +581,7 @@ public:
       return;
     }
 
-    auto value = std::make_shared<CompoundTag>();
+    auto value = nbt::Compound();
     value->set("dimension", nbt::String(JavaStringFromDimension(*dim)));
     std::vector<int32_t> pos;
     pos.push_back((int)round(homePos->fX));
@@ -590,13 +590,13 @@ public:
     auto posTag = std::make_shared<IntArrayTag>(pos);
     value->set("pos", posTag);
 
-    auto homeTag = std::make_shared<CompoundTag>();
+    auto homeTag = nbt::Compound();
     homeTag->set("value", value);
 
-    auto memories = std::make_shared<CompoundTag>();
+    auto memories = nbt::Compound();
     memories->set("minecraft:home", homeTag);
 
-    auto brain = std::make_shared<CompoundTag>();
+    auto brain = nbt::Compound();
     brain->set("memories", memories);
 
     j["Brain"] = brain;
@@ -669,7 +669,7 @@ public:
 
     j.erase("InLove");
 
-    auto dataJ = std::make_shared<CompoundTag>();
+    auto dataJ = nbt::Compound();
 
     VillagerProfession profession(static_cast<VillagerProfession::Variant>(0));
     auto variantB = b.int32("Variant", 0);
@@ -794,7 +794,7 @@ public:
           armorJ = Item::From(*armorB, ctx);
         }
         if (!armorJ) {
-          armorJ = std::make_shared<CompoundTag>();
+          armorJ = nbt::Compound();
         }
         armors.push_back(armorJ);
         chances->push_back(nbt::Float(0.085));
@@ -818,8 +818,8 @@ public:
   }
 
   static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto memories = std::make_shared<CompoundTag>();
-    auto brain = std::make_shared<CompoundTag>();
+    auto memories = nbt::Compound();
+    auto brain = nbt::Compound();
     brain->set("memories", memories);
     j["Brain"] = brain;
   }
@@ -911,7 +911,7 @@ public:
         }
       }
       if (!itemJ) {
-        itemJ = std::make_shared<CompoundTag>();
+        itemJ = nbt::Compound();
       }
       itemsJ->push_back(itemJ);
       chances->push_back(nbt::Float(HandDropChance(*itemJ, identifier)));
@@ -1006,7 +1006,7 @@ public:
     if (armorsJ->size() < 3) {
       return;
     }
-    armorsJ->fValue[2] = std::make_shared<CompoundTag>();
+    armorsJ->fValue[2] = nbt::Compound();
   }
 
   static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1067,7 +1067,7 @@ public:
       recipesJ->push_back(recipeJ);
     }
 
-    auto offersJ = std::make_shared<CompoundTag>();
+    auto offersJ = nbt::Compound();
     offersJ->set("Recipes", recipesJ);
     j["Offers"] = offersJ;
   }
@@ -1259,7 +1259,7 @@ public:
   }
 
   static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
-    auto ret = std::make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     CompoundTag &j = *ret;
     Air(b, j, ctx);
     OnGround(b, j, ctx);
@@ -1456,7 +1456,7 @@ public:
       return nullptr;
     }
 
-    auto ret = std::make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
 
     ret->set("sell", sellJ);
 
@@ -1464,7 +1464,7 @@ public:
     if (buyB) {
       ret->set("buyB", buyB);
     } else {
-      auto air = std::make_shared<CompoundTag>();
+      auto air = nbt::Compound();
       air->set("id", nbt::String("minecraft:air"));
       air->set("Count", nbt::Byte(1));
       ret->set("buyB", air);
@@ -1591,7 +1591,7 @@ public:
     }
 
     if (auto abilitiesB = b.compoundTag("abilities"); abilitiesB) {
-      auto abilitiesJ = std::make_shared<CompoundTag>();
+      auto abilitiesJ = nbt::Compound();
       CopyBoolValues(*abilitiesB, *abilitiesJ, {{"flying"}, {"instabuild"}, {"invulnerable"}, {"build", "mayBuild"}, {"mayfly"}});
       CopyFloatValues(*abilitiesB, *abilitiesJ, {{"flySpeed"}, {"walkSpeed"}});
       j["abilities"] = abilitiesJ;

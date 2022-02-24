@@ -57,11 +57,11 @@ public:
     }
     auto const &name = *id;
     if (name == "minecraft:mob_spawner") {
-      auto b = std::make_shared<CompoundTag>();
+      auto b = nbt::Compound();
       b->insert({
           {"name", nbt::String("minecraft:mob_spawner")},
           {"version", nbt::Int(kBlockDataVersion)},
-          {"states", std::make_shared<CompoundTag>()},
+          {"states", nbt::Compound()},
       });
       return std::make_tuple(b, "minecraft:mob_spawner");
     }
@@ -439,7 +439,7 @@ private:
     if (!c) {
       return nullptr;
     }
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("EndGateway")},
         {"isMovable", Bool(true)},
@@ -486,7 +486,7 @@ private:
       return nullptr;
     }
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto powered = c->boolean("powered", false);
     auto automatic = c->boolean("auto", false);
     auto trackOutput = c->boolean("TrackOutput", true);
@@ -527,7 +527,7 @@ private:
     using namespace je2be::nbt;
     using namespace std;
 
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("Beehive")},
         {"isMovable", Bool(true)},
@@ -569,7 +569,7 @@ private:
         }
         auto saveData = converted.fEntity;
 
-        auto outBee = make_shared<CompoundTag>();
+        auto outBee = nbt::Compound();
         outBee->set("SaveData", saveData);
 
         auto minOccupationTicks = bee->int32("MinOccupationTicks");
@@ -608,7 +608,7 @@ private:
         c->set("id", String("PistonArm"));
         return c;
       } else {
-        auto ret = std::make_shared<CompoundTag>();
+        auto ret = nbt::Compound();
         ret->set("id", String("PistonArm"));
         ret->set("isMovable", Bool(false));
         ret->set("LastProgress", Float(1));
@@ -632,7 +632,7 @@ private:
     using namespace je2be::nbt;
     using namespace std;
 
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("Lectern")},
         {"isMovable", Bool(true)},
@@ -674,7 +674,7 @@ private:
       secondary = c->int32("Secondary", -1);
     }
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("Beacon")},
         {"isMovable", Bool(true)},
@@ -688,7 +688,7 @@ private:
   static TileEntityData EndPortal(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace je2be::nbt;
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("EndPortal")},
         {"isMovable", Bool(true)},
@@ -701,7 +701,7 @@ private:
     using namespace je2be::nbt;
     using namespace std;
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({{"id", String("Cauldron")}, {"isMovable", Bool(true)}, {"PotionId", Short(-1)}, {"PotionType", Short(-1)}});
 
     Attach(c, pos, *tag);
@@ -712,7 +712,7 @@ private:
     using namespace je2be::nbt;
     using namespace std;
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("Jukebox")},
         {"isMovable", Bool(true)},
@@ -742,7 +742,7 @@ private:
       return nullptr;
     }
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("Music")},
         {"isMovable", Bool(true)},
@@ -762,7 +762,7 @@ private:
       return nullptr;
     }
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
 
     std::string mob;
     auto spawnData = c->compoundTag("SpawnData");
@@ -804,7 +804,7 @@ private:
       return nullptr;
     }
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto items = GetItems(c, "Items", ctx);
     if (!items) {
       return nullptr;
@@ -820,7 +820,7 @@ private:
         continue;
       }
 
-      auto newItem = make_shared<CompoundTag>();
+      auto newItem = nbt::Compound();
       for (auto const &prop : *item) {
         if (prop.first == "Slot") {
           continue;
@@ -865,7 +865,7 @@ private:
       using namespace je2be::nbt;
       using namespace std;
 
-      auto tag = std::make_shared<CompoundTag>();
+      auto tag = nbt::Compound();
       auto items = GetItems(c, "Items", ctx);
       if (items) {
         tag->set("Items", items);
@@ -884,7 +884,7 @@ private:
   static TileEntityData Skull(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace je2be::nbt;
     using namespace std;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto const &name = b.fName;
     int8_t type = Item::GetSkullTypeFromBlockName(name);
     auto rot = Wrap(strings::Toi(b.property("rotation", "0")), 0);
@@ -905,9 +905,9 @@ private:
     using namespace je2be::nbt;
     using namespace std;
 
-    auto tag = make_shared<CompoundTag>();
-    auto plantBlock = make_shared<CompoundTag>();
-    auto states = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
+    auto plantBlock = nbt::Compound();
+    auto states = nbt::Compound();
     states->insert({
         {"age_bit", Byte(0)},
         {"bamboo_leaf_size", String("no_leaves")},
@@ -932,9 +932,9 @@ private:
       using namespace je2be::nbt;
       using namespace std;
 
-      auto tag = make_shared<CompoundTag>();
-      auto plantBlock = make_shared<CompoundTag>();
-      auto states = make_shared<CompoundTag>();
+      auto tag = nbt::Compound();
+      auto plantBlock = nbt::Compound();
+      auto states = nbt::Compound();
       for (auto const &p : properties) {
         states->set(p.first, String(p.second));
       }
@@ -957,9 +957,9 @@ private:
     using namespace je2be::nbt;
     using namespace std;
 
-    auto tag = make_shared<CompoundTag>();
-    auto plantBlock = make_shared<CompoundTag>();
-    auto states = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
+    auto plantBlock = nbt::Compound();
+    auto states = nbt::Compound();
     auto type = strings::Trim("minecraft:potted_", b.fName, "_sapling");
     states->insert({
         {"age_bit", Byte(0)},
@@ -982,7 +982,7 @@ private:
   static TileEntityData Banner(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace je2be::nbt;
     using namespace std;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
 
     optional<nlohmann::json> customName;
     if (c) {
@@ -1010,7 +1010,7 @@ private:
         if (!color || !pat) {
           continue;
         }
-        auto ptag = make_shared<CompoundTag>();
+        auto ptag = nbt::Compound();
         ptag->insert({
             {"Color", Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
             {"Pattern", String(*pat)},
@@ -1095,7 +1095,7 @@ private:
 
   static TileEntityData Bed(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace je2be::nbt;
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto color = BedColor(b.fName);
     tag->insert({
         {"id", String("Bed")},
@@ -1109,7 +1109,7 @@ private:
   static TileEntityData ShulkerBox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
     using namespace je2be::nbt;
     auto facing = BlockData::GetFacingDirectionAFromFacing(b);
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("ShulkerBox")},
         {"facing", Byte((int8_t)facing)},
@@ -1170,7 +1170,7 @@ private:
     Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(*color));
     bool glowing = c->boolean("GlowingText", false);
     string text = GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     tag->insert({
         {"id", String("Sign")},
         {"isMovable", Bool(true)},
@@ -1204,7 +1204,7 @@ private:
 
   static std::shared_ptr<CompoundTag> Empty(std::string const &name, CompoundTag const &tagJ, Pos3i const &pos) {
     using namespace je2be::nbt;
-    auto ret = std::make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     ret->set("id", String(name));
     ret->set("x", Int(pos.fX));
     ret->set("y", Int(pos.fY));
@@ -1274,7 +1274,7 @@ private:
       pair = make_pair(pairPos.fX, pairPos.fZ);
     }
 
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
       auto items = GetItems(comp, "Items", ctx);
       if (items) {

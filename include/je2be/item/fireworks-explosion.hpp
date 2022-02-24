@@ -71,7 +71,7 @@ public:
   }
 
   std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
-    auto ret = std::make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     if (fFlicker) {
       ret->set("FireworkFlicker", nbt::Bool(*fFlicker));
     }
@@ -100,7 +100,7 @@ public:
 
   std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
     using namespace std;
-    auto ret = make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     if (fTrail) {
       ret->set("Trail", nbt::Bool(*fTrail));
     }

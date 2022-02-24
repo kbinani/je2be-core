@@ -131,8 +131,8 @@ public:
       }
     }
 
-    auto b = make_shared<CompoundTag>();
-    auto states = make_shared<CompoundTag>();
+    auto b = nbt::Compound();
+    auto states = nbt::Compound();
     states->insert({
         {"facing_direction", Int(facing)},
         {"item_frame_map_bit", Bool(map)},
@@ -161,7 +161,7 @@ public:
 
   static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
     using namespace je2be::nbt;
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
     auto tileZ = c.int32("TileZ");
@@ -201,7 +201,7 @@ public:
   std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
     using namespace je2be::nbt;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto tags = make_shared<ListTag>(Tag::Type::Compound);
     auto definitions = make_shared<ListTag>(Tag::Type::String);
     for (auto const &d : fDefinitions) {
@@ -593,7 +593,7 @@ private:
       auto showArms = tag.boolean("ShowArms", false);
       if (indexB) {
         if (indexB != 1 || showArms) {
-          auto poseB = std::make_shared<CompoundTag>();
+          auto poseB = nbt::Compound();
           poseB->set("PoseIndex", nbt::Int(*indexB));
           poseB->set("LastSignal", nbt::Int(0));
           c["Pose"] = poseB;
@@ -708,7 +708,7 @@ private:
     auto eggLayTime = tag.int32("EggLayTime");
     if (eggLayTime) {
       auto entries = make_shared<ListTag>(Tag::Type::Compound);
-      auto timer = make_shared<CompoundTag>();
+      auto timer = nbt::Compound();
       timer->set("SpawnTimer", nbt::Int(*eggLayTime));
       timer->set("StopSpawning", nbt::Bool(false));
       entries->push_back(timer);
@@ -901,11 +901,11 @@ private:
       auto carpetColor = strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
       auto colorCode = ColorCodeJavaFromJavaName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
-      auto armor = std::make_shared<CompoundTag>();
+      auto armor = nbt::Compound();
       armor->insert({{"Count", Byte(1)}, {"Damage", Short(0)}, {"Name", String("minecraft:carpet")}, {"WasPickedUp", Bool(false)}});
-      auto block = std::make_shared<CompoundTag>();
+      auto block = nbt::Compound();
       block->insert({{"name", String("minecraft:carpet")}, {"version", Int(kBlockDataVersion)}});
-      auto states = std::make_shared<CompoundTag>();
+      auto states = nbt::Compound();
       states->set("color", String(beCarpetColor));
       block->set("states", states);
       armor->set("Block", block);
@@ -963,7 +963,7 @@ private:
     Panda::Gene hidden = Panda::GeneFromJavaName(hiddenGene);
 
     auto genes = std::make_shared<ListTag>(Tag::Type::Compound);
-    auto gene = std::make_shared<CompoundTag>();
+    auto gene = nbt::Compound();
     gene->set("MainAllele", nbt::Int(Panda::BedrockAlleleFromGene(main)));
     gene->set("HiddenAllele", nbt::Int(Panda::BedrockAlleleFromGene(hidden)));
     genes->push_back(gene);
@@ -1338,7 +1338,7 @@ private:
         }
         std::shared_ptr<CompoundTag> itemB = Item::From(itemJ, ctx.fCtx);
         if (!itemB) {
-          itemB = std::make_shared<CompoundTag>();
+          itemB = nbt::Compound();
           itemB->set("Count", nbt::Byte(0));
           itemB->set("Damage", nbt::Short(0));
           itemB->set("Name", nbt::String(""));
@@ -1785,31 +1785,31 @@ private:
             rs->push_back(converted);
           }
           if (!rs->empty()) {
-            auto of = make_shared<CompoundTag>();
+            auto of = nbt::Compound();
             of->set("Recipes", rs);
             auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
             if (maxTradeTier >= 0) {
-              auto tier0 = make_shared<CompoundTag>();
+              auto tier0 = nbt::Compound();
               tier0->set("0", Int(0));
               expRequirements->push_back(tier0);
             }
             if (maxTradeTier >= 1) {
-              auto tier1 = make_shared<CompoundTag>();
+              auto tier1 = nbt::Compound();
               tier1->set("1", Int(10));
               expRequirements->push_back(tier1);
             }
             if (maxTradeTier >= 2) {
-              auto tier2 = make_shared<CompoundTag>();
+              auto tier2 = nbt::Compound();
               tier2->set("2", Int(70));
               expRequirements->push_back(tier2);
             }
             if (maxTradeTier >= 3) {
-              auto tier3 = make_shared<CompoundTag>();
+              auto tier3 = nbt::Compound();
               tier3->set("3", Int(150));
               expRequirements->push_back(tier3);
             }
             if (maxTradeTier >= 4) {
-              auto tier4 = make_shared<CompoundTag>();
+              auto tier4 = nbt::Compound();
               tier4->set("4", Int(250));
               expRequirements->push_back(tier4);
             }
@@ -1842,7 +1842,7 @@ private:
         AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
         AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
         if (saddleItem) {
-          auto item = std::make_shared<CompoundTag>();
+          auto item = nbt::Compound();
           item->insert({
               {"Damage", Byte(0)},
               {"Name", String("minecraft:saddle")},
@@ -1908,7 +1908,7 @@ private:
           if (!uid) {
             continue;
           }
-          auto link = std::make_shared<CompoundTag>();
+          auto link = nbt::Compound();
           link->set("entityID", nbt::Long(*uid));
           link->set("linkID", nbt::Int(i));
           links->push_back(link);
@@ -1945,7 +1945,7 @@ private:
     if (!buyA || !sell) {
       return nullptr;
     }
-    auto bedrock = make_shared<CompoundTag>();
+    auto bedrock = nbt::Compound();
 
     {
       auto count = buyA->byte("Count", 0);

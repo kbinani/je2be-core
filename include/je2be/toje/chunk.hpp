@@ -172,20 +172,20 @@ public:
     vector<StructureInfo::Structure> structures;
     ctx.structures(d, Pos2i(cx, cz), structures);
 
-    auto structuresTag = make_shared<CompoundTag>();
-    auto startsTag = make_shared<CompoundTag>();
-    auto referencesTag = make_shared<CompoundTag>();
+    auto structuresTag = nbt::Compound();
+    auto startsTag = nbt::Compound();
+    auto referencesTag = nbt::Compound();
     for (auto const &s : structures) {
       switch (s.fType) {
       case StructureType::Monument: {
         if (s.fStartChunk == Pos2i(cx, cz)) {
-          auto monument = make_shared<CompoundTag>();
+          auto monument = nbt::Compound();
           monument->set("ChunkX", Int(cx));
           monument->set("ChunkZ", Int(cz));
           monument->set("id", String("minecraft:monument"));
           monument->set("references", Int(0));
           auto children = make_shared<ListTag>(Tag::Type::Compound);
-          auto child = make_shared<CompoundTag>();
+          auto child = nbt::Compound();
           child->set("id", String("minecraft:omb"));
           child->set("GD", Int(0));
           child->set("O", Int(0));
@@ -265,7 +265,7 @@ public:
         continue;
       }
       Pos3i leashPos = foundLeash->second;
-      auto leashTag = make_shared<CompoundTag>();
+      auto leashTag = nbt::Compound();
       leashTag->set("X", nbt::Int(leashPos.fX));
       leashTag->set("Y", nbt::Int(leashPos.fY));
       leashTag->set("Z", nbt::Int(leashPos.fZ));

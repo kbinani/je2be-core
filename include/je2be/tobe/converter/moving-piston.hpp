@@ -50,7 +50,7 @@ public:
               unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
               LookupAttachedBlocks(loader, pistonHeadPos, true, facingDirectionB, attachedBlocks);
 
-              auto pistonArm = make_shared<CompoundTag>();
+              auto pistonArm = nbt::Compound();
               auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
               for (auto attachedBlock : attachedBlocks) {
                 Pos3i actual = attachedBlock - vec;
@@ -76,7 +76,7 @@ public:
               // Tile entity doesn't exist at piston_head position.
               // This means the piston is in static state.
               bool extended = block->property("extended", "false") == "true";
-              auto pistonArm = make_shared<CompoundTag>();
+              auto pistonArm = nbt::Compound();
               pistonArm->set("AttachedBlocks", make_shared<ListTag>(Tag::Type::Int));
               pistonArm->set("BreakBlocks", make_shared<ListTag>(Tag::Type::Int));
               pistonArm->set("LastProgress", Float(extended ? 1 : 0));
@@ -149,7 +149,7 @@ public:
           unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
           LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
 
-          auto pistonArm = make_shared<CompoundTag>();
+          auto pistonArm = nbt::Compound();
           auto attachedBlocksTag = make_shared<ListTag>(Tag::Type::Int);
           for (auto attachedBlock : attachedBlocks) {
             attachedBlocksTag->push_back(Int(attachedBlock.fX));
@@ -196,7 +196,7 @@ private:
     using namespace mcfile::je;
     using namespace je2be::nbt;
 
-    auto e = make_shared<CompoundTag>();
+    auto e = nbt::Compound();
     e->set("id", String("j2b:MovingBlock"));
     e->set("isMovable", Bool(true));
 
@@ -227,9 +227,9 @@ private:
     }
     e->set("movingBlock", movingBlock);
 
-    auto movingBlockExtra = make_shared<CompoundTag>();
+    auto movingBlockExtra = nbt::Compound();
     movingBlockExtra->set("name", String("minecraft:air"));
-    movingBlockExtra->set("states", make_shared<CompoundTag>());
+    movingBlockExtra->set("states", nbt::Compound());
     movingBlockExtra->set("version", Int(kBlockDataVersion));
     e->set("movingBlockExtra", movingBlockExtra);
 

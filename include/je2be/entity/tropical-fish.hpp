@@ -33,7 +33,7 @@ public:
 
   std::shared_ptr<CompoundTag> toBedrockBucketTag() const {
     using namespace std;
-    auto ret = make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
     auto attributes = EntityAttributes::Mob("minecraft:tropical_fish", nullopt);
     if (attributes) {
       ret->set("Attributes", attributes->toListTag());

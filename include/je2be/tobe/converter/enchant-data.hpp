@@ -7,7 +7,7 @@ public:
   static std::shared_ptr<CompoundTag> From(CompoundTag const &item) {
     using namespace je2be::nbt;
     using namespace std;
-    auto tag = std::make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     auto name = item.string("id");
     if (!name) {
       return nullptr;

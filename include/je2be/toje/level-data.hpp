@@ -6,7 +6,7 @@ class LevelData {
 public:
   struct GameRules {
     static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db) {
-      auto ret = std::make_shared<CompoundTag>();
+      auto ret = nbt::Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[#__nameJ] = nbt::String(b.boolean(#__nameB, __default) ? "true" : "false");
 #define I(__nameJ, __nameB, __default) j[#__nameJ] = nbt::String(std::to_string(b.int32(#__nameB, __default)));
@@ -79,7 +79,7 @@ public:
     if (!isr.read(&v1)) {
       return nullptr;
     }
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     if (!tag->read(isr)) {
       return nullptr;
     }
@@ -90,7 +90,7 @@ public:
     using namespace std;
     using namespace je2be::nbt;
 
-    auto data = std::make_shared<CompoundTag>();
+    auto data = nbt::Compound();
     CompoundTag &j = *data;
 
     CopyStringValues(b, j, {{"LevelName"}});
@@ -106,7 +106,7 @@ public:
     j["version"] = Int(kLevelVersion);
 
     {
-      auto dataPacks = make_shared<CompoundTag>();
+      auto dataPacks = nbt::Compound();
       dataPacks->set("Disabled", make_shared<ListTag>(Tag::Type::String));
       auto enabled = make_shared<ListTag>(Tag::Type::String);
       enabled->push_back(String("vanilla"));
@@ -119,7 +119,7 @@ public:
       j["ServerBrands"] = brands;
     }
     {
-      auto version = make_shared<CompoundTag>();
+      auto version = nbt::Compound();
       version->set("Id", Int(mcfile::je::Chunk::kDataVersion));
       version->set("Name", String(kVersionString));
       version->set("Series", String("main"));
@@ -127,16 +127,16 @@ public:
       j["Version"] = version;
     }
     {
-      auto worldGenSettings = make_shared<CompoundTag>();
+      auto worldGenSettings = nbt::Compound();
       CopyBoolValues(b, *worldGenSettings, {{"bonusChestEnabled", "bonus_chest"}});
       worldGenSettings->set("generate_features", Bool(true));
       if (auto seed = b.int64("RandomSeed"); seed) {
         worldGenSettings->set("seed", Long(*seed));
-        auto dimensions = make_shared<CompoundTag>();
+        auto dimensions = nbt::Compound();
         {
-          auto overworld = make_shared<CompoundTag>();
-          auto generator = make_shared<CompoundTag>();
-          auto biomeSource = make_shared<CompoundTag>();
+          auto overworld = nbt::Compound();
+          auto generator = nbt::Compound();
+          auto biomeSource = nbt::Compound();
           biomeSource->set("preset", String("minecraft:overworld"));
           biomeSource->set("type", String("minecraft:multi_noise"));
           generator->set("biome_source", biomeSource);
@@ -148,9 +148,9 @@ public:
           dimensions->set("minecraft:overworld", overworld);
         }
         {
-          auto end = make_shared<CompoundTag>();
-          auto generator = make_shared<CompoundTag>();
-          auto biomeSource = make_shared<CompoundTag>();
+          auto end = nbt::Compound();
+          auto generator = nbt::Compound();
+          auto biomeSource = nbt::Compound();
           biomeSource->set("seed", Long(*seed));
           biomeSource->set("type", String("minecraft:the_end"));
           generator->set("biome_source", biomeSource);
@@ -162,9 +162,9 @@ public:
           dimensions->set("minecraft:the_end", end);
         }
         {
-          auto nether = make_shared<CompoundTag>();
-          auto generator = make_shared<CompoundTag>();
-          auto biomeSource = make_shared<CompoundTag>();
+          auto nether = nbt::Compound();
+          auto generator = nbt::Compound();
+          auto biomeSource = nbt::Compound();
           biomeSource->set("preset", String("minecraft:nether"));
           biomeSource->set("type", String("minecraft:multi_noise"));
           generator->set("biome_source", biomeSource);
@@ -192,7 +192,7 @@ public:
       j["Player"] = playerData->fEntity;
     }
 
-    auto root = std::make_shared<CompoundTag>();
+    auto root = nbt::Compound();
     root->set("Data", data);
     return root;
   }
@@ -228,9 +228,9 @@ public:
     if (!fightB) {
       return nullptr;
     }
-    auto fightJ = std::make_shared<CompoundTag>();
+    auto fightJ = nbt::Compound();
     if (auto exitPortalLocation = props::GetPos3iFromListTag(*fightB, "ExitPortalLocation"); exitPortalLocation) {
-      auto exitPortalLocationJ = std::make_shared<CompoundTag>();
+      auto exitPortalLocationJ = nbt::Compound();
       exitPortalLocationJ->set("X", nbt::Int(exitPortalLocation->fX));
       exitPortalLocationJ->set("Y", nbt::Int(exitPortalLocation->fY));
       exitPortalLocationJ->set("Z", nbt::Int(exitPortalLocation->fZ));

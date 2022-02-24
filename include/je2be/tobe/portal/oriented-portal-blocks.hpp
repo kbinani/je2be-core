@@ -37,12 +37,12 @@ public:
 
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     CompoundTag &c = *tag;
     c["x"] = make_shared<ByteTag>(fXAxis ? 1 : 0);
     auto blocks = make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &pos : fBlocks) {
-      auto p = make_shared<CompoundTag>();
+      auto p = nbt::Compound();
       (*p)["x"] = make_shared<IntTag>(pos.fX);
       (*p)["y"] = make_shared<IntTag>(pos.fY);
       (*p)["z"] = make_shared<IntTag>(pos.fZ);

@@ -111,7 +111,7 @@ public:
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
     using namespace mcfile;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     CompoundTag &c = *tag;
     c["dim"] = make_shared<ByteTag>(static_cast<uint8_t>(fDim));
     c["maxChunkLastUpdate"] = make_shared<LongTag>(fMaxChunkLastUpdate);
@@ -121,7 +121,7 @@ public:
     for (auto it : fMapItems) {
       int number = it.first;
       auto tag = it.second;
-      auto c = make_shared<CompoundTag>();
+      auto c = nbt::Compound();
       (*c)["number"] = make_shared<IntTag>(number);
       (*c)["tag"] = tag->clone();
       mapItems->push_back(c);

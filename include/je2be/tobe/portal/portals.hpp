@@ -20,8 +20,8 @@ public:
     fOverworld.extract(portals, Dimension::Overworld);
     fNether.extract(portals, Dimension::Nether);
 
-    auto root = make_shared<CompoundTag>();
-    auto data = make_shared<CompoundTag>();
+    auto root = nbt::Compound();
+    auto data = nbt::Compound();
     auto portalRecords = make_shared<ListTag>(Tag::Type::Compound);
     for (auto const &portal : portals) {
       portalRecords->push_back(portal.toCompoundTag());

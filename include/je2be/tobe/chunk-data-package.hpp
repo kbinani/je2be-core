@@ -322,7 +322,7 @@ private:
       tickList->push_back(it.second);
     }
 
-    auto pendingTicks = make_shared<CompoundTag>();
+    auto pendingTicks = nbt::Compound();
     pendingTicks->set("currentTick", Int(fChunkLastUpdate));
     pendingTicks->set("tickList", tickList);
 

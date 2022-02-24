@@ -19,7 +19,7 @@ public:
     }
 
     std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
-      auto a = std::make_shared<CompoundTag>();
+      auto a = nbt::Compound();
       a->set("Base", nbt::Float(base));
       a->set("Current", nbt::Float(current));
       a->set("Max", nbt::Float(max));

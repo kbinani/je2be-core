@@ -59,7 +59,7 @@ public:
 
     for (uint8_t beScale = 0; beScale <= 4; beScale++) {
       int64_t uuid = UUID(javaMapId, beScale);
-      auto ret = make_shared<CompoundTag>();
+      auto ret = nbt::Compound();
       ret->set("dimension", Byte(outDimension));
       ret->set("fullyExplored", Bool(false)); //?
       ret->set("height", Short(128));
@@ -132,7 +132,7 @@ public:
               // facing to south in Bedrock
             }
 
-            auto frameData = make_shared<CompoundTag>();
+            auto frameData = nbt::Compound();
             frameData->set("rot", Int(rot));
             frameData->set("type", Int(1));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
@@ -142,13 +142,13 @@ public:
             frameData->set("x", Int(markerX));
             frameData->set("y", Int(markerY));
 
-            auto key = make_shared<CompoundTag>();
+            auto key = nbt::Compound();
             key->set("blockX", Int(*x));
             key->set("blockY", Int(*y));
             key->set("blockZ", Int(*z));
             key->set("type", Int(1));
 
-            auto decoration = make_shared<CompoundTag>();
+            auto decoration = nbt::Compound();
             decoration->set("data", frameData);
             decoration->set("key", key);
 
@@ -178,7 +178,7 @@ public:
               outType = 4; // id = "+", buried treasure
             }
 
-            auto frameData = make_shared<CompoundTag>();
+            auto frameData = nbt::Compound();
             frameData->set("rot", Int(8));
             frameData->set("type", Int(outType));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
@@ -188,13 +188,13 @@ public:
             frameData->set("x", Int(markerX));
             frameData->set("y", Int(markerY));
 
-            auto key = make_shared<CompoundTag>();
+            auto key = nbt::Compound();
             key->set("blockX", Int((int32_t)*x));
             key->set("blockZ", Int((int32_t)*z));
             key->set("blockY", Int(64)); // fixed value?
             key->set("type", Int(1));    //?
 
-            auto decoration = make_shared<CompoundTag>();
+            auto decoration = nbt::Compound();
             decoration->set("data", frameData);
             decoration->set("key", key);
 

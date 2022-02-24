@@ -44,7 +44,7 @@ public:
     using namespace std;
     using namespace je2be::nbt;
 
-    auto ret = std::make_shared<CompoundTag>();
+    auto ret = nbt::Compound();
 
     auto attributes = EntityAttributes::Mob("minecraft:axolotl", fHealth);
     if (attributes) {

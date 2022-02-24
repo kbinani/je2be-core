@@ -2009,14 +2009,14 @@ private:
   static BlockDataType New(std::string const &name, bool nameIsFull = false) {
     using namespace std;
     using namespace je2be::nbt;
-    auto tag = make_shared<CompoundTag>();
+    auto tag = nbt::Compound();
     string fullName = nameIsFull ? name : "minecraft:"s + name;
     tag->set("name", String(fullName));
     tag->set("version", Int(kBlockDataVersion));
     return tag;
   }
 
-  static StatesType States() { return std::make_shared<CompoundTag>(); }
+  static StatesType States() { return nbt::Compound(); }
 
   static BlockDataType AttachStates(BlockDataType const &data, StatesType const &s) {
     data->set("states", s);

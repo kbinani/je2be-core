@@ -235,7 +235,7 @@ public:
           }
         }
         if (chunk != passengerChunk) {
-          auto data = make_shared<CompoundTag>();
+          auto data = nbt::Compound();
           data->set("Entities", entitiesInChunk);
           int cx = passengerChunk.fX;
           int cz = passengerChunk.fZ;
@@ -263,7 +263,7 @@ public:
         auto passenger = it.second;
         if (index >= passengersTag->size()) {
           for (int i = passengersTag->size(); i < index + 1; i++) {
-            passengersTag->push_back(make_shared<CompoundTag>());
+            passengersTag->push_back(nbt::Compound());
           }
         }
         passengersTag->fValue[index] = passenger;
@@ -296,7 +296,7 @@ public:
       auto entity = FindEntity(entities, entityId);
       if (entity) {
         Pos3i leashPos = leasherFound->second;
-        auto leashTag = std::make_shared<CompoundTag>();
+        auto leashTag = nbt::Compound();
         leashTag->set("X", nbt::Int(leashPos.fX));
         leashTag->set("Y", nbt::Int(leashPos.fY));
         leashTag->set("Z", nbt::Int(leashPos.fZ));
