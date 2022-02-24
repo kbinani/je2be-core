@@ -52,12 +52,14 @@ public:
 
           Pos3i dummy(0, 0, 0);
           if (auto converted = ctx.fFromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
-            static std::unordered_set<std::string> const sExclude({"id", "x", "y", "z"});
+            static std::unordered_set<std::string> const sExclude({"id", "x", "y", "z", "keepPacked", "RecipesUsed"});
             auto blockEntityTag = converted->fTileEntity;
             for (auto const &e : sExclude) {
               blockEntityTag->erase(e);
             }
-            tagJ->set("BlockEntityTag", blockEntityTag);
+            if (!blockEntityTag->empty()) {
+              tagJ->set("BlockEntityTag", blockEntityTag);
+            }
           }
         }
       }
