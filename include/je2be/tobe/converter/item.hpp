@@ -231,7 +231,7 @@ private:
     using namespace std;
     using namespace je2be::nbt;
 
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     tag->insert({
         {"Name", String(name)},
         {"WasPickedUp", Bool(false)},
@@ -240,7 +240,7 @@ private:
 
     auto tg = item.compoundTag("tag");
     if (tg) {
-      auto outTag = nbt::Compound();
+      auto outTag = Compound();
       auto author = tg->stringTag("author");
       if (author) {
         outTag->set("author", String(author->fValue));
@@ -254,7 +254,7 @@ private:
       }
       auto pages = tg->listTag("pages");
       if (pages) {
-        auto outPages = make_shared<ListTag>(Tag::Type::Compound);
+        auto outPages = List<Tag::Type::Compound>();
         for (auto const &it : *pages) {
           auto line = it->asString();
           if (!line) {
@@ -290,7 +290,7 @@ private:
           } else {
             lineText = line->fValue;
           }
-          auto lineObj = nbt::Compound();
+          auto lineObj = Compound();
           lineObj->insert({
               {"photoname", String("")},
               {"text", String(lineText)},
@@ -308,7 +308,7 @@ private:
   static ItemData LeatherArmor(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace je2be::nbt;
 
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     tag->insert({
         {"Name", String(name)},
         {"WasPickedUp", Bool(false)},
@@ -318,7 +318,7 @@ private:
     auto customColor = item.query("tag/display/color")->asInt();
     if (customColor) {
       uint32_t v = 0xff000000 | *(uint32_t *)&customColor->fValue;
-      auto t = nbt::Compound();
+      auto t = Compound();
       t->set("customColor", Int(*(int32_t *)&v));
       tag->set("tag", t);
     }
@@ -759,7 +759,7 @@ private:
     auto block = make_shared<Block>(name, empty);
     auto blockData = BlockData::From(block);
 
-    auto states = nbt::Compound();
+    auto states = Compound();
     states->set("torch_facing_direction", String("unknown"));
     blockData->set("states", states);
 
@@ -861,7 +861,7 @@ private:
       tag->set("Type", nbt::Int(1));
       ret->set("tag", tag);
     } else if (patterns) {
-      auto bePatterns = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto bePatterns = nbt::List<Tag::Type::Compound>();
       for (auto const &it : *patterns) {
         auto c = it->asCompound();
         if (!c) {
@@ -905,7 +905,7 @@ private:
     auto block = make_shared<Block>(name, empty);
     auto blockData = BlockData::From(block);
 
-    auto states = nbt::Compound();
+    auto states = Compound();
     states->set("huge_mushroom_bits", Int(14));
     blockData->set("states", states);
 
@@ -923,7 +923,7 @@ private:
     } else {
       n = "minecraft:" + name;
     }
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     tag->insert({
         {"Name", String(n)},
         {"WasPickedUp", Bool(false)},
@@ -949,7 +949,7 @@ private:
       return nullptr;
     }
 
-    auto ret = nbt::Compound();
+    auto ret = Compound();
     ret->insert({
         {"Name", String(ItemNameFromBlockName(*name))},
         {"WasPickedUp", Bool(false)},
@@ -970,7 +970,7 @@ private:
 
         if (auto displayJ = tagJ->compoundTag("display"); displayJ) {
           if (auto loreJ = displayJ->listTag("Lore"); loreJ) {
-            auto loreB = make_shared<ListTag>(Tag::Type::String);
+            auto loreB = List<Tag::Type::String>();
             for (auto const &item : *loreJ) {
               if (auto str = item->asString(); str) {
                 if (str->fValue == "\"(+NBT)\"") {
@@ -980,7 +980,7 @@ private:
                 }
               }
             }
-            auto displayB = nbt::Compound();
+            auto displayB = Compound();
             displayB->set("Lore", loreB);
             tagB->set("display", displayB);
           }
@@ -996,7 +996,7 @@ private:
   static ItemData DefaultItem(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace je2be::nbt;
 
-    auto ret = nbt::Compound();
+    auto ret = Compound();
     ret->insert({
         {"Name", String(name)},
         {"WasPickedUp", Bool(false)},
@@ -1018,12 +1018,12 @@ private:
 
     shared_ptr<CompoundTag> beTag = input->compoundTag("tag");
     if (!beTag) {
-      beTag = nbt::Compound();
+      beTag = Compound();
     }
 
     auto storedEnchantments = tag->listTag("StoredEnchantments");
     if (storedEnchantments) {
-      auto ench = make_shared<ListTag>(Tag::Type::Compound);
+      auto ench = List<Tag::Type::Compound>();
       for (auto const &e : *storedEnchantments) {
         auto c = e->asCompound();
         if (!c) {
@@ -1039,7 +1039,7 @@ private:
     } else {
       auto enchantments = tag->listTag("Enchantments");
       if (enchantments) {
-        auto ench = make_shared<ListTag>(Tag::Type::Compound);
+        auto ench = List<Tag::Type::Compound>();
         for (auto const &e : *enchantments) {
           auto c = e->asCompound();
           if (!c) {
@@ -1067,7 +1067,7 @@ private:
 
     auto name = GetCustomName(*tag);
     if (name) {
-      auto beDisplay = nbt::Compound();
+      auto beDisplay = Compound();
       beDisplay->set("Name", String(*name));
       beTag->set("display", beDisplay);
     }

@@ -14,7 +14,7 @@ public:
   }
 
   static std::shared_ptr<ListTag> OminousBannerPatterns() {
-    auto p = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto p = nbt::List<Tag::Type::Compound>();
     p->push_back(BannerPattern(9, "mr"));
     p->push_back(BannerPattern(8, "bs"));
     p->push_back(BannerPattern(7, "cs"));

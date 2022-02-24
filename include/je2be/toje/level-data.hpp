@@ -90,7 +90,7 @@ public:
     using namespace std;
     using namespace je2be::nbt;
 
-    auto data = nbt::Compound();
+    auto data = Compound();
     CompoundTag &j = *data;
 
     CopyStringValues(b, j, {{"LevelName"}});
@@ -106,20 +106,20 @@ public:
     j["version"] = Int(kLevelVersion);
 
     {
-      auto dataPacks = nbt::Compound();
-      dataPacks->set("Disabled", make_shared<ListTag>(Tag::Type::String));
-      auto enabled = make_shared<ListTag>(Tag::Type::String);
+      auto dataPacks = Compound();
+      dataPacks->set("Disabled", List<Tag::Type::String>());
+      auto enabled = List<Tag::Type::String>();
       enabled->push_back(String("vanilla"));
       dataPacks->set("Enabled", enabled);
       j["DataPacks"] = dataPacks;
     }
     {
-      auto brands = make_shared<ListTag>(Tag::Type::String);
+      auto brands = List<Tag::Type::String>();
       brands->push_back(String("vanilla"));
       j["ServerBrands"] = brands;
     }
     {
-      auto version = nbt::Compound();
+      auto version = Compound();
       version->set("Id", Int(mcfile::je::Chunk::kDataVersion));
       version->set("Name", String(kVersionString));
       version->set("Series", String("main"));
@@ -127,16 +127,16 @@ public:
       j["Version"] = version;
     }
     {
-      auto worldGenSettings = nbt::Compound();
+      auto worldGenSettings = Compound();
       CopyBoolValues(b, *worldGenSettings, {{"bonusChestEnabled", "bonus_chest"}});
       worldGenSettings->set("generate_features", Bool(true));
       if (auto seed = b.int64("RandomSeed"); seed) {
         worldGenSettings->set("seed", Long(*seed));
-        auto dimensions = nbt::Compound();
+        auto dimensions = Compound();
         {
-          auto overworld = nbt::Compound();
-          auto generator = nbt::Compound();
-          auto biomeSource = nbt::Compound();
+          auto overworld = Compound();
+          auto generator = Compound();
+          auto biomeSource = Compound();
           biomeSource->set("preset", String("minecraft:overworld"));
           biomeSource->set("type", String("minecraft:multi_noise"));
           generator->set("biome_source", biomeSource);
@@ -148,9 +148,9 @@ public:
           dimensions->set("minecraft:overworld", overworld);
         }
         {
-          auto end = nbt::Compound();
-          auto generator = nbt::Compound();
-          auto biomeSource = nbt::Compound();
+          auto end = Compound();
+          auto generator = Compound();
+          auto biomeSource = Compound();
           biomeSource->set("seed", Long(*seed));
           biomeSource->set("type", String("minecraft:the_end"));
           generator->set("biome_source", biomeSource);
@@ -162,9 +162,9 @@ public:
           dimensions->set("minecraft:the_end", end);
         }
         {
-          auto nether = nbt::Compound();
-          auto generator = nbt::Compound();
-          auto biomeSource = nbt::Compound();
+          auto nether = Compound();
+          auto generator = Compound();
+          auto biomeSource = Compound();
           biomeSource->set("preset", String("minecraft:nether"));
           biomeSource->set("type", String("minecraft:multi_noise"));
           generator->set("biome_source", biomeSource);
@@ -192,7 +192,7 @@ public:
       j["Player"] = playerData->fEntity;
     }
 
-    auto root = nbt::Compound();
+    auto root = Compound();
     root->set("Data", data);
     return root;
   }

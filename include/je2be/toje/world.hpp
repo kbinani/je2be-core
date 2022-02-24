@@ -252,7 +252,7 @@ public:
       // Attach passengers to vehicle
       shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
       if (!passengersTag) {
-        passengersTag = make_shared<ListTag>(Tag::Type::Compound);
+        passengersTag = nbt::List<Tag::Type::Compound>();
         vehicle->set("Passengers", passengersTag);
       }
       if (vehicle->string("id") == "minecraft:chicken") {

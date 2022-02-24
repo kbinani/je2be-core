@@ -314,7 +314,7 @@ private:
     using namespace mcfile::stream;
     using namespace je2be::nbt;
 
-    auto tickList = make_shared<ListTag>(Tag::Type::Compound);
+    auto tickList = List<Tag::Type::Compound>();
     for (auto it : fLiquidTicks) {
       tickList->push_back(it.second);
     }
@@ -322,7 +322,7 @@ private:
       tickList->push_back(it.second);
     }
 
-    auto pendingTicks = nbt::Compound();
+    auto pendingTicks = Compound();
     pendingTicks->set("currentTick", Int(fChunkLastUpdate));
     pendingTicks->set("tickList", tickList);
 

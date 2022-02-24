@@ -42,7 +42,7 @@ public:
     Attributes(Attribute health, Attribute knockback_resistance, Attribute movement, Attribute underwater_movement, Attribute lava_movement, Attribute follow_range, std::optional<Attribute> attack_damage) : luck(0, 0, 1024), health(health), absorption(0, 0, 16), knockback_resistance(knockback_resistance), movement(movement), underwater_movement(underwater_movement), lava_movement(lava_movement), follow_range(follow_range), attack_damage(attack_damage) {}
 
     std::shared_ptr<ListTag> toListTag() const {
-      auto list = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto list = nbt::List<Tag::Type::Compound>();
       list->push_back(luck.toCompoundTag("luck"));
       list->push_back(health.toCompoundTag("health"));
       list->push_back(absorption.toCompoundTag("absorption"));
@@ -108,7 +108,7 @@ public:
       health.updateCurrent(*currentHealth);
     }
 
-    auto ret = make_shared<ListTag>(Tag::Type::Compound);
+    auto ret = List<Tag::Type::Compound>();
     ret->push_back(luck.toCompoundTag("luck"));
     ret->push_back(health.toCompoundTag("health"));
     ret->push_back(movement.toCompoundTag("movement"));

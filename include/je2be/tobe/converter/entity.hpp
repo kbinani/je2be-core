@@ -131,8 +131,8 @@ public:
       }
     }
 
-    auto b = nbt::Compound();
-    auto states = nbt::Compound();
+    auto b = Compound();
+    auto states = Compound();
     states->insert({
         {"facing_direction", Int(facing)},
         {"item_frame_map_bit", Bool(map)},
@@ -161,7 +161,7 @@ public:
 
   static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
     using namespace je2be::nbt;
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
     auto tileZ = c.int32("TileZ");
@@ -201,9 +201,9 @@ public:
   std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace std;
     using namespace je2be::nbt;
-    auto tag = nbt::Compound();
-    auto tags = make_shared<ListTag>(Tag::Type::Compound);
-    auto definitions = make_shared<ListTag>(Tag::Type::String);
+    auto tag = Compound();
+    auto tags = List<Tag::Type::Compound>();
+    auto definitions = List<Tag::Type::String>();
     for (auto const &d : fDefinitions) {
       definitions->push_back(String(d));
     }
@@ -405,7 +405,7 @@ public:
       }
     }
 
-    auto definitions = make_shared<ListTag>(Tag::Type::String);
+    auto definitions = List<Tag::Type::String>();
     definitions->push_back(String("+minecraft:player"));
     definitions->push_back(String("+"));
     entity->set("definitions", definitions);
@@ -707,7 +707,7 @@ private:
     using namespace std;
     auto eggLayTime = tag.int32("EggLayTime");
     if (eggLayTime) {
-      auto entries = make_shared<ListTag>(Tag::Type::Compound);
+      auto entries = nbt::List<Tag::Type::Compound>();
       auto timer = nbt::Compound();
       timer->set("SpawnTimer", nbt::Int(*eggLayTime));
       timer->set("StopSpawning", nbt::Bool(false));
@@ -901,11 +901,11 @@ private:
       auto carpetColor = strings::Trim("minecraft:", decorItemId->fValue, "_carpet");
       auto colorCode = ColorCodeJavaFromJavaName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
-      auto armor = nbt::Compound();
+      auto armor = Compound();
       armor->insert({{"Count", Byte(1)}, {"Damage", Short(0)}, {"Name", String("minecraft:carpet")}, {"WasPickedUp", Bool(false)}});
-      auto block = nbt::Compound();
+      auto block = Compound();
       block->insert({{"name", String("minecraft:carpet")}, {"version", Int(kBlockDataVersion)}});
-      auto states = nbt::Compound();
+      auto states = Compound();
       states->set("color", String(beCarpetColor));
       block->set("states", states);
       armor->set("Block", block);
@@ -962,7 +962,7 @@ private:
     Panda::Gene main = Panda::GeneFromJavaName(mainGene);
     Panda::Gene hidden = Panda::GeneFromJavaName(hiddenGene);
 
-    auto genes = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto genes = nbt::List<Tag::Type::Compound>();
     auto gene = nbt::Compound();
     gene->set("MainAllele", nbt::Int(Panda::BedrockAlleleFromGene(main)));
     gene->set("HiddenAllele", nbt::Int(Panda::BedrockAlleleFromGene(hidden)));
@@ -1146,7 +1146,7 @@ private:
     auto y = tag.int32("HomePosY");
     auto z = tag.int32("HomePosZ");
     if (x && y && z) {
-      auto homePos = std::make_shared<ListTag>(Tag::Type::Float);
+      auto homePos = nbt::List<Tag::Type::Float>();
       homePos->push_back(nbt::Float(*x));
       homePos->push_back(nbt::Float(*y));
       homePos->push_back(nbt::Float(*z));
@@ -1327,7 +1327,7 @@ private:
 
   static void ChestItems(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto inventory = tag.listTag("Inventory");
-    auto chestItems = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto chestItems = nbt::List<Tag::Type::Compound>();
     if (inventory) {
       // items in "Inventory" does not have "Slot" property. So we can't use ConvertAnyItemList here.
       int8_t slot = 0;
@@ -1629,7 +1629,7 @@ private:
     }
     auto c = e->toCompoundTag();
 
-    auto chestItems = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto chestItems = nbt::List<Tag::Type::Compound>();
 
     auto items = tag.listTag("Items");
     if (items) {
@@ -1769,7 +1769,7 @@ private:
       if (offers) {
         auto recipes = offers->listTag("Recipes");
         if (recipes) {
-          auto rs = make_shared<ListTag>(Tag::Type::Compound);
+          auto rs = List<Tag::Type::Compound>();
           for (int i = 0; i < recipes->size(); i++) {
             auto recipe = recipes->at(i);
             auto r = recipe->asCompound();
@@ -1785,31 +1785,31 @@ private:
             rs->push_back(converted);
           }
           if (!rs->empty()) {
-            auto of = nbt::Compound();
+            auto of = Compound();
             of->set("Recipes", rs);
-            auto expRequirements = make_shared<ListTag>(Tag::Type::Compound);
+            auto expRequirements = List<Tag::Type::Compound>();
             if (maxTradeTier >= 0) {
-              auto tier0 = nbt::Compound();
+              auto tier0 = Compound();
               tier0->set("0", Int(0));
               expRequirements->push_back(tier0);
             }
             if (maxTradeTier >= 1) {
-              auto tier1 = nbt::Compound();
+              auto tier1 = Compound();
               tier1->set("1", Int(10));
               expRequirements->push_back(tier1);
             }
             if (maxTradeTier >= 2) {
-              auto tier2 = nbt::Compound();
+              auto tier2 = Compound();
               tier2->set("2", Int(70));
               expRequirements->push_back(tier2);
             }
             if (maxTradeTier >= 3) {
-              auto tier3 = nbt::Compound();
+              auto tier3 = Compound();
               tier3->set("3", Int(150));
               expRequirements->push_back(tier3);
             }
             if (maxTradeTier >= 4) {
-              auto tier4 = nbt::Compound();
+              auto tier4 = Compound();
               tier4->set("4", Int(250));
               expRequirements->push_back(tier4);
             }
@@ -1842,7 +1842,7 @@ private:
         AddDefinition(c, "-minecraft:" + definitionKey + "_unsaddled");
         AddDefinition(c, "+minecraft:" + definitionKey + "_saddled");
         if (saddleItem) {
-          auto item = nbt::Compound();
+          auto item = Compound();
           item->insert({
               {"Damage", Byte(0)},
               {"Name", String("minecraft:saddle")},
@@ -1887,7 +1887,7 @@ private:
 
   static Behavior Vehicle(std::optional<std::string> jockeyDefinitionKey = std::nullopt) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-      auto links = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto links = nbt::List<Tag::Type::Compound>();
 
       auto passengers = tag.query("Passengers")->asList();
       if (passengers) {
@@ -1945,7 +1945,7 @@ private:
     if (!buyA || !sell) {
       return nullptr;
     }
-    auto bedrock = nbt::Compound();
+    auto bedrock = Compound();
 
     {
       auto count = buyA->byte("Count", 0);
@@ -1992,7 +1992,7 @@ private:
   }
 
   static std::shared_ptr<ListTag> InitItemList(uint32_t capacity) {
-    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto items = nbt::List<Tag::Type::Compound>();
     for (int i = 0; i < capacity; i++) {
       auto empty = Item::Empty();
       empty->set("Slot", nbt::Byte(i));
@@ -2053,7 +2053,7 @@ private:
 
   static void AddDefinition(CompoundTag &tag, std::string const &definition) {
     auto found = tag.find("definitions");
-    auto d = std::make_shared<ListTag>(Tag::Type::String);
+    auto d = nbt::List<Tag::Type::String>();
     if (found != tag.end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::Type::String) {
@@ -2070,7 +2070,7 @@ private:
 
   static void RemoveDefinition(CompoundTag &tag, std::string const &definition) {
     auto found = tag.find("definitions");
-    auto d = std::make_shared<ListTag>(Tag::Type::String);
+    auto d = nbt::List<Tag::Type::String>();
     if (found != tag.end()) {
       auto current = found->second->asList();
       if (current && current->fType == Tag::Type::String) {
@@ -2085,7 +2085,7 @@ private:
   }
 
   static std::shared_ptr<ListTag> GetArmor(CompoundTag const &tag, ConverterContext &ctx) {
-    auto armors = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto armors = nbt::List<Tag::Type::Compound>();
     for (int i = 0; i < 4; i++) {
       armors->push_back(Item::Empty());
     }
@@ -2107,7 +2107,7 @@ private:
       }
     }
 
-    auto ret = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto ret = nbt::List<Tag::Type::Compound>();
     ret->push_back(armors->at(3));
     ret->push_back(armors->at(2));
     ret->push_back(armors->at(1));
@@ -2122,7 +2122,7 @@ private:
 
   template <size_t index>
   static std::shared_ptr<ListTag> HandItem(CompoundTag const &input, ConverterContext &ctx) {
-    auto ret = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto ret = nbt::List<Tag::Type::Compound>();
 
     auto mainHand = input.listTag("HandItems");
     std::shared_ptr<CompoundTag> item;

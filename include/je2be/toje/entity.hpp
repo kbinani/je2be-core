@@ -6,7 +6,7 @@ class Entity {
 public:
   static std::shared_ptr<CompoundTag> ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
     using namespace je2be::nbt;
-    auto ret = nbt::Compound();
+    auto ret = Compound();
     CompoundTag &t = *ret;
     if (blockJ.fName == "minecraft:glow_frame") {
       t["id"] = String("minecraft:glow_item_frame");
@@ -438,7 +438,7 @@ public:
     j["Sleeping"] = nbt::Bool(HasDefinition(b, "+minecraft:fox_ambient_sleep"));
     j["Crouching"] = nbt::Bool(false);
 
-    auto trusted = std::make_shared<ListTag>(Tag::Type::IntArray);
+    auto trusted = nbt::List<Tag::Type::IntArray>();
     auto trustedPlayers = b.int32("TrustedPlayersAmount", 0);
     if (trustedPlayers > 0) {
       for (int i = 0; i < trustedPlayers; i++) {
@@ -478,7 +478,7 @@ public:
   }
 
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto armorDropChances = std::make_shared<ListTag>(Tag::Type::Float);
+    auto armorDropChances = nbt::List<Tag::Type::Float>();
     armorDropChances->push_back(nbt::Float(0.085));
     armorDropChances->push_back(nbt::Float(0.085));
     armorDropChances->push_back(nbt::Float(0));
@@ -783,8 +783,8 @@ public:
 
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto armorsB = b.listTag("Armor");
-    auto armorsJ = std::make_shared<ListTag>(Tag::Type::Compound);
-    auto chances = std::make_shared<ListTag>(Tag::Type::Float);
+    auto armorsJ = nbt::List<Tag::Type::Compound>();
+    auto chances = nbt::List<Tag::Type::Float>();
     if (armorsB) {
       std::vector<std::shared_ptr<CompoundTag>> armors;
       for (auto const &it : *armorsB) {
@@ -898,8 +898,8 @@ public:
   }
 
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
-    auto chances = std::make_shared<ListTag>(Tag::Type::Float);
+    auto itemsJ = nbt::List<Tag::Type::Compound>();
+    auto chances = nbt::List<Tag::Type::Float>();
     auto identifier = b.string("identifier", "");
     for (std::string key : {"Mainhand", "Offhand"}) {
       auto listB = b.listTag(key);
@@ -965,7 +965,7 @@ public:
   static void Inventory(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto itemsB = b.listTag("ChestItems");
     if (itemsB) {
-      auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto itemsJ = nbt::List<Tag::Type::Compound>();
       for (auto const &it : *itemsB) {
         auto itemB = it->asCompound();
         if (!itemB) {
@@ -1054,7 +1054,7 @@ public:
       return;
     }
 
-    auto recipesJ = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto recipesJ = nbt::List<Tag::Type::Compound>();
     for (auto const &it : *recipesB) {
       auto recipeB = it->asCompound();
       if (!recipeB) {
@@ -1333,7 +1333,7 @@ public:
 
   static void Items(std::string subItemKey, CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto chestItems = b.listTag("ChestItems");
-    auto items = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto items = nbt::List<Tag::Type::Compound>();
     if (chestItems) {
       std::shared_ptr<CompoundTag> subItem;
       for (auto const &it : *chestItems) {
@@ -1368,7 +1368,7 @@ public:
   static void CopyChestItems(CompoundTag const &b, std::string const &keyB, CompoundTag &j, std::string const &keyJ, Context &ctx, bool skipEmpty) {
     auto itemsB = b.listTag(keyB);
     if (itemsB) {
-      auto itemsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto itemsJ = nbt::List<Tag::Type::Compound>();
       for (auto const &it : *itemsB) {
         auto itemB = it->asCompound();
         if (!itemB) {
@@ -1591,7 +1591,7 @@ public:
     }
 
     if (auto abilitiesB = b.compoundTag("abilities"); abilitiesB) {
-      auto abilitiesJ = nbt::Compound();
+      auto abilitiesJ = Compound();
       CopyBoolValues(*abilitiesB, *abilitiesJ, {{"flying"}, {"instabuild"}, {"invulnerable"}, {"build", "mayBuild"}, {"mayfly"}});
       CopyFloatValues(*abilitiesB, *abilitiesJ, {{"flySpeed"}, {"walkSpeed"}});
       j["abilities"] = abilitiesJ;

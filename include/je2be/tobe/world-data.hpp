@@ -111,30 +111,31 @@ public:
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
     using namespace mcfile;
-    auto tag = nbt::Compound();
+    using namespace je2be::nbt;
+    auto tag = Compound();
     CompoundTag &c = *tag;
-    c["dim"] = make_shared<ByteTag>(static_cast<uint8_t>(fDim));
-    c["maxChunkLastUpdate"] = make_shared<LongTag>(fMaxChunkLastUpdate);
+    c["dim"] = Byte(static_cast<uint8_t>(fDim));
+    c["maxChunkLastUpdate"] = Long(fMaxChunkLastUpdate);
     c["portalBlocks"] = fPortalBlocks.toNbt();
 
-    auto mapItems = make_shared<ListTag>(Tag::Type::Compound);
+    auto mapItems = List<Tag::Type::Compound>();
     for (auto it : fMapItems) {
       int number = it.first;
       auto tag = it.second;
-      auto c = nbt::Compound();
-      (*c)["number"] = make_shared<IntTag>(number);
+      auto c = Compound();
+      (*c)["number"] = Int(number);
       (*c)["tag"] = tag->clone();
       mapItems->push_back(c);
     }
     c["mapItems"] = mapItems;
 
-    auto autonomousEntities = make_shared<ListTag>(Tag::Type::Compound);
+    auto autonomousEntities = List<Tag::Type::Compound>();
     for (auto it : fAutonomousEntities) {
       autonomousEntities->push_back(it->clone());
     }
     c["autonomousEntities"] = autonomousEntities;
 
-    auto endPortalsInEndDimension = make_shared<ListTag>(Tag::Type::Compound);
+    auto endPortalsInEndDimension = List<Tag::Type::Compound>();
     for (Pos3i const &pos : fEndPortalsInEndDimension) {
       endPortalsInEndDimension->push_back(Pos3iToNbt(pos));
     }

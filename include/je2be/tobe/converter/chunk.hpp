@@ -162,7 +162,7 @@ public:
     if (rootVehicle) {
       if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
         if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
-          auto replace = make_shared<ListTag>(Tag::Type::Compound);
+          auto replace = nbt::List<Tag::Type::Compound>();
           auto localPlayer = nbt::Compound();
           localPlayer->set("entityID", nbt::Long(rootVehicle->fLocalPlayerUid));
           localPlayer->set("linkID", nbt::Int(0));

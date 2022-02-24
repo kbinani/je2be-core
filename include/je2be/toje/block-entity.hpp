@@ -52,7 +52,7 @@ public:
     } else {
       auto patternsB = tag.listTag("Patterns");
       if (patternsB) {
-        auto patternsJ = make_shared<ListTag>(Tag::Type::Compound);
+        auto patternsJ = nbt::List<Tag::Type::Compound>();
         for (auto const &pB : *patternsB) {
           CompoundTag const *c = pB->asCompound();
           if (!c) {
@@ -101,7 +101,7 @@ public:
     auto te = EmptyShortName("beehive", pos);
     auto occupants = tagB.listTag("Occupants");
     if (occupants) {
-      auto bees = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto bees = nbt::List<Tag::Type::Compound>();
       for (auto const &it : *occupants) {
         auto beeB = it->asCompound();
         if (!beeB) {
@@ -144,7 +144,7 @@ public:
         copy->set("Slot", nbt::Byte(newSlot));
         items[newSlot] = copy;
       }
-      auto itemsJ = make_shared<ListTag>(Tag::Type::Compound);
+      auto itemsJ = nbt::List<Tag::Type::Compound>();
       for (auto it : items) {
         itemsJ->push_back(it.second);
       }
@@ -160,7 +160,7 @@ public:
 
   static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
-    auto items = make_shared<ListTag>(Tag::Type::Compound);
+    auto items = nbt::List<Tag::Type::Compound>();
     vector<int> times;
     vector<int> totalTimes;
     for (int i = 0; i < 4; i++) {
@@ -391,14 +391,14 @@ public:
 
     auto entity = tag.string("EntityIdentifier");
     if (entity) {
-      auto entityTag = nbt::Compound();
+      auto entityTag = Compound();
       entityTag->set("id", String(*entity));
-      auto spawnData = nbt::Compound();
+      auto spawnData = Compound();
       spawnData->set("entity", entityTag);
       t->set("SpawnData", spawnData);
 
-      auto potentials = make_shared<ListTag>(Tag::Type::Compound);
-      auto potential = nbt::Compound();
+      auto potentials = List<Tag::Type::Compound>();
+      auto potential = Compound();
       potential->set("data", spawnData->clone());
       potential->set("weight", Int(1));
       potentials->push_back(potential);
@@ -614,7 +614,7 @@ public:
     if (!tag) {
       return nullptr;
     }
-    auto ret = make_shared<ListTag>(Tag::Type::Compound);
+    auto ret = nbt::List<Tag::Type::Compound>();
     for (auto const &it : *tag) {
       CompoundTag const *c = it->asCompound();
       if (!c) {

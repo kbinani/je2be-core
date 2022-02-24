@@ -59,7 +59,7 @@ public:
 
     for (uint8_t beScale = 0; beScale <= 4; beScale++) {
       int64_t uuid = UUID(javaMapId, beScale);
-      auto ret = nbt::Compound();
+      auto ret = Compound();
       ret->set("dimension", Byte(outDimension));
       ret->set("fullyExplored", Bool(false)); //?
       ret->set("height", Short(128));
@@ -78,7 +78,7 @@ public:
       ret->set("zCenter", Int(*zCenter));
 
       std::vector<uint8_t> outColors(65536);
-      auto decorations = make_shared<ListTag>(Tag::Type::Compound);
+      auto decorations = List<Tag::Type::Compound>();
 
       if (beScale == *scale) {
         int i = 0;
@@ -132,7 +132,7 @@ public:
               // facing to south in Bedrock
             }
 
-            auto frameData = nbt::Compound();
+            auto frameData = Compound();
             frameData->set("rot", Int(rot));
             frameData->set("type", Int(1));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
@@ -142,13 +142,13 @@ public:
             frameData->set("x", Int(markerX));
             frameData->set("y", Int(markerY));
 
-            auto key = nbt::Compound();
+            auto key = Compound();
             key->set("blockX", Int(*x));
             key->set("blockY", Int(*y));
             key->set("blockZ", Int(*z));
             key->set("type", Int(1));
 
-            auto decoration = nbt::Compound();
+            auto decoration = Compound();
             decoration->set("data", frameData);
             decoration->set("key", key);
 
@@ -178,7 +178,7 @@ public:
               outType = 4; // id = "+", buried treasure
             }
 
-            auto frameData = nbt::Compound();
+            auto frameData = Compound();
             frameData->set("rot", Int(8));
             frameData->set("type", Int(outType));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
@@ -188,13 +188,13 @@ public:
             frameData->set("x", Int(markerX));
             frameData->set("y", Int(markerY));
 
-            auto key = nbt::Compound();
+            auto key = Compound();
             key->set("blockX", Int((int32_t)*x));
             key->set("blockZ", Int((int32_t)*z));
             key->set("blockY", Int(64)); // fixed value?
             key->set("type", Int(1));    //?
 
-            auto decoration = nbt::Compound();
+            auto decoration = Compound();
             decoration->set("data", frameData);
             decoration->set("key", key);
 

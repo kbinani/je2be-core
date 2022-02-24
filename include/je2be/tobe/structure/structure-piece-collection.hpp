@@ -74,7 +74,7 @@ public:
 
   std::shared_ptr<Tag> toNbt() const {
     using namespace std;
-    auto ret = make_shared<ListTag>(Tag::Type::Compound);
+    auto ret = nbt::List<Tag::Type::Compound>();
     for (auto const &piece : fPieces) {
       ret->push_back(piece.toNbt());
     }

@@ -22,7 +22,7 @@ public:
 
     auto root = nbt::Compound();
     auto data = nbt::Compound();
-    auto portalRecords = make_shared<ListTag>(Tag::Type::Compound);
+    auto portalRecords = nbt::List<Tag::Type::Compound>();
     for (auto const &portal : portals) {
       portalRecords->push_back(portal.toCompoundTag());
     }

@@ -43,7 +43,7 @@ public:
 
   std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
     auto ret = nbt::Compound();
-    auto explosions = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto explosions = nbt::List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toBedrockCompoundTag());
     }
@@ -56,7 +56,7 @@ public:
 
   std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
     auto ret = nbt::Compound();
-    auto explosions = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto explosions = nbt::List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toJavaCompoundTag());
     }

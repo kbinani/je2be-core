@@ -95,7 +95,7 @@ public:
       }
 
       if (auto loreB = displayB->listTag("Lore"); loreB) {
-        auto loreJ = make_shared<ListTag>(Tag::Type::String);
+        auto loreJ = nbt::List<Tag::Type::String>();
         for (auto const &it : *loreB) {
           if (auto item = it->asString(); item) {
             if (item->fValue == "(+DATA)") {
@@ -122,7 +122,7 @@ public:
 
     auto enchB = tagB->listTag("ench");
     if (enchB) {
-      auto enchJ = make_shared<ListTag>(Tag::Type::Compound);
+      auto enchJ = nbt::List<Tag::Type::Compound>();
       for (auto const &it : *enchB) {
         auto cB = it->asCompound();
         if (!cB) {
@@ -234,7 +234,7 @@ public:
 
         auto patternsB = tagB->listTag("Patterns");
         if (patternsB) {
-          auto patternsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+          auto patternsJ = nbt::List<Tag::Type::Compound>();
           for (auto const &it : *patternsB) {
             auto patternB = it->asCompound();
             if (!patternB) {
@@ -278,7 +278,7 @@ public:
     auto tagJ = nbt::Compound();
     auto pagesB = tagB->listTag("pages");
     if (pagesB) {
-      auto pagesJ = make_shared<ListTag>(Tag::Type::String);
+      auto pagesJ = nbt::List<Tag::Type::String>();
       for (auto const &pageB : *pagesB) {
         auto const *c = pageB->asCompound();
         if (!c) {
@@ -348,7 +348,7 @@ public:
   static std::string Crossbow(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     if (auto tagB = itemB.compoundTag("tag"); tagB) {
       auto tagJ = nbt::Compound();
-      auto chargedProjectiles = std::make_shared<ListTag>(Tag::Type::Compound);
+      auto chargedProjectiles = nbt::List<Tag::Type::Compound>();
       if (auto chargedItem = tagB->compoundTag("chargedItem"); chargedItem) {
         if (auto projectileJ = From(*chargedItem, ctx); projectileJ) {
           chargedProjectiles->push_back(projectileJ);
@@ -729,7 +729,7 @@ public:
       ctx.markMapUuidAsUsed(*uuid);
 
       if (damage != 0 && !info->fDecorations.empty()) {
-        auto decorationsJ = std::make_shared<ListTag>(Tag::Type::Compound);
+        auto decorationsJ = nbt::List<Tag::Type::Compound>();
         for (MapInfo::Decoration const &decoration : info->fDecorations) {
           decorationsJ->push_back(decoration.toCompoundTag());
         }
@@ -759,7 +759,7 @@ public:
   static std::string SuspiciousStew(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto damage = itemB.int16("Damage", 0);
     Effect::SuspiciousStewEffect sse = Effect::JavaEffectFromBedrockSuspiciousStew(damage);
-    auto effects = std::make_shared<ListTag>(Tag::Type::Compound);
+    auto effects = nbt::List<Tag::Type::Compound>();
     auto effect = nbt::Compound();
     effect->set("EffectId", nbt::Byte(sse.fEffectId));
     effect->set("EffectDuration", nbt::Int(sse.fDuration));

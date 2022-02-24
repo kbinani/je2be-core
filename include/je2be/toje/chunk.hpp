@@ -172,20 +172,20 @@ public:
     vector<StructureInfo::Structure> structures;
     ctx.structures(d, Pos2i(cx, cz), structures);
 
-    auto structuresTag = nbt::Compound();
-    auto startsTag = nbt::Compound();
-    auto referencesTag = nbt::Compound();
+    auto structuresTag = Compound();
+    auto startsTag = Compound();
+    auto referencesTag = Compound();
     for (auto const &s : structures) {
       switch (s.fType) {
       case StructureType::Monument: {
         if (s.fStartChunk == Pos2i(cx, cz)) {
-          auto monument = nbt::Compound();
+          auto monument = Compound();
           monument->set("ChunkX", Int(cx));
           monument->set("ChunkZ", Int(cz));
           monument->set("id", String("minecraft:monument"));
           monument->set("references", Int(0));
-          auto children = make_shared<ListTag>(Tag::Type::Compound);
-          auto child = nbt::Compound();
+          auto children = List<Tag::Type::Compound>();
+          auto child = Compound();
           child->set("id", String("minecraft:omb"));
           child->set("GD", Int(0));
           child->set("O", Int(0));
@@ -294,7 +294,7 @@ public:
       shared_ptr<CompoundTag> vehicle = found->second;
       shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
       if (!passengersTag) {
-        passengersTag = make_shared<ListTag>(Tag::Type::Compound);
+        passengersTag = nbt::List<Tag::Type::Compound>();
         vehicle->set("Passengers", passengersTag);
       }
       if (vehicle->string("id") == "minecraft:chicken") {

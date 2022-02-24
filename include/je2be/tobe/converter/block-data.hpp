@@ -2009,7 +2009,7 @@ private:
   static BlockDataType New(std::string const &name, bool nameIsFull = false) {
     using namespace std;
     using namespace je2be::nbt;
-    auto tag = nbt::Compound();
+    auto tag = Compound();
     string fullName = nameIsFull ? name : "minecraft:"s + name;
     tag->set("name", String(fullName));
     tag->set("version", Int(kBlockDataVersion));

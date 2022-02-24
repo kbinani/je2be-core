@@ -53,7 +53,7 @@ public:
               int facingDirectionB = blockB->fStates->int32("facing_direction", 0);
               bool extending = false;
 
-              auto tileEntityJ = nbt::Compound();
+              auto tileEntityJ = Compound();
               tileEntityJ->set("id", String("minecraft:piston"));
               tileEntityJ->set("keepPacked", Bool(false));
               tileEntityJ->set("x", Int(x));
@@ -92,7 +92,7 @@ public:
               // Tile entity
               auto state = piston->fBlockEntity->byte("State");
               bool extending = state == 1; // state should be 3 or 1 here.
-              auto tileEntityJ = nbt::Compound();
+              auto tileEntityJ = Compound();
               tileEntityJ->set("id", String("minecraft:piston"));
               tileEntityJ->set("keepPacked", Bool(false));
               tileEntityJ->set("x", Int(x));
@@ -130,7 +130,7 @@ public:
                 chunkJ.setBlockAt(x, y, z, replace, sbo);
 
                 // Tile Entity
-                auto tileEntityJ = nbt::Compound();
+                auto tileEntityJ = Compound();
                 tileEntityJ->set("id", String("minecraft:piston"));
                 tileEntityJ->set("keepPacked", Bool(false));
                 tileEntityJ->set("x", Int(x));

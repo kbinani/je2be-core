@@ -99,7 +99,7 @@ public:
   std::shared_ptr<CompoundTag> toCompoundTag() const {
     using namespace nbt;
 
-    auto root = nbt::Compound();
+    auto root = Compound();
     root->insert({
         {"abilities", fAbilities.toCompoundTag()},
         {"MinimumCompatibleClientVersion", fMinimumCompatibleClientVersion.toListTag()},
@@ -327,7 +327,7 @@ public:
       return std::nullopt;
     }
 
-    auto fight = nbt::Compound();
+    auto fight = Compound();
 
     fight->set("DragonFightVersion", Byte(kDragonFightVersion));
 
@@ -351,7 +351,7 @@ public:
 
     auto gateways = dragonFight->listTag("Gateways");
     if (gateways) {
-      auto v = std::make_shared<ListTag>(Tag::Type::Int);
+      auto v = List<Tag::Type::Int>();
       for (auto const &it : *gateways) {
         auto p = it->asInt();
         if (!p) {
@@ -382,15 +382,15 @@ public:
       }
     }
     if (exitLocation) {
-      auto v = std::make_shared<ListTag>(Tag::Type::Int);
+      auto v = List<Tag::Type::Int>();
       v->push_back(Int(exitLocation->fX));
       v->push_back(Int(exitLocation->fY));
       v->push_back(Int(exitLocation->fZ));
       fight->set("ExitPortalLocation", v);
     }
 
-    auto root = nbt::Compound();
-    auto d = nbt::Compound();
+    auto root = Compound();
+    auto d = Compound();
     d->set("DragonFight", fight);
     root->set("data", d);
 
@@ -417,7 +417,7 @@ public:
     if (!gameRules) {
       return nullopt;
     }
-    auto ret = nbt::Compound();
+    auto ret = Compound();
     ret->set("events_enabled", Bool(true));
     ret->set("minecraft:ender_dragon_event", Bool(true));
     ret->set("minecraft:pillager_patrols_event", Bool(gameRules->string("doPatrolSpawning", "true") == "true"));

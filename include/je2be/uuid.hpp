@@ -89,7 +89,7 @@ struct Uuid {
   }
 
   std::shared_ptr<ListTag> toListTag() const {
-    auto ret = std::make_shared<ListTag>(Tag::Type::Int);
+    auto ret = nbt::List<Tag::Type::Int>();
     int32_t v1 = mcfile::I32FromBE(*(int32_t *)fData);
     int32_t v2 = mcfile::I32FromBE(*((int32_t *)fData + 1));
     int32_t v3 = mcfile::I32FromBE(*((int32_t *)fData + 2));

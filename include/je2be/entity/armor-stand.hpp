@@ -15,7 +15,7 @@ public:
     Rot fRightArm;
 
     static std::shared_ptr<ListTag> ListTagFromRot(Rot r) {
-      auto ret = std::make_shared<ListTag>(Tag::Type::Float);
+      auto ret = nbt::List<Tag::Type::Float>();
       ret->push_back(nbt::Float(std::get<0>(r)));
       ret->push_back(nbt::Float(std::get<1>(r)));
       ret->push_back(nbt::Float(std::get<2>(r)));

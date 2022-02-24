@@ -40,7 +40,7 @@ public:
     auto tag = nbt::Compound();
     CompoundTag &c = *tag;
     c["x"] = make_shared<ByteTag>(fXAxis ? 1 : 0);
-    auto blocks = make_shared<ListTag>(Tag::Type::Compound);
+    auto blocks = nbt::List<Tag::Type::Compound>();
     for (auto const &pos : fBlocks) {
       auto p = nbt::Compound();
       (*p)["x"] = make_shared<IntTag>(pos.fX);

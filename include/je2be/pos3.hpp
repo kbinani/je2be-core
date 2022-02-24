@@ -11,7 +11,7 @@ public:
   Pos3f(float x, float y, float z) : Pos3<float>(x, y, z) {}
 
   std::shared_ptr<ListTag> toListTag() const {
-    auto tag = std::make_shared<ListTag>(Tag::Type::Float);
+    auto tag = nbt::List<Tag::Type::Float>();
     tag->push_back(std::make_shared<FloatTag>(fX));
     tag->push_back(std::make_shared<FloatTag>(fY));
     tag->push_back(std::make_shared<FloatTag>(fZ));
@@ -26,7 +26,7 @@ public:
   Pos3d(double x, double y, double z) : Pos3<double>(x, y, z) {}
 
   std::shared_ptr<ListTag> toListTag() const {
-    auto tag = std::make_shared<ListTag>(Tag::Type::Double);
+    auto tag = nbt::List<Tag::Type::Double>();
     tag->push_back(std::make_shared<DoubleTag>(fX));
     tag->push_back(std::make_shared<DoubleTag>(fY));
     tag->push_back(std::make_shared<DoubleTag>(fZ));

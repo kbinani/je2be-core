@@ -15,7 +15,7 @@ public:
   std::shared_ptr<ListTag> toListTag() const {
     using namespace je2be::nbt;
 
-    auto l = std::make_shared<ListTag>(Tag::Type::Int);
+    auto l = List<Tag::Type::Int>();
     l->push_back(Int(fMajor));
     l->push_back(Int(fMinor));
     l->push_back(Int(fPatch));
