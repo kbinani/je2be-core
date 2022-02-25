@@ -643,9 +643,11 @@ private:
       }
     }
     tag->set("hasBook", Bool(book != nullptr));
-    auto page = c->int32("Page");
-    if (page) {
-      tag->set("page", Int(*page));
+    if (c) {
+      auto page = c->int32("Page");
+      if (page) {
+        tag->set("page", Int(*page));
+      }
     }
     if (totalPages > 0) {
       tag->set("totalPages", Int(totalPages));
@@ -736,6 +738,9 @@ private:
   }
 
   static TileEntityData Spawner(std::shared_ptr<CompoundTag> const &c) {
+    if (!c) {
+      return nullptr;
+    }
     auto x = c->int32("x");
     auto y = c->int32("y");
     auto z = c->int32("z");
@@ -1242,10 +1247,12 @@ private:
     }
 
     auto tag = Compound();
-    if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
-      auto items = GetItems(comp, "Items", ctx);
-      if (items) {
-        tag->set("Items", items);
+    if (comp) {
+      if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
+        auto items = GetItems(comp, "Items", ctx);
+        if (items) {
+          tag->set("Items", items);
+        }
       }
     }
 
