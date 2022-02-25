@@ -112,7 +112,7 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, mcfile::
   vector<uint8_t> buffer;
   copy(value.begin(), value.end(), back_inserter(buffer));
   auto stream = make_shared<ByteStream>(buffer);
-  InputStreamReader sr(stream, {.fLittleEndian = true});
+  InputStreamReader sr(stream, std::endian::little);
   while (true) {
     uint8_t type;
     if (!sr.read(&type)) {
@@ -154,7 +154,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   vector<uint8_t> buffer;
   copy(value.begin(), value.end(), back_inserter(buffer));
   auto stream = make_shared<ByteStream>(buffer);
-  InputStreamReader sr(stream, {.fLittleEndian = true});
+  InputStreamReader sr(stream, std::endian::little);
   while (true) {
     uint8_t type;
     if (!sr.read(&type)) {
@@ -217,7 +217,7 @@ static bool DumpLevelDat(fs::path const &dbDir) {
     return false;
   }
   auto stream = make_shared<FileInputStream>(datFile);
-  InputStreamReader reader(stream, {.fLittleEndian = true});
+  InputStreamReader reader(stream, std::endian::little);
   auto tag = Compound();
   stream->seek(8);
   tag->read(reader);

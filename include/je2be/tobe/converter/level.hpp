@@ -196,7 +196,7 @@ public:
 
   [[nodiscard]] bool write(std::filesystem::path path) const {
     auto stream = std::make_shared<mcfile::stream::FileOutputStream>(path);
-    mcfile::stream::OutputStreamWriter w(stream, {.fLittleEndian = true});
+    mcfile::stream::OutputStreamWriter w(stream, std::endian::little);
     if (!w.write((uint32_t)8)) {
       return false;
     }
@@ -391,7 +391,7 @@ public:
     root->set("data", d);
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    mcfile::stream::OutputStreamWriter w(s, std::endian::little);
     if (!root->writeAsRoot(w)) {
       return std::nullopt;
     }
@@ -419,7 +419,7 @@ public:
     ret->set("minecraft:wandering_trader_event", Bool(gameRules->string("doTraderSpawning", "true") == "true"));
 
     auto s = std::make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    mcfile::stream::OutputStreamWriter w(s, std::endian::little);
     if (!ret->writeAsRoot(w)) {
       return std::nullopt;
     }
@@ -448,7 +448,7 @@ public:
       return nullptr;
     }
 
-    return CompoundTag::Read(buffer, {.fLittleEndian = false});
+    return CompoundTag::Read(buffer, std::endian::big);
   }
 
 private:

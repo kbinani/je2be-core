@@ -249,7 +249,7 @@ private:
       return true;
     }
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, {.fLittleEndian = true});
+    OutputStreamWriter w(s, std::endian::little);
     if (!fHeightMap->write(w)) {
       return false;
     }
@@ -275,7 +275,7 @@ private:
       return true;
     }
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, {.fLittleEndian = true});
+    OutputStreamWriter w(s, std::endian::little);
     if (!fHeightMap->write(w)) {
       return false;
     }
@@ -294,7 +294,7 @@ private:
       return true;
     }
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, {.fLittleEndian = true});
+    OutputStreamWriter w(s, std::endian::little);
     for (auto const &tag : fTileEntities) {
       if (!tag->writeAsRoot(w)) {
         return false;
@@ -324,7 +324,7 @@ private:
     pendingTicks->set("tickList", tickList);
 
     auto s = make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(s, {.fLittleEndian = true});
+    mcfile::stream::OutputStreamWriter w(s, std::endian::little);
     if (!pendingTicks->writeAsRoot(w)) {
       return false;
     }

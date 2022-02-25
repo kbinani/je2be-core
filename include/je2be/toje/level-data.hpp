@@ -49,7 +49,7 @@ public:
 
       std::string mobEventsData;
       if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::MobEvents(), &mobEventsData); st.ok()) {
-        if (auto mobEvents = CompoundTag::Read(mobEventsData, {.fLittleEndian = true}); mobEvents) {
+        if (auto mobEvents = CompoundTag::Read(mobEventsData, std::endian::little); mobEvents) {
           auto doPatrolSpawning = mobEvents->boolean("minecraft:pillager_patrols_event", true);
           auto doTraderSpawning = mobEvents->boolean("minecraft:wandering_trader_event", true);
 
@@ -70,7 +70,7 @@ public:
     if (!fis) {
       return nullptr;
     }
-    InputStreamReader isr(fis, {.fLittleEndian = true});
+    InputStreamReader isr(fis, std::endian::little);
     uint32_t v0;
     if (!isr.read(&v0)) {
       return nullptr;
@@ -202,7 +202,7 @@ public:
       return std::nullopt;
     }
 
-    auto tag = CompoundTag::Read(str, {.fLittleEndian = true});
+    auto tag = CompoundTag::Read(str, std::endian::little);
     if (!tag) {
       return std::nullopt;
     }
@@ -215,7 +215,7 @@ public:
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::TheEnd(), &str); !st.ok()) {
       return nullptr;
     }
-    auto tag = CompoundTag::Read(str, {.fLittleEndian = true});
+    auto tag = CompoundTag::Read(str, std::endian::little);
     if (!tag) {
       return nullptr;
     }

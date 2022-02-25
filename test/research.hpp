@@ -391,11 +391,11 @@ static void Stronghold() {
 
   auto levelAStream = make_shared<mcfile::stream::GzFileInputStream>(pathA / "level.dat");
   levelAStream->seek(8);
-  auto levelA = CompoundTag::Read(levelAStream, {.fLittleEndian = true});
+  auto levelA = CompoundTag::Read(levelAStream, std::endian::little);
 
   auto levelBStream = make_shared<mcfile::stream::GzFileInputStream>(pathB / "level.dat");
   levelBStream->seek(8);
-  auto levelB = CompoundTag::Read(levelBStream, {.fLittleEndian = true});
+  auto levelB = CompoundTag::Read(levelBStream, std::endian::little);
 
   DiffCompoundTag(*levelB, *levelA);
 }

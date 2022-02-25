@@ -30,7 +30,7 @@ public:
   static std::optional<Map> Parse(std::string const &value, int64_t &outMapId) {
     using namespace std;
     using namespace leveldb;
-    auto tag = CompoundTag::Read(value, {.fLittleEndian = true});
+    auto tag = CompoundTag::Read(value, std::endian::little);
     if (!tag) {
       return nullopt;
     }

@@ -129,7 +129,7 @@ public:
     }
 
     auto s = std::make_shared<ByteStream>();
-    OutputStreamWriter w(s, {.fLittleEndian = true});
+    OutputStreamWriter w(s, std::endian::little);
     if (!converted->fEntity->writeAsRoot(w)) {
       return std::nullopt;
     }

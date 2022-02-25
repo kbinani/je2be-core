@@ -170,7 +170,7 @@ public:
       if (auto st = db.Get(leveldb::ReadOptions{}, key, &str); !st.ok()) {
         continue;
       }
-      auto b = CompoundTag::Read(str, {.fLittleEndian = true});
+      auto b = CompoundTag::Read(str, std::endian::little);
       if (!b) {
         continue;
       }

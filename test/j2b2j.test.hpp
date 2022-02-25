@@ -506,7 +506,7 @@ static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
   if (!file::GetGzContents(p, buffer)) {
     return nullptr;
   }
-  return CompoundTag::Read(buffer, {.fLittleEndian = false});
+  return CompoundTag::Read(buffer, std::endian::big);
 }
 
 static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
