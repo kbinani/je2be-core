@@ -965,7 +965,7 @@ private:
             for (auto const &item : *loreJ) {
               if (auto str = item->asString(); str) {
                 if (str->fValue == "\"(+NBT)\"") {
-                  loreB->push_back(String("(+Data)"));
+                  loreB->push_back(String("(+DATA)"));
                 } else {
                   loreB->push_back(String(str->fValue));
                 }
