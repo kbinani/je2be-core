@@ -1520,6 +1520,15 @@ public:
     CopyFloatValues(b, j, {{"PlayerLevelProgress", "XpP"}});
     CopyBoolValues(b, j, {{"HasSeenCredits", "seenCredits"}});
 
+    if (auto playerGameTypeB = b.int32("playerGameType"); playerGameTypeB) {
+      int32_t playerGameModeJ = *playerGameTypeB;
+      if (*playerGameTypeB == 5) {
+        // playerGameType = 5 when superflat creative. This offset is only seen in creative mode.
+        playerGameModeJ = 1;
+      }
+      j["PlayerGameMode"] = Int(playerGameModeJ);
+    }
+
     auto dimensionB = b.int32("DimensionId", 0);
     if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
       j["Dimension"] = String(JavaStringFromDimension(*dimension));

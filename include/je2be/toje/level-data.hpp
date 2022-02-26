@@ -135,13 +135,18 @@ public:
         {
           auto overworld = Compound();
           auto generator = Compound();
-          auto biomeSource = Compound();
-          biomeSource->set("preset", String("minecraft:overworld"));
-          biomeSource->set("type", String("minecraft:multi_noise"));
-          generator->set("biome_source", biomeSource);
-          generator->set("seed", Long(*seed));
-          generator->set("settings", String("minecraft:overworld"));
-          generator->set("type", String("minecraft:noise"));
+          if (auto settings = FlatWorldSettings(b); settings) {
+            generator->set("type", String("minecraft:flat"));
+            generator->set("settings", settings);
+          } else {
+            auto biomeSource = Compound();
+            biomeSource->set("preset", String("minecraft:overworld"));
+            biomeSource->set("type", String("minecraft:multi_noise"));
+            generator->set("biome_source", biomeSource);
+            generator->set("seed", Long(*seed));
+            generator->set("settings", String("minecraft:overworld"));
+            generator->set("type", String("minecraft:noise"));
+          }
           overworld->set("generator", generator);
           overworld->set("type", String("minecraft:overworld"));
           dimensions->set("minecraft:overworld", overworld);
@@ -194,6 +199,60 @@ public:
     auto root = Compound();
     root->set("Data", data);
     return root;
+  }
+
+  static std::shared_ptr<CompoundTag> FlatWorldSettings(CompoundTag const &b) {
+    using namespace std;
+    if (b.int32("Generator") != 2) {
+      return nullptr;
+    }
+    auto settings = Compound();
+    settings->set("features", Bool(false));
+    settings->set("lakes", Bool(false));
+    auto flatWorldLayers = b.string("FlatWorldLayers");
+    if (!flatWorldLayers) {
+      return nullptr;
+    }
+    auto parsed = props::ParseAsJson(*flatWorldLayers);
+    if (!parsed) {
+      return nullptr;
+    }
+    auto const &json = *parsed;
+    auto biomeB = json["biome_id"];
+    if (!biomeB.is_number_unsigned()) {
+      return nullptr;
+    }
+    auto biomeJ = mcfile::be::Biome::FromUint32(biomeB.get<uint32_t>());
+    if (biomeJ == mcfile::biomes::unknown) {
+      return nullptr;
+    }
+    settings->set("biome", String(mcfile::biomes::Name(biomeJ, mcfile::je::Chunk::kDataVersion)));
+    auto layersB = json["block_layers"];
+    if (!layersB.is_array()) {
+      return nullptr;
+    }
+    auto layersJ = List<Tag::Type::Compound>();
+    for (auto const &it : layersB) {
+      auto blockName = it["block_name"];
+      auto count = it["count"];
+      if (!blockName.is_string() || !count.is_number_unsigned()) {
+        return nullptr;
+      }
+      mcfile::be::Block blockB(blockName.get<string>(), Compound(), je2be::tobe::kBlockDataVersion);
+      auto blockJ = BlockData::From(blockB);
+      if (!blockJ) {
+        return nullptr;
+      }
+      auto layerJ = Compound();
+      layerJ->set("block", String(blockJ->fName));
+      layerJ->set("height", Int(count.get<uint32_t>()));
+      layersJ->push_back(layerJ);
+    }
+    settings->set("layers", layersJ);
+    auto structures = Compound();
+    structures->set("structures", Compound());
+    settings->set("structures", structures);
+    return settings;
   }
 
   static std::optional<Entity::LocalPlayerData> Player(leveldb::DB &db, Context &ctx, std::optional<Uuid> uuid) {
