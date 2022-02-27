@@ -129,4 +129,8 @@ inline std::string SnakeFromUpperCamel(std::string const &s) {
   return ret;
 }
 
+inline std::string Substring(std::string const &s, size_t begin, size_t end = std::string::npos) {
+  return s.substr(begin, end - begin);
+}
+
 } // namespace je2be::strings

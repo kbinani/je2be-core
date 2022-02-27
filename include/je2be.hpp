@@ -44,6 +44,7 @@
 #include <iostream>
 #include <numbers>
 #include <charconv>
+#include <regex>
 
 #include <je2be/nbt.hpp>
 #include <je2be/fs.hpp>
