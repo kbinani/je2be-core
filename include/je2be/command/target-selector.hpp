@@ -263,7 +263,6 @@ private:
         if (auto distance = RangedNumberArgument::ParseJava(NumberArgumentType::Distance, v); distance) {
           parsed.push_back(distance);
         }
-        map.erase(k);
       } else if (k == "r" || k == "rm") {
         auto max = strings::Tof(map["r"]);
         auto min = strings::Tof(map["rm"]);
@@ -274,7 +273,6 @@ private:
         if (auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v); level) {
           parsed.push_back(level);
         }
-        map.erase(k);
       } else if (k == "l" || k == "lm") {
         auto max = strings::Tof(map["l"]);
         auto min = strings::Tof(map["lm"]);
@@ -285,7 +283,6 @@ private:
         if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v); p) {
           parsed.push_back(p);
         }
-        map.erase(k);
       } else if (k == "rx" || k == "rxm") {
         auto max = strings::Tof(map["rx"]);
         auto min = strings::Tof(map["rxm"]);
@@ -296,7 +293,6 @@ private:
         if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v); p) {
           parsed.push_back(p);
         }
-        map.erase(k);
       } else if (k == "ry" || k == "rym") {
         auto max = strings::Tof(map["ry"]);
         auto min = strings::Tof(map["rym"]);
@@ -305,13 +301,12 @@ private:
         map.erase("rym");
       } else if (k == "gamemode" || k == "m") {
         parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::GameMode, v));
-        map.erase(k);
       } else if (k == "limit" || k == "c") {
         parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::Limit, v));
       } else {
         parsed.push_back(make_shared<SimpleArgument>(k, v));
-        map.erase(k);
       }
+      map.erase(k);
     }
   }
 
