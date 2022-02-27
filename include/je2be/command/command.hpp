@@ -4,27 +4,12 @@ namespace je2be::command {
 
 class Command {
 public:
-  static std::string TranspileJavaToBedrock(std::string const &inLine) {
-    using namespace std;
+  static std::string TranspileJavaToBedrock(std::string const &command) {
+    return Transpile(command, Mode::Bedrock, ':', '/');
+  }
 
-    vector<shared_ptr<Token>> tokens;
-    if (!Parse(inLine, tokens)) {
-      return inLine;
-    }
-    for (int i = 0; i + 2 < tokens.size(); i++) {
-      if (tokens[i]->type() == Token::Type::Simple && tokens[i + 1]->type() == Token::Type::Whitespace && tokens[i + 2]->type() == Token::Type::Simple) {
-        if (tokens[i]->fRaw == "function") {
-          string token = tokens[i + 2]->fRaw;
-          auto found = token.find(':');
-          if (found != string::npos) {
-            token = token.substr(0, found) + "/" + token.substr(found + 1);
-            tokens[i + 2]->fRaw = token;
-          }
-        }
-      }
-    }
-
-    return ToString(tokens, Mode::Bedrock);
+  static std::string TranspileBedrockToJava(std::string const &command) {
+    return Transpile(command, Mode::Java, '/', ':');
   }
 
   static bool Parse(std::string const &command, std::vector<std::shared_ptr<Token>> &tokens) {
@@ -44,6 +29,29 @@ public:
   }
 
 private:
+  static std::string Transpile(std::string const &command, Mode outputMode, char functionNamespaceSeparatorFrom, char functionNamespaceSeparatorTo) {
+    using namespace std;
+
+    vector<shared_ptr<Token>> tokens;
+    if (!Parse(command, tokens)) {
+      return command;
+    }
+    for (int i = 0; i + 2 < tokens.size(); i++) {
+      if (tokens[i]->type() == Token::Type::Simple && tokens[i + 1]->type() == Token::Type::Whitespace && tokens[i + 2]->type() == Token::Type::Simple) {
+        if (tokens[i]->fRaw == "function") {
+          string token = tokens[i + 2]->fRaw;
+          auto found = token.find(functionNamespaceSeparatorFrom);
+          if (found != string::npos) {
+            token = token.substr(0, found) + string(1, functionNamespaceSeparatorTo) + token.substr(found + 1);
+            tokens[i + 2]->fRaw = token;
+          }
+        }
+      }
+    }
+
+    return ToString(tokens, Mode::Java);
+  }
+
   static bool ParseUnsafe(std::string const &raw, std::vector<std::shared_ptr<Token>> &tokens) {
     using namespace std;
 
