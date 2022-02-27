@@ -228,8 +228,10 @@ public:
   static std::optional<Result> CommandBlock(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("command_block", pos);
 
-    //TODO: transpile "Command"
-    CopyStringValues(tagB, *t, {{"Command"}});
+    if (auto commandB = tagB.string("Command"); commandB) {
+      auto commandJ = je2be::command::Command::TranspileBedrockToJava(*commandB);
+      t->set("Command", String(commandJ));
+    }
     CopyIntValues(tagB, *t, {{"SuccessCount"}});
     CopyBoolValues(tagB, *t, {{"auto"}, {"powered"}, {"conditionMet"}, {"TrackOutput"}});
     CopyLongValues(tagB, *t, {{"LastExecution"}});
