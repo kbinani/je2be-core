@@ -8,7 +8,7 @@ public:
     using namespace std;
 
     vector<shared_ptr<Token>> tokens;
-    if (!Parse(inLine, tokens)) {
+    if (!Parse(inLine, tokens, Mode::Java)) {
       return inLine;
     }
     for (int i = 0; i + 2 < tokens.size(); i++) {
@@ -42,7 +42,7 @@ public:
 
   class Token {
   public:
-    explicit Token(std::string const &raw) : fRaw(raw) {}
+    Token(std::string const &raw, Mode const mode) : fRaw(raw), fMode(mode) {}
 
     virtual Type type() const { return Type::Simple; }
 
@@ -52,50 +52,56 @@ public:
 
   public:
     std::string fRaw;
+    Mode const fMode;
   };
 
   class Whitespace : public Token {
   public:
-    explicit Whitespace(std::string const &raw) : Token(raw) {}
+    Whitespace(std::string const &raw, Mode m) : Token(raw, m) {}
     Type type() const override { return Type::Whitespace; }
   };
 
   class Comment : public Token {
   public:
-    explicit Comment(std::string const &raw) : Token(raw) {}
+    Comment(std::string const &raw, Mode m) : Token(raw, m) {}
     virtual Type type() const { return Type::Comment; }
   };
 
   class StringLiteral : public Token {
   public:
-    explicit StringLiteral(std::string const &raw) : Token(raw) {}
+    StringLiteral(std::string const &raw, Mode m) : Token(raw, m) {}
     Type type() const override { return Type::StringLiteral; }
   };
 
   class TargetSelector : public Token {
-    explicit TargetSelector(std::string const &raw) : Token(raw) {}
+  public:
+    TargetSelector(std::string const &raw, Mode m) : Token(raw, m) {}
     Type type() const override { return Type::TargetSelector; }
 
-  public:
     std::string toString(Mode m) const override {
+      using namespace std;
       if (fArguments.empty()) {
         return fType;
       }
-      std::string r = fType + "[";
-      for (size_t i = 0; i < fArguments.size(); i++) {
-        auto const &arg = fArguments[i];
+      string r = fType + "[";
+      vector<pair<string, string>> raw;
+      for (auto const &arg : fArguments) {
+        arg->toRawArgument(raw, m);
+      }
+      for (size_t i = 0; i < raw.size(); i++) {
+        auto const arg = raw[i];
         r += arg.first + "=" + arg.second;
-        if (i + 1 < fArguments.size()) {
+        if (i + 1 < raw.size()) {
           r += ",";
         }
       }
       return r + "]";
     }
 
-    static std::shared_ptr<TargetSelector> Parse(std::string const &raw) {
+    static std::shared_ptr<TargetSelector> Parse(std::string const &raw, Mode m) {
       using namespace std;
 
-      shared_ptr<TargetSelector> ret(new TargetSelector(raw));
+      shared_ptr<TargetSelector> ret(new TargetSelector(raw, m));
       size_t openBracket = raw.find('[');
       if (openBracket == string::npos) {
         ret->fType = raw;
@@ -108,14 +114,274 @@ public:
       string body = raw.substr(openBracket + 1, raw.length() - openBracket - 2);
       string replaced = EscapeStringLiteralContents(body);
       size_t pos = 0;
+      vector<pair<string, string>> arguments;
       while (pos < replaced.length()) {
         auto arg = ParseArgument(body, replaced, pos);
         if (!arg) {
           return nullptr;
         }
-        ret->fArguments.push_back(*arg);
+        arguments.push_back(*arg);
       }
+      ParseRawArguments(arguments, ret->fArguments);
       return ret;
+    }
+
+    struct Argument {
+      ~Argument() {}
+      virtual void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const = 0;
+    };
+
+    struct SimpleArgument : public Argument {
+      SimpleArgument(std::string const &k, std::string const &v) : fKey(k), fValue(v) {}
+
+      void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const override {
+        buffer.push_back(std::make_pair(fKey, fValue));
+      }
+
+      std::string fKey;
+      std::string fValue;
+    };
+
+    enum class DedicatedArgumentType {
+      Limit,
+      GameMode,
+    };
+
+    struct DedicatedArgument : public Argument {
+      DedicatedArgument(DedicatedArgumentType type, std::string const &value) : fType(type), fValue(value) {}
+
+      void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const override {
+        using namespace std;
+        string name;
+        string value;
+        switch (fType) {
+        case DedicatedArgumentType::Limit: {
+          value = fValue;
+          if (mode == Mode::Bedrock) {
+            name = "c";
+          } else {
+            name = "limit";
+          }
+          break;
+        }
+        case DedicatedArgumentType::GameMode: {
+          value = fValue;
+          if (mode == Mode::Bedrock) {
+            name = "m";
+          } else {
+            name = "gamemode";
+            unordered_map<string, string> const mapping = {
+                {"0", "survival"},
+                {"s", "survival"},
+                {"1", "creative"},
+                {"c", "creative"},
+                {"2", "adventure"},
+                {"a", "adventure"},
+            };
+            auto found = mapping.find(fValue);
+            if (found != mapping.end()) {
+              value = found->second;
+            }
+          }
+          break;
+        }
+        default:
+          return;
+        }
+        buffer.push_back(std::make_pair(name, value));
+      }
+
+      DedicatedArgumentType fType;
+      std::string fValue;
+    };
+
+    enum class NumberArgumentType {
+      Distance,
+      Level,
+      XRotation,
+      YRotation,
+    };
+
+    struct RangedNumberArgument : public Argument {
+      NumberArgumentType const fType;
+      std::optional<float> fMinimum;
+      std::optional<float> fMaximum;
+
+      RangedNumberArgument(NumberArgumentType type, std::optional<float> min, std::optional<float> max) : fType(type), fMinimum(min), fMaximum(max) {
+      }
+
+      static std::shared_ptr<RangedNumberArgument> ParseJava(NumberArgumentType type, std::string const &value) {
+        using namespace std;
+        size_t range = value.find("..");
+        if (range != string::npos) {
+          auto first = value.substr(0, range);
+          auto second = value.substr(range + 2);
+
+          auto iMin = strings::Toi(first);
+          auto fMin = strings::Tof(first);
+          auto fMax = strings::Tof(second);
+
+          if (iMin && to_string(*iMin) == first) {
+            fMin = *iMin - 1;
+          }
+          return make_shared<RangedNumberArgument>(type, fMin, fMax);
+        } else {
+          auto vi = strings::Toi(value);
+          if (vi && to_string(*vi) == value) {
+            return make_shared<RangedNumberArgument>(type, *vi - 1, *vi);
+          }
+          auto vf = strings::Tof(value);
+          if (vf) {
+            return make_shared<RangedNumberArgument>(type, *vf, *vf);
+          }
+        }
+        return nullptr;
+      }
+
+      static std::string ToString(float v) {
+        if (v == roundf(v)) {
+          return std::to_string((int)v);
+        } else {
+          std::ostringstream ss;
+          ss << v;
+          return ss.str();
+        }
+      }
+
+      virtual void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode m) const override {
+        using namespace std;
+        if (m == Mode::Bedrock) {
+          string min;
+          string max;
+          switch (fType) {
+          case NumberArgumentType::Distance: {
+            max = "r";
+            min = "rm";
+            break;
+          }
+          case NumberArgumentType::Level: {
+            max = "l";
+            min = "lm";
+            break;
+          }
+          case NumberArgumentType::XRotation: {
+            max = "rx";
+            min = "rxm";
+            break;
+          }
+          case NumberArgumentType::YRotation: {
+            max = "ry";
+            min = "rym";
+            break;
+          }
+          default:
+            return;
+          }
+          if (fMinimum) {
+            buffer.push_back(make_pair(min, ToString(*fMinimum)));
+          }
+          if (fMaximum) {
+            buffer.push_back(make_pair(max, ToString(*fMaximum)));
+          }
+        } else {
+          string name;
+          switch (fType) {
+          case NumberArgumentType::Distance: {
+            name = "distance";
+            break;
+          }
+          case NumberArgumentType::Level: {
+            name = "level";
+            break;
+          }
+          case NumberArgumentType::XRotation: {
+            name = "x_rotation";
+            break;
+          }
+          case NumberArgumentType::YRotation: {
+            name = "y_rotation";
+            break;
+          }
+          default:
+            return;
+          }
+          if (fMinimum && fMaximum) {
+            if (*fMinimum + 1 == fMaximum) {
+              buffer.push_back(make_pair(name, ToString(*fMaximum)));
+            } else {
+              buffer.push_back(make_pair(name, ToString(*fMinimum) + ".." + ToString(*fMaximum)));
+            }
+          } else if (fMinimum) {
+            buffer.push_back(make_pair(name, ToString(*fMinimum) + ".."));
+          } else if (fMaximum) {
+            buffer.push_back(make_pair(name, ".." + ToString(*fMaximum)));
+          }
+        }
+      }
+    };
+
+    static void ParseRawArguments(std::vector<std::pair<std::string, std::string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
+      using namespace std;
+      unordered_map<string, string> map(raw.begin(), raw.end());
+
+      while (!map.empty()) {
+        auto pair = *map.begin();
+        string k = pair.first;
+        string v = pair.second;
+        if (k == "distance") {
+          if (auto distance = RangedNumberArgument::ParseJava(NumberArgumentType::Distance, v); distance) {
+            parsed.push_back(distance);
+          }
+          map.erase(k);
+        } else if (k == "r" || k == "rm") {
+          auto max = strings::Tof(map["r"]);
+          auto min = strings::Tof(map["rm"]);
+          parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Distance, min, max));
+          map.erase("r");
+          map.erase("rm");
+        } else if (k == "level") {
+          if (auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v); level) {
+            parsed.push_back(level);
+          }
+          map.erase(k);
+        } else if (k == "l" || k == "lm") {
+          auto max = strings::Tof(map["l"]);
+          auto min = strings::Tof(map["lm"]);
+          parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Level, min, max));
+          map.erase("l");
+          map.erase("lm");
+        } else if (k == "x_rotation") {
+          if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v); p) {
+            parsed.push_back(p);
+          }
+          map.erase(k);
+        } else if (k == "rx" || k == "rxm") {
+          auto max = strings::Tof(map["rx"]);
+          auto min = strings::Tof(map["rxm"]);
+          parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::XRotation, min, max));
+          map.erase("rx");
+          map.erase("rxm");
+        } else if (k == "y_rotation") {
+          if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v); p) {
+            parsed.push_back(p);
+          }
+          map.erase(k);
+        } else if (k == "ry" || k == "rym") {
+          auto max = strings::Tof(map["ry"]);
+          auto min = strings::Tof(map["rym"]);
+          parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::YRotation, min, max));
+          map.erase("ry");
+          map.erase("rym");
+        } else if (k == "gamemode" || k == "m") {
+          parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::GameMode, v));
+          map.erase(k);
+        } else if (k == "limit" || k == "c") {
+          parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::Limit, v));
+        } else {
+          parsed.push_back(make_shared<SimpleArgument>(k, v));
+          map.erase(k);
+        }
+      }
     }
 
   private:
@@ -154,12 +420,12 @@ public:
 
   public:
     std::string fType;
-    std::vector<std::pair<std::string, std::string>> fArguments;
+    std::vector<std::shared_ptr<Argument>> fArguments;
   };
 
-  static bool Parse(std::string const &command, std::vector<std::shared_ptr<Token>> &tokens) {
+  static bool Parse(std::string const &command, std::vector<std::shared_ptr<Token>> &tokens, Mode m) {
     try {
-      return ParseUnsafe(command, tokens);
+      return ParseUnsafe(command, tokens, m);
     } catch (...) {
     }
     return false;
@@ -214,7 +480,7 @@ private:
     return replaced;
   }
 
-  static bool ParseUnsafe(std::string const &raw, std::vector<std::shared_ptr<Token>> &tokens) {
+  static bool ParseUnsafe(std::string const &raw, std::vector<std::shared_ptr<Token>> &tokens, Mode mode) {
     using namespace std;
 
     if (raw.find('\t') != string::npos) {
@@ -230,9 +496,9 @@ private:
           command = command.substr(1);
         } else if (command.starts_with("/")) {
           if (!prefix.empty()) {
-            tokens.push_back(make_shared<Whitespace>(prefix));
+            tokens.push_back(make_shared<Whitespace>(prefix, mode));
           }
-          tokens.push_back(make_shared<Token>("/"));
+          tokens.push_back(make_shared<Token>("/", mode));
           prefix = "";
           command = command.substr(1);
           break;
@@ -241,7 +507,7 @@ private:
         }
       }
       if (!prefix.empty()) {
-        tokens.push_back(make_shared<Whitespace>(prefix));
+        tokens.push_back(make_shared<Whitespace>(prefix, mode));
       }
     }
 
@@ -264,11 +530,11 @@ private:
     auto comment = replaced.find('#');
     if (comment == string::npos) {
       if (!suffix.empty()) {
-        suffixToken = make_shared<Whitespace>(suffix);
+        suffixToken = make_shared<Whitespace>(suffix, mode);
       }
     } else {
       auto commentString = command.substr(comment);
-      suffixToken = make_shared<Comment>(commentString + suffix);
+      suffixToken = make_shared<Comment>(commentString + suffix, mode);
       command = command.substr(0, comment);
       replaced = replaced.substr(0, comment);
     }
@@ -284,17 +550,17 @@ private:
       if (pos < offset) {
         string tokenString = strings::Substring(command, pos, offset);
         string tokenStringReplaced = strings::Substring(replaced, pos, offset);
-        if (!ParseToken(tokenString, tokenStringReplaced, tokens)) {
+        if (!ParseToken(tokenString, tokenStringReplaced, tokens, mode)) {
           return false;
         }
       }
-      tokens.push_back(make_shared<Whitespace>(m.str()));
+      tokens.push_back(make_shared<Whitespace>(m.str(), mode));
       pos = offset + length;
     }
     if (pos < command.length()) {
       string tokenString = strings::Substring(command, pos);
       string tokenStringReplaced = strings::Substring(replaced, pos);
-      if (!ParseToken(tokenString, tokenStringReplaced, tokens)) {
+      if (!ParseToken(tokenString, tokenStringReplaced, tokens, mode)) {
         return false;
       }
     }
@@ -305,7 +571,7 @@ private:
     return true;
   }
 
-  static bool ParseToken(std::string const &command, std::string const &replaced, std::vector<std::shared_ptr<Token>> &tokens) {
+  static bool ParseToken(std::string const &command, std::string const &replaced, std::vector<std::shared_ptr<Token>> &tokens, Mode mode) {
     using namespace std;
     static regex const sTargetSelectorRegex(R"(@(p|r|a|e|s|c|v|initiator)(\[[^\]]*\])?)");
     ptrdiff_t pos = 0;
@@ -317,15 +583,15 @@ private:
       auto length = m.length();
       if (pos < offset) {
         string str = command.substr(pos, offset - pos);
-        IterateStringLiterals(str, [&tokens](string const &s, bool stringLiteral) {
+        IterateStringLiterals(str, [&tokens, mode](string const &s, bool stringLiteral) {
           if (stringLiteral) {
-            tokens.push_back(make_shared<StringLiteral>(s));
+            tokens.push_back(make_shared<StringLiteral>(s, mode));
           } else {
-            tokens.push_back(make_shared<Token>(s));
+            tokens.push_back(make_shared<Token>(s, mode));
           }
         });
       }
-      auto ts = TargetSelector::Parse(m.str());
+      auto ts = TargetSelector::Parse(m.str(), mode);
       if (!ts) {
         return false;
       }
@@ -334,11 +600,11 @@ private:
     }
     if (pos < command.length()) {
       string str = command.substr(pos);
-      IterateStringLiterals(str, [&tokens](string const &s, bool stringLiteral) {
+      IterateStringLiterals(str, [&tokens, mode](string const &s, bool stringLiteral) {
         if (stringLiteral) {
-          tokens.push_back(make_shared<StringLiteral>(s));
+          tokens.push_back(make_shared<StringLiteral>(s, mode));
         } else {
-          tokens.push_back(make_shared<Token>(s));
+          tokens.push_back(make_shared<Token>(s, mode));
         }
       });
     }

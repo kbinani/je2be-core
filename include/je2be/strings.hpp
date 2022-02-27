@@ -80,6 +80,15 @@ inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
   }
 }
 
+inline std::optional<float> Tof(std::string const &s) {
+  float v = 0;
+  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v); ec == std::errc{}) {
+    return v;
+  } else {
+    return std::nullopt;
+  }
+}
+
 inline bool Iequals(std::string const &a, std::string const &b) {
   if (a.size() != b.size()) {
     return false;
