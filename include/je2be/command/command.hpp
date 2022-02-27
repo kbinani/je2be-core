@@ -49,7 +49,7 @@ private:
       }
     }
 
-    return ToString(tokens, Mode::Java);
+    return ToString(tokens, outputMode);
   }
 
   static bool ParseUnsafe(std::string const &raw, std::vector<std::shared_ptr<Token>> &tokens) {
