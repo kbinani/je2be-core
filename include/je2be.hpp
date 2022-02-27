@@ -101,7 +101,10 @@
 #include <je2be/entity/effect.hpp>
 #include <je2be/entity/axolotl.hpp>
 
-#include <je2be/tile-entity/command.hpp>
+#include <je2be/command/token.hpp>
+#include <je2be/command/target-selector.hpp>
+#include <je2be/command/command.hpp>
+
 #include <je2be/tile-entity/loot-table.hpp>
 
 #include <je2be/structure/structure-piece.hpp>

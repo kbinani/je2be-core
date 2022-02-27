@@ -485,7 +485,7 @@ private:
     auto automatic = c->boolean("auto", false);
     auto trackOutput = c->boolean("TrackOutput", true);
     auto successCount = c->int32("SuccessCount", 0);
-    auto command = Command::TranspileJavaToBedrock(c->string("Command", ""));
+    auto command = command::Command::TranspileJavaToBedrock(c->string("Command", ""));
     auto conditionMet = c->boolean("conditionMet", false);
 
     auto lastExecution = c->int64("LastExecution");

@@ -1,7 +1,7 @@
 #pragma once
 
 TEST_CASE("command") {
-  using namespace je2be;
+  using namespace je2be::command;
 
   CHECK(Command::TranspileJavaToBedrock("/function  function_namespace:function_name ") == "/function  function_namespace/function_name ");
   CHECK(Command::TranspileJavaToBedrock("  function  function_namespace:function_name\x0d") == "  function  function_namespace/function_name\x0d");

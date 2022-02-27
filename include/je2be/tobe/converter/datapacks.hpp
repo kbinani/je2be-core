@@ -221,7 +221,7 @@ private:
     ostringstream s;
     for (auto const &line : lines) {
       auto hasCr = line.ends_with("\x0d");
-      s << Command::TranspileJavaToBedrock(line);
+      s << command::Command::TranspileJavaToBedrock(line);
       s << "\x0a";
     }
     string transpiled = s.str();
