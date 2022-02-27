@@ -69,7 +69,6 @@
 #include <je2be/reversible-map.hpp>
 #include <je2be/static-reversible-map.hpp>
 #include <je2be/dimension-ext.hpp>
-#include <je2be/loot-table.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
@@ -100,6 +99,9 @@
 #include <je2be/entity/panda.hpp>
 #include <je2be/entity/effect.hpp>
 #include <je2be/entity/axolotl.hpp>
+
+#include <je2be/tile-entity/command.hpp>
+#include <je2be/tile-entity/loot-table.hpp>
 
 #include <je2be/structure/structure-piece.hpp>
 

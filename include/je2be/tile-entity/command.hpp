@@ -1,10 +1,10 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class Command {
 public:
-  static std::string Transpile(std::string const &inLine) {
+  static std::string TranspileJavaToBedrock(std::string const &inLine) {
     using namespace std;
     string line = inLine;
     string prefix;
@@ -138,4 +138,4 @@ private:
   Command() = delete;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

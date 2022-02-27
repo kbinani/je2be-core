@@ -50,7 +50,6 @@ set(je2be_files
   include/je2be/item/map-color.hpp
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
-  include/je2be/loot-table.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
   include/je2be/optional.hpp
@@ -65,6 +64,8 @@ set(je2be_files
   include/je2be/static-reversible-map.hpp
   include/je2be/strings.hpp
   include/je2be/structure/structure-piece.hpp
+  include/je2be/tile-entity/command.hpp
+  include/je2be/tile-entity/loot-table.hpp
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
@@ -74,7 +75,6 @@ set(je2be_files
   include/je2be/tobe/converter/block-data.hpp
   include/je2be/tobe/converter/block-palette.hpp
   include/je2be/tobe/converter/chunk.hpp
-  include/je2be/tobe/converter/command.hpp
   include/je2be/tobe/converter/converter.hpp
   include/je2be/tobe/converter/datapacks.hpp
   include/je2be/tobe/converter/enchant-data.hpp
