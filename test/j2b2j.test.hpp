@@ -600,7 +600,6 @@ TEST_CASE("j2b2j") {
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
   je2be::tobe::Options optB;
-  je2be::toje::Options optJ;
   bool multithread = true;
 #if 1
   int radius = 32;
@@ -608,21 +607,19 @@ TEST_CASE("j2b2j") {
     for (int cx = -radius; cx < radius; cx++) {
       Pos2i p(cx, cz);
       optB.fChunkFilter.insert(p);
-      optJ.fChunkFilter.insert(p);
     }
   }
 #else
-  {
-    mcfile::Dimension d = mcfile::Dimension::Overworld;
-    for (Pos2i const &p : initializer_list<Pos2i>({{0, 0}})) {
-      optB.fDimensionFilter.insert(d);
-      optB.fChunkFilter.insert(p);
-      optJ.fDimensionFilter.insert(d);
-      optJ.fChunkFilter.insert(p);
-    }
+  optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+  for (Pos2i const &p : initializer_list<Pos2i>({{0, 0}})) {
+    optB.fChunkFilter.insert(p);
   }
   multithread = false;
 #endif
+  je2be::toje::Options optJ;
+  optJ.fDimensionFilter = optB.fDimensionFilter;
+  optJ.fChunkFilter = optB.fChunkFilter;
+
   je2be::tobe::Converter tobe(in, *outB, optB);
   CHECK(tobe.run(thread::hardware_concurrency()));
 
