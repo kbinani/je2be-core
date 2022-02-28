@@ -82,11 +82,19 @@ inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
 
 inline std::optional<float> Tof(std::string const &s) {
   float v = 0;
+#if defined(_MSC_VER)
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v); ec == std::errc{}) {
     return v;
   } else {
     return std::nullopt;
   }
+#else
+  auto ret = sscanf(s.c_str(), "%f", &v);
+  if (ret == 0 || ret == EOF) {
+    return std::nullopt;
+  }
+  return v;
+#endif
 }
 
 inline bool Iequals(std::string const &a, std::string const &b) {
