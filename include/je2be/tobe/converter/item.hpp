@@ -952,32 +952,32 @@ private:
     if (auto tagJ = item.compoundTag("tag"); tagJ) {
       if (auto blockEntityTag = tagJ->compoundTag("BlockEntityTag"); blockEntityTag) {
         Pos3i dummy(0, 0, 0);
-        auto tagB = ctx.fFromBlockAndTileEntity(dummy, *block, blockEntityTag, ctx);
+        if (auto tagB = ctx.fFromBlockAndTileEntity(dummy, *block, blockEntityTag, ctx); tagB) {
+          static unordered_set<string> const sExclude({"Findable", "id", "isMovable", "x", "y", "z"});
+          for (auto const &e : sExclude) {
+            tagB->erase(e);
+          }
 
-        static std::unordered_set<std::string> const sExclude({"Findable", "id", "isMovable", "x", "y", "z"});
-        for (auto const &e : sExclude) {
-          tagB->erase(e);
-        }
-
-        if (auto displayJ = tagJ->compoundTag("display"); displayJ) {
-          if (auto loreJ = displayJ->listTag("Lore"); loreJ) {
-            auto loreB = List<Tag::Type::String>();
-            for (auto const &item : *loreJ) {
-              if (auto str = item->asString(); str) {
-                if (str->fValue == "\"(+NBT)\"") {
-                  loreB->push_back(String("(+DATA)"));
-                } else {
-                  loreB->push_back(String(str->fValue));
+          if (auto displayJ = tagJ->compoundTag("display"); displayJ) {
+            if (auto loreJ = displayJ->listTag("Lore"); loreJ) {
+              auto loreB = List<Tag::Type::String>();
+              for (auto const &item : *loreJ) {
+                if (auto str = item->asString(); str) {
+                  if (str->fValue == "\"(+NBT)\"") {
+                    loreB->push_back(String("(+DATA)"));
+                  } else {
+                    loreB->push_back(String(str->fValue));
+                  }
                 }
               }
+              auto displayB = Compound();
+              displayB->set("Lore", loreB);
+              tagB->set("display", displayB);
             }
-            auto displayB = Compound();
-            displayB->set("Lore", loreB);
-            tagB->set("display", displayB);
           }
-        }
 
-        ret->set("tag", tagB);
+          ret->set("tag", tagB);
+        }
       }
     }
 

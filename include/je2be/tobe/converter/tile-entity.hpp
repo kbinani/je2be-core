@@ -25,7 +25,11 @@ public:
     using namespace mcfile;
 
     auto const &table = Table();
-    return table.at(block.fId)(pos, block, tag, ctx);
+    if (auto found = table.find(block.fId); found != table.end()) {
+      return found->second(pos, block, tag, ctx);
+    } else {
+      return nullptr;
+    }
   }
 
   static std::shared_ptr<CompoundTag> FromBlock(Pos3i const &pos,
@@ -35,7 +39,11 @@ public:
     using namespace mcfile;
 
     auto const &table = Table();
-    return table.at(block.fId)(pos, block, nullptr, ctx);
+    if (auto found = table.find(block.fId); found != table.end()) {
+      return found->second(pos, block, nullptr, ctx);
+    } else {
+      return nullptr;
+    }
   }
 
   static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
