@@ -92,20 +92,10 @@ struct RangedNumberArgument : public Argument {
     if (range != string::npos) {
       auto first = value.substr(0, range);
       auto second = value.substr(range + 2);
-
-      auto iMin = strings::Toi(first);
       auto fMin = strings::Tof(first);
       auto fMax = strings::Tof(second);
-
-      if (iMin && to_string(*iMin) == first) {
-        fMin = *iMin - 1;
-      }
       return make_shared<RangedNumberArgument>(type, fMin, fMax);
     } else {
-      auto vi = strings::Toi(value);
-      if (vi && to_string(*vi) == value) {
-        return make_shared<RangedNumberArgument>(type, *vi - 1, *vi);
-      }
       auto vf = strings::Tof(value);
       if (vf) {
         return make_shared<RangedNumberArgument>(type, *vf, *vf);
@@ -182,7 +172,7 @@ struct RangedNumberArgument : public Argument {
         return;
       }
       if (fMinimum && fMaximum) {
-        if (*fMinimum + 1 == fMaximum) {
+        if (*fMinimum == *fMaximum) {
           buffer.push_back(make_pair(name, ToString(*fMaximum)));
         } else {
           buffer.push_back(make_pair(name, ToString(*fMinimum) + ".." + ToString(*fMaximum)));
@@ -251,9 +241,27 @@ public:
   }
 
 private:
+  static void Erase(std::vector<std::pair<std::string, std::string>> &v, std::string const &key) {
+    for (int i = 0; i < v.size(); i++) {
+      if (v[i].first == key) {
+        v.erase(v.begin() + i);
+        i--;
+      }
+    }
+  }
+
+  static std::string Get(std::vector<std::pair<std::string, std::string>> const &v, std::string const &key) {
+    for (int i = 0; i < v.size(); i++) {
+      if (v[i].first == key) {
+        return v[i].second;
+      }
+    }
+    return "";
+  }
+
   static void ParseRawArguments(std::vector<std::pair<std::string, std::string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
     using namespace std;
-    unordered_map<string, string> map(raw.begin(), raw.end());
+    vector<pair<string, string>> map(raw);
 
     while (!map.empty()) {
       auto pair = *map.begin();
@@ -264,41 +272,41 @@ private:
           parsed.push_back(distance);
         }
       } else if (k == "r" || k == "rm") {
-        auto max = strings::Tof(map["r"]);
-        auto min = strings::Tof(map["rm"]);
+        auto max = strings::Tof(Get(map, "r"));
+        auto min = strings::Tof(Get(map, "rm"));
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Distance, min, max));
-        map.erase("r");
-        map.erase("rm");
+        Erase(map, "r");
+        Erase(map, "rm");
       } else if (k == "level") {
         if (auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v); level) {
           parsed.push_back(level);
         }
       } else if (k == "l" || k == "lm") {
-        auto max = strings::Tof(map["l"]);
-        auto min = strings::Tof(map["lm"]);
+        auto max = strings::Tof(Get(map, "l"));
+        auto min = strings::Tof(Get(map, "lm"));
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Level, min, max));
-        map.erase("l");
-        map.erase("lm");
+        Erase(map, "l");
+        Erase(map, "lm");
       } else if (k == "x_rotation") {
         if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v); p) {
           parsed.push_back(p);
         }
       } else if (k == "rx" || k == "rxm") {
-        auto max = strings::Tof(map["rx"]);
-        auto min = strings::Tof(map["rxm"]);
+        auto max = strings::Tof(Get(map, "rx"));
+        auto min = strings::Tof(Get(map, "rxm"));
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::XRotation, min, max));
-        map.erase("rx");
-        map.erase("rxm");
+        Erase(map, "rx");
+        Erase(map, "rxm");
       } else if (k == "y_rotation") {
         if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v); p) {
           parsed.push_back(p);
         }
       } else if (k == "ry" || k == "rym") {
-        auto max = strings::Tof(map["ry"]);
-        auto min = strings::Tof(map["rym"]);
+        auto max = strings::Tof(Get(map, "ry"));
+        auto min = strings::Tof(Get(map, "rym"));
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::YRotation, min, max));
-        map.erase("ry");
-        map.erase("rym");
+        Erase(map, "ry");
+        Erase(map, "rym");
       } else if (k == "gamemode" || k == "m") {
         parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::GameMode, v));
       } else if (k == "limit" || k == "c") {
@@ -306,7 +314,7 @@ private:
       } else {
         parsed.push_back(make_shared<SimpleArgument>(k, v));
       }
-      map.erase(k);
+      Erase(map, k);
     }
   }
 

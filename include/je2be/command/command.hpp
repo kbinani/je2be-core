@@ -163,7 +163,7 @@ private:
           }
         });
       }
-      auto ts = TargetSelector::Parse(m.str());
+      auto ts = TargetSelector::Parse(command.substr(offset, length));
       if (!ts) {
         return false;
       }
