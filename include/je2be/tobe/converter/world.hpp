@@ -111,10 +111,10 @@ public:
             if (!result.fData) {
               continue;
             }
+            result.fData->drain(ld);
             if (!result.fOk) {
               return false;
             }
-            result.fData->drain(ld);
           }
 
           if (progress) {
