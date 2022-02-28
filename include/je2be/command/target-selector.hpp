@@ -86,14 +86,32 @@ struct RangedNumberArgument : public Argument {
   RangedNumberArgument(NumberArgumentType type, std::optional<float> min, std::optional<float> max) : fType(type), fMinimum(min), fMaximum(max) {
   }
 
+  static std::optional<std::tuple<std::optional<float>, std::optional<float>>> ParseMinAndMax(std::string const &min, std::string const &max) {
+    auto fMin = strings::Tof(min);
+    auto fMax = strings::Tof(max);
+    if (!min.empty() && !fMin) {
+      return std::nullopt;
+    }
+    if (!max.empty() && !fMax) {
+      return std::nullopt;
+    }
+    if (!fMin && !fMax) {
+      return std::nullopt;
+    }
+    return make_tuple(fMin, fMax);
+  }
+
   static std::shared_ptr<RangedNumberArgument> ParseJava(NumberArgumentType type, std::string const &value) {
     using namespace std;
     size_t range = value.find("..");
     if (range != string::npos) {
       auto first = value.substr(0, range);
       auto second = value.substr(range + 2);
-      auto fMin = strings::Tof(first);
-      auto fMax = strings::Tof(second);
+      auto parsed = ParseMinAndMax(first, second);
+      if (!parsed) {
+        return nullptr;
+      }
+      auto [fMin, fMax] = *parsed;
       return make_shared<RangedNumberArgument>(type, fMin, fMax);
     } else {
       auto vf = strings::Tof(value);
@@ -226,7 +244,10 @@ public:
     }
     ret->fType = raw.substr(0, openBracket);
     string body = raw.substr(openBracket + 1, raw.length() - openBracket - 2);
-    string replaced = EscapeStringLiteralContents(body);
+    string replaced;
+    if (!EscapeStringLiteralContents(body, &replaced)) {
+      return nullptr;
+    }
     size_t pos = 0;
     vector<pair<string, string>> arguments;
     while (pos < replaced.length()) {
@@ -236,7 +257,9 @@ public:
       }
       arguments.push_back(*arg);
     }
-    ParseRawArguments(arguments, ret->fArguments);
+    if (!ParseRawArguments(arguments, ret->fArguments)) {
+      return nullptr;
+    }
     return ret;
   }
 
@@ -259,7 +282,7 @@ private:
     return "";
   }
 
-  static void ParseRawArguments(std::vector<std::pair<std::string, std::string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
+  static bool ParseRawArguments(std::vector<std::pair<std::string, std::string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
     using namespace std;
     vector<pair<string, string>> map(raw);
 
@@ -268,42 +291,62 @@ private:
       string k = pair.first;
       string v = pair.second;
       if (k == "distance") {
-        if (auto distance = RangedNumberArgument::ParseJava(NumberArgumentType::Distance, v); distance) {
-          parsed.push_back(distance);
+        auto distance = RangedNumberArgument::ParseJava(NumberArgumentType::Distance, v);
+        if (!distance) {
+          return false;
         }
+        parsed.push_back(distance);
       } else if (k == "r" || k == "rm") {
-        auto max = strings::Tof(Get(map, "r"));
-        auto min = strings::Tof(Get(map, "rm"));
+        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "rm"), Get(map, "r"));
+        if (!minmax) {
+          return false;
+        }
+        auto [min, max] = *minmax;
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Distance, min, max));
         Erase(map, "r");
         Erase(map, "rm");
       } else if (k == "level") {
-        if (auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v); level) {
-          parsed.push_back(level);
+        auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v);
+        if (!level) {
+          return false;
         }
+        parsed.push_back(level);
       } else if (k == "l" || k == "lm") {
-        auto max = strings::Tof(Get(map, "l"));
-        auto min = strings::Tof(Get(map, "lm"));
+        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "lm"), Get(map, "l"));
+        if (!minmax) {
+          return false;
+        }
+        auto [min, max] = *minmax;
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Level, min, max));
         Erase(map, "l");
         Erase(map, "lm");
       } else if (k == "x_rotation") {
-        if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v); p) {
-          parsed.push_back(p);
+        auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v);
+        if (!p) {
+          return false;
         }
+        parsed.push_back(p);
       } else if (k == "rx" || k == "rxm") {
-        auto max = strings::Tof(Get(map, "rx"));
-        auto min = strings::Tof(Get(map, "rxm"));
+        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "rxm"), Get(map, "rx"));
+        if (!minmax) {
+          return false;
+        }
+        auto [min, max] = *minmax;
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::XRotation, min, max));
         Erase(map, "rx");
         Erase(map, "rxm");
       } else if (k == "y_rotation") {
-        if (auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v); p) {
-          parsed.push_back(p);
+        auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v);
+        if (!p) {
+          return false;
         }
+        parsed.push_back(p);
       } else if (k == "ry" || k == "rym") {
-        auto max = strings::Tof(Get(map, "ry"));
-        auto min = strings::Tof(Get(map, "rym"));
+        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "rym"), Get(map, "ry"));
+        if (!minmax) {
+          return false;
+        }
+        auto [min, max] = *minmax;
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::YRotation, min, max));
         Erase(map, "ry");
         Erase(map, "rym");
@@ -316,6 +359,7 @@ private:
       }
       Erase(map, k);
     }
+    return true;
   }
 
   static std::optional<std::pair<std::string, std::string>> ParseArgument(std::string const &body, std::string const &replaced, size_t &pos) {

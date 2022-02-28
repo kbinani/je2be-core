@@ -98,7 +98,10 @@ private:
 
     shared_ptr<Token> suffixToken;
 
-    auto replaced = Token::EscapeStringLiteralContents(command);
+    string replaced;
+    if (!Token::EscapeStringLiteralContents(command, &replaced)) {
+      return false;
+    }
     auto comment = replaced.find('#');
     if (comment == string::npos) {
       if (!suffix.empty()) {

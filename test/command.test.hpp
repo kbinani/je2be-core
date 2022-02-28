@@ -7,8 +7,9 @@ TEST_CASE("command") {
   unordered_map<string, string> expected = {
       {"/function  function_namespace:function_name ", "/function  function_namespace/function_name "},
       {"  function  function_namespace:function_name\x0d", "  function  function_namespace/function_name\x0d"},
-      {"say \"function foo:bar\"", "say \"function foo:bar\""},
+      {"say \"function foo:bar\" #foo", "say \"function foo:bar\" #foo"},
       {"say  \"incomplete quoated string", "say  \"incomplete quoated string"},
+      {R"(say "incomplete quoted string with function/something @e[type=zombie,distance=..2])", R"(say "incomplete quoted string with function/something @e[type=zombie,distance=..2])"},
       {"say \"function foo:bar\\\"\"", "say \"function foo:bar\\\"\""},
       {"  say \"foo#\" #  function foo:bar #baz", "  say \"foo#\" #  function foo:bar #baz"},
       {"@e[x=1,dx=4,y=2,dy=5,z=3,dz=6]", "@e[x=1,dx=4,y=2,dy=5,z=3,dz=6]"},
@@ -26,6 +27,7 @@ TEST_CASE("command") {
       {"tp @a[gamemode=survival] @s", "tp @a[m=survival] @s"},
 
       {R"(tp @a[team="@e[type=foo,distance=1]",limit=1] @s)", R"(tp @a[team="@e[type=foo,distance=1]",c=1] @s)"},
+      {"tp @a[distance=1..invalid]", "tp @a[distance=1..invalid]"},
   };
   for (auto const &it : expected) {
     CHECK(Command::TranspileJavaToBedrock(it.first) == it.second);
