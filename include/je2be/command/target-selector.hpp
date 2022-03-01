@@ -80,55 +80,21 @@ enum class NumberArgumentType {
 
 struct RangedNumberArgument : public Argument {
   NumberArgumentType const fType;
-  std::optional<float> fMinimum;
-  std::optional<float> fMaximum;
+  std::string fMinimum;
+  std::string fMaximum;
 
-  RangedNumberArgument(NumberArgumentType type, std::optional<float> min, std::optional<float> max) : fType(type), fMinimum(min), fMaximum(max) {
-  }
-
-  static std::optional<std::tuple<std::optional<float>, std::optional<float>>> ParseMinAndMax(std::string const &min, std::string const &max) {
-    auto fMin = strings::Tof(min);
-    auto fMax = strings::Tof(max);
-    if (!min.empty() && !fMin) {
-      return std::nullopt;
-    }
-    if (!max.empty() && !fMax) {
-      return std::nullopt;
-    }
-    if (!fMin && !fMax) {
-      return std::nullopt;
-    }
-    return make_tuple(fMin, fMax);
+  RangedNumberArgument(NumberArgumentType type, std::string const &min, std::string const &max) : fType(type), fMinimum(min), fMaximum(max) {
   }
 
   static std::shared_ptr<RangedNumberArgument> ParseJava(NumberArgumentType type, std::string const &value) {
     using namespace std;
     size_t range = value.find("..");
     if (range != string::npos) {
-      auto first = value.substr(0, range);
-      auto second = value.substr(range + 2);
-      auto parsed = ParseMinAndMax(first, second);
-      if (!parsed) {
-        return nullptr;
-      }
-      auto [fMin, fMax] = *parsed;
-      return make_shared<RangedNumberArgument>(type, fMin, fMax);
+      auto min = value.substr(0, range);
+      auto max = value.substr(range + 2);
+      return make_shared<RangedNumberArgument>(type, min, max);
     } else {
-      auto vf = strings::Tof(value);
-      if (vf) {
-        return make_shared<RangedNumberArgument>(type, *vf, *vf);
-      }
-    }
-    return nullptr;
-  }
-
-  static std::string ToString(float v) {
-    if (v == roundf(v)) {
-      return std::to_string((int)v);
-    } else {
-      std::ostringstream ss;
-      ss << v;
-      return ss.str();
+      return make_shared<RangedNumberArgument>(type, value, value);
     }
   }
 
@@ -161,11 +127,11 @@ struct RangedNumberArgument : public Argument {
       default:
         return;
       }
-      if (fMinimum) {
-        buffer.push_back(make_pair(min, ToString(*fMinimum)));
+      if (!fMinimum.empty()) {
+        buffer.push_back(make_pair(min, fMinimum));
       }
-      if (fMaximum) {
-        buffer.push_back(make_pair(max, ToString(*fMaximum)));
+      if (!fMaximum.empty()) {
+        buffer.push_back(make_pair(max, fMaximum));
       }
     } else {
       string name;
@@ -189,16 +155,16 @@ struct RangedNumberArgument : public Argument {
       default:
         return;
       }
-      if (fMinimum && fMaximum) {
-        if (*fMinimum == *fMaximum) {
-          buffer.push_back(make_pair(name, ToString(*fMaximum)));
+      if (!fMinimum.empty() && !fMaximum.empty()) {
+        if (fMinimum == fMaximum) {
+          buffer.push_back(make_pair(name, fMaximum));
         } else {
-          buffer.push_back(make_pair(name, ToString(*fMinimum) + ".." + ToString(*fMaximum)));
+          buffer.push_back(make_pair(name, fMinimum + ".." + fMaximum));
         }
-      } else if (fMinimum) {
-        buffer.push_back(make_pair(name, ToString(*fMinimum) + ".."));
-      } else if (fMaximum) {
-        buffer.push_back(make_pair(name, ".." + ToString(*fMaximum)));
+      } else if (!fMinimum.empty()) {
+        buffer.push_back(make_pair(name, fMinimum + ".."));
+      } else if (!fMaximum.empty()) {
+        buffer.push_back(make_pair(name, ".." + fMaximum));
       }
     }
   }
@@ -284,10 +250,10 @@ private:
 
   static bool ParseRawArguments(std::vector<std::pair<std::string, std::string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
     using namespace std;
-    vector<pair<string, string>> map(raw);
+    vector<pair<string, string>> args(raw);
 
-    while (!map.empty()) {
-      auto pair = *map.begin();
+    while (!args.empty()) {
+      auto pair = args[0];
       string k = pair.first;
       string v = pair.second;
       if (k == "distance") {
@@ -297,14 +263,11 @@ private:
         }
         parsed.push_back(distance);
       } else if (k == "r" || k == "rm") {
-        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "rm"), Get(map, "r"));
-        if (!minmax) {
-          return false;
-        }
-        auto [min, max] = *minmax;
+        auto min = Get(args, "rm");
+        auto max = Get(args, "r");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Distance, min, max));
-        Erase(map, "r");
-        Erase(map, "rm");
+        Erase(args, "r");
+        Erase(args, "rm");
       } else if (k == "level") {
         auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v);
         if (!level) {
@@ -312,14 +275,11 @@ private:
         }
         parsed.push_back(level);
       } else if (k == "l" || k == "lm") {
-        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "lm"), Get(map, "l"));
-        if (!minmax) {
-          return false;
-        }
-        auto [min, max] = *minmax;
+        auto min = Get(args, "lm");
+        auto max = Get(args, "l");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Level, min, max));
-        Erase(map, "l");
-        Erase(map, "lm");
+        Erase(args, "l");
+        Erase(args, "lm");
       } else if (k == "x_rotation") {
         auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v);
         if (!p) {
@@ -327,14 +287,11 @@ private:
         }
         parsed.push_back(p);
       } else if (k == "rx" || k == "rxm") {
-        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "rxm"), Get(map, "rx"));
-        if (!minmax) {
-          return false;
-        }
-        auto [min, max] = *minmax;
+        auto min = Get(args, "rxm");
+        auto max = Get(args, "rx");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::XRotation, min, max));
-        Erase(map, "rx");
-        Erase(map, "rxm");
+        Erase(args, "rx");
+        Erase(args, "rxm");
       } else if (k == "y_rotation") {
         auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v);
         if (!p) {
@@ -342,14 +299,11 @@ private:
         }
         parsed.push_back(p);
       } else if (k == "ry" || k == "rym") {
-        auto minmax = RangedNumberArgument::ParseMinAndMax(Get(map, "rym"), Get(map, "ry"));
-        if (!minmax) {
-          return false;
-        }
-        auto [min, max] = *minmax;
+        auto min = Get(args, "rym");
+        auto max = Get(args, "ry");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::YRotation, min, max));
-        Erase(map, "ry");
-        Erase(map, "rym");
+        Erase(args, "ry");
+        Erase(args, "rym");
       } else if (k == "gamemode" || k == "m") {
         parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::GameMode, v));
       } else if (k == "limit" || k == "c") {
@@ -357,7 +311,7 @@ private:
       } else {
         parsed.push_back(make_shared<SimpleArgument>(k, v));
       }
-      Erase(map, k);
+      Erase(args, k);
     }
     return true;
   }
