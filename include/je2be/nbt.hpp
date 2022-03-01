@@ -16,6 +16,20 @@ using ShortTag = mcfile::nbt::ShortTag;
 using StringTag = mcfile::nbt::StringTag;
 using Tag = mcfile::nbt::Tag;
 
+using CompoundTagPtr = std::shared_ptr<CompoundTag>;
+using ByteArrayTagPtr = std::shared_ptr<ByteArrayTag>;
+using ByteTagPtr = std::shared_ptr<ByteTag>;
+using DoubleTagPtr = std::shared_ptr<DoubleTag>;
+using FloatTagPtr = std::shared_ptr<FloatTag>;
+using IntArrayTagPtr = std::shared_ptr<IntArrayTag>;
+using IntTagPtr = std::shared_ptr<IntTag>;
+using ListTagPtr = std::shared_ptr<ListTag>;
+using LongArrayTagPtr = std::shared_ptr<LongArrayTag>;
+using LongTagPtr = std::shared_ptr<LongTag>;
+using ShortTagPtr = std::shared_ptr<ShortTag>;
+using StringTagPtr = std::shared_ptr<StringTag>;
+using TagPtr = std::shared_ptr<Tag>;
+
 static inline std::shared_ptr<ByteTag> Bool(bool b) {
   return std::make_shared<ByteTag>(b ? 1 : 0);
 }

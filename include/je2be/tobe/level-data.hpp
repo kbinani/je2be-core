@@ -86,13 +86,12 @@ public:
   int64_t fMaxChunkLastUpdate = 0;
   int64_t const fGameTick;
 
-  struct RootVehicle {
+  struct PlayerAttachedEntities {
     mcfile::Dimension fDim;
-    Pos2i fChunk;
     int64_t fLocalPlayerUid;
-    std::shared_ptr<CompoundTag> fVehicle;
+    std::optional<std::pair<Pos2i, CompoundTagPtr>> fVehicle;
   };
-  std::optional<RootVehicle> fRootVehicle;
+  std::optional<PlayerAttachedEntities> fPlayerAttachedEntities;
 };
 
 } // namespace je2be::tobe

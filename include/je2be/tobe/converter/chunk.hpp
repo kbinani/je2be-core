@@ -13,8 +13,8 @@ public:
     bool fOk;
   };
 
-  struct RootVehicle {
-    std::shared_ptr<CompoundTag> fVehicle;
+  struct PlayerAttachedEntities {
+    CompoundTagPtr fVehicle;
     int64_t fLocalPlayerUid;
   };
 
@@ -25,7 +25,7 @@ public:
                         int cx, int cz,
                         JavaEditionMap mapInfo,
                         std::filesystem::path entitiesDir,
-                        std::optional<RootVehicle> rootVehicle,
+                        std::optional<PlayerAttachedEntities> playerAttachedEntities,
                         int64_t gameTick) {
     using namespace std;
     using namespace mcfile;
@@ -45,7 +45,7 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, rootVehicle, gameTick);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, playerAttachedEntities, gameTick);
       return r;
     } catch (...) {
       Chunk::Result r;
@@ -62,7 +62,7 @@ public:
                                                   DbInterface &db,
                                                   JavaEditionMap const &mapInfo,
                                                   std::filesystem::path entitiesDir,
-                                                  std::optional<RootVehicle> rootVehicle,
+                                                  std::optional<PlayerAttachedEntities> playerAttachedEntities,
                                                   int64_t gameTick) {
     using namespace std;
     using namespace mcfile;
@@ -159,26 +159,28 @@ public:
       return nullptr;
     }
 
-    if (rootVehicle) {
-      if (auto result = Entity::From(*rootVehicle->fVehicle, ctx); result.fEntity) {
-        if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
-          auto replace = List<Tag::Type::Compound>();
-          auto localPlayer = Compound();
-          localPlayer->set("entityID", Long(rootVehicle->fLocalPlayerUid));
-          localPlayer->set("linkID", Int(0));
-          replace->push_back(localPlayer);
-          for (int i = 0; i < linksTag->size(); i++) {
-            auto item = linksTag->at(i);
-            if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
-              link->set("linkID", Int(i + 1));
-              replace->push_back(link);
+    if (playerAttachedEntities) {
+      if (playerAttachedEntities->fVehicle) {
+        if (auto result = Entity::From(*playerAttachedEntities->fVehicle, ctx); result.fEntity) {
+          if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
+            auto replace = List<Tag::Type::Compound>();
+            auto localPlayer = Compound();
+            localPlayer->set("entityID", Long(playerAttachedEntities->fLocalPlayerUid));
+            localPlayer->set("linkID", Int(0));
+            replace->push_back(localPlayer);
+            for (int i = 0; i < linksTag->size(); i++) {
+              auto item = linksTag->at(i);
+              if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
+                link->set("linkID", Int(i + 1));
+                replace->push_back(link);
+              }
             }
+            result.fEntity->set("LinksTag", replace);
           }
-          result.fEntity->set("LinksTag", replace);
+          Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
+          entities[chunkPos].push_back(result.fEntity);
+          copy(result.fPassengers.begin(), result.fPassengers.end(), back_inserter(entities[chunkPos]));
         }
-        Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
-        entities[chunkPos].push_back(result.fEntity);
-        copy(result.fPassengers.begin(), result.fPassengers.end(), back_inserter(entities[chunkPos]));
       }
     }
 

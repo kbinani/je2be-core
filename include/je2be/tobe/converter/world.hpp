@@ -37,11 +37,11 @@ public:
             }
           }
           fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          optional<Chunk::RootVehicle> rootVehicle;
-          if (ld.fRootVehicle && ld.fRootVehicle->fDim == dim && ld.fRootVehicle->fChunk == Pos2i(cx, cz)) {
-            Chunk::RootVehicle rv;
-            rv.fLocalPlayerUid = ld.fRootVehicle->fLocalPlayerUid;
-            rv.fVehicle = ld.fRootVehicle->fVehicle;
+          optional<Chunk::PlayerAttachedEntities> rootVehicle;
+          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim && ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->first == Pos2i(cx, cz)) {
+            Chunk::PlayerAttachedEntities rv;
+            rv.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
+            rv.fVehicle = ld.fPlayerAttachedEntities->fVehicle->second;
             rootVehicle = rv;
           }
           auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, rootVehicle, ld.fGameTick);
@@ -125,14 +125,14 @@ public:
           }
 
           fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          optional<Chunk::RootVehicle> rootVehicle;
-          if (ld.fRootVehicle && ld.fRootVehicle->fDim == dim && ld.fRootVehicle->fChunk == Pos2i(cx, cz)) {
-            Chunk::RootVehicle rv;
-            rv.fLocalPlayerUid = ld.fRootVehicle->fLocalPlayerUid;
-            rv.fVehicle = ld.fRootVehicle->fVehicle;
-            rootVehicle = rv;
+          optional<Chunk::PlayerAttachedEntities> playerAttachedEntities;
+          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim && ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->first == Pos2i(cx, cz)) {
+            Chunk::PlayerAttachedEntities pae;
+            pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
+            pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->second;
+            playerAttachedEntities = pae;
           }
-          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, rootVehicle, ld.fGameTick)));
+          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick)));
         }
       }
       return true;

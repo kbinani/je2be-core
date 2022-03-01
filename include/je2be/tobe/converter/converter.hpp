@@ -119,12 +119,12 @@ public:
 
     if (auto rootVehicle = player->compoundTag("RootVehicle"); rootVehicle) {
       if (auto entity = rootVehicle->compoundTag("Entity"); entity) {
-        LevelData::RootVehicle rv;
-        rv.fDim = converted->fDimension;
-        rv.fLocalPlayerUid = converted->fUid;
-        rv.fVehicle = entity;
-        rv.fChunk = converted->fChunk;
-        ld.fRootVehicle = rv;
+        LevelData::PlayerAttachedEntities pae;
+        pae.fDim = converted->fDimension;
+        pae.fLocalPlayerUid = converted->fUid;
+        auto vehicle = make_pair(converted->fChunk, entity);
+        pae.fVehicle = vehicle;
+        ld.fPlayerAttachedEntities = pae;
       }
     }
 
