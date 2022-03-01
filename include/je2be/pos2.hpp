@@ -4,6 +4,8 @@ namespace je2be {
 using Pos2i = mcfile::Pos2i;
 using Pos2iHasher = mcfile::Pos2iHasher;
 
+using Pos2d = mcfile::detail::Pos2<double>;
+
 static inline Pos2i Right90(Pos2i vec) {
   constexpr int cos90 = 0;
   constexpr int sin90 = 1;

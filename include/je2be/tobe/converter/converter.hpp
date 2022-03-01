@@ -98,45 +98,109 @@ public:
   }
 
   static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld) {
+    using namespace std;
     using namespace mcfile::stream;
 
     auto data = tag.compoundTag("Data");
     if (!data) {
       return std::nullopt;
     }
-    auto player = data->compoundTag("Player");
-    if (!player) {
+    auto playerJ = data->compoundTag("Player");
+    if (!playerJ) {
       return std::nullopt;
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
     Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick, TileEntity::FromBlockAndTileEntity);
-    auto converted = Entity::LocalPlayer(*player, ctx);
-    if (!converted) {
+    auto playerB = Entity::LocalPlayer(*playerJ, ctx);
+    if (!playerB) {
       return std::nullopt;
     }
     wd.drain(ld);
 
-    if (auto rootVehicle = player->compoundTag("RootVehicle"); rootVehicle) {
+    LevelData::PlayerAttachedEntities pae;
+    pae.fDim = playerB->fDimension;
+    pae.fLocalPlayerUid = playerB->fUid;
+    if (auto rootVehicle = playerJ->compoundTag("RootVehicle"); rootVehicle) {
       if (auto entity = rootVehicle->compoundTag("Entity"); entity) {
-        LevelData::PlayerAttachedEntities pae;
-        pae.fDim = converted->fDimension;
-        pae.fLocalPlayerUid = converted->fUid;
-        auto vehicle = make_pair(converted->fChunk, entity);
+        auto vehicle = make_pair(playerB->fChunk, entity);
         pae.fVehicle = vehicle;
-        ld.fPlayerAttachedEntities = pae;
       }
     }
 
-    auto s = std::make_shared<ByteStream>();
-    OutputStreamWriter w(s, std::endian::little);
-    if (!converted->fEntity->writeAsRoot(w)) {
-      return std::nullopt;
+    struct Rider {
+      string fBedrockKey;
+      int fLinkId;
+      float fRotation;
+
+      Rider(string const &bedrockKey, int linkId, float rotation) : fBedrockKey(bedrockKey), fLinkId(linkId), fRotation(rotation) {}
+    };
+    double const kDistanceToPlayer = 0.4123145064147021;        // distance between player and parrot.
+    double const kAngleAgainstPlayerFacing = 104.0364421885305; // angle in degrees
+    auto linksTag = List<Tag::Type::Compound>();
+    for (auto const &key : initializer_list<pair<string, Rider>>({{"ShoulderEntityLeft", Rider("LeftShoulderRiderID", 0, -kAngleAgainstPlayerFacing)}, {"ShoulderEntityRight", Rider("RightShoulderPassengerID", 1, kAngleAgainstPlayerFacing)}})) {
+      auto keyJ = key.first;
+      auto keyB = key.second.fBedrockKey;
+      auto linkId = key.second.fLinkId;
+      auto angle = key.second.fRotation / 180.0f * std::numbers::pi;
+
+      // player: [9.0087, 72.62, 1.96865] yaw: -174.737
+      // riderLeft: [8.60121, 72.42, 2.03154]
+      // riderRight: [9.39784, 72.42, 2.10492]
+      // https://gyazo.com/e797402bff04e5c3db9bae4bd1730629
+      auto shoulderEntity = playerJ->compoundTag(keyJ);
+      if (!shoulderEntity) {
+        continue;
+      }
+      auto pos = props::GetPos3f(*playerB->fEntity, "Pos");
+      if (!pos) {
+        continue;
+      }
+      auto rot = props::GetRotation(*playerJ, "Rotation");
+      if (!rot) {
+        continue;
+      }
+      float yaw = (rot->fYaw + 90.0) / 180.0 * std::numbers::pi;
+      Pos2d facing = Pos2d(kDistanceToPlayer, 0).rotated(yaw);
+      Pos2d rider = facing.rotated(angle);
+      Pos2d riderPos2d = Pos2d(pos->fX, pos->fZ) + rider;
+      Pos3f riderPos3f(riderPos2d.fX, pos->fY - 0.2, riderPos2d.fZ);
+
+      if (auto riderB = Entity::From(*shoulderEntity, ctx); riderB.fEntity) {
+        auto id = riderB.fEntity->int64("UniqueID");
+        if (id) {
+          riderB.fEntity->set("Pos", riderPos3f.toListTag());
+
+          int cx = mcfile::Coordinate::ChunkFromBlock((int)floorf(riderPos3f.fX));
+          int cz = mcfile::Coordinate::ChunkFromBlock((int)floorf(riderPos3f.fZ));
+          Pos2i chunkPos(cx, cz);
+          pae.fShoulderRiders.push_back(make_pair(chunkPos, riderB.fEntity));
+
+          playerB->fEntity->set(keyB, Long(*id));
+
+          auto link = Compound();
+          link->set("entityID", Long(*id));
+          link->set("linkID", Int(linkId));
+          linksTag->push_back(link);
+        }
+      }
+    }
+    if (!linksTag->empty()) {
+      playerB->fEntity->set("LinksTag", linksTag);
+    }
+    if (pae.fVehicle || !pae.fShoulderRiders.empty()) {
+      ld.fPlayerAttachedEntities = pae;
     }
 
-    std::vector<uint8_t> buffer;
+    auto s = make_shared<ByteStream>();
+    OutputStreamWriter w(s, endian::little);
+    if (!playerB->fEntity->writeAsRoot(w)) {
+      return nullopt;
+    }
+
+    vector<uint8_t> buffer;
     s->drain(buffer);
-    std::string ret((char const *)buffer.data(), buffer.size());
+    string ret((char const *)buffer.data(), buffer.size());
     return ret;
   }
 

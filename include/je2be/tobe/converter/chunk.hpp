@@ -15,6 +15,7 @@ public:
 
   struct PlayerAttachedEntities {
     CompoundTagPtr fVehicle;
+    std::vector<CompoundTagPtr> fShoulderRiders;
     int64_t fLocalPlayerUid;
   };
 
@@ -160,6 +161,7 @@ public:
     }
 
     if (playerAttachedEntities) {
+      Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
       if (playerAttachedEntities->fVehicle) {
         if (auto result = Entity::From(*playerAttachedEntities->fVehicle, ctx); result.fEntity) {
           if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
@@ -177,11 +179,12 @@ public:
             }
             result.fEntity->set("LinksTag", replace);
           }
-          Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
           entities[chunkPos].push_back(result.fEntity);
           copy(result.fPassengers.begin(), result.fPassengers.end(), back_inserter(entities[chunkPos]));
         }
       }
+
+      copy(playerAttachedEntities->fShoulderRiders.begin(), playerAttachedEntities->fShoulderRiders.end(), back_inserter(entities[chunkPos]));
     }
 
     if (!cd.put(db)) {

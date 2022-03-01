@@ -97,8 +97,9 @@ public:
       JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
+          Pos2i chunkPos(cx, cz);
           if (!options.fChunkFilter.empty()) [[unlikely]] {
-            if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
+            if (options.fChunkFilter.find(chunkPos) == options.fChunkFilter.end()) {
               done++;
               continue;
             }
@@ -126,11 +127,24 @@ public:
 
           fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
           optional<Chunk::PlayerAttachedEntities> playerAttachedEntities;
-          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim && ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->first == Pos2i(cx, cz)) {
-            Chunk::PlayerAttachedEntities pae;
-            pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
-            pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->second;
-            playerAttachedEntities = pae;
+          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim) {
+            if (ld.fPlayerAttachedEntities->fVehicle || !ld.fPlayerAttachedEntities->fShoulderRiders.empty()) {
+              Chunk::PlayerAttachedEntities pae;
+              if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->first == chunkPos) {
+                pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
+                pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->second;
+                ld.fPlayerAttachedEntities->fVehicle = nullopt;
+              }
+              for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {
+                auto const &rider = ld.fPlayerAttachedEntities->fShoulderRiders[i];
+                if (rider.first == chunkPos) {
+                  pae.fShoulderRiders.push_back(rider.second);
+                  ld.fPlayerAttachedEntities->fShoulderRiders.erase(ld.fPlayerAttachedEntities->fShoulderRiders.begin() + i);
+                  i--;
+                }
+              }
+              playerAttachedEntities = pae;
+            }
           }
           futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick)));
         }

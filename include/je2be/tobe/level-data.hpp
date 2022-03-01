@@ -90,6 +90,7 @@ public:
     mcfile::Dimension fDim;
     int64_t fLocalPlayerUid;
     std::optional<std::pair<Pos2i, CompoundTagPtr>> fVehicle;
+    std::vector<std::pair<Pos2i, CompoundTagPtr>> fShoulderRiders;
   };
   std::optional<PlayerAttachedEntities> fPlayerAttachedEntities;
 };
