@@ -245,9 +245,18 @@ public:
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j["Type"] = String(type);
 
-    auto rotB = props::GetRotation(b, "Rotation");
-    je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
-    j["Rotation"] = rotJ.toListTag();
+    if (auto rotB = props::GetRotation(b, "Rotation"); rotB) {
+      je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
+      j["Rotation"] = rotJ.toListTag();
+    }
+
+    if (auto posB = props::GetPos3f(b, "Pos"); posB) {
+      auto posJ = posB->toD();
+      if (b.boolean("OnGround", false)) {
+        posJ.fY = round(posB->fY - 0.375);
+      }
+      j["Pos"] = posJ.toListTag();
+    }
   }
 
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
