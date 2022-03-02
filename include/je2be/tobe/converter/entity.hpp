@@ -1990,7 +1990,7 @@ private:
     return bedrock;
   }
 
-  static std::shared_ptr<ListTag> InitItemList(uint32_t capacity) {
+  static ListTagPtr InitItemList(uint32_t capacity) {
     auto items = List<Tag::Type::Compound>();
     for (int i = 0; i < capacity; i++) {
       auto empty = Item::Empty();
@@ -2001,7 +2001,7 @@ private:
     return items;
   }
 
-  static std::shared_ptr<ListTag> ConvertAnyItemList(std::shared_ptr<ListTag> const &input, uint32_t capacity, Context const &ctx) {
+  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, uint32_t capacity, Context const &ctx) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -2082,7 +2082,7 @@ private:
     tag["definitions"] = d;
   }
 
-  static std::shared_ptr<ListTag> GetArmor(CompoundTag const &tag, ConverterContext &ctx) {
+  static ListTagPtr GetArmor(CompoundTag const &tag, ConverterContext &ctx) {
     auto armors = List<Tag::Type::Compound>();
     for (int i = 0; i < 4; i++) {
       armors->push_back(Item::Empty());
@@ -2114,12 +2114,12 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<ListTag> GetMainhand(CompoundTag const &input, ConverterContext &ctx) { return HandItem<0>(input, ctx); }
+  static ListTagPtr GetMainhand(CompoundTag const &input, ConverterContext &ctx) { return HandItem<0>(input, ctx); }
 
-  static std::shared_ptr<ListTag> GetOffhand(CompoundTag const &input, ConverterContext &ctx) { return HandItem<1>(input, ctx); }
+  static ListTagPtr GetOffhand(CompoundTag const &input, ConverterContext &ctx) { return HandItem<1>(input, ctx); }
 
   template <size_t index>
-  static std::shared_ptr<ListTag> HandItem(CompoundTag const &input, ConverterContext &ctx) {
+  static ListTagPtr HandItem(CompoundTag const &input, ConverterContext &ctx) {
     auto ret = List<Tag::Type::Compound>();
 
     auto mainHand = input.listTag("HandItems");

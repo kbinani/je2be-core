@@ -1201,7 +1201,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<ListTag> GetItems(CompoundTagPtr const &c, std::string const &name, Context const &ctx) {
+  static ListTagPtr GetItems(CompoundTagPtr const &c, std::string const &name, Context const &ctx) {
     auto tag = List<Tag::Type::Compound>();
     auto list = GetList(c, name);
     if (list == nullptr) {

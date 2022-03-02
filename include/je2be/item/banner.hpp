@@ -13,7 +13,7 @@ public:
     return c;
   }
 
-  static std::shared_ptr<ListTag> OminousBannerPatterns() {
+  static ListTagPtr OminousBannerPatterns() {
     auto p = List<Tag::Type::Compound>();
     p->push_back(BannerPattern(9, "mr"));
     p->push_back(BannerPattern(8, "bs"));

@@ -166,7 +166,7 @@ public:
 
   static bool AttachPassengers(Pos2i chunk,
                                Context &ctx,
-                               std::shared_ptr<ListTag> const &entities,
+                               ListTagPtr const &entities,
                                std::filesystem::path dir,
                                std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;

@@ -88,7 +88,7 @@ struct Uuid {
     return s.str();
   }
 
-  std::shared_ptr<ListTag> toListTag() const {
+  ListTagPtr toListTag() const {
     auto ret = List<Tag::Type::Int>();
     int32_t v1 = mcfile::I32FromBE(*(int32_t *)fData);
     int32_t v2 = mcfile::I32FromBE(*((int32_t *)fData + 1));
@@ -101,7 +101,7 @@ struct Uuid {
     return ret;
   }
 
-  std::shared_ptr<IntArrayTag> toIntArrayTag() const {
+  IntArrayTagPtr toIntArrayTag() const {
     int32_t v1 = mcfile::I32FromBE(*(int32_t *)fData);
     int32_t v2 = mcfile::I32FromBE(*((int32_t *)fData + 1));
     int32_t v3 = mcfile::I32FromBE(*((int32_t *)fData + 2));

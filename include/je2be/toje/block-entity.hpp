@@ -607,7 +607,7 @@ public:
     return std::make_shared<mcfile::je::Block const>(name, props);
   }
 
-  static std::shared_ptr<ListTag> ContainerItems(CompoundTag const &parent, std::string const &key, Context &ctx) {
+  static ListTagPtr ContainerItems(CompoundTag const &parent, std::string const &key, Context &ctx) {
     using namespace std;
     auto tag = parent.listTag(key);
     if (!tag) {

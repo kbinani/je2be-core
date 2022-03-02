@@ -3,7 +3,7 @@
 namespace je2be {
 
 class EntityAttributes {
-  using AttributesData = std::shared_ptr<ListTag>;
+  using AttributesData = ListTagPtr;
   using Provider = std::function<AttributesData(void)>;
 
 public:
@@ -41,7 +41,7 @@ public:
 
     Attributes(Attribute health, Attribute knockback_resistance, Attribute movement, Attribute underwater_movement, Attribute lava_movement, Attribute follow_range, std::optional<Attribute> attack_damage) : luck(0, 0, 1024), health(health), absorption(0, 0, 16), knockback_resistance(knockback_resistance), movement(movement), underwater_movement(underwater_movement), lava_movement(lava_movement), follow_range(follow_range), attack_damage(attack_damage) {}
 
-    std::shared_ptr<ListTag> toListTag() const {
+    ListTagPtr toListTag() const {
       auto list = List<Tag::Type::Compound>();
       list->push_back(luck.toCompoundTag("luck"));
       list->push_back(health.toCompoundTag("health"));
@@ -71,7 +71,7 @@ public:
     return attrs;
   }
 
-  static std::shared_ptr<ListTag> AnyHorse(CompoundTag const &tag, std::optional<float> currentHealth) {
+  static ListTagPtr AnyHorse(CompoundTag const &tag, std::optional<float> currentHealth) {
     using namespace std;
 
     auto attributes = tag.listTag("Attributes");

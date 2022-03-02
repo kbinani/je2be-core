@@ -10,7 +10,7 @@ class Pos3f : public mcfile::detail::Pos3<float> {
 public:
   Pos3f(float x, float y, float z) : Pos3<float>(x, y, z) {}
 
-  std::shared_ptr<ListTag> toListTag() const {
+  ListTagPtr toListTag() const {
     auto tag = List<Tag::Type::Float>();
     tag->push_back(std::make_shared<FloatTag>(fX));
     tag->push_back(std::make_shared<FloatTag>(fY));
@@ -25,7 +25,7 @@ class Pos3d : public mcfile::detail::Pos3<double> {
 public:
   Pos3d(double x, double y, double z) : Pos3<double>(x, y, z) {}
 
-  std::shared_ptr<ListTag> toListTag() const {
+  ListTagPtr toListTag() const {
     auto tag = List<Tag::Type::Double>();
     tag->push_back(std::make_shared<DoubleTag>(fX));
     tag->push_back(std::make_shared<DoubleTag>(fY));
