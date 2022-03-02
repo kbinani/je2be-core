@@ -20,7 +20,7 @@ public:
     using namespace mcfile::je;
     namespace fs = std::filesystem;
 
-    auto temp = mcfile::File::CreateTempDir(fs::temp_directory_path());
+    auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
     if (!temp) {
       return false;
     }
@@ -89,7 +89,7 @@ public:
     auto queue = make_unique<hwm::task_queue>(concurrency);
     deque<future<Chunk::Result>> futures;
 
-    auto temp = mcfile::File::CreateTempDir(fs::temp_directory_path());
+    auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
     if (!temp) {
       return false;
     }

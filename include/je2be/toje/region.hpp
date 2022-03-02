@@ -17,7 +17,7 @@ public:
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
 
-    auto regionDir = File::CreateTempDir(fs::temp_directory_path());
+    auto regionDir = File::CreateTempDir(parentContext.fTempDirectory);
     if (!regionDir) {
       return nullptr;
     }

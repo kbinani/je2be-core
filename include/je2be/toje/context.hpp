@@ -4,11 +4,12 @@ namespace je2be::toje {
 
 class Context {
   Context(std::endian endian,
+          std::filesystem::path tempDirectory,
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
           int64_t gameTick,
           std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity)
-      : fEndian(endian), fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
+      : fEndian(endian), fTempDirectory(tempDirectory), fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
 
 public:
   struct ChunksInRegion {
@@ -25,6 +26,7 @@ public:
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
+    namespace fs = std::filesystem;
 
     totalChunks = 0;
 
@@ -131,7 +133,8 @@ public:
       }
     }
 
-    return std::shared_ptr<Context>(new Context(endian, mapInfo, structureInfo, gameTick, fromBlockAndBlockEntity));
+    fs::path temp = opt.fTempDirectory ? *opt.fTempDirectory : fs::temp_directory_path();
+    return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, fromBlockAndBlockEntity));
   }
 
   void markMapUuidAsUsed(int64_t uuid) {
@@ -253,7 +256,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    auto ret = std::shared_ptr<Context>(new Context(fEndian, fMapInfo, fStructureInfo, fGameTick, fFromBlockAndBlockEntity));
+    auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fFromBlockAndBlockEntity));
     ret->fLocalPlayer = fLocalPlayer;
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
@@ -348,6 +351,7 @@ public:
 
 public:
   std::endian const fEndian;
+  std::filesystem::path const fTempDirectory;
 
   struct VehicleEntity {
     Pos2i fChunk;

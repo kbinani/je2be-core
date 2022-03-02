@@ -7,6 +7,7 @@ public:
   LevelDirectoryStructure fLevelDirectoryStructure = LevelDirectoryStructure::Vanilla;
   std::unordered_set<mcfile::Dimension> fDimensionFilter;
   std::unordered_set<Pos2i, Pos2iHasher> fChunkFilter;
+  std::optional<std::filesystem::path> fTempDirectory;
 
   std::filesystem::path getWorldDirectory(std::filesystem::path const &root, mcfile::Dimension dim) const {
     using namespace mcfile;
@@ -58,6 +59,10 @@ public:
     default:
       return root / "level.dat";
     }
+  }
+
+  std::filesystem::path getTempDirectory() const {
+    return fTempDirectory ? *fTempDirectory : std::filesystem::temp_directory_path();
   }
 };
 
