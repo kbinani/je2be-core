@@ -101,6 +101,21 @@ public:
         }
       }
     }
+
+    if (auto data = levelDat->compoundTag("Data"); data) {
+      if (auto player = data->compoundTag("Player"); player) {
+        CompoundTagPtr shoulderEntityLeft;
+        CompoundTagPtr shoulderEntityRight;
+        bin->drainShoulderEntities(shoulderEntityLeft, shoulderEntityRight);
+        if (shoulderEntityLeft) {
+          player->set("ShoulderEntityLeft", shoulderEntityLeft);
+        }
+        if (shoulderEntityRight) {
+          player->set("ShoulderEntityRight", shoulderEntityRight);
+        }
+      }
+    }
+
     if (!LevelData::Write(*levelDat, fOutput / "level.dat")) {
       return false;
     }

@@ -193,6 +193,12 @@ public:
 
     if (auto playerData = Player(db, ctx, opt.fLocalPlayer); playerData) {
       ctx.setLocalPlayerIds(playerData->fEntityIdBedrock, playerData->fEntityIdJava);
+      if (playerData->fShoulderEntityLeft) {
+        ctx.setShoulderEntityLeft(*playerData->fShoulderEntityLeft);
+      }
+      if (playerData->fShoulderEntityRight) {
+        ctx.setShoulderEntityRight(*playerData->fShoulderEntityRight);
+      }
       j["Player"] = playerData->fEntity;
     }
 

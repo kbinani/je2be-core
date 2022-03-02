@@ -118,6 +118,10 @@ public:
     }
     e->set("UUID", uuid.toIntArrayTag());
 
+    if (ctx.setShoulderEntityIfItIs(*uid, e)) {
+      return std::nullopt;
+    }
+
     Result r;
 
     auto st = Passengers(uuid, entityB, ctx, r.fPassengers);
@@ -1505,6 +1509,8 @@ public:
     std::shared_ptr<CompoundTag> fEntity;
     int64_t fEntityIdBedrock;
     Uuid fEntityIdJava;
+    std::optional<int64_t> fShoulderEntityLeft;
+    std::optional<int64_t> fShoulderEntityRight;
   };
 
   static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
@@ -1612,6 +1618,9 @@ public:
     }
 
     data.fEntity->erase("id");
+
+    data.fShoulderEntityLeft = b.int64("LeftShoulderRiderID");
+    data.fShoulderEntityRight = b.int64("RightShoulderPassengerID");
 
     return data;
   }

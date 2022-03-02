@@ -148,6 +148,12 @@ public:
     if (!other.fRootVehicle && fRootVehicle) {
       other.fRootVehicle = fRootVehicle;
     }
+    if (!other.fShoulderEntityLeft && fShoulderEntityLeft) {
+      other.fShoulderEntityLeft = fShoulderEntityLeft;
+    }
+    if (!other.fShoulderEntityRight && fShoulderEntityRight) {
+      other.fShoulderEntityRight = fShoulderEntityRight;
+    }
   }
 
   bool postProcess(std::filesystem::path root, leveldb::DB &db) {
@@ -249,6 +255,8 @@ public:
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
     }
+    ret->fShoulderEntityLeftId = fShoulderEntityLeftId;
+    ret->fShoulderEntityRightId = fShoulderEntityRightId;
     return ret;
   }
 
@@ -310,6 +318,31 @@ public:
     return std::nullopt;
   }
 
+  void setShoulderEntityLeft(int64_t uid) {
+    fShoulderEntityLeftId = uid;
+  }
+
+  void setShoulderEntityRight(int64_t uid) {
+    fShoulderEntityRightId = uid;
+  }
+
+  bool setShoulderEntityIfItIs(int64_t uid, CompoundTagPtr entityB) {
+    if (fShoulderEntityLeftId == uid) {
+      fShoulderEntityLeft = entityB;
+      return true;
+    } else if (fShoulderEntityRightId == uid) {
+      fShoulderEntityRight = entityB;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void drainShoulderEntities(CompoundTagPtr &left, CompoundTagPtr &right) {
+    fShoulderEntityLeft.swap(left);
+    fShoulderEntityRight.swap(right);
+  }
+
 public:
   struct VehicleEntity {
     Pos2i fChunk;
@@ -347,6 +380,11 @@ private:
     std::shared_ptr<CompoundTag> fVehicle;
   };
   std::optional<RootVehicle> fRootVehicle;
+
+  std::optional<int64_t> fShoulderEntityLeftId;
+  std::optional<int64_t> fShoulderEntityRightId;
+  CompoundTagPtr fShoulderEntityLeft;
+  CompoundTagPtr fShoulderEntityRight;
 };
 
 } // namespace je2be::toje
