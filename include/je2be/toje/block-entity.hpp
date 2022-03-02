@@ -194,7 +194,10 @@ public:
     using namespace std;
     auto px = tagB.int32("pairx");
     auto pz = tagB.int32("pairz");
+    bool pairlead = tagB.boolean("pairlead", false);
     string type = "single";
+
+    Result r;
 
     if (px && pz) {
       auto facingDirectionA = block.fStates->int32("facing_direction", 0);
@@ -209,13 +212,18 @@ public:
       } else if (pair + Left90(d2) == pos2d) {
         type = "left";
       }
+      if ((type == "right" && !pairlead) || (type == "left" && pairlead)) {
+        // pairlead = true side of chest occupies upper half of the large chest in BE.
+        // On the other hand, in JE, type = right side of chest always occupies upper half of the large chest.
+        // Therefore, it is needed to swap "Items" between two chests in this situation.
+        r.fTakeItemsFrom = Pos3i(*px, pos.fY, *pz);
+      }
     }
     map<string, string> p(blockJ.fProperties);
     p["type"] = type;
-    Result r;
     r.fBlock = BlockFullName(blockJ.fName, p);
     auto te = EmptyFullName(block.fName, pos);
-    if (auto st = LootTable::BedrockToJava(tagB, *te); st == LootTable::State::NoLootTable) {
+    if (auto st = LootTable::BedrockToJava(tagB, *te); st == LootTable::State::NoLootTable && !r.fTakeItemsFrom) {
       auto items = ContainerItems(tagB, "Items", ctx);
       if (items) {
         te->set("Items", items);

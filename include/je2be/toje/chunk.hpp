@@ -62,6 +62,18 @@ public:
         continue;
       }
       if (result->fTileEntity) {
+        if (result->fTakeItemsFrom) {
+          Pos3i pair = *result->fTakeItemsFrom;
+          if (auto pairTileEntity = cache.blockEntityAt(pair); pairTileEntity) {
+            auto items = BlockEntity::ContainerItems(*pairTileEntity, "Items", ctx);
+            if (items) {
+              result->fTileEntity->set("Items", items);
+            } else {
+              result->fTileEntity->erase("Items");
+            }
+          }
+        }
+
         j->fTileEntities[pos] = result->fTileEntity;
       }
       if (result->fBlock) {
