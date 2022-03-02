@@ -77,8 +77,8 @@ private:
 public:
   Portals fPortals;
   JavaEditionMap fJavaEditionMap;
-  std::unordered_map<int32_t, std::shared_ptr<CompoundTag>> fMapItems;
-  std::vector<std::shared_ptr<CompoundTag>> fAutonomousEntities;
+  std::unordered_map<int32_t, CompoundTagPtr> fMapItems;
+  std::vector<CompoundTagPtr> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   Options fOptions;
   Structures fStructures;

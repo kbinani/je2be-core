@@ -11,7 +11,7 @@ public:
     double fX;
     double fZ;
 
-    std::shared_ptr<CompoundTag> toCompoundTag() const {
+    CompoundTagPtr toCompoundTag() const {
       auto ret = Compound();
       ret->set("id", String(fId));
       ret->set("rot", Double(fRot));

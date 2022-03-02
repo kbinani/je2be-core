@@ -189,7 +189,7 @@ public:
   }
 
 private:
-  static std::shared_ptr<CompoundTag> MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader) {
+  static CompoundTagPtr MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;

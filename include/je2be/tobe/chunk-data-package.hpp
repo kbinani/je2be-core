@@ -9,7 +9,7 @@ public:
         fHeightMap(std::make_shared<HeightMap>(mode == ChunkConversionMode::CavesAndCliffs2 ? -4 : 0)) {
   }
 
-  void build(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
+  void build(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
     buildEntities(chunk, ctx, entities);
     buildData2D(chunk, ctx.fWorldData.fDim);
     buildTileEntities(chunk, ctx);
@@ -40,11 +40,11 @@ public:
 
   void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::je::Block const> const &block) { fTileBlocks.insert(make_pair(Pos3i(x, y, z), block)); }
 
-  void addLiquidTick(int order, std::shared_ptr<CompoundTag> const &pendingTick) {
+  void addLiquidTick(int order, CompoundTagPtr const &pendingTick) {
     fLiquidTicks.insert(std::make_pair(order, pendingTick));
   }
 
-  void addTileTick(int order, std::shared_ptr<CompoundTag> const &pendingTick) {
+  void addTileTick(int order, CompoundTagPtr const &pendingTick) {
     fTileTicks.insert(std::make_pair(order, pendingTick));
   }
 
@@ -103,7 +103,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> &entities) {
+  void buildEntities(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
     using namespace std;
     Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
     for (auto e : chunk.fEntities) {
@@ -338,10 +338,10 @@ private:
   std::shared_ptr<mcfile::be::BiomeMap> fBiomeMap;
   std::optional<BiomeMapLegacy> fBiomeMapLegacy;
   std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
-  std::vector<std::shared_ptr<CompoundTag>> fTileEntities;
+  std::vector<CompoundTagPtr> fTileEntities;
   std::optional<int32_t> fFinalizedState;
-  std::map<int, std::shared_ptr<CompoundTag>> fLiquidTicks;
-  std::map<int, std::shared_ptr<CompoundTag>> fTileTicks;
+  std::map<int, CompoundTagPtr> fLiquidTicks;
+  std::map<int, CompoundTagPtr> fTileTicks;
   int64_t fChunkLastUpdate;
 };
 

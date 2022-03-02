@@ -40,7 +40,7 @@ public:
       : fAge(age), fHealth(health), fVariant(VariantFromJava(javaVariant)) {
   }
 
-  std::shared_ptr<CompoundTag> toBucketTag() {
+  CompoundTagPtr toBucketTag() {
     using namespace std;
 
     auto ret = Compound();

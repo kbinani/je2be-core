@@ -292,7 +292,7 @@ public:
     fRootVehicle = rv;
   }
 
-  void setRootVehicleEntity(std::shared_ptr<CompoundTag> const &vehicleEntity) {
+  void setRootVehicleEntity(CompoundTagPtr const &vehicleEntity) {
     assert(fRootVehicle);
     if (!fRootVehicle) {
       return;
@@ -308,7 +308,7 @@ public:
     }
   }
 
-  std::optional<std::pair<Uuid, std::shared_ptr<CompoundTag>>> drainRootVehicle() {
+  std::optional<std::pair<Uuid, CompoundTagPtr>> drainRootVehicle() {
     if (!fRootVehicle) {
       return std::nullopt;
     }
@@ -382,7 +382,7 @@ private:
 
   struct RootVehicle {
     Uuid fUid;
-    std::shared_ptr<CompoundTag> fVehicle;
+    CompoundTagPtr fVehicle;
   };
   std::optional<RootVehicle> fRootVehicle;
 

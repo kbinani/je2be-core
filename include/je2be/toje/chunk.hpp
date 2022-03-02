@@ -247,7 +247,7 @@ public:
     Door::Do(j, cache, accessor);
   }
 
-  static void AttachLeash(Context &ctx, std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities) {
+  static void AttachLeash(Context &ctx, std::unordered_map<Uuid, CompoundTagPtr, UuidHasher, UuidPred> &entities) {
     using namespace std;
     unordered_set<Uuid, UuidHasher, UuidPred> resolvedLeashedEntities;
     for (auto &it : ctx.fLeashedEntities) {
@@ -279,7 +279,7 @@ public:
   }
 
   static void AttachPassengers(Context &ctx,
-                               std::unordered_map<Uuid, std::shared_ptr<CompoundTag>, UuidHasher, UuidPred> &entities) {
+                               std::unordered_map<Uuid, CompoundTagPtr, UuidHasher, UuidPred> &entities) {
     using namespace std;
     unordered_set<Uuid, UuidHasher, UuidPred> resolvedVehicleEntities;
     for (auto &it : ctx.fVehicleEntities) {

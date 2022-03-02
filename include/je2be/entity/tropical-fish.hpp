@@ -31,7 +31,7 @@ public:
     return *(int32_t *)&u;
   }
 
-  std::shared_ptr<CompoundTag> toBedrockBucketTag() const {
+  CompoundTagPtr toBedrockBucketTag() const {
     using namespace std;
     auto ret = Compound();
     auto attributes = EntityAttributes::Mob("minecraft:tropical_fish", nullopt);

@@ -18,7 +18,7 @@ public:
       current = std::min(v, max);
     }
 
-    std::shared_ptr<CompoundTag> toCompoundTag(std::string const &name) const {
+    CompoundTagPtr toCompoundTag(std::string const &name) const {
       auto a = Compound();
       a->set("Base", Float(base));
       a->set("Current", Float(current));

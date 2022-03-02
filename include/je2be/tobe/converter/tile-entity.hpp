@@ -4,11 +4,11 @@ namespace je2be::tobe {
 
 class TileEntity {
 public:
-  using TileEntityData = std::shared_ptr<CompoundTag>;
+  using TileEntityData = CompoundTagPtr;
 
 private:
   using Block = mcfile::je::Block;
-  using Converter = std::function<TileEntityData(Pos3i const &, Block const &, std::shared_ptr<CompoundTag> const &, Context const &ctx)>;
+  using Converter = std::function<TileEntityData(Pos3i const &, Block const &, CompoundTagPtr const &, Context const &ctx)>;
 
 public:
   static bool IsTileEntity(mcfile::blocks::BlockId id) {
@@ -17,9 +17,9 @@ public:
     return found != table.end();
   }
 
-  static std::shared_ptr<CompoundTag> FromBlockAndTileEntity(Pos3i const &pos,
+  static CompoundTagPtr FromBlockAndTileEntity(Pos3i const &pos,
                                                              mcfile::je::Block const &block,
-                                                             std::shared_ptr<CompoundTag> const &tag,
+                                                             CompoundTagPtr const &tag,
                                                              Context const &ctx) {
     using namespace std;
     using namespace mcfile;
@@ -32,7 +32,7 @@ public:
     }
   }
 
-  static std::shared_ptr<CompoundTag> FromBlock(Pos3i const &pos,
+  static CompoundTagPtr FromBlock(Pos3i const &pos,
                                                 mcfile::je::Block const &block,
                                                 Context const &ctx) {
     using namespace std;
@@ -46,7 +46,7 @@ public:
     }
   }
 
-  static bool IsStandaloneTileEntity(std::shared_ptr<CompoundTag> const &tag) {
+  static bool IsStandaloneTileEntity(CompoundTagPtr const &tag) {
     auto id = tag->string("id");
     if (!id) {
       return false;
@@ -58,7 +58,7 @@ public:
     return false;
   }
 
-  static std::optional<std::tuple<std::shared_ptr<CompoundTag>, std::string>> StandaloneTileEntityBlockdData(Pos3i pos, std::shared_ptr<CompoundTag> const &tag) {
+  static std::optional<std::tuple<CompoundTagPtr, std::string>> StandaloneTileEntityBlockdData(Pos3i pos, CompoundTagPtr const &tag) {
     auto id = tag->string("id");
     if (!id) {
       return std::nullopt;
@@ -76,7 +76,7 @@ public:
     return std::nullopt;
   }
 
-  static std::shared_ptr<CompoundTag> StandaloneTileEntityData(std::shared_ptr<CompoundTag> const &tag) {
+  static CompoundTagPtr StandaloneTileEntityData(CompoundTagPtr const &tag) {
     auto id = tag->string("id");
     if (!id) {
       return nullptr;
@@ -277,7 +277,7 @@ private:
     return table;
   }
 
-  static TileEntityData StructureBlock(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -343,7 +343,7 @@ private:
   }
 
   static Converter NamedEmpty(std::string id) {
-    return [id](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) -> TileEntityData {
+    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) -> TileEntityData {
       if (!c) {
         return nullptr;
       }
@@ -351,7 +351,7 @@ private:
     };
   }
 
-  static TileEntityData Hopper(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -360,7 +360,7 @@ private:
     return t;
   }
 
-  static TileEntityData Comparator(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Comparator(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -369,7 +369,7 @@ private:
     return t;
   }
 
-  static TileEntityData Campfire(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Campfire(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
     if (!c) {
       return nullptr;
@@ -395,7 +395,7 @@ private:
     return t;
   }
 
-  static TileEntityData Conduit(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Conduit(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -405,7 +405,7 @@ private:
     return t;
   }
 
-  static TileEntityData Bell(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Bell(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -416,7 +416,7 @@ private:
     return t;
   }
 
-  static TileEntityData EnchantingTable(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData EnchantingTable(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -438,7 +438,7 @@ private:
     return t;
   }
 
-  static TileEntityData EndGateway(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData EndGateway(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
     if (!c) {
       return nullptr;
@@ -469,7 +469,7 @@ private:
     return tag;
   }
 
-  static TileEntityData MovingPiston(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData MovingPiston(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -483,7 +483,7 @@ private:
     return c;
   }
 
-  static TileEntityData CommandBlock(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData CommandBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -525,7 +525,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Beehive(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Beehive(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -595,7 +595,7 @@ private:
   struct PistonArm {
     explicit PistonArm(bool sticky) : sticky(sticky) {}
 
-    TileEntityData operator()(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) const {
+    TileEntityData operator()(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) const {
       if (!c) {
         return nullptr;
       }
@@ -627,7 +627,7 @@ private:
     bool const sticky;
   };
 
-  static TileEntityData Lectern(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Lectern(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -664,7 +664,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Beacon(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Beacon(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     int primary = -1;
     int secondary = -1;
     if (c) {
@@ -683,7 +683,7 @@ private:
     return tag;
   }
 
-  static TileEntityData EndPortal(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData EndPortal(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     auto tag = Compound();
     tag->insert({
         {"id", String("EndPortal")},
@@ -693,7 +693,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Cauldron(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Cauldron(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -703,7 +703,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Jukebox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Jukebox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -727,7 +727,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Note(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Note(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto note = strings::Toi(b.property("note", "0"));
@@ -745,7 +745,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Spawner(std::shared_ptr<CompoundTag> const &c) {
+  static TileEntityData Spawner(CompoundTagPtr const &c) {
     if (!c) {
       return nullptr;
     }
@@ -790,7 +790,7 @@ private:
     return tag;
   }
 
-  static TileEntityData BrewingStand(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData BrewingStand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     if (!c) {
@@ -854,7 +854,7 @@ private:
   }
 
   static Converter AnyStorage(std::string const &name) {
-    return [=](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
       using namespace std;
 
       auto tag = Compound();
@@ -873,7 +873,7 @@ private:
     };
   }
 
-  static TileEntityData Skull(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
     auto tag = Compound();
     auto const &name = b.fName;
@@ -892,7 +892,7 @@ private:
     return tag;
   }
 
-  static TileEntityData PottedBamboo(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData PottedBamboo(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -918,7 +918,7 @@ private:
   }
 
   static Converter PottedPlant(std::string const &name, std::map<std::string, std::string> const &properties) {
-    return [=](Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) -> TileEntityData {
+    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) -> TileEntityData {
       using namespace std;
 
       auto tag = Compound();
@@ -942,7 +942,7 @@ private:
     };
   }
 
-  static TileEntityData PottedSapling(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData PottedSapling(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -967,7 +967,7 @@ private:
     return tag;
   }
 
-  static TileEntityData Banner(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Banner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
     auto tag = Compound();
 
@@ -1080,7 +1080,7 @@ private:
     return found->second;
   }
 
-  static TileEntityData Bed(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Bed(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     auto tag = Compound();
     auto color = BedColor(b.fName);
     tag->insert({
@@ -1092,7 +1092,7 @@ private:
     return tag;
   }
 
-  static TileEntityData ShulkerBox(Pos3i const &pos, Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData ShulkerBox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     auto facing = BlockData::GetFacingDirectionAFromFacing(b);
     auto tag = Compound();
     tag->insert({
@@ -1135,7 +1135,7 @@ private:
     return ret;
   }
 
-  static TileEntityData Sign(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &c, Context const &ctx) {
+  static TileEntityData Sign(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace je2be::props;
     using namespace std;
 
@@ -1168,7 +1168,7 @@ private:
     return tag;
   }
 
-  [[deprecated]] static void Attach(std::shared_ptr<CompoundTag> const &c, Pos3i const &pos, CompoundTag &tag) {
+  [[deprecated]] static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
     tag.set("x", Int(pos.fX));
     tag.set("y", Int(pos.fY));
     tag.set("z", Int(pos.fZ));
@@ -1184,7 +1184,7 @@ private:
     }
   }
 
-  static std::shared_ptr<CompoundTag> Empty(std::string const &name, CompoundTag const &tagJ, Pos3i const &pos) {
+  static CompoundTagPtr Empty(std::string const &name, CompoundTag const &tagJ, Pos3i const &pos) {
     auto ret = Compound();
     ret->set("id", String(name));
     ret->set("x", Int(pos.fX));
@@ -1201,7 +1201,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<ListTag> GetItems(std::shared_ptr<CompoundTag> const &c, std::string const &name, Context const &ctx) {
+  static std::shared_ptr<ListTag> GetItems(CompoundTagPtr const &c, std::string const &name, Context const &ctx) {
     auto tag = List<Tag::Type::Compound>();
     auto list = GetList(c, name);
     if (list == nullptr) {
@@ -1227,7 +1227,7 @@ private:
     return tag;
   }
 
-  static ListTag const *GetList(std::shared_ptr<CompoundTag> const &c, std::string const &name) {
+  static ListTag const *GetList(CompoundTagPtr const &c, std::string const &name) {
     if (!c) {
       return nullptr;
     }
@@ -1238,7 +1238,7 @@ private:
     return found->second->asList();
   }
 
-  static TileEntityData Chest(Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &comp, Context const &ctx) {
+  static TileEntityData Chest(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context const &ctx) {
     using namespace std;
 
     auto type = b.property("type", "single");
@@ -1279,7 +1279,7 @@ private:
   }
 
   static Converter Furnace(std::string id) {
-    return [id](Pos3i const &pos, mcfile::je::Block const &b, std::shared_ptr<CompoundTag> const &comp, Context const &ctx) {
+    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context const &ctx) {
       auto ret = AnyStorage(id)(pos, b, comp, ctx);
       if (comp) {
         auto burnTime = comp->int16("BurnTime");

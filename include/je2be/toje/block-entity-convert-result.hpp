@@ -3,7 +3,7 @@
 namespace je2be::toje {
 
 struct BlockEntityConvertResult {
-  std::shared_ptr<CompoundTag> fTileEntity;
+  CompoundTagPtr fTileEntity;
   std::shared_ptr<mcfile::je::Block const> fBlock;
 };
 

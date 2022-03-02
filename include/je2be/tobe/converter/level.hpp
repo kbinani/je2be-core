@@ -96,7 +96,7 @@ public:
   int32_t fLimitedWorldWidth = 16;
   int32_t fMaxCommandChainLength = 65535;
 
-  std::shared_ptr<CompoundTag> toCompoundTag() const {
+  CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
     root->insert({
         {"abilities", fAbilities.toCompoundTag()},
@@ -424,7 +424,7 @@ public:
     return str;
   }
 
-  static std::shared_ptr<CompoundTag> Read(std::filesystem::path const &javaEditionLevelDat) {
+  static CompoundTagPtr Read(std::filesystem::path const &javaEditionLevelDat) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;

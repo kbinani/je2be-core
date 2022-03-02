@@ -13,9 +13,9 @@ public:
 
   void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) { fPortalBlocks.add(x, y, z, xAxis); }
 
-  void addMap(int32_t javaMapId, std::shared_ptr<CompoundTag> const &item) { fMapItems[javaMapId] = item; }
+  void addMap(int32_t javaMapId, CompoundTagPtr const &item) { fMapItems[javaMapId] = item; }
 
-  void addAutonomousEntity(std::shared_ptr<CompoundTag> const &entity) { fAutonomousEntities.push_back(entity); }
+  void addAutonomousEntity(CompoundTagPtr const &entity) { fAutonomousEntities.push_back(entity); }
 
   void addEndPortal(int32_t x, int32_t y, int32_t z) {
     Pos3i p(x, y, z);
@@ -263,8 +263,8 @@ public:
 
 private:
   PortalBlocks fPortalBlocks;
-  std::unordered_map<int32_t, std::shared_ptr<CompoundTag>> fMapItems;
-  std::vector<std::shared_ptr<CompoundTag>> fAutonomousEntities;
+  std::unordered_map<int32_t, CompoundTagPtr> fMapItems;
+  std::vector<CompoundTagPtr> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
   Statistics fStat;

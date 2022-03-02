@@ -8,10 +8,10 @@ private:
     explicit ConverterContext(Context const &ctx) : fCtx(ctx) {}
 
     Context const &fCtx;
-    std::vector<std::shared_ptr<CompoundTag>> fPassengers;
-    std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
+    std::vector<CompoundTagPtr> fPassengers;
+    std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
   };
-  using Converter = std::function<std::shared_ptr<CompoundTag>(CompoundTag const &, ConverterContext &)>;
+  using Converter = std::function<CompoundTagPtr(CompoundTag const &, ConverterContext &)>;
 
   using Behavior = std::function<void(CompoundTag &, CompoundTag const &, ConverterContext &)>;
 
@@ -19,7 +19,7 @@ private:
     template <class... Arg>
     C(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
 
-    std::shared_ptr<CompoundTag> operator()(CompoundTag const &input, ConverterContext &ctx) const {
+    CompoundTagPtr operator()(CompoundTag const &input, ConverterContext &ctx) const {
       auto c = fBase(input, ctx);
       if (!c) {
         return nullptr;
@@ -39,9 +39,9 @@ public:
   explicit Entity(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
   struct Result {
-    std::shared_ptr<CompoundTag> fEntity;
-    std::vector<std::shared_ptr<CompoundTag>> fPassengers;
-    std::unordered_map<Pos2i, std::vector<std::shared_ptr<CompoundTag>>, Pos2iHasher> fLeashKnots;
+    CompoundTagPtr fEntity;
+    std::vector<CompoundTagPtr> fPassengers;
+    std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
   };
 
   static Result From(CompoundTag const &tag, Context const &ctx) {
@@ -75,7 +75,7 @@ public:
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
-  static std::optional<std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string>> ToTileEntityBlock(CompoundTag const &c) {
+  static std::optional<std::tuple<Pos3i, CompoundTagPtr, std::string>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
     auto id = c.string("id");
     assert(id);
@@ -88,7 +88,7 @@ public:
     return nullopt;
   }
 
-  static std::tuple<Pos3i, std::shared_ptr<CompoundTag>, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
+  static std::tuple<Pos3i, CompoundTagPtr, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
     using namespace std;
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
@@ -144,7 +144,7 @@ public:
     return make_tuple(pos, b, key);
   }
 
-  static std::shared_ptr<CompoundTag> ToTileEntityData(CompoundTag const &c, Context const &ctx) {
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context const &ctx) {
     auto id = c.string("id");
     assert(id);
     if (*id == "minecraft:item_frame") {
@@ -155,7 +155,7 @@ public:
     return nullptr;
   }
 
-  static std::shared_ptr<CompoundTag> ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
     auto tag = Compound();
     auto tileX = c.int32("TileX");
     auto tileY = c.int32("TileY");
@@ -193,7 +193,7 @@ public:
     return *id == "minecraft:item_frame" || *id == "minecraft:glow_item_frame";
   }
 
-  std::shared_ptr<CompoundTag> toCompoundTag() const {
+  CompoundTagPtr toCompoundTag() const {
     using namespace std;
     auto tag = Compound();
     auto tags = List<Tag::Type::Compound>();
@@ -253,7 +253,7 @@ public:
   }
 
   struct LocalPlayerResult {
-    std::shared_ptr<CompoundTag> fEntity;
+    CompoundTagPtr fEntity;
     int64_t fUid;
     mcfile::Dimension fDimension;
     Pos2i fChunk;
@@ -452,7 +452,7 @@ public:
   }
 
 private:
-  static std::shared_ptr<CompoundTag> ItemAtSlot(ListTag const &items, uint32_t slot) {
+  static CompoundTagPtr ItemAtSlot(ListTag const &items, uint32_t slot) {
     for (auto const &it : items) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item) {
@@ -1344,7 +1344,7 @@ private:
         if (!itemJ) {
           continue;
         }
-        std::shared_ptr<CompoundTag> itemB = Item::From(itemJ, ctx.fCtx);
+        CompoundTagPtr itemB = Item::From(itemJ, ctx.fCtx);
         if (!itemB) {
           itemB = Compound();
           itemB->set("Count", Byte(0));
@@ -1379,7 +1379,7 @@ private:
 #pragma endregion
 
 #pragma region Converters
-  static std::shared_ptr<CompoundTag> Animal(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr Animal(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Mob(tag, ctx);
     if (!c) {
       return nullptr;
@@ -1415,7 +1415,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> Default(CompoundTag const &tag) {
+  static CompoundTagPtr Default(CompoundTag const &tag) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1423,7 +1423,7 @@ private:
     return e->toCompoundTag();
   }
 
-  static std::shared_ptr<CompoundTag> EndCrystal(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr EndCrystal(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1446,7 +1446,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> EnderDragon(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr EnderDragon(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Monster(tag, ctx);
     AddDefinition(*c, "-dragon_sitting");
     AddDefinition(*c, "+dragon_flying");
@@ -1466,7 +1466,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> EntityBase(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr EntityBase(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1474,7 +1474,7 @@ private:
     return e->toCompoundTag();
   }
 
-  static std::shared_ptr<CompoundTag> Item(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr Item(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1505,7 +1505,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> LivingEntity(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr LivingEntity(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1554,7 +1554,7 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> Mob(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr Mob(CompoundTag const &tag, ConverterContext &ctx) {
     auto ret = LivingEntity(tag, ctx);
     if (!ret) {
       return ret;
@@ -1587,15 +1587,15 @@ private:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> Monster(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr Monster(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Mob(tag, ctx);
     c->set("SpawnedByNight", Bool(false));
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
+  static CompoundTagPtr Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
-  static std::shared_ptr<CompoundTag> Painting(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
     auto facing = tag.byte("Facing", 0);
     Facing4 f4 = Facing4FromBedrockDirection(facing);
     auto motiveJ = tag.string("Motive", "minecraft:aztec");
@@ -1625,7 +1625,7 @@ private:
     return c;
   }
 
-  static std::shared_ptr<CompoundTag> StorageMinecart(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr StorageMinecart(CompoundTag const &tag, ConverterContext &ctx) {
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1934,7 +1934,7 @@ private:
 #pragma endregion
 
 #pragma region Utilities
-  static std::shared_ptr<CompoundTag> BedrockRecipieFromJava(CompoundTag const &java, ConverterContext &ctx) {
+  static CompoundTagPtr BedrockRecipieFromJava(CompoundTag const &java, ConverterContext &ctx) {
     using namespace std;
 
     auto buyA = java.compoundTag("buy");
@@ -2030,7 +2030,7 @@ private:
     return ret;
   }
 
-  static void AddChestItem(CompoundTag &c, std::shared_ptr<CompoundTag> const &item, int8_t slot, int8_t count) {
+  static void AddChestItem(CompoundTag &c, CompoundTagPtr const &item, int8_t slot, int8_t count) {
     item->set("Slot", Byte(slot));
     item->set("Count", Byte(count));
     auto chestItems = c.listTag("ChestItems");
@@ -2123,7 +2123,7 @@ private:
     auto ret = List<Tag::Type::Compound>();
 
     auto mainHand = input.listTag("HandItems");
-    std::shared_ptr<CompoundTag> item;
+    CompoundTagPtr item;
 
     if (mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
@@ -2213,7 +2213,7 @@ public:
   Pos3f fMotion;
   Pos3f fPos;
   Rotation fRotation;
-  std::vector<std::shared_ptr<CompoundTag>> fTags;
+  std::vector<CompoundTagPtr> fTags;
   bool fChested = false;
   int8_t fColor2 = 0;
   int8_t fColor = 0;

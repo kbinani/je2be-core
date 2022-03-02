@@ -305,7 +305,7 @@ public:
     }
   }
 
-  static std::shared_ptr<CompoundTag> FindEntity(ListTag const &entities, Uuid entityId) {
+  static CompoundTagPtr FindEntity(ListTag const &entities, Uuid entityId) {
     for (auto &entity : entities) {
       auto entityCompound = std::dynamic_pointer_cast<CompoundTag>(entity);
       if (!entityCompound) {

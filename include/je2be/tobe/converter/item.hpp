@@ -4,12 +4,12 @@ namespace je2be::tobe {
 
 class Item {
 private:
-  using ItemData = std::shared_ptr<CompoundTag>;
+  using ItemData = CompoundTagPtr;
   using Converter = std::function<ItemData(std::string const &, CompoundTag const &, Context const &ctx)>;
   using Block = mcfile::je::Block;
 
 public:
-  static std::shared_ptr<CompoundTag> From(std::shared_ptr<CompoundTag> const &item, Context const &ctx) {
+  static CompoundTagPtr From(CompoundTagPtr const &item, Context const &ctx) {
     using namespace std;
 
     static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
@@ -60,7 +60,7 @@ public:
     return type;
   }
 
-  static std::shared_ptr<CompoundTag> Empty() {
+  static CompoundTagPtr Empty() {
     auto armor = Compound();
     armor->set("Count", Byte(0));
     armor->set("Damage", Short(0));

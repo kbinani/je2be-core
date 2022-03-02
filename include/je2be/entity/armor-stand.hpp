@@ -42,7 +42,7 @@ public:
       return Rot(l->at(0)->asFloat()->fValue, l->at(1)->asFloat()->fValue, l->at(2)->asFloat()->fValue);
     }
 
-    std::shared_ptr<CompoundTag> toCompoundTag() const {
+    CompoundTagPtr toCompoundTag() const {
       auto ret = Compound();
       SetRot(fBody, "Body", *ret);
       SetRot(fHead, "Head", *ret);

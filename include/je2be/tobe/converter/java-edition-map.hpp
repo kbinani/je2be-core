@@ -24,7 +24,7 @@ public:
     return true;
   }
 
-  static std::shared_ptr<CompoundTag> Read(std::filesystem::path const &input, Options const &opt, int32_t mapId) {
+  static CompoundTagPtr Read(std::filesystem::path const &input, Options const &opt, int32_t mapId) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;

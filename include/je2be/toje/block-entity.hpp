@@ -633,7 +633,7 @@ public:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> EmptyFullName(std::string const &id, Pos3i const &pos) {
+  static CompoundTagPtr EmptyFullName(std::string const &id, Pos3i const &pos) {
     auto tag = Compound();
     tag->set("id", String(id));
     tag->set("x", Int(pos.fX));
@@ -643,7 +643,7 @@ public:
     return tag;
   }
 
-  static std::shared_ptr<CompoundTag> EmptyShortName(std::string const &id, Pos3i const &pos) {
+  static CompoundTagPtr EmptyShortName(std::string const &id, Pos3i const &pos) {
     return EmptyFullName("minecraft:" + id, pos);
   }
 

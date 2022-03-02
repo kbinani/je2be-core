@@ -7,7 +7,7 @@ class Item {
   using Converter = std::function<std::string(std::string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx)>;
 
 public:
-  static std::shared_ptr<CompoundTag> From(CompoundTag const &tagB, Context &ctx) {
+  static CompoundTagPtr From(CompoundTag const &tagB, Context &ctx) {
     using namespace std;
     auto name = tagB.string("Name");
     if (!name) {

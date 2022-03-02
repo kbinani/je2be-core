@@ -4,7 +4,7 @@ namespace je2be::toje {
 
 class Entity {
 public:
-  static std::shared_ptr<CompoundTag> ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
+  static CompoundTagPtr ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
     auto ret = Compound();
     CompoundTag &t = *ret;
     if (blockJ.fName == "minecraft:glow_frame") {
@@ -88,7 +88,7 @@ public:
 
   struct Result {
     Uuid fUuid;
-    std::shared_ptr<CompoundTag> fEntity;
+    CompoundTagPtr fEntity;
 
     std::map<size_t, Uuid> fPassengers;
     std::optional<int64_t> fLeasherId;
@@ -145,7 +145,7 @@ public:
     return r;
   }
 
-  using Converter = std::function<std::shared_ptr<CompoundTag>(std::string const &id, CompoundTag const &eneityB, Context &ctx)>;
+  using Converter = std::function<CompoundTagPtr(std::string const &id, CompoundTag const &eneityB, Context &ctx)>;
   using Namer = std::function<std::string(std::string const &nameB, CompoundTag const &entityB)>;
   using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx)>;
 
@@ -153,7 +153,7 @@ public:
     template <class... Arg>
     C(Namer namer, Converter base, Arg... behaviors) : fNamer(namer), fBase(base), fBehaviors(std::initializer_list<Behavior>{behaviors...}) {}
 
-    std::shared_ptr<CompoundTag> operator()(std::string const &id, CompoundTag const &entityB, Context &ctx) const {
+    CompoundTagPtr operator()(std::string const &id, CompoundTag const &entityB, Context &ctx) const {
       auto name = fNamer(id, entityB);
       auto t = fBase(id, entityB, ctx);
       t->set("id", String(name));
@@ -797,10 +797,10 @@ public:
     auto armorsJ = List<Tag::Type::Compound>();
     auto chances = List<Tag::Type::Float>();
     if (armorsB) {
-      std::vector<std::shared_ptr<CompoundTag>> armors;
+      std::vector<CompoundTagPtr> armors;
       for (auto const &it : *armorsB) {
         auto armorB = it->asCompound();
-        std::shared_ptr<CompoundTag> armorJ;
+        CompoundTagPtr armorJ;
         if (armorB) {
           armorJ = Item::From(*armorB, ctx);
         }
@@ -914,7 +914,7 @@ public:
     auto identifier = b.string("identifier", "");
     for (std::string key : {"Mainhand", "Offhand"}) {
       auto listB = b.listTag(key);
-      std::shared_ptr<CompoundTag> itemJ;
+      CompoundTagPtr itemJ;
       if (listB && !listB->empty()) {
         auto c = listB->at(0)->asCompound();
         if (c) {
@@ -1053,7 +1053,7 @@ public:
   }
 
   static void Offers(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    std::shared_ptr<CompoundTag> offersB = b.compoundTag("Offers");
+    CompoundTagPtr offersB = b.compoundTag("Offers");
     if (!offersB) {
       offersB = b.compoundTag("persistingOffers");
     }
@@ -1259,7 +1259,7 @@ public:
 #pragma endregion
 
 #pragma region Converters
-  static std::shared_ptr<CompoundTag> Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
+  static CompoundTagPtr Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = LivingEntity(id, b, ctx);
     CompoundTag &j = *ret;
     Age(b, j, ctx);
@@ -1269,7 +1269,7 @@ public:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> Base(std::string const &id, CompoundTag const &b, Context &ctx) {
+  static CompoundTagPtr Base(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = Compound();
     CompoundTag &j = *ret;
     Air(b, j, ctx);
@@ -1283,7 +1283,7 @@ public:
     return ret;
   }
 
-  static std::shared_ptr<CompoundTag> LivingEntity(std::string const &id, CompoundTag const &b, Context &ctx) {
+  static CompoundTagPtr LivingEntity(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = Base(id, b, ctx);
     CompoundTag &j = *ret;
     AbsorptionAmount(b, j, ctx);
@@ -1346,7 +1346,7 @@ public:
     auto chestItems = b.listTag("ChestItems");
     auto items = List<Tag::Type::Compound>();
     if (chestItems) {
-      std::shared_ptr<CompoundTag> subItem;
+      CompoundTagPtr subItem;
       for (auto const &it : *chestItems) {
         auto itemB = it->asCompound();
         if (!itemB) {
@@ -1433,7 +1433,7 @@ public:
     return st;
   }
 
-  static std::shared_ptr<CompoundTag> BuyItem(CompoundTag const &recipeB, std::string const &suffix, Context &ctx) {
+  static CompoundTagPtr BuyItem(CompoundTag const &recipeB, std::string const &suffix, Context &ctx) {
     using namespace std;
     auto buy = recipeB.compoundTag("buy" + suffix);
     if (!buy) {
@@ -1451,7 +1451,7 @@ public:
     return item;
   }
 
-  static std::shared_ptr<CompoundTag> Recipe(CompoundTag const &recipeB, Context &ctx) {
+  static CompoundTagPtr Recipe(CompoundTag const &recipeB, Context &ctx) {
     auto sellB = recipeB.compoundTag("sell");
     if (!sellB) {
       return nullptr;
@@ -1506,7 +1506,7 @@ public:
 #pragma endregion
 
   struct LocalPlayerData {
-    std::shared_ptr<CompoundTag> fEntity;
+    CompoundTagPtr fEntity;
     int64_t fEntityIdBedrock;
     Uuid fEntityIdJava;
     std::optional<int64_t> fShoulderEntityLeft;

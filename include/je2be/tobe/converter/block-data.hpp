@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class BlockData {
 public:
-  static std::shared_ptr<CompoundTag> From(std::shared_ptr<mcfile::je::Block const> const &block) {
+  static CompoundTagPtr From(std::shared_ptr<mcfile::je::Block const> const &block) {
     using namespace std;
     static unique_ptr<vector<AnyConverter> const> const table(CreateConverterTable());
 
@@ -29,12 +29,12 @@ public:
     }
   }
 
-  static std::shared_ptr<CompoundTag> Air() {
-    static std::shared_ptr<CompoundTag> const air = Make("air");
+  static CompoundTagPtr Air() {
+    static CompoundTagPtr const air = Make("air");
     return air;
   }
 
-  static std::shared_ptr<CompoundTag> Make(std::string const &name) {
+  static CompoundTagPtr Make(std::string const &name) {
     auto tag = New(name);
     auto states = States();
     tag->set("states", states);
@@ -50,8 +50,8 @@ public:
 private:
   BlockData() = delete;
 
-  using BlockDataType = std::shared_ptr<CompoundTag>;
-  using StatesType = std::shared_ptr<CompoundTag>;
+  using BlockDataType = CompoundTagPtr;
+  using StatesType = CompoundTagPtr;
   using Block = mcfile::je::Block;
 
   using PropertyType = std::shared_ptr<Tag>;

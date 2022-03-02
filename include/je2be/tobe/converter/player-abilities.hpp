@@ -22,7 +22,7 @@ public:
   bool fTeleport = false;
   float fWalkSpeed = 0.1f;
 
-  std::shared_ptr<CompoundTag> toCompoundTag() const {
+  CompoundTagPtr toCompoundTag() const {
     auto a = Compound();
     a->insert({
         {"attackmobs", Bool(fAttackMobs)},

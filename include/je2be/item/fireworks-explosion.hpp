@@ -70,7 +70,7 @@ public:
     return e;
   }
 
-  std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
+  CompoundTagPtr toBedrockCompoundTag() const {
     auto ret = Compound();
     if (fFlicker) {
       ret->set("FireworkFlicker", Bool(*fFlicker));
@@ -98,7 +98,7 @@ public:
     return ret;
   }
 
-  std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
+  CompoundTagPtr toJavaCompoundTag() const {
     using namespace std;
     auto ret = Compound();
     if (fTrail) {

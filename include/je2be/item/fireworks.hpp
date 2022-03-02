@@ -41,7 +41,7 @@ public:
     return fd;
   }
 
-  std::shared_ptr<CompoundTag> toBedrockCompoundTag() const {
+  CompoundTagPtr toBedrockCompoundTag() const {
     auto ret = Compound();
     auto explosions = List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {
@@ -54,7 +54,7 @@ public:
     return ret;
   }
 
-  std::shared_ptr<CompoundTag> toJavaCompoundTag() const {
+  CompoundTagPtr toJavaCompoundTag() const {
     auto ret = Compound();
     auto explosions = List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {

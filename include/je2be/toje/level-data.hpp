@@ -5,7 +5,7 @@ namespace je2be::toje {
 class LevelData {
 public:
   struct GameRules {
-    static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, std::endian endian) {
+    static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, std::endian endian) {
       auto ret = Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[#__nameJ] = String(b.boolean(#__nameB, __default) ? "true" : "false");
@@ -109,7 +109,7 @@ public:
     return nullopt;
   }
 
-  static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
+  static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
     using namespace std;
 
     auto data = Compound();
@@ -230,7 +230,7 @@ public:
     return root;
   }
 
-  static std::shared_ptr<CompoundTag> FlatWorldSettings(CompoundTag const &b) {
+  static CompoundTagPtr FlatWorldSettings(CompoundTag const &b) {
     using namespace std;
     if (b.int32("Generator") != 2) {
       return nullptr;
@@ -298,7 +298,7 @@ public:
     return Entity::LocalPlayer(*tag, ctx, uuid);
   }
 
-  static std::shared_ptr<CompoundTag> DragonFight(leveldb::DB &db, std::endian endian) {
+  static CompoundTagPtr DragonFight(leveldb::DB &db, std::endian endian) {
     std::string str;
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::TheEnd(), &str); !st.ok()) {
       return nullptr;
