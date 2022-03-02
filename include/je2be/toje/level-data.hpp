@@ -70,24 +70,38 @@ public:
     if (!fis) {
       return nullopt;
     }
-    for (endian e : {endian::little, endian::big}) {
-      if (!fis->seek(0)) {
+    uint16_t versionLo = 0;
+    uint16_t versionHi = 0;
+    if (sizeof(versionLo) != fis->read(&versionLo, sizeof(versionLo))) {
+      return nullopt;
+    }
+    if (sizeof(versionHi) != fis->read(&versionHi, sizeof(versionHi))) {
+      return nullopt;
+    }
+    vector<endian> endians;
+    if (versionLo == 0 && versionHi == 0) {
+      return nullopt;
+    } else {
+      if (versionLo > 0) {
+        endians.push_back(endian::little);
+        endians.push_back(endian::big);
+      } else {
+        endians.push_back(endian::big);
+        endians.push_back(endian::little);
+      }
+      uint32_t size = 0;
+      if (fis->read(&size, sizeof(size)) != sizeof(size)) {
+        return nullopt;
+      }
+    }
+
+    for (endian e : endians) {
+      if (!fis->seek(8)) {
         return nullopt;
       }
       InputStreamReader isr(fis, e);
-      uint32_t version;
-      if (!isr.read(&version)) {
-        return nullopt;
-      }
-      uint32_t size;
-      if (!isr.read(&size)) {
-        return nullopt;
-      }
       auto tag = CompoundTag::Read(isr);
-      if (!tag) {
-        continue;
-      }
-      if (fis->pos() == size + 8) {
+      if (tag) {
         result.swap(tag);
         return e;
       }
