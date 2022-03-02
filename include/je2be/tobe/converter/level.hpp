@@ -211,13 +211,7 @@ public:
     if (!stream->seek(4)) {
       return false;
     }
-    if (!w.write((uint32_t)pos - 8)) {
-      return false;
-    }
-    if (!stream->seek(pos)) {
-      return false;
-    }
-    return w.write((uint8_t)0);
+    return w.write((uint32_t)pos - 8);
   }
 
   static Level Import(CompoundTag const &tag) {
