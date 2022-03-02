@@ -1267,7 +1267,7 @@ private:
         {"isMovable", Bool(true)},
     });
     if (pair) {
-      tag->set("pairlead", Bool(true));
+      tag->set("pairlead", Bool(type == "right"));
       tag->set("pairx", Int(pair->first));
       tag->set("pairz", Int(pair->second));
     }
