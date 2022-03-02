@@ -27,8 +27,9 @@ public:
       return false;
     }
 
-    auto dat = LevelData::Read(fInput / "level.dat");
-    if (!dat) {
+    CompoundTagPtr dat;
+    auto endianness = LevelData::Read(fInput / "level.dat", dat);
+    if (!endianness || !dat) {
       return false;
     }
 

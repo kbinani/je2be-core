@@ -63,27 +63,36 @@ public:
   };
 
 public:
-  static std::shared_ptr<CompoundTag> Read(std::filesystem::path levelDatFile) {
+  static std::optional<std::endian> Read(std::filesystem::path levelDatFile, CompoundTagPtr &result) {
     using namespace std;
     using namespace mcfile::stream;
     auto fis = make_shared<FileInputStream>(levelDatFile);
     if (!fis) {
-      return nullptr;
+      return nullopt;
     }
-    InputStreamReader isr(fis, std::endian::little);
-    uint32_t v0;
-    if (!isr.read(&v0)) {
-      return nullptr;
+    for (endian e : {endian::little, endian::big}) {
+      if (!fis->seek(0)) {
+        return nullopt;
+      }
+      InputStreamReader isr(fis, e);
+      uint32_t version;
+      if (!isr.read(&version)) {
+        return nullopt;
+      }
+      uint32_t size;
+      if (!isr.read(&size)) {
+        return nullopt;
+      }
+      auto tag = CompoundTag::Read(isr);
+      if (!tag) {
+        continue;
+      }
+      if (fis->pos() == size + 8) {
+        result.swap(tag);
+        return e;
+      }
     }
-    uint32_t v1;
-    if (!isr.read(&v1)) {
-      return nullptr;
-    }
-    auto tag = Compound();
-    if (!tag->read(isr)) {
-      return nullptr;
-    }
-    return tag->compoundTag("");
+    return nullopt;
   }
 
   static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
