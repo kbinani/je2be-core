@@ -1530,18 +1530,18 @@ public:
     CopyChestItems(b, "EnderChestInventory", j, "EnderItems", ctx, true);
     CopyChestItems(b, "Inventory", j, "Inventory", ctx, true);
 
-    CopyIntValues(b, j, {{"SelectedInventorySlot", "SelectedItemSlot"}, {"PlayerLevel", "XpLevel"}, {"EnchantmentSeed", "XpSeed"}, {"PlayerGameMode", "playerGameType"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}});
+    CopyIntValues(b, j, {{"SelectedInventorySlot", "SelectedItemSlot"}, {"PlayerLevel", "XpLevel"}, {"EnchantmentSeed", "XpSeed"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}});
     CopyShortValues(b, j, {{"SleepTimer"}});
     CopyFloatValues(b, j, {{"PlayerLevelProgress", "XpP"}});
     CopyBoolValues(b, j, {{"HasSeenCredits", "seenCredits"}});
 
-    if (auto playerGameTypeB = b.int32("playerGameType"); playerGameTypeB) {
-      int32_t playerGameModeJ = *playerGameTypeB;
-      if (*playerGameTypeB == 5) {
-        // playerGameType = 5 when superflat creative. This offset is only seen in creative mode.
-        playerGameModeJ = 1;
+    if (auto playerGameModeB = b.int32("PlayerGameMode"); playerGameModeB) {
+      int32_t playerGameTypeJ = *playerGameModeB;
+      if (*playerGameModeB == 5) {
+        // PlayerGameMode = 5 when superflat creative. This offset is only seen in creative mode.
+        playerGameTypeJ = 1;
       }
-      j["PlayerGameMode"] = Int(playerGameModeJ);
+      j["playerGameType"] = Int(playerGameTypeJ);
     }
 
     auto dimensionB = b.int32("DimensionId", 0);
