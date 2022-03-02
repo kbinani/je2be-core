@@ -15,6 +15,7 @@ public:
 
   struct PlayerAttachedEntities {
     CompoundTagPtr fVehicle;
+    std::vector<CompoundTagPtr> fPassengers;
     std::vector<CompoundTagPtr> fShoulderRiders;
     int64_t fLocalPlayerUid;
   };
@@ -162,28 +163,27 @@ public:
 
     if (playerAttachedEntities) {
       Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
-      if (playerAttachedEntities->fVehicle) {
-        if (auto result = Entity::From(*playerAttachedEntities->fVehicle, ctx); result.fEntity) {
-          if (auto linksTag = result.fEntity->listTag("LinksTag"); linksTag) {
-            auto replace = List<Tag::Type::Compound>();
-            auto localPlayer = Compound();
-            localPlayer->set("entityID", Long(playerAttachedEntities->fLocalPlayerUid));
-            localPlayer->set("linkID", Int(0));
-            replace->push_back(localPlayer);
-            for (int i = 0; i < linksTag->size(); i++) {
-              auto item = linksTag->at(i);
-              if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
-                link->set("linkID", Int(i + 1));
-                replace->push_back(link);
-              }
+      auto vehicleB = playerAttachedEntities->fVehicle;
+      if (vehicleB) {
+        if (auto linksTag = vehicleB->listTag("LinksTag"); linksTag) {
+          auto replace = List<Tag::Type::Compound>();
+          auto localPlayer = Compound();
+          localPlayer->set("entityID", Long(playerAttachedEntities->fLocalPlayerUid));
+          localPlayer->set("linkID", Int(0));
+          replace->push_back(localPlayer);
+          for (int i = 0; i < linksTag->size(); i++) {
+            auto item = linksTag->at(i);
+            if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
+              link->set("linkID", Int(i + 1));
+              replace->push_back(link);
             }
-            result.fEntity->set("LinksTag", replace);
           }
-          entities[chunkPos].push_back(result.fEntity);
-          copy(result.fPassengers.begin(), result.fPassengers.end(), back_inserter(entities[chunkPos]));
+          vehicleB->set("LinksTag", replace);
         }
+        entities[chunkPos].push_back(vehicleB);
       }
 
+      copy(playerAttachedEntities->fPassengers.begin(), playerAttachedEntities->fPassengers.end(), back_inserter(entities[chunkPos]));
       copy(playerAttachedEntities->fShoulderRiders.begin(), playerAttachedEntities->fShoulderRiders.end(), back_inserter(entities[chunkPos]));
     }
 

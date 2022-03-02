@@ -37,14 +37,16 @@ public:
             }
           }
           fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          optional<Chunk::PlayerAttachedEntities> rootVehicle;
-          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim && ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->first == Pos2i(cx, cz)) {
-            Chunk::PlayerAttachedEntities rv;
-            rv.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
-            rv.fVehicle = ld.fPlayerAttachedEntities->fVehicle->second;
-            rootVehicle = rv;
+          optional<Chunk::PlayerAttachedEntities> playerAttachedEntities;
+          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim && ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == Pos2i(cx, cz)) {
+            Chunk::PlayerAttachedEntities pae;
+            pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
+            pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
+            pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
+            playerAttachedEntities = pae;
+            ld.fPlayerAttachedEntities->fVehicle = nullopt;
           }
-          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, rootVehicle, ld.fGameTick);
+          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick);
           if (progress) {
             bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
             if (!continue_) {
@@ -130,9 +132,10 @@ public:
           if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim) {
             if (ld.fPlayerAttachedEntities->fVehicle || !ld.fPlayerAttachedEntities->fShoulderRiders.empty()) {
               Chunk::PlayerAttachedEntities pae;
-              if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->first == chunkPos) {
+              if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == chunkPos) {
                 pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
-                pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->second;
+                pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
+                pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
                 ld.fPlayerAttachedEntities->fVehicle = nullopt;
               }
               for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {

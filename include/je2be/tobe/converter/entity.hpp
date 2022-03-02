@@ -276,10 +276,22 @@ public:
     if (!pos) {
       return nullopt;
     }
+
     // ng 1.620001f
     // ok 1.62001f
-    double offset = 1.62001;
-    pos->fY += offset;
+    double y = pos->fY + 1.62001;
+    if (auto rootVehicle = tag.compoundTag("RootVehicle"); rootVehicle) {
+      if (auto vehicleEntity = rootVehicle->compoundTag("Entity"); vehicleEntity) {
+        auto vehicleId = vehicleEntity->string("id");
+        if (vehicleId == "minecraft:boat") {
+          auto boatPos = GetBoatPos(*vehicleEntity);
+          if (boatPos) {
+            y = boatPos->fY + 1.24501;
+          }
+        }
+      }
+    }
+    pos->fY = y;
     entity->set("Pos", pos->toF().toListTag());
 
     entity->set("format_version", String("1.12.0"));
@@ -654,6 +666,21 @@ private:
     AddDefinition(c, "+find_hive");
   }
 
+  static std::optional<Pos3d> GetBoatPos(CompoundTag const &j) {
+    auto pos = props::GetPos3d(j, "Pos");
+    if (!pos) {
+      return std::nullopt;
+    }
+    auto onGround = j.boolean("OnGround", false);
+    if (onGround) {
+      int iy = (int)floor(pos->fY);
+      pos->fY = iy + 0.375;
+      return *pos;
+    } else {
+      return pos;
+    }
+  }
+
   static void Boat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "+minecraft:boat");
 
@@ -667,13 +694,8 @@ private:
       c["Rotation"] = rot.toListTag();
     }
 
-    auto pos = props::GetPos3d(c, "Pos");
-    auto onGround = c.boolean("OnGround", false);
-    if (pos && onGround) {
-      int iy = (int)floor(pos->fY);
-      pos->fY = iy + 0.35;
-      c["Pos"] = pos->toF().toListTag();
-    }
+    auto pos = GetBoatPos(tag);
+    c["Pos"] = pos->toF().toListTag();
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

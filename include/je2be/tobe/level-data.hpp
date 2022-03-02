@@ -86,10 +86,15 @@ public:
   int64_t fMaxChunkLastUpdate = 0;
   int64_t const fGameTick;
 
+  struct VehicleAndPassengers {
+    Pos2i fChunk;
+    CompoundTagPtr fVehicle;
+    std::vector<CompoundTagPtr> fPassengers;
+  };
   struct PlayerAttachedEntities {
     mcfile::Dimension fDim;
     int64_t fLocalPlayerUid;
-    std::optional<std::pair<Pos2i, CompoundTagPtr>> fVehicle;
+    std::optional<VehicleAndPassengers> fVehicle;
     std::vector<std::pair<Pos2i, CompoundTagPtr>> fShoulderRiders;
   };
   std::optional<PlayerAttachedEntities> fPlayerAttachedEntities;

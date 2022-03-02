@@ -122,9 +122,19 @@ public:
     pae.fDim = playerB->fDimension;
     pae.fLocalPlayerUid = playerB->fUid;
     if (auto rootVehicle = playerJ->compoundTag("RootVehicle"); rootVehicle) {
-      if (auto entity = rootVehicle->compoundTag("Entity"); entity) {
-        auto vehicle = make_pair(playerB->fChunk, entity);
-        pae.fVehicle = vehicle;
+      if (auto entityJ = rootVehicle->compoundTag("Entity"); entityJ) {
+        if (auto entityB = Entity::From(*entityJ, ctx); entityB.fEntity) {
+          LevelData::VehicleAndPassengers vap;
+          vap.fChunk = playerB->fChunk;
+          vap.fVehicle = entityB.fEntity;
+          vap.fPassengers.swap(entityB.fPassengers);
+          pae.fVehicle = vap;
+
+          auto vehicleUid = entityB.fEntity->int64("UniqueID");
+          if (vehicleUid) {
+            playerB->fEntity->set("RideID", Long(*vehicleUid));
+          }
+        }
       }
     }
 
@@ -165,7 +175,8 @@ public:
       Pos2d rider = facing.rotated(angle);
       Pos2d riderPos2d = Pos2d(pos->fX, pos->fZ) + rider;
       Pos3f riderPos3f(riderPos2d.fX, pos->fY - 0.2, riderPos2d.fZ);
-
+      // ground: 71 -> boat: 71.375 -> player: 72.62 -> parrot: 72.42
+      // ground: 71 -> player: 72.62 -> parrot: 72.42
       if (auto riderB = Entity::From(*shoulderEntity, ctx); riderB.fEntity) {
         auto id = riderB.fEntity->int64("UniqueID");
         if (id) {
