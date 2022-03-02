@@ -22,4 +22,5 @@ namespace fs = std::filesystem;
 #include "j2b2j.test.hpp"
 #include "moving-piston.test.hpp"
 #include "research.hpp"
+#include "shoulder-riders.test.hpp"
 #include "volume.test.hpp"
