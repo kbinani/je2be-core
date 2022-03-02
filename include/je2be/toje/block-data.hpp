@@ -4,9 +4,8 @@ namespace je2be::toje {
 
 class BlockData {
   using String = std::string;
-  using States = CompoundTag;
   using Props = std::map<std::string, std::string>;
-  using Converter = std::function<String(String const &bName, States const &s, Props &p)>;
+  using Converter = std::function<String(String const &bName, CompoundTag const &s, Props &p)>;
 
 public:
   static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
@@ -34,7 +33,7 @@ private:
   BlockData() = delete;
 
 #pragma region Converters : A
-  static String Anvil(String const &bName, States const &s, Props &p) {
+  static String Anvil(String const &bName, CompoundTag const &s, Props &p) {
     auto damage = s.string("damage", "undamaged");
     std::string name = "anvil";
     if (damage == "slightly_damaged") {
@@ -49,19 +48,19 @@ private:
     return Ns() + name;
   }
 
-  static String AzaleaLeaves(String const &bName, States const &s, Props &p) {
+  static String AzaleaLeaves(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
     return bName;
   }
 
-  static String AzaleaLeavesFlowered(String const &bName, States const &s, Props &p) {
+  static String AzaleaLeavesFlowered(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
     return Ns() + "flowering_azalea_leaves";
   }
 #pragma endregion
 
 #pragma region Converters : B
-  static String Bamboo(String const &bName, States const &s, Props &p) {
+  static String Bamboo(String const &bName, CompoundTag const &s, Props &p) {
     auto leafSize = s.string("bamboo_leaf_size", "large_leaves");
     std::string leaves = "none";
     if (leafSize == "no_leaves") {
@@ -85,25 +84,25 @@ private:
     return bName;
   }
 
-  static String Barrel(String const &bName, States const &s, Props &p) {
+  static String Barrel(String const &bName, CompoundTag const &s, Props &p) {
     OpenFromOpenBit(s, p);
     Facing6FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String Beehive(String const &bName, States const &s, Props &p) {
+  static String Beehive(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     auto honeyLevel = s.int32("honey_level", 0);
     p["honey_level"] = Int(honeyLevel);
     return bName;
   }
 
-  static String Beetroot(String const &bName, States const &s, Props &p) {
+  static String Beetroot(String const &bName, CompoundTag const &s, Props &p) {
     AgeFromGrowthNonLinear(s, p);
     return Ns() + "beetroots";
   }
 
-  static String Bed(String const &bName, States const &s, Props &p) {
+  static String Bed(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     auto headPiece = s.boolean("head_piece_bit", false);
     auto occupied = s.boolean("occupied_bit", false);
@@ -112,7 +111,7 @@ private:
     return Ns() + "white_bed";
   }
 
-  static String Bell(String const &bName, States const &s, Props &p) {
+  static String Bell(String const &bName, CompoundTag const &s, Props &p) {
     auto attachment = s.string("attachment", "floor");
     auto direction = s.int32("direction", 0);
     auto toggle = s.boolean("toggle_bit", false);
@@ -150,7 +149,7 @@ private:
     return bName;
   }
 
-  static String BigDripleaf(String const &bName, States const &s, Props &p) {
+  static String BigDripleaf(String const &bName, CompoundTag const &s, Props &p) {
     auto head = s.boolean("big_dripleaf_head", false);
     Facing4FromDirectionA(s, p);
     std::string name;
@@ -174,80 +173,80 @@ private:
     return Ns() + name;
   }
 
-  static String BlockWithAge(String const &bName, States const &s, Props &p) {
+  static String BlockWithAge(String const &bName, CompoundTag const &s, Props &p) {
     Age(s, p);
     return bName;
   }
 
-  static String BlockWithAgeFromGrowth(String const &bName, States const &s, Props &p) {
+  static String BlockWithAgeFromGrowth(String const &bName, CompoundTag const &s, Props &p) {
     AgeFromGrowth(s, p);
     return bName;
   }
 
-  static String BlockWithAxisFromPillarAxis(String const &bName, States const &s, Props &p) {
+  static String BlockWithAxisFromPillarAxis(String const &bName, CompoundTag const &s, Props &p) {
     AxisFromPillarAxis(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromDirectionA(String const &bName, States const &s, Props &p) {
+  static String BlockWithFacing4FromDirectionA(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromFacingDirectionA(String const &bName, States const &s, Props &p) {
+  static String BlockWithFacing4FromFacingDirectionA(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromFacingDirectionA(String const &bName, States const &s, Props &p) {
+  static String BlockWithFacing6FromFacingDirectionA(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromFacingDirectionASubmergible(String const &bName, States const &s, Props &p) {
+  static String BlockWithFacing6FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromFacingDirectionASubmergible(String const &bName, States const &s, Props &p) {
+  static String BlockWithFacing4FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromFacingDirection6(String const &bName, States const &s, Props &p) {
+  static String BlockWithFacing6FromFacingDirection6(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionB(s, p);
     return bName;
   }
 
-  static String BlockWithPowerFromRedstoneSignal(String const &bName, States const &s, Props &p) {
+  static String BlockWithPowerFromRedstoneSignal(String const &bName, CompoundTag const &s, Props &p) {
     PowerFromRedstoneSignal(s, p);
     return bName;
   }
 
-  static String BlockWithRotationFromGroundSignDirection(String const &bName, States const &s, Props &p) {
+  static String BlockWithRotationFromGroundSignDirection(String const &bName, CompoundTag const &s, Props &p) {
     RotationFromGroundSignDirection(s, p);
     return bName;
   }
 
-  static String BlockWithSnowy(String const &bName, States const &s, Props &p) {
+  static String BlockWithSnowy(String const &bName, CompoundTag const &s, Props &p) {
     p["snowy"] = "false";
     return bName;
   }
 
-  static String BlockWithSubmergible(String const &bName, States const &s, Props &p) {
+  static String BlockWithSubmergible(String const &bName, CompoundTag const &s, Props &p) {
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithWallProperties(String const &bName, States const &s, Props &p) {
+  static String BlockWithWallProperties(String const &bName, CompoundTag const &s, Props &p) {
     WallProperties(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BrewingStand(String const &bName, States const &s, Props &p) {
+  static String BrewingStand(String const &bName, CompoundTag const &s, Props &p) {
     auto slotA = s.boolean("brewing_stand_slot_a_bit", false);
     auto slotB = s.boolean("brewing_stand_slot_b_bit", false);
     auto slotC = s.boolean("brewing_stand_slot_c_bit", false);
@@ -257,7 +256,7 @@ private:
     return bName;
   }
 
-  static String BrownMushroomBlock(String const &bName, States const &s, Props &p) {
+  static String BrownMushroomBlock(String const &bName, CompoundTag const &s, Props &p) {
     bool stem = MushroomProperties(s, p);
     std::string name;
     if (stem) {
@@ -268,13 +267,13 @@ private:
     return Ns() + name;
   }
 
-  static String BubbleColumn(String const &bName, States const &s, Props &p) {
+  static String BubbleColumn(String const &bName, CompoundTag const &s, Props &p) {
     auto dragDown = s.boolean("drag_down", false);
     p["drag"] = Bool(dragDown);
     return bName;
   }
 
-  static String Button(String const &bName, States const &s, Props &p) {
+  static String Button(String const &bName, CompoundTag const &s, Props &p) {
     auto buttonPressedBit = s.boolean("button_pressed_bit", false);
     auto facingDirection = s.int32("facing_direction", 0);
     std::string facing = "south";
@@ -319,13 +318,13 @@ private:
 #pragma endregion
 
 #pragma region Converters : C
-  static String Cake(String const &bName, States const &s, Props &p) {
+  static String Cake(String const &bName, CompoundTag const &s, Props &p) {
     auto biteCounter = s.int32("bite_counter", 0);
     p["bites"] = Int(biteCounter);
     return bName;
   }
 
-  static String Campfire(String const &bName, States const &s, Props &p) {
+  static String Campfire(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     Submergible(s, p);
     auto extinguished = s.boolean("extinguished", false);
@@ -333,7 +332,7 @@ private:
     return bName;
   }
 
-  static String Candle(String const &bName, States const &s, Props &p) {
+  static String Candle(String const &bName, CompoundTag const &s, Props &p) {
     auto candles = s.int32("candles", 0);
     p["candles"] = Int(candles + 1);
     Lit(s, p);
@@ -341,18 +340,18 @@ private:
     return bName;
   }
 
-  static String CandleCake(String const &bName, States const &s, Props &p) {
+  static String CandleCake(String const &bName, CompoundTag const &s, Props &p) {
     Lit(s, p);
     return bName;
   }
 
-  static String Carpet(String const &bName, States const &s, Props &p) {
+  static String Carpet(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_carpet";
   }
 
-  static String Cauldron(String const &bName, States const &s, Props &p) {
+  static String Cauldron(String const &bName, CompoundTag const &s, Props &p) {
     auto liquid = s.string("cauldron_liquid", "water");
     std::string name = "cauldron";
     auto fillLevel = s.int32("fill_level", 0);
@@ -370,7 +369,7 @@ private:
     return Ns() + name;
   }
 
-  static String CaveVines(String const &bName, States const &s, Props &p) {
+  static String CaveVines(String const &bName, CompoundTag const &s, Props &p) {
     auto berries = bName.ends_with("_with_berries");
     auto growingPlantAge = s.int32("growing_plant_age", 1);
     p["age"] = Int(growingPlantAge);
@@ -378,32 +377,32 @@ private:
     return Ns() + "cave_vines";
   }
 
-  static String CaveVinesBody(String const &bName, States const &s, Props &p) {
+  static String CaveVinesBody(String const &bName, CompoundTag const &s, Props &p) {
     auto berries = bName.ends_with("_with_berries");
     p["berries"] = Bool(berries);
     return Ns() + "cave_vines_plant";
   }
 
-  static String Chain(String const &bName, States const &s, Props &p) {
+  static String Chain(String const &bName, CompoundTag const &s, Props &p) {
     AxisFromPillarAxis(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String Cocoa(String const &bName, States const &s, Props &p) {
+  static String Cocoa(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     Age(s, p);
     return bName;
   }
 
-  static String CommandBlock(String const &bName, States const &s, Props &p) {
+  static String CommandBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto conditional = s.boolean("conditional_bit", false);
     Facing6FromFacingDirectionA(s, p);
     p["conditional"] = Bool(conditional);
     return bName;
   }
 
-  static String Comparator(String const &bName, States const &s, Props &p) {
+  static String Comparator(String const &bName, CompoundTag const &s, Props &p) {
     auto powered = bName.starts_with(Ns() + "powered_");
     auto lit = s.boolean("output_lit_bit", false);
     auto subtract = s.boolean("output_subtract_bit", false);
@@ -413,25 +412,25 @@ private:
     return Ns() + "comparator";
   }
 
-  static String Composter(String const &bName, States const &s, Props &p) {
+  static String Composter(String const &bName, CompoundTag const &s, Props &p) {
     auto level = s.int32("composter_fill_level", 0);
     p["level"] = Int(level);
     return bName;
   }
 
-  static String Concrete(String const &bName, States const &s, Props &p) {
+  static String Concrete(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_concrete";
   }
 
-  static String ConcretePowder(String const &bName, States const &s, Props &p) {
+  static String ConcretePowder(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_concrete_powder";
   }
 
-  static String Coral(String const &bName, States const &s, Props &p) {
+  static String Coral(String const &bName, CompoundTag const &s, Props &p) {
     auto color = s.string("coral_color", "pink");
     auto dead = s.boolean("dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -444,7 +443,7 @@ private:
     return Ns() + name + "_coral";
   }
 
-  static String CoralBlock(String const &bName, States const &s, Props &p) {
+  static String CoralBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto color = s.string("coral_color", "pink");
     auto dead = s.boolean("dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -456,7 +455,7 @@ private:
     return Ns() + name;
   }
 
-  static String CoralFan(String const &bName, States const &s, Props &p) {
+  static String CoralFan(String const &bName, CompoundTag const &s, Props &p) {
     auto color = s.string("coral_color", "pink");
     auto dead = bName.ends_with("_dead");
     auto type = CoralTypeFromCoralColor(color);
@@ -469,7 +468,7 @@ private:
     return Ns() + name;
   }
 
-  static String CoralFanHang(String const &bName, States const &s, Props &p) {
+  static String CoralFanHang(String const &bName, CompoundTag const &s, Props &p) {
     auto hangType = s.boolean("coral_hang_type_bit", false);
     auto dead = s.boolean("dead_bit", false);
     std::string name;
@@ -498,26 +497,26 @@ private:
 #pragma endregion
 
 #pragma region Converters : D
-  static String DarkoakStandingSign(String const &bName, States const &s, Props &p) {
+  static String DarkoakStandingSign(String const &bName, CompoundTag const &s, Props &p) {
     RotationFromGroundSignDirection(s, p);
     Submergible(s, p);
     return Ns() + "dark_oak_sign";
   }
 
-  static String DarkoakWallSign(String const &bName, States const &s, Props &p) {
+  static String DarkoakWallSign(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return Ns() + "dark_oak_wall_sign";
   }
 
-  static String DaylightDetector(String const &bName, States const &s, Props &p) {
+  static String DaylightDetector(String const &bName, CompoundTag const &s, Props &p) {
     auto inverted = bName.ends_with("_inverted");
     p["inverted"] = Bool(inverted);
     PowerFromRedstoneSignal(s, p);
     return Ns() + "daylight_detector";
   }
 
-  static String Dirt(String const &bName, States const &s, Props &p) {
+  static String Dirt(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("dirt_type", "normal");
     std::string prefix;
     if (type != "normal") {
@@ -526,7 +525,7 @@ private:
     return Ns() + prefix + "dirt";
   }
 
-  static String Door(String const &bName, States const &s, Props &p) {
+  static String Door(String const &bName, CompoundTag const &s, Props &p) {
     auto doorHingeBit = s.boolean("door_hinge_bit", false);
     OpenFromOpenBit(s, p);
     FacingCFromDirection(s, p);
@@ -540,7 +539,7 @@ private:
     }
   }
 
-  static String DoublePlant(String const &bName, States const &s, Props &p) {
+  static String DoublePlant(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("double_plant_type", "rose");
     std::string name;
     if (type == "fern") {
@@ -561,21 +560,21 @@ private:
   }
 
   static Converter DoubleSlab(std::string name) {
-    return [name](String const &bName, States const &s, Props &p) {
+    return [name](String const &bName, CompoundTag const &s, Props &p) {
       p["type"] = "double";
       Submergible(s, p);
       return Ns() + name;
     };
   }
 
-  static String DoubleStoneSlab(String const &bName, States const &s, Props &p) {
+  static String DoubleStoneSlab(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
     p["type"] = "double";
     Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
-  static String DoubleStoneSlab2(String const &bName, States const &s, Props &p) {
+  static String DoubleStoneSlab2(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_2", "prismarine_dark");
     auto name = StoneTypeFromStone2(stoneSlabType);
     p["type"] = "double";
@@ -583,35 +582,35 @@ private:
     return Ns() + name + "_slab";
   }
 
-  static String DoubleStoneSlab3(String const &bName, States const &s, Props &p) {
+  static String DoubleStoneSlab3(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_3", "andesite");
     p["type"] = "double";
     Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
-  static String DoubleStoneSlab4(String const &bName, States const &s, Props &p) {
+  static String DoubleStoneSlab4(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_4", "stone");
     p["type"] = "double";
     Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
-  static String DoubleWoodenSlab(String const &bName, States const &s, Props &p) {
+  static String DoubleWoodenSlab(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
     p["type"] = "double";
     Submergible(s, p);
     return Ns() + woodType + "_slab";
   }
 
-  static String Dispenser(String const &bName, States const &s, Props &p) {
+  static String Dispenser(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean("triggered_bit", false);
     p["triggered"] = Bool(triggered);
     return bName;
   }
 
-  static String Dropper(String const &bName, States const &s, Props &p) {
+  static String Dropper(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean("triggered_bit", false);
     p["triggered"] = Bool(triggered);
@@ -620,14 +619,14 @@ private:
 #pragma endregion
 
 #pragma region Converters : E
-  static String EndPortalFrame(String const &bName, States const &s, Props &p) {
+  static String EndPortalFrame(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     auto eye = s.boolean("end_portal_eye_bit", false);
     p["eye"] = Bool(eye);
     return bName;
   }
 
-  static String EndRod(String const &bName, States const &s, Props &p) {
+  static String EndRod(String const &bName, CompoundTag const &s, Props &p) {
     std::string facing;
     switch (s.int32("facing_direction", 0)) {
     case 1:
@@ -656,19 +655,19 @@ private:
 #pragma endregion
 
 #pragma region Converter : F
-  static String Farmland(String const &bName, States const &s, Props &p) {
+  static String Farmland(String const &bName, CompoundTag const &s, Props &p) {
     auto moisture = s.int32("moisturized_amount", 0);
     p["moisture"] = Int(moisture);
     return bName;
   }
 
-  static String Fence(String const &bName, States const &s, Props &p) {
+  static String Fence(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string("wood_type", "oak");
     Submergible(s, p);
     return Ns() + woodType + "_fence";
   }
 
-  static String FenceGate(String const &bName, States const &s, Props &p) {
+  static String FenceGate(String const &bName, CompoundTag const &s, Props &p) {
     auto inWall = s.boolean("in_wall_bit", false);
     p["in_wall"] = Bool(inWall);
     p["powered"] = Bool(false);
@@ -681,7 +680,7 @@ private:
     }
   }
 
-  static String FurnaceAndSimilar(String const &bName, States const &s, Props &p) {
+  static String FurnaceAndSimilar(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     auto lit = bName.starts_with("minecraft:lit_");
     std::string name;
@@ -696,7 +695,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : G
-  static String GlowLichen(String const &bName, States const &s, Props &p) {
+  static String GlowLichen(String const &bName, CompoundTag const &s, Props &p) {
     auto bits = s.int32("multi_face_direction_bits", 0);
     bool down = (bits & 0x1) == 0x1;
     bool up = (bits & 0x2) == 0x2;
@@ -714,7 +713,7 @@ private:
     return bName;
   }
 
-  static String GoldenRail(String const &bName, States const &s, Props &p) {
+  static String GoldenRail(String const &bName, CompoundTag const &s, Props &p) {
     auto railData = s.boolean("rail_data_bit", false);
     auto railDirection = s.int32("rail_direction", 0);
     p["powered"] = Bool(railData);
@@ -723,12 +722,12 @@ private:
     return Ns() + "powered_rail";
   }
 
-  static String Grass(String const &bName, States const &s, Props &p) {
+  static String Grass(String const &bName, CompoundTag const &s, Props &p) {
     p["snowy"] = "false";
     return Ns() + "grass_block";
   }
 
-  static String Grindstone(String const &bName, States const &s, Props &p) {
+  static String Grindstone(String const &bName, CompoundTag const &s, Props &p) {
     auto attachment = s.string("attachment", "floor");
     std::string face;
     if (attachment == "side") {
@@ -745,7 +744,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : H
-  static String Hopper(String const &bName, States const &s, Props &p) {
+  static String Hopper(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     auto toggle = s.boolean("toggle_bit", false);
     p["enabled"] = Bool(!toggle);
@@ -754,7 +753,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : K
-  static String Kelp(String const &bName, States const &s, Props &p) {
+  static String Kelp(String const &bName, CompoundTag const &s, Props &p) {
     auto age = s.int32("kelp_age", 0);
     p["age"] = Int(age);
     return bName;
@@ -762,33 +761,33 @@ private:
 #pragma endregion
 
 #pragma region Converters : L
-  static String Lantern(String const &bName, States const &s, Props &p) {
+  static String Lantern(String const &bName, CompoundTag const &s, Props &p) {
     auto hanging = s.boolean("hanging", false);
     p["hanging"] = Bool(hanging);
     Submergible(s, p);
     return bName;
   }
 
-  static String Leaves(String const &bName, States const &s, Props &p) {
+  static String Leaves(String const &bName, CompoundTag const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
     PersistentFromPersistentBit(s, p);
     return Ns() + leafType + "_leaves";
   }
 
-  static String Leaves2(String const &bName, States const &s, Props &p) {
+  static String Leaves2(String const &bName, CompoundTag const &s, Props &p) {
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     PersistentFromPersistentBit(s, p);
     return Ns() + newLeafType + "_leaves";
   }
 
-  static String Lectern(String const &bName, States const &s, Props &p) {
+  static String Lectern(String const &bName, CompoundTag const &s, Props &p) {
     auto powered = s.boolean("powered_bit", false);
     p["powered"] = Bool(powered);
     Facing4FromDirectionA(s, p);
     return bName;
   }
 
-  static String Lever(String const &bName, States const &s, Props &p) {
+  static String Lever(String const &bName, CompoundTag const &s, Props &p) {
     auto direction = s.string("lever_direction", "up_north_south");
     std::string face;
     std::string facing;
@@ -815,20 +814,20 @@ private:
     return bName;
   }
 
-  static String LightBlock(String const &bName, States const &s, Props &p) {
+  static String LightBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto level = s.int32("block_light_level", 0);
     p["level"] = Int(level);
     Submergible(s, p);
     return Ns() + "light";
   }
 
-  static String Liquid(String const &bName, States const &s, Props &p) {
+  static String Liquid(String const &bName, CompoundTag const &s, Props &p) {
     auto depth = s.int32("liquid_depth", 0);
     p["level"] = Int(depth);
     return bName;
   }
 
-  static String LiquidFlowing(String const &bName, States const &s, Props &p) {
+  static String LiquidFlowing(String const &bName, CompoundTag const &s, Props &p) {
     auto depth = s.int32("liquid_depth", 0);
     p["level"] = Int(depth);
     if (bName.ends_with("lava")) {
@@ -838,18 +837,18 @@ private:
     }
   }
 
-  static String LitPumpkin(String const &bName, States const &s, Props &p) {
+  static String LitPumpkin(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     return Ns() + "jack_o_lantern";
   }
 
-  static String Log(String const &bName, States const &s, Props &p) {
+  static String Log(String const &bName, CompoundTag const &s, Props &p) {
     auto logType = s.string("old_log_type", "oak");
     AxisFromPillarAxis(s, p);
     return Ns() + logType + "_log";
   }
 
-  static String Log2(String const &bName, States const &s, Props &p) {
+  static String Log2(String const &bName, CompoundTag const &s, Props &p) {
     auto logType = s.string("new_log_type", "acacia"); //TODO: acacia?
     AxisFromPillarAxis(s, p);
     return Ns() + logType + "_log";
@@ -857,14 +856,14 @@ private:
 #pragma endregion
 
 #pragma region Converters : M
-  static String MelonStem(String const &bName, States const &s, Props &p) {
+  static String MelonStem(String const &bName, CompoundTag const &s, Props &p) {
     auto growth = s.int32("growth", 0);
     p["age"] = Int(growth);
     Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String MonsterEgg(String const &bName, States const &s, Props &p) {
+  static String MonsterEgg(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("monster_egg_stone_type", "stone");
     std::string name;
     if (type == "cobblestone") {
@@ -886,7 +885,7 @@ private:
 
 #pragma region Converters : N
   static Converter NetherVines(std::string type) {
-    return [type](String const &bName, States const &s, Props &p) {
+    return [type](String const &bName, CompoundTag const &s, Props &p) {
       auto age = s.int32(type + "_vines_age", 0);
       p["age"] = Int(age);
       return bName;
@@ -895,13 +894,13 @@ private:
 #pragma endregion
 
 #pragma region Converters : O
-  static String OakWallSign(String const &bName, States const &s, Props &p) {
+  static String OakWallSign(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return Ns() + "oak_wall_sign";
   }
 
-  static String Observer(String const &bName, States const &s, Props &p) {
+  static String Observer(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     auto powered = s.boolean("powered", false);
     p["powered"] = Bool(powered);
@@ -910,12 +909,12 @@ private:
 #pragma endregion
 
 #pragma region Converters : P
-  static String Planks(String const &bName, States const &s, Props &p) {
+  static String Planks(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
     return Ns() + woodType + "_planks";
   }
 
-  static String PointedDripstone(String const &bName, States const &s, Props &p) {
+  static String PointedDripstone(String const &bName, CompoundTag const &s, Props &p) {
     auto thickness = s.string("dripstone_thickness", "base");
     std::string t = thickness;
     // base, middle, frustum, tip , tip_merge
@@ -929,19 +928,19 @@ private:
     return bName;
   }
 
-  static String Portal(String const &bName, States const &s, Props &p) {
+  static String Portal(String const &bName, CompoundTag const &s, Props &p) {
     auto axis = s.string("portal_axis", "y");
     p["axis"] = axis;
     return Ns() + "nether_portal";
   }
 
-  static String PressurePlate(String const &bName, States const &s, Props &p) {
+  static String PressurePlate(String const &bName, CompoundTag const &s, Props &p) {
     auto redstoneSignal = s.int32("redstone_signal", 0);
     p["powered"] = Bool(redstoneSignal > 0);
     return bName;
   }
 
-  static String Prismarine(String const &bName, States const &s, Props &p) {
+  static String Prismarine(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("prismarine_block_type", "default");
     std::string name;
     if (type == "bricks") {
@@ -954,14 +953,14 @@ private:
     return Ns() + name;
   }
 
-  static String PumpkinStem(String const &bName, States const &s, Props &p) {
+  static String PumpkinStem(String const &bName, CompoundTag const &s, Props &p) {
     auto growth = s.int32("growth", 0);
     p["age"] = Int(growth);
     Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String PurpurBlock(String const &bName, States const &s, Props &p) {
+  static String PurpurBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto chisel = s.string("chisel_type", "default");
     std::string name;
     if (chisel == "lines") {
@@ -975,7 +974,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : Q
-  static String QuartzBlock(String const &bName, States const &s, Props &p) {
+  static String QuartzBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("chisel_type", "chiseled");
     std::string prefix;
     if (type == "lines") {
@@ -992,14 +991,14 @@ private:
 #pragma endregion
 
 #pragma region Converters : R
-  static String Rail(String const &bName, States const &s, Props &p) {
+  static String Rail(String const &bName, CompoundTag const &s, Props &p) {
     auto railDirection = s.int32("rail_direction", 0);
     p["shape"] = ShapeFromRailDirection(railDirection);
     Submergible(s, p);
     return bName;
   }
 
-  static String RailCanBePowered(String const &bName, States const &s, Props &p) {
+  static String RailCanBePowered(String const &bName, CompoundTag const &s, Props &p) {
     auto railData = s.boolean("rail_data_bit", false);
     auto railDirection = s.int32("rail_direction", 0);
     p["powered"] = Bool(railData);
@@ -1008,7 +1007,7 @@ private:
     return bName;
   }
 
-  static String RedFlower(String const &bName, States const &s, Props &p) {
+  static String RedFlower(String const &bName, CompoundTag const &s, Props &p) {
     auto flowerType = s.string("flower_type", "poppy");
     auto rf = RedFlowerFromBedrockName(flowerType);
     if (!rf) {
@@ -1018,7 +1017,7 @@ private:
     return Ns() + name;
   }
 
-  static String RedMushroomBlock(String const &bName, States const &s, Props &p) {
+  static String RedMushroomBlock(String const &bName, CompoundTag const &s, Props &p) {
     bool stem = MushroomProperties(s, p);
     if (stem) {
       return Ns() + "mushroom_stem";
@@ -1027,7 +1026,7 @@ private:
     }
   }
 
-  static String RedSandstone(String const &bName, States const &s, Props &p) {
+  static String RedSandstone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("sand_stone_type", "default");
     std::string name = "red_sandstone";
     if (type == "heiroglyphs") {
@@ -1042,13 +1041,13 @@ private:
     return Ns() + name;
   }
 
-  static String RedstoneLamp(String const &bName, States const &s, Props &p) {
+  static String RedstoneLamp(String const &bName, CompoundTag const &s, Props &p) {
     auto lit = bName == "minecraft:lit_redstone_lamp";
     p["lit"] = Bool(lit);
     return Ns() + "redstone_lamp";
   }
 
-  static String RedstoneOre(String const &bName, States const &s, Props &p) {
+  static String RedstoneOre(String const &bName, CompoundTag const &s, Props &p) {
     auto lit = bName.starts_with("minecraft:lit_");
     std::string name;
     if (lit) {
@@ -1060,19 +1059,19 @@ private:
     return Ns() + name;
   }
 
-  static String Reeds(String const &bName, States const &s, Props &p) {
+  static String Reeds(String const &bName, CompoundTag const &s, Props &p) {
     Age(s, p);
     return Ns() + "sugar_cane";
   }
 
   static Converter Rename(std::string name) {
-    return [name](String const &bName, States const &s, Props &p) {
+    return [name](String const &bName, CompoundTag const &s, Props &p) {
       return Ns() + name;
     };
   }
 
   static Converter RenameStairs(std::string name) {
-    return [name](String const &bName, States const &s, Props &p) {
+    return [name](String const &bName, CompoundTag const &s, Props &p) {
       FacingFromWeirdoDirection(s, p);
       HalfFromUpsideDownBit(s, p);
       Submergible(s, p);
@@ -1080,7 +1079,7 @@ private:
     };
   }
 
-  static String Repeater(String const &bName, States const &s, Props &p) {
+  static String Repeater(String const &bName, CompoundTag const &s, Props &p) {
     auto powered = bName == "minecraft:powered_repeater";
     p["powered"] = Bool(powered);
     Facing4FromDirectionA(s, p);
@@ -1089,7 +1088,7 @@ private:
     return Ns() + "repeater";
   }
 
-  static String RespawnAnchor(String const &bName, States const &s, Props &p) {
+  static String RespawnAnchor(String const &bName, CompoundTag const &s, Props &p) {
     auto charges = s.int32("respawn_anchor_charge", 0);
     p["charges"] = Int(charges);
     return bName;
@@ -1097,11 +1096,11 @@ private:
 #pragma endregion
 
 #pragma region Converters : S
-  static String Same(String const &bName, States const &s, Props &p) {
+  static String Same(String const &bName, CompoundTag const &s, Props &p) {
     return bName;
   }
 
-  static String Sand(String const &bName, States const &s, Props &p) {
+  static String Sand(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("sand_type", "normal");
     if (type == "red") {
       return Ns() + "red_sand";
@@ -1110,7 +1109,7 @@ private:
     }
   }
 
-  static String Sandstone(String const &bName, States const &s, Props &p) {
+  static String Sandstone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("sand_stone_type", "default");
     std::string name = "sandstone";
     if (type == "heiroglyphs") {
@@ -1125,14 +1124,14 @@ private:
     return Ns() + name;
   }
 
-  static String Sapling(String const &bName, States const &s, Props &p) {
+  static String Sapling(String const &bName, CompoundTag const &s, Props &p) {
     auto age = s.byte("age_bit", 0);
     auto saplingType = s.string("sapling_type", "acacia");
     p["stage"] = Int(age);
     return Ns() + saplingType + "_sapling";
   }
 
-  static String Seagrass(String const &bName, States const &s, Props &p) {
+  static String Seagrass(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("sea_grass_type", "default");
     std::string name;
     if (type == "double_bot") {
@@ -1147,7 +1146,7 @@ private:
     return Ns() + name;
   }
 
-  static String SeaPickle(String const &bName, States const &s, Props &p) {
+  static String SeaPickle(String const &bName, CompoundTag const &s, Props &p) {
     auto count = s.int32("cluster_count", 0);
     p["pickles"] = Int(count + 1);
     auto dead = s.boolean("dead_bit", false);
@@ -1155,44 +1154,44 @@ private:
     return bName;
   }
 
-  static String Scaffolding(String const &bName, States const &s, Props &p) {
+  static String Scaffolding(String const &bName, CompoundTag const &s, Props &p) {
     auto stability = s.int32("stability", 0);
     p["bottom"] = Bool(stability > 0);
     Submergible(s, p);
     return bName;
   }
 
-  static String ShulkerBox(String const &bName, States const &s, Props &p) {
+  static String ShulkerBox(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_shulker_box";
   }
 
-  static String SilverGlazedTerracotta(String const &bName, States const &s, Props &p) {
+  static String SilverGlazedTerracotta(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     return Ns() + "light_gray_glazed_terracotta";
   }
 
-  static String Slab(String const &bName, States const &s, Props &p) {
+  static String Slab(String const &bName, CompoundTag const &s, Props &p) {
     Submergible(s, p);
     TypeFromTopSlotBit(s, p);
     return bName;
   }
 
-  static String SmallDripleafBlock(String const &bName, States const &s, Props &p) {
+  static String SmallDripleafBlock(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     HalfFromUpperBlockBit(s, p);
     Submergible(s, p);
     return Ns() + "small_dripleaf";
   }
 
-  static String SnowLayer(String const &bName, States const &s, Props &p) {
+  static String SnowLayer(String const &bName, CompoundTag const &s, Props &p) {
     auto height = s.int32("height", 0);
     p["layers"] = Int(height + 1);
     return Ns() + "snow";
   }
 
-  static String Sponge(String const &bName, States const &s, Props &p) {
+  static String Sponge(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("sponge_type", "dry");
     if (type == "wet") {
       return Ns() + "wet_sponge";
@@ -1201,33 +1200,33 @@ private:
     }
   }
 
-  static String Stairs(String const &bName, States const &s, Props &p) {
+  static String Stairs(String const &bName, CompoundTag const &s, Props &p) {
     FacingFromWeirdoDirection(s, p);
     HalfFromUpsideDownBit(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String StainedGlass(String const &bName, States const &s, Props &p) {
+  static String StainedGlass(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_stained_glass";
   }
 
-  static String StainedGlassPane(String const &bName, States const &s, Props &p) {
+  static String StainedGlassPane(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     Submergible(s, p);
     return Ns() + colorJ + "_stained_glass_pane";
   }
 
-  static String StainedHardenedClay(String const &bName, States const &s, Props &p) {
+  static String StainedHardenedClay(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_terracotta";
   }
 
-  static String StandingSign(String const &bName, States const &s, Props &p) {
+  static String StandingSign(String const &bName, CompoundTag const &s, Props &p) {
     std::string name;
     if (bName.ends_with(":standing_sign")) {
       name = "oak_sign";
@@ -1240,7 +1239,7 @@ private:
     return Ns() + name;
   }
 
-  static String PistonArmCollision(String const &bName, States const &s, Props &p) {
+  static String PistonArmCollision(String const &bName, CompoundTag const &s, Props &p) {
     bool sticky = bName == "minecraft:stickyPistonArmCollision";
     std::string type = sticky ? "sticky" : "normal";
     auto f6 = Facing6FromBedrockFacingDirectionB(s.int32("facing_direction", 0));
@@ -1251,7 +1250,7 @@ private:
     return Ns() + "piston_head";
   }
 
-  static String Stone(String const &bName, States const &s, Props &p) {
+  static String Stone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("stone_type", "stone");
     std::string name;
     if (type == "diorite_smooth") {
@@ -1266,7 +1265,7 @@ private:
     return Ns() + name;
   }
 
-  static String Stonebrick(String const &bName, States const &s, Props &p) {
+  static String Stonebrick(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("stone_brick_type", "default");
     std::string prefix;
     if (type != "default") {
@@ -1275,19 +1274,19 @@ private:
     return Ns() + prefix + "stone_bricks";
   }
 
-  static String StonecutterBlock(String const &bName, States const &s, Props &p) {
+  static String StonecutterBlock(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     return Ns() + "stonecutter";
   }
 
-  static String StoneSlab(String const &bName, States const &s, Props &p) {
+  static String StoneSlab(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type", "stone");
     TypeFromTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
-  static String StoneSlab2(String const &bName, States const &s, Props &p) {
+  static String StoneSlab2(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("stone_slab_type_2", "prismarine_dark");
     TypeFromTopSlotBit(s, p);
     Submergible(s, p);
@@ -1295,34 +1294,34 @@ private:
     return Ns() + name + "_slab";
   }
 
-  static String StoneSlab3(String const &bName, States const &s, Props &p) {
+  static String StoneSlab3(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string("stone_slab_type_3", "andesite");
     TypeFromTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + stoneSlabType + "_slab";
   }
 
-  static String StoneSlab4(String const &bName, States const &s, Props &p) {
+  static String StoneSlab4(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("stone_slab_type_4", "stone");
     TypeFromTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + type + "_slab";
   }
 
-  static String StructureBlock(String const &bName, States const &s, Props &p) {
+  static String StructureBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("structure_block_type", "save");
     p["mode"] = type;
     return bName;
   }
 
-  static String SweetBerryBush(String const &bName, States const &s, Props &p) {
+  static String SweetBerryBush(String const &bName, CompoundTag const &s, Props &p) {
     AgeFromGrowthNonLinear(s, p);
     return bName;
   }
 #pragma endregion
 
 #pragma region Converters : T
-  static String Tallgrass(String const &bName, States const &s, Props &p) {
+  static String Tallgrass(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("tall_grass_type", "tall");
     if (type == "fern") {
       return Ns() + "fern";
@@ -1331,18 +1330,18 @@ private:
     }
   }
 
-  static String Target(String const &bName, States const &s, Props &p) {
+  static String Target(String const &bName, CompoundTag const &s, Props &p) {
     p["power"] = "0";
     return bName;
   }
 
-  static String Tnt(String const &bName, States const &s, Props &p) {
+  static String Tnt(String const &bName, CompoundTag const &s, Props &p) {
     auto explode = s.boolean("explode_bit", false);
     p["unstable"] = Bool(explode);
     return bName;
   }
 
-  static String Trapdoor(String const &bName, States const &s, Props &p) {
+  static String Trapdoor(String const &bName, CompoundTag const &s, Props &p) {
     FacingBFromDirection(s, p);
     OpenFromOpenBit(s, p);
     HalfFromUpsideDownBit(s, p);
@@ -1355,7 +1354,7 @@ private:
     }
   }
 
-  static String Tripwire(String const &bName, States const &s, Props &p) {
+  static String Tripwire(String const &bName, CompoundTag const &s, Props &p) {
     auto attached = s.boolean("attached_bit", false);
     auto disarmed = s.boolean("disarmed_bit", false);
     auto powered = s.boolean("powered_bit", false);
@@ -1365,7 +1364,7 @@ private:
     return Ns() + "tripwire";
   }
 
-  static String TripwireHook(String const &bName, States const &s, Props &p) {
+  static String TripwireHook(String const &bName, CompoundTag const &s, Props &p) {
     auto attached = s.boolean("attached_bit", false);
     auto powered = s.boolean("powered_bit", false);
     Facing4FromDirectionA(s, p);
@@ -1374,7 +1373,7 @@ private:
     return bName;
   }
 
-  static String TurtleEgg(String const &bName, States const &s, Props &p) {
+  static String TurtleEgg(String const &bName, CompoundTag const &s, Props &p) {
     auto eggs = s.string("turtle_egg_count", "one_egg");
     if (eggs == "two_egg") {
       p["eggs"] = "2";
@@ -1398,7 +1397,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : W
-  static String WallWithBlockType(String const &bName, States const &s, Props &p) {
+  static String WallWithBlockType(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("wall_block_type", "andesite");
     std::string name = type;
     if (type == "end_brick") {
@@ -1409,7 +1408,7 @@ private:
     return Ns() + name + "_wall";
   }
 
-  static String Wood(String const &bName, States const &s, Props &p) {
+  static String Wood(String const &bName, CompoundTag const &s, Props &p) {
     auto stripped = s.boolean("stripped_bit", false);
     auto woodType = s.string("wood_type", "oak");
     auto name = stripped ? "stripped_" + woodType + "_wood" : woodType + "_wood";
@@ -1417,20 +1416,20 @@ private:
     return Ns() + name;
   }
 
-  static String WoodenPressurePlate(String const &bName, States const &s, Props &p) {
+  static String WoodenPressurePlate(String const &bName, CompoundTag const &s, Props &p) {
     auto signal = s.int32("restone_signal", 0);
     p["powered"] = Bool(signal > 0);
     return Ns() + "oak_pressure_plate";
   }
 
-  static String WoodenSlab(String const &bName, States const &s, Props &p) {
+  static String WoodenSlab(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia");
     TypeFromTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + woodType + "_slab";
   }
 
-  static String Wool(String const &bName, States const &s, Props &p) {
+  static String Wool(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_wool";
@@ -1438,7 +1437,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : V
-  static String Vine(String const &bName, States const &s, Props &p) {
+  static String Vine(String const &bName, CompoundTag const &s, Props &p) {
     auto d = s.int32("vine_direction_bits", 0);
     bool east = (d & 0x8) == 0x8;
     bool north = (d & 0x4) == 0x4;
@@ -1454,17 +1453,17 @@ private:
 #pragma endregion
 
 #pragma region Properties
-  static void Age(States const &s, Props &p) {
+  static void Age(CompoundTag const &s, Props &p) {
     auto age = s.int32("age", 0);
     p["age"] = Int(age);
   }
 
-  static void AgeFromGrowth(States const &s, Props &p) {
+  static void AgeFromGrowth(CompoundTag const &s, Props &p) {
     auto age = s.int32("growth", 0);
     p["age"] = Int(age);
   }
 
-  static void AgeFromGrowthNonLinear(States const &s, Props &p) {
+  static void AgeFromGrowthNonLinear(CompoundTag const &s, Props &p) {
     auto growth = s.int32("growth", 0);
     int age = 0;
     if (growth < 2) {
@@ -1479,7 +1478,7 @@ private:
     p["age"] = Int(age);
   }
 
-  static void AxisFromPillarAxis(States const &s, Props &props) {
+  static void AxisFromPillarAxis(CompoundTag const &s, Props &props) {
     auto pillarAxis = s.string("pillar_axis", "y");
     props["axis"] = pillarAxis;
   }
@@ -1499,19 +1498,19 @@ private:
     return "brain";
   }
 
-  static void Facing4FromDirectionA(States const &s, Props &props) {
+  static void Facing4FromDirectionA(CompoundTag const &s, Props &props) {
     auto direction = s.int32("direction", 0);
     Facing4 f4 = Facing4FromBedrockDirection(direction);
     props["facing"] = JavaNameFromFacing4(f4);
   }
 
-  static void Facing6FromFacingDirectionA(States const &s, Props &props) {
+  static void Facing6FromFacingDirectionA(CompoundTag const &s, Props &props) {
     auto facingDirection = s.int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
     props["facing"] = JavaNameFromFacing6(f6);
   }
 
-  static void Facing4FromFacingDirectionA(States const &s, Props &props) {
+  static void Facing4FromFacingDirectionA(CompoundTag const &s, Props &props) {
     auto facingDirection = s.int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
     Facing4 f4;
@@ -1533,7 +1532,7 @@ private:
     props["facing"] = JavaNameFromFacing4(f4);
   }
 
-  static void FacingBFromDirection(States const &s, Props &props) {
+  static void FacingBFromDirection(CompoundTag const &s, Props &props) {
     auto direction = s.int32("direction", 0);
     std::string facing;
     switch (direction) {
@@ -1554,14 +1553,14 @@ private:
     props["facing"] = facing;
   }
 
-  static void Facing6FromFacingDirectionB(States const &s, Props &props) {
+  static void Facing6FromFacingDirectionB(CompoundTag const &s, Props &props) {
     auto direction = s.int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionB(direction);
     std::string facing = JavaNameFromFacing6(f6);
     props["facing"] = facing;
   }
 
-  static void FacingCFromDirection(States const &s, Props &props) {
+  static void FacingCFromDirection(CompoundTag const &s, Props &props) {
     auto direction = s.int32("direction", 0);
     std::string facing;
     switch (direction) {
@@ -1582,7 +1581,7 @@ private:
     props["facing"] = facing;
   }
 
-  static void CoralDirection(States const &s, Props &p) {
+  static void CoralDirection(CompoundTag const &s, Props &p) {
     auto d = s.int32("coral_direction", 0);
     std::string facing;
     switch (d) {
@@ -1604,7 +1603,7 @@ private:
   }
 
   static Converter Torch(std::string prefix) {
-    return [prefix](String const &bName, States const &s, Props &p) -> String {
+    return [prefix](String const &bName, CompoundTag const &s, Props &p) -> String {
       auto t = s.string("torch_facing_direction", "top");
       std::string f;
       if (t == "top" || t == "unknown") {
@@ -1626,7 +1625,7 @@ private:
     };
   }
 
-  static void FacingFromWeirdoDirection(States const &s, Props &p) {
+  static void FacingFromWeirdoDirection(CompoundTag const &s, Props &p) {
     auto weirdoDirection = s.int32("weirdo_direction", 0);
     std::string facing = "east";
     switch (weirdoDirection) {
@@ -1647,37 +1646,37 @@ private:
     p["facing"] = facing;
   }
 
-  static void HalfFromUpperBlockBit(States const &s, Props &props) {
+  static void HalfFromUpperBlockBit(CompoundTag const &s, Props &props) {
     auto upper = s.boolean("upper_block_bit", false);
     props["half"] = upper ? "upper" : "lower";
   }
 
-  static void HalfFromUpsideDownBit(States const &s, Props &props) {
+  static void HalfFromUpsideDownBit(CompoundTag const &s, Props &props) {
     auto upsideDown = s.boolean("upside_down_bit", false);
     props["half"] = upsideDown ? "top" : "bottom";
   }
 
-  static void Lit(States const &s, Props &p) {
+  static void Lit(CompoundTag const &s, Props &p) {
     auto lit = s.boolean("lit", false);
     p["lit"] = Bool(lit);
   }
 
-  static void OpenFromOpenBit(States const &s, Props &props) {
+  static void OpenFromOpenBit(CompoundTag const &s, Props &props) {
     auto open = s.boolean("open_bit", false);
     props["open"] = Bool(open);
   }
 
-  static void PersistentFromPersistentBit(States const &s, Props &props) {
+  static void PersistentFromPersistentBit(CompoundTag const &s, Props &props) {
     auto persistent = s.boolean("persistent_bit", false);
     props["persistent"] = Bool(persistent);
   }
 
-  static void PowerFromRedstoneSignal(States const &s, Props &p) {
+  static void PowerFromRedstoneSignal(CompoundTag const &s, Props &p) {
     auto signal = s.int32("redstone_signal", 0);
     p["power"] = Int(signal);
   }
 
-  static void RotationFromGroundSignDirection(States const &s, Props &p) {
+  static void RotationFromGroundSignDirection(CompoundTag const &s, Props &p) {
     auto groundSignRotation = s.int32("ground_sign_direction", 0);
     p["rotation"] = Int(groundSignRotation);
   }
@@ -1726,11 +1725,11 @@ private:
     return name;
   }
 
-  static void Submergible(States const &s, Props &p) {
+  static void Submergible(CompoundTag const &s, Props &p) {
     p["waterlogged"] = "false";
   }
 
-  static bool MushroomProperties(States const &s, Props &p) {
+  static bool MushroomProperties(CompoundTag const &s, Props &p) {
     auto bits = s.int32("huge_mushroom_bits", 0);
     bool up = false;
     bool down = false;
@@ -1850,7 +1849,7 @@ private:
     return stem;
   }
 
-  static void TypeFromTopSlotBit(States const &s, Props &p) {
+  static void TypeFromTopSlotBit(CompoundTag const &s, Props &p) {
     auto topSlot = s.boolean("top_slot_bit", false);
     p["type"] = topSlot ? "top" : "bottom";
   }
@@ -1864,7 +1863,7 @@ private:
     }
   }
 
-  static void WallProperties(States const &s, Props &p) {
+  static void WallProperties(CompoundTag const &s, Props &p) {
     auto connectionTypeEast = s.string("wall_connection_type_east", "short");
     auto connectionTypeNorth = s.string("wall_connection_type_north", "short");
     auto connectionTypeSouth = s.string("wall_connection_type_south", "short");

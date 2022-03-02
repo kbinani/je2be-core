@@ -50,23 +50,21 @@ public:
 private:
   BlockData() = delete;
 
-  using BlockDataType = CompoundTagPtr;
-  using StatesType = CompoundTagPtr;
   using Block = mcfile::je::Block;
 
   using PropertyType = std::shared_ptr<Tag>;
 
   using NamingFunction = std::function<std::string(Block const &)>;
-  using PropertyPickupFunction = std::function<void(StatesType const &, Block const &)>;
+  using PropertyPickupFunction = std::function<void(CompoundTagPtr const &, Block const &)>;
 
-  using AnyConverter = std::function<BlockDataType(Block const &)>;
+  using AnyConverter = std::function<CompoundTagPtr(Block const &)>;
 
   class Converter {
   public:
     template <class... Arg>
     Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyPickupFunction>{args...}) {}
 
-    BlockDataType operator()(Block const &block) const {
+    CompoundTagPtr operator()(Block const &block) const {
       using namespace std;
       string name = fName(block);
       auto tag = New(name, true);
@@ -83,7 +81,7 @@ private:
     std::vector<PropertyPickupFunction> const fProperties;
   };
 
-  static BlockDataType Identity(mcfile::je::Block const &block) {
+  static CompoundTagPtr Identity(mcfile::je::Block const &block) {
     auto tag = New(block.fName, true);
     auto states = States();
     tag->set("states", states);
@@ -111,65 +109,65 @@ private:
   }
 
   static PropertyPickupFunction AddStringProperty(std::string const &name, std::string const &value) {
-    return [=](StatesType const &s, Block const &b) { s->set(name, String(value)); };
+    return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, String(value)); };
   }
 
   static PropertyPickupFunction AddBoolProperty(std::string const &name, bool v) {
-    return [=](StatesType const &s, Block const &b) { s->set(name, Bool(v)); };
+    return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, Bool(v)); };
   }
 
   static PropertyPickupFunction AddIntProperty(std::string const &name, int32_t v) {
-    return [=](StatesType const &s, Block const &b) { s->set(name, Int(v)); };
+    return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, Int(v)); };
   }
 
   static PropertyPickupFunction AddByteProperty(std::string const &name, int8_t v) {
-    return [=](StatesType const &s, Block const &b) { s->set(name, Byte(v)); };
+    return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, Byte(v)); };
   }
 
-  static void AxisToPillarAxis(StatesType const &s, Block const &block) {
+  static void AxisToPillarAxis(CompoundTagPtr const &s, Block const &block) {
     auto v = block.property("axis", "y");
     s->set("pillar_axis", String(v));
   }
 
-  static void PersistentToPersistentBit(StatesType const &s, Block const &block) {
+  static void PersistentToPersistentBit(CompoundTagPtr const &s, Block const &block) {
     auto persistent = block.property("persistent", "false");
     bool persistentV = persistent == "true";
     s->set("persistent_bit", Bool(persistentV));
   }
 
-  static void DistanceToUpdateBit(StatesType const &s, Block const &block) {
+  static void DistanceToUpdateBit(CompoundTagPtr const &s, Block const &block) {
     auto distance = block.property("distance", "7");
     auto distanceV = Wrap(strings::Toi(distance), 7);
     s->set("update_bit", Bool(distanceV > 4));
   }
 
-  static void TypeToTopSlotBit(StatesType const &s, Block const &block) {
+  static void TypeToTopSlotBit(CompoundTagPtr const &s, Block const &block) {
     auto t = block.property("type", "bottom");
     s->set("top_slot_bit", Bool(t == "top"));
   }
 
   static PropertyPickupFunction AddStoneSlabType(std::string const &number, std::string const &type) {
     auto typeKey = number.empty() ? "stone_slab_type" : "stone_slab_type_" + number;
-    return [=](StatesType const &s, Block const &b) { s->set(typeKey, String(type)); };
+    return [=](CompoundTagPtr const &s, Block const &b) { s->set(typeKey, String(type)); };
   }
 
-  static void UpperBlockBitToHalf(StatesType const &s, Block const &block) {
+  static void UpperBlockBitToHalf(CompoundTagPtr const &s, Block const &block) {
     auto half = block.property("half", "lower");
     s->set("upper_block_bit", Bool(half == "upper"));
   }
 
-  static void WaterloggedToDeadBit(StatesType const &s, Block const &block) {
+  static void WaterloggedToDeadBit(CompoundTagPtr const &s, Block const &block) {
     auto waterlogged = block.property("waterlogged", "false");
     s->set("dead_bit", Bool(waterlogged == "false"));
   }
 
-  static void PicklesToClusterCount(StatesType const &s, Block const &block) {
+  static void PicklesToClusterCount(CompoundTagPtr const &s, Block const &block) {
     auto pickles = block.property("pickles", "1");
     auto cluster = Wrap(strings::Toi(pickles), 1) - 1;
     s->set("cluster_count", Int(cluster));
   }
 
-  static void HalfToSeagrassType(StatesType const &s, Block const &block) {
+  static void HalfToSeagrassType(CompoundTagPtr const &s, Block const &block) {
     auto half = block.property("half", "lower");
     auto type = half == "lower" ? "double_bot" : "double_top";
     s->set("sea_grass_type", String(type));
@@ -181,7 +179,7 @@ private:
   }
 
   static PropertyPickupFunction Name(std::function<PropertyType(Block const &)> func, std::string const &name) {
-    return [=](StatesType const &s, Block const &block) { s->set(name, func(block)); };
+    return [=](CompoundTagPtr const &s, Block const &block) { s->set(name, func(block)); };
   }
 
   static PropertyType Level(Block const &block) {
@@ -189,7 +187,7 @@ private:
     return Int(level);
   }
 
-  static void VineDirectionBits(StatesType const &s, Block const &block) {
+  static void VineDirectionBits(CompoundTagPtr const &s, Block const &block) {
     auto east = block.property("east", "false") == "true";
     auto north = block.property("north", "false") == "true";
     auto south = block.property("south", "false") == "true";
@@ -211,7 +209,7 @@ private:
     s->set("vine_direction_bits", Int(direction));
   }
 
-  static void MultiFaceDirectionBits(StatesType const &s, Block const &block) {
+  static void MultiFaceDirectionBits(CompoundTagPtr const &s, Block const &block) {
     auto down = block.property("down", "false") == "true";
     auto up = block.property("up", "false") == "true";
     auto east = block.property("east", "false") == "true";
@@ -298,12 +296,12 @@ private:
     }
   }
 
-  static BlockDataType Null(Block const &block) {
+  static CompoundTagPtr Null(Block const &block) {
     // not present in bedrock
     return New("air");
   }
 
-  static void StairsDirectionFromFacing(StatesType const &s, Block const &block) {
+  static void StairsDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "north");
     int32_t direction = 0;
     if (facing == "east") {
@@ -318,7 +316,7 @@ private:
     s->set("weirdo_direction", Int(direction));
   }
 
-  static void HalfToUpsideDownBit(StatesType const &s, Block const &block) {
+  static void HalfToUpsideDownBit(CompoundTagPtr const &s, Block const &block) {
     auto half = block.property("half", "bottom");
     s->set("upside_down_bit", Bool(half == "top"));
   }
@@ -393,15 +391,15 @@ private:
     return Int(direction);
   }
 
-  static void DirectionFromFacingA(StatesType const &s, Block const &block) {
+  static void DirectionFromFacingA(CompoundTagPtr const &s, Block const &block) {
     s->set("direction", FacingA(block));
   }
 
-  static void DirectionFromFacingB(StatesType const &s, Block const &block) {
+  static void DirectionFromFacingB(CompoundTagPtr const &s, Block const &block) {
     s->set("direction", FacingB(block));
   }
 
-  static void DirectionFromFacingC(StatesType const &s, Block const &block) {
+  static void DirectionFromFacingC(CompoundTagPtr const &s, Block const &block) {
     s->set("direction", FacingC(block));
   }
 
@@ -419,7 +417,7 @@ private:
 
   static Converter CoralBlock(std::string const &color, bool dead) { return Converter(Name("coral_block"), AddStringProperty("coral_color", color), AddBoolProperty("dead_bit", dead)); }
 
-  static void StageToAgeBit(StatesType const &s, Block const &block) {
+  static void StageToAgeBit(CompoundTagPtr const &s, Block const &block) {
     auto stage = block.property("stage", "0");
     s->set("age_bit", Bool(stage == "1"));
   }
@@ -428,12 +426,12 @@ private:
 
   static Converter StoneBrick(std::string const &type) { return Subtype("stonebrick", "stone_brick_type", type); }
 
-  static void LayersToHeight(StatesType const &s, Block const &block) {
+  static void LayersToHeight(CompoundTagPtr const &s, Block const &block) {
     auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
     s->set("height", Int(layers - 1));
   }
 
-  static BlockDataType SnowLayer(Block const &b) {
+  static CompoundTagPtr SnowLayer(Block const &b) {
     auto d = New("snow_layer");
     auto s = States();
     LayersToHeight(s, b);
@@ -441,7 +439,7 @@ private:
     return AttachStates(d, s);
   }
 
-  static void EndRodFacingDirectionFromFacing(StatesType const &s, Block const &block) {
+  static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "up");
     int32_t direction = 1;
     if (facing == "up") {
@@ -474,7 +472,7 @@ private:
     }
   }
 
-  static void TorchFacingDirectionFromFacing(StatesType const &s, Block const &block) {
+  static void TorchFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "north");
     auto direction = GetTorchFacingDirectionFromFacing(facing);
     s->set("torch_facing_direction", String(direction));
@@ -506,7 +504,7 @@ private:
   }
 
   static PropertyPickupFunction HugeMushroomBits(bool stem) {
-    return [=](StatesType const &s, Block const &block) {
+    return [=](CompoundTagPtr const &s, Block const &block) {
       auto up = block.property("up");
       auto down = block.property("down");
       auto north = block.property("north");
@@ -554,17 +552,17 @@ private:
 
   static Converter ShulkerBox(std::string const &color) { return Subtype("shulker_box", "color", color); }
 
-  static void EyeToEndPortalEyeBit(StatesType const &s, Block const &block) {
+  static void EyeToEndPortalEyeBit(CompoundTagPtr const &s, Block const &block) {
     auto eye = block.property("eye", "false") == "true";
     s->set("end_portal_eye_bit", Bool(eye));
   }
 
-  static void FacingDirectionAFromFacing(StatesType const &s, Block const &block) {
+  static void FacingDirectionAFromFacing(CompoundTagPtr const &s, Block const &block) {
     int32_t direction = GetFacingDirectionAFromFacing(block);
     s->set("facing_direction", Int(direction));
   }
 
-  static void PistonFacingDirectionFromFacing6(StatesType const &s, Block const &block) {
+  static void PistonFacingDirectionFromFacing6(CompoundTagPtr const &s, Block const &block) {
     std::string facing = block.property("facing", "");
     Facing6 f6 = Facing6FromJavaName(facing);
     int32_t direction = BedrockFacingDirectionBFromFacing6(f6);
@@ -582,7 +580,7 @@ private:
   }
 
   static PropertyPickupFunction WallConnectionType(std::string const &direction) {
-    return [=](StatesType const &s, Block const &b) {
+    return [=](CompoundTagPtr const &s, Block const &b) {
       std::string beName = "wall_connection_type_" + direction;
       auto v = b.property(direction, "none");
       if (v == "true" || v == "false") {
@@ -598,7 +596,7 @@ private:
     };
   }
 
-  static void WallPostBit(StatesType const &s, Block const &b) {
+  static void WallPostBit(CompoundTagPtr const &s, Block const &b) {
     auto up = b.property("up", "false") == "true";
     s->set("wall_post_bit", Bool(up));
   }
@@ -632,19 +630,19 @@ private:
     return Converter(Name(name), Name(Rotation, "ground_sign_direction"));
   }
 
-  static void PartToHeadPieceBit(StatesType const &s, Block const &block) {
+  static void PartToHeadPieceBit(CompoundTagPtr const &s, Block const &block) {
     auto head = block.property("part", "foot") == "head";
     s->set("head_piece_bit", Bool(head));
   }
 
-  static void OccupiedToOccupiedBit(StatesType const &s, Block const &block) {
+  static void OccupiedToOccupiedBit(CompoundTagPtr const &s, Block const &block) {
     auto occupied = block.property("occupied", "false") == "true";
     s->set("occupied_bit", Bool(occupied));
   }
 
   static PropertyType Open(Block const &block) { return Bool(block.property("open", "false") == "true"); }
 
-  static void GrindstoneFaceToAttachment(StatesType const &s, Block const &block) {
+  static void GrindstoneFaceToAttachment(CompoundTagPtr const &s, Block const &block) {
     auto face = block.property("face", "wall");
     std::string attachment;
     if (face == "wall") {
@@ -662,12 +660,12 @@ private:
     return Bool(hanging);
   }
 
-  static void BellAttachmentFromAttachment(StatesType const &s, Block const &block) {
+  static void BellAttachmentFromAttachment(CompoundTagPtr const &s, Block const &block) {
     auto attachment = block.property("attachment", "floor");
     s->set("attachment", String(GetAttachment(attachment)));
   }
 
-  static void BellDirectionFromFacing(StatesType const &s, Block const &block) {
+  static void BellDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "north");
     int32_t direction = 0;
     if (facing == "north") {
@@ -687,7 +685,7 @@ private:
     return Bool(p);
   }
 
-  static void RedstoneSignalFromPowered(StatesType const &s, Block const &block) {
+  static void RedstoneSignalFromPowered(CompoundTagPtr const &s, Block const &block) {
     auto powered = block.property("powered", "false") == "true";
     s->set("redstone_signal", Int(powered ? 1 : 0));
   }
@@ -697,7 +695,7 @@ private:
     return Bool(l);
   }
 
-  static void LitToExtinguished(StatesType const &s, Block const &block) {
+  static void LitToExtinguished(CompoundTagPtr const &s, Block const &block) {
     auto l = block.property("lit", "flase") == "true";
     s->set("extinguished", Bool(!l));
   }
@@ -1546,7 +1544,7 @@ private:
     return table;
   }
 
-  static BlockDataType Bamboo(Block const &block) {
+  static CompoundTagPtr Bamboo(Block const &block) {
     auto c = New(block.fName, true);
     auto s = States();
     BambooLeafSizeFromLeaves(s, block);
@@ -1556,14 +1554,14 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType FlowingLiquid(Block const &block) {
+  static CompoundTagPtr FlowingLiquid(Block const &block) {
     auto c = New(block.fName, true);
     auto s = States();
     s->set("liquid_depth", Int(8));
     return AttachStates(c, s);
   }
 
-  static BlockDataType PistonArmCollision(Block const &block) {
+  static CompoundTagPtr PistonArmCollision(Block const &block) {
     auto c = New("pistonArmCollision");
     auto s = States();
     auto direction = strings::Toi(block.property("facing_direction", "0"));
@@ -1571,7 +1569,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType StickyPistonArmCollision(Block const &block) {
+  static CompoundTagPtr StickyPistonArmCollision(Block const &block) {
     auto c = New("stickyPistonArmCollision");
     auto s = States();
     auto direction = strings::Toi(block.property("facing_direction", "0"));
@@ -1579,13 +1577,13 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType MovingPiston(Block const &block) {
+  static CompoundTagPtr MovingPiston(Block const &block) {
     auto c = New("movingBlock");
     auto s = States();
     return AttachStates(c, s);
   }
 
-  static BlockDataType PistonHead(Block const &block) {
+  static CompoundTagPtr PistonHead(Block const &block) {
     auto type = block.property("type", "normal");
     auto c = New(type == "normal" ? "pistonArmCollision" : "stickyPistonArmCollision");
     auto f6 = Facing6FromJavaName(block.property("facing", ""));
@@ -1595,7 +1593,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType BigDripleaf(Block const &block) {
+  static CompoundTagPtr BigDripleaf(Block const &block) {
     auto c = New("big_dripleaf");
     auto s = States();
     s->set("big_dripleaf_head", Bool(true));
@@ -1614,7 +1612,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType RespawnAnchor(Block const &block) {
+  static CompoundTagPtr RespawnAnchor(Block const &block) {
     auto c = New("respawn_anchor");
     auto s = States();
     auto charges = strings::Toi(block.property("charges", "0"));
@@ -1626,7 +1624,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType Tripwire(Block const &block) {
+  static CompoundTagPtr Tripwire(Block const &block) {
     auto c = New("tripWire");
     auto s = States();
     auto attached = block.property("attached", "false") == "true";
@@ -1639,7 +1637,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType Tnt(Block const &block) {
+  static CompoundTagPtr Tnt(Block const &block) {
     auto c = New("tnt");
     auto s = States();
     auto unstable = block.property("unstable", "false") == "true";
@@ -1648,7 +1646,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType StructureBlock(Block const &block) {
+  static CompoundTagPtr StructureBlock(Block const &block) {
     auto c = New("structure_block");
     auto s = States();
     auto mode = block.property("mode", "save");
@@ -1656,7 +1654,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType Scaffolding(Block const &block) {
+  static CompoundTagPtr Scaffolding(Block const &block) {
     auto c = New("scaffolding");
     auto s = States();
     auto distance = strings::Toi(block.property("distance", "0"));
@@ -1669,7 +1667,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType BrewingStand(Block const &block) {
+  static CompoundTagPtr BrewingStand(Block const &block) {
     auto c = New("brewing_stand");
     auto has0 = block.property("has_bottle_0", "false") == "true";
     auto has1 = block.property("has_bottle_1", "false") == "true";
@@ -1681,7 +1679,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType CaveVines(Block const &block) {
+  static CompoundTagPtr CaveVines(Block const &block) {
     bool berries = block.property("berries", "false") == "true";
     auto age = Wrap(strings::Toi(block.property("age", "1")), 1);
     auto c = New(berries ? "cave_vines_head_with_berries" : "cave_vines");
@@ -1690,7 +1688,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static BlockDataType CaveVinesPlant(Block const &block) {
+  static CompoundTagPtr CaveVinesPlant(Block const &block) {
     bool berries = block.property("berries", "false") == "true";
     auto c = New(berries ? "cave_vines_body_with_berries" : "cave_vines");
     auto s = States();
@@ -1708,7 +1706,7 @@ private:
     return Int(i);
   }
 
-  static BlockDataType Light(Block const &b) {
+  static CompoundTagPtr Light(Block const &b) {
     auto c = New("light_block");
     auto s = States();
     auto level = strings::Toi(b.property("level", "15"));
@@ -1716,11 +1714,11 @@ private:
     return AttachStates(c, s);
   }
 
-  static void Debug(StatesType const &s, Block const &b) {
+  static void Debug(CompoundTagPtr const &s, Block const &b) {
     (void)s;
   }
 
-  static BlockDataType PointedDripstone(Block const &b) {
+  static CompoundTagPtr PointedDripstone(Block const &b) {
     auto c = New("pointed_dripstone");
     auto s = States();
     auto thickness = b.property("thickness", "tip");
@@ -1733,12 +1731,12 @@ private:
     return AttachStates(c, s);
   }
 
-  static void Conditional(StatesType const &s, Block const &b) {
+  static void Conditional(CompoundTagPtr const &s, Block const &b) {
     auto conditional = b.property("conditional", "false");
     s->set("conditional_bit", Bool(conditional == "true"));
   }
 
-  static void BambooStalkThicknessFromAge(StatesType const &s, Block const &b) {
+  static void BambooStalkThicknessFromAge(CompoundTagPtr const &s, Block const &b) {
     auto age = b.property("age", "0");
     if (age == "0") {
       s->set("bamboo_stalk_thickness", String("thin"));
@@ -1747,13 +1745,13 @@ private:
     }
   }
 
-  static void HoneyLevel(StatesType const &s, Block const &b) {
+  static void HoneyLevel(CompoundTagPtr const &s, Block const &b) {
     auto v = strings::Toi(b.property("honey_level", "0"));
     int32_t level = v ? *v : 0;
     s->set("honey_level", Int(level));
   }
 
-  static void TurtleEggCount(StatesType const &s, Block const &b) {
+  static void TurtleEggCount(CompoundTagPtr const &s, Block const &b) {
     auto eggs = b.property("eggs", "1");
     std::string eggCount = "one_egg";
     if (eggs == "1") {
@@ -1768,7 +1766,7 @@ private:
     s->set("turtle_egg_count", String(eggCount));
   }
 
-  static void TurtleEggCrackedState(StatesType const &s, Block const &b) {
+  static void TurtleEggCrackedState(CompoundTagPtr const &s, Block const &b) {
     auto hatch = b.property("hatch", "0");
     std::string state = "no_cracks";
     if (hatch == "0") {
@@ -1781,7 +1779,7 @@ private:
     s->set("cracked_state", String(state));
   }
 
-  static void WallSkullFacingDirection(StatesType const &s, Block const &b) {
+  static void WallSkullFacingDirection(CompoundTagPtr const &s, Block const &b) {
     auto facing = b.property("facing", "");
     int32_t direction = 1;
     if (facing == "south") {
@@ -1796,22 +1794,22 @@ private:
     s->set("facing_direction", Int(direction));
   }
 
-  static void CauldronFillLevelFromLevel(StatesType const &s, Block const &b) {
+  static void CauldronFillLevelFromLevel(CompoundTagPtr const &s, Block const &b) {
     auto level = strings::Toi(b.property("level", "0"));
     s->set("fill_level", Int(*level * 2));
   }
 
-  static void BiteCounterFromBites(StatesType const &s, Block const &b) {
+  static void BiteCounterFromBites(CompoundTagPtr const &s, Block const &b) {
     auto bites = Wrap(strings::Toi(b.property("bites", "0")), 0);
     s->set("bite_counter", Int(bites));
   }
 
-  static void DragDownFromDrag(StatesType const &s, Block const &b) {
+  static void DragDownFromDrag(CompoundTagPtr const &s, Block const &b) {
     auto drag = b.property("drag", "true") == "true";
     s->set("drag_down", Bool(drag));
   }
 
-  static void GrowthFromAge(StatesType const &s, Block const &b) {
+  static void GrowthFromAge(CompoundTagPtr const &s, Block const &b) {
     auto age = Wrap(strings::Toi(b.property("age", "0")), 0);
     int32_t growth = 0;
     switch (age) {
@@ -1831,12 +1829,12 @@ private:
     s->set("growth", Int(growth));
   }
 
-  static void AgeBitFromAge(StatesType const &s, Block const &b) {
+  static void AgeBitFromAge(CompoundTagPtr const &s, Block const &b) {
     auto age = b.property("age", "0");
     s->set("age", Bool(age == "1"));
   }
 
-  static void BambooLeafSizeFromLeaves(StatesType const &s, Block const &b) {
+  static void BambooLeafSizeFromLeaves(CompoundTagPtr const &s, Block const &b) {
     auto leaves = b.property("leaves", "none");
     std::string size = "no_leaves";
     if (leaves == "none") {
@@ -1854,7 +1852,7 @@ private:
     return String(axis);
   }
 
-  static void RailDirectionFromShape(StatesType const &s, Block const &b) {
+  static void RailDirectionFromShape(CompoundTagPtr const &s, Block const &b) {
     auto shape = b.property("shape", "north_south");
     int32_t direction = 0;
     if (shape == "north_south") {
@@ -1881,7 +1879,7 @@ private:
     s->set("rail_direction", Int(direction));
   }
 
-  static void OutputSubtractBitFromMode(StatesType const &s, Block const &b) {
+  static void OutputSubtractBitFromMode(CompoundTagPtr const &s, Block const &b) {
     auto mode = b.property("mode", "compare");
     s->set("output_subtract_bit", Bool(mode == "subtract"));
   }
@@ -1919,12 +1917,12 @@ private:
     }
   }
 
-  static void DoorHingeBitFromHinge(StatesType const &s, Block const &b) {
+  static void DoorHingeBitFromHinge(CompoundTagPtr const &s, Block const &b) {
     auto hinge = b.property("hinge", "left");
     s->set("door_hinge_bit", Bool(hinge == "right"));
   }
 
-  static void ToggleBitFromEnabled(StatesType const &s, Block const &b) {
+  static void ToggleBitFromEnabled(CompoundTagPtr const &s, Block const &b) {
     auto enabled = b.property("enabled", "true") == "true";
     s->set("toggle_bit", Bool(!enabled));
   }
@@ -1940,7 +1938,7 @@ private:
 
   static PropertyType Attached(Block const &b) { return Bool(b.property("attached", "false") == "true"); }
 
-  static void ButtonFacingDirection(StatesType const &s, Block const &b) {
+  static void ButtonFacingDirection(CompoundTagPtr const &s, Block const &b) {
     auto face = b.property("face", "wall");
     auto facing = b.property("facing", "north");
     int32_t direction = 0;
@@ -1966,7 +1964,7 @@ private:
 
   static PropertyType InWall(Block const &b) { return Bool(b.property("in_wall", "false") == "true"); }
 
-  static void LeverDirection(StatesType const &s, Block const &b) {
+  static void LeverDirection(CompoundTagPtr const &s, Block const &b) {
     auto face = b.property("face", "wall");
     auto facing = b.property("facing", "north");
     std::string result;
@@ -2006,7 +2004,7 @@ private:
     return attachment;
   }
 
-  static BlockDataType New(std::string const &name, bool nameIsFull = false) {
+  static CompoundTagPtr New(std::string const &name, bool nameIsFull = false) {
     using namespace std;
     auto tag = Compound();
     string fullName = nameIsFull ? name : "minecraft:"s + name;
@@ -2015,9 +2013,9 @@ private:
     return tag;
   }
 
-  static StatesType States() { return Compound(); }
+  static CompoundTagPtr States() { return Compound(); }
 
-  static BlockDataType AttachStates(BlockDataType const &data, StatesType const &s) {
+  static CompoundTagPtr AttachStates(CompoundTagPtr const &data, CompoundTagPtr const &s) {
     data->set("states", s);
     return data;
   }

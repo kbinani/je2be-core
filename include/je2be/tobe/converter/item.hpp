@@ -4,8 +4,7 @@ namespace je2be::tobe {
 
 class Item {
 private:
-  using ItemData = CompoundTagPtr;
-  using Converter = std::function<ItemData(std::string const &, CompoundTag const &, Context const &ctx)>;
+  using Converter = std::function<CompoundTagPtr(std::string const &, CompoundTag const &, Context const &ctx)>;
   using Block = mcfile::je::Block;
 
 public:
@@ -188,7 +187,7 @@ private:
     return table;
   }
 
-  static ItemData AxolotlBucket(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr AxolotlBucket(std::string const &name, CompoundTag const &item, Context const &) {
     auto ret = New("axolotl_bucket");
     ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
@@ -210,7 +209,7 @@ private:
     return ret;
   }
 
-  static ItemData TropicalFishBucket(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr TropicalFishBucket(std::string const &name, CompoundTag const &item, Context const &) {
     auto ret = New("tropical_fish_bucket");
     ret->set("Damage", Short(0));
     auto tg = item.compoundTag("tag");
@@ -225,7 +224,7 @@ private:
     return Post(ret, item);
   }
 
-  static ItemData BooksAndQuill(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr BooksAndQuill(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
 
     auto tag = Compound();
@@ -302,7 +301,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData LeatherArmor(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr LeatherArmor(std::string const &name, CompoundTag const &item, Context const &) {
     auto tag = Compound();
     tag->insert({
         {"Name", String(name)},
@@ -321,7 +320,7 @@ private:
     return Post(tag, item);
   }
 
-  static std::optional<std::tuple<int, ItemData>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
+  static std::optional<std::tuple<int, CompoundTagPtr>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
     auto ret = New(name, true);
     ret->set("Damage", Short(0));
 
@@ -370,7 +369,7 @@ private:
     return make_tuple(mapId, out);
   }
 
-  static ItemData AnyPotion(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr AnyPotion(std::string const &name, CompoundTag const &item, Context const &) {
     auto tag = New(name, true);
     auto t = item.query("tag")->asCompound();
     int16_t type = 0;
@@ -382,7 +381,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData TippedArrow(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr TippedArrow(std::string const &name, CompoundTag const &item, Context const &) {
     auto tag = New("arrow");
     auto t = item.query("tag")->asCompound();
     int16_t type = 0;
@@ -394,7 +393,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData FireworkStar(std::string const &name, CompoundTag const &item, Context const &ctx) {
+  static CompoundTagPtr FireworkStar(std::string const &name, CompoundTag const &item, Context const &ctx) {
     auto data = Rename("firework_star")(name, item, ctx);
 
     auto explosion = item.query("tag/Explosion")->asCompound();
@@ -413,7 +412,7 @@ private:
     return data;
   }
 
-  static ItemData FireworkRocket(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr FireworkRocket(std::string const &name, CompoundTag const &item, Context const &) {
     auto data = New("firework_rocket");
     auto fireworks = item.query("tag/Fireworks")->asCompound();
     if (fireworks) {
@@ -746,7 +745,7 @@ private:
     return list->find(name) != list->end();
   }
 
-  static ItemData AnyTorch(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr AnyTorch(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
 
     map<string, string> empty;
@@ -770,14 +769,14 @@ private:
     };
   }
 
-  static ItemData Skull(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr Skull(std::string const &name, CompoundTag const &item, Context const &) {
     int8_t type = GetSkullTypeFromBlockName(name);
     auto tag = New("skull");
     tag->set("Damage", Short(type));
     return Post(tag, item);
   }
 
-  static ItemData SuspiciousStew(std::string const &name, CompoundTag const &j, Context const &) {
+  static CompoundTagPtr SuspiciousStew(std::string const &name, CompoundTag const &j, Context const &) {
     auto b = New("suspicious_stew");
     auto tagJ = j.compoundTag("tag");
     if (tagJ) {
@@ -804,7 +803,7 @@ private:
     return Post(b, j);
   }
 
-  static ItemData Crossbow(std::string const &name, CompoundTag const &j, Context const &ctx) {
+  static CompoundTagPtr Crossbow(std::string const &name, CompoundTag const &j, Context const &ctx) {
     auto b = New("crossbow");
 
     if (auto tagJ = j.compoundTag("tag"); tagJ) {
@@ -830,7 +829,7 @@ private:
     return Post(b, j);
   }
 
-  static ItemData Banner(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr Banner(std::string const &name, CompoundTag const &item, Context const &) {
     auto colorName = strings::Trim("minecraft:", name, "_banner");
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     int16_t damage = (int16_t)color;
@@ -881,7 +880,7 @@ private:
     return Post(ret, item);
   }
 
-  static ItemData Bed(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr Bed(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
     string colorName = strings::Trim("minecraft:", name, "_bed");
     ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
@@ -891,7 +890,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData MushroomBlock(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr MushroomBlock(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
 
     map<string, string> empty;
@@ -908,7 +907,7 @@ private:
     return Post(tag, item);
   }
 
-  static ItemData New(std::string const &name, bool fullname = false) {
+  static CompoundTagPtr New(std::string const &name, bool fullname = false) {
     std::string n;
     if (fullname) {
       n = name;
@@ -927,7 +926,7 @@ private:
 
   Item() = delete;
 
-  static ItemData DefaultBlockItem(std::string const &id, CompoundTag const &item, Context const &ctx) {
+  static CompoundTagPtr DefaultBlockItem(std::string const &id, CompoundTag const &item, Context const &ctx) {
     using namespace std;
 
     map<string, string> p;
@@ -984,7 +983,7 @@ private:
     return Post(ret, item);
   }
 
-  static ItemData DefaultItem(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr DefaultItem(std::string const &name, CompoundTag const &item, Context const &) {
     auto ret = Compound();
     ret->insert({
         {"Name", String(name)},
@@ -994,7 +993,7 @@ private:
     return Post(ret, item);
   }
 
-  static ItemData Post(ItemData const &input, CompoundTag const &item) {
+  static CompoundTagPtr Post(CompoundTagPtr const &input, CompoundTag const &item) {
     using namespace std;
 
     CopyByteValues(item, *input, {{"Count"}});
