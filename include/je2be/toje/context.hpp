@@ -3,10 +3,12 @@
 namespace je2be::toje {
 
 class Context {
-  Context(std::shared_ptr<MapInfo const> const &mapInfo,
+  Context(std::endian endian,
+          std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
           int64_t gameTick,
-          std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) : fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
+          std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity)
+      : fEndian(endian), fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
 
 public:
   struct ChunksInRegion {
@@ -15,6 +17,7 @@ public:
 
   static std::shared_ptr<Context> Init(leveldb::DB &db,
                                        Options opt,
+                                       std::endian endian,
                                        std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
                                        int &totalChunks,
                                        int64_t gameTick,
@@ -71,7 +74,7 @@ public:
         }
       } else if (parsed->fUnTagged.starts_with("map_")) {
         int64_t mapId;
-        auto parsed = MapInfo::Parse(itr->value().ToString(), mapId);
+        auto parsed = MapInfo::Parse(itr->value().ToString(), mapId, endian);
         if (!parsed) {
           continue;
         }
@@ -128,7 +131,7 @@ public:
       }
     }
 
-    return std::shared_ptr<Context>(new Context(mapInfo, structureInfo, gameTick, fromBlockAndBlockEntity));
+    return std::shared_ptr<Context>(new Context(endian, mapInfo, structureInfo, gameTick, fromBlockAndBlockEntity));
   }
 
   void markMapUuidAsUsed(int64_t uuid) {
@@ -176,7 +179,7 @@ public:
       if (auto st = db.Get(leveldb::ReadOptions{}, key, &str); !st.ok()) {
         continue;
       }
-      auto b = CompoundTag::Read(str, std::endian::little);
+      auto b = CompoundTag::Read(str, fEndian);
       if (!b) {
         continue;
       }
@@ -250,7 +253,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    auto ret = std::shared_ptr<Context>(new Context(fMapInfo, fStructureInfo, fGameTick, fFromBlockAndBlockEntity));
+    auto ret = std::shared_ptr<Context>(new Context(fEndian, fMapInfo, fStructureInfo, fGameTick, fFromBlockAndBlockEntity));
     ret->fLocalPlayer = fLocalPlayer;
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
@@ -344,6 +347,8 @@ public:
   }
 
 public:
+  std::endian const fEndian;
+
   struct VehicleEntity {
     Pos2i fChunk;
     std::map<size_t, Uuid> fPassengers;

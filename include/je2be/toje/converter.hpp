@@ -28,15 +28,15 @@ public:
     }
 
     CompoundTagPtr dat;
-    auto endianness = LevelData::Read(fInput / "level.dat", dat);
-    if (!endianness || !dat) {
+    auto endian = LevelData::Read(fInput / "level.dat", dat);
+    if (!endian || !dat) {
       return false;
     }
 
     int total = 0;
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
     int64_t gameTick = dat->int64("currentTick", 0);
-    auto bin = Context::Init(*db, fOptions, regions, total, gameTick, BlockEntity::FromBlockAndBlockEntity);
+    auto bin = Context::Init(*db, fOptions, *endian, regions, total, gameTick, BlockEntity::FromBlockAndBlockEntity);
 
     auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
     if (!levelDat) {

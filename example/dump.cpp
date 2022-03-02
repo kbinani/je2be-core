@@ -54,7 +54,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
   if (!st.ok()) {
     return;
   }
-  auto section = mcfile::be::SubChunk::Parse(value, cy);
+  auto section = mcfile::be::SubChunk::Parse(value, cy, std::endian::little);
   if (!section) {
     return;
   }

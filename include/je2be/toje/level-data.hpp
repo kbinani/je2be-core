@@ -5,7 +5,7 @@ namespace je2be::toje {
 class LevelData {
 public:
   struct GameRules {
-    static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db) {
+    static std::shared_ptr<CompoundTag> Import(CompoundTag const &b, leveldb::DB &db, std::endian endian) {
       auto ret = Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[#__nameJ] = String(b.boolean(#__nameB, __default) ? "true" : "false");
@@ -49,7 +49,7 @@ public:
 
       std::string mobEventsData;
       if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::MobEvents(), &mobEventsData); st.ok()) {
-        if (auto mobEvents = CompoundTag::Read(mobEventsData, std::endian::little); mobEvents) {
+        if (auto mobEvents = CompoundTag::Read(mobEventsData, endian); mobEvents) {
           auto doPatrolSpawning = mobEvents->boolean("minecraft:pillager_patrols_event", true);
           auto doTraderSpawning = mobEvents->boolean("minecraft:wandering_trader_event", true);
 
@@ -107,7 +107,7 @@ public:
     CopyLongValues(b, j, {{"Time", "DayTime"}, {"currentTick", "Time"}});
 
     j["Difficulty"] = Byte(b.int32("Difficulty", 2));
-    j["GameRules"] = GameRules::Import(b, db);
+    j["GameRules"] = GameRules::Import(b, db, ctx.fEndian);
     j["LastPlayed"] = Long(b.int64("LastPlayed", 0) * 1000);
 
     j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
@@ -196,7 +196,7 @@ public:
     j["raining"] = Bool(b.float32("rainLevel", 0) >= 1);
     j["thundering"] = Bool(b.float32("lightningLevel", 0) >= 1);
 
-    if (auto dragonFight = DragonFight(db); dragonFight) {
+    if (auto dragonFight = DragonFight(db, ctx.fEndian); dragonFight) {
       j["DragonFight"] = dragonFight;
     }
 
@@ -276,7 +276,7 @@ public:
       return std::nullopt;
     }
 
-    auto tag = CompoundTag::Read(str, std::endian::little);
+    auto tag = CompoundTag::Read(str, ctx.fEndian);
     if (!tag) {
       return std::nullopt;
     }
@@ -284,12 +284,12 @@ public:
     return Entity::LocalPlayer(*tag, ctx, uuid);
   }
 
-  static std::shared_ptr<CompoundTag> DragonFight(leveldb::DB &db) {
+  static std::shared_ptr<CompoundTag> DragonFight(leveldb::DB &db, std::endian endian) {
     std::string str;
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::TheEnd(), &str); !st.ok()) {
       return nullptr;
     }
-    auto tag = CompoundTag::Read(str, std::endian::little);
+    auto tag = CompoundTag::Read(str, endian);
     if (!tag) {
       return nullptr;
     }

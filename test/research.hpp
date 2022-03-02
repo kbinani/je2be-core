@@ -471,7 +471,7 @@ static void MonumentBedrock() {
     int y0 = v.fStart.fY;
     int cx = Coordinate::ChunkFromBlock(x0);
     int cz = Coordinate::ChunkFromBlock(z0);
-    toje::ChunkCache<5, 5> cache(Dimension::Overworld, cx, cz, db.get());
+    toje::ChunkCache<5, 5> cache(Dimension::Overworld, cx, cz, db.get(), std::endian::little);
 
     string facing;
     if (start.fX == 8891 && start.fZ == 13979) {

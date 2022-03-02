@@ -5,7 +5,7 @@ namespace je2be::toje {
 template <size_t width, size_t height>
 class ChunkCache {
 public:
-  ChunkCache(mcfile::Dimension d, int cx, int cz, leveldb::DB *db) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDb(db) {
+  ChunkCache(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, std::endian endian) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
@@ -42,7 +42,7 @@ public:
       return nullptr;
     }
     if (!fCacheLoaded[*index]) {
-      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, fDb);
+      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, fDb, fEndian);
       fCacheLoaded[*index] = true;
     }
     return fCache[*index];
@@ -59,7 +59,7 @@ public:
   }
 
   ChunkCache *makeRelocated(int cx, int cz) const {
-    std::unique_ptr<ChunkCache<width, height>> ret(new ChunkCache(fDim, cx, cz, fDb));
+    std::unique_ptr<ChunkCache<width, height>> ret(new ChunkCache(fDim, cx, cz, fDb, fEndian));
     for (int x = 0; x < width; x++) {
       for (int z = 0; z < height; z++) {
         auto index = this->index(fChunkX + x, fChunkZ + z);
@@ -91,6 +91,7 @@ private:
   std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
   std::vector<bool> fCacheLoaded;
   leveldb::DB *const fDb;
+  std::endian const fEndian;
 };
 
 } // namespace je2be::toje

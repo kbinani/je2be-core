@@ -27,10 +27,10 @@ public:
     std::vector<Decoration> fDecorations;
   };
 
-  static std::optional<Map> Parse(std::string const &value, int64_t &outMapId) {
+  static std::optional<Map> Parse(std::string const &value, int64_t &outMapId, std::endian endian) {
     using namespace std;
     using namespace leveldb;
-    auto tag = CompoundTag::Read(value, std::endian::little);
+    auto tag = CompoundTag::Read(value, endian);
     if (!tag) {
       return nullopt;
     }
