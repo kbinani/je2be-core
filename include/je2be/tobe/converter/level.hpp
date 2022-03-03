@@ -437,12 +437,8 @@ public:
       return nullptr;
     }
 
-    vector<uint8_t> buffer;
-    if (!file::GetGzContents(javaEditionLevelDat, buffer)) {
-      return nullptr;
-    }
-
-    return CompoundTag::Read(buffer, std::endian::big);
+    auto stream = make_shared<GzFileInputStream>(javaEditionLevelDat);
+    return CompoundTag::Read(stream, endian::big);
   }
 
 private:
