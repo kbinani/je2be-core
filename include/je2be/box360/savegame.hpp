@@ -58,12 +58,12 @@ private:
           break;
         }
         uint8_t repeat = buffer[i + 2];
-        for (int j = 0; j < count; j++) {
+        for (int j = 0; j <= count; j++) {
           out.push_back(repeat);
         }
         i += 3;
       } else {
-        for (int j = 0; j < count; j++) {
+        for (int j = 0; j <= count; j++) {
           out.push_back(0xff);
         }
         i += 2;
