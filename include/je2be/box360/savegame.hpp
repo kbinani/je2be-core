@@ -36,7 +36,23 @@ public:
     return true;
   }
 
-  static void DecodeChunk(std::vector<uint8_t> &buffer) {
+  static bool DecompressRawChunk(std::vector<uint8_t> &buffer) {
+    if (buffer.size() < 4) {
+      return false;
+    }
+    uint32_t decompressedSize = mcfile::U32FromBE(*(uint32_t *)buffer.data());
+    for (int j = 0; j < 4; j++) {
+      buffer.erase(buffer.begin());
+    }
+    size_t decodedSize = LxzDecoder::Decode(buffer);
+    if (decodedSize == 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  static void DecodeDecompressedChunk(std::vector<uint8_t> &buffer) {
     // This is a port of ExpandX function from https://sourceforge.net/projects/xboxtopcminecraftconverter/
     std::vector<uint8_t> out;
     int i = 0;
@@ -72,6 +88,41 @@ public:
     buffer.swap(out);
   }
 
+  static bool ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream, int x, int z, std::vector<uint8_t> &buffer) {
+    if (x < 0 || 32 <= x || z < 0 || 32 <= z) {
+      return false;
+    }
+    buffer.clear();
+    int idx = x + 32 * z;
+    uint64_t pos = idx * 4;
+    if (!stream.seek(pos)) {
+      return false;
+    }
+    uint32_t location = 0;
+    if (!stream.read(&location, sizeof(location))) {
+      return true;
+    }
+    location = mcfile::U32FromBE(location);
+    uint32_t offset = location >> 8;
+    uint8_t sectorCount = 0xff & location;
+    if (offset == 0 || sectorCount == 0) {
+      return true;
+    }
+    if (!stream.seek(offset * 4096)) {
+      return false;
+    }
+    uint32_t size = 0;
+    if (!stream.read(&size, sizeof(size))) {
+      return false;
+    }
+    size = 0xffffff & mcfile::U32FromBE(size);
+    if (size < 4) {
+      return false;
+    }
+    buffer.resize(size);
+    return stream.read(buffer.data(), size);
+  }
+
   static bool RecompressRegionFile(std::filesystem::path const &mcr) {
     using namespace std;
     namespace fs = std::filesystem;
@@ -102,34 +153,12 @@ public:
         int cx = rx * 32 + x;
         int cz = rz * 32 + z;
 
-        uint64_t pos = i * 4;
-        if (!s->seek(pos)) {
+        vector<uint8_t> buffer;
+        if (!ExtractRawChunkFromRegionFile(*s, x, z, buffer)) {
           return false;
         }
-        uint32_t location = 0;
-        if (!s->read(&location, sizeof(location))) {
-          return true;
-        }
-        location = mcfile::U32FromBE(location);
-        uint32_t offset = location >> 8;
-        uint8_t sectorCount = 0xff & location;
-        if (offset == 0 || sectorCount == 0) {
+        if (buffer.empty()) {
           continue;
-        }
-        if (!s->seek(offset * 4096)) {
-          return false;
-        }
-        uint32_t size = 0;
-        if (!s->read(&size, sizeof(size))) {
-          return false;
-        }
-        size = 0xffffff & mcfile::U32FromBE(size);
-        if (size < 4) {
-          continue;
-        }
-        vector<uint8_t> buffer(size);
-        if (!s->read(buffer.data(), size)) {
-          return false;
         }
         {
           auto rawFile = parentDir / ("c." + to_string(cx) + "." + to_string(cz) + "-0-raw");
@@ -138,12 +167,7 @@ public:
             return false;
           }
         }
-        uint32_t decompressedSize = mcfile::U32FromBE(*(uint32_t *)buffer.data());
-        for (int j = 0; j < 4; j++) {
-          buffer.erase(buffer.begin());
-        }
-        size_t decodedSize = LxzDecoder::Decode(buffer);
-        if (decodedSize == 0) {
+        if (!DecompressRawChunk(buffer)) {
           return false;
         }
         {
@@ -154,7 +178,7 @@ public:
           }
           // OK. the "*-1-decompressed" file is same as quickbms
         }
-        DecodeChunk(buffer);
+        DecodeDecompressedChunk(buffer);
         {
           auto decodedFile = parentDir / ("c." + to_string(cx) + "." + to_string(cz) + "-2-decoded");
           auto decoded = make_shared<mcfile::stream::FileOutputStream>(decodedFile);
@@ -206,7 +230,7 @@ public:
     return true;
   }
 
-  static bool ExtractFilesFromDecompressedSavegame(std::vector<uint8_t> const& savegame, std::filesystem::path const& outputDirectory) {
+  static bool ExtractFilesFromDecompressedSavegame(std::vector<uint8_t> const &savegame, std::filesystem::path const &outputDirectory) {
     if (savegame.size() < 8) {
       return false;
     }

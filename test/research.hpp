@@ -614,36 +614,38 @@ static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::Stf
 }
 
 static void Box360Chunk() {
-  fs::path before("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001/858-pig-name=Yahoo.dat");
-  fs::path after("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001/858-pig-name=Yohoo.dat");
-  for (auto p : {before, after}) {
-    auto s = make_shared<mcfile::stream::FileInputStream>(p);
+  using namespace je2be::box360;
+  fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
+  for (auto name : {"Save20220305225836-000-pig-name=Yahoo.bin", "Save20220305225836-001-pig-name=Yohoo.bin", "Save20220305225836-002-put-cobblestone.bin"}) {
+    auto temp = File::CreateTempDir(fs::temp_directory_path());
+    CHECK(temp);
+    defer {
+      Fs::Delete(*temp);
+    };
+    auto savegame = *temp / "savegame.dat";
+    CHECK(Savegame::ExtractSavagameFromSaveBin(dir / name, savegame));
     vector<uint8_t> buffer;
-    mcfile::stream::InputStream::ReadUntilEos(*s, buffer);
+    CHECK(Savegame::DecompressSavegame(savegame, buffer));
+    CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
+    auto r00 = *temp / "region" / "r.0.0.mcr";
+    CHECK(fs::exists(r00));
+    {
+      auto f = make_shared<mcfile::stream::FileInputStream>(r00);
+      CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, 26, 26, buffer));
+    }
+    CHECK(buffer.size() > 0);
+    CHECK(Savegame::DecompressRawChunk(buffer));
+    Savegame::DecodeDecompressedChunk(buffer);
     string data;
     data.assign((char const *)buffer.data(), buffer.size());
-    auto found = data.find("Entities");
+    vector<uint8_t>().swap(buffer);
+    auto found = data.find(string("\x0a\x00\x00", 3));
     CHECK(found != string::npos);
-    CHECK(data[found - 6] == 0x0a);
-    CHECK(data[found - 5] == 0x00);
-    CHECK(data[found - 4] == 0x00);
-    CHECK(data[found - 3] == 0x09);
-    CHECK(data[found - 2] == 0x00);
-    CHECK(data[found - 1] == 0x08);
-    string nbt = data.substr(found - 6);
-    auto tag = CompoundTag::Read(nbt, endian::big);
+    auto sub = data.substr(found);
+    auto bs = make_shared<mcfile::stream::ByteStream>(sub);
+    auto tag = CompoundTag::Read(bs, endian::big);
     CHECK(tag);
-    mcfile::nbt::PrintAsJson(cout, *tag, {.fTypeHint = true});
-    string prefix = data.substr(0, found - 6);
-    buffer.clear();
-    copy(prefix.begin(), prefix.end(), back_inserter(buffer));
-    for (int i = 0; i < buffer.size() / 2; i++) {
-      uint8_t t = buffer[i];
-      buffer[i] = buffer[buffer.size() - i - 1];
-      buffer[buffer.size() - i - 1] = t;
-    }
-    auto out = make_shared<mcfile::stream::FileOutputStream>(p.replace_extension(".prefix-reversed.bin"));
-    CHECK(out->write(buffer.data(), buffer.size()));
+    CHECK(bs->pos() == sub.size());
   }
 }
 
