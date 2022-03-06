@@ -930,22 +930,13 @@ public:
   static size_t Decode(std::vector<uint8_t> &buffer) {
     using namespace std;
 
-    if (buffer.size() < 5) {
-      return 0;
-    }
-
-    for (int i = 0; i < 16; i++) {
-      buffer.push_back(0);
-    }
-
-    vector<uint8_t> out;
-
-    size_t remaining = buffer.size() - 5;
-    size_t pos = 0;
-
     auto decoder = make_unique<LxzDecoder>(17);
 
+    vector<uint8_t> out;
+    size_t remaining = buffer.size();
+    size_t pos = 0;
     size_t decodedBytes = 0;
+
     while (remaining > 0) {
       uint16_t inputSize = 0;
       uint16_t outputSize = 0;
@@ -958,23 +949,26 @@ public:
 
         remaining -= 5;
         pos += 5;
-
-        if (inputSize <= remaining) {
-          remaining = inputSize;
-        } else {
-          return 0;
-        }
       } else {
         if (remaining < 2) {
-          return 0;
+          if (buffer[pos] == 0) {
+            // EOS
+            break;
+          } else {
+            // Unexpected. Recognize this situation as an error
+            return 0;
+          }
         }
         outputSize = 0x8000;
         inputSize = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + pos));
         remaining -= 2;
         pos += 2;
-        if (remaining < inputSize) {
-          return 0;
-        }
+      }
+
+      if (inputSize == 0) {
+        break;
+      } else if (inputSize > remaining) {
+        return 0;
       }
 
       out.resize(out.size() + outputSize);
