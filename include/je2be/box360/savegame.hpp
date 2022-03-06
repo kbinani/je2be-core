@@ -38,6 +38,7 @@ private:
   }
 
   static void DecodeChunk(std::vector<uint8_t> &buffer) {
+    // This is a port of ExpandX function from https://sourceforge.net/projects/xboxtopcminecraftconverter/
     std::vector<uint8_t> out;
     int i = 0;
     while (i < buffer.size()) {
