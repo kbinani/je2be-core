@@ -616,7 +616,17 @@ static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::Stf
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
-  for (auto name : {"Save20220305225836-000-pig-name=Yahoo.bin", "Save20220305225836-001-pig-name=Yohoo.bin", "Save20220305225836-002-put-cobblestone.bin"}) {
+  int cx = 26;
+  int cz = 26;
+  for (auto name : {
+           //           "1-Save20220305225836-000-pig-name=Yahoo.bin",
+           //           "1-Save20220305225836-001-pig-name=Yohoo.bin",
+           //           "1-Save20220305225836-002-put-cobblestone.bin",
+           //           "1-Save20220305225836-003-remove-cobblestone.bin",
+           //           "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
+           "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+       }) {
+    cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
     CHECK(temp);
     defer {
@@ -631,7 +641,7 @@ static void Box360Chunk() {
     CHECK(fs::exists(r00));
     {
       auto f = make_shared<mcfile::stream::FileInputStream>(r00);
-      CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, 26, 26, buffer));
+      CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
     }
     CHECK(buffer.size() > 0);
     CHECK(Savegame::DecompressRawChunk(buffer));
@@ -646,6 +656,94 @@ static void Box360Chunk() {
     auto tag = CompoundTag::Read(bs, endian::big);
     CHECK(tag);
     CHECK(bs->pos() == sub.size());
+
+    buffer.assign(data.begin(), data.begin() + found);
+    string basename = fs::path(name).replace_extension().string();
+    CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
+    for (int i = 0; i + 4096 < buffer.size(); i++) {
+      uint8_t start = buffer[i];
+      bool ok = true;
+      for (int j = 1; j < 4096; j++) {
+        if (buffer[i + j] != start) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) {
+        continue;
+      }
+      int count = 4096;
+      int j = i + 1;
+      for (; j + 4096 < buffer.size(); j++) {
+        if (buffer[j] == start) {
+          count++;
+        } else {
+          break;
+        }
+      }
+      cout << "0x" << hex << (int)start << dec << " continues " << count << " bytes at " << dec << i << "(0x" << hex << i << dec << ")" << endl;
+      i = j;
+    }
+
+    uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
+    uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
+    int32_t xPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x2));
+    int32_t zPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x6));
+    // 0x00 4bytes
+    int64_t maybeLastUpdate = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x0a));
+    int64_t maybeInhabitedTime = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x12));
+    cout << "cx=" << xPos << "; cz=" << zPos << endl;
+    vector<uint8_t> unknown38Bytes;
+    copy_n(buffer.data() + 0x1a, 38, back_inserter(unknown38Bytes));
+    vector<uint8_t> unknown12Bytes;
+    copy_n(buffer.data() + 0x40, 12, back_inserter(unknown12Bytes));
+
+    // Biomes: 256 bytes / chunk
+    // HeightMap: 256 bytes / chunk
+
+    // BlockLight: 2048 bytes / section
+    // Blocks: 4096 bytes / section
+    // Data: 2048 bytes / section
+    // SkyLight: 2048 bytes / section
+    // --
+    // Total: 10240 bytes / section
+
+    int sectionsStartPos = 0x40 + 12;
+    int heightMapStartPos = buffer.size() - 256 - 2 - 256;
+    int sectionsTotalSize = heightMapStartPos - sectionsStartPos;
+    cout << "sectionsTotalSize=" << sectionsTotalSize << " bytes" << endl;
+
+    /*
+    sectionsTotalSize=6544 bytes
+    sectionsTotalSize=17040 bytes
+    sectionsTotalSize=22288 bytes
+    sectionsTotalSize=75408 bytes
+    */
+
+    vector<uint8_t> heightMap;
+    copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[n] == 0, it means height = 256 at n.
+
+    cout << "height map:" << endl;
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        int h = heightMap[x + 16 * z];
+        if (h == 0) {
+          h = 256;
+        }
+        printf("%3d ", (int)h);
+      }
+      printf("\n");
+    }
+
+    uint16_t unknownMarkerA = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + buffer.size() - 256 - 2)); // 0x07fe
+    CHECK(unknownMarkerA == 0x07fe);
+
+    vector<mcfile::biomes::BiomeId> biomes;
+    for (int i = 0; i < 256; i++) {
+      auto raw = buffer[buffer.size() - 256 - 1];
+      auto biome = mcfile::biomes::FromInt(raw);
+      biomes.push_back(biome);
+    }
   }
 }
 
