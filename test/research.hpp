@@ -622,24 +622,28 @@ static void Box360Chunk() {
     mcfile::stream::InputStream::ReadUntilEos(*s, buffer);
     string data;
     data.assign((char const *)buffer.data(), buffer.size());
-    size_t pos = 0;
-    while (pos < data.size()) {
-      auto found = data.find(string("\x0a\x00\x00", 3), pos);
-      if (found == string::npos) {
-        break;
-      }
-      auto sub = data.substr(found);
-      auto bs = make_shared<mcfile::stream::ByteStream>(sub);
-      auto tag = CompoundTag::Read(bs, endian::big);
-      if (!tag) {
-        pos += 3;
-        continue;
-      }
-      auto consumed = bs->pos();
-      cout << "found at 0x" << hex << found << dec << ", consumed=" << consumed << " bytes" << endl;
-      nbt::PrintAsJson(cout, *tag, {.fTypeHint = true});
-      pos = found + consumed;
+    auto found = data.find("Entities");
+    CHECK(found != string::npos);
+    CHECK(data[found - 6] == 0x0a);
+    CHECK(data[found - 5] == 0x00);
+    CHECK(data[found - 4] == 0x00);
+    CHECK(data[found - 3] == 0x09);
+    CHECK(data[found - 2] == 0x00);
+    CHECK(data[found - 1] == 0x08);
+    string nbt = data.substr(found - 6);
+    auto tag = CompoundTag::Read(nbt, endian::big);
+    CHECK(tag);
+    mcfile::nbt::PrintAsJson(cout, *tag, {.fTypeHint = true});
+    string prefix = data.substr(0, found - 6);
+    buffer.clear();
+    copy(prefix.begin(), prefix.end(), back_inserter(buffer));
+    for (int i = 0; i < buffer.size() / 2; i++) {
+      uint8_t t = buffer[i];
+      buffer[i] = buffer[buffer.size() - i - 1];
+      buffer[buffer.size() - i - 1] = t;
     }
+    auto out = make_shared<mcfile::stream::FileOutputStream>(p.replace_extension(".prefix-reversed.bin"));
+    CHECK(out->write(buffer.data(), buffer.size()));
   }
 }
 
