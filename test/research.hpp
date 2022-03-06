@@ -613,16 +613,42 @@ static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::Stf
   return true;
 }
 
-static void Stfs() {
-  using namespace je2be::box360;
-
-  fs::path bin("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001/Save20220303092528.bin");
-  fs::path out = bin.parent_path() / "out";
-  Savegame::Extract(bin, out);
+static void Box360Chunk() {
+  fs::path before("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001/858-pig-name=Yahoo.dat");
+  fs::path after("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001/858-pig-name=Yohoo.dat");
+  for (auto p : {before, after}) {
+    auto s = make_shared<mcfile::stream::FileInputStream>(p);
+    vector<uint8_t> buffer;
+    mcfile::stream::InputStream::ReadUntilEos(*s, buffer);
+    string data;
+    data.assign((char const *)buffer.data(), buffer.size());
+    auto found = data.find("Entities");
+    CHECK(found != string::npos);
+    CHECK(data[found - 6] == 0x0a);
+    CHECK(data[found - 5] == 0x00);
+    CHECK(data[found - 4] == 0x00);
+    CHECK(data[found - 3] == 0x09);
+    CHECK(data[found - 2] == 0x00);
+    CHECK(data[found - 1] == 0x08);
+    string nbt = data.substr(found - 6);
+    auto tag = CompoundTag::Read(nbt, endian::big);
+    CHECK(tag);
+    mcfile::nbt::PrintAsJson(cout, *tag, {.fTypeHint = true});
+    string prefix = data.substr(0, found - 6);
+    buffer.clear();
+    copy(prefix.begin(), prefix.end(), back_inserter(buffer));
+    for (int i = 0; i < buffer.size() / 2; i++) {
+      uint8_t t = buffer[i];
+      buffer[i] = buffer[buffer.size() - i - 1];
+      buffer[buffer.size() - i - 1] = t;
+    }
+    auto out = make_shared<mcfile::stream::FileOutputStream>(p.replace_extension(".prefix-reversed.bin"));
+    CHECK(out->write(buffer.data(), buffer.size()));
+  }
 }
 
 #if 1
 TEST_CASE("research") {
-  Stfs();
+  Box360Chunk();
 }
 #endif
