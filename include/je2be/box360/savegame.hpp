@@ -15,7 +15,6 @@ public:
     }
   }
 
-private:
   static bool DecompressSavegame(std::filesystem::path const &input, std::vector<uint8_t> &output) {
     using namespace std;
     vector<uint8_t> buffer;
@@ -207,6 +206,21 @@ private:
     return true;
   }
 
+  static bool ExtractFilesFromDecompressedSavegame(std::vector<uint8_t> const& savegame, std::filesystem::path const& outputDirectory) {
+    if (savegame.size() < 8) {
+      return false;
+    }
+    uint32_t const indexOffset = mcfile::U32FromBE(*(uint32_t *)savegame.data());
+    uint32_t const fileCount = mcfile::U32FromBE(*(uint32_t *)(savegame.data() + 4));
+    for (uint32_t i = 0; i < fileCount; i++) {
+      uint32_t pos = indexOffset + i * kIndexBytesPerFile;
+      if (!ExtractFile(savegame, pos, outputDirectory)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static bool UnsafeExtract(std::filesystem::path const &saveBinFile, std::filesystem::path const &outputDirectory) {
     using namespace std;
     namespace fs = std::filesystem;
@@ -220,19 +234,11 @@ private:
     if (!DecompressSavegame(savegame, decompressed)) {
       return false;
     }
-    Fs::Delete(savegame);
 
-    if (decompressed.size() < 8) {
+    if (!ExtractFilesFromDecompressedSavegame(decompressed, outputDirectory)) {
       return false;
     }
-    uint32_t const indexOffset = mcfile::U32FromBE(*(uint32_t *)decompressed.data());
-    uint32_t const fileCount = mcfile::U32FromBE(*(uint32_t *)(decompressed.data() + 4));
-    for (uint32_t i = 0; i < fileCount; i++) {
-      uint32_t pos = indexOffset + i * kIndexBytesPerFile;
-      if (!ExtractFile(decompressed, pos, outputDirectory)) {
-        return false;
-      }
-    }
+
     return RecompressRegionFiles(outputDirectory);
   }
 
