@@ -648,7 +648,9 @@ static void Box360Chunk() {
            //"2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
            //"2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
            //"2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
-           "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
+           //"2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
+           //"2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
+           "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -755,7 +757,7 @@ static void Box360Chunk() {
     copy_n(buffer.data() + 0x4c, 128, back_inserter(unknown128BytesA)); // [0x4c, 0xcb]
 
     vector<uint8_t> section0;
-    copy_n(buffer.data() + 0xcc, 128, back_inserter(section0)); // [0xc, 0x14b]
+    copy_n(buffer.data() + 0xcc, 128, back_inserter(section0)); // [0xcc, 0x14b]
     for (int x = 0; x < 4; x++) {
       for (int z = 0; z < 4; z++) {
         for (int y = 0; y < 4; y++) {
@@ -769,27 +771,12 @@ static void Box360Chunk() {
           uint8_t t4 = 0xf & v2;
 
           uint16_t blockId = t4 << 4 | t1;
-          auto block = mcfile::je::Flatten::DoFlatten(blockId, 0);
+          uint8_t data = t3 << 4 | t2;
+          auto block = mcfile::je::Flatten::DoFlatten(blockId, data);
           cout << "[" << x << ", " << y << ", " << z << "] = " << block->toString() << endl;
         }
       }
     }
-    /*
-    unknown128BytesB: when under the situation (coordinates are chunk local)
-
-    fill 0 0 0 15 15 15 air
-    fill 0 0 0 15 0 15 bedrock
-
-    unknown128BytesB was of 16 times repeated "0x70 0x00 0x00 0x00 0x00 0x00 0x00 0x00"
-
-    when under the situation:
-    fill 0 0 0 15 15 15 air
-    fill 0 0 0 15 0 15 bedrock
-    setblock 0 1 0 bedrock
-
-    unknown128BytesB was "0x70 0x00 0x70 0x00 0x00 0x00 0x00 0x00" and 15 times repeated "0x70 0x00 0x00 0x00 0x00 0x00 0x00 0x00"
-
-    */
 
     // Biomes: 256 bytes / chunk
     // HeightMap: 256 bytes / chunk
