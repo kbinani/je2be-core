@@ -616,15 +616,39 @@ static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::Stf
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
-  int cx = 26;
-  int cz = 26;
+  int cx = 25;
+  int cz = 25;
   for (auto name : {
            //           "1-Save20220305225836-000-pig-name=Yahoo.bin",
            //           "1-Save20220305225836-001-pig-name=Yohoo.bin",
            //           "1-Save20220305225836-002-put-cobblestone.bin",
            //           "1-Save20220305225836-003-remove-cobblestone.bin",
            //           "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
-           "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+           //"2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+           //"abc-Save20220303092528.bin",
+           //"2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
+           //"2-Save20220306005722-003-heightmap-check.bin",
+           //"2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
+           //"2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
+           //"2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
+           //"2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
+           //"2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
+           //"2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
+           //"2-Save20220306005722-010-refill-bedrock-again.bin",
+           //"2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
+           //"2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
+           //"2-Save20220306005722-013-just-resaved-after-012.bin",
+           //"2-Save20220306005722-014-just-resaved-after-013.bin",
+           //"2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
+           //"2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
+           //"2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
+           //"2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
+           //"2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
+           //"2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
+           //"2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
+           //"2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
+           //"2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
+           "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -644,8 +668,13 @@ static void Box360Chunk() {
       CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
     }
     CHECK(buffer.size() > 0);
-    CHECK(Savegame::DecompressRawChunk(buffer));
+    auto foo = Savegame::DecompressRawChunk(buffer);
+    CHECK(foo > 0);
+
+    string basename = fs::path(name).replace_extension().string();
+    //CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".raw.bin"))->write(buffer.data(), buffer.size()));
     Savegame::DecodeDecompressedChunk(buffer);
+
     string data;
     data.assign((char const *)buffer.data(), buffer.size());
     vector<uint8_t>().swap(buffer);
@@ -658,7 +687,6 @@ static void Box360Chunk() {
     CHECK(bs->pos() == sub.size());
 
     buffer.assign(data.begin(), data.begin() + found);
-    string basename = fs::path(name).replace_extension().string();
     CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
     for (int i = 0; i + 4096 < buffer.size(); i++) {
       uint8_t start = buffer[i];
@@ -689,22 +717,87 @@ static void Box360Chunk() {
     uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
     int32_t xPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x2));
     int32_t zPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x6));
-    // 0x00 4bytes
     int64_t maybeLastUpdate = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x0a));
     int64_t maybeInhabitedTime = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x12));
-    cout << "cx=" << xPos << "; cz=" << zPos << endl;
-    vector<uint8_t> unknown38Bytes;
-    copy_n(buffer.data() + 0x1a, 38, back_inserter(unknown38Bytes));
-    vector<uint8_t> unknown12Bytes;
-    copy_n(buffer.data() + 0x40, 12, back_inserter(unknown12Bytes));
+    cout << "cx: " << xPos << ", cz: " << zPos << endl;
+
+    uint8_t maybeMinSectionY = buffer[0x1a]; // Always 0. May be > 0 in The End?
+    cout << "minSectionY: " << (int)maybeMinSectionY << endl;
+
+    uint16_t maxJumpTableAddress = (uint16_t)buffer[0x1b] * 0x100;
+    cout << "maxJumpTableAddress: 0x" << hex << maxJumpTableAddress << dec << endl;
+    vector<uint16_t> maybeJumpTableFor16Sections;
+    for (int section = 0; section < 16; section++) {
+      uint16_t address = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + 0x1c + section * sizeof(uint16_t)));
+      maybeJumpTableFor16Sections.push_back(address);
+    }
+
+    vector<uint8_t> maybeNumBlockPaletteEntriesFor16Sections;
+    for (int section = 0; section < 16; section++) {
+      uint8_t numBlockPaletteEntries = buffer[0x3c + section];
+      maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
+    }
+
+    for (int section = 0; section < 16; section++) {
+      uint16_t address = maybeJumpTableFor16Sections[section];
+      uint8_t paletteSize = maybeNumBlockPaletteEntriesFor16Sections[section];
+      cout << "section#" << section << " at 0x" << hex << address << dec;
+      if (address == maxJumpTableAddress) {
+        cout << " (empty)";
+        CHECK(paletteSize == 0);
+      } else {
+        cout << ", block palette: " << (int)paletteSize << " blocks";
+      }
+      cout << endl;
+    }
+
+    vector<uint8_t> unknown128BytesA;
+    copy_n(buffer.data() + 0x4c, 128, back_inserter(unknown128BytesA)); // [0x4c, 0xcb]
+
+    vector<uint8_t> section0;
+    copy_n(buffer.data() + 0xcc, 128, back_inserter(section0)); // [0xc, 0x14b]
+    for (int x = 0; x < 4; x++) {
+      for (int z = 0; z < 4; z++) {
+        for (int y = 0; y < 4; y++) {
+          int position = 2 * (16 * x + 4 * z + y);
+          uint8_t v1 = section0[position];
+          uint8_t v2 = section0[position + 1];
+
+          uint8_t t1 = v1 >> 4;
+          uint8_t t2 = 0xf & v1;
+          uint8_t t3 = v2 >> 4;
+          uint8_t t4 = 0xf & v2;
+
+          uint16_t blockId = t4 << 4 | t1;
+          auto block = mcfile::je::Flatten::DoFlatten(blockId, 0);
+          cout << "[" << x << ", " << y << ", " << z << "] = " << block->toString() << endl;
+        }
+      }
+    }
+    /*
+    unknown128BytesB: when under the situation (coordinates are chunk local)
+
+    fill 0 0 0 15 15 15 air
+    fill 0 0 0 15 0 15 bedrock
+
+    unknown128BytesB was of 16 times repeated "0x70 0x00 0x00 0x00 0x00 0x00 0x00 0x00"
+
+    when under the situation:
+    fill 0 0 0 15 15 15 air
+    fill 0 0 0 15 0 15 bedrock
+    setblock 0 1 0 bedrock
+
+    unknown128BytesB was "0x70 0x00 0x70 0x00 0x00 0x00 0x00 0x00" and 15 times repeated "0x70 0x00 0x00 0x00 0x00 0x00 0x00 0x00"
+
+    */
 
     // Biomes: 256 bytes / chunk
     // HeightMap: 256 bytes / chunk
 
-    // BlockLight: 2048 bytes / section
-    // Blocks: 4096 bytes / section
-    // Data: 2048 bytes / section
-    // SkyLight: 2048 bytes / section
+    // BlockLight: 2048 bytes / section: 4bit per block
+    // Blocks: 4096 bytes / section: 1byte per block
+    // Data: 2048 bytes / section: 4bit per block
+    // SkyLight: 2048 bytes / section: 4bit per block
     // --
     // Total: 10240 bytes / section
 
@@ -726,7 +819,7 @@ static void Box360Chunk() {
     cout << "height map:" << endl;
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++) {
-        int h = heightMap[x + 16 * z];
+        int h = heightMap[x + z * 16];
         if (h == 0) {
           h = 256;
         }
