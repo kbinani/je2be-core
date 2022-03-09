@@ -613,57 +613,153 @@ static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::Stf
   return true;
 }
 
+static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1, uint8_t v2) {
+  uint8_t t1 = v1 >> 4;
+  uint8_t t2 = 0xf & v1;
+  uint8_t t3 = v2 >> 4;
+  uint8_t t4 = 0xf & v2;
+
+  uint16_t blockId = t4 << 4 | t1;
+  uint8_t data = t3 << 4 | t2;
+  return mcfile::je::Flatten::DoFlatten(blockId, data);
+}
+
+static bool Box360ParseGridFormatF(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  index.resize(64, 0);
+  palette.clear();
+  for (uint16_t i = 0; i < 64; i++) {
+    index[i] = i;
+    uint8_t v1 = buffer[i * 2];
+    uint8_t v2 = buffer[i * 2 + 1];
+    auto block = Box360BlockFromBytes(v1, v2);
+    if (!block) {
+      return false;
+    }
+    palette.push_back(block);
+  }
+  return true;
+}
+
+static bool Box360ParseGridFormat2(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  palette.clear();
+  for (int i = 0; i < 2; i++) {
+    uint8_t v1 = buffer[i * 2];
+    uint8_t v2 = buffer[i * 2 + 1];
+    auto block = Box360BlockFromBytes(v1, v2);
+    if (!block) {
+      return false;
+    }
+    palette.push_back(block);
+  }
+  index.resize(64);
+  std::fill(index.begin(), index.end(), 0);
+  int idx = 0;
+  for (int i = 0; i < 8; i++) {
+    uint8_t v = buffer[4 + i];
+    for (int j = 0; j < 8; j++) {
+      uint8_t mask = 0x80 >> j;
+      if ((v & mask) == mask) {
+        index[idx] = 1;
+      }
+      idx++;
+    }
+  }
+  return true;
+}
+
+static void Box360ParseGridFormat4(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  /*
+  format: 4
+  case 1: (040-gyazo-76ef1d3bf73d1094f76fb5af627b002a)
+  00 00 70 00   30 00 FF FF     F0       00       00       00       00       00       00       00       0F       00       00       00       00       00       00       00
+  air   bedrock dirt  (unused?) 11110000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00001111 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+  case 2: (041-gyazo-fa8a1fab5f80678d98a7010fd61019bc)
+  00 00 70 00   30 00 FF FF
+  air   bedrock dirt  unused
+
+  70       00       00       00       00       00       00       00
+  01110000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  0F       00       00       00       00       00       00       00
+  00001111 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+  0111 2222 0000 0000
+  0000 0000 0000 0000
+  0000 0000 0000 0000
+  0000 0000 0000 0000
+
+  case 3: (042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e)
+  00 00 70 00   30 00 FF FF
+  air   bedrock dirt  unused
+
+  0F       00       00       00       00       00       00       00
+  00001111 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  00       00       F0       00       00       00       00       00
+  00000000 00000000 11110000 00000000 00000000 00000000 00000000 00000000
+
+  0000 1111 0000 0000
+  2222 0000 0000 0000
+  0000 0000 0000 0000
+  0000 0000 0000 0000
+  */
+  for (int i = 0; i < 4; i++) {
+  }
+}
+
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
   int cx = 25;
   int cz = 25;
   for (auto name : {
-#if 0
-          "1-Save20220305225836-000-pig-name=Yahoo.bin",
-           "1-Save20220305225836-001-pig-name=Yohoo.bin",
-           "1-Save20220305225836-002-put-cobblestone.bin",
-           "1-Save20220305225836-003-remove-cobblestone.bin",
-           "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
-           "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+           //"1-Save20220305225836-000-pig-name=Yahoo.bin",
+           //"1-Save20220305225836-001-pig-name=Yohoo.bin",
+           //"1-Save20220305225836-002-put-cobblestone.bin",
+           //"1-Save20220305225836-003-remove-cobblestone.bin",
+           //"2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
+           //"2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
            //"abc-Save20220303092528.bin",
-           "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
-           "2-Save20220306005722-003-heightmap-check.bin",
-           "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
-           "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
-           "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
-           "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
-           "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
-           "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
-           "2-Save20220306005722-010-refill-bedrock-again.bin",
-           "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
-           "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
-           "2-Save20220306005722-013-just-resaved-after-012.bin",
-           "2-Save20220306005722-014-just-resaved-after-013.bin",
-           "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
-           "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
-           "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
-           "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
-           "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
-           "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
-           "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
-           "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
-           "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
-           "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
-           "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
-           "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
-           "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
-           "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
-           "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
-           "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
-#endif
-         "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
-             "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
-             "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
-             "2-Save20220306005722-034-resaved.bin",
-             "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
-             "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
-             "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
+           //"2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
+           //"2-Save20220306005722-003-heightmap-check.bin",
+           //"2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
+           //"2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
+           //"2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
+           //"2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
+           //"2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
+           //"2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
+           //"2-Save20220306005722-010-refill-bedrock-again.bin",
+           //"2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
+           //"2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
+           //"2-Save20220306005722-013-just-resaved-after-012.bin",
+           //"2-Save20220306005722-014-just-resaved-after-013.bin",
+           //"2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
+           //"2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
+           //"2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
+           //"2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
+           //"2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
+           //"2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
+           //"2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
+           //"2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
+           //"2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
+           //"2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
+           //"2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
+           //"2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
+           //"2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
+           //"2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
+           //"2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
+           //"2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
+           //"2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
+           //"2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
+           //"2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
+           //"2-Save20220306005722-034-resaved.bin",
+           //"2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
+           //"2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
+           //"2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
+           //"2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
+           //"2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
+           //"2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
+           //"2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
+           "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -683,11 +779,9 @@ static void Box360Chunk() {
       CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
     }
     CHECK(buffer.size() > 0);
-    auto foo = Savegame::DecompressRawChunk(buffer);
-    CHECK(foo > 0);
+    CHECK(Savegame::DecompressRawChunk(buffer));
 
     string basename = fs::path(name).replace_extension().string();
-    //CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".raw.bin"))->write(buffer.data(), buffer.size()));
     Savegame::DecodeDecompressedChunk(buffer);
 
     string data;
@@ -703,30 +797,6 @@ static void Box360Chunk() {
 
     buffer.assign(data.begin(), data.begin() + found);
     CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
-    for (int i = 0; i + 4096 < buffer.size(); i++) {
-      uint8_t start = buffer[i];
-      bool ok = true;
-      for (int j = 1; j < 4096; j++) {
-        if (buffer[i + j] != start) {
-          ok = false;
-          break;
-        }
-      }
-      if (!ok) {
-        continue;
-      }
-      int count = 4096;
-      int j = i + 1;
-      for (; j + 4096 < buffer.size(); j++) {
-        if (buffer[j] == start) {
-          count++;
-        } else {
-          break;
-        }
-      }
-      cout << "0x" << hex << (int)start << dec << " continues " << count << " bytes at " << dec << i << "(0x" << hex << i << dec << ")" << endl;
-      i = j;
-    }
 
     uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
     uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
@@ -766,67 +836,58 @@ static void Box360Chunk() {
       cout << endl;
     }
 
-    vector<uint8_t> unknown128BytesA;
-    copy_n(buffer.data() + 0x4c, 128, back_inserter(unknown128BytesA)); // [0x4c, 0xcb]
-    /*
-    after:  00 F0 00 00 00 00 00 00 40 F0 00 00 00 00 00 00 80 F0 00 00 00 00 00 00 C0 F0 00 00 00 00 00 00 00 41 00 00 00 00 00 00 06 81 00 00 00 00 00 00 16 61 00 00 00 00 00 00 20 81 00 00 00 00 00 00 30 41 00 00 00 00 00 00 36 21 00 00 00 00 00 00 39 21 00 00 00 00 00 00 3C 21 00 00 00 00 00 00 3F F1 00 00 00 00 00 00 7F 81 00 00 00 00 00 00 8F 21 00 00 00 00 00 00 92 21 00 00 00 00 00 00
-    before: 00 F0 00 00 00 00 00 00 40 F0 00 00 00 00 00 00 80 80 00 00 00 00 00 00 90 F0 00 00 00 00 00 00 D0 40 00 00 00 00 00 00 D6 80 00 00 00 00 00 00 E6 60 00 00 00 00 00 00 F0 80 00 00 00 00 00 00 00 41 00 00 00 00 00 00 06 21 00 00 00 00 00 00 09 21 00 00 00 00 00 00 0C 21 00 00 00 00 00 00 0F F1 00 00 00 00 00 00 4F 81 00 00 00 00 00 00 5F 21 00 00 00 00 00 00 62 21 00 00 00 00 00 00
-    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    diff                                                       70                   30                      xx 01                   xx 01                   xx 01                   xx 01                   30                      30                      30                      30                      30                      30                      30                      30
-                                                            8080                    F009                    4100 - 40D0 = 30        8106 - 80D6 = 30        6116 - 60e6 = 30        8120 - 80f0 = 30        4100                    2106                    2109                    210C                    F10F                    814F                    215F                    2162
-    (b)3012 000F                    040F                    0808                    090F                    0D04                    0D68                    0E66                    0F08                    1004                    1062                    1092                    10C2                    10FF                    14F8                    15F2                    1622
-    (b)3021 00F0                    04F0                    0880                    09F0                    0D40                    0D86                    0E66                    0F80                    1040                    1026                    1029                    102C                    10FF                    148F                    152F                    1622
-    (b)1302 000F                    004F                    0088                    009F                    00D4                    60D8                    60E6                    00F8
-    (b)2301 F000                    F040                    8080                    F090                    40D0                    80D6                    60E6                    80F0
-    (b)1230 0F00                    0F04                    0808                    0F09                    040D                    680D                    660E                    080F
-    (b)2130 F000                    F004                    8008                    F009                    400D                    860D                    660E                    800F
+    vector<uint8_t> gridJumpTable;                                   // "grid" is a cube of 4x4x4 blocks.
+    copy_n(buffer.data() + 0x4c, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
+    for (int gx = 0; gx < 4; gx++) {
+      for (int gz = 0; gz < 4; gz++) {
+        for (int gy = 0; gy < 4; gy++) {
+          int gridIndex = gx * 16 + gz * 4 + gy;
+          int bx = gx * 4;
+          int by = gy * 4;
+          int bz = gz * 4;
 
-    When selecting digits in order 3012, the uint16_t values increase monotonic.
-
-    Exceptions:
-    "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin"
-    00 40 06 40 10 00 0C 20 0F 40 15 40 10 00 10 00 1B 60 25 40 2B 40 31 20 34 40 3A 20 3D 40 43 20 46 40 4C 40 52 40 58 20 5B 40 61 40 67 40 10 00 6D 40 73 40 79 40 10 00 7F 40 10 00 10 00 10 00 85 40 8B 40 91 40 97 40 9D 40 A3 40 A9 20 AC 20 AF 40 B5 20 B8 40 BE 20 C1 20 C4 40 CA 40 10 00 D0 40 10 00 D6 40 DC 40 E2 40 E8 20 10 00 EB 20 EE 20 F1 20 F4 20 F7 20 FA 40 00 61 0A 61 14 41
-
-    "2-Save20220306005722-001-chunk-filled-by-bedrock.bin"
-    00 40 06 40 10 00 0C 20 0F 40 15 40 10 00 10 00 1B 60 25 40 2B 40 31 20 34 40 3A 20 3D 40 43 20 46 40 4C 40 52 40 58 20 5B 40 61 40 67 40 10 00 6D 40 73 40 79 40 10 00 7F 40 10 00 10 00 10 00 85 40 8B 40 91 40 97 40 9D 40 A3 40 A9 20 AC 20 AF 40 B5 20 B8 40 BE 20 C1 20 C4 40 CA 40 10 00 D0 40 10 00 D6 40 DC 40 E2 40 E8 20 10 00 EB 20 EE 20 F1 20 F4 20 F7 20 FA 40 00 61 0A 61 14 41
-    */
-    uint16_t prev = 0;
-    for (int i = 0; i < 64; i++) {
-      uint8_t v1 = unknown128BytesA[i * 2];
-      uint8_t v2 = unknown128BytesA[i * 2 + 1];
-      uint8_t t1 = v1 >> 4;
-      uint8_t t2 = 0xf & v1;
-      uint8_t t3 = v2 >> 4;
-      uint8_t t4 = 0xf & v2;
-      uint16_t address = t4 << 12 | t1 << 8 | t2 << 4 | t3;
-      if (address != 0) {
-        CHECK(address >= prev);
-        prev = address;
-      }
-      cout << "#" << i << hex << ": 0x" << (int)address << dec << endl;
-    }
-
-    vector<uint8_t> section0;
-    copy_n(buffer.data() + 0xcc, 128, back_inserter(section0)); // [0xcc, 0x14b]
-    for (int x = 0; x < 4; x++) {
-      for (int z = 0; z < 4; z++) {
-        for (int y = 0; y < 4; y++) {
-          int position = 2 * (16 * x + 4 * z + y);
-          uint8_t v1 = section0[position];
-          uint8_t v2 = section0[position + 1];
-
+          uint8_t v1 = gridJumpTable[gridIndex * 2];
+          uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
           uint8_t t1 = v1 >> 4;
           uint8_t t2 = 0xf & v1;
           uint8_t t3 = v2 >> 4;
           uint8_t t4 = 0xf & v2;
 
-          uint16_t blockId = t4 << 4 | t1;
-          uint8_t data = t3 << 4 | t2;
-          auto block = mcfile::je::Flatten::DoFlatten(blockId, data);
-          //cout << "[" << x << ", " << y << ", " << z << "] = " << block->toString() << endl;
+          uint16_t offset = (t4 << 12 | t1 << 8 | t2) * 4;
+          uint16_t format = t3;
+
+          /*
+          format:
+            0xF: unpacked, 2 bytes per block, 128 bytes per grid
+            0x2: packed, palette size = 2, 1 bit per block, 4 + 8 bytes per grid
+            0x4: packed, palette size = 4 (8 bytes), 2 bit per block, 24 bytes per grid
+            0x6: packed, palette size = 6 (12 bytes), 3 bit per block(?), 24 + 4 bytes per grid
+            0x8: packed, palette size = 8 (16 bytes), 3 bit per block,
+          */
+
+          // grid(gx, gy, gz) starts from 0xCC + offset
+
+          vector<shared_ptr<mcfile::je::Block const>> palette;
+          vector<uint16_t> index;
+
+          uint16_t gridPosition = 0xCC + offset;
+          if (format == 0xF) {
+            CHECK(gridPosition + 128 < buffer.size());
+            CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
+          } else if (format == 0x2) {
+            CHECK(gridPosition + 12 < buffer.size());
+            CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
+          }
         }
       }
     }
+
+    // grid(0, 0, 0) = block(0, 0, 0)  = 0xcc
+    // grid(0, 0, 1) = block(0, 0, 4)  = 0x1cc
+    // grid(0, 0, 2) = block(0, 0, 8)  = 0x2cc
+    // grid(0, 0, 3) = block(0, 0, 12) = 0x3cc
+
+    // grid(0, 1, 0) = block(0, 4, 0)  =
 
     // [0, 1, 4] = 0x1CE
     // [4, 1, 0] = 0x410???
