@@ -645,6 +645,9 @@ static bool Box360ParseGridFormat2(uint8_t const *buffer, std::vector<std::share
   for (int i = 0; i < 2; i++) {
     uint8_t v1 = buffer[i * 2];
     uint8_t v2 = buffer[i * 2 + 1];
+    if (v1 == 0xff && v2 == 0xff) {
+      break;
+    }
     auto block = Box360BlockFromBytes(v1, v2);
     if (!block) {
       return false;
@@ -659,6 +662,9 @@ static bool Box360ParseGridFormat2(uint8_t const *buffer, std::vector<std::share
     for (int j = 0; j < 8; j++) {
       uint8_t mask = 0x80 >> j;
       if ((v & mask) == mask) {
+        if (palette.size() == 1) [[unlikely]] {
+          return false;
+        }
         index[idx] = 1;
       }
       idx++;
@@ -667,7 +673,7 @@ static bool Box360ParseGridFormat2(uint8_t const *buffer, std::vector<std::share
   return true;
 }
 
-static void Box360ParseGridFormat4(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+static bool Box360ParseGridFormat4(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
   /*
   format: 4
   case 1: (040-gyazo-76ef1d3bf73d1094f76fb5af627b002a)
@@ -678,32 +684,67 @@ static void Box360ParseGridFormat4(uint8_t const *buffer, std::vector<std::share
   00 00 70 00   30 00 FF FF
   air   bedrock dirt  unused
 
-  70       00       00       00       00       00       00       00
-  01110000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-  0F       00       00       00       00       00       00       00
-  00001111 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  70       00       00       00
+  01110000 00000000 00000000 00000000
+  00       00       00       00
+  00000000 00000000 00000000 00000000
 
-  0111 2222 0000 0000
-  0000 0000 0000 0000
-  0000 0000 0000 0000
-  0000 0000 0000 0000
+  0F       00       00       00
+  00001111 00000000 00000000 00000000
+  00       00       00       00
+  00000000 00000000 00000000 00000000
+
+  01112222 00000000
+  00000000 00000000
+  00000000 00000000
+  00000000 00000000
 
   case 3: (042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e)
   00 00 70 00   30 00 FF FF
   air   bedrock dirt  unused
 
-  0F       00       00       00       00       00       00       00
-  00001111 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-  00       00       F0       00       00       00       00       00
-  00000000 00000000 11110000 00000000 00000000 00000000 00000000 00000000
+  0F       00       00       00
+  00001111 00000000 00000000 00000000
+  00       00       00       00
+  00000000 00000000 00000000 00000000
 
-  0000 1111 0000 0000
-  2222 0000 0000 0000
-  0000 0000 0000 0000
-  0000 0000 0000 0000
+  00       00       F0       00
+  00000000 00000000 11110000 00000000
+  00       00       00       00
+  00000000 00000000 00000000 00000000
+
+  00001111 00000000
+  22220000 00000000
+  00000000 00000000
+  00000000 00000000
   */
+  palette.clear();
   for (int i = 0; i < 4; i++) {
+    uint8_t v1 = buffer[i * 2];
+    uint8_t v2 = buffer[i * 2 + 1];
+    if (v1 == 0xff && v2 == 0xff) {
+      break;
+    }
+    auto block = Box360BlockFromBytes(v1, v2);
+    if (!block) {
+      return false;
+    }
+    palette.push_back(block);
   }
+  index.resize(64, 0);
+  for (int i = 0; i < 8; i++) {
+    uint8_t v1 = buffer[8 + i];
+    uint8_t v2 = buffer[8 + i + 8];
+    for (int j = 0; j < 8; j++) {
+      uint8_t mask = 0x80 >> j;
+      uint16_t idx = ((v2 & mask) >> (8 - j)) | ((v1 & mask) >> (8 - j - 1));
+      if (idx >= palette.size()) [[unlikely]] {
+        return false;
+      }
+      index[i * 8 + j] = idx;
+    }
+  }
+  return true;
 }
 
 static void Box360Chunk() {
@@ -877,23 +918,13 @@ static void Box360Chunk() {
           } else if (format == 0x2) {
             CHECK(gridPosition + 12 < buffer.size());
             CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
+          } else if (format == 0x4) {
+            CHECK(gridPosition + 24 < buffer.size());
+            CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
           }
         }
       }
     }
-
-    // grid(0, 0, 0) = block(0, 0, 0)  = 0xcc
-    // grid(0, 0, 1) = block(0, 0, 4)  = 0x1cc
-    // grid(0, 0, 2) = block(0, 0, 8)  = 0x2cc
-    // grid(0, 0, 3) = block(0, 0, 12) = 0x3cc
-
-    // grid(0, 1, 0) = block(0, 4, 0)  =
-
-    // [0, 1, 4] = 0x1CE
-    // [4, 1, 0] = 0x410???
-    // [0, 1, 8] = 0x2CE
-    // [0, 1, 12] = 0x3CE
-    // [4, 1, 0] = 0x4D2
 
     // Biomes: 256 bytes / chunk
     // HeightMap: 256 bytes / chunk
@@ -906,14 +937,6 @@ static void Box360Chunk() {
     // Total: 10240 bytes / section
 
     int heightMapStartPos = buffer.size() - 256 - 2 - 256;
-
-    /*
-    sectionsTotalSize=6544 bytes
-    sectionsTotalSize=17040 bytes
-    sectionsTotalSize=22288 bytes
-    sectionsTotalSize=75408 bytes
-    */
-
     vector<uint8_t> heightMap;
     copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[n] == 0, it means height = 256 at n.
 
