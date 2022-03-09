@@ -624,11 +624,9 @@ static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1,
   return mcfile::je::Flatten::DoFlatten(blockId, data);
 }
 
-static bool Box360ParseGridFormatF(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
-  index.resize(64, 0);
+static bool Box360ParsePalette(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, int maxSize) {
   palette.clear();
-  for (uint16_t i = 0; i < 64; i++) {
-    index[i] = i;
+  for (uint16_t i = 0; i < maxSize; i++) {
     uint8_t v1 = buffer[i * 2];
     uint8_t v2 = buffer[i * 2 + 1];
     auto block = Box360BlockFromBytes(v1, v2);
@@ -640,19 +638,20 @@ static bool Box360ParseGridFormatF(uint8_t const *buffer, std::vector<std::share
   return true;
 }
 
+static bool Box360ParseGridFormatF(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  if (!Box360ParsePalette(buffer, palette, 64)) {
+    return false;
+  }
+  index.resize(64, 0);
+  for (uint16_t i = 0; i < 64; i++) {
+    index[i] = i;
+  }
+  return true;
+}
+
 static bool Box360ParseGridFormat2(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
-  palette.clear();
-  for (int i = 0; i < 2; i++) {
-    uint8_t v1 = buffer[i * 2];
-    uint8_t v2 = buffer[i * 2 + 1];
-    if (v1 == 0xff && v2 == 0xff) {
-      break;
-    }
-    auto block = Box360BlockFromBytes(v1, v2);
-    if (!block) {
-      return false;
-    }
-    palette.push_back(block);
+  if (!Box360ParsePalette(buffer, palette, 2)) {
+    return false;
   }
   index.resize(64);
   std::fill(index.begin(), index.end(), 0);
@@ -660,7 +659,7 @@ static bool Box360ParseGridFormat2(uint8_t const *buffer, std::vector<std::share
   for (int i = 0; i < 8; i++) {
     uint8_t v = buffer[4 + i];
     for (int j = 0; j < 8; j++) {
-      uint8_t mask = 0x80 >> j;
+      uint8_t mask = (uint8_t)0x80 >> j;
       if ((v & mask) == mask) {
         if (palette.size() == 1) [[unlikely]] {
           return false;
@@ -718,26 +717,16 @@ static bool Box360ParseGridFormat4(uint8_t const *buffer, std::vector<std::share
   00000000 00000000
   00000000 00000000
   */
-  palette.clear();
-  for (int i = 0; i < 4; i++) {
-    uint8_t v1 = buffer[i * 2];
-    uint8_t v2 = buffer[i * 2 + 1];
-    if (v1 == 0xff && v2 == 0xff) {
-      break;
-    }
-    auto block = Box360BlockFromBytes(v1, v2);
-    if (!block) {
-      return false;
-    }
-    palette.push_back(block);
+  if (!Box360ParsePalette(buffer, palette, 4)) {
+    return false;
   }
   index.resize(64, 0);
   for (int i = 0; i < 8; i++) {
     uint8_t v1 = buffer[8 + i];
     uint8_t v2 = buffer[8 + i + 8];
     for (int j = 0; j < 8; j++) {
-      uint8_t mask = 0x80 >> j;
-      uint16_t idx = ((v2 & mask) >> (8 - j)) | ((v1 & mask) >> (8 - j - 1));
+      uint8_t mask = (uint8_t)0x80 >> j;
+      uint16_t idx = ((v2 & mask) >> (6 - j)) | ((v1 & mask) >> (7 - j));
       if (idx >= palette.size()) [[unlikely]] {
         return false;
       }
@@ -745,6 +734,62 @@ static bool Box360ParseGridFormat4(uint8_t const *buffer, std::vector<std::share
     }
   }
   return true;
+}
+
+static bool Box360ParseGridFormat6(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  /*
+  case 1: (043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4)
+  00 00 70 00   30 00 30 01  A0 02
+  air   bedrock dirt  sponge iron_block
+  FF FF FF FF FF FF AA AA AA AA AA AA AA AA 66 66 66 66 66 66 66 66 11 11 11 11 11 11 11 11
+
+  expected indices:
+  1234 1234 1234 1234
+  1234 1234 1234 1234
+  1234 1234 1234 1234
+  1234 1234 1234 1234
+
+  case 2: (044-5a3fe7fb82e798160542986f94a0d3f9)
+  00 00 70 00 30 00 30 01 A0 02 FF FF FF FF FF FF
+  2A       AA       AA       AA       AA       AA       AA       AA       66       66       66       66       66       66       66       66       11       11       11       11       11       11       11       11
+  00101010 10101010 10101010 10101010 10101010 10101010 10101010 10101010 01100110 01100110 01100110 01100110 01100110 01100110 01100110 01100110 00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001
+
+  0234 1234 1234 1234
+  1234 1234 1234 1234
+  1234 1234 1234 1234
+  1234 1234 1234 1234
+  */
+  if (!Box360ParsePalette(buffer, palette, 8)) {
+    return false;
+  }
+  index.resize(64, 0);
+  for (int i = 0; i < 8; i++) {
+    uint8_t v1 = buffer[16 + i];
+    uint8_t v2 = buffer[16 + i + 8];
+    uint8_t v3 = buffer[16 + i + 16];
+    for (int j = 0; j < 8; j++) {
+      uint8_t mask = (uint8_t)0x80 >> j;
+      uint16_t idx = ((v3 & mask) >> (5 - j)) | ((v2 & mask) >> (6 - j)) | ((v1 & mask) >> (7 - j));
+      if (idx >= palette.size()) [[unlikely]] {
+        return false;
+      }
+      index[i * 8 + j] = idx;
+    }
+  }
+  return true;
+}
+
+static bool Box360ParseGridFormat8(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  /*
+  70 00   00 00 81 00                  91 00          83 00                  85 00                  95 00          87 00                  82 00                  92 00          84 00                  93 00          94 00          86 00                  96 00          97 00
+  bedrock air   flowing_water[level=1] water[level=1] flowing_water[level=3] flowing_water[level=5] water[level=5] flowing_water[level=7] flowing_water[level=2] water[level=2] flowing_water[level=4] water[level=3] water[level=4] flowing_water[level=6] water[level=6] water[level=7]
+  77 77 77 77 77 77 77 77 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  */
+  if (!Box360ParsePalette(buffer, palette, 16)) {
+    return false;
+  }
+  index.resize(64);
+  return false; // TODO:
 }
 
 static void Box360Chunk() {
@@ -800,7 +845,9 @@ static void Box360Chunk() {
            //"2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
            //"2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
            //"2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
-           "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
+           //"2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
+           //"2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
+           "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -896,14 +943,18 @@ static void Box360Chunk() {
 
           uint16_t offset = (t4 << 12 | t1 << 8 | t2) * 4;
           uint16_t format = t3;
+          if (offset == 0 && format == 0) {
+            // empty grid
+            continue;
+          }
 
           /*
           format:
             0xF: unpacked, 2 bytes per block, 128 bytes per grid
             0x2: packed, palette size = 2, 1 bit per block, 4 + 8 bytes per grid
             0x4: packed, palette size = 4 (8 bytes), 2 bit per block, 24 bytes per grid
-            0x6: packed, palette size = 6 (12 bytes), 3 bit per block(?), 24 + 4 bytes per grid
-            0x8: packed, palette size = 8 (16 bytes), 3 bit per block,
+            0x6: packed, palette size = 6 (12 bytes), 3 bit per block(?), 40 bytes per grid
+            0x8: packed, palette size = 8 (16 bytes), 3 bit per block, 64 bytes per grid
           */
 
           // grid(gx, gy, gz) starts from 0xCC + offset
@@ -921,6 +972,14 @@ static void Box360Chunk() {
           } else if (format == 0x4) {
             CHECK(gridPosition + 24 < buffer.size());
             CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
+          } else if (format == 0x6) {
+            CHECK(gridPosition + 40 < buffer.size());
+            //CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
+          } else if (format == 0x8) {
+            CHECK(gridPosition + 64 < buffer.size());
+            //CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
+          } else {
+            //CHECK(false);
           }
         }
       }
