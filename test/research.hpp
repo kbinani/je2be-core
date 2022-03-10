@@ -638,6 +638,21 @@ static bool Box360ParsePalette(uint8_t const *buffer, std::vector<std::shared_pt
   return true;
 }
 
+static bool Box360ParseGridFormat0(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  // TODO: Verify if this guess is correct.
+  uint8_t v1 = buffer[0];
+  uint8_t v2 = buffer[1];
+  auto block = Box360BlockFromBytes(v1, v2);
+  if (!block) {
+    return false;
+  }
+  palette.clear();
+  palette.push_back(0);
+  index.resize(64, 0);
+  std::fill(index.begin(), index.end(), 0);
+  return true;
+}
+
 static bool Box360ParseGridFormatF(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
   if (!Box360ParsePalette(buffer, palette, 64)) {
     return false;
@@ -781,15 +796,29 @@ static bool Box360ParseGridFormat6(uint8_t const *buffer, std::vector<std::share
 
 static bool Box360ParseGridFormat8(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
   /*
-  70 00   00 00 81 00                  91 00          83 00                  85 00                  95 00          87 00                  82 00                  92 00          84 00                  93 00          94 00          86 00                  96 00          97 00
-  bedrock air   flowing_water[level=1] water[level=1] flowing_water[level=3] flowing_water[level=5] water[level=5] flowing_water[level=7] flowing_water[level=2] water[level=2] flowing_water[level=4] water[level=3] water[level=4] flowing_water[level=6] water[level=6] water[level=7]
-  77 77 77 77 77 77 77 77 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  case 1: (045-gyazo-038020972af102b51ce606638423941b)
+  00 00 70 00 30 00 30 01 A0 02 60 01 90 03 50 08 90 02 FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+  AA AA AA AA AA AA AA AA 66 66 66 66 66 66 66 66 11 11 11 11 EE EE EE EE 00 00 00 00 11 11 11 11
   */
   if (!Box360ParsePalette(buffer, palette, 16)) {
     return false;
   }
   index.resize(64);
-  return false; // TODO:
+  for (int i = 0; i < 8; i++) {
+    uint8_t v1 = buffer[16 + i];
+    uint8_t v2 = buffer[16 + i + 8];
+    uint8_t v3 = buffer[16 + i + 16];
+    uint8_t v4 = buffer[16 + i + 24];
+    for (int j = 0; j < 8; j++) {
+      uint8_t mask = (uint8_t)0x80 >> j;
+      uint16_t idx = ((v4 & mask) >> (4 - j)) | ((v3 & mask) >> (5 - j)) | ((v2 & mask) >> (6 - j)) | ((v1 & mask) >> (7 - j));
+      if (idx >= palette.size()) [[unlikely]] {
+        return false;
+      }
+      index[i * 8 + j] = idx;
+    }
+  }
+  return true;
 }
 
 static void Box360Chunk() {
@@ -798,56 +827,57 @@ static void Box360Chunk() {
   int cx = 25;
   int cz = 25;
   for (auto name : {
-           //"1-Save20220305225836-000-pig-name=Yahoo.bin",
-           //"1-Save20220305225836-001-pig-name=Yohoo.bin",
-           //"1-Save20220305225836-002-put-cobblestone.bin",
-           //"1-Save20220305225836-003-remove-cobblestone.bin",
-           //"2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
-           //"2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
-           //"abc-Save20220303092528.bin",
-           //"2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
-           //"2-Save20220306005722-003-heightmap-check.bin",
-           //"2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
-           //"2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
-           //"2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
-           //"2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
-           //"2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
-           //"2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
-           //"2-Save20220306005722-010-refill-bedrock-again.bin",
-           //"2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
-           //"2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
-           //"2-Save20220306005722-013-just-resaved-after-012.bin",
-           //"2-Save20220306005722-014-just-resaved-after-013.bin",
-           //"2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
-           //"2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
-           //"2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
-           //"2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
-           //"2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
-           //"2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
-           //"2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
-           //"2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
-           //"2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
-           //"2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
-           //"2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
-           //"2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
-           //"2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
-           //"2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
-           //"2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
-           //"2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
-           //"2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
-           //"2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
-           //"2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
-           //"2-Save20220306005722-034-resaved.bin",
-           //"2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
-           //"2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
-           //"2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
-           //"2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
-           //"2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
-           //"2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
-           //"2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
-           //"2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
-           //"2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
-           "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
+           // "1-Save20220305225836-000-pig-name=Yahoo.bin",
+           // "1-Save20220305225836-001-pig-name=Yohoo.bin",
+           // "1-Save20220305225836-002-put-cobblestone.bin",
+           // "1-Save20220305225836-003-remove-cobblestone.bin",
+           // "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
+           // "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+           // "abc-Save20220303092528.bin",
+           // "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
+           // "2-Save20220306005722-003-heightmap-check.bin",
+           // "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
+           // "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
+           // "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
+           // "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
+           // "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
+           // "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
+           // "2-Save20220306005722-010-refill-bedrock-again.bin",
+           // "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
+           // "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
+           // "2-Save20220306005722-013-just-resaved-after-012.bin",
+           // "2-Save20220306005722-014-just-resaved-after-013.bin",
+           // "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
+           // "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
+           // "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
+           // "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
+           // "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
+           // "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
+           // "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
+           // "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
+           // "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
+           // "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
+           // "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
+           // "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
+           // "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
+           // "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
+           // "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
+           // "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
+           // "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
+           // "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
+           // "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
+           // "2-Save20220306005722-034-resaved.bin",
+           // "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
+           // "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
+           // "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
+           // "2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
+           // "2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
+           // "2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
+           // "2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
+           // "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
+           // "2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
+           // "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
+           "2-Save20220306005722-045-gyazo-038020972af102b51ce606638423941b.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -936,17 +966,13 @@ static void Box360Chunk() {
 
           uint8_t v1 = gridJumpTable[gridIndex * 2];
           uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
-          uint8_t t1 = v1 >> 4;
-          uint8_t t2 = 0xf & v1;
-          uint8_t t3 = v2 >> 4;
-          uint8_t t4 = 0xf & v2;
+          uint16_t t1 = v1 >> 4;
+          uint16_t t2 = (uint16_t)0xf & v1;
+          uint16_t t3 = v2 >> 4;
+          uint16_t t4 = (uint16_t)0xf & v2;
 
-          uint16_t offset = (t4 << 12 | t1 << 8 | t2) * 4;
+          uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
           uint16_t format = t3;
-          if (offset == 0 && format == 0) {
-            // empty grid
-            continue;
-          }
 
           /*
           format:
@@ -963,7 +989,9 @@ static void Box360Chunk() {
           vector<uint16_t> index;
 
           uint16_t gridPosition = 0xCC + offset;
-          if (format == 0xF) {
+          if (format == 0) {
+            CHECK(Box360ParseGridFormat0(buffer.data() + gridPosition, palette, index));
+          } else if (format == 0xF) {
             CHECK(gridPosition + 128 < buffer.size());
             CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
           } else if (format == 0x2) {
@@ -974,12 +1002,12 @@ static void Box360Chunk() {
             CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
           } else if (format == 0x6) {
             CHECK(gridPosition + 40 < buffer.size());
-            //CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
+            CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
           } else if (format == 0x8) {
             CHECK(gridPosition + 64 < buffer.size());
-            //CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
+            CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
           } else {
-            //CHECK(false);
+            CHECK(false);
           }
         }
       }
