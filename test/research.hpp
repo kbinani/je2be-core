@@ -821,63 +821,82 @@ static bool Box360ParseGridFormat8(uint8_t const *buffer, std::vector<std::share
   return true;
 }
 
+static bool Box360ParseGridFormat9(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  /*
+  case 1: (000-fill-bedrock-under-sea-level, chunk=[25, 25], grid=[1, 1, 1])
+  90 00 D0 00 10 00 20 06 80 00 22 06 21 06 E0 10 00 00 E0 90 FF FF FF FF FF FF FF FF FF FF FF FF
+  08 84 0C C4 08 C4 4C 04 00 08 00 08 00 08 88 88 00 00 00 00 00 00 80 80 00 00 04 40 08 40 44 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 00 44 00 FF FF FF FF F7 FF BB FF
+  */
+  // TODO:
+  return true;
+}
+
+static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+  /*
+  D0 00 90 00 90 00 90 00 D0 00 D0 00 90 00 90 00 D0 00 D0 00 90 00 90 00 D0 00 10 00 D0 00 2B 90 E0 90 90 00 90 00 90 00 D0 00 90 00 90 00 90 00 10 00 D0 00 E0 90 90 00 10 00 10 00 D0 00 E0 90 E0 90 90 00 90 00 90 00 90 00 90 00 90 00 90 00 D0 00 90 00 90 00 90 00 10 00 D0 00 90 00 90 00 90 00 90 00 90 00 90 00 29 90 2A 90 2B 90 2C 90 21 90 22 90 23 90 24 90 D0 00 E0 90 90 00 90 00
+*/
+  // TODO:
+  return true;
+}
+
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
   int cx = 25;
   int cz = 25;
   for (auto name : {
-           // "1-Save20220305225836-000-pig-name=Yahoo.bin",
-           // "1-Save20220305225836-001-pig-name=Yohoo.bin",
-           // "1-Save20220305225836-002-put-cobblestone.bin",
-           // "1-Save20220305225836-003-remove-cobblestone.bin",
-           // "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
-           // "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+           "1-Save20220305225836-000-pig-name=Yahoo.bin",
+           "1-Save20220305225836-001-pig-name=Yohoo.bin",
+           "1-Save20220305225836-002-put-cobblestone.bin",
+           "1-Save20220305225836-003-remove-cobblestone.bin",
+           "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
+           "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
            // "abc-Save20220303092528.bin",
-           // "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
-           // "2-Save20220306005722-003-heightmap-check.bin",
-           // "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
-           // "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
-           // "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
-           // "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
-           // "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
-           // "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
-           // "2-Save20220306005722-010-refill-bedrock-again.bin",
-           // "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
-           // "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
-           // "2-Save20220306005722-013-just-resaved-after-012.bin",
-           // "2-Save20220306005722-014-just-resaved-after-013.bin",
-           // "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
-           // "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
-           // "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
-           // "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
-           // "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
-           // "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
-           // "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
-           // "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
-           // "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
-           // "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
-           // "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
-           // "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
-           // "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
-           // "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
-           // "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
-           // "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
-           // "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
-           // "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
-           // "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
-           // "2-Save20220306005722-034-resaved.bin",
-           // "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
-           // "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
-           // "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
-           // "2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
-           // "2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
-           // "2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
-           // "2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
-           // "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
-           // "2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
-           // "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
+           "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
+           "2-Save20220306005722-003-heightmap-check.bin",
+           "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
+           "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
+           "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
+           "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
+           "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
+           "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
+           "2-Save20220306005722-010-refill-bedrock-again.bin",
+           "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
+           "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
+           "2-Save20220306005722-013-just-resaved-after-012.bin",
+           "2-Save20220306005722-014-just-resaved-after-013.bin",
+           "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
+           "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
+           "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
+           "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
+           "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
+           "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
+           "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
+           "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
+           "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
+           "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
+           "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
+           "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
+           "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
+           "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
+           "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
+           "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
+           "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
+           "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
+           "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
+           "2-Save20220306005722-034-resaved.bin",
+           "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
+           "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
+           "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
+           "2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
+           "2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
+           "2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
+           "2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
+           "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
+           "2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
+           "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
            "2-Save20220306005722-045-gyazo-038020972af102b51ce606638423941b.bin",
+           "2-Save20220306005722-046-gyazo-1dee95a946200236c0dbcb0c5e13ddbe.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -924,15 +943,12 @@ static void Box360Chunk() {
     int64_t maybeInhabitedTime = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x12));
     cout << "cx: " << xPos << ", cz: " << zPos << endl;
 
-    uint8_t maybeMinSectionY = buffer[0x1a]; // Always 0. May be > 0 in The End?
-    cout << "minSectionY: " << (int)maybeMinSectionY << endl;
-
-    uint16_t maxJumpTableAddress = (uint16_t)buffer[0x1b] * 0x100;
-    cout << "maxJumpTableAddress: 0x" << hex << maxJumpTableAddress << dec << endl;
-    vector<uint16_t> maybeJumpTableFor16Sections;
+    uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
+    cout << "maxSectionAddress: 0x" << hex << maxSectionAddress << dec << endl;
+    vector<uint16_t> sectionJumpTable;
     for (int section = 0; section < 16; section++) {
       uint16_t address = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + 0x1c + section * sizeof(uint16_t)));
-      maybeJumpTableFor16Sections.push_back(address);
+      sectionJumpTable.push_back(address);
     }
 
     vector<uint8_t> maybeNumBlockPaletteEntriesFor16Sections;
@@ -942,72 +958,67 @@ static void Box360Chunk() {
     }
 
     for (int section = 0; section < 16; section++) {
-      uint16_t address = maybeJumpTableFor16Sections[section];
-      uint8_t paletteSize = maybeNumBlockPaletteEntriesFor16Sections[section];
-      cout << "section#" << section << " at 0x" << hex << address << dec;
-      if (address == maxJumpTableAddress) {
-        cout << " (empty)";
-        CHECK(paletteSize == 0);
+      uint16_t address = sectionJumpTable[section];
+      cout << "section#" << section << " at 0x" << hex << (0x4c + address) << dec;
+      if (address == maxSectionAddress) {
+        cout << " (empty)" << endl;
+        continue;
       } else {
-        cout << ", block palette: " << (int)paletteSize << " blocks";
+        cout << endl;
       }
-      cout << endl;
-    }
 
-    vector<uint8_t> gridJumpTable;                                   // "grid" is a cube of 4x4x4 blocks.
-    copy_n(buffer.data() + 0x4c, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
-    for (int gx = 0; gx < 4; gx++) {
-      for (int gz = 0; gz < 4; gz++) {
-        for (int gy = 0; gy < 4; gy++) {
-          int gridIndex = gx * 16 + gz * 4 + gy;
-          int bx = gx * 4;
-          int by = gy * 4;
-          int bz = gz * 4;
+      vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
+      copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
+      for (int gx = 0; gx < 4; gx++) {
+        for (int gz = 0; gz < 4; gz++) {
+          for (int gy = 0; gy < 4; gy++) {
+            int gridIndex = gx * 16 + gz * 4 + gy;
+            int bx = gx * 4;
+            int by = gy * 4;
+            int bz = gz * 4;
 
-          uint8_t v1 = gridJumpTable[gridIndex * 2];
-          uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
-          uint16_t t1 = v1 >> 4;
-          uint16_t t2 = (uint16_t)0xf & v1;
-          uint16_t t3 = v2 >> 4;
-          uint16_t t4 = (uint16_t)0xf & v2;
+            uint8_t v1 = gridJumpTable[gridIndex * 2];
+            uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
+            uint16_t t1 = v1 >> 4;
+            uint16_t t2 = (uint16_t)0xf & v1;
+            uint16_t t3 = v2 >> 4;
+            uint16_t t4 = (uint16_t)0xf & v2;
 
-          uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
-          uint16_t format = t3;
+            uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
+            uint16_t format = t3;
 
-          /*
-          format:
-            0xF: unpacked, 2 bytes per block, 128 bytes per grid
-            0x2: packed, palette size = 2, 1 bit per block, 4 + 8 bytes per grid
-            0x4: packed, palette size = 4 (8 bytes), 2 bit per block, 24 bytes per grid
-            0x6: packed, palette size = 6 (12 bytes), 3 bit per block(?), 40 bytes per grid
-            0x8: packed, palette size = 8 (16 bytes), 3 bit per block, 64 bytes per grid
-          */
+            // grid(gx, gy, gz) starts from 0xCC + offset
 
-          // grid(gx, gy, gz) starts from 0xCC + offset
+            vector<shared_ptr<mcfile::je::Block const>> palette;
+            vector<uint16_t> index;
 
-          vector<shared_ptr<mcfile::je::Block const>> palette;
-          vector<uint16_t> index;
-
-          uint16_t gridPosition = 0xCC + offset;
-          if (format == 0) {
-            CHECK(Box360ParseGridFormat0(buffer.data() + gridPosition, palette, index));
-          } else if (format == 0xF) {
-            CHECK(gridPosition + 128 < buffer.size());
-            CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
-          } else if (format == 0x2) {
-            CHECK(gridPosition + 12 < buffer.size());
-            CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
-          } else if (format == 0x4) {
-            CHECK(gridPosition + 24 < buffer.size());
-            CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
-          } else if (format == 0x6) {
-            CHECK(gridPosition + 40 < buffer.size());
-            CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
-          } else if (format == 0x8) {
-            CHECK(gridPosition + 64 < buffer.size());
-            CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
-          } else {
-            CHECK(false);
+            uint16_t gridPosition = 0x4c + address + 0x80 + offset;
+            if (format == 0) {
+              CHECK(Box360ParseGridFormat0(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0xF) {
+              CHECK(gridPosition + 128 < buffer.size());
+              CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0x2) {
+              CHECK(gridPosition + 12 < buffer.size());
+              CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0x4) {
+              CHECK(gridPosition + 24 < buffer.size());
+              CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0x6) {
+              CHECK(gridPosition + 40 < buffer.size());
+              CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0x8) {
+              CHECK(gridPosition + 64 < buffer.size());
+              CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0x9) {
+              CHECK(gridPosition + 96 < buffer.size());
+              CHECK(Box360ParseGridFormat9(buffer.data() + gridPosition, palette, index));
+            } else if (format == 0xE) {
+              CHECK(gridPosition + 128 < buffer.size());
+              CHECK(Box360ParseGridFormatE(buffer.data() + gridPosition, palette, index));
+            } else {
+              CHECK(false);
+            }
           }
         }
       }
