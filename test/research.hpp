@@ -895,6 +895,10 @@ static void Box360Chunk() {
             for (int section = 0; section < 16; section++) {
               uint16_t address = sectionJumpTable[section];
 
+              if (address == maxSectionAddress) {
+                break;
+              }
+
               vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
               copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
               for (int gx = 0; gx < 4; gx++) {
@@ -914,10 +918,6 @@ static void Box360Chunk() {
 
                     uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
                     uint16_t format = t3;
-
-                    if (section == 4 && gx == 0 && gy == 0 && gz == 0) {
-                      cout << "format=" << (int)format << endl;
-                    }
 
                     // grid(gx, gy, gz) starts from 0xCC + offset
 
@@ -968,7 +968,7 @@ static void Box360Chunk() {
                       CHECK(gridPosition + 128 < buffer.size());
                       CHECK(Box360ParseGridFormatE(buffer.data() + gridPosition, palette, index));
                     } else {
-                      cerr << "unknown format: 0x" << hex << (int)format << dec << endl;
+                      cerr << "unknown format: 0x" << hex << (int)format << "; gridPosition=0x" << gridPosition << "; sectionHead=0x" << (0x4c + address) << dec << endl;
                       // CHECK(false);
                     }
 
