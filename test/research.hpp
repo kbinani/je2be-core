@@ -856,6 +856,17 @@ static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::share
   return true;
 }
 
+static void FillAir(mcfile::je::Chunk &chunk) {
+  auto air = make_shared<mcfile::je::Block const>("minecraft:air");
+  for (int y = chunk.minBlockY(); y <= chunk.maxBlockY(); y++) {
+    for (int z = chunk.minBlockZ(); z <= chunk.maxBlockZ(); z++) {
+      for (int x = chunk.minBlockX(); x <= chunk.maxBlockX(); x++) {
+        chunk.setBlockAt(x, y, z, air);
+      }
+    }
+  }
+}
+
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
@@ -915,7 +926,8 @@ static void Box360Chunk() {
            // "2-Save20220306005722-045-gyazo-038020972af102b51ce606638423941b.bin",
            // "2-Save20220306005722-046-gyazo-1dee95a946200236c0dbcb0c5e13ddbe.bin",
            //"2-Save20220306005722-047-gyazo-f91e998c6e4399613dc1119e915b3208.bin",
-           "2-Save20220306005722-048-gyazo-ed9c2429bbb2ca1f1ca44d63ee703c5c.bin",
+           //"2-Save20220306005722-048-gyazo-ed9c2429bbb2ca1f1ca44d63ee703c5c.bin",
+           "2-Save20220306005722-049-gyazo-393b51668ac72255b1c53ab8976b6d84.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -930,6 +942,9 @@ static void Box360Chunk() {
     CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
+        if (rx != 0 || rz != 0) {
+          continue;
+        }
         auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
         CHECK(fs::exists(region));
         auto regionTempDir = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz));
@@ -939,7 +954,11 @@ static void Box360Chunk() {
         };
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
+            if (cx != 25 || cz != 25) {
+              continue;
+            }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
+            FillAir(*chunk);
             {
               auto f = make_shared<mcfile::stream::FileInputStream>(region);
               CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
@@ -976,7 +995,7 @@ static void Box360Chunk() {
               continue;
             }
 
-#if 0
+#if 1
             CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
 #endif
 
@@ -989,7 +1008,6 @@ static void Box360Chunk() {
             cout << "cx: " << xPos << ", cz: " << zPos << endl;
 
             uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
-            cout << "maxSectionAddress: 0x" << hex << maxSectionAddress << dec << endl;
             vector<uint16_t> sectionJumpTable;
             for (int section = 0; section < 16; section++) {
               uint16_t address = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + 0x1c + section * sizeof(uint16_t)));
@@ -1004,13 +1022,6 @@ static void Box360Chunk() {
 
             for (int section = 0; section < 16; section++) {
               uint16_t address = sectionJumpTable[section];
-              cout << "section#" << section << " at 0x" << hex << (0x4c + address) << dec;
-              if (address == maxSectionAddress) {
-                cout << " (empty)" << endl;
-                continue;
-              } else {
-                cout << endl;
-              }
 
               vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
               copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
@@ -1031,6 +1042,10 @@ static void Box360Chunk() {
 
                     uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
                     uint16_t format = t3;
+
+                    if (section == 4 && gx == 0 && gy == 0 && gz == 0) {
+                      cout << "format=" << (int)format << endl;
+                    }
 
                     // grid(gx, gy, gz) starts from 0xCC + offset
 
@@ -1061,6 +1076,7 @@ static void Box360Chunk() {
                       CHECK(gridPosition + 128 < buffer.size());
                       CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
                     } else if (format == 0x2) { // 1 bit
+                      //OK
                       CHECK(gridPosition + 12 < buffer.size());
                       CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
                     } else if (format == 0x4) { // 2 bit
@@ -1117,19 +1133,7 @@ static void Box360Chunk() {
 
             int heightMapStartPos = buffer.size() - 256 - 2 - 256;
             vector<uint8_t> heightMap;
-            copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[n] == 0, it means height = 256 at n.
-
-            cout << "height map:" << endl;
-            for (int z = 0; z < 16; z++) {
-              for (int x = 0; x < 16; x++) {
-                int h = heightMap[x + z * 16];
-                if (h == 0) {
-                  h = 256;
-                }
-                printf("%3d ", (int)h);
-              }
-              printf("\n");
-            }
+            copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[x + z * 16] == 0, it means height = 256 at (x, z).
 
             uint16_t unknownMarkerA = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + buffer.size() - 256 - 2)); // 0x07fe
             //CHECK(unknownMarkerA == 0x07fe);
