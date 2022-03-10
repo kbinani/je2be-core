@@ -823,9 +823,26 @@ static bool Box360ParseGridFormat8(uint8_t const *buffer, std::vector<std::share
 
 static bool Box360ParseGridFormat9(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
   /*
-  case 1: (000-fill-bedrock-under-sea-level, chunk=[25, 25], grid=[1, 1, 1])
-  90 00 D0 00 10 00 20 06 80 00 22 06 21 06 E0 10 00 00 E0 90 FF FF FF FF FF FF FF FF FF FF FF FF
-  08 84 0C C4 08 C4 4C 04 00 08 00 08 00 08 88 88 00 00 00 00 00 00 80 80 00 00 04 40 08 40 44 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 00 44 00 FF FF FF FF F7 FF BB FF
+  case 1: (000-fill-bedrock-under-sea-level, chunk=[25, 25], grid=[1, 1, 1], sectionY=2)
+  90 00 D0 00  10 00 20 06        80 00         22 06                21 06              E0 10 00 00 E0 90
+  water gravel stone stone_bricks flowing_water cracked_stone_bricks mossy_stone_bricks ?     air   ?
+  FF FF FF FF FF FF FF FF FF FF FF FF 08 84 0C C4 08 C4 4C 04 00 08 00 08 00 08 88 88 00 00 00 00 00 00 80 80 00 00 04 40 08 40 44 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 00 44 00 FF FF FF FF F7 FF BB FF
+
+  block=[404, 36, 404] ~ [407, 39, 407]
+
+  stone gravel seagrass water  stone gravel water water  sand gravel water water  coal_ore gravel water water
+  stone iron_ore gravel water  ? gravel water water      ? gravel water water     ? gravel water water
+  stone gravel water water     ? ? gravel water          ? gravel seagrass water  ? gravel water water
+  stone gravel water water ...
+
+  index
+  21?0 2100 ?
+
+  block id
+  1 D ? 9  1 D 9 9  C D 9 9  10 D 9 9
+  1 F D 9  ? D 9 9  ? D 9 9  ? D 9 9
+  1 D 9 9 ...
+
   */
   // TODO:
   return true;
@@ -842,61 +859,63 @@ static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::share
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
-  int cx = 25;
-  int cz = 25;
+  fs::path output("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/_b2j-out");
+
   for (auto name : {
-           "1-Save20220305225836-000-pig-name=Yahoo.bin",
-           "1-Save20220305225836-001-pig-name=Yohoo.bin",
-           "1-Save20220305225836-002-put-cobblestone.bin",
-           "1-Save20220305225836-003-remove-cobblestone.bin",
-           "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
-           "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
+           // "1-Save20220305225836-000-pig-name=Yahoo.bin",
+           // "1-Save20220305225836-001-pig-name=Yohoo.bin",
+           // "1-Save20220305225836-002-put-cobblestone.bin",
+           // "1-Save20220305225836-003-remove-cobblestone.bin",
+           //"2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
+           // "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
            // "abc-Save20220303092528.bin",
-           "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
-           "2-Save20220306005722-003-heightmap-check.bin",
-           "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
-           "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
-           "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
-           "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
-           "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
-           "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
-           "2-Save20220306005722-010-refill-bedrock-again.bin",
-           "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
-           "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
-           "2-Save20220306005722-013-just-resaved-after-012.bin",
-           "2-Save20220306005722-014-just-resaved-after-013.bin",
-           "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
-           "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
-           "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
-           "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
-           "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
-           "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
-           "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
-           "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
-           "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
-           "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
-           "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
-           "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
-           "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
-           "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
-           "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
-           "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
-           "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
-           "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
-           "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
-           "2-Save20220306005722-034-resaved.bin",
-           "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
-           "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
-           "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
-           "2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
-           "2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
-           "2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
-           "2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
-           "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
-           "2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
-           "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
-           "2-Save20220306005722-045-gyazo-038020972af102b51ce606638423941b.bin",
-           "2-Save20220306005722-046-gyazo-1dee95a946200236c0dbcb0c5e13ddbe.bin",
+           // "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
+           // "2-Save20220306005722-003-heightmap-check.bin",
+           // "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
+           // "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
+           // "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
+           // "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
+           // "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
+           // "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
+           // "2-Save20220306005722-010-refill-bedrock-again.bin",
+           // "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
+           // "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
+           // "2-Save20220306005722-013-just-resaved-after-012.bin",
+           // "2-Save20220306005722-014-just-resaved-after-013.bin",
+           // "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
+           // "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
+           // "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
+           // "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
+           // "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
+           // "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
+           // "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
+           // "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
+           // "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
+           // "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
+           // "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
+           // "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
+           // "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
+           // "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
+           // "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
+           // "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
+           // "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
+           // "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
+           // "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
+           // "2-Save20220306005722-034-resaved.bin",
+           // "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
+           // "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
+           // "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
+           // "2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
+           // "2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
+           // "2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
+           // "2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
+           // "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
+           // "2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
+           // "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
+           // "2-Save20220306005722-045-gyazo-038020972af102b51ce606638423941b.bin",
+           // "2-Save20220306005722-046-gyazo-1dee95a946200236c0dbcb0c5e13ddbe.bin",
+           //"2-Save20220306005722-047-gyazo-f91e998c6e4399613dc1119e915b3208.bin",
+           "2-Save20220306005722-048-gyazo-ed9c2429bbb2ca1f1ca44d63ee703c5c.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -909,155 +928,239 @@ static void Box360Chunk() {
     vector<uint8_t> buffer;
     CHECK(Savegame::DecompressSavegame(savegame, buffer));
     CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
-    auto r00 = *temp / "region" / "r.0.0.mcr";
-    CHECK(fs::exists(r00));
-    {
-      auto f = make_shared<mcfile::stream::FileInputStream>(r00);
-      CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
-    }
-    CHECK(buffer.size() > 0);
-    CHECK(Savegame::DecompressRawChunk(buffer));
-
-    string basename = fs::path(name).replace_extension().string();
-    Savegame::DecodeDecompressedChunk(buffer);
-
-    string data;
-    data.assign((char const *)buffer.data(), buffer.size());
-    vector<uint8_t>().swap(buffer);
-    auto found = data.find(string("\x0a\x00\x00", 3));
-    CHECK(found != string::npos);
-    auto sub = data.substr(found);
-    auto bs = make_shared<mcfile::stream::ByteStream>(sub);
-    auto tag = CompoundTag::Read(bs, endian::big);
-    CHECK(tag);
-    CHECK(bs->pos() == sub.size());
-
-    buffer.assign(data.begin(), data.begin() + found);
-    CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
-
-    uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
-    uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
-    int32_t xPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x2));
-    int32_t zPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x6));
-    int64_t maybeLastUpdate = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x0a));
-    int64_t maybeInhabitedTime = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x12));
-    cout << "cx: " << xPos << ", cz: " << zPos << endl;
-
-    uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
-    cout << "maxSectionAddress: 0x" << hex << maxSectionAddress << dec << endl;
-    vector<uint16_t> sectionJumpTable;
-    for (int section = 0; section < 16; section++) {
-      uint16_t address = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + 0x1c + section * sizeof(uint16_t)));
-      sectionJumpTable.push_back(address);
-    }
-
-    vector<uint8_t> maybeNumBlockPaletteEntriesFor16Sections;
-    for (int section = 0; section < 16; section++) {
-      uint8_t numBlockPaletteEntries = buffer[0x3c + section];
-      maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
-    }
-
-    for (int section = 0; section < 16; section++) {
-      uint16_t address = sectionJumpTable[section];
-      cout << "section#" << section << " at 0x" << hex << (0x4c + address) << dec;
-      if (address == maxSectionAddress) {
-        cout << " (empty)" << endl;
-        continue;
-      } else {
-        cout << endl;
-      }
-
-      vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
-      copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
-      for (int gx = 0; gx < 4; gx++) {
-        for (int gz = 0; gz < 4; gz++) {
-          for (int gy = 0; gy < 4; gy++) {
-            int gridIndex = gx * 16 + gz * 4 + gy;
-            int bx = gx * 4;
-            int by = gy * 4;
-            int bz = gz * 4;
-
-            uint8_t v1 = gridJumpTable[gridIndex * 2];
-            uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
-            uint16_t t1 = v1 >> 4;
-            uint16_t t2 = (uint16_t)0xf & v1;
-            uint16_t t3 = v2 >> 4;
-            uint16_t t4 = (uint16_t)0xf & v2;
-
-            uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
-            uint16_t format = t3;
-
-            // grid(gx, gy, gz) starts from 0xCC + offset
-
-            vector<shared_ptr<mcfile::je::Block const>> palette;
-            vector<uint16_t> index;
-
-            uint16_t gridPosition = 0x4c + address + 0x80 + offset;
-            if (format == 0) {
-              CHECK(Box360ParseGridFormat0(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0xF) {
-              CHECK(gridPosition + 128 < buffer.size());
-              CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0x2) {
-              CHECK(gridPosition + 12 < buffer.size());
-              CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0x4) {
-              CHECK(gridPosition + 24 < buffer.size());
-              CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0x6) {
-              CHECK(gridPosition + 40 < buffer.size());
-              CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0x8) {
-              CHECK(gridPosition + 64 < buffer.size());
-              CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0x9) {
-              CHECK(gridPosition + 96 < buffer.size());
-              CHECK(Box360ParseGridFormat9(buffer.data() + gridPosition, palette, index));
-            } else if (format == 0xE) {
-              CHECK(gridPosition + 128 < buffer.size());
-              CHECK(Box360ParseGridFormatE(buffer.data() + gridPosition, palette, index));
-            } else {
-              CHECK(false);
+    for (int rz = -1; rz <= 0; rz++) {
+      for (int rx = -1; rx <= 0; rx++) {
+        auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
+        CHECK(fs::exists(region));
+        auto regionTempDir = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz));
+        CHECK(Fs::CreateDirectories(regionTempDir));
+        defer {
+          Fs::Delete(regionTempDir);
+        };
+        for (int cz = 0; cz < 32; cz++) {
+          for (int cx = 0; cx < 32; cx++) {
+            auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
+            {
+              auto f = make_shared<mcfile::stream::FileInputStream>(region);
+              CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
             }
+            if (buffer.empty()) {
+              continue;
+            }
+            CHECK(buffer.size() > 0);
+            CHECK(Savegame::DecompressRawChunk(buffer));
+
+            string basename = fs::path(name).replace_extension().string();
+            Savegame::DecodeDecompressedChunk(buffer);
+
+            string data;
+            data.assign((char const *)buffer.data(), buffer.size());
+            vector<uint8_t>().swap(buffer);
+            size_t offset = 0;
+
+            while (offset < data.size()) {
+              auto found = data.find(string("\x0a\x00\x00", 3), offset);
+              CHECK(found != string::npos);
+              auto sub = data.substr(found);
+              auto bs = make_shared<mcfile::stream::ByteStream>(sub);
+              auto tag = CompoundTag::Read(bs, endian::big);
+              if (!tag || bs->pos() != sub.size()) {
+                offset = found + 3;
+                continue;
+              }
+              buffer.assign(data.begin(), data.begin() + found);
+              break;
+            }
+            if (buffer.empty()) {
+              cerr << "cannot find compound tag: region=[" << rx << ", " << rz << "]; chunk=[" << cx << ", " << cz << "]" << endl;
+              continue;
+            }
+
+#if 0
+            CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
+#endif
+
+            uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
+            uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
+            int32_t xPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x2));
+            int32_t zPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x6));
+            int64_t maybeLastUpdate = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x0a));
+            int64_t maybeInhabitedTime = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x12));
+            cout << "cx: " << xPos << ", cz: " << zPos << endl;
+
+            uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
+            cout << "maxSectionAddress: 0x" << hex << maxSectionAddress << dec << endl;
+            vector<uint16_t> sectionJumpTable;
+            for (int section = 0; section < 16; section++) {
+              uint16_t address = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + 0x1c + section * sizeof(uint16_t)));
+              sectionJumpTable.push_back(address);
+            }
+
+            vector<uint8_t> maybeNumBlockPaletteEntriesFor16Sections;
+            for (int section = 0; section < 16; section++) {
+              uint8_t numBlockPaletteEntries = buffer[0x3c + section];
+              maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
+            }
+
+            for (int section = 0; section < 16; section++) {
+              uint16_t address = sectionJumpTable[section];
+              cout << "section#" << section << " at 0x" << hex << (0x4c + address) << dec;
+              if (address == maxSectionAddress) {
+                cout << " (empty)" << endl;
+                continue;
+              } else {
+                cout << endl;
+              }
+
+              vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
+              copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
+              for (int gx = 0; gx < 4; gx++) {
+                for (int gz = 0; gz < 4; gz++) {
+                  for (int gy = 0; gy < 4; gy++) {
+                    int gridIndex = gx * 16 + gz * 4 + gy;
+                    int bx = gx * 4;
+                    int by = gy * 4;
+                    int bz = gz * 4;
+
+                    uint8_t v1 = gridJumpTable[gridIndex * 2];
+                    uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
+                    uint16_t t1 = v1 >> 4;
+                    uint16_t t2 = (uint16_t)0xf & v1;
+                    uint16_t t3 = v2 >> 4;
+                    uint16_t t4 = (uint16_t)0xf & v2;
+
+                    uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
+                    uint16_t format = t3;
+
+                    // grid(gx, gy, gz) starts from 0xCC + offset
+
+                    vector<shared_ptr<mcfile::je::Block const>> palette;
+                    vector<uint16_t> index;
+
+                    // When n bits per block:
+                    //   Maximum palette entries = 2^n
+                    //   Palette size in bytes: 2^n * 2
+                    //   Index body in bytes: n * 8
+                    //   Total bytes = 2^n * 2 + n * 8
+                    // n = 1: 12 bytes   2
+                    // n = 2: 24 bytes   4
+                    // n = 3: 40 bytes   8
+                    // n = 4: 64 bytes   16
+                    // n = 5: 104 bytes  32
+                    // ----------------
+                    // n = 6: 176 bytes
+                    // n = 7: 312 bytes
+                    // n = 8: 576 bytes
+                    //
+                    // 96 = 2^n*2 +n*8
+
+                    uint16_t gridPosition = 0x4c + address + 0x80 + offset;
+                    if (format == 0) {
+                      CHECK(Box360ParseGridFormat0(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0xF) {
+                      CHECK(gridPosition + 128 < buffer.size());
+                      CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0x2) { // 1 bit
+                      CHECK(gridPosition + 12 < buffer.size());
+                      CHECK(Box360ParseGridFormat2(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0x4) { // 2 bit
+                      CHECK(gridPosition + 24 < buffer.size());
+                      CHECK(Box360ParseGridFormat4(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0x6) { // 3 bit
+                      CHECK(gridPosition + 40 < buffer.size());
+                      CHECK(Box360ParseGridFormat6(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0x8) { // 4 bit
+                      CHECK(gridPosition + 64 < buffer.size());
+                      CHECK(Box360ParseGridFormat8(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0x9) {
+                      CHECK(gridPosition + 96 < buffer.size());
+                      CHECK(Box360ParseGridFormat9(buffer.data() + gridPosition, palette, index));
+                    } else if (format == 0xE) {
+                      CHECK(gridPosition + 128 < buffer.size());
+                      CHECK(Box360ParseGridFormatE(buffer.data() + gridPosition, palette, index));
+                    } else {
+                      cerr << "unknown format: 0x" << hex << (int)format << dec << endl;
+                      // CHECK(false);
+                    }
+
+                    if (index.size() != 64) {
+                      continue;
+                    }
+
+                    for (int lx = 0; lx < 4; lx++) {
+                      for (int lz = 0; lz < 4; lz++) {
+                        for (int ly = 0; ly < 4; ly++) {
+                          int idx = lx * 16 + lz * 4 + ly;
+                          uint16_t paletteIndex = index[idx];
+                          auto block = palette[paletteIndex];
+                          int bx = rx * 512 + cx * 16 + gx * 4 + lx;
+                          int by = section * 16 + gy * 4 + ly;
+                          int bz = rz * 512 + cz * 16 + gz * 4 + lz;
+                          chunk->setBlockAt(bx, by, bz, block);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            // Biomes: 256 bytes / chunk
+            // HeightMap: 256 bytes / chunk
+
+            // BlockLight: 2048 bytes / section: 4bit per block
+            // Blocks: 4096 bytes / section: 1byte per block
+            // Data: 2048 bytes / section: 4bit per block
+            // SkyLight: 2048 bytes / section: 4bit per block
+            // --
+            // Total: 10240 bytes / section
+
+            int heightMapStartPos = buffer.size() - 256 - 2 - 256;
+            vector<uint8_t> heightMap;
+            copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[n] == 0, it means height = 256 at n.
+
+            cout << "height map:" << endl;
+            for (int z = 0; z < 16; z++) {
+              for (int x = 0; x < 16; x++) {
+                int h = heightMap[x + z * 16];
+                if (h == 0) {
+                  h = 256;
+                }
+                printf("%3d ", (int)h);
+              }
+              printf("\n");
+            }
+
+            uint16_t unknownMarkerA = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + buffer.size() - 256 - 2)); // 0x07fe
+            //CHECK(unknownMarkerA == 0x07fe);
+            if (unknownMarkerA != 0x07fe) {
+              continue;
+            }
+
+            vector<mcfile::biomes::BiomeId> biomes;
+            for (int i = 0; i < 256; i++) {
+              auto raw = buffer[buffer.size() - 256 - 1];
+              auto biome = mcfile::biomes::FromInt(raw);
+              biomes.push_back(biome);
+            }
+            for (int z = 0; z < 16; z++) {
+              for (int x = 0; x < 16; x++) {
+                auto biome = biomes[x + z * 16];
+                int bx = rx * 32 + cx * 16 + x;
+                int bz = rz * 32 + cz * 16 + z;
+                for (int by = 0; by < 256; by++) {
+                  chunk->setBiomeAt(bx, by, bz, biome);
+                }
+              }
+            }
+
+            auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+            auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
+            CHECK(chunk->write(*stream));
           }
         }
+        CHECK(mcfile::je::Region::ConcatCompressedNbt(rx, rz, regionTempDir, output / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz)));
       }
-    }
-
-    // Biomes: 256 bytes / chunk
-    // HeightMap: 256 bytes / chunk
-
-    // BlockLight: 2048 bytes / section: 4bit per block
-    // Blocks: 4096 bytes / section: 1byte per block
-    // Data: 2048 bytes / section: 4bit per block
-    // SkyLight: 2048 bytes / section: 4bit per block
-    // --
-    // Total: 10240 bytes / section
-
-    int heightMapStartPos = buffer.size() - 256 - 2 - 256;
-    vector<uint8_t> heightMap;
-    copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[n] == 0, it means height = 256 at n.
-
-    cout << "height map:" << endl;
-    for (int z = 0; z < 16; z++) {
-      for (int x = 0; x < 16; x++) {
-        int h = heightMap[x + z * 16];
-        if (h == 0) {
-          h = 256;
-        }
-        printf("%3d ", (int)h);
-      }
-      printf("\n");
-    }
-
-    uint16_t unknownMarkerA = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + buffer.size() - 256 - 2)); // 0x07fe
-    CHECK(unknownMarkerA == 0x07fe);
-
-    vector<mcfile::biomes::BiomeId> biomes;
-    for (int i = 0; i < 256; i++) {
-      auto raw = buffer[buffer.size() - 256 - 1];
-      auto biome = mcfile::biomes::FromInt(raw);
-      biomes.push_back(biome);
     }
   }
 }
