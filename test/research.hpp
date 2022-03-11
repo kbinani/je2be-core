@@ -595,24 +595,6 @@ static void MonumentBedrock() {
 #endif
 }
 
-static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::StfsFileListing &listing, std::filesystem::path dir) {
-  for (auto &file : listing.fileEntries) {
-    auto p = dir / file.name;
-    try {
-      pkg.ExtractFile(&file, p.string());
-    } catch (...) {
-      return false;
-    }
-  }
-  for (auto &folder : listing.folderEntries) {
-    auto sub = dir / folder.folder.name;
-    if (!ExtractRecursive(pkg, folder, sub)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1, uint8_t v2) {
   using namespace std;
   using namespace mcfile::je;
@@ -627,6 +609,17 @@ static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1,
     string name;
     map<string, string> props;
     switch (blockId) {
+    case 2:
+      switch (t3) {
+      case 9:
+        switch (t2) {
+        case 0:
+          name = "kelp_plant";
+          break;
+        }
+        break;
+      }
+      break;
     case 14:
       switch (t3) {
       case 9:
@@ -646,14 +639,49 @@ static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1,
         break;
       }
       break;
+    case 16:
+      switch (t3) {
+      case 9:
+        switch (t2) {
+        case 1:
+          name = "bubble_column";
+          break;
+        }
+        break;
+      }
+      break;
+    case 44:
+      name = "smooth_stone_slab";
+      switch (t3) {
+      case 8:
+        switch (t2) {
+        case 0:
+          props["type"] = "double";
+          break;
+        case 2:
+          props["type"] = "bottom";
+          break;
+        case 8:
+          props["type"] = "top";
+          break;
+        }
+      }
+      break;
     }
     if (!name.empty()) {
       return make_shared<Block const>("minecraft:" + name, props);
     }
     auto p = mcfile::je::Flatten::DoFlatten(blockId, data);
+    if (p && p->fName == "minecraft:coal_ore") {
+      int a = 0;
+    }
     return p;
   } else {
-    return mcfile::je::Flatten::DoFlatten(blockId, data);
+    auto p = mcfile::je::Flatten::DoFlatten(blockId, data);
+    if (p && p->fName == "minecraft:stone_slab") {
+      int a = 0;
+    }
+    return p;
   }
 }
 
@@ -671,16 +699,10 @@ static bool Box360ParsePalette(uint8_t const *buffer, std::vector<std::shared_pt
   return true;
 }
 
-static bool Box360ParseGridFormat0(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
-  // TODO: Verify if this guess is correct.
-  uint8_t v1 = buffer[0];
-  uint8_t v2 = buffer[1];
+static bool Box360ParseGridFormat0(uint8_t v1, uint8_t v2, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index, int bx, int by, int bz) {
   auto block = Box360BlockFromBytes(v1, v2);
-  if (!block) {
-    return false;
-  }
   palette.clear();
-  palette.push_back(0);
+  palette.push_back(block);
   index.resize(64, 0);
   std::fill(index.begin(), index.end(), 0);
   return true;
@@ -759,17 +781,6 @@ static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::share
   return false;
 }
 
-static void FillAir(mcfile::je::Chunk &chunk) {
-  auto air = make_shared<mcfile::je::Block const>("minecraft:air");
-  for (int y = chunk.minBlockY(); y <= chunk.maxBlockY(); y++) {
-    for (int z = chunk.minBlockZ(); z <= chunk.maxBlockZ(); z++) {
-      for (int x = chunk.minBlockX(); x <= chunk.maxBlockX(); x++) {
-        chunk.setBlockAt(x, y, z, air);
-      }
-    }
-  }
-}
-
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
@@ -832,7 +843,16 @@ static void Box360Chunk() {
            //"2-Save20220306005722-048-gyazo-ed9c2429bbb2ca1f1ca44d63ee703c5c.bin",
            //"2-Save20220306005722-049-gyazo-393b51668ac72255b1c53ab8976b6d84.bin",
            //"2-Save20220306005722-050-gyazo-788e2cc3a60b792056877d235dc08f15.bin",
-           "2-Save20220306005722-051-gyazo-6e2b17c1852b53ff19d1e0cccc0d9f46.bin",
+           //"2-Save20220306005722-051-gyazo-6e2b17c1852b53ff19d1e0cccc0d9f46.bin",
+           //"2-Save20220306005722-052-gyazo-7382938009a1dac87f6ba35499171370.bin",
+           //"2-Save20220306005722-053-gyazo-7e5f868470569dd746a4eb38be6f16ce.bin",
+           //"2-Save20220306005722-054-gyazo-45b623b1d4d5e59491e52b227ef44f24.bin",
+           //"2-Save20220306005722-055-gyazo-6bd80de3901fdbcaf0e51b955bc3b6d9.bin",
+           //"2-Save20220306005722-056-gyazo-ed36d524dc34b0b0417d1393d20021c6.bin",
+           //"2-Save20220306005722-057-gyazo-8f3513066e4819b33f89d57130206299.bin",
+           //"2-Save20220306005722-058-gyazo-2b052bb9b2b2020748bb98297c4e3132.bin",
+           //"2-Save20220306005722-059-gyazo-56f2e9a084b9344c964e5270b277c724.bin",
+           "2-Save20220306005722-060-gyazo-2b235e0609f14ee53e950497ae139468.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -845,10 +865,11 @@ static void Box360Chunk() {
     vector<uint8_t> buffer;
     CHECK(Savegame::DecompressSavegame(savegame, buffer));
     CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
+    bool first = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         if (rx != 0 || rz != 0) {
-          continue;
+          //continue;
         }
         auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
         CHECK(fs::exists(region));
@@ -859,11 +880,10 @@ static void Box360Chunk() {
         };
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
-            if (cx != 24 || cz != 25) {
-              continue;
+            if (cx != 24 || cz != 24) {
+              //continue;
             }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
-            FillAir(*chunk);
             {
               auto f = make_shared<mcfile::stream::FileInputStream>(region);
               CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
@@ -900,8 +920,11 @@ static void Box360Chunk() {
               continue;
             }
 
-#if 1
+#if 0
+            if (first) {
             CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
+                first = false;
+            }
 #endif
 
             uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
@@ -925,7 +948,7 @@ static void Box360Chunk() {
             }
 
             for (int section = 0; section < 16; section++) {
-              uint16_t address = sectionJumpTable[section];
+              int address = sectionJumpTable[section];
 
               if (address == maxSectionAddress) {
                 break;
@@ -937,9 +960,13 @@ static void Box360Chunk() {
                 for (int gz = 0; gz < 4; gz++) {
                   for (int gy = 0; gy < 4; gy++) {
                     int gridIndex = gx * 16 + gz * 4 + gy;
-                    int bx = gx * 4;
-                    int by = gy * 4;
-                    int bz = gz * 4;
+                    int bx = (rx * 32 + cx) * 16 + gx * 4;
+                    int by = section * 16 + gy * 4;
+                    int bz = (rz * 32 + cz) * 16 + gz * 4;
+
+                    if (bx == 384 && by == 48 && bz == 384) {
+                      int a = 0;
+                    }
 
                     uint8_t v1 = gridJumpTable[gridIndex * 2];
                     uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
@@ -975,7 +1002,7 @@ static void Box360Chunk() {
 
                     uint16_t gridPosition = 0x4c + address + 0x80 + offset;
                     if (format == 0) {
-                      CHECK(Box360ParseGridFormat0(buffer.data() + gridPosition, palette, index));
+                      CHECK(Box360ParseGridFormat0(v1, v2, palette, index, bx, by, bz));
                     } else if (format == 0xF) {
                       CHECK(gridPosition + 128 < buffer.size());
                       CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
@@ -1008,8 +1035,66 @@ static void Box360Chunk() {
                       int by = section * 16 + gy * 4;
                       int bz = (rz * 32 + cz) * 16 + gz * 4;
                       cerr << "unknown format: 0x" << hex << (int)format << dec << "; chunk=[" << (rx * 32 + cx) << ", " << (rz * 32 + cz) << "] ; gridPosition=0x" << hex << gridPosition << "; nextGridPosition=0x" << nextGridPosition << "; sectionHead=0x" << (0x4c + address) << dec << "; block=[" << bx << ", " << by << ", " << bz << "]-[" << (bx + 3) << ", " << (by + 3) << ", " << (bz + 3) << "]" << endl;
-                      if (format == 0x7) {
+                      if (format == 0x3) {
+                        CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, palette, index));
+                      } else if (format == 0x5) {
+                        CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, palette, index));
+                      } else if (format == 0x7) {
+                        // 3bit + waterlogging??
                         CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, palette, index));
+                        /*
+                        00 00 70 00 C0 02 80 00 C0 82 FF FF FF FF FF FF
+
+                        08 88 88 88 88 88 88 88
+                        00 00 00 00 00 00 00 00
+                        80 00 00 00 00 00 00 00
+
+                        80 00 00 00 00 00 00 00
+                        80 00 00 00 00 00 00 00
+                        00 00 00 00 00 00 00 00
+                        */
+                      } else if (format == 0x9) {
+                        CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, palette, index));
+                        /*
+                        00 00 70 00 C0 02 80 00 C0 82 00 80 90 80 90 00 20 10 20 90 81 00 91 00 B0 02 FF FF FF FF FF FF
+
+                        80 88 88 88 88 88 88 88
+                        00 00 00 00 00 00 00 00
+                        08 00 00 00 00 00 00 00
+                        88 00 00 00 00 00 00 00
+
+                        80 00 00 00 00 00 00 00
+                        80 00 00 00 00 00 00 00
+                        00 00 00 00 00 00 00 00
+                        00 00 00 00 00 00 00 00
+                        */
+
+                        /* chunk=[25, 25] ; gridPosition=0x6fcc; nextGridPosition=0x6fcc; sectionHead=0x6f4c; block=[400, 64, 400]-[403, 67, 403]
+                        00 00 70 00   C0 02      80 00         C0 82      00 80 90 80            90 00 20 10            20 90           81 00                  91 00          B0 02      30 00 FF FF FF FF
+                        air   bedrock stone_slab flowing_water stone_slab air?  water[level=80?] water grass_block[10?] grass_block[90] flowing_water[level=1] water[level=1] stone_slab dirt
+                        0     1       2          3             4          5     6                7     8                9               10                     11             12         13
+                        0     1       10         11            100        101   110              111   1000             1001            1010                   1011           1100       1101
+
+                        CC 88 C8 88 88 88 88 88
+                        00 00 00 00 00 00 00 00
+                        00 00 00 00 00 00 00 00
+                        C0 00 00 00 00 00 00 00
+
+                        80 00 00 00 00 00 00 00
+                        80 00 00 00 00 00 00 00
+                        00 00 00 00 00 00 00 00
+                        00 00 00 00 00 00 00 00
+
+                        11001100 10001000 11001000 10001000 10001000 10001000 10001000 10001000
+                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                        11000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+                        10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                        10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                        */
                       }
                       // CHECK(false);
                     }
