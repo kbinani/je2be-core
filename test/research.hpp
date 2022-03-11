@@ -614,6 +614,8 @@ static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::Stf
 }
 
 static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1, uint8_t v2) {
+  using namespace std;
+  using namespace mcfile::je;
   uint8_t t1 = v1 >> 4;
   uint8_t t2 = 0xf & v1;
   uint8_t t3 = v2 >> 4;
@@ -621,7 +623,38 @@ static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1,
 
   uint16_t blockId = t4 << 4 | t1;
   uint8_t data = t3 << 4 | t2;
-  return mcfile::je::Flatten::DoFlatten(blockId, data);
+  if (t3 != 0) {
+    string name;
+    map<string, string> props;
+    switch (blockId) {
+    case 14:
+      switch (t3) {
+      case 9:
+        switch (t2) {
+        case 0:
+          name = "seagrass";
+          break;
+        case 1:
+          name = "tall_seagrass";
+          props["half"] = "upper";
+          break;
+        case 2:
+          name = "tall_seagrass";
+          props["half"] = "lower";
+          break;
+        }
+        break;
+      }
+      break;
+    }
+    if (!name.empty()) {
+      return make_shared<Block const>("minecraft:" + name, props);
+    }
+    auto p = mcfile::je::Flatten::DoFlatten(blockId, data);
+    return p;
+  } else {
+    return mcfile::je::Flatten::DoFlatten(blockId, data);
+  }
 }
 
 static bool Box360ParsePalette(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, int maxSize) {
@@ -715,7 +748,7 @@ static bool Box360ParseGridFormat9(uint8_t const *buffer, std::vector<std::share
 
   */
   // TODO:
-  return true;
+  return false;
 }
 
 static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
@@ -723,7 +756,7 @@ static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::share
   D0 00 90 00 90 00 90 00 D0 00 D0 00 90 00 90 00 D0 00 D0 00 90 00 90 00 D0 00 10 00 D0 00 2B 90 E0 90 90 00 90 00 90 00 D0 00 90 00 90 00 90 00 10 00 D0 00 E0 90 90 00 10 00 10 00 D0 00 E0 90 E0 90 90 00 90 00 90 00 90 00 90 00 90 00 90 00 D0 00 90 00 90 00 90 00 10 00 D0 00 90 00 90 00 90 00 90 00 90 00 90 00 29 90 2A 90 2B 90 2C 90 21 90 22 90 23 90 24 90 D0 00 E0 90 90 00 90 00
 */
   // TODO:
-  return true;
+  return false;
 }
 
 static void FillAir(mcfile::je::Chunk &chunk) {
@@ -826,7 +859,7 @@ static void Box360Chunk() {
         };
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
-            if (cx != 25 || cz != 25) {
+            if (cx != 24 || cz != 25) {
               continue;
             }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
@@ -877,7 +910,6 @@ static void Box360Chunk() {
             int32_t zPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x6));
             int64_t maybeLastUpdate = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x0a));
             int64_t maybeInhabitedTime = mcfile::I64FromBE(*(int64_t *)(buffer.data() + 0x12));
-            cout << "cx: " << xPos << ", cz: " << zPos << endl;
 
             uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
             vector<uint16_t> sectionJumpTable;
@@ -961,14 +993,24 @@ static void Box360Chunk() {
                     } else if (format == 0x8) { // 4 bit
                       CHECK(gridPosition + 64 < buffer.size());
                       CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, palette, index));
-                    } else if (format == 0x9) {
-                      CHECK(gridPosition + 96 < buffer.size());
-                      CHECK(Box360ParseGridFormat9(buffer.data() + gridPosition, palette, index));
-                    } else if (format == 0xE) {
-                      CHECK(gridPosition + 128 < buffer.size());
-                      CHECK(Box360ParseGridFormatE(buffer.data() + gridPosition, palette, index));
                     } else {
-                      cerr << "unknown format: 0x" << hex << (int)format << "; gridPosition=0x" << gridPosition << "; sectionHead=0x" << (0x4c + address) << dec << endl;
+                      uint8_t nextV1 = gridJumpTable[gridIndex * 2 + 2];
+                      uint8_t nextV2 = gridJumpTable[gridIndex * 2 + 3];
+                      uint16_t nextT1 = nextV1 >> 4;
+                      uint16_t nextT2 = (uint16_t)0xf & nextV1;
+                      uint16_t nextT3 = nextV2 >> 4;
+                      uint16_t nextT4 = (uint16_t)0xf & nextV2;
+
+                      uint16_t nextOffset = (nextT4 << 8 | nextT1 << 4 | nextT2) * 4;
+
+                      int nextGridPosition = 0x4c + address + 0x80 + nextOffset;
+                      int bx = (rx * 32 + cx) * 16 + gx * 4;
+                      int by = section * 16 + gy * 4;
+                      int bz = (rz * 32 + cz) * 16 + gz * 4;
+                      cerr << "unknown format: 0x" << hex << (int)format << dec << "; chunk=[" << (rx * 32 + cx) << ", " << (rz * 32 + cz) << "] ; gridPosition=0x" << hex << gridPosition << "; nextGridPosition=0x" << nextGridPosition << "; sectionHead=0x" << (0x4c + address) << dec << "; block=[" << bx << ", " << by << ", " << bz << "]-[" << (bx + 3) << ", " << (by + 3) << ", " << (bz + 3) << "]" << endl;
+                      if (format == 0x7) {
+                        CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, palette, index));
+                      }
                       // CHECK(false);
                     }
 
@@ -1009,7 +1051,7 @@ static void Box360Chunk() {
             copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[x + z * 16] == 0, it means height = 256 at (x, z).
 
             uint16_t unknownMarkerA = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + buffer.size() - 256 - 2)); // 0x07fe
-            //CHECK(unknownMarkerA == 0x07fe);
+            CHECK(unknownMarkerA == 0x07fe);
             if (unknownMarkerA != 0x07fe) {
               continue;
             }
