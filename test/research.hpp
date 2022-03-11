@@ -883,7 +883,7 @@ static void Box360Chunk() {
             if (cx != 24 || cz != 24) {
               //continue;
             }
-            auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
+            auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz, mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection113);
             {
               auto f = make_shared<mcfile::stream::FileInputStream>(region);
               CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
