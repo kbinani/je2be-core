@@ -862,7 +862,7 @@ static void Box360Chunk() {
         };
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
-            if (cx != 24 || cz != 24) {
+            if (cx != 26 || cz != 25) {
               //continue;
             }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
@@ -979,12 +979,17 @@ static void Box360Chunk() {
                     // n = 7: 312 bytes
                     // n = 8: 576 bytes
                     //
-                    // 96 = 2^n*2 +n*8
+                    // When n bits per block + waterLayer:
+                    //   Maximum palette entries = 2^n
+                    //   Palette size in bytes: 2^n * 2
+                    //   Index body in bytes: n * 8
+                    //   Extra layers body in bytes: n * 8
+                    //   Total bytes: 2^n * 2 + n * 16
 
                     uint16_t gridPosition = 0x4c + address + 0x80 + offset;
                     if (format == 0) {
                       Box360ParseGridFormat0(v1, v2, grid, bx, by, bz);
-                    } else if (format == 0xF) {
+                    } else if (format == 0xf || format == 0xe) {
                       CHECK(gridPosition + 128 < buffer.size());
                       Box360ParseGridFormatF(buffer.data() + gridPosition, grid);
                     } else if (format == 0x2) { // 1 bit
@@ -1064,6 +1069,18 @@ static void Box360Chunk() {
                       */
                       CHECK(gridPosition + 96 < buffer.size());
                       CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid, true));
+                    } else if (format == 0xe && false) {
+
+                      /*
+                      2^n * 2 + n * 16 = 128
+                      
+                      2-Save20220306005722-060-gyazo-2b235e0609f14ee53e950497ae139468.bin
+                      unknown format: 0xe; chunk=[26, 25] ; gridPosition=0xa5c; nextGridPosition=0xadc; sectionHead=0x74c; grid=[1, 3, 2]; gridIndex=27; block = [ 420, 28, 408 ] - [ 423, 31, 411 ]
+                      unknown format: 0xe; chunk=[26, 25] ; gridPosition=0xd48; nextGridPosition=0xdc8; sectionHead=0x74c; grid=[2, 3, 2]; gridIndex=43; block = [ 424, 28, 408 ] - [ 427, 31, 411 ]
+                      unknown format: 0xe; chunk=[26, 25] ; gridPosition=0x2bb4; nextGridPosition=0x2c34; sectionHead=0x134c; grid=[2, 0, 1]; gridIndex=36; block = [ 424, 32, 404 ] - [ 427, 35, 407 ]
+                      90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 23 90 24 90 25 90 26 90 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 2A 90 2B 90 2C 90 2D 90
+                      */
+
                     } else {
                       uint8_t nextV1 = gridJumpTable[gridIndex * 2 + 2];
                       uint8_t nextV2 = gridJumpTable[gridIndex * 2 + 3];
@@ -1078,7 +1095,7 @@ static void Box360Chunk() {
                       int bx = (rx * 32 + cx) * 16 + gx * 4;
                       int by = section * 16 + gy * 4;
                       int bz = (rz * 32 + cz) * 16 + gz * 4;
-                      cerr << "unknown format: 0x" << hex << (int)format << dec << "; chunk=[" << (rx * 32 + cx) << ", " << (rz * 32 + cz) << "] ; gridPosition=0x" << hex << gridPosition << "; nextGridPosition=0x" << nextGridPosition << "; sectionHead=0x" << (0x4c + address) << dec << "; block=[" << bx << ", " << by << ", " << bz << "]-[" << (bx + 3) << ", " << (by + 3) << ", " << (bz + 3) << "]" << endl;
+                      cerr << "unknown format: 0x" << hex << (int)format << dec << "; chunk=[" << (rx * 32 + cx) << ", " << (rz * 32 + cz) << "] ; gridPosition=0x" << hex << gridPosition << "; nextGridPosition=0x" << nextGridPosition << "; sectionHead=0x" << (0x4c + address) << dec << "; grid=[" << gx << ", " << gy << ", " << gz << "]; gridIndex=" << gridIndex << "; block=[ " << bx << ", " << by << ", " << bz << "]-[" << (bx + 3) << ", " << (by + 3) << ", " << (bz + 3) << "]" << endl;
                       // CHECK(false);
                     }
 
