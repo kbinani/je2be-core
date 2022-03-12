@@ -8,12 +8,15 @@ class Region {
 public:
   static bool Convert(std::filesystem::path const &mcr, int rx, int rz, std::filesystem::path const &outputMca, std::filesystem::path const &temp) {
     using namespace std;
-    auto regionTempDir = temp / "region" / ("r." + to_string(rx) + "." + to_string(rz));
-    if (!Fs::CreateDirectories(regionTempDir)) {
+    auto regionTempDir = mcfile::File::CreateTempDir(temp);
+    if (!regionTempDir) {
+      return false;
+    }
+    if (!Fs::CreateDirectories(*regionTempDir)) {
       return false;
     }
     defer {
-      Fs::Delete(regionTempDir);
+      Fs::Delete(*regionTempDir);
     };
     for (int cz = 0; cz < 32; cz++) {
       for (int cx = 0; cx < 32; cx++) {
@@ -25,7 +28,7 @@ public:
           continue;
         }
 
-        auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(rx * 32 + cx, rz * 32 + cz);
+        auto nbtz = *regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(rx * 32 + cx, rz * 32 + cz);
         auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
         if (!chunk->write(*stream)) {
           stream.reset();
@@ -34,7 +37,7 @@ public:
         }
       }
     }
-    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, regionTempDir, outputMca);
+    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, *regionTempDir, outputMca);
   }
 };
 
