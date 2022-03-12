@@ -78,6 +78,7 @@
 #include <je2be/box360/block-data.hpp>
 #include <je2be/box360/grid.hpp>
 #include <je2be/box360/chunk.hpp>
+#include <je2be/box360/region.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>

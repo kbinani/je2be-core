@@ -684,36 +684,12 @@ static void Box360Chunk() {
     bool first = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        if (rx != 0 || rz != 0) {
-          //continue;
+        auto mcr = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
+        if (!Fs::Exists(mcr)) {
+          continue;
         }
-        auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
-        CHECK(fs::exists(region));
-        auto regionTempDir = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz));
-        CHECK(Fs::CreateDirectories(regionTempDir));
-        defer {
-          Fs::Delete(regionTempDir);
-        };
-        for (int cz = 0; cz < 32; cz++) {
-          for (int cx = 0; cx < 32; cx++) {
-            if (cz != 13 || cx < 7 || 8 < cx) {
-              //continue;
-            }
-
-            shared_ptr<mcfile::je::WritableChunk> chunk;
-            if (!Chunk::Convert(region, rx * 32 + cx, rz * 32 + cz, chunk)) {
-              continue;
-            }
-            if (!chunk) {
-              continue;
-            }
-
-            auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(rx * 32 + cx, rz * 32 + cz);
-            auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
-            CHECK(chunk->write(*stream));
-          }
-        }
-        CHECK(mcfile::je::Region::ConcatCompressedNbt(rx, rz, regionTempDir, output / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz)));
+        auto mca = output / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+        CHECK(Region::Convert(mcr, rx, rz, mca, *temp));
       }
     }
   }
