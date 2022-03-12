@@ -600,95 +600,28 @@ static void Box360Chunk() {
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
   fs::path output("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/_b2j-out");
 
-  for (auto name : {
-           // "1-Save20220305225836-000-pig-name=Yahoo.bin",
-           // "1-Save20220305225836-001-pig-name=Yohoo.bin",
-           // "1-Save20220305225836-002-put-cobblestone.bin",
-           // "1-Save20220305225836-003-remove-cobblestone.bin",
-           // "2-Save20220306005722-000-fill-bedrock-under-sea-level.bin",
-           // "2-Save20220306005722-001-chunk-filled-by-bedrock.bin",
-           // "abc-Save20220303092528.bin",
-           // "2-Save20220306005722-002-c.25.25-section0-filled-with-bedrock.bin",
-           // "2-Save20220306005722-003-heightmap-check.bin",
-           // "2-Save20220306005722-004-place-dirt-lx=15-ly=15-lz=15.bin",
-           // "2-Save20220306005722-005-place-dirt-lx=14-ly=15-lz=15.bin",
-           // "2-Save20220306005722-006-place-dirt-lx=13-ly=15-lz=15.bin",
-           // "2-Save20220306005722-007-place-dirt-lx=0-ly=15-lz=15.bin",
-           // "2-Save20220306005722-008-fill-dirt-lz=15-ly=15.bin",
-           // "2-Save20220306005722-009-reset-lz15_ly=15-fill-dirt-l0_ly15.bin",
-           // "2-Save20220306005722-010-refill-bedrock-again.bin",
-           // "2-Save20220306005722-011-preparing-empty-chunk-at-c.25.25.bin",
-           // "2-Save20220306005722-012-empty-chunk-at-c.25.25.bin",
-           // "2-Save20220306005722-013-just-resaved-after-012.bin",
-           // "2-Save20220306005722-014-just-resaved-after-013.bin",
-           // "2-Save20220306005722-015-setblock 0 1 1 bedrock.bin",
-           // "2-Save20220306005722-016-setblock 1 1 0 bedrock.bin",
-           // "2-Save20220306005722-017-setblock 2 1 0 bedrock.bin",
-           // "2-Save20220306005722-018-setblock 0 1 1 bedrock.bin",
-           // "2-Save20220306005722-019-setblock 0 2 0 bedrock.bin",
-           // "2-Save20220306005722-020-setblock 0 3 0 bedrock.bin",
-           // "2-Save20220306005722-021-fill 0 0 0 3 3 3 bedrock.bin",
-           // "2-Save20220306005722-022-setblock 0 4 0 bedrock.bin",
-           // "2-Save20220306005722-023-fill 0 1 0 3 4 3 air.bin",
-           // "2-Save20220306005722-024-setblock 0 1 0 iron_block.bin",
-           // "2-Save20220306005722-025-setblock 0 1 0 carved_pumpkin[facing=south].bin",
-           // "2-Save20220306005722-026-setblock 0 1 0 carved_pumpkin[facing=east].bin",
-           // "2-Save20220306005722-027-setblock 0 1 4 carved_pumpkin[facing=east].bin",
-           // "2-Save20220306005722-028-setblock 4 1 0 carved_pumpkin[facing=south].bin",
-           // "2-Save20220306005722-029-setblock 0 1 8 carved_pumpkin[facing=south].bin",
-           // "2-Save20220306005722-030-setblock 0 1 12 iron_block.bin",
-           // "2-Save20220306005722-031-setblock 4 1 0 gold_block.bin",
-           // "2-Save20220306005722-032-setblock 4 1 4 dirt.bin",
-           // "2-Save20220306005722-033-put bedrocks to grid corners under sea level.bin",
-           // "2-Save20220306005722-034-resaved.bin",
-           // "2-Save20220306005722-035-fill grid(1,0,0) with iron_block.bin",
-           // "2-Save20220306005722-036-fill grid(1,1,0) with gold_block.bin",
-           // "2-Save20220306005722-037-fill grid(0,0,0) with bedrock.bin",
-           // "2-Save20220306005722-038-fill grid(0,1,0) with some blocks.bin",
-           // "2-Save20220306005722-039-fill 0 4 0 3 4 3 bedrock.bin",
-           // "2-Save20220306005722-040-gyazo-76ef1d3bf73d1094f76fb5af627b002a.bin",
-           // "2-Save20220306005722-041-gyazo-fa8a1fab5f80678d98a7010fd61019bc.bin",
-           // "2-Save20220306005722-042-gyazo-def2a9fdcd6f9c9e997328a38ecc401e.bin",
-           // "2-Save20220306005722-043-gyazo-377bb6e38aa6d2d2eddfa3837f96cda4.bin",
-           // "2-Save20220306005722-044-5a3fe7fb82e798160542986f94a0d3f9.bin",
-           // "2-Save20220306005722-045-gyazo-038020972af102b51ce606638423941b.bin",
-           // "2-Save20220306005722-046-gyazo-1dee95a946200236c0dbcb0c5e13ddbe.bin",
-           //"2-Save20220306005722-047-gyazo-f91e998c6e4399613dc1119e915b3208.bin",
-           //"2-Save20220306005722-048-gyazo-ed9c2429bbb2ca1f1ca44d63ee703c5c.bin",
-           //"2-Save20220306005722-049-gyazo-393b51668ac72255b1c53ab8976b6d84.bin",
-           //"2-Save20220306005722-050-gyazo-788e2cc3a60b792056877d235dc08f15.bin",
-           //"2-Save20220306005722-051-gyazo-6e2b17c1852b53ff19d1e0cccc0d9f46.bin",
-           //"2-Save20220306005722-052-gyazo-7382938009a1dac87f6ba35499171370.bin",
-           //"2-Save20220306005722-053-gyazo-7e5f868470569dd746a4eb38be6f16ce.bin",
-           //"2-Save20220306005722-054-gyazo-45b623b1d4d5e59491e52b227ef44f24.bin",
-           //"2-Save20220306005722-055-gyazo-6bd80de3901fdbcaf0e51b955bc3b6d9.bin",
-           //"2-Save20220306005722-056-gyazo-ed36d524dc34b0b0417d1393d20021c6.bin",
-           //"2-Save20220306005722-057-gyazo-8f3513066e4819b33f89d57130206299.bin",
-           //"2-Save20220306005722-058-gyazo-2b052bb9b2b2020748bb98297c4e3132.bin",
-           //"2-Save20220306005722-059-gyazo-56f2e9a084b9344c964e5270b277c724.bin",
-           //"2-Save20220306005722-060-gyazo-2b235e0609f14ee53e950497ae139468.bin",
-           //"2-Save20220306005722-061-gyazo-6351a712638b2934cdb6eee7d2c78966.bin",
-           "2-Save20220306005722-062-gyazo-84792baa4e5d4ea30ada9746c10840be.bin",
-       }) {
-    cout << name << endl;
-    auto temp = File::CreateTempDir(fs::temp_directory_path());
-    CHECK(temp);
-    defer {
-      Fs::Delete(*temp);
-    };
-    auto savegame = *temp / "savegame.dat";
-    CHECK(Savegame::ExtractSavagameFromSaveBin(dir / name, savegame));
-    vector<uint8_t> buffer;
-    CHECK(Savegame::DecompressSavegame(savegame, buffer));
-    CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
-    bool first = true;
+  string name = "abc-Save20220303092528.bin";
+  // string name = "2-Save20220306005722-062-gyazo-84792baa4e5d4ea30ada9746c10840be.bin";
+  auto temp = File::CreateTempDir(fs::temp_directory_path());
+  CHECK(temp);
+  defer {
+    Fs::Delete(*temp);
+  };
+  auto savegame = *temp / "savegame.dat";
+  CHECK(Savegame::ExtractSavagameFromSaveBin(dir / name, savegame));
+  vector<uint8_t> buffer;
+  CHECK(Savegame::DecompressSavegame(savegame, buffer));
+  CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
+  for (auto pathToRegion : {fs::path("region"), fs::path("DIM-1") / "region", fs::path("DIM1") / "region"}) {
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        auto mcr = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
+        auto mcr = *temp / pathToRegion / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
           continue;
         }
-        auto mca = output / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+
+        CHECK(Fs::CreateDirectories(output / pathToRegion));
+        auto mca = output / pathToRegion / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
         CHECK(Region::Convert(mcr, rx, rz, mca, *temp));
       }
     }
