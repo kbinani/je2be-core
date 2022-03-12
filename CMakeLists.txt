@@ -17,6 +17,9 @@ endif()
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
+  include/je2be/box360/lxz-decoder.hpp
+  include/je2be/box360/savegame.hpp
+  include/je2be/box360/stfs.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
   include/je2be/color/sign-color.hpp

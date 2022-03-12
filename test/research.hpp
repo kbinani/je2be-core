@@ -1,7 +1,6 @@
 #pragma once
 
-namespace {
-optional<wstring> GetLocalApplicationDirectory() {
+static optional<wstring> GetLocalApplicationDirectory() {
 #if __has_include(<shlobj_core.h>)
   int csidType = CSIDL_LOCAL_APPDATA;
   wchar_t path[MAX_PATH + 256];
@@ -13,7 +12,7 @@ optional<wstring> GetLocalApplicationDirectory() {
   return nullopt;
 }
 
-optional<fs::path> GetWorldDirectory(string const &name) {
+static optional<fs::path> GetWorldDirectory(string const &name) {
   auto appDir = GetLocalApplicationDirectory(); // X:/Users/whoami/AppData/Local
   if (!appDir) {
     return nullopt;
@@ -21,7 +20,7 @@ optional<fs::path> GetWorldDirectory(string const &name) {
   return fs::path(*appDir) / L"Packages" / L"Microsoft.MinecraftUWP_8wekyb3d8bbwe" / L"LocalState" / L"games" / L"com.mojang" / L"minecraftWorlds" / name / L"db";
 }
 
-leveldb::DB *OpenF(fs::path p) {
+static leveldb::DB *OpenF(fs::path p) {
   using namespace leveldb;
   Options o;
   o.compression = kZlibRawCompression;
@@ -33,7 +32,7 @@ leveldb::DB *OpenF(fs::path p) {
   return db;
 }
 
-leveldb::DB *Open(string const &name) {
+static leveldb::DB *Open(string const &name) {
   using namespace leveldb;
   auto dir = GetWorldDirectory(name);
   if (!dir) {
@@ -42,7 +41,7 @@ leveldb::DB *Open(string const &name) {
   return OpenF(*dir);
 }
 
-void VisitDbUntil(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
+static void VisitDbUntil(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
   using namespace leveldb;
   unique_ptr<DB> db(Open(name));
   if (!db) {
@@ -59,7 +58,7 @@ void VisitDbUntil(string const &name, function<bool(string const &key, string co
   }
 }
 
-void VisitDb(string const &name, function<void(string const &key, string const &value, leveldb::DB *db)> callback) {
+static void VisitDb(string const &name, function<void(string const &key, string const &value, leveldb::DB *db)> callback) {
   VisitDbUntil(name, [callback](string const &k, string const &v, leveldb::DB *db) {
     callback(k, v, db);
     return true;
@@ -232,7 +231,7 @@ static void NoteBlock() {
   code << endl;
 }
 
-void RedstoneWire() {
+static void RedstoneWire() {
   set<string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
     string name = mcfile::blocks::Name(id);
@@ -596,10 +595,34 @@ static void MonumentBedrock() {
 #endif
 }
 
-} // namespace
+static bool ExtractRecursive(je2be::box360::StfsPackage &pkg, je2be::box360::StfsFileListing &listing, std::filesystem::path dir) {
+  for (auto &file : listing.fileEntries) {
+    auto p = dir / file.name;
+    try {
+      pkg.ExtractFile(&file, p.string());
+    } catch (...) {
+      return false;
+    }
+  }
+  for (auto &folder : listing.folderEntries) {
+    auto sub = dir / folder.folder.name;
+    if (!ExtractRecursive(pkg, folder, sub)) {
+      return false;
+    }
+  }
+  return true;
+}
 
-#if 0
+static void Stfs() {
+  using namespace je2be::box360;
+
+  fs::path bin("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001/Save20220303092528.bin");
+  fs::path out = bin.parent_path() / "out";
+  Savegame::Extract(bin, out);
+}
+
+#if 1
 TEST_CASE("research") {
-  MonumentBedrock();
+  Stfs();
 }
 #endif

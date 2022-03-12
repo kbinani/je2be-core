@@ -45,6 +45,7 @@
 #include <numbers>
 #include <charconv>
 #include <regex>
+#include <fstream>
 
 #include <je2be/nbt.hpp>
 #include <je2be/fs.hpp>
@@ -70,6 +71,10 @@
 #include <je2be/reversible-map.hpp>
 #include <je2be/static-reversible-map.hpp>
 #include <je2be/dimension-ext.hpp>
+
+#include <je2be/box360/lxz-decoder.hpp>
+#include <je2be/box360/stfs.hpp>
+#include <je2be/box360/savegame.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
