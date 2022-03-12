@@ -595,142 +595,141 @@ static void MonumentBedrock() {
 #endif
 }
 
-static std::shared_ptr<mcfile::je::Block const> Box360BlockFromBytes(uint8_t v1, uint8_t v2) {
+struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
+  BlockData(uint8_t blockId, uint8_t data, bool waterlogged) : std::tuple<uint8_t, uint8_t, bool>(blockId, data, waterlogged) {}
+  BlockData() : std::tuple<uint8_t, uint8_t, bool>(0, 0, false) {}
+
+  uint16_t blockId() const {
+    return std::get<0>(*this);
+  }
+
+  uint8_t data() const {
+    return std::get<1>(*this);
+  };
+
+  bool waterlogged() const {
+    return std::get<2>(*this);
+  }
+
+  BlockData asWaterlogged() const {
+    return BlockData(blockId(), data(), true);
+  }
+
+  std::shared_ptr<mcfile::je::Block const> toBlock() const {
+    auto p = unsafeToBlock();
+    if (p) {
+      return p;
+    } else {
+      return std::make_shared<mcfile::je::Block const>("minecraft:air");
+    }
+  }
+
+  std::shared_ptr<mcfile::je::Block const> unsafeToBlock() const {
+    uint8_t id = blockId();
+    uint8_t data = this->data();
+    if ((data & 0xf0) == 0) {
+      return mcfile::je::Flatten::DoFlatten(id, data);
+    }
+    string name;
+    map<string, string> props;
+    switch (id) {
+    case 2:
+      switch (data) {
+      case 0x90:
+        name = "kelp_plant";
+        break;
+      }
+      break;
+    case 14:
+      switch (data) {
+      case 0x90:
+        name = "seagrass";
+        break;
+      case 0x91:
+        name = "tall_seagrass";
+        props["half"] = "upper";
+        break;
+      case 0x92:
+        name = "tall_seagrass";
+        props["half"] = "lower";
+        break;
+      }
+      break;
+    case 16:
+      switch (data) {
+      case 0x91:
+        name = "bubble_column";
+        break;
+      }
+      break;
+    case 44:
+      name = "smooth_stone_slab";
+      switch (data) {
+      case 0x80:
+        props["type"] = "double";
+        break;
+      case 0x82:
+        props["type"] = "bottom";
+        break;
+      case 0x88:
+        props["type"] = "top";
+        break;
+      }
+      break;
+    }
+    if (name.empty()) {
+      return nullptr;
+    } else {
+      return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
+    }
+  }
+};
+
+static BlockData Box360BlockFromBytes(uint8_t v1, uint8_t v2) {
   using namespace std;
   using namespace mcfile::je;
   uint8_t t1 = v1 >> 4;
   uint8_t t2 = 0xf & v1;
   uint8_t t3 = v2 >> 4;
   uint8_t t4 = 0xf & v2;
-
-  uint16_t blockId = t4 << 4 | t1;
+  uint8_t blockId = t4 << 4 | t1;
   uint8_t data = t3 << 4 | t2;
-  if (t3 != 0) {
-    string name;
-    map<string, string> props;
-    switch (blockId) {
-    case 2:
-      switch (t3) {
-      case 9:
-        switch (t2) {
-        case 0:
-          name = "kelp_plant";
-          break;
-        }
-        break;
-      }
-      break;
-    case 14:
-      switch (t3) {
-      case 9:
-        switch (t2) {
-        case 0:
-          name = "seagrass";
-          break;
-        case 1:
-          name = "tall_seagrass";
-          props["half"] = "upper";
-          break;
-        case 2:
-          name = "tall_seagrass";
-          props["half"] = "lower";
-          break;
-        }
-        break;
-      }
-      break;
-    case 16:
-      switch (t3) {
-      case 9:
-        switch (t2) {
-        case 1:
-          name = "bubble_column";
-          break;
-        }
-        break;
-      }
-      break;
-    case 44:
-      name = "smooth_stone_slab";
-      switch (t3) {
-      case 8:
-        switch (t2) {
-        case 0:
-          props["type"] = "double";
-          break;
-        case 2:
-          props["type"] = "bottom";
-          break;
-        case 8:
-          props["type"] = "top";
-          break;
-        }
-      }
-      break;
-    }
-    if (!name.empty()) {
-      return make_shared<Block const>("minecraft:" + name, props);
-    }
-    auto p = mcfile::je::Flatten::DoFlatten(blockId, data);
-    if (p && p->fName == "minecraft:coal_ore") {
-      int a = 0;
-    }
-    return p;
-  } else {
-    auto p = mcfile::je::Flatten::DoFlatten(blockId, data);
-    if (p && p->fName == "minecraft:stone_slab") {
-      int a = 0;
-    }
-    return p;
-  }
+  return BlockData(blockId, data, false);
 }
 
-static bool Box360ParsePalette(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, int maxSize) {
+static void Box360ParsePalette(uint8_t const *buffer, std::vector<BlockData> &palette, int maxSize) {
   palette.clear();
   for (uint16_t i = 0; i < maxSize; i++) {
     uint8_t v1 = buffer[i * 2];
     uint8_t v2 = buffer[i * 2 + 1];
     auto block = Box360BlockFromBytes(v1, v2);
-    if (!block) {
-      return false;
-    }
     palette.push_back(block);
   }
-  return true;
 }
 
-static bool Box360ParseGridFormat0(uint8_t v1, uint8_t v2, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index, int bx, int by, int bz) {
+static void Box360ParseGridFormat0(uint8_t v1, uint8_t v2, BlockData grid[64], int bx, int by, int bz) {
   auto block = Box360BlockFromBytes(v1, v2);
-  palette.clear();
-  palette.push_back(block);
-  index.resize(64, 0);
-  std::fill(index.begin(), index.end(), 0);
-  return true;
+  std::fill_n(grid, 64, block);
 }
 
-static bool Box360ParseGridFormatF(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
-  if (!Box360ParsePalette(buffer, palette, 64)) {
-    return false;
-  }
-  index.resize(64, 0);
-  for (uint16_t i = 0; i < 64; i++) {
-    index[i] = i;
-  }
-  return true;
+static void Box360ParseGridFormatF(uint8_t const *buffer, BlockData grid[64]) {
+  std::vector<BlockData> palette;
+  Box360ParsePalette(buffer, palette, 64);
+  std::copy_n(palette.begin(), 64, grid);
 }
 
 template <size_t Bits>
-static bool Box360ParseGridFormatGeneric(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
+static bool Box360ParseGridFormatGeneric(uint8_t const *buffer, BlockData grid[64], bool hasWaterLayer) {
+  using namespace std;
   int size = 1 << Bits;
-  if (!Box360ParsePalette(buffer, palette, size)) {
-    return false;
-  }
-  index.resize(64, 0);
+  vector<BlockData> palette;
+  Box360ParsePalette(buffer, palette, size);
   for (int i = 0; i < 8; i++) {
     uint8_t v[Bits];
     for (int j = 0; j < Bits; j++) {
       v[j] = buffer[size * 2 + i + j * 8];
     }
+    uint8_t water = hasWaterLayer ? buffer[size * 2 + i + Bits * 8] : 0;
     for (int j = 0; j < 8; j++) {
       uint8_t mask = (uint8_t)0x80 >> j;
       uint16_t idx = 0;
@@ -740,37 +739,14 @@ static bool Box360ParseGridFormatGeneric(uint8_t const *buffer, std::vector<std:
       if (idx >= palette.size()) [[unlikely]] {
         return false;
       }
-      index[i * 8 + j] = idx;
+      if ((water & mask) == mask) {
+        grid[i * 8 + j] = palette[idx].asWaterlogged();
+      } else {
+        grid[i * 8 + j] = palette[idx];
+      }
     }
   }
   return true;
-}
-
-static bool Box360ParseGridFormat9(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
-  /*
-  case 1: (000-fill-bedrock-under-sea-level, chunk=[25, 25], grid=[1, 1, 1], sectionY=2)
-  90 00 D0 00  10 00 20 06        80 00         22 06                21 06              E0 10 00 00 E0 90
-  water gravel stone stone_bricks flowing_water cracked_stone_bricks mossy_stone_bricks ?     air   ?
-  FF FF FF FF FF FF FF FF FF FF FF FF 08 84 0C C4 08 C4 4C 04 00 08 00 08 00 08 88 88 00 00 00 00 00 00 80 80 00 00 04 40 08 40 44 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 00 44 00 FF FF FF FF F7 FF BB FF
-
-  block=[404, 36, 404] ~ [407, 39, 407]
-
-  stone gravel seagrass water  stone gravel water water  sand gravel water water  coal_ore gravel water water
-  stone iron_ore gravel water  ? gravel water water      ? gravel water water     ? gravel water water
-  stone gravel water water     ? ? gravel water          ? gravel seagrass water  ? gravel water water
-  stone gravel water water ...
-
-  index
-  21?0 2100 ?
-
-  block id
-  1 D ? 9  1 D 9 9  C D 9 9  10 D 9 9
-  1 F D 9  ? D 9 9  ? D 9 9  ? D 9 9
-  1 D 9 9 ...
-
-  */
-  // TODO:
-  return false;
 }
 
 static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
@@ -883,7 +859,7 @@ static void Box360Chunk() {
             if (cx != 24 || cz != 24) {
               //continue;
             }
-            auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz, mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection113);
+            auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
             {
               auto f = make_shared<mcfile::stream::FileInputStream>(region);
               CHECK(Savegame::ExtractRawChunkFromRegionFile(*f, cx, cz, buffer));
@@ -980,8 +956,7 @@ static void Box360Chunk() {
 
                     // grid(gx, gy, gz) starts from 0xCC + offset
 
-                    vector<shared_ptr<mcfile::je::Block const>> palette;
-                    vector<uint16_t> index;
+                    BlockData grid[64];
 
                     // When n bits per block:
                     //   Maximum palette entries = 2^n
@@ -1002,24 +977,87 @@ static void Box360Chunk() {
 
                     uint16_t gridPosition = 0x4c + address + 0x80 + offset;
                     if (format == 0) {
-                      CHECK(Box360ParseGridFormat0(v1, v2, palette, index, bx, by, bz));
+                      Box360ParseGridFormat0(v1, v2, grid, bx, by, bz);
                     } else if (format == 0xF) {
                       CHECK(gridPosition + 128 < buffer.size());
-                      CHECK(Box360ParseGridFormatF(buffer.data() + gridPosition, palette, index));
+                      Box360ParseGridFormatF(buffer.data() + gridPosition, grid);
                     } else if (format == 0x2) { // 1 bit
-                      //OK
+                      // OK
                       CHECK(gridPosition + 12 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, palette, index));
+                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, grid, false));
+                    } else if (format == 0x3) { // 1 bit + waterLayer
+                      CHECK(gridPosition + 20 < buffer.size());
+                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, grid, true));
                     } else if (format == 0x4) { // 2 bit
-                      //OK
+                      // OK
                       CHECK(gridPosition + 24 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, palette, index));
+                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, grid, false));
+                    } else if (format == 0x5) { // 2 bit + waterLayer
+                      CHECK(gridPosition + 40 < buffer.size());
+                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, grid, true));
                     } else if (format == 0x6) { // 3 bit
                       CHECK(gridPosition + 40 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, palette, index));
+                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, grid, false));
+                    } else if (format == 0x7) { // 3 bit + waterLayer
+                      /*
+                      00 00 70 00 C0 02 80 00 C0 82 FF FF FF FF FF FF
+
+                      08 88 88 88 88 88 88 88
+                      00 00 00 00 00 00 00 00
+                      80 00 00 00 00 00 00 00
+
+                      80 00 00 00 00 00 00 00
+                      80 00 00 00 00 00 00 00
+                      00 00 00 00 00 00 00 00
+                      */
+                      CHECK(gridPosition + 64 < buffer.size());
+                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, grid, true));
                     } else if (format == 0x8) { // 4 bit
                       CHECK(gridPosition + 64 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, palette, index));
+                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid, false));
+                    } else if (format == 0x9) { // 4bit + waterLayer
+                      /*
+                      00 00 70 00 C0 02 80 00 C0 82 00 80 90 80 90 00 20 10 20 90 81 00 91 00 B0 02 FF FF FF FF FF FF
+
+                      80 88 88 88 88 88 88 88
+                      00 00 00 00 00 00 00 00
+                      08 00 00 00 00 00 00 00
+                      88 00 00 00 00 00 00 00
+
+                      80 00 00 00 00 00 00 00
+                      80 00 00 00 00 00 00 00
+                      00 00 00 00 00 00 00 00
+                      00 00 00 00 00 00 00 00
+                      */
+
+                      /* chunk=[25, 25] ; gridPosition=0x6fcc; nextGridPosition=0x6fcc; sectionHead=0x6f4c; block=[400, 64, 400]-[403, 67, 403]
+                      00 00 70 00   C0 02      80 00         C0 82      00 80 90 80            90 00 20 10            20 90           81 00                  91 00          B0 02      30 00 FF FF FF FF
+                      air   bedrock stone_slab flowing_water stone_slab air?  water[level=80?] water grass_block[10?] grass_block[90] flowing_water[level=1] water[level=1] stone_slab dirt
+                      0     1       2          3             4          5     6                7     8                9               10                     11             12         13
+                      0     1       10         11            100        101   110              111   1000             1001            1010                   1011           1100       1101
+
+                      CC 88 C8 88 88 88 88 88
+                      00 00 00 00 00 00 00 00
+                      00 00 00 00 00 00 00 00
+                      C0 00 00 00 00 00 00 00
+
+                      80 00 00 00 00 00 00 00
+                      80 00 00 00 00 00 00 00
+                      00 00 00 00 00 00 00 00
+                      00 00 00 00 00 00 00 00
+
+                      11001100 10001000 11001000 10001000 10001000 10001000 10001000 10001000
+                      00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                      00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                      11000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+                      10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                      10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                      00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                      00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+                      */
+                      CHECK(gridPosition + 96 < buffer.size());
+                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid, true));
                     } else {
                       uint8_t nextV1 = gridJumpTable[gridIndex * 2 + 2];
                       uint8_t nextV2 = gridJumpTable[gridIndex * 2 + 3];
@@ -1035,80 +1073,15 @@ static void Box360Chunk() {
                       int by = section * 16 + gy * 4;
                       int bz = (rz * 32 + cz) * 16 + gz * 4;
                       cerr << "unknown format: 0x" << hex << (int)format << dec << "; chunk=[" << (rx * 32 + cx) << ", " << (rz * 32 + cz) << "] ; gridPosition=0x" << hex << gridPosition << "; nextGridPosition=0x" << nextGridPosition << "; sectionHead=0x" << (0x4c + address) << dec << "; block=[" << bx << ", " << by << ", " << bz << "]-[" << (bx + 3) << ", " << (by + 3) << ", " << (bz + 3) << "]" << endl;
-                      if (format == 0x3) {
-                        CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, palette, index));
-                      } else if (format == 0x5) {
-                        CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, palette, index));
-                      } else if (format == 0x7) {
-                        // 3bit + waterlogging??
-                        CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, palette, index));
-                        /*
-                        00 00 70 00 C0 02 80 00 C0 82 FF FF FF FF FF FF
-
-                        08 88 88 88 88 88 88 88
-                        00 00 00 00 00 00 00 00
-                        80 00 00 00 00 00 00 00
-
-                        80 00 00 00 00 00 00 00
-                        80 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00
-                        */
-                      } else if (format == 0x9) {
-                        CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, palette, index));
-                        /*
-                        00 00 70 00 C0 02 80 00 C0 82 00 80 90 80 90 00 20 10 20 90 81 00 91 00 B0 02 FF FF FF FF FF FF
-
-                        80 88 88 88 88 88 88 88
-                        00 00 00 00 00 00 00 00
-                        08 00 00 00 00 00 00 00
-                        88 00 00 00 00 00 00 00
-
-                        80 00 00 00 00 00 00 00
-                        80 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00
-                        */
-
-                        /* chunk=[25, 25] ; gridPosition=0x6fcc; nextGridPosition=0x6fcc; sectionHead=0x6f4c; block=[400, 64, 400]-[403, 67, 403]
-                        00 00 70 00   C0 02      80 00         C0 82      00 80 90 80            90 00 20 10            20 90           81 00                  91 00          B0 02      30 00 FF FF FF FF
-                        air   bedrock stone_slab flowing_water stone_slab air?  water[level=80?] water grass_block[10?] grass_block[90] flowing_water[level=1] water[level=1] stone_slab dirt
-                        0     1       2          3             4          5     6                7     8                9               10                     11             12         13
-                        0     1       10         11            100        101   110              111   1000             1001            1010                   1011           1100       1101
-
-                        CC 88 C8 88 88 88 88 88
-                        00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00
-                        C0 00 00 00 00 00 00 00
-
-                        80 00 00 00 00 00 00 00
-                        80 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00
-
-                        11001100 10001000 11001000 10001000 10001000 10001000 10001000 10001000
-                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-                        11000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-
-                        10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-                        10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-                        00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-                        */
-                      }
                       // CHECK(false);
-                    }
-
-                    if (index.size() != 64) {
-                      continue;
                     }
 
                     for (int lx = 0; lx < 4; lx++) {
                       for (int lz = 0; lz < 4; lz++) {
                         for (int ly = 0; ly < 4; ly++) {
                           int idx = lx * 16 + lz * 4 + ly;
-                          uint16_t paletteIndex = index[idx];
-                          auto block = palette[paletteIndex];
+                          BlockData bd = grid[idx];
+                          auto block = bd.toBlock();
                           int bx = rx * 512 + cx * 16 + gx * 4 + lx;
                           int by = section * 16 + gy * 4 + ly;
                           int bz = rz * 512 + cz * 16 + gz * 4 + lz;
