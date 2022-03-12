@@ -595,9 +595,9 @@ static void MonumentBedrock() {
 #endif
 }
 
-struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
-  BlockData(uint8_t blockId, uint8_t data, bool waterlogged) : std::tuple<uint8_t, uint8_t, bool>(blockId, data, waterlogged) {}
-  BlockData() : std::tuple<uint8_t, uint8_t, bool>(0, 0, false) {}
+struct BlockData : std::tuple<uint8_t, uint8_t> {
+  BlockData(uint8_t blockId, uint8_t data) : std::tuple<uint8_t, uint8_t>(blockId, data) {}
+  BlockData() : std::tuple<uint8_t, uint8_t>(0, 0) {}
 
   uint16_t blockId() const {
     return std::get<0>(*this);
@@ -607,18 +607,10 @@ struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
     return std::get<1>(*this);
   };
 
-  bool waterlogged() const {
-    return std::get<2>(*this);
-  }
-
-  BlockData asWaterlogged() const {
-    return BlockData(blockId(), data(), true);
-  }
-
   std::shared_ptr<mcfile::je::Block const> toBlock() const {
     auto p = unsafeToBlock();
     if (p) {
-      if (waterlogged()) {
+      if ((data() & 0x80) == 0x80) {
         std::map<std::string, std::string> props(p->fProperties);
         props["waterlogged"] = "true";
         return std::make_shared<mcfile::je::Block const>(p->fName, props);
@@ -632,30 +624,31 @@ struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
 
   std::shared_ptr<mcfile::je::Block const> unsafeToBlock() const {
     uint8_t id = blockId();
-    uint8_t data = this->data();
-    if ((data & 0xf0) == 0) {
-      return mcfile::je::Flatten::DoFlatten(id, data);
+    uint8_t rawData = this->data();
+    if ((rawData & 0x70) == 0) {
+      return mcfile::je::Flatten::DoFlatten(id, 0xf & rawData);
     }
     string name;
     map<string, string> props;
+    uint8_t data = rawData & 0x7f;
     switch (id) {
     case 2:
       switch (data) {
-      case 0x90:
+      case 0x10:
         name = "kelp_plant";
         break;
       }
       break;
     case 14:
       switch (data) {
-      case 0x90:
+      case 0x10:
         name = "seagrass";
         break;
-      case 0x91:
+      case 0x11:
         name = "tall_seagrass";
         props["half"] = "upper";
         break;
-      case 0x92:
+      case 0x12:
         name = "tall_seagrass";
         props["half"] = "lower";
         break;
@@ -663,7 +656,7 @@ struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
       break;
     case 16:
       switch (data) {
-      case 0x91:
+      case 0x11:
         name = "bubble_column";
         break;
       }
@@ -671,20 +664,20 @@ struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
     case 44:
       name = "smooth_stone_slab";
       switch (data) {
-      case 0x80:
+      case 0x00:
         props["type"] = "double";
         break;
-      case 0x82:
+      case 0x02:
         props["type"] = "bottom";
         break;
-      case 0x88:
+      case 0x08:
         props["type"] = "top";
         break;
       }
       break;
     }
     if (name.empty()) {
-      return mcfile::je::Flatten::DoFlatten(id, data & 0xf);
+      return mcfile::je::Flatten::DoFlatten(id, 0xf & data);
     } else {
       return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
     }
@@ -700,7 +693,8 @@ static BlockData Box360BlockFromBytes(uint8_t v1, uint8_t v2) {
   uint8_t t4 = 0xf & v2;
   uint8_t blockId = t4 << 4 | t1;
   uint8_t data = t3 << 4 | t2;
-  return BlockData(blockId, data, false);
+  BlockData bd(blockId, data);
+  return bd;
 }
 
 static void Box360ParsePalette(uint8_t const *buffer, std::vector<BlockData> &palette, int maxSize) {
@@ -724,32 +718,27 @@ static void Box360ParseGridFormatF(uint8_t const *buffer, BlockData grid[64]) {
   std::copy_n(palette.begin(), 64, grid);
 }
 
-template <size_t Bits>
-static bool Box360ParseGridFormatGeneric(uint8_t const *buffer, BlockData grid[64], bool hasWaterLayer) {
+template <size_t BitsPerBlock>
+static bool Box360ParseGridFormatGeneric(uint8_t const *buffer, BlockData grid[64]) {
   using namespace std;
-  int size = 1 << Bits;
+  int size = 1 << BitsPerBlock;
   vector<BlockData> palette;
   Box360ParsePalette(buffer, palette, size);
   for (int i = 0; i < 8; i++) {
-    uint8_t v[Bits];
-    for (int j = 0; j < Bits; j++) {
+    uint8_t v[BitsPerBlock];
+    for (int j = 0; j < BitsPerBlock; j++) {
       v[j] = buffer[size * 2 + i + j * 8];
     }
-    uint8_t water = hasWaterLayer ? buffer[size * 2 + i + Bits * 8] : 0;
     for (int j = 0; j < 8; j++) {
       uint8_t mask = (uint8_t)0x80 >> j;
       uint16_t idx = 0;
-      for (int k = 0; k < Bits; k++) {
+      for (int k = 0; k < BitsPerBlock; k++) {
         idx |= ((v[k] & mask) >> (7 - j)) << k;
       }
       if (idx >= palette.size()) [[unlikely]] {
         return false;
       }
-      if ((water & mask) == mask) {
-        grid[i * 8 + j] = palette[idx].asWaterlogged();
-      } else {
-        grid[i * 8 + j] = palette[idx];
-      }
+      grid[i * 8 + j] = palette[idx];
     }
   }
   return true;
@@ -826,7 +815,9 @@ static void Box360Chunk() {
            //"2-Save20220306005722-057-gyazo-8f3513066e4819b33f89d57130206299.bin",
            //"2-Save20220306005722-058-gyazo-2b052bb9b2b2020748bb98297c4e3132.bin",
            //"2-Save20220306005722-059-gyazo-56f2e9a084b9344c964e5270b277c724.bin",
-           "2-Save20220306005722-060-gyazo-2b235e0609f14ee53e950497ae139468.bin",
+           //"2-Save20220306005722-060-gyazo-2b235e0609f14ee53e950497ae139468.bin",
+           //"2-Save20220306005722-061-gyazo-6351a712638b2934cdb6eee7d2c78966.bin",
+           "2-Save20220306005722-062-gyazo-84792baa4e5d4ea30ada9746c10840be.bin",
        }) {
     cout << name << endl;
     auto temp = File::CreateTempDir(fs::temp_directory_path());
@@ -842,8 +833,8 @@ static void Box360Chunk() {
     bool first = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        if (rx != -1 || rz != 0) {
-          //continue;
+        if (rx != 0 || rz != 0) {
+          continue;
         }
         auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
         CHECK(fs::exists(region));
@@ -854,8 +845,8 @@ static void Box360Chunk() {
         };
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
-            if (cx != 22 || cz != 26) {
-              //continue;
+            if (cz != 13 || cx < 7 || 8 < cx) {
+              continue;
             }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
             {
@@ -915,7 +906,7 @@ static void Box360Chunk() {
                     int by = section * 16 + gy * 4;
                     int bz = (rz * 32 + cz) * 16 + gz * 4;
 
-                    if (bx == 384 && by == 48 && bz == 384) {
+                    if (section == 4 && gx == 0 && gy == 0 && gz == 0) {
                       int a = 0;
                     }
 
@@ -964,20 +955,20 @@ static void Box360Chunk() {
                     } else if (format == 0x2) { // 1 bit
                       // OK
                       CHECK(gridPosition + 12 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, grid, false));
+                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x3) { // 1 bit + waterLayer
                       CHECK(gridPosition + 20 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, grid, true));
+                      CHECK(Box360ParseGridFormatGeneric<1>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x4) { // 2 bit
                       // OK
                       CHECK(gridPosition + 24 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, grid, false));
+                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x5) { // 2 bit + waterLayer
                       CHECK(gridPosition + 40 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, grid, true));
+                      CHECK(Box360ParseGridFormatGeneric<2>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x6) { // 3 bit
                       CHECK(gridPosition + 40 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, grid, false));
+                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x7) { // 3 bit + waterLayer
                       /*
                       00 00 70 00 C0 02 80 00 C0 82 FF FF FF FF FF FF
@@ -991,10 +982,10 @@ static void Box360Chunk() {
                       00 00 00 00 00 00 00 00
                       */
                       CHECK(gridPosition + 64 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, grid, true));
+                      CHECK(Box360ParseGridFormatGeneric<3>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x8) { // 4 bit
                       CHECK(gridPosition + 64 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid, false));
+                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid));
                     } else if (format == 0x9) { // 4bit + waterLayer
                       /*
                       00 00 70 00 C0 02 80 00 C0 82 00 80 90 80 90 00 20 10 20 90 81 00 91 00 B0 02 FF FF FF FF FF FF
@@ -1037,19 +1028,7 @@ static void Box360Chunk() {
                       00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
                       */
                       CHECK(gridPosition + 96 < buffer.size());
-                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid, true));
-                    } else if (format == 0xe && false) {
-
-                      /*
-                      2^n * 2 + n * 16 = 128
-                      
-                      2-Save20220306005722-060-gyazo-2b235e0609f14ee53e950497ae139468.bin
-                      unknown format: 0xe; chunk=[26, 25] ; gridPosition=0xa5c; nextGridPosition=0xadc; sectionHead=0x74c; grid=[1, 3, 2]; gridIndex=27; block = [ 420, 28, 408 ] - [ 423, 31, 411 ]
-                      unknown format: 0xe; chunk=[26, 25] ; gridPosition=0xd48; nextGridPosition=0xdc8; sectionHead=0x74c; grid=[2, 3, 2]; gridIndex=43; block = [ 424, 28, 408 ] - [ 427, 31, 411 ]
-                      unknown format: 0xe; chunk=[26, 25] ; gridPosition=0x2bb4; nextGridPosition=0x2c34; sectionHead=0x134c; grid=[2, 0, 1]; gridIndex=36; block = [ 424, 32, 404 ] - [ 427, 35, 407 ]
-                      90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 23 90 24 90 25 90 26 90 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 90 00 2A 90 2B 90 2C 90 2D 90
-                      */
-
+                      CHECK(Box360ParseGridFormatGeneric<4>(buffer.data() + gridPosition, grid));
                     } else {
                       uint8_t nextV1 = gridJumpTable[gridIndex * 2 + 2];
                       uint8_t nextV2 = gridJumpTable[gridIndex * 2 + 3];
