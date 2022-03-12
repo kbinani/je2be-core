@@ -618,7 +618,13 @@ struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
   std::shared_ptr<mcfile::je::Block const> toBlock() const {
     auto p = unsafeToBlock();
     if (p) {
-      return p;
+      if (waterlogged()) {
+        std::map<std::string, std::string> props(p->fProperties);
+        props["waterlogged"] = "true";
+        return std::make_shared<mcfile::je::Block const>(p->fName, props);
+      } else {
+        return p;
+      }
     } else {
       return std::make_shared<mcfile::je::Block const>("minecraft:air");
     }
@@ -678,7 +684,7 @@ struct BlockData : std::tuple<uint8_t, uint8_t, bool> {
       break;
     }
     if (name.empty()) {
-      return nullptr;
+      return mcfile::je::Flatten::DoFlatten(id, data & 0xf);
     } else {
       return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
     }
