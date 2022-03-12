@@ -755,14 +755,6 @@ static bool Box360ParseGridFormatGeneric(uint8_t const *buffer, BlockData grid[6
   return true;
 }
 
-static bool Box360ParseGridFormatE(uint8_t const *buffer, std::vector<std::shared_ptr<mcfile::je::Block const>> &palette, std::vector<uint16_t> &index) {
-  /*
-  D0 00 90 00 90 00 90 00 D0 00 D0 00 90 00 90 00 D0 00 D0 00 90 00 90 00 D0 00 10 00 D0 00 2B 90 E0 90 90 00 90 00 90 00 D0 00 90 00 90 00 90 00 10 00 D0 00 E0 90 90 00 10 00 10 00 D0 00 E0 90 E0 90 90 00 90 00 90 00 90 00 90 00 90 00 90 00 D0 00 90 00 90 00 90 00 10 00 D0 00 90 00 90 00 90 00 90 00 90 00 90 00 29 90 2A 90 2B 90 2C 90 21 90 22 90 23 90 24 90 D0 00 E0 90 90 00 90 00
-*/
-  // TODO:
-  return false;
-}
-
 static void Box360Chunk() {
   using namespace je2be::box360;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
@@ -851,7 +843,7 @@ static void Box360Chunk() {
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         if (rx != -1 || rz != 0) {
-          continue;
+          //continue;
         }
         auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
         CHECK(fs::exists(region));
@@ -863,7 +855,7 @@ static void Box360Chunk() {
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
             if (cx != 22 || cz != 26) {
-              continue;
+              //continue;
             }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
             {
@@ -880,31 +872,6 @@ static void Box360Chunk() {
             Savegame::DecodeDecompressedChunk(buffer);
 
 #if 0
-            string data;
-            data.assign((char const *)buffer.data(), buffer.size());
-            vector<uint8_t>().swap(buffer);
-            size_t offset = 0;
-
-            while (offset < data.size()) {
-              auto found = data.find(string("\x0a\x00\x00", 3), offset);
-              CHECK(found != string::npos);
-              auto sub = data.substr(found);
-              auto bs = make_shared<mcfile::stream::ByteStream>(sub);
-              auto tag = CompoundTag::Read(bs, endian::big);
-              if (!tag || bs->pos() != sub.size()) {
-                offset = found + 3;
-                continue;
-              }
-              buffer.assign(data.begin(), data.begin() + found);
-              break;
-            }
-            if (buffer.empty()) {
-              cerr << "cannot find compound tag: region=[" << rx << ", " << rz << "]; chunk=[" << cx << ", " << cz << "]" << endl;
-              continue;
-            }
-#endif
-
-#if 1
             if (first) {
               CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
               first = false;
@@ -1164,7 +1131,7 @@ static void Box360Chunk() {
             auto tag = CompoundTag::Read(nbt, endian::big);
             CHECK(tag);
 
-            auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+            auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(rx * 32 + cx, rz * 32 + cz);
             auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
             CHECK(chunk->write(*stream));
           }
