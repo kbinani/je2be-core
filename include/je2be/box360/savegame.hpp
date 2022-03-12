@@ -6,15 +6,6 @@ class Savegame {
   Savegame() = delete;
 
 public:
-  // Extract region files, level.dat etc. from "Save{datetime}.bin"
-  static bool Extract(std::filesystem::path const &saveBinFile, std::filesystem::path const &outputDirectory) {
-    try {
-      return UnsafeExtract(saveBinFile, outputDirectory);
-    } catch (...) {
-      return false;
-    }
-  }
-
   static bool DecompressSavegame(std::filesystem::path const &input, std::vector<uint8_t> &output) {
     using namespace std;
     vector<uint8_t> buffer;
@@ -123,113 +114,6 @@ public:
     return stream.read(buffer.data(), size);
   }
 
-  static bool RecompressRegionFile(std::filesystem::path const &mcr) {
-    using namespace std;
-    namespace fs = std::filesystem;
-
-    auto parentDir = mcr.parent_path();
-    auto mca = fs::path(mcr).replace_extension(".mca");
-    vector<uint32_t> index(1024, 0);
-    auto s = make_shared<mcfile::stream::FileInputStream>(mcr);
-
-    auto o = make_shared<mcfile::stream::FileOutputStream>(mca);
-
-    auto filename = mcr.filename().string();
-    int rx;
-    int rz;
-    if (sscanf(filename.c_str(), "r.%d.%d.mcr", &rx, &rz) != 2) {
-      return false;
-    }
-
-    defer {
-      Fs::Delete(mcr);
-    };
-
-    int writtenSectors = 2;
-
-    int i = 0;
-    for (int z = 0; z < 32; z++) {
-      for (int x = 0; x < 32; x++, i++) {
-        int cx = rx * 32 + x;
-        int cz = rz * 32 + z;
-
-        vector<uint8_t> buffer;
-        if (!ExtractRawChunkFromRegionFile(*s, x, z, buffer)) {
-          return false;
-        }
-        if (buffer.empty()) {
-          continue;
-        }
-        {
-          auto rawFile = parentDir / ("c." + to_string(cx) + "." + to_string(cz) + "-0-raw");
-          auto raw = make_shared<mcfile::stream::FileOutputStream>(rawFile);
-          if (!raw->write(buffer.data(), buffer.size())) {
-            return false;
-          }
-        }
-        if (!DecompressRawChunk(buffer)) {
-          return false;
-        }
-        {
-          auto chunkFile = parentDir / ("c." + to_string(cx) + "." + to_string(cz) + "-1-decompressed");
-          auto chunk = make_shared<mcfile::stream::FileOutputStream>(chunkFile);
-          if (!chunk->write(buffer.data(), buffer.size())) {
-            return false;
-          }
-          // OK. the "*-1-decompressed" file is same as quickbms
-        }
-        DecodeDecompressedChunk(buffer);
-        {
-          auto decodedFile = parentDir / ("c." + to_string(cx) + "." + to_string(cz) + "-2-decoded");
-          auto decoded = make_shared<mcfile::stream::FileOutputStream>(decodedFile);
-          if (!decoded->write(buffer.data(), buffer.size())) {
-            return false;
-          }
-        }
-      }
-    }
-
-    s.reset();
-
-    if (!o->seek(0)) {
-      return false;
-    }
-    for (int i = 0; i < 1024; i++) {
-      uint32_t idx = mcfile::U32BEFromNative(index[i]);
-      if (!o->write(&idx, sizeof(idx))) {
-        return false;
-      }
-    }
-    o.reset();
-
-    return true;
-  }
-
-  static bool RecompressRegionFiles(std::filesystem::path const &directory) {
-    using namespace std;
-    namespace fs = std::filesystem;
-
-    error_code ec;
-    auto itr = fs::recursive_directory_iterator(directory, ec);
-    if (ec) {
-      return false;
-    }
-    for (auto const &entry : itr) {
-      auto p = entry.path();
-      if (!fs::is_regular_file(p, ec)) {
-        continue;
-      }
-      auto name = p.filename().string();
-      if (!name.ends_with(".mcr")) {
-        continue;
-      }
-      if (!RecompressRegionFile(p)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   static bool ExtractFilesFromDecompressedSavegame(std::vector<uint8_t> const &savegame, std::filesystem::path const &outputDirectory) {
     if (savegame.size() < 8) {
       return false;
@@ -243,27 +127,6 @@ public:
       }
     }
     return true;
-  }
-
-  static bool UnsafeExtract(std::filesystem::path const &saveBinFile, std::filesystem::path const &outputDirectory) {
-    using namespace std;
-    namespace fs = std::filesystem;
-
-    fs::create_directories(outputDirectory);
-    auto savegame = outputDirectory / "savegame.dat";
-    if (!ExtractSavagameFromSaveBin(saveBinFile, savegame)) {
-      return false;
-    }
-    vector<uint8_t> decompressed;
-    if (!DecompressSavegame(savegame, decompressed)) {
-      return false;
-    }
-
-    if (!ExtractFilesFromDecompressedSavegame(decompressed, outputDirectory)) {
-      return false;
-    }
-
-    return RecompressRegionFiles(outputDirectory);
   }
 
   static constexpr uint32_t kIndexBytesPerFile = 144;
