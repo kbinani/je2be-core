@@ -850,8 +850,8 @@ static void Box360Chunk() {
     bool first = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        if (rx != 0 || rz != 0) {
-          //continue;
+        if (rx != -1 || rz != 0) {
+          continue;
         }
         auto region = *temp / "region" / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
         CHECK(fs::exists(region));
@@ -862,8 +862,8 @@ static void Box360Chunk() {
         };
         for (int cz = 0; cz < 32; cz++) {
           for (int cx = 0; cx < 32; cx++) {
-            if (cx != 26 || cz != 25) {
-              //continue;
+            if (cx != 22 || cz != 26) {
+              continue;
             }
             auto chunk = mcfile::je::WritableChunk::MakeEmpty(rx * 32 + cx, 0, rz * 32 + cz);
             {
@@ -879,6 +879,7 @@ static void Box360Chunk() {
             string basename = fs::path(name).replace_extension().string();
             Savegame::DecodeDecompressedChunk(buffer);
 
+#if 0
             string data;
             data.assign((char const *)buffer.data(), buffer.size());
             vector<uint8_t>().swap(buffer);
@@ -901,11 +902,12 @@ static void Box360Chunk() {
               cerr << "cannot find compound tag: region=[" << rx << ", " << rz << "]; chunk=[" << cx << ", " << cz << "]" << endl;
               continue;
             }
+#endif
 
-#if 0
+#if 1
             if (first) {
-            CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
-                first = false;
+              CHECK(make_shared<mcfile::stream::FileOutputStream>(dir / (basename + "-c." + to_string(cx) + "." + to_string(cz) + ".prefix.bin"))->write(buffer.data(), buffer.size()));
+              first = false;
             }
 #endif
 
@@ -1127,15 +1129,17 @@ static void Box360Chunk() {
             // --
             // Total: 10240 bytes / section
 
-            int heightMapStartPos = buffer.size() - 256 - 2 - 256;
+            int pos = maxSectionAddress + 0x4c;
+            for (int i = 0; i < 4; i++) {
+              uint32_t count = mcfile::U32FromBE(*(uint32_t *)(buffer.data() + pos));
+              pos += 4 + 128 * (count + 1);
+            }
+
+            int heightMapStartPos = pos;
             vector<uint8_t> heightMap;
             copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[x + z * 16] == 0, it means height = 256 at (x, z).
 
             uint16_t unknownMarkerA = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + buffer.size() - 256 - 2)); // 0x07fe
-            CHECK(unknownMarkerA == 0x07fe);
-            if (unknownMarkerA != 0x07fe) {
-              continue;
-            }
 
             vector<mcfile::biomes::BiomeId> biomes;
             for (int i = 0; i < 256; i++) {
@@ -1153,6 +1157,12 @@ static void Box360Chunk() {
                 }
               }
             }
+
+            string nbt;
+            copy(buffer.begin() + heightMapStartPos + 256 + 2 + 256, buffer.end(), back_inserter(nbt));
+            CHECK(nbt.starts_with(string("\x0a\x00\x00", 3)));
+            auto tag = CompoundTag::Read(nbt, endian::big);
+            CHECK(tag);
 
             auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
             auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
