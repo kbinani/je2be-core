@@ -60,9 +60,6 @@ public:
         for (int gz = 0; gz < 4; gz++) {
           for (int gy = 0; gy < 4; gy++) {
             int gridIndex = gx * 16 + gz * 4 + gy;
-            int bx = cx * 16 + gx * 4;
-            int by = section * 16 + gy * 4;
-            int bz = cz * 16 + gz * 4;
 
             uint8_t v1 = gridJumpTable[gridIndex * 2];
             uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
@@ -78,7 +75,7 @@ public:
             uint16_t gridPosition = 0x4c + address + 0x80 + offset;
 
             if (format == 0) {
-              Grid::ParseFormat0(v1, v2, grid, bx, by, bz);
+              Grid::ParseFormat0(v1, v2, grid);
             } else if (format == 0xf || format == 0xe) {
               if (gridPosition + 128 >= buffer.size()) {
                 return false;

@@ -27,7 +27,7 @@ public:
     }
   }
 
-  static void ParseFormat0(uint8_t v1, uint8_t v2, BlockData grid[64], int bx, int by, int bz) {
+  static void ParseFormat0(uint8_t v1, uint8_t v2, BlockData grid[64]) {
     auto block = BlockDataFromBytes(v1, v2);
     std::fill_n(grid, 64, block);
   }
