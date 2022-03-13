@@ -197,6 +197,30 @@ public:
     if (!tag) {
       return false;
     }
+    if (auto te = tag->listTag("TileEntities"); te) {
+      for (auto &item : *te) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(item);
+        if (!c) {
+          continue;
+        }
+        auto pos = props::GetPos3i<'x', 'y', 'z'>(*c);
+        if (!pos) {
+          continue;
+        }
+        auto block = chunk->blockAt(*pos);
+        if (!block) {
+          continue;
+        }
+        if (auto converted = TileEntity::Convert(*c, *block); converted) {
+          if (converted->fBlock) {
+            chunk->setBlockAt(*pos, converted->fBlock);
+          }
+          if (converted->fTileEntity) {
+            chunk->fTileEntities[*pos] = converted->fTileEntity;
+          }
+        }
+      }
+    }
     // TODO: tag->listTag("Entities") etc.
 
     result.swap(chunk);

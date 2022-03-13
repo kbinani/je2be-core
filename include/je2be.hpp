@@ -72,14 +72,6 @@
 #include <je2be/static-reversible-map.hpp>
 #include <je2be/dimension-ext.hpp>
 
-#include <je2be/box360/lxz-decoder.hpp>
-#include <je2be/box360/stfs.hpp>
-#include <je2be/box360/savegame.hpp>
-#include <je2be/box360/block-data.hpp>
-#include <je2be/box360/grid.hpp>
-#include <je2be/box360/chunk.hpp>
-#include <je2be/box360/region.hpp>
-
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
 #include <je2be/enums/level-directory-structure.hpp>
@@ -117,6 +109,15 @@
 #include <je2be/tile-entity/loot-table.hpp>
 
 #include <je2be/structure/structure-piece.hpp>
+
+#include <je2be/box360/lxz-decoder.hpp>
+#include <je2be/box360/stfs.hpp>
+#include <je2be/box360/savegame.hpp>
+#include <je2be/box360/block-data.hpp>
+#include <je2be/box360/grid.hpp>
+#include <je2be/box360/tile-entity.hpp>
+#include <je2be/box360/chunk.hpp>
+#include <je2be/box360/region.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

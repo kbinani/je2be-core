@@ -24,6 +24,8 @@ set(je2be_files
   include/je2be/box360/region.hpp
   include/je2be/box360/savegame.hpp
   include/je2be/box360/stfs.hpp
+  include/je2be/box360/tile-entity.hpp
+  include/je2be/box360/world.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
   include/je2be/color/sign-color.hpp
