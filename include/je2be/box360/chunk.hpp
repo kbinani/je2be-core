@@ -148,10 +148,21 @@ public:
                   int idx = lx * 16 + lz * 4 + ly;
                   BlockData bd = grid[idx];
                   // TODO: reduce the number of calling toBlock
-                  auto block = bd.toBlock();
                   int bx = cx * 16 + gx * 4 + lx;
                   int by = section * 16 + gy * 4 + ly;
                   int bz = cz * 16 + gz * 4 + lz;
+                  shared_ptr<mcfile::je::Block const> block;
+                  if (bd.extendedBlockId() == 175 && bd.data() == 10) {
+                    // upper half of tall flowers
+                    if (auto lower = chunk->blockAt(bx, by - 1, bz); lower) {
+                      auto props = lower->fProperties;
+                      props["half"] = "upper";
+                      block = make_shared<mcfile::je::Block const>(lower->fName, props);
+                    }
+                  }
+                  if (!block) {
+                    block = bd.toBlock();
+                  }
                   chunk->setBlockAt(bx, by, bz, block);
                 }
               }
