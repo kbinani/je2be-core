@@ -108,6 +108,34 @@ struct BlockData : std::tuple<uint8_t, uint8_t> {
       name = "spruce_trapdoor";
       mcfile::je::Flatten::Trapdoor(data, props);
       break;
+    case 275:
+      name = "birch_trapdoor";
+      mcfile::je::Flatten::Trapdoor(data, props);
+      break;
+    case 276:
+      name = "jungle_trapdoor";
+      mcfile::je::Flatten::Trapdoor(data, props);
+      break;
+    case 277:
+      name = "acacia_trapdoor";
+      mcfile::je::Flatten::Trapdoor(data, props);
+      break;
+    case 278:
+      name = "dark_oak_trapdoor";
+      mcfile::je::Flatten::Trapdoor(data, props);
+      break;
+    case 291:
+      name = "prismarine_stairs";
+      mcfile::je::Flatten::Stairs(data, props);
+      break;
+    case 292:
+      name = "prismarine_brick_stairs";
+      mcfile::je::Flatten::Stairs(data, props);
+      break;
+    case 293:
+      name = "dark_prismarine_stairs";
+      mcfile::je::Flatten::Stairs(data, props);
+      break;
     case 295:
       name = "stripped_spruce_log";
       StrippedLog(data, props);
@@ -131,6 +159,36 @@ struct BlockData : std::tuple<uint8_t, uint8_t> {
     case 300:
       name = "stripped_oak_log";
       StrippedLog(data, props);
+      break;
+    case 311:
+      switch (data & 0x7) {
+      case 1:
+        name = "prismarine_brick_slab";
+        break;
+      case 2:
+        name = "dark_prismarine_slab";
+        break;
+      case 0:
+      default:
+        name = "prismarine_slab";
+        break;
+      }
+      props["type"] = "double";
+      break;
+    case 312:
+      switch (data & 0x7) {
+      case 1:
+        name = "prismarine_brick_slab";
+        break;
+      case 2:
+        name = "dark_prismarine_slab";
+        break;
+      case 0:
+      default:
+        name = "prismarine_slab";
+        break;
+      }
+      props["type"] = (data & 0x8) == 0x8 ? "bottom" : "top";
       break;
     }
     if (name.empty()) {
