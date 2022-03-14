@@ -92,6 +92,10 @@ struct BlockData : std::tuple<uint8_t, uint8_t> {
     string name;
     map<string, string> props;
     switch (id) {
+    case 256:
+      name = "conduit";
+      props["waterlogged"] = "false";
+      break;
     case 257:
       name = "pumpkin";
       break;
