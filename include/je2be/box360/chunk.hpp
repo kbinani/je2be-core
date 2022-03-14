@@ -6,6 +6,10 @@ class Chunk {
   Chunk() = delete;
 
 public:
+  enum {
+    kTargetDataVersion = 2865,
+  };
+
   static bool Convert(std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
@@ -14,7 +18,7 @@ public:
     int localCx = cx - rx * 32;
     int localCz = cz - rz * 32;
 
-    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz);
+    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
     auto f = make_shared<mcfile::stream::FileInputStream>(region);
 
     vector<uint8_t> buffer;
