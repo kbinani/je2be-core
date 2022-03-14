@@ -10,7 +10,7 @@ public:
     kTargetDataVersion = 2865,
   };
 
-  static bool Convert(std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result) {
+  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
@@ -198,7 +198,7 @@ public:
     vector<mcfile::biomes::BiomeId> biomes;
     for (int i = 0; i < 256; i++) {
       auto raw = buffer[heightMapStartPos + 256 + 2 + i];
-      auto biome = mcfile::be::Biome::FromUint32(raw);
+      auto biome = Biome::FromUint32(dimension, raw);
       biomes.push_back(biome);
     }
     for (int z = 0; z < 16; z++) {

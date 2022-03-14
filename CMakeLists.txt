@@ -17,6 +17,7 @@ endif()
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
+  include/je2be/box360/biome.hpp
   include/je2be/box360/block-data.hpp
   include/je2be/box360/chunk.hpp
   include/je2be/box360/grid.hpp
@@ -25,7 +26,6 @@ set(je2be_files
   include/je2be/box360/savegame.hpp
   include/je2be/box360/stfs.hpp
   include/je2be/box360/tile-entity.hpp
-  include/je2be/box360/world.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
   include/je2be/color/sign-color.hpp

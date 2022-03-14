@@ -6,7 +6,7 @@ class Region {
   Region() = delete;
 
 public:
-  static bool Convert(std::filesystem::path const &mcr, int rx, int rz, std::filesystem::path const &outputMca, std::filesystem::path const &temp) {
+  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &mcr, int rx, int rz, std::filesystem::path const &outputMca, std::filesystem::path const &temp) {
     using namespace std;
     auto regionTempDir = mcfile::File::CreateTempDir(temp);
     if (!regionTempDir) {
@@ -23,7 +23,7 @@ public:
         int cx = rx * 32 + x;
         int cz = rz * 32 + z;
         shared_ptr<mcfile::je::WritableChunk> chunk;
-        if (!Chunk::Convert(mcr, cx, cz, chunk)) {
+        if (!Chunk::Convert(dimension, mcr, cx, cz, chunk)) {
           continue;
         }
         if (!chunk) {
