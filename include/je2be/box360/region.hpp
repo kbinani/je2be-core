@@ -18,17 +18,19 @@ public:
     defer {
       Fs::Delete(*regionTempDir);
     };
-    for (int cz = 0; cz < 32; cz++) {
-      for (int cx = 0; cx < 32; cx++) {
+    for (int z = 0; z < 32; z++) {
+      for (int x = 0; x < 32; x++) {
+        int cx = rx * 32 + x;
+        int cz = rz * 32 + z;
         shared_ptr<mcfile::je::WritableChunk> chunk;
-        if (!Chunk::Convert(mcr, rx * 32 + cx, rz * 32 + cz, chunk)) {
+        if (!Chunk::Convert(mcr, cx, cz, chunk)) {
           continue;
         }
         if (!chunk) {
           continue;
         }
 
-        auto nbtz = *regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(rx * 32 + cx, rz * 32 + cz);
+        auto nbtz = *regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
         auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
         if (!chunk->write(*stream)) {
           stream.reset();
