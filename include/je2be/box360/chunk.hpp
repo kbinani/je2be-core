@@ -47,9 +47,18 @@ public:
       sectionJumpTable.push_back(address);
     }
 
+    vector<uint8_t> maybeNumBlockPaletteEntriesFor16Sections;
+    for (int section = 0; section < 16; section++) {
+      uint8_t numBlockPaletteEntries = buffer[0x3c + section];
+      maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
+    }
+
     for (int section = 0; section < 16; section++) {
       int address = sectionJumpTable[section];
 
+      if (maybeNumBlockPaletteEntriesFor16Sections[section] == 0) {
+        continue;
+      }
       if (address == maxSectionAddress) {
         break;
       }
