@@ -197,7 +197,7 @@ public:
 
     vector<mcfile::biomes::BiomeId> biomes;
     for (int i = 0; i < 256; i++) {
-      auto raw = buffer[buffer.size() - 256 - 1];
+      auto raw = buffer[heightMapStartPos + 256 + 2 + i];
       auto biome = mcfile::biomes::FromInt(raw);
       biomes.push_back(biome);
     }
