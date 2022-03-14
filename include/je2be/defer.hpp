@@ -4,12 +4,14 @@ namespace je2be {
 
 class defer_t {
 public:
-  template <class T, class = typename std::enable_if<std::is_void<decltype((std::declval<T>())())>::value>::type>
-  defer_t(T const &f)
+  defer_t(std::function<void(void)> f)
       : f(f) {}
 
   ~defer_t() {
-    f();
+    try {
+      f();
+    } catch (...) {
+    }
   }
 
 private:
