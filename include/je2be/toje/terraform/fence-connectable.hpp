@@ -6,12 +6,12 @@ class FenceConnectable {
   FenceConnectable() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     DoFence(out, cache, accessor);
     DoGlassPaneOrIronBars(out, cache, accessor);
   }
 
-  static void DoFence(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void DoFence(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
     if (!accessor.fHasFence) {
       return;
@@ -55,41 +55,40 @@ public:
     return b ? "true" : "false";
   }
 
-  static bool IsFenceConnectable(mcfile::je::Block const &center, mcfile::be::Block const &target, Pos2i const &targetDirection) {
-    auto targetJ = BlockData::From(target);
-    if (!targetJ) {
-      return false;
-    }
+  static bool IsFenceConnectable(mcfile::je::Block const &center, mcfile::je::Block const &targetJ, Pos2i const &targetDirection) {
     if (center.fId == mcfile::blocks::minecraft::nether_brick_fence) {
-      if (target.fName.ends_with("fence")) {
-        return target.fName == "minecraft:nether_brick_fence";
+      if (targetJ.fName.ends_with("fence")) {
+        return targetJ.fId == mcfile::blocks::minecraft::nether_brick_fence;
       }
     }
-    if (IsFenceAlwaysConnectable(targetJ->fId)) {
+    if (IsFenceAlwaysConnectable(targetJ.fId)) {
       return true;
     }
-    return IsConnectableByBlockNameAndStates(target, targetDirection);
+    return IsConnectableByBlockNameAndStates(targetJ, targetDirection);
   }
 
-  static bool IsConnectableByBlockNameAndStates(mcfile::be::Block const &target, Pos2i const &targetDirection) {
+  static bool IsConnectableByBlockNameAndStates(mcfile::je::Block const &target, Pos2i const &targetDirection) {
     if (target.fName.ends_with("stairs")) {
-      auto weridoDirection = target.fStates->int32("weirdo_direction", 0);
-      Pos2i vec = ShapeOfStairs::VecFromWeirdoDirection(weridoDirection);
-      if (vec.fX == -targetDirection.fX && vec.fZ == -targetDirection.fZ) {
-        return true;
+      auto data = mcfile::blocks::BlockData::Make(target);
+      if (auto stairs = std::dynamic_pointer_cast<mcfile::blocks::Stairs>(data); stairs) {
+        auto weridoDirection = stairs->facing();
+        Pos2i vec = ShapeOfStairs::VecFromWeirdoDirection(weridoDirection);
+        if (vec.fX == -targetDirection.fX && vec.fZ == -targetDirection.fZ) {
+          return true;
+        }
       }
     } else if (target.fName.ends_with("slab") && target.fName.find("double") != std::string::npos) {
       return true;
     } else if (target.fName.ends_with("fence_gate")) {
-      auto direction = target.fStates->int32("direction", 0);
-      Facing4 f4 = Facing4FromBedrockDirection(direction);
+      auto facing = target.property("facing");
+      Facing4 f4 = Facing4FromJavaName(facing);
       Pos2i gateDirection = Pos2iFromFacing4(f4);
       return IsOrthogonal(gateDirection, targetDirection);
     }
     return false;
   }
 
-  static void DoGlassPaneOrIronBars(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void DoGlassPaneOrIronBars(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
     if (!accessor.fHasGlassPaneOrIronBars) {
       return;
@@ -129,12 +128,8 @@ public:
     }
   }
 
-  static bool IsGlassPaneOrIronBarsConnectable(mcfile::be::Block const &target, Pos2i const &targetDirection) {
-    auto targetJ = BlockData::From(target);
-    if (!targetJ) {
-      return false;
-    }
-    if (IsGlassPaneOrIronBarsAlwaysConnectable(targetJ->fId)) {
+  static bool IsGlassPaneOrIronBarsConnectable(mcfile::je::Block const &target, Pos2i const &targetDirection) {
+    if (IsGlassPaneOrIronBarsAlwaysConnectable(target.fId)) {
       return true;
     }
     return IsConnectableByBlockNameAndStates(target, targetDirection);

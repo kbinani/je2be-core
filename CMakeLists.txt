@@ -124,6 +124,7 @@ set(je2be_files
   include/je2be/toje/block-entity-convert-result.hpp
   include/je2be/toje/block-entity.hpp
   include/je2be/toje/block-property-accessor.hpp
+  include/je2be/toje/chunk-cache-wrapper.hpp
   include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/chunk.hpp
   include/je2be/toje/constants.hpp
@@ -181,10 +182,16 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/biomes/from-name.hpp
   deps/libminecraft-file/include/mcfile/biomes/minecraft.hpp
   deps/libminecraft-file/include/mcfile/biomes/name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/block-data.hpp
   deps/libminecraft-file/include/mcfile/blocks/block-id.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/bisected.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/directional.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/stairs.hpp
   deps/libminecraft-file/include/mcfile/blocks/from-name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/make-block-data.hpp
   deps/libminecraft-file/include/mcfile/blocks/minecraft.hpp
   deps/libminecraft-file/include/mcfile/blocks/name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/stairs.hpp
   deps/libminecraft-file/include/mcfile/compression.hpp
   deps/libminecraft-file/include/mcfile/coordinate.hpp
   deps/libminecraft-file/include/mcfile/dimension.hpp

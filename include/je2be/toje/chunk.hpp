@@ -239,10 +239,11 @@ public:
 
   static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, ChunkCache<3, 3> &cache) {
     BlockPropertyAccessor accessor(b);
+    ChunkCacheWrapper blockAccessor(cache);
 
     Piston::Do(j, cache, accessor);
 
-    ShapeOfStairs::Do(j, cache, accessor);
+    ShapeOfStairs::Do(j, blockAccessor, accessor);
     Kelp::Do(j, cache, accessor);
     TwistingVines::Do(j, cache, accessor);
     WeepingVines::Do(j, cache, accessor);
@@ -250,7 +251,7 @@ public:
     CaveVines::Do(j, cache, accessor);
     Snowy::Do(j, cache, accessor);
     ChorusPlant::Do(j, cache, accessor);
-    FenceConnectable::Do(j, cache, accessor);
+    FenceConnectable::Do(j, blockAccessor, accessor);
     Campfire::Do(j, cache, accessor);
     NoteBlock::Do(j, cache, accessor);
     RedstoneWire::Do(j, cache, accessor);

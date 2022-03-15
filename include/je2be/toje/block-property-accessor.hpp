@@ -30,44 +30,11 @@ private:
 
 public:
   static DataType BlockProperties(mcfile::be::Block const &b) {
-    if (IsStairs(b)) {
-      return STAIRS;
-    } else if (IsKelp(b)) {
-      return KELP;
-    } else if (IsTwistingVines(b)) {
-      return TWISTING_VINES;
-    } else if (IsWeepingVines(b)) {
-      return WEEPING_VINES;
-    } else if (IsPumpkinStem(b)) {
-      return PUMPKIN_STEM;
-    } else if (IsCaveVines(b)) {
-      return CAVE_VINES;
-    } else if (IsSnowy(b)) {
-      return SNOWY;
-    } else if (IsChorusPlant(b)) {
-      return CHORUS_PLANT;
-    } else if (IsFence(b)) {
-      return FENCE;
-    } else if (IsGlassPaneOrIronBars(b)) {
-      return GLASS_PANE_OR_IRON_BARS;
-    } else if (IsCampfire(b)) {
-      return CAMPFIRE;
-    } else if (IsNoteBlock(b)) {
-      return NOTE_BLOCK;
-    } else if (IsRedstoneWire(b)) {
-      return REDSTONE_WIRE;
-    } else if (IsTripwire(b)) {
-      return TRIPWIRE;
-    } else if (IsPiston(b)) {
-      return PISTON;
-    } else if (IsBeacon(b)) {
-      return BEACON;
-    } else if (IsMelonStem(b)) {
-      return MELON_STEM;
-    } else if (IsDoor(b)) {
-      return DOOR;
-    }
-    return 0;
+    return GetBlockProperties(b);
+  }
+
+  static DataType BlockProperties(mcfile::je::Block const &b) {
+    return GetBlockProperties(b);
   }
 
   static bool IsStairs(DataType p) {
@@ -146,20 +113,40 @@ public:
     return b.fName.ends_with("_stairs");
   }
 
+  static bool IsStairs(mcfile::je::Block const &b) {
+    return b.fName.ends_with("_stairs");
+  }
+
   static bool IsKelp(mcfile::be::Block const &b) {
     return b.fName == "minecraft:kelp";
+  }
+
+  static bool IsKelp(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::kelp || b.fId == mcfile::blocks::minecraft::kelp_plant;
   }
 
   static bool IsTwistingVines(mcfile::be::Block const &b) {
     return b.fName == "minecraft:twisting_vines";
   }
 
+  static bool IsTwistingVines(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::twisting_vines || b.fId == mcfile::blocks::minecraft::twisting_vines_plant;
+  }
+
   static bool IsWeepingVines(mcfile::be::Block const &b) {
     return b.fName == "minecraft:weeping_vines";
   }
 
+  static bool IsWeepingVines(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::weeping_vines || b.fId == mcfile::blocks::minecraft::weeping_vines_plant;
+  }
+
   static bool IsPumpkinStem(mcfile::be::Block const &b) {
     return b.fName == "minecraft:pumpkin_stem";
+  }
+
+  static bool IsPumpkinStem(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::pumpkin_stem;
   }
 
   static bool IsCaveVines(mcfile::be::Block const &b) {
@@ -168,10 +155,20 @@ public:
            b.fName == "minecraft:cave_vines_body_with_berries";
   }
 
+  static bool IsCaveVines(mcfile::je::Block const &b) {
+    using namespace mcfile::blocks;
+    return b.fId == minecraft::cave_vines || b.fId == minecraft::cave_vines_plant;
+  }
+
   static bool IsSnowy(mcfile::be::Block const &b) {
     return b.fName == "minecraft:grass" ||
            b.fName == "minecraft:podzol" ||
            b.fName == "minecraft:mycelium";
+  }
+
+  static bool IsSnowy(mcfile::je::Block const &b) {
+    using namespace mcfile::blocks;
+    return b.fId == minecraft::grass || b.fId == minecraft::podzol || b.fId == minecraft::mycelium;
   }
 
   static bool IsChorusPlant(mcfile::be::Block const &b) {
@@ -179,7 +176,16 @@ public:
            b.fName == "minecraft:chorus_flower";
   }
 
+  static bool IsChorusPlant(mcfile::je::Block const &b) {
+    using namespace mcfile::blocks;
+    return b.fId == minecraft::chorus_plant || b.fId == minecraft::chorus_flower;
+  }
+
   static bool IsFence(mcfile::be::Block const &b) {
+    return b.fName.ends_with("fence");
+  }
+
+  static bool IsFence(mcfile::je::Block const &b) {
     return b.fName.ends_with("fence");
   }
 
@@ -188,20 +194,42 @@ public:
            b.fName == "minecraft:iron_bars";
   }
 
+  static bool IsGlassPaneOrIronBars(mcfile::je::Block const &b) {
+    return b.fName.ends_with("glass_pane") ||
+           b.fId == mcfile::blocks::minecraft::iron_bars;
+  }
+
   static bool IsCampfire(mcfile::be::Block const &b) {
     return b.fName.ends_with("campfire");
+  }
+
+  static bool IsCampfire(mcfile::je::Block const &b) {
+    using namespace mcfile::blocks;
+    return b.fId == minecraft::campfire || b.fId == minecraft::soul_campfire;
   }
 
   static bool IsNoteBlock(mcfile::be::Block const &b) {
     return b.fName == "minecraft:noteblock";
   }
 
+  static bool IsNoteBlock(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::note_block;
+  }
+
   static bool IsRedstoneWire(mcfile::be::Block const &b) {
     return b.fName == "minecraft:redstone_wire";
   }
 
+  static bool IsRedstoneWire(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::redstone_wire;
+  }
+
   static bool IsTripwire(mcfile::be::Block const &b) {
     return b.fName == "minecraft:tripWire";
+  }
+
+  static bool IsTripwire(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::tripwire;
   }
 
   static bool IsPiston(mcfile::be::Block const &b) {
@@ -212,15 +240,32 @@ public:
            b.fName == "minecraft:movingBlock";
   }
 
+  static bool IsPiston(mcfile::je::Block const &b) {
+    using namespace mcfile::blocks;
+    return b.fId == minecraft::piston || b.fId == minecraft::piston_head || b.fId == minecraft::sticky_piston;
+  }
+
   static bool IsBeacon(mcfile::be::Block const &b) {
     return b.fName == "minecraft:beacon";
+  }
+
+  static bool IsBeacon(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::beacon;
   }
 
   static bool IsMelonStem(mcfile::be::Block const &b) {
     return b.fName == "minecraft:melon_stem";
   }
 
+  static bool IsMelonStem(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::melon_stem;
+  }
+
   static bool IsDoor(mcfile::be::Block const &b) {
+    return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
+  }
+
+  static bool IsDoor(mcfile::je::Block const &b) {
     return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
   }
 
@@ -290,6 +335,49 @@ public:
 
   int maxBlockY() const {
     return fChunk.maxBlockY();
+  }
+
+private:
+  template <class BlockType>
+  static DataType GetBlockProperties(BlockType const &b) {
+    if (IsStairs(b)) {
+      return STAIRS;
+    } else if (IsKelp(b)) {
+      return KELP;
+    } else if (IsTwistingVines(b)) {
+      return TWISTING_VINES;
+    } else if (IsWeepingVines(b)) {
+      return WEEPING_VINES;
+    } else if (IsPumpkinStem(b)) {
+      return PUMPKIN_STEM;
+    } else if (IsCaveVines(b)) {
+      return CAVE_VINES;
+    } else if (IsSnowy(b)) {
+      return SNOWY;
+    } else if (IsChorusPlant(b)) {
+      return CHORUS_PLANT;
+    } else if (IsFence(b)) {
+      return FENCE;
+    } else if (IsGlassPaneOrIronBars(b)) {
+      return GLASS_PANE_OR_IRON_BARS;
+    } else if (IsCampfire(b)) {
+      return CAMPFIRE;
+    } else if (IsNoteBlock(b)) {
+      return NOTE_BLOCK;
+    } else if (IsRedstoneWire(b)) {
+      return REDSTONE_WIRE;
+    } else if (IsTripwire(b)) {
+      return TRIPWIRE;
+    } else if (IsPiston(b)) {
+      return PISTON;
+    } else if (IsBeacon(b)) {
+      return BEACON;
+    } else if (IsMelonStem(b)) {
+      return MELON_STEM;
+    } else if (IsDoor(b)) {
+      return DOOR;
+    }
+    return 0;
   }
 
 public:
