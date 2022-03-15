@@ -265,6 +265,10 @@ struct BlockData : std::tuple<uint8_t, uint8_t> {
       name = "dark_oak_trapdoor";
       mcfile::je::Flatten::Trapdoor(data, props);
       break;
+    case 279:
+      name = "turtle_egg";
+      props["eggs"] = std::to_string((data & 0x3) + 1);
+      break;
     case 291:
       name = "prismarine_stairs";
       mcfile::je::Flatten::Stairs(data, props);
