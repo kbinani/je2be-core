@@ -110,6 +110,7 @@
 
 #include <je2be/structure/structure-piece.hpp>
 
+#include <je2be/box360/options.hpp>
 #include <je2be/box360/lxz-decoder.hpp>
 #include <je2be/box360/stfs.hpp>
 #include <je2be/box360/savegame.hpp>
@@ -119,6 +120,7 @@
 #include <je2be/box360/biome.hpp>
 #include <je2be/box360/chunk.hpp>
 #include <je2be/box360/region.hpp>
+#include <je2be/box360/world.hpp>
 
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

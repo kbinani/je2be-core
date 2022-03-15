@@ -22,7 +22,7 @@ public:
   }
 
 private:
-  ChunkCache<width, height> & fBase;
+  ChunkCache<width, height> &fBase;
 };
 
-} // namespace je2be
+} // namespace je2be::toje

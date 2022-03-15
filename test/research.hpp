@@ -612,25 +612,9 @@ static void Box360Chunk() {
   vector<uint8_t> buffer;
   CHECK(Savegame::DecompressSavegame(savegame, buffer));
   CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
-  static std::unordered_map<mcfile::Dimension, fs::path> const sPathToRegion = {
-      {mcfile::Dimension::Overworld, fs::path("region")},
-      {mcfile::Dimension::Nether, fs::path("DIM-1") / "region"},
-      {mcfile::Dimension::End, fs::path("DIM1") / "region"},
-  };
+  Options options;
   for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-    auto pathToRegion = sPathToRegion.at(dimension);
-    for (int rz = -1; rz <= 0; rz++) {
-      for (int rx = -1; rx <= 0; rx++) {
-        auto mcr = *temp / pathToRegion / ("r." + to_string(rx) + "." + to_string(rz) + ".mcr");
-        if (!Fs::Exists(mcr)) {
-          continue;
-        }
-
-        CHECK(Fs::CreateDirectories(output / pathToRegion));
-        auto mca = output / pathToRegion / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-        CHECK(Region::Convert(dimension, mcr, rx, rz, mca, *temp));
-      }
-    }
+    CHECK(World::Convert(*temp, output, dimension, options));
   }
 }
 

@@ -59,9 +59,9 @@ public:
 
           Pos2i left = Pos2i(x, z) + Left90(vec);
           if (auto leftBlock = StairsBlockData(dataAccessor, left.fX, y, left.fZ); leftBlock) {
-              if (upsideDown == leftBlock->half()) {
+            if (upsideDown == leftBlock->half()) {
               leftWeirdoDirection = leftBlock->facing();
-              }
+            }
           }
 
           Pos2i right = Pos2i(x, z) + Right90(vec);
