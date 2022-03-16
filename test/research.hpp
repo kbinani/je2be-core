@@ -618,6 +618,86 @@ static void Box360Chunk() {
   }
 }
 
+static void WallConnectable() {
+  set<string> uniq;
+  for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+    switch (id) {
+    case mcfile::blocks::minecraft::reinforced_deepslate:
+      continue;
+    }
+    string name = mcfile::blocks::Name(id);
+    if (name.ends_with("_stairs")) {
+      continue;
+    }
+    if (name.ends_with("piston")) {
+      continue;
+    }
+    if (name.ends_with("door")) {
+      continue;
+    }
+    if (name.find("sculk") != string::npos && id != mcfile::blocks::minecraft::sculk_sensor) {
+      continue;
+    }
+    uniq.insert(name);
+  }
+  vector<string> names(uniq.begin(), uniq.end());
+
+  int const x0 = -42;
+  int const z0 = 165;
+  int const y = 4;
+  int x = x0;
+  int x1 = x0;
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/labo");
+  {
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
+    for (string const &name : names) {
+      os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
+      x++;
+    }
+    x1 = x;
+    os << "fill " << x0 << " " << y << " " << (z0 + 1) << " " << x1 << " " << y << " " << (z0 + 1) << " cobblestone_wall" << endl;
+  }
+
+  // login the game, then execute /function je2be:place_blocks
+
+  mcfile::je::World w(root);
+  shared_ptr<mcfile::je::Chunk> chunk;
+  int cz = mcfile::Coordinate::ChunkFromBlock(z0);
+  set<string> wallAttachable;
+  for (int x = x0; x < x1; x++) {
+    int cx = mcfile::Coordinate::ChunkFromBlock(x);
+    if (!chunk || (chunk && chunk->fChunkX != cx)) {
+      chunk = w.chunkAt(cx, cz);
+    }
+    auto center = chunk->blockAt(x, y, z0);
+    auto expected = names[x - x0];
+    if (expected != center->fName) {
+      cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
+    } else {
+      auto wall = chunk->blockAt(x, y, z0 + 1);
+      auto wallAttached = wall->property("north") != "none";
+      if (wallAttached) {
+        wallAttachable.insert(expected);
+      }
+    }
+  }
+
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
+  code << "static bool IsWallAlwaysAttachable(mcfile::blocks::BlockId id) {" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto n : wallAttachable) {
+    code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
+  }
+  code << "      return true;" << endl;
+  code << "    default:" << endl;
+  code << "      break;" << endl;
+  code << "  }" << endl;
+  code << "  //TODO:" << endl;
+  code << "  return false;" << endl;
+  code << "}" << endl;
+  code << endl;
+}
 #if 1
 TEST_CASE("research") {
   Box360Chunk();

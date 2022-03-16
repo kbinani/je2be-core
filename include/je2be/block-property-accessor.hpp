@@ -26,6 +26,7 @@ private:
     BEACON = 17,
     MELON_STEM = 18,
     DOOR = 19,
+    WALL = 20,
   };
 
 public:
@@ -107,6 +108,10 @@ public:
 
   static bool IsDoor(DataType p) {
     return p == DOOR;
+  }
+
+  static bool IsWall(DataType p) {
+    return p == WALL;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -269,6 +274,14 @@ public:
     return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
   }
 
+  static bool IsWall(mcfile::be::Block const &b) {
+    return b.fName.ends_with("wall");
+  }
+
+  static bool IsWall(mcfile::je::Block const &b) {
+    return b.fName.ends_with("wall");
+  }
+
   BlockPropertyAccessor(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
   virtual ~BlockPropertyAccessor() {}
   virtual DataType property(int bx, int by, int bz) const = 0;
@@ -294,6 +307,7 @@ public:
     fHasBeacon |= IsBeacon(p);
     fHasMelonStem |= IsMelonStem(p);
     fHasDoor |= IsDoor(p);
+    fHasWall |= IsWall(p);
   }
 
 private:
@@ -335,6 +349,8 @@ private:
       return MELON_STEM;
     } else if (IsDoor(b)) {
       return DOOR;
+    } else if (IsWall(b)) {
+      return WALL;
     }
     return 0;
   }
@@ -358,6 +374,7 @@ public:
   bool fHasBeacon = false;
   bool fHasMelonStem = false;
   bool fHasDoor = false;
+  bool fHasWall = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;
@@ -463,7 +480,11 @@ public:
     if (!index) {
       return 0;
     }
-    return fSections[sectionIndex][*index];
+    if (0 <= *index && *index < fSections[sectionIndex].size()) {
+      return fSections[sectionIndex][*index];
+    } else {
+      return 0;
+    }
   }
 
   int minBlockY() const override {

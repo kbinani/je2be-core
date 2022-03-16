@@ -104,10 +104,10 @@ public:
     using namespace std;
     int cx0 = -27;
     int cz0 = -27;
-    auto cache = make_shared<ChunkCache<3, 3>>(cx0, cz0, directory);
+    auto cache = make_shared<ChunkCache<3, 3>>(cx0 - 1, cz0 - 1, directory);
     for (int cz = cz0; cz < 27; cz++) {
       for (int cx = cx0; cx < 27; cx++) {
-        cache.reset(cache->makeRelocated(cx, cz));
+        cache.reset(cache->makeRelocated(cx - 1, cz - 1));
         if (!DoChunk(cx, cz, directory, *cache)) {
           return false;
         }
@@ -137,6 +137,7 @@ public:
     FenceConnectable::Do(*chunk, cache, accessor);
     RedstoneWire::Do(*chunk, cache, accessor);
     ChorusPlant::Do(*chunk, cache, accessor);
+    WallConnectable::Do(*chunk, cache, accessor);
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {

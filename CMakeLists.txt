@@ -85,6 +85,7 @@ set(je2be_files
   include/je2be/terraform/fence-connectable.hpp
   include/je2be/terraform/redstone-wire.hpp
   include/je2be/terraform/shape-of-stairs.hpp
+  include/je2be/terraform/wall-connectable.hpp
   include/je2be/tile-entity/loot-table.hpp
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
