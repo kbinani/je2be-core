@@ -123,7 +123,7 @@ public:
       return true;
     }
 
-    BlockPropertyAccessorJ propertyAccessor(*chunk);
+    BlockPropertyAccessorJava propertyAccessor(*chunk);
     // TODO:
     return true;
   }

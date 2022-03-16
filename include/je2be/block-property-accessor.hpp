@@ -366,9 +366,9 @@ protected:
   int const fChunkZ;
 };
 
-class BlockPropertyAccessorB : public BlockPropertyAccessor {
+class BlockPropertyAccessorBedrock : public BlockPropertyAccessor {
 public:
-  explicit BlockPropertyAccessorB(mcfile::be::Chunk const &chunk) : BlockPropertyAccessor(chunk.fChunkX, chunk.fChunkY, chunk.fChunkZ), fChunk(chunk) {
+  explicit BlockPropertyAccessorBedrock(mcfile::be::Chunk const &chunk) : BlockPropertyAccessor(chunk.fChunkX, chunk.fChunkY, chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(chunk.fSubChunks.size());
     for (int i = 0; i < chunk.fSubChunks.size(); i++) {
@@ -423,9 +423,9 @@ private:
   mcfile::be::Chunk const &fChunk;
 };
 
-class BlockPropertyAccessorJ : public BlockPropertyAccessor {
+class BlockPropertyAccessorJava : public BlockPropertyAccessor {
 public:
-  explicit BlockPropertyAccessorJ(mcfile::je::Chunk const &chunk) : BlockPropertyAccessor(chunk.fChunkX, chunk.fChunkY, chunk.fChunkZ), fChunk(chunk) {
+  explicit BlockPropertyAccessorJava(mcfile::je::Chunk const &chunk) : BlockPropertyAccessor(chunk.fChunkX, chunk.fChunkY, chunk.fChunkZ), fChunk(chunk) {
     using namespace std;
     fSections.resize(chunk.fSections.size());
     for (int i = 0; i < chunk.fSections.size(); i++) {
