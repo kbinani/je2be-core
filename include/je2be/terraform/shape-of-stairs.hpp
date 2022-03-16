@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be {
 
 class ShapeOfStairs {
   ShapeOfStairs() = delete;
@@ -131,4 +131,4 @@ public:
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be

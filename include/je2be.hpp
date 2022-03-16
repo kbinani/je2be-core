@@ -74,6 +74,8 @@
 #include <je2be/block-accessor.hpp>
 #include <je2be/block-property-accessor.hpp>
 
+#include <je2be/terraform/shape-of-stairs.hpp>
+
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
 #include <je2be/enums/level-directory-structure.hpp>

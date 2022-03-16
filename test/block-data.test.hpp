@@ -15,9 +15,7 @@ TEST_CASE("block-data") {
 
     auto fis = make_shared<mcfile::stream::FileInputStream>(path);
     mcfile::stream::InputStreamReader isr(fis);
-    auto tag = make_shared<mcfile::nbt::CompoundTag>();
-    CHECK(tag->read(isr));
-    shared_ptr<mcfile::nbt::CompoundTag> bedrockBlockData = tag->compoundTag("");
+    shared_ptr<mcfile::nbt::CompoundTag> bedrockBlockData = CompoundTag::Read(isr);
     CHECK(bedrockBlockData);
 
     // java -> bedrock

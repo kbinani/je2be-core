@@ -73,7 +73,6 @@ public:
     return ret.release();
   }
 
-private:
   void set(int cx, int cz, std::shared_ptr<mcfile::je::Chunk> const &chunk) {
     auto index = this->index(cx, cz);
     if (!index) {
@@ -109,7 +108,7 @@ public:
     for (int cz = cz0; cz < 27; cz++) {
       for (int cx = cx0; cx < 27; cx++) {
         cache.reset(cache->makeRelocated(cx, cz));
-        if (!DoChunk(cx, cz, *cache)) {
+        if (!DoChunk(cx, cz, directory, *cache)) {
           return false;
         }
       }
@@ -117,14 +116,30 @@ public:
     return true;
   }
 
-  static bool DoChunk(int cx, int cz, ChunkCache<3, 3> &cache) {
-    auto chunk = cache.ensureLoadedAt(cx, cz);
-    if (!chunk) {
+  static bool DoChunk(int cx, int cz, std::filesystem::path const &directory, ChunkCache<3, 3> &cache) {
+    using namespace std;
+    auto file = directory / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+    auto input = make_shared<mcfile::stream::FileInputStream>(file);
+    auto root = CompoundTag::ReadCompressed(*input, endian::big);
+    if (!root) {
       return true;
     }
+    input.reset();
+    auto chunk = mcfile::je::WritableChunk::MakeChunk(cx, cz, root);
+    if (!chunk) {
+      return false;
+    }
+    cache.set(cx, cz, chunk);
 
-    BlockPropertyAccessorJava propertyAccessor(*chunk);
-    // TODO:
+    BlockPropertyAccessorJava accessor(*chunk);
+
+    ShapeOfStairs::Do(*chunk, cache, accessor);
+
+    auto output = make_shared<mcfile::stream::FileOutputStream>(file);
+    if (!chunk->write(*output)) {
+      return false;
+    }
+
     return true;
   }
 };
