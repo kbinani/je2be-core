@@ -254,7 +254,7 @@ public:
     FenceConnectable::Do(j, blockAccessor, accessor);
     Campfire::Do(j, cache, accessor);
     NoteBlock::Do(j, cache, accessor);
-    RedstoneWire::Do(j, cache, accessor);
+    RedstoneWire::Do(j, blockAccessor, accessor);
     Tripwire::Do(j, cache, accessor);
     Beacon::Do(j, cache, accessor);
     Door::Do(j, cache, accessor);

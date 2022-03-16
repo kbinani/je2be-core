@@ -27,7 +27,6 @@
 #include <je2be/toje/terraform/chorus-plant.hpp>
 #include <je2be/toje/terraform/campfire.hpp>
 #include <je2be/toje/terraform/note-block.hpp>
-#include <je2be/toje/terraform/redstone-wire.hpp>
 #include <je2be/toje/terraform/tripwire.hpp>
 #include <je2be/toje/terraform/piston.hpp>
 #include <je2be/toje/terraform/beacon.hpp>
