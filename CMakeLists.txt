@@ -81,6 +81,7 @@ set(je2be_files
   include/je2be/static-reversible-map.hpp
   include/je2be/strings.hpp
   include/je2be/structure/structure-piece.hpp
+  include/je2be/terraform/chorus-plant.hpp
   include/je2be/terraform/fence-connectable.hpp
   include/je2be/terraform/redstone-wire.hpp
   include/je2be/terraform/shape-of-stairs.hpp
@@ -150,7 +151,6 @@ set(je2be_files
   include/je2be/toje/terraform/beacon.hpp
   include/je2be/toje/terraform/campfire.hpp
   include/je2be/toje/terraform/cave-vines.hpp
-  include/je2be/toje/terraform/chorus-plant.hpp
   include/je2be/toje/terraform/door.hpp
   include/je2be/toje/terraform/kelp.hpp
   include/je2be/toje/terraform/note-block.hpp

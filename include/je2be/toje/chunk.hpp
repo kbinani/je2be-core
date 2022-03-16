@@ -250,7 +250,7 @@ public:
     AttachedStem::Do(j, cache, accessor);
     CaveVines::Do(j, cache, accessor);
     Snowy::Do(j, cache, accessor);
-    ChorusPlant::Do(j, cache, accessor);
+    ChorusPlant::Do(j, blockAccessor, accessor);
     FenceConnectable::Do(j, blockAccessor, accessor);
     Campfire::Do(j, cache, accessor);
     NoteBlock::Do(j, cache, accessor);

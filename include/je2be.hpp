@@ -115,6 +115,7 @@
 #include <je2be/terraform/shape-of-stairs.hpp>
 #include <je2be/terraform/fence-connectable.hpp>
 #include <je2be/terraform/redstone-wire.hpp>
+#include <je2be/terraform/chorus-plant.hpp>
 
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/lxz-decoder.hpp>
