@@ -71,10 +71,6 @@
 #include <je2be/reversible-map.hpp>
 #include <je2be/static-reversible-map.hpp>
 #include <je2be/dimension-ext.hpp>
-#include <je2be/block-accessor.hpp>
-#include <je2be/block-property-accessor.hpp>
-
-#include <je2be/terraform/shape-of-stairs.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
@@ -113,6 +109,11 @@
 #include <je2be/tile-entity/loot-table.hpp>
 
 #include <je2be/structure/structure-piece.hpp>
+
+#include <je2be/block-accessor.hpp>
+#include <je2be/block-property-accessor.hpp>
+#include <je2be/terraform/shape-of-stairs.hpp>
+#include <je2be/terraform/fence-connectable.hpp>
 
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/lxz-decoder.hpp>

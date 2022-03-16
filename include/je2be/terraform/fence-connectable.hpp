@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be {
 
 class FenceConnectable {
   FenceConnectable() = delete;

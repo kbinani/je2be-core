@@ -134,6 +134,7 @@ public:
     BlockPropertyAccessorJava accessor(*chunk);
 
     ShapeOfStairs::Do(*chunk, cache, accessor);
+    FenceConnectable::Do(*chunk, cache, accessor);
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {
