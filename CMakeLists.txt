@@ -17,6 +17,8 @@ endif()
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
+  include/je2be/block-accessor.hpp
+  include/je2be/block-property-accessor.hpp
   include/je2be/box360/biome.hpp
   include/je2be/box360/block-data.hpp
   include/je2be/box360/chunk.hpp
@@ -26,6 +28,7 @@ set(je2be_files
   include/je2be/box360/region.hpp
   include/je2be/box360/savegame.hpp
   include/je2be/box360/stfs.hpp
+  include/je2be/box360/terraform.hpp
   include/je2be/box360/tile-entity.hpp
   include/je2be/box360/world.hpp
   include/je2be/color/lab.hpp
@@ -125,7 +128,6 @@ set(je2be_files
   include/je2be/toje/block-data.hpp
   include/je2be/toje/block-entity-convert-result.hpp
   include/je2be/toje/block-entity.hpp
-  include/je2be/toje/block-property-accessor.hpp
   include/je2be/toje/chunk-cache-wrapper.hpp
   include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/chunk.hpp
@@ -186,14 +188,14 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/biomes/name.hpp
   deps/libminecraft-file/include/mcfile/blocks/block-data.hpp
   deps/libminecraft-file/include/mcfile/blocks/block-id.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/ageable.hpp
   deps/libminecraft-file/include/mcfile/blocks/data/bisected.hpp
   deps/libminecraft-file/include/mcfile/blocks/data/directional.hpp
-  deps/libminecraft-file/include/mcfile/blocks/data/stairs.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/type/stairs.hpp
   deps/libminecraft-file/include/mcfile/blocks/from-name.hpp
   deps/libminecraft-file/include/mcfile/blocks/make-block-data.hpp
   deps/libminecraft-file/include/mcfile/blocks/minecraft.hpp
   deps/libminecraft-file/include/mcfile/blocks/name.hpp
-  deps/libminecraft-file/include/mcfile/blocks/stairs.hpp
   deps/libminecraft-file/include/mcfile/compression.hpp
   deps/libminecraft-file/include/mcfile/coordinate.hpp
   deps/libminecraft-file/include/mcfile/dimension.hpp

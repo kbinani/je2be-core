@@ -106,13 +106,13 @@ public:
     return "straight";
   }
 
-  static std::shared_ptr<mcfile::blocks::Stairs> StairsBlockData(BlockAccessor &dataAccessor, int x, int y, int z) {
+  static std::shared_ptr<mcfile::blocks::data::type::Stairs> StairsBlockData(BlockAccessor &dataAccessor, int x, int y, int z) {
     auto blockJ = dataAccessor.blockAt(x, y, z);
     if (!blockJ) {
       return nullptr;
     }
     auto data = mcfile::blocks::BlockData::Make(*blockJ);
-    return std::dynamic_pointer_cast<mcfile::blocks::Stairs>(data);
+    return std::dynamic_pointer_cast<mcfile::blocks::data::type::Stairs>(data);
   }
 
   static Pos2i VecFromWeirdoDirection(mcfile::blocks::data::Directional::BlockFace d) {

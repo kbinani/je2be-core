@@ -70,7 +70,7 @@ public:
   static bool IsConnectableByBlockNameAndStates(mcfile::je::Block const &target, Pos2i const &targetDirection) {
     if (target.fName.ends_with("stairs")) {
       auto data = mcfile::blocks::BlockData::Make(target);
-      if (auto stairs = std::dynamic_pointer_cast<mcfile::blocks::Stairs>(data); stairs) {
+      if (auto stairs = std::dynamic_pointer_cast<mcfile::blocks::data::type::Stairs>(data); stairs) {
         auto weridoDirection = stairs->facing();
         Pos2i vec = ShapeOfStairs::VecFromWeirdoDirection(weridoDirection);
         if (vec.fX == -targetDirection.fX && vec.fZ == -targetDirection.fZ) {

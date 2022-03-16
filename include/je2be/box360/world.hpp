@@ -33,21 +33,29 @@ public:
     defer {
       Fs::Delete(*temp);
     };
-    bool regionDirectoryCreated = false;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / pathToRegion / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
           continue;
         }
-        if (!regionDirectoryCreated) {
-          if (!Fs::CreateDirectories(outputDirectory / pathToRegion)) {
-            return false;
-          }
-          regionDirectoryCreated = true;
+        if (!Region::Convert(dimension, mcr, rx, rz, *temp)) {
+          return false;
         }
+      }
+    }
+
+    if (!Terraform::Do(*temp)) {
+      return false;
+    }
+
+    if (!Fs::CreateDirectories(outputDirectory / pathToRegion)) {
+      return false;
+    }
+    for (int rz = -1; rz <= 0; rz++) {
+      for (int rx = -1; rx <= 0; rx++) {
         auto mca = outputDirectory / pathToRegion / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-        if (!Region::Convert(dimension, mcr, rx, rz, mca, *temp)) {
+        if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *temp, mca)) {
           return false;
         }
       }

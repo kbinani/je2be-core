@@ -238,7 +238,7 @@ public:
   }
 
   static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, ChunkCache<3, 3> &cache) {
-    BlockPropertyAccessor accessor(b);
+    BlockPropertyAccessorB accessor(b);
     ChunkCacheWrapper blockAccessor(cache);
 
     Piston::Do(j, cache, accessor);

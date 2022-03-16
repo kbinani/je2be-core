@@ -6,7 +6,11 @@ class Region {
   Region() = delete;
 
 public:
-  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &mcr, int rx, int rz, std::filesystem::path const &outputMca, std::filesystem::path const &regionTempDir) {
+  static bool Convert(mcfile::Dimension dimension,
+                      std::filesystem::path const &mcr,
+                      int rx,
+                      int rz,
+                      std::filesystem::path const &regionTempDir) {
     using namespace std;
     for (int z = 0; z < 32; z++) {
       for (int x = 0; x < 32; x++) {
@@ -25,11 +29,11 @@ public:
         if (!chunk->write(*stream)) {
           stream.reset();
           Fs::Delete(nbtz);
-          continue;
+          return false;
         }
       }
     }
-    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, regionTempDir, outputMca);
+    return true;
   }
 };
 

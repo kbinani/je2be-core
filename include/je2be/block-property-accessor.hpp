@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be {
 
 class BlockPropertyAccessor {
 public:
@@ -269,72 +269,31 @@ public:
     return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
   }
 
-  explicit BlockPropertyAccessor(mcfile::be::Chunk const &chunk) : fChunkX(chunk.fChunkX), fChunkY(chunk.fChunkY), fChunkZ(chunk.fChunkZ), fChunk(chunk) {
-    using namespace std;
-    fSections.resize(chunk.fSubChunks.size());
-    for (int i = 0; i < chunk.fSubChunks.size(); i++) {
-      auto const &section = chunk.fSubChunks[i];
-      if (!section) {
-        continue;
-      }
-      fSections[i].resize(section->fPalette.size());
-      for (int j = 0; j < section->fPalette.size(); j++) {
-        shared_ptr<mcfile::be::Block const> const &blockB = section->fPalette[j];
-        auto p = BlockProperties(*blockB);
-        fHasStairs |= IsStairs(p);
-        fHasKelp |= IsKelp(p);
-        fHasTwistingVines |= IsTwistingVines(p);
-        fHasWeepingVines |= IsWeepingVines(p);
-        fHasPumpkinStem |= IsPumpkinStem(p);
-        fHasCaveVines |= IsCaveVines(p);
-        fHasSnowy |= IsSnowy(p);
-        fHasChorusPlant |= IsChorusPlant(p);
-        fHasFence |= IsFence(p);
-        fHasGlassPaneOrIronBars |= IsGlassPaneOrIronBars(p);
-        fHasCampfire |= IsCampfire(p);
-        fHasNoteBlock |= IsNoteBlock(p);
-        fHasRedstoneWire |= IsRedstoneWire(p);
-        fHasTripwire |= IsTripwire(p);
-        fHasPiston |= IsPiston(p);
-        fHasBeacon |= IsBeacon(p);
-        fHasMelonStem |= IsMelonStem(p);
-        fHasDoor |= IsDoor(p);
-        fSections[i][j] = p;
-      }
-    }
-  }
+  BlockPropertyAccessor(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
+  virtual ~BlockPropertyAccessor() {}
+  virtual DataType property(int bx, int by, int bz) const = 0;
+  virtual int minBlockY() const = 0;
+  virtual int maxBlockY() const = 0;
 
-  DataType property(int bx, int by, int bz) const {
-    using namespace mcfile;
-    using namespace mcfile::be;
-    int cx = Coordinate::ChunkFromBlock(bx);
-    int cy = Coordinate::ChunkFromBlock(by);
-    int cz = Coordinate::ChunkFromBlock(bz);
-    int sectionIndex = cy - fChunkY;
-    if (sectionIndex < 0 || fChunk.fSubChunks.size() <= sectionIndex) {
-      return 0;
-    }
-    auto const &section = fChunk.fSubChunks[sectionIndex];
-    if (!section) {
-      return 0;
-    }
-    int lx = bx - cx * 16;
-    int ly = by - cy * 16;
-    int lz = bz - cz * 16;
-    int index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
-    if (index < 0 || section->fPaletteIndices.size() <= index) {
-      return 0;
-    }
-    auto i = section->fPaletteIndices[index];
-    return fSections[sectionIndex][i];
-  }
-
-  int minBlockY() const {
-    return fChunk.minBlockY();
-  }
-
-  int maxBlockY() const {
-    return fChunk.maxBlockY();
+  void updateHasProperties(DataType p) {
+    fHasStairs |= IsStairs(p);
+    fHasKelp |= IsKelp(p);
+    fHasTwistingVines |= IsTwistingVines(p);
+    fHasWeepingVines |= IsWeepingVines(p);
+    fHasPumpkinStem |= IsPumpkinStem(p);
+    fHasCaveVines |= IsCaveVines(p);
+    fHasSnowy |= IsSnowy(p);
+    fHasChorusPlant |= IsChorusPlant(p);
+    fHasFence |= IsFence(p);
+    fHasGlassPaneOrIronBars |= IsGlassPaneOrIronBars(p);
+    fHasCampfire |= IsCampfire(p);
+    fHasNoteBlock |= IsNoteBlock(p);
+    fHasRedstoneWire |= IsRedstoneWire(p);
+    fHasTripwire |= IsTripwire(p);
+    fHasPiston |= IsPiston(p);
+    fHasBeacon |= IsBeacon(p);
+    fHasMelonStem |= IsMelonStem(p);
+    fHasDoor |= IsDoor(p);
   }
 
 private:
@@ -400,12 +359,123 @@ public:
   bool fHasMelonStem = false;
   bool fHasDoor = false;
 
-private:
+protected:
   std::vector<std::vector<DataType>> fSections;
   int const fChunkX;
   int const fChunkY;
   int const fChunkZ;
+};
+
+class BlockPropertyAccessorB : public BlockPropertyAccessor {
+public:
+  explicit BlockPropertyAccessorB(mcfile::be::Chunk const &chunk) : BlockPropertyAccessor(chunk.fChunkX, chunk.fChunkY, chunk.fChunkZ), fChunk(chunk) {
+    using namespace std;
+    fSections.resize(chunk.fSubChunks.size());
+    for (int i = 0; i < chunk.fSubChunks.size(); i++) {
+      auto const &section = chunk.fSubChunks[i];
+      if (!section) {
+        continue;
+      }
+      fSections[i].resize(section->fPalette.size());
+      for (int j = 0; j < section->fPalette.size(); j++) {
+        shared_ptr<mcfile::be::Block const> const &blockB = section->fPalette[j];
+        auto p = BlockProperties(*blockB);
+        updateHasProperties(p);
+        fSections[i][j] = p;
+      }
+    }
+  }
+
+  DataType property(int bx, int by, int bz) const override {
+    using namespace mcfile;
+    using namespace mcfile::be;
+    int cx = Coordinate::ChunkFromBlock(bx);
+    int cy = Coordinate::ChunkFromBlock(by);
+    int cz = Coordinate::ChunkFromBlock(bz);
+    int sectionIndex = cy - fChunkY;
+    if (sectionIndex < 0 || fChunk.fSubChunks.size() <= sectionIndex) {
+      return 0;
+    }
+    auto const &section = fChunk.fSubChunks[sectionIndex];
+    if (!section) {
+      return 0;
+    }
+    int lx = bx - cx * 16;
+    int ly = by - cy * 16;
+    int lz = bz - cz * 16;
+    int index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
+    if (index < 0 || section->fPaletteIndices.size() <= index) {
+      return 0;
+    }
+    auto i = section->fPaletteIndices[index];
+    return fSections[sectionIndex][i];
+  }
+
+  int minBlockY() const override {
+    return fChunk.minBlockY();
+  }
+
+  int maxBlockY() const override {
+    return fChunk.maxBlockY();
+  }
+
+private:
   mcfile::be::Chunk const &fChunk;
 };
 
-} // namespace je2be::toje
+class BlockPropertyAccessorJ : public BlockPropertyAccessor {
+public:
+  explicit BlockPropertyAccessorJ(mcfile::je::Chunk const &chunk) : BlockPropertyAccessor(chunk.fChunkX, chunk.fChunkY, chunk.fChunkZ), fChunk(chunk) {
+    using namespace std;
+    fSections.resize(chunk.fSections.size());
+    for (int i = 0; i < chunk.fSections.size(); i++) {
+      auto const &section = chunk.fSections[i];
+      if (!section) {
+        continue;
+      }
+      section->eachBlockPalette([this, i](mcfile::je::Block const &blockJ) {
+        auto p = BlockProperties(blockJ);
+        updateHasProperties(p);
+        fSections[i].push_back(p);
+        return true;
+      });
+    }
+  }
+
+  DataType property(int bx, int by, int bz) const override {
+    using namespace mcfile;
+    using namespace mcfile::be;
+    int cx = Coordinate::ChunkFromBlock(bx);
+    int cy = Coordinate::ChunkFromBlock(by);
+    int cz = Coordinate::ChunkFromBlock(bz);
+    int sectionIndex = cy - fChunkY;
+    if (sectionIndex < 0 || fChunk.fSections.size() <= sectionIndex) {
+      return 0;
+    }
+    auto const &section = fChunk.fSections[sectionIndex];
+    if (!section) {
+      return 0;
+    }
+    int lx = bx - cx * 16;
+    int ly = by - cy * 16;
+    int lz = bz - cz * 16;
+    auto index = section->blockPaletteIndexAt(lx, ly, lz);
+    if (!index) {
+      return 0;
+    }
+    return fSections[sectionIndex][*index];
+  }
+
+  int minBlockY() const override {
+    return fChunk.minBlockY();
+  }
+
+  int maxBlockY() const override {
+    return fChunk.maxBlockY();
+  }
+
+private:
+  mcfile::je::Chunk const &fChunk;
+};
+
+} // namespace je2be

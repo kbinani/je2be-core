@@ -17,7 +17,6 @@
 #include <je2be/toje/item.hpp>
 #include <je2be/toje/entity.hpp>
 #include <je2be/toje/block-entity.hpp>
-#include <je2be/toje/block-property-accessor.hpp>
 
 #include <je2be/toje/terraform/shape-of-stairs.hpp>
 #include <je2be/toje/terraform/kelp.hpp>

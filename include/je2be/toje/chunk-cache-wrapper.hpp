@@ -2,12 +2,6 @@
 
 namespace je2be::toje {
 
-class BlockAccessor {
-public:
-  virtual ~BlockAccessor() {}
-  virtual std::shared_ptr<mcfile::je::Block const> blockAt(int x, int y, int z) = 0;
-};
-
 template <size_t width, size_t height>
 class ChunkCacheWrapper : public BlockAccessor {
 public:
