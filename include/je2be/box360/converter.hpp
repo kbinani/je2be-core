@@ -30,6 +30,11 @@ public:
     }
     vector<uint8_t>().swap(buffer);
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
+      if (!fOptions.fDimensionFilter.empty()) {
+        if (fOptions.fDimensionFilter.find(dimension) == fOptions.fDimensionFilter.end()) {
+          continue;
+        }
+      }
       if (!World::Convert(*temp, fOutputDirectory, dimension, fOptions)) {
         return false;
       }

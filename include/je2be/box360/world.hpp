@@ -39,7 +39,7 @@ public:
         if (!Fs::Exists(mcr)) {
           continue;
         }
-        if (!Region::Convert(dimension, mcr, rx, rz, *temp)) {
+        if (!Region::Convert(dimension, mcr, rx, rz, *temp, options)) {
           return false;
         }
       }
