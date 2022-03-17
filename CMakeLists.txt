@@ -91,6 +91,7 @@ set(je2be_files
   include/je2be/terraform/box360/kelp.hpp
   include/je2be/terraform/chorus-plant.hpp
   include/je2be/terraform/fence-connectable.hpp
+  include/je2be/terraform/leaves.hpp
   include/je2be/terraform/redstone-wire.hpp
   include/je2be/terraform/shape-of-stairs.hpp
   include/je2be/terraform/snowy.hpp

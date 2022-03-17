@@ -27,6 +27,7 @@ private:
     MELON_STEM = 18,
     DOOR = 19,
     WALL = 20,
+    LEAVES = 21,
   };
 
 public:
@@ -112,6 +113,10 @@ public:
 
   static bool IsWall(DataType p) {
     return p == WALL;
+  }
+
+  static bool IsLeaves(DataType p) {
+    return p == LEAVES;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -282,6 +287,14 @@ public:
     return b.fName.ends_with("wall");
   }
 
+  static bool IsLeaves(mcfile::be::Block const &b) {
+    return b.fName.ends_with("leaves");
+  }
+
+  static bool IsLeaves(mcfile::je::Block const &b) {
+    return b.fName.ends_with("leaves");
+  }
+
   BlockPropertyAccessor(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
   virtual ~BlockPropertyAccessor() {}
   virtual DataType property(int bx, int by, int bz) const = 0;
@@ -308,6 +321,7 @@ public:
     fHasMelonStem |= IsMelonStem(p);
     fHasDoor |= IsDoor(p);
     fHasWall |= IsWall(p);
+    fHasLeaves |= IsLeaves(p);
   }
 
 private:
@@ -351,6 +365,8 @@ private:
       return DOOR;
     } else if (IsWall(b)) {
       return WALL;
+    } else if (IsLeaves(b)) {
+      return LEAVES;
     }
     return 0;
   }
@@ -375,6 +391,7 @@ public:
   bool fHasMelonStem = false;
   bool fHasDoor = false;
   bool fHasWall = false;
+  bool fHasLeaves = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;

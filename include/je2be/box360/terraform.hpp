@@ -54,6 +54,7 @@ public:
     Kelp::Do(*chunk, accessor);
     Snowy::Do(*chunk, cache, accessor);
     AttachedStem::Do(*chunk, cache, accessor);
+    Leaves::Do(*chunk, cache, accessor);
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {

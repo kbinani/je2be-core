@@ -120,6 +120,7 @@
 #include <je2be/terraform/chorus-plant.hpp>
 #include <je2be/terraform/wall-connectable.hpp>
 #include <je2be/terraform/snowy.hpp>
+#include <je2be/terraform/leaves.hpp>
 #include <je2be/terraform/bedrock/kelp.hpp>
 #include <je2be/terraform/bedrock/attached-stem.hpp>
 #include <je2be/terraform/box360/kelp.hpp>
