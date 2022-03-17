@@ -12,11 +12,11 @@ public:
 
   static bool Do(std::filesystem::path const &directory) {
     using namespace std;
-    int cx0 = -27;
-    int cz0 = -27;
+    int cx0 = -32;
+    int cz0 = -32;
     auto cache = make_shared<terraform::box360::BlockAccessorBox360<3, 3>>(cx0 - 1, cz0 - 1, directory);
-    for (int cz = cz0; cz < 27; cz++) {
-      for (int cx = cx0; cx < 27; cx++) {
+    for (int cz = cz0; cz < 32; cz++) {
+      for (int cx = cx0; cx < 32; cx++) {
         cache.reset(cache->makeRelocated(cx - 1, cz - 1));
         if (!DoChunk(cx, cz, directory, *cache)) {
           return false;
