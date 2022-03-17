@@ -652,10 +652,12 @@ static void WallConnectable() {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
     for (string const &name : names) {
       os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
+      os << "setblock " << x << " " << (y + 1) << " " << (z0 + 1) << " " << name << endl;
       x++;
     }
     x1 = x;
     os << "fill " << x0 << " " << y << " " << (z0 + 1) << " " << x1 << " " << y << " " << (z0 + 1) << " cobblestone_wall" << endl;
+    os << "fill " << x0 << " " << y << " " << (z0 + 2) << " " << x1 << " " << y << " " << (z0 + 2) << " cobblestone_wall" << endl;
   }
 
   // login the game, then execute /function je2be:place_blocks
@@ -664,6 +666,7 @@ static void WallConnectable() {
   shared_ptr<mcfile::je::Chunk> chunk;
   int cz = mcfile::Coordinate::ChunkFromBlock(z0);
   set<string> wallAttachable;
+  set<string> tall;
   for (int x = x0; x < x1; x++) {
     int cx = mcfile::Coordinate::ChunkFromBlock(x);
     if (!chunk || (chunk && chunk->fChunkX != cx)) {
@@ -679,12 +682,18 @@ static void WallConnectable() {
       if (wallAttached) {
         wallAttachable.insert(expected);
       }
+      if (wall->property("south") == "tall") {
+        if (!expected.ends_with("slab") && !expected.ends_with("stairs") && !expected.ends_with("trapdoor")) {
+          tall.insert(expected);
+        }
+      }
     }
   }
 
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
-  code << "static bool IsWallAlwaysAttachable(mcfile::blocks::BlockId id) {" << endl;
+
+  code << "static bool IsWallAlwaysConnectable(mcfile::blocks::BlockId id) {" << endl;
   code << "  switch (id) {" << endl;
   for (auto n : wallAttachable) {
     code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
@@ -697,7 +706,22 @@ static void WallConnectable() {
   code << "  return false;" << endl;
   code << "}" << endl;
   code << endl;
+
+  code << "static bool IsBlockMakeWallTallShape(mcfile::blocks::BlockId id) {" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto n : tall) {
+    code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
+  }
+  code << "      return true;" << endl;
+  code << "    default:" << endl;
+  code << "      break;" << endl;
+  code << "  }" << endl;
+  code << "  //TODO:" << endl;
+  code << "  return false;" << endl;
+  code << "}" << endl;
+  code << endl;
 }
+
 #if 1
 TEST_CASE("research") {
   Box360Chunk();
