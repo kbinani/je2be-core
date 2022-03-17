@@ -142,6 +142,7 @@ public:
     ChorusPlant::Do(*chunk, cache, accessor);
     WallConnectable::Do(*chunk, cache, accessor);
     Kelp::Do(*chunk, accessor);
+    Snowy::Do(*chunk, cache, accessor);
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {

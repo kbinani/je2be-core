@@ -87,6 +87,7 @@ set(je2be_files
   include/je2be/terraform/fence-connectable.hpp
   include/je2be/terraform/redstone-wire.hpp
   include/je2be/terraform/shape-of-stairs.hpp
+  include/je2be/terraform/snowy.hpp
   include/je2be/terraform/wall-connectable.hpp
   include/je2be/tile-entity/loot-table.hpp
   include/je2be/tobe/chunk-conversion-mode.hpp
@@ -157,7 +158,6 @@ set(je2be_files
   include/je2be/toje/terraform/door.hpp
   include/je2be/toje/terraform/note-block.hpp
   include/je2be/toje/terraform/piston.hpp
-  include/je2be/toje/terraform/snowy.hpp
   include/je2be/toje/terraform/tripwire.hpp
   include/je2be/toje/terraform/twisting-vines.hpp
   include/je2be/toje/terraform/weeping-vines.hpp

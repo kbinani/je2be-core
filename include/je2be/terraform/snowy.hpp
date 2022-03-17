@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform {
 
 class Snowy {
   Snowy() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasSnowy) {
@@ -27,7 +27,7 @@ public:
           if (!upper) {
             continue;
           }
-          if (upper->fName != "minecraft:snow") {
+          if (upper->fId != mcfile::blocks::minecraft::snow) {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);
@@ -44,4 +44,4 @@ public:
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform

@@ -22,7 +22,6 @@
 #include <je2be/toje/terraform/weeping-vines.hpp>
 #include <je2be/toje/terraform/attached-stem.hpp>
 #include <je2be/toje/terraform/cave-vines.hpp>
-#include <je2be/toje/terraform/snowy.hpp>
 #include <je2be/toje/terraform/campfire.hpp>
 #include <je2be/toje/terraform/note-block.hpp>
 #include <je2be/toje/terraform/tripwire.hpp>
