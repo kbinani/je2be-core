@@ -173,7 +173,7 @@ public:
 
   static bool IsSnowy(mcfile::je::Block const &b) {
     using namespace mcfile::blocks;
-    return b.fId == minecraft::grass || b.fId == minecraft::podzol || b.fId == minecraft::mycelium;
+    return b.fId == minecraft::grass_block || b.fId == minecraft::podzol || b.fId == minecraft::mycelium;
   }
 
   static bool IsChorusPlant(mcfile::be::Block const &b) {
