@@ -608,14 +608,9 @@ static void Box360Chunk() {
     Fs::Delete(*temp);
   };
   auto savegame = *temp / "savegame.dat";
-  CHECK(Savegame::ExtractSavagameFromSaveBin(dir / name, savegame));
-  vector<uint8_t> buffer;
-  CHECK(Savegame::DecompressSavegame(savegame, buffer));
-  CHECK(Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp));
   Options options;
-  for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-    CHECK(World::Convert(*temp, output, dimension, options));
-  }
+  Converter converter(dir / name, output, options);
+  CHECK(converter.run());
 }
 
 static void WallConnectable() {
