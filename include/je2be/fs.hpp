@@ -57,6 +57,11 @@ public:
     }
   }
 
+  static void DeleteAll(std::filesystem::path p) {
+    std::error_code ec;
+    std::filesystem::remove_all(p, ec);
+  }
+
   static std::optional<uintmax_t> FileSize(std::filesystem::path p) {
     std::error_code ec;
     uintmax_t size = std::filesystem::file_size(p, ec);

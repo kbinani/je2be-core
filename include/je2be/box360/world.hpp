@@ -31,7 +31,7 @@ public:
       return false;
     }
     defer {
-      Fs::Delete(*temp);
+      Fs::DeleteAll(*temp);
     };
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {

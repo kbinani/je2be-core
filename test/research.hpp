@@ -601,16 +601,9 @@ static void Box360Chunk() {
   fs::path output("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/_b2j-out");
 
   string name = "abc-Save20220303092528.bin";
-  // string name = "2-Save20220306005722-062-gyazo-84792baa4e5d4ea30ada9746c10840be.bin";
-  auto temp = File::CreateTempDir(fs::temp_directory_path());
-  CHECK(temp);
-  defer {
-    Fs::Delete(*temp);
-  };
-  auto savegame = *temp / "savegame.dat";
+  // string name = "2-Save20220306005722-077-gyazo-1fcbd51efa6d0795fe34e912619aa4f5.bin";
   Options options;
-  Converter converter(dir / name, output, options);
-  CHECK(converter.run());
+  CHECK(Converter::Run(dir / name, output, options));
 }
 
 static void WallConnectable() {

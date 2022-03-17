@@ -3,22 +3,24 @@
 namespace je2be::box360 {
 
 class Converter {
-public:
-  Converter(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, Options options) : fInputSaveBin(inputSaveBin), fOutputDirectory(outputDirectory), fOptions(options) {
-  }
+  Converter() = delete;
 
-  bool run() {
+public:
+  static bool Run(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
 
-    auto tempRoot = fOptions.fTempDirectory ? *fOptions.fTempDirectory : fs::temp_directory_path();
+    auto tempRoot = options.fTempDirectory ? *options.fTempDirectory : fs::temp_directory_path();
     auto temp = mcfile::File::CreateTempDir(tempRoot);
     if (!temp) {
       return false;
     }
+    defer {
+      Fs::DeleteAll(*temp);
+    };
     fs::path savegame = *temp / "savegame.dat";
 
-    if (!Savegame::ExtractSavagameFromSaveBin(fInputSaveBin, savegame)) {
+    if (!Savegame::ExtractSavagameFromSaveBin(inputSaveBin, savegame)) {
       return false;
     }
     vector<uint8_t> buffer;
@@ -30,22 +32,17 @@ public:
     }
     vector<uint8_t>().swap(buffer);
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-      if (!fOptions.fDimensionFilter.empty()) {
-        if (fOptions.fDimensionFilter.find(dimension) == fOptions.fDimensionFilter.end()) {
+      if (!options.fDimensionFilter.empty()) {
+        if (options.fDimensionFilter.find(dimension) == options.fDimensionFilter.end()) {
           continue;
         }
       }
-      if (!World::Convert(*temp, fOutputDirectory, dimension, fOptions)) {
+      if (!World::Convert(*temp, outputDirectory, dimension, options)) {
         return false;
       }
     }
     return true;
   }
-
-public:
-  std::filesystem::path const fInputSaveBin;
-  std::filesystem::path const fOutputDirectory;
-  Options const fOptions;
 };
 
 } // namespace je2be::box360
