@@ -82,6 +82,7 @@ set(je2be_files
   include/je2be/strings.hpp
   include/je2be/structure/structure-piece.hpp
   include/je2be/terraform/bedrock/kelp.hpp
+  include/je2be/terraform/box360/kelp.hpp
   include/je2be/terraform/chorus-plant.hpp
   include/je2be/terraform/fence-connectable.hpp
   include/je2be/terraform/redstone-wire.hpp

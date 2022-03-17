@@ -119,6 +119,7 @@ public:
   static bool DoChunk(int cx, int cz, std::filesystem::path const &directory, ChunkCache<3, 3> &cache) {
     using namespace std;
     using namespace je2be::terraform;
+    using namespace je2be::terraform::box360;
 
     auto file = directory / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
     auto input = make_shared<mcfile::stream::FileInputStream>(file);
@@ -140,6 +141,7 @@ public:
     RedstoneWire::Do(*chunk, cache, accessor);
     ChorusPlant::Do(*chunk, cache, accessor);
     WallConnectable::Do(*chunk, cache, accessor);
+    Kelp::Do(*chunk, accessor);
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {

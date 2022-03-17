@@ -1,18 +1,15 @@
 #pragma once
 
-namespace je2be::terraform::bedrock {
+namespace je2be::terraform::box360 {
 
 class Kelp {
   Kelp() = delete;
 
 public:
   static void Do(mcfile::je::Chunk &out, BlockPropertyAccessor const &accessor) {
-    using namespace std;
-
     if (!accessor.fHasKelp) {
       return;
     }
-
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
@@ -21,8 +18,8 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           auto upper = accessor.property(x, y + 1, z);
-          if (BlockPropertyAccessor::IsKelp(p) && BlockPropertyAccessor::IsKelp(upper)) {
-            auto kelpPlant = make_shared<mcfile::je::Block const>("minecraft:kelp_plant");
+          if (BlockPropertyAccessor::IsKelp(p) && !BlockPropertyAccessor::IsKelp(upper)) {
+            auto kelpPlant = std::make_shared<mcfile::je::Block const>("minecraft:kelp");
             out.setBlockAt(x, y, z, kelpPlant);
           }
         }
@@ -31,4 +28,4 @@ public:
   }
 };
 
-} // namespace je2be::terraform::bedrock
+} // namespace je2be::terraform::box360
