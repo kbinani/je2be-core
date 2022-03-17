@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::terraform {
 
 class BlockAccessor {
 public:
@@ -8,4 +8,4 @@ public:
   virtual std::shared_ptr<mcfile::je::Block const> blockAt(int x, int y, int z) = 0;
 };
 
-} // namespace je2be
+} // namespace je2be::terraform

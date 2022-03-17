@@ -6,7 +6,7 @@ class Door {
   Door() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasDoor) {
@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto lowerP = accessor.property(x, y, z);
           auto upperP = accessor.property(x, y + 1, z);
-          if (!BlockPropertyAccessor::IsDoor(lowerP) || !BlockPropertyAccessor::IsDoor(upperP)) {
+          if (!terraform::BlockPropertyAccessor::IsDoor(lowerP) || !terraform::BlockPropertyAccessor::IsDoor(upperP)) {
             continue;
           }
           auto lowerB = cache.blockAt(x, y, z);

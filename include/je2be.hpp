@@ -110,8 +110,10 @@
 
 #include <je2be/structure/structure-piece.hpp>
 
-#include <je2be/block-accessor.hpp>
-#include <je2be/block-property-accessor.hpp>
+#include <je2be/terraform/block-property-accessor.hpp>
+#include <je2be/terraform/block-accessor.hpp>
+#include <je2be/terraform/bedrock/block-accessor-bedrock.hpp>
+#include <je2be/terraform/box360/block-accessor-box360.hpp>
 #include <je2be/terraform/shape-of-stairs.hpp>
 #include <je2be/terraform/fence-connectable.hpp>
 #include <je2be/terraform/redstone-wire.hpp>
@@ -119,7 +121,9 @@
 #include <je2be/terraform/wall-connectable.hpp>
 #include <je2be/terraform/snowy.hpp>
 #include <je2be/terraform/bedrock/kelp.hpp>
+#include <je2be/terraform/bedrock/attached-stem.hpp>
 #include <je2be/terraform/box360/kelp.hpp>
+#include <je2be/terraform/box360/attached-stem.hpp>
 
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/lxz-decoder.hpp>

@@ -5,9 +5,7 @@
 #include <je2be/toje/progress.hpp>
 
 #include <je2be/toje/block-data.hpp>
-#include <je2be/toje/chunk-cache.hpp>
-#include <je2be/toje/chunk-cache-wrapper.hpp>
-
+#include <je2be/toje/block-accessor-wrapper.hpp>
 #include <je2be/toje/options.hpp>
 #include <je2be/toje/map-info.hpp>
 #include <je2be/toje/structure-info.hpp>
@@ -20,7 +18,6 @@
 
 #include <je2be/toje/terraform/twisting-vines.hpp>
 #include <je2be/toje/terraform/weeping-vines.hpp>
-#include <je2be/toje/terraform/attached-stem.hpp>
 #include <je2be/toje/terraform/cave-vines.hpp>
 #include <je2be/toje/terraform/campfire.hpp>
 #include <je2be/toje/terraform/note-block.hpp>

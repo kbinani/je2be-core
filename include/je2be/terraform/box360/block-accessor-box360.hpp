@@ -1,14 +1,14 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform::box360 {
 
 template <size_t width, size_t height>
-class ChunkCache {
+class BlockAccessorBox360 : public BlockAccessor {
 public:
-  ChunkCache(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, std::endian endian) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
+  BlockAccessorBox360(int cx, int cz, std::filesystem::path const &directory) : fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDir(directory) {
   }
 
-  std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
+  std::shared_ptr<mcfile::je::Chunk> at(int cx, int cz) const {
     auto index = this->index(cx, cz);
     if (!index) {
       return nullptr;
@@ -16,7 +16,7 @@ public:
     return fCache[*index];
   }
 
-  std::shared_ptr<mcfile::be::Block const> blockAt(int bx, int by, int bz) {
+  std::shared_ptr<mcfile::je::Block const> blockAt(int bx, int by, int bz) override {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
     auto const &chunk = ensureLoadedAt(cx, cz);
@@ -26,23 +26,27 @@ public:
     return chunk->blockAt(bx, by, bz);
   }
 
-  std::shared_ptr<CompoundTag const> blockEntityAt(Pos3i const &pos) {
+  std::shared_ptr<CompoundTag const> tileEntityAt(Pos3i const &pos) {
     int cx = mcfile::Coordinate::ChunkFromBlock(pos.fX);
     int cz = mcfile::Coordinate::ChunkFromBlock(pos.fZ);
     auto const &chunk = ensureLoadedAt(cx, cz);
     if (!chunk) {
       return nullptr;
     }
-    return chunk->blockEntityAt(pos);
+    return chunk->tileEntityAt(pos);
   }
 
-  std::shared_ptr<mcfile::be::Chunk> ensureLoadedAt(int cx, int cz) {
+  std::shared_ptr<mcfile::je::Chunk> ensureLoadedAt(int cx, int cz) {
     auto index = this->index(cx, cz);
     if (!index) {
       return nullptr;
     }
     if (!fCacheLoaded[*index]) {
-      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, fDb, fEndian);
+      if (cx == 7 && cz == 13) {
+        int b = 0;
+      }
+      auto file = fDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+      fCache[*index] = mcfile::je::Chunk::LoadFromCompressedChunkNbtFile(file, cx, cz);
       fCacheLoaded[*index] = true;
     }
     return fCache[*index];
@@ -58,8 +62,8 @@ public:
     }
   }
 
-  ChunkCache *makeRelocated(int cx, int cz) const {
-    std::unique_ptr<ChunkCache<width, height>> ret(new ChunkCache(fDim, cx, cz, fDb, fEndian));
+  BlockAccessorBox360<width, height> *makeRelocated(int cx, int cz) const {
+    std::unique_ptr<BlockAccessorBox360<width, height>> ret(new BlockAccessorBox360<width, height>(cx, cz, fDir));
     for (int x = 0; x < width; x++) {
       for (int z = 0; z < height; z++) {
         auto index = this->index(fChunkX + x, fChunkZ + z);
@@ -72,8 +76,7 @@ public:
     return ret.release();
   }
 
-private:
-  void set(int cx, int cz, std::shared_ptr<mcfile::be::Chunk> const &chunk) {
+  void set(int cx, int cz, std::shared_ptr<mcfile::je::Chunk> const &chunk) {
     auto index = this->index(cx, cz);
     if (!index) {
       return;
@@ -83,15 +86,13 @@ private:
   }
 
 public:
-  mcfile::Dimension const fDim;
   int const fChunkX;
   int const fChunkZ;
 
 private:
-  std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
+  std::vector<std::shared_ptr<mcfile::je::Chunk>> fCache;
   std::vector<bool> fCacheLoaded;
-  leveldb::DB *const fDb;
-  std::endian const fEndian;
+  std::filesystem::path fDir;
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform::box360

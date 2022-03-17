@@ -6,7 +6,7 @@ class Tripwire {
   Tripwire() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasTripwire) {
@@ -22,7 +22,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsTripwire(p)) {
+          if (!terraform::BlockPropertyAccessor::IsTripwire(p)) {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);
@@ -35,7 +35,7 @@ public:
             auto block = cache.blockAt(x + vec.fX, y, z + vec.fZ);
             bool connect = false;
             if (block) {
-              if (BlockPropertyAccessor::IsTripwire(*block)) {
+              if (terraform::BlockPropertyAccessor::IsTripwire(*block)) {
                 connect = true;
               } else if (block->fName == "minecraft:tripwire_hook") {
                 Facing4 f4 = Facing4FromBedrockDirection(block->fStates->int32("direction", 0));

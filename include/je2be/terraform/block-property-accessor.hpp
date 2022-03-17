@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::terraform {
 
 class BlockPropertyAccessor {
 public:
@@ -499,4 +499,4 @@ private:
   mcfile::je::Chunk const &fChunk;
 };
 
-} // namespace je2be
+} // namespace je2be::terraform

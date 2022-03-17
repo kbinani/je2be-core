@@ -6,7 +6,7 @@ class Chunk {
   Chunk() = delete;
 
 public:
-  static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
+  static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx) {
     using namespace std;
 
     int const cy = b.fChunkY;
@@ -237,11 +237,11 @@ public:
     return j;
   }
 
-  static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, ChunkCache<3, 3> &cache) {
+  static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache) {
     using namespace je2be::terraform;
     using namespace je2be::terraform::bedrock;
     BlockPropertyAccessorBedrock accessor(b);
-    ChunkCacheWrapper blockAccessor(cache);
+    BlockAccessorWrapper blockAccessor(cache);
 
     Piston::Do(j, cache, accessor);
 

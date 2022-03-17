@@ -17,8 +17,6 @@ endif()
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
-  include/je2be/block-accessor.hpp
-  include/je2be/block-property-accessor.hpp
   include/je2be/box360/biome.hpp
   include/je2be/box360/block-data.hpp
   include/je2be/box360/chunk.hpp
@@ -81,7 +79,13 @@ set(je2be_files
   include/je2be/static-reversible-map.hpp
   include/je2be/strings.hpp
   include/je2be/structure/structure-piece.hpp
+  include/je2be/terraform/bedrock/attached-stem.hpp
+  include/je2be/terraform/bedrock/block-accessor-bedrock.hpp
   include/je2be/terraform/bedrock/kelp.hpp
+  include/je2be/terraform/block-accessor.hpp
+  include/je2be/terraform/block-property-accessor.hpp
+  include/je2be/terraform/box360/attached-stem.hpp
+  include/je2be/terraform/box360/block-accessor-box360.hpp
   include/je2be/terraform/box360/kelp.hpp
   include/je2be/terraform/chorus-plant.hpp
   include/je2be/terraform/fence-connectable.hpp
@@ -133,11 +137,10 @@ set(je2be_files
   include/je2be/tobe/uuid-registrar.hpp
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
+  include/je2be/toje/block-accessor-wrapper.hpp
   include/je2be/toje/block-data.hpp
   include/je2be/toje/block-entity-convert-result.hpp
   include/je2be/toje/block-entity.hpp
-  include/je2be/toje/chunk-cache-wrapper.hpp
-  include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/chunk.hpp
   include/je2be/toje/constants.hpp
   include/je2be/toje/context.hpp
@@ -151,7 +154,6 @@ set(je2be_files
   include/je2be/toje/region.hpp
   include/je2be/toje/structure-info.hpp
   include/je2be/toje/sub-chunk.hpp
-  include/je2be/toje/terraform/attached-stem.hpp
   include/je2be/toje/terraform/beacon.hpp
   include/je2be/toje/terraform/campfire.hpp
   include/je2be/toje/terraform/cave-vines.hpp
