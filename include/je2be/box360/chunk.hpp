@@ -57,6 +57,8 @@ public:
       maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
     }
 
+    vector<uint16_t> sectionBlocks(4096); // sectionBlocks[(y * 16 + z) * 16 + x]
+
     for (int section = 0; section < 16; section++) {
       int address = sectionJumpTable[section];
 
@@ -67,6 +69,7 @@ public:
         break;
       }
 
+      unordered_set<uint16_t> usedBlockData;
       vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
       copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
       for (int gx = 0; gx < 4; gx++) {
@@ -84,7 +87,7 @@ public:
             uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
             uint16_t format = t3;
 
-            BlockData grid[64];
+            uint16_t grid[64];
             uint16_t gridPosition = 0x4c + address + 0x80 + offset;
 
             if (format == 0) {
@@ -159,27 +162,65 @@ public:
               for (int lz = 0; lz < 4; lz++) {
                 for (int ly = 0; ly < 4; ly++) {
                   int idx = lx * 16 + lz * 4 + ly;
-                  BlockData bd = grid[idx];
-                  // TODO: reduce the number of calling toBlock
-                  int bx = cx * 16 + gx * 4 + lx;
-                  int by = section * 16 + gy * 4 + ly;
-                  int bz = cz * 16 + gz * 4 + lz;
-                  shared_ptr<mcfile::je::Block const> block;
-                  if (bd.extendedBlockId() == 175 && bd.data() == 10) {
-                    // upper half of tall flowers
-                    if (auto lower = chunk->blockAt(bx, by - 1, bz); lower) {
-                      auto props = lower->fProperties;
-                      props["half"] = "upper";
-                      block = make_shared<mcfile::je::Block const>(lower->fName, props);
-                    }
-                  }
-                  if (!block) {
-                    block = bd.toBlock();
-                  }
-                  chunk->setBlockAt(bx, by, bz, block);
+                  uint16_t bd = grid[idx];
+                  int indexInSection = ((gy * 4 + ly) * 16 + (gz * 4 + lz)) * 16 + gx * 4 + lx;
+                  sectionBlocks[indexInSection] = bd;
+                  usedBlockData.insert(bd);
                 }
               }
             }
+          }
+        }
+      }
+
+      unordered_map<uint16_t, shared_ptr<mcfile::je::Block const>> usedBlocks;
+      for (uint16_t data : usedBlockData) {
+        BlockData bd(data);
+        if (bd.extendedBlockId() == 175 && bd.data() == 10) {
+          // upper half of tall flowers
+          continue;
+        }
+        usedBlocks[data] = bd.toBlock();
+      }
+      int index = 0;
+      for (int y = 0; y < 16; y++) {
+        for (int z = 0; z < 16; z++) {
+          for (int x = 0; x < 16; x++) {
+            uint16_t data = sectionBlocks[index];
+            BlockData bd(data);
+            shared_ptr<mcfile::je::Block const> block;
+            if (bd.extendedBlockId() == 175 && bd.data() == 10) [[unlikely]] {
+              // upper half of tall flowers
+              if (y == 0) {
+                if (section == 0) [[unlikely]] {
+                  block = bd.toBlock();
+                } else {
+                  if (auto lower = chunk->blockAt(cx * 16 + x, section * 16 + y - 1, cz * 16 + z); lower) {
+                    map<string, string> props(lower->fProperties);
+                    props["half"] = "upper";
+                    block = make_shared<mcfile::je::Block const>(lower->fName, props);
+                  } else {
+                    block = bd.toBlock();
+                  }
+                }
+              } else {
+                int lowerIndex = ((y - 1) * 16 + z) * 16 + x;
+                uint16_t lowerBlockData = sectionBlocks[lowerIndex];
+                auto lower = usedBlocks[lowerBlockData];
+                map<string, string> props(lower->fProperties);
+                props["half"] = "upper";
+                block = make_shared<mcfile::je::Block const>(lower->fName, props);
+              }
+            } else {
+              block = usedBlocks[data];
+            }
+
+            int bx = cx * 16 + x;
+            int by = section * 16 + y;
+            int bz = cz * 16 + z;
+            chunk->setBlockAt(bx, by, bz, block);
+
+            index++;
           }
         }
       }

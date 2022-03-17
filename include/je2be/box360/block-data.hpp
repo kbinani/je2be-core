@@ -2,16 +2,16 @@
 
 namespace je2be::box360 {
 
-struct BlockData : std::tuple<uint8_t, uint8_t> {
-  BlockData(uint8_t rawBlockId, uint8_t data) : std::tuple<uint8_t, uint8_t>(rawBlockId, data) {}
-  BlockData() : std::tuple<uint8_t, uint8_t>(0, 0) {}
+struct BlockData : public std::pair<uint8_t, uint8_t> {
+  explicit BlockData(uint16_t data) : std::pair<uint8_t, uint8_t>(0xff & (data >> 8), 0xff & data) {}
+  BlockData() : std::pair<uint8_t, uint8_t>(0, 0) {}
 
   uint16_t rawBlockId() const {
-    return std::get<0>(*this);
+    return this->first;
   }
 
   uint8_t rawData() const {
-    return std::get<1>(*this);
+    return this->second;
   };
 
   uint16_t extendedBlockId() const {

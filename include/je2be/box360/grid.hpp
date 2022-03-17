@@ -6,18 +6,17 @@ class Grid {
   Grid() = delete;
 
 public:
-  static BlockData BlockDataFromBytes(uint8_t v1, uint8_t v2) {
+  static uint16_t BlockDataFromBytes(uint8_t v1, uint8_t v2) {
     uint8_t t1 = v1 >> 4;
     uint8_t t2 = 0xf & v1;
     uint8_t t3 = v2 >> 4;
     uint8_t t4 = 0xf & v2;
     uint8_t blockId = t4 << 4 | t1;
     uint8_t data = t3 << 4 | t2;
-    BlockData bd(blockId, data);
-    return bd;
+    return (uint16_t)blockId << 8 | (uint16_t)data;
   }
 
-  static void ParsePalette(uint8_t const *buffer, std::vector<BlockData> &palette, int maxSize) {
+  static void ParsePalette(uint8_t const *buffer, std::vector<uint16_t> &palette, int maxSize) {
     palette.clear();
     for (uint16_t i = 0; i < maxSize; i++) {
       uint8_t v1 = buffer[i * 2];
@@ -27,22 +26,22 @@ public:
     }
   }
 
-  static void ParseFormat0(uint8_t v1, uint8_t v2, BlockData grid[64]) {
+  static void ParseFormat0(uint8_t v1, uint8_t v2, uint16_t grid[64]) {
     auto block = BlockDataFromBytes(v1, v2);
     std::fill_n(grid, 64, block);
   }
 
-  static void ParseFormatF(uint8_t const *buffer, BlockData grid[64]) {
-    std::vector<BlockData> palette;
+  static void ParseFormatF(uint8_t const *buffer, uint16_t grid[64]) {
+    std::vector<uint16_t> palette;
     ParsePalette(buffer, palette, 64);
     std::copy_n(palette.begin(), 64, grid);
   }
 
   template <size_t BitsPerBlock>
-  static bool Parse(uint8_t const *buffer, BlockData grid[64]) {
+  static bool Parse(uint8_t const *buffer, uint16_t grid[64]) {
     using namespace std;
     int size = 1 << BitsPerBlock;
-    vector<BlockData> palette;
+    vector<uint16_t> palette;
     ParsePalette(buffer, palette, size);
     for (int i = 0; i < 8; i++) {
       uint8_t v[BitsPerBlock];
