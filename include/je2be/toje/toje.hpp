@@ -18,7 +18,6 @@
 #include <je2be/toje/entity.hpp>
 #include <je2be/toje/block-entity.hpp>
 
-#include <je2be/toje/terraform/kelp.hpp>
 #include <je2be/toje/terraform/twisting-vines.hpp>
 #include <je2be/toje/terraform/weeping-vines.hpp>
 #include <je2be/toje/terraform/attached-stem.hpp>

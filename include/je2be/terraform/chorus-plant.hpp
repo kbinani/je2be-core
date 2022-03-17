@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::terraform {
 
 class ChorusPlant {
   ChorusPlant() = delete;
@@ -69,4 +69,4 @@ private:
   }
 };
 
-} // namespace je2be
+} // namespace je2be::terraform

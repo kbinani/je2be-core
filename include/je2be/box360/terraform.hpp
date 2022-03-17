@@ -118,6 +118,8 @@ public:
 
   static bool DoChunk(int cx, int cz, std::filesystem::path const &directory, ChunkCache<3, 3> &cache) {
     using namespace std;
+    using namespace je2be::terraform;
+
     auto file = directory / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
     auto input = make_shared<mcfile::stream::FileInputStream>(file);
     auto root = CompoundTag::ReadCompressed(*input, endian::big);

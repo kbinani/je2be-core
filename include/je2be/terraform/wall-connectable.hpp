@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::terraform {
 
 class WallConnectable {
   WallConnectable() = delete;
@@ -859,4 +859,4 @@ public:
   }
 };
 
-} // namespace je2be
+} // namespace je2be::terraform
