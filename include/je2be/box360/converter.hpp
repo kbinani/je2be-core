@@ -6,7 +6,7 @@ class Converter {
   Converter() = delete;
 
 public:
-  static bool Run(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, Options const &options) {
+  static bool Run(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, unsigned int concurrency, Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -37,7 +37,7 @@ public:
           continue;
         }
       }
-      if (!World::Convert(*temp, outputDirectory, dimension, options)) {
+      if (!World::Convert(*temp, outputDirectory, dimension, concurrency, options)) {
         return false;
       }
     }

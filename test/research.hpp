@@ -603,7 +603,7 @@ static void Box360Chunk() {
   string name = "abc-Save20220303092528.bin";
   // string name = "2-Save20220306005722-077-gyazo-1fcbd51efa6d0795fe34e912619aa4f5.bin";
   Options options;
-  CHECK(Converter::Run(dir / name, output, options));
+  CHECK(Converter::Run(dir / name, output, thread::hardware_concurrency(), options));
 }
 
 static void WallConnectable() {

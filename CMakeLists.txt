@@ -25,7 +25,6 @@ set(je2be_files
   include/je2be/box360/grid.hpp
   include/je2be/box360/lxz-decoder.hpp
   include/je2be/box360/options.hpp
-  include/je2be/box360/region.hpp
   include/je2be/box360/savegame.hpp
   include/je2be/box360/stfs.hpp
   include/je2be/box360/terraform.hpp

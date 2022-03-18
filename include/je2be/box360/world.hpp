@@ -6,7 +6,8 @@ class World {
   World() = delete;
 
 public:
-  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, Options options) {
+  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Options options) {
+    using namespace std;
     namespace fs = std::filesystem;
     fs::path pathToRegion;
     switch (dimension) {
@@ -33,15 +34,50 @@ public:
     defer {
       Fs::DeleteAll(*temp);
     };
+    unique_ptr<hwm::task_queue> queue;
+    if (concurrency > 0) {
+      queue.reset(new hwm::task_queue(concurrency));
+    }
+    deque<future<bool>> futures;
+    bool ok = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / pathToRegion / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
           continue;
         }
-        if (!Region::Convert(dimension, mcr, rx, rz, *temp, options)) {
-          return false;
+        for (int z = 0; z < 32; z++) {
+          for (int x = 0; x < 32; x++) {
+            int cx = rx * 32 + x;
+            int cz = rz * 32 + z;
+            if (!options.fChunkFilter.empty()) [[unlikely]] {
+              if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
+                continue;
+              }
+            }
+            if (queue) {
+              vector<future<bool>> drain;
+              FutureSupport::Drain(concurrency + 1, futures, drain);
+              for (auto &f : drain) {
+                ok = ok && f.get();
+              }
+              if (!ok) {
+                break;
+              }
+              futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *temp)));
+            } else {
+              if (ProcessChunk(dimension, mcr, cx, cz, *temp)) {
+                return false;
+              }
+            }
+          }
         }
+      }
+    }
+
+    if (queue) {
+      for (auto &f : futures) {
+        ok = ok && f.get();
       }
     }
 
@@ -59,6 +95,27 @@ public:
           return false;
         }
       }
+    }
+    return true;
+  }
+
+private:
+  static bool ProcessChunk(mcfile::Dimension dimension, std::filesystem::path mcr, int cx, int cz, std::filesystem::path regionTempDir) {
+    using namespace std;
+    shared_ptr<mcfile::je::WritableChunk> chunk;
+    if (!Chunk::Convert(dimension, mcr, cx, cz, chunk)) {
+      return true;
+    }
+    if (!chunk) {
+      return true;
+    }
+
+    auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+    auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
+    if (!chunk->write(*stream)) {
+      stream.reset();
+      Fs::Delete(nbtz);
+      return false;
     }
     return true;
   }
