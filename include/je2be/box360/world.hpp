@@ -81,7 +81,7 @@ public:
       }
     }
 
-    if (!Terraform::Do(*temp)) {
+    if (!Terraform::Do(*temp, concurrency)) {
       return false;
     }
 
