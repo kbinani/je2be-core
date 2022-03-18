@@ -65,8 +65,6 @@ public:
     auto base = static_cast<BannerColorCodeBedrock>(in.int32("Base", 0));
     string color = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(base));
     string name;
-    mcfile::nbt::PrintAsJson(cout, in, {.fTypeHint = true});
-    cout << block.fName << endl;
     if (block.fName.find("wall") == std::string::npos) {
       name = color + "_banner";
     } else {
