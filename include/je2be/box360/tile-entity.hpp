@@ -11,7 +11,7 @@ public:
     std::shared_ptr<mcfile::je::Block const> fBlock;
   };
 
-  static std::optional<Result> Convert(CompoundTag const &in, mcfile::je::Block const &block) {
+  static std::optional<Result> Convert(CompoundTag const &in, mcfile::je::Block const &block, Pos3i const &pos) {
     using namespace std;
     auto rawId = in.string("id", "");
     if (!rawId.starts_with("minecraft:")) {
@@ -24,11 +24,21 @@ public:
     if (found == table.end()) {
       return nullopt;
     }
-    auto ret = found->second(in, block);
+    auto out = Compound();
+    out->set("x", Int(pos.fX));
+    out->set("y", Int(pos.fY));
+    out->set("z", Int(pos.fZ));
+    out->set("keepPacked", Bool(false));
+    out->set("id", String(rawId));
+
+    auto ret = found->second(in, block, out);
+    if (!ret) {
+      return nullopt;
+    }
     return ret;
   }
 
-  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block)>;
+  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out)>;
 
   static std::unordered_map<std::string, Converter> const &GetTable() {
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
@@ -48,9 +58,28 @@ public:
   }
 
 #pragma region Converters
-  static std::optional<Result> Skull(CompoundTag const &in, mcfile::je::Block const &block) {
-    // TODO:
-    return std::nullopt;
+  static std::optional<Result> Skull(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    using namespace std;
+    auto type = static_cast<SkullType>(in.byte("SkullType", 0));
+    auto skullName = JavaNameFromSkullType(type);
+    auto rot = in.byte("Rot");
+
+    map<string, string> props(block.fProperties);
+
+    string name;
+    if (block.fName.find("wall") == string::npos) {
+      if (rot) {
+        props["rotation"] = to_string(*rot);
+      }
+      name = skullName;
+    } else {
+      name = strings::Replace(strings::Replace(skullName, "_head", "_wall_head"), "_skull", "_wall_skull");
+    }
+    auto blockJ = make_shared<mcfile::je::Block const>("minecraft:" + name, props);
+    Result r;
+    r.fBlock = blockJ;
+    r.fTileEntity = out;
+    return r;
   }
 #pragma endregion
 };

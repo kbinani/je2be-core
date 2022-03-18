@@ -276,7 +276,7 @@ public:
         if (!block) {
           continue;
         }
-        if (auto converted = TileEntity::Convert(*c, *block); converted) {
+        if (auto converted = TileEntity::Convert(*c, *block, *pos); converted) {
           if (converted->fBlock) {
             chunk->setBlockAt(*pos, converted->fBlock);
           }
