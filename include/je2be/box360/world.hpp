@@ -66,7 +66,7 @@ public:
               }
               futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *temp)));
             } else {
-              if (ProcessChunk(dimension, mcr, cx, cz, *temp)) {
+              if (!ProcessChunk(dimension, mcr, cx, cz, *temp)) {
                 return false;
               }
             }
