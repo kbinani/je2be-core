@@ -54,11 +54,12 @@ public:
 
     E(skull, Skull);
     E(banner, Banner);
+    E(bed, Bed);
 #undef E
     return ret;
   }
 
-#pragma region Converters
+#pragma region Dedicated_Converters
   static std::optional<Result> Banner(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     using namespace std;
     auto base = static_cast<BannerColorCodeBedrock>(in.int32("Base", 0));
@@ -74,6 +75,15 @@ public:
     Result r;
     r.fTileEntity = out;
     r.fBlock = make_shared<mcfile::je::Block const>("minecraft:" + name, block.fProperties);
+    return r;
+  }
+
+  static std::optional<Result> Bed(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    auto color = static_cast<ColorCodeJava>(in.int32("color", 0));
+    std::string name = JavaNameFromColorCodeJava(color) + "_bed";
+    Result r;
+    r.fTileEntity = out;
+    r.fBlock = std::make_shared<mcfile::je::Block const>("minecraft:" + name, block.fProperties);
     return r;
   }
 
