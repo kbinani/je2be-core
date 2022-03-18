@@ -53,11 +53,30 @@ public:
   ret->insert(std::make_pair(#__name, __conv))
 
     E(skull, Skull);
+    E(banner, Banner);
 #undef E
     return ret;
   }
 
 #pragma region Converters
+  static std::optional<Result> Banner(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    using namespace std;
+    auto base = static_cast<BannerColorCodeBedrock>(in.int32("Base", 0));
+    string color = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(base));
+    string name;
+    mcfile::nbt::PrintAsJson(cout, in, {.fTypeHint = true});
+    cout << block.fName << endl;
+    if (block.fName.find("wall") == std::string::npos) {
+      name = color + "_banner";
+    } else {
+      name = color + "_wall_banner";
+    }
+    Result r;
+    r.fTileEntity = out;
+    r.fBlock = make_shared<mcfile::je::Block const>("minecraft:" + name, block.fProperties);
+    return r;
+  }
+
   static std::optional<Result> Skull(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     using namespace std;
     auto type = static_cast<SkullType>(in.byte("SkullType", 0));
