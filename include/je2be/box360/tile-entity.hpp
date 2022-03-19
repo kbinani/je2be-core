@@ -60,6 +60,7 @@ public:
     E(shulker_box, ShulkerBox);
     E(flower_pot, FlowerPot);
     E(jukebox, Jukebox);
+    E(sign, Sign);
 
 #undef E
     return ret;
@@ -210,6 +211,23 @@ public:
   static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     Items(in, out);
     Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> Sign(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    using namespace std;
+    Result r;
+    for (int i = 1; i <= 4; i++) {
+      string key = "Text" + to_string(i);
+      auto text = in.string(key);
+      if (!text) {
+        continue;
+      }
+      nlohmann::json obj;
+      obj["text"] = *text;
+      out->set(key, String(nlohmann::to_string(obj)));
+    }
     r.fTileEntity = out;
     return r;
   }
