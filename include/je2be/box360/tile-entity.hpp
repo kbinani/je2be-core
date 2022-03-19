@@ -57,6 +57,7 @@ public:
     E(bed, Bed);
     E(chest, Chest);
     E(ender_Chest, EnderChest);
+    E(shulker_box, ShulkerBox);
 #undef E
     return ret;
   }
@@ -91,7 +92,7 @@ public:
     if (block.fId == mcfile::blocks::minecraft::trapped_chest) {
       out->set("id", String("minecraft:trapped_chest"));
     }
-    // TODO: Items
+    Items(in, out);
     Result r;
     r.fTileEntity = out;
     return r;
@@ -99,6 +100,13 @@ public:
 
   static std::optional<Result> EnderChest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     out->set("id", String("minecraft:ender_chest"));
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    Items(in, out);
     Result r;
     r.fTileEntity = out;
     return r;
@@ -126,6 +134,12 @@ public:
     r.fBlock = blockJ;
     r.fTileEntity = out;
     return r;
+  }
+#pragma endregion
+
+#pragma region Helpers
+  static void Items(CompoundTag const &in, CompoundTagPtr &out) {
+    //TODO:
   }
 #pragma endregion
 };
