@@ -59,6 +59,8 @@ public:
     E(ender_Chest, EnderChest);
     E(shulker_box, ShulkerBox);
     E(flower_pot, FlowerPot);
+    E(jukebox, Jukebox);
+
 #undef E
     return ret;
   }
@@ -194,6 +196,17 @@ public:
     return r;
   }
 
+  static std::optional<Result> Jukebox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    if (auto recordItem = in.compoundTag("RecordItem"); recordItem) {
+      if (auto converted = Item::Convert(*recordItem); converted) {
+        out->set("RecordItem", converted);
+      }
+    }
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     Items(in, out);
     Result r;
@@ -228,7 +241,19 @@ public:
 
 #pragma region Helpers
   static void Items(CompoundTag const &in, CompoundTagPtr &out) {
-    //TODO:
+    auto items = in.listTag("Items");
+    if (!items) {
+      return;
+    }
+    auto itemsJ = List<Tag::Type::Compound>();
+    for (auto it : *items) {
+      if (auto c = it->asCompound(); c) {
+        if (auto converted = Item::Convert(*c); converted) {
+          itemsJ->push_back(converted);
+        }
+      }
+    }
+    out->set("Items", itemsJ);
   }
 #pragma endregion
 };
