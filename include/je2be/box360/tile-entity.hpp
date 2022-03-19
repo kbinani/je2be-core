@@ -58,6 +58,7 @@ public:
     E(chest, Chest);
     E(ender_Chest, EnderChest);
     E(shulker_box, ShulkerBox);
+    E(flower_pot, FlowerPot);
 #undef E
     return ret;
   }
@@ -102,6 +103,94 @@ public:
     out->set("id", String("minecraft:ender_chest"));
     Result r;
     r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> FlowerPot(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    using namespace std;
+    Result r;
+    string name;
+    auto data = in.int32("Data", 0);
+    auto item = in.int32("Item", 0);
+    switch (item) {
+    case 6:
+      switch (data) {
+      case 1:
+        name = "spruce_sapling";
+        break;
+      case 2:
+        name = "birch_sapling";
+        break;
+      case 3:
+        name = "jungle_sapling";
+        break;
+      case 4:
+        name = "acacia_sapling";
+        break;
+      case 5:
+        name = "dark_oak_sapling";
+        break;
+      case 0:
+      default:
+        name = "oak_sapling";
+        break;
+      }
+      break;
+    case 31:
+      name = "fern"; // data = 2
+      break;
+    case 32:
+      name = "dead_bush";
+      break;
+    case 37:
+      name = "dandelion";
+      break;
+    case 38:
+      switch (data) {
+      case 1:
+        name = "blue_orchid";
+        break;
+      case 2:
+        name = "allium";
+        break;
+      case 3:
+        name = "azure_bluet";
+        break;
+      case 4:
+        name = "red_tulip";
+        break;
+      case 5:
+        name = "orange_tulip";
+        break;
+      case 6:
+        name = "white_tulip";
+        break;
+      case 7:
+        name = "pink_tulip";
+        break;
+      case 8:
+        name = "oxeye_daisy";
+        break;
+      case 0:
+      default:
+        name = "poppy";
+        break;
+      }
+      break;
+    case 39:
+      name = "brown_mushroom";
+      break;
+    case 40:
+      name = "red_mushroom";
+      break;
+    case 81:
+      name = "cactus";
+      break;
+    }
+    if (name.empty()) {
+      return nullopt;
+    }
+    r.fBlock = make_shared<mcfile::je::Block const>("minecraft:potted_" + name);
     return r;
   }
 
