@@ -93,6 +93,7 @@ set(je2be_files
   include/je2be/terraform/chorus-plant.hpp
   include/je2be/terraform/fence-connectable.hpp
   include/je2be/terraform/leaves.hpp
+  include/je2be/terraform/note-block.hpp
   include/je2be/terraform/redstone-wire.hpp
   include/je2be/terraform/shape-of-stairs.hpp
   include/je2be/terraform/snowy.hpp
@@ -162,7 +163,6 @@ set(je2be_files
   include/je2be/toje/terraform/campfire.hpp
   include/je2be/toje/terraform/cave-vines.hpp
   include/je2be/toje/terraform/door.hpp
-  include/je2be/toje/terraform/note-block.hpp
   include/je2be/toje/terraform/piston.hpp
   include/je2be/toje/terraform/tripwire.hpp
   include/je2be/toje/terraform/twisting-vines.hpp

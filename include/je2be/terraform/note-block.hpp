@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform {
 
 class NoteBlock {
   NoteBlock() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, terraform::BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasNoteBlock) {
@@ -29,12 +29,9 @@ public:
           }
           map<string, string> props(blockJ->fProperties);
           props["instrument"] = "harp";
-          auto lowerB = cache.blockAt(x, y - 1, z);
-          if (lowerB) {
-            auto lowerJ = BlockData::From(*lowerB);
-            if (lowerJ) {
-              props["instrument"] = NoteBlockInstrument(lowerJ->fId);
-            }
+          auto lowerJ = cache.blockAt(x, y - 1, z);
+          if (lowerJ) {
+            props["instrument"] = NoteBlockInstrument(lowerJ->fId);
           }
           auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
           out.setBlockAt(x, y, z, replace);
@@ -582,4 +579,4 @@ public:
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform

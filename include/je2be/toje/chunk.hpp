@@ -255,7 +255,7 @@ public:
     ChorusPlant::Do(j, blockAccessor, accessor);
     FenceConnectable::Do(j, blockAccessor, accessor);
     Campfire::Do(j, cache, accessor);
-    NoteBlock::Do(j, cache, accessor);
+    NoteBlock::Do(j, blockAccessor, accessor);
     RedstoneWire::Do(j, blockAccessor, accessor);
     Tripwire::Do(j, cache, accessor);
     Beacon::Do(j, cache, accessor);

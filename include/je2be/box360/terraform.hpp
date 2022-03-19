@@ -203,6 +203,7 @@ private:
     AttachedStem::Do(*chunk, *cache, accessor);
     Leaves::Do(*chunk, *cache, accessor);
     Chest::Do(*chunk, *cache, accessor);
+    NoteBlock::Do(*chunk, *cache, accessor);
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {
