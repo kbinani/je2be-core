@@ -68,11 +68,27 @@ public:
     return r;
   }
 
+  static std::optional<Result> BrewingStand(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    CopyShortValues(in, *out, {{"BrewTime"}});
+    CopyByteValues(in, *out, {{"Fuel"}});
+    Items(in, out);
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> Chest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     if (block.fId == mcfile::blocks::minecraft::trapped_chest) {
       out->set("id", String("minecraft:trapped_chest"));
     }
     Items(in, out);
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> Comparator(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    CopyIntValues(in, *out, {{"OutputSignal"}});
     Result r;
     r.fTileEntity = out;
     return r;
@@ -206,6 +222,17 @@ public:
     return r;
   }
 
+  static std::optional<Result> NoteBlock(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    auto note = in.byte("note", 0);
+    auto powered = in.boolean("powered", false);
+    auto props = block.fProperties;
+    props["note"] = std::to_string(note);
+    props["powered"] = powered ? "true" : "false";
+    Result r;
+    r.fBlock = std::make_shared<mcfile::je::Block const>(block.fName, props);
+    return r;
+  }
+
   static std::optional<Result> SameNameEmpty(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     Result r;
     r.fTileEntity = out;
@@ -305,6 +332,10 @@ private:
     E(furnace, Furnace);
     E(dropper, Dropper);
     E(dispenser, Dispenser);
+    E(note_block, NoteBlock);
+    E(comparator, Comparator);
+    E(daylight_detector, SameNameEmpty);
+    E(brewing_stand, BrewingStand);
 
 #undef E
     return ret;
