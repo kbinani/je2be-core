@@ -56,6 +56,7 @@ public:
     E(banner, Banner);
     E(bed, Bed);
     E(chest, Chest);
+    E(ender_Chest, EnderChest);
 #undef E
     return ret;
   }
@@ -91,6 +92,13 @@ public:
       out->set("id", String("minecraft:trapped_chest"));
     }
     // TODO: Items
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> EnderChest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    out->set("id", String("minecraft:ender_chest"));
     Result r;
     r.fTileEntity = out;
     return r;
