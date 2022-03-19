@@ -11,6 +11,10 @@ public:
     std::shared_ptr<mcfile::je::Block const> fBlock;
   };
 
+private:
+  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out)>;
+
+public:
   static std::optional<Result> Convert(CompoundTag const &in, mcfile::je::Block const &block, Pos3i const &pos) {
     using namespace std;
     auto rawId = in.string("id", "");
@@ -35,34 +39,6 @@ public:
     if (!ret) {
       return nullopt;
     }
-    return ret;
-  }
-
-  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out)>;
-
-  static std::unordered_map<std::string, Converter> const &GetTable() {
-    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
-    return *sTable;
-  }
-
-  static std::unordered_map<std::string, Converter> const *CreateTable() {
-    auto ret = new std::unordered_map<std::string, Converter>();
-
-#define E(__name, __conv)                   \
-  assert(ret->find(#__name) == ret->end()); \
-  ret->insert(std::make_pair(#__name, __conv))
-
-    E(skull, Skull);
-    E(banner, Banner);
-    E(bed, Bed);
-    E(chest, Chest);
-    E(ender_Chest, EnderChest);
-    E(shulker_box, ShulkerBox);
-    E(flower_pot, FlowerPot);
-    E(jukebox, Jukebox);
-    E(sign, Sign);
-
-#undef E
     return ret;
   }
 
@@ -208,6 +184,12 @@ public:
     return r;
   }
 
+  static std::optional<Result> SameNameEmpty(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     Items(in, out);
     Result r;
@@ -257,7 +239,35 @@ public:
   }
 #pragma endregion
 
+private:
 #pragma region Helpers
+  static std::unordered_map<std::string, Converter> const *CreateTable() {
+    auto ret = new std::unordered_map<std::string, Converter>();
+
+#define E(__name, __conv)                   \
+  assert(ret->find(#__name) == ret->end()); \
+  ret->insert(std::make_pair(#__name, __conv))
+
+    E(skull, Skull);
+    E(banner, Banner);
+    E(bed, Bed);
+    E(chest, Chest);
+    E(ender_Chest, EnderChest);
+    E(shulker_box, ShulkerBox);
+    E(flower_pot, FlowerPot);
+    E(jukebox, Jukebox);
+    E(sign, Sign);
+    E(enchanting_table, SameNameEmpty);
+
+#undef E
+    return ret;
+  }
+
+  static std::unordered_map<std::string, Converter> const &GetTable() {
+    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
+    return *sTable;
+  }
+
   static void Items(CompoundTag const &in, CompoundTagPtr &out) {
     auto items = in.listTag("Items");
     if (!items) {
