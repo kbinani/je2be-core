@@ -28,6 +28,7 @@ private:
     DOOR = 19,
     WALL = 20,
     LEAVES = 21,
+    CHEST = 22, // chest or trapped_chest
   };
 
 public:
@@ -117,6 +118,10 @@ public:
 
   static bool IsLeaves(DataType p) {
     return p == LEAVES;
+  }
+
+  static bool IsChest(DataType p) {
+    return p == CHEST;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -295,6 +300,14 @@ public:
     return b.fName.ends_with("leaves");
   }
 
+  static bool IsChest(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:chest" || b.fName == "minecraft:trapped_chest";
+  }
+
+  static bool IsChest(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::chest || b.fId == mcfile::blocks::minecraft::trapped_chest;
+  }
+
   BlockPropertyAccessor(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
   virtual ~BlockPropertyAccessor() {}
   virtual DataType property(int bx, int by, int bz) const = 0;
@@ -322,6 +335,7 @@ public:
     fHasDoor |= IsDoor(p);
     fHasWall |= IsWall(p);
     fHasLeaves |= IsLeaves(p);
+    fHasChest |= IsChest(p);
   }
 
 private:
@@ -367,6 +381,8 @@ private:
       return WALL;
     } else if (IsLeaves(b)) {
       return LEAVES;
+    } else if (IsChest(b)) {
+      return CHEST;
     }
     return 0;
   }
@@ -392,6 +408,7 @@ public:
   bool fHasDoor = false;
   bool fHasWall = false;
   bool fHasLeaves = false;
+  bool fHasChest = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;

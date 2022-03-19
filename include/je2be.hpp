@@ -125,6 +125,7 @@
 #include <je2be/terraform/bedrock/attached-stem.hpp>
 #include <je2be/terraform/box360/kelp.hpp>
 #include <je2be/terraform/box360/attached-stem.hpp>
+#include <je2be/terraform/box360/chest.hpp>
 
 #include <je2be/box360/box360.hpp>
 #include <je2be/tobe/tobe.hpp>

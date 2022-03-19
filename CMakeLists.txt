@@ -87,6 +87,7 @@ set(je2be_files
   include/je2be/terraform/block-property-accessor.hpp
   include/je2be/terraform/box360/attached-stem.hpp
   include/je2be/terraform/box360/block-accessor-box360.hpp
+  include/je2be/terraform/box360/chest.hpp
   include/je2be/terraform/box360/kelp.hpp
   include/je2be/terraform/chorus-plant.hpp
   include/je2be/terraform/fence-connectable.hpp
