@@ -22,6 +22,7 @@ set(je2be_files
   include/je2be/box360/box360.hpp
   include/je2be/box360/chunk.hpp
   include/je2be/box360/converter.hpp
+  include/je2be/box360/entity.hpp
   include/je2be/box360/grid.hpp
   include/je2be/box360/item.hpp
   include/je2be/box360/lxz-decoder.hpp

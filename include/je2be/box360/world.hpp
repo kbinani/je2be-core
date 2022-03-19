@@ -9,31 +9,44 @@ public:
   static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Options options) {
     using namespace std;
     namespace fs = std::filesystem;
-    fs::path pathToRegion;
+    string worldDir;
     switch (dimension) {
     case mcfile::Dimension::Nether:
-      pathToRegion = fs::path("DIM-1") / "region";
+      worldDir = "DIM-1";
       break;
     case mcfile::Dimension::End:
-      pathToRegion = fs::path("DIM1") / "region";
+      worldDir = "DIM1";
       break;
     case mcfile::Dimension::Overworld:
     default:
-      pathToRegion = fs::path("region");
+      worldDir = ".";
       break;
     }
 
     fs::path tempRoot = options.fTempDirectory ? *options.fTempDirectory : fs::temp_directory_path();
-    auto temp = mcfile::File::CreateTempDir(tempRoot);
-    if (!temp) {
+
+    auto chunkTempDir = mcfile::File::CreateTempDir(tempRoot);
+    if (!chunkTempDir) {
       return false;
     }
-    if (!Fs::CreateDirectories(*temp)) {
+    if (!Fs::CreateDirectories(*chunkTempDir)) {
       return false;
     }
     defer {
-      Fs::DeleteAll(*temp);
+      Fs::DeleteAll(*chunkTempDir);
     };
+
+    auto entityTempDir = mcfile::File::CreateTempDir(tempRoot);
+    if (!entityTempDir) {
+      return false;
+    }
+    if (!Fs::CreateDirectories(*entityTempDir)) {
+      return false;
+    }
+    defer {
+      Fs::DeleteAll(*entityTempDir);
+    };
+
     unique_ptr<hwm::task_queue> queue;
     if (concurrency > 0) {
       queue.reset(new hwm::task_queue(concurrency));
@@ -42,7 +55,7 @@ public:
     bool ok = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        auto mcr = levelRootDirectory / pathToRegion / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
+        auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
           continue;
         }
@@ -64,9 +77,9 @@ public:
               if (!ok) {
                 break;
               }
-              futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *temp)));
+              futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir)));
             } else {
-              if (!ProcessChunk(dimension, mcr, cx, cz, *temp)) {
+              if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir)) {
                 return false;
               }
             }
@@ -85,11 +98,14 @@ public:
       return false;
     }
 
-    if (!Terraform::Do(*temp, concurrency)) {
+    if (!Terraform::Do(*chunkTempDir, concurrency)) {
       return false;
     }
 
-    if (!Fs::CreateDirectories(outputDirectory / pathToRegion)) {
+    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
+      return false;
+    }
+    if (!Fs::CreateDirectories(outputDirectory / worldDir / "entities")) {
       return false;
     }
 
@@ -97,11 +113,10 @@ public:
     o.fDeleteInput = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        auto mca = outputDirectory / pathToRegion / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
         if (queue) {
-          futures.push_back(move(queue->enqueue(ConcatCompressedNbt, rx, rz, *temp, mca, o)));
+          futures.push_back(move(queue->enqueue(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o)));
         } else {
-          if (!ConcatCompressedNbt(rx, rz, *temp, mca, o)) {
+          if (!ConcatCompressedNbt(rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o)) {
             return false;
           }
         }
@@ -114,11 +129,13 @@ public:
   }
 
 private:
-  static bool ConcatCompressedNbt(int rx, int rz, std::filesystem::path directory, std::filesystem::path mca, mcfile::je::Region::ConcatOptions options) {
-    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, directory, mca, options);
+  static bool ConcatCompressedNbt(int rx, int rz, std::filesystem::path outputDirectory, std::filesystem::path chunkTempDir, std::filesystem::path entityTempDir, mcfile::je::Region::ConcatOptions options) {
+    auto chunkMca = outputDirectory / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    auto entityMca = outputDirectory / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, chunkTempDir, chunkMca, options) && mcfile::je::Region::ConcatCompressedNbt(rx, rz, entityTempDir, entityMca, options);
   }
 
-  static bool ProcessChunk(mcfile::Dimension dimension, std::filesystem::path mcr, int cx, int cz, std::filesystem::path regionTempDir) {
+  static bool ProcessChunk(mcfile::Dimension dimension, std::filesystem::path mcr, int cx, int cz, std::filesystem::path chunkTempDir, std::filesystem::path entityTempDir) {
     using namespace std;
     shared_ptr<mcfile::je::WritableChunk> chunk;
     if (!Chunk::Convert(dimension, mcr, cx, cz, chunk)) {
@@ -128,13 +145,26 @@ private:
       return true;
     }
 
-    auto nbtz = regionTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-    auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
-    if (!chunk->write(*stream)) {
-      stream.reset();
-      Fs::Delete(nbtz);
-      return false;
+    {
+      auto nbtz = chunkTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+      auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
+      if (!chunk->write(*stream)) {
+        stream.reset();
+        Fs::Delete(nbtz);
+        return false;
+      }
     }
+
+    {
+      auto nbtz = entityTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+      auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
+      if (!chunk->writeEntities(*stream)) {
+        stream.reset();
+        Fs::Delete(nbtz);
+        return false;
+      }
+    }
+
     return true;
   }
 };

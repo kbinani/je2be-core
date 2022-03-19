@@ -286,7 +286,19 @@ public:
         }
       }
     }
-    // TODO: tag->listTag("Entities") etc.
+    if (auto e = tag->listTag("Entities"); e) {
+      for (auto &item : *e) {
+        auto c = item->asCompound();
+        if (!c) {
+          continue;
+        }
+        auto converted = Entity::Convert(*c);
+        if (!converted) {
+          continue;
+        }
+        chunk->fEntities.push_back(converted->fEntity);
+      }
+    }
 
     result.swap(chunk);
 
