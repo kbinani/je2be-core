@@ -78,6 +78,20 @@ public:
     return r;
   }
 
+  static std::optional<Result> Dispenser(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    Items(in, out);
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> Dropper(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    Items(in, out);
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> EnderChest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     out->set("id", String("minecraft:ender_chest"));
     Result r;
@@ -173,6 +187,14 @@ public:
     return r;
   }
 
+  static std::optional<Result> Furnace(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    CopyShortValues(in, *out, {{"BurnTime"}, {"CookTime"}, {"CookTimeTotal"}});
+    Items(in, out);
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> Jukebox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
     if (auto recordItem = in.compoundTag("RecordItem"); recordItem) {
       if (auto converted = Item::Convert(*recordItem); converted) {
@@ -241,28 +263,6 @@ public:
 
 private:
 #pragma region Helpers
-  static std::unordered_map<std::string, Converter> const *CreateTable() {
-    auto ret = new std::unordered_map<std::string, Converter>();
-
-#define E(__name, __conv)                   \
-  assert(ret->find(#__name) == ret->end()); \
-  ret->insert(std::make_pair(#__name, __conv))
-
-    E(skull, Skull);
-    E(banner, Banner);
-    E(bed, Bed);
-    E(chest, Chest);
-    E(ender_Chest, EnderChest);
-    E(shulker_box, ShulkerBox);
-    E(flower_pot, FlowerPot);
-    E(jukebox, Jukebox);
-    E(sign, Sign);
-    E(enchanting_table, SameNameEmpty);
-
-#undef E
-    return ret;
-  }
-
   static std::unordered_map<std::string, Converter> const &GetTable() {
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
     return *sTable;
@@ -282,6 +282,32 @@ private:
       }
     }
     out->set("Items", itemsJ);
+  }
+
+  static std::unordered_map<std::string, Converter> const *CreateTable() {
+    auto ret = new std::unordered_map<std::string, Converter>();
+
+#define E(__name, __conv)                   \
+  assert(ret->find(#__name) == ret->end()); \
+  ret->insert(std::make_pair(#__name, __conv))
+
+    E(skull, Skull);
+    E(banner, Banner);
+    E(bed, Bed);
+    E(chest, Chest);
+    E(ender_Chest, EnderChest);
+    E(shulker_box, ShulkerBox);
+    E(flower_pot, FlowerPot);
+    E(jukebox, Jukebox);
+    E(sign, Sign);
+    E(enchanting_table, SameNameEmpty);
+    E(conduit, SameNameEmpty);
+    E(furnace, Furnace);
+    E(dropper, Dropper);
+    E(dispenser, Dispenser);
+
+#undef E
+    return ret;
   }
 #pragma endregion
 };
