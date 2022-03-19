@@ -51,7 +51,9 @@ public:
 
           props["type"] = type;
           auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
-          out.setBlockAt(x, y, z, replace);
+          mcfile::je::SetBlockOptions sbo;
+          sbo.fRemoveTileEntity = false;
+          out.setBlockAt(x, y, z, replace, sbo);
         }
       }
     }

@@ -55,6 +55,7 @@ public:
     E(skull, Skull);
     E(banner, Banner);
     E(bed, Bed);
+    E(chest, Chest);
 #undef E
     return ret;
   }
@@ -82,6 +83,16 @@ public:
     Result r;
     r.fTileEntity = out;
     r.fBlock = std::make_shared<mcfile::je::Block const>("minecraft:" + name, block.fProperties);
+    return r;
+  }
+
+  static std::optional<Result> Chest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+    if (block.fId == mcfile::blocks::minecraft::trapped_chest) {
+      out->set("id", String("minecraft:trapped_chest"));
+    }
+    // TODO: Items
+    Result r;
+    r.fTileEntity = out;
     return r;
   }
 
