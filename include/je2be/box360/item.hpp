@@ -71,6 +71,16 @@ private:
     }
   }
 
+  static std::string CookedFish(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    switch (damage) {
+    case 1:
+      return "cooked_salmon";
+    case 0:
+    default:
+      return "cooked_cod";
+    }
+  }
+
   static std::string Coral(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
     switch (damage) {
     case 1:
@@ -163,6 +173,57 @@ private:
     case 0:
     default:
       return "sunflower";
+    }
+  }
+
+  static std::string Dye(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    switch (damage) {
+    case 1:
+      return "red_dye";
+    case 2:
+      return "green_dye";
+    case 3:
+      return "cocoa_beans";
+    case 4:
+      return "lapis_lazuli";
+    case 5:
+      return "purple_dye";
+    case 6:
+      return "cyan_dye";
+    case 7:
+      return "light_gray_dye";
+    case 8:
+      return "gray_dye";
+    case 9:
+      return "pink_dye";
+    case 10:
+      return "lime_dye";
+    case 11:
+      return "yellow_dye";
+    case 12:
+      return "light_blue_dye";
+    case 13:
+      return "magenta_dye";
+    case 14:
+      return "orange_dye";
+    case 15:
+      return "bone_meal";
+    case 0:
+      return "ink_sac";
+    }
+  }
+
+  static std::string Fish(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    switch (damage) {
+    case 1:
+      return "salmon";
+    case 2:
+      return "tropical_fish";
+    case 3:
+      return "pufferfish";
+    case 0:
+    default:
+      return "cod";
     }
   }
 
@@ -633,6 +694,20 @@ private:
     E(prismarine_bricks_stairs, Rename("prismarine_brick_stairs"));
     E(hardened_clay, Rename("terracotta"));
     E(fence_gate, Rename("oak_fence_gate"));
+    E(golden_rail, Rename("powered_rail"));
+    E(boat, Rename("oak_boat"));
+    E(noteblock, Rename("note_block"));
+    E(wooden_button, Rename("oak_button"));
+    E(wooden_pressure_plate, Rename("oak_pressure_plate"));
+    E(netherbrick, Rename("nether_brick"));
+    E(nautilus, Rename("nautilus_shell"));
+    E(nautilus_core, Rename("heart_of_the_sea"));
+    E(reeds, Rename("sugar_cane"));
+    E(chorus_fruit_popped, Rename("popped_chorus_fruit"));
+    E(turtle_shell_piece, Rename("scute"));
+    E(dye, Dye);
+    E(cooked_fish, CookedFish);
+    E(fish, Fish);
 
 #undef E
     return ret;
