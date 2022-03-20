@@ -43,6 +43,92 @@ public:
 
 private:
 #pragma region Converter
+  static std::string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "mossy_cobblestone_wall";
+    case 0:
+    default:
+      return "cobblestone_wall";
+    }
+  }
+
+  static std::string Concrete(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "orange_concrete_powder";
+    case 2:
+      return "magenta_concrete_powder";
+    case 3:
+      return "light_blue_concrete_powder";
+    case 4:
+      return "yellow_concrete_powder";
+    case 5:
+      return "lime_concrete_powder";
+    case 6:
+      return "pink_concrete_powder";
+    case 7:
+      return "gray_concrete_powder";
+    case 8:
+      return "light_gray_concrete_powder";
+    case 9:
+      return "cyan_concrete_powder";
+    case 10:
+      return "purple_concrete_powder";
+    case 11:
+      return "blue_concrete_powder";
+    case 12:
+      return "brown_concrete_powder";
+    case 13:
+      return "green_concrete_powder";
+    case 14:
+      return "red_concrete_powder";
+    case 15:
+      return "black_concrete_powder";
+    case 0:
+    default:
+      return "white_concrete_powder";
+    }
+  }
+
+  static std::string ConcretePowder(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "orange_concrete";
+    case 2:
+      return "magenta_concrete";
+    case 3:
+      return "light_blue_concrete";
+    case 4:
+      return "yellow_concrete";
+    case 5:
+      return "lime_concrete";
+    case 6:
+      return "pink_concrete";
+    case 7:
+      return "gray_concrete";
+    case 8:
+      return "light_gray_concrete";
+    case 9:
+      return "cyan_concrete";
+    case 10:
+      return "purple_concrete";
+    case 11:
+      return "blue_concrete";
+    case 12:
+      return "brown_concrete";
+    case 13:
+      return "green_concrete";
+    case 14:
+      return "red_concrete";
+    case 15:
+      return "black_concrete";
+    case 0:
+    default:
+      return "white_concrete";
+    }
+  }
+
   static std::string Dirt(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
     switch (damage) {
     case 1:
@@ -52,6 +138,48 @@ private:
     case 0:
     default:
       return "dirt";
+    }
+  }
+
+  static std::string DoublePlant(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "lilac";
+    case 2:
+      return "tall_grass";
+    case 3:
+      return "large_fern";
+    case 4:
+      return "rose_bush";
+    case 5:
+      return "peony";
+    case 0:
+    default:
+      return "sunflower";
+    }
+  }
+
+  static std::string Leaves(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 9:
+      return "spruce_leaves";
+    case 10:
+      return "birch_leaves";
+    case 11:
+      return "jungle_leaves";
+    case 8:
+    default:
+      return "oak_leaves";
+    }
+  }
+
+  static std::string Leaves2(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 9:
+      return "dark_oak_leaves";
+    case 8:
+    default:
+      return "acacia_leaves";
     }
   }
 
@@ -146,7 +274,32 @@ private:
     case 2:
       return "quartz_pillar";
     case 0:
+    default:
       return "quartz_block";
+    }
+  }
+
+  static std::string RedFlower(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "blue_orchid";
+    case 2:
+      return "allium";
+    case 3:
+      return "azure_bluet";
+    case 4:
+      return "red_tulip";
+    case 5:
+      return "orange_tulip";
+    case 6:
+      return "white_tulip";
+    case 7:
+      return "pink_tulip";
+    case 8:
+      return "oxeye_daisy";
+    case 0:
+    default:
+      return "poppy";
     }
   }
 
@@ -185,6 +338,52 @@ private:
     case 0:
     default:
       return "sandstone";
+    }
+  }
+
+  static std::string Sapling(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "spruce_sapling";
+    case 2:
+      return "birch_sapling";
+    case 3:
+      return "jungle_sapling";
+    case 4:
+      return "acacia_sapling";
+    case 5:
+      return "dark_oak_sapling";
+    case 0:
+    default:
+      return "oak_sapling";
+    }
+  }
+
+  static std::string Skull(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "wither_skeleton_skull";
+    case 2:
+      return "zombie_head";
+    case 3:
+      return "player_head";
+    case 4:
+      return "creeper_head";
+    case 5:
+      return "dragon_head";
+    case 0:
+    default:
+      return "skeleton_skull";
+    }
+  }
+
+  static std::string Sponge(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 1:
+      return "wet_sponge";
+    case 0:
+    default:
+      return "sponge";
     }
   }
 
@@ -288,6 +487,18 @@ private:
     }
   }
 
+  static std::string Tallgrass(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
+    switch (damage) {
+    case 2:
+      return "fern";
+    case 0:
+      return "grass"; // shrub
+    case 1:
+    default:
+      return "grass";
+    }
+  }
+
   static std::string WoodenSlab(CompoundTag const &in, CompoundTagPtr &out, int16_t damage) {
     switch (damage) {
     case 1:
@@ -351,6 +562,23 @@ private:
     E(prismarine_stairs, Same);
     E(prismarine_bricks_stairs, Same);
     E(dark_prismarine_stairs, Same);
+    E(torch, Same);
+    E(end_rod, Same);
+    E(white_glazed_terracotta, Same);
+    E(orange_glazed_terracotta, Same);
+    E(magenta_glazed_terracotta, Same);
+    E(light_blue_glazed_terracotta, Same);
+    E(yellow_glazed_terracotta, Same);
+    E(lime_glazed_terracotta, Same);
+    E(pink_glazed_terracotta, Same);
+    E(gray_glazed_terracotta, Same);
+    E(cyan_glazed_terracotta, Same);
+    E(purple_glazed_terracotta, Same);
+    E(blue_glazed_terracotta, Same);
+    E(brown_glazed_terracotta, Same);
+    E(green_glazed_terracotta, Same);
+    E(red_glazed_terracotta, Same);
+    E(black_glazed_terracotta, Same);
 
     E(stone, Stone);
     E(red_sandstone, RedSandstone);
@@ -369,6 +597,18 @@ private:
     E(prismarine_slab, PrismarineSlab);
     E(stone_stairs, StoneStairs);
     E(stained_hardened_clay, StainedHardenedClay);
+    E(sapling, Sapling);
+    E(sponge, Sponge);
+    E(skull, Skull);
+    E(leaves, Leaves);
+    E(leaves2, Leaves2);
+    E(tallgrass, Tallgrass);
+    E(double_plant, DoublePlant);
+    E(red_flower, RedFlower);
+    E(concrete, Concrete);
+    E(cobblestone_wall, CobblestoneWall);
+    E(concrete_powder, ConcretePowder);
+    E(silver_glazed_terracotta, Rename("light_gray_glazed_terracotta"));
 
 #undef E
     return ret;
