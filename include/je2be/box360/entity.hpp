@@ -11,10 +11,10 @@ public:
   };
 
 private:
-  using Converter = std::function<std::optional<Result>(CompoundTag const &in)>;
+  using Converter = std::function<std::optional<Result>(CompoundTag const &in, Context const &ctx)>;
 
 public:
-  static std::optional<Result> Convert(CompoundTag const &in) {
+  static std::optional<Result> Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
     auto rawId = in.string("id");
     if (!rawId) {
@@ -29,7 +29,7 @@ public:
     if (found == table.end()) {
       return nullopt;
     }
-    auto converted = found->second(in);
+    auto converted = found->second(in, ctx);
     if (!converted) {
       return nullopt;
     }
@@ -43,7 +43,7 @@ public:
 
 private:
 #pragma region Converters
-  static std::optional<Result> ItemFrame(CompoundTag const &in) {
+  static std::optional<Result> ItemFrame(CompoundTag const &in, Context const &ctx) {
     auto out = in.copy();
 
     int8_t facingB = in.byte("Facing", 0);
@@ -66,7 +66,7 @@ private:
     out->set("Facing", Byte(facingJ));
 
     if (auto item = in.compoundTag("Item"); item) {
-      if (auto converted = Item::Convert(*item); converted) {
+      if (auto converted = Item::Convert(*item, ctx); converted) {
         out->set("Item", converted);
       }
     }

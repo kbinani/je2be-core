@@ -262,6 +262,7 @@ public:
     if (!tag) {
       return false;
     }
+    Context ctx(TileEntity::Convert);
     if (auto te = tag->listTag("TileEntities"); te) {
       for (auto &item : *te) {
         auto c = std::dynamic_pointer_cast<CompoundTag>(item);
@@ -276,7 +277,7 @@ public:
         if (!block) {
           continue;
         }
-        if (auto converted = TileEntity::Convert(*c, *block, *pos); converted) {
+        if (auto converted = TileEntity::Convert(*c, *block, *pos, ctx); converted) {
           if (converted->fBlock) {
             chunk->setBlockAt(*pos, converted->fBlock);
           }
@@ -292,7 +293,7 @@ public:
         if (!c) {
           continue;
         }
-        auto converted = Entity::Convert(*c);
+        auto converted = Entity::Convert(*c, ctx);
         if (!converted) {
           continue;
         }

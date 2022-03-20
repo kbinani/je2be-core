@@ -5,17 +5,11 @@ namespace je2be::box360 {
 class TileEntity {
   TileEntity() = delete;
 
-public:
-  struct Result {
-    CompoundTagPtr fTileEntity;
-    std::shared_ptr<mcfile::je::Block const> fBlock;
-  };
-
-private:
-  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out)>;
+  using Result = TileEntityConvertResult;
+  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx)>;
 
 public:
-  static std::optional<Result> Convert(CompoundTag const &in, mcfile::je::Block const &block, Pos3i const &pos) {
+  static std::optional<Result> Convert(CompoundTag const &in, mcfile::je::Block const &block, Pos3i const &pos, Context const &ctx) {
     using namespace std;
     auto rawId = in.string("id", "");
     if (!rawId.starts_with("minecraft:")) {
@@ -35,7 +29,7 @@ public:
     out->set("keepPacked", Bool(false));
     out->set("id", String(rawId));
 
-    auto ret = found->second(in, block, out);
+    auto ret = found->second(in, block, out, ctx);
     if (!ret) {
       return nullopt;
     }
@@ -43,7 +37,7 @@ public:
   }
 
 #pragma region Dedicated_Converters
-  static std::optional<Result> Banner(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Banner(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     auto base = static_cast<BannerColorCodeBedrock>(in.int32("Base", 0));
     string color = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(base));
@@ -59,7 +53,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Bed(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Bed(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     auto color = static_cast<ColorCodeJava>(in.int32("color", 0));
     std::string name = JavaNameFromColorCodeJava(color) + "_bed";
     Result r;
@@ -68,54 +62,54 @@ public:
     return r;
   }
 
-  static std::optional<Result> BrewingStand(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> BrewingStand(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
     CopyShortValues(in, *out, {{"BrewTime"}});
     CopyByteValues(in, *out, {{"Fuel"}});
-    Items(in, out);
+    Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Chest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Chest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
     if (block.fId == mcfile::blocks::minecraft::trapped_chest) {
       out->set("id", String("minecraft:trapped_chest"));
     }
-    Items(in, out);
+    Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Comparator(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Comparator(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     CopyIntValues(in, *out, {{"OutputSignal"}});
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Dispenser(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
-    Items(in, out);
+  static std::optional<Result> Dispenser(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+    Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Dropper(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
-    Items(in, out);
+  static std::optional<Result> Dropper(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+    Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> EnderChest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> EnderChest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     out->set("id", String("minecraft:ender_chest"));
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> FlowerPot(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> FlowerPot(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     Result r;
     string name;
@@ -203,17 +197,17 @@ public:
     return r;
   }
 
-  static std::optional<Result> Furnace(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Furnace(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
     CopyShortValues(in, *out, {{"BurnTime"}, {"CookTime"}, {"CookTimeTotal"}});
-    Items(in, out);
+    Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Jukebox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Jukebox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
     if (auto recordItem = in.compoundTag("RecordItem"); recordItem) {
-      if (auto converted = Item::Convert(*recordItem); converted) {
+      if (auto converted = Item::Convert(*recordItem, ctx); converted) {
         out->set("RecordItem", converted);
       }
     }
@@ -222,7 +216,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> NoteBlock(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> NoteBlock(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     auto note = in.byte("note", 0);
     auto powered = in.boolean("powered", false);
     auto props = block.fProperties;
@@ -233,20 +227,20 @@ public:
     return r;
   }
 
-  static std::optional<Result> SameNameEmpty(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> SameNameEmpty(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
-    Items(in, out);
+  static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+    Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Sign(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Sign(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     Result r;
     for (int i = 1; i <= 4; i++) {
@@ -263,7 +257,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Skull(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out) {
+  static std::optional<Result> Skull(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     auto type = static_cast<SkullType>(in.byte("SkullType", 0));
     auto skullName = JavaNameFromSkullType(type);
@@ -295,7 +289,7 @@ private:
     return *sTable;
   }
 
-  static void Items(CompoundTag const &in, CompoundTagPtr &out) {
+  static void Items(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     auto items = in.listTag("Items");
     if (!items) {
       return;
@@ -303,7 +297,7 @@ private:
     auto itemsJ = List<Tag::Type::Compound>();
     for (auto it : *items) {
       if (auto c = it->asCompound(); c) {
-        if (auto converted = Item::Convert(*c); converted) {
+        if (auto converted = Item::Convert(*c, ctx); converted) {
           itemsJ->push_back(converted);
         }
       }

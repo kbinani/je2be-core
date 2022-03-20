@@ -21,6 +21,7 @@ set(je2be_files
   include/je2be/box360/block-data.hpp
   include/je2be/box360/box360.hpp
   include/je2be/box360/chunk.hpp
+  include/je2be/box360/context.hpp
   include/je2be/box360/converter.hpp
   include/je2be/box360/entity.hpp
   include/je2be/box360/grid.hpp
@@ -30,6 +31,7 @@ set(je2be_files
   include/je2be/box360/savegame.hpp
   include/je2be/box360/stfs.hpp
   include/je2be/box360/terraform.hpp
+  include/je2be/box360/tile-entity-convert-result.hpp
   include/je2be/box360/tile-entity.hpp
   include/je2be/box360/world.hpp
   include/je2be/color/lab.hpp
