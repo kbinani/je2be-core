@@ -22,7 +22,7 @@ public:
     if (found) {
       return *found;
     } else {
-      return 0;
+      return "";
     }
   }
 
