@@ -26,6 +26,68 @@ public:
     }
   }
 
+  static std::string JavaEnchantmentIdFromBox360(int16_t id) {
+    switch (id) {
+    case 5:
+      return "minecraft:respiration";
+    case 6:
+      return "minecraft:aqua_affinity";
+    case 7:
+      return "minecraft:thorns";
+    case 8:
+      return "minecraft:depth_strider";
+    case 9:
+      return "minecraft:frost_walker";
+    case 10:
+      return "minecraft:binding_curse";
+    case 16:
+      return "minecraft:sharpness";
+    case 17:
+      return "minecraft:smite";
+    case 18:
+      return "minecraft:bane_of_arthropods";
+    case 19:
+      return "minecraft:knockback";
+    case 20:
+      return "minecraft:fire_aspect";
+    case 21:
+      return "minecraft:looting";
+    case 32:
+      return "minecraft:efficiency";
+    case 33:
+      return "minecraft:silk_touch";
+    case 34:
+      return "minecraft:unbreaking";
+    case 35:
+      return "minecraft:fortune";
+    case 48:
+      return "minecraft:power";
+    case 49:
+      return "minecraft:punch";
+    case 50:
+      return "minecraft:flame";
+    case 51:
+      return "minecraft:infinity";
+    case 61:
+      return "minecraft:luck_of_the_sea";
+    case 62:
+      return "minecraft:lure";
+    case 70:
+      return "minecraft:mending";
+    case 71:
+      return "minecraft:vanishing_curse";
+    case 80:
+      return "minecraft:impaling";
+    case 81:
+      return "minecraft:riptide";
+    case 82:
+      return "minecraft:loyalty";
+    case 83:
+      return "minecraft:channeling";
+    }
+    return JavaEnchantmentIdFromBedrock(id);
+  }
+
   static ReversibleMap<std::string, int16_t> const *GetTable() {
     static std::unique_ptr<ReversibleMap<std::string, int16_t> const> const sTable(CreateTable());
     return sTable.get();

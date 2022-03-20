@@ -213,6 +213,39 @@ private:
     }
   }
 
+  static std::string EnchantedBook(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    if (auto tagB = in.compoundTag("tag"); tagB) {
+      auto tagJ = Compound();
+      if (auto storedB = tagB->listTag("StoredEnchantments"); storedB) {
+        auto storedJ = List<Tag::Type::Compound>();
+        for (auto const &it : *storedB) {
+          auto enchB = it->asCompound();
+          if (!enchB) {
+            continue;
+          }
+          auto idB = enchB->int16("id");
+          if (!idB) {
+            continue;
+          }
+          auto idJ = Enchantments::JavaEnchantmentIdFromBox360(*idB);
+          auto lvl = enchB->int16("lvl");
+          if (!lvl) {
+            continue;
+          }
+          auto enchJ = Compound();
+          enchJ->set("id", String(idJ));
+          enchJ->set("lvl", Short(*lvl));
+          storedJ->push_back(enchJ);
+        }
+        tagJ->set("StoredEnchantments", storedJ);
+      }
+      if (!tagJ->empty()) {
+        out->set("tag", tagJ);
+      }
+    }
+    return "";
+  }
+
   static std::string Fish(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
     switch (damage) {
     case 1:
@@ -318,6 +351,13 @@ private:
     default:
       return "oak_planks";
     }
+  }
+
+  static std::string Potion(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    if (auto tag = in.compoundTag("tag"); tag) {
+      out->set("tag", tag);
+    }
+    return "";
   }
 
   static std::string Prismarine(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
@@ -708,6 +748,12 @@ private:
     E(dye, Dye);
     E(cooked_fish, CookedFish);
     E(fish, Fish);
+    E(speckled_melon, Rename("glistering_melon_slice"));
+    E(potion, Potion);
+    E(lingering_potion, Potion);
+    E(splash_potion, Potion);
+    E(enchanted_book, EnchantedBook);
+    E(tipped_arrow, Potion);
 
 #undef E
     return ret;
