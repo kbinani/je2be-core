@@ -20,15 +20,17 @@ public:
     auto id = rawId->substr(10);
     auto const &table = GetTable();
     auto found = table.find(id);
-    if (found == table.end()) {
-      return nullptr;
-    }
-    auto damage = in.int16("Damage", 0);
 
     auto out = Compound();
     CopyByteValues(in, *out, {{"Count"}, {"Slot"}});
 
-    auto changedId = found->second(in, out, damage, ctx);
+    auto damage = in.int16("Damage", 0);
+    string changedId = *rawId;
+    if (found == table.end()) {
+      changedId = Same(in, out, damage, ctx);
+    } else {
+      changedId = found->second(in, out, damage, ctx);
+    }
     if (out) {
       if (changedId.empty()) {
         out->set("id", String(*rawId));
@@ -43,6 +45,22 @@ public:
 
 private:
 #pragma region Converter
+  static std::string Banner(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &ctx) {
+    if (auto tagB = in.compoundTag("tag"); tagB) {
+      if (auto blockEntityTagB = tagB->compoundTag("BlockEntityTag"); blockEntityTagB) {
+        blockEntityTagB->set("id", String(in.string("id", "")));
+        if (auto converted = ctx.fTileEntityConverter(*blockEntityTagB, nullptr, Pos3i(0, 0, 0), ctx); converted && converted->fTileEntity) {
+          auto tagJ = Compound();
+          tagJ->set("BlockEntityTag", converted->fTileEntity);
+          out->set("tag", tagJ);
+        }
+      }
+    }
+    auto color = ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(damage));
+    std::string colorName = JavaNameFromColorCodeJava(color);
+    return colorName + "_banner";
+  }
+
   static std::string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
     switch (damage) {
     case 1:
@@ -53,79 +71,68 @@ private:
     }
   }
 
-  static std::string Concrete(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+  static std::string Coral(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
     switch (damage) {
     case 1:
-      return "orange_concrete_powder";
+      return "brain_coral";
     case 2:
-      return "magenta_concrete_powder";
+      return "bubble_coral";
     case 3:
-      return "light_blue_concrete_powder";
+      return "fire_coral";
     case 4:
-      return "yellow_concrete_powder";
-    case 5:
-      return "lime_concrete_powder";
-    case 6:
-      return "pink_concrete_powder";
-    case 7:
-      return "gray_concrete_powder";
-    case 8:
-      return "light_gray_concrete_powder";
-    case 9:
-      return "cyan_concrete_powder";
-    case 10:
-      return "purple_concrete_powder";
-    case 11:
-      return "blue_concrete_powder";
-    case 12:
-      return "brown_concrete_powder";
-    case 13:
-      return "green_concrete_powder";
-    case 14:
-      return "red_concrete_powder";
-    case 15:
-      return "black_concrete_powder";
+      return "horn_coral";
     case 0:
     default:
-      return "white_concrete_powder";
+      return "tube_coral";
     }
   }
 
-  static std::string ConcretePowder(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
-    switch (damage) {
+  static std::string CoralBlock(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    std::string prefix = (damage & 0x8) == 0x8 ? "dead_" : "";
+    switch (damage & 0x7) {
     case 1:
-      return "orange_concrete";
+      return prefix + "brain_coral_block";
     case 2:
-      return "magenta_concrete";
+      return prefix + "bubble_coral_block";
     case 3:
-      return "light_blue_concrete";
+      return prefix + "fire_coral_block";
     case 4:
-      return "yellow_concrete";
-    case 5:
-      return "lime_concrete";
-    case 6:
-      return "pink_concrete";
-    case 7:
-      return "gray_concrete";
-    case 8:
-      return "light_gray_concrete";
-    case 9:
-      return "cyan_concrete";
-    case 10:
-      return "purple_concrete";
-    case 11:
-      return "blue_concrete";
-    case 12:
-      return "brown_concrete";
-    case 13:
-      return "green_concrete";
-    case 14:
-      return "red_concrete";
-    case 15:
-      return "black_concrete";
+      return prefix + "horn_coral_block";
     case 0:
     default:
-      return "white_concrete";
+      return prefix + "tube_coral_block";
+    }
+  }
+
+  static std::string CoralFan(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    switch (damage) {
+    case 1:
+      return "brain_coral_fan";
+    case 2:
+      return "bubble_coral_fan";
+    case 3:
+      return "fire_coral_fan";
+    case 4:
+      return "horn_coral_fan";
+    case 0:
+    default:
+      return "tube_coral_fan";
+    }
+  }
+
+  static std::string CoralFanDead(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    switch (damage) {
+    case 1:
+      return "dead_brain_coral_fan";
+    case 2:
+      return "dead_bubble_coral_fan";
+    case 3:
+      return "dead_fire_coral_fan";
+    case 4:
+      return "dead_horn_coral_fan";
+    case 0:
+    default:
+      return "dead_tube_coral_fan";
     }
   }
 
@@ -222,6 +229,15 @@ private:
     case 0:
     default:
       return "infested_stone";
+    }
+  }
+
+  static std::string MushroomBlock(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    switch (damage) {
+    case 10:
+      return "mushroom_stem";
+    default:
+      return "";
     }
   }
 
@@ -387,44 +403,6 @@ private:
     }
   }
 
-  static std::string StainedHardenedClay(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
-    switch (damage) {
-    case 1:
-      return "orange_terracotta";
-    case 2:
-      return "magenta_terracotta";
-    case 3:
-      return "light_blue_terracotta";
-    case 4:
-      return "yellow_terracotta";
-    case 5:
-      return "lime_terracotta";
-    case 6:
-      return "pink_terracotta";
-    case 7:
-      return "gray_terracotta";
-    case 8:
-      return "light_gray_terracotta";
-    case 9:
-      return "cyan_terracotta";
-    case 10:
-      return "purple_terracotta";
-    case 11:
-      return "blue_terracotta";
-    case 12:
-      return "brown_terracotta";
-    case 13:
-      return "green_terracotta";
-    case 14:
-      return "red_terracotta";
-    case 15:
-      return "black_terracotta";
-    case 0:
-    default:
-      return "white_terracotta";
-    }
-  }
-
   static std::string Stone(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
     switch (damage) {
     case 1:
@@ -519,6 +497,13 @@ private:
 #pragma endregion
 
 #pragma region Converter_Generator
+  static Converter Colored(std::string const &suffix) {
+    return [suffix](CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &ctx) {
+      auto colorName = JavaNameFromColorCodeJava(static_cast<ColorCodeJava>(damage));
+      return colorName + "_" + suffix;
+    };
+  }
+
   static Converter Rename(std::string const &name) {
     return [name](CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &ctx) {
       return name;
@@ -541,7 +526,6 @@ private:
     E(comparator, Same);
     E(daylight_detector, Same);
     E(spruce_fence_gate, Same);
-    E(fence_gate, Same);
     E(birch_fence_gate, Same);
     E(jungle_fence_gate, Same);
     E(acacia_fence_gate, Same);
@@ -560,7 +544,6 @@ private:
     E(quartz_stairs, Same);
     E(purpur_stairs, Same);
     E(prismarine_stairs, Same);
-    E(prismarine_bricks_stairs, Same);
     E(dark_prismarine_stairs, Same);
     E(torch, Same);
     E(end_rod, Same);
@@ -596,7 +579,7 @@ private:
     E(wooden_slab, WoodenSlab);
     E(prismarine_slab, PrismarineSlab);
     E(stone_stairs, StoneStairs);
-    E(stained_hardened_clay, StainedHardenedClay);
+    E(stained_hardened_clay, Colored("terracotta"));
     E(sapling, Sapling);
     E(sponge, Sponge);
     E(skull, Skull);
@@ -605,10 +588,51 @@ private:
     E(tallgrass, Tallgrass);
     E(double_plant, DoublePlant);
     E(red_flower, RedFlower);
-    E(concrete, Concrete);
+    E(concrete, Colored("concrete"));
     E(cobblestone_wall, CobblestoneWall);
-    E(concrete_powder, ConcretePowder);
+    E(concrete_powder, Colored("concrete_powder"));
     E(silver_glazed_terracotta, Rename("light_gray_glazed_terracotta"));
+    E(banner, Banner);
+    E(wool, Colored("wool"));
+    E(carpet, Colored("carpet"));
+    E(stained_glass, Colored("stained_glass"));
+    E(stained_glass_pane, Colored("stained_glass_pane"));
+    E(coral_fan, CoralFan);
+    E(coral, Coral);
+    E(brown_mushroom_block, MushroomBlock);
+    E(red_mushroom_block, MushroomBlock);
+    E(coral_fan_dead, CoralFanDead);
+    E(coral_block, CoralBlock);
+    E(melon_block, Rename("melon"));
+    E(lit_pumpkin, Rename("jack_o_lantern"));
+    E(waterlily, Rename("lily_pad"));
+    E(deadbush, Rename("dead_bush"));
+    E(yellow_flower, Rename("dandelion"));
+    E(snow_layer, Rename("snow"));
+    E(web, Rename("cobweb"));
+    E(sign, Rename("oak_sign"));
+    E(sea_grass, Rename("seagrass"));
+    E(grass_path, Rename("dirt_path"));
+    E(quartz_ore, Rename("nether_quartz_ore"));
+    E(stripped_log_oak, Rename("stripped_oak_log"));
+    E(stripped_log_spruce, Rename("stripped_spruce_log"));
+    E(stripped_log_birch, Rename("stripped_birch_log"));
+    E(stripped_log_jungle, Rename("stripped_jungle_log"));
+    E(stripped_log_acacia, Rename("stripped_acacia_log"));
+    E(stripped_log_dark_oak, Rename("stripped_dark_oak_log"));
+    E(brick_block, Rename("bricks"));
+    E(magma, Rename("magma_block"));
+    E(slime, Rename("slime_block"));
+    E(fence, Rename("oak_fence"));
+    E(nether_brick, Rename("nether_bricks"));
+    E(red_nether_brick, Rename("red_nether_bricks"));
+    E(end_bricks, Rename("end_stone_bricks"));
+    E(trapdoor, Rename("oak_trapdoor"));
+    E(wooden_door, Rename("oak_door"));
+    E(stone_slab2, Rename("red_sandstone_slab"));
+    E(prismarine_bricks_stairs, Rename("prismarine_brick_stairs"));
+    E(hardened_clay, Rename("terracotta"));
+    E(fence_gate, Rename("oak_fence_gate"));
 
 #undef E
     return ret;

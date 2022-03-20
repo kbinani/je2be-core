@@ -6,10 +6,10 @@ class TileEntity {
   TileEntity() = delete;
 
   using Result = TileEntityConvertResult;
-  using Converter = std::function<std::optional<Result>(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx)>;
+  using Converter = std::function<std::optional<Result>(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx)>;
 
 public:
-  static std::optional<Result> Convert(CompoundTag const &in, mcfile::je::Block const &block, Pos3i const &pos, Context const &ctx) {
+  static std::optional<Result> Convert(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, Pos3i const &pos, Context const &ctx) {
     using namespace std;
     auto rawId = in.string("id", "");
     if (!rawId.starts_with("minecraft:")) {
@@ -37,32 +37,36 @@ public:
   }
 
 #pragma region Dedicated_Converters
-  static std::optional<Result> Banner(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> Banner(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     auto base = static_cast<BannerColorCodeBedrock>(in.int32("Base", 0));
     string color = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(base));
     string name;
-    if (block.fName.find("wall") == std::string::npos) {
+    if (block && block->fName.find("wall") == std::string::npos) {
       name = color + "_banner";
     } else {
       name = color + "_wall_banner";
     }
     Result r;
     r.fTileEntity = out;
-    r.fBlock = make_shared<mcfile::je::Block const>("minecraft:" + name, block.fProperties);
+    if (block) {
+      r.fBlock = make_shared<mcfile::je::Block const>("minecraft:" + name, block->fProperties);
+    }
     return r;
   }
 
-  static std::optional<Result> Bed(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> Bed(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     auto color = static_cast<ColorCodeJava>(in.int32("color", 0));
     std::string name = JavaNameFromColorCodeJava(color) + "_bed";
     Result r;
     r.fTileEntity = out;
-    r.fBlock = std::make_shared<mcfile::je::Block const>("minecraft:" + name, block.fProperties);
+    if (block) {
+      r.fBlock = std::make_shared<mcfile::je::Block const>("minecraft:" + name, block->fProperties);
+    }
     return r;
   }
 
-  static std::optional<Result> BrewingStand(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+  static std::optional<Result> BrewingStand(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     CopyShortValues(in, *out, {{"BrewTime"}});
     CopyByteValues(in, *out, {{"Fuel"}});
     Items(in, out, ctx);
@@ -71,8 +75,9 @@ public:
     return r;
   }
 
-  static std::optional<Result> Chest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
-    if (block.fId == mcfile::blocks::minecraft::trapped_chest) {
+  static std::optional<Result> Chest(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
+    if (block && block->fId == mcfile::blocks::minecraft::trapped_chest) {
+      // TODO: When trapped_chest is an item
       out->set("id", String("minecraft:trapped_chest"));
     }
     Items(in, out, ctx);
@@ -81,35 +86,35 @@ public:
     return r;
   }
 
-  static std::optional<Result> Comparator(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> Comparator(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     CopyIntValues(in, *out, {{"OutputSignal"}});
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Dispenser(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+  static std::optional<Result> Dispenser(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Dropper(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+  static std::optional<Result> Dropper(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> EnderChest(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> EnderChest(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     out->set("id", String("minecraft:ender_chest"));
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> FlowerPot(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> FlowerPot(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     Result r;
     string name;
@@ -197,7 +202,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Furnace(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+  static std::optional<Result> Furnace(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     CopyShortValues(in, *out, {{"BurnTime"}, {"CookTime"}, {"CookTimeTotal"}});
     Items(in, out, ctx);
     Result r;
@@ -205,7 +210,7 @@ public:
     return r;
   }
 
-  static std::optional<Result> Jukebox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+  static std::optional<Result> Jukebox(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     if (auto recordItem = in.compoundTag("RecordItem"); recordItem) {
       if (auto converted = Item::Convert(*recordItem, ctx); converted) {
         out->set("RecordItem", converted);
@@ -216,31 +221,34 @@ public:
     return r;
   }
 
-  static std::optional<Result> NoteBlock(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> NoteBlock(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
+    if (!block) {
+      return std::nullopt;
+    }
     auto note = in.byte("note", 0);
     auto powered = in.boolean("powered", false);
-    auto props = block.fProperties;
+    auto props = block->fProperties;
     props["note"] = std::to_string(note);
     props["powered"] = powered ? "true" : "false";
     Result r;
-    r.fBlock = std::make_shared<mcfile::je::Block const>(block.fName, props);
+    r.fBlock = std::make_shared<mcfile::je::Block const>(block->fName, props);
     return r;
   }
 
-  static std::optional<Result> SameNameEmpty(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> SameNameEmpty(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> ShulkerBox(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &ctx) {
+  static std::optional<Result> ShulkerBox(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
-  static std::optional<Result> Sign(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> Sign(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     Result r;
     for (int i = 1; i <= 4; i++) {
@@ -257,26 +265,29 @@ public:
     return r;
   }
 
-  static std::optional<Result> Skull(CompoundTag const &in, mcfile::je::Block const &block, CompoundTagPtr &out, Context const &) {
+  static std::optional<Result> Skull(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     auto type = static_cast<SkullType>(in.byte("SkullType", 0));
     auto skullName = JavaNameFromSkullType(type);
     auto rot = in.byte("Rot");
 
-    map<string, string> props(block.fProperties);
-
-    string name;
-    if (block.fName.find("wall") == string::npos) {
-      if (rot) {
-        props["rotation"] = to_string(*rot);
-      }
-      name = skullName;
-    } else {
-      name = strings::Replace(strings::Replace(skullName, "_head", "_wall_head"), "_skull", "_wall_skull");
-    }
-    auto blockJ = make_shared<mcfile::je::Block const>("minecraft:" + name, props);
     Result r;
-    r.fBlock = blockJ;
+
+    if (block) {
+      map<string, string> props(block->fProperties);
+
+      string name;
+      if (block->fName.find("wall") == string::npos) {
+        if (rot) {
+          props["rotation"] = to_string(*rot);
+        }
+        name = skullName;
+      } else {
+        name = strings::Replace(strings::Replace(skullName, "_head", "_wall_head"), "_skull", "_wall_skull");
+      }
+      auto blockJ = make_shared<mcfile::je::Block const>("minecraft:" + name, props);
+      r.fBlock = blockJ;
+    }
     r.fTileEntity = out;
     return r;
   }
