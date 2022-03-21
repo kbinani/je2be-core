@@ -121,6 +121,11 @@ private:
     if (!uuid->starts_with("ent") && uuid->size() != 35) {
       return nullptr;
     }
+
+    auto ret = in.copy();
+    ret->erase("createdOnHost");
+    ret->erase("namedByRestrictedPlayer");
+
     uint8_t data[16];
     for (int i = 0; i < 16; i++) {
       auto sub = uuid->substr(3 + i * 2, 2);
@@ -131,7 +136,6 @@ private:
       data[i] = 0xff & ((uint32_t)*converted);
     }
     Uuid u = Uuid::FromData(data);
-    auto ret = in.copy();
     ret->set("UUID", u.toIntArrayTag());
 
     if (auto riding = in.listTag("Riding"); riding) {
@@ -170,7 +174,30 @@ private:
       }
     }
 
+    CopyItems(in, *ret, ctx, "HandItems");
+    CopyItems(in, *ret, ctx, "ArmorItems");
+
     return ret;
+  }
+
+  static void CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::string const &key) {
+    auto handItemsB = in.listTag(key);
+    if (!handItemsB) {
+      return;
+    }
+    auto handItemsJ = List<Tag::Type::Compound>();
+    for (auto const &it : *handItemsB) {
+      auto itemB = it->asCompound();
+      if (!itemB) {
+        continue;
+      }
+      if (itemB->empty()) {
+        handItemsJ->push_back(Compound());
+      } else if (auto converted = Item::Convert(*itemB, ctx); converted) {
+        handItemsJ->push_back(converted);
+      }
+    }
+    out[key] = handItemsJ;
   }
 
   static std::unordered_map<std::string, Converter> const &GetTable() {
