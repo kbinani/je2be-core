@@ -81,6 +81,7 @@ public:
       out->set("id", String("minecraft:trapped_chest"));
     }
     Items(in, out, ctx);
+    LootTable::Box360ToJava(in, *out);
     Result r;
     r.fTileEntity = out;
     return r;

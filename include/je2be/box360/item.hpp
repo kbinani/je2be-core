@@ -31,31 +31,78 @@ public:
     } else {
       changedId = found->second(in, out, damage, ctx);
     }
-    if (out) {
-      if (changedId.empty()) {
-        out->set("id", String(*rawId));
-      } else {
-        out->set("id", String("minecraft:" + changedId));
-      }
-      return out;
-    } else {
+    if (!out) {
       return nullptr;
     }
+    if (changedId.empty()) {
+      out->set("id", String(*rawId));
+    } else {
+      out->set("id", String("minecraft:" + changedId));
+    }
+    if (auto tagB = in.compoundTag("tag"); tagB) {
+      auto tagJ = out->compoundTag("tag");
+      if (!tagJ) {
+        tagJ = Compound();
+      }
+
+      if (auto blockEntityTagB = tagB->compoundTag("BlockEntityTag"); blockEntityTagB) {
+        auto tileEntityId = GetTileEntityNameFromItemName(id);
+        blockEntityTagB->set("id", String("minecraft:" + tileEntityId));
+        if (auto converted = ctx.fTileEntityConverter(*blockEntityTagB, nullptr, Pos3i(0, 0, 0), ctx); converted && converted->fTileEntity) {
+          tagJ->set("BlockEntityTag", converted->fTileEntity);
+        }
+      }
+
+      if (auto displayB = tagB->compoundTag("display"); displayB) {
+        auto displayJ = tagJ->compoundTag("display");
+        if (!displayJ) {
+          displayJ = Compound();
+        }
+        if (auto name = displayB->string("Name"); name) {
+          nlohmann::json obj;
+          obj["text"] = *name;
+          displayJ->set("Name", String(nlohmann::to_string(obj)));
+        }
+        if (!displayJ->empty()) {
+          tagJ->set("display", displayJ);
+        }
+      }
+
+      CopyIntValues(*tagB, *tagJ, {{"RepairCost"}});
+
+      if (auto enchB = tagB->listTag("ench"); enchB) {
+        auto enchantmentsJ = List<Tag::Type::Compound>();
+        for (auto const &item : *enchB) {
+          auto c = item->asCompound();
+          if (!c) {
+            continue;
+          }
+          auto idB = c->int16("id");
+          if (!idB) {
+            continue;
+          }
+          auto lvl = c->int16("lvl", 1);
+          string idJ = Enchantments::JavaEnchantmentIdFromBox360(*idB);
+          auto itemJ = Compound();
+          itemJ->set("lvl", Short(lvl));
+          itemJ->set("id", String(idJ));
+          enchantmentsJ->push_back(itemJ);
+        }
+        if (!enchantmentsJ->empty()) {
+          tagJ->set("Enchantments", enchantmentsJ);
+        }
+      }
+
+      if (!tagJ->empty()) {
+        out->set("tag", tagJ);
+      }
+    }
+    return out;
   }
 
 private:
 #pragma region Converter
   static std::string Banner(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &ctx) {
-    if (auto tagB = in.compoundTag("tag"); tagB) {
-      if (auto blockEntityTagB = tagB->compoundTag("BlockEntityTag"); blockEntityTagB) {
-        blockEntityTagB->set("id", String(in.string("id", "")));
-        if (auto converted = ctx.fTileEntityConverter(*blockEntityTagB, nullptr, Pos3i(0, 0, 0), ctx); converted && converted->fTileEntity) {
-          auto tagJ = Compound();
-          tagJ->set("BlockEntityTag", converted->fTileEntity);
-          out->set("tag", tagJ);
-        }
-      }
-    }
     auto color = ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(damage));
     std::string colorName = JavaNameFromColorCodeJava(color);
     return colorName + "_banner";
@@ -244,6 +291,17 @@ private:
       }
     }
     return "";
+  }
+
+  static std::string FilledMap(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    return "";
+  }
+
+  static std::string Fireworks(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    if (auto tag = in.compoundTag("tag"); tag) {
+      out->set("tag", tag->copy());
+    }
+    return "firework_rocket";
   }
 
   static std::string Fish(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
@@ -494,6 +552,29 @@ private:
     }
   }
 
+  static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    if (auto tag = in.compoundTag("tag"); tag) {
+      if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
+        if (auto id = entityTag->string("id"); id && id->starts_with("minecraft:")) {
+          auto name = id->substr(10);
+          if (name == "zombie_pigman") {
+            name = "zombified_piglin";
+          } else if (name == "evocation_illager") {
+            name = "evoker";
+          } else if (name == "vindication_illager") {
+            name = "vindicator";
+          } else if (name == "fish") {
+            name = "cod";
+          } else if (name == "tropicalfish") {
+            name = "tropical_fish";
+          }
+          return name + "_spawn_egg";
+        }
+      }
+    }
+    return "";
+  }
+
   static std::string Sponge(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
     switch (damage) {
     case 1:
@@ -611,6 +692,13 @@ private:
     };
   }
 #pragma endregion
+
+  static std::string GetTileEntityNameFromItemName(std::string const &name) {
+    if (name.find("shulker_box")) {
+      return "shulker_box";
+    }
+    return name;
+  }
 
   static std::unordered_map<std::string, Converter> const &GetTable() {
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
@@ -754,6 +842,27 @@ private:
     E(splash_potion, Potion);
     E(enchanted_book, EnchantedBook);
     E(tipped_arrow, Potion);
+    E(silver_shulker_box, Rename("light_gray_shulker_box"));
+    E(bed, Colored("bed"));
+    E(fish_bucket, Rename("cod_bucket"));
+    E(puffer_bucket, Rename("pufferfish_bucket"));
+    E(tropical_bucket, Rename("tropical_fish_bucket"));
+    E(mob_spawner, Rename("spawner"));
+    E(spawn_egg, SpawnEgg);
+    E(record_13, Rename("music_disc_13"));
+    E(record_cat, Rename("music_disc_cat"));
+    E(record_blocks, Rename("music_disc_blocks"));
+    E(record_chirp, Rename("music_disc_chirp"));
+    E(record_far, Rename("music_disc_far"));
+    E(record_mall, Rename("music_disc_mall"));
+    E(record_mellohi, Rename("music_disc_mellohi"));
+    E(record_stal, Rename("music_disc_stal"));
+    E(record_strad, Rename("music_disc_strad"));
+    E(record_ward, Rename("music_disc_ward"));
+    E(record_11, Rename("music_disc_11"));
+    E(record_wait, Rename("music_disc_wait"));
+    E(fireworks, Fireworks);
+    E(filled_map, FilledMap);
 
 #undef E
     return ret;
