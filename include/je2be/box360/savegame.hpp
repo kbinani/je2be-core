@@ -20,7 +20,7 @@ public:
     for (int i = 0; i < 12; i++) {
       buffer.erase(buffer.begin());
     }
-    if (LxzDecoder::Decode(buffer) != outputSize) {
+    if (LzxDecoder::Decode(buffer) != outputSize) {
       return false;
     }
     output.swap(buffer);
@@ -35,7 +35,7 @@ public:
     for (int j = 0; j < 4; j++) {
       buffer.erase(buffer.begin());
     }
-    size_t decodedSize = LxzDecoder::Decode(buffer);
+    size_t decodedSize = LzxDecoder::Decode(buffer);
     if (decodedSize == 0) {
       return false;
     } else {

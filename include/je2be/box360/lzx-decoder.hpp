@@ -43,9 +43,9 @@
 
 namespace je2be::box360 {
 
-class LxzDecoder {
+class LzxDecoder {
 public:
-  explicit LxzDecoder(unsigned short window_bits) {
+  explicit LzxDecoder(unsigned short window_bits) {
     // LZX supports window sizes of 2^15 (32 KiB) to 2^21 (2 MiB)
     if (window_bits < 15 || window_bits > 21) {
       throw std::runtime_error("LzxDecoder: unsupported window size exponent: " + std::to_string(window_bits));
@@ -95,10 +95,10 @@ public:
     memset(LENGTH_len, 0, sizeof(LENGTH_len));
   }
 
-  LxzDecoder(const LxzDecoder &) = delete;
-  LxzDecoder &operator=(const LxzDecoder &) = delete;
+  LzxDecoder(const LzxDecoder &) = delete;
+  LzxDecoder &operator=(const LzxDecoder &) = delete;
 
-  ~LxzDecoder() {
+  ~LzxDecoder() {
     delete[] window;
   }
 
@@ -930,7 +930,7 @@ public:
   static size_t Decode(std::vector<uint8_t> &buffer) {
     using namespace std;
 
-    auto decoder = make_unique<LxzDecoder>(17);
+    auto decoder = make_unique<LzxDecoder>(17);
 
     vector<uint8_t> out;
     size_t remaining = buffer.size();
