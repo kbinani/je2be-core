@@ -262,7 +262,7 @@ public:
     if (!tag) {
       return false;
     }
-    Context ctx(TileEntity::Convert);
+    Context ctx(TileEntity::Convert, Entity::MigrateName);
     if (auto te = tag->listTag("TileEntities"); te) {
       for (auto &item : *te) {
         auto c = std::dynamic_pointer_cast<CompoundTag>(item);

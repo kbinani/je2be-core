@@ -555,21 +555,13 @@ private:
     }
   }
 
-  static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+  static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &ctx) {
     if (auto tag = in.compoundTag("tag"); tag) {
       if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
-        if (auto id = entityTag->string("id"); id && id->starts_with("minecraft:")) {
-          auto name = id->substr(10);
-          if (name == "zombie_pigman") {
-            name = "zombified_piglin";
-          } else if (name == "evocation_illager") {
-            name = "evoker";
-          } else if (name == "vindication_illager") {
-            name = "vindicator";
-          } else if (name == "fish") {
-            name = "cod";
-          } else if (name == "tropicalfish") {
-            name = "tropical_fish";
+        if (auto id = entityTag->string("id"); id) {
+          auto name = ctx.fEntityNameMigrator(*id);
+          if (name.starts_with("minecraft:")) {
+            name = name.substr(10);
           }
           return name + "_spawn_egg";
         }

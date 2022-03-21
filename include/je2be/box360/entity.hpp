@@ -28,7 +28,7 @@ public:
     auto const &table = GetTable();
     auto found = table.find(id);
 
-    auto out = Default(in);
+    auto out = Default(in, ctx);
     if (!out) {
       return nullopt;
     }
@@ -49,6 +49,27 @@ public:
     Result r;
     r.fEntity = out;
     return r;
+  }
+
+  static std::string MigrateName(std::string const &rawName) {
+    std::string name;
+    if (rawName.starts_with("minecraft:")) {
+      name = rawName.substr(10);
+    } else {
+      name = rawName;
+    }
+    if (name == "zombie_pigman") {
+      name = "zombified_piglin";
+    } else if (name == "evocation_illager") {
+      name = "evoker";
+    } else if (name == "vindication_illager") {
+      name = "vindicator";
+    } else if (name == "fish") {
+      name = "cod";
+    } else if (name == "tropicalfish") {
+      name = "tropical_fish";
+    }
+    return "minecraft:" + name;
   }
 
 private:
@@ -92,7 +113,7 @@ private:
   }
 #pragma endregion
 
-  static CompoundTagPtr Default(CompoundTag const &in) {
+  static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
     auto uuid = in.string("UUID");
     if (!uuid) {
       return nullptr;
@@ -112,6 +133,43 @@ private:
     Uuid u = Uuid::FromData(data);
     auto ret = in.copy();
     ret->set("UUID", u.toIntArrayTag());
+
+    if (auto riding = in.listTag("Riding"); riding) {
+      ret->erase("Riding");
+      auto passengers = List<Tag::Type::Compound>();
+      for (auto const &it : *riding) {
+        auto rider = it->asCompound();
+        if (!rider) {
+          continue;
+        }
+        auto converted = Convert(*rider, ctx);
+        if (!converted) {
+          continue;
+        }
+        passengers->push_back(converted->fEntity);
+      }
+      ret->set("Passengers", passengers);
+    }
+
+    if (auto customNameB = in.string("CustomName"); customNameB && !customNameB->empty()) {
+      nlohmann::json obj;
+      obj["text"] = *customNameB;
+      ret->set("CustomName", String(nlohmann::to_string(obj)));
+    }
+
+    auto idB = in.string("id");
+    if (!idB) {
+      return nullptr;
+    }
+    auto idJ = MigrateName(*idB);
+    ret->set("id", String(idJ));
+
+    if (auto drownedConversionTime = in.int32("DrownedConversionTime"); drownedConversionTime) {
+      if (drownedConversionTime == 0) {
+        ret->set("DrownedConversionTime", Int(-1));
+      }
+    }
+
     return ret;
   }
 
