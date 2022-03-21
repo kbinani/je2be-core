@@ -22,7 +22,7 @@ public:
     if (found == table.end()) {
       return nullopt;
     }
-    auto out = Compound();
+    auto out = in.copy();
     out->set("x", Int(pos.fX));
     out->set("y", Int(pos.fY));
     out->set("z", Int(pos.fZ));
@@ -211,6 +211,12 @@ public:
     return r;
   }
 
+  static std::optional<Result> Identical(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> Jukebox(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     if (auto recordItem = in.compoundTag("RecordItem"); recordItem) {
       if (auto converted = Item::Convert(*recordItem, ctx); converted) {
@@ -233,12 +239,6 @@ public:
     props["powered"] = powered ? "true" : "false";
     Result r;
     r.fBlock = std::make_shared<mcfile::je::Block const>(block->fName, props);
-    return r;
-  }
-
-  static std::optional<Result> SameNameEmpty(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
-    Result r;
-    r.fTileEntity = out;
     return r;
   }
 
@@ -333,15 +333,16 @@ private:
     E(flower_pot, FlowerPot);
     E(jukebox, Jukebox);
     E(sign, Sign);
-    E(enchanting_table, SameNameEmpty);
-    E(conduit, SameNameEmpty);
+    E(enchanting_table, Identical);
+    E(conduit, Identical);
     E(furnace, Furnace);
     E(dropper, Dropper);
     E(dispenser, Dispenser);
     E(note_block, NoteBlock);
     E(comparator, Comparator);
-    E(daylight_detector, SameNameEmpty);
+    E(daylight_detector, Identical);
     E(brewing_stand, BrewingStand);
+    E(end_gateway, Identical);
 
 #undef E
     return ret;
