@@ -294,6 +294,9 @@ private:
   }
 
   static std::string FilledMap(CompoundTag const &in, CompoundTagPtr &out, int16_t damage, Context const &) {
+    auto tagJ = Compound();
+    tagJ->set("map", Int(damage));
+    out->set("tag", tagJ);
     return "";
   }
 
