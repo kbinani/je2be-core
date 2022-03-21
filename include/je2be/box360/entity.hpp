@@ -11,7 +11,8 @@ public:
   };
 
 private:
-  using Converter = std::function<std::optional<Result>(CompoundTag const &in, Context const &ctx)>;
+  struct Ret {};
+  using Converter = std::function<std::optional<Ret>(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx)>;
 
 public:
   static std::optional<Result> Convert(CompoundTag const &in, Context const &ctx) {
@@ -26,26 +27,33 @@ public:
     string id = rawId->substr(10);
     auto const &table = GetTable();
     auto found = table.find(id);
-    if (found == table.end()) {
+
+    auto out = Default(in);
+    if (!out) {
       return nullopt;
     }
-    auto converted = found->second(in, ctx);
+    if (found == table.end()) {
+      Result r;
+      r.fEntity = out;
+      return r;
+    }
+
+    auto converted = found->second(in, out, ctx);
     if (!converted) {
       return nullopt;
     }
-    if (!converted->fEntity) {
+    if (!out) {
       return nullopt;
     }
+
     Result r;
-    r.fEntity = converted->fEntity;
+    r.fEntity = out;
     return r;
   }
 
 private:
 #pragma region Converters
-  static std::optional<Result> ItemFrame(CompoundTag const &in, Context const &ctx) {
-    auto out = in.copy();
-
+  static std::optional<Ret> ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     int8_t facingB = in.byte("Facing", 0);
     int8_t facingJ = 3;
     switch (facingB) {
@@ -71,11 +79,41 @@ private:
       }
     }
 
-    Result r;
-    r.fEntity = out;
+    Ret r;
+    return r;
+  }
+
+  static std::optional<Ret> Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    if (auto motive = in.string("Motive"); motive) {
+      out->set("Motive", String(strings::Uncapitalize(*motive)));
+    }
+    Ret r;
     return r;
   }
 #pragma endregion
+
+  static CompoundTagPtr Default(CompoundTag const &in) {
+    auto uuid = in.string("UUID");
+    if (!uuid) {
+      return nullptr;
+    }
+    if (!uuid->starts_with("ent") && uuid->size() != 35) {
+      return nullptr;
+    }
+    uint8_t data[16];
+    for (int i = 0; i < 16; i++) {
+      auto sub = uuid->substr(3 + i * 2, 2);
+      auto converted = strings::Toi(sub, 16);
+      if (!converted) {
+        return nullptr;
+      }
+      data[i] = 0xff & ((uint32_t)*converted);
+    }
+    Uuid u = Uuid::FromData(data);
+    auto ret = in.copy();
+    ret->set("UUID", u.toIntArrayTag());
+    return ret;
+  }
 
   static std::unordered_map<std::string, Converter> const &GetTable() {
     using namespace std;
@@ -90,6 +128,7 @@ private:
   ret->insert(std::make_pair(#__name, __conv))
 
     E(item_frame, ItemFrame);
+    E(painting, Painting);
 
 #undef E
     return ret;
