@@ -112,7 +112,15 @@ public:
   static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
     using namespace std;
 
-    auto data = Compound();
+    JavaLevelDat::Options o;
+    o.fDataVersion = mcfile::je::Chunk::kDataVersion;
+    o.fRandomSeed = b.int64("RandomSeed");
+    o.fVersionString = kVersionString;
+    o.fFlatWorldSettings = FlatWorldSettings(b);
+    o.fBonusChestEnabled = b.boolean("bonusChestEnabled");
+
+    auto data = JavaLevelDat::TemplateData(o);
+
     CompoundTag &j = *data;
 
     CopyStringValues(b, j, {{"LevelName"}});
@@ -123,90 +131,6 @@ public:
     j["Difficulty"] = Byte(b.int32("Difficulty", 2));
     j["GameRules"] = GameRules::Import(b, db, ctx.fEndian);
     j["LastPlayed"] = Long(b.int64("LastPlayed", 0) * 1000);
-
-    j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
-    j["version"] = Int(kLevelVersion);
-
-    {
-      auto dataPacks = Compound();
-      dataPacks->set("Disabled", List<Tag::Type::String>());
-      auto enabled = List<Tag::Type::String>();
-      enabled->push_back(String("vanilla"));
-      dataPacks->set("Enabled", enabled);
-      j["DataPacks"] = dataPacks;
-    }
-    {
-      auto brands = List<Tag::Type::String>();
-      brands->push_back(String("vanilla"));
-      j["ServerBrands"] = brands;
-    }
-    {
-      auto version = Compound();
-      version->set("Id", Int(mcfile::je::Chunk::kDataVersion));
-      version->set("Name", String(kVersionString));
-      version->set("Series", String("main"));
-      version->set("Snapshot", Byte(0));
-      j["Version"] = version;
-    }
-    {
-      auto worldGenSettings = Compound();
-      CopyBoolValues(b, *worldGenSettings, {{"bonusChestEnabled", "bonus_chest"}});
-      worldGenSettings->set("generate_features", Bool(true));
-      if (auto seed = b.int64("RandomSeed"); seed) {
-        worldGenSettings->set("seed", Long(*seed));
-        auto dimensions = Compound();
-        {
-          auto overworld = Compound();
-          auto generator = Compound();
-          if (auto settings = FlatWorldSettings(b); settings) {
-            generator->set("type", String("minecraft:flat"));
-            generator->set("settings", settings);
-          } else {
-            auto biomeSource = Compound();
-            biomeSource->set("preset", String("minecraft:overworld"));
-            biomeSource->set("type", String("minecraft:multi_noise"));
-            generator->set("biome_source", biomeSource);
-            generator->set("seed", Long(*seed));
-            generator->set("settings", String("minecraft:overworld"));
-            generator->set("type", String("minecraft:noise"));
-          }
-          overworld->set("generator", generator);
-          overworld->set("type", String("minecraft:overworld"));
-          dimensions->set("minecraft:overworld", overworld);
-        }
-        {
-          auto end = Compound();
-          auto generator = Compound();
-          auto biomeSource = Compound();
-          biomeSource->set("seed", Long(*seed));
-          biomeSource->set("type", String("minecraft:the_end"));
-          generator->set("biome_source", biomeSource);
-          generator->set("seed", Long(*seed));
-          generator->set("settings", String("minecraft:end"));
-          generator->set("type", String("minecraft:noise"));
-          end->set("generator", generator);
-          end->set("type", String("minecraft:the_end"));
-          dimensions->set("minecraft:the_end", end);
-        }
-        {
-          auto nether = Compound();
-          auto generator = Compound();
-          auto biomeSource = Compound();
-          biomeSource->set("preset", String("minecraft:nether"));
-          biomeSource->set("type", String("minecraft:multi_noise"));
-          generator->set("biome_source", biomeSource);
-          generator->set("seed", Long(*seed));
-          generator->set("settings", String("minecraft:nether"));
-          generator->set("type", String("minecraft:noise"));
-          nether->set("generator", generator);
-          nether->set("type", String("minecraft:the_nether"));
-          dimensions->set("minecraft:the_nether", nether);
-        }
-        worldGenSettings->set("dimensions", dimensions);
-      }
-      j["WorldGenSettings"] = worldGenSettings;
-    }
-
     j["raining"] = Bool(b.float32("rainLevel", 0) >= 1);
     j["thundering"] = Bool(b.float32("lightningLevel", 0) >= 1);
 

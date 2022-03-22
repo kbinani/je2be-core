@@ -71,6 +71,7 @@
 #include <je2be/reversible-map.hpp>
 #include <je2be/static-reversible-map.hpp>
 #include <je2be/dimension-ext.hpp>
+#include <je2be/java-level-dat.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>

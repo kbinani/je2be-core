@@ -9,6 +9,9 @@ public:
   enum {
     kTargetDataVersion = 2865,
   };
+  static std::string TargetVersionString() {
+    return "1.18.1";
+  }
 
   static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;

@@ -70,6 +70,7 @@ set(je2be_files
   include/je2be/item/map-color.hpp
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
+  include/je2be/java-level-dat.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
   include/je2be/optional.hpp

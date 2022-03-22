@@ -33,6 +33,9 @@ public:
     if (!CopyMapFiles(*temp, outputDirectory)) {
       return false;
     }
+    if (!CopyLevelDat(*temp, outputDirectory)) {
+      return false;
+    }
     vector<uint8_t>().swap(buffer);
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       if (!options.fDimensionFilter.empty()) {
@@ -48,6 +51,46 @@ public:
   }
 
 private:
+  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
+    using namespace std;
+    namespace fs = std::filesystem;
+    auto datFrom = inputDirectory / "level.dat";
+    auto datTo = outputDirectory / "level.dat";
+    if (!Fs::Exists(datFrom)) {
+      return false;
+    }
+
+    auto inStream = make_shared<mcfile::stream::GzFileInputStream>(datFrom);
+    auto inRoot = CompoundTag::Read(inStream, endian::big);
+    inStream.reset();
+    if (!inRoot) {
+      return false;
+    }
+    auto in = inRoot->compoundTag("Data");
+    if (!in) {
+      return false;
+    }
+
+    JavaLevelDat::Options o;
+    o.fBonusChestEnabled = in->boolean("spawnBonusChest");
+    o.fDataVersion = Chunk::kTargetDataVersion;
+    o.fRandomSeed = in->int64("RandomSeed");
+    o.fVersionString = Chunk::TargetVersionString();
+    auto out = JavaLevelDat::TemplateData(o);
+
+    CopyBoolValues(*in, *out, {{"allowCommands"}, {"DifficultyLocked"}, {"hardcore"}, {"initialized"}, {"raining"}, {"thundering"}});
+    CopyByteValues(*in, *out, {{"Difficulty"}});
+    CopyIntValues(*in, *out, {{"rainTime"}, {"GameType"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"thunderTime"}, {"clearWeatherTime"}});
+    CopyLongValues(*in, *out, {{"DayTime"}, {"Time"}});
+    CopyStringValues(*in, *out, {{"LevelName"}});
+
+    auto outRoot = Compound();
+    outRoot->set("Data", out);
+    auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
+    mcfile::stream::OutputStreamWriter writer(outStream, endian::big);
+    return outRoot->writeAsRoot(writer);
+  }
+
   static bool CopyMapFiles(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
     namespace fs = std::filesystem;
 
