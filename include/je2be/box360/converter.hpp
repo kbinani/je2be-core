@@ -85,6 +85,11 @@ private:
     CopyLongValues(*in, *out, {{"DayTime"}, {"Time"}});
     CopyStringValues(*in, *out, {{"LevelName"}});
 
+    out->set("BorderCenterX", Double(0));
+    out->set("BorderCenterZ", Double(0));
+    out->set("BorderSize", Double(862));
+    out->set("BorderWarningBlocks", Double(0));
+
     auto outRoot = Compound();
     outRoot->set("Data", out);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
