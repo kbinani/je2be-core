@@ -76,6 +76,7 @@ private:
     o.fDataVersion = Chunk::kTargetDataVersion;
     o.fRandomSeed = in->int64("RandomSeed");
     o.fVersionString = Chunk::TargetVersionString();
+    o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion();
     auto out = JavaLevelDat::TemplateData(o);
 
     CopyBoolValues(*in, *out, {{"allowCommands"}, {"DifficultyLocked"}, {"hardcore"}, {"initialized"}, {"raining"}, {"thundering"}});
@@ -89,6 +90,42 @@ private:
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
     mcfile::stream::OutputStreamWriter writer(outStream, endian::big);
     return outRoot->writeAsRoot(writer);
+  }
+
+  static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion() {
+    auto flatSettings = Compound();
+    flatSettings->set("biome", String("minecraft:ocean"));
+    flatSettings->set("features", Bool(false));
+    flatSettings->set("lakes", Bool(false));
+    auto structures = Compound();
+    structures->set("structures", Compound());
+    flatSettings->set("structures", structures);
+
+    auto layers = List<Tag::Type::Compound>();
+
+    auto air = Compound();
+    air->set("block", String("minecraft:air"));
+    air->set("height", Int(64));
+    layers->push_back(air);
+
+    auto bedrock = Compound();
+    bedrock->set("block", String("minecraft:bedrock"));
+    bedrock->set("height", Int(1));
+    layers->push_back(bedrock);
+
+    auto stone = Compound();
+    stone->set("block", String("minecraft:stone"));
+    stone->set("height", Int(53));
+    layers->push_back(stone);
+
+    auto water = Compound();
+    water->set("block", String("minecraft:water"));
+    water->set("height", Int(9));
+    layers->push_back(water);
+
+    flatSettings->set("layers", layers);
+
+    return flatSettings;
   }
 
   static bool CopyMapFiles(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
