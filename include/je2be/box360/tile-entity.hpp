@@ -47,6 +47,30 @@ public:
     } else {
       name = color + "_wall_banner";
     }
+    if (auto patternsB = in.listTag("Patterns"); patternsB && !patternsB->empty()) {
+      auto patternsJ = List<Tag::Type::Compound>();
+      for (auto const &it : *patternsB) {
+        auto patternB = it->asCompound();
+        if (!patternsB) {
+          continue;
+        }
+        auto patternJ = Compound();
+        auto p = patternB->string("Pattern");
+        if (!p) {
+          continue;
+        }
+        patternJ->set("Pattern", String(*p));
+        auto colorB = patternB->int32("Color");
+        if (!colorB) {
+          continue;
+        }
+        auto color = static_cast<BannerColorCodeBedrock>(*colorB);
+        auto colorJ = ColorCodeJavaFromBannerColorCodeBedrock(color);
+        patternJ->set("Color", Int(static_cast<int32_t>(colorJ)));
+        patternsJ->push_back(patternJ);
+      }
+      out->set("Patterns", patternsJ);
+    }
     Result r;
     r.fTileEntity = out;
     if (block) {
