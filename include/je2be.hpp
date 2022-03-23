@@ -28,6 +28,7 @@
 #include <mz_zip.h>
 #include <mz_strm.h>
 #include <mz_strm_os.h>
+#include <mz_os.h>
 
 #if __has_include(<windows.h>)
 #if !defined(NOMINMAX)

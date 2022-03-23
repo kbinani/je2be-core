@@ -57,42 +57,8 @@ private:
   static bool SetupResourcePack(std::filesystem::path const &outputDirectory) {
     using namespace std;
 
-    auto resources = outputDirectory / "resources";
-    auto miscTextures = resources / "assets" / "minecraft" / "textures" / "misc";
-    if (!Fs::CreateDirectories(miscTextures)) {
-      return false;
-    }
-
-    {
-      auto mcmeta = make_shared<mcfile::stream::FileOutputStream>(resources / "pack.mcmeta");
-      nlohmann::json obj;
-      nlohmann::json pack;
-      pack["pack_format"] = 7;
-      pack["description"] = "invisible worldborder by je2be";
-      obj["pack"] = pack;
-      auto str = nlohmann::to_string(obj);
-      if (!mcmeta->write(str.c_str(), str.size())) {
-        return false;
-      }
-    }
-    {
-      unsigned char transparent16x16_png[] = {
-          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-          0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10,
-          0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0xf3, 0xff, 0x61, 0x00, 0x00, 0x00,
-          0x12, 0x49, 0x44, 0x41, 0x54, 0x38, 0xcb, 0x63, 0x60, 0x18, 0x05, 0xa3,
-          0x60, 0x14, 0x8c, 0x02, 0x08, 0x00, 0x00, 0x04, 0x10, 0x00, 0x01, 0x85,
-          0x3f, 0xaa, 0x72, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
-          0x42, 0x60, 0x82};
-      unsigned int transparent16x16_png_len = 75;
-      auto forcefield = make_shared<mcfile::stream::FileOutputStream>(miscTextures / "forcefield.png");
-      if (!forcefield->write(transparent16x16_png, transparent16x16_png_len)) {
-        return false;
-      }
-    }
-
-    string resourcesZip = (outputDirectory / "resources.zip").string();
-    Fs::Delete(resourcesZip);
+    auto resourcesZipPath = outputDirectory / "resources.zip";
+    Fs::Delete(resourcesZipPath);
 
     void *handle = nullptr;
     if (!mz_zip_create(&handle)) {
@@ -110,12 +76,44 @@ private:
       mz_stream_os_delete(&stream);
     };
 
+    string resourcesZip = resourcesZipPath.string();
     if (MZ_OK != mz_stream_os_open(stream, resourcesZip.c_str(), MZ_OPEN_MODE_CREATE)) {
       return false;
     }
-    if (MZ_OK != mz_zip_open(handle, stream, MZ_OPEN_MODE_CREATE)) {
+    if (MZ_OK != mz_zip_open(handle, stream, MZ_OPEN_MODE_WRITE)) {
       return false;
     }
+
+    {
+      unsigned char transparent16x16_png[] = {
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+          0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0xf3, 0xff, 0x61, 0x00, 0x00, 0x00,
+          0x12, 0x49, 0x44, 0x41, 0x54, 0x38, 0xcb, 0x63, 0x60, 0x18, 0x05, 0xa3,
+          0x60, 0x14, 0x8c, 0x02, 0x08, 0x00, 0x00, 0x04, 0x10, 0x00, 0x01, 0x85,
+          0x3f, 0xaa, 0x72, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
+          0x42, 0x60, 0x82};
+      unsigned int transparent16x16_png_len = 75;
+      vector<uint8_t> forcefield;
+      copy_n(transparent16x16_png, transparent16x16_png_len, back_inserter(forcefield));
+      if (!AddBufferToZip(handle, forcefield, "assets/minecraft/textures/misc/forcefield.png")) {
+        return false;
+      }
+    }
+    {
+      nlohmann::json obj;
+      nlohmann::json pack;
+      pack["pack_format"] = 7;
+      pack["description"] = "invisible worldborder by je2be";
+      obj["pack"] = pack;
+      auto str = nlohmann::to_string(obj);
+      vector<uint8_t> mcmeta;
+      copy(str.begin(), str.end(), back_inserter(mcmeta));
+      if (!AddBufferToZip(handle, mcmeta, "pack.mcmeta")) {
+        return false;
+      }
+    }
+
     if (MZ_OK != mz_zip_close(handle)) {
       return false;
     }
@@ -123,9 +121,33 @@ private:
       return false;
     }
 
-    //TODO: put files into resources.zip
-
     return true;
+  }
+
+  static bool AddBufferToZip(void *zip, std::vector<uint8_t> const &buffer, std::string const &filename) {
+    mz_zip_file s = {0};
+    s.version_madeby = MZ_VERSION_MADEBY;
+    s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
+    s.filename = filename.c_str();
+    int16_t compressLevel = 9;
+    uint8_t raw = 0;
+    if (MZ_OK != mz_zip_entry_write_open(zip, &s, compressLevel, raw, nullptr)) {
+      return false;
+    }
+    int32_t totalWritten = 0;
+    int32_t err = MZ_OK;
+    int32_t remaining = buffer.size();
+    do {
+      int32_t code = mz_zip_entry_write(zip, buffer.data() + totalWritten, remaining);
+      if (code < 0) {
+        err = code;
+      } else {
+        totalWritten += code;
+        remaining -= code;
+      }
+    } while (err == MZ_OK && remaining > 0);
+
+    return err == MZ_OK && mz_zip_entry_close(zip) == MZ_OK;
   }
 
   static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
