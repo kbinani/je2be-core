@@ -186,7 +186,7 @@ private:
 
     out->set("BorderCenterX", Double(0));
     out->set("BorderCenterZ", Double(0));
-    out->set("BorderSize", Double(862));
+    out->set("BorderSize", Double(992));
     out->set("BorderWarningBlocks", Double(0));
 
     auto outRoot = Compound();
