@@ -367,6 +367,7 @@ private:
     E(daylight_detector, Identical);
     E(brewing_stand, BrewingStand);
     E(end_gateway, Identical);
+    E(end_portal, Identical);
 
 #undef E
     return ret;
