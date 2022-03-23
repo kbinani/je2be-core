@@ -303,7 +303,12 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
 endif()
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
-list(APPEND je2be_link_libraries mcfile leveldb)
+set(MZ_BZIP2 OFF)
+set(MZ_LZMA OFF)
+set(MZ_ZSTD OFF)
+add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
+
+list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
 add_library(je2be INTERFACE ${je2be_files})
@@ -313,7 +318,8 @@ target_include_directories(je2be INTERFACE
   deps/leveldb/include
   deps/xxhash
   deps/hwm.task
-  deps/json/include)
+  deps/json/include
+  deps/minizip-ng)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 
 add_executable(j2b example/j2b.cpp ${je2be_files})

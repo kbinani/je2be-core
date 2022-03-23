@@ -36,6 +36,9 @@ public:
     if (!CopyLevelDat(*temp, outputDirectory)) {
       return false;
     }
+    if (!SetupResourcePack(outputDirectory)) {
+      return false;
+    }
     vector<uint8_t>().swap(buffer);
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       if (!options.fDimensionFilter.empty()) {
@@ -51,6 +54,80 @@ public:
   }
 
 private:
+  static bool SetupResourcePack(std::filesystem::path const &outputDirectory) {
+    using namespace std;
+
+    auto resources = outputDirectory / "resources";
+    auto miscTextures = resources / "assets" / "minecraft" / "textures" / "misc";
+    if (!Fs::CreateDirectories(miscTextures)) {
+      return false;
+    }
+
+    {
+      auto mcmeta = make_shared<mcfile::stream::FileOutputStream>(resources / "pack.mcmeta");
+      nlohmann::json obj;
+      nlohmann::json pack;
+      pack["pack_format"] = 7;
+      pack["description"] = "invisible worldborder by je2be";
+      obj["pack"] = pack;
+      auto str = nlohmann::to_string(obj);
+      if (!mcmeta->write(str.c_str(), str.size())) {
+        return false;
+      }
+    }
+    {
+      unsigned char transparent16x16_png[] = {
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+          0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0xf3, 0xff, 0x61, 0x00, 0x00, 0x00,
+          0x12, 0x49, 0x44, 0x41, 0x54, 0x38, 0xcb, 0x63, 0x60, 0x18, 0x05, 0xa3,
+          0x60, 0x14, 0x8c, 0x02, 0x08, 0x00, 0x00, 0x04, 0x10, 0x00, 0x01, 0x85,
+          0x3f, 0xaa, 0x72, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
+          0x42, 0x60, 0x82};
+      unsigned int transparent16x16_png_len = 75;
+      auto forcefield = make_shared<mcfile::stream::FileOutputStream>(miscTextures / "forcefield.png");
+      if (!forcefield->write(transparent16x16_png, transparent16x16_png_len)) {
+        return false;
+      }
+    }
+
+    string resourcesZip = (outputDirectory / "resources.zip").string();
+    Fs::Delete(resourcesZip);
+
+    void *handle = nullptr;
+    if (!mz_zip_create(&handle)) {
+      return false;
+    }
+    defer {
+      mz_zip_delete(&handle);
+    };
+
+    void *stream = nullptr;
+    if (!mz_stream_os_create(&stream)) {
+      return false;
+    }
+    defer {
+      mz_stream_os_delete(&stream);
+    };
+
+    if (MZ_OK != mz_stream_os_open(stream, resourcesZip.c_str(), MZ_OPEN_MODE_CREATE)) {
+      return false;
+    }
+    if (MZ_OK != mz_zip_open(handle, stream, MZ_OPEN_MODE_CREATE)) {
+      return false;
+    }
+    if (MZ_OK != mz_zip_close(handle)) {
+      return false;
+    }
+    if (MZ_OK != mz_stream_close(stream)) {
+      return false;
+    }
+
+    //TODO: put files into resources.zip
+
+    return true;
+  }
+
   static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
     using namespace std;
     namespace fs = std::filesystem;

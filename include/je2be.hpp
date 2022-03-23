@@ -24,6 +24,11 @@
 #include <hwm/task/task_queue.hpp>
 #include <nlohmann/json.hpp>
 
+#include <mz.h>
+#include <mz_zip.h>
+#include <mz_strm.h>
+#include <mz_strm_os.h>
+
 #if __has_include(<windows.h>)
 #if !defined(NOMINMAX)
 #define NOMINMAX
