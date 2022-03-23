@@ -111,6 +111,10 @@ private:
     Ret r;
     return r;
   }
+
+  static std::optional<Ret> Shulker(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    out->set("Color", Byte(16));
+  }
 #pragma endregion
 
   static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
@@ -214,6 +218,7 @@ private:
 
     E(item_frame, ItemFrame);
     E(painting, Painting);
+    E(shulker, Shulker);
 
 #undef E
     return ret;
