@@ -11,8 +11,7 @@ public:
   };
 
 private:
-  struct Ret {};
-  using Converter = std::function<std::optional<Ret>(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx)>;
+  using Converter = std::function<bool(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx)>;
 
 public:
   static std::optional<Result> Convert(CompoundTag const &in, Context const &ctx) {
@@ -38,8 +37,8 @@ public:
       return r;
     }
 
-    auto converted = found->second(in, out, ctx);
-    if (!converted) {
+    auto ok = found->second(in, out, ctx);
+    if (!ok) {
       return nullopt;
     }
     if (!out) {
@@ -74,7 +73,7 @@ public:
 
 private:
 #pragma region Converters
-  static std::optional<Ret> ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+  static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     int8_t facingB = in.byte("Facing", 0);
     int8_t facingJ = 3;
     switch (facingB) {
@@ -100,20 +99,19 @@ private:
       }
     }
 
-    Ret r;
-    return r;
+    return true;
   }
 
-  static std::optional<Ret> Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+  static bool Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     if (auto motive = in.string("Motive"); motive) {
       out->set("Motive", String(strings::Uncapitalize(*motive)));
     }
-    Ret r;
-    return r;
+    return true;
   }
 
-  static std::optional<Ret> Shulker(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+  static bool Shulker(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     out->set("Color", Byte(16));
+    return true;
   }
 #pragma endregion
 
