@@ -1278,6 +1278,10 @@ public:
     Cleanup();
   }
 
+  XContentHeader const *GetMetaData() const {
+    return metaData;
+  }
+
 private:
   XContentHeader *metaData;
 

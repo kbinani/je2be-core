@@ -183,7 +183,12 @@ public:
     return nullptr;
   }
 
-  static bool ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::filesystem::path const &outputFile) {
+  struct SavegameInfo {
+    std::optional<std::string> fThumbnailImage;
+    std::optional<std::chrono::system_clock::time_point> fCreatedTime;
+  };
+
+  static std::optional<SavegameInfo> ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::filesystem::path const &outputFile) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -192,10 +197,32 @@ public:
     auto listing = pkg->GetFileListing();
     auto entry = FindSavegameFileEntry(listing);
     if (!entry) {
-      return false;
+      return nullopt;
     }
     pkg->ExtractFile(entry, outputFile.string());
-    return true;
+
+    SavegameInfo info;
+    info.fCreatedTime = TimePointFromFatTimestamp(entry->createdTimeStamp);
+    if (auto meta = pkg->GetMetaData(); meta) {
+      info.fThumbnailImage = std::string((char const *)meta->thumbnailImage, meta->thumbnailImageSize);
+    }
+    return info;
+  }
+
+  static std::optional<std::chrono::system_clock::time_point> TimePointFromFatTimestamp(uint32_t fat) {
+    using namespace std;
+    uint32_t year = (fat >> 25) + 1980;
+    uint32_t month = 0xf & (fat >> 21);
+    uint32_t day = 0x1f & (fat >> 16);
+    uint32_t hour = 0x1f & (fat >> 11);
+    uint32_t minute = 0x3f & (fat >> 5);
+    uint32_t second = (0x1f & fat) * 2;
+
+    auto ymd = chrono::year(year) / chrono::month(month) / chrono::day(day);
+    if (!ymd.ok()) {
+      return nullopt;
+    }
+    return chrono::sys_days(ymd) + chrono::hours(hour) + chrono::minutes(minute) + chrono::seconds(second);
   }
 };
 

@@ -20,8 +20,20 @@ public:
     };
     fs::path savegame = *temp / "savegame.dat";
 
-    if (!Savegame::ExtractSavagameFromSaveBin(inputSaveBin, savegame)) {
-      return false;
+    optional<chrono::system_clock::time_point> lastPlayed;
+    {
+      auto savegameInfo = Savegame::ExtractSavagameFromSaveBin(inputSaveBin, savegame);
+      if (!savegameInfo) {
+        return false;
+      }
+      if (auto thumbnail = savegameInfo->fThumbnailImage; thumbnail) {
+        auto iconPath = outputDirectory / "icon.png";
+        auto icon = make_shared<mcfile::stream::FileOutputStream>(iconPath);
+        if (!icon->write(thumbnail->data(), thumbnail->size())) {
+          return false;
+        }
+      }
+      lastPlayed = savegameInfo->fCreatedTime;
     }
     vector<uint8_t> buffer;
     if (!Savegame::DecompressSavegame(savegame, buffer)) {
@@ -33,7 +45,7 @@ public:
     if (!CopyMapFiles(*temp, outputDirectory)) {
       return false;
     }
-    if (!CopyLevelDat(*temp, outputDirectory)) {
+    if (!CopyLevelDat(*temp, outputDirectory, lastPlayed)) {
       return false;
     }
     if (!SetupResourcePack(outputDirectory)) {
@@ -150,7 +162,7 @@ private:
     return err == MZ_OK && mz_zip_entry_close(zip) == MZ_OK;
   }
 
-  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
+  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed) {
     using namespace std;
     namespace fs = std::filesystem;
     auto datFrom = inputDirectory / "level.dat";
@@ -183,6 +195,12 @@ private:
     CopyIntValues(*in, *out, {{"rainTime"}, {"GameType"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"thunderTime"}, {"clearWeatherTime"}});
     CopyLongValues(*in, *out, {{"DayTime"}, {"Time"}});
     CopyStringValues(*in, *out, {{"LevelName"}});
+
+    if (lastPlayed) {
+      // NOTE: LastPlayed in the level.dat from xbox360 edition is wired. Use timestamp of savegame.dat for it
+      int64_t ms = chrono::duration_cast<chrono::milliseconds>(lastPlayed->time_since_epoch()).count();
+      out->set("LastPlayed", Long(ms));
+    }
 
     out->set("BorderCenterX", Double(0));
     out->set("BorderCenterZ", Double(0));
