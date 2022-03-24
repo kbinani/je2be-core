@@ -35,12 +35,14 @@ public:
       }
       lastPlayed = savegameInfo->fCreatedTime;
     }
-    vector<uint8_t> buffer;
-    if (!Savegame::DecompressSavegame(savegame, buffer)) {
-      return false;
-    }
-    if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {
-      return false;
+    {
+      vector<uint8_t> buffer;
+      if (!Savegame::DecompressSavegame(savegame, buffer)) {
+        return false;
+      }
+      if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {
+        return false;
+      }
     }
     if (!CopyMapFiles(*temp, outputDirectory)) {
       return false;
@@ -51,7 +53,6 @@ public:
     if (!SetupResourcePack(outputDirectory)) {
       return false;
     }
-    vector<uint8_t>().swap(buffer);
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       if (!options.fDimensionFilter.empty()) {
         if (options.fDimensionFilter.find(dimension) == options.fDimensionFilter.end()) {
