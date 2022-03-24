@@ -101,6 +101,7 @@ public:
   }
 
   static bool IsWallAlwaysConnectable(mcfile::blocks::BlockId id) {
+    using namespace mcfile::blocks::minecraft;
     switch (id) {
     case mcfile::blocks::minecraft::acacia_log:
     case mcfile::blocks::minecraft::acacia_planks:
@@ -474,6 +475,21 @@ public:
     case mcfile::blocks::minecraft::yellow_stained_glass_pane:
     case mcfile::blocks::minecraft::yellow_terracotta:
     case mcfile::blocks::minecraft::yellow_wool:
+    case mangrove_planks:
+    case mangrove_roots:
+    case muddy_mangrove_roots:
+    case mangrove_log:
+    case stripped_mangrove_log:
+    case stripped_mangrove_wood:
+    case mangrove_wood:
+    case packed_mud:
+    case mud_bricks:
+    case mud_brick_wall:
+    case ochre_froglight:
+    case verdant_froglight:
+    case pearlescent_froglight:
+    case sculk:
+    case sculk_catalyst:
       return true;
     default:
       return false;
@@ -481,6 +497,7 @@ public:
   }
 
   static bool IsBlockAlwaysMakeWallTallShape(mcfile::blocks::BlockId id) {
+    using namespace mcfile::blocks::minecraft;
     switch (id) {
     case mcfile::blocks::minecraft::acacia_leaves:
     case mcfile::blocks::minecraft::acacia_log:
@@ -852,6 +869,22 @@ public:
     case mcfile::blocks::minecraft::yellow_stained_glass:
     case mcfile::blocks::minecraft::yellow_terracotta:
     case mcfile::blocks::minecraft::yellow_wool:
+    case mangrove_planks:
+    case mangrove_roots:
+    case muddy_mangrove_roots:
+    case mangrove_log:
+    case mangrove_wood:
+    case stripped_mangrove_log:
+    case stripped_mangrove_wood:
+    case packed_mud:
+    case mud_bricks:
+    case ochre_froglight:
+    case verdant_froglight:
+    case pearlescent_froglight:
+    case mangrove_leaves:
+    case sculk:
+    case sculk_catalyst:
+    case sculk_shrieker:
       return true;
     default:
       return false;

@@ -136,6 +136,7 @@ public:
   }
 
   static bool IsFenceAlwaysConnectable(mcfile::blocks::BlockId id) {
+    using namespace mcfile::blocks::minecraft;
     switch (id) {
     case mcfile::blocks::minecraft::acacia_fence:
     case mcfile::blocks::minecraft::acacia_log:
@@ -480,7 +481,21 @@ public:
     case mcfile::blocks::minecraft::yellow_terracotta:
     case mcfile::blocks::minecraft::yellow_wool:
 
-    case mcfile::blocks::minecraft::chorus_flower:
+    case chorus_flower:
+    case mangrove_roots:
+    case muddy_mangrove_roots:
+    case mangrove_log:
+    case stripped_mangrove_log:
+    case stripped_mangrove_wood:
+    case mangrove_wood:
+    case packed_mud:
+    case mud_bricks:
+    case mangrove_fence:
+    case ochre_froglight:
+    case verdant_froglight:
+    case pearlescent_froglight:
+    case sculk:
+    case sculk_catalyst:
       return true;
     default:
       return false;
@@ -488,6 +503,7 @@ public:
   }
 
   static bool IsGlassPaneOrIronBarsAlwaysConnectable(mcfile::blocks::BlockId id) {
+    using namespace mcfile::blocks::minecraft;
     switch (id) {
     case mcfile::blocks::minecraft::acacia_log:
     case mcfile::blocks::minecraft::acacia_planks:
@@ -863,7 +879,21 @@ public:
     case mcfile::blocks::minecraft::yellow_terracotta:
     case mcfile::blocks::minecraft::yellow_wool:
 
-    case mcfile::blocks::minecraft::chorus_flower:
+    case chorus_flower:
+    case mangrove_roots:
+    case muddy_mangrove_roots:
+    case mangrove_log:
+    case stripped_mangrove_log:
+    case stripped_mangrove_wood:
+    case mangrove_wood:
+    case packed_mud:
+    case mud_bricks:
+    case mud_brick_wall:
+    case ochre_froglight:
+    case verdant_froglight:
+    case pearlescent_froglight:
+    case sculk:
+    case sculk_catalyst:
       return true;
     default:
       return false;

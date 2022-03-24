@@ -311,6 +311,9 @@ public:
     case mcfile::blocks::minecraft::yellow_concrete:
     case mcfile::blocks::minecraft::yellow_glazed_terracotta:
     case mcfile::blocks::minecraft::yellow_terracotta:
+    case mud_brick_slab:
+    case mud_bricks:
+    case mud_brick_wall:
       return "basedrum";
     case mcfile::blocks::minecraft::acacia_fence:
     case mcfile::blocks::minecraft::acacia_fence_gate:
@@ -469,6 +472,29 @@ public:
     case mcfile::blocks::minecraft::white_wall_banner:
     case mcfile::blocks::minecraft::yellow_banner:
     case mcfile::blocks::minecraft::yellow_wall_banner:
+    case acacia_door:
+    case birch_door:
+    case crimson_door:
+    case dark_oak_door:
+    case jungle_door:
+    case oak_door:
+    case spruce_door:
+    case warped_door:
+    case mangrove_planks:
+    case mangrove_roots:
+    case mangrove_log:
+    case stripped_mangrove_log:
+    case stripped_mangrove_wood:
+    case mangrove_wood:
+    case mangrove_slab:
+    case mangrove_fence:
+    case mangrove_stairs:
+    case mangrove_fence_gate:
+    case mangrove_sign:
+    case mangrove_wall_sign:
+    case mangrove_pressure_plate:
+    case mangrove_door:
+    case mangrove_trapdoor:
       return "bass";
     case mcfile::blocks::minecraft::gold_block:
       return "bell";
@@ -564,16 +590,6 @@ public:
       return "snare";
     case mcfile::blocks::minecraft::bone_block:
       return "xylophone";
-
-    case acacia_door:
-    case birch_door:
-    case crimson_door:
-    case dark_oak_door:
-    case jungle_door:
-    case oak_door:
-    case spruce_door:
-    case warped_door:
-      return "bass";
     }
     return "harp";
   }
