@@ -6,7 +6,7 @@ class World {
   World() = delete;
 
 public:
-  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Options const& options) {
+  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
     string worldDir;

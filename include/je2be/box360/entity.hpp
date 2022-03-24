@@ -71,7 +71,7 @@ public:
     return "minecraft:" + name;
   }
 
-  static std::optional<Uuid> MigrateUuid(std::string const &uuid, Context const& ctx) {
+  static std::optional<Uuid> MigrateUuid(std::string const &uuid, Context const &ctx) {
     using namespace std;
     if (uuid.empty()) {
       return nullopt;

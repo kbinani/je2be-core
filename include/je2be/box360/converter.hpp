@@ -261,7 +261,7 @@ private:
     return err == MZ_OK && mz_zip_entry_close(zip) == MZ_OK;
   }
 
-  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed, CompoundTagPtr const& localPlayer, Context const& ctx) {
+  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed, CompoundTagPtr const &localPlayer, Context const &ctx) {
     using namespace std;
     namespace fs = std::filesystem;
     auto datFrom = inputDirectory / "level.dat";

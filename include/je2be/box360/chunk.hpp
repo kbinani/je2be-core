@@ -13,7 +13,7 @@ public:
     return "1.18.1";
   }
 
-  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result, Options const& options) {
+  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result, Options const &options) {
     using namespace std;
 
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
