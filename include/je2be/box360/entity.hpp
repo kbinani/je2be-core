@@ -71,6 +71,24 @@ public:
     return "minecraft:" + name;
   }
 
+  static std::optional<Uuid> MigrateUuid(std::string const &uuid) {
+    using namespace std;
+    if (!uuid.starts_with("ent") && uuid.size() != 35) {
+      return nullopt;
+    }
+
+    uint8_t data[16];
+    for (int i = 0; i < 16; i++) {
+      auto sub = uuid.substr(3 + i * 2, 2);
+      auto converted = strings::Toi(sub, 16);
+      if (!converted) {
+        return nullopt;
+      }
+      data[i] = 0xff & ((uint32_t)*converted);
+    }
+    return Uuid::FromData(data);
+  }
+
 private:
 #pragma region Converters
   static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
@@ -116,11 +134,12 @@ private:
 #pragma endregion
 
   static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
-    auto uuid = in.string("UUID");
-    if (!uuid) {
+    auto uuidB = in.string("UUID");
+    if (!uuidB) {
       return nullptr;
     }
-    if (!uuid->starts_with("ent") && uuid->size() != 35) {
+    auto uuidJ = MigrateUuid(*uuidB);
+    if (!uuidJ) {
       return nullptr;
     }
 
@@ -128,17 +147,7 @@ private:
     ret->erase("createdOnHost");
     ret->erase("namedByRestrictedPlayer");
 
-    uint8_t data[16];
-    for (int i = 0; i < 16; i++) {
-      auto sub = uuid->substr(3 + i * 2, 2);
-      auto converted = strings::Toi(sub, 16);
-      if (!converted) {
-        return nullptr;
-      }
-      data[i] = 0xff & ((uint32_t)*converted);
-    }
-    Uuid u = Uuid::FromData(data);
-    ret->set("UUID", u.toIntArrayTag());
+    ret->set("UUID", uuidJ->toIntArrayTag());
 
     if (auto riding = in.listTag("Riding"); riding) {
       ret->erase("Riding");

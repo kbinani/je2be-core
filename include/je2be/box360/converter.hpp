@@ -207,6 +207,21 @@ private:
     out->set("BorderSize", Double(992));
     out->set("BorderWarningBlocks", Double(0));
 
+    if (auto dimensionData = in->compoundTag("DimensionData"); dimensionData) {
+      if (auto theEnd = dimensionData->compoundTag("The End"); theEnd) {
+        if (auto dragonFightB = theEnd->compoundTag("DragonFight"); dragonFightB) {
+          auto dragonFightJ = dragonFightB->copy();
+          if (auto dragonUuidB = dragonFightB->string("DragonUUID"); dragonUuidB) {
+            if (auto dragonUuidJ = Entity::MigrateUuid(*dragonUuidB); dragonUuidJ) {
+              dragonFightJ->set("Dragon", dragonUuidJ->toIntArrayTag());
+              dragonFightJ->erase("DragonUUID");
+            }
+          }
+          out->set("DragonFight", dragonFightJ);
+        }
+      }
+    }
+
     auto outRoot = Compound();
     outRoot->set("Data", out);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
