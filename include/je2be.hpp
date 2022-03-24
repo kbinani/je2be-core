@@ -52,6 +52,7 @@
 #include <charconv>
 #include <regex>
 #include <fstream>
+#include <codecvt>
 
 #include <je2be/nbt.hpp>
 #include <je2be/fs.hpp>
