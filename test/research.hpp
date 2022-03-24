@@ -710,8 +710,8 @@ static void WallConnectable() {
   code << endl;
 }
 
-#if 1
+#if 0
 TEST_CASE("research") {
-  Box360Chunk();
+  WallConnectable();
 }
 #endif
