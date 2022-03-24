@@ -490,6 +490,70 @@ private:
 };
 #pragma endregion
 
+class MemoryIO : public BaseIO {
+public:
+  void SetPosition(uint64_t position, std::ios_base::seekdir dir = std::ios_base::beg) override {
+    uint64_t pos;
+    switch (dir) {
+    case std::ios_base::cur:
+      pos = this->position + position;
+      break;
+    case std::ios_base::end:
+      pos = buffer.size() + position;
+      break;
+    case std::ios_base::beg:
+    default:
+      pos = position;
+      break;
+    }
+    if (this->position < pos) {
+      buffer.resize(pos);
+    }
+    this->position = pos;
+  }
+
+  uint64_t GetPosition() override {
+    return position;
+  }
+
+  uint64_t Length() override {
+    return buffer.size();
+  }
+
+  void ReadBytes(uint8_t *outBuffer, uint32_t len) override {
+    if (buffer.size() <= position + len) {
+      throw std::string("MemoryIO: index out of range");
+    }
+    for (uint32_t i = 0; i < len; i++) {
+      outBuffer[i] = buffer[position + i];
+    }
+    position += len;
+  }
+
+  void WriteBytes(uint8_t *buffer, uint32_t len) override {
+    if (this->buffer.size() <= position + len) {
+      this->buffer.resize(position + len);
+    }
+    for (uint32_t i = 0; i < len; i++) {
+      this->buffer[position + i] = buffer[i];
+    }
+    position += len;
+  }
+
+  void Flush() override {}
+
+  void Close() override {}
+
+  void Drain(std::vector<uint8_t> &buffer) {
+    this->buffer.swap(buffer);
+    std::vector<uint8_t>().swap(this->buffer);
+  }
+
+private:
+  std::vector<uint8_t> buffer;
+  uint64_t position = 0;
+};
+
 #pragma region StdDefinitions.h
 
 enum LicenseType {
@@ -1105,21 +1169,25 @@ public:
 
   // Description: extract a file (by FileEntry) to a designated file path
   void ExtractFile(StfsFileEntry *entry, std::string outPath, void (*extractProgress)(void *, uint32_t, uint32_t) = NULL, void *arg = NULL) {
+    // create/truncate our out file
+    FileIO outFile(outPath, true);
+    Extract(entry, outFile, extractProgress);
+  }
+
+  // Description: extract a file (by FileEntry) to a designated file path
+  void Extract(StfsFileEntry *entry, BaseIO &out, void (*extractProgress)(void *, uint32_t, uint32_t) = NULL, void *arg = NULL) {
     if (entry->nameLen == 0) {
       except.str(std::string());
       except << "STFS: File '" << entry->name.c_str() << "' doesn't exist in the package.\n";
       throw except.str();
     }
 
-    // create/truncate our out file
-    FileIO outFile(outPath, true);
-
     // get the file size that we are extracting
     uint32_t fileSize = entry->fileSize;
 
     // make a special case for files of size 0
     if (fileSize == 0) {
-      outFile.Close();
+      out.Close();
 
       // update progress if needed
       if (extractProgress != NULL)
@@ -1143,20 +1211,20 @@ public:
       // pick up the change at the begining, until we hit a hash table
       if ((uint32_t)entry->blocksForFile <= blockCount) {
         io->ReadBytes(buffer, entry->fileSize);
-        outFile.Write(buffer, entry->fileSize);
+        out.Write(buffer, entry->fileSize);
 
         // update progress if needed
         if (extractProgress != NULL)
           extractProgress(arg, entry->blocksForFile, entry->blocksForFile);
 
-        outFile.Close();
+        out.Close();
 
         // free the temp buffer
         delete[] buffer;
         return;
       } else {
         io->ReadBytes(buffer, blockCount << 0xC);
-        outFile.Write(buffer, blockCount << 0xC);
+        out.Write(buffer, blockCount << 0xC);
 
         // update progress if needed
         if (extractProgress != NULL)
@@ -1174,7 +1242,7 @@ public:
         io->ReadBytes(buffer, 0xAA000);
 
         // Write the bytes to the out file
-        outFile.Write(buffer, 0xAA000);
+        out.Write(buffer, 0xAA000);
 
         tempSize -= 0xAA000;
         blockCount += 0xAA;
@@ -1194,7 +1262,7 @@ public:
         io->ReadBytes(buffer, tempSize);
 
         // Write it to the out file
-        outFile.Write(buffer, tempSize);
+        out.Write(buffer, tempSize);
 
         // update progress if needed
         if (extractProgress != NULL)
@@ -1217,7 +1285,7 @@ public:
       // read all the full blocks the file allocates
       for (uint32_t i = 0; i < fullReadCounts; i++) {
         ExtractBlock(block, data);
-        outFile.Write(data, 0x1000);
+        out.Write(data, 0x1000);
 
         block = GetBlockHashEntry(block).nextBlock;
 
@@ -1229,7 +1297,7 @@ public:
       // read the remaining data
       if (fileSize != 0) {
         ExtractBlock(block, data, fileSize);
-        outFile.Write(data, fileSize);
+        out.Write(data, fileSize);
 
         // call the extract progress function if needed
         if (extractProgress != NULL)
@@ -1238,7 +1306,7 @@ public:
     }
 
     // cleanup
-    outFile.Close();
+    out.Close();
   }
 
   // Description: convert a block into an address in the file

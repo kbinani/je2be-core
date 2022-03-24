@@ -6,12 +6,8 @@ class Savegame {
   Savegame() = delete;
 
 public:
-  static bool DecompressSavegame(std::filesystem::path const &input, std::vector<uint8_t> &output) {
+  static bool DecompressSavegame(std::vector<uint8_t> &buffer) {
     using namespace std;
-    vector<uint8_t> buffer;
-    if (!file::GetContents(input, buffer)) {
-      return false;
-    }
     if (buffer.size() < 12) {
       return false;
     }
@@ -23,7 +19,6 @@ public:
     if (LzxDecoder::Decode(buffer) != outputSize) {
       return false;
     }
-    output.swap(buffer);
     return true;
   }
 
@@ -188,25 +183,31 @@ public:
     std::optional<std::chrono::system_clock::time_point> fCreatedTime;
   };
 
-  static std::optional<SavegameInfo> ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::filesystem::path const &outputFile) {
+  static std::optional<SavegameInfo> ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<uint8_t> &buffer) {
     using namespace std;
     namespace fs = std::filesystem;
 
-    auto pkg = make_unique<StfsPackage>(saveBinFile.string());
+    try {
+      auto pkg = make_unique<StfsPackage>(saveBinFile.string());
 
-    auto listing = pkg->GetFileListing();
-    auto entry = FindSavegameFileEntry(listing);
-    if (!entry) {
+      auto listing = pkg->GetFileListing();
+      auto entry = FindSavegameFileEntry(listing);
+      if (!entry) {
+        return nullopt;
+      }
+      MemoryIO out;
+      pkg->Extract(entry, out);
+      out.Drain(buffer);
+
+      SavegameInfo info;
+      info.fCreatedTime = TimePointFromFatTimestamp(entry->createdTimeStamp);
+      if (auto meta = pkg->GetMetaData(); meta) {
+        info.fThumbnailImage = std::string((char const *)meta->thumbnailImage, meta->thumbnailImageSize);
+      }
+      return info;
+    } catch (...) {
       return nullopt;
     }
-    pkg->ExtractFile(entry, outputFile.string());
-
-    SavegameInfo info;
-    info.fCreatedTime = TimePointFromFatTimestamp(entry->createdTimeStamp);
-    if (auto meta = pkg->GetMetaData(); meta) {
-      info.fThumbnailImage = std::string((char const *)meta->thumbnailImage, meta->thumbnailImageSize);
-    }
-    return info;
   }
 
   static std::optional<std::chrono::system_clock::time_point> TimePointFromFatTimestamp(uint32_t fat) {

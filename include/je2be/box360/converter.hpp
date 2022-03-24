@@ -18,11 +18,11 @@ public:
     defer {
       Fs::DeleteAll(*temp);
     };
-    fs::path savegame = *temp / "savegame.dat";
 
     optional<chrono::system_clock::time_point> lastPlayed;
     {
-      auto savegameInfo = Savegame::ExtractSavagameFromSaveBin(inputSaveBin, savegame);
+      vector<uint8_t> buffer;
+      auto savegameInfo = Savegame::ExtractSavagameFromSaveBin(inputSaveBin, buffer);
       if (!savegameInfo) {
         return false;
       }
@@ -34,10 +34,8 @@ public:
         }
       }
       lastPlayed = savegameInfo->fCreatedTime;
-    }
-    {
-      vector<uint8_t> buffer;
-      if (!Savegame::DecompressSavegame(savegame, buffer)) {
+
+      if (!Savegame::DecompressSavegame(buffer)) {
         return false;
       }
       if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {
