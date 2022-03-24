@@ -9,7 +9,10 @@ public:
       : f(f) {}
 
   ~defer_t() {
-    f();
+    try {
+      f();
+    } catch (...) {
+    }
   }
 
 private:

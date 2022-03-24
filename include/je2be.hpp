@@ -24,6 +24,12 @@
 #include <hwm/task/task_queue.hpp>
 #include <nlohmann/json.hpp>
 
+#include <mz.h>
+#include <mz_zip.h>
+#include <mz_strm.h>
+#include <mz_strm_os.h>
+#include <mz_os.h>
+
 #if __has_include(<windows.h>)
 #if !defined(NOMINMAX)
 #define NOMINMAX
@@ -45,6 +51,8 @@
 #include <numbers>
 #include <charconv>
 #include <regex>
+#include <fstream>
+#include <codecvt>
 
 #include <je2be/nbt.hpp>
 #include <je2be/fs.hpp>
@@ -70,6 +78,7 @@
 #include <je2be/reversible-map.hpp>
 #include <je2be/static-reversible-map.hpp>
 #include <je2be/dimension-ext.hpp>
+#include <je2be/java-level-dat.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
@@ -109,5 +118,24 @@
 
 #include <je2be/structure/structure-piece.hpp>
 
+#include <je2be/terraform/block-property-accessor.hpp>
+#include <je2be/terraform/block-accessor.hpp>
+#include <je2be/terraform/bedrock/block-accessor-bedrock.hpp>
+#include <je2be/terraform/box360/block-accessor-box360.hpp>
+#include <je2be/terraform/shape-of-stairs.hpp>
+#include <je2be/terraform/fence-connectable.hpp>
+#include <je2be/terraform/redstone-wire.hpp>
+#include <je2be/terraform/chorus-plant.hpp>
+#include <je2be/terraform/wall-connectable.hpp>
+#include <je2be/terraform/snowy.hpp>
+#include <je2be/terraform/leaves.hpp>
+#include <je2be/terraform/note-block.hpp>
+#include <je2be/terraform/bedrock/kelp.hpp>
+#include <je2be/terraform/bedrock/attached-stem.hpp>
+#include <je2be/terraform/box360/kelp.hpp>
+#include <je2be/terraform/box360/attached-stem.hpp>
+#include <je2be/terraform/box360/chest.hpp>
+
+#include <je2be/box360/box360.hpp>
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>

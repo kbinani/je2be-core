@@ -6,7 +6,7 @@ class Chunk {
   Chunk() = delete;
 
 public:
-  static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, ChunkCache<3, 3> &cache, Context &ctx) {
+  static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx) {
     using namespace std;
 
     int const cy = b.fChunkY;
@@ -237,23 +237,26 @@ public:
     return j;
   }
 
-  static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, ChunkCache<3, 3> &cache) {
-    BlockPropertyAccessor accessor(b);
+  static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache) {
+    using namespace je2be::terraform;
+    using namespace je2be::terraform::bedrock;
+    BlockPropertyAccessorBedrock accessor(b);
+    BlockAccessorWrapper blockAccessor(cache);
 
     Piston::Do(j, cache, accessor);
 
-    ShapeOfStairs::Do(j, cache, accessor);
-    Kelp::Do(j, cache, accessor);
+    ShapeOfStairs::Do(j, blockAccessor, accessor);
+    Kelp::Do(j, accessor);
     TwistingVines::Do(j, cache, accessor);
     WeepingVines::Do(j, cache, accessor);
     AttachedStem::Do(j, cache, accessor);
     CaveVines::Do(j, cache, accessor);
-    Snowy::Do(j, cache, accessor);
-    ChorusPlant::Do(j, cache, accessor);
-    FenceConnectable::Do(j, cache, accessor);
+    Snowy::Do(j, blockAccessor, accessor);
+    ChorusPlant::Do(j, blockAccessor, accessor);
+    FenceConnectable::Do(j, blockAccessor, accessor);
     Campfire::Do(j, cache, accessor);
-    NoteBlock::Do(j, cache, accessor);
-    RedstoneWire::Do(j, cache, accessor);
+    NoteBlock::Do(j, blockAccessor, accessor);
+    RedstoneWire::Do(j, blockAccessor, accessor);
     Tripwire::Do(j, cache, accessor);
     Beacon::Do(j, cache, accessor);
     Door::Do(j, cache, accessor);

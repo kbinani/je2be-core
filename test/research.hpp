@@ -1,7 +1,6 @@
 #pragma once
 
-namespace {
-optional<wstring> GetLocalApplicationDirectory() {
+static optional<wstring> GetLocalApplicationDirectory() {
 #if __has_include(<shlobj_core.h>)
   int csidType = CSIDL_LOCAL_APPDATA;
   wchar_t path[MAX_PATH + 256];
@@ -13,7 +12,7 @@ optional<wstring> GetLocalApplicationDirectory() {
   return nullopt;
 }
 
-optional<fs::path> GetWorldDirectory(string const &name) {
+static optional<fs::path> GetWorldDirectory(string const &name) {
   auto appDir = GetLocalApplicationDirectory(); // X:/Users/whoami/AppData/Local
   if (!appDir) {
     return nullopt;
@@ -21,7 +20,7 @@ optional<fs::path> GetWorldDirectory(string const &name) {
   return fs::path(*appDir) / L"Packages" / L"Microsoft.MinecraftUWP_8wekyb3d8bbwe" / L"LocalState" / L"games" / L"com.mojang" / L"minecraftWorlds" / name / L"db";
 }
 
-leveldb::DB *OpenF(fs::path p) {
+static leveldb::DB *OpenF(fs::path p) {
   using namespace leveldb;
   Options o;
   o.compression = kZlibRawCompression;
@@ -33,7 +32,7 @@ leveldb::DB *OpenF(fs::path p) {
   return db;
 }
 
-leveldb::DB *Open(string const &name) {
+static leveldb::DB *Open(string const &name) {
   using namespace leveldb;
   auto dir = GetWorldDirectory(name);
   if (!dir) {
@@ -42,7 +41,7 @@ leveldb::DB *Open(string const &name) {
   return OpenF(*dir);
 }
 
-void VisitDbUntil(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
+static void VisitDbUntil(string const &name, function<bool(string const &key, string const &value, leveldb::DB *db)> callback) {
   using namespace leveldb;
   unique_ptr<DB> db(Open(name));
   if (!db) {
@@ -59,7 +58,7 @@ void VisitDbUntil(string const &name, function<bool(string const &key, string co
   }
 }
 
-void VisitDb(string const &name, function<void(string const &key, string const &value, leveldb::DB *db)> callback) {
+static void VisitDb(string const &name, function<void(string const &key, string const &value, leveldb::DB *db)> callback) {
   VisitDbUntil(name, [callback](string const &k, string const &v, leveldb::DB *db) {
     callback(k, v, db);
     return true;
@@ -232,7 +231,7 @@ static void NoteBlock() {
   code << endl;
 }
 
-void RedstoneWire() {
+static void RedstoneWire() {
   set<string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
     string name = mcfile::blocks::Name(id);
@@ -471,7 +470,7 @@ static void MonumentBedrock() {
     int y0 = v.fStart.fY;
     int cx = Coordinate::ChunkFromBlock(x0);
     int cz = Coordinate::ChunkFromBlock(z0);
-    toje::ChunkCache<5, 5> cache(Dimension::Overworld, cx, cz, db.get(), std::endian::little);
+    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, db.get(), std::endian::little);
 
     string facing;
     if (start.fX == 8891 && start.fZ == 13979) {
@@ -596,10 +595,123 @@ static void MonumentBedrock() {
 #endif
 }
 
-} // namespace
+static void Box360Chunk() {
+  using namespace je2be::box360;
+  fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
+  fs::path output("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/_b2j-out");
+
+  string name = "abc-Save20220303092528.bin";
+  // string name = "2-Save20220306005722-077-gyazo-1fcbd51efa6d0795fe34e912619aa4f5.bin";
+  Options options;
+  CHECK(Converter::Run(dir / name, output, thread::hardware_concurrency(), options));
+}
+
+static void WallConnectable() {
+  set<string> uniq;
+  for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+    switch (id) {
+    case mcfile::blocks::minecraft::reinforced_deepslate:
+      continue;
+    }
+    string name = mcfile::blocks::Name(id);
+    if (name.ends_with("_stairs")) {
+      continue;
+    }
+    if (name.ends_with("piston")) {
+      continue;
+    }
+    if (name.ends_with("door")) {
+      continue;
+    }
+    if (name.find("sculk") != string::npos && id != mcfile::blocks::minecraft::sculk_sensor) {
+      continue;
+    }
+    uniq.insert(name);
+  }
+  vector<string> names(uniq.begin(), uniq.end());
+
+  int const x0 = -42;
+  int const z0 = 165;
+  int const y = 4;
+  int x = x0;
+  int x1 = x0;
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/labo");
+  {
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
+    for (string const &name : names) {
+      os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
+      os << "setblock " << x << " " << (y + 1) << " " << (z0 + 1) << " " << name << endl;
+      x++;
+    }
+    x1 = x;
+    os << "fill " << x0 << " " << y << " " << (z0 + 1) << " " << x1 << " " << y << " " << (z0 + 1) << " cobblestone_wall" << endl;
+    os << "fill " << x0 << " " << y << " " << (z0 + 2) << " " << x1 << " " << y << " " << (z0 + 2) << " cobblestone_wall" << endl;
+  }
+
+  // login the game, then execute /function je2be:place_blocks
+
+  mcfile::je::World w(root);
+  shared_ptr<mcfile::je::Chunk> chunk;
+  int cz = mcfile::Coordinate::ChunkFromBlock(z0);
+  set<string> wallAttachable;
+  set<string> tall;
+  for (int x = x0; x < x1; x++) {
+    int cx = mcfile::Coordinate::ChunkFromBlock(x);
+    if (!chunk || (chunk && chunk->fChunkX != cx)) {
+      chunk = w.chunkAt(cx, cz);
+    }
+    auto center = chunk->blockAt(x, y, z0);
+    auto expected = names[x - x0];
+    if (expected != center->fName) {
+      cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
+    } else {
+      auto wall = chunk->blockAt(x, y, z0 + 1);
+      auto wallAttached = wall->property("north") != "none";
+      if (wallAttached) {
+        wallAttachable.insert(expected);
+      }
+      if (wall->property("south") == "tall") {
+        if (!expected.ends_with("slab") && !expected.ends_with("stairs") && !expected.ends_with("trapdoor")) {
+          tall.insert(expected);
+        }
+      }
+    }
+  }
+
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
+
+  code << "static bool IsWallAlwaysConnectable(mcfile::blocks::BlockId id) {" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto n : wallAttachable) {
+    code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
+  }
+  code << "      return true;" << endl;
+  code << "    default:" << endl;
+  code << "      break;" << endl;
+  code << "  }" << endl;
+  code << "  //TODO:" << endl;
+  code << "  return false;" << endl;
+  code << "}" << endl;
+  code << endl;
+
+  code << "static bool IsBlockMakeWallTallShape(mcfile::blocks::BlockId id) {" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto n : tall) {
+    code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
+  }
+  code << "      return true;" << endl;
+  code << "    default:" << endl;
+  code << "      break;" << endl;
+  code << "  }" << endl;
+  code << "  //TODO:" << endl;
+  code << "  return false;" << endl;
+  code << "}" << endl;
+  code << endl;
+}
 
 #if 0
 TEST_CASE("research") {
-  MonumentBedrock();
+  WallConnectable();
 }
 #endif

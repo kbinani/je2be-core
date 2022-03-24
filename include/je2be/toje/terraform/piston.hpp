@@ -6,7 +6,7 @@ class Piston {
   Piston() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &chunkJ, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &chunkJ, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasPiston) {
@@ -27,7 +27,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsPiston(p)) {
+          if (!terraform::BlockPropertyAccessor::IsPiston(p)) {
             continue;
           }
           auto blockB = cache.blockAt(x, y, z);
@@ -165,7 +165,7 @@ public:
     std::shared_ptr<CompoundTag const> fBlockEntity;
   };
 
-  static std::optional<PistonBody> PistonBodyFromPistonPos(CompoundTag const &blockEntity, ChunkCache<3, 3> &loader) {
+  static std::optional<PistonBody> PistonBodyFromPistonPos(CompoundTag const &blockEntity, terraform::bedrock::BlockAccessorBedrock<3, 3> &loader) {
     auto x = blockEntity.int32("pistonPosX");
     auto y = blockEntity.int32("pistonPosY");
     auto z = blockEntity.int32("pistonPosZ");

@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform {
 
 class NoteBlock {
   NoteBlock() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasNoteBlock) {
@@ -20,7 +20,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsNoteBlock(p)) {
+          if (!terraform::BlockPropertyAccessor::IsNoteBlock(p)) {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);
@@ -29,12 +29,9 @@ public:
           }
           map<string, string> props(blockJ->fProperties);
           props["instrument"] = "harp";
-          auto lowerB = cache.blockAt(x, y - 1, z);
-          if (lowerB) {
-            auto lowerJ = BlockData::From(*lowerB);
-            if (lowerJ) {
-              props["instrument"] = NoteBlockInstrument(lowerJ->fId);
-            }
+          auto lowerJ = cache.blockAt(x, y - 1, z);
+          if (lowerJ) {
+            props["instrument"] = NoteBlockInstrument(lowerJ->fId);
           }
           auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
           out.setBlockAt(x, y, z, replace);
@@ -314,6 +311,9 @@ public:
     case mcfile::blocks::minecraft::yellow_concrete:
     case mcfile::blocks::minecraft::yellow_glazed_terracotta:
     case mcfile::blocks::minecraft::yellow_terracotta:
+    case mud_brick_slab:
+    case mud_bricks:
+    case mud_brick_wall:
       return "basedrum";
     case mcfile::blocks::minecraft::acacia_fence:
     case mcfile::blocks::minecraft::acacia_fence_gate:
@@ -472,6 +472,29 @@ public:
     case mcfile::blocks::minecraft::white_wall_banner:
     case mcfile::blocks::minecraft::yellow_banner:
     case mcfile::blocks::minecraft::yellow_wall_banner:
+    case acacia_door:
+    case birch_door:
+    case crimson_door:
+    case dark_oak_door:
+    case jungle_door:
+    case oak_door:
+    case spruce_door:
+    case warped_door:
+    case mangrove_planks:
+    case mangrove_roots:
+    case mangrove_log:
+    case stripped_mangrove_log:
+    case stripped_mangrove_wood:
+    case mangrove_wood:
+    case mangrove_slab:
+    case mangrove_fence:
+    case mangrove_stairs:
+    case mangrove_fence_gate:
+    case mangrove_sign:
+    case mangrove_wall_sign:
+    case mangrove_pressure_plate:
+    case mangrove_door:
+    case mangrove_trapdoor:
       return "bass";
     case mcfile::blocks::minecraft::gold_block:
       return "bell";
@@ -567,19 +590,9 @@ public:
       return "snare";
     case mcfile::blocks::minecraft::bone_block:
       return "xylophone";
-
-    case acacia_door:
-    case birch_door:
-    case crimson_door:
-    case dark_oak_door:
-    case jungle_door:
-    case oak_door:
-    case spruce_door:
-    case warped_door:
-      return "bass";
     }
     return "harp";
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform

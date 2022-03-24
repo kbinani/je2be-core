@@ -16,3 +16,6 @@
 [submodule "deps/xxhash"]
 	path = deps/xxhash
 	url = https://github.com/stbrumme/xxhash.git
+[submodule "deps/deps/minizip-ng"]
+	path = deps/minizip-ng
+	url = https://github.com/zlib-ng/minizip-ng.git

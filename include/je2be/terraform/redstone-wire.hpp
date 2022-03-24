@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform {
 
 class RedstoneWire {
   RedstoneWire() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasRedstoneWire) {
@@ -42,13 +42,10 @@ public:
           }
 
           // Check Y + 1, NESW blocks when the upper block is transparent against redstone wire.
-          auto upperB = cache.blockAt(x, y + 1, z);
+          auto upperJ = cache.blockAt(x, y + 1, z);
           bool transparentUpper = true;
-          if (upperB) {
-            auto upperJ = BlockData::From(*upperB);
-            if (upperJ) {
-              transparentUpper = IsTransparentAgainstRedstoneWire(*upperJ);
-            }
+          if (upperJ) {
+            transparentUpper = IsTransparentAgainstRedstoneWire(*upperJ);
           }
           if (transparentUpper) {
             for (auto d : nesw) {
@@ -78,17 +75,14 @@ public:
               continue;
             }
             Pos2i vec = d.second;
-            auto sideB = cache.blockAt(x + vec.fX, y, z + vec.fZ);
+            auto sideJ = cache.blockAt(x + vec.fX, y, z + vec.fZ);
             bool transparentSide = true;
-            if (sideB) {
-              auto sideJ = BlockData::From(*sideB);
-              if (sideJ) {
-                transparentSide = IsTransparentAgainstRedstoneWire(*sideJ);
-              }
+            if (sideJ) {
+              transparentSide = IsTransparentAgainstRedstoneWire(*sideJ);
             }
             if (transparentSide) {
               auto lower = cache.blockAt(x + vec.fX, y - 1, z + vec.fZ);
-              if (lower && lower->fName == "minecraft:redstone_wire") {
+              if (lower && lower->fId == mcfile::blocks::minecraft::redstone_wire) {
                 props[d.first] = "side";
               }
             }
@@ -130,19 +124,21 @@ public:
     }
   }
 
-  static bool IsRedstoneConnectable(mcfile::be::Block const &block, Pos2i direction) {
+  static bool IsRedstoneConnectable(mcfile::je::Block const &block, Pos2i direction) {
     using namespace std;
+    using namespace mcfile::blocks::minecraft;
+    auto id = block.fId;
     string name = block.fName.substr(10);
-    if (name == "lightning_rod" || name == "lectern" || name == "daylight_detector" || name == "daylight_detector_inverted" || name == "detector_rail" || name == "redstone_torch" || name == "redstone_wall_torch" || name == "tripwire_hook" || name.ends_with("pressure_plate") || name.ends_with("button") || name == "lever" || name == "redstone_block" || name == "target" || name == "trapped_chest" || name == "redstone_wire" || name == "sculk_sensor" || name.ends_with("_comparator")) {
+    if (id == lightning_rod || id == lectern || id == daylight_detector || id == detector_rail || id == redstone_torch || id == redstone_wall_torch || id == tripwire_hook || name.ends_with("pressure_plate") || name.ends_with("button") || id == lever || id == redstone_block || id == target || id == trapped_chest || id == redstone_wire || id == sculk_sensor || id == comparator) {
       return true;
     }
-    if (name == "powered_repeater" || name == "unpowered_repeater") {
-      auto f4 = Facing4FromBedrockDirection(block.fStates->int32("direction", 0));
+    if (id == repeater) {
+      auto f4 = Facing4FromJavaName(block.property("facing"));
       Pos2i d = Pos2iFromFacing4(f4);
       return (d.fX == -direction.fX && d.fZ == -direction.fZ) || (d.fX == direction.fX && d.fZ == direction.fZ);
     }
-    if (name == "observer") {
-      auto f6 = Facing6FromBedrockFacingDirectionA(block.fStates->int32("facing_direction", 0));
+    if (id == observer) {
+      auto f6 = Facing6FromJavaName(block.property("facing"));
       Pos3i d3 = Pos3iFromFacing6(f6);
       auto d2 = Pos2i(d3.fX, d3.fZ);
       return d3.fX == direction.fX && d3.fZ == direction.fZ;
@@ -205,4 +201,4 @@ public:
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform

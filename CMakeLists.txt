@@ -17,6 +17,24 @@ endif()
 set(je2be_files
   #begin je2be source files
   include/je2be.hpp
+  include/je2be/box360/biome.hpp
+  include/je2be/box360/block-data.hpp
+  include/je2be/box360/box360.hpp
+  include/je2be/box360/chunk.hpp
+  include/je2be/box360/context.hpp
+  include/je2be/box360/converter.hpp
+  include/je2be/box360/entity.hpp
+  include/je2be/box360/grid.hpp
+  include/je2be/box360/item.hpp
+  include/je2be/box360/lzx-decoder.hpp
+  include/je2be/box360/minecraft-save-info.hpp
+  include/je2be/box360/options.hpp
+  include/je2be/box360/savegame.hpp
+  include/je2be/box360/stfs.hpp
+  include/je2be/box360/terraform.hpp
+  include/je2be/box360/tile-entity-convert-result.hpp
+  include/je2be/box360/tile-entity.hpp
+  include/je2be/box360/world.hpp
   include/je2be/color/lab.hpp
   include/je2be/color/rgba.hpp
   include/je2be/color/sign-color.hpp
@@ -53,6 +71,7 @@ set(je2be_files
   include/je2be/item/map-color.hpp
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
+  include/je2be/java-level-dat.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
   include/je2be/optional.hpp
@@ -67,6 +86,23 @@ set(je2be_files
   include/je2be/static-reversible-map.hpp
   include/je2be/strings.hpp
   include/je2be/structure/structure-piece.hpp
+  include/je2be/terraform/bedrock/attached-stem.hpp
+  include/je2be/terraform/bedrock/block-accessor-bedrock.hpp
+  include/je2be/terraform/bedrock/kelp.hpp
+  include/je2be/terraform/block-accessor.hpp
+  include/je2be/terraform/block-property-accessor.hpp
+  include/je2be/terraform/box360/attached-stem.hpp
+  include/je2be/terraform/box360/block-accessor-box360.hpp
+  include/je2be/terraform/box360/chest.hpp
+  include/je2be/terraform/box360/kelp.hpp
+  include/je2be/terraform/chorus-plant.hpp
+  include/je2be/terraform/fence-connectable.hpp
+  include/je2be/terraform/leaves.hpp
+  include/je2be/terraform/note-block.hpp
+  include/je2be/terraform/redstone-wire.hpp
+  include/je2be/terraform/shape-of-stairs.hpp
+  include/je2be/terraform/snowy.hpp
+  include/je2be/terraform/wall-connectable.hpp
   include/je2be/tile-entity/loot-table.hpp
   include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
@@ -111,11 +147,10 @@ set(je2be_files
   include/je2be/tobe/uuid-registrar.hpp
   include/je2be/tobe/versions.hpp
   include/je2be/tobe/world-data.hpp
+  include/je2be/toje/block-accessor-wrapper.hpp
   include/je2be/toje/block-data.hpp
   include/je2be/toje/block-entity-convert-result.hpp
   include/je2be/toje/block-entity.hpp
-  include/je2be/toje/block-property-accessor.hpp
-  include/je2be/toje/chunk-cache.hpp
   include/je2be/toje/chunk.hpp
   include/je2be/toje/constants.hpp
   include/je2be/toje/context.hpp
@@ -129,19 +164,11 @@ set(je2be_files
   include/je2be/toje/region.hpp
   include/je2be/toje/structure-info.hpp
   include/je2be/toje/sub-chunk.hpp
-  include/je2be/toje/terraform/attached-stem.hpp
   include/je2be/toje/terraform/beacon.hpp
   include/je2be/toje/terraform/campfire.hpp
   include/je2be/toje/terraform/cave-vines.hpp
-  include/je2be/toje/terraform/chorus-plant.hpp
   include/je2be/toje/terraform/door.hpp
-  include/je2be/toje/terraform/fence-connectable.hpp
-  include/je2be/toje/terraform/kelp.hpp
-  include/je2be/toje/terraform/note-block.hpp
   include/je2be/toje/terraform/piston.hpp
-  include/je2be/toje/terraform/redstone-wire.hpp
-  include/je2be/toje/terraform/shape-of-stairs.hpp
-  include/je2be/toje/terraform/snowy.hpp
   include/je2be/toje/terraform/tripwire.hpp
   include/je2be/toje/terraform/twisting-vines.hpp
   include/je2be/toje/terraform/weeping-vines.hpp
@@ -172,8 +199,14 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/biomes/from-name.hpp
   deps/libminecraft-file/include/mcfile/biomes/minecraft.hpp
   deps/libminecraft-file/include/mcfile/biomes/name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/block-data.hpp
   deps/libminecraft-file/include/mcfile/blocks/block-id.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/ageable.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/bisected.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/directional.hpp
+  deps/libminecraft-file/include/mcfile/blocks/data/type/stairs.hpp
   deps/libminecraft-file/include/mcfile/blocks/from-name.hpp
+  deps/libminecraft-file/include/mcfile/blocks/make-block-data.hpp
   deps/libminecraft-file/include/mcfile/blocks/minecraft.hpp
   deps/libminecraft-file/include/mcfile/blocks/name.hpp
   deps/libminecraft-file/include/mcfile/compression.hpp
@@ -271,7 +304,12 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
 endif()
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
-list(APPEND je2be_link_libraries mcfile leveldb)
+set(MZ_BZIP2 OFF)
+set(MZ_LZMA OFF)
+set(MZ_ZSTD OFF)
+add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
+
+list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
 add_library(je2be INTERFACE ${je2be_files})
@@ -281,7 +319,8 @@ target_include_directories(je2be INTERFACE
   deps/leveldb/include
   deps/xxhash
   deps/hwm.task
-  deps/json/include)
+  deps/json/include
+  deps/minizip-ng)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 
 add_executable(j2b example/j2b.cpp ${je2be_files})

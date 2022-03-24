@@ -6,7 +6,7 @@ class CaveVines {
   CaveVines() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasCaveVines) {
@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           auto lower = accessor.property(x, y - 1, z);
-          if (BlockPropertyAccessor::IsCaveVines(p) && BlockPropertyAccessor::IsCaveVines(lower)) {
+          if (terraform::BlockPropertyAccessor::IsCaveVines(p) && terraform::BlockPropertyAccessor::IsCaveVines(lower)) {
             auto blockJ = out.blockAt(x, y, z);
             if (!blockJ) {
               continue;

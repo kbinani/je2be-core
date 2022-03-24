@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform::bedrock {
 
 class AttachedStem {
   AttachedStem() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessorBedrock<3, 3> &cache, BlockPropertyAccessor const &accessor) {
     if (accessor.fHasPumpkinStem) {
       DoImpl(out, cache, accessor, "minecraft:pumpkin", "minecraft:attached_pumpkin_stem", IsPumpkinStem);
     }
@@ -24,7 +24,7 @@ public:
   }
 
   static void DoImpl(mcfile::je::Chunk &out,
-                     ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor,
+                     BlockAccessorBedrock<3, 3> &cache, BlockPropertyAccessor const &accessor,
                      std::string const &cropFullNameBE,
                      std::string const &stemFullNameJE,
                      std::function<bool(BlockPropertyAccessor::DataType)> pred) {
@@ -103,4 +103,4 @@ public:
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform::bedrock

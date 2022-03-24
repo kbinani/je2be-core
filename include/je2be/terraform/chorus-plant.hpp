@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform {
 
 class ChorusPlant {
   ChorusPlant() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, ChunkCache<3, 3> &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasChorusPlant) {
@@ -55,18 +55,18 @@ public:
   }
 
 private:
-  static std::string IsChorusPlantConnectable(std::shared_ptr<mcfile::be::Block const> const &b) {
+  static std::string IsChorusPlantConnectable(std::shared_ptr<mcfile::je::Block const> const &b) {
     if (!b) {
       return "false";
     }
     if (BlockPropertyAccessor::IsChorusPlant(*b)) {
       return "true";
     }
-    if (b->fName == "minecraft:end_stone") {
+    if (b->fId == mcfile::blocks::minecraft::end_stone) {
       return "true";
     }
     return "false";
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform

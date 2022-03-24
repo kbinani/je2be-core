@@ -35,10 +35,10 @@ public:
 
     bool ok = true;
     for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
-      unique_ptr<ChunkCache<3, 3>> cache(new ChunkCache<3, 3>(d, rx * 32 - 1, cz - 1, db, ctx->fEndian));
+      unique_ptr<terraform::bedrock::BlockAccessorBedrock<3, 3>> cache(new terraform::bedrock::BlockAccessorBedrock<3, 3>(d, rx * 32 - 1, cz - 1, db, ctx->fEndian));
       for (int cx = rx * 32; ok && cx < rx * 32 + 32; cx++) {
         defer {
-          unique_ptr<ChunkCache<3, 3>> next(cache->makeRelocated(cx, cz - 1));
+          unique_ptr<terraform::bedrock::BlockAccessorBedrock<3, 3>> next(cache->makeRelocated(cx, cz - 1));
           cache.swap(next);
         };
 

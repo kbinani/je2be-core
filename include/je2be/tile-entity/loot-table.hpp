@@ -38,6 +38,47 @@ public:
     }
     return State::NoLootTable;
   }
+
+  static State Box360ToJava(CompoundTag const &b, CompoundTag &j) {
+    using namespace std;
+    auto lootTable = b.string("LootTable");
+    auto lootTableSeed = b.int64("LootTableSeed");
+    if (!lootTable || !lootTableSeed) {
+      return State::NoLootTable;
+    }
+    /*
+    minecraft:chests/buriedtreasure         => buried_treasure
+    minecraft:chests/shipwreck              => shipwreck_map
+    minecraft:chests/shipwrecksupply        => shipwreck_supply
+    minecraft:chests/shipwrecktreasure      => shipwreck_treasure
+    minecraft:chests/simple_dungeon         => same
+    minecraft:chests/stronghold_corridor    => same
+    minecraft:chests/stronghold_library     => same
+    minecraft:chests/underwater_ruin_big    => same
+    minecraft:chests/underwater_ruin_small  => same
+    minecraft:chests/village_blacksmith     => village/village_toolsmith ?
+    minecraft:chests/desert_pyramid         => same
+    minecraft:chests/jungle_temple          => same
+    minecraft:chests/stronghold_crossing    => same
+    minecraft:chests/woodland_mansion       => same
+    minecraft:chests/igloo_chest            => same
+    */
+    static unordered_map<string, string> const mapping = {
+        {"minecraft:chests/shipwrecksupply", "minecraft:chests/shipwreck_supply"},
+        {"minecraft:chests/shipwrecktreasure", "minecraft:chests/shipwreck_treasure"},
+        {"minecraft:chests/shipwreck", "minecraft:chests/shipwreck_map"},
+        {"minecraft:chests/buriedtreasure", "minecraft:chests/buried_treasure"},
+        {"minecraft:chests/village_blacksmith", "minecraft:chests/village/village_toolsmith"},
+    };
+    string table = *lootTable;
+    auto found = mapping.find(table);
+    if (found != mapping.end()) {
+      table = found->second;
+    }
+    j["LootTable"] = String(table);
+    j["LootTableSeed"] = Long(*lootTableSeed);
+    return State::HasLootTable;
+  }
 };
 
 } // namespace je2be
