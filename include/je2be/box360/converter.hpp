@@ -53,6 +53,9 @@ public:
     if (!SetupResourcePack(outputDirectory)) {
       return false;
     }
+    if (!CopyPlayers(*temp, outputDirectory)) {
+      return false;
+    }
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       if (!options.fDimensionFilter.empty()) {
         if (options.fDimensionFilter.find(dimension) == options.fDimensionFilter.end()) {
@@ -67,6 +70,72 @@ public:
   }
 
 private:
+  static bool CopyPlayers(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
+    using namespace std;
+    namespace fs = std::filesystem;
+
+    auto playersFrom = inputDirectory / "players";
+    auto playersTo = outputDirectory / "playerdata";
+
+    if (!Fs::CreateDirectories(playersTo)) {
+      return false;
+    }
+
+    error_code ec;
+    for (auto it : fs::directory_iterator(playersFrom, ec)) {
+      if (!it.is_regular_file()) {
+        continue;
+      }
+      if (!CopyPlayer(it.path(), playersTo)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata) {
+    using namespace std;
+    auto stream = make_shared<mcfile::stream::FileInputStream>(inputFile);
+    auto in = CompoundTag::Read(stream, endian::big);
+    stream.reset();
+    if (!in) {
+      // Not an nbt format. just skip this
+      return true;
+    }
+    auto uuidB = in->string("UUID");
+    if (!uuidB) {
+      return false;
+    }
+    auto uuidJ = Entity::MigrateUuid(*uuidB);
+    if (!uuidJ) {
+      return false;
+    }
+
+    auto out = in->copy();
+    out->erase("GamePrivileges");
+    out->erase("Sleeping");
+
+    out->set("UUID", uuidJ->toIntArrayTag());
+
+    Context ctx(TileEntity::Convert, Entity::MigrateName);
+    Entity::CopyItems(*in, *out, ctx, "EnderItems");
+    Entity::CopyItems(*in, *out, ctx, "Inventory");
+
+    if (auto dimensionB = in->int32("Dimension"); dimensionB) {
+      if (auto dimension = DimensionFromBedrockDimension(*dimensionB); dimension) {
+        out->set("Dimension", String(JavaStringFromDimension(*dimension)));
+      }
+    }
+
+    out->set("DataVersion", Int(Chunk::kTargetDataVersion));
+
+    auto filename = uuidJ->toString() + ".dat";
+    auto filePath = outputPlayerdata / filename;
+    auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
+    mcfile::stream::OutputStreamWriter writer(outputStream, endian::big);
+    return out->writeAsRoot(writer);
+  }
+
   static bool SetupResourcePack(std::filesystem::path const &outputDirectory) {
     using namespace std;
 

@@ -83,6 +83,26 @@ public:
     return Uuid::GenWithI64Seed(seed);
   }
 
+  static void CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::string const &key) {
+    auto handItemsB = in.listTag(key);
+    if (!handItemsB) {
+      return;
+    }
+    auto handItemsJ = List<Tag::Type::Compound>();
+    for (auto const &it : *handItemsB) {
+      auto itemB = it->asCompound();
+      if (!itemB) {
+        continue;
+      }
+      if (itemB->empty()) {
+        handItemsJ->push_back(Compound());
+      } else if (auto converted = Item::Convert(*itemB, ctx); converted) {
+        handItemsJ->push_back(converted);
+      }
+    }
+    out[key] = handItemsJ;
+  }
+
 private:
 #pragma region Converters
   static bool Item(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
@@ -198,26 +218,6 @@ private:
     CopyItems(in, *ret, ctx, "ArmorItems");
 
     return ret;
-  }
-
-  static void CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::string const &key) {
-    auto handItemsB = in.listTag(key);
-    if (!handItemsB) {
-      return;
-    }
-    auto handItemsJ = List<Tag::Type::Compound>();
-    for (auto const &it : *handItemsB) {
-      auto itemB = it->asCompound();
-      if (!itemB) {
-        continue;
-      }
-      if (itemB->empty()) {
-        handItemsJ->push_back(Compound());
-      } else if (auto converted = Item::Convert(*itemB, ctx); converted) {
-        handItemsJ->push_back(converted);
-      }
-    }
-    out[key] = handItemsJ;
   }
 
   static std::optional<Uuid> MigrateEntityUuid(std::string const &uuid) {
