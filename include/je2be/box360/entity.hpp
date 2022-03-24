@@ -73,24 +73,33 @@ public:
 
   static std::optional<Uuid> MigrateUuid(std::string const &uuid) {
     using namespace std;
-    if (!uuid.starts_with("ent") && uuid.size() != 35) {
+    if (uuid.empty()) {
       return nullopt;
     }
-
-    uint8_t data[16];
-    for (int i = 0; i < 16; i++) {
-      auto sub = uuid.substr(3 + i * 2, 2);
-      auto converted = strings::Toi(sub, 16);
-      if (!converted) {
-        return nullopt;
-      }
-      data[i] = 0xff & ((uint32_t)*converted);
+    if (auto u = MigrateEntityUuid(uuid); u) {
+      return *u;
     }
-    return Uuid::FromData(data);
+    int64_t seed = XXHash::Digest(uuid.c_str(), uuid.size());
+    return Uuid::GenWithI64Seed(seed);
   }
 
 private:
 #pragma region Converters
+  static bool Item(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    mcfile::nbt::PrintAsJson(std::cout, in, {.fTypeHint = true});
+    if (auto item = in.compoundTag("Item"); item) {
+      if (auto converted = Item::Convert(*item, ctx); converted) {
+        out->set("Item", converted);
+      }
+    }
+    if (auto throwerB = in.string("Thrower"); throwerB) {
+      if (auto throwerJ = MigrateUuid(*throwerB); throwerJ) {
+        out->set("Thrower", throwerJ->toIntArrayTag());
+      }
+    }
+    return true;
+  }
+
   static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     int8_t facingB = in.byte("Facing", 0);
     int8_t facingJ = 3;
@@ -211,6 +220,24 @@ private:
     out[key] = handItemsJ;
   }
 
+  static std::optional<Uuid> MigrateEntityUuid(std::string const &uuid) {
+    using namespace std;
+    if (!uuid.starts_with("ent") && uuid.size() != 35) {
+      return nullopt;
+    }
+
+    uint8_t data[16];
+    for (int i = 0; i < 16; i++) {
+      auto sub = uuid.substr(3 + i * 2, 2);
+      auto converted = strings::Toi(sub, 16);
+      if (!converted) {
+        return nullopt;
+      }
+      data[i] = 0xff & ((uint32_t)*converted);
+    }
+    return Uuid::FromData(data);
+  }
+
   static std::unordered_map<std::string, Converter> const &GetTable() {
     using namespace std;
     static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
@@ -226,6 +253,7 @@ private:
     E(item_frame, ItemFrame);
     E(painting, Painting);
     E(shulker, Shulker);
+    E(item, Item);
 
 #undef E
     return ret;
