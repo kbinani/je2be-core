@@ -71,10 +71,14 @@ public:
     return "minecraft:" + name;
   }
 
-  static std::optional<Uuid> MigrateUuid(std::string const &uuid) {
+  static std::optional<Uuid> MigrateUuid(std::string const &uuid, Context const& ctx) {
     using namespace std;
     if (uuid.empty()) {
       return nullopt;
+    }
+    auto found = ctx.fOptions.fPlayers.find(uuid);
+    if (found != ctx.fOptions.fPlayers.end()) {
+      return found->second;
     }
     if (auto u = MigrateEntityUuid(uuid); u) {
       return *u;
@@ -106,14 +110,13 @@ public:
 private:
 #pragma region Converters
   static bool Item(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    mcfile::nbt::PrintAsJson(std::cout, in, {.fTypeHint = true});
     if (auto item = in.compoundTag("Item"); item) {
       if (auto converted = Item::Convert(*item, ctx); converted) {
         out->set("Item", converted);
       }
     }
     if (auto throwerB = in.string("Thrower"); throwerB) {
-      if (auto throwerJ = MigrateUuid(*throwerB); throwerJ) {
+      if (auto throwerJ = MigrateUuid(*throwerB, ctx); throwerJ) {
         out->set("Thrower", throwerJ->toIntArrayTag());
       }
     }
@@ -167,7 +170,7 @@ private:
     if (!uuidB) {
       return nullptr;
     }
-    auto uuidJ = MigrateUuid(*uuidB);
+    auto uuidJ = MigrateUuid(*uuidB, ctx);
     if (!uuidJ) {
       return nullptr;
     }
@@ -226,16 +229,7 @@ private:
       return nullopt;
     }
 
-    uint8_t data[16];
-    for (int i = 0; i < 16; i++) {
-      auto sub = uuid.substr(3 + i * 2, 2);
-      auto converted = strings::Toi(sub, 16);
-      if (!converted) {
-        return nullopt;
-      }
-      data[i] = 0xff & ((uint32_t)*converted);
-    }
-    return Uuid::FromData(data);
+    return Uuid::FromString(uuid.substr(3));
   }
 
   static std::unordered_map<std::string, Converter> const &GetTable() {

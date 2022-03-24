@@ -44,16 +44,18 @@ public:
         return false;
       }
     }
+    Context ctx(TileEntity::Convert, Entity::MigrateName, options);
     if (!CopyMapFiles(*temp, outputDirectory)) {
       return false;
     }
-    if (!CopyLevelDat(*temp, outputDirectory, lastPlayed)) {
+    auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx);
+    if (!copyPlayersResult) {
+      return false;
+    }
+    if (!CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fPlayer, ctx)) {
       return false;
     }
     if (!SetupResourcePack(outputDirectory)) {
-      return false;
-    }
-    if (!CopyPlayers(*temp, outputDirectory)) {
       return false;
     }
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
@@ -70,7 +72,11 @@ public:
   }
 
 private:
-  static bool CopyPlayers(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
+  struct CopyPlayerResult {
+    CompoundTagPtr fPlayer;
+  };
+
+  static std::optional<CopyPlayerResult> CopyPlayers(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, Context const &ctx) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -78,37 +84,41 @@ private:
     auto playersTo = outputDirectory / "playerdata";
 
     if (!Fs::CreateDirectories(playersTo)) {
-      return false;
+      return nullopt;
     }
+
+    CopyPlayerResult r;
 
     error_code ec;
     for (auto it : fs::directory_iterator(playersFrom, ec)) {
       if (!it.is_regular_file()) {
         continue;
       }
-      if (!CopyPlayer(it.path(), playersTo)) {
-        return false;
+      auto result = CopyPlayer(it.path(), playersTo, ctx);
+      if (!result) {
+        return nullopt;
       }
+      r.fPlayer = result->fPlayer;
     }
-    return true;
+    return r;
   }
 
-  static bool CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata) {
+  static std::optional<CopyPlayerResult> CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
     using namespace std;
     auto stream = make_shared<mcfile::stream::FileInputStream>(inputFile);
     auto in = CompoundTag::Read(stream, endian::big);
     stream.reset();
     if (!in) {
       // Not an nbt format. just skip this
-      return true;
+      return CopyPlayerResult{};
     }
     auto uuidB = in->string("UUID");
     if (!uuidB) {
-      return false;
+      return nullopt;
     }
-    auto uuidJ = Entity::MigrateUuid(*uuidB);
+    auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
     if (!uuidJ) {
-      return false;
+      return nullopt;
     }
 
     auto out = in->copy();
@@ -117,7 +127,6 @@ private:
 
     out->set("UUID", uuidJ->toIntArrayTag());
 
-    Context ctx(TileEntity::Convert, Entity::MigrateName);
     Entity::CopyItems(*in, *out, ctx, "EnderItems");
     Entity::CopyItems(*in, *out, ctx, "Inventory");
 
@@ -129,11 +138,31 @@ private:
 
     out->set("DataVersion", Int(Chunk::kTargetDataVersion));
 
+    if (auto rootVehicleB = in->compoundTag("RootVehicle"); rootVehicleB) {
+      auto rootVehicleJ = Compound();
+      if (auto entityB = rootVehicleB->compoundTag("Entity"); entityB) {
+        if (auto entityJ = Entity::Convert(*entityB, ctx); entityJ && entityJ->fEntity) {
+          rootVehicleJ->set("Entity", entityJ->fEntity);
+        }
+      }
+      if (auto attachB = rootVehicleB->string("Attach"); attachB) {
+        if (auto attachJ = Entity::MigrateUuid(*attachB, ctx); attachJ) {
+          rootVehicleJ->set("Attach", attachJ->toIntArrayTag());
+        }
+      }
+      out->set("RootVehicle", rootVehicleJ);
+    }
+
     auto filename = uuidJ->toString() + ".dat";
     auto filePath = outputPlayerdata / filename;
     auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
     mcfile::stream::OutputStreamWriter writer(outputStream, endian::big);
-    return out->writeAsRoot(writer);
+    if (!out->writeAsRoot(writer)) {
+      return nullopt;
+    }
+    CopyPlayerResult r;
+    r.fPlayer = out;
+    return r;
   }
 
   static bool SetupResourcePack(std::filesystem::path const &outputDirectory) {
@@ -232,7 +261,7 @@ private:
     return err == MZ_OK && mz_zip_entry_close(zip) == MZ_OK;
   }
 
-  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed) {
+  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed, CompoundTagPtr const& localPlayer, Context const& ctx) {
     using namespace std;
     namespace fs = std::filesystem;
     auto datFrom = inputDirectory / "level.dat";
@@ -282,7 +311,7 @@ private:
         if (auto dragonFightB = theEnd->compoundTag("DragonFight"); dragonFightB) {
           auto dragonFightJ = dragonFightB->copy();
           if (auto dragonUuidB = dragonFightB->string("DragonUUID"); dragonUuidB) {
-            if (auto dragonUuidJ = Entity::MigrateUuid(*dragonUuidB); dragonUuidJ) {
+            if (auto dragonUuidJ = Entity::MigrateUuid(*dragonUuidB, ctx); dragonUuidJ) {
               dragonFightJ->set("Dragon", dragonUuidJ->toIntArrayTag());
               dragonFightJ->erase("DragonUUID");
             }
@@ -290,6 +319,10 @@ private:
           out->set("DragonFight", dragonFightJ);
         }
       }
+    }
+
+    if (localPlayer) {
+      out->set("Player", localPlayer);
     }
 
     auto outRoot = Compound();

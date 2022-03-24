@@ -26,6 +26,24 @@ struct Uuid {
     return u;
   }
 
+  static std::optional<Uuid> FromString(std::string const &str) {
+    using namespace std;
+    string uuid = strings::Replace(str, "-", "");
+    if (uuid.size() != 32) {
+      return nullopt;
+    }
+    uint8_t data[16];
+    for (int i = 0; i < 16; i++) {
+      auto sub = uuid.substr(i * 2, 2);
+      auto converted = strings::Toi(sub, 16);
+      if (!converted) {
+        return nullopt;
+      }
+      data[i] = 0xff & ((uint32_t)*converted);
+    }
+    return Uuid::FromData(data);
+  }
+
   static Uuid GenWithSeed(size_t seed) {
     std::mt19937 mt(seed);
     return GenWithGenerator(mt);

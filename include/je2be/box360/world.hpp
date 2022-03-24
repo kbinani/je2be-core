@@ -6,7 +6,7 @@ class World {
   World() = delete;
 
 public:
-  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Options options) {
+  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Options const& options) {
     using namespace std;
     namespace fs = std::filesystem;
     string worldDir;
@@ -77,9 +77,9 @@ public:
               if (!ok) {
                 break;
               }
-              futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir)));
+              futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, options)));
             } else {
-              if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir)) {
+              if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, options)) {
                 return false;
               }
             }
@@ -135,10 +135,10 @@ private:
     return mcfile::je::Region::ConcatCompressedNbt(rx, rz, chunkTempDir, chunkMca, options) && mcfile::je::Region::ConcatCompressedNbt(rx, rz, entityTempDir, entityMca, options);
   }
 
-  static bool ProcessChunk(mcfile::Dimension dimension, std::filesystem::path mcr, int cx, int cz, std::filesystem::path chunkTempDir, std::filesystem::path entityTempDir) {
+  static bool ProcessChunk(mcfile::Dimension dimension, std::filesystem::path mcr, int cx, int cz, std::filesystem::path chunkTempDir, std::filesystem::path entityTempDir, Options options) {
     using namespace std;
     shared_ptr<mcfile::je::WritableChunk> chunk;
-    if (!Chunk::Convert(dimension, mcr, cx, cz, chunk)) {
+    if (!Chunk::Convert(dimension, mcr, cx, cz, chunk, options)) {
       return true;
     }
     if (!chunk) {
