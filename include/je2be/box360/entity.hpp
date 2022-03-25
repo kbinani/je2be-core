@@ -109,6 +109,12 @@ public:
 
 private:
 #pragma region Converters
+  static bool ChestMinecart(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    mcfile::nbt::PrintAsJson(std::cout, in, {.fTypeHint = true});
+    LootTable::Box360ToJava(in, *out);
+    return true;
+  }
+
   static bool Item(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     if (auto item = in.compoundTag("Item"); item) {
       if (auto converted = Item::Convert(*item, ctx); converted) {
@@ -219,6 +225,7 @@ private:
 
     CopyItems(in, *ret, ctx, "HandItems");
     CopyItems(in, *ret, ctx, "ArmorItems");
+    CopyItems(in, *ret, ctx, "Items");
 
     return ret;
   }
@@ -248,6 +255,7 @@ private:
     E(painting, Painting);
     E(shulker, Shulker);
     E(item, Item);
+    E(chest_minecart, ChestMinecart);
 
 #undef E
     return ret;
