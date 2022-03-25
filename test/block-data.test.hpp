@@ -34,6 +34,7 @@ TEST_CASE("block-data") {
 
 #if 0
 TEST_CASE("prepare-test-data") {
+  using namespace mcfile::je;
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
   auto file = dataDir / "debug-mode" / "1.18.1" / "r.0.0.mca";
