@@ -178,6 +178,7 @@ set(je2be_files
   include/je2be/version.hpp
   include/je2be/volume.hpp
   include/je2be/xxhash.hpp
+  include/je2be/zip-file.hpp
   #end je2be source files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files

@@ -169,30 +169,7 @@ private:
     auto resourcesZipPath = outputDirectory / "resources.zip";
     Fs::Delete(resourcesZipPath);
 
-    void *handle = nullptr;
-    if (!mz_zip_create(&handle)) {
-      return false;
-    }
-    defer {
-      mz_zip_delete(&handle);
-    };
-
-    void *stream = nullptr;
-    if (!mz_stream_os_create(&stream)) {
-      return false;
-    }
-    defer {
-      mz_stream_os_delete(&stream);
-    };
-
-    string resourcesZip = resourcesZipPath.string();
-    if (MZ_OK != mz_stream_os_open(stream, resourcesZip.c_str(), MZ_OPEN_MODE_CREATE)) {
-      return false;
-    }
-    if (MZ_OK != mz_zip_open(handle, stream, MZ_OPEN_MODE_WRITE)) {
-      return false;
-    }
-
+    ZipFile resources(resourcesZipPath);
     {
       unsigned char transparent16x16_png[] = {
           0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
@@ -205,7 +182,7 @@ private:
       unsigned int transparent16x16_png_len = 75;
       vector<uint8_t> forcefield;
       copy_n(transparent16x16_png, transparent16x16_png_len, back_inserter(forcefield));
-      if (!AddBufferToZip(handle, forcefield, "assets/minecraft/textures/misc/forcefield.png")) {
+      if (!resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png")) {
         return false;
       }
     }
@@ -218,19 +195,12 @@ private:
       auto str = nlohmann::to_string(obj);
       vector<uint8_t> mcmeta;
       copy(str.begin(), str.end(), back_inserter(mcmeta));
-      if (!AddBufferToZip(handle, mcmeta, "pack.mcmeta")) {
+      if (!resources.store(mcmeta, "pack.mcmeta")) {
         return false;
       }
     }
 
-    if (MZ_OK != mz_zip_close(handle)) {
-      return false;
-    }
-    if (MZ_OK != mz_stream_close(stream)) {
-      return false;
-    }
-
-    return true;
+    return resources.close();
   }
 
   static bool AddBufferToZip(void *zip, std::vector<uint8_t> const &buffer, std::string const &filename) {
