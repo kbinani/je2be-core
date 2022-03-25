@@ -219,11 +219,31 @@ public:
     uint32_t minute = 0x3f & (fat >> 5);
     uint32_t second = (0x1f & fat) * 2;
 
+#if defined(__GNUC__)
+    std::tm tm{};
+    tm.tm_year = year - 1900;
+    tm.tm_mon = month - 1;
+    tm.tm_mday = day;
+    tm.tm_hour = hour;
+    tm.tm_min = minute;
+    tm.tm_sec = second;
+    tm.tm_isdst = 0;
+#if defined(_MSC_VER)
+    std::time_t t = _mkgmtime(&tm);
+#else
+    std::time_t t = timegm(&tm);
+#endif
+    if (t == (std::time_t)-1) {
+      return nullopt;
+    }
+    return std::chrono::system_clock::from_time_t(t);
+#else
     auto ymd = chrono::year(year) / chrono::month(month) / chrono::day(day);
     if (!ymd.ok()) {
       return nullopt;
     }
     return chrono::sys_days(ymd) + chrono::hours(hour) + chrono::minutes(minute) + chrono::seconds(second);
+#endif
   }
 };
 
