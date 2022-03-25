@@ -110,7 +110,6 @@ public:
 private:
 #pragma region Converters
   static bool ChestMinecart(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    mcfile::nbt::PrintAsJson(std::cout, in, {.fTypeHint = true});
     LootTable::Box360ToJava(in, *out);
     return true;
   }
