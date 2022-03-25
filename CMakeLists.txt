@@ -307,6 +307,8 @@ add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 set(MZ_BZIP2 OFF)
 set(MZ_LZMA OFF)
 set(MZ_ZSTD OFF)
+# minizip-ng can't find zlib-ng under ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng
+set(MZ_ZLIB OFF)
 add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
 
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
