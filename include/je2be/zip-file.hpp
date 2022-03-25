@@ -8,7 +8,7 @@ public:
     if (!mz_stream_os_create(&fStream)) {
       return;
     }
-    if (MZ_OK != mz_stream_os_open(fStream, zipFilePath.string().c_str(), MZ_OPEN_MODE_CREATE)) {
+    if (MZ_OK != mz_stream_os_open(fStream, (char const *)zipFilePath.u8string().c_str(), MZ_OPEN_MODE_CREATE)) {
       return;
     }
     if (!mz_zip_create(&fHandle)) {
