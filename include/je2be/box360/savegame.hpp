@@ -138,20 +138,20 @@ public:
     if (offset + size > buffer.size()) {
       return false;
     }
-    string name;
-    for (uint32_t i = 1; i < kFileNameLength; i += 2) {
-      char c = buffer[indexPosition + i];
+    u16string name;
+    for (uint32_t i = 0; i < kFileNameLength; i++) {
+      char16_t c = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + indexPosition + i * 2));
       if (c == 0) {
         break;
       }
       name.push_back(c);
     }
     fs::path file;
-    if (name.starts_with("DIM-1")) {
+    if (name.starts_with(u"DIM-1")) {
       file = outputDirectory / "DIM-1" / "region" / name.substr(5);
-    } else if (name.starts_with("DIM1/")) {
+    } else if (name.starts_with(u"DIM1/")) {
       file = outputDirectory / "DIM1" / "region" / name.substr(5);
-    } else if (name.ends_with(".mcr")) {
+    } else if (name.ends_with(u".mcr")) {
       file = outputDirectory / "region" / name;
     } else {
       file = outputDirectory / name;
