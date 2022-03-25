@@ -7,7 +7,7 @@ class MinecraftSaveInfo {
 
 public:
   struct SaveBin {
-    std::string fTitle;
+    std::u16string fTitle;
     std::string fFileName;
     std::string fThumbnailData;
   };
@@ -33,7 +33,6 @@ public:
       pos += 4;
 
       vector<uint32_t> thumbnailSizeList;
-      wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t> converter;
 
       for (uint32_t i = 0; i < numFiles; i++) {
         if (pos + 256 + 0x34 > buffer.size()) {
@@ -41,11 +40,13 @@ public:
         }
         u16string title;
         for (int j = 0; j < 128; j++) {
-          char16_t ch = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + pos));
+          char16_t ch = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + pos + 2 * j));
+          if (ch == 0) {
+            break;
+          }
           title.push_back(ch);
-          pos += 2;
         }
-        string u8title = converter.to_bytes(title);
+        pos += 256;
 
         string fileName;
         for (int j = 0; j < 22; j++) {
@@ -60,7 +61,7 @@ public:
         pos += 4;
 
         SaveBin bin;
-        bin.fTitle = u8title;
+        bin.fTitle = title;
         bin.fFileName = fileName;
         bins.push_back(bin);
       }
