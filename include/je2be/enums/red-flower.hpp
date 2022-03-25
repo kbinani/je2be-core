@@ -78,7 +78,7 @@ static inline std::string JavaNameFromRedFlower(RedFlower f) {
   }
 }
 
-static std::optional<RedFlower> RedFlowerFromBedrockName(std::string const &name) {
+static inline std::optional<RedFlower> RedFlowerFromBedrockName(std::string const &name) {
   for (uint8_t f = 1; f < static_cast<uint8_t>(RedFlower::RedFlowerLast); f++) {
     RedFlower rf = static_cast<RedFlower>(f);
     if (BedrockNameFromRedFlower(rf) == name) {
@@ -88,7 +88,7 @@ static std::optional<RedFlower> RedFlowerFromBedrockName(std::string const &name
   return std::nullopt;
 }
 
-static std::optional<RedFlower> RedFlowerFromJavaName(std::string const &name) {
+static inline std::optional<RedFlower> RedFlowerFromJavaName(std::string const &name) {
   for (uint8_t f = 1; f < static_cast<uint8_t>(RedFlower::RedFlowerLast); f++) {
     RedFlower rf = static_cast<RedFlower>(f);
     if (JavaNameFromRedFlower(rf) == name) {

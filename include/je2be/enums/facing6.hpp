@@ -45,7 +45,7 @@ static inline Facing6 Facing6FromJavaName(std::string const &n) {
   return Facing6::Down;
 }
 
-static Pos3i Pos3iFromFacing6(Facing6 f6) {
+static inline Pos3i Pos3iFromFacing6(Facing6 f6) {
   switch (f6) {
   case Facing6::East:
     return Pos3i(1, 0, 0);

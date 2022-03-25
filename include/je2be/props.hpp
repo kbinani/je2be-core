@@ -8,7 +8,7 @@ struct UUIDKeyName {
   std::optional<std::string> fHexString = std::nullopt;
 };
 
-inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag const &tag, std::string const &namePrefix) {
+static inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag const &tag, std::string const &namePrefix) {
   using namespace std;
   auto least = tag.int64(namePrefix + "Least");
   auto most = tag.int64(namePrefix + "Most");
@@ -28,7 +28,7 @@ inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag const &tag,
   return uuid;
 }
 
-inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &tag, std::string const &name) {
   using namespace std;
 
   auto found = tag.find(name);
@@ -53,7 +53,7 @@ inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &tag, std
   return Uuid::FromInt32(a, b, c, d);
 }
 
-inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, std::string const &name) {
   using namespace std;
 
   auto found = tag.find(name);
@@ -82,7 +82,7 @@ inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, st
   return Uuid::FromInt32((int32_t)*a0, (int32_t)*b0, (int32_t)*c0, (int32_t)*d0);
 }
 
-inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName keyName) {
+static inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName keyName) {
   if (keyName.fIntArray) {
     auto ret = GetUuidWithFormatIntArray(tag, *keyName.fIntArray);
     if (ret) {
@@ -104,7 +104,7 @@ inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName keyName) 
   return std::nullopt;
 }
 
-inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -123,7 +123,7 @@ inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string const &
   return Pos3d(x, y, z);
 }
 
-inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -142,7 +142,7 @@ inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::string const &
   return Pos3f(x, y, z);
 }
 
-inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -161,7 +161,7 @@ inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string c
 }
 
 template <char xKey, char yKey, char zKey>
-inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag) {
+static inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag) {
   auto x = tag.int32(std::string(1, xKey));
   auto y = tag.int32(std::string(1, yKey));
   auto z = tag.int32(std::string(1, zKey));
@@ -171,7 +171,7 @@ inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag) {
   return Pos3i(*x, *y, *z);
 }
 
-inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::string const &name) {
   auto xyz = tag.compoundTag(name);
   if (!xyz) {
     return std::nullopt;
@@ -179,7 +179,7 @@ inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::string const &
   return GetPos3i<'X', 'Y', 'Z'>(*xyz);
 }
 
-inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, std::string const &name) {
   auto arr = tag.listTag(name);
   if (!arr) {
     return std::nullopt;
@@ -196,7 +196,7 @@ inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, std::str
   return Pos3i(x->fValue, y->fValue, z->fValue);
 }
 
-inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
+static inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   try {
     return nlohmann::json::parse(s);
   } catch (...) {
@@ -204,7 +204,7 @@ inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   }
 }
 
-inline std::optional<nlohmann::json> GetJson(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<nlohmann::json> GetJson(CompoundTag const &tag, std::string const &name) {
   using namespace std;
   using nlohmann::json;
   auto found = tag.find(name);
@@ -218,7 +218,7 @@ inline std::optional<nlohmann::json> GetJson(CompoundTag const &tag, std::string
   return ParseAsJson(s->fValue);
 }
 
-inline int32_t SquashI64ToI32(int64_t v) {
+static inline int32_t SquashI64ToI32(int64_t v) {
   if (v < (int64_t)std::numeric_limits<int32_t>::min() || (int64_t)std::numeric_limits<int32_t>::max() < v) {
     XXHash32 x(0);
     x.add(&v, sizeof(v));

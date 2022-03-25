@@ -50,7 +50,7 @@ static inline int BedrockDirectionFromFacing4(Facing4 f) {
   return 0;
 }
 
-static Facing4 Facing4FromBedrockDirection(int d) {
+static inline Facing4 Facing4FromBedrockDirection(int d) {
   switch (d) {
   case 2:
     return Facing4::North;
@@ -64,7 +64,7 @@ static Facing4 Facing4FromBedrockDirection(int d) {
   }
 }
 
-static Pos2i Pos2iFromFacing4(Facing4 f4) {
+static inline Pos2i Pos2iFromFacing4(Facing4 f4) {
   switch (f4) {
   case Facing4::North:
     return Pos2i(0, -1);

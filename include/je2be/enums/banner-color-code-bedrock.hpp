@@ -21,7 +21,7 @@ enum class BannerColorCodeBedrock : int32_t {
   White = 15,
 };
 
-inline BannerColorCodeBedrock BannerColorCodeFromName(std::string const &color) {
+static inline BannerColorCodeBedrock BannerColorCodeFromName(std::string const &color) {
   static std::unordered_map<std::string, BannerColorCodeBedrock> const mapping = {
       {"white", BannerColorCodeBedrock::White},
       {"orange", BannerColorCodeBedrock::Orange},

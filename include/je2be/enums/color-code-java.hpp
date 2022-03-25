@@ -21,7 +21,7 @@ enum class ColorCodeJava : int32_t {
   Black = 15,
 };
 
-inline ColorCodeJava ColorCodeJavaFromJavaName(std::string const &color) {
+static inline ColorCodeJava ColorCodeJavaFromJavaName(std::string const &color) {
   static std::unordered_map<std::string, ColorCodeJava> const mapping = {
       {"white", ColorCodeJava::White},
       {"orange", ColorCodeJava::Orange},
@@ -48,7 +48,7 @@ inline ColorCodeJava ColorCodeJavaFromJavaName(std::string const &color) {
   }
 }
 
-inline ColorCodeJava ColorCodeJavaFromBedrockName(std::string const &color) {
+static inline ColorCodeJava ColorCodeJavaFromBedrockName(std::string const &color) {
   static std::unordered_map<std::string, ColorCodeJava> const mapping = {
       {"white", ColorCodeJava::White},
       {"orange", ColorCodeJava::Orange},
@@ -75,7 +75,7 @@ inline ColorCodeJava ColorCodeJavaFromBedrockName(std::string const &color) {
   }
 }
 
-inline std::string JavaNameFromColorCodeJava(ColorCodeJava code) {
+static inline std::string JavaNameFromColorCodeJava(ColorCodeJava code) {
   switch (code) {
   case ColorCodeJava::Black:
     return "black";
@@ -113,7 +113,7 @@ inline std::string JavaNameFromColorCodeJava(ColorCodeJava code) {
   }
 }
 
-inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
+static inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
   switch (code) {
   case ColorCodeJava::Black:
     return "black";
@@ -151,7 +151,7 @@ inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
   }
 }
 
-inline BannerColorCodeBedrock BannerColorCodeFromJava(ColorCodeJava ccj) {
+static inline BannerColorCodeBedrock BannerColorCodeFromJava(ColorCodeJava ccj) {
   switch (ccj) {
   case ColorCodeJava::Red:
     return BannerColorCodeBedrock::Red;
