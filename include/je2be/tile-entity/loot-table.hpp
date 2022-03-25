@@ -62,6 +62,7 @@ public:
     minecraft:chests/stronghold_crossing    => same
     minecraft:chests/woodland_mansion       => same
     minecraft:chests/igloo_chest            => same
+    minecraft:chests/abandoned_mineshaft    => same
     */
     static unordered_map<string, string> const mapping = {
         {"minecraft:chests/shipwrecksupply", "minecraft:chests/shipwreck_supply"},
