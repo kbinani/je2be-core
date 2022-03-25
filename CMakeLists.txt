@@ -30,6 +30,7 @@ set(je2be_files
   include/je2be/box360/minecraft-save-info.hpp
   include/je2be/box360/options.hpp
   include/je2be/box360/savegame.hpp
+  include/je2be/box360/stfs-ext.hpp
   include/je2be/box360/stfs.hpp
   include/je2be/box360/terraform.hpp
   include/je2be/box360/tile-entity-convert-result.hpp

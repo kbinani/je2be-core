@@ -15,7 +15,7 @@ public:
   static bool Parse(std::filesystem::path const &saveInfoFilePath, std::vector<SaveBin> &bins) {
     using namespace std;
     try {
-      auto pkg = make_unique<StfsPackage>(saveInfoFilePath.string());
+      auto pkg = make_unique<StfsPackage>(new FileIO2(saveInfoFilePath));
       auto const &listing = pkg->GetFileListing();
       if (listing.fileEntries.size() != 1) {
         return true;

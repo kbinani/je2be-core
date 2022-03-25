@@ -490,70 +490,6 @@ private:
 };
 #pragma endregion
 
-class MemoryIO : public BaseIO {
-public:
-  void SetPosition(uint64_t position, std::ios_base::seekdir dir = std::ios_base::beg) override {
-    uint64_t pos;
-    switch (dir) {
-    case std::ios_base::cur:
-      pos = this->position + position;
-      break;
-    case std::ios_base::end:
-      pos = buffer.size() + position;
-      break;
-    case std::ios_base::beg:
-    default:
-      pos = position;
-      break;
-    }
-    if (this->position < pos) {
-      buffer.resize(pos);
-    }
-    this->position = pos;
-  }
-
-  uint64_t GetPosition() override {
-    return position;
-  }
-
-  uint64_t Length() override {
-    return buffer.size();
-  }
-
-  void ReadBytes(uint8_t *outBuffer, uint32_t len) override {
-    if (buffer.size() <= position + len) {
-      throw std::string("MemoryIO: index out of range");
-    }
-    for (uint32_t i = 0; i < len; i++) {
-      outBuffer[i] = buffer[position + i];
-    }
-    position += len;
-  }
-
-  void WriteBytes(uint8_t *buffer, uint32_t len) override {
-    if (this->buffer.size() <= position + len) {
-      this->buffer.resize(position + len);
-    }
-    for (uint32_t i = 0; i < len; i++) {
-      this->buffer[position + i] = buffer[i];
-    }
-    position += len;
-  }
-
-  void Flush() override {}
-
-  void Close() override {}
-
-  void Drain(std::vector<uint8_t> &buffer) {
-    this->buffer.swap(buffer);
-    std::vector<uint8_t>().swap(this->buffer);
-  }
-
-private:
-  std::vector<uint8_t> buffer;
-  uint64_t position = 0;
-};
-
 #pragma region StdDefinitions.h
 
 enum LicenseType {
@@ -1153,6 +1089,17 @@ public:
     try {
       Init();
     } catch (std::string &) {
+      Cleanup();
+      throw;
+    }
+  }
+
+  explicit StfsPackage(BaseIO *io) : ioPassedIn(true) {
+    metaData = nullptr;
+    this->io = io;
+    try {
+      Init();
+    } catch (...) {
       Cleanup();
       throw;
     }

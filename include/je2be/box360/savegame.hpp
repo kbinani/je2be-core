@@ -188,7 +188,7 @@ public:
     namespace fs = std::filesystem;
 
     try {
-      auto pkg = make_unique<StfsPackage>(saveBinFile.string());
+      auto pkg = make_unique<StfsPackage>(new FileIO2(saveBinFile));
 
       auto listing = pkg->GetFileListing();
       auto entry = FindSavegameFileEntry(listing);
