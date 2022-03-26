@@ -6,7 +6,7 @@ class World {
   World() = delete;
 
 public:
-  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Context const &ctx, Options const &options) {
+  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Context const &ctx, Options const &options, Progress *progress, int progressChunksOffset) {
     using namespace std;
     namespace fs = std::filesystem;
     string worldDir;
@@ -53,10 +53,12 @@ public:
     }
     deque<future<bool>> futures;
     bool ok = true;
+    int progressChunks = progressChunksOffset;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
+          progressChunks += 1024;
           continue;
         }
         for (int z = 0; z < 32; z++) {
@@ -65,6 +67,7 @@ public:
             int cz = rz * 32 + z;
             if (!options.fChunkFilter.empty()) [[unlikely]] {
               if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
+                progressChunks++;
                 continue;
               }
             }
@@ -73,13 +76,22 @@ public:
               FutureSupport::Drain(concurrency + 1, futures, drain);
               for (auto &f : drain) {
                 ok = ok && f.get();
+                progressChunks++;
               }
               if (!ok) {
                 break;
               }
+              if (progress && !progress->report(progressChunks, 4096 * 3)) {
+                ok = false;
+                break;
+              }
               futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options)));
             } else {
+              progressChunks++;
               if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options)) {
+                return false;
+              }
+              if (progress && !progress->report(progressChunks, 4096 * 3)) {
                 return false;
               }
             }
@@ -91,6 +103,7 @@ public:
     if (queue) {
       for (auto &f : futures) {
         ok = ok && f.get();
+        progressChunks++;
       }
       futures.clear();
     }
@@ -125,6 +138,11 @@ public:
     for (auto &f : futures) {
       ok = ok && f.get();
     }
+
+    if (progress) {
+      progress->report(progressChunks, 4096 * 3);
+    }
+
     return ok;
   }
 

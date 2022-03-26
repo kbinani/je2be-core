@@ -16,6 +16,7 @@
 #include <je2be/box360/biome.hpp>
 #include <je2be/box360/chunk.hpp>
 #include <je2be/box360/terraform.hpp>
+#include <je2be/box360/progress.hpp>
 #include <je2be/box360/world.hpp>
 #include <je2be/box360/converter.hpp>
 #include <je2be/box360/minecraft-save-info.hpp>

@@ -6,7 +6,7 @@ class Converter {
   Converter() = delete;
 
 public:
-  static bool Run(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, unsigned int concurrency, Options const &options) {
+  static bool Run(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, unsigned int concurrency, Options const &options, Progress *progress = nullptr) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -56,13 +56,17 @@ public:
     if (!SetupResourcePack(outputDirectory)) {
       return false;
     }
+    int progressChunksOffset = 0;
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
+      defer {
+        progressChunksOffset += 4096;
+      };
       if (!options.fDimensionFilter.empty()) {
         if (options.fDimensionFilter.find(dimension) == options.fDimensionFilter.end()) {
           continue;
         }
       }
-      if (!World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options)) {
+      if (!World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset)) {
         return false;
       }
     }
