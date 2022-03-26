@@ -340,4 +340,5 @@ add_executable(test ${test_files} ${je2be_files})
 target_include_directories(test PRIVATE deps/doctest)
 target_link_libraries(test je2be)
 
-setup_source_groups("example/j2b.cpp;example/b2j.cpp;example/dump.cpp;${test_files};${je2be_files}" "${CMAKE_CURRENT_SOURCE_DIR}")
+list(APPEND all_files ${test_files} ${je2be_files} example/j2b.cpp example/b2j.cpp example/dump.cpp)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
