@@ -7,7 +7,7 @@ public:
   std::optional<std::filesystem::path> fTempDirectory;
   std::unordered_set<mcfile::Dimension> fDimensionFilter;
   std::unordered_set<Pos2i, Pos2iHasher> fChunkFilter;
-  std::unordered_map<std::string, Uuid> fPlayers;
+  std::optional<Uuid> fLocalPlayer;
 };
 
 } // namespace je2be::box360

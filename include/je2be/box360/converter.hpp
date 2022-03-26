@@ -42,15 +42,15 @@ public:
         return false;
       }
     }
-    Context ctx(TileEntity::Convert, Entity::MigrateName, options);
+    Context ctx(TileEntity::Convert, Entity::MigrateName);
     if (!CopyMapFiles(*temp, outputDirectory)) {
       return false;
     }
-    auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx);
+    auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx, options);
     if (!copyPlayersResult) {
       return false;
     }
-    if (!CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fPlayer, ctx)) {
+    if (!CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx)) {
       return false;
     }
     if (!SetupResourcePack(outputDirectory)) {
@@ -62,7 +62,7 @@ public:
           continue;
         }
       }
-      if (!World::Convert(*temp, outputDirectory, dimension, concurrency, options)) {
+      if (!World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options)) {
         return false;
       }
     }
@@ -71,10 +71,10 @@ public:
 
 private:
   struct CopyPlayerResult {
-    CompoundTagPtr fPlayer;
+    CompoundTagPtr fLocalPlayer;
   };
 
-  static std::optional<CopyPlayerResult> CopyPlayers(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, Context const &ctx) {
+  static std::optional<CopyPlayerResult> CopyPlayers(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, Context &ctx, Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -86,44 +86,75 @@ private:
     }
 
     CopyPlayerResult r;
+    vector<CompoundTagPtr> players;
 
     error_code ec;
     for (auto it : fs::directory_iterator(playersFrom, ec)) {
       if (!it.is_regular_file()) {
         continue;
       }
-      auto result = CopyPlayer(it.path(), playersTo, ctx);
-      if (!result) {
+      auto player = CopyPlayer(it.path(), playersTo, ctx);
+      if (!player) {
+        continue;
+      }
+      if (r.fLocalPlayer) {
+        players.push_back(player);
+      } else {
+        r.fLocalPlayer = player;
+      }
+    }
+
+    for (auto &player : players) {
+      auto uuidB = player->string("UUID");
+      if (!uuidB) {
         return nullopt;
       }
-      r.fPlayer = result->fPlayer;
+      auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
+      if (!uuidJ) {
+        return nullopt;
+      }
+      player->set("UUID", uuidJ->toIntArrayTag());
     }
+    if (r.fLocalPlayer && options.fLocalPlayer) {
+      auto uuidB = r.fLocalPlayer->string("UUID");
+      if (!uuidB) {
+        return nullopt;
+      }
+      r.fLocalPlayer->set("UUID", options.fLocalPlayer->toIntArrayTag());
+      players.push_back(r.fLocalPlayer);
+      ctx.fPlayers.insert(make_pair(*uuidB, *options.fLocalPlayer));
+    }
+
+    for (auto const &player : players) {
+      auto uuidJ = props::GetUuidWithFormatIntArray(*player, "UUID");
+      if (!uuidJ) {
+        return nullopt;
+      }
+      auto filename = uuidJ->toString() + ".dat";
+      auto filePath = playersTo / filename;
+      auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
+      mcfile::stream::OutputStreamWriter writer(outputStream, endian::big);
+      if (!player->writeAsRoot(writer)) {
+        return nullopt;
+      }
+    }
+
     return r;
   }
 
-  static std::optional<CopyPlayerResult> CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
+  static CompoundTagPtr CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
     using namespace std;
     auto stream = make_shared<mcfile::stream::FileInputStream>(inputFile);
     auto in = CompoundTag::Read(stream, endian::big);
     stream.reset();
     if (!in) {
       // Not an nbt format. just skip this
-      return CopyPlayerResult{};
-    }
-    auto uuidB = in->string("UUID");
-    if (!uuidB) {
-      return nullopt;
-    }
-    auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
-    if (!uuidJ) {
-      return nullopt;
+      return nullptr;
     }
 
     auto out = in->copy();
     out->erase("GamePrivileges");
     out->erase("Sleeping");
-
-    out->set("UUID", uuidJ->toIntArrayTag());
 
     Entity::CopyItems(*in, *out, ctx, "EnderItems");
     Entity::CopyItems(*in, *out, ctx, "Inventory");
@@ -151,16 +182,7 @@ private:
       out->set("RootVehicle", rootVehicleJ);
     }
 
-    auto filename = uuidJ->toString() + ".dat";
-    auto filePath = outputPlayerdata / filename;
-    auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
-    mcfile::stream::OutputStreamWriter writer(outputStream, endian::big);
-    if (!out->writeAsRoot(writer)) {
-      return nullopt;
-    }
-    CopyPlayerResult r;
-    r.fPlayer = out;
-    return r;
+    return out;
   }
 
   static bool SetupResourcePack(std::filesystem::path const &outputDirectory) {
@@ -201,32 +223,6 @@ private:
     }
 
     return resources.close();
-  }
-
-  static bool AddBufferToZip(void *zip, std::vector<uint8_t> const &buffer, std::string const &filename) {
-    mz_zip_file s = {0};
-    s.version_madeby = MZ_VERSION_MADEBY;
-    s.compression_method = MZ_COMPRESS_METHOD_STORE;
-    s.filename = filename.c_str();
-    int16_t compressLevel = 0;
-    uint8_t raw = 0;
-    if (MZ_OK != mz_zip_entry_write_open(zip, &s, compressLevel, raw, nullptr)) {
-      return false;
-    }
-    int32_t totalWritten = 0;
-    int32_t err = MZ_OK;
-    int32_t remaining = buffer.size();
-    do {
-      int32_t code = mz_zip_entry_write(zip, buffer.data() + totalWritten, remaining);
-      if (code < 0) {
-        err = code;
-      } else {
-        totalWritten += code;
-        remaining -= code;
-      }
-    } while (err == MZ_OK && remaining > 0);
-
-    return err == MZ_OK && mz_zip_entry_close(zip) == MZ_OK;
   }
 
   static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed, CompoundTagPtr const &localPlayer, Context const &ctx) {

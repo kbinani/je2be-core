@@ -76,8 +76,8 @@ public:
     if (uuid.empty()) {
       return nullopt;
     }
-    auto found = ctx.fOptions.fPlayers.find(uuid);
-    if (found != ctx.fOptions.fPlayers.end()) {
+    auto found = ctx.fPlayers.find(uuid);
+    if (found != ctx.fPlayers.end()) {
       return found->second;
     }
     if (auto u = MigrateEntityUuid(uuid); u) {

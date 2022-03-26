@@ -13,7 +13,7 @@ public:
     return "1.18.1";
   }
 
-  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result, Options const &options) {
+  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result, Context const &ctx, Options const &options) {
     using namespace std;
 
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
@@ -265,7 +265,6 @@ public:
     if (!tag) {
       return false;
     }
-    Context ctx(TileEntity::Convert, Entity::MigrateName, options);
     if (auto te = tag->listTag("TileEntities"); te) {
       for (auto &item : *te) {
         auto c = std::dynamic_pointer_cast<CompoundTag>(item);
