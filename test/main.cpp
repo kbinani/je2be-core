@@ -23,4 +23,5 @@ namespace fs = std::filesystem;
 #include "moving-piston.test.hpp"
 #include "research.hpp"
 #include "shoulder-riders.test.hpp"
+#include "uuid.test.hpp"
 #include "volume.test.hpp"

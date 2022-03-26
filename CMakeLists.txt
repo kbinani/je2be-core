@@ -281,7 +281,8 @@ set(test_files
   test/CheckTag.hpp
   test/j2b2j.test.hpp
   test/volume.test.hpp
-  test/shoulder-riders.test.hpp)
+  test/shoulder-riders.test.hpp
+  test/uuid.test.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 
