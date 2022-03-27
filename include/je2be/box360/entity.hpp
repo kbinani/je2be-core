@@ -159,7 +159,7 @@ private:
 
   static bool Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     if (auto motive = in.string("Motive"); motive) {
-      out->set("Motive", String(strings::Uncapitalize(*motive)));
+      out->set("Motive", String("minecraft:" + strings::Uncapitalize(*motive)));
     }
     return true;
   }
