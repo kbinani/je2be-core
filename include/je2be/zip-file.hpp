@@ -26,9 +26,9 @@ public:
   bool store(std::vector<uint8_t> const &buffer, std::string const &filename) {
     mz_zip_file s = {0};
     s.version_madeby = MZ_VERSION_MADEBY;
-    s.compression_method = MZ_COMPRESS_METHOD_STORE;
+    s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
     s.filename = filename.c_str();
-    int16_t compressLevel = 0;
+    int16_t compressLevel = 9;
     uint8_t raw = 0;
     if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressLevel, raw, nullptr)) {
       return false;
