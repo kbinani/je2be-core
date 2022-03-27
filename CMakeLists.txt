@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(je2be_zlib_root ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
-list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
-list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
-list(APPEND ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+  set(je2be_zlib_root ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
+  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
+  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
+  list(APPEND ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
 
-include_directories(${ZLIB_INCLUDE_DIRS})
-link_directories(${ZLIB_LIBRARIES})
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  link_directories(${ZLIB_LIBRARIES})
+endif()
 
 if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD 20)
