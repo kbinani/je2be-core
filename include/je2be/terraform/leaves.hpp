@@ -44,9 +44,9 @@ public:
     int x1 = leavesRange->fEnd.fX + 7;
     int y1 = leavesRange->fEnd.fY + 7;
     int z1 = leavesRange->fEnd.fZ + 7;
-    int sx = x1 - x0 + 1;
-    int sy = y1 - y0 + 1;
-    int sz = z1 - z0 + 1;
+    size_t sx = (size_t)(x1 - x0 + 1);
+    size_t sy = (size_t)(y1 - y0 + 1);
+    size_t sz = (size_t)(z1 - z0 + 1);
     vector<int8_t> data(sx * sy * sz, -2);
     for (int y = y0; y <= y1; y++) {
       for (int z = z0; z <= z1; z++) {

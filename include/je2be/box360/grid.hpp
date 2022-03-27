@@ -18,7 +18,7 @@ public:
 
   static void ParsePalette(uint8_t const *buffer, std::vector<uint16_t> &palette, int maxSize) {
     palette.clear();
-    for (uint16_t i = 0; i < maxSize; i++) {
+    for (int i = 0; i < maxSize; i++) {
       uint8_t v1 = buffer[i * 2];
       uint8_t v2 = buffer[i * 2 + 1];
       auto block = BlockDataFromBytes(v1, v2);
