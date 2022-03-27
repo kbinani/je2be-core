@@ -294,6 +294,7 @@ set(test_files
   test/shoulder-riders.test.hpp
   test/uuid.test.hpp)
 
+set(ZLIB_ENABLE_TESTS OFF)
 add_subdirectory(deps/libminecraft-file)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
@@ -307,6 +308,8 @@ elseif(NOT "${EMSCRIPTEN}" STREQUAL "1")
 endif()
 
 set(LEVELDB_ZSTD OFF)
+set(LEVELDB_BUILD_TESTS OFF)
+set(LEVELDB_BUILD_BENCHMARKS OFF)
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
 set(MZ_FETCH_LIBS OFF)
