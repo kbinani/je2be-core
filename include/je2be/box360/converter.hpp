@@ -119,14 +119,23 @@ private:
       }
       player->set("UUID", uuidJ->toIntArrayTag());
     }
-    if (r.fLocalPlayer && options.fLocalPlayer) {
+    if (r.fLocalPlayer) {
       auto uuidB = r.fLocalPlayer->string("UUID");
       if (!uuidB) {
         return nullopt;
       }
-      r.fLocalPlayer->set("UUID", options.fLocalPlayer->toIntArrayTag());
+      if (options.fLocalPlayer) {
+        r.fLocalPlayer->set("UUID", options.fLocalPlayer->toIntArrayTag());
+        ctx.fPlayers.insert(make_pair(*uuidB, *options.fLocalPlayer));
+      } else {
+        auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
+        if (!uuidJ) {
+          return nullopt;
+        }
+        r.fLocalPlayer->set("UUID", uuidJ->toIntArrayTag());
+        ctx.fPlayers.insert(make_pair(*uuidB, *uuidJ));
+      }
       players.push_back(r.fLocalPlayer);
-      ctx.fPlayers.insert(make_pair(*uuidB, *options.fLocalPlayer));
     }
 
     for (auto const &player : players) {
