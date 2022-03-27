@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(je2be_zlib_root ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
+list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
+list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
+list(APPEND ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
+
+include_directories(${ZLIB_INCLUDE_DIRS})
+link_directories(${ZLIB_LIBRARIES})
+
 if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -298,21 +307,12 @@ elseif(NOT "${EMSCRIPTEN}" STREQUAL "1")
 endif()
 
 set(LEVELDB_ZSTD OFF)
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
-  set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng")
-  set(ZLIB_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng")
-  include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng"
-    "${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng")
-  link_directories("${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng")
-endif()
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
+set(MZ_FETCH_LIBS OFF)
 set(MZ_BZIP2 OFF)
 set(MZ_LZMA OFF)
 set(MZ_ZSTD OFF)
-# minizip-ng can't find zlib-ng under ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng
-set(MZ_ZLIB OFF)
 add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
 
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
