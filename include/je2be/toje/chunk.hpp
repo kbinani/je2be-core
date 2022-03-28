@@ -222,6 +222,8 @@ public:
         referencesTag->set("monument", make_shared<LongArrayTag>(references));
         break;
       }
+      default:
+        break;
       }
     }
     if (!startsTag->empty()) {

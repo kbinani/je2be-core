@@ -851,6 +851,9 @@ public:
                   }
                   break;
                 }
+
+                default:
+                  break;
                 }
 
                 // update repeated offset LRU queue

@@ -256,6 +256,7 @@ private:
     case 15:
       return "bone_meal";
     case 0:
+    default:
       return "ink_sac";
     }
   }
