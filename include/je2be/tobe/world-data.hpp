@@ -108,7 +108,7 @@ public:
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
-  std::shared_ptr<Tag> toNbt() const {
+  std::shared_ptr<CompoundTag> toNbt() const {
     using namespace std;
     using namespace mcfile;
     auto tag = Compound();
@@ -145,26 +145,22 @@ public:
     return tag;
   }
 
-  static std::shared_ptr<WorldData> FromNbt(Tag const &tag) {
+  static std::shared_ptr<WorldData> FromNbt(CompoundTag const &tag) {
     using namespace std;
     using namespace mcfile;
-    auto c = tag.asCompound();
-    if (!c) {
-      return nullptr;
-    }
-    auto dim = c->byte("dim");
+    auto dim = tag.byte("dim");
     if (!dim) {
       return nullptr;
     }
     auto ret = make_shared<WorldData>(static_cast<Dimension>(*dim));
 
-    auto maxChunkLastUpdate = c->int64("maxChunkLastUpdate");
+    auto maxChunkLastUpdate = tag.int64("maxChunkLastUpdate");
     if (!maxChunkLastUpdate) {
       return nullptr;
     }
     ret->fMaxChunkLastUpdate = *maxChunkLastUpdate;
 
-    auto portalBlocksTag = c->tag("portalBlocks");
+    auto portalBlocksTag = tag.tag("portalBlocks");
     if (!portalBlocksTag) {
       return nullptr;
     }
@@ -174,7 +170,7 @@ public:
     }
     ret->fPortalBlocks = *portalBlocks;
 
-    auto mapItemsTag = c->listTag("mapItems");
+    auto mapItemsTag = tag.listTag("mapItems");
     if (!mapItemsTag) {
       return nullptr;
     }
@@ -191,7 +187,7 @@ public:
       ret->fMapItems[*number] = t->copy();
     }
 
-    auto autonomousEntitiesTag = c->listTag("autonomousEntities");
+    auto autonomousEntitiesTag = tag.listTag("autonomousEntities");
     if (!autonomousEntitiesTag) {
       return nullptr;
     }
@@ -200,7 +196,7 @@ public:
       ret->fAutonomousEntities.push_back(c->copy());
     }
 
-    auto endPortalsInEndDimensionTag = c->listTag("endPortalsInEndDimension");
+    auto endPortalsInEndDimensionTag = tag.listTag("endPortalsInEndDimension");
     if (!endPortalsInEndDimensionTag) {
       return nullptr;
     }
@@ -212,7 +208,7 @@ public:
       ret->fEndPortalsInEndDimension.insert(*pos);
     }
 
-    auto structuresTag = c->tag("structures");
+    auto structuresTag = tag.tag("structures");
     if (!structuresTag) {
       return nullptr;
     }
