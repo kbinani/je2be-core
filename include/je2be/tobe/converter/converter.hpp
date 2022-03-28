@@ -148,7 +148,10 @@ public:
     double const kDistanceToPlayer = 0.4123145064147021;        // distance between player and parrot.
     double const kAngleAgainstPlayerFacing = 104.0364421885305; // angle in degrees
     auto linksTag = List<Tag::Type::Compound>();
-    for (auto const &key : initializer_list<pair<string, Rider>>({{"ShoulderEntityLeft", Rider("LeftShoulderRiderID", 0, -kAngleAgainstPlayerFacing)}, {"ShoulderEntityRight", Rider("RightShoulderPassengerID", 1, kAngleAgainstPlayerFacing)}})) {
+    static unordered_map<string, Rider> const keys = {
+        {"ShoulderEntityLeft", Rider("LeftShoulderRiderID", 0, -kAngleAgainstPlayerFacing)},
+        {"ShoulderEntityRight", Rider("RightShoulderPassengerID", 1, kAngleAgainstPlayerFacing)}};
+    for (auto const &key : keys) {
       auto keyJ = key.first;
       auto keyB = key.second.fBedrockKey;
       auto linkId = key.second.fLinkId;
