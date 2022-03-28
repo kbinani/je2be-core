@@ -30,7 +30,7 @@ public:
     root->set("data", data);
 
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, std::endian::little);
+    OutputStreamWriter w(s, Endian::Little);
     if (!root->writeAsRoot(w)) {
       return false;
     }

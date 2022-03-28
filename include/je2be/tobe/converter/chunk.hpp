@@ -198,7 +198,7 @@ public:
         Pos2i p = it.first;
         auto file = entitiesDir / ("c." + to_string(p.fX) + "." + to_string(p.fZ) + ".nbt");
         auto stream = make_shared<FileOutputStream>(file);
-        OutputStreamWriter writer(stream, std::endian::little);
+        OutputStreamWriter writer(stream, Endian::Little);
         for (auto const &e : it.second) {
           if (!e->writeAsRoot(writer)) {
             return nullptr;

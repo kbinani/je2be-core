@@ -57,7 +57,7 @@ private:
     root->set("AutonomousEntityList", list);
 
     auto s = std::make_shared<ByteStream>();
-    OutputStreamWriter w(s, std::endian::little);
+    OutputStreamWriter w(s, mcfile::Endian::Little);
     if (!root->writeAsRoot(w)) {
       return false;
     }

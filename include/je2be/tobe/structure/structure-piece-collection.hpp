@@ -34,7 +34,7 @@ public:
     for (auto const &it : splitted) {
       using namespace mcfile::stream;
       auto s = std::make_shared<ByteStream>();
-      OutputStreamWriter w(s, std::endian::little);
+      OutputStreamWriter w(s, mcfile::Endian::Little);
       if (!w.write((uint32_t)it.second.size())) {
         return false;
       }

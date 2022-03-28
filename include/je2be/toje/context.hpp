@@ -3,7 +3,7 @@
 namespace je2be::toje {
 
 class Context {
-  Context(std::endian endian,
+  Context(mcfile::Endian endian,
           std::filesystem::path tempDirectory,
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
@@ -18,7 +18,7 @@ public:
 
   static std::shared_ptr<Context> Init(leveldb::DB &db,
                                        Options opt,
-                                       std::endian endian,
+                                       mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
                                        int &totalChunks,
                                        int64_t gameTick,
@@ -350,7 +350,7 @@ public:
   }
 
 public:
-  std::endian const fEndian;
+  mcfile::Endian const fEndian;
   std::filesystem::path const fTempDirectory;
 
   struct VehicleEntity {

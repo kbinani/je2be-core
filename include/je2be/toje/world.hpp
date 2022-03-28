@@ -148,7 +148,7 @@ public:
     if (!je2be::file::GetContents(nbt, buffer)) {
       return false;
     }
-    auto content = CompoundTag::ReadCompressed(buffer, std::endian::big);
+    auto content = CompoundTag::ReadCompressed(buffer, mcfile::Endian::Big);
     if (!content) {
       return false;
     }
@@ -161,7 +161,7 @@ public:
       return false;
     }
 
-    return CompoundTag::WriteCompressed(*content, nbt, std::endian::big);
+    return CompoundTag::WriteCompressed(*content, nbt, mcfile::Endian::Big);
   }
 
   static bool AttachPassengers(Pos2i chunk,
@@ -213,7 +213,7 @@ public:
           vector<uint8_t> buffer;
           if (file::GetContents(nbt, buffer)) {
             buffer.clear();
-            if (auto tag = CompoundTag::ReadCompressed(buffer, std::endian::big); tag) {
+            if (auto tag = CompoundTag::ReadCompressed(buffer, mcfile::Endian::Big); tag) {
               entitiesInChunk = tag->listTag("Entities");
             }
           }
@@ -243,7 +243,7 @@ public:
           int rz = mcfile::Coordinate::RegionFromChunk(cz);
           fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-          if (!CompoundTag::WriteCompressed(*data, nbt, std::endian::big)) {
+          if (!CompoundTag::WriteCompressed(*data, nbt, mcfile::Endian::Big)) {
             return false;
           }
         }

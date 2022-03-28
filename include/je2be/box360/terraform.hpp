@@ -180,7 +180,7 @@ private:
     auto cache = make_shared<terraform::box360::BlockAccessorBox360<3, 3>>(cx - 1, cz - 1, directory);
     auto file = directory / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
     auto input = make_shared<mcfile::stream::FileInputStream>(file);
-    auto root = CompoundTag::ReadCompressed(*input, endian::big);
+    auto root = CompoundTag::ReadCompressed(*input, mcfile::Endian::Big);
     if (!root) {
       return Pos2i(cx, cz);
     }

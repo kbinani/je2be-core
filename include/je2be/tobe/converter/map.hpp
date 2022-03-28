@@ -209,7 +209,7 @@ public:
       vector<uint8_t> serialized;
       {
         auto out = make_shared<ByteStream>();
-        OutputStreamWriter w(out, std::endian::little);
+        OutputStreamWriter w(out, mcfile::Endian::Little);
         if (!ret->writeAsRoot(w)) {
           return false;
         }

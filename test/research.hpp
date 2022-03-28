@@ -390,11 +390,11 @@ static void Stronghold() {
 
   auto levelAStream = make_shared<mcfile::stream::GzFileInputStream>(pathA / "level.dat");
   levelAStream->seek(8);
-  auto levelA = CompoundTag::Read(levelAStream, std::endian::little);
+  auto levelA = CompoundTag::Read(levelAStream, Endian::Little);
 
   auto levelBStream = make_shared<mcfile::stream::GzFileInputStream>(pathB / "level.dat");
   levelBStream->seek(8);
-  auto levelB = CompoundTag::Read(levelBStream, std::endian::little);
+  auto levelB = CompoundTag::Read(levelBStream, Endian::Little);
 
   DiffCompoundTag(*levelB, *levelA);
 }
@@ -470,7 +470,7 @@ static void MonumentBedrock() {
     int y0 = v.fStart.fY;
     int cx = Coordinate::ChunkFromBlock(x0);
     int cz = Coordinate::ChunkFromBlock(z0);
-    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, db.get(), std::endian::little);
+    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, db.get(), Endian::Little);
 
     string facing;
     if (start.fX == 8891 && start.fZ == 13979) {

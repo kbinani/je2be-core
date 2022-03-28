@@ -146,7 +146,7 @@ private:
       auto filename = uuidJ->toString() + ".dat";
       auto filePath = playersTo / filename;
       auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
-      mcfile::stream::OutputStreamWriter writer(outputStream, endian::big);
+      mcfile::stream::OutputStreamWriter writer(outputStream, mcfile::Endian::Big);
       if (!player->writeAsRoot(writer)) {
         return nullopt;
       }
@@ -158,7 +158,7 @@ private:
   static CompoundTagPtr CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
     using namespace std;
     auto stream = make_shared<mcfile::stream::FileInputStream>(inputFile);
-    auto in = CompoundTag::Read(stream, endian::big);
+    auto in = CompoundTag::Read(stream, mcfile::Endian::Big);
     stream.reset();
     if (!in) {
       // Not an nbt format. just skip this
@@ -248,7 +248,7 @@ private:
     }
 
     auto inStream = make_shared<mcfile::stream::GzFileInputStream>(datFrom);
-    auto inRoot = CompoundTag::Read(inStream, endian::big);
+    auto inRoot = CompoundTag::Read(inStream, mcfile::Endian::Big);
     inStream.reset();
     if (!inRoot) {
       return false;
@@ -305,7 +305,7 @@ private:
     auto outRoot = Compound();
     outRoot->set("Data", out);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
-    mcfile::stream::OutputStreamWriter writer(outStream, endian::big);
+    mcfile::stream::OutputStreamWriter writer(outStream, mcfile::Endian::Big);
     return outRoot->writeAsRoot(writer);
   }
 

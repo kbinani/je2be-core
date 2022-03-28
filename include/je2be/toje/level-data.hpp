@@ -5,7 +5,7 @@ namespace je2be::toje {
 class LevelData {
 public:
   struct GameRules {
-    static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, std::endian endian) {
+    static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, mcfile::Endian endian) {
       auto ret = Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[#__nameJ] = String(b.boolean(#__nameB, __default) ? "true" : "false");
@@ -63,7 +63,7 @@ public:
   };
 
 public:
-  static std::optional<std::endian> Read(std::filesystem::path levelDatFile, CompoundTagPtr &result) {
+  static std::optional<mcfile::Endian> Read(std::filesystem::path levelDatFile, CompoundTagPtr &result) {
     using namespace std;
     using namespace mcfile::stream;
     auto fis = make_shared<FileInputStream>(levelDatFile);
@@ -78,16 +78,16 @@ public:
     if (sizeof(versionHi) != fis->read(&versionHi, sizeof(versionHi))) {
       return nullopt;
     }
-    vector<endian> endians;
+    vector<mcfile::Endian> endians;
     if (versionLo == 0 && versionHi == 0) {
       return nullopt;
     } else {
       if (versionLo > 0) {
-        endians.push_back(endian::little);
-        endians.push_back(endian::big);
+        endians.push_back(mcfile::Endian::Little);
+        endians.push_back(mcfile::Endian::Big);
       } else {
-        endians.push_back(endian::big);
-        endians.push_back(endian::little);
+        endians.push_back(mcfile::Endian::Big);
+        endians.push_back(mcfile::Endian::Little);
       }
       uint32_t size = 0;
       if (fis->read(&size, sizeof(size)) != sizeof(size)) {
@@ -95,7 +95,7 @@ public:
       }
     }
 
-    for (endian e : endians) {
+    for (mcfile::Endian e : endians) {
       if (!fis->seek(8)) {
         return nullopt;
       }
@@ -222,7 +222,7 @@ public:
     return Entity::LocalPlayer(*tag, ctx, uuid);
   }
 
-  static CompoundTagPtr DragonFight(leveldb::DB &db, std::endian endian) {
+  static CompoundTagPtr DragonFight(leveldb::DB &db, mcfile::Endian endian) {
     std::string str;
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::TheEnd(), &str); !st.ok()) {
       return nullptr;

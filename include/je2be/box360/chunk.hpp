@@ -261,7 +261,7 @@ public:
     if (!nbt.starts_with(string("\x0a\x00\x00", 3))) {
       return false;
     }
-    auto tag = CompoundTag::Read(nbt, endian::big);
+    auto tag = CompoundTag::Read(nbt, mcfile::Endian::Big);
     if (!tag) {
       return false;
     }

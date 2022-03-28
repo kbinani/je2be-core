@@ -503,7 +503,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
 
 static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
   auto s = make_shared<mcfile::stream::GzFileInputStream>(p);
-  return CompoundTag::Read(s, std::endian::big);
+  return CompoundTag::Read(s, Endian::Big);
 }
 
 static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {

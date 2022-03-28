@@ -152,7 +152,7 @@ public:
     int const numStorageBlocks = hasWaterlogged ? 2 : 1;
 
     auto stream = make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(stream, std::endian::little);
+    mcfile::stream::OutputStreamWriter w(stream, Endian::Little);
 
     if (!w.write(kSubChunkBlockStorageVersion)) {
       return false;

@@ -56,7 +56,7 @@ struct StructurePiece {
 
   static bool Parse(std::string const &data, std::vector<StructurePiece> &buffer) {
     auto s = std::make_shared<mcfile::stream::ByteStream>(data);
-    mcfile::stream::InputStreamReader isr(s, std::endian::little);
+    mcfile::stream::InputStreamReader isr(s, mcfile::Endian::Little);
     uint32_t size = 0;
     if (!isr.read(&size)) {
       return false;

@@ -244,11 +244,11 @@ public:
     vector<shared_ptr<CompoundTag>> entities;
     for (auto const &file : files) {
       auto s = make_shared<FileInputStream>(file);
-      InputStreamReader r(s, std::endian::little);
+      InputStreamReader r(s, mcfile::Endian::Little);
       CompoundTag::ReadUntilEos(r, [&entities](auto const &c) { entities.push_back(c); });
     }
     auto buffer = make_shared<ByteStream>();
-    OutputStreamWriter writer(buffer, std::endian::little);
+    OutputStreamWriter writer(buffer, mcfile::Endian::Little);
     for (auto const &tag : entities) {
       if (!tag->writeAsRoot(writer)) {
         return false;

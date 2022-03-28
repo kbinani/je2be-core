@@ -204,7 +204,7 @@ public:
     }
 
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, endian::little);
+    OutputStreamWriter w(s, mcfile::Endian::Little);
     if (!playerB->fEntity->writeAsRoot(w)) {
       return nullopt;
     }

@@ -5,7 +5,7 @@ namespace je2be::terraform::bedrock {
 template <size_t width, size_t height>
 class BlockAccessorBedrock {
 public:
-  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, std::endian endian) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
+  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, mcfile::Endian endian) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
@@ -91,7 +91,7 @@ private:
   std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
   std::vector<bool> fCacheLoaded;
   leveldb::DB *const fDb;
-  std::endian const fEndian;
+  mcfile::Endian const fEndian;
 };
 
 } // namespace je2be::terraform::bedrock
