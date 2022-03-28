@@ -14,16 +14,14 @@ public:
       if (status != future_status::ready) {
         continue;
       }
-      drain.push_back(future<T>());
-      drain[drain.size() - 1].swap(futures[i]);
+      drain.push_back(futures[i]);
       futures.erase(futures.begin() + i);
       i--;
     }
     if (futures.size() > maxRunningTasks) {
       size_t pop = futures.size() - maxRunningTasks;
       for (size_t i = 0; i < pop; i++) {
-        drain.push_back(future<T>());
-        drain[drain.size() - 1].swap(futures.front());
+        drain.push_back(futures.front());
         futures.pop_front();
       }
     }
