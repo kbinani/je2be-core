@@ -351,7 +351,7 @@ public:
       {
         std::lock_guard<std::mutex> lk(fMut);
         FutureSupport::Drain(2, fFutures, popped);
-        fFutures.push_back(std::move(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, *block, sequence)));
+        fFutures.push_back(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, *block, sequence));
       }
 
       for (auto &f : popped) {
@@ -448,7 +448,7 @@ public:
         }
 
         TableBuildPlan plan = plans[idx];
-        futures.push_back(move(queue->enqueue(bind(&RawDb::buildTable, this, _1, _2), plan, idx)));
+        futures.push_back(queue->enqueue(bind(&RawDb::buildTable, this, _1, _2), plan, idx));
       }
 
       for (auto &f : futures) {

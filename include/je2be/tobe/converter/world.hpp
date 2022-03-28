@@ -149,7 +149,7 @@ public:
               playerAttachedEntities = pae;
             }
           }
-          futures.push_back(move(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick)));
+          futures.push_back(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick));
         }
       }
       return true;
@@ -225,7 +225,7 @@ public:
         if (!ok) {
           break;
         }
-        futures.push_back(move(pool->enqueue(PutChunkEntities, d, i.first, i.second, ref(db))));
+        futures.push_back(pool->enqueue(PutChunkEntities, d, i.first, i.second, ref(db)));
       } else {
         if (!PutChunkEntities(d, i.first, i.second, db)) {
           return false;

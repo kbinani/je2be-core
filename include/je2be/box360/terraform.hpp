@@ -53,7 +53,7 @@ private:
       auto next = NextQueue(done, running);
       if (next) {
         MarkRunning(next->fX, next->fZ, running);
-        futures.push_back(move(queue->enqueue(DoChunk, next->fX, next->fZ, directory)));
+        futures.push_back(queue->enqueue(DoChunk, next->fX, next->fZ, directory));
       } else {
         assert(!futures.empty());
         auto result = futures.front().get();

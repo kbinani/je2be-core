@@ -85,7 +85,7 @@ public:
                 ok = false;
                 break;
               }
-              futures.push_back(move(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options)));
+              futures.push_back(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
             } else {
               progressChunks++;
               if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options)) {
@@ -127,7 +127,7 @@ public:
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         if (queue) {
-          futures.push_back(move(queue->enqueue(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o)));
+          futures.push_back(queue->enqueue(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
         } else {
           if (!ConcatCompressedNbt(rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o)) {
             return false;
