@@ -697,7 +697,6 @@ private:
           keys.push_back(k);
         }
         Comparator const *cmp = BytewiseComparator();
-        InternalKeyComparator icmp(cmp);
 #if defined(EMSCRIPTEN) || defined(__APPLE__)
         std::sort(
 #else
