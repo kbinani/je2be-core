@@ -192,10 +192,10 @@ class RawDb : public DbInterface {
       z_stream strm;
       strm.zalloc = 0;
       strm.zfree = 0;
-      strm.next_in = (unsigned char *)c.data();
-      strm.avail_in = (uint32_t)c.size();
-      strm.next_out = (unsigned char *)ret.data();
-      strm.avail_out = ret.size();
+      strm.next_in = (Bytef *)c.data();
+      strm.avail_in = (uInt)c.size();
+      strm.next_out = (Bytef *)ret.data();
+      strm.avail_out = (uInt)ret.size();
       int compressionLevel = 9;
       int window = -15;
       int memLevel = 8;
