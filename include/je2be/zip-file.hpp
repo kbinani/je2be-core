@@ -190,6 +190,52 @@ public:
     return true;
   }
 
+  static bool Zip(
+      std::filesystem::path const &inputDirectory,
+      std::filesystem::path const &outputZipFile,
+      std::function<bool(int done, int total)> progress = [](int, int) { return true; }) {
+    namespace fs = std::filesystem;
+
+    std::error_code ec;
+    int total = 0;
+    for (auto it : fs::recursive_directory_iterator(inputDirectory, ec)) {
+      if (fs::is_regular_file(it.path())) {
+        total++;
+      }
+    }
+    if (ec) {
+      return false;
+    }
+    if (!progress(0, total)) {
+      return false;
+    }
+
+    ZipFile file(outputZipFile);
+    int done = 0;
+    for (auto it : fs::recursive_directory_iterator(inputDirectory, ec)) {
+      auto path = it.path();
+      if (!fs::is_regular_file(path)) {
+        continue;
+      }
+      fs::path rel = fs::relative(path, inputDirectory, ec);
+      if (ec) {
+        return false;
+      }
+      auto stream = std::make_shared<mcfile::stream::FileInputStream>(path);
+      if (!file.store(*stream, rel.string())) {
+        return false;
+      }
+      done++;
+      if (!progress(done, total)) {
+        return false;
+      }
+    }
+    if (ec) {
+      return false;
+    }
+    return file.close();
+  }
+
 private:
   void *fHandle;
   void *fStream;
