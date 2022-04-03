@@ -266,7 +266,7 @@ class RawDb : public DbInterface {
 
 public:
   RawDb(std::filesystem::path const &dir, int concurrency)
-      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fConcurrency(concurrency), fLock(nullptr) {
+      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fConcurrency(concurrency), fLock(nullptr), fSeq(0) {
 
     if (concurrency > 0) {
       fQueue.reset(new hwm::task_queue(1));
