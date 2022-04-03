@@ -189,7 +189,7 @@ class RawDb : public DbInterface {
     static void Compress(leveldb::Slice const &c, std::string &ret) {
       ret.resize(compressBound(c.size()));
 
-      z_stream strm;
+      z_stream strm = {0};
       strm.zalloc = 0;
       strm.zfree = 0;
       strm.next_in = (Bytef *)c.data();
