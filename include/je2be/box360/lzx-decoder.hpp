@@ -403,7 +403,7 @@ public:
         17,
     };
 
-    static long const position_base_minus2[sizeof(extra_bits) / sizeof(extra_bits[0])] = {
+    static int32_t const position_base_minus2[sizeof(extra_bits) / sizeof(extra_bits[0])] = {
         -2,
         -1,
         0,
@@ -1131,7 +1131,7 @@ private:
     make_decode_table(k_pre_tree_max_symbols, k_pre_tree_bits, pre_tree_lengths, PRETREE_table);
 
     for (uint32_t x = first; x < last;) {
-      long z = read_huffman_symbols(PRETREE_table, pre_tree_lengths, k_pre_tree_max_symbols, k_pre_tree_bits);
+      int32_t z = read_huffman_symbols(PRETREE_table, pre_tree_lengths, k_pre_tree_max_symbols, k_pre_tree_bits);
       if (z == 17) {
         uint32_t y = read_bits(4);
         y += 4;
