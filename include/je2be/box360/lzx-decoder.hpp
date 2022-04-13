@@ -45,7 +45,7 @@ namespace je2be::box360 {
 
 class LzxDecoder {
 public:
-  explicit LzxDecoder(unsigned short window_bits) {
+  explicit LzxDecoder(uint16_t window_bits) {
     // LZX supports window sizes of 2^15 (32 KiB) to 2^21 (2 MiB)
     if (window_bits < 15 || window_bits > 21) {
       throw std::runtime_error("LzxDecoder: unsupported window size exponent: " + std::to_string(window_bits));
@@ -85,7 +85,7 @@ public:
 
     // reset state
     R0 = R1 = R2 = 1;
-    main_elements = static_cast<unsigned short>(k_num_chars + (posn_slots * 8));
+    main_elements = static_cast<uint16_t>(k_num_chars + (posn_slots * 8));
     header_read = false;
     block_remaining = 0;
     block_type = e_block_type::_lxz_block_type_invalid;
@@ -992,18 +992,18 @@ public:
   }
 
 private:
-  static constexpr unsigned short k_min_match = 2;
-  static constexpr unsigned short k_max_match = 257;
-  static constexpr unsigned short k_num_chars = 256;
-  static constexpr unsigned short k_pre_tree_num_elements = 20;
-  static constexpr unsigned short k_aligned_num_elements = 8;
-  static constexpr unsigned short k_num_primary_lengths = 7;
-  static constexpr unsigned short k_num_secondary_lengths = 249;
+  static constexpr uint16_t k_min_match = 2;
+  static constexpr uint16_t k_max_match = 257;
+  static constexpr uint16_t k_num_chars = 256;
+  static constexpr uint16_t k_pre_tree_num_elements = 20;
+  static constexpr uint16_t k_aligned_num_elements = 8;
+  static constexpr uint16_t k_num_primary_lengths = 7;
+  static constexpr uint16_t k_num_secondary_lengths = 249;
 
-  static constexpr unsigned short k_pre_tree_max_symbols = k_pre_tree_num_elements;
-  static constexpr unsigned short m_main_tree_max_symbols = k_num_chars + 50 * 8;
-  static constexpr unsigned short k_length_max_symbols = k_num_secondary_lengths + 1;
-  static constexpr unsigned short k_aligned_max_symbols = k_aligned_num_elements;
+  static constexpr uint16_t k_pre_tree_max_symbols = k_pre_tree_num_elements;
+  static constexpr uint16_t m_main_tree_max_symbols = k_num_chars + 50 * 8;
+  static constexpr uint16_t k_length_max_symbols = k_num_secondary_lengths + 1;
+  static constexpr uint16_t k_aligned_max_symbols = k_aligned_num_elements;
 
   static constexpr unsigned char k_pre_tree_bits = 6;
   static constexpr unsigned char k_main_tree_bits = 12;
@@ -1033,7 +1033,7 @@ private:
     dest += len;
   }
 
-  void make_decode_table(unsigned short num_symbols, unsigned char num_bits, unsigned char *length, unsigned short *table) {
+  void make_decode_table(uint16_t num_symbols, unsigned char num_bits, unsigned char *length, uint16_t *table) {
     uint32_t leaf;
     unsigned char bit_num = 1;
     uint32_t pos = 0; // the current position in the decode table
@@ -1041,13 +1041,13 @@ private:
     uint32_t table_mask = 1 << num_bits;
 
     // bit_mask never exceeds 15 bits
-    unsigned short bit_mask = static_cast<unsigned short>(table_mask >> 1); // don't do 0 length codes
+    uint16_t bit_mask = static_cast<uint16_t>(table_mask >> 1); // don't do 0 length codes
 
-    unsigned short next_symbol = bit_mask; // base of allocation for long codes
+    uint16_t next_symbol = bit_mask; // base of allocation for long codes
 
     // fill entries for codes short enough for a direct mapping
     while (bit_num <= num_bits) {
-      for (unsigned short sym = 0; sym < num_symbols; ++sym) {
+      for (uint16_t sym = 0; sym < num_symbols; ++sym) {
         if (length[sym] == bit_num) {
           leaf = pos;
 
@@ -1056,8 +1056,8 @@ private:
           }
 
           // fill all possible lookups of this symbol with the symbol itself
-          unsigned short *fill_start = table + leaf;
-          unsigned short *fill_end = fill_start + bit_mask;
+          uint16_t *fill_start = table + leaf;
+          uint16_t *fill_end = fill_start + bit_mask;
           while (fill_start < fill_end) {
             *fill_start = sym;
             fill_start++;
@@ -1079,7 +1079,7 @@ private:
       bit_mask = 1 << 15;
 
       while (bit_num <= 16) {
-        for (unsigned short sym = 0; sym < num_symbols; ++sym) {
+        for (uint16_t sym = 0; sym < num_symbols; ++sym) {
           if (length[sym] == bit_num) {
             leaf = pos >> 16;
             for (uint32_t fill = 0; fill < static_cast<uint32_t>(bit_num) - static_cast<uint32_t>(num_bits); ++fill) {
@@ -1113,7 +1113,7 @@ private:
     }
 
     // either erroneous table, or all elements are 0 - let's find out.
-    for (unsigned short sym = 0; sym < num_symbols; ++sym) {
+    for (uint16_t sym = 0; sym < num_symbols; ++sym) {
       if (length[sym] != 0) {
         throw std::runtime_error("LzxDecoder::MakeDecodeTable: erroneous table");
       }
@@ -1162,7 +1162,7 @@ private:
     }
   }
 
-  uint32_t read_huffman_symbols(const unsigned short *table, const unsigned char *lengths, const uint32_t num_symbols, const unsigned char num_bits) {
+  uint32_t read_huffman_symbols(const uint16_t *table, const unsigned char *lengths, const uint32_t num_symbols, const unsigned char num_bits) {
     uint32_t i, j;
     ensure_bits(16);
     if ((i = table[peek_bits(num_bits)]) >= num_symbols) {
@@ -1201,7 +1201,7 @@ private:
   uint32_t R0;
   uint32_t R1;
   uint32_t R2;
-  unsigned short main_elements;  // number of main tree elements
+  uint16_t main_elements;  // number of main tree elements
   bool header_read;              // have we started decoding at all yet?
   e_block_type block_type;       // type of this block
   uint32_t block_length;    // uncompressed length of this block
@@ -1216,8 +1216,8 @@ private:
 
   void ensure_bits(const unsigned char bits) {
     while (bit_buffer_bits_left < bits) {
-      unsigned short const read_bits = *reinterpret_cast<const unsigned short *>(bit_buffer_input_buffer + bit_buffer_input_position);
-      bit_buffer_input_position += sizeof(unsigned short);
+      uint16_t const read_bits = *reinterpret_cast<const uint16_t *>(bit_buffer_input_buffer + bit_buffer_input_position);
+      bit_buffer_input_position += sizeof(uint16_t);
 
       unsigned char const amount_to_shift = sizeof(uint32_t) * 8 - 16 - bit_buffer_bits_left;
       bit_buffer_buffer |= static_cast<uint32_t>(read_bits) << amount_to_shift;
@@ -1254,10 +1254,10 @@ private:
   unsigned char MAINTREE_len[m_main_tree_max_symbols];
   unsigned char LENGTH_len[k_length_max_symbols];
   unsigned char ALIGNED_len[k_aligned_max_symbols];
-  unsigned short PRETREE_table[(1 << k_pre_tree_bits) + (k_pre_tree_max_symbols * 2)];
-  unsigned short MAINTREE_table[(1 << k_main_tree_bits) + (m_main_tree_max_symbols * 2)];
-  unsigned short LENGTH_table[(1 << k_length_table_bits) + (k_length_max_symbols * 2)];
-  unsigned short ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)];
+  uint16_t PRETREE_table[(1 << k_pre_tree_bits) + (k_pre_tree_max_symbols * 2)];
+  uint16_t MAINTREE_table[(1 << k_main_tree_bits) + (m_main_tree_max_symbols * 2)];
+  uint16_t LENGTH_table[(1 << k_length_table_bits) + (k_length_max_symbols * 2)];
+  uint16_t ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)];
 };
 
 } // namespace je2be::box360
