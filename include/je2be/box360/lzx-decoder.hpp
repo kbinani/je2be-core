@@ -45,7 +45,7 @@ namespace je2be::box360 {
 
 class LzxDecoder {
 public:
-  explicit LzxDecoder(uint16_t window_bits) {
+  explicit LzxDecoder(unsigned short window_bits) {
     // LZX supports window sizes of 2^15 (32 KiB) to 2^21 (2 MiB)
     if (window_bits < 15 || window_bits > 21) {
       throw std::runtime_error("LzxDecoder: unsupported window size exponent: " + std::to_string(window_bits));
@@ -54,26 +54,26 @@ public:
     window_size = 1 << window_bits;
 
     // let's initialize our state
-    window = new uint8_t[window_size];
+    window = new unsigned char[window_size];
     memset(window, 0xDC, window_size);
     window_posn = 0;
 
     //// initialize tables
-    // for (uint32_t i = 0, j = 0; i <= 50; i += 2)
+    // for (unsigned long i = 0, j = 0; i <= 50; i += 2)
     //{
-    //	extra_bits[i] = extra_bits[i + 1] = static_cast<uint8_t>(j);
+    //	extra_bits[i] = extra_bits[i + 1] = static_cast<unsigned char>(j);
     //	if ((i != 0) && (j < 17))
     //	{
     //		++j;
     //	}
     // }
-    // for (uint32_t i = 0, j = 0; i <= 50; ++i)
+    // for (unsigned long i = 0, j = 0; i <= 50; ++i)
     //{
-    //	position_base[i] = static_cast<uint32_t>(j);
+    //	position_base[i] = static_cast<unsigned long>(j);
     //	j += 1 << extra_bits[i];
     // }
 
-    uint32_t posn_slots;
+    unsigned long posn_slots;
     if (window_bits == 20) {
       posn_slots = 42;
     } else if (window_bits == 21) {
@@ -85,7 +85,7 @@ public:
 
     // reset state
     R0 = R1 = R2 = 1;
-    main_elements = static_cast<uint16_t>(k_num_chars + (posn_slots * 8));
+    main_elements = static_cast<unsigned short>(k_num_chars + (posn_slots * 8));
     header_read = false;
     block_remaining = 0;
     block_type = e_block_type::_lxz_block_type_invalid;
@@ -103,13 +103,13 @@ public:
   }
 
   void decompress(
-      const uint8_t *const compressed_buffer,
-      uint32_t const compressed_buffer_length,
-      uint8_t *uncompressed_buffer,
-      const uint32_t uncompressed_buffer_length) {
+      const unsigned char *const compressed_buffer,
+      unsigned long const compressed_buffer_length,
+      unsigned char *uncompressed_buffer,
+      const unsigned long uncompressed_buffer_length) {
     init_bits(compressed_buffer);
 
-    static uint8_t const extra_bits[] = {
+    static unsigned char const extra_bits[] = {
         0,
         0,
         0,
@@ -403,7 +403,7 @@ public:
         17,
     };
 
-    static int32_t const position_base_minus2[sizeof(extra_bits) / sizeof(extra_bits[0])] = {
+    static long const position_base_minus2[sizeof(extra_bits) / sizeof(extra_bits[0])] = {
         -2,
         -1,
         0,
@@ -699,7 +699,7 @@ public:
 
     // read header if necessary
     if (!header_read) {
-      const uint32_t intel = read_bits(1);
+      const unsigned long intel = read_bits(1);
       if (intel != 0) {
         throw std::runtime_error("LzxDecoder::Decompress: Intel E8 not supported");
       }
@@ -707,20 +707,20 @@ public:
     }
 
     // main decoding loop
-    uint32_t togo = uncompressed_buffer_length;
+    unsigned long togo = uncompressed_buffer_length;
     while (togo > 0) {
       // last block finished, new block expected
       if (block_remaining == 0) {
         block_type = static_cast<e_block_type>(read_bits(3));
 
-        const uint32_t hi = read_bits(16);
-        const uint32_t lo = read_bits(8);
-        block_remaining = block_length = static_cast<uint32_t>((hi << 8) | lo);
+        const unsigned long hi = read_bits(16);
+        const unsigned long lo = read_bits(8);
+        block_remaining = block_length = static_cast<unsigned long>((hi << 8) | lo);
 
         switch (block_type) {
         case e_block_type::_lxz_block_type_aligned: {
-          for (uint32_t i = 0; i < 8; ++i) {
-            ALIGNED_len[i] = static_cast<uint8_t>(read_bits(3));
+          for (unsigned long i = 0; i < 8; ++i) {
+            ALIGNED_len[i] = static_cast<unsigned char>(read_bits(3));
           }
           make_decode_table(k_aligned_max_symbols, k_aligned_table_bits, ALIGNED_len, ALIGNED_table);
           // rest of aligned header is same as verbatim
@@ -751,7 +751,7 @@ public:
 
         case e_block_type::_lxz_block_type_invalid:
         default: {
-          throw std::runtime_error("LzxDecoder::Decompress: invalid state block type: " + std::to_string((uint8_t)block_type));
+          throw std::runtime_error("LzxDecoder::Decompress: invalid state block type: " + std::to_string((unsigned char)block_type));
         }
         }
       }
@@ -768,7 +768,7 @@ public:
         }
       }
 
-      uint32_t this_run;
+      unsigned long this_run;
       while ((this_run = block_remaining) > 0 && togo > 0) {
         if (this_run > togo) {
           this_run = togo;
@@ -785,24 +785,24 @@ public:
 
         if (block_type == e_block_type::_lxz_block_type_verbatim || block_type == e_block_type::_lxz_block_type_aligned) {
           while (this_run > 0) {
-            uint32_t main_element = read_huffman_symbols(MAINTREE_table, MAINTREE_len, m_main_tree_max_symbols, k_main_tree_bits);
+            unsigned long main_element = read_huffman_symbols(MAINTREE_table, MAINTREE_len, m_main_tree_max_symbols, k_main_tree_bits);
 
             if (main_element < k_num_chars) {
               // literal: 0 to k_num_chars-1
-              window[window_posn++] = static_cast<uint8_t>(main_element);
+              window[window_posn++] = static_cast<unsigned char>(main_element);
               --this_run;
             } else {
               // match: k_num_chars + ((slot<<3) | length_header (3 bits))
               main_element -= k_num_chars;
 
-              uint32_t match_length = main_element & k_num_primary_lengths;
+              unsigned long match_length = main_element & k_num_primary_lengths;
               if (match_length == k_num_primary_lengths) {
-                uint32_t length_footer = read_huffman_symbols(LENGTH_table, LENGTH_len, k_length_max_symbols, k_length_table_bits);
+                unsigned long length_footer = read_huffman_symbols(LENGTH_table, LENGTH_len, k_length_max_symbols, k_length_table_bits);
                 match_length += length_footer;
               }
               match_length += k_min_match;
 
-              uint32_t match_offset = main_element >> 3;
+              unsigned long match_offset = main_element >> 3;
 
               if (match_offset > 2) {
                 // not repeated offset
@@ -810,8 +810,8 @@ public:
                 case e_block_type::_lxz_block_type_verbatim: {
                   {
                     if (match_offset != 3) {
-                      uint8_t extra = extra_bits[match_offset];
-                      uint32_t verbatim_bits = read_bits(extra);
+                      unsigned char extra = extra_bits[match_offset];
+                      unsigned long verbatim_bits = read_bits(extra);
                       // match_offset = position_base[match_offset] - 2 + verbatim_bits;
                       match_offset = position_base_minus2[match_offset] + verbatim_bits;
                     } else {
@@ -823,25 +823,25 @@ public:
 
                 case e_block_type::_lxz_block_type_aligned: {
                   {
-                    uint8_t extra = extra_bits[match_offset];
+                    unsigned char extra = extra_bits[match_offset];
                     // match_offset = position_base[match_offset] - 2;
                     match_offset = position_base_minus2[match_offset];
                     if (extra > 3) {
                       // verbatim and aligned bits
                       extra -= 3;
-                      uint32_t verbatim_bits = read_bits(extra);
+                      unsigned long verbatim_bits = read_bits(extra);
                       match_offset += (verbatim_bits << 3);
 
-                      uint32_t aligned_bits = read_huffman_symbols(ALIGNED_table, ALIGNED_len, k_aligned_max_symbols, k_aligned_table_bits);
+                      unsigned long aligned_bits = read_huffman_symbols(ALIGNED_table, ALIGNED_len, k_aligned_max_symbols, k_aligned_table_bits);
                       match_offset += aligned_bits;
                     } else if (extra == 3) {
                       // aligned bits only
-                      uint32_t aligned_bits = read_huffman_symbols(ALIGNED_table, ALIGNED_len, k_aligned_max_symbols, k_aligned_table_bits);
+                      unsigned long aligned_bits = read_huffman_symbols(ALIGNED_table, ALIGNED_len, k_aligned_max_symbols, k_aligned_table_bits);
                       match_offset += aligned_bits;
                     } else if (extra > 0) // extra==1, extra==2
                     {
                       // verbatim bits only
-                      uint32_t verbatim_bits = read_bits(extra);
+                      unsigned long verbatim_bits = read_bits(extra);
                       match_offset += verbatim_bits;
                     } else // extra == 0
                     {
@@ -873,8 +873,8 @@ public:
                 R0 = match_offset;
               }
 
-              uint32_t runsrc;
-              uint32_t rundest = window_posn;
+              unsigned long runsrc;
+              unsigned long rundest = window_posn;
 
               if (match_length > this_run) {
                 throw std::runtime_error("LzxDecoder::Decompress: match_length > this_run (" + std::to_string(match_length) + " > " + std::to_string(this_run) + ")");
@@ -887,7 +887,7 @@ public:
                 runsrc = rundest - match_offset;
               } else {
                 runsrc = rundest + (window_size - match_offset);
-                uint32_t copy_length = match_offset - window_posn;
+                unsigned long copy_length = match_offset - window_posn;
                 if (copy_length < match_length) {
                   match_length -= copy_length;
                   window_posn += copy_length;
@@ -918,7 +918,7 @@ public:
       throw std::runtime_error("LzxDecoder::Decompress: togo != 0\n");
     }
 
-    uint32_t start_window_pos = window_posn;
+    unsigned long start_window_pos = window_posn;
     if (start_window_pos == 0) {
       start_window_pos = window_size;
     }
@@ -992,36 +992,36 @@ public:
   }
 
 private:
-  static constexpr uint16_t k_min_match = 2;
-  static constexpr uint16_t k_max_match = 257;
-  static constexpr uint16_t k_num_chars = 256;
-  static constexpr uint16_t k_pre_tree_num_elements = 20;
-  static constexpr uint16_t k_aligned_num_elements = 8;
-  static constexpr uint16_t k_num_primary_lengths = 7;
-  static constexpr uint16_t k_num_secondary_lengths = 249;
+  static constexpr unsigned short k_min_match = 2;
+  static constexpr unsigned short k_max_match = 257;
+  static constexpr unsigned short k_num_chars = 256;
+  static constexpr unsigned short k_pre_tree_num_elements = 20;
+  static constexpr unsigned short k_aligned_num_elements = 8;
+  static constexpr unsigned short k_num_primary_lengths = 7;
+  static constexpr unsigned short k_num_secondary_lengths = 249;
 
-  static constexpr uint16_t k_pre_tree_max_symbols = k_pre_tree_num_elements;
-  static constexpr uint16_t m_main_tree_max_symbols = k_num_chars + 50 * 8;
-  static constexpr uint16_t k_length_max_symbols = k_num_secondary_lengths + 1;
-  static constexpr uint16_t k_aligned_max_symbols = k_aligned_num_elements;
+  static constexpr unsigned short k_pre_tree_max_symbols = k_pre_tree_num_elements;
+  static constexpr unsigned short m_main_tree_max_symbols = k_num_chars + 50 * 8;
+  static constexpr unsigned short k_length_max_symbols = k_num_secondary_lengths + 1;
+  static constexpr unsigned short k_aligned_max_symbols = k_aligned_num_elements;
 
-  static constexpr uint8_t k_pre_tree_bits = 6;
-  static constexpr uint8_t k_main_tree_bits = 12;
-  static constexpr uint8_t k_length_table_bits = 12;
-  static constexpr uint8_t k_aligned_table_bits = 7;
+  static constexpr unsigned char k_pre_tree_bits = 6;
+  static constexpr unsigned char k_main_tree_bits = 12;
+  static constexpr unsigned char k_length_table_bits = 12;
+  static constexpr unsigned char k_aligned_table_bits = 7;
 
-  static void copy_n_safe(uint8_t *buf, uint32_t len, uint32_t src, uint32_t &dest) {
+  static void copy_n_safe(unsigned char *buf, unsigned long len, unsigned long src, unsigned long &dest) {
     if (src == dest) {
       return;
     }
 
-    uint8_t *bufsrc = buf + src;
-    uint8_t *bufdest = buf + dest;
+    unsigned char *bufsrc = buf + src;
+    unsigned char *bufdest = buf + dest;
     if ((dest > src) && (src + len >= dest)) {
-      uint32_t distance = dest - src;
-      uint32_t copies = len / distance;
-      uint32_t leftover = len % distance;
-      for (uint32_t i = 0; i < copies; ++i) {
+      unsigned long distance = dest - src;
+      unsigned long copies = len / distance;
+      unsigned long leftover = len % distance;
+      for (unsigned long i = 0; i < copies; ++i) {
         memcpy(bufdest, bufsrc, distance);
         bufdest += distance;
       }
@@ -1033,21 +1033,21 @@ private:
     dest += len;
   }
 
-  void make_decode_table(uint16_t num_symbols, uint8_t num_bits, uint8_t *length, uint16_t *table) {
-    uint32_t leaf;
-    uint8_t bit_num = 1;
-    uint32_t pos = 0; // the current position in the decode table
+  void make_decode_table(unsigned short num_symbols, unsigned char num_bits, unsigned char *length, unsigned short *table) {
+    unsigned long leaf;
+    unsigned char bit_num = 1;
+    unsigned long pos = 0; // the current position in the decode table
     // note: nbits is at most 12
-    uint32_t table_mask = 1 << num_bits;
+    unsigned long table_mask = 1 << num_bits;
 
     // bit_mask never exceeds 15 bits
-    uint16_t bit_mask = static_cast<uint16_t>(table_mask >> 1); // don't do 0 length codes
+    unsigned short bit_mask = static_cast<unsigned short>(table_mask >> 1); // don't do 0 length codes
 
-    uint16_t next_symbol = bit_mask; // base of allocation for long codes
+    unsigned short next_symbol = bit_mask; // base of allocation for long codes
 
     // fill entries for codes short enough for a direct mapping
     while (bit_num <= num_bits) {
-      for (uint16_t sym = 0; sym < num_symbols; ++sym) {
+      for (unsigned short sym = 0; sym < num_symbols; ++sym) {
         if (length[sym] == bit_num) {
           leaf = pos;
 
@@ -1056,8 +1056,8 @@ private:
           }
 
           // fill all possible lookups of this symbol with the symbol itself
-          uint16_t *fill_start = table + leaf;
-          uint16_t *fill_end = fill_start + bit_mask;
+          unsigned short *fill_start = table + leaf;
+          unsigned short *fill_end = fill_start + bit_mask;
           while (fill_start < fill_end) {
             *fill_start = sym;
             fill_start++;
@@ -1079,10 +1079,10 @@ private:
       bit_mask = 1 << 15;
 
       while (bit_num <= 16) {
-        for (uint16_t sym = 0; sym < num_symbols; ++sym) {
+        for (unsigned short sym = 0; sym < num_symbols; ++sym) {
           if (length[sym] == bit_num) {
             leaf = pos >> 16;
-            for (uint32_t fill = 0; fill < static_cast<uint32_t>(bit_num) - static_cast<uint32_t>(num_bits); ++fill) {
+            for (unsigned long fill = 0; fill < static_cast<unsigned long>(bit_num) - static_cast<unsigned long>(num_bits); ++fill) {
               // if this path hasn't been taken yet, 'allocate' two entries
               if (table[leaf] == 0) {
                 table[(next_symbol << 1)] = 0;
@@ -1090,7 +1090,7 @@ private:
                 table[leaf] = (next_symbol++);
               }
               // follow the path and select either left or right for next bit
-              leaf = static_cast<uint32_t>(table[leaf] << 1);
+              leaf = static_cast<unsigned long>(table[leaf] << 1);
               if (((pos >> (15 - fill)) & 1) == 1) {
                 ++leaf;
               }
@@ -1113,60 +1113,60 @@ private:
     }
 
     // either erroneous table, or all elements are 0 - let's find out.
-    for (uint16_t sym = 0; sym < num_symbols; ++sym) {
+    for (unsigned short sym = 0; sym < num_symbols; ++sym) {
       if (length[sym] != 0) {
         throw std::runtime_error("LzxDecoder::MakeDecodeTable: erroneous table");
       }
     }
   }
 
-  void read_lengths(uint8_t *lens, const uint32_t first, const uint32_t last) {
+  void read_lengths(unsigned char *lens, const unsigned long first, const unsigned long last) {
     // hufftbl pointer here?
 
-    uint8_t pre_tree_lengths[k_pre_tree_max_symbols];
+    unsigned char pre_tree_lengths[k_pre_tree_max_symbols];
 
-    for (uint32_t x = 0; x < k_pre_tree_max_symbols; ++x) {
-      pre_tree_lengths[x] = static_cast<uint8_t>(read_bits(4));
+    for (unsigned long x = 0; x < k_pre_tree_max_symbols; ++x) {
+      pre_tree_lengths[x] = static_cast<unsigned char>(read_bits(4));
     }
     make_decode_table(k_pre_tree_max_symbols, k_pre_tree_bits, pre_tree_lengths, PRETREE_table);
 
-    for (uint32_t x = first; x < last;) {
-      uint32_t z = read_huffman_symbols(PRETREE_table, pre_tree_lengths, k_pre_tree_max_symbols, k_pre_tree_bits);
+    for (unsigned long x = first; x < last;) {
+      long z = read_huffman_symbols(PRETREE_table, pre_tree_lengths, k_pre_tree_max_symbols, k_pre_tree_bits);
       if (z == 17) {
-        uint32_t y = read_bits(4);
+        unsigned long y = read_bits(4);
         y += 4;
         memset(lens + x, 0, y);
         x += y;
       } else if (z == 18) {
-        uint32_t y = read_bits(5);
+        unsigned long y = read_bits(5);
         y += 20;
         memset(lens + x, 0, y);
         x += y;
       } else if (z == 19) {
-        uint32_t y = read_bits(1);
+        unsigned long y = read_bits(1);
         y += 4;
         z = read_huffman_symbols(PRETREE_table, pre_tree_lengths, k_pre_tree_max_symbols, k_pre_tree_bits);
         z = lens[x] - z;
         if (z < 0) {
           z += 17;
         }
-        memset(lens + x, static_cast<uint8_t>(z), y);
+        memset(lens + x, static_cast<unsigned char>(z), y);
         x += y;
       } else {
         z = lens[x] - z;
         if (z < 0) {
           z += 17;
         }
-        lens[x++] = static_cast<uint8_t>(z);
+        lens[x++] = static_cast<unsigned char>(z);
       }
     }
   }
 
-  uint32_t read_huffman_symbols(const uint16_t *table, const uint8_t *lengths, const uint32_t num_symbols, const uint8_t num_bits) {
-    uint32_t i, j;
+  unsigned long read_huffman_symbols(const unsigned short *table, const unsigned char *lengths, const unsigned long num_symbols, const unsigned char num_bits) {
+    unsigned long i, j;
     ensure_bits(16);
     if ((i = table[peek_bits(num_bits)]) >= num_symbols) {
-      j = static_cast<uint32_t>(1 << ((sizeof(uint32_t) * 8) - num_bits));
+      j = static_cast<unsigned long>(1 << ((sizeof(unsigned long) * 8) - num_bits));
       do {
         j >>= 1;
         i <<= 1;
@@ -1177,65 +1177,65 @@ private:
       } while ((i = table[i]) >= num_symbols);
     }
     j = lengths[i];
-    remove_bits(static_cast<uint8_t>(j));
+    remove_bits(static_cast<unsigned char>(j));
 
     return i;
   }
 
-  //static int32_t const position_base_minus2[];
-  //static uint8_t const extra_bits[];
-  //uint32_t position_base[51];
-  //uint8_t extra_bits[52];
+  //static long const position_base_minus2[];
+  //static unsigned char const extra_bits[];
+  //unsigned long position_base[51];
+  //unsigned char extra_bits[52];
 
-  enum class e_block_type : uint8_t {
+  enum class e_block_type : unsigned char {
     _lxz_block_type_invalid,
     _lxz_block_type_verbatim,
     _lxz_block_type_aligned,
     _lxz_block_type_uncompressed,
   };
 
-  uint8_t *window;
-  uint32_t window_size;
-  uint32_t window_posn;
+  unsigned char *window;
+  unsigned long window_size;
+  unsigned long window_posn;
 
-  uint32_t R0;
-  uint32_t R1;
-  uint32_t R2;
-  uint16_t main_elements;   // number of main tree elements
-  bool header_read;         // have we started decoding at all yet?
-  e_block_type block_type;  // type of this block
-  uint32_t block_length;    // uncompressed length of this block
-  uint32_t block_remaining; // uncompressed bytes still left to decode
+  unsigned long R0;
+  unsigned long R1;
+  unsigned long R2;
+  unsigned short main_elements;  // number of main tree elements
+  bool header_read;              // have we started decoding at all yet?
+  e_block_type block_type;       // type of this block
+  unsigned long block_length;    // uncompressed length of this block
+  unsigned long block_remaining; // uncompressed bytes still left to decode
 
-  void init_bits(const uint8_t *input_buffer) {
+  void init_bits(const unsigned char *input_buffer) {
     bit_buffer_buffer = 0;
     bit_buffer_bits_left = 0;
     bit_buffer_input_position = 0;
     bit_buffer_input_buffer = input_buffer;
   }
 
-  void ensure_bits(const uint8_t bits) {
+  void ensure_bits(const unsigned char bits) {
     while (bit_buffer_bits_left < bits) {
-      uint16_t const read_bits = *reinterpret_cast<const uint16_t *>(bit_buffer_input_buffer + bit_buffer_input_position);
-      bit_buffer_input_position += sizeof(uint16_t);
+      unsigned short const read_bits = *reinterpret_cast<const unsigned short *>(bit_buffer_input_buffer + bit_buffer_input_position);
+      bit_buffer_input_position += sizeof(unsigned short);
 
-      uint8_t const amount_to_shift = sizeof(uint32_t) * 8 - 16 - bit_buffer_bits_left;
-      bit_buffer_buffer |= static_cast<uint32_t>(read_bits) << amount_to_shift;
+      unsigned char const amount_to_shift = sizeof(unsigned long) * 8 - 16 - bit_buffer_bits_left;
+      bit_buffer_buffer |= static_cast<unsigned long>(read_bits) << amount_to_shift;
       bit_buffer_bits_left += 16;
     }
   }
 
-  uint32_t peek_bits(const uint8_t bits) const {
-    return (bit_buffer_buffer >> ((sizeof(uint32_t) * 8) - bits));
+  unsigned long peek_bits(const unsigned char bits) const {
+    return (bit_buffer_buffer >> ((sizeof(unsigned long) * 8) - bits));
   }
 
-  void remove_bits(const uint8_t bits) {
+  void remove_bits(const unsigned char bits) {
     bit_buffer_buffer <<= bits;
     bit_buffer_bits_left -= bits;
   }
 
-  uint32_t read_bits(const uint8_t bits) {
-    uint32_t ret = 0;
+  unsigned long read_bits(const unsigned char bits) {
+    unsigned long ret = 0;
 
     if (bits > 0) {
       ensure_bits(bits);
@@ -1246,18 +1246,18 @@ private:
     return ret;
   }
 
-  uint32_t bit_buffer_buffer;
-  uint8_t bit_buffer_bits_left;
-  uint32_t bit_buffer_input_position;
-  const uint8_t *bit_buffer_input_buffer;
+  unsigned long bit_buffer_buffer;
+  unsigned char bit_buffer_bits_left;
+  unsigned long bit_buffer_input_position;
+  const unsigned char *bit_buffer_input_buffer;
 
-  uint8_t MAINTREE_len[m_main_tree_max_symbols];
-  uint8_t LENGTH_len[k_length_max_symbols];
-  uint8_t ALIGNED_len[k_aligned_max_symbols];
-  uint16_t PRETREE_table[(1 << k_pre_tree_bits) + (k_pre_tree_max_symbols * 2)];
-  uint16_t MAINTREE_table[(1 << k_main_tree_bits) + (m_main_tree_max_symbols * 2)];
-  uint16_t LENGTH_table[(1 << k_length_table_bits) + (k_length_max_symbols * 2)];
-  uint16_t ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)];
+  unsigned char MAINTREE_len[m_main_tree_max_symbols];
+  unsigned char LENGTH_len[k_length_max_symbols];
+  unsigned char ALIGNED_len[k_aligned_max_symbols];
+  unsigned short PRETREE_table[(1 << k_pre_tree_bits) + (k_pre_tree_max_symbols * 2)];
+  unsigned short MAINTREE_table[(1 << k_main_tree_bits) + (m_main_tree_max_symbols * 2)];
+  unsigned short LENGTH_table[(1 << k_length_table_bits) + (k_length_max_symbols * 2)];
+  unsigned short ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)];
 };
 
 } // namespace je2be::box360
