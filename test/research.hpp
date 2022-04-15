@@ -25,7 +25,7 @@ static leveldb::DB *OpenF(fs::path p) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db;
-  Status st = DB::Open(o, p, &db);
+  leveldb::Status st = DB::Open(o, p, &db);
   if (!st.ok()) {
     return nullptr;
   }
@@ -603,7 +603,7 @@ static void Box360Chunk() {
   string name = "abc-Save20220303092528.bin";
   // string name = "2-Save20220306005722-077-gyazo-1fcbd51efa6d0795fe34e912619aa4f5.bin";
   Options options;
-  CHECK(Converter::Run(dir / name, output, thread::hardware_concurrency(), options));
+  CHECK(Converter::Run(dir / name, output, thread::hardware_concurrency(), options).ok());
 }
 
 static void WallConnectable() {

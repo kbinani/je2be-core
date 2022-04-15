@@ -52,6 +52,7 @@
 #include <charconv>
 #include <regex>
 #include <fstream>
+#include <variant>
 
 #include <je2be/status.hpp>
 #include <je2be/nullable.hpp>
