@@ -16,7 +16,7 @@ class Terraform {
   };
 
 public:
-  static bool Do(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status Do(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     if (concurrency > 0) {
       return MultiThread(directory, concurrency, progress, progressChunksOffset);
     } else {
@@ -25,7 +25,7 @@ public:
   }
 
 private:
-  static bool MultiThread(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status MultiThread(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     using namespace std;
     bool running[width][height];
     bool done[width][height];
@@ -34,17 +34,21 @@ private:
       fill_n(done[i], height, false);
     }
     unique_ptr<hwm::task_queue> queue(new hwm::task_queue(concurrency));
-    deque<future<optional<Pos2i>>> futures;
+    deque<future<Nullable<Pos2i>>> futures;
     bool ok = true;
+    optional<Status> error;
     int count = 0;
     while (ok) {
-      vector<future<optional<Pos2i>>> drain;
+      vector<future<Nullable<Pos2i>>> drain;
       FutureSupport::Drain(concurrency + 1, futures, drain);
       for (auto &f : drain) {
         auto result = f.get();
         if (result) {
           MarkFinished(result->fX, result->fZ, done, running);
         } else {
+          if (!error) {
+            error = result.status();
+          }
           ok = false;
         }
         count++;
@@ -80,7 +84,12 @@ private:
       }
     }
     for (auto &f : futures) {
-      ok = ok && f.get();
+      if (auto result = f.get(); !result) {
+        ok = false;
+        if (!error) {
+          error = result.status();
+        }
+      }
       count++;
       if (ok && progress) {
         if (!progress->report(count + progressChunksOffset, 8192 * 3)) {
@@ -88,23 +97,27 @@ private:
         }
       }
     }
-    return ok;
+    if (ok) {
+      return Status::Ok();
+    } else {
+      return error ? *error : JE2BE_ERROR;
+    }
   }
 
-  static bool SingleThread(std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
+  static Status SingleThread(std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
     int done = 0;
     for (int cx = cx0; cx <= cx1; cx++) {
       for (int cz = cz0; cz <= cz1; cz++) {
-        if (!DoChunk(cx, cz, directory)) {
-          return false;
+        if (auto result = DoChunk(cx, cz, directory); !result) {
+          return result.status();
         }
         done++;
         if (progress && !progress->report(progressChunksOffset + done, 8192 * 3)) {
-          return false;
+          return JE2BE_ERROR;
         }
       }
     }
-    return true;
+    return Status::Ok();
   }
 
   static void MarkFinished(int cx, int cz, bool done[width][height], bool running[width][height]) {
@@ -194,7 +207,7 @@ private:
     bool fOk;
   };
 
-  static std::optional<Pos2i> DoChunk(int cx, int cz, std::filesystem::path const &directory) {
+  static Nullable<Pos2i> DoChunk(int cx, int cz, std::filesystem::path const &directory) {
     using namespace std;
     using namespace je2be::terraform;
     using namespace je2be::terraform::box360;
@@ -209,7 +222,7 @@ private:
     input.reset();
     auto chunk = mcfile::je::WritableChunk::MakeChunk(cx, cz, root);
     if (!chunk) {
-      return nullopt;
+      return JE2BE_NULLABLE_NULL;
     }
     cache->set(cx, cz, chunk);
 
@@ -229,7 +242,7 @@ private:
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {
-      return nullopt;
+      return JE2BE_NULLABLE_NULL;
     }
 
     return Pos2i(cx, cz);

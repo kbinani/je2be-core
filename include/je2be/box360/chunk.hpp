@@ -13,7 +13,13 @@ public:
     return "1.18.1";
   }
 
-  static bool Convert(mcfile::Dimension dimension, std::filesystem::path const &region, int cx, int cz, std::shared_ptr<mcfile::je::WritableChunk> &result, Context const &ctx, Options const &options) {
+  static Status Convert(mcfile::Dimension dimension,
+                        std::filesystem::path const &region,
+                        int cx,
+                        int cz,
+                        std::shared_ptr<mcfile::je::WritableChunk> &result,
+                        Context const &ctx,
+                        Options const &options) {
     using namespace std;
 
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
@@ -26,13 +32,13 @@ public:
 
     vector<uint8_t> buffer;
     if (!Savegame::ExtractRawChunkFromRegionFile(*f, localCx, localCz, buffer)) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (buffer.empty()) {
-      return true;
+      return Status::Ok();
     }
     if (!Savegame::DecompressRawChunk(buffer)) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     Savegame::DecodeDecompressedChunk(buffer);
@@ -40,7 +46,7 @@ public:
     uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
     uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
     if (maybeEndTagMarker != 0x00 || maybeLongArrayTagMarker != 0x0c) {
-      return false;
+      return JE2BE_ERROR;
     }
     int32_t xPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x2));
     int32_t zPos = mcfile::I32FromBE(*(int32_t *)(buffer.data() + 0x6));
@@ -97,68 +103,68 @@ public:
               Grid::ParseFormat0(v1, v2, grid);
             } else if (format == 0xf || format == 0xe) {
               if (gridPosition + 128 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               Grid::ParseFormatF(buffer.data() + gridPosition, grid);
             } else if (format == 0x2) { // 1 bit
               // OK
               if (gridPosition + 12 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<1>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x3) { // 1 bit + layers
               if (gridPosition + 20 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<1>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x4) { // 2 bit
               if (gridPosition + 24 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<2>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x5) { // 2 bit + layers
               if (gridPosition + 40 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<2>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x6) { // 3 bit
               if (gridPosition + 40 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<3>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x7) { // 3 bit + layers
               if (gridPosition + 64 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<3>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x8) { // 4 bit
               if (gridPosition + 64 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<4>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else if (format == 0x9) { // 4bit + layers
               if (gridPosition + 96 >= buffer.size()) {
-                return false;
+                return JE2BE_ERROR;
               }
               if (!Grid::Parse<4>(buffer.data() + gridPosition, grid)) {
-                return false;
+                return JE2BE_ERROR;
               }
             } else {
-              return false;
+              return JE2BE_ERROR;
             }
 
             for (int lx = 0; lx < 4; lx++) {
@@ -259,11 +265,11 @@ public:
     string nbt;
     copy(buffer.begin() + heightMapStartPos + 256 + 2 + 256, buffer.end(), back_inserter(nbt));
     if (!nbt.starts_with(string("\x0a\x00\x00", 3))) {
-      return false;
+      return JE2BE_ERROR;
     }
     auto tag = CompoundTag::Read(nbt, mcfile::Endian::Big);
     if (!tag) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (auto te = tag->listTag("TileEntities"); te) {
       for (auto &item : *te) {
@@ -305,7 +311,7 @@ public:
 
     result.swap(chunk);
 
-    return true;
+    return Status::Ok();
   }
 };
 

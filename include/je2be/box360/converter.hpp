@@ -47,20 +47,17 @@ public:
       }
     }
     Context ctx(TileEntity::Convert, Entity::MigrateName);
-    Status st = CopyMapFiles(*temp, outputDirectory);
-    if (!st.ok()) {
+    if (auto st = CopyMapFiles(*temp, outputDirectory); !st.ok()) {
       return st;
     }
     auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx, options);
     if (!copyPlayersResult) {
       return copyPlayersResult.status();
     }
-    st = CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx);
-    if (!st.ok()) {
+    if (auto st = CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx); !st.ok()) {
       return st;
     }
-    st = SetupResourcePack(outputDirectory);
-    if (!st.ok()) {
+    if (auto st = SetupResourcePack(outputDirectory); !st.ok()) {
       return st;
     }
     int progressChunksOffset = 0;
@@ -73,8 +70,8 @@ public:
           continue;
         }
       }
-      if (!World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset)) {
-        return JE2BE_ERROR;
+      if (auto st = World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset); !st.ok()) {
+        return st;
       }
     }
     return Status::Ok();

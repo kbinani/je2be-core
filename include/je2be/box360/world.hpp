@@ -6,7 +6,14 @@ class World {
   World() = delete;
 
 public:
-  static bool Convert(std::filesystem::path const &levelRootDirectory, std::filesystem::path const &outputDirectory, mcfile::Dimension dimension, unsigned int concurrency, Context const &ctx, Options const &options, Progress *progress, int progressChunksOffset) {
+  static Status Convert(std::filesystem::path const &levelRootDirectory,
+                        std::filesystem::path const &outputDirectory,
+                        mcfile::Dimension dimension,
+                        unsigned int concurrency,
+                        Context const &ctx,
+                        Options const &options,
+                        Progress *progress,
+                        int progressChunksOffset) {
     using namespace std;
     namespace fs = std::filesystem;
     string worldDir;
@@ -27,10 +34,10 @@ public:
 
     auto chunkTempDir = mcfile::File::CreateTempDir(tempRoot);
     if (!chunkTempDir) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (!Fs::CreateDirectories(*chunkTempDir)) {
-      return false;
+      return JE2BE_ERROR;
     }
     defer {
       Fs::DeleteAll(*chunkTempDir);
@@ -38,10 +45,10 @@ public:
 
     auto entityTempDir = mcfile::File::CreateTempDir(tempRoot);
     if (!entityTempDir) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (!Fs::CreateDirectories(*entityTempDir)) {
-      return false;
+      return JE2BE_ERROR;
     }
     defer {
       Fs::DeleteAll(*entityTempDir);
@@ -51,7 +58,8 @@ public:
     if (concurrency > 0) {
       queue.reset(new hwm::task_queue(concurrency));
     }
-    deque<future<bool>> futures;
+    deque<future<Status>> futures;
+    optional<Status> error;
     bool ok = true;
     int progressChunks = progressChunksOffset;
     for (int rz = -1; rz <= 0; rz++) {
@@ -72,10 +80,15 @@ public:
               }
             }
             if (queue) {
-              vector<future<bool>> drain;
+              vector<future<Status>> drain;
               FutureSupport::Drain(concurrency + 1, futures, drain);
               for (auto &f : drain) {
-                ok = ok && f.get();
+                if (auto st = f.get(); !st.ok()) {
+                  ok = false;
+                  if (!error) {
+                    error = st;
+                  }
+                }
                 progressChunks++;
               }
               if (!ok) {
@@ -88,11 +101,11 @@ public:
               futures.push_back(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
             } else {
               progressChunks++;
-              if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options)) {
-                return false;
+              if (auto st = ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options); !st.ok()) {
+                return st;
               }
               if (progress && !progress->report(progressChunks, 8192 * 3)) {
-                return false;
+                return JE2BE_ERROR;
               }
             }
           }
@@ -102,25 +115,30 @@ public:
 
     if (queue) {
       for (auto &f : futures) {
-        ok = ok && f.get();
+        if (auto st = f.get(); !st.ok()) {
+          ok = false;
+          if (!error) {
+            error = st;
+          }
+        }
         progressChunks++;
       }
       futures.clear();
     }
     if (!ok) {
-      return false;
+      return error ? *error : JE2BE_ERROR;
     }
 
-    if (!Terraform::Do(*chunkTempDir, concurrency, progress, progressChunks)) {
-      return false;
+    if (auto st = Terraform::Do(*chunkTempDir, concurrency, progress, progressChunks); !st.ok()) {
+      return st;
     }
     progressChunks += 4096;
 
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "entities")) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     mcfile::je::Region::ConcatOptions o;
@@ -130,38 +148,73 @@ public:
         if (queue) {
           futures.push_back(queue->enqueue(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
         } else {
-          if (!ConcatCompressedNbt(rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o)) {
-            return false;
+          if (auto st = ConcatCompressedNbt(rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o); !st.ok()) {
+            return st;
           }
         }
       }
     }
     for (auto &f : futures) {
-      ok = ok && f.get();
+      if (auto st = f.get(); !st.ok()) {
+        ok = false;
+        if (!error) {
+          error = st;
+        }
+      }
     }
 
     if (progress) {
       progress->report(progressChunks, 8192 * 3);
     }
 
-    return ok;
+    if (ok) {
+      return Status::Ok();
+    } else {
+      return error ? *error : JE2BE_ERROR;
+    }
   }
 
 private:
-  static bool ConcatCompressedNbt(int rx, int rz, std::filesystem::path outputDirectory, std::filesystem::path chunkTempDir, std::filesystem::path entityTempDir, mcfile::je::Region::ConcatOptions options) {
+  static Status ConcatCompressedNbt(int rx,
+                                    int rz,
+                                    std::filesystem::path outputDirectory,
+                                    std::filesystem::path chunkTempDir,
+                                    std::filesystem::path entityTempDir,
+                                    mcfile::je::Region::ConcatOptions options) {
     auto chunkMca = outputDirectory / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     auto entityMca = outputDirectory / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    return mcfile::je::Region::ConcatCompressedNbt(rx, rz, chunkTempDir, chunkMca, options) && mcfile::je::Region::ConcatCompressedNbt(rx, rz, entityTempDir, entityMca, options);
+    if (!mcfile::je::Region::ConcatCompressedNbt(rx,
+                                                 rz,
+                                                 chunkTempDir,
+                                                 chunkMca,
+                                                 options)) {
+      return JE2BE_ERROR;
+    }
+    if (!mcfile::je::Region::ConcatCompressedNbt(rx,
+                                                 rz,
+                                                 entityTempDir,
+                                                 entityMca,
+                                                 options)) {
+      return JE2BE_ERROR;
+    }
+    return Status::Ok();
   }
 
-  static bool ProcessChunk(mcfile::Dimension dimension, std::filesystem::path mcr, int cx, int cz, std::filesystem::path chunkTempDir, std::filesystem::path entityTempDir, Context ctx, Options options) {
+  static Status ProcessChunk(mcfile::Dimension dimension,
+                             std::filesystem::path mcr,
+                             int cx,
+                             int cz,
+                             std::filesystem::path chunkTempDir,
+                             std::filesystem::path entityTempDir,
+                             Context ctx,
+                             Options options) {
     using namespace std;
     shared_ptr<mcfile::je::WritableChunk> chunk;
-    if (!Chunk::Convert(dimension, mcr, cx, cz, chunk, ctx, options)) {
-      return true;
+    if (auto st = Chunk::Convert(dimension, mcr, cx, cz, chunk, ctx, options); !st.ok()) {
+      return st;
     }
     if (!chunk) {
-      return true;
+      return Status::Ok();
     }
 
     {
@@ -170,7 +223,7 @@ private:
       if (!chunk->write(*stream)) {
         stream.reset();
         Fs::Delete(nbtz);
-        return false;
+        return JE2BE_ERROR;
       }
     }
 
@@ -180,11 +233,11 @@ private:
       if (!chunk->writeEntities(*stream)) {
         stream.reset();
         Fs::Delete(nbtz);
-        return false;
+        return JE2BE_ERROR;
       }
     }
 
-    return true;
+    return Status::Ok();
   }
 };
 
