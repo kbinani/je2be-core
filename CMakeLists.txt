@@ -87,6 +87,7 @@ set(je2be_files
   include/je2be/java-level-dat.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
+  include/je2be/nullable.hpp
   include/je2be/optional.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp

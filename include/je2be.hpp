@@ -54,6 +54,7 @@
 #include <fstream>
 
 #include <je2be/status.hpp>
+#include <je2be/nullable.hpp>
 #include <je2be/nbt.hpp>
 #include <je2be/fs.hpp>
 #include <je2be/scoped-file.hpp>

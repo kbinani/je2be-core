@@ -6,14 +6,18 @@ class Converter {
   Converter() = delete;
 
 public:
-  static bool Run(std::filesystem::path const &inputSaveBin, std::filesystem::path const &outputDirectory, unsigned int concurrency, Options const &options, Progress *progress = nullptr) {
+  static Status Run(std::filesystem::path const &inputSaveBin,
+                    std::filesystem::path const &outputDirectory,
+                    unsigned int concurrency,
+                    Options const &options,
+                    Progress *progress = nullptr) {
     using namespace std;
     namespace fs = std::filesystem;
 
     auto tempRoot = options.fTempDirectory ? *options.fTempDirectory : fs::temp_directory_path();
     auto temp = mcfile::File::CreateTempDir(tempRoot);
     if (!temp) {
-      return false;
+      return JE2BE_ERROR;
     }
     defer {
       Fs::DeleteAll(*temp);
@@ -24,37 +28,40 @@ public:
       vector<uint8_t> buffer;
       auto savegameInfo = Savegame::ExtractSavagameFromSaveBin(inputSaveBin, buffer);
       if (!savegameInfo) {
-        return false;
+        return JE2BE_ERROR;
       }
       if (auto thumbnail = savegameInfo->fThumbnailImage; thumbnail) {
         auto iconPath = outputDirectory / "icon.png";
         auto icon = make_shared<mcfile::stream::FileOutputStream>(iconPath);
         if (!icon->write(thumbnail->data(), thumbnail->size())) {
-          return false;
+          return JE2BE_ERROR;
         }
       }
       lastPlayed = savegameInfo->fCreatedTime;
 
       if (!Savegame::DecompressSavegame(buffer)) {
-        return false;
+        return JE2BE_ERROR;
       }
       if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
     Context ctx(TileEntity::Convert, Entity::MigrateName);
-    if (!CopyMapFiles(*temp, outputDirectory)) {
-      return false;
+    Status st = CopyMapFiles(*temp, outputDirectory);
+    if (!st.ok()) {
+      return st;
     }
     auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx, options);
     if (!copyPlayersResult) {
-      return false;
+      return copyPlayersResult.status();
     }
-    if (!CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx)) {
-      return false;
+    st = CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx);
+    if (!st.ok()) {
+      return st;
     }
-    if (!SetupResourcePack(outputDirectory)) {
-      return false;
+    st = SetupResourcePack(outputDirectory);
+    if (!st.ok()) {
+      return st;
     }
     int progressChunksOffset = 0;
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
@@ -67,10 +74,10 @@ public:
         }
       }
       if (!World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset)) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
-    return true;
+    return Status::Ok();
   }
 
 private:
@@ -78,7 +85,10 @@ private:
     CompoundTagPtr fLocalPlayer;
   };
 
-  static std::optional<CopyPlayerResult> CopyPlayers(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, Context &ctx, Options const &options) {
+  static Nullable<CopyPlayerResult> CopyPlayers(std::filesystem::path const &inputDirectory,
+                                                std::filesystem::path const &outputDirectory,
+                                                Context &ctx,
+                                                Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -86,7 +96,7 @@ private:
     auto playersTo = outputDirectory / "playerdata";
 
     if (!Fs::CreateDirectories(playersTo)) {
-      return nullopt;
+      return JE2BE_NULLABLE_NULL;
     }
 
     CopyPlayerResult r;
@@ -111,18 +121,18 @@ private:
     for (auto &player : players) {
       auto uuidB = player->string("UUID");
       if (!uuidB) {
-        return nullopt;
+        return JE2BE_NULLABLE_NULL;
       }
       auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
       if (!uuidJ) {
-        return nullopt;
+        return JE2BE_NULLABLE_NULL;
       }
       player->set("UUID", uuidJ->toIntArrayTag());
     }
     if (r.fLocalPlayer) {
       auto uuidB = r.fLocalPlayer->string("UUID");
       if (!uuidB) {
-        return nullopt;
+        return JE2BE_NULLABLE_NULL;
       }
       if (options.fLocalPlayer) {
         r.fLocalPlayer->set("UUID", options.fLocalPlayer->toIntArrayTag());
@@ -130,7 +140,7 @@ private:
       } else {
         auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
         if (!uuidJ) {
-          return nullopt;
+          return JE2BE_NULLABLE_NULL;
         }
         r.fLocalPlayer->set("UUID", uuidJ->toIntArrayTag());
         ctx.fPlayers.insert(make_pair(*uuidB, *uuidJ));
@@ -141,14 +151,14 @@ private:
     for (auto const &player : players) {
       auto uuidJ = props::GetUuidWithFormatIntArray(*player, "UUID");
       if (!uuidJ) {
-        return nullopt;
+        return JE2BE_NULLABLE_NULL;
       }
       auto filename = uuidJ->toString() + ".dat";
       auto filePath = playersTo / filename;
       auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
       mcfile::stream::OutputStreamWriter writer(outputStream, mcfile::Endian::Big);
       if (!player->writeAsRoot(writer)) {
-        return nullopt;
+        return JE2BE_NULLABLE_NULL;
       }
     }
 
@@ -198,7 +208,7 @@ private:
     return out;
   }
 
-  static bool SetupResourcePack(std::filesystem::path const &outputDirectory) {
+  static Status SetupResourcePack(std::filesystem::path const &outputDirectory) {
     using namespace std;
 
     auto resourcesZipPath = outputDirectory / "resources.zip";
@@ -218,7 +228,7 @@ private:
       vector<uint8_t> forcefield;
       copy_n(transparent16x16_png, transparent16x16_png_len, back_inserter(forcefield));
       if (!resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png")) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
     {
@@ -231,31 +241,39 @@ private:
       vector<uint8_t> mcmeta;
       copy(str.begin(), str.end(), back_inserter(mcmeta));
       if (!resources.store(mcmeta, "pack.mcmeta")) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
 
-    return resources.close();
+    if (resources.close()) {
+      return Status::Ok();
+    } else {
+      return JE2BE_ERROR;
+    }
   }
 
-  static bool CopyLevelDat(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory, std::optional<std::chrono::system_clock::time_point> lastPlayed, CompoundTagPtr const &localPlayer, Context const &ctx) {
+  static Status CopyLevelDat(std::filesystem::path const &inputDirectory,
+                             std::filesystem::path const &outputDirectory,
+                             std::optional<std::chrono::system_clock::time_point> lastPlayed,
+                             CompoundTagPtr const &localPlayer,
+                             Context const &ctx) {
     using namespace std;
     namespace fs = std::filesystem;
     auto datFrom = inputDirectory / "level.dat";
     auto datTo = outputDirectory / "level.dat";
     if (!Fs::Exists(datFrom)) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     auto inStream = make_shared<mcfile::stream::GzFileInputStream>(datFrom);
     auto inRoot = CompoundTag::Read(inStream, mcfile::Endian::Big);
     inStream.reset();
     if (!inRoot) {
-      return false;
+      return JE2BE_ERROR;
     }
     auto in = inRoot->compoundTag("Data");
     if (!in) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     JavaLevelDat::Options o;
@@ -306,7 +324,11 @@ private:
     outRoot->set("Data", out);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
     mcfile::stream::OutputStreamWriter writer(outStream, mcfile::Endian::Big);
-    return outRoot->writeAsRoot(writer);
+    if (outRoot->writeAsRoot(writer)) {
+      return Status::Ok();
+    } else {
+      return JE2BE_ERROR;
+    }
   }
 
   static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion() {
@@ -345,16 +367,16 @@ private:
     return flatSettings;
   }
 
-  static bool CopyMapFiles(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
+  static Status CopyMapFiles(std::filesystem::path const &inputDirectory, std::filesystem::path const &outputDirectory) {
     namespace fs = std::filesystem;
 
     auto dataFrom = inputDirectory / "data";
     auto dataTo = outputDirectory / "data";
     if (!Fs::Exists(dataFrom)) {
-      return true;
+      return Status::Ok();
     }
     if (!Fs::CreateDirectories(dataTo)) {
-      return false;
+      return JE2BE_ERROR;
     }
     std::error_code ec;
     for (auto it : fs::directory_iterator(dataFrom, ec)) {
@@ -375,10 +397,10 @@ private:
       fs::copy_options o = fs::copy_options::overwrite_existing;
       fs::copy_file(dataFrom / fileNameString, dataTo / fileNameString, o, ec1);
       if (ec1) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
-    return true;
+    return Status::Ok();
   }
 };
 

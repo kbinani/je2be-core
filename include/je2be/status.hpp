@@ -3,34 +3,53 @@
 namespace je2be {
 
 class Status {
-  Status(bool ok, std::string const &file, int line) : fOk(ok), fFile(file), fLine(line) {
+public:
+  struct Where {
+    std::string fFile;
+    int fLine;
+
+    Where(char const *file, int line) {
+      namespace fs = std::filesystem;
+      static fs::path const sProjectRoot(fs::path(__FILE__).parent_path());
+      std::error_code ec;
+      fs::path path(file ? file : "(unknown)");
+      fs::path p = fs::relative(path, sProjectRoot, ec);
+      if (ec) {
+        fFile = path.filename().string();
+        fLine = line;
+      } else {
+        fFile = p.string();
+        fLine = line;
+      }
+    }
+  };
+
+  explicit Status(std::optional<Where> error) : fError(error) {
   }
 
-public:
+  Status() : fError(std::nullopt) {}
+
   bool ok() const {
-    return fOk;
+    return !fError;
+  }
+
+  std::optional<Where> error() const {
+    return fError;
   }
 
   static Status Ok() {
-    return Status(true, {}, -1);
+    return Status();
   }
 
   static Status Error(char const *file, int line) {
-    namespace fs = std::filesystem;
-    static fs::path const sProjectRoot(fs::path(__FILE__).parent_path());
-    std::error_code ec;
-    fs::path path(file ? file : "(unknown)");
-    fs::path p = fs::relative(path, sProjectRoot, ec);
-    if (ec) {
-      return Status(false, path.filename().string(), line);
-    } else {
-      return Status(false, p.string(), line);
-    }
+    return Status(Where(file, line));
   }
 
-  bool const fOk;
-  std::string const fFile;
-  int const fLine;
+private:
+  std::optional<Where> fError;
 };
 
 } // namespace je2be
+
+#define JE2BE_ERROR_HELPER(file, line) je2be::Status::Error(file, line)
+#define JE2BE_ERROR JE2BE_ERROR_HELPER(__FILE__, __LINE__)
