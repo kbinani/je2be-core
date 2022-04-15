@@ -59,7 +59,7 @@ public:
     int progressChunksOffset = 0;
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       defer {
-        progressChunksOffset += 4096;
+        progressChunksOffset += 8192;
       };
       if (!options.fDimensionFilter.empty()) {
         if (options.fDimensionFilter.find(dimension) == options.fDimensionFilter.end()) {

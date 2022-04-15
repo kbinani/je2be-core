@@ -16,16 +16,16 @@ class Terraform {
   };
 
 public:
-  static bool Do(std::filesystem::path const &directory, unsigned int concurrency) {
+  static bool Do(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     if (concurrency > 0) {
-      return MultiThread(directory, concurrency);
+      return MultiThread(directory, concurrency, progress, progressChunksOffset);
     } else {
-      return SingleThread(directory);
+      return SingleThread(directory, progress, progressChunksOffset);
     }
   }
 
 private:
-  static bool MultiThread(std::filesystem::path const &directory, unsigned int concurrency) {
+  static bool MultiThread(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     using namespace std;
     bool running[width][height];
     bool done[width][height];
@@ -36,6 +36,7 @@ private:
     unique_ptr<hwm::task_queue> queue(new hwm::task_queue(concurrency));
     deque<future<optional<Pos2i>>> futures;
     bool ok = true;
+    int count = 0;
     while (ok) {
       vector<future<optional<Pos2i>>> drain;
       FutureSupport::Drain(concurrency + 1, futures, drain);
@@ -46,8 +47,13 @@ private:
         } else {
           ok = false;
         }
+        count++;
       }
       if (!ok || IsComplete(done)) {
+        break;
+      }
+      if (progress && !progress->report(count + progressChunksOffset, 8192 * 3)) {
+        ok = false;
         break;
       }
       auto next = NextQueue(done, running);
@@ -62,22 +68,38 @@ private:
         } else {
           ok = false;
         }
+        count++;
         futures.pop_front();
         if (!ok || IsComplete(done)) {
+          break;
+        }
+        if (progress && !progress->report(count + progressChunksOffset, 8192 * 3)) {
+          ok = false;
           break;
         }
       }
     }
     for (auto &f : futures) {
       ok = ok && f.get();
+      count++;
+      if (ok && progress) {
+        if (!progress->report(count + progressChunksOffset, 8192 * 3)) {
+          ok = false;
+        }
+      }
     }
     return ok;
   }
 
-  static bool SingleThread(std::filesystem::path const &directory) {
+  static bool SingleThread(std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
+    int done = 0;
     for (int cx = cx0; cx <= cx1; cx++) {
       for (int cz = cz0; cz <= cz1; cz++) {
         if (!DoChunk(cx, cz, directory)) {
+          return false;
+        }
+        done++;
+        if (progress && !progress->report(progressChunksOffset + done, 8192 * 3)) {
           return false;
         }
       }

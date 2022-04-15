@@ -58,7 +58,7 @@ public:
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
-          progressChunks += 1024;
+          progressChunks += 2048;
           continue;
         }
         for (int z = 0; z < 32; z++) {
@@ -81,7 +81,7 @@ public:
               if (!ok) {
                 break;
               }
-              if (progress && !progress->report(progressChunks, 4096 * 3)) {
+              if (progress && !progress->report(progressChunks, 8192 * 3)) {
                 ok = false;
                 break;
               }
@@ -91,7 +91,7 @@ public:
               if (!ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options)) {
                 return false;
               }
-              if (progress && !progress->report(progressChunks, 4096 * 3)) {
+              if (progress && !progress->report(progressChunks, 8192 * 3)) {
                 return false;
               }
             }
@@ -111,9 +111,10 @@ public:
       return false;
     }
 
-    if (!Terraform::Do(*chunkTempDir, concurrency)) {
+    if (!Terraform::Do(*chunkTempDir, concurrency, progress, progressChunks)) {
       return false;
     }
+    progressChunks += 4096;
 
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
       return false;
@@ -140,7 +141,7 @@ public:
     }
 
     if (progress) {
-      progress->report(progressChunks, 4096 * 3);
+      progress->report(progressChunks, 8192 * 3);
     }
 
     return ok;
