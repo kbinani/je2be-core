@@ -97,6 +97,7 @@ set(je2be_files
   include/je2be/scoped-file.hpp
   include/je2be/size.hpp
   include/je2be/static-reversible-map.hpp
+  include/je2be/status.hpp
   include/je2be/strings.hpp
   include/je2be/structure/structure-piece.hpp
   include/je2be/terraform/bedrock/attached-stem.hpp

@@ -152,7 +152,7 @@ private:
     leveldb::Options o;
     o.compression = kZlibRawCompression;
     DB *db;
-    Status st = DB::Open(o, name, &db);
+    leveldb::Status st = DB::Open(o, name, &db);
     if (!st.ok()) {
       return nullptr;
     }

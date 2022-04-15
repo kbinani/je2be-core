@@ -494,7 +494,7 @@ public:
     fs::path manifestFile = fDir / manifestFileName;
     unique_ptr<WritableFile> meta(OpenWritable(manifestFile));
     leveldb::log::Writer writer(meta.get());
-    Status st = writer.AddRecord(manifestRecord);
+    leveldb::Status st = writer.AddRecord(manifestRecord);
     if (!st.ok()) {
       return false;
     }
@@ -916,7 +916,7 @@ private:
     using namespace leveldb;
     Env *env = Env::Default();
     WritableFile *file = nullptr;
-    Status st = env->NewWritableFile(path, &file);
+    leveldb::Status st = env->NewWritableFile(path, &file);
     if (!st.ok()) {
       return nullptr;
     }

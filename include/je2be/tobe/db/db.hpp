@@ -13,7 +13,7 @@ public:
     leveldb::Options options;
     options.compression = kZlibRawCompression;
     options.create_if_missing = true;
-    Status status = DB::Open(options, dir, &db);
+    leveldb::Status status = DB::Open(options, dir, &db);
     if (!status.ok()) {
       return;
     }
