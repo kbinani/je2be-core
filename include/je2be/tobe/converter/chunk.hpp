@@ -52,7 +52,7 @@ public:
     } catch (...) {
       Chunk::Result r;
       r.fData = make_shared<WorldData>(dim);
-      r.fData->addStatError(dim, cx, cz);
+      r.fData->addStatError(dim, cx, cz, Status::Where(__FILE__, __LINE__));
       r.fOk = false;
       return r;
     }

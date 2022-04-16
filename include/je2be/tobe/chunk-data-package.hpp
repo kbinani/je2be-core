@@ -16,7 +16,6 @@ public:
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
     }
-    ctx.fWorldData.addStatChunkVersion(chunk.fDataVersion);
     fChunkLastUpdate = chunk.fLastUpdate;
   }
 
