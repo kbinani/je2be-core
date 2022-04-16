@@ -162,11 +162,11 @@ public:
     }
   }
 
-  bool postProcess(std::filesystem::path root, leveldb::DB &db) {
+  Status postProcess(std::filesystem::path root, leveldb::DB &db) {
     using namespace mcfile;
 
     if (!Fs::CreateDirectories(root / "data")) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     std::optional<int> maxMapNumber;
@@ -223,7 +223,7 @@ public:
       auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
       mcfile::stream::OutputStreamWriter osw(s);
       if (!tagJ->writeAsRoot(osw)) {
-        return false;
+        return JE2BE_ERROR;
       }
       if (maxMapNumber) {
         maxMapNumber = (std::max)(*maxMapNumber, number);
@@ -241,10 +241,10 @@ public:
       auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
       mcfile::stream::OutputStreamWriter osw(s);
       if (!idcounts->writeAsRoot(osw)) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
-    return true;
+    return Status::Ok();
   }
 
   std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const {

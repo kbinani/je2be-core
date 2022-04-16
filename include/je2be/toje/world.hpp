@@ -4,13 +4,14 @@ namespace je2be::toje {
 
 class World {
 public:
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d,
-                                          std::unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher> const &regions,
-                                          leveldb::DB &db,
-                                          std::filesystem::path root,
-                                          unsigned concurrency,
-                                          Context const &parentContext,
-                                          std::function<bool(void)> progress) {
+  static Status Convert(mcfile::Dimension d,
+                        std::unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher> const &regions,
+                        leveldb::DB &db,
+                        std::filesystem::path root,
+                        unsigned concurrency,
+                        Context const &parentContext,
+                        std::shared_ptr<Context> &resultContext,
+                        std::function<bool(void)> progress) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -27,17 +28,17 @@ public:
       dir = root / "DIM1";
       break;
     default:
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     error_code ec;
     fs::create_directories(dir / "region", ec);
     if (ec) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     fs::create_directories(dir / "entities", ec);
     if (ec) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     hwm::task_queue queue(concurrency);
@@ -89,7 +90,7 @@ public:
     }
 
     if (cancelRequested.load() || !ok) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     unordered_set<Pos2i, Pos2iHasher> chunks;
@@ -109,7 +110,9 @@ public:
     }
 
     for (Pos2i const &chunk : chunks) {
-      AttachLeashAndPassengers(chunk, dir, *ctx, leashedEntities, vehicleEntities);
+      if (auto st = AttachLeashAndPassengers(chunk, dir, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
+        return st;
+      }
     }
 
     for (auto const &region : regions) {
@@ -122,18 +125,19 @@ public:
         fs::remove_all(entitiesDir, ec1);
       };
       if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
-        return nullptr;
+        return JE2BE_ERROR;
       }
     }
 
-    return ctx;
+    resultContext.swap(ctx);
+    return Status::Ok();
   }
 
-  static bool AttachLeashAndPassengers(Pos2i chunk,
-                                       std::filesystem::path dir,
-                                       Context &ctx,
-                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
-                                       std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+  static Status AttachLeashAndPassengers(Pos2i chunk,
+                                         std::filesystem::path dir,
+                                         Context &ctx,
+                                         std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
+                                         std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
@@ -146,34 +150,38 @@ public:
 
     vector<uint8_t> buffer;
     if (!je2be::file::GetContents(nbt, buffer)) {
-      return false;
+      return JE2BE_ERROR;
     }
     auto content = CompoundTag::ReadCompressed(buffer, mcfile::Endian::Big);
     if (!content) {
-      return false;
+      return JE2BE_ERROR;
     }
     auto entities = content->listTag("Entities");
     if (!entities) {
-      return false;
+      return Status::Ok();
     }
     AttachLeash(chunk, ctx, *entities, leashedEntities);
-    if (!AttachPassengers(chunk, ctx, entities, dir, vehicleEntities)) {
-      return false;
+    if (auto st = AttachPassengers(chunk, ctx, entities, dir, vehicleEntities); !st.ok()) {
+      return st;
     }
 
-    return CompoundTag::WriteCompressed(*content, nbt, mcfile::Endian::Big);
+    if (CompoundTag::WriteCompressed(*content, nbt, mcfile::Endian::Big)) {
+      return Status::Ok();
+    } else {
+      return JE2BE_ERROR;
+    }
   }
 
-  static bool AttachPassengers(Pos2i chunk,
-                               Context &ctx,
-                               ListTagPtr const &entities,
-                               std::filesystem::path dir,
-                               std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+  static Status AttachPassengers(Pos2i chunk,
+                                 Context &ctx,
+                                 ListTagPtr const &entities,
+                                 std::filesystem::path dir,
+                                 std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;
     namespace fs = std::filesystem;
     auto vehicleEntitiesFound = vehicleEntities.find(chunk);
     if (vehicleEntitiesFound == vehicleEntities.end()) {
-      return true;
+      return Status::Ok();
     }
     for (auto const &it : vehicleEntitiesFound->second) {
       Uuid vehicleId = it.first;
@@ -244,7 +252,7 @@ public:
           fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
           if (!CompoundTag::WriteCompressed(*data, nbt, mcfile::Endian::Big)) {
-            return false;
+            return JE2BE_ERROR;
           }
         }
       }
@@ -262,7 +270,7 @@ public:
         size_t index = it.first;
         auto passenger = it.second;
         if (index >= passengersTag->size()) {
-          for (int i = passengersTag->size(); i < index + 1; i++) {
+          for (size_t i = passengersTag->size(); i < index + 1; i++) {
             passengersTag->push_back(Compound());
           }
         }
@@ -275,7 +283,7 @@ public:
         ctx.setRootVehicleEntity(vehicle);
       }
     }
-    return true;
+    return Status::Ok();
   }
 
   static void AttachLeash(Pos2i chunk,

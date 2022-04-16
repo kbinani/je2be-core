@@ -12,7 +12,7 @@ public:
       : fInput(input), fOutput(output), fOptions(o) {
   }
 
-  bool run(unsigned concurrency, Progress *progress = nullptr) {
+  Status run(unsigned concurrency, Progress *progress = nullptr) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
@@ -20,17 +20,17 @@ public:
 
     unique_ptr<DB> db(Open(fInput / "db"));
     if (!db) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     if (!prepareOutputDirectory()) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     CompoundTagPtr dat;
     auto endian = LevelData::Read(fInput / "level.dat", dat);
     if (!endian || !dat) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     int total = 0;
@@ -40,7 +40,7 @@ public:
 
     auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
     if (!levelDat) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     atomic<int> done = 0;
@@ -64,14 +64,15 @@ public:
           continue;
         }
       }
-      auto result = World::Convert(d, regions[d], *db, fOutput, concurrency, *bin, reportProgress);
+      shared_ptr<Context> result;
+      if (auto st = World::Convert(d, regions[d], *db, fOutput, concurrency, *bin, result, reportProgress); !st.ok()) {
+        return st;
+      }
       if (result) {
         result->mergeInto(*bin);
-      } else {
-        return false;
       }
       if (cancelRequested.load()) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
 
@@ -118,7 +119,7 @@ public:
     }
 
     if (!LevelData::Write(*levelDat, fOutput / "level.dat")) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     return bin->postProcess(fOutput, *db);
