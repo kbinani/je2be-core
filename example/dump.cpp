@@ -28,7 +28,7 @@ static DB *Open(fs::path dir) {
   Options o;
   o.compression = kZlibRawCompression;
   DB *db = nullptr;
-  Status st = DB::Open(o, dir, &db);
+  auto st = DB::Open(o, dir, &db);
   if (!st.ok()) {
     return nullptr;
   }
@@ -50,7 +50,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
   int cz = mcfile::Coordinate::ChunkFromBlock(z);
   auto key = mcfile::be::DbKey::SubChunk(cx, cy, cz, d);
   string value;
-  Status st = db->Get(ro, key, &value);
+  auto st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }
@@ -104,7 +104,7 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, mcfile::
   auto key = mcfile::be::DbKey::BlockEntity(cx, cz, d);
 
   string value;
-  Status st = db->Get(ro, key, &value);
+  auto st = db->Get(ro, key, &value);
   if (!st.ok()) {
     cerr << "Error: cannot get Key::BlockEntity(" << cx << ", " << cz << ", " << (int)d << ")" << endl;
     return;
@@ -147,7 +147,7 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   jopt.fTypeHint = true;
 
   string value;
-  Status st = db->Get(ro, key, &value);
+  auto st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }
@@ -182,7 +182,7 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
   jopt.fTypeHint = true;
 
   string value;
-  Status st = db->Get(ro, key, &value);
+  auto st = db->Get(ro, key, &value);
   if (!st.ok()) {
     return;
   }

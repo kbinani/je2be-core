@@ -624,7 +624,7 @@ TEST_CASE("j2b2j") {
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   CHECK(outJ);
   je2be::toje::Converter toje(*outB, *outJ, optJ);
-  CHECK(toje.run(thread::hardware_concurrency()));
+  CHECK(toje.run(thread::hardware_concurrency()).ok());
 
   // Compare initial Java input and final Java output.
 

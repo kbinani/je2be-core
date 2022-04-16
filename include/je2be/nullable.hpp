@@ -1,4 +1,3 @@
-
 #pragma once
 
 namespace je2be {
@@ -14,6 +13,8 @@ template <class T>
 class Nullable {
 public:
   Nullable(T value) : fStorage(value) {}
+
+  Nullable() : fStorage(Status::Where(__FILE__, __LINE__)) {}
 
   explicit Nullable(Status::Where reason) : fStorage(reason) {}
 
