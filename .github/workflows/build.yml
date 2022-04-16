@@ -52,9 +52,9 @@ jobs:
 
       - name: Build
         run: |
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --parallel --target test --config Release --verbose
-          cd Release
+          mkdir build || exit 1
+          cd build || exit 2
+          cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
+          cmake --build . --parallel --target test --config Release --verbose || exit 4
+          cd Release || exit 5
           cmd /c test.exe --duration=true
