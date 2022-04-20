@@ -202,6 +202,7 @@ static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, mcfile::Dimensio
   case static_cast<uint8_t>(Tag::Data2D):
   case static_cast<uint8_t>(Tag::Version):
   case static_cast<uint8_t>(Tag::FinalizedState):
+  case static_cast<uint8_t>(Tag::UnknownTag3f):
     DumpBinaryKey(dbDir, key);
     break;
   default:
