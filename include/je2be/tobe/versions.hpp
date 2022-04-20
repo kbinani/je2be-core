@@ -3,7 +3,7 @@
 namespace je2be::tobe {
 namespace {
 
-int32_t constexpr kBlockDataVersion = 17879555;
+int32_t constexpr kBlockDataVersion = 17959425;
 Version constexpr kMinimumCompatibleClientVersion = Version(1, 18, 0, 0, 0);
 char constexpr kSubChunkVersion = 0x27;
 uint8_t constexpr kSubChunkBlockStorageVersion = 9;

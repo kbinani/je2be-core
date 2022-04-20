@@ -15,10 +15,10 @@ public:
         return func(*block);
       }
     }
-    // "j2b:stickyPistonArmCollision" is created at Converter::PreprocessChunk
-    if (block->fName == "j2b:stickyPistonArmCollision") {
+    // "j2b:sticky_piston_arm_collision" is created at Converter::PreprocessChunk
+    if (block->fName == "j2b:sticky_piston_arm_collision") {
       return StickyPistonArmCollision(*block);
-    } else if (block->fName == "j2b:pistonArmCollision") {
+    } else if (block->fName == "j2b:piston_arm_collision") {
       return PistonArmCollision(*block);
     } else if (block->fName == "minecraft:flowing_water" || block->fName == "minecraft:flowing_lava") {
       return FlowingLiquid(*block);
@@ -1562,7 +1562,7 @@ private:
   }
 
   static CompoundTagPtr PistonArmCollision(Block const &block) {
-    auto c = New("pistonArmCollision");
+    auto c = New("piston_arm_collision");
     auto s = States();
     auto direction = strings::Toi(block.property("facing_direction", "0"));
     s->set("facing_direction", Int(Wrap(direction, 0)));
@@ -1570,7 +1570,7 @@ private:
   }
 
   static CompoundTagPtr StickyPistonArmCollision(Block const &block) {
-    auto c = New("stickyPistonArmCollision");
+    auto c = New("sticky_piston_arm_collision");
     auto s = States();
     auto direction = strings::Toi(block.property("facing_direction", "0"));
     s->set("facing_direction", Int(Wrap(direction, 0)));
@@ -1578,14 +1578,14 @@ private:
   }
 
   static CompoundTagPtr MovingPiston(Block const &block) {
-    auto c = New("movingBlock");
+    auto c = New("moving_block");
     auto s = States();
     return AttachStates(c, s);
   }
 
   static CompoundTagPtr PistonHead(Block const &block) {
     auto type = block.property("type", "normal");
-    auto c = New(type == "normal" ? "pistonArmCollision" : "stickyPistonArmCollision");
+    auto c = New(type == "normal" ? "piston_arm_collision" : "sticky_piston_arm_collision");
     auto f6 = Facing6FromJavaName(block.property("facing", ""));
     auto direction = BedrockFacingDirectionBFromFacing6(f6);
     auto s = States();

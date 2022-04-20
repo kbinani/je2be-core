@@ -1240,7 +1240,7 @@ private:
   }
 
   static String PistonArmCollision(String const &bName, CompoundTag const &s, Props &p) {
-    bool sticky = bName == "minecraft:stickyPistonArmCollision";
+    bool sticky = (bName == "minecraft:stickyPistonArmCollision") || (bName == "minecraft:sticky_piston_arm_collision");
     std::string type = sticky ? "sticky" : "normal";
     auto f6 = Facing6FromBedrockFacingDirectionB(s.int32("facing_direction", 0));
     auto facing = JavaNameFromFacing6(f6);
@@ -2082,7 +2082,8 @@ private:
 
     E(carpet, Carpet);
     E(concrete, Concrete);
-    E(concretePowder, ConcretePowder);
+    E(concretePowder, ConcretePowder); // legacy, < 1.18.30
+    E(concrete_powder, ConcretePowder);
 
     E(black_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
     E(blue_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
@@ -2230,7 +2231,8 @@ private:
     E(magma, Rename("magma_block"));
     E(medium_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
     E(melon_block, Rename("melon"));
-    E(movingBlock, Same);
+    E(movingBlock, Same); // legacy, < 1.18.30
+    E(moving_block, Same);
     E(mycelium, BlockWithSnowy); // No "snowy" property in BE
     E(nether_brick, Rename("nether_bricks"));
     E(portal, Portal);
@@ -2279,7 +2281,8 @@ private:
     E(sculk_sensor, Same);
     E(seagrass, Seagrass);
     E(sea_pickle, SeaPickle);
-    E(seaLantern, Rename("sea_lantern"));
+    E(seaLantern, Rename("sea_lantern")); // legacy, < 1.18.30
+    E(sea_lantern, Rename("sea_lantern"));
     E(undyed_shulker_box, Rename("shulker_box"));
     E(slime, Rename("slime_block"));
     E(small_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
@@ -2310,7 +2313,8 @@ private:
     E(tnt, Tnt);
     E(torch, Torch(""));
     E(trapped_chest, BlockWithFacing4FromFacingDirectionASubmergible);
-    E(tripWire, Tripwire);
+    E(tripWire, Tripwire); // legacy, < 1.18.30
+    E(trip_wire, Tripwire);
     E(tripwire_hook, TripwireHook);
     E(turtle_egg, TurtleEgg);
     E(twisting_vines, NetherVines("twisting"));
@@ -2336,8 +2340,10 @@ private:
     E(mob_spawner, Rename("spawner"));
     E(frame, Rename("air"));
     E(glow_frame, Rename("air"));
-    E(pistonArmCollision, PistonArmCollision);
-    E(stickyPistonArmCollision, PistonArmCollision);
+    E(pistonArmCollision, PistonArmCollision); // legacy, < 1.18.30
+    E(piston_arm_collision, PistonArmCollision);
+    E(stickyPistonArmCollision, PistonArmCollision); // legacy, 1.18.30
+    E(sticky_piston_arm_collision, PistonArmCollision);
     E(flowing_lava, LiquidFlowing);
     E(flowing_water, LiquidFlowing);
 

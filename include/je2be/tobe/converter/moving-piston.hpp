@@ -128,7 +128,7 @@ public:
 
           map<string, string> props;
           props["facing_direction"] = to_string(*facing);
-          string name = block->fName == "minecraft:sticky_piston" ? "j2b:stickyPistonArmCollision" : "j2b:pistonArmCollision";
+          string name = block->fName == "minecraft:sticky_piston" ? "j2b:sticky_piston_arm_collision" : "j2b:piston_arm_collision";
           auto newBlock = make_shared<Block>(name, props);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 

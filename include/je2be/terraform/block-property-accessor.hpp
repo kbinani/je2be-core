@@ -240,7 +240,8 @@ public:
   }
 
   static bool IsTripwire(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:tripWire";
+    return b.fName == "minecraft:tripWire" ||
+           b.fName == "minecraft:trip_wire";
   }
 
   static bool IsTripwire(mcfile::je::Block const &b) {
@@ -251,8 +252,11 @@ public:
     return b.fName == "minecraft:piston" ||
            b.fName == "minecraft:sticky_piston" ||
            b.fName == "minecraft:pistonArmCollision" ||
+           b.fName == "minecraft:piston_arm_collision" ||
            b.fName == "minecraft:stickyPistonArmCollision" ||
-           b.fName == "minecraft:movingBlock";
+           b.fName == "minecraft:sticky_piston_arm_collision" ||
+           b.fName == "minecraft:movingBlock" ||
+           b.fName == "minecraft:moving_block";
   }
 
   static bool IsPiston(mcfile::je::Block const &b) {

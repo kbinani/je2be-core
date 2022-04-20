@@ -72,7 +72,7 @@ public:
 
               chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
             }
-          } else if (blockB->fName == "minecraft:movingBlock" && blockEntity) {
+          } else if ((blockB->fName == "minecraft:movingBlock" || blockB->fName == "minecraft:moving_block") && blockEntity) {
             auto piston = PistonBodyFromPistonPos(*blockEntity, cache);
             if (piston) {
               // Block
@@ -109,7 +109,7 @@ public:
 
               chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
             }
-          } else if (blockB->fName == "minecraft:pistonArmCollision" || blockB->fName == "minecraft:stickyPistonArmCollision") {
+          } else if (blockB->fName == "minecraft:pistonArmCollision" || blockB->fName == "minecraft:piston_arm_collision" || blockB->fName == "minecraft:stickyPistonArmCollision" || blockB->fName == "minecraft:sticky_piston_arm_collision") {
             int facingDirectionB = blockB->fStates->int32("facing_direction", 0);
             Facing6 f6 = Facing6FromBedrockFacingDirectionB(facingDirectionB);
             Pos3i direction = Pos3iFromFacing6(f6);
@@ -123,7 +123,7 @@ public:
                 // Block name shold be renamed to "moving_piston".
                 props.clear();
                 props["facing"] = JavaNameFromFacing6(f6);
-                bool sticky = blockB->fName == "minecraft:stickyPistonArmCollision";
+                bool sticky = (blockB->fName == "minecraft:stickyPistonArmCollision") || (blockB->fName == "minecraft:sticky_piston_arm_collision");
                 props["type"] = sticky ? "sticky" : "normal";
                 auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston", props);
                 chunkJ.setBlockAt(x, y, z, replace, sbo);
