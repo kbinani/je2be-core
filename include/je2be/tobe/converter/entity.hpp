@@ -571,6 +571,8 @@ private:
     E(falling_block, C(EntityBase, FallingBlock));
     E(wither, C(Mob, Definitions("+minecraft:wither")));
     E(arrow, C(EntityBase, Arrow));
+
+    E(frog, C(Animal, Definitions("+minecraft:frog"), Frog));
 #undef A
 #undef M
 #undef E
@@ -829,6 +831,14 @@ private:
         c["TrustedPlayersAmount"] = Int(index);
       }
     }
+  }
+
+  static void Frog(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    auto variantJ = tag.string("variant", "");
+    auto variantB = Frog::BedrockVariantFromJavaVariant(variantJ);
+    auto definition = Frog::BedrockDefinitionFromJavaVariant(variantJ);
+    AddDefinition(c, definition);
+    c["Variant"] = Int(variantB);
   }
 
   static void Goat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

@@ -113,6 +113,7 @@
 #include <je2be/entity/panda.hpp>
 #include <je2be/entity/effect.hpp>
 #include <je2be/entity/axolotl.hpp>
+#include <je2be/entity/frog.hpp>
 
 #include <je2be/command/token.hpp>
 #include <je2be/command/target-selector.hpp>
