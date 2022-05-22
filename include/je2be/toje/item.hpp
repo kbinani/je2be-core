@@ -851,6 +851,9 @@ public:
     E(axolotl_bucket, AxolotlBucket);
     E(crossbow, Crossbow);
 
+    // 1.19
+    E(frog_spawn, Rename("frogspawn"));
+
 #undef E
     return ret;
   }

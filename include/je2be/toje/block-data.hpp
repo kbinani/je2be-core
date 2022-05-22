@@ -2347,6 +2347,9 @@ private:
     E(flowing_lava, LiquidFlowing);
     E(flowing_water, LiquidFlowing);
 
+    // 1.19
+    E(frog_spawn, Rename("frogspawn"));
+
 #undef E
 
     return table;
