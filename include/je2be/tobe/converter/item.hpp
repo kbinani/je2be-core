@@ -621,6 +621,7 @@ private:
     E("music_disc_11");
     E("music_disc_wait");
     E("music_disc_pigstep");
+    E("music_disc_otherside");
     E("music_disc_5");
     E("disc_fragment_5");
     E("nautilus_shell");
@@ -723,6 +724,7 @@ private:
     E("phantom_membrane");
     E("axolotl_bucket");
     E("suspicious_stew");
+    E("raw_iron");
 
     E("oak_chest_boat");
     E("birch_chest_boat");
