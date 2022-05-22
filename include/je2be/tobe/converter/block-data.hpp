@@ -224,13 +224,13 @@ private:
       bits |= 0x2;
     }
     if (north) {
-      bits |= 0x4;
+      bits |= 0x10;
     }
     if (south) {
-      bits |= 0x8;
+      bits |= 0x4;
     }
     if (west) {
-      bits |= 0x10;
+      bits |= 0x8;
     }
     if (east) {
       bits |= 0x20;
