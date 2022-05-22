@@ -81,6 +81,7 @@ set(je2be_files
   include/je2be/item/enchantments.hpp
   include/je2be/item/fireworks-explosion.hpp
   include/je2be/item/fireworks.hpp
+  include/je2be/item/goat-horn.hpp
   include/je2be/item/map-color.hpp
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp

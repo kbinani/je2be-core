@@ -146,6 +146,9 @@ private:
     E("dark_oak_sign", DefaultItem);
     E("crimson_sign", DefaultItem);
     E("warped_sign", DefaultItem);
+
+    E("goat_horn", GoatHorn);
+    E("frogspawn", Rename("frog_spawn"));
 #undef E
     return table;
   }
@@ -618,6 +621,8 @@ private:
     E("music_disc_11");
     E("music_disc_wait");
     E("music_disc_pigstep");
+    E("music_disc_5");
+    E("disc_fragment_5");
     E("nautilus_shell");
     E("heart_of_the_sea");
     E("flower_banner_pattern");
@@ -718,6 +723,21 @@ private:
     E("phantom_membrane");
     E("axolotl_bucket");
     E("suspicious_stew");
+
+    E("oak_chest_boat");
+    E("birch_chest_boat");
+    E("spruce_chest_boat");
+    E("acacia_chest_boat");
+    E("jungle_chest_boat");
+    E("dark_oak_chest_boat");
+    E("mangrove_chest_boat");
+    E("warden_spawn_egg");
+    E("tadpole_spawn_egg");
+    E("frog_spawn_egg");
+    E("tadpole_bucket");
+    E("mangrove_boat");
+    E("echo_shard");
+    E("recovery_compass");
 
     // listed with blocks, but not block item
 
@@ -905,6 +925,18 @@ private:
     tag->set("Damage", Short(0));
     tag->set("Block", blockData);
     return Post(tag, item);
+  }
+
+  static CompoundTagPtr GoatHorn(std::string const &name, CompoundTag const &item, Context const &) {
+    auto tagB = New("goat_horn");
+    int16_t damage = 0;
+    if (auto tagJ = item.compoundTag("tag"); tagJ) {
+      if (auto instrumentJ = tagJ->string("instrument"); instrumentJ) {
+        damage = GoatHorn::BedrockDamageFromJavaInstrument(*instrumentJ);
+      }
+    }
+    tagB->set("Damage", Short(damage));
+    return Post(tagB, item);
   }
 
   static CompoundTagPtr New(std::string const &name, bool fullname = false) {

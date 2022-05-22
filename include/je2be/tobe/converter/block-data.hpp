@@ -730,6 +730,7 @@ private:
     E(dark_oak_log, Log2("dark_oak"));
     E(crimson_stem, axisToPillarAxis);
     E(warped_stem, axisToPillarAxis);
+    E(mangrove_log, axisToPillarAxis);
 
     E(stripped_oak_log, axisToPillarAxis);
     E(stripped_spruce_log, axisToPillarAxis);
@@ -737,6 +738,7 @@ private:
     E(stripped_acacia_log, axisToPillarAxis);
     E(stripped_jungle_log, axisToPillarAxis);
     E(stripped_dark_oak_log, axisToPillarAxis);
+    E(stripped_mangrove_log, axisToPillarAxis);
 
     E(oak_wood, Wood("oak", false));
     E(spruce_wood, Wood("spruce", false));
@@ -744,12 +746,14 @@ private:
     E(acacia_wood, Wood("acacia", false));
     E(jungle_wood, Wood("jungle", false));
     E(dark_oak_wood, Wood("dark_oak", false));
+    E(mangrove_wood, axisToPillarAxis);
     E(stripped_oak_wood, Wood("oak", true));
     E(stripped_spruce_wood, Wood("spruce", true));
     E(stripped_birch_wood, Wood("birch", true));
     E(stripped_acacia_wood, Wood("acacia", true));
     E(stripped_jungle_wood, Wood("jungle", true));
     E(stripped_dark_oak_wood, Wood("dark_oak", true));
+    E(stripped_mangrove_wood, axisToPillarAxis);
     E(oak_leaves, Leaves("oak"));
     E(spruce_leaves, Leaves("spruce"));
     E(birch_leaves, Leaves("birch"));
@@ -802,6 +806,7 @@ private:
     E(end_stone_brick_slab, StoneSlab3("end_stone_brick"));
     E(warped_slab, StoneSlabNT("warped_double_slab"));
     E(crimson_slab, StoneSlabNT("crimson_double_slab"));
+    E(mangrove_slab, StoneSlabNT("mangrove_double_slab"));
     E(grass, TallGrass("tall"));
     E(tall_grass, DoublePlant("grass"));
     E(large_fern, DoublePlant("fern"));
@@ -836,6 +841,7 @@ private:
     E(twisting_vines, NetherVines("twisting"));
     E(vine, Converter(Same, VineDirectionBits));
     E(glow_lichen, Converter(Same, MultiFaceDirectionBits));
+    E(sculk_vein, Converter(Same, MultiFaceDirectionBits));
     E(cocoa, Converter(Same, Name(Age, "age"), DirectionFromFacingA));
     E(nether_wart, Converter(Same, Name(Age, "age")));
     E(cobblestone_stairs, Stairs("stone_stairs"));
@@ -1174,6 +1180,7 @@ private:
     E(dark_oak_sign, Sign("darkoak"));
     E(crimson_sign, Sign("crimson"));
     E(warped_sign, Sign("warped"));
+    E(mangrove_sign, Sign("mangrove"));
 
     E(oak_wall_sign, WallSign());
     E(spruce_wall_sign, WallSign("spruce"));
@@ -1183,6 +1190,7 @@ private:
     E(dark_oak_wall_sign, WallSign("darkoak"));
     E(crimson_wall_sign, WallSign("crimson"));
     E(warped_wall_sign, WallSign("warped"));
+    E(mangrove_wall_sign, WallSign("mangrove"));
 
     Converter bed(Name("bed"), DirectionFromFacingA, PartToHeadPieceBit, OccupiedToOccupiedBit);
     E(white_bed, bed);
@@ -1344,6 +1352,7 @@ private:
     E(crimson_trapdoor, trapdoor);
     E(warped_trapdoor, trapdoor);
     E(iron_trapdoor, trapdoor);
+    E(mangrove_trapdoor, trapdoor);
 
     E(lily_pad, Rename("waterlily"));
 
@@ -1358,6 +1367,7 @@ private:
     E(warped_button, button);
     E(stone_button, button);
     E(polished_blackstone_button, button);
+    E(mangrove_button, button);
 
     E(tripwire_hook, Converter(Same, DirectionFromFacingA, Name(Attached, "attached_bit"), Name(Powered, "powered_bit")));
     E(trapped_chest, facingDirectionFromFacingA);
@@ -1376,6 +1386,7 @@ private:
     E(dark_oak_door, door);
     E(crimson_door, door);
     E(warped_door, door);
+    E(mangrove_door, door);
 
     E(repeater, Converter(RepeaterName, Name(Delay, "repeater_delay"), DirectionFromFacingA));
     E(comparator, Converter(ComparatorName, DirectionFromFacingA, OutputSubtractBitFromMode, Name(Powered, "output_lit_bit")));
@@ -1486,6 +1497,9 @@ private:
     E(deepslate_brick_stairs, Stairs());
     E(deepslate_tile_stairs, Stairs());
 
+    E(mangrove_stairs, Stairs());
+    E(mud_brick_stairs, Stairs());
+
     E(cut_copper_slab, StoneSlabNT("double_cut_copper_slab"));
     E(exposed_cut_copper_slab, StoneSlabNT("exposed_double_cut_copper_slab"));
     E(weathered_cut_copper_slab, StoneSlabNT("weathered_double_cut_copper_slab"));
@@ -1539,6 +1553,10 @@ private:
     E(redstone_lamp, Converter(PrefixLit));
     E(redstone_ore, Converter(PrefixLit));
     E(deepslate_redstone_ore, Converter(PrefixLit));
+
+    E(ochre_froglight, axisToPillarAxis);
+    E(verdant_froglight, axisToPillarAxis);
+    E(pearlescent_froglight, axisToPillarAxis);
 #undef E
 
     return table;
