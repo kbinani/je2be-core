@@ -439,6 +439,16 @@ private:
     return AttachStates(d, s);
   }
 
+  static CompoundTagPtr MangrovePropagule(Block const &b) {
+    auto d = New("mangrove_propagule");
+    auto s = States();
+    bool hanging = b.property("hanging") == "true";
+    s->set("hanging", Bool(hanging));
+    int stage = Wrap(strings::Toi(b.property("stage", "0")), 0);
+    s->set("propagule_stage", Int(stage));
+    return AttachStates(d, s);
+  }
+
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "up");
     int32_t direction = 1;
@@ -1557,6 +1567,7 @@ private:
     E(ochre_froglight, axisToPillarAxis);
     E(verdant_froglight, axisToPillarAxis);
     E(pearlescent_froglight, axisToPillarAxis);
+    E(mangrove_propagule, MangrovePropagule);
 #undef E
 
     return table;

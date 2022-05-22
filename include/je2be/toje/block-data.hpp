@@ -220,6 +220,26 @@ private:
     return bName;
   }
 
+  static String BlockWithMultiFaceDirectionBitsSubmergible(String const &bName, CompoundTag const &s, Props &p) {
+    auto bits = s.int32("multi_face_direction_bits", 0);
+    bool down = (bits & 0x1) == 0x1;
+    bool up = (bits & 0x2) == 0x2;
+    bool north = (bits & 0x10) == 0x10;
+    bool south = (bits & 0x4) == 0x4;
+    bool west = (bits & 0x8) == 0x8;
+    bool east = (bits & 0x20) == 0x20;
+    p["down"] = Bool(down);
+    p["up"] = Bool(up);
+    p["north"] = Bool(north);
+    p["south"] = Bool(south);
+    p["west"] = Bool(west);
+    p["east"] = Bool(east);
+
+    Submergible(s, p);
+
+    return bName;
+  }
+
   static String BlockWithPowerFromRedstoneSignal(String const &bName, CompoundTag const &s, Props &p) {
     PowerFromRedstoneSignal(s, p);
     return bName;
@@ -695,24 +715,6 @@ private:
 #pragma endregion
 
 #pragma region Converters : G
-  static String GlowLichen(String const &bName, CompoundTag const &s, Props &p) {
-    auto bits = s.int32("multi_face_direction_bits", 0);
-    bool down = (bits & 0x1) == 0x1;
-    bool up = (bits & 0x2) == 0x2;
-    bool north = (bits & 0x4) == 0x4;
-    bool south = (bits & 0x8) == 0x8;
-    bool west = (bits & 0x10) == 0x10;
-    bool east = (bits & 0x20) == 0x20;
-    p["down"] = Bool(down);
-    p["up"] = Bool(up);
-    p["north"] = Bool(north);
-    p["south"] = Bool(south);
-    p["west"] = Bool(west);
-    p["east"] = Bool(east);
-    Submergible(s, p);
-    return bName;
-  }
-
   static String GoldenRail(String const &bName, CompoundTag const &s, Props &p) {
     auto railData = s.boolean("rail_data_bit", false);
     auto railDirection = s.int32("rail_direction", 0);
@@ -856,6 +858,15 @@ private:
 #pragma endregion
 
 #pragma region Converters : M
+  static String MangrovePropagule(String const &bName, CompoundTag const &s, Props &p) {
+    bool hanging = s.string("hanging") == "true";
+    p["hanging"] = Bool(hanging);
+    int stage = s.int32("propagule_stage", 0);
+    p["stage"] = Int(stage);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String MelonStem(String const &bName, CompoundTag const &s, Props &p) {
     auto growth = s.int32("growth", 0);
     p["age"] = Int(growth);
@@ -2201,7 +2212,7 @@ private:
     E(furnace, FurnaceAndSimilar);
     E(lit_furnace, FurnaceAndSimilar);
     E(glass_pane, BlockWithSubmergible);
-    E(glow_lichen, GlowLichen);
+    E(glow_lichen, BlockWithMultiFaceDirectionBitsSubmergible);
     E(grass, Grass);
     E(grindstone, Grindstone);
     E(hanging_roots, BlockWithSubmergible);
@@ -2349,6 +2360,28 @@ private:
 
     // 1.19
     E(frog_spawn, Rename("frogspawn"));
+    E(mangrove_log, BlockWithAxisFromPillarAxis);
+    E(stripped_mangrove_log, BlockWithAxisFromPillarAxis);
+    E(mangrove_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_mangrove_wood, BlockWithAxisFromPillarAxis);
+    E(ochre_froglight, BlockWithAxisFromPillarAxis);
+    E(verdant_froglight, BlockWithAxisFromPillarAxis);
+    E(pearlescent_froglight, BlockWithAxisFromPillarAxis);
+    E(mangrove_slab, Slab);
+    E(mangrove_double_slab, DoubleSlab("mangrove_slab"));
+    E(mangrove_button, Button);
+    E(mangrove_door, Door);
+    E(mangrove_fence, BlockWithSubmergible);
+    E(mangrove_fence_gate, FenceGate);
+    E(mangrove_pressure_plate, PressurePlate);
+    E(mangrove_standing_sign, StandingSign);
+    E(mangrove_stairs, Stairs);
+    E(mud_brick_stairs, Stairs);
+    E(mangrove_trapdoor, Trapdoor);
+    E(mangrove_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(mud_brick_wall, BlockWithWallProperties);
+    E(sculk_vein, BlockWithMultiFaceDirectionBitsSubmergible);
+    E(mangrove_propagule, MangrovePropagule);
 
 #undef E
 
