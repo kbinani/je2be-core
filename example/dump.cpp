@@ -256,6 +256,36 @@ static void DumpAllKeys(fs::path const &dbDir) {
   db.reset();
 }
 
+static int DumpEntities(fs::path const &dbDir, int chunkX, int chunkZ, mcfile::Dimension dimension) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
+    return 1;
+  }
+
+  auto entitiesKey = mcfile::be::DbKey::Entity(chunkX, chunkZ, dimension);
+  string entitiesValue;
+  ReadOptions ro;
+  if (db->Get(ro, entitiesKey, &entitiesValue).ok()) {
+    CompoundTag::ReadUntilEos(entitiesValue, mcfile::Endian::Little, [](CompoundTagPtr const &e) {
+      mcfile::nbt::PrintAsJson(cout, *e, {.fTypeHint = true});
+    });
+  }
+
+  auto digpKey = mcfile::be::DbKey::Digp(chunkX, chunkZ, dimension);
+  string digpValue;
+  if (db->Get(ro, digpKey, &digpValue).ok()) {
+    mcfile::be::DbKey::EnumerateActorprefixKeys(digpValue, [&db, ro](int index, string const &key, bool &stop) {
+      string actor;
+      if (db->Get(ro, mcfile::be::DbKey::Actorprefix(key), &actor).ok()) {
+        if (auto c = CompoundTag::Read(actor, mcfile::Endian::Little); c) {
+          mcfile::nbt::PrintAsJson(cout, *c, {.fTypeHint = true});
+        }
+      }
+    });
+  }
+  return 0;
+}
+
 static optional<wstring> GetLocalApplicationDirectory() {
 #if __has_include(<shlobj_core.h>)
   int csidType = CSIDL_LOCAL_APPDATA;
@@ -271,6 +301,7 @@ static optional<wstring> GetLocalApplicationDirectory() {
 static void PrintHelpMessage() {
   cerr << R"(dump.exe [world-dir] block at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"(dump.exe [world-dir] block entity at [x] [y] [z] of ["overworld" | "nether" | "end"])" << endl;
+  cerr << R"(dump.exe [world-dir] entities in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << R"(dump.exe [world-dir] chunk-key [tag:uint8_t] in [chunkX] [chunkZ] of ["overworld" | "nether" | "end"])" << endl;
   cerr << "    tag:" << endl;
   cerr << "       43: Data2D" << endl;
@@ -383,6 +414,34 @@ int main(int argc, char *argv[]) {
       PrintHelpMessage();
       return 1;
     }
+  } else if (verb == "entities") {
+    if (argc != 8) {
+      PrintHelpMessage();
+      return 1;
+    }
+    if (args[3] != "in" && args[6] != "of") {
+      PrintHelpMessage();
+      return 1;
+    }
+    auto chunkX = strings::Toi(args[4]);
+    if (!chunkX) {
+      cerr << "Error: invalid chunk x: " << args[4] << endl;
+      PrintHelpMessage();
+      return 1;
+    }
+    auto chunkZ = strings::Toi(args[5]);
+    if (!chunkZ) {
+      cerr << "Error: invalid chunk z: " << args[5] << endl;
+      PrintHelpMessage();
+      return 1;
+    }
+    auto dimension = DimensionFromString(args[7]);
+    if (!dimension) {
+      cerr << "Error: invalid dimension: " << args[7] << endl;
+      PrintHelpMessage();
+      return 1;
+    }
+    return DumpEntities(dir, *chunkX, *chunkZ, *dimension);
   } else if (verb == "chunk-key") {
     if (argc != 9) {
       PrintHelpMessage();
@@ -419,6 +478,7 @@ int main(int argc, char *argv[]) {
         return 1;
       }
       DumpChunkKey(dir, *chunkX, *chunkZ, *dimension, uint8_t(*tag));
+      return 0;
     } else {
       PrintHelpMessage();
       return 1;
