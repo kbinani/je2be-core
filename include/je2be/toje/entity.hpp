@@ -283,8 +283,8 @@ public:
 
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto variantB = b.int32("Variant", 8);
-    int32_t catType = Cat::JavaCatTypeFromBedrockVariant(variantB);
-    j["CatType"] = Int(catType);
+    int32_t catType = Cat::JavaLegacyCatTypeFromBedrockVariant(variantB);
+    j["CatType"] = Int(catType); // TODO(1.19): "variant"
   }
 
   static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {

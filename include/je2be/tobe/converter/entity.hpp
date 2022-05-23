@@ -700,16 +700,22 @@ private:
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    auto catType = tag.int32("CatType");
-    if (catType) {
-      Cat::Type ct = Cat::CatTypeFromJavaCatType(*catType);
-      int32_t variant = Cat::BedrockVariantFromJavaCatType(ct);
-      std::string type = Cat::BedrockNameFromCatType(ct);
-      if (!type.empty()) {
-        AddDefinition(c, "+minecraft:cat_" + type);
+    Cat::Type ct = Cat::Type::Tabby;
+    if (auto variantJ = tag.string("variant"); variantJ) {
+      // 1.19
+      std::string name = *variantJ;
+      if (variantJ->starts_with("minecraft:")) {
+        name = variantJ->substr(10);
       }
-      c["Variant"] = Int(variant);
+      ct = Cat::CatTypeFromName(name);
+    } else if (auto catType = tag.int32("CatType"); catType) {
+      // 1.18
+      ct = Cat::CatTypeFromJavaLegacyCatType(*catType);
     }
+    int32_t variantB = Cat::BedrockVariantFromJavaLegacyCatType(ct);
+    std::string type = Cat::NameFromCatType(ct);
+    AddDefinition(c, "+minecraft:cat_" + type);
+    c["Variant"] = Int(variantB);
     c["DwellingUniqueID"] = String("00000000-0000-0000-0000-000000000000");
     c["RewardPlayersOnFirstFounding"] = Bool(true);
   }
