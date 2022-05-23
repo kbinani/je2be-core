@@ -469,6 +469,12 @@ public:
     j["Trusted"] = trusted;
   }
 
+  static void Frog(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto variantB = b.int32("Variant", 0);
+    auto variantJ = Frog::JavaVariantFromBedrockVariant(variantB);
+    j["variant"] = String(variantJ);
+  }
+
   static void Ghast(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["ExplosionPower"] = Byte(1);
   }
@@ -1717,6 +1723,8 @@ public:
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
 
+    E(frog, C(Same, Animal, Entity::Frog));
+    E(warden, C(Same, LivingEntity));
 #undef E
     return ret;
   }

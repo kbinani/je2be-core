@@ -284,6 +284,14 @@ private:
                                                   Attribute(0.02, 0.02),   // lava_movement
                                                   Attribute(16, 16, 2048), // follow_range
                                                   nullopt)));              // attack_damage
+    table->insert(make_pair("minecraft:warden", Attributes(
+                                                    Attribute(500, 500, 500),    // health
+                                                    Attribute(1, 1, 1),          // knockback_resistance
+                                                    Attribute(0.3, 0.3),         // movement
+                                                    Attribute(0.02, 0.02),       // underwater_movement
+                                                    Attribute(0.02, 0.02),       // lava_movement
+                                                    Attribute(2048, 2048, 2048), // follow_range
+                                                    Attribute(30, 30, 30))));    // attack_damage
 
     return table;
   }

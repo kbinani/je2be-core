@@ -574,6 +574,7 @@ private:
     E(arrow, C(EntityBase, Arrow));
 
     E(frog, C(Animal, Definitions("+minecraft:frog"), Frog));
+    E(warden, C(Monster, Definitions("+minecraft:warden")));
 #undef A
 #undef M
 #undef E
