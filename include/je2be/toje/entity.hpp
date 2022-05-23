@@ -1005,6 +1005,10 @@ public:
     CopyBoolValues(b, j, {{"IsBaby"}});
   }
 
+  static void ItemsFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyChestItems(b, "ChestItems", j, "Items", ctx, false);
+  }
+
   static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     if (auto chested = b.boolean("Chested", false); chested) {
       Items("DecorItem", b, j, ctx);
@@ -1086,10 +1090,6 @@ public:
   static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto sizeB = b.byte("Size", 1);
     j["Size"] = Int(sizeB - 1);
-  }
-
-  static void StorageMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    CopyChestItems(b, "ChestItems", j, "Items", ctx, false);
   }
 
   static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1648,9 +1648,10 @@ public:
     E(item, C(Same, Base, Entity::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, C(Rename("end_crystal"), Base, ShowBottom, EnderCrystal));
-    E(chest_minecart, C(Same, Base, Minecart, StorageMinecart, ChestMinecart));
-    E(hopper_minecart, C(Same, Base, Minecart, StorageMinecart, HopperMinecart));
+    E(chest_minecart, C(Same, Base, Minecart, ItemsFromChestItems, ChestMinecart));
+    E(hopper_minecart, C(Same, Base, Minecart, ItemsFromChestItems, HopperMinecart));
     E(boat, C(Same, Base, Boat));
+    E(chest_boat, C(Same, Base, ItemsFromChestItems, Boat));
     E(slime, C(Same, LivingEntity, Size));
     E(salmon, C(Same, LivingEntity, FromBucket));
     E(parrot, C(Same, Animal, Sitting, CopyVariant));

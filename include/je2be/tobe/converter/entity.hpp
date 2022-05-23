@@ -283,7 +283,7 @@ public:
     if (auto rootVehicle = tag.compoundTag("RootVehicle"); rootVehicle) {
       if (auto vehicleEntity = rootVehicle->compoundTag("Entity"); vehicleEntity) {
         auto vehicleId = vehicleEntity->string("id");
-        if (vehicleId == "minecraft:boat") {
+        if (vehicleId == "minecraft:boat" || vehicleId == "minecraft:chest_boat") {
           auto boatPos = GetBoatPos(*vehicleEntity);
           if (boatPos) {
             y = boatPos->fY + 1.24501;
@@ -512,9 +512,9 @@ private:
     E(parrot, C(Animal, TameableA("parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA("pig"), Steerable("pig")));
-    E(piglin, C(Monster, ChestItems, AgeableB("piglin"), Piglin));
+    E(piglin, C(Monster, ChestItemsFromInventory, AgeableB("piglin"), Piglin));
     E(piglin_brute, C(Monster, PiglinBrute));
-    E(pillager, C(Monster, CanJoinRaid, ChestItems));
+    E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
 
     A(polar_bear);
     E(pufferfish, C(Mob, PersistentFromFromBucket, Pufferfish));
@@ -537,9 +537,9 @@ private:
     E(turtle, C(Animal, Turtle));
 
     M(vex);
-    E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), ChestItems, Villager));
+    E(villager, C(Animal, Rename("villager_v2"), Offers(4, "Offers"), ChestItemsFromInventory, Villager));
     M(vindicator);
-    E(wandering_trader, C(Animal, Offers(0, "Offers"), ChestItems, WanderingTrader));
+    E(wandering_trader, C(Animal, Offers(0, "Offers"), ChestItemsFromInventory, WanderingTrader));
     E(witch, C(Monster, CanJoinRaid));
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA("wolf"), Sittable, CollarColorable, Wolf));
@@ -550,11 +550,12 @@ private:
     E(zombie_villager, C(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), ZombieVillager));
     E(zombified_piglin, C(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
-    E(boat, C(EntityBase, Vehicle(), Boat));
+    E(boat, C(EntityBase, Vehicle(), Entity::Boat("boat")));
+    E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Entity::Boat("chest_boat")));
     E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions("+minecraft:minecart")));
     E(armor_stand, C(LivingEntity, ArmorStand));
-    E(hopper_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
-    E(chest_minecart, C(StorageMinecart, Minecart, Definitions("+minecraft:chest_minecart"), ChestMinecart));
+    E(hopper_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions("+minecraft:hopper_minecart"), HopperMinecart));
+    E(chest_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions("+minecraft:chest_minecart"), ChestMinecart));
     E(tnt_minecart, C(EntityBase, Vehicle(), Minecart, TntMinecart));
     E(snow_golem, C(Mob, SnowGolem));
     E(iron_golem, C(Mob, Definitions("+minecraft:iron_golem"), IronGolem));
@@ -681,23 +682,6 @@ private:
     } else {
       return pos;
     }
-  }
-
-  static void Boat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    AddDefinition(c, "+minecraft:boat");
-
-    auto type = tag.string("Type", "oak");
-    int32_t variant = Boat::BedrockVariantFromJavaType(type);
-    c["Variant"] = Int(variant);
-
-    auto rotation = props::GetRotation(c, "Rotation");
-    if (rotation) {
-      Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
-      c["Rotation"] = rot.toListTag();
-    }
-
-    auto pos = GetBoatPos(tag);
-    c["Pos"] = pos->toF().toListTag();
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1343,7 +1327,7 @@ private:
     AddDefinition(c, "+minecraft:detect_suffocating");
   }
 
-  static void ChestItems(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+  static void ChestItemsFromInventory(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto inventory = tag.listTag("Inventory");
     auto chestItems = List<Tag::Type::Compound>();
     if (inventory) {
@@ -1367,6 +1351,35 @@ private:
         slot++;
       }
     }
+    c["ChestItems"] = chestItems;
+  }
+
+  static void ChestItemsFromItems(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    auto chestItems = List<Tag::Type::Compound>();
+
+    auto items = tag.listTag("Items");
+    if (items) {
+      for (auto const &it : *items) {
+        if (it->type() != Tag::Type::Compound) {
+          continue;
+        }
+        auto item = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!item) {
+          continue;
+        }
+        auto converted = Item::From(item, ctx.fCtx);
+        if (!converted) {
+          continue;
+        }
+        auto slot = item->byte("Slot");
+        if (!slot) {
+          continue;
+        }
+        converted->set("Slot", Byte(*slot));
+        chestItems->push_back(converted);
+      }
+    }
+
     c["ChestItems"] = chestItems;
   }
 
@@ -1634,43 +1647,6 @@ private:
     c->set("Direction", Byte(facing));
     return c;
   }
-
-  static CompoundTagPtr StorageMinecart(CompoundTag const &tag, ConverterContext &ctx) {
-    auto e = BaseProperties(tag);
-    if (!e) {
-      return nullptr;
-    }
-    auto c = e->toCompoundTag();
-
-    auto chestItems = List<Tag::Type::Compound>();
-
-    auto items = tag.listTag("Items");
-    if (items) {
-      for (auto const &it : *items) {
-        if (it->type() != Tag::Type::Compound) {
-          continue;
-        }
-        auto item = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!item) {
-          continue;
-        }
-        auto converted = Item::From(item, ctx.fCtx);
-        if (!converted) {
-          continue;
-        }
-        auto slot = item->byte("Slot");
-        if (!slot) {
-          continue;
-        }
-        converted->set("Slot", Byte(*slot));
-        chestItems->push_back(converted);
-      }
-    }
-
-    c->set("ChestItems", chestItems);
-
-    return c;
-  }
 #pragma endregion
 
 #pragma region BehaviorGenerators
@@ -1709,6 +1685,25 @@ private:
         AddDefinition(c, "+minecraft:adult_" + definitionKey);
       }
       c["IsBaby"] = Bool(baby);
+    };
+  }
+
+  static Behavior Boat(std::string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+      AddDefinition(c, "+minecraft:" + definitionKey);
+
+      auto type = tag.string("Type", "oak");
+      int32_t variant = Boat::BedrockVariantFromJavaType(type);
+      c["Variant"] = Int(variant);
+
+      auto rotation = props::GetRotation(c, "Rotation");
+      if (rotation) {
+        Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
+        c["Rotation"] = rot.toListTag();
+      }
+
+      auto pos = GetBoatPos(tag);
+      c["Pos"] = pos->toF().toListTag();
     };
   }
 

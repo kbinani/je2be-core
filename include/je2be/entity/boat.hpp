@@ -12,7 +12,8 @@ public:
                                                     {"birch", 2},
                                                     {"jungle", 3},
                                                     {"acacia", 4},
-                                                    {"dark_oak", 5}});
+                                                    {"dark_oak", 5},
+                                                    {"mangrove", 6}});
   }
 
   static int32_t BedrockVariantFromJavaType(std::string const &type) {
