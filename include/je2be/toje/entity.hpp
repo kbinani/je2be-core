@@ -189,6 +189,24 @@ public:
 #pragma endregion
 
 #pragma region Dedicated Behaviors
+  static void Allay(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (auto ownerNew = b.int64("OwnerNew"); ownerNew) {
+      Uuid uuid;
+      if (auto mapped = ctx.mapLocalPlayerId(*ownerNew); mapped) {
+        uuid = *mapped;
+      } else {
+        uuid = Uuid::GenWithI64Seed(*ownerNew);
+      }
+      auto brain = Compound();
+      auto memories = Compound();
+      auto likedPlayer = Compound();
+      likedPlayer->set("value", uuid.toIntArrayTag());
+      memories->set("minecraft:liked_player", likedPlayer);
+      brain->set("memories", memories);
+      j["Brain"] = brain;
+    }
+  }
+
   static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j.erase("ArmorDropChances");
     j.erase("HandDropChances");
@@ -1725,6 +1743,7 @@ public:
 
     E(frog, C(Same, Animal, Entity::Frog));
     E(warden, C(Same, LivingEntity));
+    E(allay, C(Same, Animal, NoGravity, Inventory, Allay));
 #undef E
     return ret;
   }

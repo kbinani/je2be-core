@@ -575,6 +575,7 @@ private:
 
     E(frog, C(Animal, Definitions("+minecraft:frog"), Frog));
     E(warden, C(Monster, Definitions("+minecraft:warden")));
+    E(allay, C(Animal, Definitions("+minecraft:allay", "+pickup_item"), ChestItemsFromInventory, Allay));
 #undef A
 #undef M
 #undef E
@@ -582,6 +583,19 @@ private:
   }
 
 #pragma region DedicatedBehaviors
+  static void Allay(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    if (auto brain = tag.compoundTag("Brain"); brain) {
+      if (auto memories = brain->compoundTag("memories"); memories) {
+        if (auto likedPlayer = memories->compoundTag("minecraft:liked_player"); likedPlayer) {
+          if (auto likedPlayerUid = props::GetUuidWithFormatIntArray(*likedPlayer, "value"); likedPlayerUid) {
+            auto uidB = UuidRegistrar::ToId(*likedPlayerUid);
+            c["OwnerNew"] = Long(uidB);
+          }
+        }
+      }
+    }
+  }
+
   static void ArmorStand(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto pos = props::GetPos3d(tag, "Pos");
     if (!pos) {
