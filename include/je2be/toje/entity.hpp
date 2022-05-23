@@ -1182,8 +1182,8 @@ public:
       return;
     }
 
-    j["Motive"] = String(motiveJ);
-    j["Facing"] = Byte(directionB);
+    j["Motive"] = String(motiveJ);  // TODO(1.19): "variant"
+    j["Facing"] = Byte(directionB); // TODO(1.19): "facing"
     j["TileX"] = Int(std::round(tile->fX));
     j["TileY"] = Int(std::round(tile->fY));
     j["TileZ"] = Int(std::round(tile->fZ));

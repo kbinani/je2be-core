@@ -1634,9 +1634,9 @@ private:
   static CompoundTagPtr Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
   static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
-    auto facing = tag.byte("Facing", 0);
+    int8_t facing = tag.byte("facing", tag.byte("Facing", 0)); // 1.19: "facing", 1.18: "Facing"
     Facing4 f4 = Facing4FromBedrockDirection(facing);
-    auto motiveJ = tag.string("variant", tag.string("Motive", "minecraft:aztec"));
+    auto motiveJ = tag.string("variant", tag.string("Motive", "minecraft:aztec")); // 1.19: "variant", 1.18: "Motive"
     Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
     auto motiveB = Painting::BedrockFromMotive(motive);
 
@@ -1651,6 +1651,11 @@ private:
       return nullptr;
     }
 
+    auto yaw = Rotation::ClampDegreesBetween0And360(YawFromFacing4(f4));
+    auto rotation = List<Tag::Type::Float>();
+    rotation->push_back(Float(yaw));
+    rotation->push_back(Float(0));
+
     auto e = BaseProperties(tag);
     if (!e) {
       return nullptr;
@@ -1660,6 +1665,7 @@ private:
     auto c = e->toCompoundTag();
     c->set("Motive", String(motiveB));
     c->set("Direction", Byte(facing));
+    c->set("Rotation", rotation);
     return c;
   }
 #pragma endregion

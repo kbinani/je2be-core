@@ -64,6 +64,20 @@ static inline Facing4 Facing4FromBedrockDirection(int d) {
   }
 }
 
+static inline float YawFromFacing4(Facing4 f4) {
+  switch (f4) {
+  case Facing4::North:
+    return -180;
+  case Facing4::East:
+    return -90;
+  case Facing4::West:
+    return 90;
+  case Facing4::South:
+  default:
+    return 0;
+  }
+}
+
 static inline Pos2i Pos2iFromFacing4(Facing4 f4) {
   switch (f4) {
   case Facing4::North:
