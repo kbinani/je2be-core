@@ -33,6 +33,11 @@ public:
     Aztec,
     Plant,
     Pool,
+
+    Earth,
+    Wind,
+    Fire,
+    Water,
   };
 
   static std::optional<Size> PaintingSize(Motive m) {
@@ -64,6 +69,11 @@ public:
         {Aztec, Size(1, 1)},
         {Plant, Size(1, 1)},
         {Pool, Size(2, 1)},
+
+        {Earth, Size(2, 2)},
+        {Wind, Size(2, 2)},
+        {Fire, Size(2, 2)},
+        {Water, Size(2, 2)},
     };
     auto found = mapping.find(m);
     if (found != mapping.end()) {
@@ -101,6 +111,11 @@ public:
         {"minecraft:aztec", Aztec},
         {"minecraft:plant", Plant},
         {"minecraft:pool", Pool},
+
+        {"minecraft:earth", Earth},
+        {"minecraft:wind", Wind},
+        {"minecraft:fire", Fire},
+        {"minecraft:water", Water},
     };
   }
 

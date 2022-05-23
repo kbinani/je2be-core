@@ -1636,7 +1636,7 @@ private:
   static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
     auto facing = tag.byte("Facing", 0);
     Facing4 f4 = Facing4FromBedrockDirection(facing);
-    auto motiveJ = tag.string("Motive", "minecraft:aztec");
+    auto motiveJ = tag.string("variant", tag.string("Motive", "minecraft:aztec"));
     Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
     auto motiveB = Painting::BedrockFromMotive(motive);
 
