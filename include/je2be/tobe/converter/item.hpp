@@ -129,6 +129,7 @@ private:
     E("dark_oak_door", DefaultItem);
     E("crimson_door", DefaultItem);
     E("warped_door", DefaultItem);
+    E("mangrove_door", DefaultItem);
 
     E("campfire", DefaultItem);
     E("soul_campfire", DefaultItem);
@@ -146,6 +147,7 @@ private:
     E("dark_oak_sign", DefaultItem);
     E("crimson_sign", DefaultItem);
     E("warped_sign", DefaultItem);
+    E("mangrove_sign", DefaultItem);
 
     E("goat_horn", GoatHorn);
     E("frogspawn", Rename("frog_spawn"));
