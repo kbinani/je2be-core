@@ -532,7 +532,7 @@ private:
     A(squid);
     M(stray);
     E(strider, C(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
-    E(trader_llama, C(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
+    E(trader_llama, C(Animal, AgeableA("llama"), Llama, TraderLlama));
     E(tropical_fish, C(Mob, Rename("tropicalfish"), PersistentFromFromBucket, TropicalFish));
     E(turtle, C(Animal, Turtle));
 
