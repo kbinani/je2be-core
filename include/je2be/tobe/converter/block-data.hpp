@@ -1254,6 +1254,7 @@ private:
     E(potted_cactus, pottedFlowerPot);
     E(potted_azalea_bush, pottedFlowerPot);
     E(potted_flowering_azalea_bush, pottedFlowerPot);
+    E(potted_mangrove_propagule, pottedFlowerPot);
 
     Converter skull(Name("skull"), AddIntProperty("facing_direction", 1), AddBoolProperty("no_drop_bit", false));
     E(skeleton_skull, skull);

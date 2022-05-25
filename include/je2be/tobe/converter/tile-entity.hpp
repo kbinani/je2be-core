@@ -219,6 +219,7 @@ private:
     E(potted_cactus, PottedPlant("cactus", {}));
     E(potted_azalea_bush, PottedPlant("azalea", {}));
     E(potted_flowering_azalea_bush, PottedPlant("flowering_azalea", {}));
+    E(potted_mangrove_propagule, PottedPlant("mangrove_propagule", {{"hanging", false}, {"propagule_stage", int32_t(0)}}));
 
     E(skeleton_skull, Skull);
     E(wither_skeleton_skull, Skull);
@@ -914,7 +915,7 @@ private:
     return tag;
   }
 
-  static Converter PottedPlant(std::string const &name, std::map<std::string, std::string> const &properties) {
+  static Converter PottedPlant(std::string const &name, std::map<std::string, std::variant<std::string, bool, int32_t>> const &properties) {
     return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) -> CompoundTagPtr {
       using namespace std;
 
@@ -922,7 +923,15 @@ private:
       auto plantBlock = Compound();
       auto states = Compound();
       for (auto const &p : properties) {
-        states->set(p.first, String(p.second));
+        if (p.second.index() == 0) {
+          states->set(p.first, String(get<0>(p.second)));
+        } else if (p.second.index() == 1) {
+          states->set(p.first, Bool(get<1>(p.second)));
+        } else if (p.second.index() == 2) {
+          states->set(p.first, Int(get<2>(p.second)));
+        } else {
+          assert(false);
+        }
       }
       plantBlock->insert({
           {"states", states},
