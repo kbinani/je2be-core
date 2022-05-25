@@ -727,6 +727,8 @@ public:
     E(structure_block, StructureBlock);
     E(beehive, Beehive);
     E(bee_nest, Beehive);
+
+    E(sculk_sensor, SameNameEmpty);
 #undef E
     return t;
   }
