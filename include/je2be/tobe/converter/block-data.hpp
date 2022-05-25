@@ -1569,6 +1569,7 @@ private:
     E(verdant_froglight, axisToPillarAxis);
     E(pearlescent_froglight, axisToPillarAxis);
     E(mangrove_propagule, MangrovePropagule);
+    E(frogspawn, Rename("frog_spawn"));
 #undef E
 
     return table;
