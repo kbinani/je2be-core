@@ -759,6 +759,7 @@ private:
     E("campfire");
     E("soul_campfire");
     E("hopper");
+    E("flower_pot");
 #undef E
     return table;
   }
