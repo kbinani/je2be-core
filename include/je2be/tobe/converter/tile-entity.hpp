@@ -272,16 +272,10 @@ private:
     E(daylight_detector, NamedEmpty("DaylightDetector"));
     E(structure_block, StructureBlock);
 
-    E(sculk_sensor, SculkSensor);
+    E(sculk_sensor, NamedEmpty("SculkSensor"));
+    E(sculk_shrieker, NamedEmpty("SculkShrieker"));
 #undef E
     return table;
-  }
-
-  static CompoundTagPtr SculkSensor(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
-    if (!c) {
-      return nullptr;
-    }
-    return Empty("SculkSensor", *c, pos);
   }
 
   static CompoundTagPtr StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {

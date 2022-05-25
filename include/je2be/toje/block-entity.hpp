@@ -80,8 +80,8 @@ public:
   static std::optional<Result> Beacon(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("beacon", pos);
     CopyIntValues(tagB, *t, {{"primary", "Primary", -1}, {"secondary", "Secondary", -1}});
-    //NOTE: "Levels" need to be defined by terrain around the beacon.
-    //See also beacon.hpp
+    // NOTE: "Levels" need to be defined by terrain around the beacon.
+    // See also beacon.hpp
     Result r;
     r.fTileEntity = t;
     return r;
@@ -729,6 +729,7 @@ public:
     E(bee_nest, Beehive);
 
     E(sculk_sensor, SameNameEmpty);
+    E(sculk_shrieker, SameNameEmpty);
 #undef E
     return t;
   }
