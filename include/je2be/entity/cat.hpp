@@ -22,8 +22,8 @@ public:
     return static_cast<Type>(catType);
   }
 
-  static int32_t BedrockVariantFromJavaLegacyCatType(Type catType) {
-    auto const &table = GetTableLegacy();
+  static int32_t BedrockVariantFromCatType(Type catType) {
+    auto const &table = GetTableBedrock();
     if (auto variantB = table.forward(catType); variantB) {
       return *variantB;
     } else {
@@ -31,16 +31,16 @@ public:
     }
   }
 
-  static int32_t JavaLegacyCatTypeFromBedrockVariant(int32_t variant) {
-    auto const &table = GetTableLegacy();
-    if (auto catType = table.backward(variant); catType) {
-      return *catType;
+  static Type CatTypeFromBedrockVariant(int32_t variantB) {
+    auto const &table = GetTableBedrock();
+    if (auto catType = table.backward(variantB); catType) {
+      return static_cast<Type>(*catType);
     } else {
-      return 0;
+      return Tabby;
     }
   }
 
-  static ReversibleMap<int32_t, int32_t> const *CreateTableLegacy() {
+  static ReversibleMap<int32_t, int32_t> const *CreateTableBedrock() {
     return new ReversibleMap<int32_t, int32_t>({
         {Tabby, 8},
         {Tuxedo, 1},
@@ -72,8 +72,8 @@ public:
     });
   }
 
-  static ReversibleMap<int32_t, int32_t> const &GetTableLegacy() {
-    static std::unique_ptr<ReversibleMap<int32_t, int32_t> const> sTable(CreateTableLegacy());
+  static ReversibleMap<int32_t, int32_t> const &GetTableBedrock() {
+    static std::unique_ptr<ReversibleMap<int32_t, int32_t> const> sTable(CreateTableBedrock());
     return *sTable;
   }
 

@@ -712,7 +712,7 @@ private:
       // 1.18
       ct = Cat::CatTypeFromJavaLegacyCatType(*catType);
     }
-    int32_t variantB = Cat::BedrockVariantFromJavaLegacyCatType(ct);
+    int32_t variantB = Cat::BedrockVariantFromCatType(ct);
     std::string type = Cat::NameFromCatType(ct);
     AddDefinition(c, "+minecraft:cat_" + type);
     c["Variant"] = Int(variantB);
