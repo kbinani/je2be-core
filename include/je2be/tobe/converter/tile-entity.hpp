@@ -274,6 +274,7 @@ private:
 
     E(sculk_sensor, NamedEmpty("SculkSensor"));
     E(sculk_shrieker, NamedEmpty("SculkShrieker"));
+    E(sculk_catalyst, NamedEmpty("SculkCatalyst"));
 #undef E
     return table;
   }

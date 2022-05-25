@@ -730,6 +730,7 @@ public:
 
     E(sculk_sensor, SameNameEmpty);
     E(sculk_shrieker, SameNameEmpty);
+    E(sculk_catalyst, SameNameEmpty);
 #undef E
     return t;
   }
