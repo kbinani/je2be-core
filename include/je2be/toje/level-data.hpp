@@ -113,7 +113,7 @@ public:
     using namespace std;
 
     JavaLevelDat::Options o;
-    o.fDataVersion = mcfile::je::Chunk::kDataVersion;
+    o.fDataVersion = toje::kDataVersion;
     o.fRandomSeed = b.int64("RandomSeed");
     o.fVersionString = kVersionString;
     o.fFlatWorldSettings = FlatWorldSettings(b);
@@ -179,7 +179,7 @@ public:
     if (biomeJ == mcfile::biomes::unknown) {
       return nullptr;
     }
-    settings->set("biome", String(mcfile::biomes::Name(biomeJ, mcfile::je::Chunk::kDataVersion)));
+    settings->set("biome", String(mcfile::biomes::Name(biomeJ, toje::kDataVersion)));
     auto layersB = json["block_layers"];
     if (!layersB.is_array()) {
       return nullptr;

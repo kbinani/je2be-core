@@ -42,7 +42,7 @@ public:
     }
     {
       auto version = Compound();
-      version->set("Id", Int(mcfile::je::Chunk::kDataVersion));
+      version->set("Id", Int(toje::kDataVersion));
       version->set("Name", String(o.fVersionString));
       version->set("Series", String("main"));
       version->set("Snapshot", Byte(0));

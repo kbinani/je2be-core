@@ -217,7 +217,7 @@ public:
       j->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
       auto tagJ = Compound();
       tagJ->set("data", j);
-      tagJ->set("DataVersion", Int(mcfile::je::Chunk::kDataVersion));
+      tagJ->set("DataVersion", Int(toje::kDataVersion));
 
       auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
       auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
@@ -236,7 +236,7 @@ public:
       auto d = Compound();
       d->set("map", Int(*maxMapNumber));
       idcounts->set("data", d);
-      idcounts->set("DataVersion", Int(mcfile::je::Chunk::kDataVersion));
+      idcounts->set("DataVersion", Int(toje::kDataVersion));
       auto path = root / "data" / "idcounts.dat";
       auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
       mcfile::stream::OutputStreamWriter osw(s);

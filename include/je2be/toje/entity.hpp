@@ -1580,7 +1580,7 @@ public:
       }
     }
 
-    j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
+    j["DataVersion"] = Int(toje::kDataVersion);
 
     if (auto posB = props::GetPos3f(b, "Pos"); posB) {
       Pos3d posJ = posB->toD();

@@ -1,7 +1,6 @@
 #pragma once
 
 namespace je2be::tobe {
-namespace {
 
 int32_t constexpr kBlockDataVersion = 17959425;
 Version constexpr kMinimumCompatibleClientVersion = Version(1, 18, 0, 0, 0);
@@ -14,5 +13,4 @@ uint8_t constexpr kDragonFightVersion = 0;
 
 Version constexpr kSupportVersion = Version(1, 18, 0, 2, 0);
 
-} // namespace
 } // namespace je2be::tobe
