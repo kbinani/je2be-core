@@ -1649,6 +1649,12 @@ public:
       j["abilities"] = abilitiesJ;
     }
 
+    auto wardenSpawnTracker = Compound();
+    CopyIntValues(b, *wardenSpawnTracker, {{"WardenThreatLevelIncreaseCooldown", "cooldown_ticks"}, {"WardenThreatDecreaseTimer", "ticks_since_last_warning"}, {"WardenThreatLevel", "warning_level"}});
+    if (!wardenSpawnTracker->empty()) {
+      j["warden_spawn_tracker"] = wardenSpawnTracker;
+    }
+
     data.fEntity->erase("id");
 
     data.fShoulderEntityLeft = b.int64("LeftShoulderRiderID");

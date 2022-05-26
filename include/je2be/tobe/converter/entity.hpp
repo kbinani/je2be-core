@@ -449,6 +449,10 @@ public:
 
     CopyShortValues(tag, *entity, {{"SleepTimer"}});
 
+    if (auto wardenSpawnTracker = tag.compoundTag("warden_spawn_tracker"); wardenSpawnTracker) {
+      CopyIntValues(*wardenSpawnTracker, *entity, {{"cooldown_ticks", "WardenThreatLevelIncreaseCooldown"}, {"ticks_since_last_warning", "WardenThreatDecreaseTimer"}, {"warning_level", "WardenThreatLevel"}});
+    }
+
     LocalPlayerResult result;
     result.fEntity = entity;
     result.fDimension = dim;
