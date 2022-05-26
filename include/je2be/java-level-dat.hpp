@@ -6,7 +6,7 @@ class JavaLevelDat {
   JavaLevelDat() = delete;
 
   enum {
-    kLevelVersion = 19133,
+    kLevelVersion = toje::kLevelVersion,
   };
 
 public:
