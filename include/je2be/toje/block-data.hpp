@@ -50,11 +50,13 @@ private:
 
   static String AzaleaLeaves(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return bName;
   }
 
   static String AzaleaLeavesFlowered(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return Ns() + "flowering_azalea_leaves";
   }
 #pragma endregion
@@ -773,12 +775,14 @@ private:
   static String Leaves(String const &bName, CompoundTag const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return Ns() + leafType + "_leaves";
   }
 
   static String Leaves2(String const &bName, CompoundTag const &s, Props &p) {
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return Ns() + newLeafType + "_leaves";
   }
 
