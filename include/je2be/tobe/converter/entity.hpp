@@ -257,6 +257,7 @@ public:
     int64_t fUid;
     mcfile::Dimension fDimension;
     Pos2i fChunk;
+    bool fSpectatorUsed = false;
   };
   static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
@@ -317,7 +318,15 @@ public:
     CopyFloatValues(tag, *entity, {{"XpP", "PlayerLevelProgress"}});
     CopyBoolValues(tag, *entity, {{"seenCredits", "HasSeenCredits"}});
 
-    entity->set("PlayerGameMode", Int(std::clamp(tag.int32("playerGameType", 0), 0, 2)));
+    bool spectatorUsed = false;
+    int32_t playerGameTypeJ = tag.int32("playerGameType", 0);
+    int32_t playerGameModeB = std::clamp(playerGameTypeJ, 0, 2);
+    if (playerGameTypeJ == 3) {
+      // spectator
+      playerGameModeB = 6;
+      spectatorUsed = true;
+    }
+    entity->set("PlayerGameMode", Int(playerGameModeB));
     entity->set("SelectedContainerId", Int(0));
 
     auto inventory = tag.listTag("Inventory");
@@ -444,6 +453,7 @@ public:
     result.fEntity = entity;
     result.fDimension = dim;
     result.fUid = *uuid;
+    result.fSpectatorUsed = spectatorUsed;
     int cx = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fX));
     int cz = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fZ));
     result.fChunk = Pos2i(cx, cz);

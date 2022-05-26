@@ -1561,9 +1561,17 @@ public:
 
     if (auto playerGameModeB = b.int32("PlayerGameMode"); playerGameModeB) {
       int32_t playerGameTypeJ = *playerGameModeB;
-      if (*playerGameModeB == 5) {
+      switch (*playerGameModeB) {
+      case 5:
         // PlayerGameMode = 5 when superflat creative. This offset is only seen in creative mode.
         playerGameTypeJ = 1;
+        break;
+      case 6:
+        // spectator
+        playerGameTypeJ = 3;
+        break;
+      default:
+        break;
       }
       j["playerGameType"] = Int(playerGameTypeJ);
     }
