@@ -261,6 +261,7 @@ public:
       S(doMobLoot, ret.fDoMobLoot);
       S(doMobSpawning, ret.fDoMobSpawning);
       S(doTileDrops, ret.fDoTileDrops);
+      // doWardenSpawning
       S(doWeatherCycle, ret.fDoWeatherCycle);
       S(drowningDamage, ret.fDrowningDamage);
       S(fallDamage, ret.fFallDamage);

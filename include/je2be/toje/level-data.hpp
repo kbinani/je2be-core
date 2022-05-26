@@ -25,6 +25,7 @@ public:
       // doPatrolSpawning
       B(doTileDrops, dotiledrops, true);
       // doTraderSpawning
+      // doWardenSpawning
       B(doWeatherCycle, doweathercycle, true);
       B(drowningDamage, drowningdamage, true);
       B(fallDamage, falldamage, true);

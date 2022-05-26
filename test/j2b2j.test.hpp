@@ -554,6 +554,7 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       "spectatorsGenerateChunks",
       "universalAnger",
       "playersSleepingPercentage",
+      "doWardenSpawning", // TODO(1.19)
   };
   for (string const &rule : ignoredGameRules) {
     blacklist.insert("GameRules/" + rule);
