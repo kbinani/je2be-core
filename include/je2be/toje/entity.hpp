@@ -171,6 +171,7 @@ public:
 #pragma region Namers
   static std::string LlamaName(std::string const &nameB, CompoundTag const &entityB) {
     if (HasDefinition(entityB, "+minecraft:llama_wandering_trader")) {
+      // legacy
       return "minecraft:trader_llama";
     } else {
       return "minecraft:llama";
@@ -1714,6 +1715,7 @@ public:
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
     E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
+    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
