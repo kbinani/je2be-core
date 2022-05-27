@@ -48,12 +48,6 @@ private:
     return Ns() + name;
   }
 
-  static String AzaleaLeaves(String const &bName, CompoundTag const &s, Props &p) {
-    PersistentFromPersistentBit(s, p);
-    Submergible(s, p);
-    return bName;
-  }
-
   static String AzaleaLeavesFlowered(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
@@ -239,6 +233,11 @@ private:
 
     Submergible(s, p);
 
+    return bName;
+  }
+
+  static String BlockWithPersistentFromPersistentBit(String const &bName, CompoundTag const &s, Props &p) {
+    PersistentFromPersistentBit(s, p);
     return bName;
   }
 
@@ -863,10 +862,15 @@ private:
 
 #pragma region Converters : M
   static String MangrovePropagule(String const &bName, CompoundTag const &s, Props &p) {
-    bool hanging = s.string("hanging") == "true";
-    p["hanging"] = Bool(hanging);
+    bool hanging = s.boolean("hanging", false);
     int stage = s.int32("propagule_stage", 0);
-    p["stage"] = Int(stage);
+    p["hanging"] = Bool(hanging);
+    p["stage"] = Int(0);
+    if (hanging) {
+      p["age"] = Int(stage);
+    } else {
+      p["age"] = Int(4);
+    }
     Submergible(s, p);
     return bName;
   }
@@ -2044,7 +2048,7 @@ private:
     E(anvil, Anvil);
     E(melon_stem, MelonStem);
     E(pumpkin_stem, PumpkinStem);
-    E(azalea_leaves, AzaleaLeaves);
+    E(azalea_leaves, BlockWithPersistentFromPersistentBit);
     E(bamboo, Bamboo);
     E(bamboo_sapling, Same);
     E(barrel, Barrel);
@@ -2386,6 +2390,7 @@ private:
     E(mud_brick_wall, BlockWithWallProperties);
     E(sculk_vein, BlockWithMultiFaceDirectionBitsSubmergible);
     E(mangrove_propagule, MangrovePropagule);
+    E(mangrove_leaves, BlockWithPersistentFromPersistentBit);
 
 #undef E
 

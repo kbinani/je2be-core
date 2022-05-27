@@ -442,10 +442,16 @@ private:
   static CompoundTagPtr MangrovePropagule(Block const &b) {
     auto d = New("mangrove_propagule");
     auto s = States();
+    int age = Wrap(strings::Toi(b.property("age", "0")), 0);
     bool hanging = b.property("hanging") == "true";
-    s->set("hanging", Bool(hanging));
     int stage = Wrap(strings::Toi(b.property("stage", "0")), 0);
-    s->set("propagule_stage", Int(stage));
+
+    s->set("hanging", Bool(hanging));
+    if (hanging) {
+      s->set("propagule_stage", Int(age));
+    } else {
+      s->set("propagule_stage", Int(stage));
+    }
     return AttachStates(d, s);
   }
 
@@ -1570,6 +1576,7 @@ private:
     E(pearlescent_froglight, axisToPillarAxis);
     E(mangrove_propagule, MangrovePropagule);
     E(frogspawn, Rename("frog_spawn"));
+    E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
 #undef E
 
     return table;

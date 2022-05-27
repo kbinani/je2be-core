@@ -314,6 +314,8 @@ public:
     case mud_brick_slab:
     case mud_bricks:
     case mud_brick_wall:
+    case mud_brick_stairs:
+    case reinforced_deepslate:
       return "basedrum";
     case mcfile::blocks::minecraft::acacia_fence:
     case mcfile::blocks::minecraft::acacia_fence_gate:
