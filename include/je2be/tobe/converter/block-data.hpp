@@ -1570,6 +1570,7 @@ private:
     E(pearlescent_froglight, axisToPillarAxis);
     E(mangrove_propagule, MangrovePropagule);
     E(frogspawn, Rename("frog_spawn"));
+    E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
 #undef E
 
     return table;
