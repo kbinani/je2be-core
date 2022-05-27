@@ -688,6 +688,7 @@ public:
     E(spruce_wall_sign, Sign);
     E(warped_wall_sign, Sign);
     E(darkoak_wall_sign, Sign);
+    E(mangrove_wall_sign, Sign);
     E(darkoak_standing_sign, Sign);
     E(acacia_standing_sign, Sign);
     E(birch_standing_sign, Sign);
@@ -695,6 +696,7 @@ public:
     E(jungle_standing_sign, Sign);
     E(spruce_standing_sign, Sign);
     E(warped_standing_sign, Sign);
+    E(mangrove_standing_sign, Sign);
     E(ender_chest, SameNameEmpty);
     E(enchanting_table, SameNameEmpty);
     E(barrel, AnyStorage("barrel"));
