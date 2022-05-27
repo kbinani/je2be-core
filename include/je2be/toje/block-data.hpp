@@ -2298,7 +2298,7 @@ private:
     E(seagrass, Seagrass);
     E(sea_pickle, SeaPickle);
     E(seaLantern, Rename("sea_lantern")); // legacy, < 1.18.30
-    E(sea_lantern, Rename("sea_lantern"));
+    E(sea_lantern, Same);
     E(undyed_shulker_box, Rename("shulker_box"));
     E(slime, Rename("slime_block"));
     E(small_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
