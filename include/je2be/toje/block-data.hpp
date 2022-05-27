@@ -859,10 +859,15 @@ private:
 
 #pragma region Converters : M
   static String MangrovePropagule(String const &bName, CompoundTag const &s, Props &p) {
-    bool hanging = s.string("hanging") == "true";
-    p["hanging"] = Bool(hanging);
+    bool hanging = s.boolean("hanging", false);
     int stage = s.int32("propagule_stage", 0);
-    p["stage"] = Int(stage);
+    p["hanging"] = Bool(hanging);
+    p["stage"] = Int(0);
+    if (hanging) {
+      p["age"] = Int(stage);
+    } else {
+      p["age"] = Int(4);
+    }
     Submergible(s, p);
     return bName;
   }
