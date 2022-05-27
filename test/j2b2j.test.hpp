@@ -572,6 +572,7 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       "HurtByTimestamp",
       "SpawnAngle",
       "SpawnForced",
+      "ActiveEffects", // TODO:
   };
   for (string const &rule : ignoredPlayerAttributes) {
     blacklist.insert("Player/" + rule);
