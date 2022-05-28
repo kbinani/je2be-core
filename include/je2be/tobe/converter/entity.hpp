@@ -714,6 +714,8 @@ private:
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    using Cat = je2be::Cat;
+
     Cat::Type ct = Cat::Type::Tabby;
     if (auto variantJ = tag.string("variant"); variantJ) {
       // 1.19
@@ -721,13 +723,13 @@ private:
       if (variantJ->starts_with("minecraft:")) {
         name = variantJ->substr(10);
       }
-      ct = Cat::CatTypeFromName(name);
+      ct = Cat::CatTypeFromJavaVariant(name);
     } else if (auto catType = tag.int32("CatType"); catType) {
       // 1.18
       ct = Cat::CatTypeFromJavaLegacyCatType(*catType);
     }
     int32_t variantB = Cat::BedrockVariantFromCatType(ct);
-    std::string type = Cat::NameFromCatType(ct);
+    std::string type = Cat::BedrockDefinitionKeyFromCatType(ct);
     AddDefinition(c, "+minecraft:cat_" + type);
     c["Variant"] = Int(variantB);
     c["DwellingUniqueID"] = String("00000000-0000-0000-0000-000000000000");

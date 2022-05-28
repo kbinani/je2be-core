@@ -72,17 +72,52 @@ public:
     });
   }
 
+  static ReversibleMap<std::string, int32_t> const *CreateTableJava() {
+    return new ReversibleMap<std::string, int32_t>({
+        {"black", Tuxedo},
+        {"red", Red},
+        {"siamese", Siamese},
+        {"british_shorthair", British},
+        {"calico", Calico},
+        {"persian", Persian},
+        {"ragdoll", Ragdoll},
+        {"white", White},
+        {"jellie", Jellie},
+        {"all_black", Black},
+        {"tabby", Tabby},
+    });
+  }
+
   static ReversibleMap<int32_t, int32_t> const &GetTableBedrock() {
     static std::unique_ptr<ReversibleMap<int32_t, int32_t> const> sTable(CreateTableBedrock());
     return *sTable;
   }
 
-  static std::string NameFromCatType(Type t) {
+  static std::string BedrockDefinitionKeyFromCatType(Type t) {
     return Backward(static_cast<int32_t>(t), "tabby");
   }
 
-  static Type CatTypeFromName(std::string const &name) {
-    return static_cast<Type>(Forward(name, static_cast<int32_t>(Tabby)));
+  static ReversibleMap<std::string, int32_t> const &GetTableJava() {
+    static std::unique_ptr<ReversibleMap<std::string, int32_t> const> sTable(CreateTableJava());
+    return *sTable;
+  }
+
+  static Type CatTypeFromJavaVariant(std::string const &variantJ) {
+    auto const &table = GetTableJava();
+    if (auto type = table.forward(variantJ); type) {
+      return static_cast<Type>(*type);
+    } else {
+      return Tabby;
+    }
+  }
+
+  static std::string JavaVariantFromCatType(Type type) {
+    auto const &table = GetTableJava();
+    if (auto variantJ = table.backward(type); variantJ) {
+      return *variantJ;
+    } else {
+      return "tabby";
+    }
   }
 };
 

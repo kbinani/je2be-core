@@ -283,9 +283,11 @@ public:
   }
 
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    using Cat = je2be::Cat;
+
     auto variantB = b.int32("Variant", 8);
     Cat::Type catType = Cat::CatTypeFromBedrockVariant(variantB);
-    j["variant"] = String(Cat::NameFromCatType(catType));
+    j["variant"] = String("minecraft:" + Cat::JavaVariantFromCatType(catType));
   }
 
   static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
