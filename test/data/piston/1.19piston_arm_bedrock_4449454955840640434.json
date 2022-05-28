@@ -1,0 +1,50 @@
+{
+  "0": {
+    "block": {
+      "name": "minecraft:sticky_piston",
+      "states": {
+        "facing_direction": 1 // int
+      },
+      "version": 17959425 // int
+    },
+    "tile": {
+      "AttachedBlocks": [], // list
+      "BreakBlocks": [], // list
+      "LastProgress": 1, // float
+      "NewState": 2, // byte
+      "Progress": 1, // float
+      "State": 2, // byte
+      "Sticky": 1, // byte
+      "id": "PistonArm",
+      "isMovable": 0, // byte
+      "x": 0, // int
+      "y": 0, // int
+      "z": 0 // int
+    }
+  },
+  "1": {
+    "block": {
+      "name": "minecraft:sticky_piston_arm_collision",
+      "states": {
+        "facing_direction": 1 // int
+      },
+      "version": 17959425 // int
+    }
+  },
+  "2": {
+    "block": {
+      "name": "minecraft:slime",
+      "states": {},
+      "version": 17959425 // int
+    }
+  },
+  "3": {
+    "block": {
+      "name": "minecraft:stone",
+      "states": {
+        "stone_type": "stone"
+      },
+      "version": 17959425 // int
+    }
+  }
+}

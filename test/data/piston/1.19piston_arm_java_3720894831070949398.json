@@ -1,0 +1,80 @@
+{
+  "0": {
+    "block": {
+      "Name": "minecraft:moving_piston",
+      "Properties": {
+        "facing": "up",
+        "type": "sticky"
+      }
+    },
+    "tile": {
+      "blockState": {
+        "Name": "minecraft:sticky_piston",
+        "Properties": {
+          "extended": "false",
+          "facing": "up"
+        }
+      },
+      "extending": 0, // byte
+      "facing": 1, // int
+      "id": "minecraft:piston",
+      "keepPacked": 0, // byte
+      "progress": 0, // float
+      "source": 1, // byte
+      "x": 0, // int
+      "y": 0, // int
+      "z": 0 // int
+    }
+  },
+  "1": {
+    "block": {
+      "Name": "minecraft:moving_piston",
+      "Properties": {
+        "facing": "up",
+        "type": "normal"
+      }
+    },
+    "tile": {
+      "blockState": {
+        "Name": "minecraft:slime_block"
+      },
+      "extending": 0, // byte
+      "facing": 1, // int
+      "id": "minecraft:piston",
+      "keepPacked": 0, // byte
+      "progress": 0, // float
+      "source": 0, // byte
+      "x": 0, // int
+      "y": 1, // int
+      "z": 0 // int
+    }
+  },
+  "2": {
+    "block": {
+      "Name": "minecraft:moving_piston",
+      "Properties": {
+        "facing": "up",
+        "type": "normal"
+      }
+    },
+    "tile": {
+      "blockState": {
+        "Name": "minecraft:stone"
+      },
+      "extending": 0, // byte
+      "facing": 1, // int
+      "id": "minecraft:piston",
+      "keepPacked": 0, // byte
+      "progress": 0, // float
+      "source": 0, // byte
+      "x": 0, // int
+      "y": 2, // int
+      "z": 0 // int
+    }
+  },
+  "3": {
+    "block": {
+      "Name": "minecraft:air"
+    }
+  }
+}
