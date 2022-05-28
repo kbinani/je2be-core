@@ -1,0 +1,95 @@
+{
+  "0": {
+    "block": {
+      "name": "minecraft:sticky_piston",
+      "states": {
+        "facing_direction": 1 // int
+      },
+      "version": 17959425 // int
+    },
+    "tile": {
+      "AttachedBlocks": [
+        0, // int
+        2, // int
+        0, // int
+        0, // int
+        3, // int
+        0 // int
+      ],
+      "BreakBlocks": [], // list
+      "LastProgress": 1, // float
+      "NewState": 3, // byte
+      "Progress": 0.5, // float
+      "State": 3, // byte
+      "Sticky": 1, // byte
+      "id": "PistonArm",
+      "isMovable": 0, // byte
+      "x": 0, // int
+      "y": 0, // int
+      "z": 0 // int
+    }
+  },
+  "1": {
+    "block": {
+      "name": "minecraft:moving_block",
+      "states": {},
+      "version": 17959425 // int
+    },
+    "tile": {
+      "id": "MovingBlock",
+      "isMovable": 1, // byte
+      "movingBlock": {
+        "name": "minecraft:slime",
+        "states": {},
+        "version": 17959425 // int
+      },
+      "movingBlockExtra": {
+        "name": "minecraft:air",
+        "states": {},
+        "version": 17959425 // int
+      },
+      "pistonPosX": 0, // int
+      "pistonPosY": 0, // int
+      "pistonPosZ": 0, // int
+      "x": 0, // int
+      "y": 1, // int
+      "z": 0 // int
+    }
+  },
+  "2": {
+    "block": {
+      "name": "minecraft:moving_block",
+      "states": {},
+      "version": 17959425 // int
+    },
+    "tile": {
+      "id": "MovingBlock",
+      "isMovable": 1, // byte
+      "movingBlock": {
+        "name": "minecraft:stone",
+        "states": {
+          "stone_type": "stone"
+        },
+        "version": 17959425 // int
+      },
+      "movingBlockExtra": {
+        "name": "minecraft:air",
+        "states": {},
+        "version": 17959425 // int
+      },
+      "pistonPosX": 0, // int
+      "pistonPosY": 0, // int
+      "pistonPosZ": 0, // int
+      "x": 0, // int
+      "y": 2, // int
+      "z": 0 // int
+    }
+  },
+  "3": {
+    "block": {
+      "name": "minecraft:air",
+      "states": {},
+      "version": 17959425 // int
+    }
+  }
+}

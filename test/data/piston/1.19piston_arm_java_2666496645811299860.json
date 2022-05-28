@@ -1,0 +1,31 @@
+{
+  "0": {
+    "block": {
+      "Name": "minecraft:sticky_piston",
+      "Properties": {
+        "extended": "true",
+        "facing": "up"
+      }
+    }
+  },
+  "1": {
+    "block": {
+      "Name": "minecraft:piston_head",
+      "Properties": {
+        "facing": "up",
+        "short": "false",
+        "type": "sticky"
+      }
+    }
+  },
+  "2": {
+    "block": {
+      "Name": "minecraft:slime_block"
+    }
+  },
+  "3": {
+    "block": {
+      "Name": "minecraft:stone"
+    }
+  }
+}

@@ -1,8 +1,7 @@
 #pragma once
 
-static optional<wstring> GetLocalApplicationDirectory() {
+static optional<wstring> GetSpecialDirectory(int csidType) {
 #if __has_include(<shlobj_core.h>)
-  int csidType = CSIDL_LOCAL_APPDATA;
   wchar_t path[MAX_PATH + 256];
 
   if (SHGetSpecialFolderPathW(nullptr, path, csidType, FALSE)) {
@@ -12,12 +11,32 @@ static optional<wstring> GetLocalApplicationDirectory() {
   return nullopt;
 }
 
-static optional<fs::path> GetWorldDirectory(string const &name) {
+static optional<wstring> GetLocalApplicationDirectory() {
+  return GetSpecialDirectory(CSIDL_LOCAL_APPDATA);
+}
+
+static optional<fs::path> BedrockWorldDirectory(string const &name) {
   auto appDir = GetLocalApplicationDirectory(); // X:/Users/whoami/AppData/Local
   if (!appDir) {
     return nullopt;
   }
   return fs::path(*appDir) / L"Packages" / L"Microsoft.MinecraftUWP_8wekyb3d8bbwe" / L"LocalState" / L"games" / L"com.mojang" / L"minecraftWorlds" / name / L"db";
+}
+
+static optional<fs::path> BedrockPreviewWorldDirectory(string const &name) {
+  auto appDir = GetLocalApplicationDirectory(); // X:/Users/whoami/AppData/Local
+  if (!appDir) {
+    return nullopt;
+  }
+  return fs::path(*appDir) / L"Packages" / L"Microsoft.MinecraftWindowsBeta_8wekyb3d8bbwe" / L"LocalState" / L"games" / L"com.mojang" / L"minecraftWorlds" / name / L"db";
+}
+
+static optional<fs::path> JavaSavesDirectory() {
+  if (auto appData = GetSpecialDirectory(CSIDL_APPDATA); appData) {
+    return fs::path(*appData) / ".minecraft" / "saves";
+  } else {
+    return nullopt;
+  }
 }
 
 static leveldb::DB *OpenF(fs::path p) {
@@ -34,7 +53,7 @@ static leveldb::DB *OpenF(fs::path p) {
 
 static leveldb::DB *Open(string const &name) {
   using namespace leveldb;
-  auto dir = GetWorldDirectory(name);
+  auto dir = BedrockWorldDirectory(name);
   if (!dir) {
     return nullptr;
   }
@@ -710,8 +729,71 @@ static void WallConnectable() {
   code << endl;
 }
 
+static void PistonArm() {
+  {
+    auto db = OpenF(*BedrockPreviewWorldDirectory("1.19piston_arm"));
+    auto chunk = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, db, mcfile::Endian::Little);
+    auto root = Compound();
+    for (int y = 0; y < 4; y++) {
+      auto t = Compound();
+
+      auto block = chunk->blockAt(0, y, 0);
+      t->set("block", block->toCompoundTag());
+
+      auto tile = chunk->blockEntityAt(0, y, 0);
+      if (tile) {
+        t->set("tile", tile->clone());
+      }
+
+      root->set(to_string(y), t);
+    }
+    ostringstream ss;
+    mcfile::nbt::PrintAsJson(ss, *root, {.fTypeHint = true});
+    auto s = ss.str();
+    int64_t digest = XXHash::Digest(s.c_str(), s.size());
+    fs::path out = fs::path("1.19piston_arm_bedrock_" + to_string(digest) + ".json");
+    if (fs::exists(out)) {
+      cout << out << " already exists" << endl;
+    } else {
+      ofstream fout(out.string().c_str());
+      fout << s;
+      cout << out << " written" << endl;
+    }
+  }
+  {
+    auto world = mcfile::je::World(*JavaSavesDirectory() / "1.19piston_arm");
+    auto chunk = world.chunkAt(0, 0);
+    auto root = Compound();
+    for (int y = 0; y < 4; y++) {
+      auto t = Compound();
+
+      auto block = chunk->blockAt(0, y, 0);
+      t->set("block", block->toCompoundTag());
+
+      auto tile = chunk->tileEntityAt(0, y, 0);
+      if (tile) {
+        t->set("tile", tile->clone());
+      }
+
+      root->set(to_string(y), t);
+    }
+    ostringstream ss;
+    mcfile::nbt::PrintAsJson(ss, *root, {.fTypeHint = true});
+    auto s = ss.str();
+    int64_t digest = XXHash::Digest(s.c_str(), s.size());
+    fs::path out = fs::path("1.19piston_arm_java_" + to_string(digest) + ".json");
+    if (fs::exists(out)) {
+      cout << out << " already exists" << endl;
+    } else {
+      ofstream fout(out.string().c_str());
+      fout << s;
+      cout << out << " written" << endl;
+    }
+  }
+}
+
 #if 0
 TEST_CASE("research") {
-  WallConnectable();
+  PistonArm();
 }
 #endif
