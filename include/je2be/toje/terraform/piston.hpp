@@ -43,13 +43,24 @@ public:
           if ((blockB->fName == "minecraft:piston" || blockB->fName == "minecraft:sticky_piston") && blockEntity) {
             // Block
             auto state = blockEntity->byte("State");
-            props["extended"] = ToString(state == 2);
-            auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
-            chunkJ.setBlockAt(x, y, z, replace, sbo);
+            int facingDirectionB = blockB->fStates->int32("facing_direction", 0);
+            Facing6 f6 = Facing6FromBedrockFacingDirectionB(facingDirectionB);
+            bool sticky = blockB->fName == "minecraft:sticky_piston";
+
+            if (state == 3) {
+              props.clear();
+              props["facing"] = JavaNameFromFacing6(f6);
+              props["type"] = sticky ? "sticky" : "normal";
+              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston", props);
+              chunkJ.setBlockAt(x, y, z, replace, sbo);
+            } else {
+              props["extended"] = ToString(state == 1 || state == 2);
+              auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+              chunkJ.setBlockAt(x, y, z, replace, sbo);
+            }
 
             // Tile entity
             if (state == 3) {
-              int facingDirectionB = blockB->fStates->int32("facing_direction", 0);
               bool extending = false;
 
               auto tileEntityJ = Compound();
@@ -65,7 +76,7 @@ public:
 
               map<string, string> blockStateProps;
               blockStateProps["extended"] = ToString(extending);
-              blockStateProps["facing"] = JavaNameFromFacing6(Facing6FromBedrockFacingDirectionB(facingDirectionB));
+              blockStateProps["facing"] = JavaNameFromFacing6(f6);
               auto blockState = make_shared<mcfile::je::Block const>(blockB->fName, blockStateProps);
 
               tileEntityJ->set("blockState", blockState->toCompoundTag());
@@ -81,9 +92,7 @@ public:
               int facingDirectionB = piston->fBlock->fStates->int32("facing_direction", 0);
               Facing6 pistonFacing = Facing6FromBedrockFacingDirectionB(facingDirectionB);
               props["facing"] = JavaNameFromFacing6(pistonFacing);
-
-              bool sticky = piston->fBlock->fName == "minecraft:sticky_piston";
-              props["type"] = sticky ? "sticky" : "normal";
+              props["type"] = "normal"; // Always "normal"
 
               auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston", props);
               chunkJ.setBlockAt(x, y, z, replace, sbo);
@@ -98,7 +107,7 @@ public:
               tileEntityJ->set("y", Int(y));
               tileEntityJ->set("z", Int(z));
               tileEntityJ->set("extending", Bool(extending));
-              tileEntityJ->set("progress", Float(0));
+              tileEntityJ->set("progress", Float(state == 3 ? 0 : 0.5));
               tileEntityJ->set("facing", Int(facingDirectionB));
               tileEntityJ->set("source", Bool(false));
 
@@ -135,10 +144,18 @@ public:
                 tileEntityJ->set("x", Int(x));
                 tileEntityJ->set("y", Int(y));
                 tileEntityJ->set("z", Int(z));
-                tileEntityJ->set("progress", Float(0));
+                tileEntityJ->set("progress", Float(0.5));
                 tileEntityJ->set("facing", Int(facingDirectionB));
                 tileEntityJ->set("source", Bool(true));
-                tileEntityJ->set("extending", Bool(false));
+                tileEntityJ->set("extending", Bool(true));
+
+                map<string, string> pistonHeadProps;
+                pistonHeadProps["facing"] = JavaNameFromFacing6(f6);
+                pistonHeadProps["short"] = "false";
+                pistonHeadProps["type"] = sticky ? "sticky" : "normal";
+                auto pistonHead = make_shared<mcfile::je::Block const>("minecraft:piston_head", pistonHeadProps);
+                tileEntityJ->set("blockState", pistonHead->toCompoundTag());
+
                 chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
               }
             }
@@ -149,7 +166,7 @@ public:
   }
 
   static std::shared_ptr<mcfile::je::Block const> MovingBlock(CompoundTag const &blockEntity) {
-    auto movingBlock = blockEntity.compoundTag("MovingBlock");
+    auto movingBlock = blockEntity.compoundTag("movingBlock");
     if (!movingBlock) {
       return nullptr;
     }
