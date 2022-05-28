@@ -17,11 +17,13 @@ using namespace mcfile;
 using namespace je2be;
 namespace fs = std::filesystem;
 
+// clang-format off
+
 #include "block-data.test.hpp"
 #include "command.test.hpp"
 #include "j2b2j.test.hpp"
-#include "moving-piston.test.hpp"
 #include "research.hpp"
+#include "moving-piston.test.hpp"
 #include "shoulder-riders.test.hpp"
 #include "uuid.test.hpp"
 #include "volume.test.hpp"
