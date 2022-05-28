@@ -86,7 +86,7 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
       } else {
         CHECK(actualTile != nullptr);
         if (actualTile) {
-          CheckTag::Check(expectedTile.get(), actualTile.get());
+          DiffCompoundTag(*expectedTile, *actualTile);
         }
       }
     }
@@ -118,7 +118,7 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
       } else {
         CHECK(actualTile != nullptr);
         if (actualTile) {
-          CheckTag::Check(expectedTile.get(), actualTile.get());
+          DiffCompoundTag(*expectedTile, *actualTile);
         }
       }
     }
