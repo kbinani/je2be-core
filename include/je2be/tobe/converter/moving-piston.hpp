@@ -202,23 +202,7 @@ private:
     if (!blockState) {
       return nullptr;
     }
-    auto name = blockState->string("Name");
-    if (!name) {
-      return nullptr;
-    }
-    auto properties = blockState->compoundTag("Properties");
-    map<string, string> props;
-    if (properties) {
-      for (auto p : properties->fValue) {
-        string key = p.first;
-        StringTag const *s = p.second->asString();
-        if (s == nullptr) {
-          continue;
-        }
-        props[key] = s->fValue;
-      }
-    }
-    auto block = make_shared<Block const>(*name, props);
+    auto block = Block::FromCompoundTag(*blockState);
     auto movingBlock = BlockData::From(block);
     if (!movingBlock) {
       return nullptr;
