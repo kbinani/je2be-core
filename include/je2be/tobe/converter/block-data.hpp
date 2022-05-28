@@ -7,7 +7,9 @@ public:
   static CompoundTagPtr From(std::shared_ptr<mcfile::je::Block const> const &block) {
     using namespace std;
     static unique_ptr<vector<AnyConverter> const> const table(CreateConverterTable());
-
+    if (!block) {
+      return Air();
+    }
     uint32_t index = static_cast<uint32_t>(block->fId);
     if (index < table->size()) {
       AnyConverter func = (*table)[index];
@@ -22,8 +24,6 @@ public:
       return PistonArmCollision(*block);
     } else if (block->fName == "minecraft:flowing_water" || block->fName == "minecraft:flowing_lava") {
       return FlowingLiquid(*block);
-    } else if (block->fName == "minecraft:sticky_piston_head") {
-      return Air();
     } else {
       return Identity(*block);
     }
