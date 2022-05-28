@@ -59,9 +59,9 @@ public:
               }
               pistonArm->set("AttachedBlocks", attachedBlocksTag);
               pistonArm->set("BreakBlocks", List<Tag::Type::Int>());
-              pistonArm->set("LastProgress", Float(0));
+              pistonArm->set("LastProgress", Float(0.5));
               pistonArm->set("NewState", Byte(1));
-              pistonArm->set("Progress", Float(0.5));
+              pistonArm->set("Progress", Float(1));
               pistonArm->set("State", Byte(1));
               pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
               pistonArm->set("id", String("j2b:PistonArm"));
@@ -84,7 +84,7 @@ public:
               pistonArm->set("State", Byte(extended ? 2 : 0));
               pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
               pistonArm->set("id", String("j2b:PistonArm"));
-              pistonArm->set("isMovable", Bool(false));
+              pistonArm->set("isMovable", Bool(extended ? false : true));
               pistonArm->set("x", Int(pos.fX));
               pistonArm->set("y", Int(pos.fY));
               pistonArm->set("z", Int(pos.fZ));
@@ -128,7 +128,8 @@ public:
 
           map<string, string> props;
           props["facing_direction"] = to_string(*facing);
-          string name = block->fName == "minecraft:sticky_piston" ? "j2b:sticky_piston_arm_collision" : "j2b:piston_arm_collision";
+          assert(block->fName == "minecraft:moving_piston");
+          string name = block->property("type") == "sticky" ? "j2b:sticky_piston_arm_collision" : "j2b:piston_arm_collision";
           auto newBlock = make_shared<Block>(name, props);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
@@ -148,18 +149,20 @@ public:
           unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
           LookupAttachedBlocks(loader, pos, *extending, *facing, attachedBlocks);
 
+          Pos3i vec = VectorOfFacing(*facing);
+
           auto pistonArm = Compound();
           auto attachedBlocksTag = List<Tag::Type::Int>();
           for (auto attachedBlock : attachedBlocks) {
-            attachedBlocksTag->push_back(Int(attachedBlock.fX));
-            attachedBlocksTag->push_back(Int(attachedBlock.fY));
-            attachedBlocksTag->push_back(Int(attachedBlock.fZ));
+            attachedBlocksTag->push_back(Int(attachedBlock.fX + vec.fX));
+            attachedBlocksTag->push_back(Int(attachedBlock.fY + vec.fY));
+            attachedBlocksTag->push_back(Int(attachedBlock.fZ + vec.fZ));
           }
           pistonArm->set("AttachedBlocks", attachedBlocksTag);
           pistonArm->set("BreakBlocks", List<Tag::Type::Int>());
-          pistonArm->set("LastProgress", Float(0.5));
+          pistonArm->set("LastProgress", Float(1));
           pistonArm->set("NewState", Byte(3));
-          pistonArm->set("Progress", Float(0));
+          pistonArm->set("Progress", Float(0.5));
           pistonArm->set("State", Byte(3));
           pistonArm->set("Sticky", Bool(sticky));
           pistonArm->set("id", String("j2b:PistonArm"));
