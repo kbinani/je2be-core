@@ -49,6 +49,43 @@ static void CheckBedrockBlock(mcfile::be::Block const &a, mcfile::be::Block cons
   CHECK(as.str() == bs.str());
 }
 
+static void DrainAttachedBlocks(CompoundTag &tag, unordered_set<Pos3i, Pos3iHasher> &buffer) {
+  auto blocks = tag.listTag("AttachedBlocks");
+  if (!blocks) {
+    return;
+  }
+  REQUIRE(blocks->size() % 3 == 0);
+  for (int i = 0; i < blocks->size(); i += 3) {
+    auto x = blocks->at(i)->asInt();
+    auto y = blocks->at(i + 1)->asInt();
+    auto z = blocks->at(i + 2)->asInt();
+    REQUIRE(x);
+    REQUIRE(y);
+    REQUIRE(z);
+    Pos3i pos(x->fValue, y->fValue, z->fValue);
+    buffer.insert(pos);
+  }
+  tag.erase("AttachedBlocks");
+}
+
+static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const &a) {
+  auto copyE = e.copy();
+  auto copyA = a.copy();
+
+  unordered_set<Pos3i, Pos3iHasher> attachedBlocksE;
+  unordered_set<Pos3i, Pos3iHasher> attachedBlocksA;
+  DrainAttachedBlocks(*copyE, attachedBlocksE);
+  DrainAttachedBlocks(*copyA, attachedBlocksA);
+  DiffCompoundTag(*copyE, *copyA);
+  CHECK(attachedBlocksE.size() == attachedBlocksA.size());
+  if (attachedBlocksE.size() != attachedBlocksA.size()) {
+    return;
+  }
+  for (Pos3i const &pos : attachedBlocksE) {
+    CHECK(attachedBlocksA.find(pos) != attachedBlocksA.end());
+  }
+}
+
 static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
   auto javaReferenceDir = File::CreateTempDir(fs::temp_directory_path());
   REQUIRE(javaReferenceDir);
@@ -86,7 +123,7 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
       } else {
         CHECK(actualTile != nullptr);
         if (actualTile) {
-          DiffCompoundTag(*expectedTile, *actualTile);
+          CheckMovingPistonTileEntity(*expectedTile, *actualTile);
         }
       }
     }
