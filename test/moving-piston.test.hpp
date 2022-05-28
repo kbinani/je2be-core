@@ -1,336 +1,158 @@
 #pragma once
 
-static tuple<shared_ptr<mcfile::je::Chunk>, shared_ptr<mcfile::je::Region>> Load(string type) {
-  fs::path thisFile(__FILE__);
-  mcfile::je::World world(thisFile.parent_path() / "data" / "piston" / type);
-  auto region = world.region(0, 0);
-  auto chunk = region->chunkAt(0, 0);
-  return make_pair(chunk, region);
+static std::optional<fs::path> JavaToBedrock(fs::path const &java) {
+  auto output = File::CreateTempDir(fs::temp_directory_path());
+  if (!output) {
+    return nullopt;
+  }
+  je2be::tobe::Options o;
+  o.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+  o.fChunkFilter.insert(Pos2i(0, 0));
+  je2be::tobe::Converter converter(java, *output, o);
+  if (!converter.run(thread::hardware_concurrency())) {
+    return nullopt;
+  }
+  return *output;
 }
 
-struct ExpectedBlock {
-  string name;
-  map<string, string> states;
-  int version;
-};
+static std::optional<fs::path> BedrockToJava(fs::path const &bedrock) {
+  auto output = File::CreateTempDir(fs::temp_directory_path());
+  if (!output) {
+    return nullopt;
+  }
+  je2be::toje::Options o;
+  o.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+  o.fChunkFilter.insert(Pos2i(0, 0));
+  je2be::toje::Converter converter(bedrock, *output, o);
+  if (auto st = converter.run(thread::hardware_concurrency()); !st.ok()) {
+    return nullopt;
+  }
+  return *output;
+}
 
-struct ExpectedMovingBlock {
-  string id;
-  bool isMovable;
-  ExpectedBlock movingBlock;
-  ExpectedBlock movingBlockExtra;
-  int pistonPosX;
-  int pistonPosY;
-  int pistonPosZ;
-  int x;
-  int y;
-  int z;
-};
-
-static void CheckStringStringMap(shared_ptr<CompoundTag const> const &tag, map<string, string> expected) {
-  CHECK(tag);
-  if (!tag) {
+static void CheckBedrockBlock(mcfile::be::Block const &a, mcfile::be::Block const &b) {
+  CHECK(a.fName == b.fName);
+  CHECK(a.fVersion == b.fVersion);
+  bool aEmpty = a.fStates ? a.fStates->empty() : true;
+  bool bEmpty = b.fStates ? b.fStates->empty() : true;
+  CHECK(aEmpty == bEmpty);
+  if (aEmpty != bEmpty) {
     return;
   }
-  CHECK(tag->fValue.size() == expected.size());
-  for (auto it : expected) {
-    auto found = tag->find(it.first);
-    CHECK(found != tag->end());
-    CHECK(it.second == found->second->asString()->fValue);
+  if (aEmpty) {
+    return;
   }
+  ostringstream as;
+  mcfile::nbt::PrintAsJson(as, *a.fStates, {.fTypeHint = true});
+  ostringstream bs;
+  mcfile::nbt::PrintAsJson(bs, *b.fStates, {.fTypeHint = true});
+  CHECK(as.str() == bs.str());
 }
 
-static void CheckBlock(shared_ptr<CompoundTag const> const &tag, ExpectedBlock expected) {
-  CHECK(tag->string("name") == expected.name);
-  CheckStringStringMap(tag->compoundTag("states"), expected.states);
-  CHECK(tag->int32("version") == expected.version);
-}
+static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
+  auto javaReferenceDir = File::CreateTempDir(fs::temp_directory_path());
+  REQUIRE(javaReferenceDir);
+  REQUIRE(ZipFile::Unzip(java, *javaReferenceDir));
 
-static void CheckMovingBlock(shared_ptr<CompoundTag const> const &actual, ExpectedMovingBlock expected) {
-  CHECK(actual->string("id") == expected.id);
-  CHECK(actual->boolean("isMovable") == expected.isMovable);
-  CheckBlock(actual->compoundTag("movingBlock"), expected.movingBlock);
-  CheckBlock(actual->compoundTag("movingBlockExtra"), expected.movingBlockExtra);
-  CHECK(actual->int32("pistonPosX") == expected.pistonPosX);
-  CHECK(actual->int32("pistonPosY") == expected.pistonPosY);
-  CHECK(actual->int32("pistonPosZ") == expected.pistonPosZ);
-  CHECK(actual->int32("x") == expected.x);
-  CHECK(actual->int32("y") == expected.y);
-  CHECK(actual->int32("z") == expected.z);
-}
+  auto bedrockReferenceDir = File::CreateTempDir(fs::temp_directory_path());
+  REQUIRE(bedrockReferenceDir);
+  REQUIRE(ZipFile::Unzip(bedrock, *bedrockReferenceDir));
 
-struct ExpectedPistonArm {
-  unordered_set<Pos3i, Pos3iHasher> AttachedBlocks;
-  unordered_set<Pos3i, Pos3iHasher> BreakBlocks;
-  float LastProgress;
-  uint8_t NewState;
-  float Progress;
-  uint8_t State;
-  bool Sticky;
-  string id;
-  bool isMovable;
-  int x;
-  int y;
-  int z;
-};
+  { // Java to Bedrock
+    auto output = JavaToBedrock(*javaReferenceDir);
+    REQUIRE(output);
 
-static void CheckPos3Set(shared_ptr<ListTag const> const &actual, unordered_set<Pos3i, Pos3iHasher> expected) {
-  CHECK(actual->fValue.size() % 3 == 0);
-  unordered_set<Pos3i, Pos3iHasher> actualBlocks;
-  for (int i = 0; i < actual->fValue.size(); i += 3) {
-    int x = actual->fValue[i]->asInt()->fValue;
-    int y = actual->fValue[i + 1]->asInt()->fValue;
-    int z = actual->fValue[i + 2]->asInt()->fValue;
-    actualBlocks.insert(Pos3i(x, y, z));
+    unique_ptr<leveldb::DB> actualDb(OpenF(*output / "db"));
+    REQUIRE(actualDb);
+    unique_ptr<leveldb::DB> expectedDb(OpenF(*bedrockReferenceDir / "db"));
+    REQUIRE(expectedDb);
+
+    auto actual = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, actualDb.get(), mcfile::Endian::Little);
+    REQUIRE(actual);
+    auto expected = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, expectedDb.get(), mcfile::Endian::Little);
+    REQUIRE(expected);
+
+    for (int y = 0; y < 4; y++) {
+      auto actualBlock = actual->blockAt(0, y, 0);
+      auto expectedBlock = expected->blockAt(0, y, 0);
+      REQUIRE(actualBlock);
+      REQUIRE(expectedBlock);
+      CheckBedrockBlock(*expectedBlock, *actualBlock);
+
+      auto actualTile = actual->blockEntityAt(0, y, 0);
+      auto expectedTile = expected->blockEntityAt(0, y, 0);
+      if (expectedTile == nullptr) {
+        CHECK(actualTile == nullptr);
+      } else {
+        CHECK(actualTile != nullptr);
+        if (actualTile) {
+          CheckTag::Check(expectedTile.get(), actualTile.get());
+        }
+      }
+    }
   }
-  CHECK(actualBlocks.size() == expected.size());
-  for (Pos3i e : expected) {
-    CHECK(actualBlocks.find(e) != actualBlocks.end());
-  }
-}
 
-static void CheckPistonArm(shared_ptr<CompoundTag const> const &actual, ExpectedPistonArm expected) {
-  CheckPos3Set(actual->listTag("AttachedBlocks"), expected.AttachedBlocks);
-  CheckPos3Set(actual->listTag("BreakBlocks"), expected.BreakBlocks);
-  CHECK(actual->float32("LastProgress") == expected.LastProgress);
-  CHECK(actual->byte("NewState") == expected.NewState);
-  CHECK(actual->float32("Progress") == expected.Progress);
-  CHECK(actual->byte("State") == expected.State);
-  CHECK(actual->boolean("Sticky") == expected.Sticky);
-  CHECK(actual->string("id") == expected.id);
-  CHECK(actual->boolean("isMovable") == expected.isMovable);
-  CHECK(actual->int32("x") == expected.x);
-  CHECK(actual->int32("y") == expected.y);
-  CHECK(actual->int32("z") == expected.z);
+  { // Bedrock to Java
+    auto output = BedrockToJava(*bedrockReferenceDir);
+    REQUIRE(output);
+
+    mcfile::je::World actualWorld(*output);
+    mcfile::je::World expectedWorld(*javaReferenceDir);
+
+    auto actual = actualWorld.chunkAt(0, 0);
+    REQUIRE(actual);
+    auto expected = expectedWorld.chunkAt(0, 0);
+    REQUIRE(expected);
+
+    for (int y = 0; y < 4; y++) {
+      auto actualBlock = actual->blockAt(0, y, 0);
+      auto expectedBlock = expected->blockAt(0, y, 0);
+      REQUIRE(actualBlock);
+      REQUIRE(expectedBlock);
+      CheckBlock(expectedBlock, actualBlock, mcfile::Dimension::Overworld, 0, y, 0);
+
+      auto actualTile = actual->tileEntityAt(0, y, 0);
+      auto expectedTile = expected->tileEntityAt(0, y, 0);
+      if (expectedTile == nullptr) {
+        CHECK(actualTile == nullptr);
+      } else {
+        CHECK(actualTile != nullptr);
+        if (actualTile) {
+          CheckTag::Check(expectedTile.get(), actualTile.get());
+        }
+      }
+    }
+  }
+
+  fs::remove_all(*javaReferenceDir);
+  fs::remove_all(*bedrockReferenceDir);
 }
 
 TEST_CASE("moving-piston") {
-  SUBCASE("extending=0") {
-    auto [chunk, region] = Load("extending=0");
-    mcfile::je::CachedChunkLoader loader(*region);
-    loader.addToCache(chunk);
-    tobe::MovingPiston::PreprocessChunk(loader, *chunk);
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 5, 8)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = true,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:stone",
-                                                                 .states = {
-                                                                     {"stone_type", "stone"},
-                                                                 },
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 14,
-                                                             .y = 5,
-                                                             .z = 8});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(15, 6, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:wool",
-                                                                 .states = {
-                                                                     {"color", "blue"}},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 15,
-                                                             .y = 6,
-                                                             .z = 9});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 5, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:slime",
-                                                                 .states = {},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 14,
-                                                             .y = 5,
-                                                             .z = 9});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(15, 5, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:slime",
-                                                                 .states = {},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 15,
-                                                             .y = 5,
-                                                             .z = 9});
-    CheckPistonArm(chunk->fTileEntities[Pos3i(14, 4, 9)], {.AttachedBlocks = {
-                                                               {
-                                                                   14,
-                                                                   5,
-                                                                   9,
-                                                               },
-                                                               {14, 5, 8},
-                                                               {16, 5, 8},
-                                                               {14, 5, 10},
-                                                               {15, 5, 9},
-                                                               {15, 6, 9},
-                                                               {16, 5, 9},
-                                                               {16, 5, 10},
-                                                               {17, 5, 9}},
-                                                           .BreakBlocks = {},
-                                                           .LastProgress = 0.5,
-                                                           .NewState = 3,
-                                                           .Progress = 0,
-                                                           .State = 3,
-                                                           .Sticky = true,
-                                                           .id = "j2b:PistonArm",
-                                                           .isMovable = 0,
-                                                           .x = 14,
-                                                           .y = 4,
-                                                           .z = 9});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 5, 10)], {.id = "j2b:MovingBlock",
-                                                              .isMovable = 1,
-                                                              .movingBlock = {
-                                                                  .name = "minecraft:cobblestone",
-                                                                  .states = {},
-                                                                  .version = tobe::kBlockDataVersion},
-                                                              .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                              .pistonPosX = 14,
-                                                              .pistonPosY = 4,
-                                                              .pistonPosZ = 9,
-                                                              .x = 14,
-                                                              .y = 5,
-                                                              .z = 10});
+  fs::path const thisFile(__FILE__);
+  fs::path const dataDirectory = thisFile.parent_path() / "data" / "piston";
+
+  SUBCASE("state=0") {
+    string bedrock = "1.19piston_arm_bedrock_-8076300039614213879.mcworld";
+    string java = "1.19piston_arm_java_-8541049737591066119.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 
-  SUBCASE("extending=1") {
-    auto [chunk, region] = Load("extending=1");
-    mcfile::je::CachedChunkLoader loader(*region);
-    loader.addToCache(chunk);
-    tobe::MovingPiston::PreprocessChunk(loader, *chunk);
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 8)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:stone",
-                                                                 .states = {
-                                                                     {"stone_type", "stone"}},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 14,
-                                                             .y = 6,
-                                                             .z = 8});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:slime",
-                                                                 .states = {},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 14,
-                                                             .y = 6,
-                                                             .z = 9});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(15, 7, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:wool",
-                                                                 .states = {
-                                                                     {"color", "blue"}},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 15,
-                                                             .y = 7,
-                                                             .z = 9});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(15, 6, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:slime",
-                                                                 .states = {},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 15,
-                                                             .y = 6,
-                                                             .z = 9});
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 10)], {.id = "j2b:MovingBlock",
-                                                              .isMovable = 1,
-                                                              .movingBlock = {
-                                                                  .name = "minecraft:cobblestone",
-                                                                  .states = {},
-                                                                  .version = tobe::kBlockDataVersion},
-                                                              .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                              .pistonPosX = 14,
-                                                              .pistonPosY = 4,
-                                                              .pistonPosZ = 9,
-                                                              .x = 14,
-                                                              .y = 6,
-                                                              .z = 10});
-    CheckPistonArm(chunk->fTileEntities[Pos3i(14, 4, 9)], {.AttachedBlocks = {
-                                                               {15, 6, 9},
-                                                               {14, 5, 9},
-                                                               {14, 5, 8},
-                                                               {16, 5, 8},
-                                                               {14, 5, 10},
-                                                               {15, 5, 9},
-                                                               {16, 5, 9},
-                                                               {16, 5, 10},
-                                                               {17, 5, 9}},
-                                                           .BreakBlocks = {},
-                                                           .LastProgress = 0,
-                                                           .NewState = 1,
-                                                           .Progress = 0.5,
-                                                           .State = 1,
-                                                           .Sticky = true,
-                                                           .id = "j2b:PistonArm",
-                                                           .isMovable = 0,
-                                                           .x = 14,
-                                                           .y = 4,
-                                                           .z = 9});
+  SUBCASE("state=1") {
+    string bedrock = "1.19piston_arm_bedrock_6291263495557308048.mcworld";
+    string java = "1.19piston_arm_java_1094285069167139155.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 
-  SUBCASE("normal_extending=1") {
-    auto [chunk, region] = Load("normal_extending=1");
-    mcfile::je::CachedChunkLoader loader(*region);
-    loader.addToCache(chunk);
-    tobe::MovingPiston::PreprocessChunk(loader, *chunk);
-    CheckMovingBlock(chunk->fTileEntities[Pos3i(14, 6, 9)], {.id = "j2b:MovingBlock",
-                                                             .isMovable = 1,
-                                                             .movingBlock = {
-                                                                 .name = "minecraft:sand",
-                                                                 .states = {
-                                                                     {"sand_type", "normal"}},
-                                                                 .version = tobe::kBlockDataVersion},
-                                                             .movingBlockExtra = {.name = "minecraft:air", .states = {}, .version = tobe::kBlockDataVersion},
-                                                             .pistonPosX = 14,
-                                                             .pistonPosY = 4,
-                                                             .pistonPosZ = 9,
-                                                             .x = 14,
-                                                             .y = 6,
-                                                             .z = 9});
-    CheckPistonArm(chunk->fTileEntities[Pos3i(14, 4, 9)], {.AttachedBlocks = {
-                                                               {14, 5, 9}},
-                                                           .BreakBlocks = {},
-                                                           .LastProgress = 0,
-                                                           .NewState = 1,
-                                                           .Progress = 0.5,
-                                                           .State = 1,
-                                                           .Sticky = false,
-                                                           .id = "j2b:PistonArm",
-                                                           .isMovable = 0,
-                                                           .x = 14,
-                                                           .y = 4,
-                                                           .z = 9});
+  SUBCASE("state=2") {
+    string bedrock = "1.19piston_arm_bedrock_4449454955840640434.mcworld";
+    string java = "1.19piston_arm_java_2666496645811299860.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
+  }
+
+  SUBCASE("state=3") {
+    string bedrock = "1.19piston_arm_bedrock_1911327770476968939.mcworld";
+    string java = "1.19piston_arm_java_3720894831070949398.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 }
