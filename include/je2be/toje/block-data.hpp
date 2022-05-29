@@ -1147,6 +1147,15 @@ private:
     return Ns() + saplingType + "_sapling";
   }
 
+  static String SculkShrieker(String const &bName, CompoundTag const &s, Props &p) {
+    auto canSummon = s.boolean("can_summon", false);
+    auto active = s.boolean("active", false);
+    p["can_summon"] = Bool(canSummon);
+    p["shrieking"] = Bool(active);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String Seagrass(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("sea_grass_type", "default");
     std::string name;
@@ -2389,6 +2398,7 @@ private:
     E(mangrove_propagule, MangrovePropagule);
     E(mangrove_leaves, BlockWithPersistentFromPersistentBit);
     E(mangrove_roots, BlockWithSubmergible);
+    E(sculk_shrieker, SculkShrieker);
 #undef E
 
     return table;
