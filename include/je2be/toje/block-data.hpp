@@ -2388,7 +2388,7 @@ private:
     E(sculk_vein, BlockWithMultiFaceDirectionBitsSubmergible);
     E(mangrove_propagule, MangrovePropagule);
     E(mangrove_leaves, BlockWithPersistentFromPersistentBit);
-
+    E(mangrove_roots, BlockWithSubmergible);
 #undef E
 
     return table;
