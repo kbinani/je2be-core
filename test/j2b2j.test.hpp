@@ -326,6 +326,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("PickupDelay");
   } else if (id == "minecraft:trader_llama") {
     blacklist.insert("DespawnDelay"); // "TimeStamp" does not exist in BE.
+  } else if (id == "minecraft:frog") {
+    blacklist.insert("Brain/memories"); // long_jump_cooling_down
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
