@@ -857,6 +857,15 @@ private:
       AddDefinition(c, "+ram_default");
       AddDefinition(c, "+interact_default");
     }
+
+    int32_t hornCount = 0;
+    if (tag.boolean("HasLeftHorn", false)) {
+      hornCount++;
+    }
+    if (tag.boolean("HasRightHorn", false)) {
+      hornCount++;
+    }
+    c["GoatHornCount"] = Int(hornCount);
   }
 
   static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
