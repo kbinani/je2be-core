@@ -392,6 +392,15 @@ public:
     return "minecraft:firework_star";
   }
 
+  static std::string GoatHorn(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+    auto damage = itemB.int16("Damage", 0);
+    auto instrument = GoatHorn::JavaInstrumentFromBedrockDamage(damage);
+    auto tagJ = Compound();
+    tagJ->set("instrument", String(instrument));
+    itemJ["tag"] = tagJ;
+    return name;
+  }
+
   static std::string LegacyBannerPattern(std::string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     auto damage = itemB.int16("Damage", 0);
     std::string prefix;
@@ -853,7 +862,7 @@ public:
 
     // 1.19
     E(frog_spawn, Rename("frogspawn"));
-
+    E(goat_horn, GoatHorn);
 #undef E
     return ret;
   }
