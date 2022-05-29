@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  Linux:
+  linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
 
-  Windows:
+  windows:
     runs-on: windows-latest
 
     steps:
@@ -63,6 +63,31 @@ jobs:
           cmake --build . --parallel --target test --config Release --verbose || exit 4
           cd Release || exit 5
           cmd /c test.exe --duration=true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: cpp
+
+      - name: Build
+        run: |
+          mkdir -p ./build
+          cd ./build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --parallel --target test --config Release --verbose
+          ./test --duration=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
