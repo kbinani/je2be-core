@@ -507,6 +507,10 @@ public:
   static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     bool screamer = HasDefinition(b, "+goat_screamer") || HasDefinition(b, "+ram_screamer") || HasDefinition(b, "+interact_screamer");
     j["IsScreamingGoat"] = Bool(screamer);
+
+    auto hornCount = b.int32("GoatHornCount", 0);
+    j["HasRightHorn"] = Bool(hornCount == 2); // Goat loses right horn first in BE.
+    j["HasLeftHorn"] = Bool(hornCount > 0);
   }
 
   static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {

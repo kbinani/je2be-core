@@ -455,6 +455,16 @@ private:
     return AttachStates(d, s);
   }
 
+  static CompoundTagPtr SculkShrieker(Block const &b) {
+    auto d = New("sculk_shrieker");
+    auto s = States();
+    auto canSummon = b.property("can_summon") == "true";
+    auto shrieking = b.property("shrieking") == "true";
+    s->set("can_summon", Bool(canSummon));
+    s->set("active", Bool(shrieking));
+    return AttachStates(d, s);
+  }
+
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "up");
     int32_t direction = 1;
@@ -1577,6 +1587,7 @@ private:
     E(mangrove_propagule, MangrovePropagule);
     E(frogspawn, Rename("frog_spawn"));
     E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
+    E(sculk_shrieker, SculkShrieker);
 #undef E
 
     return table;
