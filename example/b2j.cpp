@@ -1,70 +1,44 @@
+#include <cxxopts.hpp>
 #include <je2be.hpp>
 
 #include <iostream>
 
-using namespace std;
-namespace fs = std::filesystem;
-
-static void PrintHelpMessage() {
-  std::cerr << "b2j -i [INPUT:directory] -o [OUTPUT:directory] [-n [NUM_THREADS:number]]" << std::endl;
-}
-
 int main(int argc, char *argv[]) {
-  string input;
-  string output;
-  int concurrency = thread::hardware_concurrency();
-
-  char opt = 0;
-  for (int i = 1; i < argc; i++) {
-    string arg = argv[i];
-    if (arg.empty()) {
-      continue;
-    }
-    if (arg[0] == '-' && arg.size() > 1) {
-      opt = arg[1];
-      if (opt == 'h') {
-        PrintHelpMessage();
-        return 0;
-      }
-    } else {
-      switch (opt) {
-      case 'i':
-        input = arg;
-        break;
-      case 'o':
-        output = arg;
-        break;
-      case 'n': {
-        auto n = je2be::strings::Toi(arg);
-        if (!n) {
-          cerr << "error: -n option must be an integer" << endl;
-          return -1;
-        }
-        concurrency = *n;
-        break;
-      }
-      default:
-        cerr << "error: unknown option" << endl;
-        PrintHelpMessage();
-        return -1;
-      }
-    }
-  }
-
-  if (input.empty()) {
-    cerr << "error: no input directory" << endl;
-    return -1;
-  }
-  if (output.empty()) {
-    cerr << "error: no output directory" << endl;
-    return -1;
-  }
-
+  using namespace std;
   using namespace je2be::toje;
+  namespace fs = std::filesystem;
 
-  fs::path i(input);
-  fs::path o(output);
+  cxxopts::Options parser("b2j");
+  parser.add_options()                                    //
+      ("i", "input directory", cxxopts::value<string>())  //
+      ("o", "output directory", cxxopts::value<string>()) //
+      ("n", "num threads", cxxopts::value<unsigned int>()->default_value(to_string(thread::hardware_concurrency())));
+  cxxopts::ParseResult result;
+  try {
+    result = parser.parse(argc, argv);
+  } catch (cxxopts::OptionException &e) {
+    cerr << e.what() << endl;
+    cerr << parser.help() << endl;
+    return -1;
+  }
+
+  string inputString = result["i"].as<string>();
+  fs::path input(inputString);
+  if (!fs::is_directory(input)) {
+    cerr << "error: input directory does not exist" << endl;
+    return -1;
+  }
+
+  string outputString = result["o"].as<string>();
+  if (outputString.empty()) {
+    cerr << "error: output directory not set" << endl;
+    return -1;
+  }
+  fs::path output(outputString);
+
+  unsigned int concurrency = result["n"].as<unsigned int>();
+
   Options options;
-  Converter converter(i, o, options);
+  Converter converter(input, output, options);
   return converter.run(concurrency).ok() ? 0 : -1;
 }

@@ -329,6 +329,8 @@ set(MZ_LIBBSD OFF)
 set(MZ_SIGNING OFF)
 add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
 
+add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
+
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
@@ -344,10 +346,10 @@ target_include_directories(je2be INTERFACE
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 
 add_executable(j2b example/j2b.cpp ${je2be_files})
-target_link_libraries(j2b je2be)
+target_link_libraries(j2b je2be cxxopts)
 
 add_executable(b2j example/b2j.cpp ${je2be_files})
-target_link_libraries(b2j je2be)
+target_link_libraries(b2j je2be cxxopts)
 
 add_executable(dump example/dump.cpp ${je2be_files})
 target_link_libraries(dump je2be)

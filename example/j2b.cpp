@@ -1,77 +1,60 @@
+#include <cxxopts.hpp>
 #include <je2be.hpp>
 
 #include <iostream>
 #include <string>
 #include <thread>
 
-static void PrintHelpMessage() {
-  std::cerr << "j2b -i [INPUT:directory] -o [OUTPUT:directory] [-n [NUM_THREADS:number]] [-s [DIRECTORY_STRUCTURE:\"vanilla\"|\"paper\"]]" << std::endl;
-}
-
 int main(int argc, char *argv[]) {
-  std::string input;
-  std::string output;
+  using namespace std;
+  using namespace je2be;
+  using namespace je2be::tobe;
+  namespace fs = std::filesystem;
+
+  cxxopts::Options parser("j2b");
+  parser.add_options()                                                                                               //
+      ("i", "input directory", cxxopts::value<string>())                                                             //
+      ("o", "output directory", cxxopts::value<string>())                                                            //
+      ("n", "num threads", cxxopts::value<unsigned int>()->default_value(to_string(thread::hardware_concurrency()))) //
+      ("s", "directory structure", cxxopts::value<string>()->default_value("vanilla"));
+  cxxopts::ParseResult result;
+  try {
+    result = parser.parse(argc, argv);
+  } catch (cxxopts::OptionException &e) {
+    cerr << e.what() << endl;
+    cerr << parser.help() << endl;
+    return -1;
+  }
+
+  string inputString = result["i"].as<string>();
+  fs::path input(inputString);
+  if (!fs::is_directory(input)) {
+    cerr << "error: input directory does not exist" << endl;
+    return -1;
+  }
+
+  string outputString = result["o"].as<string>();
+  if (outputString.empty()) {
+    cerr << "error: output directory not set" << endl;
+    return -1;
+  }
+  fs::path output(outputString);
+
   je2be::LevelDirectoryStructure structure = je2be::LevelDirectoryStructure::Vanilla;
-  int concurrency = std::thread::hardware_concurrency();
-
-  char opt = 0;
-  for (int i = 1; i < argc; i++) {
-    std::string arg = argv[i];
-    if (arg.empty()) {
-      continue;
-    }
-    if (arg[0] == '-' && arg.size() > 1) {
-      opt = arg[1];
-      if (opt == 'h') {
-        PrintHelpMessage();
-        return 0;
-      }
-    } else {
-      switch (opt) {
-      case 'i':
-        input = arg;
-        break;
-      case 'o':
-        output = arg;
-        break;
-      case 's':
-        if (arg == "vanilla") {
-          structure = je2be::LevelDirectoryStructure::Vanilla;
-        } else if (arg == "paper") {
-          structure = je2be::LevelDirectoryStructure::Paper;
-        } else {
-          std::cerr << "error: unknown LevelDirectoryStructure name; should be \"vanilla\" or \"paper\"" << std::endl;
-          return -1;
-        }
-        break;
-      case 'n': {
-        auto n = je2be::strings::Toi(arg);
-        if (!n) {
-          std::cerr << "error: -n option must be an integer" << std::endl;
-          return -1;
-        }
-        concurrency = *n;
-        break;
-      }
-      default:
-        std::cerr << "error: unknown option" << std::endl;
-        PrintHelpMessage();
-        return -1;
-      }
-    }
-  }
-
-  if (input.empty()) {
-    std::cerr << "error: no input directory" << std::endl;
-    return -1;
-  }
-  if (output.empty()) {
-    std::cerr << "error: no output directory" << std::endl;
+  string structureString = result["s"].as<string>();
+  if (structureString == "paper") {
+    structure = je2be::LevelDirectoryStructure::Paper;
+  } else if (structureString == "vanilla") {
+    structure = je2be::LevelDirectoryStructure::Vanilla;
+  } else {
+    cerr << "error: unknown LevelDirectoryStructure name; should be \"vanilla\" or \"paper\"" << endl;
     return -1;
   }
 
-  je2be::tobe::Options options;
+  unsigned int concurrency = result["n"].as<unsigned int>();
+
+  Options options;
   options.fLevelDirectoryStructure = structure;
-  je2be::tobe::Converter converter(std::filesystem::path(input), std::filesystem::path(output), options);
+  Converter converter(input, output, options);
   return converter.run(concurrency) ? 0 : -1;
 }
