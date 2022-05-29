@@ -12,7 +12,19 @@ static optional<wstring> GetSpecialDirectory(int csidType) {
 }
 
 static optional<wstring> GetLocalApplicationDirectory() {
+#if __has_include(<shlobj_core.h>)
   return GetSpecialDirectory(CSIDL_LOCAL_APPDATA);
+#else
+  return nullopt;
+#endif
+}
+
+static optional<wstring> GetApplicationDirectory() {
+#if __has_include(<shlobj_core.h>)
+  return GetSpecialDirectory(CSIDL_APPDATA);
+#else
+  return nullopt;
+#endif
 }
 
 static optional<fs::path> BedrockWorldDirectory(string const &name) {
@@ -32,7 +44,7 @@ static optional<fs::path> BedrockPreviewWorldDirectory(string const &name) {
 }
 
 static optional<fs::path> JavaSavesDirectory() {
-  if (auto appData = GetSpecialDirectory(CSIDL_APPDATA); appData) {
+  if (auto appData = GetApplicationDirectory(); appData) {
     return fs::path(*appData) / ".minecraft" / "saves";
   } else {
     return nullopt;
