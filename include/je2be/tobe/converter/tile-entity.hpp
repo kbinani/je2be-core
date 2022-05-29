@@ -1181,7 +1181,7 @@ private:
     return tag;
   }
 
-  [[deprecated]] static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
+  static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
     tag.set("x", Int(pos.fX));
     tag.set("y", Int(pos.fY));
     tag.set("z", Int(pos.fZ));

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - ci-20220530
 
 jobs:
   linux:
