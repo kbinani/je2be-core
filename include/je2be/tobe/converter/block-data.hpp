@@ -455,6 +455,14 @@ private:
     return AttachStates(d, s);
   }
 
+  static CompoundTagPtr SculkCatalyst(Block const &b) {
+    auto d = New("sculk_catalyst");
+    auto s = States();
+    auto bloom = b.property("bloom") == "true";
+    s->set("bloom", Bool(bloom));
+    return AttachStates(d, s);
+  }
+
   static CompoundTagPtr SculkShrieker(Block const &b) {
     auto d = New("sculk_shrieker");
     auto s = States();
@@ -1588,6 +1596,8 @@ private:
     E(frogspawn, Rename("frog_spawn"));
     E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
     E(sculk_shrieker, SculkShrieker);
+    E(mud_brick_wall, wall);
+    E(sculk_catalyst, SculkCatalyst);
 #undef E
 
     return table;

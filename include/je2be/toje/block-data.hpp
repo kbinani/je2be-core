@@ -1151,6 +1151,12 @@ private:
     return Ns() + saplingType + "_sapling";
   }
 
+  static String SculkCatalyst(String const &bName, CompoundTag const &s, Props &p) {
+    auto bloom = s.boolean("bloom", false);
+    p["bloom"] = Bool(bloom);
+    return bName;
+  }
+
   static String SculkShrieker(String const &bName, CompoundTag const &s, Props &p) {
     auto canSummon = s.boolean("can_summon", false);
     auto active = s.boolean("active", false);
@@ -2403,6 +2409,7 @@ private:
     E(mangrove_leaves, BlockWithPersistentFromPersistentBitSubmergible);
     E(mangrove_roots, BlockWithSubmergible);
     E(sculk_shrieker, SculkShrieker);
+    E(sculk_catalyst, SculkCatalyst);
 #undef E
 
     return table;
