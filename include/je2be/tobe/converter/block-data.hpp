@@ -1588,6 +1588,7 @@ private:
     E(frogspawn, Rename("frog_spawn"));
     E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
     E(sculk_shrieker, SculkShrieker);
+    E(mud_brick_wall, wall);
 #undef E
 
     return table;
