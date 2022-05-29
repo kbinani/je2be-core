@@ -867,11 +867,7 @@ private:
     int stage = s.int32("propagule_stage", 0);
     p["hanging"] = Bool(hanging);
     p["stage"] = Int(1);
-    if (hanging) {
-      p["age"] = Int(stage);
-    } else {
-      p["age"] = Int(4);
-    }
+    p["age"] = Int(stage);
     Submergible(s, p);
     return bName;
   }

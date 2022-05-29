@@ -444,14 +444,8 @@ private:
     auto s = States();
     int age = Wrap(strings::Toi(b.property("age", "0")), 0);
     bool hanging = b.property("hanging") == "true";
-    int stage = Wrap(strings::Toi(b.property("stage", "0")), 0);
-
     s->set("hanging", Bool(hanging));
-    if (hanging) {
-      s->set("propagule_stage", Int(age));
-    } else {
-      s->set("propagule_stage", Int(stage));
-    }
+    s->set("propagule_stage", Int(age));
     return AttachStates(d, s);
   }
 
