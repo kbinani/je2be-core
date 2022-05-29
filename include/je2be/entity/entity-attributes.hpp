@@ -292,6 +292,14 @@ private:
                                                     Attribute(0.02, 0.02),       // lava_movement
                                                     Attribute(2048, 2048, 2048), // follow_range
                                                     Attribute(30, 30, 30))));    // attack_damage
+    table->insert(make_pair("minecraft:allay", Attributes(
+                                                   Attribute(20, 20, 20),       // health(base, current, max)
+                                                   Attribute(0, 0, 1),          // knockback_resistance
+                                                   Attribute(0.1, 0.1),         // movement
+                                                   Attribute(0.02, 0.02),       // underwater_movement
+                                                   Attribute(0.02, 0.02),       // lava_movement
+                                                   Attribute(1024, 1024, 2048), // follow_range
+                                                   nullopt)));                  // attack_damage
 
     return table;
   }
