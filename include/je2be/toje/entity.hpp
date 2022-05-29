@@ -1764,9 +1764,9 @@ public:
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
 
-    E(frog, C(Same, Animal, Entity::Frog));
+    E(frog, C(Same, Animal, PersistenceRequiredDefault, Entity::Frog));
     E(warden, C(Same, LivingEntity));
-    E(allay, C(Same, Animal, NoGravity, Inventory, Allay));
+    E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
 #undef E
     return ret;
   }
