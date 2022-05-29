@@ -9,12 +9,12 @@ public:
   }
 
   static std::string JavaInstrumentFromBedrockDamage(int16_t damage) {
-    return Backward(damage, "minecraft:pondar_goat_horn");
+    return Backward(damage, "minecraft:ponder_goat_horn");
   }
 
   static ReversibleMap<std::string, int16_t> const *CreateTable() {
     return new ReversibleMap<std::string, int16_t>({
-        {"minecraft:pondar_goat_horn", 0},
+        {"minecraft:ponder_goat_horn", 0},
         {"minecraft:sing_goat_horn", 1},
         {"minecraft:seek_goat_horn", 2},
         {"minecraft:feel_goat_horn", 3},
