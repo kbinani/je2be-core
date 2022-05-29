@@ -1356,6 +1356,7 @@ private:
     E(dark_oak_fence_gate, fenceGate);
     E(crimson_fence_gate, fenceGate);
     E(warped_fence_gate, fenceGate);
+    E(mangrove_fence_gate, fenceGate);
 
     Converter pressurePlate(Same, RedstoneSignalFromPowered);
     E(oak_pressure_plate, Converter(Name("wooden_pressure_plate"), RedstoneSignalFromPowered));
