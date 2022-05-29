@@ -174,7 +174,7 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 
-  static unordered_set<string> sTagBlacklist = {
+  unordered_set<string> tagBlacklist = {
       "LootTableSeed",           // chest in dungeon etc.
       "RecipesUsed",             // furnace, blast_furnace, and smoker
       "LastOutput",              // command_block
@@ -185,7 +185,14 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
       "Levels",          // beacon. Sometimes reset to 0 in JE
       "SpawnPotentials", // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
   };
-  for (string const &b : sTagBlacklist) {
+  auto id = expected.string("id", "");
+  if (id == "minecraft:sculk_shrieker") {
+    tagBlacklist.insert("listener");
+    tagBlacklist.insert("warning_level");
+  } else if (id == "minecraft:sculk_catalyst") {
+    tagBlacklist.insert("cursors");
+  }
+  for (string const &b : tagBlacklist) {
     Erase(copyE, b);
     Erase(copyA, b);
   }
@@ -241,6 +248,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Passengers/*/HurtByTimestamp",
       "Passengers/*/NoAI",
       "Passengers/*/Fire",
+      "Passengers/*/Brain",
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
@@ -330,6 +338,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("DespawnDelay"); // "TimeStamp" does not exist in BE.
   } else if (id == "minecraft:frog") {
     blacklist.insert("Brain/memories"); // long_jump_cooling_down
+  } else if (id == "minecraft:warden") {
+    blacklist.insert("anger");
+    blacklist.insert("listener");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
