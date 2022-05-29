@@ -2051,8 +2051,10 @@ private:
     E(red_flower, RedFlower);
     E(amethyst_cluster, BlockWithFacing6FromFacingDirectionASubmergible);
     E(stone, Stone);
-    E(stone_slab3, StoneSlab3);
-    E(double_stone_slab3, DoubleStoneSlab3);
+    E(stone_slab3, StoneSlab3); // legacy, < 1.19
+    E(stone_block_slab3, StoneSlab3);
+    E(double_stone_slab3, DoubleStoneSlab3); // legacy, < 1.19
+    E(double_stone_block_slab3, DoubleStoneSlab3);
 
     E(cobblestone_wall, WallWithBlockType);
     E(blackstone_wall, BlockWithWallProperties);
@@ -2151,8 +2153,10 @@ private:
     E(coral_fan_dead, CoralFan);
     E(brewing_stand, BrewingStand);
     E(brick_block, Rename("bricks"));
-    E(stone_slab, StoneSlab);
-    E(double_stone_slab, DoubleStoneSlab);
+    E(stone_slab, StoneSlab); // legacy, < 1.19
+    E(stone_block_slab, StoneSlab);
+    E(double_stone_slab, DoubleStoneSlab); // legacy, < 1.19
+    E(double_stone_block_slab, DoubleStoneSlab);
     E(brown_mushroom_block, BrownMushroomBlock);
     E(bubble_column, BubbleColumn);
     E(cactus, BlockWithAge);
@@ -2194,14 +2198,18 @@ private:
     E(crimson_stem, BlockWithAxisFromPillarAxis);
     E(cut_copper_slab, Slab);
     E(double_cut_copper_slab, DoubleSlab("cut_copper_slab"));
-    E(stone_slab4, StoneSlab4);
-    E(double_stone_slab4, DoubleStoneSlab4);
+    E(stone_slab4, StoneSlab4); // legacy, < 1.19
+    E(stone_block_slab4, StoneSlab4);
+    E(double_stone_slab4, DoubleStoneSlab4); // legacy, < 1.19
+    E(double_stone_block_slab4, DoubleStoneSlab4);
     E(yellow_flower, Rename("dandelion"));
     E(darkoak_standing_sign, DarkoakStandingSign);
     E(darkoak_wall_sign, DarkoakWallSign);
     E(prismarine, Prismarine);
-    E(stone_slab2, StoneSlab2);
-    E(double_stone_slab2, DoubleStoneSlab2);
+    E(stone_slab2, StoneSlab2); // legacy, < 1.19
+    E(stone_block_slab2, StoneSlab2);
+    E(double_stone_slab2, DoubleStoneSlab2); // legacy, < 1.19
+    E(double_stone_block_slab2, DoubleStoneSlab2);
     E(daylight_detector, DaylightDetector);
     E(daylight_detector_inverted, DaylightDetector);
     E(deadbush, Rename("dead_bush"));

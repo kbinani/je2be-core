@@ -264,7 +264,7 @@ private:
 
   static Converter StoneSlab4(std::string const &type) { return StoneSlabNumbered("4", type); }
 
-  static Converter StoneSlabNumbered(std::string const &number, std::string const &type) { return Converter(SlabName("stone", number), TypeToTopSlotBit, AddStoneSlabType(number, type)); }
+  static Converter StoneSlabNumbered(std::string const &number, std::string const &type) { return Converter(SlabName("stone_block", number), TypeToTopSlotBit, AddStoneSlabType(number, type)); }
 
   static Converter StoneSlabNT(std::string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit); }
 
