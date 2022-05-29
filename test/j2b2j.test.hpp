@@ -28,7 +28,10 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
       auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
       if (foundBtoJ == fallbackBtoJ.end()) {
         if (blockE->fName.ends_with("_leaves")) {
-          CheckBlockWithIgnore(*blockE, *blockA, {"distance"});
+          CheckBlockWithIgnore(*blockE, *blockA, {"distance", "waterlogged"});
+          auto waterloggedA = blockA->property("waterlogged", "false") == "true";
+          auto waterloggedE = blockE->property("waterlogged", "false") == "true";
+          CHECK(waterloggedA == waterloggedE);
         } else if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
           CheckBlockWithIgnore(*blockE, *blockA, {"lit"});
         } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
@@ -554,6 +557,7 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       "spectatorsGenerateChunks",
       "universalAnger",
       "playersSleepingPercentage",
+      "doWardenSpawning", // TODO(1.19)
   };
   for (string const &rule : ignoredGameRules) {
     blacklist.insert("GameRules/" + rule);

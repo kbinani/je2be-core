@@ -50,6 +50,7 @@ private:
 
   static String AzaleaLeavesFlowered(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return Ns() + "flowering_azalea_leaves";
   }
 #pragma endregion
@@ -235,8 +236,9 @@ private:
     return bName;
   }
 
-  static String BlockWithPersistentFromPersistentBit(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithPersistentFromPersistentBitSubmergible(String const &bName, CompoundTag const &s, Props &p) {
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return bName;
   }
 
@@ -773,12 +775,14 @@ private:
   static String Leaves(String const &bName, CompoundTag const &s, Props &p) {
     auto leafType = s.string("old_leaf_type", "oak");
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return Ns() + leafType + "_leaves";
   }
 
   static String Leaves2(String const &bName, CompoundTag const &s, Props &p) {
     auto newLeafType = s.string("new_leaf_type", "acacia"); //TODO: acacia?
     PersistentFromPersistentBit(s, p);
+    Submergible(s, p);
     return Ns() + newLeafType + "_leaves";
   }
 
@@ -2060,7 +2064,7 @@ private:
     E(anvil, Anvil);
     E(melon_stem, MelonStem);
     E(pumpkin_stem, PumpkinStem);
-    E(azalea_leaves, BlockWithPersistentFromPersistentBit);
+    E(azalea_leaves, BlockWithPersistentFromPersistentBitSubmergible);
     E(bamboo, Bamboo);
     E(bamboo_sapling, Same);
     E(barrel, Barrel);
@@ -2402,7 +2406,7 @@ private:
     E(mud_brick_wall, BlockWithWallProperties);
     E(sculk_vein, BlockWithMultiFaceDirectionBitsSubmergible);
     E(mangrove_propagule, MangrovePropagule);
-    E(mangrove_leaves, BlockWithPersistentFromPersistentBit);
+    E(mangrove_leaves, BlockWithPersistentFromPersistentBitSubmergible);
     E(mangrove_roots, BlockWithSubmergible);
     E(sculk_shrieker, SculkShrieker);
     E(sculk_catalyst, SculkCatalyst);

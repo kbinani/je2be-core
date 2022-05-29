@@ -257,6 +257,7 @@ public:
     int64_t fUid;
     mcfile::Dimension fDimension;
     Pos2i fChunk;
+    bool fSpectatorUsed = false;
   };
   static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
@@ -317,7 +318,15 @@ public:
     CopyFloatValues(tag, *entity, {{"XpP", "PlayerLevelProgress"}});
     CopyBoolValues(tag, *entity, {{"seenCredits", "HasSeenCredits"}});
 
-    entity->set("PlayerGameMode", Int(std::clamp(tag.int32("playerGameType", 0), 0, 2)));
+    bool spectatorUsed = false;
+    int32_t playerGameTypeJ = tag.int32("playerGameType", 0);
+    int32_t playerGameModeB = std::clamp(playerGameTypeJ, 0, 2);
+    if (playerGameTypeJ == 3) {
+      // spectator
+      playerGameModeB = 6;
+      spectatorUsed = true;
+    }
+    entity->set("PlayerGameMode", Int(playerGameModeB));
     entity->set("SelectedContainerId", Int(0));
 
     auto inventory = tag.listTag("Inventory");
@@ -440,10 +449,15 @@ public:
 
     CopyShortValues(tag, *entity, {{"SleepTimer"}});
 
+    if (auto wardenSpawnTracker = tag.compoundTag("warden_spawn_tracker"); wardenSpawnTracker) {
+      CopyIntValues(*wardenSpawnTracker, *entity, {{"cooldown_ticks", "WardenThreatLevelIncreaseCooldown"}, {"ticks_since_last_warning", "WardenThreatDecreaseTimer"}, {"warning_level", "WardenThreatLevel"}});
+    }
+
     LocalPlayerResult result;
     result.fEntity = entity;
     result.fDimension = dim;
     result.fUid = *uuid;
+    result.fSpectatorUsed = spectatorUsed;
     int cx = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fX));
     int cz = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fZ));
     result.fChunk = Pos2i(cx, cz);
@@ -532,7 +546,7 @@ private:
     A(squid);
     M(stray);
     E(strider, C(Animal, Steerable("strider"), AgeableA("strider"), DetectSuffocation, Vehicle("strider")));
-    E(trader_llama, C(Animal, Rename("llama"), AgeableA("llama"), Llama, TraderLlama));
+    E(trader_llama, C(Animal, AgeableA("llama"), Llama, TraderLlama));
     E(tropical_fish, C(Mob, Rename("tropicalfish"), PersistentFromFromBucket, TropicalFish));
     E(turtle, C(Animal, Turtle));
 
@@ -700,6 +714,8 @@ private:
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    using Cat = je2be::Cat;
+
     Cat::Type ct = Cat::Type::Tabby;
     if (auto variantJ = tag.string("variant"); variantJ) {
       // 1.19
@@ -707,13 +723,13 @@ private:
       if (variantJ->starts_with("minecraft:")) {
         name = variantJ->substr(10);
       }
-      ct = Cat::CatTypeFromName(name);
+      ct = Cat::CatTypeFromJavaVariant(name);
     } else if (auto catType = tag.int32("CatType"); catType) {
       // 1.18
       ct = Cat::CatTypeFromJavaLegacyCatType(*catType);
     }
-    int32_t variantB = Cat::BedrockVariantFromJavaLegacyCatType(ct);
-    std::string type = Cat::NameFromCatType(ct);
+    int32_t variantB = Cat::BedrockVariantFromCatType(ct);
+    std::string type = Cat::BedrockDefinitionKeyFromCatType(ct);
     AddDefinition(c, "+minecraft:cat_" + type);
     c["Variant"] = Int(variantB);
     c["DwellingUniqueID"] = String("00000000-0000-0000-0000-000000000000");

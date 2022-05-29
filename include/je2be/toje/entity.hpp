@@ -171,6 +171,7 @@ public:
 #pragma region Namers
   static std::string LlamaName(std::string const &nameB, CompoundTag const &entityB) {
     if (HasDefinition(entityB, "+minecraft:llama_wandering_trader")) {
+      // legacy
       return "minecraft:trader_llama";
     } else {
       return "minecraft:llama";
@@ -282,9 +283,11 @@ public:
   }
 
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    using Cat = je2be::Cat;
+
     auto variantB = b.int32("Variant", 8);
-    int32_t catType = Cat::JavaLegacyCatTypeFromBedrockVariant(variantB);
-    j["CatType"] = Int(catType); // TODO(1.19): "variant"
+    Cat::Type catType = Cat::CatTypeFromBedrockVariant(variantB);
+    j["variant"] = String("minecraft:" + Cat::JavaVariantFromCatType(catType));
   }
 
   static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1186,8 +1189,8 @@ public:
       return;
     }
 
-    j["Motive"] = String(motiveJ);  // TODO(1.19): "variant"
-    j["Facing"] = Byte(directionB); // TODO(1.19): "facing"
+    j["variant"] = String(motiveJ);
+    j["facing"] = Byte(directionB);
     j["TileX"] = Int(std::round(tile->fX));
     j["TileY"] = Int(std::round(tile->fY));
     j["TileZ"] = Int(std::round(tile->fZ));
@@ -1565,9 +1568,17 @@ public:
 
     if (auto playerGameModeB = b.int32("PlayerGameMode"); playerGameModeB) {
       int32_t playerGameTypeJ = *playerGameModeB;
-      if (*playerGameModeB == 5) {
+      switch (*playerGameModeB) {
+      case 5:
         // PlayerGameMode = 5 when superflat creative. This offset is only seen in creative mode.
         playerGameTypeJ = 1;
+        break;
+      case 6:
+        // spectator
+        playerGameTypeJ = 3;
+        break;
+      default:
+        break;
       }
       j["playerGameType"] = Int(playerGameTypeJ);
     }
@@ -1584,7 +1595,7 @@ public:
       }
     }
 
-    j["DataVersion"] = Int(mcfile::je::Chunk::kDataVersion);
+    j["DataVersion"] = Int(toje::kDataVersion);
 
     if (auto posB = props::GetPos3f(b, "Pos"); posB) {
       Pos3d posJ = posB->toD();
@@ -1643,6 +1654,12 @@ public:
       CopyBoolValues(*abilitiesB, *abilitiesJ, {{"flying"}, {"instabuild"}, {"invulnerable"}, {"build", "mayBuild"}, {"mayfly"}});
       CopyFloatValues(*abilitiesB, *abilitiesJ, {{"flySpeed"}, {"walkSpeed"}});
       j["abilities"] = abilitiesJ;
+    }
+
+    auto wardenSpawnTracker = Compound();
+    CopyIntValues(b, *wardenSpawnTracker, {{"WardenThreatLevelIncreaseCooldown", "cooldown_ticks"}, {"WardenThreatDecreaseTimer", "ticks_since_last_warning"}, {"WardenThreatLevel", "warning_level"}});
+    if (!wardenSpawnTracker->empty()) {
+      j["warden_spawn_tracker"] = wardenSpawnTracker;
     }
 
     data.fEntity->erase("id");
@@ -1704,6 +1721,7 @@ public:
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
     E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
+    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));

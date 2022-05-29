@@ -30,7 +30,7 @@ public:
   bool fDrowningDamage = true;
   bool fEducationFeaturesEnabled = false;
   int32_t fEduOffer = 0;
-  bool fExperimentalGamePlay = false;
+  std::unordered_map<std::string, bool> fExperiments;
   bool fFallDamage = true;
   bool fFireDamage = true;
   bool fFreezeDamage = true;
@@ -125,7 +125,6 @@ public:
         {"drowningdamage", Bool(fDrowningDamage)},
         {"educationFeaturesEnabled", Bool(fEducationFeaturesEnabled)},
         {"eduOffer", Int(fEduOffer)},
-        {"experimentalgameplay", Bool(fExperimentalGamePlay)},
         {"falldamage", Bool(fFallDamage)},
         {"firedamage", Bool(fFireDamage)},
         {"freezedamage", Bool(fFreezeDamage)},
@@ -191,6 +190,15 @@ public:
         {"limitedWorldWidth", Int(fLimitedWorldWidth)},
         {"maxcommandchainlength", Int(fMaxCommandChainLength)},
     });
+    if (!fExperiments.empty()) {
+      auto experiments = Compound();
+      experiments->set("experiments_ever_used", Bool(true));
+      experiments->set("saved_with_toggled_experiments", Bool(true));
+      for (auto const &it : fExperiments) {
+        experiments->set(it.first, Bool(it.second));
+      }
+      root->set("experiments", experiments);
+    }
     return root;
   }
 
@@ -261,6 +269,7 @@ public:
       S(doMobLoot, ret.fDoMobLoot);
       S(doMobSpawning, ret.fDoMobSpawning);
       S(doTileDrops, ret.fDoTileDrops);
+      // doWardenSpawning
       S(doWeatherCycle, ret.fDoWeatherCycle);
       S(drowningDamage, ret.fDrowningDamage);
       S(fallDamage, ret.fFallDamage);

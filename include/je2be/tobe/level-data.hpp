@@ -85,6 +85,7 @@ public:
   Statistics fStat;
   int64_t fMaxChunkLastUpdate = 0;
   int64_t const fGameTick;
+  bool fSpectatorUsed = false;
 
   struct VehicleAndPassengers {
     Pos2i fChunk;
