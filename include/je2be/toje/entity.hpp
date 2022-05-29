@@ -936,7 +936,8 @@ public:
   }
 
   static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    CopyBoolValues(b, j, {{"Persistent", "FromBucket", false}});
+    auto naturalSpawn = b.boolean("NaturalSpawn", true);
+    j["FromBucket"] = Bool(!naturalSpawn);
   }
 
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {

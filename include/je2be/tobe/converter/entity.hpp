@@ -1431,11 +1431,13 @@ private:
 
   static void PersistentFromFromBucket(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto fromBucket = tag.boolean("FromBucket", false);
-    auto persistenceRequired = tag.boolean("PersistenceRequired", false);
-    if (fromBucket || persistenceRequired) {
+    c["NaturalSpawn"] = Bool(!fromBucket);
+
+    if (fromBucket) {
       c["Persistent"] = Bool(true);
     } else {
-      c["NaturalSpawn"] = Bool(true);
+      auto persistenceRequired = tag.boolean("PersistenceRequired", false);
+      c["Persistent"] = Bool(persistenceRequired);
     }
   }
 
