@@ -341,6 +341,12 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   } else if (id == "minecraft:warden") {
     blacklist.insert("anger");
     blacklist.insert("listener");
+  } else if (id == "minecraft:allay") {
+    blacklist.insert("Brain/memories/minecraft:liked_player");
+    blacklist.insert("listener");
+    auto likedPlayerA = copyA->query("Brain/memories/minecraft:liked_player");
+    auto likedPlayerE = copyE->query("Brain/memories/minecraft:liked_player");
+    CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
