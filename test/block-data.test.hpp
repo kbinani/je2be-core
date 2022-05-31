@@ -1,10 +1,14 @@
 #pragma once
 
+static std::string BlockDataTestVersion() {
+  return "1.19-pre4";
+}
+
 TEST_CASE("block-data") {
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
 
-  for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / "1.18.1")) {
+  for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / BlockDataTestVersion())) {
     auto path = it.path();
     if (!fs::is_regular_file(path)) {
       continue;
@@ -37,10 +41,10 @@ TEST_CASE("prepare-test-data") {
   using namespace mcfile::je;
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
-  auto file = dataDir / "debug-mode" / "1.18.1" / "r.0.0.mca";
+  auto file = dataDir / "debug-mode" / BlockDataTestVersion() / "r.0.0.mca";
   auto region = Region::MakeRegion(file);
 
-  auto root = dataDir / "block-data" / "1.18.1";
+  auto root = dataDir / "block-data" / BlockDataTestVersion();
   fs::remove_all(root);
   fs::create_directories(root);
 
