@@ -14,6 +14,10 @@ public:
   static State JavaToBedrock(CompoundTag const &j, CompoundTag &b) {
     auto lootTable = j.string("LootTable"); // "minecraft:chests/simple_dungeon"
     auto lootTableSeed = j.int64("LootTableSeed");
+    /*
+    minecraft:chests/ancient_city         => loot_tables/chests/ancient_city.json
+    minecraft:chests/ancient_city_ice_box => loot_tables/chests/ancient_city_ice_box.json
+    */
     if (lootTable && lootTableSeed) {
       auto slash = lootTable->find('/');
       if (lootTable->starts_with("minecraft:") && slash != std::string::npos) {
