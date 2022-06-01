@@ -293,9 +293,8 @@ private:
       return true;
     }
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, mcfile::Endian::Little);
     for (auto const &tag : fTileEntities) {
-      if (!tag->writeAsRoot(w)) {
+      if (!CompoundTag::Write(*tag, s, mcfile::Endian::Little)) {
         return false;
       }
     }
@@ -323,8 +322,7 @@ private:
     pendingTicks->set("tickList", tickList);
 
     auto s = make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(s, mcfile::Endian::Little);
-    if (!pendingTicks->writeAsRoot(w)) {
+    if (!CompoundTag::Write(*pendingTicks, s, mcfile::Endian::Little)) {
       return false;
     }
     s->drain(cd.fPendingTicks);

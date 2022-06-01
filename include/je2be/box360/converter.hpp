@@ -152,9 +152,7 @@ private:
       }
       auto filename = uuidJ->toString() + ".dat";
       auto filePath = playersTo / filename;
-      auto outputStream = make_shared<mcfile::stream::FileOutputStream>(filePath);
-      mcfile::stream::OutputStreamWriter writer(outputStream, mcfile::Endian::Big);
-      if (!player->writeAsRoot(writer)) {
+      if (!CompoundTag::Write(*player, filePath, mcfile::Endian::Big)) {
         return JE2BE_NULLABLE_NULL;
       }
     }
@@ -320,8 +318,7 @@ private:
     auto outRoot = Compound();
     outRoot->set("Data", out);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
-    mcfile::stream::OutputStreamWriter writer(outStream, mcfile::Endian::Big);
-    if (outRoot->writeAsRoot(writer)) {
+    if (CompoundTag::Write(*outRoot, outStream, mcfile::Endian::Big)) {
       return Status::Ok();
     } else {
       return JE2BE_ERROR;

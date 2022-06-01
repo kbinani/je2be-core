@@ -221,8 +221,7 @@ public:
 
       auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
       auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
-      mcfile::stream::OutputStreamWriter osw(s);
-      if (!tagJ->writeAsRoot(osw)) {
+      if (!CompoundTag::Write(*tagJ, s, mcfile::Endian::Big)) {
         return JE2BE_ERROR;
       }
       if (maxMapNumber) {
@@ -239,8 +238,7 @@ public:
       idcounts->set("DataVersion", Int(toje::kDataVersion));
       auto path = root / "data" / "idcounts.dat";
       auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
-      mcfile::stream::OutputStreamWriter osw(s);
-      if (!idcounts->writeAsRoot(osw)) {
+      if (!CompoundTag::Write(*idcounts, s, mcfile::Endian::Big)) {
         return JE2BE_ERROR;
       }
     }

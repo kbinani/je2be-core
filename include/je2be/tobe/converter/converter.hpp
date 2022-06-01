@@ -210,16 +210,7 @@ public:
       ld.fPlayerAttachedEntities = pae;
     }
 
-    auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, mcfile::Endian::Little);
-    if (!playerB->fEntity->writeAsRoot(w)) {
-      return nullopt;
-    }
-
-    vector<uint8_t> buffer;
-    s->drain(buffer);
-    string ret((char const *)buffer.data(), buffer.size());
-    return ret;
+    return CompoundTag::Write(*playerB->fEntity, mcfile::Endian::Little);
   }
 
 private:

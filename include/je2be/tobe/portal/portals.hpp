@@ -29,18 +29,15 @@ public:
     data->set("PortalRecords", portalRecords);
     root->set("data", data);
 
-    auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, Endian::Little);
-    if (!root->writeAsRoot(w)) {
+    auto buffer = CompoundTag::Write(*root, Endian::Little);
+    if (!buffer) {
       return false;
     }
 
     auto key = mcfile::be::DbKey::Portals();
-    vector<uint8_t> buffer;
-    s->drain(buffer);
+    leveldb::Slice value(*buffer);
 
-    leveldb::Slice v((char *)buffer.data(), buffer.size());
-    db.put(key, v);
+    db.put(key, value);
     return true;
   }
 

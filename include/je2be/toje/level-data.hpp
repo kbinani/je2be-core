@@ -262,8 +262,7 @@ public:
 
   [[nodiscard]] static bool Write(CompoundTag const &tag, std::filesystem::path file) {
     auto gzs = std::make_shared<mcfile::stream::GzFileOutputStream>(file);
-    mcfile::stream::OutputStreamWriter osw(gzs);
-    return tag.writeAsRoot(osw);
+    return CompoundTag::Write(tag, gzs, mcfile::Endian::Big);
   }
 };
 

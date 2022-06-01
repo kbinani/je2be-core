@@ -37,36 +37,13 @@ public:
     if (ec) {
       return nullptr;
     }
-
-    vector<uint8_t> buffer;
-    {
-      vector<char> buf(512);
-      auto p = jeFilePath;
-      gzFile f = mcfile::File::GzOpen(p, mcfile::File::Mode::Read);
-      if (!f) {
-        return nullptr;
-      }
-      while (true) {
-        int read = gzread(f, buf.data(), buf.size());
-        if (read <= 0) {
-          break;
-        }
-        copy_n(buf.begin(), read, back_inserter(buffer));
-        if (read < buf.size()) {
-          break;
-        }
-      }
-      gzclose(f);
-    }
-
-    auto root = Compound();
-    auto bs = make_shared<ByteStream>(buffer);
-    InputStreamReader r(bs);
-    if (!root->read(r)) {
+    auto tag = Compound();
+    auto s = make_shared<GzFileInputStream>(jeFilePath);
+    InputStreamReader r(s);
+    if (!tag->read(r)) {
       return nullptr;
     }
-
-    return root;
+    return tag;
   }
 
 private:

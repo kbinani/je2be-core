@@ -200,7 +200,7 @@ public:
         auto stream = make_shared<FileOutputStream>(file);
         OutputStreamWriter writer(stream, Endian::Little);
         for (auto const &e : it.second) {
-          if (!e->writeAsRoot(writer)) {
+          if (!CompoundTag::Write(*e, writer)) {
             return nullptr;
           }
         }

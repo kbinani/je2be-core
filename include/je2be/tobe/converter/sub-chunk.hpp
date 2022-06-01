@@ -219,14 +219,8 @@ public:
       }
 
       for (int i = 0; i < palette.size(); i++) {
-        shared_ptr<CompoundTag> const &tag = palette[i];
-        if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
-          return false;
-        }
-        if (!w.write(std::string())) {
-          return false;
-        }
-        if (!tag->write(w)) {
+        auto const &tag = palette[i];
+        if (!CompoundTag::Write(*tag, w)) {
           return false;
         }
       }
@@ -261,13 +255,7 @@ public:
       }
 
       auto air = BlockData::Air();
-      if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
-        return false;
-      }
-      if (!w.write(string())) {
-        return false;
-      }
-      if (!air->write(w)) {
+      if (!CompoundTag::Write(*air, w)) {
         return false;
       }
 
@@ -275,13 +263,7 @@ public:
       auto states = Compound();
       states->set("liquid_depth", Int(0));
       water->set("states", states);
-      if (!w.write(static_cast<uint8_t>(Tag::Type::Compound))) {
-        return false;
-      }
-      if (!w.write(string())) {
-        return false;
-      }
-      if (!water->write(w)) {
+      if (!CompoundTag::Write(*water, w)) {
         return false;
       }
     }

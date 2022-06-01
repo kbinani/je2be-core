@@ -250,7 +250,7 @@ public:
     auto buffer = make_shared<ByteStream>();
     OutputStreamWriter writer(buffer, mcfile::Endian::Little);
     for (auto const &tag : entities) {
-      if (!tag->writeAsRoot(writer)) {
+      if (!CompoundTag::Write(*tag, writer)) {
         return false;
       }
     }

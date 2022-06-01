@@ -56,16 +56,12 @@ private:
     auto root = Compound();
     root->set("AutonomousEntityList", list);
 
-    auto s = std::make_shared<ByteStream>();
-    OutputStreamWriter w(s, mcfile::Endian::Little);
-    if (!root->writeAsRoot(w)) {
+    auto buffer = CompoundTag::Write(*root, mcfile::Endian::Little);
+    if (!buffer) {
       return false;
     }
 
-    std::vector<uint8_t> buffer;
-    s->drain(buffer);
-
-    leveldb::Slice v((char const *)buffer.data(), buffer.size());
+    leveldb::Slice v(*buffer);
     db.put(mcfile::be::DbKey::AutonomousEntities(), v);
 
     return true;

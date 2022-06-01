@@ -206,17 +206,12 @@ public:
 
       ret->set("decorations", decorations);
 
-      vector<uint8_t> serialized;
-      {
-        auto out = make_shared<ByteStream>();
-        OutputStreamWriter w(out, mcfile::Endian::Little);
-        if (!ret->writeAsRoot(w)) {
-          return false;
-        }
-        out->drain(serialized);
+      auto serialized = CompoundTag::Write(*ret, mcfile::Endian::Little);
+      if (!serialized) {
+        return false;
       }
       auto key = mcfile::be::DbKey::Map(uuid);
-      db.put(key, leveldb::Slice((char *)serialized.data(), serialized.size()));
+      db.put(key, leveldb::Slice(*serialized));
     }
 
     return true;

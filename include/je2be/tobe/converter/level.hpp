@@ -212,7 +212,7 @@ public:
       return false;
     }
     auto tag = this->toCompoundTag();
-    if (!tag->writeAsRoot(w)) {
+    if (!CompoundTag::Write(*tag, w)) {
       return false;
     }
     uint64_t pos = stream->pos();
@@ -393,15 +393,7 @@ public:
     d->set("DragonFight", fight);
     root->set("data", d);
 
-    auto s = std::make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(s, mcfile::Endian::Little);
-    if (!root->writeAsRoot(w)) {
-      return std::nullopt;
-    }
-
-    std::string str;
-    s->drain(str);
-    return str;
+    return CompoundTag::Write(*root, mcfile::Endian::Little);
   }
 
   static std::optional<std::string> MobEvents(CompoundTag const &tag) {
@@ -421,16 +413,7 @@ public:
     ret->set("minecraft:pillager_patrols_event", Bool(gameRules->string("doPatrolSpawning", "true") == "true"));
     ret->set("minecraft:wandering_trader_event", Bool(gameRules->string("doTraderSpawning", "true") == "true"));
 
-    auto s = std::make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(s, mcfile::Endian::Little);
-    if (!ret->writeAsRoot(w)) {
-      return std::nullopt;
-    }
-
-    std::vector<uint8_t> buffer;
-    s->drain(buffer);
-    std::string str((char const *)buffer.data(), buffer.size());
-    return str;
+    return CompoundTag::Write(*ret, mcfile::Endian::Little);
   }
 
   static CompoundTagPtr Read(std::filesystem::path const &javaEditionLevelDat) {
