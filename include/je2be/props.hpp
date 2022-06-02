@@ -196,6 +196,17 @@ static inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, s
   return Pos3i(x->fValue, y->fValue, z->fValue);
 }
 
+static inline std::optional<Pos3i> GetPos3iFromIntArrayTag(CompoundTag const &tag, std::string const &name) {
+  auto arr = tag.intArrayTag(name);
+  if (!arr) {
+    return std::nullopt;
+  }
+  if (arr->fValue.size() != 3) {
+    return std::nullopt;
+  }
+  return Pos3i(arr->fValue[0], arr->fValue[1], arr->fValue[2]);
+}
+
 static inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   try {
     return nlohmann::json::parse(s);

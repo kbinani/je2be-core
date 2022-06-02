@@ -453,6 +453,22 @@ public:
       CopyIntValues(*wardenSpawnTracker, *entity, {{"cooldown_ticks", "WardenThreatLevelIncreaseCooldown"}, {"ticks_since_last_warning", "WardenThreatDecreaseTimer"}, {"warning_level", "WardenThreatLevel"}});
     }
 
+    bool hasDiedBefore = false;
+    if (auto lastDeathLocation = tag.compoundTag("LastDeathLocation"); lastDeathLocation) {
+      if (auto dimensionString = lastDeathLocation->string("dimension"); dimensionString) {
+        auto dimension = DimensionFromJavaString(*dimensionString);
+        auto pos = props::GetPos3iFromIntArrayTag(*lastDeathLocation, "pos");
+        if (dimension && pos) {
+          entity->set("DeathDimension", Int(BedrockDimensionFromDimension(*dimension)));
+          entity->set("DeathPositionX", Int(pos->fX));
+          entity->set("DeathPositionY", Int(pos->fY));
+          entity->set("DeathPositionZ", Int(pos->fZ));
+          hasDiedBefore = true;
+        }
+      }
+    }
+    entity->set("HasDiedBefore", Bool(hasDiedBefore));
+
     LocalPlayerResult result;
     result.fEntity = entity;
     result.fDimension = dim;

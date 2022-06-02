@@ -1663,6 +1663,24 @@ public:
       j["warden_spawn_tracker"] = wardenSpawnTracker;
     }
 
+    auto deathDimension = b.int32("DeathDimension");
+    auto deathPositionX = b.int32("DeathPositionX");
+    auto deathPositionY = b.int32("DeathPositionY");
+    auto deathPositionZ = b.int32("DeathPositionZ");
+    if (deathDimension && deathPositionX && deathPositionY && deathPositionZ) {
+      if (auto dimension = DimensionFromBedrockDimension(*deathDimension); dimension) {
+        auto lastDeathLocation = Compound();
+        lastDeathLocation->set("dimension", String(JavaStringFromDimension(*dimension)));
+        auto posTag = List<Tag::Type::Int>();
+        posTag->push_back(Int(*deathPositionX));
+        posTag->push_back(Int(*deathPositionY));
+        posTag->push_back(Int(*deathPositionZ));
+        lastDeathLocation->set("pos", posTag);
+
+        data.fEntity->set("LastDeathLocation", lastDeathLocation);
+      }
+    }
+
     data.fEntity->erase("id");
 
     data.fShoulderEntityLeft = b.int64("LeftShoulderRiderID");
