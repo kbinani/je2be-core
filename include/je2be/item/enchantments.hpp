@@ -132,6 +132,7 @@ public:
         {"minecraft:piercing", 34},
         {"minecraft:quick_charge", 35},
         {"minecraft:soul_speed", 36},
+        {"minecraft:swift_sneak", 37},
     });
   }
 };
