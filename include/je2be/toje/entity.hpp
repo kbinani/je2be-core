@@ -1290,6 +1290,18 @@ public:
   }
 #pragma endregion
 
+#pragma region Behavior Generators
+  static Behavior AgeableE(int32_t maxBabyAgeJava) {
+    return [=](CompoundTag const &b, CompoundTag &j, Context &ctx) {
+      auto age = b.int32("Age");
+      if (!age) {
+        return;
+      }
+      j["Age"] = Int(*age + maxBabyAgeJava);
+    };
+  }
+#pragma endregion
+
 #pragma region Converters
   static CompoundTagPtr Animal(std::string const &id, CompoundTag const &b, Context &ctx) {
     auto ret = LivingEntity(id, b, ctx);
@@ -1785,6 +1797,7 @@ public:
     E(frog, C(Same, Animal, PersistenceRequiredDefault, Entity::Frog));
     E(warden, C(Same, LivingEntity));
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
+    E(tadpole, C(Same, Animal, AgeableE(24000), FromBucket));
 #undef E
     return ret;
   }

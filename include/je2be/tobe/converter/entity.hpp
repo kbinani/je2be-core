@@ -606,6 +606,7 @@ private:
     E(frog, C(Animal, Definitions("+minecraft:frog"), Frog));
     E(warden, C(Monster, Definitions("+minecraft:warden")));
     E(allay, C(Animal, Definitions("+minecraft:allay", "+pickup_item"), ChestItemsFromInventory, Allay));
+    E(tadpole, C(Animal, AgeableE(24000), Definitions("+minecraft:tadpole"), PersistentFromFromBucket));
 #undef A
 #undef M
 #undef E
@@ -1756,6 +1757,16 @@ private:
         AddDefinition(c, "+minecraft:adult_" + definitionKey);
       }
       c["IsBaby"] = Bool(baby);
+    };
+  }
+
+  static Behavior AgeableE(int32_t maxBabyAgeJava) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+      auto age = tag.int32("Age");
+      if (!age) {
+        return;
+      }
+      c["Age"] = Int(*age - maxBabyAgeJava);
     };
   }
 
