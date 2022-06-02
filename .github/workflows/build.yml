@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ci-20220603
 
 jobs:
   linux:
@@ -36,7 +37,9 @@ jobs:
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
-          ./test --duration=true
+
+      - name: Run Test
+        run: ./test --duration=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -62,7 +65,9 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
           cmake --build . --parallel --target test --config Release --verbose || exit 4
           cd Release || exit 5
-          cmd /c test.exe --duration=true
+
+      - name: Run Test
+        run: cmd /c test.exe --duration=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -87,7 +92,9 @@ jobs:
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
-          ./test --duration=true
+
+      - name: Run Test
+        run: ./test --duration=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
