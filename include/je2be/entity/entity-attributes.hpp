@@ -180,6 +180,31 @@ public:
     return attrs;
   }
 
+  static Attributes Wither(int difficultyBedrock, std::optional<float> currentHealth) {
+    float healthB = 300;
+    switch (difficultyBedrock) {
+    case 3: // hard
+      healthB = 600;
+      break;
+    case 2: // normal
+      healthB = 450;
+      break;
+    }
+    Attributes attrs(
+        Attribute(1, healthB, healthB), // health(base, current, max)
+        Attribute(0, 0, 1),             // knockback_resistance
+        Attribute(0.6, 0.6),            // movement
+        Attribute(0.02, 0.02),          // underwater_movement
+        Attribute(0.02, 0.02),          // lava_movement
+        Attribute(70, 70, 2048),        // follow_range
+        std::nullopt);                  // attack_damage
+    if (currentHealth) {
+      float ratio = *currentHealth / 300.0f;
+      attrs.health.updateCurrent(healthB * ratio);
+    }
+    return attrs;
+  }
+
 private:
   static std::unordered_map<std::string, Attributes> *CreateTable() {
     using namespace std;
@@ -249,7 +274,6 @@ private:
     table->insert(make_pair("minecraft:vindicator", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(8, 8, 8))));
     table->insert(make_pair("minecraft:wandering_trader", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair("minecraft:witch", Attributes(Attribute(26, 26, 26), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
-    table->insert(make_pair("minecraft:wither", Attributes(Attribute(600, 600, 600), Attribute(0, 0, 1), Attribute(0.6, 0.6), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(70, 70, 2048), nullopt)));
     table->insert(make_pair("minecraft:wither_skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
     table->insert(make_pair("minecraft:zoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair("minecraft:zombie", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));

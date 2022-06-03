@@ -46,7 +46,7 @@ public:
             playerAttachedEntities = pae;
             ld.fPlayerAttachedEntities->fVehicle = nullopt;
           }
-          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick);
+          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock);
           if (progress) {
             bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
             if (!continue_) {
@@ -149,7 +149,7 @@ public:
               playerAttachedEntities = pae;
             }
           }
-          futures.push_back(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick));
+          futures.push_back(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock));
         }
       }
       return true;

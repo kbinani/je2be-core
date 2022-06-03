@@ -600,7 +600,7 @@ private:
     E(axolotl, C(Animal, AgeableA("axolotl"), Axolotl));
     E(goat, C(Animal, AgeableA("goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
-    E(wither, C(Mob, Definitions("+minecraft:wither")));
+    E(wither, C(Mob, Definitions("+minecraft:wither"), Wither));
     E(arrow, C(EntityBase, Arrow));
 
     E(frog, C(Animal, Definitions("+minecraft:frog"), Frog));
@@ -1286,6 +1286,12 @@ private:
       int64_t timestamp = ctx.fCtx.fGameTick + *despawnDelay;
       c["TimeStamp"] = Long(timestamp);
     }
+  }
+
+  static void Wither(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    auto health = tag.float32("Health");
+    auto attributes = EntityAttributes::Wither(ctx.fCtx.fDifficultyBedrock, health);
+    c["Attributes"] = attributes.toListTag();
   }
 
   static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

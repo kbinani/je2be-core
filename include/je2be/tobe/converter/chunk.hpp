@@ -28,7 +28,8 @@ public:
                         JavaEditionMap mapInfo,
                         std::filesystem::path entitiesDir,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                        int64_t gameTick) {
+                        int64_t gameTick,
+                        int difficultyBedrock) {
     using namespace std;
     using namespace mcfile;
     try {
@@ -47,7 +48,7 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, playerAttachedEntities, gameTick);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, playerAttachedEntities, gameTick, difficultyBedrock);
       return r;
     } catch (...) {
       Chunk::Result r;
@@ -65,7 +66,8 @@ public:
                                                   JavaEditionMap const &mapInfo,
                                                   std::filesystem::path entitiesDir,
                                                   std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                                                  int64_t gameTick) {
+                                                  int64_t gameTick,
+                                                  int difficultyBedrock) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -155,7 +157,7 @@ public:
     ret->updateChunkLastUpdate(*chunk);
 
     unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
-    Context ctx(mapInfo, *ret, gameTick, TileEntity::FromBlockAndTileEntity);
+    Context ctx(mapInfo, *ret, gameTick, difficultyBedrock, TileEntity::FromBlockAndTileEntity);
     cdp.build(*chunk, ctx, entities);
     if (!cdp.serialize(cd)) {
       return nullptr;
