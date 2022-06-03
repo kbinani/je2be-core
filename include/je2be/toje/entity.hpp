@@ -797,6 +797,15 @@ public:
 
   static void Wither(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["Invul"] = Int(0);
+    if (auto healthB = FindAttribute(b, "minecraft:health"); healthB) {
+      auto max = healthB->float32("Max");
+      auto current = healthB->float32("Current");
+      if (max && current && *max > 0) {
+        auto ratio = std::min(std::max(*current / *max, 0.0f), 1.0f);
+        float healthJ = 300.0f * ratio;
+        j["Health"] = Float(healthJ);
+      }
+    }
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1348,6 +1357,23 @@ public:
 #pragma endregion
 
 #pragma region Utilities
+  static CompoundTagPtr FindAttribute(CompoundTag const &entityB, std::string const &name) {
+    auto attributes = entityB.listTag("Attributes");
+    if (!attributes) {
+      return nullptr;
+    }
+    for (auto &attribute : *attributes) {
+      auto c = attribute->asCompound();
+      if (!c) {
+        continue;
+      }
+      if (c->string("Name") == name) {
+        return std::dynamic_pointer_cast<CompoundTag>(attribute);
+      }
+    }
+    return nullptr;
+  }
+
   static bool HasDefinition(CompoundTag const &entityB, std::string const &definitionToSearch) {
     auto definitions = entityB.listTag("definitions");
     if (!definitions) {
