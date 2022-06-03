@@ -1709,10 +1709,11 @@ public:
       if (auto dimension = DimensionFromBedrockDimension(*deathDimension); dimension) {
         auto lastDeathLocation = Compound();
         lastDeathLocation->set("dimension", String(JavaStringFromDimension(*dimension)));
-        auto posTag = List<Tag::Type::Int>();
-        posTag->push_back(Int(*deathPositionX));
-        posTag->push_back(Int(*deathPositionY));
-        posTag->push_back(Int(*deathPositionZ));
+        std::vector<int32_t> value(3);
+        value[0] = *deathPositionX;
+        value[1] = *deathPositionY;
+        value[2] = *deathPositionZ;
+        auto posTag = std::make_shared<IntArrayTag>(value);
         lastDeathLocation->set("pos", posTag);
 
         data.fEntity->set("LastDeathLocation", lastDeathLocation);
