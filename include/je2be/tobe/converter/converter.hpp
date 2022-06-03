@@ -40,7 +40,7 @@ public:
 
     bool ok = Datapacks::Import(fInput, fOutput);
 
-    auto levelData = std::make_unique<LevelData>(fInput, fOptions, level.fCurrentTick, level.fDifficulty);
+    auto levelData = std::make_unique<LevelData>(fInput, fOptions, level.fCurrentTick, level.fDifficulty, level.fCommandsEnabled);
     {
       RawDb db(dbPath, concurrency);
       if (!db.valid()) {
@@ -114,7 +114,7 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick, ld.fDifficultyBedrock, TileEntity::FromBlockAndTileEntity);
+    Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, TileEntity::FromBlockAndTileEntity);
     auto playerB = Entity::LocalPlayer(*playerJ, ctx);
     if (!playerB) {
       return std::nullopt;

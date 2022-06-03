@@ -4,21 +4,20 @@ namespace je2be::tobe {
 
 class PlayerAbilities {
 public:
+  // NOTE: Default values are for the "Member" permission
   bool fAttackMobs = true;
   bool fAttackPlayers = true;
   bool fBuild = true;
   bool fDoorsAndSwitches = true;
   bool fFlying = false;
   float fFlySpeed = 0.05f;
-  bool fInstabuild = false;
-  bool fInvulnerable = false;
+  bool fInstabuild = true;
+  bool fInvulnerable = true;
   bool fLightning = false;
-  bool fMayFly = false;
+  bool fMayFly = true;
   bool fMine = true;
   bool fOp = false;
   bool fOpenContainers = true;
-  int fPermissionsLevel = 0;
-  int fPlayerPermissionsLevel = 1;
   bool fTeleport = false;
   float fWalkSpeed = 0.1f;
 
@@ -38,8 +37,6 @@ public:
         {"mine", Bool(fMine)},
         {"op", Bool(fOp)},
         {"opencontainers", Bool(fOpenContainers)},
-        {"permissionsLevel", Int(fPermissionsLevel)},
-        {"playerPermissionsLevel", Int(fPlayerPermissionsLevel)},
         {"teleport", Bool(fTeleport)},
         {"walkSpeed", Float(fWalkSpeed)},
     });

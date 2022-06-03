@@ -387,8 +387,20 @@ public:
     auto abilities = tag.compoundTag("abilities");
     if (abilities) {
       auto converted = PlayerAbilities::Import(*abilities);
+      if (ctx.fAllowCommand) {
+        converted.fOp = true;
+        converted.fTeleport = true;
+      }
       entity->set("abilities", converted.toCompoundTag());
     }
+    int permissionsLevel = 0;
+    int playerPermissionsLevel = 1;
+    if (ctx.fAllowCommand) {
+      permissionsLevel = 3;
+      playerPermissionsLevel = 2;
+    }
+    entity->set("permissionsLevel", Int(permissionsLevel));
+    entity->set("playerPermissionsLevel", Int(playerPermissionsLevel));
 
     auto spawnX = tag.int32("SpawnX");
     auto spawnY = tag.int32("SpawnY");

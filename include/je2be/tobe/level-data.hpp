@@ -4,7 +4,11 @@ namespace je2be::tobe {
 
 class LevelData {
 public:
-  LevelData(std::filesystem::path const &input, Options const &opt, int64_t gameTick, int difficultyBedrock) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock) {}
+  LevelData(std::filesystem::path const &input,
+            Options const &opt,
+            int64_t gameTick,
+            int difficultyBedrock,
+            bool allowCommand) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand) {}
 
   [[nodiscard]] bool put(DbInterface &db, CompoundTag const &javaLevelData) {
     if (!fPortals.putInto(db)) {
@@ -83,6 +87,7 @@ public:
   int64_t const fGameTick;
   int const fDifficultyBedrock;
   bool fSpectatorUsed = false;
+  bool const fAllowCommand;
 
   struct VehicleAndPassengers {
     Pos2i fChunk;
