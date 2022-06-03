@@ -347,6 +347,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     auto likedPlayerA = copyA->query("Brain/memories/minecraft:liked_player");
     auto likedPlayerE = copyE->query("Brain/memories/minecraft:liked_player");
     CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
+  } else if (id == "minecraft:zombified_piglin") {
+    blacklist.insert("CanBreakDoors");
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {
