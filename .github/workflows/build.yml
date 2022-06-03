@@ -36,7 +36,9 @@ jobs:
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
-          ./test --duration=true
+
+      - name: Run Test
+        run: ./build/test --duration=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -61,7 +63,10 @@ jobs:
           cd build || exit 2
           cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
           cmake --build . --parallel --target test --config Release --verbose || exit 4
-          cd Release || exit 5
+
+      - name: Run Test
+        run: |
+          cd build/Release || exit 1
           cmd /c test.exe --duration=true
 
       - name: Perform CodeQL Analysis
@@ -87,7 +92,9 @@ jobs:
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
-          ./test --duration=true
+
+      - name: Run Test
+        run: ./build/test --duration=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
