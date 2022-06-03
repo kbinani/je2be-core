@@ -1824,7 +1824,7 @@ public:
     E(frog, C(Same, Animal, PersistenceRequiredDefault, Entity::Frog));
     E(warden, C(Same, LivingEntity));
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
-    E(tadpole, C(Same, Animal, AgeableE(24000), FromBucket));
+    E(tadpole, C(Same, LivingEntity, AgeableE(24000), FromBucket));
 #undef E
     return ret;
   }
