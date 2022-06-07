@@ -834,10 +834,11 @@ public:
     E(wooden_door, Rename("oak_door"));
     E(turtle_shell_piece, Rename("scute")); // legacy
     E(bucket, Bucket);
-    E(dye, LegacyDye);                  // legacy
-    E(spawn_egg, LegacySpawnEgg);       // legacy
-    E(fireball, Rename("fire_charge")); // legacy
-    E(zombified_pigman_spawn_egg, Rename("zombified_piglin_spawn_egg"));
+    E(dye, LegacyDye);                                                   // legacy
+    E(spawn_egg, LegacySpawnEgg);                                        // legacy
+    E(fireball, Rename("fire_charge"));                                  // legacy
+    E(zombified_pigman_spawn_egg, Rename("zombified_piglin_spawn_egg")); // legacy
+    E(zombie_pigman_spawn_egg, Rename("zombified_piglin_spawn_egg"));
     E(netherbrick, Rename("nether_brick"));              // legacy
     E(netherstar, Rename("nether_star"));                // legacy
     E(horsearmorleather, Rename("leather_horse_armor")); // legacy
