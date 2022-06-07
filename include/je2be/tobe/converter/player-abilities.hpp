@@ -18,6 +18,8 @@ public:
   bool fMine = true;
   bool fOp = false;
   bool fOpenContainers = true;
+  int fPermissionsLevel = 0;
+  int fPlayerPermissionsLevel = 1;
   bool fTeleport = false;
   float fWalkSpeed = 0.1f;
 
@@ -37,6 +39,8 @@ public:
         {"mine", Bool(fMine)},
         {"op", Bool(fOp)},
         {"opencontainers", Bool(fOpenContainers)},
+        {"permissionsLevel", Int(fPermissionsLevel)},
+        {"playerPermissionsLevel", Int(fPlayerPermissionsLevel)},
         {"teleport", Bool(fTeleport)},
         {"walkSpeed", Float(fWalkSpeed)},
     });
