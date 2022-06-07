@@ -1,7 +1,7 @@
 #pragma once
 
 static std::string BlockDataTestVersion() {
-  return "1.19-pre4";
+  return "1.19";
 }
 
 TEST_CASE("block-data") {
@@ -63,8 +63,7 @@ TEST_CASE("prepare-test-data") {
           auto converted = je2be::tobe::BlockData::From(make_shared<Block const>(b.fName, b.fProperties));
           CHECK(converted != nullptr);
           auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
-          mcfile::stream::OutputStreamWriter osw(fos);
-          CHECK(converted->writeAsRoot(osw));
+          CHECK(CompoundTag::Write(*converted, fos, mcfile::Endian::Big));
           return true;
         });
       }
