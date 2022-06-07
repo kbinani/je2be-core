@@ -7,10 +7,10 @@ class Chunk {
 
 public:
   enum {
-    kTargetDataVersion = 2865,
+    kTargetDataVersion = mcfile::je::Chunk::kDataVersion,
   };
   static std::string TargetVersionString() {
-    return "1.18.1";
+    return "1.19";
   }
 
   static Status Convert(mcfile::Dimension dimension,

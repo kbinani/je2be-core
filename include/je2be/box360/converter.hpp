@@ -271,13 +271,13 @@ private:
       return JE2BE_ERROR;
     }
 
-    JavaLevelDat::Options118 o;
+    JavaLevelDat::Options o;
     o.fBonusChestEnabled = in->boolean("spawnBonusChest");
     o.fDataVersion = Chunk::kTargetDataVersion;
     o.fRandomSeed = in->int64("RandomSeed");
     o.fVersionString = Chunk::TargetVersionString();
     o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion();
-    auto out = JavaLevelDat::TemplateData118(o);
+    auto out = JavaLevelDat::TemplateData(o);
 
     CopyBoolValues(*in, *out, {{"allowCommands"}, {"DifficultyLocked"}, {"hardcore"}, {"initialized"}, {"raining"}, {"thundering"}});
     CopyByteValues(*in, *out, {{"Difficulty"}});

@@ -158,8 +158,10 @@ private:
   }
 
   static bool Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    if (auto motive = in.string("Motive"); motive) {
-      out->set("Motive", String("minecraft:" + strings::Uncapitalize(*motive)));
+    if (auto motiveX = in.string("Motive"); motiveX) {
+      auto motive = Painting::MotiveFromBedrock(*motiveX);
+      auto motiveJ = Painting::JavaFromMotive(motive);
+      out->set("variant", String(motiveJ));
     }
     return true;
   }
