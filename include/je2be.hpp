@@ -127,6 +127,10 @@
 
 #include <je2be/structure/structure-piece.hpp>
 
+#include <je2be/portal/portal.hpp>
+#include <je2be/portal/oriented-portal-blocks.hpp>
+#include <je2be/portal/portal-blocks.hpp>
+
 #include <je2be/terraform/block-property-accessor.hpp>
 #include <je2be/terraform/block-accessor.hpp>
 #include <je2be/terraform/bedrock/block-accessor-bedrock.hpp>

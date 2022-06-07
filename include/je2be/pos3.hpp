@@ -42,4 +42,12 @@ inline Pos3d Pos3f::toD() const {
   return Pos3d(fX, fY, fZ);
 }
 
+inline IntArrayTagPtr IntArrayFromPos3i(Pos3i p) {
+  std::vector<int32_t> v(3);
+  v[0] = p.fX;
+  v[1] = p.fY;
+  v[2] = p.fZ;
+  return std::make_shared<mcfile::nbt::IntArrayTag>(v);
+}
+
 } // namespace je2be

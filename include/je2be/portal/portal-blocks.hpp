@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class PortalBlocks {
 public:
@@ -58,4 +58,4 @@ private:
   OrientedPortalBlocks fZ;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

@@ -17,10 +17,7 @@
 #include <je2be/tobe/structure/structure-piece-collection.hpp>
 #include <je2be/tobe/structure/structures.hpp>
 
-#include <je2be/tobe/portal/portal.hpp>
-#include <je2be/tobe/portal/oriented-portal-blocks.hpp>
-#include <je2be/tobe/portal/portal-blocks.hpp>
-#include <je2be/tobe/portal/portals.hpp>
+#include <je2be/tobe/portals.hpp>
 
 #include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/biome-map-legacy.hpp>
