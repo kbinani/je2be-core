@@ -162,7 +162,7 @@ private:
     E("oak_door", Rename("wooden_door"));
     E("furnace_minecart", Rename("minecart")); // furnace minecart does not exist in bedrock
     E("tropical_fish_bucket", TropicalFishBucket);
-    E("zombified_piglin_spawn_egg", Rename("zombified_pigman_spawn_egg"));
+    E("zombified_piglin_spawn_egg", Rename("zombie_pigman_spawn_egg"));
 
     E("map", Subtype("empty_map", 2));
     E("firework_rocket", FireworkRocket);
@@ -571,8 +571,7 @@ private:
     E("squid_spawn_egg");
     E("stray_spawn_egg");
     E("strider_spawn_egg");
-    E("trader_llama_spawn_egg"); // there is no spawn egg for trader llama for
-                                 // bedrock
+    E("trader_llama_spawn_egg"); // there is no spawn egg for trader llama for bedrock
     E("tropical_fish_spawn_egg");
     E("turtle_spawn_egg");
     E("vex_spawn_egg");
