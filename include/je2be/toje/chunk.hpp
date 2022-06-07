@@ -11,6 +11,7 @@ public:
 
     int const cy = b.fChunkY;
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
+    j->fLastUpdate = ctx.fGameTick;
 
     int maxChunkY = cy;
     for (auto const &sectionB : b.fSubChunks) {
