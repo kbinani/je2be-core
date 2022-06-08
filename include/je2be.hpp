@@ -86,6 +86,7 @@
 #include <je2be/dimension-ext.hpp>
 #include <je2be/java-level-dat.hpp>
 #include <je2be/zip-file.hpp>
+#include <je2be/poi-portals.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
@@ -126,11 +127,6 @@
 #include <je2be/tile-entity/loot-table.hpp>
 
 #include <je2be/structure/structure-piece.hpp>
-
-#include <je2be/portal/portal.hpp>
-#include <je2be/portal/oriented-portal-blocks.hpp>
-#include <je2be/portal/portal-blocks.hpp>
-#include <je2be/portal/poi-portals.hpp>
 
 #include <je2be/terraform/block-property-accessor.hpp>
 #include <je2be/terraform/block-accessor.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::tobe {
 
 class OrientedPortalBlocks {
 public:
@@ -150,4 +150,4 @@ private:
   std::unordered_set<Pos3i, Pos3iHasher> fBlocks;
 };
 
-} // namespace je2be
+} // namespace je2be::tobe

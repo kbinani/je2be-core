@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be {
+namespace je2be::tobe {
 
 class Portal {
 public:
@@ -21,20 +21,6 @@ public:
     return tag;
   }
 
-  static std::optional<Portal> FromCompound(CompoundTag const &tag) {
-    auto dimId = tag.int32("DimId");
-    auto span = tag.byte("Span");
-    auto tpX = tag.int32("TpX");
-    auto tpY = tag.int32("TpY");
-    auto tpZ = tag.int32("TpZ");
-    auto xa = tag.byte("Xa");
-    auto za = tag.byte("Za");
-    if (!dimId || !span || !tpX || !tpY || !tpZ || !xa || !za) {
-      return std::nullopt;
-    }
-    return Portal(*dimId, *span, *tpX, *tpY, *tpZ, *xa, *za);
-  }
-
   int32_t const fDimId;
   uint8_t const fSpan;
   int32_t const fTpX;
@@ -44,4 +30,4 @@ public:
   uint8_t const fZa;
 };
 
-} // namespace je2be
+} // namespace je2be::tobe

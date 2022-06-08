@@ -91,10 +91,7 @@ set(je2be_files
   include/je2be/nbt.hpp
   include/je2be/nullable.hpp
   include/je2be/optional.hpp
-  include/je2be/portal/oriented-portal-blocks.hpp
-  include/je2be/portal/poi-portals.hpp
-  include/je2be/portal/portal-blocks.hpp
-  include/je2be/portal/portal.hpp
+  include/je2be/poi-portals.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
   include/je2be/props.hpp
@@ -155,7 +152,10 @@ set(je2be_files
   include/je2be/tobe/db/raw-db.hpp
   include/je2be/tobe/level-data.hpp
   include/je2be/tobe/options.hpp
-  include/je2be/tobe/portals.hpp
+  include/je2be/tobe/portal/oriented-portal-blocks.hpp
+  include/je2be/tobe/portal/portal-blocks.hpp
+  include/je2be/tobe/portal/portal.hpp
+  include/je2be/tobe/portal/portals.hpp
   include/je2be/tobe/progress.hpp
   include/je2be/tobe/session-lock.hpp
   include/je2be/tobe/statistics.hpp
