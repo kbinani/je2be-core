@@ -92,6 +92,7 @@ set(je2be_files
   include/je2be/nullable.hpp
   include/je2be/optional.hpp
   include/je2be/portal/oriented-portal-blocks.hpp
+  include/je2be/portal/poi-portals.hpp
   include/je2be/portal/portal-blocks.hpp
   include/je2be/portal/portal.hpp
   include/je2be/pos2.hpp
@@ -177,7 +178,6 @@ set(je2be_files
   include/je2be/toje/level-data.hpp
   include/je2be/toje/map-info.hpp
   include/je2be/toje/options.hpp
-  include/je2be/toje/poi.hpp
   include/je2be/toje/progress.hpp
   include/je2be/toje/region.hpp
   include/je2be/toje/structure-info.hpp

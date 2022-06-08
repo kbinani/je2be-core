@@ -122,10 +122,6 @@ public:
       return JE2BE_ERROR;
     }
 
-    if (!Poi::Export(*db, fOutput)) {
-      return JE2BE_ERROR;
-    }
-
     return bin->postProcess(fOutput, *db);
   }
 

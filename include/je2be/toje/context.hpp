@@ -160,89 +160,18 @@ public:
     if (!other.fShoulderEntityRight && fShoulderEntityRight) {
       other.fShoulderEntityRight = fShoulderEntityRight;
     }
+    for (auto const &it : fPortalBlocks) {
+      mcfile::Dimension dim = it.first;
+      auto &dest = other.fPortalBlocks[dim];
+      it.second.mergeInto(dest);
+    }
   }
 
-  Status postProcess(std::filesystem::path root, leveldb::DB &db) {
-    using namespace mcfile;
-
-    if (!Fs::CreateDirectories(root / "data")) {
-      return JE2BE_ERROR;
+  Status postProcess(std::filesystem::path root, leveldb::DB &db) const {
+    if (auto st = exportMaps(root, db); !st.ok()) {
+      return st;
     }
-
-    std::optional<int> maxMapNumber;
-
-    for (int64_t uuid : fUsedMapUuids) {
-      auto map = fMapInfo->mapFromUuid(uuid);
-      if (!map) {
-        continue;
-      }
-      int number = map->fNumber;
-      auto key = mcfile::be::DbKey::Map(uuid);
-      std::string str;
-      if (auto st = db.Get(leveldb::ReadOptions{}, key, &str); !st.ok()) {
-        continue;
-      }
-      auto b = CompoundTag::Read(str, fEndian);
-      if (!b) {
-        continue;
-      }
-      auto j = Compound();
-      auto dimensionB = b->byte("dimension", 0);
-      Dimension dim = Dimension::Overworld;
-      if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
-        dim = *dimension;
-      }
-      j->set("dimension", String(JavaStringFromDimension(dim)));
-      CopyBoolValues(*b, *j, {{"mapLocked", "locked"}});
-      CopyByteValues(*b, *j, {{"scale"}, {"unlimitedTracking"}});
-      CopyIntValues(*b, *j, {{"xCenter"}, {"zCenter"}});
-      auto colorsTagB = b->byteArrayTag("colors");
-      if (!colorsTagB) {
-        continue;
-      }
-      auto const &colorsB = colorsTagB->value();
-      if (colorsB.size() != 65536) {
-        continue;
-      }
-      std::vector<uint8_t> colorsJ(16384);
-      for (int i = 0; i < colorsJ.size(); i++) {
-        uint8_t r = colorsB[i * 4];
-        uint8_t g = colorsB[i * 4 + 1];
-        uint8_t b = colorsB[i * 4 + 2];
-        uint8_t a = colorsB[i * 4 + 3];
-        Rgba rgb(r, g, b, a);
-        uint8_t id = MapColor::MostSimilarColorId(rgb);
-        colorsJ[i] = id;
-      }
-      j->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
-      auto tagJ = Compound();
-      tagJ->set("data", j);
-      tagJ->set("DataVersion", Int(toje::kDataVersion));
-
-      auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
-      auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
-      if (!CompoundTag::Write(*tagJ, s, mcfile::Endian::Big)) {
-        return JE2BE_ERROR;
-      }
-      if (maxMapNumber) {
-        maxMapNumber = (std::max)(*maxMapNumber, number);
-      } else {
-        maxMapNumber = number;
-      }
-    }
-    if (maxMapNumber) {
-      auto idcounts = Compound();
-      auto d = Compound();
-      d->set("map", Int(*maxMapNumber));
-      idcounts->set("data", d);
-      idcounts->set("DataVersion", Int(toje::kDataVersion));
-      auto path = root / "data" / "idcounts.dat";
-      auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
-      if (!CompoundTag::Write(*idcounts, s, mcfile::Endian::Big)) {
-        return JE2BE_ERROR;
-      }
-    }
-    return Status::Ok();
+    return exportPoi(root);
   }
 
   std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const {
@@ -347,6 +276,116 @@ public:
     fShoulderEntityRight.swap(right);
   }
 
+  void addPortalBlock(mcfile::Dimension dim, Pos3i const &pos) {
+    fPortalBlocks[dim].add(pos);
+  }
+
+private:
+  Status exportMaps(std::filesystem::path const &root, leveldb::DB &db) const {
+    using namespace mcfile;
+
+    if (!Fs::CreateDirectories(root / "data")) {
+      return JE2BE_ERROR;
+    }
+
+    std::optional<int> maxMapNumber;
+
+    for (int64_t uuid : fUsedMapUuids) {
+      auto map = fMapInfo->mapFromUuid(uuid);
+      if (!map) {
+        continue;
+      }
+      int number = map->fNumber;
+      auto key = mcfile::be::DbKey::Map(uuid);
+      std::string str;
+      if (auto st = db.Get(leveldb::ReadOptions{}, key, &str); !st.ok()) {
+        continue;
+      }
+      auto b = CompoundTag::Read(str, fEndian);
+      if (!b) {
+        continue;
+      }
+      auto j = Compound();
+      auto dimensionB = b->byte("dimension", 0);
+      Dimension dim = Dimension::Overworld;
+      if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
+        dim = *dimension;
+      }
+      j->set("dimension", String(JavaStringFromDimension(dim)));
+      CopyBoolValues(*b, *j, {{"mapLocked", "locked"}});
+      CopyByteValues(*b, *j, {{"scale"}, {"unlimitedTracking"}});
+      CopyIntValues(*b, *j, {{"xCenter"}, {"zCenter"}});
+      auto colorsTagB = b->byteArrayTag("colors");
+      if (!colorsTagB) {
+        continue;
+      }
+      auto const &colorsB = colorsTagB->value();
+      if (colorsB.size() != 65536) {
+        continue;
+      }
+      std::vector<uint8_t> colorsJ(16384);
+      for (int i = 0; i < colorsJ.size(); i++) {
+        uint8_t r = colorsB[i * 4];
+        uint8_t g = colorsB[i * 4 + 1];
+        uint8_t b = colorsB[i * 4 + 2];
+        uint8_t a = colorsB[i * 4 + 3];
+        Rgba rgb(r, g, b, a);
+        uint8_t id = MapColor::MostSimilarColorId(rgb);
+        colorsJ[i] = id;
+      }
+      j->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
+      auto tagJ = Compound();
+      tagJ->set("data", j);
+      tagJ->set("DataVersion", Int(toje::kDataVersion));
+
+      auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
+      auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
+      if (!CompoundTag::Write(*tagJ, s, mcfile::Endian::Big)) {
+        return JE2BE_ERROR;
+      }
+      if (maxMapNumber) {
+        maxMapNumber = (std::max)(*maxMapNumber, number);
+      } else {
+        maxMapNumber = number;
+      }
+    }
+    if (maxMapNumber) {
+      auto idcounts = Compound();
+      auto d = Compound();
+      d->set("map", Int(*maxMapNumber));
+      idcounts->set("data", d);
+      idcounts->set("DataVersion", Int(toje::kDataVersion));
+      auto path = root / "data" / "idcounts.dat";
+      auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
+      if (!CompoundTag::Write(*idcounts, s, mcfile::Endian::Big)) {
+        return JE2BE_ERROR;
+      }
+    }
+
+    return Status::Ok();
+  }
+
+  Status exportPoi(std::filesystem::path const &root) const {
+    namespace fs = std::filesystem;
+
+    for (auto const &it : fPortalBlocks) {
+      mcfile::Dimension d = it.first;
+      PoiPortals const &portals = it.second;
+      fs::path dir;
+      if (d == mcfile::Dimension::Overworld) {
+        dir = root / "poi";
+      } else if (d == mcfile::Dimension::Nether) {
+        dir = root / "DIM-1" / "poi";
+      } else {
+        continue;
+      }
+      if (!portals.write(dir, kDataVersion)) {
+        return JE2BE_ERROR;
+      }
+    }
+    return Status::Ok();
+  }
+
 public:
   mcfile::Endian const fEndian;
   std::filesystem::path const fTempDirectory;
@@ -392,6 +431,8 @@ private:
   std::optional<int64_t> fShoulderEntityRightId;
   CompoundTagPtr fShoulderEntityLeft;
   CompoundTagPtr fShoulderEntityRight;
+
+  std::unordered_map<mcfile::Dimension, PoiPortals> fPortalBlocks;
 };
 
 } // namespace je2be::toje
