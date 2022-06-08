@@ -129,7 +129,8 @@ public:
       return error ? *error : JE2BE_ERROR;
     }
 
-    if (auto st = Terraform::Do(*chunkTempDir, concurrency, progress, progressChunks); !st.ok()) {
+    auto poiDirectory = outputDirectory / worldDir / "poi";
+    if (auto st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunks); !st.ok()) {
       return st;
     }
     progressChunks += 4096;

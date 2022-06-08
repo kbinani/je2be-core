@@ -16,16 +16,26 @@ class Terraform {
   };
 
 public:
-  static Status Do(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+    PoiPortals portals;
+    Status st;
     if (concurrency > 0) {
-      return MultiThread(directory, concurrency, progress, progressChunksOffset);
+      st = MultiThread(portals, directory, concurrency, progress, progressChunksOffset);
     } else {
-      return SingleThread(directory, progress, progressChunksOffset);
+      st = SingleThread(portals, directory, progress, progressChunksOffset);
+    }
+    if (!st.ok()) {
+      return st;
+    }
+    if (portals.write(poiDirectory, Chunk::kTargetDataVersion)) {
+      return Status::Ok();
+    } else {
+      return JE2BE_ERROR;
     }
   }
 
 private:
-  static Status MultiThread(std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status MultiThread(PoiPortals &portals, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     using namespace std;
     bool running[width][height];
     bool done[width][height];
@@ -34,17 +44,18 @@ private:
       fill_n(done[i], height, false);
     }
     unique_ptr<hwm::task_queue> queue(new hwm::task_queue(concurrency));
-    deque<future<Nullable<Pos2i>>> futures;
+    deque<future<Nullable<Result>>> futures;
     bool ok = true;
     optional<Status> error;
     int count = 0;
     while (ok) {
-      vector<future<Nullable<Pos2i>>> drain;
+      vector<future<Nullable<Result>>> drain;
       FutureSupport::Drain(concurrency + 1, futures, drain);
       for (auto &f : drain) {
         auto result = f.get();
         if (result) {
-          MarkFinished(result->fX, result->fZ, done, running);
+          result->fPortals.mergeInto(portals);
+          MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
         } else {
           if (!error) {
             error = result.status();
@@ -68,7 +79,8 @@ private:
         assert(!futures.empty());
         auto result = futures.front().get();
         if (result) {
-          MarkFinished(result->fX, result->fZ, done, running);
+          result->fPortals.mergeInto(portals);
+          MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
         } else {
           ok = false;
         }
@@ -84,7 +96,10 @@ private:
       }
     }
     for (auto &f : futures) {
-      if (auto result = f.get(); !result) {
+      auto result = f.get();
+      if (result) {
+        result->fPortals.mergeInto(portals);
+      } else {
         ok = false;
         if (!error) {
           error = result.status();
@@ -97,18 +112,20 @@ private:
         }
       }
     }
-    if (ok) {
-      return Status::Ok();
-    } else {
+    if (!ok) {
       return error ? *error : JE2BE_ERROR;
     }
+    return Status::Ok();
   }
 
-  static Status SingleThread(std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
+  static Status SingleThread(PoiPortals &portals, std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
     int done = 0;
     for (int cx = cx0; cx <= cx1; cx++) {
       for (int cz = cz0; cz <= cz1; cz++) {
-        if (auto result = DoChunk(cx, cz, directory); !result) {
+        auto result = DoChunk(cx, cz, directory);
+        if (result) {
+          result->fPortals.mergeInto(portals);
+        } else {
           return result.status();
         }
         done++;
@@ -204,10 +221,10 @@ private:
 
   struct Result {
     Pos2i fChunk;
-    bool fOk;
+    PoiPortals fPortals;
   };
 
-  static Nullable<Pos2i> DoChunk(int cx, int cz, std::filesystem::path const &directory) {
+  static Nullable<Result> DoChunk(int cx, int cz, std::filesystem::path const &directory) {
     using namespace std;
     using namespace je2be::terraform;
     using namespace je2be::terraform::box360;
@@ -216,8 +233,10 @@ private:
     auto file = directory / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
     auto input = make_shared<mcfile::stream::FileInputStream>(file);
     auto root = CompoundTag::ReadCompressed(*input, mcfile::Endian::Big);
+    Result ret;
+    ret.fChunk = Pos2i(cx, cz);
     if (!root) {
-      return Pos2i(cx, cz);
+      return ret;
     }
     input.reset();
     auto chunk = mcfile::je::WritableChunk::MakeChunk(cx, cz, root);
@@ -240,12 +259,26 @@ private:
     Chest::Do(*chunk, *cache, accessor);
     NoteBlock::Do(*chunk, *cache, accessor);
 
+    if (accessor.fHasNetherPortal) {
+      for (int y = chunk->minBlockY(); y <= chunk->maxBlockY(); y++) {
+        for (int z = chunk->minBlockZ(); z <= chunk->maxBlockZ(); z++) {
+          for (int x = chunk->minBlockX(); x <= chunk->maxBlockX(); x++) {
+            auto block = chunk->blockAt(x, y, z);
+            if (!block) {
+              continue;
+            }
+            ret.fPortals.add(Pos3i(x, y, z));
+          }
+        }
+      }
+    }
+
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
     if (!chunk->write(*output)) {
       return JE2BE_NULLABLE_NULL;
     }
 
-    return Pos2i(cx, cz);
+    return ret;
   }
 };
 
