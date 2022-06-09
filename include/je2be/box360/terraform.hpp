@@ -263,11 +263,10 @@ private:
       for (int y = chunk->minBlockY(); y <= chunk->maxBlockY(); y++) {
         for (int z = chunk->minBlockZ(); z <= chunk->maxBlockZ(); z++) {
           for (int x = chunk->minBlockX(); x <= chunk->maxBlockX(); x++) {
-            auto block = chunk->blockAt(x, y, z);
-            if (!block) {
-              continue;
+            auto p = accessor.property(x, y, z);
+            if (BlockPropertyAccessor::IsNetherPortal(p)) {
+              ret.fPortals.add(Pos3i(x, y, z));
             }
-            ret.fPortals.add(Pos3i(x, y, z));
           }
         }
       }
