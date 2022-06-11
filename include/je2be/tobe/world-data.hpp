@@ -6,7 +6,11 @@ class WorldData {
 public:
   explicit WorldData(mcfile::Dimension dim) : fDim(dim) {}
 
-  void addStatError(mcfile::Dimension dim, int32_t chunkX, int32_t chunkZ, Status::Where where) { fStat.addChunkError(dim, chunkX, chunkZ, where); }
+  void addError(Status::Where error) {
+    if (!fError) {
+      fError = error;
+    }
+  }
 
   void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) { fPortalBlocks.add(x, y, z, xAxis); }
 
@@ -71,7 +75,9 @@ public:
     for (StructurePiece const &p : fStructures) {
       wd.fStructures.add(p, fDim);
     }
-    wd.fStat.merge(fStat);
+    if (!wd.fError && fError) {
+      wd.fError = fError;
+    }
     wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
@@ -101,7 +107,9 @@ public:
     for (auto const &piece : fStructures) {
       out.fStructures.add(piece);
     }
-    out.fStat.merge(fStat);
+    if (!out.fError && fError) {
+      out.fError = fError;
+    }
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
@@ -260,7 +268,7 @@ private:
   std::vector<CompoundTagPtr> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
-  Statistics fStat;
+  std::optional<Status::Where> fError;
   int64_t fMaxChunkLastUpdate = 0;
 };
 

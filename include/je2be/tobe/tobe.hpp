@@ -4,7 +4,6 @@
 #include <je2be/tobe/uuid-registrar.hpp>
 #include <je2be/tobe/versions.hpp>
 #include <je2be/tobe/options.hpp>
-#include <je2be/tobe/statistics.hpp>
 #include <je2be/tobe/chunk-conversion-mode.hpp>
 #include <je2be/tobe/session-lock.hpp>
 #include <je2be/tobe/progress.hpp>

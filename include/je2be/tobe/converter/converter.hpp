@@ -10,7 +10,7 @@ public:
   Converter(std::wstring const &input, std::wstring const &output, Options o) = delete;
   Converter(std::filesystem::path const &input, std::filesystem::path const &output, Options o) : fInput(input), fOutput(output), fOptions(o) {}
 
-  std::optional<Statistics> run(int concurrency, Progress *progress = nullptr) {
+  Status run(int concurrency, Progress *progress = nullptr) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile;
@@ -18,7 +18,7 @@ public:
 
     SessionLock lock(fInput);
     if (!lock.lock()) {
-      return nullopt;
+      return JE2BE_ERROR;
     }
 
     double const numTotalChunks = getTotalNumChunks();
@@ -29,12 +29,12 @@ public:
     error_code ec;
     fs::create_directories(dbPath, ec);
     if (ec) {
-      return nullopt;
+      return JE2BE_ERROR;
     }
 
     auto data = Level::Read(fOptions.getLevelDatFilePath(fInput));
     if (!data) {
-      return nullopt;
+      return JE2BE_ERROR;
     }
     Level level = Level::Import(*data);
 
@@ -44,7 +44,7 @@ public:
     {
       RawDb db(dbPath, concurrency);
       if (!db.valid()) {
-        return nullopt;
+        return JE2BE_ERROR;
       }
 
       auto localPlayerData = LocalPlayerData(*data, *levelData);
@@ -97,7 +97,11 @@ public:
       }
     }
 
-    return levelData->fStat;
+    if (levelData->fError) {
+      return Status(*levelData->fError);
+    } else {
+      return Status::Ok();
+    }
   }
 
   static std::optional<std::string> LocalPlayerData(CompoundTag const &tag, LevelData &ld) {
