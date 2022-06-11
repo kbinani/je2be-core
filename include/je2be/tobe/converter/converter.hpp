@@ -29,7 +29,7 @@ public:
     error_code ec;
     fs::create_directories(dbPath, ec);
     if (ec) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(ec.message());
     }
 
     auto data = Level::Read(fOptions.getLevelDatFilePath(fInput));
@@ -98,7 +98,7 @@ public:
     }
 
     if (levelData->fError) {
-      return Status(*levelData->fError);
+      return Status(Status::ErrorData(*levelData->fError));
     } else {
       return Status::Ok();
     }

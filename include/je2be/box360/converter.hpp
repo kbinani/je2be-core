@@ -391,7 +391,7 @@ private:
       fs::copy_options o = fs::copy_options::overwrite_existing;
       fs::copy_file(dataFrom / fileNameString, dataTo / fileNameString, o, ec1);
       if (ec1) {
-        return JE2BE_ERROR;
+        return JE2BE_ERROR_WHAT(ec1.message());
       }
     }
     return Status::Ok();

@@ -34,11 +34,11 @@ public:
     error_code ec;
     fs::create_directories(dir / "region", ec);
     if (ec) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(ec.message());
     }
     fs::create_directories(dir / "entities", ec);
     if (ec) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(ec.message());
     }
 
     hwm::task_queue queue(concurrency);

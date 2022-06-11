@@ -39,7 +39,7 @@ public:
       return Status::Ok();
     } else {
       Status::Where w = std::get<Status::Where>(fStorage);
-      return Status(w);
+      return Status(Status::ErrorData(w));
     }
   }
 

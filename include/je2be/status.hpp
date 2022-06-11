@@ -24,7 +24,14 @@ public:
     }
   };
 
-  explicit Status(std::optional<Where> error) : fError(error) {
+  struct ErrorData {
+    Where fWhere;
+    std::string fWhat;
+
+    explicit ErrorData(Where where, std::string what = {}) : fWhere(where), fWhat(what) {}
+  };
+
+  explicit Status(std::optional<ErrorData> error) : fError(error) {
   }
 
   Status() : fError(std::nullopt) {}
@@ -33,7 +40,7 @@ public:
     return !fError;
   }
 
-  std::optional<Where> error() const {
+  std::optional<ErrorData> error() const {
     return fError;
   }
 
@@ -41,15 +48,17 @@ public:
     return Status();
   }
 
-  static Status Error(char const *file, int line) {
-    return Status(Where(file, line));
+  static Status Error(char const *file, int line, std::string const &what) {
+    return Status(ErrorData(Where(file, line), what));
   }
 
 private:
-  std::optional<Where> fError;
+  std::optional<ErrorData> fError;
 };
 
 } // namespace je2be
 
-#define JE2BE_ERROR_HELPER(file, line) je2be::Status::Error(file, line)
-#define JE2BE_ERROR JE2BE_ERROR_HELPER(__FILE__, __LINE__)
+#define JE2BE_ERROR_HELPER(file, line, what) je2be::Status::Error((file), (line), (what))
+
+#define JE2BE_ERROR JE2BE_ERROR_HELPER(__FILE__, __LINE__, std::string())
+#define JE2BE_ERROR_WHAT(what) JE2BE_ERROR_HELPER(__FILE__, __LINE__, (what))
