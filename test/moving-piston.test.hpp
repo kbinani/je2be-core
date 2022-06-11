@@ -9,7 +9,7 @@ static std::optional<fs::path> JavaToBedrock(fs::path const &java) {
   o.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   o.fChunkFilter.insert(Pos2i(0, 0));
   je2be::tobe::Converter converter(java, *output, o);
-  if (!converter.run(thread::hardware_concurrency())) {
+  if (auto st = converter.run(thread::hardware_concurrency()); !st.ok()) {
     return nullopt;
   }
   return *output;

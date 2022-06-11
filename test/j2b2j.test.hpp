@@ -646,7 +646,7 @@ TEST_CASE("j2b2j") {
   optJ.fChunkFilter = optB.fChunkFilter;
 
   je2be::tobe::Converter tobe(in, *outB, optB);
-  CHECK(tobe.run(thread::hardware_concurrency()));
+  CHECK(tobe.run(thread::hardware_concurrency()).ok());
 
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
