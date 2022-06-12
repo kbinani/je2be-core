@@ -6,7 +6,7 @@ class WorldData {
 public:
   explicit WorldData(mcfile::Dimension dim) : fDim(dim) {}
 
-  void addError(Status::Where error) {
+  void addError(Status::ErrorData error) {
     if (!fError) {
       fError = error;
     }
@@ -268,7 +268,7 @@ private:
   std::vector<CompoundTagPtr> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
-  std::optional<Status::Where> fError;
+  std::optional<Status::ErrorData> fError;
   int64_t fMaxChunkLastUpdate = 0;
 };
 

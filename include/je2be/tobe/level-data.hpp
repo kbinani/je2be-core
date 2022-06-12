@@ -82,7 +82,7 @@ public:
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   Options fOptions;
   Structures fStructures;
-  std::optional<Status::Where> fError;
+  std::optional<Status::ErrorData> fError;
   int64_t fMaxChunkLastUpdate = 0;
   int64_t const fGameTick;
   int const fDifficultyBedrock;

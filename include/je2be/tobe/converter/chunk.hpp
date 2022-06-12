@@ -51,10 +51,22 @@ public:
       }
       r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand);
       return r;
+    } catch (std::exception &e) {
+      Chunk::Result r;
+      r.fData = make_shared<WorldData>(dim);
+      r.fData->addError(Status::ErrorData(Status::Where(__FILE__, __LINE__), e.what()));
+      r.fOk = false;
+      return r;
+    } catch (char const *what) {
+      Chunk::Result r;
+      r.fData = make_shared<WorldData>(dim);
+      r.fData->addError(Status::ErrorData(Status::Where(__FILE__, __LINE__), what));
+      r.fOk = false;
+      return r;
     } catch (...) {
       Chunk::Result r;
       r.fData = make_shared<WorldData>(dim);
-      r.fData->addError(Status::Where(__FILE__, __LINE__));
+      r.fData->addError(Status::ErrorData(Status::Where(__FILE__, __LINE__)));
       r.fOk = false;
       return r;
     }
