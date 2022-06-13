@@ -36,7 +36,7 @@ public:
   bool fFreezeDamage = true;
   bool fForceGameType = false;
   int32_t fFunctionCommandLimit = 10000;
-  int32_t fGameType = 1;
+  GameMode fGameType = GameMode::Survival;
   int32_t fGenerator = 1;
   bool fHasBeenLoadedInCreative = false;
   bool fHasLockedBehaviorPack = false;
@@ -130,7 +130,7 @@ public:
         {"freezedamage", Bool(fFreezeDamage)},
         {"ForceGameType", Bool(fForceGameType)},
         {"functioncommandlimit", Int(fFunctionCommandLimit)},
-        {"GameType", Int(fGameType)},
+        {"GameType", Int(BedrockFromGameMode(fGameType))},
         {"Generator", Int(fGenerator)},
         {"hasBeenLoadedInCreative", Bool(fHasBeenLoadedInCreative)},
         {"hasLockedBehaviorPack", Bool(fHasLockedBehaviorPack)},
@@ -291,24 +291,27 @@ public:
       // universalAnger
 #undef S
 #undef I
-
-      auto worldGenSettings = data->compoundTag("WorldGenSettings");
-      if (worldGenSettings) {
-        ret.fRandomSeed = worldGenSettings->int64("seed", ret.fRandomSeed);
-      }
-
-      auto flatWorldLayers = FlatWorldLayers::FromLevelData(*data);
-      if (flatWorldLayers) {
-        ret.fFlatWorldLayers = *flatWorldLayers;
-        ret.fGenerator = 2;
-      }
-
-      ret.fRainLevel = data->boolean("raining", false) ? 1 : 0;
-      ret.fRainTime = data->int32("rainTime", ret.fRainTime);
-      ret.fLightningLevel = data->boolean("thundering", false) ? 1 : 0;
-      ret.fLightningTime = data->int32("thunderTime", ret.fLightningTime);
-      ret.fGameType = std::clamp(data->int32("GameType", 0), 0, 2);
     }
+
+    auto worldGenSettings = data->compoundTag("WorldGenSettings");
+    if (worldGenSettings) {
+      ret.fRandomSeed = worldGenSettings->int64("seed", ret.fRandomSeed);
+    }
+
+    auto flatWorldLayers = FlatWorldLayers::FromLevelData(*data);
+    if (flatWorldLayers) {
+      ret.fFlatWorldLayers = *flatWorldLayers;
+      ret.fGenerator = 2;
+    }
+
+    ret.fRainLevel = data->boolean("raining", false) ? 1 : 0;
+    ret.fRainTime = data->int32("rainTime", ret.fRainTime);
+    ret.fLightningLevel = data->boolean("thundering", false) ? 1 : 0;
+    ret.fLightningTime = data->int32("thunderTime", ret.fLightningTime);
+    if (auto type = GameModeFromJava(data->int32("GameType", 0)); type) {
+      ret.fGameType = *type;
+    }
+
     return ret;
   }
 

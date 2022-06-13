@@ -8,7 +8,8 @@ public:
             Options const &opt,
             int64_t gameTick,
             int difficultyBedrock,
-            bool allowCommand) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand) {}
+            bool allowCommand,
+            GameMode gameType) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType) {}
 
   [[nodiscard]] bool put(DbInterface &db, CompoundTag const &javaLevelData) {
     if (!fPortals.putInto(db)) {
@@ -88,6 +89,7 @@ public:
   int const fDifficultyBedrock;
   bool fSpectatorUsed = false;
   bool const fAllowCommand;
+  GameMode const fGameType;
 
   struct VehicleAndPassengers {
     Pos2i fChunk;

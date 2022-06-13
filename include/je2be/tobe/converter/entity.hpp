@@ -318,15 +318,13 @@ public:
     CopyFloatValues(tag, *entity, {{"XpP", "PlayerLevelProgress"}});
     CopyBoolValues(tag, *entity, {{"seenCredits", "HasSeenCredits"}});
 
-    bool spectatorUsed = false;
-    int32_t playerGameTypeJ = tag.int32("playerGameType", 0);
-    int32_t playerGameModeB = std::clamp(playerGameTypeJ, 0, 2);
-    if (playerGameTypeJ == 3) {
-      // spectator
-      playerGameModeB = 6;
-      spectatorUsed = true;
+    GameMode gameType = ctx.fGameType;
+    if (auto playerGameTypeJ = tag.int32("playerGameType"); playerGameTypeJ) {
+      if (auto type = GameModeFromJava(*playerGameTypeJ); type) {
+        gameType = *type;
+      }
     }
-    entity->set("PlayerGameMode", Int(playerGameModeB));
+    entity->set("PlayerGameMode", Int(BedrockFromGameMode(gameType)));
     entity->set("SelectedContainerId", Int(0));
 
     auto inventory = tag.listTag("Inventory");
@@ -479,7 +477,7 @@ public:
     result.fEntity = entity;
     result.fDimension = dim;
     result.fUid = *uuid;
-    result.fSpectatorUsed = spectatorUsed;
+    result.fSpectatorUsed = gameType == GameMode::Spectator;
     int cx = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fX));
     int cz = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fZ));
     result.fChunk = Pos2i(cx, cz);
