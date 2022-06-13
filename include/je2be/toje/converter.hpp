@@ -36,7 +36,12 @@ public:
     int total = 0;
     map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
     int64_t gameTick = dat->int64("currentTick", 0);
-    auto bin = Context::Init(*db, fOptions, *endian, regions, total, gameTick, BlockEntity::FromBlockAndBlockEntity);
+    int32_t gameTypeB = dat->int32("GameType", 0);
+    GameMode gameMode = GameMode::Survival;
+    if (auto t = GameModeFromBedrock(gameTypeB); t) {
+      gameMode = *t;
+    }
+    auto bin = Context::Init(*db, fOptions, *endian, regions, total, gameTick, gameMode, BlockEntity::FromBlockAndBlockEntity);
 
     auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
     if (!levelDat) {

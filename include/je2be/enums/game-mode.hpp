@@ -1,0 +1,69 @@
+#pragma once
+
+namespace je2be {
+
+enum class GameMode {
+  Survival,
+  Creative,
+  Adventure,
+  Spectator,
+};
+
+static inline std::optional<GameMode> GameModeFromJava(int32_t v) {
+  switch (v) {
+  case 0:
+    return GameMode::Survival;
+  case 1:
+    return GameMode::Creative;
+  case 2:
+    return GameMode::Adventure;
+  case 3:
+    return GameMode::Spectator;
+  default:
+    return std::nullopt;
+  }
+}
+
+static inline std::optional<GameMode> GameModeFromBedrock(int32_t v) {
+  switch (v) {
+  case 0:
+    return GameMode::Survival;
+  case 1:
+    return GameMode::Creative;
+  case 2:
+    return GameMode::Adventure;
+  case 6:
+    return GameMode::Spectator;
+  default:
+    // 5 means "same as world game mode"
+    return std::nullopt;
+  }
+}
+
+static inline int32_t JavaFromGameMode(GameMode m) {
+  switch (m) {
+  case GameMode::Survival:
+    return 0;
+  case GameMode::Creative:
+    return 1;
+  case GameMode::Adventure:
+    return 2;
+  case GameMode::Spectator:
+    return 3;
+  }
+}
+
+static inline int32_t BedrockFromGameMode(GameMode m) {
+  switch (m) {
+  case GameMode::Survival:
+    return 0;
+  case GameMode::Creative:
+    return 1;
+  case GameMode::Adventure:
+    return 2;
+  case GameMode::Spectator:
+    return 6;
+  }
+}
+
+} // namespace je2be

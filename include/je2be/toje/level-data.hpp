@@ -125,7 +125,7 @@ public:
     CompoundTag &j = *data;
 
     CopyStringValues(b, j, {{"LevelName"}});
-    CopyIntValues(b, j, {{"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"GameType"}, {"rainTime"}, {"lightningTime", "thunderTime"}});
+    CopyIntValues(b, j, {{"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"rainTime"}, {"lightningTime", "thunderTime"}});
     CopyBoolValues(b, j, {{"commandsEnabled", "allowCommands", false}});
     CopyLongValues(b, j, {{"Time", "DayTime"}, {"currentTick", "Time"}});
 
@@ -134,6 +134,7 @@ public:
     j["LastPlayed"] = Long(b.int64("LastPlayed", 0) * 1000);
     j["raining"] = Bool(b.float32("rainLevel", 0) >= 1);
     j["thundering"] = Bool(b.float32("lightningLevel", 0) >= 1);
+    j["GameType"] = Int(JavaFromGameMode(ctx.fGameMode));
 
     if (auto dragonFight = DragonFight(db, ctx.fEndian); dragonFight) {
       j["DragonFight"] = dragonFight;

@@ -8,8 +8,9 @@ class Context {
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
           int64_t gameTick,
+          GameMode gameMode,
           std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity)
-      : fEndian(endian), fTempDirectory(tempDirectory), fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
+      : fEndian(endian), fTempDirectory(tempDirectory), fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fGameMode(gameMode), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
 
 public:
   struct ChunksInRegion {
@@ -22,6 +23,7 @@ public:
                                        std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
                                        int &totalChunks,
                                        int64_t gameTick,
+                                       GameMode gameMode,
                                        std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) {
     using namespace std;
     using namespace leveldb;
@@ -134,7 +136,7 @@ public:
     }
 
     fs::path temp = opt.fTempDirectory ? *opt.fTempDirectory : fs::temp_directory_path();
-    return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, fromBlockAndBlockEntity));
+    return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode, fromBlockAndBlockEntity));
   }
 
   void markMapUuidAsUsed(int64_t uuid) {
@@ -183,7 +185,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fFromBlockAndBlockEntity));
+    auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode, fFromBlockAndBlockEntity));
     ret->fLocalPlayer = fLocalPlayer;
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
@@ -406,6 +408,7 @@ public:
   std::unordered_map<Uuid, Pos2i, UuidHasher, UuidPred> fEntities;
 
   int64_t const fGameTick;
+  GameMode const fGameMode;
 
   // NOTE: This std::function must be BlockEntity::FromBlockAndBlockEntity. By doing this, the "Item" class can use the function (the "Item" class is #includ'ed before "BlockEntity")
   std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> const fFromBlockAndBlockEntity;

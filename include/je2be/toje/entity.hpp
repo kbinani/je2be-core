@@ -1605,21 +1605,15 @@ public:
     CopyFloatValues(b, j, {{"PlayerLevelProgress", "XpP"}});
     CopyBoolValues(b, j, {{"HasSeenCredits", "seenCredits"}});
 
+    GameMode playerGameMode = ctx.fGameMode;
     if (auto playerGameModeB = b.int32("PlayerGameMode"); playerGameModeB) {
-      int32_t playerGameTypeJ = *playerGameModeB;
-      switch (*playerGameModeB) {
-      case 5:
-        // PlayerGameMode = 5 when superflat creative. This offset is only seen in creative mode.
-        playerGameTypeJ = 1;
-        break;
-      case 6:
-        // spectator
-        playerGameTypeJ = 3;
-        break;
-      default:
-        break;
+      if (auto mode = GameModeFromBedrock(*playerGameModeB); mode) {
+        playerGameMode = *mode;
       }
-      j["playerGameType"] = Int(playerGameTypeJ);
+    }
+    j["playerGameType"] = Int(JavaFromGameMode(playerGameMode));
+    if (playerGameMode != ctx.fGameMode) {
+      j["previousPlayerGameType"] = Int(JavaFromGameMode(ctx.fGameMode));
     }
 
     auto dimensionB = b.int32("DimensionId", 0);
