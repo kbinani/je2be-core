@@ -178,7 +178,7 @@ private:
     Entity::CopyItems(*in, *out, ctx, "Inventory");
 
     if (auto dimensionB = in->int32("Dimension"); dimensionB) {
-      if (auto dimension = DimensionFromBedrockDimension(*dimensionB); dimension) {
+      if (auto dimension = DimensionFromXbox360Dimension(*dimensionB); dimension) {
         out->set("Dimension", String(JavaStringFromDimension(*dimension)));
       }
     }

@@ -51,4 +51,16 @@ static inline std::optional<mcfile::Dimension> DimensionFromBedrockDimension(int
   return std::nullopt;
 }
 
+static inline std::optional<mcfile::Dimension> DimensionFromXbox360Dimension(int32_t d) {
+  switch (d) {
+  case 0:
+    return mcfile::Dimension::Overworld;
+  case 1:
+    return mcfile::Dimension::End;
+  case -1:
+    return mcfile::Dimension::Nether;
+  }
+  return std::nullopt;
+}
+
 } // namespace je2be
