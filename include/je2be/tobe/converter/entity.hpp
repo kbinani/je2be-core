@@ -1283,6 +1283,17 @@ private:
       tradeTier = 1;
     }
     c["TradeTier"] = Int(tradeTier);
+
+    if (auto uuid = c.int64("UniqueID"); uuid) {
+      // Set random SkinID based on UniqueID
+      int64_t id = *uuid;
+      uint64_t seed = *(int64_t *)&id;
+      std::mt19937_64 mt(seed);
+      std::uniform_int_distribution<int32_t> distribution(0, 5);
+      int32_t skinId = distribution(mt);
+      c["SkinID"] = Int(skinId);
+      AddDefinition(c, "+villager_skin_" + std::to_string(skinId));
+    }
   }
 
   static void WanderingTrader(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
