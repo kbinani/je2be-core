@@ -56,5 +56,5 @@ int main(int argc, char *argv[]) {
   Options options;
   options.fLevelDirectoryStructure = structure;
   Converter converter(input, output, options);
-  return converter.run(concurrency) ? 0 : -1;
+  return converter.run(concurrency).ok() ? 0 : -1;
 }
