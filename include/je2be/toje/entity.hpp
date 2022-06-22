@@ -742,17 +742,10 @@ public:
     dataJ->set("profession", String("minecraft:" + profession.string()));
 
     VillagerType::Variant variant = VillagerType::Plains;
-    auto markVariantB = b.int32("MarkVariant", 0);
-    if (markVariantB == 0) {
-      /*
-        Plains: "+villager_skin_1"
-        Desert: "+villager_skin_4", "+desert_villager"
-        Jungle: "+villager_skin_1", "+jungle_villager"
-        Savanna: "+villager_skin_5", "+savanna_villager"
-        Snow: "+villager_skin_3", "+snow_villager"
-        Swamp: "+villager_skin_1", "+swamp_villager"
-        Taiga: "+villager_skin_2"
-      */
+    auto markVariantB = b.int32("MarkVariant");
+    if (markVariantB) {
+      variant = static_cast<VillagerType::Variant>(*markVariantB);
+    } else {
       if (HasDefinition(b, "+desert_villager")) {
         variant = VillagerType::Desert;
       } else if (HasDefinition(b, "+jungle_villager")) {
@@ -763,11 +756,9 @@ public:
         variant = VillagerType::Snow;
       } else if (HasDefinition(b, "+swamp_villager")) {
         variant = VillagerType::Swamp;
-      } else if (HasDefinition(b, "+villager_skin_2")) {
+      } else if (HasDefinition(b, "+taiga_villager")) {
         variant = VillagerType::Taiga;
       }
-    } else {
-      variant = static_cast<VillagerType::Variant>(markVariantB);
     }
     VillagerType type(variant);
     dataJ->set("type", String("minecraft:" + type.string()));
