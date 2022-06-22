@@ -581,7 +581,7 @@ private:
     E(zombie, C(Monster, AgeableB("zombie")));
 
     M(zombie_horse);
-    E(zombie_villager, C(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), ZombieVillager));
+    E(zombie_villager, C(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), Villager, ZombieVillager));
     E(zombified_piglin, C(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
 
     E(boat, C(EntityBase, Vehicle(), Entity::Boat("boat")));
@@ -1318,57 +1318,10 @@ private:
   }
 
   static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    using namespace std;
-    auto data = tag.compoundTag("VillagerData");
-    optional<VillagerProfession> profession;
-    if (data) {
-      auto inProfession = data->string("profession");
-      if (inProfession) {
-        profession = VillagerProfession::FromJavaProfession(*inProfession);
-        AddDefinition(c, "+" + profession->string());
-      }
-      auto inType = data->string("type");
-      if (inType) {
-        auto type = VillagerType::FromJavaType(*inType);
-        if (type) {
-          switch (type->variant()) {
-          case VillagerType::Plains:
-            AddDefinition(c, "+villager_skin_1");
-            break;
-          case VillagerType::Desert:
-            AddDefinition(c, "+villager_skin_4");
-            AddDefinition(c, "+desert_villager");
-            break;
-          case VillagerType::Jungle:
-            AddDefinition(c, "+villager_skin_4");
-            AddDefinition(c, "+jungle_villager");
-            break;
-          case VillagerType::Savanna:
-            AddDefinition(c, "+villager_skin_5");
-            AddDefinition(c, "+savanna_villager");
-            break;
-          case VillagerType::Snow:
-            AddDefinition(c, "+villager_skin_3");
-            AddDefinition(c, "+snow_villager");
-            break;
-          case VillagerType::Swamp:
-            AddDefinition(c, "+villager_skin_1");
-            AddDefinition(c, "+swamp_villager");
-            break;
-          case VillagerType::Taiga:
-            AddDefinition(c, "+villager_skin_2");
-            break;
-          }
-        }
-      }
-    }
-
     auto offers = tag.compoundTag("Offers");
     if (offers) {
       c["Persistent"] = Bool(true);
     }
-
-    CopyIntValues(tag, c, {{"Xp", "TradeExperience"}});
   }
 #pragma endregion
 
