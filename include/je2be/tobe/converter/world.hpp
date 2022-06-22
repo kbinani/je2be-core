@@ -174,6 +174,9 @@ public:
     if (!completed) {
       return false;
     }
+
+    queue.reset();
+
     return PutWorldEntities(dim, db, tempDir, concurrency);
   }
 
