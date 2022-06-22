@@ -18,6 +18,17 @@ public:
 
   constexpr VillagerType(Variant variant) : fVariant(variant) {}
 
+  /*
+  biome         Variant     skin                MarkVariant     PreferredProfession     definition          SkinID
+  plains        11          villager_skin_4     0               butcher                 N/A                 4
+  desert        10          villager_skin_5     1               toolsmith               desert_villager     5
+  savanna       1           villager_skin_1     3               farmer                  savanna_villager    1
+  taiga         12          villager_skin_0     6               leatherworker           taiga_villager      0
+  ice_plains    8           villager_skin_2     4               armorer                 snow_villager       2
+  jungle        3           villager_skin_1     2               shepherd                jungle_villager     1
+  swampland     11          villager_skin_0     5               butcher                 swamp_villager      0
+  */
+
   static std::optional<VillagerType> FromJavaType(std::string type) {
     if (type.starts_with("minecraft:")) {
       type = type.substr(10);
