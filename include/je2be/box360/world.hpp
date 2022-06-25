@@ -124,6 +124,7 @@ public:
         progressChunks++;
       }
       futures.clear();
+      queue.reset();
     }
     if (!ok) {
       return error ? *error : JE2BE_ERROR;
@@ -140,6 +141,10 @@ public:
     }
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "entities")) {
       return JE2BE_ERROR;
+    }
+
+    if (concurrency > 0) {
+      queue.reset(new hwm::task_queue(concurrency));
     }
 
     mcfile::je::Region::ConcatOptions o;
