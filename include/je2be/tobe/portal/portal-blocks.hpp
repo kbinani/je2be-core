@@ -24,32 +24,6 @@ public:
     fZ.drain(out.fZ);
   }
 
-  std::shared_ptr<Tag> toNbt() const {
-    auto tag = Compound();
-    (*tag)["x"] = fX.toNbt();
-    (*tag)["z"] = fZ.toNbt();
-    return tag;
-  }
-
-  static std::optional<PortalBlocks> FromNbt(Tag const &nbt) {
-    using namespace std;
-    auto tag = nbt.asCompound();
-    if (!tag) {
-      return nullopt;
-    }
-    auto xTag = tag->compoundTag("x");
-    auto zTag = tag->compoundTag("z");
-    if (!xTag || !zTag) {
-      return nullopt;
-    }
-    auto x = OrientedPortalBlocks::FromNbt(*xTag);
-    auto z = OrientedPortalBlocks::FromNbt(*zTag);
-    if (!x || !z) {
-      return nullopt;
-    }
-    return PortalBlocks(*x, *z);
-  }
-
 private:
   PortalBlocks(OrientedPortalBlocks x, OrientedPortalBlocks z) : fX(x), fZ(z) {}
 

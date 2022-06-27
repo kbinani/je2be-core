@@ -23,35 +23,6 @@ public:
 
   static bool Equals(Volume const &a, Volume const &b) { return a.fStart == b.fStart && a.fEnd == b.fEnd; }
 
-  std::shared_ptr<Tag> toNbt() const {
-    using namespace std;
-    using namespace mcfile;
-    auto tag = Compound();
-    (*tag)["start"] = Pos3iToNbt(fStart);
-    (*tag)["end"] = Pos3iToNbt(fEnd);
-    return tag;
-  }
-
-  static std::optional<Volume> FromNbt(Tag const &tag) {
-    using namespace std;
-    using namespace mcfile;
-    auto c = tag.asCompound();
-    if (!c) {
-      return nullopt;
-    }
-    auto startTag = c->compoundTag("start");
-    auto endTag = c->compoundTag("end");
-    if (!startTag || !endTag) {
-      return nullopt;
-    }
-    auto start = Pos3iFromNbt(*startTag);
-    auto end = Pos3iFromNbt(*endTag);
-    if (!start || !end) {
-      return nullopt;
-    }
-    return Volume(*start, *end);
-  }
-
   static void Connect(std::vector<Volume> &volumes) {
     using namespace std;
     while (true) {

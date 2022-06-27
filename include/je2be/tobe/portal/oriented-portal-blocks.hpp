@@ -35,54 +35,6 @@ public:
     std::unordered_set<Pos3i, Pos3iHasher>().swap(fBlocks);
   }
 
-  std::shared_ptr<Tag> toNbt() const {
-    using namespace std;
-    auto tag = Compound();
-    CompoundTag &c = *tag;
-    c["x"] = make_shared<ByteTag>(fXAxis ? 1 : 0);
-    auto blocks = List<Tag::Type::Compound>();
-    for (auto const &pos : fBlocks) {
-      auto p = Compound();
-      (*p)["x"] = make_shared<IntTag>(pos.fX);
-      (*p)["y"] = make_shared<IntTag>(pos.fY);
-      (*p)["z"] = make_shared<IntTag>(pos.fZ);
-      blocks->push_back(p);
-    }
-    c["blocks"] = blocks;
-    return tag;
-  }
-
-  static std::optional<OrientedPortalBlocks> FromNbt(Tag const &nbt) {
-    using namespace std;
-    auto tag = nbt.asCompound();
-    if (!tag) {
-      return nullopt;
-    }
-    auto xAxis = tag->boolean("x");
-    if (!xAxis) {
-      return nullopt;
-    }
-    auto blocks = tag->listTag("blocks");
-    OrientedPortalBlocks ret(*xAxis);
-    if (blocks) {
-      for (auto const &t : *blocks) {
-        auto c = t->asCompound();
-        if (!c) {
-          return nullopt;
-        }
-        auto x = c->int32("x");
-        auto y = c->int32("y");
-        auto z = c->int32("z");
-        if (!x || !y || !z) {
-          return nullopt;
-        }
-        Pos3i pos(*x, *y, *z);
-        ret.fBlocks.insert(pos);
-      }
-    }
-    return ret;
-  }
-
 private:
   Pos3i lookupBottomNorthWestCorner(Pos3i start) {
     if (fXAxis) {

@@ -14,46 +14,6 @@ struct StructurePiece {
   Volume fVolume;
   StructureType fType;
 
-  std::shared_ptr<Tag> toNbt() const {
-    using namespace std;
-    auto tag = Compound();
-    (*tag)["type"] = make_shared<ByteTag>(static_cast<uint8_t>(fType));
-    (*tag)["volume"] = fVolume.toNbt();
-    return tag;
-  }
-
-  static std::optional<StructurePiece> FromNbt(Tag const &tag) {
-    using namespace std;
-    auto c = tag.asCompound();
-    if (!c) {
-      return nullopt;
-    }
-    auto typeTag = c->byte("type");
-    auto volumeTag = c->compoundTag("volume");
-    if (!typeTag || !volumeTag) {
-      return nullopt;
-    }
-    StructureType type;
-    switch (*typeTag) {
-    case static_cast<uint8_t>(StructureType::Fortress):
-      type = StructureType::Fortress;
-      break;
-    case static_cast<uint8_t>(StructureType::Monument):
-      type = StructureType::Monument;
-      break;
-    case static_cast<uint8_t>(StructureType::Outpost):
-      type = StructureType::Outpost;
-      break;
-    default:
-      return nullopt;
-    }
-    auto volume = Volume::FromNbt(*volumeTag);
-    if (!volume) {
-      return nullopt;
-    }
-    return StructurePiece(volume->fStart, volume->fEnd, type);
-  }
-
   static bool Parse(std::string const &data, std::vector<StructurePiece> &buffer) {
     auto s = std::make_shared<mcfile::stream::ByteStream>(data);
     mcfile::stream::InputStreamReader isr(s, mcfile::Endian::Little);
