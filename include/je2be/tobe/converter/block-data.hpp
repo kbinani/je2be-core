@@ -1593,6 +1593,8 @@ private:
     E(sculk_shrieker, SculkShrieker);
     E(mud_brick_wall, wall);
     E(sculk_catalyst, SculkCatalyst);
+
+    E(spawner, Null); // spawner doesn't exist as block in BE.
 #undef E
 
     return table;
