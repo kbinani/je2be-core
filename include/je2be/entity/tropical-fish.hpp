@@ -36,7 +36,7 @@ public:
     auto ret = Compound();
     auto attributes = EntityAttributes::Mob("minecraft:tropical_fish", nullopt);
     if (attributes) {
-      ret->set("Attributes", attributes->toListTag());
+      ret->set("Attributes", attributes->toBedrockListTag());
     }
     ret->set("Variant", Int(fSmall ? 0 : 1));
     ret->set("MarkVariant", Int(fPattern));

@@ -47,7 +47,7 @@ public:
 
     auto attributes = EntityAttributes::Mob("minecraft:axolotl", fHealth);
     if (attributes) {
-      ret->set("Attributes", attributes->toListTag());
+      ret->set("Attributes", attributes->toBedrockListTag());
     }
     string age = fAge < 0 ? "Baby" : "Adult";
     string bodyId = "item.axolotl" + age + "BodySingle.name";

@@ -432,7 +432,7 @@ public:
     entity->set("PlayerLevel", Int(xpLevel));
 
     auto attrs = EntityAttributes::Player(tag.float32("Health"));
-    auto attrsTag = attrs.toListTag();
+    auto attrsTag = attrs.toBedrockListTag();
     if (auto xpTotal = tag.int32("XpTotal"); xpTotal) {
       EntityAttributes::Attribute level(*xpTotal, xpLevel, 24791);
       attrsTag->push_back(level.toCompoundTag("player.level"));
@@ -642,7 +642,7 @@ private:
     auto health = tag.float32("Health");
     auto attributes = EntityAttributes::Mob("minecraft:armor_stand", health);
     if (attributes) {
-      c["Attributes"] = attributes->toListTag();
+      c["Attributes"] = attributes->toBedrockListTag();
     }
 
     auto poseJ = tag.compoundTag("Pose");
@@ -1170,7 +1170,7 @@ private:
 
     auto health = tag.float32("Health");
     auto attributes = EntityAttributes::Slime(sizeB, health);
-    c["Attributes"] = attributes.toListTag();
+    c["Attributes"] = attributes.toBedrockListTag();
   }
 
   static void SnowGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1306,7 +1306,7 @@ private:
   static void Wither(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto health = tag.float32("Health");
     auto attributes = EntityAttributes::Wither(ctx.fCtx.fDifficultyBedrock, health);
-    c["Attributes"] = attributes.toListTag();
+    c["Attributes"] = attributes.toBedrockListTag();
   }
 
   static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1314,7 +1314,7 @@ private:
     auto owner = GetOwnerUuid(tag);
 
     auto attributes = EntityAttributes::Wolf(!!owner, health);
-    c["Attributes"] = attributes.toListTag();
+    c["Attributes"] = attributes.toBedrockListTag();
   }
 
   static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
@@ -1635,14 +1635,14 @@ private:
     if (id) {
       auto health = tag.float32("Health");
       if (*id == "minecraft:horse" || *id == "minecraft:donkey" || *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" || *id == "minecraft:zombie_horse") {
-        auto attributes = EntityAttributes::AnyHorse(tag, health);
+        auto attributes = EntityAttributes::AnyHorseFromJava(tag, health);
         if (attributes) {
           ret->set("Attributes", attributes);
         }
       } else {
         auto attributes = EntityAttributes::Mob(*id, health);
         if (attributes) {
-          ret->set("Attributes", attributes->toListTag());
+          ret->set("Attributes", attributes->toBedrockListTag());
         }
       }
     }
