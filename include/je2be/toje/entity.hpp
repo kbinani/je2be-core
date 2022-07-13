@@ -1062,6 +1062,24 @@ public:
     }
   }
 
+  static void JumpStrength(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    std::string nameB = "minecraft:horse.jump_strength";
+    std::string nameJ = nameB;
+    auto jumpStrengthAttribute = FindAttribute(b, nameB);
+    if (!jumpStrengthAttribute) {
+      return;
+    }
+    auto jumpStrength = jumpStrengthAttribute->float32("Current");
+    if (!jumpStrength) {
+      return;
+    }
+    auto attr = Compound();
+    std::string name = nameJ;
+    (*attr)["Base"] = Double(*jumpStrength);
+    (*attr)["Name"] = String(name);
+    AddAttribute(attr, name, j);
+  }
+
   static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto posB = props::GetPos3f(b, "Pos");
     auto onGround = b.boolean("OnGround");
@@ -1363,6 +1381,32 @@ public:
       }
     }
     return nullptr;
+  }
+
+  static void AddAttribute(CompoundTagPtr const &attribute, std::string const &name, CompoundTag &entityJ) {
+    ListTagPtr attributes = entityJ.listTag("Attributes");
+    ListTagPtr replace = List<Tag::Type::Compound>();
+    if (!attributes) {
+      replace->push_back(attribute);
+      entityJ["Attributes"] = replace;
+      return;
+    }
+    for (auto const &it : *attributes) {
+      auto attr = it->asCompound();
+      if (!attr) {
+        continue;
+      }
+      auto n = attr->string("Name");
+      if (!n) {
+        continue;
+      }
+      if (*n == name) {
+        replace->push_back(attribute);
+      } else {
+        replace->push_back(it);
+      }
+    }
+    entityJ["Attributes"] = replace;
   }
 
   static bool HasDefinition(CompoundTag const &entityB, std::string const &definitionToSearch) {
@@ -1753,11 +1797,11 @@ public:
     E(fox, C(Same, Animal, Sitting, Fox, Debug));
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
-    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, Horse));
+    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
-    E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
+    E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper, JumpStrength));
     E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
     E(endermite, C(Same, LivingEntity, Endermite));
     E(evocation_illager, C(Rename("evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
@@ -1767,7 +1811,7 @@ public:
     E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
-    E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper));
+    E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper, JumpStrength));
     E(panda, C(Same, Animal, Panda));
     E(phantom, C(Same, LivingEntity, Phantom));
     E(ghast, C(Same, LivingEntity, Ghast));
@@ -1776,7 +1820,7 @@ public:
     E(rabbit, C(Same, Animal, Rabbit));
     E(ravager, C(Same, LivingEntity, AttackTick, CanJoinRaid, PatrolLeader, Patrolling, Wave, Ravager));
     E(silverfish, C(Same, LivingEntity));
-    E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, SkeletonHorse));
+    E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, SkeletonHorse));
     E(polar_bear, C(Same, Animal, AngerTime));
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
     E(squid, C(Same, LivingEntity));
@@ -1788,7 +1832,7 @@ public:
     E(villager_v2, C(Rename("villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
-    E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper));
+    E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength));
     E(zombie_villager_v2, C(Rename("zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
