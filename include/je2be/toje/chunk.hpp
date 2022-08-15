@@ -313,7 +313,6 @@ public:
       leashTag->set("Z", Int(leashPos.fZ));
       leashedEntity->set("Leash", leashTag);
 
-      ctx.fLeashKnots.erase(leasherId);
       resolvedLeashedEntities.insert(leashedEntityUuid);
     }
     for (Uuid resolvedLeashedEntity : resolvedLeashedEntities) {
