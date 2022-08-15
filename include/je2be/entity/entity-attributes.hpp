@@ -24,6 +24,9 @@ public:
       a->set("Current", Float(current));
       a->set("Max", Float(max));
       a->set("Name", String("minecraft:" + name));
+      a->set("DefaultMax", Float(max));
+      a->set("DefaultMin", Float(0));
+      a->set("Min", Float(0));
       return a;
     }
   };
