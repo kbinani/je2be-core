@@ -533,6 +533,25 @@ public:
     uint32_t uMarkVariantB = *(uint32_t *)&markVariantB;
     uint32_t uVariantJ = (0xf & uVariantB) | ((0xf & uMarkVariantB) << 8);
     j["Variant"] = Int(*(int32_t *)&uVariantJ);
+
+    if (auto chestItems = b.listTag("ChestItems"); chestItems) {
+      //NOTE: horse's b["Chested"] is always false, so we cannot use ItemsWithSaddleItem function for horse.
+      for (auto const &it : *chestItems) {
+        auto itemB = it->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx);
+        if (!itemJ) {
+          continue;
+        }
+        auto slotJ = itemJ->byte("Slot");
+        if (itemJ->byte("Slot") == 0) {
+          itemJ->erase("Slot");
+          j["SaddleItem"] = itemJ;
+        }
+      }
+    }
   }
 
   static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
