@@ -95,23 +95,32 @@ static void Erase(shared_ptr<CompoundTag> t, string const &path) {
   auto index = strings::Toi(keys[1]);
   if (keys[1] == "*") {
     assert(keys.size() >= 3);
-    auto next = t->listTag(keys[0]);
-    if (!next) {
-      return;
-    }
     string nextPath = keys[2];
     for (int i = 3; i < keys.size(); i++) {
       nextPath += "/" + keys[i];
     }
-    for (auto const &it : *next) {
-      if (it->type() != Tag::Type::Compound) {
-        continue;
+    if (auto list = t->listTag(keys[0]); list) {
+      for (auto const &it : *list) {
+        if (it->type() != Tag::Type::Compound) {
+          continue;
+        }
+        shared_ptr<CompoundTag> c = dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        Erase(c, nextPath);
       }
-      shared_ptr<CompoundTag> c = dynamic_pointer_cast<CompoundTag>(it);
-      if (!c) {
-        continue;
+    } else if (auto c = t->compoundTag(keys[0]); c) {
+      for (auto const &it : *c) {
+        if (it.second->type() != Tag::Type::Compound) {
+          continue;
+        }
+        shared_ptr<CompoundTag> c = dynamic_pointer_cast<CompoundTag>(it.second);
+        if (!c) {
+          continue;
+        }
+        Erase(c, nextPath);
       }
-      Erase(c, nextPath);
     }
   } else if (index) {
     assert(keys.size() == 2);
@@ -611,6 +620,116 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
   DiffCompoundTag(*dataE, *dataA);
 }
 
+static void RemoveEmpty(CompoundTag &t) {
+  using namespace std;
+  vector<string> remove;
+  for (auto &it : t) {
+    if (auto c = dynamic_pointer_cast<CompoundTag>(it.second); c) {
+      RemoveEmpty(*c);
+      if (c->empty()) {
+        remove.push_back(it.first);
+      }
+    } else if (auto l = dynamic_pointer_cast<ListTag>(it.second); l) {
+      if (l->empty()) {
+        remove.push_back(it.first);
+      }
+    }
+  }
+  for (auto const &r : remove) {
+    t.erase(r);
+  }
+}
+
+static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
+  auto poiE = regionE.exportToNbt(cx, cz);
+  if (poiE) {
+    static std::unordered_set<std::string> const blacklist = {
+        "Sections/*/Valid",
+        "DataVersion"};
+    for (string const &s : blacklist) {
+      Erase(poiE, s);
+    }
+    RemoveEmpty(*poiE);
+    if (poiE->empty()) {
+      poiE.reset();
+    }
+  }
+  auto poiA = regionA.exportToNbt(cx, cz);
+  CHECK((bool)poiE == (bool)poiA);
+  if (!poiE || !poiA) {
+    return;
+  }
+  auto sectionsE = poiE->compoundTag("Sections");
+  auto sectionsA = poiA->compoundTag("Sections");
+  CHECK(sectionsE);
+  CHECK(sectionsA);
+  CHECK(sectionsE->fValue.size() == sectionsA->fValue.size());
+  for (auto const &itE : *sectionsE) {
+    auto sectionE = itE.second->asCompound();
+    CHECK(sectionE);
+
+    auto sectionATag = (*sectionsA)[itE.first];
+    CHECK(sectionATag);
+    auto sectionA = sectionATag->asCompound();
+    CHECK(sectionA);
+
+    auto recordsE = sectionE->listTag("Records");
+    auto recordsA = sectionA->listTag("Records");
+    if (recordsE) {
+      if (recordsE->empty()) {
+        if (recordsA) {
+          CHECK(recordsA->empty());
+        } else {
+          CHECK(true);
+        }
+      } else {
+        for (auto const &rE : *recordsE) {
+          auto recordE = rE->asCompound();
+          CHECK(recordE);
+          auto posE = recordE->intArrayTag("pos");
+          CHECK(posE);
+          CHECK(posE->fValue.size() == 3);
+          int x = posE->fValue[0];
+          int y = posE->fValue[1];
+          int z = posE->fValue[2];
+          bool found = false;
+          for (auto const &rA : *recordsA) {
+            auto recordA = rA->asCompound();
+            if (!recordA) {
+              continue;
+            }
+            auto posA = recordA->intArrayTag("pos");
+            if (!posA) {
+              continue;
+            }
+            if (posA->fValue.size() != 3) {
+              continue;
+            }
+            if (posA->fValue[0] == x && posA->fValue[1] == y && posA->fValue[2] == z) {
+              CHECK(recordE->string("type") == recordA->string("type"));
+              auto freeTicketsE = recordE->int32("free_tickets");
+              auto freeTicketsA = recordA->int32("free_tickets");
+              CHECK(freeTicketsE);
+              CHECK(freeTicketsA);
+              CHECK(*freeTicketsE <= *freeTicketsA);
+              found = true;
+              break;
+            }
+          }
+          CHECK(found);
+        }
+        CHECK(recordsE->fValue.size() == recordsA->fValue.size());
+      }
+    } else {
+      if (recordsA) {
+        CHECK(recordsA->empty());
+      } else {
+        CHECK(true);
+      }
+    }
+  }
+}
+
 TEST_CASE("j2b2j") {
   fs::path thisFile(__FILE__);
   auto dataDir = thisFile.parent_path() / "data";
@@ -701,6 +820,51 @@ TEST_CASE("j2b2j") {
             futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz, dim)));
           } else {
             CheckChunk(*regionE, *regionA, cx, cz, dim);
+          }
+        }
+      }
+
+      for (auto &f : futures) {
+        f.get();
+      }
+    }
+
+    auto poiDirA = optB.getWorldDirectory(*outJ, dim) / "poi";
+    auto poiDirE = optB.getWorldDirectory(in, dim) / "poi";
+    ec.clear();
+    for (auto const &it : fs::directory_iterator(poiDirA, ec)) {
+      if (!it.is_regular_file()) {
+        continue;
+      }
+      auto const &fileA = it.path();
+      if (fileA.extension() != ".mca") {
+        continue;
+      }
+
+      deque<future<void>> futures;
+      unique_ptr<hwm::task_queue> pool;
+      if (multithread) {
+        pool = make_unique<hwm::task_queue>(thread::hardware_concurrency());
+      }
+
+      auto regionA = mcfile::je::Region::MakeRegion(fileA);
+      CHECK(regionA);
+
+      auto fileE = poiDirE / fileA.filename();
+      auto regionE = mcfile::je::Region::MakeRegion(fileE);
+      CHECK(regionE);
+
+      for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
+        for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
+          if (!optB.fChunkFilter.empty()) {
+            if (optB.fChunkFilter.find(Pos2i(cx, cz)) == optB.fChunkFilter.end()) {
+              continue;
+            }
+          }
+          if (multithread) {
+            futures.push_back(move(pool->enqueue(CheckPoi, *regionE, *regionA, cx, cz, dim)));
+          } else {
+            CheckPoi(*regionE, *regionA, cx, cz, dim);
           }
         }
       }

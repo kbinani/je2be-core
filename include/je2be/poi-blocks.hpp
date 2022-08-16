@@ -50,14 +50,45 @@ class PoiBlocks {
     t[barrel] = {1, "minecraft:fisherman"};
     t[smithing_table] = {1, "minecraft:toolsmith"};
     t[smoker] = {1, "minecraft:butcher"};
+    t[brewing_stand] = {1, "minecraft:cleric"};
+    t[cauldron] = {1, "minecraft:leatherworker"};
+    t[water_cauldron] = {1, "minecraft:leatherworker"};
+    t[lava_cauldron] = {1, "minecraft:leatherworker"};
+    t[powder_snow_cauldron] = {1, "minecraft:leatherworker"};
+    t[beehive] = {0, "minecraft:beehive"};
+    t[bee_nest] = {0, "minecraft:bee_nest"};
+    t[lightning_rod] = {0, "minecraft:lightning_rod"};
+    t[lodestone] = {0, "minecraft:lodestone"};
     return ret;
   }
 
 public:
-  static bool Interest(mcfile::blocks::BlockId id) {
+  static bool Interest(mcfile::je::Block const &block) {
     using namespace mcfile::blocks::minecraft;
-    switch (id) {
+    switch (block.fId) {
     case nether_portal:
+    case loom:
+    case composter:
+    case barrel:
+    case smoker:
+    case blast_furnace:
+    case cartography_table:
+    case fletching_table:
+    case grindstone:
+    case smithing_table:
+    case stonecutter:
+    case bell:
+    case lectern:
+    case brewing_stand:
+    case cauldron:
+    case water_cauldron:
+    case lava_cauldron:
+    case powder_snow_cauldron:
+    case beehive:
+    case bee_nest:
+    case lightning_rod:
+    case lodestone:
+      return true;
     case white_bed:
     case orange_bed:
     case magenta_bed:
@@ -74,19 +105,7 @@ public:
     case green_bed:
     case red_bed:
     case black_bed:
-    case loom:
-    case composter:
-    case barrel:
-    case smoker:
-    case blast_furnace:
-    case cartography_table:
-    case fletching_table:
-    case grindstone:
-    case smithing_table:
-    case stonecutter:
-    case bell:
-    case lectern:
-      return true;
+      return block.property("part") == "head";
     default:
       return false;
     }

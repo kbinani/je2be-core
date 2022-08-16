@@ -278,9 +278,9 @@ public:
     fShoulderEntityRight.swap(right);
   }
 
-  void addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::blocks::BlockId id) {
-    if (PoiBlocks::Interest(id)) {
-      fPoiBlocks[dim].add(pos, id);
+  void addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::je::Block const &block) {
+    if (PoiBlocks::Interest(block)) {
+      fPoiBlocks[dim].add(pos, block.fId);
     }
   }
 

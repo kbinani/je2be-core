@@ -265,7 +265,7 @@ private:
       }
       bool hasPoiBlock = false;
       section->eachBlockPalette([&hasPoiBlock](auto const &block) {
-        if (PoiBlocks::Interest(block.fId)) {
+        if (PoiBlocks::Interest(block)) {
           hasPoiBlock = true;
           return false;
         }
@@ -279,7 +279,7 @@ private:
               if (!block) {
                 continue;
               }
-              if (!PoiBlocks::Interest(block->fId)) {
+              if (!PoiBlocks::Interest(*block)) {
                 continue;
               }
               int bx = chunk->fChunkX * 16 + x;

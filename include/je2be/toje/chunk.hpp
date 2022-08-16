@@ -33,7 +33,7 @@ public:
 
       bool hasPoiBlock = false;
       sectionJ->fBlocks.eachValue([&hasPoiBlock](shared_ptr<mcfile::je::Block const> const &block) {
-        if (PoiBlocks::Interest(block->fId)) {
+        if (PoiBlocks::Interest(*block)) {
           hasPoiBlock = true;
           return false;
         } else {
@@ -48,7 +48,7 @@ public:
               if (!block) {
                 continue;
               }
-              ctx.addToPoiIfItIs(d, Pos3i(cx * 16 + x, sectionJ->fY * 16 + y, cz * 16 + z), block->fId);
+              ctx.addToPoiIfItIs(d, Pos3i(cx * 16 + x, sectionJ->fY * 16 + y, cz * 16 + z), *block);
             }
           }
         }
