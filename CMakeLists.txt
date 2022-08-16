@@ -247,7 +247,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-118.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
   deps/libminecraft-file/include/mcfile/je/flatten.hpp
-  deps/libminecraft-file/include/mcfile/je/mca-data-source.hpp
+  deps/libminecraft-file/include/mcfile/je/mca-chunk-locator.hpp
   deps/libminecraft-file/include/mcfile/je/region.hpp
   deps/libminecraft-file/include/mcfile/je/set-block-options.hpp
   deps/libminecraft-file/include/mcfile/je/ticking-block.hpp
