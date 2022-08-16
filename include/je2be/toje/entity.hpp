@@ -1813,7 +1813,7 @@ public:
     E(cow, C(Same, Animal));
     E(elder_guardian, C(Same, LivingEntity));
     E(cod, C(Same, LivingEntity, FromBucket));
-    E(fox, C(Same, Animal, Sitting, Fox, Debug));
+    E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
     E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, Horse));

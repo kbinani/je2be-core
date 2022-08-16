@@ -1595,11 +1595,11 @@ private:
     c["BreedCooldown"] = Int(0);
     c["canPickupItems"] = Bool(canPickupLoot);
     c["Dead"] = Bool(false);
-    c["DeathTime"] = Short(0);
+    c["DeathTime"] = Short(deathTime);
     c["hasBoundOrigin"] = Bool(false);
     c["hasSetCanPickupItems"] = Bool(true);
-    c["HurtTime"] = Short(tag.int16("HurtTime", 0));
-    c["InLove"] = Bool(false);
+    c["HurtTime"] = Short(hurtTime);
+    c["InLove"] = Bool(inLove);
     c["IsPregnant"] = Bool(false);
     c["LeasherID"] = Long(-1);
     c["limitedLife"] = Int(0);
