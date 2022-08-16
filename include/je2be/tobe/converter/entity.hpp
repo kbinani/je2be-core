@@ -913,12 +913,18 @@ private:
     }
   }
 
-  static void Horse(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void Horse(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto variant = tag.int32("Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
     c["Variant"] = Int(baseColor);
     c["MarkVariant"] = Int(markings);
+
+    if (auto armorItemJ = tag.compoundTag("ArmorItem"); armorItemJ) {
+      if (auto armorItemB = Item::From(armorItemJ, ctx.fCtx); armorItemB) {
+        AddChestItem(c, armorItemB, 1, 1);
+      }
+    }
   }
 
   static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

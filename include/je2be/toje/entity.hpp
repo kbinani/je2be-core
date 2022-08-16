@@ -535,7 +535,7 @@ public:
     j["Variant"] = Int(*(int32_t *)&uVariantJ);
 
     if (auto chestItems = b.listTag("ChestItems"); chestItems) {
-      //NOTE: horse's b["Chested"] is always false, so we cannot use ItemsWithSaddleItem function for horse.
+      // NOTE: horse's b["Chested"] is always false, so we cannot use ItemsWithSaddleItem function for horse.
       for (auto const &it : *chestItems) {
         auto itemB = it->asCompound();
         if (!itemB) {
@@ -546,9 +546,11 @@ public:
           continue;
         }
         auto slotJ = itemJ->byte("Slot");
-        if (itemJ->byte("Slot") == 0) {
-          itemJ->erase("Slot");
+        itemJ->erase("Slot");
+        if (slotJ == 0) {
           j["SaddleItem"] = itemJ;
+        } else if (slotJ == 1) {
+          j["ArmorItem"] = itemJ;
         }
       }
     }
