@@ -162,9 +162,9 @@ public:
     if (!other.fShoulderEntityRight && fShoulderEntityRight) {
       other.fShoulderEntityRight = fShoulderEntityRight;
     }
-    for (auto const &it : fPortalBlocks) {
+    for (auto const &it : fPoiBlocks) {
       mcfile::Dimension dim = it.first;
-      auto &dest = other.fPortalBlocks[dim];
+      auto &dest = other.fPoiBlocks[dim];
       it.second.mergeInto(dest);
     }
   }
@@ -278,8 +278,10 @@ public:
     fShoulderEntityRight.swap(right);
   }
 
-  void addPortalBlock(mcfile::Dimension dim, Pos3i const &pos) {
-    fPortalBlocks[dim].add(pos);
+  void addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::blocks::BlockId id) {
+    if (PoiBlocks::Interest(id)) {
+      fPoiBlocks[dim].add(pos, id);
+    }
   }
 
 private:
@@ -370,9 +372,9 @@ private:
   Status exportPoi(std::filesystem::path const &root) const {
     namespace fs = std::filesystem;
 
-    for (auto const &it : fPortalBlocks) {
+    for (auto const &it : fPoiBlocks) {
       mcfile::Dimension d = it.first;
-      PoiPortals const &portals = it.second;
+      PoiBlocks const &poi = it.second;
       fs::path dir;
       if (d == mcfile::Dimension::Overworld) {
         dir = root / "poi";
@@ -381,7 +383,7 @@ private:
       } else {
         continue;
       }
-      if (!portals.write(dir, kDataVersion)) {
+      if (!poi.write(dir, kDataVersion)) {
         return JE2BE_ERROR;
       }
     }
@@ -435,7 +437,7 @@ private:
   CompoundTagPtr fShoulderEntityLeft;
   CompoundTagPtr fShoulderEntityRight;
 
-  std::unordered_map<mcfile::Dimension, PoiPortals> fPortalBlocks;
+  std::unordered_map<mcfile::Dimension, PoiBlocks> fPoiBlocks;
 };
 
 } // namespace je2be::toje

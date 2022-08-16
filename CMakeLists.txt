@@ -92,7 +92,7 @@ set(je2be_files
   include/je2be/nbt.hpp
   include/je2be/nullable.hpp
   include/je2be/optional.hpp
-  include/je2be/poi-portals.hpp
+  include/je2be/poi-blocks.hpp
   include/je2be/pos2.hpp
   include/je2be/pos3.hpp
   include/je2be/props.hpp

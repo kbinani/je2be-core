@@ -17,17 +17,17 @@ class Terraform {
 
 public:
   static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
-    PoiPortals portals;
+    PoiBlocks poi;
     Status st;
     if (concurrency > 0) {
-      st = MultiThread(portals, directory, concurrency, progress, progressChunksOffset);
+      st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset);
     } else {
-      st = SingleThread(portals, directory, progress, progressChunksOffset);
+      st = SingleThread(poi, directory, progress, progressChunksOffset);
     }
     if (!st.ok()) {
       return st;
     }
-    if (portals.write(poiDirectory, Chunk::kTargetDataVersion)) {
+    if (poi.write(poiDirectory, Chunk::kTargetDataVersion)) {
       return Status::Ok();
     } else {
       return JE2BE_ERROR;
@@ -35,7 +35,7 @@ public:
   }
 
 private:
-  static Status MultiThread(PoiPortals &portals, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status MultiThread(PoiBlocks &poi, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     using namespace std;
     bool running[width][height];
     bool done[width][height];
@@ -54,7 +54,7 @@ private:
       for (auto &f : drain) {
         auto result = f.get();
         if (result) {
-          result->fPortals.mergeInto(portals);
+          result->fPoi.mergeInto(poi);
           MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
         } else {
           if (!error) {
@@ -79,7 +79,7 @@ private:
         assert(!futures.empty());
         auto result = futures.front().get();
         if (result) {
-          result->fPortals.mergeInto(portals);
+          result->fPoi.mergeInto(poi);
           MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
         } else {
           ok = false;
@@ -98,7 +98,7 @@ private:
     for (auto &f : futures) {
       auto result = f.get();
       if (result) {
-        result->fPortals.mergeInto(portals);
+        result->fPoi.mergeInto(poi);
       } else {
         ok = false;
         if (!error) {
@@ -118,13 +118,13 @@ private:
     return Status::Ok();
   }
 
-  static Status SingleThread(PoiPortals &portals, std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
+  static Status SingleThread(PoiBlocks &portals, std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
     int done = 0;
     for (int cx = cx0; cx <= cx1; cx++) {
       for (int cz = cz0; cz <= cz1; cz++) {
         auto result = DoChunk(cx, cz, directory);
         if (result) {
-          result->fPortals.mergeInto(portals);
+          result->fPoi.mergeInto(portals);
         } else {
           return result.status();
         }
@@ -221,7 +221,7 @@ private:
 
   struct Result {
     Pos2i fChunk;
-    PoiPortals fPortals;
+    PoiBlocks fPoi;
   };
 
   static Nullable<Result> DoChunk(int cx, int cz, std::filesystem::path const &directory) {
@@ -259,13 +259,33 @@ private:
     Chest::Do(*chunk, *cache, accessor);
     NoteBlock::Do(*chunk, *cache, accessor);
 
-    if (accessor.fHasNetherPortal) {
-      for (int y = chunk->minBlockY(); y <= chunk->maxBlockY(); y++) {
-        for (int z = chunk->minBlockZ(); z <= chunk->maxBlockZ(); z++) {
-          for (int x = chunk->minBlockX(); x <= chunk->maxBlockX(); x++) {
-            auto p = accessor.property(x, y, z);
-            if (BlockPropertyAccessor::IsNetherPortal(p)) {
-              ret.fPortals.add(Pos3i(x, y, z));
+    for (auto const &section : chunk->fSections) {
+      if (!section) {
+        continue;
+      }
+      bool hasPoiBlock = false;
+      section->eachBlockPalette([&hasPoiBlock](auto const &block) {
+        if (PoiBlocks::Interest(block.fId)) {
+          hasPoiBlock = true;
+          return false;
+        }
+        return true;
+      });
+      if (hasPoiBlock) {
+        for (int y = 0; y < 16; y++) {
+          for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+              auto block = section->blockAt(x, y, z);
+              if (!block) {
+                continue;
+              }
+              if (!PoiBlocks::Interest(block->fId)) {
+                continue;
+              }
+              int bx = chunk->fChunkX * 16 + x;
+              int by = section->y() * 16 + y;
+              int bz = chunk->fChunkZ * 16 + z;
+              ret.fPoi.add({bx, by, bz}, block->fId);
             }
           }
         }

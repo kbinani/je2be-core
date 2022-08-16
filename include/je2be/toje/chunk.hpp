@@ -31,16 +31,16 @@ public:
       j->fSections[sectionIndex] = sectionJ;
       maxChunkY = (std::max)(maxChunkY, (int)sectionB->fChunkY);
 
-      bool hasNetherPortal = false;
-      sectionJ->fBlocks.eachValue([&hasNetherPortal](shared_ptr<mcfile::je::Block const> const &block) {
-        if (block->fId == mcfile::blocks::minecraft::nether_portal) {
-          hasNetherPortal = true;
+      bool hasPoiBlock = false;
+      sectionJ->fBlocks.eachValue([&hasPoiBlock](shared_ptr<mcfile::je::Block const> const &block) {
+        if (PoiBlocks::Interest(block->fId)) {
+          hasPoiBlock = true;
           return false;
         } else {
           return true;
         }
       });
-      if (hasNetherPortal) {
+      if (hasPoiBlock) {
         for (int y = 0; y < 16; y++) {
           for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
@@ -48,9 +48,7 @@ public:
               if (!block) {
                 continue;
               }
-              if (block->fId == mcfile::blocks::minecraft::nether_portal) {
-                ctx.addPortalBlock(d, Pos3i(cx * 16 + x, sectionJ->fY * 16 + y, cz * 16 + z));
-              }
+              ctx.addToPoiIfItIs(d, Pos3i(cx * 16 + x, sectionJ->fY * 16 + y, cz * 16 + z), block->fId);
             }
           }
         }

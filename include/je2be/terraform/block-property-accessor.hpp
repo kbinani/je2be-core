@@ -29,7 +29,6 @@ private:
     WALL = 20,
     LEAVES = 21,
     CHEST = 22, // chest or trapped_chest
-    NETHER_PORTAL = 23,
   };
 
 public:
@@ -123,10 +122,6 @@ public:
 
   static bool IsChest(DataType p) {
     return p == CHEST;
-  }
-
-  static bool IsNetherPortal(DataType p) {
-    return p == NETHER_PORTAL;
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
@@ -317,14 +312,6 @@ public:
     return b.fId == mcfile::blocks::minecraft::chest || b.fId == mcfile::blocks::minecraft::trapped_chest;
   }
 
-  static bool IsNetherPortal(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:portal";
-  }
-
-  static bool IsNetherPortal(mcfile::je::Block const &b) {
-    return b.fId == mcfile::blocks::minecraft::nether_portal;
-  }
-
   BlockPropertyAccessor(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
   virtual ~BlockPropertyAccessor() {}
   virtual DataType property(int bx, int by, int bz) const = 0;
@@ -353,7 +340,6 @@ public:
     fHasWall |= IsWall(p);
     fHasLeaves |= IsLeaves(p);
     fHasChest |= IsChest(p);
-    fHasNetherPortal |= IsNetherPortal(p);
   }
 
 private:
@@ -401,8 +387,6 @@ private:
       return LEAVES;
     } else if (IsChest(b)) {
       return CHEST;
-    } else if (IsNetherPortal(b)) {
-      return NETHER_PORTAL;
     }
     return 0;
   }
@@ -429,7 +413,6 @@ public:
   bool fHasWall = false;
   bool fHasLeaves = false;
   bool fHasChest = false;
-  bool fHasNetherPortal = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;
