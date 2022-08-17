@@ -566,6 +566,15 @@ public:
         AddAttribute(attr, j);
       }
     }
+
+    if (auto movementB = FindAttribute(b, "minecraft:movement"); movementB) {
+      auto current = movementB->float32("Current");
+      if (current) {
+        auto attr = Compound();
+        attr->set("Name", String("minecraft:generic.movement_speed"));
+        attr->set("Base", Double(*current));
+      }
+    }
   }
 
   static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
