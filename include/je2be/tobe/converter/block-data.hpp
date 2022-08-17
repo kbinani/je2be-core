@@ -129,16 +129,11 @@ private:
     s->set("pillar_axis", String(v));
   }
 
-  static void PersistentToPersistentBit(CompoundTagPtr const &s, Block const &block) {
+  static void PersistentToPersistentBitAndUpdateBit(CompoundTagPtr const &s, Block const &block) {
     auto persistent = block.property("persistent", "false");
     bool persistentV = persistent == "true";
     s->set("persistent_bit", Bool(persistentV));
-  }
-
-  static void DistanceToUpdateBit(CompoundTagPtr const &s, Block const &block) {
-    auto distance = block.property("distance", "7");
-    auto distanceV = Wrap(strings::Toi(distance), 7);
-    s->set("update_bit", Bool(distanceV > 4));
+    s->set("update_bit", Bool(!persistentV));
   }
 
   static void TypeToTopSlotBit(CompoundTagPtr const &s, Block const &block) {
@@ -250,9 +245,9 @@ private:
 
   static Converter Wood(std::string const &type, bool stripped) { return Converter(Name("wood"), AxisToPillarAxis, AddStringProperty("wood_type", type), AddBoolProperty("stripped_bit", stripped)); }
 
-  static Converter Leaves(std::string const &type) { return Converter(Name("leaves"), AddStringProperty("old_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit); }
+  static Converter Leaves(std::string const &type) { return Converter(Name("leaves"), AddStringProperty("old_leaf_type", type), PersistentToPersistentBitAndUpdateBit); }
 
-  static Converter Leaves2(std::string const &type) { return Converter(Name("leaves2"), AddStringProperty("new_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit); }
+  static Converter Leaves2(std::string const &type) { return Converter(Name("leaves2"), AddStringProperty("new_leaf_type", type), PersistentToPersistentBitAndUpdateBit); }
 
   static Converter WoodenSlab(std::string const &type) { return Converter(SlabName("wooden", ""), TypeToTopSlotBit, AddStringProperty("wood_type", type)); }
 
@@ -1467,8 +1462,8 @@ private:
     E(waxed_copper_block, Rename("waxed_copper"));
     E(rooted_dirt, Rename("dirt_with_roots"));
 
-    E(azalea_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
-    E(flowering_azalea_leaves, Converter(Name("azalea_leaves_flowered"), PersistentToPersistentBit, DistanceToUpdateBit));
+    E(azalea_leaves, Converter(Same, PersistentToPersistentBitAndUpdateBit));
+    E(flowering_azalea_leaves, Converter(Name("azalea_leaves_flowered"), PersistentToPersistentBitAndUpdateBit));
 
     E(big_dripleaf, BigDripleaf);
     E(big_dripleaf_stem, Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA, AddStringProperty("big_dripleaf_tilt", "none")));
@@ -1589,7 +1584,7 @@ private:
     E(pearlescent_froglight, axisToPillarAxis);
     E(mangrove_propagule, MangrovePropagule);
     E(frogspawn, Rename("frog_spawn"));
-    E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
+    E(mangrove_leaves, Converter(Same, PersistentToPersistentBitAndUpdateBit));
     E(sculk_shrieker, SculkShrieker);
     E(mud_brick_wall, wall);
     E(sculk_catalyst, SculkCatalyst);
