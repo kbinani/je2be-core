@@ -554,6 +554,18 @@ public:
         }
       }
     }
+
+    if (auto healthB = FindAttribute(b, "minecraft:health"); healthB) {
+      auto current = healthB->float32("Current");
+      auto max = healthB->float32("Max");
+      if (current && max) {
+        j["Health"] = Float(*current);
+        auto attr = Compound();
+        attr->set("Name", String("minecraft:generic.max_health"));
+        attr->set("Base", Double(*max));
+        AddAttribute(attr, j);
+      }
+    }
   }
 
   static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1098,7 +1110,7 @@ public:
     std::string name = nameJ;
     (*attr)["Base"] = Double(*jumpStrength);
     (*attr)["Name"] = String(name);
-    AddAttribute(attr, name, j);
+    AddAttribute(attr, j);
   }
 
   static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1404,7 +1416,10 @@ public:
     return nullptr;
   }
 
-  static void AddAttribute(CompoundTagPtr const &attribute, std::string const &name, CompoundTag &entityJ) {
+  static void AddAttribute(CompoundTagPtr const &attribute, CompoundTag &entityJ) {
+    assert(attribute);
+    auto name = attribute->string("Name");
+    assert(name);
     ListTagPtr attributes = entityJ.listTag("Attributes");
     ListTagPtr replace = List<Tag::Type::Compound>();
     if (!attributes) {
@@ -1412,6 +1427,7 @@ public:
       entityJ["Attributes"] = replace;
       return;
     }
+    bool added = false;
     for (auto const &it : *attributes) {
       auto attr = it->asCompound();
       if (!attr) {
@@ -1421,11 +1437,15 @@ public:
       if (!n) {
         continue;
       }
-      if (*n == name) {
+      if (*n == *name) {
         replace->push_back(attribute);
+        added = true;
       } else {
         replace->push_back(it);
       }
+    }
+    if (!added) {
+      replace->push_back(attribute);
     }
     entityJ["Attributes"] = replace;
   }
