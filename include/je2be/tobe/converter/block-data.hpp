@@ -129,16 +129,15 @@ private:
     s->set("pillar_axis", String(v));
   }
 
-  static void PersistentToPersistentBit(CompoundTagPtr const &s, Block const &block) {
-    auto persistent = block.property("persistent", "false");
-    bool persistentV = persistent == "true";
-    s->set("persistent_bit", Bool(persistentV));
-  }
-
-  static void DistanceToUpdateBit(CompoundTagPtr const &s, Block const &block) {
-    auto distance = block.property("distance", "7");
-    auto distanceV = Wrap(strings::Toi(distance), 7);
-    s->set("update_bit", Bool(distanceV > 4));
+  static void PersistentAndDistanceToPersistentBitAndUpdateBit(CompoundTagPtr const &s, Block const &block) {
+    auto persistent = block.property("persistent", "false") == "true";
+    auto distance = Wrap(strings::Toi(block.property("distance", "7")), 7);
+    s->set("persistent_bit", Bool(persistent));
+    // NOTE:
+    //  Java: leaves decay when distance > 5
+    //  Bedrock: leaves decay when distance > 4
+    // Set update_bit to false for leaves with distance = 5 not to decay as far as possible after conversion
+    s->set("update_bit", Bool(distance > 5 && !persistent));
   }
 
   static void TypeToTopSlotBit(CompoundTagPtr const &s, Block const &block) {
@@ -250,9 +249,9 @@ private:
 
   static Converter Wood(std::string const &type, bool stripped) { return Converter(Name("wood"), AxisToPillarAxis, AddStringProperty("wood_type", type), AddBoolProperty("stripped_bit", stripped)); }
 
-  static Converter Leaves(std::string const &type) { return Converter(Name("leaves"), AddStringProperty("old_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit); }
+  static Converter Leaves(std::string const &type) { return Converter(Name("leaves"), AddStringProperty("old_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
 
-  static Converter Leaves2(std::string const &type) { return Converter(Name("leaves2"), AddStringProperty("new_leaf_type", type), PersistentToPersistentBit, DistanceToUpdateBit); }
+  static Converter Leaves2(std::string const &type) { return Converter(Name("leaves2"), AddStringProperty("new_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
 
   static Converter WoodenSlab(std::string const &type) { return Converter(SlabName("wooden", ""), TypeToTopSlotBit, AddStringProperty("wood_type", type)); }
 
@@ -1467,8 +1466,8 @@ private:
     E(waxed_copper_block, Rename("waxed_copper"));
     E(rooted_dirt, Rename("dirt_with_roots"));
 
-    E(azalea_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
-    E(flowering_azalea_leaves, Converter(Name("azalea_leaves_flowered"), PersistentToPersistentBit, DistanceToUpdateBit));
+    E(azalea_leaves, Converter(Same, PersistentAndDistanceToPersistentBitAndUpdateBit));
+    E(flowering_azalea_leaves, Converter(Name("azalea_leaves_flowered"), PersistentAndDistanceToPersistentBitAndUpdateBit));
 
     E(big_dripleaf, BigDripleaf);
     E(big_dripleaf_stem, Converter(Name("big_dripleaf"), AddByteProperty("big_dripleaf_head", false), DirectionFromFacingA, AddStringProperty("big_dripleaf_tilt", "none")));
@@ -1589,7 +1588,7 @@ private:
     E(pearlescent_froglight, axisToPillarAxis);
     E(mangrove_propagule, MangrovePropagule);
     E(frogspawn, Rename("frog_spawn"));
-    E(mangrove_leaves, Converter(Same, PersistentToPersistentBit, DistanceToUpdateBit));
+    E(mangrove_leaves, Converter(Same, PersistentAndDistanceToPersistentBitAndUpdateBit));
     E(sculk_shrieker, SculkShrieker);
     E(mud_brick_wall, wall);
     E(sculk_catalyst, SculkCatalyst);
