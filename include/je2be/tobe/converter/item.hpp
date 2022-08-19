@@ -139,15 +139,15 @@ private:
     E("soul_torch", AnyTorch);
     E("redstone_torch", AnyTorch);
 
-    E("oak_sign", DefaultItem);
-    E("birch_sign", DefaultItem);
-    E("spruce_sign", DefaultItem);
-    E("jungle_sign", DefaultItem);
-    E("acacia_sign", DefaultItem);
-    E("dark_oak_sign", DefaultItem);
-    E("crimson_sign", DefaultItem);
-    E("warped_sign", DefaultItem);
-    E("mangrove_sign", DefaultItem);
+    E("oak_sign", DefaultBlockItem);
+    E("birch_sign", DefaultBlockItem);
+    E("spruce_sign", DefaultBlockItem);
+    E("jungle_sign", DefaultBlockItem);
+    E("acacia_sign", DefaultBlockItem);
+    E("dark_oak_sign", DefaultBlockItem);
+    E("crimson_sign", DefaultBlockItem);
+    E("warped_sign", DefaultBlockItem);
+    E("mangrove_sign", DefaultBlockItem);
 
     E("goat_horn", GoatHorn);
     E("frogspawn", Rename("frog_spawn"));

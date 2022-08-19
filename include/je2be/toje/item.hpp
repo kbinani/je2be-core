@@ -51,14 +51,16 @@ public:
           nameJ = blockJ->fName;
 
           Pos3i dummy(0, 0, 0);
-          if (auto converted = ctx.fFromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
-            static std::unordered_set<std::string> const sExclude({"id", "x", "y", "z", "keepPacked", "RecipesUsed"});
-            auto blockEntityTag = converted->fTileEntity;
-            for (auto const &e : sExclude) {
-              blockEntityTag->erase(e);
-            }
-            if (!blockEntityTag->empty()) {
-              tagJ->set("BlockEntityTag", blockEntityTag);
+          if (!tagB->empty()) {
+            if (auto converted = ctx.fFromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
+              static unordered_set<string> const sExclude({"x", "y", "z", "keepPacked", "RecipesUsed"});
+              auto blockEntityTag = converted->fTileEntity;
+              for (auto const &e : sExclude) {
+                blockEntityTag->erase(e);
+              }
+              if (!blockEntityTag->empty()) {
+                tagJ->set("BlockEntityTag", blockEntityTag);
+              }
             }
           }
         }
@@ -69,24 +71,17 @@ public:
     CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
     CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
 
-    shared_ptr<CompoundTag> displayJ = Compound();
+    auto displayJ = Compound();
 
     auto customColor = tagB->int32("customColor");
     if (customColor) {
       int32_t c = *customColor;
       uint32_t rgb = 0xffffff & *(uint32_t *)&c;
-      if (!displayJ) {
-        displayJ = Compound();
-      }
       displayJ->set("color", Int(*(int32_t *)&rgb));
     }
 
     auto displayB = tagB->compoundTag("display");
     if (displayB) {
-      if (!displayJ) {
-        displayJ = Compound();
-      }
-
       auto displayName = displayB->string("Name");
       if (displayName) {
         nlohmann::json json;
@@ -112,9 +107,6 @@ public:
     auto customName = tagB->string("CustomName");
     auto customNameVisible = tagB->boolean("CustomNameVisible", false);
     if (customName && customNameVisible) {
-      if (!displayJ) {
-        displayJ = Compound();
-      }
       nlohmann::json json;
       json["text"] = *customName;
       displayJ->set("Name", String(nlohmann::to_string(json)));
@@ -145,7 +137,7 @@ public:
       }
     }
 
-    if (displayJ && !displayJ->empty()) {
+    if (!displayJ->empty()) {
       tagJ->set("display", displayJ);
     }
 
