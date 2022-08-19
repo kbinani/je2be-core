@@ -134,10 +134,10 @@ private:
     auto distance = Wrap(strings::Toi(block.property("distance", "7")), 7);
     s->set("persistent_bit", Bool(persistent));
     // NOTE:
-    //  Java: leaves decay when distance > 5
+    //  Java: leaves decay when distance > 6
     //  Bedrock: leaves decay when distance > 4
-    // Set update_bit to false for leaves with distance = 5 not to decay as far as possible after conversion
-    s->set("update_bit", Bool(distance > 5 && !persistent));
+    // Set update_bit to false for leaves with distance = 5, 6 not to decay as far as possible after conversion
+    s->set("update_bit", Bool(distance > 6 && !persistent));
   }
 
   static void TypeToTopSlotBit(CompoundTagPtr const &s, Block const &block) {
