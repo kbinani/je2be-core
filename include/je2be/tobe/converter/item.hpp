@@ -206,6 +206,7 @@ private:
     if (!ret) {
       return nullptr;
     }
+    ret->set("Name", String(name));
     ret->erase("Block");
     return ret;
   }
@@ -1013,10 +1014,6 @@ private:
 
   static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context const &ctx) {
     using namespace std;
-
-    if (itemB->string("id") == "minecraft:white_banner") {
-      int a = 0;
-    }
 
     CopyByteValues(itemJ, *itemB, {{"Count"}});
 

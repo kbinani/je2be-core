@@ -43,7 +43,7 @@ public:
 
     string nameJ = nameB;
     auto blockTag = itemB.compoundTag("Block");
-    if (nameB == "minecraft:standing_sign" && !tagB->empty()) {
+    if (nameB.ends_with("sign") && !tagB->empty()) {
       // NOTE: "tag" of standing_sign should be converted to "BlockEntityTag", but itemB doesn't have "Block" tag.
       //  Therefore, we need a dummy blockTag here.
       blockTag = Compound();
