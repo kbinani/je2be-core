@@ -596,7 +596,6 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       "Fire",
       "Motion",
       "Score",
-      "UUID",
       "foodTickTimer",
       "previousPlayerGameType",
       "recipeBook",
@@ -612,6 +611,12 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
     Erase(dataE, s);
     Erase(dataA, s);
   }
+  auto playerE = dataE->compoundTag("Player");
+  auto playerA = dataA->compoundTag("Player");
+  CheckEntity("player", *playerE, *playerA);
+
+  dataE->erase("Player");
+  dataA->erase("Player");
   DiffCompoundTag(*dataE, *dataA);
 }
 
