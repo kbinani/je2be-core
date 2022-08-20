@@ -100,12 +100,14 @@ public:
         }
       }
     }
-    for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
-      for (int z = cz * 16; z < cz * 16 + 16; z++) {
-        for (int x = cx * 16; x < cx * 16 + 16; x++) {
-          if (x < x0 || x1 < x || y < y0 || y1 < y || z < z0 || z1 < z) {
-            continue;
-          }
+    for (size_t i = 0; i < data.size(); i++) {
+      if (data[i] == -1) {
+        data[i] = 7;
+      }
+    }
+    for (int y = y0; y <= y1; y++) {
+      for (int z = z0; z <= z1; z++) {
+        for (int x = x0; x <= x1; x++) {
           int index = ((y - y0) * sz + (z - z0)) * sx + (x - x0);
           int distance = data[index];
           if (distance <= 0) {

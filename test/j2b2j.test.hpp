@@ -27,12 +27,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
     if (foundJtoB == fallbackJtoB.end()) {
       auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
       if (foundBtoJ == fallbackBtoJ.end()) {
-        if (blockE->fName.ends_with("_leaves")) {
-          CheckBlockWithIgnore(*blockE, *blockA, {"distance", "waterlogged"});
-          auto waterloggedA = blockA->property("waterlogged", "false") == "true";
-          auto waterloggedE = blockE->property("waterlogged", "false") == "true";
-          CHECK(waterloggedA == waterloggedE);
-        } else if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
+        if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
           CheckBlockWithIgnore(*blockE, *blockA, {"lit"});
         } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
           CHECK(blockE->fName == blockA->fName);
@@ -745,18 +740,26 @@ TEST_CASE("j2b2j") {
   CHECK(outB);
   je2be::tobe::Options optB;
   bool multithread = true;
+  unordered_set<Pos2i, Pos2iHasher> chunks;
 #if 1
+  Pos2i center(0, 0);
   int radius = 32;
-  for (int cz = -radius; cz < radius; cz++) {
-    for (int cx = -radius; cx < radius; cx++) {
+  for (int cz = center.fZ - radius; cz < center.fZ + radius; cz++) {
+    for (int cx = center.fX - radius; cx < center.fX + radius; cx++) {
       Pos2i p(cx, cz);
       optB.fChunkFilter.insert(p);
+    }
+  }
+  for (int cz = center.fZ - radius + 1; cz < center.fZ + radius - 1; cz++) {
+    for (int cx = center.fX - radius + 1; cx < center.fX + radius - 1; cx++) {
+      chunks.insert({cx, cz});
     }
   }
 #else
   optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   for (Pos2i const &p : initializer_list<Pos2i>({{0, 0}})) {
     optB.fChunkFilter.insert(p);
+    chunks.insert(p);
   }
   multithread = false;
 #endif
@@ -811,10 +814,8 @@ TEST_CASE("j2b2j") {
 
       for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
         for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
-          if (!optB.fChunkFilter.empty()) {
-            if (optB.fChunkFilter.find(Pos2i(cx, cz)) == optB.fChunkFilter.end()) {
-              continue;
-            }
+          if (chunks.find({cx, cz}) == chunks.end()) {
+            continue;
           }
           if (multithread) {
             futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz, dim)));
@@ -856,10 +857,8 @@ TEST_CASE("j2b2j") {
 
       for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
         for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
-          if (!optB.fChunkFilter.empty()) {
-            if (optB.fChunkFilter.find(Pos2i(cx, cz)) == optB.fChunkFilter.end()) {
-              continue;
-            }
+          if (chunks.find({cx, cz}) == chunks.end()) {
+            continue;
           }
           if (multithread) {
             futures.push_back(move(pool->enqueue(CheckPoi, *regionE, *regionA, cx, cz, dim)));

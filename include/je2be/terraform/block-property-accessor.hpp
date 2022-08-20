@@ -297,7 +297,7 @@ public:
   }
 
   static bool IsLeaves(mcfile::be::Block const &b) {
-    return b.fName.ends_with("leaves");
+    return b.fName.ends_with("leaves") || b.fName.ends_with("leaves2");
   }
 
   static bool IsLeaves(mcfile::je::Block const &b) {
