@@ -43,6 +43,13 @@ public:
 
     string nameJ = nameB;
     auto blockTag = itemB.compoundTag("Block");
+    if (nameB == "minecraft:standing_sign" && !tagB->empty()) {
+      // NOTE: "tag" of standing_sign should be converted to "BlockEntityTag", but itemB doesn't have "Block" tag.
+      //  Therefore, we need a dummy blockTag here.
+      blockTag = Compound();
+      blockTag->set("name", String("minecraft:standing_sign"));
+      blockTag->set("version", Int(tobe::kBlockDataVersion));
+    }
     if (blockTag) {
       auto blockB = mcfile::be::Block::FromCompound(*blockTag);
       if (blockB) {
@@ -54,12 +61,12 @@ public:
           if (!tagB->empty()) {
             if (auto converted = ctx.fFromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
               static unordered_set<string> const sExclude({"x", "y", "z", "keepPacked", "RecipesUsed"});
-              auto blockEntityTag = converted->fTileEntity;
+              auto blockEntityTagJ = converted->fTileEntity;
               for (auto const &e : sExclude) {
-                blockEntityTag->erase(e);
+                blockEntityTagJ->erase(e);
               }
-              if (!blockEntityTag->empty()) {
-                tagJ->set("BlockEntityTag", blockEntityTag);
+              if (!blockEntityTagJ->empty()) {
+                tagJ->set("BlockEntityTag", blockEntityTagJ);
               }
             }
           }
@@ -71,7 +78,10 @@ public:
     CopyByteValues(itemB, itemJ, {{"Count"}, {"Slot"}});
     CopyIntValues(*tagB, *tagJ, {{"Damage"}, {"RepairCost"}});
 
-    auto displayJ = Compound();
+    auto displayJ = tagJ->compoundTag("display");
+    if (!displayJ) {
+      displayJ = Compound();
+    }
 
     auto customColor = tagB->int32("customColor");
     if (customColor) {

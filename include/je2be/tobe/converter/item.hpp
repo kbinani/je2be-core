@@ -9,6 +9,36 @@ private:
 
 public:
   static CompoundTagPtr From(CompoundTagPtr const &item, Context const &ctx) {
+    auto result = Convert(item, ctx);
+    if (result) {
+      return Post(result, *item, ctx);
+    } else {
+      return nullptr;
+    }
+  }
+
+  static int8_t GetSkullTypeFromBlockName(std::string const &name) {
+    int8_t type = 0;
+    std::string n = strings::LTrim(name, "minecraft:");
+    n = strings::Remove(n, "_wall");
+    auto st = SkullTypeFromJavaName(n);
+    if (st) {
+      type = static_cast<uint8_t>(*st);
+    }
+    return type;
+  }
+
+  static CompoundTagPtr Empty() {
+    auto armor = Compound();
+    armor->set("Count", Byte(0));
+    armor->set("Damage", Short(0));
+    armor->set("Name", String(""));
+    armor->set("WasPickedUp", Bool(false));
+    return armor;
+  }
+
+private:
+  static CompoundTagPtr Convert(CompoundTagPtr const &item, Context const &ctx) {
     using namespace std;
 
     static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
@@ -48,27 +78,6 @@ public:
     }
   }
 
-  static int8_t GetSkullTypeFromBlockName(std::string const &name) {
-    int8_t type = 0;
-    std::string n = strings::LTrim(name, "minecraft:");
-    n = strings::Remove(n, "_wall");
-    auto st = SkullTypeFromJavaName(n);
-    if (st) {
-      type = static_cast<uint8_t>(*st);
-    }
-    return type;
-  }
-
-  static CompoundTagPtr Empty() {
-    auto armor = Compound();
-    armor->set("Count", Byte(0));
-    armor->set("Damage", Short(0));
-    armor->set("Name", String(""));
-    armor->set("WasPickedUp", Bool(false));
-    return armor;
-  }
-
-private:
   static std::unordered_map<std::string, Converter> *CreateBlockItemConverterTable() {
     using namespace std;
     auto table = new unordered_map<string, Converter>();
@@ -139,15 +148,15 @@ private:
     E("soul_torch", AnyTorch);
     E("redstone_torch", AnyTorch);
 
-    E("oak_sign", DefaultBlockItem);
-    E("birch_sign", DefaultBlockItem);
-    E("spruce_sign", DefaultBlockItem);
-    E("jungle_sign", DefaultBlockItem);
-    E("acacia_sign", DefaultBlockItem);
-    E("dark_oak_sign", DefaultBlockItem);
-    E("crimson_sign", DefaultBlockItem);
-    E("warped_sign", DefaultBlockItem);
-    E("mangrove_sign", DefaultBlockItem);
+    E("oak_sign", Sign);
+    E("birch_sign", Sign);
+    E("spruce_sign", Sign);
+    E("jungle_sign", Sign);
+    E("acacia_sign", Sign);
+    E("dark_oak_sign", Sign);
+    E("crimson_sign", Sign);
+    E("warped_sign", Sign);
+    E("mangrove_sign", Sign);
 
     E("goat_horn", GoatHorn);
     E("frogspawn", Rename("frog_spawn"));
@@ -192,6 +201,15 @@ private:
     return table;
   }
 
+  static CompoundTagPtr Sign(std::string const &name, CompoundTag const &item, Context const &ctx) {
+    auto ret = DefaultBlockItem(name, item, ctx);
+    if (!ret) {
+      return nullptr;
+    }
+    ret->erase("Block");
+    return ret;
+  }
+
   static CompoundTagPtr AxolotlBucket(std::string const &name, CompoundTag const &item, Context const &) {
     auto ret = New("axolotl_bucket");
     ret->set("Damage", Short(0));
@@ -226,7 +244,7 @@ private:
         ret->set("tag", tag);
       }
     }
-    return Post(ret, item);
+    return ret;
   }
 
   static CompoundTagPtr BooksAndQuill(std::string const &name, CompoundTag const &item, Context const &) {
@@ -302,8 +320,7 @@ private:
       }
       tag->set("tag", outTag);
     }
-
-    return Post(tag, item);
+    return tag;
   }
 
   static CompoundTagPtr LeatherArmor(std::string const &name, CompoundTag const &item, Context const &) {
@@ -321,8 +338,7 @@ private:
       t->set("customColor", Int(*(int32_t *)&v));
       tag->set("tag", t);
     }
-
-    return Post(tag, item);
+    return tag;
   }
 
   static std::optional<std::tuple<int, CompoundTagPtr>> Map(std::string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
@@ -370,8 +386,7 @@ private:
     tag->set("map_name_index", Int(number->fValue));
     ret->set("Damage", Short(type));
 
-    auto out = Post(ret, item);
-    return make_tuple(mapId, out);
+    return make_tuple(mapId, ret);
   }
 
   static CompoundTagPtr AnyPotion(std::string const &name, CompoundTag const &item, Context const &) {
@@ -383,7 +398,7 @@ private:
       type = Potion::BedrockPotionTypeFromJava(potion);
     }
     tag->set("Damage", Short(type));
-    return Post(tag, item);
+    return tag;
   }
 
   static CompoundTagPtr TippedArrow(std::string const &name, CompoundTag const &item, Context const &) {
@@ -395,7 +410,7 @@ private:
       type = TippedArrowPotion::BedrockPotionType(potion);
     }
     tag->set("Damage", Short(type));
-    return Post(tag, item);
+    return tag;
   }
 
   static CompoundTagPtr FireworkStar(std::string const &name, CompoundTag const &item, Context const &ctx) {
@@ -426,14 +441,14 @@ private:
       tag->set("Fireworks", fireworksData.toBedrockCompoundTag());
       data->set("tag", tag);
     }
-    return Post(data, item);
+    return data;
   }
 
   static Converter Subtype(std::string const &newName, int16_t damage) {
     return [=](std::string const &name, CompoundTag const &item, Context const &) {
       auto tag = New(newName);
       tag->set("Damage", Short(damage));
-      return Post(tag, item);
+      return tag;
     };
   }
 
@@ -783,13 +798,13 @@ private:
     auto tag = New(name, true);
     tag->set("Damage", Short(0));
     tag->set("Block", blockData);
-    return Post(tag, item);
+    return tag;
   }
 
   static Converter Rename(std::string const &newName) {
     return [=](std::string const &name, CompoundTag const &item, Context const &) {
       auto tag = New(newName);
-      return Post(tag, item);
+      return tag;
     };
   }
 
@@ -797,7 +812,7 @@ private:
     int8_t type = GetSkullTypeFromBlockName(name);
     auto tag = New("skull");
     tag->set("Damage", Short(type));
-    return Post(tag, item);
+    return tag;
   }
 
   static CompoundTagPtr SuspiciousStew(std::string const &name, CompoundTag const &j, Context const &) {
@@ -824,7 +839,7 @@ private:
         }
       }
     }
-    return Post(b, j);
+    return b;
   }
 
   static CompoundTagPtr Crossbow(std::string const &name, CompoundTag const &j, Context const &ctx) {
@@ -850,7 +865,7 @@ private:
         }
       }
     }
-    return Post(b, j);
+    return b;
   }
 
   static CompoundTagPtr Banner(std::string const &name, CompoundTag const &item, Context const &) {
@@ -901,7 +916,7 @@ private:
       ret->set("tag", tag);
     }
 
-    return Post(ret, item);
+    return ret;
   }
 
   static CompoundTagPtr Bed(std::string const &name, CompoundTag const &item, Context const &) {
@@ -911,7 +926,7 @@ private:
     int16_t damage = (int16_t)color;
     auto tag = New("bed");
     tag->set("Damage", Short(damage));
-    return Post(tag, item);
+    return tag;
   }
 
   static CompoundTagPtr MushroomBlock(std::string const &name, CompoundTag const &item, Context const &) {
@@ -928,7 +943,7 @@ private:
     auto tag = New(name, true);
     tag->set("Damage", Short(0));
     tag->set("Block", blockData);
-    return Post(tag, item);
+    return tag;
   }
 
   static CompoundTagPtr GoatHorn(std::string const &name, CompoundTag const &item, Context const &) {
@@ -940,7 +955,7 @@ private:
       }
     }
     tagB->set("Damage", Short(damage));
-    return Post(tagB, item);
+    return tagB;
   }
 
   static CompoundTagPtr New(std::string const &name, bool fullname = false) {
@@ -965,8 +980,7 @@ private:
   static CompoundTagPtr DefaultBlockItem(std::string const &id, CompoundTag const &item, Context const &ctx) {
     using namespace std;
 
-    map<string, string> p;
-    auto block = make_shared<Block>(id, p);
+    auto block = make_shared<Block>(id);
     auto blockData = BlockData::From(block);
     assert(blockData);
 
@@ -984,67 +998,39 @@ private:
 
     ret->set("Block", blockData);
 
-    if (auto tagJ = item.compoundTag("tag"); tagJ) {
-      if (auto blockEntityTag = tagJ->compoundTag("BlockEntityTag"); blockEntityTag) {
-        Pos3i dummy(0, 0, 0);
-        if (auto tagB = ctx.fFromBlockAndTileEntity(dummy, *block, blockEntityTag, ctx); tagB) {
-          static unordered_set<string> const sExclude({"Findable", "id", "isMovable", "x", "y", "z"});
-          for (auto const &e : sExclude) {
-            tagB->erase(e);
-          }
-
-          if (auto displayJ = tagJ->compoundTag("display"); displayJ) {
-            if (auto loreJ = displayJ->listTag("Lore"); loreJ) {
-              auto loreB = List<Tag::Type::String>();
-              for (auto const &item : *loreJ) {
-                if (auto str = item->asString(); str) {
-                  if (str->fValue == "\"(+NBT)\"") {
-                    loreB->push_back(String("(+DATA)"));
-                  } else {
-                    loreB->push_back(String(str->fValue));
-                  }
-                }
-              }
-              auto displayB = Compound();
-              displayB->set("Lore", loreB);
-              tagB->set("display", displayB);
-            }
-          }
-
-          ret->set("tag", tagB);
-        }
-      }
-    }
-
-    return Post(ret, item);
+    return ret;
   }
 
-  static CompoundTagPtr DefaultItem(std::string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr DefaultItem(std::string const &name, CompoundTag const &item, Context const &ctx) {
     auto ret = Compound();
     ret->insert({
         {"Name", String(name)},
         {"WasPickedUp", Bool(false)},
         {"Damage", Short(0)},
     });
-    return Post(ret, item);
+    return ret;
   }
 
-  static CompoundTagPtr Post(CompoundTagPtr const &input, CompoundTag const &item) {
+  static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context const &ctx) {
     using namespace std;
 
-    CopyByteValues(item, *input, {{"Count"}});
-
-    auto tag = item.compoundTag("tag");
-    if (!tag) {
-      return input;
+    if (itemB->string("id") == "minecraft:white_banner") {
+      int a = 0;
     }
 
-    shared_ptr<CompoundTag> beTag = input->compoundTag("tag");
-    if (!beTag) {
-      beTag = Compound();
+    CopyByteValues(itemJ, *itemB, {{"Count"}});
+
+    auto tagJ = itemJ.compoundTag("tag");
+    if (!tagJ) {
+      return itemB;
     }
 
-    auto storedEnchantments = tag->listTag("StoredEnchantments");
+    auto tagB = itemB->compoundTag("tag");
+    if (!tagB) {
+      tagB = Compound();
+    }
+
+    auto storedEnchantments = tagJ->listTag("StoredEnchantments");
     if (storedEnchantments) {
       auto ench = List<Tag::Type::Compound>();
       for (auto const &e : *storedEnchantments) {
@@ -1058,9 +1044,9 @@ private:
         }
         ench->push_back(be);
       }
-      beTag->set("ench", ench);
+      tagB->set("ench", ench);
     } else {
-      auto enchantments = tag->listTag("Enchantments");
+      auto enchantments = tagJ->listTag("Enchantments");
       if (enchantments) {
         auto ench = List<Tag::Type::Compound>();
         for (auto const &e : *enchantments) {
@@ -1074,32 +1060,77 @@ private:
           }
           ench->push_back(be);
         }
-        beTag->set("ench", ench);
+        tagB->set("ench", ench);
       }
     }
 
-    auto damage = tag->int32("Damage");
+    auto damage = tagJ->int32("Damage");
     if (damage) {
-      beTag->set("Damage", Int(*damage));
+      tagB->set("Damage", Int(*damage));
     }
 
-    auto repairCost = tag->int32("RepairCost");
+    auto repairCost = tagJ->int32("RepairCost");
     if (repairCost) {
-      beTag->set("RepairCost", Int(*repairCost));
+      tagB->set("RepairCost", Int(*repairCost));
     }
 
-    auto name = GetCustomName(*tag);
+    CompoundTagPtr displayB = tagB->compoundTag("display");
+
+    auto name = GetCustomName(*tagJ);
     if (name) {
-      auto beDisplay = Compound();
-      beDisplay->set("Name", String(*name));
-      beTag->set("display", beDisplay);
+      if (!displayB) {
+        displayB = Compound();
+      }
+      displayB->set("Name", String(*name));
     }
 
-    if (!beTag->empty()) {
-      input->set("tag", beTag);
+    if (auto displayJ = tagJ->compoundTag("display"); displayJ) {
+      if (auto loreJ = displayJ->listTag("Lore"); loreJ) {
+        auto loreB = List<Tag::Type::String>();
+        for (auto const &item : *loreJ) {
+          if (auto str = item->asString(); str) {
+            if (str->fValue == "\"(+NBT)\"") {
+              loreB->push_back(String("(+DATA)"));
+            } else {
+              loreB->push_back(String(str->fValue));
+            }
+          }
+        }
+        if (!displayB) {
+          displayB = Compound();
+        }
+        displayB->set("Lore", loreB);
+      }
     }
 
-    return input;
+    if (auto blockEntityTagJ = tagJ->compoundTag("BlockEntityTag"); blockEntityTagJ) {
+      if (auto id = itemJ.string("id"); id) {
+        auto block = std::make_shared<Block>(*id);
+
+        Pos3i dummy(0, 0, 0);
+        if (auto blockEntityTagB = ctx.fFromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx); blockEntityTagB) {
+          static unordered_set<string> const sExclude({"Findable", "id", "isMovable", "x", "y", "z"});
+          for (auto const &e : sExclude) {
+            blockEntityTagB->erase(e);
+          }
+          for (auto const &it : *blockEntityTagB) {
+            if (tagB->find(it.first) == tagB->end()) {
+              tagB->set(it.first, it.second);
+            }
+          }
+        }
+      }
+    }
+
+    if (displayB) {
+      tagB->set("display", displayB);
+    }
+
+    if (!tagB->empty()) {
+      itemB->set("tag", tagB);
+    }
+
+    return itemB;
   }
 
   static std::optional<std::string> GetCustomName(CompoundTag const &tag) {
