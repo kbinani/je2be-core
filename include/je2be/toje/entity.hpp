@@ -206,6 +206,9 @@ public:
       brain->set("memories", memories);
       j["Brain"] = brain;
     }
+
+    j["CanDuplicate"] = Bool(true);
+    CopyLongValues(b, j, {{"AllayDuplicationCooldown", "DuplicationCooldown"}});
   }
 
   static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx) {

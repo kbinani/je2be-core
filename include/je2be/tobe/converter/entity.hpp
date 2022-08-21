@@ -618,17 +618,19 @@ private:
   }
 
 #pragma region DedicatedBehaviors
-  static void Allay(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    if (auto brain = tag.compoundTag("Brain"); brain) {
+  static void Allay(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    if (auto brain = j.compoundTag("Brain"); brain) {
       if (auto memories = brain->compoundTag("memories"); memories) {
         if (auto likedPlayer = memories->compoundTag("minecraft:liked_player"); likedPlayer) {
           if (auto likedPlayerUid = props::GetUuidWithFormatIntArray(*likedPlayer, "value"); likedPlayerUid) {
             auto uidB = UuidRegistrar::ToId(*likedPlayerUid);
-            c["OwnerNew"] = Long(uidB);
+            b["OwnerNew"] = Long(uidB);
           }
         }
       }
     }
+
+    CopyLongValues(j, b, {{"DuplicationCooldown", "AllayDuplicationCooldown"}});
   }
 
   static void ArmorStand(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
