@@ -582,7 +582,7 @@ private:
 
     M(zombie_horse);
     E(zombie_villager, C(Animal, Rename("zombie_villager_v2"), Offers(4, "persistingOffers"), Villager, ZombieVillager));
-    E(zombified_piglin, C(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie")));
+    E(zombified_piglin, C(Monster, Rename("zombie_pigman"), AgeableB("pig_zombie"), ZombiePigman));
 
     E(boat, C(EntityBase, Vehicle(), Entity::Boat("boat")));
     E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Entity::Boat("chest_boat")));
@@ -1321,6 +1321,21 @@ private:
 
     auto attributes = EntityAttributes::Wolf(!!owner, health);
     c["Attributes"] = attributes.toBedrockListTag();
+  }
+
+  static void ZombiePigman(CompoundTag &tagB, CompoundTag const &tagJ, ConverterContext &ctx) {
+    auto angryAt = props::GetUuid(tagJ, {.fIntArray = "AngryAt"});
+    if (angryAt) {
+      AddDefinition(tagB, "-minecraft:pig_zombie_calm");
+      AddDefinition(tagB, "+minecraft:pig_zombie_angry");
+
+      tagB["IsAngry"] = Bool(true);
+
+      auto targetId = UuidRegistrar::ToId(*angryAt);
+      tagB["TargetID"] = Long(targetId);
+    } else {
+      AddDefinition(tagB, "+minecraft:pig_zombie_calm");
+    }
   }
 
   static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {

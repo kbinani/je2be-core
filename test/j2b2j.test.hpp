@@ -353,6 +353,11 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
   } else if (id == "minecraft:zombified_piglin") {
     blacklist.insert("CanBreakDoors");
+    blacklist.insert("AngerTime");
+    blacklist.insert("AngryAt");
+    auto angryAtA = copyA->intArrayTag("AngryAt");
+    auto angryAtE = copyE->intArrayTag("AngryAt");
+    CHECK((angryAtE == nullptr) == (angryAtA == nullptr));
   }
   auto itemId = entityE.query("Item/id");
   if (itemId && itemId->asString()) {

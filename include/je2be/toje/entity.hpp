@@ -825,6 +825,14 @@ public:
     j["CanBreakDoors"] = Bool(false);
     j["InWaterTime"] = Int(-1);
   }
+
+  static void ZombifiedPiglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto targetId = b.int64("TargetID", -1);
+    if (targetId != -1) {
+      auto angryAt = Uuid::GenWithI64Seed(targetId);
+      j["AngryAt"] = angryAt.toIntArrayTag();
+    }
+  }
 #pragma endregion
 
 #pragma region Behaviors
@@ -1835,7 +1843,7 @@ public:
     E(salmon, C(Same, LivingEntity, FromBucket));
     E(parrot, C(Same, Animal, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
-    E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie));
+    E(zombie_pigman, C(Rename("zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie, ZombifiedPiglin));
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
     E(blaze, C(Same, LivingEntity));
     E(cow, C(Same, Animal));
