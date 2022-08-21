@@ -195,6 +195,10 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
     tagBlacklist.insert("warning_level");
   } else if (id == "minecraft:sculk_catalyst") {
     tagBlacklist.insert("cursors");
+  } else if (id == "minecraft:jukebox") {
+    tagBlacklist.insert("IsPlaying");
+    tagBlacklist.insert("TickCount");
+    tagBlacklist.insert("RecordStartTick");
   }
   for (string const &b : tagBlacklist) {
     Erase(copyE, b);
