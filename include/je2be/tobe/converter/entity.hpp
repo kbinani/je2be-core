@@ -1534,6 +1534,9 @@ private:
 
   static CompoundTagPtr EnderDragon(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Monster(tag, ctx);
+    if (!c) {
+      return nullptr;
+    }
     AddDefinition(*c, "-dragon_sitting");
     AddDefinition(*c, "+dragon_flying");
     c->set("Persistent", Bool(true));
@@ -1675,6 +1678,9 @@ private:
 
   static CompoundTagPtr Monster(CompoundTag const &tag, ConverterContext &ctx) {
     auto c = Mob(tag, ctx);
+    if (!c) {
+      return nullptr;
+    }
     c->set("SpawnedByNight", Bool(false));
     return c;
   }
