@@ -3,13 +3,13 @@ project(je2be)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
   list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-  set(je2be_zlib_root ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
-  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
-  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib-ng)
-  list(APPEND ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib-ng)
+  set(je2be_zlib_root ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
+  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
+  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
+  list(APPEND ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
 
-  include_directories(${ZLIB_INCLUDE_DIRS})
-  link_directories(${ZLIB_LIBRARIES})
+  list(APPEND je2be_include_directories ${ZLIB_INCLUDE_DIRS})
+  list(APPEND je2be_link_directories ${ZLIB_LIBRARIES})
 endif()
 
 if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
@@ -344,8 +344,10 @@ target_include_directories(je2be INTERFACE
   deps/xxhash
   deps/hwm.task
   deps/json/include
-  deps/minizip-ng)
+  deps/minizip-ng
+  ${je2be_include_directories})
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
+target_link_directories(je2be INTERFACE ${je2be_link_directories})
 
 add_executable(j2b example/j2b.cpp ${je2be_files})
 target_link_libraries(j2b je2be cxxopts)

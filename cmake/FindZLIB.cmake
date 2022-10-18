@@ -1,4 +1,4 @@
-file(STRINGS "${je2be_zlib_root}/zlib.h.in" ZLIB_H REGEX "^#define ZLIB_VERSION \"[^\"]*\"$")
+file(STRINGS "${je2be_zlib_root}/zlib.h" ZLIB_H REGEX "^#define ZLIB_VERSION \"[^\"]*\"$")
 
 string(REGEX REPLACE "^.*ZLIB_VERSION \"([0-9]+).*$" "\\1" ZLIB_VERSION_MAJOR "${ZLIB_H}")
 string(REGEX REPLACE "^.*ZLIB_VERSION \"[0-9]+\\.([0-9]+).*$" "\\1" ZLIB_VERSION_MINOR  "${ZLIB_H}")
