@@ -63,7 +63,6 @@
 #include <je2be/status.hpp>
 #include <je2be/nullable.hpp>
 #include <je2be/fs.hpp>
-#include <je2be/scoped-file.hpp>
 #include <je2be/file.hpp>
 #include <je2be/strings.hpp>
 #include <je2be/pos2.hpp>

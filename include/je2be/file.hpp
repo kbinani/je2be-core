@@ -17,7 +17,7 @@ namespace je2be::file {
     return false;
   }
   buffer.resize(*size);
-  if (!File::Fread(buffer.data(), *size, 1, fp)) {
+  if (!File::Fread(buffer.data(), *size, 1, fp.get())) {
     return false;
   }
   return true;

@@ -165,7 +165,7 @@ public:
       int64_t remaining = fileInfo->uncompressed_size;
       fs::path parentDir = fullFilePath.parent_path();
       Fs::CreateDirectories(parentDir);
-      ScopedFile fp(mcfile::File::Open(fullFilePath, mcfile::File::Mode::Write));
+      mcfile::ScopedFile fp(mcfile::File::Open(fullFilePath, mcfile::File::Mode::Write));
       if (!fp) {
         return false;
       }
@@ -176,7 +176,7 @@ public:
         if (read < 0) {
           return false;
         }
-        if (fwrite(chunk.data(), 1, read, fp) != read) {
+        if (fwrite(chunk.data(), 1, read, fp.get()) != read) {
           return false;
         }
         remaining -= amount;

@@ -99,7 +99,6 @@ set(je2be_files
   include/je2be/rename-pair.hpp
   include/je2be/reversible-map.hpp
   include/je2be/rotation.hpp
-  include/je2be/scoped-file.hpp
   include/je2be/size.hpp
   include/je2be/static-reversible-map.hpp
   include/je2be/status.hpp
@@ -275,6 +274,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/palette-list.hpp
   deps/libminecraft-file/include/mcfile/pos2.hpp
   deps/libminecraft-file/include/mcfile/pos3.hpp
+  deps/libminecraft-file/include/mcfile/scoped-file.hpp
   deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/defer-opening-output-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/file-input-stream.hpp

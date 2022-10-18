@@ -48,12 +48,12 @@ public:
       s << endl;
     }
     s << "]" << endl;
-    ScopedFile fp(mcfile::File::Open(beRoot / "world_behavior_packs.json", mcfile::File::Mode::Write));
+    mcfile::ScopedFile fp(mcfile::File::Open(beRoot / "world_behavior_packs.json", mcfile::File::Mode::Write));
     if (!fp) {
       return false;
     }
     string json = s.str();
-    if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp)) {
+    if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp.get())) {
       return false;
     }
     return true;
@@ -177,11 +177,11 @@ private:
     s << R"(  ])" << endl;
     s << R"(})" << endl;
     string json = s.str();
-    ScopedFile fp(mcfile::File::Open(packDir / "manifest.json", mcfile::File::Mode::Write));
+    mcfile::ScopedFile fp(mcfile::File::Open(packDir / "manifest.json", mcfile::File::Mode::Write));
     if (!fp) {
       return false;
     }
-    if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp)) {
+    if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp.get())) {
       return false;
     }
     return true;
@@ -229,7 +229,7 @@ private:
     if (!fp) {
       return false;
     }
-    if (!File::Fwrite(transpiled.c_str(), transpiled.size(), 1, fp)) {
+    if (!File::Fwrite(transpiled.c_str(), transpiled.size(), 1, fp.get())) {
       return false;
     }
     return true;

@@ -672,23 +672,23 @@ private:
 
         for (uint64_t i = 0; i < numKeys; i++) {
           uint64_t offsetCompressed = 0;
-          if (fread(&offsetCompressed, sizeof(offsetCompressed), 1, fp) != 1) {
+          if (fread(&offsetCompressed, sizeof(offsetCompressed), 1, fp.get()) != 1) {
             return false;
           }
           uint64_t sizeCompressed = 0;
-          if (fread(&sizeCompressed, sizeof(sizeCompressed), 1, fp) != 1) {
+          if (fread(&sizeCompressed, sizeof(sizeCompressed), 1, fp.get()) != 1) {
             return false;
           }
           size_t keySize = 0;
-          if (fread(&keySize, sizeof(keySize), 1, fp) != 1) {
+          if (fread(&keySize, sizeof(keySize), 1, fp.get()) != 1) {
             return false;
           }
           uint64_t sequence;
-          if (fread(&sequence, sizeof(sequence), 1, fp) != 1) {
+          if (fread(&sequence, sizeof(sequence), 1, fp.get()) != 1) {
             return false;
           }
           keyBuffer.resize(keySize + 1);
-          if (fread(keyBuffer.data() + 1, keySize, 1, fp) != 1) {
+          if (fread(keyBuffer.data() + 1, keySize, 1, fp.get()) != 1) {
             return false;
           }
           keyBuffer[0] = shard;
@@ -712,21 +712,21 @@ private:
         for (size_t i = 0; i < keys.size(); i++) {
           Key key = keys[i];
 
-          if (fwrite(&key.fOffsetCompressed, sizeof(key.fOffsetCompressed), 1, fp) != 1) {
+          if (fwrite(&key.fOffsetCompressed, sizeof(key.fOffsetCompressed), 1, fp.get()) != 1) {
             return false;
           }
-          if (fwrite(&key.fSizeCompressed, sizeof(key.fSizeCompressed), 1, fp) != 1) {
+          if (fwrite(&key.fSizeCompressed, sizeof(key.fSizeCompressed), 1, fp.get()) != 1) {
             return false;
           }
           size_t keySize = key.fKey.size() - 1;
-          if (fwrite(&keySize, sizeof(keySize), 1, fp) != 1) {
+          if (fwrite(&keySize, sizeof(keySize), 1, fp.get()) != 1) {
             return false;
           }
           uint64_t sequence = key.fSequence;
-          if (fwrite(&sequence, sizeof(sequence), 1, fp) != 1) {
+          if (fwrite(&sequence, sizeof(sequence), 1, fp.get()) != 1) {
             return false;
           }
-          if (fwrite(key.fKey.data() + 1, keySize, 1, fp) != 1) {
+          if (fwrite(key.fKey.data() + 1, keySize, 1, fp.get()) != 1) {
             return false;
           }
           size += key.fSizeCompressed;
@@ -847,40 +847,40 @@ private:
         return nullopt;
       }
       if (shard == plan.fFrom.fShard) {
-        if (!File::Fseek(keyFile, plan.fFrom.fKeyFileOffset, SEEK_SET)) {
+        if (!File::Fseek(keyFile.get(), plan.fFrom.fKeyFileOffset, SEEK_SET)) {
           return nullopt;
         }
       }
       while (true) {
         uint64_t offsetCompressed = 0;
-        if (fread(&offsetCompressed, sizeof(offsetCompressed), 1, keyFile) != 1) {
-          if (feof(keyFile) != 0) {
+        if (fread(&offsetCompressed, sizeof(offsetCompressed), 1, keyFile.get()) != 1) {
+          if (feof(keyFile.get()) != 0) {
             break;
           }
           return nullopt;
         }
         uint64_t sizeCompressed = 0;
-        if (fread(&sizeCompressed, sizeof(sizeCompressed), 1, keyFile) != 1) {
+        if (fread(&sizeCompressed, sizeof(sizeCompressed), 1, keyFile.get()) != 1) {
           return nullopt;
         }
         size_t keySize = 0;
-        if (fread(&keySize, sizeof(keySize), 1, keyFile) != 1) {
+        if (fread(&keySize, sizeof(keySize), 1, keyFile.get()) != 1) {
           return nullopt;
         }
         uint64_t sequence;
-        if (fread(&sequence, sizeof(sequence), 1, keyFile) != 1) {
+        if (fread(&sequence, sizeof(sequence), 1, keyFile.get()) != 1) {
           return nullopt;
         }
         keyBuffer.resize(keySize + 1);
-        if (fread(keyBuffer.data() + 1, keySize, 1, keyFile) != 1) {
+        if (fread(keyBuffer.data() + 1, keySize, 1, keyFile.get()) != 1) {
           return nullopt;
         }
         keyBuffer[0] = shard;
         valueBuffer.resize(sizeCompressed);
-        if (!File::Fseek(fp, offsetCompressed, SEEK_SET)) {
+        if (!File::Fseek(fp.get(), offsetCompressed, SEEK_SET)) {
           return nullopt;
         }
-        if (fread(valueBuffer.data(), sizeCompressed, 1, fp) != 1) {
+        if (fread(valueBuffer.data(), sizeCompressed, 1, fp.get()) != 1) {
           return nullopt;
         }
         Slice value((char const *)valueBuffer.data(), valueBuffer.size());
