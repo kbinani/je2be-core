@@ -1,17 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" OR "${EMSCRIPTEN}" STREQUAL "1")
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-  set(je2be_zlib_root ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
-  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
-  list(APPEND ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
-  list(APPEND ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
-
-  list(APPEND je2be_include_directories ${ZLIB_INCLUDE_DIRS})
-  list(APPEND je2be_link_directories ${ZLIB_LIBRARIES})
-endif()
-
 if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -302,7 +291,6 @@ set(test_files
   test/shoulder-riders.test.hpp
   test/uuid.test.hpp)
 
-set(ZLIB_ENABLE_TESTS OFF)
 add_subdirectory(deps/libminecraft-file)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
@@ -313,6 +301,18 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 elseif(NOT "${EMSCRIPTEN}" STREQUAL "1" AND NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
   list(APPEND je2be_link_libraries tbb)
+endif()
+
+find_package(ZLIB QUIET)
+if (NOT ZLIB_FOUND)
+  set(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
+  include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib
+    ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
+  list(APPEND je2be_include_directories
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib
+    ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
 endif()
 
 set(LEVELDB_ZSTD OFF)
