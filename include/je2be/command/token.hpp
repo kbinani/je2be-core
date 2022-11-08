@@ -27,38 +27,7 @@ public:
 
   static bool IterateStringLiterals(std::string const &s, std::function<void(std::string const &str, bool stringLiteral)> callback) {
     using namespace std;
-    size_t pos = 0;
-    if (s.empty()) {
-      return true;
-    }
-    while (pos < s.length()) {
-      auto quote = s.find_first_of('"', pos);
-      if (quote == string::npos) {
-        auto part = s.substr(pos);
-        callback(part, false);
-        return true;
-      } else if (quote == 0 || (quote > 0 && s[quote - 1] != '\\')) {
-        static regex const sStringLiteralCloseRegex(R"(([^\\"]|\\.)*")");
-        smatch m;
-        if (!regex_search(s.begin() + quote + 1, s.end(), m, sStringLiteralCloseRegex)) {
-          // Cannot find closing "
-          return false;
-        }
-        if (pos < quote) {
-          auto pre = strings::Substring(s, pos, quote);
-          callback(pre, false);
-        }
-        auto part = "\"" + m.str();
-        callback(part, true);
-        pos = quote + part.length();
-      }
-    }
-    return true;
-  }
-
-  static bool IterateStringLiterals_(std::string const &s, std::function<void(std::string const &str, bool stringLiteral)> callback) {
-    using namespace std;
-    static regex const sStringLiteralRegex(R"("([^\\"]|\\.)*")");
+    static regex const sStringLiteralRegex(R"((\"(\\.|[^"\\])*\"?|'(\\.|[^'\\])*'?))");
 
     ptrdiff_t pos = 0;
     auto begin = sregex_iterator(s.begin(), s.end(), sStringLiteralRegex);
@@ -68,16 +37,20 @@ public:
       auto offset = m.position();
       auto length = m.length();
       if (pos < offset) {
-        auto part = s.substr(pos, offset - pos);
-        callback(part, false);
+        auto pre = s.substr(pos, offset - pos);
+        callback(pre, false);
       }
-      callback(m.str(), true);
+      auto part = m.str();
+      callback(part, true);
+      if (!part.ends_with(part.at(0))) {
+        // Wasn't enclosed with correct quoatation
+        return false;
+      }
       pos = offset + length;
     }
     if (pos < s.length()) {
       callback(s.substr(pos), false);
     }
-    // TODO: should fail if incomplete quotation
     return true;
   }
 

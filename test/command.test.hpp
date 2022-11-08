@@ -33,4 +33,18 @@ TEST_CASE("command") {
     CHECK(Command::TranspileJavaToBedrock(it.first) == it.second);
     CHECK(Command::TranspileBedrockToJava(it.second) == it.first);
   }
+
+  SUBCASE("token") {
+    vector<pair<string, bool>> actual;
+    Token::IterateStringLiterals(R"(/give @p written_book{pages:['{"text":"\\"a\\""}']})", [&actual](string s, bool literal) {
+      actual.push_back(make_pair(s, literal));
+    });
+    REQUIRE(actual.size() == 3);
+    CHECK(actual[0].first == R"(/give @p written_book{pages:[)");
+    CHECK(actual[0].second == false);
+    CHECK(actual[1].first == R"('{"text":"\\"a\\""}')");
+    CHECK(actual[1].second == true);
+    CHECK(actual[2].first == R"(]})");
+    CHECK(actual[2].second == false);
+  }
 }
