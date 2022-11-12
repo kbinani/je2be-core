@@ -27,3 +27,4 @@ namespace fs = std::filesystem;
 #include "shoulder-riders.test.hpp"
 #include "uuid.test.hpp"
 #include "volume.test.hpp"
+#include "loot_table.test.hpp"

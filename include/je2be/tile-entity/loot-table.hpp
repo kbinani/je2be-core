@@ -14,16 +14,10 @@ public:
   static State JavaToBedrock(CompoundTag const &j, CompoundTag &b) {
     auto lootTable = j.string("LootTable"); // "minecraft:chests/simple_dungeon"
     auto lootTableSeed = j.int64("LootTableSeed");
-    /*
-    minecraft:chests/ancient_city         => loot_tables/chests/ancient_city.json
-    minecraft:chests/ancient_city_ice_box => loot_tables/chests/ancient_city_ice_box.json
-    */
     if (lootTable && lootTableSeed) {
-      auto slash = lootTable->find('/');
-      if (lootTable->starts_with("minecraft:") && slash != std::string::npos) {
-        auto type = lootTable->substr(0, slash).substr(10);                             // "chests"
-        std::string table = "loot_tables/" + type + lootTable->substr(slash) + ".json"; // "loot_tables/chests/simple_dungeon.json"
-        b["LootTable"] = String(table);
+      auto tableName = BedrockTableNameFromJava(*lootTable);
+      if (tableName) {
+        b["LootTable"] = String(*tableName);
         b["LootTableSeed"] = Int(props::SquashI64ToI32(*lootTableSeed));
         return State::HasLootTable;
       }
@@ -31,14 +25,45 @@ public:
     return State::NoLootTable;
   }
 
+  static std::optional<std::string> BedrockTableNameFromJava(std::string const &java) {
+    auto const &exceptional = GetJavaToBedrockTable();
+    auto found = exceptional.forward(java);
+    if (found) {
+      return *found;
+    }
+    auto slash = java.find_first_of('/');
+    if (java.starts_with("minecraft:") && slash != std::string::npos) {
+      auto type = java.substr(0, slash).substr(10);   // "chests"
+      auto title = java.substr(slash);                // "/simple_dungeon"
+      return "loot_tables/" + type + title + ".json"; // "loot_tables/chests/simple_dungeon.json"
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  static std::optional<std::string> JavaTableNameFromBedrock(std::string const &bedrock) {
+    auto const &exceptional = GetJavaToBedrockTable();
+    auto found = exceptional.backward(bedrock);
+    if (found) {
+      return *found;
+    }
+    if (bedrock.starts_with("loot_tables/") && bedrock.ends_with(".json")) {
+      std::string name = strings::RTrim(bedrock.substr(12), ".json");
+      return "minecraft:" + name;
+    }
+    return std::nullopt;
+  }
+
   static State BedrockToJava(CompoundTag const &b, CompoundTag &j) {
     auto lootTable = b.string("LootTable");
     auto lootTableSeed = b.int32("LootTableSeed");
-    if (lootTable && lootTable->starts_with("loot_tables/") && lootTable->ends_with(".json") && lootTableSeed) {
-      std::string name = strings::RTrim(lootTable->substr(12), ".json");
-      j["LootTable"] = String("minecraft:" + name);
-      j["LootTableSeed"] = Long(*lootTableSeed);
-      return State::HasLootTable;
+    if (lootTable && lootTableSeed) {
+      auto tableName = JavaTableNameFromBedrock(*lootTable);
+      if (tableName) {
+        j["LootTable"] = String(*tableName);
+        j["LootTableSeed"] = Long(*lootTableSeed);
+        return State::HasLootTable;
+      }
     }
     return State::NoLootTable;
   }
@@ -83,6 +108,70 @@ public:
     j["LootTable"] = String(table);
     j["LootTableSeed"] = Long(*lootTableSeed);
     return State::HasLootTable;
+  }
+
+private:
+  static ReversibleMap<std::string, std::string> *CreateJavaToBedrockTable() {
+    return new ReversibleMap<std::string, std::string>({
+        /* Java(1.19.2)                           Bedrock(1.19.41)
+        "minecraft:chests/abandoned_mineshaft"            ?
+        "minecraft:chests/ancient_city"                   "loot_tables/chests/ancient_city.json"
+        "minecraft:chests/ancient_city_ice_box"           "loot_tables/chests/ancient_city_ice_box.json"
+        "minecraft:chests/bastion_bridge"                 ?
+        "minecraft:chests/bastion_hoglin_stable"          ?
+        "minecraft:chests/bastion_other"                  "loot_tables/chests/bastion_other.json"
+        "minecraft:chests/bastion_treasure"               "loot_tables/chests/bastion_treasure.json"
+        "minecraft:chests/buried_treasure"                "loot_tables/chests/buriedtreasure.json"
+        "minecraft:chests/desert_pyramid"                 "loot_tables/chests/desert_pyramid.json"
+        "minecraft:chests/jungle_temple_dispenser"        "loot_tables/chests/dispenser_trap.json"
+        "minecraft:chests/end_city_treasure"              "loot_tables/chests/end_city_treasure"
+        "minecraft:chests/igloo_chest"                    ?
+        "minecraft:chests/jungle_temple"                  "loot_tables/chests/jungle_temple.json"
+        "minecraft:chests/nether_bridge"                  ?
+        "minecraft:chests/pillager_outpost"               "loot_tables/chests/pillager_outpost.json"
+        "minecraft:chests/ruined_portal"                  "loot_tables/chests/ruined_portal.json"
+        ?                                                 "loot_tables/chests/shipwreck.json"
+        "minecraft:chests/shipwreck_map"                  ?
+        "minecraft:chests/shipwreck_supply"               "loot_tables/chests/shipwrecksupply.json"
+        "minecraft:chests/shipwreck_treasure"             "loot_tables/chests/shipwrecktreasure.json"
+        "minecraft:chests/simple_dungeon"                 "loot_tables/chests/simple_dungeon.json"
+        "minecraft:chests/spawn_bonus_chest"              "loot_tables/chests/spawn_bonus_chest.json"
+        "minecraft:chests/stronghold_corridor"            "loot_tables/chests/stronghold_corridor.json"
+        "minecraft:chests/stronghold_crossing"            "loot_tables/chests/stronghold_crossing.json"
+        "minecraft:chests/stronghold_library"             "loot_tables/chests/stronghold_library.json"
+        "minecraft:chests/underwater_ruin_big"            "loot_tables/chests/underwater_ruin_big.json"
+        "minecraft:chests/underwater_ruin_small"          "loot_tables/chests/underwater_ruin_small.json"
+        "minecraft:chests/village/village_armorer"        ?
+        "minecraft:chests/village/village_butcher"        ?
+        "minecraft:chests/village/village_cartographer"   ?
+        "minecraft:chests/village/village_desert_house"   "loot_tables/chests/village/village_desert_house.json"
+        "minecraft:chests/village/village_fisher"         ?
+        "minecraft:chests/village/village_fletcher"       ?
+        "minecraft:chests/village/village_mason"          ?
+        "minecraft:chests/village/village_plains_house"   "loot_tables/chests/village/village_plains_house.json"
+        "minecraft:chests/village/village_savanna_house"  ?
+        "minecraft:chests/village/village_shepherd"       ?
+        "minecraft:chests/village/village_snowy_house"    ?
+        "minecraft:chests/village/village_taiga_house"    ?
+        "minecraft:chests/village/village_tannery"        "loot_tables/chests/village/village_tannery.json"
+        "minecraft:chests/village/village_temple"         ?
+        "minecraft:chests/village/village_toolsmith"      ?
+        "minecraft:chests/village/village_weaponsmith"    ?
+        "minecraft:chests/woodland_mansion"               "loot_tables/chests/woodland_mansion.json"
+        */
+
+        {"minecraft:chests/buried_treasure", "loot_tables/chests/buriedtreasure.json"},
+        {"minecraft:chests/jungle_temple_dispenser", "loot_tables/chests/dispenser_trap.json"},
+        {"minecraft:chests/shipwreck_map", "loot_tables/chests/shipwreck.json"},
+        {"minecraft:chests/shipwreck_supply", "loot_tables/chests/shipwrecksupply.json"},
+        {"minecraft:chests/shipwreck_treasure", "loot_tables/chests/shipwrecktreasure.json"},
+    });
+  }
+
+  static ReversibleMap<std::string, std::string> const &GetJavaToBedrockTable() {
+    using namespace std;
+    static unique_ptr<ReversibleMap<string, string> const> sTable(CreateJavaToBedrockTable());
+    return *sTable.get();
   }
 };
 
