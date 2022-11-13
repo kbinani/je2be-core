@@ -33,9 +33,7 @@ public:
     }
     auto slash = java.find_first_of('/');
     if (java.starts_with("minecraft:") && slash != std::string::npos) {
-      auto type = java.substr(0, slash).substr(10);   // "chests"
-      auto title = java.substr(slash);                // "/simple_dungeon"
-      return "loot_tables/" + type + title + ".json"; // "loot_tables/chests/simple_dungeon.json"
+      return "loot_tables/" + java.substr(10) + ".json"; // "loot_tables/chests/simple_dungeon.json"
     } else {
       return std::nullopt;
     }
@@ -113,25 +111,24 @@ public:
 private:
   static ReversibleMap<std::string, std::string> *CreateJavaToBedrockTable() {
     return new ReversibleMap<std::string, std::string>({
-        /* Java(1.19.2)                           Bedrock(1.19.41)
-        "minecraft:chests/abandoned_mineshaft"            ?
+        /* Java(1.19.2)                                   Bedrock(1.19.41)
+        "minecraft:chests/abandoned_mineshaft"            "loot_tables/chests/abandoned_mineshaft.json"
         "minecraft:chests/ancient_city"                   "loot_tables/chests/ancient_city.json"
         "minecraft:chests/ancient_city_ice_box"           "loot_tables/chests/ancient_city_ice_box.json"
-        "minecraft:chests/bastion_bridge"                 ?
-        "minecraft:chests/bastion_hoglin_stable"          ?
+        "minecraft:chests/bastion_bridge"                 "loot_tables/chests/bastion_bridge.json"
+        "minecraft:chests/bastion_hoglin_stable"          "loot_tables/chests/bastion_hoglin_stable.json"
         "minecraft:chests/bastion_other"                  "loot_tables/chests/bastion_other.json"
         "minecraft:chests/bastion_treasure"               "loot_tables/chests/bastion_treasure.json"
         "minecraft:chests/buried_treasure"                "loot_tables/chests/buriedtreasure.json"
         "minecraft:chests/desert_pyramid"                 "loot_tables/chests/desert_pyramid.json"
         "minecraft:chests/jungle_temple_dispenser"        "loot_tables/chests/dispenser_trap.json"
         "minecraft:chests/end_city_treasure"              "loot_tables/chests/end_city_treasure"
-        "minecraft:chests/igloo_chest"                    ?
+        "minecraft:chests/igloo_chest"                    "loot_tables/chests/igloo_chest.json"
         "minecraft:chests/jungle_temple"                  "loot_tables/chests/jungle_temple.json"
-        "minecraft:chests/nether_bridge"                  ?
+        "minecraft:chests/nether_bridge"                  "loot_tables/chests/nether_bridge.json"
         "minecraft:chests/pillager_outpost"               "loot_tables/chests/pillager_outpost.json"
         "minecraft:chests/ruined_portal"                  "loot_tables/chests/ruined_portal.json"
-        ?                                                 "loot_tables/chests/shipwreck.json"
-        "minecraft:chests/shipwreck_map"                  ?
+        "minecraft:chests/shipwreck_map"                  "loot_tables/chests/shipwreck.json"
         "minecraft:chests/shipwreck_supply"               "loot_tables/chests/shipwrecksupply.json"
         "minecraft:chests/shipwreck_treasure"             "loot_tables/chests/shipwrecktreasure.json"
         "minecraft:chests/simple_dungeon"                 "loot_tables/chests/simple_dungeon.json"
@@ -141,22 +138,22 @@ private:
         "minecraft:chests/stronghold_library"             "loot_tables/chests/stronghold_library.json"
         "minecraft:chests/underwater_ruin_big"            "loot_tables/chests/underwater_ruin_big.json"
         "minecraft:chests/underwater_ruin_small"          "loot_tables/chests/underwater_ruin_small.json"
-        "minecraft:chests/village/village_armorer"        ?
-        "minecraft:chests/village/village_butcher"        ?
-        "minecraft:chests/village/village_cartographer"   ?
+        "minecraft:chests/village/village_armorer"        "loot_tables/chests/village/village_armorer.json"
+        "minecraft:chests/village/village_butcher"        "loot_tables/chests/village/village_butcher.json"
+        "minecraft:chests/village/village_cartographer"   "loot_tables/chests/village/village_cartographer.json"
         "minecraft:chests/village/village_desert_house"   "loot_tables/chests/village/village_desert_house.json"
         "minecraft:chests/village/village_fisher"         ?
-        "minecraft:chests/village/village_fletcher"       ?
-        "minecraft:chests/village/village_mason"          ?
+        "minecraft:chests/village/village_fletcher"       "loot_tables/chests/village/village_fletcher.json"
+        "minecraft:chests/village/village_mason"          "loot_tables/chests/village/village_mason.json"
         "minecraft:chests/village/village_plains_house"   "loot_tables/chests/village/village_plains_house.json"
-        "minecraft:chests/village/village_savanna_house"  ?
-        "minecraft:chests/village/village_shepherd"       ?
-        "minecraft:chests/village/village_snowy_house"    ?
-        "minecraft:chests/village/village_taiga_house"    ?
+        "minecraft:chests/village/village_savanna_house"  "loot_tables/chests/village/village_savanna_house.json"
+        "minecraft:chests/village/village_shepherd"       "loot_tables/chests/village/village_shepherd.json"
+        "minecraft:chests/village/village_snowy_house"    "loot_tables/chests/village/village_snowy_house.json"
+        "minecraft:chests/village/village_taiga_house"    "loot_tables/chests/village/village_taiga_house.json"
         "minecraft:chests/village/village_tannery"        "loot_tables/chests/village/village_tannery.json"
-        "minecraft:chests/village/village_temple"         ?
-        "minecraft:chests/village/village_toolsmith"      ?
-        "minecraft:chests/village/village_weaponsmith"    ?
+        "minecraft:chests/village/village_temple"         "loot_tables/chests/village/village_temple.json"
+        "minecraft:chests/village/village_toolsmith"      "loot_tables/chests/village/village_toolsmith.json"
+        "minecraft:chests/village/village_weaponsmith"    "loot_tables/chests/village/village_weaponsmith.json"
         "minecraft:chests/woodland_mansion"               "loot_tables/chests/woodland_mansion.json"
         */
 
