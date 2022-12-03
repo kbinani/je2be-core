@@ -312,6 +312,23 @@ public:
       ret.fGameType = *type;
     }
 
+    if (auto enabledFeatures = data->listTag("enabled_features"); enabledFeatures) {
+      bool experiments = false;
+      for (auto it : *enabledFeatures) {
+        auto s = it->asString();
+        if (!s) {
+          continue;
+        }
+        if (s->fValue != "minecraft:vanilla") {
+          experiments = true;
+          break;
+        }
+      }
+      if (experiments) {
+        ret.fExperiments["next_major_update"] = true;
+      }
+    }
+
     return ret;
   }
 
