@@ -1773,11 +1773,15 @@ private:
 
   static Behavior Boat(std::string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      AddDefinition(c, "+minecraft:" + definitionKey);
-
       auto type = tag.string("Type", "oak");
       int32_t variant = Boat::BedrockVariantFromJavaType(type);
       c["Variant"] = Int(variant);
+
+      AddDefinition(c, "+minecraft:" + definitionKey);
+      if (type == "bamboo") {
+        AddDefinition(c, "+");
+        AddDefinition(c, "+minecraft:can_ride_bamboo");
+      }
 
       auto rotation = props::GetRotation(c, "Rotation");
       if (rotation) {
