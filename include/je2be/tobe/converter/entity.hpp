@@ -257,7 +257,6 @@ public:
     int64_t fUid;
     mcfile::Dimension fDimension;
     Pos2i fChunk;
-    bool fSpectatorUsed = false;
   };
   static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
@@ -477,7 +476,6 @@ public:
     result.fEntity = entity;
     result.fDimension = dim;
     result.fUid = *uuid;
-    result.fSpectatorUsed = gameType == GameMode::Spectator;
     int cx = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fX));
     int cz = mcfile::Coordinate::ChunkFromBlock((int)floorf(pos->fZ));
     result.fChunk = Pos2i(cx, cz);

@@ -76,9 +76,6 @@ public:
 
       if (ok) {
         level.fCurrentTick = max(level.fCurrentTick, levelData->fMaxChunkLastUpdate);
-        if (levelData->fSpectatorUsed) {
-          level.fExperiments["spectator_mode"] = true;
-        }
         ok = level.write(fOutput / "level.dat");
         if (ok) {
           ok = levelData->put(db, *data);
@@ -124,7 +121,6 @@ public:
       return std::nullopt;
     }
     wd.drain(ld);
-    ld.fSpectatorUsed = playerB->fSpectatorUsed;
 
     LevelData::PlayerAttachedEntities pae;
     pae.fDim = playerB->fDimension;

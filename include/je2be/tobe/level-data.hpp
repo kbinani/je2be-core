@@ -87,7 +87,6 @@ public:
   int64_t fMaxChunkLastUpdate = 0;
   int64_t const fGameTick;
   int const fDifficultyBedrock;
-  bool fSpectatorUsed = false;
   bool const fAllowCommand;
   GameMode const fGameType;
 
