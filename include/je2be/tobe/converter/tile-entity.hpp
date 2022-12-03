@@ -111,6 +111,7 @@ private:
     E(crimson_sign, Sign);
     E(warped_sign, Sign);
     E(mangrove_sign, Sign);
+    E(bamboo_sign, Sign);
 
     E(oak_wall_sign, Sign);
     E(spruce_wall_sign, Sign);
@@ -121,6 +122,7 @@ private:
     E(crimson_wall_sign, Sign);
     E(warped_wall_sign, Sign);
     E(mangrove_wall_sign, Sign);
+    E(bamboo_wall_sign, Sign);
 
     E(shulker_box, ShulkerBox);
     E(black_shulker_box, ShulkerBox);

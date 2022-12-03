@@ -766,6 +766,7 @@ private:
     E(stripped_jungle_log, axisToPillarAxis);
     E(stripped_dark_oak_log, axisToPillarAxis);
     E(stripped_mangrove_log, axisToPillarAxis);
+    E(stripped_bamboo_block, axisToPillarAxis); //TODO: check this when updating for 1.20
 
     E(oak_wood, Wood("oak", false));
     E(spruce_wood, Wood("spruce", false));
@@ -1054,6 +1055,7 @@ private:
     E(jungle_fence, Fence("jungle"));
     E(acacia_fence, Fence("acacia"));
     E(dark_oak_fence, Fence("dark_oak"));
+    E(bamboo_fence, Identity);
     E(ladder, facingDirectionFromFacingA);
     E(chest, facingDirectionFromFacingA);
     E(furnace, Converter(PrefixLit, FacingDirectionAFromFacing));
@@ -1208,6 +1210,7 @@ private:
     E(crimson_sign, Sign("crimson"));
     E(warped_sign, Sign("warped"));
     E(mangrove_sign, Sign("mangrove"));
+    E(bamboo_sign, Sign("bamboo"));
 
     E(oak_wall_sign, WallSign());
     E(spruce_wall_sign, WallSign("spruce"));
@@ -1218,6 +1221,7 @@ private:
     E(crimson_wall_sign, WallSign("crimson"));
     E(warped_wall_sign, WallSign("warped"));
     E(mangrove_wall_sign, WallSign("mangrove"));
+    E(bamboo_wall_sign, WallSign("bamboo"));
 
     Converter bed(Name("bed"), DirectionFromFacingA, PartToHeadPieceBit, OccupiedToOccupiedBit);
     E(white_bed, bed);
@@ -1356,6 +1360,7 @@ private:
     E(crimson_fence_gate, fenceGate);
     E(warped_fence_gate, fenceGate);
     E(mangrove_fence_gate, fenceGate);
+    E(bamboo_fence_gate, fenceGate);
 
     Converter pressurePlate(Same, RedstoneSignalFromPowered);
     E(oak_pressure_plate, Converter(Name("wooden_pressure_plate"), RedstoneSignalFromPowered));
@@ -1397,6 +1402,7 @@ private:
     E(stone_button, button);
     E(polished_blackstone_button, button);
     E(mangrove_button, button);
+    E(bamboo_button, button);
 
     E(tripwire_hook, Converter(Same, DirectionFromFacingA, Name(Attached, "attached_bit"), Name(Powered, "powered_bit")));
     E(trapped_chest, facingDirectionFromFacingA);
@@ -1416,6 +1422,7 @@ private:
     E(crimson_door, door);
     E(warped_door, door);
     E(mangrove_door, door);
+    E(bamboo_door, door);
 
     E(repeater, Converter(RepeaterName, Name(Delay, "repeater_delay"), DirectionFromFacingA));
     E(comparator, Converter(ComparatorName, DirectionFromFacingA, OutputSubtractBitFromMode, Name(Powered, "output_lit_bit")));
@@ -1594,6 +1601,9 @@ private:
     E(sculk_catalyst, SculkCatalyst);
 
     E(spawner, Null); // spawner doesn't exist as block in BE.
+
+    E(bamboo_block, Identity); //TODO: check this when updating for 1.20
+
 #undef E
 
     return table;
