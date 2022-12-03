@@ -1604,9 +1604,71 @@ private:
 
     E(bamboo_block, Identity); //TODO: check this when updating for 1.20
 
+    E(acacia_hanging_sign, HangingSign);
+    E(acacia_wall_hanging_sign, WallHangingSign);
+    E(bamboo_hanging_sign, HangingSign);
+    E(bamboo_wall_hanging_sign, WallHangingSign);
+    E(birch_hanging_sign, HangingSign);
+    E(birch_wall_hanging_sign, WallHangingSign);
+    E(crimson_hanging_sign, HangingSign);
+    E(crimson_wall_hanging_sign, WallHangingSign);
+    E(dark_oak_hanging_sign, HangingSign);
+    E(dark_oak_wall_hanging_sign, WallHangingSign);
+    E(jungle_hanging_sign, HangingSign);
+    E(jungle_wall_hanging_sign, WallHangingSign);
+    E(mangrove_hanging_sign, HangingSign);
+    E(mangrove_wall_hanging_sign, WallHangingSign);
+    E(oak_hanging_sign, HangingSign);
+    E(oak_wall_hanging_sign, WallHangingSign);
+    E(spruce_hanging_sign, HangingSign);
+    E(spruce_wall_hanging_sign, WallHangingSign);
+    E(warped_hanging_sign, HangingSign);
+    E(warped_wall_hanging_sign, WallHangingSign);
+
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr WallHangingSign(Block const &block) {
+    auto c = New(strings::Replace(block.fName, "_wall_", "_"), true);
+    Facing4 f4 = Facing4FromJavaName(block.property("facing", "north"));
+    int direction = 0;
+    int facingDirection = 3;
+    switch (f4) {
+    case Facing4::South:
+      direction = 0;
+      facingDirection = 3;
+      break;
+    case Facing4::West:
+      direction = 4;
+      facingDirection = 0;
+      break;
+    case Facing4::North:
+      direction = 8;
+      facingDirection = 2;
+      break;
+    case Facing4::East:
+      direction = 12;
+      facingDirection = 1;
+      break;
+    }
+    auto s = States();
+    s->set("ground_sign_direction", Int(direction));
+    s->set("facing_direction", Int(facingDirection));
+    s->set("hanging", Bool(false));
+    s->set("attach_bit", Bool(false));
+    return AttachStates(c, s);
+  }
+
+  static CompoundTagPtr HangingSign(Block const &block) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    s->set("attached_bit", Bool(block.property("attached", "false") == "true"));
+    s->set("ground_sign_direction", Int(Wrap(strings::Toi(block.property("rotation", "0")), 0)));
+    s->set("facing_direction", Int(0));
+    s->set("hanging", Bool(true));
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr Bamboo(Block const &block) {

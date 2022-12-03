@@ -102,27 +102,29 @@ private:
   table->insert(make_pair(mcfile::blocks::minecraft::__name, __func))
     E(chest, Chest);
     E(trapped_chest, Chest);
-    E(oak_sign, Sign);
-    E(spruce_sign, Sign);
-    E(birch_sign, Sign);
-    E(jungle_sign, Sign);
-    E(acacia_sign, Sign);
-    E(dark_oak_sign, Sign);
-    E(crimson_sign, Sign);
-    E(warped_sign, Sign);
-    E(mangrove_sign, Sign);
-    E(bamboo_sign, Sign);
 
-    E(oak_wall_sign, Sign);
-    E(spruce_wall_sign, Sign);
-    E(birch_wall_sign, Sign);
-    E(jungle_wall_sign, Sign);
-    E(acacia_wall_sign, Sign);
-    E(dark_oak_wall_sign, Sign);
-    E(crimson_wall_sign, Sign);
-    E(warped_wall_sign, Sign);
-    E(mangrove_wall_sign, Sign);
-    E(bamboo_wall_sign, Sign);
+    auto sign = Sign("Sign");
+    E(oak_sign, sign);
+    E(spruce_sign, sign);
+    E(birch_sign, sign);
+    E(jungle_sign, sign);
+    E(acacia_sign, sign);
+    E(dark_oak_sign, sign);
+    E(crimson_sign, sign);
+    E(warped_sign, sign);
+    E(mangrove_sign, sign);
+    E(bamboo_sign, sign);
+
+    E(oak_wall_sign, sign);
+    E(spruce_wall_sign, sign);
+    E(birch_wall_sign, sign);
+    E(jungle_wall_sign, sign);
+    E(acacia_wall_sign, sign);
+    E(dark_oak_wall_sign, sign);
+    E(crimson_wall_sign, sign);
+    E(warped_wall_sign, sign);
+    E(mangrove_wall_sign, sign);
+    E(bamboo_wall_sign, sign);
 
     E(shulker_box, ShulkerBox);
     E(black_shulker_box, ShulkerBox);
@@ -280,6 +282,28 @@ private:
     E(sculk_sensor, NamedEmpty("SculkSensor"));
     E(sculk_shrieker, NamedEmpty("SculkShrieker"));
     E(sculk_catalyst, NamedEmpty("SculkCatalyst"));
+
+    auto hangingSign = Sign("HangingSign");
+    E(acacia_hanging_sign, hangingSign);
+    E(acacia_wall_hanging_sign, hangingSign);
+    E(bamboo_hanging_sign, hangingSign);
+    E(bamboo_wall_hanging_sign, hangingSign);
+    E(birch_hanging_sign, hangingSign);
+    E(birch_wall_hanging_sign, hangingSign);
+    E(crimson_hanging_sign, hangingSign);
+    E(crimson_wall_hanging_sign, hangingSign);
+    E(dark_oak_hanging_sign, hangingSign);
+    E(dark_oak_wall_hanging_sign, hangingSign);
+    E(jungle_hanging_sign, hangingSign);
+    E(jungle_wall_hanging_sign, hangingSign);
+    E(mangrove_hanging_sign, hangingSign);
+    E(mangrove_wall_hanging_sign, hangingSign);
+    E(oak_hanging_sign, hangingSign);
+    E(oak_wall_hanging_sign, hangingSign);
+    E(spruce_hanging_sign, hangingSign);
+    E(spruce_wall_hanging_sign, hangingSign);
+    E(warped_hanging_sign, hangingSign);
+    E(warped_wall_hanging_sign, hangingSign);
 #undef E
     return table;
   }
@@ -1150,39 +1174,6 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr Sign(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context const &ctx) {
-    using namespace je2be::props;
-    using namespace std;
-
-    if (!c) {
-      return nullptr;
-    }
-
-    auto color = c->string("Color");
-    auto text1 = GetJson(*c, "Text1");
-    auto text2 = GetJson(*c, "Text2");
-    auto text3 = GetJson(*c, "Text3");
-    auto text4 = GetJson(*c, "Text4");
-    if (!color || !text1 || !text2 || !text3 || !text4) {
-      return nullptr;
-    }
-    Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(*color));
-    bool glowing = c->boolean("GlowingText", false);
-    string text = GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
-    auto tag = Compound();
-    tag->insert({
-        {"id", String("Sign")},
-        {"isMovable", Bool(true)},
-        {"Text", String(text)},
-        {"TextOwner", String("")},
-        {"SignTextColor", Int(signTextColor.toARGB())},
-        {"IgnoreLighting", Bool(glowing)},
-        {"TextIgnoreLegacyBugResolved", Bool(true)},
-    });
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
   static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
     tag.set("x", Int(pos.fX));
     tag.set("y", Int(pos.fY));
@@ -1311,6 +1302,41 @@ private:
         }
       }
       return ret;
+    };
+  }
+
+  static Converter Sign(std::string id) {
+    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context const &ctx) -> CompoundTagPtr {
+      using namespace je2be::props;
+      using namespace std;
+
+      if (!c) {
+        return nullptr;
+      }
+
+      auto color = c->string("Color");
+      auto text1 = GetJson(*c, "Text1");
+      auto text2 = GetJson(*c, "Text2");
+      auto text3 = GetJson(*c, "Text3");
+      auto text4 = GetJson(*c, "Text4");
+      if (!color || !text1 || !text2 || !text3 || !text4) {
+        return nullptr;
+      }
+      Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(*color));
+      bool glowing = c->boolean("GlowingText", false);
+      string text = GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
+      auto tag = Compound();
+      tag->insert({
+          {"id", String(id)},
+          {"isMovable", Bool(true)},
+          {"Text", String(text)},
+          {"TextOwner", String("")},
+          {"SignTextColor", Int(signTextColor.toARGB())},
+          {"IgnoreLighting", Bool(glowing)},
+          {"TextIgnoreLegacyBugResolved", Bool(true)},
+      });
+      Attach(c, pos, *tag);
+      return tag;
     };
   }
 };
