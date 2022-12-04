@@ -1778,9 +1778,11 @@ private:
       c["Variant"] = Int(variant);
 
       AddDefinition(c, "+minecraft:" + definitionKey);
+      AddDefinition(c, "+");
       if (type == "bamboo") {
-        AddDefinition(c, "+");
         AddDefinition(c, "+minecraft:can_ride_bamboo");
+      } else {
+        AddDefinition(c, "+minecraft:can_ride_default");
       }
 
       auto rotation = props::GetRotation(c, "Rotation");
