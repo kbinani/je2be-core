@@ -25,7 +25,7 @@ TEST_CASE("block-data") {
     // java -> bedrock
     auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, 2865);
     CHECK(blockJ);
-    auto convertedToBe = je2be::tobe::BlockData::From(blockJ);
+    auto convertedToBe = je2be::tobe::BlockData::From(blockJ, nullptr);
     CheckTag::Check(convertedToBe.get(), bedrockBlockData.get());
 
     // bedrock -> java

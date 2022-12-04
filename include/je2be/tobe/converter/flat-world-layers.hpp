@@ -176,7 +176,7 @@ public:
       if (!block) {
         return nullopt;
       }
-      auto converted = BlockData::From(block);
+      auto converted = BlockData::From(block, nullptr);
       if (!converted) {
         return nullopt;
       }
@@ -321,7 +321,7 @@ private:
     if (!block) {
       return nullopt;
     }
-    auto converted = BlockData::From(block);
+    auto converted = BlockData::From(block, nullptr);
     if (!converted) {
       return nullopt;
     }

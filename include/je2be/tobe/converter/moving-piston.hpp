@@ -206,7 +206,7 @@ private:
       return nullptr;
     }
     auto block = Block::FromCompoundTag(*blockState);
-    auto movingBlock = BlockData::From(block);
+    auto movingBlock = BlockData::From(block, nullptr);
     if (!movingBlock) {
       return nullptr;
     }

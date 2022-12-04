@@ -788,7 +788,7 @@ private:
       auto name = carriedBlockTagJ->string("Name");
       if (name) {
         auto carriedBlockJ = std::make_shared<mcfile::je::Block const>(*name);
-        auto carriedBlockB = BlockData::From(carriedBlockJ);
+        auto carriedBlockB = BlockData::From(carriedBlockJ, nullptr);
         if (carriedBlockB) {
           c["carriedBlock"] = carriedBlockB;
         }
@@ -817,7 +817,7 @@ private:
     if (!name) {
       return;
     }
-    auto block = BlockData::From(std::make_shared<mcfile::je::Block>(*name));
+    auto block = BlockData::From(std::make_shared<mcfile::je::Block>(*name), nullptr);
     if (!block) {
       return;
     }

@@ -802,7 +802,7 @@ private:
 
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
-    auto blockData = BlockData::From(block);
+    auto blockData = BlockData::From(block, nullptr);
 
     auto states = Compound();
     states->set("torch_facing_direction", String("unknown"));
@@ -947,7 +947,7 @@ private:
 
     map<string, string> empty;
     auto block = make_shared<Block>(name, empty);
-    auto blockData = BlockData::From(block);
+    auto blockData = BlockData::From(block, nullptr);
 
     auto states = Compound();
     states->set("huge_mushroom_bits", Int(14));
@@ -994,7 +994,7 @@ private:
     using namespace std;
 
     auto block = make_shared<Block>(id);
-    auto blockData = BlockData::From(block);
+    auto blockData = BlockData::From(block, nullptr);
     assert(blockData);
 
     auto name = blockData->string("name");

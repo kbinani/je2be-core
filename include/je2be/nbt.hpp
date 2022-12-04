@@ -30,6 +30,8 @@ using ShortTagPtr = std::shared_ptr<ShortTag>;
 using StringTagPtr = std::shared_ptr<StringTag>;
 using TagPtr = std::shared_ptr<Tag>;
 
+using CompoundTagConstPtr = std::shared_ptr<CompoundTag const>;
+
 static inline std::shared_ptr<ByteTag> Bool(bool b) {
   return std::make_shared<ByteTag>(b ? 1 : 0);
 }

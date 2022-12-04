@@ -126,7 +126,7 @@ public:
       int64_t time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
-      auto blockB = BlockData::From(blockJ);
+      auto blockB = BlockData::From(blockJ, nullptr);
       if (!blockB) {
         continue;
       }
@@ -155,7 +155,7 @@ public:
       int64_t time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
-      auto blockB = BlockData::From(blockJ);
+      auto blockB = BlockData::From(blockJ, chunk->tileEntityAt(tb.fX, tb.fY, tb.fZ));
       if (!blockB) {
         continue;
       }

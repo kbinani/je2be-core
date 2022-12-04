@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class BlockData {
 public:
-  static CompoundTagPtr From(std::shared_ptr<mcfile::je::Block const> const &block) {
+  static CompoundTagPtr From(std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagConstPtr const &tile) {
     using namespace std;
     static unique_ptr<vector<AnyConverter> const> const table(CreateConverterTable());
     if (!block) {
@@ -14,7 +14,7 @@ public:
     if (index < table->size()) {
       AnyConverter func = (*table)[index];
       if (func) {
-        return func(*block);
+        return func(*block, tile);
       }
     }
     // "j2b:sticky_piston_arm_collision" is created at Converter::PreprocessChunk
@@ -25,7 +25,7 @@ public:
     } else if (block->fName == "minecraft:flowing_water" || block->fName == "minecraft:flowing_lava") {
       return FlowingLiquid(*block);
     } else {
-      return Identity(*block);
+      return Identity(*block, nullptr);
     }
   }
 
@@ -57,14 +57,14 @@ private:
   using NamingFunction = std::function<std::string(Block const &)>;
   using PropertyPickupFunction = std::function<void(CompoundTagPtr const &, Block const &)>;
 
-  using AnyConverter = std::function<CompoundTagPtr(Block const &)>;
+  using AnyConverter = std::function<CompoundTagPtr(Block const &, CompoundTagConstPtr const &)>;
 
   class Converter {
   public:
     template <class... Arg>
     Converter(NamingFunction name, Arg... args) : fName(name), fProperties(std::initializer_list<PropertyPickupFunction>{args...}) {}
 
-    CompoundTagPtr operator()(Block const &block) const {
+    CompoundTagPtr operator()(Block const &block, CompoundTagConstPtr const &tile) const {
       using namespace std;
       string name = fName(block);
       auto tag = New(name, true);
@@ -81,7 +81,7 @@ private:
     std::vector<PropertyPickupFunction> const fProperties;
   };
 
-  static CompoundTagPtr Identity(mcfile::je::Block const &block) {
+  static CompoundTagPtr Identity(mcfile::je::Block const &block, CompoundTagConstPtr const &) {
     auto tag = New(block.fName, true);
     auto states = States();
     tag->set("states", states);
@@ -295,7 +295,7 @@ private:
     }
   }
 
-  static CompoundTagPtr Null(Block const &block) {
+  static CompoundTagPtr Null(Block const &block, CompoundTagConstPtr const &) {
     // not present in bedrock
     return New("air");
   }
@@ -430,7 +430,7 @@ private:
     s->set("height", Int(layers - 1));
   }
 
-  static CompoundTagPtr SnowLayer(Block const &b) {
+  static CompoundTagPtr SnowLayer(Block const &b, CompoundTagConstPtr const &) {
     auto d = New("snow_layer");
     auto s = States();
     LayersToHeight(s, b);
@@ -438,7 +438,7 @@ private:
     return AttachStates(d, s);
   }
 
-  static CompoundTagPtr MangrovePropagule(Block const &b) {
+  static CompoundTagPtr MangrovePropagule(Block const &b, CompoundTagConstPtr const &) {
     auto d = New("mangrove_propagule");
     auto s = States();
     int age = Wrap(strings::Toi(b.property("age", "0")), 0);
@@ -448,7 +448,7 @@ private:
     return AttachStates(d, s);
   }
 
-  static CompoundTagPtr SculkCatalyst(Block const &b) {
+  static CompoundTagPtr SculkCatalyst(Block const &b, CompoundTagConstPtr const &) {
     auto d = New("sculk_catalyst");
     auto s = States();
     auto bloom = b.property("bloom") == "true";
@@ -456,7 +456,7 @@ private:
     return AttachStates(d, s);
   }
 
-  static CompoundTagPtr SculkShrieker(Block const &b) {
+  static CompoundTagPtr SculkShrieker(Block const &b, CompoundTagConstPtr const &) {
     auto d = New("sculk_shrieker");
     auto s = States();
     auto canSummon = b.property("can_summon") == "true";
@@ -1661,7 +1661,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr HangingSign(Block const &block) {
+  static CompoundTagPtr HangingSign(Block const &block, CompoundTagConstPtr const &) {
     auto c = New(block.fName, true);
     auto s = States();
     s->set("attached_bit", Bool(block.property("attached", "false") == "true"));
@@ -1671,7 +1671,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr Bamboo(Block const &block) {
+  static CompoundTagPtr Bamboo(Block const &block, CompoundTagConstPtr const &) {
     auto c = New(block.fName, true);
     auto s = States();
     BambooLeafSizeFromLeaves(s, block);
@@ -1704,13 +1704,13 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr MovingPiston(Block const &block) {
+  static CompoundTagPtr MovingPiston(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("moving_block");
     auto s = States();
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr PistonHead(Block const &block) {
+  static CompoundTagPtr PistonHead(Block const &block, CompoundTagConstPtr const &) {
     auto type = block.property("type", "normal");
     auto c = New(type == "normal" ? "piston_arm_collision" : "sticky_piston_arm_collision");
     auto f6 = Facing6FromJavaName(block.property("facing", ""));
@@ -1720,7 +1720,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr BigDripleaf(Block const &block) {
+  static CompoundTagPtr BigDripleaf(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("big_dripleaf");
     auto s = States();
     s->set("big_dripleaf_head", Bool(true));
@@ -1739,7 +1739,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr RespawnAnchor(Block const &block) {
+  static CompoundTagPtr RespawnAnchor(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("respawn_anchor");
     auto s = States();
     auto charges = strings::Toi(block.property("charges", "0"));
@@ -1751,7 +1751,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr Tripwire(Block const &block) {
+  static CompoundTagPtr Tripwire(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("trip_wire");
     auto s = States();
     auto attached = block.property("attached", "false") == "true";
@@ -1764,7 +1764,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr Tnt(Block const &block) {
+  static CompoundTagPtr Tnt(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("tnt");
     auto s = States();
     auto unstable = block.property("unstable", "false") == "true";
@@ -1773,7 +1773,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr StructureBlock(Block const &block) {
+  static CompoundTagPtr StructureBlock(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("structure_block");
     auto s = States();
     auto mode = block.property("mode", "save");
@@ -1781,7 +1781,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr Scaffolding(Block const &block) {
+  static CompoundTagPtr Scaffolding(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("scaffolding");
     auto s = States();
     auto distance = strings::Toi(block.property("distance", "0"));
@@ -1794,7 +1794,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr BrewingStand(Block const &block) {
+  static CompoundTagPtr BrewingStand(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("brewing_stand");
     auto has0 = block.property("has_bottle_0", "false") == "true";
     auto has1 = block.property("has_bottle_1", "false") == "true";
@@ -1806,7 +1806,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr CaveVines(Block const &block) {
+  static CompoundTagPtr CaveVines(Block const &block, CompoundTagConstPtr const &) {
     bool berries = block.property("berries", "false") == "true";
     auto age = Wrap(strings::Toi(block.property("age", "1")), 1);
     auto c = New(berries ? "cave_vines_head_with_berries" : "cave_vines");
@@ -1815,7 +1815,7 @@ private:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr CaveVinesPlant(Block const &block) {
+  static CompoundTagPtr CaveVinesPlant(Block const &block, CompoundTagConstPtr const &) {
     bool berries = block.property("berries", "false") == "true";
     auto c = New(berries ? "cave_vines_body_with_berries" : "cave_vines");
     auto s = States();
@@ -1833,7 +1833,7 @@ private:
     return Int(i);
   }
 
-  static CompoundTagPtr Light(Block const &b) {
+  static CompoundTagPtr Light(Block const &b, CompoundTagConstPtr const &) {
     auto c = New("light_block");
     auto s = States();
     auto level = strings::Toi(b.property("level", "15"));
@@ -1845,7 +1845,7 @@ private:
     (void)s;
   }
 
-  static CompoundTagPtr PointedDripstone(Block const &b) {
+  static CompoundTagPtr PointedDripstone(Block const &b, CompoundTagConstPtr const &) {
     auto c = New("pointed_dripstone");
     auto s = States();
     auto thickness = b.property("thickness", "tip");

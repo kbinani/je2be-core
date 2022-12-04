@@ -64,7 +64,8 @@ public:
               if (found) {
                 index = *found;
               } else {
-                auto tag = BlockData::From(block);
+                auto tile = chunk.tileEntityAt(bx, by, bz);
+                auto tag = BlockData::From(block, tile);
                 index = palette.add(paletteKey, tag);
               }
               if (index != 0) {
