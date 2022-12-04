@@ -748,6 +748,35 @@ private:
 #pragma endregion
 
 #pragma region Converters : H
+  static String HangingSign(String const &bName, CompoundTag const &s, Props &p) {
+    Submergible(s, p);
+
+    bool hanging = s.boolean("hanging", false);
+    if (hanging) {
+      p["attached"] = Bool(s.boolean("attached_bit", false));
+      p["rotation"] = Int(s.int32("ground_sign_direction", 0));
+      return bName;
+    } else {
+      std::string facing = "north";
+      switch (s.int32("facing_direction", 2)) {
+      case 0:
+        facing = "west";
+        break;
+      case 1:
+        facing = "east";
+        break;
+      case 2:
+        facing = "north";
+        break;
+      case 3:
+        facing = "south";
+        break;
+      }
+      p["facing"] = facing;
+      return strings::Replace(bName, "_hanging_sign", "_wall_hanging_sign");
+    }
+  }
+
   static String Hopper(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     auto toggle = s.boolean("toggle_bit", false);
@@ -2414,6 +2443,18 @@ private:
     E(mangrove_roots, BlockWithSubmergible);
     E(sculk_shrieker, SculkShrieker);
     E(sculk_catalyst, SculkCatalyst);
+
+    // 1.19.3rc1
+    E(acacia_hanging_sign, HangingSign);
+    E(bamboo_hanging_sign, HangingSign);
+    E(birch_hanging_sign, HangingSign);
+    E(crimson_hanging_sign, HangingSign);
+    E(dark_oak_hanging_sign, HangingSign);
+    E(jungle_hanging_sign, HangingSign);
+    E(mangrove_hanging_sign, HangingSign);
+    E(oak_hanging_sign, HangingSign);
+    E(spruce_hanging_sign, HangingSign);
+    E(warped_hanging_sign, HangingSign);
 #undef E
 
     return table;
