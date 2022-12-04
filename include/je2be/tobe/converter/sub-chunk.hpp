@@ -60,13 +60,20 @@ public:
             auto block = section->blockAt(x, y, z);
             if (block && !IsAir(block->fId)) {
               string paletteKey = block->toString();
-              auto found = palette.findByBlockState(paletteKey);
-              if (found) {
-                index = *found;
-              } else {
-                auto tile = chunk.tileEntityAt(bx, by, bz);
+              auto tile = chunk.tileEntityAt(bx, by, bz);
+              if (tile) {
+                // Block states may have extra properties from properties in tile entity.
+                // Example: last_interacted_slot of chiseled_bookshelf is stored in tile entity on JE, but in block states on BE.
                 auto tag = BlockData::From(block, tile);
-                index = palette.add(paletteKey, tag);
+                index = palette.add(tag);
+              } else {
+                auto found = palette.findByBlockState(paletteKey);
+                if (found) {
+                  index = *found;
+                } else {
+                  auto tag = BlockData::From(block, nullptr);
+                  index = palette.add(paletteKey, tag);
+                }
               }
               if (index != 0) {
                 cdp.updateAltitude(x, by, z);

@@ -22,6 +22,18 @@ public:
     return index;
   }
 
+  uint16_t add(CompoundTagPtr const &tag) {
+    for (size_t i = 0; i < fPalette.size(); i++) {
+      if (tag->equals(*fPalette[i])) {
+        return static_cast<uint16_t>(i);
+      }
+    }
+    uint16_t index = (uint16_t)size();
+    fPalette.push_back(tag);
+    fPaletteKeys.push_back("je2be:dummy_palette_key_" + std::to_string(index));
+    return index;
+  }
+
   size_t size() const { return fPalette.size(); }
 
   CompoundTagPtr operator[](size_t index) const { return fPalette[index]; }
