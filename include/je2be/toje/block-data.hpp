@@ -2446,7 +2446,19 @@ private:
 
     // 1.19.3rc1
     E(acacia_hanging_sign, HangingSign);
+    E(bamboo_button, Button);
+    E(bamboo_door, Door);
+    E(bamboo_fence, BlockWithSubmergible);
+    E(bamboo_fence_gate, FenceGate);
     E(bamboo_hanging_sign, HangingSign);
+    E(bamboo_mosaic_double_slab, DoubleSlab("bamboo_mosaic_slab"));
+    E(bamboo_mosaic_stairs, Stairs);
+    E(bamboo_pressure_plate, PressurePlate);
+    E(bamboo_standing_sign, StandingSign);
+    E(bamboo_double_slab, DoubleSlab("bamboo_slab"));
+    E(bamboo_stairs, Stairs);
+    E(bamboo_trapdoor, Trapdoor);
+    E(bamboo_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
     E(birch_hanging_sign, HangingSign);
     E(crimson_hanging_sign, HangingSign);
     E(dark_oak_hanging_sign, HangingSign);
