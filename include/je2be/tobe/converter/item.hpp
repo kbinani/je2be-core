@@ -157,9 +157,21 @@ private:
     E("crimson_sign", Sign);
     E("warped_sign", Sign);
     E("mangrove_sign", Sign);
+    E("bamboo_sign", Sign);
 
     E("goat_horn", GoatHorn);
     E("frogspawn", Rename("frog_spawn"));
+
+    E("acacia_hanging_sign", Sign);
+    E("bamboo_hanging_sign", Sign);
+    E("birch_hanging_sign", Sign);
+    E("crimson_hanging_sign", Sign);
+    E("dark_oak_hanging_sign", Sign);
+    E("jungle_hanging_sign", Sign);
+    E("mangrove_hanging_sign", Sign);
+    E("oak_hanging_sign", Sign);
+    E("spruce_hanging_sign", Sign);
+    E("warped_hanging_sign", Sign);
 #undef E
     return table;
   }
