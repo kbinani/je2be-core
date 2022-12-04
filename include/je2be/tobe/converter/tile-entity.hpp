@@ -304,6 +304,8 @@ private:
     E(spruce_wall_hanging_sign, hangingSign);
     E(warped_hanging_sign, hangingSign);
     E(warped_wall_hanging_sign, hangingSign);
+
+    E(chiseled_bookshelf, AnyStorage("ChiseledBookshelf"));
 #undef E
     return table;
   }
