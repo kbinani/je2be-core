@@ -167,6 +167,8 @@ public:
       auto &dest = other.fPoiBlocks[dim];
       it.second.mergeInto(dest);
     }
+    other.fDataPackBundle = other.fDataPackBundle || fDataPackBundle;
+    other.fDataPack1_20Update = other.fDataPack1_20Update || fDataPack1_20Update;
   }
 
   Status postProcess(std::filesystem::path root, leveldb::DB &db) const {
@@ -192,6 +194,8 @@ public:
     }
     ret->fShoulderEntityLeftId = fShoulderEntityLeftId;
     ret->fShoulderEntityRightId = fShoulderEntityRightId;
+    ret->fDataPackBundle = fDataPackBundle;
+    ret->fDataPack1_20Update = fDataPack1_20Update;
     return ret;
   }
 
@@ -414,6 +418,9 @@ public:
 
   // NOTE: This std::function must be BlockEntity::FromBlockAndBlockEntity. By doing this, the "Item" class can use the function (the "Item" class is #includ'ed before "BlockEntity")
   std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> const fFromBlockAndBlockEntity;
+
+  bool fDataPackBundle = false;
+  bool fDataPack1_20Update = false;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

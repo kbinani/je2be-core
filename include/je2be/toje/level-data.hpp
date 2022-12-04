@@ -151,6 +151,16 @@ public:
       j["Player"] = playerData->fEntity;
     }
 
+    auto enabledFeatures = List<Tag::Type::String>();
+    enabledFeatures->push_back(String("minecraft:vanilla"));
+    if (ctx.fDataPackBundle) {
+      enabledFeatures->push_back(String("minecraft:bundle"));
+    }
+    if (ctx.fDataPack1_20Update) {
+      enabledFeatures->push_back(String("minecraft:update_1_20"));
+    }
+    data->set("enabled_features", enabledFeatures);
+
     auto root = Compound();
     root->set("Data", data);
     return root;
