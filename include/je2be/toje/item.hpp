@@ -30,6 +30,7 @@ public:
 
   static void Default(std::string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
     using namespace std;
+    using namespace mcfile::blocks::minecraft;
 
     auto tagB = itemB.compoundTag("tag");
     if (!tagB) {
@@ -68,6 +69,43 @@ public:
               if (!blockEntityTagJ->empty()) {
                 tagJ->set("BlockEntityTag", blockEntityTagJ);
               }
+            }
+          }
+
+          if (!ctx.fDataPack1_20Update) {
+            switch (blockJ->fId) {
+            case acacia_hanging_sign:
+            case bamboo_block:
+            case bamboo_button:
+            case bamboo_door:
+            case bamboo_fence:
+            case bamboo_fence_gate:
+            case bamboo_hanging_sign:
+            case bamboo_mosaic:
+            case bamboo_mosaic_slab:
+            case bamboo_mosaic_stairs:
+            case bamboo_planks:
+            case bamboo_pressure_plate:
+            case bamboo_sign:
+            case bamboo_slab:
+            case bamboo_stairs:
+            case bamboo_trapdoor:
+            case bamboo_wall_sign:
+            case birch_hanging_sign:
+            case chiseled_bookshelf:
+            case crimson_hanging_sign:
+            case dark_oak_hanging_sign:
+            case jungle_hanging_sign:
+            case mangrove_hanging_sign:
+            case oak_hanging_sign:
+            case oak_wall_hanging_sign:
+            case piglin_head:
+            case piglin_wall_head:
+            case spruce_hanging_sign:
+            case stripped_bamboo_block:
+            case warped_hanging_sign:
+              ctx.fDataPack1_20Update = true;
+              break;
             }
           }
         }
