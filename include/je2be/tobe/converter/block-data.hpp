@@ -1625,12 +1625,36 @@ private:
     E(warped_hanging_sign, HangingSign);
     E(warped_wall_hanging_sign, WallHangingSign);
 
+    E(chiseled_bookshelf, ChiseledBookshelf);
 #undef E
 
     return table;
   }
 
-  static CompoundTagPtr WallHangingSign(Block const &block) {
+  static CompoundTagPtr ChiseledBookshelf(Block const &block, CompoundTagConstPtr const &tile) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    int stored = 0;
+    for (int i = 0; i < 6; i++) {
+      bool occupied = block.property("slot_" + std::to_string(i) + "_occupied", "false") == "true";
+      if (occupied) {
+        stored++;
+      }
+    }
+    s->set("books_stored", Int(stored));
+    int direction = BedrockDirectionFromFacing4(Facing4FromJavaName(block.property("facing", "north")));
+    s->set("direction", Int(direction));
+
+    int lastInteractedSlot = 0;
+    if (tile) {
+      lastInteractedSlot = tile->int32("last_interacted_slot", 0);
+    }
+    s->set("last_interacted_slot", Int(lastInteractedSlot));
+
+    return AttachStates(c, s);
+  }
+
+  static CompoundTagPtr WallHangingSign(Block const &block, CompoundTagConstPtr const &) {
     auto c = New(strings::Replace(block.fName, "_wall_", "_"), true);
     Facing4 f4 = Facing4FromJavaName(block.property("facing", "north"));
     int direction = 0;
