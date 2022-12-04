@@ -271,6 +271,10 @@ public:
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j["Type"] = String(type);
 
+    if (!ctx.fDataPack1_20Update && type == "bamboo") {
+      ctx.fDataPack1_20Update = true;
+    }
+
     if (auto rotB = props::GetRotation(b, "Rotation"); rotB) {
       je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
       j["Rotation"] = rotJ.toListTag();
