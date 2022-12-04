@@ -1,7 +1,7 @@
 #pragma once
 
 static std::string BlockDataTestVersion() {
-  return "1.19";
+  return "1.19.3";
 }
 
 TEST_CASE("block-data") {
