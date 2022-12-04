@@ -243,27 +243,39 @@ public:
 
   static bool PutChunkEntities(mcfile::Dimension d, Pos2i chunk, std::vector<std::filesystem::path> files, DbInterface &db) {
     using namespace std;
+    using namespace mcfile;
     using namespace mcfile::stream;
-    vector<shared_ptr<CompoundTag>> entities;
+    using namespace mcfile::be;
+    string digp;
     for (auto const &file : files) {
       auto s = make_shared<FileInputStream>(file);
-      InputStreamReader r(s, mcfile::Endian::Little);
-      CompoundTag::ReadUntilEos(r, [&entities](auto const &c) { entities.push_back(c); });
-    }
-    auto buffer = make_shared<ByteStream>();
-    OutputStreamWriter writer(buffer, mcfile::Endian::Little);
-    for (auto const &tag : entities) {
-      if (!CompoundTag::Write(*tag, writer)) {
+      if (!s->valid()) {
         return false;
       }
+      InputStreamReader r(s, mcfile::Endian::Little);
+      CompoundTag::ReadUntilEos(r, [&db, &digp](auto const &c) {
+        auto id = c->int64("UniqueID");
+        if (!id) {
+          return;
+        }
+        string prefix;
+        prefix.resize(8);
+        *((int64_t *)prefix.data()) = *id;
+        digp += prefix;
+
+        auto key = DbKey::Actorprefix(prefix);
+        auto value = CompoundTag::Write(*c, Endian::Little);
+        if (!value) {
+          return;
+        }
+        db.put(key, leveldb::Slice(*value));
+      });
     }
-    auto key = mcfile::be::DbKey::Entity(chunk.fX, chunk.fZ, d);
-    string value;
-    buffer->drain(value);
-    if (value.empty()) {
+    auto key = mcfile::be::DbKey::Digp(chunk.fX, chunk.fZ, d);
+    if (digp.empty()) {
       db.del(key);
     } else {
-      db.put(key, leveldb::Slice(value));
+      db.put(key, leveldb::Slice(digp));
     }
     return true;
   }
