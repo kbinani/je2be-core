@@ -43,11 +43,6 @@ public:
     }
     auto bin = Context::Init(*db, fOptions, *endian, regions, total, gameTick, gameMode, BlockEntity::FromBlockAndBlockEntity);
 
-    auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
-    if (!levelDat) {
-      return JE2BE_ERROR;
-    }
-
     atomic<int> done = 0;
     atomic<bool> cancelRequested = false;
     auto reportProgress = [progress, &done, total, &cancelRequested]() -> bool {
@@ -79,6 +74,11 @@ public:
       if (cancelRequested.load()) {
         return JE2BE_ERROR;
       }
+    }
+
+    auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
+    if (!levelDat) {
+      return JE2BE_ERROR;
     }
 
     if (auto rootVehicle = bin->drainRootVehicle(); rootVehicle) {

@@ -8,6 +8,7 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx) {
     using namespace std;
+    using namespace mcfile::blocks::minecraft;
 
     int const cy = b.fChunkY;
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
@@ -52,6 +53,55 @@ public:
             }
           }
         }
+      }
+
+      if (!ctx.fDataPack1_20Update) {
+        sectionJ->fBlocks.eachValue([&ctx](shared_ptr<mcfile::je::Block const> const &block) {
+          switch (block->fId) {
+          case acacia_hanging_sign:
+          case acacia_wall_hanging_sign:
+          case bamboo_block:
+          case bamboo_button:
+          case bamboo_door:
+          case bamboo_fence:
+          case bamboo_fence_gate:
+          case bamboo_hanging_sign:
+          case bamboo_mosaic:
+          case bamboo_mosaic_slab:
+          case bamboo_mosaic_stairs:
+          case bamboo_planks:
+          case bamboo_pressure_plate:
+          case bamboo_sign:
+          case bamboo_slab:
+          case bamboo_stairs:
+          case bamboo_trapdoor:
+          case bamboo_wall_hanging_sign:
+          case bamboo_wall_sign:
+          case birch_hanging_sign:
+          case birch_wall_hanging_sign:
+          case chiseled_bookshelf:
+          case crimson_hanging_sign:
+          case crimson_wall_hanging_sign:
+          case dark_oak_hanging_sign:
+          case dark_oak_wall_hanging_sign:
+          case jungle_hanging_sign:
+          case jungle_wall_hanging_sign:
+          case mangrove_hanging_sign:
+          case mangrove_wall_hanging_sign:
+          case oak_hanging_sign:
+          case oak_wall_hanging_sign:
+          case piglin_head:
+          case piglin_wall_head:
+          case spruce_hanging_sign:
+          case spruce_wall_hanging_sign:
+          case stripped_bamboo_block:
+          case warped_hanging_sign:
+          case warped_wall_hanging_sign:
+            ctx.fDataPack1_20Update = true;
+            return false;
+          }
+          return true;
+        });
       }
     }
 
