@@ -192,6 +192,28 @@ static void DumpBinaryKey(fs::path const &dbDir, std::string const &key) {
   std::cout << value;
 }
 
+static void DumpVersionKey(fs::path const &dbDir, std::string const &key) {
+  unique_ptr<DB> db(Open(dbDir));
+  if (!db) {
+    return;
+  }
+
+  ReadOptions ro;
+  mcfile::nbt::JsonPrintOptions jopt;
+  jopt.fTypeHint = true;
+
+  string value;
+  if (!db->Get(ro, key, &value).ok()) {
+    return;
+  }
+  if (value.size() != 1) {
+    return;
+  }
+  char b = value[0];
+  uint8_t v = *(uint8_t *)&b;
+  std::cout << (int)v << std::endl;
+}
+
 static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, mcfile::Dimension d, uint8_t tag) {
   auto key = mcfile::be::DbKey::ComposeChunkKey(cx, cz, d, tag);
   using Tag = mcfile::be::DbKey::Tag;
@@ -200,10 +222,12 @@ static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, mcfile::Dimensio
   case static_cast<uint8_t>(Tag::ChecksumsLegacy):
   case static_cast<uint8_t>(Tag::Data3D):
   case static_cast<uint8_t>(Tag::Data2D):
-  case static_cast<uint8_t>(Tag::Version):
   case static_cast<uint8_t>(Tag::FinalizedState):
   case static_cast<uint8_t>(Tag::UnknownTag3f):
     DumpBinaryKey(dbDir, key);
+    break;
+  case static_cast<uint8_t>(Tag::Version):
+    DumpVersionKey(dbDir, key);
     break;
   default:
     DumpKey(dbDir, key);
