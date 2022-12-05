@@ -119,6 +119,12 @@ public:
     o.fVersionString = kVersionString;
     o.fFlatWorldSettings = FlatWorldSettings(b);
     o.fBonusChestEnabled = b.boolean("bonusChestEnabled");
+    if (ctx.fDataPackBundle) {
+      o.fEnabledDataPacks.push_back("bundle");
+    }
+    if (ctx.fDataPack1_20Update) {
+      o.fEnabledDataPacks.push_back("update_1_20");
+    }
 
     auto data = JavaLevelDat::TemplateData(o);
 
