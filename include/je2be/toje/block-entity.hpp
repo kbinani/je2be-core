@@ -233,6 +233,37 @@ public:
     return r;
   }
 
+  static std::optional<Result> ChiseledBookshelf(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    auto t = EmptyShortName("chiseled_bookshelf", pos);
+
+    auto itemsJ = ContainerItemsWithoutSlot(tagB, "Items", ctx, true);
+    t->set("Items", itemsJ);
+
+    int lastInteractedSlot = blockB.fStates->int32("last_interacted_slot", 0);
+    t->set("last_interacted_slot", Int(lastInteractedSlot));
+
+    auto props = blockJ.fProperties;
+    if (auto items = tagB.listTag("Items"); items) {
+      for (int i = 0; i < 6; i++) {
+        bool occupied = false;
+        if (i < items->size()) {
+          if (auto item = items->at(i); item && item->asCompound()) {
+            auto count = item->asCompound()->byte("Count", 0);
+            occupied = count > 0;
+          }
+        }
+        std::string name = "slot_" + std::to_string(i) + "_occupied";
+
+        props[name] = occupied ? "true" : "false";
+      }
+    }
+
+    Result r;
+    r.fTileEntity = t;
+    r.fBlock = std::make_shared<mcfile::je::Block const>(blockJ.fId, props);
+    return r;
+  }
+
   static std::optional<Result> CommandBlock(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("command_block", pos);
 
@@ -641,6 +672,37 @@ public:
     return ret;
   }
 
+  static ListTagPtr ContainerItemsWithoutSlot(CompoundTag const &parent, std::string const &key, Context &ctx, bool removeCount0) {
+    using namespace std;
+    auto tag = parent.listTag(key);
+    auto ret = List<Tag::Type::Compound>();
+    if (!tag) {
+      return ret;
+    }
+    for (int i = 0; i < tag->size(); i++) {
+      CompoundTag const *c = tag->at(i)->asCompound();
+      if (!c) {
+        continue;
+      }
+      if (removeCount0) {
+        auto count = c->byteTag("Count");
+        if (!count) {
+          continue;
+        }
+        if (count->fValue < 1) {
+          continue;
+        }
+      }
+      auto converted = Item::From(*c, ctx);
+      if (!converted) {
+        continue;
+      }
+      converted->set("Slot", Byte(i));
+      ret->push_back(converted);
+    }
+    return ret;
+  }
+
   static CompoundTagPtr EmptyFullName(std::string const &id, Pos3i const &pos) {
     auto tag = Compound();
     tag->set("id", String(id));
@@ -733,6 +795,8 @@ public:
     E(sculk_sensor, SameNameEmpty);
     E(sculk_shrieker, SameNameEmpty);
     E(sculk_catalyst, SameNameEmpty);
+
+    E(chiseled_bookshelf, ChiseledBookshelf);
 #undef E
     return t;
   }
