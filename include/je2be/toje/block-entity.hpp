@@ -485,28 +485,30 @@ public:
     return r;
   }
 
-  static std::optional<Result> Sign(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
-    using namespace std;
-    auto te = EmptyShortName("sign", pos);
-    CopyBoolValues(tag, *te, {{"IgnoreLighting", "GlowingText", false}});
-    auto color = tag.int32("SignTextColor");
-    if (color) {
-      Rgba rgba = Rgba::FromRGB(*color);
-      ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
-      te->set("Color", String(JavaNameFromColorCodeJava(jcc)));
-    }
-    auto text = tag.string("Text", "");
-    vector<string> lines = mcfile::String::Split(text, '\n');
-    for (int i = 0; i < 4; i++) {
-      string key = "Text" + to_string(i + 1);
-      string line = i < lines.size() ? lines[i] : "";
-      nlohmann::json json;
-      json["text"] = line;
-      te->set(key, String(nlohmann::to_string(json)));
-    }
-    Result r;
-    r.fTileEntity = te;
-    return r;
+  static Converter Sign(std::string id) {
+    return [id](Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) -> std::optional<Result> {
+      using namespace std;
+      auto te = EmptyShortName(id, pos);
+      CopyBoolValues(tag, *te, {{"IgnoreLighting", "GlowingText", false}});
+      auto color = tag.int32("SignTextColor");
+      if (color) {
+        Rgba rgba = Rgba::FromRGB(*color);
+        ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
+        te->set("Color", String(JavaNameFromColorCodeJava(jcc)));
+      }
+      auto text = tag.string("Text", "");
+      vector<string> lines = mcfile::String::Split(text, '\n');
+      for (int i = 0; i < 4; i++) {
+        string key = "Text" + to_string(i + 1);
+        string line = i < lines.size() ? lines[i] : "";
+        nlohmann::json json;
+        json["text"] = line;
+        te->set(key, String(nlohmann::to_string(json)));
+      }
+      Result r;
+      r.fTileEntity = te;
+      return r;
+    };
   }
 
   static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
@@ -741,24 +743,25 @@ public:
     E(chest, Chest);
     E(trapped_chest, Chest);
     E(lectern, Lectern);
-    E(wall_sign, Sign);
-    E(standing_sign, Sign);
-    E(acacia_wall_sign, Sign);
-    E(birch_wall_sign, Sign);
-    E(crimson_wall_sign, Sign);
-    E(jungle_wall_sign, Sign);
-    E(spruce_wall_sign, Sign);
-    E(warped_wall_sign, Sign);
-    E(darkoak_wall_sign, Sign);
-    E(mangrove_wall_sign, Sign);
-    E(darkoak_standing_sign, Sign);
-    E(acacia_standing_sign, Sign);
-    E(birch_standing_sign, Sign);
-    E(crimson_standing_sign, Sign);
-    E(jungle_standing_sign, Sign);
-    E(spruce_standing_sign, Sign);
-    E(warped_standing_sign, Sign);
-    E(mangrove_standing_sign, Sign);
+    static Converter const sign = Sign("sign");
+    E(wall_sign, sign);
+    E(standing_sign, sign);
+    E(acacia_wall_sign, sign);
+    E(birch_wall_sign, sign);
+    E(crimson_wall_sign, sign);
+    E(jungle_wall_sign, sign);
+    E(spruce_wall_sign, sign);
+    E(warped_wall_sign, sign);
+    E(darkoak_wall_sign, sign);
+    E(mangrove_wall_sign, sign);
+    E(darkoak_standing_sign, sign);
+    E(acacia_standing_sign, sign);
+    E(birch_standing_sign, sign);
+    E(crimson_standing_sign, sign);
+    E(jungle_standing_sign, sign);
+    E(spruce_standing_sign, sign);
+    E(warped_standing_sign, sign);
+    E(mangrove_standing_sign, sign);
     E(ender_chest, SameNameEmpty);
     E(enchanting_table, SameNameEmpty);
     E(barrel, AnyStorage("barrel"));
@@ -797,6 +800,17 @@ public:
     E(sculk_catalyst, SameNameEmpty);
 
     E(chiseled_bookshelf, ChiseledBookshelf);
+    static Converter const hangingSign = Sign("hanging_sign");
+    E(acacia_hanging_sign, hangingSign);
+    E(bamboo_hanging_sign, hangingSign);
+    E(birch_hanging_sign, hangingSign);
+    E(crimson_hanging_sign, hangingSign);
+    E(dark_oak_hanging_sign, hangingSign);
+    E(jungle_hanging_sign, hangingSign);
+    E(mangrove_hanging_sign, hangingSign);
+    E(oak_hanging_sign, hangingSign);
+    E(spruce_hanging_sign, hangingSign);
+    E(warped_hanging_sign, hangingSign);
 #undef E
     return t;
   }
