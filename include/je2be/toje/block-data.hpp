@@ -2459,6 +2459,7 @@ private:
     E(bamboo_stairs, Stairs);
     E(bamboo_trapdoor, Trapdoor);
     E(bamboo_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(chiseled_bookshelf, BlockWithFacing4FromDirectionA);
     E(birch_hanging_sign, HangingSign);
     E(crimson_hanging_sign, HangingSign);
     E(dark_oak_hanging_sign, HangingSign);
