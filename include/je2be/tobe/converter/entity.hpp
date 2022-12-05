@@ -609,6 +609,8 @@ private:
     E(warden, C(Monster, Definitions("+minecraft:warden")));
     E(allay, C(Animal, Definitions("+minecraft:allay", "+pickup_item"), ChestItemsFromInventory, Allay));
     E(tadpole, C(Animal, AgeableE(24000), Definitions("+minecraft:tadpole"), PersistentFromFromBucket));
+
+    E(camel, C(Animal, Definitions("+minecraft:camel"), AgeableA("camel"), Steerable("camel"), Camel));
 #undef A
 #undef M
 #undef E
@@ -731,6 +733,17 @@ private:
       return *pos;
     } else {
       return pos;
+    }
+  }
+
+  static void Camel(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    auto sitting = tag.boolean("IsSitting", false);
+    c["Sitting"] = Bool(sitting);
+    if (sitting) {
+      AddDefinition(c, "+minecraft:camel_sitting");
+    } else {
+      AddDefinition(c, "-minecraft:camel_sitting");
+      AddDefinition(c, "+minecraft:camel_standing");
     }
   }
 

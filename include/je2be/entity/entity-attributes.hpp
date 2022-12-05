@@ -335,6 +335,14 @@ private:
                                                      Attribute(0.02, 0.02),   // lava_movement
                                                      Attribute(16, 16, 2048), // follow_range
                                                      nullopt)));              // attack_damage
+    table->insert(make_pair("minecraft:camel", Attributes(
+                                                   Attribute(32, 32, 32),   // health(base, current, max)
+                                                   Attribute(0, 0, 1),      // knockback_resistance
+                                                   Attribute(0.01, 0.09),   // movement
+                                                   Attribute(0.02, 0.02),   // underwater_movement
+                                                   Attribute(0.02, 0.02),   // lava_movement
+                                                   Attribute(16, 16, 2048), // follow_range
+                                                   nullopt)));              // attack_damage
 
     return table;
   }
