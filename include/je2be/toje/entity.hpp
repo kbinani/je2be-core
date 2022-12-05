@@ -289,6 +289,29 @@ public:
     }
   }
 
+  static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    if (auto chestItems = b.listTag("ChestItems"); chestItems) {
+      for (auto const &it : *chestItems) {
+        CompoundTag const *c = it->asCompound();
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte("Slot");
+        if (slot != 0) {
+          continue;
+        }
+        auto count = c->byte("Count");
+        if (count != 0) {
+          auto saddleItem = Item::From(*c, ctx);
+          j["SaddleItem"] = saddleItem;
+          break;
+        }
+      }
+    }
+    CopyBoolValues(b, j, {{"Sitting", "IsSitting"}});
+    ctx.fDataPack1_20Update = true;
+  }
+
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     using Cat = je2be::Cat;
 
@@ -1916,6 +1939,8 @@ public:
     E(warden, C(Same, LivingEntity));
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
     E(tadpole, C(Same, LivingEntity, AgeableE(24000), FromBucket));
+
+    E(camel, C(Same, Animal, Bred, Camel));
 #undef E
     return ret;
   }
