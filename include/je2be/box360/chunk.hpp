@@ -10,7 +10,7 @@ public:
     kTargetDataVersion = mcfile::je::Chunk::kDataVersion,
   };
   static std::string TargetVersionString() {
-    return "1.19";
+    return "1.19.3";
   }
 
   static Status Convert(mcfile::Dimension dimension,
