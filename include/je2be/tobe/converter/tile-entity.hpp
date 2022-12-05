@@ -305,9 +305,19 @@ private:
     E(warped_hanging_sign, hangingSign);
     E(warped_wall_hanging_sign, hangingSign);
 
-    E(chiseled_bookshelf, AnyStorage("ChiseledBookshelf"));
+    E(chiseled_bookshelf, ChiseledBookshelf);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+    auto tag = Compound();
+    auto items = GetItemsRemovingSlot(c, "Items", ctx, 6);
+    tag->insert({{"isMovable", Bool(true)},
+                 {"id", String("ChiseledBookshelf")},
+                 {"Items", items}});
+    Attach(c, pos, *tag);
+    return tag;
   }
 
   static CompoundTagPtr StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
@@ -1207,6 +1217,34 @@ private:
       }
     }
     return ret;
+  }
+
+  static ListTagPtr GetItemsRemovingSlot(CompoundTagPtr const &c, std::string const &name, Context const &ctx, size_t capacity) {
+    auto itemsB = List<Tag::Type::Compound>();
+    for (int i = 0; i < capacity; i++) {
+      itemsB->push_back(Item::Empty());
+    }
+    auto items = GetItems(c, name, ctx);
+    if (!items) {
+      return itemsB;
+    }
+    for (auto &it : *items) {
+      auto item = it->asCompound();
+      if (!item) {
+        continue;
+      }
+      auto slot = item->byte("Slot");
+      if (!slot) {
+        continue;
+      }
+      if (*slot < 0 || 5 < *slot) {
+        continue;
+      }
+      auto copy = item->copy();
+      copy->erase("Slot");
+      itemsB->fValue[*slot] = copy;
+    }
+    return itemsB;
   }
 
   static ListTagPtr GetItems(CompoundTagPtr const &c, std::string const &name, Context const &ctx) {
