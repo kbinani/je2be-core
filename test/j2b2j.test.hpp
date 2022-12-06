@@ -1,5 +1,7 @@
 #pragma once
 
+static std::mutex sMutCerr;
+
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
   CHECK(e.fName == a.fName);
   map<string, string> propsE(e.fProperties);
@@ -149,27 +151,30 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
   if (jsonE == jsonA) {
     CHECK(true);
   } else {
+    ostringstream out;
     vector<string> linesE = mcfile::String::Split(jsonE, '\n');
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
     size_t lines = (std::min)(linesE.size(), linesA.size());
-    cerr << "actual:" << endl;
+    out << "actual:" << endl;
     for (size_t i = 0; i < lines; i++) {
       if (i < linesE.size() && linesA[i] != linesE[i]) {
-        cerr << ">> ";
+        out << ">> ";
       } else {
-        cerr << "   ";
+        out << "   ";
       }
-      cerr << i << ":\t" << linesA[i] << endl;
+      out << i << ":\t" << linesA[i] << endl;
     }
-    cerr << "expected:" << endl;
+    out << "expected:" << endl;
     for (int i = 0; i < lines; i++) {
       if (i < linesA.size() && linesA[i] != linesE[i]) {
-        cerr << ">> ";
+        out << ">> ";
       } else {
-        cerr << "   ";
+        out << "   ";
       }
-      cerr << i << ":\t" << linesE[i] << endl;
+      out << i << ":\t" << linesE[i] << endl;
     }
+    lock_guard<mutex> lock(sMutCerr);
+    cerr << out.str();
     CHECK(false);
   }
 }
@@ -501,7 +506,10 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     }
     auto found = chunkA->fTileEntities.find(pos);
     if (found == chunkA->fTileEntities.end()) {
-      PrintAsJson(cerr, *tileE, {.fTypeHint = true});
+      ostringstream out;
+      PrintAsJson(out, *tileE, {.fTypeHint = true});
+      lock_guard<mutex> lock(sMutCerr);
+      cerr << out.str();
       CHECK(false);
       break;
     }
@@ -517,7 +525,10 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     if (entityA) {
       CheckEntity(*id, *entityE, *entityA);
     } else {
-      PrintAsJson(cerr, *entityE, {.fTypeHint = true});
+      ostringstream out;
+      PrintAsJson(out, *entityE, {.fTypeHint = true});
+      lock_guard<mutex> lock(sMutCerr);
+      cerr << out.str();
       CHECK(false);
       break;
     }
