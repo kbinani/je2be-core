@@ -182,6 +182,47 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
   }
 }
 
+static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
+  unordered_set<string> blacklist = {
+      "tag/map",
+  };
+
+  CompoundTagPtr copyE = itemE.copy();
+  CompoundTagPtr copyA = itemA.copy();
+
+  auto itemId = itemE.string("id");
+  if (itemId) {
+    if (*itemId == "minecraft:petrified_oak_slab" || *itemId == "minecraft:furnace_minecart") {
+      blacklist.insert("id");
+    } else if (*itemId == "minecraft:bundle") {
+      // bundle does not exist in BE
+      return;
+    } else if (*itemId == "minecraft:bamboo_block" || *itemId == "minecraft:stripped_bamboo_block") {
+      // TODO: check this when updating for 1.20
+      blacklist.insert("id");
+    }
+  }
+  auto storedEnchantment = itemE.query("tag/StoredEnchantments/0/id");
+  if (storedEnchantment && storedEnchantment->asString()) {
+    if (storedEnchantment->asString()->fValue == "minecraft:sweeping") { // sweeping does not exist in BE
+      blacklist.insert("tag/StoredEnchantments/*/id");
+    }
+  }
+  auto tippedArrowPotion = itemE.query("tag/Potion");
+  if (tippedArrowPotion && tippedArrowPotion->asString()) {
+    if (tippedArrowPotion->asString()->fValue == "minecraft:luck") { // luck does not exist in BE
+      blacklist.insert("tag/Potion");
+    }
+  }
+
+  for (string const &it : blacklist) {
+    Erase(copyE, it);
+    Erase(copyA, it);
+  }
+
+  DiffCompoundTag(*copyE, *copyA);
+}
+
 static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual) {
   auto copyE = expected.copy();
   auto copyA = actual.copy();
@@ -193,7 +234,7 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
       "author",                  // structure_block
       "Book/tag/resolved",       // written_book
       "Book/tag/filtered_title", // written_book
-      "Items/*/tag/map",
+      "Items",
       "Levels",          // beacon. Sometimes reset to 0 in JE
       "SpawnPotentials", // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
   };
@@ -207,6 +248,23 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
     tagBlacklist.insert("IsPlaying");
     tagBlacklist.insert("TickCount");
     tagBlacklist.insert("RecordStartTick");
+  }
+  auto itemsE = expected.listTag("Items");
+  auto itemsA = actual.listTag("Items");
+  if (itemsE) {
+    REQUIRE(itemsA);
+    CHECK(itemsE->size() == itemsA->size());
+    for (size_t i = 0; i < itemsE->size(); i++) {
+      auto itemE = itemsE->at(i);
+      auto itemA = itemsA->at(i);
+      REQUIRE(itemE);
+      REQUIRE(itemA);
+      CHECK(itemE->type() == Tag::Type::Compound);
+      CHECK(itemA->type() == Tag::Type::Compound);
+      CheckItem(*itemE->asCompound(), *itemA->asCompound());
+    }
+  } else if (itemsA) {
+    CHECK(false);
   }
   for (string const &b : tagBlacklist) {
     Erase(copyE, b);
@@ -243,7 +301,6 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Motion",
       "LeftHanded", // left handed skeleton does not exist in BE
       "ForcedAge",
-      "Item/tag/map",
       "Owner",
       "HurtByTimestamp",
       "NoAI",
@@ -265,6 +322,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "Passengers/*/NoAI",
       "Passengers/*/Fire",
       "Passengers/*/Brain",
+      "Passengers/*/listener",
+
+      "Inventory/*/tag/BlockEntityTag/LastOutput",
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
@@ -371,32 +431,19 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     auto angryAtE = copyE->intArrayTag("AngryAt");
     CHECK((angryAtE == nullptr) == (angryAtA == nullptr));
   }
-  auto itemId = entityE.query("Item/id");
-  if (itemId && itemId->asString()) {
-    auto name = itemId->asString()->fValue;
-    if (name == "minecraft:petrified_oak_slab" || name == "minecraft:furnace_minecart") {
-      blacklist.insert("Item/id");
-    } else if (name == "minecraft:bundle") {
-      // bundle does not exist in BE
-      return;
-    }
-  }
-  auto storedEnchantment = entityE.query("Item/tag/StoredEnchantments/0/id");
-  if (storedEnchantment && storedEnchantment->asString()) {
-    if (storedEnchantment->asString()->fValue == "minecraft:sweeping") { // sweeping does not exist in BE
-      blacklist.insert("Item/tag/StoredEnchantments/*/id");
-    }
-  }
-  auto tippedArrowPotion = entityE.query("Item/tag/Potion");
-  if (tippedArrowPotion && tippedArrowPotion->asString()) {
-    if (tippedArrowPotion->asString()->fValue == "minecraft:luck") { // luck does not exist in BE
-      blacklist.insert("Item/tag/Potion");
-    }
-  }
 
   for (string const &it : blacklist) {
     Erase(copyE, it);
     Erase(copyA, it);
+  }
+
+  auto itemE = entityE.compoundTag("Item");
+  auto itemA = entityA.compoundTag("Item");
+  if (itemE) {
+    REQUIRE(itemA);
+    CheckItem(*itemE, *itemA);
+    copyE->erase("Item");
+    copyA->erase("Item");
   }
 
   DiffCompoundTag(*copyE, *copyA);
@@ -509,6 +556,11 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     }
     auto found = chunkA->fTileEntities.find(pos);
     if (found == chunkA->fTileEntities.end()) {
+      auto block = chunkE->blockAt(pos);
+      if (block && (block->fId == mcfile::blocks::minecraft::piglin_head || block->fId == mcfile::blocks::minecraft::piglin_wall_head)) {
+        // TODO: check this when updating for 1.20
+        continue;
+      }
       ostringstream out;
       PrintAsJson(out, *tileE, {.fTypeHint = true});
       lock_guard<mutex> lock(sMutCerr);
