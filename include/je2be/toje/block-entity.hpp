@@ -754,6 +754,7 @@ public:
     E(warped_wall_sign, sign);
     E(darkoak_wall_sign, sign);
     E(mangrove_wall_sign, sign);
+    E(bamboo_wall_sign, sign);
     E(darkoak_standing_sign, sign);
     E(acacia_standing_sign, sign);
     E(birch_standing_sign, sign);
@@ -762,6 +763,7 @@ public:
     E(spruce_standing_sign, sign);
     E(warped_standing_sign, sign);
     E(mangrove_standing_sign, sign);
+    E(bamboo_standing_sign, sign);
     E(ender_chest, SameNameEmpty);
     E(enchanting_table, SameNameEmpty);
     E(barrel, AnyStorage("barrel"));
@@ -800,6 +802,7 @@ public:
     E(sculk_catalyst, SameNameEmpty);
 
     E(chiseled_bookshelf, ChiseledBookshelf);
+
     static Converter const hangingSign = Sign("hanging_sign");
     E(acacia_hanging_sign, hangingSign);
     E(bamboo_hanging_sign, hangingSign);
