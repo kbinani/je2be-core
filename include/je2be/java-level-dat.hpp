@@ -49,7 +49,7 @@ public:
       version->set("Id", Int(toje::kDataVersion));
       version->set("Name", String(o.fVersionString));
       version->set("Series", String("main"));
-      version->set("Snapshot", Bool(false));
+      version->set("Snapshot", Bool(true)); //TODO: 1.19.3
       j["Version"] = version;
     }
     {
