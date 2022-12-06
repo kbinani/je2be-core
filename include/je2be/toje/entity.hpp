@@ -206,6 +206,7 @@ public:
       brain->set("memories", memories);
       j["Brain"] = brain;
     }
+    j["PersistenceRequired"] = Bool(false);
 
     j["CanDuplicate"] = Bool(true);
     CopyLongValues(b, j, {{"AllayDuplicationCooldown", "DuplicationCooldown"}});
