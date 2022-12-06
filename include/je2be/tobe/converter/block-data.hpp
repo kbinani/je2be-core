@@ -265,7 +265,7 @@ private:
 
   static Converter StoneSlabNumbered(std::string const &number, std::string const &type) { return Converter(SlabName("stone_block", number), TypeToTopSlotBit, AddStoneSlabType(number, type)); }
 
-  static Converter StoneSlabNT(std::string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit); }
+  static Converter Slab(std::string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit); }
 
   static Converter TallGrass(std::string const &type) { return Converter(Name("tallgrass"), AddStringProperty("tall_grass_type", type)); }
 
@@ -766,7 +766,6 @@ private:
     E(stripped_jungle_log, axisToPillarAxis);
     E(stripped_dark_oak_log, axisToPillarAxis);
     E(stripped_mangrove_log, axisToPillarAxis);
-    E(stripped_bamboo_block, axisToPillarAxis); //TODO: check this when updating for 1.20
 
     E(oak_wood, Wood("oak", false));
     E(spruce_wood, Wood("spruce", false));
@@ -826,15 +825,15 @@ private:
     E(prismarine_slab, StoneSlab2("prismarine_rough"));
     E(purpur_slab, StoneSlab2("purpur"));
     E(cut_sandstone_slab, StoneSlab4("cut_sandstone"));
-    E(polished_blackstone_brick_slab, StoneSlabNT("polished_blackstone_brick_double_slab"));
-    E(polished_blackstone_slab, StoneSlabNT("polished_blackstone_double_slab"));
-    E(blackstone_slab, StoneSlabNT("blackstone_double_slab"));
+    E(polished_blackstone_brick_slab, Slab("polished_blackstone_brick_double_slab"));
+    E(polished_blackstone_slab, Slab("polished_blackstone_double_slab"));
+    E(blackstone_slab, Slab("blackstone_double_slab"));
     E(polished_andesite_slab, StoneSlab3("polished_andesite"));
     E(red_nether_brick_slab, StoneSlab2("red_nether_brick"));
     E(end_stone_brick_slab, StoneSlab3("end_stone_brick"));
-    E(warped_slab, StoneSlabNT("warped_double_slab"));
-    E(crimson_slab, StoneSlabNT("crimson_double_slab"));
-    E(mangrove_slab, StoneSlabNT("mangrove_double_slab"));
+    E(warped_slab, Slab("warped_double_slab"));
+    E(crimson_slab, Slab("crimson_double_slab"));
+    E(mangrove_slab, Slab("mangrove_double_slab"));
     E(grass, TallGrass("tall"));
     E(tall_grass, DoublePlant("grass"));
     E(large_fern, DoublePlant("fern"));
@@ -1536,20 +1535,20 @@ private:
     E(mangrove_stairs, Stairs());
     E(mud_brick_stairs, Stairs());
 
-    E(cut_copper_slab, StoneSlabNT("double_cut_copper_slab"));
-    E(exposed_cut_copper_slab, StoneSlabNT("exposed_double_cut_copper_slab"));
-    E(weathered_cut_copper_slab, StoneSlabNT("weathered_double_cut_copper_slab"));
-    E(oxidized_cut_copper_slab, StoneSlabNT("oxidized_double_cut_copper_slab"));
+    E(cut_copper_slab, Slab("double_cut_copper_slab"));
+    E(exposed_cut_copper_slab, Slab("exposed_double_cut_copper_slab"));
+    E(weathered_cut_copper_slab, Slab("weathered_double_cut_copper_slab"));
+    E(oxidized_cut_copper_slab, Slab("oxidized_double_cut_copper_slab"));
 
-    E(waxed_cut_copper_slab, StoneSlabNT("waxed_double_cut_copper_slab"));
-    E(waxed_exposed_cut_copper_slab, StoneSlabNT("waxed_exposed_double_cut_copper_slab"));
-    E(waxed_weathered_cut_copper_slab, StoneSlabNT("waxed_weathered_double_cut_copper_slab"));
-    E(waxed_oxidized_cut_copper_slab, StoneSlabNT("waxed_oxidized_double_cut_copper_slab"));
+    E(waxed_cut_copper_slab, Slab("waxed_double_cut_copper_slab"));
+    E(waxed_exposed_cut_copper_slab, Slab("waxed_exposed_double_cut_copper_slab"));
+    E(waxed_weathered_cut_copper_slab, Slab("waxed_weathered_double_cut_copper_slab"));
+    E(waxed_oxidized_cut_copper_slab, Slab("waxed_oxidized_double_cut_copper_slab"));
 
-    E(cobbled_deepslate_slab, StoneSlabNT("cobbled_deepslate_double_slab"));
-    E(polished_deepslate_slab, StoneSlabNT("polished_deepslate_double_slab"));
-    E(deepslate_brick_slab, StoneSlabNT("deepslate_brick_double_slab"));
-    E(deepslate_tile_slab, StoneSlabNT("deepslate_tile_double_slab"));
+    E(cobbled_deepslate_slab, Slab("cobbled_deepslate_double_slab"));
+    E(polished_deepslate_slab, Slab("polished_deepslate_double_slab"));
+    E(deepslate_brick_slab, Slab("deepslate_brick_double_slab"));
+    E(deepslate_tile_slab, Slab("deepslate_tile_double_slab"));
 
     E(cobbled_deepslate_wall, wall);
     E(polished_deepslate_wall, wall);
@@ -1602,7 +1601,9 @@ private:
 
     E(spawner, Null); // spawner doesn't exist as block in BE.
 
-    E(bamboo_block, Identity); //TODO: check this when updating for 1.20
+    E(bamboo_block, Null);          // TODO: check this when updating for 1.20
+    E(stripped_bamboo_block, Null); // TODO: check this when updating for 1.20 // E(stripped_bamboo_block, axisToPillarAxis);
+    E(piglin_wall_head, Null);      // TODO: check this when updating for 1.20
 
     E(acacia_hanging_sign, HangingSign);
     E(acacia_wall_hanging_sign, WallHangingSign);
@@ -1626,6 +1627,9 @@ private:
     E(warped_wall_hanging_sign, WallHangingSign);
 
     E(chiseled_bookshelf, ChiseledBookshelf);
+
+    E(bamboo_slab, Slab("bamboo_double_slab"));
+    E(bamboo_mosaic_slab, Slab("bamboo_mosaic_double_slab"));
 #undef E
 
     return table;

@@ -918,6 +918,11 @@ private:
 
   static CompoundTagPtr Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
+    using namespace mcfile::blocks;
+    if (b.fId == minecraft::piglin_head || b.fId == minecraft::piglin_wall_head) {
+      // TODO: check this when updating for 1.20
+      return nullptr;
+    }
     auto tag = Compound();
     auto const &name = b.fName;
     int8_t type = Item::GetSkullTypeFromBlockName(name);

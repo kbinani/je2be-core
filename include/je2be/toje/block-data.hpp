@@ -2451,10 +2451,12 @@ private:
     E(bamboo_fence, BlockWithSubmergible);
     E(bamboo_fence_gate, FenceGate);
     E(bamboo_hanging_sign, HangingSign);
+    E(bamboo_mosaic_slab, Slab);
     E(bamboo_mosaic_double_slab, DoubleSlab("bamboo_mosaic_slab"));
     E(bamboo_mosaic_stairs, Stairs);
     E(bamboo_pressure_plate, PressurePlate);
     E(bamboo_standing_sign, StandingSign);
+    E(bamboo_slab, Slab);
     E(bamboo_double_slab, DoubleSlab("bamboo_slab"));
     E(bamboo_stairs, Stairs);
     E(bamboo_trapdoor, Trapdoor);
