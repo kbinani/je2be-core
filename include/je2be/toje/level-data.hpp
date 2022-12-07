@@ -119,12 +119,6 @@ public:
     o.fVersionString = kVersionString;
     o.fFlatWorldSettings = FlatWorldSettings(b);
     o.fBonusChestEnabled = b.boolean("bonusChestEnabled");
-    if (ctx.fDataPackBundle) {
-      o.fEnabledDataPacks.push_back("bundle");
-    }
-    if (ctx.fDataPack1_20Update) {
-      o.fEnabledDataPacks.push_back("update_1_20");
-    }
 
     auto data = JavaLevelDat::TemplateData(o);
 
@@ -157,6 +151,16 @@ public:
       j["Player"] = playerData->fEntity;
     }
 
+    auto root = Compound();
+    root->set("Data", data);
+    return root;
+  }
+
+  static void UpdateDataPacksAndEnabledFeatures(CompoundTag &root, Context const &ctx) {
+    auto data = root.compoundTag("Data");
+    if (!data) {
+      return;
+    }
     auto enabledFeatures = List<Tag::Type::String>();
     if (ctx.fDataPack1_20Update) {
       enabledFeatures->push_back(String("minecraft:update_1_20"));
@@ -167,9 +171,16 @@ public:
     enabledFeatures->push_back(String("minecraft:vanilla"));
     data->set("enabled_features", enabledFeatures);
 
-    auto root = Compound();
-    root->set("Data", data);
-    return root;
+    if (auto dataPacks = data->compoundTag("DataPacks"); dataPacks) {
+      if (auto enabledDataPacks = dataPacks->listTag("Enabled"); enabledDataPacks) {
+        if (ctx.fDataPackBundle) {
+          enabledDataPacks->push_back(String("bundle"));
+        }
+        if (ctx.fDataPack1_20Update) {
+          enabledDataPacks->push_back(String("update_1_20"));
+        }
+      }
+    }
   }
 
   static CompoundTagPtr FlatWorldSettings(CompoundTag const &b) {
