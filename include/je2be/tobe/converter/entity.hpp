@@ -745,6 +745,7 @@ private:
       AddDefinition(c, "-minecraft:camel_sitting");
       AddDefinition(c, "+minecraft:camel_standing");
     }
+    c["IsTamed"] = Bool(true);
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

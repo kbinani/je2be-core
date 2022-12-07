@@ -291,26 +291,9 @@ public:
   }
 
   static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    if (auto chestItems = b.listTag("ChestItems"); chestItems) {
-      for (auto const &it : *chestItems) {
-        CompoundTag const *c = it->asCompound();
-        if (!c) {
-          continue;
-        }
-        auto slot = c->byte("Slot");
-        if (slot != 0) {
-          continue;
-        }
-        auto count = c->byte("Count");
-        if (count != 0) {
-          auto saddleItem = Item::From(*c, ctx);
-          j["SaddleItem"] = saddleItem;
-          break;
-        }
-      }
-    }
-    CopyBoolValues(b, j, {{"Sitting", "IsSitting"}});
     ctx.fDataPack1_20Update = true;
+    CopyBoolValues(b, j, {{"Sitting", "IsSitting"}});
+    j["Temper"] = Int(0);
   }
 
   static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -1349,6 +1332,39 @@ public:
     j["Saddle"] = Bool(HasDefinitionWithPrefixAndSuffix(b, "+minecraft:", "_saddled"));
   }
 
+  static void SaddleItemFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto chestItems = b.listTag("ChestItems");
+    if (!chestItems) {
+      return;
+    }
+    CompoundTag const *slot0Item = nullptr;
+    for (auto const &it : *chestItems) {
+      CompoundTag const *c = it->asCompound();
+      if (!c) {
+        continue;
+      }
+      auto slot = c->byte("Slot");
+      if (slot != 0) {
+        continue;
+      }
+      auto count = c->byte("Count");
+      if (count < 1) {
+        return;
+      }
+      slot0Item = c;
+      break;
+    }
+    if (!slot0Item) {
+      return;
+    }
+    auto saddleItem = Item::From(*slot0Item, ctx);
+    if (!saddleItem) {
+      return;
+    }
+    saddleItem->erase("Slot");
+    j["SaddleItem"] = saddleItem;
+  }
+
   static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     CopyBoolValues(b, j, {{"ShowBottom"}});
   }
@@ -1941,7 +1957,7 @@ public:
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
     E(tadpole, C(Same, LivingEntity, AgeableE(24000), FromBucket));
 
-    E(camel, C(Same, Animal, Bred, Camel));
+    E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel));
 #undef E
     return ret;
   }
