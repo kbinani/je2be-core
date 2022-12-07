@@ -1601,9 +1601,9 @@ private:
 
     E(spawner, Null); // spawner doesn't exist as block in BE.
 
-    E(bamboo_block, Null);          // TODO: check this when updating for 1.20
-    E(stripped_bamboo_block, Null); // TODO: check this when updating for 1.20 // E(stripped_bamboo_block, axisToPillarAxis);
-    E(piglin_wall_head, Null);      // TODO: check this when updating for 1.20
+    E(bamboo_block, axisToPillarAxis);
+    E(stripped_bamboo_block, axisToPillarAxis);
+    E(piglin_wall_head, Null); // TODO: check this when updating for 1.20
 
     E(acacia_hanging_sign, HangingSign);
     E(acacia_wall_hanging_sign, WallHangingSign);

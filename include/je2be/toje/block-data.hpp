@@ -2444,7 +2444,7 @@ private:
     E(sculk_shrieker, SculkShrieker);
     E(sculk_catalyst, SculkCatalyst);
 
-    // 1.19.3rc1
+    // 1.19.3
     E(acacia_hanging_sign, HangingSign);
     E(bamboo_button, Button);
     E(bamboo_door, Door);
@@ -2470,6 +2470,9 @@ private:
     E(oak_hanging_sign, HangingSign);
     E(spruce_hanging_sign, HangingSign);
     E(warped_hanging_sign, HangingSign);
+
+    E(bamboo_block, BlockWithAxisFromPillarAxis);
+    E(stripped_bamboo_block, BlockWithAxisFromPillarAxis);
 #undef E
 
     return table;
