@@ -8,6 +8,7 @@ class NoteBlock {
 public:
   static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
+    using namespace mcfile::blocks;
 
     if (!accessor.fHasNoteBlock) {
       return;
@@ -28,11 +29,38 @@ public:
             continue;
           }
           map<string, string> props(blockJ->fProperties);
-          props["instrument"] = "harp";
-          auto lowerJ = cache.blockAt(x, y - 1, z);
+          string instrument = "harp";
+          auto lowerJ = out.blockAt(x, y - 1, z);
           if (lowerJ) {
-            props["instrument"] = NoteBlockInstrument(lowerJ->fId);
+            instrument = NoteBlockInstrument(lowerJ->fId);
           }
+          auto upperJ = out.blockAt(x, y + 1, z);
+          if (upperJ) {
+            switch (upperJ->fId) {
+            case minecraft::skeleton_skull:
+              instrument = "skeleton";
+              break;
+            case minecraft::wither_skeleton_skull:
+              instrument = "wither_skeleton";
+              break;
+            case minecraft::player_head:
+              instrument = "custom_head";
+              break;
+            case minecraft::zombie_head:
+              instrument = "zombie";
+              break;
+            case minecraft::creeper_head:
+              instrument = "creeper";
+              break;
+            case minecraft::piglin_head:
+              instrument = "piglin";
+              break;
+            case minecraft::dragon_head:
+              instrument = "dragon";
+              break;
+            }
+          }
+          props["instrument"] = instrument;
           auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
           out.setBlockAt(x, y, z, replace);
         }

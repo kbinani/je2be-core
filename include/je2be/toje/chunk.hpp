@@ -157,8 +157,6 @@ public:
       }
     }
 
-    Terraform(b, *j, cache);
-
     for (auto const &it : b.fBlockEntities) {
       auto id = it.second->string("id");
       if (!id) {
@@ -177,6 +175,8 @@ public:
         j->fEntities.push_back(frameJ);
       }
     }
+
+    Terraform(b, *j, cache);
 
     unordered_map<Uuid, shared_ptr<CompoundTag>, UuidHasher, UuidPred> entities;
     for (auto const &entityB : b.fEntities) {
