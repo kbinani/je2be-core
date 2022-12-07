@@ -2,6 +2,8 @@
 
 static std::mutex sMutCerr;
 
+static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual);
+
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
   CHECK(e.fName == a.fName);
   map<string, string> propsE(e.fProperties);
@@ -185,6 +187,7 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
 static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<string> blacklist = {
       "tag/map",
+      "tag/BlockEntityTag",
   };
 
   CompoundTagPtr copyE = itemE.copy();
@@ -213,6 +216,17 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
     if (tippedArrowPotion->asString()->fValue == "minecraft:luck") { // luck does not exist in BE
       blacklist.insert("tag/Potion");
     }
+  }
+
+  auto tileE = itemE.query("tag/BlockEntityTag");
+  auto tileA = itemA.query("tag/BlockEntityTag");
+  if (tileE && tileE->type() != Tag::Type::End) {
+    REQUIRE(tileA);
+    REQUIRE(tileE->type() == Tag::Type::Compound);
+    CHECK(tileE->type() == tileA->type());
+    CheckTileEntity(*tileE->asCompound(), *tileA->asCompound());
+  } else if (tileA && tileA->type() != Tag::Type::End) {
+    CHECK(false);
   }
 
   for (string const &it : blacklist) {
@@ -273,6 +287,52 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   DiffCompoundTag(*copyE, *copyA);
 }
 
+static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
+  static unordered_set<string> const blacklist = {
+      // allay, etc
+      "memories/minecraft:gaze_cooldown_ticks",
+      // goat, frog
+      "memories/minecraft:long_jump_cooling_down",
+      // goat
+      "memories/minecraft:ram_cooldown_ticks memories",
+      "memories/minecraft:ram_cooldown_ticks",
+      // piglin
+      /*
+        "minecraft:hunted_recently": {
+          "ttl": 962, // long
+          "value": 1 // byte
+        }
+       */
+      "memories/minecraft:hunted_recently",
+      // allay
+      "memories/minecraft:liked_player",
+      // villager
+      "memories/minecraft:job_site",
+      "memories/minecraft:last_worked_at_poi",
+      "memories/minecraft:meeting_point",
+      "memories/minecraft:golem_detected_recently",
+      "memories/minecraft:potential_job_site",
+      "memories/minecraft:home",
+      "memories/minecraft:last_slept",
+      "memories/minecraft:last_woken",
+      // piglin etc.
+      "memories/minecraft:angry_at", //TODO:
+  };
+  auto copyE = brainE.copy();
+  auto copyA = brainA.copy();
+
+  auto likedPlayerA = copyA->query("memories/minecraft:liked_player");
+  auto likedPlayerE = copyE->query("memories/minecraft:liked_player");
+  CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
+
+  for (string const &b : blacklist) {
+    Erase(copyE, b);
+    Erase(copyA, b);
+  }
+
+  DiffCompoundTag(*copyE, *copyA);
+}
+
 static void CheckEntity(std::string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
@@ -310,21 +370,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "EatingHaystack",
       "PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
       "Leash/UUID",
-
-      "Passengers/*/UUID",
-      "Passengers/*/Pos",
-      "Passengers/*/Attributes",
-      "Passengers/*/Motion",
-      "Passengers/*/LeftHanded",
-      "Passengers/*/ForcedAge",
-      "Passengers/*/Owner",
-      "Passengers/*/HurtByTimestamp",
-      "Passengers/*/NoAI",
-      "Passengers/*/Fire",
-      "Passengers/*/Brain",
-      "Passengers/*/listener",
-
-      "Inventory/*/tag/BlockEntityTag/LastOutput",
+      "listener",
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
@@ -345,7 +391,6 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("TravelPosY");
     blacklist.insert("TravelPosZ");
   } else if (id == "minecraft:villager") {
-    blacklist.insert("Brain/memories");
     blacklist.insert("Gossips");
     blacklist.insert("LastGossipDecay");
     blacklist.insert("LastRestock");
@@ -359,28 +404,14 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   } else if (id == "minecraft:zombie_villager") {
     blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
     blacklist.insert("InWaterTime");
-  } else if (id == "minecraft:goat") {
-    blacklist.insert("Brain/memories"); // long_jump_cooling_down, ram_cooldown_ticks memories
   } else if (id == "minecraft:piglin") {
     blacklist.insert("TimeInOverworld");
-
-    /*
-      "memories": {
-        "minecraft:hunted_recently": {
-          "ttl": 962, // long
-          "value": 1 // byte
-        }
-      }
-    */
-    blacklist.insert("Brain/memories");
-
     blacklist.insert("IsBaby");
     CHECK(copyE->boolean("IsBaby", false) == copyA->boolean("IsBaby", false));
   } else if (id == "minecraft:piglin_brute") {
     blacklist.insert("TimeInOverworld");
   } else if (id == "minecraft:hoglin") {
     blacklist.insert("TimeInOverworld");
-
     blacklist.insert("IsBaby");
     CHECK(copyE->boolean("IsBaby", false) == copyA->boolean("IsBaby", false));
   } else if (id == "minecraft:chest_minecart") {
@@ -412,17 +443,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("PickupDelay");
   } else if (id == "minecraft:trader_llama") {
     blacklist.insert("DespawnDelay"); // "TimeStamp" does not exist in BE.
-  } else if (id == "minecraft:frog") {
-    blacklist.insert("Brain/memories"); // long_jump_cooling_down
   } else if (id == "minecraft:warden") {
     blacklist.insert("anger");
-    blacklist.insert("listener");
-  } else if (id == "minecraft:allay") {
-    blacklist.insert("Brain/memories/minecraft:liked_player");
-    blacklist.insert("listener");
-    auto likedPlayerA = copyA->query("Brain/memories/minecraft:liked_player");
-    auto likedPlayerE = copyE->query("Brain/memories/minecraft:liked_player");
-    CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
   } else if (id == "minecraft:zombified_piglin") {
     blacklist.insert("CanBreakDoors");
     blacklist.insert("AngerTime");
@@ -430,6 +452,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     auto angryAtA = copyA->intArrayTag("AngryAt");
     auto angryAtE = copyE->intArrayTag("AngryAt");
     CHECK((angryAtE == nullptr) == (angryAtA == nullptr));
+  } else if (id == "minecraft:camel") {
+    blacklist.insert("LastPoseTick");
   }
 
   for (string const &it : blacklist) {
@@ -439,11 +463,60 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
 
   auto itemE = entityE.compoundTag("Item");
   auto itemA = entityA.compoundTag("Item");
+  copyE->erase("Item");
+  copyA->erase("Item");
   if (itemE) {
     REQUIRE(itemA);
     CheckItem(*itemE, *itemA);
-    copyE->erase("Item");
-    copyA->erase("Item");
+  }
+
+  auto passengersE = entityE.listTag("Passengers");
+  auto passengersA = entityA.listTag("Passengers");
+  copyE->erase("Passengers");
+  copyA->erase("Passengers");
+  if (passengersE) {
+    REQUIRE(passengersA);
+    CHECK(passengersE->size() == passengersA->size());
+    for (int i = 0; i < passengersE->size(); i++) {
+      auto passengerE = passengersE->at(i);
+      auto passengerA = passengersA->at(i);
+      REQUIRE(passengerE->type() == Tag::Type::Compound);
+      CHECK(passengerE->type() == passengerA->type());
+      auto id = passengerE->asCompound()->string("id");
+      REQUIRE(id);
+      CheckEntity(*id, *passengerE->asCompound(), *passengerA->asCompound());
+    }
+  } else if (passengersA) {
+    CHECK(false);
+  }
+
+  auto brainE = entityE.compoundTag("Brain");
+  auto brainA = entityA.compoundTag("Brain");
+  copyE->erase("Brain");
+  copyA->erase("Brain");
+  if (brainE) {
+    REQUIRE(brainA);
+    CheckBrain(*brainE, *brainA);
+  } else if (brainA) {
+    CHECK(false);
+  }
+
+  auto inventoryE = entityE.listTag("Inventory");
+  auto inventoryA = entityA.listTag("Inventory");
+  copyE->erase("Inventory");
+  copyA->erase("Inventory");
+  if (inventoryE) {
+    REQUIRE(inventoryA);
+    CHECK(inventoryE->size() == inventoryA->size());
+    for (int i = 0; i < inventoryE->size(); i++) {
+      auto itemE = inventoryE->at(i);
+      auto itemA = inventoryA->at(i);
+      REQUIRE(itemE->type() == Tag::Type::Compound);
+      CHECK(itemE->type() == itemA->type());
+      CheckItem(*itemE->asCompound(), *itemA->asCompound());
+    }
+  } else if (inventoryA) {
+    CHECK(false);
   }
 
   DiffCompoundTag(*copyE, *copyA);
