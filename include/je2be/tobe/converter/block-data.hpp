@@ -1283,6 +1283,7 @@ private:
     E(zombie_head, skull);
     E(creeper_head, skull);
     E(dragon_head, skull);
+    E(piglin_head, skull);
 
     Converter wallSkull(Name("skull"), AddBoolProperty("no_drop_bit", false), WallSkullFacingDirection);
     E(skeleton_wall_skull, wallSkull);
@@ -1291,6 +1292,7 @@ private:
     E(zombie_wall_head, wallSkull);
     E(creeper_wall_head, wallSkull);
     E(dragon_wall_head, wallSkull);
+    E(piglin_wall_head, wallSkull);
 
     Converter banner(Name("standing_banner"), Name(Rotation, "ground_sign_direction"));
     E(white_banner, banner);
@@ -1603,7 +1605,6 @@ private:
 
     E(bamboo_block, axisToPillarAxis);
     E(stripped_bamboo_block, axisToPillarAxis);
-    E(piglin_wall_head, Null); // TODO: check this when updating for 1.20
 
     E(acacia_hanging_sign, HangingSign);
     E(acacia_wall_hanging_sign, WallHangingSign);

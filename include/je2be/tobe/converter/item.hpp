@@ -123,6 +123,7 @@ private:
     E("zombie_head", Skull);
     E("creeper_head", Skull);
     E("dragon_head", Skull);
+    E("piglin_head", Skull);
 
     E("item_frame", Rename("frame"));
     E("glow_item_frame", Rename("glow_frame"));

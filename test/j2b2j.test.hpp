@@ -21,7 +21,6 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
   unordered_map<string, string> fallbackJtoB;
   fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
-  fallbackJtoB["minecraft:piglin_wall_head"] = "minecraft:air"; // TODO: BE does not yet support this
 
   unordered_map<string, string> fallbackBtoJ;
   fallbackBtoJ["minecraft:frame"] = "minecraft:air";      // frame should be converted as an entity.
@@ -625,10 +624,6 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     auto found = chunkA->fTileEntities.find(pos);
     if (found == chunkA->fTileEntities.end()) {
       auto block = chunkE->blockAt(pos);
-      if (block && (block->fId == mcfile::blocks::minecraft::piglin_head || block->fId == mcfile::blocks::minecraft::piglin_wall_head)) {
-        // TODO: check this when updating for 1.20
-        continue;
-      }
       ostringstream out;
       PrintAsJson(out, *tileE, {.fTypeHint = true});
       lock_guard<mutex> lock(sMutCerr);

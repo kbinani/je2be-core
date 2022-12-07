@@ -234,12 +234,14 @@ private:
     E(zombie_head, Skull);
     E(creeper_head, Skull);
     E(dragon_head, Skull);
+    E(piglin_head, Skull);
     E(skeleton_wall_skull, Skull);
     E(wither_skeleton_wall_skull, Skull);
     E(player_wall_head, Skull);
     E(zombie_wall_head, Skull);
     E(creeper_wall_head, Skull);
     E(dragon_wall_head, Skull);
+    E(piglin_wall_head, Skull);
 
     E(barrel, AnyStorage("Barrel"));
     E(furnace, Furnace("Furnace"));
@@ -919,10 +921,6 @@ private:
   static CompoundTagPtr Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
     using namespace mcfile::blocks;
-    if (b.fId == minecraft::piglin_head || b.fId == minecraft::piglin_wall_head) {
-      // TODO: check this when updating for 1.20
-      return nullptr;
-    }
     auto tag = Compound();
     auto const &name = b.fName;
     int8_t type = Item::GetSkullTypeFromBlockName(name);

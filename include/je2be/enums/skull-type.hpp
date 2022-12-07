@@ -9,6 +9,7 @@ enum class SkullType : uint8_t {
   Player = 3,
   Creeper = 4,
   Dragon = 5,
+  Piglin = 6,
 
   SkullTypeLast,
 };
@@ -27,6 +28,8 @@ static inline std::string JavaNameFromSkullType(SkullType st) {
     return "skeleton_skull";
   case SkullType::WitherSkeleton:
     return "wither_skeleton_skull";
+  case SkullType::Piglin:
+    return "piglin_head";
   default:
     assert(false);
     return "";
