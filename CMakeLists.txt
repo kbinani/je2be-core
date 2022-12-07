@@ -301,7 +301,7 @@ endif()
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions(/bigobj -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 elseif(NOT "${EMSCRIPTEN}" STREQUAL "1" AND NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
-  list(APPEND je2be_link_libraries tbb)
+  add_definitions(-D_GLIBCXX_USE_TBB_PAR_BACKEND=0)
 endif()
 
 find_package(ZLIB QUIET)
