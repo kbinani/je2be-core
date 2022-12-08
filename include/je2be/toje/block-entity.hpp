@@ -305,6 +305,20 @@ public:
     return r;
   }
 
+  static std::optional<Result> EndGateway(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    auto t = EmptyShortName("end_gateway", pos);
+    if (auto exitPortalB = props::GetPos3iFromListTag(tagB, "ExitPortal"); exitPortalB) {
+      auto exitPortalJ = Compound();
+      exitPortalJ->set("X", Int(exitPortalB->fX));
+      exitPortalJ->set("Y", Int(exitPortalB->fY));
+      exitPortalJ->set("Z", Int(exitPortalB->fZ));
+      t->set("ExitPortal", exitPortalJ);
+    }
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto plantBlock = tagB.compoundTag("PlantBlock");
@@ -821,6 +835,8 @@ public:
     E(oak_hanging_sign, hangingSign);
     E(spruce_hanging_sign, hangingSign);
     E(warped_hanging_sign, hangingSign);
+
+    E(end_gateway, EndGateway);
 #undef E
     return t;
   }
