@@ -136,7 +136,6 @@ public:
   }
 
   static bool IsFenceAlwaysConnectable(mcfile::blocks::BlockId id) {
-    using namespace mcfile::blocks::minecraft;
     switch (id) {
     case mcfile::blocks::minecraft::acacia_fence:
     case mcfile::blocks::minecraft::acacia_log:
@@ -145,6 +144,10 @@ public:
     case mcfile::blocks::minecraft::amethyst_block:
     case mcfile::blocks::minecraft::ancient_debris:
     case mcfile::blocks::minecraft::andesite:
+    case mcfile::blocks::minecraft::bamboo_block:
+    case mcfile::blocks::minecraft::bamboo_fence:
+    case mcfile::blocks::minecraft::bamboo_mosaic:
+    case mcfile::blocks::minecraft::bamboo_planks:
     case mcfile::blocks::minecraft::barrel:
     case mcfile::blocks::minecraft::basalt:
     case mcfile::blocks::minecraft::beacon:
@@ -186,6 +189,7 @@ public:
     case mcfile::blocks::minecraft::calcite:
     case mcfile::blocks::minecraft::cartography_table:
     case mcfile::blocks::minecraft::chain_command_block:
+    case mcfile::blocks::minecraft::chiseled_bookshelf:
     case mcfile::blocks::minecraft::chiseled_deepslate:
     case mcfile::blocks::minecraft::chiseled_nether_bricks:
     case mcfile::blocks::minecraft::chiseled_polished_blackstone:
@@ -193,6 +197,7 @@ public:
     case mcfile::blocks::minecraft::chiseled_red_sandstone:
     case mcfile::blocks::minecraft::chiseled_sandstone:
     case mcfile::blocks::minecraft::chiseled_stone_bricks:
+    case mcfile::blocks::minecraft::chorus_flower:
     case mcfile::blocks::minecraft::clay:
     case mcfile::blocks::minecraft::coal_block:
     case mcfile::blocks::minecraft::coal_ore:
@@ -331,9 +336,17 @@ public:
     case mcfile::blocks::minecraft::magenta_terracotta:
     case mcfile::blocks::minecraft::magenta_wool:
     case mcfile::blocks::minecraft::magma_block:
+    case mcfile::blocks::minecraft::mangrove_fence:
+    case mcfile::blocks::minecraft::mangrove_log:
+    case mcfile::blocks::minecraft::mangrove_planks:
+    case mcfile::blocks::minecraft::mangrove_roots:
+    case mcfile::blocks::minecraft::mangrove_wood:
     case mcfile::blocks::minecraft::moss_block:
     case mcfile::blocks::minecraft::mossy_cobblestone:
     case mcfile::blocks::minecraft::mossy_stone_bricks:
+    case mcfile::blocks::minecraft::mud:
+    case mcfile::blocks::minecraft::mud_bricks:
+    case mcfile::blocks::minecraft::muddy_mangrove_roots:
     case mcfile::blocks::minecraft::mushroom_stem:
     case mcfile::blocks::minecraft::mycelium:
     case mcfile::blocks::minecraft::nether_bricks:
@@ -349,6 +362,7 @@ public:
     case mcfile::blocks::minecraft::oak_wood:
     case mcfile::blocks::minecraft::observer:
     case mcfile::blocks::minecraft::obsidian:
+    case mcfile::blocks::minecraft::ochre_froglight:
     case mcfile::blocks::minecraft::orange_concrete:
     case mcfile::blocks::minecraft::orange_concrete_powder:
     case mcfile::blocks::minecraft::orange_glazed_terracotta:
@@ -358,6 +372,8 @@ public:
     case mcfile::blocks::minecraft::oxidized_copper:
     case mcfile::blocks::minecraft::oxidized_cut_copper:
     case mcfile::blocks::minecraft::packed_ice:
+    case mcfile::blocks::minecraft::packed_mud:
+    case mcfile::blocks::minecraft::pearlescent_froglight:
     case mcfile::blocks::minecraft::pink_concrete:
     case mcfile::blocks::minecraft::pink_concrete_powder:
     case mcfile::blocks::minecraft::pink_glazed_terracotta:
@@ -402,11 +418,14 @@ public:
     case mcfile::blocks::minecraft::redstone_block:
     case mcfile::blocks::minecraft::redstone_lamp:
     case mcfile::blocks::minecraft::redstone_ore:
+    case mcfile::blocks::minecraft::reinforced_deepslate:
     case mcfile::blocks::minecraft::repeating_command_block:
     case mcfile::blocks::minecraft::respawn_anchor:
     case mcfile::blocks::minecraft::rooted_dirt:
     case mcfile::blocks::minecraft::sand:
     case mcfile::blocks::minecraft::sandstone:
+    case mcfile::blocks::minecraft::sculk:
+    case mcfile::blocks::minecraft::sculk_catalyst:
     case mcfile::blocks::minecraft::sea_lantern:
     case mcfile::blocks::minecraft::shroomlight:
     case mcfile::blocks::minecraft::slime_block:
@@ -430,6 +449,7 @@ public:
     case mcfile::blocks::minecraft::stone_bricks:
     case mcfile::blocks::minecraft::stripped_acacia_log:
     case mcfile::blocks::minecraft::stripped_acacia_wood:
+    case mcfile::blocks::minecraft::stripped_bamboo_block:
     case mcfile::blocks::minecraft::stripped_birch_log:
     case mcfile::blocks::minecraft::stripped_birch_wood:
     case mcfile::blocks::minecraft::stripped_crimson_hyphae:
@@ -438,6 +458,8 @@ public:
     case mcfile::blocks::minecraft::stripped_dark_oak_wood:
     case mcfile::blocks::minecraft::stripped_jungle_log:
     case mcfile::blocks::minecraft::stripped_jungle_wood:
+    case mcfile::blocks::minecraft::stripped_mangrove_log:
+    case mcfile::blocks::minecraft::stripped_mangrove_wood:
     case mcfile::blocks::minecraft::stripped_oak_log:
     case mcfile::blocks::minecraft::stripped_oak_wood:
     case mcfile::blocks::minecraft::stripped_spruce_log:
@@ -451,6 +473,7 @@ public:
     case mcfile::blocks::minecraft::tnt:
     case mcfile::blocks::minecraft::tube_coral_block:
     case mcfile::blocks::minecraft::tuff:
+    case mcfile::blocks::minecraft::verdant_froglight:
     case mcfile::blocks::minecraft::warped_fence:
     case mcfile::blocks::minecraft::warped_hyphae:
     case mcfile::blocks::minecraft::warped_nylium:
@@ -480,30 +503,15 @@ public:
     case mcfile::blocks::minecraft::yellow_stained_glass:
     case mcfile::blocks::minecraft::yellow_terracotta:
     case mcfile::blocks::minecraft::yellow_wool:
-
-    case chorus_flower:
-    case mangrove_roots:
-    case muddy_mangrove_roots:
-    case mangrove_log:
-    case stripped_mangrove_log:
-    case stripped_mangrove_wood:
-    case mangrove_wood:
-    case packed_mud:
-    case mud_bricks:
-    case mangrove_fence:
-    case ochre_froglight:
-    case verdant_froglight:
-    case pearlescent_froglight:
-    case sculk:
-    case sculk_catalyst:
       return true;
     default:
-      return false;
+      break;
     }
+    // TODO:
+    return false;
   }
 
   static bool IsGlassPaneOrIronBarsAlwaysConnectable(mcfile::blocks::BlockId id) {
-    using namespace mcfile::blocks::minecraft;
     switch (id) {
     case mcfile::blocks::minecraft::acacia_log:
     case mcfile::blocks::minecraft::acacia_planks:
@@ -512,6 +520,9 @@ public:
     case mcfile::blocks::minecraft::ancient_debris:
     case mcfile::blocks::minecraft::andesite:
     case mcfile::blocks::minecraft::andesite_wall:
+    case mcfile::blocks::minecraft::bamboo_block:
+    case mcfile::blocks::minecraft::bamboo_mosaic:
+    case mcfile::blocks::minecraft::bamboo_planks:
     case mcfile::blocks::minecraft::barrel:
     case mcfile::blocks::minecraft::basalt:
     case mcfile::blocks::minecraft::beacon:
@@ -557,6 +568,7 @@ public:
     case mcfile::blocks::minecraft::calcite:
     case mcfile::blocks::minecraft::cartography_table:
     case mcfile::blocks::minecraft::chain_command_block:
+    case mcfile::blocks::minecraft::chiseled_bookshelf:
     case mcfile::blocks::minecraft::chiseled_deepslate:
     case mcfile::blocks::minecraft::chiseled_nether_bricks:
     case mcfile::blocks::minecraft::chiseled_polished_blackstone:
@@ -564,6 +576,7 @@ public:
     case mcfile::blocks::minecraft::chiseled_red_sandstone:
     case mcfile::blocks::minecraft::chiseled_sandstone:
     case mcfile::blocks::minecraft::chiseled_stone_bricks:
+    case mcfile::blocks::minecraft::chorus_flower:
     case mcfile::blocks::minecraft::clay:
     case mcfile::blocks::minecraft::coal_block:
     case mcfile::blocks::minecraft::coal_ore:
@@ -682,7 +695,6 @@ public:
     case mcfile::blocks::minecraft::jungle_log:
     case mcfile::blocks::minecraft::jungle_planks:
     case mcfile::blocks::minecraft::jungle_wood:
-    case mcfile::blocks::minecraft::ladder:
     case mcfile::blocks::minecraft::lapis_block:
     case mcfile::blocks::minecraft::lapis_ore:
     case mcfile::blocks::minecraft::light_blue_concrete:
@@ -716,11 +728,19 @@ public:
     case mcfile::blocks::minecraft::magenta_terracotta:
     case mcfile::blocks::minecraft::magenta_wool:
     case mcfile::blocks::minecraft::magma_block:
+    case mcfile::blocks::minecraft::mangrove_log:
+    case mcfile::blocks::minecraft::mangrove_planks:
+    case mcfile::blocks::minecraft::mangrove_roots:
+    case mcfile::blocks::minecraft::mangrove_wood:
     case mcfile::blocks::minecraft::moss_block:
     case mcfile::blocks::minecraft::mossy_cobblestone:
     case mcfile::blocks::minecraft::mossy_cobblestone_wall:
     case mcfile::blocks::minecraft::mossy_stone_brick_wall:
     case mcfile::blocks::minecraft::mossy_stone_bricks:
+    case mcfile::blocks::minecraft::mud:
+    case mcfile::blocks::minecraft::mud_brick_wall:
+    case mcfile::blocks::minecraft::mud_bricks:
+    case mcfile::blocks::minecraft::muddy_mangrove_roots:
     case mcfile::blocks::minecraft::mushroom_stem:
     case mcfile::blocks::minecraft::mycelium:
     case mcfile::blocks::minecraft::nether_brick_wall:
@@ -736,6 +756,7 @@ public:
     case mcfile::blocks::minecraft::oak_wood:
     case mcfile::blocks::minecraft::observer:
     case mcfile::blocks::minecraft::obsidian:
+    case mcfile::blocks::minecraft::ochre_froglight:
     case mcfile::blocks::minecraft::orange_concrete:
     case mcfile::blocks::minecraft::orange_concrete_powder:
     case mcfile::blocks::minecraft::orange_glazed_terracotta:
@@ -746,6 +767,8 @@ public:
     case mcfile::blocks::minecraft::oxidized_copper:
     case mcfile::blocks::minecraft::oxidized_cut_copper:
     case mcfile::blocks::minecraft::packed_ice:
+    case mcfile::blocks::minecraft::packed_mud:
+    case mcfile::blocks::minecraft::pearlescent_froglight:
     case mcfile::blocks::minecraft::pink_concrete:
     case mcfile::blocks::minecraft::pink_concrete_powder:
     case mcfile::blocks::minecraft::pink_glazed_terracotta:
@@ -798,12 +821,15 @@ public:
     case mcfile::blocks::minecraft::redstone_block:
     case mcfile::blocks::minecraft::redstone_lamp:
     case mcfile::blocks::minecraft::redstone_ore:
+    case mcfile::blocks::minecraft::reinforced_deepslate:
     case mcfile::blocks::minecraft::repeating_command_block:
     case mcfile::blocks::minecraft::respawn_anchor:
     case mcfile::blocks::minecraft::rooted_dirt:
     case mcfile::blocks::minecraft::sand:
     case mcfile::blocks::minecraft::sandstone:
     case mcfile::blocks::minecraft::sandstone_wall:
+    case mcfile::blocks::minecraft::sculk:
+    case mcfile::blocks::minecraft::sculk_catalyst:
     case mcfile::blocks::minecraft::sea_lantern:
     case mcfile::blocks::minecraft::shroomlight:
     case mcfile::blocks::minecraft::slime_block:
@@ -827,6 +853,7 @@ public:
     case mcfile::blocks::minecraft::stone_bricks:
     case mcfile::blocks::minecraft::stripped_acacia_log:
     case mcfile::blocks::minecraft::stripped_acacia_wood:
+    case mcfile::blocks::minecraft::stripped_bamboo_block:
     case mcfile::blocks::minecraft::stripped_birch_log:
     case mcfile::blocks::minecraft::stripped_birch_wood:
     case mcfile::blocks::minecraft::stripped_crimson_hyphae:
@@ -835,6 +862,8 @@ public:
     case mcfile::blocks::minecraft::stripped_dark_oak_wood:
     case mcfile::blocks::minecraft::stripped_jungle_log:
     case mcfile::blocks::minecraft::stripped_jungle_wood:
+    case mcfile::blocks::minecraft::stripped_mangrove_log:
+    case mcfile::blocks::minecraft::stripped_mangrove_wood:
     case mcfile::blocks::minecraft::stripped_oak_log:
     case mcfile::blocks::minecraft::stripped_oak_wood:
     case mcfile::blocks::minecraft::stripped_spruce_log:
@@ -848,6 +877,7 @@ public:
     case mcfile::blocks::minecraft::tnt:
     case mcfile::blocks::minecraft::tube_coral_block:
     case mcfile::blocks::minecraft::tuff:
+    case mcfile::blocks::minecraft::verdant_froglight:
     case mcfile::blocks::minecraft::warped_hyphae:
     case mcfile::blocks::minecraft::warped_nylium:
     case mcfile::blocks::minecraft::warped_planks:
@@ -878,26 +908,12 @@ public:
     case mcfile::blocks::minecraft::yellow_stained_glass_pane:
     case mcfile::blocks::minecraft::yellow_terracotta:
     case mcfile::blocks::minecraft::yellow_wool:
-
-    case chorus_flower:
-    case mangrove_roots:
-    case muddy_mangrove_roots:
-    case mangrove_log:
-    case stripped_mangrove_log:
-    case stripped_mangrove_wood:
-    case mangrove_wood:
-    case packed_mud:
-    case mud_bricks:
-    case mud_brick_wall:
-    case ochre_froglight:
-    case verdant_froglight:
-    case pearlescent_froglight:
-    case sculk:
-    case sculk_catalyst:
       return true;
     default:
-      return false;
+      break;
     }
+    // TODO:
+    return false;
   }
 };
 
