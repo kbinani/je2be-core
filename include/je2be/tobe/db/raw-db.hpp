@@ -596,7 +596,11 @@ private:
       uint8_t shard = keyBuffer[0];
       if (!keyFiles[shard]) {
         auto file = keysShardFile(shard);
-        keyFiles[shard] = File::Open(file, File::Mode::Write);
+        FILE *f = File::Open(file, File::Mode::Write);
+        if (!f) {
+          goto cleanup;
+        }
+        keyFiles[shard] = f;
       }
       fNumKeysPerShard[shard] += 1;
       FILE *out = keyFiles[shard];
@@ -664,6 +668,9 @@ private:
       keys.clear();
       {
         ScopedFile fp(File::Open(keysShardFile(shard), File::Mode::Read));
+        if (!fp) {
+          return false;
+        }
 
         for (uint64_t i = 0; i < numKeys; i++) {
           uint64_t offsetCompressed = 0;
@@ -703,6 +710,9 @@ private:
       }
       {
         ScopedFile fp(File::Open(keysShardFile(shard), File::Mode::Write));
+        if (!fp) {
+          return false;
+        }
         uint64_t offset = 0;
         for (size_t i = 0; i < keys.size(); i++) {
           Key key = keys[i];
