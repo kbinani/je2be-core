@@ -110,6 +110,9 @@ public:
     case minecraft::ancient_debris:
     case minecraft::andesite:
     case minecraft::andesite_wall:
+    case minecraft::bamboo_block:
+    case minecraft::bamboo_mosaic:
+    case minecraft::bamboo_planks:
     case minecraft::barrel:
     case minecraft::basalt:
     case minecraft::beacon:
@@ -155,6 +158,7 @@ public:
     case minecraft::calcite:
     case minecraft::cartography_table:
     case minecraft::chain_command_block:
+    case minecraft::chiseled_bookshelf:
     case minecraft::chiseled_deepslate:
     case minecraft::chiseled_nether_bricks:
     case minecraft::chiseled_polished_blackstone:
@@ -435,6 +439,7 @@ public:
     case minecraft::stone_bricks:
     case minecraft::stripped_acacia_log:
     case minecraft::stripped_acacia_wood:
+    case minecraft::stripped_bamboo_block:
     case minecraft::stripped_birch_log:
     case minecraft::stripped_birch_wood:
     case minecraft::stripped_crimson_hyphae:
@@ -506,6 +511,9 @@ public:
     case minecraft::ancient_debris:
     case minecraft::andesite:
     case minecraft::azalea_leaves:
+    case minecraft::bamboo_block:
+    case minecraft::bamboo_mosaic:
+    case minecraft::bamboo_planks:
     case minecraft::barrel:
     case minecraft::barrier:
     case minecraft::basalt:
@@ -553,6 +561,7 @@ public:
     case minecraft::cartography_table:
     case minecraft::carved_pumpkin:
     case minecraft::chain_command_block:
+    case minecraft::chiseled_bookshelf:
     case minecraft::chiseled_deepslate:
     case minecraft::chiseled_nether_bricks:
     case minecraft::chiseled_polished_blackstone:
@@ -831,6 +840,7 @@ public:
     case minecraft::stonecutter:
     case minecraft::stripped_acacia_log:
     case minecraft::stripped_acacia_wood:
+    case minecraft::stripped_bamboo_block:
     case minecraft::stripped_birch_log:
     case minecraft::stripped_birch_wood:
     case minecraft::stripped_crimson_hyphae:
