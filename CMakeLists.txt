@@ -290,7 +290,8 @@ set(test_files
   test/volume.test.hpp
   test/shoulder-riders.test.hpp
   test/uuid.test.hpp
-  test/loot_table.test.hpp)
+  test/loot_table.test.hpp
+  test/bee-nest.test.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 

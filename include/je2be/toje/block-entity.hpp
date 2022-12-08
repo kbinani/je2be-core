@@ -103,10 +103,17 @@ public:
     if (occupants) {
       auto bees = List<Tag::Type::Compound>();
       for (auto const &it : *occupants) {
-        auto beeB = it->asCompound();
-        if (!beeB) {
+        auto occupant = it->asCompound();
+        if (!occupant) {
           continue;
         }
+        CompoundTag const *beeB = occupant; // legacy(?)
+
+        if (auto saveData = occupant->compoundTag("SaveData"); saveData) {
+          // This format was seen at least v1.19.50
+          beeB = saveData.get();
+        }
+
         auto result = Entity::From(*beeB, ctx);
         if (result) {
           bees->push_back(result->fEntity);

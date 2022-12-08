@@ -28,3 +28,4 @@ namespace fs = std::filesystem;
 #include "uuid.test.hpp"
 #include "volume.test.hpp"
 #include "loot_table.test.hpp"
+#include "bee-nest.test.hpp"
