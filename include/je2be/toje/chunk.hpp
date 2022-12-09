@@ -8,6 +8,8 @@ class Chunk {
 public:
   static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx) {
     using namespace std;
+    using namespace mcfile;
+    using namespace mcfile::biomes;
     using namespace mcfile::blocks::minecraft;
 
     int const cy = b.fChunkY;
@@ -24,6 +26,17 @@ public:
       if (!sectionJ) {
         return nullptr;
       }
+
+      BiomeId biome = minecraft::plains;
+      switch (d) {
+      case Dimension::Nether:
+        biome = minecraft::nether_wastes;
+        break;
+      case Dimension::End:
+        biome = minecraft::the_end;
+        break;
+      }
+      sectionJ->fBiomes.fill(biome);
 
       int sectionIndex = sectionJ->fY - j->fChunkY;
       if (j->fSections.size() <= sectionIndex) {
@@ -103,6 +116,28 @@ public:
           return true;
         });
       }
+    }
+
+    if (d == Dimension::End) {
+      set<int> missing;
+      for (int i = j->fChunkY; i < 16; i++) {
+        missing.insert(i);
+      }
+      for (auto &section : j->fSections) {
+        if (section) {
+          missing.erase(section->y());
+        }
+      }
+      for (int sectionY : missing) {
+        auto section = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionY);
+        section->fBlocks.fill(make_shared<mcfile::je::Block const>("minecraft:air"));
+        section->fBiomes.fill(mcfile::biomes::minecraft::the_end);
+        j->fSections.push_back(section);
+      }
+      j->fSections.erase(remove_if(j->fSections.begin(), j->fSections.end(), [](auto const &it) { return !it; }), j->fSections.end());
+      sort(j->fSections.begin(), j->fSections.end(), [](auto const &a, auto const &b) {
+        return a->y() < b->y();
+      });
     }
 
     for (int y = cy * 16; y <= maxChunkY * 16 + 15; y += 4) {
