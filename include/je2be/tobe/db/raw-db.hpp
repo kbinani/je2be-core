@@ -937,7 +937,7 @@ private:
 #if defined(_WIN32)
     sprintf_s(buffer.data(), buffer.size(), "%06llu.ldb", tableNumber);
 #else
-    sprintf(buffer.data(), "%06llu.ldb", tableNumber);
+    snprintf(buffer.data(), buffer.size(), "%06llu.ldb", tableNumber);
 #endif
     std::string p(buffer.data(), 10);
     return fDir / p;
