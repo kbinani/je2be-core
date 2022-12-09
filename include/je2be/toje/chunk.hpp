@@ -34,6 +34,9 @@ public:
         break;
       case Dimension::End:
         biome = minecraft::the_end;
+      case Dimension::Overworld:
+      default:
+        biome = minecraft::plains;
         break;
       }
       sectionJ->fBiomes.fill(biome);
