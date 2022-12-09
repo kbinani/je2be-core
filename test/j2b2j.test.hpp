@@ -31,9 +31,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
     if (foundJtoB == fallbackJtoB.end()) {
       auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
       if (foundBtoJ == fallbackBtoJ.end()) {
-        if (blockE->fName == "minecraft:redstone_wall_torch" || blockE->fName == "minecraft:redstone_torch") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"lit"});
-        } else if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
+        if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
           CHECK(blockE->fName == blockA->fName);
         } else if (blockE->fName == "minecraft:scaffolding") {
           CheckBlockWithIgnore(*blockE, *blockA, {"distance"});

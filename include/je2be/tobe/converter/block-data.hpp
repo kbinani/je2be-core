@@ -1069,8 +1069,8 @@ private:
     E(wall_torch, AnyWallTorch(""));
     E(soul_torch, AnyTorch("soul_"));
     E(soul_wall_torch, AnyWallTorch("soul_"));
-    E(redstone_torch, AnyTorch("redstone_"));
-    E(redstone_wall_torch, AnyWallTorch("redstone_"));
+    E(redstone_torch, Converter(PrefixUnlit("redstone_torch"), AddStringProperty("torch_facing_direction", "top")));
+    E(redstone_wall_torch, Converter(PrefixUnlit("redstone_torch"), TorchFacingDirectionFromFacing));
     E(farmland, Converter(Same, Name(Moisture, "moisturized_amount")));
     E(red_mushroom_block, AnyMushroomBlock("red_mushroom_block", false));
     E(brown_mushroom_block, AnyMushroomBlock("brown_mushroom_block", false));
@@ -2071,6 +2071,17 @@ private:
     } else {
       return b.fName;
     }
+  }
+
+  static NamingFunction PrefixUnlit(std::string name) {
+    return [name](Block const &b) {
+      auto lit = b.property("lit", "false") == "true";
+      if (lit) {
+        return "minecraft:" + name;
+      } else {
+        return "minecraft:unlit_" + name;
+      }
+    };
   }
 
   static void DoorHingeBitFromHinge(CompoundTagPtr const &s, Block const &b) {

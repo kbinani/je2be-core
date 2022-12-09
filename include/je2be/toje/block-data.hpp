@@ -1092,6 +1092,14 @@ private:
     return Ns() + "redstone_lamp";
   }
 
+  static String RedstoneTorch(String const &bName, CompoundTag const &s, Props &p) {
+    auto name = Torch("redstone_")(bName, s, p);
+    assert(name.starts_with("minecraft:"));
+    auto lit = bName != "minecraft:unlit_redstone_torch";
+    p["lit"] = Bool(lit);
+    return name;
+  }
+
   static String RedstoneOre(String const &bName, CompoundTag const &s, Props &p) {
     auto lit = bName.starts_with("minecraft:lit_");
     std::string name;
@@ -2335,7 +2343,8 @@ private:
     E(lit_redstone_lamp, RedstoneLamp);
     E(redstone_ore, RedstoneOre);
     E(lit_redstone_ore, RedstoneOre);
-    E(redstone_torch, Torch("redstone_"));
+    E(redstone_torch, RedstoneTorch);
+    E(unlit_redstone_torch, RedstoneTorch);
     E(redstone_wire, BlockWithPowerFromRedstoneSignal);
     E(red_mushroom_block, RedMushroomBlock);
     E(red_nether_brick, Rename("red_nether_bricks"));
