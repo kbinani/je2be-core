@@ -34,7 +34,7 @@ TEST_CASE("command") {
     CHECK(Command::TranspileBedrockToJava(it.second) == it.first);
   }
 
-  SUBCASE("token") {
+  SECTION("token") {
     vector<pair<string, bool>> actual;
     Token::IterateStringLiterals(R"(/give @p written_book{pages:['{"text":"\\"a\\""}']})", [&actual](string s, bool literal) {
       actual.push_back(make_pair(s, literal));

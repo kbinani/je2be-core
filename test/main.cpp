@@ -1,5 +1,4 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include <catch2/catch_test_macros.hpp>
 
 #include <iostream>
 #include <je2be.hpp>
@@ -27,6 +26,6 @@ namespace fs = std::filesystem;
 #include "shoulder-riders.test.hpp"
 #include "uuid.test.hpp"
 #include "volume.test.hpp"
-#include "loot_table.test.hpp"
+#include "loot-table.test.hpp"
 #include "bee-nest.test.hpp"
 #include "end-gateway.test.hpp"

@@ -1,14 +1,14 @@
 #pragma once
 
-TEST_CASE("loot_table") {
-  SUBCASE("j2b2j") {
+TEST_CASE("loot-table") {
+  SECTION("j2b2j") {
     auto java = "minecraft:chests/village/village_plains_house";
     auto bedrock = "loot_tables/chests/village/village_plains_house.json";
     CHECK(LootTable::BedrockTableNameFromJava(java) == bedrock);
     CHECK(LootTable::JavaTableNameFromBedrock(bedrock) == java);
   }
 #if 0
-  SUBCASE("bedrock") {
+  SECTION("bedrock") {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;

@@ -1,5 +1,5 @@
 TEST_CASE("volume") {
-  SUBCASE("Connect") {
+  SECTION("Connect") {
     vector<Volume> volumes = {
         {{747, 39, -341}, {751, 61, -337}},
         {{747, 39, -336}, {751, 61, -321}},
