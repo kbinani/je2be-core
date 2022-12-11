@@ -314,6 +314,9 @@ public:
       exitPortalJ->set("Z", Int(exitPortalB->fZ));
       t->set("ExitPortal", exitPortalJ);
     }
+    if (auto age = tagB.int32("Age"); age) {
+      t->set("Age", Long(*age));
+    }
     Result r;
     r.fTileEntity = t;
     return r;

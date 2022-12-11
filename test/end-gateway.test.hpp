@@ -31,6 +31,7 @@ TEST_CASE("end-gateway") {
       CHECK(exitPortal->int32("X") == -814);
       CHECK(exitPortal->int32("Y") == 59);
       CHECK(exitPortal->int32("Z") == -613);
+      CHECK(tile->int64("Age") == 725);
     }
     {
       auto chunk = world.chunkAt(-51, -39);
@@ -46,6 +47,7 @@ TEST_CASE("end-gateway") {
       CHECK(exitPortal->int32("X") == -74);
       CHECK(exitPortal->int32("Y") == 58);
       CHECK(exitPortal->int32("Z") == -52);
+      CHECK(tile->int64("Age") == 409);
     }
   }
 }
