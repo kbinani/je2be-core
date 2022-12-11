@@ -34,7 +34,7 @@ jobs:
           mkdir -p ./build
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --parallel --target test --config Release --verbose
+          cmake --build . --target test --config Release --verbose
 
       - name: Run Test
         run: ./build/test --durations yes
