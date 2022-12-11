@@ -61,7 +61,7 @@ jobs:
           mkdir build || exit 1
           cd build || exit 2
           cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
-          cmake --build . --parallel --target test --config Release --verbose || exit 4
+          cmake --build . --target test --config Release --verbose || exit 4
 
       - name: Run Test
         run: |
@@ -90,7 +90,7 @@ jobs:
           mkdir -p ./build
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --parallel --target test --config Release --verbose
+          cmake --build . --target test --config Release --verbose
 
       - name: Run Test
         run: ./build/test --durations yes
