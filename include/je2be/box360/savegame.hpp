@@ -11,8 +11,8 @@ public:
     if (buffer.size() < 12) {
       return false;
     }
-    uint32_t inputSize = mcfile::U32FromBE(*(uint32_t *)buffer.data());
-    uint32_t outputSize = mcfile::U32FromBE(*(uint32_t *)(buffer.data() + 8));
+    uint32_t inputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
+    uint32_t outputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 8));
     for (int i = 0; i < 12; i++) {
       buffer.erase(buffer.begin());
     }
@@ -26,7 +26,7 @@ public:
     if (buffer.size() < 4) {
       return false;
     }
-    uint32_t decompressedSize = mcfile::U32FromBE(*(uint32_t *)buffer.data());
+    uint32_t decompressedSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
     for (int j = 0; j < 4; j++) {
       buffer.erase(buffer.begin());
     }
@@ -113,8 +113,8 @@ public:
     if (savegame.size() < 8) {
       return false;
     }
-    uint32_t const indexOffset = mcfile::U32FromBE(*(uint32_t *)savegame.data());
-    uint32_t const fileCount = mcfile::U32FromBE(*(uint32_t *)(savegame.data() + 4));
+    uint32_t const indexOffset = mcfile::U32FromBE(Mem::Read<uint32_t>(savegame, 0));
+    uint32_t const fileCount = mcfile::U32FromBE(Mem::Read<uint32_t>(savegame, 4));
     for (uint32_t i = 0; i < fileCount; i++) {
       uint32_t pos = indexOffset + i * kIndexBytesPerFile;
       if (!ExtractFile(savegame, pos, outputDirectory)) {
@@ -133,14 +133,14 @@ public:
     if (indexPosition + kIndexBytesPerFile > buffer.size()) {
       return false;
     }
-    uint32_t size = mcfile::U32FromBE(*(uint32_t *)(buffer.data() + indexPosition + 0x80));
-    uint32_t offset = mcfile::U32FromBE(*(uint32_t *)(buffer.data() + indexPosition + 0x84));
+    uint32_t size = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, indexPosition + 0x80));
+    uint32_t offset = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, indexPosition + 0x84));
     if (offset + size > buffer.size()) {
       return false;
     }
     u16string name;
     for (uint32_t i = 0; i < kFileNameLength; i++) {
-      char16_t c = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + indexPosition + i * 2));
+      char16_t c = mcfile::U16FromBE(Mem::Read<uint16_t>(buffer, indexPosition + i * 2));
       if (c == 0) {
         break;
       }

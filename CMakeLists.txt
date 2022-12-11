@@ -77,6 +77,7 @@ set(je2be_files
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
   include/je2be/java-level-dat.hpp
+  include/je2be/mem.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
   include/je2be/nullable.hpp
@@ -241,6 +242,7 @@ set(je2be_files
   deps/libminecraft-file/include/mcfile/je/ticking-block.hpp
   deps/libminecraft-file/include/mcfile/je/world.hpp
   deps/libminecraft-file/include/mcfile/je/writable-chunk.hpp
+  deps/libminecraft-file/include/mcfile/mem.hpp
   deps/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
   deps/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
   deps/libminecraft-file/include/mcfile/nbt/compound-tag.hpp

@@ -29,7 +29,7 @@ public:
         return false;
       }
       size_t pos = 0;
-      uint32_t numFiles = mcfile::U32FromBE(*(uint32_t *)buffer.data());
+      uint32_t numFiles = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
       pos += 4;
 
       vector<uint32_t> thumbnailSizeList;
@@ -40,7 +40,7 @@ public:
         }
         u16string title;
         for (int j = 0; j < 128; j++) {
-          char16_t ch = mcfile::U16FromBE(*(uint16_t *)(buffer.data() + pos + 2 * j));
+          char16_t ch = mcfile::U16FromBE(Mem::Read<uint16_t>(buffer, pos + 2 * j));
           if (ch == 0) {
             break;
           }
@@ -56,7 +56,7 @@ public:
 
         pos += 26;
 
-        uint32_t thumbnailSize = mcfile::U32FromBE(*(uint32_t *)(buffer.data() + pos));
+        uint32_t thumbnailSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, pos));
         thumbnailSizeList.push_back(thumbnailSize);
         pos += 4;
 

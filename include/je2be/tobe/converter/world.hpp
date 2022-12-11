@@ -258,9 +258,9 @@ public:
         if (!id) {
           return;
         }
+        int64_t v = *id;
         string prefix;
-        prefix.resize(8);
-        *((int64_t *)prefix.data()) = *id;
+        prefix.assign((char const *)&v, sizeof(v));
         digp += prefix;
 
         auto key = DbKey::Actorprefix(prefix);

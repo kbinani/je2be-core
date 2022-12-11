@@ -56,6 +56,7 @@
 
 #include <je2be/nbt.hpp>
 #include <je2be/version.hpp>
+#include <je2be/mem.hpp>
 
 #include <je2be/toje/constants.hpp>
 #include <je2be/tobe/versions.hpp>
