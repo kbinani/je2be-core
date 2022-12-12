@@ -159,4 +159,27 @@ TEST_CASE("volume") {
       CHECK(v.size<2>() == 58);
     }
   }
+  SECTION("ConnectGreed") {
+    vector<Volume> volumes = {
+        {{0, 0, 0}, {1, 1, 1}},
+
+        {{-1296, 39, 571}, {-1292, 61, 575}},
+        {{-1344, 39, 571}, {-1297, 61, 628}},
+        {{-1349, 39, 576}, {-1345, 61, 628}},
+        {{-1296, 39, 592}, {-1292, 61, 628}},
+    };
+    Volume::ConnectGreed(volumes, 58, 23, 58);
+    CHECK(volumes.size() == 2);
+    Volume v = volumes[0];
+    CHECK(v.size<0>() == 58);
+    CHECK(v.size<1>() == 23);
+    CHECK(v.size<2>() == 58);
+    CHECK(v.fStart == Pos3i(-1349, 39, 571));
+
+    Volume e = volumes[1];
+    CHECK(e.size<0>() == 2);
+    CHECK(e.size<1>() == 2);
+    CHECK(e.size<2>() == 2);
+    CHECK(e.fStart == Pos3i(0, 0, 0));
+  }
 }

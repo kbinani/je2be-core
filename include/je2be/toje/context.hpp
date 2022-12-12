@@ -106,6 +106,13 @@ public:
           volumes.push_back(piece.fVolume);
         }
         Volume::Connect(volumes);
+        switch (type) {
+        case StructureType::Monument:
+          Volume::ConnectGreed(volumes, 58, 23, 58);
+          break;
+        default:
+          break;
+        }
         for (Volume const &v : volumes) {
           int cx;
           int cz;

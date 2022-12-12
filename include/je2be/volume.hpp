@@ -36,6 +36,46 @@ public:
     }
   }
 
+  static void ConnectGreed(std::vector<Volume> &volumes, int maxSizeX, int maxSizeY, int maxSizeZ) {
+    while (true && volumes.size() > 1) {
+      int before = volumes.size();
+      std::stable_sort(volumes.begin(), volumes.end(), [](Volume const &a, Volume const &b) {
+        return a.volume() > b.volume();
+      });
+      std::vector<Volume> tmp;
+      for (int i = 0; i < volumes.size(); i++) {
+        Volume a = volumes[i];
+        int match = -1;
+        for (int j = i + 1; j < volumes.size(); j++) {
+          Volume b = volumes[j];
+          int x0 = std::min(a.fStart.fX, b.fStart.fX);
+          int y0 = std::min(a.fStart.fY, b.fStart.fY);
+          int z0 = std::min(a.fStart.fZ, b.fStart.fZ);
+          int x1 = std::max(a.fEnd.fX, b.fEnd.fX);
+          int y1 = std::max(a.fEnd.fY, b.fEnd.fY);
+          int z1 = std::max(a.fEnd.fZ, b.fEnd.fZ);
+          if (x1 - x0 <= maxSizeX && y1 - y0 <= maxSizeY && z1 - z0 <= maxSizeZ) {
+            tmp.push_back(Volume({x0, y0, z0}, {x1, y1, z1}));
+            match = j;
+            break;
+          }
+        }
+        if (match >= 0) {
+          for (int j = match + 1; j < volumes.size(); j++) {
+            tmp.push_back(volumes[j]);
+          }
+          break;
+        } else {
+          tmp.push_back(a);
+        }
+      }
+      tmp.swap(volumes);
+      if (before == volumes.size()) {
+        break;
+      }
+    }
+  }
+
   template <size_t dimension> // = 0 for X, = 1 for Y, = 2 for Z
   int32_t size() const {
     return end<dimension>() - start<dimension>() + 1;
@@ -69,6 +109,13 @@ public:
     default:
       return 0;
     }
+  }
+
+  uint64_t volume() const {
+    uint64_t dx = size<0>();
+    uint64_t dy = size<1>();
+    uint64_t dz = size<2>();
+    return dx * dy * dz;
   }
 
 private:
