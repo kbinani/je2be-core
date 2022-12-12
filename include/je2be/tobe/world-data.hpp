@@ -34,25 +34,16 @@ public:
     if (!start) {
       return;
     }
-    auto fortress = start->compoundTag("fortress");
-    if (!fortress) {
-      fortress = start->compoundTag("Fortress");
+    if (start->empty()) {
+      return;
     }
-    if (fortress) {
+    if (auto fortress = Get(*start, "fortress"); fortress) {
       addStructures(*fortress, StructureType::Fortress);
     }
-    auto monument = start->compoundTag("monument"); // 1.16~
-    if (!monument) {
-      monument = start->compoundTag("Monument"); // ~1.15
-    }
-    if (monument) {
+    if (auto monument = Get(*start, "monument"); monument) {
       addStructures(*monument, StructureType::Monument);
     }
-    auto outpost = start->compoundTag("pillager_outpost");
-    if (!outpost) {
-      outpost = start->compoundTag("Pillager_Outpost");
-    }
-    if (outpost) {
+    if (auto outpost = Get(*start, "pillager_outpost"); outpost) {
       addStructures(*outpost, StructureType::Outpost);
     }
   }
@@ -145,6 +136,16 @@ private:
     Pos3i start(value[0], value[1], value[2]);
     Pos3i end(value[3], value[4], value[5]);
     return Volume(start, end);
+  }
+
+  static CompoundTagPtr Get(CompoundTag const &src, std::string const &name) {
+    if (auto ret = src.compoundTag("minecraft:" + name); ret) {
+      return ret;
+    }
+    if (auto ret = src.compoundTag(name); ret) {
+      return ret;
+    }
+    return src.compoundTag(strings::CapitalizeSnake(name));
   }
 
 public:
