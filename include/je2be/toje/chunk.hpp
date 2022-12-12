@@ -323,11 +323,11 @@ public:
           child->set("BB", bb);
           children->push_back(child);
           monument->set("Children", children);
-          startsTag->set("monument", monument);
+          startsTag->set("minecraft:monument", monument);
         }
         vector<int64_t> references;
         references.push_back(StructureInfo::PackStructureStartsReference(s.fStartChunk.fX, s.fStartChunk.fZ));
-        referencesTag->set("monument", make_shared<LongArrayTag>(references));
+        referencesTag->set("minecraft:monument", make_shared<LongArrayTag>(references));
         break;
       }
       default:
