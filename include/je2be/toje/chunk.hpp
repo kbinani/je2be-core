@@ -17,6 +17,14 @@ public:
     j->fLastUpdate = ctx.fGameTick;
 
     auto mode = ConversionMode(b);
+    switch (mode) {
+    case ChunkConversionMode::CavesAndCliffs2:
+      j->dataVersion(kDataVersion);
+      break;
+    case ChunkConversionMode::Legacy:
+      j->dataVersion(kDataVersionMaxLegacy);
+      break;
+    }
 
     int maxChunkY = cy;
     for (auto const &sectionB : b.fSubChunks) {

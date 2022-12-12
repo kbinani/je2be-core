@@ -44,7 +44,7 @@ public:
       if (chunk->status() != mcfile::je::Chunk::Status::FULL) {
         return r;
       }
-      if (chunk->fDataVersion >= 2724) {
+      if (chunk->dataVersion() >= 2724) {
         vector<shared_ptr<CompoundTag>> entities;
         if (region.entitiesAt(cx, cz, entities)) {
           chunk->fEntities.swap(entities);
@@ -264,7 +264,7 @@ private:
   }
 
   static ChunkConversionMode ConversionMode(mcfile::je::Chunk const &chunk) {
-    if (chunk.minBlockY() < 0 || 256 <= chunk.maxBlockY() || chunk.fDataVersion >= mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection118) {
+    if (chunk.minBlockY() < 0 || 256 <= chunk.maxBlockY() || chunk.dataVersion() >= mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection118) {
       return ChunkConversionMode::CavesAndCliffs2;
     } else {
       return ChunkConversionMode::Legacy;
