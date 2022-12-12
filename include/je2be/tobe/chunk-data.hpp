@@ -93,11 +93,11 @@ private:
     char vernum;
     switch (fMode) {
     case ChunkConversionMode::Legacy:
-      vernum = 16;
+      vernum = kChunkVersionMaxLegacy;
       break;
     case ChunkConversionMode::CavesAndCliffs2:
     default:
-      vernum = kSubChunkVersion;
+      vernum = kChunkVersion;
       break;
     }
 
