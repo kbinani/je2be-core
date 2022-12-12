@@ -29,3 +29,4 @@ namespace fs = std::filesystem;
 #include "loot-table.test.hpp"
 #include "bee-nest.test.hpp"
 #include "end-gateway.test.hpp"
+#include "strings.test.hpp"

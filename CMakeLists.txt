@@ -294,7 +294,8 @@ set(test_files
   test/uuid.test.hpp
   test/loot-table.test.hpp
   test/bee-nest.test.hpp
-  test/end-gateway.test.hpp)
+  test/end-gateway.test.hpp
+  test/strings.test.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 

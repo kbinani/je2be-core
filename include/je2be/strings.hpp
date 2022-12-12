@@ -106,11 +106,40 @@ inline bool Iequals(std::string const &a, std::string const &b) {
   });
 }
 
+inline void Split(std::string const &s, std::string const &delimiter, std::function<bool(int, std::string const &)> callback) {
+  if (delimiter.empty()) {
+    callback(0, s);
+    return;
+  }
+  size_t off = 0;
+  size_t idx = s.find(delimiter, off);
+  int count = 0;
+  while (idx != std::string::npos) {
+    callback(count, s.substr(off, idx - off));
+    count++;
+    off = idx + delimiter.size();
+    idx = s.find(delimiter, off);
+  }
+  callback(count, s.substr(off));
+}
+
 inline std::string Capitalize(std::string const &s) {
   if (s.empty()) {
     return s;
   }
   return std::string(1, (char)std::toupper((unsigned char)s[0])) + s.substr(1);
+}
+
+inline std::string CapitalizeSnake(std::string const &s) {
+  std::string ret;
+  Split(s, "_", [&ret](int i, std::string const &token) {
+    if (i > 0) {
+      ret += "_";
+    }
+    ret += Capitalize(token);
+    return true;
+  });
+  return ret;
 }
 
 inline std::string Uncapitalize(std::string const &s) {
