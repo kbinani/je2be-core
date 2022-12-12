@@ -29,3 +29,23 @@ namespace fs = std::filesystem;
 #include "loot-table.test.hpp"
 #include "bee-nest.test.hpp"
 #include "end-gateway.test.hpp"
+
+// clang-format on
+
+#include <catch2/catch_session.hpp>
+#include <catch2/internal/catch_compiler_capabilities.hpp>
+#include <catch2/internal/catch_config_wchar.hpp>
+#include <catch2/internal/catch_leak_detector.hpp>
+#include <catch2/internal/catch_platform.hpp>
+
+namespace Catch {
+CATCH_INTERNAL_START_WARNINGS_SUPPRESSION
+CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS
+static LeakDetector leakDetector;
+CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION
+} // namespace Catch
+
+int main(int argc, char *argv[]) {
+  (void)&Catch::leakDetector;
+  return Catch::Session().run(argc, argv);
+}

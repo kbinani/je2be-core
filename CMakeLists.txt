@@ -364,7 +364,7 @@ add_executable(dump example/dump.cpp ${je2be_files})
 target_link_libraries(dump je2be)
 
 add_executable(test ${test_files} ${je2be_files})
-target_link_libraries(test PRIVATE je2be Catch2::Catch2WithMain)
+target_link_libraries(test PRIVATE je2be Catch2::Catch2)
 
 list(APPEND all_files ${test_files} ${je2be_files} example/j2b.cpp example/b2j.cpp example/dump.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
