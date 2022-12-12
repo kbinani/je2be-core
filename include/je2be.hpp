@@ -98,6 +98,7 @@
 #include <je2be/enums/facing6.hpp>
 #include <je2be/enums/facing4.hpp>
 #include <je2be/enums/game-mode.hpp>
+#include <je2be/enums/chunk-conversion-mode.hpp>
 
 #include <je2be/color/sign-color.hpp>
 

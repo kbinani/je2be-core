@@ -56,6 +56,7 @@ set(je2be_files
   include/je2be/entity/panda.hpp
   include/je2be/entity/tropical-fish.hpp
   include/je2be/enums/banner-color-code-bedrock.hpp
+  include/je2be/enums/chunk-conversion-mode.hpp
   include/je2be/enums/color-code-java.hpp
   include/je2be/enums/facing4.hpp
   include/je2be/enums/facing6.hpp
@@ -112,7 +113,6 @@ set(je2be_files
   include/je2be/terraform/snowy.hpp
   include/je2be/terraform/wall-connectable.hpp
   include/je2be/tile-entity/loot-table.hpp
-  include/je2be/tobe/chunk-conversion-mode.hpp
   include/je2be/tobe/chunk-data-package.hpp
   include/je2be/tobe/chunk-data.hpp
   include/je2be/tobe/context.hpp
