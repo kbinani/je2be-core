@@ -16,33 +16,20 @@ public:
     auto j = mcfile::je::WritableChunk::MakeEmpty(cx, cy, cz);
     j->fLastUpdate = ctx.fGameTick;
 
+    auto mode = ConversionMode(b);
+
     int maxChunkY = cy;
     for (auto const &sectionB : b.fSubChunks) {
       if (!sectionB) {
         continue;
       }
 
-      auto sectionJ = SubChunk::Convert(*sectionB);
+      auto sectionJ = SubChunk::Convert(*sectionB, d, mode);
       if (!sectionJ) {
         return nullptr;
       }
 
-      BiomeId biome = minecraft::plains;
-      switch (d) {
-      case Dimension::Nether:
-        biome = minecraft::nether_wastes;
-        break;
-      case Dimension::End:
-        biome = minecraft::the_end;
-        break;
-      case Dimension::Overworld:
-      default:
-        biome = minecraft::plains;
-        break;
-      }
-      sectionJ->fBiomes.fill(biome);
-
-      int sectionIndex = sectionJ->fY - j->fChunkY;
+      int sectionIndex = sectionJ->y() - j->fChunkY;
       if (j->fSections.size() <= sectionIndex) {
         j->fSections.resize(sectionIndex + 1);
       }
@@ -50,8 +37,8 @@ public:
       maxChunkY = (std::max)(maxChunkY, (int)sectionB->fChunkY);
 
       bool hasPoiBlock = false;
-      sectionJ->fBlocks.eachValue([&hasPoiBlock](shared_ptr<mcfile::je::Block const> const &block) {
-        if (PoiBlocks::Interest(*block)) {
+      sectionJ->eachBlockPalette([&hasPoiBlock](mcfile::je::Block const &block) {
+        if (PoiBlocks::Interest(block)) {
           hasPoiBlock = true;
           return false;
         } else {
@@ -66,15 +53,15 @@ public:
               if (!block) {
                 continue;
               }
-              ctx.addToPoiIfItIs(d, Pos3i(cx * 16 + x, sectionJ->fY * 16 + y, cz * 16 + z), *block);
+              ctx.addToPoiIfItIs(d, Pos3i(cx * 16 + x, sectionJ->y() * 16 + y, cz * 16 + z), *block);
             }
           }
         }
       }
 
       if (!ctx.fDataPack1_20Update) {
-        sectionJ->fBlocks.eachValue([&ctx](shared_ptr<mcfile::je::Block const> const &block) {
-          switch (block->fId) {
+        sectionJ->eachBlockPalette([&ctx](mcfile::je::Block const &block) {
+          switch (block.fId) {
           case acacia_hanging_sign:
           case acacia_wall_hanging_sign:
           case bamboo_block:
@@ -403,7 +390,7 @@ public:
 
       resolvedLeashedEntities.insert(leashedEntityUuid);
     }
-    for (Uuid resolvedLeashedEntity : resolvedLeashedEntities) {
+    for (Uuid const &resolvedLeashedEntity : resolvedLeashedEntities) {
       ctx.fLeashedEntities.erase(resolvedLeashedEntity);
     }
   }
@@ -458,9 +445,22 @@ public:
         }
       }
     }
-    for (Uuid resolvedVehicleEntity : resolvedVehicleEntities) {
+    for (Uuid const &resolvedVehicleEntity : resolvedVehicleEntities) {
       ctx.fVehicleEntities.erase(resolvedVehicleEntity);
     }
+  }
+
+  static ChunkConversionMode ConversionMode(mcfile::be::Chunk const &b) {
+    if (b.fVersion > tobe::kChunkVersionMaxLegacy) {
+      return ChunkConversionMode::CavesAndCliffs2;
+    }
+    if (b.fChunkY < 0) {
+      return ChunkConversionMode::CavesAndCliffs2;
+    }
+    if (b.fChunkY > 15) {
+      return ChunkConversionMode::CavesAndCliffs2;
+    }
+    return ChunkConversionMode::Legacy;
   }
 };
 

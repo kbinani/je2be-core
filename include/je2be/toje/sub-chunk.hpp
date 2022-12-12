@@ -6,9 +6,11 @@ class SubChunk {
   SubChunk() = delete;
 
 public:
-  static std::shared_ptr<mcfile::je::chunksection::ChunkSection118> Convert(mcfile::be::SubChunk const &sectionB) {
+  static std::shared_ptr<mcfile::je::ChunkSection> Convert(mcfile::be::SubChunk const &sectionB, mcfile::Dimension dim, ChunkConversionMode mode) {
     using namespace std;
-    auto sectionJ = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB.fChunkY);
+    using namespace mcfile;
+    using namespace mcfile::biomes;
+
     vector<shared_ptr<mcfile::je::Block const>> paletteJ;
 
     vector<uint16_t> indicesJ(4096, 0);
@@ -73,9 +75,35 @@ public:
       }
     }
 
-    if (!sectionJ->fBlocks.reset(paletteJ, indicesJ)) {
-      return nullptr;
+    shared_ptr<mcfile::je::ChunkSection> sectionJ;
+    if (mode == ChunkConversionMode::CavesAndCliffs2) {
+      auto section = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB.fChunkY);
+      if (!section->fBlocks.reset(paletteJ, indicesJ)) {
+        return nullptr;
+      }
+      sectionJ = section;
+    } else {
+      auto section = mcfile::je::chunksection::ChunkSection116::MakeEmpty(sectionB.fChunkY);
+      if (!section->fBlocks.reset(paletteJ, indicesJ)) {
+        return nullptr;
+      }
+      sectionJ = section;
     }
+
+    BiomeId biome = minecraft::plains;
+    switch (dim) {
+    case mcfile::Dimension::Nether:
+      biome = minecraft::nether_wastes;
+      break;
+    case Dimension::End:
+      biome = minecraft::the_end;
+      break;
+    case Dimension::Overworld:
+    default:
+      biome = minecraft::plains;
+      break;
+    }
+    sectionJ->fill(biome);
 
     return sectionJ;
   }
