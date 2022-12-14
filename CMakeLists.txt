@@ -288,6 +288,7 @@ set(test_files
   test/research.hpp
   test/block-data.test.hpp
   test/CheckTag.hpp
+  test/j2b2j.hpp
   test/j2b2j.test.hpp
   test/volume.test.hpp
   test/shoulder-riders.test.hpp
@@ -367,5 +368,8 @@ target_link_libraries(dump je2be)
 add_executable(test ${test_files} ${je2be_files})
 target_link_libraries(test PRIVATE je2be Catch2::Catch2WithMain)
 
-list(APPEND all_files ${test_files} ${je2be_files} example/j2b.cpp example/b2j.cpp example/dump.cpp)
+add_executable(j2b2j test/j2b2j.cpp)
+target_link_libraries(j2b2j PRIVATE je2be Catch2::Catch2)
+
+list(APPEND all_files ${test_files} ${je2be_files} example/j2b.cpp example/b2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})

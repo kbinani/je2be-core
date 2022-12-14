@@ -20,6 +20,7 @@ namespace fs = std::filesystem;
 
 #include "block-data.test.hpp"
 #include "command.test.hpp"
+#include "j2b2j.hpp"
 #include "j2b2j.test.hpp"
 #include "research.hpp"
 #include "moving-piston.test.hpp"
