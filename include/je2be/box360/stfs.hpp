@@ -251,7 +251,7 @@ public:
         toReturn += nextChar;
     } else {
       std::vector<char> strVec;
-      strVec.reserve(len + 1);
+      strVec.resize(len + 1);
       char *str = strVec.data();
       str[len] = 0;
 
