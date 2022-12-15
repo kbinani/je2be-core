@@ -309,7 +309,7 @@ public:
     return fValuesFile != nullptr && fKeysFile != nullptr;
   }
 
-  static std::optional<std::string> Compress(std::string const &key, leveldb::Slice const &value, uint64_t seq) {
+  static std::string Compress(std::string const &key, leveldb::Slice const &value, uint64_t seq) {
     using namespace std;
     using namespace leveldb;
 
@@ -340,10 +340,7 @@ public:
 
     uint64_t sequence = fSeq.fetch_add(1);
 
-    auto block = Compress(key, value, sequence);
-    if (!block) {
-      return;
-    }
+    string v = value.ToString();
 
     bool ok = true;
     if (fQueue) {
@@ -351,14 +348,14 @@ public:
       {
         std::lock_guard<std::mutex> lk(fMut);
         FutureSupport::Drain(2, fFutures, popped);
-        fFutures.push_back(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, *block, sequence));
+        fFutures.push_back(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, v, sequence));
       }
 
       for (auto &f : popped) {
         ok &= f.get();
       }
     } else {
-      ok = putImpl(key, *block, sequence);
+      ok = putImpl(key, v, sequence);
     }
 
     if (!ok) {
@@ -768,14 +765,16 @@ private:
       return false;
     }
 
-    if (fwrite(value.data(), value.size(), 1, fValuesFile) != 1) {
+    auto compressed = Compress(key, value, sequence);
+
+    if (fwrite(compressed.data(), compressed.size(), 1, fValuesFile) != 1) {
       fclose(fValuesFile);
       fValuesFile = nullptr;
       return false;
     }
 
     uint64_t offsetCompressed = fValuesPos;
-    uint64_t sizeCompressed = value.size();
+    uint64_t sizeCompressed = compressed.size();
     size_t keySize = key.size();
     if (fwrite(&offsetCompressed, sizeof(offsetCompressed), 1, fKeysFile) != 1) {
       fclose(fKeysFile);
