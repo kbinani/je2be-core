@@ -114,10 +114,10 @@ public:
             if (!result.fData) {
               continue;
             }
-            result.fData->drain(ld);
             if (!result.fOk) {
               return false;
             }
+            result.fData->drain(ld);
           }
 
           if (progress) {
@@ -156,7 +156,7 @@ public:
     });
 
     for (auto &f : futures) {
-      Chunk::Result const &result = f.get();
+      Chunk::Result result = f.get();
       done++;
       if (progress) {
         progress->report(Progress::Phase::Convert, done, numTotalChunks);

@@ -59,7 +59,7 @@ public:
             uint16_t index;
             auto block = section->blockAt(x, y, z);
             if (block && !IsAir(block->fId)) {
-              string paletteKey = block->toString();
+              string const &paletteKey = block->toString();
               auto tile = chunk.tileEntityAt(bx, by, bz);
               if (tile) {
                 // Block states may have extra properties from properties in tile entity.
