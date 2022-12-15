@@ -26,7 +26,7 @@ public:
       for (int x = 0, indexB = 0; x < 16; x++) {
         for (int z = 0; z < 16; z++) {
           for (int y = 0; y < 16; y++, indexB++) {
-            int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
+            int indexJ = mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
             indicesJ[indexJ] = sectionB.fPaletteIndices[indexB];
           }
         }
@@ -50,7 +50,7 @@ public:
             }
 
             // (x, y, z) block is waterlogged
-            int indexJ = *mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
+            int indexJ = mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
 
             uint16_t indexDryJ = indicesJ[indexJ];
             auto dryBlockJ = paletteJ[indexDryJ];
