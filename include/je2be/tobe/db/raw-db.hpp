@@ -186,31 +186,6 @@ class RawDb : public DbInterface {
     // Finish() call, returns the size of the final generated file.
     uint64_t FileSize() const { return rep_->offset; }
 
-    static void Compress(leveldb::Slice const &c, std::string &ret) {
-      ret.resize(compressBound(c.size()));
-
-      z_stream strm = {0};
-      strm.zalloc = 0;
-      strm.zfree = 0;
-      strm.next_in = (Bytef *)c.data();
-      strm.avail_in = (uInt)c.size();
-      strm.next_out = (Bytef *)ret.data();
-      strm.avail_out = (uInt)ret.size();
-      int compressionLevel = 9;
-      int window = -15;
-      int memLevel = 8;
-
-      auto res = deflateInit2(&strm, compressionLevel, Z_DEFLATED, window, memLevel, Z_DEFAULT_STRATEGY);
-      assert(res == Z_OK);
-
-      res = deflate(&strm, Z_FINISH);
-      assert(res == Z_STREAM_END);
-
-      ret.resize(strm.total_out);
-
-      deflateEnd(&strm);
-    }
-
   private:
     bool ok() const { return status().ok(); }
     void WriteBlock(leveldb::BlockBuilder *block, leveldb::BlockHandle *handle) {
@@ -227,7 +202,7 @@ class RawDb : public DbInterface {
       CompressionType type = kZlibRawCompression;
 
       std::string *compressed = &r->compressed_output;
-      Compress(raw, *compressed);
+      mcfile::Compression::CompressDeflate((void *)raw.data(), raw.size(), *compressed, 9);
       if (compressed->size() < raw.size() - (raw.size() / 8u)) {
         block_contents = *compressed;
       } else {
@@ -323,7 +298,7 @@ public:
     bb.Add(ik.Encode(), value);
     Slice c = bb.Finish();
 
-    ZlibRawTableBuilder::Compress(c, *out);
+    mcfile::Compression::CompressDeflate((void *)c.data(), c.size(), *out);
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
