@@ -309,7 +309,7 @@ public:
     return fValuesFile != nullptr && fKeysFile != nullptr;
   }
 
-  static std::optional<std::string> Compress(std::string const &key, leveldb::Slice const &value, uint64_t seq) {
+  static void Compress(std::string const &key, leveldb::Slice const &value, uint64_t seq, std::string *out) {
     using namespace std;
     using namespace leveldb;
 
@@ -323,10 +323,7 @@ public:
     bb.Add(ik.Encode(), value);
     Slice c = bb.Finish();
 
-    string ret;
-    ZlibRawTableBuilder::Compress(c, ret);
-
-    return ret;
+    ZlibRawTableBuilder::Compress(c, *out);
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
@@ -340,10 +337,8 @@ public:
 
     uint64_t sequence = fSeq.fetch_add(1);
 
-    auto block = Compress(key, value, sequence);
-    if (!block) {
-      return;
-    }
+    string block;
+    Compress(key, value, sequence, &block);
 
     bool ok = true;
     if (fQueue) {
@@ -351,14 +346,14 @@ public:
       {
         std::lock_guard<std::mutex> lk(fMut);
         FutureSupport::Drain(2, fFutures, popped);
-        fFutures.push_back(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, *block, sequence));
+        fFutures.push_back(fQueue->enqueue(std::bind(&RawDb::putImpl, this, _1, _2, _3), key, block, sequence));
       }
 
       for (auto &f : popped) {
         ok &= f.get();
       }
     } else {
-      ok = putImpl(key, *block, sequence);
+      ok = putImpl(key, block, sequence);
     }
 
     if (!ok) {
