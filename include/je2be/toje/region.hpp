@@ -54,10 +54,11 @@ public:
           ok = progress();
         };
 
-        auto b = cache->ensureLoadedAt(cx, cz);
+        auto b = mcfile::be::Chunk::Load(cx, cz, d, db, ctx->fEndian);
         if (!b) {
           continue;
         }
+        cache->set(cx, cz, b);
 
         auto j = Chunk::Convert(d, cx, cz, *b, *cache, *ctx);
 

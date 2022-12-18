@@ -150,7 +150,7 @@ public:
       }
     }
 
-    for (auto const &it : b.fBlockEntities) {
+    for (auto const &it : b.blockEntities()) {
       Pos3i const &pos = it.first;
       shared_ptr<CompoundTag> const &tagB = it.second;
       assert(tagB);
@@ -191,7 +191,7 @@ public:
       }
     }
 
-    for (auto const &it : b.fBlockEntities) {
+    for (auto const &it : b.blockEntities()) {
       auto id = it.second->string("id");
       if (!id) {
         continue;
@@ -213,7 +213,7 @@ public:
     Terraform(b, *j, cache);
 
     unordered_map<Uuid, shared_ptr<CompoundTag>, UuidHasher, UuidPred> entities;
-    for (auto const &entityB : b.fEntities) {
+    for (auto const &entityB : b.entities()) {
       auto result = Entity::From(*entityB, ctx);
       if (result) {
         Pos2i pos(cx, cz);
@@ -254,13 +254,13 @@ public:
       }
     }
 
-    for (mcfile::be::PendingTick const &pt : b.fPendingTicks) {
+    for (mcfile::be::PendingTick const &pt : b.pendingTicks()) {
       mcfile::je::TickingBlock tb;
       auto nameB = pt.fBlockState->fName;
       tb.fX = pt.fX;
       tb.fY = pt.fY;
       tb.fZ = pt.fZ;
-      tb.fT = pt.fTime - b.fCurrentTick;
+      tb.fT = pt.fTime - b.currentTick();
       tb.fP = 0;
       if (nameB == "minecraft:lava" || nameB == "minecraft:water" || nameB == "minecraft:flowing_water" || nameB == "minecraft:flowing_lava") {
         tb.fI = nameB;

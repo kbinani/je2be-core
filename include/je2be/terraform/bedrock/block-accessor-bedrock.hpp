@@ -2,10 +2,11 @@
 
 namespace je2be::terraform::bedrock {
 
-template <size_t width, size_t height>
+template <size_t Width, size_t Height>
 class BlockAccessorBedrock {
 public:
-  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, mcfile::Endian endian) : fDim(d), fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
+  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, mcfile::Endian endian)
+      : fDim(d), fCache(Width * Height), fCacheLoaded(Width * Height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
@@ -42,7 +43,12 @@ public:
       return nullptr;
     }
     if (!fCacheLoaded[*index]) {
-      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, fDb, fEndian);
+      mcfile::be::Chunk::LoadWhat what;
+      what.fBiomes = false;
+      what.fBlockEntities = false;
+      what.fEntities = false;
+      what.fPendingTicks = false;
+      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, fDb, fEndian, what);
       fCacheLoaded[*index] = true;
     }
     return fCache[*index];
@@ -51,28 +57,27 @@ public:
   std::optional<int> index(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
-    if (0 <= x && x < width && 0 <= z && z < height) {
-      return z * width + x;
+    if (0 <= x && x < Width && 0 <= z && z < Height) {
+      return z * Width + x;
     } else {
       return std::nullopt;
     }
   }
 
-  BlockAccessorBedrock<width, height> *makeRelocated(int cx, int cz) const {
-    std::unique_ptr<BlockAccessorBedrock<width, height>> ret(new BlockAccessorBedrock<width, height>(fDim, cx, cz, fDb, fEndian));
-    for (int x = 0; x < width; x++) {
-      for (int z = 0; z < height; z++) {
-        auto index = this->index(fChunkX + x, fChunkZ + z);
+  BlockAccessorBedrock<Width, Height> *makeRelocated(int chunkX, int chunkZ) const {
+    auto ret = new BlockAccessorBedrock<Width, Height>(fDim, chunkX, chunkZ, fDb, fEndian);
+    for (int cx = fChunkX; cx < fChunkX + Width; cx++) {
+      for (int cz = fChunkZ; cz < fChunkZ + Height; cz++) {
+        auto index = this->index(cx, cz);
         if (fCacheLoaded[*index]) {
           auto const &chunk = fCache[*index];
-          ret->set(fChunkX + x, fChunkZ + z, chunk);
+          ret->set(cx, cz, chunk);
         }
       }
     }
-    return ret.release();
+    return ret;
   }
 
-private:
   void set(int cx, int cz, std::shared_ptr<mcfile::be::Chunk> const &chunk) {
     auto index = this->index(cx, cz);
     if (!index) {
