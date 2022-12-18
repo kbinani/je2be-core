@@ -115,22 +115,50 @@ public:
       }
     }
 
+    deque<future<Status>> concatEntityMca;
+    Status st = Status::Ok();
     for (auto const &region : regions) {
-      int rx = region.first.fX;
-      int rz = region.first.fZ;
-      fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
-      fs::path entitiesMca = dir / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-      defer {
-        error_code ec1;
-        fs::remove_all(entitiesDir, ec1);
-      };
-      if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
-        return JE2BE_ERROR;
+      concatEntityMca.push_back(queue.enqueue(SquashEntityChunks, region.first.fX, region.first.fZ, dir));
+      vector<future<Status>> drain;
+      FutureSupport::Drain(concurrency + 1, concatEntityMca, drain);
+      for (auto &f : drain) {
+        Status s = f.get();
+        if (st.ok() && !s.ok()) {
+          st = s;
+        }
       }
+      if (!st.ok()) {
+        break;
+      }
+    }
+    for (auto &f : concatEntityMca) {
+      Status s = f.get();
+      if (st.ok() && !s.ok()) {
+        st = s;
+      }
+    }
+    if (!st.ok()) {
+      return st;
     }
 
     resultContext.swap(ctx);
     return Status::Ok();
+  }
+
+  static Status SquashEntityChunks(int rx, int rz, std::filesystem::path dir) {
+    namespace fs = std::filesystem;
+    using namespace std;
+    fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
+    fs::path entitiesMca = dir / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    defer {
+      error_code ec1;
+      fs::remove_all(entitiesDir, ec1);
+    };
+    if (mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
+      return Status::Ok();
+    } else {
+      return JE2BE_ERROR;
+    }
   }
 
   static Status AttachLeashAndPassengers(Pos2i chunk,
