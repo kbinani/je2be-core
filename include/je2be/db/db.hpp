@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class Db : public DbInterface {
 public:
@@ -91,4 +91,4 @@ private:
   leveldb::WriteOptions fWriteOptions;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class RawDb : public DbInterface {
   struct ShardLocator {
@@ -945,4 +945,4 @@ private:
   std::atomic_uint64_t fSeq;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

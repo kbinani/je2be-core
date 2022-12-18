@@ -7,11 +7,6 @@
 #include <je2be/tobe/session-lock.hpp>
 #include <je2be/tobe/progress.hpp>
 
-#include <je2be/tobe/db/db-interface.hpp>
-#include <je2be/tobe/db/db.hpp>
-#include <je2be/tobe/db/null-db.hpp>
-#include <je2be/tobe/db/raw-db.hpp>
-
 #include <je2be/tobe/structure/structure-piece-collection.hpp>
 #include <je2be/tobe/structure/structures.hpp>
 

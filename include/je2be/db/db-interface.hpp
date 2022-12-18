@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class DbInterface {
 public:
@@ -12,4 +12,4 @@ public:
   virtual void abandon() = 0;
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::tobe {
+namespace je2be {
 
 class NullDb : public DbInterface {
 public:
@@ -11,4 +11,4 @@ public:
   void abandon() override{};
 };
 
-} // namespace je2be::tobe
+} // namespace je2be

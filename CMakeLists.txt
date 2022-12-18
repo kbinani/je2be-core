@@ -43,6 +43,10 @@ set(je2be_files
   include/je2be/command/command.hpp
   include/je2be/command/target-selector.hpp
   include/je2be/command/token.hpp
+  include/je2be/db/db-interface.hpp
+  include/je2be/db/db.hpp
+  include/je2be/db/null-db.hpp
+  include/je2be/db/raw-db.hpp
   include/je2be/defer.hpp
   include/je2be/dimension-ext.hpp
   include/je2be/entity/armor-stand.hpp
@@ -136,10 +140,6 @@ set(je2be_files
   include/je2be/tobe/converter/sub-chunk.hpp
   include/je2be/tobe/converter/tile-entity.hpp
   include/je2be/tobe/converter/world.hpp
-  include/je2be/tobe/db/db-interface.hpp
-  include/je2be/tobe/db/db.hpp
-  include/je2be/tobe/db/null-db.hpp
-  include/je2be/tobe/db/raw-db.hpp
   include/je2be/tobe/level-data.hpp
   include/je2be/tobe/options.hpp
   include/je2be/tobe/portal/oriented-portal-blocks.hpp

@@ -148,6 +148,11 @@
 #include <je2be/terraform/box360/attached-stem.hpp>
 #include <je2be/terraform/box360/chest.hpp>
 
+#include <je2be/db/db-interface.hpp>
+#include <je2be/db/db.hpp>
+#include <je2be/db/null-db.hpp>
+#include <je2be/db/raw-db.hpp>
+
 #include <je2be/box360/box360.hpp>
 #include <je2be/tobe/tobe.hpp>
 #include <je2be/toje/toje.hpp>
