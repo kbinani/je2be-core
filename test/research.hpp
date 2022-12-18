@@ -829,8 +829,83 @@ static void PistonArm() {
   }
 }
 
+struct LevelDbConcurrentIterationResult {
+  char fPrefix;
+  std::shared_ptr<leveldb::Iterator> fItr;
+  bool fContinue;
+  bool fValid;
+  std::string fKey;
+  std::string fValue;
+};
+
+static LevelDbConcurrentIterationResult LevelDbConcurrentIterationQueue(char prefix, std::shared_ptr<leveldb::Iterator> itr) {
+  LevelDbConcurrentIterationResult ret;
+  ret.fPrefix = prefix;
+  ret.fItr = itr;
+
+  if (itr->Valid()) {
+    std::string key = itr->key().ToString();
+    ret.fValid = prefix == key[0];
+    if (prefix == key[0]) {
+      ret.fContinue = true;
+      ret.fKey = key;
+      ret.fValue = itr->value().ToString();
+      itr->Next();
+    } else {
+      ret.fContinue = false;
+    }
+  } else {
+    ret.fContinue = false;
+    ret.fValid = false;
+  }
+  return ret;
+}
+
+static void LevelDbConcurrentIteration() {
+  using namespace leveldb;
+
+  unique_ptr<DB> db(Open("1.19"));
+  REQUIRE(db);
+  set<string> keysExpected;
+  unique_ptr<Iterator> itr(db->NewIterator({}));
+  for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+    keysExpected.insert(itr->key().ToString());
+  }
+  unique_ptr<hwm::task_queue> queue(new hwm::task_queue(thread::hardware_concurrency()));
+  deque<future<LevelDbConcurrentIterationResult>> futures;
+  for (int i = 0; i < 256; i++) {
+    shared_ptr<Iterator> itr(db->NewIterator({}));
+    string prefix;
+    prefix.append(1, (char)i);
+    itr->Seek(Slice(prefix));
+    futures.push_back(queue->enqueue(LevelDbConcurrentIterationQueue, (char)i, itr));
+  }
+  set<string> keysActual;
+  while (!futures.empty()) {
+    vector<future<LevelDbConcurrentIterationResult>> drain;
+    FutureSupport::Drain(thread::hardware_concurrency() + 1, futures, drain);
+    for (auto &f : drain) {
+      LevelDbConcurrentIterationResult ret = f.get();
+      if (ret.fValid) {
+        keysActual.insert(ret.fKey);
+      }
+      if (ret.fContinue) {
+        futures.push_back(queue->enqueue(LevelDbConcurrentIterationQueue, ret.fPrefix, ret.fItr));
+      }
+    }
+  }
+  CHECK(keysExpected.size() == keysActual.size());
+  for (auto const &e : keysExpected) {
+    auto found = keysActual.find(e);
+    if (found == keysActual.end()) {
+      cerr << "\"" << e << "\" not found; e[0]=" << (int)(0xff & e[0]) << endl;
+    }
+    CHECK(found != keysActual.end());
+  }
+}
+
 #if 0
 TEST_CASE("research") {
-  PistonArm();
+  LevelDbConcurrentIteration();
 }
 #endif

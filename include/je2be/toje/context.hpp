@@ -24,6 +24,7 @@ public:
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,
+                                       unsigned int concurrency,
                                        std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) {
     using namespace std;
     using namespace leveldb;
@@ -36,19 +37,17 @@ public:
     auto structureInfo = make_shared<StructureInfo>();
     unordered_map<Dimension, vector<StructurePiece>> pieces;
 
-    unique_ptr<Iterator> itr(db.NewIterator({}));
-    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
-      auto key = itr->key();
-      auto parsed = mcfile::be::DbKey::Parse(key.ToString());
+    AsyncIterator::IterateUnordered(db, concurrency, [opt, &regions, &totalChunks, &pieces, endian, &mapInfo](string const &key, string const &value) {
+      auto parsed = mcfile::be::DbKey::Parse(key);
       if (!parsed) {
-        continue;
+        return;
       }
       if (parsed->fIsTagged) {
         uint8_t tag = parsed->fTagged.fTag;
         Dimension d = parsed->fTagged.fDimension;
         if (!opt.fDimensionFilter.empty()) {
           if (opt.fDimensionFilter.find(d) == opt.fDimensionFilter.end()) {
-            continue;
+            return;
           }
         }
         switch (tag) {
@@ -59,7 +58,7 @@ public:
           Pos2i c(cx, cz);
           if (!opt.fChunkFilter.empty()) {
             if (opt.fChunkFilter.find(c) == opt.fChunkFilter.end()) {
-              continue;
+              return;
             }
           }
           int rx = Coordinate::RegionFromChunk(cx);
@@ -71,20 +70,20 @@ public:
         }
         case static_cast<uint8_t>(mcfile::be::DbKey::Tag::StructureBounds): {
           vector<StructurePiece> buffer;
-          StructurePiece::Parse(itr->value().ToString(), buffer);
+          StructurePiece::Parse(value, buffer);
           copy(buffer.begin(), buffer.end(), back_inserter(pieces[d]));
           break;
         }
         }
       } else if (parsed->fUnTagged.starts_with("map_")) {
         int64_t mapId;
-        auto parsed = MapInfo::Parse(itr->value().ToString(), mapId, endian);
+        auto parsed = MapInfo::Parse(value, mapId, endian);
         if (!parsed) {
-          continue;
+          return;
         }
         mapInfo->add(*parsed, mapId);
       }
-    }
+    });
 
     for (auto const &i : pieces) {
       Dimension d = i.first;
