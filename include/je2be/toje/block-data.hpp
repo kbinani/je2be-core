@@ -2452,6 +2452,8 @@ private:
     E(mangrove_roots, BlockWithSubmergible);
     E(sculk_shrieker, SculkShrieker);
     E(sculk_catalyst, SculkCatalyst);
+    E(mud_brick_slab, Slab);
+    E(mud_brick_double_slab, DoubleSlab("mud_brick_slab"));
 
     // 1.19.3
     E(acacia_hanging_sign, HangingSign);
