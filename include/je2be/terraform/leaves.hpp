@@ -51,24 +51,15 @@ public:
     for (int y = y0; y <= y1; y++) {
       for (int z = z0; z <= z1; z++) {
         for (int x = x0; x <= x1; x++) {
+          auto block = cache.blockAt(x, y, z);
+          if (!block) {
+            continue;
+          }
           int index = ((y - y0) * sz + (z - z0)) * sx + (x - x0);
-          if (cx * 16 <= x && x < cx * 16 + 16 && accessor.minBlockY() <= y && y <= accessor.maxBlockY() && cz * 16 <= z && z < cz * 16 + 16) {
-            auto p = accessor.property(x, y, z);
-            if (BlockPropertyAccessor::CanPreventLeavesDecay(p)) {
-              data[index] = 0;
-            } else if (BlockPropertyAccessor::IsLeaves(p)) {
-              data[index] = -1;
-            }
-          } else {
-            auto block = cache.blockAt(x, y, z);
-            if (!block) {
-              continue;
-            }
-            if (BlockPropertyAccessor::CanPreventLeavesDecay(*block)) {
-              data[index] = 0;
-            } else if (BlockPropertyAccessor::IsLeaves(*block)) {
-              data[index] = -1;
-            }
+          if (IsLog(*block)) {
+            data[index] = 0;
+          } else if (BlockPropertyAccessor::IsLeaves(*block)) {
+            data[index] = -1;
           }
         }
       }
@@ -132,6 +123,24 @@ public:
           out.setBlockAt(x, y, z, replace);
         }
       }
+    }
+  }
+
+  static bool IsLog(mcfile::je::Block const &b) {
+    using namespace mcfile::blocks;
+    if (b.fName.ends_with("log") || b.fName.ends_with("wood")) {
+      return true;
+    }
+    switch (b.fId) {
+    case minecraft::warped_stem:
+    case minecraft::crimson_stem:
+    case minecraft::stripped_warped_stem:
+    case minecraft::stripped_crimson_stem:
+    case minecraft::stripped_warped_hyphae:
+    case minecraft::stripped_crimson_hyphae:
+      return true;
+    default:
+      return false;
     }
   }
 };

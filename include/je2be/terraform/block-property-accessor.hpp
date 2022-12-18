@@ -29,7 +29,6 @@ private:
     WALL = 20,
     LEAVES = 21,
     CHEST = 22, // chest or trapped_chest
-    CAN_PREVENT_LEAVES_DECAY = 23,
   };
 
 public:
@@ -125,10 +124,6 @@ public:
     return p == CHEST;
   }
 
-  static bool CanPreventLeavesDecay(DataType p) {
-    return p == CAN_PREVENT_LEAVES_DECAY;
-  }
-
   static bool IsStairs(mcfile::be::Block const &b) {
     return b.fName.ends_with("_stairs");
   }
@@ -178,24 +173,6 @@ public:
   static bool IsCaveVines(mcfile::je::Block const &b) {
     using namespace mcfile::blocks;
     return b.fId == minecraft::cave_vines || b.fId == minecraft::cave_vines_plant;
-  }
-
-  static bool CanPreventLeavesDecay(mcfile::je::Block const &b) {
-    using namespace mcfile::blocks;
-    if (b.fName.ends_with("log") || b.fName.ends_with("wood")) {
-      return true;
-    }
-    switch (b.fId) {
-    case minecraft::warped_stem:
-    case minecraft::crimson_stem:
-    case minecraft::stripped_warped_stem:
-    case minecraft::stripped_crimson_stem:
-    case minecraft::stripped_warped_hyphae:
-    case minecraft::stripped_crimson_hyphae:
-      return true;
-    default:
-      return false;
-    }
   }
 
   static bool IsSnowy(mcfile::be::Block const &b) {
@@ -335,14 +312,6 @@ public:
     return b.fId == mcfile::blocks::minecraft::chest || b.fId == mcfile::blocks::minecraft::trapped_chest;
   }
 
-  static bool CanPreventLeavesDecay(mcfile::be::Block const &b) {
-    using namespace mcfile::blocks;
-    if (b.fName.ends_with("log") || b.fName.ends_with("wood")) {
-      return true;
-    }
-    return b.fName == "minecraft:warped_stem" || b.fName == "minecraft:crimson_stem" || b.fName == "minecraft:stripped_warped_stem" || b.fName == "minecraft:stripped_crimson_stem" || b.fName == "minecraft:stripped_warped_hyphae" || b.fName == "minecraft:stripped_crimson_hyphae";
-  }
-
   BlockPropertyAccessor(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
   virtual ~BlockPropertyAccessor() {}
   virtual DataType property(int bx, int by, int bz) const = 0;
@@ -371,7 +340,6 @@ public:
     fHasWall |= IsWall(p);
     fHasLeaves |= IsLeaves(p);
     fHasChest |= IsChest(p);
-    fHasCanPreventLeavesDecay |= CanPreventLeavesDecay(p);
   }
 
 private:
@@ -419,8 +387,6 @@ private:
       return LEAVES;
     } else if (IsChest(b)) {
       return CHEST;
-    } else if (CanPreventLeavesDecay(b)) {
-      return CAN_PREVENT_LEAVES_DECAY;
     }
     return 0;
   }
@@ -447,7 +413,6 @@ public:
   bool fHasWall = false;
   bool fHasLeaves = false;
   bool fHasChest = false;
-  bool fHasCanPreventLeavesDecay = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;
