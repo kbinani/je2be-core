@@ -6,7 +6,7 @@ class Chest {
   Chest() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
     if (!accessor.fHasChest) {
       return;

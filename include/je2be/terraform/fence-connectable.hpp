@@ -6,12 +6,12 @@ class FenceConnectable {
   FenceConnectable() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
     DoFence(out, cache, accessor);
     DoGlassPaneOrIronBars(out, cache, accessor);
   }
 
-  static void DoFence(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
+  static void DoFence(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
     if (!accessor.fHasFence) {
       return;
@@ -88,7 +88,7 @@ public:
     return false;
   }
 
-  static void DoGlassPaneOrIronBars(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
+  static void DoGlassPaneOrIronBars(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
     if (!accessor.fHasGlassPaneOrIronBars) {
       return;

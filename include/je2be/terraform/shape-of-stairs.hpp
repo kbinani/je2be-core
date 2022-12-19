@@ -6,7 +6,7 @@ class ShapeOfStairs {
   ShapeOfStairs() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, BlockAccessor &dataAccessor, BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &dataAccessor, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasStairs) {
@@ -104,7 +104,7 @@ public:
     return "straight";
   }
 
-  static std::shared_ptr<mcfile::blocks::data::type::Stairs> StairsBlockData(BlockAccessor &dataAccessor, int x, int y, int z) {
+  static std::shared_ptr<mcfile::blocks::data::type::Stairs> StairsBlockData(BlockAccessor<mcfile::je::Block> &dataAccessor, int x, int y, int z) {
     auto blockJ = dataAccessor.blockAt(x, y, z);
     if (!blockJ) {
       return nullptr;

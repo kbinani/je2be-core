@@ -3,7 +3,7 @@
 namespace je2be::toje {
 
 template <size_t width, size_t height>
-class BlockAccessorWrapper : public je2be::terraform::BlockAccessor {
+class BlockAccessorWrapper : public je2be::terraform::BlockAccessor<mcfile::je::Block> {
 public:
   explicit BlockAccessorWrapper(je2be::terraform::bedrock::BlockAccessorBedrock<width, height> &base) : fBase(base) {}
 

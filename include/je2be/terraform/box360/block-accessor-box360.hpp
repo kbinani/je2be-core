@@ -3,7 +3,7 @@
 namespace je2be::terraform::box360 {
 
 template <size_t width, size_t height>
-class BlockAccessorBox360 : public BlockAccessor {
+class BlockAccessorBox360 : public BlockAccessor<mcfile::je::Block> {
 public:
   BlockAccessorBox360(int cx, int cz, std::filesystem::path const &directory) : fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDir(directory) {
   }

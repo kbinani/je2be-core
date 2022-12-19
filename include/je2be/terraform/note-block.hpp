@@ -6,7 +6,7 @@ class NoteBlock {
   NoteBlock() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, terraform::BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, terraform::BlockPropertyAccessor const &accessor) {
     using namespace std;
     using namespace mcfile::blocks;
 
