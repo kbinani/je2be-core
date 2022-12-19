@@ -101,9 +101,9 @@ public:
         }
       }
     }
-    for (int y = y0; y <= y1; y++) {
-      for (int z = z0; z <= z1; z++) {
-        for (int x = x0; x <= x1; x++) {
+    for (int y = leavesRange->fStart.fY; y <= leavesRange->fEnd.fY; y++) {
+      for (int z = leavesRange->fStart.fZ; z <= leavesRange->fEnd.fZ; z++) {
+        for (int x = leavesRange->fStart.fX; x <= leavesRange->fEnd.fX; x++) {
           int8_t distance = *data.get({x, y, z});
           if (distance == Leaves) {
             distance = 7;
