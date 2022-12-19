@@ -38,16 +38,20 @@ public:
     if (!leavesRange) {
       return;
     }
+
+    enum Distance : int8_t {
+      Unknown = -2,
+      Leaves = -1,
+      Log = 0,
+    };
+
     int x0 = leavesRange->fStart.fX - 7;
     int y0 = leavesRange->fStart.fY - 7;
     int z0 = leavesRange->fStart.fZ - 7;
     int x1 = leavesRange->fEnd.fX + 7;
     int y1 = leavesRange->fEnd.fY + 7;
     int z1 = leavesRange->fEnd.fZ + 7;
-    size_t sx = (size_t)(x1 - x0 + 1);
-    size_t sy = (size_t)(y1 - y0 + 1);
-    size_t sz = (size_t)(z1 - z0 + 1);
-    vector<int8_t> data(sx * sy * sz, -2);
+    Data3D<int8_t> data({x0, y0, z0}, {x1, y1, z1}, Unknown);
     for (int y = y0; y <= y1; y++) {
       for (int z = z0; z <= z1; z++) {
         for (int x = x0; x <= x1; x++) {
@@ -55,11 +59,10 @@ public:
           if (!block) {
             continue;
           }
-          int index = ((y - y0) * sz + (z - z0)) * sx + (x - x0);
           if (IsLog(*block)) {
-            data[index] = 0;
+            data.set({x, y, z}, Log);
           } else if (BlockPropertyAccessor::IsLeaves(*block)) {
-            data[index] = -1;
+            data.set({x, y, z}, Leaves);
           }
         }
       }
@@ -76,8 +79,7 @@ public:
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
-            int index = ((y - y0) * sz + (z - z0)) * sx + (x - x0);
-            if (data[index] != -1) {
+            if (data.get({x, y, z}) != Leaves) {
               continue;
             }
             for (Pos3i const &d : sDirections) {
@@ -87,12 +89,12 @@ public:
               if (tx < x0 || x1 < tx || ty < y0 || y1 < ty || tz < z0 || z1 < tz) {
                 continue;
               }
-              int i = ((ty - y0) * sz + (tz - z0)) * sx + (tx - x0);
-              if (i < 0 || data.size() <= i) {
+              optional<int8_t> current = data.get({tx, ty, tz});
+              if (!current) {
                 continue;
               }
-              if (data[i] == distance - 1) {
-                data[index] = distance;
+              if (*current == distance - 1) {
+                data.set({x, y, z}, distance);
                 break;
               }
             }
@@ -100,16 +102,13 @@ public:
         }
       }
     }
-    for (size_t i = 0; i < data.size(); i++) {
-      if (data[i] == -1) {
-        data[i] = 7;
-      }
-    }
     for (int y = y0; y <= y1; y++) {
       for (int z = z0; z <= z1; z++) {
         for (int x = x0; x <= x1; x++) {
-          int index = ((y - y0) * sz + (z - z0)) * sx + (x - x0);
-          int distance = data[index];
+          int8_t distance = *data.get({x, y, z});
+          if (distance == Leaves) {
+            distance = 7;
+          }
           if (distance <= 0) {
             continue;
           }

@@ -87,6 +87,7 @@
 #include <je2be/java-level-dat.hpp>
 #include <je2be/zip-file.hpp>
 #include <je2be/poi-blocks.hpp>
+#include <je2be/data3d.hpp>
 
 #include <je2be/enums/banner-color-code-bedrock.hpp>
 #include <je2be/enums/color-code-java.hpp>
