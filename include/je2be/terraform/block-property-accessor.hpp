@@ -297,7 +297,7 @@ public:
   }
 
   static bool IsLeaves(mcfile::be::Block const &b) {
-    return b.fName.ends_with("leaves") || b.fName.ends_with("leaves2");
+    return b.fName.ends_with("leaves") || b.fName.ends_with("leaves2") || b.fName == "minecraft:azalea_leaves_flowered";
   }
 
   static bool IsLeaves(mcfile::je::Block const &b) {
