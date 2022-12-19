@@ -25,7 +25,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          string type = blockJ->property("type");
+          auto type = blockJ->property("type");
           if (type == "left" || type == "right") {
             continue;
           }

@@ -17,7 +17,7 @@ public:
     }
   }
 
-  static int8_t GetSkullTypeFromBlockName(std::string const &name) {
+  static int8_t GetSkullTypeFromBlockName(std::string_view const &name) {
     int8_t type = 0;
     std::string n = strings::LTrim(name, "minecraft:");
     n = strings::Remove(n, "_wall");

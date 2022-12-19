@@ -261,7 +261,7 @@ static void NoteBlock() {
       if (instrument.empty()) {
         cerr << "empty instrument: [" << x << ", " << z0 << "]" << endl;
       } else {
-        instruments[instrument].insert(center->fName);
+        instruments[string(instrument)].insert(string(center->fName));
       }
     }
   }

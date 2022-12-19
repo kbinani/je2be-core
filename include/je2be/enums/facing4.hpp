@@ -24,7 +24,7 @@ static inline std::string JavaNameFromFacing4(Facing4 f) {
   return "";
 }
 
-static inline Facing4 Facing4FromJavaName(std::string const &n) {
+static inline Facing4 Facing4FromJavaName(std::string_view const &n) {
   if (n == "north") {
     return Facing4::North;
   } else if (n == "east") {

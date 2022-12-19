@@ -128,7 +128,7 @@ public:
     using namespace std;
     using namespace mcfile::blocks::minecraft;
     auto id = block.fId;
-    string name = block.fName.substr(10);
+    auto name = block.fName.substr(10);
     if (id == lightning_rod || id == lectern || id == daylight_detector || id == detector_rail || id == redstone_torch || id == redstone_wall_torch || id == tripwire_hook || name.ends_with("pressure_plate") || name.ends_with("button") || id == lever || id == redstone_block || id == target || id == trapped_chest || id == redstone_wire || id == sculk_sensor || id == comparator) {
       return true;
     }

@@ -49,8 +49,8 @@ static inline std::shared_ptr<LongTag> Long(int64_t v) {
   return std::make_shared<LongTag>(v);
 }
 
-static inline std::shared_ptr<StringTag> String(std::string v) {
-  return std::make_shared<StringTag>(v);
+static inline std::shared_ptr<StringTag> String(std::string_view v) {
+  return std::make_shared<StringTag>(std::string(v));
 }
 
 static inline std::shared_ptr<FloatTag> Float(float v) {

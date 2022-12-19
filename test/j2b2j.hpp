@@ -16,11 +16,11 @@ static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block c
 }
 
 static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, Dimension dim, int x, int y, int z) {
-  unordered_map<string, string> fallbackJtoB;
+  unordered_map<string_view, string> fallbackJtoB;
   fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
 
-  unordered_map<string, string> fallbackBtoJ;
+  unordered_map<string_view, string> fallbackBtoJ;
   fallbackBtoJ["minecraft:frame"] = "minecraft:air";      // frame should be converted as an entity.
   fallbackBtoJ["minecraft:glow_frame"] = "minecraft:air"; // frame should be converted as an entity.
 

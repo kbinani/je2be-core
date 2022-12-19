@@ -479,7 +479,7 @@ public:
       p["note"] = to_string(*note);
     }
     Result r;
-    r.fBlock = BlockFullName(blockJ.fName, p);
+    r.fBlock = blockJ.applying(p);
     return r;
   }
 

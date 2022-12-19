@@ -1073,7 +1073,7 @@ private:
     return tag;
   }
 
-  static int32_t BannerColor(std::string const &name) {
+  static int32_t BannerColor(std::string_view const &name) {
     auto color = name.substr(10); // minecraft:
     auto suffix = color.rfind("_wall_banner");
     if (suffix != std::string::npos) {
@@ -1083,7 +1083,7 @@ private:
     if (suffix != std::string::npos) {
       color = color.substr(0, suffix);
     }
-    static std::unordered_map<std::string, int32_t> const mapping = {
+    static std::unordered_map<std::string_view, int32_t> const mapping = {
         {"black", 0},
         {"red", 1},
         {"green", 2},
@@ -1108,8 +1108,8 @@ private:
     return found->second;
   }
 
-  static int8_t BedColor(std::string const &name) {
-    static std::unordered_map<std::string, int8_t> const mapping = {
+  static int8_t BedColor(std::string_view const &name) {
+    static std::unordered_map<std::string_view, int8_t> const mapping = {
         {"minecraft:white_bed", 0},
         {"minecraft:orange_bed", 1},
         {"minecraft:magenta_bed", 2},

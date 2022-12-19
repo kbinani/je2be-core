@@ -30,7 +30,7 @@ static inline std::string JavaNameFromFacing6(Facing6 f) {
   return "";
 }
 
-static inline Facing6 Facing6FromJavaName(std::string const &n) {
+static inline Facing6 Facing6FromJavaName(std::string_view const &n) {
   if (n == "north") {
     return Facing6::North;
   } else if (n == "east") {

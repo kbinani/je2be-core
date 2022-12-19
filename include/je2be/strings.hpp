@@ -2,35 +2,35 @@
 
 namespace je2be::strings {
 
-inline std::string LTrim(std::string const &s, std::string const &left) {
+inline std::string LTrim(std::string_view const &s, std::string const &left) {
   if (left.empty()) {
-    return s;
+    return std::string(s);
   }
-  std::string ret = s;
+  std::string ret(s);
   while (ret.starts_with(left)) {
     ret = ret.substr(left.size());
   }
   return ret;
 }
 
-inline std::string RTrim(std::string const &s, std::string const &right) {
+inline std::string RTrim(std::string_view const &s, std::string const &right) {
   if (right.empty()) {
-    return s;
+    return std::string(s);
   }
-  std::string ret = s;
+  std::string ret(s);
   while (ret.ends_with(right)) {
     ret = ret.substr(0, ret.size() - right.size());
   }
   return ret;
 }
 
-inline std::string Trim(std::string const &left, std::string const &s, std::string const &right) { return RTrim(LTrim(s, left), right); }
+inline std::string Trim(std::string const &left, std::string_view const &s, std::string const &right) { return RTrim(LTrim(s, left), right); }
 
-inline std::string Remove(std::string const &s, std::string const &search) {
+inline std::string Remove(std::string_view const &s, std::string const &search) {
   if (search.empty()) {
-    return s;
+    return std::string(s);
   }
-  std::string ret = s;
+  std::string ret(s);
   while (true) {
     auto i = ret.find(search);
     if (i == std::string::npos) {
@@ -41,16 +41,16 @@ inline std::string Remove(std::string const &s, std::string const &search) {
   return ret;
 }
 
-inline std::string Replace(std::string const &target, std::string const &search, std::string const &replace) {
+inline std::string Replace(std::string_view const &target, std::string const &search, std::string const &replace) {
   using namespace std;
   if (search.empty()) {
-    return target;
+    return string(target);
   }
   if (search == replace) {
-    return target;
+    return string(target);
   }
   size_t offset = 0;
-  string ret = target;
+  string ret(target);
   while (true) {
     auto found = ret.find(search, offset);
     if (found == string::npos) {
@@ -62,7 +62,7 @@ inline std::string Replace(std::string const &target, std::string const &search,
   return ret;
 }
 
-inline std::optional<int32_t> Toi(std::string const &s, int base = 10) {
+inline std::optional<int32_t> Toi(std::string_view const &s, int base = 10) {
   int32_t v = 0;
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
@@ -71,7 +71,7 @@ inline std::optional<int32_t> Toi(std::string const &s, int base = 10) {
   }
 }
 
-inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
+inline std::optional<int64_t> Tol(std::string_view const &s, int base = 10) {
   int64_t v = 0;
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
@@ -80,24 +80,16 @@ inline std::optional<int64_t> Tol(std::string const &s, int base = 10) {
   }
 }
 
-inline std::optional<float> Tof(std::string const &s) {
+inline std::optional<float> Tof(std::string_view const &s) {
   float v = 0;
-#if defined(_MSC_VER)
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v); ec == std::errc{}) {
     return v;
   } else {
     return std::nullopt;
   }
-#else
-  auto ret = sscanf(s.c_str(), "%f", &v);
-  if (ret == 0 || ret == EOF) {
-    return std::nullopt;
-  }
-  return v;
-#endif
 }
 
-inline bool Iequals(std::string const &a, std::string const &b) {
+inline bool Iequals(std::string_view const &a, std::string_view const &b) {
   if (a.size() != b.size()) {
     return false;
   }

@@ -40,9 +40,9 @@ public:
           if (lowerJ->property("half") != "lower" || upperJ->property("half") != "upper") {
             continue;
           }
-          auto facing = lowerJ->property("facing");
-          auto open = lowerJ->property("open");
-          auto hinge = upperJ->property("hinge");
+          string facing(lowerJ->property("facing"));
+          string open(lowerJ->property("open"));
+          string hinge(upperJ->property("hinge"));
           if (facing.empty() || open.empty() || hinge.empty()) {
             continue;
           }

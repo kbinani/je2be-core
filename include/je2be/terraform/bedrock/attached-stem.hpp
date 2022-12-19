@@ -51,7 +51,7 @@ public:
             continue;
           }
           map<string, optional<string>> props;
-          string name = blockJ->fName;
+          auto name = blockJ->fName;
           if (growth < 7) {
             props["facing"] = nullopt;
           } else {

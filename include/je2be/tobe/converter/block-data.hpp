@@ -92,7 +92,7 @@ private:
     return [=](Block const &) { return "minecraft:" + name; };
   }
 
-  static std::string Same(Block const &block) { return block.fName; }
+  static std::string Same(Block const &block) { return block.name(); }
 
   static NamingFunction SlabName(std::string const &name, std::string const &tail) {
     return [=](Block const &block) {
@@ -104,7 +104,7 @@ private:
   static NamingFunction ChangeWhenDoubleType(std::string const &doubleName) {
     return [=](Block const &block) {
       auto t = block.property("type", "bottom");
-      return t == "double" ? "minecraft:" + doubleName : block.fName;
+      return t == "double" ? "minecraft:" + doubleName : block.name();
     };
   }
 
@@ -487,7 +487,7 @@ private:
 
   static Converter AnyTorch(std::string const &prefix) { return Converter(Name(prefix + "torch"), AddStringProperty("torch_facing_direction", "top")); }
 
-  static std::string GetTorchFacingDirectionFromFacing(std::string const &facing) {
+  static std::string GetTorchFacingDirectionFromFacing(std::string_view const &facing) {
     if (facing == "east") {
       return "west";
     } else if (facing == "west") {
@@ -516,14 +516,14 @@ private:
     return Int(v);
   }
 
-  static bool On(std::string const &actual) {
+  static bool On(std::string_view const &actual) {
     if (actual.empty()) {
       return true;
     }
     return actual == "true";
   }
 
-  static bool Off(std::string const &actual) {
+  static bool Off(std::string_view const &actual) {
     if (actual.empty()) {
       return true;
     }
@@ -590,13 +590,13 @@ private:
   }
 
   static void PistonFacingDirectionFromFacing6(CompoundTagPtr const &s, Block const &block) {
-    std::string facing = block.property("facing", "");
+    auto facing = block.property("facing", "");
     Facing6 f6 = Facing6FromJavaName(facing);
     int32_t direction = BedrockFacingDirectionBFromFacing6(f6);
     s->set("facing_direction", Int(direction));
   }
 
-  static std::string GetWallConnectionType(std::string const &type) {
+  static std::string GetWallConnectionType(std::string_view const &type) {
     if (type == "low") {
       return "short";
     } else if (type == "tall") {
@@ -1755,7 +1755,7 @@ private:
     auto s = States();
     s->set("big_dripleaf_head", Bool(true));
     DirectionFromFacingA(s, block);
-    std::string tilt = block.property("tilt", "none");
+    auto tilt = block.property("tilt", "none");
     if (tilt == "none") {
       //nop
     } else if (tilt == "partial") {
@@ -2068,9 +2068,9 @@ private:
     auto lit = b.property("lit", "false") == "true";
     if (lit) {
       auto name = b.fName.substr(10);
-      return "minecraft:lit_" + name;
+      return "minecraft:lit_" + std::string(name);
     } else {
-      return b.fName;
+      return b.name();
     }
   }
 
@@ -2159,7 +2159,7 @@ private:
     return Bool(v);
   }
 
-  static std::string GetAttachment(std::string const &attachment) {
+  static std::string GetAttachment(std::string_view const &attachment) {
     if (attachment == "floor") {
       return "standing";
     } else if (attachment == "ceiling") {
@@ -2169,13 +2169,13 @@ private:
     } else if (attachment == "single_wall") {
       return "side";
     }
-    return attachment;
+    return std::string(attachment);
   }
 
-  static CompoundTagPtr New(std::string const &name, bool nameIsFull = false) {
+  static CompoundTagPtr New(std::string_view const &name, bool nameIsFull = false) {
     using namespace std;
     auto tag = Compound();
-    string fullName = nameIsFull ? name : "minecraft:"s + name;
+    string fullName = nameIsFull ? string(name) : "minecraft:"s + string(name);
     tag->set("name", String(fullName));
     tag->set("version", Int(kBlockDataVersion));
     return tag;
