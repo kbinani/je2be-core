@@ -84,10 +84,6 @@ private:
     }
     return ret;
   }
-
-private:
-  leveldb::DB *const fDb;
-  std::unique_ptr<hwm::task_queue> fQ;
 };
 
 } // namespace je2be
