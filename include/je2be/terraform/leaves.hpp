@@ -8,17 +8,26 @@ class Leaves {
 public:
   static void Do(mcfile::je::Chunk &out, BlockAccessor &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
+
+    enum Distance : int8_t {
+      Unknown = -2,
+      Leaves = -1,
+      Log = 0,
+    };
+
     if (!accessor.fHasLeaves) {
       return;
     }
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
     optional<Volume> leavesRange;
+    Data3D<int8_t> data({cx * 16 - 7, accessor.minBlockY(), cz * 16 - 7}, {cx * 16 + 15 + 7, accessor.maxBlockY(), cz * 16 + 15 + 7}, Unknown);
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           if (BlockPropertyAccessor::IsLeaves(p)) {
+            data.set({x, y, z}, Leaves);
             if (leavesRange) {
               leavesRange->fStart.fX = (std::min)(leavesRange->fStart.fX, x);
               leavesRange->fStart.fY = (std::min)(leavesRange->fStart.fY, y);
@@ -39,22 +48,18 @@ public:
       return;
     }
 
-    enum Distance : int8_t {
-      Unknown = -2,
-      Leaves = -1,
-      Log = 0,
-    };
-
     int x0 = leavesRange->fStart.fX - 7;
     int y0 = leavesRange->fStart.fY - 7;
     int z0 = leavesRange->fStart.fZ - 7;
     int x1 = leavesRange->fEnd.fX + 7;
     int y1 = leavesRange->fEnd.fY + 7;
     int z1 = leavesRange->fEnd.fZ + 7;
-    Data3D<int8_t> data({x0, y0, z0}, {x1, y1, z1}, Unknown);
     for (int y = y0; y <= y1; y++) {
       for (int z = z0; z <= z1; z++) {
         for (int x = x0; x <= x1; x++) {
+          if (data.get({x, y, z}) == Leaves) {
+            continue;
+          }
           auto block = cache.blockAt(x, y, z);
           if (!block) {
             continue;
@@ -83,17 +88,11 @@ public:
               continue;
             }
             for (Pos3i const &d : sDirections) {
-              int tx = x + d.fX;
-              int ty = y + d.fY;
-              int tz = z + d.fZ;
-              if (tx < x0 || x1 < tx || ty < y0 || y1 < ty || tz < z0 || z1 < tz) {
+              optional<int8_t> adjacent = data.get({x + d.fX, y + d.fY, z + d.fZ});
+              if (!adjacent) {
                 continue;
               }
-              optional<int8_t> current = data.get({tx, ty, tz});
-              if (!current) {
-                continue;
-              }
-              if (*current == distance - 1) {
+              if (*adjacent == distance - 1) {
                 data.set({x, y, z}, distance);
                 break;
               }
