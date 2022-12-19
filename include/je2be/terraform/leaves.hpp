@@ -6,7 +6,8 @@ class Leaves {
   Leaves() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
+  template <class Block>
+  static void Do(mcfile::je::Chunk &out, BlockAccessor<Block> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     enum Distance : int8_t {
@@ -60,7 +61,7 @@ public:
           if (data.get({x, y, z}) == Leaves) {
             continue;
           }
-          auto block = cache.blockAt(x, y, z);
+          shared_ptr<Block const> block = cache.blockAt(x, y, z);
           if (!block) {
             continue;
           }
@@ -122,6 +123,10 @@ public:
     }
   }
 
+  template <class Block>
+  static bool IsLog(Block const &b);
+
+  template <>
   static bool IsLog(mcfile::je::Block const &b) {
     using namespace mcfile::blocks;
     if (b.fName.ends_with("log") || b.fName.ends_with("wood")) {
@@ -138,6 +143,35 @@ public:
     default:
       return false;
     }
+  }
+
+  template <>
+  static bool IsLog(mcfile::be::Block const &b) {
+    using namespace std;
+    static unique_ptr<unordered_set<string> const> const sTable(CreateBedrockLogBlocksSet());
+    return sTable->find(b.fName) != sTable->end();
+  }
+
+  static std::unordered_set<std::string> *CreateBedrockLogBlocksSet() {
+    using namespace std;
+    using namespace mcfile::blocks;
+    unordered_set<string> *ret = new unordered_set<string>();
+    for (BlockId id = unknown + 1; id < minecraft::minecraft_max_block_id; id++) {
+      auto blockJ = make_shared<mcfile::je::Block const>(id);
+      if (!IsLog(*blockJ)) {
+        continue;
+      }
+      auto blockB = je2be::tobe::BlockData::From(blockJ, nullptr);
+      if (!blockB) {
+        continue;
+      }
+      auto nameB = blockB->string("name");
+      if (!nameB) {
+        continue;
+      }
+      ret->insert(*nameB);
+    }
+    return ret;
   }
 };
 

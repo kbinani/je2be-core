@@ -131,6 +131,9 @@
 
 #include <je2be/structure/structure-piece.hpp>
 
+//TODO: fix this
+#include <je2be/tobe/converter/block-data.hpp>
+
 #include <je2be/terraform/block-property-accessor.hpp>
 #include <je2be/terraform/block-accessor.hpp>
 #include <je2be/terraform/bedrock/block-accessor-bedrock.hpp>

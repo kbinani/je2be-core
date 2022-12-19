@@ -3,7 +3,7 @@
 namespace je2be::terraform::bedrock {
 
 template <size_t Width, size_t Height>
-class BlockAccessorBedrock {
+class BlockAccessorBedrock : public BlockAccessor<mcfile::be::Block> {
 public:
   BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, mcfile::Endian endian)
       : fDim(d), fCache(Width * Height), fCacheLoaded(Width * Height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
@@ -17,7 +17,7 @@ public:
     return fCache[*index];
   }
 
-  std::shared_ptr<mcfile::be::Block const> blockAt(int bx, int by, int bz) {
+  std::shared_ptr<mcfile::be::Block const> blockAt(int bx, int by, int bz) override {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
     auto const &chunk = ensureLoadedAt(cx, cz);

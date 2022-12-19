@@ -15,7 +15,6 @@
 #include <je2be/tobe/portal/portal-blocks.hpp>
 #include <je2be/tobe/portal/portals.hpp>
 
-#include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/biome-map-legacy.hpp>
 #include <je2be/tobe/converter/player-abilities.hpp>
 #include <je2be/tobe/converter/flat-world-layers.hpp>
