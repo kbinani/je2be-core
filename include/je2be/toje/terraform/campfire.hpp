@@ -27,7 +27,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
           props["signal_fire"] = "false";
           auto lower = cache.blockAt(x, y - 1, z);
           if (lower) {
@@ -35,7 +35,7 @@ public:
               props["signal_fire"] = "true";
             }
           }
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying(props);
           mcfile::je::SetBlockOptions o;
           o.fRemoveTileEntity = false;
           out.setBlockAt(x, y, z, replace, o);

@@ -74,7 +74,7 @@ public:
     Result r;
     r.fTileEntity = out;
     if (block) {
-      r.fBlock = make_shared<mcfile::je::Block const>("minecraft:" + name, block->fProperties);
+      r.fBlock = block->renamed("minecraft:" + name);
     }
     return r;
   }
@@ -85,7 +85,7 @@ public:
     Result r;
     r.fTileEntity = out;
     if (block) {
-      r.fBlock = std::make_shared<mcfile::je::Block const>("minecraft:" + name, block->fProperties);
+      r.fBlock = block->renamed("minecraft:" + name);
     }
     return r;
   }
@@ -291,11 +291,9 @@ public:
     }
     auto note = in.byte("note", 0);
     auto powered = in.boolean("powered", false);
-    auto props = block->fProperties;
-    props["note"] = std::to_string(note);
-    props["powered"] = powered ? "true" : "false";
     Result r;
-    r.fBlock = std::make_shared<mcfile::je::Block const>(block->fName, props);
+    r.fBlock = block->applying({{"note", std::to_string(note)},
+                                {"powered", powered ? "true" : "false"}});
     return r;
   }
 
@@ -332,8 +330,7 @@ public:
     Result r;
 
     if (block) {
-      map<string, string> props(block->fProperties);
-
+      map<string, string> props;
       string name;
       if (block->fName.find("wall") == string::npos) {
         if (rot) {

@@ -40,14 +40,15 @@ public:
           auto east = cache.blockAt(x + 1, y, z);
           auto south = cache.blockAt(x, y, z + 1);
           auto west = cache.blockAt(x - 1, y, z);
-          map<string, string> props(blockJ->fProperties);
-          props["up"] = up ? "true" : "false";
-          props["down"] = IsChorusPlantConnectable(down);
-          props["north"] = IsChorusPlantConnectable(north);
-          props["east"] = IsChorusPlantConnectable(east);
-          props["south"] = IsChorusPlantConnectable(south);
-          props["west"] = IsChorusPlantConnectable(west);
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+
+          auto replace = blockJ->applying({
+              {"up", up ? "true" : "false"},
+              {"down", IsChorusPlantConnectable(down)},
+              {"north", IsChorusPlantConnectable(north)},
+              {"east", IsChorusPlantConnectable(east)},
+              {"south", IsChorusPlantConnectable(south)},
+              {"west", IsChorusPlantConnectable(west)},
+          });
           out.setBlockAt(x, y, z, replace);
         }
       }

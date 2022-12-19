@@ -32,7 +32,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
           Pos2i const pos(x, z);
           for (auto const &it : nesw) {
             Pos2i direction = it.second;
@@ -44,7 +44,7 @@ public:
               props[it.first] = ToString(false);
             }
           }
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying(props);
           out.setBlockAt(x, y, z, replace);
         }
       }
@@ -109,7 +109,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
           Pos2i const pos(x, z);
           for (auto const &it : nesw) {
             Pos2i direction = it.second;
@@ -121,7 +121,7 @@ public:
               props[it.first] = ToString(false);
             }
           }
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying(props);
           out.setBlockAt(x, y, z, replace);
         }
       }

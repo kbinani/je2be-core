@@ -205,9 +205,7 @@ public:
                   block = bd.toBlock();
                 } else {
                   if (auto lower = chunk->blockAt(cx * 16 + x, section * 16 + y - 1, cz * 16 + z); lower) {
-                    map<string, string> props(lower->fProperties);
-                    props["half"] = "upper";
-                    block = make_shared<mcfile::je::Block const>(lower->fName, props);
+                    block = lower->applying({{"half", "upper"}});
                   } else {
                     block = bd.toBlock();
                   }
@@ -216,9 +214,7 @@ public:
                 int lowerIndex = ((y - 1) * 16 + z) * 16 + x;
                 uint16_t lowerBlockData = sectionBlocks[lowerIndex];
                 auto lower = usedBlocks[lowerBlockData];
-                map<string, string> props(lower->fProperties);
-                props["half"] = "upper";
-                block = make_shared<mcfile::je::Block const>(lower->fName, props);
+                block = lower->applying({{"half", "upper"}});
               }
             } else {
               block = usedBlocks[data];

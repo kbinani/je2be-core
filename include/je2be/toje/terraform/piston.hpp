@@ -38,7 +38,6 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
           auto blockEntity = chunkB->blockEntityAt(x, y, z);
           if ((blockB->fName == "minecraft:piston" || blockB->fName == "minecraft:sticky_piston") && blockEntity) {
             // Block
@@ -48,14 +47,10 @@ public:
             bool sticky = blockB->fName == "minecraft:sticky_piston";
 
             if (state == 3) {
-              props.clear();
-              props["facing"] = JavaNameFromFacing6(f6);
-              props["type"] = sticky ? "sticky" : "normal";
-              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston", props);
+              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston")->applying({{"facing", JavaNameFromFacing6(f6)}, {"type", sticky ? "sticky" : "normal"}});
               chunkJ.setBlockAt(x, y, z, replace, sbo);
             } else {
-              props["extended"] = ToString(state == 1 || state == 2);
-              auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+              auto replace = blockJ->applying({{"extended", ToString(state == 1 || state == 2)}});
               chunkJ.setBlockAt(x, y, z, replace, sbo);
             }
 
@@ -87,14 +82,12 @@ public:
             auto piston = PistonBodyFromPistonPos(*blockEntity, cache);
             if (piston) {
               // Block
-              props.clear();
-
               int facingDirectionB = piston->fBlock->fStates->int32("facing_direction", 0);
               Facing6 pistonFacing = Facing6FromBedrockFacingDirectionB(facingDirectionB);
-              props["facing"] = JavaNameFromFacing6(pistonFacing);
-              props["type"] = "normal"; // Always "normal"
 
-              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston", props);
+              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston")->applying({
+                  {"facing", JavaNameFromFacing6(pistonFacing)}, {"type", "normal"}, // Always "normal"
+              });
               chunkJ.setBlockAt(x, y, z, replace, sbo);
 
               // Tile entity
@@ -130,11 +123,8 @@ public:
                 // Block
                 // state = 1 means the piston is extending state.
                 // Block name shold be renamed to "moving_piston".
-                props.clear();
-                props["facing"] = JavaNameFromFacing6(f6);
                 bool sticky = (blockB->fName == "minecraft:stickyPistonArmCollision") || (blockB->fName == "minecraft:sticky_piston_arm_collision");
-                props["type"] = sticky ? "sticky" : "normal";
-                auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston", props);
+                auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston")->applying({{"facing", JavaNameFromFacing6(f6)}, {"type", sticky ? "sticky" : "normal"}});
                 chunkJ.setBlockAt(x, y, z, replace, sbo);
 
                 // Tile Entity

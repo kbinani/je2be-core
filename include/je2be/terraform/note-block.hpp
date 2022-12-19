@@ -28,7 +28,6 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
           string instrument = "harp";
           auto lowerJ = out.blockAt(x, y - 1, z);
           if (lowerJ) {
@@ -60,8 +59,7 @@ public:
               break;
             }
           }
-          props["instrument"] = instrument;
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying({{"instrument", instrument}});
           out.setBlockAt(x, y, z, replace);
         }
       }

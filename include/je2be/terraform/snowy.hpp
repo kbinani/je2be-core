@@ -34,9 +34,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
-          props["snowy"] = "true";
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying({{"snowy", "true"}});
           out.setBlockAt(x, y, z, replace);
         }
       }

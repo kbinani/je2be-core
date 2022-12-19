@@ -72,9 +72,7 @@ public:
           }
 
           auto shape = Shape(direction, outerWeirdoDirection, innerWeirdoDirection, leftWeirdoDirection, rightWeirdoDirection);
-          map<string, string> props(blockJ->fProperties);
-          props["shape"] = shape;
-          auto newBlock = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto newBlock = blockJ->applying({{"shape", shape}});
           out.setBlockAt(x, y, z, newBlock);
         }
       }

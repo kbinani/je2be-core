@@ -72,7 +72,7 @@ public:
       }
     }
     Result r;
-    r.fBlock = BlockShortName(name, blockJ.fProperties);
+    r.fBlock = blockJ.renamed("minecraft:" + name);
     r.fTileEntity = te;
     return r;
   }
@@ -92,7 +92,7 @@ public:
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
     auto name = JavaNameFromColorCodeJava(ccj);
     Result r;
-    r.fBlock = BlockShortName(name + "_bed", blockJ.fProperties);
+    r.fBlock = blockJ.renamed("minecraft:" + name + "_bed");
     r.fTileEntity = EmptyShortName("bed", pos);
     return r;
   }
@@ -226,9 +226,7 @@ public:
         r.fTakeItemsFrom = Pos3i(*px, pos.fY, *pz);
       }
     }
-    map<string, string> p(blockJ.fProperties);
-    p["type"] = type;
-    r.fBlock = BlockFullName(blockJ.fName, p);
+    r.fBlock = blockJ.applying({{"type", type}});
     auto te = EmptyFullName(block.fName, pos);
     if (auto st = LootTable::BedrockToJava(tagB, *te); st == LootTable::State::NoLootTable && !r.fTakeItemsFrom) {
       auto items = ContainerItems(tagB, "Items", ctx);
@@ -241,6 +239,8 @@ public:
   }
 
   static std::optional<Result> ChiseledBookshelf(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    using namespace std;
+
     auto t = EmptyShortName("chiseled_bookshelf", pos);
 
     auto itemsJ = ContainerItemsWithoutSlot(tagB, "Items", ctx, true);
@@ -249,7 +249,7 @@ public:
     int lastInteractedSlot = blockB.fStates->int32("last_interacted_slot", 0);
     t->set("last_interacted_slot", Int(lastInteractedSlot));
 
-    auto props = blockJ.fProperties;
+    map<string, optional<string>> props;
     if (auto items = tagB.listTag("Items"); items) {
       for (int i = 0; i < 6; i++) {
         bool occupied = false;
@@ -259,7 +259,7 @@ public:
             occupied = count > 0;
           }
         }
-        std::string name = "slot_" + std::to_string(i) + "_occupied";
+        string name = "slot_" + std::to_string(i) + "_occupied";
 
         props[name] = occupied ? "true" : "false";
       }
@@ -267,7 +267,7 @@ public:
 
     Result r;
     r.fTileEntity = t;
-    r.fBlock = std::make_shared<mcfile::je::Block const>(blockJ.fId, props);
+    r.fBlock = blockJ.applying(props);
     return r;
   }
 
@@ -409,8 +409,6 @@ public:
   static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto record = tag.compoundTag("RecordItem");
-    map<string, string> p(blockJ.fProperties);
-    p["has_record"] = ToString(record != nullptr);
     auto te = EmptyShortName("jukebox", pos);
     if (record) {
       auto itemJ = Item::From(*record, ctx);
@@ -419,7 +417,7 @@ public:
       }
     }
     Result r;
-    r.fBlock = BlockShortName("jukebox", p);
+    r.fBlock = blockJ.renamed("minecraft:jukebox")->applying({{"has_record", ToString(record != nullptr)}});
     r.fTileEntity = te;
     return r;
   }
@@ -427,16 +425,15 @@ public:
   static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto te = EmptyShortName("lectern", pos);
-    map<string, string> p(blockJ.fProperties);
     auto page = tag.int32("page");
     auto bookB = tag.compoundTag("book");
     shared_ptr<CompoundTag> bookJ;
     if (bookB) {
       bookJ = Item::From(*bookB, ctx);
     }
-    p["has_book"] = ToString(bookJ != nullptr);
+
     Result r;
-    r.fBlock = BlockFullName(blockJ.fName, p);
+    r.fBlock = blockJ.applying({{"has_book", ToString(bookJ != nullptr)}});
     if (page) {
       te->set("Page", Int(*page));
     }
@@ -477,7 +474,7 @@ public:
   static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto note = tag.byte("note");
-    map<string, string> p(blockJ.fProperties);
+    map<string, optional<string>> p;
     if (note) {
       p["note"] = to_string(*note);
     }
@@ -496,15 +493,13 @@ public:
     using namespace std;
     auto facing = tag.byte("facing", 0);
     auto f6 = Facing6FromBedrockFacingDirectionA(facing);
-    map<string, string> p(blockJ.fProperties);
-    p["facing"] = JavaNameFromFacing6(f6);
     auto te = EmptyShortName("shulker_box", pos);
     auto items = ContainerItems(tag, "Items", ctx);
     if (items) {
       te->set("Items", items);
     }
     Result r;
-    r.fBlock = BlockFullName(blockJ.fName, p);
+    r.fBlock = blockJ.applying({{"facing", JavaNameFromFacing6(f6)}});
     r.fTileEntity = te;
     return r;
   }
@@ -541,7 +536,7 @@ public:
     SkullType type = static_cast<SkullType>(tag.byte("SkullType", 0));
     string skullName = JavaNameFromSkullType(type);
 
-    map<string, string> p;
+    map<string, optional<string>> p;
 
     int facingDirection = block.fStates->int32("facing_direction", 1);
     Facing6 f = Facing6FromBedrockFacingDirectionA(facingDirection);
@@ -664,12 +659,12 @@ public:
 #pragma endregion
 
 #pragma region Utilities
-  static std::shared_ptr<mcfile::je::Block const> BlockShortName(std::string const &name, std::map<std::string, std::string> props = {}) {
-    return std::make_shared<mcfile::je::Block const>("minecraft:" + name, props);
+  static std::shared_ptr<mcfile::je::Block const> BlockShortName(std::string const &name, std::map<std::string, std::optional<std::string>> props = {}) {
+    return std::make_shared<mcfile::je::Block const>("minecraft:" + name)->applying(props);
   }
 
-  static std::shared_ptr<mcfile::je::Block const> BlockFullName(std::string const &name, std::map<std::string, std::string> props = {}) {
-    return std::make_shared<mcfile::je::Block const>(name, props);
+  static std::shared_ptr<mcfile::je::Block const> BlockFullName(std::string const &name, std::map<std::string, std::optional<std::string>> props = {}) {
+    return std::make_shared<mcfile::je::Block const>(name)->applying(props);
   }
 
   static ListTagPtr ContainerItems(CompoundTag const &parent, std::string const &key, Context &ctx) {

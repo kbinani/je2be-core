@@ -117,9 +117,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
-          props["distance"] = to_string(distance);
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying({{"distance", to_string(distance)}});
           out.setBlockAt(x, y, z, replace);
         }
       }

@@ -29,7 +29,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
           for (auto it : nesw) {
             Pos2i vec = it.second;
             auto block = cache.blockAt(x + vec.fX, y, z + vec.fZ);
@@ -47,7 +47,7 @@ public:
             }
             props[it.first] = connect ? "true" : "false";
           }
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying(props);
           out.setBlockAt(x, y, z, replace);
         }
       }

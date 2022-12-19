@@ -270,9 +270,7 @@ public:
         if (auto depth = pt.fBlockState->fStates->int32("liquid_depth"); depth) {
           if (auto blockJ = j->blockAt(pt.fX, pt.fY, pt.fZ); blockJ) {
             if (blockJ->property("level") != "") {
-              map<string, string> props(blockJ->fProperties);
-              props["level"] = to_string(*depth);
-              auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+              auto replace = blockJ->applying({{"level", to_string(*depth)}});
               mcfile::je::SetBlockOptions sbo;
               sbo.fRemoveTileEntity = false;
               j->setBlockAt(pt.fX, pt.fY, pt.fZ, replace, sbo);

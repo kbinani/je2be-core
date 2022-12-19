@@ -31,9 +31,7 @@ struct BlockData : public std::pair<uint8_t, uint8_t> {
     auto p = unsafeToBlock();
     if (p) {
       if (isWaterlogged()) {
-        map<string, string> props(p->fProperties);
-        props["waterlogged"] = "true";
-        return make_shared<mcfile::je::Block const>(p->fName, props);
+        return p->applying({{"waterlogged", "true"}});
       } else {
         return p;
       }

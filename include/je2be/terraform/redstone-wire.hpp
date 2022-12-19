@@ -27,7 +27,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
 
           // Looking for redstone connectable block in same Y.
           vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
@@ -93,7 +93,7 @@ public:
           int noneCount = 0;
           string notNone;
           for (auto d : nesw) {
-            string p = props[d.first];
+            auto p = props[d.first];
             if (p == "none") {
               noneCount++;
             } else {
@@ -117,7 +117,7 @@ public:
             }
           }
 
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying(props);
           out.setBlockAt(x, y, z, replace);
         }
       }

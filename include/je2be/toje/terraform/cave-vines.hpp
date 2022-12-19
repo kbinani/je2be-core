@@ -26,9 +26,7 @@ public:
             if (!blockJ) {
               continue;
             }
-            map<string, string> props(blockJ->fProperties);
-            props.erase("age");
-            auto plant = make_shared<mcfile::je::Block const>("minecraft:cave_vines_plant", props);
+            auto plant = blockJ->renamed("minecraft:cave_vines_plant")->applying({{"age", nullopt}});
             out.setBlockAt(x, y, z, plant);
           }
         }

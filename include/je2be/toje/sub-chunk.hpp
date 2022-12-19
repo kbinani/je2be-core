@@ -56,14 +56,12 @@ public:
             auto dryBlockJ = paletteJ[indexDryJ];
             int waterLoggedIndexJ = waterLoggedJ[indexDryJ];
             if (waterLoggedIndexJ < 0) {
-              if (dryBlockJ->fProperties.find("waterlogged") == dryBlockJ->fProperties.end()) {
+              if (dryBlockJ->property("waterlogged") == "") {
                 // This block can't be waterlogged in Java.
                 waterLoggedIndexJ = indexDryJ;
                 waterLoggedJ[indexDryJ] = indexDryJ;
               } else {
-                map<string, string> props(dryBlockJ->fProperties);
-                props["waterlogged"] = "true";
-                auto waterLoggedBlockJ = make_shared<mcfile::je::Block const>(dryBlockJ->fName, props);
+                auto waterLoggedBlockJ = dryBlockJ->applying({{"waterlogged", "true"}});
                 waterLoggedIndexJ = paletteJ.size();
                 paletteJ.push_back(waterLoggedBlockJ);
                 waterLoggedJ[indexDryJ] = waterLoggedIndexJ;

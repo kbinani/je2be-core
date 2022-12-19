@@ -289,7 +289,7 @@ private:
 
   static bool IsWaterLogged(mcfile::je::Block const &block) {
     using namespace mcfile::blocks;
-    if (!block.fProperties.empty()) {
+    if (!block.fData.empty()) {
       auto waterlogged = block.property("waterlogged", "");
       if (waterlogged == "true") {
         return true;

@@ -374,15 +374,15 @@ private:
           if (id != red_mushroom_block && id != brown_mushroom_block) {
             continue;
           }
-          map<string, string> props(center->fProperties);
+          map<string, optional<string>> props;
           for (auto const &dir : directions) {
             auto pos = Pos3i(x, y, z) + dir.second;
             auto block = loader.blockAt(pos);
             if (block && !mcfile::blocks::IsTransparent(block->fId)) {
-              props.erase(dir.first);
+              props[dir.first] = nullopt;
             }
           }
-          auto replace = make_shared<mcfile::je::Block const>(center->fName, props);
+          auto replace = center->applying(props);
           chunk.setBlockAt(x, y, z, replace);
         }
       }

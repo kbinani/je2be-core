@@ -143,7 +143,7 @@ public:
 
           auto sticky = block->property("type", "normal") == "sticky";
           string name = sticky ? "minecraft:sticky_piston" : "minecraft:piston";
-          auto newBlock = make_shared<Block>(name, block->fProperties);
+          auto newBlock = block->renamed(name);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
           unordered_set<Pos3i, Pos3iHasher> attachedBlocks;

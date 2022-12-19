@@ -371,9 +371,7 @@ public:
         auto carriedBlockJ = BlockData::From(*carriedBlockB);
         if (carriedBlockJ) {
           if (carriedBlockJ->fId == mcfile::blocks::minecraft::grass_block) {
-            map<string, string> props(carriedBlockJ->fProperties);
-            props["snowy"] = "false";
-            carriedBlockJ = make_shared<mcfile::je::Block const>(carriedBlockJ->fName, props);
+            carriedBlockJ = carriedBlockJ->applying({{"snowy", "false"}});
           }
           j["carriedBlockState"] = carriedBlockJ->toCompoundTag();
         }

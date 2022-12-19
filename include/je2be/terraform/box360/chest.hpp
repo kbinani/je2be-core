@@ -33,7 +33,7 @@ public:
 
           auto f4 = Facing4FromJavaName(blockJ->property("facing"));
           auto facing = Pos2iFromFacing4(f4);
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
 
           Pos2i left = Pos2i(x, z) + Left90(facing);
           if (auto leftBlock = cache.blockAt(left.fX, y, left.fZ); leftBlock) {
@@ -50,7 +50,7 @@ public:
           }
 
           props["type"] = type;
-          auto replace = make_shared<mcfile::je::Block const>(blockJ->fName, props);
+          auto replace = blockJ->applying(props);
           mcfile::je::SetBlockOptions sbo;
           sbo.fRemoveTileEntity = false;
           out.setBlockAt(x, y, z, replace, sbo);

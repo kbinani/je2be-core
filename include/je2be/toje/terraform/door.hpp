@@ -46,17 +46,13 @@ public:
           if (facing.empty() || open.empty() || hinge.empty()) {
             continue;
           }
-          map<string, string> propsUpper(upperJ->fProperties);
-          map<string, string> propsLower(lowerJ->fProperties);
 
-          //NOTE: Doors in villages usually need this repair.
-          propsLower["hinge"] = hinge;
-
-          propsUpper["facing"] = facing;
-          propsUpper["open"] = open;
-
-          auto replaceUpper = make_shared<mcfile::je::Block const>(upperJ->fName, propsUpper);
-          auto replaceLower = make_shared<mcfile::je::Block const>(lowerJ->fName, propsLower);
+          // NOTE: Doors in villages usually need this repair.
+          auto replaceUpper = upperJ->applying({
+              {"facing", facing},
+              {"open", open},
+          });
+          auto replaceLower = lowerJ->applying({{"hinge", hinge}});
           out.setBlockAt(x, y, z, replaceLower);
           out.setBlockAt(x, y + 1, z, replaceUpper);
         }

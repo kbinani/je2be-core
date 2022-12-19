@@ -6,14 +6,12 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
 
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
   CHECK(e.fName == a.fName);
-  map<string, string> propsE(e.fProperties);
-  map<string, string> propsA(a.fProperties);
-  for (std::string const &p : ignore) {
-    propsE.erase(p);
-    propsA.erase(p);
+  map<string, optional<string>> op;
+  for (string const &p : ignore) {
+    op[p] = nullopt;
   }
-  auto blockE = make_shared<mcfile::je::Block>(e.fName, propsE);
-  auto blockA = make_shared<mcfile::je::Block>(a.fName, propsA);
+  auto blockE = e.applying(op);
+  auto blockA = a.applying(op);
   CHECK(blockA->toString() == blockE->toString());
 }
 

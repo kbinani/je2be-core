@@ -50,23 +50,23 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, string> props(blockJ->fProperties);
+          map<string, optional<string>> props;
           string name = blockJ->fName;
           if (growth < 7) {
-            props.erase("facing");
+            props["facing"] = nullopt;
           } else {
             auto vec = VecFromFacingDirection(d);
             auto cropPos = Pos2i(x, z) + vec;
             auto crop = cache.blockAt(cropPos.fX, y, cropPos.fZ);
             if (crop && crop->fName == cropFullNameBE) {
               props["facing"] = FacingFromFacingDirection(d);
-              props.erase("age");
+              props["age"] = nullopt;
               name = stemFullNameJE;
             } else {
-              props.erase("facing");
+              props["facing"] = nullopt;
             }
           }
-          auto replace = make_shared<mcfile::je::Block const>(name, props);
+          auto replace = blockJ->renamed(name)->applying(props);
           out.setBlockAt(x, y, z, replace);
         }
       }
