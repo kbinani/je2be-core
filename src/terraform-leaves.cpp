@@ -59,22 +59,25 @@ public:
     int x1 = leavesRange->fEnd.fX + 7;
     int y1 = leavesRange->fEnd.fY + 7;
     int z1 = leavesRange->fEnd.fZ + 7;
-    data.applying([&cache](Pos3i p, int8_t v, Data3D<int8_t> const &data) -> int8_t {
-      if (v == Leaves) {
-        return v;
+    for (int y = y0; y <= y1; y++) {
+      for (int z = z0; z <= z1; z++) {
+        for (int x = x0; x <= x1; x++) {
+          Pos3i p(x, y, z);
+          if (data.get(p) == Leaves) {
+            continue;
+          }
+          shared_ptr<Block const> block = cache.blockAt(p.fX, p.fY, p.fZ);
+          if (!block) {
+            continue;
+          }
+          if (IsLog(*block)) {
+            data.set(p, Log);
+          } else if (BlockPropertyAccessor::IsLeaves(*block)) {
+            data.set(p, Leaves);
+          }
+        }
       }
-      shared_ptr<Block const> block = cache.blockAt(p.fX, p.fY, p.fZ);
-      if (!block) {
-        return v;
-      }
-      if (IsLog(*block)) {
-        return Log;
-      } else if (BlockPropertyAccessor::IsLeaves(*block)) {
-        return Leaves;
-      } else {
-        return v;
-      }
-    });
+    }
     static vector<Pos3i> const sDirections = {
         Pos3i(0, 1, 0),  // up
         Pos3i(0, -1, 0), // down
@@ -84,21 +87,26 @@ public:
         Pos3i(-1, 0, 0), // west
     };
     for (int distance = 1; distance <= 7; distance++) {
-      data.applying([distance](Pos3i p, int8_t v, Data3D<int8_t> const &data) -> int8_t {
-        if (v != Leaves) {
-          return v;
-        }
-        for (Pos3i const &d : sDirections) {
-          optional<int8_t> adjacent = data.get(p + d);
-          if (!adjacent) {
-            continue;
+      for (int y = y0; y <= y1; y++) {
+        for (int z = z0; z <= z1; z++) {
+          for (int x = x0; x <= x1; x++) {
+            Pos3i p(x, y, z);
+            if (data.get(p) != Leaves) {
+              continue;
+            }
+            for (Pos3i const &d : sDirections) {
+              optional<int8_t> adjacent = data.get(p + d);
+              if (!adjacent) {
+                continue;
+              }
+              if (*adjacent == distance - 1) {
+                data.set(p, distance);
+                break;
+              }
+            }
           }
-          if (*adjacent == distance - 1) {
-            return distance;
-          }
         }
-        return v;
-      });
+      }
     }
     for (int y = leavesRange->fStart.fY; y <= leavesRange->fEnd.fY; y++) {
       for (int z = leavesRange->fStart.fZ; z <= leavesRange->fEnd.fZ; z++) {

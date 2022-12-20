@@ -31,17 +31,6 @@ public:
     }
   }
 
-  void applying(std::function<Value(Pos3i p, Value const &v, Data3D<Value> const &self)> action) {
-    int idx = 0;
-    for (int y = fStart.fY; y <= fEnd.fY; y++) {
-      for (int z = fStart.fZ; z <= fEnd.fZ; z++) {
-        for (int x = fStart.fX; x <= fEnd.fX; x++, idx++) {
-          fStorage[idx] = action({x, y, z}, fStorage[idx], *this);
-        }
-      }
-    }
-  }
-
 private:
   int index(Pos3i p) const {
     int x = p.fX - fStart.fX;
