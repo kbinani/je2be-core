@@ -1,5 +1,3 @@
-#pragma once
-
 #include <nlohmann/json.hpp>
 
 #include <je2be/toje/item.hpp>

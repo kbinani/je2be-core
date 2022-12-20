@@ -1,5 +1,3 @@
-#pragma once
-
 #include <xxhash64.h>
 
 #include <je2be/entity/armor-stand.hpp>
@@ -1724,14 +1722,6 @@ public:
   }
 #pragma endregion
 
-  struct LocalPlayerData {
-    CompoundTagPtr fEntity;
-    int64_t fEntityIdBedrock;
-    Uuid fEntityIdJava;
-    std::optional<int64_t> fShoulderEntityLeft;
-    std::optional<int64_t> fShoulderEntityRight;
-  };
-
   static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
     LocalPlayerData data;
 
@@ -1981,6 +1971,10 @@ CompoundTagPtr Entity::ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfi
 
 std::optional<Entity::Result> Entity::From(CompoundTag const &entityB, Context &ctx) {
   return Impl::From(entityB, ctx);
+}
+
+std::optional<Entity::LocalPlayerData> Entity::LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
+  return Impl::LocalPlayer(b, ctx, uuid);
 }
 
 } // namespace je2be::toje

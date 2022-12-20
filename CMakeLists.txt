@@ -190,6 +190,7 @@ set(je2be_files
   include/je2be/zip-file.hpp
   src/terraform-leaves.cpp
   src/tobe-converter-block-data.cpp
+  src/toje-block-accessor-wrapper.cpp
   src/toje-block-data.cpp
   src/toje-block-entity.cpp
   src/toje-chunk.cpp

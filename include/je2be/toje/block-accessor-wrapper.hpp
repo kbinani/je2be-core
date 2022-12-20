@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/terraform/block-accessor.hpp>
+#include <je2be/terraform/bedrock/block-accessor-bedrock.hpp>
+
 namespace je2be::toje {
 
 template <size_t width, size_t height>
@@ -12,8 +15,11 @@ public:
     if (!b) {
       return nullptr;
     }
-    return BlockData::From(*b);
+    return Convert(*b);
   }
+
+private:
+  static std::shared_ptr<mcfile::je::Block const> Convert(mcfile::be::Block const& b);
 
 private:
   je2be::terraform::bedrock::BlockAccessorBedrock<width, height> &fBase;

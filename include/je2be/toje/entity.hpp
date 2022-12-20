@@ -23,6 +23,16 @@ public:
   };
 
   static std::optional<Result> From(CompoundTag const &entityB, Context &ctx);
+
+  struct LocalPlayerData {
+    CompoundTagPtr fEntity;
+    int64_t fEntityIdBedrock;
+    Uuid fEntityIdJava;
+    std::optional<int64_t> fShoulderEntityLeft;
+    std::optional<int64_t> fShoulderEntityRight;
+  };
+
+  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid);
 };
 
 } // namespace je2be::toje

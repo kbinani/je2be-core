@@ -1,5 +1,3 @@
-#pragma once
-
 #include <minecraft-file.hpp>
 #include <nlohmann/json.hpp>
 
