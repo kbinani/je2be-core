@@ -1,5 +1,7 @@
 #pragma once
 
+#include <numbers>
+
 namespace je2be {
 
 class Rotation {

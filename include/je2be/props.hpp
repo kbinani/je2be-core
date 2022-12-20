@@ -1,5 +1,12 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+#include <xxhash32.h>
+
+#include <je2be/pos3.hpp>
+#include <je2be/rotation.hpp>
+#include <je2be/uuid.hpp>
+
 namespace je2be::props {
 
 struct UUIDKeyName {

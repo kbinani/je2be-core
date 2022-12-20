@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/pos2.hpp>
+
 namespace je2be {
 
 enum class Facing4 {

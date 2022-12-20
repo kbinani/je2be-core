@@ -188,6 +188,7 @@ set(je2be_files
   include/je2be/volume.hpp
   include/je2be/xxhash.hpp
   include/je2be/zip-file.hpp
+  src/tobe-converter-block-data.cpp
   #end je2be source files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
@@ -345,8 +346,8 @@ add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
-add_library(je2be INTERFACE ${je2be_files})
-target_include_directories(je2be INTERFACE
+add_library(je2be STATIC ${je2be_files})
+target_include_directories(je2be PUBLIC
   ./include
   deps/leveldb
   deps/leveldb/include
@@ -354,6 +355,8 @@ target_include_directories(je2be INTERFACE
   deps/hwm.task
   deps/json/include
   deps/minizip-ng
+  deps/libminecraft-file/include
+  deps/libminecraft-file/deps/libdeflate
   ${je2be_include_directories})
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})

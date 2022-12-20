@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/version.hpp>
+
 namespace je2be::tobe {
 
 int32_t constexpr kBlockDataVersion = 17959425;                               // v1.19.50

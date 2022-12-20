@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/strings.hpp>
+
 namespace je2be {
 struct Uuid {
   alignas(32) uint8_t fData[16];
