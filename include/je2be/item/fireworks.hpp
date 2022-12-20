@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/item/fireworks-explosion.hpp>
+
 namespace je2be {
 
 class FireworksData {

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
+#include <je2be/structure/structure-piece.hpp>
+
 namespace je2be::toje {
 
 class StructureInfo {

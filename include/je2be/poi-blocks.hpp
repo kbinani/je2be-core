@@ -1,5 +1,11 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
+#include <je2be/fs.hpp>
+#include <je2be/pos2.hpp>
+#include <je2be/pos3.hpp>
+
 namespace je2be {
 
 class PoiBlocks {

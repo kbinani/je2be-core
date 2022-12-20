@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/static-reversible-map.hpp>
+
 namespace je2be {
 
 class TippedArrowPotion : StaticReversibleMap<std::string, int16_t, TippedArrowPotion> {

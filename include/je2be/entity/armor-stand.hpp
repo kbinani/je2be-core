@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/nbt.hpp>
+#include <je2be/rotation.hpp>
+
 namespace je2be {
 
 class ArmorStand {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/reversible-map.hpp>
+
 namespace je2be {
 
 template <class T1, class T2, class TableCreator>

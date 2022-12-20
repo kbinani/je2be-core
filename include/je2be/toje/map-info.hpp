@@ -1,5 +1,12 @@
 #pragma once
 
+#include <cstdint>
+#include <unordered_map>
+#include <vector>
+
+#include <je2be/nbt.hpp>
+#include <je2be/pos2.hpp>
+
 namespace je2be::toje {
 
 class MapInfo {

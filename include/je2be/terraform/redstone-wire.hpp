@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/enums/facing6.hpp>
+
 namespace je2be::terraform {
 
 class RedstoneWire {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/toje/block-data.hpp>
+
 namespace je2be::toje {
 
 class SubChunk {

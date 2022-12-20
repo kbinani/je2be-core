@@ -1,5 +1,6 @@
 #pragma once
 
+#include <je2be/nbt.hpp>
 #include <je2be/strings.hpp>
 
 namespace je2be {

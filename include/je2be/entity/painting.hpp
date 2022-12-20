@@ -1,5 +1,10 @@
 #pragma once
 
+#include <je2be/enums/facing4.hpp>
+#include <je2be/pos3.hpp>
+#include <je2be/size.hpp>
+#include <je2be/strings.hpp>
+
 namespace je2be {
 
 class Painting {

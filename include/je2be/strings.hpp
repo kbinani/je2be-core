@@ -1,5 +1,7 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
 namespace je2be::strings {
 
 inline std::string LTrim(std::string_view const &s, std::string const &left) {

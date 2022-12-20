@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/enums/facing4.hpp>
+#include <je2be/terraform/shape-of-stairs.hpp>
+
 namespace je2be::terraform {
 
 class FenceConnectable {

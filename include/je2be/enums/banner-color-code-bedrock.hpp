@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+
 namespace je2be {
 
 enum class BannerColorCodeBedrock : int32_t {

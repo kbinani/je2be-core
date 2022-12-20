@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/static-reversible-map.hpp>
+
 namespace je2be {
 
 class Axolotl : StaticReversibleMap<int32_t, int32_t, Axolotl> {

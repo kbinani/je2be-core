@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/nbt.hpp>
+#include <je2be/rename-pair.hpp>
+
 namespace je2be {
 
 static inline void CopyBoolValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<bool>> keys) {

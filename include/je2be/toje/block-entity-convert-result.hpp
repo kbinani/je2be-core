@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/nbt.hpp>
+#include <je2be/pos3.hpp>
+
 namespace je2be::toje {
 
 struct BlockEntityConvertResult {

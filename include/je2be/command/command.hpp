@@ -1,5 +1,10 @@
 #pragma once
 
+#include <regex>
+
+#include <je2be/command/target-selector.hpp>
+#include <je2be/command/token.hpp>
+
 namespace je2be::command {
 
 class Command {

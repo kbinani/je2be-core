@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/color/rgba.hpp>
+
 namespace je2be {
 
 class Lab {

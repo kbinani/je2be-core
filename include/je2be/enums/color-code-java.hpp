@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/enums/banner-color-code-bedrock.hpp>
+
 namespace je2be {
 
 enum class ColorCodeJava : int32_t {

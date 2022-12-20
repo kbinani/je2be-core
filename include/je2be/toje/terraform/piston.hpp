@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/terraform/block-property-accessor.hpp>
+
 namespace je2be::toje {
 
 class Piston {

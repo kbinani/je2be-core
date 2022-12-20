@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/props.hpp>
+#include <je2be/reversible-map.hpp>
+
 namespace je2be {
 
 class LootTable {

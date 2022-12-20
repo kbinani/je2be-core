@@ -1,5 +1,9 @@
 #pragma once
 
+#include <hwm/task/task_queue.hpp>
+
+#include <je2be/future-support.hpp>
+
 namespace je2be {
 
 class AsyncIterator {

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <je2be/color/lab.hpp>
+#include <je2be/color/rgba.hpp>
+#include <je2be/enums/color-code-java.hpp>
+
 namespace je2be {
 
 class SignColor {

@@ -190,6 +190,12 @@ set(je2be_files
   include/je2be/zip-file.hpp
   src/terraform-leaves.cpp
   src/tobe-converter-block-data.cpp
+  src/toje-block-data.cpp
+  src/toje-block-entity.cpp
+  src/toje-chunk.cpp
+  src/toje-context.cpp
+  src/toje-entity.cpp
+  src/toje-item.cpp
   #end je2be source files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files

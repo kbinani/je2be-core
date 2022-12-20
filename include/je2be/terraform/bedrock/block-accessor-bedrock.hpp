@@ -1,5 +1,11 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
+#include <je2be/nbt.hpp>
+#include <je2be/pos3.hpp>
+#include <je2be/terraform/block-accessor.hpp>
+
 namespace je2be::terraform::bedrock {
 
 template <size_t Width, size_t Height>

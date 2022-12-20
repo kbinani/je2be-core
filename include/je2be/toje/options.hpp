@@ -1,5 +1,9 @@
 #pragma once
 
+#include <unordered_set>
+
+#include <je2be/uuid.hpp>
+
 namespace je2be::toje {
 
 class Options {

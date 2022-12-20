@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/command/token.hpp>
+#include <je2be/strings.hpp>
+
 namespace je2be::command {
 
 struct Argument {

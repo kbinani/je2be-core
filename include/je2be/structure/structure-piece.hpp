@@ -1,5 +1,10 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
+#include <je2be/pos3.hpp>
+#include <je2be/volume.hpp>
+
 namespace je2be {
 
 enum class StructureType : uint8_t {

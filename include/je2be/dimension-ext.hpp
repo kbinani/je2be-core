@@ -1,5 +1,7 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
 namespace je2be {
 
 static inline std::optional<mcfile::Dimension> DimensionFromJavaString(std::string const &d) {

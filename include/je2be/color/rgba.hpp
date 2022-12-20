@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace je2be {
 
 struct Rgba {

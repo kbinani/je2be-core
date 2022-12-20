@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/entity/entity-attributes.hpp>
+
 namespace je2be {
 
 class TropicalFish {

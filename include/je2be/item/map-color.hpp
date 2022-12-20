@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/color/lab.hpp>
+#include <je2be/color/rgba.hpp>
+
 namespace je2be {
 
 class MapColor {
