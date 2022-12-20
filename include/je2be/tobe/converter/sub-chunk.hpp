@@ -57,7 +57,7 @@ public:
           for (int y = 0; y < 16; y++, idx++) {
             int const by = chunkY * 16 + y;
             uint16_t index;
-            auto block = section->blockAt(x, y, z);
+            auto block = section->blockAtUnchecked(x, y, z);
             if (block && !IsAir(block->fId)) {
               string const &paletteKey = block->toString();
               auto tile = chunk.tileEntityAt(bx, by, bz);
