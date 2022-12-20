@@ -255,7 +255,7 @@ private:
     Kelp::Do(*chunk, accessor);
     Snowy::Do(*chunk, *cache, accessor);
     AttachedStem::Do(*chunk, *cache, accessor);
-    Leaves::Do<mcfile::je::Block>(*chunk, *cache, accessor);
+    Leaves::Do(*chunk, *cache, accessor);
     Chest::Do(*chunk, *cache, accessor);
     NoteBlock::Do(*chunk, *cache, accessor);
 

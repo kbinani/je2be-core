@@ -188,6 +188,7 @@ set(je2be_files
   include/je2be/volume.hpp
   include/je2be/xxhash.hpp
   include/je2be/zip-file.hpp
+  src/terraform-leaves.cpp
   src/tobe-converter-block-data.cpp
   #end je2be source files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy

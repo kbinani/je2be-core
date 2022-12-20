@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/nbt.hpp>
+
 namespace je2be {
 using Pos3i = mcfile::Pos3i;
 using Pos3iHasher = mcfile::Pos3iHasher;

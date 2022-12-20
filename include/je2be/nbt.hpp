@@ -1,5 +1,7 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
 namespace je2be {
 
 using CompoundTag = mcfile::nbt::CompoundTag;
