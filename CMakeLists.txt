@@ -197,6 +197,7 @@ set(je2be_files
   src/toje-context.cpp
   src/toje-entity.cpp
   src/toje-item.cpp
+  src/toje-region.cpp
   #end je2be source files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
