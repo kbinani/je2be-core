@@ -19,8 +19,8 @@ public:
 
     size_t const kNumBlocksInSubChunk = 16 * 16 * 16;
 
-    vector<uint16_t> indices(kNumBlocksInSubChunk);
-    vector<bool> waterloggedIndices(kNumBlocksInSubChunk);
+    vector<uint16_t> _indices(kNumBlocksInSubChunk, 0);
+    vector<bool> waterloggedIndices(kNumBlocksInSubChunk, 0);
 
     // subchunk format
     // 0: version (0x8)
@@ -33,9 +33,9 @@ public:
     // 1~4: paltte size (uint32 LE)
     //
 
-    je2be::tobe::BlockPalette palette;
+    //je2be::tobe::BlockPalette _palette;
 
-    int idx = 0;
+    //    int idx = 0;
     bool hasWaterlogged = false;
 
     shared_ptr<ChunkSection> section;
@@ -49,7 +49,127 @@ public:
         break;
       }
     }
+    vector<CompoundTagPtr> tmpPalette;
+    vector<uint16_t> tmpIndices(4096, 0);
+    int airIndex = -1;
     if (section != nullptr) {
+#if 1
+      int const x0 = chunk.minBlockX();
+      int const z0 = chunk.minBlockZ();
+      int const y0 = chunkY * 16;
+      int8_t altitude[16][16];
+      for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++) {
+          altitude[x][z] = -1;
+        }
+      }
+      section->eachBlockPalette([&tmpPalette, &airIndex](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+        auto blockB = BlockData::From(blockJ, nullptr);
+        assert(blockB);
+        tmpPalette.push_back(blockB);
+        if (blockJ->fId == mcfile::blocks::minecraft::air && airIndex < 0) {
+          airIndex = i;
+        }
+        return true;
+      });
+      int j = 0;
+      for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++) {
+          for (int y = 0; y < 16; y++, j++) {
+            if (auto index = section->blockPaletteIndexAt(x, y, z); index) {
+              tmpIndices[j] = *index;
+            }
+          }
+        }
+      }
+      section->eachBlockPalette([dim, &tmpIndices, &cdp, &wd, &section, x0, y0, z0, &waterloggedIndices, &altitude, &hasWaterlogged](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+        if (TileEntity::IsTileEntity(blockJ->fId)) {
+          int j = 0;
+          for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+              for (int y = 0; y < 16; y++, j++) {
+                if (tmpIndices[j] == i) {
+                  cdp.addTileBlock(x0 + x, y0 + y, z0 + z, blockJ);
+                }
+              }
+            }
+          }
+        } else if (blockJ->fId == mcfile::blocks::minecraft::nether_portal) {
+          bool xAxis = blockJ->property("axis", "x") == "x";
+          int j = 0;
+          for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+              for (int y = 0; y < 16; y++, j++) {
+                if (tmpIndices[j] == i) {
+                  wd.addPortalBlock(x0 + x, y0 + y, z0 + z, xAxis);
+                }
+              }
+            }
+          }
+        }
+        if (blockJ->fId == mcfile::blocks::minecraft::end_portal && dim == Dimension::End) {
+          int j = 0;
+          for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+              for (int y = 0; y < 16; y++, j++) {
+                if (tmpIndices[j] == i) {
+                  wd.addEndPortal(x0 + x, y0 + y, z0 + z);
+                }
+              }
+            }
+          }
+        }
+        if (!IsAir(blockJ->fId)) {
+          int j = 0;
+          for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+              j += altitude[x][z] + 1;
+              for (int y = altitude[x][z] + 1; y < 16; y++, j++) {
+                if (tmpIndices[j] == i) {
+                  altitude[x][z] = (std::max)(altitude[x][z], (int8_t)y);
+                }
+              }
+            }
+          }
+        }
+        if (IsWaterLogged(*blockJ)) {
+          int j = 0;
+          for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+              for (int y = 0; y < 16; y++, j++) {
+                if (tmpIndices[j] == i) {
+                  waterloggedIndices[j] = true;
+                  hasWaterlogged = true;
+                }
+              }
+            }
+          }
+        }
+        return true;
+      });
+      for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++) {
+          if (altitude[x][z] >= 0) {
+            cdp.updateAltitude(x, y0 + altitude[x][z], z);
+          }
+        }
+      }
+      if (airIndex < 0) {
+        airIndex = tmpPalette.size();
+        tmpPalette.push_back(BlockData::Air());
+      }
+      if (airIndex != 0) {
+        tmpPalette[0].swap(tmpPalette[airIndex]);
+        for (int i = 0; i < 4096; i++) {
+          if (tmpIndices[i] == 0) {
+            tmpIndices[i] = airIndex;
+          } else if (tmpIndices[i] == airIndex) {
+            tmpIndices[i] = 0;
+          }
+        }
+        airIndex = 0;
+      }
+#else
       for (int x = 0; x < 16; x++) {
         int const bx = chunk.minBlockX() + x;
         for (int z = 0; z < 16; z++) {
@@ -99,33 +219,63 @@ public:
           }
         }
       }
+#endif
     }
 
     for (auto it : chunk.fTileEntities) {
       Pos3i pos = it.first;
-      shared_ptr<CompoundTag> const &e = it.second;
-      if (!TileEntity::IsStandaloneTileEntity(e)) {
-        continue;
-      }
-      auto ret = TileEntity::StandaloneTileEntityBlockdData(pos, e);
-      if (!ret) {
-        continue;
-      }
-      auto [tag, paletteKey] = *ret;
-
-      if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
-        continue;
-      }
-
       int32_t x = pos.fX - chunk.fChunkX * 16;
       int32_t y = pos.fY - chunkY * 16;
       int32_t z = pos.fZ - chunk.fChunkZ * 16;
       if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
       }
-      idx = (x * 16 + z) * 16 + y;
+      int idx = (x * 16 + z) * 16 + y;
+      shared_ptr<CompoundTag> const &tile = it.second;
 
-      indices[idx] = palette.add(paletteKey, tag);
+      if (TileEntity::IsStandaloneTileEntity(tile)) {
+        auto ret = TileEntity::StandaloneTileEntityBlockdData(pos, tile);
+        if (!ret) {
+          continue;
+        }
+        auto [tag, paletteKey] = *ret;
+
+        int found = -1;
+        for (int i = 0; i < tmpPalette.size(); i++) {
+          if (tmpPalette[i]->equals(*tag)) {
+            found = i;
+            break;
+          }
+        }
+        if (found < 0) {
+          tmpIndices[idx] = tmpPalette.size();
+          tmpPalette.push_back(tag);
+        } else {
+          tmpIndices[idx] = found;
+        }
+      } else {
+        auto blockJ = section->blockAtUnchecked(x, y, z);
+        if (auto tag = BlockData::From(blockJ, tile); tag) {
+          uint16_t current = tmpIndices[idx];
+          if (std::count(tmpIndices.begin(), tmpIndices.end(), current) == 1) {
+            tmpPalette[current] = tag;
+          } else {
+            int found = -1;
+            for (int i = 0; i < tmpPalette.size(); i++) {
+              if (tmpPalette[i]->equals(*tag)) {
+                found = i;
+                break;
+              }
+            }
+            if (found < 0) {
+              tmpIndices[idx] = tmpPalette.size();
+              tmpPalette.push_back(tag);
+            } else {
+              tmpIndices[idx] = found;
+            }
+          }
+        }
+      }
     }
 
     for (auto const &e : chunk.fEntities) {
@@ -147,14 +297,26 @@ public:
       if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
       }
-      idx = (x * 16 + z) * 16 + y;
+      int idx = (x * 16 + z) * 16 + y;
 
-      if (indices[idx] != 0) {
+      if (tmpIndices[idx] != airIndex) {
         // Not an air block. Avoid replacing current block
         continue;
       }
 
-      indices[idx] = palette.add(paletteKey, tag);
+      int found = -1;
+      for (int i = 0; i < tmpPalette.size(); i++) {
+        if (tmpPalette[i]->equals(*tag)) {
+          found = i;
+          break;
+        }
+      }
+      if (found < 0) {
+        tmpIndices[idx] = tmpPalette.size();
+        tmpPalette.push_back(tag);
+      } else {
+        tmpIndices[idx] = found;
+      }
     }
 
     int const numStorageBlocks = hasWaterlogged ? 2 : 1;
@@ -178,7 +340,7 @@ public:
 
     {
       // layer 0
-      int const numPaletteEntries = (int)palette.size();
+      int const numPaletteEntries = (int)tmpPalette.size();
       uint8_t bitsPerBlock;
       int blocksPerWord;
       if (numPaletteEntries <= 2) {
@@ -214,7 +376,7 @@ public:
       for (size_t i = 0; i < kNumBlocksInSubChunk; i += blocksPerWord) {
         uint32_t v = 0;
         for (size_t j = 0; j < blocksPerWord && i + j < kNumBlocksInSubChunk; j++) {
-          uint32_t const index = (uint32_t)indices[i + j];
+          uint32_t const index = (uint32_t)tmpIndices[i + j];
           v = v | ((mask & index) << (j * bitsPerBlock));
         }
         if (!w.write(v)) {
@@ -226,8 +388,8 @@ public:
         return false;
       }
 
-      for (int i = 0; i < palette.size(); i++) {
-        auto const &tag = palette[i];
+      for (int i = 0; i < tmpPalette.size(); i++) {
+        auto const &tag = tmpPalette[i];
         if (!CompoundTag::Write(*tag, w)) {
           return false;
         }
