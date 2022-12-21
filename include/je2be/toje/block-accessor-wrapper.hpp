@@ -2,6 +2,7 @@
 
 #include <je2be/terraform/bedrock/block-accessor-bedrock.hpp>
 #include <je2be/terraform/block-accessor.hpp>
+#include <je2be/toje/block-data.hpp>
 
 namespace je2be::toje {
 
@@ -15,11 +16,8 @@ public:
     if (!b) {
       return nullptr;
     }
-    return Convert(*b);
+    return BlockData::From(*b);
   }
-
-private:
-  static std::shared_ptr<mcfile::je::Block const> Convert(mcfile::be::Block const &b);
 
 private:
   je2be::terraform::bedrock::BlockAccessorBedrock<width, height> &fBase;
