@@ -77,8 +77,8 @@ public:
       maxChunkY = (std::max)(maxChunkY, (int)sectionB->fChunkY);
 
       bool hasPoiBlock = false;
-      sectionJ->eachBlockPalette([&hasPoiBlock](mcfile::je::Block const &block) {
-        if (PoiBlocks::Interest(block)) {
+      sectionJ->eachBlockPalette([&hasPoiBlock](shared_ptr<mcfile::je::Block const> const &block, size_t) {
+        if (PoiBlocks::Interest(*block)) {
           hasPoiBlock = true;
           return false;
         } else {
@@ -100,8 +100,8 @@ public:
       }
 
       if (!ctx.fDataPack1_20Update) {
-        sectionJ->eachBlockPalette([&ctx](mcfile::je::Block const &block) {
-          switch (block.fId) {
+        sectionJ->eachBlockPalette([&ctx](shared_ptr<mcfile::je::Block const> const &block, size_t) {
+          switch (block->fId) {
           case acacia_hanging_sign:
           case acacia_wall_hanging_sign:
           case bamboo_block:

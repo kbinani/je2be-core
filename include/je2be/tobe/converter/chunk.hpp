@@ -279,8 +279,8 @@ private:
       if (!section) {
         continue;
       }
-      section->eachBlockPalette([&hasKelp](Block const &block) {
-        if (block.fName == "minecraft:kelp_plant") {
+      section->eachBlockPalette([&hasKelp](shared_ptr<Block const> const &block, size_t) {
+        if (block->fName == "minecraft:kelp_plant") {
           hasKelp = true;
           return false;
         }
@@ -341,8 +341,8 @@ private:
       if (!section) {
         continue;
       }
-      section->eachBlockPalette([&hasMsurhoom](Block const &block) {
-        if (block.fId == red_mushroom_block || block.fId == brown_mushroom) {
+      section->eachBlockPalette([&hasMsurhoom](shared_ptr<Block const> const &block, size_t) {
+        if (block->fId == red_mushroom_block || block->fId == brown_mushroom) {
           hasMsurhoom = true;
           return false;
         }

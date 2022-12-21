@@ -487,8 +487,8 @@ private:
         continue;
       }
       bool has = false;
-      section->eachBlockPalette([&has](mcfile::je::Block const &b) {
-        if (b.fName == "minecraft:sticky_piston" || b.fName == "minecraft:piston" || b.fName == "minecraft:moving_piston") {
+      section->eachBlockPalette([&has](std::shared_ptr<mcfile::je::Block const> const &b, size_t) {
+        if (b->fName == "minecraft:sticky_piston" || b->fName == "minecraft:piston" || b->fName == "minecraft:moving_piston") {
           has = true;
           return false;
         }

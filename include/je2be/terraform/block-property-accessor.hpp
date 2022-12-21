@@ -488,8 +488,8 @@ public:
       if (!section) {
         continue;
       }
-      section->eachBlockPalette([this, i](mcfile::je::Block const &blockJ) {
-        auto p = BlockProperties(blockJ);
+      section->eachBlockPalette([this, i](shared_ptr<mcfile::je::Block const> const &blockJ, size_t) {
+        auto p = BlockProperties(*blockJ);
         updateHasProperties(p);
         fSections[i].push_back(p);
         return true;

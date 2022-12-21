@@ -264,8 +264,8 @@ private:
         continue;
       }
       bool hasPoiBlock = false;
-      section->eachBlockPalette([&hasPoiBlock](auto const &block) {
-        if (PoiBlocks::Interest(block)) {
+      section->eachBlockPalette([&hasPoiBlock](shared_ptr<mcfile::je::Block const> const &block, size_t) {
+        if (PoiBlocks::Interest(*block)) {
           hasPoiBlock = true;
           return false;
         }
