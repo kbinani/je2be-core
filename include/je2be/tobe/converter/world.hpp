@@ -6,72 +6,7 @@ class World {
   World() = delete;
 
 public:
-  [[nodiscard]] static bool ConvertSingleThread(
-      mcfile::je::World const &w,
-      mcfile::Dimension dim,
-      DbInterface &db,
-      LevelData &ld,
-      Progress *progress,
-      uint32_t &done,
-      double const numTotalChunks,
-      Options const &options) {
-    using namespace std;
-    using namespace mcfile;
-    using namespace mcfile::je;
-    namespace fs = std::filesystem;
-
-    auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
-    if (!temp) {
-      return false;
-    }
-    auto tempDir = *temp;
-
-    bool ok = w.eachRegions([dim, &db, &ld, &done, progress, numTotalChunks, &options, tempDir](shared_ptr<Region> const &region) {
-      JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
-      for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
-        for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-          done++;
-          if (!options.fChunkFilter.empty()) [[unlikely]] {
-            if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
-              continue;
-            }
-          }
-          fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          optional<Chunk::PlayerAttachedEntities> playerAttachedEntities;
-          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim && ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == Pos2i(cx, cz)) {
-            Chunk::PlayerAttachedEntities pae;
-            pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
-            pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
-            pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
-            playerAttachedEntities = pae;
-            ld.fPlayerAttachedEntities->fVehicle = nullopt;
-          }
-          auto result = Chunk::Convert(dim, db, *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType);
-          if (progress) {
-            bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
-            if (!continue_) {
-              return false;
-            }
-          }
-
-          if (!result.fData) {
-            continue;
-          }
-          result.fData->drain(ld);
-          if (!result.fOk) {
-            return false;
-          }
-        }
-      }
-      return true;
-    });
-    if (!ok) {
-      return false;
-    }
-    return PutWorldEntities(dim, db, tempDir, 0);
-  }
-
-  [[nodiscard]] static bool ConvertMultiThread(
+  [[nodiscard]] static bool Convert(
       mcfile::je::World const &w,
       mcfile::Dimension dim,
       DbInterface &db,

@@ -22,15 +22,6 @@ public:
   using Receiver = std::function<void(std::string const &key, std::string const &value)>;
 
   static void IterateUnordered(leveldb::DB &db, unsigned int concurrency, Receiver receiver) {
-    if (concurrency > 0) {
-      MultiThread(db, concurrency, receiver);
-    } else {
-      SingleThread(db, receiver);
-    }
-  }
-
-private:
-  static void MultiThread(leveldb::DB &db, unsigned int concurrency, Receiver receiver) {
     using namespace std;
     using namespace leveldb;
 
@@ -59,13 +50,7 @@ private:
     }
   }
 
-  static void SingleThread(leveldb::DB &db, Receiver receiver) {
-    std::unique_ptr<leveldb::Iterator> itr(db.NewIterator({}));
-    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
-      receiver(itr->key().ToString(), itr->value().ToString());
-    }
-  }
-
+private:
   static Result Do(char prefix, std::shared_ptr<leveldb::Iterator> itr) {
     Result ret;
     ret.fPrefix = prefix;

@@ -18,12 +18,7 @@ class Terraform {
 public:
   static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     PoiBlocks poi;
-    Status st;
-    if (concurrency > 0) {
-      st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset);
-    } else {
-      st = SingleThread(poi, directory, progress, progressChunksOffset);
-    }
+    Status st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset);
     if (!st.ok()) {
       return st;
     }
