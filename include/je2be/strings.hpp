@@ -3,6 +3,7 @@
 #include <minecraft-file.hpp>
 
 #include <charconv>
+#include <cstdint>
 
 namespace je2be::strings {
 

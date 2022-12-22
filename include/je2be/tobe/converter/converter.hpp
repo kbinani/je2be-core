@@ -62,12 +62,7 @@ public:
         }
         auto dir = fOptions.getWorldDirectory(fInput, dim);
         mcfile::je::World world(dir);
-        bool complete;
-        if (concurrency > 0) {
-          complete = World::ConvertMultiThread(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks, fOptions);
-        } else {
-          complete = World::ConvertSingleThread(world, dim, db, *levelData, progress, done, numTotalChunks, fOptions);
-        }
+        bool complete = World::Convert(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks, fOptions);
         ok &= complete;
         if (!complete) {
           break;

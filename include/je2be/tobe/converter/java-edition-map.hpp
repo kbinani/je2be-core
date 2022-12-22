@@ -4,6 +4,10 @@
 #include <je2be/strings.hpp>
 #include <je2be/tobe/options.hpp>
 
+#include <unordered_map>
+#include <optional>
+#include <cstdint>
+
 namespace je2be::tobe {
 
 class JavaEditionMap {

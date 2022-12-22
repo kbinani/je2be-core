@@ -1,10 +1,12 @@
 #pragma once
 
-#include <minecraft-file.hpp>
-
 #include <je2be/db/db-interface.hpp>
 #include <je2be/enums/chunk-conversion-mode.hpp>
 #include <je2be/tobe/versions.hpp>
+
+#include <minecraft-file.hpp>
+
+#include <cstdint>
 
 namespace je2be::tobe {
 
