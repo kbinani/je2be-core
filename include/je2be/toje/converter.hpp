@@ -41,7 +41,7 @@ public:
     if (auto t = GameModeFromBedrock(gameTypeB); t) {
       gameMode = *t;
     }
-    auto bin = Context::Init(*db, fOptions, *endian, regions, total, gameTick, gameMode, concurrency, BlockEntity::FromBlockAndBlockEntity);
+    auto bin = Context::Init(*db, fOptions, *endian, regions, total, gameTick, gameMode, concurrency);
 
     auto levelDat = LevelData::Import(*dat, *db, fOptions, *bin);
     if (!levelDat) {

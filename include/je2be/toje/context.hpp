@@ -26,9 +26,8 @@ class Context {
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
           int64_t gameTick,
-          GameMode gameMode,
-          std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity)
-      : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fFromBlockAndBlockEntity(fromBlockAndBlockEntity), fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
+          GameMode gameMode)
+      : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
 
 public:
   struct ChunksInRegion {
@@ -42,8 +41,7 @@ public:
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,
-                                       unsigned int concurrency,
-                                       std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity);
+                                       unsigned int concurrency);
 
   void markMapUuidAsUsed(int64_t uuid) {
     fUsedMapUuids.insert(uuid);
@@ -93,7 +91,7 @@ public:
   }
 
   std::shared_ptr<Context> make() const {
-    auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode, fFromBlockAndBlockEntity));
+    auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode));
     ret->fLocalPlayer = fLocalPlayer;
     if (fRootVehicle) {
       ret->fRootVehicle = *fRootVehicle;
@@ -321,9 +319,6 @@ public:
 
   int64_t const fGameTick;
   GameMode const fGameMode;
-
-  // NOTE: This std::function must be BlockEntity::FromBlockAndBlockEntity. By doing this, the "Item" class can use the function (the "Item" class is #includ'ed before "BlockEntity")
-  std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> const fFromBlockAndBlockEntity;
 
   bool fDataPackBundle = false;
   bool fDataPack1_20Update = false;

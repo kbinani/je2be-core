@@ -14,8 +14,7 @@ public:
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,
-                                       unsigned int concurrency,
-                                       std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) {
+                                       unsigned int concurrency) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
@@ -132,7 +131,7 @@ public:
     }
 
     fs::path temp = opt.fTempDirectory ? *opt.fTempDirectory : fs::temp_directory_path();
-    return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode, fromBlockAndBlockEntity));
+    return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode));
   }
 };
 
@@ -143,9 +142,8 @@ std::shared_ptr<Context> Context::Init(leveldb::DB &db,
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,
-                                       unsigned int concurrency,
-                                       std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity) {
-  return Impl::Init(db, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency, fromBlockAndBlockEntity);
+                                       unsigned int concurrency) {
+  return Impl::Init(db, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency);
 }
 
 } // namespace je2be::toje

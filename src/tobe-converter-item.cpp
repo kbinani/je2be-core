@@ -17,6 +17,7 @@
 #include <je2be/tobe/converter/axolotl.hpp>
 #include <je2be/tobe/converter/block-data.hpp>
 #include <je2be/tobe/converter/enchant-data.hpp>
+#include <je2be/tobe/converter/tile-entity.hpp>
 #include <je2be/tobe/world-data.hpp>
 
 namespace je2be::tobe {
@@ -1137,7 +1138,7 @@ private:
         auto block = std::make_shared<Block>(*id);
 
         Pos3i dummy(0, 0, 0);
-        if (auto blockEntityTagB = ctx.fFromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx); blockEntityTagB) {
+        if (auto blockEntityTagB = TileEntity::FromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx); blockEntityTagB) {
           static unordered_set<string> const sExclude({"Findable", "id", "isMovable", "x", "y", "z"});
           for (auto const &e : sExclude) {
             blockEntityTagB->erase(e);

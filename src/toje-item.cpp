@@ -12,6 +12,7 @@
 #include <je2be/item/tipped-arrow-potion.hpp>
 #include <je2be/tobe/versions.hpp>
 #include <je2be/toje/block-data.hpp>
+#include <je2be/toje/block-entity.hpp>
 #include <je2be/toje/context.hpp>
 
 #include <nlohmann/json.hpp>
@@ -75,7 +76,7 @@ public:
 
           Pos3i dummy(0, 0, 0);
           if (!tagB->empty()) {
-            if (auto converted = ctx.fFromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
+            if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
               static unordered_set<string> const sExclude({"x", "y", "z", "keepPacked", "RecipesUsed"});
               auto blockEntityTagJ = converted->fTileEntity;
               for (auto const &e : sExclude) {
