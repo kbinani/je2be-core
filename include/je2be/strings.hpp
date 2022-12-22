@@ -2,6 +2,8 @@
 
 #include <minecraft-file.hpp>
 
+#include <charconv>
+
 namespace je2be::strings {
 
 inline std::string LTrim(std::string_view const &s, std::string const &left) {
