@@ -821,8 +821,7 @@ private:
   static CompoundTagPtr AnyTorch(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
 
-    map<string, string> empty;
-    auto block = make_shared<Block>(name, empty);
+    auto block = make_shared<Block>(name);
     auto blockData = BlockData::From(block, nullptr);
 
     auto states = Compound();
@@ -966,8 +965,7 @@ private:
   static CompoundTagPtr MushroomBlock(std::string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
 
-    map<string, string> empty;
-    auto block = make_shared<Block>(name, empty);
+    auto block = make_shared<Block>(name);
     auto blockData = BlockData::From(block, nullptr);
 
     auto states = Compound();
