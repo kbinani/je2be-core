@@ -153,7 +153,7 @@ public:
     auto east = block.property("east", "false") == "true";
     auto north = block.property("north", "false") == "true";
     auto south = block.property("south", "false") == "true";
-    auto up = block.property("up", "false") == "true";
+    // auto up = block.property("up", "false") == "true";
     auto west = block.property("west", "false") == "true";
     int32_t direction = 0;
     if (east) {

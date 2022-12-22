@@ -141,10 +141,10 @@ struct Uuid {
     int32_t f3 = values[2];
     int32_t f4 = values[3];
     Uuid u;
-    *(int32_t *)u.fData = mcfile::I32FromBE(values[0]);
-    *((int32_t *)u.fData + 1) = mcfile::I32FromBE(values[1]);
-    *((int32_t *)u.fData + 2) = mcfile::I32FromBE(values[2]);
-    *((int32_t *)u.fData + 3) = mcfile::I32FromBE(values[3]);
+    *(int32_t *)u.fData = mcfile::I32FromBE(f1);
+    *((int32_t *)u.fData + 1) = mcfile::I32FromBE(f2);
+    *((int32_t *)u.fData + 2) = mcfile::I32FromBE(f3);
+    *((int32_t *)u.fData + 3) = mcfile::I32FromBE(f4);
     return u;
   }
 };

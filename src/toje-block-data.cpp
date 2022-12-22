@@ -431,7 +431,7 @@ private:
   }
 
   static String Comparator(String const &bName, CompoundTag const &s, Props &p) {
-    auto powered = bName.starts_with(Ns() + "powered_");
+    // auto powered = bName.starts_with(Ns() + "powered_");
     auto lit = s.boolean("output_lit_bit", false);
     auto subtract = s.boolean("output_subtract_bit", false);
     Facing4FromDirectionA(s, p);

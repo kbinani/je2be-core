@@ -132,54 +132,56 @@ public:
   template <class Block>
   static bool IsLog(Block const &b);
 
-  template <>
-  static bool IsLog(mcfile::je::Block const &b) {
-    using namespace mcfile::blocks;
-    if (b.fName.ends_with("log") || b.fName.ends_with("wood")) {
-      return true;
-    }
-    switch (b.fId) {
-    case minecraft::warped_stem:
-    case minecraft::crimson_stem:
-    case minecraft::stripped_warped_stem:
-    case minecraft::stripped_crimson_stem:
-    case minecraft::stripped_warped_hyphae:
-    case minecraft::stripped_crimson_hyphae:
-      return true;
-    default:
-      return false;
-    }
-  }
-
-  template <>
-  static bool IsLog(mcfile::be::Block const &b) {
-    using namespace std;
-    static unique_ptr<unordered_set<string> const> const sTable(CreateBedrockLogBlocksSet());
-    return sTable->find(b.fName) != sTable->end();
-  }
-
-  static std::unordered_set<std::string> *CreateBedrockLogBlocksSet() {
-    using namespace std;
-    using namespace mcfile::blocks;
-    unordered_set<string> *ret = new unordered_set<string>();
-    for (BlockId id = unknown + 1; id < minecraft::minecraft_max_block_id; id++) {
-      auto blockJ = make_shared<mcfile::je::Block const>(id);
-      if (!IsLog(*blockJ)) {
-        continue;
-      }
-      auto blockB = je2be::tobe::BlockData::From(blockJ, nullptr);
-      if (!blockB) {
-        continue;
-      }
-      auto nameB = blockB->string("name");
-      if (!nameB) {
-        continue;
-      }
-      ret->insert(*nameB);
-    }
-    return ret;
-  }
+  static std::unordered_set<std::string> *CreateBedrockLogBlocksSet();
 };
+
+template <>
+bool Leaves::Impl::IsLog(mcfile::je::Block const &b) {
+  using namespace mcfile::blocks;
+  if (b.fName.ends_with("log") || b.fName.ends_with("wood")) {
+    return true;
+  }
+  switch (b.fId) {
+  case minecraft::warped_stem:
+  case minecraft::crimson_stem:
+  case minecraft::stripped_warped_stem:
+  case minecraft::stripped_crimson_stem:
+  case minecraft::stripped_warped_hyphae:
+  case minecraft::stripped_crimson_hyphae:
+    return true;
+  default:
+    return false;
+  }
+}
+
+template <>
+bool Leaves::Impl::IsLog(mcfile::be::Block const &b) {
+  using namespace std;
+  static unique_ptr<unordered_set<string> const> const sTable(CreateBedrockLogBlocksSet());
+  return sTable->find(b.fName) != sTable->end();
+}
+
+std::unordered_set<std::string> *Leaves::Impl::CreateBedrockLogBlocksSet() {
+  using namespace std;
+  using namespace mcfile::blocks;
+  unordered_set<string> *ret = new unordered_set<string>();
+  for (BlockId id = unknown + 1; id < minecraft::minecraft_max_block_id; id++) {
+    auto blockJ = make_shared<mcfile::je::Block const>(id);
+    if (!IsLog(*blockJ)) {
+      continue;
+    }
+    auto blockB = je2be::tobe::BlockData::From(blockJ, nullptr);
+    if (!blockB) {
+      continue;
+    }
+    auto nameB = blockB->string("name");
+    if (!nameB) {
+      continue;
+    }
+    ret->insert(*nameB);
+  }
+  return ret;
+}
 
 void Leaves::Do(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
   Impl::Do(out, cache, accessor);

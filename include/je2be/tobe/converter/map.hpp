@@ -16,7 +16,7 @@ class Map {
 public:
   static int64_t UUID(int32_t javaMapId, uint8_t scale) {
     uint32_t const seed = 0;
-    uint32_t hash = XXHash32::hash(&javaMapId, sizeof(javaMapId), 0);
+    uint32_t hash = XXHash32::hash(&javaMapId, sizeof(javaMapId), seed);
     uint64_t s = (uint64_t)hash * 10 + (4 - scale);
     return *(int64_t *)&s;
   }
@@ -230,9 +230,9 @@ public:
 private:
   static std::tuple<int32_t, int32_t> MarkerPosition(int32_t blockX, int32_t blockZ, int32_t xCenter, int32_t zCenter, int32_t scale) {
     int32_t size = 128 * (int32_t)ceil(pow(2, scale));
-    int32_t x0 = xCenter - size / 2;
-    int32_t z0 = zCenter - size / 2;
     /*
+     * int32_t x0 = xCenter - size / 2;
+     * int32_t z0 = zCenter - size / 2;
      * marker (-128, -128) corresponds to block (x0, z0)
      * marker (128, 128) corresponds to block (x0 + size, z0 + size)
      */

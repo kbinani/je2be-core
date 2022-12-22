@@ -5,7 +5,7 @@
 
 namespace je2be::tobe {
 
-class Context;
+struct Context;
 
 class TileEntity {
   class Impl;

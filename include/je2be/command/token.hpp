@@ -18,6 +18,7 @@ public:
   };
 
   Token(std::string const &raw) : fRaw(raw) {}
+  virtual ~Token() {}
 
   virtual Type type() const { return Type::Simple; }
 

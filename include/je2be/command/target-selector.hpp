@@ -6,7 +6,7 @@
 namespace je2be::command {
 
 struct Argument {
-  ~Argument() {}
+  virtual ~Argument() {}
   virtual void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const = 0;
 };
 

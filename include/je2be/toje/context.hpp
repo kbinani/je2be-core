@@ -28,7 +28,7 @@ class Context {
           int64_t gameTick,
           GameMode gameMode,
           std::function<std::optional<BlockEntityConvertResult>(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx)> fromBlockAndBlockEntity)
-      : fEndian(endian), fTempDirectory(tempDirectory), fMapInfo(mapInfo), fStructureInfo(structureInfo), fGameTick(gameTick), fGameMode(gameMode), fFromBlockAndBlockEntity(fromBlockAndBlockEntity) {}
+      : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fFromBlockAndBlockEntity(fromBlockAndBlockEntity), fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
 
 public:
   struct ChunksInRegion {

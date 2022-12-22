@@ -228,7 +228,6 @@ private:
   }
 
   void buildData2DLegacy(mcfile::je::Chunk const &chunk, mcfile::Dimension dim) {
-    int const y = 0;
     int const x0 = chunk.minBlockX();
     int const z0 = chunk.minBlockZ();
     BiomeMapLegacy m;

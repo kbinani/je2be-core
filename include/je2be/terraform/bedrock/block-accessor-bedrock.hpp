@@ -12,7 +12,7 @@ template <size_t Width, size_t Height>
 class BlockAccessorBedrock : public BlockAccessor<mcfile::be::Block> {
 public:
   BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, mcfile::Endian endian)
-      : fDim(d), fCache(Width * Height), fCacheLoaded(Width * Height, false), fChunkX(cx), fChunkZ(cz), fDb(db), fEndian(endian) {
+      : fDim(d), fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fDb(db), fEndian(endian) {
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {

@@ -82,7 +82,7 @@ public:
           }
         }
       }
-      section->eachBlockPalette([dim, &palette, &cdp, &wd, &section, x0, y0, z0, &waterloggedIndices, &altitude, &hasWaterlogged](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+      section->eachBlockPalette([dim, &palette, &cdp, &wd, x0, y0, z0, &waterloggedIndices, &altitude, &hasWaterlogged](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
         if (TileEntity::IsTileEntity(blockJ->fId)) {
           int j = 0;
           for (int x = 0; x < 16; x++) {

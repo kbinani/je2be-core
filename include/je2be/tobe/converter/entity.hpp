@@ -10,7 +10,7 @@
 
 namespace je2be::tobe {
 
-class Context;
+struct Context;
 
 class Entity {
 private:
