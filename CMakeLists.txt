@@ -14,8 +14,8 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   endif()
 endif()
 
-set(je2be_files
-  #begin je2be source files
+set(je2be_header_files
+  #begin je2be-header files
   include/je2be.hpp
   include/je2be/box360/biome.hpp
   include/je2be/box360/block-data.hpp
@@ -188,16 +188,7 @@ set(je2be_files
   include/je2be/volume.hpp
   include/je2be/xxhash.hpp
   include/je2be/zip-file.hpp
-  src/terraform-leaves.cpp
-  src/tobe-converter-block-data.cpp
-  src/toje-block-data.cpp
-  src/toje-block-entity.cpp
-  src/toje-chunk.cpp
-  src/toje-context.cpp
-  src/toje-entity.cpp
-  src/toje-item.cpp
-  src/toje-region.cpp
-  #end je2be source files
+  #end je2be-header files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
   deps/libminecraft-file/include/mcfile/algorithm.hpp
@@ -292,6 +283,23 @@ set(je2be_files
   #end libminecraft-file source files
   .editorconfig
   .clang-format)
+set(je2be_src_files
+  #begin je2be-src files
+  src/terraform-leaves.cpp
+  src/tobe-converter-block-data.cpp
+  src/tobe-converter-entity.cpp
+  src/tobe-converter-item.cpp
+  src/tobe-converter-sub-chunk.cpp
+  src/tobe-converter-tile-entity.cpp
+  src/toje-block-data.cpp
+  src/toje-block-entity.cpp
+  src/toje-chunk.cpp
+  src/toje-context.cpp
+  src/toje-entity.cpp
+  src/toje-item.cpp
+  src/toje-region.cpp
+  #end je2be-src files
+  )
 set(test_files
   test/main.cpp
   test/moving-piston.test.hpp
@@ -354,7 +362,7 @@ add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
-add_library(je2be STATIC ${je2be_files})
+add_library(je2be STATIC ${je2be_header_files} ${je2be_src_files})
 target_include_directories(je2be PUBLIC
   ./include
   deps/leveldb
@@ -369,20 +377,20 @@ target_include_directories(je2be PUBLIC
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
 
-add_executable(j2b example/j2b.cpp ${je2be_files})
+add_executable(j2b example/j2b.cpp ${je2be_header_files})
 target_link_libraries(j2b je2be cxxopts)
 
-add_executable(b2j example/b2j.cpp ${je2be_files})
+add_executable(b2j example/b2j.cpp ${je2be_header_files})
 target_link_libraries(b2j je2be cxxopts)
 
-add_executable(dump example/dump.cpp ${je2be_files})
+add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
-add_executable(test ${test_files} ${je2be_files})
+add_executable(test ${test_files} ${je2be_header_files})
 target_link_libraries(test PRIVATE je2be Catch2::Catch2WithMain)
 
 add_executable(j2b2j test/j2b2j.cpp)
 target_link_libraries(j2b2j PRIVATE je2be Catch2::Catch2)
 
-list(APPEND all_files ${test_files} ${je2be_files} example/j2b.cpp example/b2j.cpp example/dump.cpp test/j2b2j.cpp)
+list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})

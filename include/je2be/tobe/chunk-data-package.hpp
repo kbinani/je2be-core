@@ -1,5 +1,16 @@
 #pragma once
 
+#include <je2be/enums/chunk-conversion-mode.hpp>
+#include <je2be/pos2.hpp>
+#include <je2be/pos3.hpp>
+#include <je2be/tobe/chunk-data.hpp>
+#include <je2be/tobe/context.hpp>
+#include <je2be/tobe/converter/biome-map-legacy.hpp>
+#include <je2be/tobe/converter/entity.hpp>
+#include <je2be/tobe/converter/height-map.hpp>
+#include <je2be/tobe/converter/tile-entity.hpp>
+#include <je2be/tobe/world-data.hpp>
+
 namespace je2be::tobe {
 
 class ChunkDataPackage {

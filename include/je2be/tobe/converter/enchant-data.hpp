@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/item/enchantments.hpp>
+
 namespace je2be::tobe {
 
 class EnchantData {

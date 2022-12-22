@@ -1,6 +1,13 @@
 #pragma once
 
+#include <je2be/enums/game-mode.hpp>
+#include <je2be/nbt.hpp>
+#include <je2be/pos3.hpp>
+
 namespace je2be::tobe {
+
+class JavaEditionMap;
+class WorldData;
 
 struct Context {
   Context(JavaEditionMap const &mapInfo,

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/tobe/portal/oriented-portal-blocks.hpp>
+
 namespace je2be::tobe {
 
 class PortalBlocks {

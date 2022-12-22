@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/static-reversible-map.hpp>
+
 namespace je2be {
 
 class GoatHorn : StaticReversibleMap<std::string, int16_t, GoatHorn> {

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <je2be/enums/level-directory-structure.hpp>
+#include <je2be/pos2.hpp>
+
 namespace je2be::tobe {
 
 class Options {

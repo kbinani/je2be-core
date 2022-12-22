@@ -1,5 +1,14 @@
 #pragma once
 
+#include <je2be/enums/game-mode.hpp>
+#include <je2be/status.hpp>
+#include <je2be/tobe/converter/java-edition-map.hpp>
+#include <je2be/tobe/converter/level.hpp>
+#include <je2be/tobe/converter/map.hpp>
+#include <je2be/tobe/options.hpp>
+#include <je2be/tobe/portal/portals.hpp>
+#include <je2be/tobe/structure/structures.hpp>
+
 namespace je2be::tobe {
 
 class LevelData {

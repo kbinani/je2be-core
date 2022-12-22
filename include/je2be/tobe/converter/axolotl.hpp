@@ -1,6 +1,9 @@
 #pragma once
 
+#include <je2be/entity/entity-attributes.hpp>
+
 namespace je2be::tobe {
+
 class Axolotl {
 public:
   struct Variant {
@@ -97,4 +100,5 @@ private:
   float fHealth;
   Variant fVariant;
 };
+
 } // namespace je2be::tobe

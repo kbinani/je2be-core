@@ -1,5 +1,15 @@
 #pragma once
 
+#include <je2be/db/db-interface.hpp>
+#include <je2be/item/map-color.hpp>
+#include <je2be/nbt.hpp>
+#include <je2be/tobe/converter/java-edition-map.hpp>
+
+#include <xxhash32.h>
+
+#include <optional>
+#include <tuple>
+
 namespace je2be::tobe {
 
 class Map {

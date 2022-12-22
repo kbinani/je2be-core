@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/tobe/structure/structure-piece-collection.hpp>
+
 namespace je2be::tobe {
 
 class Structures {

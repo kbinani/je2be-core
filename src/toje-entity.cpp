@@ -1,5 +1,3 @@
-#include <xxhash64.h>
-
 #include <je2be/entity/armor-stand.hpp>
 #include <je2be/entity/axolotl.hpp>
 #include <je2be/entity/boat.hpp>
@@ -19,6 +17,8 @@
 #include <je2be/toje/context.hpp>
 #include <je2be/toje/entity.hpp>
 #include <je2be/toje/item.hpp>
+
+#include <xxhash64.h>
 
 namespace je2be::toje {
 

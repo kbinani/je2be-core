@@ -1,6 +1,10 @@
 #pragma once
 
+#include <je2be/uuid.hpp>
+#include <je2be/xxhash.hpp>
+
 namespace je2be::tobe {
+
 class UuidRegistrar {
 public:
   static int64_t ToId(Uuid uuid) {
@@ -60,4 +64,5 @@ private:
 private:
   UuidRegistrar() = delete;
 };
+
 } // namespace je2be::tobe

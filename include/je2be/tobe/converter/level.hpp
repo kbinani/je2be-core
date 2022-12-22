@@ -1,5 +1,12 @@
 #pragma once
 
+#include <je2be/props.hpp>
+#include <je2be/tobe/converter/flat-world-layers.hpp>
+#include <je2be/tobe/converter/player-abilities.hpp>
+#include <je2be/tobe/uuid-registrar.hpp>
+#include <je2be/tobe/versions.hpp>
+#include <je2be/version.hpp>
+
 namespace je2be::tobe {
 
 class Level {

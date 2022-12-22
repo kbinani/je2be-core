@@ -1,5 +1,9 @@
 #pragma once
 
+#include <je2be/db/db-interface.hpp>
+#include <je2be/tobe/portal/portal-blocks.hpp>
+#include <je2be/tobe/portal/portal.hpp>
+
 namespace je2be::tobe {
 
 class Portals {

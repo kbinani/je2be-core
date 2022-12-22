@@ -1,5 +1,9 @@
 #pragma once
 
+#include <je2be/nbt.hpp>
+#include <je2be/strings.hpp>
+#include <je2be/tobe/options.hpp>
+
 namespace je2be::tobe {
 
 class JavaEditionMap {

@@ -1,5 +1,10 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+
+#include <je2be/nbt.hpp>
+#include <je2be/tobe/converter/block-data.hpp>
+
 namespace je2be::tobe {
 class FlatWorldLayers {
   FlatWorldLayers() = delete;

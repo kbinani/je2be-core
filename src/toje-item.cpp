@@ -1,5 +1,3 @@
-#include <nlohmann/json.hpp>
-
 #include <je2be/toje/item.hpp>
 
 #include <je2be/entity/axolotl.hpp>
@@ -15,6 +13,8 @@
 #include <je2be/tobe/versions.hpp>
 #include <je2be/toje/block-data.hpp>
 #include <je2be/toje/context.hpp>
+
+#include <nlohmann/json.hpp>
 
 namespace je2be::toje {
 

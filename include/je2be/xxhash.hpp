@@ -1,5 +1,7 @@
 #pragma once
 
+#include <xxhash64.h>
+
 namespace je2be {
 
 class XXHash {
