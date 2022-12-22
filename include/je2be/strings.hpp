@@ -86,11 +86,20 @@ inline std::optional<int64_t> Tol(std::string_view const &s, int base = 10) {
 
 inline std::optional<float> Tof(std::string_view const &s) {
   float v = 0;
+#if defined(_MSC_VER)
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v); ec == std::errc{}) {
     return v;
   } else {
     return std::nullopt;
   }
+#else
+  std::string tmp(s);
+  if (std::sscanf(tmp.c_str(), "%f", &v) == 1) {
+    return v;
+  } else {
+    return std::nullopt;
+  }
+#endif
 }
 
 inline bool Iequals(std::string_view const &a, std::string_view const &b) {
