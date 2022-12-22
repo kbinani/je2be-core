@@ -202,11 +202,11 @@ class RawDb : public DbInterface {
       CompressionType type = kZlibRawCompression;
 
       std::string *compressed = &r->compressed_output;
-      mcfile::Compression::CompressDeflate((void *)raw.data(), raw.size(), *compressed, 9);
-      if (compressed->size() < raw.size() - (raw.size() / 8u)) {
+      mcfile::Compression::CompressDeflate((void *)raw.data(), raw.size(), *compressed, Z_BEST_SPEED);
+      if (compressed->size() < raw.size()) {
         block_contents = *compressed;
       } else {
-        // Compression type not supported, or compressed less than 12.5%, so just
+        // Compression type not supported, or compressed less than equal, so just
         // store uncompressed form
         block_contents = raw;
         type = kNoCompression;
