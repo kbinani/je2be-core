@@ -12,7 +12,7 @@ public:
     int dy = end.fY - start.fY + 1;
     int dz = end.fZ - start.fZ + 1;
     assert(dx > 0 && dy > 0 && dz > 0);
-    fStorage.resize(dx * dy * dz, def);
+    fStorage.resize((size_t)dx * (size_t)dy * (size_t)dz, def);
   }
 
   std::optional<Value> get(Pos3i p) const {
