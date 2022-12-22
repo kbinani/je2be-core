@@ -1,5 +1,9 @@
 #pragma once
 
+#include <deque>
+#include <future>
+#include <vector>
+
 namespace je2be {
 class FutureSupport {
 private:

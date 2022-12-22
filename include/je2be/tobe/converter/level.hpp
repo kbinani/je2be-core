@@ -1,5 +1,6 @@
 #pragma once
 
+#include <je2be/enums/game-mode.hpp>
 #include <je2be/props.hpp>
 #include <je2be/tobe/converter/flat-world-layers.hpp>
 #include <je2be/tobe/converter/player-abilities.hpp>

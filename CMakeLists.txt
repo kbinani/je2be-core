@@ -287,10 +287,13 @@ set(je2be_src_files
   #begin je2be-src files
   src/terraform-leaves.cpp
   src/tobe-converter-block-data.cpp
+  src/tobe-converter-chunk.cpp
   src/tobe-converter-entity.cpp
   src/tobe-converter-item.cpp
+  src/tobe-converter-moving-piston.cpp
   src/tobe-converter-sub-chunk.cpp
   src/tobe-converter-tile-entity.cpp
+  src/tobe-converter-world.cpp
   src/toje-block-data.cpp
   src/toje-block-entity.cpp
   src/toje-chunk.cpp
