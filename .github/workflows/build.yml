@@ -21,7 +21,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: workspace
-          key: ${{ runner.os }}-${{ hashFiles('workspace/repo/deps/**/*') }}
+          key: ${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}
       - name: Checkout repository
         run: |
           mkdir -p workspace
@@ -57,7 +59,9 @@ jobs:
   #       uses: actions/cache@v3
   #       with:
   #         path: workspace
-  #         key: ${{ runner.os }}-${{ hashFiles('workspace/repo/deps/**/*') }}
+  #         key: ${{ runner.os }}-${{ github.run_id }}
+  #         restore-keys: |
+  #           ${{ runner.os }}
   #     - name: Checkout repository
   #       shell: bash
   #       run: |
@@ -95,7 +99,9 @@ jobs:
   #       uses: actions/cache@v3
   #       with:
   #         path: workspace
-  #         key: ${{ runner.os }}-${{ hashFiles('workspace/deps/**/*') }}
+  #         key: ${{ runner.os }}-${{ github.run_id }}
+  #         restore-keys: |
+  #           ${{ runner.os }}
   #     - name: Checkout repository
   #       run: |
   #         mkdir -p workspace
