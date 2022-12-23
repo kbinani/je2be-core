@@ -26,7 +26,10 @@ jobs:
         run: |
           pwd
           mkdir -p workspace
+          ls -la workspace
           cd workspace/repo || git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo
+          pwd
+          git remote -v
           git fetch origin
           git checkout ${{ github.sha }}
           git submodule sync
