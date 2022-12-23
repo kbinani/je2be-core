@@ -23,15 +23,9 @@ jobs:
           path: workspace
           key: ${{ runner.os }}
       - name: Checkout repository
-          # git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo
         run: |
-          pwd
           mkdir -p workspace
-          ls -la workspace
-          ls -la workspace/repo
-          cd workspace/repo || echo "workspace/repo not found"
-          pwd
-          git remote -v
+          cd workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo)
           git fetch origin
           git checkout ${{ github.sha }}
           git submodule sync
@@ -47,7 +41,7 @@ jobs:
         run: |
           mkdir -p workspace/build
           cd workspace/build
-          cmake ../repo -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
           cmake --build . --target test --config Release --verbose
       - name: Run Test
         run: ./workspace/build/test --durations yes
