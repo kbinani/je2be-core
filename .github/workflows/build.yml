@@ -25,7 +25,7 @@ jobs:
           git fetch origin
           git checkout ${{ github.sha }}
           git submodule sync
-          git submodules update --init --recursive
+          git submodule update --init --recursive
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
