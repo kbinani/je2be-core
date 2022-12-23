@@ -20,8 +20,8 @@ jobs:
       - name: Checkout repository
         run: |
           mkdir -p workspace
-          echo ${{ github.repositoryUrl }}
-          cd workspace/repo || git clone ${{ github.repositoryUrl }} workspace/repo && cd workspace/repo
+          echo ${{ github.repository }}
+          cd workspace/repo || git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo
           git fetch origin
           git checkout ${{ github.sha }}
           git submodule sync
