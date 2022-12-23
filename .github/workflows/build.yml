@@ -16,7 +16,7 @@ jobs:
         with:
           clangFormatVersion: 12
           exclude: ./deps
-  linux:
+  ubuntu:
     runs-on: ubuntu-latest
     needs: [style]
     steps:
@@ -28,6 +28,11 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
+      - name: Cache build directory
+        used: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}
       - name: Build
         env:
           CC: gcc-10
@@ -35,7 +40,7 @@ jobs:
         run: |
           mkdir -p ./build
           cd ./build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target test --config Release --verbose
       - name: Run Test
         run: ./build/test --durations yes
@@ -53,11 +58,16 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
+      - name: Cache build directory
+        used: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}
       - name: Build
         run: |
           mkdir build || exit 1
           cd build || exit 2
-          cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
+          cmake .. -DCMAKE_BUILD_TYPE=Release || cd .. && rmdir /s /q build && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
           cmake --build . --parallel --target test --config Release --verbose || exit 4
       - name: Run Test
         run: |
@@ -77,11 +87,16 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
+      - name: Cache build directory
+        used: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}
       - name: Build
         run: |
           mkdir -p ./build
           cd ./build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
       - name: Run Test
         run: ./build/test --durations yes
