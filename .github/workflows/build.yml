@@ -37,10 +37,10 @@ jobs:
           git checkout ${{ github.sha }}
           git submodule sync
           git submodule update --init --recursive
-      # - name: Initialize CodeQL
-      #   uses: github/codeql-action/init@v2
-      #   with:
-      #     languages: cpp
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: cpp
       - name: Build
         shell: bash
         run: |
@@ -64,5 +64,5 @@ jobs:
         run: |
           cd workspace/build
           ./test --durations yes
-      # - name: Perform CodeQL Analysis
-      #   uses: github/codeql-action/analyze@v2
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
