@@ -9,13 +9,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          submodules: recursive
       - name: Check style
         uses: DoozyX/clang-format-lint-action@v0.12
         with:
           clangFormatVersion: 12
-          exclude: ./deps
   ubuntu:
     runs-on: ubuntu-latest
     needs: [style]
