@@ -1,31 +1,33 @@
 name: CI
-
 on:
   push:
     branches:
       - main
-
 jobs:
-  linux:
+  style:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
-
       - name: Check style
         uses: DoozyX/clang-format-lint-action@v0.12
         with:
           clangFormatVersion: 12
           exclude: ./deps
-
+  linux:
+    runs-on: ubuntu-latest
+    needs: [style]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-
       - name: Build
         env:
           CC: gcc-10
@@ -35,65 +37,53 @@ jobs:
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target test --config Release --verbose
-
       - name: Run Test
         run: ./build/test --durations yes
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
-
   windows:
     runs-on: windows-latest
-
+    needs: [style]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-
       - name: Build
         run: |
           mkdir build || exit 1
           cd build || exit 2
           cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
           cmake --build . --parallel --target test --config Release --verbose || exit 4
-
       - name: Run Test
         run: |
           cd build/Release || exit 1
           cmd /c test.exe --durations yes
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
-
   macos:
     runs-on: macos-latest
-
+    needs: [style]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-
       - name: Build
         run: |
           mkdir -p ./build
           cd ./build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose
-
       - name: Run Test
         run: ./build/test --durations yes
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
