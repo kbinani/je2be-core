@@ -20,6 +20,7 @@ jobs:
       - name: Checkout repository
         run: |
           mkdir -p workspace
+          echo ${{ github.repositoryUrl }}
           cd workspace/repo || git clone ${{ github.repositoryUrl }} workspace/repo && cd workspace/repo
           git fetch origin
           git checkout ${{ github.sha }}
