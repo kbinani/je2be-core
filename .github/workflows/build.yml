@@ -29,10 +29,10 @@ jobs:
         with:
           languages: cpp
       - name: Cache build directory
-        used: actions/cache@v3
+        uses: actions/cache@v3
         with:
-          path: build
-          key: ${{ runner.os }}
+          path: build/deps
+          key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
       - name: Build
         env:
           CC: gcc-10
@@ -59,10 +59,10 @@ jobs:
         with:
           languages: cpp
       - name: Cache build directory
-        used: actions/cache@v3
+        uses: actions/cache@v3
         with:
           path: build
-          key: ${{ runner.os }}
+          key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
       - name: Build
         run: |
           mkdir build || exit 1
@@ -88,10 +88,10 @@ jobs:
         with:
           languages: cpp
       - name: Cache build directory
-        used: actions/cache@v3
+        uses: actions/cache@v3
         with:
           path: build
-          key: ${{ runner.os }}
+          key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
       - name: Build
         run: |
           mkdir -p ./build
