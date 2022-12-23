@@ -4,18 +4,18 @@ on:
     branches:
       - main
 jobs:
-  style:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Check style
-        uses: DoozyX/clang-format-lint-action@v0.12
-        with:
-          clangFormatVersion: 12
+  # style:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+  #     - name: Check style
+  #       uses: DoozyX/clang-format-lint-action@v0.12
+  #       with:
+  #         clangFormatVersion: 12
   ubuntu:
     runs-on: ubuntu-latest
-    needs: [style]
+    # needs: [style]
     steps:
       - name: Checkout repository
         run: |
