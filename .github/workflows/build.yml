@@ -41,14 +41,10 @@ jobs:
       #   uses: github/codeql-action/init@v2
       #   with:
       #     languages: cpp
-      - name: Setup env variables
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          export CC=gcc-10
-          export CXX=g++-10
       - name: Build
         shell: bash
         run: |
+          test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
           echo CC=$CC
           echo CXX=$CXX
           mkdir -p workspace/build
@@ -57,13 +53,13 @@ jobs:
           test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
           cmake --build . --parallel --target test --config Release --verbose
-      - name: Run Test
+      - name: Run Test (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
           cd workspace/build/Release
           ./test.exe --durations yes
-      - name: Run Test
+      - name: Run Test (non Windows)
         if: matrix.os != 'windows-latest'
         run: |
           cd workspace/build
