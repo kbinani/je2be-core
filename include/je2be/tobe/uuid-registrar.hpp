@@ -3,6 +3,8 @@
 #include <je2be/uuid.hpp>
 #include <je2be/xxhash.hpp>
 
+#include <mutex>
+
 namespace je2be::tobe {
 
 class UuidRegistrar {
