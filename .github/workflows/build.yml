@@ -57,28 +57,30 @@ jobs:
           path: workspace
           key: ${{ runner.os }}
       - name: Checkout repository
+        shell: bash
         run: |
-          mkdir workspace
-          cd workspace\repo || git clone https://github.com/${{ github.repository }} workspace\repo && cd workspace\repo || exit 1
-          git fetch origin || exit 2
-          git checkout ${{ github.sha }} || exit 3
-          git submodule sync || exit 4
-          git submodule update --init --recursive || exit 5
+          mkdir -p workspace/repo
+          cd workspace/repo || git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo
+          git fetch origin
+          git checkout ${{ github.sha }}
+          git submodule sync
+          git submodule update --init --recursive
       # - name: Initialize CodeQL
       #   uses: github/codeql-action/init@v2
       #   with:
       #     languages: cpp
       - name: Build
+        shell: bash
         run: |
-          mkdir workspace || exit 1
-          mkdir workspace\build || exit 2
+          mkdir -p workspace/build
           cd workspace\build || exit 3
-          cmake ..\repo -DCMAKE_BUILD_TYPE=Release || cd .. && powershell Remove-Item '.\build' -Recurse && mkdir build && cd build && cmake ..\repo -DCMAKE_BUILD_TYPE=Release || exit 4
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release
           cmake --build . --parallel --target test --config Release --verbose || exit 5
       - name: Run Test
+        shell: bash
         run: |
-          cd workspace/build/Release || exit 1
-          cmd /c test.exe --durations yes
+          cd workspace/build/Release
+          ./test.exe --durations yes
       # - name: Perform CodeQL Analysis
       #   uses: github/codeql-action/analyze@v2
   macos:
