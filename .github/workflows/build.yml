@@ -25,6 +25,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}
       - name: Checkout repository
+        shell: bash
         run: |
           mkdir -p workspace
           cd workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo)
@@ -37,6 +38,7 @@ jobs:
       #   with:
       #     languages: cpp
       - name: Build
+        shell: bash
         env:
           CC: gcc-10
           CXX: g++-10
@@ -48,81 +50,87 @@ jobs:
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
           cmake --build . --parallel --target test --config Release --verbose
       - name: Run Test
-        run: ./workspace/build/test --durations yes
+        run: |
+          cd workspace/build
+          ./test --durations yes
       # - name: Perform CodeQL Analysis
       #   uses: github/codeql-action/analyze@v2
-  # windows:
-  #   runs-on: windows-latest
-  #   # needs: [style]
-  #   steps:
-  #     - name: Cache workspace directory
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: workspace
-  #         key: ${{ runner.os }}-${{ github.run_id }}
-  #         restore-keys: |
-  #           ${{ runner.os }}
-  #     - name: Checkout repository
-  #       shell: bash
-  #       run: |
-  #         mkdir -p workspace/repo
-  #         cd workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo)
-  #         git fetch origin
-  #         git checkout ${{ github.sha }}
-  #         git submodule sync
-  #         git submodule update --init --recursive
-  #     # - name: Initialize CodeQL
-  #     #   uses: github/codeql-action/init@v2
-  #     #   with:
-  #     #     languages: cpp
-  #     - name: Build
-  #       shell: bash
-  #       run: |
-  #         mkdir -p workspace/build
-  #         cd workspace/build || exit 3
-  #         cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-  #         test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
-  #         test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
-  #         cmake --build . --parallel --target test --config Release --verbose || exit 5
-  #     - name: Run Test
-  #       shell: bash
-  #       run: |
-  #         cd workspace/build/Release
-  #         ./test.exe --durations yes
-  #     # - name: Perform CodeQL Analysis
-  #     #   uses: github/codeql-action/analyze@v2
-  # macos:
-  #   runs-on: macos-latest
-  #   # needs: [style]
-  #   steps:
-  #     - name: Cache workspace directory
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: workspace
-  #         key: ${{ runner.os }}-${{ github.run_id }}
-  #         restore-keys: |
-  #           ${{ runner.os }}
-  #     - name: Checkout repository
-  #       run: |
-  #         mkdir -p workspace
-  #         cd workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo)
-  #         git fetch origin
-  #         git checkout ${{ github.sha }}
-  #         git submodule sync
-  #         git submodule update --init --recursive
-  #     # - name: Initialize CodeQL
-  #     #   uses: github/codeql-action/init@v2
-  #     #   with:
-  #     #     languages: cpp
-  #     - name: Build
-  #       run: |
-  #         mkdir -p workspace/build
-  #         cd workspace/build
-  #         cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-  #         test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
-  #         test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
-  #         cmake --build . --parallel --target test --config Release --verbose
-  #     - name: Run Test
-  #       run: ./workspace/build/test --durations yes
-  #     # - name: Perform CodeQL Analysis
-  #     #   uses: github/codeql-action/analyze@v2
+  macos:
+    runs-on: macos-latest
+    # needs: [style]
+    steps:
+      - name: Cache workspace directory
+        uses: actions/cache@v3
+        with:
+          path: workspace
+          key: ${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}
+      - name: Checkout repository
+        shell: bash
+        run: |
+          mkdir -p workspace
+          cd workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo)
+          git fetch origin
+          git checkout ${{ github.sha }}
+          git submodule sync
+          git submodule update --init --recursive
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v2
+      #   with:
+      #     languages: cpp
+      - name: Build
+        shell: bash
+        run: |
+          mkdir -p workspace/build
+          cd workspace/build
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
+          test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
+          test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
+          cmake --build . --parallel --target test --config Release --verbose
+      - name: Run Test
+        run: |
+          cd workspace/build
+          ./test --durations yes
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v2
+  windows:
+    runs-on: windows-latest
+    # needs: [style]
+    steps:
+      - name: Cache workspace directory
+        uses: actions/cache@v3
+        with:
+          path: workspace
+          key: ${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}
+      - name: Checkout repository
+        shell: bash
+        run: |
+          mkdir -p workspace/repo
+          cd workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo)
+          git fetch origin
+          git checkout ${{ github.sha }}
+          git submodule sync
+          git submodule update --init --recursive
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v2
+      #   with:
+      #     languages: cpp
+      - name: Build
+        shell: bash
+        run: |
+          mkdir -p workspace/build
+          cd workspace/build
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
+          test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
+          test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
+          cmake --build . --parallel --target test --config Release --verbose
+      - name: Run Test
+        shell: bash
+        run: |
+          cd workspace/build/Release
+          ./test.exe --durations yes
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v2
