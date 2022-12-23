@@ -44,7 +44,7 @@ jobs:
           cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
           test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
-          cmake --build . --target test --config Release --verbose
+          cmake --build . --parallel --target test --config Release --verbose
       - name: Run Test
         run: ./workspace/build/test --durations yes
       # - name: Perform CodeQL Analysis
@@ -77,6 +77,8 @@ jobs:
   #         mkdir -p workspace/build
   #         cd workspace/build || exit 3
   #         cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
+  #         test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
+  #         test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
   #         cmake --build . --parallel --target test --config Release --verbose || exit 5
   #     - name: Run Test
   #       shell: bash
@@ -111,6 +113,8 @@ jobs:
   #         mkdir -p workspace/build
   #         cd workspace/build
   #         cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
+  #         test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
+  #         test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
   #         cmake --build . --parallel --target test --config Release --verbose
   #     - name: Run Test
   #       run: ./workspace/build/test --durations yes
