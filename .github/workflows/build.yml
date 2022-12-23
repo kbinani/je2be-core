@@ -28,7 +28,7 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Cache build directory
+      - name: Cache build/deps directory
         uses: actions/cache@v3
         with:
           path: build/deps
@@ -58,16 +58,17 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Cache build directory
+      - name: Cache build/deps directory
         uses: actions/cache@v3
         with:
-          path: build
+          path: build/deps
           key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
       - name: Build
         run: |
           mkdir build || exit 1
           cd build || exit 2
-          cmake .. -DCMAKE_BUILD_TYPE=Release || cd .. && rmdir /s /q build && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
+          rm --version || exit 5
+          cmake .. -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
           cmake --build . --parallel --target test --config Release --verbose || exit 4
       - name: Run Test
         run: |
@@ -87,10 +88,10 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Cache build directory
+      - name: Cache build/deps directory
         uses: actions/cache@v3
         with:
-          path: build
+          path: build/deps
           key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
       - name: Build
         run: |
