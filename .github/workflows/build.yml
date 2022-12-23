@@ -20,16 +20,15 @@ jobs:
       - name: Checkout repository
         run: |
           mkdir -p workspace
-          echo ${{ github.repository }}
           cd workspace/repo || git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo
           git fetch origin
           git checkout ${{ github.sha }}
           git submodule sync
           git submodule update --init --recursive
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: cpp
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v2
+      #   with:
+      #     languages: cpp
       - name: Cache workspace directory
         uses: actions/cache@v3
         with:
@@ -46,61 +45,70 @@ jobs:
           cmake --build . --target test --config Release --verbose
       - name: Run Test
         run: ./workspace/build/test --durations yes
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-  # windows:
-  #   runs-on: windows-latest
-  #   needs: [style]
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-  #     - name: Initialize CodeQL
-  #       uses: github/codeql-action/init@v2
-  #       with:
-  #         languages: cpp
-  #     - name: Cache build/deps directory
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: build/deps
-  #         key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
-  #     - name: Build
-  #       run: |
-  #         mkdir build || exit 1
-  #         cd build || exit 2
-  #         cmake .. -DCMAKE_BUILD_TYPE=Release || cd .. && powershell Remove-Item '.\build' -Recurse && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
-  #         cmake --build . --parallel --target test --config Release --verbose || exit 4
-  #     - name: Run Test
-  #       run: |
-  #         cd build/Release || exit 1
-  #         cmd /c test.exe --durations yes
-  #     - name: Perform CodeQL Analysis
-  #       uses: github/codeql-action/analyze@v2
-  # macos:
-  #   runs-on: macos-latest
-  #   needs: [style]
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-  #     - name: Initialize CodeQL
-  #       uses: github/codeql-action/init@v2
-  #       with:
-  #         languages: cpp
-  #     - name: Cache build/deps directory
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: build/deps
-  #         key: ${{ runner.os }}-${{ hashFiles('deps/**/*') }}
-  #     - name: Build
-  #       run: |
-  #         mkdir -p ./build
-  #         cd ./build
-  #         cmake .. -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release
-  #         cmake --build . --parallel --target test --config Release --verbose
-  #     - name: Run Test
-  #       run: ./build/test --durations yes
-  #     - name: Perform CodeQL Analysis
-  #       uses: github/codeql-action/analyze@v2
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v2
+  windows:
+    runs-on: windows-latest
+    # needs: [style]
+    steps:
+      - name: Checkout repository
+        run: |
+          mkdir workspace
+          cd workspace\repo || git clone https://github.com/${{ github.repository }} workspace\repo && cd workspace\repo || exit 1
+          git fetch origin || exit 2
+          git checkout ${{ github.sha }} || exit 3
+          git submodule sync || exit 4
+          git submodule update --init --recursive || exit 5
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v2
+      #   with:
+      #     languages: cpp
+      - name: Cache workspace directory
+        uses: actions/cache@v3
+        with:
+          path: workspace
+          key: ${{ runner.os }}
+      - name: Build
+        run: |
+          mkdir workspace || exit 1
+          mkdir workspace\build || exit 2
+          cd workspace\build || exit 3
+          cmake ..\repo -DCMAKE_BUILD_TYPE=Release || cd .. && powershell Remove-Item '.\build' -Recurse && mkdir build && cd build && cmake ..\repo -DCMAKE_BUILD_TYPE=Release || exit 4
+          cmake --build . --parallel --target test --config Release --verbose || exit 5
+      - name: Run Test
+        run: |
+          cd workspace/build/Release || exit 1
+          cmd /c test.exe --durations yes
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v2
+  macos:
+    runs-on: macos-latest
+    # needs: [style]
+    steps:
+      - name: Checkout repository
+        run: |
+          mkdir -p workspace
+          cd workspace/repo || git clone https://github.com/${{ github.repository }} workspace/repo && cd workspace/repo
+          git fetch origin
+          git checkout ${{ github.sha }}
+          git submodule sync
+          git submodule update --init --recursive
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v2
+      #   with:
+      #     languages: cpp
+      - name: Cache workspace directory
+        uses: actions/cache@v3
+        with:
+          path: workspace
+          key: ${{ runner.os }}
+      - name: Build
+        run: |
+          mkdir -p ./workspace/build
+          cd ./workspace/build
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --parallel --target test --config Release --verbose
+      - name: Run Test
+        run: ./workspace/build/test --durations yes
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v2
