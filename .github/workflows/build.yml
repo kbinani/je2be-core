@@ -64,8 +64,7 @@ jobs:
         run: |
           mkdir build || exit 1
           cd build || exit 2
-          rm --version || exit 5
-          cmake .. -DCMAKE_BUILD_TYPE=Release || rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
+          cmake .. -DCMAKE_BUILD_TYPE=Release || cd .. && powershell Remove-Item '.\build' -Recurse && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release || exit 3
           cmake --build . --parallel --target test --config Release --verbose || exit 4
       - name: Run Test
         run: |
