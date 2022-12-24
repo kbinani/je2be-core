@@ -48,9 +48,11 @@ jobs:
           mkdir -p workspace/build
           cd workspace/build
           cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
+          find ./je2be.dir -name '*.obj' | xargs rm -f
+          find ./test.dir -name '*.obj' | xargs rm -f
+          rm -rf Release
           cmake --build . --target Catch2 --config Release --verbose
-          cmake --build . --target je2be --config Release --clean-first --verbose --parallel
-          cmake --build . --target test --config Release --clean-first --verbose --parallel
+          cmake --build . --target test --config Release --verbose --parallel
       - name: Build (non Windows)
         if: matrix.os != 'windows-latest'
         run: |
