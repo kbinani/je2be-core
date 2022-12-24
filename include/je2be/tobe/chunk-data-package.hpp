@@ -7,7 +7,7 @@
 namespace je2be::tobe {
 
 class ChunkData;
-class Context;
+struct Context;
 
 class ChunkDataPackage {
 public:

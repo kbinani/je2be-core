@@ -942,7 +942,6 @@ public:
 private:
   uint64_t fValuesPos = 0;
   FILE *fValuesFile;
-  uint64_t fKeysPos = 0;
   uint64_t fNumKeys = 0;
   FILE *fKeysFile;
   std::filesystem::path const fDir;
