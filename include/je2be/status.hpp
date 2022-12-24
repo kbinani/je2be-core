@@ -1,5 +1,9 @@
 #pragma once
 
+#include <filesystem>
+#include <string>
+#include <system_error>
+
 namespace je2be {
 
 class Status {

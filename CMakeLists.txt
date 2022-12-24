@@ -304,6 +304,7 @@ set(je2be_src_files
   src/toje-item.cpp
   src/toje-region.cpp
   src/toje-sub-chunk.cpp
+  src/toje-world.cpp
   #end je2be-src files
   )
 set(test_files
