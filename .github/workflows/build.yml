@@ -47,7 +47,7 @@ jobs:
           rm -rf Release
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
-          cd build/Release
+          cd Release
           ./test.exe --durations yes
       - name: Build and Run Test (non Windows)
         if: matrix.os != 'windows-latest'
@@ -60,7 +60,6 @@ jobs:
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
-          cd build
           ./test --durations yes
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
