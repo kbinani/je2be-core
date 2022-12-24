@@ -41,26 +41,16 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: |
-          mkdir -p workspace/build
-          cd workspace/build
-          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-          cmake --build . --target Catch2 --config Release --verbose
-          cmake --build . --target je2be --config Release --clean-first --verbose --parallel
-          cmake --build . --target test --config Release --clean-first --verbose --parallel
-      - name: Build (non Windows)
-        if: matrix.os != 'windows-latest'
+      - name: Build
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
           mkdir -p workspace/build
           cd workspace/build
           cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-          test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
-          test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
+          rm -rf je2be.dir CMakeFiles/je2be.dir
+          rm -rf test.dir CMakeFiles/test.dir
           cmake --build . --target Catch2 --config Release --verbose
+          cmake --build . --target je2be --config Release --verbose --parallel
           cmake --build . --target test --config Release --verbose --parallel
       - name: Run Test (Windows)
         if: matrix.os == 'windows-latest'
