@@ -35,7 +35,7 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Build (Windows)
+      - name: Build and Run Test (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
@@ -47,7 +47,9 @@ jobs:
           rm -rf Release
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
-      - name: Build (non Windows)
+          cd build/Release
+          ./test.exe --durations yes
+      - name: Build and Run Test (non Windows)
         if: matrix.os != 'windows-latest'
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
@@ -58,15 +60,6 @@ jobs:
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
-      - name: Run Test (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: |
-          cd build/Release
-          ./test.exe --durations yes
-      - name: Run Test (non Windows)
-        if: matrix.os != 'windows-latest'
-        run: |
           cd build
           ./test --durations yes
       - name: Perform CodeQL Analysis
