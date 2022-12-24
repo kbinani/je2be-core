@@ -6,6 +6,8 @@
 #include <je2be/fs.hpp>
 #include <je2be/status.hpp>
 #include <je2be/tobe/chunk-data-package.hpp>
+#include <je2be/tobe/chunk-data.hpp>
+#include <je2be/tobe/context.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
 #include <je2be/tobe/converter/moving-piston.hpp>
 #include <je2be/tobe/converter/sub-chunk.hpp>
