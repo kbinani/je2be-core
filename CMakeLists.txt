@@ -291,6 +291,7 @@ set(je2be_src_files
   src/tobe-converter-chunk.cpp
   src/tobe-converter-entity.cpp
   src/tobe-converter-item.cpp
+  src/tobe-converter-map.cpp
   src/tobe-converter-moving-piston.cpp
   src/tobe-converter-sub-chunk.cpp
   src/tobe-converter-tile-entity.cpp
