@@ -20,17 +20,23 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [style]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Cache build directory
+      - name: Cache workspace directory
         uses: actions/cache@v3
         with:
-          path: build
+          path: workspace
           key: ${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}
+      - name: Checkout repository
+        shell: bash
+        run: |
+          mkdir -p workspace
+          test -d workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo)
+          cd workspace/repo
+          git fetch origin
+          git checkout ${{ github.sha }}
+          git submodule sync
+          git submodule update --init --recursive
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
@@ -39,9 +45,9 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
+          mkdir -p workspace/build
+          cd workspace/build
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
           test -d ./je2be.dir && (find ./je2be.dir -name '*.obj' | xargs rm -f)
           test -d ./test.dir && (find ./test.dir -name '*.obj' | xargs rm -f)
           rm -rf Release
@@ -53,9 +59,9 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
+          mkdir -p workspace/build
+          cd workspace/build
+          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
           test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
           cmake --build . --target Catch2 --config Release --verbose
