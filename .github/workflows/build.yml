@@ -45,13 +45,11 @@ jobs:
         shell: bash
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
-          echo CC=$CC
-          echo CXX=$CXX
           mkdir -p workspace/build
           cd workspace/build
           cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-          cmake --build . --parallel --target je2be --config Release --clean-first --verbose
-          cmake --build . --parallel --target test --config Release --clean-first --verbose
+          cmake --build . --target je2be --config Release --clean-first --verbose
+          cmake --build . --target test --config Release --clean-first --verbose
       - name: Run Test (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
