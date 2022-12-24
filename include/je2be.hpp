@@ -4,21 +4,6 @@
 
 #include <minecraft-file.hpp>
 
-#include <leveldb/db.h>
-#include <leveldb/write_batch.h>
-#include <leveldb/comparator.h>
-#include <leveldb/table_builder.h>
-#include <leveldb/env.h>
-#include <leveldb/table.h>
-#include <table/compression/compressor_factory.h>
-#include <table/block_builder.h>
-#include <table/filter_block.h>
-#include <table/format.h>
-#include <db/dbformat.h>
-#include <db/version_edit.h>
-#include <db/log_writer.h>
-#include <util/crc32c.h>
-
 #include <xxhash32.h>
 #include <xxhash64.h>
 #include <hwm/task/task_queue.hpp>

@@ -1,5 +1,13 @@
 #pragma once
 
+#include <functional>
+#include <optional>
+#include <string>
+
+namespace leveldb {
+class Slice;
+}
+
 namespace je2be {
 
 class DbInterface {

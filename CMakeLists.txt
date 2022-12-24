@@ -285,6 +285,7 @@ set(je2be_header_files
   .clang-format)
 set(je2be_src_files
   #begin je2be-src files
+  src/db-raw-db.cpp
   src/terraform-leaves.cpp
   src/tobe-converter-block-data.cpp
   src/tobe-converter-chunk.cpp
