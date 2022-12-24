@@ -50,9 +50,8 @@ jobs:
           mkdir -p workspace/build
           cd workspace/build
           cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-          test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
-          test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
-          cmake --build . --parallel --target test --config Release --verbose
+          cmake --build . --parallel --target je2be --config Release --clean-first --verbose
+          cmake --build . --parallel --target test --config Release --clean-first --verbose
       - name: Run Test (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
