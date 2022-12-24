@@ -330,7 +330,7 @@ public:
     Result r;
 
     if (block) {
-      map<string, string> props;
+      map<string, optional<string>> props;
       string name;
       if (block->fName.find("wall") == string::npos) {
         if (rot) {
@@ -340,7 +340,7 @@ public:
       } else {
         name = strings::Replace(strings::Replace(skullName, "_head", "_wall_head"), "_skull", "_wall_skull");
       }
-      auto blockJ = make_shared<mcfile::je::Block const>("minecraft:" + name, props);
+      auto blockJ = block->renamed("minecraft:" + name)->applying(props);
       r.fBlock = blockJ;
     }
     r.fTileEntity = out;
