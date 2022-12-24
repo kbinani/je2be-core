@@ -31,12 +31,12 @@ jobs:
         shell: bash
         run: |
           mkdir -p workspace
-          test -d workspace/repo || (git clone https://github.com/${{ github.repository }} workspace/repo)
+          test -d workspace/repo || (git clone --filter=blob:none https://github.com/${{ github.repository }} workspace/repo)
           cd workspace/repo
           git fetch origin
           git checkout ${{ github.sha }}
           git submodule sync
-          git submodule update --init --recursive
+          git submodule update --init --recursive --recommend-shallow --depth 1
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
