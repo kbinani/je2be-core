@@ -9,6 +9,7 @@ on:
 jobs:
   style:
     runs-on: ubuntu-latest
+    if: !github.event.schedule
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,22 +25,17 @@ jobs:
     needs: [style]
     steps:
       - name: Cache workspace directory
+        if: !github.event.schedule
         uses: actions/cache@v3
         with:
-          path: workspace
+          path: build
           key: ${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}
       - name: Checkout repository
-        shell: bash
-        run: |
-          mkdir -p workspace
-          test -d workspace/repo || (git clone --filter=blob:none https://github.com/${{ github.repository }} workspace/repo)
-          cd workspace/repo
-          git fetch origin
-          git checkout ${{ github.sha }}
-          git submodule sync
-          git submodule update --init --recursive --recommend-shallow --depth 1
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Initialize CodeQL
         if: github.event.schedule
         uses: github/codeql-action/init@v2
@@ -49,12 +45,9 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          mkdir -p workspace/build
-          cd workspace/build
-          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-          test -d ./je2be.dir && (find ./je2be.dir -name '*.obj' | xargs rm -f)
-          test -d ./test.dir && (find ./test.dir -name '*.obj' | xargs rm -f)
-          rm -rf Release
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
           cd Release
@@ -63,11 +56,9 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
-          mkdir -p workspace/build
-          cd workspace/build
-          cmake ../repo -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake ../repo -DCMAKE_BUILD_TYPE=Release)
-          test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
-          test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
           ./test --durations yes
