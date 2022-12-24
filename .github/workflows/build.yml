@@ -42,8 +42,8 @@ jobs:
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
-          find ./je2be.dir -name '*.obj' | xargs rm -f
-          find ./test.dir -name '*.obj' | xargs rm -f
+          test -d ./je2be.dir && (find ./je2be.dir -name '*.obj' | xargs rm -f)
+          test -d ./test.dir && (find ./test.dir -name '*.obj' | xargs rm -f)
           rm -rf Release
           cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
