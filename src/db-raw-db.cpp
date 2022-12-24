@@ -9,7 +9,7 @@
 #include <table/format.h>
 #include <util/crc32c.h>
 
-#include <hwm/task/task_queue.hpp>
+#include <BS_thread_pool.hpp>
 
 #include <minecraft-file.hpp>
 
@@ -262,7 +262,7 @@ public:
   Impl(std::filesystem::path const &dir, int concurrency)
       : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fConcurrency(concurrency), fLock(nullptr), fSeq(0) {
     if (concurrency > 0) {
-      fQueue.reset(new hwm::task_queue(1));
+      fPool.reset(new BS::thread_pool(1));
     }
 
     leveldb::DestroyDB(dir, {});
@@ -331,12 +331,12 @@ public:
     Compress(key, value, sequence, &block);
 
     bool ok = true;
-    if (fQueue) {
+    if (fPool) {
       vector<future<bool>> popped;
       {
         std::lock_guard<std::mutex> lk(fMut);
         FutureSupport::Drain(2, fFutures, popped);
-        fFutures.push_back(fQueue->enqueue(std::bind(&Impl::putImpl, this, _1, _2, _3), key, block, sequence));
+        fFutures.push_back(fPool->submit(std::bind(&Impl::putImpl, this, _1, _2, _3), key, block, sequence));
       }
 
       for (auto &f : popped) {
@@ -376,7 +376,7 @@ public:
     for (auto &f : fFutures) {
       f.get();
     }
-    fQueue.reset();
+    fPool.reset();
 
     if (!fValuesFile) {
       return false;
@@ -407,7 +407,7 @@ public:
     uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
     if (fConcurrency > 0) {
-      auto queue = make_unique<hwm::task_queue>(fConcurrency);
+      auto queue = make_unique<BS::thread_pool>(fConcurrency);
 
       deque<future<optional<TableBuildResult>>> futures;
       for (size_t idx = 0; idx < plans.size(); idx++) {
@@ -429,7 +429,7 @@ public:
         }
 
         TableBuildPlan plan = plans[idx];
-        futures.push_back(queue->enqueue(bind(&Impl::buildTable, this, _1, _2), plan, idx));
+        futures.push_back(queue->submit(bind(&Impl::buildTable, this, _1, _2), plan, idx));
       }
 
       for (auto &f : futures) {
@@ -511,7 +511,7 @@ public:
     for (auto &f : fFutures) {
       f.get();
     }
-    fQueue.reset();
+    fPool.reset();
     if (fValuesFile) {
       fclose(fValuesFile);
       fValuesFile = nullptr;
@@ -948,7 +948,7 @@ private:
   std::filesystem::path const fDir;
   std::mutex fMut;
   std::map<uint8_t, uint64_t> fNumKeysPerShard;
-  std::unique_ptr<hwm::task_queue> fQueue;
+  std::unique_ptr<BS::thread_pool> fPool;
   std::deque<std::future<bool>> fFutures;
   int const fConcurrency;
   bool fClosed = false;

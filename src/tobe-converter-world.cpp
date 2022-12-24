@@ -8,7 +8,7 @@
 #include <je2be/tobe/progress.hpp>
 #include <je2be/tobe/world-data.hpp>
 
-#include <hwm/task/task_queue.hpp>
+#include <BS_thread_pool.hpp>
 
 namespace je2be::tobe {
 
@@ -31,7 +31,7 @@ public:
     using namespace mcfile::je;
     namespace fs = std::filesystem;
 
-    auto queue = make_unique<hwm::task_queue>(concurrency);
+    auto queue = make_unique<BS::thread_pool>(concurrency);
     deque<future<Chunk::Result>> futures;
 
     auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
@@ -94,7 +94,7 @@ public:
               playerAttachedEntities = pae;
             }
           }
-          futures.push_back(queue->enqueue(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType));
+          futures.push_back(queue->submit(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType));
         }
       }
       return true;
@@ -158,9 +158,9 @@ public:
       }
     }
     deque<future<bool>> futures;
-    unique_ptr<hwm::task_queue> pool;
+    unique_ptr<BS::thread_pool> pool;
     if (concurrency > 0) {
-      pool.reset(new hwm::task_queue(concurrency));
+      pool.reset(new BS::thread_pool(concurrency));
     }
     bool ok = true;
     for (auto const &i : files) {
@@ -173,7 +173,7 @@ public:
         if (!ok) {
           break;
         }
-        futures.push_back(pool->enqueue(PutChunkEntities, d, i.first, i.second, ref(db)));
+        futures.push_back(pool->submit(PutChunkEntities, d, i.first, i.second, ref(db)));
       } else {
         if (!PutChunkEntities(d, i.first, i.second, db)) {
           return false;

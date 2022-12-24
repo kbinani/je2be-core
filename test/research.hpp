@@ -871,14 +871,14 @@ static void LevelDbConcurrentIteration() {
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
     keysExpected.insert(itr->key().ToString());
   }
-  unique_ptr<hwm::task_queue> queue(new hwm::task_queue(thread::hardware_concurrency()));
+  unique_ptr<BS::thread_pool> queue(new BS::thread_pool(thread::hardware_concurrency()));
   deque<future<LevelDbConcurrentIterationResult>> futures;
   for (int i = 0; i < 256; i++) {
     shared_ptr<Iterator> itr(db->NewIterator({}));
     string prefix;
     prefix.append(1, (char)i);
     itr->Seek(Slice(prefix));
-    futures.push_back(queue->enqueue(LevelDbConcurrentIterationQueue, (char)i, itr));
+    futures.push_back(queue->submit(LevelDbConcurrentIterationQueue, (char)i, itr));
   }
   set<string> keysActual;
   while (!futures.empty()) {
@@ -890,7 +890,7 @@ static void LevelDbConcurrentIteration() {
         keysActual.insert(ret.fKey);
       }
       if (ret.fContinue) {
-        futures.push_back(queue->enqueue(LevelDbConcurrentIterationQueue, ret.fPrefix, ret.fItr));
+        futures.push_back(queue->submit(LevelDbConcurrentIterationQueue, ret.fPrefix, ret.fItr));
       }
     }
   }

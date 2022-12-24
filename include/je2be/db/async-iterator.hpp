@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hwm/task/task_queue.hpp>
+#include <BS_thread_pool.hpp>
 
 #include <je2be/future-support.hpp>
 
@@ -25,7 +25,7 @@ public:
     using namespace std;
     using namespace leveldb;
 
-    hwm::task_queue queue(concurrency);
+    BS::thread_pool queue(concurrency);
     deque<future<Result>> futures;
 
     for (int i = 0; i < 256; i++) {
@@ -33,7 +33,7 @@ public:
       string prefix;
       prefix.append(1, (char)i);
       itr->Seek(Slice(prefix));
-      futures.push_back(queue.enqueue(Do, (char)i, itr));
+      futures.push_back(queue.submit(Do, (char)i, itr));
     }
     while (!futures.empty()) {
       vector<future<Result>> drain;
@@ -44,7 +44,7 @@ public:
           receiver(ret.fKey, ret.fValue);
         }
         if (ret.fContinue) {
-          futures.push_back(queue.enqueue(Do, ret.fPrefix, ret.fItr));
+          futures.push_back(queue.submit(Do, ret.fPrefix, ret.fItr));
         }
       }
     }

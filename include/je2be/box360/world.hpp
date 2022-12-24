@@ -54,9 +54,9 @@ public:
       Fs::DeleteAll(*entityTempDir);
     };
 
-    unique_ptr<hwm::task_queue> queue;
+    unique_ptr<BS::thread_pool> queue;
     if (concurrency > 0) {
-      queue.reset(new hwm::task_queue(concurrency));
+      queue.reset(new BS::thread_pool(concurrency));
     }
     deque<future<Status>> futures;
     optional<Status> error;
@@ -98,7 +98,7 @@ public:
                 ok = false;
                 break;
               }
-              futures.push_back(queue->enqueue(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
+              futures.push_back(queue->submit(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
             } else {
               progressChunks++;
               if (auto st = ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options); !st.ok()) {
@@ -144,7 +144,7 @@ public:
     }
 
     if (concurrency > 0) {
-      queue.reset(new hwm::task_queue(concurrency));
+      queue.reset(new BS::thread_pool(concurrency));
     }
 
     mcfile::je::Region::ConcatOptions o;
@@ -152,7 +152,7 @@ public:
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         if (queue) {
-          futures.push_back(queue->enqueue(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
+          futures.push_back(queue->submit(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
         } else {
           if (auto st = ConcatCompressedNbt(rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o); !st.ok()) {
             return st;

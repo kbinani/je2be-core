@@ -4,9 +4,12 @@
 
 #include <minecraft-file.hpp>
 
+#include <leveldb/env.h>
+#include <leveldb/slice.h>
+
 #include <xxhash32.h>
 #include <xxhash64.h>
-#include <hwm/task/task_queue.hpp>
+#include <BS_thread_pool.hpp>
 #include <nlohmann/json.hpp>
 
 #include <mz.h>

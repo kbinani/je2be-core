@@ -7,9 +7,6 @@
 [submodule "ext/json"]
 	path = deps/json
 	url = https://github.com/nlohmann/json.git
-[submodule "deps/hwm.task"]
-	path = deps/hwm.task
-	url = https://github.com/hotwatermorning/hwm.task.git
 [submodule "deps/xxhash"]
 	path = deps/xxhash
 	url = https://github.com/stbrumme/xxhash.git
@@ -19,3 +16,6 @@
 [submodule "deps/cxxopts"]
 	path = deps/cxxopts
 	url = https://github.com/jarro2783/cxxopts.git
+[submodule "deps/thread-pool"]
+	path = deps/thread-pool
+	url = https://github.com/bshoshany/thread-pool.git

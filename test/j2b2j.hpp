@@ -943,9 +943,9 @@ static void TestJavaToBedrockToJava(fs::path in) {
       }
 
       deque<future<void>> futures;
-      unique_ptr<hwm::task_queue> pool;
+      unique_ptr<BS::thread_pool> pool;
       if (multithread) {
-        pool = make_unique<hwm::task_queue>(thread::hardware_concurrency());
+        pool = make_unique<BS::thread_pool>(thread::hardware_concurrency());
       }
 
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
@@ -961,7 +961,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
             continue;
           }
           if (multithread) {
-            futures.push_back(move(pool->enqueue(CheckChunk, *regionE, *regionA, cx, cz, dim)));
+            futures.push_back(move(pool->submit(CheckChunk, *regionE, *regionA, cx, cz, dim)));
           } else {
             CheckChunk(*regionE, *regionA, cx, cz, dim);
           }
@@ -986,9 +986,9 @@ static void TestJavaToBedrockToJava(fs::path in) {
       }
 
       deque<future<void>> futures;
-      unique_ptr<hwm::task_queue> pool;
+      unique_ptr<BS::thread_pool> pool;
       if (multithread) {
-        pool = make_unique<hwm::task_queue>(thread::hardware_concurrency());
+        pool = make_unique<BS::thread_pool>(thread::hardware_concurrency());
       }
 
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
@@ -1004,7 +1004,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
             continue;
           }
           if (multithread) {
-            futures.push_back(move(pool->enqueue(CheckPoi, *regionE, *regionA, cx, cz, dim)));
+            futures.push_back(move(pool->submit(CheckPoi, *regionE, *regionA, cx, cz, dim)));
           } else {
             CheckPoi(*regionE, *regionA, cx, cz, dim);
           }

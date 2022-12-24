@@ -38,7 +38,7 @@ private:
       fill_n(running[i], height, false);
       fill_n(done[i], height, false);
     }
-    unique_ptr<hwm::task_queue> queue(new hwm::task_queue(concurrency));
+    unique_ptr<BS::thread_pool> queue(new BS::thread_pool(concurrency));
     deque<future<Nullable<Result>>> futures;
     bool ok = true;
     optional<Status> error;
@@ -69,7 +69,7 @@ private:
       auto next = NextQueue(done, running);
       if (next) {
         MarkRunning(next->fX, next->fZ, running);
-        futures.push_back(queue->enqueue(DoChunk, next->fX, next->fZ, directory));
+        futures.push_back(queue->submit(DoChunk, next->fX, next->fZ, directory));
       } else {
         assert(!futures.empty());
         auto result = futures.front().get();

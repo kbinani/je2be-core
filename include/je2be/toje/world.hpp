@@ -41,7 +41,7 @@ public:
       return JE2BE_ERROR_WHAT(ec.message());
     }
 
-    hwm::task_queue queue(concurrency);
+    BS::thread_pool queue(concurrency);
     deque<future<shared_ptr<Context>>> futures;
     auto ctx = parentContext.make();
 
@@ -77,7 +77,7 @@ public:
       if (cancelRequested.load() || !ok) {
         break;
       }
-      futures.emplace_back(queue.enqueue(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx, reportProgress));
+      futures.emplace_back(queue.submit(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx, reportProgress));
     }
 
     for (auto &f : futures) {
@@ -118,7 +118,7 @@ public:
     deque<future<Status>> concatEntityMca;
     Status st = Status::Ok();
     for (auto const &region : regions) {
-      concatEntityMca.push_back(queue.enqueue(SquashEntityChunks, region.first.fX, region.first.fZ, dir));
+      concatEntityMca.push_back(queue.submit(SquashEntityChunks, region.first.fX, region.first.fZ, dir));
       vector<future<Status>> drain;
       FutureSupport::Drain(concurrency + 1, concatEntityMca, drain);
       for (auto &f : drain) {
