@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+on:
+  schedule:
+    - cron: '52 13 * * * *'
 jobs:
   style:
     runs-on: ubuntu-latest
@@ -38,6 +41,7 @@ jobs:
           git submodule sync
           git submodule update --init --recursive --recommend-shallow --depth 1
       - name: Initialize CodeQL
+        if: github.event.schedule
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
@@ -68,4 +72,5 @@ jobs:
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
           ./test --durations yes
       - name: Perform CodeQL Analysis
+        if: github.event.schedule
         uses: github/codeql-action/analyze@v2
