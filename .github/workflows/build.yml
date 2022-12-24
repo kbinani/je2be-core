@@ -46,7 +46,7 @@ jobs:
           find ./test.dir -name '*.obj' | xargs rm -f
           rm -rf Release
           cmake --build . --target Catch2 --config Release --verbose
-          cmake --build . --target test --config Release --verbose --parallel
+          cmake --build . --target test --config Release --verbose --parallel $(nproc)
       - name: Build (non Windows)
         if: matrix.os != 'windows-latest'
         run: |
@@ -57,7 +57,7 @@ jobs:
           test -f CMakeFiles/je2be.dir/cmake_clean.cmake && cmake -P CMakeFiles/je2be.dir/cmake_clean.cmake
           test -f CMakeFiles/test.dir/cmake_clean.cmake && cmake -P CMakeFiles/test.dir/cmake_clean.cmake
           cmake --build . --target Catch2 --config Release --verbose
-          cmake --build . --target test --config Release --verbose --parallel
+          cmake --build . --target test --config Release --verbose --parallel $(nproc)
       - name: Run Test (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
