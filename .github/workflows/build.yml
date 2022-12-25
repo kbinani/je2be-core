@@ -29,7 +29,8 @@ jobs:
           submodules: recursive
           fetch-depth: 0
       - name: Restore timestamps
-        uses: chetan/git-restore-mtime-action@v1
+        shell: bash
+        run: bash tool/git-restore-mtime.sh
       - name: Cache workspace directory
         if: ${{ !github.event.schedule }}
         uses: actions/cache@v3
