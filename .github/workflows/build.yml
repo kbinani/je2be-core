@@ -8,7 +8,7 @@ on:
 jobs:
   style:
     runs-on: ubuntu-latest
-    if: ${{ github.event.schedule == "" }}
+    if: ${{ github.event.schedule == '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: bash tool/git-restore-mtime.sh
       - name: Cache workspace directory
-        if: ${{ github.event.schedule == "" }}
+        if: ${{ github.event.schedule == '' }}
         uses: actions/cache@v3
         with:
           path: build
@@ -40,7 +40,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-
       - name: Initialize CodeQL
-        if: ${{ github.event.schedule != "" }}
+        if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
@@ -55,5 +55,5 @@ jobs:
           test "${{ matrix.os }}" == "windows-latest" && cd Release
           ./test --durations yes
       - name: Perform CodeQL Analysis
-        if: ${{ github.event.schedule != "" }}
+        if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/analyze@v2
