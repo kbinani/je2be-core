@@ -50,7 +50,6 @@ jobs:
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
-          cmake --build . --target Catch2 --config Release --verbose
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
           test "${{ matrix.os }}" == "windows-latest" && cd Release
           ./test --durations yes
