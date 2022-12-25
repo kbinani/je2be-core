@@ -2,10 +2,10 @@
 
 namespace je2be::terraform::box360 {
 
-template <size_t width, size_t height>
+template <size_t Width, size_t Height>
 class BlockAccessorBox360 : public BlockAccessor<mcfile::je::Block> {
 public:
-  BlockAccessorBox360(int cx, int cz, std::filesystem::path const &directory) : fCache(width * height), fCacheLoaded(width * height, false), fChunkX(cx), fChunkZ(cz), fDir(directory) {
+  BlockAccessorBox360(int cx, int cz, std::filesystem::path const &directory) : fCache(Width * Height), fCacheLoaded(Width * Height, false), fChunkX(cx), fChunkZ(cz), fDir(directory) {
   }
 
   std::shared_ptr<mcfile::je::Chunk> at(int cx, int cz) const {
@@ -42,9 +42,6 @@ public:
       return nullptr;
     }
     if (!fCacheLoaded[*index]) {
-      if (cx == 7 && cz == 13) {
-        int b = 0;
-      }
       auto file = fDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
       fCache[*index] = mcfile::je::Chunk::LoadFromCompressedChunkNbtFile(file, cx, cz);
       fCacheLoaded[*index] = true;
@@ -55,17 +52,17 @@ public:
   std::optional<int> index(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
-    if (0 <= x && x < width && 0 <= z && z < height) {
-      return z * width + x;
+    if (0 <= x && x < Width && 0 <= z && z < Height) {
+      return z * (int)Width + x;
     } else {
       return std::nullopt;
     }
   }
 
-  BlockAccessorBox360<width, height> *makeRelocated(int cx, int cz) const {
-    std::unique_ptr<BlockAccessorBox360<width, height>> ret(new BlockAccessorBox360<width, height>(cx, cz, fDir));
-    for (int x = 0; x < width; x++) {
-      for (int z = 0; z < height; z++) {
+  BlockAccessorBox360<Width, Height> *makeRelocated(int cx, int cz) const {
+    std::unique_ptr<BlockAccessorBox360<Width, Height>> ret(new BlockAccessorBox360<Width, Height>(cx, cz, fDir));
+    for (int x = 0; x < Width; x++) {
+      for (int z = 0; z < Height; z++) {
         auto index = this->index(fChunkX + x, fChunkZ + z);
         if (fCacheLoaded[*index]) {
           auto const &chunk = fCache[*index];

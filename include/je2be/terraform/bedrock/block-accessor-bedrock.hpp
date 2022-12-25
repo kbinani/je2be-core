@@ -64,7 +64,7 @@ public:
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
     if (0 <= x && x < Width && 0 <= z && z < Height) {
-      return z * Width + x;
+      return z * (int)Width + x;
     } else {
       return std::nullopt;
     }
