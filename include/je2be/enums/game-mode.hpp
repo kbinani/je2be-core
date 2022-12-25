@@ -45,27 +45,29 @@ static inline std::optional<GameMode> GameModeFromBedrock(int32_t v) {
 
 static inline int32_t JavaFromGameMode(GameMode m) {
   switch (m) {
-  case GameMode::Survival:
-    return 0;
   case GameMode::Creative:
     return 1;
   case GameMode::Adventure:
     return 2;
   case GameMode::Spectator:
     return 3;
+  case GameMode::Survival:
+  default:
+    return 0;
   }
 }
 
 static inline int32_t BedrockFromGameMode(GameMode m) {
   switch (m) {
-  case GameMode::Survival:
-    return 0;
   case GameMode::Creative:
     return 1;
   case GameMode::Adventure:
     return 2;
   case GameMode::Spectator:
     return 6;
+  case GameMode::Survival:
+  default:
+    return 0;
   }
 }
 

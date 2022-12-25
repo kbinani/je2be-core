@@ -5,7 +5,7 @@
 
 namespace je2be {
 struct Uuid {
-  alignas(32) uint8_t fData[16];
+  alignas(64) uint8_t fData[16];
 
   static Uuid Gen() {
     std::random_device r;
