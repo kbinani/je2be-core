@@ -8,7 +8,6 @@ on:
 jobs:
   style:
     runs-on: ubuntu-latest
-    if: ${{ github.event.schedule == '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
