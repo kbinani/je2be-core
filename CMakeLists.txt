@@ -6,11 +6,14 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
   if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
-    add_definitions(
+    add_compile_options(
       /source-charset:utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
       /wd4100 # Suppress "unreferenced formal parameter" warnings
     )
+  endif()
+  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
+    add_compile_options(-Wno-shorten-64-to-32)
   endif()
 endif()
 
@@ -44,7 +47,6 @@ set(je2be_header_files
   include/je2be/command/target-selector.hpp
   include/je2be/command/token.hpp
   include/je2be/data3d.hpp
-  include/je2be/db/async-iterator.hpp
   include/je2be/db/db-interface.hpp
   include/je2be/db/db.hpp
   include/je2be/db/null-db.hpp

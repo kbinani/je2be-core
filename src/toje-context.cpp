@@ -1,6 +1,5 @@
 #include <je2be/toje/context.hpp>
 
-#include <je2be/db/async-iterator.hpp>
 #include <je2be/structure/structure-piece.hpp>
 
 namespace je2be::toje {
@@ -26,17 +25,19 @@ public:
     auto structureInfo = make_shared<StructureInfo>();
     unordered_map<Dimension, vector<StructurePiece>> pieces;
 
-    AsyncIterator::IterateUnordered(db, concurrency, [opt, &regions, &totalChunks, &pieces, endian, &mapInfo](string const &key, string const &value) {
-      auto parsed = mcfile::be::DbKey::Parse(key);
+    unique_ptr<Iterator> itr(db.NewIterator({}));
+    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+      auto key = itr->key();
+      auto parsed = mcfile::be::DbKey::Parse(key.ToString());
       if (!parsed) {
-        return;
+        continue;
       }
       if (parsed->fIsTagged) {
         uint8_t tag = parsed->fTagged.fTag;
         Dimension d = parsed->fTagged.fDimension;
         if (!opt.fDimensionFilter.empty()) {
           if (opt.fDimensionFilter.find(d) == opt.fDimensionFilter.end()) {
-            return;
+            continue;
           }
         }
         switch (tag) {
@@ -47,7 +48,7 @@ public:
           Pos2i c(cx, cz);
           if (!opt.fChunkFilter.empty()) {
             if (opt.fChunkFilter.find(c) == opt.fChunkFilter.end()) {
-              return;
+              continue;
             }
           }
           int rx = Coordinate::RegionFromChunk(cx);
@@ -59,20 +60,20 @@ public:
         }
         case static_cast<uint8_t>(mcfile::be::DbKey::Tag::StructureBounds): {
           vector<StructurePiece> buffer;
-          StructurePiece::Parse(value, buffer);
+          StructurePiece::Parse(itr->value().ToString(), buffer);
           copy(buffer.begin(), buffer.end(), back_inserter(pieces[d]));
           break;
         }
         }
       } else if (parsed->fUnTagged.starts_with("map_")) {
         int64_t mapId;
-        auto parsed = MapInfo::Parse(value, mapId, endian);
+        auto parsed = MapInfo::Parse(itr->value().ToString(), mapId, endian);
         if (!parsed) {
-          return;
+          continue;
         }
         mapInfo->add(*parsed, mapId);
       }
-    });
+    }
 
     for (auto const &i : pieces) {
       Dimension d = i.first;

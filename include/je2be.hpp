@@ -141,7 +141,6 @@
 #include <je2be/db/db.hpp>
 #include <je2be/db/null-db.hpp>
 #include <je2be/db/raw-db.hpp>
-#include <je2be/db/async-iterator.hpp>
 
 #include <je2be/box360/box360.hpp>
 #include <je2be/tobe/tobe.hpp>
