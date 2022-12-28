@@ -1720,6 +1720,47 @@ public:
     }
     return 0.085;
   }
+
+  static void InjectArmorAndOffhand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto inventoryJ = j.listTag("Inventory");
+    if (!inventoryJ) {
+      return;
+    }
+    if (auto armorB = b.listTag("Armor"); armorB && armorB->size() == 4) {
+      if (auto bootsB = armorB->at(3)->asCompound(); bootsB) {
+        if (auto bootsJ = Item::From(*bootsB, ctx); bootsJ && bootsJ->byte("Count", 0) > 0) {
+          bootsJ->set("Slot", Byte(100));
+          inventoryJ->push_back(bootsJ);
+        }
+      }
+      if (auto leggingsB = armorB->at(2)->asCompound(); leggingsB) {
+        if (auto leggingsJ = Item::From(*leggingsB, ctx); leggingsJ && leggingsJ->byte("Count", 0) > 0) {
+          leggingsJ->set("Slot", Byte(101));
+          inventoryJ->push_back(leggingsJ);
+        }
+      }
+      if (auto chestplateB = armorB->at(1)->asCompound(); chestplateB) {
+        if (auto chestplateJ = Item::From(*chestplateB, ctx); chestplateJ && chestplateJ->byte("Count", 0) > 0) {
+          chestplateJ->set("Slot", Byte(102));
+          inventoryJ->push_back(chestplateJ);
+        }
+      }
+      if (auto helmetB = armorB->at(0)->asCompound(); helmetB) {
+        if (auto helmetJ = Item::From(*helmetB, ctx); helmetJ && helmetJ->byte("Count", 0) > 0) {
+          helmetJ->set("Slot", Byte(103));
+          inventoryJ->push_back(helmetJ);
+        }
+      }
+    }
+    if (auto offhandB = b.listTag("Offhand"); offhandB && offhandB->size() > 0) {
+      if (auto offhandItemB = offhandB->at(0)->asCompound(); offhandItemB) {
+        if (auto offhandJ = Item::From(*offhandItemB, ctx); offhandJ && offhandJ->byte("Count", 0) > 0) {
+          offhandJ->set("Slot", Byte(-106));
+          inventoryJ->push_back(offhandJ);
+        }
+      }
+    }
+  }
 #pragma endregion
 
   static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
@@ -1738,43 +1779,7 @@ public:
 
     CopyChestItems(b, "EnderChestInventory", j, "EnderItems", ctx, true);
     CopyChestItems(b, "Inventory", j, "Inventory", ctx, true);
-    auto inventoryJ = j.listTag("Inventory");
-    if (inventoryJ) {
-      if (auto armorB = b.listTag("Armor"); armorB && armorB->size() == 4) {
-        if (auto bootsB = armorB->at(3)->asCompound(); bootsB) {
-          if (auto bootsJ = Item::From(*bootsB, ctx); bootsJ) {
-            bootsJ->set("Slot", Byte(100));
-            inventoryJ->push_back(bootsJ);
-          }
-        }
-        if (auto leggingsB = armorB->at(2)->asCompound(); leggingsB) {
-          if (auto leggingsJ = Item::From(*leggingsB, ctx); leggingsJ) {
-            leggingsJ->set("Slot", Byte(101));
-            inventoryJ->push_back(leggingsJ);
-          }
-        }
-        if (auto chestplateB = armorB->at(1)->asCompound(); chestplateB) {
-          if (auto chestplateJ = Item::From(*chestplateB, ctx); chestplateJ) {
-            chestplateJ->set("Slot", Byte(102));
-            inventoryJ->push_back(chestplateJ);
-          }
-        }
-        if (auto helmetB = armorB->at(0)->asCompound(); helmetB) {
-          if (auto helmetJ = Item::From(*helmetB, ctx); helmetJ) {
-            helmetJ->set("Slot", Byte(103));
-            inventoryJ->push_back(helmetJ);
-          }
-        }
-      }
-      if (auto offhandB = b.listTag("Offhand"); offhandB && offhandB->size() > 0) {
-        if (auto offhandItemB = offhandB->at(0)->asCompound(); offhandItemB) {
-          if (auto offhandJ = Item::From(*offhandItemB, ctx); offhandJ) {
-            offhandJ->set("Slot", Byte(-106));
-            inventoryJ->push_back(offhandJ);
-          }
-        }
-      }
-    }
+    InjectArmorAndOffhand(b, j, ctx);
 
     CopyIntValues(b, j, {{"SelectedInventorySlot", "SelectedItemSlot"}, {"PlayerLevel", "XpLevel"}, {"EnchantmentSeed", "XpSeed"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}});
     CopyShortValues(b, j, {{"SleepTimer"}});
