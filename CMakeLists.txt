@@ -295,6 +295,7 @@ set(je2be_src_files
   src/box360-savegame.cpp
   src/box360-terraform.cpp
   src/box360-tile-entity.cpp
+  src/box360-world.cpp
   src/db-raw-db.cpp
   src/terraform-leaves.cpp
   src/tobe-chunk-data-package.cpp
