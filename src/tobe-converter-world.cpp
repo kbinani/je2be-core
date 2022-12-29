@@ -9,6 +9,7 @@
 #include <je2be/tobe/world-data.hpp>
 
 #include <BS_thread_pool.hpp>
+#include <oneapi/tbb/parallel_for_each.h>
 
 namespace je2be::tobe {
 
@@ -157,33 +158,18 @@ public:
         files[{*cx, *cz}].push_back(p);
       }
     }
-    deque<future<bool>> futures;
-    unique_ptr<BS::thread_pool> pool;
-    if (concurrency > 0) {
-      pool.reset(new BS::thread_pool(concurrency));
-    }
-    bool ok = true;
-    for (auto const &i : files) {
-      if (pool) {
-        vector<future<bool>> drained;
-        FutureSupport::Drain(concurrency + 1, futures, drained);
-        for (auto &f : drained) {
-          ok = ok && f.get();
-        }
-        if (!ok) {
-          break;
-        }
-        futures.push_back(pool->submit(PutChunkEntities, d, i.first, i.second, ref(db)));
-      } else {
-        if (!PutChunkEntities(d, i.first, i.second, db)) {
-          return false;
-        }
+    atomic_bool ok = true;
+    oneapi::tbb::parallel_for_each(files.begin(), files.end(), [&](auto it) {
+      if (!ok.load()) {
+        return;
       }
-    }
-    for (auto &f : futures) {
-      ok = ok && f.get();
-    }
-    return ok;
+      Pos2i chunk = it.first;
+      vector<fs::path> const &files = it.second;
+      if (!PutChunkEntities(d, chunk, files, db)) {
+        ok.store(false);
+      }
+    });
+    return ok.load();
   }
 
   static bool PutChunkEntities(mcfile::Dimension d, Pos2i chunk, std::vector<std::filesystem::path> files, DbInterface &db) {
