@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/status.hpp>
+
 #include <variant>
 
 namespace je2be {
