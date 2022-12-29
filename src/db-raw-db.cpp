@@ -10,8 +10,8 @@
 #include <util/crc32c.h>
 
 #include <BS_thread_pool.hpp>
-
 #include <minecraft-file.hpp>
+#include <oneapi/tbb/parallel_sort.h>
 
 #include <execution>
 #include <inttypes.h>
@@ -680,14 +680,9 @@ private:
           keys.push_back(k);
         }
         Comparator const *cmp = BytewiseComparator();
-#if defined(EMSCRIPTEN) || defined(__APPLE__)
-        std::sort(
-#else
-        std::sort(execution::par_unseq,
-#endif
-            keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
-              return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
-            });
+        oneapi::tbb::parallel_sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
+          return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
+        });
       }
       {
         ScopedFile fp(File::Open(keysShardFile(shard), File::Mode::Write));
