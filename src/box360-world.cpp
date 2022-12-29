@@ -66,10 +66,7 @@ public:
       Fs::DeleteAll(*entityTempDir);
     };
 
-    unique_ptr<BS::thread_pool> queue;
-    if (concurrency > 0) {
-      queue.reset(new BS::thread_pool(concurrency));
-    }
+    unique_ptr<BS::thread_pool> queue(new BS::thread_pool(concurrency));
     deque<future<Status>> futures;
     optional<Status> error;
     bool ok = true;
@@ -91,53 +88,41 @@ public:
                 continue;
               }
             }
-            if (queue) {
-              vector<future<Status>> drain;
-              FutureSupport::Drain(concurrency + 1, futures, drain);
-              for (auto &f : drain) {
-                if (auto st = f.get(); !st.ok()) {
-                  ok = false;
-                  if (!error) {
-                    error = st;
-                  }
-                }
-                progressChunks++;
-              }
-              if (!ok) {
-                break;
-              }
-              if (progress && !progress->report(progressChunks, 8192 * 3)) {
+            vector<future<Status>> drain;
+            FutureSupport::Drain(concurrency + 1, futures, drain);
+            for (auto &f : drain) {
+              if (auto st = f.get(); !st.ok()) {
                 ok = false;
-                break;
+                if (!error) {
+                  error = st;
+                }
               }
-              futures.push_back(queue->submit(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
-            } else {
               progressChunks++;
-              if (auto st = ProcessChunk(dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options); !st.ok()) {
-                return st;
-              }
-              if (progress && !progress->report(progressChunks, 8192 * 3)) {
-                return JE2BE_ERROR;
-              }
             }
+            if (!ok) {
+              break;
+            }
+            if (progress && !progress->report(progressChunks, 8192 * 3)) {
+              ok = false;
+              break;
+            }
+            futures.push_back(queue->submit(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
           }
         }
       }
     }
 
-    if (queue) {
-      for (auto &f : futures) {
-        if (auto st = f.get(); !st.ok()) {
-          ok = false;
-          if (!error) {
-            error = st;
-          }
+    for (auto &f : futures) {
+      if (auto st = f.get(); !st.ok()) {
+        ok = false;
+        if (!error) {
+          error = st;
         }
-        progressChunks++;
       }
-      futures.clear();
-      queue.reset();
+      progressChunks++;
     }
+    futures.clear();
+    queue.reset();
     if (!ok) {
       return error ? *error : JE2BE_ERROR;
     }
@@ -155,21 +140,13 @@ public:
       return JE2BE_ERROR;
     }
 
-    if (concurrency > 0) {
-      queue.reset(new BS::thread_pool(concurrency));
-    }
+    queue.reset(new BS::thread_pool(concurrency));
 
     mcfile::je::Region::ConcatOptions o;
     o.fDeleteInput = true;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
-        if (queue) {
-          futures.push_back(queue->submit(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
-        } else {
-          if (auto st = ConcatCompressedNbt(rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o); !st.ok()) {
-            return st;
-          }
-        }
+        futures.push_back(queue->submit(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
       }
     }
     for (auto &f : futures) {
