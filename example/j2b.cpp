@@ -53,6 +53,12 @@ int main(int argc, char *argv[]) {
 
   unsigned int concurrency = result["n"].as<unsigned int>();
 
+  auto start = chrono::high_resolution_clock::now();
+  defer {
+    auto elapsed = chrono::high_resolution_clock::now() - start;
+    cout << chrono::duration_cast<chrono::milliseconds>(elapsed).count() << "ms" << endl;
+  };
+
   Options options;
   options.fLevelDirectoryStructure = structure;
   Converter converter(input, output, options);
