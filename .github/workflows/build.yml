@@ -53,7 +53,7 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
           test "${{ matrix.os }}" == "windows-latest" && cd Release
-          ./test --durations yes
+          ./test --duration=true
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/analyze@v2

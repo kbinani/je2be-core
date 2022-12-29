@@ -1,5 +1,5 @@
 TEST_CASE("volume") {
-  SECTION("Connect") {
+  SUBCASE("Connect") {
     vector<Volume> volumes = {
         {{747, 39, -341}, {751, 61, -337}},
         {{747, 39, -336}, {751, 61, -321}},
@@ -159,7 +159,7 @@ TEST_CASE("volume") {
       CHECK(v.size<2>() == 58);
     }
   }
-  SECTION("ConnectGreed") {
+  SUBCASE("ConnectGreed") {
     vector<Volume> volumes = {
         {{0, 0, 0}, {1, 1, 1}},
 

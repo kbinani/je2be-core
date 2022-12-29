@@ -1,5 +1,5 @@
 TEST_CASE("bee-nest") {
-  SECTION("bedrock") {
+  SUBCASE("bedrock") {
     fs::path thisFile(__FILE__);
     auto mcworld = thisFile.parent_path() / "data" / "bee-nest" / "bedrock" / "bee-nest.mcworld";
     auto tmp = mcfile::File::CreateTempDir(fs::temp_directory_path());

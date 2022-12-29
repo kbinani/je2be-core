@@ -1,4 +1,5 @@
-#include <catch2/catch_test_macros.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT
+#include <doctest/doctest.h>
 
 #include <iostream>
 #include <je2be.hpp>
@@ -17,12 +18,6 @@ using namespace je2be;
 namespace fs = std::filesystem;
 
 #include "j2b2j.hpp"
-
-#include <catch2/catch_session.hpp>
-#include <catch2/internal/catch_compiler_capabilities.hpp>
-#include <catch2/internal/catch_config_wchar.hpp>
-#include <catch2/internal/catch_leak_detector.hpp>
-#include <catch2/internal/catch_platform.hpp>
 
 fs::path gInput;
 
@@ -71,5 +66,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   gInput = fs::path(argv[1]);
-  return Catch::Session().run();
+
+  doctest::Context context;
+  return context.run();
 }

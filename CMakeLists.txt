@@ -397,10 +397,12 @@ add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
 add_executable(test ${test_files} ${je2be_header_files})
-target_link_libraries(test PRIVATE je2be Catch2::Catch2WithMain)
+target_link_libraries(test je2be)
+target_include_directories(test PRIVATE deps/libminecraft-file/test/deps/doctest)
 
 add_executable(j2b2j test/j2b2j.cpp)
-target_link_libraries(j2b2j PRIVATE je2be Catch2::Catch2)
+target_link_libraries(j2b2j je2be)
+target_include_directories(j2b2j PRIVATE deps/libminecraft-file/test/deps/doctest)
 
 list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
