@@ -117,6 +117,8 @@ public:
     WorldData *wd = const_cast<WorldData *>(reduced.get());
     wd->drain(ld);
 
+    done = atomicDone.load();
+
     return PutWorldEntities(dim, db, tempDir, concurrency);
   }
 
