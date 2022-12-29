@@ -1,6 +1,5 @@
 #include <je2be/tobe/converter/world.hpp>
 
-#include <je2be/future-support.hpp>
 #include <je2be/tobe/converter/chunk.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
 #include <je2be/tobe/level-data.hpp>
@@ -8,7 +7,7 @@
 #include <je2be/tobe/progress.hpp>
 #include <je2be/tobe/world-data.hpp>
 
-#include <BS_thread_pool.hpp>
+#include <oneapi/tbb/concurrent_vector.h>
 #include <oneapi/tbb/parallel_for_each.h>
 
 namespace je2be::tobe {
@@ -32,17 +31,23 @@ public:
     using namespace mcfile::je;
     namespace fs = std::filesystem;
 
-    auto queue = make_unique<BS::thread_pool>(concurrency);
-    deque<future<Chunk::Result>> futures;
-
     auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
     if (!temp) {
       return false;
     }
     auto tempDir = *temp;
 
-    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks, &options, tempDir](shared_ptr<Region> const &region) {
-      JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
+    struct WorkItem {
+      WorkItem(shared_ptr<mcfile::je::Region> region, int cx, int cz, optional<Chunk::PlayerAttachedEntities> pae) : fRegion(region), fChunkX(cx), fChunkZ(cz), fPlayerAttachedEntities(pae) {}
+
+      shared_ptr<mcfile::je::Region> fRegion;
+      int fChunkX;
+      int fChunkZ;
+      optional<Chunk::PlayerAttachedEntities> fPlayerAttachedEntities;
+    };
+
+    vector<WorkItem> regions;
+    w.eachRegions([&](auto region) {
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
           Pos2i chunkPos(cx, cz);
@@ -52,78 +57,63 @@ public:
               continue;
             }
           }
-          vector<future<Chunk::Result>> drain;
-          FutureSupport::Drain<Chunk::Result>(concurrency + 1, futures, drain);
-          for (auto &f : drain) {
-            Chunk::Result result = f.get();
-            done++;
-            if (!result.fData) {
-              continue;
-            }
-            if (!result.fOk) {
-              return false;
-            }
-            result.fData->drain(ld);
-          }
-
-          if (progress) {
-            bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
-            if (!continue_) {
-              return false;
-            }
-          }
-
-          fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          optional<Chunk::PlayerAttachedEntities> playerAttachedEntities;
-          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim) {
-            if (ld.fPlayerAttachedEntities->fVehicle || !ld.fPlayerAttachedEntities->fShoulderRiders.empty()) {
-              Chunk::PlayerAttachedEntities pae;
-              if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == chunkPos) {
-                pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
-                pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
-                pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
-                ld.fPlayerAttachedEntities->fVehicle = nullopt;
-              }
-              for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {
-                auto const &rider = ld.fPlayerAttachedEntities->fShoulderRiders[i];
-                if (rider.first == chunkPos) {
-                  pae.fShoulderRiders.push_back(rider.second);
-                  ld.fPlayerAttachedEntities->fShoulderRiders.erase(ld.fPlayerAttachedEntities->fShoulderRiders.begin() + i);
-                  i--;
-                }
-              }
-              playerAttachedEntities = pae;
-            }
-          }
-          futures.push_back(queue->submit(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType));
+          auto playerAttachedEntities = ErasePlayerAttachedEntity(dim, ld, tempDir, cx, cz);
+          regions.push_back({region, cx, cz, playerAttachedEntities});
         }
       }
       return true;
     });
 
-    for (auto &f : futures) {
-      Chunk::Result result = f.get();
-      done++;
-      if (progress) {
-        progress->report(Progress::Phase::Convert, done, numTotalChunks);
+    oneapi::tbb::concurrent_vector<Chunk::Result> results;
+    JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
+
+    auto gameTick = ld.fGameTick;
+    auto difficultyB = ld.fDifficultyBedrock;
+    auto allowCommand = ld.fAllowCommand;
+    auto gameType = ld.fGameType;
+    oneapi::tbb::parallel_for_each(regions.begin(), regions.end(), [dim, &db, mapInfo, tempDir, gameTick, difficultyB, allowCommand, gameType, &results](WorkItem const &item) {
+      int cx = item.fChunkX;
+      int cz = item.fChunkZ;
+      fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
+      auto ret = Chunk::Convert(dim, db, *item.fRegion, cx, cz, mapInfo, entitiesDir, item.fPlayerAttachedEntities, gameTick, difficultyB, allowCommand, gameType);
+      results.push_back(ret);
+    });
+    for (auto result : results) {
+      if (result.fOk && result.fData) {
+        result.fData->drain(ld);
       }
-      if (!result.fData) {
-        continue;
-      }
-      completed = completed && result.fOk;
-      if (!result.fOk) {
-        continue;
-      }
-      result.fData->drain(ld);
     }
-
-    if (!completed) {
-      return false;
-    }
-
-    queue.reset();
-
     return PutWorldEntities(dim, db, tempDir, concurrency);
+  }
+
+  static std::optional<Chunk::PlayerAttachedEntities> ErasePlayerAttachedEntity(mcfile::Dimension dim, LevelData &ld, std::filesystem::path tempDir, int cx, int cz) {
+    using namespace std;
+    namespace fs = std::filesystem;
+
+    fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
+    Pos2i chunkPos(cx, cz);
+
+    if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim) {
+      if (ld.fPlayerAttachedEntities->fVehicle || !ld.fPlayerAttachedEntities->fShoulderRiders.empty()) {
+        Chunk::PlayerAttachedEntities pae;
+        if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == chunkPos) {
+          pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
+          pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
+          pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
+          ld.fPlayerAttachedEntities->fVehicle = nullopt;
+        }
+        for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {
+          auto const &rider = ld.fPlayerAttachedEntities->fShoulderRiders[i];
+          if (rider.first == chunkPos) {
+            pae.fShoulderRiders.push_back(rider.second);
+            ld.fPlayerAttachedEntities->fShoulderRiders.erase(ld.fPlayerAttachedEntities->fShoulderRiders.begin() + i);
+            i--;
+          }
+        }
+        return pae;
+      }
+    }
+    return nullopt;
   }
 
   static bool PutWorldEntities(mcfile::Dimension d, DbInterface &db, std::filesystem::path temp, unsigned int concurrency) {
