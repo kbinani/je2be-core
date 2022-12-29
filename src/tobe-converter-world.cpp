@@ -9,6 +9,7 @@
 
 #include <oneapi/tbb/concurrent_vector.h>
 #include <oneapi/tbb/parallel_for_each.h>
+#include <oneapi/tbb/parallel_reduce.h>
 
 namespace je2be::tobe {
 
@@ -29,6 +30,7 @@ public:
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
+    using namespace oneapi::tbb;
     namespace fs = std::filesystem;
 
     auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
@@ -64,25 +66,57 @@ public:
       return true;
     });
 
-    oneapi::tbb::concurrent_vector<Chunk::Result> results;
     JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
-
     auto gameTick = ld.fGameTick;
     auto difficultyB = ld.fDifficultyBedrock;
     auto allowCommand = ld.fAllowCommand;
     auto gameType = ld.fGameType;
-    oneapi::tbb::parallel_for_each(regions.begin(), regions.end(), [dim, &db, mapInfo, tempDir, gameTick, difficultyB, allowCommand, gameType, &results](WorkItem const &item) {
-      int cx = item.fChunkX;
-      int cz = item.fChunkZ;
-      fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-      auto ret = Chunk::Convert(dim, db, *item.fRegion, cx, cz, mapInfo, entitiesDir, item.fPlayerAttachedEntities, gameTick, difficultyB, allowCommand, gameType);
-      results.push_back(ret);
-    });
-    for (auto result : results) {
-      if (result.fOk && result.fData) {
-        result.fData->drain(ld);
-      }
+
+    atomic<uint32_t> atomicDone(done);
+    atomic_bool ok(true);
+
+    auto reduced = parallel_reduce(
+        blocked_range(regions.cbegin(), regions.cend()),
+        make_shared<WorldData const>(dim),
+        [dim, tempDir, &db, mapInfo, gameTick, difficultyB, allowCommand, gameType, &atomicDone, progress, numTotalChunks, &ok](blocked_range<vector<WorkItem>::const_iterator> const &range, shared_ptr<WorldData const> init) -> shared_ptr<WorldData const> {
+          auto sum = make_shared<WorldData>(dim);
+          init->mergeInto(*sum);
+          for (WorkItem const &item : range) {
+            if (!ok.load()) {
+              break;
+            }
+            int cx = item.fChunkX;
+            int cz = item.fChunkZ;
+            fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
+            auto converted = Chunk::Convert(dim, db, *item.fRegion, cx, cz, mapInfo, entitiesDir, item.fPlayerAttachedEntities, gameTick, difficultyB, allowCommand, gameType);
+            if (!converted.fOk) {
+              ok.store(false);
+              break;
+            }
+            if (converted.fOk && converted.fData) {
+              converted.fData->drain(*sum);
+            }
+            uint32_t p = atomicDone.fetch_add(1);
+            if (progress) {
+              if (!progress->report(Progress::Phase::Convert, p, numTotalChunks)) {
+                ok.store(false);
+              }
+            }
+          }
+          return sum;
+        },
+        [dim](shared_ptr<WorldData const> x, shared_ptr<WorldData const> y) -> shared_ptr<WorldData const> {
+          auto ret = make_shared<WorldData>(dim);
+          x->mergeInto(*ret);
+          y->mergeInto(*ret);
+          return ret;
+        });
+    if (!ok.load()) {
+      return false;
     }
+    WorldData *wd = const_cast<WorldData *>(reduced.get());
+    wd->drain(ld);
+
     return PutWorldEntities(dim, db, tempDir, concurrency);
   }
 
