@@ -78,9 +78,9 @@ public:
     auto reduced = parallel_reduce(
         blocked_range(regions.cbegin(), regions.cend()),
         make_shared<WorldData const>(dim),
-        [dim, tempDir, &db, mapInfo, gameTick, difficultyB, allowCommand, gameType, &atomicDone, progress, numTotalChunks, &ok](blocked_range<vector<WorkItem>::const_iterator> const &range, shared_ptr<WorldData const> init) -> shared_ptr<WorldData const> {
+        [dim, tempDir, &db, mapInfo, gameTick, difficultyB, allowCommand, gameType, &atomicDone, progress, numTotalChunks, &ok](blocked_range<vector<WorkItem>::const_iterator> const &range, shared_ptr<WorldData const> prev) -> shared_ptr<WorldData const> {
           auto sum = make_shared<WorldData>(dim);
-          init->mergeInto(*sum);
+          prev->mergeInto(*sum);
           for (WorkItem const &item : range) {
             if (!ok.load()) {
               break;
