@@ -133,25 +133,6 @@ private:
     return Status::Ok();
   }
 
-  static Status SingleThread(PoiBlocks &portals, std::filesystem::path const &directory, Progress *progress, int progressChunksOffset) {
-    int done = 0;
-    for (int cx = cx0; cx <= cx1; cx++) {
-      for (int cz = cz0; cz <= cz1; cz++) {
-        auto result = DoChunk(cx, cz, directory);
-        if (result) {
-          result->fPoi.mergeInto(portals);
-        } else {
-          return result.status();
-        }
-        done++;
-        if (progress && !progress->report(progressChunksOffset + done, 8192 * 3)) {
-          return JE2BE_ERROR;
-        }
-      }
-    }
-    return Status::Ok();
-  }
-
   static void MarkFinished(int cx, int cz, bool done[width][height], bool running[width][height]) {
     int x = cx - cx0;
     int z = cz - cz0;
