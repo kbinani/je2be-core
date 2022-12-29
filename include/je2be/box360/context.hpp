@@ -1,5 +1,10 @@
 #pragma once
 
+#include <je2be/box360/tile-entity-convert-result.hpp>
+#include <je2be/nbt.hpp>
+#include <je2be/pos3.hpp>
+#include <je2be/uuid.hpp>
+
 namespace je2be::box360 {
 
 class Context {

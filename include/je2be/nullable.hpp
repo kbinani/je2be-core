@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+
 namespace je2be {
 
 class NullableNull final {
