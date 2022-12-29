@@ -287,6 +287,14 @@ set(je2be_header_files
   .clang-format)
 set(je2be_src_files
   #begin je2be-src files
+  src/box360-block-data.cpp
+  src/box360-chunk.cpp
+  src/box360-entity.cpp
+  src/box360-item.cpp
+  src/box360-minecraft-save-info.cpp
+  src/box360-savegame.cpp
+  src/box360-terraform.cpp
+  src/box360-tile-entity.cpp
   src/db-raw-db.cpp
   src/terraform-leaves.cpp
   src/tobe-chunk-data-package.cpp

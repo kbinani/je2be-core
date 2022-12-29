@@ -2,9 +2,6 @@
 
 // clang-format off
 #include <je2be/box360/options.hpp>
-#include <je2be/box360/lzx-decoder.hpp>
-#include <je2be/box360/stfs.hpp>
-#include <je2be/box360/stfs-ext.hpp>
 #include <je2be/box360/savegame.hpp>
 #include <je2be/box360/block-data.hpp>
 #include <je2be/box360/grid.hpp>
