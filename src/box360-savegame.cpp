@@ -4,13 +4,15 @@
 #include <fstream>
 #include <je2be/mem.hpp>
 
-#include <je2be/box360/lzx-decoder.hpp>
-#include <je2be/box360/stfs.hpp>
-#include <je2be/box360/stfs-ext.hpp>
+#include <je2be/box360/detail/lzx-decoder.hpp>
+#include <je2be/box360/detail/stfs.hpp>
+#include <je2be/box360/detail/stfs-ext.hpp>
 #include <je2be/fs.hpp>
 // clang-format on
 
 namespace je2be::box360 {
+
+using namespace detail;
 
 class Savegame::Impl {
   Impl() = delete;

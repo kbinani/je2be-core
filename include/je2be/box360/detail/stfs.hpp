@@ -5,7 +5,7 @@
  */
 #pragma once
 
-namespace je2be::box360 {
+namespace je2be::box360::detail {
 
 using INT24 = signed int;
 

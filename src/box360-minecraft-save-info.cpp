@@ -3,13 +3,15 @@
 // clang-format off
 #include <fstream>
 #include <je2be/mem.hpp>
-#include <je2be/box360/stfs.hpp>
-#include <je2be/box360/stfs-ext.hpp>
+#include <je2be/box360/detail/stfs.hpp>
+#include <je2be/box360/detail/stfs-ext.hpp>
 
 #include <minecraft-file.hpp>
 // clang-format on
 
 namespace je2be::box360 {
+
+using namespace detail;
 
 class MinecraftSaveInfo::Impl {
   Impl() = delete;
