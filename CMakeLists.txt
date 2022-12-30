@@ -351,7 +351,7 @@ endif()
 
 find_package(ZLIB QUIET)
 if (NOT ZLIB_FOUND)
-  set(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
+  set(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib/$<CONFIG>/zlibstatic$<IF:$<CONFIG:Debug>,d,>.lib)
   set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
   include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib
