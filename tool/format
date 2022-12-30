@@ -6,7 +6,13 @@
 	if clang-format --version | grep 'version 12.' >/dev/null; then
 		bash tool/ls-files | xargs -P$(nproc) -n1 clang-format -i
 	else
-		docker run --rm -v$(pwd):/workspace -w /workspace je2be-clang-format bash -c "bash tool/ls-files | xargs -P$(nproc) -n1 clang-format -i"
+		if [ -d .git ]; then
+			docker run --rm -v$(pwd):/workspace -w /workspace je2be-clang-format bash -c "bash tool/ls-files | xargs -P$(nproc) -n1 clang-format -i"
+		else
+			root=$(cd $(cat .git | awk '{print $2}' | sed 's:^\(.*\)/.git.*:\1:g'); pwd)
+			rel=$(pwd | sed "s:$root/::g")
+			docker run --rm -v$root:/workspace -w /workspace/$rel je2be-clang-format bash -c "bash tool/ls-files | xargs -P$(nproc) -n1 clang-format -i"
+		fi
 		bash tool/ls-files | xargs chmod 644
 	fi
 )
