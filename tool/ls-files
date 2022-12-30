@@ -1,7 +1,7 @@
 #!/bin/bash
 
 (
-  cd "$(dirname "$0")"
+  cd "$(dirname "$0")/.."
 
   je2be_header_start=$(cat CMakeLists.txt | grep -n '#begin je2be-header' | cut -f1 -d:)
   je2be_header_end=$(cat CMakeLists.txt | grep -n '#end je2be-header' | cut -f1 -d:)

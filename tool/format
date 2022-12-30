@@ -1,0 +1,12 @@
+#!/bin/bash
+
+(
+	cd "$(dirname "$0")/.."
+
+	if clang-format --version | grep 11.; then
+		git ls-files . | grep -e '\.cpp$' -e '\.hpp$' | xargs -P$(nproc) -n1 clang-format -i
+	else
+		docker run --rm -v$(pwd):/workspace -w /workspace je2be-clang-format bash -c "git ls-files . | grep -e '\.cpp$' -e '\.hpp$' | xargs -P$(nproc) -n1 clang-format -i"
+		git ls-files . | grep -e '\.cpp$' -e '\.hpp$' | xargs chmod 644
+	fi
+)
