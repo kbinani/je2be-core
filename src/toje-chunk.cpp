@@ -171,15 +171,33 @@ public:
       });
     }
 
-    for (int y = cy * 16; y <= maxChunkY * 16 + 15; y += 4) {
-      for (int z = j->minBlockZ(); z <= j->maxBlockZ(); z += 4) {
-        for (int x = j->minBlockX(); x <= j->maxBlockX(); x += 4) {
-          auto biome = b.biomeAt(x, y, z);
-          if (biome) {
-            j->setBiomeAt(x, y, z, *biome);
+    BiomeId defaultBiome = minecraft::plains;
+    switch (d) {
+    case mcfile::Dimension::Nether:
+      defaultBiome = minecraft::nether_wastes;
+      break;
+    case Dimension::End:
+      defaultBiome = minecraft::the_end;
+      break;
+    case Dimension::Overworld:
+    default:
+      defaultBiome = minecraft::plains;
+      break;
+    }
+    mcfile::biomes::BiomeId biomes[4][4][4];
+    for (auto &section : j->fSections) {
+      if (!section) {
+        continue;
+      }
+      for (int y = 0; y < 4; y++) {
+        for (int z = 0; z < 4; z++) {
+          for (int x = 0; x < 4; x++) {
+            auto biome = b.biomeAt(cx * 16 + x * 4, section->y() * 16 + y * 4, cz * 16 + z * 4);
+            biomes[x][y][z] = biome ? *biome : defaultBiome;
           }
         }
       }
+      section->setBiomes(biomes);
     }
 
     for (auto const &it : b.blockEntities()) {

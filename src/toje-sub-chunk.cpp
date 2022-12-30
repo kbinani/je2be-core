@@ -90,21 +90,6 @@ public:
       sectionJ = section;
     }
 
-    BiomeId biome = minecraft::plains;
-    switch (dim) {
-    case mcfile::Dimension::Nether:
-      biome = minecraft::nether_wastes;
-      break;
-    case Dimension::End:
-      biome = minecraft::the_end;
-      break;
-    case Dimension::Overworld:
-    default:
-      biome = minecraft::plains;
-      break;
-    }
-    sectionJ->fill(biome);
-
     return sectionJ;
   }
 };
