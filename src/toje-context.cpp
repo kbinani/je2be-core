@@ -1,6 +1,8 @@
 #include <je2be/toje/context.hpp>
 
+#if !defined(EMSCRIPTEN)
 #include <je2be/db/async-iterator.hpp>
+#endif
 #include <je2be/structure/structure-piece.hpp>
 
 namespace je2be::toje {
@@ -97,9 +99,16 @@ public:
     namespace fs = std::filesystem;
 
     Accum accum(opt, endian);
+#if defined(EMSCRIPTEN)
+    unique_ptr<Iterator> itr(db.NewIterator({}));
+    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+      accum.accept(itr->key().ToString(), itr->value().ToString());
+    }
+#else
     AsyncIterator::IterateUnordered(db, concurrency, [&accum](string const &key, string const &value) {
       accum.accept(key, value);
     });
+#endif
 
     auto mapInfo = make_shared<MapInfo>();
     for (auto const &it : accum.fMaps) {
