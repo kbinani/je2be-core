@@ -1,10 +1,87 @@
 #include <je2be/toje/context.hpp>
 
+#include <je2be/db/async-iterator.hpp>
 #include <je2be/structure/structure-piece.hpp>
 
 namespace je2be::toje {
 
 class Context::Impl {
+  struct Accum {
+    std::map<int64_t, MapInfo::Map> fMaps;
+    std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> fRegions;
+    std::map<mcfile::Dimension, std::vector<StructurePiece>> fStructurePieces;
+    int fNumChunks = 0;
+
+    Options const fOpt;
+    mcfile::Endian const fEndian;
+
+    Accum(Options opt, mcfile::Endian endian) : fOpt(opt), fEndian(endian) {}
+
+    void mergeInto(Accum &out) const {
+      for (auto const &i : fMaps) {
+        out.fMaps[i.first] = i.second;
+      }
+      for (auto const &i : fRegions) {
+        for (auto const &j : i.second) {
+          out.fRegions[i.first].insert(j);
+        }
+      }
+      for (auto const &i : fStructurePieces) {
+        std::copy(i.second.begin(), i.second.end(), std::back_inserter(out.fStructurePieces[i.first]));
+      }
+      out.fNumChunks += fNumChunks;
+    }
+
+    void accept(std::string const &key, std::string const &value) {
+      using namespace std;
+      auto parsed = mcfile::be::DbKey::Parse(key);
+      if (!parsed) {
+        return;
+      }
+      if (parsed->fIsTagged) {
+        uint8_t tag = parsed->fTagged.fTag;
+        mcfile::Dimension d = parsed->fTagged.fDimension;
+        if (!fOpt.fDimensionFilter.empty()) {
+          if (fOpt.fDimensionFilter.find(d) == fOpt.fDimensionFilter.end()) {
+            return;
+          }
+        }
+        switch (tag) {
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data3D):
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D): {
+          int cx = parsed->fTagged.fChunk.fX;
+          int cz = parsed->fTagged.fChunk.fZ;
+          Pos2i c(cx, cz);
+          if (!fOpt.fChunkFilter.empty()) {
+            if (fOpt.fChunkFilter.find(c) == fOpt.fChunkFilter.end()) {
+              return;
+            }
+          }
+          int rx = mcfile::Coordinate::RegionFromChunk(cx);
+          int rz = mcfile::Coordinate::RegionFromChunk(cz);
+          Pos2i r(rx, rz);
+          fRegions[d][r].fChunks.insert(c);
+          fNumChunks++;
+          break;
+        }
+        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::StructureBounds): {
+          std::vector<StructurePiece> buffer;
+          StructurePiece::Parse(value, buffer);
+          copy(buffer.begin(), buffer.end(), back_inserter(fStructurePieces[d]));
+          break;
+        }
+        }
+      } else if (parsed->fUnTagged.starts_with("map_")) {
+        int64_t mapId;
+        auto parsed = MapInfo::Parse(value, mapId, fEndian);
+        if (!parsed) {
+          return;
+        }
+        fMaps[mapId] = *parsed;
+      }
+    }
+  };
+
 public:
   static std::shared_ptr<Context> Init(leveldb::DB &db,
                                        Options opt,
@@ -19,63 +96,29 @@ public:
     using namespace mcfile;
     namespace fs = std::filesystem;
 
-    totalChunks = 0;
+    Accum accum(opt, endian);
+    AsyncIterator::IterateUnordered(db, concurrency, [&accum](string const &key, string const &value) {
+      accum.accept(key, value);
+    });
 
     auto mapInfo = make_shared<MapInfo>();
-    auto structureInfo = make_shared<StructureInfo>();
-    unordered_map<Dimension, vector<StructurePiece>> pieces;
+    for (auto const &it : accum.fMaps) {
+      mapInfo->add(it.second, it.first);
+    }
 
-    unique_ptr<Iterator> itr(db.NewIterator({}));
-    for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
-      auto key = itr->key();
-      auto parsed = mcfile::be::DbKey::Parse(key.ToString());
-      if (!parsed) {
-        continue;
-      }
-      if (parsed->fIsTagged) {
-        uint8_t tag = parsed->fTagged.fTag;
-        Dimension d = parsed->fTagged.fDimension;
-        if (!opt.fDimensionFilter.empty()) {
-          if (opt.fDimensionFilter.find(d) == opt.fDimensionFilter.end()) {
-            continue;
-          }
-        }
-        switch (tag) {
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data3D):
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D): {
-          int cx = parsed->fTagged.fChunk.fX;
-          int cz = parsed->fTagged.fChunk.fZ;
-          Pos2i c(cx, cz);
-          if (!opt.fChunkFilter.empty()) {
-            if (opt.fChunkFilter.find(c) == opt.fChunkFilter.end()) {
-              continue;
-            }
-          }
-          int rx = Coordinate::RegionFromChunk(cx);
-          int rz = Coordinate::RegionFromChunk(cz);
-          Pos2i r(rx, rz);
-          regions[d][r].fChunks.insert(c);
-          totalChunks++;
-          break;
-        }
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::StructureBounds): {
-          vector<StructurePiece> buffer;
-          StructurePiece::Parse(itr->value().ToString(), buffer);
-          copy(buffer.begin(), buffer.end(), back_inserter(pieces[d]));
-          break;
-        }
-        }
-      } else if (parsed->fUnTagged.starts_with("map_")) {
-        int64_t mapId;
-        auto parsed = MapInfo::Parse(itr->value().ToString(), mapId, endian);
-        if (!parsed) {
-          continue;
-        }
-        mapInfo->add(*parsed, mapId);
+    for (auto const &i : accum.fRegions) {
+      mcfile::Dimension dimension = i.first;
+      for (auto const &j : i.second) {
+        Pos2i region = j.first;
+        auto &dest = regions[dimension][region].fChunks;
+        copy(j.second.fChunks.begin(), j.second.fChunks.end(), inserter(dest, dest.end()));
       }
     }
 
-    for (auto const &i : pieces) {
+    totalChunks = accum.fNumChunks;
+
+    auto structureInfo = make_shared<StructureInfo>();
+    for (auto const &i : accum.fStructurePieces) {
       Dimension d = i.first;
       unordered_map<StructureType, vector<StructurePiece>> categorized;
       for (StructurePiece const &piece : i.second) {

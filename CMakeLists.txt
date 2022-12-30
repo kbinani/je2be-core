@@ -47,6 +47,7 @@ set(je2be_header_files
   include/je2be/command/target-selector.hpp
   include/je2be/command/token.hpp
   include/je2be/data3d.hpp
+  include/je2be/db/async-iterator.hpp
   include/je2be/db/db-interface.hpp
   include/je2be/db/db.hpp
   include/je2be/db/null-db.hpp
