@@ -76,7 +76,6 @@ public:
     if (!fStream) {
       throw std::string("FileIO2::SetPosition; stream is NULL");
     }
-    uint64_t pos;
     switch (dir) {
     case std::ios_base::cur:
       if (!mcfile::File::Fseek(fStream, position, SEEK_CUR)) {

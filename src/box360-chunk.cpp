@@ -51,10 +51,10 @@ public:
     if (maybeEndTagMarker != 0x00 || maybeLongArrayTagMarker != 0x0c) {
       return JE2BE_ERROR;
     }
-    int32_t xPos = mcfile::I32FromBE(Mem::Read<int32_t>(buffer, 0x2));
-    int32_t zPos = mcfile::I32FromBE(Mem::Read<int32_t>(buffer, 0x6));
-    int64_t maybeLastUpdate = mcfile::I64FromBE(Mem::Read<int64_t>(buffer, 0x0a));
-    int64_t maybeInhabitedTime = mcfile::I64FromBE(Mem::Read<int64_t>(buffer, 0x12));
+    // int32_t xPos = mcfile::I32FromBE(Mem::Read<int32_t>(buffer, 0x2));
+    // int32_t zPos = mcfile::I32FromBE(Mem::Read<int32_t>(buffer, 0x6));
+    // int64_t maybeLastUpdate = mcfile::I64FromBE(Mem::Read<int64_t>(buffer, 0x0a));
+    // int64_t maybeInhabitedTime = mcfile::I64FromBE(Mem::Read<int64_t>(buffer, 0x12));
 
     uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
     vector<uint16_t> sectionJumpTable;

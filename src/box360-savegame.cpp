@@ -21,7 +21,7 @@ public:
     if (buffer.size() < 12) {
       return false;
     }
-    uint32_t inputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
+    // uint32_t inputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
     uint32_t outputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 8));
     for (int i = 0; i < 12; i++) {
       buffer.erase(buffer.begin());
@@ -36,7 +36,7 @@ public:
     if (buffer.size() < 4) {
       return false;
     }
-    uint32_t decompressedSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
+    // uint32_t decompressedSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
     for (int j = 0; j < 4; j++) {
       buffer.erase(buffer.begin());
     }

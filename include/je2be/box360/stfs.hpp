@@ -379,7 +379,7 @@ public:
     fstr = new fstream(path.c_str(), fstream::in | fstream::out | fstream::binary | (truncate ? fstream::trunc : static_cast<std::ios_base::openmode>(0)));
     if (!fstr->is_open()) {
       std::string ex("FileIO: Error opening the file. ");
-      ex += strerror(errno);
+      ex += StringFromErrno(errno);
       ex += "\n";
       throw ex;
     }
@@ -411,13 +411,13 @@ public:
   void ReadBytes(uint8_t *outBuffer, uint32_t len) {
     fstr->read((char *)outBuffer, len);
     if (fstr->fail())
-      throw std::string("FileIO: Error reading from file.\n") + std::string(strerror(errno));
+      throw std::string("FileIO: Error reading from file.\n") + StringFromErrno(errno);
   }
 
   void WriteBytes(uint8_t *buffer, uint32_t len) {
     fstr->write((char *)buffer, len);
     if (fstr->fail())
-      throw std::string("FileIO: Error writing to file.\n") + std::string(strerror(errno));
+      throw std::string("FileIO: Error writing to file.\n") + StringFromErrno(errno);
   }
 
   void Close() {
@@ -440,7 +440,7 @@ public:
     fstream *newFileStream = new fstream(newFilePath.c_str(), ios::out | ios::binary | ios::trunc);
     if (!fstr->is_open()) {
       std::string ex("FileIO: Failed to resize file. ");
-      ex += strerror(errno);
+      ex += StringFromErrno(errno);
       ex += "\n";
       throw ex;
     }
@@ -484,6 +484,20 @@ public:
   }
 
 private:
+  static std::string StringFromErrno(decltype(errno) e) {
+#if defined(_MSC_VER)
+    std::vector<char> buffer(94 + 1, (char)0);
+    if (strerror_s(buffer.data(), buffer.size(), e) == 0) {
+#else
+    std::vector<char> buffer(256, (char)0);
+    if (strerror_r(e, buffer.data(), buffer.size()) == 0) {
+#endif
+      return std::string(buffer.data());
+    } else {
+      return "(strerror_s failed: errno=" + std::to_string(e) + ")";
+    }
+  }
+
   EndianType endian;
   std::fstream *fstr;
   std::string filePath;
@@ -1310,10 +1324,10 @@ private:
   Sex packageSex;
   uint32_t blockStep[2];
   uint32_t firstHashTableAddress;
-  uint8_t hashOffset;
+  // uint8_t hashOffset;
   Level topLevel;
   HashTable topTable;
-  HashTable cached;
+  // HashTable cached;
   uint32_t tablesPerLevel[3];
 
   // Description: read the file listing from the file

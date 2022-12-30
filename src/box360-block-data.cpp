@@ -43,7 +43,6 @@ static std::string CoralWallFan(std::string name, uint8_t data, std::map<std::st
 std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
   using namespace std;
   uint8_t rawId = rawBlockId();
-  uint8_t rawData = this->rawData();
   uint16_t id = extendedBlockId();
   uint8_t data = this->data();
   if (rawId == id) {
