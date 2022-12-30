@@ -1,14 +1,12 @@
 #include <je2be/toje/world.hpp>
 
+#include <je2be/defer.hpp>
 #include <je2be/file.hpp>
+#include <je2be/future-support.hpp>
 #include <je2be/props.hpp>
 #include <je2be/toje/region.hpp>
 
-#include <oneapi/tbb/blocked_range.h>
-#include <oneapi/tbb/parallel_for_each.h>
-#include <oneapi/tbb/parallel_reduce.h>
-
-#include <je2be/defer.hpp>
+#include <BS_thread_pool.hpp>
 
 namespace je2be::toje {
 
@@ -53,6 +51,10 @@ public:
       return JE2BE_ERROR_WHAT(ec.message());
     }
 
+    BS::thread_pool queue(concurrency);
+    deque<future<shared_ptr<Context>>> futures;
+    auto ctx = parentContext.make();
+
     atomic<bool> cancelRequested = false;
     auto reportProgress = [progress, &cancelRequested]() -> bool {
       if (progress) {
@@ -66,37 +68,36 @@ public:
       }
     };
 
-    using namespace oneapi::tbb;
-    vector<pair<Pos2i, Context::ChunksInRegion>> rs;
-    copy(regions.begin(), regions.end(), back_inserter(rs));
-    atomic_bool ok(true);
-    auto ctx = parentContext.make();
-    shared_ptr<Context const> init = ctx;
-    auto reduced = parallel_reduce(
-        blocked_range(rs.cbegin(), rs.cend()),
-        init,
-        [d, &db, dir, reportProgress, &ok, &cancelRequested](auto const &range, shared_ptr<Context const> prev) -> shared_ptr<Context const> {
-          auto sum = prev->make();
-          for (auto const &it : range) {
-            if (cancelRequested.load() || !ok.load()) {
-              break;
-            }
-            Pos2i r = it.first;
-            auto converted = Region::Convert(d, it.second.fChunks, r.fX, r.fZ, &db, dir, *sum, reportProgress);
-            if (converted) {
-              converted->mergeInto(*sum);
-            } else {
-              ok.store(false);
-            }
-          }
-          return sum;
-        },
-        [](shared_ptr<Context const> x, shared_ptr<Context const> y) -> shared_ptr<Context const> {
-          auto ret = x->make();
-          y->mergeInto(*ret);
-          return ret;
-        });
-    reduced->mergeInto(*ctx);
+    bool ok = true;
+    for (auto const &region : regions) {
+      Pos2i r = region.first;
+      vector<future<shared_ptr<Context>>> drain;
+      FutureSupport::Drain(concurrency + 1, futures, drain);
+      for (auto &d : drain) {
+        auto result = d.get();
+        if (result) {
+          result->mergeInto(*ctx);
+        } else {
+          ok = false;
+        }
+        if (cancelRequested.load() || !ok) {
+          break;
+        }
+      }
+      if (cancelRequested.load() || !ok) {
+        break;
+      }
+      futures.emplace_back(queue.submit(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx, reportProgress));
+    }
+
+    for (auto &f : futures) {
+      auto result = f.get();
+      if (result) {
+        result->mergeInto(*ctx);
+      } else {
+        ok = false;
+      }
+    }
 
     if (cancelRequested.load() || !ok) {
       return JE2BE_ERROR;
@@ -124,31 +125,28 @@ public:
       }
     }
 
-    Status st = parallel_reduce(
-        blocked_range(rs.cbegin(), rs.cend()),
-        Status::Ok(),
-        [dir](auto const &range, Status init) -> Status {
-          if (!init.ok()) {
-            return init;
-          }
-          for (auto const &it : range) {
-            Pos2i pos = it.first;
-            auto s = SquashEntityChunks(pos.fX, pos.fZ, dir);
-            if (!s.ok()) {
-              return s;
-            }
-          }
-          return Status::Ok();
-        },
-        [](Status x, Status y) -> Status {
-          if (!x.ok()) {
-            return x;
-          }
-          if (!y.ok()) {
-            return y;
-          }
-          return Status::Ok();
-        });
+    deque<future<Status>> concatEntityMca;
+    Status st = Status::Ok();
+    for (auto const &region : regions) {
+      concatEntityMca.push_back(queue.submit(SquashEntityChunks, region.first.fX, region.first.fZ, dir));
+      vector<future<Status>> drain;
+      FutureSupport::Drain(concurrency + 1, concatEntityMca, drain);
+      for (auto &f : drain) {
+        Status s = f.get();
+        if (st.ok() && !s.ok()) {
+          st = s;
+        }
+      }
+      if (!st.ok()) {
+        break;
+      }
+    }
+    for (auto &f : concatEntityMca) {
+      Status s = f.get();
+      if (st.ok() && !s.ok()) {
+        st = s;
+      }
+    }
     if (!st.ok()) {
       return st;
     }

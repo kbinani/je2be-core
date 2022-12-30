@@ -19,6 +19,3 @@
 [submodule "deps/thread-pool"]
 	path = deps/thread-pool
 	url = https://github.com/bshoshany/thread-pool.git
-[submodule "deps/oneTBB"]
-	path = deps/oneTBB
-	url = https://github.com/oneapi-src/oneTBB.git

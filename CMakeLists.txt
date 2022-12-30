@@ -378,9 +378,7 @@ add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
 
 add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
 
-add_subdirectory(deps/oneTBB EXCLUDE_FROM_ALL)
-
-list(APPEND je2be_link_libraries mcfile leveldb minizip TBB::tbb)
+list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
 add_library(je2be STATIC ${je2be_header_files} ${je2be_src_files})
@@ -394,7 +392,6 @@ target_include_directories(je2be PUBLIC
   deps/minizip-ng
   deps/libminecraft-file/include
   deps/libminecraft-file/deps/libdeflate
-  deps/oneTBB/include
   ${je2be_include_directories})
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
