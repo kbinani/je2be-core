@@ -44,7 +44,7 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Build and Run Test (non Windows)
+      - name: Build and Run Test
         shell: bash
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
