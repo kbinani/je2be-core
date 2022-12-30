@@ -140,7 +140,7 @@ public:
       j["DragonFight"] = dragonFight;
     }
 
-    if (auto playerData = Player(db, ctx, opt.fLocalPlayer.get()); playerData) {
+    if (auto playerData = Player(db, ctx, opt.fLocalPlayer); playerData) {
       ctx.setLocalPlayerIds(playerData->fEntityIdBedrock, playerData->fEntityIdJava);
       if (playerData->fShoulderEntityLeft) {
         ctx.setShoulderEntityLeft(*playerData->fShoulderEntityLeft);
@@ -237,7 +237,7 @@ public:
     return settings;
   }
 
-  static std::optional<Entity::LocalPlayerData> Player(leveldb::DB &db, Context &ctx, Uuid const *uuid) {
+  static std::optional<Entity::LocalPlayerData> Player(leveldb::DB &db, Context &ctx, std::optional<Uuid> uuid) {
     std::string str;
     if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::LocalPlayer(), &str); !st.ok()) {
       return std::nullopt;

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <je2be/pos2.hpp>
-#include <je2be/uuid.hpp>
-
 namespace je2be::box360 {
 
 class Options {

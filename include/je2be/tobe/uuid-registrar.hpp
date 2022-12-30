@@ -9,7 +9,7 @@ namespace je2be::tobe {
 
 class UuidRegistrar {
 public:
-  static int64_t ToId(Uuid const &uuid) {
+  static int64_t ToId(Uuid uuid) {
     static std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred> sLut;
 
     std::mutex *mut = Mut();
@@ -57,7 +57,7 @@ private:
     }
   }
 
-  static int64_t FirstCandidate(Uuid const &uuid) {
+  static int64_t FirstCandidate(Uuid uuid) {
     XXHash h;
     h.update(uuid.fData, sizeof(uuid.fData));
     return h.digest();

@@ -1,7 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest/doctest.h>
 
-#include <BS_thread_pool.hpp>
 #include <iostream>
 #include <je2be.hpp>
 

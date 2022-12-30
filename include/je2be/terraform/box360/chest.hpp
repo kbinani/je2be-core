@@ -1,7 +1,5 @@
 #pragma once
 
-#include <je2be/enums/facing4.hpp>
-
 namespace je2be::terraform::box360 {
 
 class Chest {

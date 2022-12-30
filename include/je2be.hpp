@@ -9,6 +9,7 @@
 
 #include <xxhash32.h>
 #include <xxhash64.h>
+#include <BS_thread_pool.hpp>
 #include <nlohmann/json.hpp>
 
 #include <mz.h>

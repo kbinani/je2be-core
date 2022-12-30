@@ -49,12 +49,12 @@ public:
   std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const;
   void structures(mcfile::Dimension d, Pos2i chunk, std::vector<StructureInfo::Structure> &buffer);
   std::shared_ptr<Context> make() const;
-  void setLocalPlayerIds(int64_t entityIdB, Uuid const &entityIdJ);
+  void setLocalPlayerIds(int64_t entityIdB, Uuid entityIdJ);
   std::optional<Uuid> mapLocalPlayerId(int64_t entityIdB) const;
-  bool isLocalPlayerId(Uuid const &uuid) const;
-  void setRootVehicle(Uuid const &vehicleUid);
+  bool isLocalPlayerId(Uuid uuid) const;
+  void setRootVehicle(Uuid vehicleUid);
   void setRootVehicleEntity(CompoundTagPtr const &vehicleEntity);
-  bool isRootVehicle(Uuid const &uuid) const;
+  bool isRootVehicle(Uuid uuid) const;
   std::optional<std::pair<Uuid, CompoundTagPtr>> drainRootVehicle();
   void setShoulderEntityLeft(int64_t uid);
   void setShoulderEntityRight(int64_t uid);

@@ -108,35 +108,6 @@ public:
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
   }
 
-  void mergeInto(WorldData &out) const {
-    using namespace std;
-    assert(fDim == out.fDim);
-    if (fDim != out.fDim) {
-      return;
-    }
-    fPortalBlocks.mergeInto(out.fPortalBlocks);
-
-    for (auto const &it : fMapItems) {
-      out.fMapItems[it.first] = it.second;
-    }
-
-    for (auto const &it : fAutonomousEntities) {
-      out.fAutonomousEntities.push_back(it);
-    }
-
-    for (auto const &pos : fEndPortalsInEndDimension) {
-      out.fEndPortalsInEndDimension.insert(pos);
-    }
-
-    for (auto const &piece : fStructures) {
-      out.fStructures.add(piece);
-    }
-    if (!out.fError && fError) {
-      out.fError = fError;
-    }
-    out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
-  }
-
 private:
   void addStructures(CompoundTag const &structure, StructureType type) {
     auto children = structure.listTag("Children");

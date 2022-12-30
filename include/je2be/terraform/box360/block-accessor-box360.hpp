@@ -1,7 +1,5 @@
 #pragma once
 
-#include <je2be/terraform/block-accessor.hpp>
-
 namespace je2be::terraform::box360 {
 
 template <size_t Width, size_t Height>

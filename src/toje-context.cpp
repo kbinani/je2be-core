@@ -207,7 +207,7 @@ std::shared_ptr<Context> Context::make() const {
   return ret;
 }
 
-void Context::setLocalPlayerIds(int64_t entityIdB, Uuid const &entityIdJ) {
+void Context::setLocalPlayerIds(int64_t entityIdB, Uuid entityIdJ) {
   LocalPlayer lp;
   lp.fBedrockId = entityIdB;
   lp.fJavaId = entityIdJ;
@@ -222,7 +222,7 @@ std::optional<Uuid> Context::mapLocalPlayerId(int64_t entityIdB) const {
   }
 }
 
-bool Context::isLocalPlayerId(Uuid const &uuid) const {
+bool Context::isLocalPlayerId(Uuid uuid) const {
   if (fLocalPlayer) {
     return UuidPred{}(uuid, fLocalPlayer->fJavaId);
   } else {
@@ -230,7 +230,7 @@ bool Context::isLocalPlayerId(Uuid const &uuid) const {
   }
 }
 
-void Context::setRootVehicle(Uuid const &vehicleUid) {
+void Context::setRootVehicle(Uuid vehicleUid) {
   RootVehicle rv;
   rv.fUid = vehicleUid;
   fRootVehicle = rv;
@@ -244,7 +244,7 @@ void Context::setRootVehicleEntity(CompoundTagPtr const &vehicleEntity) {
   fRootVehicle->fVehicle = vehicleEntity;
 }
 
-bool Context::isRootVehicle(Uuid const &uuid) const {
+bool Context::isRootVehicle(Uuid uuid) const {
   if (fRootVehicle) {
     return UuidPred{}(uuid, fRootVehicle->fUid);
   } else {

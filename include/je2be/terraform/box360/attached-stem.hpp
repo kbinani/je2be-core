@@ -1,8 +1,5 @@
 #pragma once
 
-#include <je2be/terraform/block-property-accessor.hpp>
-#include <je2be/terraform/box360/block-accessor-box360.hpp>
-
 namespace je2be::terraform::box360 {
 
 class AttachedStem {
