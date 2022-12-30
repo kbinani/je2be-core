@@ -2,6 +2,7 @@
 
 #include <je2be/enums/facing4.hpp>
 #include <je2be/pos3.hpp>
+#include <je2be/reversible-map.hpp>
 #include <je2be/size.hpp>
 #include <je2be/strings.hpp>
 

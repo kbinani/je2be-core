@@ -32,7 +32,7 @@ public:
     std::optional<int64_t> fShoulderEntityRight;
   };
 
-  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid);
+  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid);
 };
 
 } // namespace je2be::toje

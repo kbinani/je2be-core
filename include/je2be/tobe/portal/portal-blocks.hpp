@@ -26,6 +26,11 @@ public:
     fZ.drain(out.fZ);
   }
 
+  void mergeInto(PortalBlocks &out) const {
+    fX.mergeInto(out.fX);
+    fZ.mergeInto(out.fZ);
+  }
+
 private:
   PortalBlocks(OrientedPortalBlocks x, OrientedPortalBlocks z) : fX(x), fZ(z) {}
 

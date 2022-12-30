@@ -10,8 +10,10 @@
 #include <util/crc32c.h>
 
 #include <BS_thread_pool.hpp>
-
 #include <minecraft-file.hpp>
+#include <oneapi/tbb/concurrent_vector.h>
+#include <oneapi/tbb/parallel_for_each.h>
+#include <oneapi/tbb/parallel_sort.h>
 
 #include <execution>
 #include <inttypes.h>
@@ -363,6 +365,7 @@ public:
     using namespace std::placeholders;
     using namespace leveldb;
     using namespace mcfile;
+    using namespace oneapi::tbb;
     namespace fs = std::filesystem;
 
     if (fClosed) {
@@ -401,52 +404,32 @@ public:
     if (!sortKeys(plans, o)) {
       return false;
     }
+    TableBuildPlan const *plansPtr = plans.data();
 
     VersionEdit edit;
-    uint64_t done = 0;
     uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
     if (fConcurrency > 0) {
-      auto queue = make_unique<BS::thread_pool>(fConcurrency);
-
-      deque<future<optional<TableBuildResult>>> futures;
-      for (size_t idx = 0; idx < plans.size(); idx++) {
-        vector<future<optional<TableBuildResult>>> drain;
-        FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency + 1, futures, drain);
-        for (auto &f : drain) {
-          auto result = f.get();
-          if (!result) {
-            continue;
-          }
-          InternalKey smallest = result->fSmallest;
-          InternalKey largest = result->fLargest;
-          edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-          done++;
-          if (progress) {
-            double p = (double)done / (double)total;
-            (*progress)(p);
-          }
+      atomic_uint64_t done(0);
+      concurrent_vector<TableBuildResult> concat;
+      parallel_for((size_t)0, plans.size(), (size_t)1, [this, plansPtr, &concat, &done, progress, total](size_t idx) {
+        TableBuildPlan plan = plansPtr[idx];
+        if (auto result = buildTable(plan, idx); result) {
+          concat.push_back(*result);
         }
-
-        TableBuildPlan plan = plans[idx];
-        futures.push_back(queue->submit(bind(&Impl::buildTable, this, _1, _2), plan, idx));
-      }
-
-      for (auto &f : futures) {
-        auto result = f.get();
-        if (!result) {
-          continue;
-        }
-        InternalKey smallest = result->fSmallest;
-        InternalKey largest = result->fLargest;
-        edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-        done++;
+        uint64_t pu64 = done.fetch_add(1);
         if (progress) {
-          double p = (double)done / (double)total;
+          double p = (double)pu64 / (double)total;
           (*progress)(p);
         }
+      });
+      for (TableBuildResult const &result : concat) {
+        InternalKey smallest = result.fSmallest;
+        InternalKey largest = result.fLargest;
+        edit.AddFile(1, result.fFileNumber, result.fFileSize, smallest, largest);
       }
     } else {
+      uint64_t done = 0;
       for (size_t idx = 0; idx < plans.size(); idx++) {
         TableBuildPlan plan = plans[idx];
         auto result = buildTable(plan, idx);
@@ -680,14 +663,9 @@ private:
           keys.push_back(k);
         }
         Comparator const *cmp = BytewiseComparator();
-#if defined(EMSCRIPTEN) || defined(__APPLE__)
-        std::sort(
-#else
-        std::sort(execution::par_unseq,
-#endif
-            keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
-              return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
-            });
+        oneapi::tbb::parallel_sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
+          return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
+        });
       }
       {
         ScopedFile fp(File::Open(keysShardFile(shard), File::Mode::Write));

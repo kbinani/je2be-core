@@ -1763,7 +1763,7 @@ public:
   }
 #pragma endregion
 
-  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
+  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid) {
     LocalPlayerData data;
 
     data.fEntity = Base("", b, ctx);
@@ -2015,7 +2015,7 @@ std::optional<Entity::Result> Entity::From(CompoundTag const &entityB, Context &
   return Impl::From(entityB, ctx);
 }
 
-std::optional<Entity::LocalPlayerData> Entity::LocalPlayer(CompoundTag const &b, Context &ctx, std::optional<Uuid> uuid) {
+std::optional<Entity::LocalPlayerData> Entity::LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid) {
   return Impl::LocalPlayer(b, ctx, uuid);
 }
 

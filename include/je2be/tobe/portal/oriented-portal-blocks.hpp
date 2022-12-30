@@ -30,11 +30,15 @@ public:
   }
 
   void drain(OrientedPortalBlocks &out) {
+    mergeInto(out);
+    std::unordered_set<Pos3i, Pos3iHasher>().swap(fBlocks);
+  }
+
+  void mergeInto(OrientedPortalBlocks &out) const {
     assert(out.fXAxis == fXAxis);
     for (auto b : fBlocks) {
       out.fBlocks.insert(b);
     }
-    std::unordered_set<Pos3i, Pos3iHasher>().swap(fBlocks);
   }
 
 private:
