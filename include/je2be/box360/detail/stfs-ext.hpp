@@ -170,4 +170,4 @@ private:
   FILE *fStream;
 };
 
-} // namespace je2be::box360
+} // namespace je2be::box360::detail

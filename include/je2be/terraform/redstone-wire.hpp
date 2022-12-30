@@ -1,5 +1,6 @@
 #pragma once
 
+#include <je2be/enums/facing4.hpp>
 #include <je2be/enums/facing6.hpp>
 
 namespace je2be::terraform {
@@ -22,7 +23,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsRedstoneWire(p)) {
+          if (p != BlockPropertyAccessor::REDSTONE_WIRE) {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);

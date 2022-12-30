@@ -63,11 +63,11 @@ public:
   }
 
   static bool IsMelonStem(BlockPropertyAccessor::DataType p) {
-    return BlockPropertyAccessor::IsMelonStem(p);
+    return p == BlockPropertyAccessor::MELON_STEM;
   }
 
   static bool IsPumpkinStem(BlockPropertyAccessor::DataType p) {
-    return BlockPropertyAccessor::IsPumpkinStem(p);
+    return p == BlockPropertyAccessor::PUMPKIN_STEM;
   }
 };
 

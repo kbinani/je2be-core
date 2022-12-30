@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           auto upper = accessor.property(x, y + 1, z);
-          if (terraform::BlockPropertyAccessor::IsTwistingVines(p) && terraform::BlockPropertyAccessor::IsTwistingVines(upper)) {
+          if (p == terraform::BlockPropertyAccessor::TWISTING_VINES && upper == terraform::BlockPropertyAccessor::TWISTING_VINES) {
             auto plant = make_shared<mcfile::je::Block const>("minecraft:twisting_vines_plant");
             out.setBlockAt(x, y, z, plant);
           }

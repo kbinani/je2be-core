@@ -31,7 +31,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (BlockPropertyAccessor::IsLeaves(p)) {
+          if (p == BlockPropertyAccessor::LEAVES) {
             data.set({x, y, z}, Leaves);
             if (leavesRange) {
               leavesRange->fStart.fX = (std::min)(leavesRange->fStart.fX, x);

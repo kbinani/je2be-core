@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           auto lower = accessor.property(x, y - 1, z);
-          if (terraform::BlockPropertyAccessor::IsWeepingVines(p) && terraform::BlockPropertyAccessor::IsWeepingVines(lower)) {
+          if (p == terraform::BlockPropertyAccessor::WEEPING_VINES && lower == terraform::BlockPropertyAccessor::WEEPING_VINES) {
             auto plant = make_shared<mcfile::je::Block const>("minecraft:weeping_vines_plant");
             out.setBlockAt(x, y, z, plant);
           }

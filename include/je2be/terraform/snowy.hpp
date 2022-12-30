@@ -20,7 +20,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsSnowy(p)) {
+          if (p != BlockPropertyAccessor::SNOWY) {
             continue;
           }
           auto upper = cache.blockAt(x, y + 1, z);

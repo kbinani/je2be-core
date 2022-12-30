@@ -20,7 +20,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!terraform::BlockPropertyAccessor::IsBeacon(p)) {
+          if (p != terraform::BlockPropertyAccessor::BEACON) {
             continue;
           }
           auto tileEntity = out.fTileEntities[Pos3i(x, y, z)];

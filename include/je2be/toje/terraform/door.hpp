@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto lowerP = accessor.property(x, y, z);
           auto upperP = accessor.property(x, y + 1, z);
-          if (!terraform::BlockPropertyAccessor::IsDoor(lowerP) || !terraform::BlockPropertyAccessor::IsDoor(upperP)) {
+          if (lowerP != terraform::BlockPropertyAccessor::DOOR || upperP != terraform::BlockPropertyAccessor::DOOR) {
             continue;
           }
           auto lowerB = cache.blockAt(x, y, z);

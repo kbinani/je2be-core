@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           auto upper = accessor.property(x, y + 1, z);
-          if (BlockPropertyAccessor::IsKelp(p) && BlockPropertyAccessor::IsKelp(upper)) {
+          if (p == BlockPropertyAccessor::KELP && upper == BlockPropertyAccessor::KELP) {
             auto kelpPlant = make_shared<mcfile::je::Block const>("minecraft:kelp_plant");
             out.setBlockAt(x, y, z, kelpPlant);
           }

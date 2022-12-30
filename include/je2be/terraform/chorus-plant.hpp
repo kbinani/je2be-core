@@ -20,7 +20,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (!BlockPropertyAccessor::IsChorusPlant(p)) {
+          if (p != BlockPropertyAccessor::CHORUS_PLANT) {
             continue;
           }
           auto blockB = cache.blockAt(x, y, z);
@@ -34,7 +34,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          auto up = BlockPropertyAccessor::IsChorusPlant(accessor.property(x, y + 1, z));
+          auto up = accessor.property(x, y + 1, z) == BlockPropertyAccessor::CHORUS_PLANT;
           auto down = cache.blockAt(x, y - 1, z);
           auto north = cache.blockAt(x, y, z - 1);
           auto east = cache.blockAt(x + 1, y, z);

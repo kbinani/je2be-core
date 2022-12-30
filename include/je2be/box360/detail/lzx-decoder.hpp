@@ -1260,4 +1260,4 @@ private:
   uint16_t ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)];
 };
 
-} // namespace je2be::box360
+} // namespace je2be::box360::detail

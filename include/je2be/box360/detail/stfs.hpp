@@ -1624,4 +1624,4 @@ private:
 };
 #pragma endregion
 
-} // namespace je2be::box360
+} // namespace je2be::box360::detail

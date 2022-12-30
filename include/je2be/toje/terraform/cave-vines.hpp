@@ -21,7 +21,7 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
           auto lower = accessor.property(x, y - 1, z);
-          if (terraform::BlockPropertyAccessor::IsCaveVines(p) && terraform::BlockPropertyAccessor::IsCaveVines(lower)) {
+          if (p == terraform::BlockPropertyAccessor::CAVE_VINES && lower == terraform::BlockPropertyAccessor::CAVE_VINES) {
             auto blockJ = out.blockAt(x, y, z);
             if (!blockJ) {
               continue;

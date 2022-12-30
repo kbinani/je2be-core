@@ -87,6 +87,7 @@ set(je2be_header_files
   include/je2be/item/potion.hpp
   include/je2be/item/tipped-arrow-potion.hpp
   include/je2be/java-level-dat.hpp
+  include/je2be/mcfile-fwd.hpp
   include/je2be/mem.hpp
   include/je2be/nbt-ext.hpp
   include/je2be/nbt.hpp
@@ -298,7 +299,12 @@ set(je2be_src_files
   src/box360-tile-entity.cpp
   src/box360-world.cpp
   src/db-raw-db.cpp
+  src/terraform-block-property-accessor.cpp
+  src/terraform-fence-connectable.cpp
   src/terraform-leaves.cpp
+  src/terraform-note-block.cpp
+  src/terraform-shape-of-stairs.cpp
+  src/terraform-wall-connectable.cpp
   src/tobe-chunk-data-package.cpp
   src/tobe-converter-block-data.cpp
   src/tobe-converter-chunk.cpp
