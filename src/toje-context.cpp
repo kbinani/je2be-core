@@ -14,18 +14,32 @@ class Context::Impl {
     std::map<mcfile::Dimension, std::vector<StructurePiece>> fStructurePieces;
     int fNumChunks = 0;
 
-    Options const fOpt;
-    mcfile::Endian const fEndian;
+    Options fOpt;
+    mcfile::Endian fEndian;
 
     Accum(Options opt, mcfile::Endian endian) : fOpt(opt), fEndian(endian) {}
+
+    Accum(Accum const &other) : fOpt(other.fOpt), fEndian(other.fEndian) {
+      other.mergeInto(*this);
+    }
+    Accum &operator=(Accum const &other) {
+      if (this == &other) {
+        return *this;
+      }
+      other.mergeInto(*this);
+      return *this;
+    }
 
     void mergeInto(Accum &out) const {
       for (auto const &i : fMaps) {
         out.fMaps[i.first] = i.second;
       }
       for (auto const &i : fRegions) {
-        for (auto const &j : i.second) {
-          out.fRegions[i.first].insert(j);
+        auto dim = i.first;
+        std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher> const &regions = i.second;
+        for (auto const &j : regions) {
+          Pos2i region = j.first;
+          std::copy(j.second.fChunks.begin(), j.second.fChunks.end(), std::inserter(out.fRegions[dim][region].fChunks, out.fRegions[dim][region].fChunks.end()));
         }
       }
       for (auto const &i : fStructurePieces) {
@@ -98,16 +112,19 @@ public:
     using namespace mcfile;
     namespace fs = std::filesystem;
 
-    Accum accum(opt, endian);
 #if defined(EMSCRIPTEN)
+    Accum accum(opt, endian);
     unique_ptr<Iterator> itr(db.NewIterator({}));
     for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
       accum.accept(itr->key().ToString(), itr->value().ToString());
     }
 #else
-    AsyncIterator::IterateUnordered(db, concurrency, [&accum](string const &key, string const &value) {
-      accum.accept(key, value);
-    });
+    Accum accum = AsyncIterator::IterateUnordered<Accum>(
+        db,
+        concurrency,
+        Accum(opt, endian),
+        [](string const &key, string const &value, Accum &out) -> void { out.accept(key, value); },
+        [](Accum const &from, Accum &to) -> void { from.mergeInto(to); });
 #endif
 
     auto mapInfo = make_shared<MapInfo>();

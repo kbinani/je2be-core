@@ -7,71 +7,63 @@
 namespace je2be {
 
 class AsyncIterator {
-  struct Result {
-    char fPrefix;
-    std::shared_ptr<leveldb::Iterator> fItr;
-    bool fContinue;
-    bool fValid;
-    std::string fKey;
-    std::string fValue;
-  };
-
   AsyncIterator() = delete;
 
 public:
-  using Receiver = std::function<void(std::string const &key, std::string const &value)>;
-
-  static void IterateUnordered(leveldb::DB &db, unsigned int concurrency, Receiver receiver) {
+  template <class Accumulator>
+  static Accumulator IterateUnordered(
+      leveldb::DB &db,
+      unsigned int concurrency,
+      Accumulator zero,
+      std::function<void(std::string const &key, std::string const &value, Accumulator &out)> accept,
+      std::function<void(Accumulator const &from, Accumulator &to)> join) {
     using namespace std;
     using namespace leveldb;
 
     BS::thread_pool queue(concurrency);
-    deque<future<Result>> futures;
+    deque<future<Accumulator>> futures;
+
+    Accumulator sum = zero;
 
     for (int i = 0; i < 256; i++) {
-      shared_ptr<Iterator> itr(db.NewIterator({}));
-      string prefix;
-      prefix.append(1, (char)i);
-      itr->Seek(Slice(prefix));
-      futures.push_back(queue.submit(Do, (char)i, itr));
-    }
-    while (!futures.empty()) {
-      vector<future<Result>> drain;
-      FutureSupport::Drain(thread::hardware_concurrency() + 1, futures, drain);
+      vector<future<Accumulator>> drain;
+      FutureSupport::Drain(concurrency + 1, futures, drain);
       for (auto &f : drain) {
-        Result ret = f.get();
-        if (ret.fValid) {
-          receiver(ret.fKey, ret.fValue);
-        }
-        if (ret.fContinue) {
-          futures.push_back(queue.submit(Do, ret.fPrefix, ret.fItr));
-        }
+        Accumulator r(f.get());
+        join(r, sum);
       }
+      futures.push_back(queue.submit(Do<Accumulator>, &db, (char)i, zero, accept));
     }
+    for (auto &f : futures) {
+      Accumulator r(f.get());
+      join(r, sum);
+    }
+    return sum;
   }
 
 private:
-  static Result Do(char prefix, std::shared_ptr<leveldb::Iterator> itr) {
-    Result ret;
-    ret.fPrefix = prefix;
-    ret.fItr = itr;
-
-    if (itr->Valid()) {
-      std::string key = itr->key().ToString();
-      ret.fValid = prefix == key[0];
-      if (prefix == key[0]) {
-        ret.fContinue = true;
-        ret.fKey = key;
-        ret.fValue = itr->value().ToString();
-        itr->Next();
-      } else {
-        ret.fContinue = false;
+  template <class Accumulator>
+  static Accumulator Do(
+      leveldb::DB *db,
+      char prefix, Accumulator zero,
+      std::function<void(std::string const &key, std::string const &value, Accumulator &out)> accept) {
+    using namespace std;
+    using namespace leveldb;
+    ReadOptions o;
+    o.fill_cache = false;
+    shared_ptr<Iterator> itr(db->NewIterator(o));
+    Accumulator sum = zero;
+    string p;
+    p.append(1, prefix);
+    for (itr->Seek(Slice(p)); itr->Valid(); itr->Next()) {
+      auto key = itr->key().ToString();
+      if (key[0] != prefix) {
+        break;
       }
-    } else {
-      ret.fContinue = false;
-      ret.fValid = false;
+      auto value = itr->value().ToString();
+      accept(key, value, sum);
     }
-    return ret;
+    return sum;
   }
 };
 
