@@ -65,6 +65,7 @@
 #include <je2be/uuid.hpp>
 #include <je2be/props.hpp>
 #include <je2be/future-support.hpp>
+#include <je2be/parallel.hpp>
 #include <je2be/defer.hpp>
 #include <je2be/rename-pair.hpp>
 #include <je2be/nbt-ext.hpp>
