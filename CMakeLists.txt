@@ -272,6 +272,7 @@ set(je2be_header_files
   deps/libminecraft-file/include/mcfile/pos2.hpp
   deps/libminecraft-file/include/mcfile/pos3.hpp
   deps/libminecraft-file/include/mcfile/scoped-file.hpp
+  deps/libminecraft-file/include/mcfile/stream/byte-input-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/defer-opening-output-stream.hpp
   deps/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
