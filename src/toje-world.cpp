@@ -2,11 +2,9 @@
 
 #include <je2be/defer.hpp>
 #include <je2be/file.hpp>
-#include <je2be/future-support.hpp>
+#include <je2be/parallel.hpp>
 #include <je2be/props.hpp>
 #include <je2be/toje/region.hpp>
-
-#include <BS_thread_pool.hpp>
 
 namespace je2be::toje {
 
@@ -51,10 +49,6 @@ public:
       return JE2BE_ERROR_WHAT(ec.message());
     }
 
-    BS::thread_pool queue(concurrency);
-    deque<future<shared_ptr<Context>>> futures;
-    auto ctx = parentContext.make();
-
     atomic<bool> cancelRequested = false;
     auto reportProgress = [progress, &cancelRequested]() -> bool {
       if (progress) {
@@ -68,36 +62,29 @@ public:
       }
     };
 
-    bool ok = true;
-    for (auto const &region : regions) {
-      Pos2i r = region.first;
-      vector<future<shared_ptr<Context>>> drain;
-      FutureSupport::Drain(concurrency + 1, futures, drain);
-      for (auto &d : drain) {
-        auto result = d.get();
-        if (result) {
-          result->mergeInto(*ctx);
-        } else {
-          ok = false;
-        }
-        if (cancelRequested.load() || !ok) {
-          break;
-        }
-      }
-      if (cancelRequested.load() || !ok) {
-        break;
-      }
-      futures.emplace_back(queue.submit(Region::Convert, d, region.second.fChunks, r.fX, r.fZ, &db, dir, *ctx, reportProgress));
-    }
-
-    for (auto &f : futures) {
-      auto result = f.get();
-      if (result) {
-        result->mergeInto(*ctx);
-      } else {
-        ok = false;
-      }
-    }
+    atomic_bool ok = true;
+    vector<pair<Pos2i, Context::ChunksInRegion>> works;
+    copy(regions.begin(), regions.end(), back_inserter(works));
+    auto ctx = Parallel::ForEach<shared_ptr<Context>, pair<Pos2i, Context::ChunksInRegion>>(
+        works,
+        parentContext.make(),
+        [d, &db, dir, &parentContext, reportProgress, &ok](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
+          auto ctx = parentContext.make();
+          if (!ok) {
+            return ctx;
+          }
+          Pos2i region = work.first;
+          auto result = Region::Convert(d, work.second.fChunks, region.fX, region.fZ, &db, dir, *ctx, reportProgress);
+          if (result) {
+            return result;
+          } else {
+            ok.store(false);
+            return ctx;
+          }
+        },
+        [](shared_ptr<Context> const &from, shared_ptr<Context> to) -> void {
+          from->mergeInto(*to);
+        });
 
     if (cancelRequested.load() || !ok) {
       return JE2BE_ERROR;
@@ -125,28 +112,24 @@ public:
       }
     }
 
-    deque<future<Status>> concatEntityMca;
-    Status st = Status::Ok();
-    for (auto const &region : regions) {
-      concatEntityMca.push_back(queue.submit(SquashEntityChunks, region.first.fX, region.first.fZ, dir));
-      vector<future<Status>> drain;
-      FutureSupport::Drain(concurrency + 1, concatEntityMca, drain);
-      for (auto &f : drain) {
-        Status s = f.get();
-        if (st.ok() && !s.ok()) {
-          st = s;
-        }
-      }
-      if (!st.ok()) {
-        break;
-      }
-    }
-    for (auto &f : concatEntityMca) {
-      Status s = f.get();
-      if (st.ok() && !s.ok()) {
-        st = s;
-      }
-    }
+    Status st = Parallel::ForEach<Status, pair<Pos2i, Context::ChunksInRegion>>(
+        works,
+        Status::Ok(),
+        [dir](pair<Pos2i, Context::ChunksInRegion> const &work) -> Status {
+          Pos2i region = work.first;
+          return SquashEntityChunks(region.fX, region.fZ, dir);
+        },
+        [](Status const &from, Status &to) -> void {
+          if (!to.ok()) {
+            return;
+          }
+          if (!from.ok()) {
+            to = from;
+          } else {
+            to = Status::Ok();
+          }
+        });
+
     if (!st.ok()) {
       return st;
     }

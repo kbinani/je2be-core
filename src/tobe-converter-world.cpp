@@ -1,6 +1,7 @@
 #include <je2be/tobe/converter/world.hpp>
 
 #include <je2be/future-support.hpp>
+#include <je2be/parallel.hpp>
 #include <je2be/tobe/converter/chunk.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
 #include <je2be/tobe/level-data.hpp>
@@ -127,6 +128,7 @@ public:
 
   static bool PutWorldEntities(mcfile::Dimension d, DbInterface &db, std::filesystem::path temp, unsigned int concurrency) {
     using namespace std;
+    using namespace std::placeholders;
     namespace fs = std::filesystem;
     error_code ec;
     unordered_map<Pos2i, vector<fs::path>, Pos2iHasher> files;
@@ -157,48 +159,35 @@ public:
         files[{*cx, *cz}].push_back(p);
       }
     }
-    deque<future<bool>> futures;
-    unique_ptr<BS::thread_pool> pool;
-    if (concurrency > 0) {
-      pool.reset(new BS::thread_pool(concurrency));
+
+    vector<pair<Pos2i, vector<fs::path>>> works;
+    for (auto const &it : files) {
+      works.push_back(it);
     }
-    bool ok = true;
-    for (auto const &i : files) {
-      if (pool) {
-        vector<future<bool>> drained;
-        FutureSupport::Drain(concurrency + 1, futures, drained);
-        for (auto &f : drained) {
-          ok = ok && f.get();
-        }
-        if (!ok) {
-          break;
-        }
-        futures.push_back(pool->submit(PutChunkEntities, d, i.first, i.second, ref(db)));
-      } else {
-        if (!PutChunkEntities(d, i.first, i.second, db)) {
-          return false;
-        }
-      }
-    }
-    for (auto &f : futures) {
-      ok = ok && f.get();
-    }
+    bool ok = Parallel::ForEach<bool, pair<Pos2i, vector<fs::path>>>(
+        works,
+        true,
+        bind(PutChunkEntities, d, _1, &db),
+        [](bool const &from, bool &to) {
+          to = from && to;
+        });
     return ok;
   }
 
-  static bool PutChunkEntities(mcfile::Dimension d, Pos2i chunk, std::vector<std::filesystem::path> files, DbInterface &db) {
+  static bool PutChunkEntities(mcfile::Dimension d, std::pair<Pos2i, std::vector<std::filesystem::path>> item, DbInterface *db) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
     using namespace mcfile::be;
+    Pos2i chunk = item.first;
     string digp;
-    for (auto const &file : files) {
+    for (auto const &file : item.second) {
       auto s = make_shared<FileInputStream>(file);
       if (!s->valid()) {
         return false;
       }
       InputStreamReader r(s, mcfile::Endian::Little);
-      CompoundTag::ReadUntilEos(r, [&db, &digp](auto const &c) {
+      CompoundTag::ReadUntilEos(r, [db, &digp](auto const &c) {
         auto id = c->int64("UniqueID");
         if (!id) {
           return;
@@ -213,14 +202,14 @@ public:
         if (!value) {
           return;
         }
-        db.put(key, leveldb::Slice(*value));
+        db->put(key, leveldb::Slice(*value));
       });
     }
     auto key = mcfile::be::DbKey::Digp(chunk.fX, chunk.fZ, d);
     if (digp.empty()) {
-      db.del(key);
+      db->del(key);
     } else {
-      db.put(key, leveldb::Slice(digp));
+      db->put(key, leveldb::Slice(digp));
     }
     return true;
   }
