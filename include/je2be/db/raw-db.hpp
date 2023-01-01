@@ -9,7 +9,7 @@ namespace je2be {
 
 class RawDb : public DbInterface {
 public:
-  RawDb(std::filesystem::path const &dir, int concurrency);
+  RawDb(std::filesystem::path const &dir);
 
   RawDb(RawDb &&) = delete;
   RawDb &operator=(RawDb &&) = delete;
@@ -21,7 +21,7 @@ public:
   void del(std::string const &key) override {
     // nop because write-only
   }
-  bool close(std::optional<std::function<void(double progress)>> progress = std::nullopt) override;
+  bool close(std::function<void(double progress)> progress = nullptr) override;
   void abandon() override;
 
 private:

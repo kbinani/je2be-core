@@ -42,7 +42,7 @@ public:
 
     auto levelData = std::make_unique<LevelData>(fInput, fOptions, level.fCurrentTick, level.fDifficulty, level.fCommandsEnabled, level.fGameType);
     {
-      RawDb db(dbPath, concurrency);
+      RawDb db(dbPath);
       if (!db.valid()) {
         return JE2BE_ERROR;
       }

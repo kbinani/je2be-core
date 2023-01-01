@@ -7,7 +7,7 @@ public:
   bool valid() const override { return true; }
   void put(std::string const &key, leveldb::Slice const &value) override {}
   void del(std::string const &key) override {}
-  bool close(std::optional<std::function<void(double progress)>> progress = std::nullopt) override { return true; }
+  bool close(std::function<void(double progress)> progress = nullptr) override { return true; }
   void abandon() override{};
 };
 

@@ -259,11 +259,9 @@ private:
 
 class RawDb::Impl {
 public:
-  Impl(std::filesystem::path const &dir, int concurrency)
-      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fConcurrency(concurrency), fLock(nullptr), fSeq(0) {
-    if (concurrency > 0) {
-      fPool.reset(new BS::thread_pool(1));
-    }
+  Impl(std::filesystem::path const &dir)
+      : fValuesFile(nullptr), fKeysFile(nullptr), fDir(dir), fLock(nullptr), fSeq(0) {
+    fPool.reset(new BS::thread_pool(1));
 
     leveldb::DestroyDB(dir, {});
     std::error_code ec;
@@ -358,7 +356,7 @@ public:
     }
   }
 
-  bool close(std::optional<std::function<void(double progress)>> progress = std::nullopt) {
+  bool close(std::function<void(double progress)> progress = nullptr) {
     using namespace std;
     using namespace std::placeholders;
     using namespace leveldb;
@@ -370,7 +368,7 @@ public:
     }
     fClosed = true;
     if (progress) {
-      (*progress)(0.0);
+      progress(0.0);
     }
 
     for (auto &f : fFutures) {
@@ -406,33 +404,13 @@ public:
     uint64_t done = 0;
     uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
-    if (fConcurrency > 0) {
-      auto queue = make_unique<BS::thread_pool>(fConcurrency);
+    auto queue = make_unique<BS::thread_pool>(thread::hardware_concurrency());
 
-      deque<future<optional<TableBuildResult>>> futures;
-      for (size_t idx = 0; idx < plans.size(); idx++) {
-        vector<future<optional<TableBuildResult>>> drain;
-        FutureSupport::Drain<optional<TableBuildResult>>(fConcurrency + 1, futures, drain);
-        for (auto &f : drain) {
-          auto result = f.get();
-          if (!result) {
-            continue;
-          }
-          InternalKey smallest = result->fSmallest;
-          InternalKey largest = result->fLargest;
-          edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-          done++;
-          if (progress) {
-            double p = (double)done / (double)total;
-            (*progress)(p);
-          }
-        }
-
-        TableBuildPlan plan = plans[idx];
-        futures.push_back(queue->submit(bind(&Impl::buildTable, this, _1, _2), plan, idx));
-      }
-
-      for (auto &f : futures) {
+    deque<future<optional<TableBuildResult>>> futures;
+    for (size_t idx = 0; idx < plans.size(); idx++) {
+      vector<future<optional<TableBuildResult>>> drain;
+      FutureSupport::Drain<optional<TableBuildResult>>(thread::hardware_concurrency() + 1, futures, drain);
+      for (auto &f : drain) {
         auto result = f.get();
         if (!result) {
           continue;
@@ -443,21 +421,26 @@ public:
         done++;
         if (progress) {
           double p = (double)done / (double)total;
-          (*progress)(p);
+          progress(p);
         }
       }
-    } else {
-      for (size_t idx = 0; idx < plans.size(); idx++) {
-        TableBuildPlan plan = plans[idx];
-        auto result = buildTable(plan, idx);
-        InternalKey smallest = result->fSmallest;
-        InternalKey largest = result->fLargest;
-        edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-        done++;
-        if (progress) {
-          double p = (double)done / (double)total;
-          (*progress)(p);
-        }
+
+      TableBuildPlan plan = plans[idx];
+      futures.push_back(queue->submit(bind(&Impl::buildTable, this, _1, _2), plan, idx));
+    }
+
+    for (auto &f : futures) {
+      auto result = f.get();
+      if (!result) {
+        continue;
+      }
+      InternalKey smallest = result->fSmallest;
+      InternalKey largest = result->fLargest;
+      edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
+      done++;
+      if (progress) {
+        double p = (double)done / (double)total;
+        progress(p);
       }
     }
 
@@ -497,7 +480,7 @@ public:
       (*fOnFileCreated)(currentFile);
     }
     if (progress) {
-      (*progress)(1.0);
+      progress(1.0);
     }
     return true;
   }
@@ -949,13 +932,12 @@ private:
   std::map<uint8_t, uint64_t> fNumKeysPerShard;
   std::unique_ptr<BS::thread_pool> fPool;
   std::deque<std::future<bool>> fFutures;
-  int const fConcurrency;
   bool fClosed = false;
   leveldb::FileLock *fLock;
   std::atomic_uint64_t fSeq;
 };
 
-RawDb::RawDb(std::filesystem::path const &dir, int concurrency) : fImpl(std::make_unique<Impl>(dir, concurrency)) {}
+RawDb::RawDb(std::filesystem::path const &dir) : fImpl(std::make_unique<Impl>(dir)) {}
 
 RawDb::~RawDb() {}
 
@@ -967,7 +949,7 @@ void RawDb::put(std::string const &key, leveldb::Slice const &value) {
   return fImpl->put(key, value);
 }
 
-bool RawDb::close(std::optional<std::function<void(double progress)>> progress) {
+bool RawDb::close(std::function<void(double progress)> progress) {
   return fImpl->close(progress);
 }
 
