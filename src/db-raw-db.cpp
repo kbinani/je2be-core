@@ -1,6 +1,7 @@
 #include <je2be/db/raw-db.hpp>
 
 #include <je2be/future-support.hpp>
+#include <je2be/parallel.hpp>
 
 #include <db/log_writer.h>
 #include <db/version_edit.h>
@@ -401,47 +402,28 @@ public:
     }
 
     VersionEdit edit;
-    uint64_t done = 0;
+    atomic<uint64_t> done = 0;
     uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
-    auto queue = make_unique<BS::thread_pool>(thread::hardware_concurrency());
-
-    deque<future<optional<TableBuildResult>>> futures;
-    for (size_t idx = 0; idx < plans.size(); idx++) {
-      vector<future<optional<TableBuildResult>>> drain;
-      FutureSupport::Drain<optional<TableBuildResult>>(thread::hardware_concurrency() + 1, futures, drain);
-      for (auto &f : drain) {
-        auto result = f.get();
-        if (!result) {
-          continue;
-        }
-        InternalKey smallest = result->fSmallest;
-        InternalKey largest = result->fLargest;
-        edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-        done++;
-        if (progress) {
-          double p = (double)done / (double)total;
-          progress(p);
-        }
-      }
-
-      TableBuildPlan plan = plans[idx];
-      futures.push_back(queue->submit(bind(&Impl::buildTable, this, _1, _2), plan, idx));
-    }
-
-    for (auto &f : futures) {
-      auto result = f.get();
+    vector<optional<TableBuildResult>> results;
+    Parallel::Map<optional<TableBuildResult>, TableBuildPlan>(
+        plans,
+        [this, &done, progress, total](TableBuildPlan const &plan, int idx) {
+          auto ret = buildTable(plan, idx);
+          uint64_t p = done.fetch_add(1);
+          if (progress) {
+            progress((double)p / (double)total);
+          }
+          return ret;
+        },
+        results);
+    for (auto const &result : results) {
       if (!result) {
         continue;
       }
       InternalKey smallest = result->fSmallest;
       InternalKey largest = result->fLargest;
       edit.AddFile(1, result->fFileNumber, result->fFileSize, smallest, largest);
-      done++;
-      if (progress) {
-        double p = (double)done / (double)total;
-        progress(p);
-      }
     }
 
     error_code ec;
