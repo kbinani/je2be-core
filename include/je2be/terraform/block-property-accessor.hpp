@@ -1,6 +1,8 @@
 #pragma once
 
 #include <je2be/mcfile-fwd.hpp>
+
+#include <cstdint>
 #include <vector>
 
 namespace je2be::terraform {
