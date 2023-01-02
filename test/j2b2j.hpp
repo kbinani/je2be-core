@@ -910,8 +910,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
   optJ.fDimensionFilter = optB.fDimensionFilter;
   optJ.fChunkFilter = optB.fChunkFilter;
 
-  je2be::tobe::Converter tobe(in, *outB, optB);
-  CHECK(tobe.run(thread::hardware_concurrency()).ok());
+  CHECK(je2be::tobe::Converter::Run(in, *outB, optB, thread::hardware_concurrency()).ok());
 
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);

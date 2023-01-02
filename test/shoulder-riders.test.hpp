@@ -16,8 +16,7 @@ TEST_CASE("shoulder-riders") {
   je2be::tobe::Options optToBe;
   optToBe.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   optToBe.fChunkFilter.insert(Pos2i(0, 0));
-  je2be::tobe::Converter tobe(original, be, optToBe);
-  CHECK(tobe.run(1).ok());
+  CHECK(je2be::tobe::Converter::Run(original, be, optToBe, 1).ok());
 
   auto je = *tmp / "je";
   fs::create_directories(je);

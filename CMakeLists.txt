@@ -311,6 +311,7 @@ set(je2be_src_files
   src/tobe-chunk-data-package.cpp
   src/tobe-converter-block-data.cpp
   src/tobe-converter-chunk.cpp
+  src/tobe-converter-converter.cpp
   src/tobe-converter-entity.cpp
   src/tobe-converter-item.cpp
   src/tobe-converter-map.cpp

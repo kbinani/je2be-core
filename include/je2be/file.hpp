@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/fs.hpp>
+
 namespace je2be::file {
 
 [[nodiscard]] static inline bool GetContents(std::filesystem::path p, std::vector<uint8_t> &buffer) {

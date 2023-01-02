@@ -1,5 +1,12 @@
 #pragma once
 
+#include <je2be/command/command.hpp>
+#include <je2be/file.hpp>
+#include <je2be/fs.hpp>
+#include <je2be/uuid.hpp>
+
+#include <nlohmann/json.hpp>
+
 namespace je2be::tobe {
 
 class Datapacks {
