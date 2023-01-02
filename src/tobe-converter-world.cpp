@@ -35,68 +35,70 @@ public:
     }
     auto tempDir = *temp;
 
-    struct Work {
-      Pos2i fChunk;
-      optional<Chunk::PlayerAttachedEntities> fPlayerAttachedEntities;
-      shared_ptr<Region const> fRegion;
-    };
-    vector<Work> works;
-    w.eachRegions([dim, &ld, &options, &works, &done](shared_ptr<Region> const &region) {
-      for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
-        for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
-          Pos2i chunkPos(cx, cz);
-          if (!options.fChunkFilter.empty()) [[unlikely]] {
-            if (options.fChunkFilter.find(chunkPos) == options.fChunkFilter.end()) {
-              done++;
-              continue;
-            }
-          }
-          Work work;
-          work.fChunk = chunkPos;
-          work.fPlayerAttachedEntities = FindPlayerAttachedEntities(ld, dim, chunkPos);
-          work.fRegion = region;
-          works.push_back(work);
-        }
-      }
+    vector<shared_ptr<Region>> works;
+    w.eachRegions([&works](shared_ptr<Region> const &region) {
+      works.push_back(region);
       return true;
     });
 
-    LevelData const *ldPtr = &ld;
-    DbInterface *dbPtr = &db;
-    atomic_uint32_t atomicDone(done);
-    atomic_bool abortSignal(false);
     Chunk::Result zero;
     zero.fOk = true;
-    Chunk::Result result = Parallel::Reduce<Work, Chunk::Result>(
+
+    atomic_uint32_t atomicDone(done);
+    LevelData const *ldPtr = &ld;
+    DbInterface *dbPtr = &db;
+    atomic_bool abortSignal(false);
+
+    Chunk::Result result = Parallel::Reduce<shared_ptr<Region>, Chunk::Result>(
         works,
         zero,
-        [dim, dbPtr, ldPtr, tempDir, progress, &atomicDone, numTotalChunks, &abortSignal](Work const &work) -> Chunk::Result {
-          if (abortSignal.load()) {
-            return {};
-          }
-          int cx = work.fChunk.fX;
-          int cz = work.fChunk.fZ;
-          fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          auto ret = Chunk::Convert(
-              dim,
-              *dbPtr,
-              *work.fRegion,
-              cx, cz,
-              ldPtr->fJavaEditionMap,
-              entitiesDir,
-              work.fPlayerAttachedEntities,
-              ldPtr->fGameTick,
-              ldPtr->fDifficultyBedrock,
-              ldPtr->fAllowCommand,
-              ldPtr->fGameType);
-          auto p = atomicDone.fetch_add(1) + 1;
-          if (progress) {
-            bool cont = progress->report(Progress::Phase::Convert, p, numTotalChunks);
-            if (!cont) {
-              abortSignal.store(true);
+        [options, &atomicDone, zero, progress, tempDir, dim, dbPtr, ldPtr, numTotalChunks, &abortSignal](shared_ptr<Region> const &region) -> Chunk::Result {
+          Chunk::Result sum = zero;
+          for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
+            for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
+              if (abortSignal) {
+                return zero;
+              }
+              Pos2i chunkPos(cx, cz);
+              if (!options.fChunkFilter.empty()) [[unlikely]] {
+                if (options.fChunkFilter.find(chunkPos) == options.fChunkFilter.end()) {
+                  atomicDone.fetch_add(1);
+                  continue;
+                }
+              }
+              auto pae = FindPlayerAttachedEntities(*ldPtr, dim, chunkPos);
+              fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
+              auto ret = Chunk::Convert(
+                  dim,
+                  *dbPtr,
+                  *region,
+                  cx, cz,
+                  ldPtr->fJavaEditionMap,
+                  entitiesDir,
+                  pae,
+                  ldPtr->fGameTick,
+                  ldPtr->fDifficultyBedrock,
+                  ldPtr->fAllowCommand,
+                  ldPtr->fGameType);
+              auto p = atomicDone.fetch_add(1) + 1;
+              if (progress) {
+                bool cont = progress->report(Progress::Phase::Convert, p, numTotalChunks);
+                if (!cont) {
+                  abortSignal.store(true);
+                }
+              }
+              if (!ret.fOk) {
+                abortSignal.store(true);
+                return zero;
+              }
+              if (ret.fData && sum.fData) {
+                ret.fData->drain(*sum.fData);
+              } else if (ret.fData) {
+                sum.fData = ret.fData;
+              }
             }
           }
-          return ret;
+          return sum;
         },
         [](Chunk::Result const &from, Chunk::Result &to) -> void {
           if (!from.fOk || !to.fOk) {
@@ -119,7 +121,7 @@ public:
     return PutWorldEntities(dim, db, tempDir, concurrency);
   }
 
-  static std::optional<Chunk::PlayerAttachedEntities> FindPlayerAttachedEntities(LevelData &ld, mcfile::Dimension dim, Pos2i chunkPos) {
+  static std::optional<Chunk::PlayerAttachedEntities> FindPlayerAttachedEntities(LevelData const &ld, mcfile::Dimension dim, Pos2i chunkPos) {
     using namespace std;
     if (!ld.fPlayerAttachedEntities) {
       return nullopt;
@@ -132,15 +134,12 @@ public:
       if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == chunkPos) {
         pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
         pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
-        pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
-        ld.fPlayerAttachedEntities->fVehicle = std::nullopt;
+        pae.fPassengers = ld.fPlayerAttachedEntities->fVehicle->fPassengers;
       }
       for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {
         auto const &rider = ld.fPlayerAttachedEntities->fShoulderRiders[i];
         if (rider.first == chunkPos) {
           pae.fShoulderRiders.push_back(rider.second);
-          ld.fPlayerAttachedEntities->fShoulderRiders.erase(ld.fPlayerAttachedEntities->fShoulderRiders.begin() + i);
-          i--;
         }
       }
       return pae;
