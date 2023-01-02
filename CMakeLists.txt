@@ -372,6 +372,7 @@ endif()
 option(LEVELDB_ZSTD OFF)
 option(LEVELDB_BUILD_TESTS OFF)
 option(LEVELDB_BUILD_BENCHMARKS OFF)
+option(LEVELDB_INSTALL OFF)
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
 option(MZ_FETCH_LIBS OFF)
