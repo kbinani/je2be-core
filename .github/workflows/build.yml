@@ -44,14 +44,24 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
-      - name: Build and Run Test
+      - name: Configure
         shell: bash
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-10 && export CXX=g++-10
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
-          cmake --build . --target test --config Release --verbose --parallel $(nproc)
+      - name: Build(Parallel)
+        if: ${{ github.event.schedule == '' || matrix.os != 'macos-latest' }}
+        shell: bash
+        run: cmake --build . --target test --config Release --verbose --parallel $(nproc)
+      - name: Build(Serial)
+        if: ${{ github.event.schedule != '' && matrix.os == 'macos-latest' }}
+        shell: bash
+        run: cmake --build . --target test --config Release --verbose
+      - name: Test
+        shell: bash
+        run: |
           test "${{ matrix.os }}" == "windows-latest" && cd Release
           ./test --duration=true
       - name: Perform CodeQL Analysis
