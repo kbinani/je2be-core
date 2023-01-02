@@ -14,7 +14,6 @@ public:
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile;
-    using namespace mcfile::je;
 
     SessionLock lock(fInput);
     if (!lock.lock()) {
@@ -41,52 +40,110 @@ public:
     bool ok = Datapacks::Import(fInput, fOutput);
 
     auto levelData = std::make_unique<LevelData>(fInput, fOptions, level.fCurrentTick, level.fDifficulty, level.fCommandsEnabled, level.fGameType);
-    {
-      RawDb db(dbPath);
-      if (!db.valid()) {
+    RawDb db(dbPath);
+    if (!db.valid()) {
+      return JE2BE_ERROR;
+    }
+
+    auto localPlayerData = LocalPlayerData(*data, *levelData);
+    if (localPlayerData) {
+      auto k = mcfile::be::DbKey::LocalPlayer();
+      db.put(k, *localPlayerData);
+    }
+
+    struct Work {
+      Dimension fDim;
+      shared_ptr<mcfile::je::Region> fRegion;
+    };
+    struct Result {
+      map<mcfile::Dimension, shared_ptr<WorldData>> fData;
+
+      void mergeInto(Result &out) const {
+        for (auto const &it : fData) {
+          if (auto found = out.fData.find(it.first); found != out.fData.end()) {
+            it.second->drain(*found->second);
+          } else {
+            out.fData[it.first] = it.second;
+          }
+        }
+      }
+    };
+    map<mcfile::Dimension, fs::path> worldTempDirs;
+    vector<Work> works;
+    for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
+      if (!fOptions.fDimensionFilter.empty()) [[unlikely]] {
+        if (fOptions.fDimensionFilter.find(dim) == fOptions.fDimensionFilter.end()) {
+          continue;
+        }
+      }
+      auto worldTempDir = mcfile::File::CreateTempDir(fOptions.getTempDirectory());
+      if (!worldTempDir) {
         return JE2BE_ERROR;
       }
-
-      auto localPlayerData = LocalPlayerData(*data, *levelData);
-      if (localPlayerData) {
-        auto k = mcfile::be::DbKey::LocalPlayer();
-        db.put(k, *localPlayerData);
-      }
-
-      uint32_t done = 0;
-      for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
-        if (!fOptions.fDimensionFilter.empty()) [[unlikely]] {
-          if (fOptions.fDimensionFilter.find(dim) == fOptions.fDimensionFilter.end()) {
-            continue;
-          }
-        }
-        auto dir = fOptions.getWorldDirectory(fInput, dim);
-        mcfile::je::World world(dir);
-        bool complete = World::Convert(world, dim, db, *levelData, concurrency, progress, done, numTotalChunks, fOptions);
-        ok &= complete;
-        if (!complete) {
-          break;
-        }
-      }
-
-      if (ok) {
-        level.fCurrentTick = max(level.fCurrentTick, levelData->fMaxChunkLastUpdate);
-        ok = level.write(fOutput / "level.dat");
-        if (ok) {
-          ok = levelData->put(db, *data);
-        }
-      }
-
-      if (ok) {
-        ok = db.close([progress](double p) {
-          if (!progress) {
-            return;
-          }
-          progress->report(Progress::Phase::LevelDbCompaction, p, 1);
+      worldTempDirs[dim] = *worldTempDir;
+      auto dir = fOptions.getWorldDirectory(fInput, dim);
+      mcfile::je::World world(dir);
+      world.eachRegions([dim, worldTempDir, &works](shared_ptr<mcfile::je::Region> const &region) {
+        Work work;
+        work.fRegion = region;
+        work.fDim = dim;
+        works.push_back(work);
+        return true;
+      });
+    }
+    atomic_uint32_t done(0);
+    atomic_bool abortSignal(false);
+    LevelData const *ldPtr = levelData.get();
+    Result result = Parallel::Reduce<Work, Result>(
+        works,
+        Result(),
+        [this, ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, worldTempDirs](Work const &work) -> Result {
+          auto found = worldTempDirs.find(work.fDim);
+          assert(found != worldTempDirs.end());
+          fs::path worldTempDir = found->second;
+          auto worldData = Region::Convert(
+              work.fDim,
+              work.fRegion,
+              fOptions,
+              worldTempDir,
+              *ldPtr,
+              db,
+              progress,
+              done,
+              numTotalChunks,
+              abortSignal);
+          Result ret;
+          ret.fData[work.fDim] = worldData;
+          return ret;
+        },
+        [](Result const &from, Result &to) -> void {
+          from.mergeInto(to);
         });
-      } else {
-        db.abandon();
+    for (auto const &it : result.fData) {
+      it.second->drain(*levelData);
+
+      mcfile::Dimension dim = it.first;
+      fs::path worldTempDir = worldTempDirs[dim];
+      World::PutWorldEntities(dim, db, worldTempDir, concurrency);
+    }
+
+    if (ok) {
+      level.fCurrentTick = max(level.fCurrentTick, levelData->fMaxChunkLastUpdate);
+      ok = level.write(fOutput / "level.dat");
+      if (ok) {
+        ok = levelData->put(db, *data);
       }
+    }
+
+    if (ok) {
+      ok = db.close([progress](double p) {
+        if (!progress) {
+          return;
+        }
+        progress->report(Progress::Phase::LevelDbCompaction, p, 1);
+      });
+    } else {
+      db.abandon();
     }
 
     if (levelData->fError) {

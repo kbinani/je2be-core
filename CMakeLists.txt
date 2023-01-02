@@ -144,6 +144,7 @@ set(je2be_header_files
   include/je2be/tobe/converter/map.hpp
   include/je2be/tobe/converter/moving-piston.hpp
   include/je2be/tobe/converter/player-abilities.hpp
+  include/je2be/tobe/converter/region.hpp
   include/je2be/tobe/converter/sub-chunk.hpp
   include/je2be/tobe/converter/tile-entity.hpp
   include/je2be/tobe/converter/world.hpp
@@ -314,6 +315,7 @@ set(je2be_src_files
   src/tobe-converter-item.cpp
   src/tobe-converter-map.cpp
   src/tobe-converter-moving-piston.cpp
+  src/tobe-converter-region.cpp
   src/tobe-converter-sub-chunk.cpp
   src/tobe-converter-tile-entity.cpp
   src/tobe-converter-world.cpp

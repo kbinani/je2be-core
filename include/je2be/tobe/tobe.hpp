@@ -42,5 +42,6 @@
 
 #include <je2be/tobe/converter/sub-chunk.hpp>
 #include <je2be/tobe/converter/chunk.hpp>
+#include <je2be/tobe/converter/region.hpp>
 #include <je2be/tobe/converter/world.hpp>
 #include <je2be/tobe/converter/converter.hpp>
