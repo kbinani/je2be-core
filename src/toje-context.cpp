@@ -102,7 +102,7 @@ public:
   static std::shared_ptr<Context> Init(leveldb::DB &db,
                                        Options opt,
                                        mcfile::Endian endian,
-                                       std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
+                                       std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,
@@ -136,8 +136,7 @@ public:
       mcfile::Dimension dimension = i.first;
       for (auto const &j : i.second) {
         Pos2i region = j.first;
-        auto &dest = regions[dimension][region].fChunks;
-        copy(j.second.fChunks.begin(), j.second.fChunks.end(), inserter(dest, dest.end()));
+        regions[dimension].push_back(make_pair(region, j.second));
       }
     }
 
@@ -208,7 +207,7 @@ public:
 std::shared_ptr<Context> Context::Init(leveldb::DB &db,
                                        Options opt,
                                        mcfile::Endian endian,
-                                       std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
+                                       std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,

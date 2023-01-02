@@ -13,7 +13,7 @@ class World::Impl {
 
 public:
   static Status Convert(mcfile::Dimension d,
-                        std::unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher> const &regions,
+                        std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions,
                         leveldb::DB &db,
                         std::filesystem::path root,
                         unsigned concurrency,
@@ -63,10 +63,8 @@ public:
     };
 
     atomic_bool ok = true;
-    vector<pair<Pos2i, Context::ChunksInRegion>> works;
-    copy(regions.begin(), regions.end(), back_inserter(works));
     auto ctx = Parallel::ForEach<shared_ptr<Context>, pair<Pos2i, Context::ChunksInRegion>>(
-        works,
+        regions,
         parentContext.make(),
         [d, &db, dir, &parentContext, reportProgress, &ok](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
           auto ctx = parentContext.make();
@@ -113,7 +111,7 @@ public:
     }
 
     Status st = Parallel::ForEach<Status, pair<Pos2i, Context::ChunksInRegion>>(
-        works,
+        regions,
         Status::Ok(),
         [dir](pair<Pos2i, Context::ChunksInRegion> const &work) -> Status {
           Pos2i region = work.first;
@@ -353,7 +351,7 @@ public:
 };
 
 Status World::Convert(mcfile::Dimension d,
-                      std::unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher> const &regions,
+                      std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions,
                       leveldb::DB &db,
                       std::filesystem::path root,
                       unsigned concurrency,

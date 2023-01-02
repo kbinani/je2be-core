@@ -34,7 +34,7 @@ public:
     }
 
     int total = 0;
-    map<Dimension, unordered_map<Pos2i, Context::ChunksInRegion, Pos2iHasher>> regions;
+    map<Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> regions;
     int64_t gameTick = dat->int64("currentTick", 0);
     int32_t gameTypeB = dat->int32("GameType", 0);
     GameMode gameMode = GameMode::Survival;

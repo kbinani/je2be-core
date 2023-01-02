@@ -37,7 +37,7 @@ public:
   static std::shared_ptr<Context> Init(leveldb::DB &db,
                                        Options opt,
                                        mcfile::Endian endian,
-                                       std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> &regions,
+                                       std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                                        int &totalChunks,
                                        int64_t gameTick,
                                        GameMode gameMode,
