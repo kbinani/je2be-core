@@ -410,7 +410,7 @@ public:
         plans,
         [this, &done, progress, total](TableBuildPlan const &plan, int idx) {
           auto ret = buildTable(plan, idx);
-          uint64_t p = done.fetch_add(1);
+          uint64_t p = done.fetch_add(1) + 1;
           if (progress) {
             progress((double)p / (double)total);
           }

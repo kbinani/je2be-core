@@ -51,7 +51,7 @@ public:
     atomic<int> done = 0;
     atomic<bool> cancelRequested = false;
     auto reportProgress = [progress, &done, total, &cancelRequested]() -> bool {
-      int d = done.fetch_add(1);
+      int d = done.fetch_add(1) + 1;
       if (progress) {
         bool ok = progress->report(d, total);
         if (!ok) {
