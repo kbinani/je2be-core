@@ -1,6 +1,7 @@
 #pragma once
 
 #include <latch>
+#include <thread>
 
 namespace je2be {
 
