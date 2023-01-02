@@ -51,18 +51,23 @@ jobs:
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
-      - name: Build(Parallel)
+      - name: Build (Parallel)
         if: ${{ github.event.schedule == '' || matrix.os != 'macos-latest' }}
         shell: bash
-        run: cmake --build . --target test --config Release --verbose --parallel $(nproc)
-      - name: Build(Serial)
+        run: |
+          cd build
+          cmake --build . --target test --config Release --verbose --parallel $(nproc)
+      - name: Build (Serial)
         if: ${{ github.event.schedule != '' && matrix.os == 'macos-latest' }}
         shell: bash
-        run: cmake --build . --target test --config Release --verbose
+        run: |
+          cd build
+          cmake --build . --target test --config Release --verbose
       - name: Test
         shell: bash
         run: |
-          test "${{ matrix.os }}" == "windows-latest" && cd Release
+          test "${{ matrix.os }}" == "windows-latest" && cd build/Release
+          test "${{ matrix.os }}" != "windows-latest" && cd build
           ./test --duration=true
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
