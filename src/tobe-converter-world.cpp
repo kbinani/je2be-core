@@ -1,6 +1,5 @@
 #include <je2be/tobe/converter/world.hpp>
 
-#include <je2be/future-support.hpp>
 #include <je2be/parallel.hpp>
 #include <je2be/tobe/converter/chunk.hpp>
 #include <je2be/tobe/converter/java-edition-map.hpp>
@@ -8,8 +7,6 @@
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/progress.hpp>
 #include <je2be/tobe/world-data.hpp>
-
-#include <BS_thread_pool.hpp>
 
 namespace je2be::tobe {
 
@@ -32,17 +29,19 @@ public:
     using namespace mcfile::je;
     namespace fs = std::filesystem;
 
-    auto queue = make_unique<BS::thread_pool>(concurrency);
-    deque<future<Chunk::Result>> futures;
-
     auto temp = mcfile::File::CreateTempDir(options.getTempDirectory());
     if (!temp) {
       return false;
     }
     auto tempDir = *temp;
 
-    bool completed = w.eachRegions([dim, &db, &queue, &futures, concurrency, &ld, &done, progress, numTotalChunks, &options, tempDir](shared_ptr<Region> const &region) {
-      JavaEditionMap const &mapInfo = ld.fJavaEditionMap;
+    struct Work {
+      Pos2i fChunk;
+      optional<Chunk::PlayerAttachedEntities> fPlayerAttachedEntities;
+      shared_ptr<Region const> fRegion;
+    };
+    vector<Work> works;
+    w.eachRegions([dim, &ld, &options, &works, &done](shared_ptr<Region> const &region) {
       for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
         for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
           Pos2i chunkPos(cx, cz);
@@ -52,78 +51,101 @@ public:
               continue;
             }
           }
-          vector<future<Chunk::Result>> drain;
-          FutureSupport::Drain<Chunk::Result>(concurrency + 1, futures, drain);
-          for (auto &f : drain) {
-            Chunk::Result result = f.get();
-            done++;
-            if (!result.fData) {
-              continue;
-            }
-            if (!result.fOk) {
-              return false;
-            }
-            result.fData->drain(ld);
-          }
-
-          if (progress) {
-            bool continue_ = progress->report(Progress::Phase::Convert, done, numTotalChunks);
-            if (!continue_) {
-              return false;
-            }
-          }
-
-          fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
-          optional<Chunk::PlayerAttachedEntities> playerAttachedEntities;
-          if (ld.fPlayerAttachedEntities && ld.fPlayerAttachedEntities->fDim == dim) {
-            if (ld.fPlayerAttachedEntities->fVehicle || !ld.fPlayerAttachedEntities->fShoulderRiders.empty()) {
-              Chunk::PlayerAttachedEntities pae;
-              if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == chunkPos) {
-                pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
-                pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
-                pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
-                ld.fPlayerAttachedEntities->fVehicle = nullopt;
-              }
-              for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {
-                auto const &rider = ld.fPlayerAttachedEntities->fShoulderRiders[i];
-                if (rider.first == chunkPos) {
-                  pae.fShoulderRiders.push_back(rider.second);
-                  ld.fPlayerAttachedEntities->fShoulderRiders.erase(ld.fPlayerAttachedEntities->fShoulderRiders.begin() + i);
-                  i--;
-                }
-              }
-              playerAttachedEntities = pae;
-            }
-          }
-          futures.push_back(queue->submit(Chunk::Convert, dim, std::ref(db), *region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType));
+          Work work;
+          work.fChunk = chunkPos;
+          work.fPlayerAttachedEntities = FindPlayerAttachedEntities(ld, dim, chunkPos);
+          work.fRegion = region;
+          works.push_back(work);
         }
       }
       return true;
     });
 
-    for (auto &f : futures) {
-      Chunk::Result result = f.get();
-      done++;
-      if (progress) {
-        progress->report(Progress::Phase::Convert, done, numTotalChunks);
-      }
-      if (!result.fData) {
-        continue;
-      }
-      completed = completed && result.fOk;
-      if (!result.fOk) {
-        continue;
-      }
-      result.fData->drain(ld);
-    }
-
-    if (!completed) {
+    LevelData const *ldPtr = &ld;
+    DbInterface *dbPtr = &db;
+    atomic_uint32_t atomicDone(done);
+    atomic_bool abortSignal(false);
+    Chunk::Result zero;
+    zero.fOk = true;
+    Chunk::Result result = Parallel::Reduce<Work, Chunk::Result>(
+        works,
+        zero,
+        [dim, dbPtr, ldPtr, tempDir, progress, &atomicDone, numTotalChunks, &abortSignal](Work const &work) -> Chunk::Result {
+          if (abortSignal.load()) {
+            return {};
+          }
+          int cx = work.fChunk.fX;
+          int cz = work.fChunk.fZ;
+          fs::path entitiesDir = tempDir / ("c." + to_string(cx) + "." + to_string(cz));
+          auto ret = Chunk::Convert(
+              dim,
+              *dbPtr,
+              *work.fRegion,
+              cx, cz,
+              ldPtr->fJavaEditionMap,
+              entitiesDir,
+              work.fPlayerAttachedEntities,
+              ldPtr->fGameTick,
+              ldPtr->fDifficultyBedrock,
+              ldPtr->fAllowCommand,
+              ldPtr->fGameType);
+          auto p = atomicDone.fetch_add(1) + 1;
+          if (progress) {
+            bool cont = progress->report(Progress::Phase::Convert, p, numTotalChunks);
+            if (!cont) {
+              abortSignal.store(true);
+            }
+          }
+          return ret;
+        },
+        [](Chunk::Result const &from, Chunk::Result &to) -> void {
+          if (!from.fOk || !to.fOk) {
+            return;
+          }
+          if (from.fData && to.fData) {
+            from.fData->drain(*to.fData);
+          } else if (from.fData) {
+            to.fData = from.fData;
+          }
+        });
+    if (!result.fOk || abortSignal.load()) {
       return false;
     }
-
-    queue.reset();
+    if (result.fData) {
+      result.fData->drain(ld);
+    }
+    done = atomicDone.load();
 
     return PutWorldEntities(dim, db, tempDir, concurrency);
+  }
+
+  static std::optional<Chunk::PlayerAttachedEntities> FindPlayerAttachedEntities(LevelData &ld, mcfile::Dimension dim, Pos2i chunkPos) {
+    using namespace std;
+    if (!ld.fPlayerAttachedEntities) {
+      return nullopt;
+    }
+    if (ld.fPlayerAttachedEntities->fDim != dim) {
+      return nullopt;
+    }
+    if (ld.fPlayerAttachedEntities->fVehicle || !ld.fPlayerAttachedEntities->fShoulderRiders.empty()) {
+      Chunk::PlayerAttachedEntities pae;
+      if (ld.fPlayerAttachedEntities->fVehicle && ld.fPlayerAttachedEntities->fVehicle->fChunk == chunkPos) {
+        pae.fLocalPlayerUid = ld.fPlayerAttachedEntities->fLocalPlayerUid;
+        pae.fVehicle = ld.fPlayerAttachedEntities->fVehicle->fVehicle;
+        pae.fPassengers.swap(ld.fPlayerAttachedEntities->fVehicle->fPassengers);
+        ld.fPlayerAttachedEntities->fVehicle = std::nullopt;
+      }
+      for (int i = 0; i < ld.fPlayerAttachedEntities->fShoulderRiders.size(); i++) {
+        auto const &rider = ld.fPlayerAttachedEntities->fShoulderRiders[i];
+        if (rider.first == chunkPos) {
+          pae.fShoulderRiders.push_back(rider.second);
+          ld.fPlayerAttachedEntities->fShoulderRiders.erase(ld.fPlayerAttachedEntities->fShoulderRiders.begin() + i);
+          i--;
+        }
+      }
+      return pae;
+    }
+    return nullopt;
   }
 
   static bool PutWorldEntities(mcfile::Dimension d, DbInterface &db, std::filesystem::path temp, unsigned int concurrency) {

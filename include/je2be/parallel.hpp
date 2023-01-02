@@ -61,25 +61,25 @@ public:
     auto threads = thread::hardware_concurrency();
     std::latch latch(threads + 1);
 
-    mutex queueMut;
-    vector<bool> done(works.size(), false);
+    vector<shared_ptr<atomic_bool>> done;
+    for (int i = 0; i < works.size(); i++) {
+      done.push_back(make_shared<atomic_bool>(false));
+    }
+    shared_ptr<atomic_bool> *donePtr = done.data();
 
     mutex joinMut;
     Result total = init;
 
     for (int i = 0; i < threads; i++) {
-      thread([init, &latch, &queueMut, &joinMut, &works, func, join, &total, &done]() {
+      thread([init, &latch, donePtr, &joinMut, &works, func, join, &total]() {
         Result sum = init;
         while (true) {
           Work const *work = nullptr;
-          {
-            lock_guard<mutex> lock(queueMut);
-            for (int j = 0; j < works.size(); j++) {
-              if (!done[j]) {
-                work = &works[j];
-                done[j] = true;
-                break;
-              }
+          for (int j = 0; j < works.size(); j++) {
+            bool expected = false;
+            if (donePtr[j]->compare_exchange_strong(expected, true)) {
+              work = &works[j];
+              break;
             }
           }
           if (work) {
