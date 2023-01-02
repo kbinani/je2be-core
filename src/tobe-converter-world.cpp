@@ -164,13 +164,11 @@ public:
     for (auto const &it : files) {
       works.push_back(it);
     }
-    bool ok = Parallel::ForEach<bool, pair<Pos2i, vector<fs::path>>>(
+    bool ok = Parallel::Reduce<pair<Pos2i, vector<fs::path>>, bool>(
         works,
         true,
         bind(PutChunkEntities, d, _1, &db),
-        [](bool const &from, bool &to) {
-          to = from && to;
-        });
+        Parallel::Merge);
     return ok;
   }
 

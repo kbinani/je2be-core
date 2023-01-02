@@ -57,6 +57,17 @@ public:
     return Status(ErrorData(Where(file, line), what));
   }
 
+  static void Merge(Status const &from, Status &to) {
+    if (!to.ok()) {
+      return;
+    }
+    if (!from.ok()) {
+      to = from;
+    } else {
+      to = Status::Ok();
+    }
+  }
+
 private:
   std::optional<ErrorData> fError;
 };

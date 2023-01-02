@@ -7,7 +7,7 @@ namespace je2be {
 
 class Parallel {
 public:
-  template <class Result, class Work>
+  template <class Work, class Result>
   static void Map(
       std::vector<Work> const &works,
       std::function<Result(Work const &work, int index)> func,
@@ -50,8 +50,8 @@ public:
     latch.arrive_and_wait();
   }
 
-  template <class Result, class Work>
-  static Result ForEach(
+  template <class Work, class Result>
+  static Result Reduce(
       std::vector<Work> const &works,
       Result init,
       std::function<Result(Work const &)> func,
@@ -96,6 +96,10 @@ public:
     }
     latch.arrive_and_wait();
     return total;
+  }
+
+  static void Merge(bool const &from, bool &to) {
+    to = from && to;
   }
 };
 

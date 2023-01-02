@@ -406,7 +406,7 @@ public:
     uint64_t total = plans.size() + 1; // +1 stands for MANIFEST-000001, CURRENT, and remaining cleanup tasks
 
     vector<optional<TableBuildResult>> results;
-    Parallel::Map<optional<TableBuildResult>, TableBuildPlan>(
+    Parallel::Map<TableBuildPlan, optional<TableBuildResult>>(
         plans,
         [this, &done, progress, total](TableBuildPlan const &plan, int idx) {
           auto ret = buildTable(plan, idx);

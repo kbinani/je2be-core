@@ -96,6 +96,14 @@ class Context::Impl {
         fMaps[mapId] = *parsed;
       }
     }
+
+    static void Merge(Accum const &from, Accum &to) {
+      from.mergeInto(to);
+    }
+
+    static void Accept(std::string const &key, std::string const &value, Accum &out) {
+      out.accept(key, value);
+    }
   };
 
 public:
@@ -123,8 +131,8 @@ public:
         db,
         concurrency,
         Accum(opt, endian),
-        [](string const &key, string const &value, Accum &out) -> void { out.accept(key, value); },
-        [](Accum const &from, Accum &to) -> void { from.mergeInto(to); });
+        Accum::Accept,
+        Accum::Merge);
 #endif
 
     auto mapInfo = make_shared<MapInfo>();

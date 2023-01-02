@@ -22,7 +22,7 @@ public:
     for (int i = 0; i < 256; i++) {
       works[i] = (char)i;
     }
-    return Parallel::ForEach<Accumulator, char>(
+    return Parallel::Reduce<char, Accumulator>(
         works,
         zero,
         [&db, zero, accept](char prefix) -> Accumulator {

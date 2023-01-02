@@ -63,7 +63,7 @@ public:
     };
 
     atomic_bool ok = true;
-    auto ctx = Parallel::ForEach<shared_ptr<Context>, pair<Pos2i, Context::ChunksInRegion>>(
+    auto ctx = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, shared_ptr<Context>>(
         regions,
         parentContext.make(),
         [d, &db, dir, &parentContext, reportProgress, &ok](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
@@ -110,23 +110,14 @@ public:
       }
     }
 
-    Status st = Parallel::ForEach<Status, pair<Pos2i, Context::ChunksInRegion>>(
+    Status st = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, Status>(
         regions,
         Status::Ok(),
         [dir](pair<Pos2i, Context::ChunksInRegion> const &work) -> Status {
           Pos2i region = work.first;
           return SquashEntityChunks(region.fX, region.fZ, dir);
         },
-        [](Status const &from, Status &to) -> void {
-          if (!to.ok()) {
-            return;
-          }
-          if (!from.ok()) {
-            to = from;
-          } else {
-            to = Status::Ok();
-          }
-        });
+        Status::Merge);
 
     if (!st.ok()) {
       return st;
