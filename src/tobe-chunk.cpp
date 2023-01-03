@@ -223,6 +223,7 @@ public:
             return nullptr;
           }
         }
+        ret->addEntityFile(p, file);
       }
     }
 

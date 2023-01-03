@@ -143,9 +143,11 @@ public:
     for (auto const &it : result.fData) {
       it.second->drain(*levelData);
 
+      unordered_map<Pos2i, vector<std::filesystem::path>, Pos2iHasher> entities;
+      it.second->drainEntityFiles(entities);
+
       mcfile::Dimension dim = it.first;
-      fs::path worldTempDir = worldTempDirs[dim];
-      World::PutWorldEntities(dim, db, worldTempDir, concurrency);
+      World::PutWorldEntities(dim, db, entities, concurrency);
     }
 
     if (ok) {
