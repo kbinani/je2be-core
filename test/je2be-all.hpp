@@ -13,12 +13,9 @@
 #include "toje/_constants.hpp"
 #include "tobe/_versions.hpp"
 
-#include <je2be/status.hpp>
 #include "_nullable.hpp"
 #include "_fs.hpp"
 #include "_file.hpp"
-#include <je2be/strings.hpp>
-#include <je2be/pos2.hpp>
 #include "_pos3.hpp"
 #include "_volume.hpp"
 #include "_optional.hpp"
@@ -27,11 +24,9 @@
 #include "color/_lab.hpp"
 #include "_size.hpp"
 #include "_xxhash.hpp"
-#include <je2be/uuid.hpp>
 #include "_props.hpp"
 #include "_future-support.hpp"
 #include "_parallel.hpp"
-#include <je2be/defer.hpp>
 #include "_rename-pair.hpp"
 #include "_nbt-ext.hpp"
 #include "_reversible-map.hpp"
@@ -44,7 +39,6 @@
 
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
-#include <je2be/enums/level-directory-structure.hpp>
 #include "enums/_villager-profession.hpp"
 #include "enums/_villager-type.hpp"
 #include "enums/_red-flower.hpp"
