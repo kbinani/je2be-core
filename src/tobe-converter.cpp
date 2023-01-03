@@ -166,6 +166,9 @@ public:
     } else {
       db.abandon();
     }
+    if (!ok) {
+      return JE2BE_ERROR;
+    }
 
     if (levelData->fError) {
       return Status(Status::ErrorData(*levelData->fError));
