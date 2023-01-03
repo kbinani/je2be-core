@@ -2,6 +2,7 @@
 
 #include <latch>
 #include <thread>
+#include <vector>
 
 namespace je2be {
 
