@@ -1,7 +1,6 @@
 #pragma once
 
 #include <je2be/defer.hpp>
-#include <je2be/uuid.hpp>
 
 #include "_fs.hpp"
 #include "_parallel.hpp"
@@ -30,19 +29,20 @@ class ConcurrentDb : public DbInterface {
     leveldb::InternalKey fLargest;
   };
 
-  class Writer {
-    struct Key {
-      std::string fKey;
-      uint32_t fValueSizeCompressed;
-      uint64_t fOffset;
-      uint64_t fSequence;
-    };
+  struct Key {
+    std::string fKey;
+    uint32_t fValueSizeCompressed;
+    uint64_t fOffset;
+    uint64_t fSequence;
+    uint32_t fWriterId;
+  };
 
+  class Writer {
   public:
-    Writer(std::filesystem::path const &dbname, std::atomic_uint64_t &sequencer) : fDbName(dbname), fSequencer(sequencer) {
+    Writer(uint32_t id, std::filesystem::path const &dbname, std::atomic_uint64_t &sequencer) : fId(id), fDbName(dbname), fSequencer(sequencer) {
       namespace fs = std::filesystem;
-      Uuid id = Uuid::Gen();
-      fs::path dir = dbname / id.toString();
+      fs::path dir = dbname / std::to_string(id);
+      Fs::DeleteAll(dir);
       if (!Fs::CreateDirectories(dir)) {
         return;
       }
@@ -94,10 +94,14 @@ class ConcurrentDb : public DbInterface {
       if (fwrite(&fOffset, sizeof(fOffset), 1, fKey) != 1) {
         goto error;
       }
+      if (fwrite(&sequence, sizeof(sequence), 1, fKey) != 1) {
+        goto error;
+      }
       if (fwrite(key.data(), key.size(), 1, fKey) != 1) {
         goto error;
       }
       fOffset += block.size();
+      fNumKeys++;
       return;
 
     error:
@@ -112,9 +116,8 @@ class ConcurrentDb : public DbInterface {
       Fs::DeleteAll(fDir);
     }
 
-    bool close(std::atomic_uint64_t &fileNumber, std::vector<TableBuildResult> &results) {
+    bool close(std::vector<Key> &out) {
       using namespace std;
-      using namespace leveldb;
 
       if (!fValue || !fKey) {
         return false;
@@ -129,17 +132,11 @@ class ConcurrentDb : public DbInterface {
         return false;
       }
 
-      FILE *value = mcfile::File::Open(fDir / "value.bin", mcfile::File::Mode::Read);
-      if (!value) {
-        fclose(key);
-        return false;
-      }
-
       bool ok = true;
-      vector<Key> keys;
       uint64_t size = 0;
-      while (!feof(key)) {
+      for (uint64_t i = 0; i < fNumKeys; i++) {
         Key locator;
+        locator.fWriterId = fId;
         uint32_t keySize;
         if (fread(&keySize, sizeof(keySize), 1, key) != 1) {
           ok = false;
@@ -154,29 +151,22 @@ class ConcurrentDb : public DbInterface {
           ok = false;
           goto cleanup;
         }
+        if (fread(&locator.fSequence, sizeof(locator.fSequence), 1, key) != 1) {
+          ok = false;
+          goto cleanup;
+        }
         if (fread(locator.fKey.data(), keySize, 1, key) != 1) {
           ok = false;
           goto cleanup;
         }
-        keys.push_back(locator);
-        size += locator.fValueSizeCompressed;
-        if (size >= kMaxFileSize) {
-          if (!write(keys, value, fileNumber, results)) {
-            ok = false;
-            goto cleanup;
-          }
-          size = 0;
-        }
+        out.push_back(locator);
       }
-      ok &= write(keys, value, fileNumber, results);
 
     cleanup:
       if (key) {
         fclose(key);
       }
-      if (value) {
-        fclose(value);
-      }
+      Fs::Delete(fDir / "key.bin");
       return ok;
     }
 
@@ -210,89 +200,28 @@ class ConcurrentDb : public DbInterface {
       mcfile::Compression::CompressDeflate((void *)c.data(), c.size(), *out);
     }
 
-    static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, uint64_t tableNumber) {
-      std::vector<char> buffer(11, (char)0);
-#if defined(_WIN32)
-      sprintf_s(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
-#else
-      snprintf(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
-#endif
-      std::string p(buffer.data(), 10);
-      return dbname / p;
-    }
-
-    bool write(std::vector<Key> &keys, FILE *valueFile, std::atomic_uint64_t &fileNumber, std::vector<TableBuildResult> &results) const {
-      using namespace std;
-      using namespace leveldb;
-
-      if (keys.empty()) {
-        return true;
-      }
-
-      Comparator const *cmp = BytewiseComparator();
-      sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
-        return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
-      });
-
-      auto fn = fileNumber.fetch_add(1);
-      unique_ptr<WritableFile> file(OpenWritable(TableFilePath(fDbName, fn)));
-      if (!file) {
-        return false;
-      }
-
-      leveldb::Options bo;
-      bo.compression = kZlibRawCompression;
-      InternalKeyComparator icmp(BytewiseComparator());
-      bo.comparator = &icmp;
-      auto builder = make_shared<ZlibRawTableBuilder>(bo, file.get());
-
-      string value;
-      for (auto const &it : keys) {
-        Slice userKey(it.fKey);
-        InternalKey ik(userKey, it.fSequence, kTypeValue);
-        if (!mcfile::File::Fseek(valueFile, it.fOffset, SEEK_SET)) {
-          return false;
-        }
-        value.resize(it.fValueSizeCompressed);
-        if (fread(value.data(), it.fValueSizeCompressed, 1, valueFile) != 1) {
-          return false;
-        }
-        builder->AddAlreadyCompressedAndFlush(ik.Encode(), value);
-      }
-      builder->Finish();
-      file->Close();
-
-      InternalKey smallest(keys[0].fKey, keys[0].fSequence, kTypeValue);
-      InternalKey largest(keys[keys.size() - 1].fKey, keys[keys.size() - 1].fSequence, kTypeValue);
-      TableBuildResult result(fn, builder->FileSize(), smallest, largest);
-
-      results.push_back(result);
-
-      keys.clear();
-      return true;
-    }
-
   private:
+    uint32_t const fId;
     std::filesystem::path fDbName;
     std::atomic_uint64_t &fSequencer;
     std::filesystem::path fDir;
     FILE *fKey = nullptr;
     FILE *fValue = nullptr;
     uint64_t fOffset = 0;
-
-    static constexpr uint64_t kMaxFileSize = 2 * 1024 * 1024;
+    uint64_t fNumKeys = 0;
   };
 
   class Gate {
   public:
-    std::shared_ptr<Writer> get(uintptr_t key, std::filesystem::path const &dbname, std::atomic_uint64_t &sequence) {
+    std::shared_ptr<Writer> get(uintptr_t key, std::filesystem::path const &dbname, std::atomic_uint64_t &keySequence, std::atomic_uint32_t &writerIdGenerator) {
       using namespace std;
       lock_guard<mutex> lock(Mut());
       auto found = fWriters.find(key);
       if (found != fWriters.end()) {
         return found->second;
       }
-      auto writer = make_shared<Writer>(dbname, sequence);
+      uint32_t id = writerIdGenerator.fetch_add(1);
+      auto writer = make_shared<Writer>(id, dbname, keySequence);
       fWriters[key] = writer;
       Jar().insert(make_pair(key, writer));
       return writer;
@@ -536,7 +465,7 @@ class ConcurrentDb : public DbInterface {
   };
 
 public:
-  explicit ConcurrentDb(std::filesystem::path const &dbname) : fDbName(dbname) {
+  explicit ConcurrentDb(std::filesystem::path const &dbname) : fDbName(dbname), fSequence(0), fWriterIdGenerator(0) {
     leveldb::DestroyDB(dbname, {});
   }
 
@@ -549,7 +478,7 @@ public:
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
-    gate().get((uintptr_t)this, fDbName, fSequence)->put(key, value.ToString());
+    gate().get((uintptr_t)this, fDbName, fSequence, fWriterIdGenerator)->put(key, value.ToString());
   }
 
   void del(std::string const &key) override {}
@@ -561,44 +490,99 @@ public:
 
     vector<shared_ptr<Writer>> writers;
     Gate::Drain((uintptr_t)this, writers);
-    atomic_uint64_t fileNumber(1);
-    fValid = false;
-    using Result = vector<TableBuildResult>;
+
     atomic_bool ok = true;
-    auto result = Parallel::Reduce<shared_ptr<Writer>, shared_ptr<Result>>(
+    auto keys = Parallel::Reduce<shared_ptr<Writer>, vector<Key>>(
         writers,
-        make_shared<Result>(),
-        [&fileNumber, &ok](shared_ptr<Writer> const &writer) -> shared_ptr<Result> {
+        vector<Key>(),
+        [&ok](shared_ptr<Writer> const &writer) -> vector<Key> {
+          vector<Key> ret;
           if (!ok) {
-            return nullptr;
+            return ret;
           }
-          auto result = make_shared<Result>();
-          if (writer->close(fileNumber, *result)) {
-            return result;
-          } else {
+          if (!writer->close(ret)) {
             ok = false;
-            return nullptr;
           }
+          return ret;
         },
-        [](shared_ptr<Result> const &from, shared_ptr<Result> &to) {
-          if (to) {
-            if (from) {
-              copy(from->begin(), from->end(), back_inserter(*to));
-            }
-          } else {
-            to = from;
-          }
+        [](vector<Key> const &from, vector<Key> &to) -> void {
+          copy(from.begin(), from.end(), back_inserter(to));
         });
-    if (!result) {
+    if (!ok) {
       return false;
     }
 
+    Comparator const *cmp = BytewiseComparator();
+#if defined(EMSCRIPTEN) || defined(__APPLE__)
+    sort(
+#else
+    sort(execution::par_unseq,
+#endif
+        keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
+          return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
+        });
+
+    struct TableFile {
+      uint64_t fFileNumber;
+      shared_ptr<vector<Key>> fKeys;
+    };
+    vector<TableFile> tableFiles;
+    uint64_t nextFileNumber = 1;
+    uint64_t size = 0;
+    auto bin = make_shared<vector<Key>>();
+    for (auto const &it : keys) {
+      bin->push_back(it);
+      size += it.fValueSizeCompressed;
+      if (size > kMaxFileSize) {
+        TableFile tf;
+        tf.fFileNumber = nextFileNumber;
+        tf.fKeys = bin;
+        tableFiles.push_back(tf);
+        nextFileNumber++;
+        bin = make_shared<vector<Key>>();
+        size = 0;
+      }
+    }
+    if (!bin->empty()) {
+      TableFile tf;
+      tf.fFileNumber = nextFileNumber;
+      tf.fKeys = bin;
+      tableFiles.push_back(tf);
+      nextFileNumber++;
+    }
+    bin.reset();
+
+    using Result = vector<TableBuildResult>;
+    auto result = Parallel::Reduce<TableFile, Result>(
+        tableFiles,
+        Result(),
+        [this, &ok](TableFile const &file) -> Result {
+          Result ret;
+          if (!ok) {
+            return ret;
+          }
+          if (!Write(fDbName, *file.fKeys, file.fFileNumber, ret)) {
+            ok = false;
+          }
+          return ret;
+        },
+        [](Result const &from, Result &to) {
+          copy(from.begin(), from.end(), back_inserter(to));
+        });
+    if (!ok) {
+      return false;
+    }
+    sort(result.begin(), result.end(), [](TableBuildResult const &lhs, TableBuildResult const &rhs) {
+      return lhs.fFileNumber < rhs.fFileNumber;
+    });
+
+    InternalKeyComparator icmp(BytewiseComparator());
     VersionEdit edit;
-    for (auto const &it : *result) {
+    for (auto const &it : result) {
       edit.AddFile(1, it.fFileNumber, it.fFileSize, it.fSmallest, it.fLargest);
     }
-    edit.SetLastSequence(fSequence.load() + 1);
-    edit.SetNextFile(fileNumber.load() + 1);
+    edit.SetLastSequence(fSequence.load());
+    edit.SetNextFile(nextFileNumber);
     edit.SetLogNumber(0);
     string manifestRecord;
     edit.EncodeTo(&manifestRecord);
@@ -623,6 +607,80 @@ public:
     current->Close();
     current.reset();
 
+    return true;
+  }
+
+  static bool Write(std::filesystem::path dbname, std::vector<Key> &keys, uint64_t fileNumber, std::vector<TableBuildResult> &results) {
+    using namespace std;
+    using namespace leveldb;
+    namespace fs = std::filesystem;
+
+    if (keys.empty()) {
+      return true;
+    }
+
+    unique_ptr<WritableFile> file(OpenWritable(TableFilePath(dbname, fileNumber)));
+    if (!file) {
+      return false;
+    }
+
+    leveldb::Options bo;
+    bo.compression = kZlibRawCompression;
+    InternalKeyComparator icmp(BytewiseComparator());
+    bo.comparator = &icmp;
+    auto builder = make_shared<ZlibRawTableBuilder>(bo, file.get());
+
+    bool ok = true;
+    string value;
+    optional<uint32_t> openedFile;
+    FILE *fp = nullptr;
+
+    for (auto const &it : keys) {
+      Slice userKey(it.fKey);
+      InternalKey ik(userKey, it.fSequence, kTypeValue);
+      FILE *f = nullptr;
+      if (openedFile != it.fWriterId && fp) {
+        fclose(fp);
+        fp = nullptr;
+      }
+      if (openedFile == it.fWriterId && fp) {
+        f = fp;
+      } else {
+        fs::path fname = dbname / to_string(it.fWriterId) / "value.bin";
+        f = mcfile::File::Open(fname, mcfile::File::Mode::Read);
+        if (!f) {
+          return false;
+        }
+        fp = f;
+        openedFile = it.fWriterId;
+      }
+      if (!mcfile::File::Fseek(f, it.fOffset, SEEK_SET)) {
+        ok = false;
+        goto cleanup;
+      }
+      value.resize(it.fValueSizeCompressed);
+      if (fread(value.data(), it.fValueSizeCompressed, 1, f) != 1) {
+        ok = false;
+        goto cleanup;
+      }
+      builder->AddAlreadyCompressedAndFlush(ik.Encode(), value);
+    }
+    builder->Finish();
+    file->Close();
+
+    {
+      InternalKey smallest(keys[0].fKey, keys[0].fSequence, kTypeValue);
+      InternalKey largest(keys[keys.size() - 1].fKey, keys[keys.size() - 1].fSequence, kTypeValue);
+      TableBuildResult result(fileNumber, builder->FileSize(), smallest, largest);
+      results.push_back(result);
+    }
+
+    keys.clear();
+
+  cleanup:
+    if (fp) {
+      fclose(fp);
+    }
     return ok;
   }
 
@@ -635,6 +693,17 @@ public:
       return nullptr;
     }
     return file;
+  }
+
+  static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, uint64_t tableNumber) {
+    std::vector<char> buffer(11, (char)0);
+#if defined(_WIN32)
+    sprintf_s(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
+#else
+    snprintf(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
+#endif
+    std::string p(buffer.data(), 10);
+    return dbname / p;
   }
 
   void abandon() override {
@@ -659,7 +728,10 @@ private:
 private:
   std::filesystem::path const fDbName;
   std::atomic_uint64_t fSequence;
+  std::atomic_uint32_t fWriterIdGenerator;
   bool fValid = true;
+
+  static constexpr uint64_t kMaxFileSize = 2 * 1024 * 1024;
 };
 
 } // namespace je2be
