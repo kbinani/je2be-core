@@ -10,6 +10,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
       /source-charset:utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
       /wd4100 # Suppress "unreferenced formal parameter" warnings
+      /MP
     )
   endif()
   if ("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
