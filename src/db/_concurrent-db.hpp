@@ -14,10 +14,30 @@
 #include <table/format.h>
 #include <util/crc32c.h>
 
+#include <execution>
+#include <inttypes.h>
+
 namespace je2be {
 
 class ConcurrentDb : public DbInterface {
+  struct TableBuildResult {
+    TableBuildResult(uint64_t fileNumber, uint64_t fileSize, leveldb::InternalKey smallest, leveldb::InternalKey largest)
+        : fFileNumber(fileNumber), fFileSize(fileSize), fSmallest(smallest), fLargest(largest) {}
+
+    uint64_t fFileNumber;
+    uint64_t fFileSize;
+    leveldb::InternalKey fSmallest;
+    leveldb::InternalKey fLargest;
+  };
+
   class Writer {
+    struct Key {
+      std::string fKey;
+      uint32_t fValueSizeCompressed;
+      uint64_t fOffset;
+      uint64_t fSequence;
+    };
+
   public:
     Writer(std::filesystem::path const &dbname, std::atomic_uint64_t &sequencer) : fDbName(dbname), fSequencer(sequencer) {
       namespace fs = std::filesystem;
@@ -92,7 +112,10 @@ class ConcurrentDb : public DbInterface {
       Fs::DeleteAll(fDir);
     }
 
-    bool close(std::atomic_uint64_t &fileNumber) {
+    bool close(std::atomic_uint64_t &fileNumber, std::vector<TableBuildResult> &results) {
+      using namespace std;
+      using namespace leveldb;
+
       if (!fValue || !fKey) {
         return false;
       }
@@ -100,8 +123,61 @@ class ConcurrentDb : public DbInterface {
       fValue = nullptr;
       fclose(fKey);
       fKey = nullptr;
-      // TODO:
-      return true;
+
+      FILE *key = mcfile::File::Open(fDir / "key.bin", mcfile::File::Mode::Read);
+      if (!key) {
+        return false;
+      }
+
+      FILE *value = mcfile::File::Open(fDir / "value.bin", mcfile::File::Mode::Read);
+      if (!value) {
+        fclose(key);
+        return false;
+      }
+
+      bool ok = true;
+      vector<Key> keys;
+      uint64_t size = 0;
+      while (!feof(key)) {
+        Key locator;
+        uint32_t keySize;
+        if (fread(&keySize, sizeof(keySize), 1, key) != 1) {
+          ok = false;
+          goto cleanup;
+        }
+        locator.fKey.resize(keySize);
+        if (fread(&locator.fValueSizeCompressed, sizeof(locator.fValueSizeCompressed), 1, key) != 1) {
+          ok = false;
+          goto cleanup;
+        }
+        if (fread(&locator.fOffset, sizeof(locator.fOffset), 1, key) != 1) {
+          ok = false;
+          goto cleanup;
+        }
+        if (fread(locator.fKey.data(), keySize, 1, key) != 1) {
+          ok = false;
+          goto cleanup;
+        }
+        keys.push_back(locator);
+        size += locator.fValueSizeCompressed;
+        if (size >= kMaxFileSize) {
+          if (!write(keys, value, fileNumber, results)) {
+            ok = false;
+            goto cleanup;
+          }
+          size = 0;
+        }
+      }
+      ok &= write(keys, value, fileNumber, results);
+
+    cleanup:
+      if (key) {
+        fclose(key);
+      }
+      if (value) {
+        fclose(value);
+      }
+      return ok;
     }
 
     void abandon() {
@@ -134,6 +210,68 @@ class ConcurrentDb : public DbInterface {
       mcfile::Compression::CompressDeflate((void *)c.data(), c.size(), *out);
     }
 
+    static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, uint64_t tableNumber) {
+      std::vector<char> buffer(11, (char)0);
+#if defined(_WIN32)
+      sprintf_s(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
+#else
+      snprintf(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
+#endif
+      std::string p(buffer.data(), 10);
+      return dbname / p;
+    }
+
+    bool write(std::vector<Key> &keys, FILE *valueFile, std::atomic_uint64_t &fileNumber, std::vector<TableBuildResult> &results) const {
+      using namespace std;
+      using namespace leveldb;
+
+      if (keys.empty()) {
+        return true;
+      }
+
+      Comparator const *cmp = BytewiseComparator();
+      sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
+        return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
+      });
+
+      auto fn = fileNumber.fetch_add(1);
+      unique_ptr<WritableFile> file(OpenWritable(TableFilePath(fDbName, fn)));
+      if (!file) {
+        return false;
+      }
+
+      leveldb::Options bo;
+      bo.compression = kZlibRawCompression;
+      InternalKeyComparator icmp(BytewiseComparator());
+      bo.comparator = &icmp;
+      auto builder = make_shared<ZlibRawTableBuilder>(bo, file.get());
+
+      string value;
+      for (auto const &it : keys) {
+        Slice userKey(it.fKey);
+        InternalKey ik(userKey, it.fSequence, kTypeValue);
+        if (!mcfile::File::Fseek(valueFile, it.fOffset, SEEK_SET)) {
+          return false;
+        }
+        value.resize(it.fValueSizeCompressed);
+        if (fread(value.data(), it.fValueSizeCompressed, 1, valueFile) != 1) {
+          return false;
+        }
+        builder->AddAlreadyCompressedAndFlush(ik.Encode(), value);
+      }
+      builder->Finish();
+      file->Close();
+
+      InternalKey smallest(keys[0].fKey, keys[0].fSequence, kTypeValue);
+      InternalKey largest(keys[keys.size() - 1].fKey, keys[keys.size() - 1].fSequence, kTypeValue);
+      TableBuildResult result(fn, builder->FileSize(), smallest, largest);
+
+      results.push_back(result);
+
+      keys.clear();
+      return true;
+    }
+
   private:
     std::filesystem::path fDbName;
     std::atomic_uint64_t &fSequencer;
@@ -141,6 +279,8 @@ class ConcurrentDb : public DbInterface {
     FILE *fKey = nullptr;
     FILE *fValue = nullptr;
     uint64_t fOffset = 0;
+
+    static constexpr uint64_t kMaxFileSize = 2 * 1024 * 1024;
   };
 
   class Gate {
@@ -396,7 +536,9 @@ class ConcurrentDb : public DbInterface {
   };
 
 public:
-  explicit ConcurrentDb(std::filesystem::path const &dbname) : fDbName(dbname) {}
+  explicit ConcurrentDb(std::filesystem::path const &dbname) : fDbName(dbname) {
+    leveldb::DestroyDB(dbname, {});
+  }
 
   ~ConcurrentDb() {
     abandon();
@@ -414,18 +556,85 @@ public:
 
   bool close(std::function<void(double progress)> progress = nullptr) override {
     using namespace std;
+    using namespace leveldb;
     namespace fs = std::filesystem;
+
     vector<shared_ptr<Writer>> writers;
     Gate::Drain((uintptr_t)this, writers);
     atomic_uint64_t fileNumber(1);
     fValid = false;
-    return Parallel::Reduce<shared_ptr<Writer>, bool>(
+    using Result = vector<TableBuildResult>;
+    atomic_bool ok = true;
+    auto result = Parallel::Reduce<shared_ptr<Writer>, shared_ptr<Result>>(
         writers,
-        true,
-        [&fileNumber](shared_ptr<Writer> const &writer) -> bool {
-          return writer->close(fileNumber);
+        make_shared<Result>(),
+        [&fileNumber, &ok](shared_ptr<Writer> const &writer) -> shared_ptr<Result> {
+          if (!ok) {
+            return nullptr;
+          }
+          auto result = make_shared<Result>();
+          if (writer->close(fileNumber, *result)) {
+            return result;
+          } else {
+            ok = false;
+            return nullptr;
+          }
         },
-        Parallel::Merge);
+        [](shared_ptr<Result> const &from, shared_ptr<Result> &to) {
+          if (to) {
+            if (from) {
+              copy(from->begin(), from->end(), back_inserter(*to));
+            }
+          } else {
+            to = from;
+          }
+        });
+    if (!result) {
+      return false;
+    }
+
+    VersionEdit edit;
+    for (auto const &it : *result) {
+      edit.AddFile(1, it.fFileNumber, it.fFileSize, it.fSmallest, it.fLargest);
+    }
+    edit.SetLastSequence(fSequence.load() + 1);
+    edit.SetNextFile(fileNumber.load() + 1);
+    edit.SetLogNumber(0);
+    string manifestRecord;
+    edit.EncodeTo(&manifestRecord);
+
+    string manifestFileName = "MANIFEST-000001";
+    fs::path manifestFile = fDbName / manifestFileName;
+    unique_ptr<WritableFile> meta(OpenWritable(manifestFile));
+    leveldb::log::Writer writer(meta.get());
+    leveldb::Status st = writer.AddRecord(manifestRecord);
+    if (!st.ok()) {
+      return false;
+    }
+    meta->Close();
+    meta.reset();
+
+    fs::path currentFile = fDbName / "CURRENT";
+    unique_ptr<WritableFile> current(OpenWritable(currentFile));
+    st = current->Append(manifestFileName + "\x0a");
+    if (!st.ok()) {
+      return false;
+    }
+    current->Close();
+    current.reset();
+
+    return ok;
+  }
+
+  static leveldb::WritableFile *OpenWritable(std::filesystem::path const &path) {
+    using namespace leveldb;
+    Env *env = Env::Default();
+    WritableFile *file = nullptr;
+    leveldb::Status st = env->NewWritableFile(path, &file);
+    if (!st.ok()) {
+      return nullptr;
+    }
+    return file;
   }
 
   void abandon() override {
