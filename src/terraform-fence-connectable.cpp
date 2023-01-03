@@ -1,8 +1,8 @@
-#include <je2be/terraform/_fence-connectable.hpp>
+#include "terraform/_fence-connectable.hpp"
 
-#include <je2be/enums/_facing4.hpp>
-#include <je2be/terraform/_block-property-accessor.hpp>
-#include <je2be/terraform/_shape-of-stairs.hpp>
+#include "enums/_facing4.hpp"
+#include "terraform/_block-property-accessor.hpp"
+#include "terraform/_shape-of-stairs.hpp"
 
 namespace je2be::terraform {
 

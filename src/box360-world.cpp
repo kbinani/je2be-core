@@ -1,16 +1,15 @@
-#include <je2be/box360/_world.hpp>
+#include "box360/_world.hpp"
 
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/progress.hpp>
 #include <je2be/defer.hpp>
 #include <je2be/pos2.hpp>
 
-#include <je2be/_fs.hpp>
-#include <je2be/box360/_chunk.hpp>
-#include <je2be/box360/_context.hpp>
-#include <je2be/box360/_terraform.hpp>
-
-#include <je2be/_future-support.hpp>
+#include "_fs.hpp"
+#include "box360/_chunk.hpp"
+#include "box360/_context.hpp"
+#include "box360/_terraform.hpp"
+#include "_future-support.hpp"
 
 #include <BS_thread_pool.hpp>
 

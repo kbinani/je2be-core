@@ -3,9 +3,9 @@
 // clang-format off
 #include <fstream>
 
-#include <je2be/_mem.hpp>
-#include <je2be/box360/_stfs.hpp>
-#include <je2be/box360/_stfs-ext.hpp>
+#include "_mem.hpp"
+#include "box360/_stfs.hpp"
+#include "box360/_stfs-ext.hpp"
 
 #include <minecraft-file.hpp>
 // clang-format on

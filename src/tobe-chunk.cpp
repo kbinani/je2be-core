@@ -1,18 +1,18 @@
-#include <je2be/tobe/_chunk.hpp>
+#include "tobe/_chunk.hpp"
 
 #include <je2be/status.hpp>
 
-#include <je2be/_fs.hpp>
-#include <je2be/db/_db-interface.hpp>
-#include <je2be/enums/_chunk-conversion-mode.hpp>
-#include <je2be/enums/_game-mode.hpp>
-#include <je2be/tobe/_chunk-data-package.hpp>
-#include <je2be/tobe/_chunk-data.hpp>
-#include <je2be/tobe/_context.hpp>
-#include <je2be/tobe/_java-edition-map.hpp>
-#include <je2be/tobe/_moving-piston.hpp>
-#include <je2be/tobe/_sub-chunk.hpp>
-#include <je2be/tobe/_world-data.hpp>
+#include "_fs.hpp"
+#include "db/_db-interface.hpp"
+#include "enums/_chunk-conversion-mode.hpp"
+#include "enums/_game-mode.hpp"
+#include "tobe/_chunk-data-package.hpp"
+#include "tobe/_chunk-data.hpp"
+#include "tobe/_context.hpp"
+#include "tobe/_java-edition-map.hpp"
+#include "tobe/_moving-piston.hpp"
+#include "tobe/_sub-chunk.hpp"
+#include "tobe/_world-data.hpp"
 
 namespace je2be::tobe {
 

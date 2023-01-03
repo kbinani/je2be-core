@@ -4,20 +4,20 @@
 #include <je2be/box360/progress.hpp>
 #include <je2be/defer.hpp>
 
-#include <je2be/_dimension-ext.hpp>
-#include <je2be/_fs.hpp>
-#include <je2be/_java-level-dat.hpp>
-#include <je2be/_nbt-ext.hpp>
-#include <je2be/_nullable.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/_zip-file.hpp>
-#include <je2be/box360/_chunk.hpp>
-#include <je2be/box360/_context.hpp>
-#include <je2be/box360/_entity.hpp>
-#include <je2be/box360/_savegame.hpp>
-#include <je2be/box360/_tile-entity.hpp>
-#include <je2be/box360/_world.hpp>
-#include <je2be/toje/_constants.hpp>
+#include "_dimension-ext.hpp"
+#include "_fs.hpp"
+#include "_java-level-dat.hpp"
+#include "_nbt-ext.hpp"
+#include "_nullable.hpp"
+#include "_props.hpp"
+#include "_zip-file.hpp"
+#include "box360/_chunk.hpp"
+#include "box360/_context.hpp"
+#include "box360/_entity.hpp"
+#include "box360/_savegame.hpp"
+#include "box360/_tile-entity.hpp"
+#include "box360/_world.hpp"
+#include "toje/_constants.hpp"
 
 namespace je2be::box360 {
 

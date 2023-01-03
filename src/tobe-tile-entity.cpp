@@ -1,20 +1,20 @@
-#include <je2be/tobe/_tile-entity.hpp>
+#include "tobe/_tile-entity.hpp"
 
-#include <je2be/_nbt-ext.hpp>
-#include <je2be/_optional.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/_xxhash.hpp>
-#include <je2be/color/_sign-color.hpp>
-#include <je2be/command/_command.hpp>
-#include <je2be/enums/_banner-color-code-bedrock.hpp>
-#include <je2be/enums/_color-code-java.hpp>
-#include <je2be/enums/_facing4.hpp>
-#include <je2be/tile-entity/_loot-table.hpp>
-#include <je2be/tobe/_context.hpp>
-#include <je2be/tobe/_entity.hpp>
-#include <je2be/tobe/_item.hpp>
-#include <je2be/tobe/_versions.hpp>
-#include <je2be/tobe/_world-data.hpp>
+#include "_nbt-ext.hpp"
+#include "_optional.hpp"
+#include "_props.hpp"
+#include "_xxhash.hpp"
+#include "color/_sign-color.hpp"
+#include "command/_command.hpp"
+#include "enums/_banner-color-code-bedrock.hpp"
+#include "enums/_color-code-java.hpp"
+#include "enums/_facing4.hpp"
+#include "tile-entity/_loot-table.hpp"
+#include "tobe/_context.hpp"
+#include "tobe/_entity.hpp"
+#include "tobe/_item.hpp"
+#include "tobe/_versions.hpp"
+#include "tobe/_world-data.hpp"
 
 #include <numbers>
 #include <variant>

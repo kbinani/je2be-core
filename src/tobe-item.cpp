@@ -1,25 +1,25 @@
-#include <je2be/tobe/_item.hpp>
+#include "tobe/_item.hpp"
 
 #include <je2be/strings.hpp>
 
-#include <je2be/_nbt-ext.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/entity/_effect.hpp>
-#include <je2be/entity/_tropical-fish.hpp>
-#include <je2be/enums/_banner-color-code-bedrock.hpp>
-#include <je2be/enums/_color-code-java.hpp>
-#include <je2be/enums/_skull-type.hpp>
-#include <je2be/item/_fireworks-explosion.hpp>
-#include <je2be/item/_fireworks.hpp>
-#include <je2be/item/_goat-horn.hpp>
-#include <je2be/item/_potion.hpp>
-#include <je2be/item/_tipped-arrow-potion.hpp>
-#include <je2be/tobe/_axolotl.hpp>
-#include <je2be/tobe/_block-data.hpp>
-#include <je2be/tobe/_context.hpp>
-#include <je2be/tobe/_enchant-data.hpp>
-#include <je2be/tobe/_tile-entity.hpp>
-#include <je2be/tobe/_world-data.hpp>
+#include "_nbt-ext.hpp"
+#include "_props.hpp"
+#include "entity/_effect.hpp"
+#include "entity/_tropical-fish.hpp"
+#include "enums/_banner-color-code-bedrock.hpp"
+#include "enums/_color-code-java.hpp"
+#include "enums/_skull-type.hpp"
+#include "item/_fireworks-explosion.hpp"
+#include "item/_fireworks.hpp"
+#include "item/_goat-horn.hpp"
+#include "item/_potion.hpp"
+#include "item/_tipped-arrow-potion.hpp"
+#include "tobe/_axolotl.hpp"
+#include "tobe/_block-data.hpp"
+#include "tobe/_context.hpp"
+#include "tobe/_enchant-data.hpp"
+#include "tobe/_tile-entity.hpp"
+#include "tobe/_world-data.hpp"
 
 namespace je2be::tobe {
 

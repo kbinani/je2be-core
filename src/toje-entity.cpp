@@ -1,23 +1,23 @@
-#include <je2be/toje/_entity.hpp>
+#include "toje/_entity.hpp"
 
-#include <je2be/_nbt-ext.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/_rotation.hpp>
-#include <je2be/entity/_armor-stand.hpp>
-#include <je2be/entity/_axolotl.hpp>
-#include <je2be/entity/_boat.hpp>
-#include <je2be/entity/_cat.hpp>
-#include <je2be/entity/_frog.hpp>
-#include <je2be/entity/_painting.hpp>
-#include <je2be/entity/_panda.hpp>
-#include <je2be/entity/_tropical-fish.hpp>
-#include <je2be/enums/_facing6.hpp>
-#include <je2be/enums/_villager-profession.hpp>
-#include <je2be/enums/_villager-type.hpp>
-#include <je2be/tile-entity/_loot-table.hpp>
-#include <je2be/toje/_block-data.hpp>
-#include <je2be/toje/_context.hpp>
-#include <je2be/toje/_item.hpp>
+#include "_nbt-ext.hpp"
+#include "_props.hpp"
+#include "_rotation.hpp"
+#include "entity/_armor-stand.hpp"
+#include "entity/_axolotl.hpp"
+#include "entity/_boat.hpp"
+#include "entity/_cat.hpp"
+#include "entity/_frog.hpp"
+#include "entity/_painting.hpp"
+#include "entity/_panda.hpp"
+#include "entity/_tropical-fish.hpp"
+#include "enums/_facing6.hpp"
+#include "enums/_villager-profession.hpp"
+#include "enums/_villager-type.hpp"
+#include "tile-entity/_loot-table.hpp"
+#include "toje/_block-data.hpp"
+#include "toje/_context.hpp"
+#include "toje/_item.hpp"
 
 #include <xxhash64.h>
 

@@ -1,17 +1,17 @@
-#include <je2be/toje/_block-entity.hpp>
+#include "toje/_block-entity.hpp"
 
-#include <je2be/color/_sign-color.hpp>
-#include <je2be/command/_command.hpp>
-#include <je2be/enums/_banner-color-code-bedrock.hpp>
-#include <je2be/enums/_color-code-java.hpp>
-#include <je2be/enums/_facing6.hpp>
-#include <je2be/enums/_red-flower.hpp>
-#include <je2be/enums/_skull-type.hpp>
-#include <je2be/item/_banner.hpp>
-#include <je2be/tile-entity/_loot-table.hpp>
-#include <je2be/toje/_context.hpp>
-#include <je2be/toje/_entity.hpp>
-#include <je2be/toje/_item.hpp>
+#include "color/_sign-color.hpp"
+#include "command/_command.hpp"
+#include "enums/_banner-color-code-bedrock.hpp"
+#include "enums/_color-code-java.hpp"
+#include "enums/_facing6.hpp"
+#include "enums/_red-flower.hpp"
+#include "enums/_skull-type.hpp"
+#include "item/_banner.hpp"
+#include "tile-entity/_loot-table.hpp"
+#include "toje/_context.hpp"
+#include "toje/_entity.hpp"
+#include "toje/_item.hpp"
 
 #include <minecraft-file.hpp>
 #include <nlohmann/json.hpp>

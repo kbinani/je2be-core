@@ -1,30 +1,30 @@
-#include <je2be/tobe/_entity.hpp>
+#include "tobe/_entity.hpp"
 
-#include <je2be/_dimension-ext.hpp>
-#include <je2be/_nbt-ext.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/entity/_armor-stand.hpp>
-#include <je2be/entity/_axolotl.hpp>
-#include <je2be/entity/_boat.hpp>
-#include <je2be/entity/_cat.hpp>
-#include <je2be/entity/_entity-attributes.hpp>
-#include <je2be/entity/_frog.hpp>
-#include <je2be/entity/_painting.hpp>
-#include <je2be/entity/_panda.hpp>
-#include <je2be/entity/_tropical-fish.hpp>
-#include <je2be/enums/_color-code-java.hpp>
-#include <je2be/enums/_facing4.hpp>
-#include <je2be/enums/_game-mode.hpp>
-#include <je2be/enums/_villager-profession.hpp>
-#include <je2be/enums/_villager-type.hpp>
-#include <je2be/tile-entity/_loot-table.hpp>
-#include <je2be/tobe/_block-data.hpp>
-#include <je2be/tobe/_context.hpp>
-#include <je2be/tobe/_item.hpp>
-#include <je2be/tobe/_player-abilities.hpp>
-#include <je2be/tobe/_uuid-registrar.hpp>
-#include <je2be/tobe/_versions.hpp>
-#include <je2be/tobe/_world-data.hpp>
+#include "_dimension-ext.hpp"
+#include "_nbt-ext.hpp"
+#include "_props.hpp"
+#include "entity/_armor-stand.hpp"
+#include "entity/_axolotl.hpp"
+#include "entity/_boat.hpp"
+#include "entity/_cat.hpp"
+#include "entity/_entity-attributes.hpp"
+#include "entity/_frog.hpp"
+#include "entity/_painting.hpp"
+#include "entity/_panda.hpp"
+#include "entity/_tropical-fish.hpp"
+#include "enums/_color-code-java.hpp"
+#include "enums/_facing4.hpp"
+#include "enums/_game-mode.hpp"
+#include "enums/_villager-profession.hpp"
+#include "enums/_villager-type.hpp"
+#include "tile-entity/_loot-table.hpp"
+#include "tobe/_block-data.hpp"
+#include "tobe/_context.hpp"
+#include "tobe/_item.hpp"
+#include "tobe/_player-abilities.hpp"
+#include "tobe/_uuid-registrar.hpp"
+#include "tobe/_versions.hpp"
+#include "tobe/_world-data.hpp"
 
 namespace je2be::tobe {
 

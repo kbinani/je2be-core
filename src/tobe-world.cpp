@@ -1,13 +1,13 @@
-#include <je2be/tobe/_world.hpp>
+#include "tobe/_world.hpp"
 
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/progress.hpp>
 
-#include <je2be/_parallel.hpp>
-#include <je2be/tobe/_chunk.hpp>
-#include <je2be/tobe/_java-edition-map.hpp>
-#include <je2be/tobe/_level-data.hpp>
-#include <je2be/tobe/_world-data.hpp>
+#include "_parallel.hpp"
+#include "tobe/_chunk.hpp"
+#include "tobe/_java-edition-map.hpp"
+#include "tobe/_level-data.hpp"
+#include "tobe/_world-data.hpp"
 
 namespace je2be::tobe {
 

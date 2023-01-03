@@ -1,5 +1,6 @@
-#include <je2be/terraform/_block-property-accessor.hpp>
-#include <je2be/terraform/_note-block.hpp>
+#include "terraform/_note-block.hpp"
+
+#include "terraform/_block-property-accessor.hpp"
 
 #include <minecraft-file.hpp>
 

@@ -1,10 +1,10 @@
-#include <je2be/box360/_entity.hpp>
+#include "box360/_entity.hpp"
 
-#include <je2be/_xxhash.hpp>
-#include <je2be/box360/_context.hpp>
-#include <je2be/box360/_item.hpp>
-#include <je2be/entity/_painting.hpp>
-#include <je2be/tile-entity/_loot-table.hpp>
+#include "_xxhash.hpp"
+#include "box360/_context.hpp"
+#include "box360/_item.hpp"
+#include "entity/_painting.hpp"
+#include "tile-entity/_loot-table.hpp"
 
 namespace je2be::box360 {
 

@@ -13,16 +13,16 @@
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/progress.hpp>
 
-#include <je2be/_parallel.hpp>
-#include <je2be/db/_raw-db.hpp>
-#include <je2be/tobe/_context.hpp>
-#include <je2be/tobe/_datapacks.hpp>
-#include <je2be/tobe/_entity.hpp>
-#include <je2be/tobe/_level.hpp>
-#include <je2be/tobe/_region.hpp>
-#include <je2be/tobe/_session-lock.hpp>
-#include <je2be/tobe/_world-data.hpp>
-#include <je2be/tobe/_world.hpp>
+#include "_parallel.hpp"
+#include "db/_raw-db.hpp"
+#include "tobe/_context.hpp"
+#include "tobe/_datapacks.hpp"
+#include "tobe/_entity.hpp"
+#include "tobe/_level.hpp"
+#include "tobe/_region.hpp"
+#include "tobe/_session-lock.hpp"
+#include "tobe/_world-data.hpp"
+#include "tobe/_world.hpp"
 
 namespace je2be::tobe {
 

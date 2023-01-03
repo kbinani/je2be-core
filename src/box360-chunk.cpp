@@ -1,15 +1,15 @@
-#include <je2be/box360/_chunk.hpp>
+#include "box360/_chunk.hpp"
 
 #include <je2be/nbt.hpp>
 
-#include <je2be/_mem.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/box360/_biome.hpp>
-#include <je2be/box360/_block-data.hpp>
-#include <je2be/box360/_entity.hpp>
-#include <je2be/box360/_grid.hpp>
-#include <je2be/box360/_savegame.hpp>
-#include <je2be/box360/_tile-entity.hpp>
+#include "_mem.hpp"
+#include "_props.hpp"
+#include "box360/_biome.hpp"
+#include "box360/_block-data.hpp"
+#include "box360/_entity.hpp"
+#include "box360/_grid.hpp"
+#include "box360/_savegame.hpp"
+#include "box360/_tile-entity.hpp"
 
 namespace je2be::box360 {
 

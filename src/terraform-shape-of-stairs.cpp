@@ -1,6 +1,6 @@
-#include <je2be/terraform/_shape-of-stairs.hpp>
+#include "terraform/_shape-of-stairs.hpp"
 
-#include <je2be/terraform/_block-property-accessor.hpp>
+#include "terraform/_block-property-accessor.hpp"
 
 namespace je2be::terraform {
 

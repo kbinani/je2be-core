@@ -1,12 +1,12 @@
-#include <je2be/tobe/_block-data.hpp>
+#include "tobe/_block-data.hpp"
 
 #include <je2be/strings.hpp>
 
-#include <je2be/_optional.hpp>
-#include <je2be/_props.hpp>
-#include <je2be/enums/_facing4.hpp>
-#include <je2be/enums/_facing6.hpp>
-#include <je2be/tobe/_versions.hpp>
+#include "_optional.hpp"
+#include "_props.hpp"
+#include "enums/_facing4.hpp"
+#include "enums/_facing6.hpp"
+#include "tobe/_versions.hpp"
 
 namespace je2be::tobe {
 

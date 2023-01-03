@@ -1,12 +1,12 @@
-#include <je2be/box360/_tile-entity.hpp>
+#include "box360/_tile-entity.hpp"
 
-#include <je2be/_nbt-ext.hpp>
-#include <je2be/box360/_context.hpp>
-#include <je2be/box360/_item.hpp>
-#include <je2be/enums/_banner-color-code-bedrock.hpp>
-#include <je2be/enums/_color-code-java.hpp>
-#include <je2be/enums/_skull-type.hpp>
-#include <je2be/tile-entity/_loot-table.hpp>
+#include "_nbt-ext.hpp"
+#include "box360/_context.hpp"
+#include "box360/_item.hpp"
+#include "enums/_banner-color-code-bedrock.hpp"
+#include "enums/_color-code-java.hpp"
+#include "enums/_skull-type.hpp"
+#include "tile-entity/_loot-table.hpp"
 
 namespace je2be::box360 {
 

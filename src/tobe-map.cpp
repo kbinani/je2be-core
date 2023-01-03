@@ -1,10 +1,10 @@
-#include <je2be/tobe/_map.hpp>
+#include "tobe/_map.hpp"
 
 #include <je2be/nbt.hpp>
 
-#include <je2be/db/_db-interface.hpp>
-#include <je2be/item/_map-color.hpp>
-#include <je2be/tobe/_java-edition-map.hpp>
+#include "db/_db-interface.hpp"
+#include "item/_map-color.hpp"
+#include "tobe/_java-edition-map.hpp"
 
 #include <xxhash32.h>
 

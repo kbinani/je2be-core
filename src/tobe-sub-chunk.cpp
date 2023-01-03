@@ -1,12 +1,12 @@
-#include <je2be/tobe/_sub-chunk.hpp>
+#include "tobe/_sub-chunk.hpp"
 
-#include <je2be/tobe/_block-data.hpp>
-#include <je2be/tobe/_block-palette.hpp>
-#include <je2be/tobe/_chunk-data-package.hpp>
-#include <je2be/tobe/_chunk-data.hpp>
-#include <je2be/tobe/_entity.hpp>
-#include <je2be/tobe/_tile-entity.hpp>
-#include <je2be/tobe/_world-data.hpp>
+#include "tobe/_block-data.hpp"
+#include "tobe/_block-palette.hpp"
+#include "tobe/_chunk-data-package.hpp"
+#include "tobe/_chunk-data.hpp"
+#include "tobe/_entity.hpp"
+#include "tobe/_tile-entity.hpp"
+#include "tobe/_world-data.hpp"
 
 namespace je2be::tobe {
 

@@ -4,11 +4,11 @@
 #include <je2be/toje/options.hpp>
 #include <je2be/toje/progress.hpp>
 
-#include <je2be/_props.hpp>
-#include <je2be/enums/_game-mode.hpp>
-#include <je2be/toje/_context.hpp>
-#include <je2be/toje/_level-data.hpp>
-#include <je2be/toje/_world.hpp>
+#include "_props.hpp"
+#include "enums/_game-mode.hpp"
+#include "toje/_context.hpp"
+#include "toje/_level-data.hpp"
+#include "toje/_world.hpp"
 
 #include <atomic>
 

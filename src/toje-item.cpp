@@ -1,19 +1,19 @@
-#include <je2be/toje/_item.hpp>
+#include "toje/_item.hpp"
 
-#include <je2be/entity/_axolotl.hpp>
-#include <je2be/entity/_effect.hpp>
-#include <je2be/entity/_tropical-fish.hpp>
-#include <je2be/enums/_skull-type.hpp>
-#include <je2be/item/_banner.hpp>
-#include <je2be/item/_enchantments.hpp>
-#include <je2be/item/_fireworks.hpp>
-#include <je2be/item/_goat-horn.hpp>
-#include <je2be/item/_potion.hpp>
-#include <je2be/item/_tipped-arrow-potion.hpp>
-#include <je2be/tobe/_versions.hpp>
-#include <je2be/toje/_block-data.hpp>
-#include <je2be/toje/_block-entity.hpp>
-#include <je2be/toje/_context.hpp>
+#include "entity/_axolotl.hpp"
+#include "entity/_effect.hpp"
+#include "entity/_tropical-fish.hpp"
+#include "enums/_skull-type.hpp"
+#include "item/_banner.hpp"
+#include "item/_enchantments.hpp"
+#include "item/_fireworks.hpp"
+#include "item/_goat-horn.hpp"
+#include "item/_potion.hpp"
+#include "item/_tipped-arrow-potion.hpp"
+#include "tobe/_versions.hpp"
+#include "toje/_block-data.hpp"
+#include "toje/_block-entity.hpp"
+#include "toje/_context.hpp"
 
 #include <nlohmann/json.hpp>
 
