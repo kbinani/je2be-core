@@ -32,7 +32,7 @@ public:
         works,
         true,
         bind(PutChunkEntities, d, _1, &db),
-        Parallel::Merge);
+        Parallel::MergeBool);
     return ok;
   }
 

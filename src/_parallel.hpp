@@ -99,8 +99,13 @@ public:
     return total;
   }
 
-  static void Merge(bool const &from, bool &to) {
+  static void MergeBool(bool const &from, bool &to) {
     to = from && to;
+  }
+
+  template <class T>
+  static void MergeVector(std::vector<T> const &from, std::vector<T> &to) {
+    std::copy(from.begin(), from.end(), std::back_inserter(to));
   }
 };
 
