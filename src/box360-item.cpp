@@ -1,10 +1,10 @@
-#include <je2be/box360/item.hpp>
+#include <je2be/box360/_item.hpp>
 
-#include <je2be/box360/context.hpp>
-#include <je2be/enums/color-code-java.hpp>
-#include <je2be/item/enchantments.hpp>
-#include <je2be/nbt-ext.hpp>
-#include <je2be/pos3.hpp>
+#include <je2be/_nbt-ext.hpp>
+#include <je2be/_pos3.hpp>
+#include <je2be/box360/_context.hpp>
+#include <je2be/enums/_color-code-java.hpp>
+#include <je2be/item/_enchantments.hpp>
 
 #include <nlohmann/json.hpp>
 

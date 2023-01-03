@@ -1,10 +1,12 @@
-#include <je2be/toje/block-data.hpp>
+#include <je2be/toje/_block-data.hpp>
 
-#include <je2be/enums/color-code-java.hpp>
-#include <je2be/enums/facing4.hpp>
-#include <je2be/enums/facing6.hpp>
-#include <je2be/enums/red-flower.hpp>
+#include <je2be/nbt.hpp>
 #include <je2be/strings.hpp>
+
+#include <je2be/enums/_color-code-java.hpp>
+#include <je2be/enums/_facing4.hpp>
+#include <je2be/enums/_facing6.hpp>
+#include <je2be/enums/_red-flower.hpp>
 
 namespace je2be::toje {
 

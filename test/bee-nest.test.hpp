@@ -12,8 +12,8 @@ TEST_CASE("bee-nest") {
     toje::Options opt;
     opt.fDimensionFilter.insert(Dimension::Overworld);
     opt.fChunkFilter.insert({0, 0});
-    toje::Converter converter(in, out, opt);
-    auto st = converter.run(thread::hardware_concurrency());
+
+    auto st = toje::Converter::Run(in, out, opt, thread::hardware_concurrency());
     CHECK(st.ok());
     mcfile::je::World world(out);
     auto chunk = world.chunkAt(0, 0);

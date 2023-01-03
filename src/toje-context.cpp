@@ -1,9 +1,9 @@
-#include <je2be/toje/context.hpp>
+#include <je2be/toje/_context.hpp>
 
 #if !defined(EMSCRIPTEN)
-#include <je2be/db/async-iterator.hpp>
+#include <je2be/db/_async-iterator.hpp>
 #endif
-#include <je2be/structure/structure-piece.hpp>
+#include <je2be/structure/_structure-piece.hpp>
 
 namespace je2be::toje {
 

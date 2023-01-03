@@ -1,8 +1,9 @@
-#include <je2be/terraform/wall-connectable.hpp>
+#include <je2be/terraform/_wall-connectable.hpp>
 
-#include <je2be/enums/facing4.hpp>
 #include <je2be/pos2.hpp>
-#include <je2be/terraform/block-property-accessor.hpp>
+
+#include <je2be/enums/_facing4.hpp>
+#include <je2be/terraform/_block-property-accessor.hpp>
 
 #include <minecraft-file.hpp>
 

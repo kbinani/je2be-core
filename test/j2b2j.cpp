@@ -18,6 +18,8 @@ using namespace mcfile;
 using namespace je2be;
 namespace fs = std::filesystem;
 
+#include "je2be-all.hpp"
+
 #include "j2b2j.hpp"
 
 fs::path gInput;

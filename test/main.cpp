@@ -1,9 +1,12 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
+// clang-format off
+
 #include <BS_thread_pool.hpp>
 #include <iostream>
-#include <je2be.hpp>
+
+#include "je2be-all.hpp"
 
 #if defined(_WIN32)
 #include <fcntl.h>

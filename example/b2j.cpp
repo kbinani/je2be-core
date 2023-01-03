@@ -45,6 +45,6 @@ int main(int argc, char *argv[]) {
   };
 
   Options options;
-  Converter converter(input, output, options);
-  return converter.run(concurrency).ok() ? 0 : -1;
+  auto st = Converter::Run(input, output, options, concurrency);
+  return st.ok() ? 0 : -1;
 }

@@ -1,13 +1,13 @@
-#include <je2be/tobe/chunk-data-package.hpp>
+#include <je2be/tobe/_chunk-data-package.hpp>
 
-#include <je2be/pos3.hpp>
-#include <je2be/tobe/chunk-data.hpp>
-#include <je2be/tobe/context.hpp>
-#include <je2be/tobe/converter/biome-map-legacy.hpp>
-#include <je2be/tobe/converter/entity.hpp>
-#include <je2be/tobe/converter/height-map.hpp>
-#include <je2be/tobe/converter/tile-entity.hpp>
-#include <je2be/tobe/world-data.hpp>
+#include <je2be/_pos3.hpp>
+#include <je2be/tobe/_biome-map-legacy.hpp>
+#include <je2be/tobe/_chunk-data.hpp>
+#include <je2be/tobe/_context.hpp>
+#include <je2be/tobe/_entity.hpp>
+#include <je2be/tobe/_height-map.hpp>
+#include <je2be/tobe/_tile-entity.hpp>
+#include <je2be/tobe/_world-data.hpp>
 
 namespace je2be::tobe {
 

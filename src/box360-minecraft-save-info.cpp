@@ -2,9 +2,10 @@
 
 // clang-format off
 #include <fstream>
-#include <je2be/mem.hpp>
-#include <je2be/box360/detail/stfs.hpp>
-#include <je2be/box360/detail/stfs-ext.hpp>
+
+#include <je2be/_mem.hpp>
+#include <je2be/box360/_stfs.hpp>
+#include <je2be/box360/_stfs-ext.hpp>
 
 #include <minecraft-file.hpp>
 // clang-format on

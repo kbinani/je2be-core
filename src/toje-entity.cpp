@@ -1,22 +1,23 @@
-#include <je2be/entity/armor-stand.hpp>
-#include <je2be/entity/axolotl.hpp>
-#include <je2be/entity/boat.hpp>
-#include <je2be/entity/cat.hpp>
-#include <je2be/entity/frog.hpp>
-#include <je2be/entity/painting.hpp>
-#include <je2be/entity/panda.hpp>
-#include <je2be/entity/tropical-fish.hpp>
-#include <je2be/enums/facing6.hpp>
-#include <je2be/enums/villager-profession.hpp>
-#include <je2be/enums/villager-type.hpp>
-#include <je2be/nbt-ext.hpp>
-#include <je2be/props.hpp>
-#include <je2be/rotation.hpp>
-#include <je2be/tile-entity/loot-table.hpp>
-#include <je2be/toje/block-data.hpp>
-#include <je2be/toje/context.hpp>
-#include <je2be/toje/entity.hpp>
-#include <je2be/toje/item.hpp>
+#include <je2be/toje/_entity.hpp>
+
+#include <je2be/_nbt-ext.hpp>
+#include <je2be/_props.hpp>
+#include <je2be/_rotation.hpp>
+#include <je2be/entity/_armor-stand.hpp>
+#include <je2be/entity/_axolotl.hpp>
+#include <je2be/entity/_boat.hpp>
+#include <je2be/entity/_cat.hpp>
+#include <je2be/entity/_frog.hpp>
+#include <je2be/entity/_painting.hpp>
+#include <je2be/entity/_panda.hpp>
+#include <je2be/entity/_tropical-fish.hpp>
+#include <je2be/enums/_facing6.hpp>
+#include <je2be/enums/_villager-profession.hpp>
+#include <je2be/enums/_villager-type.hpp>
+#include <je2be/tile-entity/_loot-table.hpp>
+#include <je2be/toje/_block-data.hpp>
+#include <je2be/toje/_context.hpp>
+#include <je2be/toje/_item.hpp>
 
 #include <xxhash64.h>
 

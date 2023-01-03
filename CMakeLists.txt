@@ -20,180 +20,177 @@ endif()
 set(je2be_header_files
   #begin je2be-header files
   include/je2be.hpp
-  include/je2be/box360/biome.hpp
-  include/je2be/box360/block-data.hpp
-  include/je2be/box360/box360.hpp
-  include/je2be/box360/chunk.hpp
-  include/je2be/box360/context.hpp
+  include/je2be/_data3d.hpp
+  include/je2be/_dimension-ext.hpp
+  include/je2be/_file.hpp
+  include/je2be/_fs.hpp
+  include/je2be/_future-support.hpp
+  include/je2be/_java-level-dat.hpp
+  include/je2be/_mcfile-fwd.hpp
+  include/je2be/_mem.hpp
+  include/je2be/_nbt-ext.hpp
+  include/je2be/_nullable.hpp
+  include/je2be/_optional.hpp
+  include/je2be/_parallel.hpp
+  include/je2be/_poi-blocks.hpp
+  include/je2be/_pos3.hpp
+  include/je2be/_props.hpp
+  include/je2be/_rename-pair.hpp
+  include/je2be/_reversible-map.hpp
+  include/je2be/_rotation.hpp
+  include/je2be/_size.hpp
+  include/je2be/_static-reversible-map.hpp
+  include/je2be/_version.hpp
+  include/je2be/_volume.hpp
+  include/je2be/_xxhash.hpp
+  include/je2be/_zip-file.hpp
+  include/je2be/box360/_biome.hpp
+  include/je2be/box360/_block-data.hpp
+  include/je2be/box360/_chunk.hpp
+  include/je2be/box360/_context.hpp
+  include/je2be/box360/_entity.hpp
+  include/je2be/box360/_grid.hpp
+  include/je2be/box360/_item.hpp
+  include/je2be/box360/_lzx-decoder.hpp
+  include/je2be/box360/_savegame.hpp
+  include/je2be/box360/_stfs-ext.hpp
+  include/je2be/box360/_stfs.hpp
+  include/je2be/box360/_terraform.hpp
+  include/je2be/box360/_tile-entity-convert-result.hpp
+  include/je2be/box360/_tile-entity.hpp
+  include/je2be/box360/_world.hpp
   include/je2be/box360/converter.hpp
-  include/je2be/box360/detail/lzx-decoder.hpp
-  include/je2be/box360/detail/stfs-ext.hpp
-  include/je2be/box360/detail/stfs.hpp
-  include/je2be/box360/entity.hpp
-  include/je2be/box360/grid.hpp
-  include/je2be/box360/item.hpp
   include/je2be/box360/minecraft-save-info.hpp
   include/je2be/box360/options.hpp
   include/je2be/box360/progress.hpp
-  include/je2be/box360/savegame.hpp
-  include/je2be/box360/terraform.hpp
-  include/je2be/box360/tile-entity-convert-result.hpp
-  include/je2be/box360/tile-entity.hpp
-  include/je2be/box360/world.hpp
-  include/je2be/color/lab.hpp
-  include/je2be/color/rgba.hpp
-  include/je2be/color/sign-color.hpp
-  include/je2be/command/command.hpp
-  include/je2be/command/target-selector.hpp
-  include/je2be/command/token.hpp
-  include/je2be/data3d.hpp
-  include/je2be/db/async-iterator.hpp
-  include/je2be/db/db-interface.hpp
-  include/je2be/db/db.hpp
-  include/je2be/db/null-db.hpp
-  include/je2be/db/raw-db.hpp
+  include/je2be/color/_lab.hpp
+  include/je2be/color/_rgba.hpp
+  include/je2be/color/_sign-color.hpp
+  include/je2be/command/_command.hpp
+  include/je2be/command/_target-selector.hpp
+  include/je2be/command/_token.hpp
+  include/je2be/db/_async-iterator.hpp
+  include/je2be/db/_db-interface.hpp
+  include/je2be/db/_db.hpp
+  include/je2be/db/_null-db.hpp
+  include/je2be/db/_raw-db.hpp
   include/je2be/defer.hpp
-  include/je2be/dimension-ext.hpp
-  include/je2be/entity/armor-stand.hpp
-  include/je2be/entity/axolotl.hpp
-  include/je2be/entity/boat.hpp
-  include/je2be/entity/cat.hpp
-  include/je2be/entity/effect.hpp
-  include/je2be/entity/entity-attributes.hpp
-  include/je2be/entity/frog.hpp
-  include/je2be/entity/painting.hpp
-  include/je2be/entity/panda.hpp
-  include/je2be/entity/tropical-fish.hpp
-  include/je2be/enums/banner-color-code-bedrock.hpp
-  include/je2be/enums/chunk-conversion-mode.hpp
-  include/je2be/enums/color-code-java.hpp
-  include/je2be/enums/facing4.hpp
-  include/je2be/enums/facing6.hpp
-  include/je2be/enums/game-mode.hpp
+  include/je2be/entity/_armor-stand.hpp
+  include/je2be/entity/_axolotl.hpp
+  include/je2be/entity/_boat.hpp
+  include/je2be/entity/_cat.hpp
+  include/je2be/entity/_effect.hpp
+  include/je2be/entity/_entity-attributes.hpp
+  include/je2be/entity/_frog.hpp
+  include/je2be/entity/_painting.hpp
+  include/je2be/entity/_panda.hpp
+  include/je2be/entity/_tropical-fish.hpp
+  include/je2be/enums/_banner-color-code-bedrock.hpp
+  include/je2be/enums/_chunk-conversion-mode.hpp
+  include/je2be/enums/_color-code-java.hpp
+  include/je2be/enums/_facing4.hpp
+  include/je2be/enums/_facing6.hpp
+  include/je2be/enums/_game-mode.hpp
+  include/je2be/enums/_red-flower.hpp
+  include/je2be/enums/_skull-type.hpp
+  include/je2be/enums/_villager-profession.hpp
+  include/je2be/enums/_villager-type.hpp
   include/je2be/enums/level-directory-structure.hpp
-  include/je2be/enums/red-flower.hpp
-  include/je2be/enums/skull-type.hpp
-  include/je2be/enums/villager-profession.hpp
-  include/je2be/enums/villager-type.hpp
-  include/je2be/file.hpp
-  include/je2be/fs.hpp
-  include/je2be/future-support.hpp
-  include/je2be/item/banner.hpp
-  include/je2be/item/enchantments.hpp
-  include/je2be/item/fireworks-explosion.hpp
-  include/je2be/item/fireworks.hpp
-  include/je2be/item/goat-horn.hpp
-  include/je2be/item/map-color.hpp
-  include/je2be/item/potion.hpp
-  include/je2be/item/tipped-arrow-potion.hpp
-  include/je2be/java-level-dat.hpp
-  include/je2be/mcfile-fwd.hpp
-  include/je2be/mem.hpp
-  include/je2be/nbt-ext.hpp
+  include/je2be/item/_banner.hpp
+  include/je2be/item/_enchantments.hpp
+  include/je2be/item/_fireworks-explosion.hpp
+  include/je2be/item/_fireworks.hpp
+  include/je2be/item/_goat-horn.hpp
+  include/je2be/item/_map-color.hpp
+  include/je2be/item/_potion.hpp
+  include/je2be/item/_tipped-arrow-potion.hpp
   include/je2be/nbt.hpp
-  include/je2be/nullable.hpp
-  include/je2be/optional.hpp
-  include/je2be/parallel.hpp
-  include/je2be/poi-blocks.hpp
   include/je2be/pos2.hpp
-  include/je2be/pos3.hpp
-  include/je2be/props.hpp
-  include/je2be/rename-pair.hpp
-  include/je2be/reversible-map.hpp
-  include/je2be/rotation.hpp
-  include/je2be/size.hpp
-  include/je2be/static-reversible-map.hpp
   include/je2be/status.hpp
   include/je2be/strings.hpp
-  include/je2be/structure/structure-piece.hpp
-  include/je2be/terraform/bedrock/attached-stem.hpp
-  include/je2be/terraform/bedrock/block-accessor-bedrock.hpp
-  include/je2be/terraform/bedrock/kelp.hpp
-  include/je2be/terraform/block-accessor.hpp
-  include/je2be/terraform/block-property-accessor.hpp
-  include/je2be/terraform/box360/attached-stem.hpp
-  include/je2be/terraform/box360/block-accessor-box360.hpp
-  include/je2be/terraform/box360/chest.hpp
-  include/je2be/terraform/box360/kelp.hpp
-  include/je2be/terraform/chorus-plant.hpp
-  include/je2be/terraform/fence-connectable.hpp
-  include/je2be/terraform/leaves.hpp
-  include/je2be/terraform/note-block.hpp
-  include/je2be/terraform/redstone-wire.hpp
-  include/je2be/terraform/shape-of-stairs.hpp
-  include/je2be/terraform/snowy.hpp
-  include/je2be/terraform/wall-connectable.hpp
-  include/je2be/tile-entity/loot-table.hpp
-  include/je2be/tobe/chunk-data-package.hpp
-  include/je2be/tobe/chunk-data.hpp
-  include/je2be/tobe/context.hpp
-  include/je2be/tobe/converter/axolotl.hpp
-  include/je2be/tobe/converter/biome-map-legacy.hpp
-  include/je2be/tobe/converter/block-data.hpp
-  include/je2be/tobe/converter/block-palette.hpp
-  include/je2be/tobe/converter/chunk.hpp
-  include/je2be/tobe/converter/converter.hpp
-  include/je2be/tobe/converter/datapacks.hpp
-  include/je2be/tobe/converter/enchant-data.hpp
-  include/je2be/tobe/converter/entity.hpp
-  include/je2be/tobe/converter/flat-world-layers.hpp
-  include/je2be/tobe/converter/height-map.hpp
-  include/je2be/tobe/converter/item.hpp
-  include/je2be/tobe/converter/java-edition-map.hpp
-  include/je2be/tobe/converter/level.hpp
-  include/je2be/tobe/converter/map.hpp
-  include/je2be/tobe/converter/moving-piston.hpp
-  include/je2be/tobe/converter/player-abilities.hpp
-  include/je2be/tobe/converter/region.hpp
-  include/je2be/tobe/converter/sub-chunk.hpp
-  include/je2be/tobe/converter/tile-entity.hpp
-  include/je2be/tobe/converter/world.hpp
-  include/je2be/tobe/level-data.hpp
+  include/je2be/structure/_structure-piece.hpp
+  include/je2be/terraform/_block-accessor.hpp
+  include/je2be/terraform/_block-property-accessor.hpp
+  include/je2be/terraform/_chorus-plant.hpp
+  include/je2be/terraform/_fence-connectable.hpp
+  include/je2be/terraform/_leaves.hpp
+  include/je2be/terraform/_note-block.hpp
+  include/je2be/terraform/_redstone-wire.hpp
+  include/je2be/terraform/_shape-of-stairs.hpp
+  include/je2be/terraform/_snowy.hpp
+  include/je2be/terraform/_wall-connectable.hpp
+  include/je2be/terraform/bedrock/_attached-stem.hpp
+  include/je2be/terraform/bedrock/_block-accessor-bedrock.hpp
+  include/je2be/terraform/bedrock/_kelp.hpp
+  include/je2be/terraform/box360/_attached-stem.hpp
+  include/je2be/terraform/box360/_block-accessor-box360.hpp
+  include/je2be/terraform/box360/_chest.hpp
+  include/je2be/terraform/box360/_kelp.hpp
+  include/je2be/tile-entity/_loot-table.hpp
+  include/je2be/tobe/_axolotl.hpp
+  include/je2be/tobe/_biome-map-legacy.hpp
+  include/je2be/tobe/_block-data.hpp
+  include/je2be/tobe/_block-palette.hpp
+  include/je2be/tobe/_chunk-data-package.hpp
+  include/je2be/tobe/_chunk-data.hpp
+  include/je2be/tobe/_chunk.hpp
+  include/je2be/tobe/_context.hpp
+  include/je2be/tobe/_datapacks.hpp
+  include/je2be/tobe/_enchant-data.hpp
+  include/je2be/tobe/_entity.hpp
+  include/je2be/tobe/_flat-world-layers.hpp
+  include/je2be/tobe/_height-map.hpp
+  include/je2be/tobe/_item.hpp
+  include/je2be/tobe/_java-edition-map.hpp
+  include/je2be/tobe/_level-data.hpp
+  include/je2be/tobe/_level.hpp
+  include/je2be/tobe/_map.hpp
+  include/je2be/tobe/_moving-piston.hpp
+  include/je2be/tobe/_player-abilities.hpp
+  include/je2be/tobe/_region.hpp
+  include/je2be/tobe/_session-lock.hpp
+  include/je2be/tobe/_sub-chunk.hpp
+  include/je2be/tobe/_tile-entity.hpp
+  include/je2be/tobe/_uuid-registrar.hpp
+  include/je2be/tobe/_versions.hpp
+  include/je2be/tobe/_world-data.hpp
+  include/je2be/tobe/_world.hpp
+  include/je2be/tobe/converter.hpp
   include/je2be/tobe/options.hpp
-  include/je2be/tobe/portal/oriented-portal-blocks.hpp
-  include/je2be/tobe/portal/portal-blocks.hpp
-  include/je2be/tobe/portal/portal.hpp
-  include/je2be/tobe/portal/portals.hpp
+  include/je2be/tobe/portal/_oriented-portal-blocks.hpp
+  include/je2be/tobe/portal/_portal-blocks.hpp
+  include/je2be/tobe/portal/_portal.hpp
+  include/je2be/tobe/portal/_portals.hpp
   include/je2be/tobe/progress.hpp
-  include/je2be/tobe/session-lock.hpp
-  include/je2be/tobe/structure/structure-piece-collection.hpp
-  include/je2be/tobe/structure/structures.hpp
-  include/je2be/tobe/tobe.hpp
-  include/je2be/tobe/uuid-registrar.hpp
-  include/je2be/tobe/versions.hpp
-  include/je2be/tobe/world-data.hpp
-  include/je2be/toje/block-accessor-wrapper.hpp
-  include/je2be/toje/block-data.hpp
-  include/je2be/toje/block-entity-convert-result.hpp
-  include/je2be/toje/block-entity.hpp
-  include/je2be/toje/chunk.hpp
-  include/je2be/toje/constants.hpp
-  include/je2be/toje/context.hpp
+  include/je2be/tobe/structure/_structure-piece-collection.hpp
+  include/je2be/tobe/structure/_structures.hpp
+  include/je2be/toje/_block-accessor-wrapper.hpp
+  include/je2be/toje/_block-data.hpp
+  include/je2be/toje/_block-entity-convert-result.hpp
+  include/je2be/toje/_block-entity.hpp
+  include/je2be/toje/_chunk.hpp
+  include/je2be/toje/_constants.hpp
+  include/je2be/toje/_context.hpp
+  include/je2be/toje/_entity.hpp
+  include/je2be/toje/_item.hpp
+  include/je2be/toje/_level-data.hpp
+  include/je2be/toje/_map-info.hpp
+  include/je2be/toje/_region.hpp
+  include/je2be/toje/_structure-info.hpp
+  include/je2be/toje/_sub-chunk.hpp
+  include/je2be/toje/_world.hpp
   include/je2be/toje/converter.hpp
-  include/je2be/toje/entity.hpp
-  include/je2be/toje/item.hpp
-  include/je2be/toje/level-data.hpp
-  include/je2be/toje/map-info.hpp
   include/je2be/toje/options.hpp
   include/je2be/toje/progress.hpp
-  include/je2be/toje/region.hpp
-  include/je2be/toje/structure-info.hpp
-  include/je2be/toje/sub-chunk.hpp
-  include/je2be/toje/terraform/beacon.hpp
-  include/je2be/toje/terraform/campfire.hpp
-  include/je2be/toje/terraform/cave-vines.hpp
-  include/je2be/toje/terraform/door.hpp
-  include/je2be/toje/terraform/piston.hpp
-  include/je2be/toje/terraform/tripwire.hpp
-  include/je2be/toje/terraform/twisting-vines.hpp
-  include/je2be/toje/terraform/weeping-vines.hpp
-  include/je2be/toje/toje.hpp
-  include/je2be/toje/world.hpp
+  include/je2be/toje/terraform/_beacon.hpp
+  include/je2be/toje/terraform/_campfire.hpp
+  include/je2be/toje/terraform/_cave-vines.hpp
+  include/je2be/toje/terraform/_door.hpp
+  include/je2be/toje/terraform/_piston.hpp
+  include/je2be/toje/terraform/_tripwire.hpp
+  include/je2be/toje/terraform/_twisting-vines.hpp
+  include/je2be/toje/terraform/_weeping-vines.hpp
   include/je2be/uuid.hpp
-  include/je2be/version.hpp
-  include/je2be/volume.hpp
-  include/je2be/xxhash.hpp
-  include/je2be/zip-file.hpp
   #end je2be-header files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
@@ -294,6 +291,7 @@ set(je2be_src_files
   #begin je2be-src files
   src/box360-block-data.cpp
   src/box360-chunk.cpp
+  src/box360-converter.cpp
   src/box360-entity.cpp
   src/box360-item.cpp
   src/box360-minecraft-save-info.cpp
@@ -308,22 +306,23 @@ set(je2be_src_files
   src/terraform-note-block.cpp
   src/terraform-shape-of-stairs.cpp
   src/terraform-wall-connectable.cpp
+  src/tobe-block-data.cpp
   src/tobe-chunk-data-package.cpp
-  src/tobe-converter-block-data.cpp
-  src/tobe-converter-chunk.cpp
-  src/tobe-converter-converter.cpp
-  src/tobe-converter-entity.cpp
-  src/tobe-converter-item.cpp
-  src/tobe-converter-map.cpp
-  src/tobe-converter-moving-piston.cpp
-  src/tobe-converter-region.cpp
-  src/tobe-converter-sub-chunk.cpp
-  src/tobe-converter-tile-entity.cpp
-  src/tobe-converter-world.cpp
+  src/tobe-chunk.cpp
+  src/tobe-converter.cpp
+  src/tobe-entity.cpp
+  src/tobe-item.cpp
+  src/tobe-map.cpp
+  src/tobe-moving-piston.cpp
+  src/tobe-region.cpp
+  src/tobe-sub-chunk.cpp
+  src/tobe-tile-entity.cpp
+  src/tobe-world.cpp
   src/toje-block-data.cpp
   src/toje-block-entity.cpp
   src/toje-chunk.cpp
   src/toje-context.cpp
+  src/toje-converter.cpp
   src/toje-entity.cpp
   src/toje-item.cpp
   src/toje-region.cpp
@@ -346,7 +345,8 @@ set(test_files
   test/loot-table.test.hpp
   test/bee-nest.test.hpp
   test/end-gateway.test.hpp
-  test/strings.test.hpp)
+  test/strings.test.hpp
+  test/je2be-all.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 
@@ -406,6 +406,7 @@ target_include_directories(je2be PUBLIC
   deps/libminecraft-file/include
   deps/libminecraft-file/deps/libdeflate
   ${je2be_include_directories})
+target_include_directories(je2be PRIVATE ./src)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
 

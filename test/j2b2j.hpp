@@ -915,8 +915,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   CHECK(outJ);
-  je2be::toje::Converter toje(*outB, *outJ, optJ);
-  CHECK(toje.run(thread::hardware_concurrency()).ok());
+  CHECK(je2be::toje::Converter::Run(*outB, *outJ, optJ, thread::hardware_concurrency()).ok());
 
   // Compare initial Java input and final Java output.
 

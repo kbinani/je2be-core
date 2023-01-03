@@ -1,6 +1,6 @@
-#include <je2be/toje/sub-chunk.hpp>
+#include <je2be/toje/_sub-chunk.hpp>
 
-#include <je2be/toje/block-data.hpp>
+#include <je2be/toje/_block-data.hpp>
 
 namespace je2be::toje {
 

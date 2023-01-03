@@ -23,8 +23,7 @@ TEST_CASE("shoulder-riders") {
   je2be::toje::Options optToJe;
   optToJe.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   optToJe.fChunkFilter.insert(Pos2i(0, 0));
-  je2be::toje::Converter toje(be, je, optToJe);
-  CHECK(toje.run(1).ok());
+  CHECK(je2be::toje::Converter::Run(be, je, optToJe, 1).ok());
 
   auto level = je / "level.dat";
   auto stream = make_shared<mcfile::stream::GzFileInputStream>(level);

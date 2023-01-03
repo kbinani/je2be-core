@@ -22,8 +22,7 @@ static std::optional<fs::path> BedrockToJava(fs::path const &bedrock) {
   je2be::toje::Options o;
   o.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   o.fChunkFilter.insert(Pos2i(0, 0));
-  je2be::toje::Converter converter(bedrock, *output, o);
-  if (auto st = converter.run(thread::hardware_concurrency()); !st.ok()) {
+  if (auto st = je2be::toje::Converter::Run(bedrock, *output, o, thread::hardware_concurrency()); !st.ok()) {
     return nullopt;
   }
   return *output;

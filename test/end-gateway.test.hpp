@@ -13,8 +13,7 @@ TEST_CASE("end-gateway") {
     opt.fDimensionFilter.insert(Dimension::End);
     opt.fChunkFilter.insert({-5, -4});
     opt.fChunkFilter.insert({-51, -39});
-    toje::Converter converter(in, out, opt);
-    auto st = converter.run(thread::hardware_concurrency());
+    auto st = toje::Converter::Run(in, out, opt, thread::hardware_concurrency());
     CHECK(st.ok());
     mcfile::je::World world(out / "DIM1");
     {

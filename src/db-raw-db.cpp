@@ -1,7 +1,6 @@
-#include <je2be/db/raw-db.hpp>
+#include <je2be/db/_raw-db.hpp>
 
-#include <je2be/future-support.hpp>
-#include <je2be/parallel.hpp>
+#include <je2be/_parallel.hpp>
 
 #include <db/log_writer.h>
 #include <db/version_edit.h>
@@ -9,6 +8,8 @@
 #include <table/block_builder.h>
 #include <table/format.h>
 #include <util/crc32c.h>
+
+#include <je2be/_future-support.hpp>
 
 #include <BS_thread_pool.hpp>
 
