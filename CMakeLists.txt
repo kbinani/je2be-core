@@ -193,6 +193,7 @@ set(je2be_src_files
   src/command/_token.hpp
   src/db-raw-db.cpp
   src/db/_async-iterator.hpp
+  src/db/_concurrent-db.hpp
   src/db/_db-interface.hpp
   src/db/_db.hpp
   src/db/_null-db.hpp

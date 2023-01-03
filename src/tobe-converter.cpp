@@ -14,6 +14,7 @@
 #include <je2be/tobe/progress.hpp>
 
 #include "_parallel.hpp"
+#include "db/_concurrent-db.hpp"
 #include "db/_raw-db.hpp"
 #include "tobe/_context.hpp"
 #include "tobe/_datapacks.hpp"
@@ -60,7 +61,7 @@ public:
     bool ok = Datapacks::Import(input, output);
 
     auto levelData = std::make_unique<LevelData>(input, o, level.fCurrentTick, level.fDifficulty, level.fCommandsEnabled, level.fGameType);
-    RawDb db(dbPath);
+    ConcurrentDb db(dbPath);
     if (!db.valid()) {
       return JE2BE_ERROR;
     }
