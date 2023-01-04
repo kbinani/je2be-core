@@ -24,8 +24,8 @@ public:
 
     auto ctx = parentContext.make();
 
-    mcfile::je::McaBuilder terrain(destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
-    mcfile::je::McaBuilder entities(destination / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
+    mcfile::je::McaEditor terrain(destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
+    mcfile::je::McaEditor entities(destination / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
 
     bool ok = true;
     for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
@@ -58,10 +58,18 @@ public:
 
         int localX = cx - rx * 32;
         int localZ = cz - rz * 32;
-        if (!terrain.writeChunk(localX, localZ, [j](auto &out) { return j->write(out); })) {
+        auto terrainTag = j->toCompoundTag();
+        if (!terrainTag) {
           return nullptr;
         }
-        if (!entities.writeChunk(localX, localZ, [j](auto &out) { return j->writeEntities(out); })) {
+        if (!terrain.insert(localX, localZ, *terrainTag)) {
+          return nullptr;
+        }
+        auto entitiesTag = j->toEntitiesCompoundTag();
+        if (!entitiesTag) {
+          return nullptr;
+        }
+        if (!entities.insert(localX, localZ, *entitiesTag)) {
           return nullptr;
         }
       }

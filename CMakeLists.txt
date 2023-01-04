@@ -88,7 +88,6 @@ set(je2be_header_files
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-118.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
   deps/libminecraft-file/include/mcfile/je/flatten.hpp
-  deps/libminecraft-file/include/mcfile/je/mca-builder.hpp
   deps/libminecraft-file/include/mcfile/je/mca-chunk-locator.hpp
   deps/libminecraft-file/include/mcfile/je/mca-editor.hpp
   deps/libminecraft-file/include/mcfile/je/region.hpp
