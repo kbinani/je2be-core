@@ -99,7 +99,7 @@
 #include "db/_db-interface.hpp"
 #include "db/_db.hpp"
 #include "db/_null-db.hpp"
-#include "db/_raw-db.hpp"
+#include "db/_concurrent-db.hpp"
 
 #include "tobe/_block-data.hpp"
 #include "toje/_block-data.hpp"

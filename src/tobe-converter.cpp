@@ -15,7 +15,6 @@
 
 #include "_parallel.hpp"
 #include "db/_concurrent-db.hpp"
-#include "db/_raw-db.hpp"
 #include "tobe/_context.hpp"
 #include "tobe/_datapacks.hpp"
 #include "tobe/_entity.hpp"
