@@ -63,6 +63,7 @@ class ConcurrentDb : public DbInterface {
 
       fKey = key;
       fValue = value;
+      std::fill_n(fNumPrefix, 256, 0);
     }
 
     ~Writer() {
@@ -72,6 +73,9 @@ class ConcurrentDb : public DbInterface {
     void put(std::string const &key, std::string const &value) {
       using namespace std;
       if (!fValue || !fKey) {
+        return;
+      }
+      if (key.empty()) {
         return;
       }
       uint64_t sequence = fSequencer.fetch_add(1);
@@ -102,6 +106,14 @@ class ConcurrentDb : public DbInterface {
       }
       fOffset += block.size();
       fNumKeys++;
+      {
+        int idx = (unsigned char)key[0];
+        uint16_t num = fNumPrefix[idx];
+        if (num < numeric_limits<uint16_t>::max()) {
+          num++;
+        }
+        fNumPrefix[idx] = num;
+      }
       return;
 
     error:
@@ -119,6 +131,7 @@ class ConcurrentDb : public DbInterface {
     struct CloseResult {
       uint32_t fWriterId;
       uint64_t fNumKeys;
+      uint16_t fNumPrefix[256];
     };
     std::optional<CloseResult> close() {
       if (!fValue || !fKey) {
@@ -139,6 +152,7 @@ class ConcurrentDb : public DbInterface {
       CloseResult result;
       result.fNumKeys = fNumKeys;
       result.fWriterId = fId;
+      std::copy_n(fNumPrefix, 256, result.fNumPrefix);
       return result;
     }
 
@@ -181,6 +195,7 @@ class ConcurrentDb : public DbInterface {
     FILE *fValue = nullptr;
     uint64_t fOffset = 0;
     uint64_t fNumKeys = 0;
+    uint16_t fNumPrefix[256];
   };
 
   class Gate {
@@ -483,12 +498,12 @@ public:
       return false;
     }
 
-    vector<char> works;
+    vector<uint8_t> works;
     for (int i = 0; i < 256; i++) {
-      works.push_back((unsigned char)i);
+      works.push_back((uint8_t)i);
     }
     atomic_uint64_t fileNumber(1);
-    auto result = Parallel::Reduce<char, vector<TableBuildResult>>(
+    auto result = Parallel::Reduce<uint8_t, vector<TableBuildResult>>(
         works,
         vector<TableBuildResult>(),
         bind(BuildTable, fDbName, writerIds, &fileNumber, &ok, _1),
@@ -541,7 +556,7 @@ public:
       std::vector<Writer::CloseResult> const &writerIds,
       std::atomic_uint64_t *fileNumber,
       std::atomic_bool *ok,
-      char prefix) {
+      uint8_t prefix) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
@@ -553,12 +568,17 @@ public:
       if (!ok->load()) {
         break;
       }
+      int expectedEncount = (int)cr.fNumPrefix[prefix];
+      if (expectedEncount == 0) {
+        continue;
+      }
       fs::path fname = dbname / to_string(cr.fWriterId) / "key.bin";
       FILE *fp = mcfile::File::Open(fname, mcfile::File::Mode::Read);
       if (!fp) {
         ok->store(false);
         break;
       }
+      int encount = 0;
       for (uint64_t i = 0; i < cr.fNumKeys; i++) {
         Key key;
         key.fWriterId = cr.fWriterId;
@@ -568,7 +588,7 @@ public:
           fclose(fp);
           break;
         }
-        char first;
+        uint8_t first;
         if (fread(&first, sizeof(first), 1, fp) != 1) {
           ok->store(false);
           fclose(fp);
@@ -582,7 +602,7 @@ public:
           continue;
         }
         key.fKey.resize(keySize);
-        key.fKey[0] = prefix;
+        key.fKey[0] = (char)prefix;
         if (keySize > 1) {
           if (fread(key.fKey.data() + 1, keySize - 1, 1, fp) != 1) {
             ok->store(false);
@@ -605,6 +625,10 @@ public:
           break;
         }
         keys.push_back(key);
+        encount++;
+        if (expectedEncount != numeric_limits<uint16_t>::max() && encount == expectedEncount) {
+          break;
+        }
       }
       fclose(fp);
       if (!ok->load()) {
