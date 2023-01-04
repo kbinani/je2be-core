@@ -191,13 +191,11 @@ set(je2be_src_files
   src/command/_command.hpp
   src/command/_target-selector.hpp
   src/command/_token.hpp
-  src/db-raw-db.cpp
   src/db/_async-iterator.hpp
   src/db/_concurrent-db.hpp
   src/db/_db-interface.hpp
   src/db/_db.hpp
   src/db/_null-db.hpp
-  src/db/_raw-db.hpp
   src/entity/_armor-stand.hpp
   src/entity/_axolotl.hpp
   src/entity/_boat.hpp
