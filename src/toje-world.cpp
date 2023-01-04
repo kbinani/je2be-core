@@ -89,66 +89,50 @@ public:
       return JE2BE_ERROR;
     }
 
-    unordered_set<Pos2i, Pos2iHasher> chunks;
+    unordered_map<Pos2i, unordered_set<Pos2i, Pos2iHasher>, Pos2iHasher> chunksInRegion;
 
     unordered_map<Pos2i, unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> leashedEntities;
     for (auto const &it : ctx->fLeashedEntities) {
       leashedEntities[it.second.fChunk][it.first] = it.second.fLeasherId;
-      chunks.insert(it.second.fChunk);
+      int rx = mcfile::Coordinate::RegionFromChunk(it.second.fChunk.fX);
+      int rz = mcfile::Coordinate::RegionFromChunk(it.second.fChunk.fZ);
+      chunksInRegion[{rx, rz}].insert(it.second.fChunk);
     }
 
     unordered_map<Pos2i, unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> vehicleEntities;
     for (auto const &it : ctx->fVehicleEntities) {
       if (!it.second.fPassengers.empty()) {
         vehicleEntities[it.second.fChunk][it.first] = it.second.fPassengers;
-        chunks.insert(it.second.fChunk);
+        int rx = mcfile::Coordinate::RegionFromChunk(it.second.fChunk.fX);
+        int rz = mcfile::Coordinate::RegionFromChunk(it.second.fChunk.fZ);
+        chunksInRegion[{rx, rz}].insert(it.second.fChunk);
       }
     }
 
-    for (Pos2i const &chunk : chunks) {
-      if (auto st = AttachLeashAndPassengers(chunk, dir, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
-        return st;
+    for (auto const &it : chunksInRegion) {
+      Pos2i r = it.first;
+      fs::path entitiesDir = dir / "entities";
+      fs::path entitiesMca = entitiesDir / mcfile::je::Region::GetDefaultRegionFileName(r.fX, r.fZ);
+      mcfile::je::McaEditor editor(entitiesMca);
+      unordered_set<Pos2i, Pos2iHasher> const &chunks = it.second;
+      for (Pos2i const &chunk : chunks) {
+        if (auto st = AttachLeashAndPassengers(chunk, entitiesDir, editor, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
+          return st;
+        }
       }
-    }
-
-    Status st = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, Status>(
-        regions,
-        Status::Ok(),
-        [dir](pair<Pos2i, Context::ChunksInRegion> const &work) -> Status {
-          Pos2i region = work.first;
-          return SquashEntityChunks(region.fX, region.fZ, dir);
-        },
-        Status::Merge);
-
-    if (!st.ok()) {
-      return st;
     }
 
     resultContext.swap(ctx);
     return Status::Ok();
   }
 
-  static Status SquashEntityChunks(int rx, int rz, std::filesystem::path dir) {
-    namespace fs = std::filesystem;
-    using namespace std;
-    fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
-    fs::path entitiesMca = dir / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    defer {
-      error_code ec1;
-      fs::remove_all(entitiesDir, ec1);
-    };
-    if (mcfile::je::Region::ConcatCompressedNbt(rx, rz, entitiesDir, entitiesMca)) {
-      return Status::Ok();
-    } else {
-      return JE2BE_ERROR;
-    }
-  }
-
-  static Status AttachLeashAndPassengers(Pos2i chunk,
-                                         std::filesystem::path dir,
-                                         Context &ctx,
-                                         std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
-                                         std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+  static Status AttachLeashAndPassengers(
+      Pos2i chunk,
+      std::filesystem::path const &entitiesDir,
+      mcfile::je::McaEditor &editor,
+      Context &ctx,
+      std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
+      std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
@@ -156,38 +140,36 @@ public:
     int cz = chunk.fZ;
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
     int rz = mcfile::Coordinate::RegionFromChunk(cz);
-    fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
-    fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
+    int localX = chunk.fX - rx * 32;
+    int localZ = chunk.fZ - rz * 32;
 
-    vector<uint8_t> buffer;
-    if (!je2be::file::GetContents(nbt, buffer)) {
-      return JE2BE_ERROR;
-    }
-    auto content = CompoundTag::ReadCompressed(buffer, mcfile::Endian::Big);
+    auto content = editor.extract(localX, localZ);
     if (!content) {
       return JE2BE_ERROR;
     }
     auto entities = content->listTag("Entities");
     if (!entities) {
-      return Status::Ok();
+      return JE2BE_ERROR;
     }
     AttachLeash(chunk, ctx, *entities, leashedEntities);
-    if (auto st = AttachPassengers(chunk, ctx, entities, dir, vehicleEntities); !st.ok()) {
+    if (auto st = AttachPassengers(chunk, ctx, entities, entitiesDir, editor, vehicleEntities); !st.ok()) {
       return st;
     }
 
-    if (CompoundTag::WriteCompressed(*content, nbt, mcfile::Endian::Big)) {
+    if (editor.insert(localX, localZ, *content)) {
       return Status::Ok();
     } else {
       return JE2BE_ERROR;
     }
   }
 
-  static Status AttachPassengers(Pos2i chunk,
-                                 Context &ctx,
-                                 ListTagPtr const &entities,
-                                 std::filesystem::path dir,
-                                 std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
+  static Status AttachPassengers(
+      Pos2i chunk,
+      Context &ctx,
+      ListTagPtr const &entities,
+      std::filesystem::path const &entitiesDir,
+      mcfile::je::McaEditor &editor,
+      std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;
     namespace fs = std::filesystem;
     auto vehicleEntitiesFound = vehicleEntities.find(chunk);
@@ -227,20 +209,16 @@ public:
           int cz = passengerChunk.fZ;
           int rx = mcfile::Coordinate::RegionFromChunk(cx);
           int rz = mcfile::Coordinate::RegionFromChunk(cz);
-          fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-          vector<uint8_t> buffer;
-          if (file::GetContents(nbt, buffer)) {
-            buffer.clear();
-            if (auto tag = CompoundTag::ReadCompressed(buffer, mcfile::Endian::Big); tag) {
-              entitiesInChunk = tag->listTag("Entities");
-            }
+          CompoundTagPtr tag;
+          if (mcfile::je::McaEditor::Load(nbt, cx - rx * 32, cz - rz * 32, tag); tag) {
+            entitiesInChunk = tag->listTag("Entities");
           }
         }
         if (!entitiesInChunk) {
           continue;
         }
-        for (Uuid passengerId : j.second) {
+        for (Uuid const &passengerId : j.second) {
           auto passenger = FindEntity(*entitiesInChunk, passengerId);
           if (!passenger) {
             continue;
@@ -260,9 +238,12 @@ public:
           int cz = passengerChunk.fZ;
           int rx = mcfile::Coordinate::RegionFromChunk(cx);
           int rz = mcfile::Coordinate::RegionFromChunk(cz);
-          fs::path entitiesDir = dir / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-          if (!CompoundTag::WriteCompressed(*data, nbt, mcfile::Endian::Big)) {
+          mcfile::je::McaEditor secondaryEditor(nbt);
+          int localX = cx - 32 * rx;
+          int localZ = cz - 32 * rz;
+          secondaryEditor.extract(localX, localZ);
+          if (!secondaryEditor.insert(localX, localZ, *data)) {
             return JE2BE_ERROR;
           }
         }

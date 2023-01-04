@@ -22,21 +22,10 @@ public:
     using namespace mcfile::stream;
     namespace fs = std::filesystem;
 
-    auto regionDir = File::CreateTempDir(parentContext.fTempDirectory);
-    if (!regionDir) {
-      return nullptr;
-    }
-    auto entityDir = destination / "entities" / ("r." + to_string(rx) + "." + to_string(rz));
-    if (!Fs::CreateDirectories(entityDir)) {
-      return nullptr;
-    }
-
     auto ctx = parentContext.make();
 
-    defer {
-      error_code ec1;
-      fs::remove_all(*regionDir, ec1);
-    };
+    mcfile::je::McaBuilder terrain(destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
+    mcfile::je::McaBuilder entities(destination / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
 
     bool ok = true;
     for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
@@ -67,24 +56,18 @@ public:
 
         auto j = Chunk::Convert(d, cx, cz, *b, *cache, *ctx);
 
-        auto streamTerrain = make_shared<FileOutputStream>(*regionDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
-        if (!j->write(*streamTerrain)) {
+        int localX = cx - rx * 32;
+        int localZ = cz - rz * 32;
+        if (!terrain.writeChunk(localX, localZ, [j](auto &out) { return j->write(out); })) {
           return nullptr;
         }
-
-        auto streamEntities = make_shared<FileOutputStream>(entityDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz));
-        if (!j->writeEntities(*streamEntities)) {
+        if (!entities.writeChunk(localX, localZ, [j](auto &out) { return j->writeEntities(out); })) {
           return nullptr;
         }
       }
     }
 
     if (!ok) {
-      return nullptr;
-    }
-
-    auto terrainMca = destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    if (!mcfile::je::Region::ConcatCompressedNbt(rx, rz, *regionDir, terrainMca)) {
       return nullptr;
     }
 
