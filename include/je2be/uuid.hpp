@@ -7,6 +7,22 @@ namespace je2be {
 struct Uuid {
   alignas(64) uint8_t fData[16];
 
+  Uuid() {
+    std::fill_n(fData, 16, 0);
+  }
+
+  Uuid(Uuid const &other) {
+    std::copy_n(other.fData, 16, fData);
+  }
+
+  Uuid &operator=(Uuid const &other) {
+    if (this == &other) {
+      return *this;
+    }
+    std::copy_n(other.fData, 16, fData);
+    return *this;
+  }
+
   static Uuid Gen() {
     std::random_device r;
     return GenWithSeed(r());
