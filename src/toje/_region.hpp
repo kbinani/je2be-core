@@ -19,7 +19,7 @@ public:
                                           std::unordered_set<Pos2i, Pos2iHasher> chunks,
                                           int rx,
                                           int rz,
-                                          leveldb::DB *db,
+                                          mcfile::be::DbInterface *db,
                                           std::filesystem::path destination,
                                           Context const &parentContext,
                                           std::function<bool(void)> progress);

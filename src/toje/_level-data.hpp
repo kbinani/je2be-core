@@ -10,7 +10,7 @@ namespace je2be::toje {
 class LevelData {
 public:
   struct GameRules {
-    static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, mcfile::Endian endian) {
+    static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, mcfile::Endian endian) {
       auto ret = Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[#__nameJ] = String(b.boolean(#__nameB, __default) ? "true" : "false");
@@ -53,9 +53,8 @@ public:
 #undef B
 #undef I
 
-      std::string mobEventsData;
-      if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::MobEvents(), &mobEventsData); st.ok()) {
-        if (auto mobEvents = CompoundTag::Read(mobEventsData, endian); mobEvents) {
+      if (auto mobEventsData = db.get(mcfile::be::DbKey::MobEvents()); mobEventsData) {
+        if (auto mobEvents = CompoundTag::Read(*mobEventsData, endian); mobEvents) {
           auto doPatrolSpawning = mobEvents->boolean("minecraft:pillager_patrols_event", true);
           auto doTraderSpawning = mobEvents->boolean("minecraft:wandering_trader_event", true);
 
@@ -115,7 +114,7 @@ public:
     return nullopt;
   }
 
-  static CompoundTagPtr Import(CompoundTag const &b, leveldb::DB &db, Options opt, Context &ctx) {
+  static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, Options opt, Context &ctx) {
     using namespace std;
 
     JavaLevelDat::Options o;
@@ -242,13 +241,13 @@ public:
     return settings;
   }
 
-  static std::optional<Entity::LocalPlayerData> Player(leveldb::DB &db, Context &ctx, Uuid const *uuid) {
-    std::string str;
-    if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::LocalPlayer(), &str); !st.ok()) {
+  static std::optional<Entity::LocalPlayerData> Player(mcfile::be::DbInterface &db, Context &ctx, Uuid const *uuid) {
+    auto str = db.get(mcfile::be::DbKey::LocalPlayer());
+    if (!str) {
       return std::nullopt;
     }
 
-    auto tag = CompoundTag::Read(str, ctx.fEndian);
+    auto tag = CompoundTag::Read(*str, ctx.fEndian);
     if (!tag) {
       return std::nullopt;
     }
@@ -256,12 +255,12 @@ public:
     return Entity::LocalPlayer(*tag, ctx, uuid);
   }
 
-  static CompoundTagPtr DragonFight(leveldb::DB &db, mcfile::Endian endian) {
-    std::string str;
-    if (auto st = db.Get(leveldb::ReadOptions{}, mcfile::be::DbKey::TheEnd(), &str); !st.ok()) {
+  static CompoundTagPtr DragonFight(mcfile::be::DbInterface &db, mcfile::Endian endian) {
+    auto str = db.get(mcfile::be::DbKey::TheEnd());
+    if (!str) {
       return nullptr;
     }
-    auto tag = CompoundTag::Read(str, endian);
+    auto tag = CompoundTag::Read(*str, endian);
     if (!tag) {
       return nullptr;
     }

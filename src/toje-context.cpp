@@ -107,7 +107,7 @@ class Context::Impl {
   };
 
 public:
-  static std::shared_ptr<Context> Init(leveldb::DB &db,
+  static std::shared_ptr<Context> Init(std::filesystem::path const &dbname,
                                        Options opt,
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
@@ -120,6 +120,14 @@ public:
     using namespace mcfile;
     namespace fs = std::filesystem;
 
+    DB *dbPtr = nullptr;
+    leveldb::Options o;
+    o.compression = kZlibRawCompression;
+    if (!DB::Open(o, dbname, &dbPtr).ok()) {
+      return nullptr;
+    }
+    unique_ptr<DB> db(dbPtr);
+
 #if defined(EMSCRIPTEN)
     Accum accum(opt, endian);
     unique_ptr<Iterator> itr(db.NewIterator({}));
@@ -128,7 +136,7 @@ public:
     }
 #else
     Accum accum = AsyncIterator::IterateUnordered<Accum>(
-        db,
+        *db,
         concurrency,
         Accum(opt, endian),
         Accum::Accept,
@@ -212,7 +220,7 @@ public:
   }
 };
 
-std::shared_ptr<Context> Context::Init(leveldb::DB &db,
+std::shared_ptr<Context> Context::Init(std::filesystem::path const &dbname,
                                        Options opt,
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
@@ -220,7 +228,7 @@ std::shared_ptr<Context> Context::Init(leveldb::DB &db,
                                        int64_t gameTick,
                                        GameMode gameMode,
                                        unsigned int concurrency) {
-  return Impl::Init(db, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency);
+  return Impl::Init(dbname, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency);
 }
 
 void Context::markMapUuidAsUsed(int64_t uuid) {
@@ -255,7 +263,7 @@ void Context::mergeInto(Context &other) const {
   other.fDataPack1_20Update = other.fDataPack1_20Update || fDataPack1_20Update;
 }
 
-Status Context::postProcess(std::filesystem::path root, leveldb::DB &db) const {
+Status Context::postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const {
   if (auto st = exportMaps(root, db); !st.ok()) {
     return st;
   }
@@ -372,7 +380,7 @@ void Context::addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::je
   }
 }
 
-Status Context::exportMaps(std::filesystem::path const &root, leveldb::DB &db) const {
+Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInterface &db) const {
   using namespace mcfile;
 
   if (!Fs::CreateDirectories(root / "data")) {
@@ -388,11 +396,11 @@ Status Context::exportMaps(std::filesystem::path const &root, leveldb::DB &db) c
     }
     int number = map->fNumber;
     auto key = mcfile::be::DbKey::Map(uuid);
-    std::string str;
-    if (auto st = db.Get(leveldb::ReadOptions{}, key, &str); !st.ok()) {
+    auto str = db.get(key);
+    if (!str) {
       continue;
     }
-    auto b = CompoundTag::Read(str, fEndian);
+    auto b = CompoundTag::Read(*str, fEndian);
     if (!b) {
       continue;
     }

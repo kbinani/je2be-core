@@ -35,7 +35,7 @@ public:
     std::unordered_set<Pos2i, Pos2iHasher> fChunks;
   };
 
-  static std::shared_ptr<Context> Init(leveldb::DB &db,
+  static std::shared_ptr<Context> Init(std::filesystem::path const &dbname,
                                        Options opt,
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
@@ -46,7 +46,7 @@ public:
 
   void markMapUuidAsUsed(int64_t uuid);
   void mergeInto(Context &other) const;
-  Status postProcess(std::filesystem::path root, leveldb::DB &db) const;
+  Status postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const;
   std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const;
   void structures(mcfile::Dimension d, Pos2i chunk, std::vector<StructureInfo::Structure> &buffer);
   std::shared_ptr<Context> make() const;
@@ -64,7 +64,7 @@ public:
   void addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::je::Block const &block);
 
 private:
-  Status exportMaps(std::filesystem::path const &root, leveldb::DB &db) const;
+  Status exportMaps(std::filesystem::path const &root, mcfile::be::DbInterface &db) const;
   Status exportPoi(std::filesystem::path const &root) const;
 
 public:

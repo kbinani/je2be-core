@@ -12,7 +12,7 @@ namespace je2be::terraform::bedrock {
 template <size_t Width, size_t Height>
 class BlockAccessorBedrock : public BlockAccessor<mcfile::be::Block> {
 public:
-  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, leveldb::DB *db, mcfile::Endian endian)
+  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, mcfile::be::DbInterface *db, mcfile::Endian endian)
       : fDim(d), fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fDb(db), fEndian(endian) {
   }
 
@@ -55,7 +55,7 @@ public:
       what.fBlockEntities = false;
       what.fEntities = false;
       what.fPendingTicks = false;
-      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, fDb, fEndian, what);
+      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, *fDb, fEndian, what);
       fCacheLoaded[*index] = true;
     }
     return fCache[*index];
@@ -102,7 +102,7 @@ public:
 private:
   std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
   std::vector<bool> fCacheLoaded;
-  leveldb::DB *const fDb;
+  mcfile::be::DbInterface *const fDb;
   mcfile::Endian const fEndian;
 };
 

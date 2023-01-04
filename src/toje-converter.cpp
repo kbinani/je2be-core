@@ -22,11 +22,6 @@ public:
     using namespace mcfile;
     namespace fs = std::filesystem;
 
-    unique_ptr<DB> db(Open(input / "db"));
-    if (!db) {
-      return JE2BE_ERROR;
-    }
-
     if (!PrepareOutputDirectory(output)) {
       return JE2BE_ERROR;
     }
@@ -45,8 +40,12 @@ public:
     if (auto t = GameModeFromBedrock(gameTypeB); t) {
       gameMode = *t;
     }
-    auto bin = Context::Init(*db, options, *endian, regions, total, gameTick, gameMode, concurrency);
+    auto bin = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency);
 
+    auto db = make_unique<mcfile::be::Db>(input / "db");
+    if (!db) {
+      return JE2BE_ERROR;
+    }
     auto levelDat = LevelData::Import(*dat, *db, options, *bin);
     if (!levelDat) {
       return JE2BE_ERROR;
@@ -157,18 +156,6 @@ private:
       ec.clear();
     }
     return true;
-  }
-
-  static leveldb::DB *Open(std::filesystem::path name) {
-    using namespace leveldb;
-    leveldb::Options o;
-    o.compression = kZlibRawCompression;
-    DB *db;
-    leveldb::Status st = DB::Open(o, name, &db);
-    if (!st.ok()) {
-      return nullptr;
-    }
-    return db;
   }
 };
 

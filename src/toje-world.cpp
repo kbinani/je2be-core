@@ -15,7 +15,7 @@ class World::Impl {
 public:
   static Status Convert(mcfile::Dimension d,
                         std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions,
-                        leveldb::DB &db,
+                        mcfile::be::DbInterface &db,
                         std::filesystem::path root,
                         unsigned concurrency,
                         Context const &parentContext,
@@ -325,7 +325,7 @@ public:
 
 Status World::Convert(mcfile::Dimension d,
                       std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions,
-                      leveldb::DB &db,
+                      mcfile::be::DbInterface &db,
                       std::filesystem::path root,
                       unsigned concurrency,
                       Context const &parentContext,
