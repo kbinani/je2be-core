@@ -1,8 +1,8 @@
 #include "tobe/_chunk.hpp"
 
+#include <je2be/fs.hpp>
 #include <je2be/status.hpp>
 
-#include "_fs.hpp"
 #include "db/_db-interface.hpp"
 #include "enums/_chunk-conversion-mode.hpp"
 #include "enums/_game-mode.hpp"

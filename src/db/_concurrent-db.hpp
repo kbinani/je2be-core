@@ -1,8 +1,8 @@
 #pragma once
 
 #include <je2be/defer.hpp>
+#include <je2be/fs.hpp>
 
-#include "_fs.hpp"
 #include "_parallel.hpp"
 #include "db/_db-interface.hpp"
 

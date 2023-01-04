@@ -1,8 +1,8 @@
 #pragma once
 
+#include <je2be/fs.hpp>
 #include <je2be/pos2.hpp>
 
-#include "_fs.hpp"
 #include "_pos3.hpp"
 
 #include <minecraft-file.hpp>

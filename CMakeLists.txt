@@ -27,6 +27,7 @@ set(je2be_header_files
   include/je2be/box360/progress.hpp
   include/je2be/defer.hpp
   include/je2be/enums/level-directory-structure.hpp
+  include/je2be/fs.hpp
   include/je2be/nbt.hpp
   include/je2be/pos2.hpp
   include/je2be/status.hpp
@@ -38,6 +39,7 @@ set(je2be_header_files
   include/je2be/toje/options.hpp
   include/je2be/toje/progress.hpp
   include/je2be/uuid.hpp
+  include/je2be/zip-file.hpp
   #end je2be-header files
   # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
   #begin libminecraft-file source files
@@ -140,7 +142,6 @@ set(je2be_src_files
   src/_data3d.hpp
   src/_dimension-ext.hpp
   src/_file.hpp
-  src/_fs.hpp
   src/_future-support.hpp
   src/_java-level-dat.hpp
   src/_mcfile-fwd.hpp
@@ -160,7 +161,6 @@ set(je2be_src_files
   src/_version.hpp
   src/_volume.hpp
   src/_xxhash.hpp
-  src/_zip-file.hpp
   src/box360-block-data.cpp
   src/box360-chunk.cpp
   src/box360-converter.cpp
@@ -329,6 +329,7 @@ set(je2be_src_files
   src/toje/terraform/_tripwire.hpp
   src/toje/terraform/_twisting-vines.hpp
   src/toje/terraform/_weeping-vines.hpp
+  src/zip-file.cpp
   #end je2be-src files
   )
 set(test_files

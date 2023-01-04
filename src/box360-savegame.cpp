@@ -1,13 +1,15 @@
 #include "box360/_savegame.hpp"
 
 // clang-format off
+
+#include <je2be/fs.hpp>
+
 #include <fstream>
 
 #include "_mem.hpp"
 #include "box360/_lzx-decoder.hpp"
 #include "box360/_stfs.hpp"
 #include "box360/_stfs-ext.hpp"
-#include "_fs.hpp"
 // clang-format on
 
 namespace je2be::box360 {

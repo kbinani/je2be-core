@@ -1,6 +1,6 @@
 #pragma once
 
-#include "_fs.hpp"
+#include <je2be/fs.hpp>
 
 namespace je2be::file {
 
