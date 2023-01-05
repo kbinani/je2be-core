@@ -503,10 +503,18 @@ public:
       works.push_back((uint8_t)i);
     }
     atomic_uint64_t fileNumber(1);
+    atomic_uint16_t done(0);
     auto result = Parallel::Reduce<uint8_t, vector<TableBuildResult>>(
         works,
         vector<TableBuildResult>(),
-        bind(BuildTable, fDbName, writerIds, &fileNumber, &ok, _1),
+        [&](uint8_t prefix) {
+          auto ret = BuildTable(fDbName, writerIds, &fileNumber, &ok, prefix);
+          auto p = done.fetch_add(1) + 1;
+          if (progress) {
+            progress((double)p / (256 + 1));
+          }
+          return ret;
+        },
         Parallel::MergeVector<TableBuildResult>);
     if (!ok) {
       return false;
@@ -547,6 +555,10 @@ public:
     }
     current->Close();
     current.reset();
+
+    if (progress) {
+      progress(1.0);
+    }
 
     return true;
   }
