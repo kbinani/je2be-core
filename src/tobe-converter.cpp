@@ -80,8 +80,13 @@ public:
 
       void mergeInto(Result &out) const {
         for (auto const &it : fData) {
+          if (!it.second) {
+            continue;
+          }
           if (auto found = out.fData.find(it.first); found != out.fData.end()) {
-            it.second->drain(*found->second);
+            if (found->second) {
+              it.second->drain(*found->second);
+            }
           } else {
             out.fData[it.first] = it.second;
           }
