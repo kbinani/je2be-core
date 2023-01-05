@@ -466,6 +466,7 @@ static void MonumentBedrock() {
   using namespace je2be::tobe;
 
   unique_ptr<DB> db(Open("1.18be"));
+  WrapDb wdb(db.get());
   unique_ptr<Iterator> itr(db->NewIterator({}));
   vector<Volume> volumes;
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
@@ -528,7 +529,7 @@ static void MonumentBedrock() {
     int y0 = v.fStart.fY;
     int cx = Coordinate::ChunkFromBlock(x0);
     int cz = Coordinate::ChunkFromBlock(z0);
-    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, db.get(), Endian::Little);
+    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, &wdb, Endian::Little);
 
     string facing;
     if (start.fX == 8891 && start.fZ == 13979) {
