@@ -215,7 +215,7 @@ public:
       }
     }
 
-    fs::path temp = opt.fTempDirectory ? *opt.fTempDirectory : fs::temp_directory_path();
+    fs::path temp = opt.getTempDirectory();
     return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode));
   }
 };

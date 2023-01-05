@@ -33,7 +33,7 @@ public:
     using namespace std;
     namespace fs = std::filesystem;
 
-    auto tempRoot = options.fTempDirectory ? *options.fTempDirectory : fs::temp_directory_path();
+    auto tempRoot = options.getTempDirectory();
     auto temp = mcfile::File::CreateTempDir(tempRoot);
     if (!temp) {
       return JE2BE_ERROR;

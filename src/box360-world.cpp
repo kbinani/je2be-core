@@ -43,7 +43,7 @@ public:
       break;
     }
 
-    fs::path tempRoot = options.fTempDirectory ? *options.fTempDirectory : fs::temp_directory_path();
+    fs::path tempRoot = options.getTempDirectory();
 
     auto chunkTempDir = mcfile::File::CreateTempDir(tempRoot);
     if (!chunkTempDir) {
