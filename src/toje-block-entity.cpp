@@ -25,7 +25,7 @@ private:
 public:
   static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
-    static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
+    static unique_ptr<unordered_map<string_view, Converter> const> const sTable(CreateTable());
     auto found = sTable->find(block.fName);
     if (found == sTable->end()) {
       return nullopt;
@@ -756,9 +756,9 @@ public:
   }
 #pragma endregion
 
-  static std::unordered_map<std::string, Converter> *CreateTable() {
+  static std::unordered_map<std::string_view, Converter> *CreateTable() {
     using namespace std;
-    auto *t = new unordered_map<string, Converter>();
+    auto *t = new unordered_map<string_view, Converter>();
 #define E(__name, __conv)                            \
   assert(t->find("minecraft:" #__name) == t->end()); \
   t->insert(make_pair("minecraft:" #__name, __conv))

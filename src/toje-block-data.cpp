@@ -19,7 +19,7 @@ public:
   static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
     using namespace std;
     using namespace mcfile;
-    static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
+    static unique_ptr<unordered_map<string_view, Converter> const> const sTable(CreateTable());
 
     auto found = sTable->find(b.fName);
     if (found == sTable->end()) {
@@ -1953,9 +1953,9 @@ private:
   }
 #pragma endregion
 
-  static std::unordered_map<std::string, Converter> *CreateTable() {
+  static std::unordered_map<std::string_view, Converter> *CreateTable() {
     using namespace std;
-    auto table = new std::unordered_map<string, Converter>();
+    auto table = new std::unordered_map<string_view, Converter>();
 #define E(__name, __converter)                               \
   assert(table->find("minecraft:" #__name) == table->end()); \
   table->emplace("minecraft:" #__name, __converter);

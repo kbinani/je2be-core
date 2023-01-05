@@ -29,7 +29,7 @@ public:
     if (!name) {
       return nullptr;
     }
-    static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
+    static unique_ptr<unordered_map<string_view, Converter> const> const sTable(CreateTable());
     auto ret = Compound();
     if (name == "") {
       return ret;
@@ -862,9 +862,9 @@ public:
     return "minecraft:";
   }
 
-  static std::unordered_map<std::string, Converter> *CreateTable() {
+  static std::unordered_map<std::string_view, Converter> *CreateTable() {
     using namespace std;
-    auto *ret = new unordered_map<string, Converter>();
+    auto *ret = new unordered_map<string_view, Converter>();
 
 #define E(__name, __conv)                                \
   assert(ret->find("minecraft:" #__name) == ret->end()); \

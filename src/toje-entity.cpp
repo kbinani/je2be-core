@@ -1904,13 +1904,13 @@ public:
     return data;
   }
 
-  static std::unordered_map<std::string, Converter> const *GetTable() {
-    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
+  static std::unordered_map<std::string_view, Converter> const *GetTable() {
+    static std::unique_ptr<std::unordered_map<std::string_view, Converter> const> const sTable(CreateTable());
     return sTable.get();
   }
 
-  static std::unordered_map<std::string, Converter> *CreateTable() {
-    auto ret = new std::unordered_map<std::string, Converter>();
+  static std::unordered_map<std::string_view, Converter> *CreateTable() {
+    auto ret = new std::unordered_map<std::string_view, Converter>();
 
 #define E(__name, __conv)                                \
   assert(ret->find("minecraft:" #__name) == ret->end()); \
