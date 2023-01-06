@@ -227,6 +227,7 @@ public:
       }
     }
 
+    ret->addChunkCount(1);
     return ret;
   }
 

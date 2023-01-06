@@ -112,6 +112,8 @@ public:
     std::vector<std::pair<Pos2i, CompoundTagPtr>> fShoulderRiders;
   };
   std::optional<PlayerAttachedEntities> fPlayerAttachedEntities;
+
+  uint64_t fTotalChunks = 0;
 };
 
 } // namespace je2be::tobe

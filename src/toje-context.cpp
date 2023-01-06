@@ -261,6 +261,7 @@ void Context::mergeInto(Context &other) const {
   }
   other.fDataPackBundle = other.fDataPackBundle || fDataPackBundle;
   other.fDataPack1_20Update = other.fDataPack1_20Update || fDataPack1_20Update;
+  other.fTotalChunks += fTotalChunks;
 }
 
 Status Context::postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const {
@@ -483,6 +484,14 @@ Status Context::exportPoi(std::filesystem::path const &root) const {
     }
   }
   return Status::Ok();
+}
+
+void Context::addTotalChunks(int count) {
+  fTotalChunks += count;
+}
+
+uint64_t Context::getTotalChunks() const {
+  return fTotalChunks;
 }
 
 } // namespace je2be::toje

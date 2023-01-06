@@ -72,6 +72,7 @@ public:
         if (!entities.insert(localX, localZ, *entitiesTag)) {
           return nullptr;
         }
+        ctx->addTotalChunks(1);
       }
     }
 
