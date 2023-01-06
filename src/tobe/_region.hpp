@@ -30,7 +30,8 @@ public:
       Progress *progress,
       std::atomic_uint32_t &done,
       double const numTotalChunks,
-      std::atomic_bool &abortSignal);
+      std::atomic_bool &abortSignal,
+      std::atomic_uint64_t &numConvertedChunks);
 };
 
 } // namespace je2be::tobe

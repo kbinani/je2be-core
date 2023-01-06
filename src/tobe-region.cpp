@@ -22,7 +22,8 @@ public:
       Progress *progress,
       std::atomic_uint32_t &done,
       double const numTotalChunks,
-      std::atomic_bool &abortSignal) {
+      std::atomic_bool &abortSignal,
+      std::atomic_uint64_t &numConvertedChunks) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -53,19 +54,23 @@ public:
             levelData.fDifficultyBedrock,
             levelData.fAllowCommand,
             levelData.fGameType);
-        auto p = done.fetch_add(1) + 1;
-        if (progress) {
-          bool cont = progress->report(Progress::Phase::Convert, p, numTotalChunks);
-          if (!cont) {
-            abortSignal.store(true);
-          }
-        }
         if (!ret.fOk) {
           abortSignal.store(true);
           return {};
         }
+        uint64_t t;
         if (ret.fData) {
           ret.fData->drain(*sum);
+          t = numConvertedChunks.fetch_add(1) + 1;
+        } else {
+          t = numConvertedChunks.load();
+        }
+        auto p = (double(done.fetch_add(1) + 1) / (double)numTotalChunks);
+        if (progress) {
+          bool cont = progress->reportConvert(p, t);
+          if (!cont) {
+            abortSignal.store(true);
+          }
         }
       }
     }
@@ -110,8 +115,9 @@ std::shared_ptr<WorldData> Region::Convert(
     Progress *progress,
     std::atomic_uint32_t &done,
     double const numTotalChunks,
-    std::atomic_bool &abortSignal) {
-  return Impl::Convert(dim, region, options, worldTempDir, levelData, db, progress, done, numTotalChunks, abortSignal);
+    std::atomic_bool &abortSignal,
+    std::atomic_uint64_t &numConvertedChunks) {
+  return Impl::Convert(dim, region, options, worldTempDir, levelData, db, progress, done, numTotalChunks, abortSignal, numConvertedChunks);
 }
 
 } // namespace je2be::tobe

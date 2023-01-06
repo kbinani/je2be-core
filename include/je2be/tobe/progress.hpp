@@ -4,13 +4,9 @@ namespace je2be::tobe {
 
 class Progress {
 public:
-  enum class Phase {
-    Convert,
-    LevelDbCompaction,
-  };
-
   virtual ~Progress() {}
-  virtual bool report(Phase phase, double progress, double total) = 0;
+  virtual bool reportConvert(double progress, uint64_t numConvertedChunks) = 0;
+  virtual bool reportCompaction(double progress) = 0;
 };
 
 } // namespace je2be::tobe

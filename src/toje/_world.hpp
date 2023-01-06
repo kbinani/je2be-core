@@ -19,7 +19,8 @@ public:
                         unsigned concurrency,
                         Context const &parentContext,
                         std::shared_ptr<Context> &resultContext,
-                        std::function<bool(void)> progress);
+                        std::function<bool(void)> progress,
+                        std::atomic_uint64_t &numConvertedChunks);
 };
 
 } // namespace je2be::toje

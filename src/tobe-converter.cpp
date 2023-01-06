@@ -118,11 +118,12 @@ public:
     }
     atomic_uint32_t done(0);
     atomic_bool abortSignal(false);
+    atomic_uint64_t numConvertedChunks(0);
     LevelData const *ldPtr = levelData.get();
     Result result = Parallel::Reduce<Work, Result>(
         works,
         Result(),
-        [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, worldTempDirs, o](Work const &work) -> Result {
+        [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, worldTempDirs, o, &numConvertedChunks](Work const &work) -> Result {
           auto found = worldTempDirs.find(work.fDim);
           assert(found != worldTempDirs.end());
           fs::path worldTempDir = found->second;
@@ -136,7 +137,8 @@ public:
               progress,
               done,
               numTotalChunks,
-              abortSignal);
+              abortSignal,
+              numConvertedChunks);
           Result ret;
           ret.fData[work.fDim] = worldData;
           return ret;
@@ -167,7 +169,7 @@ public:
         if (!progress) {
           return;
         }
-        progress->report(Progress::Phase::LevelDbCompaction, p, 1);
+        progress->reportCompaction(p);
       });
     } else {
       db.abandon();

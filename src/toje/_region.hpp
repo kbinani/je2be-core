@@ -22,7 +22,8 @@ public:
                                           mcfile::be::DbInterface *db,
                                           std::filesystem::path destination,
                                           Context const &parentContext,
-                                          std::function<bool(void)> progress);
+                                          std::function<bool(void)> progress,
+                                          std::atomic_uint64_t &numConvertedChunks);
 };
 
 } // namespace je2be::toje

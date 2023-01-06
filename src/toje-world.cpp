@@ -20,7 +20,8 @@ public:
                         unsigned concurrency,
                         Context const &parentContext,
                         std::shared_ptr<Context> &resultContext,
-                        std::function<bool(void)> progress) {
+                        std::function<bool(void)> progress,
+                        std::atomic_uint64_t &numConvertedChunks) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -67,13 +68,13 @@ public:
     auto ctx = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, shared_ptr<Context>>(
         regions,
         [&parentContext]() { return parentContext.make(); },
-        [d, &db, dir, &parentContext, reportProgress, &ok](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
+        [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
           auto ctx = parentContext.make();
           if (!ok) {
             return ctx;
           }
           Pos2i region = work.first;
-          auto result = Region::Convert(d, work.second.fChunks, region.fX, region.fZ, &db, dir, *ctx, reportProgress);
+          auto result = Region::Convert(d, work.second.fChunks, region.fX, region.fZ, &db, dir, *ctx, reportProgress, numConvertedChunks);
           if (result) {
             return result;
           } else {
@@ -330,8 +331,9 @@ Status World::Convert(mcfile::Dimension d,
                       unsigned concurrency,
                       Context const &parentContext,
                       std::shared_ptr<Context> &resultContext,
-                      std::function<bool(void)> progress) {
-  return Impl::Convert(d, regions, db, root, concurrency, parentContext, resultContext, progress);
+                      std::function<bool(void)> progress,
+                      std::atomic_uint64_t &numConvertedChunks) {
+  return Impl::Convert(d, regions, db, root, concurrency, parentContext, resultContext, progress, numConvertedChunks);
 }
 
 } // namespace je2be::toje

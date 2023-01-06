@@ -74,7 +74,6 @@ public:
       wd.fError = fError;
     }
     wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
-    wd.fTotalChunks += fTotalChunks;
   }
 
   void drain(WorldData &out) {
@@ -111,8 +110,6 @@ public:
       copy(it.second.begin(), it.second.end(), back_inserter(out.fEntityFiles[it.first]));
     }
     unordered_map<Pos2i, vector<std::filesystem::path>, Pos2iHasher>().swap(fEntityFiles);
-
-    out.fTotalChunks += fTotalChunks;
   }
 
   void addEntityFile(Pos2i chunk, std::filesystem::path const &file) {
@@ -121,10 +118,6 @@ public:
 
   void drainEntityFiles(std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> &out) {
     out.swap(fEntityFiles);
-  }
-
-  void addChunkCount(int num) {
-    fTotalChunks += num;
   }
 
 private:
@@ -183,7 +176,6 @@ private:
   std::optional<Status::ErrorData> fError;
   int64_t fMaxChunkLastUpdate = 0;
   std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> fEntityFiles;
-  uint64_t fTotalChunks = 0;
 };
 
 } // namespace je2be::tobe

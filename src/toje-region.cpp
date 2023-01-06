@@ -16,7 +16,8 @@ public:
                                           mcfile::be::DbInterface *db,
                                           std::filesystem::path destination,
                                           Context const &parentContext,
-                                          std::function<bool(void)> progress) {
+                                          std::function<bool(void)> progress,
+                                          std::atomic_uint64_t &numConvertedChunks) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -72,7 +73,7 @@ public:
         if (!entities.insert(localX, localZ, *entitiesTag)) {
           return nullptr;
         }
-        ctx->addTotalChunks(1);
+        numConvertedChunks.fetch_add(1);
       }
     }
 
@@ -91,8 +92,9 @@ std::shared_ptr<Context> Region::Convert(mcfile::Dimension d,
                                          mcfile::be::DbInterface *db,
                                          std::filesystem::path destination,
                                          Context const &parentContext,
-                                         std::function<bool(void)> progress) {
-  return Impl::Convert(d, chunks, rx, rz, db, destination, parentContext, progress);
+                                         std::function<bool(void)> progress,
+                                         std::atomic_uint64_t &numConvertedChunks) {
+  return Impl::Convert(d, chunks, rx, rz, db, destination, parentContext, progress, numConvertedChunks);
 }
 
 } // namespace je2be::toje

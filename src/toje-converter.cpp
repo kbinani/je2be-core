@@ -53,10 +53,11 @@ public:
 
     atomic<int> done = 0;
     atomic<bool> cancelRequested = false;
-    auto reportProgress = [progress, &done, total, &cancelRequested]() -> bool {
-      int d = done.fetch_add(1) + 1;
+    atomic_uint64_t numConvertedChunks(0);
+    auto reportProgress = [progress, &done, total, &cancelRequested, &numConvertedChunks]() -> bool {
+      double p = double(done.fetch_add(1) + 1) / total;
       if (progress) {
-        bool ok = progress->report(d, total);
+        bool ok = progress->report(p, numConvertedChunks.load());
         if (!ok) {
           cancelRequested = true;
         }
@@ -73,7 +74,7 @@ public:
         }
       }
       shared_ptr<Context> result;
-      if (auto st = World::Convert(d, regions[d], *db, output, concurrency, *bin, result, reportProgress); !st.ok()) {
+      if (auto st = World::Convert(d, regions[d], *db, output, concurrency, *bin, result, reportProgress, numConvertedChunks); !st.ok()) {
         return st;
       }
       if (result) {
