@@ -57,6 +57,16 @@ public:
       Result init,
       std::function<Result(Work const &)> func,
       std::function<void(Result const &, Result &)> join) {
+    return Reduce<Work, Result>(
+        works, [&init]() { return init; }, func, join);
+  }
+
+  template <class Work, class Result>
+  static Result Reduce(
+      std::vector<Work> const &works,
+      std::function<Result(void)> zero,
+      std::function<Result(Work const &)> func,
+      std::function<void(Result const &, Result &)> join) {
     using namespace std;
 
     auto threads = thread::hardware_concurrency();
@@ -69,11 +79,11 @@ public:
     shared_ptr<atomic_bool> *donePtr = done.data();
 
     mutex joinMut;
-    Result total = init;
+    Result total = zero();
 
     for (int i = 0; i < threads; i++) {
-      thread([init, &latch, donePtr, &joinMut, &works, func, join, &total]() {
-        Result sum = init;
+      thread([zero, &latch, donePtr, &joinMut, &works, func, join, &total]() {
+        Result sum = zero();
         while (true) {
           Work const *work = nullptr;
           for (int j = 0; j < works.size(); j++) {
