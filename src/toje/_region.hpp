@@ -2,9 +2,7 @@
 
 #include <je2be/pos2.hpp>
 
-namespace leveldb {
-class DB;
-}
+#include <atomic>
 
 namespace je2be::toje {
 

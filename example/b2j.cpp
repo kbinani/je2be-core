@@ -2,6 +2,7 @@
 #include <je2be.hpp>
 
 #include <iostream>
+#include <thread>
 
 int main(int argc, char *argv[]) {
   using namespace std;

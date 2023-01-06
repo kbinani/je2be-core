@@ -5,6 +5,8 @@
 
 #include "toje/_context.hpp"
 
+#include <atomic>
+
 namespace je2be::toje {
 
 class World {
