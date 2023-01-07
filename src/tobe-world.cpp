@@ -30,6 +30,7 @@ public:
     }
     bool ok = Parallel::Reduce<pair<Pos2i, vector<fs::path>>, bool>(
         works,
+        concurrency,
         true,
         bind(PutChunkEntities, d, _1, &db),
         Parallel::MergeBool);

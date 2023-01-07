@@ -67,6 +67,7 @@ public:
     atomic_bool ok = true;
     auto ctx = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, shared_ptr<Context>>(
         regions,
+        concurrency,
         [&parentContext]() { return parentContext.make(); },
         [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
           auto ctx = parentContext.make();

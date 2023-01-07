@@ -11,12 +11,12 @@ public:
   template <class Work, class Result>
   static void Map(
       std::vector<Work> const &works,
+      unsigned int concurrency,
       std::function<Result(Work const &work, int index)> func,
       std::vector<Result> &out) {
     using namespace std;
 
-    auto threads = thread::hardware_concurrency();
-    std::latch latch(threads + 1);
+    std::latch latch(concurrency + 1);
 
     out.resize(works.size());
     Result *outPtr = out.data();
@@ -25,7 +25,7 @@ public:
     mutex mut;
     vector<bool> done(works.size(), false);
 
-    for (int i = 0; i < threads; i++) {
+    for (int i = 0; i < concurrency; i++) {
       thread([&latch, worksPtr, outPtr, &mut, &done, func]() {
         while (true) {
           int index = -1;
@@ -54,23 +54,24 @@ public:
   template <class Work, class Result>
   static Result Reduce(
       std::vector<Work> const &works,
+      unsigned int concurrency,
       Result init,
       std::function<Result(Work const &)> func,
       std::function<void(Result const &, Result &)> join) {
     return Reduce<Work, Result>(
-        works, [&init]() { return init; }, func, join);
+        works, concurrency, [&init]() { return init; }, func, join);
   }
 
   template <class Work, class Result>
   static Result Reduce(
       std::vector<Work> const &works,
+      unsigned int concurrency,
       std::function<Result(void)> zero,
       std::function<Result(Work const &)> func,
       std::function<void(Result const &, Result &)> join) {
     using namespace std;
 
-    auto threads = thread::hardware_concurrency();
-    std::latch latch(threads + 1);
+    std::latch latch(concurrency + 1);
 
     vector<shared_ptr<atomic_bool>> done;
     for (int i = 0; i < works.size(); i++) {
@@ -81,7 +82,7 @@ public:
     mutex joinMut;
     Result total = zero();
 
-    for (int i = 0; i < threads; i++) {
+    for (int i = 0; i < concurrency; i++) {
       thread([zero, &latch, donePtr, &joinMut, &works, func, join, &total]() {
         Result sum = zero();
         while (true) {

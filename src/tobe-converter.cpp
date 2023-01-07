@@ -60,7 +60,7 @@ public:
     bool ok = Datapacks::Import(input, output);
 
     auto levelData = std::make_unique<LevelData>(input, o, level.fCurrentTick, level.fDifficulty, level.fCommandsEnabled, level.fGameType);
-    ConcurrentDb db(dbPath);
+    ConcurrentDb db(dbPath, concurrency);
     if (!db.valid()) {
       return JE2BE_ERROR;
     }
@@ -122,6 +122,7 @@ public:
     LevelData const *ldPtr = levelData.get();
     Result result = Parallel::Reduce<Work, Result>(
         works,
+        concurrency,
         Result(),
         [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, worldTempDirs, o, &numConvertedChunks](Work const &work) -> Result {
           auto found = worldTempDirs.find(work.fDim);

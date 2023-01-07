@@ -452,7 +452,7 @@ class ConcurrentDb : public DbInterface {
   };
 
 public:
-  explicit ConcurrentDb(std::filesystem::path const &dbname) : fDbName(dbname), fSequence(0), fWriterIdGenerator(0) {
+  ConcurrentDb(std::filesystem::path const &dbname, unsigned int concurrency) : fDbName(dbname), fSequence(0), fWriterIdGenerator(0), fConcurrency(concurrency) {
     leveldb::DestroyDB(dbname, {});
   }
 
@@ -482,6 +482,7 @@ public:
     atomic_bool ok = true;
     auto writerIds = Parallel::Reduce<shared_ptr<Writer>, vector<Writer::CloseResult>>(
         writers,
+        fConcurrency,
         vector<Writer::CloseResult>(),
         [&ok](shared_ptr<Writer> const &writer) -> vector<Writer::CloseResult> {
           auto id = writer->close();
@@ -506,6 +507,7 @@ public:
     atomic_uint16_t done(0);
     auto result = Parallel::Reduce<uint8_t, vector<TableBuildResult>>(
         works,
+        fConcurrency,
         vector<TableBuildResult>(),
         [&](uint8_t prefix) {
           auto ret = BuildTable(fDbName, writerIds, &fileNumber, &ok, prefix);
@@ -801,6 +803,7 @@ private:
   std::atomic_uint64_t fSequence;
   std::atomic_uint32_t fWriterIdGenerator;
   bool fValid = true;
+  unsigned int const fConcurrency;
 
   static constexpr uint64_t kMaxFileSize = 2 * 1024 * 1024;
 };

@@ -24,6 +24,7 @@ public:
     }
     return Parallel::Reduce<char, Accumulator>(
         works,
+        concurrency,
         zero,
         [&db, zero, accept](char prefix) -> Accumulator {
           ReadOptions o;
