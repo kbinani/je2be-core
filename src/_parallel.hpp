@@ -24,6 +24,8 @@ public:
 
     mutex mut;
     vector<bool> done(works.size(), false);
+    vector<thread> threads;
+    threads.resize(concurrency);
 
     for (int i = 0; i < concurrency; i++) {
       thread([&latch, worksPtr, outPtr, &mut, &done, func]() {
@@ -46,9 +48,12 @@ public:
           }
         }
         latch.count_down();
-      }).detach();
+      }).swap(threads[i]);
     }
     latch.arrive_and_wait();
+    for (auto &th : threads) {
+      th.join();
+    }
   }
 
   template <class Work, class Result>
@@ -79,6 +84,9 @@ public:
     }
     shared_ptr<atomic_bool> *donePtr = done.data();
 
+    vector<thread> threads;
+    threads.resize(concurrency);
+
     mutex joinMut;
     Result total = zero();
 
@@ -104,9 +112,12 @@ public:
           }
         }
         latch.count_down();
-      }).detach();
+      }).swap(threads[i]);
     }
     latch.arrive_and_wait();
+    for (auto &th : threads) {
+      th.join();
+    }
     return total;
   }
 
