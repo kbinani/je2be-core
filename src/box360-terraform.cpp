@@ -19,6 +19,7 @@
 #include "terraform/box360/_kelp.hpp"
 
 #include <latch>
+#include <thread>
 
 namespace je2be::box360 {
 
