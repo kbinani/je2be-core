@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <latch>
 #include <thread>
 #include <vector>
@@ -16,7 +17,8 @@ public:
       std::vector<Result> &out) {
     using namespace std;
 
-    std::latch latch(concurrency + 1);
+    int numThreads = (int)concurrency - 1;
+    std::latch latch(concurrency);
 
     out.resize(works.size());
     Result *outPtr = out.data();
@@ -24,33 +26,36 @@ public:
 
     mutex mut;
     vector<bool> done(works.size(), false);
-    vector<thread> threads;
-    threads.resize(concurrency);
 
-    for (int i = 0; i < concurrency; i++) {
-      thread([&latch, worksPtr, outPtr, &mut, &done, func]() {
-        while (true) {
-          int index = -1;
-          {
-            lock_guard<mutex> lock(mut);
-            for (int j = 0; j < done.size(); j++) {
-              if (!done[j]) {
-                index = j;
-                done[j] = true;
-                break;
-              }
+    auto action = [&latch, worksPtr, outPtr, &mut, &done, func]() {
+      while (true) {
+        int index = -1;
+        {
+          lock_guard<mutex> lock(mut);
+          for (int j = 0; j < done.size(); j++) {
+            if (!done[j]) {
+              index = j;
+              done[j] = true;
+              break;
             }
           }
-          if (index < 0) {
-            break;
-          } else {
-            outPtr[index] = func(worksPtr[index], index);
-          }
         }
-        latch.count_down();
-      }).swap(threads[i]);
+        if (index < 0) {
+          break;
+        } else {
+          outPtr[index] = func(worksPtr[index], index);
+        }
+      }
+      latch.count_down();
+    };
+
+    vector<thread> threads;
+    for (int i = 0; i < numThreads; i++) {
+      threads.push_back(thread(action));
     }
-    latch.arrive_and_wait();
+    action();
+    latch.wait();
+
     for (auto &th : threads) {
       th.join();
     }
@@ -76,7 +81,8 @@ public:
       std::function<void(Result const &, Result &)> join) {
     using namespace std;
 
-    std::latch latch(concurrency + 1);
+    int numThreads = (int)concurrency - 1;
+    std::latch latch(concurrency);
 
     vector<shared_ptr<atomic_bool>> done;
     for (int i = 0; i < works.size(); i++) {
@@ -84,37 +90,39 @@ public:
     }
     shared_ptr<atomic_bool> *donePtr = done.data();
 
-    vector<thread> threads;
-    threads.resize(concurrency);
-
     mutex joinMut;
     Result total = zero();
 
-    for (int i = 0; i < concurrency; i++) {
-      thread([zero, &latch, donePtr, &joinMut, &works, func, join, &total]() {
-        Result sum = zero();
-        while (true) {
-          Work const *work = nullptr;
-          for (int j = 0; j < works.size(); j++) {
-            bool expected = false;
-            if (donePtr[j]->compare_exchange_strong(expected, true)) {
-              work = &works[j];
-              break;
-            }
-          }
-          if (work) {
-            Result result = func(*work);
-            join(result, sum);
-          } else {
-            lock_guard<mutex> lock(joinMut);
-            join(sum, total);
+    auto action = [&latch, zero, donePtr, &joinMut, &works, func, join, &total]() {
+      Result sum = zero();
+      while (true) {
+        Work const *work = nullptr;
+        for (int j = 0; j < works.size(); j++) {
+          bool expected = false;
+          if (donePtr[j]->compare_exchange_strong(expected, true)) {
+            work = &works[j];
             break;
           }
         }
-        latch.count_down();
-      }).swap(threads[i]);
+        if (work) {
+          Result result = func(*work);
+          join(result, sum);
+        } else {
+          lock_guard<mutex> lock(joinMut);
+          join(sum, total);
+          break;
+        }
+      }
+      latch.count_down();
+    };
+
+    vector<thread> threads;
+    for (int i = 0; i < numThreads; i++) {
+      threads.push_back(thread(action));
     }
-    latch.arrive_and_wait();
+    action();
+    latch.wait();
+
     for (auto &th : threads) {
       th.join();
     }
