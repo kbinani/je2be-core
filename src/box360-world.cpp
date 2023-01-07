@@ -6,12 +6,10 @@
 #include <je2be/fs.hpp>
 #include <je2be/pos2.hpp>
 
-#include "_future-support.hpp"
+#include "_parallel.hpp"
 #include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
 #include "box360/_terraform.hpp"
-
-#include <BS_thread_pool.hpp>
 
 namespace je2be::box360 {
 
@@ -28,6 +26,8 @@ public:
                         Progress *progress,
                         int progressChunksOffset) {
     using namespace std;
+    using namespace std::placeholders;
+
     namespace fs = std::filesystem;
     string worldDir;
     switch (dimension) {
@@ -67,11 +67,9 @@ public:
       Fs::DeleteAll(*entityTempDir);
     };
 
-    unique_ptr<BS::thread_pool> queue(new BS::thread_pool(concurrency));
-    deque<future<Status>> futures;
-    optional<Status> error;
-    bool ok = true;
-    int progressChunks = progressChunksOffset;
+    atomic_int progressChunks = progressChunksOffset;
+
+    vector<Pos2i> works;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
@@ -89,43 +87,34 @@ public:
                 continue;
               }
             }
-            vector<future<Status>> drain;
-            FutureSupport::Drain(concurrency + 1, futures, drain);
-            for (auto &f : drain) {
-              if (auto st = f.get(); !st.ok()) {
-                ok = false;
-                if (!error) {
-                  error = st;
-                }
-              }
-              progressChunks++;
-            }
-            if (!ok) {
-              break;
-            }
-            if (progress && !progress->report(progressChunks, 8192 * 3)) {
-              ok = false;
-              break;
-            }
-            futures.push_back(queue->submit(ProcessChunk, dimension, mcr, cx, cz, *chunkTempDir, *entityTempDir, ctx, options));
+            works.push_back({cx, cz});
           }
         }
       }
     }
 
-    for (auto &f : futures) {
-      if (auto st = f.get(); !st.ok()) {
-        ok = false;
-        if (!error) {
-          error = st;
-        }
-      }
-      progressChunks++;
-    }
-    futures.clear();
-    queue.reset();
-    if (!ok) {
-      return error ? *error : JE2BE_ERROR;
+    atomic_bool ok = true;
+    Status st = Parallel::Reduce<Pos2i, Status>(
+        works,
+        concurrency,
+        Status::Ok(),
+        [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks, &ok](Pos2i const &chunk) -> Status {
+          int rx = mcfile::Coordinate::RegionFromChunk(chunk.fX);
+          int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
+          auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
+          auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
+          if (progress && !progress->report(progressChunks, 8192 * 3)) {
+            ok = false;
+          }
+          if (!st.ok()) {
+            ok = false;
+          }
+          return st;
+        },
+        Status::Merge);
+
+    if (!st.ok()) {
+      return st;
     }
 
     auto poiDirectory = outputDirectory / worldDir / "poi";
@@ -141,42 +130,37 @@ public:
       return JE2BE_ERROR;
     }
 
-    queue.reset(new BS::thread_pool(concurrency));
-
     mcfile::je::Region::ConcatOptions o;
     o.fDeleteInput = true;
-    for (int rz = -1; rz <= 0; rz++) {
-      for (int rx = -1; rx <= 0; rx++) {
-        futures.push_back(queue->submit(ConcatCompressedNbt, rx, rz, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o));
-      }
-    }
-    for (auto &f : futures) {
-      if (auto st = f.get(); !st.ok()) {
-        ok = false;
-        if (!error) {
-          error = st;
-        }
-      }
-    }
+
+    vector<Pos2i> regions;
+    regions.push_back({-1, -1});
+    regions.push_back({0, -1});
+    regions.push_back({-1, 0});
+    regions.push_back({0, 0});
+
+    st = Parallel::Reduce<Pos2i, Status>(
+        regions,
+        4,
+        Status::Ok(),
+        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o),
+        Status::Merge);
 
     if (progress) {
       progress->report(progressChunks, 8192 * 3);
     }
 
-    if (ok) {
-      return Status::Ok();
-    } else {
-      return error ? *error : JE2BE_ERROR;
-    }
+    return st;
   }
 
 private:
-  static Status ConcatCompressedNbt(int rx,
-                                    int rz,
+  static Status ConcatCompressedNbt(Pos2i region,
                                     std::filesystem::path outputDirectory,
                                     std::filesystem::path chunkTempDir,
                                     std::filesystem::path entityTempDir,
                                     mcfile::je::Region::ConcatOptions options) {
+    int rx = region.fX;
+    int rz = region.fZ;
     auto chunkMca = outputDirectory / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     auto entityMca = outputDirectory / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     if (!mcfile::je::Region::ConcatCompressedNbt(rx,

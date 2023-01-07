@@ -2,7 +2,6 @@
 
 #include <je2be/box360/progress.hpp>
 
-#include "_future-support.hpp"
 #include "_nullable.hpp"
 #include "_poi-blocks.hpp"
 #include "box360/_chunk.hpp"
@@ -19,7 +18,7 @@
 #include "terraform/box360/_chest.hpp"
 #include "terraform/box360/_kelp.hpp"
 
-#include <BS_thread_pool.hpp>
+#include <latch>
 
 namespace je2be::box360 {
 
@@ -53,81 +52,67 @@ public:
 private:
   static Status MultiThread(PoiBlocks &poi, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
     using namespace std;
+    using namespace std::placeholders;
+
     bool running[width][height];
     bool done[width][height];
     for (int i = 0; i < width; i++) {
       fill_n(running[i], height, false);
       fill_n(done[i], height, false);
     }
-    unique_ptr<BS::thread_pool> queue(new BS::thread_pool(concurrency));
-    deque<future<Nullable<Result>>> futures;
-    bool ok = true;
+    atomic_bool ok(true);
     optional<Status> error;
-    int count = 0;
-    while (ok) {
-      vector<future<Nullable<Result>>> drain;
-      FutureSupport::Drain(concurrency + 1, futures, drain);
-      for (auto &f : drain) {
-        auto result = f.get();
-        if (result) {
-          result->fPoi.mergeInto(poi);
-          MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
-        } else {
-          if (!error) {
-            error = result.status();
+    atomic_int count(0);
+    mutex queueMut;
+    std::latch latch(concurrency);
+    mutex joinMut;
+
+    auto action = [&queueMut, &joinMut, &done, &running, &latch, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
+      while (ok) {
+        optional<Pos2i> next;
+        {
+          lock_guard<mutex> lock(queueMut);
+          next = NextQueue(done, running);
+          if (next) {
+            MarkRunning(next->fX, next->fZ, running);
           }
-          ok = false;
         }
-        count++;
-      }
-      if (!ok || IsComplete(done)) {
-        break;
-      }
-      if (progress && !progress->report(count + progressChunksOffset, 8192 * 3)) {
-        ok = false;
-        break;
-      }
-      auto next = NextQueue(done, running);
-      if (next) {
-        MarkRunning(next->fX, next->fZ, running);
-        futures.push_back(queue->submit(DoChunk, next->fX, next->fZ, directory));
-      } else {
-        assert(!futures.empty());
-        auto result = futures.front().get();
+        if (!next) {
+          break;
+        }
+        auto result = DoChunk(next->fX, next->fZ, directory);
         if (result) {
+          lock_guard<mutex> lock(joinMut);
           result->fPoi.mergeInto(poi);
-          MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
         } else {
           ok = false;
-        }
-        count++;
-        futures.pop_front();
-        if (!ok || IsComplete(done)) {
           break;
         }
-        if (progress && !progress->report(count + progressChunksOffset, 8192 * 3)) {
+        {
+          lock_guard<mutex> lock(queueMut);
+          MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
+        }
+        auto p = count.fetch_add(1) + 1;
+        if (progress && !progress->report(p + progressChunksOffset, 8192 * 3)) {
           ok = false;
           break;
         }
       }
+      latch.count_down();
+    };
+
+    vector<thread> threads;
+    for (int i = 0; i < (int)concurrency - 1; i++) {
+      threads.push_back(thread(action));
     }
-    for (auto &f : futures) {
-      auto result = f.get();
-      if (result) {
-        result->fPoi.mergeInto(poi);
-      } else {
-        ok = false;
-        if (!error) {
-          error = result.status();
-        }
-      }
-      count++;
-      if (ok && progress) {
-        if (!progress->report(count + progressChunksOffset, 8192 * 3)) {
-          ok = false;
-        }
-      }
+
+    action();
+    latch.wait();
+
+    for (auto &th : threads) {
+      th.join();
     }
+
     if (!ok) {
       return error ? *error : JE2BE_ERROR;
     }
