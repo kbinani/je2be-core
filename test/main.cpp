@@ -3,7 +3,6 @@
 
 // clang-format off
 
-#include <BS_thread_pool.hpp>
 #include <iostream>
 
 #include "je2be-all.hpp"

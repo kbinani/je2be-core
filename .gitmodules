@@ -16,6 +16,3 @@
 [submodule "deps/cxxopts"]
 	path = deps/cxxopts
 	url = https://github.com/jarro2783/cxxopts.git
-[submodule "deps/thread-pool"]
-	path = deps/thread-pool
-	url = https://github.com/bshoshany/thread-pool.git

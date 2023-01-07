@@ -940,12 +940,6 @@ static void TestJavaToBedrockToJava(fs::path in) {
         continue;
       }
 
-      deque<future<void>> futures;
-      unique_ptr<BS::thread_pool> pool;
-      if (multithread) {
-        pool = make_unique<BS::thread_pool>(thread::hardware_concurrency());
-      }
-
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
       CHECK(regionA);
 
@@ -953,21 +947,29 @@ static void TestJavaToBedrockToJava(fs::path in) {
       auto regionE = mcfile::je::Region::MakeRegion(fileE);
       CHECK(regionE);
 
+      vector<Pos2i> regionChunks;
       for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
         for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
           if (chunks.find({cx, cz}) == chunks.end()) {
             continue;
           }
-          if (multithread) {
-            futures.push_back(move(pool->submit(CheckChunk, *regionE, *regionA, cx, cz, dim)));
-          } else {
-            CheckChunk(*regionE, *regionA, cx, cz, dim);
-          }
+          regionChunks.push_back({cx, cz});
         }
       }
-
-      for (auto &f : futures) {
-        f.get();
+      if (multithread) {
+        Parallel::Reduce<Pos2i, bool>(
+            regionChunks,
+            thread::hardware_concurrency(),
+            true,
+            [regionE, regionA, dim](Pos2i const &pos) -> bool {
+              CheckChunk(*regionE, *regionA, pos.fX, pos.fZ, dim);
+              return true;
+            },
+            Parallel::MergeBool);
+      } else {
+        for (auto const &pos : regionChunks) {
+          CheckChunk(*regionE, *regionA, pos.fX, pos.fZ, dim);
+        }
       }
     }
 
@@ -983,12 +985,6 @@ static void TestJavaToBedrockToJava(fs::path in) {
         continue;
       }
 
-      deque<future<void>> futures;
-      unique_ptr<BS::thread_pool> pool;
-      if (multithread) {
-        pool = make_unique<BS::thread_pool>(thread::hardware_concurrency());
-      }
-
       auto regionA = mcfile::je::Region::MakeRegion(fileA);
       CHECK(regionA);
 
@@ -996,21 +992,29 @@ static void TestJavaToBedrockToJava(fs::path in) {
       auto regionE = mcfile::je::Region::MakeRegion(fileE);
       CHECK(regionE);
 
+      vector<Pos2i> regionChunks;
       for (int cz = regionA->minChunkZ(); cz <= regionA->maxChunkZ(); cz++) {
         for (int cx = regionA->minChunkX(); cx <= regionA->maxChunkX(); cx++) {
           if (chunks.find({cx, cz}) == chunks.end()) {
             continue;
           }
-          if (multithread) {
-            futures.push_back(move(pool->submit(CheckPoi, *regionE, *regionA, cx, cz, dim)));
-          } else {
-            CheckPoi(*regionE, *regionA, cx, cz, dim);
-          }
+          regionChunks.push_back({cx, cz});
         }
       }
-
-      for (auto &f : futures) {
-        f.get();
+      if (multithread) {
+        Parallel::Reduce<Pos2i, bool>(
+            regionChunks,
+            thread::hardware_concurrency(),
+            true,
+            [regionE, regionA, dim](Pos2i const &pos) -> bool {
+              CheckPoi(*regionE, *regionA, pos.fX, pos.fZ, dim);
+              return true;
+            },
+            Parallel::MergeBool);
+      } else {
+        for (auto const &pos : regionChunks) {
+          CheckPoi(*regionE, *regionA, pos.fX, pos.fZ, dim);
+        }
       }
     }
   }
