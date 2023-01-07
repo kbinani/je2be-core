@@ -153,7 +153,10 @@ public:
       it.second->drainEntityFiles(entities);
 
       mcfile::Dimension dim = it.first;
-      World::PutWorldEntities(dim, db, entities, concurrency);
+      if (!World::PutWorldEntities(dim, db, entities, concurrency)) {
+        ok = false;
+        break;
+      }
     }
 
     if (ok) {
