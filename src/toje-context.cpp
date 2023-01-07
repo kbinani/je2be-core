@@ -130,7 +130,7 @@ public:
 
 #if defined(EMSCRIPTEN)
     Accum accum(opt, endian);
-    unique_ptr<Iterator> itr(db.NewIterator({}));
+    unique_ptr<Iterator> itr(db->NewIterator({}));
     for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
       accum.accept(itr->key().ToString(), itr->value().ToString());
     }
