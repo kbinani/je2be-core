@@ -882,6 +882,12 @@ static void TestJavaToBedrockToJava(fs::path in) {
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
   je2be::tobe::Options optB;
+  optB.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
+  defer {
+    if (optB.fTempDirectory) {
+      Fs::DeleteAll(*optB.fTempDirectory);
+    }
+  };
   bool multithread = true;
   unordered_set<Pos2i, Pos2iHasher> chunks;
 #if 1
@@ -907,8 +913,14 @@ static void TestJavaToBedrockToJava(fs::path in) {
   multithread = false;
 #endif
   je2be::toje::Options optJ;
+  optJ.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
   optJ.fDimensionFilter = optB.fDimensionFilter;
   optJ.fChunkFilter = optB.fChunkFilter;
+  defer {
+    if (optJ.fTempDirectory) {
+      Fs::DeleteAll(*optJ.fTempDirectory);
+    }
+  };
 
   Status st = je2be::tobe::Converter::Run(in, *outB, optB, thread::hardware_concurrency());
   CHECK(st.ok());

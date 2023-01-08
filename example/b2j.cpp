@@ -46,6 +46,12 @@ int main(int argc, char *argv[]) {
   };
 
   Options options;
+  options.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
+  defer {
+    if (options.fTempDirectory) {
+      je2be::Fs::DeleteAll(*options.fTempDirectory);
+    }
+  };
   auto st = Converter::Run(input, output, options, concurrency);
   return st.ok() ? 0 : -1;
 }
