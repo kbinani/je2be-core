@@ -862,8 +862,89 @@ static LevelDbConcurrentIterationResult LevelDbConcurrentIterationQueue(char pre
   return ret;
 }
 
-#if 0
-TEST_CASE("research") {
+static void LightTransmission() {
+  int const x0 = 1;
+  int const y0 = -60;
+  int const z0 = -36;
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/lighting");
+  {
+    fs::path name = root / "datapacks" / "kbinani" / "pack.mcmeta";
+    Fs::CreateDirectories(name.parent_path());
+    ofstream os(name.string());
+    os << R"({
+  "pack": {
+    "pack_format": 1,
+    "description": "datapack"
+  }
+})" << endl;
+  }
+  vector<mcfile::blocks::BlockId> blocks;
+  {
+    fs::path name = root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction";
+    Fs::CreateDirectories(name.parent_path());
+    ofstream os(name.string());
+    int x = x0;
+    for (mcfile::blocks::BlockId id = 1; id <= mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+      auto name = mcfile::blocks::Name(id);
+      if (name.ends_with("_stairs") || name.ends_with("_slab")) {
+        continue;
+      }
+      int y = y0;
+      int z = z0;
+      os << "fill " << (x - 2) << " " << (y - 1) << " " << (z - 2) << " " << (x + 1) << " " << (y + 1) << " " << (z + 2) << " tinted_glass" << endl;
+      if (id == mcfile::blocks::minecraft::minecraft_max_block_id) {
+        break;
+      }
+      os << "setblock " << (x - 1) << " " << y << " " << z << " barrier" << endl;
+      os << "setblock " << x << " " << y << " " << (z - 1) << " barrier" << endl;
+      os << "setblock " << (x + 1) << " " << y << " " << z << " barrier" << endl;
+      os << "setblock " << x << " " << y << " " << (z + 1) << " barrier" << endl;
+      os << "setblock " << x << " " << (y - 1) << " " << z << " barrier" << endl;
+      os << "setblock " << x << " " << (y + 1) << " " << z << " barrier" << endl;
+      os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id) << endl;
+      x += 4;
+      blocks.push_back(id);
+    }
+  }
+  mcfile::je::World world(root);
+  shared_ptr<mcfile::je::Chunk> chunk;
+  Data4b3d skyLight({0, 0, 0}, 16, 16, 16);
+  for (int i = 0; i < blocks.size(); i++) {
+    mcfile::blocks::BlockId id = blocks[i];
+    int x = x0 + i * 4;
+    int y = y0;
+    int z = z0;
+    int cx = mcfile::Coordinate::ChunkFromBlock(x);
+    int cz = mcfile::Coordinate::ChunkFromBlock(z);
+    if (!(chunk && chunk->fChunkX == cx && chunk->fChunkZ == cz)) {
+      chunk = world.chunkAt(cx, cz);
+    }
+    assert(chunk);
+    auto block = chunk->blockAt(x, y, z);
+    if (!block) {
+      cerr << mcfile::blocks::Name(id) << " not set (1)" << endl;
+      continue;
+    }
+    if (block->fId != id) {
+      cerr << mcfile::blocks::Name(id) << " not set (2)" << endl;
+    }
+    int cy = mcfile::Coordinate::ChunkFromBlock(y);
+    mcfile::je::ChunkSection *section = nullptr;
+    for (auto const &s : chunk->fSections) {
+      if (s && s->y() == cy) {
+        section = s.get();
+        break;
+      }
+    }
+    assert(section);
+    skyLight.reset(section->fSkyLight);
+    uint8_t v = skyLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - chunk->minBlockZ()});
+    cout << (int)v << " : " << mcfile::blocks::Name(id) << endl;
+  }
+}
 
+#if 1
+TEST_CASE("research") {
+  LightTransmission();
 }
 #endif
