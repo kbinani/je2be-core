@@ -13,6 +13,7 @@
 #include "toje/_context.hpp"
 #include "toje/_level-data.hpp"
 #include "toje/_world.hpp"
+#include "toje/terraform/_lighting.hpp"
 
 #include <atomic>
 #include <latch>
@@ -337,6 +338,7 @@ private:
 
     terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
     terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
+    Lighting::Do(*writable, *blockAccessor, propertyAccessor);
 
     auto tag = writable->toCompoundTag();
     if (!tag) {
