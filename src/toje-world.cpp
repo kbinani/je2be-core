@@ -5,7 +5,12 @@
 #include "_file.hpp"
 #include "_parallel.hpp"
 #include "_props.hpp"
+#include "terraform/_leaves.hpp"
+#include "terraform/java/_block-accessor-java-directory.hpp"
 #include "toje/_region.hpp"
+
+using namespace std;
+namespace fs = std::filesystem;
 
 namespace je2be::toje {
 
@@ -91,7 +96,7 @@ public:
       return JE2BE_ERROR;
     }
 
-    if (auto st = TerraformRegionBoundary(regions); !st.ok()) {
+    if (auto st = TerraformRegionBoundary(dir / "region", regions); !st.ok()) {
       return st;
     }
 
@@ -132,8 +137,93 @@ public:
     return Status::Ok();
   }
 
-  static Status TerraformRegionBoundary(std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions) {
-    // TODO:
+  static Status TerraformRegionBoundary(fs::path const &directory, std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions) {
+    shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
+
+    auto process = [&blockAccessor, directory](int cx, int cz, mcfile::je::McaEditor &editor) {
+      if (!blockAccessor) {
+        blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, directory));
+      }
+      if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
+        auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);
+        blockAccessor.reset(next);
+      }
+      blockAccessor->loadAllWith(editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
+
+      int rx = mcfile::Coordinate::RegionFromChunk(cx);
+      int rz = mcfile::Coordinate::RegionFromChunk(cz);
+
+      int x = cx - rx * 32;
+      int z = cz - rz * 32;
+
+      auto current = editor.extract(x, z);
+      if (!current) {
+        return Status::Ok();
+      }
+      auto copy = current->copy();
+      auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
+      if (!ch) {
+        return JE2BE_ERROR;
+      }
+      blockAccessor->set(cx, cz, ch);
+
+      auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
+      if (!writable) {
+        return JE2BE_ERROR;
+      }
+
+      terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
+      terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
+
+      auto tag = writable->toCompoundTag();
+      if (!tag) {
+        return JE2BE_ERROR;
+      }
+      if (!editor.insert(x, z, *tag)) {
+        return JE2BE_ERROR;
+      }
+
+      return Status::Ok();
+    };
+
+    for (auto const &it : regions) {
+      Pos2i const &region = it.first;
+      auto const &chunks = it.second.fChunks;
+
+      mcfile::je::McaEditor editor(directory / mcfile::je::Region::GetDefaultRegionFileName(region.fX, region.fZ));
+
+      // north, south
+      for (int z : {0, 1, 30, 31}) {
+        for (int x = 0; x < 32; x++) {
+          int cx = x + region.fX * 32;
+          int cz = z + region.fZ * 32;
+          if (!chunks.contains({cx, cz})) {
+            continue;
+          }
+          if (auto st = process(cx, cz, editor); !st.ok()) {
+            return st;
+          }
+        }
+      }
+
+      // west, east
+      for (int x : {0, 1, 30, 31}) {
+        for (int z = 2; z < 30; z++) {
+          int cx = x + region.fX * 32;
+          int cz = z + region.fZ * 32;
+          if (!chunks.contains({cx, cz})) {
+            continue;
+          }
+          if (auto st = process(cx, cz, editor); !st.ok()) {
+            return st;
+          }
+        }
+      }
+
+      if (!editor.close()) {
+        return JE2BE_ERROR;
+      }
+    }
     return Status::Ok();
   }
 

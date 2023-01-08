@@ -419,9 +419,6 @@ public:
     Tripwire::Do(j, cache, accessor);
     Beacon::Do(j, cache, accessor);
     Door::Do(j, cache, accessor);
-
-    // TODO: move this to TerraformExceptRegionBoundary / TerraformRegionBoundary
-    Leaves::Do(j, cache, accessor);
   }
 
   static void AttachLeash(Context &ctx, std::unordered_map<Uuid, CompoundTagPtr, UuidHasher, UuidPred> &entities) {

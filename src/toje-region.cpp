@@ -3,6 +3,8 @@
 #include <je2be/defer.hpp>
 
 #include "_parallel.hpp"
+#include "terraform/_leaves.hpp"
+#include "terraform/java/_block-accessor-java-mca.hpp"
 #include "toje/_chunk.hpp"
 #include "toje/_context.hpp"
 
@@ -87,14 +89,18 @@ public:
     if (!ok) {
       return nullptr;
     }
+
     if (!terrain->close()) {
       return nullptr;
     }
+    terrain.reset();
+
     if (!entities->close()) {
       return nullptr;
     }
+    entities.reset();
 
-    if (!TerraformExceptRegionBoundary(mcaPath, destination / "region" / name, concurrency)) {
+    if (!TerraformExceptRegionBoundary(region, mcaPath, destination / "region" / name, concurrency)) {
       return nullptr;
     }
 
@@ -102,29 +108,54 @@ public:
   }
 
 private:
-  static bool TerraformExceptRegionBoundary(fs::path const &from, fs::path const &to, unsigned int concurrency) {
-#if 1
+  static bool TerraformExceptRegionBoundary(Pos2i const &region, fs::path const &from, fs::path const &to, unsigned int concurrency) {
     if (!Fs::CopyFile(from, to)) {
       return false;
     }
-    return Fs::Delete(from);
-#else
-    vector<Pos2i> chunks;
+
+    mcfile::je::McaEditor edit(to);
+
     for (int x = 1; x < 31; x++) {
       for (int z = 1; z < 31; z++) {
-        chunks.push_back({x, z});
+        auto r = mcfile::je::Region::MakeRegion(from, region.fX, region.fZ);
+        if (!r) {
+          return false;
+        }
+        Pos2i chunk(x + region.fX * 32, z + region.fZ * 32);
+
+        terraform::java::BlockAccessorJavaMca<3, 3> loader(chunk.fX - 1, chunk.fZ - 1, *r);
+        auto original = edit.extract(x, z);
+        if (!original) {
+          continue;
+        }
+        auto copy = original->copy();
+        auto readonlyChunk = mcfile::je::Chunk::MakeChunk(chunk.fX, chunk.fZ, original);
+        if (!readonlyChunk) {
+          return false;
+        }
+        loader.set(chunk.fX, chunk.fZ, readonlyChunk);
+
+        auto writableChunk = mcfile::je::WritableChunk::MakeChunk(chunk.fX, chunk.fZ, copy);
+        if (!writableChunk) {
+          return false;
+        }
+
+        terraform::BlockPropertyAccessorJava accessor(*readonlyChunk);
+        terraform::Leaves::Do(*writableChunk, loader, accessor);
+
+        if (auto compound = writableChunk->toCompoundTag(); compound) {
+          if (!edit.insert(x, z, *compound)) {
+            return false;
+          }
+        } else {
+          return false;
+        }
       }
     }
-    return Parallel::Reduce<Pos2i, bool>(
-        chunks,
-        concurrency,
-        true,
-        [](Pos2i const &chunk) -> bool {
-          // TODO:
-          return true;
-        },
-        Parallel::MergeBool);
-#endif
+    if (!edit.close()) {
+      return false;
+    }
+    return Fs::Delete(from);
   }
 };
 
