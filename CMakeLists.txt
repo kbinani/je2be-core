@@ -73,6 +73,7 @@ set(je2be_header_files
   deps/libminecraft-file/include/mcfile/blocks/name.hpp
   deps/libminecraft-file/include/mcfile/compression.hpp
   deps/libminecraft-file/include/mcfile/coordinate.hpp
+  deps/libminecraft-file/include/mcfile/data4b3d.hpp
   deps/libminecraft-file/include/mcfile/dimension.hpp
   deps/libminecraft-file/include/mcfile/endianness.hpp
   deps/libminecraft-file/include/mcfile/file.hpp

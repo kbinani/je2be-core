@@ -2,8 +2,12 @@
 
 #include <je2be/defer.hpp>
 
+#include "_parallel.hpp"
 #include "toje/_chunk.hpp"
 #include "toje/_context.hpp"
+
+using namespace std;
+namespace fs = std::filesystem;
 
 namespace je2be::toje {
 
@@ -11,22 +15,25 @@ class Region::Impl {
 public:
   static std::shared_ptr<Context> Convert(mcfile::Dimension d,
                                           std::unordered_set<Pos2i, Pos2iHasher> chunks,
-                                          int rx,
-                                          int rz,
+                                          Pos2i region,
+                                          unsigned int concurrency,
                                           mcfile::be::DbInterface *db,
                                           std::filesystem::path destination,
                                           Context const &parentContext,
                                           std::function<bool(void)> progress,
                                           std::atomic_uint64_t &numConvertedChunks) {
-    using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
-    namespace fs = std::filesystem;
 
     auto ctx = parentContext.make();
+    int rx = region.fX;
+    int rz = region.fZ;
 
-    mcfile::je::McaEditor terrain(destination / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
-    mcfile::je::McaEditor entities(destination / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz));
+    auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    auto mcaPath = ctx->fTempDirectory / Uuid::Gen().toString();
+
+    auto terrain = make_shared<mcfile::je::McaEditor>(mcaPath);
+    auto entities = make_shared<mcfile::je::McaEditor>(destination / "entities" / name);
 
     bool ok = true;
     for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
@@ -63,14 +70,14 @@ public:
         if (!terrainTag) {
           return nullptr;
         }
-        if (!terrain.insert(localX, localZ, *terrainTag)) {
+        if (!terrain->insert(localX, localZ, *terrainTag)) {
           return nullptr;
         }
         auto entitiesTag = j->toEntitiesCompoundTag();
         if (!entitiesTag) {
           return nullptr;
         }
-        if (!entities.insert(localX, localZ, *entitiesTag)) {
+        if (!entities->insert(localX, localZ, *entitiesTag)) {
           return nullptr;
         }
         numConvertedChunks.fetch_add(1);
@@ -80,21 +87,57 @@ public:
     if (!ok) {
       return nullptr;
     }
+    if (!terrain->close()) {
+      return nullptr;
+    }
+    if (!entities->close()) {
+      return nullptr;
+    }
+
+    if (!TerraformExceptRegionBoundary(mcaPath, destination / "region" / name, concurrency)) {
+      return nullptr;
+    }
 
     return ctx;
+  }
+
+private:
+  static bool TerraformExceptRegionBoundary(fs::path const &from, fs::path const &to, unsigned int concurrency) {
+#if 1
+    if (!Fs::CopyFile(from, to)) {
+      return false;
+    }
+    return Fs::Delete(from);
+#else
+    vector<Pos2i> chunks;
+    for (int x = 1; x < 31; x++) {
+      for (int z = 1; z < 31; z++) {
+        chunks.push_back({x, z});
+      }
+    }
+    return Parallel::Reduce<Pos2i, bool>(
+        chunks,
+        concurrency,
+        true,
+        [](Pos2i const &chunk) -> bool {
+          // TODO:
+          return true;
+        },
+        Parallel::MergeBool);
+#endif
   }
 };
 
 std::shared_ptr<Context> Region::Convert(mcfile::Dimension d,
                                          std::unordered_set<Pos2i, Pos2iHasher> chunks,
-                                         int rx,
-                                         int rz,
+                                         Pos2i region,
+                                         unsigned int concurrency,
                                          mcfile::be::DbInterface *db,
                                          std::filesystem::path destination,
                                          Context const &parentContext,
                                          std::function<bool(void)> progress,
                                          std::atomic_uint64_t &numConvertedChunks) {
-  return Impl::Convert(d, chunks, rx, rz, db, destination, parentContext, progress, numConvertedChunks);
+  return Impl::Convert(d, chunks, region, concurrency, db, destination, parentContext, progress, numConvertedChunks);
 }
 
 } // namespace je2be::toje

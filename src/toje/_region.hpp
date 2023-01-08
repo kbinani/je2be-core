@@ -15,8 +15,8 @@ class Region {
 public:
   static std::shared_ptr<Context> Convert(mcfile::Dimension d,
                                           std::unordered_set<Pos2i, Pos2iHasher> chunks,
-                                          int rx,
-                                          int rz,
+                                          Pos2i region,
+                                          unsigned int concurrency,
                                           mcfile::be::DbInterface *db,
                                           std::filesystem::path destination,
                                           Context const &parentContext,

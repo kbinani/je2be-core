@@ -69,13 +69,13 @@ public:
         regions,
         concurrency,
         [&parentContext]() { return parentContext.make(); },
-        [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
+        [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks, concurrency](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
           auto ctx = parentContext.make();
           if (!ok) {
             return ctx;
           }
           Pos2i region = work.first;
-          auto result = Region::Convert(d, work.second.fChunks, region.fX, region.fZ, &db, dir, *ctx, reportProgress, numConvertedChunks);
+          auto result = Region::Convert(d, work.second.fChunks, region, concurrency, &db, dir, *ctx, reportProgress, numConvertedChunks);
           if (result) {
             return result;
           } else {
@@ -89,6 +89,10 @@ public:
 
     if (cancelRequested.load() || !ok) {
       return JE2BE_ERROR;
+    }
+
+    if (auto st = TerraformRegionBoundary(regions); !st.ok()) {
+      return st;
     }
 
     unordered_map<Pos2i, unordered_set<Pos2i, Pos2iHasher>, Pos2iHasher> chunksInRegion;
@@ -125,6 +129,11 @@ public:
     }
 
     resultContext.swap(ctx);
+    return Status::Ok();
+  }
+
+  static Status TerraformRegionBoundary(std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions) {
+    // TODO:
     return Status::Ok();
   }
 
