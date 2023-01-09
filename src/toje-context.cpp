@@ -155,6 +155,11 @@ public:
         regions[dimension].push_back(make_pair(region, j.second));
       }
     }
+    for (auto &i : regions) {
+      sort(i.second.begin(), i.second.end(), [](pair<Pos2i, Context::ChunksInRegion> const &a, pair<Pos2i, Context::ChunksInRegion> const &b) {
+        return a.second.fChunks.size() > b.second.fChunks.size();
+      });
+    }
 
     totalChunks = accum.fNumChunks;
 
