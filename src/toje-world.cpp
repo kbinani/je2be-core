@@ -6,6 +6,7 @@
 #include "_file.hpp"
 #include "_parallel.hpp"
 #include "_props.hpp"
+#include "_queue2d.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "toje/_region.hpp"
@@ -210,58 +211,26 @@ public:
 
     int width = max->fX - min->fX + 1;
     int height = max->fZ - min->fZ + 1;
-    Data2d<bool> done(*min, width, height, 1);
-    Data2d<bool> use(*min, width, height, 0);
+    Queue2d queue(*min, width, height, 1);
+    for (int x = min->fX; x <= max->fX; x++) {
+      for (int z = min->fZ; z <= max->fZ; z++) {
+        queue.unsafeSetDone({x, z}, true);
+      }
+    }
     for (auto const &it : regions) {
       Pos2i const &region = it.first;
-      done[region] = 0;
+      queue.unsafeSetDone(region, false);
     }
 
     int numThreads = concurrency - 1;
     std::latch latch(concurrency);
-    mutex mut;
     atomic_bool ok(true);
 
-    auto action = [&latch, &mut, min, max, &done, &use, directory, &ok, &regions]() {
+    auto action = [&latch, &queue, min, max, directory, &ok, &regions]() {
       shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
 
       while (ok) {
-        optional<Pos2i> region;
-        {
-          lock_guard<mutex> lock(mut);
-          for (int centerX = min->fX; centerX <= max->fX; centerX++) {
-            for (int centerZ = min->fZ; centerZ <= max->fZ; centerZ++) {
-              if (done[{centerX, centerZ}]) {
-                continue;
-              }
-              bool found = true;
-              for (int x = (std::max)(centerX - 1, min->fX); x <= (std::min)(centerX + 1, max->fX); x++) {
-                for (int z = (std::max)(centerZ - 1, min->fZ); z <= (std::min)(centerZ + 1, max->fZ); z++) {
-                  if (use[{x, z}]) {
-                    found = false;
-                    break;
-                  }
-                }
-                if (!found) {
-                  break;
-                }
-              }
-              if (found) {
-                region = Pos2i(centerX, centerZ);
-                done[*region] = true;
-                for (int x = (std::max)(centerX - 1, min->fX); x <= (std::min)(centerX + 1, max->fX); x++) {
-                  for (int z = (std::max)(centerZ - 1, min->fZ); z <= (std::min)(centerZ + 1, max->fZ); z++) {
-                    use[{x, z}] = true;
-                  }
-                }
-                break;
-              }
-            }
-            if (region) {
-              break;
-            }
-          }
-        }
+        optional<Pos2i> region = queue.next();
         if (!region) {
           break;
         }
@@ -302,12 +271,7 @@ public:
           ok = false;
         }
 
-        lock_guard<mutex> lock(mut);
-        for (int x = (std::max)(region->fX - 1, min->fX); x <= (std::min)(region->fX + 1, max->fX); x++) {
-          for (int z = (std::max)(region->fZ - 1, min->fZ); z <= (std::min)(region->fZ + 1, max->fZ); z++) {
-            use[{x, z}] = false;
-          }
-        }
+        queue.finish(*region);
       }
       latch.count_down();
     };

@@ -155,6 +155,7 @@ set(je2be_src_files
   src/_poi-blocks.hpp
   src/_pos3.hpp
   src/_props.hpp
+  src/_queue2d.hpp
   src/_rename-pair.hpp
   src/_reversible-map.hpp
   src/_rotation.hpp
