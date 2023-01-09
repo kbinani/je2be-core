@@ -2,6 +2,7 @@
 
 #include <je2be/defer.hpp>
 
+#include "_data2d.hpp"
 #include "_file.hpp"
 #include "_parallel.hpp"
 #include "_props.hpp"
@@ -96,7 +97,7 @@ public:
       return JE2BE_ERROR;
     }
 
-    if (auto st = TerraformRegionBoundary(dir / "region", regions); !st.ok()) {
+    if (auto st = TerraformRegionBoundaries(dir / "region", regions, concurrency); !st.ok()) {
       return st;
     }
 
@@ -137,92 +138,188 @@ public:
     return Status::Ok();
   }
 
-  static Status TerraformRegionBoundary(fs::path const &directory, std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions) {
-    shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
+  static Status TerraformRegionBoundary(int cx, int cz, mcfile::je::McaEditor &editor, fs::path directory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor) {
+    int rx = mcfile::Coordinate::RegionFromChunk(cx);
+    int rz = mcfile::Coordinate::RegionFromChunk(cz);
 
-    auto process = [&blockAccessor, directory](int cx, int cz, mcfile::je::McaEditor &editor) {
-      if (!blockAccessor) {
-        blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, directory));
-      }
-      if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
-        auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);
-        blockAccessor.reset(next);
-      }
-      blockAccessor->loadAllWith(editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
+    int x = cx - rx * 32;
+    int z = cz - rz * 32;
 
-      int rx = mcfile::Coordinate::RegionFromChunk(cx);
-      int rz = mcfile::Coordinate::RegionFromChunk(cz);
-
-      int x = cx - rx * 32;
-      int z = cz - rz * 32;
-
-      auto current = editor.extract(x, z);
-      if (!current) {
-        return Status::Ok();
-      }
-      auto copy = current->copy();
-      auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
-      if (!ch) {
-        return JE2BE_ERROR;
-      }
-      blockAccessor->set(cx, cz, ch);
-
-      auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
-      if (!writable) {
-        return JE2BE_ERROR;
-      }
-
-      terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
-      terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
-
-      auto tag = writable->toCompoundTag();
-      if (!tag) {
-        return JE2BE_ERROR;
-      }
-      if (!editor.insert(x, z, *tag)) {
-        return JE2BE_ERROR;
-      }
-
+    auto current = editor.extract(x, z);
+    if (!current) {
       return Status::Ok();
-    };
+    }
 
+    if (!blockAccessor) {
+      blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, directory));
+    }
+    if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
+      auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);
+      blockAccessor.reset(next);
+    }
+    blockAccessor->loadAllWith(editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
+
+    auto copy = current->copy();
+    auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
+    if (!ch) {
+      return JE2BE_ERROR;
+    }
+    blockAccessor->set(cx, cz, ch);
+
+    auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
+    if (!writable) {
+      return JE2BE_ERROR;
+    }
+
+    terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
+    terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
+
+    auto tag = writable->toCompoundTag();
+    if (!tag) {
+      return JE2BE_ERROR;
+    }
+    if (!editor.insert(x, z, *tag)) {
+      return JE2BE_ERROR;
+    }
+
+    return Status::Ok();
+  }
+
+  static Status TerraformRegionBoundaries(fs::path const &directory, std::vector<std::pair<Pos2i, Context::ChunksInRegion>> const &regions, unsigned int concurrency) {
+    if (regions.empty()) {
+      return Status::Ok();
+    }
+
+    optional<Pos2i> min;
+    optional<Pos2i> max;
     for (auto const &it : regions) {
       Pos2i const &region = it.first;
-      auto const &chunks = it.second.fChunks;
+      if (min && max) {
+        int minRx = (std::min)(min->fX, region.fX);
+        int maxRx = (std::max)(max->fX, region.fX);
+        int minRz = (std::min)(min->fZ, region.fZ);
+        int maxRz = (std::max)(max->fZ, region.fZ);
+        min = Pos2i(minRx, minRz);
+        max = Pos2i(maxRx, maxRz);
+      } else {
+        min = region;
+        max = region;
+      }
+    }
+    assert(min && max);
 
-      mcfile::je::McaEditor editor(directory / mcfile::je::Region::GetDefaultRegionFileName(region.fX, region.fZ));
+    int width = max->fX - min->fX + 1;
+    int height = max->fZ - min->fZ + 1;
+    Data2d<bool> done(*min, width, height, 1);
+    Data2d<bool> use(*min, width, height, 0);
+    for (auto const &it : regions) {
+      Pos2i const &region = it.first;
+      done[region] = 0;
+    }
 
-      // north, south
-      for (int z : {0, 1, 30, 31}) {
-        for (int x = 0; x < 32; x++) {
-          int cx = x + region.fX * 32;
-          int cz = z + region.fZ * 32;
-          if (!chunks.contains({cx, cz})) {
-            continue;
+    int numThreads = concurrency - 1;
+    std::latch latch(concurrency);
+    mutex mut;
+    atomic_bool ok(true);
+
+    auto action = [&latch, &mut, min, max, &done, &use, directory, &ok, &regions]() {
+      shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
+
+      while (ok) {
+        optional<Pos2i> region;
+        {
+          lock_guard<mutex> lock(mut);
+          for (int centerX = min->fX; centerX <= max->fX; centerX++) {
+            for (int centerZ = min->fZ; centerZ <= max->fZ; centerZ++) {
+              if (done[{centerX, centerZ}]) {
+                continue;
+              }
+              bool found = true;
+              for (int x = (std::max)(centerX - 1, min->fX); x <= (std::min)(centerX + 1, max->fX); x++) {
+                for (int z = (std::max)(centerZ - 1, min->fZ); z <= (std::min)(centerZ + 1, max->fZ); z++) {
+                  if (use[{x, z}]) {
+                    found = false;
+                    break;
+                  }
+                }
+                if (!found) {
+                  break;
+                }
+              }
+              if (found) {
+                region = Pos2i(centerX, centerZ);
+                done[*region] = true;
+                for (int x = (std::max)(centerX - 1, min->fX); x <= (std::min)(centerX + 1, max->fX); x++) {
+                  for (int z = (std::max)(centerZ - 1, min->fZ); z <= (std::min)(centerZ + 1, max->fZ); z++) {
+                    use[{x, z}] = true;
+                  }
+                }
+                break;
+              }
+            }
+            if (region) {
+              break;
+            }
           }
-          if (auto st = process(cx, cz, editor); !st.ok()) {
-            return st;
+        }
+        if (!region) {
+          break;
+        }
+
+        mcfile::je::McaEditor editor(directory / mcfile::je::Region::GetDefaultRegionFileName(region->fX, region->fZ));
+
+        // north, south
+        for (int z : {0, 1, 30, 31}) {
+          for (int x = 0; x < 32; x++) {
+            int cx = x + region->fX * 32;
+            int cz = z + region->fZ * 32;
+            if (auto st = TerraformRegionBoundary(cx, cz, editor, directory, blockAccessor); !st.ok()) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) {
+            break;
+          }
+        }
+
+        // west, east
+        for (int x : {0, 1, 30, 31}) {
+          for (int z = 2; z < 30; z++) {
+            int cx = x + region->fX * 32;
+            int cz = z + region->fZ * 32;
+            if (auto st = TerraformRegionBoundary(cx, cz, editor, directory, blockAccessor); !st.ok()) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) {
+            break;
+          }
+        }
+
+        if (!editor.close()) {
+          ok = false;
+        }
+
+        lock_guard<mutex> lock(mut);
+        for (int x = (std::max)(region->fX - 1, min->fX); x <= (std::min)(region->fX + 1, max->fX); x++) {
+          for (int z = (std::max)(region->fZ - 1, min->fZ); z <= (std::min)(region->fZ + 1, max->fZ); z++) {
+            use[{x, z}] = false;
           }
         }
       }
+      latch.count_down();
+    };
 
-      // west, east
-      for (int x : {0, 1, 30, 31}) {
-        for (int z = 2; z < 30; z++) {
-          int cx = x + region.fX * 32;
-          int cz = z + region.fZ * 32;
-          if (!chunks.contains({cx, cz})) {
-            continue;
-          }
-          if (auto st = process(cx, cz, editor); !st.ok()) {
-            return st;
-          }
-        }
-      }
-
-      if (!editor.close()) {
-        return JE2BE_ERROR;
-      }
+    vector<thread> threads;
+    for (int i = 0; i < numThreads; i++) {
+      threads.push_back(thread(action));
+    }
+    action();
+    latch.wait();
+    for (auto &th : threads) {
+      th.join();
     }
     return Status::Ok();
   }
