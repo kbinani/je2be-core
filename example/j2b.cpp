@@ -67,6 +67,15 @@ int main(int argc, char *argv[]) {
       je2be::Fs::DeleteAll(*options.fTempDirectory);
     }
   };
+#if 0
+  int s = 1;
+  options.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+  for (int x = -s; x <= s; x++) {
+    for (int z = -s; z <= s; z++) {
+      options.fChunkFilter.insert({x, z});
+    }
+  }
+#endif
   auto st = Converter::Run(input, output, options, concurrency);
   return st.ok() ? 0 : -1;
 }
