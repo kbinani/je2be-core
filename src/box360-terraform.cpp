@@ -77,7 +77,7 @@ private:
           ok = false;
           break;
         }
-        queue.finish(result->fChunk);
+        queue.unlockAround(result->fChunk);
         auto p = count.fetch_add(1) + 1;
         if (progress && !progress->report(p + progressChunksOffset, 8192 * 3)) {
           ok = false;

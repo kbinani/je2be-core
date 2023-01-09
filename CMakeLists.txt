@@ -163,6 +163,7 @@ set(je2be_src_files
   src/_static-reversible-map.hpp
   src/_version.hpp
   src/_volume.hpp
+  src/_walk.hpp
   src/_xxhash.hpp
   src/box360-block-data.cpp
   src/box360-chunk.cpp

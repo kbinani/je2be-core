@@ -6,8 +6,8 @@ namespace je2be {
 
 class Queue2d {
 public:
-  Queue2d(Pos2i const &origin, uint32_t width, uint32_t height, uint32_t radius = 0)
-      : fOrigin(origin), fWidth(width), fHeight(height), fRadius(radius), fDone(origin, width, height, false), fUse(origin, width, height, false) {
+  Queue2d(Pos2i const &origin, uint32_t width, uint32_t height, uint32_t lockRadius = 0)
+      : fOrigin(origin), fWidth(width), fHeight(height), fLockRadius(lockRadius), fDone(origin, width, height, false), fLock(origin, width, height, false) {
   }
 
   std::optional<Pos2i> next() {
@@ -18,9 +18,9 @@ public:
           continue;
         }
         bool found = true;
-        for (int x = (std::max)(centerX - fRadius, fOrigin.fX); x <= (std::min)(centerX + fRadius, fOrigin.fX + fWidth - 1); x++) {
-          for (int z = (std::max)(centerZ - fRadius, fOrigin.fZ); z <= (std::min)(centerZ + fRadius, fOrigin.fZ + fHeight - 1); z++) {
-            if (fUse[{x, z}]) {
+        for (int x = (std::max)(centerX - fLockRadius, fOrigin.fX); x <= (std::min)(centerX + fLockRadius, fOrigin.fX + fWidth - 1); x++) {
+          for (int z = (std::max)(centerZ - fLockRadius, fOrigin.fZ); z <= (std::min)(centerZ + fLockRadius, fOrigin.fZ + fHeight - 1); z++) {
+            if (fLock[{x, z}]) {
               found = false;
               break;
             }
@@ -32,9 +32,9 @@ public:
         if (found) {
           Pos2i next(centerX, centerZ);
           fDone[next] = true;
-          for (int x = (std::max)(centerX - fRadius, fOrigin.fX); x <= (std::min)(centerX + fRadius, fOrigin.fX + fWidth - 1); x++) {
-            for (int z = (std::max)(centerZ - fRadius, fOrigin.fZ); z <= (std::min)(centerZ + fRadius, fOrigin.fZ + fHeight - 1); z++) {
-              fUse[{x, z}] = true;
+          for (int x = (std::max)(centerX - fLockRadius, fOrigin.fX); x <= (std::min)(centerX + fLockRadius, fOrigin.fX + fWidth - 1); x++) {
+            for (int z = (std::max)(centerZ - fLockRadius, fOrigin.fZ); z <= (std::min)(centerZ + fLockRadius, fOrigin.fZ + fHeight - 1); z++) {
+              fLock[{x, z}] = true;
             }
           }
           return next;
@@ -44,12 +44,19 @@ public:
     return std::nullopt;
   }
 
-  void finish(Pos2i const &p) {
+  void unlockAround(Pos2i const &p) {
     std::lock_guard<std::mutex> lock(fMut);
-    for (int x = (std::max)(p.fX - fRadius, fOrigin.fX); x <= (std::min)(p.fX + fRadius, fOrigin.fX + fWidth - 1); x++) {
-      for (int z = (std::max)(p.fZ - fRadius, fOrigin.fZ); z <= (std::min)(p.fZ + fRadius, fOrigin.fZ + fHeight - 1); z++) {
-        fUse[{x, z}] = false;
+    for (int x = p.fX - fLockRadius; x <= p.fX + fLockRadius; x++) {
+      for (int z = p.fZ - fLockRadius; z <= p.fZ + fLockRadius; z++) {
+        unsafeUnlock({x, z});
       }
+    }
+  }
+
+  void unlock(std::initializer_list<Pos2i> positions) {
+    std::lock_guard<std::mutex> lock(fMut);
+    for (auto const &pos : positions) {
+      unsafeUnlock(pos);
     }
   }
 
@@ -57,14 +64,20 @@ public:
     fDone[p] = done;
   }
 
+  void unsafeUnlock(Pos2i const &p) {
+    if (fOrigin.fX <= p.fX && p.fX < fOrigin.fX + fWidth && fOrigin.fZ <= p.fZ && p.fZ < fOrigin.fZ + fHeight) {
+      fLock[p] = false;
+    }
+  }
+
 private:
   std::mutex fMut;
   Pos2i const fOrigin;
   int const fWidth;
   int const fHeight;
-  int const fRadius;
+  int const fLockRadius;
   Data2d<bool> fDone;
-  Data2d<bool> fUse;
+  Data2d<bool> fLock;
 };
 
 } // namespace je2be

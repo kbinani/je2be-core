@@ -7,6 +7,7 @@
 #include "_parallel.hpp"
 #include "_props.hpp"
 #include "_queue2d.hpp"
+#include "_walk.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "toje/_region.hpp"
@@ -237,49 +238,41 @@ public:
         if (!region) {
           break;
         }
+        int rx = region->fX;
+        int rz = region->fZ;
 
-        auto mca = directory / mcfile::je::Region::GetDefaultRegionFileName(region->fX, region->fZ);
+        auto mca = directory / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
         auto editor = mcfile::je::McaEditor::Open(mca);
         if (!editor) {
           ok = false;
           break;
         }
 
-        // north, south
-        for (int z : {0, 1, 30, 31}) {
-          for (int x = 0; x < 32; x++) {
-            int cx = x + region->fX * 32;
-            int cz = z + region->fZ * 32;
-            if (auto st = TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor); !st.ok()) {
-              ok = false;
-              break;
-            }
-          }
-          if (!ok) {
-            break;
-          }
+        bool ret = Walk::Spiral({0, 0}, {31, 31}, [&](Pos2i const &p) {
+          int cx = p.fX + rx * 32;
+          int cz = p.fZ + rz * 32;
+          return TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor).ok();
+        });
+        if (!ret) {
+          ok = false;
         }
 
-        // west, east
-        for (int x : {0, 1, 30, 31}) {
-          for (int z = 2; z < 30; z++) {
-            int cx = x + region->fX * 32;
-            int cz = z + region->fZ * 32;
-            if (auto st = TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor); !st.ok()) {
-              ok = false;
-              break;
-            }
-          }
-          if (!ok) {
-            break;
-          }
+        queue.unlock({{rx - 1, rz - 1}, {rx, rz - 1}, {rx + 1, rz - 1}, {rx - 1, rz}, {rx + 1, rz}, {rx - 1, rz + 1}, {rx, rz + 1}, {rx + 1, rz + 1}});
+
+        ret = Walk::Spiral({1, 1}, {30, 30}, [&](Pos2i const &p) {
+          int cx = p.fX + rx * 32;
+          int cz = p.fZ + rz * 32;
+          return TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor).ok();
+        });
+        if (!ret) {
+          ok = false;
         }
 
         if (!editor->write(mca)) {
           ok = false;
         }
 
-        queue.finish(*region);
+        queue.unlock({*region});
       }
       latch.count_down();
     };
