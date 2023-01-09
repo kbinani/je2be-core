@@ -1992,7 +1992,7 @@ public:
     E(wither, C(Same, LivingEntity, Wither));
     E(piglin, C(Same, LivingEntity, Inventory, IsBaby, Piglin));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
-    E(hoglin, C(Same, Animal, IsBaby, Hoglin));
+    E(hoglin, C(Same, Animal, Hoglin));
     E(arrow, C(Same, Base, Owner));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
