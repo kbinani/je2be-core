@@ -937,13 +937,13 @@ static void LightTransmission() {
       }
     }
     assert(section);
-    skyLight.reset(section->fSkyLight);
+    skyLight.copyFrom(section->fSkyLight);
     uint8_t v = skyLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - chunk->minBlockZ()});
     cout << (int)v << " : " << mcfile::blocks::Name(id) << endl;
   }
 }
 
-#if 1
+#if 0
 TEST_CASE("research") {
   LightTransmission();
 }
