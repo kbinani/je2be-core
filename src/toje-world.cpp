@@ -259,13 +259,18 @@ public:
 
         queue.unlock({{rx - 1, rz - 1}, {rx, rz - 1}, {rx + 1, rz - 1}, {rx - 1, rz}, {rx + 1, rz}, {rx - 1, rz + 1}, {rx, rz + 1}, {rx + 1, rz + 1}});
 
-        ret = Walk::Spiral({1, 1}, {30, 30}, [&](Pos2i const &p) {
-          int cx = p.fX + rx * 32;
-          int cz = p.fZ + rz * 32;
-          return TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor).ok();
-        });
-        if (!ret) {
-          ok = false;
+        for (int x = 1; x <= 30; x++) {
+          for (int z = 1; z <= 30; z++) {
+            int cx = x + rx * 32;
+            int cz = z + rz * 32;
+            if (!TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor).ok()) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) {
+            break;
+          }
         }
 
         if (!editor->write(mca)) {

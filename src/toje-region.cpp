@@ -32,7 +32,7 @@ public:
     int rz = region.fZ;
 
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    auto terrainMcaPath = ctx->fTempDirectory / Uuid::Gen().toString();
+    auto terrainMcaPath = destination / "region" / name;
     auto entitiesMcaPath = destination / "entities" / name;
 
     auto terrain = mcfile::je::McaEditor::Open(terrainMcaPath);
@@ -108,61 +108,7 @@ public:
     }
     entities.reset();
 
-    if (!TerraformExceptRegionBoundary(region, terrainMcaPath, destination / "region" / name, concurrency)) {
-      return nullptr;
-    }
-
     return ctx;
-  }
-
-private:
-  static bool TerraformExceptRegionBoundary(Pos2i const &region, fs::path const &from, fs::path const &to, unsigned int concurrency) {
-    auto editor = mcfile::je::McaEditor::Open(from);
-    if (!editor) {
-      return false;
-    }
-
-    for (int x = 1; x < 31; x++) {
-      for (int z = 1; z < 31; z++) {
-        auto r = mcfile::je::Region::MakeRegion(from, region.fX, region.fZ);
-        if (!r) {
-          return false;
-        }
-        Pos2i chunk(x + region.fX * 32, z + region.fZ * 32);
-
-        terraform::java::BlockAccessorJavaMca<3, 3> loader(chunk.fX - 1, chunk.fZ - 1, *r);
-        auto original = editor->extract(x, z);
-        if (!original) {
-          continue;
-        }
-        auto copy = original->copy();
-        auto readonlyChunk = mcfile::je::Chunk::MakeChunk(chunk.fX, chunk.fZ, original);
-        if (!readonlyChunk) {
-          return false;
-        }
-        loader.set(chunk.fX, chunk.fZ, readonlyChunk);
-
-        auto writableChunk = mcfile::je::WritableChunk::MakeChunk(chunk.fX, chunk.fZ, copy);
-        if (!writableChunk) {
-          return false;
-        }
-
-        terraform::BlockPropertyAccessorJava accessor(*readonlyChunk);
-        terraform::Leaves::Do(*writableChunk, loader, accessor);
-
-        if (auto compound = writableChunk->toCompoundTag(); compound) {
-          if (!editor->insert(x, z, *compound)) {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      }
-    }
-    if (!editor->write(to)) {
-      return false;
-    }
-    return Fs::Delete(from);
   }
 };
 
