@@ -5,12 +5,21 @@
 #include <je2be/toje/progress.hpp>
 
 #include "_props.hpp"
+#include "_queue2d.hpp"
+#include "_walk.hpp"
 #include "enums/_game-mode.hpp"
+#include "terraform/_leaves.hpp"
+#include "terraform/java/_block-accessor-java-directory.hpp"
 #include "toje/_context.hpp"
 #include "toje/_level-data.hpp"
 #include "toje/_world.hpp"
 
 #include <atomic>
+#include <latch>
+#include <thread>
+
+using namespace std;
+namespace fs = std::filesystem;
 
 namespace je2be::toje {
 
@@ -85,6 +94,10 @@ public:
       }
     }
 
+    if (auto st = Terraform(regions, output, concurrency); !st.ok()) {
+      return st;
+    }
+
     if (auto rootVehicle = bin->drainRootVehicle(); rootVehicle) {
       Uuid vehicleUuid = rootVehicle->first;
       auto entity = rootVehicle->second;
@@ -137,6 +150,204 @@ public:
   }
 
 private:
+  static Status Terraform(map<mcfile::Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> const &regions, fs::path const &output, unsigned int concurrency) {
+    if (regions.empty()) {
+      return Status::Ok();
+    }
+
+    map<mcfile::Dimension, shared_ptr<Queue2d>> queues;
+
+    for (auto const &i : regions) {
+      if (i.second.empty()) {
+        continue;
+      }
+      optional<Pos2i> min;
+      optional<Pos2i> max;
+      for (auto const &j : i.second) {
+        Pos2i const &region = j.first;
+        if (min && max) {
+          int minRx = (std::min)(min->fX, region.fX);
+          int maxRx = (std::max)(max->fX, region.fX);
+          int minRz = (std::min)(min->fZ, region.fZ);
+          int maxRz = (std::max)(max->fZ, region.fZ);
+          min = Pos2i(minRx, minRz);
+          max = Pos2i(maxRx, maxRz);
+        } else {
+          min = region;
+          max = region;
+        }
+      }
+      assert(min && max);
+
+      int width = max->fX - min->fX + 1;
+      int height = max->fZ - min->fZ + 1;
+      auto queue = make_shared<Queue2d>(*min, width, height, 1);
+      for (int x = min->fX; x <= max->fX; x++) {
+        for (int z = min->fZ; z <= max->fZ; z++) {
+          queue->setDone({x, z}, true);
+        }
+      }
+      for (auto const &j : i.second) {
+        Pos2i const &region = j.first;
+        queue->setDone(region, false);
+      }
+      queues[i.first] = queue;
+    }
+
+    int numThreads = concurrency - 1;
+    std::latch latch(concurrency);
+    atomic_bool ok(true);
+    mutex mut;
+
+    auto action = [&latch, &queues, &mut, output, &ok, &regions]() {
+      shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
+      optional<mcfile::Dimension> prevDimension;
+
+      while (ok) {
+        optional<pair<mcfile::Dimension, Pos2i>> next;
+        {
+          lock_guard<mutex> lock(mut);
+          for (auto const &it : queues) {
+            if (auto n = it.second->next(); n) {
+              next = make_pair(it.first, *n);
+              break;
+            }
+          }
+        }
+        if (!next) {
+          break;
+        }
+
+        mcfile::Dimension dim = next->first;
+        if (dim != prevDimension) {
+          blockAccessor.reset();
+          prevDimension = dim;
+        }
+
+        Pos2i region = next->second;
+        int rx = region.fX;
+        int rz = region.fZ;
+
+        fs::path directory;
+        switch (dim) {
+        case mcfile::Dimension::Nether:
+          directory = output / "DIM-1" / "region";
+          break;
+        case mcfile::Dimension::End:
+          directory = output / "DIM1" / "region";
+          break;
+        case mcfile::Dimension::Overworld:
+        default:
+          directory = output / "region";
+          break;
+        }
+
+        auto mca = directory / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+        auto editor = mcfile::je::McaEditor::Open(mca);
+        if (!editor) {
+          ok = false;
+          break;
+        }
+
+        bool ret = Walk::Spiral({0, 0}, {31, 31}, [&](Pos2i const &p) {
+          int cx = p.fX + rx * 32;
+          int cz = p.fZ + rz * 32;
+          return TerraformRegion(cx, cz, *editor, directory, blockAccessor).ok();
+        });
+        if (!ret) {
+          ok = false;
+        }
+
+        {
+          lock_guard<mutex> lock(mut);
+          queues[dim]->unlock({{rx - 1, rz - 1}, {rx, rz - 1}, {rx + 1, rz - 1}, {rx - 1, rz}, {rx + 1, rz}, {rx - 1, rz + 1}, {rx, rz + 1}, {rx + 1, rz + 1}});
+        }
+
+        for (int x = 1; x <= 30; x++) {
+          for (int z = 1; z <= 30; z++) {
+            int cx = x + rx * 32;
+            int cz = z + rz * 32;
+            if (!TerraformRegion(cx, cz, *editor, directory, blockAccessor).ok()) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) {
+            break;
+          }
+        }
+
+        if (!editor->write(mca)) {
+          ok = false;
+        }
+
+        {
+          lock_guard<mutex> lock(mut);
+          queues[dim]->unlock({region});
+        }
+      }
+      latch.count_down();
+    };
+
+    vector<thread> threads;
+    for (int i = 0; i < numThreads; i++) {
+      threads.push_back(thread(action));
+    }
+    action();
+    latch.wait();
+    for (auto &th : threads) {
+      th.join();
+    }
+    return Status::Ok();
+  }
+
+  static Status TerraformRegion(int cx, int cz, mcfile::je::McaEditor &editor, fs::path directory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor) {
+    int rx = mcfile::Coordinate::RegionFromChunk(cx);
+    int rz = mcfile::Coordinate::RegionFromChunk(cz);
+
+    int x = cx - rx * 32;
+    int z = cz - rz * 32;
+
+    auto current = editor.extract(x, z);
+    if (!current) {
+      return Status::Ok();
+    }
+
+    if (!blockAccessor) {
+      blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, directory));
+    }
+    if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
+      auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);
+      blockAccessor.reset(next);
+    }
+    blockAccessor->loadAllWith(editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
+
+    auto copy = current->copy();
+    auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
+    if (!ch) {
+      return JE2BE_ERROR;
+    }
+    blockAccessor->set(cx, cz, ch);
+
+    auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
+    if (!writable) {
+      return JE2BE_ERROR;
+    }
+
+    terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
+    terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
+
+    auto tag = writable->toCompoundTag();
+    if (!tag) {
+      return JE2BE_ERROR;
+    }
+    if (!editor.insert(x, z, *tag)) {
+      return JE2BE_ERROR;
+    }
+
+    return Status::Ok();
+  }
+
   static bool PrepareOutputDirectory(std::filesystem::path const &output) {
     using namespace std;
     namespace fs = std::filesystem;

@@ -11,7 +11,6 @@ public:
   }
 
   std::optional<Pos2i> next() {
-    std::lock_guard<std::mutex> lock(fMut);
     for (int centerX = fOrigin.fX; centerX < fOrigin.fX + fWidth; centerX++) {
       for (int centerZ = fOrigin.fZ; centerZ < fOrigin.fZ + fHeight; centerZ++) {
         if (fDone[{centerX, centerZ}]) {
@@ -45,33 +44,30 @@ public:
   }
 
   void unlockAround(Pos2i const &p) {
-    std::lock_guard<std::mutex> lock(fMut);
     for (int x = p.fX - fLockRadius; x <= p.fX + fLockRadius; x++) {
       for (int z = p.fZ - fLockRadius; z <= p.fZ + fLockRadius; z++) {
-        unsafeUnlock({x, z});
+        unlock({x, z});
       }
     }
   }
 
   void unlock(std::initializer_list<Pos2i> positions) {
-    std::lock_guard<std::mutex> lock(fMut);
     for (auto const &pos : positions) {
-      unsafeUnlock(pos);
+      unlock(pos);
     }
   }
 
-  void unsafeSetDone(Pos2i const &p, bool done) {
+  void setDone(Pos2i const &p, bool done) {
     fDone[p] = done;
   }
 
-  void unsafeUnlock(Pos2i const &p) {
+  void unlock(Pos2i const &p) {
     if (fOrigin.fX <= p.fX && p.fX < fOrigin.fX + fWidth && fOrigin.fZ <= p.fZ && p.fZ < fOrigin.fZ + fHeight) {
       fLock[p] = false;
     }
   }
 
 private:
-  std::mutex fMut;
   Pos2i const fOrigin;
   int const fWidth;
   int const fHeight;

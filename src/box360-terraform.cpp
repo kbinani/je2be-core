@@ -62,10 +62,16 @@ private:
     std::latch latch(concurrency);
     mutex joinMut;
     Queue2d queue({-32, -32}, 64, 64, 1);
+    mutex queueMut;
 
-    auto action = [&queue, &joinMut, &latch, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
+    auto action = [&queue, &queueMut, &joinMut, &latch, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
       while (ok) {
-        optional<Pos2i> next = queue.next();
+        optional<Pos2i> next;
+        {
+          lock_guard<mutex> lock(queueMut);
+          next = queue.next();
+        }
+
         if (!next) {
           break;
         }
@@ -77,7 +83,10 @@ private:
           ok = false;
           break;
         }
-        queue.unlockAround(result->fChunk);
+        {
+          lock_guard<mutex> lock(queueMut);
+          queue.unlockAround(result->fChunk);
+        }
         auto p = count.fetch_add(1) + 1;
         if (progress && !progress->report(p + progressChunksOffset, 8192 * 3)) {
           ok = false;
