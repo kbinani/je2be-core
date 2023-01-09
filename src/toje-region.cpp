@@ -32,10 +32,18 @@ public:
     int rz = region.fZ;
 
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    auto mcaPath = ctx->fTempDirectory / Uuid::Gen().toString();
+    auto terrainMcaPath = ctx->fTempDirectory / Uuid::Gen().toString();
+    auto entitiesMcaPath = destination / "entities" / name;
 
-    auto terrain = make_shared<mcfile::je::McaEditor>(mcaPath);
-    auto entities = make_shared<mcfile::je::McaEditor>(destination / "entities" / name);
+    auto terrain = mcfile::je::McaEditor::Open(terrainMcaPath);
+    if (!terrain) {
+      return nullptr;
+    }
+
+    auto entities = mcfile::je::McaEditor::Open(entitiesMcaPath);
+    if (!entities) {
+      return nullptr;
+    }
 
     bool ok = true;
     for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
@@ -90,17 +98,17 @@ public:
       return nullptr;
     }
 
-    if (!terrain->close()) {
+    if (!terrain->write(terrainMcaPath)) {
       return nullptr;
     }
     terrain.reset();
 
-    if (!entities->close()) {
+    if (!entities->write(entitiesMcaPath)) {
       return nullptr;
     }
     entities.reset();
 
-    if (!TerraformExceptRegionBoundary(region, mcaPath, destination / "region" / name, concurrency)) {
+    if (!TerraformExceptRegionBoundary(region, terrainMcaPath, destination / "region" / name, concurrency)) {
       return nullptr;
     }
 
@@ -109,11 +117,10 @@ public:
 
 private:
   static bool TerraformExceptRegionBoundary(Pos2i const &region, fs::path const &from, fs::path const &to, unsigned int concurrency) {
-    if (!Fs::CopyFile(from, to)) {
+    auto editor = mcfile::je::McaEditor::Open(from);
+    if (!editor) {
       return false;
     }
-
-    mcfile::je::McaEditor edit(to);
 
     for (int x = 1; x < 31; x++) {
       for (int z = 1; z < 31; z++) {
@@ -124,7 +131,7 @@ private:
         Pos2i chunk(x + region.fX * 32, z + region.fZ * 32);
 
         terraform::java::BlockAccessorJavaMca<3, 3> loader(chunk.fX - 1, chunk.fZ - 1, *r);
-        auto original = edit.extract(x, z);
+        auto original = editor->extract(x, z);
         if (!original) {
           continue;
         }
@@ -144,7 +151,7 @@ private:
         terraform::Leaves::Do(*writableChunk, loader, accessor);
 
         if (auto compound = writableChunk->toCompoundTag(); compound) {
-          if (!edit.insert(x, z, *compound)) {
+          if (!editor->insert(x, z, *compound)) {
             return false;
           }
         } else {
@@ -152,7 +159,7 @@ private:
         }
       }
     }
-    if (!edit.close()) {
+    if (!editor->write(to)) {
       return false;
     }
     return Fs::Delete(from);

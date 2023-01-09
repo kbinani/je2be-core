@@ -126,10 +126,13 @@ public:
       Pos2i r = it.first;
       fs::path entitiesDir = dir / "entities";
       fs::path entitiesMca = entitiesDir / mcfile::je::Region::GetDefaultRegionFileName(r.fX, r.fZ);
-      mcfile::je::McaEditor editor(entitiesMca);
+      auto editor = mcfile::je::McaEditor::Open(entitiesMca);
+      if (!editor) {
+        return JE2BE_ERROR;
+      }
       unordered_set<Pos2i, Pos2iHasher> const &chunks = it.second;
       for (Pos2i const &chunk : chunks) {
-        if (auto st = AttachLeashAndPassengers(chunk, entitiesDir, editor, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
+        if (auto st = AttachLeashAndPassengers(chunk, entitiesDir, *editor, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
           return st;
         }
       }
@@ -235,14 +238,19 @@ public:
           break;
         }
 
-        mcfile::je::McaEditor editor(directory / mcfile::je::Region::GetDefaultRegionFileName(region->fX, region->fZ));
+        auto mca = directory / mcfile::je::Region::GetDefaultRegionFileName(region->fX, region->fZ);
+        auto editor = mcfile::je::McaEditor::Open(mca);
+        if (!editor) {
+          ok = false;
+          break;
+        }
 
         // north, south
         for (int z : {0, 1, 30, 31}) {
           for (int x = 0; x < 32; x++) {
             int cx = x + region->fX * 32;
             int cz = z + region->fZ * 32;
-            if (auto st = TerraformRegionBoundary(cx, cz, editor, directory, blockAccessor); !st.ok()) {
+            if (auto st = TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor); !st.ok()) {
               ok = false;
               break;
             }
@@ -257,7 +265,7 @@ public:
           for (int z = 2; z < 30; z++) {
             int cx = x + region->fX * 32;
             int cz = z + region->fZ * 32;
-            if (auto st = TerraformRegionBoundary(cx, cz, editor, directory, blockAccessor); !st.ok()) {
+            if (auto st = TerraformRegionBoundary(cx, cz, *editor, directory, blockAccessor); !st.ok()) {
               ok = false;
               break;
             }
@@ -267,7 +275,7 @@ public:
           }
         }
 
-        if (!editor.close()) {
+        if (!editor->write(mca)) {
           ok = false;
         }
 
@@ -401,11 +409,14 @@ public:
           int rx = mcfile::Coordinate::RegionFromChunk(cx);
           int rz = mcfile::Coordinate::RegionFromChunk(cz);
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-          mcfile::je::McaEditor secondaryEditor(nbt);
+          auto secondaryEditor = mcfile::je::McaEditor::Open(nbt);
+          if (!secondaryEditor) {
+            return JE2BE_ERROR;
+          }
           int localX = cx - 32 * rx;
           int localZ = cz - 32 * rz;
-          secondaryEditor.extract(localX, localZ);
-          if (!secondaryEditor.insert(localX, localZ, *data)) {
+          secondaryEditor->extract(localX, localZ);
+          if (!secondaryEditor->insert(localX, localZ, *data)) {
             return JE2BE_ERROR;
           }
         }
