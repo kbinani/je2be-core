@@ -48,7 +48,7 @@ public:
     std::lock_guard<std::mutex> lock(fMut);
     for (int x = (std::max)(p.fX - fRadius, fOrigin.fX); x <= (std::min)(p.fX + fRadius, fOrigin.fX + fWidth - 1); x++) {
       for (int z = (std::max)(p.fZ - fRadius, fOrigin.fZ); z <= (std::min)(p.fZ + fRadius, fOrigin.fZ + fHeight - 1); z++) {
-        fUse[{x, z}] = true;
+        fUse[{x, z}] = false;
       }
     }
   }
