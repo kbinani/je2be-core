@@ -47,12 +47,12 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.os == 'windows-latest' }}
         with:
-          name: artifact
+          name: ${{ matrix.os }}-artifact
           path: build/Release/test.exe
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.os != 'windows-latest' }}
         with:
-          name: artifact
+          name: ${{ matrix.os }}-artifact
           path: build/test
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
