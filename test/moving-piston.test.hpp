@@ -166,8 +166,11 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
 TEST_CASE("moving-piston") {
   // https://gyazo.com/84feadea4a96ecb63dedb9ec958e584a
   fs::path const thisFile(__FILE__);
-  std::cout << "thisFile=" << thisFile << std::endl;
-  fs::path const dataDirectory = thisFile.parent_path() / "data" / "piston";
+  fs::path const projectRoot = thisFile.parent_path().parent_path().lexically_normal();
+  fs::path const cwd = fs::current_path().lexically_normal();
+  auto rel = fs::relative(projectRoot, cwd);
+  fs::path const dataDirectory = rel / "test" / "data" / "piston";
+  cout << "dataDirectory=" << dataDirectory << endl;
 
   // state=0"
   {
