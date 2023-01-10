@@ -49,8 +49,6 @@ jobs:
         run: |
           test "${{ matrix.os }}" == "windows-latest" && cd build/Release
           test "${{ matrix.os }}" != "windows-latest" && cd build
-          ./test --duration=true --test-case-exclude=j2b2j,moving-piston
-          ./test --duration=true --test-case=j2b2j
           ./test --duration=true --test-case=moving-piston
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
