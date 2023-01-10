@@ -168,25 +168,29 @@ TEST_CASE("moving-piston") {
   fs::path const thisFile(__FILE__);
   fs::path const dataDirectory = thisFile.parent_path() / "data" / "piston";
 
-  SUBCASE("state=0") {
+  // state=0"
+  {
     string bedrock = "1.19piston_arm_bedrock_-8076300039614213879.mcworld";
     string java = "1.19piston_arm_java_-8541049737591066119.zip";
     CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 
-  SUBCASE("state=1") {
+  // state=1
+  {
     string bedrock = "1.19piston_arm_bedrock_6291263495557308048.mcworld";
     string java = "1.19piston_arm_java_1094285069167139155.zip";
     CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 
-  SUBCASE("state=2") {
+  // state=2
+  {
     string bedrock = "1.19piston_arm_bedrock_4449454955840640434.mcworld";
     string java = "1.19piston_arm_java_2666496645811299860.zip";
     CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 
-  SUBCASE("state=3") {
+  // state=3
+  {
     string bedrock = "1.19piston_arm_bedrock_1911327770476968939.mcworld";
     string java = "1.19piston_arm_java_3720894831070949398.zip";
     CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
