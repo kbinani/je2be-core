@@ -24,6 +24,17 @@ public:
     return fStorage[index];
   }
 
+  std::optional<T> get(Pos2i const &p) const {
+    int32_t dx = p.fX - fOrigin.fX;
+    int32_t dz = p.fZ - fOrigin.fZ;
+    if (0 <= dx && dx < fWidth && 0 <= dz && dz < fHeight) {
+      int32_t index = (dz * fWidth) + dx;
+      return fStorage[index];
+    } else {
+      return std::nullopt;
+    }
+  }
+
 private:
   Pos2i const fOrigin;
   uint32_t const fWidth;
