@@ -54,6 +54,12 @@ jobs:
         with:
           name: ${{ matrix.os }}-artifact
           path: build/test
+      - name: Test
+        shell: bash
+        run: |
+          test "${{ matrix.os }}" == "windows-latest" && cd build/Release
+          test "${{ matrix.os }}" != "windows-latest" && cd build
+          ./test --duration=true --test-case=moving-piston || true
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/analyze@v2
