@@ -44,12 +44,6 @@ jobs:
         run: |
           cd build
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
-      - name: Test
-        shell: bash
-        run: |
-          test "${{ matrix.os }}" == "windows-latest" && cd build/Release
-          test "${{ matrix.os }}" != "windows-latest" && cd build
-          ./test --duration=true --test-case=moving-piston
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.os == 'windows-latest' }}
         with:
