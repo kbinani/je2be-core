@@ -161,35 +161,36 @@ private:
       if (i.second.empty()) {
         continue;
       }
-      optional<Pos2i> min;
-      optional<Pos2i> max;
+      optional<Pos2i> minR;
+      optional<Pos2i> maxR;
       for (auto const &j : i.second) {
         Pos2i const &region = j.first;
-        if (min && max) {
-          int minRx = (std::min)(min->fX, region.fX);
-          int maxRx = (std::max)(max->fX, region.fX);
-          int minRz = (std::min)(min->fZ, region.fZ);
-          int maxRz = (std::max)(max->fZ, region.fZ);
-          min = Pos2i(minRx, minRz);
-          max = Pos2i(maxRx, maxRz);
+        if (minR && maxR) {
+          int minRx = (std::min)(minR->fX, region.fX);
+          int maxRx = (std::max)(maxR->fX, region.fX);
+          int minRz = (std::min)(minR->fZ, region.fZ);
+          int maxRz = (std::max)(maxR->fZ, region.fZ);
+          minR = Pos2i(minRx, minRz);
+          maxR = Pos2i(maxRx, maxRz);
         } else {
-          min = region;
-          max = region;
+          minR = region;
+          maxR = region;
         }
       }
-      assert(min && max);
+      assert(minR && maxR);
 
-      int width = max->fX - min->fX + 1;
-      int height = max->fZ - min->fZ + 1;
-      auto queue = make_shared<Queue2d>(*min, width, height, 1);
-      for (int x = min->fX; x <= max->fX; x++) {
-        for (int z = min->fZ; z <= max->fZ; z++) {
+      int width = maxR->fX - minR->fX + 1;
+      int height = maxR->fZ - minR->fZ + 1;
+      auto queue = make_shared<Queue2d>(*minR, width, height, 1);
+      for (int x = minR->fX; x <= maxR->fX; x++) {
+        for (int z = minR->fZ; z <= maxR->fZ; z++) {
           queue->setDone({x, z}, true);
         }
       }
       for (auto const &j : i.second) {
         Pos2i const &region = j.first;
         queue->setDone(region, false);
+        queue->setWeight(region, j.second.fChunks.size());
       }
       queues[i.first] = queue;
     }
