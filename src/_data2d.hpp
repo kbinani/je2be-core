@@ -10,14 +10,14 @@ public:
     fStorage.resize(fWidth * fHeight, def);
   }
 
-  std::vector<T>::reference operator[](Pos2i const &p) {
+  typename std::vector<T>::reference operator[](Pos2i const &p) {
     int32_t dx = p.fX - fOrigin.fX;
     int32_t dz = p.fZ - fOrigin.fZ;
     int32_t index = (dz * fWidth) + dx;
     return fStorage[index];
   }
 
-  std::vector<T>::const_reference operator[](Pos2i const &p) const {
+  typename std::vector<T>::const_reference operator[](Pos2i const &p) const {
     int32_t dx = p.fX - fOrigin.fX;
     int32_t dz = p.fZ - fOrigin.fZ;
     int32_t index = (dz * fWidth) + dx;
