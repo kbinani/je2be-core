@@ -198,11 +198,10 @@ class ConcurrentDb : public DbInterface {
     uint16_t fNumPrefix[256];
   };
 
-  class Gate {
+  class Gate : std::enable_shared_from_this<Gate> {
   public:
     std::shared_ptr<Writer> get(uintptr_t key, std::filesystem::path const &dbname, std::atomic_uint64_t &keySequence, std::atomic_uint32_t &writerIdGenerator) {
       using namespace std;
-      lock_guard<mutex> lock(Mut());
       auto found = fWriters.find(key);
       if (found != fWriters.end()) {
         return found->second;
@@ -210,20 +209,23 @@ class ConcurrentDb : public DbInterface {
       uint32_t id = writerIdGenerator.fetch_add(1);
       auto writer = make_shared<Writer>(id, dbname, keySequence);
       fWriters[key] = writer;
-      Jar().insert(make_pair(key, writer));
       return writer;
     }
 
     static void Drain(uintptr_t key, std::vector<std::shared_ptr<Writer>> &out) {
       using namespace std;
       lock_guard<mutex> lock(Mut());
-      auto &jar = Jar();
-      while (true) {
-        auto node = jar.extract(key);
-        if (node.empty()) {
-          break;
-        }
-        out.push_back(node.mapped());
+      auto &gates = Gates();
+      for (auto &it : gates) {
+        it->drain(key, out);
+      }
+    }
+
+    void drain(uintptr_t key, std::vector<std::shared_ptr<Writer>> &out) {
+      auto found = fWriters.find(key);
+      if (found != fWriters.end()) {
+        out.push_back(found->second);
+        fWriters.erase(found);
       }
     }
 
@@ -232,9 +234,9 @@ class ConcurrentDb : public DbInterface {
       return sMut;
     }
 
-    static std::multimap<uintptr_t, std::shared_ptr<Writer>> &Jar() {
-      static std::multimap<uintptr_t, std::shared_ptr<Writer>> sJar;
-      return sJar;
+    static std::set<std::shared_ptr<Gate>> &Gates() {
+      static std::set<std::shared_ptr<Gate>> sGates;
+      return sGates;
     }
 
   private:
@@ -466,7 +468,12 @@ public:
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
-    gate().get((uintptr_t)this, fDbName, fSequence, fWriterIdGenerator)->put(key, value.ToString());
+    auto gate = this->gate().lock();
+    if (!gate) {
+      // Already closed
+      return;
+    }
+    gate->get((uintptr_t)this, fDbName, fSequence, fWriterIdGenerator)->put(key, value.ToString());
   }
 
   void del(std::string const &key) override {}
@@ -799,10 +806,18 @@ public:
   }
 
 private:
-  Gate &gate() {
+  std::weak_ptr<Gate> gate() {
     using namespace std;
-    thread_local unique_ptr<Gate> tGate(new Gate);
-    return *tGate;
+    thread_local weak_ptr<Gate> tGate(CreateGate());
+    return tGate;
+  }
+
+  static std::shared_ptr<Gate> CreateGate() {
+    using namespace std;
+    auto gate = make_shared<Gate>();
+    lock_guard<mutex> lock(Gate::Mut());
+    Gate::Gates().insert(gate);
+    return gate;
   }
 
 private:
