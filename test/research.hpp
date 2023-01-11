@@ -906,6 +906,9 @@ static void LightTransmission() {
       blocks.push_back(id);
     }
   }
+
+  unordered_map<int, vector<mcfile::blocks::BlockId>> lightAttenuation;
+
   mcfile::je::World world(root);
   shared_ptr<mcfile::je::Chunk> chunk;
   Data4b3d skyLight({0, 0, 0}, 16, 16, 16);
@@ -927,6 +930,7 @@ static void LightTransmission() {
     }
     if (block->fId != id) {
       cerr << mcfile::blocks::Name(id) << " not set (2)" << endl;
+      continue;
     }
     int cy = mcfile::Coordinate::ChunkFromBlock(y);
     mcfile::je::ChunkSection *section = nullptr;
@@ -938,9 +942,30 @@ static void LightTransmission() {
     }
     assert(section);
     skyLight.copyFrom(section->fSkyLight);
-    uint8_t v = skyLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - chunk->minBlockZ()});
-    cout << (int)v << " : " << mcfile::blocks::Name(id) << endl;
+    uint8_t centerUp = skyLight.getUnchecked({x - chunk->minBlockX(), y + 1 - section->y() * 16, z - chunk->minBlockZ()});
+    uint8_t centerLight = skyLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - chunk->minBlockZ()});
+    assert(centerUp == 15);
+    int diff = (int)centerUp - (int)centerLight;
+    lightAttenuation[diff].push_back(id);
   }
+
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
+  code << "static int LightAttenuationAmountById(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto const &i : lightAttenuation) {
+    int diff = i.first;
+    for (mcfile::blocks::BlockId id : i.second) {
+      auto name = mcfile::blocks::Name(id).substr(10);
+      code << "  case " << name << ":" << endl;
+    }
+    code << "    return " << diff << ";" << endl;
+  }
+  code << "  default:" << endl;
+  code << "    return 0;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
 }
 
 #if 0
