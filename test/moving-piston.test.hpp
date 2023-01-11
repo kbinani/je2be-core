@@ -171,6 +171,7 @@ TEST_CASE("moving-piston") {
   auto rel = fs::relative(projectRoot, cwd);
   fs::path const dataDirectory = rel / "test" / "data" / "piston";
   cout << "dataDirectory=" << dataDirectory << endl;
+  cout << "hardware_concurrency=" << thread::hardware_concurrency() << endl;
 
   // state=0"
   {
