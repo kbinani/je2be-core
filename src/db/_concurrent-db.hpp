@@ -541,6 +541,9 @@ public:
     string manifestFileName = "MANIFEST-000001";
     fs::path manifestFile = fDbName / manifestFileName;
     unique_ptr<WritableFile> meta(OpenWritable(manifestFile));
+    if (!meta) {
+      return false;
+    }
     leveldb::log::Writer writer(meta.get());
     leveldb::Status st = writer.AddRecord(manifestRecord);
     if (!st.ok()) {
@@ -551,6 +554,9 @@ public:
 
     fs::path currentFile = fDbName / "CURRENT";
     unique_ptr<WritableFile> current(OpenWritable(currentFile));
+    if (!current) {
+      return false;
+    }
     st = current->Append(manifestFileName + "\x0a");
     if (!st.ok()) {
       return false;
