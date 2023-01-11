@@ -187,7 +187,6 @@ TEST_CASE("moving-piston") {
     CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
 
-#if 0
   // state=2
   {
     string bedrock = "1.19piston_arm_bedrock_4449454955840640434.mcworld";
@@ -201,5 +200,4 @@ TEST_CASE("moving-piston") {
     string java = "1.19piston_arm_java_3720894831070949398.zip";
     CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
   }
-#endif
 }
