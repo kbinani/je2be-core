@@ -27,6 +27,18 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+          fetch-depth: 0
+      - name: Restore timestamps
+        shell: bash
+        run: bash tool/git-restore-mtime.sh
+      - name: Cache workspace directory
+        if: ${{ github.event.schedule == '' }}
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-
       - name: Initialize CodeQL
         if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/init@v2
@@ -39,31 +51,24 @@ jobs:
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
-      - name: Build
+      - name: Build (Parallel)
+        if: ${{ github.event.schedule == '' || matrix.os != 'macos-latest' }}
         shell: bash
         run: |
           cd build
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
-      - uses: actions/upload-artifact@v3
-        if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          name: ${{ matrix.os }}-artifact
-          path: |
-            build/Release/test.exe
-            test/data/piston/
-      - uses: actions/upload-artifact@v3
-        if: ${{ matrix.os != 'windows-latest' }}
-        with:
-          name: ${{ matrix.os }}-artifact
-          path: |
-            build/test
-            test/data/piston/
+      - name: Build (Serial)
+        if: ${{ github.event.schedule != '' && matrix.os == 'macos-latest' }}
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --target test --config Release --verbose
       - name: Test
         shell: bash
         run: |
           test "${{ matrix.os }}" == "windows-latest" && cd build/Release
           test "${{ matrix.os }}" != "windows-latest" && cd build
-          ./test --duration=true --test-case=moving-piston || true
+          ./test --duration=true
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/analyze@v2
