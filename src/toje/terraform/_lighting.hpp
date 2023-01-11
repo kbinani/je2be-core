@@ -18,6 +18,33 @@ public:
   }
 
 private:
+  /*
+  minecraft:bamboo not set (2)
+  minecraft:brain_coral_block not set (2)
+  minecraft:bubble_column not set (2)
+  minecraft:bubble_coral_block not set (2)
+  minecraft:cactus not set (2)
+  minecraft:chorus_flower not set (2)
+  minecraft:chorus_plant not set (2)
+  minecraft:farmland not set (2)
+  minecraft:fire not set (2)
+  minecraft:fire_coral_block not set (2)
+  minecraft:horn_coral_block not set (2)
+  minecraft:kelp_plant not set (2)
+  minecraft:twisting_vines_plant not set (2)
+  minecraft:weeping_vines_plant not set (2)
+  minecraft:soul_fire not set (2)
+  minecraft:cave_vines_plant not set (2)
+  minecraft:bamboo not set (4)
+  minecraft:brain_coral_block not set (4)
+  minecraft:kelp_plant not set (4)
+  minecraft:twisting_vines_plant not set (4)
+  minecraft:weeping_vines_plant not set (4)
+  minecraft:soul_fire not set (4)
+  minecraft:dirt_path not set (4)
+  minecraft:big_dripleaf_stem not set (4)
+  minecraft:cave_vines_plant not set (4)
+  */
   static int LightAttenuationAmountById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
@@ -73,7 +100,6 @@ private:
     case brown_stained_glass:
     case brown_stained_glass_pane:
     case brown_wall_banner:
-    case cactus:
     case cake:
     case campfire:
     case carrots:
@@ -117,9 +143,7 @@ private:
     case end_rod:
     case end_stone_brick_wall:
     case ender_chest:
-    case farmland:
     case fern:
-    case fire:
     case flower_pot:
     case glass:
     case glass_pane:
@@ -475,12 +499,9 @@ private:
     case brain_coral_fan:
     case brain_coral_wall_fan:
     case brown_shulker_box:
-    case bubble_column:
     case bubble_coral:
     case bubble_coral_fan:
     case bubble_coral_wall_fan:
-    case chorus_flower:
-    case chorus_plant:
     case cobweb:
     case conduit:
     case cyan_shulker_box:
@@ -545,342 +566,90 @@ private:
     case mangrove_roots:
     case mangrove_leaves:
       return 1;
-    case acacia_log:
-    case acacia_planks:
-    case acacia_wood:
-    case andesite:
-    case barrel:
-    case bedrock:
-    case birch_log:
-    case birch_planks:
-    case birch_wood:
-    case black_concrete:
-    case black_concrete_powder:
-    case black_glazed_terracotta:
-    case black_terracotta:
-    case black_wool:
-    case blast_furnace:
-    case coal_block:
-    case diamond_block:
-    case emerald_block:
-    case gold_block:
-    case iron_block:
-    case quartz_block:
-    case redstone_block:
-    case blue_concrete:
-    case blue_concrete_powder:
-    case blue_glazed_terracotta:
-    case blue_ice:
-    case blue_terracotta:
-    case blue_wool:
-    case bone_block:
-    case bookshelf:
-    case brain_coral_block:
-    case bricks:
-    case brown_concrete:
-    case brown_concrete_powder:
-    case brown_glazed_terracotta:
-    case brown_mushroom_block:
-    case brown_terracotta:
-    case brown_wool:
-    case bubble_coral_block:
-    case cartography_table:
-    case carved_pumpkin:
-    case chain_command_block:
-    case chiseled_quartz_block:
-    case chiseled_red_sandstone:
-    case chiseled_sandstone:
-    case chiseled_stone_bricks:
-    case clay:
-    case coal_ore:
-    case coarse_dirt:
-    case cobblestone:
-    case command_block:
-    case cracked_stone_bricks:
-    case crafting_table:
-    case cut_red_sandstone:
-    case cut_sandstone:
-    case cyan_concrete:
-    case cyan_concrete_powder:
-    case cyan_glazed_terracotta:
-    case cyan_terracotta:
-    case cyan_wool:
-    case dark_oak_log:
-    case dark_oak_planks:
-    case dark_oak_wood:
-    case dark_prismarine:
-    case dead_brain_coral_block:
-    case dead_bubble_coral_block:
-    case dead_fire_coral_block:
-    case dead_horn_coral_block:
-    case dead_tube_coral_block:
-    case diamond_ore:
-    case diorite:
-    case dirt:
-    case dispenser:
-    case dried_kelp_block:
-    case dropper:
-    case emerald_ore:
-    case end_stone:
-    case end_stone_bricks:
-    case fire_coral_block:
-    case fletching_table:
-    case furnace:
-    case glowstone:
-    case gold_ore:
-    case granite:
-    case grass_block:
-    case gravel:
-    case gray_concrete:
-    case gray_concrete_powder:
-    case gray_glazed_terracotta:
-    case gray_terracotta:
-    case gray_wool:
-    case green_concrete:
-    case green_concrete_powder:
-    case green_glazed_terracotta:
-    case green_terracotta:
-    case green_wool:
-    case hay_block:
-    case horn_coral_block:
-    case infested_chiseled_stone_bricks:
-    case infested_cobblestone:
-    case infested_cracked_stone_bricks:
-    case infested_mossy_stone_bricks:
-    case infested_stone:
-    case infested_stone_bricks:
-    case iron_ore:
-    case jack_o_lantern:
-    case jigsaw:
-    case jukebox:
-    case jungle_log:
-    case jungle_planks:
-    case jungle_wood:
-    case lapis_block:
-    case lapis_ore:
-    case light_blue_concrete:
-    case light_blue_concrete_powder:
-    case light_blue_glazed_terracotta:
-    case light_blue_terracotta:
-    case light_blue_wool:
-    case light_gray_concrete:
-    case light_gray_concrete_powder:
-    case light_gray_glazed_terracotta:
-    case light_gray_terracotta:
-    case light_gray_wool:
-    case lime_concrete:
-    case lime_concrete_powder:
-    case lime_glazed_terracotta:
-    case lime_terracotta:
-    case lime_wool:
-    case loom:
-    case magenta_concrete:
-    case magenta_concrete_powder:
-    case magenta_glazed_terracotta:
-    case magenta_terracotta:
-    case magenta_wool:
+    default:
+      return 15;
+    }
+  }
+
+  static int LightEmissionById(mcfile::blocks::BlockId id) {
+    using namespace mcfile::blocks::minecraft;
+    switch (id) {
+    case brewing_stand:
+    case brown_mushroom:
+    case dragon_egg:
+    case end_portal_frame:
+    case small_amethyst_bud:
+    case sculk_sensor:
+      return 1;
+    case medium_amethyst_bud:
+      return 2;
     case magma_block:
-    case melon:
-    case mossy_cobblestone:
-    case mossy_stone_bricks:
-    case mushroom_stem:
-    case mycelium:
-    case nether_bricks:
-    case nether_quartz_ore:
-    case nether_wart_block:
-    case netherrack:
-    case note_block:
-    case oak_log:
-    case oak_planks:
-    case oak_wood:
-    case observer:
-    case obsidian:
-    case orange_concrete:
-    case orange_concrete_powder:
-    case orange_glazed_terracotta:
-    case orange_terracotta:
-    case orange_wool:
-    case packed_ice:
-    case pink_concrete:
-    case pink_concrete_powder:
-    case pink_glazed_terracotta:
-    case pink_terracotta:
-    case pink_wool:
-    case piston:
-    case podzol:
-    case polished_andesite:
-    case polished_diorite:
-    case polished_granite:
-    case prismarine:
-    case prismarine_bricks:
-    case pumpkin:
-    case purple_concrete:
-    case purple_concrete_powder:
-    case purple_glazed_terracotta:
-    case purple_terracotta:
-    case purple_wool:
-    case purpur_block:
-    case purpur_pillar:
-    case quartz_pillar:
-    case red_concrete:
-    case red_concrete_powder:
-    case red_glazed_terracotta:
-    case red_mushroom_block:
-    case red_nether_bricks:
-    case red_sand:
-    case red_sandstone:
-    case red_terracotta:
-    case red_wool:
-    case redstone_lamp:
-    case redstone_ore:
-    case repeating_command_block:
-    case sand:
-    case sandstone:
-    case sea_lantern:
-    case smithing_table:
-    case smoker:
+      return 3;
+    case large_amethyst_bud:
+      return 4;
+    case amethyst_cluster:
+      return 5;
+    case sea_pickle:
     case smooth_quartz:
-    case smooth_red_sandstone:
-    case smooth_sandstone:
-    case smooth_stone:
-    case snow_block:
-    case soul_sand:
     case sponge:
-    case spruce_log:
-    case spruce_planks:
-    case spruce_wood:
-    case sticky_piston:
-    case stone:
-    case stone_bricks:
-    case stripped_acacia_log:
-    case stripped_acacia_wood:
-    case stripped_birch_log:
-    case stripped_birch_wood:
-    case stripped_dark_oak_log:
-    case stripped_dark_oak_wood:
-    case stripped_jungle_log:
-    case stripped_jungle_wood:
-    case stripped_oak_log:
-    case stripped_oak_wood:
-    case stripped_spruce_log:
-    case stripped_spruce_wood:
-    case structure_block:
-    case terracotta:
-    case tnt:
-    case tube_coral_block:
-    case wet_sponge:
-    case white_concrete:
-    case white_concrete_powder:
-    case white_glazed_terracotta:
-    case white_terracotta:
-    case white_wool:
-    case yellow_concrete:
-    case yellow_concrete_powder:
-    case yellow_glazed_terracotta:
-    case yellow_terracotta:
-    case yellow_wool:
-    case bee_nest:
-    case beehive:
-    case honeycomb_block:
-    case crimson_nylium:
-    case warped_nylium:
-    case crimson_planks:
-    case warped_planks:
-    case nether_gold_ore:
-    case crimson_stem:
-    case warped_stem:
-    case stripped_crimson_stem:
-    case stripped_warped_stem:
-    case crimson_hyphae:
-    case warped_hyphae:
-    case cracked_nether_bricks:
-    case chiseled_nether_bricks:
-    case netherite_block:
-    case soul_soil:
-    case basalt:
-    case polished_basalt:
-    case ancient_debris:
-    case crying_obsidian:
-    case blackstone:
-    case gilded_blackstone:
-    case polished_blackstone:
-    case chiseled_polished_blackstone:
-    case polished_blackstone_bricks:
-    case cracked_polished_blackstone_bricks:
-    case shroomlight:
-    case lodestone:
-    case respawn_anchor:
-    case target:
-    case warped_wart_block:
-    case quartz_bricks:
-    case stripped_crimson_hyphae:
-    case stripped_warped_hyphae:
-    case deepslate:
-    case cobbled_deepslate:
-    case polished_deepslate:
-    case calcite:
-    case tuff:
-    case dripstone_block:
-    case deepslate_coal_ore:
-    case deepslate_iron_ore:
-    case copper_ore:
-    case deepslate_copper_ore:
-    case deepslate_gold_ore:
-    case deepslate_redstone_ore:
-    case deepslate_emerald_ore:
-    case deepslate_lapis_ore:
-    case deepslate_diamond_ore:
-    case raw_iron_block:
-    case raw_copper_block:
-    case raw_gold_block:
-    case amethyst_block:
-    case budding_amethyst:
-    case copper_block:
-    case exposed_copper:
-    case weathered_copper:
-    case oxidized_copper:
-    case cut_copper:
-    case exposed_cut_copper:
-    case weathered_cut_copper:
-    case oxidized_cut_copper:
-    case waxed_copper_block:
-    case waxed_exposed_copper:
-    case waxed_weathered_copper:
-    case waxed_oxidized_copper:
-    case waxed_cut_copper:
-    case waxed_exposed_cut_copper:
-    case waxed_weathered_cut_copper:
-    case waxed_oxidized_cut_copper:
-    case tinted_glass:
-    case moss_block:
-    case infested_deepslate:
-    case deepslate_bricks:
-    case cracked_deepslate_bricks:
-    case deepslate_tiles:
-    case cracked_deepslate_tiles:
-    case chiseled_deepslate:
-    case smooth_basalt:
-    case rooted_dirt:
-    case reinforced_deepslate:
-    case sculk:
+    case spruce_pressure_plate:
     case sculk_catalyst:
-    case mangrove_planks:
-    case muddy_mangrove_roots:
-    case mangrove_log:
-    case stripped_mangrove_log:
-    case stripped_mangrove_wood:
-    case mangrove_wood:
-    case packed_mud:
-    case mud_bricks:
+      return 6;
+    case enchanting_table:
+    case ender_chest:
+    case redstone_torch:
+    case redstone_wall_torch:
+      return 7;
+    case crying_obsidian:
+    case soul_torch:
+    case soul_lantern:
+    case soul_campfire:
+    case soul_wall_torch:
+    case deepslate_iron_ore:
+      return 10;
+    case nether_portal:
+    case oak_fence:
+      return 11;
+    case end_rod:
+    case torch:
+    case wall_torch:
+      return 14;
+    case beacon:
+    case campfire:
+    case conduit:
+    case end_gateway:
+    case end_portal:
+    case fire:
+    case glowstone:
+    case jack_o_lantern:
+    case lantern:
+    case lava:
+    case sea_lantern:
+    case smoker:
+    case spawner:
+    case spruce_planks:
+    case shroomlight:
+    case lava_cauldron:
+    case candle:
+    case light:
     case ochre_froglight:
     case verdant_froglight:
     case pearlescent_froglight:
-    case mud:
-    case bamboo_block:
-    case bamboo_mosaic:
-    case bamboo_planks:
-    case chiseled_bookshelf:
-    case stripped_bamboo_block:
+    case mangrove_trapdoor:
+    case frogspawn:
+    case potted_mangrove_propagule:
+    case bamboo_door:
+    case bamboo_fence:
+    case bamboo_fence_gate:
+    case bamboo_trapdoor:
+    case bamboo_wall_hanging_sign:
+    case bamboo_wall_sign:
+    case dark_oak_hanging_sign:
+    case dark_oak_wall_hanging_sign:
+    case jungle_hanging_sign:
+    case piglin_head:
+    case piglin_wall_head:
+    case spruce_hanging_sign:
       return 15;
     default:
       return 0;

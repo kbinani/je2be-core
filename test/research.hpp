@@ -905,13 +905,26 @@ static void LightTransmission() {
       x += 4;
       blocks.push_back(id);
     }
+
+    x = x0;
+    int z = z0 - 5;
+    int y = y0;
+    for (auto id : blocks) {
+      os << "fill " << (x - 1) << " " << (y - 1) << " " << (z - 2) << " " << x << " " << (y + 1) << " " << (z + 1) << " tinted_glass " << endl;
+      os << "setblock " << x << " " << y << " " << (z - 1) << " barrier" << endl;
+      os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id) << endl;
+
+      x += 2;
+    }
+    os << "fill " << (x - 1) << " " << (y0 - 1) << " " << (z - 2) << " " << x << " " << (y + 1) << " " << (z + 1) << " tinted_glass " << endl;
   }
 
-  unordered_map<int, vector<mcfile::blocks::BlockId>> lightAttenuation;
+  map<int, vector<mcfile::blocks::BlockId>> lightAttenuation;
 
   mcfile::je::World world(root);
   shared_ptr<mcfile::je::Chunk> chunk;
   Data4b3d skyLight({0, 0, 0}, 16, 16, 16);
+  Data4b3d blockLight({0, 0, 0}, 16, 16, 16);
   for (int i = 0; i < blocks.size(); i++) {
     mcfile::blocks::BlockId id = blocks[i];
     int x = x0 + i * 4;
@@ -946,7 +959,53 @@ static void LightTransmission() {
     uint8_t centerLight = skyLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - chunk->minBlockZ()});
     assert(centerUp == 15);
     int diff = (int)centerUp - (int)centerLight;
-    lightAttenuation[diff].push_back(id);
+    if (diff != 15) {
+      lightAttenuation[diff].push_back(id);
+    }
+  }
+
+  map<int, vector<mcfile::blocks::BlockId>> lightEmission;
+  for (int i = 0; i < blocks.size(); i++) {
+    mcfile::blocks::BlockId id = blocks[i];
+    int x = x0 + i * 2;
+    int y = y0;
+    int z = z0 - 5;
+    int cx = mcfile::Coordinate::ChunkFromBlock(x);
+    int cz = mcfile::Coordinate::ChunkFromBlock(z);
+    if (!(chunk && chunk->fChunkX == cx && chunk->fChunkZ == cz)) {
+      chunk = world.chunkAt(cx, cz);
+    }
+    assert(chunk);
+    auto block = chunk->blockAt(x, y, z);
+    if (!block) {
+      cerr << mcfile::blocks::Name(id) << " not set (3)" << endl;
+      continue;
+    }
+    if (block->fId != id) {
+      cerr << mcfile::blocks::Name(id) << " not set (4)" << endl;
+      continue;
+    }
+    int cy = mcfile::Coordinate::ChunkFromBlock(y);
+    mcfile::je::ChunkSection *section = nullptr;
+    for (auto const &s : chunk->fSections) {
+      if (s && s->y() == cy) {
+        section = s.get();
+        break;
+      }
+    }
+    assert(section);
+    blockLight.copyFrom(section->fBlockLight);
+    uint8_t centerBlockLight = blockLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - chunk->minBlockZ()});
+    uint8_t northBlockLight = blockLight.getUnchecked({x - chunk->minBlockX(), y - section->y() * 16, z - 1 - chunk->minBlockZ()});
+    int diff = (int)centerBlockLight - (int)northBlockLight;
+    if (centerBlockLight == 0) {
+      assert(northBlockLight == 0);
+    } else {
+      assert(northBlockLight + 1 == centerBlockLight);
+    }
+    if (centerBlockLight > 0) {
+      lightEmission[(int)centerBlockLight].push_back(id);
+    }
   }
 
   fs::path self = fs::path(__FILE__).parent_path();
@@ -961,6 +1020,22 @@ static void LightTransmission() {
       code << "  case " << name << ":" << endl;
     }
     code << "    return " << diff << ";" << endl;
+  }
+  code << "  default:" << endl;
+  code << "    return 15;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+  code << "static int LightEmissionById(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto const &i : lightEmission) {
+    int emission = i.first;
+    for (mcfile::blocks::BlockId id : i.second) {
+      auto name = mcfile::blocks::Name(id).substr(10);
+      code << "  case " << name << ":" << endl;
+    }
+    code << "    return " << emission << ";" << endl;
   }
   code << "  default:" << endl;
   code << "    return 0;" << endl;
