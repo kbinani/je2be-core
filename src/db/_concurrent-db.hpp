@@ -454,6 +454,7 @@ class ConcurrentDb : public DbInterface {
 public:
   ConcurrentDb(std::filesystem::path const &dbname, unsigned int concurrency) : fDbName(dbname), fSequence(0), fWriterIdGenerator(0), fConcurrency(concurrency) {
     leveldb::DestroyDB(dbname, {});
+    Fs::CreateDirectories(dbname);
   }
 
   ~ConcurrentDb() {
