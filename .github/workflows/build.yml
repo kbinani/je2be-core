@@ -48,12 +48,16 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         with:
           name: ${{ matrix.os }}-artifact
-          path: build/Release/test.exe
+          path: |
+            build/Release/test.exe
+            test/data/piston/
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.os != 'windows-latest' }}
         with:
           name: ${{ matrix.os }}-artifact
-          path: build/test
+          path: |
+            build/test
+            test/data/piston/
       - name: Test
         shell: bash
         run: |
