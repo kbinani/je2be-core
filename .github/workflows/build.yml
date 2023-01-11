@@ -32,6 +32,7 @@ jobs:
         shell: bash
         run: bash tool/git-restore-mtime.sh
       - name: Cache workspace directory
+        id: cache
         if: ${{ github.event.schedule == '' }}
         uses: actions/cache@v3
         with:
@@ -52,13 +53,13 @@ jobs:
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
       - name: Build (Parallel)
-        if: ${{ github.event.schedule == '' || matrix.os != 'macos-latest' }}
+        if: ${{ steps.cache.outputs.cache-hit == 'true' || matrix.os != 'macos-latest' }}
         shell: bash
         run: |
           cd build
           cmake --build . --target test --config Release --verbose --parallel $(nproc)
       - name: Build (Serial)
-        if: ${{ github.event.schedule != '' && matrix.os == 'macos-latest' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' && matrix.os == 'macos-latest' }}
         shell: bash
         run: |
           cd build
