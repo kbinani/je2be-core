@@ -41,7 +41,9 @@ class Lighting {
   };
 
 public:
-  static void Do(mcfile::je::Chunk &out, terraform::java::BlockAccessorJava &blockAccessor, terraform::BlockPropertyAccessor const &propertyAccessor) {
+  static void Do(mcfile::Dimension dim, mcfile::je::Chunk &out, terraform::java::BlockAccessorJava &blockAccessor) {
+    using namespace mcfile;
+
     int minBlockY = out.minBlockY();
     int maxBlockY = out.maxBlockY();
     for (int dz = -1; dz <= 1; dz++) {
@@ -73,9 +75,95 @@ public:
         }
       }
     }
+
+    shared_ptr<Data4b3d> skyLight;
+
+    if (dim == Dimension::Overworld) {
+      skyLight = make_shared<Data4b3d>(start, end.fX - start.fX + 1, end.fY - start.fY + 2, end.fZ - start.fZ + 1);
+      InitializeChunkSkyLight(dim, *skyLight, props);
+      DiffuseSkyLight(props, *skyLight);
+    }
+
+    Data4b3d blockLight(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
+    InitializeChunkBlockLight(blockLight, props);
+    DiffuseLight(props, blockLight);
+
+    for (auto &section : out.fSections) {
+      if (!section) {
+        continue;
+      }
+      Pos3i origin(out.minBlockX(), section->y() * 16, out.minBlockZ());
+
+      section->fBlockLight.resize(2048);
+      auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
+      if (sectionBlockLight) {
+        for (int y = 0; y < 16; y++) {
+          for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+              Pos3i v = origin + Pos3i(x, y, z);
+              sectionBlockLight->setUnchecked(v, blockLight.getUnchecked(v));
+            }
+          }
+        }
+      }
+
+      if (skyLight) {
+        section->fSkyLight.resize(2048);
+        auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
+        bool darkness = true;
+        if (sectionSkyLight) {
+          for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+              for (int x = 0; x < 16; x++) {
+                Pos3i v = origin + Pos3i(x, y, z);
+                uint8_t l = skyLight->getUnchecked(v);
+                if (0 < l && l < 0xf) {
+                  darkness = false;
+                }
+                sectionSkyLight->setUnchecked(v, l);
+              }
+            }
+          }
+        }
+        if (darkness) {
+          section->fSkyLight.clear();
+        }
+      }
+    }
   }
 
 private:
+  static void DiffuseSkyLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
+    for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
+      for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
+        for (int y = out.fOrigin.fY + out.fHeight - 2; y >= out.fOrigin.fY; y--) {
+          uint8_t upper = out.getUnchecked({x, y - 1, z});
+          if (upper != 0xe) {
+            continue;
+          }
+          uint8_t center = out.getUnchecked({x, y, z});
+          if (center != 0xf) {
+            continue;
+          }
+          auto p = props.get({x, y, z});
+          if (!p) {
+            continue;
+          }
+          if (p->fUp == 0) {
+            out.setUnchecked({x, y, z}, 0xe);
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    DiffuseLight(props, out);
+  }
+
+  static void DiffuseLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
+    // TODO:
+  }
+
   static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingProperties> &out) {
     using namespace std;
     assert(out.fStart.fY <= chunk.minBlockY() && chunk.maxBlockY() <= out.fEnd.fY);
@@ -119,21 +207,14 @@ private:
 
     out.fill(0xf);
 
-    uint8_t max = 0xe;
-    switch (dim) {
-    case mcfile::Dimension::Nether:
-    case mcfile::Dimension::End:
-      max = 0;
-      break;
-    }
     for (int z = props.fStart.fZ; z <= props.fEnd.fZ; z++) {
       for (int x = props.fStart.fX; x <= props.fEnd.fX; x++) {
-        out.setUnchecked({x, (int)out.fOrigin.fY + (int)out.fHeight - 1, z}, max);
+        out.setUnchecked({x, (int)out.fOrigin.fY + (int)out.fHeight - 1, z}, 0xe);
       }
     }
   }
 
-  static void InitializeChunkBlockLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
+  static void InitializeChunkBlockLight(mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
     using namespace std;
 
     assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);

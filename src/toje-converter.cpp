@@ -254,7 +254,7 @@ private:
         bool ret = Walk::Spiral({0, 0}, {31, 31}, [&](Pos2i const &p) {
           int cx = p.fX + rx * 32;
           int cz = p.fZ + rz * 32;
-          return TerraformRegion(cx, cz, *editor, directory, blockAccessor).ok();
+          return TerraformRegion(cx, cz, *editor, directory, blockAccessor, dim).ok();
         });
         if (!ret) {
           ok = false;
@@ -269,7 +269,7 @@ private:
           for (int z = 1; z <= 30; z++) {
             int cx = x + rx * 32;
             int cz = z + rz * 32;
-            if (!TerraformRegion(cx, cz, *editor, directory, blockAccessor).ok()) {
+            if (!TerraformRegion(cx, cz, *editor, directory, blockAccessor, dim).ok()) {
               ok = false;
               break;
             }
@@ -303,7 +303,7 @@ private:
     return Status::Ok();
   }
 
-  static Status TerraformRegion(int cx, int cz, mcfile::je::McaEditor &editor, fs::path directory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor) {
+  static Status TerraformRegion(int cx, int cz, mcfile::je::McaEditor &editor, fs::path directory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor, mcfile::Dimension dim) {
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
     int rz = mcfile::Coordinate::RegionFromChunk(cz);
 
@@ -338,7 +338,7 @@ private:
 
     terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
     terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
-    Lighting::Do(*writable, *blockAccessor, propertyAccessor);
+    Lighting::Do(dim, *writable, *blockAccessor);
 
     auto tag = writable->toCompoundTag();
     if (!tag) {

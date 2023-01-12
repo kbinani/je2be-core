@@ -7,7 +7,7 @@ namespace je2be {
 template <class Value>
 class Data3d {
 public:
-  Data3d(Pos3i start, Pos3i end, Value def) : fStart(start), fEnd(end) {
+  Data3d(Pos3i const &start, Pos3i const &end, Value def) : fStart(start), fEnd(end) {
     int dx = end.fX - start.fX + 1;
     int dy = end.fY - start.fY + 1;
     int dz = end.fZ - start.fZ + 1;
@@ -15,7 +15,7 @@ public:
     fStorage.resize((size_t)dx * (size_t)dy * (size_t)dz, def);
   }
 
-  std::optional<Value> get(Pos3i p) const {
+  std::optional<Value> get(Pos3i const &p) const {
     int i = index(p);
     if (0 <= i && i < fStorage.size()) {
       return fStorage[i];
@@ -24,7 +24,7 @@ public:
     }
   }
 
-  void set(Pos3i p, Value v) {
+  void set(Pos3i const &p, Value v) {
     int i = index(p);
     if (0 <= i && i < fStorage.size()) {
       fStorage[i] = v;
@@ -32,7 +32,7 @@ public:
   }
 
 private:
-  int index(Pos3i p) const {
+  int index(Pos3i const &p) const {
     int x = p.fX - fStart.fX;
     int y = p.fY - fStart.fY;
     int z = p.fZ - fStart.fZ;
