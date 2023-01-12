@@ -1010,7 +1010,7 @@ static void LightTransmission() {
 
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
-  code << "static int LightAttenuationAmountById(mcfile::blocks::BlockId id) {" << endl;
+  code << "static uint8_t LightAttenuationAmountById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto const &i : lightAttenuation) {
@@ -1026,7 +1026,7 @@ static void LightTransmission() {
   code << "  }" << endl;
   code << "}" << endl;
   code << endl;
-  code << "static int LightEmissionById(mcfile::blocks::BlockId id) {" << endl;
+  code << "static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto const &i : lightEmission) {

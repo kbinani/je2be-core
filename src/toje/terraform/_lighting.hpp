@@ -14,110 +14,120 @@ public:
     int x = out.minBlockX();
     int y = -64;
     int z = out.minBlockZ();
-
-    // TODO:
   }
 
 private:
-  struct Attenuation {
-    uint8_t fUp : 4;
-    uint8_t fNorth : 4;
-    uint8_t fEast : 4;
-    uint8_t fSouth : 4;
-    uint8_t fWest : 4;
-    uint8_t fDown : 4;
+  struct LightingProperties {
+    uint8_t fUp : 2; // 0: attenuate 0, 1: attenuate 1, 2: attenuate 15
+    uint8_t fNorth : 2;
+    uint8_t fEast : 2;
+    uint8_t fSouth : 2;
+    uint8_t fWest : 2;
+    uint8_t fDown : 2;
+    uint8_t fEmission : 4;
 
-    Attenuation() {
+    LightingProperties() {
       fUp = 0;
       fNorth = 0;
       fEast = 0;
       fSouth = 0;
       fWest = 0;
       fDown = 0;
+      fEmission = 0;
     }
 
-    explicit Attenuation(uint8_t v) {
+    explicit LightingProperties(uint8_t v) {
       fUp = v;
       fNorth = v;
       fEast = v;
       fSouth = v;
       fWest = v;
       fDown = v;
+      fEmission = 0;
     }
   };
 
-  static Attenuation GetLightAttenuation(mcfile::je::Block const &block) {
+  static LightingProperties GetLightingProperties(mcfile::je::Block const &block) {
+    static_assert(sizeof(LightingProperties) == 2);
+
+    LightingProperties p = LightAttenuation(block);
+    p.fEmission = LightEmission(block);
+    return p;
+  }
+
+  static LightingProperties LightAttenuation(mcfile::je::Block const &block) {
     using namespace mcfile::blocks::minecraft;
     if (block.fName.ends_with("_stairs")) {
       auto facing = block.property("facing", "north");
       auto half = block.property("half");
       auto shape = block.property("shape");
       Facing4 f4 = Facing4FromJavaName(facing);
-      Attenuation a(1);
+      LightingProperties a(1);
       if (shape.starts_with("outer_")) {
         // nop
       } else if (shape.starts_with("inner_right")) {
         switch (f4) {
         case Facing4::North:
-          a.fNorth = 15;
-          a.fEast = 15;
+          a.fNorth = 2;
+          a.fEast = 2;
           break;
         case Facing4::East:
-          a.fEast = 15;
-          a.fSouth = 15;
+          a.fEast = 2;
+          a.fSouth = 2;
           break;
         case Facing4::South:
-          a.fSouth = 15;
-          a.fWest = 15;
+          a.fSouth = 2;
+          a.fWest = 2;
           break;
         case Facing4::West:
-          a.fWest = 15;
-          a.fNorth = 15;
+          a.fWest = 2;
+          a.fNorth = 2;
           break;
         }
       } else if (shape.starts_with("inner_left")) {
         switch (f4) {
         case Facing4::North:
-          a.fNorth = 15;
-          a.fWest = 15;
+          a.fNorth = 2;
+          a.fWest = 2;
           break;
         case Facing4::East:
-          a.fEast = 15;
-          a.fNorth = 15;
+          a.fEast = 2;
+          a.fNorth = 2;
           break;
         case Facing4::South:
-          a.fSouth = 15;
-          a.fEast = 15;
+          a.fSouth = 2;
+          a.fEast = 2;
           break;
         case Facing4::West:
-          a.fWest = 15;
-          a.fSouth = 15;
+          a.fWest = 2;
+          a.fSouth = 2;
           break;
         }
       } else { // "straight"
         switch (f4) {
         case Facing4::North:
-          a.fNorth = 15;
+          a.fNorth = 2;
           break;
         case Facing4::East:
-          a.fEast = 15;
+          a.fEast = 2;
           break;
         case Facing4::South:
-          a.fSouth = 15;
+          a.fSouth = 2;
           break;
         case Facing4::West:
-          a.fWest = 15;
+          a.fWest = 2;
           break;
         }
       }
       if (half == "bottom") {
-        a.fDown = 15;
+        a.fDown = 2;
       } else { // "top"
-        a.fUp = 15;
+        a.fUp = 2;
       }
 
       return a;
     }
+    int amount = 0;
     switch (block.fId) {
     case bamboo:
     case cactus:
@@ -129,20 +139,34 @@ private:
     case weeping_vines_plant:
     case soul_fire:
     case cave_vines_plant:
-      return Attenuation(0);
+      amount = 0;
+      break;
     case bubble_column:
     case kelp_plant:
-      return Attenuation(1);
+      amount = 1;
+      break;
     case brain_coral_block:
     case bubble_coral_block:
     case fire_coral_block:
     case horn_coral_block:
-      return Attenuation(15);
+      amount = 15;
+      break;
+    default:
+      amount = LightAttenuationAmountById(block.fId);
+      break;
     }
-    return Attenuation(LightAttenuationAmountById(block.fId));
+    switch (amount) {
+    case 0:
+      return LightingProperties(0);
+    case 1:
+      return LightingProperties(1);
+    case 15:
+    default:
+      return LightingProperties(2);
+    }
   }
 
-  static int LightEmission(mcfile::je::Block const &block) {
+  static uint8_t LightEmission(mcfile::je::Block const &block) {
     using namespace mcfile::blocks::minecraft;
     switch (block.fId) {
     case dirt_path:
@@ -208,7 +232,7 @@ private:
     return LightEmissionById(block.fId);
   }
 
-  static int LightAttenuationAmountById(mcfile::blocks::BlockId id) {
+  static uint8_t LightAttenuationAmountById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
     case acacia_button:
@@ -734,7 +758,7 @@ private:
     }
   }
 
-  static int LightEmissionById(mcfile::blocks::BlockId id) {
+  static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
     case brewing_stand:
