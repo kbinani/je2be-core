@@ -2,6 +2,7 @@
 
 #include <minecraft-file.hpp>
 
+#include "_optional.hpp"
 #include "terraform/_block-accessor.hpp"
 #include "terraform/_block-property-accessor.hpp"
 
@@ -18,33 +19,195 @@ public:
   }
 
 private:
-  /*
-  minecraft:bamboo not set (2)
-  minecraft:brain_coral_block not set (2)
-  minecraft:bubble_column not set (2)
-  minecraft:bubble_coral_block not set (2)
-  minecraft:cactus not set (2)
-  minecraft:chorus_flower not set (2)
-  minecraft:chorus_plant not set (2)
-  minecraft:farmland not set (2)
-  minecraft:fire not set (2)
-  minecraft:fire_coral_block not set (2)
-  minecraft:horn_coral_block not set (2)
-  minecraft:kelp_plant not set (2)
-  minecraft:twisting_vines_plant not set (2)
-  minecraft:weeping_vines_plant not set (2)
-  minecraft:soul_fire not set (2)
-  minecraft:cave_vines_plant not set (2)
-  minecraft:bamboo not set (4)
-  minecraft:brain_coral_block not set (4)
-  minecraft:kelp_plant not set (4)
-  minecraft:twisting_vines_plant not set (4)
-  minecraft:weeping_vines_plant not set (4)
-  minecraft:soul_fire not set (4)
-  minecraft:dirt_path not set (4)
-  minecraft:big_dripleaf_stem not set (4)
-  minecraft:cave_vines_plant not set (4)
-  */
+  struct Attenuation {
+    uint8_t fUp : 4;
+    uint8_t fNorth : 4;
+    uint8_t fEast : 4;
+    uint8_t fSouth : 4;
+    uint8_t fWest : 4;
+    uint8_t fDown : 4;
+
+    Attenuation() {
+      fUp = 0;
+      fNorth = 0;
+      fEast = 0;
+      fSouth = 0;
+      fWest = 0;
+      fDown = 0;
+    }
+
+    explicit Attenuation(uint8_t v) {
+      fUp = v;
+      fNorth = v;
+      fEast = v;
+      fSouth = v;
+      fWest = v;
+      fDown = v;
+    }
+  };
+
+  static Attenuation GetLightAttenuation(mcfile::je::Block const &block) {
+    using namespace mcfile::blocks::minecraft;
+    if (block.fName.ends_with("_stairs")) {
+      auto facing = block.property("facing", "north");
+      auto half = block.property("half");
+      auto shape = block.property("shape");
+      Facing4 f4 = Facing4FromJavaName(facing);
+      Attenuation a(1);
+      if (shape.starts_with("outer_")) {
+        // nop
+      } else if (shape.starts_with("inner_right")) {
+        switch (f4) {
+        case Facing4::North:
+          a.fNorth = 15;
+          a.fEast = 15;
+          break;
+        case Facing4::East:
+          a.fEast = 15;
+          a.fSouth = 15;
+          break;
+        case Facing4::South:
+          a.fSouth = 15;
+          a.fWest = 15;
+          break;
+        case Facing4::West:
+          a.fWest = 15;
+          a.fNorth = 15;
+          break;
+        }
+      } else if (shape.starts_with("inner_left")) {
+        switch (f4) {
+        case Facing4::North:
+          a.fNorth = 15;
+          a.fWest = 15;
+          break;
+        case Facing4::East:
+          a.fEast = 15;
+          a.fNorth = 15;
+          break;
+        case Facing4::South:
+          a.fSouth = 15;
+          a.fEast = 15;
+          break;
+        case Facing4::West:
+          a.fWest = 15;
+          a.fSouth = 15;
+          break;
+        }
+      } else { // "straight"
+        switch (f4) {
+        case Facing4::North:
+          a.fNorth = 15;
+          break;
+        case Facing4::East:
+          a.fEast = 15;
+          break;
+        case Facing4::South:
+          a.fSouth = 15;
+          break;
+        case Facing4::West:
+          a.fWest = 15;
+          break;
+        }
+      }
+      if (half == "bottom") {
+        a.fDown = 15;
+      } else { // "top"
+        a.fUp = 15;
+      }
+
+      return a;
+    }
+    switch (block.fId) {
+    case bamboo:
+    case cactus:
+    case chorus_flower:
+    case chorus_plant:
+    case farmland:
+    case fire:
+    case twisting_vines_plant:
+    case weeping_vines_plant:
+    case soul_fire:
+    case cave_vines_plant:
+      return Attenuation(0);
+    case bubble_column:
+    case kelp_plant:
+      return Attenuation(1);
+    case brain_coral_block:
+    case bubble_coral_block:
+    case fire_coral_block:
+    case horn_coral_block:
+      return Attenuation(15);
+    }
+    return Attenuation(LightAttenuationAmountById(block.fId));
+  }
+
+  static int LightEmission(mcfile::je::Block const &block) {
+    using namespace mcfile::blocks::minecraft;
+    switch (block.fId) {
+    case dirt_path:
+    case big_dripleaf_stem:
+      return 0;
+    case soul_fire:
+      return 10;
+    case fire:
+      return 15;
+    }
+    if (block.fId == cave_vines_plant) {
+      if (block.property("berries") == "true") {
+        return 14;
+      } else {
+        return 0;
+      }
+    } else if (block.fId == furnace || block.fId == smoker || block.fId == blast_furnace) {
+      if (block.property("lit") == "true") {
+        return 14;
+      } else {
+        return 0;
+      }
+    } else if (block.fId == campfire) {
+      if (block.property("lit") == "true") {
+        return 15;
+      } else {
+        return 0;
+      }
+    } else if (block.fId == soul_campfire) {
+      if (block.property("lit") == "true") {
+        return 10;
+      } else {
+        return 0;
+      }
+    } else if (block.fId == redstone_torch || block.fId == redstone_wall_torch) {
+      if (block.property("lit") == "true") {
+        return 7;
+      } else {
+        return 0;
+      }
+    } else if (block.fName.ends_with("candle_cake")) {
+      if (block.property("lit") == "true") {
+        return 3;
+      } else {
+        return 0;
+      }
+    } else if (block.fName.ends_with("candle")) {
+      if (block.property("lit") == "true") {
+        auto candles = Wrap(strings::Toi(block.property("candles", "1")), 1);
+        return candles * 3;
+      } else {
+        return 0;
+      }
+    } else if (block.fId == lava_cauldron) {
+      return 15;
+    } else if (block.fId == redstone_lamp) {
+      if (block.property("lit") == "true") {
+        return 15;
+      } else {
+        return 0;
+      }
+    }
+    return LightEmissionById(block.fId);
+  }
+
   static int LightAttenuationAmountById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
