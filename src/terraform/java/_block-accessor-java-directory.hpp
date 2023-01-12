@@ -1,17 +1,17 @@
 #pragma once
 
-#include "terraform/_block-accessor.hpp"
+#include "terraform/java/_block-accessor-java.hpp"
 
 namespace je2be::terraform::java {
 
 template <size_t Width, size_t Height>
-class BlockAccessorJavaDirectory : public BlockAccessor<mcfile::je::Block> {
+class BlockAccessorJavaDirectory : public BlockAccessorJava {
 public:
   BlockAccessorJavaDirectory(int cx, int cz, std::filesystem::path const &directory)
       : fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fDir(directory) {
   }
 
-  std::shared_ptr<mcfile::je::Chunk> at(int cx, int cz) const {
+  std::shared_ptr<mcfile::je::Chunk> at(int cx, int cz) const override {
     auto index = this->index(cx, cz);
     if (!index) {
       return nullptr;

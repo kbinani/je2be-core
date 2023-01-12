@@ -5,9 +5,9 @@
 namespace je2be {
 
 template <class Value>
-class Data3D {
+class Data3d {
 public:
-  Data3D(Pos3i start, Pos3i end, Value def) : fStart(start), fEnd(end) {
+  Data3d(Pos3i start, Pos3i end, Value def) : fStart(start), fEnd(end) {
     int dx = end.fX - start.fX + 1;
     int dy = end.fY - start.fY + 1;
     int dz = end.fZ - start.fZ + 1;
@@ -48,9 +48,11 @@ private:
     return (y * dz + z) * dx + x;
   }
 
-private:
+public:
   Pos3i const fStart;
   Pos3i const fEnd;
+
+private:
   std::vector<Value> fStorage;
 };
 

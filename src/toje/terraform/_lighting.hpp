@@ -2,21 +2,14 @@
 
 #include <minecraft-file.hpp>
 
+#include "_data3d.hpp"
 #include "_optional.hpp"
-#include "terraform/_block-accessor.hpp"
 #include "terraform/_block-property-accessor.hpp"
+#include "terraform/java/_block-accessor-java.hpp"
 
 namespace je2be::toje {
 
 class Lighting {
-public:
-  static void Do(mcfile::je::Chunk &out, terraform::BlockAccessor<mcfile::je::Block> &blockAccessor, terraform::BlockPropertyAccessor const &propertyAccessor) {
-    int x = out.minBlockX();
-    int y = -64;
-    int z = out.minBlockZ();
-  }
-
-private:
   struct LightingProperties {
     uint8_t fUp : 2; // 0: attenuate 0, 1: attenuate 1, 2: attenuate 15
     uint8_t fNorth : 2;
@@ -46,6 +39,121 @@ private:
       fEmission = 0;
     }
   };
+
+public:
+  static void Do(mcfile::je::Chunk &out, terraform::java::BlockAccessorJava &blockAccessor, terraform::BlockPropertyAccessor const &propertyAccessor) {
+    int minBlockY = out.minBlockY();
+    int maxBlockY = out.maxBlockY();
+    for (int dz = -1; dz <= 1; dz++) {
+      for (int dx = -1; dx <= 1; dx++) {
+        if (dx == 0 && dz == 0) {
+          continue;
+        }
+        auto chunk = blockAccessor.at(out.fChunkX + dx, out.fChunkZ + dz);
+        if (chunk) {
+          minBlockY = std::min(minBlockY, chunk->minBlockY());
+          maxBlockY = std::max(maxBlockY, chunk->maxBlockY());
+        }
+      }
+    }
+
+    Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
+    Pos3i end(out.maxBlockX() + 14, maxBlockY + 1, out.maxBlockZ() + 14);
+
+    Data3d<LightingProperties> props(start, end, (LightingProperties)0);
+    CopyChunkLightingProperties(out, props);
+    for (int dz = -1; dz <= 1; dz++) {
+      for (int dx = -1; dx <= 1; dx++) {
+        if (dx == 0 && dz == 0) {
+          continue;
+        }
+        auto chunk = blockAccessor.at(out.fChunkX + dx, out.fChunkZ + dz);
+        if (chunk) {
+          CopyChunkLightingProperties(*chunk, props);
+        }
+      }
+    }
+  }
+
+private:
+  static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingProperties> &out) {
+    using namespace std;
+    assert(out.fStart.fY <= chunk.minBlockY() && chunk.maxBlockY() <= out.fEnd.fY);
+
+    int x0 = (std::max)(chunk.minBlockX(), out.fStart.fX);
+    int x1 = (std::min)(chunk.maxBlockX(), out.fEnd.fX);
+    int y0 = (std::max)(chunk.minBlockY(), out.fStart.fY);
+    int y1 = (std::min)(chunk.maxBlockY(), out.fEnd.fY);
+    int z0 = (std::max)(chunk.minBlockZ(), out.fStart.fZ);
+    int z1 = (std::min)(chunk.maxBlockZ(), out.fEnd.fZ);
+
+    for (auto const &section : chunk.fSections) {
+      if (!section) {
+        continue;
+      }
+      vector<LightingProperties> properties;
+      section->eachBlockPalette([&](shared_ptr<mcfile::je::Block const> const &block, size_t) {
+        properties.push_back(GetLightingProperties(*block));
+        return true;
+      });
+      for (int y = 0; y < 16; y++) {
+        for (int z = z0 - chunk.minBlockZ(); z <= z1 - chunk.minBlockZ(); z++) {
+          for (int x = x0 - chunk.minBlockX(); x <= x1 - chunk.minBlockX(); x++) {
+            if (auto index = section->blockPaletteIndexAt(x, y, z); index) {
+              LightingProperties p = properties[*index];
+              int bx = x + chunk.minBlockX();
+              int by = y + section->y() * 16;
+              int bz = z + chunk.minBlockZ();
+              out.set({bx, by, bz}, p);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  static void InitializeChunkSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
+    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
+    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY + 1 < out.fOrigin.fY + out.fHeight);
+    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
+
+    out.fill(0xf);
+
+    uint8_t max = 0xe;
+    switch (dim) {
+    case mcfile::Dimension::Nether:
+    case mcfile::Dimension::End:
+      max = 0;
+      break;
+    }
+    for (int z = props.fStart.fZ; z <= props.fEnd.fZ; z++) {
+      for (int x = props.fStart.fX; x <= props.fEnd.fX; x++) {
+        out.setUnchecked({x, (int)out.fOrigin.fY + (int)out.fHeight - 1, z}, max);
+      }
+    }
+  }
+
+  static void InitializeChunkBlockLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
+    using namespace std;
+
+    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
+    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
+    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
+
+    out.fill(0xf);
+
+    for (int y = out.fOrigin.fY; y < out.fOrigin.fY + out.fHeight; y++) {
+      for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
+        for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
+          if (auto p = props.get({x, y, z}); p) {
+            if (p->fEmission > 0) {
+              out.setUnchecked({x, y, z}, p->fEmission);
+            }
+          }
+        }
+      }
+    }
+  }
 
   static LightingProperties GetLightingProperties(mcfile::je::Block const &block) {
     static_assert(sizeof(LightingProperties) == 2);
