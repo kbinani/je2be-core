@@ -661,6 +661,52 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     CHECK(tbA);
     CheckTickingBlock(tbE, *tbA);
   }
+
+#if 0
+  CHECK(chunkE->fSections.size() == chunkA->fSections.size());
+  for (size_t i = 0; i < chunkE->fSections.size(); i++) {
+    auto const &sectionE = chunkE->fSections[i];
+    REQUIRE(sectionE);
+    auto const &sectionA = chunkA->fSections[i];
+    REQUIRE(sectionA);
+    CHECK(sectionE->y() == sectionA->y());
+    if (sectionE->fSkyLight.size() == 0) {
+      CHECK(sectionA->fSkyLight.size() == 0);
+    } else {
+      REQUIRE(sectionE->fSkyLight.size() == 2048);
+      REQUIRE(sectionA->fSkyLight.size() == 2048);
+      auto skyLightE = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionE->fSkyLight);
+      auto skyLightA = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionA->fSkyLight);
+      REQUIRE(skyLightE);
+      REQUIRE(skyLightA);
+      for (int y = 0; y < 16; y++) {
+        for (int z = 0; z < 16; z++) {
+          for (int x = 0; x < 16; x++) {
+            CHECK(skyLightE->getUnchecked({x, y, z}) == skyLightA->getUnchecked({x, y, z}));
+          }
+        }
+      }
+    }
+
+    if (sectionE->fBlockLight.size() == 0) {
+      CHECK(sectionA->fBlockLight.size() == 0);
+    } else {
+      REQUIRE(sectionE->fBlockLight.size() == 2048);
+      REQUIRE(sectionA->fBlockLight.size() == 2048);
+      auto blockLightE = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionE->fBlockLight);
+      auto blockLightA = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionA->fBlockLight);
+      REQUIRE(blockLightE);
+      REQUIRE(blockLightA);
+      for (int y = 0; y < 16; y++) {
+        for (int z = 0; z < 16; z++) {
+          for (int x = 0; x < 16; x++) {
+            CHECK(blockLightE->getUnchecked({x, y, z}) == blockLightA->getUnchecked({x, y, z}));
+          }
+        }
+      }
+    }
+  }
+#endif
 }
 
 static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
