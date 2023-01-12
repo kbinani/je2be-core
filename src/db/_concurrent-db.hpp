@@ -468,12 +468,7 @@ public:
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
-    auto gate = this->gate().lock();
-    if (!gate) {
-      // Already closed
-      return;
-    }
-    gate->get((uintptr_t)this, fDbName, fSequence, fWriterIdGenerator)->put(key, value.ToString());
+    gate()->get((uintptr_t)this, fDbName, fSequence, fWriterIdGenerator)->put(key, value.ToString());
   }
 
   void del(std::string const &key) override {}
@@ -806,9 +801,9 @@ public:
   }
 
 private:
-  std::weak_ptr<Gate> gate() {
+  std::shared_ptr<Gate> gate() {
     using namespace std;
-    thread_local weak_ptr<Gate> tGate(CreateGate());
+    thread_local shared_ptr<Gate> tGate(CreateGate());
     return tGate;
   }
 
