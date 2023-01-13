@@ -10,6 +10,12 @@
 namespace je2be::toje {
 
 class Lighting {
+  enum : uint8_t {
+    CLEAR = 0,
+    TRANSLUCENT = 1,
+    SOLID = 2,
+  };
+
   struct LightingProperties {
     uint8_t fUp : 2; // 0: attenuate 0, 1: attenuate 1, 2: attenuate 15
     uint8_t fNorth : 2;
@@ -40,7 +46,7 @@ class Lighting {
     }
 
     bool isSolid() const {
-      return fUp == 15 && fNorth == 15 && fEast == 15 && fSouth == 15 && fWest == 15 && fDown == 15;
+      return fUp == SOLID && fNorth == SOLID && fEast == SOLID && fSouth == SOLID && fWest == SOLID && fDown == SOLID;
     }
   };
 
@@ -117,23 +123,16 @@ public:
       if (skyLight) {
         section->fSkyLight.resize(2048);
         auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
-        bool darkness = true;
         if (sectionSkyLight) {
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
                 Pos3i v = origin + Pos3i(x, y, z);
                 uint8_t l = skyLight->getUnchecked(v);
-                if (0 < l && l < 0xf) {
-                  darkness = false;
-                }
                 sectionSkyLight->setUnchecked(v, l);
               }
             }
           }
-        }
-        if (darkness) {
-          section->fSkyLight.clear();
         }
       }
     }
@@ -145,19 +144,16 @@ private:
       for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
         for (int y = out.fOrigin.fY + out.fHeight - 2; y >= out.fOrigin.fY; y--) {
           uint8_t upper = out.getUnchecked({x, y + 1, z});
-          if (upper != 0xe) {
+          if (upper != 15) {
             continue;
           }
           uint8_t center = out.getUnchecked({x, y, z});
-          if (center != 0xf) {
-            continue;
-          }
           auto p = props.get({x, y, z});
           if (!p) {
             continue;
           }
-          if (p->fUp == 0) {
-            out.setUnchecked({x, y, z}, 0xe);
+          if (p->fUp == CLEAR) {
+            out.setUnchecked({x, y, z}, 15);
           } else {
             break;
           }
@@ -197,60 +193,45 @@ private:
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
             int center = out.getUnchecked({x, y, z});
-            if (center != 0xf) {
-              continue;
-            }
             auto p = props.get({x, y, z});
             if (!p) {
               continue;
             }
             int maximum = -1;
-            if (y + 1 <= y1 && p->fUp < 15) {
-              if (auto pUp = props.get({x, y + 1, z}); pUp && pUp->fDown < 15) {
+            if (y + 1 <= y1 && p->fUp < SOLID) {
+              if (auto pUp = props.get({x, y + 1, z}); pUp && pUp->fDown < SOLID) {
                 int up = out.getUnchecked({x, y + 1, z});
-                if (up != 0xf) {
-                  maximum = std::max(maximum, up);
-                }
+                maximum = std::max(maximum, up);
               }
             }
-            if (y - 1 >= y0 && p->fDown < 15) {
-              if (auto pDown = props.get({x, y - 1, z}); pDown && pDown->fUp < 15) {
+            if (y - 1 >= y0 && p->fDown < SOLID) {
+              if (auto pDown = props.get({x, y - 1, z}); pDown && pDown->fUp < SOLID) {
                 int down = out.getUnchecked({x, y - 1, z});
-                if (down != 0xf) {
-                  maximum = std::max(maximum, down);
-                }
+                maximum = std::max(maximum, down);
               }
             }
-            if (x + 1 <= x1 && p->fEast < 15) {
-              if (auto pEast = props.get({x + 1, y, z}); pEast && pEast->fWest < 15) {
+            if (x + 1 <= x1 && p->fEast < SOLID) {
+              if (auto pEast = props.get({x + 1, y, z}); pEast && pEast->fWest < SOLID) {
                 int east = out.getUnchecked({x + 1, y, z});
-                if (east != 0xf) {
-                  maximum = std::max(maximum, east);
-                }
+                maximum = std::max(maximum, east);
               }
             }
-            if (x - 1 >= x0 && p->fWest < 15) {
-              if (auto pWest = props.get({x - 1, y, z}); pWest && pWest->fEast < 15) {
+            if (x - 1 >= x0 && p->fWest < SOLID) {
+              if (auto pWest = props.get({x - 1, y, z}); pWest && pWest->fEast < SOLID) {
                 int west = out.getUnchecked({x - 1, y, z});
-                if (west != 0xf) {
-                  maximum = std::max(maximum, west);
-                }
+                maximum = std::max(maximum, west);
               }
             }
-            if (z + 1 <= z1 && p->fSouth < 15) {
-              if (auto pSouth = props.get({x, y, z + 1}); pSouth && pSouth->fNorth < 15) {
+            if (z + 1 <= z1 && p->fSouth < SOLID) {
+              if (auto pSouth = props.get({x, y, z + 1}); pSouth && pSouth->fNorth < SOLID) {
                 int south = out.getUnchecked({x, y, z + 1});
-                if (south != 0xf) {
-                  maximum = std::max(maximum, south);
-                }
+                maximum = std::max(maximum, south);
               }
             }
-            if (z - 1 >= z0 && p->fNorth < 15) {
-              if (auto pNorth = props.get({x, y, z - 1}); pNorth && pNorth->fSouth < 15) {
+            if (z - 1 >= z0 && p->fNorth < SOLID) {
+              if (auto pNorth = props.get({x, y, z - 1}); pNorth && pNorth->fSouth < SOLID) {
                 int north = out.getUnchecked({x, y, z - 1});
-                if (north != 0xf) {
-                  maximum = std::max(maximum, north);
-                }
+                maximum = std::max(maximum, north);
               }
             }
             if (maximum == v + 1) {
@@ -260,6 +241,50 @@ private:
         }
       }
     }
+  }
+
+  static void InitializeChunkSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
+    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
+    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
+    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
+
+    out.fill(0);
+
+    for (int z = props.fStart.fZ; z <= props.fEnd.fZ; z++) {
+      for (int x = props.fStart.fX; x <= props.fEnd.fX; x++) {
+        out.setUnchecked({x, out.fOrigin.fY + out.fHeight - 1, z}, 15);
+      }
+    }
+  }
+
+  static void InitializeChunkBlockLight(mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
+    using namespace std;
+
+    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
+    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
+    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
+
+    out.fill(0);
+
+    for (int y = out.fOrigin.fY; y < out.fOrigin.fY + out.fHeight; y++) {
+      for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
+        for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
+          if (auto p = props.get({x, y, z}); p) {
+            if (p->fEmission > 0) {
+              out.setUnchecked({x, y, z}, p->fEmission);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  static LightingProperties GetLightingProperties(mcfile::je::Block const &block) {
+    static_assert(sizeof(LightingProperties) == 2);
+
+    LightingProperties p = LightAttenuation(block);
+    p.fEmission = LightEmission(block);
+    return p;
   }
 
   static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingProperties> &out) {
@@ -296,50 +321,6 @@ private:
         }
       }
     }
-  }
-
-  static void InitializeChunkSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
-    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
-    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
-    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
-
-    out.fill(0xf);
-
-    for (int z = props.fStart.fZ; z <= props.fEnd.fZ; z++) {
-      for (int x = props.fStart.fX; x <= props.fEnd.fX; x++) {
-        out.setUnchecked({x, (int)out.fOrigin.fY + (int)out.fHeight - 1, z}, 0xe);
-      }
-    }
-  }
-
-  static void InitializeChunkBlockLight(mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
-    using namespace std;
-
-    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
-    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
-    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
-
-    out.fill(0xf);
-
-    for (int y = out.fOrigin.fY; y < out.fOrigin.fY + out.fHeight; y++) {
-      for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
-        for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
-          if (auto p = props.get({x, y, z}); p) {
-            if (p->fEmission > 0) {
-              out.setUnchecked({x, y, z}, p->fEmission);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  static LightingProperties GetLightingProperties(mcfile::je::Block const &block) {
-    static_assert(sizeof(LightingProperties) == 2);
-
-    LightingProperties p = LightAttenuation(block);
-    p.fEmission = LightEmission(block);
-    return p;
   }
 
   static LightingProperties LightAttenuation(mcfile::je::Block const &block) {
