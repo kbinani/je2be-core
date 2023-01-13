@@ -38,10 +38,15 @@ class Lighting {
       fDown = v;
       fEmission = 0;
     }
+
+    bool isSolid() const {
+      return fUp == 15 && fNorth == 15 && fEast == 15 && fSouth == 15 && fWest == 15 && fDown == 15;
+    }
   };
 
 public:
   static void Do(mcfile::Dimension dim, mcfile::je::Chunk &out, terraform::java::BlockAccessorJava &blockAccessor) {
+    using namespace std;
     using namespace mcfile;
 
     int minBlockY = out.minBlockY();
@@ -62,7 +67,9 @@ public:
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     Pos3i end(out.maxBlockX() + 14, maxBlockY + 1, out.maxBlockZ() + 14);
 
-    Data3d<LightingProperties> props(start, end, (LightingProperties)0);
+    LightingProperties air(0);
+
+    Data3d<LightingProperties> props(start, end, air);
     CopyChunkLightingProperties(out, props);
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
@@ -79,14 +86,14 @@ public:
     shared_ptr<Data4b3d> skyLight;
 
     if (dim == Dimension::Overworld) {
-      skyLight = make_shared<Data4b3d>(start, end.fX - start.fX + 1, end.fY - start.fY + 2, end.fZ - start.fZ + 1);
+      skyLight = make_shared<Data4b3d>(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
       InitializeChunkSkyLight(dim, *skyLight, props);
       DiffuseSkyLight(props, *skyLight);
     }
 
     Data4b3d blockLight(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
     InitializeChunkBlockLight(blockLight, props);
-    DiffuseLight(props, blockLight);
+    DiffuseBlockLight(props, blockLight);
 
     for (auto &section : out.fSections) {
       if (!section) {
@@ -137,7 +144,7 @@ private:
     for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
       for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
         for (int y = out.fOrigin.fY + out.fHeight - 2; y >= out.fOrigin.fY; y--) {
-          uint8_t upper = out.getUnchecked({x, y - 1, z});
+          uint8_t upper = out.getUnchecked({x, y + 1, z});
           if (upper != 0xe) {
             continue;
           }
@@ -160,8 +167,99 @@ private:
     DiffuseLight(props, out);
   }
 
+  static void DiffuseBlockLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
+    DiffuseLight(props, out);
+  }
+
   static void DiffuseLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
-    // TODO:
+    int x0 = out.fOrigin.fX;
+    int x1 = out.fOrigin.fX + out.fWidthX - 1;
+    int y0 = out.fOrigin.fY;
+    int y1 = out.fOrigin.fY + out.fHeight - 1;
+    int z0 = out.fOrigin.fZ;
+    int z1 = out.fOrigin.fZ + out.fWidthZ - 1;
+
+    for (int y = y0; y <= y1; y++) {
+      for (int z = z0; z <= z1; z++) {
+        for (int x = x0; x <= x1; x++) {
+          auto p = props.get({x, y, z});
+          if (!p) {
+            continue;
+          }
+          if (p->isSolid()) {
+            out.setUnchecked({x, y, z}, 0);
+          }
+        }
+      }
+    }
+    for (int v = 14; v >= 0; v--) {
+      for (int y = y0; y <= y1; y++) {
+        for (int z = z0; z <= z1; z++) {
+          for (int x = x0; x <= x1; x++) {
+            int center = out.getUnchecked({x, y, z});
+            if (center != 0xf) {
+              continue;
+            }
+            auto p = props.get({x, y, z});
+            if (!p) {
+              continue;
+            }
+            int maximum = -1;
+            if (y + 1 <= y1 && p->fUp < 15) {
+              if (auto pUp = props.get({x, y + 1, z}); pUp && pUp->fDown < 15) {
+                int up = out.getUnchecked({x, y + 1, z});
+                if (up != 0xf) {
+                  maximum = std::max(maximum, up);
+                }
+              }
+            }
+            if (y - 1 >= y0 && p->fDown < 15) {
+              if (auto pDown = props.get({x, y - 1, z}); pDown && pDown->fUp < 15) {
+                int down = out.getUnchecked({x, y - 1, z});
+                if (down != 0xf) {
+                  maximum = std::max(maximum, down);
+                }
+              }
+            }
+            if (x + 1 <= x1 && p->fEast < 15) {
+              if (auto pEast = props.get({x + 1, y, z}); pEast && pEast->fWest < 15) {
+                int east = out.getUnchecked({x + 1, y, z});
+                if (east != 0xf) {
+                  maximum = std::max(maximum, east);
+                }
+              }
+            }
+            if (x - 1 >= x0 && p->fWest < 15) {
+              if (auto pWest = props.get({x - 1, y, z}); pWest && pWest->fEast < 15) {
+                int west = out.getUnchecked({x - 1, y, z});
+                if (west != 0xf) {
+                  maximum = std::max(maximum, west);
+                }
+              }
+            }
+            if (z + 1 <= z1 && p->fSouth < 15) {
+              if (auto pSouth = props.get({x, y, z + 1}); pSouth && pSouth->fNorth < 15) {
+                int south = out.getUnchecked({x, y, z + 1});
+                if (south != 0xf) {
+                  maximum = std::max(maximum, south);
+                }
+              }
+            }
+            if (z - 1 >= z0 && p->fNorth < 15) {
+              if (auto pNorth = props.get({x, y, z - 1}); pNorth && pNorth->fSouth < 15) {
+                int north = out.getUnchecked({x, y, z - 1});
+                if (north != 0xf) {
+                  maximum = std::max(maximum, north);
+                }
+              }
+            }
+            if (maximum == v + 1) {
+              out.setUnchecked({x, y, z}, (uint8_t)v);
+            }
+          }
+        }
+      }
+    }
   }
 
   static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingProperties> &out) {
@@ -202,7 +300,7 @@ private:
 
   static void InitializeChunkSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
     assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
-    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY + 1 < out.fOrigin.fY + out.fHeight);
+    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
     assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
 
     out.fill(0xf);

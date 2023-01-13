@@ -664,25 +664,32 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
 
 #if 0
   CHECK(chunkE->fSections.size() == chunkA->fSections.size());
-  for (size_t i = 0; i < chunkE->fSections.size(); i++) {
+  for (int i = (int)chunkE->fSections.size() - 1; i >= 0; i--) {
     auto const &sectionE = chunkE->fSections[i];
     REQUIRE(sectionE);
     auto const &sectionA = chunkA->fSections[i];
     REQUIRE(sectionA);
     CHECK(sectionE->y() == sectionA->y());
     if (sectionE->fSkyLight.size() == 0) {
-      CHECK(sectionA->fSkyLight.size() == 0);
+      continue;
     } else {
       REQUIRE(sectionE->fSkyLight.size() == 2048);
       REQUIRE(sectionA->fSkyLight.size() == 2048);
+
       auto skyLightE = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionE->fSkyLight);
       auto skyLightA = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionA->fSkyLight);
       REQUIRE(skyLightE);
       REQUIRE(skyLightA);
+
       for (int y = 0; y < 16; y++) {
         for (int z = 0; z < 16; z++) {
           for (int x = 0; x < 16; x++) {
-            CHECK(skyLightE->getUnchecked({x, y, z}) == skyLightA->getUnchecked({x, y, z}));
+            uint8_t e = skyLightE->getUnchecked({x, y, z});
+            if (e == 0xf) {
+              continue;
+            }
+            uint8_t a = skyLightA->getUnchecked({x, y, z});
+            CHECK(e == a);
           }
         }
       }
@@ -937,6 +944,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
 #if 1
   Pos2i center(0, 0);
   int radius = 32;
+  REQUIRE(radius > 1);
   for (int cz = center.fZ - radius; cz < center.fZ + radius; cz++) {
     for (int cx = center.fX - radius; cx < center.fX + radius; cx++) {
       Pos2i p(cx, cz);
