@@ -1043,8 +1043,209 @@ static void LightTransmission() {
   code << "}" << endl;
 }
 
+static void Heightmaps() {
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/heightmaps");
+  {
+    fs::path name = root / "datapacks" / "kbinani" / "pack.mcmeta";
+    Fs::CreateDirectories(name.parent_path());
+    ofstream os(name.string());
+    os << R"({
+  "pack": {
+    "pack_format": 1,
+    "description": "datapack"
+  }
+})" << endl;
+  }
+  vector<pair<Pos2i, mcfile::blocks::BlockId>> blocks;
+  {
+    fs::path name = root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction";
+    Fs::CreateDirectories(name.parent_path());
+    ofstream os(name.string());
+    int cx = 0;
+    int const cz = 0;
+    int lx = 0;
+    int z = 0;
+    int const y = -60;
+
+    os << "fill -1 -60 -1 -1 -60 16 barrier" << endl;
+    os << "fill 0 -60 -1 16 -60 16 barrier" << endl;
+
+    for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+      auto name = mcfile::blocks::Name(id).substr(10);
+
+      os << "setblock " << (cx * 16 + lx) << " " << y << " " << z << " " << name << endl;
+      blocks.push_back(make_pair(Pos2i(cx * 16 + lx, z), id));
+
+      lx += 2;
+      if (lx >= 16) {
+        z++;
+        if (z % 2 == 0) {
+          lx = 0;
+        } else {
+          lx = 1;
+        }
+        if (z >= 16) {
+          cx++;
+          lx = 0;
+          z = 0;
+          os << "fill " << (cx * 16) << " " << y << " -1 " << (cx * 16 + 16) << " " << y << " 16 barrier" << endl;
+        }
+      }
+    }
+  }
+
+  blocks.push_back(make_pair(Pos2i{-16, 0}, mcfile::blocks::minecraft::brain_coral_block));
+  blocks.push_back(make_pair(Pos2i{-14, 0}, mcfile::blocks::minecraft::bubble_column));
+  blocks.push_back(make_pair(Pos2i{-12, 0}, mcfile::blocks::minecraft::bubble_coral_block));
+  blocks.push_back(make_pair(Pos2i{-16, 2}, mcfile::blocks::minecraft::cactus));
+  blocks.push_back(make_pair(Pos2i{-10, 0}, mcfile::blocks::minecraft::chorus_flower));
+  blocks.push_back(make_pair(Pos2i{-8, 0}, mcfile::blocks::minecraft::chorus_plant));
+  blocks.push_back(make_pair(Pos2i{-6, 0}, mcfile::blocks::minecraft::fire));
+  blocks.push_back(make_pair(Pos2i{-4, 0}, mcfile::blocks::minecraft::fire_coral_block));
+  blocks.push_back(make_pair(Pos2i{-2, 0}, mcfile::blocks::minecraft::horn_coral_block));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::kelp_plant));
+  blocks.push_back(make_pair(Pos2i{-15, 1}, mcfile::blocks::minecraft::sugar_cane));
+  blocks.push_back(make_pair(Pos2i{-13, 1}, mcfile::blocks::minecraft::tube_coral_block));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::weeping_vines));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::twisting_vines_plant));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::weeping_vines_plant));
+  blocks.push_back(make_pair(Pos2i{-7, 1}, mcfile::blocks::minecraft::soul_fire));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::big_dripleaf_stem));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::cave_vines));
+  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::cave_vines_plant));
+
+  mcfile::je::World world(root);
+  shared_ptr<mcfile::je::WritableChunk> chunk;
+
+  HeightmapV2 motionBlocking;
+  HeightmapV2 motionBlockingNoLeaves;
+  HeightmapV2 oceanFloor;
+  HeightmapV2 worldSurface;
+
+  set<mcfile::blocks::BlockId> motionBlockingBlocks;
+  set<mcfile::blocks::BlockId> motionBlockingNoLeavesBlocks;
+  set<mcfile::blocks::BlockId> oceanFloorBlocks;
+  set<mcfile::blocks::BlockId> worldSurfaceBlocks;
+
+  for (auto const &it : blocks) {
+    Pos2i p = it.first;
+    mcfile::blocks::BlockId id = it.second;
+    auto name = mcfile::blocks::Name(id).substr(10);
+
+    int cx = mcfile::Coordinate::ChunkFromBlock(p.fX);
+    int cz = mcfile::Coordinate::ChunkFromBlock(p.fZ);
+    if (!chunk || chunk->fChunkX != cx || chunk->fChunkZ != cz) {
+      chunk = world.writableChunkAt(cx, cz);
+      REQUIRE(chunk);
+      auto heightMaps = chunk->fRoot->compoundTag("Heightmaps");
+      REQUIRE(heightMaps);
+      if (auto tag = heightMaps->longArrayTag("MOTION_BLOCKING"); tag) {
+        copy(tag->fValue.begin(), tag->fValue.end(), motionBlocking.fStorage.begin());
+      } else {
+        REQUIRE(false);
+      }
+      if (auto tag = heightMaps->longArrayTag("MOTION_BLOCKING_NO_LEAVES"); tag) {
+        copy(tag->fValue.begin(), tag->fValue.end(), motionBlockingNoLeaves.fStorage.begin());
+      } else {
+        REQUIRE(false);
+      }
+      if (auto tag = heightMaps->longArrayTag("OCEAN_FLOOR"); tag) {
+        copy(tag->fValue.begin(), tag->fValue.end(), oceanFloor.fStorage.begin());
+      } else {
+        REQUIRE(false);
+      }
+      if (auto tag = heightMaps->longArrayTag("WORLD_SURFACE"); tag) {
+        copy(tag->fValue.begin(), tag->fValue.end(), worldSurface.fStorage.begin());
+      } else {
+        REQUIRE(false);
+      }
+    }
+    int lx = p.fX - cx * 16;
+    int lz = p.fZ - cz * 16;
+    auto block = chunk->blockAt({p.fX, -60, p.fZ});
+    if (!block) {
+      cerr << name << " not set" << endl;
+      continue;
+    }
+    if (block->fId != id) {
+      cerr << name << " not set" << endl;
+      continue;
+    }
+    if (motionBlocking.getUnchecked(lx, lz) == 5) {
+      motionBlockingBlocks.insert(id);
+    }
+    if (motionBlockingNoLeaves.getUnchecked(lx, lz) == 5) {
+      motionBlockingNoLeavesBlocks.insert(id);
+    }
+    if (oceanFloor.getUnchecked(lx, lz) == 5) {
+      oceanFloorBlocks.insert(id);
+    }
+    if (worldSurface.getUnchecked(lx, lz) == 5) {
+      worldSurfaceBlocks.insert(id);
+    }
+  }
+
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
+  code << "static bool IsMotionBlocking(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto id : motionBlockingBlocks) {
+    auto name = mcfile::blocks::Name(id).substr(10);
+    code << "  case " << name << ":" << endl;
+  }
+  code << "    return true;" << endl;
+  code << "  default:" << endl;
+  code << "    return false;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+
+  code << "static bool IsMotionBlockingNoLeaves(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto id : motionBlockingNoLeavesBlocks) {
+    auto name = mcfile::blocks::Name(id).substr(10);
+    code << "  case " << name << ":" << endl;
+  }
+  code << "    return true;" << endl;
+  code << "  default:" << endl;
+  code << "    return false;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+
+  code << "static bool IsOceanFloor(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto id : oceanFloorBlocks) {
+    auto name = mcfile::blocks::Name(id).substr(10);
+    code << "  case " << name << ":" << endl;
+  }
+  code << "    return true;" << endl;
+  code << "  default:" << endl;
+  code << "    return false;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+
+  code << "static bool IsWorldSurface(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
+  code << "  switch (id) {" << endl;
+  for (auto id : worldSurfaceBlocks) {
+    auto name = mcfile::blocks::Name(id).substr(10);
+    code << "  case " << name << ":" << endl;
+  }
+  code << "    return true;" << endl;
+  code << "  default:" << endl;
+  code << "    return false;" << endl;
+  code << "  }" << endl;
+  code << "}" << endl;
+  code << endl;
+}
+
 #if 0
 TEST_CASE("research") {
-  LightTransmission();
+  Heightmaps();
 }
 #endif
