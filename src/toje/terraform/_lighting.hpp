@@ -93,12 +93,12 @@ public:
 
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data4b3d>(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
-      InitializeChunkSkyLight(dim, *skyLight, props);
+      InitializeSkyLight(dim, *skyLight, props);
       DiffuseSkyLight(props, *skyLight);
     }
 
     Data4b3d blockLight(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
-    InitializeChunkBlockLight(blockLight, props);
+    InitializeBlockLight(blockLight, props);
     DiffuseBlockLight(props, blockLight);
 
     for (auto &section : out.fSections) {
@@ -143,18 +143,16 @@ private:
     for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
       for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
         for (int y = out.fOrigin.fY + out.fHeight - 2; y >= out.fOrigin.fY; y--) {
-          uint8_t upper = out.getUnchecked({x, y + 1, z});
-          if (upper != 15) {
-            continue;
-          }
-          uint8_t center = out.getUnchecked({x, y, z});
           auto p = props.get({x, y, z});
           if (!p) {
-            continue;
+            break;
           }
           if (p->fUp == CLEAR) {
             out.setUnchecked({x, y, z}, 15);
           } else {
+            break;
+          }
+          if (p->fDown != CLEAR) {
             break;
           }
         }
@@ -175,24 +173,10 @@ private:
     int z0 = out.fOrigin.fZ;
     int z1 = out.fOrigin.fZ + out.fWidthZ - 1;
 
-    for (int y = y0; y <= y1; y++) {
-      for (int z = z0; z <= z1; z++) {
-        for (int x = x0; x <= x1; x++) {
-          auto p = props.get({x, y, z});
-          if (!p) {
-            continue;
-          }
-          if (p->isSolid()) {
-            out.setUnchecked({x, y, z}, 0);
-          }
-        }
-      }
-    }
-    for (int v = 14; v >= 0; v--) {
+    for (int v = 14; v >= 1; v--) {
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
-            int center = out.getUnchecked({x, y, z});
             auto p = props.get({x, y, z});
             if (!p) {
               continue;
@@ -243,7 +227,7 @@ private:
     }
   }
 
-  static void InitializeChunkSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
+  static void InitializeSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
     assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
     assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
     assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
@@ -257,7 +241,7 @@ private:
     }
   }
 
-  static void InitializeChunkBlockLight(mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
+  static void InitializeBlockLight(mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
     using namespace std;
 
     assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
