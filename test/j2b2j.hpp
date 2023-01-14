@@ -442,6 +442,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     CHECK((angryAtE == nullptr) == (angryAtA == nullptr));
   } else if (id == "minecraft:camel") {
     blacklist.insert("LastPoseTick");
+  } else if (id == "minecraft:wandering_trader") {
+    blacklist.insert("WanderTarget");
   }
 
   for (string const &it : blacklist) {
