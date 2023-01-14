@@ -177,6 +177,10 @@ private:
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
+            uint8_t center = out.getUnchecked({x, y, z});
+            if (center >= v) {
+              continue;
+            }
             auto p = props.get({x, y, z});
             if (!p) {
               continue;
