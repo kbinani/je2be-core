@@ -94,4 +94,22 @@ static inline Pos2i Pos2iFromFacing4(Facing4 f4) {
   }
 }
 
+static inline std::optional<Facing4> Facing4FromPos2i(Pos2i const &p) {
+  if (p.fX == 0 && p.fZ == 0) {
+    return std::nullopt;
+  }
+  if (p.fX != 0 && p.fZ != 0) {
+    return std::nullopt;
+  }
+  if (p.fX > 0) {
+    return Facing4::East;
+  } else if (p.fX < 0) {
+    return Facing4::West;
+  } else if (p.fZ > 0) {
+    return Facing4::South;
+  } else {
+    return Facing4::North;
+  }
+}
+
 } // namespace je2be

@@ -10,32 +10,32 @@
 namespace je2be::toje {
 
 class Lighting {
-  enum : uint8_t {
+  enum Transparency : uint8_t {
     CLEAR = 0,
     TRANSLUCENT = 1,
     SOLID = 2,
   };
 
   struct LightingProperties {
-    uint8_t fUp : 2; // 0: attenuate 0, 1: attenuate 1, 2: attenuate 15
-    uint8_t fNorth : 2;
-    uint8_t fEast : 2;
-    uint8_t fSouth : 2;
-    uint8_t fWest : 2;
-    uint8_t fDown : 2;
+    Transparency fUp : 2; // 0: attenuate 0, 1: attenuate 1, 2: attenuate 15
+    Transparency fNorth : 2;
+    Transparency fEast : 2;
+    Transparency fSouth : 2;
+    Transparency fWest : 2;
+    Transparency fDown : 2;
     uint8_t fEmission : 4;
 
     LightingProperties() {
-      fUp = 0;
-      fNorth = 0;
-      fEast = 0;
-      fSouth = 0;
-      fWest = 0;
-      fDown = 0;
+      fUp = CLEAR;
+      fNorth = CLEAR;
+      fEast = CLEAR;
+      fSouth = CLEAR;
+      fWest = CLEAR;
+      fDown = CLEAR;
       fEmission = 0;
     }
 
-    explicit LightingProperties(uint8_t v) {
+    explicit LightingProperties(Transparency v) {
       fUp = v;
       fNorth = v;
       fEast = v;
@@ -43,6 +43,46 @@ class Lighting {
       fWest = v;
       fDown = v;
       fEmission = 0;
+    }
+
+    void set(Facing6 facing, Transparency v) {
+      switch (facing) {
+      case Facing6::Up:
+        fUp = v;
+        break;
+      case Facing6::Down:
+        fDown = v;
+        break;
+      case Facing6::North:
+        fNorth = v;
+        break;
+      case Facing6::East:
+        fEast = v;
+        break;
+      case Facing6::South:
+        fSouth = v;
+        break;
+      case Facing6::West:
+        fWest = v;
+        break;
+      }
+    }
+
+    void set(Facing4 facing, Transparency v) {
+      switch (facing) {
+      case Facing4::North:
+        fNorth = v;
+        break;
+      case Facing4::East:
+        fEast = v;
+        break;
+      case Facing4::South:
+        fSouth = v;
+        break;
+      case Facing4::West:
+        fWest = v;
+        break;
+      }
     }
 
     bool isSolid() const {
@@ -73,7 +113,7 @@ public:
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     Pos3i end(out.maxBlockX() + 14, maxBlockY + 1, out.maxBlockZ() + 14);
 
-    LightingProperties air(0);
+    LightingProperties air(CLEAR);
 
     Data3d<LightingProperties> props(start, end, air);
     CopyChunkLightingProperties(out, props);
@@ -318,69 +358,60 @@ private:
       auto half = block.property("half");
       auto shape = block.property("shape");
       Facing4 f4 = Facing4FromJavaName(facing);
-      LightingProperties a(1);
+      LightingProperties a(TRANSLUCENT);
       if (shape.starts_with("outer_")) {
         // nop
       } else if (shape.starts_with("inner_right")) {
-        switch (f4) {
-        case Facing4::North:
-          a.fNorth = 2;
-          a.fEast = 2;
-          break;
-        case Facing4::East:
-          a.fEast = 2;
-          a.fSouth = 2;
-          break;
-        case Facing4::South:
-          a.fSouth = 2;
-          a.fWest = 2;
-          break;
-        case Facing4::West:
-          a.fWest = 2;
-          a.fNorth = 2;
-          break;
+        a.set(f4, SOLID);
+        Pos2i vec = Pos2iFromFacing4(f4);
+        Pos2i rot = Right90(vec);
+        if (auto rotF4 = Facing4FromPos2i(rot); rotF4) {
+          a.set(*rotF4, SOLID);
         }
       } else if (shape.starts_with("inner_left")) {
-        switch (f4) {
-        case Facing4::North:
-          a.fNorth = 2;
-          a.fWest = 2;
-          break;
-        case Facing4::East:
-          a.fEast = 2;
-          a.fNorth = 2;
-          break;
-        case Facing4::South:
-          a.fSouth = 2;
-          a.fEast = 2;
-          break;
-        case Facing4::West:
-          a.fWest = 2;
-          a.fSouth = 2;
-          break;
+        a.set(f4, SOLID);
+        Pos2i vec = Pos2iFromFacing4(f4);
+        Pos2i rot = Left90(vec);
+        if (auto rotF4 = Facing4FromPos2i(rot); rotF4) {
+          a.set(*rotF4, SOLID);
         }
       } else { // "straight"
-        switch (f4) {
-        case Facing4::North:
-          a.fNorth = 2;
-          break;
-        case Facing4::East:
-          a.fEast = 2;
-          break;
-        case Facing4::South:
-          a.fSouth = 2;
-          break;
-        case Facing4::West:
-          a.fWest = 2;
-          break;
-        }
+        a.set(f4, SOLID);
       }
       if (half == "bottom") {
-        a.fDown = 2;
+        a.fDown = SOLID;
       } else { // "top"
-        a.fUp = 2;
+        a.fUp = SOLID;
       }
 
+      return a;
+    } else if (block.fName.ends_with("slab")) {
+      auto type = block.property("type");
+      if (type == "double") {
+        return LightingProperties(SOLID);
+      } else if (type == "top") {
+        LightingProperties a(CLEAR);
+        a.fUp = SOLID;
+        return a;
+      } else { // "bottom"
+        LightingProperties a(CLEAR);
+        a.fDown = SOLID;
+        return a;
+      }
+    } else if (block.fId == piston || block.fId == sticky_piston) {
+      if (block.property("extended") == "true") {
+        Facing6 f = Facing6FromJavaName(block.property("facing"));
+        LightingProperties a(CLEAR);
+        Facing6 inv = Facing6Invert(f);
+        a.set(inv, SOLID);
+        return a;
+      } else {
+        return LightingProperties(SOLID);
+      }
+    } else if (block.fId == piston_head) {
+      Facing6 f = Facing6FromJavaName(block.property("facing"));
+      LightingProperties a(CLEAR);
+      a.set(f, SOLID);
       return a;
     }
     int amount = 0;
@@ -413,12 +444,12 @@ private:
     }
     switch (amount) {
     case 0:
-      return LightingProperties(0);
+      return LightingProperties(CLEAR);
     case 1:
-      return LightingProperties(1);
+      return LightingProperties(TRANSLUCENT);
     case 15:
     default:
-      return LightingProperties(2);
+      return LightingProperties(SOLID);
     }
   }
 
