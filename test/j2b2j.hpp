@@ -567,14 +567,36 @@ static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlo
   CHECK(e.fZ == a.fZ);
 }
 
+static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actual) {
+  static set<string> const sTypes = {"MOTION_BLOCKING",
+                                     "MOTION_BLOCKING_NO_LEAVES",
+                                     "OCEAN_FLOOR",
+                                     "WORLD_SURFACE"};
+  for (auto const &type : sTypes) {
+    auto tagA = actual.longArrayTag(type);
+    auto tagE = expected.longArrayTag(type);
+    REQUIRE(tagA);
+    REQUIRE(tagE);
+    auto mapA = Heightmap::Load(*tagA);
+    auto mapE = Heightmap::Load(*tagE);
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        auto e = mapE->getUnchecked(x, z);
+        auto a = mapA->getUnchecked(x, z);
+        CHECK(e == a);
+      }
+    }
+  }
+}
+
 static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
-  auto chunkA = regionA.chunkAt(cx, cz);
+  auto chunkA = regionA.writableChunkAt(cx, cz);
   if (!chunkA) {
     return;
   }
   CHECK(regionA.entitiesAt(chunkA->fChunkX, chunkA->fChunkZ, chunkA->fEntities));
 
-  auto chunkE = regionE.chunkAt(cx, cz);
+  auto chunkE = regionE.writableChunkAt(cx, cz);
   CHECK(chunkE);
   CHECK(regionE.entitiesAt(chunkE->fChunkX, chunkE->fChunkZ, chunkE->fEntities));
 
@@ -661,6 +683,12 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     CHECK(tbA);
     CheckTickingBlock(tbE, *tbA);
   }
+
+  auto heightMapsE = chunkE->fRoot->compoundTag("Heightmaps");
+  auto heightMapsA = chunkA->fRoot->compoundTag("Heightmaps");
+  REQUIRE(heightMapsE);
+  REQUIRE(heightMapsA);
+  CheckHeightmaps(*heightMapsE, *heightMapsA);
 
 #if 0
   CHECK(chunkE->fSections.size() == chunkA->fSections.size());

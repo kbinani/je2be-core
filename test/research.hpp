@@ -1103,16 +1103,16 @@ static void Heightmaps() {
   blocks.push_back(make_pair(Pos2i{-6, 0}, mcfile::blocks::minecraft::fire));
   blocks.push_back(make_pair(Pos2i{-4, 0}, mcfile::blocks::minecraft::fire_coral_block));
   blocks.push_back(make_pair(Pos2i{-2, 0}, mcfile::blocks::minecraft::horn_coral_block));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::kelp_plant));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::kelp_plant));
   blocks.push_back(make_pair(Pos2i{-15, 1}, mcfile::blocks::minecraft::sugar_cane));
   blocks.push_back(make_pair(Pos2i{-13, 1}, mcfile::blocks::minecraft::tube_coral_block));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::weeping_vines));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::twisting_vines_plant));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::weeping_vines_plant));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::weeping_vines));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::twisting_vines_plant));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::weeping_vines_plant));
   blocks.push_back(make_pair(Pos2i{-7, 1}, mcfile::blocks::minecraft::soul_fire));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::big_dripleaf_stem));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::cave_vines));
-  //blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::cave_vines_plant));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::big_dripleaf_stem));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::cave_vines));
+  // blocks.push_back(make_pair(Pos2i{, }, mcfile::blocks::minecraft::cave_vines_plant));
 
   mcfile::je::World world(root);
   shared_ptr<mcfile::je::WritableChunk> chunk;
@@ -1140,22 +1140,22 @@ static void Heightmaps() {
       auto heightMaps = chunk->fRoot->compoundTag("Heightmaps");
       REQUIRE(heightMaps);
       if (auto tag = heightMaps->longArrayTag("MOTION_BLOCKING"); tag) {
-        copy(tag->fValue.begin(), tag->fValue.end(), motionBlocking.fStorage.begin());
+        motionBlocking.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
       if (auto tag = heightMaps->longArrayTag("MOTION_BLOCKING_NO_LEAVES"); tag) {
-        copy(tag->fValue.begin(), tag->fValue.end(), motionBlockingNoLeaves.fStorage.begin());
+        motionBlockingNoLeaves.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
       if (auto tag = heightMaps->longArrayTag("OCEAN_FLOOR"); tag) {
-        copy(tag->fValue.begin(), tag->fValue.end(), oceanFloor.fStorage.begin());
+        oceanFloor.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
       if (auto tag = heightMaps->longArrayTag("WORLD_SURFACE"); tag) {
-        copy(tag->fValue.begin(), tag->fValue.end(), worldSurface.fStorage.begin());
+        worldSurface.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
@@ -1187,7 +1187,7 @@ static void Heightmaps() {
 
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
-  code << "static bool IsMotionBlocking(mcfile::blocks::BlockId id) {" << endl;
+  code << "static bool IsMotionBlockingById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : motionBlockingBlocks) {
@@ -1201,7 +1201,7 @@ static void Heightmaps() {
   code << "}" << endl;
   code << endl;
 
-  code << "static bool IsMotionBlockingNoLeaves(mcfile::blocks::BlockId id) {" << endl;
+  code << "static bool IsMotionBlockingNoLeavesById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : motionBlockingNoLeavesBlocks) {
@@ -1215,7 +1215,7 @@ static void Heightmaps() {
   code << "}" << endl;
   code << endl;
 
-  code << "static bool IsOceanFloor(mcfile::blocks::BlockId id) {" << endl;
+  code << "static bool IsOceanFloorById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : oceanFloorBlocks) {
@@ -1229,7 +1229,7 @@ static void Heightmaps() {
   code << "}" << endl;
   code << endl;
 
-  code << "static bool IsWorldSurface(mcfile::blocks::BlockId id) {" << endl;
+  code << "static bool IsWorldSurfaceById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : worldSurfaceBlocks) {
