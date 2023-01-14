@@ -590,7 +590,6 @@ static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actu
     }
   }
 }
-
 static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
   auto chunkA = regionA.writableChunkAt(cx, cz);
   if (!chunkA) {
@@ -691,59 +690,6 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
   REQUIRE(heightMapsE);
   REQUIRE(heightMapsA);
   CheckHeightmaps(*heightMapsE, *heightMapsA);
-
-#if 0
-  CHECK(chunkE->fSections.size() == chunkA->fSections.size());
-  for (int i = (int)chunkE->fSections.size() - 1; i >= 0; i--) {
-    auto const &sectionE = chunkE->fSections[i];
-    REQUIRE(sectionE);
-    auto const &sectionA = chunkA->fSections[i];
-    REQUIRE(sectionA);
-    CHECK(sectionE->y() == sectionA->y());
-    if (sectionE->fSkyLight.size() == 0) {
-      continue;
-    } else {
-      REQUIRE(sectionE->fSkyLight.size() == 2048);
-      REQUIRE(sectionA->fSkyLight.size() == 2048);
-
-      auto skyLightE = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionE->fSkyLight);
-      auto skyLightA = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionA->fSkyLight);
-      REQUIRE(skyLightE);
-      REQUIRE(skyLightA);
-
-      for (int y = 0; y < 16; y++) {
-        for (int z = 0; z < 16; z++) {
-          for (int x = 0; x < 16; x++) {
-            uint8_t e = skyLightE->getUnchecked({x, y, z});
-            if (e == 0xf) {
-              continue;
-            }
-            uint8_t a = skyLightA->getUnchecked({x, y, z});
-            CHECK(e == a);
-          }
-        }
-      }
-    }
-
-    if (sectionE->fBlockLight.size() == 0) {
-      CHECK(sectionA->fBlockLight.size() == 0);
-    } else {
-      REQUIRE(sectionE->fBlockLight.size() == 2048);
-      REQUIRE(sectionA->fBlockLight.size() == 2048);
-      auto blockLightE = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionE->fBlockLight);
-      auto blockLightA = Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &sectionA->fBlockLight);
-      REQUIRE(blockLightE);
-      REQUIRE(blockLightA);
-      for (int y = 0; y < 16; y++) {
-        for (int z = 0; z < 16; z++) {
-          for (int x = 0; x < 16; x++) {
-            CHECK(blockLightE->getUnchecked({x, y, z}) == blockLightA->getUnchecked({x, y, z}));
-          }
-        }
-      }
-    }
-  }
-#endif
 }
 
 static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
