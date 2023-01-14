@@ -973,16 +973,14 @@ static void TestJavaToBedrockToJava(fs::path in) {
   unordered_set<Pos2i, Pos2iHasher> chunks;
 #if 1
   Pos2i center(0, 0);
-  int radius = 32;
-  REQUIRE(radius > 1);
-  for (int cz = center.fZ - radius; cz < center.fZ + radius; cz++) {
-    for (int cx = center.fX - radius; cx < center.fX + radius; cx++) {
-      Pos2i p(cx, cz);
-      optB.fChunkFilter.insert(p);
+  int radius = 31;
+  for (int cz = center.fZ - radius - 1; cz < center.fZ + radius + 1; cz++) {
+    for (int cx = center.fX - radius - 1; cx < center.fX + radius + 1; cx++) {
+      optB.fChunkFilter.insert({cx, cz});
     }
   }
-  for (int cz = center.fZ - radius + 1; cz < center.fZ + radius - 1; cz++) {
-    for (int cx = center.fX - radius + 1; cx < center.fX + radius - 1; cx++) {
+  for (int cz = center.fZ - radius; cz < center.fZ + radius; cz++) {
+    for (int cx = center.fX - radius; cx < center.fX + radius; cx++) {
       chunks.insert({cx, cz});
     }
   }
