@@ -692,6 +692,9 @@ private:
     case dirt_path:
     case big_dripleaf_stem:
       return 0;
+    case glow_lichen:
+      // glow_lichen does not emit light when placed by setblock
+      return 7;
     case soul_fire:
       return 10;
     case fire:
