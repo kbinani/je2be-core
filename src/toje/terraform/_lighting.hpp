@@ -7,6 +7,8 @@
 #include "terraform/_block-property-accessor.hpp"
 #include "terraform/java/_block-accessor-java.hpp"
 
+#include <bitset>
+
 namespace je2be::toje {
 
 class Lighting {
@@ -32,9 +34,10 @@ class Lighting {
   };
 
   struct LightingModel {
-    uint32_t fModel;
-    uint8_t fEmission;
-    Transparency fTransparency;
+    uint32_t fModel = 0;
+    uint8_t fEmission = 0;
+    bool fBehaveAsAirWhenOpenUp = false;
+    Transparency fTransparency = CLEAR;
   };
 
   struct LightingProperties {
@@ -134,6 +137,9 @@ public:
         if (dx == 0 && dz == 0) {
           continue;
         }
+        if (out.fChunkX + dx == 2 && out.fChunkZ + dz == 1) {
+          int a = 0;
+        }
         auto chunk = blockAccessor.chunkAt(out.fChunkX + dx, out.fChunkZ + dz);
         if (chunk) {
           assert(minBlockY <= chunk->minBlockY() && chunk->maxBlockY() <= maxBlockY);
@@ -151,7 +157,7 @@ public:
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data3d<uint8_t>>(start, end, 0);
       InitializeSkyLight(dim, *skyLight, props);
-      DiffuseSkyLight(props, *skyLight);
+      //DiffuseSkyLight(props, *skyLight);
     }
 
     Data3d<uint8_t> blockLight(start, end, 0);
@@ -196,8 +202,108 @@ public:
   }
 
 private:
+  static uint32_t MaskFacing6(Facing6 facing) {
+    switch (facing) {
+    case Facing6::East:
+      return MASK_EAST;
+    case Facing6::South:
+      return MASK_SOUTH;
+    case Facing6::West:
+      return MASK_WEST;
+    case Facing6::Up:
+      return MASK_UP;
+    case Facing6::Down:
+      return MASK_DOWN;
+    case Facing6::North:
+    default:
+      return MASK_NORTH;
+    }
+  }
+
+  static uint32_t Invert(uint32_t m) {
+    std::bitset<32> a(m);
+    std::bitset<32> tmp;
+    tmp.set(0, a[13]), tmp.set(13, a[0]);
+    tmp.set(1, a[12]), tmp.set(12, a[1]);
+    tmp.set(2, a[15]), tmp.set(15, a[2]);
+    tmp.set(3, a[14]), tmp.set(14, a[3]);
+
+    tmp.set(4, a[9]), tmp.set(9, a[4]);
+    tmp.set(5, a[8]), tmp.set(8, a[5]);
+    tmp.set(6, a[11]), tmp.set(11, a[6]);
+    tmp.set(7, a[10]), tmp.set(10, a[7]);
+
+    tmp.set(16, a[22]), tmp.set(22, a[16]);
+    tmp.set(17, a[23]), tmp.set(23, a[17]);
+    tmp.set(18, a[20]), tmp.set(20, a[18]);
+    tmp.set(19, a[21]), tmp.set(21, a[19]);
+
+    uint32_t ret = 0;
+    for (int i = 31; i >= 0; i--) {
+      ret = (ret << 1) | uint32_t(tmp[i] ? 1 : 0);
+    }
+    assert(tmp.to_ullong() == ret);
+    return ret;
+  }
+
   static void CompileLightingProperties(Data3d<LightingModel> const &src, Data3d<LightingProperties> &out) {
-    //TODO:
+    assert(src.fStart == out.fStart);
+    assert(src.fEnd == out.fEnd);
+    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
+      for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
+        for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
+          Pos3i center(x, y, z);
+          auto centerModel = src[center];
+          LightingProperties p(centerModel.fTransparency);
+          p.fEmission = centerModel.fEmission;
+          if (x == 27 && y == 100 && z == 24) {
+            int aa = 0;
+          }
+          if (centerModel.fModel == 0) {
+            out[center] = p;
+            continue;
+          }
+          Facing6Enumerate([&](Facing6 f) {
+            if (x == 27 && y == 100 && z == 24) {
+              int aa = 0;
+            }
+            Pos3i target = center + Pos3iFromFacing6(f);
+            if (target.fX < src.fStart.fX || src.fEnd.fX < target.fX) {
+              return true;
+            }
+            if (target.fY < src.fStart.fY || src.fEnd.fY < target.fY) {
+              return true;
+            }
+            if (target.fZ < src.fStart.fZ || src.fEnd.fZ < target.fZ) {
+              return true;
+            }
+            auto targetModel = src[target];
+
+            uint32_t mask = MaskFacing6(f);
+
+            uint32_t targetInv = ~Invert(targetModel.fModel);
+            uint32_t centerInv = ~centerModel.fModel;
+
+            uint32_t test = mask & targetInv & centerInv;
+
+            if (test == 0) {
+              p.set(f, SOLID);
+            } else {
+              if (f == Facing6::Up && centerModel.fBehaveAsAirWhenOpenUp) {
+                p.set(f, CLEAR);
+              } else {
+                p.set(f, TRANSLUCENT);
+              }
+            }
+            return true;
+          });
+          if (x == 7 && y == 64 && z == 8) {
+            int aa = 0;
+          }
+          out[center] = p;
+        }
+      }
+    }
   }
 
   static void DiffuseSkyLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
@@ -205,6 +311,9 @@ private:
       for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
         for (int y = out.fEnd.fY - 1; y >= out.fStart.fY; y--) {
           auto p = props.get({x, y, z});
+          if (x == 31 && y == 96 && z == 25) {
+            int a = 0;
+          }
           if (!p) {
             break;
           }
@@ -238,6 +347,9 @@ private:
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
+            if (x == 31 && y == 96 && z == 25 && v == 14) {
+              int a = 0;
+            }
             uint8_t center = out[{x, y, z}];
             if (center >= v) {
               continue;
@@ -332,6 +444,9 @@ private:
     for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
       for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
         for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
+          if (x == 12 && y == 64 && z == 9) {
+              int a = 0;
+          }
           if (auto p = props.get({x, y, z}); p) {
             if (p->fEmission > 0) {
               out[{x, y, z}] = p->fEmission;
@@ -370,6 +485,10 @@ private:
               int bx = x + chunk.minBlockX();
               int by = y + section->y() * 16;
               int bz = z + chunk.minBlockZ();
+              if (bx == 32 && by == 96 && bz == 25) {
+                auto b = chunk.blockAt(bx, by, bz);
+                  int a = 0;
+              }
               out.set({bx, by, bz}, m);
             }
           }
@@ -381,11 +500,17 @@ private:
   static LightingModel GetLightingModel(mcfile::je::Block const &block) {
     // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
     using namespace mcfile::blocks::minecraft;
+
+    if (block.fId == cut_red_sandstone_slab) {
+        int aa = 0;
+    }
+
     if (block.fName.ends_with("_stairs")) {
       LightingModel m;
       m.fEmission = 0;
-      m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_CLEAR;
+      m.fTransparency = TRANSLUCENT;
+      m.fBehaveAsAirWhenOpenUp = true;
 
       auto half = block.property("half");
       auto facing = block.property("facing", "north");
@@ -550,26 +675,21 @@ private:
       }
       return m;
     } else if (block.fName.ends_with("slab")) {
+      LightingModel m;
+      m.fEmission = 0;
+      m.fBehaveAsAirWhenOpenUp = true;
       auto type = block.property("type");
       if (type == "double") {
-        LightingModel m;
-        m.fEmission = 0;
         m.fModel = MODEL_SOLID;
         m.fTransparency = SOLID;
-        return m;
       } else if (type == "top") {
-        LightingModel m;
-        m.fEmission = 0;
         m.fModel = MODEL_HALF_TOP;
         m.fTransparency = TRANSLUCENT;
-        return m;
       } else { // "bottom"
-        LightingModel m;
-        m.fEmission = 0;
         m.fModel = MODEL_HALF_BOTTOM;
-        m.fTransparency = TRANSLUCENT;
-        return m;
+        m.fTransparency = CLEAR;
       }
+      return m;
     } else if (block.fId == piston || block.fId == sticky_piston) {
       if (block.property("extended") == "true") {
         Facing6 f = Facing6FromJavaName(block.property("facing"));
@@ -664,25 +784,28 @@ private:
       break;
     }
     switch (amount) {
-    case 0:
+    case 0: {
       LightingModel m;
       m.fTransparency = CLEAR;
       m.fEmission = LightEmission(block);
       m.fModel = MODEL_CLEAR;
       return m;
-    case 1:
+    }
+    case 1: {
       LightingModel m;
       m.fTransparency = TRANSLUCENT;
       m.fEmission = LightEmission(block);
-      m.fModel = MODEL_SOLID;
+      m.fModel = MODEL_CLEAR;
       return m;
+    }
     case 15:
-    default:
+    default: {
       LightingModel m;
       m.fTransparency = SOLID;
       m.fEmission = LightEmission(block);
       m.fModel = MODEL_SOLID;
       return m;
+    }
     }
   }
 
@@ -1283,6 +1406,9 @@ private:
 
   static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
+    if (id == lava) {
+        int hoge = 0;
+    }
     switch (id) {
     case brewing_stand:
     case brown_mushroom:
