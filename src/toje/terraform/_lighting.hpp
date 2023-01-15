@@ -17,7 +17,7 @@ class Lighting {
   };
 
   struct LightingProperties {
-    Transparency fUp : 2; // 0: attenuate 0, 1: attenuate 1, 2: attenuate 15
+    Transparency fUp : 2;
     Transparency fNorth : 2;
     Transparency fEast : 2;
     Transparency fSouth : 2;
@@ -129,15 +129,15 @@ public:
       }
     }
 
-    shared_ptr<Data4b3d> skyLight;
+    shared_ptr<Data3d<uint8_t>> skyLight;
 
     if (dim == Dimension::Overworld) {
-      skyLight = make_shared<Data4b3d>(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
+      skyLight = make_shared<Data3d<uint8_t>>(start, end, 0);
       InitializeSkyLight(dim, *skyLight, props);
       DiffuseSkyLight(props, *skyLight);
     }
 
-    Data4b3d blockLight(start, end.fX - start.fX + 1, end.fY - start.fY + 1, end.fZ - start.fZ + 1);
+    Data3d<uint8_t> blockLight(start, end, 0);
     InitializeBlockLight(blockLight, props);
     DiffuseBlockLight(props, blockLight);
 
@@ -154,7 +154,7 @@ public:
           for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
               Pos3i v = origin + Pos3i(x, y, z);
-              sectionBlockLight->setUnchecked(v, blockLight.getUnchecked(v));
+              sectionBlockLight->setUnchecked(v, blockLight[v]);
             }
           }
         }
@@ -168,7 +168,7 @@ public:
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
                 Pos3i v = origin + Pos3i(x, y, z);
-                uint8_t l = skyLight->getUnchecked(v);
+                uint8_t l = (*skyLight)[v];
                 sectionSkyLight->setUnchecked(v, l);
               }
             }
@@ -179,16 +179,16 @@ public:
   }
 
 private:
-  static void DiffuseSkyLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
-    for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
-      for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
-        for (int y = out.fOrigin.fY + out.fHeight - 2; y >= out.fOrigin.fY; y--) {
+  static void DiffuseSkyLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
+    for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
+      for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
+        for (int y = out.fEnd.fY - 1; y >= out.fStart.fY; y--) {
           auto p = props.get({x, y, z});
           if (!p) {
             break;
           }
           if (p->fUp == CLEAR) {
-            out.setUnchecked({x, y, z}, 15);
+            out[{x, y, z}] = 15;
           } else {
             break;
           }
@@ -201,23 +201,23 @@ private:
     DiffuseLight(props, out);
   }
 
-  static void DiffuseBlockLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
+  static void DiffuseBlockLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
     DiffuseLight(props, out);
   }
 
-  static void DiffuseLight(Data3d<LightingProperties> const &props, mcfile::Data4b3dView &out) {
-    int x0 = out.fOrigin.fX;
-    int x1 = out.fOrigin.fX + out.fWidthX - 1;
-    int y0 = out.fOrigin.fY;
-    int y1 = out.fOrigin.fY + out.fHeight - 1;
-    int z0 = out.fOrigin.fZ;
-    int z1 = out.fOrigin.fZ + out.fWidthZ - 1;
+  static void DiffuseLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
+    int x0 = out.fStart.fX;
+    int x1 = out.fEnd.fX;
+    int y0 = out.fStart.fY;
+    int y1 = out.fEnd.fY;
+    int z0 = out.fStart.fZ;
+    int z1 = out.fEnd.fZ;
 
     for (int v = 14; v >= 1; v--) {
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
-            uint8_t center = out.getUnchecked({x, y, z});
+            uint8_t center = out[{x, y, z}];
             if (center >= v) {
               continue;
             }
@@ -225,45 +225,59 @@ private:
             if (!p) {
               continue;
             }
-            int maximum = -1;
             if (y + 1 <= y1 && p->fUp < SOLID) {
               if (auto pUp = props.get({x, y + 1, z}); pUp && pUp->fDown < SOLID) {
-                int up = out.getUnchecked({x, y + 1, z});
-                maximum = std::max(maximum, up);
+                int up = out[{x, y + 1, z}];
+                if (up == v + 1) {
+                  out[{x, y, z}] = (uint8_t)v;
+                  continue;
+                }
               }
             }
             if (y - 1 >= y0 && p->fDown < SOLID) {
               if (auto pDown = props.get({x, y - 1, z}); pDown && pDown->fUp < SOLID) {
-                int down = out.getUnchecked({x, y - 1, z});
-                maximum = std::max(maximum, down);
+                int down = out[{x, y - 1, z}];
+                if (down == v + 1) {
+                  out[{x, y, z}] = (uint8_t)v;
+                  continue;
+                }
               }
             }
             if (x + 1 <= x1 && p->fEast < SOLID) {
               if (auto pEast = props.get({x + 1, y, z}); pEast && pEast->fWest < SOLID) {
-                int east = out.getUnchecked({x + 1, y, z});
-                maximum = std::max(maximum, east);
+                int east = out[{x + 1, y, z}];
+                if (east == v + 1) {
+                  out[{x, y, z}] = (uint8_t)v;
+                  continue;
+                }
               }
             }
             if (x - 1 >= x0 && p->fWest < SOLID) {
               if (auto pWest = props.get({x - 1, y, z}); pWest && pWest->fEast < SOLID) {
-                int west = out.getUnchecked({x - 1, y, z});
-                maximum = std::max(maximum, west);
+                int west = out[{x - 1, y, z}];
+                if (west == v + 1) {
+                  out[{x, y, z}] = (uint8_t)v;
+                  continue;
+                }
               }
             }
             if (z + 1 <= z1 && p->fSouth < SOLID) {
               if (auto pSouth = props.get({x, y, z + 1}); pSouth && pSouth->fNorth < SOLID) {
-                int south = out.getUnchecked({x, y, z + 1});
-                maximum = std::max(maximum, south);
+                int south = out[{x, y, z + 1}];
+                if (south == v + 1) {
+                  out[{x, y, z}] = (uint8_t)v;
+                  continue;
+                }
               }
             }
             if (z - 1 >= z0 && p->fNorth < SOLID) {
               if (auto pNorth = props.get({x, y, z - 1}); pNorth && pNorth->fSouth < SOLID) {
-                int north = out.getUnchecked({x, y, z - 1});
-                maximum = std::max(maximum, north);
+                int north = out[{x, y, z - 1}];
+                if (north == v + 1) {
+                  out[{x, y, z}] = (uint8_t)v;
+                  continue;
+                }
               }
-            }
-            if (maximum == v + 1) {
-              out.setUnchecked({x, y, z}, (uint8_t)v);
             }
           }
         }
@@ -271,35 +285,35 @@ private:
     }
   }
 
-  static void InitializeSkyLight(mcfile::Dimension dim, mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
-    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
-    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
-    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
+  static void InitializeSkyLight(mcfile::Dimension dim, Data3d<uint8_t> &out, Data3d<LightingProperties> const &props) {
+    assert(out.fStart.fX <= props.fStart.fX && props.fEnd.fX <= out.fEnd.fX);
+    assert(out.fStart.fY <= props.fStart.fY && props.fEnd.fY <= out.fEnd.fY);
+    assert(out.fStart.fZ <= props.fStart.fZ && props.fEnd.fZ <= out.fEnd.fZ);
 
     out.fill(0);
 
     for (int z = props.fStart.fZ; z <= props.fEnd.fZ; z++) {
       for (int x = props.fStart.fX; x <= props.fEnd.fX; x++) {
-        out.setUnchecked({x, out.fOrigin.fY + out.fHeight - 1, z}, 15);
+        out[{x, out.fEnd.fY, z}] = 15;
       }
     }
   }
 
-  static void InitializeBlockLight(mcfile::Data4b3dView &out, Data3d<LightingProperties> const &props) {
+  static void InitializeBlockLight(Data3d<uint8_t> &out, Data3d<LightingProperties> const &props) {
     using namespace std;
 
-    assert(out.fOrigin.fX <= props.fStart.fX && props.fEnd.fX < out.fOrigin.fX + out.fWidthX);
-    assert(out.fOrigin.fY <= props.fStart.fY && props.fEnd.fY < out.fOrigin.fY + out.fHeight);
-    assert(out.fOrigin.fZ <= props.fStart.fZ && props.fEnd.fZ < out.fOrigin.fZ + out.fWidthZ);
+    assert(out.fStart.fX <= props.fStart.fX && props.fEnd.fX <= out.fEnd.fX);
+    assert(out.fStart.fY <= props.fStart.fY && props.fEnd.fY <= out.fEnd.fY);
+    assert(out.fStart.fZ <= props.fStart.fZ && props.fEnd.fZ <= out.fEnd.fZ);
 
     out.fill(0);
 
-    for (int y = out.fOrigin.fY; y < out.fOrigin.fY + out.fHeight; y++) {
-      for (int z = out.fOrigin.fZ; z < out.fOrigin.fZ + out.fWidthZ; z++) {
-        for (int x = out.fOrigin.fX; x < out.fOrigin.fX + out.fWidthX; x++) {
+    for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
+      for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
+        for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
           if (auto p = props.get({x, y, z}); p) {
             if (p->fEmission > 0) {
-              out.setUnchecked({x, y, z}, p->fEmission);
+              out[{x, y, z}] = p->fEmission;
             }
           }
         }

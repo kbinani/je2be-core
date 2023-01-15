@@ -15,6 +15,14 @@ public:
     fStorage.resize((size_t)dx * (size_t)dy * (size_t)dz, def);
   }
 
+  Value const &operator[](Pos3i const &p) const {
+    return fStorage[index(p)];
+  }
+
+  Value &operator[](Pos3i const &p) {
+    return fStorage[index(p)];
+  }
+
   std::optional<Value> get(Pos3i const &p) const {
     int i = index(p);
     if (0 <= i && i < fStorage.size()) {
@@ -29,6 +37,10 @@ public:
     if (0 <= i && i < fStorage.size()) {
       fStorage[i] = v;
     }
+  }
+
+  void fill(Value v) {
+    std::fill(fStorage.begin(), fStorage.end(), v);
   }
 
 private:
