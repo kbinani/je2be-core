@@ -137,9 +137,6 @@ public:
         if (dx == 0 && dz == 0) {
           continue;
         }
-        if (out.fChunkX + dx == 2 && out.fChunkZ + dz == 1) {
-          int a = 0;
-        }
         auto chunk = blockAccessor.chunkAt(out.fChunkX + dx, out.fChunkZ + dz);
         if (chunk) {
           assert(minBlockY <= chunk->minBlockY() && chunk->maxBlockY() <= maxBlockY);
@@ -157,7 +154,7 @@ public:
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data3d<uint8_t>>(start, end, 0);
       InitializeSkyLight(dim, *skyLight, props);
-      //DiffuseSkyLight(props, *skyLight);
+      DiffuseSkyLight(props, *skyLight);
     }
 
     Data3d<uint8_t> blockLight(start, end, 0);
@@ -242,7 +239,6 @@ private:
     for (int i = 31; i >= 0; i--) {
       ret = (ret << 1) | uint32_t(tmp[i] ? 1 : 0);
     }
-    assert(tmp.to_ullong() == ret);
     return ret;
   }
 
@@ -256,17 +252,11 @@ private:
           auto centerModel = src[center];
           LightingProperties p(centerModel.fTransparency);
           p.fEmission = centerModel.fEmission;
-          if (x == 27 && y == 100 && z == 24) {
-            int aa = 0;
-          }
           if (centerModel.fModel == 0) {
             out[center] = p;
             continue;
           }
           Facing6Enumerate([&](Facing6 f) {
-            if (x == 27 && y == 100 && z == 24) {
-              int aa = 0;
-            }
             Pos3i target = center + Pos3iFromFacing6(f);
             if (target.fX < src.fStart.fX || src.fEnd.fX < target.fX) {
               return true;
@@ -297,9 +287,6 @@ private:
             }
             return true;
           });
-          if (x == 7 && y == 64 && z == 8) {
-            int aa = 0;
-          }
           out[center] = p;
         }
       }
@@ -311,9 +298,6 @@ private:
       for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
         for (int y = out.fEnd.fY - 1; y >= out.fStart.fY; y--) {
           auto p = props.get({x, y, z});
-          if (x == 31 && y == 96 && z == 25) {
-            int a = 0;
-          }
           if (!p) {
             break;
           }
@@ -347,9 +331,6 @@ private:
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
-            if (x == 28 && y == 64 && z == 12 && v == 14) {
-              int a = 0;
-            }
             uint8_t center = out[{x, y, z}];
             if (center >= v) {
               continue;
@@ -385,7 +366,7 @@ private:
                 }
               }
             }
-            if (x - 1 >= x0 &&p->fWest < SOLID) {
+            if (x - 1 >= x0 && p->fWest < SOLID) {
               if (auto pWest = props.get({x - 1, y, z}); pWest && (pWest->fEmission > 0 || pWest->fEast < SOLID)) {
                 int west = out[{x - 1, y, z}];
                 if (west == v + 1) {
@@ -444,9 +425,6 @@ private:
     for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
       for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
         for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
-          if (x == 12 && y == 64 && z == 9) {
-              int a = 0;
-          }
           if (auto p = props.get({x, y, z}); p) {
             if (p->fEmission > 0) {
               out[{x, y, z}] = p->fEmission;
@@ -485,10 +463,6 @@ private:
               int bx = x + chunk.minBlockX();
               int by = y + section->y() * 16;
               int bz = z + chunk.minBlockZ();
-              if (bx == 32 && by == 96 && bz == 25) {
-                auto b = chunk.blockAt(bx, by, bz);
-                  int a = 0;
-              }
               out.set({bx, by, bz}, m);
             }
           }
@@ -500,10 +474,6 @@ private:
   static LightingModel GetLightingModel(mcfile::je::Block const &block) {
     // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
     using namespace mcfile::blocks::minecraft;
-
-    if (block.fId == cut_red_sandstone_slab) {
-        int aa = 0;
-    }
 
     if (block.fName.ends_with("_stairs")) {
       LightingModel m;
@@ -1406,9 +1376,6 @@ private:
 
   static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
-    if (id == lava) {
-        int hoge = 0;
-    }
     switch (id) {
     case brewing_stand:
     case brown_mushroom:

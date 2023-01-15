@@ -58,7 +58,6 @@ static void CheckLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector
 
 TEST_CASE("lighting") {
   fs::path dir = ProjectRootDir() / "test" / "data" / "je2be-test";
-  //fs::path dir("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/lighting");
   mcfile::je::World world(dir);
   int cx = 1;
   int cz = 1;
@@ -84,13 +83,11 @@ TEST_CASE("lighting") {
     REQUIRE(sectionE->y() == sectionA->y());
     if (!sectionE->fSkyLight.empty()) {
       CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
-      //CheckLight(origin, sectionE->fSkyLight, sectionA->fSkyLight);
+      CheckLight(origin, sectionE->fSkyLight, sectionA->fSkyLight);
     }
     if (!sectionE->fBlockLight.empty()) {
       CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
-      if (sectionE->y() == 4) {
-        CheckLight(origin, sectionE->fBlockLight, sectionA->fBlockLight);
-      }
+      CheckLight(origin, sectionE->fBlockLight, sectionA->fBlockLight);
     }
   }
 }
