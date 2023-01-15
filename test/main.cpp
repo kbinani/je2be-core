@@ -20,6 +20,11 @@ using namespace mcfile;
 using namespace je2be;
 namespace fs = std::filesystem;
 
+static fs::path ProjectRootDir() {
+  fs::path const thisFile(__FILE__);
+  return fs::absolute(thisFile.parent_path().parent_path());
+}
+
 // clang-format off
 
 #include "block-data.test.hpp"
@@ -35,3 +40,4 @@ namespace fs = std::filesystem;
 #include "bee-nest.test.hpp"
 #include "end-gateway.test.hpp"
 #include "strings.test.hpp"
+#include "lighting.test.hpp"

@@ -11,18 +11,10 @@ public:
   BlockAccessorJavaMca(int cx, int cz, mcfile::je::Region const &region) : fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fRegion(region) {
   }
 
-  std::shared_ptr<mcfile::je::Chunk> at(int cx, int cz) const override {
-    auto index = this->index(cx, cz);
-    if (!index) {
-      return nullptr;
-    }
-    return fCache[*index];
-  }
-
   std::shared_ptr<mcfile::je::Block const> blockAt(int bx, int by, int bz) override {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
-    auto const &chunk = ensureLoadedAt(cx, cz);
+    auto const &chunk = chunkAt(cx, cz);
     if (!chunk) {
       return nullptr;
     }
@@ -32,14 +24,14 @@ public:
   std::shared_ptr<CompoundTag const> tileEntityAt(Pos3i const &pos) {
     int cx = mcfile::Coordinate::ChunkFromBlock(pos.fX);
     int cz = mcfile::Coordinate::ChunkFromBlock(pos.fZ);
-    auto const &chunk = ensureLoadedAt(cx, cz);
+    auto const &chunk = chunkAt(cx, cz);
     if (!chunk) {
       return nullptr;
     }
     return chunk->tileEntityAt(pos);
   }
 
-  std::shared_ptr<mcfile::je::Chunk> ensureLoadedAt(int cx, int cz) {
+  std::shared_ptr<mcfile::je::Chunk> chunkAt(int cx, int cz) override {
     auto index = this->index(cx, cz);
     if (!index) {
       return nullptr;
@@ -61,8 +53,8 @@ public:
     }
   }
 
-  void set(int cx, int cz, std::shared_ptr<mcfile::je::Chunk> const &chunk) {
-    auto index = this->index(cx, cz);
+  void set(std::shared_ptr<mcfile::je::Chunk> const &chunk) {
+    auto index = this->index(chunk->fChunkX, chunk->fChunkZ);
     if (!index) {
       return;
     }

@@ -122,7 +122,7 @@ public:
         if (dx == 0 && dz == 0) {
           continue;
         }
-        auto chunk = blockAccessor.at(out.fChunkX + dx, out.fChunkZ + dz);
+        auto chunk = blockAccessor.chunkAt(out.fChunkX + dx, out.fChunkZ + dz);
         if (chunk) {
           CopyChunkLightingProperties(*chunk, props);
         }

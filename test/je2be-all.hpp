@@ -93,6 +93,8 @@
 #include "terraform/box360/_kelp.hpp"
 #include "terraform/box360/_attached-stem.hpp"
 #include "terraform/box360/_chest.hpp"
+#include "terraform/java/_block-accessor-java-directory.hpp"
+#include "terraform/java/_block-accessor-java-mca.hpp"
 
 #include "db/_db-interface.hpp"
 #include "db/_db.hpp"
@@ -101,3 +103,4 @@
 
 #include "tobe/_block-data.hpp"
 #include "toje/_block-data.hpp"
+#include "toje/terraform/_lighting.hpp"
