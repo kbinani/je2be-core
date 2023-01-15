@@ -590,6 +590,82 @@ static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actu
     }
   }
 }
+
+static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a) {
+  auto dataE = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &e);
+  auto dataA = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &a);
+  REQUIRE(dataE);
+  REQUIRE(dataA);
+#if 1
+  for (int y = 0; y < 16; y++) {
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        auto vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
+        auto vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
+        CHECK(vE == vA);
+      }
+    }
+  }
+#else
+  for (int y = 0; y < 16; y++) {
+    bool ok = true;
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        auto vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
+        auto vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
+        if (vE != vA) {
+          ok = false;
+          break;
+        }
+      }
+    }
+    if (!ok) {
+      printf("%3d", origin.fY + y);
+      for (int x = 0; x < 16; x++) {
+        printf("%6d ", x + origin.fX);
+      }
+      cout << endl;
+      for (int z = 0; z < 16; z++) {
+        printf("%2d:", z + origin.fZ);
+        for (int x = 0; x < 16; x++) {
+          int vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
+          int vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
+          string bra = "[";
+          string ket = "]";
+          if (vE == vA) {
+            bra = " ";
+            ket = " ";
+          }
+          printf("%s%2d,%2d%s", bra.c_str(), vE, vA, ket.c_str());
+        }
+        cout << endl;
+      }
+      cout << endl;
+    }
+  }
+#endif
+}
+
+static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk const &chunkA) {
+  REQUIRE(chunkA.fSections.size() == chunkE.fSections.size());
+  for (int i = 0; i < chunkE.fSections.size(); i++) {
+    auto const &sectionE = chunkE.fSections[i];
+    auto const &sectionA = chunkA.fSections[i];
+    Pos3i origin{chunkE.fChunkX * 16, sectionE->y() * 16, chunkE.fChunkZ * 16};
+    REQUIRE(sectionE);
+    REQUIRE(sectionA);
+    REQUIRE(sectionE->y() == sectionA->y());
+    if (!sectionE->fSkyLight.empty()) {
+      CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
+      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight);
+    }
+    if (!sectionE->fBlockLight.empty()) {
+      CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
+      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight);
+    }
+  }
+}
+
 static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
   auto chunkA = regionA.writableChunkAt(cx, cz);
   if (!chunkA) {

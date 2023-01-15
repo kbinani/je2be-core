@@ -357,8 +357,7 @@ set(test_files
   test/bee-nest.test.hpp
   test/end-gateway.test.hpp
   test/strings.test.hpp
-  test/je2be-all.hpp
-  test/lighting.test.hpp)
+  test/je2be-all.hpp)
 
 add_subdirectory(deps/libminecraft-file)
 
