@@ -4,26 +4,41 @@ static void CheckLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector
   REQUIRE(dataE);
   REQUIRE(dataA);
 #if 1
-  int y = 0;
-  printf("   ");
-  for (int x = 0; x < 16; x++) {
-    printf("%6d ", x + origin.fX);
-  }
-  cout << endl;
-  for (int z = 0; z < 16; z++) {
-    printf("%2d:", z + origin.fZ);
-    for (int x = 0; x < 16; x++) {
-      int vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
-      int vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
-      string bra = "[";
-      string ket = "]";
-      if (vE == vA) {
-        bra = " ";
-        ket = " ";
+  for (int y = 0; y < 16; y++) {
+    bool ok = true;
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        auto vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
+        auto vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
+        if (vE != vA) {
+          ok = false;
+          break;
+        }
       }
-      printf("%s%2d,%2d%s", bra.c_str(), vE, vA, ket.c_str());
     }
-    cout << endl;
+    if (!ok) {
+      printf("%3d", origin.fY + y);
+      for (int x = 0; x < 16; x++) {
+        printf("%6d ", x + origin.fX);
+      }
+      cout << endl;
+      for (int z = 0; z < 16; z++) {
+        printf("%2d:", z + origin.fZ);
+        for (int x = 0; x < 16; x++) {
+          int vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
+          int vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
+          string bra = "[";
+          string ket = "]";
+          if (vE == vA) {
+            bra = " ";
+            ket = " ";
+          }
+          printf("%s%2d,%2d%s", bra.c_str(), vE, vA, ket.c_str());
+        }
+        cout << endl;
+      }
+      cout << endl;
+    }
   }
 #else
   for (int y = 0; y < 16; y++) {
@@ -45,8 +60,8 @@ TEST_CASE("lighting") {
   fs::path dir = ProjectRootDir() / "test" / "data" / "je2be-test";
   //fs::path dir("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/lighting");
   mcfile::je::World world(dir);
-  int cx = 0;
-  int cz = 0;
+  int cx = 1;
+  int cz = 1;
   auto expected = world.chunkAt(cx, cz);
   REQUIRE(expected);
   auto chunk = world.writableChunkAt(cx, cz);
@@ -55,7 +70,7 @@ TEST_CASE("lighting") {
     section->fSkyLight.clear();
     section->fBlockLight.clear();
   }
-  terraform::java::BlockAccessorJavaDirectory<3, 3> accessor(cx - 1, cz - 1, dir);
+  terraform::java::BlockAccessorJavaDirectory<3, 3> accessor(cx - 1, cz - 1, dir / "region");
   accessor.set(chunk);
   toje::Lighting::Do(Dimension::Overworld, *chunk, accessor);
 

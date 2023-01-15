@@ -347,7 +347,7 @@ private:
       for (int y = y0; y <= y1; y++) {
         for (int z = z0; z <= z1; z++) {
           for (int x = x0; x <= x1; x++) {
-            if (x == 31 && y == 96 && z == 25 && v == 14) {
+            if (x == 28 && y == 64 && z == 12 && v == 14) {
               int a = 0;
             }
             uint8_t center = out[{x, y, z}];
@@ -359,7 +359,7 @@ private:
               continue;
             }
             if (y + 1 <= y1 && p->fUp < SOLID) {
-              if (auto pUp = props.get({x, y + 1, z}); pUp && pUp->fDown < SOLID) {
+              if (auto pUp = props.get({x, y + 1, z}); pUp && (pUp->fEmission > 0 || pUp->fDown < SOLID)) {
                 int up = out[{x, y + 1, z}];
                 if (up == v + 1) {
                   out[{x, y, z}] = (uint8_t)v;
@@ -368,7 +368,7 @@ private:
               }
             }
             if (y - 1 >= y0 && p->fDown < SOLID) {
-              if (auto pDown = props.get({x, y - 1, z}); pDown && pDown->fUp < SOLID) {
+              if (auto pDown = props.get({x, y - 1, z}); pDown && (pDown->fEmission > 0 || pDown->fUp < SOLID)) {
                 int down = out[{x, y - 1, z}];
                 if (down == v + 1) {
                   out[{x, y, z}] = (uint8_t)v;
@@ -377,7 +377,7 @@ private:
               }
             }
             if (x + 1 <= x1 && p->fEast < SOLID) {
-              if (auto pEast = props.get({x + 1, y, z}); pEast && pEast->fWest < SOLID) {
+              if (auto pEast = props.get({x + 1, y, z}); pEast && (pEast->fEmission > 0 || pEast->fWest < SOLID)) {
                 int east = out[{x + 1, y, z}];
                 if (east == v + 1) {
                   out[{x, y, z}] = (uint8_t)v;
@@ -385,8 +385,8 @@ private:
                 }
               }
             }
-            if (x - 1 >= x0 && p->fWest < SOLID) {
-              if (auto pWest = props.get({x - 1, y, z}); pWest && pWest->fEast < SOLID) {
+            if (x - 1 >= x0 &&p->fWest < SOLID) {
+              if (auto pWest = props.get({x - 1, y, z}); pWest && (pWest->fEmission > 0 || pWest->fEast < SOLID)) {
                 int west = out[{x - 1, y, z}];
                 if (west == v + 1) {
                   out[{x, y, z}] = (uint8_t)v;
@@ -395,7 +395,7 @@ private:
               }
             }
             if (z + 1 <= z1 && p->fSouth < SOLID) {
-              if (auto pSouth = props.get({x, y, z + 1}); pSouth && pSouth->fNorth < SOLID) {
+              if (auto pSouth = props.get({x, y, z + 1}); pSouth && (pSouth->fEmission > 0 || pSouth->fNorth < SOLID)) {
                 int south = out[{x, y, z + 1}];
                 if (south == v + 1) {
                   out[{x, y, z}] = (uint8_t)v;
@@ -404,7 +404,7 @@ private:
               }
             }
             if (z - 1 >= z0 && p->fNorth < SOLID) {
-              if (auto pNorth = props.get({x, y, z - 1}); pNorth && pNorth->fSouth < SOLID) {
+              if (auto pNorth = props.get({x, y, z - 1}); pNorth && (pNorth->fEmission > 0 || pNorth->fSouth < SOLID)) {
                 int north = out[{x, y, z - 1}];
                 if (north == v + 1) {
                   out[{x, y, z}] = (uint8_t)v;
