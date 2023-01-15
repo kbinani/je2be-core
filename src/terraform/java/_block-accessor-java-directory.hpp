@@ -36,7 +36,7 @@ public:
         int lz = cz - rz * 32;
         if (auto tag = editor.get(lx, lz); tag) {
           auto chunk = mcfile::je::Chunk::MakeChunk(cx, cz, tag);
-          set(cx, cz, chunk);
+          set(chunk);
         }
       }
     }
@@ -69,8 +69,11 @@ public:
     }
   }
 
-  void set(int cx, int cz, std::shared_ptr<mcfile::je::Chunk> const &chunk) {
-    auto index = this->index(cx, cz);
+  void set(std::shared_ptr<mcfile::je::Chunk> const &chunk) {
+    if (!chunk) {
+      return;
+    }
+    auto index = this->index(chunk->fChunkX, chunk->fChunkZ);
     if (!index) {
       return;
     }
@@ -85,7 +88,7 @@ public:
         auto index = this->index(fChunkX + x, fChunkZ + z);
         if (fCacheLoaded[*index]) {
           auto const &chunk = fCache[*index];
-          ret->set(fChunkX + x, fChunkZ + z, chunk);
+          ret->set(chunk);
         }
       }
     }

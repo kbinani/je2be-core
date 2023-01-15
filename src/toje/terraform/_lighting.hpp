@@ -16,6 +16,27 @@ class Lighting {
     SOLID = 2,
   };
 
+  enum Model : uint32_t {
+    // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
+    MODEL_SOLID = 0xffffff,
+    MODEL_CLEAR = 0,
+    MODEL_HALF_BOTTOM = 0xf3333,
+    MODEL_HALF_TOP = 0xf0cccc,
+
+    MASK_NORTH = 0xf,
+    MASK_WEST = 0xf0,
+    MASK_EAST = 0xf00,
+    MASK_SOUTH = 0xf000,
+    MASK_DOWN = 0xf0000,
+    MASK_UP = 0xf00000,
+  };
+
+  struct LightingModel {
+    uint32_t fModel;
+    uint8_t fEmission;
+    Transparency fTransparency;
+  };
+
   struct LightingProperties {
     Transparency fUp : 2;
     Transparency fNorth : 2;
@@ -95,28 +116,19 @@ public:
     using namespace std;
     using namespace mcfile;
 
-    int minBlockY = out.minBlockY();
-    int maxBlockY = out.maxBlockY();
-    for (int dz = -1; dz <= 1; dz++) {
-      for (int dx = -1; dx <= 1; dx++) {
-        if (dx == 0 && dz == 0) {
-          continue;
-        }
-        auto chunk = blockAccessor.at(out.fChunkX + dx, out.fChunkZ + dz);
-        if (chunk) {
-          minBlockY = std::min(minBlockY, chunk->minBlockY());
-          maxBlockY = std::max(maxBlockY, chunk->maxBlockY());
-        }
-      }
-    }
+    int const minBlockY = dim == mcfile::Dimension::Overworld ? -64 : 0;
+    int const maxBlockY = dim == mcfile::Dimension::Overworld ? 319 : 255;
 
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     Pos3i end(out.maxBlockX() + 14, maxBlockY + 1, out.maxBlockZ() + 14);
 
-    LightingProperties air(CLEAR);
+    LightingModel airModel;
+    airModel.fTransparency = CLEAR;
+    airModel.fModel = MODEL_CLEAR;
+    airModel.fEmission = 0;
 
-    Data3d<LightingProperties> props(start, end, air);
-    CopyChunkLightingProperties(out, props);
+    Data3d<LightingModel> models(start, end, airModel);
+    CopyChunkLightingProperties(out, models);
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
         if (dx == 0 && dz == 0) {
@@ -124,10 +136,15 @@ public:
         }
         auto chunk = blockAccessor.chunkAt(out.fChunkX + dx, out.fChunkZ + dz);
         if (chunk) {
-          CopyChunkLightingProperties(*chunk, props);
+          assert(minBlockY <= chunk->minBlockY() && chunk->maxBlockY() <= maxBlockY);
+          CopyChunkLightingProperties(*chunk, models);
         }
       }
     }
+
+    LightingProperties air(CLEAR);
+    Data3d<LightingProperties> props(start, end, air);
+    CompileLightingProperties(models, props);
 
     shared_ptr<Data3d<uint8_t>> skyLight;
 
@@ -179,6 +196,10 @@ public:
   }
 
 private:
+  static void CompileLightingProperties(Data3d<LightingModel> const &src, Data3d<LightingProperties> &out) {
+    //TODO:
+  }
+
   static void DiffuseSkyLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
     for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
       for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
@@ -321,15 +342,7 @@ private:
     }
   }
 
-  static LightingProperties GetLightingProperties(mcfile::je::Block const &block) {
-    static_assert(sizeof(LightingProperties) == 2);
-
-    LightingProperties p = LightAttenuation(block);
-    p.fEmission = LightEmission(block);
-    return p;
-  }
-
-  static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingProperties> &out) {
+  static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingModel> &out) {
     using namespace std;
     assert(out.fStart.fY <= chunk.minBlockY() && chunk.maxBlockY() <= out.fEnd.fY);
 
@@ -344,20 +357,20 @@ private:
       if (!section) {
         continue;
       }
-      vector<LightingProperties> properties;
+      vector<LightingModel> models;
       section->eachBlockPalette([&](shared_ptr<mcfile::je::Block const> const &block, size_t) {
-        properties.push_back(GetLightingProperties(*block));
+        models.push_back(GetLightingModel(*block));
         return true;
       });
       for (int y = 0; y < 16; y++) {
         for (int z = z0 - chunk.minBlockZ(); z <= z1 - chunk.minBlockZ(); z++) {
           for (int x = x0 - chunk.minBlockX(); x <= x1 - chunk.minBlockX(); x++) {
             if (auto index = section->blockPaletteIndexAt(x, y, z); index) {
-              LightingProperties p = properties[*index];
+              LightingModel m = models[*index];
               int bx = x + chunk.minBlockX();
               int by = y + section->y() * 16;
               int bz = z + chunk.minBlockZ();
-              out.set({bx, by, bz}, p);
+              out.set({bx, by, bz}, m);
             }
           }
         }
@@ -365,68 +378,262 @@ private:
     }
   }
 
-  static LightingProperties LightAttenuation(mcfile::je::Block const &block) {
+  static LightingModel GetLightingModel(mcfile::je::Block const &block) {
+    // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
     using namespace mcfile::blocks::minecraft;
     if (block.fName.ends_with("_stairs")) {
-      auto facing = block.property("facing", "north");
+      LightingModel m;
+      m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_CLEAR;
+
       auto half = block.property("half");
-      auto shape = block.property("shape");
+      auto facing = block.property("facing", "north");
       Facing4 f4 = Facing4FromJavaName(facing);
-      LightingProperties a(TRANSLUCENT);
-      if (shape.starts_with("outer_")) {
-        // nop
+      auto shape = block.property("shape");
+
+      if (shape == "outer_right") {
+        switch (f4) {
+        case Facing4::North:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x400408);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x10102);
+          }
+          break;
+        case Facing4::East:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x104800);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x41200);
+          }
+          break;
+        case Facing4::South:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x208040);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x82010);
+          }
+          break;
+        case Facing4::West:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x800084);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x20021);
+          }
+          break;
+        }
+      } else if (shape == "outer_left") {
+        switch (f4) {
+        case Facing4::North:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x800084);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x20021);
+          }
+          break;
+        case Facing4::East:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x400408);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x10102);
+          }
+          break;
+        case Facing4::South:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x104800);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x41200);
+          }
+          break;
+        case Facing4::West:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x208040);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x82010);
+          }
+          break;
+        }
       } else if (shape.starts_with("inner_right")) {
-        a.set(f4, SOLID);
-        Pos2i vec = Pos2iFromFacing4(f4);
-        Pos2i rot = Right90(vec);
-        if (auto rotF4 = Facing4FromPos2i(rot); rotF4) {
-          a.set(*rotF4, SOLID);
+        switch (f4) {
+        case Facing4::North:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x208040));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x82010));
+          }
+          break;
+        case Facing4::East:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x800084));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x20021));
+          }
+          break;
+        case Facing4::South:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x400408));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x10102));
+          }
+          break;
+        case Facing4::West:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x104800));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x41200));
+          }
+          break;
         }
       } else if (shape.starts_with("inner_left")) {
-        a.set(f4, SOLID);
-        Pos2i vec = Pos2iFromFacing4(f4);
-        Pos2i rot = Left90(vec);
-        if (auto rotF4 = Facing4FromPos2i(rot); rotF4) {
-          a.set(*rotF4, SOLID);
+        switch (f4) {
+        case Facing4::North:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x104800));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x41200));
+          }
+          break;
+        case Facing4::East:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x208040));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x82010));
+          }
+          break;
+        case Facing4::South:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x800084));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x20021));
+          }
+          break;
+        case Facing4::West:
+          if (half == "bottom") {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x400408));
+          } else {
+            m.fModel = MODEL_SOLID & (~uint32_t(0x10102));
+          }
+          break;
         }
       } else { // "straight"
-        a.set(f4, SOLID);
+        switch (f4) {
+        case Facing4::North:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xC0048C);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x30123);
+          }
+          break;
+        case Facing4::East:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x504C08);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x51302);
+          }
+          break;
+        case Facing4::South:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x30C840);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0xC3210);
+          }
+          break;
+        case Facing4::West:
+          if (half == "bottom") {
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xA080C4);
+          } else {
+            m.fModel = MODEL_HALF_TOP | uint32_t(0xA2031);
+          }
+          break;
+        }
       }
-      if (half == "bottom") {
-        a.fDown = SOLID;
-      } else { // "top"
-        a.fUp = SOLID;
-      }
-
-      return a;
+      return m;
     } else if (block.fName.ends_with("slab")) {
       auto type = block.property("type");
       if (type == "double") {
-        return LightingProperties(SOLID);
+        LightingModel m;
+        m.fEmission = 0;
+        m.fModel = MODEL_SOLID;
+        m.fTransparency = SOLID;
+        return m;
       } else if (type == "top") {
-        LightingProperties a(CLEAR);
-        a.fUp = SOLID;
-        return a;
+        LightingModel m;
+        m.fEmission = 0;
+        m.fModel = MODEL_HALF_TOP;
+        m.fTransparency = TRANSLUCENT;
+        return m;
       } else { // "bottom"
-        LightingProperties a(CLEAR);
-        a.fDown = SOLID;
-        return a;
+        LightingModel m;
+        m.fEmission = 0;
+        m.fModel = MODEL_HALF_BOTTOM;
+        m.fTransparency = TRANSLUCENT;
+        return m;
       }
     } else if (block.fId == piston || block.fId == sticky_piston) {
       if (block.property("extended") == "true") {
         Facing6 f = Facing6FromJavaName(block.property("facing"));
-        LightingProperties a(CLEAR);
-        Facing6 inv = Facing6Invert(f);
-        a.set(inv, SOLID);
-        return a;
+        LightingModel m;
+        m.fEmission = 0;
+        m.fTransparency = TRANSLUCENT;
+        switch (f) {
+        case Facing6::Up:
+          m.fModel = MODEL_HALF_BOTTOM;
+          break;
+        case Facing6::Down:
+          m.fModel = MODEL_HALF_TOP;
+          break;
+        case Facing6::North:
+          m.fModel = uint32_t(0x3CFA50);
+          break;
+        case Facing6::East:
+          m.fModel = uint32_t(0x6AA0F5);
+          break;
+        case Facing6::South:
+          m.fModel = uint32_t(0xC305AF);
+          break;
+        case Facing6::West:
+          m.fModel = uint32_t(0x555F0A);
+          break;
+        default:
+          break;
+        }
+        return m;
       } else {
-        return LightingProperties(SOLID);
+        LightingModel m;
+        m.fEmission = 0;
+        m.fModel = MODEL_SOLID;
+        m.fTransparency = SOLID;
+        return m;
       }
     } else if (block.fId == piston_head) {
       Facing6 f = Facing6FromJavaName(block.property("facing"));
-      LightingProperties a(CLEAR);
-      a.set(f, SOLID);
-      return a;
+      LightingModel m;
+      m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      switch (f) {
+      case Facing6::Up:
+        m.fModel = uint32_t(0xF00000);
+        break;
+      case Facing6::Down:
+        m.fModel = uint32_t(0xF0000);
+        break;
+      case Facing6::North:
+        m.fModel = uint32_t(0xf);
+        break;
+      case Facing6::East:
+        m.fModel = uint32_t(0xF00);
+        break;
+      case Facing6::South:
+        m.fModel = uint32_t(0xF000);
+        break;
+      case Facing6::West:
+        m.fModel = uint32_t(0xF0);
+        break;
+      default:
+        break;
+      }
+      return m;
     }
     int amount = 0;
     switch (block.fId) {
@@ -458,12 +665,24 @@ private:
     }
     switch (amount) {
     case 0:
-      return LightingProperties(CLEAR);
+      LightingModel m;
+      m.fTransparency = CLEAR;
+      m.fEmission = LightEmission(block);
+      m.fModel = MODEL_CLEAR;
+      return m;
     case 1:
-      return LightingProperties(TRANSLUCENT);
+      LightingModel m;
+      m.fTransparency = TRANSLUCENT;
+      m.fEmission = LightEmission(block);
+      m.fModel = MODEL_SOLID;
+      return m;
     case 15:
     default:
-      return LightingProperties(SOLID);
+      LightingModel m;
+      m.fTransparency = SOLID;
+      m.fEmission = LightEmission(block);
+      m.fModel = MODEL_SOLID;
+      return m;
     }
   }
 

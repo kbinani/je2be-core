@@ -54,6 +54,9 @@ public:
   }
 
   void set(std::shared_ptr<mcfile::je::Chunk> const &chunk) {
+    if (!chunk) {
+      return;
+    }
     auto index = this->index(chunk->fChunkX, chunk->fChunkZ);
     if (!index) {
       return;

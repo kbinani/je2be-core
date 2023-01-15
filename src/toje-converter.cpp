@@ -329,7 +329,7 @@ private:
     if (!ch) {
       return JE2BE_ERROR;
     }
-    blockAccessor->set(cx, cz, ch);
+    blockAccessor->set(ch);
 
     auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
     if (!writable) {
