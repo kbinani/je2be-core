@@ -361,6 +361,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       "PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
       "Leash/UUID",
       "listener",
+      "HandDropChances", // TODO: Is there any way identifying hand items was picked-up thing or not?
   };
   if (id == "minecraft:armor_stand") {
     blacklist.insert("Pose");
