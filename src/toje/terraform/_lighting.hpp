@@ -167,20 +167,22 @@ public:
       }
       Pos3i origin(out.minBlockX(), section->y() * 16, out.minBlockZ());
 
-      section->fBlockLight.resize(2048);
-      auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
-      if (sectionBlockLight) {
-        for (int y = 0; y < 16; y++) {
-          for (int z = 0; z < 16; z++) {
-            for (int x = 0; x < 16; x++) {
-              Pos3i v = origin + Pos3i(x, y, z);
-              sectionBlockLight->setUnchecked(v, blockLight[v]);
+      if (!std::any_of(blockLight.cbegin(), blockLight.cend(), [](uint8_t v) { return v != 0; })) {
+        section->fBlockLight.resize(2048);
+        auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
+        if (sectionBlockLight) {
+          for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+              for (int x = 0; x < 16; x++) {
+                Pos3i v = origin + Pos3i(x, y, z);
+                sectionBlockLight->setUnchecked(v, blockLight[v]);
+              }
             }
           }
         }
       }
 
-      if (skyLight) {
+      if (skyLight && !std::any_of(skyLight->cbegin(), skyLight->cend(), [](uint8_t v) { return v != 0; })) {
         section->fSkyLight.resize(2048);
         auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
         if (sectionSkyLight) {

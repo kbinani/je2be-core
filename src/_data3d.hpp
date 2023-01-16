@@ -43,6 +43,14 @@ public:
     std::fill(fStorage.begin(), fStorage.end(), v);
   }
 
+  std::vector<Value>::const_iterator cbegin() const {
+    return fStorage.cbegin();
+  }
+
+  std::vector<Value>::const_iterator cend() const {
+    return fStorage.cend();
+  }
+
 private:
   int index(Pos3i const &p) const {
     int x = p.fX - fStart.fX;
