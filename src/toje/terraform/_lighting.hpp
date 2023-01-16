@@ -239,29 +239,12 @@ private:
     }
   }
 
+  static uint32_t BitSwapped(uint32_t m, int a, int b) {
+    return (((m >> a) & uint32_t(1)) << b) | (((m >> b) & uint32_t(1)) << a);
+  }
+
   static uint32_t Invert(uint32_t m) {
-    std::bitset<32> a(m);
-    std::bitset<32> tmp;
-    tmp.set(0, a[13]), tmp.set(13, a[0]);
-    tmp.set(1, a[12]), tmp.set(12, a[1]);
-    tmp.set(2, a[15]), tmp.set(15, a[2]);
-    tmp.set(3, a[14]), tmp.set(14, a[3]);
-
-    tmp.set(4, a[9]), tmp.set(9, a[4]);
-    tmp.set(5, a[8]), tmp.set(8, a[5]);
-    tmp.set(6, a[11]), tmp.set(11, a[6]);
-    tmp.set(7, a[10]), tmp.set(10, a[7]);
-
-    tmp.set(16, a[22]), tmp.set(22, a[16]);
-    tmp.set(17, a[23]), tmp.set(23, a[17]);
-    tmp.set(18, a[20]), tmp.set(20, a[18]);
-    tmp.set(19, a[21]), tmp.set(21, a[19]);
-
-    uint32_t ret = 0;
-    for (int i = 31; i >= 0; i--) {
-      ret = (ret << 1) | uint32_t(tmp[i] ? 1 : 0);
-    }
-    return ret;
+    return BitSwapped(m, 0, 13) | BitSwapped(m, 1, 12) | BitSwapped(m, 2, 15) | BitSwapped(m, 3, 14) | BitSwapped(m, 4, 9) | BitSwapped(m, 5, 8) | BitSwapped(m, 6, 11) | BitSwapped(m, 7, 10) | BitSwapped(m, 16, 22) | BitSwapped(m, 17, 23) | BitSwapped(m, 18, 20) | BitSwapped(m, 19, 21);
   }
 
   static void CompileLightingProperties(Data3d<LightingModel> const &src, Data3d<LightingProperties> &out) {
