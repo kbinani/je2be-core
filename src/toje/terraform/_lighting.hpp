@@ -119,7 +119,7 @@ public:
     using namespace std;
     using namespace mcfile;
 
-    int const minBlockY = dim == mcfile::Dimension::Overworld ? -64 : 0;
+    int const minBlockY = dim == mcfile::Dimension::Overworld ? -80 : 0;
     int const maxBlockY = dim == mcfile::Dimension::Overworld ? 319 : 255;
 
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
@@ -167,7 +167,7 @@ public:
       }
       Pos3i origin(out.minBlockX(), section->y() * 16, out.minBlockZ());
 
-      if (!std::any_of(blockLight.cbegin(), blockLight.cend(), [](uint8_t v) { return v != 0; })) {
+      if (std::any_of(blockLight.cbegin(), blockLight.cend(), [](uint8_t v) { return v > 0; })) {
         section->fBlockLight.resize(2048);
         auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
         if (sectionBlockLight) {
@@ -182,7 +182,7 @@ public:
         }
       }
 
-      if (skyLight && !std::any_of(skyLight->cbegin(), skyLight->cend(), [](uint8_t v) { return v != 0; })) {
+      if (skyLight && std::any_of(skyLight->cbegin(), skyLight->cend(), [](uint8_t v) { return v > 0; })) {
         section->fSkyLight.resize(2048);
         auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
         if (sectionSkyLight) {
@@ -196,6 +196,26 @@ public:
             }
           }
         }
+      }
+    }
+
+    if (!out.fSections.empty() && out.fSections[0] && out.fSections[0]->y() == out.fChunkY && !out.fSections[0]->fSkyLight.empty() && skyLight->fStart.fY <= 16 * (out.fChunkY - 1)) {
+      auto bottom = make_shared<mcfile::je::ChunkSectionEmpty>(out.fChunkY - 1);
+      bottom->fBlockLight.clear();
+      bottom->fSkyLight.resize(2048);
+      Pos3i origin(out.fChunkX * 16, bottom->y() * 16, out.fChunkZ * 16);
+      auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &bottom->fSkyLight);
+      if (sectionSkyLight) {
+        for (int y = 0; y < 16; y++) {
+          for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+              Pos3i v = origin + Pos3i(x, y, z);
+              uint8_t l = (*skyLight)[v];
+              sectionSkyLight->setUnchecked(v, l);
+            }
+          }
+        }
+        out.fBottomSection = bottom;
       }
     }
   }
@@ -443,8 +463,6 @@ private:
 
     int x0 = (std::max)(chunk.minBlockX(), out.fStart.fX);
     int x1 = (std::min)(chunk.maxBlockX(), out.fEnd.fX);
-    int y0 = (std::max)(chunk.minBlockY(), out.fStart.fY);
-    int y1 = (std::min)(chunk.maxBlockY(), out.fEnd.fY);
     int z0 = (std::max)(chunk.minBlockZ(), out.fStart.fZ);
     int z1 = (std::min)(chunk.maxBlockZ(), out.fEnd.fZ);
 

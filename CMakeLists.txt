@@ -89,6 +89,7 @@ set(je2be_header_files
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-116.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-118.hpp
+  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-empty.hpp
   deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
   deps/libminecraft-file/include/mcfile/je/flatten.hpp
   deps/libminecraft-file/include/mcfile/je/heightmaps.hpp
