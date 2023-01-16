@@ -201,7 +201,7 @@ private:
     atomic_bool ok(true);
     mutex mut;
 
-    auto action = [&latch, &queues, &mut, output, &ok, &regions]() {
+    auto action = [&latch, &queues, &mut, output, &ok]() {
       shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
       optional<mcfile::Dimension> prevDimension;
 

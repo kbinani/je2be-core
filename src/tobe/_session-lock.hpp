@@ -40,11 +40,11 @@ private:
     if (!fp) {
       return false;
     }
-    int fd = fileno(fp);
+#if __has_include(<windows.h>)
+    int fd = _fileno(fp);
     if (fd == -1) {
       return false;
     }
-#if __has_include(<windows.h>)
     HANDLE handle = (HANDLE)_get_osfhandle(fd);
     if (handle == INVALID_HANDLE_VALUE) {
       return false;
@@ -55,6 +55,10 @@ private:
       return ::UnlockFile(handle, 0, 0, MAXDWORD, MAXDWORD);
     }
 #else
+    int fd = fileno(fp);
+    if (fd == -1) {
+      return false;
+    }
     struct flock lk = {};
     if (lock) {
       lk.l_type = F_WRLCK;

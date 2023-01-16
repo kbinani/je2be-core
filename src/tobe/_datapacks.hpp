@@ -228,7 +228,6 @@ private:
     vector<string> lines = String::Split(content, '\x0a');
     ostringstream s;
     for (auto const &line : lines) {
-      auto hasCr = line.ends_with("\x0d");
       s << command::Command::TranspileJavaToBedrock(line);
       s << "\x0a";
     }
