@@ -26,7 +26,7 @@ public:
         return false;
       }
     }
-    for (int z = z1 - 1; z >= z0 - 1; z--) {
+    for (int z = z1 - 1; z >= z0 + 1; z--) {
       if (!action({x0, z})) {
         return false;
       }
