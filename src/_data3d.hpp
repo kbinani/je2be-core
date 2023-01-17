@@ -76,4 +76,65 @@ private:
   std::vector<Value> fStorage;
 };
 
+template <class Value, size_t Size>
+class Data3dSq {
+public:
+  Data3dSq(Pos3i const &start, size_t height, Value def) : fStart(start), fEnd(start.fX + (int)Size - 1, start.fY + (int)height - 1, start.fZ + (int)Size - 1) {
+    fStorage.resize(Size * height * Size, def);
+  }
+
+  Value const &operator[](Pos3i const &p) const {
+    return fStorage[index(p)];
+  }
+
+  Value &operator[](Pos3i const &p) {
+    return fStorage[index(p)];
+  }
+
+  std::optional<Value> get(Pos3i const &p) const {
+    int i = index(p);
+    if (0 <= i && i < fStorage.size()) {
+      return fStorage[i];
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  void set(Pos3i const &p, Value v) {
+    int i = index(p);
+    if (0 <= i && i < fStorage.size()) {
+      fStorage[i] = v;
+    }
+  }
+
+  void fill(Value v) {
+    std::fill(fStorage.begin(), fStorage.end(), v);
+  }
+
+  typename std::vector<Value>::const_iterator cbegin() const {
+    return fStorage.cbegin();
+  }
+
+  typename std::vector<Value>::const_iterator cend() const {
+    return fStorage.cend();
+  }
+
+private:
+  int index(Pos3i const &p) const {
+    int x = p.fX - fStart.fX;
+    int y = p.fY - fStart.fY;
+    int z = p.fZ - fStart.fZ;
+    assert(x >= 0 && y >= 0 && z >= 0);
+    assert(x < Size && y < fEnd.fY - fStart.fY + 1 && z < Size);
+    return (y * Size + z) * Size + x;
+  }
+
+public:
+  Pos3i const fStart;
+  Pos3i const fEnd;
+
+private:
+  std::vector<Value> fStorage;
+};
+
 } // namespace je2be

@@ -69,46 +69,6 @@ class Lighting {
       fEmission = 0;
     }
 
-    void set(Facing6 facing, Transparency v) {
-      switch (facing) {
-      case Facing6::Up:
-        fUp = v;
-        break;
-      case Facing6::Down:
-        fDown = v;
-        break;
-      case Facing6::North:
-        fNorth = v;
-        break;
-      case Facing6::East:
-        fEast = v;
-        break;
-      case Facing6::South:
-        fSouth = v;
-        break;
-      case Facing6::West:
-        fWest = v;
-        break;
-      }
-    }
-
-    void set(Facing4 facing, Transparency v) {
-      switch (facing) {
-      case Facing4::North:
-        fNorth = v;
-        break;
-      case Facing4::East:
-        fEast = v;
-        break;
-      case Facing4::South:
-        fSouth = v;
-        break;
-      case Facing4::West:
-        fWest = v;
-        break;
-      }
-    }
-
     bool isSolid() const {
       return fUp == SOLID && fNorth == SOLID && fEast == SOLID && fSouth == SOLID && fWest == SOLID && fDown == SOLID;
     }
@@ -123,14 +83,14 @@ public:
     int const maxBlockY = dim == mcfile::Dimension::Overworld ? 319 : 255;
 
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
-    Pos3i end(out.maxBlockX() + 14, maxBlockY + 1, out.maxBlockZ() + 14);
+    size_t const height = maxBlockY - minBlockY + 2;
 
     LightingModel airModel;
     airModel.fTransparency = CLEAR;
     airModel.fModel = MODEL_CLEAR;
     airModel.fEmission = 0;
 
-    Data3d<LightingModel> models(start, end, airModel);
+    Data3dSq<LightingModel, 44> models(start, height, airModel);
     CopyChunkLightingProperties(out, models);
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
@@ -146,18 +106,18 @@ public:
     }
 
     LightingProperties air(CLEAR);
-    Data3d<LightingProperties> props(start, end, air);
+    Data3dSq<LightingProperties, 44> props(start, height, air);
     CompileLightingProperties(models, props);
 
-    shared_ptr<Data3d<uint8_t>> skyLight;
+    shared_ptr<Data3dSq<uint8_t, 44>> skyLight;
 
     if (dim == Dimension::Overworld) {
-      skyLight = make_shared<Data3d<uint8_t>>(start, end, 0);
+      skyLight = make_shared<Data3dSq<uint8_t, 44>>(start, height, 0);
       InitializeSkyLight(dim, *skyLight, props);
       DiffuseSkyLight(props, *skyLight);
     }
 
-    Data3d<uint8_t> blockLight(start, end, 0);
+    Data3dSq<uint8_t, 44> blockLight(start, height, 0);
     InitializeBlockLight(blockLight, props);
     DiffuseBlockLight(props, blockLight);
 
@@ -247,58 +207,130 @@ private:
     return BitSwapped(m, 0, 13) | BitSwapped(m, 1, 12) | BitSwapped(m, 2, 15) | BitSwapped(m, 3, 14) | BitSwapped(m, 4, 9) | BitSwapped(m, 5, 8) | BitSwapped(m, 6, 11) | BitSwapped(m, 7, 10) | BitSwapped(m, 16, 22) | BitSwapped(m, 17, 23) | BitSwapped(m, 18, 20) | BitSwapped(m, 19, 21);
   }
 
-  static void CompileLightingProperties(Data3d<LightingModel> const &src, Data3d<LightingProperties> &out) {
+  static void CompileLightingProperties(Data3dSq<LightingModel, 44> const &src, Data3dSq<LightingProperties, 44> &out) {
+    using namespace std;
     assert(src.fStart == out.fStart);
     assert(src.fEnd == out.fEnd);
+
+    int height = out.fEnd.fY - out.fStart.fY + 1;
+    Data3dSq<Transparency, 44> up(out.fStart, height, CLEAR);
+    Data3dSq<Transparency, 44> down(out.fStart, height, CLEAR);
+    Data3dSq<Transparency, 44> north(out.fStart, height, CLEAR);
+    Data3dSq<Transparency, 44> east(out.fStart, height, CLEAR);
+    Data3dSq<Transparency, 44> south(out.fStart, height, CLEAR);
+    Data3dSq<Transparency, 44> west(out.fStart, height, CLEAR);
+
     for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
       for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
         for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
-          Pos3i center(x, y, z);
-          auto centerModel = src[center];
-          LightingProperties p(centerModel.fTransparency);
-          p.fEmission = centerModel.fEmission;
-          if (centerModel.fModel == 0) {
-            out[center] = p;
-            continue;
+          Pos3i p(x, y, z);
+          Transparency t = src[p].fTransparency;
+          up[p] = t;
+          down[p] = t;
+          north[p] = t;
+          east[p] = t;
+          south[p] = t;
+          west[p] = t;
+        }
+      }
+    }
+
+    // up, down
+    uint32_t mask = MaskFacing6(Facing6::Up);
+    for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
+      for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
+        for (int y = src.fStart.fY; y < src.fEnd.fY; y++) {
+          Pos3i pos(x, y, z);
+          Pos3i target(x, y + 1, z);
+
+          LightingModel const &m = src[pos];
+          LightingModel const &mTarget = src[target];
+
+          uint32_t targetInv = ~Invert(mTarget.fModel);
+          uint32_t centerInv = ~m.fModel;
+
+          uint32_t test = mask & targetInv & centerInv;
+
+          down[target] = test == 0 ? SOLID : TRANSLUCENT;
+          up[pos] = test == 0 ? SOLID : TRANSLUCENT;
+        }
+      }
+    }
+    for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
+      for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
+        for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
+          Pos3i pos(x, y, z);
+          LightingModel const &m = src[pos];
+          if (up[pos] == TRANSLUCENT && m.fBehaveAsAirWhenOpenUp) {
+            up[pos] = CLEAR;
           }
-          Facing6Enumerate([&](Facing6 f) {
-            Pos3i target = center + Pos3iFromFacing6(f);
-            if (target.fX < src.fStart.fX || src.fEnd.fX < target.fX) {
-              return true;
-            }
-            if (target.fY < src.fStart.fY || src.fEnd.fY < target.fY) {
-              return true;
-            }
-            if (target.fZ < src.fStart.fZ || src.fEnd.fZ < target.fZ) {
-              return true;
-            }
-            auto targetModel = src[target];
+        }
+      }
+    }
 
-            uint32_t mask = MaskFacing6(f);
+    // east, west
+    mask = MaskFacing6(Facing6::East);
+    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
+      for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
+        for (int x = src.fStart.fX; x < src.fEnd.fX; x++) {
+          Pos3i pos(x, y, z);
+          Pos3i target(x + 1, y, z);
 
-            uint32_t targetInv = ~Invert(targetModel.fModel);
-            uint32_t centerInv = ~centerModel.fModel;
+          LightingModel const &m = src[pos];
+          LightingModel const &mTarget = src[target];
 
-            uint32_t test = mask & targetInv & centerInv;
+          uint32_t targetInv = ~Invert(mTarget.fModel);
+          uint32_t centerInv = ~m.fModel;
 
-            if (test == 0) {
-              p.set(f, SOLID);
-            } else {
-              if (f == Facing6::Up && centerModel.fBehaveAsAirWhenOpenUp) {
-                p.set(f, CLEAR);
-              } else {
-                p.set(f, TRANSLUCENT);
-              }
-            }
-            return true;
-          });
-          out[center] = p;
+          uint32_t test = mask & targetInv & centerInv;
+
+          east[pos] = test == 0 ? SOLID : TRANSLUCENT;
+          west[target] = test == 0 ? SOLID : TRANSLUCENT;
+        }
+      }
+    }
+
+    // north, south
+    mask = MaskFacing6(Facing6::South);
+    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
+      for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
+        for (int z = src.fStart.fZ; z < src.fEnd.fZ; z++) {
+          Pos3i pos(x, y, z);
+          Pos3i target(x, y, z + 1);
+
+          LightingModel const &m = src[pos];
+          LightingModel const &mTarget = src[target];
+
+          uint32_t targetInv = ~Invert(mTarget.fModel);
+          uint32_t centerInv = ~m.fModel;
+
+          uint32_t test = mask & targetInv & centerInv;
+
+          south[pos] = test == 0 ? SOLID : TRANSLUCENT;
+          north[target] = test == 0 ? SOLID : TRANSLUCENT;
+        }
+      }
+    }
+
+    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
+      for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
+        for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
+          Pos3i pos(x, y, z);
+          LightingProperties p(CLEAR);
+          p.fUp = up[pos];
+          p.fDown = down[pos];
+          p.fNorth = north[pos];
+          p.fEast = east[pos];
+          p.fSouth = south[pos];
+          p.fWest = west[pos];
+          p.fEmission = src[pos].fEmission;
+          out[pos] = p;
         }
       }
     }
   }
 
-  static void DiffuseSkyLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
+  static void DiffuseSkyLight(Data3dSq<LightingProperties, 44> const &props, Data3dSq<uint8_t, 44> &out) {
     for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
       for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
         for (int y = out.fEnd.fY - 1; y >= out.fStart.fY; y--) {
@@ -320,11 +352,11 @@ private:
     DiffuseLight(props, out);
   }
 
-  static void DiffuseBlockLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
+  static void DiffuseBlockLight(Data3dSq<LightingProperties, 44> const &props, Data3dSq<uint8_t, 44> &out) {
     DiffuseLight(props, out);
   }
 
-  static void DiffuseLight(Data3d<LightingProperties> const &props, Data3d<uint8_t> &out) {
+  static void DiffuseLight(Data3dSq<LightingProperties, 44> const &props, Data3dSq<uint8_t, 44> &out) {
     int x0 = out.fStart.fX;
     int x1 = out.fEnd.fX;
     int y0 = out.fStart.fY;
@@ -404,7 +436,7 @@ private:
     }
   }
 
-  static void InitializeSkyLight(mcfile::Dimension dim, Data3d<uint8_t> &out, Data3d<LightingProperties> const &props) {
+  static void InitializeSkyLight(mcfile::Dimension dim, Data3dSq<uint8_t, 44> &out, Data3dSq<LightingProperties, 44> const &props) {
     assert(out.fStart.fX <= props.fStart.fX && props.fEnd.fX <= out.fEnd.fX);
     assert(out.fStart.fY <= props.fStart.fY && props.fEnd.fY <= out.fEnd.fY);
     assert(out.fStart.fZ <= props.fStart.fZ && props.fEnd.fZ <= out.fEnd.fZ);
@@ -418,7 +450,7 @@ private:
     }
   }
 
-  static void InitializeBlockLight(Data3d<uint8_t> &out, Data3d<LightingProperties> const &props) {
+  static void InitializeBlockLight(Data3dSq<uint8_t, 44> &out, Data3dSq<LightingProperties, 44> const &props) {
     using namespace std;
 
     assert(out.fStart.fX <= props.fStart.fX && props.fEnd.fX <= out.fEnd.fX);
@@ -440,7 +472,7 @@ private:
     }
   }
 
-  static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3d<LightingModel> &out) {
+  static void CopyChunkLightingProperties(mcfile::je::Chunk const &chunk, Data3dSq<LightingModel, 44> &out) {
     using namespace std;
     assert(out.fStart.fY <= chunk.minBlockY() && chunk.maxBlockY() <= out.fEnd.fY);
 
@@ -459,13 +491,11 @@ private:
         return true;
       });
       for (int y = 0; y < 16; y++) {
-        for (int z = z0 - chunk.minBlockZ(); z <= z1 - chunk.minBlockZ(); z++) {
-          for (int x = x0 - chunk.minBlockX(); x <= x1 - chunk.minBlockX(); x++) {
-            if (auto index = section->blockPaletteIndexAt(x, y, z); index) {
+        for (int bz = z0; bz <= z1; bz++) {
+          for (int bx = x0; bx <= x1; bx++) {
+            if (auto index = section->blockPaletteIndexAt(bx - chunk.minBlockX(), y, bz - chunk.minBlockZ()); index) {
               LightingModel m = models[*index];
-              int bx = x + chunk.minBlockX();
               int by = y + section->y() * 16;
-              int bz = z + chunk.minBlockZ();
               out.set({bx, by, bz}, m);
             }
           }
