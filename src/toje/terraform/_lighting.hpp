@@ -252,18 +252,7 @@ private:
           uint32_t test = mask & targetInv & centerInv;
 
           down[target] = test == 0 ? SOLID : TRANSLUCENT;
-          up[pos] = test == 0 ? SOLID : TRANSLUCENT;
-        }
-      }
-    }
-    for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
-      for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
-        for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
-          Pos3i pos(x, y, z);
-          LightingModel const &m = src[pos];
-          if (up[pos] == TRANSLUCENT && m.fBehaveAsAirWhenOpenUp) {
-            up[pos] = CLEAR;
-          }
+          up[pos] = test == 0 ? SOLID : (m.fBehaveAsAirWhenOpenUp ? CLEAR : TRANSLUCENT);
         }
       }
     }
