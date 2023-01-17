@@ -334,6 +334,7 @@ set(je2be_src_files
   src/toje/terraform/_campfire.hpp
   src/toje/terraform/_cave-vines.hpp
   src/toje/terraform/_door.hpp
+  src/toje/terraform/_lighting-properties.hpp
   src/toje/terraform/_lighting.hpp
   src/toje/terraform/_piston.hpp
   src/toje/terraform/_tripwire.hpp

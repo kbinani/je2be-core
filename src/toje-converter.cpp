@@ -341,7 +341,7 @@ private:
 
     terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
     terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
-    Lighting::Do(dim, *writable, *blockAccessor);
+    lighting::Lighting::Do(dim, *writable, *blockAccessor);
 
     auto tag = writable->toCompoundTag();
     if (!tag) {

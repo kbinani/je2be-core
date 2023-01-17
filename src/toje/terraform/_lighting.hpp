@@ -6,18 +6,11 @@
 #include "_optional.hpp"
 #include "terraform/_block-property-accessor.hpp"
 #include "terraform/java/_block-accessor-java.hpp"
+#include "toje/terraform/_lighting-properties.hpp"
 
-#include <bitset>
-
-namespace je2be::toje {
+namespace je2be::toje::lighting {
 
 class Lighting {
-  enum Transparency : uint8_t {
-    CLEAR = 0,
-    TRANSLUCENT = 1,
-    SOLID = 2,
-  };
-
   enum Model : uint32_t {
     // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
     MODEL_SOLID = 0xffffff,
@@ -38,40 +31,6 @@ class Lighting {
     uint8_t fEmission = 0;
     bool fBehaveAsAirWhenOpenUp = false;
     Transparency fTransparency = CLEAR;
-  };
-
-  struct LightingProperties {
-    Transparency fUp : 2;
-    Transparency fNorth : 2;
-    Transparency fEast : 2;
-    Transparency fSouth : 2;
-    Transparency fWest : 2;
-    Transparency fDown : 2;
-    uint8_t fEmission : 4;
-
-    LightingProperties() {
-      fUp = CLEAR;
-      fNorth = CLEAR;
-      fEast = CLEAR;
-      fSouth = CLEAR;
-      fWest = CLEAR;
-      fDown = CLEAR;
-      fEmission = 0;
-    }
-
-    explicit LightingProperties(Transparency v) {
-      fUp = v;
-      fNorth = v;
-      fEast = v;
-      fSouth = v;
-      fWest = v;
-      fDown = v;
-      fEmission = 0;
-    }
-
-    bool isSolid() const {
-      return fUp == SOLID && fNorth == SOLID && fEast == SOLID && fSouth == SOLID && fWest == SOLID && fDown == SOLID;
-    }
   };
 
 public:
