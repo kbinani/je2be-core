@@ -1,10 +1,11 @@
 #pragma once
 
+#include "_mem.hpp"
 #include "_pos3.hpp"
 
 namespace je2be {
 
-template <class Value>
+template <class Value, size_t Align = 64>
 class Data3d {
 public:
   Data3d(Pos3i const &start, Pos3i const &end, Value def) : fStart(start), fEnd(end) {
@@ -12,7 +13,15 @@ public:
     int dy = end.fY - start.fY + 1;
     int dz = end.fZ - start.fZ + 1;
     assert(dx > 0 && dy > 0 && dz > 0);
-    fStorage.resize((size_t)dx * (size_t)dy * (size_t)dz, def);
+    fStorage = (Value *)Mem::AllocAligned<Align>(sizeof(Value) * dx * dy * dz);
+    if (fStorage == nullptr) {
+      throw std::bad_alloc();
+    }
+    std::fill_n(fStorage, dx * dy * dz, def);
+  }
+
+  ~Data3d() {
+    Mem::FreeAligned(fStorage);
   }
 
   Value const &operator[](Pos3i const &p) const {
@@ -25,7 +34,7 @@ public:
 
   std::optional<Value> get(Pos3i const &p) const {
     int i = index(p);
-    if (0 <= i && i < fStorage.size()) {
+    if (0 <= i) {
       return fStorage[i];
     } else {
       return std::nullopt;
@@ -34,21 +43,27 @@ public:
 
   void set(Pos3i const &p, Value v) {
     int i = index(p);
-    if (0 <= i && i < fStorage.size()) {
+    if (0 <= i) {
       fStorage[i] = v;
     }
   }
 
   void fill(Value v) {
-    std::fill(fStorage.begin(), fStorage.end(), v);
+    int dx = fEnd.fX - fStart.fX + 1;
+    int dy = fEnd.fY - fStart.fY + 1;
+    int dz = fEnd.fZ - fStart.fZ + 1;
+    std::fill_n(fStorage, dx * dy * dz, v);
   }
 
-  typename std::vector<Value>::const_iterator cbegin() const {
-    return fStorage.cbegin();
+  Value const *cbegin() const {
+    return fStorage;
   }
 
-  typename std::vector<Value>::const_iterator cend() const {
-    return fStorage.cend();
+  Value const *cend() const {
+    int dx = fEnd.fX - fStart.fX + 1;
+    int dy = fEnd.fY - fStart.fY + 1;
+    int dz = fEnd.fZ - fStart.fZ + 1;
+    return fStorage + (dx * dy * dz);
   }
 
 private:
@@ -73,14 +88,22 @@ public:
   Pos3i const fEnd;
 
 private:
-  std::vector<Value> fStorage;
+  Value *fStorage;
 };
 
-template <class Value, size_t Size>
+template <class Value, size_t Size, size_t Align = 64>
 class Data3dSq {
 public:
-  Data3dSq(Pos3i const &start, size_t height, Value def) : fStart(start), fEnd(start.fX + (int)Size - 1, start.fY + (int)height - 1, start.fZ + (int)Size - 1) {
-    fStorage.resize(Size * height * Size, def);
+  Data3dSq(Pos3i const &start, size_t height, Value def) : fStart(start), fEnd(start.fX + (int)Size - 1, start.fY + (int)height - 1, start.fZ + (int)Size - 1), fHeight(height) {
+    fStorage = (Value *)Mem::AllocAligned<Align>(sizeof(Value) * Size * height * Size);
+    if (fStorage == nullptr) {
+      throw std::bad_alloc();
+    }
+    std::fill_n(fStorage, Size * height * Size, def);
+  }
+
+  ~Data3dSq() {
+    Mem::FreeAligned(fStorage);
   }
 
   Value const &operator[](Pos3i const &p) const {
@@ -93,7 +116,7 @@ public:
 
   std::optional<Value> get(Pos3i const &p) const {
     int i = index(p);
-    if (0 <= i && i < fStorage.size()) {
+    if (0 <= i && i < Size * fHeight * Size) {
       return fStorage[i];
     } else {
       return std::nullopt;
@@ -102,21 +125,21 @@ public:
 
   void set(Pos3i const &p, Value v) {
     int i = index(p);
-    if (0 <= i && i < fStorage.size()) {
+    if (0 <= i && i < Size * fHeight * Size) {
       fStorage[i] = v;
     }
   }
 
   void fill(Value v) {
-    std::fill(fStorage.begin(), fStorage.end(), v);
+    std::fill(fStorage, fStorage + Size * fHeight * Size, v);
   }
 
-  typename std::vector<Value>::const_iterator cbegin() const {
-    return fStorage.cbegin();
+  Value const *cbegin() const {
+    return fStorage;
   }
 
-  typename std::vector<Value>::const_iterator cend() const {
-    return fStorage.cend();
+  Value const *cend() const {
+    return fStorage + (Size * fHeight * Size);
   }
 
 private:
@@ -125,7 +148,7 @@ private:
     int y = p.fY - fStart.fY;
     int z = p.fZ - fStart.fZ;
     assert(x >= 0 && y >= 0 && z >= 0);
-    assert(x < Size && y < fEnd.fY - fStart.fY + 1 && z < Size);
+    assert(x < Size && y < fHeight && z < Size);
     return (y * Size + z) * Size + x;
   }
 
@@ -134,7 +157,8 @@ public:
   Pos3i const fEnd;
 
 private:
-  std::vector<Value> fStorage;
+  size_t const fHeight;
+  Value *fStorage;
 };
 
 } // namespace je2be
