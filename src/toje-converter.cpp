@@ -77,14 +77,20 @@ public:
       }
     };
 
+    map<Dimension, fs::path> terrainTempDirs;
     for (Dimension d : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
       if (!options.fDimensionFilter.empty()) {
         if (options.fDimensionFilter.find(d) == options.fDimensionFilter.end()) {
           continue;
         }
       }
+      auto terrainTempDir = File::CreateTempDir(options.getTempDirectory());
+      if (!terrainTempDir) {
+        return JE2BE_ERROR;
+      }
+      terrainTempDirs[d] = *terrainTempDir;
       shared_ptr<Context> result;
-      if (auto st = World::Convert(d, regions[d], *db, output, concurrency, *bin, result, reportProgress, numConvertedChunks); !st.ok()) {
+      if (auto st = World::Convert(d, regions[d], *db, output, concurrency, *bin, result, reportProgress, numConvertedChunks, *terrainTempDir); !st.ok()) {
         return st;
       }
       if (result) {
@@ -95,8 +101,11 @@ public:
       }
     }
 
-    if (auto st = Terraform(regions, output, concurrency); !st.ok()) {
+    if (auto st = Terraform(regions, output, terrainTempDirs, concurrency); !st.ok()) {
       return st;
+    }
+    for (auto const &[_, dir] : terrainTempDirs) {
+      Fs::DeleteAll(dir);
     }
 
     if (auto rootVehicle = bin->drainRootVehicle(); rootVehicle) {
@@ -151,7 +160,7 @@ public:
   }
 
 private:
-  static Status Terraform(map<mcfile::Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> const &regions, fs::path const &output, unsigned int concurrency) {
+  static Status Terraform(map<mcfile::Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> const &regions, fs::path const &output, map<mcfile::Dimension, fs::path> const &terrainTempDirs, unsigned int concurrency) {
     if (regions.empty()) {
       return Status::Ok();
     }
@@ -182,7 +191,7 @@ private:
 
       int width = maxR->fX - minR->fX + 1;
       int height = maxR->fZ - minR->fZ + 1;
-      auto queue = make_shared<Queue2d>(*minR, width, height, 1);
+      auto queue = make_shared<Queue2d>(*minR, width, height);
       for (int x = minR->fX; x <= maxR->fX; x++) {
         for (int z = minR->fZ; z <= maxR->fZ; z++) {
           queue->setDone({x, z}, true);
@@ -201,7 +210,7 @@ private:
     atomic_bool ok(true);
     mutex mut;
 
-    auto action = [&latch, &queues, &mut, output, &ok]() {
+    auto action = [&latch, &queues, &mut, output, &ok, terrainTempDirs]() {
       shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
       optional<mcfile::Dimension> prevDimension;
 
@@ -244,32 +253,26 @@ private:
           break;
         }
 
-        auto mca = directory / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-        auto editor = mcfile::je::McaEditor::Open(mca);
+        auto found = terrainTempDirs.find(dim);
+        if (found == terrainTempDirs.end()) {
+          ok = false;
+          break;
+        }
+
+        auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+        auto mcaIn = found->second / name;
+        auto mcaOut = directory / name;
+        auto editor = mcfile::je::McaEditor::Open(mcaIn);
         if (!editor) {
           ok = false;
           break;
         }
 
-        bool ret = Walk::Spiral({0, 0}, {31, 31}, [&](Pos2i const &p) {
-          int cx = p.fX + rx * 32;
-          int cz = p.fZ + rz * 32;
-          return TerraformRegion(cx, cz, *editor, directory, blockAccessor, dim).ok();
-        });
-        if (!ret) {
-          ok = false;
-        }
-
-        {
-          lock_guard<mutex> lock(mut);
-          queues[dim]->unlock({{rx - 1, rz - 1}, {rx, rz - 1}, {rx + 1, rz - 1}, {rx - 1, rz}, {rx + 1, rz}, {rx - 1, rz + 1}, {rx, rz + 1}, {rx + 1, rz + 1}});
-        }
-
-        for (int x = 1; x <= 30; x++) {
-          for (int z = 1; z <= 30; z++) {
+        for (int x = 0; x < 32; x++) {
+          for (int z = 0; z < 32; z++) {
             int cx = x + rx * 32;
             int cz = z + rz * 32;
-            if (!TerraformRegion(cx, cz, *editor, directory, blockAccessor, dim).ok()) {
+            if (!TerraformRegion(cx, cz, *editor, found->second, blockAccessor, dim).ok()) {
               ok = false;
               break;
             }
@@ -279,7 +282,7 @@ private:
           }
         }
 
-        if (!editor->write(mca)) {
+        if (!editor->write(mcaOut)) {
           ok = false;
         }
 
@@ -303,7 +306,7 @@ private:
     return Status::Ok();
   }
 
-  static Status TerraformRegion(int cx, int cz, mcfile::je::McaEditor &editor, fs::path directory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor, mcfile::Dimension dim) {
+  static Status TerraformRegion(int cx, int cz, mcfile::je::McaEditor &editor, fs::path inputDirectory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor, mcfile::Dimension dim) {
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
     int rz = mcfile::Coordinate::RegionFromChunk(cz);
 
@@ -316,7 +319,7 @@ private:
     }
 
     if (!blockAccessor) {
-      blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, directory));
+      blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, inputDirectory));
     }
     if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
       auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);

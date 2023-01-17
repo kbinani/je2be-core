@@ -22,7 +22,8 @@ public:
                         Context const &parentContext,
                         std::shared_ptr<Context> &resultContext,
                         std::function<bool(void)> progress,
-                        std::atomic_uint64_t &numConvertedChunks);
+                        std::atomic_uint64_t &numConvertedChunks,
+                        std::filesystem::path terrainTempDir);
 };
 
 } // namespace je2be::toje

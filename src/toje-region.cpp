@@ -23,7 +23,8 @@ public:
                                           std::filesystem::path destination,
                                           Context const &parentContext,
                                           std::function<bool(void)> progress,
-                                          std::atomic_uint64_t &numConvertedChunks) {
+                                          std::atomic_uint64_t &numConvertedChunks,
+                                          std::filesystem::path terrainTempDir) {
     using namespace mcfile;
     using namespace mcfile::stream;
 
@@ -32,7 +33,7 @@ public:
     int rz = region.fZ;
 
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    auto terrainMcaPath = destination / "region" / name;
+    auto terrainMcaPath = terrainTempDir / name;
     auto entitiesMcaPath = destination / "entities" / name;
 
     auto terrain = mcfile::je::McaEditor::Open(terrainMcaPath);
@@ -120,8 +121,9 @@ std::shared_ptr<Context> Region::Convert(mcfile::Dimension d,
                                          std::filesystem::path destination,
                                          Context const &parentContext,
                                          std::function<bool(void)> progress,
-                                         std::atomic_uint64_t &numConvertedChunks) {
-  return Impl::Convert(d, chunks, region, concurrency, db, destination, parentContext, progress, numConvertedChunks);
+                                         std::atomic_uint64_t &numConvertedChunks,
+                                         std::filesystem::path terrainTempDir) {
+  return Impl::Convert(d, chunks, region, concurrency, db, destination, parentContext, progress, numConvertedChunks, terrainTempDir);
 }
 
 } // namespace je2be::toje

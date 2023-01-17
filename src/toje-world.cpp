@@ -24,7 +24,8 @@ public:
                         Context const &parentContext,
                         std::shared_ptr<Context> &resultContext,
                         std::function<bool(void)> progress,
-                        std::atomic_uint64_t &numConvertedChunks) {
+                        std::atomic_uint64_t &numConvertedChunks,
+                        std::filesystem::path terrainTempDir) {
     using namespace std;
     using namespace mcfile;
     namespace fs = std::filesystem;
@@ -72,13 +73,13 @@ public:
         regions,
         concurrency,
         [&parentContext]() { return parentContext.make(); },
-        [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks, concurrency](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
+        [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks, concurrency, terrainTempDir](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
           auto ctx = parentContext.make();
           if (!ok) {
             return ctx;
           }
           Pos2i region = work.first;
-          auto result = Region::Convert(d, work.second.fChunks, region, concurrency, &db, dir, *ctx, reportProgress, numConvertedChunks);
+          auto result = Region::Convert(d, work.second.fChunks, region, concurrency, &db, dir, *ctx, reportProgress, numConvertedChunks, terrainTempDir);
           if (result) {
             return result;
           } else {
@@ -342,8 +343,9 @@ Status World::Convert(mcfile::Dimension d,
                       Context const &parentContext,
                       std::shared_ptr<Context> &resultContext,
                       std::function<bool(void)> progress,
-                      std::atomic_uint64_t &numConvertedChunks) {
-  return Impl::Convert(d, regions, db, root, concurrency, parentContext, resultContext, progress, numConvertedChunks);
+                      std::atomic_uint64_t &numConvertedChunks,
+                      std::filesystem::path terrainTempDir) {
+  return Impl::Convert(d, regions, db, root, concurrency, parentContext, resultContext, progress, numConvertedChunks, terrainTempDir);
 }
 
 } // namespace je2be::toje
