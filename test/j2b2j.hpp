@@ -767,6 +767,8 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
   REQUIRE(heightMapsE);
   REQUIRE(heightMapsA);
   CheckHeightmaps(*heightMapsE, *heightMapsA);
+
+  CheckChunkLight(*chunkE, *chunkA);
 }
 
 static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
