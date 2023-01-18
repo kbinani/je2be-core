@@ -1009,10 +1009,10 @@ static void TestJavaToBedrockToJava(fs::path in) {
   }
 #else
   optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
-  for (Pos2i const &p : initializer_list<Pos2i>({{0, 0}})) {
+  for (Pos2i const &p : initializer_list<Pos2i>({{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {0, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}})) {
     optB.fChunkFilter.insert(p);
-    chunks.insert(p);
   }
+  chunks.insert({0, 0});
   multithread = false;
 #endif
   je2be::toje::Options optJ;
