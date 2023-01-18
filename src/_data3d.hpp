@@ -2,6 +2,7 @@
 
 #include "_mem.hpp"
 #include "_pos3.hpp"
+#include "_volume.hpp"
 
 namespace je2be {
 
@@ -140,6 +141,23 @@ public:
 
   Value const *cend() const {
     return fStorage + (Size * fHeight * Size);
+  }
+
+  template <size_t SizeOther, size_t AlignOther>
+  void copyFrom(Data3dSq<Value, SizeOther, AlignOther> const &other) {
+    Volume vThis(fStart, fEnd);
+    Volume vOther(other.fStart, other.fEnd);
+    auto intersection = Volume::Intersection(vThis, vOther);
+    if (!intersection) {
+      return;
+    }
+    for (int y = intersection->fStart.fY; y <= intersection->fEnd.fY; y++) {
+      for (int z = intersection->fStart.fZ; z <= intersection->fEnd.fZ; z++) {
+        for (int x = intersection->fStart.fX; x <= intersection->fEnd.fX; x++) {
+          (*this)[{x, y, z}] = other[{x, y, z}];
+        }
+      }
+    }
   }
 
 private:

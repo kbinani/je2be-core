@@ -8,7 +8,7 @@ enum Transparency : uint8_t {
   SOLID = 2,
 };
 
-struct LightingProperties {
+struct LightingProperty {
   Transparency fUp : 2;
   Transparency fNorth : 2;
   Transparency fEast : 2;
@@ -17,7 +17,7 @@ struct LightingProperties {
   Transparency fDown : 2;
   uint8_t fEmission : 4;
 
-  LightingProperties() {
+  LightingProperty() {
     fUp = CLEAR;
     fNorth = CLEAR;
     fEast = CLEAR;
@@ -27,7 +27,7 @@ struct LightingProperties {
     fEmission = 0;
   }
 
-  explicit LightingProperties(Transparency v) {
+  explicit LightingProperty(Transparency v) {
     fUp = v;
     fNorth = v;
     fEast = v;

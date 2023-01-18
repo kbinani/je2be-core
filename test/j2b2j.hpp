@@ -1011,10 +1011,18 @@ static void TestJavaToBedrockToJava(fs::path in) {
   }
 #else
   optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
-  for (Pos2i const &p : initializer_list<Pos2i>({{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {0, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}})) {
-    optB.fChunkFilter.insert(p);
+  Pos2i center(0, 0);
+  int radius = 0;
+  for (int cz = center.fZ - radius - 1; cz <= center.fZ + radius + 1; cz++) {
+    for (int cx = center.fX - radius - 1; cx <= center.fX + radius + 1; cx++) {
+      optB.fChunkFilter.insert({cx, cz});
+    }
   }
-  chunks.insert({0, 0});
+  for (int cz = center.fZ - radius; cz <= center.fZ + radius; cz++) {
+    for (int cx = center.fX - radius; cx <= center.fX + radius; cx++) {
+      chunks.insert({cx, cz});
+    }
+  }
   multithread = false;
 #endif
   je2be::toje::Options optJ;

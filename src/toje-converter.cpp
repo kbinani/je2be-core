@@ -268,11 +268,13 @@ private:
           break;
         }
 
+        lighting::LightCache lightCache(rx, rz);
+
         for (int x = 0; x < 32; x++) {
           for (int z = 0; z < 32; z++) {
             int cx = x + rx * 32;
             int cz = z + rz * 32;
-            if (!TerraformRegion(cx, cz, *editor, found->second, blockAccessor, dim).ok()) {
+            if (!TerraformRegion(cx, cz, *editor, found->second, blockAccessor, dim, lightCache).ok()) {
               ok = false;
               break;
             }
@@ -306,7 +308,14 @@ private:
     return Status::Ok();
   }
 
-  static Status TerraformRegion(int cx, int cz, mcfile::je::McaEditor &editor, fs::path inputDirectory, std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor, mcfile::Dimension dim) {
+  static Status TerraformRegion(
+      int cx,
+      int cz,
+      mcfile::je::McaEditor &editor,
+      fs::path inputDirectory,
+      std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor,
+      mcfile::Dimension dim,
+      lighting::LightCache &lightCache) {
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
     int rz = mcfile::Coordinate::RegionFromChunk(cz);
 
@@ -341,7 +350,7 @@ private:
 
     terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
     terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
-    lighting::Lighting::Do(dim, *writable, *blockAccessor);
+    lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
 
     auto tag = writable->toCompoundTag();
     if (!tag) {

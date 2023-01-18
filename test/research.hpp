@@ -899,7 +899,7 @@ static void LightTransmission() {
       os << "setblock " << x << " " << y << " " << (z - 1) << " barrier" << endl;
       os << "setblock " << (x + 1) << " " << y << " " << z << " barrier" << endl;
       os << "setblock " << x << " " << y << " " << (z + 1) << " barrier" << endl;
-      os << "setblock " << x << " " << (y - 1) << " " << z << " barrier" << endl;
+      os << "setblock " << x << " " << (y - 1) << " " << z << " sponge" << endl;
       os << "setblock " << x << " " << (y + 1) << " " << z << " barrier" << endl;
       os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id) << endl;
       x += 4;
@@ -943,6 +943,10 @@ static void LightTransmission() {
     }
     if (block->fId != id) {
       cerr << mcfile::blocks::Name(id) << " not set (2)" << endl;
+      continue;
+    }
+    if (block->property("waterlogged") == "true") {
+      cerr << mcfile::blocks::Name(id) << " waterlogged is set to true" << endl;
       continue;
     }
     int cy = mcfile::Coordinate::ChunkFromBlock(y);
