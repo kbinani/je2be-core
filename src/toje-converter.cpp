@@ -13,7 +13,7 @@
 #include "toje/_context.hpp"
 #include "toje/_level-data.hpp"
 #include "toje/_world.hpp"
-#include "toje/terraform/_lighting.hpp"
+#include "toje/lighting/_lighting.hpp"
 
 #include <atomic>
 #include <latch>

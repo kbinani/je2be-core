@@ -330,12 +330,14 @@ set(je2be_src_files
   src/toje/_structure-info.hpp
   src/toje/_sub-chunk.hpp
   src/toje/_world.hpp
+  src/toje/lighting/_light-cache.hpp
+  src/toje/lighting/_lighting-model.hpp
+  src/toje/lighting/_lighting-property.hpp
+  src/toje/lighting/_lighting.hpp
   src/toje/terraform/_beacon.hpp
   src/toje/terraform/_campfire.hpp
   src/toje/terraform/_cave-vines.hpp
   src/toje/terraform/_door.hpp
-  src/toje/terraform/_lighting-property.hpp
-  src/toje/terraform/_lighting.hpp
   src/toje/terraform/_piston.hpp
   src/toje/terraform/_tripwire.hpp
   src/toje/terraform/_twisting-vines.hpp

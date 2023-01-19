@@ -7,44 +7,9 @@
 #include "_optional.hpp"
 #include "terraform/_block-property-accessor.hpp"
 #include "terraform/java/_block-accessor-java.hpp"
-#include "toje/terraform/_lighting-property.hpp"
+#include "toje/lighting/_light-cache.hpp"
 
 namespace je2be::toje::lighting {
-
-struct LightingModel {
-  uint32_t fModel = 0;
-  uint8_t fEmission = 0;
-  bool fBehaveAsAirWhenOpenUp = false;
-  Transparency fTransparency = CLEAR;
-};
-
-class LightCache {
-public:
-  LightCache(int rx, int rz)
-      : fRx(rx), fRz(rz), fProperties({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr), fModels({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr) {}
-
-  std::shared_ptr<Data3dSq<LightingProperty, 16>> getProperty(int cx, int cz) {
-    return fProperties[{cx, cz}];
-  }
-
-  void setProperty(int cx, int cz, std::shared_ptr<Data3dSq<LightingProperty, 16>> const &data) {
-    fProperties[{cx, cz}] = data;
-  }
-
-  std::shared_ptr<Data3dSq<LightingModel, 16>> getModel(int cx, int cz) {
-    return fModels[{cx, cz}];
-  }
-
-  void setModel(int cx, int cz, std::shared_ptr<Data3dSq<LightingModel, 16>> const &data) {
-    fModels[{cx, cz}] = data;
-  }
-
-private:
-  int const fRx;
-  int const fRz;
-  Data2d<std::shared_ptr<Data3dSq<LightingProperty, 16>>> fProperties;
-  Data2d<std::shared_ptr<Data3dSq<LightingModel, 16>>> fModels;
-};
 
 class Lighting {
   enum Model : uint32_t {
@@ -73,35 +38,9 @@ public:
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     size_t const height = maxBlockY - minBlockY + 2;
 
-#if 0
     LightingProperty air(CLEAR);
     Data3dSq<LightingProperty, 44> props(start, height, air);
     EnsureLightingProperties(cache, props, out.fChunkX, out.fChunkZ, blockAccessor);
-#else
-    LightingModel airModel;
-    airModel.fTransparency = CLEAR;
-    airModel.fModel = MODEL_CLEAR;
-    airModel.fEmission = 0;
-
-    Data3dSq<LightingModel, 44> models(start, height, airModel);
-    CopyChunkLightingModel(out, models);
-    for (int dz = -1; dz <= 1; dz++) {
-      for (int dx = -1; dx <= 1; dx++) {
-        if (dx == 0 && dz == 0) {
-          continue;
-        }
-        auto chunk = blockAccessor.chunkAt(out.fChunkX + dx, out.fChunkZ + dz);
-        if (chunk) {
-          assert(minBlockY <= chunk->minBlockY() && chunk->maxBlockY() <= maxBlockY);
-          CopyChunkLightingModel(*chunk, models);
-        }
-      }
-    }
-
-    LightingProperty air(CLEAR);
-    Data3dSq<LightingProperty, 44> props(start, height, air);
-    CompileLightingProperty(models, props);
-#endif
 
     shared_ptr<Data3dSq<uint8_t, 44>> skyLight;
 
@@ -307,7 +246,8 @@ private:
       for (int z = range.fStart.fZ; z <= range.fEnd.fZ; z++) {
         for (int x = range.fStart.fX; x <= range.fEnd.fX; x++) {
           Pos3i p(x, y, z);
-          Transparency t = src[p].fTransparency;
+          LightingModel const &m = src[p];
+          Transparency t = m.fTransparency;
           up[p] = t;
           down[p] = t;
           north[p] = t;
@@ -410,118 +350,6 @@ private:
     for (int y = range.fStart.fY; y <= range.fEnd.fY; y++) {
       for (int z = range.fStart.fZ; z <= range.fEnd.fZ; z++) {
         for (int x = range.fStart.fX; x <= range.fEnd.fX; x++) {
-          Pos3i pos(x, y, z);
-          LightingProperty p(CLEAR);
-          p.fUp = up[pos];
-          p.fDown = down[pos];
-          p.fNorth = north[pos];
-          p.fEast = east[pos];
-          p.fSouth = south[pos];
-          p.fWest = west[pos];
-          p.fEmission = src[pos].fEmission;
-          out[pos] = p;
-        }
-      }
-    }
-  }
-
-  static void CompileLightingProperty(Data3dSq<LightingModel, 44> const &src, Data3dSq<LightingProperty, 44> &out) {
-    using namespace std;
-    assert(src.fStart == out.fStart);
-    assert(src.fEnd == out.fEnd);
-
-    int height = out.fEnd.fY - out.fStart.fY + 1;
-    Data3dSq<Transparency, 44> up(out.fStart, height, CLEAR);
-    Data3dSq<Transparency, 44> down(out.fStart, height, CLEAR);
-    Data3dSq<Transparency, 44> north(out.fStart, height, CLEAR);
-    Data3dSq<Transparency, 44> east(out.fStart, height, CLEAR);
-    Data3dSq<Transparency, 44> south(out.fStart, height, CLEAR);
-    Data3dSq<Transparency, 44> west(out.fStart, height, CLEAR);
-
-    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
-      for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
-        for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
-          Pos3i p(x, y, z);
-          Transparency t = src[p].fTransparency;
-          up[p] = t;
-          down[p] = t;
-          north[p] = t;
-          east[p] = t;
-          south[p] = t;
-          west[p] = t;
-        }
-      }
-    }
-
-    // up, down
-    uint32_t mask = MaskFacing6(Facing6::Up);
-    for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
-      for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
-        for (int y = src.fStart.fY; y < src.fEnd.fY; y++) {
-          Pos3i pos(x, y, z);
-          Pos3i target(x, y + 1, z);
-
-          LightingModel const &m = src[pos];
-          LightingModel const &mTarget = src[target];
-
-          uint32_t targetInv = ~Invert(mTarget.fModel);
-          uint32_t centerInv = ~m.fModel;
-
-          uint32_t test = mask & targetInv & centerInv;
-
-          down[target] = test == 0 ? SOLID : TRANSLUCENT;
-          up[pos] = test == 0 ? SOLID : (m.fBehaveAsAirWhenOpenUp ? CLEAR : TRANSLUCENT);
-        }
-      }
-    }
-
-    // east, west
-    mask = MaskFacing6(Facing6::East);
-    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
-      for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
-        for (int x = src.fStart.fX; x < src.fEnd.fX; x++) {
-          Pos3i pos(x, y, z);
-          Pos3i target(x + 1, y, z);
-
-          LightingModel const &m = src[pos];
-          LightingModel const &mTarget = src[target];
-
-          uint32_t targetInv = ~Invert(mTarget.fModel);
-          uint32_t centerInv = ~m.fModel;
-
-          uint32_t test = mask & targetInv & centerInv;
-
-          east[pos] = test == 0 ? SOLID : TRANSLUCENT;
-          west[target] = test == 0 ? SOLID : TRANSLUCENT;
-        }
-      }
-    }
-
-    // north, south
-    mask = MaskFacing6(Facing6::South);
-    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
-      for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
-        for (int z = src.fStart.fZ; z < src.fEnd.fZ; z++) {
-          Pos3i pos(x, y, z);
-          Pos3i target(x, y, z + 1);
-
-          LightingModel const &m = src[pos];
-          LightingModel const &mTarget = src[target];
-
-          uint32_t targetInv = ~Invert(mTarget.fModel);
-          uint32_t centerInv = ~m.fModel;
-
-          uint32_t test = mask & targetInv & centerInv;
-
-          south[pos] = test == 0 ? SOLID : TRANSLUCENT;
-          north[target] = test == 0 ? SOLID : TRANSLUCENT;
-        }
-      }
-    }
-
-    for (int y = src.fStart.fY; y <= src.fEnd.fY; y++) {
-      for (int z = src.fStart.fZ; z <= src.fEnd.fZ; z++) {
-        for (int x = src.fStart.fX; x <= src.fEnd.fX; x++) {
           Pos3i pos(x, y, z);
           LightingProperty p(CLEAR);
           p.fUp = up[pos];
@@ -966,6 +794,12 @@ private:
         break;
       }
       return m;
+    } else if (block.fId == farmland) {
+      LightingModel m;
+      m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_HALF_BOTTOM;
+      return m;
     }
     int amount = 0;
     switch (block.fId) {
@@ -1152,8 +986,6 @@ private:
     case blue_stained_glass:
     case blue_stained_glass_pane:
     case blue_wall_banner:
-    case brain_coral:
-    case brain_coral_fan:
     case brewing_stand:
     case brick_wall:
     case brown_banner:
@@ -1222,11 +1054,8 @@ private:
     case end_rod:
     case end_stone_brick_wall:
     case ender_chest:
-    case farmland:
     case fern:
     case fire:
-    case fire_coral:
-    case fire_coral_fan:
     case flower_pot:
     case glass:
     case glass_pane:
@@ -1247,6 +1076,9 @@ private:
     case grindstone:
     case heavy_weighted_pressure_plate:
     case hopper:
+    case horn_coral:
+    case horn_coral_fan:
+    case horn_coral_wall_fan:
     case iron_bars:
     case iron_door:
     case iron_trapdoor:
@@ -1577,6 +1409,8 @@ private:
     case black_shulker_box:
     case blue_shulker_box:
     case brown_shulker_box:
+    case chorus_flower:
+    case chorus_plant:
     case cobweb:
     case cyan_shulker_box:
     case dark_oak_leaves:

@@ -2,12 +2,6 @@
 
 namespace je2be::toje::lighting {
 
-enum Transparency : uint8_t {
-  CLEAR = 0,
-  TRANSLUCENT = 1,
-  SOLID = 2,
-};
-
 struct LightingProperty {
   Transparency fUp : 2;
   Transparency fNorth : 2;
