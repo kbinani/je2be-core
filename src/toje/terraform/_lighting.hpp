@@ -1612,8 +1612,6 @@ private:
     switch (id) {
     case brewing_stand:
     case brown_mushroom:
-    case dragon_egg:
-    case end_portal_frame:
     case small_amethyst_bud:
     case sculk_sensor:
       return 1;
@@ -1625,26 +1623,22 @@ private:
       return 4;
     case amethyst_cluster:
       return 5;
-    case sea_pickle:
-    case smooth_quartz:
-    case sponge:
-    case spruce_pressure_plate:
     case sculk_catalyst:
       return 6;
     case enchanting_table:
     case ender_chest:
     case redstone_torch:
     case redstone_wall_torch:
+    case glow_lichen:
       return 7;
     case crying_obsidian:
     case soul_torch:
     case soul_lantern:
     case soul_campfire:
+    case soul_fire:
     case soul_wall_torch:
-    case deepslate_iron_ore:
       return 10;
     case nether_portal:
-    case oak_fence:
       return 11;
     case end_rod:
     case torch:
@@ -1661,31 +1655,11 @@ private:
     case lantern:
     case lava:
     case sea_lantern:
-    case smoker:
-    case spawner:
-    case spruce_planks:
     case shroomlight:
-    case lava_cauldron:
-    case candle:
     case light:
     case ochre_froglight:
     case verdant_froglight:
     case pearlescent_froglight:
-    case mangrove_trapdoor:
-    case frogspawn:
-    case potted_mangrove_propagule:
-    case bamboo_door:
-    case bamboo_fence:
-    case bamboo_fence_gate:
-    case bamboo_trapdoor:
-    case bamboo_wall_hanging_sign:
-    case bamboo_wall_sign:
-    case dark_oak_hanging_sign:
-    case dark_oak_wall_hanging_sign:
-    case jungle_hanging_sign:
-    case piglin_head:
-    case piglin_wall_head:
-    case spruce_hanging_sign:
       return 15;
     default:
       return 0;

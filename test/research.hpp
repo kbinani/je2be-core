@@ -862,7 +862,7 @@ static LevelDbConcurrentIterationResult LevelDbConcurrentIterationQueue(char pre
   return ret;
 }
 
-static void LightTransmission() {
+static void LightTransmission1() {
   int const x0 = 1;
   int const y0 = -60;
   int const z0 = -36;
@@ -911,8 +911,9 @@ static void LightTransmission() {
     int y = y0;
     for (auto id : blocks) {
       os << "fill " << (x - 1) << " " << (y - 1) << " " << (z - 2) << " " << x << " " << (y + 1) << " " << (z + 1) << " tinted_glass " << endl;
-      os << "setblock " << x << " " << y << " " << (z - 1) << " barrier" << endl;
+      os << "setblock " << x << " " << y << " " << (z - 1) << " torch" << endl;
       os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id) << endl;
+      os << "setblock " << x << " " << y << " " << (z - 1) << " glass" << endl;
 
       x += 2;
     }
@@ -1029,11 +1030,59 @@ static void LightTransmission() {
   code << "    return 15;" << endl;
   code << "  }" << endl;
   code << "}" << endl;
-  code << endl;
+}
+
+static void LightEmission() {
+  auto dir = ProjectRootDir() / "test" / "data" / "je2be-test";
+  mcfile::je::World world(dir);
+  int const cz = 1;
+  int const y = 64;
+  map<int, set<mcfile::blocks::BlockId>> emissions;
+  set<mcfile::blocks::BlockId> ids;
+  for (int cx = 0; cx <= 13; cx++) {
+    auto chunk = world.chunkAt(cx, cz);
+    REQUIRE(chunk);
+    mcfile::je::ChunkSection *section = nullptr;
+    for (auto &s : chunk->fSections) {
+      if (s && s->y() == y / 16) {
+        section = s.get();
+        break;
+      }
+    }
+    REQUIRE(section);
+    mcfile::Data4b3d blockLight({chunk->minBlockX(), section->y() * 16, chunk->minBlockZ()}, 16, 16, 16);
+    blockLight.copyFrom(section->fBlockLight);
+    for (int z = 1; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        Pos3i center(x + cx * 16, y, z + cz * 16);
+        auto centerBlock = chunk->blockAt(center);
+        if (centerBlock->fId == mcfile::blocks::minecraft::tinted_glass) {
+          continue;
+        }
+        Pos3i north(x + cx * 16, y, z - 1 + cz * 16);
+        auto northBlock = chunk->blockAt(north);
+        if (northBlock->fId == mcfile::blocks::minecraft::air || northBlock->fId == mcfile::blocks::minecraft::barrier) {
+          ids.insert(centerBlock->fId);
+          auto centerLight = blockLight.getUnchecked(center);
+          auto northLight = blockLight.getUnchecked(north);
+          if (centerLight == 0) {
+            assert(northLight == 0);
+          } else {
+            assert(northLight + 1 == centerLight);
+          }
+          if (centerLight > 0) {
+            emissions[centerLight].insert(centerBlock->fId);
+          }
+        }
+      }
+    }
+  }
+  fs::path self = fs::path(__FILE__).parent_path();
+  ofstream code((self / "code.hpp").string());
   code << "static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
-  for (auto const &i : lightEmission) {
+  for (auto const &i : emissions) {
     int emission = i.first;
     for (mcfile::blocks::BlockId id : i.second) {
       auto name = mcfile::blocks::Name(id).substr(10);
@@ -1045,6 +1094,20 @@ static void LightTransmission() {
   code << "    return 0;" << endl;
   code << "  }" << endl;
   code << "}" << endl;
+
+  for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
+    if (ids.contains(id)) {
+      continue;
+    }
+    auto name = mcfile::blocks::Name(id).substr(10);
+    if (name.ends_with("bed")) {
+      continue;
+    }
+    if (name.ends_with("banner")) {
+      continue;
+    }
+    cerr << name << " is not tested" << endl;
+  }
 }
 
 static void Heightmaps() {
