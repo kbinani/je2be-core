@@ -621,13 +621,13 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
       }
     }
     if (!ok) {
-      printf("%3d", origin.fY + y);
+      printf("%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         printf("%6d ", x + origin.fX);
       }
       cout << endl;
       for (int z = 0; z < 16; z++) {
-        printf("%2d:", z + origin.fZ);
+        printf("%3d:", z + origin.fZ);
         for (int x = 0; x < 16; x++) {
           int vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
           int vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
