@@ -871,6 +871,8 @@ public:
     E(blackstone_stairs, Stairs());
     E(polished_blackstone_stairs, Stairs());
     E(polished_blackstone_brick_stairs, Stairs());
+    E(bamboo_stairs, Stairs());
+    E(bamboo_mosaic_stairs, Stairs());
     E(sponge, Sponge("dry"));
     E(wet_sponge, Sponge("wet"));
     E(sandstone, Sandstone("default"));
@@ -1352,6 +1354,7 @@ public:
     E(warped_trapdoor, trapdoor);
     E(iron_trapdoor, trapdoor);
     E(mangrove_trapdoor, trapdoor);
+    E(bamboo_trapdoor, trapdoor);
 
     E(lily_pad, Rename("waterlily"));
 
