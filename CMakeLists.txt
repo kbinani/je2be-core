@@ -332,7 +332,6 @@ set(je2be_src_files
   src/toje/_world.hpp
   src/toje/lighting/_light-cache.hpp
   src/toje/lighting/_lighting-model.hpp
-  src/toje/lighting/_lighting-property.hpp
   src/toje/lighting/_lighting.hpp
   src/toje/terraform/_beacon.hpp
   src/toje/terraform/_campfire.hpp

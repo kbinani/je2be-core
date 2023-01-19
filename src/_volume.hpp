@@ -8,6 +8,10 @@ class Volume {
 public:
   Volume(Pos3i start, Pos3i end) : fStart(start), fEnd(end) {}
 
+  bool contains(Pos3i const &p) const {
+    return fStart.fX <= p.fX && p.fX <= fEnd.fX && fStart.fY <= p.fY && p.fY <= fEnd.fY && fStart.fZ <= p.fZ && p.fZ <= fEnd.fZ;
+  }
+
   static std::optional<Volume> Intersection(Volume const &a, Volume const &b) {
     auto x = Intersection(a.fStart.fX, a.fEnd.fX, b.fStart.fX, b.fEnd.fX);
     auto y = Intersection(a.fStart.fY, a.fEnd.fY, b.fStart.fY, b.fEnd.fY);

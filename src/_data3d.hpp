@@ -160,6 +160,10 @@ public:
     }
   }
 
+  Volume volume() const {
+    return Volume(fStart, fEnd);
+  }
+
 private:
   int index(Pos3i const &p) const {
     int x = p.fX - fStart.fX;
