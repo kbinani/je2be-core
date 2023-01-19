@@ -1093,6 +1093,15 @@ private:
       } else {
         return 0;
       }
+    } else if (block.fId == sea_pickle) {
+      if (block.property("waterlogged") == "true") {
+        auto pickles = Wrap(strings::Toi(block.property("pickles", "1")), 1);
+        return (pickles + 1) * 3;
+      } else {
+        return 0;
+      }
+    } else if (block.fId == light) {
+      return Wrap(strings::Toi(block.property("level", "1")), 1);
     }
     return LightEmissionById(block.fId);
   }
