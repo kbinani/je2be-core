@@ -623,6 +623,8 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
     if (!ok) {
       static mutex sMut;
       lock_guard<mutex> lock(sMut);
+      cout << "-------------------------------------------------------------------------------------------------------------------" << endl;
+      cout << kind << endl;
       printf("%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         printf("%6d ", x + origin.fX);
