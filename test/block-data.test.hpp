@@ -55,12 +55,12 @@ TEST_CASE("prepare-test-data") {
         continue;
       }
       for (auto const &section : chunk->fSections) {
-        section->eachBlockPalette([root](Block const &b) {
-          string s = b.toString().substr(string("minecraft:").size());
+        section->eachBlockPalette([root](shared_ptr<Block const> const &b, size_t) {
+          string s = b->toString().substr(string("minecraft:").size());
           fs::path dir = root / s.substr(0, 1);
           fs::create_directories(dir);
           fs::path nbt = dir / (s + ".nbt");
-          auto converted = je2be::tobe::BlockData::From(make_shared<Block const>(b.fName, b.fProperties), nullptr);
+          auto converted = je2be::tobe::BlockData::From(b, nullptr);
           CHECK(converted != nullptr);
           auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
           CHECK(CompoundTag::Write(*converted, fos, mcfile::Endian::Big));
