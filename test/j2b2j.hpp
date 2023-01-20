@@ -844,7 +844,8 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       "HurtByTimestamp",
       "SpawnAngle",
       "SpawnForced",
-      "ActiveEffects", // TODO:
+      "ActiveEffects",         // TODO:
+      "enteredNetherPosition", // TODO: exists when logged out from the nether
   };
   for (string const &rule : ignoredPlayerAttributes) {
     blacklist.insert("Player/" + rule);
