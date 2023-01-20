@@ -18,6 +18,8 @@ class Lighting {
     MODEL_CLEAR = 0,
     MODEL_HALF_BOTTOM = 0xf3333,
     MODEL_HALF_TOP = 0xf0cccc,
+    MODEL_BOTTOM = 0xF0000,
+    MODEL_TOP = 0xF00000,
 
     MASK_NORTH = 0xf,
     MASK_WEST = 0xf0,
@@ -710,10 +712,24 @@ private:
         LightingModel m;
         m.fEmission = 0;
         m.fTransparency = TRANSLUCENT;
-        m.fModel = 0xF0000;
+        m.fModel = MODEL_BOTTOM;
         m.fBehaveAsAirWhenOpenUp = true;
         return m;
       }
+    } else if (block.fId == stonecutter) {
+      LightingModel m;
+      m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_HALF_BOTTOM;
+      m.fBehaveAsAirWhenOpenUp = true;
+      return m;
+    } else if (block.fId == lectern || block.fId == sculk_shrieker) {
+      LightingModel m;
+      m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_BOTTOM;
+      m.fBehaveAsAirWhenOpenUp = true;
+      return m;
     }
     int amount = 0;
     switch (block.fId) {
@@ -742,6 +758,7 @@ private:
     case horn_coral:
     case horn_coral_fan:
     case horn_coral_wall_fan:
+    case big_dripleaf_stem:
       amount = 0;
       break;
     case bubble_column:
@@ -805,7 +822,7 @@ private:
     case fire:
       return 15;
     }
-    if (block.fId == cave_vines_plant) {
+    if (block.fId == cave_vines_plant || block.fId == cave_vines) {
       if (block.property("berries") == "true") {
         return 14;
       } else {
@@ -813,7 +830,7 @@ private:
       }
     } else if (block.fId == furnace || block.fId == smoker || block.fId == blast_furnace) {
       if (block.property("lit") == "true") {
-        return 14;
+        return 13;
       } else {
         return 0;
       }
@@ -870,6 +887,13 @@ private:
         return 9;
       } else {
         return 0;
+      }
+    } else if (block.fId == respawn_anchor) {
+      auto charges = Wrap(strings::Toi(block.property("charges", "0")), 0);
+      if (charges <= 0) {
+        return 0;
+      } else {
+        return charges * 4 - 1;
       }
     }
     return LightEmissionById(block.fId);
