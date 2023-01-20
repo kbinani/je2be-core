@@ -592,7 +592,7 @@ static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actu
   }
 }
 
-static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, string const &kind) {
+static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, Dimension dim, string const &kind) {
   auto dataE = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &e);
   auto dataA = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &a);
   REQUIRE(dataE);
@@ -612,7 +612,7 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
     if (!ok) {
       lock_guard<mutex> lock(sMutCerr);
       cerr << "-------------------------------------------------------------------------------------------------------------------" << endl;
-      cerr << kind << endl;
+      cerr << kind << " " << JavaStringFromDimension(dim) << endl;
       fprintf(stderr, "%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         fprintf(stderr, "%6d ", x + origin.fX);
@@ -639,7 +639,7 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
   }
 }
 
-static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk const &chunkA) {
+static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk const &chunkA, Dimension dim) {
   REQUIRE(chunkA.fSections.size() == chunkE.fSections.size());
   for (int i = 0; i < chunkE.fSections.size(); i++) {
     auto const &sectionE = chunkE.fSections[i];
@@ -650,11 +650,11 @@ static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk c
     REQUIRE(sectionE->y() == sectionA->y());
     if (!sectionE->fSkyLight.empty()) {
       CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
-      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, "sky");
+      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, dim, "sky");
     }
     if (!sectionE->fBlockLight.empty()) {
       CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
-      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, "block");
+      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, dim, "block");
     }
   }
 }
@@ -762,7 +762,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
 
   if (0 <= chunkE->fChunkX && chunkE->fChunkX <= 23 && 0 <= chunkE->fChunkZ && chunkE->fChunkZ <= 1) {
     // SkyLight and BlockLight sometimes have wrong value, so check light only for limited chunks
-    CheckChunkLight(*chunkE, *chunkA);
+    CheckChunkLight(*chunkE, *chunkA, dim);
   }
 }
 
