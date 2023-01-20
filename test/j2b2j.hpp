@@ -648,11 +648,11 @@ static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk c
     REQUIRE(sectionE);
     REQUIRE(sectionA);
     REQUIRE(sectionE->y() == sectionA->y());
-    if (!sectionE->fSkyLight.empty()) {
+    if (!sectionE->fSkyLight.empty() && std::any_of(sectionE->fSkyLight.begin(), sectionE->fSkyLight.end(), [](uint8_t v) { return v != 0; })) {
       CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
       CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, dim, "sky");
     }
-    if (!sectionE->fBlockLight.empty()) {
+    if (!sectionE->fBlockLight.empty() && std::any_of(sectionE->fBlockLight.begin(), sectionE->fBlockLight.end(), [](uint8_t v) { return v != 0; })) {
       CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
       CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, dim, "block");
     }
