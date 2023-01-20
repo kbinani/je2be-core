@@ -46,8 +46,8 @@ public:
 
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data3dSq<uint8_t, 44>>(start, height, 0);
-      //InitializeSkyLight(dim, *skyLight, models);
-      //DiffuseSkyLight(models, *skyLight);
+      InitializeSkyLight(dim, *skyLight, models);
+      DiffuseSkyLight(models, *skyLight);
     }
 
     Data3dSq<uint8_t, 44> blockLight(start, height, 0);
@@ -685,7 +685,7 @@ private:
         break;
       }
       return m;
-    } else if (block.fId == farmland) {
+    } else if (block.fId == farmland || block.fId == dirt_path) {
       LightingModel m;
       m.fEmission = 0;
       m.fTransparency = TRANSLUCENT;
@@ -721,13 +721,27 @@ private:
     case cactus:
     case chorus_flower:
     case chorus_plant:
-    case farmland:
     case fire:
     case twisting_vines_plant:
     case weeping_vines_plant:
     case soul_fire:
     case cave_vines_plant:
     case sugar_cane:
+    case fire_coral:
+    case fire_coral_fan:
+    case fire_coral_wall_fan:
+    case tube_coral:
+    case tube_coral_fan:
+    case tube_coral_wall_fan:
+    case brain_coral:
+    case brain_coral_fan:
+    case brain_coral_wall_fan:
+    case bubble_coral:
+    case bubble_coral_fan:
+    case bubble_coral_wall_fan:
+    case horn_coral:
+    case horn_coral_fan:
+    case horn_coral_wall_fan:
       amount = 0;
       break;
     case bubble_column:
@@ -851,7 +865,7 @@ private:
       }
     } else if (block.fId == light) {
       return Wrap(strings::Toi(block.property("level", "1")), 1);
-    } else if (block.fId == redstone_ore) {
+    } else if (block.fId == redstone_ore || block.fId == deepslate_redstone_ore) {
       if (block.property("lit") == "true") {
         return 9;
       } else {
