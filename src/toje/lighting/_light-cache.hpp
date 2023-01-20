@@ -17,6 +17,21 @@ public:
     fModels[{cx, cz}] = data;
   }
 
+  // disposes fModels from [0, 0] to [cx, cz] (z first as `for(z = ...) { for (x = ...`)
+  void dispose(int cx, int cz) {
+    if (cx < fRx * 32 || cz < fRz * 32) {
+      return;
+    }
+    for (int z = fRz * 32; z <= cz; z++) {
+      for (int x = fRx * 32; x < fRx * 32 + 32; x++) {
+        fModels[{x, z}].reset();
+        if (z == cz && x == cx) {
+          break;
+        }
+      }
+    }
+  }
+
 private:
   int const fRx;
   int const fRz;

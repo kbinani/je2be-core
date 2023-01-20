@@ -270,14 +270,15 @@ private:
 
         lighting::LightCache lightCache(rx, rz);
 
-        for (int x = 0; x < 32; x++) {
-          for (int z = 0; z < 32; z++) {
+        for (int z = 0; z < 32; z++) {
+          for (int x = 0; x < 32; x++) {
             int cx = x + rx * 32;
             int cz = z + rz * 32;
             if (!TerraformRegion(cx, cz, *editor, found->second, blockAccessor, dim, lightCache).ok()) {
               ok = false;
               break;
             }
+            lightCache.dispose(cx - 1, cz - 1);
           }
           if (!ok) {
             break;
