@@ -1018,14 +1018,16 @@ static void TestJavaToBedrockToJava(fs::path in) {
   optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   Pos2i center(0, 0);
   int radius = 0;
-  for (int cz = center.fZ - radius - 1; cz <= center.fZ + radius + 1; cz++) {
-    for (int cx = center.fX - radius - 1; cx <= center.fX + radius + 1; cx++) {
-      optB.fChunkFilter.insert({cx, cz});
-    }
-  }
   for (int cz = center.fZ - radius; cz <= center.fZ + radius; cz++) {
     for (int cx = center.fX - radius; cx <= center.fX + radius; cx++) {
       chunks.insert({cx, cz});
+    }
+  }
+  for (Pos2i const &p : chunks) {
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dz = -1; dz <= 1; dz++) {
+        optB.fChunkFilter.insert({p.fX + dx, p.fZ + dz});
+      }
     }
   }
   multithread = false;
