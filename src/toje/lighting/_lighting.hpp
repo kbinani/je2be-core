@@ -208,70 +208,6 @@ private:
   }
 
   static void DiffuseBlockLight(Data3dSq<LightingModel, 44> const &props, Data3dSq<uint8_t, 44> &out) {
-    Volume vol(out.volume());
-
-    for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
-      for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
-        for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
-          Pos3i pos{x, y, z};
-          auto p = props[pos];
-          if (p.fEmission == 0) {
-            continue;
-          }
-          out[pos] = p.fEmission;
-
-          Pos3i target;
-
-          target = pos + Pos3iFromFacing6(Facing6::Up);
-          if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
-            if (IsFaceOpened<Facing6::Down>(mTarget) && out[target] < p.fEmission) {
-              out[target] = p.fEmission - 1;
-            }
-          }
-
-          target = pos + Pos3iFromFacing6(Facing6::Down);
-          if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
-            if (IsFaceOpened<Facing6::Up>(mTarget) && out[target] < p.fEmission) {
-              out[target] = p.fEmission - 1;
-            }
-          }
-
-          target = pos + Pos3iFromFacing6(Facing6::North);
-          if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
-            if (IsFaceOpened<Facing6::South>(mTarget) && out[target] < p.fEmission) {
-              out[target] = p.fEmission - 1;
-            }
-          }
-
-          target = pos + Pos3iFromFacing6(Facing6::East);
-          if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
-            if (IsFaceOpened<Facing6::West>(mTarget) && out[target] < p.fEmission) {
-              out[target] = p.fEmission - 1;
-            }
-          }
-
-          target = pos + Pos3iFromFacing6(Facing6::South);
-          if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
-            if (IsFaceOpened<Facing6::North>(mTarget) && out[target] < p.fEmission) {
-              out[target] = p.fEmission - 1;
-            }
-          }
-
-          target = pos + Pos3iFromFacing6(Facing6::West);
-          if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
-            if (IsFaceOpened<Facing6::East>(mTarget) && out[target] < p.fEmission) {
-              out[target] = p.fEmission - 1;
-            }
-          }
-        }
-      }
-    }
     DiffuseLight(props, out);
   }
 
@@ -387,12 +323,67 @@ private:
 
     out.fill(0);
 
-    for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
-      for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
-        for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
-          if (auto p = props.get({x, y, z}); p) {
-            if (p->fEmission > 0) {
-              out[{x, y, z}] = p->fEmission;
+    Volume vol(out.volume());
+
+    for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
+      for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
+        for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
+          Pos3i pos{x, y, z};
+          auto p = props[pos];
+          if (p.fEmission == 0) {
+            continue;
+          }
+          if (out[pos] < p.fEmission) {
+            out[pos] = p.fEmission;
+          }
+
+          Pos3i target;
+
+          target = pos + Pos3iFromFacing6(Facing6::Up);
+          if (vol.contains(target)) {
+            LightingModel mTarget = props[target];
+            if (IsFaceOpened<Facing6::Down>(mTarget) && out[target] < p.fEmission) {
+              out[target] = p.fEmission - 1;
+            }
+          }
+
+          target = pos + Pos3iFromFacing6(Facing6::Down);
+          if (vol.contains(target)) {
+            LightingModel mTarget = props[target];
+            if (IsFaceOpened<Facing6::Up>(mTarget) && out[target] < p.fEmission) {
+              out[target] = p.fEmission - 1;
+            }
+          }
+
+          target = pos + Pos3iFromFacing6(Facing6::North);
+          if (vol.contains(target)) {
+            LightingModel mTarget = props[target];
+            if (IsFaceOpened<Facing6::South>(mTarget) && out[target] < p.fEmission) {
+              out[target] = p.fEmission - 1;
+            }
+          }
+
+          target = pos + Pos3iFromFacing6(Facing6::East);
+          if (vol.contains(target)) {
+            LightingModel mTarget = props[target];
+            if (IsFaceOpened<Facing6::West>(mTarget) && out[target] < p.fEmission) {
+              out[target] = p.fEmission - 1;
+            }
+          }
+
+          target = pos + Pos3iFromFacing6(Facing6::South);
+          if (vol.contains(target)) {
+            LightingModel mTarget = props[target];
+            if (IsFaceOpened<Facing6::North>(mTarget) && out[target] < p.fEmission) {
+              out[target] = p.fEmission - 1;
+            }
+          }
+
+          target = pos + Pos3iFromFacing6(Facing6::West);
+          if (vol.contains(target)) {
+            LightingModel mTarget = props[target];
+            if (IsFaceOpened<Facing6::East>(mTarget) && out[target] < p.fEmission) {
+              out[target] = p.fEmission - 1;
             }
           }
         }
