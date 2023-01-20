@@ -1568,6 +1568,7 @@ public:
     E(mud_brick_wall, wall);
     E(sculk_catalyst, SculkCatalyst);
     E(mud_brick_slab, Slab("mud_brick_double_slab"));
+    E(muddy_mangrove_roots, axisToPillarAxis);
 
     E(spawner, Null); // spawner doesn't exist as block in BE.
 
