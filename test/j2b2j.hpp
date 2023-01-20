@@ -592,7 +592,7 @@ static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actu
   }
 }
 
-static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a) {
+static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, string const &kind) {
   auto dataE = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &e);
   auto dataA = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &a);
   REQUIRE(dataE);
@@ -621,6 +621,8 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
       }
     }
     if (!ok) {
+      static mutex sMut;
+      lock_guard<mutex> lock(sMut);
       printf("%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         printf("%6d ", x + origin.fX);
@@ -656,14 +658,16 @@ static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk c
     REQUIRE(sectionE);
     REQUIRE(sectionA);
     REQUIRE(sectionE->y() == sectionA->y());
-    if (!sectionE->fSkyLight.empty() && chunkE.fChunkX == 0 && chunkE.fChunkZ == 0) {
+    if (chunkE.fChunkX == 0 && chunkE.fChunkZ == 0) {
       // SkyLight sometimes has wrong value, so check light only for chunk at (0, 0)
-      CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
-      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight);
+      if (!sectionE->fSkyLight.empty()) {
+        CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
+        CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, "sky");
+      }
     }
     if (!sectionE->fBlockLight.empty()) {
       CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
-      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight);
+      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, "block");
     }
   }
 }
