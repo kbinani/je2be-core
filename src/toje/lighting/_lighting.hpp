@@ -619,25 +619,30 @@ private:
         Facing6 f = Facing6FromJavaName(block.property("facing"));
         LightingModel m;
         m.fEmission = 0;
-        m.fTransparency = TRANSLUCENT;
         switch (f) {
         case Facing6::Up:
           m.fModel = MODEL_HALF_BOTTOM;
+          m.fTransparency = TRANSLUCENT;
           break;
         case Facing6::Down:
           m.fModel = MODEL_HALF_TOP;
+          m.fTransparency = TRANSLUCENT;
           break;
         case Facing6::North:
           m.fModel = uint32_t(0x3CFA50);
+          m.fTransparency = CLEAR;
           break;
         case Facing6::East:
           m.fModel = uint32_t(0x6AA0F5);
+          m.fTransparency = CLEAR;
           break;
         case Facing6::South:
           m.fModel = uint32_t(0xC305AF);
+          m.fTransparency = CLEAR;
           break;
         case Facing6::West:
           m.fModel = uint32_t(0x555F0A);
+          m.fTransparency = CLEAR;
           break;
         default:
           break;
@@ -654,25 +659,30 @@ private:
       Facing6 f = Facing6FromJavaName(block.property("facing"));
       LightingModel m;
       m.fEmission = 0;
-      m.fTransparency = TRANSLUCENT;
       switch (f) {
       case Facing6::Up:
         m.fModel = uint32_t(0xF00000);
+        m.fTransparency = TRANSLUCENT;
         break;
       case Facing6::Down:
         m.fModel = uint32_t(0xF0000);
+        m.fTransparency = TRANSLUCENT;
         break;
       case Facing6::North:
         m.fModel = uint32_t(0xf);
+        m.fTransparency = CLEAR;
         break;
       case Facing6::East:
         m.fModel = uint32_t(0xF00);
+        m.fTransparency = CLEAR;
         break;
       case Facing6::South:
         m.fModel = uint32_t(0xF000);
+        m.fTransparency = CLEAR;
         break;
       case Facing6::West:
         m.fModel = uint32_t(0xF0);
+        m.fTransparency = CLEAR;
         break;
       default:
         break;
@@ -683,6 +693,7 @@ private:
       m.fEmission = 0;
       m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_HALF_BOTTOM;
+      m.fBehaveAsAirWhenOpenUp = true;
       return m;
     } else if (block.fId == snow) {
       auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
@@ -707,18 +718,31 @@ private:
         m.fBehaveAsAirWhenOpenUp = true;
         return m;
       }
-    } else if (block.fId == stonecutter) {
+    } else if (block.fId == stonecutter || block.fId == end_portal_frame) {
       LightingModel m;
       m.fEmission = 0;
       m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_HALF_BOTTOM;
       m.fBehaveAsAirWhenOpenUp = true;
       return m;
-    } else if (block.fId == lectern || block.fId == sculk_shrieker) {
+    } else if (block.fId == lectern) {
       LightingModel m;
       m.fEmission = 0;
       m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_BOTTOM;
+      m.fBehaveAsAirWhenOpenUp = true;
+      return m;
+    } else if (block.fId == sculk_shrieker) {
+      LightingModel m;
+      m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_HALF_BOTTOM;
+      return m;
+    } else if (block.fId == sculk_sensor) {
+      LightingModel m;
+      m.fEmission = 1;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_HALF_BOTTOM;
       m.fBehaveAsAirWhenOpenUp = true;
       return m;
     }
@@ -726,8 +750,6 @@ private:
     switch (block.fId) {
     case bamboo:
     case cactus:
-    case chorus_flower:
-    case chorus_plant:
     case fire:
     case twisting_vines_plant:
     case weeping_vines_plant:
@@ -750,6 +772,7 @@ private:
     case horn_coral_fan:
     case horn_coral_wall_fan:
     case big_dripleaf_stem:
+    case sculk_vein:
       amount = 0;
       break;
     case bubble_column:
@@ -758,6 +781,8 @@ private:
     case tall_seagrass:
     case seagrass:
     case kelp:
+    case chorus_flower:
+    case chorus_plant:
       amount = 1;
       break;
     case brain_coral_block:
