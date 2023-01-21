@@ -231,71 +231,109 @@ private:
     int z0 = out.fStart.fZ;
     int z1 = out.fEnd.fZ;
 
-    for (int v = 14; v >= 1; v--) {
-      for (int y = y0; y <= y1; y++) {
-        for (int z = z0; z <= z1; z++) {
-          for (int x = x0; x <= x1; x++) {
-            uint8_t center = out[{x, y, z}];
-            if (center >= v) {
-              continue;
-            }
-            LightingModel m = models[{x, y, z}];
-            if (y + 1 <= y1 && IsFaceOpened<Facing6::Up>(m)) {
-              if (CanLightPassthrough<Facing6::Up>(m, models[{x, y + 1, z}])) {
-                int up = out[{x, y + 1, z}];
-                if (up == v + 1) {
-                  out[{x, y, z}] = (uint8_t)v;
-                  continue;
-                }
-              }
-            }
-            if (y - 1 >= y0 && IsFaceOpened<Facing6::Down>(m)) {
-              if (CanLightPassthrough<Facing6::Down>(m, models[{x, y - 1, z}])) {
-                int down = out[{x, y - 1, z}];
-                if (down == v + 1) {
-                  out[{x, y, z}] = (uint8_t)v;
-                  continue;
-                }
-              }
-            }
-            if (x + 1 <= x1 && IsFaceOpened<Facing6::East>(m)) {
-              if (CanLightPassthrough<Facing6::East>(m, models[{x + 1, y, z}])) {
-                int east = out[{x + 1, y, z}];
-                if (east == v + 1) {
-                  out[{x, y, z}] = (uint8_t)v;
-                  continue;
-                }
-              }
-            }
-            if (x - 1 >= x0 && IsFaceOpened<Facing6::West>(m)) {
-              if (CanLightPassthrough<Facing6::West>(m, models[{x - 1, y, z}])) {
-                int west = out[{x - 1, y, z}];
-                if (west == v + 1) {
-                  out[{x, y, z}] = (uint8_t)v;
-                  continue;
-                }
-              }
-            }
-            if (z + 1 <= z1 && IsFaceOpened<Facing6::South>(m)) {
-              if (CanLightPassthrough<Facing6::South>(m, models[{x, y, z + 1}])) {
-                int south = out[{x, y, z + 1}];
-                if (south == v + 1) {
-                  out[{x, y, z}] = (uint8_t)v;
-                  continue;
-                }
-              }
-            }
-            if (z - 1 >= z0 && IsFaceOpened<Facing6::North>(m)) {
-              if (CanLightPassthrough<Facing6::North>(m, models[{x, y, z - 1}])) {
-                int north = out[{x, y, z - 1}];
-                if (north == v + 1) {
-                  out[{x, y, z}] = (uint8_t)v;
-                  continue;
-                }
-              }
+    while (true) {
+      int changed = 0;
+      // up -> down
+      for (int z = z0; z <= z1; z++) {
+        for (int x = x0; x <= x1; x++) {
+          for (int y = y1; y > y0; y--) {
+            Pos3i p(x, y, z);
+            Pos3i target(x, y - 1, z);
+            uint8_t center = out[p];
+            uint8_t down = out[target];
+            if (center > down + 1 && CanLightPassthrough<Facing6::Down>(models[p], models[target])) {
+              out[target] = center - 1;
+              changed++;
             }
           }
         }
+      }
+
+      // down -> up
+      for (int z = z0; z <= z1; z++) {
+        for (int x = x0; x <= x1; x++) {
+          for (int y = y0; y < y1; y++) {
+            Pos3i p(x, y, z);
+            Pos3i target(x, y + 1, z);
+            uint8_t center = out[p];
+            uint8_t up = out[target];
+            if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
+              out[target] = center - 1;
+              changed++;
+            }
+          }
+        }
+      }
+
+      // west -> east
+      for (int y = y0; y <= y1; y++) {
+        for (int z = z0; z <= z1; z++) {
+          for (int x = x0; x < x1; x++) {
+            Pos3i p(x, y, z);
+            Pos3i target(x + 1, y, z);
+            uint8_t center = out[p];
+            uint8_t east = out[target];
+            if (center > east + 1 && CanLightPassthrough<Facing6::East>(models[p], models[target])) {
+              out[target] = center - 1;
+              changed++;
+            }
+          }
+        }
+      }
+
+      // east -> west
+      for (int y = y0; y <= y1; y++) {
+        for (int z = z0; z <= z1; z++) {
+          for (int x = x1; x > x0; x--) {
+            Pos3i p(x, y, z);
+            if (p == Pos3i(9, -54, 13)) {
+              int a = 0;
+            }
+            Pos3i target(x - 1, y, z);
+            uint8_t center = out[p];
+            uint8_t west = out[target];
+            if (center > west + 1 && CanLightPassthrough<Facing6::West>(models[p], models[target])) {
+              out[target] = center - 1;
+              changed++;
+            }
+          }
+        }
+      }
+
+      // north -> south
+      for (int y = y0; y <= y1; y++) {
+        for (int x = x0; x <= x1; x++) {
+          for (int z = z0; z < z1; z++) {
+            Pos3i p(x, y, z);
+            Pos3i target(x, y, z + 1);
+            uint8_t center = out[p];
+            uint8_t south = out[target];
+            if (center > south + 1 && CanLightPassthrough<Facing6::South>(models[p], models[target])) {
+              out[target] = center - 1;
+              changed++;
+            }
+          }
+        }
+      }
+
+      // south -> north
+      for (int y = y0; y <= y1; y++) {
+        for (int x = x0; x <= x1; x++) {
+          for (int z = z1; z > z0; z--) {
+            Pos3i p(x, y, z);
+            Pos3i target(x, y, z - 1);
+            uint8_t center = out[p];
+            uint8_t north = out[target];
+            if (center > north + 1 && CanLightPassthrough<Facing6::North>(models[p], models[target])) {
+              out[target] = center - 1;
+              changed++;
+            }
+          }
+        }
+      }
+
+      if (changed == 0) {
+        break;
       }
     }
   }
