@@ -7,6 +7,7 @@
 #include "_optional.hpp"
 #include "terraform/_block-property-accessor.hpp"
 #include "terraform/java/_block-accessor-java.hpp"
+#include "toje/lighting/_chunk-light-cache.hpp"
 #include "toje/lighting/_light-cache.hpp"
 
 namespace je2be::toje::lighting {

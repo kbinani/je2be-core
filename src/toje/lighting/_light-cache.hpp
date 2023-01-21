@@ -7,7 +7,7 @@ namespace je2be::toje::lighting {
 class LightCache {
 public:
   LightCache(int rx, int rz)
-      : fRx(rx), fRz(rz), fModels({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr) {}
+      : fRx(rx), fRz(rz), fModels({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr), fSkyLights({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr), fBlockLights({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr) {}
 
   std::shared_ptr<Data3dSq<LightingModel, 16>> getModel(int cx, int cz) {
     return fModels[{cx, cz}];
@@ -25,6 +25,8 @@ public:
     for (int z = fRz * 32; z <= cz; z++) {
       for (int x = fRx * 32; x < fRx * 32 + 32; x++) {
         fModels[{x, z}].reset();
+        fSkyLights[{x, z}].reset();
+        fBlockLights[{x, z}].reset();
         if (z == cz && x == cx) {
           break;
         }
@@ -32,10 +34,28 @@ public:
     }
   }
 
+  std::shared_ptr<ChunkLightCache> getSkyLight(int cx, int cz) {
+    return fSkyLights[{cx, cz}];
+  }
+
+  void setSkyLight(int cx, int cz, std::shared_ptr<ChunkLightCache> const &light) {
+    fSkyLights[{cx, cz}] = light;
+  }
+
+  std::shared_ptr<ChunkLightCache> getBlockLight(int cx, int cz) {
+    return fBlockLights[{cx, cz}];
+  }
+
+  void setBlockLight(int cx, int cz, std::shared_ptr<ChunkLightCache> const &light) {
+    fBlockLights[{cx, cz}] = light;
+  }
+
 private:
   int const fRx;
   int const fRz;
   Data2d<std::shared_ptr<Data3dSq<LightingModel, 16>>> fModels;
+  Data2d<std::shared_ptr<ChunkLightCache>> fSkyLights;
+  Data2d<std::shared_ptr<ChunkLightCache>> fBlockLights;
 };
 
 } // namespace je2be::toje::lighting

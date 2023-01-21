@@ -330,6 +330,7 @@ set(je2be_src_files
   src/toje/_structure-info.hpp
   src/toje/_sub-chunk.hpp
   src/toje/_world.hpp
+  src/toje/lighting/_chunk-light-cache.hpp
   src/toje/lighting/_light-cache.hpp
   src/toje/lighting/_lighting-model.hpp
   src/toje/lighting/_lighting.hpp
