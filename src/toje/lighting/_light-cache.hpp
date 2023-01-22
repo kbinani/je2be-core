@@ -21,16 +21,16 @@ public:
 
   // disposes fModels from [0, 0] to [cx, cz] (z first as `for(z = ...) { for (x = ...`)
   void dispose(int cx, int cz) {
-    if (cx < fRx * 32 || cz < fRz * 32) {
+    if (cx < fRx * 32 - 1 || cz < fRz * 32 - 1) {
       return;
     }
-    for (int z = fRz * 32; z <= cz; z++) {
-      for (int x = fRx * 32; x < fRx * 32 + 32; x++) {
+    for (int z = fRz * 32 - 1; z <= cz; z++) {
+      for (int x = fRx * 32 - 1; x <= fRx * 32 + 32; x++) {
         fModels[{x, z}].reset();
         fSkyLights[{x, z}].reset();
         fBlockLights[{x, z}].reset();
         if (z == cz && x == cx) {
-          break;
+          return;
         }
       }
     }

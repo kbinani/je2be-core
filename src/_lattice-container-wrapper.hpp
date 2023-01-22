@@ -34,6 +34,12 @@ public:
     fContainers[{cx, cz}] = container;
   }
 
+  bool contains(Pos3i const &p) const {
+    return fStart.fX <= p.fX && p.fX <= fEnd.fX &&
+           fStart.fY <= p.fY && p.fY <= fEnd.fY &&
+           fStart.fZ <= p.fZ && p.fZ <= fEnd.fZ;
+  }
+
 private:
   static int LatticeIndex(int x) {
     return x < 0 ? ((x + 1) / ContainerSize - 1) : (x / ContainerSize);

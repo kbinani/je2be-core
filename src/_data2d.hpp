@@ -6,7 +6,7 @@ template <class T>
 class Data2d {
 public:
   Data2d(Pos2i const &origin, uint32_t width, uint32_t height, T def)
-      : fOrigin(origin), fWidth(width), fHeight(height) {
+      : fOrigin(origin), fStart(origin), fWidth(width), fHeight(height), fEnd(origin.fX + (int)width - 1, origin.fZ + (int)height - 1) {
     fStorage.resize(fWidth * fHeight, def);
   }
 
@@ -35,10 +35,13 @@ public:
     }
   }
 
-private:
-  Pos2i const fOrigin;
-  uint32_t const fWidth;
-  uint32_t const fHeight;
+  [[deprecated]] Pos2i const fOrigin;
+  Pos2i const fStart;
+  [[deprecated]] uint32_t const fWidth;
+  [[deprecated]] uint32_t const fHeight;
+  Pos2i const fEnd;
+
+public:
   std::vector<T> fStorage;
 };
 

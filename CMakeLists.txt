@@ -147,6 +147,7 @@ set(je2be_src_files
   src/_dimension-ext.hpp
   src/_file.hpp
   src/_future-support.hpp
+  src/_integers.hpp
   src/_java-level-dat.hpp
   src/_lattice-container-wrapper.hpp
   src/_mcfile-fwd.hpp
