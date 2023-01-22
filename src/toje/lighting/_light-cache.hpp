@@ -1,5 +1,7 @@
 #pragma once
 
+#include "_lattice-container-wrapper.hpp"
+#include "toje/lighting/_chunk-lighting-model.hpp"
 #include "toje/lighting/_lighting-model.hpp"
 
 namespace je2be::toje::lighting {
@@ -9,11 +11,11 @@ public:
   LightCache(int rx, int rz)
       : fRx(rx), fRz(rz), fModels({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr), fSkyLights({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr), fBlockLights({rx * 32 - 1, rz * 32 - 1}, 34, 34, nullptr) {}
 
-  std::shared_ptr<Data3dSq<LightingModel, 16>> getModel(int cx, int cz) {
+  std::shared_ptr<ChunkLightingModel> getModel(int cx, int cz) {
     return fModels[{cx, cz}];
   }
 
-  void setModel(int cx, int cz, std::shared_ptr<Data3dSq<LightingModel, 16>> const &data) {
+  void setModel(int cx, int cz, std::shared_ptr<ChunkLightingModel> const &data) {
     fModels[{cx, cz}] = data;
   }
 
@@ -53,7 +55,7 @@ public:
 private:
   int const fRx;
   int const fRz;
-  Data2d<std::shared_ptr<Data3dSq<LightingModel, 16>>> fModels;
+  Data2d<std::shared_ptr<ChunkLightingModel>> fModels;
   Data2d<std::shared_ptr<ChunkLightCache>> fSkyLights;
   Data2d<std::shared_ptr<ChunkLightCache>> fBlockLights;
 };

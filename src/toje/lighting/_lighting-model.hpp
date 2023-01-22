@@ -30,6 +30,18 @@ union LightingModel {
     fBehaveAsAirWhenOpenUp = false;
     fModel = 0;
   }
+
+  struct Hasher {
+    size_t operator()(LightingModel const &k) const {
+      return std::hash<uint32_t>{}(k.fRaw);
+    }
+  };
+
+  struct EqualTo {
+    bool operator()(LightingModel const &a, LightingModel const &b) const {
+      return a.fRaw == b.fRaw;
+    }
+  };
 };
 
 static_assert(sizeof(LightingModel) == sizeof(uint32_t));

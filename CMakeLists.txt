@@ -148,6 +148,7 @@ set(je2be_src_files
   src/_file.hpp
   src/_future-support.hpp
   src/_java-level-dat.hpp
+  src/_lattice-container-wrapper.hpp
   src/_mcfile-fwd.hpp
   src/_mem.hpp
   src/_nbt-ext.hpp
@@ -331,6 +332,7 @@ set(je2be_src_files
   src/toje/_sub-chunk.hpp
   src/toje/_world.hpp
   src/toje/lighting/_chunk-light-cache.hpp
+  src/toje/lighting/_chunk-lighting-model.hpp
   src/toje/lighting/_light-cache.hpp
   src/toje/lighting/_lighting-model.hpp
   src/toje/lighting/_lighting.hpp

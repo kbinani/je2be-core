@@ -38,24 +38,35 @@ public:
     int const minBlockY = dim == mcfile::Dimension::Overworld ? -80 : 0;
     int const maxBlockY = dim == mcfile::Dimension::Overworld ? 319 : 255;
 
+    int const minChunkY = minBlockY / 16;
+
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
-    size_t const height = maxBlockY - minBlockY + 2;
+    size_t const height = maxBlockY - minBlockY + 1;
+
+    LatticeContainerWrapper<ChunkLightingModel> models(Pos3i((out.fChunkX - 1) * 16, minBlockY, (out.fChunkZ - 1) * 16), maxBlockY);
+    for (int dz = -1; dz <= 1; dz++) {
+      for (int dx = -1; dx <= 1; dx++) {
+        int cx = out.fChunkX + dx;
+        int cz = out.fChunkZ + dz;
+        auto m = make_shared<ChunkLightingModel>(cx, minChunkY, cz);
+        models.store(cx, cz, m);
+      }
+    }
 
     LightingModel air(CLEAR);
-    Data3dSq<LightingModel, 44> models(start, height, air);
-    EnsureLightingModels(cache, models, out.fChunkX, out.fChunkZ, blockAccessor);
+    EnsureLightingModels(cache, models, out.fChunkX, minChunkY, out.fChunkZ, blockAccessor);
 
     shared_ptr<Data3dSq<uint8_t, 44>> skyLight;
 
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data3dSq<uint8_t, 44>>(start, height, 0);
-      InitializeSkyLight(dim, *skyLight, models);
-      DiffuseSkyLight(models, *skyLight);
+      InitializeSkyLight(models, *skyLight);
+      DiffuseLight(models, *skyLight);
     }
 
     Data3dSq<uint8_t, 44> blockLight(start, height, 0);
-    InitializeBlockLight(blockLight, models);
-    DiffuseBlockLight(models, blockLight);
+    InitializeBlockLight(models, blockLight);
+    DiffuseLight(models, blockLight);
 
     for (auto &section : out.fSections) {
       if (!section) {
@@ -119,46 +130,28 @@ public:
 private:
   static void EnsureLightingModels(
       LightCache &lightCache,
-      Data3dSq<LightingModel, 44> &out,
+      LatticeContainerWrapper<ChunkLightingModel> &out,
       int cx,
+      int cy,
       int cz,
       terraform::java::BlockAccessorJava &blockAccessor) {
     using namespace std;
 
-    LightingModel airModel;
-    airModel.fTransparency = CLEAR;
-    airModel.fModel = MODEL_CLEAR;
-    airModel.fEmission = 0;
-
-    int y0 = out.fStart.fY;
-    int y1 = out.fEnd.fY;
-    Pos3i start{(cx - 1) * 16, y0, (cz - 1) * 16};
-    int height = y1 - y0 + 1;
-
-    Data3dSq<LightingModel, 48> models(start, height, airModel);
-
-    Data2d<bool> cached{Pos2i{-1, -1}, 3, 3, false};
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
         if (auto cachedModel = lightCache.getModel(cx + dx, cz + dz); cachedModel) {
-          cached[{dx, dz}] = true;
-          models.copyFrom(*cachedModel);
+          out.store(cx + dx, cz + dz, cachedModel);
         } else {
-          cached[{dx, dz}] = false;
           auto chunk = blockAccessor.chunkAt(cx + dx, cz + dz);
           if (!chunk) {
             continue;
           }
-          Pos3i chunkOrigin{chunk->fChunkX * 16, y0, chunk->fChunkZ * 16};
-          auto chunkModel = make_shared<Data3dSq<LightingModel, 16>>(chunkOrigin, height, airModel);
-          CopyChunkLightingModel(*chunk, *chunkModel);
+          auto chunkModel = CopyChunkLightingModel(*chunk, cy);
+          out.store(cx + dx, cz + dz, chunkModel);
           lightCache.setModel(cx + dx, cz + dz, chunkModel);
-          models.copyFrom(*chunkModel);
         }
       }
     }
-
-    out.copyFrom(models);
   }
 
   static constexpr uint32_t MaskFacing6(Facing6 facing) {
@@ -187,31 +180,6 @@ private:
     return BitSwapped(m, 0, 13) | BitSwapped(m, 1, 12) | BitSwapped(m, 2, 15) | BitSwapped(m, 3, 14) | BitSwapped(m, 4, 9) | BitSwapped(m, 5, 8) | BitSwapped(m, 6, 11) | BitSwapped(m, 7, 10) | BitSwapped(m, 16, 22) | BitSwapped(m, 17, 23) | BitSwapped(m, 18, 20) | BitSwapped(m, 19, 21);
   }
 
-  static void DiffuseSkyLight(Data3dSq<LightingModel, 44> const &models, Data3dSq<uint8_t, 44> &out) {
-    for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
-      for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
-        for (int y = out.fEnd.fY - 1; y >= out.fStart.fY; y--) {
-          auto p = models[{x, y, z}];
-          if (p.fTransparency == CLEAR) {
-            out[{x, y, z}] = 15;
-          } else if (p.fTransparency == TRANSLUCENT && p.fBehaveAsAirWhenOpenUp && IsFaceOpened<Facing6::Up>(p)) {
-            out[{x, y, z}] = 15;
-          } else {
-            break;
-          }
-          if (!IsFaceOpened<Facing6::Down>(p)) {
-            break;
-          }
-        }
-      }
-    }
-    DiffuseLight(models, out);
-  }
-
-  static void DiffuseBlockLight(Data3dSq<LightingModel, 44> const &props, Data3dSq<uint8_t, 44> &out) {
-    DiffuseLight(props, out);
-  }
-
   template <Facing6 Face>
   static bool CanLightPassthrough(LightingModel const &model, LightingModel const &targetModel) {
     constexpr uint32_t mask = MaskFacing6(Face);
@@ -224,7 +192,7 @@ private:
     return ((~model.fModel) & mask) != 0;
   }
 
-  static void DiffuseLight(Data3dSq<LightingModel, 44> const &models, Data3dSq<uint8_t, 44> &out) {
+  static void DiffuseLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out) {
     int x0 = out.fStart.fX;
     int x1 = out.fEnd.fX;
     int y0 = out.fStart.fY;
@@ -287,9 +255,6 @@ private:
         for (int z = z0; z <= z1; z++) {
           for (int x = x1; x > x0; x--) {
             Pos3i p(x, y, z);
-            if (p == Pos3i(9, -54, 13)) {
-              int a = 0;
-            }
             Pos3i target(x - 1, y, z);
             uint8_t center = out[p];
             uint8_t west = out[target];
@@ -339,26 +304,34 @@ private:
     }
   }
 
-  static void InitializeSkyLight(mcfile::Dimension dim, Data3dSq<uint8_t, 44> &out, Data3dSq<LightingModel, 44> const &props) {
-    assert(out.fStart.fX <= props.fStart.fX && props.fEnd.fX <= out.fEnd.fX);
-    assert(out.fStart.fY <= props.fStart.fY && props.fEnd.fY <= out.fEnd.fY);
-    assert(out.fStart.fZ <= props.fStart.fZ && props.fEnd.fZ <= out.fEnd.fZ);
-
+  static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out) {
     out.fill(0);
 
-    for (int z = props.fStart.fZ; z <= props.fEnd.fZ; z++) {
-      for (int x = props.fStart.fX; x <= props.fEnd.fX; x++) {
-        out[{x, out.fEnd.fY, z}] = 15;
+    for (int z = out.fStart.fZ; z <= out.fEnd.fZ; z++) {
+      for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
+        for (int y = out.fEnd.fY; y >= out.fStart.fY; y--) {
+          auto p = models[{x, y, z}];
+          if (p.fTransparency == CLEAR) {
+            out[{x, y, z}] = 15;
+          } else if (p.fTransparency == TRANSLUCENT && p.fBehaveAsAirWhenOpenUp && IsFaceOpened<Facing6::Up>(p)) {
+            out[{x, y, z}] = 15;
+          } else {
+            break;
+          }
+          if (!IsFaceOpened<Facing6::Down>(p)) {
+            break;
+          }
+        }
       }
     }
   }
 
-  static void InitializeBlockLight(Data3dSq<uint8_t, 44> &out, Data3dSq<LightingModel, 44> const &props) {
+  static void InitializeBlockLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out) {
     using namespace std;
 
-    assert(out.fStart.fX <= props.fStart.fX && props.fEnd.fX <= out.fEnd.fX);
-    assert(out.fStart.fY <= props.fStart.fY && props.fEnd.fY <= out.fEnd.fY);
-    assert(out.fStart.fZ <= props.fStart.fZ && props.fEnd.fZ <= out.fEnd.fZ);
+    assert(models.fStart.fX <= out.fStart.fX && out.fEnd.fX <= models.fEnd.fX);
+    assert(models.fStart.fY <= out.fStart.fY && out.fEnd.fY <= models.fEnd.fY);
+    assert(models.fStart.fZ <= out.fStart.fZ && out.fEnd.fZ <= models.fEnd.fZ);
 
     out.fill(0);
 
@@ -368,7 +341,7 @@ private:
       for (int x = out.fStart.fX; x <= out.fEnd.fX; x++) {
         for (int y = out.fStart.fY; y <= out.fEnd.fY; y++) {
           Pos3i pos{x, y, z};
-          auto p = props[pos];
+          auto p = models[pos];
           if (p.fEmission == 0) {
             continue;
           }
@@ -380,7 +353,7 @@ private:
 
           target = pos + Pos3iFromFacing6(Facing6::Up);
           if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
+            LightingModel mTarget = models[target];
             if (IsFaceOpened<Facing6::Down>(mTarget) && out[target] < p.fEmission) {
               out[target] = p.fEmission - 1;
             }
@@ -388,7 +361,7 @@ private:
 
           target = pos + Pos3iFromFacing6(Facing6::Down);
           if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
+            LightingModel mTarget = models[target];
             if (IsFaceOpened<Facing6::Up>(mTarget) && out[target] < p.fEmission) {
               out[target] = p.fEmission - 1;
             }
@@ -396,7 +369,7 @@ private:
 
           target = pos + Pos3iFromFacing6(Facing6::North);
           if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
+            LightingModel mTarget = models[target];
             if (IsFaceOpened<Facing6::South>(mTarget) && out[target] < p.fEmission) {
               out[target] = p.fEmission - 1;
             }
@@ -404,7 +377,7 @@ private:
 
           target = pos + Pos3iFromFacing6(Facing6::East);
           if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
+            LightingModel mTarget = models[target];
             if (IsFaceOpened<Facing6::West>(mTarget) && out[target] < p.fEmission) {
               out[target] = p.fEmission - 1;
             }
@@ -412,7 +385,7 @@ private:
 
           target = pos + Pos3iFromFacing6(Facing6::South);
           if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
+            LightingModel mTarget = models[target];
             if (IsFaceOpened<Facing6::North>(mTarget) && out[target] < p.fEmission) {
               out[target] = p.fEmission - 1;
             }
@@ -420,7 +393,7 @@ private:
 
           target = pos + Pos3iFromFacing6(Facing6::West);
           if (vol.contains(target)) {
-            LightingModel mTarget = props[target];
+            LightingModel mTarget = models[target];
             if (IsFaceOpened<Facing6::East>(mTarget) && out[target] < p.fEmission) {
               out[target] = p.fEmission - 1;
             }
@@ -430,37 +403,37 @@ private:
     }
   }
 
-  template <size_t Size>
-  static void CopyChunkLightingModel(mcfile::je::Chunk const &chunk, Data3dSq<LightingModel, Size> &out) {
+  static std::shared_ptr<ChunkLightingModel> CopyChunkLightingModel(mcfile::je::Chunk const &chunk, int minChunkY) {
     using namespace std;
-    assert(out.fStart.fY <= chunk.minBlockY() && chunk.maxBlockY() <= out.fEnd.fY);
 
-    int x0 = (std::max)(chunk.minBlockX(), out.fStart.fX);
-    int x1 = (std::min)(chunk.maxBlockX(), out.fEnd.fX);
-    int z0 = (std::max)(chunk.minBlockZ(), out.fStart.fZ);
-    int z1 = (std::min)(chunk.maxBlockZ(), out.fEnd.fZ);
+    auto ret = make_shared<ChunkLightingModel>(chunk.fChunkX, minChunkY, chunk.fChunkZ);
 
     for (auto const &section : chunk.fSections) {
       if (!section) {
         continue;
       }
-      vector<LightingModel> models;
+      auto s = make_shared<ChunkLightingModel::Section>();
+      vector<LightingModel> palette;
       section->eachBlockPalette([&](shared_ptr<mcfile::je::Block const> const &block, size_t) {
-        models.push_back(GetLightingModel(*block));
+        palette.push_back(GetLightingModel(*block));
         return true;
       });
+      vector<uint16_t> index;
+      index.resize(4096);
       for (int y = 0; y < 16; y++) {
-        for (int bz = z0; bz <= z1; bz++) {
-          for (int bx = x0; bx <= x1; bx++) {
-            if (auto index = section->blockPaletteIndexAt(bx - chunk.minBlockX(), y, bz - chunk.minBlockZ()); index) {
-              LightingModel m = models[*index];
-              int by = y + section->y() * 16;
-              out.set({bx, by, bz}, m);
+        for (int z = 0; z < 16; z++) {
+          for (int x = 0; x < 16; x++) {
+            if (auto i = section->blockPaletteIndexAt(x, y, z); i) {
+              index[(y * 16 + z) * 16 + x] = *i;
             }
           }
         }
       }
+      s->reset(palette, index);
+      ret->setSection(section->y(), s);
     }
+
+    return ret;
   }
 
   static LightingModel GetLightingModel(mcfile::je::Block const &block) {
