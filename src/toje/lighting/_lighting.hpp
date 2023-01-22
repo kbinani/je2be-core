@@ -234,6 +234,8 @@ private:
   }
 
   static void DiffuseLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+    using namespace std;
+
     int x0 = out.fStart.fX;
     int x1 = out.fEnd.fX;
     int y0 = out.fStart.fY;
@@ -244,32 +246,48 @@ private:
     while (true) {
       int changed = 0;
       // up -> down
-      for (int z = z0; z <= z1; z++) {
-        for (int x = x0; x <= x1; x++) {
-          for (int y = y1; y > y0; y--) {
-            Pos3i p(x, y, z);
-            Pos3i target(x, y - 1, z);
-            uint8_t center = out[p];
-            uint8_t down = out[target];
-            if (center > down + 1 && CanLightPassthrough<Facing6::Down>(models[p], models[target])) {
-              out[target] = center - 1;
-              changed++;
+      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+              for (int y = y1; y > y0; y--) {
+                Pos3i p(x, y, z);
+                Pos3i target(x, y - 1, z);
+                uint8_t center = out[p];
+                uint8_t down = out[target];
+                if (center > down + 1 && CanLightPassthrough<Facing6::Down>(models[p], models[target])) {
+                  out[target] = center - 1;
+                  changed++;
+                }
+              }
             }
           }
         }
       }
 
       // down -> up
-      for (int z = z0; z <= z1; z++) {
-        for (int x = x0; x <= x1; x++) {
-          for (int y = y0; y < y1; y++) {
-            Pos3i p(x, y, z);
-            Pos3i target(x, y + 1, z);
-            uint8_t center = out[p];
-            uint8_t up = out[target];
-            if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
-              out[target] = center - 1;
-              changed++;
+      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+              for (int y = y0; y < y1; y++) {
+                Pos3i p(x, y, z);
+                Pos3i target(x, y + 1, z);
+                uint8_t center = out[p];
+                uint8_t up = out[target];
+                if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
+                  out[target] = center - 1;
+                  changed++;
+                }
+              }
             }
           }
         }
@@ -277,15 +295,26 @@ private:
 
       // west -> east
       for (int y = y0; y <= y1; y++) {
-        for (int z = z0; z <= z1; z++) {
-          for (int x = x0; x < x1; x++) {
-            Pos3i p(x, y, z);
-            Pos3i target(x + 1, y, z);
-            uint8_t center = out[p];
-            uint8_t east = out[target];
-            if (center > east + 1 && CanLightPassthrough<Facing6::East>(models[p], models[target])) {
-              out[target] = center - 1;
-              changed++;
+        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+          for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto xIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0 + 1, x1)); xIntersection) {
+              auto [xStart, xEnd] = *xIntersection;
+              for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+                for (int x = xStart; x <= xEnd; x++) {
+                  Pos3i p(x - 1, y, z);
+                  Pos3i target(x, y, z);
+                  uint8_t center = out[p];
+                  uint8_t east = out[target];
+                  if (center > east + 1 && CanLightPassthrough<Facing6::East>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
             }
           }
         }
@@ -293,15 +322,26 @@ private:
 
       // east -> west
       for (int y = y0; y <= y1; y++) {
-        for (int z = z0; z <= z1; z++) {
-          for (int x = x1; x > x0; x--) {
-            Pos3i p(x, y, z);
-            Pos3i target(x - 1, y, z);
-            uint8_t center = out[p];
-            uint8_t west = out[target];
-            if (center > west + 1 && CanLightPassthrough<Facing6::West>(models[p], models[target])) {
-              out[target] = center - 1;
-              changed++;
+        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+          for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto xIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0, x1 - 1)); xIntersection) {
+              auto [xStart, xEnd] = *xIntersection;
+              for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+                for (int x = xEnd; x >= xStart; x--) {
+                  Pos3i p(x + 1, y, z);
+                  Pos3i target(x, y, z);
+                  uint8_t center = out[p];
+                  uint8_t west = out[target];
+                  if (center > west + 1 && CanLightPassthrough<Facing6::West>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
             }
           }
         }
@@ -309,15 +349,26 @@ private:
 
       // north -> south
       for (int y = y0; y <= y1; y++) {
-        for (int x = x0; x <= x1; x++) {
-          for (int z = z0; z < z1; z++) {
-            Pos3i p(x, y, z);
-            Pos3i target(x, y, z + 1);
-            uint8_t center = out[p];
-            uint8_t south = out[target];
-            if (center > south + 1 && CanLightPassthrough<Facing6::South>(models[p], models[target])) {
-              out[target] = center - 1;
-              changed++;
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto zIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0 + 1, z1)); zIntersection) {
+              auto [zStart, zEnd] = *zIntersection;
+              for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+                for (int z = zStart; z <= zEnd; z++) {
+                  Pos3i p(x, y, z - 1);
+                  Pos3i target(x, y, z);
+                  uint8_t center = out[p];
+                  uint8_t south = out[target];
+                  if (center > south + 1 && CanLightPassthrough<Facing6::South>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
             }
           }
         }
@@ -325,15 +376,26 @@ private:
 
       // south -> north
       for (int y = y0; y <= y1; y++) {
-        for (int x = x0; x <= x1; x++) {
-          for (int z = z1; z > z0; z--) {
-            Pos3i p(x, y, z);
-            Pos3i target(x, y, z - 1);
-            uint8_t center = out[p];
-            uint8_t north = out[target];
-            if (center > north + 1 && CanLightPassthrough<Facing6::North>(models[p], models[target])) {
-              out[target] = center - 1;
-              changed++;
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto zIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0, z1 - 1)); zIntersection) {
+              auto [zStart, zEnd] = *zIntersection;
+              for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+                for (int z = zEnd; z >= zStart; z--) {
+                  Pos3i p(x, y, z + 1);
+                  Pos3i target(x, y, z);
+                  uint8_t center = out[p];
+                  uint8_t north = out[target];
+                  if (center > north + 1 && CanLightPassthrough<Facing6::North>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
             }
           }
         }

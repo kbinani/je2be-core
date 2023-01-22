@@ -46,6 +46,19 @@ public:
     CopyAvailable(*fWest, dest);
   }
 
+  static std::optional<std::pair<int, int>> Intersection(std::pair<int, int> const &a, std::pair<int, int> const &b) {
+    int max1 = a.second;
+    int max2 = b.second;
+    int minend = std::min(a.second, b.second);
+    if (b.first <= a.first && a.first <= b.second) {
+      return std::make_pair(a.first, minend);
+    } else if (a.first <= b.first && b.first <= a.second) {
+      return std::make_pair(b.first, minend);
+    } else {
+      return std::nullopt;
+    }
+  }
+
 private:
   ChunkLightCache(int cx, int cz) : fChunkX(cx), fChunkZ(cz) {}
 
@@ -98,19 +111,6 @@ private:
   template <size_t Size>
   static std::pair<int, int> ZRange(Data3dSq<u8, Size> const &data) {
     return std::make_pair(data.fStart.fZ, data.fEnd.fZ);
-  }
-
-  static std::optional<std::pair<int, int>> Intersection(std::pair<int, int> const &a, std::pair<int, int> const &b) {
-    int max1 = a.second;
-    int max2 = b.second;
-    int minend = std::min(a.second, b.second);
-    if (b.first <= a.first && a.first <= b.second) {
-      return std::make_pair(a.first, minend);
-    } else if (a.first <= b.first && b.first <= a.second) {
-      return std::make_pair(b.first, minend);
-    } else {
-      return std::nullopt;
-    }
   }
 
   static bool Contains(mcfile::Data4b3d const &data, Pos3i const &p) {
