@@ -13,23 +13,6 @@
 namespace je2be::toje::lighting {
 
 class Lighting {
-  enum Model : uint32_t {
-    // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
-    MODEL_SOLID = 0xffffff,
-    MODEL_CLEAR = 0,
-    MODEL_HALF_BOTTOM = 0xf3333,
-    MODEL_HALF_TOP = 0xf0cccc,
-    MODEL_BOTTOM = 0xF0000,
-    MODEL_TOP = 0xF00000,
-
-    MASK_NORTH = 0xf,
-    MASK_WEST = 0xf0,
-    MASK_EAST = 0xf00,
-    MASK_SOUTH = 0xf000,
-    MASK_DOWN = 0xf0000,
-    MASK_UP = 0xf00000,
-  };
-
 public:
   static void Do(mcfile::Dimension dim, mcfile::je::Chunk &out, terraform::java::BlockAccessorJava &blockAccessor, LightCache &cache) {
     using namespace std;
@@ -213,23 +196,19 @@ private:
     }
   }
 
-  static uint32_t BitSwapped(uint32_t m, int a, int b) {
-    return (((m >> a) & uint32_t(1)) << b) | (((m >> b) & uint32_t(1)) << a);
-  }
-
-  static uint32_t Invert(uint32_t m) {
-    return BitSwapped(m, 0, 13) | BitSwapped(m, 1, 12) | BitSwapped(m, 2, 15) | BitSwapped(m, 3, 14) | BitSwapped(m, 4, 9) | BitSwapped(m, 5, 8) | BitSwapped(m, 6, 11) | BitSwapped(m, 7, 10) | BitSwapped(m, 16, 22) | BitSwapped(m, 17, 23) | BitSwapped(m, 18, 20) | BitSwapped(m, 19, 21);
+  static u32 Invert(u32 m) {
+    return (0x0f0f0f & (m >> 4)) | (0xf0f0f0 & (m << 4));
   }
 
   template <Facing6 Face>
   static bool CanLightPassthrough(LightingModel const &model, LightingModel const &targetModel) {
-    constexpr uint32_t mask = MaskFacing6(Face);
+    constexpr u32 mask = MaskFacing6(Face);
     return (mask & ((~model.fModel) & ~Invert(targetModel.fModel))) != 0;
   }
 
   template <Facing6 Face>
   static bool IsFaceOpened(LightingModel const &model) {
-    constexpr uint32_t mask = MaskFacing6(Face);
+    constexpr u32 mask = MaskFacing6(Face);
     return ((~model.fModel) & mask) != 0;
   }
 
@@ -554,7 +533,6 @@ private:
   }
 
   static LightingModel GetLightingModel(mcfile::je::Block const &block) {
-    // https://gyazo.com/a270e426c0eb2b8b53083317b5aab16f
     using namespace mcfile::blocks::minecraft;
 
     if (block.fName.ends_with("_stairs")) {
@@ -574,30 +552,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x400408);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x100408);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x10102);
+            m.fModel = MODEL_HALF_TOP | u32(0x10102);
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x104800);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x400880);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x41200);
+            m.fModel = MODEL_HALF_TOP | u32(0x40220);
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x208040);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x808040);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x82010);
+            m.fModel = MODEL_HALF_TOP | u32(0x82010);
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x800084);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x204004);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x20021);
+            m.fModel = MODEL_HALF_TOP | u32(0x21001);
           }
           break;
         }
@@ -605,28 +583,28 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x800084);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x204004);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x20021);
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x21001);
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x400408);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x100408);
           } else {
             m.fModel = MODEL_HALF_TOP | uint32_t(0x10102);
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x104800);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x400880);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x41200);
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x40220);
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x208040);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x808040);
           } else {
             m.fModel = MODEL_HALF_TOP | uint32_t(0x82010);
           }
@@ -636,30 +614,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x208040));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x808040));
           } else {
             m.fModel = MODEL_SOLID & (~uint32_t(0x82010));
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x800084));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x204004));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x20021));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x21001));
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x400408));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x100408));
           } else {
             m.fModel = MODEL_SOLID & (~uint32_t(0x10102));
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x104800));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x400880));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x41200));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x40220));
           }
           break;
         }
@@ -667,28 +645,28 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x104800));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x400880));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x41200));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x40220));
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x208040));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x808040));
           } else {
             m.fModel = MODEL_SOLID & (~uint32_t(0x82010));
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x800084));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x204004));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x20021));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x21001));
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x400408));
+            m.fModel = MODEL_SOLID & (~uint32_t(0x100408));
           } else {
             m.fModel = MODEL_SOLID & (~uint32_t(0x10102));
           }
@@ -698,30 +676,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xC0048C);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x30440c);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x30123);
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x31103);
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x504C08);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x500c88);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x51302);
+            m.fModel = MODEL_HALF_TOP | uint32_t(0x50322);
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x30C840);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xc088c0);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0xC3210);
+            m.fModel = MODEL_HALF_TOP | uint32_t(0xc2230);
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xA080C4);
+            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xa0c044);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0xA2031);
+            m.fModel = MODEL_HALF_TOP | uint32_t(0xa3011);
           }
           break;
         }
@@ -758,19 +736,19 @@ private:
           m.fTransparency = TRANSLUCENT;
           break;
         case Facing6::North:
-          m.fModel = uint32_t(0x3CFA50);
+          m.fModel = uint32_t(0xccaaf0);
           m.fTransparency = CLEAR;
           break;
         case Facing6::East:
-          m.fModel = uint32_t(0x6AA0F5);
+          m.fModel = uint32_t(0x9af055);
           m.fTransparency = CLEAR;
           break;
         case Facing6::South:
-          m.fModel = uint32_t(0xC305AF);
+          m.fModel = uint32_t(0x33550f);
           m.fTransparency = CLEAR;
           break;
         case Facing6::West:
-          m.fModel = uint32_t(0x555F0A);
+          m.fModel = uint32_t(0x550faa);
           m.fTransparency = CLEAR;
           break;
         default:
@@ -790,11 +768,11 @@ private:
       m.fEmission = 0;
       switch (f) {
       case Facing6::Up:
-        m.fModel = uint32_t(0xF00000);
+        m.fModel = uint32_t(0xf00000);
         m.fTransparency = TRANSLUCENT;
         break;
       case Facing6::Down:
-        m.fModel = uint32_t(0xF0000);
+        m.fModel = uint32_t(0xf0000);
         m.fTransparency = TRANSLUCENT;
         break;
       case Facing6::North:
@@ -802,15 +780,15 @@ private:
         m.fTransparency = CLEAR;
         break;
       case Facing6::East:
-        m.fModel = uint32_t(0xF00);
+        m.fModel = uint32_t(0xf00);
         m.fTransparency = CLEAR;
         break;
       case Facing6::South:
-        m.fModel = uint32_t(0xF000);
+        m.fModel = uint32_t(0xf0);
         m.fTransparency = CLEAR;
         break;
       case Facing6::West:
-        m.fModel = uint32_t(0xF0);
+        m.fModel = uint32_t(0xf000);
         m.fTransparency = CLEAR;
         break;
       default:
