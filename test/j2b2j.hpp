@@ -395,6 +395,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   } else if (id == "minecraft:zombie_villager") {
     blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
     blacklist.insert("InWaterTime");
+    blacklist.insert("IsBaby"); //TODO:
   } else if (id == "minecraft:piglin") {
     blacklist.insert("TimeInOverworld");
     blacklist.insert("IsBaby");
