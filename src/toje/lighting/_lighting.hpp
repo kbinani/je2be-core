@@ -387,10 +387,8 @@ private:
   }
 
   static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
-    for (int z = 0; z < volumes.fHeight; z++) {
-      for (int x = 0; x < volumes.fWidth; x++) {
-        int cx = x + volumes.fOrigin.fX;
-        int cz = z + volumes.fOrigin.fZ;
+    for (int cz = volumes.fStart.fZ; cz <= volumes.fEnd.fZ; cz++) {
+      for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
         if (auto v = volumes[{cx, cz}]; v) {
           for (int bz = v->fStart.fZ; bz <= v->fEnd.fZ; bz++) {
             for (int bx = v->fStart.fX; bx <= v->fEnd.fX; bx++) {
@@ -422,8 +420,8 @@ private:
     assert(models.fStart.fY <= out.fStart.fY && out.fEnd.fY <= models.fEnd.fY);
     assert(models.fStart.fZ <= out.fStart.fZ && out.fEnd.fZ <= models.fEnd.fZ);
 
-    for (int j = volumes.fOrigin.fZ; j <= volumes.fEnd.fZ; j++) {
-      for (int i = volumes.fOrigin.fX; i <= volumes.fEnd.fX; i++) {
+    for (int j = volumes.fStart.fZ; j <= volumes.fEnd.fZ; j++) {
+      for (int i = volumes.fStart.fX; i <= volumes.fEnd.fX; i++) {
         auto v = volumes[{i, j}];
         if (!v) {
           continue;

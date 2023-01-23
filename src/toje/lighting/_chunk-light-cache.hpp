@@ -47,8 +47,6 @@ public:
   }
 
   static std::optional<std::pair<int, int>> Intersection(std::pair<int, int> const &a, std::pair<int, int> const &b) {
-    int max1 = a.second;
-    int max2 = b.second;
     int minend = std::min(a.second, b.second);
     if (b.first <= a.first && a.first <= b.second) {
       return std::make_pair(a.first, minend);
