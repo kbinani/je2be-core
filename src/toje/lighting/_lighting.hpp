@@ -29,25 +29,25 @@ public:
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     size_t const height = maxBlockY - minBlockY + 1;
 
-    LatticeContainerWrapper<ChunkLightingModel> models(Pos3i((cx - 1) * 16, minBlockY, (cz - 1) * 16), maxBlockY);
+    auto models = make_shared<LatticeContainerWrapper<ChunkLightingModel>>(Pos3i((cx - 1) * 16, minBlockY, (cz - 1) * 16), maxBlockY);
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
         int x = cx + dx;
         int z = cz + dz;
         auto m = make_shared<ChunkLightingModel>(x, minChunkY, z);
-        models.store(x, z, m);
+        models->store(x, z, m);
       }
     }
 
     LightingModel air(CLEAR);
-    EnsureLightingModels(cache, models, cx, minChunkY, cz, blockAccessor);
+    EnsureLightingModels(cache, *models, cx, minChunkY, cz, blockAccessor);
 
     shared_ptr<Data3dSq<u8, 44>> skyLight;
+    Data2d<optional<Volume>> skyVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
 
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data3dSq<u8, 44>>(start, height, 0);
 
-      Data2d<optional<Volume>> skyVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
       for (int dz = -1; dz <= 1; dz++) {
         for (int dx = -1; dx <= 1; dx++) {
           if (auto cached = cache.getSkyLight(cx + dx, cz + dz); cached) {
@@ -62,11 +62,6 @@ public:
           }
         }
       }
-
-      InitializeSkyLight(models, *skyLight, skyVolumes);
-      DiffuseLight(models, *skyLight, skyVolumes);
-      auto skyLightCache = ChunkLightCache::Create(cx, cz, *skyLight);
-      cache.setSkyLight(cx, cz, skyLightCache);
     }
 
     Data3dSq<u8, 44> blockLight(start, height, 0);
@@ -87,8 +82,28 @@ public:
       }
     }
 
-    InitializeBlockLight(models, blockLight, blockVolumes);
-    DiffuseLight(models, blockLight, blockVolumes);
+    if (skyLight) {
+      InitializeSkyLight(*models, *skyLight, skyVolumes);
+    }
+    InitializeBlockLight(*models, blockLight, blockVolumes);
+
+    Data3dSq<u32, 44> mod(start, height, 0);
+    for (int y = mod.fStart.fY; y <= mod.fEnd.fY; y++) {
+      for (int z = mod.fStart.fZ; z <= mod.fEnd.fZ; z++) {
+        for (int x = mod.fStart.fX; x <= mod.fEnd.fX; x++) {
+          mod[{x, y, z}] = (*models)[{x, y, z}].fModel;
+        }
+      }
+    }
+    models.reset();
+
+    if (skyLight) {
+      DiffuseLight(mod, *skyLight, skyVolumes);
+      auto skyLightCache = ChunkLightCache::Create(cx, cz, *skyLight);
+      cache.setSkyLight(cx, cz, skyLightCache);
+    }
+
+    DiffuseLight(mod, blockLight, blockVolumes);
     auto blockLightCache = ChunkLightCache::Create(cx, cz, blockLight);
     cache.setBlockLight(cx, cz, blockLightCache);
 
@@ -201,9 +216,9 @@ private:
   }
 
   template <Facing6 Face>
-  static bool CanLightPassthrough(LightingModel const &model, LightingModel const &targetModel) {
+  static bool CanLightPassthrough(u32 const &model, u32 const &targetModel) {
     constexpr u32 mask = MaskFacing6(Face);
-    return (mask & ((~model.fModel) & ~Invert(targetModel.fModel))) != 0;
+    return (mask & ((~model) & ~Invert(targetModel))) != 0;
   }
 
   template <Facing6 Face>
@@ -212,7 +227,7 @@ private:
     return ((~model.fModel) & mask) != 0;
   }
 
-  static void DiffuseLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void DiffuseLight(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     using namespace std;
 
     int x0 = out.fStart.fX;
