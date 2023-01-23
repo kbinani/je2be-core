@@ -108,11 +108,15 @@ public:
   }
 
   Value const &operator[](Pos3i const &p) const {
-    return fStorage[index(p)];
+    int i = index(p);
+    assert(0 <= i && i < (int)Size * fHeight * (int)Size);
+    return fStorage[i];
   }
 
   Value &operator[](Pos3i const &p) {
-    return fStorage[index(p)];
+    int i = index(p);
+    assert(0 <= i && i < (int)Size * fHeight * (int)Size);
+    return fStorage[i];
   }
 
   std::optional<Value> get(Pos3i const &p) const {

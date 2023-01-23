@@ -44,6 +44,8 @@ public:
 
     shared_ptr<Data3dSq<u8, 44>> skyLight;
     Data2d<optional<Volume>> skyVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
+    Data2d<bool> skyCached({cx - 1, cz - 1}, 3, 3, false);
+    Data2d<optional<Volume>> skyDiffuseVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
 
     if (dim == Dimension::Overworld) {
       skyLight = make_shared<Data3dSq<u8, 44>>(start, height, 0);
@@ -52,14 +54,14 @@ public:
         for (int dx = -1; dx <= 1; dx++) {
           if (auto cached = cache.getSkyLight(cx + dx, cz + dz); cached) {
             cached->copyTo(*skyLight);
-          } else {
-            Pos3i start((cx + dx) * 16, minBlockY, (cz + dz) * 16);
-            Pos3i end(start.fX + 15, maxBlockY, start.fZ + 15);
-            Volume chunkVolume(start, end);
-            if (auto part = Volume::Intersection(skyLight->volume(), chunkVolume); part) {
-              skyVolumes[{cx + dx, cz + dz}] = *part;
-            }
+            skyCached[{cx + dx, cz + dz}] = true;
           }
+          Pos3i start((cx + dx) * 16, minBlockY, (cz + dz) * 16);
+          Pos3i end(start.fX + 15, maxBlockY, start.fZ + 15);
+          Volume chunkVolume(start, end);
+          auto part = Volume::Intersection(skyLight->volume(), chunkVolume);
+          assert(part);
+          skyVolumes[{cx + dx, cz + dz}] = *part;
         }
       }
     }
@@ -67,25 +69,28 @@ public:
     Data3dSq<u8, 44> blockLight(start, height, 0);
 
     Data2d<optional<Volume>> blockVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
+    Data2d<bool> blockCached({cx - 1, cz - 1}, 3, 3, false);
+    Data2d<optional<Volume>> blockDiffuseVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
+
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
         if (auto cached = cache.getBlockLight(cx + dx, cz + dz); cached) {
           cached->copyTo(blockLight);
-        } else {
-          Pos3i start((cx + dx) * 16, minBlockY, (cz + dz) * 16);
-          Pos3i end(start.fX + 15, maxBlockY, start.fZ + 15);
-          Volume chunkVolume(start, end);
-          if (auto part = Volume::Intersection(blockLight.volume(), chunkVolume); part) {
-            blockVolumes[{cx + dx, cz + dz}] = *part;
-          }
+          blockCached[{cx + dx, cz + dz}] = true;
         }
+        Pos3i start((cx + dx) * 16, minBlockY, (cz + dz) * 16);
+        Pos3i end(start.fX + 15, maxBlockY, start.fZ + 15);
+        Volume chunkVolume(start, end);
+        auto part = Volume::Intersection(blockLight.volume(), chunkVolume);
+        assert(part);
+        blockVolumes[{cx + dx, cz + dz}] = *part;
       }
     }
 
     if (skyLight) {
-      InitializeSkyLight(*models, *skyLight, skyVolumes);
+      InitializeSkyLight(*models, *skyLight, skyCached, skyVolumes, skyDiffuseVolumes);
     }
-    InitializeBlockLight(*models, blockLight, blockVolumes);
+    InitializeBlockLight(*models, blockLight, blockCached, blockVolumes, blockDiffuseVolumes);
 
     Data3dSq<u32, 44> mod(start, height, 0);
     for (int y = mod.fStart.fY; y <= mod.fEnd.fY; y++) {
@@ -98,12 +103,12 @@ public:
     models.reset();
 
     if (skyLight) {
-      DiffuseLight(mod, *skyLight, skyVolumes);
+      DiffuseLight(mod, *skyLight, skyDiffuseVolumes);
       auto skyLightCache = ChunkLightCache::Create(cx, cz, *skyLight);
       cache.setSkyLight(cx, cz, skyLightCache);
     }
 
-    DiffuseLight(mod, blockLight, blockVolumes);
+    DiffuseLight(mod, blockLight, blockDiffuseVolumes);
     auto blockLightCache = ChunkLightCache::Create(cx, cz, blockLight);
     cache.setBlockLight(cx, cz, blockLightCache);
 
@@ -295,7 +300,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto xIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0 + 1, x1)); xIntersection) {
+            if (auto xIntersection = Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0 + 1, x1)); xIntersection) {
               auto [xStart, xEnd] = *xIntersection;
               for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
                 for (int x = xStart; x <= xEnd; x++) {
@@ -322,7 +327,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto xIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0, x1 - 1)); xIntersection) {
+            if (auto xIntersection = Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0, x1 - 1)); xIntersection) {
               auto [xStart, xEnd] = *xIntersection;
               for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
                 for (int x = xEnd; x >= xStart; x--) {
@@ -349,7 +354,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto zIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0 + 1, z1)); zIntersection) {
+            if (auto zIntersection = Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0 + 1, z1)); zIntersection) {
               auto [zStart, zEnd] = *zIntersection;
               for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
                 for (int z = zStart; z <= zEnd; z++) {
@@ -376,7 +381,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto zIntersection = ChunkLightCache::Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0, z1 - 1)); zIntersection) {
+            if (auto zIntersection = Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0, z1 - 1)); zIntersection) {
               auto [zStart, zEnd] = *zIntersection;
               for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
                 for (int z = zEnd; z >= zStart; z--) {
@@ -401,25 +406,52 @@ private:
     }
   }
 
-  static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<bool> const &cached, Data2d<std::optional<Volume>> const &volumes, Data2d<std::optional<Volume>> &diffuseVolumes) {
+    using namespace std;
+
     for (int cz = volumes.fStart.fZ; cz <= volumes.fEnd.fZ; cz++) {
       for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
-        if (auto v = volumes[{cx, cz}]; v) {
-          for (int bz = v->fStart.fZ; bz <= v->fEnd.fZ; bz++) {
-            for (int bx = v->fStart.fX; bx <= v->fEnd.fX; bx++) {
-              int by = v->fEnd.fY;
-              for (; by >= v->fStart.fY; by--) {
-                auto p = models[{bx, by, bz}];
-                if (p.fTransparency == CLEAR) {
+        auto v = volumes[{cx, cz}];
+        assert(v);
+        for (int bz = v->fStart.fZ; bz <= v->fEnd.fZ; bz++) {
+          for (int bx = v->fStart.fX; bx <= v->fEnd.fX; bx++) {
+            int by = v->fEnd.fY;
+            for (; by >= v->fStart.fY; by--) {
+              bool done = false;
+              auto p = models[{bx, by, bz}];
+              if (p.fTransparency == CLEAR) {
+                if (!cached[{cx, cz}]) {
                   out[{bx, by, bz}] = 15;
-                } else if (p.fTransparency == TRANSLUCENT && p.fBehaveAsAirWhenOpenUp && IsFaceOpened<Facing6::Up>(p)) {
+                }
+              } else if (p.fTransparency == TRANSLUCENT && p.fBehaveAsAirWhenOpenUp && IsFaceOpened<Facing6::Up>(p)) {
+                if (!cached[{cx, cz}]) {
                   out[{bx, by, bz}] = 15;
-                } else {
-                  break;
                 }
-                if (!IsFaceOpened<Facing6::Down>(p)) {
-                  break;
+              } else {
+                done = true;
+              }
+              if (!IsFaceOpened<Facing6::Down>(p)) {
+                done = true;
+              }
+              if (done) {
+                Volume calc(Pos3i(bx, by, bz) - Pos3i(14, 14, 14), Pos3i(bx, by, bz) + Pos3i(14, 14, 14));
+                for (int x = diffuseVolumes.fStart.fX; x <= diffuseVolumes.fEnd.fX; x++) {
+                  for (int z = diffuseVolumes.fStart.fZ; z <= diffuseVolumes.fEnd.fZ; z++) {
+                    if (cached[{x, z}]) {
+                      continue;
+                    }
+                    auto vv = volumes[{x, z}];
+                    assert(vv);
+                    if (auto intersection = Volume::Intersection(calc, *vv); intersection) {
+                      if (auto current = diffuseVolumes[{x, z}]; current) {
+                        diffuseVolumes[{x, z}] = Volume::Union(*intersection, *current);
+                      } else {
+                        diffuseVolumes[{x, z}] = *intersection;
+                      }
+                    }
+                  }
                 }
+                break;
               }
             }
           }
@@ -428,29 +460,47 @@ private:
     }
   }
 
-  static void InitializeBlockLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void InitializeBlockLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<bool> const &cached, Data2d<std::optional<Volume>> const &volumes, Data2d<std::optional<Volume>> &diffuseVolumes) {
     using namespace std;
 
     assert(models.fStart.fX <= out.fStart.fX && out.fEnd.fX <= models.fEnd.fX);
     assert(models.fStart.fY <= out.fStart.fY && out.fEnd.fY <= models.fEnd.fY);
     assert(models.fStart.fZ <= out.fStart.fZ && out.fEnd.fZ <= models.fEnd.fZ);
 
-    for (int j = volumes.fStart.fZ; j <= volumes.fEnd.fZ; j++) {
-      for (int i = volumes.fStart.fX; i <= volumes.fEnd.fX; i++) {
-        auto v = volumes[{i, j}];
-        if (!v) {
-          continue;
-        }
-        for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
-          for (int z = v->fStart.fZ - 1; z <= v->fEnd.fZ + 1; z++) {
-            for (int x = v->fStart.fX - 1; x <= v->fEnd.fX + 1; x++) {
-              Pos3i pos{x, y, z};
+    for (int cz = volumes.fStart.fZ; cz <= volumes.fEnd.fZ; cz++) {
+      for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
+        auto v = volumes[{cx, cz}];
+        assert(v);
+        for (int by = v->fStart.fY; by <= v->fEnd.fY; by++) {
+          for (int bz = v->fStart.fZ - 1; bz <= v->fEnd.fZ + 1; bz++) {
+            for (int bx = v->fStart.fX - 1; bx <= v->fEnd.fX + 1; bx++) {
+              Pos3i pos{bx, by, bz};
               if (!models.contains(pos)) {
                 continue;
               }
               auto p = models[pos];
               if (p.fEmission == 0) {
                 continue;
+              }
+              if (p.fEmission > 1) {
+                Pos3i radius(p.fEmission - 1, p.fEmission - 1, p.fEmission - 1);
+                Volume calc(pos - radius, pos + radius);
+                for (int x = diffuseVolumes.fStart.fX; x <= diffuseVolumes.fEnd.fX; x++) {
+                  for (int z = diffuseVolumes.fStart.fZ; z <= diffuseVolumes.fEnd.fZ; z++) {
+                    if (cached[{x, z}]) {
+                      continue;
+                    }
+                    auto vv = volumes[{x, z}];
+                    assert(vv);
+                    if (auto intersection = Volume::Intersection(calc, *vv); intersection) {
+                      if (auto current = diffuseVolumes[{x, z}]; current) {
+                        diffuseVolumes[{x, z}] = Volume::Union(*intersection, *current);
+                      } else {
+                        diffuseVolumes[{x, z}] = *intersection;
+                      }
+                    }
+                  }
+                }
               }
               if (v->contains(pos) && out[pos] < p.fEmission) {
                 out[pos] = p.fEmission;

@@ -24,37 +24,12 @@ public:
     return ret;
   }
 
-  u8 get(Pos3i const &p) const {
-    if (Contains(*fNorth, p)) {
-      return fNorth->getUnchecked(p);
-    } else if (Contains(*fEast, p)) {
-      return fEast->getUnchecked(p);
-    } else if (Contains(*fSouth, p)) {
-      return fSouth->getUnchecked(p);
-    } else if (Contains(*fWest, p)) {
-      return fWest->getUnchecked(p);
-    } else {
-      return 0;
-    }
-  }
-
   template <size_t Size>
   void copyTo(Data3dSq<u8, Size> &dest) const {
     CopyAvailable(*fNorth, dest);
     CopyAvailable(*fEast, dest);
     CopyAvailable(*fSouth, dest);
     CopyAvailable(*fWest, dest);
-  }
-
-  static std::optional<std::pair<int, int>> Intersection(std::pair<int, int> const &a, std::pair<int, int> const &b) {
-    int minend = std::min(a.second, b.second);
-    if (b.first <= a.first && a.first <= b.second) {
-      return std::make_pair(a.first, minend);
-    } else if (a.first <= b.first && b.first <= a.second) {
-      return std::make_pair(b.first, minend);
-    } else {
-      return std::nullopt;
-    }
   }
 
 private:

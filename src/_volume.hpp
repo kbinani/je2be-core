@@ -1,5 +1,6 @@
 #pragma once
 
+#include "_algorithm.hpp"
 #include "_pos3.hpp"
 
 namespace je2be {
@@ -12,10 +13,17 @@ public:
     return fStart.fX <= p.fX && p.fX <= fEnd.fX && fStart.fY <= p.fY && p.fY <= fEnd.fY && fStart.fZ <= p.fZ && p.fZ <= fEnd.fZ;
   }
 
+  static Volume Union(Volume const &a, Volume const &b) {
+    Pos3i start((std::min)(a.fStart.fX, b.fStart.fX), (std::min)(a.fStart.fY, b.fStart.fY), (std::min)(a.fStart.fZ, b.fStart.fZ));
+    Pos3i end((std::max)(a.fEnd.fX, b.fEnd.fX), (std::max)(a.fEnd.fY, b.fEnd.fY), (std::max)(a.fEnd.fZ, b.fEnd.fZ));
+    return Volume(start, end);
+  }
+
   static std::optional<Volume> Intersection(Volume const &a, Volume const &b) {
-    auto x = Intersection(a.fStart.fX, a.fEnd.fX, b.fStart.fX, b.fEnd.fX);
-    auto y = Intersection(a.fStart.fY, a.fEnd.fY, b.fStart.fY, b.fEnd.fY);
-    auto z = Intersection(a.fStart.fZ, a.fEnd.fZ, b.fStart.fZ, b.fEnd.fZ);
+    using namespace std;
+    auto x = je2be::Intersection(make_pair(a.fStart.fX, a.fEnd.fX), make_pair(b.fStart.fX, b.fEnd.fX));
+    auto y = je2be::Intersection(make_pair(a.fStart.fY, a.fEnd.fY), make_pair(b.fStart.fY, b.fEnd.fY));
+    auto z = je2be::Intersection(make_pair(a.fStart.fZ, a.fEnd.fZ), make_pair(b.fStart.fZ, b.fEnd.fZ));
     if (!x || !y || !z) {
       return std::nullopt;
     }
@@ -200,17 +208,6 @@ private:
         break;
       }
       buffer.swap(inout);
-    }
-  }
-
-  static std::optional<std::tuple<i32, i32>> Intersection(i32 a0, i32 a1, i32 b0, i32 b1) {
-    using namespace std;
-    i32 maxLowerBound = std::max(a0, b0);
-    i32 minUpperBound = std::min(a1, b1);
-    if (maxLowerBound < minUpperBound) {
-      return make_tuple(maxLowerBound, minUpperBound);
-    } else {
-      return nullopt;
     }
   }
 

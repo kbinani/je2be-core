@@ -5,9 +5,15 @@ namespace je2be {
 template <class T>
 class Data2d {
 public:
-  Data2d(Pos2i const &origin, u32 width, u32 height, T def)
-      : fStart(origin), //
-        fEnd(origin.fX + (int)width - 1, origin.fZ + (int)height - 1) {
+  Data2d(Pos2i const &start, Pos2i const &end, T def)
+      : fStart(start), //
+        fEnd(end) {
+    fStorage.resize((end.fX - start.fX + 1) * (end.fZ - start.fZ + 1), def);
+  }
+
+  Data2d(Pos2i const &start, u32 width, u32 height, T def)
+      : fStart(start), //
+        fEnd(start.fX + (int)width - 1, start.fZ + (int)height - 1) {
     fStorage.resize(width * height, def);
   }
 
