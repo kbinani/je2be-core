@@ -12,7 +12,7 @@ namespace je2be::tobe {
 
 class ChunkData {
 public:
-  ChunkData(int32_t chunkX, int32_t chunkZ, mcfile::Dimension dim, ChunkConversionMode mode) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim), fMode(mode) {}
+  ChunkData(i32 chunkX, i32 chunkZ, mcfile::Dimension dim, ChunkConversionMode mode) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim), fMode(mode) {}
 
   [[nodiscard]] bool put(DbInterface &db) {
     auto status = putChunkSections(db);
@@ -30,7 +30,7 @@ private:
   void putFinalizedState(DbInterface &db) const {
     auto key = mcfile::be::DbKey::FinalizedState(fChunkX, fChunkZ, fDimension);
     if (fFinalizedState) {
-      int32_t v = *fFinalizedState;
+      i32 v = *fFinalizedState;
       db.put(key, leveldb::Slice((char const *)&v, sizeof(v)));
     } else {
       db.del(key);
@@ -74,7 +74,7 @@ private:
   ChunkStatus putChunkSections(DbInterface &db) const {
     bool empty = true;
     for (auto const &it : fSubChunks) {
-      int8_t y = it.first;
+      i8 y = it.first;
       auto const &section = it.second;
       auto key = mcfile::be::DbKey::SubChunk(fChunkX, y, fChunkZ, fDimension);
       if (section.empty()) {
@@ -126,16 +126,16 @@ private:
   }
 
 public:
-  int32_t const fChunkX;
-  int32_t const fChunkZ;
+  i32 const fChunkX;
+  i32 const fChunkZ;
   mcfile::Dimension const fDimension;
   ChunkConversionMode const fMode;
 
-  std::vector<uint8_t> fData2D;
-  std::map<int8_t, std::vector<uint8_t>> fSubChunks;
-  std::vector<uint8_t> fBlockEntity;
-  std::optional<int32_t> fFinalizedState;
-  std::vector<uint8_t> fPendingTicks;
+  std::vector<u8> fData2D;
+  std::map<i8, std::vector<u8>> fSubChunks;
+  std::vector<u8> fBlockEntity;
+  std::optional<i32> fFinalizedState;
+  std::vector<u8> fPendingTicks;
 };
 
 } // namespace je2be::tobe

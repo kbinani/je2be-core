@@ -97,7 +97,7 @@ public:
 
     unordered_map<Pos2i, unordered_set<Pos2i, Pos2iHasher>, Pos2iHasher> chunksInRegion;
 
-    unordered_map<Pos2i, unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> leashedEntities;
+    unordered_map<Pos2i, unordered_map<Uuid, i64, UuidHasher, UuidPred>, Pos2iHasher> leashedEntities;
     for (auto const &it : ctx->fLeashedEntities) {
       leashedEntities[it.second.fChunk][it.first] = it.second.fLeasherId;
       int rx = mcfile::Coordinate::RegionFromChunk(it.second.fChunk.fX);
@@ -140,7 +140,7 @@ public:
       std::filesystem::path const &entitiesDir,
       mcfile::je::McaEditor &editor,
       Context &ctx,
-      std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
+      std::unordered_map<Pos2i, std::unordered_map<Uuid, i64, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities,
       std::unordered_map<Pos2i, std::unordered_map<Uuid, std::map<size_t, Uuid>, UuidHasher, UuidPred>, Pos2iHasher> const &vehicleEntities) {
     using namespace std;
     using namespace mcfile::stream;
@@ -293,14 +293,14 @@ public:
   static void AttachLeash(Pos2i chunk,
                           Context &ctx,
                           ListTag const &entities,
-                          std::unordered_map<Pos2i, std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities) {
+                          std::unordered_map<Pos2i, std::unordered_map<Uuid, i64, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities) {
     auto leashedEntitiesFound = leashedEntities.find(chunk);
     if (leashedEntitiesFound == leashedEntities.end()) {
       return;
     }
     for (auto const &it : leashedEntitiesFound->second) {
       Uuid entityId = it.first;
-      int64_t leasherId = it.second;
+      i64 leasherId = it.second;
       auto leasherFound = ctx.fLeashKnots.find(leasherId);
       if (leasherFound == ctx.fLeashKnots.end()) {
         continue;

@@ -1,8 +1,10 @@
 #include "box360/_block-data.hpp"
 
+#include <je2be/integers.hpp>
+
 namespace je2be::box360 {
 
-static void StrippedLog(uint8_t data, std::map<std::string, std::string> &props) {
+static void StrippedLog(u8 data, std::map<std::string, std::string> &props) {
   switch (data) {
   case 0x4:
     props["axis"] = "x";
@@ -17,7 +19,7 @@ static void StrippedLog(uint8_t data, std::map<std::string, std::string> &props)
   }
 }
 
-static std::string CoralWallFan(std::string name, uint8_t data, std::map<std::string, std::string> &props) {
+static std::string CoralWallFan(std::string name, u8 data, std::map<std::string, std::string> &props) {
   switch ((data & 0xc) >> 2) {
   case 1:
     props["facing"] = "east";
@@ -42,9 +44,9 @@ static std::string CoralWallFan(std::string name, uint8_t data, std::map<std::st
 
 std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
   using namespace std;
-  uint8_t rawId = rawBlockId();
-  uint16_t id = extendedBlockId();
-  uint8_t data = this->data();
+  u8 rawId = rawBlockId();
+  u16 id = extendedBlockId();
+  u8 data = this->data();
   if (rawId == id) {
     return mcfile::je::Flatten::DoFlatten(id, data);
   }

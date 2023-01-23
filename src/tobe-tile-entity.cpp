@@ -245,7 +245,7 @@ private:
     E(potted_cactus, PottedPlant("cactus", {}));
     E(potted_azalea_bush, PottedPlant("azalea", {}));
     E(potted_flowering_azalea_bush, PottedPlant("flowering_azalea", {}));
-    E(potted_mangrove_propagule, PottedPlant("mangrove_propagule", {{"hanging", false}, {"propagule_stage", int32_t(0)}}));
+    E(potted_mangrove_propagule, PottedPlant("mangrove_propagule", {{"hanging", false}, {"propagule_stage", i32(0)}}));
 
     E(skeleton_skull, Skull);
     E(wither_skeleton_skull, Skull);
@@ -369,7 +369,7 @@ private:
 
     // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
     auto mirror = c->string("mirror", "NONE");
-    int8_t mirrorMode = 0; // NONE
+    i8 mirrorMode = 0; // NONE
     if (mirror == "LEFT_RIGHT") {
       mirrorMode = 1;
     } else if (mirror == "FRONT_BACK") {
@@ -391,7 +391,7 @@ private:
 
     // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
     auto rotation = c->string("rotation", "NONE");
-    int8_t rot = 0;
+    i8 rot = 0;
     if (rotation == "NONE") {
       rot = 0;
     } else if (rotation == "CLOCKWISE_90") {
@@ -493,7 +493,7 @@ private:
     xx.add(&pos.fX, sizeof(pos.fX));
     xx.add(&pos.fY, sizeof(pos.fY));
     xx.add(&pos.fZ, sizeof(pos.fZ));
-    uint32_t seed = xx.hash();
+    u32 seed = xx.hash();
     std::mt19937 gen(seed);
     std::uniform_real_distribution<float> distribution(-std::numbers::pi, std::numbers::pi);
     float rott = distribution(gen);
@@ -604,7 +604,7 @@ private:
     }
     if (bees) {
       auto occupants = List<Tag::Type::Compound>();
-      int32_t index = 0;
+      i32 index = 0;
       for (auto const &it : *bees) {
         index++;
         auto bee = dynamic_pointer_cast<CompoundTag>(it);
@@ -621,10 +621,10 @@ private:
         h.update(&ctx.fWorldData.fDim, sizeof(ctx.fWorldData.fDim));
         h.update(&pos.fX, sizeof(pos.fX));
         h.update(&pos.fZ, sizeof(pos.fZ));
-        int64_t hash = h.digest();
-        uint32_t a = ((uint32_t *)&hash)[0];
-        uint32_t b = ((uint32_t *)&hash)[1];
-        vector<int32_t> uuidSource = {*(int32_t *)&a, *(int32_t *)&b, pos.fY, index};
+        i64 hash = h.digest();
+        u32 a = ((u32 *)&hash)[0];
+        u32 b = ((u32 *)&hash)[1];
+        vector<i32> uuidSource = {*(i32 *)&a, *(i32 *)&b, pos.fY, index};
         auto uuid = make_shared<IntArrayTag>(uuidSource);
         entityData->set("UUID", uuid);
 
@@ -640,7 +640,7 @@ private:
         auto minOccupationTicks = bee->int32("MinOccupationTicks");
         auto ticksInHive = bee->int32("TicksInHive");
         if (minOccupationTicks && ticksInHive) {
-          int32_t ticksLeftToStay = std::max<int32_t>(0, *minOccupationTicks - *ticksInHive);
+          i32 ticksLeftToStay = std::max<i32>(0, *minOccupationTicks - *ticksInHive);
           outBee->set("TicksLeftToStay", Int(ticksLeftToStay));
         }
 
@@ -703,7 +703,7 @@ private:
     if (c) {
       book = c->compoundTag("Book");
     }
-    int32_t totalPages = 0;
+    i32 totalPages = 0;
     if (book) {
       auto item = Item::From(book, ctx);
       if (item) {
@@ -887,8 +887,8 @@ private:
       if (*slot < 0 || 4 < *slot) {
         continue;
       }
-      uint8_t mapping[5] = {1, 2, 3, 0, 4};
-      uint8_t newSlot = mapping[*slot];
+      u8 mapping[5] = {1, 2, 3, 0, 4};
+      u8 newSlot = mapping[*slot];
       newItem->set("Slot", Byte(newSlot));
       sorted[newSlot] = newItem;
     }
@@ -942,7 +942,7 @@ private:
     using namespace mcfile::blocks;
     auto tag = Compound();
     auto const &name = b.fName;
-    int8_t type = Item::GetSkullTypeFromBlockName(name);
+    i8 type = Item::GetSkullTypeFromBlockName(name);
     auto rot = Wrap(strings::Toi(b.property("rotation", "0")), 0);
     float rotation = rot / 16.0f * 360.0f;
     tag->insert({
@@ -982,7 +982,7 @@ private:
     return tag;
   }
 
-  static Converter PottedPlant(std::string const &name, std::map<std::string, std::variant<std::string, bool, int32_t>> const &properties) {
+  static Converter PottedPlant(std::string const &name, std::map<std::string, std::variant<std::string, bool, i32>> const &properties) {
     return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) -> CompoundTagPtr {
       using namespace std;
 
@@ -1048,7 +1048,7 @@ private:
     if (c) {
       customName = props::GetJson(*c, "CustomName");
     }
-    int32_t type = 0;
+    i32 type = 0;
     if (customName) {
       auto color = GetAsString(*customName, "color");
       auto translate = GetAsString(*customName, "translate");
@@ -1072,14 +1072,14 @@ private:
         }
         auto ptag = Compound();
         ptag->insert({
-            {"Color", Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
+            {"Color", Int(static_cast<i32>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
             {"Pattern", String(*pat)},
         });
         patternsBedrock->push_back(ptag);
       }
     }
 
-    int32_t base = BannerColor(b.fName);
+    i32 base = BannerColor(b.fName);
 
     tag->insert({
         {"id", String("Banner")},
@@ -1092,7 +1092,7 @@ private:
     return tag;
   }
 
-  static int32_t BannerColor(std::string_view const &name) {
+  static i32 BannerColor(std::string_view const &name) {
     auto color = name.substr(10); // minecraft:
     auto suffix = color.rfind("_wall_banner");
     if (suffix != std::string::npos) {
@@ -1102,7 +1102,7 @@ private:
     if (suffix != std::string::npos) {
       color = color.substr(0, suffix);
     }
-    static std::unordered_map<std::string_view, int32_t> const mapping = {
+    static std::unordered_map<std::string_view, i32> const mapping = {
         {"black", 0},
         {"red", 1},
         {"green", 2},
@@ -1127,8 +1127,8 @@ private:
     return found->second;
   }
 
-  static int8_t BedColor(std::string_view const &name) {
-    static std::unordered_map<std::string_view, int8_t> const mapping = {
+  static i8 BedColor(std::string_view const &name) {
+    static std::unordered_map<std::string_view, i8> const mapping = {
         {"minecraft:white_bed", 0},
         {"minecraft:orange_bed", 1},
         {"minecraft:magenta_bed", 2},
@@ -1170,7 +1170,7 @@ private:
     auto tag = Compound();
     tag->insert({
         {"id", String("ShulkerBox")},
-        {"facing", Byte((int8_t)facing)},
+        {"facing", Byte((i8)facing)},
         {"Findable", Bool(false)},
         {"isMovable", Bool(true)},
     });

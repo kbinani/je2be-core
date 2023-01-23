@@ -16,7 +16,7 @@ class LevelData {
 public:
   LevelData(std::filesystem::path const &input,
             Options const &opt,
-            int64_t gameTick,
+            i64 gameTick,
             int difficultyBedrock,
             bool allowCommand,
             GameMode gameType) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType) {}
@@ -25,7 +25,7 @@ public:
     if (!fPortals.putInto(db)) {
       return false;
     }
-    bool ok = fJavaEditionMap.each([this, &db](int32_t mapId) {
+    bool ok = fJavaEditionMap.each([this, &db](i32 mapId) {
       auto found = fMapItems.find(mapId);
       if (found == fMapItems.end()) {
         return true;
@@ -88,14 +88,14 @@ private:
 public:
   Portals fPortals;
   JavaEditionMap fJavaEditionMap;
-  std::unordered_map<int32_t, CompoundTagPtr> fMapItems;
+  std::unordered_map<i32, CompoundTagPtr> fMapItems;
   std::vector<CompoundTagPtr> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   Options fOptions;
   Structures fStructures;
   std::optional<Status::ErrorData> fError;
-  int64_t fMaxChunkLastUpdate = 0;
-  int64_t const fGameTick;
+  i64 fMaxChunkLastUpdate = 0;
+  i64 const fGameTick;
   int const fDifficultyBedrock;
   bool const fAllowCommand;
   GameMode const fGameType;
@@ -107,7 +107,7 @@ public:
   };
   struct PlayerAttachedEntities {
     mcfile::Dimension fDim;
-    int64_t fLocalPlayerUid;
+    i64 fLocalPlayerUid;
     std::optional<VehicleAndPassengers> fVehicle;
     std::vector<std::pair<Pos2i, CompoundTagPtr>> fShoulderRiders;
   };

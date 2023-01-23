@@ -16,13 +16,13 @@ public:
     }
   }
 
-  void addPortalBlock(int32_t x, int32_t y, int32_t z, bool xAxis) { fPortalBlocks.add(x, y, z, xAxis); }
+  void addPortalBlock(i32 x, i32 y, i32 z, bool xAxis) { fPortalBlocks.add(x, y, z, xAxis); }
 
-  void addMap(int32_t javaMapId, CompoundTagPtr const &item) { fMapItems[javaMapId] = item; }
+  void addMap(i32 javaMapId, CompoundTagPtr const &item) { fMapItems[javaMapId] = item; }
 
   void addAutonomousEntity(CompoundTagPtr const &entity) { fAutonomousEntities.push_back(entity); }
 
-  void addEndPortal(int32_t x, int32_t y, int32_t z) {
+  void addEndPortal(i32 x, i32 y, i32 z) {
     Pos3i p(x, y, z);
     fEndPortalsInEndDimension.insert(p);
   }
@@ -87,7 +87,7 @@ public:
     for (auto const &it : fMapItems) {
       out.fMapItems[it.first] = it.second;
     }
-    unordered_map<int32_t, shared_ptr<CompoundTag>>().swap(fMapItems);
+    unordered_map<i32, shared_ptr<CompoundTag>>().swap(fMapItems);
 
     for (auto const &it : fAutonomousEntities) {
       out.fAutonomousEntities.push_back(it);
@@ -169,12 +169,12 @@ public:
 
 private:
   PortalBlocks fPortalBlocks;
-  std::unordered_map<int32_t, CompoundTagPtr> fMapItems;
+  std::unordered_map<i32, CompoundTagPtr> fMapItems;
   std::vector<CompoundTagPtr> fAutonomousEntities;
   std::unordered_set<Pos3i, Pos3iHasher> fEndPortalsInEndDimension;
   StructurePieceCollection fStructures;
   std::optional<Status::ErrorData> fError;
-  int64_t fMaxChunkLastUpdate = 0;
+  i64 fMaxChunkLastUpdate = 0;
   std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> fEntityFiles;
 };
 

@@ -26,7 +26,7 @@ class Context {
           std::filesystem::path tempDirectory,
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
-          int64_t gameTick,
+          i64 gameTick,
           GameMode gameMode)
       : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
 
@@ -40,26 +40,26 @@ public:
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                                        int &totalChunks,
-                                       int64_t gameTick,
+                                       i64 gameTick,
                                        GameMode gameMode,
                                        unsigned int concurrency);
 
-  void markMapUuidAsUsed(int64_t uuid);
+  void markMapUuidAsUsed(i64 uuid);
   void mergeInto(Context &other) const;
   Status postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const;
-  std::optional<MapInfo::Map> mapFromUuid(int64_t mapUuid) const;
+  std::optional<MapInfo::Map> mapFromUuid(i64 mapUuid) const;
   void structures(mcfile::Dimension d, Pos2i chunk, std::vector<StructureInfo::Structure> &buffer);
   std::shared_ptr<Context> make() const;
-  void setLocalPlayerIds(int64_t entityIdB, Uuid const &entityIdJ);
-  std::optional<Uuid> mapLocalPlayerId(int64_t entityIdB) const;
+  void setLocalPlayerIds(i64 entityIdB, Uuid const &entityIdJ);
+  std::optional<Uuid> mapLocalPlayerId(i64 entityIdB) const;
   bool isLocalPlayerId(Uuid const &uuid) const;
   void setRootVehicle(Uuid const &vehicleUid);
   void setRootVehicleEntity(CompoundTagPtr const &vehicleEntity);
   bool isRootVehicle(Uuid const &uuid) const;
   std::optional<std::pair<Uuid, CompoundTagPtr>> drainRootVehicle();
-  void setShoulderEntityLeft(int64_t uid);
-  void setShoulderEntityRight(int64_t uid);
-  bool setShoulderEntityIfItIs(int64_t uid, CompoundTagPtr entityB);
+  void setShoulderEntityLeft(i64 uid);
+  void setShoulderEntityRight(i64 uid);
+  bool setShoulderEntityIfItIs(i64 uid, CompoundTagPtr entityB);
   void drainShoulderEntities(CompoundTagPtr &left, CompoundTagPtr &right);
   void addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::je::Block const &block);
 
@@ -79,14 +79,14 @@ public:
 
   struct LeashedEntity {
     Pos2i fChunk;
-    int64_t fLeasherId;
+    i64 fLeasherId;
   };
   std::unordered_map<Uuid, LeashedEntity, UuidHasher, UuidPred> fLeashedEntities;
 
-  std::unordered_map<int64_t, Pos3i> fLeashKnots;
+  std::unordered_map<i64, Pos3i> fLeashKnots;
   std::unordered_map<Uuid, Pos2i, UuidHasher, UuidPred> fEntities;
 
-  int64_t const fGameTick;
+  i64 const fGameTick;
   GameMode const fGameMode;
 
   bool fDataPackBundle = false;
@@ -95,10 +95,10 @@ public:
 private:
   std::shared_ptr<MapInfo const> fMapInfo;
   std::shared_ptr<StructureInfo const> fStructureInfo;
-  std::unordered_set<int64_t> fUsedMapUuids;
+  std::unordered_set<i64> fUsedMapUuids;
 
   struct LocalPlayer {
-    int64_t fBedrockId;
+    i64 fBedrockId;
     Uuid fJavaId;
   };
   std::optional<LocalPlayer> fLocalPlayer;
@@ -109,8 +109,8 @@ private:
   };
   std::optional<RootVehicle> fRootVehicle;
 
-  std::optional<int64_t> fShoulderEntityLeftId;
-  std::optional<int64_t> fShoulderEntityRightId;
+  std::optional<i64> fShoulderEntityLeftId;
+  std::optional<i64> fShoulderEntityRightId;
   CompoundTagPtr fShoulderEntityLeft;
   CompoundTagPtr fShoulderEntityRight;
 

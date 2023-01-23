@@ -4,7 +4,7 @@ namespace je2be::tobe {
 
 class Portal {
 public:
-  Portal(int32_t dimId, uint8_t span, int32_t tpX, int32_t tpY, int32_t tpZ, uint8_t xa, uint8_t za) : fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa), fZa(za) {}
+  Portal(i32 dimId, u8 span, i32 tpX, i32 tpY, i32 tpZ, u8 xa, u8 za) : fDimId(dimId), fSpan(span), fTpX(tpX), fTpY(tpY), fTpZ(tpZ), fXa(xa), fZa(za) {}
 
   CompoundTagPtr toCompoundTag() const {
     using namespace std;
@@ -21,13 +21,13 @@ public:
     return tag;
   }
 
-  int32_t const fDimId;
-  uint8_t const fSpan;
-  int32_t const fTpX;
-  int32_t const fTpY;
-  int32_t const fTpZ;
-  uint8_t const fXa;
-  uint8_t const fZa;
+  i32 const fDimId;
+  u8 const fSpan;
+  i32 const fTpX;
+  i32 const fTpY;
+  i32 const fTpZ;
+  u8 const fXa;
+  u8 const fZa;
 };
 
 } // namespace je2be::tobe

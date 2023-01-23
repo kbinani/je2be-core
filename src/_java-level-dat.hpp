@@ -13,9 +13,9 @@ class JavaLevelDat {
 
 public:
   struct Options {
-    std::optional<int64_t> fRandomSeed;
+    std::optional<i64> fRandomSeed;
     std::string fVersionString;
-    int32_t fDataVersion;
+    i32 fDataVersion;
     CompoundTagPtr fFlatWorldSettings;
     std::optional<bool> fBonusChestEnabled;
   };

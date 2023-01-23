@@ -13,18 +13,18 @@ public:
     auto colors = tag.query("Colors")->asIntArray();
     if (colors) {
       for (auto v : colors->value()) {
-        uint8_t r = 0xff & ((*(uint32_t *)&v) >> 16);
-        uint8_t g = 0xff & ((*(uint32_t *)&v) >> 8);
-        uint8_t b = 0xff & (*(uint32_t *)&v);
+        u8 r = 0xff & ((*(u32 *)&v) >> 16);
+        u8 g = 0xff & ((*(u32 *)&v) >> 8);
+        u8 b = 0xff & (*(u32 *)&v);
         e.fColor.push_back(Rgba(r, g, b));
       }
     }
     auto fadeColors = tag.query("FadeColors")->asIntArray();
     if (fadeColors) {
       for (auto v : fadeColors->value()) {
-        uint8_t r = 0xff & ((*(uint32_t *)&v) >> 16);
-        uint8_t g = 0xff & ((*(uint32_t *)&v) >> 8);
-        uint8_t b = 0xff & (*(uint32_t *)&v);
+        u8 r = 0xff & ((*(u32 *)&v) >> 16);
+        u8 g = 0xff & ((*(u32 *)&v) >> 8);
+        u8 b = 0xff & (*(u32 *)&v);
         e.fFadeColor.push_back(Rgba(r, g, b));
       }
     }
@@ -52,7 +52,7 @@ public:
     auto colorB = tag.byteArrayTag("FireworkColor");
     auto const *table = GetTable();
     if (colorB) {
-      for (int8_t code : colorB->value()) {
+      for (i8 code : colorB->value()) {
         auto found = table->find(code);
         if (found != table->end()) {
           e.fColor.push_back(found->second);
@@ -61,7 +61,7 @@ public:
     }
     auto fade = tag.byteArrayTag("FireworkFade");
     if (fade) {
-      for (int8_t code : fade->value()) {
+      for (i8 code : fade->value()) {
         auto found = table->find(code);
         if (found != table->end()) {
           e.fFadeColor.push_back(found->second);
@@ -84,14 +84,14 @@ public:
       ret->set("FireworkType", Byte(*fType));
     }
     if (!fColor.empty()) {
-      std::vector<uint8_t> colors;
+      std::vector<u8> colors;
       for (Rgba c : fColor) {
         colors.push_back(GetBedrockColorCode(c));
       }
       ret->set("FireworkColor", std::make_shared<ByteArrayTag>(colors));
     }
     if (!fFadeColor.empty()) {
-      std::vector<uint8_t> fade;
+      std::vector<u8> fade;
       for (Rgba f : fFadeColor) {
         fade.push_back(GetBedrockColorCode(f));
       }
@@ -113,14 +113,14 @@ public:
       ret->set("Type", Byte(*fType));
     }
     if (!fColor.empty()) {
-      vector<int32_t> colors;
+      vector<i32> colors;
       for (auto const &it : fColor) {
         colors.push_back(it.toRGB());
       }
       ret->set("Colors", make_shared<IntArrayTag>(colors));
     }
     if (!fFadeColor.empty()) {
-      vector<int32_t> fade;
+      vector<i32> fade;
       for (auto const &it : fFadeColor) {
         fade.push_back(it.toRGB());
       }
@@ -130,9 +130,9 @@ public:
   }
 
 private:
-  static int8_t GetBedrockColorCode(Rgba rgb) {
+  static i8 GetBedrockColorCode(Rgba rgb) {
     auto const *table = GetTable();
-    int32_t code = rgb.toRGB();
+    i32 code = rgb.toRGB();
     for (auto const &it : *table) {
       if (it.second.toRGB() == code) {
         return it.first;
@@ -141,13 +141,13 @@ private:
     return MostSimilarColor(rgb);
   }
 
-  static std::unordered_map<int8_t, Rgba> const *GetTable() {
-    static std::unique_ptr<std::unordered_map<int8_t, Rgba> const> const sTable(CreateTable());
+  static std::unordered_map<i8, Rgba> const *GetTable() {
+    static std::unique_ptr<std::unordered_map<i8, Rgba> const> const sTable(CreateTable());
     return sTable.get();
   }
 
-  static std::unordered_map<int8_t, Rgba> *CreateTable() {
-    return new std::unordered_map<int8_t, Rgba>({
+  static std::unordered_map<i8, Rgba> *CreateTable() {
+    return new std::unordered_map<i8, Rgba>({
         {0, Rgba::FromRGB(1973019)},   // black
         {1, Rgba::FromRGB(11743532)},  // red
         {2, Rgba::FromRGB(3887386)},   // green
@@ -167,10 +167,10 @@ private:
     });
   }
 
-  static int8_t MostSimilarColor(Rgba rgb) {
+  static i8 MostSimilarColor(Rgba rgb) {
     struct Color {
       Rgba fColor;
-      int8_t fCode;
+      i8 fCode;
     };
     std::vector<Color> colors;
     auto const *table = GetTable();
@@ -185,7 +185,7 @@ private:
 public:
   std::optional<bool> fFlicker;
   std::optional<bool> fTrail;
-  std::optional<int8_t> fType;
+  std::optional<i8> fType;
   std::vector<Rgba> fColor;
   std::vector<Rgba> fFadeColor;
 };

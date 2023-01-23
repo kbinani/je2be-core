@@ -37,10 +37,10 @@ public:
     }
   }
 
-  static int64_t PackStructureStartsReference(int32_t cx, int32_t cz) {
-    int64_t r;
-    *(int32_t *)&r = cx;
-    *((int32_t *)&r + 1) = cz;
+  static i64 PackStructureStartsReference(i32 cx, i32 cz) {
+    i64 r;
+    *(i32 *)&r = cx;
+    *((i32 *)&r + 1) = cz;
     return r;
   }
 };

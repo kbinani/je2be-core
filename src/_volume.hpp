@@ -83,12 +83,12 @@ public:
   }
 
   template <size_t dimension> // = 0 for X, = 1 for Y, = 2 for Z
-  int32_t size() const {
+  i32 size() const {
     return end<dimension>() - start<dimension>() + 1;
   }
 
   template <size_t dimension>
-  int32_t start() const {
+  i32 start() const {
     static_assert(dimension < 3);
     switch (dimension) {
     case 0:
@@ -103,7 +103,7 @@ public:
   }
 
   template <size_t dimension>
-  int32_t end() const {
+  i32 end() const {
     static_assert(dimension < 3);
     switch (dimension) {
     case 0:
@@ -117,10 +117,10 @@ public:
     }
   }
 
-  uint64_t volume() const {
-    uint64_t dx = size<0>();
-    uint64_t dy = size<1>();
-    uint64_t dz = size<2>();
+  u64 volume() const {
+    u64 dx = size<0>();
+    u64 dy = size<1>();
+    u64 dz = size<2>();
     return dx * dy * dz;
   }
 
@@ -143,13 +143,13 @@ private:
   static void CollectAlignedCuboids(std::vector<Volume> const &input, std::vector<std::vector<Volume>> &output) {
     static_assert(d1 < 3 && d2 < 3 && d1 != d2);
     using namespace std;
-    map<tuple<int32_t, int32_t, int32_t, int32_t>, vector<Volume>> categorized;
+    map<tuple<i32, i32, i32, i32>, vector<Volume>> categorized;
     for (Volume const &v : input) {
-      int32_t s1 = v.start<d1>();
-      int32_t e1 = v.end<d1>();
-      int32_t s2 = v.start<d2>();
-      int32_t e2 = v.end<d2>();
-      tuple<int32_t, int32_t, int32_t, int32_t> key(s1, e1, s2, e2);
+      i32 s1 = v.start<d1>();
+      i32 e1 = v.end<d1>();
+      i32 s2 = v.start<d2>();
+      i32 e2 = v.end<d2>();
+      tuple<i32, i32, i32, i32> key(s1, e1, s2, e2);
       categorized[key].push_back(v);
     }
     output.clear();
@@ -171,15 +171,15 @@ private:
           continue;
         }
         Volume v1 = inout[i];
-        int32_t s1 = v1.start<d3>();
-        int32_t e1 = v1.end<d3>();
+        i32 s1 = v1.start<d3>();
+        i32 e1 = v1.end<d3>();
         for (int j = i + 1; j < inout.size(); j++) {
           if (used[j]) {
             continue;
           }
           Volume v2 = inout[j];
-          int32_t s2 = v2.start<d3>();
-          int32_t e2 = v2.end<d3>();
+          i32 s2 = v2.start<d3>();
+          i32 e2 = v2.end<d3>();
           if (e1 + 1 == s2 || e2 + 1 == s1) {
             Pos3i start((min)(v1.start<0>(), v2.start<0>()), (min)(v1.start<1>(), v2.start<1>()), (min)(v1.start<2>(), v2.start<2>()));
             Pos3i end((max)(v1.end<0>(), v2.end<0>()), (max)(v1.end<1>(), v2.end<1>()), (max)(v1.end<2>(), v2.end<2>()));
@@ -203,10 +203,10 @@ private:
     }
   }
 
-  static std::optional<std::tuple<int32_t, int32_t>> Intersection(int32_t a0, int32_t a1, int32_t b0, int32_t b1) {
+  static std::optional<std::tuple<i32, i32>> Intersection(i32 a0, i32 a1, i32 b0, i32 b1) {
     using namespace std;
-    int32_t maxLowerBound = std::max(a0, b0);
-    int32_t minUpperBound = std::min(a1, b1);
+    i32 maxLowerBound = std::max(a0, b0);
+    i32 minUpperBound = std::min(a1, b1);
     if (maxLowerBound < minUpperBound) {
       return make_tuple(maxLowerBound, minUpperBound);
     } else {

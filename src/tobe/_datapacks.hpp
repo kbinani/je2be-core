@@ -197,7 +197,7 @@ private:
 
   static std::optional<std::string> ReadDescriptionFromMcmeta(std::filesystem::path mcmeta) {
     using namespace std;
-    std::vector<uint8_t> buffer;
+    std::vector<u8> buffer;
     if (!file::GetContents(mcmeta, buffer)) {
       return nullopt;
     }
@@ -219,7 +219,7 @@ private:
         return false;
       }
     }
-    vector<uint8_t> buffer;
+    vector<u8> buffer;
     if (!file::GetContents(from, buffer)) {
       return false;
     }

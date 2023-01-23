@@ -58,7 +58,7 @@ public:
       int const x0 = chunk.minBlockX();
       int const z0 = chunk.minBlockZ();
       int const y0 = chunkY * 16;
-      int8_t altitude[16][16];
+      i8 altitude[16][16];
       for (int x = 0; x < 16; x++) {
         for (int z = 0; z < 16; z++) {
           altitude[x][z] = -1;
@@ -127,7 +127,7 @@ public:
               j += altitude[x][z] + 1;
               for (int y = altitude[x][z] + 1; y < 16; y++, j++) {
                 if (palette.fIndices[j] == i) {
-                  altitude[x][z] = (std::max)(altitude[x][z], (int8_t)y);
+                  altitude[x][z] = (std::max)(altitude[x][z], (i8)y);
                 }
               }
             }
@@ -174,9 +174,9 @@ public:
 
     for (auto it : chunk.fTileEntities) {
       Pos3i pos = it.first;
-      int32_t x = pos.fX - chunk.fChunkX * 16;
-      int32_t y = pos.fY - chunkY * 16;
-      int32_t z = pos.fZ - chunk.fChunkZ * 16;
+      i32 x = pos.fX - chunk.fChunkX * 16;
+      i32 y = pos.fY - chunkY * 16;
+      i32 z = pos.fZ - chunk.fChunkZ * 16;
       if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
       }
@@ -213,9 +213,9 @@ public:
         continue;
       }
 
-      int32_t x = pos.fX - chunk.fChunkX * 16;
-      int32_t y = pos.fY - chunkY * 16;
-      int32_t z = pos.fZ - chunk.fChunkZ * 16;
+      i32 x = pos.fX - chunk.fChunkX * 16;
+      i32 y = pos.fY - chunkY * 16;
+      i32 z = pos.fZ - chunk.fChunkZ * 16;
       if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
         continue;
       }
@@ -237,21 +237,21 @@ public:
     if (!w.write(kSubChunkBlockStorageVersion)) {
       return false;
     }
-    if (!w.write((uint8_t)numStorageBlocks)) {
+    if (!w.write((u8)numStorageBlocks)) {
       return false;
     }
-    int8_t cy = Clamp<int8_t>(chunkY);
+    i8 cy = Clamp<i8>(chunkY);
     if (cy != chunkY) {
       return false;
     }
-    if (!w.write(*(uint8_t *)&cy)) {
+    if (!w.write(*(u8 *)&cy)) {
       return false;
     }
 
     {
       // layer 0
       int const numPaletteEntries = (int)palette.size();
-      uint8_t bitsPerBlock;
+      u8 bitsPerBlock;
       int blocksPerWord;
       if (numPaletteEntries <= 2) {
         bitsPerBlock = 1;
@@ -279,14 +279,14 @@ public:
         blocksPerWord = 2;
       }
 
-      if (!w.write((uint8_t)(bitsPerBlock * 2))) {
+      if (!w.write((u8)(bitsPerBlock * 2))) {
         return false;
       }
-      uint32_t const mask = ~((~((uint32_t)0)) << bitsPerBlock);
+      u32 const mask = ~((~((u32)0)) << bitsPerBlock);
       for (size_t i = 0; i < 4096; i += blocksPerWord) {
-        uint32_t v = 0;
+        u32 v = 0;
         for (size_t j = 0; j < blocksPerWord && i + j < 4096; j++) {
-          uint32_t const index = (uint32_t)palette.fIndices[i + j];
+          u32 const index = (u32)palette.fIndices[i + j];
           v = v | ((mask & index) << (j * bitsPerBlock));
         }
         if (!w.write(v)) {
@@ -294,7 +294,7 @@ public:
         }
       }
 
-      if (!w.write((uint32_t)numPaletteEntries)) {
+      if (!w.write((u32)numPaletteEntries)) {
         return false;
       }
 
@@ -309,20 +309,20 @@ public:
     if (hasWaterlogged) {
       // layer 1
       int const numPaletteEntries = 2; // air or water
-      uint8_t bitsPerBlock = 1;
+      u8 bitsPerBlock = 1;
       int blocksPerWord = 32;
 
-      uint32_t const paletteAir = 0;
-      uint32_t const paletteWater = 1;
+      u32 const paletteAir = 0;
+      u32 const paletteWater = 1;
 
-      if (!w.write((uint8_t)(bitsPerBlock * 2))) {
+      if (!w.write((u8)(bitsPerBlock * 2))) {
         return false;
       }
       for (size_t i = 0; i < 4096; i += blocksPerWord) {
-        uint32_t v = 0;
+        u32 v = 0;
         for (size_t j = 0; j < blocksPerWord && i + j < 4096; j++) {
           bool waterlogged = waterloggedIndices[i + j];
-          uint32_t const index = waterlogged ? paletteWater : paletteAir;
+          u32 const index = waterlogged ? paletteWater : paletteAir;
           v = v | (index << (j * bitsPerBlock));
         }
         if (!w.write(v)) {
@@ -330,7 +330,7 @@ public:
         }
       }
 
-      if (!w.write((uint32_t)numPaletteEntries)) {
+      if (!w.write((u32)numPaletteEntries)) {
         return false;
       }
 

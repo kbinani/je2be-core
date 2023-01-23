@@ -4,7 +4,7 @@
 
 namespace je2be::file {
 
-[[nodiscard]] static inline bool GetContents(std::filesystem::path p, std::vector<uint8_t> &buffer) {
+[[nodiscard]] static inline bool GetContents(std::filesystem::path p, std::vector<u8> &buffer) {
   using namespace std;
   using namespace mcfile;
   if (!Fs::Exists(p)) {

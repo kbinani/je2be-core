@@ -2,20 +2,20 @@
 
 namespace je2be {
 
-class Frog : StaticReversibleMap<std::string, int32_t, Frog> {
+class Frog : StaticReversibleMap<std::string, i32, Frog> {
   Frog() = delete;
 
 public:
-  static int32_t BedrockVariantFromJavaVariant(std::string const &variant) {
+  static i32 BedrockVariantFromJavaVariant(std::string const &variant) {
     return Forward(variant, 0);
   }
 
-  static std::string JavaVariantFromBedrockVariant(int32_t variant) {
+  static std::string JavaVariantFromBedrockVariant(i32 variant) {
     return Backward(variant, "minecraft:temperate");
   }
 
-  static ReversibleMap<std::string, int32_t> const *CreateTable() {
-    return new ReversibleMap<std::string, int32_t>({
+  static ReversibleMap<std::string, i32> const *CreateTable() {
+    return new ReversibleMap<std::string, i32>({
         {"minecraft:temperate", 0}, // brown
         {"minecraft:cold", 1},      // green
         {"minecraft:warm", 2},      // white

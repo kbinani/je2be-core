@@ -374,7 +374,7 @@ public:
           monument->set("Children", children);
           startsTag->set("minecraft:monument", monument);
         }
-        vector<int64_t> references;
+        vector<i64> references;
         references.push_back(StructureInfo::PackStructureStartsReference(s.fStartChunk.fX, s.fStartChunk.fZ));
         referencesTag->set("minecraft:monument", make_shared<LongArrayTag>(references));
         break;
@@ -427,7 +427,7 @@ public:
     for (auto &it : ctx.fLeashedEntities) {
       Uuid leashedEntityUuid = it.first;
       Context::LeashedEntity const &le = it.second;
-      int64_t leasherId = le.fLeasherId;
+      i64 leasherId = le.fLeasherId;
       auto foundLeashedEntity = entities.find(leashedEntityUuid);
       if (foundLeashedEntity == entities.end()) {
         continue;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "_integers.hpp"
+#include <je2be/integers.hpp>
 
 namespace je2be::toje::lighting {
 
@@ -24,7 +24,7 @@ public:
     return ret;
   }
 
-  uint8_t get(Pos3i const &p) const {
+  u8 get(Pos3i const &p) const {
     if (Contains(*fNorth, p)) {
       return fNorth->getUnchecked(p);
     } else if (Contains(*fEast, p)) {

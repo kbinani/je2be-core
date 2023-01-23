@@ -6,7 +6,7 @@ class VillagerProfession {
   VillagerProfession() = delete;
 
 public:
-  enum Variant : int32_t {
+  enum Variant : i32 {
     Farmer = 1,
     Fisherman = 2,
     Shepherd = 3,
@@ -95,7 +95,7 @@ public:
     return std::nullopt;
   }
 
-  int32_t variant() const {
+  i32 variant() const {
     return fVariant;
   }
 

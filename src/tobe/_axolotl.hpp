@@ -7,9 +7,9 @@ namespace je2be::tobe {
 class Axolotl {
 public:
   struct Variant {
-    int32_t const fBedrockRawValue;
+    i32 const fBedrockRawValue;
 
-    explicit Variant(int32_t bedrockRawValue) : fBedrockRawValue(bedrockRawValue) {
+    explicit Variant(i32 bedrockRawValue) : fBedrockRawValue(bedrockRawValue) {
     }
 
     std::string definition() const {
@@ -39,7 +39,7 @@ public:
     }
   };
 
-  Axolotl(int32_t age, float health, int32_t javaVariant)
+  Axolotl(i32 age, float health, i32 javaVariant)
       : fAge(age), fHealth(health), fVariant(VariantFromJava(javaVariant)) {
   }
 
@@ -81,9 +81,9 @@ public:
     return ret;
   }
 
-  static Variant VariantFromJava(int32_t javaVariant) {
+  static Variant VariantFromJava(i32 javaVariant) {
     static const int variantMapping[5] = {0, 3, 2, 1, 4};
-    int32_t v = variantMapping[std::clamp(javaVariant, 0, 4)];
+    i32 v = variantMapping[std::clamp(javaVariant, 0, 4)];
     return Variant(v);
   }
 
@@ -96,7 +96,7 @@ private:
   }
 
 private:
-  int32_t fAge;
+  i32 fAge;
   float fHealth;
   Variant fVariant;
 };

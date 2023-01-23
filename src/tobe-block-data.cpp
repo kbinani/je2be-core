@@ -80,11 +80,11 @@ public:
     return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, Bool(v)); };
   }
 
-  static PropertyPickupFunction AddIntProperty(std::string const &name, int32_t v) {
+  static PropertyPickupFunction AddIntProperty(std::string const &name, i32 v) {
     return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, Int(v)); };
   }
 
-  static PropertyPickupFunction AddByteProperty(std::string const &name, int8_t v) {
+  static PropertyPickupFunction AddByteProperty(std::string const &name, i8 v) {
     return [=](CompoundTagPtr const &s, Block const &b) { s->set(name, Byte(v)); };
   }
 
@@ -156,7 +156,7 @@ public:
     auto south = block.property("south", "false") == "true";
     // auto up = block.property("up", "false") == "true";
     auto west = block.property("west", "false") == "true";
-    int32_t direction = 0;
+    i32 direction = 0;
     if (east) {
       direction |= 0x8;
     }
@@ -179,7 +179,7 @@ public:
     auto west = block.property("west", "false") == "true";
     auto north = block.property("north", "false") == "true";
     auto south = block.property("south", "false") == "true";
-    int32_t bits = 0;
+    i32 bits = 0;
     if (down) {
       bits |= 0x1;
     }
@@ -241,7 +241,7 @@ public:
 
   static Converter RedFlower(std::string const &type) { return Converter(Name("red_flower"), AddStringProperty("flower_type", type)); }
 
-  static Converter Kelp(std::optional<int32_t> age = std::nullopt) {
+  static Converter Kelp(std::optional<i32> age = std::nullopt) {
     if (age) {
       return Converter(Name("kelp"), AddIntProperty("kelp_age", *age));
     } else {
@@ -266,7 +266,7 @@ public:
 
   static void StairsDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "north");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (facing == "east") {
       direction = 0;
     } else if (facing == "south") {
@@ -311,7 +311,7 @@ public:
 
   static PropertyType FacingB(Block const &block) {
     auto facing = block.property("facing");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (facing == "south") {
       direction = 2;
     } else if (facing == "east") {
@@ -326,7 +326,7 @@ public:
 
   static PropertyType FacingC(Block const &b) {
     auto facing = b.property("facing");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (facing == "north") {
       direction = 3;
     } else if (facing == "east") {
@@ -341,7 +341,7 @@ public:
 
   static PropertyType FacingD(Block const &b) {
     auto facing = b.property("facing");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (facing == "north") {
       direction = 2;
     } else if (facing == "east") {
@@ -432,7 +432,7 @@ public:
 
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "up");
-    int32_t direction = 1;
+    i32 direction = 1;
     if (facing == "up") {
       direction = 1;
     } else if (facing == "east") {
@@ -503,7 +503,7 @@ public:
       auto south = block.property("south");
       auto west = block.property("west");
 
-      int32_t bits = stem ? 15 : 14;
+      i32 bits = stem ? 15 : 14;
       if (up.empty() && down.empty() && north.empty() && east.empty() && south.empty() && west.empty() && stem) {
         bits = 15;
       } else if (Off(up) && Off(down) && Off(north) && Off(east) && Off(south) && Off(west)) {
@@ -549,14 +549,14 @@ public:
   }
 
   static void FacingDirectionAFromFacing(CompoundTagPtr const &s, Block const &block) {
-    int32_t direction = GetFacingDirectionAFromFacing(block);
+    i32 direction = GetFacingDirectionAFromFacing(block);
     s->set("facing_direction", Int(direction));
   }
 
   static void PistonFacingDirectionFromFacing6(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "");
     Facing6 f6 = Facing6FromJavaName(facing);
-    int32_t direction = BedrockFacingDirectionBFromFacing6(f6);
+    i32 direction = BedrockFacingDirectionBFromFacing6(f6);
     s->set("facing_direction", Int(direction));
   }
 
@@ -604,7 +604,7 @@ public:
 
   static Converter CoralFan(std::string const &type, bool dead) { return Converter(Name(dead ? "coral_fan_dead" : "coral_fan"), AddStringProperty("coral_color", type), AddIntProperty("coral_fan_direction", 0)); }
 
-  static Converter CoralWallFan(std::string const &tail, bool dead, int8_t type) { return Converter(Name("coral_fan_hang" + tail), AddByteProperty("coral_hang_type_bit", type), Name(FacingD, "coral_direction"), AddBoolProperty("dead_bit", dead)); }
+  static Converter CoralWallFan(std::string const &tail, bool dead, i8 type) { return Converter(Name("coral_fan_hang" + tail), AddByteProperty("coral_hang_type_bit", type), Name(FacingD, "coral_direction"), AddBoolProperty("dead_bit", dead)); }
 
   static Converter WallSign(std::optional<std::string> prefix = std::nullopt) {
     std::string name = prefix ? *prefix + "_wall_sign" : "wall_sign";
@@ -658,7 +658,7 @@ public:
 
   static void BellDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property("facing", "north");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (facing == "north") {
       direction = 0;
     } else if (facing == "east") {
@@ -699,9 +699,9 @@ public:
     Converter facingDirectionFromFacingB(Same, PistonFacingDirectionFromFacing6);
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
-#define E(__name, __func)                                                                                    \
-  assert(!(*table)[static_cast<uint32_t>(mcfile::blocks::minecraft::__name)] && "converter is already set"); \
-  (*table)[static_cast<uint32_t>(mcfile::blocks::minecraft::__name)] = __func;
+#define E(__name, __func)                                                                               \
+  assert(!(*table)[static_cast<u32>(mcfile::blocks::minecraft::__name)] && "converter is already set"); \
+  (*table)[static_cast<u32>(mcfile::blocks::minecraft::__name)] = __func;
 
     E(stone, Stone("stone"));
     E(granite, Stone("granite"));
@@ -1741,7 +1741,7 @@ public:
     auto c = New("respawn_anchor");
     auto s = States();
     auto charges = strings::Toi(block.property("charges", "0"));
-    int32_t charge = 0;
+    i32 charge = 0;
     if (charges) {
       charge = *charges;
     }
@@ -1783,7 +1783,7 @@ public:
     auto c = New("scaffolding");
     auto s = States();
     auto distance = strings::Toi(block.property("distance", "0"));
-    int32_t stability = 0;
+    i32 stability = 0;
     if (distance) {
       stability = *distance;
     }
@@ -1872,7 +1872,7 @@ public:
 
   static void HoneyLevel(CompoundTagPtr const &s, Block const &b) {
     auto v = strings::Toi(b.property("honey_level", "0"));
-    int32_t level = v ? *v : 0;
+    i32 level = v ? *v : 0;
     s->set("honey_level", Int(level));
   }
 
@@ -1906,7 +1906,7 @@ public:
 
   static void WallSkullFacingDirection(CompoundTagPtr const &s, Block const &b) {
     auto facing = b.property("facing", "");
-    int32_t direction = 1;
+    i32 direction = 1;
     if (facing == "south") {
       direction = 3;
     } else if (facing == "east") {
@@ -1936,7 +1936,7 @@ public:
 
   static void GrowthFromAge(CompoundTagPtr const &s, Block const &b) {
     auto age = Wrap(strings::Toi(b.property("age", "0")), 0);
-    int32_t growth = 0;
+    i32 growth = 0;
     switch (age) {
     case 0:
       growth = 0;
@@ -1979,7 +1979,7 @@ public:
 
   static void RailDirectionFromShape(CompoundTagPtr const &s, Block const &b) {
     auto shape = b.property("shape", "north_south");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (shape == "north_south") {
       direction = 0;
     } else if (shape == "east_west") {
@@ -2077,7 +2077,7 @@ public:
   static void ButtonFacingDirection(CompoundTagPtr const &s, Block const &b) {
     auto face = b.property("face", "wall");
     auto facing = b.property("facing", "north");
-    int32_t direction = 0;
+    i32 direction = 0;
     if (face == "floor") {
       direction = 1;
     } else if (face == "ceiling") {
@@ -2163,7 +2163,7 @@ CompoundTagPtr BlockData::From(std::shared_ptr<mcfile::je::Block const> const &b
   if (!block) {
     return Air();
   }
-  uint32_t index = static_cast<uint32_t>(block->fId);
+  u32 index = static_cast<u32>(block->fId);
   if (index < table->size()) {
     Impl::AnyConverter func = (*table)[index];
     if (func) {
@@ -2194,7 +2194,7 @@ CompoundTagPtr BlockData::Make(std::string const &name) {
   return tag;
 }
 
-int32_t BlockData::GetFacingDirectionAFromFacing(mcfile::je::Block const &block) {
+i32 BlockData::GetFacingDirectionAFromFacing(mcfile::je::Block const &block) {
   auto facing = block.property("facing", "north");
   auto f6 = Facing6FromJavaName(facing);
   return BedrockFacingDirectionAFromFacing6(f6);

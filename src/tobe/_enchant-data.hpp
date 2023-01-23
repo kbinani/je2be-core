@@ -17,7 +17,7 @@ public:
     if (!lvl) {
       return nullptr;
     }
-    int16_t id = Enchantments::BedrockEnchantmentIdFromJava(*name);
+    i16 id = Enchantments::BedrockEnchantmentIdFromJava(*name);
     tag->set("id", Short(id));
     tag->set("lvl", Short(*lvl));
     return tag;

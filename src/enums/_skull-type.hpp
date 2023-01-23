@@ -2,7 +2,7 @@
 
 namespace je2be {
 
-enum class SkullType : uint8_t {
+enum class SkullType : u8 {
   Skeleton = 0,
   WitherSkeleton = 1,
   Zombie = 2,
@@ -37,7 +37,7 @@ static inline std::string JavaNameFromSkullType(SkullType st) {
 }
 
 static inline std::optional<SkullType> SkullTypeFromJavaName(std::string const &name) {
-  for (uint8_t i = 0; i < static_cast<uint8_t>(SkullType::SkullTypeLast); i++) {
+  for (u8 i = 0; i < static_cast<u8>(SkullType::SkullTypeLast); i++) {
     SkullType st = static_cast<SkullType>(i);
     std::string n = JavaNameFromSkullType(st);
     if (n == name) {

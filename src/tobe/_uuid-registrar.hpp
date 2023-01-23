@@ -10,8 +10,8 @@ namespace je2be::tobe {
 
 class UuidRegistrar {
 public:
-  static int64_t ToId(Uuid const &uuid) {
-    static std::unordered_map<Uuid, int64_t, UuidHasher, UuidPred> sLut;
+  static i64 ToId(Uuid const &uuid) {
+    static std::unordered_map<Uuid, i64, UuidHasher, UuidPred> sLut;
 
     std::mutex *mut = Mut();
     std::lock_guard<std::mutex> lock(*mut);
@@ -19,14 +19,14 @@ public:
     if (found != sLut.end()) {
       return found->second;
     }
-    int64_t candidate = FirstCandidate(uuid);
-    int64_t result = AvoidCollision(candidate);
+    i64 candidate = FirstCandidate(uuid);
+    i64 result = AvoidCollision(candidate);
     sLut[uuid] = result;
     return result;
   }
 
-  static int64_t LeasherIdFor(int64_t id) {
-    static std::unordered_map<int64_t, int64_t> sLut;
+  static i64 LeasherIdFor(i64 id) {
+    static std::unordered_map<i64, i64> sLut;
 
     std::mutex *mut = Mut();
     std::lock_guard<std::mutex> lock(*mut);
@@ -34,8 +34,8 @@ public:
     if (found != sLut.end()) {
       return found->second;
     }
-    int64_t candidate = XXHash::Digest(&id, sizeof(id));
-    int64_t result = AvoidCollision(candidate);
+    i64 candidate = XXHash::Digest(&id, sizeof(id));
+    i64 result = AvoidCollision(candidate);
     sLut[id] = result;
     return result;
   }
@@ -46,8 +46,8 @@ private:
     return &sMut;
   }
 
-  static int64_t AvoidCollision(int64_t h) {
-    static std::unordered_set<int64_t> sUsed;
+  static i64 AvoidCollision(i64 h) {
+    static std::unordered_set<i64> sUsed;
 
     while (true) {
       if (sUsed.find(h) == sUsed.end()) [[likely]] {
@@ -58,7 +58,7 @@ private:
     }
   }
 
-  static int64_t FirstCandidate(Uuid const &uuid) {
+  static i64 FirstCandidate(Uuid const &uuid) {
     XXHash h;
     h.update(uuid.fData, sizeof(uuid.fData));
     return h.digest();

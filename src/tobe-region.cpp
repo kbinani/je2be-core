@@ -58,7 +58,7 @@ public:
           abortSignal.store(true);
           return {};
         }
-        uint64_t t;
+        u64 t;
         if (ret.fData) {
           ret.fData->drain(*sum);
           t = numConvertedChunks.fetch_add(1) + 1;

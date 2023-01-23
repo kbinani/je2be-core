@@ -41,7 +41,7 @@ static inline int BedrockDimensionFromDimension(mcfile::Dimension d) {
   }
 }
 
-static inline std::optional<mcfile::Dimension> DimensionFromBedrockDimension(int32_t d) {
+static inline std::optional<mcfile::Dimension> DimensionFromBedrockDimension(i32 d) {
   switch (d) {
   case 0:
     return mcfile::Dimension::Overworld;
@@ -53,7 +53,7 @@ static inline std::optional<mcfile::Dimension> DimensionFromBedrockDimension(int
   return std::nullopt;
 }
 
-static inline std::optional<mcfile::Dimension> DimensionFromXbox360Dimension(int32_t d) {
+static inline std::optional<mcfile::Dimension> DimensionFromXbox360Dimension(i32 d) {
   switch (d) {
   case 0:
     return mcfile::Dimension::Overworld;

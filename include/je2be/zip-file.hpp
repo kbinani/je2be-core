@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <minecraft-file.hpp>
 
 namespace je2be {
@@ -9,14 +11,14 @@ public:
   explicit ZipFile(std::filesystem::path const &zipFilePath);
   ~ZipFile();
 
-  bool store(std::vector<uint8_t> const &buffer, std::string const &filename);
+  bool store(std::vector<u8> const &buffer, std::string const &filename);
   bool store(mcfile::stream::InputStream &stream, std::string const &filename);
   bool close();
 
   static bool Unzip(
       std::filesystem::path const &input,
       std::filesystem::path const &output,
-      std::function<bool(uint64_t done, uint64_t total)> progress = [](uint64_t, uint64_t) { return true; });
+      std::function<bool(u64 done, u64 total)> progress = [](u64, u64) { return true; });
 
   static bool Zip(
       std::filesystem::path const &inputDirectory,

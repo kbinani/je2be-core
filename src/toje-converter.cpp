@@ -44,8 +44,8 @@ public:
 
     int total = 0;
     map<Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> regions;
-    int64_t gameTick = dat->int64("currentTick", 0);
-    int32_t gameTypeB = dat->int32("GameType", 0);
+    i64 gameTick = dat->int64("currentTick", 0);
+    i32 gameTypeB = dat->int32("GameType", 0);
     GameMode gameMode = GameMode::Survival;
     if (auto t = GameModeFromBedrock(gameTypeB); t) {
       gameMode = *t;

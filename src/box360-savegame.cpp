@@ -20,13 +20,13 @@ class Savegame::Impl {
   Impl() = delete;
 
 public:
-  static bool DecompressSavegame(std::vector<uint8_t> &buffer) {
+  static bool DecompressSavegame(std::vector<u8> &buffer) {
     using namespace std;
     if (buffer.size() < 12) {
       return false;
     }
-    // uint32_t inputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
-    uint32_t outputSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 8));
+    // u32 inputSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, 0));
+    u32 outputSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, 8));
     for (int i = 0; i < 12; i++) {
       buffer.erase(buffer.begin());
     }
@@ -36,11 +36,11 @@ public:
     return true;
   }
 
-  static bool DecompressRawChunk(std::vector<uint8_t> &buffer) {
+  static bool DecompressRawChunk(std::vector<u8> &buffer) {
     if (buffer.size() < 4) {
       return false;
     }
-    // uint32_t decompressedSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
+    // u32 decompressedSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, 0));
     for (int j = 0; j < 4; j++) {
       buffer.erase(buffer.begin());
     }
@@ -52,12 +52,12 @@ public:
     }
   }
 
-  static void DecodeDecompressedChunk(std::vector<uint8_t> &buffer) {
+  static void DecodeDecompressedChunk(std::vector<u8> &buffer) {
     // This is a port of ExpandX function from https://sourceforge.net/projects/xboxtopcminecraftconverter/
-    std::vector<uint8_t> out;
+    std::vector<u8> out;
     int i = 0;
     while (i < buffer.size()) {
-      uint8_t b = buffer[i];
+      u8 b = buffer[i];
       if (b != 0xff) {
         out.push_back(b);
         i++;
@@ -67,13 +67,13 @@ public:
         out.push_back(b);
         break;
       }
-      uint8_t count = buffer[i + 1];
+      u8 count = buffer[i + 1];
       if (count >= 3) {
         if (i + 2 >= buffer.size()) {
           out.push_back(count);
           break;
         }
-        uint8_t repeat = buffer[i + 2];
+        u8 repeat = buffer[i + 2];
         for (int j = 0; j <= count; j++) {
           out.push_back(repeat);
         }
@@ -88,30 +88,30 @@ public:
     buffer.swap(out);
   }
 
-  static bool ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream, int x, int z, std::vector<uint8_t> &buffer) {
+  static bool ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream, int x, int z, std::vector<u8> &buffer) {
     if (x < 0 || 32 <= x || z < 0 || 32 <= z) {
       return false;
     }
     buffer.clear();
     int idx = x + 32 * z;
-    uint64_t pos = idx * 4;
+    u64 pos = idx * 4;
     if (!stream.seek(pos)) {
       return false;
     }
-    uint32_t location = 0;
+    u32 location = 0;
     if (!stream.read(&location, sizeof(location))) {
       return true;
     }
     location = mcfile::U32FromBE(location);
-    uint32_t offset = location >> 8;
-    uint8_t sectorCount = 0xff & location;
+    u32 offset = location >> 8;
+    u8 sectorCount = 0xff & location;
     if (offset == 0 || sectorCount == 0) {
       return true;
     }
     if (!stream.seek(offset * 4096)) {
       return false;
     }
-    uint32_t size = 0;
+    u32 size = 0;
     if (!stream.read(&size, sizeof(size))) {
       return false;
     }
@@ -123,14 +123,14 @@ public:
     return stream.read(buffer.data(), size);
   }
 
-  static bool ExtractFilesFromDecompressedSavegame(std::vector<uint8_t> const &savegame, std::filesystem::path const &outputDirectory) {
+  static bool ExtractFilesFromDecompressedSavegame(std::vector<u8> const &savegame, std::filesystem::path const &outputDirectory) {
     if (savegame.size() < 8) {
       return false;
     }
-    uint32_t const indexOffset = mcfile::U32FromBE(Mem::Read<uint32_t>(savegame, 0));
-    uint32_t const fileCount = mcfile::U32FromBE(Mem::Read<uint32_t>(savegame, 4));
-    for (uint32_t i = 0; i < fileCount; i++) {
-      uint32_t pos = indexOffset + i * kIndexBytesPerFile;
+    u32 const indexOffset = mcfile::U32FromBE(Mem::Read<u32>(savegame, 0));
+    u32 const fileCount = mcfile::U32FromBE(Mem::Read<u32>(savegame, 4));
+    for (u32 i = 0; i < fileCount; i++) {
+      u32 pos = indexOffset + i * kIndexBytesPerFile;
       if (!ExtractFile(savegame, pos, outputDirectory)) {
         return false;
       }
@@ -138,23 +138,23 @@ public:
     return true;
   }
 
-  static constexpr uint32_t kIndexBytesPerFile = 144;
-  static constexpr uint32_t kFileNameLength = 56;
+  static constexpr u32 kIndexBytesPerFile = 144;
+  static constexpr u32 kFileNameLength = 56;
 
-  static bool ExtractFile(std::vector<uint8_t> const &buffer, uint32_t indexPosition, std::filesystem::path outputDirectory) {
+  static bool ExtractFile(std::vector<u8> const &buffer, u32 indexPosition, std::filesystem::path outputDirectory) {
     using namespace std;
     namespace fs = std::filesystem;
     if (indexPosition + kIndexBytesPerFile > buffer.size()) {
       return false;
     }
-    uint32_t size = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, indexPosition + 0x80));
-    uint32_t offset = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, indexPosition + 0x84));
+    u32 size = mcfile::U32FromBE(Mem::Read<u32>(buffer, indexPosition + 0x80));
+    u32 offset = mcfile::U32FromBE(Mem::Read<u32>(buffer, indexPosition + 0x84));
     if (offset + size > buffer.size()) {
       return false;
     }
     u16string name;
-    for (uint32_t i = 0; i < kFileNameLength; i++) {
-      char16_t c = mcfile::U16FromBE(Mem::Read<uint16_t>(buffer, indexPosition + i * 2));
+    for (u32 i = 0; i < kFileNameLength; i++) {
+      char16_t c = mcfile::U16FromBE(Mem::Read<u16>(buffer, indexPosition + i * 2));
       if (c == 0) {
         break;
       }
@@ -192,7 +192,7 @@ public:
     return nullptr;
   }
 
-  static std::optional<SavegameInfo> ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<uint8_t> &buffer) {
+  static std::optional<SavegameInfo> ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<u8> &buffer) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -219,14 +219,14 @@ public:
     }
   }
 
-  static std::optional<std::chrono::system_clock::time_point> TimePointFromFatTimestamp(uint32_t fat) {
+  static std::optional<std::chrono::system_clock::time_point> TimePointFromFatTimestamp(u32 fat) {
     using namespace std;
-    uint32_t year = (fat >> 25) + 1980;
-    uint32_t month = 0xf & (fat >> 21);
-    uint32_t day = 0x1f & (fat >> 16);
-    uint32_t hour = 0x1f & (fat >> 11);
-    uint32_t minute = 0x3f & (fat >> 5);
-    uint32_t second = (0x1f & fat) * 2;
+    u32 year = (fat >> 25) + 1980;
+    u32 month = 0xf & (fat >> 21);
+    u32 day = 0x1f & (fat >> 16);
+    u32 hour = 0x1f & (fat >> 11);
+    u32 minute = 0x3f & (fat >> 5);
+    u32 second = (0x1f & fat) * 2;
 
 #if defined(__GNUC__)
     std::tm tm{};
@@ -256,35 +256,35 @@ public:
   }
 };
 
-bool Savegame::DecompressSavegame(std::vector<uint8_t> &buffer) {
+bool Savegame::DecompressSavegame(std::vector<u8> &buffer) {
   return Impl::DecompressSavegame(buffer);
 }
 
-bool Savegame::DecompressRawChunk(std::vector<uint8_t> &buffer) {
+bool Savegame::DecompressRawChunk(std::vector<u8> &buffer) {
   return Impl::DecompressRawChunk(buffer);
 }
 
-void Savegame::DecodeDecompressedChunk(std::vector<uint8_t> &buffer) {
+void Savegame::DecodeDecompressedChunk(std::vector<u8> &buffer) {
   return Impl::DecodeDecompressedChunk(buffer);
 }
 
-bool Savegame::ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream, int x, int z, std::vector<uint8_t> &buffer) {
+bool Savegame::ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream, int x, int z, std::vector<u8> &buffer) {
   return Impl::ExtractRawChunkFromRegionFile(stream, x, z, buffer);
 }
 
-bool Savegame::ExtractFilesFromDecompressedSavegame(std::vector<uint8_t> const &savegame, std::filesystem::path const &outputDirectory) {
+bool Savegame::ExtractFilesFromDecompressedSavegame(std::vector<u8> const &savegame, std::filesystem::path const &outputDirectory) {
   return Impl::ExtractFilesFromDecompressedSavegame(savegame, outputDirectory);
 }
 
-bool Savegame::ExtractFile(std::vector<uint8_t> const &buffer, uint32_t indexPosition, std::filesystem::path outputDirectory) {
+bool Savegame::ExtractFile(std::vector<u8> const &buffer, u32 indexPosition, std::filesystem::path outputDirectory) {
   return Impl::ExtractFile(buffer, indexPosition, outputDirectory);
 }
 
-std::optional<Savegame::SavegameInfo> Savegame::ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<uint8_t> &buffer) {
+std::optional<Savegame::SavegameInfo> Savegame::ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<u8> &buffer) {
   return Impl::ExtractSavagameFromSaveBin(saveBinFile, buffer);
 }
 
-std::optional<std::chrono::system_clock::time_point> Savegame::TimePointFromFatTimestamp(uint32_t fat) {
+std::optional<std::chrono::system_clock::time_point> Savegame::TimePointFromFatTimestamp(u32 fat) {
   return Impl::TimePointFromFatTimestamp(fat);
 }
 

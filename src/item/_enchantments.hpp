@@ -8,7 +8,7 @@ class Enchantments {
   Enchantments() = delete;
 
 public:
-  static int16_t BedrockEnchantmentIdFromJava(std::string const &id) {
+  static i16 BedrockEnchantmentIdFromJava(std::string const &id) {
     auto const *table = GetTable();
     auto found = table->forward(id);
     if (found) {
@@ -18,7 +18,7 @@ public:
     }
   }
 
-  static std::string JavaEnchantmentIdFromBedrock(int16_t id) {
+  static std::string JavaEnchantmentIdFromBedrock(i16 id) {
     auto const *table = GetTable();
     auto found = table->backward(id);
     if (found) {
@@ -28,7 +28,7 @@ public:
     }
   }
 
-  static std::string JavaEnchantmentIdFromBox360(int16_t id) {
+  static std::string JavaEnchantmentIdFromBox360(i16 id) {
     switch (id) {
     case 5:
       return "minecraft:respiration";
@@ -90,13 +90,13 @@ public:
     return JavaEnchantmentIdFromBedrock(id);
   }
 
-  static ReversibleMap<std::string, int16_t> const *GetTable() {
-    static std::unique_ptr<ReversibleMap<std::string, int16_t> const> const sTable(CreateTable());
+  static ReversibleMap<std::string, i16> const *GetTable() {
+    static std::unique_ptr<ReversibleMap<std::string, i16> const> const sTable(CreateTable());
     return sTable.get();
   }
 
-  static ReversibleMap<std::string, int16_t> const *CreateTable() {
-    return new ReversibleMap<std::string, int16_t>({
+  static ReversibleMap<std::string, i16> const *CreateTable() {
+    return new ReversibleMap<std::string, i16>({
         {"minecraft:protection", 0},
         {"minecraft:fire_protection", 1},
         {"minecraft:feather_falling", 2},

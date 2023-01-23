@@ -8,7 +8,7 @@ namespace je2be {
 
 class Queue2d {
 public:
-  Queue2d(Pos2i const &origin, uint32_t width, uint32_t height, uint32_t lockRadius = 0)
+  Queue2d(Pos2i const &origin, u32 width, u32 height, u32 lockRadius = 0)
       : fOrigin(origin), fWidth(width), fHeight(height), fLockRadius(lockRadius), fDone(origin, width, height, false), fLock(origin, width, height, false), fWeight(origin, width, height, 0.0f) {
   }
 

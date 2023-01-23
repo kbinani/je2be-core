@@ -20,26 +20,26 @@ namespace je2be {
 
 class ConcurrentDb : public DbInterface {
   struct TableBuildResult {
-    TableBuildResult(uint64_t fileNumber, uint64_t fileSize, leveldb::InternalKey smallest, leveldb::InternalKey largest)
+    TableBuildResult(u64 fileNumber, u64 fileSize, leveldb::InternalKey smallest, leveldb::InternalKey largest)
         : fFileNumber(fileNumber), fFileSize(fileSize), fSmallest(smallest), fLargest(largest) {}
 
-    uint64_t fFileNumber;
-    uint64_t fFileSize;
+    u64 fFileNumber;
+    u64 fFileSize;
     leveldb::InternalKey fSmallest;
     leveldb::InternalKey fLargest;
   };
 
   struct Key {
     std::string fKey;
-    uint32_t fValueSizeCompressed;
-    uint64_t fOffset;
-    uint64_t fSequence;
-    uint32_t fWriterId;
+    u32 fValueSizeCompressed;
+    u64 fOffset;
+    u64 fSequence;
+    u32 fWriterId;
   };
 
   class Writer {
   public:
-    Writer(uint32_t id, std::filesystem::path const &dbname, std::atomic_uint64_t &sequencer) : fId(id), fDbName(dbname), fSequencer(sequencer) {
+    Writer(u32 id, std::filesystem::path const &dbname, std::atomic_uint64_t &sequencer) : fId(id), fDbName(dbname), fSequencer(sequencer) {
       namespace fs = std::filesystem;
       fs::path dir = dbname / std::to_string(id);
       Fs::DeleteAll(dir);
@@ -78,12 +78,12 @@ class ConcurrentDb : public DbInterface {
       if (key.empty()) {
         return;
       }
-      uint64_t sequence = fSequencer.fetch_add(1);
+      u64 sequence = fSequencer.fetch_add(1);
       string block;
       Compress(key, value, sequence, &block);
 
-      uint32_t valueSizeCompressed = block.size();
-      uint32_t keySize = key.size();
+      u32 valueSizeCompressed = block.size();
+      u32 keySize = key.size();
 
       if (fwrite(block.data(), block.size(), 1, fValue) != 1) {
         goto error;
@@ -108,8 +108,8 @@ class ConcurrentDb : public DbInterface {
       fNumKeys++;
       {
         int idx = (unsigned char)key[0];
-        uint16_t num = fNumPrefix[idx];
-        if (num < numeric_limits<uint16_t>::max()) {
+        u16 num = fNumPrefix[idx];
+        if (num < numeric_limits<u16>::max()) {
           num++;
         }
         fNumPrefix[idx] = num;
@@ -129,9 +129,9 @@ class ConcurrentDb : public DbInterface {
     }
 
     struct CloseResult {
-      uint32_t fWriterId;
-      uint64_t fNumKeys;
-      uint16_t fNumPrefix[256];
+      u32 fWriterId;
+      u64 fNumKeys;
+      u16 fNumPrefix[256];
     };
     std::optional<CloseResult> close() {
       if (!fValue || !fKey) {
@@ -169,7 +169,7 @@ class ConcurrentDb : public DbInterface {
     }
 
   private:
-    static void Compress(std::string const &key, leveldb::Slice const &value, uint64_t seq, std::string *out) {
+    static void Compress(std::string const &key, leveldb::Slice const &value, u64 seq, std::string *out) {
       using namespace std;
       using namespace leveldb;
 
@@ -187,15 +187,15 @@ class ConcurrentDb : public DbInterface {
     }
 
   private:
-    uint32_t const fId;
+    u32 const fId;
     std::filesystem::path fDbName;
     std::atomic_uint64_t &fSequencer;
     std::filesystem::path fDir;
     FILE *fKey = nullptr;
     FILE *fValue = nullptr;
-    uint64_t fOffset = 0;
-    uint64_t fNumKeys = 0;
-    uint16_t fNumPrefix[256];
+    u64 fOffset = 0;
+    u64 fNumKeys = 0;
+    u16 fNumPrefix[256];
   };
 
   class Gate : std::enable_shared_from_this<Gate> {
@@ -206,7 +206,7 @@ class ConcurrentDb : public DbInterface {
       if (found != fWriters.end()) {
         return found->second;
       }
-      uint32_t id = writerIdGenerator.fetch_add(1);
+      u32 id = writerIdGenerator.fetch_add(1);
       auto writer = make_shared<Writer>(id, dbname, keySequence);
       fWriters[key] = writer;
       return writer;
@@ -262,11 +262,11 @@ class ConcurrentDb : public DbInterface {
       leveldb::Options options;
       leveldb::Options index_block_options;
       leveldb::WritableFile *file;
-      uint64_t offset;
+      u64 offset;
       leveldb::Status status;
       leveldb::BlockBuilder index_block;
       std::string last_key;
-      int64_t num_entries;
+      i64 num_entries;
       bool closed; // Either Finish() or Abandon() has been called.
 
       // We do not emit the index entry for a block until we have seen the
@@ -394,11 +394,11 @@ class ConcurrentDb : public DbInterface {
     }
 
     // Number of calls to Add() so far.
-    uint64_t NumEntries() const { return rep_->num_entries; }
+    u64 NumEntries() const { return rep_->num_entries; }
 
     // Size of the file generated so far.  If invoked after a successful
     // Finish() call, returns the size of the final generated file.
-    uint64_t FileSize() const { return rep_->offset; }
+    u64 FileSize() const { return rep_->offset; }
 
   private:
     bool ok() const { return status().ok(); }
@@ -440,7 +440,7 @@ class ConcurrentDb : public DbInterface {
       if (r->status.ok()) {
         char trailer[kBlockTrailerSize];
         trailer[0] = type;
-        uint32_t crc = crc32c::Value(block_contents.data(), block_contents.size());
+        u32 crc = crc32c::Value(block_contents.data(), block_contents.size());
         crc = crc32c::Extend(crc, trailer, 1); // Extend crc to cover block type
         EncodeFixed32(trailer + 1, crc32c::Mask(crc));
         r->status = r->file->Append(Slice(trailer, kBlockTrailerSize));
@@ -502,17 +502,17 @@ public:
       return false;
     }
 
-    vector<uint8_t> works;
+    vector<u8> works;
     for (int i = 0; i < 256; i++) {
-      works.push_back((uint8_t)i);
+      works.push_back((u8)i);
     }
     atomic_uint64_t fileNumber(1);
     atomic_uint16_t done(0);
-    auto result = Parallel::Reduce<uint8_t, vector<TableBuildResult>>(
+    auto result = Parallel::Reduce<u8, vector<TableBuildResult>>(
         works,
         fConcurrency,
         vector<TableBuildResult>(),
-        [&](uint8_t prefix) {
+        [&](u8 prefix) {
           auto ret = BuildTable(fDbName, writerIds, &fileNumber, &ok, prefix);
           auto p = done.fetch_add(1) + 1;
           if (progress) {
@@ -530,7 +530,7 @@ public:
 
     InternalKeyComparator icmp(BytewiseComparator());
     VersionEdit edit;
-    uint64_t maxFileNumber = 0;
+    u64 maxFileNumber = 0;
     for (auto const &it : result) {
       maxFileNumber = (std::max)(maxFileNumber, it.fFileNumber);
       edit.AddFile(1, it.fFileNumber, it.fFileSize, it.fSmallest, it.fLargest);
@@ -579,7 +579,7 @@ public:
       std::vector<Writer::CloseResult> const &writerIds,
       std::atomic_uint64_t *fileNumber,
       std::atomic_bool *ok,
-      uint8_t prefix) {
+      u8 prefix) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
@@ -602,23 +602,23 @@ public:
         break;
       }
       int encount = 0;
-      for (uint64_t i = 0; i < cr.fNumKeys; i++) {
+      for (u64 i = 0; i < cr.fNumKeys; i++) {
         Key key;
         key.fWriterId = cr.fWriterId;
-        uint32_t keySize;
+        u32 keySize;
         if (fread(&keySize, sizeof(keySize), 1, fp) != 1) {
           ok->store(false);
           fclose(fp);
           break;
         }
-        uint8_t first;
+        u8 first;
         if (fread(&first, sizeof(first), 1, fp) != 1) {
           ok->store(false);
           fclose(fp);
           break;
         }
         if (first != prefix) {
-          if (!mcfile::File::Fseek(fp, keySize + sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint64_t) - 1, SEEK_CUR)) {
+          if (!mcfile::File::Fseek(fp, keySize + sizeof(u32) + sizeof(u64) + sizeof(u64) - 1, SEEK_CUR)) {
             ok->store(false);
             break;
           }
@@ -649,7 +649,7 @@ public:
         }
         keys.push_back(key);
         encount++;
-        if (expectedEncount != numeric_limits<uint16_t>::max() && encount == expectedEncount) {
+        if (expectedEncount != numeric_limits<u16>::max() && encount == expectedEncount) {
           break;
         }
       }
@@ -666,14 +666,14 @@ public:
       return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
     });
 
-    uint64_t size = 0;
+    u64 size = 0;
     vector<Key> bin;
     for (int i = 0; i < keys.size(); i++) {
       Key key = keys[i];
       bin.push_back(key);
       size += key.fValueSizeCompressed;
       if (size >= kMaxFileSize) {
-        uint64_t fn = fileNumber->fetch_add(1);
+        u64 fn = fileNumber->fetch_add(1);
         if (!Write(dbname, bin, fn, result)) {
           ok->store(false);
           return {};
@@ -683,7 +683,7 @@ public:
       }
     }
     if (!bin.empty()) {
-      uint64_t fn = fileNumber->fetch_add(1);
+      u64 fn = fileNumber->fetch_add(1);
       if (!Write(dbname, bin, fn, result)) {
         ok->store(false);
         return {};
@@ -692,7 +692,7 @@ public:
     return result;
   }
 
-  static bool Write(std::filesystem::path dbname, std::vector<Key> &keys, uint64_t fileNumber, std::vector<TableBuildResult> &results) {
+  static bool Write(std::filesystem::path dbname, std::vector<Key> &keys, u64 fileNumber, std::vector<TableBuildResult> &results) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
@@ -714,7 +714,7 @@ public:
 
     bool ok = true;
     string value;
-    optional<uint32_t> openedFile;
+    optional<u32> openedFile;
     FILE *fp = nullptr;
 
     for (auto const &it : keys) {
@@ -777,7 +777,7 @@ public:
     return file;
   }
 
-  static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, uint64_t tableNumber) {
+  static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, u64 tableNumber) {
     std::vector<char> buffer(11, (char)0);
 #if defined(_WIN32)
     sprintf_s(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
@@ -822,7 +822,7 @@ private:
   bool fValid = true;
   unsigned int const fConcurrency;
 
-  static constexpr uint64_t kMaxFileSize = 2 * 1024 * 1024;
+  static constexpr u64 kMaxFileSize = 2 * 1024 * 1024;
 };
 
 } // namespace je2be

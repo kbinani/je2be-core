@@ -12,10 +12,10 @@ namespace je2be::tobe {
 
 class JavaEditionMap {
 public:
-  explicit JavaEditionMap(std::unordered_map<int32_t, int8_t> const &lookupTable) : fScaleLookupTable(lookupTable) {}
+  explicit JavaEditionMap(std::unordered_map<i32, i8> const &lookupTable) : fScaleLookupTable(lookupTable) {}
   JavaEditionMap(std::filesystem::path const &input, Options const &opt) : fScaleLookupTable(CreateScaleLookupTable(input, opt)) {}
 
-  std::optional<int8_t> scale(int32_t mapId) const {
+  std::optional<i8> scale(i32 mapId) const {
     auto found = fScaleLookupTable.find(mapId);
     if (found == fScaleLookupTable.end()) {
       return std::nullopt;
@@ -23,7 +23,7 @@ public:
     return found->second;
   }
 
-  [[nodiscard]] bool each(std::function<bool(int32_t /* javaMapId */)> cb) {
+  [[nodiscard]] bool each(std::function<bool(i32 /* javaMapId */)> cb) {
     for (auto it : fScaleLookupTable) {
       if (!cb(it.first)) {
         return false;
@@ -32,7 +32,7 @@ public:
     return true;
   }
 
-  static CompoundTagPtr Read(std::filesystem::path const &input, Options const &opt, int32_t mapId) {
+  static CompoundTagPtr Read(std::filesystem::path const &input, Options const &opt, i32 mapId) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
@@ -55,9 +55,9 @@ public:
   }
 
 private:
-  static std::unordered_map<int32_t, int8_t> CreateScaleLookupTable(std::filesystem::path const &input, Options const &opt) {
+  static std::unordered_map<i32, i8> CreateScaleLookupTable(std::filesystem::path const &input, Options const &opt) {
     namespace fs = std::filesystem;
-    std::unordered_map<int32_t, int8_t> table;
+    std::unordered_map<i32, i8> table;
 
     auto dataDir = opt.getDataDirectory(input);
     if (!fs::exists(dataDir)) {
@@ -108,7 +108,7 @@ private:
   }
 
 public:
-  std::unordered_map<int32_t, int8_t> const fScaleLookupTable;
+  std::unordered_map<i32, i8> const fScaleLookupTable;
 };
 
 } // namespace je2be::tobe

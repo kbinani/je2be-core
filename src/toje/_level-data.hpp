@@ -75,8 +75,8 @@ public:
     if (!fis) {
       return nullopt;
     }
-    uint16_t versionLo = 0;
-    uint16_t versionHi = 0;
+    u16 versionLo = 0;
+    u16 versionHi = 0;
     if (sizeof(versionLo) != fis->read(&versionLo, sizeof(versionLo))) {
       return nullopt;
     }
@@ -94,7 +94,7 @@ public:
         endians.push_back(mcfile::Endian::Big);
         endians.push_back(mcfile::Endian::Little);
       }
-      uint32_t size = 0;
+      u32 size = 0;
       if (fis->read(&size, sizeof(size)) != sizeof(size)) {
         return nullopt;
       }
@@ -208,7 +208,7 @@ public:
     if (!biomeB.is_number_unsigned()) {
       return nullptr;
     }
-    auto biomeJ = mcfile::be::Biome::FromUint32(biomeB.get<uint32_t>());
+    auto biomeJ = mcfile::be::Biome::FromUint32(biomeB.get<u32>());
     if (biomeJ == mcfile::biomes::unknown) {
       return nullptr;
     }
@@ -231,7 +231,7 @@ public:
       }
       auto layerJ = Compound();
       layerJ->set("block", String(blockJ->fName));
-      layerJ->set("height", Int(count.get<uint32_t>()));
+      layerJ->set("height", Int(count.get<u32>()));
       layersJ->push_back(layerJ);
     }
     settings->set("layers", layersJ);

@@ -64,7 +64,7 @@ private:
     using namespace mcfile;
     using namespace mcfile::je;
 
-    vector<int32_t> mapIdList;
+    vector<i32> mapIdList;
 
     for (auto it : chunk.fTileEntities) {
       Pos3i pos = it.first;
@@ -346,10 +346,10 @@ private:
   std::optional<BiomeMapLegacy> fBiomeMapLegacy;
   std::unordered_map<Pos3i, std::shared_ptr<mcfile::je::Block const>, Pos3iHasher> fTileBlocks;
   std::vector<CompoundTagPtr> fTileEntities;
-  std::optional<int32_t> fFinalizedState;
+  std::optional<i32> fFinalizedState;
   std::map<int, CompoundTagPtr> fLiquidTicks;
   std::map<int, CompoundTagPtr> fTileTicks;
-  int64_t fChunkLastUpdate = 0;
+  i64 fChunkLastUpdate = 0;
 };
 
 ChunkDataPackage::ChunkDataPackage(ChunkConversionMode mode) : fImpl(std::make_unique<Impl>(mode)) {

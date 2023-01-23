@@ -13,7 +13,7 @@ public:
     assert(0 <= localZ && localZ < 16);
     size_t i = localZ * 16 + localX;
     int height = y - fMinChunkY * 16;
-    uint16_t clamped = mcfile::Clamp<uint16_t>(height);
+    u16 clamped = mcfile::Clamp<u16>(height);
     fHeight[i] = (std::max)(fHeight[i], clamped);
   }
 
@@ -23,8 +23,8 @@ public:
     }
     int delta = (fMinChunkY - newMinChunkY) * 16;
     for (int i = 0; i < 256; i++) {
-      uint16_t prev = fHeight[i];
-      uint16_t next = mcfile::Clamp<uint16_t>((int)prev + delta);
+      u16 prev = fHeight[i];
+      u16 next = mcfile::Clamp<u16>((int)prev + delta);
       fHeight[i] = next;
     }
     fMinChunkY = newMinChunkY;
@@ -34,7 +34,7 @@ public:
     size_t i = 0;
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++, i++) {
-        uint16_t h = fHeight[i];
+        u16 h = fHeight[i];
         if (!w.write(h)) {
           return false;
         }
@@ -45,7 +45,7 @@ public:
 
 private:
   int fMinChunkY;
-  uint16_t fHeight[256];
+  u16 fHeight[256];
 };
 
 } // namespace je2be::tobe

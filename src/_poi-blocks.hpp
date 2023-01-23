@@ -11,11 +11,11 @@ namespace je2be {
 
 class PoiBlocks {
   struct Data {
-    int32_t fFreeTickets;
+    i32 fFreeTickets;
     std::string fType;
 
     Data() = default;
-    Data(int32_t freeTickets, std::string const &type) : fFreeTickets(freeTickets), fType(type) {}
+    Data(i32 freeTickets, std::string const &type) : fFreeTickets(freeTickets), fType(type) {}
   };
 
   static std::unordered_map<mcfile::blocks::BlockId, Data> const &GetTable() {
@@ -155,7 +155,7 @@ public:
       bool ok = Region::SquashChunksAsMca(*stream, [r, dataVersion, this](int localChunkX, int localChunkZ, bool &) -> CompoundTagPtr {
         int cx = r.fX * 32 + localChunkX;
         int cz = r.fZ * 32 + localChunkZ;
-        unordered_map<int32_t, vector<CompoundTagPtr>> sections;
+        unordered_map<i32, vector<CompoundTagPtr>> sections;
         auto const &table = GetTable();
         for (auto const &it : fBlocks) {
           Pos3i const &pos = it.first;
@@ -172,7 +172,7 @@ public:
             record->set("type", String(data.fType));
             record->set("pos", IntArrayFromPos3i(pos));
 
-            int32_t y = mcfile::Coordinate::ChunkFromBlock(pos.fY);
+            i32 y = mcfile::Coordinate::ChunkFromBlock(pos.fY);
             sections[y].push_back(record);
           }
         }
@@ -181,7 +181,7 @@ public:
         }
         auto sectionsTag = Compound();
         for (auto const &it : sections) {
-          int32_t y = it.first;
+          i32 y = it.first;
           vector<CompoundTagPtr> const &records = it.second;
           auto recordsTag = List<Tag::Type::Compound>();
           for (auto const &record : records) {

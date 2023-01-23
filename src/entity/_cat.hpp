@@ -2,9 +2,9 @@
 
 namespace je2be {
 
-class Cat : StaticReversibleMap<std::string, int32_t, Cat> {
+class Cat : StaticReversibleMap<std::string, i32, Cat> {
 public:
-  enum Type : int32_t {
+  enum Type : i32 {
     Tabby = 0,
     Tuxedo = 1,
     Red = 2,
@@ -18,11 +18,11 @@ public:
     Black = 10,
   };
 
-  static Type CatTypeFromJavaLegacyCatType(int32_t catType) {
+  static Type CatTypeFromJavaLegacyCatType(i32 catType) {
     return static_cast<Type>(catType);
   }
 
-  static int32_t BedrockVariantFromCatType(Type catType) {
+  static i32 BedrockVariantFromCatType(Type catType) {
     auto const &table = GetTableBedrock();
     if (auto variantB = table.forward(catType); variantB) {
       return *variantB;
@@ -31,7 +31,7 @@ public:
     }
   }
 
-  static Type CatTypeFromBedrockVariant(int32_t variantB) {
+  static Type CatTypeFromBedrockVariant(i32 variantB) {
     auto const &table = GetTableBedrock();
     if (auto catType = table.backward(variantB); catType) {
       return static_cast<Type>(*catType);
@@ -40,8 +40,8 @@ public:
     }
   }
 
-  static ReversibleMap<int32_t, int32_t> const *CreateTableBedrock() {
-    return new ReversibleMap<int32_t, int32_t>({
+  static ReversibleMap<i32, i32> const *CreateTableBedrock() {
+    return new ReversibleMap<i32, i32>({
         {Tabby, 8},
         {Tuxedo, 1},
         {Red, 2},
@@ -56,8 +56,8 @@ public:
     });
   }
 
-  static ReversibleMap<std::string, int32_t> const *CreateTable() {
-    return new ReversibleMap<std::string, int32_t>({
+  static ReversibleMap<std::string, i32> const *CreateTable() {
+    return new ReversibleMap<std::string, i32>({
         {"tuxedo", Tuxedo},
         {"red", Red},
         {"siamese", Siamese},
@@ -72,8 +72,8 @@ public:
     });
   }
 
-  static ReversibleMap<std::string, int32_t> const *CreateTableJava() {
-    return new ReversibleMap<std::string, int32_t>({
+  static ReversibleMap<std::string, i32> const *CreateTableJava() {
+    return new ReversibleMap<std::string, i32>({
         {"black", Tuxedo},
         {"red", Red},
         {"siamese", Siamese},
@@ -88,17 +88,17 @@ public:
     });
   }
 
-  static ReversibleMap<int32_t, int32_t> const &GetTableBedrock() {
-    static std::unique_ptr<ReversibleMap<int32_t, int32_t> const> sTable(CreateTableBedrock());
+  static ReversibleMap<i32, i32> const &GetTableBedrock() {
+    static std::unique_ptr<ReversibleMap<i32, i32> const> sTable(CreateTableBedrock());
     return *sTable;
   }
 
   static std::string BedrockDefinitionKeyFromCatType(Type t) {
-    return Backward(static_cast<int32_t>(t), "tabby");
+    return Backward(static_cast<i32>(t), "tabby");
   }
 
-  static ReversibleMap<std::string, int32_t> const &GetTableJava() {
-    static std::unique_ptr<ReversibleMap<std::string, int32_t> const> sTable(CreateTableJava());
+  static ReversibleMap<std::string, i32> const &GetTableJava() {
+    static std::unique_ptr<ReversibleMap<std::string, i32> const> sTable(CreateTableJava());
     return *sTable;
   }
 

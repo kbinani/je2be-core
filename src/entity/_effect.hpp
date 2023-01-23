@@ -6,7 +6,7 @@ class Effect {
   Effect() = delete;
 
 public:
-  enum Type : int8_t {
+  enum Type : i8 {
     Speed = 1,
     Slowness = 2,
     Haste = 3,
@@ -41,7 +41,7 @@ public:
     HeroOfTheVillage = 32,
   };
 
-  static int16_t BedrockSuspiciousStewFromJavaEffect(int8_t effect) {
+  static i16 BedrockSuspiciousStewFromJavaEffect(i8 effect) {
     switch (effect) {
     case JumpBoost:
       return 1;
@@ -72,7 +72,7 @@ public:
     SuspiciousStewEffect(Type id, int duration) : fEffectId(id), fDuration(duration) {}
   };
 
-  static SuspiciousStewEffect JavaEffectFromBedrockSuspiciousStew(int16_t damage) {
+  static SuspiciousStewEffect JavaEffectFromBedrockSuspiciousStew(i16 damage) {
     switch (damage) {
     case 1:
       return {JumpBoost, 120};

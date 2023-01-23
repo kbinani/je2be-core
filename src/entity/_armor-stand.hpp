@@ -88,7 +88,7 @@ public:
     return std::ref(sPoses);
   }
 
-  static std::optional<Pose> JavaPoseFromBedrockPoseIndex(int32_t poseIndex) {
+  static std::optional<Pose> JavaPoseFromBedrockPoseIndex(i32 poseIndex) {
     auto const &poses = GetJavaPoses();
     if (0 <= poseIndex && poseIndex < poses.size()) {
       return poses[poseIndex];
@@ -111,7 +111,7 @@ public:
                        MaxDiffDegrees(a.fRightArm, b.fRightArm)});
   }
 
-  static std::optional<int32_t> BedrockMostSimilarPoseIndexFromJava(CompoundTag const &javaPose, float maxDiffDegrees = 10.0f) {
+  static std::optional<i32> BedrockMostSimilarPoseIndexFromJava(CompoundTag const &javaPose, float maxDiffDegrees = 10.0f) {
     Pose pose = Pose::FromCompoundTag(javaPose);
     float minDiff = std::numeric_limits<float>::max();
     int index = -1;

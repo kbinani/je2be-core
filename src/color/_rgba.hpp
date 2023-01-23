@@ -5,29 +5,29 @@
 namespace je2be {
 
 struct Rgba {
-  constexpr Rgba(uint8_t r, uint8_t g, uint8_t b) : fR(r), fG(g), fB(b), fA(255) {}
-  constexpr Rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : fR(r), fG(g), fB(b), fA(a) {}
+  constexpr Rgba(u8 r, u8 g, u8 b) : fR(r), fG(g), fB(b), fA(255) {}
+  constexpr Rgba(u8 r, u8 g, u8 b, u8 a) : fR(r), fG(g), fB(b), fA(a) {}
 
-  uint8_t fR;
-  uint8_t fG;
-  uint8_t fB;
-  uint8_t fA;
+  u8 fR;
+  u8 fG;
+  u8 fB;
+  u8 fA;
 
-  int32_t toRGB() const {
-    uint32_t c = ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
-    return *(int32_t *)&c;
+  i32 toRGB() const {
+    u32 c = ((u32)fR << 16) | ((u32)fG << 8) | ((u32)fB);
+    return *(i32 *)&c;
   }
 
-  int32_t toARGB() const {
-    uint32_t c = ((uint32_t)fA << 24) | ((uint32_t)fR << 16) | ((uint32_t)fG << 8) | ((uint32_t)fB);
-    return *(int32_t *)&c;
+  i32 toARGB() const {
+    u32 c = ((u32)fA << 24) | ((u32)fR << 16) | ((u32)fG << 8) | ((u32)fB);
+    return *(i32 *)&c;
   }
 
-  static Rgba FromRGB(int32_t rgb) {
-    uint32_t u = *(uint32_t *)&rgb;
-    uint8_t r = 0xff & (u >> 16);
-    uint8_t g = 0xff & (u >> 8);
-    uint8_t b = 0xff & u;
+  static Rgba FromRGB(i32 rgb) {
+    u32 u = *(u32 *)&rgb;
+    u8 r = 0xff & (u >> 16);
+    u8 g = 0xff & (u >> 8);
+    u8 b = 0xff & u;
     return Rgba(r, g, b);
   }
 };

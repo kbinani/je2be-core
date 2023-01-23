@@ -17,7 +17,7 @@ static inline void CopyBoolValues(CompoundTag const &src, CompoundTag &dest, std
   }
 }
 
-static inline void CopyByteValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<uint8_t>> keys) {
+static inline void CopyByteValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<u8>> keys) {
   for (auto const &it : keys) {
     auto value = src.byte(it.fBefore);
     if (value) {
@@ -39,7 +39,7 @@ static inline void CopyFloatValues(CompoundTag const &src, CompoundTag &dest, st
   }
 }
 
-static inline void CopyIntValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<int32_t>> keys) {
+static inline void CopyIntValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<i32>> keys) {
   for (auto const &it : keys) {
     auto value = src.int32(it.fBefore);
     if (value) {
@@ -50,7 +50,7 @@ static inline void CopyIntValues(CompoundTag const &src, CompoundTag &dest, std:
   }
 }
 
-static inline void CopyLongValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<int64_t>> keys) {
+static inline void CopyLongValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<i64>> keys) {
   for (auto const &it : keys) {
     auto value = src.int64(it.fBefore);
     if (value) {
@@ -61,7 +61,7 @@ static inline void CopyLongValues(CompoundTag const &src, CompoundTag &dest, std
   }
 }
 
-static inline void CopyShortValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<int16_t>> keys) {
+static inline void CopyShortValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<i16>> keys) {
   for (auto const &it : keys) {
     auto value = src.int16(it.fBefore);
     if (value) {

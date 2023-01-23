@@ -34,7 +34,7 @@ public:
       t["id"] = String("minecraft:item_frame");
     }
 
-    int32_t facingDirectionA = blockJ.fStates->int32("facing_direction", 0);
+    i32 facingDirectionA = blockJ.fStates->int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirectionA);
     je2be::Rotation rot(0, 0);
     switch (f6) {
@@ -87,7 +87,7 @@ public:
 
     auto itemRotationB = blockEntityB.float32("ItemRotation");
     if (itemRotationB) {
-      t["ItemRotation"] = Byte(static_cast<int8_t>(std::roundf(*itemRotationB / 45.0f)));
+      t["ItemRotation"] = Byte(static_cast<i8>(std::roundf(*itemRotationB / 45.0f)));
     }
 
     Pos3d motion(0, 0, 0);
@@ -116,8 +116,8 @@ public:
     if (!uid) {
       return std::nullopt;
     }
-    int64_t v = *uid;
-    Uuid uuid = Uuid::GenWithU64Seed(*(uint64_t *)&v);
+    i64 v = *uid;
+    Uuid uuid = Uuid::GenWithU64Seed(*(u64 *)&v);
 
     auto const *table = GetTable();
     auto found = table->find(*id);
@@ -476,9 +476,9 @@ public:
     }
 
     if (auto time = b.byte("Time"); time) {
-      int8_t i8 = *time;
-      uint8_t u8 = *(uint8_t *)&i8;
-      j["Time"] = Int(u8);
+      i8 i = *time;
+      u8 u = *(u8 *)&i;
+      j["Time"] = Int(u);
     }
   }
 
@@ -552,12 +552,12 @@ public:
     armorDropChances->push_back(Float(0.085));
     j["ArmorDropChances"] = armorDropChances;
 
-    int32_t variantB = b.int32("Variant", 0);
-    int32_t markVariantB = b.int32("MarkVariant", 0);
-    uint32_t uVariantB = *(uint32_t *)&variantB;
-    uint32_t uMarkVariantB = *(uint32_t *)&markVariantB;
-    uint32_t uVariantJ = (0xf & uVariantB) | ((0xf & uMarkVariantB) << 8);
-    j["Variant"] = Int(*(int32_t *)&uVariantJ);
+    i32 variantB = b.int32("Variant", 0);
+    i32 markVariantB = b.int32("MarkVariant", 0);
+    u32 uVariantB = *(u32 *)&variantB;
+    u32 uMarkVariantB = *(u32 *)&markVariantB;
+    u32 uVariantJ = (0xf & uVariantB) | ((0xf & uMarkVariantB) << 8);
+    j["Variant"] = Int(*(i32 *)&uVariantJ);
 
     if (auto chestItems = b.listTag("ChestItems"); chestItems) {
       // NOTE: horse's b["Chested"] is always false, so we cannot use ItemsWithSaddleItem function for horse.
@@ -623,8 +623,8 @@ public:
   static void Panda(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto genes = b.listTag("GeneArray");
     if (genes) {
-      std::optional<int32_t> main;
-      std::optional<int32_t> hidden;
+      std::optional<i32> main;
+      std::optional<i32> hidden;
       for (auto const &it : *genes) {
         auto gene = it->asCompound();
         if (!gene) {
@@ -671,7 +671,7 @@ public:
 
     auto value = Compound();
     value->set("dimension", String(JavaStringFromDimension(*dim)));
-    std::vector<int32_t> pos;
+    std::vector<i32> pos;
     pos.push_back((int)round(homePos->fX));
     pos.push_back((int)round(homePos->fY));
     pos.push_back((int)round(homePos->fZ));
@@ -827,7 +827,7 @@ public:
   */
     int despawnDelay = 0;
     if (auto timestamp = b.int64("TimeStamp"); timestamp) {
-      despawnDelay = std::max<int64_t>(0, *timestamp - ctx.fGameTick);
+      despawnDelay = std::max<i64>(0, *timestamp - ctx.fGameTick);
     }
     j["DespawnDelay"] = Int(despawnDelay);
   }
@@ -1414,7 +1414,7 @@ public:
 #pragma endregion
 
 #pragma region Behavior Generators
-  static Behavior AgeableE(int32_t maxBabyAgeJava) {
+  static Behavior AgeableE(i32 maxBabyAgeJava) {
     return [=](CompoundTag const &b, CompoundTag &j, Context &ctx) {
       auto age = b.int32("Age");
       if (!age) {
@@ -1826,8 +1826,8 @@ public:
     if (uuid) {
       uidJ = *uuid;
     } else {
-      int64_t v = *uidB;
-      uidJ = Uuid::GenWithU64Seed(*(uint64_t *)&v);
+      i64 v = *uidB;
+      uidJ = Uuid::GenWithU64Seed(*(u64 *)&v);
     }
     j["UUID"] = uidJ.toIntArrayTag();
 
@@ -1885,7 +1885,7 @@ public:
       if (auto dimension = DimensionFromBedrockDimension(*deathDimension); dimension) {
         auto lastDeathLocation = Compound();
         lastDeathLocation->set("dimension", String(JavaStringFromDimension(*dimension)));
-        std::vector<int32_t> value(3);
+        std::vector<i32> value(3);
         value[0] = *deathPositionX;
         value[1] = *deathPositionY;
         value[2] = *deathPositionZ;

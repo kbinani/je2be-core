@@ -81,20 +81,20 @@ class MapColor {
   }
 
   struct Colors {
-    uint8_t fColorId;
+    u8 fColorId;
     Lab fLab;
   };
 
-  static std::unordered_map<int32_t, Colors> const *CreateLabTable() {
+  static std::unordered_map<i32, Colors> const *CreateLabTable() {
     auto const &table = *GetTable();
 
-    auto ret = new std::unordered_map<int32_t, Colors>();
-    uint8_t tableSize = mcfile::Clamp<uint8_t>(table.size());
-    for (uint8_t i = 0; i < tableSize; i++) {
-      for (uint8_t v = 0; v < 4; v++) {
+    auto ret = new std::unordered_map<i32, Colors>();
+    u8 tableSize = mcfile::Clamp<u8>(table.size());
+    for (u8 i = 0; i < tableSize; i++) {
+      for (u8 v = 0; v < 4; v++) {
         Rgba rgb = RgbaFromIndexAndVariant(i, v);
         Lab lab = Lab::From(rgb);
-        uint8_t colorId = i * 4 + v;
+        u8 colorId = i * 4 + v;
         Colors cs;
         cs.fColorId = colorId;
         cs.fLab = lab;
@@ -104,46 +104,46 @@ class MapColor {
     return ret;
   }
 
-  static std::unordered_map<int32_t, Colors> const *GetLabTable() {
-    static std::unique_ptr<std::unordered_map<int32_t, Colors> const> const sTable(CreateLabTable());
+  static std::unordered_map<i32, Colors> const *GetLabTable() {
+    static std::unique_ptr<std::unordered_map<i32, Colors> const> const sTable(CreateLabTable());
     return sTable.get();
   }
 
-  static Rgba RgbaFromIndexAndVariant(uint8_t index, uint8_t variant) {
+  static Rgba RgbaFromIndexAndVariant(u8 index, u8 variant) {
     auto const &mapping = *GetTable();
     if (index >= mapping.size()) {
       return mapping[0];
     }
     Rgba base = mapping[index];
-    static int32_t const mul[4] = {180, 220, 255, 135};
-    uint8_t r = (uint8_t)((int32_t)base.fR * mul[variant] / 255);
-    uint8_t g = (uint8_t)((int32_t)base.fG * mul[variant] / 255);
-    uint8_t b = (uint8_t)((int32_t)base.fB * mul[variant] / 255);
+    static i32 const mul[4] = {180, 220, 255, 135};
+    u8 r = (u8)((i32)base.fR * mul[variant] / 255);
+    u8 g = (u8)((i32)base.fG * mul[variant] / 255);
+    u8 b = (u8)((i32)base.fB * mul[variant] / 255);
     return Rgba(r, g, b, base.fA);
   }
 
 public:
-  static Rgba RgbaFromId(uint8_t colorId) {
-    uint8_t variant = 0x3 & colorId;
-    uint8_t index = colorId / 4;
+  static Rgba RgbaFromId(u8 colorId) {
+    u8 variant = 0x3 & colorId;
+    u8 index = colorId / 4;
     return RgbaFromIndexAndVariant(index, variant);
   }
 
-  static uint8_t MostSimilarColorId(Rgba color) {
+  static u8 MostSimilarColorId(Rgba color) {
     auto const &table = *GetLabTable();
 
     if (color.fA == 0) {
       return 0;
     }
 
-    int32_t rgba = color.toARGB();
+    i32 rgba = color.toARGB();
     auto found = table.find(rgba);
     if (found != table.end()) {
       return found->second.fColorId;
     }
 
     Lab ref = Lab::From(color);
-    uint8_t colorId = 0;
+    u8 colorId = 0;
 
     double minDifference = std::numeric_limits<double>::max();
     for (auto const &it : table) {

@@ -11,7 +11,7 @@ public:
   }
 
   void set(size_t idx, CompoundTagPtr const &tag) {
-    uint16_t current = fIndices[idx];
+    u16 current = fIndices[idx];
     if (std::count(fIndices.begin(), fIndices.end(), current) == 1) {
       fPalette[current] = tag;
     } else {
@@ -36,7 +36,7 @@ public:
   CompoundTagPtr const &operator[](size_t index) const { return fPalette[index]; }
 
   std::vector<CompoundTagPtr> fPalette;
-  std::vector<uint16_t> fIndices;
+  std::vector<u16> fIndices;
 };
 
 } // namespace je2be::tobe

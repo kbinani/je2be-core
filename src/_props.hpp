@@ -25,14 +25,14 @@ static inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag cons
     return nullopt;
   }
 
-  int64_t l = *least;
-  int64_t m = *most;
+  i64 l = *least;
+  i64 m = *most;
 
   Uuid uuid;
-  *(uint32_t *)uuid.fData = *(uint32_t *)&m;
-  *((uint32_t *)uuid.fData + 1) = *((uint32_t *)&m + 1);
-  *((uint32_t *)uuid.fData + 2) = *(uint32_t *)&l;
-  *((uint32_t *)uuid.fData + 3) = *((uint32_t *)&l + 1);
+  *(u32 *)uuid.fData = *(u32 *)&m;
+  *((u32 *)uuid.fData + 1) = *((u32 *)&m + 1);
+  *((u32 *)uuid.fData + 2) = *(u32 *)&l;
+  *((u32 *)uuid.fData + 3) = *((u32 *)&l + 1);
   return uuid;
 }
 
@@ -48,15 +48,15 @@ static inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &t
   if (!list) {
     return nullopt;
   }
-  vector<int32_t> const &value = list->value();
+  vector<i32> const &value = list->value();
   if (value.size() != 4) {
     return nullopt;
   }
 
-  int32_t a = value[0];
-  int32_t b = value[1];
-  int32_t c = value[2];
-  int32_t d = value[3];
+  i32 a = value[0];
+  i32 b = value[1];
+  i32 c = value[2];
+  i32 d = value[3];
 
   return Uuid::FromInt32(a, b, c, d);
 }
@@ -87,7 +87,7 @@ static inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &
     return nullopt;
   }
 
-  return Uuid::FromInt32((int32_t)*a0, (int32_t)*b0, (int32_t)*c0, (int32_t)*d0);
+  return Uuid::FromInt32((i32)*a0, (i32)*b0, (i32)*c0, (i32)*d0);
 }
 
 static inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName keyName) {
@@ -237,14 +237,14 @@ static inline std::optional<nlohmann::json> GetJson(CompoundTag const &tag, std:
   return ParseAsJson(s->fValue);
 }
 
-static inline int32_t SquashI64ToI32(int64_t v) {
-  if (v < (int64_t)std::numeric_limits<int32_t>::min() || (int64_t)std::numeric_limits<int32_t>::max() < v) {
+static inline i32 SquashI64ToI32(i64 v) {
+  if (v < (i64)std::numeric_limits<i32>::min() || (i64)std::numeric_limits<i32>::max() < v) {
     XXHash32 x(0);
     x.add(&v, sizeof(v));
-    uint32_t u = x.hash();
-    return *(int32_t *)&u;
+    u32 u = x.hash();
+    return *(i32 *)&u;
   } else {
-    return static_cast<int32_t>(v);
+    return static_cast<i32>(v);
   }
 }
 

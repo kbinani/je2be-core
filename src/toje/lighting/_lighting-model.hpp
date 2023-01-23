@@ -8,7 +8,7 @@ enum Transparency : u8 {
   SOLID = 2,
 };
 
-enum Model : uint32_t {
+enum Model : u32 {
   // https://gyazo.com/be22882432da5269d283d90cdcd04282
   MODEL_SOLID = 0xffffff,
   MODEL_CLEAR = 0,

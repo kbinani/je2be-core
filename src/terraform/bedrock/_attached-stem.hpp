@@ -76,7 +76,7 @@ public:
     }
   }
 
-  static Pos2i VecFromFacingDirection(int32_t d) {
+  static Pos2i VecFromFacingDirection(i32 d) {
     switch (d) {
     case 5:
       return Pos2i(1, 0); // east
@@ -91,7 +91,7 @@ public:
     }
   }
 
-  static std::string FacingFromFacingDirection(int32_t d) {
+  static std::string FacingFromFacingDirection(i32 d) {
     switch (d) {
     case 5:
       return "east";

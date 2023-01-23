@@ -61,7 +61,7 @@ class Entity::Impl {
   };
 
   struct Rep {
-    explicit Rep(int64_t uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
+    explicit Rep(i64 uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
 
     CompoundTagPtr toCompoundTag() const {
       using namespace std;
@@ -82,7 +82,7 @@ class Entity::Impl {
           {"Color", Byte(fColor)},
           {"Dir", Byte(fDir)},
           {"FallDistance", Float(fFallDistance)},
-          {"Fire", Short(std::max((int16_t)0, fFire))},
+          {"Fire", Short(std::max((i16)0, fFire))},
           {"identifier", String(fIdentifier)},
           {"Invulnerable", Bool(fInvulnerable)},
           {"IsAngry", Bool(fIsAngry)},
@@ -128,11 +128,11 @@ class Entity::Impl {
     Rotation fRotation;
     std::vector<CompoundTagPtr> fTags;
     bool fChested = false;
-    int8_t fColor2 = 0;
-    int8_t fColor = 0;
-    int8_t fDir = 0;
+    i8 fColor2 = 0;
+    i8 fColor = 0;
+    i8 fDir = 0;
     float fFallDistance = 0;
-    int16_t fFire = 0;
+    i16 fFire = 0;
     std::string fIdentifier;
     bool fInvulnerable = false;
     bool fIsAngry = false;
@@ -149,21 +149,21 @@ class Entity::Impl {
     bool fIsSwimming = false;
     bool fIsTamed = false;
     bool fIsTrusting = false;
-    int32_t fLastDimensionId = 0;
+    i32 fLastDimensionId = 0;
     bool fLootDropped = false;
-    int32_t fMarkVariant = 0;
+    i32 fMarkVariant = 0;
     bool fOnGround = true;
-    int64_t fOwnerNew = -1;
-    int32_t fPortalCooldown = 0;
+    i64 fOwnerNew = -1;
+    i32 fPortalCooldown = 0;
     bool fSaddled = false;
     bool fSheared = false;
     bool fShowBottom = false;
     bool fSitting = false;
-    int32_t fSkinId = 0;
-    int32_t fStrength = 0;
-    int32_t fStrengthMax = 0;
-    int64_t const fUniqueId;
-    int32_t fVariant = 0;
+    i32 fSkinId = 0;
+    i32 fStrength = 0;
+    i32 fStrengthMax = 0;
+    i64 const fUniqueId;
+    i32 fVariant = 0;
     std::optional<std::string> fCustomName;
     bool fCustomNameVisible = false;
   };
@@ -220,7 +220,7 @@ public:
     auto tileZ = c.int32("TileZ");
 
     auto rot = props::GetRotation(c, "Rotation");
-    int32_t facing = 0;
+    i32 facing = 0;
     if (RotAlmostEquals(*rot, 0, -90)) {
       // up
       facing = 1;
@@ -544,7 +544,7 @@ public:
   }
 
 private:
-  static CompoundTagPtr ItemAtSlot(ListTag const &items, uint32_t slot) {
+  static CompoundTagPtr ItemAtSlot(ListTag const &items, u32 slot) {
     for (auto const &it : items) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item) {
@@ -823,7 +823,7 @@ private:
       // 1.18
       ct = Cat::CatTypeFromJavaLegacyCatType(*catType);
     }
-    int32_t variantB = Cat::BedrockVariantFromCatType(ct);
+    i32 variantB = Cat::BedrockVariantFromCatType(ct);
     std::string type = Cat::BedrockDefinitionKeyFromCatType(ct);
     AddDefinition(c, "+minecraft:cat_" + type);
     c["Variant"] = Int(variantB);
@@ -899,8 +899,8 @@ private:
 
     CopyFloatValues(tag, c, {{"FallDistance"}});
 
-    uint8_t time = mcfile::Clamp<uint8_t>(tag.int32("Time", 0));
-    c["Time"] = Byte(*(int8_t *)&time);
+    u8 time = mcfile::Clamp<u8>(tag.int32("Time", 0));
+    c["Time"] = Byte(*(i8 *)&time);
 
     /*
     Variant:
@@ -914,7 +914,7 @@ private:
 
   static void Fox(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto type = tag.string("Type", "red");
-    int32_t variant = 0;
+    i32 variant = 0;
     if (type == "red") {
       variant = 0;
     } else if (type == "snow") {
@@ -938,7 +938,7 @@ private:
         if (!uuidJ) {
           continue;
         }
-        int64_t uuidB = UuidRegistrar::ToId(*uuidJ);
+        i64 uuidB = UuidRegistrar::ToId(*uuidJ);
         std::string key = "TrustedPlayer" + std::to_string(index);
         c[key] = Long(uuidB);
         index++;
@@ -969,7 +969,7 @@ private:
       AddDefinition(c, "+interact_default");
     }
 
-    int32_t hornCount = 0;
+    i32 hornCount = 0;
     if (tag.boolean("HasLeftHorn", false)) {
       hornCount++;
     }
@@ -1020,7 +1020,7 @@ private:
     }
     c["IsAngry"] = Bool(angerTime > 0);
     if (angryAt) {
-      int64_t targetId = UuidRegistrar::ToId(*angryAt);
+      i64 targetId = UuidRegistrar::ToId(*angryAt);
       c["TargetID"] = Long(targetId);
     }
   }
@@ -1081,7 +1081,7 @@ private:
       // Bedrock
       //   on ground: graound level +0.35
       //   on rail: ground level +0.5
-      int32_t iy = (int32_t)floor(pos->fY);
+      i32 iy = (i32)floor(pos->fY);
       double dy = pos->fY - iy;
       if (*onGround) {
         // on ground
@@ -1096,7 +1096,7 @@ private:
 
   static void Mooshroom(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto type = tag.string("Type", "red");
-    int32_t variant = 0;
+    i32 variant = 0;
     if (type == "brown") {
       variant = 1;
       AddDefinition(c, "+minecraft:mooshroom_brown");
@@ -1189,7 +1189,7 @@ private:
   static void Rabbit(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto type = tag.int32("RabbitType", 0);
     std::string coat = "brown";
-    int32_t variant = 0;
+    i32 variant = 0;
     if (type == 0) {
       coat = "brown";
       variant = 0;
@@ -1366,11 +1366,11 @@ private:
 
     if (auto uuid = c.int64("UniqueID"); uuid) {
       // Set random SkinID based on UniqueID
-      int64_t id = *uuid;
-      uint64_t seed = *(int64_t *)&id;
+      i64 id = *uuid;
+      u64 seed = *(i64 *)&id;
       std::mt19937_64 mt(seed);
-      std::uniform_int_distribution<int32_t> distribution(0, 5);
-      int32_t skinId = distribution(mt);
+      std::uniform_int_distribution<i32> distribution(0, 5);
+      i32 skinId = distribution(mt);
       c["SkinID"] = Int(skinId);
       AddDefinition(c, "+villager_skin_" + std::to_string(skinId));
     }
@@ -1378,7 +1378,7 @@ private:
 
   static void WanderingTrader(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     if (auto despawnDelay = tag.int32("DespawnDelay"); despawnDelay) {
-      int64_t timestamp = ctx.fCtx.fGameTick + *despawnDelay;
+      i64 timestamp = ctx.fCtx.fGameTick + *despawnDelay;
       c["TimeStamp"] = Long(timestamp);
     }
   }
@@ -1464,7 +1464,7 @@ private:
     auto chestItems = List<Tag::Type::Compound>();
     if (inventory) {
       // items in "Inventory" does not have "Slot" property. So we can't use ConvertAnyItemList here.
-      int8_t slot = 0;
+      i8 slot = 0;
       for (auto const &it : *inventory) {
         auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it);
         if (!itemJ) {
@@ -1553,7 +1553,7 @@ private:
       auto leashedUuid = GetEntityUuid(tag);
       auto leasherUuid = props::GetUuid(*leash, {.fIntArray = "UUID"});
       if (x && y && z && leashedUuid) {
-        int64_t leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
+        i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
 
         Rep e(leasherId);
         e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
@@ -1654,7 +1654,7 @@ private:
     ret->set("Item", beItem);
 
     auto thrower = props::GetUuid(tag, {.fIntArray = "Thrower"});
-    int64_t owner = -1;
+    i64 owner = -1;
     if (thrower) {
       owner = UuidRegistrar::ToId(*thrower);
     }
@@ -1760,7 +1760,7 @@ private:
   static CompoundTagPtr Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
   static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
-    int8_t facing = tag.byte("facing", tag.byte("Facing", 0)); // 1.19: "facing", 1.18: "Facing"
+    i8 facing = tag.byte("facing", tag.byte("Facing", 0)); // 1.19: "facing", 1.18: "Facing"
     Facing4 f4 = Facing4FromBedrockDirection(facing);
     auto motiveJ = tag.string("variant", tag.string("Motive", "minecraft:aztec")); // 1.19: "variant", 1.18: "Motive"
     Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
@@ -1835,7 +1835,7 @@ private:
     };
   }
 
-  static Behavior AgeableE(int32_t maxBabyAgeJava) {
+  static Behavior AgeableE(i32 maxBabyAgeJava) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto age = tag.int32("Age");
       if (!age) {
@@ -1848,7 +1848,7 @@ private:
   static Behavior Boat(std::string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto type = tag.string("Type", "oak");
-      int32_t variant = Boat::BedrockVariantFromJavaType(type);
+      i32 variant = Boat::BedrockVariantFromJavaType(type);
       c["Variant"] = Int(variant);
 
       AddDefinition(c, "+minecraft:" + definitionKey);
@@ -1893,7 +1893,7 @@ private:
         if (!slot) {
           continue;
         }
-        int8_t idx = *slot - 1;
+        i8 idx = *slot - 1;
         if (idx < 0 || 16 <= idx) {
           continue;
         }
@@ -2158,7 +2158,7 @@ private:
     return bedrock;
   }
 
-  static ListTagPtr InitItemList(uint32_t capacity) {
+  static ListTagPtr InitItemList(u32 capacity) {
     auto items = List<Tag::Type::Compound>();
     for (int i = 0; i < capacity; i++) {
       auto empty = Item::Empty();
@@ -2169,7 +2169,7 @@ private:
     return items;
   }
 
-  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, uint32_t capacity, Context const &ctx) {
+  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context const &ctx) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -2198,7 +2198,7 @@ private:
     return ret;
   }
 
-  static void AddChestItem(CompoundTag &c, CompoundTagPtr const &item, int8_t slot, int8_t count) {
+  static void AddChestItem(CompoundTag &c, CompoundTagPtr const &item, i8 slot, i8 count) {
     item->set("Slot", Byte(slot));
     item->set("Count", Byte(count));
     auto chestItems = c.listTag("ChestItems");
@@ -2209,7 +2209,7 @@ private:
     c["ChestItems"] = chestItems;
   }
 
-  static std::optional<int64_t> GetOwnerUuid(CompoundTag const &tag) {
+  static std::optional<i64> GetOwnerUuid(CompoundTag const &tag) {
     auto uuid = props::GetUuid(tag, {.fIntArray = "Owner", .fHexString = "OwnerUUID"});
     if (!uuid) {
       return std::nullopt;
@@ -2307,7 +2307,7 @@ private:
     return ret;
   }
 
-  static std::optional<int64_t> GetEntityUuid(CompoundTag const &tag) {
+  static std::optional<i64> GetEntityUuid(CompoundTag const &tag) {
     auto uuid = props::GetUuid(tag, {.fLeastAndMostPrefix = "UUID", .fIntArray = "UUID"});
     if (!uuid) {
       return std::nullopt;

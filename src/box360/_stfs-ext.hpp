@@ -4,8 +4,8 @@ namespace je2be::box360::detail {
 
 class MemoryIO : public BaseIO {
 public:
-  void SetPosition(uint64_t position, std::ios_base::seekdir dir = std::ios_base::beg) override {
-    uint64_t pos;
+  void SetPosition(u64 position, std::ios_base::seekdir dir = std::ios_base::beg) override {
+    u64 pos;
     switch (dir) {
     case std::ios_base::cur:
       pos = this->position + position;
@@ -24,29 +24,29 @@ public:
     this->position = pos;
   }
 
-  uint64_t GetPosition() override {
+  u64 GetPosition() override {
     return position;
   }
 
-  uint64_t Length() override {
+  u64 Length() override {
     return buffer.size();
   }
 
-  void ReadBytes(uint8_t *outBuffer, uint32_t len) override {
+  void ReadBytes(u8 *outBuffer, u32 len) override {
     if (buffer.size() <= position + len) {
       throw std::string("MemoryIO: index out of range");
     }
-    for (uint32_t i = 0; i < len; i++) {
+    for (u32 i = 0; i < len; i++) {
       outBuffer[i] = buffer[position + i];
     }
     position += len;
   }
 
-  void WriteBytes(uint8_t *buffer, uint32_t len) override {
+  void WriteBytes(u8 *buffer, u32 len) override {
     if (this->buffer.size() <= position + len) {
       this->buffer.resize(position + len);
     }
-    for (uint32_t i = 0; i < len; i++) {
+    for (u32 i = 0; i < len; i++) {
       this->buffer[position + i] = buffer[i];
     }
     position += len;
@@ -56,14 +56,14 @@ public:
 
   void Close() override {}
 
-  void Drain(std::vector<uint8_t> &buffer) {
+  void Drain(std::vector<u8> &buffer) {
     this->buffer.swap(buffer);
-    std::vector<uint8_t>().swap(this->buffer);
+    std::vector<u8>().swap(this->buffer);
   }
 
 private:
-  std::vector<uint8_t> buffer;
-  uint64_t position = 0;
+  std::vector<u8> buffer;
+  u64 position = 0;
 };
 
 class FileIO2 : public BaseIO {
@@ -72,7 +72,7 @@ public:
     fStream = mcfile::File::Open(path, mcfile::File::Mode::Read);
   }
 
-  void SetPosition(uint64_t position, std::ios_base::seekdir dir = std::ios_base::beg) override {
+  void SetPosition(u64 position, std::ios_base::seekdir dir = std::ios_base::beg) override {
     if (!fStream) {
       throw std::string("FileIO2::SetPosition; stream is NULL");
     }
@@ -96,7 +96,7 @@ public:
     }
   }
 
-  uint64_t GetPosition() override {
+  u64 GetPosition() override {
     if (!fStream) {
       throw std::string("FileIO2::GetPosition; stream is NULL");
     }
@@ -107,7 +107,7 @@ public:
     return *p;
   }
 
-  uint64_t Length() override {
+  u64 Length() override {
     if (!fStream) {
       throw std::string("FileIO2::Length; stream is NULL");
     }
@@ -128,7 +128,7 @@ public:
     return *result;
   }
 
-  void ReadBytes(uint8_t *outBuffer, uint32_t len) override {
+  void ReadBytes(u8 *outBuffer, u32 len) override {
     if (!fStream) {
       throw std::string("FileIO2::ReadBytes; stream is NULL");
     }
@@ -143,7 +143,7 @@ public:
     }
   }
 
-  void WriteBytes(uint8_t *buffer, uint32_t len) override {
+  void WriteBytes(u8 *buffer, u32 len) override {
     throw std::string("FileIO2::WriteBytes; unsupported operation");
   }
 

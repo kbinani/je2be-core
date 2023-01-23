@@ -34,7 +34,7 @@ public:
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
     auto f = make_shared<mcfile::stream::FileInputStream>(region);
 
-    vector<uint8_t> buffer;
+    vector<u8> buffer;
     if (!Savegame::ExtractRawChunkFromRegionFile(*f, localCx, localCz, buffer)) {
       return JE2BE_ERROR;
     }
@@ -47,30 +47,30 @@ public:
 
     Savegame::DecodeDecompressedChunk(buffer);
 
-    uint8_t maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
-    uint8_t maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
+    u8 maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
+    u8 maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
     if (maybeEndTagMarker != 0x00 || maybeLongArrayTagMarker != 0x0c) {
       return JE2BE_ERROR;
     }
-    // int32_t xPos = mcfile::I32FromBE(Mem::Read<int32_t>(buffer, 0x2));
-    // int32_t zPos = mcfile::I32FromBE(Mem::Read<int32_t>(buffer, 0x6));
-    // int64_t maybeLastUpdate = mcfile::I64FromBE(Mem::Read<int64_t>(buffer, 0x0a));
-    // int64_t maybeInhabitedTime = mcfile::I64FromBE(Mem::Read<int64_t>(buffer, 0x12));
+    // i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
+    // i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
+    // i64 maybeLastUpdate = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x0a));
+    // i64 maybeInhabitedTime = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x12));
 
-    uint16_t maxSectionAddress = (uint16_t)buffer[0x1b] * 0x100;
-    vector<uint16_t> sectionJumpTable;
+    u16 maxSectionAddress = (u16)buffer[0x1b] * 0x100;
+    vector<u16> sectionJumpTable;
     for (int section = 0; section < 16; section++) {
-      uint16_t address = mcfile::U16FromBE(Mem::Read<uint16_t>(buffer, 0x1c + section * sizeof(uint16_t)));
+      u16 address = mcfile::U16FromBE(Mem::Read<u16>(buffer, 0x1c + section * sizeof(u16)));
       sectionJumpTable.push_back(address);
     }
 
-    vector<uint8_t> maybeNumBlockPaletteEntriesFor16Sections;
+    vector<u8> maybeNumBlockPaletteEntriesFor16Sections;
     for (int section = 0; section < 16; section++) {
-      uint8_t numBlockPaletteEntries = buffer[0x3c + section];
+      u8 numBlockPaletteEntries = buffer[0x3c + section];
       maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
     }
 
-    vector<uint16_t> sectionBlocks(4096); // sectionBlocks[(y * 16 + z) * 16 + x]
+    vector<u16> sectionBlocks(4096); // sectionBlocks[(y * 16 + z) * 16 + x]
 
     for (int section = 0; section < 16; section++) {
       int address = sectionJumpTable[section];
@@ -82,26 +82,26 @@ public:
         break;
       }
 
-      unordered_set<uint16_t> usedBlockData;
-      vector<uint8_t> gridJumpTable;                                             // "grid" is a cube of 4x4x4 blocks.
+      unordered_set<u16> usedBlockData;
+      vector<u8> gridJumpTable;                                                  // "grid" is a cube of 4x4x4 blocks.
       copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
       for (int gx = 0; gx < 4; gx++) {
         for (int gz = 0; gz < 4; gz++) {
           for (int gy = 0; gy < 4; gy++) {
             int gridIndex = gx * 16 + gz * 4 + gy;
 
-            uint8_t v1 = gridJumpTable[gridIndex * 2];
-            uint8_t v2 = gridJumpTable[gridIndex * 2 + 1];
-            uint16_t t1 = v1 >> 4;
-            uint16_t t2 = (uint16_t)0xf & v1;
-            uint16_t t3 = v2 >> 4;
-            uint16_t t4 = (uint16_t)0xf & v2;
+            u8 v1 = gridJumpTable[gridIndex * 2];
+            u8 v2 = gridJumpTable[gridIndex * 2 + 1];
+            u16 t1 = v1 >> 4;
+            u16 t2 = (u16)0xf & v1;
+            u16 t3 = v2 >> 4;
+            u16 t4 = (u16)0xf & v2;
 
-            uint16_t offset = (t4 << 8 | t1 << 4 | t2) * 4;
-            uint16_t format = t3;
+            u16 offset = (t4 << 8 | t1 << 4 | t2) * 4;
+            u16 format = t3;
 
-            uint16_t grid[64];
-            uint16_t gridPosition = 0x4c + address + 0x80 + offset;
+            u16 grid[64];
+            u16 gridPosition = 0x4c + address + 0x80 + offset;
 
             if (format == 0) {
               Grid::ParseFormat0(v1, v2, grid);
@@ -175,7 +175,7 @@ public:
               for (int lz = 0; lz < 4; lz++) {
                 for (int ly = 0; ly < 4; ly++) {
                   int idx = lx * 16 + lz * 4 + ly;
-                  uint16_t bd = grid[idx];
+                  u16 bd = grid[idx];
                   int indexInSection = ((gy * 4 + ly) * 16 + (gz * 4 + lz)) * 16 + gx * 4 + lx;
                   sectionBlocks[indexInSection] = bd;
                   usedBlockData.insert(bd);
@@ -186,8 +186,8 @@ public:
         }
       }
 
-      unordered_map<uint16_t, shared_ptr<mcfile::je::Block const>> usedBlocks;
-      for (uint16_t data : usedBlockData) {
+      unordered_map<u16, shared_ptr<mcfile::je::Block const>> usedBlocks;
+      for (u16 data : usedBlockData) {
         BlockData bd(data);
         if (bd.extendedBlockId() == 175 && bd.data() == 10) {
           // upper half of tall flowers
@@ -199,7 +199,7 @@ public:
       for (int y = 0; y < 16; y++) {
         for (int z = 0; z < 16; z++) {
           for (int x = 0; x < 16; x++) {
-            uint16_t data = sectionBlocks[index];
+            u16 data = sectionBlocks[index];
             BlockData bd(data);
             shared_ptr<mcfile::je::Block const> block;
             if (bd.extendedBlockId() == 175 && bd.data() == 10) [[unlikely]] {
@@ -216,7 +216,7 @@ public:
                 }
               } else {
                 int lowerIndex = ((y - 1) * 16 + z) * 16 + x;
-                uint16_t lowerBlockData = sectionBlocks[lowerIndex];
+                u16 lowerBlockData = sectionBlocks[lowerIndex];
                 auto lower = usedBlocks[lowerBlockData];
                 block = lower->applying({{"half", "upper"}});
               }
@@ -237,12 +237,12 @@ public:
 
     int pos = maxSectionAddress + 0x4c;
     for (int i = 0; i < 4; i++) {
-      uint32_t count = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, pos));
+      u32 count = mcfile::U32FromBE(Mem::Read<u32>(buffer, pos));
       pos += 4 + 128 * (count + 1);
     }
 
     int heightMapStartPos = pos;
-    vector<uint8_t> heightMap;
+    vector<u8> heightMap;
     copy_n(buffer.data() + heightMapStartPos, 256, back_inserter(heightMap)); // When heightMap[x + z * 16] == 0, it means height = 256 at (x, z).
 
     vector<mcfile::biomes::BiomeId> biomes;

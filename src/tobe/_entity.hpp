@@ -39,7 +39,7 @@ public:
 
   struct LocalPlayerResult {
     CompoundTagPtr fEntity;
-    int64_t fUid;
+    i64 fUid;
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };

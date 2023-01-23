@@ -4,12 +4,12 @@
 
 namespace je2be {
 
-class TippedArrowPotion : StaticReversibleMap<std::string, int16_t, TippedArrowPotion> {
+class TippedArrowPotion : StaticReversibleMap<std::string, i16, TippedArrowPotion> {
   TippedArrowPotion() = delete;
 
 public:
-  static ReversibleMap<std::string, int16_t> const *CreateTable() {
-    return new ReversibleMap<std::string, int16_t>({
+  static ReversibleMap<std::string, i16> const *CreateTable() {
+    return new ReversibleMap<std::string, i16>({
         {"minecraft:night_vision", 6},
         {"minecraft:long_night_vision", 7},
         {"minecraft:invisibility", 8},
@@ -50,11 +50,11 @@ public:
     });
   }
 
-  static int16_t BedrockPotionType(std::string const &java) {
+  static i16 BedrockPotionType(std::string const &java) {
     return Forward(java, 6);
   }
 
-  static std::string JavaPotionType(int16_t bedrock) {
+  static std::string JavaPotionType(i16 bedrock) {
     return Backward(bedrock, "minecraft:night_vision");
   }
 };

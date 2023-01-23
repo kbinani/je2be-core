@@ -142,9 +142,9 @@ public:
 
     auto customColor = tagB->int32("customColor");
     if (customColor) {
-      int32_t c = *customColor;
-      uint32_t rgb = 0xffffff & *(uint32_t *)&c;
-      displayJ->set("color", Int(*(int32_t *)&rgb));
+      i32 c = *customColor;
+      u32 rgb = 0xffffff & *(u32 *)&c;
+      displayJ->set("color", Int(*(i32 *)&rgb));
     }
 
     auto displayB = tagB->compoundTag("display");
@@ -307,7 +307,7 @@ public:
             auto patternJ = Compound();
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*colorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
-            patternJ->set("Color", Int(static_cast<int32_t>(ccj)));
+            patternJ->set("Color", Int(static_cast<i32>(ccj)));
             patternJ->set("Pattern", String(*patternStringB));
 
             patternsJ->push_back(patternJ);
@@ -768,7 +768,7 @@ public:
 
     auto damage = itemB.int16("Damage", 0);
     std::string translate;
-    std::optional<int32_t> mapColor;
+    std::optional<i32> mapColor;
     if (damage == 3) {
       translate = "filled_map.monument";
       mapColor = 3830373;

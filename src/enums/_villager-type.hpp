@@ -6,7 +6,7 @@ class VillagerType {
   VillagerType() = delete;
 
 public:
-  enum Variant : int32_t {
+  enum Variant : i32 {
     Plains = 0,
     Desert = 1,
     Jungle = 2,
@@ -51,7 +51,7 @@ public:
     return std::nullopt;
   }
 
-  int32_t variant() const {
+  i32 variant() const {
     return fVariant;
   }
 

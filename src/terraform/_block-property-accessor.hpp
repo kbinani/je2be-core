@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include "_mcfile-fwd.hpp"
 
 #include <cstdint>
@@ -11,7 +13,7 @@ class BlockPropertyAccessor {
   class Impl;
 
 public:
-  using DataType = uint8_t;
+  using DataType = u8;
 
   enum Properties : DataType {
     STAIRS = 1,

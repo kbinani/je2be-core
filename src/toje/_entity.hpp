@@ -20,17 +20,17 @@ public:
     CompoundTagPtr fEntity;
 
     std::map<size_t, Uuid> fPassengers;
-    std::optional<int64_t> fLeasherId;
+    std::optional<i64> fLeasherId;
   };
 
   static std::optional<Result> From(CompoundTag const &entityB, Context &ctx);
 
   struct LocalPlayerData {
     CompoundTagPtr fEntity;
-    int64_t fEntityIdBedrock;
+    i64 fEntityIdBedrock;
     Uuid fEntityIdJava;
-    std::optional<int64_t> fShoulderEntityLeft;
-    std::optional<int64_t> fShoulderEntityRight;
+    std::optional<i64> fShoulderEntityLeft;
+    std::optional<i64> fShoulderEntityRight;
   };
 
   static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid);

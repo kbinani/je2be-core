@@ -56,7 +56,7 @@ private:
         if (!id) {
           return;
         }
-        int64_t v = *id;
+        i64 v = *id;
         string prefix;
         prefix.assign((char const *)&v, sizeof(v));
         digp += prefix;

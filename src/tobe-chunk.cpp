@@ -29,7 +29,7 @@ public:
                         JavaEditionMap mapInfo,
                         std::filesystem::path entitiesDir,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                        int64_t gameTick,
+                        i64 gameTick,
                         int difficultyBedrock,
                         bool allowCommand,
                         GameMode gameType) {
@@ -81,7 +81,7 @@ public:
                                                   JavaEditionMap const &mapInfo,
                                                   std::filesystem::path entitiesDir,
                                                   std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                                                  int64_t gameTick,
+                                                  i64 gameTick,
                                                   int difficultyBedrock,
                                                   bool allowCommand,
                                                   GameMode gameType) {
@@ -124,7 +124,7 @@ public:
     for (int i = 0; i < chunk->fLiquidTicks.size(); i++) {
       mcfile::je::TickingBlock tb = chunk->fLiquidTicks[i];
 
-      int64_t time = chunk->fLastUpdate + tb.fT;
+      i64 time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
       auto blockB = BlockData::From(blockJ, nullptr);
@@ -153,7 +153,7 @@ public:
     for (int i = 0; i < chunk->fTileTicks.size(); i++) {
       mcfile::je::TickingBlock tb = chunk->fTileTicks[i];
 
-      int64_t time = chunk->fLastUpdate + tb.fT;
+      i64 time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
       auto blockB = BlockData::From(blockJ, chunk->tileEntityAt(tb.fX, tb.fY, tb.fZ));
@@ -399,7 +399,7 @@ Chunk::Result Chunk::Convert(mcfile::Dimension dim,
                              JavaEditionMap mapInfo,
                              std::filesystem::path entitiesDir,
                              std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                             int64_t gameTick,
+                             i64 gameTick,
                              int difficultyBedrock,
                              bool allowCommand,
                              GameMode gameType) {

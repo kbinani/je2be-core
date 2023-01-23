@@ -9,7 +9,7 @@ namespace je2be::toje {
 
 class Context::Impl {
   struct Accum {
-    std::map<int64_t, MapInfo::Map> fMaps;
+    std::map<i64, MapInfo::Map> fMaps;
     std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> fRegions;
     std::map<mcfile::Dimension, std::vector<StructurePiece>> fStructurePieces;
     int fNumChunks = 0;
@@ -55,7 +55,7 @@ class Context::Impl {
         return;
       }
       if (parsed->fIsTagged) {
-        uint8_t tag = parsed->fTagged.fTag;
+        u8 tag = parsed->fTagged.fTag;
         mcfile::Dimension d = parsed->fTagged.fDimension;
         if (!fOpt.fDimensionFilter.empty()) {
           if (fOpt.fDimensionFilter.find(d) == fOpt.fDimensionFilter.end()) {
@@ -63,8 +63,8 @@ class Context::Impl {
           }
         }
         switch (tag) {
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data3D):
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::Data2D): {
+        case static_cast<u8>(mcfile::be::DbKey::Tag::Data3D):
+        case static_cast<u8>(mcfile::be::DbKey::Tag::Data2D): {
           int cx = parsed->fTagged.fChunk.fX;
           int cz = parsed->fTagged.fChunk.fZ;
           Pos2i c(cx, cz);
@@ -80,7 +80,7 @@ class Context::Impl {
           fNumChunks++;
           break;
         }
-        case static_cast<uint8_t>(mcfile::be::DbKey::Tag::StructureBounds): {
+        case static_cast<u8>(mcfile::be::DbKey::Tag::StructureBounds): {
           std::vector<StructurePiece> buffer;
           StructurePiece::Parse(value, buffer);
           copy(buffer.begin(), buffer.end(), back_inserter(fStructurePieces[d]));
@@ -88,7 +88,7 @@ class Context::Impl {
         }
         }
       } else if (parsed->fUnTagged.starts_with("map_")) {
-        int64_t mapId;
+        i64 mapId;
         auto parsed = MapInfo::Parse(value, mapId, fEndian);
         if (!parsed) {
           return;
@@ -112,7 +112,7 @@ public:
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                                        int &totalChunks,
-                                       int64_t gameTick,
+                                       i64 gameTick,
                                        GameMode gameMode,
                                        unsigned int concurrency) {
     using namespace std;
@@ -230,18 +230,18 @@ std::shared_ptr<Context> Context::Init(std::filesystem::path const &dbname,
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                                        int &totalChunks,
-                                       int64_t gameTick,
+                                       i64 gameTick,
                                        GameMode gameMode,
                                        unsigned int concurrency) {
   return Impl::Init(dbname, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency);
 }
 
-void Context::markMapUuidAsUsed(int64_t uuid) {
+void Context::markMapUuidAsUsed(i64 uuid) {
   fUsedMapUuids.insert(uuid);
 }
 
 void Context::mergeInto(Context &other) const {
-  for (int64_t uuid : fUsedMapUuids) {
+  for (i64 uuid : fUsedMapUuids) {
     other.fUsedMapUuids.insert(uuid);
   }
   for (auto const &it : fLeashedEntities) {
@@ -275,7 +275,7 @@ Status Context::postProcess(std::filesystem::path root, mcfile::be::DbInterface 
   return exportPoi(root);
 }
 
-std::optional<MapInfo::Map> Context::mapFromUuid(int64_t mapUuid) const {
+std::optional<MapInfo::Map> Context::mapFromUuid(i64 mapUuid) const {
   return fMapInfo->mapFromUuid(mapUuid);
 }
 
@@ -296,14 +296,14 @@ std::shared_ptr<Context> Context::make() const {
   return ret;
 }
 
-void Context::setLocalPlayerIds(int64_t entityIdB, Uuid const &entityIdJ) {
+void Context::setLocalPlayerIds(i64 entityIdB, Uuid const &entityIdJ) {
   LocalPlayer lp;
   lp.fBedrockId = entityIdB;
   lp.fJavaId = entityIdJ;
   fLocalPlayer = lp;
 }
 
-std::optional<Uuid> Context::mapLocalPlayerId(int64_t entityIdB) const {
+std::optional<Uuid> Context::mapLocalPlayerId(i64 entityIdB) const {
   if (fLocalPlayer && fLocalPlayer->fBedrockId == entityIdB) {
     return fLocalPlayer->fJavaId;
   } else {
@@ -354,15 +354,15 @@ std::optional<std::pair<Uuid, CompoundTagPtr>> Context::drainRootVehicle() {
   return std::nullopt;
 }
 
-void Context::setShoulderEntityLeft(int64_t uid) {
+void Context::setShoulderEntityLeft(i64 uid) {
   fShoulderEntityLeftId = uid;
 }
 
-void Context::setShoulderEntityRight(int64_t uid) {
+void Context::setShoulderEntityRight(i64 uid) {
   fShoulderEntityRightId = uid;
 }
 
-bool Context::setShoulderEntityIfItIs(int64_t uid, CompoundTagPtr entityB) {
+bool Context::setShoulderEntityIfItIs(i64 uid, CompoundTagPtr entityB) {
   if (fShoulderEntityLeftId == uid) {
     fShoulderEntityLeft = entityB;
     return true;
@@ -394,7 +394,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
 
   std::optional<int> maxMapNumber;
 
-  for (int64_t uuid : fUsedMapUuids) {
+  for (i64 uuid : fUsedMapUuids) {
     auto map = fMapInfo->mapFromUuid(uuid);
     if (!map) {
       continue;
@@ -427,14 +427,14 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     if (colorsB.size() != 65536) {
       continue;
     }
-    std::vector<uint8_t> colorsJ(16384);
+    std::vector<u8> colorsJ(16384);
     for (int i = 0; i < colorsJ.size(); i++) {
-      uint8_t r = colorsB[i * 4];
-      uint8_t g = colorsB[i * 4 + 1];
-      uint8_t b = colorsB[i * 4 + 2];
-      uint8_t a = colorsB[i * 4 + 3];
+      u8 r = colorsB[i * 4];
+      u8 g = colorsB[i * 4 + 1];
+      u8 b = colorsB[i * 4 + 2];
+      u8 a = colorsB[i * 4 + 3];
       Rgba rgb(r, g, b, a);
-      uint8_t id = MapColor::MostSimilarColorId(rgb);
+      u8 id = MapColor::MostSimilarColorId(rgb);
       colorsJ[i] = id;
     }
     j->set("colors", std::make_shared<ByteArrayTag>(colorsJ));

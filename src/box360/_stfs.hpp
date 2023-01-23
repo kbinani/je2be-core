@@ -5,13 +5,15 @@
  */
 #pragma once
 
+#include <je2be/integers.hpp>
+
 namespace je2be::box360::detail {
 
 using INT24 = signed int;
 
 typedef struct _WINFILETIME {
-  uint32_t dwHighDateTime;
-  uint32_t dwLowDateTime;
+  u32 dwHighDateTime;
+  u32 dwLowDateTime;
 
 } WINFILETIME;
 
@@ -90,7 +92,7 @@ enum ContentType {
 };
 
 struct Version {
-  uint16_t major, minor, build, revision;
+  u16 major, minor, build, revision;
 };
 #pragma endregion
 
@@ -124,13 +126,13 @@ public:
   }
 
   // seek to a position in a file
-  virtual void SetPosition(uint64_t position, std::ios_base::seekdir dir = std::ios_base::beg) = 0;
+  virtual void SetPosition(u64 position, std::ios_base::seekdir dir = std::ios_base::beg) = 0;
 
   // get current address in the file
-  virtual uint64_t GetPosition() = 0;
+  virtual u64 GetPosition() = 0;
 
   // get length of the file
-  virtual uint64_t Length() = 0;
+  virtual u64 Length() = 0;
 
   // get the byte order in which to read the bytes
   EndianType GetEndian() {
@@ -138,31 +140,31 @@ public:
   }
 
   // read 'len' bytes from the current file at the current position into buffer
-  virtual void ReadBytes(uint8_t *outBuffer, uint32_t len) = 0;
+  virtual void ReadBytes(u8 *outBuffer, u32 len) = 0;
 
   // write 'len' bytes from the current file at the current position into buffer
-  virtual void WriteBytes(uint8_t *buffer, uint32_t len) = 0;
+  virtual void WriteBytes(u8 *buffer, u32 len) = 0;
 
   // resize the current object (if supported)
-  virtual void Resize(uint64_t size) { throw std::string("Resizing not supported."); }
+  virtual void Resize(u64 size) { throw std::string("Resizing not supported."); }
 
   // all the read functions
-  uint8_t ReadByte() {
-    uint8_t toReturn;
+  u8 ReadByte() {
+    u8 toReturn;
     ReadBytes(&toReturn, 1);
     return toReturn;
   }
 
-  int16_t ReadInt16() {
-    return (int16_t)ReadWord();
+  i16 ReadInt16() {
+    return (i16)ReadWord();
   }
 
-  uint16_t ReadWord() {
-    uint16_t toReturn;
-    ReadBytes(reinterpret_cast<uint8_t *>(&toReturn), 2);
+  u16 ReadWord() {
+    u16 toReturn;
+    ReadBytes(reinterpret_cast<u8 *>(&toReturn), 2);
 
     if (byteOrder == BigEndian)
-      reverseByteArray(reinterpret_cast<uint8_t *>(&toReturn), 2);
+      reverseByteArray(reinterpret_cast<u8 *>(&toReturn), 2);
 
     return toReturn;
   }
@@ -186,35 +188,35 @@ public:
     return returnVal;
   }
 
-  int32_t ReadInt32() {
-    return (int32_t)ReadDword();
+  i32 ReadInt32() {
+    return (i32)ReadDword();
   }
 
-  uint32_t ReadDword() {
-    uint32_t toReturn;
-    ReadBytes(reinterpret_cast<uint8_t *>(&toReturn), 4);
+  u32 ReadDword() {
+    u32 toReturn;
+    ReadBytes(reinterpret_cast<u8 *>(&toReturn), 4);
 
     if (byteOrder == BigEndian)
-      reverseByteArray(reinterpret_cast<uint8_t *>(&toReturn), 4);
+      reverseByteArray(reinterpret_cast<u8 *>(&toReturn), 4);
 
     return toReturn;
   }
 
-  int64_t ReadInt64() {
-    return (int64_t)ReadUInt64();
+  i64 ReadInt64() {
+    return (i64)ReadUInt64();
   }
 
-  uint64_t ReadUInt64() {
-    uint64_t toReturn;
-    ReadBytes(reinterpret_cast<uint8_t *>(&toReturn), 8);
+  u64 ReadUInt64() {
+    u64 toReturn;
+    ReadBytes(reinterpret_cast<u8 *>(&toReturn), 8);
 
     if (byteOrder == BigEndian)
-      reverseByteArray(reinterpret_cast<uint8_t *>(&toReturn), 8);
+      reverseByteArray(reinterpret_cast<u8 *>(&toReturn), 8);
 
     return toReturn;
   }
 
-  uint64_t ReadMultiByte(size_t size) {
+  u64 ReadMultiByte(size_t size) {
     switch (size) {
     case 1:
       return ReadByte();
@@ -230,12 +232,12 @@ public:
   }
 
   float ReadFloat() {
-    uint32_t temp = ReadDword();
+    u32 temp = ReadDword();
     return *(float *)&temp;
   }
 
   double ReadDouble() {
-    uint64_t temp = ReadUInt64();
+    u64 temp = ReadUInt64();
     return *(double *)&temp;
   }
 
@@ -255,7 +257,7 @@ public:
       char *str = strVec.data();
       str[len] = 0;
 
-      ReadBytes((uint8_t *)str, len);
+      ReadBytes((u8 *)str, len);
       toReturn = std::string(str);
     }
 
@@ -285,14 +287,14 @@ public:
   }
 
   // Write functions
-  void Write(uint8_t b) {
+  void Write(u8 b) {
     WriteBytes(&b, 1);
   }
 
-  void Write(uint16_t w) {
+  void Write(u16 w) {
     if (byteOrder == BigEndian)
-      reverseByteArray(reinterpret_cast<uint8_t *>(&w), 2);
-    WriteBytes(reinterpret_cast<uint8_t *>(&w), 2);
+      reverseByteArray(reinterpret_cast<u8 *>(&w), 2);
+    WriteBytes(reinterpret_cast<u8 *>(&w), 2);
   }
 
   void Write(INT24 i24, EndianType et = Default) {
@@ -302,27 +304,27 @@ public:
 
     if (byteOrder == BigEndian) {
       i24 <<= 8;
-      reverseByteArray(reinterpret_cast<uint8_t *>(&i24), 4);
+      reverseByteArray(reinterpret_cast<u8 *>(&i24), 4);
     }
-    WriteBytes(reinterpret_cast<uint8_t *>(&i24), 3);
+    WriteBytes(reinterpret_cast<u8 *>(&i24), 3);
 
     byteOrder = orig;
   }
 
-  void Write(uint32_t dw) {
+  void Write(u32 dw) {
     if (byteOrder == BigEndian)
-      reverseByteArray(reinterpret_cast<uint8_t *>(&dw), 4);
-    WriteBytes(reinterpret_cast<uint8_t *>(&dw), 4);
+      reverseByteArray(reinterpret_cast<u8 *>(&dw), 4);
+    WriteBytes(reinterpret_cast<u8 *>(&dw), 4);
   }
 
-  void Write(uint64_t u64) {
+  void Write(u64 u64) {
     if (byteOrder == BigEndian)
-      reverseByteArray(reinterpret_cast<uint8_t *>(&u64), 8);
-    WriteBytes(reinterpret_cast<uint8_t *>(&u64), 8);
+      reverseByteArray(reinterpret_cast<u8 *>(&u64), 8);
+    WriteBytes(reinterpret_cast<u8 *>(&u64), 8);
   }
 
-  void Write(std::string s, int forceLen = -1, bool nullTerminating = true, uint8_t nullTerminator = 0) {
-    WriteBytes((uint8_t *)s.c_str(), s.length() + nullTerminating);
+  void Write(std::string s, int forceLen = -1, bool nullTerminating = true, u8 nullTerminator = 0) {
+    WriteBytes((u8 *)s.c_str(), s.length() + nullTerminating);
 
     if (forceLen > 0) {
       forceLen -= s.size();
@@ -334,19 +336,19 @@ public:
 
   void Write(std::wstring ws, bool nullTerminating = true) {
     if (byteOrder == LittleEndian)
-      WriteBytes((uint8_t *)ws.c_str(), (ws.length() + nullTerminating) * 2);
+      WriteBytes((u8 *)ws.c_str(), (ws.length() + nullTerminating) * 2);
     else {
-      uint16_t curChar;
-      for (uint32_t i = 0; i < ws.length(); i++) {
+      u16 curChar;
+      for (u32 i = 0; i < ws.length(); i++) {
         curChar = ws.at(i);
         Write(curChar);
       }
       if (nullTerminating)
-        Write((uint16_t)0);
+        Write((u16)0);
     }
   }
 
-  void Write(uint8_t *buffer, uint32_t len) {
+  void Write(u8 *buffer, u32 len) {
     WriteBytes(buffer, len);
   }
 
@@ -360,9 +362,9 @@ protected:
   EndianType byteOrder;
 
 private:
-  void reverseByteArray(uint8_t *array, uint32_t len) {
-    uint8_t temp;
-    for (uint32_t i = 0; i < len / 2; i++) {
+  void reverseByteArray(u8 *array, u32 len) {
+    u8 temp;
+    for (u32 i = 0; i < len / 2; i++) {
       temp = array[i];
       array[i] = array[len - i - 1];
       array[len - i - 1] = temp;
@@ -390,31 +392,31 @@ public:
     fstr->seekp(0);
   }
 
-  void SetPosition(uint64_t pos, std::ios_base::seekdir dir = std::ios_base::beg) {
+  void SetPosition(u64 pos, std::ios_base::seekdir dir = std::ios_base::beg) {
     fstr->seekp(pos, dir);
   }
 
-  uint64_t GetPosition() {
+  u64 GetPosition() {
     return fstr->tellp();
   }
 
-  uint64_t Length() {
-    uint64_t originalPosition = GetPosition();
+  u64 Length() {
+    u64 originalPosition = GetPosition();
 
     fstr->seekp(0, std::ios_base::end);
-    uint64_t fileLength = fstr->tellp();
+    u64 fileLength = fstr->tellp();
 
     SetPosition(originalPosition);
     return fileLength;
   }
 
-  void ReadBytes(uint8_t *outBuffer, uint32_t len) {
+  void ReadBytes(u8 *outBuffer, u32 len) {
     fstr->read((char *)outBuffer, len);
     if (fstr->fail())
       throw std::string("FileIO: Error reading from file.\n") + StringFromErrno(errno);
   }
 
-  void WriteBytes(uint8_t *buffer, uint32_t len) {
+  void WriteBytes(u8 *buffer, u32 len) {
     fstr->write((char *)buffer, len);
     if (fstr->fail())
       throw std::string("FileIO: Error writing to file.\n") + StringFromErrno(errno);
@@ -428,12 +430,12 @@ public:
     fstr->flush();
   }
 
-  void Resize(uint64_t size) {
+  void Resize(u64 size) {
     using namespace std;
     if (size > this->Length())
       throw std::string("FileIO: Cannot expand file size.");
 
-    uint8_t *buffer = new uint8_t[0x10000];
+    u8 *buffer = new u8[0x10000];
     std::string newFilePath = filePath + ".new";
 
     // open a new stream
@@ -520,52 +522,52 @@ enum LicenseType {
 
 struct LicenseEntry {
   LicenseType type;
-  uint64_t data;
-  uint32_t bits;
-  uint32_t flags;
+  u64 data;
+  u32 bits;
+  u32 flags;
 };
 
 struct StfsVolumeDescriptor {
-  uint8_t size;
-  uint8_t reserved;
-  uint8_t blockSeperation;
-  uint16_t fileTableBlockCount;
+  u8 size;
+  u8 reserved;
+  u8 blockSeperation;
+  u16 fileTableBlockCount;
   INT24 fileTableBlockNum;
-  uint8_t topHashTableHash[0x14];
-  uint32_t allocatedBlockCount;
-  uint32_t unallocatedBlockCount;
+  u8 topHashTableHash[0x14];
+  u32 allocatedBlockCount;
+  u32 unallocatedBlockCount;
 };
 
 struct SvodVolumeDescriptor {
-  uint8_t size;
-  uint8_t blockCacheElementCount;
-  uint8_t workerThreadProcessor;
-  uint8_t workerThreadPriority;
-  uint8_t rootHash[0x14];
-  uint8_t flags;
+  u8 size;
+  u8 blockCacheElementCount;
+  u8 workerThreadProcessor;
+  u8 workerThreadPriority;
+  u8 rootHash[0x14];
+  u8 flags;
   INT24 dataBlockCount;
   INT24 dataBlockOffset;
-  uint8_t reserved[5];
+  u8 reserved[5];
 };
 
 struct Certificate {
-  uint16_t publicKeyCertificateSize;
-  uint8_t ownerConsoleID[5];
+  u16 publicKeyCertificateSize;
+  u8 ownerConsoleID[5];
   std::string ownerConsolePartNumber;
   ConsoleType ownerConsoleType;
   ConsoleTypeFlags consoleTypeFlags;
   std::string dateGeneration;
-  uint32_t publicExponent;
-  uint8_t publicModulus[0x80];
-  uint8_t certificateSignature[0x100];
-  uint8_t signature[0x80];
+  u32 publicExponent;
+  u8 publicModulus[0x80];
+  u8 certificateSignature[0x100];
+  u8 signature[0x80];
 };
 
 class StfsHelpers {
   StfsHelpers() = delete;
 
 public:
-  static void ReadStfsVolumeDescriptorEx(StfsVolumeDescriptor *descriptor, BaseIO *io, uint32_t address) {
+  static void ReadStfsVolumeDescriptorEx(StfsVolumeDescriptor *descriptor, BaseIO *io, u32 address) {
     // seek to the volume descriptor
     io->SetPosition(address);
 
@@ -604,7 +606,7 @@ public:
     io->ReadBytes(descriptor->reserved, 0x05);
   }
 
-  static void ReadCertificateEx(Certificate *cert, BaseIO *io, uint32_t address) {
+  static void ReadCertificateEx(Certificate *cert, BaseIO *io, u32 address) {
     using namespace std;
 
     // seek to the address of the certificate
@@ -615,17 +617,17 @@ public:
 
     char tempPartNum[0x15];
     tempPartNum[0x14] = 0;
-    io->ReadBytes((uint8_t *)tempPartNum, 0x11);
+    io->ReadBytes((u8 *)tempPartNum, 0x11);
     cert->ownerConsolePartNumber = string(tempPartNum);
 
-    uint32_t temp = io->ReadDword();
+    u32 temp = io->ReadDword();
     cert->ownerConsoleType = (ConsoleType)(temp & 3);
     cert->consoleTypeFlags = (ConsoleTypeFlags)(temp & 0xFFFFFFFC);
     if (cert->ownerConsoleType != DevKit && cert->ownerConsoleType != Retail)
       throw string("STFS: Invalid console type.\n");
 
     char tempGenDate[9] = {0};
-    io->ReadBytes((uint8_t *)tempGenDate, 8);
+    io->ReadBytes((u8 *)tempGenDate, 8);
     cert->dateGeneration = string(tempGenDate);
 
     cert->publicExponent = io->ReadDword();
@@ -741,8 +743,8 @@ class XdbfHelpers {
 
 public:
   static time_t FILETIMEtoTimeT(WINFILETIME time) {
-    int64_t i64 = (((int64_t)(time.dwHighDateTime)) << 32) + time.dwLowDateTime;
-    return (time_t)((i64 - 116444736000000000) / 10000000);
+    i64 i = (((i64)(time.dwHighDateTime)) << 32) + time.dwLowDateTime;
+    return (time_t)((i - 116444736000000000) / 10000000);
   }
 };
 #pragma endregion
@@ -782,7 +784,7 @@ public:
     delete[] titleThumbnailImage;
   }
 
-  uint32_t fileSize;
+  u32 fileSize;
 
   Magic magic;
 
@@ -790,25 +792,25 @@ public:
   Certificate certificate;
 
   // only strong signed
-  uint8_t packageSignature[0x100];
+  u8 packageSignature[0x100];
 
   LicenseEntry licenseData[0x10];
-  uint8_t headerHash[0x14];
-  uint32_t headerSize;
+  u8 headerHash[0x14];
+  u32 headerSize;
   ContentType contentType;
-  uint32_t metaDataVersion;
-  uint64_t contentSize;
-  uint32_t mediaID;
-  uint32_t version;
-  uint32_t baseVersion;
-  uint32_t titleID;
-  uint8_t platform;
-  uint8_t executableType;
-  uint8_t discNumber;
-  uint8_t discInSet;
-  uint32_t savegameID;
-  uint8_t consoleID[5];
-  uint8_t profileID[8];
+  u32 metaDataVersion;
+  u64 contentSize;
+  u32 mediaID;
+  u32 version;
+  u32 baseVersion;
+  u32 titleID;
+  u8 platform;
+  u8 executableType;
+  u8 discNumber;
+  u8 discInSet;
+  u32 savegameID;
+  u8 consoleID[5];
+  u8 profileID[8];
 
   StfsVolumeDescriptor stfsVolumeDescriptor;
   SvodVolumeDescriptor svodVolumeDescriptor;
@@ -818,46 +820,46 @@ public:
   bool enabled;
 
   // metadata v1
-  uint32_t dataFileCount;
-  uint64_t dataFileCombinedSize;
-  uint8_t deviceID[0x14];
+  u32 dataFileCount;
+  u64 dataFileCombinedSize;
+  u8 deviceID[0x14];
   std::wstring displayName;
   std::wstring displayDescription;
   std::wstring publisherName;
   std::wstring titleName;
-  uint8_t transferFlags;
-  uint32_t thumbnailImageSize;
-  uint32_t titleThumbnailImageSize;
+  u8 transferFlags;
+  u32 thumbnailImageSize;
+  u32 titleThumbnailImageSize;
 
   // credit to Eaton for all the extra metadata stuff
   InstallerType installerType;
 
   // Avatar Asset
   AssetSubcategory subCategory;
-  uint32_t colorizable;
-  uint8_t guid[0x10];
+  u32 colorizable;
+  u8 guid[0x10];
   SkeletonVersion skeletonVersion;
 
   // media
-  uint8_t seriesID[0x10];
-  uint8_t seasonID[0x10];
-  uint16_t seasonNumber;
-  uint16_t episodeNumber;
+  u8 seriesID[0x10];
+  u8 seasonID[0x10];
+  u16 seasonNumber;
+  u16 episodeNumber;
 
   // installer progress cache data
   OnlineContentResumeState resumeState;
-  uint32_t currentFileIndex;
-  uint64_t currentFileOffset;
-  uint64_t bytesProcessed;
+  u32 currentFileIndex;
+  u64 currentFileOffset;
+  u64 bytesProcessed;
   time_t lastModified;
-  uint8_t cabResumeData[5584];
+  u8 cabResumeData[5584];
 
   // installer update data
   Version installerBaseVersion;
   Version installerVersion;
 
-  uint8_t *thumbnailImage;
-  uint8_t *titleThumbnailImage;
+  u8 *thumbnailImage;
+  u8 *titleThumbnailImage;
 
 private:
   BaseIO *io;
@@ -876,7 +878,7 @@ private:
     else if (magic == LIVE || magic == PIRS)
       io->ReadBytes(packageSignature, 0x100);
     else {
-      except << "XContentHeader: Content signature type 0x" << hex << (uint32_t)magic << " is invalid.\n";
+      except << "XContentHeader: Content signature type 0x" << hex << (u32)magic << " is invalid.\n";
       throw except.str();
     }
 
@@ -884,7 +886,7 @@ private:
 
     // read licensing data
     for (int i = 0; i < 0x10; i++) {
-      uint64_t tempYo = io->ReadUInt64();
+      u64 tempYo = io->ReadUInt64();
       licenseData[i].type = (LicenseType)(tempYo >> 48);
       licenseData[i].data = (tempYo & 0xFFFFFFFFFFFF);
       licenseData[i].bits = io->ReadDword();
@@ -986,8 +988,8 @@ private:
     thumbnailImageSize = io->ReadDword();
     titleThumbnailImageSize = io->ReadDword();
 
-    thumbnailImage = new uint8_t[thumbnailImageSize];
-    titleThumbnailImage = new uint8_t[titleThumbnailImageSize];
+    thumbnailImage = new u8[thumbnailImageSize];
+    titleThumbnailImage = new u8[titleThumbnailImageSize];
 
     // read images
     io->ReadBytes(thumbnailImage, thumbnailImageSize);
@@ -1009,13 +1011,13 @@ private:
     switch (installerType) {
     case SystemUpdate:
     case TitleUpdate: {
-      uint32_t tempbv = io->ReadDword();
+      u32 tempbv = io->ReadDword();
       installerBaseVersion.major = tempbv >> 28;
       installerBaseVersion.minor = (tempbv >> 24) & 0xF;
       installerBaseVersion.build = (tempbv >> 8) & 0xFFFF;
       installerBaseVersion.revision = tempbv & 0xFF;
 
-      uint32_t tempv = io->ReadDword();
+      u32 tempv = io->ReadDword();
       installerVersion.major = tempv >> 28;
       installerVersion.minor = (tempv >> 24) & 0xF;
       installerVersion.build = (tempv >> 8) & 0xFFFF;
@@ -1057,17 +1059,17 @@ private:
 #pragma region StfsPackage.h
 
 struct StfsFileEntry {
-  uint32_t entryIndex;
+  u32 entryIndex;
   std::string name;
-  uint8_t nameLen;
-  uint8_t flags;
+  u8 nameLen;
+  u8 flags;
   INT24 blocksForFile;
   INT24 startingBlockNum;
-  uint16_t pathIndicator;
-  uint32_t fileSize;
-  uint32_t createdTimeStamp;
-  uint32_t accessTimeStamp;
-  uint32_t fileEntryAddress;
+  u16 pathIndicator;
+  u32 fileSize;
+  u32 createdTimeStamp;
+  u32 accessTimeStamp;
+  u32 fileEntryAddress;
   std::vector<INT24> blockChain;
 };
 
@@ -1079,18 +1081,18 @@ struct StfsFileListing {
 
 #pragma pack(push, 1)
 struct HashEntry {
-  uint8_t blockHash[0x14];
-  uint8_t status;
-  uint32_t nextBlock;
+  u8 blockHash[0x14];
+  u8 status;
+  u32 nextBlock;
 };
 #pragma pack(pop)
 
 struct HashTable {
   Level level;
-  uint32_t trueBlockNumber;
-  uint32_t entryCount;
+  u32 trueBlockNumber;
+  u32 entryCount;
   HashEntry entries[0xAA];
-  uint32_t addressInFile;
+  u32 addressInFile;
 };
 
 class StfsPackage {
@@ -1129,14 +1131,14 @@ public:
   }
 
   // Description: extract a file (by FileEntry) to a designated file path
-  void ExtractFile(StfsFileEntry *entry, std::string outPath, void (*extractProgress)(void *, uint32_t, uint32_t) = NULL, void *arg = NULL) {
+  void ExtractFile(StfsFileEntry *entry, std::string outPath, void (*extractProgress)(void *, u32, u32) = NULL, void *arg = NULL) {
     // create/truncate our out file
     FileIO outFile(outPath, true);
     Extract(entry, outFile, extractProgress);
   }
 
   // Description: extract a file (by FileEntry) to a designated file path
-  void Extract(StfsFileEntry *entry, BaseIO &out, void (*extractProgress)(void *, uint32_t, uint32_t) = NULL, void *arg = NULL) {
+  void Extract(StfsFileEntry *entry, BaseIO &out, void (*extractProgress)(void *, u32, u32) = NULL, void *arg = NULL) {
     if (entry->nameLen == 0) {
       except.str(std::string());
       except << "STFS: File '" << entry->name.c_str() << "' doesn't exist in the package.\n";
@@ -1144,7 +1146,7 @@ public:
     }
 
     // get the file size that we are extracting
-    uint32_t fileSize = entry->fileSize;
+    u32 fileSize = entry->fileSize;
 
     // make a special case for files of size 0
     if (fileSize == 0) {
@@ -1160,17 +1162,17 @@ public:
     // check if all the blocks are consecutive
     if (entry->flags & 1) {
       // allocate 0xAA blocks of memory, for maximum efficiency, yo
-      uint8_t *buffer = new uint8_t[0xAA000];
+      u8 *buffer = new u8[0xAA000];
 
       // seek to the begining of the file
-      uint32_t startAddress = BlockToAddress(entry->startingBlockNum);
+      u32 startAddress = BlockToAddress(entry->startingBlockNum);
       io->SetPosition(startAddress);
 
       // calculate the number of blocks to read before we hit a table
-      uint32_t blockCount = (ComputeLevel0BackingHashBlockNumber(entry->startingBlockNum) + blockStep[0]) - ((startAddress - firstHashTableAddress) >> 0xC);
+      u32 blockCount = (ComputeLevel0BackingHashBlockNumber(entry->startingBlockNum) + blockStep[0]) - ((startAddress - firstHashTableAddress) >> 0xC);
 
       // pick up the change at the begining, until we hit a hash table
-      if ((uint32_t)entry->blocksForFile <= blockCount) {
+      if ((u32)entry->blocksForFile <= blockCount) {
         io->ReadBytes(buffer, entry->fileSize);
         out.Write(buffer, entry->fileSize);
 
@@ -1193,10 +1195,10 @@ public:
       }
 
       // extract the blocks inbetween the tables
-      uint32_t tempSize = (entry->fileSize - (blockCount << 0xC));
+      u32 tempSize = (entry->fileSize - (blockCount << 0xC));
       while (tempSize >= 0xAA000) {
         // skip past the hash table(s)
-        uint32_t currentPos = io->GetPosition();
+        u32 currentPos = io->GetPosition();
         io->SetPosition(currentPos + GetHashTableSkipSize(currentPos));
 
         // read in the 0xAA blocks between the tables
@@ -1216,7 +1218,7 @@ public:
       // pick up the change at the end
       if (tempSize != 0) {
         // skip past the hash table(s)
-        uint32_t currentPos = io->GetPosition();
+        u32 currentPos = io->GetPosition();
         io->SetPosition(currentPos + GetHashTableSkipSize(currentPos));
 
         // read in the extra crap
@@ -1234,17 +1236,17 @@ public:
       delete[] buffer;
     } else {
       // generate the block chain which we have to extract
-      uint32_t fullReadCounts = fileSize / 0x1000;
+      u32 fullReadCounts = fileSize / 0x1000;
 
       fileSize -= (fullReadCounts * 0x1000);
 
-      uint32_t block = entry->startingBlockNum;
+      u32 block = entry->startingBlockNum;
 
       // allocate data for the blocks
-      uint8_t data[0x1000];
+      u8 data[0x1000];
 
       // read all the full blocks the file allocates
-      for (uint32_t i = 0; i < fullReadCounts; i++) {
+      for (u32 i = 0; i < fullReadCounts; i++) {
         ExtractBlock(block, data);
         out.Write(data, 0x1000);
 
@@ -1271,7 +1273,7 @@ public:
   }
 
   // Description: convert a block into an address in the file
-  uint32_t BlockToAddress(uint32_t blockNum) {
+  u32 BlockToAddress(u32 blockNum) {
     // check for invalid block number
     if (blockNum >= INT24_MAX)
       throw std::string("STFS: Block number must be less than 0xFFFFFF.\n");
@@ -1279,11 +1281,11 @@ public:
   }
 
   // Description: get the address of a hash for a data block
-  uint32_t GetHashAddressOfBlock(uint32_t blockNum) {
+  u32 GetHashAddressOfBlock(u32 blockNum) {
     if (blockNum >= metaData->stfsVolumeDescriptor.allocatedBlockCount)
       throw std::string("STFS: Reference to illegal block number.\n");
 
-    uint32_t hashAddr = (ComputeLevel0BackingHashBlockNumber(blockNum) << 0xC) + firstHashTableAddress;
+    u32 hashAddr = (ComputeLevel0BackingHashBlockNumber(blockNum) << 0xC) + firstHashTableAddress;
     hashAddr += (blockNum % 0xAA) * 0x18;
 
     switch (topLevel) {
@@ -1294,8 +1296,8 @@ public:
       hashAddr += ((topTable.entries[blockNum / 0xAA].status & 0x40) << 6);
       break;
     case 2:
-      uint32_t level1Off = ((topTable.entries[blockNum / 0x70E4].status & 0x40) << 6);
-      uint32_t pos = ((ComputeLevel1BackingHashBlockNumber(blockNum) << 0xC) + firstHashTableAddress + level1Off) + ((blockNum % 0xAA) * 0x18);
+      u32 level1Off = ((topTable.entries[blockNum / 0x70E4].status & 0x40) << 6);
+      u32 pos = ((ComputeLevel1BackingHashBlockNumber(blockNum) << 0xC) + firstHashTableAddress + level1Off) + ((blockNum % 0xAA) * 0x18);
       io->SetPosition(pos + 0x14);
       hashAddr += ((io->ReadByte() & 0x40) << 6);
       break;
@@ -1322,13 +1324,13 @@ private:
   bool ioPassedIn;
 
   Sex packageSex;
-  uint32_t blockStep[2];
-  uint32_t firstHashTableAddress;
-  // uint8_t hashOffset;
+  u32 blockStep[2];
+  u32 firstHashTableAddress;
+  // u8 hashOffset;
   Level topLevel;
   HashTable topTable;
   // HashTable cached;
-  uint32_t tablesPerLevel[3];
+  u32 tablesPerLevel[3];
 
   // Description: read the file listing from the file
   void ReadFileListing() {
@@ -1341,15 +1343,15 @@ private:
     entry.fileSize = (metaData->stfsVolumeDescriptor.fileTableBlockCount * 0x1000);
 
     // generate a block chain for the full file listing
-    uint32_t block = entry.startingBlockNum;
+    u32 block = entry.startingBlockNum;
 
     StfsFileListing fl;
-    uint32_t currentAddr;
-    for (uint32_t x = 0; x < metaData->stfsVolumeDescriptor.fileTableBlockCount; x++) {
+    u32 currentAddr;
+    for (u32 x = 0; x < metaData->stfsVolumeDescriptor.fileTableBlockCount; x++) {
       currentAddr = BlockToAddress(block);
       io->SetPosition(currentAddr);
 
-      for (uint32_t i = 0; i < 0x40; i++) {
+      for (u32 i = 0; i < 0x40; i++) {
         StfsFileEntry fe;
 
         // set the current position
@@ -1398,7 +1400,7 @@ private:
   }
 
   // Description: extract a block's data
-  void ExtractBlock(uint32_t blockNum, uint8_t *data, uint32_t length = 0x1000) {
+  void ExtractBlock(u32 blockNum, u8 *data, u32 length = 0x1000) {
     if (blockNum >= metaData->stfsVolumeDescriptor.allocatedBlockCount)
       throw std::string("STFS: Reference to illegal block number.\n");
 
@@ -1414,18 +1416,18 @@ private:
   }
 
   // Description: convert a block number into a true block number, where the first block is the first hash table
-  uint32_t ComputeBackingDataBlockNumber(uint32_t blockNum) {
-    uint32_t toReturn = (((blockNum + 0xAA) / 0xAA) << (uint8_t)packageSex) + blockNum;
+  u32 ComputeBackingDataBlockNumber(u32 blockNum) {
+    u32 toReturn = (((blockNum + 0xAA) / 0xAA) << (u8)packageSex) + blockNum;
     if (blockNum < 0xAA)
       return toReturn;
     else if (blockNum < 0x70E4)
-      return toReturn + (((blockNum + 0x70E4) / 0x70E4) << (uint8_t)packageSex);
+      return toReturn + (((blockNum + 0x70E4) / 0x70E4) << (u8)packageSex);
     else
-      return (1 << (uint8_t)packageSex) + (toReturn + (((blockNum + 0x70E4) / 0x70E4) << (uint8_t)packageSex));
+      return (1 << (u8)packageSex) + (toReturn + (((blockNum + 0x70E4) / 0x70E4) << (u8)packageSex));
   }
 
   // Description: get a block's hash entry
-  HashEntry GetBlockHashEntry(uint32_t blockNum) {
+  HashEntry GetBlockHashEntry(u32 blockNum) {
     if (blockNum >= metaData->stfsVolumeDescriptor.allocatedBlockCount)
       throw std::string("STFS: Reference to illegal block number.\n");
 
@@ -1442,7 +1444,7 @@ private:
   }
 
   // Description: get the true block number for the hash table that hashes the block at the level passed in
-  uint32_t ComputeLevelNBackingHashBlockNumber(uint32_t blockNum, Level level) {
+  u32 ComputeLevelNBackingHashBlockNumber(u32 blockNum, Level level) {
     switch (level) {
     case Zero:
       return ComputeLevel0BackingHashBlockNumber(blockNum);
@@ -1459,34 +1461,34 @@ private:
   }
 
   // Description: get the true block number for the hash table that hashes the block at level 0
-  uint32_t ComputeLevel0BackingHashBlockNumber(uint32_t blockNum) {
+  u32 ComputeLevel0BackingHashBlockNumber(u32 blockNum) {
     if (blockNum < 0xAA)
       return 0;
 
-    uint32_t num = (blockNum / 0xAA) * blockStep[0];
-    num += ((blockNum / 0x70E4) + 1) << ((uint8_t)packageSex);
+    u32 num = (blockNum / 0xAA) * blockStep[0];
+    num += ((blockNum / 0x70E4) + 1) << ((u8)packageSex);
 
     if (blockNum / 0x70E4 == 0)
       return num;
 
-    return num + (1 << (uint8_t)packageSex);
+    return num + (1 << (u8)packageSex);
   }
 
   // Description: get the true block number for the hash table that hashes the block at level 1 (female)
-  uint32_t ComputeLevel1BackingHashBlockNumber(uint32_t blockNum) {
+  u32 ComputeLevel1BackingHashBlockNumber(u32 blockNum) {
     if (blockNum < 0x70E4)
       return blockStep[0];
-    return (1 << (uint8_t)packageSex) + (blockNum / 0x70E4) * blockStep[1];
+    return (1 << (u8)packageSex) + (blockNum / 0x70E4) * blockStep[1];
   }
 
   // Description: get the true block number for the hash table that hashes the block at level 2
-  uint32_t ComputeLevel2BackingHashBlockNumber(uint32_t blockNum) {
+  u32 ComputeLevel2BackingHashBlockNumber(u32 blockNum) {
     return blockStep[1];
   }
 
   // Description: add the file entry to the file listing
   void AddToListing(StfsFileListing *fullListing, StfsFileListing *out) {
-    for (uint32_t i = 0; i < fullListing->fileEntries.size(); i++) {
+    for (u32 i = 0; i < fullListing->fileEntries.size(); i++) {
       // check if the file is a directory
       bool isDirectory = (fullListing->fileEntries.at(i).flags & 2);
 
@@ -1505,7 +1507,7 @@ private:
     }
 
     // for every folder added, add the files to them
-    for (uint32_t i = 0; i < out->folderEntries.size(); i++)
+    for (u32 i = 0; i < out->folderEntries.size(); i++)
       AddToListing(fullListing, &out->folderEntries.at(i));
   }
 
@@ -1522,9 +1524,9 @@ private:
   }
 
   // Description: get the number of bytes to skip over the hash table
-  uint32_t GetHashTableSkipSize(uint32_t tableAddress) {
+  u32 GetHashTableSkipSize(u32 tableAddress) {
     // convert the address to a true block number
-    uint32_t trueBlockNumber = (tableAddress - firstHashTableAddress) >> 0xC;
+    u32 trueBlockNumber = (tableAddress - firstHashTableAddress) >> 0xC;
 
     // check if it's the first hash table
     if (trueBlockNumber == 0)
@@ -1578,11 +1580,11 @@ private:
     topTable.trueBlockNumber = ComputeLevelNBackingHashBlockNumber(0, topLevel);
     topTable.level = topLevel;
 
-    uint32_t baseAddress = (topTable.trueBlockNumber << 0xC) + firstHashTableAddress;
+    u32 baseAddress = (topTable.trueBlockNumber << 0xC) + firstHashTableAddress;
     topTable.addressInFile = baseAddress + ((metaData->stfsVolumeDescriptor.blockSeperation & 2) << 0xB);
     io->SetPosition(topTable.addressInFile);
 
-    uint32_t dataBlocksPerHashTreeLevel[3] = {1, 0xAA, 0x70E4};
+    u32 dataBlocksPerHashTreeLevel[3] = {1, 0xAA, 0x70E4};
 
     // load the information
     topTable.entryCount = metaData->stfsVolumeDescriptor.allocatedBlockCount / dataBlocksPerHashTreeLevel[topLevel];
@@ -1591,7 +1593,7 @@ private:
     else if (metaData->stfsVolumeDescriptor.allocatedBlockCount > 0xAA && (metaData->stfsVolumeDescriptor.allocatedBlockCount % 0xAA != 0))
       topTable.entryCount++;
 
-    for (uint32_t i = 0; i < topTable.entryCount; i++) {
+    for (u32 i = 0; i < topTable.entryCount; i++) {
       io->ReadBytes(topTable.entries[i].blockHash, 0x14);
       topTable.entries[i].status = io->ReadByte();
       topTable.entries[i].nextBlock = io->ReadInt24();

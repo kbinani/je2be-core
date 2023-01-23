@@ -6,31 +6,31 @@ namespace je2be {
 
 class TropicalFish {
 public:
-  static TropicalFish FromJavaVariant(int32_t variant) {
-    uint32_t u = *(uint32_t *)&variant;
+  static TropicalFish FromJavaVariant(i32 variant) {
+    u32 u = *(u32 *)&variant;
     bool small = (0xf & u) == 0;
-    int32_t pattern = 0xf & (u >> 8);
-    int32_t bodyColor = 0xf & (u >> 16);
-    int32_t patternColor = 0xf & (u >> 24);
-    TropicalFish tf(small, pattern, (int8_t)bodyColor, (int8_t)patternColor);
+    i32 pattern = 0xf & (u >> 8);
+    i32 bodyColor = 0xf & (u >> 16);
+    i32 patternColor = 0xf & (u >> 24);
+    TropicalFish tf(small, pattern, (i8)bodyColor, (i8)patternColor);
     return tf;
   }
 
   static TropicalFish FromBedrockBucketTag(CompoundTag const &tag) {
     bool small = tag.int32("Variant", 0) == 0;
-    int32_t pattern = tag.int32("MarkVariant", 0);
-    int8_t bodyColor = tag.byte("Color", 0);
-    int8_t patternColor = tag.byte("Color2", 0);
+    i32 pattern = tag.int32("MarkVariant", 0);
+    i8 bodyColor = tag.byte("Color", 0);
+    i8 patternColor = tag.byte("Color2", 0);
     return TropicalFish(small, pattern, bodyColor, patternColor);
   }
 
-  int32_t toJavaVariant() const {
-    uint32_t u = 0;
+  i32 toJavaVariant() const {
+    u32 u = 0;
     u |= fSmall ? 0 : 1;
-    u |= (0xf & (uint32_t)fPattern) << 8;
-    u |= (0xf & (uint32_t)fBodyColor) << 16;
-    u |= (0xf & (uint32_t)fPatternColor) << 24;
-    return *(int32_t *)&u;
+    u |= (0xf & (u32)fPattern) << 8;
+    u |= (0xf & (u32)fBodyColor) << 16;
+    u |= (0xf & (u32)fPatternColor) << 24;
+    return *(i32 *)&u;
   }
 
   CompoundTagPtr toBedrockBucketTag() const {
@@ -75,13 +75,13 @@ public:
   }
 
 private:
-  TropicalFish(bool small, int32_t pattern, int8_t bodyColor, int8_t patternColor) : fSmall(small), fPattern(pattern), fBodyColor(bodyColor), fPatternColor(patternColor) {}
+  TropicalFish(bool small, i32 pattern, i8 bodyColor, i8 patternColor) : fSmall(small), fPattern(pattern), fBodyColor(bodyColor), fPatternColor(patternColor) {}
 
 public:
   bool fSmall;
-  int32_t fPattern;
-  int8_t fBodyColor;
-  int8_t fPatternColor;
+  i32 fPattern;
+  i8 fBodyColor;
+  i8 fPatternColor;
 };
 
 } // namespace je2be

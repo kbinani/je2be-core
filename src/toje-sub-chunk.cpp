@@ -15,7 +15,7 @@ public:
 
     vector<shared_ptr<mcfile::je::Block const>> paletteJ;
 
-    vector<uint16_t> indicesJ(4096, 0);
+    vector<u16> indicesJ(4096, 0);
     if (sectionB.fPaletteIndices.size() != 4096 || sectionB.fPalette.empty()) {
       paletteJ.push_back(make_shared<mcfile::je::Block const>("minecraft:air"));
     } else {
@@ -46,7 +46,7 @@ public:
       for (int x = 0, indexB = 0; x < 16; x++) {
         for (int z = 0; z < 16; z++) {
           for (int y = 0; y < 16; y++, indexB++) {
-            uint16_t waterPaletteIndexB = sectionB.fWaterPaletteIndices[indexB];
+            u16 waterPaletteIndexB = sectionB.fWaterPaletteIndices[indexB];
             if (!isWaterB[waterPaletteIndexB]) {
               continue;
             }
@@ -54,7 +54,7 @@ public:
             // (x, y, z) block is waterlogged
             int indexJ = mcfile::je::chunksection::ChunkSection118::BlockIndex(x, y, z);
 
-            uint16_t indexDryJ = indicesJ[indexJ];
+            u16 indexDryJ = indicesJ[indexJ];
             auto dryBlockJ = paletteJ[indexDryJ];
             int waterLoggedIndexJ = waterLoggedJ[indexDryJ];
             if (waterLoggedIndexJ < 0) {

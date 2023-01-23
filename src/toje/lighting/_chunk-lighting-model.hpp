@@ -8,7 +8,7 @@ class ChunkLightingModel {
 
 public:
   using ValueType = LightingModel;
-  using Section = mcfile::PaletteList<LightingModel, uint16_t, 4096, LightingModel::Hasher, LightingModel::EqualTo>;
+  using Section = mcfile::PaletteList<LightingModel, u16, 4096, LightingModel::Hasher, LightingModel::EqualTo>;
 
   ChunkLightingModel(int cx, int cy, int cz) : fChunkX(cx), fChunkY(cy), fChunkZ(cz) {}
 

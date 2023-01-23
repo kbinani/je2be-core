@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <minecraft-file.hpp>
 
 namespace je2be {
@@ -38,16 +40,16 @@ static inline std::shared_ptr<ByteTag> Bool(bool b) {
   return std::make_shared<ByteTag>(b ? 1 : 0);
 }
 
-static inline std::shared_ptr<ByteTag> Byte(int8_t v) {
-  uint8_t t = *(uint8_t *)&v;
+static inline std::shared_ptr<ByteTag> Byte(i8 v) {
+  u8 t = *(u8 *)&v;
   return std::make_shared<ByteTag>(t);
 }
 
-static inline std::shared_ptr<IntTag> Int(int32_t v) {
+static inline std::shared_ptr<IntTag> Int(i32 v) {
   return std::make_shared<IntTag>(v);
 }
 
-static inline std::shared_ptr<LongTag> Long(int64_t v) {
+static inline std::shared_ptr<LongTag> Long(i64 v) {
   return std::make_shared<LongTag>(v);
 }
 
@@ -63,7 +65,7 @@ static inline std::shared_ptr<DoubleTag> Double(double v) {
   return std::make_shared<DoubleTag>(v);
 }
 
-static inline std::shared_ptr<ShortTag> Short(int16_t v) {
+static inline std::shared_ptr<ShortTag> Short(i16 v) {
   return std::make_shared<ShortTag>(v);
 }
 

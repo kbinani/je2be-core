@@ -30,21 +30,21 @@ ZipFile::~ZipFile() {
   close();
 }
 
-bool ZipFile::store(std::vector<uint8_t> const &buffer, std::string const &filename) {
+bool ZipFile::store(std::vector<u8> const &buffer, std::string const &filename) {
   mz_zip_file s = {0};
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
-  int16_t compressLevel = 9;
-  uint8_t raw = 0;
+  i16 compressLevel = 9;
+  u8 raw = 0;
   if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressLevel, raw, nullptr)) {
     return false;
   }
-  int32_t totalWritten = 0;
-  int32_t err = MZ_OK;
-  int32_t remaining = (int32_t)buffer.size();
+  i32 totalWritten = 0;
+  i32 err = MZ_OK;
+  i32 remaining = (i32)buffer.size();
   do {
-    int32_t code = mz_zip_entry_write(fHandle, buffer.data() + totalWritten, remaining);
+    i32 code = mz_zip_entry_write(fHandle, buffer.data() + totalWritten, remaining);
     if (code < 0) {
       err = code;
     } else {
@@ -61,19 +61,19 @@ bool ZipFile::store(mcfile::stream::InputStream &stream, std::string const &file
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
-  int16_t compressLevel = 9;
-  uint8_t raw = 0;
+  i16 compressLevel = 9;
+  u8 raw = 0;
   if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressLevel, raw, nullptr)) {
     return false;
   }
-  std::vector<uint8_t> buffer(512);
-  int32_t err = MZ_OK;
+  std::vector<u8> buffer(512);
+  i32 err = MZ_OK;
   do {
     size_t read = stream.read(buffer.data(), buffer.size());
     if (read == 0) {
       break;
     }
-    int32_t code = mz_zip_entry_write(fHandle, buffer.data(), (int32_t)read);
+    i32 code = mz_zip_entry_write(fHandle, buffer.data(), (i32)read);
     if (code < 0) {
       err = code;
     } else if (read < buffer.size()) {
@@ -106,14 +106,14 @@ bool ZipFile::close() {
 bool ZipFile::Unzip(
     std::filesystem::path const &input,
     std::filesystem::path const &output,
-    std::function<bool(uint64_t done, uint64_t total)> progress) {
+    std::function<bool(u64 done, u64 total)> progress) {
   using namespace std;
   namespace fs = std::filesystem;
 
   void *handle = nullptr;
   void *stream = nullptr;
-  uint64_t numEntries = 0;
-  uint64_t done = 0;
+  u64 numEntries = 0;
+  u64 done = 0;
 
   handle = mz_zip_create(nullptr);
   if (!handle) {
@@ -169,17 +169,17 @@ bool ZipFile::Unzip(
     defer {
       mz_zip_entry_close(handle);
     };
-    int64_t remaining = fileInfo->uncompressed_size;
+    i64 remaining = fileInfo->uncompressed_size;
     fs::path parentDir = fullFilePath.parent_path();
     Fs::CreateDirectories(parentDir);
     mcfile::ScopedFile fp(mcfile::File::Open(fullFilePath, mcfile::File::Mode::Write));
     if (!fp) {
       return false;
     }
-    vector<uint8_t> chunk(1024);
+    vector<u8> chunk(1024);
     while (remaining > 0) {
-      int32_t amount = (int32_t)(std::min)(remaining, (int64_t)chunk.size());
-      int32_t read = mz_zip_entry_read(handle, chunk.data(), amount);
+      i32 amount = (i32)(std::min)(remaining, (i64)chunk.size());
+      i32 read = mz_zip_entry_read(handle, chunk.data(), amount);
       if (read < 0) {
         return false;
       }

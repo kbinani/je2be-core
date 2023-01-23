@@ -77,7 +77,7 @@ public:
             continue;
           }
           auto pJ = Compound();
-          pJ->set("Color", Int(static_cast<int32_t>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+          pJ->set("Color", Int(static_cast<i32>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
           pJ->set("Pattern", String(*pPatternB));
           patternsJ->push_back(pJ);
         }
@@ -144,7 +144,7 @@ public:
     auto t = EmptyShortName("brewing_stand", pos);
     auto itemsB = ContainerItems(tagB, "Items", ctx);
     if (itemsB) {
-      uint8_t mapping[5] = {3, 0, 1, 2, 4};
+      u8 mapping[5] = {3, 0, 1, 2, 4};
       map<int, shared_ptr<CompoundTag>> items;
       for (int i = 0; i < 5 && i < itemsB->size(); i++) {
         auto itemTag = itemsB->at(i);

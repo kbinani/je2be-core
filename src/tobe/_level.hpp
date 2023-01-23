@@ -18,13 +18,13 @@ public:
   std::string fBiomeOverride = "";
   bool fBonusChestEnabled = false;
   bool fBonusChestSpawned = false;
-  int8_t fCenterMapsToOrigin = -7;
+  i8 fCenterMapsToOrigin = -7;
   bool fCommandBlockOutput = true;
   bool fCommandblocksEnabled = true;
   bool fCommandsEnabled = false;
   bool fConfirmedPlatformLockedContent = false;
-  int64_t fCurrentTick = 0;
-  int32_t fDifficulty = 0;
+  i64 fCurrentTick = 0;
+  i32 fDifficulty = 0;
   std::string fFlatWorldLayers = "null\x0a";
   bool fDoDaylightCycle = true;
   bool fDoEntityDrops = true;
@@ -37,15 +37,15 @@ public:
   bool fDoWeatherCycle = true;
   bool fDrowningDamage = true;
   bool fEducationFeaturesEnabled = false;
-  int32_t fEduOffer = 0;
+  i32 fEduOffer = 0;
   std::unordered_map<std::string, bool> fExperiments;
   bool fFallDamage = true;
   bool fFireDamage = true;
   bool fFreezeDamage = true;
   bool fForceGameType = false;
-  int32_t fFunctionCommandLimit = 10000;
+  i32 fFunctionCommandLimit = 10000;
   GameMode fGameType = GameMode::Survival;
-  int32_t fGenerator = 1;
+  i32 fGenerator = 1;
   bool fHasBeenLoadedInCreative = false;
   bool fHasLockedBehaviorPack = false;
   bool fHasLockedResourcePack = false;
@@ -53,44 +53,44 @@ public:
   std::string fInventoryVersion = kInventoryVersion;
   bool fLANBroadcast = true;
   bool fLANBroadcastIntent = true;
-  int64_t fLastPlayed = 0;
+  i64 fLastPlayed = 0;
   std::string fLevelName = "";
-  int32_t fLimitedWorldOriginX = 1852;
-  int32_t fLimitedWorldOriginY = 32767;
-  int32_t fLimitedWorldOriginZ = 4;
+  i32 fLimitedWorldOriginX = 1852;
+  i32 fLimitedWorldOriginY = 32767;
+  i32 fLimitedWorldOriginZ = 4;
   bool fMultiplayerGame = true;
   bool fMultiplayerGameIntent = true;
   bool fNaturalRegeneration = true;
-  int32_t fNetherScale = 8;
-  int32_t fNetworkVersion = kNetworkVersion;
-  int32_t fPlatform = 2;
-  int32_t fPlatformBroadcastIntent = 3;
+  i32 fNetherScale = 8;
+  i32 fNetworkVersion = kNetworkVersion;
+  i32 fPlatform = 2;
+  i32 fPlatformBroadcastIntent = 3;
   std::string fPrid = "";
   bool fPvp = true;
   float fRainLevel = 0;
-  int32_t fRainTime = 0;
-  int64_t fRandomSeed = 0;
-  int32_t fRandomTickSpeed = 1;
+  i32 fRainTime = 0;
+  i64 fRandomSeed = 0;
+  i32 fRandomTickSpeed = 1;
   bool fRequiresCopiedPackRemovalCheck = false;
   bool fSendCommandFeedback = true;
-  int32_t fServerChunkTickRange = 0;
+  i32 fServerChunkTickRange = 0;
   bool fShowCoordinates = false;
   bool fShowDeathMessages = true;
   bool fShowTags = true;
   bool fSpawnMobs = true;
-  int32_t fSpawnRadius = 5;
+  i32 fSpawnRadius = 5;
   bool fSpawnV1Villagers = false;
-  int32_t fSpawnX = 0;
-  int32_t fSpawnY = 0;
-  int32_t fSpawnZ = 0;
+  i32 fSpawnX = 0;
+  i32 fSpawnY = 0;
+  i32 fSpawnZ = 0;
   bool fStartWithMapEnabled = false;
-  int32_t fStorageVersion = kStorageVersion;
+  i32 fStorageVersion = kStorageVersion;
   bool fTexturePacksRequired = false;
-  int64_t fTime = 0;
+  i64 fTime = 0;
   bool fTntExplodes = true;
   bool fUseMsaGamertagsOnly = false;
-  int64_t fWorldStartCount = 0;
-  int32_t fXBLBroadcastIntent = 3;
+  i64 fWorldStartCount = 0;
+  i32 fXBLBroadcastIntent = 3;
   bool fIsFromLockedTemplate = false;
   bool fIsFromWorldTemplate = false;
   bool fIsSingleUseWorld = false;
@@ -99,10 +99,10 @@ public:
   bool fMobGriefing = true;
   Version fLastOpenedWithVersion = kSupportVersion;
   float fLightningLevel = 0;
-  int32_t fLightningTime = 0;
-  int32_t fLimitedWorldDepth = 16;
-  int32_t fLimitedWorldWidth = 16;
-  int32_t fMaxCommandChainLength = 65535;
+  i32 fLightningTime = 0;
+  i32 fLimitedWorldDepth = 16;
+  i32 fLimitedWorldWidth = 16;
+  i32 fMaxCommandChainLength = 65535;
 
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
@@ -213,21 +213,21 @@ public:
   [[nodiscard]] bool write(std::filesystem::path path) const {
     auto stream = std::make_shared<mcfile::stream::FileOutputStream>(path);
     mcfile::stream::OutputStreamWriter w(stream, mcfile::Endian::Little);
-    if (!w.write((uint32_t)8)) {
+    if (!w.write((u32)8)) {
       return false;
     }
-    if (!w.write((uint32_t)0)) {
+    if (!w.write((u32)0)) {
       return false;
     }
     auto tag = this->toCompoundTag();
     if (!CompoundTag::Write(*tag, w)) {
       return false;
     }
-    uint64_t pos = stream->pos();
+    u64 pos = stream->pos();
     if (!stream->seek(4)) {
       return false;
     }
-    return w.write((uint32_t)pos - 8);
+    return w.write((u32)pos - 8);
   }
 
   static Level Import(CompoundTag const &tag) {

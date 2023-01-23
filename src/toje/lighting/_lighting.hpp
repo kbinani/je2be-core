@@ -42,10 +42,10 @@ public:
     LightingModel air(CLEAR);
     EnsureLightingModels(cache, models, cx, minChunkY, cz, blockAccessor);
 
-    shared_ptr<Data3dSq<uint8_t, 44>> skyLight;
+    shared_ptr<Data3dSq<u8, 44>> skyLight;
 
     if (dim == Dimension::Overworld) {
-      skyLight = make_shared<Data3dSq<uint8_t, 44>>(start, height, 0);
+      skyLight = make_shared<Data3dSq<u8, 44>>(start, height, 0);
 
       Data2d<optional<Volume>> skyVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
       for (int dz = -1; dz <= 1; dz++) {
@@ -69,7 +69,7 @@ public:
       cache.setSkyLight(cx, cz, skyLightCache);
     }
 
-    Data3dSq<uint8_t, 44> blockLight(start, height, 0);
+    Data3dSq<u8, 44> blockLight(start, height, 0);
 
     Data2d<optional<Volume>> blockVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
     for (int dz = -1; dz <= 1; dz++) {
@@ -98,7 +98,7 @@ public:
       }
       Pos3i origin(out.minBlockX(), section->y() * 16, out.minBlockZ());
 
-      if (std::any_of(blockLight.cbegin(), blockLight.cend(), [](uint8_t v) { return v > 0; })) {
+      if (std::any_of(blockLight.cbegin(), blockLight.cend(), [](u8 v) { return v > 0; })) {
         section->fBlockLight.resize(2048);
         auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
         if (sectionBlockLight) {
@@ -113,7 +113,7 @@ public:
         }
       }
 
-      if (skyLight && std::any_of(skyLight->cbegin(), skyLight->cend(), [](uint8_t v) { return v > 0; })) {
+      if (skyLight && std::any_of(skyLight->cbegin(), skyLight->cend(), [](u8 v) { return v > 0; })) {
         section->fSkyLight.resize(2048);
         auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
         if (sectionSkyLight) {
@@ -121,7 +121,7 @@ public:
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
                 Pos3i v = origin + Pos3i(x, y, z);
-                uint8_t l = (*skyLight)[v];
+                u8 l = (*skyLight)[v];
                 sectionSkyLight->setUnchecked(v, l);
               }
             }
@@ -141,7 +141,7 @@ public:
           for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
               Pos3i v = origin + Pos3i(x, y, z);
-              uint8_t l = (*skyLight)[v];
+              u8 l = (*skyLight)[v];
               sectionSkyLight->setUnchecked(v, l);
             }
           }
@@ -178,7 +178,7 @@ private:
     }
   }
 
-  static constexpr uint32_t MaskFacing6(Facing6 facing) {
+  static constexpr u32 MaskFacing6(Facing6 facing) {
     switch (facing) {
     case Facing6::East:
       return MASK_EAST;
@@ -212,7 +212,7 @@ private:
     return ((~model.fModel) & mask) != 0;
   }
 
-  static void DiffuseLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void DiffuseLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     using namespace std;
 
     int x0 = out.fStart.fX;
@@ -236,8 +236,8 @@ private:
               for (int y = y1; y > y0; y--) {
                 Pos3i p(x, y, z);
                 Pos3i target(x, y - 1, z);
-                uint8_t center = out[p];
-                uint8_t down = out[target];
+                u8 center = out[p];
+                u8 down = out[target];
                 if (center > down + 1 && CanLightPassthrough<Facing6::Down>(models[p], models[target])) {
                   out[target] = center - 1;
                   changed++;
@@ -260,8 +260,8 @@ private:
               for (int y = y0; y < y1; y++) {
                 Pos3i p(x, y, z);
                 Pos3i target(x, y + 1, z);
-                uint8_t center = out[p];
-                uint8_t up = out[target];
+                u8 center = out[p];
+                u8 up = out[target];
                 if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
                   out[target] = center - 1;
                   changed++;
@@ -286,8 +286,8 @@ private:
                 for (int x = xStart; x <= xEnd; x++) {
                   Pos3i p(x - 1, y, z);
                   Pos3i target(x, y, z);
-                  uint8_t center = out[p];
-                  uint8_t east = out[target];
+                  u8 center = out[p];
+                  u8 east = out[target];
                   if (center > east + 1 && CanLightPassthrough<Facing6::East>(models[p], models[target])) {
                     out[target] = center - 1;
                     changed++;
@@ -313,8 +313,8 @@ private:
                 for (int x = xEnd; x >= xStart; x--) {
                   Pos3i p(x + 1, y, z);
                   Pos3i target(x, y, z);
-                  uint8_t center = out[p];
-                  uint8_t west = out[target];
+                  u8 center = out[p];
+                  u8 west = out[target];
                   if (center > west + 1 && CanLightPassthrough<Facing6::West>(models[p], models[target])) {
                     out[target] = center - 1;
                     changed++;
@@ -340,8 +340,8 @@ private:
                 for (int z = zStart; z <= zEnd; z++) {
                   Pos3i p(x, y, z - 1);
                   Pos3i target(x, y, z);
-                  uint8_t center = out[p];
-                  uint8_t south = out[target];
+                  u8 center = out[p];
+                  u8 south = out[target];
                   if (center > south + 1 && CanLightPassthrough<Facing6::South>(models[p], models[target])) {
                     out[target] = center - 1;
                     changed++;
@@ -367,8 +367,8 @@ private:
                 for (int z = zEnd; z >= zStart; z--) {
                   Pos3i p(x, y, z + 1);
                   Pos3i target(x, y, z);
-                  uint8_t center = out[p];
-                  uint8_t north = out[target];
+                  u8 center = out[p];
+                  u8 north = out[target];
                   if (center > north + 1 && CanLightPassthrough<Facing6::North>(models[p], models[target])) {
                     out[target] = center - 1;
                     changed++;
@@ -386,7 +386,7 @@ private:
     }
   }
 
-  static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     for (int cz = volumes.fStart.fZ; cz <= volumes.fEnd.fZ; cz++) {
       for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
         if (auto v = volumes[{cx, cz}]; v) {
@@ -413,7 +413,7 @@ private:
     }
   }
 
-  static void InitializeBlockLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<uint8_t, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void InitializeBlockLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     using namespace std;
 
     assert(models.fStart.fX <= out.fStart.fX && out.fEnd.fX <= models.fEnd.fX);
@@ -512,7 +512,7 @@ private:
         palette.push_back(GetLightingModel(*block));
         return true;
       });
-      vector<uint16_t> index;
+      vector<u16> index;
       index.resize(4096);
       for (int y = 0; y < 16; y++) {
         for (int z = 0; z < 16; z++) {
@@ -581,30 +581,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x204004);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x204004);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x21001);
+            m.fModel = MODEL_HALF_TOP | u32(0x21001);
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x100408);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x100408);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x10102);
+            m.fModel = MODEL_HALF_TOP | u32(0x10102);
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x400880);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x400880);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x40220);
+            m.fModel = MODEL_HALF_TOP | u32(0x40220);
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x808040);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x808040);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x82010);
+            m.fModel = MODEL_HALF_TOP | u32(0x82010);
           }
           break;
         }
@@ -612,30 +612,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x808040));
+            m.fModel = MODEL_SOLID & (~u32(0x808040));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x82010));
+            m.fModel = MODEL_SOLID & (~u32(0x82010));
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x204004));
+            m.fModel = MODEL_SOLID & (~u32(0x204004));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x21001));
+            m.fModel = MODEL_SOLID & (~u32(0x21001));
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x100408));
+            m.fModel = MODEL_SOLID & (~u32(0x100408));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x10102));
+            m.fModel = MODEL_SOLID & (~u32(0x10102));
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x400880));
+            m.fModel = MODEL_SOLID & (~u32(0x400880));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x40220));
+            m.fModel = MODEL_SOLID & (~u32(0x40220));
           }
           break;
         }
@@ -643,30 +643,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x400880));
+            m.fModel = MODEL_SOLID & (~u32(0x400880));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x40220));
+            m.fModel = MODEL_SOLID & (~u32(0x40220));
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x808040));
+            m.fModel = MODEL_SOLID & (~u32(0x808040));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x82010));
+            m.fModel = MODEL_SOLID & (~u32(0x82010));
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x204004));
+            m.fModel = MODEL_SOLID & (~u32(0x204004));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x21001));
+            m.fModel = MODEL_SOLID & (~u32(0x21001));
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x100408));
+            m.fModel = MODEL_SOLID & (~u32(0x100408));
           } else {
-            m.fModel = MODEL_SOLID & (~uint32_t(0x10102));
+            m.fModel = MODEL_SOLID & (~u32(0x10102));
           }
           break;
         }
@@ -674,30 +674,30 @@ private:
         switch (f4) {
         case Facing4::North:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x30440c);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x30440c);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x31103);
+            m.fModel = MODEL_HALF_TOP | u32(0x31103);
           }
           break;
         case Facing4::East:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0x500c88);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0x500c88);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0x50322);
+            m.fModel = MODEL_HALF_TOP | u32(0x50322);
           }
           break;
         case Facing4::South:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xc088c0);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0xc088c0);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0xc2230);
+            m.fModel = MODEL_HALF_TOP | u32(0xc2230);
           }
           break;
         case Facing4::West:
           if (half == "bottom") {
-            m.fModel = MODEL_HALF_BOTTOM | uint32_t(0xa0c044);
+            m.fModel = MODEL_HALF_BOTTOM | u32(0xa0c044);
           } else {
-            m.fModel = MODEL_HALF_TOP | uint32_t(0xa3011);
+            m.fModel = MODEL_HALF_TOP | u32(0xa3011);
           }
           break;
         }
@@ -734,19 +734,19 @@ private:
           m.fTransparency = TRANSLUCENT;
           break;
         case Facing6::North:
-          m.fModel = uint32_t(0xccaaf0);
+          m.fModel = u32(0xccaaf0);
           m.fTransparency = CLEAR;
           break;
         case Facing6::East:
-          m.fModel = uint32_t(0x9af055);
+          m.fModel = u32(0x9af055);
           m.fTransparency = CLEAR;
           break;
         case Facing6::South:
-          m.fModel = uint32_t(0x33550f);
+          m.fModel = u32(0x33550f);
           m.fTransparency = CLEAR;
           break;
         case Facing6::West:
-          m.fModel = uint32_t(0x550faa);
+          m.fModel = u32(0x550faa);
           m.fTransparency = CLEAR;
           break;
         default:
@@ -766,27 +766,27 @@ private:
       m.fEmission = 0;
       switch (f) {
       case Facing6::Up:
-        m.fModel = uint32_t(0xf00000);
+        m.fModel = u32(0xf00000);
         m.fTransparency = TRANSLUCENT;
         break;
       case Facing6::Down:
-        m.fModel = uint32_t(0xf0000);
+        m.fModel = u32(0xf0000);
         m.fTransparency = TRANSLUCENT;
         break;
       case Facing6::North:
-        m.fModel = uint32_t(0xf);
+        m.fModel = u32(0xf);
         m.fTransparency = CLEAR;
         break;
       case Facing6::East:
-        m.fModel = uint32_t(0xf00);
+        m.fModel = u32(0xf00);
         m.fTransparency = CLEAR;
         break;
       case Facing6::South:
-        m.fModel = uint32_t(0xf0);
+        m.fModel = u32(0xf0);
         m.fTransparency = CLEAR;
         break;
       case Facing6::West:
-        m.fModel = uint32_t(0xf000);
+        m.fModel = u32(0xf000);
         m.fTransparency = CLEAR;
         break;
       default:
@@ -929,7 +929,7 @@ private:
     }
   }
 
-  static uint8_t LightEmission(mcfile::je::Block const &block) {
+  static u8 LightEmission(mcfile::je::Block const &block) {
     using namespace mcfile::blocks::minecraft;
     switch (block.fId) {
     case dirt_path:
@@ -1020,7 +1020,7 @@ private:
     return LightEmissionById(block.fId);
   }
 
-  static uint8_t LightAttenuationAmountById(mcfile::blocks::BlockId id) {
+  static u8 LightAttenuationAmountById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
     case acacia_button:
@@ -1530,7 +1530,7 @@ private:
     }
   }
 
-  static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {
+  static u8 LightEmissionById(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
     case brewing_stand:

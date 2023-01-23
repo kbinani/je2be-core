@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <cstdint>
 #include <optional>
 
@@ -12,7 +14,7 @@ enum class GameMode {
   Spectator,
 };
 
-static inline std::optional<GameMode> GameModeFromJava(int32_t v) {
+static inline std::optional<GameMode> GameModeFromJava(i32 v) {
   switch (v) {
   case 0:
     return GameMode::Survival;
@@ -27,7 +29,7 @@ static inline std::optional<GameMode> GameModeFromJava(int32_t v) {
   }
 }
 
-static inline std::optional<GameMode> GameModeFromBedrock(int32_t v) {
+static inline std::optional<GameMode> GameModeFromBedrock(i32 v) {
   switch (v) {
   case 0:
     return GameMode::Survival;
@@ -43,7 +45,7 @@ static inline std::optional<GameMode> GameModeFromBedrock(int32_t v) {
   }
 }
 
-static inline int32_t JavaFromGameMode(GameMode m) {
+static inline i32 JavaFromGameMode(GameMode m) {
   switch (m) {
   case GameMode::Creative:
     return 1;
@@ -57,7 +59,7 @@ static inline int32_t JavaFromGameMode(GameMode m) {
   }
 }
 
-static inline int32_t BedrockFromGameMode(GameMode m) {
+static inline i32 BedrockFromGameMode(GameMode m) {
   switch (m) {
   case GameMode::Creative:
     return 1;

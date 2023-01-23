@@ -1757,7 +1757,7 @@ private:
     p["rotation"] = Int(groundSignRotation);
   }
 
-  static std::string ShapeFromRailDirection(int32_t railDirection) {
+  static std::string ShapeFromRailDirection(i32 railDirection) {
     switch (railDirection) {
     case 1:
       return "east_west";
@@ -2503,7 +2503,7 @@ private:
     return b ? "true" : "false";
   }
 
-  static std::string Int(int32_t i) {
+  static std::string Int(i32 i) {
     return std::to_string(i);
   }
 

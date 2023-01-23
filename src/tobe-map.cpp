@@ -17,14 +17,14 @@ class Map::Impl {
   Impl() = delete;
 
 public:
-  static int64_t UUID(int32_t javaMapId, uint8_t scale) {
-    uint32_t const seed = 0;
-    uint32_t hash = XXHash32::hash(&javaMapId, sizeof(javaMapId), seed);
-    uint64_t s = (uint64_t)hash * 10 + (4 - scale);
-    return *(int64_t *)&s;
+  static i64 UUID(i32 javaMapId, u8 scale) {
+    u32 const seed = 0;
+    u32 hash = XXHash32::hash(&javaMapId, sizeof(javaMapId), seed);
+    u64 s = (u64)hash * 10 + (4 - scale);
+    return *(i64 *)&s;
   }
 
-  static bool Convert(int32_t javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
+  static bool Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
@@ -43,7 +43,7 @@ public:
     auto dimensionInt = data->int32("dimension");
     auto dimensionByte = data->byte("dimension");
 
-    int8_t outDimension = 0;
+    i8 outDimension = 0;
     if (dimensionString) {
       if (*dimensionString == "minecraft:overworld") {
         outDimension = 0;
@@ -69,8 +69,8 @@ public:
       return false;
     }
 
-    for (uint8_t beScale = 0; beScale <= 4; beScale++) {
-      int64_t uuid = UUID(javaMapId, beScale);
+    for (u8 beScale = 0; beScale <= 4; beScale++) {
+      i64 uuid = UUID(javaMapId, beScale);
       auto ret = Compound();
       ret->set("dimension", Byte(outDimension));
       ret->set("fullyExplored", Bool(false)); //?
@@ -80,7 +80,7 @@ public:
       if (beScale == 4) {
         ret->set("parentMapId", Long(-1));
       } else {
-        int64_t parent = UUID(javaMapId, beScale + 1);
+        i64 parent = UUID(javaMapId, beScale + 1);
         ret->set("parentMapId", Long(parent));
       }
       ret->set("scale", Byte(beScale));
@@ -89,16 +89,16 @@ public:
       ret->set("xCenter", Int(*xCenter));
       ret->set("zCenter", Int(*zCenter));
 
-      std::vector<uint8_t> outColors(65536);
+      std::vector<u8> outColors(65536);
       auto decorations = List<Tag::Type::Compound>();
 
       if (beScale == *scale) {
         int i = 0;
         int j = 0;
-        vector<uint8_t> const &colorsArray = colors->value();
+        vector<u8> const &colorsArray = colors->value();
         for (int y = 0; y < 128; y++) {
           for (int x = 0; x < 128; x++, i++) {
-            uint8_t colorId = colorsArray[i];
+            u8 colorId = colorsArray[i];
             Rgba color = MapColor::RgbaFromId(colorId);
             outColors[j] = color.fR;
             outColors[j + 1] = color.fG;
@@ -127,7 +127,7 @@ public:
               continue;
             }
 
-            int32_t rot = 0;
+            i32 rot = 0;
             if (*rotation == -90) {
               rot = 0; // top; arrow facing to east in Java, arrow facing to
                        // south in Bedrock
@@ -181,7 +181,7 @@ public:
             if (!type || !x || !z) {
               continue;
             }
-            int32_t outType = 1;
+            i32 outType = 1;
             if (*type == 9) {
               outType = 15; // id = "+", monument
             } else if (*type == 8) {
@@ -201,8 +201,8 @@ public:
             frameData->set("y", Int(markerY));
 
             auto key = Compound();
-            key->set("blockX", Int((int32_t)*x));
-            key->set("blockZ", Int((int32_t)*z));
+            key->set("blockX", Int((i32)*x));
+            key->set("blockZ", Int((i32)*z));
             key->set("blockY", Int(64)); // fixed value?
             key->set("type", Int(1));    //?
 
@@ -231,25 +231,25 @@ public:
   }
 
 private:
-  static std::tuple<int32_t, int32_t> MarkerPosition(int32_t blockX, int32_t blockZ, int32_t xCenter, int32_t zCenter, int32_t scale) {
-    int32_t size = 128 * (int32_t)ceil(pow(2, scale));
+  static std::tuple<i32, i32> MarkerPosition(i32 blockX, i32 blockZ, i32 xCenter, i32 zCenter, i32 scale) {
+    i32 size = 128 * (i32)ceil(pow(2, scale));
     /*
-     * int32_t x0 = xCenter - size / 2;
-     * int32_t z0 = zCenter - size / 2;
+     * i32 x0 = xCenter - size / 2;
+     * i32 z0 = zCenter - size / 2;
      * marker (-128, -128) corresponds to block (x0, z0)
      * marker (128, 128) corresponds to block (x0 + size, z0 + size)
      */
-    int32_t markerX = (blockX - xCenter) * 256 / size;
-    int32_t markerY = (blockZ - zCenter) * 256 / size;
+    i32 markerX = (blockX - xCenter) * 256 / size;
+    i32 markerY = (blockZ - zCenter) * 256 / size;
     return std::make_tuple(markerX, markerY);
   }
 };
 
-int64_t Map::UUID(int32_t javaMapId, uint8_t scale) {
+i64 Map::UUID(i32 javaMapId, u8 scale) {
   return Impl::UUID(javaMapId, scale);
 }
 
-bool Map::Convert(int32_t javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
+bool Map::Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
   return Impl::Convert(javaMapId, item, input, opt, db);
 }
 

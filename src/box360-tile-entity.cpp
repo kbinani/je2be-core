@@ -73,7 +73,7 @@ public:
         }
         auto color = static_cast<BannerColorCodeBedrock>(*colorB);
         auto colorJ = ColorCodeJavaFromBannerColorCodeBedrock(color);
-        patternJ->set("Color", Int(static_cast<int32_t>(colorJ)));
+        patternJ->set("Color", Int(static_cast<i32>(colorJ)));
         patternsJ->push_back(patternJ);
       }
       out->set("Patterns", patternsJ);

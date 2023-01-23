@@ -83,7 +83,7 @@ public:
     if (auto u = MigrateEntityUuid(uuid); u) {
       return *u;
     }
-    int64_t seed = XXHash::Digest(uuid.c_str(), uuid.size());
+    i64 seed = XXHash::Digest(uuid.c_str(), uuid.size());
     return Uuid::GenWithI64Seed(seed);
   }
 
@@ -129,8 +129,8 @@ private:
   }
 
   static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    int8_t facingB = in.byte("Facing", 0);
-    int8_t facingJ = 3;
+    i8 facingB = in.byte("Facing", 0);
+    i8 facingJ = 3;
     switch (facingB) {
     case 1:
       facingJ = 4;

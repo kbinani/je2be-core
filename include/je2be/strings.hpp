@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <minecraft-file.hpp>
 
 #include <charconv>
@@ -67,8 +69,8 @@ inline std::string Replace(std::string_view const &target, std::string const &se
   return ret;
 }
 
-inline std::optional<int32_t> Toi(std::string_view const &s, int base = 10) {
-  int32_t v = 0;
+inline std::optional<i32> Toi(std::string_view const &s, int base = 10) {
+  i32 v = 0;
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
   } else {
@@ -76,8 +78,8 @@ inline std::optional<int32_t> Toi(std::string_view const &s, int base = 10) {
   }
 }
 
-inline std::optional<int64_t> Tol(std::string_view const &s, int base = 10) {
-  int64_t v = 0;
+inline std::optional<i64> Tol(std::string_view const &s, int base = 10) {
+  i64 v = 0;
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
   } else {

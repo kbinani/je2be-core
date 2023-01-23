@@ -304,7 +304,7 @@ public:
 private:
   static double GetTotalNumChunks(std::filesystem::path const &input, Options o) {
     namespace fs = std::filesystem;
-    uint32_t num = 0;
+    u32 num = 0;
     for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       auto dir = o.getWorldDirectory(input, dim) / "region";
       if (!fs::exists(dir)) {

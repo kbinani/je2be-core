@@ -7,7 +7,7 @@
 
 namespace je2be {
 
-enum class StructureType : uint8_t {
+enum class StructureType : u8 {
   Fortress = 1,
   Monument = 3,
   Outpost = 5,
@@ -22,7 +22,7 @@ struct StructurePiece {
   static bool Parse(std::string const &data, std::vector<StructurePiece> &buffer) {
     auto s = std::make_shared<mcfile::stream::ByteInputStream>(data);
     mcfile::stream::InputStreamReader isr(s, mcfile::Endian::Little);
-    uint32_t size = 0;
+    u32 size = 0;
     if (!isr.read(&size)) {
       return false;
     }
@@ -47,7 +47,7 @@ struct StructurePiece {
       if (!isr.read(&end.fZ)) {
         return false;
       }
-      uint8_t type;
+      u8 type;
       if (!isr.read(&type)) {
         return false;
       }

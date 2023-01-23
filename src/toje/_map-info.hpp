@@ -14,7 +14,7 @@ public:
   struct Decoration {
     std::string fId;
     double fRot;
-    int64_t fType;
+    i64 fType;
     double fX;
     double fZ;
 
@@ -34,7 +34,7 @@ public:
     std::vector<Decoration> fDecorations;
   };
 
-  static std::optional<Map> Parse(std::string const &value, int64_t &outMapId, mcfile::Endian endian) {
+  static std::optional<Map> Parse(std::string const &value, i64 &outMapId, mcfile::Endian endian) {
     using namespace std;
     using namespace leveldb;
     auto tag = CompoundTag::Read(value, endian);
@@ -108,12 +108,12 @@ public:
     return map;
   }
 
-  void add(Map map, int64_t mapId) {
+  void add(Map map, i64 mapId) {
     map.fNumber = fMaps.size();
     fMaps.insert(std::make_pair(mapId, map));
   }
 
-  std::optional<Map> mapFromUuid(int64_t uuid) const {
+  std::optional<Map> mapFromUuid(i64 uuid) const {
     auto found = fMaps.find(uuid);
     if (found == fMaps.end()) {
       return std::nullopt;
@@ -122,15 +122,15 @@ public:
     }
   }
 
-  static Pos2i BlockPosFromMarkerPosition(int32_t xCenter, int32_t zCenter, int32_t scale, int32_t markerX, int32_t markerZ) {
-    int32_t size = 128 * (int32_t)ceil(pow(2, scale));
-    int32_t blockX = markerX * size / 256 + xCenter;
-    int32_t blockZ = markerZ * size / 256 + zCenter;
+  static Pos2i BlockPosFromMarkerPosition(i32 xCenter, i32 zCenter, i32 scale, i32 markerX, i32 markerZ) {
+    i32 size = 128 * (i32)ceil(pow(2, scale));
+    i32 blockX = markerX * size / 256 + xCenter;
+    i32 blockZ = markerZ * size / 256 + zCenter;
     return Pos2i(blockX, blockZ);
   }
 
 private:
-  std::unordered_map<int64_t, Map> fMaps;
+  std::unordered_map<i64, Map> fMaps;
 };
 
 } // namespace je2be::toje

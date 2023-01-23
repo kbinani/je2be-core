@@ -37,7 +37,7 @@ public:
       using namespace mcfile::stream;
       auto s = std::make_shared<ByteStream>();
       OutputStreamWriter w(s, mcfile::Endian::Little);
-      if (!w.write((uint32_t)it.second.size())) {
+      if (!w.write((u32)it.second.size())) {
         return false;
       }
       for (auto const &piece : it.second) {
@@ -59,11 +59,11 @@ public:
         if (!w.write(piece.fVolume.fEnd.fZ)) {
           return false;
         }
-        if (!w.write((uint8_t)piece.fType)) {
+        if (!w.write((u8)piece.fType)) {
           return false;
         }
       }
-      vector<uint8_t> buffer;
+      vector<u8> buffer;
       s->drain(buffer);
 
       auto key = mcfile::be::DbKey::StructureBounds(it.first.fX, it.first.fZ, dim);

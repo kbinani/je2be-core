@@ -29,7 +29,7 @@ public:
     CompoundTagPtr fVehicle;
     std::vector<CompoundTagPtr> fPassengers;
     std::vector<CompoundTagPtr> fShoulderRiders;
-    int64_t fLocalPlayerUid;
+    i64 fLocalPlayerUid;
   };
 
 public:
@@ -40,7 +40,7 @@ public:
                         JavaEditionMap mapInfo,
                         std::filesystem::path entitiesDir,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                        int64_t gameTick,
+                        i64 gameTick,
                         int difficultyBedrock,
                         bool allowCommand,
                         GameMode gameType);

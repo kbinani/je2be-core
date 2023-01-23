@@ -4,12 +4,12 @@
 
 namespace je2be {
 
-class Axolotl : StaticReversibleMap<int32_t, int32_t, Axolotl> {
+class Axolotl : StaticReversibleMap<i32, i32, Axolotl> {
   Axolotl() = delete;
 
 public:
-  static ReversibleMap<int32_t, int32_t> const *CreateTable() {
-    return new ReversibleMap<int32_t, int32_t>({
+  static ReversibleMap<i32, i32> const *CreateTable() {
+    return new ReversibleMap<i32, i32>({
         {0, 0},
         {1, 3},
         {2, 2},
@@ -18,11 +18,11 @@ public:
     });
   }
 
-  static int32_t BedrockVariantFromJavaVariant(int32_t java) {
+  static i32 BedrockVariantFromJavaVariant(i32 java) {
     return Forward(java, 0);
   }
 
-  static int32_t JavaVariantFromBedrockVariant(int32_t b) {
+  static i32 JavaVariantFromBedrockVariant(i32 b) {
     return Backward(b, 0);
   }
 };

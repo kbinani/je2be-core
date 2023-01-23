@@ -6,13 +6,13 @@ namespace je2be {
 
 class Potion {
 public:
-  static ReversibleMap<std::string, int16_t> const *GetPotionTypeTableJtoB() {
-    static std::unique_ptr<ReversibleMap<std::string, int16_t> const> const sTable(CreatePotionTypeTableJtoB());
+  static ReversibleMap<std::string, i16> const *GetPotionTypeTableJtoB() {
+    static std::unique_ptr<ReversibleMap<std::string, i16> const> const sTable(CreatePotionTypeTableJtoB());
     return sTable.get();
   }
 
-  static ReversibleMap<std::string, int16_t> const *CreatePotionTypeTableJtoB() {
-    return new ReversibleMap<std::string, int16_t>({
+  static ReversibleMap<std::string, i16> const *CreatePotionTypeTableJtoB() {
+    return new ReversibleMap<std::string, i16>({
         {"minecraft:water", 0},
         {"minecraft:mundane", 1},
         {"minecraft:night_vision", 5},
@@ -57,8 +57,8 @@ public:
     });
   }
 
-  static int16_t BedrockPotionTypeFromJava(std::string const &name) {
-    int16_t type = 0;
+  static i16 BedrockPotionTypeFromJava(std::string const &name) {
+    i16 type = 0;
     auto table = GetPotionTypeTableJtoB();
     auto found = table->forward(name);
     if (found) {
@@ -67,7 +67,7 @@ public:
     return type;
   }
 
-  static std::string JavaPotionTypeFromBedrock(int16_t t) {
+  static std::string JavaPotionTypeFromBedrock(i16 t) {
     std::string name = "minecraft:water";
     auto table = GetPotionTypeTableJtoB();
     auto found = table->backward(t);

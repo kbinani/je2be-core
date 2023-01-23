@@ -14,7 +14,7 @@ public:
   static void Do(mcfile::je::Chunk &out, BlockAccessor<Block> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
-    enum Distance : int8_t {
+    enum Distance : i8 {
       Unknown = -2,
       Leaves = -1,
       Log = 0,
@@ -26,7 +26,7 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
     optional<Volume> leavesRange;
-    Data3d<int8_t> data({cx * 16 - 7, accessor.minBlockY(), cz * 16 - 7}, {cx * 16 + 15 + 7, accessor.maxBlockY(), cz * 16 + 15 + 7}, Unknown);
+    Data3d<i8> data({cx * 16 - 7, accessor.minBlockY(), cz * 16 - 7}, {cx * 16 + 15 + 7, accessor.maxBlockY(), cz * 16 + 15 + 7}, Unknown);
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
@@ -95,7 +95,7 @@ public:
               continue;
             }
             for (Pos3i const &d : sDirections) {
-              optional<int8_t> adjacent = data.get(p + d);
+              optional<i8> adjacent = data.get(p + d);
               if (!adjacent) {
                 continue;
               }
@@ -111,7 +111,7 @@ public:
     for (int y = leavesRange->fStart.fY; y <= leavesRange->fEnd.fY; y++) {
       for (int z = leavesRange->fStart.fZ; z <= leavesRange->fEnd.fZ; z++) {
         for (int x = leavesRange->fStart.fX; x <= leavesRange->fEnd.fX; x++) {
-          int8_t distance = *data.get({x, y, z});
+          i8 distance = *data.get({x, y, z});
           if (distance == Leaves) {
             distance = 7;
           }

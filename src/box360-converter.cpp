@@ -44,7 +44,7 @@ public:
 
     optional<chrono::system_clock::time_point> lastPlayed;
     {
-      vector<uint8_t> buffer;
+      vector<u8> buffer;
       auto savegameInfo = Savegame::ExtractSavagameFromSaveBin(inputSaveBin, buffer);
       if (!savegameInfo) {
         return JE2BE_ERROR;
@@ -239,7 +239,7 @@ private:
           0x3f, 0xaa, 0x72, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
           0x42, 0x60, 0x82};
       unsigned int transparent16x16_png_len = 75;
-      vector<uint8_t> forcefield;
+      vector<u8> forcefield;
       copy_n(transparent16x16_png, transparent16x16_png_len, back_inserter(forcefield));
       if (!resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png")) {
         return JE2BE_ERROR;
@@ -252,7 +252,7 @@ private:
       pack["description"] = "invisible worldborder by je2be";
       obj["pack"] = pack;
       auto str = nlohmann::to_string(obj);
-      vector<uint8_t> mcmeta;
+      vector<u8> mcmeta;
       copy(str.begin(), str.end(), back_inserter(mcmeta));
       if (!resources.store(mcmeta, "pack.mcmeta")) {
         return JE2BE_ERROR;
@@ -306,7 +306,7 @@ private:
 
     if (lastPlayed) {
       // NOTE: LastPlayed in the level.dat from xbox360 edition is wired. Use timestamp of savegame.dat for it
-      int64_t ms = chrono::duration_cast<chrono::milliseconds>(lastPlayed->time_since_epoch()).count();
+      i64 ms = chrono::duration_cast<chrono::milliseconds>(lastPlayed->time_since_epoch()).count();
       out->set("LastPlayed", Long(ms));
     }
 

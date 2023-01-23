@@ -2,7 +2,7 @@
 
 namespace je2be {
 
-enum class RedFlower : uint8_t {
+enum class RedFlower : u8 {
   BlueOrchid = 1,
   AzureBluet,
   RedTulip,
@@ -79,7 +79,7 @@ static inline std::string JavaNameFromRedFlower(RedFlower f) {
 }
 
 static inline std::optional<RedFlower> RedFlowerFromBedrockName(std::string const &name) {
-  for (uint8_t f = 1; f < static_cast<uint8_t>(RedFlower::RedFlowerLast); f++) {
+  for (u8 f = 1; f < static_cast<u8>(RedFlower::RedFlowerLast); f++) {
     RedFlower rf = static_cast<RedFlower>(f);
     if (BedrockNameFromRedFlower(rf) == name) {
       return rf;
@@ -89,7 +89,7 @@ static inline std::optional<RedFlower> RedFlowerFromBedrockName(std::string cons
 }
 
 static inline std::optional<RedFlower> RedFlowerFromJavaName(std::string const &name) {
-  for (uint8_t f = 1; f < static_cast<uint8_t>(RedFlower::RedFlowerLast); f++) {
+  for (u8 f = 1; f < static_cast<u8>(RedFlower::RedFlowerLast); f++) {
     RedFlower rf = static_cast<RedFlower>(f);
     if (JavaNameFromRedFlower(rf) == name) {
       return rf;

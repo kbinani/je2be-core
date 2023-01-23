@@ -6,7 +6,7 @@ class Banner {
   Banner() = delete;
 
 public:
-  static CompoundTagPtr BannerPattern(int32_t color, std::string const &pattern) {
+  static CompoundTagPtr BannerPattern(i32 color, std::string const &pattern) {
     auto c = Compound();
     c->set("Color", Int(color));
     c->set("Pattern", String(pattern));

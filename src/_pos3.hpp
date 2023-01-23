@@ -45,7 +45,7 @@ inline Pos3d Pos3f::toD() const {
 }
 
 inline IntArrayTagPtr IntArrayFromPos3i(Pos3i p) {
-  std::vector<int32_t> v(3);
+  std::vector<i32> v(3);
   v[0] = p.fX;
   v[1] = p.fY;
   v[2] = p.fZ;

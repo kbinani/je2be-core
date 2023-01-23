@@ -71,7 +71,7 @@ public:
 
 public:
   std::vector<FireworksExplosion> fExplosions;
-  std::optional<int8_t> fFlight;
+  std::optional<i8> fFlight;
 };
 
 } // namespace je2be

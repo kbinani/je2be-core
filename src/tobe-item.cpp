@@ -38,13 +38,13 @@ public:
     }
   }
 
-  static int8_t GetSkullTypeFromBlockName(std::string_view const &name) {
-    int8_t type = 0;
+  static i8 GetSkullTypeFromBlockName(std::string_view const &name) {
+    i8 type = 0;
     std::string n = strings::LTrim(name, "minecraft:");
     n = strings::Remove(n, "_wall");
     auto st = SkullTypeFromJavaName(n);
     if (st) {
-      type = static_cast<uint8_t>(*st);
+      type = static_cast<u8>(*st);
     }
     return type;
   }
@@ -368,9 +368,9 @@ private:
 
     auto customColor = item.query("tag/display/color")->asInt();
     if (customColor) {
-      uint32_t v = 0xff000000 | *(uint32_t *)&customColor->fValue;
+      u32 v = 0xff000000 | *(u32 *)&customColor->fValue;
       auto t = Compound();
-      t->set("customColor", Int(*(int32_t *)&v));
+      t->set("customColor", Int(*(i32 *)&v));
       tag->set("tag", t);
     }
     return tag;
@@ -384,20 +384,20 @@ private:
     if (!number) {
       return std::nullopt;
     }
-    int32_t mapId = number->fValue;
+    i32 mapId = number->fValue;
 
     auto scale = mapInfo.scale(mapId);
     if (!scale) {
       return std::nullopt;
     }
-    int64_t uuid = Map::UUID(mapId, *scale);
+    i64 uuid = Map::UUID(mapId, *scale);
 
     auto tag = Compound();
     tag->set("map_uuid", Long(uuid));
     tag->set("map_display_players", Byte(1));
     ret->set("tag", tag);
 
-    int16_t type = 0;
+    i16 type = 0;
     auto display = item.query("tag/display")->asCompound();
     if (display) {
       auto displayName = display->string("Name");
@@ -427,7 +427,7 @@ private:
   static CompoundTagPtr AnyPotion(std::string const &name, CompoundTag const &item, Context const &) {
     auto tag = New(name, true);
     auto t = item.query("tag")->asCompound();
-    int16_t type = 0;
+    i16 type = 0;
     if (t) {
       auto potion = t->string("Potion", "");
       type = Potion::BedrockPotionTypeFromJava(potion);
@@ -439,7 +439,7 @@ private:
   static CompoundTagPtr TippedArrow(std::string const &name, CompoundTag const &item, Context const &) {
     auto tag = New("arrow");
     auto t = item.query("tag")->asCompound();
-    int16_t type = 0;
+    i16 type = 0;
     if (t) {
       auto potion = t->string("Potion", "");
       type = TippedArrowPotion::BedrockPotionType(potion);
@@ -457,7 +457,7 @@ private:
 
       auto e = FireworksExplosion::FromJava(*explosion);
       if (!e.fColor.empty()) {
-        int32_t customColor = e.fColor[0].toARGB();
+        i32 customColor = e.fColor[0].toARGB();
         tag->set("customColor", Int(customColor));
       }
       tag->set("FireworksItem", e.toBedrockCompoundTag());
@@ -479,7 +479,7 @@ private:
     return data;
   }
 
-  static Converter Subtype(std::string const &newName, int16_t damage) {
+  static Converter Subtype(std::string const &newName, i16 damage) {
     return [=](std::string const &name, CompoundTag const &item, Context const &) {
       auto tag = New(newName);
       tag->set("Damage", Short(damage));
@@ -843,7 +843,7 @@ private:
   }
 
   static CompoundTagPtr Skull(std::string const &name, CompoundTag const &item, Context const &) {
-    int8_t type = GetSkullTypeFromBlockName(name);
+    i8 type = GetSkullTypeFromBlockName(name);
     auto tag = New("skull");
     tag->set("Damage", Short(type));
     return tag;
@@ -855,7 +855,7 @@ private:
     if (tagJ) {
       auto effectsJ = tagJ->listTag("Effects");
       if (effectsJ) {
-        int16_t damage = -1;
+        i16 damage = -1;
         for (auto const &it : *effectsJ) {
           auto effectJ = it->asCompound();
           if (!effectJ) {
@@ -888,7 +888,7 @@ private:
           if (!projectileJ) {
             continue;
           }
-          std::unordered_map<int32_t, int8_t> m;
+          std::unordered_map<i32, i8> m;
           auto projectileB = From(projectileJ, ctx);
           if (projectileB) {
             auto beTag = Compound();
@@ -905,7 +905,7 @@ private:
   static CompoundTagPtr Banner(std::string const &name, CompoundTag const &item, Context const &) {
     auto colorName = strings::Trim("minecraft:", name, "_banner");
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
-    int16_t damage = (int16_t)color;
+    i16 damage = (i16)color;
     auto ret = New("banner");
     ret->set("Damage", Short(damage));
 
@@ -940,7 +940,7 @@ private:
         }
         auto ptag = Compound();
         ptag->insert({
-            {"Color", Int(static_cast<int32_t>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
+            {"Color", Int(static_cast<i32>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*patternColor))))},
             {"Pattern", String(*pat)},
         });
         bePatterns->push_back(ptag);
@@ -957,7 +957,7 @@ private:
     using namespace std;
     string colorName = strings::Trim("minecraft:", name, "_bed");
     ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
-    int16_t damage = (int16_t)color;
+    i16 damage = (i16)color;
     auto tag = New("bed");
     tag->set("Damage", Short(damage));
     return tag;
@@ -981,7 +981,7 @@ private:
 
   static CompoundTagPtr GoatHorn(std::string const &name, CompoundTag const &item, Context const &) {
     auto tagB = New("goat_horn");
-    int16_t damage = 0;
+    i16 damage = 0;
     if (auto tagJ = item.compoundTag("tag"); tagJ) {
       if (auto instrumentJ = tagJ->string("instrument"); instrumentJ) {
         damage = GoatHorn::BedrockDamageFromJavaInstrument(*instrumentJ);
@@ -1199,7 +1199,7 @@ CompoundTagPtr Item::From(CompoundTagPtr const &item, Context const &ctx) {
   return Impl::From(item, ctx);
 }
 
-int8_t Item::GetSkullTypeFromBlockName(std::string_view const &name) {
+i8 Item::GetSkullTypeFromBlockName(std::string_view const &name) {
   return Impl::GetSkullTypeFromBlockName(name);
 }
 

@@ -120,7 +120,7 @@ static inline Facing6 Facing6FromBedrockFacingDirectionB(int direction) {
   }
 }
 
-static inline int32_t BedrockFacingDirectionBFromFacing6(Facing6 f6) {
+static inline i32 BedrockFacingDirectionBFromFacing6(Facing6 f6) {
   switch (f6) {
   case Facing6::East:
     return 4;

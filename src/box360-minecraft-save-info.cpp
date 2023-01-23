@@ -29,24 +29,24 @@ public:
       auto entry = listing.fileEntries[0];
       MemoryIO io;
       pkg->Extract(&entry, io);
-      vector<uint8_t> buffer;
+      vector<u8> buffer;
       io.Drain(buffer);
       if (buffer.size() < 4) {
         return false;
       }
       size_t pos = 0;
-      uint32_t numFiles = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, 0));
+      u32 numFiles = mcfile::U32FromBE(Mem::Read<u32>(buffer, 0));
       pos += 4;
 
-      vector<uint32_t> thumbnailSizeList;
+      vector<u32> thumbnailSizeList;
 
-      for (uint32_t i = 0; i < numFiles; i++) {
+      for (u32 i = 0; i < numFiles; i++) {
         if (pos + 256 + 0x34 > buffer.size()) {
           return false;
         }
         u16string title;
         for (int j = 0; j < 128; j++) {
-          char16_t ch = mcfile::U16FromBE(Mem::Read<uint16_t>(buffer, pos + 2 * j));
+          char16_t ch = mcfile::U16FromBE(Mem::Read<u16>(buffer, pos + 2 * j));
           if (ch == 0) {
             break;
           }
@@ -62,7 +62,7 @@ public:
 
         pos += 26;
 
-        uint32_t thumbnailSize = mcfile::U32FromBE(Mem::Read<uint32_t>(buffer, pos));
+        u32 thumbnailSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, pos));
         thumbnailSizeList.push_back(thumbnailSize);
         pos += 4;
 
@@ -73,8 +73,8 @@ public:
       }
 
       assert(thumbnailSizeList.size() == numFiles);
-      for (uint32_t i = 0; i < numFiles; i++) {
-        uint32_t size = thumbnailSizeList[i];
+      for (u32 i = 0; i < numFiles; i++) {
+        u32 size = thumbnailSizeList[i];
         if (pos + size > buffer.size()) {
           return false;
         }

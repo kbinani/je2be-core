@@ -4,7 +4,7 @@
 
 namespace je2be {
 
-enum class ColorCodeJava : int32_t {
+enum class ColorCodeJava : i32 {
   White = 0,
   Orange = 1,
   Magenta = 2,

@@ -1,12 +1,14 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 
 namespace je2be {
 
-enum class BannerColorCodeBedrock : int32_t {
+enum class BannerColorCodeBedrock : i32 {
   Red = 1,
   Black = 0,
   Green = 2,

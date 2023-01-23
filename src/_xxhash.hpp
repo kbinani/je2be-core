@@ -13,12 +13,12 @@ public:
     fHasher.add(p, size);
   }
 
-  int64_t digest() const {
-    uint64_t h = fHasher.hash();
-    return *(int64_t *)&h;
+  i64 digest() const {
+    u64 h = fHasher.hash();
+    return *(i64 *)&h;
   }
 
-  static int64_t Digest(void const *p, size_t size) {
+  static i64 Digest(void const *p, size_t size) {
     XXHash h;
     h.update(p, size);
     return h.digest();

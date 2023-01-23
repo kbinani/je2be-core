@@ -10,7 +10,7 @@ class WorldData;
 struct Context {
   Context(JavaEditionMap const &mapInfo,
           WorldData &wd,
-          int64_t gameTick,
+          i64 gameTick,
           int difficultyBedrock,
           bool allowCommand,
           GameMode gameType)
@@ -18,7 +18,7 @@ struct Context {
 
   JavaEditionMap const &fMapInfo;
   WorldData &fWorldData;
-  int64_t const fGameTick;
+  i64 const fGameTick;
   int const fDifficultyBedrock;
   bool const fAllowCommand;
   GameMode const fGameType;

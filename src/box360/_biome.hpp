@@ -6,7 +6,7 @@ class Biome {
   Biome() = delete;
 
 public:
-  static mcfile::biomes::BiomeId FromUint32(mcfile::Dimension d, uint8_t raw) {
+  static mcfile::biomes::BiomeId FromUint32(mcfile::Dimension d, u8 raw) {
     if (d == mcfile::Dimension::Nether) {
       switch (raw) {
       case 7:

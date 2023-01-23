@@ -2,11 +2,11 @@
 
 namespace je2be {
 
-class Panda : StaticReversibleMap<std::string, int32_t, Panda> {
+class Panda : StaticReversibleMap<std::string, i32, Panda> {
   Panda() = delete;
 
 public:
-  enum Gene : int32_t {
+  enum Gene : i32 {
     Lazy,
     Brown,
     Weak,
@@ -16,8 +16,8 @@ public:
     Worried,
   };
 
-  static ReversibleMap<std::string, int32_t> const *CreateTable() {
-    return new ReversibleMap<std::string, int32_t>({
+  static ReversibleMap<std::string, i32> const *CreateTable() {
+    return new ReversibleMap<std::string, i32>({
         {"lazy", Lazy},
         {"brown", Brown},
         {"weak", Weak},
@@ -33,10 +33,10 @@ public:
   }
 
   static Gene GeneFromJavaName(std::string const &name) {
-    return (Gene)Forward(name, (int32_t)Normal);
+    return (Gene)Forward(name, (i32)Normal);
   }
 
-  static Gene GeneFromBedrockAllele(int32_t allele) {
+  static Gene GeneFromBedrockAllele(i32 allele) {
     if (allele == 0) {
       return Lazy;
     } else if (allele == 1) {
@@ -54,7 +54,7 @@ public:
     }
   }
 
-  static int32_t BedrockAlleleFromGene(Gene g) {
+  static i32 BedrockAlleleFromGene(Gene g) {
     switch (g) {
     case Lazy:
       return 0;

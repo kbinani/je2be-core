@@ -4,18 +4,18 @@
 
 namespace je2be {
 
-class GoatHorn : StaticReversibleMap<std::string, int16_t, GoatHorn> {
+class GoatHorn : StaticReversibleMap<std::string, i16, GoatHorn> {
 public:
-  static int16_t BedrockDamageFromJavaInstrument(std::string const &instrument) {
+  static i16 BedrockDamageFromJavaInstrument(std::string const &instrument) {
     return Forward(instrument, 0);
   }
 
-  static std::string JavaInstrumentFromBedrockDamage(int16_t damage) {
+  static std::string JavaInstrumentFromBedrockDamage(i16 damage) {
     return Backward(damage, "minecraft:ponder_goat_horn");
   }
 
-  static ReversibleMap<std::string, int16_t> const *CreateTable() {
-    return new ReversibleMap<std::string, int16_t>({
+  static ReversibleMap<std::string, i16> const *CreateTable() {
+    return new ReversibleMap<std::string, i16>({
         {"minecraft:ponder_goat_horn", 0},
         {"minecraft:sing_goat_horn", 1},
         {"minecraft:seek_goat_horn", 2},

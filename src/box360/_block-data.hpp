@@ -1,30 +1,32 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <minecraft-file.hpp>
 
 namespace je2be::box360 {
 
-struct BlockData : public std::pair<uint8_t, uint8_t> {
+struct BlockData : public std::pair<u8, u8> {
 private:
   class Impl;
 
 public:
-  explicit BlockData(uint16_t data) : std::pair<uint8_t, uint8_t>(0xff & (data >> 8), 0xff & data) {}
-  BlockData() : std::pair<uint8_t, uint8_t>(0, 0) {}
+  explicit BlockData(u16 data) : std::pair<u8, u8>(0xff & (data >> 8), 0xff & data) {}
+  BlockData() : std::pair<u8, u8>(0, 0) {}
 
-  uint16_t rawBlockId() const {
+  u16 rawBlockId() const {
     return this->first;
   }
 
-  uint8_t rawData() const {
+  u8 rawData() const {
     return this->second;
   };
 
-  uint16_t extendedBlockId() const {
-    return (((uint16_t)rawData() & 0x70) << 4) | rawBlockId();
+  u16 extendedBlockId() const {
+    return (((u16)rawData() & 0x70) << 4) | rawBlockId();
   }
 
-  uint8_t data() const {
+  u8 data() const {
     return rawData() & 0xf;
   }
 

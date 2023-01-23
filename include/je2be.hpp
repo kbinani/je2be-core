@@ -4,6 +4,8 @@
 
 #include <minecraft-file.hpp>
 
+#include <je2be/integers.hpp>
+
 #include <je2be/box360/progress.hpp>
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/converter.hpp>
