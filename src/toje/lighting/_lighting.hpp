@@ -10,6 +10,10 @@
 #include "toje/lighting/_chunk-light-cache.hpp"
 #include "toje/lighting/_light-cache.hpp"
 
+#if __has_include(<emmintrin.h>)
+#include <emmintrin.h>
+#endif
+
 namespace je2be::toje::lighting {
 
 class Lighting {
@@ -220,11 +224,28 @@ private:
     return (0x0f0f0f & (m >> 4)) | (0xf0f0f0 & (m << 4));
   }
 
+#if __SSE2__ || defined(_WIN32)
+  static __m128i Invert(__m128i m) {
+    static __m128i const maskBack = _mm_set1_epi32(0x0f0f0f);
+    static __m128i const maskForward = _mm_set1_epi32(0xf0f0f0);
+    return _mm_or_si128(_mm_and_si128(maskBack, _mm_srli_epi32(m, 4)), _mm_and_si128(maskForward, _mm_slli_epi32(m, 4)));
+  }
+#endif
+
   template <Facing6 Face>
   static bool CanLightPassthrough(u32 const &model, u32 const &targetModel) {
     constexpr u32 mask = MaskFacing6(Face);
     return (mask & ((~model) & ~Invert(targetModel))) != 0;
   }
+
+#if __SSE2__ || defined(_WIN32)
+  template <Facing6 Face>
+  static __m128i CanLightPassthrough(__m128i model, __m128i targetModel) {
+    constexpr u32 mask = MaskFacing6(Face);
+    static __m128i const mmask = _mm_set1_epi32(mask);
+    return _mm_andnot_si128(_mm_cmpeq_epi32(_mm_and_si128(_mm_andnot_si128(model, mmask), _mm_andnot_si128(Invert(targetModel), mmask)), _mm_set1_epi32(0)), _mm_set1_epi32(0xffffffff));
+  }
+#endif
 
   template <Facing6 Face>
   static bool IsFaceOpened(LightingModel const &model) {
@@ -233,6 +254,208 @@ private:
   }
 
   static void DiffuseLight(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+#if __SSE2__ || defined(_WIN32)
+    DiffuseLightSSE2(models, out, volumes);
+#else
+    DiffuseLightNaive(models, out, volumes);
+#endif
+  }
+
+#if __SSE2__ || defined(_WIN32)
+  static void DiffuseLightSSE2(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+    using namespace std;
+
+    int x0 = out.fStart.fX;
+    int x1 = out.fEnd.fX;
+    int y0 = out.fStart.fY;
+    int y1 = out.fEnd.fY;
+    int z0 = out.fStart.fZ;
+    int z1 = out.fEnd.fZ;
+    while (true) {
+      int changed = 0;
+      // up -> down
+      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x += 4) {
+              for (int y = y1; y > y0; y--) {
+                alignas(16) u32 mCenter[4]{0, 0, 0, 0};
+                alignas(16) u32 mTarget[4]{0, 0, 0, 0};
+                alignas(16) u32 center[4]{0, 0, 0, 0};
+                alignas(16) u32 target[4]{0, 0, 0, 0};
+
+                for (int ix = 0; ix < 4 && x + ix <= v->fEnd.fX; ix++) {
+                  mCenter[ix] = *(i32 *)&models[{x + ix, y, z}];
+                  mTarget[ix] = *(i32 *)&models[{x + ix, y - 1, z}];
+                  center[ix] = out[{x + ix, y, z}];
+                  target[ix] = out[{x + ix, y - 1, z}];
+                }
+                __m128i _mCenter = _mm_load_si128((__m128i *)mCenter);
+                __m128i _mTarget = _mm_load_si128((__m128i *)mTarget);
+                __m128i _center = _mm_load_si128((__m128i *)center);
+                __m128i _target = _mm_load_si128((__m128i *)target);
+
+                __m128i _targetPlus1 = _mm_add_epi32(_target, _mm_set1_epi32(1));
+                __m128i _compared = _mm_and_si128(CanLightPassthrough<Facing6::Down>(_mCenter, _mTarget), _mm_cmpgt_epi32(_center, _targetPlus1));
+
+                alignas(16) u32 compared[4];
+                _mm_store_si128((__m128i *)compared, _compared);
+                for (int ix = 0; ix < 4 && x + ix <= v->fEnd.fX; ix++) {
+                  if (compared[ix] != 0) {
+                    out[{x + ix, y - 1, z}] = center[ix] - 1;
+                    changed++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // down -> up
+      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+              for (int y = y0; y < y1; y++) {
+                Pos3i p(x, y, z);
+                Pos3i target(x, y + 1, z);
+                u8 center = out[p];
+                u8 up = out[target];
+                if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
+                  out[target] = center - 1;
+                  changed++;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // west -> east
+      for (int y = y0; y <= y1; y++) {
+        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+          for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1}); xIntersection) {
+              auto [xStart, xEnd] = *xIntersection;
+              for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+                for (int x = xStart; x <= xEnd; x++) {
+                  Pos3i p(x - 1, y, z);
+                  Pos3i target(x, y, z);
+                  u8 center = out[p];
+                  u8 east = out[target];
+                  if (center > east + 1 && CanLightPassthrough<Facing6::East>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // east -> west
+      for (int y = y0; y <= y1; y++) {
+        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+          for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1}); xIntersection) {
+              auto [xStart, xEnd] = *xIntersection;
+              for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+                for (int x = xEnd; x >= xStart; x--) {
+                  Pos3i p(x + 1, y, z);
+                  Pos3i target(x, y, z);
+                  u8 center = out[p];
+                  u8 west = out[target];
+                  if (center > west + 1 && CanLightPassthrough<Facing6::West>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // north -> south
+      for (int y = y0; y <= y1; y++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1}); zIntersection) {
+              auto [zStart, zEnd] = *zIntersection;
+              for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+                for (int z = zStart; z <= zEnd; z++) {
+                  Pos3i p(x, y, z - 1);
+                  Pos3i target(x, y, z);
+                  u8 center = out[p];
+                  u8 south = out[target];
+                  if (center > south + 1 && CanLightPassthrough<Facing6::South>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // south -> north
+      for (int y = y0; y <= y1; y++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+            auto v = volumes[{xx, zz}];
+            if (!v) {
+              continue;
+            }
+            if (auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1}); zIntersection) {
+              auto [zStart, zEnd] = *zIntersection;
+              for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+                for (int z = zEnd; z >= zStart; z--) {
+                  Pos3i p(x, y, z + 1);
+                  Pos3i target(x, y, z);
+                  u8 center = out[p];
+                  u8 north = out[target];
+                  if (center > north + 1 && CanLightPassthrough<Facing6::North>(models[p], models[target])) {
+                    out[target] = center - 1;
+                    changed++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (changed == 0) {
+        break;
+      }
+    }
+  }
+#endif
+
+  static void DiffuseLightNaive(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     using namespace std;
 
     int x0 = out.fStart.fX;
