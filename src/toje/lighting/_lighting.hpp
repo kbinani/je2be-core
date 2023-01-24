@@ -300,7 +300,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto xIntersection = Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0 + 1, x1)); xIntersection) {
+            if (auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1}); xIntersection) {
               auto [xStart, xEnd] = *xIntersection;
               for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
                 for (int x = xStart; x <= xEnd; x++) {
@@ -327,7 +327,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto xIntersection = Intersection(make_pair(v->fStart.fX, v->fEnd.fX), make_pair(x0, x1 - 1)); xIntersection) {
+            if (auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1}); xIntersection) {
               auto [xStart, xEnd] = *xIntersection;
               for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
                 for (int x = xEnd; x >= xStart; x--) {
@@ -354,7 +354,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto zIntersection = Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0 + 1, z1)); zIntersection) {
+            if (auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1}); zIntersection) {
               auto [zStart, zEnd] = *zIntersection;
               for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
                 for (int z = zStart; z <= zEnd; z++) {
@@ -381,7 +381,7 @@ private:
             if (!v) {
               continue;
             }
-            if (auto zIntersection = Intersection(make_pair(v->fStart.fZ, v->fEnd.fZ), make_pair(z0, z1 - 1)); zIntersection) {
+            if (auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1}); zIntersection) {
               auto [zStart, zEnd] = *zIntersection;
               for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
                 for (int z = zEnd; z >= zStart; z--) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "_algorithm.hpp"
+#include "_closed-range.hpp"
 #include "_pos3.hpp"
 
 namespace je2be {
@@ -21,9 +21,9 @@ public:
 
   static std::optional<Volume> Intersection(Volume const &a, Volume const &b) {
     using namespace std;
-    auto x = je2be::Intersection(make_pair(a.fStart.fX, a.fEnd.fX), make_pair(b.fStart.fX, b.fEnd.fX));
-    auto y = je2be::Intersection(make_pair(a.fStart.fY, a.fEnd.fY), make_pair(b.fStart.fY, b.fEnd.fY));
-    auto z = je2be::Intersection(make_pair(a.fStart.fZ, a.fEnd.fZ), make_pair(b.fStart.fZ, b.fEnd.fZ));
+    auto x = ClosedRange<int>::Intersection({a.fStart.fX, a.fEnd.fX}, {b.fStart.fX, b.fEnd.fX});
+    auto y = ClosedRange<int>::Intersection({a.fStart.fY, a.fEnd.fY}, {b.fStart.fY, b.fEnd.fY});
+    auto z = ClosedRange<int>::Intersection({a.fStart.fZ, a.fEnd.fZ}, {b.fStart.fZ, b.fEnd.fZ});
     if (!x || !y || !z) {
       return std::nullopt;
     }

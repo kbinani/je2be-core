@@ -143,7 +143,7 @@ set(je2be_header_files
   .clang-format)
 set(je2be_src_files
   #begin je2be-src files
-  src/_algorithm.hpp
+  src/_closed-range.hpp
   src/_data2d.hpp
   src/_data3d.hpp
   src/_dimension-ext.hpp

@@ -38,52 +38,52 @@ private:
   template <size_t Size>
   static void CopyAvailable(mcfile::Data4b3d const &src, Data3dSq<u8, Size> &dest) {
     using namespace std;
-    auto xRange = Intersection(XRange(src), XRange(dest));
+    auto xRange = ClosedRange<int>::Intersection(XRange(src), XRange(dest));
     if (!xRange) {
       return;
     }
-    auto yRange = Intersection(YRange(src), YRange(dest));
+    auto yRange = ClosedRange<int>::Intersection(YRange(src), YRange(dest));
     if (!yRange) {
       return;
     }
-    auto zRange = Intersection(ZRange(src), ZRange(dest));
+    auto zRange = ClosedRange<int>::Intersection(ZRange(src), ZRange(dest));
     if (!zRange) {
       return;
     }
-    for (int y = yRange->first; y <= yRange->second; y++) {
-      for (int z = zRange->first; z <= zRange->second; z++) {
-        for (int x = xRange->first; x <= xRange->second; x++) {
+    for (int y = yRange->fMin; y <= yRange->fMax; y++) {
+      for (int z = zRange->fMin; z <= zRange->fMax; z++) {
+        for (int x = xRange->fMin; x <= xRange->fMax; x++) {
           dest[{x, y, z}] = src.getUnchecked({x, y, z});
         }
       }
     }
   }
 
-  static std::pair<int, int> XRange(mcfile::Data4b3d const &data) {
-    return std::make_pair(data.fOrigin.fX, data.fOrigin.fX + data.fWidthX - 1);
+  static ClosedRange<int> XRange(mcfile::Data4b3d const &data) {
+    return ClosedRange<int>(data.fOrigin.fX, data.fOrigin.fX + data.fWidthX - 1);
   }
 
   template <size_t Size>
-  static std::pair<int, int> XRange(Data3dSq<u8, Size> const &data) {
-    return std::make_pair(data.fStart.fX, data.fEnd.fX);
+  static ClosedRange<int> XRange(Data3dSq<u8, Size> const &data) {
+    return ClosedRange<int>(data.fStart.fX, data.fEnd.fX);
   }
 
-  static std::pair<int, int> YRange(mcfile::Data4b3d const &data) {
-    return std::make_pair(data.fOrigin.fY, data.fOrigin.fY + data.fHeight - 1);
-  }
-
-  template <size_t Size>
-  static std::pair<int, int> YRange(Data3dSq<u8, Size> const &data) {
-    return std::make_pair(data.fStart.fY, data.fEnd.fY);
-  }
-
-  static std::pair<int, int> ZRange(mcfile::Data4b3d const &data) {
-    return std::make_pair(data.fOrigin.fZ, data.fOrigin.fZ + data.fWidthZ - 1);
+  static ClosedRange<int> YRange(mcfile::Data4b3d const &data) {
+    return ClosedRange<int>(data.fOrigin.fY, data.fOrigin.fY + data.fHeight - 1);
   }
 
   template <size_t Size>
-  static std::pair<int, int> ZRange(Data3dSq<u8, Size> const &data) {
-    return std::make_pair(data.fStart.fZ, data.fEnd.fZ);
+  static ClosedRange<int> YRange(Data3dSq<u8, Size> const &data) {
+    return ClosedRange<int>(data.fStart.fY, data.fEnd.fY);
+  }
+
+  static ClosedRange<int> ZRange(mcfile::Data4b3d const &data) {
+    return ClosedRange<int>(data.fOrigin.fZ, data.fOrigin.fZ + data.fWidthZ - 1);
+  }
+
+  template <size_t Size>
+  static ClosedRange<int> ZRange(Data3dSq<u8, Size> const &data) {
+    return ClosedRange<int>(data.fStart.fZ, data.fEnd.fZ);
   }
 
   static bool Contains(mcfile::Data4b3d const &data, Pos3i const &p) {
