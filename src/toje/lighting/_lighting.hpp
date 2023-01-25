@@ -283,30 +283,31 @@ private:
           for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x += 4) {
               for (int y = y1; y > y0; y--) {
-                alignas(16) u32 mCenter[4]{0, 0, 0, 0};
-                alignas(16) u32 mTarget[4]{0, 0, 0, 0};
-                alignas(16) u32 center[4]{0, 0, 0, 0};
-                alignas(16) u32 target[4]{0, 0, 0, 0};
+                alignas(16) u32 mUpper[4]{0, 0, 0, 0};
+                alignas(16) u32 mLower[4]{0, 0, 0, 0};
+                alignas(16) u32 upper[4]{0, 0, 0, 0};
+                alignas(16) u32 lowerPlus1[4]{0, 0, 0, 0};
 
                 for (int ix = 0; ix < 4 && x + ix <= v->fEnd.fX; ix++) {
-                  mCenter[ix] = *(i32 *)&models[{x + ix, y, z}];
-                  mTarget[ix] = *(i32 *)&models[{x + ix, y - 1, z}];
-                  center[ix] = out[{x + ix, y, z}];
-                  target[ix] = out[{x + ix, y - 1, z}];
+                  mUpper[ix] = *(i32 *)&models[{x + ix, y, z}];
+                  mLower[ix] = *(i32 *)&models[{x + ix, y - 1, z}];
+                  upper[ix] = out[{x + ix, y, z}];
+                  lowerPlus1[ix] = out[{x + ix, y - 1, z}] + 1;
                 }
-                __m128i _mCenter = _mm_load_si128((__m128i *)mCenter);
-                __m128i _mTarget = _mm_load_si128((__m128i *)mTarget);
-                __m128i _center = _mm_load_si128((__m128i *)center);
-                __m128i _target = _mm_load_si128((__m128i *)target);
 
-                __m128i _targetPlus1 = _mm_add_epi32(_target, _mm_set1_epi32(1));
-                __m128i _compared = _mm_and_si128(CanLightPassthrough<Facing6::Down>(_mCenter, _mTarget), _mm_cmpgt_epi32(_center, _targetPlus1));
+                __m128i _mUpper = _mm_load_si128((__m128i *)mUpper);
+                __m128i _mLower = _mm_load_si128((__m128i *)mLower);
+                __m128i _upper = _mm_load_si128((__m128i *)upper);
+                __m128i _lowerPlus1 = _mm_load_si128((__m128i *)lowerPlus1);
+
+                __m128i _compared = _mm_and_si128(CanLightPassthrough<Facing6::Down>(_mUpper, _mLower), _mm_cmpgt_epi32(_upper, _lowerPlus1));
 
                 alignas(16) u32 compared[4];
                 _mm_store_si128((__m128i *)compared, _compared);
+
                 for (int ix = 0; ix < 4 && x + ix <= v->fEnd.fX; ix++) {
                   if (compared[ix] != 0) {
-                    out[{x + ix, y - 1, z}] = center[ix] - 1;
+                    out[{x + ix, y - 1, z}] = upper[ix] - 1;
                     changed++;
                   }
                 }
@@ -324,15 +325,35 @@ private:
             continue;
           }
           for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x += 4) {
               for (int y = y0; y < y1; y++) {
-                Pos3i p(x, y, z);
-                Pos3i target(x, y + 1, z);
-                u8 center = out[p];
-                u8 up = out[target];
-                if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
-                  out[target] = center - 1;
-                  changed++;
+                alignas(16) u32 mUpper[4]{0, 0, 0, 0};
+                alignas(16) u32 mLower[4]{0, 0, 0, 0};
+                alignas(16) u32 upperPlus1[4]{0, 0, 0, 0};
+                alignas(16) u32 lower[4]{0, 0, 0, 0};
+
+                for (int ix = 0; ix < 4 && x + ix <= v->fEnd.fX; ix++) {
+                  mUpper[ix] = *(i32 *)&models[{x + ix, y + 1, z}];
+                  mLower[ix] = *(i32 *)&models[{x + ix, y, z}];
+                  upperPlus1[ix] = out[{x + ix, y + 1, z}] + 1;
+                  lower[ix] = out[{x + ix, y, z}];
+                }
+
+                __m128i _mUpper = _mm_load_si128((__m128i *)mUpper);
+                __m128i _mLower = _mm_load_si128((__m128i *)mLower);
+                __m128i _upperPlus1 = _mm_load_si128((__m128i *)upperPlus1);
+                __m128i _lower = _mm_load_si128((__m128i *)lower);
+
+                __m128i _compared = _mm_and_si128(CanLightPassthrough<Facing6::Up>(_mLower, _mUpper), _mm_cmpgt_epi32(_lower, _upperPlus1));
+
+                alignas(16) u32 compared[4];
+                _mm_store_si128((__m128i *)compared, _compared);
+
+                for (int ix = 0; ix < 4 && x + ix <= v->fEnd.fX; ix++) {
+                  if (compared[ix] != 0) {
+                    out[{x + ix, y + 1, z}] = lower[ix] - 1;
+                    changed++;
+                  }
                 }
               }
             }
@@ -477,13 +498,17 @@ private:
           for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
               for (int y = y1; y > y0; y--) {
-                Pos3i p(x, y, z);
-                Pos3i target(x, y - 1, z);
-                u8 center = out[p];
-                u8 down = out[target];
-                if (center > down + 1 && CanLightPassthrough<Facing6::Down>(models[p], models[target])) {
-                  out[target] = center - 1;
-                  changed++;
+                Pos3i pUp(x, y, z);
+                Pos3i pDown(x, y - 1, z);
+                u8 upper = out[pUp];
+                u8 &down = out[pDown];
+                u32 mUp = models[pUp];
+                u32 mDown = models[pDown];
+                if (upper > down + 1) {
+                  if (CanLightPassthrough<Facing6::Down>(mUp, mDown)) {
+                    down = upper - 1;
+                    changed++;
+                  }
                 }
               }
             }
@@ -501,13 +526,17 @@ private:
           for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
               for (int y = y0; y < y1; y++) {
-                Pos3i p(x, y, z);
-                Pos3i target(x, y + 1, z);
-                u8 center = out[p];
-                u8 up = out[target];
-                if (center > up + 1 && CanLightPassthrough<Facing6::Up>(models[p], models[target])) {
-                  out[target] = center - 1;
-                  changed++;
+                Pos3i pDown(x, y, z);
+                Pos3i pUp(x, y + 1, z);
+                u8 down = out[pDown];
+                u8 &up = out[pUp];
+                u32 mDown = models[pDown];
+                u32 mUp = models[pUp];
+                if (down > up + 1) {
+                  if (CanLightPassthrough<Facing6::Up>(mDown, mUp)) {
+                    up = down - 1;
+                    changed++;
+                  }
                 }
               }
             }
@@ -523,16 +552,22 @@ private:
             if (!v) {
               continue;
             }
-            if (auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1}); xIntersection) {
-              auto [xStart, xEnd] = *xIntersection;
-              for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-                for (int x = xStart; x <= xEnd; x++) {
-                  Pos3i p(x - 1, y, z);
-                  Pos3i target(x, y, z);
-                  u8 center = out[p];
-                  u8 east = out[target];
-                  if (center > east + 1 && CanLightPassthrough<Facing6::East>(models[p], models[target])) {
-                    out[target] = center - 1;
+            auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1});
+            if (!xIntersection) {
+              continue;
+            }
+            auto [xStart, xEnd] = *xIntersection;
+            for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+              for (int x = xStart; x <= xEnd; x++) {
+                Pos3i pWest(x - 1, y, z);
+                Pos3i pEast(x, y, z);
+                u8 west = out[pWest];
+                u8 &east = out[pEast];
+                u32 mWest = models[pWest];
+                u32 mEast = models[pEast];
+                if (west > east + 1) {
+                  if (CanLightPassthrough<Facing6::East>(mWest, mEast)) {
+                    east = west - 1;
                     changed++;
                   }
                 }
@@ -550,16 +585,22 @@ private:
             if (!v) {
               continue;
             }
-            if (auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1}); xIntersection) {
-              auto [xStart, xEnd] = *xIntersection;
-              for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-                for (int x = xEnd; x >= xStart; x--) {
-                  Pos3i p(x + 1, y, z);
-                  Pos3i target(x, y, z);
-                  u8 center = out[p];
-                  u8 west = out[target];
-                  if (center > west + 1 && CanLightPassthrough<Facing6::West>(models[p], models[target])) {
-                    out[target] = center - 1;
+            auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1});
+            if (!xIntersection) {
+              continue;
+            }
+            auto [xStart, xEnd] = *xIntersection;
+            for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
+              for (int x = xEnd; x >= xStart; x--) {
+                Pos3i pEast(x + 1, y, z);
+                Pos3i pWest(x, y, z);
+                u8 east = out[pEast];
+                u8 &west = out[pWest];
+                u32 mEast = models[pEast];
+                u32 mWest = models[pWest];
+                if (east > west + 1) {
+                  if (CanLightPassthrough<Facing6::West>(mEast, mWest)) {
+                    west = east - 1;
                     changed++;
                   }
                 }
@@ -577,16 +618,22 @@ private:
             if (!v) {
               continue;
             }
-            if (auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1}); zIntersection) {
-              auto [zStart, zEnd] = *zIntersection;
-              for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-                for (int z = zStart; z <= zEnd; z++) {
-                  Pos3i p(x, y, z - 1);
-                  Pos3i target(x, y, z);
-                  u8 center = out[p];
-                  u8 south = out[target];
-                  if (center > south + 1 && CanLightPassthrough<Facing6::South>(models[p], models[target])) {
-                    out[target] = center - 1;
+            auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1});
+            if (!zIntersection) {
+              continue;
+            }
+            auto [zStart, zEnd] = *zIntersection;
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+              for (int z = zStart; z <= zEnd; z++) {
+                Pos3i pNorth(x, y, z - 1);
+                Pos3i pSouth(x, y, z);
+                u8 north = out[pNorth];
+                u8 &south = out[pSouth];
+                u32 mNorth = models[pNorth];
+                u32 mSouth = models[pSouth];
+                if (north > south + 1) {
+                  if (CanLightPassthrough<Facing6::South>(mNorth, mSouth)) {
+                    south = north - 1;
                     changed++;
                   }
                 }
@@ -604,16 +651,22 @@ private:
             if (!v) {
               continue;
             }
-            if (auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1}); zIntersection) {
-              auto [zStart, zEnd] = *zIntersection;
-              for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-                for (int z = zEnd; z >= zStart; z--) {
-                  Pos3i p(x, y, z + 1);
-                  Pos3i target(x, y, z);
-                  u8 center = out[p];
-                  u8 north = out[target];
-                  if (center > north + 1 && CanLightPassthrough<Facing6::North>(models[p], models[target])) {
-                    out[target] = center - 1;
+            auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1});
+            if (!zIntersection) {
+              continue;
+            }
+            auto [zStart, zEnd] = *zIntersection;
+            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
+              for (int z = zEnd; z >= zStart; z--) {
+                Pos3i pSouth(x, y, z + 1);
+                Pos3i pNorth(x, y, z);
+                u8 south = out[pSouth];
+                u8 &north = out[pNorth];
+                u32 mSouth = models[pSouth];
+                u32 mNorth = models[pNorth];
+                if (south > north + 1) {
+                  if (CanLightPassthrough<Facing6::North>(mSouth, mNorth)) {
+                    north = south - 1;
                     changed++;
                   }
                 }
