@@ -253,7 +253,7 @@ private:
           }
           for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-              for (int y = y1; y > y0; y--) {
+              for (int y = v->fEnd.fY; y > v->fStart.fY; y--) {
                 Pos3i pUp(x, y, z);
                 Pos3i pDown(x, y - 1, z);
                 u8 upper = out[pUp];
@@ -281,7 +281,7 @@ private:
           }
           for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-              for (int y = y0; y < y1; y++) {
+              for (int y = v->fStart.fY; y < v->fEnd.fY; y++) {
                 Pos3i pDown(x, y, z);
                 Pos3i pUp(x, y + 1, z);
                 u8 down = out[pDown];
@@ -301,18 +301,18 @@ private:
       }
 
       // west -> east
-      for (int y = y0; y <= y1; y++) {
-        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-          for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-            auto v = volumes[{xx, zz}];
-            if (!v) {
-              continue;
-            }
-            auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1});
-            if (!xIntersection) {
-              continue;
-            }
-            auto [xStart, xEnd] = *xIntersection;
+      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1});
+          if (!xIntersection) {
+            continue;
+          }
+          auto [xStart, xEnd] = *xIntersection;
+          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
             for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
               for (int x = xStart; x <= xEnd; x++) {
                 Pos3i pWest(x - 1, y, z);
@@ -334,18 +334,18 @@ private:
       }
 
       // east -> west
-      for (int y = y0; y <= y1; y++) {
-        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-          for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-            auto v = volumes[{xx, zz}];
-            if (!v) {
-              continue;
-            }
-            auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1});
-            if (!xIntersection) {
-              continue;
-            }
-            auto [xStart, xEnd] = *xIntersection;
+      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1});
+          if (!xIntersection) {
+            continue;
+          }
+          auto [xStart, xEnd] = *xIntersection;
+          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
             for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
               for (int x = xEnd; x >= xStart; x--) {
                 Pos3i pEast(x + 1, y, z);
@@ -367,18 +367,18 @@ private:
       }
 
       // north -> south
-      for (int y = y0; y <= y1; y++) {
-        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-          for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-            auto v = volumes[{xx, zz}];
-            if (!v) {
-              continue;
-            }
-            auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1});
-            if (!zIntersection) {
-              continue;
-            }
-            auto [zStart, zEnd] = *zIntersection;
+      for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1});
+          if (!zIntersection) {
+            continue;
+          }
+          auto [zStart, zEnd] = *zIntersection;
+          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
               for (int z = zStart; z <= zEnd; z++) {
                 Pos3i pNorth(x, y, z - 1);
@@ -400,18 +400,18 @@ private:
       }
 
       // south -> north
-      for (int y = y0; y <= y1; y++) {
-        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-          for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-            auto v = volumes[{xx, zz}];
-            if (!v) {
-              continue;
-            }
-            auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1});
-            if (!zIntersection) {
-              continue;
-            }
-            auto [zStart, zEnd] = *zIntersection;
+      for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
+        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
+          auto v = volumes[{xx, zz}];
+          if (!v) {
+            continue;
+          }
+          auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1});
+          if (!zIntersection) {
+            continue;
+          }
+          auto [zStart, zEnd] = *zIntersection;
+          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
             for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
               for (int z = zEnd; z >= zStart; z--) {
                 Pos3i pSouth(x, y, z + 1);
@@ -445,10 +445,11 @@ private:
       for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
         auto v = volumes[{cx, cz}];
         assert(v);
+        optional<int> minY;
+        optional<int> maxY;
         for (int bz = v->fStart.fZ; bz <= v->fEnd.fZ; bz++) {
           for (int bx = v->fStart.fX; bx <= v->fEnd.fX; bx++) {
-            int by = v->fEnd.fY;
-            for (; by >= v->fStart.fY; by--) {
+            for (int by = v->fEnd.fY; by >= v->fStart.fY; by--) {
               bool done = false;
               auto p = models[{bx, by, bz}];
               if (p.fTransparency == CLEAR) {
@@ -465,25 +466,41 @@ private:
               if (!IsFaceOpened<Facing6::Down>(p)) {
                 done = true;
               }
+              if (by == v->fStart.fY) {
+                done = true;
+              }
               if (done) {
-                Volume calc(Pos3i(bx, by, bz) - Pos3i(14, 14, 14), Pos3i(bx, by, bz) + Pos3i(14, 14, 14));
-                for (int x = diffuseVolumes.fStart.fX; x <= diffuseVolumes.fEnd.fX; x++) {
-                  for (int z = diffuseVolumes.fStart.fZ; z <= diffuseVolumes.fEnd.fZ; z++) {
-                    if (cached[{x, z}]) {
-                      continue;
-                    }
-                    auto vv = volumes[{x, z}];
-                    assert(vv);
-                    if (auto intersection = Volume::Intersection(calc, *vv); intersection) {
-                      if (auto current = diffuseVolumes[{x, z}]; current) {
-                        diffuseVolumes[{x, z}] = Volume::Union(*intersection, *current);
-                      } else {
-                        diffuseVolumes[{x, z}] = *intersection;
-                      }
-                    }
-                  }
+                if (minY) {
+                  minY = std::min(*minY, by);
+                } else {
+                  minY = by;
+                }
+                if (maxY) {
+                  maxY = std::max(*maxY, by);
+                } else {
+                  maxY = by;
                 }
                 break;
+              }
+            }
+          }
+        }
+
+        if (minY && maxY) {
+          Volume calc(Pos3i(v->fStart.fX, *minY, v->fStart.fZ) - Pos3i(14, 14, 14), Pos3i(v->fEnd.fX, *maxY, v->fEnd.fZ) + Pos3i(14, 14, 14));
+          for (int x = diffuseVolumes.fStart.fX; x <= diffuseVolumes.fEnd.fX; x++) {
+            for (int z = diffuseVolumes.fStart.fZ; z <= diffuseVolumes.fEnd.fZ; z++) {
+              if (cached[{x, z}]) {
+                continue;
+              }
+              auto vv = volumes[{x, z}];
+              assert(vv);
+              if (auto intersection = Volume::Intersection(calc, *vv); intersection) {
+                if (auto current = diffuseVolumes[{x, z}]; current) {
+                  diffuseVolumes[{x, z}] = Volume::Union(*intersection, *current);
+                } else {
+                  diffuseVolumes[{x, z}] = *intersection;
+                }
               }
             }
           }
