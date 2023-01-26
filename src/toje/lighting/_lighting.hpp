@@ -104,6 +104,9 @@ public:
           if (!section) {
             continue;
           }
+          if (section->empty()) {
+            continue;
+          }
           int index = 0;
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
