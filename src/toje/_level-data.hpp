@@ -139,6 +139,8 @@ public:
     j["raining"] = Bool(b.float32("rainLevel", 0) >= 1);
     j["thundering"] = Bool(b.float32("lightningLevel", 0) >= 1);
     j["GameType"] = Int(JavaFromGameMode(ctx.fGameMode));
+    j["initialized"] = Bool(true);
+    //TODO: j["hardcore"] = Bool(false);
 
     if (auto dragonFight = DragonFight(db, ctx.fEndian); dragonFight) {
       j["DragonFight"] = dragonFight;
