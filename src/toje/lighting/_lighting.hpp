@@ -233,207 +233,121 @@ private:
   }
 
   static void DiffuseLight(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
-    using namespace std;
-
-    int x0 = out.fStart.fX;
-    int x1 = out.fEnd.fX;
-    int y0 = out.fStart.fY;
-    int y1 = out.fEnd.fY;
-    int z0 = out.fStart.fZ;
-    int z1 = out.fEnd.fZ;
-
+    Volume const all(out.fStart, out.fEnd);
     while (true) {
       int changed = 0;
-      // up -> down
-      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-          auto v = volumes[{xx, zz}];
+      for (int cz = volumes.fStart.fZ; cz <= volumes.fEnd.fZ; cz++) {
+        for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
+          auto v = volumes[{cx, cz}];
           if (!v) {
             continue;
           }
-          for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-              for (int y = v->fEnd.fY; y > v->fStart.fY; y--) {
-                Pos3i pUp(x, y, z);
-                Pos3i pDown(x, y - 1, z);
-                u8 upper = out[pUp];
-                u8 &down = out[pDown];
-                u32 mUp = models[pUp];
-                u32 mDown = models[pDown];
-                if (upper > down + 1) {
-                  if (CanLightPassthrough<Facing6::Down>(mUp, mDown)) {
-                    down = upper - 1;
-                    changed++;
-                  }
+          Volume calc(v->fStart - Pos3i(1, 1, 1), v->fEnd + Pos3i(1, 1, 1));
+          auto limit = Volume::Intersection(calc, all);
+          if (!limit) {
+            continue;
+          }
+          for (int y = limit->fStart.fY; y <= limit->fEnd.fY; y++) {
+            for (int z = limit->fStart.fZ; z <= limit->fEnd.fZ; z++) {
+              for (int x = limit->fStart.fX; x <= limit->fEnd.fX; x++) {
+                Pos3i p(x, y, z);
+                u8 center = out[p];
+                if (center > 1) {
+                  DiffuseRecursive(models, out, *limit, center, p, changed);
                 }
               }
             }
           }
         }
       }
-
-      // down -> up
-      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-          auto v = volumes[{xx, zz}];
-          if (!v) {
-            continue;
-          }
-          for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-              for (int y = v->fStart.fY; y < v->fEnd.fY; y++) {
-                Pos3i pDown(x, y, z);
-                Pos3i pUp(x, y + 1, z);
-                u8 down = out[pDown];
-                u8 &up = out[pUp];
-                u32 mDown = models[pDown];
-                u32 mUp = models[pUp];
-                if (down > up + 1) {
-                  if (CanLightPassthrough<Facing6::Up>(mDown, mUp)) {
-                    up = down - 1;
-                    changed++;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // west -> east
-      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-          auto v = volumes[{xx, zz}];
-          if (!v) {
-            continue;
-          }
-          auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0 + 1, x1});
-          if (!xIntersection) {
-            continue;
-          }
-          auto [xStart, xEnd] = *xIntersection;
-          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
-            for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-              for (int x = xStart; x <= xEnd; x++) {
-                Pos3i pWest(x - 1, y, z);
-                Pos3i pEast(x, y, z);
-                u8 west = out[pWest];
-                u8 &east = out[pEast];
-                u32 mWest = models[pWest];
-                u32 mEast = models[pEast];
-                if (west > east + 1) {
-                  if (CanLightPassthrough<Facing6::East>(mWest, mEast)) {
-                    east = west - 1;
-                    changed++;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // east -> west
-      for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-        for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-          auto v = volumes[{xx, zz}];
-          if (!v) {
-            continue;
-          }
-          auto xIntersection = ClosedRange<int>::Intersection({v->fStart.fX, v->fEnd.fX}, {x0, x1 - 1});
-          if (!xIntersection) {
-            continue;
-          }
-          auto [xStart, xEnd] = *xIntersection;
-          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
-            for (int z = v->fStart.fZ; z <= v->fEnd.fZ; z++) {
-              for (int x = xEnd; x >= xStart; x--) {
-                Pos3i pEast(x + 1, y, z);
-                Pos3i pWest(x, y, z);
-                u8 east = out[pEast];
-                u8 &west = out[pWest];
-                u32 mEast = models[pEast];
-                u32 mWest = models[pWest];
-                if (east > west + 1) {
-                  if (CanLightPassthrough<Facing6::West>(mEast, mWest)) {
-                    west = east - 1;
-                    changed++;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // north -> south
-      for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-          auto v = volumes[{xx, zz}];
-          if (!v) {
-            continue;
-          }
-          auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0 + 1, z1});
-          if (!zIntersection) {
-            continue;
-          }
-          auto [zStart, zEnd] = *zIntersection;
-          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
-            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-              for (int z = zStart; z <= zEnd; z++) {
-                Pos3i pNorth(x, y, z - 1);
-                Pos3i pSouth(x, y, z);
-                u8 north = out[pNorth];
-                u8 &south = out[pSouth];
-                u32 mNorth = models[pNorth];
-                u32 mSouth = models[pSouth];
-                if (north > south + 1) {
-                  if (CanLightPassthrough<Facing6::South>(mNorth, mSouth)) {
-                    south = north - 1;
-                    changed++;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // south -> north
-      for (int xx = volumes.fStart.fX; xx <= volumes.fEnd.fX; xx++) {
-        for (int zz = volumes.fStart.fZ; zz <= volumes.fEnd.fZ; zz++) {
-          auto v = volumes[{xx, zz}];
-          if (!v) {
-            continue;
-          }
-          auto zIntersection = ClosedRange<int>::Intersection({v->fStart.fZ, v->fEnd.fZ}, {z0, z1 - 1});
-          if (!zIntersection) {
-            continue;
-          }
-          auto [zStart, zEnd] = *zIntersection;
-          for (int y = v->fStart.fY; y <= v->fEnd.fY; y++) {
-            for (int x = v->fStart.fX; x <= v->fEnd.fX; x++) {
-              for (int z = zEnd; z >= zStart; z--) {
-                Pos3i pSouth(x, y, z + 1);
-                Pos3i pNorth(x, y, z);
-                u8 south = out[pSouth];
-                u8 &north = out[pNorth];
-                u32 mSouth = models[pSouth];
-                u32 mNorth = models[pNorth];
-                if (south > north + 1) {
-                  if (CanLightPassthrough<Facing6::North>(mSouth, mNorth)) {
-                    north = south - 1;
-                    changed++;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
       if (changed == 0) {
         break;
+      }
+    }
+  }
+
+  static void DiffuseRecursive(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Volume const &limit, u8 center, Pos3i const &pCenter, int &changed) {
+    int x = pCenter.fX;
+    int y = pCenter.fY;
+    int z = pCenter.fZ;
+    assert(center > 1);
+    u32 mCenter = models[pCenter];
+    if (y + 1 <= limit.fEnd.fY) {
+      Pos3i pUp(x, y + 1, z);
+      u8 &up = out[pUp];
+      if (center > up + 1) {
+        if (CanLightPassthrough<Facing6::Up>(mCenter, models[pUp])) {
+          up = center - 1;
+          changed++;
+          if (up > 1) {
+            DiffuseRecursive(models, out, limit, up, pUp, changed);
+          }
+        }
+      }
+    }
+    if (y - 1 >= limit.fStart.fY) {
+      Pos3i pDown(x, y - 1, z);
+      u8 &down = out[pDown];
+      if (center > down + 1) {
+        if (CanLightPassthrough<Facing6::Down>(mCenter, models[pDown])) {
+          down = center - 1;
+          changed++;
+          if (down > 1) {
+            DiffuseRecursive(models, out, limit, down, pDown, changed);
+          }
+        }
+      }
+    }
+    if (x + 1 <= limit.fEnd.fX) {
+      Pos3i pEast(x + 1, y, z);
+      u8 &east = out[pEast];
+      if (center > east + 1) {
+        if (CanLightPassthrough<Facing6::East>(mCenter, models[pEast])) {
+          east = center - 1;
+          changed++;
+          if (east > 1) {
+            DiffuseRecursive(models, out, limit, east, pEast, changed);
+          }
+        }
+      }
+    }
+    if (x - 1 >= limit.fStart.fX) {
+      Pos3i pWest(x - 1, y, z);
+      u8 &west = out[pWest];
+      if (center > west + 1) {
+        if (CanLightPassthrough<Facing6::West>(mCenter, models[pWest])) {
+          west = center - 1;
+          changed++;
+          if (west > 1) {
+            DiffuseRecursive(models, out, limit, west, pWest, changed);
+          }
+        }
+      }
+    }
+    if (z + 1 <= limit.fEnd.fZ) {
+      Pos3i pSouth(x, y, z + 1);
+      u8 &south = out[pSouth];
+      if (center > south + 1) {
+        if (CanLightPassthrough<Facing6::South>(mCenter, models[pSouth])) {
+          south = center - 1;
+          changed++;
+          if (south > 1) {
+            DiffuseRecursive(models, out, limit, south, pSouth, changed);
+          }
+        }
+      }
+    }
+    if (z - 1 >= limit.fStart.fZ) {
+      Pos3i pNorth(x, y, z - 1);
+      u8 &north = out[pNorth];
+      if (center > north + 1) {
+        if (CanLightPassthrough<Facing6::North>(mCenter, models[pNorth])) {
+          north = center - 1;
+          changed++;
+          if (north > 1) {
+            DiffuseRecursive(models, out, limit, north, pNorth, changed);
+          }
+        }
       }
     }
   }
