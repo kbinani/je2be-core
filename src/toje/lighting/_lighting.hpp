@@ -141,33 +141,49 @@ public:
       }
       Pos3i origin(out.minBlockX(), section->y() * 16, out.minBlockZ());
 
-      if (std::any_of(blockLight.cbegin(), blockLight.cend(), [](u8 v) { return v > 0; })) {
+      {
         section->fBlockLight.resize(2048);
         auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
+        assert(sectionBlockLight);
         if (sectionBlockLight) {
+          bool darkness = true;
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
                 Pos3i v = origin + Pos3i(x, y, z);
                 sectionBlockLight->setUnchecked(v, blockLight[v]);
+                if (blockLight[v] != 0) {
+                  darkness = false;
+                }
               }
             }
+          }
+          if (darkness) {
+            section->fBlockLight.clear();
           }
         }
       }
 
-      if (skyLight && std::any_of(skyLight->cbegin(), skyLight->cend(), [](u8 v) { return v > 0; })) {
+      if (skyLight) {
         section->fSkyLight.resize(2048);
         auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
+        assert(sectionSkyLight);
         if (sectionSkyLight) {
+          bool darkness = true;
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
                 Pos3i v = origin + Pos3i(x, y, z);
                 u8 l = (*skyLight)[v];
                 sectionSkyLight->setUnchecked(v, l);
+                if (l != 0) {
+                  darkness = false;
+                }
               }
             }
+          }
+          if (darkness) {
+            section->fSkyLight.clear();
           }
         }
       }

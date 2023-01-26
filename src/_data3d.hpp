@@ -56,17 +56,6 @@ public:
     std::fill_n(fStorage, dx * dy * dz, v);
   }
 
-  Value const *cbegin() const {
-    return fStorage;
-  }
-
-  Value const *cend() const {
-    int dx = fEnd.fX - fStart.fX + 1;
-    int dy = fEnd.fY - fStart.fY + 1;
-    int dz = fEnd.fZ - fStart.fZ + 1;
-    return fStorage + (dx * dy * dz);
-  }
-
 private:
   int index(Pos3i const &p) const {
     int x = p.fX - fStart.fX;
@@ -137,14 +126,6 @@ public:
 
   void fill(Value v) {
     std::fill(fStorage, fStorage + Size * fHeight * Size, v);
-  }
-
-  Value const *cbegin() const {
-    return fStorage;
-  }
-
-  Value const *cend() const {
-    return fStorage + (Size * fHeight * Size);
   }
 
   template <size_t SizeOther, size_t AlignOther>
