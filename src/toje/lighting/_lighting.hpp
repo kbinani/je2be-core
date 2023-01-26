@@ -232,6 +232,16 @@ private:
     return ((~model.fModel) & mask) != 0;
   }
 
+  enum IgnoreFace : int {
+    IgnoreNone = 0,
+    IgnoreUp,
+    IgnoreDown,
+    IgnoreNorth,
+    IgnoreEast,
+    IgnoreSouth,
+    IgnoreWest,
+  };
+
   static void DiffuseLight(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     Volume const all(out.fStart, out.fEnd);
     while (true) {
@@ -253,7 +263,7 @@ private:
                 Pos3i p(x, y, z);
                 u8 center = out[p];
                 if (center > 1) {
-                  DiffuseRecursive(models, out, *limit, center, p, changed);
+                  DiffuseRecursive<IgnoreNone>(models, out, *limit, center, p, changed);
                 }
               }
             }
@@ -266,86 +276,99 @@ private:
     }
   }
 
+  template <IgnoreFace Ignore>
   static void DiffuseRecursive(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Volume const &limit, u8 center, Pos3i const &pCenter, int &changed) {
     int x = pCenter.fX;
     int y = pCenter.fY;
     int z = pCenter.fZ;
     assert(center > 1);
     u32 mCenter = models[pCenter];
-    if (y + 1 <= limit.fEnd.fY) {
-      Pos3i pUp(x, y + 1, z);
-      u8 &up = out[pUp];
-      if (center > up + 1) {
-        if (CanLightPassthrough<Facing6::Up>(mCenter, models[pUp])) {
-          up = center - 1;
-          changed++;
-          if (up > 1) {
-            DiffuseRecursive(models, out, limit, up, pUp, changed);
+    if constexpr (Ignore != IgnoreUp) {
+      if (y + 1 <= limit.fEnd.fY) {
+        Pos3i pUp(x, y + 1, z);
+        u8 &up = out[pUp];
+        if (center > up + 1) {
+          if (CanLightPassthrough<Facing6::Up>(mCenter, models[pUp])) {
+            up = center - 1;
+            changed++;
+            if (up > 1) {
+              DiffuseRecursive<IgnoreDown>(models, out, limit, up, pUp, changed);
+            }
           }
         }
       }
     }
-    if (y - 1 >= limit.fStart.fY) {
-      Pos3i pDown(x, y - 1, z);
-      u8 &down = out[pDown];
-      if (center > down + 1) {
-        if (CanLightPassthrough<Facing6::Down>(mCenter, models[pDown])) {
-          down = center - 1;
-          changed++;
-          if (down > 1) {
-            DiffuseRecursive(models, out, limit, down, pDown, changed);
+    if constexpr (Ignore != IgnoreDown) {
+      if (y - 1 >= limit.fStart.fY) {
+        Pos3i pDown(x, y - 1, z);
+        u8 &down = out[pDown];
+        if (center > down + 1) {
+          if (CanLightPassthrough<Facing6::Down>(mCenter, models[pDown])) {
+            down = center - 1;
+            changed++;
+            if (down > 1) {
+              DiffuseRecursive<IgnoreUp>(models, out, limit, down, pDown, changed);
+            }
           }
         }
       }
     }
-    if (x + 1 <= limit.fEnd.fX) {
-      Pos3i pEast(x + 1, y, z);
-      u8 &east = out[pEast];
-      if (center > east + 1) {
-        if (CanLightPassthrough<Facing6::East>(mCenter, models[pEast])) {
-          east = center - 1;
-          changed++;
-          if (east > 1) {
-            DiffuseRecursive(models, out, limit, east, pEast, changed);
+    if constexpr (Ignore != IgnoreEast) {
+      if (x + 1 <= limit.fEnd.fX) {
+        Pos3i pEast(x + 1, y, z);
+        u8 &east = out[pEast];
+        if (center > east + 1) {
+          if (CanLightPassthrough<Facing6::East>(mCenter, models[pEast])) {
+            east = center - 1;
+            changed++;
+            if (east > 1) {
+              DiffuseRecursive<IgnoreWest>(models, out, limit, east, pEast, changed);
+            }
           }
         }
       }
     }
-    if (x - 1 >= limit.fStart.fX) {
-      Pos3i pWest(x - 1, y, z);
-      u8 &west = out[pWest];
-      if (center > west + 1) {
-        if (CanLightPassthrough<Facing6::West>(mCenter, models[pWest])) {
-          west = center - 1;
-          changed++;
-          if (west > 1) {
-            DiffuseRecursive(models, out, limit, west, pWest, changed);
+    if constexpr (Ignore != IgnoreWest) {
+      if (x - 1 >= limit.fStart.fX) {
+        Pos3i pWest(x - 1, y, z);
+        u8 &west = out[pWest];
+        if (center > west + 1) {
+          if (CanLightPassthrough<Facing6::West>(mCenter, models[pWest])) {
+            west = center - 1;
+            changed++;
+            if (west > 1) {
+              DiffuseRecursive<IgnoreEast>(models, out, limit, west, pWest, changed);
+            }
           }
         }
       }
     }
-    if (z + 1 <= limit.fEnd.fZ) {
-      Pos3i pSouth(x, y, z + 1);
-      u8 &south = out[pSouth];
-      if (center > south + 1) {
-        if (CanLightPassthrough<Facing6::South>(mCenter, models[pSouth])) {
-          south = center - 1;
-          changed++;
-          if (south > 1) {
-            DiffuseRecursive(models, out, limit, south, pSouth, changed);
+    if constexpr (Ignore != IgnoreSouth) {
+      if (z + 1 <= limit.fEnd.fZ) {
+        Pos3i pSouth(x, y, z + 1);
+        u8 &south = out[pSouth];
+        if (center > south + 1) {
+          if (CanLightPassthrough<Facing6::South>(mCenter, models[pSouth])) {
+            south = center - 1;
+            changed++;
+            if (south > 1) {
+              DiffuseRecursive<IgnoreNorth>(models, out, limit, south, pSouth, changed);
+            }
           }
         }
       }
     }
-    if (z - 1 >= limit.fStart.fZ) {
-      Pos3i pNorth(x, y, z - 1);
-      u8 &north = out[pNorth];
-      if (center > north + 1) {
-        if (CanLightPassthrough<Facing6::North>(mCenter, models[pNorth])) {
-          north = center - 1;
-          changed++;
-          if (north > 1) {
-            DiffuseRecursive(models, out, limit, north, pNorth, changed);
+    if constexpr (Ignore != IgnoreNorth) {
+      if (z - 1 >= limit.fStart.fZ) {
+        Pos3i pNorth(x, y, z - 1);
+        u8 &north = out[pNorth];
+        if (center > north + 1) {
+          if (CanLightPassthrough<Facing6::North>(mCenter, models[pNorth])) {
+            north = center - 1;
+            changed++;
+            if (north > 1) {
+              DiffuseRecursive<IgnoreSouth>(models, out, limit, north, pNorth, changed);
+            }
           }
         }
       }
