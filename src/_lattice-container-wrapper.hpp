@@ -34,6 +34,11 @@ public:
     fContainers[{cx, cz}] = container;
   }
 
+  std::shared_ptr<Container> get(int cx, int cz) {
+    assert(fChunkStart.fX <= cx && cx <= fChunkEnd.fX && fChunkStart.fZ <= cz && cz <= fChunkEnd.fZ);
+    return fContainers[{cx, cz}];
+  }
+
   bool contains(Pos3i const &p) const {
     return fStart.fX <= p.fX && p.fX <= fEnd.fX &&
            fStart.fY <= p.fY && p.fY <= fEnd.fY &&

@@ -93,10 +93,30 @@ public:
     InitializeBlockLight(*models, blockLight, blockCached, blockVolumes, blockDiffuseVolumes);
 
     Data3dSq<u32, 44> mod(start, height, 0);
-    for (int y = mod.fStart.fY; y <= mod.fEnd.fY; y++) {
-      for (int z = mod.fStart.fZ; z <= mod.fEnd.fZ; z++) {
-        for (int x = mod.fStart.fX; x <= mod.fEnd.fX; x++) {
-          mod[{x, y, z}] = (*models)[{x, y, z}].fModel;
+    for (int i = models->fChunkStart.fX; i <= models->fChunkEnd.fX; i++) {
+      for (int j = models->fChunkStart.fZ; j <= models->fChunkEnd.fZ; j++) {
+        auto model = models->get(i, j);
+        if (!model) {
+          continue;
+        }
+        for (size_t i = 0; i < model->fSections.size(); i++) {
+          auto const &section = model->fSections[i];
+          if (!section) {
+            continue;
+          }
+          int index = 0;
+          for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+              for (int x = 0; x < 16; x++, index++) {
+                int bx = model->fChunkX * 16 + x;
+                int by = (i + model->fChunkY) * 16 + y;
+                int bz = model->fChunkZ * 16 + z;
+                if (mod.volume().contains({bx, by, bz})) {
+                  mod[{bx, by, bz}] = section->getUnchecked(index).fModel;
+                }
+              }
+            }
+          }
         }
       }
     }

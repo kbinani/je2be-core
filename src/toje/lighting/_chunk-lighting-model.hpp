@@ -41,7 +41,7 @@ public:
     fSections[i] = s;
   }
 
-private:
+public:
   int const fChunkX;
   int const fChunkY;
   int const fChunkZ;
