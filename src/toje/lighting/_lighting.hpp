@@ -99,8 +99,8 @@ public:
         if (!model) {
           continue;
         }
-        for (size_t i = 0; i < model->fSections.size(); i++) {
-          auto const &section = model->fSections[i];
+        for (size_t k = 0; k < model->fSections.size(); k++) {
+          auto const &section = model->fSections[k];
           if (!section) {
             continue;
           }
@@ -109,7 +109,7 @@ public:
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++, index++) {
                 int bx = model->fChunkX * 16 + x;
-                int by = (i + model->fChunkY) * 16 + y;
+                int by = (k + model->fChunkY) * 16 + y;
                 int bz = model->fChunkZ * 16 + z;
                 if (mod.volume().contains({bx, by, bz})) {
                   mod[{bx, by, bz}] = section->getUnchecked(index).fModel;
