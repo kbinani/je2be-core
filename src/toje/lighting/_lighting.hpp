@@ -535,49 +535,49 @@ private:
 
               target = pos + Pos3iFromFacing6(Facing6::Up);
               if (v->contains(target)) {
-                LightingModel mTarget = models[target];
-                if (IsFaceOpened<Facing6::Down>(mTarget) && out[target] < p.fEmission) {
-                  out[target] = p.fEmission - 1;
+                if (IsFaceOpened<Facing6::Down>(models[target])) {
+                  u8 &l = out[target];
+                  l = std::max(l, (u8)(p.fEmission - 1));
                 }
               }
 
               target = pos + Pos3iFromFacing6(Facing6::Down);
               if (v->contains(target)) {
-                LightingModel mTarget = models[target];
-                if (IsFaceOpened<Facing6::Up>(mTarget) && out[target] < p.fEmission) {
-                  out[target] = p.fEmission - 1;
+                if (IsFaceOpened<Facing6::Up>(models[target])) {
+                  u8 &l = out[target];
+                  l = std::max(l, (u8)(p.fEmission - 1));
                 }
               }
 
               target = pos + Pos3iFromFacing6(Facing6::North);
               if (v->contains(target)) {
-                LightingModel mTarget = models[target];
-                if (IsFaceOpened<Facing6::South>(mTarget) && out[target] < p.fEmission) {
-                  out[target] = p.fEmission - 1;
+                if (IsFaceOpened<Facing6::South>(models[target])) {
+                  u8 &l = out[target];
+                  l = std::max(l, (u8)(p.fEmission - 1));
                 }
               }
 
               target = pos + Pos3iFromFacing6(Facing6::East);
               if (v->contains(target)) {
-                LightingModel mTarget = models[target];
-                if (IsFaceOpened<Facing6::West>(mTarget) && out[target] < p.fEmission) {
-                  out[target] = p.fEmission - 1;
+                if (IsFaceOpened<Facing6::West>(models[target])) {
+                  u8 &l = out[target];
+                  l = std::max(l, (u8)(p.fEmission - 1));
                 }
               }
 
               target = pos + Pos3iFromFacing6(Facing6::South);
               if (v->contains(target)) {
-                LightingModel mTarget = models[target];
-                if (IsFaceOpened<Facing6::North>(mTarget) && out[target] < p.fEmission) {
-                  out[target] = p.fEmission - 1;
+                if (IsFaceOpened<Facing6::North>(models[target])) {
+                  u8 &l = out[target];
+                  l = std::max(l, (u8)(p.fEmission - 1));
                 }
               }
 
               target = pos + Pos3iFromFacing6(Facing6::West);
               if (v->contains(target)) {
-                LightingModel mTarget = models[target];
-                if (IsFaceOpened<Facing6::East>(mTarget) && out[target] < p.fEmission) {
-                  out[target] = p.fEmission - 1;
+                if (IsFaceOpened<Facing6::East>(models[target])) {
+                  u8 &l = out[target];
+                  l = std::max(l, (u8)(p.fEmission - 1));
                 }
               }
             }
