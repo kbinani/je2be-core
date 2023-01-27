@@ -67,7 +67,7 @@ public:
     auto reportProgress = [progress, &done, total, &cancelRequested, &numConvertedChunks]() -> bool {
       double p = double(done.fetch_add(1) + 1) / total;
       if (progress) {
-        bool ok = progress->report(p, numConvertedChunks.load());
+        bool ok = progress->reportConvert(p, numConvertedChunks.load());
         if (!ok) {
           cancelRequested = true;
         }
@@ -101,7 +101,7 @@ public:
       }
     }
 
-    if (auto st = Terraform(regions, output, terrainTempDirs, concurrency); !st.ok()) {
+    if (auto st = Terraform(regions, output, terrainTempDirs, concurrency, progress); !st.ok()) {
       return st;
     }
     for (auto const &[_, dir] : terrainTempDirs) {
@@ -160,12 +160,18 @@ public:
   }
 
 private:
-  static Status Terraform(map<mcfile::Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> const &regions, fs::path const &output, map<mcfile::Dimension, fs::path> const &terrainTempDirs, unsigned int concurrency) {
+  static Status Terraform(
+      map<mcfile::Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> const &regions,
+      fs::path const &output,
+      map<mcfile::Dimension, fs::path> const &terrainTempDirs,
+      unsigned int concurrency,
+      Progress *progress) {
     if (regions.empty()) {
       return Status::Ok();
     }
 
     map<mcfile::Dimension, shared_ptr<Queue2d>> queues;
+    u64 numChunks = 0;
 
     for (auto const &i : regions) {
       if (i.second.empty()) {
@@ -186,6 +192,7 @@ private:
           minR = region;
           maxR = region;
         }
+        numChunks += j.second.fChunks.size();
       }
       assert(minR && maxR);
 
@@ -205,12 +212,19 @@ private:
       queues[i.first] = queue;
     }
 
+    if (progress) {
+      if (!progress->reportTerraform(0, numChunks)) {
+        return JE2BE_ERROR;
+      }
+    }
+
     int numThreads = concurrency - 1;
     std::latch latch(concurrency);
     atomic_bool ok(true);
     mutex mut;
+    atomic_uint64_t done(0);
 
-    auto action = [&latch, &queues, &mut, output, &ok, terrainTempDirs]() {
+    auto action = [&latch, &queues, &mut, output, &ok, terrainTempDirs, regions, &done, progress, numChunks]() {
       shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
       optional<mcfile::Dimension> prevDimension;
 
@@ -268,15 +282,38 @@ private:
           break;
         }
 
+        auto regionsInDim = regions.find(dim);
+        if (regionsInDim == regions.end()) {
+          ok = false;
+          break;
+        }
+
+        Context::ChunksInRegion chunksInRegion;
+        for (auto const &r : regionsInDim->second) {
+          if (r.first == region) {
+            chunksInRegion = r.second;
+            break;
+          }
+        }
+
         lighting::LightCache lightCache(rx, rz);
 
         for (int z = 0; z < 32; z++) {
           for (int x = 0; x < 32; x++) {
             int cx = x + rx * 32;
             int cz = z + rz * 32;
-            if (!TerraformRegion(cx, cz, *editor, found->second, blockAccessor, dim, lightCache).ok()) {
-              ok = false;
-              break;
+            if (chunksInRegion.fChunks.count(Pos2i(cx, cz)) > 0) {
+              if (!TerraformChunk(cx, cz, *editor, found->second, blockAccessor, dim, lightCache).ok()) {
+                ok = false;
+                break;
+              }
+              u64 d = done.fetch_add(1) + 1;
+              if (progress) {
+                if (!progress->reportTerraform(d / (double)numChunks, d)) {
+                  ok = false;
+                  break;
+                }
+              }
             }
             lightCache.dispose(cx - 1, cz - 1);
           }
@@ -306,10 +343,15 @@ private:
     for (auto &th : threads) {
       th.join();
     }
+    if (progress) {
+      if (!progress->reportTerraform(1, numChunks)) {
+        return JE2BE_ERROR;
+      }
+    }
     return Status::Ok();
   }
 
-  static Status TerraformRegion(
+  static Status TerraformChunk(
       int cx,
       int cz,
       mcfile::je::McaEditor &editor,
