@@ -29,18 +29,18 @@ public:
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     size_t const height = maxBlockY - minBlockY + 1;
 
-    auto models = make_shared<LatticeContainerWrapper<ChunkLightingModel>>(Pos3i((cx - 1) * 16, minBlockY, (cz - 1) * 16), maxBlockY);
+    auto chunkModels = make_shared<LatticeContainerWrapper<ChunkLightingModel>>(Pos3i((cx - 1) * 16, minBlockY, (cz - 1) * 16), maxBlockY);
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
         int x = cx + dx;
         int z = cz + dz;
         auto m = make_shared<ChunkLightingModel>(x, minChunkY, z);
-        models->store(x, z, m);
+        chunkModels->store(x, z, m);
       }
     }
 
     LightingModel air(CLEAR);
-    EnsureLightingModels(cache, *models, cx, minChunkY, cz, blockAccessor);
+    EnsureLightingModels(cache, *chunkModels, cx, minChunkY, cz, blockAccessor);
 
     shared_ptr<Data3dSq<u8, 44>> skyLight;
     Data2d<optional<Volume>> skyVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
@@ -88,14 +88,14 @@ public:
     }
 
     if (skyLight) {
-      InitializeSkyLight(*models, *skyLight, skyCached, skyVolumes, skyDiffuseVolumes);
+      InitializeSkyLight(*chunkModels, *skyLight, skyCached, skyVolumes, skyDiffuseVolumes);
     }
-    InitializeBlockLight(*models, blockLight, blockCached, blockVolumes, blockDiffuseVolumes);
 
-    Data3dSq<u32, 44> mod(start, height, 0);
-    for (int i = models->fChunkStart.fX; i <= models->fChunkEnd.fX; i++) {
-      for (int j = models->fChunkStart.fZ; j <= models->fChunkEnd.fZ; j++) {
-        auto model = models->get(i, j);
+    Data3dSq<u32, 44> models(start, height, 0);
+    Data3dSq<u8, 44> emissions(start, height, 0);
+    for (int i = chunkModels->fChunkStart.fX; i <= chunkModels->fChunkEnd.fX; i++) {
+      for (int j = chunkModels->fChunkStart.fZ; j <= chunkModels->fChunkEnd.fZ; j++) {
+        auto model = chunkModels->get(i, j);
         if (!model) {
           continue;
         }
@@ -114,8 +114,10 @@ public:
                 int bx = model->fChunkX * 16 + x;
                 int by = (k + model->fChunkY) * 16 + y;
                 int bz = model->fChunkZ * 16 + z;
-                if (mod.volume().contains({bx, by, bz})) {
-                  mod[{bx, by, bz}] = section->getUnchecked(index).fModel;
+                if (models.volume().contains({bx, by, bz})) {
+                  LightingModel m = section->getUnchecked(index);
+                  models[{bx, by, bz}] = m.fModel;
+                  emissions[{bx, by, bz}] = m.fEmission;
                 }
               }
             }
@@ -123,15 +125,17 @@ public:
         }
       }
     }
-    models.reset();
+    chunkModels.reset();
+
+    InitializeBlockLight(models, emissions, blockLight, blockCached, blockVolumes, blockDiffuseVolumes);
 
     if (skyLight) {
-      DiffuseLight(mod, *skyLight, skyDiffuseVolumes);
+      DiffuseLight(models, *skyLight, skyDiffuseVolumes);
       auto skyLightCache = ChunkLightCache::Create(cx, cz, *skyLight);
       cache.setSkyLight(cx, cz, skyLightCache);
     }
 
-    DiffuseLight(mod, blockLight, blockDiffuseVolumes);
+    DiffuseLight(models, blockLight, blockDiffuseVolumes);
     auto blockLightCache = ChunkLightCache::Create(cx, cz, blockLight);
     cache.setBlockLight(cx, cz, blockLightCache);
 
@@ -263,6 +267,12 @@ private:
   static bool CanLightPassthrough(u32 const &model, u32 const &targetModel) {
     constexpr u32 mask = MaskFacing6(Face);
     return (mask & ((~model) & ~Invert(targetModel))) != 0;
+  }
+
+  template <Facing6 Face>
+  static bool IsFaceOpened(u32 const &model) {
+    constexpr u32 mask = MaskFacing6(Face);
+    return ((~model) & mask) != 0;
   }
 
   template <Facing6 Face>
@@ -485,7 +495,13 @@ private:
     }
   }
 
-  static void InitializeBlockLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<bool> const &cached, Data2d<std::optional<Volume>> const &volumes, Data2d<std::optional<Volume>> &diffuseVolumes) {
+  static void InitializeBlockLight(
+      Data3dSq<u32, 44> const &models,
+      Data3dSq<u8, 44> const &emissions,
+      Data3dSq<u8, 44> &out,
+      Data2d<bool> const &cached,
+      Data2d<std::optional<Volume>> const &volumes,
+      Data2d<std::optional<Volume>> &diffuseVolumes) {
     using namespace std;
 
     assert(models.fStart.fX <= out.fStart.fX && out.fEnd.fX <= models.fEnd.fX);
@@ -500,15 +516,15 @@ private:
           for (int bz = v->fStart.fZ - 1; bz <= v->fEnd.fZ + 1; bz++) {
             for (int bx = v->fStart.fX - 1; bx <= v->fEnd.fX + 1; bx++) {
               Pos3i pos{bx, by, bz};
-              if (!models.contains(pos)) {
+              if (!models.volume().contains(pos)) {
                 continue;
               }
-              auto p = models[pos];
-              if (p.fEmission == 0) {
+              u8 emission = emissions[pos];
+              if (emission == 0) {
                 continue;
               }
-              if (p.fEmission > 1) {
-                Pos3i radius(p.fEmission - 1, p.fEmission - 1, p.fEmission - 1);
+              if (emission > 1) {
+                Pos3i radius(emission - 1, emission - 1, emission - 1);
                 Volume calc(pos - radius, pos + radius);
                 for (int x = diffuseVolumes.fStart.fX; x <= diffuseVolumes.fEnd.fX; x++) {
                   for (int z = diffuseVolumes.fStart.fZ; z <= diffuseVolumes.fEnd.fZ; z++) {
@@ -527,8 +543,8 @@ private:
                   }
                 }
               }
-              if (v->contains(pos) && out[pos] < p.fEmission) {
-                out[pos] = p.fEmission;
+              if (v->contains(pos) && out[pos] < emission) {
+                out[pos] = emission;
               }
 
               Pos3i target;
@@ -537,7 +553,7 @@ private:
               if (v->contains(target)) {
                 if (IsFaceOpened<Facing6::Down>(models[target])) {
                   u8 &l = out[target];
-                  l = std::max(l, (u8)(p.fEmission - 1));
+                  l = std::max(l, (u8)(emission - 1));
                 }
               }
 
@@ -545,7 +561,7 @@ private:
               if (v->contains(target)) {
                 if (IsFaceOpened<Facing6::Up>(models[target])) {
                   u8 &l = out[target];
-                  l = std::max(l, (u8)(p.fEmission - 1));
+                  l = std::max(l, (u8)(emission - 1));
                 }
               }
 
@@ -553,7 +569,7 @@ private:
               if (v->contains(target)) {
                 if (IsFaceOpened<Facing6::South>(models[target])) {
                   u8 &l = out[target];
-                  l = std::max(l, (u8)(p.fEmission - 1));
+                  l = std::max(l, (u8)(emission - 1));
                 }
               }
 
@@ -561,7 +577,7 @@ private:
               if (v->contains(target)) {
                 if (IsFaceOpened<Facing6::West>(models[target])) {
                   u8 &l = out[target];
-                  l = std::max(l, (u8)(p.fEmission - 1));
+                  l = std::max(l, (u8)(emission - 1));
                 }
               }
 
@@ -569,7 +585,7 @@ private:
               if (v->contains(target)) {
                 if (IsFaceOpened<Facing6::North>(models[target])) {
                   u8 &l = out[target];
-                  l = std::max(l, (u8)(p.fEmission - 1));
+                  l = std::max(l, (u8)(emission - 1));
                 }
               }
 
@@ -577,7 +593,7 @@ private:
               if (v->contains(target)) {
                 if (IsFaceOpened<Facing6::East>(models[target])) {
                   u8 &l = out[target];
-                  l = std::max(l, (u8)(p.fEmission - 1));
+                  l = std::max(l, (u8)(emission - 1));
                 }
               }
             }
