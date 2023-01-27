@@ -418,7 +418,6 @@ target_include_directories(je2be PUBLIC
   deps/leveldb
   deps/leveldb/include
   deps/xxhash
-  deps/thread-pool
   deps/json/include
   deps/minizip-ng
   deps/libminecraft-file/include
