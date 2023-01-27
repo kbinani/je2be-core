@@ -1,6 +1,5 @@
 #pragma once
 
-#include "_lattice-container-wrapper.hpp"
 #include "toje/lighting/_chunk-lighting-model.hpp"
 #include "toje/lighting/_lighting-model.hpp"
 

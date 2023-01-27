@@ -29,18 +29,8 @@ public:
     Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     size_t const height = maxBlockY - minBlockY + 1;
 
-    auto chunkModels = make_shared<LatticeContainerWrapper<ChunkLightingModel>>(Pos3i((cx - 1) * 16, minBlockY, (cz - 1) * 16), maxBlockY);
-    for (int dz = -1; dz <= 1; dz++) {
-      for (int dx = -1; dx <= 1; dx++) {
-        int x = cx + dx;
-        int z = cz + dz;
-        auto m = make_shared<ChunkLightingModel>(x, minChunkY, z);
-        chunkModels->store(x, z, m);
-      }
-    }
-
-    LightingModel air(CLEAR);
-    EnsureLightingModels(cache, *chunkModels, cx, minChunkY, cz, blockAccessor);
+    Data3dSq<LightingModel, 44> models(start, height, LightingModel(CLEAR));
+    EnsureLightingModels(cache, models, cx, minChunkY, cz, blockAccessor);
 
     shared_ptr<Data3dSq<u8, 44>> skyLight;
     Data2d<optional<Volume>> skyVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
@@ -88,46 +78,9 @@ public:
     }
 
     if (skyLight) {
-      InitializeSkyLight(*chunkModels, *skyLight, skyCached, skyVolumes, skyDiffuseVolumes);
+      InitializeSkyLight(models, *skyLight, skyCached, skyVolumes, skyDiffuseVolumes);
     }
-
-    Data3dSq<u32, 44> models(start, height, 0);
-    Data3dSq<u8, 44> emissions(start, height, 0);
-    for (int i = chunkModels->fChunkStart.fX; i <= chunkModels->fChunkEnd.fX; i++) {
-      for (int j = chunkModels->fChunkStart.fZ; j <= chunkModels->fChunkEnd.fZ; j++) {
-        auto model = chunkModels->get(i, j);
-        if (!model) {
-          continue;
-        }
-        for (size_t k = 0; k < model->fSections.size(); k++) {
-          auto const &section = model->fSections[k];
-          if (!section) {
-            continue;
-          }
-          if (section->empty()) {
-            continue;
-          }
-          int index = 0;
-          for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-              for (int x = 0; x < 16; x++, index++) {
-                int bx = model->fChunkX * 16 + x;
-                int by = (k + model->fChunkY) * 16 + y;
-                int bz = model->fChunkZ * 16 + z;
-                if (models.volume().contains({bx, by, bz})) {
-                  LightingModel m = section->getUnchecked(index);
-                  models[{bx, by, bz}] = m.fModel;
-                  emissions[{bx, by, bz}] = m.fEmission;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    chunkModels.reset();
-
-    InitializeBlockLight(models, emissions, blockLight, blockCached, blockVolumes, blockDiffuseVolumes);
+    InitializeBlockLight(models, blockLight, blockCached, blockVolumes, blockDiffuseVolumes);
 
     if (skyLight) {
       DiffuseLight(models, *skyLight, skyDiffuseVolumes);
@@ -217,7 +170,7 @@ public:
 private:
   static void EnsureLightingModels(
       LightCache &lightCache,
-      LatticeContainerWrapper<ChunkLightingModel> &out,
+      Data3dSq<LightingModel, 44> &out,
       int cx,
       int cy,
       int cz,
@@ -226,16 +179,44 @@ private:
 
     for (int dz = -1; dz <= 1; dz++) {
       for (int dx = -1; dx <= 1; dx++) {
+        shared_ptr<ChunkLightingModel> chunkModel;
         if (auto cachedModel = lightCache.getModel(cx + dx, cz + dz); cachedModel) {
-          out.store(cx + dx, cz + dz, cachedModel);
+          chunkModel = cachedModel;
         } else {
           auto chunk = blockAccessor.chunkAt(cx + dx, cz + dz);
           if (!chunk) {
             continue;
           }
-          auto chunkModel = CopyChunkLightingModel(*chunk, cy);
-          out.store(cx + dx, cz + dz, chunkModel);
+          chunkModel = CreateChunkLightingModel(*chunk, cy);
           lightCache.setModel(cx + dx, cz + dz, chunkModel);
+        }
+        if (!chunkModel) {
+          continue;
+        }
+        for (int i = 0; i < chunkModel->fSections.size(); i++) {
+          auto const &section = chunkModel->fSections[i];
+          if (!section) {
+            continue;
+          }
+          if (section->empty()) {
+            continue;
+          }
+          Pos3i origin((cx + dx) * 16, (chunkModel->fChunkY + i) * 16, (cz + dz) * 16);
+          Volume sectionVolume(origin, origin + Pos3i(15, 15, 15));
+          auto intersection = Volume::Intersection(sectionVolume, out.volume());
+          if (!intersection) {
+            continue;
+          }
+          for (int y = intersection->fStart.fY; y <= intersection->fEnd.fY; y++) {
+            for (int z = intersection->fStart.fZ; z <= intersection->fEnd.fZ; z++) {
+              for (int x = intersection->fStart.fX; x <= intersection->fEnd.fX; x++) {
+                int dx = x - origin.fX;
+                int dy = y - origin.fY;
+                int dz = z - origin.fZ;
+                out[{x, y, z}] = section->getUnchecked((dy * 16 + dz) * 16 + dx);
+              }
+            }
+          }
         }
       }
     }
@@ -270,12 +251,6 @@ private:
   }
 
   template <Facing6 Face>
-  static bool IsFaceOpened(u32 const &model) {
-    constexpr u32 mask = MaskFacing6(Face);
-    return ((~model) & mask) != 0;
-  }
-
-  template <Facing6 Face>
   static bool IsFaceOpened(LightingModel const &model) {
     constexpr u32 mask = MaskFacing6(Face);
     return ((~model.fModel) & mask) != 0;
@@ -291,7 +266,7 @@ private:
     IgnoreWest,
   };
 
-  static void DiffuseLight(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
+  static void DiffuseLight(Data3dSq<LightingModel, 44> const &models, Data3dSq<u8, 44> &out, Data2d<std::optional<Volume>> const &volumes) {
     Volume const all(out.fStart, out.fEnd);
     while (true) {
       int changed = 0;
@@ -326,18 +301,18 @@ private:
   }
 
   template <IgnoreFace Ignore>
-  static void DiffuseRecursive(Data3dSq<u32, 44> const &models, Data3dSq<u8, 44> &out, Volume const &limit, u8 center, Pos3i const &pCenter, int &changed) {
+  static void DiffuseRecursive(Data3dSq<LightingModel, 44> const &models, Data3dSq<u8, 44> &out, Volume const &limit, u8 center, Pos3i const &pCenter, int &changed) {
     int x = pCenter.fX;
     int y = pCenter.fY;
     int z = pCenter.fZ;
     assert(center > 1);
-    u32 mCenter = models[pCenter];
+    u32 mCenter = models[pCenter].fModel;
     if constexpr (Ignore != IgnoreUp) {
       if (y + 1 <= limit.fEnd.fY) {
         Pos3i pUp(x, y + 1, z);
         u8 &up = out[pUp];
         if (center > up + 1) {
-          if (CanLightPassthrough<Facing6::Up>(mCenter, models[pUp])) {
+          if (CanLightPassthrough<Facing6::Up>(mCenter, models[pUp].fModel)) {
             up = center - 1;
             changed++;
             if (up > 1) {
@@ -352,7 +327,7 @@ private:
         Pos3i pDown(x, y - 1, z);
         u8 &down = out[pDown];
         if (center > down + 1) {
-          if (CanLightPassthrough<Facing6::Down>(mCenter, models[pDown])) {
+          if (CanLightPassthrough<Facing6::Down>(mCenter, models[pDown].fModel)) {
             down = center - 1;
             changed++;
             if (down > 1) {
@@ -367,7 +342,7 @@ private:
         Pos3i pEast(x + 1, y, z);
         u8 &east = out[pEast];
         if (center > east + 1) {
-          if (CanLightPassthrough<Facing6::East>(mCenter, models[pEast])) {
+          if (CanLightPassthrough<Facing6::East>(mCenter, models[pEast].fModel)) {
             east = center - 1;
             changed++;
             if (east > 1) {
@@ -382,7 +357,7 @@ private:
         Pos3i pWest(x - 1, y, z);
         u8 &west = out[pWest];
         if (center > west + 1) {
-          if (CanLightPassthrough<Facing6::West>(mCenter, models[pWest])) {
+          if (CanLightPassthrough<Facing6::West>(mCenter, models[pWest].fModel)) {
             west = center - 1;
             changed++;
             if (west > 1) {
@@ -397,7 +372,7 @@ private:
         Pos3i pSouth(x, y, z + 1);
         u8 &south = out[pSouth];
         if (center > south + 1) {
-          if (CanLightPassthrough<Facing6::South>(mCenter, models[pSouth])) {
+          if (CanLightPassthrough<Facing6::South>(mCenter, models[pSouth].fModel)) {
             south = center - 1;
             changed++;
             if (south > 1) {
@@ -412,7 +387,7 @@ private:
         Pos3i pNorth(x, y, z - 1);
         u8 &north = out[pNorth];
         if (center > north + 1) {
-          if (CanLightPassthrough<Facing6::North>(mCenter, models[pNorth])) {
+          if (CanLightPassthrough<Facing6::North>(mCenter, models[pNorth].fModel)) {
             north = center - 1;
             changed++;
             if (north > 1) {
@@ -424,7 +399,12 @@ private:
     }
   }
 
-  static void InitializeSkyLight(LatticeContainerWrapper<ChunkLightingModel> const &models, Data3dSq<u8, 44> &out, Data2d<bool> const &cached, Data2d<std::optional<Volume>> const &volumes, Data2d<std::optional<Volume>> &diffuseVolumes) {
+  static void InitializeSkyLight(
+      Data3dSq<LightingModel, 44> const &models,
+      Data3dSq<u8, 44> &out,
+      Data2d<bool> const &cached,
+      Data2d<std::optional<Volume>> const &volumes,
+      Data2d<std::optional<Volume>> &diffuseVolumes) {
     using namespace std;
 
     for (int cz = volumes.fStart.fZ; cz <= volumes.fEnd.fZ; cz++) {
@@ -496,8 +476,7 @@ private:
   }
 
   static void InitializeBlockLight(
-      Data3dSq<u32, 44> const &models,
-      Data3dSq<u8, 44> const &emissions,
+      Data3dSq<LightingModel, 44> const &models,
       Data3dSq<u8, 44> &out,
       Data2d<bool> const &cached,
       Data2d<std::optional<Volume>> const &volumes,
@@ -519,7 +498,7 @@ private:
               if (!models.volume().contains(pos)) {
                 continue;
               }
-              u8 emission = emissions[pos];
+              u8 emission = models[pos].fEmission;
               if (emission == 0) {
                 continue;
               }
@@ -603,7 +582,7 @@ private:
     }
   }
 
-  static std::shared_ptr<ChunkLightingModel> CopyChunkLightingModel(mcfile::je::Chunk const &chunk, int minChunkY) {
+  static std::shared_ptr<ChunkLightingModel> CreateChunkLightingModel(mcfile::je::Chunk const &chunk, int minChunkY) {
     using namespace std;
 
     auto ret = make_shared<ChunkLightingModel>(chunk.fChunkX, minChunkY, chunk.fChunkZ);
