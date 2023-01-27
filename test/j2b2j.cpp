@@ -61,14 +61,22 @@ TEST_CASE("j2b2j") {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
+  if (argc < 2) {
     cerr << "Error: too few argument" << endl;
     cerr << "Usage:" << endl;
-    cerr << "    j2b2j <world directory or zip archive>" << endl;
+    cerr << "    j2b2j <world directory or zip archive> [...doctest options]" << endl;
     return -1;
   }
   gInput = fs::path(argv[1]);
 
+  std::vector<char *> vArgs;
+  vArgs.resize(argc - 1);
+  vArgs[0] = argv[0];
+  for (int i = 2; i < argc; i++) {
+    vArgs[i - 1] = argv[i];
+  }
+
   doctest::Context context;
+  context.applyCommandLine(vArgs.size(), vArgs.data());
   return context.run();
 }
