@@ -31,7 +31,6 @@ public:
     int localCx = cx - rx * 32;
     int localCz = cz - rz * 32;
 
-    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
     auto f = make_shared<mcfile::stream::FileInputStream>(region);
 
     vector<u8> buffer;
@@ -47,11 +46,66 @@ public:
 
     Savegame::DecodeDecompressedChunk(buffer);
 
-    u8 maybeEndTagMarker = buffer[0];       // 0x00. The presence of this tag prevents the file from being parsed as nbt.
-    u8 maybeLongArrayTagMarker = buffer[1]; // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
-    if (maybeEndTagMarker != 0x00 || maybeLongArrayTagMarker != 0x0c) {
+    if (buffer.size() < 2) {
       return JE2BE_ERROR;
     }
+    if (buffer[0] == 0xa) {
+      return ConvertV0(cx, cz, ctx, buffer, result);
+    } else if (buffer[0] == 0x0 && buffer[1] == 0x0c) {
+      // 0x00. The presence of this tag prevents the file from being parsed as nbt.
+      // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
+      return ConvertLatest(dimension, cx, cz, ctx, buffer, result);
+    } else {
+      return JE2BE_ERROR;
+    }
+  }
+
+private:
+  static Status ConvertV0(int cx, int cz, Context const &ctx, std::vector<u8> &buffer, std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    using namespace std;
+
+    auto tag = CompoundTag::Read(buffer, mcfile::Endian::Big);
+    if (!tag) {
+      return JE2BE_ERROR;
+    }
+    auto level = tag->compoundTag("Level");
+    if (!level) {
+      return JE2BE_ERROR;
+    }
+    auto xPos = level->int32("xPos");
+    auto zPos = level->int32("zPos");
+    if (xPos != cx || zPos != cz) {
+      return JE2BE_ERROR;
+    }
+
+    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+
+    auto blockLight = level->byteArrayTag("BlockLight"); // 16384
+    auto blocks = level->byteArrayTag("Blocks");         // 32768
+    auto data = level->byteArrayTag("Data");             // 16384
+    auto entities = level->listTag("Entities");
+    auto heightMap = level->byteArrayTag("HeightMap"); // 256
+    auto lastUpdate = level->longTag("LastUpdate");
+    auto skyLight = level->byteArrayTag("SkyLight"); // 16384
+    auto terrainPopulated = level->byte("TerrainPopulated");
+    auto tileEntities = level->listTag("TileEntities");
+
+    if (tileEntities) {
+      ParseTileEntities(*tileEntities, *chunk, ctx);
+    }
+    if (entities) {
+      ParseEntities(*entities, *chunk, ctx);
+    }
+
+    // TODO:
+    return JE2BE_ERROR;
+  }
+
+  static Status ConvertLatest(mcfile::Dimension dimension, int cx, int cz, Context const &ctx, std::vector<u8> &buffer, std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    using namespace std;
+
+    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+
     // i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
     // i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
     // i64 maybeLastUpdate = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x0a));
@@ -272,46 +326,54 @@ public:
       return JE2BE_ERROR;
     }
     if (auto te = tag->listTag("TileEntities"); te) {
-      for (auto &item : *te) {
-        auto c = std::dynamic_pointer_cast<CompoundTag>(item);
-        if (!c) {
-          continue;
-        }
-        auto pos = props::GetPos3i<'x', 'y', 'z'>(*c);
-        if (!pos) {
-          continue;
-        }
-        auto block = chunk->blockAt(*pos);
-        if (!block) {
-          continue;
-        }
-        if (auto converted = TileEntity::Convert(*c, block, *pos, ctx); converted) {
-          if (converted->fBlock) {
-            chunk->setBlockAt(*pos, converted->fBlock);
-          }
-          if (converted->fTileEntity) {
-            chunk->fTileEntities[*pos] = converted->fTileEntity;
-          }
-        }
-      }
+      ParseTileEntities(*te, *chunk, ctx);
     }
     if (auto e = tag->listTag("Entities"); e) {
-      for (auto &item : *e) {
-        auto c = item->asCompound();
-        if (!c) {
-          continue;
-        }
-        auto converted = Entity::Convert(*c, ctx);
-        if (!converted) {
-          continue;
-        }
-        chunk->fEntities.push_back(converted->fEntity);
-      }
+      ParseEntities(*e, *chunk, ctx);
     }
 
     result.swap(chunk);
 
     return Status::Ok();
+  }
+
+  static void ParseTileEntities(mcfile::nbt::ListTag const &tiles, mcfile::je::WritableChunk &chunk, Context const &ctx) {
+    for (auto &item : tiles) {
+      auto c = std::dynamic_pointer_cast<CompoundTag>(item);
+      if (!c) {
+        continue;
+      }
+      auto pos = props::GetPos3i<'x', 'y', 'z'>(*c);
+      if (!pos) {
+        continue;
+      }
+      auto block = chunk.blockAt(*pos);
+      if (!block) {
+        continue;
+      }
+      if (auto converted = TileEntity::Convert(*c, block, *pos, ctx); converted) {
+        if (converted->fBlock) {
+          chunk.setBlockAt(*pos, converted->fBlock);
+        }
+        if (converted->fTileEntity) {
+          chunk.fTileEntities[*pos] = converted->fTileEntity;
+        }
+      }
+    }
+  }
+
+  static void ParseEntities(mcfile::nbt::ListTag const &entities, mcfile::je::WritableChunk &chunk, Context const &ctx) {
+    for (auto &item : entities) {
+      auto c = item->asCompound();
+      if (!c) {
+        continue;
+      }
+      auto converted = Entity::Convert(*c, ctx);
+      if (!converted) {
+        continue;
+      }
+      chunk.fEntities.push_back(converted->fEntity);
+    }
   }
 };
 
