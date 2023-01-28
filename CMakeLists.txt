@@ -433,6 +433,9 @@ target_link_libraries(j2b je2be cxxopts)
 add_executable(b2j example/b2j.cpp ${je2be_header_files})
 target_link_libraries(b2j je2be cxxopts)
 
+add_executable(x2j example/x2j.cpp ${je2be_header_files})
+target_link_libraries(x2j je2be cxxopts)
+
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
@@ -444,5 +447,5 @@ add_executable(j2b2j test/j2b2j.cpp)
 target_link_libraries(j2b2j je2be)
 target_include_directories(j2b2j PRIVATE src deps/libminecraft-file/test/deps/doctest)
 
-list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/dump.cpp test/j2b2j.cpp)
+list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
