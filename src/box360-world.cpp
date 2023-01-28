@@ -67,14 +67,14 @@ public:
       Fs::DeleteAll(*entityTempDir);
     };
 
-    atomic_int progressChunks = progressChunksOffset;
+    int skipChunks = 0;
 
     vector<Pos2i> works;
     for (int rz = -1; rz <= 0; rz++) {
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
-          progressChunks += 2048;
+          skipChunks += 2048;
           continue;
         }
         for (int z = 0; z < 32; z++) {
@@ -83,7 +83,7 @@ public:
             int cz = rz * 32 + z;
             if (!options.fChunkFilter.empty()) [[unlikely]] {
               if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
-                progressChunks++;
+                skipChunks += 2;
                 continue;
               }
             }
@@ -93,6 +93,7 @@ public:
       }
     }
 
+    atomic_int progressChunks(progressChunksOffset + skipChunks);
     atomic_bool ok = true;
     Status st = Parallel::Reduce<Pos2i, Status>(
         works,
@@ -103,7 +104,8 @@ public:
           int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
           auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
-          if (progress && !progress->report(progressChunks, 8192 * 3)) {
+          auto p = progressChunks.fetch_add(1) + 1;
+          if (progress && !progress->report(p / double(8192 * 3))) {
             ok = false;
           }
           if (!st.ok()) {
@@ -118,10 +120,9 @@ public:
     }
 
     auto poiDirectory = outputDirectory / worldDir / "poi";
-    if (auto st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunks); !st.ok()) {
+    if (auto st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
       return st;
     }
-    progressChunks += 4096;
 
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
       return JE2BE_ERROR;
@@ -147,7 +148,7 @@ public:
         Status::Merge);
 
     if (progress) {
-      progress->report(progressChunks, 8192 * 3);
+      progress->report((progressChunksOffset + 8192) / double(8192 * 3));
     }
 
     return st;
