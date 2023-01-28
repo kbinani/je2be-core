@@ -52,7 +52,7 @@ public:
     }
     auto bin = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency);
 
-    auto db = make_unique<mcfile::be::Db>(input / "db");
+    auto db = mcfile::be::Db::Open(input / "db");
     if (!db) {
       return JE2BE_ERROR;
     }
