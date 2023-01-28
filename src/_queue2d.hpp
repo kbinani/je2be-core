@@ -40,12 +40,14 @@ public:
             break;
           }
         }
-        if (next) {
-          if (next->second < sum) {
+        if (ok) {
+          if (next) {
+            if (next->second < sum) {
+              next = make_pair(center, sum);
+            }
+          } else {
             next = make_pair(center, sum);
           }
-        } else {
-          next = make_pair(center, sum);
         }
       }
     }
