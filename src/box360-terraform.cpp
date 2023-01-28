@@ -4,7 +4,6 @@
 
 #include "_nullable.hpp"
 #include "_poi-blocks.hpp"
-#include "_queue2d.hpp"
 #include "box360/_chunk.hpp"
 #include "terraform/_chorus-plant.hpp"
 #include "terraform/_fence-connectable.hpp"
@@ -56,22 +55,29 @@ private:
     using namespace std;
     using namespace std::placeholders;
 
+    bool running[width][height];
+    bool done[width][height];
+    for (int i = 0; i < width; i++) {
+      fill_n(running[i], height, false);
+      fill_n(done[i], height, false);
+    }
     atomic_bool ok(true);
     optional<Status> error;
     atomic_int count(0);
+    mutex queueMut;
     std::latch latch(concurrency);
     mutex joinMut;
-    Queue2d queue({-32, -32}, 64, 64, 1);
-    mutex queueMut;
 
-    auto action = [&queue, &queueMut, &joinMut, &latch, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
+    auto action = [&queueMut, &joinMut, &done, &running, &latch, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
       while (ok) {
         optional<Pos2i> next;
         {
           lock_guard<mutex> lock(queueMut);
-          next = queue.next();
+          next = NextQueue(done, running);
+          if (next) {
+            MarkRunning(next->fX, next->fZ, running);
+          }
         }
-
         if (!next) {
           break;
         }
@@ -85,7 +91,7 @@ private:
         }
         {
           lock_guard<mutex> lock(queueMut);
-          queue.unlockAround(result->fChunk);
+          MarkFinished(result->fChunk.fX, result->fChunk.fZ, done, running);
         }
         auto p = count.fetch_add(1) + 1;
         if (progress && !progress->report(p + progressChunksOffset, 8192 * 3)) {
@@ -112,6 +118,88 @@ private:
       return error ? *error : JE2BE_ERROR;
     }
     return Status::Ok();
+  }
+
+  static void MarkFinished(int cx, int cz, bool done[width][height], bool running[width][height]) {
+    int x = cx - cx0;
+    int z = cz - cz0;
+    done[x][z] = true;
+
+    for (int i = -1; i <= 1; i++) {
+      int tx = x + i;
+      if (tx < 0 || width <= tx) {
+        continue;
+      }
+      for (int j = -1; j <= 1; j++) {
+        int tz = z + j;
+        if (tz < 0 || height <= tz) {
+          continue;
+        }
+        running[tx][tz] = false;
+      }
+    }
+  }
+
+  static void MarkRunning(int cx, int cz, bool running[width][height]) {
+    int x = cx - cx0;
+    int z = cz - cz0;
+
+    for (int i = -1; i <= 1; i++) {
+      int tx = x + i;
+      if (tx < 0 || width <= tx) {
+        continue;
+      }
+      for (int j = -1; j <= 1; j++) {
+        int tz = z + j;
+        if (tz < 0 || height <= tz) {
+          continue;
+        }
+        running[tx][tz] = true;
+      }
+    }
+  }
+
+  static bool IsComplete(bool done[width][height]) {
+    for (int i = 0; i < width; i++) {
+      for (int j = 0; j < height; j++) {
+        if (!done[i][j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  static std::optional<Pos2i> NextQueue(bool done[width][height], bool running[width][height]) {
+    using namespace std;
+    for (int x = 0; x < width; x++) {
+      for (int z = 0; z < height; z++) {
+        if (done[x][z]) {
+          continue;
+        }
+        bool ok = true;
+        for (int i = -1; i <= 1 && ok; i++) {
+          int tx = x + i;
+          if (tx < 0 || width <= tx) {
+            continue;
+          }
+          for (int j = -1; j <= 1; j++) {
+            int tz = z + j;
+            if (tz < 0 || height <= tz) {
+              continue;
+            }
+            if (running[tx][tz]) {
+              ok = false;
+              break;
+            }
+          }
+        }
+        if (ok) {
+          return Pos2i(cx0 + x, cz0 + z);
+        }
+      }
+    }
+    return nullopt;
   }
 
   struct Result {
