@@ -18,23 +18,27 @@ class TileEntity::Impl {
 public:
   static std::optional<Result> Convert(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, Pos3i const &pos, Context const &ctx) {
     using namespace std;
-    auto rawId = in.string("id", "");
-    if (!rawId.starts_with("minecraft:")) {
+
+    auto rawId = in.string("id");
+    if (!rawId) {
       return nullopt;
     }
+    auto id = MigrateId(*rawId);
+    assert(id.starts_with("minecraft:"));
 
-    auto id = rawId.substr(10);
+    auto key = id.substr(10);
     auto const &table = GetTable();
-    auto found = table.find(id);
+    auto found = table.find(key);
     if (found == table.end()) {
       return nullopt;
     }
+
     auto out = in.copy();
     out->set("x", Int(pos.fX));
     out->set("y", Int(pos.fY));
     out->set("z", Int(pos.fZ));
     out->set("keepPacked", Bool(false));
-    out->set("id", String(rawId));
+    out->set("id", String(id));
 
     auto ret = found->second(in, block, out, ctx);
     if (!ret) {
@@ -357,6 +361,15 @@ public:
 
 private:
 #pragma region Helpers
+  static std::string MigrateId(std::string const &id) {
+    auto n = strings::SnakeFromUpperCamel(id);
+    if (n.starts_with("minecraft:")) {
+      return n;
+    } else {
+      return "minecraft:" + n;
+    }
+  }
+
   static std::unordered_map<std::string, Converter> const &GetTable() {
     static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
     return *sTable;
