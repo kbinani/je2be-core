@@ -13,7 +13,7 @@ namespace je2be::box360 {
 class Item::Impl {
   Impl() = delete;
 
-  using Converter = std::function<std::string(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &ctx)>;
+  using Converter = std::function<std::string(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx)>;
 
 public:
   static CompoundTagPtr Convert(CompoundTag const &in, Context const &ctx) {
@@ -39,12 +39,12 @@ public:
     auto out = Compound();
     CopyByteValues(in, *out, {{"Count"}, {"Slot"}});
 
-    auto damage = in.int16("Damage", 0);
+    i16 damage = in.int16("Damage", 0);
     string changedId = *rawId;
     if (found == table.end()) {
-      changedId = Same(in, out, damage, ctx);
+      changedId = Same(in, out, &damage, ctx);
     } else {
-      changedId = found->second(in, out, damage, ctx);
+      changedId = found->second(in, out, &damage, ctx);
     }
     if (!out) {
       return nullptr;
@@ -54,10 +54,10 @@ public:
     } else {
       out->set("id", String("minecraft:" + changedId));
     }
+    auto tagJ = Compound();
     if (auto tagB = in.compoundTag("tag"); tagB) {
-      auto tagJ = out->compoundTag("tag");
-      if (!tagJ) {
-        tagJ = Compound();
+      if (auto j = out->compoundTag("tag"); j) {
+        tagJ = j;
       }
 
       if (auto blockEntityTagB = tagB->compoundTag("BlockEntityTag"); blockEntityTagB) {
@@ -107,24 +107,30 @@ public:
           tagJ->set("Enchantments", enchantmentsJ);
         }
       }
-
-      if (!tagJ->empty()) {
-        out->set("tag", tagJ);
-      }
+    }
+    if (damage != 0) {
+      tagJ->set("Damage", Int(damage));
+    }
+    if (!tagJ->empty()) {
+      out->set("tag", tagJ);
     }
     return out;
   }
 
 private:
 #pragma region Converter
-  static std::string Banner(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &ctx) {
-    auto color = ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(damage));
+  static std::string Banner(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
+    i16 d = *damage;
+    *damage = 0;
+    auto color = ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(d));
     std::string colorName = JavaNameFromColorCodeJava(color);
     return colorName + "_banner";
   }
 
-  static std::string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "mossy_cobblestone_wall";
     case 0:
@@ -133,8 +139,10 @@ private:
     }
   }
 
-  static std::string CookedFish(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string CookedFish(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "cooked_salmon";
     case 0:
@@ -143,8 +151,10 @@ private:
     }
   }
 
-  static std::string Coral(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Coral(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "brain_coral";
     case 2:
@@ -159,9 +169,11 @@ private:
     }
   }
 
-  static std::string CoralBlock(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    std::string prefix = (damage & 0x8) == 0x8 ? "dead_" : "";
-    switch (damage & 0x7) {
+  static std::string CoralBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    std::string prefix = (d & 0x8) == 0x8 ? "dead_" : "";
+    switch (d & 0x7) {
     case 1:
       return prefix + "brain_coral_block";
     case 2:
@@ -176,8 +188,10 @@ private:
     }
   }
 
-  static std::string CoralFan(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string CoralFan(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "brain_coral_fan";
     case 2:
@@ -192,8 +206,10 @@ private:
     }
   }
 
-  static std::string CoralFanDead(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string CoralFanDead(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "dead_brain_coral_fan";
     case 2:
@@ -208,8 +224,10 @@ private:
     }
   }
 
-  static std::string Dirt(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Dirt(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "coarse_dirt";
     case 2:
@@ -220,8 +238,10 @@ private:
     }
   }
 
-  static std::string DoublePlant(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string DoublePlant(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "lilac";
     case 2:
@@ -238,8 +258,10 @@ private:
     }
   }
 
-  static std::string Dye(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Dye(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "red_dye";
     case 2:
@@ -276,7 +298,7 @@ private:
     }
   }
 
-  static std::string EnchantedBook(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
+  static std::string EnchantedBook(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     if (auto tagB = in.compoundTag("tag"); tagB) {
       auto tagJ = Compound();
       if (auto storedB = tagB->listTag("StoredEnchantments"); storedB) {
@@ -309,22 +331,26 @@ private:
     return "";
   }
 
-  static std::string FilledMap(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
+  static std::string FilledMap(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
     auto tagJ = Compound();
-    tagJ->set("map", Int(damage));
+    tagJ->set("map", Int(d));
     out->set("tag", tagJ);
     return "";
   }
 
-  static std::string Fireworks(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
+  static std::string Fireworks(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     if (auto tag = in.compoundTag("tag"); tag) {
       out->set("tag", tag->copy());
     }
     return "firework_rocket";
   }
 
-  static std::string Fish(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Fish(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "salmon";
     case 2:
@@ -337,8 +363,10 @@ private:
     }
   }
 
-  static std::string Leaves(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Leaves(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 9:
       return "spruce_leaves";
     case 10:
@@ -351,8 +379,10 @@ private:
     }
   }
 
-  static std::string Leaves2(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Leaves2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 9:
       return "dark_oak_leaves";
     case 8:
@@ -361,8 +391,10 @@ private:
     }
   }
 
-  static std::string Log(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Log(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "spruce_log";
     case 2:
@@ -375,8 +407,10 @@ private:
     }
   }
 
-  static std::string Log2(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Log2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "dark_oak_log";
     case 0:
@@ -385,8 +419,10 @@ private:
     }
   }
 
-  static std::string MonsterEgg(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string MonsterEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "infested_cobblestone";
     case 2:
@@ -403,8 +439,10 @@ private:
     }
   }
 
-  static std::string MushroomBlock(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string MushroomBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 10:
       return "mushroom_stem";
     default:
@@ -412,8 +450,10 @@ private:
     }
   }
 
-  static std::string Planks(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Planks(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "spruce_planks";
     case 2:
@@ -430,15 +470,17 @@ private:
     }
   }
 
-  static std::string Potion(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
+  static std::string Potion(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     if (auto tag = in.compoundTag("tag"); tag) {
       out->set("tag", tag);
     }
     return "";
   }
 
-  static std::string Prismarine(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Prismarine(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "prismarine_bricks";
     case 2:
@@ -449,8 +491,10 @@ private:
     }
   }
 
-  static std::string PrismarineSlab(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string PrismarineSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "prismarine_brick_slab";
     case 2:
@@ -461,8 +505,10 @@ private:
     }
   }
 
-  static std::string QuartzBlock(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string QuartzBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "chiseled_quartz_block";
     case 2:
@@ -473,8 +519,10 @@ private:
     }
   }
 
-  static std::string RedFlower(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string RedFlower(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "blue_orchid";
     case 2:
@@ -497,8 +545,10 @@ private:
     }
   }
 
-  static std::string RedSandstone(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string RedSandstone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "chiseled_red_sandstone";
     case 2:
@@ -509,12 +559,14 @@ private:
     }
   }
 
-  static std::string Same(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
+  static std::string Same(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     return "";
   }
 
-  static std::string Sand(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Sand(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "red_sand";
     case 0:
@@ -523,8 +575,10 @@ private:
     }
   }
 
-  static std::string Sandstone(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Sandstone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "chiseled_sandstone";
     case 2:
@@ -535,8 +589,10 @@ private:
     }
   }
 
-  static std::string Sapling(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Sapling(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "spruce_sapling";
     case 2:
@@ -553,8 +609,10 @@ private:
     }
   }
 
-  static std::string Skull(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Skull(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "wither_skeleton_skull";
     case 2:
@@ -571,7 +629,7 @@ private:
     }
   }
 
-  static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &ctx) {
+  static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
     if (auto tag = in.compoundTag("tag"); tag) {
       if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
         if (auto id = entityTag->string("id"); id) {
@@ -586,8 +644,10 @@ private:
     return "";
   }
 
-  static std::string Sponge(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Sponge(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "wet_sponge";
     case 0:
@@ -596,8 +656,10 @@ private:
     }
   }
 
-  static std::string Stone(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Stone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "granite";
     case 2:
@@ -616,8 +678,10 @@ private:
     }
   }
 
-  static std::string Stonebrick(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Stonebrick(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "mossy_stone_bricks";
     case 2:
@@ -630,8 +694,10 @@ private:
     }
   }
 
-  static std::string StoneSlab(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string StoneSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "sandstone_slab";
     case 3:
@@ -650,16 +716,20 @@ private:
     }
   }
 
-  static std::string StoneStairs(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string StoneStairs(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 2:
     default:
       return "cobblestone_stairs";
     }
   }
 
-  static std::string Tallgrass(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string Tallgrass(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 2:
       return "fern";
     case 0:
@@ -670,8 +740,10 @@ private:
     }
   }
 
-  static std::string WoodenSlab(CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &) {
-    switch (damage) {
+  static std::string WoodenSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
     case 1:
       return "spruce_slab";
     case 2:
@@ -691,14 +763,16 @@ private:
 
 #pragma region Converter_Generator
   static Converter Colored(std::string const &suffix) {
-    return [suffix](CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &ctx) {
-      auto colorName = JavaNameFromColorCodeJava(static_cast<ColorCodeJava>(damage));
+    return [suffix](CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
+      i16 d = *damage;
+      *damage = 0;
+      auto colorName = JavaNameFromColorCodeJava(static_cast<ColorCodeJava>(d));
       return colorName + "_" + suffix;
     };
   }
 
   static Converter Rename(std::string const &name) {
-    return [name](CompoundTag const &in, CompoundTagPtr &out, i16 damage, Context const &ctx) {
+    return [name](CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
       return name;
     };
   }
