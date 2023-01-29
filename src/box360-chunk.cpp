@@ -78,8 +78,6 @@ private:
       return JE2BE_ERROR;
     }
 
-    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
-
     auto blockLight = level->byteArrayTag("BlockLight"); // 16384
     auto blocks = level->byteArrayTag("Blocks");         // 32768
     auto data = level->byteArrayTag("Data");             // 16384
@@ -90,6 +88,31 @@ private:
     auto terrainPopulated = level->byte("TerrainPopulated");
     auto tileEntities = level->listTag("TileEntities");
 
+    if (terrainPopulated != true) {
+      return Status::Ok();
+    }
+
+    if (!blocks) {
+      return JE2BE_ERROR;
+    }
+    if (blocks->fValue.size() != 32768) {
+      return JE2BE_ERROR;
+    }
+    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+
+    for (int x = 0; x < 16; x++) {
+      for (int z = 0; z < 16; z++) {
+        for (int y = 0; y < 128; y++) {
+          int index = (x * 16 + z) * 128 + y;
+          auto block = mcfile::je::Flatten::DoFlatten(blocks->fValue[index], 0);
+          if (!block) {
+            continue;
+          }
+          chunk->setBlockAt({cx * 16 + x, y, cz * 16 + z}, block);
+        }
+      }
+    }
+
     if (tileEntities) {
       ParseTileEntities(*tileEntities, *chunk, ctx);
     }
@@ -97,8 +120,9 @@ private:
       ParseEntities(*entities, *chunk, ctx);
     }
 
-    // TODO:
-    return JE2BE_ERROR;
+    result.swap(chunk);
+
+    return Status::Ok();
   }
 
   static Status ConvertLatest(mcfile::Dimension dimension, int cx, int cz, Context const &ctx, std::vector<u8> &buffer, std::shared_ptr<mcfile::je::WritableChunk> &result) {
