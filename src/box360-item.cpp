@@ -127,6 +127,18 @@ private:
     return colorName + "_banner";
   }
 
+  static std::string Coal(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    i16 d = *damage;
+    *damage = 0;
+    switch (d) {
+    case 1:
+      return "charcoal";
+    case 0:
+    default:
+      return "coal";
+    }
+  }
+
   static std::string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
@@ -700,6 +712,8 @@ private:
     switch (d) {
     case 1:
       return "sandstone_slab";
+    case 2:
+      return "oak_slab";
     case 3:
       return "cobblestone_slab";
     case 4:
@@ -811,13 +825,30 @@ private:
     R(17, log)
     R(20, glass)
     R(24, sandstone)
+    R(25, noteblock)
     R(35, wool)
+    R(37, yellow_flower)
+    R(38, red_flower)
+    R(44, stone_slab)
     R(50, torch)
+    R(53, oak_stairs)
+    R(58, crafting_table)
+    R(61, furnace)
+    R(65, ladder)
+    R(67, stone_stairs)
+    R(69, lever)
+    R(70, stone_pressure_plate) // pressure_plate?
+    R(72, wooden_pressure_plate)
+    R(77, stone_button) // button?
+    R(85, fence)
+    R(96, trapdoor)
     R(256, iron_shovel)
     R(257, iron_pickaxe)
     R(258, iron_axe)
+    R(259, flint_and_steel)
     R(262, arrow)
-    R(263, charcoal)
+    R(263, coal)
+    R(264, diamond)
     R(265, iron_ingot)
     R(266, gold_ingot)
     R(267, iron_sword)
@@ -830,6 +861,7 @@ private:
     R(274, stone_pickaxe)
     R(275, stone_axe)
     R(280, stick)
+    R(281, bowl)
     R(283, golden_sword)
     R(284, golden_shovel)
     R(285, golden_pickaxe)
@@ -840,9 +872,15 @@ private:
     R(292, iron_hoe)
     R(294, golden_hoe)
     R(318, flint)
+    R(319, porkchop)
     R(325, bucket)
     R(331, redstone)
+    R(333, boat)
+    R(334, leather)
+    R(338, reeds)
     R(352, bone)
+    R(355, bed)
+    R(356, repeater)
 
 #undef R
 
@@ -1024,6 +1062,7 @@ private:
     E(record_wait, Rename("music_disc_wait"));
     E(fireworks, Fireworks);
     E(filled_map, FilledMap);
+    E(coal, Coal); // TODO: charcoal(?) for TU76
 
 #undef E
     return ret;
