@@ -20,10 +20,7 @@ public:
     if (!rawId) {
       return nullopt;
     }
-    if (!rawId->starts_with("minecraft:")) {
-      return nullopt;
-    }
-    string id = rawId->substr(10);
+    string id = MigrateName(*rawId);
     auto const &table = GetTable();
     auto found = table.find(id);
 
@@ -51,11 +48,9 @@ public:
   }
 
   static std::string MigrateName(std::string const &rawName) {
-    std::string name;
-    if (rawName.starts_with("minecraft:")) {
-      name = rawName.substr(10);
-    } else {
-      name = rawName;
+    std::string name = strings::SnakeFromUpperCamel(rawName);
+    if (name.starts_with("minecraft:")) {
+      name = name.substr(10);
     }
     if (name == "zombie_pigman") {
       name = "zombified_piglin";
@@ -174,19 +169,22 @@ private:
 
   static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
     auto uuidB = in.string("UUID");
-    if (!uuidB) {
-      return nullptr;
-    }
-    auto uuidJ = MigrateUuid(*uuidB, ctx);
-    if (!uuidJ) {
-      return nullptr;
+    Uuid uuidJ;
+    if (uuidB) {
+      if (auto migrated = MigrateUuid(*uuidB, ctx); migrated) {
+        uuidJ = *migrated;
+      } else {
+        return nullptr;
+      }
+    } else {
+      uuidJ = Uuid::Gen();
     }
 
     auto ret = in.copy();
     ret->erase("createdOnHost");
     ret->erase("namedByRestrictedPlayer");
 
-    ret->set("UUID", uuidJ->toIntArrayTag());
+    ret->set("UUID", uuidJ.toIntArrayTag());
 
     if (auto riding = in.listTag("Riding"); riding) {
       ret->erase("Riding");
