@@ -18,7 +18,14 @@ class Item::Impl {
 public:
   static CompoundTagPtr Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
-    auto rawId = in.string("id");
+    optional<string> rawId = in.string("id");
+    if (!rawId) {
+      auto i16Id = in.int16("id");
+      if (!i16Id) {
+        return nullptr;
+      }
+      rawId = MigrateId(*i16Id);
+    }
     if (!rawId) {
       return nullptr;
     }
@@ -696,6 +703,55 @@ private:
     };
   }
 #pragma endregion
+
+  static std::optional<std::string> MigrateId(u16 id) {
+    using namespace std;
+    static unique_ptr<vector<string> const> const sTable(CreateIdTable());
+    if (sTable->size() <= id) {
+      return nullopt;
+    }
+    string mapped = (*sTable)[id];
+    if (mapped.empty()) {
+      return nullopt;
+    }
+    return "minecraft:" + mapped;
+  }
+
+  static std::vector<std::string> const *CreateIdTable() {
+    using namespace std;
+    int maxId = -1;
+    unordered_map<u16, string> t;
+
+#define R(id, name)              \
+  assert(t.count(id) == 0);      \
+  maxId = (std::max)(maxId, id); \
+  t[id] = #name;
+
+    R(4, cobblestone)
+    R(6, sapling)
+    R(12, sand)
+    R(13, gravel)
+    R(17, log)
+    R(24, sandstone)
+    R(35, wool)
+    R(262, arrow)
+    R(263, charcoal)
+    R(265, iron_ingot)
+    R(266, gold_ingot)
+    R(288, feather)
+    R(318, flint)
+    R(331, redstone)
+    R(352, bone)
+
+#undef R
+
+    auto ret = new vector<string>();
+    ret->resize(maxId + 1);
+    for (auto [id, name] : t) {
+      (*ret)[id] = name;
+    }
+    return ret;
+  }
 
   static std::string GetTileEntityNameFromItemName(std::string const &name) {
     if (name.find("shulker_box")) {
