@@ -826,8 +826,10 @@ private:
     R(15, iron_ore);
     R(17, log);
     R(20, glass);
+    R(23, dispenser);
     R(24, sandstone);
     R(25, noteblock);
+    R(28, detector_rail);
     R(35, wool);
     R(37, yellow_flower);
     R(38, red_flower);
@@ -838,9 +840,11 @@ private:
     R(49, obsidian);
     R(50, torch);
     R(53, oak_stairs);
+    R(54, chest);
     R(58, crafting_table);
     R(61, furnace);
     R(65, ladder);
+    R(66, rail);
     R(67, stone_stairs);
     R(69, lever);
     R(70, stone_pressure_plate); // pressure_plate?
@@ -914,6 +918,8 @@ private:
     R(325, bucket);
     R(326, water_bucket);
     R(327, lava_bucket);
+    R(328, minecart);
+    R(330, iron_door);
     R(331, redstone);
     R(333, boat);
     R(334, leather);
@@ -921,7 +927,9 @@ private:
     R(338, reeds);
     R(340, book);
     R(344, egg);
+    R(345, compass);
     R(346, fishing_rod);
+    R(347, clock);
     R(348, glowstone_dust);
     R(351, dye);
     R(352, bone);
@@ -929,6 +937,7 @@ private:
     R(354, cake);
     R(355, bed);
     R(356, repeater);
+    R(358, map);
 
 #undef R
 
