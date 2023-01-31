@@ -826,15 +826,18 @@ private:
     R(15, iron_ore);
     R(17, log);
     R(20, glass);
+    R(22, lapis_block);
     R(23, dispenser);
     R(24, sandstone);
     R(25, noteblock);
+    R(27, golden_rail);
     R(28, detector_rail);
     R(35, wool);
     R(37, yellow_flower);
     R(38, red_flower);
     R(39, brown_mushroom);
     R(40, red_mushroom);
+    R(42, iron_block);
     R(44, stone_slab);
     R(47, bookshelf);
     R(49, obsidian);
@@ -884,6 +887,7 @@ private:
     R(279, diamond_axe);
     R(280, stick);
     R(281, bowl);
+    R(282, mushroom_stew);
     R(283, golden_sword);
     R(284, golden_shovel);
     R(285, golden_pickaxe);
@@ -910,6 +914,7 @@ private:
     R(310, diamond_helmet);
     R(311, diamond_chestplate);
     R(312, diamond_leggings);
+    R(313, diamond_boots);
     R(318, flint);
     R(319, porkchop);
     R(320, cooked_porkchop);
@@ -926,6 +931,8 @@ private:
     R(335, milk_bucket);
     R(338, reeds);
     R(340, book);
+    R(342, chest_minecart);
+    R(343, furnace_minecart);
     R(344, egg);
     R(345, compass);
     R(346, fishing_rod);
