@@ -378,14 +378,14 @@ private:
   static std::string Leaves(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
-    switch (d) {
-    case 9:
+    switch (d & 0x7) {
+    case 1:
       return "spruce_leaves";
-    case 10:
+    case 2:
       return "birch_leaves";
-    case 11:
+    case 3:
       return "jungle_leaves";
-    case 8:
+    case 0:
     default:
       return "oak_leaves";
     }
@@ -394,10 +394,10 @@ private:
   static std::string Leaves2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
-    switch (d) {
-    case 9:
+    switch (d & 0x7) {
+    case 1:
       return "dark_oak_leaves";
-    case 8:
+    case 0:
     default:
       return "acacia_leaves";
     }
@@ -936,7 +936,7 @@ private:
   t[id] = #name
 
     R(1, stone);
-    R(2, grass);
+    R(2, grass_block);
     R(3, dirt);
     R(4, cobblestone);
     R(5, planks);
@@ -948,6 +948,7 @@ private:
     R(15, iron_ore);
     R(16, coal_ore);
     R(17, log);
+    R(18, leaves);
     R(19, sponge);
     R(20, glass);
     R(21, lapis_ore);
@@ -970,6 +971,7 @@ private:
     R(41, gold_block);
     R(42, iron_block);
     R(44, stone_slab);
+    R(45, brick_block);
     R(46, tnt);
     R(47, bookshelf);
     R(48, mossy_cobblestone);
@@ -988,6 +990,7 @@ private:
     R(70, stone_pressure_plate); // pressure_plate?
     R(72, wooden_pressure_plate);
     R(73, redstone_ore);
+    R(76, redstone_torch);
     R(77, stone_button); // button?
     R(78, snow_layer);
     R(79, ice);
@@ -1002,6 +1005,7 @@ private:
     R(89, glowstone);
     R(91, lit_pumpkin);
     R(96, trapdoor);
+    R(97, monster_egg);
     R(98, stonebrick);
     R(101, iron_bars);
     R(102, glass_pane);
@@ -1012,6 +1016,7 @@ private:
     R(109, stone_brick_stairs);
     R(110, mycelium);
     R(111, waterlily);
+    R(112, nether_brick);
     R(113, nether_brick_fence);
     R(114, nether_brick_stairs);
     R(116, enchanting_table);
@@ -1019,6 +1024,8 @@ private:
     R(121, end_stone);
     R(126, wooden_slab);
     R(128, sandstone_stairs);
+    R(134, spruce_stairs);
+    R(135, birch_stairs);
     R(143, wooden_button);
     R(256, iron_shovel);
     R(257, iron_pickaxe);
@@ -1088,6 +1095,7 @@ private:
     R(321, painting);
     R(322, golden_apple);
     R(323, sign);
+    R(324, wooden_door);
     R(325, bucket);
     R(326, water_bucket);
     R(327, lava_bucket);
@@ -1102,6 +1110,7 @@ private:
     R(336, brick);
     R(337, clay_ball);
     R(338, reeds);
+    R(339, paper);
     R(340, book);
     R(341, slime_ball);
     R(342, chest_minecart);
