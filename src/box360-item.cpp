@@ -936,6 +936,7 @@ private:
     R(91, lit_pumpkin);
     R(96, trapdoor);
     R(98, stonebrick);
+    R(101, iron_bars);
     R(102, glass_pane);
     R(103, melon_block);
     R(106, vine);
@@ -944,7 +945,10 @@ private:
     R(109, stone_brick_stairs);
     R(110, mycelium);
     R(111, waterlily);
+    R(113, nether_brick_fence);
     R(114, nether_brick_stairs);
+    R(116, enchanting_table);
+    R(120, end_portal_frame);
     R(121, end_stone);
     R(126, wooden_slab);
     R(128, sandstone_stairs);
@@ -995,6 +999,10 @@ private:
     R(299, leather_chestplate);
     R(300, leather_leggings);
     R(301, leather_boots);
+    R(302, chainmail_helmet);
+    R(303, chainmail_chestplate);
+    R(304, chainmail_leggings);
+    R(305, chainmail_boots);
     R(306, iron_helmet);
     R(307, iron_chestplate);
     R(308, iron_leggings);
@@ -1003,6 +1011,10 @@ private:
     R(311, diamond_chestplate);
     R(312, diamond_leggings);
     R(313, diamond_boots);
+    R(314, golden_helmet);
+    R(315, golden_chestplate);
+    R(316, golden_leggings);
+    R(317, golden_boots);
     R(318, flint);
     R(319, porkchop);
     R(320, cooked_porkchop);
@@ -1016,6 +1028,7 @@ private:
     R(329, saddle);
     R(330, iron_door);
     R(331, redstone);
+    R(332, snowball);
     R(333, boat);
     R(334, leather);
     R(335, milk_bucket);
@@ -1031,6 +1044,7 @@ private:
     R(346, fishing_rod);
     R(347, clock);
     R(348, glowstone_dust);
+    R(349, fish);
     R(350, cooked_fish);
     R(351, dye);
     R(352, bone);
@@ -1040,14 +1054,35 @@ private:
     R(356, repeater);
     R(357, cookie);
     R(358, map);
+    R(359, shears);
     R(360, melon_slice);
     R(361, pumpkin_seeds);
     R(362, melon_seeds);
+    R(363, beef);
+    R(364, cooked_beef);
+    R(365, chicken);
+    R(366, cooked_chicken);
+    R(367, rotten_flesh);
+    R(368, ender_pearl);
     R(369, blaze_rod);
+    R(370, ghast_tear);
     R(371, gold_nugget);
     R(372, nether_wart);
+    R(373, potion);
+    R(374, glass_bottle);
+    R(375, spider_eye);
+    R(376, fermented_spider_eye);
+    R(377, blaze_powder);
+    R(378, magma_cream);
+    R(379, brewing_stand);
+    R(380, cauldron);
+    R(381, ender_eye);
+    R(382, speckled_melon);
+    R(384, experience_bottle);
+    R(385, fire_charge);
     R(389, item_frame);
     R(405, netherbrick);
+    R(2256, music_disc_13);
 
 #undef R
 
