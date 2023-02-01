@@ -483,10 +483,57 @@ private:
   }
 
   static std::string Potion(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    std::string id;
     if (auto tag = in.compoundTag("tag"); tag) {
       out->set("tag", tag);
+    } else {
+      i16 d = DrainDamage(damage);
+      std::optional<std::string> potion;
+      switch (d & 0x1f) {
+      case 0:
+        potion = "water";
+        break;
+      case 1:
+        potion = "regeneration";
+        break;
+      case 2:
+        potion = "swiftness";
+        break;
+      case 3:
+        potion = "fire_resistance";
+        break;
+      case 4:
+        potion = "poison";
+        break;
+      case 5:
+        potion = "healing";
+        break;
+      case 8:
+        potion = "weakness";
+        break;
+      case 9:
+        potion = "strength";
+        break;
+      case 10:
+        potion = "slowness";
+        break;
+      case 12:
+        potion = "harming";
+        break;
+      case 16:
+        potion = "mundane";
+        break;
+      }
+      if (potion) {
+        auto t = Compound();
+        t->set("Potion", String("minecraft:" + *potion));
+        out->set("tag", t);
+      }
+      if ((0x4000 & d) == 0x4000) {
+        id = "splash_potion";
+      }
     }
-    return "";
+    return id;
   }
 
   static std::string Prismarine(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
@@ -803,6 +850,12 @@ private:
       return nullopt;
     }
     return "minecraft:" + mapped;
+  }
+
+  static i16 DrainDamage(i16 *damage) {
+    i16 d = *damage;
+    *damage = 0;
+    return d;
   }
 
   static std::vector<std::string> const *CreateIdTable() {
