@@ -86,7 +86,7 @@ public:
     for (int x = 0; x < Width; x++) {
       for (int z = 0; z < Height; z++) {
         auto index = this->index(fChunkX + x, fChunkZ + z);
-        if (fCacheLoaded[*index]) {
+        if (index && fCacheLoaded[*index]) {
           auto const &chunk = fCache[*index];
           ret->set(chunk);
         }

@@ -93,7 +93,7 @@ public:
     mutex joinMut;
     Result total = zero();
 
-    auto action = [&latch, zero, donePtr, &joinMut, &works, func, join, &total]() {
+    auto action = [&latch, zero, donePtr, &joinMut, &works, &func, join, &total]() {
       Result sum = zero();
       while (true) {
         Work const *work = nullptr;

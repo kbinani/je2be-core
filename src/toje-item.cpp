@@ -235,21 +235,23 @@ public:
       CopyIntValues(*tagB, *tagJ, {{"Age", "Age", 0}});
 
       auto attributes = tagB->listTag("Attributes");
-      for (auto const &it : *attributes) {
-        auto c = it->asCompound();
-        if (!c) {
-          continue;
+      if (attributes) {
+        for (auto const &it : *attributes) {
+          auto c = it->asCompound();
+          if (!c) {
+            continue;
+          }
+          auto name = c->string("Name");
+          if (name != "minecraft:health") {
+            continue;
+          }
+          auto current = c->float32("Current");
+          if (!current) {
+            continue;
+          }
+          tagJ->set("Health", Float(*current));
+          break;
         }
-        auto name = c->string("Name");
-        if (name != "minecraft:health") {
-          continue;
-        }
-        auto current = c->float32("Current");
-        if (!current) {
-          continue;
-        }
-        tagJ->set("Health", Float(*current));
-        break;
       }
 
       auto variantB = tagB->int32("Variant", 0);
