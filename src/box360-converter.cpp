@@ -289,13 +289,14 @@ private:
     if (!in) {
       return JE2BE_ERROR;
     }
+    bool newSeaLevel = in->boolean("newSeaLevel", false);
 
     JavaLevelDat::Options o;
     o.fBonusChestEnabled = in->boolean("spawnBonusChest");
     o.fDataVersion = Chunk::kTargetDataVersion;
     o.fRandomSeed = in->int64("RandomSeed");
     o.fVersionString = Chunk::TargetVersionString();
-    o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion();
+    o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
     auto out = JavaLevelDat::TemplateData(o);
 
     CopyBoolValues(*in, *out, {{"allowCommands"}, {"DifficultyLocked"}, {"hardcore"}, {"initialized"}, {"raining"}, {"thundering"}});
@@ -344,7 +345,7 @@ private:
     }
   }
 
-  static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion() {
+  static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion(bool newSeaLevel) {
     auto flatSettings = Compound();
     flatSettings->set("biome", String("minecraft:ocean"));
     flatSettings->set("features", Bool(false));
@@ -372,7 +373,7 @@ private:
 
     auto water = Compound();
     water->set("block", String("minecraft:water"));
-    water->set("height", Int(9));
+    water->set("height", Int(newSeaLevel ? 9 : 10));
     layers->push_back(water);
 
     flatSettings->set("layers", layers);
