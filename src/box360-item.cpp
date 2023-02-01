@@ -689,18 +689,85 @@ private:
   }
 
   static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
+    std::string name;
+    i16 d = DrainDamage(damage);
+    switch (d) {
+    case 50:
+      name = "creeper";
+      break;
+    case 51:
+      name = "skeleton";
+      break;
+    case 52:
+      name = "spider";
+      break;
+    case 54:
+      name = "zombie";
+      break;
+    case 55:
+      name = "slime";
+      break;
+    case 56:
+      name = "ghast";
+      break;
+    case 57:
+      name = "zombified_piglin";
+      break;
+    case 58:
+      name = "enderman";
+      break;
+    case 59:
+      name = "cave_spider";
+      break;
+    case 60:
+      name = "silverfish";
+      break;
+    case 61:
+      name = "blaze";
+      break;
+    case 62:
+      name = "magma_cube";
+      break;
+    case 90:
+      name = "pig";
+      break;
+    case 91:
+      name = "sheep";
+      break;
+    case 92:
+      name = "cow";
+      break;
+    case 93:
+      name = "chicken";
+      break;
+    case 94:
+      name = "squid";
+      break;
+    case 95:
+      name = "wolf";
+      break;
+    case 96:
+      name = "mooshroom";
+      break;
+    case 120:
+      name = "villager";
+      break;
+    }
     if (auto tag = in.compoundTag("tag"); tag) {
       if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
         if (auto id = entityTag->string("id"); id) {
-          auto name = ctx.fEntityNameMigrator(*id);
-          if (name.starts_with("minecraft:")) {
-            name = name.substr(10);
+          auto n = ctx.fEntityNameMigrator(*id);
+          if (n.starts_with("minecraft:")) {
+            name = n.substr(10);
           }
-          return name + "_spawn_egg";
         }
       }
     }
-    return "";
+    if (name.empty()) {
+      return "";
+    } else {
+      return name + "_spawn_egg";
+    }
   }
 
   static std::string Sponge(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
@@ -1078,11 +1145,23 @@ private:
     R(380, cauldron);
     R(381, ender_eye);
     R(382, speckled_melon);
+    R(383, spawn_egg);
     R(384, experience_bottle);
     R(385, fire_charge);
     R(389, item_frame);
     R(405, netherbrick);
     R(2256, music_disc_13);
+    R(2257, music_disc_cat);
+    R(2258, music_disc_blocks);
+    R(2259, music_disc_chirp);
+    R(2260, music_disc_far);
+    R(2261, music_disc_mall);
+    R(2262, music_disc_mellohi);
+    R(2267, music_disc_wait); // "where are we now"
+    R(2263, music_disc_stal);
+    R(2264, music_disc_strad);
+    R(2265, music_disc_ward);
+    R(2266, music_disc_11);
 
 #undef R
 
