@@ -104,7 +104,14 @@ private:
       for (int z = 0; z < 16; z++) {
         for (int y = 0; y < 128; y++) {
           int index = (x * 16 + z) * 128 + y;
-          auto block = mcfile::je::Flatten::DoFlatten(blocks->fValue[index], 0);
+          u8 d = data->fValue[index / 2];
+          if (index % 2 == 0) {
+            d = 0xf & d;
+          } else {
+            d = 0xf & (d >> 4);
+          }
+          u8 blockId = blocks->fValue[index];
+          auto block = mcfile::je::Flatten::DoFlatten(blockId, d);
           if (!block) {
             continue;
           }
