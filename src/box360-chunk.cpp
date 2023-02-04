@@ -11,6 +11,8 @@
 #include "box360/_savegame.hpp"
 #include "box360/_tile-entity.hpp"
 
+#include <bitset>
+
 namespace je2be::box360 {
 
 class Chunk::Impl {
@@ -50,10 +52,18 @@ public:
       return JE2BE_ERROR;
     }
     if (buffer[0] == 0xa) {
+      // TU0
+      // TU9 (retail disc)
       return ConvertV0(cx, cz, ctx, buffer, result);
-    } else if (buffer[0] == 0x0 && buffer[1] == 0x0c) {
-      // 0x00. The presence of this tag prevents the file from being parsed as nbt.
-      // 0x0c. Legacy parsers that cannot interpret the LongArrayTag will fail here.
+    } else if (buffer[0] != 0) {
+      return JE2BE_ERROR;
+    }
+
+    u8 version = buffer[1];
+    if (version == 0x9) {
+      // TU25
+      return ConvertV9(dimension, cx, cz, ctx, buffer, result);
+    } else if (version == 0xc) {
       return ConvertLatest(dimension, cx, cz, ctx, buffer, result);
     } else {
       return JE2BE_ERROR;
@@ -61,7 +71,109 @@ public:
   }
 
 private:
-  static Status ConvertV0(int cx, int cz, Context const &ctx, std::vector<u8> &buffer, std::shared_ptr<mcfile::je::WritableChunk> &result) {
+  struct V9 {
+    template <size_t BitPerBlock>
+    static Status ParseGrid(
+        Pos3i const &origin,
+        std::vector<u8> const &palette,
+        std::vector<u8> const &buffer,
+        int offset,
+        mcfile::je::WritableChunk &chunk) {
+      using namespace std;
+
+      bitset<BitPerBlock * 64> bits;
+
+      for (int i = 0; i < BitPerBlock * 8; i++) {
+        u8 v = buffer[offset + i];
+        for (int j = 0; j < 8; j++) {
+          bits[i * 8 + j] = ((v >> j) & 0x1) == 0x1;
+        }
+      }
+
+      for (int x = 0; x < 4; x++) {
+        for (int z = 0; z < 4; z++) {
+          for (int y = 0; y < 4; y++) {
+            int bitOffset = ((x * 4 + z) * 4 + y) * BitPerBlock;
+            u8 index = 0;
+            for (size_t i = 0; i < BitPerBlock; i++) {
+              index = index | (u8(bits[bitOffset + i] ? 1 : 0) << i);
+            }
+            if (palette.size() <= index) {
+              return JE2BE_ERROR;
+            }
+            u8 blockId = palette[index];
+            auto block = mcfile::je::Flatten::DoFlatten(blockId, 0);
+            if (block) {
+              chunk.setBlockAt(origin + Pos3i(x, y, z), block);
+            }
+          }
+        }
+      }
+
+      return Status::Ok();
+    }
+  };
+
+  static Status ConvertV9(mcfile::Dimension dim,
+                          int cx,
+                          int cz,
+                          Context const &ctx,
+                          std::vector<u8> &buffer,
+                          std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    using namespace std;
+
+    if (cx != 24 || cz != -25) {
+      // TODO:debug
+      return Status::Ok();
+    }
+
+    // 1 byte: 0x0 marker
+    // 1 byte: 0x9 version
+    // 4 bytes: xPos (big endian)
+    // 4 bytes: zPos (big endian)
+    // 8 bytes: lastUpdate (big endian)
+    // 8 bytes: inhabitedTime (big endian)
+    // 64 bytes * 16: some tables
+    //
+    // ?
+    //
+    // 256 bytes: unknown
+    // 256 bytes: height map 16x16
+    // 2 bytes: 0x07 0xff (marker?)
+    // 256 bytes: biome 16x16
+    // n bytes: nbt (to the end of file)
+
+    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+
+    int offset = 0x41e;
+    vector<u8> palette;
+
+    for (int section = 0; section < 16; section++) {
+      for (int gx = 0; gx < 4; gx++) {
+        for (int gz = 0; gz < 4; gz++) {
+          for (int gy = 0; gy < 4; gy++) {
+            palette.push_back(0x7); // bedrock
+            palette.push_back(0x0); // air
+            Pos3i origin(cx * 16 + gx * 4, section * 16 + gy * 4, cz * 16 + gz * 4);
+            if (auto st = V9::ParseGrid<1>(origin, palette, buffer, offset + 2, *chunk); !st.ok()) {
+              return st;
+            }
+            break; // TODO:debug
+          }
+        }
+      }
+    }
+
+    result.swap(chunk);
+
+    return Status::Ok();
+  }
+
+  static Status ConvertV0(int cx,
+                          int cz,
+                          Context const &ctx,
+                          std::vector<u8> &buffer,
+                          std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
     auto tag = CompoundTag::Read(buffer, mcfile::Endian::Big);
@@ -137,10 +249,12 @@ private:
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
 
-    // i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
-    // i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
-    // i64 maybeLastUpdate = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x0a));
-    // i64 maybeInhabitedTime = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x12));
+    i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
+    i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
+    assert(xPos == cx);
+    assert(zPos == cz);
+    i64 lastUpdate = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x0a));
+    i64 inhabitedTime = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x12));
 
     u16 maxSectionAddress = (u16)buffer[0x1b] * 0x100;
     vector<u16> sectionJumpTable;
