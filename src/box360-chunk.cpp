@@ -123,11 +123,6 @@ private:
                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
-    if (cx != 24 || cz != -25) {
-      // TODO:debug
-      return Status::Ok();
-    }
-
     // 1 byte: 0x0 marker
     // 1 byte: 0x9 version
     // 4 bytes: xPos (big endian)
