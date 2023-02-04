@@ -154,11 +154,6 @@ private:
     for (int gx = 0; gx < 4; gx++) {
       for (int gz = 0; gz < 4; gz++) {
         for (int gy = 0; gy < 32; gy++) {
-          if (gx == 3 && gz == 1 && gy == 0) {
-            static int a = 0;
-            a++;
-          }
-
           int index = (gx * 4 + gz) * 32 + gy;
           u8 v1 = buffer[gridTableOffset + index * 2];
           u8 v2 = buffer[gridTableOffset + index * 2 + 1];
@@ -224,6 +219,19 @@ private:
               offset += 16;
               if (auto st = V9::ParseGrid<4>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
                 return st;
+              }
+              break;
+            }
+            case 3: {
+              for (int x = 0; x < 4; x++) {
+                for (int z = 0; z < 4; z++) {
+                  for (int y = 0; y < 4; y++) {
+                    u8 blockId = buffer[offset + (x * 4 + z) * 4 + y];
+                    if (auto block = mcfile::je::Flatten::DoFlatten(blockId, 0); block) {
+                      chunk->setBlockAt(origin + Pos3i(x, y, z), block);
+                    }
+                  }
+                }
               }
               break;
             }
