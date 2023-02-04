@@ -177,7 +177,7 @@ private:
           } else {
             u16 gridOffset = (u16(v2) << 8 | u8(v1)) >> 1;
             int offset = gridTableOffset + 1024 + gridOffset;
-            u8 format = 0; // TODO:debug
+            u8 format = v1 & 0x1; //TODO:debug
             switch (format) {
             case 0: {
               vector<u8> palette;
@@ -187,6 +187,18 @@ private:
               }
               offset += 2;
               if (auto st = V9::ParseGrid<1>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
+                return st;
+              }
+              break;
+            }
+            case 1: {
+              vector<u8> palette;
+              for (int i = 0; i < 4; i++) {
+                u8 blockId = buffer[offset + i];
+                palette.push_back(blockId);
+              }
+              offset += 4;
+              if (auto st = V9::ParseGrid<2>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
                 return st;
               }
               break;
