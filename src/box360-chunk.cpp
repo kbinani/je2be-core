@@ -175,15 +175,19 @@ private:
               }
             }
           } else {
-            u16 gridOffset = (u16(v2) << 8 | u8(v1)) >> 1;
+            u16 gridOffset = 0x7ffe & (((u16(v2) << 8) | u16(v1)) >> 1);
             int offset = gridTableOffset + 1024 + gridOffset;
-            u8 format = v1 & 0x1; //TODO:debug
+            u8 format = v1 & 0x3;
             switch (format) {
             case 0: {
               vector<u8> palette;
+              palette.resize(2, 0);
               for (int i = 0; i < 2; i++) {
                 u8 blockId = buffer[offset + i];
-                palette.push_back(blockId);
+                if (blockId == 0xff) {
+                  break;
+                }
+                palette[i] = blockId;
               }
               offset += 2;
               if (auto st = V9::ParseGrid<1>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
@@ -193,12 +197,32 @@ private:
             }
             case 1: {
               vector<u8> palette;
+              palette.resize(4, 0);
               for (int i = 0; i < 4; i++) {
                 u8 blockId = buffer[offset + i];
-                palette.push_back(blockId);
+                if (blockId == 0xff) {
+                  break;
+                }
+                palette[i] = blockId;
               }
               offset += 4;
               if (auto st = V9::ParseGrid<2>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
+                return st;
+              }
+              break;
+            }
+            case 2: {
+              vector<u8> palette;
+              palette.resize(16, 0);
+              for (int i = 0; i < 16; i++) {
+                u8 blockId = buffer[offset + i];
+                if (blockId == 0xff) {
+                  break;
+                }
+                palette[i] = blockId;
+              }
+              offset += 16;
+              if (auto st = V9::ParseGrid<4>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
                 return st;
               }
               break;
