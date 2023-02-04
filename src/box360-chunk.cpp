@@ -134,7 +134,9 @@ private:
     // 4 bytes: zPos (big endian)
     // 8 bytes: lastUpdate (big endian)
     // 8 bytes: inhabitedTime (big endian)
-    // 64 bytes * 16: some tables
+    // 2 bytes: unknown, always 0x0 0x0
+    // 1 byte: unknown
+    // 1 byte: size of palette and index
     //
     // ?
     //
@@ -146,27 +148,53 @@ private:
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
 
-    int offset = 0x41e;
-    vector<u8> palette;
+    int const maybeNumSections = buffer[0x1c];
 
-    for (int section = 0; section < 16; section++) {
-      for (int gy = 0; gy < 4; gy++) {
-        for (int gx = 0; gx < 4; gx++) {
-          for (int gz = 0; gz < 4; gz++) {
-            int paletteSize = 2; // TODO:debug
-            for (int i = 0; i < paletteSize; i++) {
-              palette.push_back(buffer[offset + i]);
+    int gridTableOffset = 0x1e;
+    for (int gx = 0; gx < 4; gx++) {
+      for (int gz = 0; gz < 4; gz++) {
+        for (int gy = 0; gy < 32; gy++) {
+          if (gx == 3 && gz == 1 && gy == 0) {
+            static int a = 0;
+            a++;
+          }
+
+          int index = (gx * 4 + gz) * 32 + gy;
+          u8 v1 = buffer[gridTableOffset + index * 2];
+          u8 v2 = buffer[gridTableOffset + index * 2 + 1];
+          Pos3i origin(cx * 16 + gx * 4, gy * 4, cz * 16 + gz * 4);
+          if (v1 == 0x7) {
+            auto block = mcfile::je::Flatten::DoFlatten(v2, 0);
+            if (block) {
+              for (int x = 0; x < 4; x++) {
+                for (int y = 0; y < 4; y++) {
+                  for (int z = 0; z < 4; z++) {
+                    chunk->setBlockAt(origin + Pos3i(x, y, z), block);
+                  }
+                }
+              }
             }
-            offset += paletteSize;
-            Pos3i origin(cx * 16 + gx * 4, section * 16 + gy * 4, cz * 16 + gz * 4);
-            if (auto st = V9::ParseGrid<1>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
-              return st;
+          } else {
+            u16 gridOffset = (u16(v2) << 8 | u8(v1)) >> 1;
+            int offset = gridTableOffset + 1024 + gridOffset;
+            u8 format = 0; // TODO:debug
+            switch (format) {
+            case 0: {
+              vector<u8> palette;
+              for (int i = 0; i < 2; i++) {
+                u8 blockId = buffer[offset + i];
+                palette.push_back(blockId);
+              }
+              offset += 2;
+              if (auto st = V9::ParseGrid<1>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
+                return st;
+              }
+              break;
+            }
             }
           }
         }
-        break; // TODO:debug
       }
-      break; // TODO:debug
     }
 
     result.swap(chunk);
