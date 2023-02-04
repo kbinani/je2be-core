@@ -77,18 +77,19 @@ private:
         Pos3i const &origin,
         std::vector<u8> const &palette,
         std::vector<u8> const &buffer,
-        int offset,
+        int *offset,
         mcfile::je::WritableChunk &chunk) {
       using namespace std;
 
       bitset<BitPerBlock * 64> bits;
 
       for (int i = 0; i < BitPerBlock * 8; i++) {
-        u8 v = buffer[offset + i];
+        u8 v = buffer[*offset + i];
         for (int j = 0; j < 8; j++) {
           bits[i * 8 + j] = ((v >> j) & 0x1) == 0x1;
         }
       }
+      *offset += BitPerBlock * 8;
 
       for (int x = 0; x < 4; x++) {
         for (int z = 0; z < 4; z++) {
@@ -149,19 +150,23 @@ private:
     vector<u8> palette;
 
     for (int section = 0; section < 16; section++) {
-      for (int gx = 0; gx < 4; gx++) {
-        for (int gz = 0; gz < 4; gz++) {
-          for (int gy = 0; gy < 4; gy++) {
-            palette.push_back(0x7); // bedrock
-            palette.push_back(0x0); // air
+      for (int gy = 0; gy < 4; gy++) {
+        for (int gx = 0; gx < 4; gx++) {
+          for (int gz = 0; gz < 4; gz++) {
+            int paletteSize = 2; // TODO:debug
+            for (int i = 0; i < paletteSize; i++) {
+              palette.push_back(buffer[offset + i]);
+            }
+            offset += paletteSize;
             Pos3i origin(cx * 16 + gx * 4, section * 16 + gy * 4, cz * 16 + gz * 4);
-            if (auto st = V9::ParseGrid<1>(origin, palette, buffer, offset + 2, *chunk); !st.ok()) {
+            if (auto st = V9::ParseGrid<1>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
               return st;
             }
-            break; // TODO:debug
           }
         }
+        break; // TODO:debug
       }
+      break; // TODO:debug
     }
 
     result.swap(chunk);
