@@ -123,11 +123,7 @@ private:
         return JE2BE_ERROR;
       }
       u16 size = mcfile::U16FromBE(Mem::Read<u16>(buffer, *bufferOffset + 2));
-      if (size < 0x400) {
-        return JE2BE_ERROR;
-      }
-      size -= 0x400;
-      if (buffer.size() < *bufferOffset + 4 + 1024 + size) {
+      if (buffer.size() < *bufferOffset + 4 + size) {
         return JE2BE_ERROR;
       }
 
@@ -235,7 +231,7 @@ private:
         }
       }
 
-      *bufferOffset += 4 + 1024 + size;
+      *bufferOffset += 4 + size;
 
       return Status::Ok();
     }
