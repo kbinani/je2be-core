@@ -69,7 +69,10 @@ public:
     }
 
     u8 version = buffer[1];
-    if (version == 0x9) {
+    if (version == 0x8) {
+      // TU17
+      return ConvertV8(dimension, cx, cz, ctx, buffer, result);
+    } else if (version == 0x9) {
       // TU25
       return ConvertV9(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xc) {
@@ -80,7 +83,7 @@ public:
   }
 
 private:
-  struct V9 {
+  struct V8 {
     template <size_t BitPerBlock>
     static Status ParseGrid(
         Pos3i const &origin,
@@ -174,7 +177,7 @@ private:
                   palette[i] = id;
                 }
                 offset += 2;
-                if (auto st = V9::ParseGrid<1>(origin, palette, buffer, offset, out); !st.ok()) {
+                if (auto st = V8::ParseGrid<1>(origin, palette, buffer, offset, out); !st.ok()) {
                   return st;
                 }
                 break;
@@ -193,7 +196,7 @@ private:
                   palette[i] = id;
                 }
                 offset += 4;
-                if (auto st = V9::ParseGrid<2>(origin, palette, buffer, offset, out); !st.ok()) {
+                if (auto st = V8::ParseGrid<2>(origin, palette, buffer, offset, out); !st.ok()) {
                   return st;
                 }
                 break;
@@ -212,7 +215,7 @@ private:
                   palette[i] = id;
                 }
                 offset += 16;
-                if (auto st = V9::ParseGrid<4>(origin, palette, buffer, offset, out); !st.ok()) {
+                if (auto st = V8::ParseGrid<4>(origin, palette, buffer, offset, out); !st.ok()) {
                   return st;
                 }
                 break;
@@ -290,12 +293,31 @@ private:
     }
   };
 
+  static Status ConvertV8(mcfile::Dimension dim,
+                          int cx,
+                          int cz,
+                          Context const &ctx,
+                          std::vector<u8> &buffer,
+                          std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    return ConvertV8Impl(dim, cx, cz, ctx, buffer, 0x12, result);
+  }
+
   static Status ConvertV9(mcfile::Dimension dim,
                           int cx,
                           int cz,
                           Context const &ctx,
                           std::vector<u8> &buffer,
                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    return ConvertV8Impl(dim, cx, cz, ctx, buffer, 0x1a, result);
+  }
+
+  static Status ConvertV8Impl(mcfile::Dimension dim,
+                              int cx,
+                              int cz,
+                              Context const &ctx,
+                              std::vector<u8> &buffer,
+                              int startOffset,
+                              std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
     // 1 byte: 0x0 marker
@@ -303,7 +325,7 @@ private:
     // 4 bytes: xPos (big endian)
     // 4 bytes: zPos (big endian)
     // 8 bytes: lastUpdate (big endian)
-    // 8 bytes: inhabitedTime (big endian)
+    // 8 bytes: inhabitedTime (big endian, this doen't exist when V8)
     // SubChunk: (y = 0, height = 128)
     // SubChunk: (y = 128, height = 128)
     // 4Bit128Table: (block data, y = 0, height = 128)
@@ -328,29 +350,29 @@ private:
     Data3dSq<u8, 16> blockLightLo({0, 0, 0}, 128, 0);
     Data3dSq<u8, 16> blockLightHi({0, 0, 0}, 128, 0);
 
-    int offset = 0x1a;
-    if (auto st = V9::Parse8ChunkSections(buffer, &offset, blockIdLo); !st.ok()) {
+    int offset = startOffset;
+    if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockIdLo); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse8ChunkSections(buffer, &offset, blockIdHi); !st.ok()) {
+    if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockIdHi); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse4Bit128Table(buffer, &offset, blockDataLo); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockDataLo); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse4Bit128Table(buffer, &offset, blockDataHi); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockDataHi); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse4Bit128Table(buffer, &offset, skyLightLo); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLightLo); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse4Bit128Table(buffer, &offset, skyLightHi); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLightHi); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse4Bit128Table(buffer, &offset, blockLightLo); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLightLo); !st.ok()) {
       return st;
     }
-    if (auto st = V9::Parse4Bit128Table(buffer, &offset, blockLightHi); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLightHi); !st.ok()) {
       return st;
     }
 
