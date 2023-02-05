@@ -56,7 +56,11 @@ public:
     if (buffer[0] == 0xa) {
       // TU0
       // TU9 (retail disc)
-      return ConvertV0(cx, cz, ctx, buffer, result);
+      // TU10
+      // TU11
+      // TU12
+      // TU13 (max height changed to 255)
+      return ConvertV0(dimension, cx, cz, ctx, buffer, result);
     } else if (buffer[0] != 0) {
       return JE2BE_ERROR;
     }
@@ -527,7 +531,8 @@ private:
     return Status::Ok();
   }
 
-  static Status ConvertV0(int cx,
+  static Status ConvertV0(mcfile::Dimension dim,
+                          int cx,
                           int cz,
                           Context const &ctx,
                           std::vector<u8> &buffer,
@@ -556,18 +561,27 @@ private:
     auto lastUpdate = level->longTag("LastUpdate");
     auto skyLight = level->byteArrayTag("SkyLight"); // 16384
     auto terrainPopulated = level->byte("TerrainPopulated");
+    auto terrainPopulatedFlags = level->int16("TerrainPopulatedFlags"); // TU13 >=
     auto tileEntities = level->listTag("TileEntities");
+    auto biomes = level->byteArrayTag("Biomes"); // 256
 
-    if (terrainPopulated != true) {
-      return Status::Ok();
-    }
+    // terrainPopulatedFlags
+    // examples: 16, 20, 36, 52, 60, 62, 102, 126, 244, 254, 450, 486, 894, 970, 1002, 2046
 
     if (!blocks) {
+      return Status::Ok();
+    }
+    if (blocks->fValue.size() % 256 != 0) {
+      return Status::Ok();
+    }
+    int maxY = blocks->fValue.size() / 256;
+    if (maxY != 128 && maxY != 256) {
       return JE2BE_ERROR;
     }
-    if (blocks->fValue.size() != 32768) {
+    if (data->fValue.size() != 128 * maxY) {
       return JE2BE_ERROR;
     }
+
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
 
     for (int x = 0; x < 16; x++) {
@@ -587,6 +601,21 @@ private:
           }
           chunk->setBlockAt({cx * 16 + x, y, cz * 16 + z}, block);
         }
+        for (int y = 128; y < maxY; y++) {
+          int index = (x * 16 + z) * 128 + (y - 128);
+          u8 d = data->fValue[16384 + index / 2];
+          if (index % 2 == 0) {
+            d = 0xf & d;
+          } else {
+            d = 0xf & (d >> 4);
+          }
+          u8 blockId = blocks->fValue[32768 + index];
+          auto block = mcfile::je::Flatten::DoFlatten(blockId, d);
+          if (!block) {
+            continue;
+          }
+          chunk->setBlockAt({cx * 16 + x, y, cz * 16 + z}, block);
+        }
       }
     }
 
@@ -596,13 +625,29 @@ private:
     if (entities) {
       ParseEntities(*entities, *chunk, ctx);
     }
+    if (biomes && biomes->fValue.size() == 256) {
+      for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 16; x++) {
+          u8 b = biomes->fValue[z * 16 + x];
+          mcfile::biomes::BiomeId biome = Biome::FromUint32(dim, b);
+          for (int y = 0; y < 256; y++) {
+            chunk->setBiomeAt(cx * 16 + x, y, cz * 16 + z, biome);
+          }
+        }
+      }
+    }
 
     result.swap(chunk);
 
     return Status::Ok();
   }
 
-  static Status ConvertLatest(mcfile::Dimension dimension, int cx, int cz, Context const &ctx, std::vector<u8> &buffer, std::shared_ptr<mcfile::je::WritableChunk> &result) {
+  static Status ConvertLatest(mcfile::Dimension dimension,
+                              int cx,
+                              int cz,
+                              Context const &ctx,
+                              std::vector<u8> &buffer,
+                              std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
