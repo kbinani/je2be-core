@@ -2,6 +2,7 @@
 
 #include <je2be/nbt.hpp>
 
+#include "_data3d.hpp"
 #include "_mem.hpp"
 #include "_props.hpp"
 #include "box360/_biome.hpp"
