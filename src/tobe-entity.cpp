@@ -219,26 +219,27 @@ public:
     auto tileY = c.int32("TileY");
     auto tileZ = c.int32("TileZ");
 
-    auto rot = props::GetRotation(c, "Rotation");
     i32 facing = 0;
-    if (RotAlmostEquals(*rot, 0, -90)) {
-      // up
-      facing = 1;
-    } else if (RotAlmostEquals(*rot, 180, 0)) {
-      // north
-      facing = 2;
-    } else if (RotAlmostEquals(*rot, 270, 0)) {
-      // east
-      facing = 5;
-    } else if (RotAlmostEquals(*rot, 0, 0)) {
-      // south
-      facing = 3;
-    } else if (RotAlmostEquals(*rot, 90, 0)) {
-      // west
-      facing = 4;
-    } else if (RotAlmostEquals(*rot, 0, 90)) {
-      // down
-      facing = 0;
+    if (auto rot = props::GetRotation(c, "Rotation"); rot) {
+      if (RotAlmostEquals(*rot, 0, -90)) {
+        // up
+        facing = 1;
+      } else if (RotAlmostEquals(*rot, 180, 0)) {
+        // north
+        facing = 2;
+      } else if (RotAlmostEquals(*rot, 270, 0)) {
+        // east
+        facing = 5;
+      } else if (RotAlmostEquals(*rot, 0, 0)) {
+        // south
+        facing = 3;
+      } else if (RotAlmostEquals(*rot, 90, 0)) {
+        // west
+        facing = 4;
+      } else if (RotAlmostEquals(*rot, 0, 90)) {
+        // down
+        facing = 0;
+      }
     }
 
     bool map = false;

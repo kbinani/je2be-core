@@ -1920,8 +1920,8 @@ public:
   }
 
   static void CauldronFillLevelFromLevel(CompoundTagPtr const &s, Block const &b) {
-    auto level = strings::Toi(b.property("level", "0"));
-    s->set("fill_level", Int(*level * 2));
+    auto level = Wrap(strings::Toi(b.property("level", "0")), 0);
+    s->set("fill_level", Int(level * 2));
   }
 
   static void BiteCounterFromBites(CompoundTagPtr const &s, Block const &b) {
