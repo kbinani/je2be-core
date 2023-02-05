@@ -60,6 +60,9 @@ public:
       // TU11
       // TU12
       // TU13 (max height changed to 255)
+      // TU14
+      // TU15
+      // TU16
       return ConvertV0(dimension, cx, cz, ctx, buffer, result);
     } else if (buffer[0] != 0) {
       return JE2BE_ERROR;
@@ -315,8 +318,6 @@ private:
     // n bytes: nbt (to the end of file)
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
-
-    int const maybeNumSections = buffer[0x1c];
 
     Data3dSq<u8, 16> blockIdLo({0, 0, 0}, 128, 0);
     Data3dSq<u8, 16> blockIdHi({0, 0, 0}, 128, 0);
