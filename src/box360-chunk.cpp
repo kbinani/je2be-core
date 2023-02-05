@@ -77,19 +77,22 @@ private:
         Pos3i const &origin,
         std::vector<u8> const &palette,
         std::vector<u8> const &buffer,
-        int *offset,
-        mcfile::je::WritableChunk &chunk) {
+        int offset,
+        Data3dSq<u8, 16> &out) {
       using namespace std;
 
+      if (buffer.size() < offset + BitPerBlock * 8) {
+        return JE2BE_ERROR;
+      }
       bitset<BitPerBlock * 64> bits;
 
       for (int i = 0; i < BitPerBlock * 8; i++) {
-        u8 v = buffer[*offset + i];
+        u8 v = buffer[offset + i];
         for (int j = 0; j < 8; j++) {
           bits[i * 8 + j] = ((v >> j) & 0x1) == 0x1;
         }
       }
-      *offset += BitPerBlock * 8;
+      offset += BitPerBlock * 8;
 
       for (int x = 0; x < 4; x++) {
         for (int z = 0; z < 4; z++) {
@@ -103,13 +106,135 @@ private:
               return JE2BE_ERROR;
             }
             u8 blockId = palette[index];
-            auto block = mcfile::je::Flatten::DoFlatten(blockId, 0);
-            if (block) {
-              chunk.setBlockAt(origin + Pos3i(x, y, z), block);
+            out[origin + Pos3i(x, y, z)] = blockId;
+          }
+        }
+      }
+
+      return Status::Ok();
+    }
+
+    static Status Parse8ChunkSections(std::vector<u8> const &buffer,
+                                      int *bufferOffset,
+                                      Data3dSq<u8, 16> &out) {
+      using namespace std;
+      if (buffer.size() < *bufferOffset + 4 + 1024) {
+        return JE2BE_ERROR;
+      }
+      u16 size = mcfile::U16FromBE(Mem::Read<u16>(buffer, *bufferOffset + 2));
+      if (size < 0x400) {
+        return JE2BE_ERROR;
+      }
+      size -= 0x400;
+      if (buffer.size() < *bufferOffset + 4 + 1024 + size) {
+        return JE2BE_ERROR;
+      }
+
+      int off = *bufferOffset + 4;
+
+      for (int gx = 0; gx < 4; gx++) {
+        for (int gz = 0; gz < 4; gz++) {
+          for (int gy = 0; gy < 32; gy++) {
+            int index = (gx * 4 + gz) * 32 + gy;
+            if (buffer.size() < off + index * 2 + 2) {
+              return JE2BE_ERROR;
+            }
+            u8 v1 = buffer[off + index * 2];
+            u8 v2 = buffer[off + index * 2 + 1];
+            Pos3i origin(gx * 4, gy * 4, gz * 4);
+            if (v1 == 0x7) {
+              for (int x = 0; x < 4; x++) {
+                for (int y = 0; y < 4; y++) {
+                  for (int z = 0; z < 4; z++) {
+                    out[origin + Pos3i(x, y, z)] = v2;
+                  }
+                }
+              }
+            } else {
+              u16 gridOffset = 0x7ffe & (((u16(v2) << 8) | u16(v1)) >> 1);
+              int offset = off + 1024 + gridOffset;
+              u8 format = v1 & 0x3;
+              switch (format) {
+              case 0: {
+                if (buffer.size() < offset + 2) {
+                  return JE2BE_ERROR;
+                }
+                vector<u8> palette;
+                palette.resize(2, 0);
+                for (int i = 0; i < 2; i++) {
+                  u8 id = buffer[offset + i];
+                  if (id == 0xff) {
+                    break;
+                  }
+                  palette[i] = id;
+                }
+                offset += 2;
+                if (auto st = V9::ParseGrid<1>(origin, palette, buffer, offset, out); !st.ok()) {
+                  return st;
+                }
+                break;
+              }
+              case 1: {
+                if (buffer.size() < offset + 4) {
+                  return JE2BE_ERROR;
+                }
+                vector<u8> palette;
+                palette.resize(4, 0);
+                for (int i = 0; i < 4; i++) {
+                  u8 id = buffer[offset + i];
+                  if (id == 0xff) {
+                    break;
+                  }
+                  palette[i] = id;
+                }
+                offset += 4;
+                if (auto st = V9::ParseGrid<2>(origin, palette, buffer, offset, out); !st.ok()) {
+                  return st;
+                }
+                break;
+              }
+              case 2: {
+                if (buffer.size() < off + 16) {
+                  return JE2BE_ERROR;
+                }
+                vector<u8> palette;
+                palette.resize(16, 0);
+                for (int i = 0; i < 16; i++) {
+                  u8 id = buffer[offset + i];
+                  if (id == 0xff) {
+                    break;
+                  }
+                  palette[i] = id;
+                }
+                offset += 16;
+                if (auto st = V9::ParseGrid<4>(origin, palette, buffer, offset, out); !st.ok()) {
+                  return st;
+                }
+                break;
+              }
+              case 3: {
+                if (buffer.size() < offset + 64) {
+                  return JE2BE_ERROR;
+                }
+                for (int x = 0; x < 4; x++) {
+                  for (int z = 0; z < 4; z++) {
+                    for (int y = 0; y < 4; y++) {
+                      u8 id = buffer[offset + (x * 4 + z) * 4 + y];
+                      out[origin + Pos3i(x, y, z)] = id;
+                    }
+                  }
+                }
+                break;
+              }
+              default:
+                return JE2BE_ERROR;
+              }
             }
           }
         }
       }
+
+      *bufferOffset += 4 + 1024 + size;
 
       return Status::Ok();
     }
@@ -130,8 +255,6 @@ private:
     // 8 bytes: lastUpdate (big endian)
     // 8 bytes: inhabitedTime (big endian)
     // 2 bytes: unknown, always 0x0 0x0
-    // 1 byte: unknown
-    // 1 byte: size of palette and index
     //
     // ?
     //
@@ -145,92 +268,22 @@ private:
 
     int const maybeNumSections = buffer[0x1c];
 
-    int gridTableOffset = 0x1e;
-    for (int gx = 0; gx < 4; gx++) {
-      for (int gz = 0; gz < 4; gz++) {
-        for (int gy = 0; gy < 32; gy++) {
-          int index = (gx * 4 + gz) * 32 + gy;
-          u8 v1 = buffer[gridTableOffset + index * 2];
-          u8 v2 = buffer[gridTableOffset + index * 2 + 1];
-          Pos3i origin(cx * 16 + gx * 4, gy * 4, cz * 16 + gz * 4);
-          if (v1 == 0x7) {
-            auto block = mcfile::je::Flatten::DoFlatten(v2, 0);
-            if (block) {
-              for (int x = 0; x < 4; x++) {
-                for (int y = 0; y < 4; y++) {
-                  for (int z = 0; z < 4; z++) {
-                    chunk->setBlockAt(origin + Pos3i(x, y, z), block);
-                  }
-                }
-              }
-            }
-          } else {
-            u16 gridOffset = 0x7ffe & (((u16(v2) << 8) | u16(v1)) >> 1);
-            int offset = gridTableOffset + 1024 + gridOffset;
-            u8 format = v1 & 0x3;
-            switch (format) {
-            case 0: {
-              vector<u8> palette;
-              palette.resize(2, 0);
-              for (int i = 0; i < 2; i++) {
-                u8 blockId = buffer[offset + i];
-                if (blockId == 0xff) {
-                  break;
-                }
-                palette[i] = blockId;
-              }
-              offset += 2;
-              if (auto st = V9::ParseGrid<1>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
-                return st;
-              }
-              break;
-            }
-            case 1: {
-              vector<u8> palette;
-              palette.resize(4, 0);
-              for (int i = 0; i < 4; i++) {
-                u8 blockId = buffer[offset + i];
-                if (blockId == 0xff) {
-                  break;
-                }
-                palette[i] = blockId;
-              }
-              offset += 4;
-              if (auto st = V9::ParseGrid<2>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
-                return st;
-              }
-              break;
-            }
-            case 2: {
-              vector<u8> palette;
-              palette.resize(16, 0);
-              for (int i = 0; i < 16; i++) {
-                u8 blockId = buffer[offset + i];
-                if (blockId == 0xff) {
-                  break;
-                }
-                palette[i] = blockId;
-              }
-              offset += 16;
-              if (auto st = V9::ParseGrid<4>(origin, palette, buffer, &offset, *chunk); !st.ok()) {
-                return st;
-              }
-              break;
-            }
-            case 3: {
-              for (int x = 0; x < 4; x++) {
-                for (int z = 0; z < 4; z++) {
-                  for (int y = 0; y < 4; y++) {
-                    u8 blockId = buffer[offset + (x * 4 + z) * 4 + y];
-                    if (auto block = mcfile::je::Flatten::DoFlatten(blockId, 0); block) {
-                      chunk->setBlockAt(origin + Pos3i(x, y, z), block);
-                    }
-                  }
-                }
-              }
-              break;
-            }
-            }
+    Data3dSq<u8, 16> blockId({0, 0, 0}, 128, 0);
+    Data3dSq<u8, 16> blockData({0, 0, 0}, 128, 0);
+
+    int offset = 0x1a;
+    if (auto st = V9::Parse8ChunkSections(buffer, &offset, blockId); !st.ok()) {
+      return st;
+    }
+
+    Pos3i origin(cx * 16, 0, cz * 16);
+    for (int y = 0; y < 128; y++) {
+      for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 16; x++) {
+          u8 id = blockId[{x, y, z}];
+          u8 data = blockData[{x, y, z}];
+          if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
+            chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
           }
         }
       }
