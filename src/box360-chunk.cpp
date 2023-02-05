@@ -306,7 +306,7 @@ private:
     // 4Bit128Table: (block light, y = 0, height = 128)
     // 4Bit128Table: (block light, y = 128, height = 128)
     // 256 bytes: height map 16x16
-    // 2 bytes: 0x07 0xff (marker?)
+    // 2 bytes: unknown (examples: 0x07 0xff, 0x01 0xe2)
     // 256 bytes: biome 16x16
     // n bytes: nbt (to the end of file)
 
@@ -378,18 +378,25 @@ private:
       }
     }
 
-    if (buffer.size() < offset + 256 + 2 + 256) {
+    if (buffer.size() < offset + 256) {
+      return JE2BE_ERROR;
+    }
+    // skip height map
+    offset += 256;
+
+    if (buffer.size() < offset + 2 + 256) {
       return JE2BE_ERROR;
     }
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++) {
-        u8 b = buffer[offset + 256 + 2 + z * 16 + x];
+        u8 b = buffer[offset + 2 + z * 16 + x];
         mcfile::biomes::BiomeId biome = Biome::FromUint32(dim, b);
         for (int y = 0; y < 256; y++) {
           chunk->setBiomeAt(cx * 16 + x, y, cz * 16 + z, biome);
         }
       }
     }
+    offset += 2 + 256;
 
     for (int cy = 0; cy < 8; cy++) {
       for (auto &section : chunk->fSections) {
@@ -495,6 +502,24 @@ private:
           }
         }
       }
+    }
+
+    if (buffer.size() < offset + 4) {
+      return JE2BE_ERROR;
+    }
+    auto stream = make_shared<mcfile::stream::ByteInputStream>((char *)buffer.data() + offset, buffer.size() - offset);
+    auto tag = CompoundTag::Read(stream, mcfile::Endian::Big);
+    if (!tag) {
+      return JE2BE_ERROR;
+    }
+    auto entities = tag->listTag("Entities");
+    auto tileEntities = tag->listTag("TileEntities");
+
+    if (tileEntities) {
+      ParseTileEntities(*tileEntities, *chunk, ctx);
+    }
+    if (entities) {
+      ParseEntities(*entities, *chunk, ctx);
     }
 
     result.swap(chunk);
