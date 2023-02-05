@@ -269,21 +269,37 @@ private:
     int const maybeNumSections = buffer[0x1c];
 
     Data3dSq<u8, 16> blockId({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> blockData({0, 0, 0}, 128, 0);
 
     int offset = 0x1a;
-    if (auto st = V9::Parse8ChunkSections(buffer, &offset, blockId); !st.ok()) {
-      return st;
+    {
+      if (auto st = V9::Parse8ChunkSections(buffer, &offset, blockId); !st.ok()) {
+        return st;
+      }
+      Pos3i origin(cx * 16, 0, cz * 16);
+      for (int y = 0; y < 128; y++) {
+        for (int z = 0; z < 16; z++) {
+          for (int x = 0; x < 16; x++) {
+            u8 id = blockId[{x, y, z}];
+            if (auto block = mcfile::je::Flatten::DoFlatten(id, 0); block) {
+              chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
+            }
+          }
+        }
+      }
     }
-
-    Pos3i origin(cx * 16, 0, cz * 16);
-    for (int y = 0; y < 128; y++) {
-      for (int z = 0; z < 16; z++) {
-        for (int x = 0; x < 16; x++) {
-          u8 id = blockId[{x, y, z}];
-          u8 data = blockData[{x, y, z}];
-          if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
-            chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
+    {
+      blockId.fill(0);
+      if (auto st = V9::Parse8ChunkSections(buffer, &offset, blockId); !st.ok()) {
+        return st;
+      }
+      Pos3i origin(cx * 16, 128, cz * 16);
+      for (int y = 0; y < 128; y++) {
+        for (int z = 0; z < 16; z++) {
+          for (int x = 0; x < 16; x++) {
+            u8 id = blockId[{x, y, z}];
+            if (auto block = mcfile::je::Flatten::DoFlatten(id, 0); block) {
+              chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
+            }
           }
         }
       }
