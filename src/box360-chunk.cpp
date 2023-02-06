@@ -356,7 +356,7 @@ private:
     // 4Bit128Table: (block light, y = 0, height = 128)
     // 4Bit128Table: (block light, y = 128, height = 128)
     // 256 bytes: height map 16x16
-    // 2 bytes: unknown (examples: 0x07 0xff, 0x01 0xe2)
+    // 2 bytes: terrain populated flags (big endian)
     // 256 bytes: biome 16x16
     // n bytes: nbt (to the end of file)
 
@@ -404,16 +404,20 @@ private:
     if (buffer.size() < offset + 2 + 256) {
       return JE2BE_ERROR;
     }
+
+    u16 terrainPopulatedFlags = mcfile::U16FromBE(Mem::Read<u16>(buffer, offset));
+    offset += 2;
+
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++) {
-        u8 b = buffer[offset + 2 + z * 16 + x];
+        u8 b = buffer[offset + z * 16 + x];
         mcfile::biomes::BiomeId biome = Biome::FromUint32(dim, b);
         for (int y = 0; y < 256; y++) {
           chunk->setBiomeAt(cx * 16 + x, y, cz * 16 + z, biome);
         }
       }
     }
-    offset += 2 + 256;
+    offset += 256;
 
     for (int cy = 0; cy < 16; cy++) {
       for (auto &section : chunk->fSections) {
