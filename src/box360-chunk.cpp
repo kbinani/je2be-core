@@ -77,6 +77,9 @@ public:
       // TU19
       // TU25
       return ConvertV9(dimension, cx, cz, ctx, buffer, result);
+    } else if (version == 0xa) {
+      // TU42
+      return ConvertV10(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xc) {
       return ConvertV12(dimension, cx, cz, ctx, buffer, result);
     } else {
@@ -315,6 +318,16 @@ private:
     return ConvertV8Impl(dim, cx, cz, ctx, buffer, 0x1a, result);
   }
 
+  static Status ConvertV10(mcfile::Dimension dim,
+                           int cx,
+                           int cz,
+                           Context const &ctx,
+                           std::vector<u8> &buffer,
+                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    // Same as v9. Only block id format changed such as upper half of tall flowers.
+    return ConvertV8Impl(dim, cx, cz, ctx, buffer, 0x1a, result);
+  }
+
   static Status ConvertV8Impl(mcfile::Dimension dim,
                               int cx,
                               int cz,
@@ -376,20 +389,7 @@ private:
       return st;
     }
 
-    {
-      Pos3i origin(cx * 16, 0, cz * 16);
-      for (int y = 0; y < 256; y++) {
-        for (int z = 0; z < 16; z++) {
-          for (int x = 0; x < 16; x++) {
-            u8 id = blockId[{x, y, z}];
-            u8 data = blockData[{x, y, z}];
-            if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
-              chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
-            }
-          }
-        }
-      }
-    }
+    PopulateBlocks(blockId, blockData, *chunk);
 
     if (buffer.size() < offset + 256) {
       return JE2BE_ERROR;
@@ -485,6 +485,31 @@ private:
     result.swap(chunk);
 
     return Status::Ok();
+  }
+
+  static void PopulateBlocks(Data3dSq<u8, 16> const &blockId, Data3dSq<u8, 16> const &blockData, mcfile::je::WritableChunk &chunk) {
+    Pos3i origin(chunk.fChunkX * 16, 0, chunk.fChunkZ * 16);
+    for (int y = 0; y < 256; y++) {
+      for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 16; x++) {
+          u8 id = blockId[{x, y, z}];
+          u8 data = blockData[{x, y, z}];
+          if (id == 175 && data == 10 && y - 1 >= 0) {
+            // upper half of tall flowers
+            u8 lowerId = blockId[{x, y - 1, z}];
+            u8 lowerData = blockData[{x, y - 1, z}];
+            if (auto lower = mcfile::je::Flatten::DoFlatten(lowerId, lowerData); lower) {
+              auto block = lower->applying({{"half", "upper"}});
+              chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+            }
+          } else {
+            if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
+              chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+            }
+          }
+        }
+      }
+    }
   }
 
   static Status ConvertV0(mcfile::Dimension dim,
