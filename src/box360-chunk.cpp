@@ -83,7 +83,14 @@ public:
       // TU31
       // TU33
       // TU42
+      // TU58
+      // TU59
       return ConvertV10(dimension, cx, cz, ctx, buffer, result);
+    } else if (version == 0xb) {
+      // TU60
+      // TU63
+      // TU67
+      return ConvertV11(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xc) {
       return ConvertV12(dimension, cx, cz, ctx, buffer, result);
     } else {
@@ -518,6 +525,16 @@ private:
         }
       }
     }
+  }
+
+  static Status ConvertV11(mcfile::Dimension dim,
+                           int cx,
+                           int cz,
+                           Context const &ctx,
+                           std::vector<u8> &buffer,
+                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    // TODO:
+    return Status::Ok();
   }
 
   static Status ConvertV0(mcfile::Dimension dim,
