@@ -238,7 +238,7 @@ private:
                   for (int z = 0; z < 4; z++) {
                     for (int y = 0; y < 4; y++) {
                       u8 id = buffer[offset + (x * 4 + z) * 4 + y];
-                      out[origin + Pos3i(x, y0 + y, z)] = id;
+                      out[origin + Pos3i(x, y, z)] = id;
                     }
                   }
                 }
