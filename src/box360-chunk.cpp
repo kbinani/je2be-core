@@ -341,6 +341,15 @@ private:
     return ConvertV8Impl(dim, cx, cz, ctx, buffer, 0x1a, result);
   }
 
+  static Status ConvertV11(mcfile::Dimension dim,
+                           int cx,
+                           int cz,
+                           Context const &ctx,
+                           std::vector<u8> &buffer,
+                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
+    return ConvertV8Impl(dim, cx, cz, ctx, buffer, 0x1a, result);
+  }
+
   static Status ConvertV8Impl(mcfile::Dimension dim,
                               int cx,
                               int cz,
@@ -527,16 +536,6 @@ private:
         }
       }
     }
-  }
-
-  static Status ConvertV11(mcfile::Dimension dim,
-                           int cx,
-                           int cz,
-                           Context const &ctx,
-                           std::vector<u8> &buffer,
-                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
-    // TODO:
-    return Status::Ok();
   }
 
   static Status ConvertV0(mcfile::Dimension dim,
