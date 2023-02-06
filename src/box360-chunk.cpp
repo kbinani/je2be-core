@@ -76,8 +76,12 @@ public:
     } else if (version == 0x9) {
       // TU19
       // TU25
+      // TU29
+      // TU30
       return ConvertV9(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xa) {
+      // TU31
+      // TU33
       // TU42
       return ConvertV10(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xc) {
