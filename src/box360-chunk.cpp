@@ -92,6 +92,8 @@ public:
       // TU67
       return ConvertV11(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xc) {
+      // TU69
+      // TU70
       return ConvertV12(dimension, cx, cz, ctx, buffer, result);
     } else {
       return JE2BE_ERROR;
