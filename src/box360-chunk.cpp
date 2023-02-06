@@ -78,7 +78,7 @@ public:
       // TU25
       return ConvertV9(dimension, cx, cz, ctx, buffer, result);
     } else if (version == 0xc) {
-      return ConvertLatest(dimension, cx, cz, ctx, buffer, result);
+      return ConvertV12(dimension, cx, cz, ctx, buffer, result);
     } else {
       return JE2BE_ERROR;
     }
@@ -130,7 +130,8 @@ private:
 
     static Status Parse8ChunkSections(std::vector<u8> const &buffer,
                                       int *bufferOffset,
-                                      Data3dSq<u8, 16> &out) {
+                                      Data3dSq<u8, 16> &out,
+                                      int y0) {
       using namespace std;
       if (buffer.size() < *bufferOffset + 4 + 1024) {
         return JE2BE_ERROR;
@@ -151,7 +152,7 @@ private:
             }
             u8 v1 = buffer[off + index * 2];
             u8 v2 = buffer[off + index * 2 + 1];
-            Pos3i origin(gx * 4, gy * 4, gz * 4);
+            Pos3i origin(gx * 4, y0 + gy * 4, gz * 4);
             if (v1 == 0x7) {
               for (int x = 0; x < 4; x++) {
                 for (int y = 0; y < 4; y++) {
@@ -230,7 +231,7 @@ private:
                   for (int z = 0; z < 4; z++) {
                     for (int y = 0; y < 4; y++) {
                       u8 id = buffer[offset + (x * 4 + z) * 4 + y];
-                      out[origin + Pos3i(x, y, z)] = id;
+                      out[origin + Pos3i(x, y0 + y, z)] = id;
                     }
                   }
                 }
@@ -251,7 +252,8 @@ private:
 
     static Status Parse4Bit128Table(std::vector<u8> const &buffer,
                                     int *bufferOffset,
-                                    Data3dSq<u8, 16> &out) {
+                                    Data3dSq<u8, 16> &out,
+                                    int y0) {
       using namespace std;
       int offset = *bufferOffset;
       if (buffer.size() < offset + 4 + 128) {
@@ -269,13 +271,13 @@ private:
         if (layerIndex == 0x80) {
           for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-              out[{x, y, z}] = 0;
+              out[{x, y0 + y, z}] = 0;
             }
           }
         } else if (layerIndex == 0x81) {
           for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-              out[{x, y, z}] = 0xff;
+              out[{x, y0 + y, z}] = 0xff;
             }
           }
         } else {
@@ -284,8 +286,8 @@ private:
               int index = offset + 4 + 128 + layerIndex * 128 + x * 8 + iz;
               u8 data = buffer[index];
               int z = iz * 2;
-              out[{x, y, z}] = 0xf & data;
-              out[{x, y, z + 1}] = 0xf & (data >> 4);
+              out[{x, y0 + y, z}] = 0xf & data;
+              out[{x, y0 + y, z + 1}] = 0xf & (data >> 4);
             }
           }
         }
@@ -343,62 +345,44 @@ private:
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
 
-    Data3dSq<u8, 16> blockIdLo({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> blockIdHi({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> blockDataLo({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> blockDataHi({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> skyLightLo({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> skyLightHi({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> blockLightLo({0, 0, 0}, 128, 0);
-    Data3dSq<u8, 16> blockLightHi({0, 0, 0}, 128, 0);
+    Data3dSq<u8, 16> blockId({0, 0, 0}, 256, 0);
+    Data3dSq<u8, 16> blockData({0, 0, 0}, 256, 0);
+    Data3dSq<u8, 16> skyLight({0, 0, 0}, 256, 0);
+    Data3dSq<u8, 16> blockLight({0, 0, 0}, 256, 0);
 
     int offset = startOffset;
-    if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockIdLo); !st.ok()) {
+    if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockId, 0); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockIdHi); !st.ok()) {
+    if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockId, 128); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockDataLo); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockData, 0); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockDataHi); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockData, 128); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLightLo); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLight, 0); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLightHi); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLight, 128); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLightLo); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLight, 0); !st.ok()) {
       return st;
     }
-    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLightHi); !st.ok()) {
+    if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLight, 128); !st.ok()) {
       return st;
     }
 
     {
       Pos3i origin(cx * 16, 0, cz * 16);
-      for (int y = 0; y < 128; y++) {
+      for (int y = 0; y < 256; y++) {
         for (int z = 0; z < 16; z++) {
           for (int x = 0; x < 16; x++) {
-            u8 id = blockIdLo[{x, y, z}];
-            u8 data = blockDataLo[{x, y, z}];
-            if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
-              chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
-            }
-          }
-        }
-      }
-    }
-    {
-      Pos3i origin(cx * 16, 128, cz * 16);
-      for (int y = 0; y < 128; y++) {
-        for (int z = 0; z < 16; z++) {
-          for (int x = 0; x < 16; x++) {
-            u8 id = blockIdHi[{x, y, z}];
-            u8 data = blockDataHi[{x, y, z}];
+            u8 id = blockId[{x, y, z}];
+            u8 data = blockData[{x, y, z}];
             if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
               chunk->setBlockAt(origin + Pos3i{x, y, z}, block);
             }
@@ -427,7 +411,7 @@ private:
     }
     offset += 2 + 256;
 
-    for (int cy = 0; cy < 8; cy++) {
+    for (int cy = 0; cy < 16; cy++) {
       for (auto &section : chunk->fSections) {
         if (!section) {
           continue;
@@ -444,7 +428,7 @@ private:
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
-                u8 l = skyLightLo[{x, cy * 16 + y, z}];
+                u8 l = skyLight[{x, cy * 16 + y, z}];
                 sectionSkyLight->setUnchecked({x, y, z}, l);
                 if (l != 0) {
                   darkness = false;
@@ -465,60 +449,7 @@ private:
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
-                u8 l = blockLightLo[{x, cy * 16 + y, z}];
-                sectionBlockLight->setUnchecked({x, y, z}, l);
-                if (l != 0) {
-                  darkness = false;
-                }
-              }
-            }
-          }
-          if (darkness) {
-            section->fBlockLight.clear();
-          }
-        }
-      }
-    }
-
-    for (int cy = 8; cy < 16; cy++) {
-      for (auto &section : chunk->fSections) {
-        if (!section) {
-          continue;
-        }
-        if (section->y() != cy) {
-          continue;
-        }
-
-        section->fSkyLight.resize(2048);
-        auto sectionSkyLight = mcfile::Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &section->fSkyLight);
-        assert(sectionSkyLight);
-        if (sectionSkyLight) {
-          bool darkness = true;
-          for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-              for (int x = 0; x < 16; x++) {
-                u8 l = skyLightHi[{x, (cy - 8) * 16 + y, z}];
-                sectionSkyLight->setUnchecked({x, y, z}, l);
-                if (l != 0) {
-                  darkness = false;
-                }
-              }
-            }
-          }
-          if (darkness) {
-            section->fSkyLight.clear();
-          }
-        }
-
-        section->fBlockLight.resize(2048);
-        auto sectionBlockLight = mcfile::Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &section->fBlockLight);
-        assert(sectionBlockLight);
-        if (sectionBlockLight) {
-          bool darkness = true;
-          for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-              for (int x = 0; x < 16; x++) {
-                u8 l = blockLightLo[{x, (cy - 8) * 16 + y, z}];
+                u8 l = blockLight[{x, cy * 16 + y, z}];
                 sectionBlockLight->setUnchecked({x, y, z}, l);
                 if (l != 0) {
                   darkness = false;
@@ -667,12 +598,12 @@ private:
     return Status::Ok();
   }
 
-  static Status ConvertLatest(mcfile::Dimension dimension,
-                              int cx,
-                              int cz,
-                              Context const &ctx,
-                              std::vector<u8> &buffer,
-                              std::shared_ptr<mcfile::je::WritableChunk> &result) {
+  static Status ConvertV12(mcfile::Dimension dimension,
+                           int cx,
+                           int cz,
+                           Context const &ctx,
+                           std::vector<u8> &buffer,
+                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
