@@ -672,11 +672,35 @@ private:
           }
         }
       }
+    } else {
+      FillDefaultBiome(dim, *chunk);
     }
 
     result.swap(chunk);
 
     return Status::Ok();
+  }
+
+  static void FillDefaultBiome(mcfile::Dimension dim, mcfile::je::WritableChunk &chunk) {
+    mcfile::biomes::BiomeId biome;
+    switch (dim) {
+    case mcfile::Dimension::End:
+      biome = mcfile::biomes::minecraft::the_end;
+      break;
+    case mcfile::Dimension::Nether:
+      biome = mcfile::biomes::minecraft::nether_wastes;
+      break;
+    default:
+      biome = mcfile::biomes::minecraft::plains;
+      break;
+    }
+    for (int z = 0; z < 16; z++) {
+      for (int x = 0; x < 16; x++) {
+        for (int y = 0; y < 256; y++) {
+          chunk.setBiomeAt(chunk.fChunkX * 16 + x, y, chunk.fChunkZ * 16 + z, biome);
+        }
+      }
+    }
   }
 
   static Status ConvertV12(mcfile::Dimension dimension,
