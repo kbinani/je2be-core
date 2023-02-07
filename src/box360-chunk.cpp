@@ -437,59 +437,6 @@ private:
     }
     offset += 256;
 
-    for (int cy = 0; cy < 16; cy++) {
-      for (auto &section : chunk->fSections) {
-        if (!section) {
-          continue;
-        }
-        if (section->y() != cy) {
-          continue;
-        }
-
-        section->fSkyLight.resize(2048);
-        auto sectionSkyLight = mcfile::Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &section->fSkyLight);
-        assert(sectionSkyLight);
-        if (sectionSkyLight) {
-          bool darkness = true;
-          for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-              for (int x = 0; x < 16; x++) {
-                u8 l = skyLight[{x, cy * 16 + y, z}];
-                sectionSkyLight->setUnchecked({x, y, z}, l);
-                if (l != 0) {
-                  darkness = false;
-                }
-              }
-            }
-          }
-          if (darkness) {
-            section->fSkyLight.clear();
-          }
-        }
-
-        section->fBlockLight.resize(2048);
-        auto sectionBlockLight = mcfile::Data4b3dView::Make({0, 0, 0}, 16, 16, 16, &section->fBlockLight);
-        assert(sectionBlockLight);
-        if (sectionBlockLight) {
-          bool darkness = true;
-          for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-              for (int x = 0; x < 16; x++) {
-                u8 l = blockLight[{x, cy * 16 + y, z}];
-                sectionBlockLight->setUnchecked({x, y, z}, l);
-                if (l != 0) {
-                  darkness = false;
-                }
-              }
-            }
-          }
-          if (darkness) {
-            section->fBlockLight.clear();
-          }
-        }
-      }
-    }
-
     if (buffer.size() < offset + 4) {
       return JE2BE_ERROR;
     }
@@ -513,7 +460,9 @@ private:
     return Status::Ok();
   }
 
-  static void PopulateBlocks(Data3dSq<u8, 16> const &blockId, Data3dSq<u8, 16> const &blockData, mcfile::je::WritableChunk &chunk) {
+  static void PopulateBlocks(Data3dSq<u8, 16> const &blockId,
+                             Data3dSq<u8, 16> const &blockData,
+                             mcfile::je::WritableChunk &chunk) {
     using namespace std;
     Pos3i origin(chunk.fChunkX * 16, 0, chunk.fChunkZ * 16);
     for (int y = 0; y < 256; y++) {
