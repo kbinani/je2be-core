@@ -10,6 +10,8 @@
 #include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
 #include "box360/_terraform.hpp"
+#include "terraform/java/_block-accessor-java-directory.hpp"
+#include "terraform/lighting/_lighting.hpp"
 
 namespace je2be::box360 {
 
@@ -124,7 +126,7 @@ public:
       return st;
     }
 
-    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
+    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region_")) {
       return JE2BE_ERROR;
     }
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "entities")) {
@@ -150,11 +152,104 @@ public:
     if (progress) {
       progress->report((progressChunksOffset + 8192) / double(8192 * 3));
     }
+    if (!st.ok()) {
+      return st;
+    }
+
+    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
+      return JE2BE_ERROR;
+    }
+    st = Parallel::Reduce<Pos2i, Status>(
+        regions,
+        4,
+        Status::Ok(),
+        bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region"),
+        Status::Merge);
+    if (!st.ok()) {
+      return st;
+    }
+    Fs::DeleteAll(outputDirectory / worldDir / "region_");
 
     return st;
   }
 
 private:
+  static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory) {
+    using namespace std;
+    namespace fs = std::filesystem;
+
+    int rx = region.fX;
+    int rz = region.fZ;
+
+    auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    fs::path in = inputDirectory / name;
+    if (!Fs::Exists(in)) {
+      return Status::Ok();
+    }
+    if (auto size = Fs::FileSize(in); size && *size == 0) {
+      return Status::Ok();
+    }
+
+    auto editor = mcfile::je::McaEditor::Open(in);
+    if (!editor) {
+      return Status::Ok();
+    }
+
+    terraform::lighting::LightCache lightCache(rx, rz);
+    auto blockAccessor = make_shared<terraform::java::BlockAccessorJavaDirectory<3, 3>>(rx * 32 - 1, rz * 32 - 1, inputDirectory);
+
+    for (int z = 0; z < 32; z++) {
+      for (int x = 0; x < 32; x++) {
+        int cx = x + rx * 32;
+        int cz = z + rz * 32;
+        auto current = editor->extract(x, z);
+        if (!current) {
+          continue;
+        }
+
+        if (!blockAccessor) {
+          blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, inputDirectory));
+        }
+        if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
+          auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);
+          blockAccessor.reset(next);
+        }
+        blockAccessor->loadAllWith(*editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
+
+        auto copy = current->copy();
+        auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
+        if (!ch) {
+          return JE2BE_ERROR;
+        }
+        blockAccessor->set(ch);
+
+        auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
+        if (!writable) {
+          return JE2BE_ERROR;
+        }
+
+        terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
+        terraform::lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
+
+        lightCache.dispose(cx - 1, cz - 1);
+
+        auto tag = writable->toCompoundTag();
+        if (!tag) {
+          return JE2BE_ERROR;
+        }
+        if (!editor->insert(x, z, *tag)) {
+          return JE2BE_ERROR;
+        }
+      }
+    }
+
+    if (!editor->write(outputDirectory / name)) {
+      return JE2BE_ERROR;
+    }
+
+    return Status::Ok();
+  }
+
   static Status ConcatCompressedNbt(Pos2i region,
                                     std::filesystem::path outputDirectory,
                                     std::filesystem::path chunkTempDir,
@@ -162,8 +257,9 @@ private:
                                     mcfile::je::Region::ConcatOptions options) {
     int rx = region.fX;
     int rz = region.fZ;
-    auto chunkMca = outputDirectory / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    auto entityMca = outputDirectory / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    auto chunkMca = outputDirectory / "region_" / name;
+    auto entityMca = outputDirectory / "entities" / name;
     if (!mcfile::je::Region::ConcatCompressedNbt(rx,
                                                  rz,
                                                  chunkTempDir,

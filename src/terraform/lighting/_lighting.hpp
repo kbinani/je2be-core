@@ -5,6 +5,8 @@
 #include "_data2d.hpp"
 #include "_data3d.hpp"
 #include "_optional.hpp"
+#include "enums/_facing4.hpp"
+#include "enums/_facing6.hpp"
 #include "terraform/_block-property-accessor.hpp"
 #include "terraform/java/_block-accessor-java.hpp"
 #include "terraform/lighting/_chunk-light-cache.hpp"
