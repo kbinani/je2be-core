@@ -18,6 +18,7 @@ public:
     i32 fDataVersion;
     CompoundTagPtr fFlatWorldSettings;
     std::optional<bool> fBonusChestEnabled;
+    std::vector<std::string> fEnabledDataPacks;
   };
 
   static CompoundTagPtr TemplateData(Options o) {
@@ -34,6 +35,9 @@ public:
       dataPacks->set("Disabled", List<Tag::Type::String>());
       auto enabled = List<Tag::Type::String>();
       enabled->push_back(String("vanilla"));
+      for (auto const &pack : o.fEnabledDataPacks) {
+        enabled->push_back(String(pack));
+      }
       dataPacks->set("Enabled", enabled);
       j["DataPacks"] = dataPacks;
     }
