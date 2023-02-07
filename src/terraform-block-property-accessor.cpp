@@ -204,6 +204,14 @@ public:
     return b.fId == mcfile::blocks::minecraft::chest || b.fId == mcfile::blocks::minecraft::trapped_chest;
   }
 
+  static bool IsNetherPortal(mcfile::je::Block const &b) {
+    return b.fId == mcfile::blocks::minecraft::nether_portal;
+  }
+
+  static bool IsNetherPortal(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:portal";
+  }
+
   template <class BlockType>
   static DataType GetBlockProperties(BlockType const &b) {
     if (IsStairs(b)) {
@@ -248,6 +256,8 @@ public:
       return LEAVES;
     } else if (IsChest(b)) {
       return CHEST;
+    } else if (IsNetherPortal(b)) {
+      return NETHER_PORTAL;
     }
     return 0;
   }
@@ -391,6 +401,7 @@ void BlockPropertyAccessor::updateHasProperties(DataType p) {
   fHasWall |= p == WALL;
   fHasLeaves |= p == LEAVES;
   fHasChest |= p == CHEST;
+  fHasNetherPortal |= p == NETHER_PORTAL;
 }
 
 bool BlockPropertyAccessor::IsChorusPlant(mcfile::je::Block const &b) {

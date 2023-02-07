@@ -18,6 +18,7 @@
 #include "terraform/box360/_block-accessor-box360.hpp"
 #include "terraform/box360/_chest.hpp"
 #include "terraform/box360/_kelp.hpp"
+#include "terraform/box360/_nether-portal.hpp"
 
 #include <latch>
 #include <thread>
@@ -153,6 +154,7 @@ private:
     Leaves::Do(*chunk, *cache, accessor);
     Chest::Do(*chunk, *cache, accessor);
     NoteBlock::Do(*chunk, *cache, accessor);
+    NetherPortal::Do(*chunk, *cache, accessor);
 
     for (auto const &section : chunk->fSections) {
       if (!section) {

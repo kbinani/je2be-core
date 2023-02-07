@@ -257,6 +257,7 @@ set(je2be_src_files
   src/terraform/box360/_block-accessor-box360.hpp
   src/terraform/box360/_chest.hpp
   src/terraform/box360/_kelp.hpp
+  src/terraform/box360/_nether-portal.hpp
   src/terraform/java/_block-accessor-java-directory.hpp
   src/terraform/java/_block-accessor-java-mca.hpp
   src/terraform/java/_block-accessor-java.hpp
