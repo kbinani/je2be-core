@@ -519,8 +519,11 @@ private:
     for (int y = 0; y < 256; y++) {
       for (int z = 0; z < 16; z++) {
         for (int x = 0; x < 16; x++) {
-          u8 id = blockId[{x, y, z}];
-          u8 data = blockData[{x, y, z}];
+          u8 rawId = blockId[{x, y, z}];
+          u8 rawData = blockData[{x, y, z}];
+          BlockData bd(rawId, rawData);
+          u16 id = bd.id();
+          u8 data = bd.data();
           if (id == 175 && data == 10 && y - 1 >= 0) {
             // upper half of tall flowers
             u8 lowerId = blockId[{x, y - 1, z}];
@@ -553,13 +556,13 @@ private:
               }
             }
             if (!block) {
-              block = mcfile::je::Flatten::DoFlatten(id, data);
+              block = bd.toBlock();
             }
             if (block) {
               chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
             }
           } else {
-            if (auto block = mcfile::je::Flatten::DoFlatten(id, data); block) {
+            if (auto block = bd.toBlock(); block) {
               chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
             }
           }
@@ -733,7 +736,8 @@ private:
       maybeNumBlockPaletteEntriesFor16Sections.push_back(numBlockPaletteEntries);
     }
 
-    vector<u16> sectionBlocks(4096); // sectionBlocks[(y * 16 + z) * 16 + x]
+    Data3dSq<u8, 16> blockId({0, 0, 0}, 256, 0);
+    Data3dSq<u8, 16> blockData({0, 0, 0}, 256, 0);
 
     for (int section = 0; section < 16; section++) {
       int address = sectionJumpTable[section];
@@ -745,7 +749,6 @@ private:
         break;
       }
 
-      unordered_set<u16> usedBlockData;
       vector<u8> gridJumpTable;                                                  // "grid" is a cube of 4x4x4 blocks.
       copy_n(buffer.data() + 0x4c + address, 128, back_inserter(gridJumpTable)); // [0x4c, 0xcb]
       for (int gx = 0; gx < 4; gx++) {
@@ -839,64 +842,20 @@ private:
                 for (int ly = 0; ly < 4; ly++) {
                   int idx = lx * 16 + lz * 4 + ly;
                   u16 bd = grid[idx];
-                  int indexInSection = ((gy * 4 + ly) * 16 + (gz * 4 + lz)) * 16 + gx * 4 + lx;
-                  sectionBlocks[indexInSection] = bd;
-                  usedBlockData.insert(bd);
+                  int x = gx * 4 + lx;
+                  int y = section * 16 + gy * 4 + ly;
+                  int z = gz * 4 + lz;
+                  blockId[{x, y, z}] = 0xff & (bd >> 8);
+                  blockData[{x, y, z}] = 0xff & bd;
                 }
               }
             }
-          }
-        }
-      }
-
-      unordered_map<u16, shared_ptr<mcfile::je::Block const>> usedBlocks;
-      for (u16 data : usedBlockData) {
-        BlockData bd(data);
-        if (bd.extendedBlockId() == 175 && bd.data() == 10) {
-          // upper half of tall flowers
-          continue;
-        }
-        usedBlocks[data] = bd.toBlock();
-      }
-      int index = 0;
-      for (int y = 0; y < 16; y++) {
-        for (int z = 0; z < 16; z++) {
-          for (int x = 0; x < 16; x++) {
-            u16 data = sectionBlocks[index];
-            BlockData bd(data);
-            shared_ptr<mcfile::je::Block const> block;
-            if (bd.extendedBlockId() == 175 && bd.data() == 10) [[unlikely]] {
-              // upper half of tall flowers
-              if (y == 0) {
-                if (section == 0) [[unlikely]] {
-                  block = bd.toBlock();
-                } else {
-                  if (auto lower = chunk->blockAt(cx * 16 + x, section * 16 + y - 1, cz * 16 + z); lower) {
-                    block = lower->applying({{"half", "upper"}});
-                  } else {
-                    block = bd.toBlock();
-                  }
-                }
-              } else {
-                int lowerIndex = ((y - 1) * 16 + z) * 16 + x;
-                u16 lowerBlockData = sectionBlocks[lowerIndex];
-                auto lower = usedBlocks[lowerBlockData];
-                block = lower->applying({{"half", "upper"}});
-              }
-            } else {
-              block = usedBlocks[data];
-            }
-
-            int bx = cx * 16 + x;
-            int by = section * 16 + y;
-            int bz = cz * 16 + z;
-            chunk->setBlockAt(bx, by, bz, block);
-
-            index++;
           }
         }
       }
     }
+
+    PopulateBlocks(blockId, blockData, *chunk);
 
     int pos = maxSectionAddress + 0x4c;
     for (int i = 0; i < 4; i++) {

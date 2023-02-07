@@ -6,32 +6,24 @@
 
 namespace je2be::box360 {
 
-struct BlockData : public std::pair<u8, u8> {
+struct BlockData {
 private:
   class Impl;
 
 public:
-  explicit BlockData(u16 data) : std::pair<u8, u8>(0xff & (data >> 8), 0xff & data) {}
-  BlockData() : std::pair<u8, u8>(0, 0) {}
+  BlockData() : fRawId(0), fRawData(0) {}
+  BlockData(u8 rawId, u8 rawData) : fRawId(rawId), fRawData(rawData) {}
 
-  u16 rawBlockId() const {
-    return this->first;
-  }
-
-  u8 rawData() const {
-    return this->second;
-  };
-
-  u16 extendedBlockId() const {
-    return (((u16)rawData() & 0x70) << 4) | rawBlockId();
+  u16 id() const {
+    return (((u16)fRawData & 0x70) << 4) | fRawId;
   }
 
   u8 data() const {
-    return rawData() & 0xf;
+    return fRawData & 0xf;
   }
 
   bool isWaterlogged() const {
-    return (rawData() & 0x80) == 0x80;
+    return (fRawData & 0x80) == 0x80;
   }
 
   std::shared_ptr<mcfile::je::Block const> toBlock() const {
@@ -48,6 +40,11 @@ public:
     }
   }
 
+public:
+  u8 fRawId;
+  u8 fRawData;
+
+private:
   std::shared_ptr<mcfile::je::Block const> unsafeToBlock() const;
 };
 
