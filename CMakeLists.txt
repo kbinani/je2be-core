@@ -261,6 +261,11 @@ set(je2be_src_files
   src/terraform/java/_block-accessor-java-directory.hpp
   src/terraform/java/_block-accessor-java-mca.hpp
   src/terraform/java/_block-accessor-java.hpp
+  src/terraform/lighting/_chunk-light-cache.hpp
+  src/terraform/lighting/_chunk-lighting-model.hpp
+  src/terraform/lighting/_light-cache.hpp
+  src/terraform/lighting/_lighting-model.hpp
+  src/terraform/lighting/_lighting.hpp
   src/tile-entity/_loot-table.hpp
   src/tobe-block-data.cpp
   src/tobe-chunk-data-package.cpp
@@ -333,11 +338,6 @@ set(je2be_src_files
   src/toje/_structure-info.hpp
   src/toje/_sub-chunk.hpp
   src/toje/_world.hpp
-  src/toje/lighting/_chunk-light-cache.hpp
-  src/toje/lighting/_chunk-lighting-model.hpp
-  src/toje/lighting/_light-cache.hpp
-  src/toje/lighting/_lighting-model.hpp
-  src/toje/lighting/_lighting.hpp
   src/toje/terraform/_beacon.hpp
   src/toje/terraform/_campfire.hpp
   src/toje/terraform/_cave-vines.hpp

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "toje/lighting/_chunk-lighting-model.hpp"
-#include "toje/lighting/_lighting-model.hpp"
+#include "terraform/lighting/_chunk-lighting-model.hpp"
+#include "terraform/lighting/_lighting-model.hpp"
 
-namespace je2be::toje::lighting {
+namespace je2be::terraform::lighting {
 
 class LightCache {
 public:
@@ -59,4 +59,4 @@ private:
   Data2d<std::shared_ptr<ChunkLightCache>> fBlockLights;
 };
 
-} // namespace je2be::toje::lighting
+} // namespace je2be::terraform::lighting

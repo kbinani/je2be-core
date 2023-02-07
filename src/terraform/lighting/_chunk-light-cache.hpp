@@ -2,7 +2,7 @@
 
 #include <je2be/integers.hpp>
 
-namespace je2be::toje::lighting {
+namespace je2be::terraform::lighting {
 
 class ChunkLightCache {
 public:
@@ -114,4 +114,4 @@ private:
   std::shared_ptr<mcfile::Data4b3d> fWest;
 };
 
-} // namespace je2be::toje::lighting
+} // namespace je2be::terraform::lighting

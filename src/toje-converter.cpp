@@ -10,10 +10,10 @@
 #include "enums/_game-mode.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
+#include "terraform/lighting/_lighting.hpp"
 #include "toje/_context.hpp"
 #include "toje/_level-data.hpp"
 #include "toje/_world.hpp"
-#include "toje/lighting/_lighting.hpp"
 
 #include <atomic>
 #include <latch>
@@ -296,7 +296,7 @@ private:
           }
         }
 
-        lighting::LightCache lightCache(rx, rz);
+        terraform::lighting::LightCache lightCache(rx, rz);
 
         for (int z = 0; z < 32; z++) {
           for (int x = 0; x < 32; x++) {
@@ -358,7 +358,7 @@ private:
       fs::path inputDirectory,
       std::shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> &blockAccessor,
       mcfile::Dimension dim,
-      lighting::LightCache &lightCache) {
+      terraform::lighting::LightCache &lightCache) {
     int rx = mcfile::Coordinate::RegionFromChunk(cx);
     int rz = mcfile::Coordinate::RegionFromChunk(cz);
 
@@ -393,7 +393,7 @@ private:
 
     terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
     terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
-    lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
+    terraform::lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
 
     auto tag = writable->toCompoundTag();
     if (!tag) {
