@@ -514,6 +514,7 @@ private:
   }
 
   static void PopulateBlocks(Data3dSq<u8, 16> const &blockId, Data3dSq<u8, 16> const &blockData, mcfile::je::WritableChunk &chunk) {
+    using namespace std;
     Pos3i origin(chunk.fChunkX * 16, 0, chunk.fChunkZ * 16);
     for (int y = 0; y < 256; y++) {
       for (int z = 0; z < 16; z++) {
@@ -526,6 +527,35 @@ private:
             u8 lowerData = blockData[{x, y - 1, z}];
             if (auto lower = mcfile::je::Flatten::DoFlatten(lowerId, lowerData); lower) {
               auto block = lower->applying({{"half", "upper"}});
+              chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+            }
+          } else if (id == 64) {
+            shared_ptr<mcfile::je::Block const> block;
+            if (y - 1 >= 0) {
+              u8 lowerId = blockId[{x, y - 1, z}];
+              if (lowerId == 64) {
+                u8 lowerData = blockData[{x, y - 1, z}];
+                map<string, string> props;
+                mcfile::je::Flatten::Door(lowerData, props);
+                mcfile::je::Flatten::Door(data, props);
+                block = make_shared<mcfile::je::Block>("minecraft:oak_door", props);
+              }
+            }
+            if (!block && y + 1 < 256) {
+              u8 upperId = blockId[{x, y + 1, z}];
+              if (upperId == 64) {
+                u8 upperData = blockData[{x, y + 1, z}];
+                map<string, string> props;
+                mcfile::je::Flatten::Door(upperData, props);
+                mcfile::je::Flatten::Door(data, props);
+                auto block = make_shared<mcfile::je::Block>("minecraft:oak_door", props);
+                chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+              }
+            }
+            if (!block) {
+              block = mcfile::je::Flatten::DoFlatten(id, data);
+            }
+            if (block) {
               chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
             }
           } else {
