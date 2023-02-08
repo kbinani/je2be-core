@@ -100,14 +100,20 @@ public:
   }
 
 private:
-  struct CopyPlayerResult {
-    CompoundTagPtr fLocalPlayer;
+  struct PlayerInfo {
+    std::string fUuidX;
+    Uuid fUuidJ;
+    CompoundTag fPlayer;
   };
 
-  static Nullable<CopyPlayerResult> CopyPlayers(std::filesystem::path const &inputDirectory,
-                                                std::filesystem::path const &outputDirectory,
-                                                Context &ctx,
-                                                Options const &options) {
+  struct CopyPlayersResult {
+    std::shared_ptr<PlayerInfo> fLocalPlayer;
+  };
+
+  static Nullable<CopyPlayersResult> CopyPlayers(std::filesystem::path const &inputDirectory,
+                                                 std::filesystem::path const &outputDirectory,
+                                                 Context &ctx,
+                                                 Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -118,8 +124,8 @@ private:
       return JE2BE_NULLABLE_NULL;
     }
 
-    CopyPlayerResult r;
-    vector<CompoundTagPtr> players;
+    CopyPlayersResult r;
+    vector<shared_ptr<PlayerInfo>> players;
 
     error_code ec;
     for (auto it : fs::directory_iterator(playersFrom, ec)) {
@@ -130,51 +136,27 @@ private:
       if (!player) {
         continue;
       }
-      if (r.fLocalPlayer) {
-        players.push_back(player);
-      } else {
-        r.fLocalPlayer = player;
-      }
+      players.push_back(player);
+    }
+    if (players.size() == 1) {
+      r.fLocalPlayer = players[0];
+      players.clear();
     }
 
-    for (auto &player : players) {
-      auto uuidB = player->string("UUID");
-      if (!uuidB) {
-        return JE2BE_NULLABLE_NULL;
-      }
-      auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
-      if (!uuidJ) {
-        return JE2BE_NULLABLE_NULL;
-      }
-      player->set("UUID", uuidJ->toIntArrayTag());
-    }
     if (r.fLocalPlayer) {
-      auto uuidB = r.fLocalPlayer->string("UUID");
-      if (!uuidB) {
-        return JE2BE_NULLABLE_NULL;
-      }
       if (options.fLocalPlayer) {
-        r.fLocalPlayer->set("UUID", options.fLocalPlayer->toIntArrayTag());
-        ctx.fPlayers.insert(make_pair(*uuidB, *options.fLocalPlayer));
+        r.fLocalPlayer->fPlayer.set("UUID", options.fLocalPlayer->toIntArrayTag());
+        ctx.fPlayers.insert(make_pair(r.fLocalPlayer->fUuidX, *options.fLocalPlayer));
       } else {
-        auto uuidJ = Entity::MigrateUuid(*uuidB, ctx);
-        if (!uuidJ) {
-          return JE2BE_NULLABLE_NULL;
-        }
-        r.fLocalPlayer->set("UUID", uuidJ->toIntArrayTag());
-        ctx.fPlayers.insert(make_pair(*uuidB, *uuidJ));
+        ctx.fPlayers.insert(make_pair(r.fLocalPlayer->fUuidX, r.fLocalPlayer->fUuidJ));
       }
       players.push_back(r.fLocalPlayer);
     }
 
     for (auto const &player : players) {
-      auto uuidJ = props::GetUuidWithFormatIntArray(*player, "UUID");
-      if (!uuidJ) {
-        return JE2BE_NULLABLE_NULL;
-      }
-      auto filename = uuidJ->toString() + ".dat";
+      auto filename = player->fUuidJ.toString() + ".dat";
       auto filePath = playersTo / filename;
-      if (!CompoundTag::Write(*player, filePath, mcfile::Endian::Big)) {
+      if (!CompoundTag::Write(player->fPlayer, filePath, mcfile::Endian::Big)) {
         return JE2BE_NULLABLE_NULL;
       }
     }
@@ -182,7 +164,7 @@ private:
     return r;
   }
 
-  static CompoundTagPtr CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
+  static std::shared_ptr<PlayerInfo> CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
     using namespace std;
     auto stream = make_shared<mcfile::stream::FileInputStream>(inputFile);
     auto in = CompoundTag::Read(stream, mcfile::Endian::Big);
@@ -192,20 +174,22 @@ private:
       return nullptr;
     }
 
-    auto out = in->copy();
-    out->erase("GamePrivileges");
-    out->erase("Sleeping");
+    auto r = make_shared<PlayerInfo>();
+    r->fPlayer.fValue.swap(in->copy()->fValue);
 
-    Entity::CopyItems(*in, *out, ctx, "EnderItems");
-    Entity::CopyItems(*in, *out, ctx, "Inventory");
+    r->fPlayer.erase("GamePrivileges");
+    r->fPlayer.erase("Sleeping");
+
+    Entity::CopyItems(*in, r->fPlayer, ctx, "EnderItems");
+    Entity::CopyItems(*in, r->fPlayer, ctx, "Inventory");
 
     if (auto dimensionB = in->int32("Dimension"); dimensionB) {
       if (auto dimension = DimensionFromXbox360Dimension(*dimensionB); dimension) {
-        out->set("Dimension", String(JavaStringFromDimension(*dimension)));
+        r->fPlayer.set("Dimension", String(JavaStringFromDimension(*dimension)));
       }
     }
 
-    out->set("DataVersion", Int(Chunk::kTargetDataVersion));
+    r->fPlayer.set("DataVersion", Int(Chunk::kTargetDataVersion));
 
     if (auto rootVehicleB = in->compoundTag("RootVehicle"); rootVehicleB) {
       auto rootVehicleJ = Compound();
@@ -219,10 +203,32 @@ private:
           rootVehicleJ->set("Attach", attachJ->toIntArrayTag());
         }
       }
-      out->set("RootVehicle", rootVehicleJ);
+      r->fPlayer.set("RootVehicle", rootVehicleJ);
     }
 
-    return out;
+    shared_ptr<Uuid> uuidJ;
+    if (auto uuidB = in->string("UUID"); uuidB) {
+      if (auto migrated = Entity::MigrateUuid(*uuidB, ctx); migrated) {
+        uuidJ = make_shared<Uuid>(*migrated);
+        r->fUuidX = *uuidB;
+      }
+    }
+    if (!uuidJ) {
+      auto name = inputFile.filename().replace_extension().string();
+      // TODO: should this be converted to "entNNNN.." format?
+      if (auto id = strings::ToU64(name, 10); id) {
+        auto generated = Uuid::GenWithU64Seed(*id);
+        uuidJ = make_shared<Uuid>(generated);
+        r->fUuidX = "je2be_internal_" + name;
+      }
+    }
+    if (!uuidJ) {
+      return nullptr;
+    }
+    r->fPlayer.set("UUID", uuidJ->toIntArrayTag());
+
+    r->fUuidJ = *uuidJ;
+    return r;
   }
 
   static void CopyTransparent16x16Png(std::vector<u8> &buffer) {
@@ -349,7 +355,7 @@ private:
   static Status CopyLevelDat(std::filesystem::path const &inputDirectory,
                              std::filesystem::path const &outputDirectory,
                              std::optional<std::chrono::system_clock::time_point> lastPlayed,
-                             CompoundTagPtr const &localPlayer,
+                             std::shared_ptr<PlayerInfo> const &localPlayer,
                              Context const &ctx) {
     using namespace std;
     namespace fs = std::filesystem;
@@ -413,7 +419,7 @@ private:
     }
 
     if (localPlayer) {
-      out->set("Player", localPlayer);
+      out->set("Player", localPlayer->fPlayer.copy());
     }
 
     auto outRoot = Compound();

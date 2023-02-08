@@ -87,6 +87,15 @@ inline std::optional<i64> Tol(std::string_view const &s, int base = 10) {
   }
 }
 
+inline std::optional<u64> ToU64(std::string_view const &s, int base = 10) {
+  u64 v = 0;
+  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+    return v;
+  } else {
+    return std::nullopt;
+  }
+}
+
 inline std::optional<float> Tof(std::string_view const &s) {
   float v = 0;
 #if defined(_MSC_VER)
