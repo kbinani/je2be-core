@@ -10,6 +10,7 @@
 #include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
 #include "box360/_terraform.hpp"
+#include "terraform/box360/_nether-portal.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "terraform/lighting/_lighting.hpp"
 
@@ -208,10 +209,10 @@ private:
         }
 
         if (!blockAccessor) {
-          blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 1, cz - 1, inputDirectory));
+          blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 2, cz - 2, inputDirectory));
         }
-        if (blockAccessor->fChunkX != cx - 1 || blockAccessor->fChunkZ != cz - 1) {
-          auto next = blockAccessor->makeRelocated(cx - 1, cz - 1);
+        if (blockAccessor->fChunkX != cx - 2 || blockAccessor->fChunkZ != cz - 2) {
+          auto next = blockAccessor->makeRelocated(cx - 2, cz - 2);
           blockAccessor.reset(next);
         }
         blockAccessor->loadAllWith(*editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
@@ -229,6 +230,7 @@ private:
         }
 
         terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
+        terraform::box360::NetherPortal::Do(*writable, *blockAccessor, propertyAccessor);
         terraform::lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
 
         lightCache.dispose(cx - 1, cz - 1);
