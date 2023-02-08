@@ -888,7 +888,7 @@ private:
       m.fBehaveAsAirWhenOpenUp = true;
       return m;
     } else if (block.fId == snow) {
-      auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
+      auto layers = Wrap(strings::ToI32(block.property("layers", "1")), 1);
       if (layers == 8) {
         LightingModel m;
         m.fEmission = 0;
@@ -1068,7 +1068,7 @@ private:
       }
     } else if (block.fName.ends_with("candle")) {
       if (block.property("lit") == "true") {
-        auto candles = Wrap(strings::Toi(block.property("candles", "1")), 1);
+        auto candles = Wrap(strings::ToI32(block.property("candles", "1")), 1);
         return candles * 3;
       } else {
         return 0;
@@ -1083,13 +1083,13 @@ private:
       }
     } else if (block.fId == sea_pickle) {
       if (block.property("waterlogged") == "true") {
-        auto pickles = Wrap(strings::Toi(block.property("pickles", "1")), 1);
+        auto pickles = Wrap(strings::ToI32(block.property("pickles", "1")), 1);
         return (pickles + 1) * 3;
       } else {
         return 0;
       }
     } else if (block.fId == light) {
-      return Wrap(strings::Toi(block.property("level", "1")), 1);
+      return Wrap(strings::ToI32(block.property("level", "1")), 1);
     } else if (block.fId == redstone_ore || block.fId == deepslate_redstone_ore) {
       if (block.property("lit") == "true") {
         return 9;
@@ -1097,7 +1097,7 @@ private:
         return 0;
       }
     } else if (block.fId == respawn_anchor) {
-      auto charges = Wrap(strings::Toi(block.property("charges", "0")), 0);
+      auto charges = Wrap(strings::ToI32(block.property("charges", "0")), 0);
       if (charges <= 0) {
         return 0;
       } else {

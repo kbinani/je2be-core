@@ -95,7 +95,7 @@ public:
 
   static void PersistentAndDistanceToPersistentBitAndUpdateBit(CompoundTagPtr const &s, Block const &block) {
     auto persistent = block.property("persistent", "false") == "true";
-    auto distance = Wrap(strings::Toi(block.property("distance", "7")), 7);
+    auto distance = Wrap(strings::ToI32(block.property("distance", "7")), 7);
     s->set("persistent_bit", Bool(persistent));
     // NOTE:
     //  Java: leaves decay when distance > 6
@@ -126,7 +126,7 @@ public:
 
   static void PicklesToClusterCount(CompoundTagPtr const &s, Block const &block) {
     auto pickles = block.property("pickles", "1");
-    auto cluster = Wrap(strings::Toi(pickles), 1) - 1;
+    auto cluster = Wrap(strings::ToI32(pickles), 1) - 1;
     s->set("cluster_count", Int(cluster));
   }
 
@@ -137,7 +137,7 @@ public:
   }
 
   static PropertyType Age(Block const &block) {
-    auto age = Wrap(strings::Toi(block.property("age", "0")), 0);
+    auto age = Wrap(strings::ToI32(block.property("age", "0")), 0);
     return Int(age);
   }
 
@@ -146,7 +146,7 @@ public:
   }
 
   static PropertyType Level(Block const &block) {
-    auto level = Wrap(strings::Toi(block.property("level", "0")), 0);
+    auto level = Wrap(strings::ToI32(block.property("level", "0")), 0);
     return Int(level);
   }
 
@@ -390,7 +390,7 @@ public:
   static Converter StoneBrick(std::string const &type) { return Subtype("stonebrick", "stone_brick_type", type); }
 
   static void LayersToHeight(CompoundTagPtr const &s, Block const &block) {
-    auto layers = Wrap(strings::Toi(block.property("layers", "1")), 1);
+    auto layers = Wrap(strings::ToI32(block.property("layers", "1")), 1);
     s->set("height", Int(layers - 1));
   }
 
@@ -405,7 +405,7 @@ public:
   static CompoundTagPtr MangrovePropagule(Block const &b, CompoundTagConstPtr const &) {
     auto d = New("mangrove_propagule");
     auto s = States();
-    int age = Wrap(strings::Toi(b.property("age", "0")), 0);
+    int age = Wrap(strings::ToI32(b.property("age", "0")), 0);
     bool hanging = b.property("hanging") == "true";
     s->set("hanging", Bool(hanging));
     s->set("propagule_stage", Int(age));
@@ -476,7 +476,7 @@ public:
   static Converter Fence(std::string const &type) { return Subtype("fence", "wood_type", type); }
 
   static PropertyType Moisture(Block const &block) {
-    auto v = Wrap(strings::Toi(block.property("moisture", "0")), 0);
+    auto v = Wrap(strings::ToI32(block.property("moisture", "0")), 0);
     return Int(v);
   }
 
@@ -612,7 +612,7 @@ public:
   }
 
   static PropertyType Rotation(Block const &block) {
-    auto r = Wrap(strings::Toi(block.property("rotation", "0")), 0);
+    auto r = Wrap(strings::ToI32(block.property("rotation", "0")), 0);
     return Int(r);
   }
 
@@ -1663,7 +1663,7 @@ public:
     auto c = New(block.fName, true);
     auto s = States();
     s->set("attached_bit", Bool(block.property("attached", "false") == "true"));
-    s->set("ground_sign_direction", Int(Wrap(strings::Toi(block.property("rotation", "0")), 0)));
+    s->set("ground_sign_direction", Int(Wrap(strings::ToI32(block.property("rotation", "0")), 0)));
     s->set("facing_direction", Int(0));
     s->set("hanging", Bool(true));
     return AttachStates(c, s);
@@ -1673,7 +1673,7 @@ public:
     auto c = New(block.fName, true);
     auto s = States();
     BambooLeafSizeFromLeaves(s, block);
-    auto stage = Wrap(strings::Toi(block.property("stage", "0")), 0);
+    auto stage = Wrap(strings::ToI32(block.property("stage", "0")), 0);
     s->set("age_bit", Bool(stage > 0));
     BambooStalkThicknessFromAge(s, block);
     return AttachStates(c, s);
@@ -1689,7 +1689,7 @@ public:
   static CompoundTagPtr PistonArmCollision(Block const &block) {
     auto c = New("piston_arm_collision");
     auto s = States();
-    auto direction = strings::Toi(block.property("facing_direction", "0"));
+    auto direction = strings::ToI32(block.property("facing_direction", "0"));
     s->set("facing_direction", Int(Wrap(direction, 0)));
     return AttachStates(c, s);
   }
@@ -1697,7 +1697,7 @@ public:
   static CompoundTagPtr StickyPistonArmCollision(Block const &block) {
     auto c = New("sticky_piston_arm_collision");
     auto s = States();
-    auto direction = strings::Toi(block.property("facing_direction", "0"));
+    auto direction = strings::ToI32(block.property("facing_direction", "0"));
     s->set("facing_direction", Int(Wrap(direction, 0)));
     return AttachStates(c, s);
   }
@@ -1740,7 +1740,7 @@ public:
   static CompoundTagPtr RespawnAnchor(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("respawn_anchor");
     auto s = States();
-    auto charges = strings::Toi(block.property("charges", "0"));
+    auto charges = strings::ToI32(block.property("charges", "0"));
     i32 charge = 0;
     if (charges) {
       charge = *charges;
@@ -1782,7 +1782,7 @@ public:
   static CompoundTagPtr Scaffolding(Block const &block, CompoundTagConstPtr const &) {
     auto c = New("scaffolding");
     auto s = States();
-    auto distance = strings::Toi(block.property("distance", "0"));
+    auto distance = strings::ToI32(block.property("distance", "0"));
     i32 stability = 0;
     if (distance) {
       stability = *distance;
@@ -1806,7 +1806,7 @@ public:
 
   static CompoundTagPtr CaveVines(Block const &block, CompoundTagConstPtr const &) {
     bool berries = block.property("berries", "false") == "true";
-    auto age = Wrap(strings::Toi(block.property("age", "1")), 1);
+    auto age = Wrap(strings::ToI32(block.property("age", "1")), 1);
     auto c = New(berries ? "cave_vines_head_with_berries" : "cave_vines");
     auto s = States();
     s->set("growing_plant_age", Int(age));
@@ -1823,7 +1823,7 @@ public:
 
   static PropertyType Candles(Block const &block) {
     auto candles = block.property("candles", "1");
-    auto num = strings::Toi(candles);
+    auto num = strings::ToI32(candles);
     int i = 0;
     if (num) {
       i = std::clamp(*num, 1, 4) - 1;
@@ -1834,7 +1834,7 @@ public:
   static CompoundTagPtr Light(Block const &b, CompoundTagConstPtr const &) {
     auto c = New("light_block");
     auto s = States();
-    auto level = strings::Toi(b.property("level", "15"));
+    auto level = strings::ToI32(b.property("level", "15"));
     s->set("block_light_level", Int(level ? *level : 15));
     return AttachStates(c, s);
   }
@@ -1871,7 +1871,7 @@ public:
   }
 
   static void HoneyLevel(CompoundTagPtr const &s, Block const &b) {
-    auto v = strings::Toi(b.property("honey_level", "0"));
+    auto v = strings::ToI32(b.property("honey_level", "0"));
     i32 level = v ? *v : 0;
     s->set("honey_level", Int(level));
   }
@@ -1920,12 +1920,12 @@ public:
   }
 
   static void CauldronFillLevelFromLevel(CompoundTagPtr const &s, Block const &b) {
-    auto level = Wrap(strings::Toi(b.property("level", "0")), 0);
+    auto level = Wrap(strings::ToI32(b.property("level", "0")), 0);
     s->set("fill_level", Int(level * 2));
   }
 
   static void BiteCounterFromBites(CompoundTagPtr const &s, Block const &b) {
-    auto bites = Wrap(strings::Toi(b.property("bites", "0")), 0);
+    auto bites = Wrap(strings::ToI32(b.property("bites", "0")), 0);
     s->set("bite_counter", Int(bites));
   }
 
@@ -1935,7 +1935,7 @@ public:
   }
 
   static void GrowthFromAge(CompoundTagPtr const &s, Block const &b) {
-    auto age = Wrap(strings::Toi(b.property("age", "0")), 0);
+    auto age = Wrap(strings::ToI32(b.property("age", "0")), 0);
     i32 growth = 0;
     switch (age) {
     case 0:
@@ -2010,7 +2010,7 @@ public:
   }
 
   static PropertyType Delay(Block const &b) {
-    auto delay = Wrap(strings::Toi(b.property("delay", "1")), 1);
+    auto delay = Wrap(strings::ToI32(b.property("delay", "1")), 1);
     return Int(delay - 1);
   }
 
@@ -2096,7 +2096,7 @@ public:
     s->set("facing_direction", Int(direction));
   }
 
-  static PropertyType Power(Block const &b) { return Int(Wrap(strings::Toi(b.property("power", "0")), 0)); }
+  static PropertyType Power(Block const &b) { return Int(Wrap(strings::ToI32(b.property("power", "0")), 0)); }
 
   static PropertyType InWall(Block const &b) { return Bool(b.property("in_wall", "false") == "true"); }
 

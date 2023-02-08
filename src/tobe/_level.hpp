@@ -259,7 +259,7 @@ public:
 #define I(__name, __var)                       \
   auto __name = gameRules->stringTag(#__name); \
   if (__name) {                                \
-    auto v = strings::Toi(__name->fValue);     \
+    auto v = strings::ToI32(__name->fValue);   \
     if (v) {                                   \
       __var = *v;                              \
     }                                          \

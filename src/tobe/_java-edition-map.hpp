@@ -82,7 +82,7 @@ private:
         continue;
       }
       auto numberStr = strings::Trim("map_", name, ".dat");
-      auto number = strings::Toi(numberStr);
+      auto number = strings::ToI32(numberStr);
       if (!number) {
         continue;
       }

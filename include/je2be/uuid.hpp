@@ -54,7 +54,7 @@ struct Uuid {
     u8 data[16];
     for (int i = 0; i < 16; i++) {
       auto sub = uuid.substr(i * 2, 2);
-      auto converted = strings::Toi(sub, 16);
+      auto converted = strings::ToI32(sub, 16);
       if (!converted) {
         return nullopt;
       }

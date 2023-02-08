@@ -134,7 +134,7 @@ public:
 
       if (auto found = tickingLiquidOriginalBlocks.find(Pos3i(tb.fX, tb.fY, tb.fZ)); found != tickingLiquidOriginalBlocks.end()) {
         auto original = found->second;
-        if (auto level = strings::Toi(original->property("level")); level) {
+        if (auto level = strings::ToI32(original->property("level")); level) {
           if (auto st = blockB->compoundTag("states"); st) {
             st->set("liquid_depth", Int(*level));
           }

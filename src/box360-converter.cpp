@@ -490,7 +490,7 @@ private:
         continue;
       }
       auto numberString = strings::RTrim(strings::LTrim(fileNameString, "map_"), ".dat");
-      auto number = strings::Toi(numberString);
+      auto number = strings::ToI32(numberString);
       if (!number) {
         continue;
       }

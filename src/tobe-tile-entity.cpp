@@ -794,7 +794,7 @@ private:
   static CompoundTagPtr Note(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
-    auto note = strings::Toi(b.property("note", "0"));
+    auto note = strings::ToI32(b.property("note", "0"));
     if (!note) {
       return nullptr;
     }
@@ -943,7 +943,7 @@ private:
     auto tag = Compound();
     auto const &name = b.fName;
     i8 type = Item::GetSkullTypeFromBlockName(name);
-    auto rot = Wrap(strings::Toi(b.property("rotation", "0")), 0);
+    auto rot = Wrap(strings::ToI32(b.property("rotation", "0")), 0);
     float rotation = rot / 16.0f * 360.0f;
     tag->insert({
         {"id", String("Skull")},
