@@ -464,10 +464,18 @@ private:
                              Data3dSq<u8, 16> const &blockData,
                              mcfile::je::WritableChunk &chunk) {
     using namespace std;
+    if (blockId.fStart != blockData.fStart) {
+      assert(false);
+      return;
+    }
+    if (blockId.fEnd != blockData.fEnd) {
+      assert(false);
+      return;
+    }
     Pos3i origin(chunk.fChunkX * 16, 0, chunk.fChunkZ * 16);
-    for (int y = 0; y < 256; y++) {
-      for (int z = 0; z < 16; z++) {
-        for (int x = 0; x < 16; x++) {
+    for (int y = blockId.fStart.fY; y <= blockId.fEnd.fY; y++) {
+      for (int z = blockId.fStart.fZ; z <= blockId.fEnd.fZ; z++) {
+        for (int x = blockId.fStart.fX; x <= blockId.fEnd.fX; x++) {
           u8 rawId = blockId[{x, y, z}];
           u8 rawData = blockData[{x, y, z}];
           BlockData bd(rawId, rawData);
@@ -500,8 +508,7 @@ private:
                 map<string, string> props;
                 mcfile::je::Flatten::Door(upperData, props);
                 mcfile::je::Flatten::Door(data, props);
-                auto block = make_shared<mcfile::je::Block>("minecraft:oak_door", props);
-                chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+                block = make_shared<mcfile::je::Block>("minecraft:oak_door", props);
               }
             }
             if (!block) {
@@ -573,6 +580,9 @@ private:
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
 
+    Data3dSq<u8, 16> blockId({0, 0, 0}, maxY, 0);
+    Data3dSq<u8, 16> blockData({0, 0, 0}, maxY, 0);
+
     for (int x = 0; x < 16; x++) {
       for (int z = 0; z < 16; z++) {
         for (int y = 0; y < 128; y++) {
@@ -583,12 +593,8 @@ private:
           } else {
             d = 0xf & (d >> 4);
           }
-          u8 blockId = blocks->fValue[index];
-          auto block = mcfile::je::Flatten::DoFlatten(blockId, d);
-          if (!block) {
-            continue;
-          }
-          chunk->setBlockAt({cx * 16 + x, y, cz * 16 + z}, block);
+          blockId[{x, y, z}] = blocks->fValue[index];
+          blockData[{x, y, z}] = d;
         }
         for (int y = 128; y < maxY; y++) {
           int index = (x * 16 + z) * 128 + (y - 128);
@@ -598,15 +604,13 @@ private:
           } else {
             d = 0xf & (d >> 4);
           }
-          u8 blockId = blocks->fValue[32768 + index];
-          auto block = mcfile::je::Flatten::DoFlatten(blockId, d);
-          if (!block) {
-            continue;
-          }
-          chunk->setBlockAt({cx * 16 + x, y, cz * 16 + z}, block);
+          blockId[{x, y, z}] = blocks->fValue[32768 + index];
+          blockData[{x, y, z}] = d;
         }
       }
     }
+
+    PopulateBlocks(blockId, blockData, *chunk);
 
     if (tileEntities) {
       ParseTileEntities(*tileEntities, *chunk, ctx);
