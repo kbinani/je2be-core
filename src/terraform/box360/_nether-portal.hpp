@@ -27,62 +27,44 @@ public:
             PortalBlock,
             Illegal,
           };
-          Status north = PortalBlock;
-          Status east = PortalBlock;
-          Status south = PortalBlock;
-          Status west = PortalBlock;
-          for (int i = 1; i < 23; i++) {
-            if (north == PortalBlock && accessor.property(x, y, z - i) != BlockPropertyAccessor::NETHER_PORTAL) {
-              if (auto block = out.blockAt(x, y, z - i); block) {
-                if (block->fId == mcfile::blocks::minecraft::obsidian) {
-                  north = ReachedToObsidian;
+          map<Facing6, Status> status;
+          Facing6Enumerate([&status](Facing6 f) {
+            status[f] = PortalBlock;
+            return true;
+          });
+          for (int i = 1; i < 21; i++) {
+            Facing6Enumerate([&](Facing6 f) {
+              Pos3i direction = Pos3iFromFacing6(f);
+              Pos3i p(x + direction.fX * i, y + direction.fY * i, z + direction.fZ * i);
+              if (status[f] == PortalBlock && accessor.property(p.fX, p.fY, p.fZ) != BlockPropertyAccessor::NETHER_PORTAL) {
+                if (auto block = out.blockAt(p.fX, p.fY, p.fZ); block) {
+                  if (block->fId == mcfile::blocks::minecraft::obsidian) {
+                    status[f] = ReachedToObsidian;
+                  }
+                } else {
+                  status[f] = Illegal;
                 }
-              } else {
-                north = Illegal;
               }
-            }
-            if (east == PortalBlock && accessor.property(x + i, y, z) != BlockPropertyAccessor::NETHER_PORTAL) {
-              if (auto block = out.blockAt(x + i, y, z); block) {
-                if (block->fId == mcfile::blocks::minecraft::obsidian) {
-                  east = ReachedToObsidian;
-                }
-              } else {
-                east = Illegal;
-              }
-            }
-            if (south == PortalBlock && accessor.property(x, y, z + i) != BlockPropertyAccessor::NETHER_PORTAL) {
-              if (auto block = out.blockAt(x, y, z + i); block) {
-                if (block->fId == mcfile::blocks::minecraft::obsidian) {
-                  south = ReachedToObsidian;
-                }
-              } else {
-                south = Illegal;
-              }
-            }
-            if (west == PortalBlock && accessor.property(x - i, y, z) != BlockPropertyAccessor::NETHER_PORTAL) {
-              if (auto block = out.blockAt(x - i, y, z); block) {
-                if (block->fId == mcfile::blocks::minecraft::obsidian) {
-                  west = ReachedToObsidian;
-                }
-              } else {
-                west = Illegal;
-              }
-            }
-            if (north != PortalBlock && east != PortalBlock && south != PortalBlock && west != PortalBlock) {
+              return true;
+            });
+            if (all_of(status.begin(), status.end(), [](auto it) { return it.second != PortalBlock; })) {
               break;
             }
           }
-
-          if (north == ReachedToObsidian && south == ReachedToObsidian) {
-            if (auto block = out.blockAt(x, y, z); block) {
-              out.setBlockAt({x, y, z}, block->applying({{"axis", "z"}}));
-            }
-          } else if (east == ReachedToObsidian && west == ReachedToObsidian) {
-            if (auto block = out.blockAt(x, y, z); block) {
-              out.setBlockAt({x, y, z}, block->applying({{"axis", "x"}}));
-            }
+          if (status[Facing6::Up] != ReachedToObsidian || status[Facing6::Down] != ReachedToObsidian) {
+            out.setBlockAt({x, y, z}, make_shared<mcfile::je::Block const>("minecraft:air"));
           } else {
-            continue;
+            if (status[Facing6::North] == ReachedToObsidian && status[Facing6::South] == ReachedToObsidian) {
+              if (auto block = out.blockAt(x, y, z); block) {
+                out.setBlockAt({x, y, z}, block->applying({{"axis", "z"}}));
+              }
+            } else if (status[Facing6::East] == ReachedToObsidian && status[Facing6::West] == ReachedToObsidian) {
+              if (auto block = out.blockAt(x, y, z); block) {
+                out.setBlockAt({x, y, z}, block->applying({{"axis", "x"}}));
+              }
+            } else {
+              out.setBlockAt({x, y, z}, make_shared<mcfile::je::Block const>("minecraft:air"));
+            }
           }
         }
       }
