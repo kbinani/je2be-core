@@ -376,13 +376,22 @@ private:
       return JE2BE_ERROR;
     }
     bool newSeaLevel = in->boolean("newSeaLevel", false);
+    auto flat = in->string("generatorName") == "flat";
 
     JavaLevelDat::Options o;
     o.fBonusChestEnabled = in->boolean("spawnBonusChest");
     o.fDataVersion = Chunk::kTargetDataVersion;
     o.fRandomSeed = in->int64("RandomSeed");
     o.fVersionString = Chunk::TargetVersionString();
-    o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
+    if (flat) {
+      // auto generatorVersion = in->int32("generatorVersion");
+      // generatorVersion
+      // 0: TU9, TU67, TU74
+
+      o.fFlatWorldSettings = FlatWorldSettings();
+    } else {
+      o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
+    }
     o.fEnabledDataPacks.push_back("file/nether3x");
     auto out = JavaLevelDat::TemplateData(o);
 
@@ -430,6 +439,42 @@ private:
     } else {
       return JE2BE_ERROR;
     }
+  }
+
+  static CompoundTagPtr FlatWorldSettings() {
+    auto flatSettings = Compound();
+    flatSettings->set("biome", String("minecraft:plains"));
+    flatSettings->set("features", Bool(false));
+    flatSettings->set("lakes", Bool(false));
+    auto structures = Compound();
+    structures->set("structures", Compound());
+    flatSettings->set("structures", structures);
+
+    auto layers = List<Tag::Type::Compound>();
+
+    auto air = Compound();
+    air->set("block", String("minecraft:air"));
+    air->set("height", Int(64));
+    layers->push_back(air);
+
+    auto bedrock = Compound();
+    bedrock->set("block", String("minecraft:bedrock"));
+    bedrock->set("height", Int(1));
+    layers->push_back(bedrock);
+
+    auto dirt = Compound();
+    dirt->set("block", String("minecraft:dirt"));
+    dirt->set("height", Int(2));
+    layers->push_back(dirt);
+
+    auto grass = Compound();
+    grass->set("block", String("minecraft:grass_block"));
+    grass->set("height", Int(1));
+    layers->push_back(grass);
+
+    flatSettings->set("layers", layers);
+
+    return flatSettings;
   }
 
   static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion(bool newSeaLevel) {
