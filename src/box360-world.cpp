@@ -77,7 +77,7 @@ public:
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
-          skipChunks += 2048;
+          skipChunks += 1024;
           continue;
         }
         for (int z = 0; z < 32; z++) {
@@ -86,7 +86,7 @@ public:
             int cz = rz * 32 + z;
             if (!options.fChunkFilter.empty()) [[unlikely]] {
               if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
-                skipChunks += 2;
+                skipChunks += 1;
                 continue;
               }
             }
@@ -108,7 +108,7 @@ public:
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
           auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
           auto p = progressChunks.fetch_add(1) + 1;
-          if (progress && !progress->report(p / double(8192 * 3))) {
+          if (progress && !progress->report(p / double(kProgressWeightPerWorld * 3))) {
             ok = false;
           }
           if (!st.ok()) {
@@ -125,6 +125,9 @@ public:
     auto poiDirectory = outputDirectory / worldDir / "poi";
     if (auto st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
       return st;
+    }
+    if (progress && !progress->report((progressChunksOffset + 8192) / double(kProgressWeightPerWorld * 3))) {
+      return JE2BE_ERROR;
     }
 
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region_")) {
@@ -149,33 +152,37 @@ public:
         Status::Ok(),
         bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o),
         Status::Merge);
-
-    if (progress) {
-      progress->report((progressChunksOffset + 8192) / double(8192 * 3));
-    }
     if (!st.ok()) {
       return st;
+    }
+    if (progress && !progress->report((progressChunksOffset + 12288) / double(kProgressWeightPerWorld * 3))) {
+      return JE2BE_ERROR;
     }
 
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
       return JE2BE_ERROR;
     }
+    progressChunks = progressChunksOffset + 12288;
     st = Parallel::Reduce<Pos2i, Status>(
         regions,
         4,
         Status::Ok(),
-        bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region"),
+        bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress),
         Status::Merge);
     if (!st.ok()) {
       return st;
     }
     Fs::DeleteAll(outputDirectory / worldDir / "region_");
 
-    return st;
+    if (progress && !progress->report((progressChunksOffset + kProgressWeightPerWorld) / double(kProgressWeightPerWorld * 3))) {
+      return JE2BE_ERROR;
+    }
+
+    return Status::Ok();
   }
 
 private:
-  static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory) {
+  static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory, std::atomic_int *progressChunks, Progress *progress) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -205,6 +212,12 @@ private:
         int cz = z + rz * 32;
         auto current = editor->extract(x, z);
         if (!current) {
+          if (progress) {
+            auto p = progressChunks->fetch_add(1) + 1;
+            if (!progress->report(p / double(kProgressWeightPerWorld * 3))) {
+              return JE2BE_ERROR;
+            }
+          }
           continue;
         }
 
@@ -241,6 +254,13 @@ private:
         }
         if (!editor->insert(x, z, *tag)) {
           return JE2BE_ERROR;
+        }
+
+        if (progress) {
+          auto p = progressChunks->fetch_add(1) + 1;
+          if (!progress->report(p / double(kProgressWeightPerWorld * 3))) {
+            return JE2BE_ERROR;
+          }
         }
       }
     }

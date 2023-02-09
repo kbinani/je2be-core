@@ -85,7 +85,7 @@ public:
     int progressChunksOffset = 0;
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
       defer {
-        progressChunksOffset += 8192;
+        progressChunksOffset += World::kProgressWeightPerWorld;
       };
       if (!options.fDimensionFilter.empty()) {
         if (options.fDimensionFilter.find(dimension) == options.fDimensionFilter.end()) {

@@ -61,6 +61,17 @@ int main(int argc, char *argv[]) {
     }
   }
 #endif
-  auto st = Converter::Run(input, output, concurrency, options);
+
+  struct StdoutProgressReporter : public Progress {
+    bool report(double progress) override {
+      static mutex sMut;
+      lock_guard<mutex> lock(sMut);
+      cout << "            \r" << float(progress * 100) << "%";
+      return true;
+    }
+  } progress;
+
+  auto st = Converter::Run(input, output, concurrency, options, &progress);
+  cout << endl;
   return st.ok() ? 0 : -1;
 }

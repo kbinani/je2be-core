@@ -15,6 +15,11 @@ class World {
   World() = delete;
 
 public:
+  enum {
+    // 1024 * 4 chunks * (convert + per-chunk-terraform + concat + per-region-terraform)
+    kProgressWeightPerWorld = 32 * 32 * 4 * 4,
+  };
+
   static Status Convert(std::filesystem::path const &levelRootDirectory,
                         std::filesystem::path const &outputDirectory,
                         mcfile::Dimension dimension,

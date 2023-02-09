@@ -6,6 +6,7 @@
 #include "_poi-blocks.hpp"
 #include "_queue2d.hpp"
 #include "box360/_chunk.hpp"
+#include "box360/_world.hpp"
 #include "terraform/_chorus-plant.hpp"
 #include "terraform/_fence-connectable.hpp"
 #include "terraform/_leaves.hpp"
@@ -88,7 +89,7 @@ private:
           queue.unlockAround(result->fChunk);
         }
         auto p = count.fetch_add(1) + 1;
-        if (progress && !progress->report((p + progressChunksOffset) / double(8192 * 3))) {
+        if (progress && !progress->report((p + progressChunksOffset) / double(World::kProgressWeightPerWorld * 3))) {
           ok = false;
           break;
         }
