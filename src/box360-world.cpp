@@ -197,7 +197,7 @@ private:
     }
 
     terraform::lighting::LightCache lightCache(rx, rz);
-    auto blockAccessor = make_shared<terraform::java::BlockAccessorJavaDirectory<3, 3>>(rx * 32 - 1, rz * 32 - 1, inputDirectory);
+    auto blockAccessor = make_shared<terraform::java::BlockAccessorJavaDirectory<5, 5>>(rx * 32 - 1, rz * 32 - 1, inputDirectory);
 
     for (int z = 0; z < 32; z++) {
       for (int x = 0; x < 32; x++) {
@@ -209,13 +209,13 @@ private:
         }
 
         if (!blockAccessor) {
-          blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<3, 3>(cx - 2, cz - 2, inputDirectory));
+          blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<5, 5>(cx - 2, cz - 2, inputDirectory));
         }
         if (blockAccessor->fChunkX != cx - 2 || blockAccessor->fChunkZ != cz - 2) {
           auto next = blockAccessor->makeRelocated(cx - 2, cz - 2);
           blockAccessor.reset(next);
         }
-        blockAccessor->loadAllWith(*editor, mcfile::Coordinate::RegionFromChunk(cx), mcfile::Coordinate::RegionFromChunk(cz));
+        blockAccessor->loadAllWith(*editor, rx, rz);
 
         auto copy = current->copy();
         auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
