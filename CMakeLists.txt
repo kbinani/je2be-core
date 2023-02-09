@@ -254,7 +254,6 @@ set(je2be_src_files
   src/terraform/bedrock/_block-accessor-bedrock.hpp
   src/terraform/bedrock/_kelp.hpp
   src/terraform/box360/_attached-stem.hpp
-  src/terraform/box360/_bed.hpp
   src/terraform/box360/_block-accessor-box360.hpp
   src/terraform/box360/_chest.hpp
   src/terraform/box360/_kelp.hpp

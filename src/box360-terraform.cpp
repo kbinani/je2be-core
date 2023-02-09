@@ -16,7 +16,6 @@
 #include "terraform/_snowy.hpp"
 #include "terraform/_wall-connectable.hpp"
 #include "terraform/box360/_attached-stem.hpp"
-#include "terraform/box360/_bed.hpp"
 #include "terraform/box360/_block-accessor-box360.hpp"
 #include "terraform/box360/_chest.hpp"
 #include "terraform/box360/_kelp.hpp"
@@ -155,7 +154,6 @@ private:
     Leaves::Do(*chunk, *cache, accessor);
     Chest::Do(*chunk, *cache, accessor);
     NoteBlock::Do(*chunk, *cache, accessor);
-    Bed::Do(*chunk, accessor);
 
     for (auto const &section : chunk->fSections) {
       if (!section) {

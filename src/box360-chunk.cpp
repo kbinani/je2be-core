@@ -481,16 +481,15 @@ private:
           BlockData bd(rawId, rawData);
           u16 id = bd.id();
           u8 data = bd.data();
+          shared_ptr<mcfile::je::Block const> block;
           if (id == 175 && data == 10 && y - 1 >= 0) {
             // upper half of tall flowers
             u8 lowerId = blockId[{x, y - 1, z}];
             u8 lowerData = blockData[{x, y - 1, z}];
             if (auto lower = mcfile::je::Flatten::DoFlatten(lowerId, lowerData); lower) {
-              auto block = lower->applying({{"half", "upper"}});
-              chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+              block = lower->applying({{"half", "upper"}});
             }
           } else if (id == 64) {
-            shared_ptr<mcfile::je::Block const> block;
             if (y - 1 >= 0) {
               u8 lowerId = blockId[{x, y - 1, z}];
               if (lowerId == 64) {
@@ -514,13 +513,21 @@ private:
             if (!block) {
               block = bd.toBlock();
             }
-            if (block) {
-              chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
-            }
-          } else {
-            if (auto block = bd.toBlock(); block) {
-              chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
-            }
+          }
+          if (!block) {
+            block = bd.toBlock();
+          }
+          if (block) {
+            chunk.setBlockAt(origin + Pos3i{x, y, z}, block);
+          }
+          if (id == 26) {
+            // may be overwritten by ParseTileEntities later
+            auto tag = Compound();
+            tag->set("id", String("minecraft:bed"));
+            tag->set("x", Int(x));
+            tag->set("y", Int(y));
+            tag->set("z", Int(z));
+            chunk.fTileEntities[{x, y, z}] = tag;
           }
         }
       }
