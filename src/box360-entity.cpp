@@ -16,18 +16,22 @@ class Entity::Impl {
 public:
   static std::optional<Result> Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
+
     auto rawId = in.string("id");
     if (!rawId) {
       return nullopt;
     }
     string id = MigrateName(*rawId);
-    auto const &table = GetTable();
-    auto found = table.find(id);
+    assert(id.starts_with("minecraft:"));
 
     auto out = Default(in, ctx);
     if (!out) {
       return nullopt;
     }
+
+    auto const &table = GetTable();
+    auto key = id.substr(10);
+    auto found = table.find(key);
     if (found == table.end()) {
       Result r;
       r.fEntity = out;
