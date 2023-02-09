@@ -271,10 +271,9 @@ public:
       auto entity = Compound();
       entity->set("id", String(idJ));
       dataJ->set("entity", entity);
+      out->set("SpawnData", dataJ);
 
       CopyShortValues(in, *out, {{"Delay"}});
-
-      out->set("SpawnData", dataJ);
     } else {
       if (auto dataB = in.compoundTag("SpawnData"); dataB) {
         auto dataJ = Compound();

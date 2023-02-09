@@ -622,9 +622,11 @@ private:
     if (tileEntities) {
       ParseTileEntities(*tileEntities, *chunk, ctx);
     }
+
     if (entities) {
       ParseEntities(*entities, *chunk, ctx);
     }
+
     if (biomes && biomes->fValue.size() == 256) {
       for (int z = 0; z < 16; z++) {
         for (int x = 0; x < 16; x++) {

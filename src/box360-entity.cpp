@@ -66,6 +66,8 @@ public:
       name = "cod";
     } else if (name == "tropicalfish") {
       name = "tropical_fish";
+    } else if (name == "ender_crystal") {
+      name = "end_crystal";
     }
     return "minecraft:" + name;
   }
