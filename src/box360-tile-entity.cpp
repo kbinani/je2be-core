@@ -264,32 +264,45 @@ public:
   }
 
   static std::optional<Result> MobSpawner(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
-    if (auto dataB = in.compoundTag("SpawnData"); dataB) {
+    if (auto entityId = in.string("EntityId"); entityId) {
+      // TU0
       auto dataJ = Compound();
-      if (auto idB = dataB->string("id"); idB) {
-        auto idJ = ctx.fEntityNameMigrator(*idB);
-        auto entity = Compound();
-        entity->set("id", String(idJ));
-        dataJ->set("entity", entity);
-      }
+      auto idJ = ctx.fEntityNameMigrator(*entityId);
+      auto entity = Compound();
+      entity->set("id", String(idJ));
+      dataJ->set("entity", entity);
+
+      CopyShortValues(in, *out, {{"Delay"}});
+
       out->set("SpawnData", dataJ);
-    }
-    if (auto potentialsB = in.listTag("SpawnPotentials"); potentialsB) {
-      auto potentialsJ = List<Tag::Type::Compound>();
-      for (auto const &it : *potentialsB) {
-        auto potentialB = it->asCompound();
-        if (!potentialB) {
-          continue;
+    } else {
+      if (auto dataB = in.compoundTag("SpawnData"); dataB) {
+        auto dataJ = Compound();
+        if (auto idB = dataB->string("id"); idB) {
+          auto idJ = ctx.fEntityNameMigrator(*idB);
+          auto entity = Compound();
+          entity->set("id", String(idJ));
+          dataJ->set("entity", entity);
         }
-        auto potentialJ = potentialB->copy();
-        if (auto entity = potentialJ->compoundTag("Entity"); entity) {
-          if (auto idB = entity->string("id"); idB) {
-            entity->set("id", String(ctx.fEntityNameMigrator(*idB)));
-          }
-        }
-        potentialsJ->push_back(potentialJ);
+        out->set("SpawnData", dataJ);
       }
-      out->set("SpawnPotentials", potentialsJ);
+      if (auto potentialsB = in.listTag("SpawnPotentials"); potentialsB) {
+        auto potentialsJ = List<Tag::Type::Compound>();
+        for (auto const &it : *potentialsB) {
+          auto potentialB = it->asCompound();
+          if (!potentialB) {
+            continue;
+          }
+          auto potentialJ = potentialB->copy();
+          if (auto entity = potentialJ->compoundTag("Entity"); entity) {
+            if (auto idB = entity->string("id"); idB) {
+              entity->set("id", String(ctx.fEntityNameMigrator(*idB)));
+            }
+          }
+          potentialsJ->push_back(potentialJ);
+        }
+        out->set("SpawnPotentials", potentialsJ);
+      }
     }
     Result r;
     r.fTileEntity = out;
