@@ -44,8 +44,8 @@ static std::string CoralWallFan(std::string name, u8 data, std::map<std::string,
 
 std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
   using namespace std;
-  u8 rawId = rawBlockId();
-  u16 id = extendedBlockId();
+  u8 rawId = fRawId;
+  u16 id = this->id();
   u8 data = this->data();
   if (rawId == id) {
     return mcfile::je::Flatten::DoFlatten(id, data);
@@ -333,7 +333,7 @@ std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
     break;
   }
   if (name.empty()) {
-    auto b = mcfile::je::Flatten::DoFlatten(rawId, data);
+    auto b = mcfile::je::Flatten::DoFlatten(id, data);
     return b;
   } else {
     return make_shared<mcfile::je::Block const>("minecraft:" + name, props);

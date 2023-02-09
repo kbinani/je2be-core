@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - dev
   schedule:
     - cron: '52 13 * * *'
 jobs:

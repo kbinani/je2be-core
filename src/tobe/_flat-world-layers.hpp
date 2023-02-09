@@ -78,7 +78,7 @@ public:
     } else {
       biomeString.assign(options.begin() + idxBiomeStart + 1, options.begin() + idxBiomeEnd);
     }
-    auto biomeInt = strings::Toi(biomeString);
+    auto biomeInt = strings::ToI32(biomeString);
     if (!biomeInt) {
       return nullopt;
     }
@@ -99,7 +99,7 @@ public:
       string blockString = option;
       if (x != string::npos) {
         string countString = option.substr(0, x);
-        auto c = strings::Toi(countString);
+        auto c = strings::ToI32(countString);
         if (!c) {
           return nullopt;
         }
@@ -137,7 +137,7 @@ public:
     } else {
       biomeString.assign(options.begin() + idxBiomeStart + 1, options.begin() + idxBiomeEnd);
     }
-    auto biomeInt = strings::Toi(biomeString);
+    auto biomeInt = strings::ToI32(biomeString);
     if (!biomeInt) {
       return nullopt;
     }
@@ -157,7 +157,7 @@ public:
       string blockString = option;
       if (x != string::npos) {
         string countString = option.substr(0, x);
-        auto countInt = strings::Toi(countString);
+        auto countInt = strings::ToI32(countString);
         if (!countInt) {
           return nullopt;
         }
@@ -167,14 +167,14 @@ public:
       auto colon = blockString.find(':');
       int data = 0;
       if (colon != string::npos) {
-        auto maybeData = strings::Toi(blockString.substr(colon + 1));
+        auto maybeData = strings::ToI32(blockString.substr(colon + 1));
         if (!maybeData) {
           return nullopt;
         }
         blockString = blockString.substr(0, colon);
         data = *maybeData;
       }
-      auto blockId = strings::Toi(blockString);
+      auto blockId = strings::ToI32(blockString);
       if (!blockId) {
         return nullopt;
       }

@@ -257,9 +257,15 @@ set(je2be_src_files
   src/terraform/box360/_block-accessor-box360.hpp
   src/terraform/box360/_chest.hpp
   src/terraform/box360/_kelp.hpp
+  src/terraform/box360/_nether-portal.hpp
   src/terraform/java/_block-accessor-java-directory.hpp
   src/terraform/java/_block-accessor-java-mca.hpp
   src/terraform/java/_block-accessor-java.hpp
+  src/terraform/lighting/_chunk-light-cache.hpp
+  src/terraform/lighting/_chunk-lighting-model.hpp
+  src/terraform/lighting/_light-cache.hpp
+  src/terraform/lighting/_lighting-model.hpp
+  src/terraform/lighting/_lighting.hpp
   src/tile-entity/_loot-table.hpp
   src/tobe-block-data.cpp
   src/tobe-chunk-data-package.cpp
@@ -332,11 +338,6 @@ set(je2be_src_files
   src/toje/_structure-info.hpp
   src/toje/_sub-chunk.hpp
   src/toje/_world.hpp
-  src/toje/lighting/_chunk-light-cache.hpp
-  src/toje/lighting/_chunk-lighting-model.hpp
-  src/toje/lighting/_light-cache.hpp
-  src/toje/lighting/_lighting-model.hpp
-  src/toje/lighting/_lighting.hpp
   src/toje/terraform/_beacon.hpp
   src/toje/terraform/_campfire.hpp
   src/toje/terraform/_cave-vines.hpp
@@ -433,6 +434,9 @@ target_link_libraries(j2b je2be cxxopts)
 add_executable(b2j example/b2j.cpp ${je2be_header_files})
 target_link_libraries(b2j je2be cxxopts)
 
+add_executable(x2j example/x2j.cpp ${je2be_header_files})
+target_link_libraries(x2j je2be cxxopts)
+
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
@@ -444,5 +448,5 @@ add_executable(j2b2j test/j2b2j.cpp)
 target_link_libraries(j2b2j je2be)
 target_include_directories(j2b2j PRIVATE src deps/libminecraft-file/test/deps/doctest)
 
-list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/dump.cpp test/j2b2j.cpp)
+list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})

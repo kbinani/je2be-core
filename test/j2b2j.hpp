@@ -87,7 +87,7 @@ static void Erase(shared_ptr<CompoundTag> t, string const &path) {
     t->erase(keys[0]);
     return;
   }
-  auto index = strings::Toi(keys[1]);
+  auto index = strings::ToI32(keys[1]);
   if (keys[1] == "*") {
     assert(keys.size() >= 3);
     string nextPath = keys[2];

@@ -16,21 +16,22 @@ class Entity::Impl {
 public:
   static std::optional<Result> Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
+
     auto rawId = in.string("id");
     if (!rawId) {
       return nullopt;
     }
-    if (!rawId->starts_with("minecraft:")) {
-      return nullopt;
-    }
-    string id = rawId->substr(10);
-    auto const &table = GetTable();
-    auto found = table.find(id);
+    string id = MigrateName(*rawId);
+    assert(id.starts_with("minecraft:"));
 
     auto out = Default(in, ctx);
     if (!out) {
       return nullopt;
     }
+
+    auto const &table = GetTable();
+    auto key = id.substr(10);
+    auto found = table.find(key);
     if (found == table.end()) {
       Result r;
       r.fEntity = out;
@@ -51,11 +52,9 @@ public:
   }
 
   static std::string MigrateName(std::string const &rawName) {
-    std::string name;
-    if (rawName.starts_with("minecraft:")) {
-      name = rawName.substr(10);
-    } else {
-      name = rawName;
+    std::string name = strings::SnakeFromUpperCamel(rawName);
+    if (name.starts_with("minecraft:")) {
+      name = name.substr(10);
     }
     if (name == "zombie_pigman") {
       name = "zombified_piglin";
@@ -67,6 +66,8 @@ public:
       name = "cod";
     } else if (name == "tropicalfish") {
       name = "tropical_fish";
+    } else if (name == "ender_crystal") {
+      name = "end_crystal";
     }
     return "minecraft:" + name;
   }
@@ -174,19 +175,22 @@ private:
 
   static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
     auto uuidB = in.string("UUID");
-    if (!uuidB) {
-      return nullptr;
-    }
-    auto uuidJ = MigrateUuid(*uuidB, ctx);
-    if (!uuidJ) {
-      return nullptr;
+    Uuid uuidJ;
+    if (uuidB) {
+      if (auto migrated = MigrateUuid(*uuidB, ctx); migrated) {
+        uuidJ = *migrated;
+      } else {
+        return nullptr;
+      }
+    } else {
+      uuidJ = Uuid::Gen();
     }
 
     auto ret = in.copy();
     ret->erase("createdOnHost");
     ret->erase("namedByRestrictedPlayer");
 
-    ret->set("UUID", uuidJ->toIntArrayTag());
+    ret->set("UUID", uuidJ.toIntArrayTag());
 
     if (auto riding = in.listTag("Riding"); riding) {
       ret->erase("Riding");

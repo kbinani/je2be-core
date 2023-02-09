@@ -69,7 +69,7 @@ inline std::string Replace(std::string_view const &target, std::string const &se
   return ret;
 }
 
-inline std::optional<i32> Toi(std::string_view const &s, int base = 10) {
+inline std::optional<i32> ToI32(std::string_view const &s, int base = 10) {
   i32 v = 0;
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
@@ -78,7 +78,7 @@ inline std::optional<i32> Toi(std::string_view const &s, int base = 10) {
   }
 }
 
-inline std::optional<i64> Tol(std::string_view const &s, int base = 10) {
+inline std::optional<i64> ToI64(std::string_view const &s, int base = 10) {
   i64 v = 0;
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
@@ -87,7 +87,16 @@ inline std::optional<i64> Tol(std::string_view const &s, int base = 10) {
   }
 }
 
-inline std::optional<float> Tof(std::string_view const &s) {
+inline std::optional<u64> ToU64(std::string_view const &s, int base = 10) {
+  u64 v = 0;
+  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+    return v;
+  } else {
+    return std::nullopt;
+  }
+}
+
+inline std::optional<float> ToF32(std::string_view const &s) {
   float v = 0;
 #if defined(_MSC_VER)
   if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v); ec == std::errc{}) {

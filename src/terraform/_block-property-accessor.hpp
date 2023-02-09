@@ -37,6 +37,7 @@ public:
     WALL = 20,
     LEAVES = 21,
     CHEST = 22, // chest or trapped_chest
+    NETHER_PORTAL = 23,
   };
 
 public:
@@ -77,6 +78,7 @@ public:
   bool fHasWall = false;
   bool fHasLeaves = false;
   bool fHasChest = false;
+  bool fHasNetherPortal = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;

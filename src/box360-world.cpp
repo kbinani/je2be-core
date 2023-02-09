@@ -10,6 +10,9 @@
 #include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
 #include "box360/_terraform.hpp"
+#include "terraform/box360/_nether-portal.hpp"
+#include "terraform/java/_block-accessor-java-directory.hpp"
+#include "terraform/lighting/_lighting.hpp"
 
 namespace je2be::box360 {
 
@@ -74,7 +77,7 @@ public:
       for (int rx = -1; rx <= 0; rx++) {
         auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
         if (!Fs::Exists(mcr)) {
-          skipChunks += 2048;
+          skipChunks += 1024;
           continue;
         }
         for (int z = 0; z < 32; z++) {
@@ -83,7 +86,7 @@ public:
             int cz = rz * 32 + z;
             if (!options.fChunkFilter.empty()) [[unlikely]] {
               if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
-                skipChunks += 2;
+                skipChunks += 1;
                 continue;
               }
             }
@@ -105,7 +108,7 @@ public:
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
           auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
           auto p = progressChunks.fetch_add(1) + 1;
-          if (progress && !progress->report(p / double(8192 * 3))) {
+          if (progress && !progress->report(p / double(kProgressWeightPerWorld * 3))) {
             ok = false;
           }
           if (!st.ok()) {
@@ -123,8 +126,11 @@ public:
     if (auto st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
       return st;
     }
+    if (progress && !progress->report((progressChunksOffset + 8192) / double(kProgressWeightPerWorld * 3))) {
+      return JE2BE_ERROR;
+    }
 
-    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
+    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region_")) {
       return JE2BE_ERROR;
     }
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "entities")) {
@@ -146,15 +152,126 @@ public:
         Status::Ok(),
         bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o),
         Status::Merge);
-
-    if (progress) {
-      progress->report((progressChunksOffset + 8192) / double(8192 * 3));
+    if (!st.ok()) {
+      return st;
+    }
+    if (progress && !progress->report((progressChunksOffset + 12288) / double(kProgressWeightPerWorld * 3))) {
+      return JE2BE_ERROR;
     }
 
-    return st;
+    if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
+      return JE2BE_ERROR;
+    }
+    progressChunks = progressChunksOffset + 12288;
+    st = Parallel::Reduce<Pos2i, Status>(
+        regions,
+        4,
+        Status::Ok(),
+        bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress),
+        Status::Merge);
+    if (!st.ok()) {
+      return st;
+    }
+    Fs::DeleteAll(outputDirectory / worldDir / "region_");
+
+    if (progress && !progress->report((progressChunksOffset + kProgressWeightPerWorld) / double(kProgressWeightPerWorld * 3))) {
+      return JE2BE_ERROR;
+    }
+
+    return Status::Ok();
   }
 
 private:
+  static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory, std::atomic_int *progressChunks, Progress *progress) {
+    using namespace std;
+    namespace fs = std::filesystem;
+
+    int rx = region.fX;
+    int rz = region.fZ;
+
+    auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    fs::path in = inputDirectory / name;
+    if (!Fs::Exists(in)) {
+      return Status::Ok();
+    }
+    if (auto size = Fs::FileSize(in); size && *size == 0) {
+      return Status::Ok();
+    }
+
+    auto editor = mcfile::je::McaEditor::Open(in);
+    if (!editor) {
+      return Status::Ok();
+    }
+
+    terraform::lighting::LightCache lightCache(rx, rz);
+    auto blockAccessor = make_shared<terraform::java::BlockAccessorJavaDirectory<5, 5>>(rx * 32 - 1, rz * 32 - 1, inputDirectory);
+
+    for (int z = 0; z < 32; z++) {
+      for (int x = 0; x < 32; x++) {
+        int cx = x + rx * 32;
+        int cz = z + rz * 32;
+        auto current = editor->extract(x, z);
+        if (!current) {
+          if (progress) {
+            auto p = progressChunks->fetch_add(1) + 1;
+            if (!progress->report(p / double(kProgressWeightPerWorld * 3))) {
+              return JE2BE_ERROR;
+            }
+          }
+          continue;
+        }
+
+        if (!blockAccessor) {
+          blockAccessor.reset(new terraform::java::BlockAccessorJavaDirectory<5, 5>(cx - 2, cz - 2, inputDirectory));
+        }
+        if (blockAccessor->fChunkX != cx - 2 || blockAccessor->fChunkZ != cz - 2) {
+          auto next = blockAccessor->makeRelocated(cx - 2, cz - 2);
+          blockAccessor.reset(next);
+        }
+        blockAccessor->loadAllWith(*editor, rx, rz);
+
+        auto copy = current->copy();
+        auto ch = mcfile::je::Chunk::MakeChunk(cx, cz, current);
+        if (!ch) {
+          return JE2BE_ERROR;
+        }
+        blockAccessor->set(ch);
+
+        auto writable = mcfile::je::WritableChunk::MakeChunk(cx, cz, copy);
+        if (!writable) {
+          return JE2BE_ERROR;
+        }
+
+        terraform::BlockPropertyAccessorJava propertyAccessor(*ch);
+        terraform::box360::NetherPortal::Do(*writable, *blockAccessor, propertyAccessor);
+        terraform::lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
+
+        lightCache.dispose(cx - 1, cz - 1);
+
+        auto tag = writable->toCompoundTag();
+        if (!tag) {
+          return JE2BE_ERROR;
+        }
+        if (!editor->insert(x, z, *tag)) {
+          return JE2BE_ERROR;
+        }
+
+        if (progress) {
+          auto p = progressChunks->fetch_add(1) + 1;
+          if (!progress->report(p / double(kProgressWeightPerWorld * 3))) {
+            return JE2BE_ERROR;
+          }
+        }
+      }
+    }
+
+    if (!editor->write(outputDirectory / name)) {
+      return JE2BE_ERROR;
+    }
+
+    return Status::Ok();
+  }
+
   static Status ConcatCompressedNbt(Pos2i region,
                                     std::filesystem::path outputDirectory,
                                     std::filesystem::path chunkTempDir,
@@ -162,8 +279,9 @@ private:
                                     mcfile::je::Region::ConcatOptions options) {
     int rx = region.fX;
     int rz = region.fZ;
-    auto chunkMca = outputDirectory / "region" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
-    auto entityMca = outputDirectory / "entities" / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
+    auto chunkMca = outputDirectory / "region_" / name;
+    auto entityMca = outputDirectory / "entities" / name;
     if (!mcfile::je::Region::ConcatCompressedNbt(rx,
                                                  rz,
                                                  chunkTempDir,

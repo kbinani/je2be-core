@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::toje::lighting {
+namespace je2be::terraform::lighting {
 
 enum Transparency : u8 {
   CLEAR = 0,
@@ -63,4 +63,4 @@ union LightingModel {
 
 static_assert(sizeof(LightingModel) == sizeof(u32));
 
-} // namespace je2be::toje::lighting
+} // namespace je2be::terraform::lighting

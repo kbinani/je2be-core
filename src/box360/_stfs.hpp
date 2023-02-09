@@ -7,6 +7,8 @@
 
 #include <je2be/integers.hpp>
 
+#include <fstream>
+
 namespace je2be::box360::detail {
 
 using INT24 = signed int;

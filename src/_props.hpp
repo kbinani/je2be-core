@@ -78,10 +78,10 @@ static inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &
   if (s.size() != 32) {
     return nullopt;
   }
-  auto a0 = strings::Tol(s.substr(0, 8), 16);
-  auto b0 = strings::Tol(s.substr(8, 8), 16);
-  auto c0 = strings::Tol(s.substr(16, 8), 16);
-  auto d0 = strings::Tol(s.substr(24), 16);
+  auto a0 = strings::ToI64(s.substr(0, 8), 16);
+  auto b0 = strings::ToI64(s.substr(8, 8), 16);
+  auto c0 = strings::ToI64(s.substr(16, 8), 16);
+  auto d0 = strings::ToI64(s.substr(24), 16);
 
   if (!a0 || !b0 || !c0 || !d0) {
     return nullopt;
