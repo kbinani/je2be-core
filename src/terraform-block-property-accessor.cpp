@@ -212,6 +212,14 @@ public:
     return b.fName == "minecraft:portal";
   }
 
+  static bool IsBed(mcfile::je::Block const &b) {
+    return b.fName.ends_with("_bed");
+  }
+
+  static bool IsBed(mcfile::be::Block const &b) {
+    return b.fName == "minecraft:bed";
+  }
+
   template <class BlockType>
   static DataType GetBlockProperties(BlockType const &b) {
     if (IsStairs(b)) {
@@ -258,6 +266,8 @@ public:
       return CHEST;
     } else if (IsNetherPortal(b)) {
       return NETHER_PORTAL;
+    } else if (IsBed(b)) {
+      return BED;
     }
     return 0;
   }
@@ -402,6 +412,7 @@ void BlockPropertyAccessor::updateHasProperties(DataType p) {
   fHasLeaves |= p == LEAVES;
   fHasChest |= p == CHEST;
   fHasNetherPortal |= p == NETHER_PORTAL;
+  fHasBed |= p == BED;
 }
 
 bool BlockPropertyAccessor::IsChorusPlant(mcfile::je::Block const &b) {
