@@ -380,7 +380,7 @@ class FileIO : public BaseIO {
 public:
   FileIO(std::string path, bool truncate = false) : BaseIO(), filePath(path) {
     using namespace std;
-    fstr = new fstream(path.c_str(), fstream::in | fstream::out | fstream::binary | (truncate ? fstream::trunc : static_cast<std::ios_base::openmode>(0)));
+    fstr.reset(new fstream(path.c_str(), fstream::in | fstream::out | fstream::binary | (truncate ? fstream::trunc : static_cast<std::ios_base::openmode>(0))));
     if (!fstr->is_open()) {
       std::string ex("FileIO: Error opening the file. ");
       ex += StringFromErrno(errno);
@@ -434,14 +434,15 @@ public:
 
   void Resize(u64 size) {
     using namespace std;
-    if (size > this->Length())
+    if (size > this->Length()) {
       throw std::string("FileIO: Cannot expand file size.");
+    }
 
-    u8 *buffer = new u8[0x10000];
+    unique_ptr<u8[]> buffer(new u8[0x10000]);
     std::string newFilePath = filePath + ".new";
 
     // open a new stream
-    fstream *newFileStream = new fstream(newFilePath.c_str(), ios::out | ios::binary | ios::trunc);
+    unique_ptr<fstream> newFileStream(new fstream(newFilePath.c_str(), ios::out | ios::binary | ios::trunc));
     if (!fstr->is_open()) {
       std::string ex("FileIO: Failed to resize file. ");
       ex += StringFromErrno(errno);
@@ -451,30 +452,32 @@ public:
 
     // copy the data
     while (size >= 0x10000) {
-      fstr->read((char *)buffer, 0x10000);
-      newFileStream->write((char *)buffer, 0x10000);
+      fstr->read((char *)buffer.get(), 0x10000);
+      newFileStream->write((char *)buffer.get(), 0x10000);
       size -= 0x10000;
     }
 
     if (size != 0) {
-      fstr->read((char *)buffer, size);
-      newFileStream->write((char *)buffer, size);
+      fstr->read((char *)buffer.get(), size);
+      newFileStream->write((char *)buffer.get(), size);
     }
-    delete[] buffer;
+    buffer.reset();
 
     // close the current stream, delete the files
     fstr->close();
+    fstr.reset();
     remove(filePath.c_str());
 
     newFileStream->close();
-    delete newFileStream;
+    newFileStream.reset();
 
     // rename the new file to the correct original name
-    if (rename(newFilePath.c_str(), filePath.c_str()) != 0)
+    if (rename(newFilePath.c_str(), filePath.c_str()) != 0) {
       throw std::string("FileIO: Failed to resize file.");
+    }
 
     // set the final stream
-    fstr = new fstream(filePath.c_str(), ios::in | ios::out | ios::binary);
+    fstr.reset(new fstream(filePath.c_str(), ios::in | ios::out | ios::binary));
   }
 
   std::string GetFilePath() {
@@ -482,9 +485,10 @@ public:
   }
 
   virtual ~FileIO() {
-    if (fstr->is_open())
+    if (fstr->is_open()) {
       fstr->close();
-    delete fstr;
+    }
+    fstr.reset();
   }
 
 private:
@@ -503,7 +507,7 @@ private:
   }
 
   EndianType endian;
-  std::fstream *fstr;
+  std::unique_ptr<std::fstream> fstr;
   std::string filePath;
 };
 #pragma endregion
@@ -773,17 +777,12 @@ class XContentHeader {
 public:
   // Description: read in all of the metadata for the package
   explicit XContentHeader(BaseIO *io) : installerType((InstallerType)0) {
-    // set the io
-    this->io = io;
-
     fileSize = io->Length();
 
-    readMetadata();
+    readMetadata(io);
   }
 
   ~XContentHeader() {
-    delete[] thumbnailImage;
-    delete[] titleThumbnailImage;
   }
 
   u32 fileSize;
@@ -860,13 +859,11 @@ public:
   Version installerBaseVersion;
   Version installerVersion;
 
-  u8 *thumbnailImage;
-  u8 *titleThumbnailImage;
+  std::unique_ptr<u8[]> thumbnailImage;
+  std::unique_ptr<u8[]> titleThumbnailImage;
 
 private:
-  BaseIO *io;
-
-  void readMetadata() {
+  void readMetadata(BaseIO *io) {
     using namespace std;
     // store errors thrown
     stringstream except;
@@ -990,21 +987,23 @@ private:
     thumbnailImageSize = io->ReadDword();
     titleThumbnailImageSize = io->ReadDword();
 
-    thumbnailImage = new u8[thumbnailImageSize];
-    titleThumbnailImage = new u8[titleThumbnailImageSize];
+    thumbnailImage.reset(new u8[thumbnailImageSize]);
+    titleThumbnailImage.reset(new u8[titleThumbnailImageSize]);
 
     // read images
-    io->ReadBytes(thumbnailImage, thumbnailImageSize);
+    io->ReadBytes(thumbnailImage.get(), thumbnailImageSize);
     io->SetPosition(0x571A);
 
-    if (thumbnailImageSize == 0 || thumbnailImage[0] == 0)
-      thumbnailImage = NULL;
+    if (thumbnailImageSize == 0 || thumbnailImage[0] == 0) {
+      thumbnailImage.reset();
+    }
 
-    io->ReadBytes(titleThumbnailImage, titleThumbnailImageSize);
+    io->ReadBytes(titleThumbnailImage.get(), titleThumbnailImageSize);
     io->SetPosition(0x971A);
 
-    if (titleThumbnailImageSize == 0 || titleThumbnailImage[0] == 0)
-      thumbnailImage = NULL;
+    if (titleThumbnailImageSize == 0 || titleThumbnailImage[0] == 0) {
+      thumbnailImage.reset();
+    }
 
     if (((headerSize + 0xFFF) & 0xFFFFF000) - 0x971A < 0x15F4)
       return;
@@ -1100,10 +1099,8 @@ struct HashTable {
 class StfsPackage {
 public:
   // Description: initialize a stfs package
-  explicit StfsPackage(std::string packagePath) : ioPassedIn(false) {
-    metaData = NULL;
-
-    io = new FileIO(packagePath, false);
+  explicit StfsPackage(std::string packagePath) {
+    io.reset(new FileIO(packagePath, false));
     try {
       Init();
     } catch (std::string &) {
@@ -1112,9 +1109,9 @@ public:
     }
   }
 
-  explicit StfsPackage(BaseIO *io) : ioPassedIn(true) {
-    metaData = nullptr;
-    this->io = io;
+  // Ownership of `io` transfers to the instance of StfsPackage
+  explicit StfsPackage(BaseIO *io) {
+    this->io.reset(io);
     try {
       Init();
     } catch (...) {
@@ -1164,7 +1161,7 @@ public:
     // check if all the blocks are consecutive
     if (entry->flags & 1) {
       // allocate 0xAA blocks of memory, for maximum efficiency, yo
-      u8 *buffer = new u8[0xAA000];
+      std::unique_ptr<u8[]> buffer(new u8[0xAA000]);
 
       // seek to the begining of the file
       u32 startAddress = BlockToAddress(entry->startingBlockNum);
@@ -1175,8 +1172,8 @@ public:
 
       // pick up the change at the begining, until we hit a hash table
       if ((u32)entry->blocksForFile <= blockCount) {
-        io->ReadBytes(buffer, entry->fileSize);
-        out.Write(buffer, entry->fileSize);
+        io->ReadBytes(buffer.get(), entry->fileSize);
+        out.Write(buffer.get(), entry->fileSize);
 
         // update progress if needed
         if (extractProgress != NULL)
@@ -1185,11 +1182,11 @@ public:
         out.Close();
 
         // free the temp buffer
-        delete[] buffer;
+        buffer.reset();
         return;
       } else {
-        io->ReadBytes(buffer, blockCount << 0xC);
-        out.Write(buffer, blockCount << 0xC);
+        io->ReadBytes(buffer.get(), blockCount << 0xC);
+        out.Write(buffer.get(), blockCount << 0xC);
 
         // update progress if needed
         if (extractProgress != NULL)
@@ -1204,10 +1201,10 @@ public:
         io->SetPosition(currentPos + GetHashTableSkipSize(currentPos));
 
         // read in the 0xAA blocks between the tables
-        io->ReadBytes(buffer, 0xAA000);
+        io->ReadBytes(buffer.get(), 0xAA000);
 
         // Write the bytes to the out file
-        out.Write(buffer, 0xAA000);
+        out.Write(buffer.get(), 0xAA000);
 
         tempSize -= 0xAA000;
         blockCount += 0xAA;
@@ -1224,10 +1221,10 @@ public:
         io->SetPosition(currentPos + GetHashTableSkipSize(currentPos));
 
         // read in the extra crap
-        io->ReadBytes(buffer, tempSize);
+        io->ReadBytes(buffer.get(), tempSize);
 
         // Write it to the out file
-        out.Write(buffer, tempSize);
+        out.Write(buffer.get(), tempSize);
 
         // update progress if needed
         if (extractProgress != NULL)
@@ -1235,7 +1232,7 @@ public:
       }
 
       // free the temp buffer
-      delete[] buffer;
+      buffer.reset();
     } else {
       // generate the block chain which we have to extract
       u32 fullReadCounts = fileSize / 0x1000;
@@ -1312,18 +1309,17 @@ public:
   }
 
   XContentHeader const *GetMetaData() const {
-    return metaData;
+    return metaData.get();
   }
 
 private:
-  XContentHeader *metaData;
+  std::unique_ptr<XContentHeader> metaData;
 
   StfsFileListing fileListing;
   StfsFileListing writtenToFile;
 
-  BaseIO *io;
+  std::unique_ptr<BaseIO> io;
   std::stringstream except;
-  bool ioPassedIn;
 
   Sex packageSex;
   u32 blockStep[2];
@@ -1551,7 +1547,7 @@ private:
   // Description: parse the file
   void Parse() {
     using namespace std;
-    metaData = new XContentHeader(io);
+    metaData.reset(new XContentHeader(io.get()));
 
     // make sure the file system is STFS
     if (metaData->fileSystem != FileSystemSTFS)
@@ -1619,11 +1615,8 @@ private:
   // Description: close the io/cleanup resources
   void Cleanup() {
     io->Close();
-
-    if (!ioPassedIn)
-      delete io;
-    if (metaData)
-      delete metaData;
+    io.reset();
+    metaData.reset();
   }
 };
 #pragma endregion

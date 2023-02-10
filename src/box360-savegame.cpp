@@ -210,8 +210,8 @@ public:
 
       SavegameInfo info;
       info.fCreatedTime = TimePointFromFatTimestamp(entry->createdTimeStamp);
-      if (auto meta = pkg->GetMetaData(); meta) {
-        info.fThumbnailImage = std::string((char const *)meta->thumbnailImage, meta->thumbnailImageSize);
+      if (auto meta = pkg->GetMetaData(); meta && meta->thumbnailImage && meta->thumbnailImageSize > 0) {
+        info.fThumbnailImage = std::string((char const *)meta->thumbnailImage.get(), meta->thumbnailImageSize);
       }
       return info;
     } catch (...) {
