@@ -1,6 +1,7 @@
 #pragma once
 
 #include <je2be/integers.hpp>
+#include <je2be/status.hpp>
 
 #include <minecraft-file.hpp>
 
@@ -11,16 +12,16 @@ public:
   explicit ZipFile(std::filesystem::path const &zipFilePath);
   ~ZipFile();
 
-  bool store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9 = 9);
-  bool store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9 = 9);
-  bool close();
+  Status store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9 = 9);
+  Status store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9 = 9);
+  Status close();
 
-  static bool Unzip(
+  static Status Unzip(
       std::filesystem::path const &input,
       std::filesystem::path const &output,
       std::function<bool(u64 done, u64 total)> progress = [](u64, u64) { return true; });
 
-  static bool Zip(
+  static Status Zip(
       std::filesystem::path const &inputDirectory,
       std::filesystem::path const &outputZipFile,
       std::function<bool(int done, int total)> progress = [](int, int) { return true; });

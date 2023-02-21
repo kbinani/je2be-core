@@ -256,8 +256,8 @@ private:
     {
       vector<u8> forcefield;
       CopyTransparent16x16Png(forcefield);
-      if (!resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png")) {
-        return JE2BE_ERROR;
+      if (auto st = resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png"); !st.ok()) {
+        return st;
       }
     }
     {
@@ -269,16 +269,12 @@ private:
       auto str = nlohmann::to_string(obj);
       vector<u8> mcmeta;
       copy(str.begin(), str.end(), back_inserter(mcmeta));
-      if (!resources.store(mcmeta, "pack.mcmeta")) {
-        return JE2BE_ERROR;
+      if (auto st = resources.store(mcmeta, "pack.mcmeta"); !st.ok()) {
+        return st;
       }
     }
 
-    if (resources.close()) {
-      return Status::Ok();
-    } else {
-      return JE2BE_ERROR;
-    }
+    return resources.close();
   }
 
   static Status SetupDataPack(std::filesystem::path const &outputDirectory) {

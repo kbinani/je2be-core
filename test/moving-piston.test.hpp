@@ -87,11 +87,11 @@ static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const 
 static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
   auto javaReferenceDir = File::CreateTempDir(fs::temp_directory_path());
   REQUIRE(javaReferenceDir);
-  REQUIRE(ZipFile::Unzip(java, *javaReferenceDir));
+  REQUIRE(ZipFile::Unzip(java, *javaReferenceDir).ok());
 
   auto bedrockReferenceDir = File::CreateTempDir(fs::temp_directory_path());
   REQUIRE(bedrockReferenceDir);
-  REQUIRE(ZipFile::Unzip(bedrock, *bedrockReferenceDir));
+  REQUIRE(ZipFile::Unzip(bedrock, *bedrockReferenceDir).ok());
 
   { // Java to Bedrock
     auto output = JavaToBedrock(*javaReferenceDir);

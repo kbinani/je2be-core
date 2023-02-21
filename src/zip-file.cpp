@@ -30,14 +30,14 @@ ZipFile::~ZipFile() {
   close();
 }
 
-bool ZipFile::store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9) {
+Status ZipFile::store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9) {
   mz_zip_file s = {0};
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
   u8 raw = 0;
   if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressionLevel0To9, raw, nullptr)) {
-    return false;
+    return JE2BE_ERROR;
   }
   i32 totalWritten = 0;
   i32 err = MZ_OK;
@@ -52,17 +52,23 @@ bool ZipFile::store(std::vector<u8> const &buffer, std::string const &filename, 
     }
   } while (err == MZ_OK && remaining > 0);
 
-  return err == MZ_OK && mz_zip_entry_close(fHandle) == MZ_OK;
+  if (mz_zip_entry_close(fHandle) != MZ_OK) {
+    return JE2BE_ERROR;
+  }
+  if (err != MZ_OK) {
+    return JE2BE_ERROR;
+  }
+  return Status::Ok();
 }
 
-bool ZipFile::store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9) {
+Status ZipFile::store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9) {
   mz_zip_file s = {0};
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
   u8 raw = 0;
   if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressionLevel0To9, raw, nullptr)) {
-    return false;
+    return JE2BE_ERROR;
   }
   std::vector<u8> buffer(512);
   i32 err = MZ_OK;
@@ -79,29 +85,43 @@ bool ZipFile::store(mcfile::stream::InputStream &stream, std::string const &file
     }
   } while (err == MZ_OK);
 
-  return err == MZ_OK && mz_zip_entry_close(fHandle) == MZ_OK;
+  if (mz_zip_entry_close(fHandle) != MZ_OK) {
+    return JE2BE_ERROR;
+  }
+  if (err != MZ_OK) {
+    return JE2BE_ERROR;
+  }
+  return Status::Ok();
 }
 
-bool ZipFile::close() {
-  bool ok = true;
+Status ZipFile::close() {
+  Status st = Status::Ok();
   if (fHandle) {
-    ok &= mz_zip_close(fHandle) == MZ_OK;
+    if (mz_zip_close(fHandle) != MZ_OK) {
+      st = JE2BE_ERROR;
+    }
     mz_zip_delete(&fHandle);
     fHandle = nullptr;
   } else {
-    ok = false;
+    st = JE2BE_ERROR;
   }
   if (fStream) {
-    ok &= mz_stream_close(fStream) == MZ_OK;
+    if (mz_stream_close(fStream) != MZ_OK) {
+      if (st.ok()) {
+        st = JE2BE_ERROR;
+      }
+    }
     mz_stream_os_delete(&fStream);
     fStream = nullptr;
   } else {
-    ok = false;
+    if (st.ok()) {
+      st = JE2BE_ERROR;
+    }
   }
-  return ok;
+  return st;
 }
 
-bool ZipFile::Unzip(
+Status ZipFile::Unzip(
     std::filesystem::path const &input,
     std::filesystem::path const &output,
     std::function<bool(u64 done, u64 total)> progress) {
@@ -115,39 +135,39 @@ bool ZipFile::Unzip(
 
   handle = mz_zip_create(nullptr);
   if (!handle) {
-    return false;
+    return JE2BE_ERROR;
   }
   defer {
     mz_zip_delete(&handle);
   };
   stream = mz_stream_os_create(nullptr);
   if (!stream) {
-    return false;
+    return JE2BE_ERROR;
   }
   defer {
     mz_stream_os_delete(&stream);
   };
   if (mz_stream_os_open(stream, (char const *)input.u8string().c_str(), MZ_OPEN_MODE_READ) != MZ_OK) {
-    return false;
+    return JE2BE_ERROR;
   }
   if (mz_zip_open(handle, stream, MZ_OPEN_MODE_READ) != MZ_OK) {
-    return false;
+    return JE2BE_ERROR;
   }
   if (mz_zip_get_number_entry(handle, &numEntries) != MZ_OK) {
-    return false;
+    return JE2BE_ERROR;
   }
 
   if (mz_zip_goto_first_entry(handle) != MZ_OK) {
     // no entry in file
-    return true;
+    return Status::Ok();
   }
   if (!progress(0, numEntries)) {
-    return false;
+    return JE2BE_ERROR;
   }
   do {
     mz_zip_file *fileInfo = nullptr;
     if (mz_zip_entry_get_info(handle, &fileInfo) != MZ_OK) {
-      return false;
+      return JE2BE_ERROR;
     }
     string relFilePath;
     relFilePath.assign(fileInfo->filename, fileInfo->filename_size);
@@ -162,7 +182,7 @@ bool ZipFile::Unzip(
       }
     }
     if (mz_zip_entry_read_open(handle, 0, nullptr) != MZ_OK) {
-      return false;
+      return JE2BE_ERROR;
     }
     defer {
       mz_zip_entry_close(handle);
@@ -172,30 +192,30 @@ bool ZipFile::Unzip(
     Fs::CreateDirectories(parentDir);
     mcfile::ScopedFile fp(mcfile::File::Open(fullFilePath, mcfile::File::Mode::Write));
     if (!fp) {
-      return false;
+      return JE2BE_ERROR;
     }
     vector<u8> chunk(1024);
     while (remaining > 0) {
       i32 amount = (i32)(std::min)(remaining, (i64)chunk.size());
       i32 read = mz_zip_entry_read(handle, chunk.data(), amount);
       if (read < 0) {
-        return false;
+        return JE2BE_ERROR;
       }
       if (fwrite(chunk.data(), 1, read, fp.get()) != read) {
-        return false;
+        return JE2BE_ERROR;
       }
       remaining -= amount;
     }
     done++;
     if (!progress(done, numEntries)) {
-      return false;
+      return JE2BE_ERROR;
     }
   } while (mz_zip_goto_next_entry(handle) == MZ_OK);
 
-  return true;
+  return Status::Ok();
 }
 
-bool ZipFile::Zip(
+Status ZipFile::Zip(
     std::filesystem::path const &inputDirectory,
     std::filesystem::path const &outputZipFile,
     std::function<bool(int done, int total)> progress) {
@@ -209,10 +229,10 @@ bool ZipFile::Zip(
     }
   }
   if (ec) {
-    return false;
+    return JE2BE_ERROR;
   }
   if (!progress(0, total)) {
-    return false;
+    return JE2BE_ERROR;
   }
 
   ZipFile file(outputZipFile);
@@ -224,20 +244,20 @@ bool ZipFile::Zip(
     }
     fs::path rel = fs::relative(path, inputDirectory, ec);
     if (ec) {
-      return false;
+      return JE2BE_ERROR;
     }
     auto stream = std::make_shared<mcfile::stream::FileInputStream>(path);
     int compressionLevel = 9;
-    if (!file.store(*stream, rel.string(), compressionLevel)) {
-      return false;
+    if (auto st = file.store(*stream, rel.string(), compressionLevel); !st.ok()) {
+      return st;
     }
     done++;
     if (!progress(done, total)) {
-      return false;
+      return JE2BE_ERROR;
     }
   }
   if (ec) {
-    return false;
+    return JE2BE_ERROR;
   }
   return file.close();
 }

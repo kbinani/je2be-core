@@ -7,7 +7,7 @@ TEST_CASE("end-gateway") {
       fs::remove_all(*tmp);
     };
     auto in = *tmp / "in";
-    REQUIRE(ZipFile::Unzip(mcworld, in));
+    REQUIRE(ZipFile::Unzip(mcworld, in).ok());
     auto out = *tmp / "out";
     toje::Options opt;
     opt.fDimensionFilter.insert(Dimension::End);
