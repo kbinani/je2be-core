@@ -1190,22 +1190,27 @@ private:
     return found->get<std::string>();
   }
 
-  static std::string GetSignLine(nlohmann::json const &json) {
-    std::string ret;
-    auto text = json.find("text");
-    if (text != json.end() && text->is_string()) {
-      ret += text->get<std::string>();
-    }
-    auto extra = json.find("extra");
-    if (extra != json.end() && extra->is_array()) {
-      for (auto it = extra->begin(); it != extra->end(); it++) {
-        auto t = it->find("text");
-        if (t != it->end() && t->is_string()) {
-          ret += t->get<std::string>();
+  static std::optional<std::string> GetSignLine(CompoundTag const &in, std::string const &key) {
+    auto json = props::GetJson(in, key);
+    if (json) {
+      std::string ret;
+      auto text = json->find("text");
+      if (text != json->end() && text->is_string()) {
+        ret += text->get<std::string>();
+      }
+      auto extra = json->find("extra");
+      if (extra != json->end() && extra->is_array()) {
+        for (auto it = extra->begin(); it != extra->end(); it++) {
+          auto t = it->find("text");
+          if (t != it->end() && t->is_string()) {
+            ret += t->get<std::string>();
+          }
         }
       }
+      return ret;
+    } else {
+      return in.string(key);
     }
-    return ret;
   }
 
   static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
@@ -1376,17 +1381,17 @@ private:
         return nullptr;
       }
 
-      auto color = c->string("Color");
-      auto text1 = GetJson(*c, "Text1");
-      auto text2 = GetJson(*c, "Text2");
-      auto text3 = GetJson(*c, "Text3");
-      auto text4 = GetJson(*c, "Text4");
-      if (!color || !text1 || !text2 || !text3 || !text4) {
+      auto color = Wrap<string>(c->string("Color"), "black");
+      auto text1 = GetSignLine(*c, "Text1");
+      auto text2 = GetSignLine(*c, "Text2");
+      auto text3 = GetSignLine(*c, "Text3");
+      auto text4 = GetSignLine(*c, "Text4");
+      if (!text1 || !text2 || !text3 || !text4) {
         return nullptr;
       }
-      Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(*color));
+      Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
       bool glowing = c->boolean("GlowingText", false);
-      string text = GetSignLine(*text1) + "\x0a" + GetSignLine(*text2) + "\x0a" + GetSignLine(*text3) + "\x0a" + GetSignLine(*text4);
+      string text = *text1 + "\x0a" + *text2 + "\x0a" + *text3 + "\x0a" + *text4;
       auto tag = Compound();
       tag->insert({
           {"id", String(id)},
