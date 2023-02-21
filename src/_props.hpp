@@ -216,9 +216,12 @@ static inline std::optional<Pos3i> GetPos3iFromIntArrayTag(CompoundTag const &ta
 }
 
 static inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
-  try {
-    return nlohmann::json::parse(s);
-  } catch (...) {
+  bool allowException = false;
+  bool ignoreComment = false;
+  auto json = nlohmann::json::parse(s, nullptr, allowException, ignoreComment);
+  if (json.is_object()) {
+    return json;
+  } else {
     return std::nullopt;
   }
 }
