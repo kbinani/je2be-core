@@ -30,14 +30,13 @@ ZipFile::~ZipFile() {
   close();
 }
 
-bool ZipFile::store(std::vector<u8> const &buffer, std::string const &filename) {
+bool ZipFile::store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9) {
   mz_zip_file s = {0};
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
-  i16 compressLevel = 9;
   u8 raw = 0;
-  if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressLevel, raw, nullptr)) {
+  if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressionLevel0To9, raw, nullptr)) {
     return false;
   }
   i32 totalWritten = 0;
@@ -56,14 +55,13 @@ bool ZipFile::store(std::vector<u8> const &buffer, std::string const &filename) 
   return err == MZ_OK && mz_zip_entry_close(fHandle) == MZ_OK;
 }
 
-bool ZipFile::store(mcfile::stream::InputStream &stream, std::string const &filename) {
+bool ZipFile::store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9) {
   mz_zip_file s = {0};
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
-  i16 compressLevel = 9;
   u8 raw = 0;
-  if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressLevel, raw, nullptr)) {
+  if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressionLevel0To9, raw, nullptr)) {
     return false;
   }
   std::vector<u8> buffer(512);
@@ -229,7 +227,8 @@ bool ZipFile::Zip(
       return false;
     }
     auto stream = std::make_shared<mcfile::stream::FileInputStream>(path);
-    if (!file.store(*stream, rel.string())) {
+    int compressionLevel = 9;
+    if (!file.store(*stream, rel.string(), compressionLevel)) {
       return false;
     }
     done++;

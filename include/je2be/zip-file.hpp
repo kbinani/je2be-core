@@ -11,8 +11,8 @@ public:
   explicit ZipFile(std::filesystem::path const &zipFilePath);
   ~ZipFile();
 
-  bool store(std::vector<u8> const &buffer, std::string const &filename);
-  bool store(mcfile::stream::InputStream &stream, std::string const &filename);
+  bool store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9 = 9);
+  bool store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9 = 9);
   bool close();
 
   static bool Unzip(
