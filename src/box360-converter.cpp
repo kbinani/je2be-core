@@ -274,7 +274,7 @@ private:
       }
     }
 
-    return resources.close();
+    return resources.close().fStatus;
   }
 
   static Status SetupDataPack(std::filesystem::path const &outputDirectory) {
