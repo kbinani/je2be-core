@@ -24,7 +24,7 @@ public:
   bool fCommandsEnabled = false;
   bool fConfirmedPlatformLockedContent = false;
   i64 fCurrentTick = 0;
-  i32 fDifficulty = 0;
+  i32 fDifficulty = 2;
   std::string fFlatWorldLayers = "null\x0a";
   bool fDoDaylightCycle = true;
   bool fDoEntityDrops = true;
