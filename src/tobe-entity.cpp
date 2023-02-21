@@ -171,13 +171,14 @@ class Entity::Impl {
 public:
   static Result From(CompoundTag const &tag, Context const &ctx) {
     using namespace std;
-    auto id = tag.string("id");
+    auto rawId = tag.string("id");
     Result result;
-    if (!id) {
+    if (!rawId) {
       return result;
     }
+    auto id = MigrateName(*rawId);
     static unique_ptr<unordered_map<string, Converter> const> const table(CreateEntityTable());
-    auto found = table->find(*id);
+    auto found = table->find(id);
     if (found == table->end()) {
       auto converted = Default(tag);
       if (converted) {
@@ -202,11 +203,12 @@ public:
 
   static std::optional<std::tuple<Pos3i, CompoundTagPtr, std::string>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
-    auto id = c.string("id");
-    assert(id);
-    if (*id == "minecraft:item_frame") {
+    auto rawId = c.string("id");
+    assert(rawId);
+    auto id = MigrateName(*rawId);
+    if (id == "minecraft:item_frame") {
       return ToItemFrameTileEntityBlock(c, "minecraft:frame");
-    } else if (*id == "minecraft:glow_item_frame") {
+    } else if (id == "minecraft:glow_item_frame") {
       return ToItemFrameTileEntityBlock(c, "minecraft:glow_frame");
     }
 
@@ -271,11 +273,12 @@ public:
   }
 
   static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context const &ctx) {
-    auto id = c.string("id");
-    assert(id);
-    if (*id == "minecraft:item_frame") {
+    auto rawId = c.string("id");
+    assert(rawId);
+    auto id = MigrateName(*rawId);
+    if (id == "minecraft:item_frame") {
       return ToItemFrameTileEntityData(c, ctx, "ItemFrame");
-    } else if (*id == "minecraft:glow_item_frame") {
+    } else if (id == "minecraft:glow_item_frame") {
       return ToItemFrameTileEntityData(c, ctx, "GlowItemFrame");
     }
     return nullptr;
@@ -312,11 +315,12 @@ public:
   }
 
   static bool IsTileEntity(CompoundTag const &tag) {
-    auto id = tag.string("id");
-    if (!id) {
+    auto rawId = tag.string("id");
+    if (!rawId) {
       return false;
     }
-    return *id == "minecraft:item_frame" || *id == "minecraft:glow_item_frame";
+    auto id = MigrateName(*rawId);
+    return id == "minecraft:item_frame" || id == "minecraft:glow_item_frame";
   }
 
   static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
@@ -343,11 +347,13 @@ public:
     double y = pos->fY + 1.62001;
     if (auto rootVehicle = tag.compoundTag("RootVehicle"); rootVehicle) {
       if (auto vehicleEntity = rootVehicle->compoundTag("Entity"); vehicleEntity) {
-        auto vehicleId = vehicleEntity->string("id");
-        if (vehicleId == "minecraft:boat" || vehicleId == "minecraft:chest_boat") {
-          auto boatPos = GetBoatPos(*vehicleEntity);
-          if (boatPos) {
-            y = boatPos->fY + 1.24501;
+        if (auto vehicleRawId = vehicleEntity->string("id"); vehicleRawId) {
+          auto vehicleId = MigrateName(*vehicleRawId);
+          if (vehicleId == "minecraft:boat" || vehicleId == "minecraft:chest_boat") {
+            auto boatPos = GetBoatPos(*vehicleEntity);
+            if (boatPos) {
+              y = boatPos->fY + 1.24501;
+            }
           }
         }
       }
@@ -545,6 +551,15 @@ public:
   }
 
 private:
+  static std::string MigrateName(std::string const &rawName) {
+    std::string name = strings::SnakeFromUpperCamel(rawName);
+    if (name.starts_with("minecraft:")) {
+      name = name.substr(10);
+    }
+    // TODO:
+    return "minecraft:" + name;
+  }
+
   static CompoundTagPtr ItemAtSlot(ListTag const &items, u32 slot) {
     for (auto const &it : items) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -1730,16 +1745,16 @@ private:
       CopyBoolValues(tag, *ret, {{"PersistenceRequired", "Persistent", false}});
     }
 
-    auto id = tag.string("id");
-    if (id) {
+    if (auto rawId = tag.string("id"); rawId) {
+      auto id = MigrateName(*rawId);
       auto health = tag.float32("Health");
-      if (*id == "minecraft:horse" || *id == "minecraft:donkey" || *id == "minecraft:mule" || *id == "minecraft:skeleton_horse" || *id == "minecraft:zombie_horse") {
+      if (id == "minecraft:horse" || id == "minecraft:donkey" || id == "minecraft:mule" || id == "minecraft:skeleton_horse" || id == "minecraft:zombie_horse") {
         auto attributes = EntityAttributes::AnyHorseFromJava(tag, health);
         if (attributes) {
           ret->set("Attributes", attributes);
         }
       } else {
-        auto attributes = EntityAttributes::Mob(*id, health);
+        auto attributes = EntityAttributes::Mob(id, health);
         if (attributes) {
           ret->set("Attributes", attributes->toBedrockListTag());
         }
@@ -1993,11 +2008,12 @@ private:
 
   static Behavior Rename(std::string const &name) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      auto id = tag.string("id");
-      if (!id) {
+      auto rawId = tag.string("id");
+      if (!rawId) {
         return;
       }
-      RemoveDefinition(c, "+" + *id);
+      auto id = MigrateName(*rawId);
+      RemoveDefinition(c, "+" + id);
       AddDefinition(c, "+minecraft:" + name);
       c["identifier"] = String("minecraft:" + name);
     };
@@ -2362,7 +2378,7 @@ private:
       e.fPortalCooldown = *portalCooldown;
     }
     if (id) {
-      e.fIdentifier = *id;
+      e.fIdentifier = MigrateName(*id);
     }
     if (customName) {
       auto text = customName->find("text");
