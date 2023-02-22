@@ -177,8 +177,12 @@ public:
       return result;
     }
     auto id = MigrateName(*rawId);
+    if (!id.starts_with("minecraft:")) {
+      return result;
+    }
+    auto key = id.substr(10);
     static unique_ptr<unordered_map<string, Converter> const> const table(CreateEntityTable());
-    auto found = table->find(id);
+    auto found = table->find(key);
     if (found == table->end()) {
       auto converted = Default(tag);
       if (converted) {
@@ -579,9 +583,9 @@ private:
 
   static std::unordered_map<std::string, Converter> *CreateEntityTable() {
     auto table = new std::unordered_map<std::string, Converter>();
-#define E(__name, __func) table->insert(std::make_pair("minecraft:" #__name, __func))
-#define A(__name) table->insert(std::make_pair("minecraft:" #__name, Animal))
-#define M(__name) table->insert(std::make_pair("minecraft:" #__name, Monster))
+#define E(__name, __func) table->insert(std::make_pair(#__name, __func))
+#define A(__name) table->insert(std::make_pair(#__name, Animal))
+#define M(__name) table->insert(std::make_pair(#__name, Monster))
 
     E(painting, Painting);
     E(end_crystal, EndCrystal);
