@@ -14,6 +14,7 @@
 #include "entity/_tropical-fish.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
+#include "enums/_facing6.hpp"
 #include "enums/_game-mode.hpp"
 #include "enums/_villager-profession.hpp"
 #include "enums/_villager-type.hpp"
@@ -221,32 +222,8 @@ public:
 
   static std::tuple<Pos3i, CompoundTagPtr, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name) {
     using namespace std;
-    auto tileX = c.int32("TileX");
-    auto tileY = c.int32("TileY");
-    auto tileZ = c.int32("TileZ");
 
-    i32 facing = 0;
-    if (auto rot = props::GetRotation(c, "Rotation"); rot) {
-      if (RotAlmostEquals(*rot, 0, -90)) {
-        // up
-        facing = 1;
-      } else if (RotAlmostEquals(*rot, 180, 0)) {
-        // north
-        facing = 2;
-      } else if (RotAlmostEquals(*rot, 270, 0)) {
-        // east
-        facing = 5;
-      } else if (RotAlmostEquals(*rot, 0, 0)) {
-        // south
-        facing = 3;
-      } else if (RotAlmostEquals(*rot, 90, 0)) {
-        // west
-        facing = 4;
-      } else if (RotAlmostEquals(*rot, 0, 90)) {
-        // down
-        facing = 0;
-      }
-    }
+    PositionAndFacing paf = GetItemFrameTilePositionAndFacing(c);
 
     bool map = false;
     auto itemId = c.query("Item/id");
@@ -263,17 +240,16 @@ public:
     auto b = Compound();
     auto states = Compound();
     states->insert({
-        {"facing_direction", Int(facing)},
+        {"facing_direction", Int(paf.fFacing)},
         {"item_frame_map_bit", Bool(map)},
     });
-    string key = name + "[facing_direction=" + to_string(facing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
+    string key = name + "[facing_direction=" + to_string(paf.fFacing) + ",item_frame_map_bit=" + (map ? "true" : "false") + "]";
     b->insert({
         {"name", String(name)},
         {"version", Int(kBlockDataVersion)},
         {"states", states},
     });
-    Pos3i pos(*tileX, *tileY, *tileZ);
-    return make_tuple(pos, b, key);
+    return make_tuple(paf.fPosition, b, key);
   }
 
   static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context const &ctx) {
@@ -290,18 +266,14 @@ public:
 
   static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
     auto tag = Compound();
-    auto tileX = c.int32("TileX");
-    auto tileY = c.int32("TileY");
-    auto tileZ = c.int32("TileZ");
-    if (!tileX || !tileY || !tileZ) {
-      return nullptr;
-    }
+
+    PositionAndFacing paf = GetItemFrameTilePositionAndFacing(c);
     tag->insert({
         {"id", String(name)},
         {"isMovable", Bool(true)},
-        {"x", Int(*tileX)},
-        {"y", Int(*tileY)},
-        {"z", Int(*tileZ)},
+        {"x", Int(paf.fPosition.fX)},
+        {"y", Int(paf.fPosition.fY)},
+        {"z", Int(paf.fPosition.fZ)},
     });
     auto itemRotation = c.byte("ItemRotation", 0);
     auto itemDropChance = c.float32("ItemDropChance", 1);
@@ -2334,6 +2306,72 @@ private:
       return std::nullopt;
     }
     return UuidRegistrar::ToId(*uuid);
+  }
+
+  struct PositionAndFacing {
+    Pos3i fPosition;
+    i32 fFacing;
+  };
+  static PositionAndFacing GetItemFrameTilePositionAndFacing(CompoundTag const &c) {
+    using namespace std;
+    i32 tileX = c.int32("TileX", 0);
+    i32 tileY = c.int32("TileY", 0);
+    i32 tileZ = c.int32("TileZ", 0);
+
+    i32 facing = 0;
+    Pos3i pos(tileX, tileY, tileZ);
+
+    auto dir = c.byte("Dir");
+    auto direction = c.byte("Direction");
+    if (dir && direction) {
+      // 1.7.10: Tile{X,Y,Z} points to the base block of ItemFrame
+      Pos3i normal;
+      switch (*direction) {
+      case 3: // dir = 3
+        normal = Pos3iFromFacing6(Facing6::East);
+        facing = 5;
+        break;
+      case 2: // dir = 0
+        normal = Pos3iFromFacing6(Facing6::North);
+        facing = 2;
+        break;
+      case 1: // dir = 1
+        normal = Pos3iFromFacing6(Facing6::West);
+        facing = 4;
+        break;
+      case 0: // dir = 2
+      default:
+        normal = Pos3iFromFacing6(Facing6::South);
+        facing = 3;
+        break;
+      }
+      pos = pos + normal;
+    } else if (auto rot = props::GetRotation(c, "Rotation"); rot) {
+      // 1.8 or later
+      if (RotAlmostEquals(*rot, 0, -90)) {
+        // up
+        facing = 1;
+      } else if (RotAlmostEquals(*rot, 180, 0)) {
+        // north
+        facing = 2;
+      } else if (RotAlmostEquals(*rot, 270, 0)) {
+        // east
+        facing = 5;
+      } else if (RotAlmostEquals(*rot, 0, 0)) {
+        // south
+        facing = 3;
+      } else if (RotAlmostEquals(*rot, 90, 0)) {
+        // west
+        facing = 4;
+      } else if (RotAlmostEquals(*rot, 0, 90)) {
+        // down
+        facing = 0;
+      }
+    }
+    PositionAndFacing ret;
+    ret.fPosition = pos;
+    ret.fFacing = facing;
+    return ret;
   }
 
   static std::optional<Rep> BaseProperties(CompoundTag const &tag) {
