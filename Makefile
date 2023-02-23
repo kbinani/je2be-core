@@ -5,7 +5,3 @@ docker-image:
 .PHONY: format
 format:
 	@bash tool/format
-
-.PHONY: update-cmakelists
-update-cmakelists:
-	@bash tool/update-cmakelists

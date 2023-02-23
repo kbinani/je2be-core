@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(je2be)
 
+include(cmake/CPM.cmake)
+
 if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,105 +44,107 @@ set(je2be_header_files
   include/je2be/uuid.hpp
   include/je2be/zip-file.hpp
   #end je2be-header files
-  # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
-  #begin libminecraft-file source files
-  deps/libminecraft-file/include/mcfile/algorithm.hpp
-  deps/libminecraft-file/include/mcfile/be/biome-map.hpp
-  deps/libminecraft-file/include/mcfile/be/biome-section.hpp
-  deps/libminecraft-file/include/mcfile/be/biome.hpp
-  deps/libminecraft-file/include/mcfile/be/block.hpp
-  deps/libminecraft-file/include/mcfile/be/chunk.hpp
-  deps/libminecraft-file/include/mcfile/be/db-interface.hpp
-  deps/libminecraft-file/include/mcfile/be/db-key.hpp
-  deps/libminecraft-file/include/mcfile/be/db.hpp
-  deps/libminecraft-file/include/mcfile/be/pending-tick.hpp
-  deps/libminecraft-file/include/mcfile/be/sub-chunk.hpp
-  deps/libminecraft-file/include/mcfile/be/wrap-db.hpp
-  deps/libminecraft-file/include/mcfile/biome-palette.hpp
-  deps/libminecraft-file/include/mcfile/biomes/biome-id.hpp
-  deps/libminecraft-file/include/mcfile/biomes/from-int.hpp
-  deps/libminecraft-file/include/mcfile/biomes/from-name.hpp
-  deps/libminecraft-file/include/mcfile/biomes/minecraft.hpp
-  deps/libminecraft-file/include/mcfile/biomes/name.hpp
-  deps/libminecraft-file/include/mcfile/blocks/block-data.hpp
-  deps/libminecraft-file/include/mcfile/blocks/block-id.hpp
-  deps/libminecraft-file/include/mcfile/blocks/data/ageable.hpp
-  deps/libminecraft-file/include/mcfile/blocks/data/bisected.hpp
-  deps/libminecraft-file/include/mcfile/blocks/data/directional.hpp
-  deps/libminecraft-file/include/mcfile/blocks/data/type/stairs.hpp
-  deps/libminecraft-file/include/mcfile/blocks/from-name.hpp
-  deps/libminecraft-file/include/mcfile/blocks/make-block-data.hpp
-  deps/libminecraft-file/include/mcfile/blocks/minecraft.hpp
-  deps/libminecraft-file/include/mcfile/blocks/name.hpp
-  deps/libminecraft-file/include/mcfile/compression.hpp
-  deps/libminecraft-file/include/mcfile/coordinate.hpp
-  deps/libminecraft-file/include/mcfile/data4b3d.hpp
-  deps/libminecraft-file/include/mcfile/dimension.hpp
-  deps/libminecraft-file/include/mcfile/endianness.hpp
-  deps/libminecraft-file/include/mcfile/file.hpp
-  deps/libminecraft-file/include/mcfile/je/block-palette.hpp
-  deps/libminecraft-file/include/mcfile/je/block.hpp
-  deps/libminecraft-file/include/mcfile/je/cached-chunk-loader.hpp
-  deps/libminecraft-file/include/mcfile/je/chunk-section.hpp
-  deps/libminecraft-file/include/mcfile/je/chunk.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/block-states-parser-113.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/block-states-parser-116.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-112.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113-base.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-113.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-116.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-118.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-empty.hpp
-  deps/libminecraft-file/include/mcfile/je/chunksection/chunk-section-generator.hpp
-  deps/libminecraft-file/include/mcfile/je/flatten.hpp
-  deps/libminecraft-file/include/mcfile/je/heightmaps.hpp
-  deps/libminecraft-file/include/mcfile/je/mca-chunk-locator.hpp
-  deps/libminecraft-file/include/mcfile/je/mca-editor.hpp
-  deps/libminecraft-file/include/mcfile/je/region.hpp
-  deps/libminecraft-file/include/mcfile/je/set-block-options.hpp
-  deps/libminecraft-file/include/mcfile/je/ticking-block.hpp
-  deps/libminecraft-file/include/mcfile/je/world.hpp
-  deps/libminecraft-file/include/mcfile/je/writable-chunk.hpp
-  deps/libminecraft-file/include/mcfile/mem.hpp
-  deps/libminecraft-file/include/mcfile/nbt/byte-array-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/byte-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/compound-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/detail/scalar-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/detail/vector-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/double-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/end-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/float-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/int-array-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/int-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/list-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/long-array-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/long-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/print-as-json.hpp
-  deps/libminecraft-file/include/mcfile/nbt/short-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/string-tag.hpp
-  deps/libminecraft-file/include/mcfile/nbt/tag-factory-impl.hpp
-  deps/libminecraft-file/include/mcfile/nbt/tag-factory.hpp
-  deps/libminecraft-file/include/mcfile/nbt/tag.hpp
-  deps/libminecraft-file/include/mcfile/palette-list.hpp
-  deps/libminecraft-file/include/mcfile/pos2.hpp
-  deps/libminecraft-file/include/mcfile/pos3.hpp
-  deps/libminecraft-file/include/mcfile/scoped-file.hpp
-  deps/libminecraft-file/include/mcfile/stream/byte-input-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/byte-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/defer-opening-output-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/file-input-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/file-output-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/gz-file-input-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/gz-file-output-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/input-stream-reader.hpp
-  deps/libminecraft-file/include/mcfile/stream/input-stream.hpp
-  deps/libminecraft-file/include/mcfile/stream/output-stream-writer.hpp
-  deps/libminecraft-file/include/mcfile/stream/output-stream.hpp
-  deps/libminecraft-file/include/mcfile/string.hpp
-  deps/libminecraft-file/include/minecraft-file.hpp
-  #end libminecraft-file source files
   .editorconfig
   .clang-format)
+set(mcfile_header_files
+  # (cd deps/libminecraft-file; git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g') | pbcopy
+  #begin libminecraft-file source files
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/algorithm.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/biome-map.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/biome-section.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/biome.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/block.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/chunk.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/db-interface.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/db-key.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/db.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/pending-tick.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/sub-chunk.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/be/wrap-db.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/biome-palette.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/biomes/biome-id.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/biomes/from-int.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/biomes/from-name.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/biomes/minecraft.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/biomes/name.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/block-data.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/block-id.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/data/ageable.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/data/bisected.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/data/directional.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/data/type/stairs.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/from-name.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/make-block-data.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/minecraft.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/blocks/name.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/compression.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/coordinate.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/data4b3d.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/dimension.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/endianness.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/file.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/block-palette.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/block.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/cached-chunk-loader.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunk-section.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunk.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/block-states-parser-113.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/block-states-parser-116.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-112.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-113-base.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-113.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-116.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-118.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-empty.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/chunksection/chunk-section-generator.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/flatten.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/heightmaps.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/mca-chunk-locator.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/mca-editor.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/region.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/set-block-options.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/ticking-block.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/world.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/je/writable-chunk.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/mem.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/byte-array-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/byte-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/compound-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/detail/scalar-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/detail/vector-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/double-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/end-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/float-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/int-array-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/int-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/list-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/long-array-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/long-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/print-as-json.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/short-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/string-tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/tag-factory-impl.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/tag-factory.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/nbt/tag.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/palette-list.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/pos2.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/pos3.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/scoped-file.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/byte-input-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/byte-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/defer-opening-output-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/file-input-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/file-output-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/gz-file-input-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/gz-file-output-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/input-stream-reader.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/input-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/output-stream-writer.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/stream/output-stream.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/mcfile/string.hpp
+  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include/minecraft-file.hpp
+  #end libminecraft-file source files
+)
 set(je2be_src_files
   #begin je2be-src files
   src/_closed-range.hpp
@@ -367,7 +371,10 @@ set(test_files
   test/strings.test.hpp
   test/je2be-all.hpp)
 
-add_subdirectory(deps/libminecraft-file)
+CPMAddPackage(
+  NAME libminecraft-file
+  GITHUB_REPOSITORY kbinani/libminecraft-file
+  GIT_TAG 0a6d5f41e2ee5ef7074f3ef651e8bef1e87c4725)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
@@ -413,7 +420,7 @@ add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
 
 
-add_library(je2be STATIC ${je2be_header_files} ${je2be_src_files})
+add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
 target_include_directories(je2be PUBLIC
   ./include
   deps/leveldb
@@ -421,9 +428,8 @@ target_include_directories(je2be PUBLIC
   deps/xxhash
   deps/json/include
   deps/minizip-ng
-  deps/libminecraft-file/include
   ${je2be_include_directories})
-target_include_directories(je2be PRIVATE ./src ${CMAKE_BINARY_DIR}/_deps/libdeflate-src)
+target_include_directories(je2be PRIVATE ./src ${CMAKE_BINARY_DIR}/_deps/libdeflate-src ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
 
@@ -440,12 +446,13 @@ add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
 add_executable(test ${test_files} ${je2be_header_files})
-target_link_libraries(test je2be)
-target_include_directories(test PRIVATE src deps/libminecraft-file/test/deps/doctest)
+target_link_libraries(test je2be doctest)
+target_include_directories(test PRIVATE src)
 
 add_executable(j2b2j test/j2b2j.cpp)
-target_link_libraries(j2b2j je2be)
-target_include_directories(j2b2j PRIVATE src deps/libminecraft-file/test/deps/doctest)
+target_link_libraries(j2b2j je2be doctest)
+target_include_directories(j2b2j PRIVATE src)
 
 list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
+source_group(TREE ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src PREFIX deps/mcfile FILES ${mcfile_header_files})

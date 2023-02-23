@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -ue
+
+FETCHCONTENT_BASE_DIR=$1
+
 (
   cd "$(dirname "$0")/.."
 
@@ -18,8 +22,8 @@
   git ls-files | grep ^include | sed 's:\(.*\):  \1:g' >> "$tmp"
   cat CMakeLists.txt | head -n $mcfile_start | tail -n +${je2be_header_end} >> "$tmp"
   (
-    cd deps/libminecraft-file
-    git ls-files | grep ^include | sed 's:\(.*\):  deps/libminecraft-file/\1:g' >> "$tmp"
+    cd "$FETCHCONTENT_BASE_DIR/libminecraft-file-src"
+    git ls-files | grep ^include | sed 's:\(.*\):  ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/\1:g' >> "$tmp"
   )
   cat CMakeLists.txt | head -n $je2be_src_start | tail -n +${mcfile_end} >> "$tmp"
 
