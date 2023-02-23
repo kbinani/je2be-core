@@ -59,17 +59,42 @@ public:
   }
 
 private:
-  static CompoundTagPtr Convert(CompoundTagPtr const &item, Context const &ctx) {
+  static CompoundTagPtr Convert(CompoundTagPtr const &in, Context const &ctx) {
     using namespace std;
 
     static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
     static unique_ptr<unordered_map<string, Converter> const> const itemMapping(CreateItemConverterTable());
 
-    auto id = item->string("id");
-    if (!id) {
-      return nullptr;
+    CompoundTagPtr item = in;
+    string name;
+
+    if (auto id = item->string("id"); id) {
+      name = *id;
+      auto damageTag = in->int16("Damage");
+      if (damageTag) {
+        i16 damage = *damageTag;
+        auto n = mcfile::je::Flatten::Item(*id, &damage);
+        if (n) {
+          name = *n;
+          item = in->copy();
+          item->set("Damage", Short(damage));
+        }
+      }
+    } else {
+      auto idTag = in->int16("id");
+      auto damageTag = in->int16("Damage");
+      if (!idTag || !damageTag) {
+        return nullptr;
+      }
+      i16 damage = *damageTag;
+      auto n = mcfile::je::Flatten::Item(*idTag, &damage);
+      if (!n) {
+        return nullptr;
+      }
+      name = *n;
+      item = in->copy();
+      item->set("Damage", Short(damage));
     }
-    string const &name = *id;
 
     if (name == "minecraft:filled_map") {
       auto ret = Map(name, *item, ctx.fMapInfo);
@@ -236,6 +261,8 @@ private:
     E("suspicious_stew", SuspiciousStew);
     E("crossbow", Crossbow);
     E("nether_brick", Rename("netherbrick"));
+
+    E("spawn_egg", LegacySpawnEgg); // legacy
 #undef E
     return table;
   }
@@ -808,6 +835,7 @@ private:
     E("mangrove_boat");
     E("echo_shard");
     E("recovery_compass");
+    E("spawn_egg"); // legacy
 
     // listed with blocks, but not block item
 
@@ -864,6 +892,29 @@ private:
     auto tag = New("skull");
     tag->set("Damage", Short(type));
     return tag;
+  }
+
+  static CompoundTagPtr LegacySpawnEgg(std::string const &name, CompoundTag const &j, Context const &ctx) {
+    std::string n = name;
+    if (auto tag = j.compoundTag("tag"); tag) {
+      if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
+        if (auto id = entityTag->string("id"); id) {
+          std::string entity;
+          if (id->starts_with("minecraft:")) {
+            entity = id->substr(10);
+          } else {
+            entity = *id;
+          }
+          if (entity == "evocation_illager") {
+            entity = "evoker";
+          } else if (entity == "vindication_illager") {
+            entity = "vindicator";
+          }
+          n = "minecraft:" + entity + "_spawn_egg";
+        }
+      }
+    }
+    return New(n, true);
   }
 
   static CompoundTagPtr SuspiciousStew(std::string const &name, CompoundTag const &j, Context const &) {
