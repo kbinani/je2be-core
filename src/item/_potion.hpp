@@ -6,6 +6,130 @@ namespace je2be {
 
 class Potion {
 public:
+  struct TypeAndItemName {
+    std::string fItemName;
+    std::string fPotionType;
+  };
+  static std::optional<TypeAndItemName> JavaPotionTypeAndItemNameFromLegacyJavaDamage(i16 damage) {
+    using namespace std;
+    string type;
+    // 0x2001: 0010000000000001 regeneration 0:45
+    // 0x2021: 0010000000100001 regeneration II 0:22
+    // 0x2041: 0010000001000001 regeneration 2:00
+
+    // 0x202e: invisibility 3:00
+    // 0x204e: invisibility 8:00
+    // 0x402e: invisibility (splash) 2:15
+    // 0x404e: invisibility (splasy) 6:00
+
+    // 0x2026: night_vision 3:00
+
+    // 0x2028: weakness: 1:30
+
+    // 0x202d: water_breathing: 3:00
+
+    // 0x2045: 0010 0000 0100 0101 healing
+    // 0x2025: 0010 0000 0010 0101 strong_healing
+
+    // 0x2023: 0010 0000 0010 0011 fire_resistance 3:00
+    // 0x2043: 0010 0000 0100 0011 fire_resistance 8:00
+
+    bool isStrong = (0x20 & damage) == 0x20;
+    bool isLong = (0x40 & damage) == 0x40;
+
+    switch (damage & 0x1f) {
+    case 0:
+      type = "water";
+      break;
+    case 1:
+      type = "regeneration";
+      break;
+    case 2:
+      type = "swiftness";
+      break;
+    case 3:
+      type = "fire_resistance";
+      // fire_resistance potion is default "strong" without prefix
+      if (isStrong) {
+        isStrong = false;
+      }
+      break;
+    case 4:
+      type = "poison";
+      break;
+    case 5:
+      type = "healing";
+      // healing potion is default "long" without prefix
+      if (isLong) {
+        isLong = false;
+      }
+      break;
+    case 6:
+      type = "night_vision";
+      // night_vision potion is default "strong" without prefix
+      if (isStrong) {
+        isStrong = false;
+      }
+      break;
+    case 8:
+      type = "weakness";
+      // weakness potion is default "strong" without prefix
+      if (isStrong) {
+        isStrong = false;
+      }
+      break;
+    case 9:
+      type = "strength";
+      break;
+    case 10:
+      type = "slowness";
+      break;
+    case 12:
+      type = "harming";
+      // harming potion is default "long" without prefix
+      if (isLong) {
+        isLong = false;
+      }
+      break;
+    case 13:
+      type = "water_breathing";
+      // water_breathing potion is default "strong" without prefix
+      if (isStrong) {
+        isStrong = false;
+      }
+      break;
+    case 14:
+      type = "invisibility";
+      // invisibility potion is default "strong" without prefix
+      if (isStrong) {
+        isStrong = false;
+      }
+      break;
+    case 16:
+      type = "mundane";
+      break;
+    default:
+      return std::nullopt;
+    }
+
+    string prefix;
+    if (isLong) {
+      prefix = "long_";
+    }
+    if (isStrong) {
+      prefix = "strong_";
+    }
+
+    TypeAndItemName ret;
+    ret.fPotionType = "minecraft:" + prefix + type;
+    if ((0x4000 & damage) == 0x4000) {
+      ret.fItemName = "minecraft:splash_potion";
+    } else {
+      ret.fItemName = "minecraft:potion";
+    }
+    return ret;
+  }
+
   static ReversibleMap<std::string, i16> const *GetPotionTypeTableJtoB() {
     static std::unique_ptr<ReversibleMap<std::string, i16> const> const sTable(CreatePotionTypeTableJtoB());
     return sTable.get();

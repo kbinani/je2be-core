@@ -430,14 +430,26 @@ private:
   }
 
   static CompoundTagPtr AnyPotion(std::string const &name, CompoundTag const &item, Context const &) {
-    auto tag = New(name, true);
-    auto t = item.query("tag")->asCompound();
-    i16 type = 0;
-    if (t) {
-      auto potion = t->string("Potion", "");
-      type = Potion::BedrockPotionTypeFromJava(potion);
+    std::string itemName = name;
+    std::optional<i16> type;
+    if (auto t = item.query("tag")->asCompound(); t) {
+      if (auto potion = t->string("Potion"); potion) {
+        type = Potion::BedrockPotionTypeFromJava(*potion);
+      }
     }
-    tag->set("Damage", Short(type));
+    if (!type) {
+      if (auto damage = item.int16("Damage"); damage) {
+        if (auto ret = Potion::JavaPotionTypeAndItemNameFromLegacyJavaDamage(*damage); ret) {
+          itemName = ret->fItemName;
+          type = Potion::BedrockPotionTypeFromJava(ret->fPotionType);
+        }
+      }
+    }
+    if (!type) {
+      type = 0;
+    }
+    auto tag = New(itemName, true);
+    tag->set("Damage", Short(*type));
     return tag;
   }
 

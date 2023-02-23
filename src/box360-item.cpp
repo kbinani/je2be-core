@@ -5,6 +5,7 @@
 #include "box360/_context.hpp"
 #include "enums/_color-code-java.hpp"
 #include "item/_enchantments.hpp"
+#include "item/_potion.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -485,52 +486,21 @@ private:
   static std::string Potion(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     std::string id;
     if (auto tag = in.compoundTag("tag"); tag) {
+      // TU67
       out->set("tag", tag);
     } else {
+      // TU25
       i16 d = DrainDamage(damage);
-      std::optional<std::string> potion;
-      switch (d & 0x1f) {
-      case 0:
-        potion = "water";
-        break;
-      case 1:
-        potion = "regeneration";
-        break;
-      case 2:
-        potion = "swiftness";
-        break;
-      case 3:
-        potion = "fire_resistance";
-        break;
-      case 4:
-        potion = "poison";
-        break;
-      case 5:
-        potion = "healing";
-        break;
-      case 8:
-        potion = "weakness";
-        break;
-      case 9:
-        potion = "strength";
-        break;
-      case 10:
-        potion = "slowness";
-        break;
-      case 12:
-        potion = "harming";
-        break;
-      case 16:
-        potion = "mundane";
-        break;
-      }
-      if (potion) {
+      auto ret = je2be::Potion::JavaPotionTypeAndItemNameFromLegacyJavaDamage(d);
+      if (ret) {
+        if (ret->fItemName.starts_with("minecraft:")) {
+          id = ret->fItemName.substr(10);
+        } else {
+          id = ret->fItemName;
+        }
         auto t = Compound();
-        t->set("Potion", String("minecraft:" + *potion));
+        t->set("Potion", String(ret->fPotionType));
         out->set("tag", t);
-      }
-      if ((0x4000 & d) == 0x4000) {
-        id = "splash_potion";
       }
     }
     return id;
