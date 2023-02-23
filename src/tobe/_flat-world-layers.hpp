@@ -178,7 +178,7 @@ public:
       if (!blockId) {
         return nullopt;
       }
-      auto block = mcfile::je::Flatten::DoFlatten(*blockId, data);
+      auto block = mcfile::je::Flatten::Block(*blockId, data);
       if (!block) {
         return nullopt;
       }

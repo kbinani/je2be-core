@@ -486,7 +486,7 @@ private:
             // upper half of tall flowers
             u8 lowerId = blockId[{x, y - 1, z}];
             u8 lowerData = blockData[{x, y - 1, z}];
-            if (auto lower = mcfile::je::Flatten::DoFlatten(lowerId, lowerData); lower) {
+            if (auto lower = mcfile::je::Flatten::Block(lowerId, lowerData); lower) {
               block = lower->applying({{"half", "upper"}});
             }
           } else if (id == 64) {

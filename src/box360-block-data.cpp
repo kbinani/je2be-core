@@ -48,7 +48,7 @@ std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
   u16 id = this->id();
   u8 data = this->data();
   if (rawId == id) {
-    return mcfile::je::Flatten::DoFlatten(id, data);
+    return mcfile::je::Flatten::Block(id, data);
   }
   string name;
   map<string, string> props;
@@ -333,7 +333,7 @@ std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
     break;
   }
   if (name.empty()) {
-    auto b = mcfile::je::Flatten::DoFlatten(id, data);
+    auto b = mcfile::je::Flatten::Block(id, data);
     return b;
   } else {
     return make_shared<mcfile::je::Block const>("minecraft:" + name, props);
