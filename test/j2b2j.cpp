@@ -34,7 +34,7 @@ TEST_CASE("j2b2j") {
   if (fs::is_regular_file(gInput)) {
     auto unzip = mcfile::File::CreateTempDir(*tmp);
     REQUIRE(unzip);
-    REQUIRE(ZipFile::Unzip(gInput, *unzip));
+    REQUIRE(ZipFile::Unzip(gInput, *unzip).ok());
     bool found = false;
     for (auto it : fs::recursive_directory_iterator(*unzip)) {
       auto path = it.path();

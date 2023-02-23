@@ -383,19 +383,19 @@ int main(int argc, char *argv[]) {
 
   if (verb == "block") {
     if (argc == 9 && args[3] == "at" && args[7] == "of") {
-      auto x = strings::Toi(args[4]);
+      auto x = strings::ToI32(args[4]);
       if (!x) {
         cerr << "Error: invalid block x: " << args[4] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto y = strings::Toi(args[5]);
+      auto y = strings::ToI32(args[5]);
       if (!y) {
         cerr << "Error: invalid block y: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto z = strings::Toi(args[6]);
+      auto z = strings::ToI32(args[6]);
       if (!z) {
         cerr << "Error: invalid block z: " << args[6] << endl;
         PrintHelpMessage();
@@ -409,19 +409,19 @@ int main(int argc, char *argv[]) {
       }
       DumpBlock(dir, *x, *y, *z, *dimension);
     } else if (argc == 10 && args[3] == "entity" && args[4] == "at" && args[8] == "of") {
-      auto x = strings::Toi(args[5]);
+      auto x = strings::ToI32(args[5]);
       if (!x) {
         cerr << "Error: invalid block x: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto y = strings::Toi(args[6]);
+      auto y = strings::ToI32(args[6]);
       if (!y) {
         cerr << "Error: invalid block y: " << args[6] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto z = strings::Toi(args[7]);
+      auto z = strings::ToI32(args[7]);
       if (!z) {
         cerr << "Error: invalid block z: " << args[7] << endl;
         PrintHelpMessage();
@@ -447,13 +447,13 @@ int main(int argc, char *argv[]) {
       PrintHelpMessage();
       return 1;
     }
-    auto chunkX = strings::Toi(args[4]);
+    auto chunkX = strings::ToI32(args[4]);
     if (!chunkX) {
       cerr << "Error: invalid chunk x: " << args[4] << endl;
       PrintHelpMessage();
       return 1;
     }
-    auto chunkZ = strings::Toi(args[5]);
+    auto chunkZ = strings::ToI32(args[5]);
     if (!chunkZ) {
       cerr << "Error: invalid chunk z: " << args[5] << endl;
       PrintHelpMessage();
@@ -472,7 +472,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     if (args[4] == "in" && args[7] == "of") {
-      auto tag = strings::Toi(args[3]);
+      auto tag = strings::ToI32(args[3]);
       if (!tag) {
         cerr << "Error: invalid tag: " << args[3] << endl;
         PrintHelpMessage();
@@ -483,13 +483,13 @@ int main(int argc, char *argv[]) {
         PrintHelpMessage();
         return 1;
       }
-      auto chunkX = strings::Toi(args[5]);
+      auto chunkX = strings::ToI32(args[5]);
       if (!chunkX) {
         cerr << "Error: invalid chunk x: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto chunkZ = strings::Toi(args[6]);
+      auto chunkZ = strings::ToI32(args[6]);
       if (!chunkZ) {
         cerr << "Error: invalid chunk z: " << args[6] << endl;
         PrintHelpMessage();
