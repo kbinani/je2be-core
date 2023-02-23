@@ -381,14 +381,14 @@ endif()
 
 find_package(ZLIB QUIET)
 if (NOT ZLIB_FOUND)
-  set(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib/$<CONFIG>/zlibstatic$<IF:$<CONFIG:Debug>,d,>.lib)
-  set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib)
+  set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/_deps/zlib-build/$<CONFIG>/zlibstatic$<IF:$<CONFIG:Debug>,d,>.lib)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/zlib-src)
   include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib
-    ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
+    ${CMAKE_BINARY_DIR}/_deps/zlib-src
+    ${CMAKE_BINARY_DIR}/_deps/zlib-build)
   list(APPEND je2be_include_directories
-    ${CMAKE_CURRENT_SOURCE_DIR}/deps/libminecraft-file/deps/zlib
-    ${CMAKE_CURRENT_BINARY_DIR}/deps/libminecraft-file/deps/zlib)
+    ${CMAKE_BINARY_DIR}/_deps/zlib-src
+    ${CMAKE_BINARY_DIR}/_deps/zlib-build)
 endif()
 
 option(LEVELDB_ZSTD OFF)
@@ -422,9 +422,8 @@ target_include_directories(je2be PUBLIC
   deps/json/include
   deps/minizip-ng
   deps/libminecraft-file/include
-  deps/libminecraft-file/deps/libdeflate
   ${je2be_include_directories})
-target_include_directories(je2be PRIVATE ./src)
+target_include_directories(je2be PRIVATE ./src ${CMAKE_BINARY_DIR}/_deps/libdeflate-src)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
 
