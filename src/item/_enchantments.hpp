@@ -28,6 +28,63 @@ public:
     }
   }
 
+  static std::optional<std::string> JavaEnchantmentIdFromLegacyJava(i16 id) {
+#define ns "minecraft:"
+    switch (id) {
+    case 0:
+      return ns "protection";
+    case 1:
+      return ns "fire_protection";
+    case 2:
+      return ns "feather_falling";
+    case 3:
+      return ns "blast_protection";
+    case 4:
+      return ns "projectile_protection";
+    case 5:
+      return ns "respiration";
+    case 6:
+      return ns "aqua_affinity";
+    case 7:
+      return ns "thorns";
+    case 16:
+      return ns "sharpness";
+    case 17:
+      return ns "smite";
+    case 18:
+      return ns "bane_of_arthropods";
+    case 19:
+      return ns "knockback";
+    case 20:
+      return ns "fire_aspect";
+    case 21:
+      return ns "looting";
+    case 32:
+      return ns "efficiency";
+    case 33:
+      return ns "silk_touch";
+    case 34:
+      return ns "unbreaking";
+    case 35:
+      return ns "fortune";
+    case 48:
+      return ns "power";
+    case 49:
+      return ns "punch";
+    case 50:
+      return ns "flame";
+    case 51:
+      return ns "infinity";
+    case 61:
+      return ns "luck_of_the_sea";
+    case 62:
+      return ns "lure";
+    default:
+      return std::nullopt;
+    }
+#undef ns
+  }
+
   static std::string JavaEnchantmentIdFromBox360(i16 id) {
     switch (id) {
     case 5:

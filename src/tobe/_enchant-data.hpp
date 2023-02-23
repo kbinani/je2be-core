@@ -11,7 +11,15 @@ public:
     auto tag = Compound();
     auto name = item.string("id");
     if (!name) {
-      return nullptr;
+      auto i16Id = item.int16("id");
+      if (!i16Id) {
+        return nullptr;
+      }
+      auto n = Enchantments::JavaEnchantmentIdFromLegacyJava(*i16Id);
+      if (!n) {
+        return nullptr;
+      }
+      name = *n;
     }
     auto lvl = item.int16("lvl");
     if (!lvl) {
