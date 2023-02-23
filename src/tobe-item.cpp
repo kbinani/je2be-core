@@ -194,6 +194,10 @@ private:
     E("oak_hanging_sign", Sign);
     E("spruce_hanging_sign", Sign);
     E("warped_hanging_sign", Sign);
+
+    // Java: nether_bricks (block), nether_brick (item)
+    // Bedrock: nether_brick (block), netherbrick (item)
+    E("nether_brick", Rename("nether_bricks"));
 #undef E
     return table;
   }
@@ -231,6 +235,7 @@ private:
 
     E("suspicious_stew", SuspiciousStew);
     E("crossbow", Crossbow);
+    E("nether_brick", Rename("netherbrick"));
 #undef E
     return table;
   }
