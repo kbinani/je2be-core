@@ -411,6 +411,7 @@ option(MZ_WZAES OFF)
 option(MZ_OPENSSL OFF)
 option(MZ_LIBBSD OFF)
 option(MZ_SIGNING OFF)
+option(MZ_LIBCOMP OFF)
 add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
 
 add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
