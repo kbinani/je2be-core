@@ -394,6 +394,19 @@ public:
     s->set("height", Int(layers - 1));
   }
 
+  static CompoundTagPtr FlowerPot(Block const &b, CompoundTagConstPtr const &tile) {
+    bool update = false;
+    if (tile) {
+      if (auto item = tile->int32("Item"); item) {
+        update = true;
+      }
+    }
+    auto d = New("flower_pot");
+    auto s = States();
+    AddBoolProperty("update_bit", update)(s, b);
+    return AttachStates(d, s);
+  }
+
   static CompoundTagPtr SnowLayer(Block const &b, CompoundTagConstPtr const &) {
     auto d = New("snow_layer");
     auto s = States();
@@ -1206,7 +1219,7 @@ public:
     E(red_bed, bed);
     E(black_bed, bed);
 
-    E(flower_pot, Converter(Same, AddBoolProperty("update_bit", false)));
+    E(flower_pot, FlowerPot);
 
     Converter pottedFlowerPot(Name("flower_pot"), AddBoolProperty("update_bit", true));
     E(potted_oak_sapling, pottedFlowerPot);

@@ -246,6 +246,7 @@ private:
     E(potted_azalea_bush, PottedPlant("azalea", {}));
     E(potted_flowering_azalea_bush, PottedPlant("flowering_azalea", {}));
     E(potted_mangrove_propagule, PottedPlant("mangrove_propagule", {{"hanging", false}, {"propagule_stage", i32(0)}}));
+    E(flower_pot, FlowerPot);
 
     E(skeleton_skull, Skull);
     E(wither_skeleton_skull, Skull);
@@ -1031,6 +1032,131 @@ private:
         {"name", String("minecraft:sapling")},
         {"version", Int(kBlockDataVersion)},
     });
+    tag->insert({
+        {"id", String("FlowerPot")},
+        {"isMovable", Bool(true)},
+        {"PlantBlock", plantBlock},
+    });
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr FlowerPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+    using namespace std;
+    if (!c) {
+      return nullptr;
+    }
+    auto item = c->int32("Item"); // legacy: Java 1.7.10
+    if (!item) {
+      return nullptr;
+    }
+    auto data = c->int32("Data", 0);
+    auto tag = Compound();
+
+    auto states = Compound();
+    auto plantBlock = Compound();
+    plantBlock->set("version", Int(kBlockDataVersion));
+    string name;
+
+    switch (*item) {
+    case 6: {
+      name = "sapling";
+      string type;
+      switch (data) {
+      case 1:
+        type = "spruce";
+        break;
+      case 2:
+        type = "birch";
+        break;
+      case 3:
+        type = "jungle";
+        break;
+      case 4:
+        type = "acacia";
+        break;
+      case 5:
+        type = "dark_oak";
+        break;
+      case 0:
+      default:
+        type = "oak";
+        break;
+      }
+      states->insert({
+          {"age_bit", Byte(0)},
+          {"sapling_type", String(type)},
+      });
+      break;
+    }
+    case 31: {
+      name = "tallgrass";
+      string type;
+      switch (data) {
+      case 2:
+        type = "fern";
+        break;
+      }
+      states->set("tall_grass_type", String(type));
+      break;
+    }
+    case 32:
+      name = "deadbush";
+      break;
+    case 37:
+      name = "yellow_flower";
+      break;
+    case 38: {
+      name = "red_flower";
+      string type;
+      switch (data) {
+      case 1:
+        type = "orchid";
+        break;
+      case 2:
+        type = "allium";
+        break;
+      case 3:
+        type = "houstonia";
+        break;
+      case 4:
+        type = "tulip_red";
+        break;
+      case 5:
+        type = "tulip_orange";
+        break;
+      case 6:
+        type = "tulip_white";
+        break;
+      case 7:
+        type = "tulip_pink";
+        break;
+      case 8:
+        type = "oxeye";
+        break;
+      case 0:
+      default:
+        type = "poppy";
+        break;
+      }
+      states->set("flower_type", String(type));
+      break;
+    }
+    case 39:
+      name = "brown_mushroom";
+      break;
+    case 40:
+      name = "red_mushroom";
+      break;
+    case 81:
+      name = "cactus";
+      break;
+    default:
+      return nullptr;
+    }
+    plantBlock->set("states", states);
+    plantBlock->set("name", String("minecraft:" + name));
+
     tag->insert({
         {"id", String("FlowerPot")},
         {"isMovable", Bool(true)},
