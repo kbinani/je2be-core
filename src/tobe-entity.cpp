@@ -1752,18 +1752,49 @@ private:
   static CompoundTagPtr Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
   static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
-    i8 facing = tag.byte("facing", tag.byte("Facing", 0)); // 1.19: "facing", 1.18: "Facing"
-    Facing4 f4 = Facing4FromBedrockDirection(facing);
-    auto motiveJ = tag.string("variant", tag.string("Motive", "minecraft:aztec")); // 1.19: "variant", 1.18: "Motive"
-    Painting::Motive motive = Painting::MotiveFromJava(motiveJ);
-    auto motiveB = Painting::BedrockFromMotive(motive);
-
     auto tileX = tag.int32("TileX");
     auto tileY = tag.int32("TileY");
     auto tileZ = tag.int32("TileZ");
     if (!tileX || !tileY || !tileZ) {
       return nullptr;
     }
+
+    Facing4 f4;
+    i8 facing;
+    Painting::Motive motive;
+
+    if (auto dir = tag.byte("Dir"); dir) {
+      switch (*dir) {
+      case 1:
+        f4 = Facing4::West;
+        break;
+      case 2:
+        f4 = Facing4::South;
+        break;
+      case 3:
+        f4 = Facing4::East;
+        break;
+      case 0:
+      default:
+        f4 = Facing4::North;
+        break;
+      }
+      facing = BedrockDirectionFromFacing4(f4);
+
+      Pos2i vec = Pos2iFromFacing4(f4);
+      tileX = *tileX + vec.fX;
+      tileZ = *tileZ + vec.fZ;
+
+      motive = Painting::MotiveFromBedrock(tag.string("Motive", "Aztec"));
+    } else {
+      facing = tag.byte("facing", tag.byte("Facing", 0)); // 1.19: "facing", 1.18: "Facing"
+      f4 = Facing4FromBedrockDirection(facing);
+      auto motiveJ = tag.string("variant", tag.string("Motive", "minecraft:aztec")); // 1.19: "variant", 1.18: "Motive"
+      motive = Painting::MotiveFromJava(motiveJ);
+    }
+
+    auto motiveB = Painting::BedrockFromMotive(motive);
+
     auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(*tileX, *tileY, *tileZ), f4, motive);
     if (!pos) {
       return nullptr;
