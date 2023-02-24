@@ -374,7 +374,7 @@ set(test_files
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 0a6d5f41e2ee5ef7074f3ef651e8bef1e87c4725)
+  GIT_TAG 645308e9d18a5e21476d77e68c7e54f9449229e1)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
@@ -386,10 +386,8 @@ elseif(NOT "${EMSCRIPTEN}" STREQUAL "1" AND NOT "${CMAKE_C_COMPILER_ID}" STREQUA
   add_definitions(-D_GLIBCXX_USE_TBB_PAR_BACKEND=0)
 endif()
 
-find_package(ZLIB QUIET)
-if (NOT ZLIB_FOUND)
-  set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/_deps/zlib-build/$<CONFIG>/zlibstatic$<IF:$<CONFIG:Debug>,d,>.lib)
-  set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/zlib-src)
+list(FIND CPM_PACKAGES "ZLIB" zlib_imported_with_cpm)
+if (zlib_imported_with_cpm GREATER -1)
   include_directories(
     ${CMAKE_BINARY_DIR}/_deps/zlib-src
     ${CMAKE_BINARY_DIR}/_deps/zlib-build)
