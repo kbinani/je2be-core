@@ -177,30 +177,24 @@ private:
       if (i.second.empty()) {
         continue;
       }
-      optional<Pos2i> minR;
-      optional<Pos2i> maxR;
+      Pos2i minR = i.second[0].first;
+      Pos2i maxR = minR;
       for (auto const &j : i.second) {
         Pos2i const &region = j.first;
-        if (minR && maxR) {
-          int minRx = (std::min)(minR->fX, region.fX);
-          int maxRx = (std::max)(maxR->fX, region.fX);
-          int minRz = (std::min)(minR->fZ, region.fZ);
-          int maxRz = (std::max)(maxR->fZ, region.fZ);
-          minR = Pos2i(minRx, minRz);
-          maxR = Pos2i(maxRx, maxRz);
-        } else {
-          minR = region;
-          maxR = region;
-        }
+        int minRx = (std::min)(minR.fX, region.fX);
+        int maxRx = (std::max)(maxR.fX, region.fX);
+        int minRz = (std::min)(minR.fZ, region.fZ);
+        int maxRz = (std::max)(maxR.fZ, region.fZ);
+        minR = Pos2i(minRx, minRz);
+        maxR = Pos2i(maxRx, maxRz);
         numChunks += j.second.fChunks.size();
       }
-      assert(minR && maxR);
 
-      int width = maxR->fX - minR->fX + 1;
-      int height = maxR->fZ - minR->fZ + 1;
-      auto queue = make_shared<Queue2d>(*minR, width, height);
-      for (int x = minR->fX; x <= maxR->fX; x++) {
-        for (int z = minR->fZ; z <= maxR->fZ; z++) {
+      int width = maxR.fX - minR.fX + 1;
+      int height = maxR.fZ - minR.fZ + 1;
+      auto queue = make_shared<Queue2d>(minR, width, height);
+      for (int x = minR.fX; x <= maxR.fX; x++) {
+        for (int z = minR.fZ; z <= maxR.fZ; z++) {
           queue->setDone({x, z}, true);
         }
       }
