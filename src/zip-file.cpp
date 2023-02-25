@@ -32,14 +32,17 @@ ZipFile::~ZipFile() {
   close();
 }
 
-Status ZipFile::store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9) {
+ZipFile::StoreResult ZipFile::store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9) {
+  StoreResult ret;
+
   mz_zip_file s = {0};
   s.version_madeby = MZ_VERSION_MADEBY;
   s.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
   s.filename = filename.c_str();
   u8 raw = 0;
   if (MZ_OK != mz_zip_entry_write_open(fHandle, &s, compressionLevel0To9, raw, nullptr)) {
-    return JE2BE_ERROR;
+    ret.fStatus = JE2BE_ERROR;
+    return ret;
   }
   std::vector<u8> buffer(512);
   i32 err = MZ_OK;
@@ -64,10 +67,12 @@ Status ZipFile::store(mcfile::stream::InputStream &stream, std::string const &fi
   fZip64Used = fZip64Used || (uncompressedSize >= UINT32_MAX || compressedSize >= UINT32_MAX);
 
   if (mz_zip_entry_close(fHandle) != MZ_OK) {
-    return JE2BE_ERROR;
+    ret.fStatus = JE2BE_ERROR;
+    return ret;
   }
   if (err != MZ_OK) {
-    return JE2BE_ERROR;
+    ret.fStatus = JE2BE_ERROR;
+    return ret;
   }
 
   if (!fZip64Used) {
@@ -78,10 +83,11 @@ Status ZipFile::store(mcfile::stream::InputStream &stream, std::string const &fi
     }
   }
 
-  return Status::Ok();
+  ret.fZip64Used = fZip64Used;
+  return ret;
 }
 
-Status ZipFile::store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9) {
+ZipFile::StoreResult ZipFile::store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9) {
   mcfile::stream::ByteInputStream stream((char *)buffer.data(), buffer.size());
   return store(stream, filename, compressionLevel0To9);
 }
@@ -244,22 +250,26 @@ ZipFile::ZipResult ZipFile::Zip(
     fs::path rel = fs::relative(path, inputDirectory, ec);
     if (ec) {
       ret.fStatus = JE2BE_ERROR;
+      ret.fZip64Used = file.fZip64Used;
       return ret;
     }
     auto stream = std::make_shared<mcfile::stream::FileInputStream>(path);
     int compressionLevel = 9;
-    if (auto st = file.store(*stream, rel.string(), compressionLevel); !st.ok()) {
-      ret.fStatus = st;
+    if (auto st = file.store(*stream, rel.string(), compressionLevel); !st.fStatus.ok()) {
+      ret.fStatus = st.fStatus;
+      ret.fZip64Used = st.fZip64Used;
       return ret;
     }
     done++;
     if (!progress(done, total)) {
       ret.fStatus = JE2BE_ERROR;
+      ret.fZip64Used = file.fZip64Used;
       return ret;
     }
   }
   if (ec) {
     ret.fStatus = JE2BE_ERROR;
+    ret.fZip64Used = file.fZip64Used;
     return ret;
   }
   return file.close();

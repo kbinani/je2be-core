@@ -12,13 +12,17 @@ public:
   explicit ZipFile(std::filesystem::path const &zipFilePath);
   ~ZipFile();
 
+  struct StoreResult {
+    Status fStatus = Status::Ok();
+    bool fZip64Used = false;
+  };
+  StoreResult store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9 = 9);
+  StoreResult store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9 = 9);
+
   struct ZipResult {
     Status fStatus = Status::Ok();
     bool fZip64Used = false;
   };
-
-  Status store(std::vector<u8> const &buffer, std::string const &filename, int compressionLevel0To9 = 9);
-  Status store(mcfile::stream::InputStream &stream, std::string const &filename, int compressionLevel0To9 = 9);
   ZipResult close();
 
   static Status Unzip(

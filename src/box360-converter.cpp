@@ -256,8 +256,8 @@ private:
     {
       vector<u8> forcefield;
       CopyTransparent16x16Png(forcefield);
-      if (auto st = resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png"); !st.ok()) {
-        return st;
+      if (auto st = resources.store(forcefield, "assets/minecraft/textures/misc/forcefield.png"); !st.fStatus.ok()) {
+        return st.fStatus;
       }
     }
     {
@@ -269,8 +269,8 @@ private:
       auto str = nlohmann::to_string(obj);
       vector<u8> mcmeta;
       copy(str.begin(), str.end(), back_inserter(mcmeta));
-      if (auto st = resources.store(mcmeta, "pack.mcmeta"); !st.ok()) {
-        return st;
+      if (auto st = resources.store(mcmeta, "pack.mcmeta"); !st.fStatus.ok()) {
+        return st.fStatus;
       }
     }
 
