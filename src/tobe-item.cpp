@@ -263,6 +263,10 @@ private:
     E("nether_brick", Rename("netherbrick"));
 
     E("spawn_egg", LegacySpawnEgg); // legacy
+    E("pottery_shard_archer", Rename("archer_pottery_shard"));
+    E("pottery_shard_prize", Rename("prize_pottery_shard"));
+    E("pottery_shard_arms_up", Rename("arms_up_pottery_shard"));
+    E("pottery_shard_skull", Rename("skull_pottery_shard"));
 #undef E
     return table;
   }
@@ -836,6 +840,28 @@ private:
     E("echo_shard");
     E("recovery_compass");
     E("spawn_egg"); // legacy
+    E("torchflower_seeds");
+    E("pottery_shard_archer");
+    E("pottery_shard_prize");
+    E("pottery_shard_arms_up");
+    E("pottery_shard_skull");
+    E("sniffer_spawn_egg");
+    E("camel_spawn_egg");
+    E("brush");
+    E("cherry_boat");
+    E("cherry_chest_boat");
+    E("netherite_upgrade_smithing_template");
+    E("sentry_armor_trim_smithing_template");
+    E("dune_armor_trim_smithing_template");
+    E("coast_armor_trim_smithing_template");
+    E("wild_armor_trim_smithing_template");
+    E("ward_armor_trim_smithing_template");
+    E("eye_armor_trim_smithing_template");
+    E("vex_armor_trim_smithing_template");
+    E("tide_armor_trim_smithing_template");
+    E("snout_armor_trim_smithing_template");
+    E("rib_armor_trim_smithing_template");
+    E("spire_armor_trim_smithing_template");
 
     // listed with blocks, but not block item
 
