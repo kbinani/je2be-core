@@ -328,8 +328,34 @@ private:
     E(warped_wall_hanging_sign, hangingSign);
 
     E(chiseled_bookshelf, ChiseledBookshelf);
+    E(decorated_pot, DecoratedPot);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+    auto tag = Compound();
+    auto shardsB = List<Tag::Type::String>();
+    for (int i = 0; i < 4; i++) {
+      shardsB->push_back(String(""));
+    }
+    if (c) {
+      if (auto shardsJ = c->listTag("shards"); shardsJ) {
+        std::string prefix = "minecraft:pottery_shard_";
+        for (int i = 0; i < 4 && i < shardsJ->size(); i++) {
+          auto const &shard = shardsJ->at(i);
+          if (auto shardName = shard->asString(); shardName && shardName->fValue.starts_with(prefix)) {
+            auto name = shardName->fValue.substr(prefix.size());
+            shardsB->fValue[i] = String("minecraft:" + name + "_pottery_shard");
+          }
+        }
+      }
+    }
+    tag->insert({{"isMovable", Bool(true)},
+                 {"id", String("DecoratedPot")},
+                 {"shards", shardsB}});
+    Attach(c, pos, *tag);
+    return tag;
   }
 
   static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {

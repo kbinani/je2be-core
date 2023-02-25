@@ -318,6 +318,27 @@ public:
     return r;
   }
 
+  static std::optional<Result> DecoratedPot(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    auto t = EmptyShortName("decorated_pot", pos);
+    auto shardsJ = List<Tag::Type::String>();
+    for (int i = 0; i < 4; i++) {
+      shardsJ->push_back(String("minecraft:brick"));
+    }
+    if (auto shardsB = tagB.listTag("shards"); shardsB) {
+      for (int i = 0; i < 4 && i < shardsB->size(); i++) {
+        auto const &shardB = shardsB->at(i);
+        if (auto shardName = shardB->asString(); shardName && shardName->fValue.ends_with("_pottery_shard")) {
+          auto name = strings::Trim("minecraft:", shardName->fValue, "_pottery_shard");
+          shardsJ->fValue[i] = String("minecraft:pottery_shard_" + name);
+        }
+      }
+    }
+    t->set("shards", shardsJ);
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> EndGateway(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("end_gateway", pos);
     if (auto exitPortalB = props::GetPos3iFromListTag(tagB, "ExitPortal"); exitPortalB) {
@@ -848,6 +869,7 @@ public:
     E(warped_hanging_sign, hangingSign);
 
     E(end_gateway, EndGateway);
+    E(decorated_pot, DecoratedPot);
 #undef E
     return t;
   }
