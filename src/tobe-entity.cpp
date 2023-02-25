@@ -2309,6 +2309,29 @@ private:
           }
         }
       }
+    } else if (auto equipment = tag.listTag("Equipment"); equipment && equipment->fType == Tag::Type::Compound) {
+      // legacy
+      if (equipment->fValue.size() >= 3) {
+        if (auto leggings = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[2]); leggings) {
+          if (auto converted = Item::From(leggings, ctx.fCtx); converted) {
+            armors->fValue[0] = converted;
+          }
+        }
+      }
+      if (equipment->fValue.size() >= 4) {
+        if (auto chestplate = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[3]); chestplate) {
+          if (auto converted = Item::From(chestplate, ctx.fCtx); converted) {
+            armors->fValue[1] = converted;
+          }
+        }
+      }
+      if (equipment->fValue.size() >= 5) {
+        if (auto helmet = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[4]); helmet) {
+          if (auto converted = Item::From(helmet, ctx.fCtx); converted) {
+            armors->fValue[2] = converted;
+          }
+        }
+      }
     }
 
     auto ret = List<Tag::Type::Compound>();
@@ -2333,6 +2356,12 @@ private:
 
     if (mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
+      if (inItem) {
+        item = Item::From(inItem, ctx.fCtx);
+      }
+    } else if (auto equipment = input.listTag("Equipment"); equipment && equipment->fType == Tag::Type::Compound && index < equipment->fValue.size()) {
+      // legacy
+      auto inItem = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[index]);
       if (inItem) {
         item = Item::From(inItem, ctx.fCtx);
       }
