@@ -120,6 +120,32 @@ public:
             case spruce_hanging_sign:
             case stripped_bamboo_block:
             case warped_hanging_sign:
+            case cherry_button:
+            case cherry_door:
+            case cherry_fence:
+            case cherry_fence_gate:
+            case cherry_hanging_sign:
+            case cherry_leaves:
+            case cherry_log:
+            case cherry_planks:
+            case cherry_pressure_plate:
+            case cherry_sapling:
+            case cherry_sign:
+            case cherry_slab:
+            case cherry_stairs:
+            case cherry_trapdoor:
+            case cherry_wall_hanging_sign:
+            case cherry_wall_sign:
+            case cherry_wood:
+            case decorated_pot:
+            case pink_petals:
+            case potted_cherry_sapling:
+            case potted_torchflower:
+            case stripped_cherry_log:
+            case stripped_cherry_wood:
+            case suspicious_sand:
+            case torchflower:
+            case torchflower_crop:
               ctx.fDataPack1_20Update = true;
               break;
             }
