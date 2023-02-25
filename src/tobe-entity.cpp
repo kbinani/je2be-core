@@ -532,7 +532,21 @@ private:
     if (name.starts_with("minecraft:")) {
       name = name.substr(10);
     }
-    // TODO:
+    if (name == "entity_horse") {
+      name = "horse";
+    } else if (name == "pig_zombie") {
+      name = "zombified_piglin";
+    } else if (name == "lava_slime") {
+      name = "magma_cube";
+    } else if (name == "mushroom_cow") {
+      name = "mooshroom";
+    } else if (name == "ozelot") {
+      name = "ocelot";
+    } else if (name == "villager_golem") {
+      name = "iron_golem";
+    } else if (name == "snow_man") {
+      name = "snow_golem";
+    }
     return "minecraft:" + name;
   }
 
