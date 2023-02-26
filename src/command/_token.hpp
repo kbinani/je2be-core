@@ -89,7 +89,7 @@ public:
 class Comment : public Token {
 public:
   Comment(std::string const &raw) : Token(raw) {}
-  virtual Type type() const { return Type::Comment; }
+  virtual Type type() const override { return Type::Comment; }
 };
 
 class StringLiteral : public Token {

@@ -1,12 +1,12 @@
 #include <je2be/tobe/converter.hpp>
 
-#if __has_include(<windows.h>)
+#if defined(_MSC_VER)
 #define NOMINMAX
 #undef small
 #include <windows.h>
 #endif
 
-#if __has_include(<fcntl.h>)
+#if defined(__GNUC__)
 #include <fcntl.h>
 #endif
 

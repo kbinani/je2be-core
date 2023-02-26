@@ -96,8 +96,7 @@ public:
           int noneCount = 0;
           string notNone;
           for (auto d : nesw) {
-            auto p = props[d.first];
-            if (p == "none") {
+            if (props[d.first] == "none") {
               noneCount++;
             } else {
               notNoneCount++;
@@ -143,7 +142,6 @@ public:
     if (id == observer) {
       auto f6 = Facing6FromJavaName(block.property("facing"));
       Pos3i d3 = Pos3iFromFacing6(f6);
-      auto d2 = Pos2i(d3.fX, d3.fZ);
       return d3.fX == direction.fX && d3.fZ == direction.fZ;
     }
     return false;

@@ -501,14 +501,14 @@ public:
 
     bool hasDiedBefore = false;
     if (auto lastDeathLocation = tag.compoundTag("LastDeathLocation"); lastDeathLocation) {
-      if (auto dimensionString = lastDeathLocation->string("dimension"); dimensionString) {
-        auto dimension = DimensionFromJavaString(*dimensionString);
-        auto pos = props::GetPos3iFromIntArrayTag(*lastDeathLocation, "pos");
-        if (dimension && pos) {
-          entity->set("DeathDimension", Int(BedrockDimensionFromDimension(*dimension)));
-          entity->set("DeathPositionX", Int(pos->fX));
-          entity->set("DeathPositionY", Int(pos->fY));
-          entity->set("DeathPositionZ", Int(pos->fZ));
+      if (auto lastDeathDimensionString = lastDeathLocation->string("dimension"); lastDeathDimensionString) {
+        auto lastDeathDimension = DimensionFromJavaString(*lastDeathDimensionString);
+        auto p = props::GetPos3iFromIntArrayTag(*lastDeathLocation, "pos");
+        if (lastDeathDimension && p) {
+          entity->set("DeathDimension", Int(BedrockDimensionFromDimension(*lastDeathDimension)));
+          entity->set("DeathPositionX", Int(p->fX));
+          entity->set("DeathPositionY", Int(p->fY));
+          entity->set("DeathPositionZ", Int(p->fZ));
           hasDiedBefore = true;
         }
       }
@@ -1458,7 +1458,7 @@ private:
     }
   }
 
-  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
+  //static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
 
   static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, "-minecraft:start_suffocating");

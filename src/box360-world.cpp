@@ -123,7 +123,7 @@ public:
     }
 
     auto poiDirectory = outputDirectory / worldDir / "poi";
-    if (auto st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
+    if (st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
       return st;
     }
     if (progress && !progress->report((progressChunksOffset + 8192) / double(kProgressWeightPerWorld * 3))) {

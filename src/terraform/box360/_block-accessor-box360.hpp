@@ -39,19 +39,19 @@ public:
   }
 
   std::shared_ptr<mcfile::je::Chunk> ensureLoadedAt(int cx, int cz) {
-    auto index = this->index(cx, cz);
-    if (!index) {
+    auto idx = getIndex(cx, cz);
+    if (!idx) {
       return nullptr;
     }
-    if (!fCacheLoaded[*index]) {
+    if (!fCacheLoaded[*idx]) {
       auto file = fDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-      fCache[*index] = mcfile::je::Chunk::LoadFromCompressedChunkNbtFile(file, cx, cz);
-      fCacheLoaded[*index] = true;
+      fCache[*idx] = mcfile::je::Chunk::LoadFromCompressedChunkNbtFile(file, cx, cz);
+      fCacheLoaded[*idx] = true;
     }
-    return fCache[*index];
+    return fCache[*idx];
   }
 
-  std::optional<int> index(int cx, int cz) const {
+  std::optional<int> getIndex(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
     if (0 <= x && x < Width && 0 <= z && z < Height) {
@@ -65,9 +65,9 @@ public:
     std::unique_ptr<BlockAccessorBox360<Width, Height>> ret(new BlockAccessorBox360<Width, Height>(cx, cz, fDir));
     for (int x = 0; x < Width; x++) {
       for (int z = 0; z < Height; z++) {
-        auto index = this->index(fChunkX + x, fChunkZ + z);
-        if (fCacheLoaded[*index]) {
-          auto const &chunk = fCache[*index];
+        auto idx = getIndex(fChunkX + x, fChunkZ + z);
+        if (fCacheLoaded[*idx]) {
+          auto const &chunk = fCache[*idx];
           ret->set(fChunkX + x, fChunkZ + z, chunk);
         }
       }
@@ -76,12 +76,12 @@ public:
   }
 
   void set(int cx, int cz, std::shared_ptr<mcfile::je::Chunk> const &chunk) {
-    auto index = this->index(cx, cz);
-    if (!index) {
+    auto idx = getIndex(cx, cz);
+    if (!idx) {
       return;
     }
-    fCache[*index] = chunk;
-    fCacheLoaded[*index] = true;
+    fCache[*idx] = chunk;
+    fCacheLoaded[*idx] = true;
   }
 
 public:

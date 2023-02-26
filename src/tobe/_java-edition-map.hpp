@@ -15,7 +15,7 @@ public:
   explicit JavaEditionMap(std::unordered_map<i32, i8> const &lookupTable) : fScaleLookupTable(lookupTable) {}
   JavaEditionMap(std::filesystem::path const &input, Options const &opt) : fScaleLookupTable(CreateScaleLookupTable(input, opt)) {}
 
-  std::optional<i8> scale(i32 mapId) const {
+  std::optional<i8> getScale(i32 mapId) const {
     auto found = fScaleLookupTable.find(mapId);
     if (found == fScaleLookupTable.end()) {
       return std::nullopt;

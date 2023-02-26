@@ -86,12 +86,6 @@ private:
     return ClosedRange<int>(data.fStart.fZ, data.fEnd.fZ);
   }
 
-  static bool Contains(mcfile::Data4b3d const &data, Pos3i const &p) {
-    return data.fOrigin.fX <= p.fX && p.fX < data.fOrigin.fX + data.fWidthX &&
-           data.fOrigin.fY <= p.fY && p.fY < data.fOrigin.fY + data.fHeight &&
-           data.fOrigin.fZ <= p.fZ && p.fZ < data.fOrigin.fZ + data.fWidthZ;
-  }
-
   template <size_t Size>
   static void Copy(Data3dSq<u8, Size> const &src, mcfile::Data4b3d &dest) {
     for (int y = dest.fOrigin.fY; y < dest.fOrigin.fY + dest.fHeight; y++) {

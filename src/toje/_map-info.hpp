@@ -48,6 +48,8 @@ public:
     outMapId = *mapId;
 
     Map map;
+    map.fNumber = 0; // This will be set later process
+
     auto xCenter = tag->int32("xCenter");
     auto zCenter = tag->int32("zCenter");
     if (!xCenter || !zCenter) {
@@ -84,19 +86,19 @@ public:
           continue;
         }
         decorationJ.fRot = 0;
-        if (rotB == 0) {
+        if (*rotB == 0) {
           decorationJ.fRot = 0;
-        } else if (rotB == 8) {
+        } else if (*rotB == 8) {
           decorationJ.fRot = 180;
-        } else if (rotB == 12) {
+        } else if (*rotB == 12) {
           decorationJ.fRot = 270;
         }
         decorationJ.fType = 0;
-        if (typeB == 15) {
+        if (*typeB == 15) {
           decorationJ.fType = 9;
-        } else if (typeB == 14) {
+        } else if (*typeB == 14) {
           decorationJ.fType = 8;
-        } else if (typeB == 4) {
+        } else if (*typeB == 4) {
           decorationJ.fType = 26;
         }
         auto pos = BlockPosFromMarkerPosition(*xCenter, *zCenter, *scale, *markerX, *markerY);

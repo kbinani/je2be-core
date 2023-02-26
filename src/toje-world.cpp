@@ -185,9 +185,9 @@ public:
     if (vehicleEntitiesFound == vehicleEntities.end()) {
       return Status::Ok();
     }
-    for (auto const &it : vehicleEntitiesFound->second) {
-      Uuid vehicleId = it.first;
-      map<size_t, Uuid> const &passengers = it.second;
+    for (auto const &vehicleEntityIt : vehicleEntitiesFound->second) {
+      Uuid vehicleId = vehicleEntityIt.first;
+      map<size_t, Uuid> const &passengers = vehicleEntityIt.second;
 
       auto vehicle = FindEntity(*entities, vehicleId);
       if (!vehicle) {

@@ -40,7 +40,7 @@ private:
     if (!fp) {
       return false;
     }
-#if __has_include(<windows.h>)
+#if defined(_MSC_VER)
     int fd = _fileno(fp);
     if (fd == -1) {
       return false;

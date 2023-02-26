@@ -394,15 +394,15 @@ public:
     fstr->seekp(0);
   }
 
-  void SetPosition(u64 pos, std::ios_base::seekdir dir = std::ios_base::beg) {
+  void SetPosition(u64 pos, std::ios_base::seekdir dir = std::ios_base::beg) override {
     fstr->seekp(pos, dir);
   }
 
-  u64 GetPosition() {
+  u64 GetPosition() override {
     return fstr->tellp();
   }
 
-  u64 Length() {
+  u64 Length() override {
     u64 originalPosition = GetPosition();
 
     fstr->seekp(0, std::ios_base::end);
@@ -412,27 +412,27 @@ public:
     return fileLength;
   }
 
-  void ReadBytes(u8 *outBuffer, u32 len) {
+  void ReadBytes(u8 *outBuffer, u32 len) override {
     fstr->read((char *)outBuffer, len);
     if (fstr->fail())
       throw std::string("FileIO: Error reading from file.\n") + StringFromErrno(errno);
   }
 
-  void WriteBytes(u8 *buffer, u32 len) {
+  void WriteBytes(u8 *buffer, u32 len) override {
     fstr->write((char *)buffer, len);
     if (fstr->fail())
       throw std::string("FileIO: Error writing to file.\n") + StringFromErrno(errno);
   }
 
-  void Close() {
+  void Close() override {
     fstr->close();
   }
 
-  void Flush() {
+  void Flush() override {
     fstr->flush();
   }
 
-  void Resize(u64 size) {
+  void Resize(u64 size) override {
     using namespace std;
     if (size > this->Length()) {
       throw std::string("FileIO: Cannot expand file size.");
@@ -776,9 +776,7 @@ enum FileSystem {
 class XContentHeader {
 public:
   // Description: read in all of the metadata for the package
-  explicit XContentHeader(BaseIO *io) : installerType((InstallerType)0) {
-    fileSize = io->Length();
-
+  explicit XContentHeader(BaseIO *io) : fileSize(io->Length()), installerType((InstallerType)0) {
     readMetadata(io);
   }
 
@@ -818,7 +816,7 @@ public:
   FileSystem fileSystem;
 
   // only in PEC, and im not sure exactly what this byte is but it needs to always be set to 1
-  bool enabled;
+  // bool enabled; //NOTE(kbinani): Commented out as it it not used
 
   // metadata v1
   u32 dataFileCount;
@@ -1060,17 +1058,17 @@ private:
 #pragma region StfsPackage.h
 
 struct StfsFileEntry {
-  u32 entryIndex;
+  u32 entryIndex = 0;
   std::string name;
-  u8 nameLen;
-  u8 flags;
-  INT24 blocksForFile;
-  INT24 startingBlockNum;
-  u16 pathIndicator;
-  u32 fileSize;
-  u32 createdTimeStamp;
-  u32 accessTimeStamp;
-  u32 fileEntryAddress;
+  u8 nameLen = 0;
+  u8 flags = 0;
+  INT24 blocksForFile = 0;
+  INT24 startingBlockNum = 0;
+  u16 pathIndicator = 0;
+  u32 fileSize = 0;
+  u32 createdTimeStamp = 0;
+  u32 accessTimeStamp = 0;
+  u32 fileEntryAddress = 0;
   std::vector<INT24> blockChain;
 };
 
@@ -1493,10 +1491,10 @@ private:
       // make sure the file belongs to the current folder
       if (fullListing->fileEntries.at(i).pathIndicator == out->folder.entryIndex) {
         // add it if it's a file
-        if (!isDirectory)
+        if (!isDirectory) {
           out->fileEntries.push_back(fullListing->fileEntries.at(i));
-        // if it's a directory and not the current directory, then add it
-        else if (isDirectory && fullListing->fileEntries.at(i).entryIndex != out->folder.entryIndex) {
+          // if it's a directory and not the current directory, then add it
+        } else if (fullListing->fileEntries.at(i).entryIndex != out->folder.entryIndex) {
           StfsFileListing fl;
           fl.folder = fullListing->fileEntries.at(i);
           out->folderEntries.push_back(fl);
@@ -1582,7 +1580,7 @@ private:
     topTable.addressInFile = baseAddress + ((metaData->stfsVolumeDescriptor.blockSeperation & 2) << 0xB);
     io->SetPosition(topTable.addressInFile);
 
-    u32 dataBlocksPerHashTreeLevel[3] = {1, 0xAA, 0x70E4};
+    u32 const dataBlocksPerHashTreeLevel[3] = {1, 0xAA, 0x70E4};
 
     // load the information
     topTable.entryCount = metaData->stfsVolumeDescriptor.allocatedBlockCount / dataBlocksPerHashTreeLevel[topLevel];

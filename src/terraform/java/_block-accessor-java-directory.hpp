@@ -43,23 +43,23 @@ public:
   }
 
   std::shared_ptr<mcfile::je::Chunk> chunkAt(int cx, int cz) override {
-    auto index = this->index(cx, cz);
-    if (!index) {
+    auto idx = getIndex(cx, cz);
+    if (!idx) {
       return nullptr;
     }
-    if (!fCacheLoaded[*index]) {
+    if (!fCacheLoaded[*idx]) {
       int rx = mcfile::Coordinate::RegionFromChunk(cx);
       int rz = mcfile::Coordinate::RegionFromChunk(cz);
       auto file = fDir / mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
       if (auto region = mcfile::je::Region::MakeRegion(file, rx, rz); region) {
-        fCache[*index] = region->chunkAt(cx, cz);
+        fCache[*idx] = region->chunkAt(cx, cz);
       }
-      fCacheLoaded[*index] = true;
+      fCacheLoaded[*idx] = true;
     }
-    return fCache[*index];
+    return fCache[*idx];
   }
 
-  std::optional<int> index(int cx, int cz) const {
+  std::optional<int> getIndex(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
     if (0 <= x && x < Width && 0 <= z && z < Height) {
@@ -73,21 +73,21 @@ public:
     if (!chunk) {
       return;
     }
-    auto index = this->index(chunk->fChunkX, chunk->fChunkZ);
-    if (!index) {
+    auto idx = getIndex(chunk->fChunkX, chunk->fChunkZ);
+    if (!idx) {
       return;
     }
-    fCache[*index] = chunk;
-    fCacheLoaded[*index] = true;
+    fCache[*idx] = chunk;
+    fCacheLoaded[*idx] = true;
   }
 
   BlockAccessorJavaDirectory<Width, Height> *makeRelocated(int cx, int cz) const {
     std::unique_ptr<BlockAccessorJavaDirectory<Width, Height>> ret(new BlockAccessorJavaDirectory<Width, Height>(cx, cz, fDir));
     for (int x = 0; x < Width; x++) {
       for (int z = 0; z < Height; z++) {
-        auto index = this->index(fChunkX + x, fChunkZ + z);
-        if (index && fCacheLoaded[*index]) {
-          auto const &chunk = fCache[*index];
+        auto idx = getIndex(fChunkX + x, fChunkZ + z);
+        if (idx && fCacheLoaded[*idx]) {
+          auto const &chunk = fCache[*idx];
           ret->set(chunk);
         }
       }

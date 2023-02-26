@@ -346,12 +346,12 @@ private:
       if (pages) {
         auto outPages = List<Tag::Type::Compound>();
         for (auto const &it : *pages) {
-          auto line = it->asString();
-          if (!line) {
+          auto page = it->asString();
+          if (!page) {
             continue;
           }
           string lineText;
-          auto obj = props::ParseAsJson(line->fValue);
+          auto obj = props::ParseAsJson(page->fValue);
           if (obj) {
             auto text = obj->find("text");
             auto extra = obj->find("extra");
@@ -378,7 +378,7 @@ private:
               lineText = text->get<string>();
             }
           } else {
-            lineText = line->fValue;
+            lineText = page->fValue;
           }
           auto lineObj = Compound();
           lineObj->insert({
@@ -422,7 +422,7 @@ private:
     }
     i32 mapId = number->fValue;
 
-    auto scale = mapInfo.scale(mapId);
+    auto scale = mapInfo.getScale(mapId);
     if (!scale) {
       return std::nullopt;
     }
@@ -982,7 +982,6 @@ private:
           if (!projectileJ) {
             continue;
           }
-          std::unordered_map<i32, i8> m;
           auto projectileB = From(projectileJ, ctx);
           if (projectileB) {
             auto beTag = Compound();

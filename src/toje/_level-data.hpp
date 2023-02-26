@@ -72,7 +72,7 @@ public:
     using namespace std;
     using namespace mcfile::stream;
     auto fis = make_shared<FileInputStream>(levelDatFile);
-    if (!fis) {
+    if (!fis->valid()) {
       return nullopt;
     }
     u16 versionLo = 0;

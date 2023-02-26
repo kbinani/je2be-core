@@ -89,11 +89,11 @@ class Context::Impl {
         }
       } else if (parsed->fUnTagged.starts_with("map_")) {
         i64 mapId;
-        auto parsed = MapInfo::Parse(value, mapId, fEndian);
-        if (!parsed) {
+        auto mapInfo = MapInfo::Parse(value, mapId, fEndian);
+        if (!mapInfo) {
           return;
         }
-        fMaps[mapId] = *parsed;
+        fMaps[mapId] = *mapInfo;
       }
     }
 
@@ -164,10 +164,9 @@ public:
     totalChunks = accum.fNumChunks;
 
     auto structureInfo = make_shared<StructureInfo>();
-    for (auto const &i : accum.fStructurePieces) {
-      Dimension d = i.first;
+    for (auto const &[dim, pieces] : accum.fStructurePieces) {
       unordered_map<StructureType, vector<StructurePiece>> categorized;
-      for (StructurePiece const &piece : i.second) {
+      for (StructurePiece const &piece : pieces) {
         StructureType type = piece.fType;
         switch (type) {
         case StructureType::Monument:
@@ -215,7 +214,7 @@ public:
           }
           Pos2i chunk(cx, cz);
           StructureInfo::Structure s(type, v, chunk);
-          structureInfo->add(d, s);
+          structureInfo->add(dim, s);
         }
       }
     }
@@ -405,21 +404,21 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     if (!str) {
       continue;
     }
-    auto b = CompoundTag::Read(*str, fEndian);
-    if (!b) {
+    auto dataB = CompoundTag::Read(*str, fEndian);
+    if (!dataB) {
       continue;
     }
-    auto j = Compound();
-    auto dimensionB = b->byte("dimension", 0);
+    auto dataJ = Compound();
+    auto dimensionB = dataB->byte("dimension", 0);
     Dimension dim = Dimension::Overworld;
     if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
       dim = *dimension;
     }
-    j->set("dimension", String(JavaStringFromDimension(dim)));
-    CopyBoolValues(*b, *j, {{"mapLocked", "locked"}});
-    CopyByteValues(*b, *j, {{"scale"}, {"unlimitedTracking"}});
-    CopyIntValues(*b, *j, {{"xCenter"}, {"zCenter"}});
-    auto colorsTagB = b->byteArrayTag("colors");
+    dataJ->set("dimension", String(JavaStringFromDimension(dim)));
+    CopyBoolValues(*dataB, *dataJ, {{"mapLocked", "locked"}});
+    CopyByteValues(*dataB, *dataJ, {{"scale"}, {"unlimitedTracking"}});
+    CopyIntValues(*dataB, *dataJ, {{"xCenter"}, {"zCenter"}});
+    auto colorsTagB = dataB->byteArrayTag("colors");
     if (!colorsTagB) {
       continue;
     }
@@ -437,9 +436,9 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
       u8 id = MapColor::MostSimilarColorId(rgb);
       colorsJ[i] = id;
     }
-    j->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
+    dataJ->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
     auto tagJ = Compound();
-    tagJ->set("data", j);
+    tagJ->set("data", dataJ);
     tagJ->set("DataVersion", Int(toje::kDataVersion));
 
     auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");

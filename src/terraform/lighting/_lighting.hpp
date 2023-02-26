@@ -28,10 +28,10 @@ public:
     int const cx = out.fChunkX;
     int const cz = out.fChunkZ;
 
-    Pos3i start(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
+    Pos3i chunkOrigin(out.minBlockX() - 14, minBlockY, out.minBlockZ() - 14);
     size_t const height = maxBlockY - minBlockY + 1;
 
-    Data3dSq<LightingModel, 44> models(start, height, LightingModel(CLEAR));
+    Data3dSq<LightingModel, 44> models(chunkOrigin, height, LightingModel(CLEAR));
     EnsureLightingModels(cache, models, cx, minChunkY, cz, blockAccessor);
 
     shared_ptr<Data3dSq<u8, 44>> skyLight;
@@ -40,7 +40,7 @@ public:
     Data2d<optional<Volume>> skyDiffuseVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
 
     if (dim == Dimension::Overworld) {
-      skyLight = make_shared<Data3dSq<u8, 44>>(start, height, 0);
+      skyLight = make_shared<Data3dSq<u8, 44>>(chunkOrigin, height, 0);
 
       for (int dz = -1; dz <= 1; dz++) {
         for (int dx = -1; dx <= 1; dx++) {
@@ -58,7 +58,7 @@ public:
       }
     }
 
-    Data3dSq<u8, 44> blockLight(start, height, 0);
+    Data3dSq<u8, 44> blockLight(chunkOrigin, height, 0);
 
     Data2d<optional<Volume>> blockVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
     Data2d<bool> blockCached({cx - 1, cz - 1}, 3, 3, false);
@@ -98,18 +98,18 @@ public:
       if (!section) {
         continue;
       }
-      Pos3i origin(out.minBlockX(), section->y() * 16, out.minBlockZ());
+      Pos3i sectionOrigin(out.minBlockX(), section->y() * 16, out.minBlockZ());
 
       {
         section->fBlockLight.resize(2048);
-        auto sectionBlockLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fBlockLight);
+        auto sectionBlockLight = Data4b3dView::Make(sectionOrigin, 16, 16, 16, &section->fBlockLight);
         assert(sectionBlockLight);
         if (sectionBlockLight) {
           bool darkness = true;
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
-                Pos3i v = origin + Pos3i(x, y, z);
+                Pos3i v = sectionOrigin + Pos3i(x, y, z);
                 sectionBlockLight->setUnchecked(v, blockLight[v]);
                 if (blockLight[v] != 0) {
                   darkness = false;
@@ -125,14 +125,14 @@ public:
 
       if (skyLight) {
         section->fSkyLight.resize(2048);
-        auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &section->fSkyLight);
+        auto sectionSkyLight = Data4b3dView::Make(sectionOrigin, 16, 16, 16, &section->fSkyLight);
         assert(sectionSkyLight);
         if (sectionSkyLight) {
           bool darkness = true;
           for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
               for (int x = 0; x < 16; x++) {
-                Pos3i v = origin + Pos3i(x, y, z);
+                Pos3i v = sectionOrigin + Pos3i(x, y, z);
                 u8 l = (*skyLight)[v];
                 sectionSkyLight->setUnchecked(v, l);
                 if (l != 0) {
@@ -152,13 +152,13 @@ public:
       auto bottom = make_shared<mcfile::je::ChunkSectionEmpty>(out.fChunkY - 1);
       bottom->fBlockLight.clear();
       bottom->fSkyLight.resize(2048);
-      Pos3i origin(cx * 16, bottom->y() * 16, cz * 16);
-      auto sectionSkyLight = Data4b3dView::Make(origin, 16, 16, 16, &bottom->fSkyLight);
+      Pos3i sectionOrigin(cx * 16, bottom->y() * 16, cz * 16);
+      auto sectionSkyLight = Data4b3dView::Make(sectionOrigin, 16, 16, 16, &bottom->fSkyLight);
       if (sectionSkyLight) {
         for (int y = 0; y < 16; y++) {
           for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
-              Pos3i v = origin + Pos3i(x, y, z);
+              Pos3i v = sectionOrigin + Pos3i(x, y, z);
               u8 l = (*skyLight)[v];
               sectionSkyLight->setUnchecked(v, l);
             }
@@ -212,10 +212,10 @@ private:
           for (int y = intersection->fStart.fY; y <= intersection->fEnd.fY; y++) {
             for (int z = intersection->fStart.fZ; z <= intersection->fEnd.fZ; z++) {
               for (int x = intersection->fStart.fX; x <= intersection->fEnd.fX; x++) {
-                int dx = x - origin.fX;
-                int dy = y - origin.fY;
-                int dz = z - origin.fZ;
-                out[{x, y, z}] = section->getUnchecked((dy * 16 + dz) * 16 + dx);
+                int localX = x - origin.fX;
+                int localY = y - origin.fY;
+                int localZ = z - origin.fZ;
+                out[{x, y, z}] = section->getUnchecked((localY * 16 + localZ) * 16 + localX);
               }
             }
           }

@@ -254,8 +254,7 @@ ZipFile::ZipResult ZipFile::Zip(
       return ret;
     }
     auto stream = std::make_shared<mcfile::stream::FileInputStream>(path);
-    int compressionLevel = 9;
-    if (auto st = file.store(*stream, rel.string(), compressionLevel); !st.fStatus.ok()) {
+    if (auto st = file.store(*stream, rel.string(), 9); !st.fStatus.ok()) {
       ret.fStatus = st.fStatus;
       ret.fZip64Used = st.fZip64Used;
       return ret;

@@ -616,7 +616,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Beehive(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Beehive(Pos3i const &pos, Block const &, CompoundTagPtr const &c, Context const &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -649,9 +649,9 @@ private:
         h.update(&pos.fX, sizeof(pos.fX));
         h.update(&pos.fZ, sizeof(pos.fZ));
         i64 hash = h.digest();
-        u32 a = ((u32 *)&hash)[0];
-        u32 b = ((u32 *)&hash)[1];
-        vector<i32> uuidSource = {*(i32 *)&a, *(i32 *)&b, pos.fY, index};
+        u32 lo = ((u32 *)&hash)[0];
+        u32 hi = ((u32 *)&hash)[1];
+        vector<i32> uuidSource = {*(i32 *)&lo, *(i32 *)&hi, pos.fY, index};
         auto uuid = make_shared<IntArrayTag>(uuidSource);
         entityData->set("UUID", uuid);
 
@@ -914,7 +914,7 @@ private:
       if (*slot < 0 || 4 < *slot) {
         continue;
       }
-      u8 mapping[5] = {1, 2, 3, 0, 4};
+      u8 const mapping[5] = {1, 2, 3, 0, 4};
       u8 newSlot = mapping[*slot];
       newItem->set("Slot", Byte(newSlot));
       sorted[newSlot] = newItem;
@@ -1468,15 +1468,13 @@ private:
 
     auto type = b.property("type", "single");
     auto facing = b.property("facing", "north");
-    optional<pair<int, int>> pair;
+    optional<Pos2i> pairPos;
     Facing4 f4 = Facing4FromJavaName(facing);
     Pos2i direction = Pos2iFromFacing4(f4);
     if (type == "left") {
-      Pos2i pairPos = Pos2i(pos.fX, pos.fZ) + Right90(direction);
-      pair = make_pair(pairPos.fX, pairPos.fZ);
+      pairPos = Pos2i(pos.fX, pos.fZ) + Right90(direction);
     } else if (type == "right") {
-      Pos2i pairPos = Pos2i(pos.fX, pos.fZ) + Left90(direction);
-      pair = make_pair(pairPos.fX, pairPos.fZ);
+      pairPos = Pos2i(pos.fX, pos.fZ) + Left90(direction);
     }
 
     auto tag = Compound();
@@ -1494,10 +1492,10 @@ private:
         {"id", String(string("Chest"))},
         {"isMovable", Bool(true)},
     });
-    if (pair) {
+    if (pairPos) {
       tag->set("pairlead", Bool(type == "right"));
-      tag->set("pairx", Int(pair->first));
-      tag->set("pairz", Int(pair->second));
+      tag->set("pairx", Int(pairPos->fX));
+      tag->set("pairz", Int(pairPos->fZ));
     }
     Attach(comp, pos, *tag);
     return tag;

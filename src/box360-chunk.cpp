@@ -556,15 +556,15 @@ private:
       return JE2BE_ERROR;
     }
 
-    auto blockLight = level->byteArrayTag("BlockLight"); // 16384
-    auto blocks = level->byteArrayTag("Blocks");         // 32768
-    auto data = level->byteArrayTag("Data");             // 16384
+    // auto blockLight = level->byteArrayTag("BlockLight"); // 16384
+    auto blocks = level->byteArrayTag("Blocks"); // 32768
+    auto data = level->byteArrayTag("Data");     // 16384
     auto entities = level->listTag("Entities");
-    auto heightMap = level->byteArrayTag("HeightMap"); // 256
-    auto lastUpdate = level->longTag("LastUpdate");
-    auto skyLight = level->byteArrayTag("SkyLight"); // 16384
-    auto terrainPopulated = level->byte("TerrainPopulated");
-    auto terrainPopulatedFlags = level->int16("TerrainPopulatedFlags"); // TU13 >=
+    // auto heightMap = level->byteArrayTag("HeightMap"); // 256
+    // auto lastUpdate = level->longTag("LastUpdate");
+    // auto skyLight = level->byteArrayTag("SkyLight"); // 16384
+    // auto terrainPopulated = level->byte("TerrainPopulated");
+    // auto terrainPopulatedFlags = level->int16("TerrainPopulatedFlags"); // TU13 >=
     auto tileEntities = level->listTag("TileEntities");
     auto biomes = level->byteArrayTag("Biomes"); // 256
 

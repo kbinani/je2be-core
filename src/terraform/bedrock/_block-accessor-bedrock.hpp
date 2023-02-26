@@ -17,7 +17,7 @@ public:
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
-    auto index = this->index(cx, cz);
+    auto index = getIndex(cx, cz);
     if (!index) {
       return nullptr;
     }
@@ -45,7 +45,7 @@ public:
   }
 
   std::shared_ptr<mcfile::be::Chunk> ensureLoadedAt(int cx, int cz) {
-    auto index = this->index(cx, cz);
+    auto index = getIndex(cx, cz);
     if (!index) {
       return nullptr;
     }
@@ -61,7 +61,7 @@ public:
     return fCache[*index];
   }
 
-  std::optional<int> index(int cx, int cz) const {
+  std::optional<int> getIndex(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
     if (0 <= x && x < Width && 0 <= z && z < Height) {
@@ -75,7 +75,7 @@ public:
     auto ret = new BlockAccessorBedrock<Width, Height>(fDim, chunkX, chunkZ, fDb, fEndian);
     for (int cx = fChunkX; cx < fChunkX + Width; cx++) {
       for (int cz = fChunkZ; cz < fChunkZ + Height; cz++) {
-        auto index = this->index(cx, cz);
+        auto index = getIndex(cx, cz);
         if (fCacheLoaded[*index]) {
           auto const &chunk = fCache[*index];
           ret->set(cx, cz, chunk);
@@ -86,7 +86,7 @@ public:
   }
 
   void set(int cx, int cz, std::shared_ptr<mcfile::be::Chunk> const &chunk) {
-    auto index = this->index(cx, cz);
+    auto index = getIndex(cx, cz);
     if (!index) {
       return;
     }

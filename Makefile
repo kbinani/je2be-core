@@ -5,3 +5,7 @@ docker-image:
 .PHONY: format
 format:
 	@bash tool/format
+
+.PHONY: cppcheck
+cppcheck:
+	bash tool/cppcheck.sh

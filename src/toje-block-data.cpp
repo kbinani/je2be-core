@@ -1029,7 +1029,6 @@ private:
 #pragma region Converters : Q
   static String QuartzBlock(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("chisel_type", "chiseled");
-    std::string prefix;
     if (type == "lines") {
       AxisFromPillarAxis(s, p);
       return Ns() + "quartz_pillar";

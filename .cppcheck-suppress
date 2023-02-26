@@ -1,0 +1,10 @@
+constParameter
+constParameterCallback
+noExplicitConstructor
+useStlAlgorithm
+passedByValue
+unusedFunction
+variableScope
+unmatchedSuppression
+unusedStructMember
+missingInclude

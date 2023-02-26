@@ -41,7 +41,7 @@ public:
     CopyByteValues(in, *out, {{"Count"}, {"Slot"}});
 
     i16 damage = in.int16("Damage", 0);
-    string changedId = *rawId;
+    string changedId;
     if (found == table.end()) {
       changedId = Same(in, out, &damage, ctx);
     } else {
@@ -1153,7 +1153,7 @@ private:
   }
 
   static std::string GetTileEntityNameFromItemName(std::string const &name) {
-    if (name.find("shulker_box")) {
+    if (name.find("shulker_box") != std::string::npos) {
       return "shulker_box";
     }
     return name;

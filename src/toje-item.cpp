@@ -327,13 +327,13 @@ public:
             if (!patternB) {
               continue;
             }
-            auto colorB = patternB->int32("Color");
+            auto patternColorB = patternB->int32("Color");
             auto patternStringB = patternB->string("Pattern");
-            if (!colorB || !patternStringB) {
+            if (!patternColorB || !patternStringB) {
               continue;
             }
             auto patternJ = Compound();
-            BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*colorB);
+            BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*patternColorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
             patternJ->set("Color", Int(static_cast<i32>(ccj)));
             patternJ->set("Pattern", String(*patternStringB));

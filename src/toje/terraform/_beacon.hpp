@@ -25,7 +25,7 @@ public:
           }
           auto tileEntity = out.fTileEntities[Pos3i(x, y, z)];
           assert(tileEntity);
-          [[unlikely]] if (!tileEntity) {
+          if (!tileEntity) [[unlikely]] {
             continue;
           }
           int level = BeaconLevel(x, y, z, cache);

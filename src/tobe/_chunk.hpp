@@ -29,7 +29,7 @@ public:
     CompoundTagPtr fVehicle;
     std::vector<CompoundTagPtr> fPassengers;
     std::vector<CompoundTagPtr> fShoulderRiders;
-    i64 fLocalPlayerUid;
+    i64 fLocalPlayerUid = -1;
   };
 
 public:

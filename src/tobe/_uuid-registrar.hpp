@@ -49,13 +49,11 @@ private:
   static i64 AvoidCollision(i64 h) {
     static std::unordered_set<i64> sUsed;
 
-    while (true) {
-      if (sUsed.find(h) == sUsed.end()) [[likely]] {
-        sUsed.insert(h);
-        return h;
-      }
+    while (sUsed.count(h) > 0) {
       h = XXHash::Digest(&h, sizeof(h));
     }
+    sUsed.insert(h);
+    return h;
   }
 
   static i64 FirstCandidate(Uuid const &uuid) {

@@ -460,7 +460,7 @@ public:
   }
 
   ~ConcurrentDb() {
-    abandon();
+    abandonImpl();
   }
 
   bool valid() const override {
@@ -789,18 +789,21 @@ public:
   }
 
   void abandon() override {
+    abandonImpl();
+  }
+
+private:
+  void abandonImpl() {
     using namespace std;
     namespace fs = std::filesystem;
     vector<shared_ptr<Writer>> writers;
     Gate::Drain((uintptr_t)this, writers);
-    vector<fs::path> files;
     for (int i = 0; i < writers.size(); i++) {
       writers[i]->abandon();
     }
     fValid = false;
   }
 
-private:
   std::shared_ptr<Gate> gate() {
     using namespace std;
     thread_local shared_ptr<Gate> tGate(CreateGate());
@@ -809,10 +812,10 @@ private:
 
   static std::shared_ptr<Gate> CreateGate() {
     using namespace std;
-    auto gate = make_shared<Gate>();
+    auto ret = make_shared<Gate>();
     lock_guard<mutex> lock(Gate::Mut());
-    Gate::Gates().insert(gate);
-    return gate;
+    Gate::Gates().insert(ret);
+    return ret;
   }
 
 private:

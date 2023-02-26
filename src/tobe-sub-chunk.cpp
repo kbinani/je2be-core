@@ -216,7 +216,7 @@ public:
       i32 x = pos.fX - chunk.fChunkX * 16;
       i32 y = pos.fY - chunkY * 16;
       i32 z = pos.fZ - chunk.fChunkZ * 16;
-      if (x < 0 || 16 <= x || y < 0 || 16 <= y || z < 0 || 16 <= z) {
+      if (x < 0 || 16 <= x || z < 0 || 16 <= z) {
         continue;
       }
       int idx = (x * 16 + z) * 16 + y;

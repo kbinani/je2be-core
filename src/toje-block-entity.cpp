@@ -144,7 +144,7 @@ public:
     auto t = EmptyShortName("brewing_stand", pos);
     auto itemsB = ContainerItems(tagB, "Items", ctx);
     if (itemsB) {
-      u8 mapping[5] = {3, 0, 1, 2, 4};
+      u8 const mapping[5] = {3, 0, 1, 2, 4};
       map<int, shared_ptr<CompoundTag>> items;
       for (int i = 0; i < 5 && i < itemsB->size(); i++) {
         auto itemTag = itemsB->at(i);

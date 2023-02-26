@@ -135,7 +135,10 @@ public:
 private:
   template <size_t d1, size_t d2, size_t d3>
   static void CollectAndConnect(std::vector<Volume> &volumes) {
-    static_assert(d1 < 3 && d2 < 3 && d3 < 3 && d1 != d2 && d2 != d3 && d1 != d3);
+    static_assert(d1 < 3);
+    static_assert(d2 < 3);
+    static_assert(d3 < 3);
+    static_assert(d1 != d2 && d2 != d3 && d1 != d3);
     using namespace std;
     vector<Volume> tmp;
     vector<vector<Volume>> buffer;
@@ -149,7 +152,9 @@ private:
 
   template <size_t d1, size_t d2>
   static void CollectAlignedCuboids(std::vector<Volume> const &input, std::vector<std::vector<Volume>> &output) {
-    static_assert(d1 < 3 && d2 < 3 && d1 != d2);
+    static_assert(d1 < 3);
+    static_assert(d2 < 3);
+    static_assert(d1 != d2);
     using namespace std;
     map<tuple<i32, i32, i32, i32>, vector<Volume>> categorized;
     for (Volume const &v : input) {

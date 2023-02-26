@@ -1204,7 +1204,7 @@ private:
   u16 main_elements;       // number of main tree elements
   bool header_read;        // have we started decoding at all yet?
   e_block_type block_type; // type of this block
-  u32 block_length;        // uncompressed length of this block
+  u32 block_length = 0;    // uncompressed length of this block
   u32 block_remaining;     // uncompressed bytes still left to decode
 
   void init_bits(const u8 *input_buffer) {
@@ -1216,11 +1216,11 @@ private:
 
   void ensure_bits(const u8 bits) {
     while (bit_buffer_bits_left < bits) {
-      u16 const read_bits = *reinterpret_cast<const u16 *>(bit_buffer_input_buffer + bit_buffer_input_position);
+      u16 const num_read_bits = *reinterpret_cast<const u16 *>(bit_buffer_input_buffer + bit_buffer_input_position);
       bit_buffer_input_position += sizeof(u16);
 
       u8 const amount_to_shift = sizeof(u32) * 8 - 16 - bit_buffer_bits_left;
-      bit_buffer_buffer |= static_cast<u32>(read_bits) << amount_to_shift;
+      bit_buffer_buffer |= static_cast<u32>(num_read_bits) << amount_to_shift;
       bit_buffer_bits_left += 16;
     }
   }
@@ -1246,18 +1246,18 @@ private:
     return ret;
   }
 
-  u32 bit_buffer_buffer;
-  u8 bit_buffer_bits_left;
-  u32 bit_buffer_input_position;
-  const u8 *bit_buffer_input_buffer;
+  u32 bit_buffer_buffer = 0;
+  u8 bit_buffer_bits_left = 0;
+  u32 bit_buffer_input_position = 0;
+  const u8 *bit_buffer_input_buffer = nullptr;
 
-  u8 MAINTREE_len[m_main_tree_max_symbols];
-  u8 LENGTH_len[k_length_max_symbols];
-  u8 ALIGNED_len[k_aligned_max_symbols];
-  u16 PRETREE_table[(1 << k_pre_tree_bits) + (k_pre_tree_max_symbols * 2)];
-  u16 MAINTREE_table[(1 << k_main_tree_bits) + (m_main_tree_max_symbols * 2)];
-  u16 LENGTH_table[(1 << k_length_table_bits) + (k_length_max_symbols * 2)];
-  u16 ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)];
+  u8 MAINTREE_len[m_main_tree_max_symbols] = {0};
+  u8 LENGTH_len[k_length_max_symbols] = {0};
+  u8 ALIGNED_len[k_aligned_max_symbols] = {0};
+  u16 PRETREE_table[(1 << k_pre_tree_bits) + (k_pre_tree_max_symbols * 2)] = {0};
+  u16 MAINTREE_table[(1 << k_main_tree_bits) + (m_main_tree_max_symbols * 2)] = {0};
+  u16 LENGTH_table[(1 << k_length_table_bits) + (k_length_max_symbols * 2)] = {0};
+  u16 ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)] = {0};
 };
 
 } // namespace je2be::box360::detail

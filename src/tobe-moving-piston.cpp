@@ -242,7 +242,7 @@ private:
     bool fSource;
     Pos3i fPos;
 
-    PistonTileEntity(std::string name, int facing, bool extending, bool source, Pos3i pos)
+    PistonTileEntity(std::string const &name, int facing, bool extending, bool source, Pos3i pos)
         : fName(name), fFacing(facing), fExtending(extending), fSource(source), fPos(pos) {}
 
     static std::optional<PistonTileEntity> From(std::shared_ptr<CompoundTag const> const &tag, Pos3i pos) {
@@ -397,8 +397,8 @@ private:
           continue;
         }
         PistonTileEntity base = *found->second;
-        for (int facing = 0; facing < 6; facing++) {
-          Pos3i testPos = pos + VectorOfFacing(facing);
+        for (int f6 = 0; f6 < 6; f6++) {
+          Pos3i testPos = pos + VectorOfFacing(f6);
           if (testedBlocks.find(testPos) != testedBlocks.end()) {
             continue;
           }

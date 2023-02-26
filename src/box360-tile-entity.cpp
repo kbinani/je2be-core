@@ -62,7 +62,7 @@ public:
       auto patternsJ = List<Tag::Type::Compound>();
       for (auto const &it : *patternsB) {
         auto patternB = it->asCompound();
-        if (!patternsB) {
+        if (!patternB) {
           continue;
         }
         auto patternJ = Compound();
@@ -71,13 +71,13 @@ public:
           continue;
         }
         patternJ->set("Pattern", String(*p));
-        auto colorB = patternB->int32("Color");
-        if (!colorB) {
+        auto patternColorB = patternB->int32("Color");
+        if (!patternColorB) {
           continue;
         }
-        auto color = static_cast<BannerColorCodeBedrock>(*colorB);
-        auto colorJ = ColorCodeJavaFromBannerColorCodeBedrock(color);
-        patternJ->set("Color", Int(static_cast<i32>(colorJ)));
+        auto patternColor = static_cast<BannerColorCodeBedrock>(*patternColorB);
+        auto patternColorJ = ColorCodeJavaFromBannerColorCodeBedrock(patternColor);
+        patternJ->set("Color", Int(static_cast<i32>(patternColorJ)));
         patternsJ->push_back(patternJ);
       }
       out->set("Patterns", patternsJ);

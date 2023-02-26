@@ -223,7 +223,7 @@ private:
     ret->set("id", String(idJ));
 
     if (auto drownedConversionTime = in.int32("DrownedConversionTime"); drownedConversionTime) {
-      if (drownedConversionTime == 0) {
+      if (*drownedConversionTime == 0) {
         ret->set("DrownedConversionTime", Int(-1));
       }
     }

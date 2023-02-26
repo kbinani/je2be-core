@@ -64,8 +64,6 @@ private:
     using namespace mcfile;
     using namespace mcfile::je;
 
-    vector<i32> mapIdList;
-
     for (auto it : chunk.fTileEntities) {
       Pos3i pos = it.first;
       auto const &e = it.second;

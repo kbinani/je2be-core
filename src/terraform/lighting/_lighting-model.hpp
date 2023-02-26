@@ -34,18 +34,10 @@ union LightingModel {
   };
   u32 fRaw;
 
-  LightingModel(Transparency t) {
-    fTransparency = t;
-    fEmission = 0;
-    fBehaveAsAirWhenOpenUp = false;
-    fModel = MODEL_CLEAR;
+  LightingModel(Transparency t) : fEmission(0), fBehaveAsAirWhenOpenUp(false), fTransparency(t), fModel(MODEL_CLEAR) {
   }
 
-  LightingModel() {
-    fTransparency = CLEAR;
-    fEmission = 0;
-    fBehaveAsAirWhenOpenUp = false;
-    fModel = MODEL_CLEAR;
+  LightingModel() : fEmission(0), fBehaveAsAirWhenOpenUp(false), fTransparency(CLEAR), fModel(MODEL_CLEAR) {
   }
 
   struct Hasher {

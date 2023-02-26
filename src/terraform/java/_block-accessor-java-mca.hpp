@@ -32,7 +32,7 @@ public:
   }
 
   std::shared_ptr<mcfile::je::Chunk> chunkAt(int cx, int cz) override {
-    auto index = this->index(cx, cz);
+    auto index = getIndex(cx, cz);
     if (!index) {
       return nullptr;
     }
@@ -43,7 +43,7 @@ public:
     return fCache[*index];
   }
 
-  std::optional<int> index(int cx, int cz) const {
+  std::optional<int> getIndex(int cx, int cz) const {
     int x = cx - fChunkX;
     int z = cz - fChunkZ;
     if (0 <= x && x < Width && 0 <= z && z < Height) {
@@ -57,7 +57,7 @@ public:
     if (!chunk) {
       return;
     }
-    auto index = this->index(chunk->fChunkX, chunk->fChunkZ);
+    auto index = getIndex(chunk->fChunkX, chunk->fChunkZ);
     if (!index) {
       return;
     }
