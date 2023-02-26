@@ -1153,6 +1153,9 @@ private:
     case blue_stained_glass:
     case blue_stained_glass_pane:
     case blue_wall_banner:
+    case brain_coral:
+    case brain_coral_fan:
+    case brain_coral_wall_fan:
     case brewing_stand:
     case brick_wall:
     case brown_banner:
@@ -1162,6 +1165,8 @@ private:
     case brown_stained_glass:
     case brown_stained_glass_pane:
     case brown_wall_banner:
+    case bubble_coral:
+    case bubble_coral_fan:
     case cake:
     case campfire:
     case carrots:
@@ -1221,8 +1226,12 @@ private:
     case end_rod:
     case end_stone_brick_wall:
     case ender_chest:
+    case farmland:
     case fern:
     case fire:
+    case fire_coral:
+    case fire_coral_fan:
+    case fire_coral_wall_fan:
     case flower_pot:
     case glass:
     case glass_pane:
@@ -1473,6 +1482,7 @@ private:
     case water_cauldron:
     case lava_cauldron:
     case powder_snow_cauldron:
+    case dirt_path:
     case big_dripleaf:
     case small_dripleaf:
     case candle:
@@ -1569,6 +1579,23 @@ private:
     case spruce_wall_hanging_sign:
     case warped_hanging_sign:
     case warped_wall_hanging_sign:
+    case cherry_button:
+    case cherry_door:
+    case cherry_fence:
+    case cherry_fence_gate:
+    case cherry_hanging_sign:
+    case cherry_pressure_plate:
+    case cherry_sapling:
+    case cherry_sign:
+    case cherry_trapdoor:
+    case cherry_wall_hanging_sign:
+    case cherry_wall_sign:
+    case decorated_pot:
+    case pink_petals:
+    case potted_cherry_sapling:
+    case potted_torchflower:
+    case torchflower:
+    case torchflower_crop:
       return 0;
     case acacia_leaves:
     case beacon:
@@ -1611,6 +1638,7 @@ private:
     case sculk_vein:
     case mangrove_roots:
     case mangrove_leaves:
+    case cherry_leaves:
       return 1;
     default:
       return 15;
