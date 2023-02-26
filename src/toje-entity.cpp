@@ -304,7 +304,6 @@ public:
   }
 
   static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    ctx.fDataPack1_20Update = true;
     CopyBoolValues(b, j, {{"Sitting", "IsSitting"}});
     j["Temper"] = Int(0);
   }
@@ -971,6 +970,10 @@ public:
 
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j["EatingHaystack"] = Bool(false);
+  }
+
+  static void Experimental120(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    ctx.fDataPack1_20Update = true;
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -2002,7 +2005,8 @@ public:
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
     E(tadpole, C(Same, LivingEntity, AgeableE(24000), FromBucket));
 
-    E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel));
+    E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel, Experimental120));
+    E(sniffer, C(Same, Animal, Experimental120));
 #undef E
     return ret;
   }

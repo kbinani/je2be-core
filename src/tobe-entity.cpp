@@ -677,6 +677,7 @@ private:
     E(tadpole, C(Animal, AgeableE(24000), Definitions("+minecraft:tadpole"), PersistentFromFromBucket));
 
     E(camel, C(Animal, Definitions("+minecraft:camel"), AgeableA("camel"), Steerable("camel"), Camel));
+    E(sniffer, C(Animal, Definitions("+minecraft:sniffer"), AgeableA("sniffer")));
 #undef A
 #undef M
 #undef E
