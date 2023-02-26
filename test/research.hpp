@@ -1039,7 +1039,7 @@ static void LightEmission() {
   int const y = 64;
   map<int, set<mcfile::blocks::BlockId>> emissions;
   set<mcfile::blocks::BlockId> ids;
-  for (int cx = 0; cx <= 13; cx++) {
+  for (int cx = 0; cx <= 18; cx++) {
     auto chunk = world.chunkAt(cx, cz);
     REQUIRE(chunk);
     mcfile::je::ChunkSection *section = nullptr;
@@ -1079,7 +1079,7 @@ static void LightEmission() {
   }
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
-  code << "static uint8_t LightEmissionById(mcfile::blocks::BlockId id) {" << endl;
+  code << "static u8 LightEmissionById(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto const &i : emissions) {
@@ -1104,6 +1104,18 @@ static void LightEmission() {
       continue;
     }
     if (name.ends_with("banner")) {
+      continue;
+    }
+    if (name.ends_with("candle_cake")) {
+      continue;
+    }
+    using namespace mcfile::blocks::minecraft;
+    switch (id) {
+    case moving_piston:
+    case tinted_glass:
+    case cave_vines:
+    case cave_vines_plant:
+    case frogspawn:
       continue;
     }
     cerr << name << " is not tested" << endl;

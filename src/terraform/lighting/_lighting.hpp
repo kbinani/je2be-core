@@ -1622,6 +1622,8 @@ private:
     switch (id) {
     case brewing_stand:
     case brown_mushroom:
+    case dragon_egg:
+    case end_portal_frame:
     case small_amethyst_bud:
     case sculk_sensor:
       return 1;
@@ -1666,6 +1668,7 @@ private:
     case lava:
     case sea_lantern:
     case shroomlight:
+    case lava_cauldron:
     case light:
     case ochre_froglight:
     case verdant_froglight:
