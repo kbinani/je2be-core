@@ -951,6 +951,12 @@ public:
     // 1.19
     E(frog_spawn, Rename("frogspawn"));
     E(goat_horn, GoatHorn);
+
+    // 1.20
+    E(archer_pottery_shard, Rename("pottery_shard_archer"));
+    E(prize_pottery_shard, Rename("pottery_shard_prize"));
+    E(arms_up_pottery_shard, Rename("pottery_shard_arms_up"));
+    E(skull_pottery_shard, Rename("pottery_shard_skull"));
 #undef E
     return ret;
   }
