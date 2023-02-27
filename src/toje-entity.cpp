@@ -1051,7 +1051,7 @@ public:
     auto enabled = HasDefinition(b, "+minecraft:hopper_active");
     j["Enabled"] = Bool(enabled);
 
-    j["TransferCooldown"] = Int(0);
+    // j["TransferCooldown"] = Int(0); // Removed in 1.19.4
   }
 
   static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx) {
