@@ -304,7 +304,6 @@ public:
   }
 
   static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    CopyBoolValues(b, j, {{"Sitting", "IsSitting"}});
     j["Temper"] = Int(0);
   }
 

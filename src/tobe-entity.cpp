@@ -804,7 +804,7 @@ private:
   }
 
   static void Camel(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    auto sitting = tag.boolean("IsSitting", false);
+    auto sitting = tag.boolean("IsSitting", false); // Used only during 1.20 experimental. LastPoseTick is used in 1.9.4pre2
     c["Sitting"] = Bool(sitting);
     if (sitting) {
       AddDefinition(c, "+minecraft:camel_sitting");
@@ -812,7 +812,7 @@ private:
       AddDefinition(c, "-minecraft:camel_sitting");
       AddDefinition(c, "+minecraft:camel_standing");
     }
-    c["IsTamed"] = Bool(true);
+    CopyBoolValues(tag, c, {{"Tame", "IsTamed"}});
   }
 
   static void Cat(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
