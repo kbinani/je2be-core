@@ -671,7 +671,13 @@ public:
   static std::optional<Result> SuspiciousSand(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     Result r;
     auto tagJ = EmptyShortName("suspicious_sand", pos);
-    (void)LootTable::BedrockToJava(tagB, *tagJ);
+    if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
+      if (auto itemB = tagB.compoundTag("item"); itemB) {
+        if (auto itemJ = Item::From(*itemB, ctx); itemJ) {
+          tagJ->set("item", itemJ);
+        }
+      }
+    }
     r.fTileEntity = tagJ;
     return r;
   }
