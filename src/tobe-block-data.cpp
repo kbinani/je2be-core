@@ -354,6 +354,26 @@ public:
     return Int(direction);
   }
 
+  static void DirectionNorth0East1South2West3FromFacing(CompoundTagPtr const &s, Block const &block) {
+    auto f4 = Facing4FromJavaName(block.property("facing"));
+    i32 direction = 0;
+    switch (f4) {
+    case Facing4::North:
+      direction = 0;
+      break;
+    case Facing4::East:
+      direction = 1;
+      break;
+    case Facing4::South:
+      direction = 2;
+      break;
+    case Facing4::West:
+      direction = 3;
+      break;
+    }
+    s->set("direction", Int(direction));
+  }
+
   static void DirectionFromFacingA(CompoundTagPtr const &s, Block const &block) {
     s->set("direction", FacingA(block));
   }
@@ -1613,6 +1633,7 @@ public:
 
     E(bamboo_slab, Slab("bamboo_double_slab"));
     E(bamboo_mosaic_slab, Slab("bamboo_mosaic_double_slab"));
+    E(decorated_pot, Converter(Same, DirectionNorth0East1South2West3FromFacing));
 #undef E
 
     return table;

@@ -546,6 +546,12 @@ private:
     return Ns() + "daylight_detector";
   }
 
+  static String DecoratedPot(String const &bName, CompoundTag const &s, Props &p) {
+    Submergible(s, p);
+    Facing4FromDirectionNorth0East1South2West3(s, p);
+    return bName;
+  }
+
   static String Dirt(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string("dirt_type", "normal");
     std::string prefix;
@@ -1628,6 +1634,27 @@ private:
     props["facing"] = facing;
   }
 
+  static void Facing4FromDirectionNorth0East1South2West3(CompoundTag const &s, Props &props) {
+    auto direction = s.int32("direction", 0);
+    std::string facing;
+    switch (direction) {
+    case 1:
+      facing = "east";
+      break;
+    case 2:
+      facing = "south";
+      break;
+    case 3:
+      facing = "west";
+      break;
+    case 0:
+    default:
+      facing = "north";
+      break;
+    }
+    props["facing"] = facing;
+  }
+
   static void Facing6FromFacingDirectionB(CompoundTag const &s, Props &props) {
     auto direction = s.int32("facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionB(direction);
@@ -2492,6 +2519,7 @@ private:
 
     E(bamboo_block, BlockWithAxisFromPillarAxis);
     E(stripped_bamboo_block, BlockWithAxisFromPillarAxis);
+    E(decorated_pot, DecoratedPot);
 #undef E
 
     return table;
