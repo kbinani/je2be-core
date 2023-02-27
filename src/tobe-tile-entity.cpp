@@ -336,6 +336,7 @@ private:
 
   static CompoundTagPtr SuspiciousSand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
     auto tag = New("SuspiciousSand");
+
     if (c) {
       if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
         if (auto itemJ = c->compoundTag("item"); itemJ) {
@@ -345,6 +346,10 @@ private:
         }
       }
     }
+
+    auto dusted = Wrap(strings::ToI32(b.property("dusted", "0")), 0);
+    tag->set("brush_count", Int(dusted));
+
     Attach(c, pos, *tag);
     return tag;
   }

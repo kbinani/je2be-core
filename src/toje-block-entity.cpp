@@ -669,7 +669,8 @@ public:
   }
 
   static std::optional<Result> SuspiciousSand(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
-    Result r;
+    using namespace std;
+
     auto tagJ = EmptyShortName("suspicious_sand", pos);
     if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
       if (auto itemB = tagB.compoundTag("item"); itemB) {
@@ -678,7 +679,14 @@ public:
         }
       }
     }
+
+    map<string, optional<string>> p;
+    auto brushCount = tagB.int32("brush_count", 0);
+    p["dusted"] = to_string(brushCount);
+
+    Result r;
     r.fTileEntity = tagJ;
+    r.fBlock = blockJ.applying(p);
     return r;
   }
 #pragma endregion
