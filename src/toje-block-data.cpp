@@ -14,6 +14,24 @@ class BlockData::Impl {
   using String = std::string;
   using Props = std::map<std::string, std::string>;
   using Converter = std::function<String(String const &bName, CompoundTag const &s, Props &p)>;
+  using Behavior = std::function<void(CompoundTag const &s, Props &p)>;
+
+  struct C {
+    template <class... Arg>
+    C(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
+
+    String operator()(String const &bName, CompoundTag const &input, Props &p) const {
+      auto name = fBase(bName, input, p);
+      for (auto const &b : fBehaviors) {
+        b(input, p);
+      }
+      return name;
+    }
+
+  private:
+    Converter fBase;
+    std::vector<Behavior> fBehaviors;
+  };
 
 public:
   static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
@@ -2517,9 +2535,11 @@ private:
     E(spruce_hanging_sign, HangingSign);
     E(warped_hanging_sign, HangingSign);
 
+    // 1.20
     E(bamboo_block, BlockWithAxisFromPillarAxis);
     E(stripped_bamboo_block, BlockWithAxisFromPillarAxis);
     E(decorated_pot, DecoratedPot);
+    E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
 #undef E
 
     return table;

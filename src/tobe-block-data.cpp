@@ -1634,6 +1634,7 @@ public:
     E(bamboo_slab, Slab("bamboo_double_slab"));
     E(bamboo_mosaic_slab, Slab("bamboo_mosaic_double_slab"));
     E(decorated_pot, Converter(Same, DirectionNorth0East1South2West3FromFacing));
+    E(torchflower_crop, Converter(Same, GrowthFromAge));
 #undef E
 
     return table;
