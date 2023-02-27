@@ -158,6 +158,9 @@ private:
         "minecraft:chests/village/village_toolsmith"      "loot_tables/chests/village/village_toolsmith.json"
         "minecraft:chests/village/village_weaponsmith"    "loot_tables/chests/village/village_weaponsmith.json"
         "minecraft:chests/woodland_mansion"               "loot_tables/chests/woodland_mansion.json"
+
+        // Java(1.19.4 Pre Release 2)          Bedrock(Preview 1.19.70.24)
+        "minecraft:archaeology/desert_pyramid" "loot_tables/entities/desert_pyramid_suspicious_sand.json"
         */
 
         {"minecraft:chests/buried_treasure", "loot_tables/chests/buriedtreasure.json"},
@@ -165,6 +168,7 @@ private:
         {"minecraft:chests/shipwreck_map", "loot_tables/chests/shipwreck.json"},
         {"minecraft:chests/shipwreck_supply", "loot_tables/chests/shipwrecksupply.json"},
         {"minecraft:chests/shipwreck_treasure", "loot_tables/chests/shipwrecktreasure.json"},
+        {"minecraft:archaeology/desert_pyramid", "loot_tables/entities/desert_pyramid_suspicious_sand.json"},
     });
   }
 

@@ -329,8 +329,25 @@ private:
 
     E(chiseled_bookshelf, ChiseledBookshelf);
     E(decorated_pot, DecoratedPot);
+    E(suspicious_sand, SuspiciousSand);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr SuspiciousSand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+    auto tag = New("SuspiciousSand");
+    if (c) {
+      (void)LootTable::JavaToBedrock(*c, *tag);
+    }
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr New(std::string const &id) {
+    auto tag = Compound();
+    tag->set("isMovable", Bool(true));
+    tag->set("id", String(id));
+    return tag;
   }
 
   static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {

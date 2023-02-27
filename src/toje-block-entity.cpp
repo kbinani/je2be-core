@@ -667,6 +667,14 @@ public:
     r.fTileEntity = t;
     return r;
   }
+
+  static std::optional<Result> SuspiciousSand(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    Result r;
+    auto tagJ = EmptyShortName("suspicious_sand", pos);
+    (void)LootTable::BedrockToJava(tagB, *tagJ);
+    r.fTileEntity = tagJ;
+    return r;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -870,6 +878,7 @@ public:
 
     E(end_gateway, EndGateway);
     E(decorated_pot, DecoratedPot);
+    E(suspicious_sand, SuspiciousSand);
 #undef E
     return t;
   }
