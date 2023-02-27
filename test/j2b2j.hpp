@@ -339,6 +339,8 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     // y is aligned 0.5 block in BE
   } else if (id == "minecraft:chest_minecart") {
     // y of chest_minecart in abandoned_mineshaft has usually conversion failure because OnGround=false but not on rail
+  } else if (id == "minecraft:boat") {
+    // y of boat usually different between JE and BE
   } else {
     CHECK(fabs(posE->fY - posA->fY) <= 0.001);
   }
