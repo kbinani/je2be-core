@@ -910,9 +910,16 @@ private:
         m.fBehaveAsAirWhenOpenUp = true;
         return m;
       }
-    } else if (block.fId == stonecutter || block.fId == end_portal_frame) {
+    } else if (block.fId == stonecutter) {
       LightingModel m;
       m.fEmission = 0;
+      m.fTransparency = TRANSLUCENT;
+      m.fModel = MODEL_HALF_BOTTOM;
+      m.fBehaveAsAirWhenOpenUp = true;
+      return m;
+    } else if (block.fId == end_portal_frame) {
+      LightingModel m;
+      m.fEmission = 1;
       m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_HALF_BOTTOM;
       m.fBehaveAsAirWhenOpenUp = true;
