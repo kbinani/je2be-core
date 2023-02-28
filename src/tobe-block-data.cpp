@@ -1636,6 +1636,7 @@ public:
     E(decorated_pot, Converter(Same, DirectionNorth0East1South2West3FromFacing));
     E(torchflower_crop, Converter(Same, GrowthFromAge));
     E(jigsaw, Jigsaw);
+    E(void_air, Rename("air"));
 #undef E
 
     return table;

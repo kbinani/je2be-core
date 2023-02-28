@@ -19,6 +19,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
   unordered_map<string_view, string> fallbackJtoB;
   fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
+  fallbackJtoB["minecraft:void_air"] = "minecraft:air";
 
   unordered_map<string_view, string> fallbackBtoJ;
   fallbackBtoJ["minecraft:frame"] = "minecraft:air";      // frame should be converted as an entity.
