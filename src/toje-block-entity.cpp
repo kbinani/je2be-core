@@ -506,6 +506,10 @@ public:
       potential->set("weight", Int(1));
       potentials->push_back(potential);
       t->set("SpawnPotentials", potentials);
+    } else {
+      auto spawnData = Compound();
+      spawnData->set("entity", Compound());
+      t->set("SpawnData", spawnData);
     }
 
     Result r;
