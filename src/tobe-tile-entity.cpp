@@ -330,8 +330,20 @@ private:
     E(chiseled_bookshelf, ChiseledBookshelf);
     E(decorated_pot, DecoratedPot);
     E(suspicious_sand, SuspiciousSand);
+    E(jigsaw, Jigsaw);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr Jigsaw(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+    auto tag = New("JigsawBlock");
+
+    if (c) {
+      CopyStringValues(*c, *tag, {{"final_state"}, {"joint"}, {"target"}, {"pool", "target_pool"}});
+    }
+
+    Attach(c, pos, *tag);
+    return tag;
   }
 
   static CompoundTagPtr SuspiciousSand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {

@@ -52,6 +52,35 @@ static inline int BedrockDirectionFromFacing4(Facing4 f) {
   return 0;
 }
 
+static inline int North0East1South2West3FromFacing4(Facing4 f) {
+  switch (f) {
+  case Facing4::North:
+    return 0;
+  case Facing4::East:
+    return 1;
+  case Facing4::South:
+    return 2;
+  case Facing4::West:
+    return 3;
+  }
+  assert(false);
+  return 0;
+}
+
+static inline Facing4 Facing4FromNorth0East1South2West3(int v) {
+  switch (v) {
+  case 0:
+    return Facing4::North;
+  case 1:
+    return Facing4::East;
+  case 2:
+    return Facing4::South;
+  case 3:
+    return Facing4::West;
+  }
+  return Facing4::North;
+}
+
 static inline Facing4 Facing4FromBedrockDirection(int d) {
   switch (d) {
   case 2:

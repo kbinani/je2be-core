@@ -440,6 +440,14 @@ public:
     return r;
   }
 
+  static std::optional<Result> Jigsaw(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
+    auto t = EmptyShortName("jigsaw", pos);
+    Result r;
+    r.fTileEntity = t;
+    CopyStringValues(tag, *t, {{"final_state"}, {"joint"}, {"target"}, {"target_pool", "pool"}});
+    return r;
+  }
+
   static std::optional<Result> Jukebox(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     auto record = tag.compoundTag("RecordItem");
@@ -893,6 +901,7 @@ public:
     E(end_gateway, EndGateway);
     E(decorated_pot, DecoratedPot);
     E(suspicious_sand, SuspiciousSand);
+    E(jigsaw, Jigsaw);
 #undef E
     return t;
   }

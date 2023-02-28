@@ -1635,9 +1635,40 @@ public:
     E(bamboo_mosaic_slab, Slab("bamboo_mosaic_double_slab"));
     E(decorated_pot, Converter(Same, DirectionNorth0East1South2West3FromFacing));
     E(torchflower_crop, Converter(Same, GrowthFromAge));
+    E(jigsaw, Jigsaw);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr Jigsaw(Block const &block, CompoundTagConstPtr const &tile) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    auto orientation = block.property("orientation", "north_up");
+    // orientation(J) facing_direction(B) rotation(B)
+    // up_south       1                   2
+    // up_west        1                   3
+    // up_north       1                   0
+    // up_east        1                   1
+    // south_up       3                   0
+    // east_up        5                   0
+    // north_up       2                   0
+    // west_up        4                   0
+    // down_south     0                   2
+    // down_north     0                   0
+    auto tokens = mcfile::String::Split(std::string(orientation), '_');
+    if (tokens.size() == 2) {
+      Facing6 f6 = Facing6FromJavaName(tokens[0]);
+      int facingDirection = BedrockFacingDirectionAFromFacing6(f6);
+      Facing4 f4 = Facing4FromJavaName(tokens[1]);
+      int rotation = North0East1South2West3FromFacing4(f4);
+      if (tokens[1] == "up" || tokens[1] == "down") {
+        rotation = 0;
+      }
+      s->set("facing_direction", Int(facingDirection));
+      s->set("rotation", Int(rotation));
+    }
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr ChiseledBookshelf(Block const &block, CompoundTagConstPtr const &tile) {

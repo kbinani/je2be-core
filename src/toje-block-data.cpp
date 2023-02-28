@@ -817,6 +817,28 @@ private:
   }
 #pragma endregion
 
+#pragma region Converters : J
+  static String Jigsaw(String const &bName, CompoundTag const &s, Props &p) {
+    auto facingDirection = s.int32("facing_direction", 0);
+    auto rotation = s.int32("rotation", 0);
+    Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
+    std::string orientation = JavaNameFromFacing6(f6);
+    switch (f6) {
+    case Facing6::Up:
+    case Facing6::Down: {
+      Facing4 f4 = Facing4FromNorth0East1South2West3(rotation);
+      orientation += "_" + JavaNameFromFacing4(f4);
+      break;
+    }
+    default:
+      orientation += "_up";
+      break;
+    }
+    p["orientation"] = orientation;
+    return bName;
+  }
+#pragma endregion
+
 #pragma region Converters : K
   static String Kelp(String const &bName, CompoundTag const &s, Props &p) {
     auto age = s.int32("kelp_age", 0);
@@ -2340,7 +2362,6 @@ private:
     E(infested_deepslate, BlockWithAxisFromPillarAxis);
     E(iron_bars, BlockWithSubmergible);
     E(lit_pumpkin, LitPumpkin);
-    E(jigsaw, Same);
     E(jukebox, Same);
     E(kelp, Kelp);
     E(ladder, BlockWithFacing4FromFacingDirectionASubmergible);
@@ -2540,6 +2561,8 @@ private:
     E(stripped_bamboo_block, BlockWithAxisFromPillarAxis);
     E(decorated_pot, DecoratedPot);
     E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
+
+    E(jigsaw, Jigsaw);
 #undef E
 
     return table;
