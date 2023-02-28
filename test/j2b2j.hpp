@@ -198,6 +198,9 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
       return;
     } else if (*itemId == "minecraft:debug_stick") {
       return;
+    } else if (*itemId == "minecraft:painting") {
+      // tag: {EntityTag:{variant:"minecraft:kebab"}}
+      blacklist.insert("tag");
     }
   }
   auto storedEnchantment = itemE.query("tag/StoredEnchantments/0/id");
@@ -311,7 +314,10 @@ static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
       "memories/minecraft:last_slept",
       "memories/minecraft:last_woken",
       // piglin etc.
-      "memories/minecraft:angry_at", //TODO:
+      "memories/minecraft:angry_at", // TODO:
+      // sniffer
+      "memories/minecraft:sniff_cooldown",
+      "memories/minecraft:sniffer_explored_positions",
   };
   auto copyE = brainE.copy();
   auto copyA = brainA.copy();
@@ -729,10 +735,18 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     CheckTileEntity(*tileE, *tileA);
   }
 
+  static set<string> const sEntityBlacklist = {
+      "minecraft:text_display",
+      "minecraft:item_display",
+  };
   for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
     Pos3d posE = *props::GetPos3d(*entityE, "Pos");
     Rotation rotE = *props::GetRotation(*entityE, "Rotation");
     auto id = entityE->string("id");
+    REQUIRE(id);
+    if (sEntityBlacklist.find(*id) != sEntityBlacklist.end()) {
+      continue;
+    }
     shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, rotE, *id, chunkA->fEntities);
     if (entityA) {
       CheckEntity(*id, *entityE, *entityA);
@@ -835,6 +849,8 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       "waterSourceConversion",
       "mobExplosionDropDecay",
       "snowAccumulationHeight",
+      "commandModificationBlockLimit",
+      "doVinesSpread",
   };
   for (string const &rule : ignoredGameRules) {
     blacklist.insert("GameRules/" + rule);
