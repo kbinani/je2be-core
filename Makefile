@@ -8,4 +8,4 @@ format:
 
 .PHONY: cppcheck
 cppcheck:
-	bash tool/cppcheck.sh
+	@bash tool/cppcheck.sh
