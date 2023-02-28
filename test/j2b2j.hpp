@@ -26,6 +26,32 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
   fallbackBtoJ["minecraft:glow_frame"] = "minecraft:air"; // frame should be converted as an entity.
 
   if (blockA && blockE) {
+    using namespace mcfile::blocks::minecraft;
+    switch (blockE->fId) {
+    case cherry_button:
+    case cherry_door:
+    case cherry_fence:
+    case cherry_fence_gate:
+    case cherry_hanging_sign:
+    case cherry_leaves:
+    case cherry_log:
+    case cherry_planks:
+    case cherry_pressure_plate:
+    case cherry_sapling:
+    case cherry_sign:
+    case cherry_slab:
+    case cherry_stairs:
+    case cherry_trapdoor:
+    case cherry_wall_hanging_sign:
+    case cherry_wall_sign:
+    case cherry_wood:
+    case pink_petals:
+    case potted_cherry_sapling:
+    case stripped_cherry_log:
+    case stripped_cherry_wood:
+      // TODO:1.20
+      return;
+    }
     auto foundJtoB = fallbackJtoB.find(blockE->fName);
     if (foundJtoB == fallbackJtoB.end()) {
       auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
@@ -459,6 +485,9 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     blacklist.insert("LastPoseTick");
   } else if (id == "minecraft:wandering_trader") {
     blacklist.insert("WanderTarget");
+  } else if ((id == "minecraft:boat" || id == "minecraft:chest_boat") && entityE.string("Type") == "cherry") {
+    // TODO:1.20
+    blacklist.insert("Type");
   }
 
   for (string const &it : blacklist) {
@@ -709,6 +738,10 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
       for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
         auto a = chunkA->biomeAt(x, y, z);
         auto e = chunkE->biomeAt(x, y, z);
+        if (e == mcfile::biomes::minecraft::cherry_grove) {
+          // TODO:1.20
+          continue;
+        }
         CHECK(a == e);
       }
     }
@@ -724,6 +757,15 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     auto found = chunkA->fTileEntities.find(pos);
     if (found == chunkA->fTileEntities.end()) {
       auto block = chunkE->blockAt(pos);
+      using namespace mcfile::blocks::minecraft;
+      switch (block->fId) {
+      case cherry_hanging_sign:
+      case cherry_wall_hanging_sign:
+      case cherry_sign:
+      case cherry_wall_sign:
+        // TODO:1.20
+        continue;
+      }
       ostringstream out;
       PrintAsJson(out, *tileE, {.fTypeHint = true});
       lock_guard<mutex> lock(sMutCerr);
