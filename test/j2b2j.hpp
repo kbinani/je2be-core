@@ -63,6 +63,8 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           CheckBlockWithIgnore(*blockE, *blockA, {"up"});
         } else if (blockE->fName == "minecraft:mangrove_propagule") {
           CheckBlockWithIgnore(*blockE, *blockA, {"stage"});
+        } else if (blockE->fName == "minecraft:lever") {
+          CheckBlockWithIgnore(*blockE, *blockA, {"facing"});
         } else {
           if (blockA->toString() != blockE->toString()) {
             cout << "[" << x << ", " << y << ", " << z << "] " << JavaStringFromDimension(dim) << endl;
