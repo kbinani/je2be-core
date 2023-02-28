@@ -339,7 +339,7 @@ private:
     auto tag = New("JigsawBlock");
 
     if (c) {
-      CopyStringValues(*c, *tag, {{"final_state"}, {"joint"}, {"target"}, {"pool", "target_pool"}});
+      CopyStringValues(*c, *tag, {{"final_state"}, {"joint"}, {"target"}, {"pool", "target_pool"}, {"name"}});
     }
 
     Attach(c, pos, *tag);

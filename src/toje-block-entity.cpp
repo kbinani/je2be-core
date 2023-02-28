@@ -442,9 +442,9 @@ public:
 
   static std::optional<Result> Jigsaw(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName("jigsaw", pos);
+    CopyStringValues(tag, *t, {{"final_state"}, {"joint"}, {"target"}, {"target_pool", "pool"}, {"name"}});
     Result r;
     r.fTileEntity = t;
-    CopyStringValues(tag, *t, {{"final_state"}, {"joint"}, {"target"}, {"target_pool", "pool"}});
     return r;
   }
 
