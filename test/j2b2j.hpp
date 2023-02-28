@@ -194,6 +194,8 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
     } else if (*itemId == "minecraft:bundle") {
       // bundle does not exist in BE
       return;
+    } else if (*itemId == "minecraft:debug_stick") {
+      return;
     }
   }
   auto storedEnchantment = itemE.query("tag/StoredEnchantments/0/id");
