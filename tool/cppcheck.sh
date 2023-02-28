@@ -2,5 +2,5 @@ set -ue
 
 (
 	cd "$(dirname "$0")/.."
-	cppcheck ./src ./include -Iinclude --enable=all --suppressions-list=.cppcheck-suppress --quiet
+	bash tool/ls-files | grep -e '^src/' -e '^include/' | cppcheck --file-list=- -I ./include --std=c++20 -j $(nproc) --enable=all --suppressions-list=.cppcheck-suppress
 )

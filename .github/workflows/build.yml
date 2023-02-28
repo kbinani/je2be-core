@@ -22,9 +22,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Install cppcheck
-        run: sudo apt install cppcheck
+        run: sudo apt install -y cppcheck
       - name: Run cppcheck
-        run: make cppcheck
+        run: |
+          cppcheck --version
+          make cppcheck
   build:
     strategy:
       fail-fast: false
