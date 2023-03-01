@@ -78,19 +78,19 @@ jobs:
         shell: bash
         run: |
           cd build
-          cmake --build . --target test --config Release --verbose --parallel $(nproc)
+          cmake --build . --target je2be-test --config Release --verbose --parallel $(nproc)
       - name: Build (Serial)
         if: ${{ steps.cache.outputs.cache-hit != 'true' && matrix.os == 'macos-latest' }}
         shell: bash
         run: |
           cd build
-          cmake --build . --target test --config Release --verbose
+          cmake --build . --target je2be-test --config Release --verbose
       - name: Test
         shell: bash
         run: |
           test "${{ matrix.os }}" == "windows-latest" && cd build/Release
           test "${{ matrix.os }}" != "windows-latest" && cd build
-          ./test --duration=true
+          ./je2be-test --duration=true
       - name: Perform CodeQL Analysis
         if: ${{ github.event.schedule != '' }}
         uses: github/codeql-action/analyze@v2

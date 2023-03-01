@@ -444,9 +444,9 @@ target_link_libraries(x2j je2be cxxopts)
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
-add_executable(test ${test_files} ${je2be_header_files})
-target_link_libraries(test je2be doctest)
-target_include_directories(test PRIVATE src)
+add_executable(je2be-test ${test_files} ${je2be_header_files})
+target_link_libraries(je2be-test je2be doctest)
+target_include_directories(je2be-test PRIVATE src)
 
 add_executable(j2b2j test/j2b2j.cpp)
 target_link_libraries(j2b2j je2be doctest)
