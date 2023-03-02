@@ -780,6 +780,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
   static set<string> const sEntityBlacklist = {
       "minecraft:text_display",
       "minecraft:item_display",
+      "minecraft:block_display",
   };
   for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
     Pos3d posE = *props::GetPos3d(*entityE, "Pos");
