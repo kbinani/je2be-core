@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   auto start = chrono::high_resolution_clock::now();
   defer {
     auto elapsed = chrono::high_resolution_clock::now() - start;
-    cout << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
+    cout << endl << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
   };
 
   Options options;
@@ -63,12 +63,20 @@ int main(int argc, char *argv[]) {
 #endif
 
   struct StdoutProgressReporter : public Progress {
+    StdoutProgressReporter() : fLast(std::chrono::high_resolution_clock::now()) {}
+
     bool report(double progress) override {
-      static mutex sMut;
-      lock_guard<mutex> lock(sMut);
-      cout << "            \r" << float(progress * 100) << "%";
+      auto now = chrono::high_resolution_clock::now();
+      lock_guard<mutex> lock(fMut);
+      if (now - fLast > chrono::seconds(1)) {
+        cout << "            \r" << float(progress * 100) << "%";
+        fLast = now;
+      }
       return true;
     }
+
+    mutex fMut;
+    std::chrono::high_resolution_clock::time_point fLast;
   } progress;
 
   auto st = Converter::Run(input, output, concurrency, options, &progress);

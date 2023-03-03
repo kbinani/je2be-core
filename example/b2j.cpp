@@ -6,6 +6,7 @@
 
 int main(int argc, char *argv[]) {
   using namespace std;
+  using namespace je2be;
   using namespace je2be::toje;
   namespace fs = std::filesystem;
 
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
   auto start = chrono::high_resolution_clock::now();
   defer {
     auto elapsed = chrono::high_resolution_clock::now() - start;
-    cout << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
+    cout << endl << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
   };
 
   Options options;
@@ -61,6 +62,36 @@ int main(int argc, char *argv[]) {
     }
   }
 #endif
-  auto st = Converter::Run(input, output, options, concurrency);
+  struct StdoutProgressReporter : public Progress {
+    StdoutProgressReporter() : fLast(std::chrono::high_resolution_clock::now()), fStep(0) {}
+
+    bool reportConvert(double progress, u64 numConvertedChunks) override {
+      auto now = chrono::high_resolution_clock::now();
+      lock_guard<mutex> lock(fMut);
+      if (fStep == 0 && now - fLast > chrono::seconds(1)) {
+        cout << "            \rConvert: " << float(progress * 100) << "% " << numConvertedChunks << " chunks";
+        fLast = now;
+      }
+      return true;
+    }
+
+    bool reportTerraform(double progress, u64 numProcessedChunks) override {
+      auto now = chrono::high_resolution_clock::now();
+      lock_guard<mutex> lock(fMut);
+      if (now - fLast > chrono::seconds(1)) {
+        if (fStep < 1) {
+          cout << endl;
+          fStep = 1;
+        }
+        cout << "            \rTerraform: " << float(progress * 100) << "% " << numProcessedChunks << " chunks";
+        fLast = now;
+      }
+      return true;
+    }
+    mutex fMut;
+    std::chrono::high_resolution_clock::time_point fLast;
+    int fStep = 0;
+  } progress;
+  auto st = Converter::Run(input, output, options, concurrency, &progress);
   return st.ok() ? 0 : -1;
 }
