@@ -4,6 +4,8 @@
 #include <je2be/strings.hpp>
 #include <je2be/tobe/options.hpp>
 
+#include "_directory-iterator.hpp"
+
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
