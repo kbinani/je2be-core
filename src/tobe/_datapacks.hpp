@@ -3,6 +3,7 @@
 #include <je2be/fs.hpp>
 #include <je2be/uuid.hpp>
 
+#include "_directory-iterator.hpp"
 #include "_file.hpp"
 #include "command/_command.hpp"
 
@@ -26,16 +27,12 @@ public:
       return true;
     }
 
-    auto itr = Fs::DirectoryIterator(datapacks);
-    if (!itr) {
-      return false;
-    }
     std::vector<Pack> packs;
-    for (auto const &item : *itr) {
-      if (!item.is_directory()) {
+    for (DirectoryIterator itr(datapacks); itr.valid(); ++itr) {
+      if (!itr->is_directory()) {
         continue;
       }
-      if (!ImportPack(item.path(), beRoot, packs)) {
+      if (!ImportPack(itr->path(), beRoot, packs)) {
         return false;
       }
     }
@@ -84,11 +81,6 @@ private:
       }
     }
 
-    auto itr = Fs::DirectoryIterator(packRootDir / "data");
-    if (!itr) {
-      return false;
-    }
-
     auto packName = packRootDir.filename();
     auto packDir = packsDir / packName;
     if (!Fs::CreateDirectories(packDir / "functions")) {
@@ -97,24 +89,20 @@ private:
 
     vector<pair<std::string, Uuid>> modules;
 
-    for (auto const &item : *itr) {
-      if (!item.is_directory()) {
+    for (DirectoryIterator itr(packRootDir / "data"); itr.valid(); ++itr) {
+      if (!itr->is_directory()) {
         continue;
       }
-      string moduleName = item.path().filename().string();
+      string moduleName = itr->path().filename().string();
       if (!Fs::CreateDirectories(packDir / "functions" / moduleName)) {
         return false;
       }
-      auto mcfunctionItr = Fs::DirectoryIterator(item.path() / "functions");
-      if (!mcfunctionItr) {
-        continue;
-      }
       bool hasMcfunction = false;
-      for (auto const &mcfunction : *mcfunctionItr) {
-        if (!mcfunction.is_regular_file()) {
+      for (DirectoryIterator mcfunctionItr(itr->path() / "functions"); mcfunctionItr.valid(); ++mcfunctionItr) {
+        if (!mcfunctionItr->is_regular_file()) {
           continue;
         }
-        auto path = mcfunction.path();
+        auto path = mcfunctionItr->path();
         auto fileName = path.filename();
         if (!fileName.has_extension()) {
           continue;

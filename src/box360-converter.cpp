@@ -7,6 +7,7 @@
 #include <je2be/zip-file.hpp>
 
 #include "_dimension-ext.hpp"
+#include "_directory-iterator.hpp"
 #include "_java-level-dat.hpp"
 #include "_nbt-ext.hpp"
 #include "_nullable.hpp"
@@ -127,12 +128,11 @@ private:
     CopyPlayersResult r;
     vector<shared_ptr<PlayerInfo>> players;
 
-    error_code ec;
-    for (auto it : fs::directory_iterator(playersFrom, ec)) {
-      if (!it.is_regular_file()) {
+    for (DirectoryIterator it(playersFrom); it.valid(); ++it) {
+      if (!it->is_regular_file()) {
         continue;
       }
-      auto player = CopyPlayer(it.path(), playersTo, ctx);
+      auto player = CopyPlayer(it->path(), playersTo, ctx);
       if (!player) {
         continue;
       }
@@ -520,12 +520,11 @@ private:
     if (!Fs::CreateDirectories(dataTo)) {
       return JE2BE_ERROR;
     }
-    std::error_code ec;
-    for (auto it : fs::directory_iterator(dataFrom, ec)) {
-      if (!it.is_regular_file()) {
+    for (DirectoryIterator it(dataFrom); it.valid(); ++it) {
+      if (!it->is_regular_file()) {
         continue;
       }
-      auto fileName = it.path().filename();
+      auto fileName = it->path().filename();
       auto fileNameString = fileName.string();
       if (!fileNameString.starts_with("map_") || !fileNameString.ends_with(".dat")) {
         continue;

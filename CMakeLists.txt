@@ -151,6 +151,7 @@ set(je2be_src_files
   src/_data2d.hpp
   src/_data3d.hpp
   src/_dimension-ext.hpp
+  src/_directory-iterator.hpp
   src/_file.hpp
   src/_future-support.hpp
   src/_java-level-dat.hpp

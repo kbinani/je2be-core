@@ -13,6 +13,7 @@
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/progress.hpp>
 
+#include "_directory-iterator.hpp"
 #include "_parallel.hpp"
 #include "db/_concurrent-db.hpp"
 #include "tobe/_context.hpp"
@@ -310,23 +311,16 @@ private:
       if (!fs::exists(dir)) {
         continue;
       }
-      std::error_code ec;
-      fs::directory_iterator itr(dir, ec);
-      if (ec) {
-        continue;
-      }
-      for (auto const &e : itr) {
-        ec.clear();
-        if (!fs::is_regular_file(e.path(), ec)) {
+      DirectoryIterator itr(dir);
+      for (; itr.valid(); ++itr) {
+        auto name = itr->path().filename().string();
+        if (!name.starts_with("r.") || !name.ends_with(".mca")) {
           continue;
         }
-        if (ec) {
+        if (!itr->is_regular_file()) {
           continue;
         }
-        auto name = e.path().filename().string();
-        if (name.starts_with("r.") && name.ends_with(".mca")) {
-          num++;
-        }
+        num++;
       }
     }
     return num * 32.0 * 32.0;

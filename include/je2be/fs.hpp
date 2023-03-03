@@ -14,16 +14,6 @@ public:
     }
   }
 
-  static std::optional<std::filesystem::directory_iterator> DirectoryIterator(std::filesystem::path p) {
-    std::error_code ec;
-    std::filesystem::directory_iterator itr(p, ec);
-    if (ec) {
-      return std::nullopt;
-    } else {
-      return itr;
-    }
-  }
-
   static bool CreateDirectories(std::filesystem::path p) {
     if (Exists(p)) {
       return true;

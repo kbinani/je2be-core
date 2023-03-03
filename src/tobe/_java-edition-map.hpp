@@ -64,20 +64,11 @@ private:
       return table;
     }
 
-    std::error_code ec;
-    fs::directory_iterator itr(dataDir, ec);
-    if (ec) {
-      return table;
-    }
-    for (auto const &f : itr) {
-      ec.clear();
-      if (!fs::is_regular_file(f.path(), ec)) {
+    for (DirectoryIterator itr(dataDir); itr.valid(); ++itr) {
+      if (!itr->is_regular_file()) {
         continue;
       }
-      if (ec) {
-        continue;
-      }
-      auto name = f.path().filename().string();
+      auto name = itr->path().filename().string();
       if (!name.starts_with("map_") || !name.ends_with(".dat")) {
         continue;
       }
