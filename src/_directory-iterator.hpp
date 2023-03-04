@@ -41,7 +41,10 @@ public:
   }
 
   bool valid() const {
-    return fItr.get() != nullptr && fItr->operator->() != nullptr;
+    if (!fItr) {
+      return false;
+    }
+    return std::filesystem::end(*fItr) != *fItr;
   }
 
   Status status() const {
