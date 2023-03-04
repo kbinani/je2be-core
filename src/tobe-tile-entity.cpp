@@ -1012,7 +1012,7 @@ private:
     auto const &name = b.fName;
     i8 type = Item::GetSkullTypeFromBlockName(name);
     auto rot = Wrap(strings::ToI32(b.property("rotation", "0")), 0);
-    float rotation = rot / 16.0f * 360.0f;
+    float rotation = Rotation::ClampDegreesBetweenMinus180And180(rot / 16.0f * 360.0f);
     tag->insert({
         {"id", String("Skull")},
         {"isMovable", Bool(true)},

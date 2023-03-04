@@ -590,7 +590,8 @@ public:
     Facing6 f = Facing6FromBedrockFacingDirectionA(facingDirection);
     bool floorPlaced = f == Facing6::Up || f == Facing6::Down;
     if (floorPlaced) {
-      int rotation = (int)std::round(tag.float32("Rotation", 0) + 0.5f);
+      float r = Rotation::ClampDegreesBetween0And360(tag.float32("Rotation", 0));
+      int rotation = (int)std::round(r + 0.5f);
       int rot = rotation * 16 / 360;
       p["rotation"] = to_string(rot);
     } else {
