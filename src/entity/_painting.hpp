@@ -2,6 +2,7 @@
 
 #include <je2be/strings.hpp>
 
+#include "_namespace.hpp"
 #include "_pos3.hpp"
 #include "_reversible-map.hpp"
 #include "_size.hpp"
@@ -141,7 +142,7 @@ public:
     unordered_map<std::string, Motive> ret;
     for (auto const &it : *j2b) {
       string motiveJ = it.first;
-      string motiveB = strings::UpperCamelFromSnake(motiveJ.substr(10));
+      string motiveB = strings::UpperCamelFromSnake(Namespace::Remove(motiveJ));
       ret.insert(make_pair(motiveB, it.second));
     }
     return new ReversibleMap<std::string, Motive>(ret);

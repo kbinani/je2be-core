@@ -3,6 +3,7 @@
 #include <je2be/nbt.hpp>
 #include <je2be/strings.hpp>
 
+#include "_namespace.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
@@ -39,7 +40,8 @@ public:
     using namespace mcfile;
     static unique_ptr<unordered_map<string_view, Converter> const> const sTable(CreateTable());
 
-    auto found = sTable->find(b.fName);
+    string_view key(b.fName);
+    auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
       return Identity(b);
     } else {
@@ -1550,7 +1552,7 @@ private:
     return Ns() + woodType + "_slab";
   }
 
-  static String Wool(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacyWool(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string("color", "white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + "_wool";
@@ -2022,9 +2024,9 @@ private:
   static std::unordered_map<std::string_view, Converter> *CreateTable() {
     using namespace std;
     auto table = new std::unordered_map<string_view, Converter>();
-#define E(__name, __converter)                               \
-  assert(table->find("minecraft:" #__name) == table->end()); \
-  table->emplace("minecraft:" #__name, __converter);
+#define E(__name, __converter)                  \
+  assert(table->find(#__name) == table->end()); \
+  table->emplace(#__name, __converter);
 
     E(acacia_button, Button);
     E(wooden_button, Button);
@@ -2251,7 +2253,7 @@ private:
     E(stained_glass_pane, StainedGlassPane);
     E(stained_hardened_clay, StainedHardenedClay);
     E(wall_banner, BlockWithFacing4FromFacingDirectionA);
-    E(wool, Wool);
+    E(wool, LegacyWool); // legacy, < preview 1.19.70.26
     E(blast_furnace, FurnaceAndSimilar);
     E(lit_blast_furnace, FurnaceAndSimilar);
     E(bone_block, BlockWithAxisFromPillarAxis);
@@ -2496,6 +2498,7 @@ private:
     E(sticky_piston_arm_collision, PistonArmCollision);
     E(flowing_lava, LiquidFlowing);
     E(flowing_water, LiquidFlowing);
+    E(jigsaw, Jigsaw);
 
     // 1.19
     E(frog_spawn, Rename("frogspawn"));
@@ -2561,8 +2564,6 @@ private:
     E(stripped_bamboo_block, BlockWithAxisFromPillarAxis);
     E(decorated_pot, DecoratedPot);
     E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
-
-    E(jigsaw, Jigsaw);
 #undef E
 
     return table;

@@ -1,5 +1,6 @@
 #include "box360/_entity.hpp"
 
+#include "_namespace.hpp"
 #include "_xxhash.hpp"
 #include "box360/_context.hpp"
 #include "box360/_item.hpp"
@@ -30,8 +31,7 @@ public:
     }
 
     auto const &table = GetTable();
-    auto key = id.substr(10);
-    auto found = table.find(key);
+    auto found = table.find(Namespace::Remove(id));
     if (found == table.end()) {
       Result r;
       r.fEntity = out;
@@ -52,10 +52,7 @@ public:
   }
 
   static std::string MigrateName(std::string const &rawName) {
-    std::string name = strings::SnakeFromUpperCamel(rawName);
-    if (name.starts_with("minecraft:")) {
-      name = name.substr(10);
-    }
+    std::string name = Namespace::Remove(strings::SnakeFromUpperCamel(rawName));
     if (name == "zombie_pigman") {
       name = "zombified_piglin";
     } else if (name == "evocation_illager") {

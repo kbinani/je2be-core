@@ -1,5 +1,7 @@
 #pragma once
 
+#include "_namespace.hpp"
+
 namespace je2be {
 
 class VillagerType {
@@ -30,9 +32,7 @@ public:
   */
 
   static std::optional<VillagerType> FromJavaType(std::string type) {
-    if (type.starts_with("minecraft:")) {
-      type = type.substr(10);
-    }
+    type = Namespace::Remove(type);
     if (type == "savanna") {
       return Savanna;
     } else if (type == "plains") {

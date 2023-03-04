@@ -1,5 +1,6 @@
 #include "toje/_entity.hpp"
 
+#include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_props.hpp"
 #include "_rotation.hpp"
@@ -120,7 +121,8 @@ public:
     Uuid uuid = Uuid::GenWithU64Seed(*(u64 *)&v);
 
     auto const *table = GetTable();
-    auto found = table->find(*id);
+    std::string_view key(*id);
+    auto found = table->find(Namespace::Remove(key));
     if (found == table->end()) {
       return std::nullopt;
     }
@@ -1914,9 +1916,9 @@ public:
   static std::unordered_map<std::string_view, Converter> *CreateTable() {
     auto ret = new std::unordered_map<std::string_view, Converter>();
 
-#define E(__name, __conv)                                \
-  assert(ret->find("minecraft:" #__name) == ret->end()); \
-  ret->insert(std::make_pair("minecraft:" #__name, __conv));
+#define E(__name, __conv)                   \
+  assert(ret->find(#__name) == ret->end()); \
+  ret->insert(std::make_pair(#__name, __conv));
 
     E(skeleton, C(Same, LivingEntity, StrayConversionTime));
     E(stray, C(Same, LivingEntity));

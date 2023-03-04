@@ -1,5 +1,6 @@
 #include "box360/_item.hpp"
 
+#include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_pos3.hpp"
 #include "box360/_context.hpp"
@@ -33,7 +34,7 @@ public:
     if (!rawId->starts_with("minecraft:")) {
       return nullptr;
     }
-    auto id = rawId->substr(10);
+    auto id = Namespace::Remove(*rawId);
     auto const &table = GetTable();
     auto found = table.find(id);
 
@@ -493,11 +494,7 @@ private:
       i16 d = DrainDamage(damage);
       auto ret = je2be::Potion::JavaPotionTypeAndItemNameFromLegacyJavaDamage(d);
       if (ret) {
-        if (ret->fItemName.starts_with("minecraft:")) {
-          id = ret->fItemName.substr(10);
-        } else {
-          id = ret->fItemName;
-        }
+        id = Namespace::Remove(ret->fItemName);
         auto t = Compound();
         t->set("Potion", String(ret->fPotionType));
         out->set("tag", t);

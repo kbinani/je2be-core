@@ -1,6 +1,7 @@
 #include "tobe/_entity.hpp"
 
 #include "_dimension-ext.hpp"
+#include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_props.hpp"
 #include "entity/_armor-stand.hpp"
@@ -181,9 +182,8 @@ public:
     if (!id.starts_with("minecraft:")) {
       return result;
     }
-    auto key = id.substr(10);
     static unique_ptr<unordered_map<string, Converter> const> const table(CreateEntityTable());
-    auto found = table->find(key);
+    auto found = table->find(Namespace::Remove(id));
     if (found == table->end()) {
       auto converted = Default(tag);
       if (converted) {
@@ -528,10 +528,7 @@ public:
 
 private:
   static std::string MigrateName(std::string const &rawName) {
-    std::string name = strings::SnakeFromUpperCamel(rawName);
-    if (name.starts_with("minecraft:")) {
-      name = name.substr(10);
-    }
+    std::string name = Namespace::Remove(strings::SnakeFromUpperCamel(rawName));
     if (name == "entity_horse") {
       name = "horse";
     } else if (name == "pig_zombie") {
@@ -821,10 +818,7 @@ private:
     Cat::Type ct = Cat::Type::Tabby;
     if (auto variantJ = tag.string("variant"); variantJ) {
       // 1.19
-      std::string name = *variantJ;
-      if (variantJ->starts_with("minecraft:")) {
-        name = variantJ->substr(10);
-      }
+      std::string name = Namespace::Remove(*variantJ);
       ct = Cat::CatTypeFromJavaVariant(name);
     } else if (auto catType = tag.int32("CatType"); catType) {
       // 1.18

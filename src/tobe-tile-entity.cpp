@@ -1,5 +1,6 @@
 #include "tobe/_tile-entity.hpp"
 
+#include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
@@ -1285,7 +1286,7 @@ private:
   }
 
   static i32 BannerColor(std::string_view const &name) {
-    auto color = name.substr(10); // minecraft:
+    std::string_view color = Namespace::Remove(name);
     auto suffix = color.rfind("_wall_banner");
     if (suffix != std::string::npos) {
       color = color.substr(0, suffix);

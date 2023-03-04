@@ -1,5 +1,7 @@
 #pragma once
 
+#include "_namespace.hpp"
+
 namespace je2be {
 
 class VillagerProfession {
@@ -60,9 +62,7 @@ public:
   }
 
   static std::optional<VillagerProfession> FromJavaProfession(std::string profession) {
-    if (profession.starts_with("minecraft:")) {
-      profession = profession.substr(10);
-    }
+    profession = Namespace::Remove(profession);
     if (profession == "shepherd") {
       return Shepherd;
     } else if (profession == "farmer") {

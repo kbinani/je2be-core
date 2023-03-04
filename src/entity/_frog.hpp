@@ -1,5 +1,7 @@
 #pragma once
 
+#include "_namespace.hpp"
+
 namespace je2be {
 
 class Frog : StaticReversibleMap<std::string, i32, Frog> {
@@ -23,10 +25,7 @@ public:
   }
 
   static std::string BedrockDefinitionFromJavaVariant(std::string const &variant) {
-    std::string v = variant;
-    if (variant.starts_with("minecraft:")) {
-      v = variant.substr(10);
-    }
+    std::string v = Namespace::Remove(variant);
     return "+" + v + "_frog";
   }
 };

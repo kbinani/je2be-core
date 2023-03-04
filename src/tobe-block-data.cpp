@@ -2,6 +2,7 @@
 
 #include <je2be/strings.hpp>
 
+#include "_namespace.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
 #include "enums/_facing4.hpp"
@@ -2101,7 +2102,7 @@ public:
   static std::string PrefixLit(Block const &b) {
     auto lit = b.property("lit", "false") == "true";
     if (lit) {
-      auto name = b.fName.substr(10);
+      auto name = Namespace::Remove(b.fName);
       return "minecraft:lit_" + std::string(name);
     } else {
       return b.name();

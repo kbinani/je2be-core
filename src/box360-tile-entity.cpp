@@ -1,5 +1,6 @@
 #include "box360/_tile-entity.hpp"
 
+#include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "box360/_context.hpp"
 #include "box360/_item.hpp"
@@ -26,9 +27,8 @@ public:
     auto id = MigrateId(*rawId);
     assert(id.starts_with("minecraft:"));
 
-    auto key = id.substr(10);
     auto const &table = GetTable();
-    auto found = table.find(key);
+    auto found = table.find(Namespace::Remove(id));
     if (found == table.end()) {
       return nullopt;
     }

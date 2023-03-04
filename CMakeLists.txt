@@ -157,6 +157,7 @@ set(je2be_src_files
   src/_java-level-dat.hpp
   src/_mcfile-fwd.hpp
   src/_mem.hpp
+  src/_namespace.hpp
   src/_nbt-ext.hpp
   src/_nullable.hpp
   src/_optional.hpp

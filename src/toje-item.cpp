@@ -1,5 +1,6 @@
 #include "toje/_item.hpp"
 
+#include "_namespace.hpp"
 #include "entity/_axolotl.hpp"
 #include "entity/_effect.hpp"
 #include "entity/_tropical-fish.hpp"
@@ -34,7 +35,8 @@ public:
     if (name == "") {
       return ret;
     }
-    auto found = sTable->find(*name);
+    string_view key(*name);
+    auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
       Default(*name, tagB, *ret, ctx);
     } else {
@@ -894,9 +896,9 @@ public:
     using namespace std;
     auto *ret = new unordered_map<string_view, Converter>();
 
-#define E(__name, __conv)                                \
-  assert(ret->find("minecraft:" #__name) == ret->end()); \
-  ret->insert(make_pair("minecraft:" #__name, __conv))
+#define E(__name, __conv)                   \
+  assert(ret->find(#__name) == ret->end()); \
+  ret->insert(make_pair(#__name, __conv))
 
     E(writable_book, Book);
     E(written_book, Book);

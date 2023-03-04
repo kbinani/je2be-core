@@ -1,5 +1,6 @@
 #include "toje/_block-entity.hpp"
 
+#include "_namespace.hpp"
 #include "color/_sign-color.hpp"
 #include "command/_command.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
@@ -26,7 +27,8 @@ public:
   static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
     static unique_ptr<unordered_map<string_view, Converter> const> const sTable(CreateTable());
-    auto found = sTable->find(block.fName);
+    string_view key(block.fName);
+    auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
       return nullopt;
     }
@@ -814,9 +816,9 @@ public:
   static std::unordered_map<std::string_view, Converter> *CreateTable() {
     using namespace std;
     auto *t = new unordered_map<string_view, Converter>();
-#define E(__name, __conv)                            \
-  assert(t->find("minecraft:" #__name) == t->end()); \
-  t->insert(make_pair("minecraft:" #__name, __conv))
+#define E(__name, __conv)               \
+  assert(t->find(#__name) == t->end()); \
+  t->insert(make_pair(#__name, __conv))
 
     E(flower_pot, FlowerPot);
     E(skull, Skull);

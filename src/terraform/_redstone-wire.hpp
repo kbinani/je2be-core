@@ -1,5 +1,6 @@
 #pragma once
 
+#include "_namespace.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
 
@@ -130,7 +131,7 @@ public:
     using namespace std;
     using namespace mcfile::blocks::minecraft;
     auto id = block.fId;
-    auto name = block.fName.substr(10);
+    string_view name = Namespace::Remove(block.fName);
     if (id == lightning_rod || id == lectern || id == daylight_detector || id == detector_rail || id == redstone_torch || id == redstone_wall_torch || id == tripwire_hook || name.ends_with("pressure_plate") || name.ends_with("button") || id == lever || id == redstone_block || id == target || id == trapped_chest || id == redstone_wire || id == sculk_sensor || id == comparator) {
       return true;
     }
