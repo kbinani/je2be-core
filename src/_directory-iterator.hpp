@@ -19,7 +19,7 @@ public:
     }
   }
 
-  DirectoryIterator &operator++() {
+  void next() {
     if (fItr) {
       std::error_code ec;
       fItr->increment(ec);
@@ -28,7 +28,6 @@ public:
         fItr.reset();
       }
     }
-    return *this;
   }
 
   std::filesystem::directory_entry const *operator->() const {

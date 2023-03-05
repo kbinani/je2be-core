@@ -28,7 +28,7 @@ public:
     }
 
     std::vector<Pack> packs;
-    for (DirectoryIterator itr(datapacks); itr.valid(); ++itr) {
+    for (DirectoryIterator itr(datapacks); itr.valid(); itr.next()) {
       if (!itr->is_directory()) {
         continue;
       }
@@ -89,7 +89,7 @@ private:
 
     vector<pair<std::string, Uuid>> modules;
 
-    for (DirectoryIterator itr(packRootDir / "data"); itr.valid(); ++itr) {
+    for (DirectoryIterator itr(packRootDir / "data"); itr.valid(); itr.next()) {
       if (!itr->is_directory()) {
         continue;
       }
@@ -98,7 +98,7 @@ private:
         return false;
       }
       bool hasMcfunction = false;
-      for (DirectoryIterator mcfunctionItr(itr->path() / "functions"); mcfunctionItr.valid(); ++mcfunctionItr) {
+      for (DirectoryIterator mcfunctionItr(itr->path() / "functions"); mcfunctionItr.valid(); mcfunctionItr.next()) {
         if (!mcfunctionItr->is_regular_file()) {
           continue;
         }

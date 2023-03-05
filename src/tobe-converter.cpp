@@ -311,8 +311,7 @@ private:
       if (!fs::exists(dir)) {
         continue;
       }
-      DirectoryIterator itr(dir);
-      for (; itr.valid(); ++itr) {
+      for (DirectoryIterator itr(dir); itr.valid(); itr.next()) {
         auto name = itr->path().filename().string();
         if (!name.starts_with("r.") || !name.ends_with(".mca")) {
           continue;

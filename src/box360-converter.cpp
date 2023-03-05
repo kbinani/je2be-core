@@ -128,7 +128,7 @@ private:
     CopyPlayersResult r;
     vector<shared_ptr<PlayerInfo>> players;
 
-    for (DirectoryIterator it(playersFrom); it.valid(); ++it) {
+    for (DirectoryIterator it(playersFrom); it.valid(); it.next()) {
       if (!it->is_regular_file()) {
         continue;
       }
@@ -520,7 +520,7 @@ private:
     if (!Fs::CreateDirectories(dataTo)) {
       return JE2BE_ERROR;
     }
-    for (DirectoryIterator it(dataFrom); it.valid(); ++it) {
+    for (DirectoryIterator it(dataFrom); it.valid(); it.next()) {
       if (!it->is_regular_file()) {
         continue;
       }

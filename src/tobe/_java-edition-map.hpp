@@ -66,7 +66,7 @@ private:
       return table;
     }
 
-    for (DirectoryIterator itr(dataDir); itr.valid(); ++itr) {
+    for (DirectoryIterator itr(dataDir); itr.valid(); itr.next()) {
       if (!itr->is_regular_file()) {
         continue;
       }
