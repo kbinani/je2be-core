@@ -165,6 +165,9 @@ public:
     case minecraft::calcite:
     case minecraft::cartography_table:
     case minecraft::chain_command_block:
+    case minecraft::cherry_log:
+    case minecraft::cherry_planks:
+    case minecraft::cherry_wood:
     case minecraft::chiseled_bookshelf:
     case minecraft::chiseled_deepslate:
     case minecraft::chiseled_nether_bricks:
@@ -449,6 +452,8 @@ public:
     case minecraft::stripped_bamboo_block:
     case minecraft::stripped_birch_log:
     case minecraft::stripped_birch_wood:
+    case minecraft::stripped_cherry_log:
+    case minecraft::stripped_cherry_wood:
     case minecraft::stripped_crimson_hyphae:
     case minecraft::stripped_crimson_stem:
     case minecraft::stripped_dark_oak_log:
@@ -464,6 +469,7 @@ public:
     case minecraft::stripped_warped_hyphae:
     case minecraft::stripped_warped_stem:
     case minecraft::structure_block:
+    case minecraft::suspicious_sand:
     case minecraft::target:
     case minecraft::terracotta:
     case minecraft::tinted_glass:
@@ -532,6 +538,7 @@ public:
     case minecraft::birch_log:
     case minecraft::birch_planks:
     case minecraft::birch_wood:
+    case minecraft::black_carpet:
     case minecraft::black_concrete:
     case minecraft::black_concrete_powder:
     case minecraft::black_glazed_terracotta:
@@ -541,6 +548,7 @@ public:
     case minecraft::black_wool:
     case minecraft::blackstone:
     case minecraft::blast_furnace:
+    case minecraft::blue_carpet:
     case minecraft::blue_concrete:
     case minecraft::blue_concrete_powder:
     case minecraft::blue_glazed_terracotta:
@@ -553,6 +561,7 @@ public:
     case minecraft::bookshelf:
     case minecraft::brain_coral_block:
     case minecraft::bricks:
+    case minecraft::brown_carpet:
     case minecraft::brown_concrete:
     case minecraft::brown_concrete_powder:
     case minecraft::brown_glazed_terracotta:
@@ -568,6 +577,10 @@ public:
     case minecraft::cartography_table:
     case minecraft::carved_pumpkin:
     case minecraft::chain_command_block:
+    case minecraft::cherry_leaves:
+    case minecraft::cherry_log:
+    case minecraft::cherry_planks:
+    case minecraft::cherry_wood:
     case minecraft::chiseled_bookshelf:
     case minecraft::chiseled_deepslate:
     case minecraft::chiseled_nether_bricks:
@@ -600,6 +613,7 @@ public:
     case minecraft::cut_copper:
     case minecraft::cut_red_sandstone:
     case minecraft::cut_sandstone:
+    case minecraft::cyan_carpet:
     case minecraft::cyan_concrete:
     case minecraft::cyan_concrete_powder:
     case minecraft::cyan_glazed_terracotta:
@@ -660,6 +674,7 @@ public:
     case minecraft::granite:
     case minecraft::grass_block:
     case minecraft::gravel:
+    case minecraft::gray_carpet:
     case minecraft::gray_concrete:
     case minecraft::gray_concrete_powder:
     case minecraft::gray_glazed_terracotta:
@@ -667,6 +682,7 @@ public:
     case minecraft::gray_stained_glass:
     case minecraft::gray_terracotta:
     case minecraft::gray_wool:
+    case minecraft::green_carpet:
     case minecraft::green_concrete:
     case minecraft::green_concrete_powder:
     case minecraft::green_glazed_terracotta:
@@ -697,6 +713,7 @@ public:
     case minecraft::lapis_block:
     case minecraft::lapis_ore:
     case minecraft::lectern:
+    case minecraft::light_blue_carpet:
     case minecraft::light_blue_concrete:
     case minecraft::light_blue_concrete_powder:
     case minecraft::light_blue_glazed_terracotta:
@@ -704,6 +721,7 @@ public:
     case minecraft::light_blue_stained_glass:
     case minecraft::light_blue_terracotta:
     case minecraft::light_blue_wool:
+    case minecraft::light_gray_carpet:
     case minecraft::light_gray_concrete:
     case minecraft::light_gray_concrete_powder:
     case minecraft::light_gray_glazed_terracotta:
@@ -711,6 +729,7 @@ public:
     case minecraft::light_gray_stained_glass:
     case minecraft::light_gray_terracotta:
     case minecraft::light_gray_wool:
+    case minecraft::lime_carpet:
     case minecraft::lime_concrete:
     case minecraft::lime_concrete_powder:
     case minecraft::lime_glazed_terracotta:
@@ -720,6 +739,7 @@ public:
     case minecraft::lime_wool:
     case minecraft::lodestone:
     case minecraft::loom:
+    case minecraft::magenta_carpet:
     case minecraft::magenta_concrete:
     case minecraft::magenta_concrete_powder:
     case minecraft::magenta_glazed_terracotta:
@@ -735,6 +755,7 @@ public:
     case minecraft::mangrove_wood:
     case minecraft::melon:
     case minecraft::moss_block:
+    case minecraft::moss_carpet:
     case minecraft::mossy_cobblestone:
     case minecraft::mossy_stone_bricks:
     case minecraft::mud:
@@ -756,6 +777,7 @@ public:
     case minecraft::observer:
     case minecraft::obsidian:
     case minecraft::ochre_froglight:
+    case minecraft::orange_carpet:
     case minecraft::orange_concrete:
     case minecraft::orange_concrete_powder:
     case minecraft::orange_glazed_terracotta:
@@ -768,6 +790,7 @@ public:
     case minecraft::packed_ice:
     case minecraft::packed_mud:
     case minecraft::pearlescent_froglight:
+    case minecraft::pink_carpet:
     case minecraft::pink_concrete:
     case minecraft::pink_concrete_powder:
     case minecraft::pink_glazed_terracotta:
@@ -786,6 +809,7 @@ public:
     case minecraft::prismarine:
     case minecraft::prismarine_bricks:
     case minecraft::pumpkin:
+    case minecraft::purple_carpet:
     case minecraft::purple_concrete:
     case minecraft::purple_concrete_powder:
     case minecraft::purple_glazed_terracotta:
@@ -801,6 +825,7 @@ public:
     case minecraft::raw_copper_block:
     case minecraft::raw_gold_block:
     case minecraft::raw_iron_block:
+    case minecraft::red_carpet:
     case minecraft::red_concrete:
     case minecraft::red_concrete_powder:
     case minecraft::red_glazed_terracotta:
@@ -815,6 +840,7 @@ public:
     case minecraft::redstone_block:
     case minecraft::redstone_lamp:
     case minecraft::redstone_ore:
+    case minecraft::repeater:
     case minecraft::repeating_command_block:
     case minecraft::respawn_anchor:
     case minecraft::rooted_dirt:
@@ -850,6 +876,8 @@ public:
     case minecraft::stripped_bamboo_block:
     case minecraft::stripped_birch_log:
     case minecraft::stripped_birch_wood:
+    case minecraft::stripped_cherry_log:
+    case minecraft::stripped_cherry_wood:
     case minecraft::stripped_crimson_hyphae:
     case minecraft::stripped_crimson_stem:
     case minecraft::stripped_dark_oak_log:
@@ -865,6 +893,7 @@ public:
     case minecraft::stripped_warped_hyphae:
     case minecraft::stripped_warped_stem:
     case minecraft::structure_block:
+    case minecraft::suspicious_sand:
     case minecraft::target:
     case minecraft::terracotta:
     case minecraft::tinted_glass:
@@ -888,6 +917,7 @@ public:
     case minecraft::weathered_copper:
     case minecraft::weathered_cut_copper:
     case minecraft::wet_sponge:
+    case minecraft::white_carpet:
     case minecraft::white_concrete:
     case minecraft::white_concrete_powder:
     case minecraft::white_glazed_terracotta:
@@ -895,6 +925,7 @@ public:
     case minecraft::white_stained_glass:
     case minecraft::white_terracotta:
     case minecraft::white_wool:
+    case minecraft::yellow_carpet:
     case minecraft::yellow_concrete:
     case minecraft::yellow_concrete_powder:
     case minecraft::yellow_glazed_terracotta:

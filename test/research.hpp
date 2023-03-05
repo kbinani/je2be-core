@@ -737,10 +737,20 @@ static void WallConnectable() {
 
   int const x0 = -42;
   int const z0 = 165;
-  int const y = 4;
+  int const y = -60;
   int x = x0;
   int x1 = x0;
-  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/labo");
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/WallConnectable");
+  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
+  {
+    ofstream os((root / "datapacks" / "kbinani" / "pack.mcmeta").string());
+    nlohmann::json mcmeta;
+    nlohmann::json pack;
+    pack["pack_format"] = 1;
+    pack["description"] = "datapack";
+    mcmeta["pack"] = pack;
+    os << nlohmann::to_string(mcmeta);
+  }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
     for (string const &name : names) {
