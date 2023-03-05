@@ -32,10 +32,17 @@ public:
   }
 
   std::filesystem::directory_entry const *operator->() const {
-    if (fItr) {
-      return fItr->operator->();
+    static std::filesystem::directory_entry const sEmpty;
+    if (!fItr) {
+      return &sEmpty;
+    }
+    if (std::filesystem::end(*fItr) == *fItr) {
+      return &sEmpty;
+    }
+    auto entry = fItr->operator->();
+    if (entry) {
+      return entry;
     } else {
-      static std::filesystem::directory_entry const sEmpty;
       return &sEmpty;
     }
   }
