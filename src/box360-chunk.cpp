@@ -423,7 +423,7 @@ private:
       return JE2BE_ERROR;
     }
 
-    u16 terrainPopulatedFlags = mcfile::U16FromBE(Mem::Read<u16>(buffer, offset));
+    // u16 terrainPopulatedFlags = mcfile::U16FromBE(Mem::Read<u16>(buffer, offset));
     offset += 2;
 
     for (int z = 0; z < 16; z++) {
@@ -678,12 +678,12 @@ private:
 
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
 
-    i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
-    i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
-    assert(xPos == cx);
-    assert(zPos == cz);
-    i64 lastUpdate = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x0a));
-    i64 inhabitedTime = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x12));
+    // i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
+    // i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
+    // assert(xPos == cx);
+    // assert(zPos == cz);
+    // i64 lastUpdate = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x0a));
+    // i64 inhabitedTime = mcfile::I64FromBE(Mem::Read<i64>(buffer, 0x12));
 
     u16 maxSectionAddress = (u16)buffer[0x1b] * 0x100;
     vector<u16> sectionJumpTable;

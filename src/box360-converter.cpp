@@ -102,9 +102,9 @@ public:
 
 private:
   struct PlayerInfo {
-    std::string fUuidX;
     Uuid fUuidJ;
     CompoundTag fPlayer;
+    std::string fUuidX;
   };
 
   struct CopyPlayersResult {
