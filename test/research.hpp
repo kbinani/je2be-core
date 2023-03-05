@@ -797,10 +797,10 @@ static void WallConnectable() {
   ofstream code((self / "code.hpp").string());
 
   code << "static bool IsWallAlwaysConnectable(mcfile::blocks::BlockId id) {" << endl;
-  code << "  using namespace mcfile::blocks;" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto n : wallAttachable) {
-    code << "    case minecraft::" << n.substr(10) << ":" << endl;
+    code << "    case " << n.substr(10) << ":" << endl;
   }
   code << "      return true;" << endl;
   code << "    default:" << endl;
@@ -810,10 +810,10 @@ static void WallConnectable() {
   code << endl;
 
   code << "static bool IsBlockAlwaysMakeWallTallShape(mcfile::blocks::BlockId id) {" << endl;
-  code << "  using namespace mcfile::blocks;" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto n : tall) {
-    code << "    case minecraft::" << n.substr(10) << ":" << endl;
+    code << "    case " << n.substr(10) << ":" << endl;
   }
   code << "      return true;" << endl;
   code << "    default:" << endl;
