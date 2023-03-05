@@ -170,19 +170,21 @@ public:
     case blue_shulker_box:
     case brown_concrete:
     case brown_shulker_box:
-    case conduit:
     case cyan_shulker_box:
     case dropper:
     case furnace:
     case gray_shulker_box:
     case green_shulker_box:
     case jack_o_lantern:
-    case lava:
     case light_blue_shulker_box:
     case light_gray_shulker_box:
     case lime_shulker_box:
     case magenta_shulker_box:
+    case mangrove_roots:
+    case muddy_mangrove_roots:
+    case ochre_froglight:
     case orange_shulker_box:
+    case pearlescent_froglight:
     case pink_shulker_box:
     case purple_shulker_box:
     case red_shulker_box:
@@ -192,13 +194,13 @@ public:
     case smoker:
     case soul_sand:
     case spawner:
+    case verdant_froglight:
     case water:
     case white_shulker_box:
     case yellow_shulker_box:
       // mcfile::blocks::IsTransparent(id) == true, but not transparent against redstone wire
       return false;
     }
-
     return mcfile::blocks::IsTransparent(id);
   }
 };

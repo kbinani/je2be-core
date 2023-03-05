@@ -321,19 +321,26 @@ static void RedstoneWire() {
     if (name.ends_with("rail")) {
       continue;
     }
-    if (!mcfile::blocks::IsTransparent(id)) {
-      continue;
-    }
     uniq.insert(name);
   }
   vector<string> names(uniq.begin(), uniq.end());
 
   int const x0 = -42;
   int const z0 = 165;
-  int const y = 4;
+  int const y = -60;
   int x = x0;
   int x1 = x0;
-  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/labo");
+  fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/RedstoneWire");
+  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
+  {
+    ofstream os((root / "datapacks" / "kbinani" / "pack.mcmeta").string());
+    nlohmann::json mcmeta;
+    nlohmann::json pack;
+    pack["pack_format"] = 1;
+    pack["description"] = "datapack";
+    mcmeta["pack"] = pack;
+    os << nlohmann::to_string(mcmeta);
+  }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_redstone_wire.mcfunction").string());
     os << "fill " << x0 << " " << y << " " << (z0 - 1) << " " << (x0 + 2 * names.size()) << " " << (y + 2) << " " << (z0 + 1) << " air" << endl;
@@ -353,7 +360,8 @@ static void RedstoneWire() {
   mcfile::je::World w(root);
   shared_ptr<mcfile::je::Chunk> chunk;
   int cz = mcfile::Coordinate::ChunkFromBlock(z0);
-  set<string> transparent;
+  set<string> negative;
+  set<string> positive;
   int i = 0;
   for (int x = x0; x < x1; x += 2, i++) {
     int cx = mcfile::Coordinate::ChunkFromBlock(x);
@@ -365,11 +373,20 @@ static void RedstoneWire() {
     if (expected != center->fName) {
       cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
     } else {
-      auto wire = chunk->blockAt(x, y - 2, z0);
-      auto north = wire->property("north", "");
-      auto south = wire->property("south", "");
-      if (north != "up" && south != "up") {
-        transparent.insert(expected);
+      if (mcfile::blocks::IsTransparent(center->fId)) {
+        auto wire = chunk->blockAt(x, y - 2, z0);
+        auto north = wire->property("north", "");
+        auto south = wire->property("south", "");
+        if (north != "up" || south != "up") {
+          negative.insert(expected);
+        }
+      } else {
+        auto wire = chunk->blockAt(x, y - 2, z0);
+        auto north = wire->property("north", "");
+        auto south = wire->property("south", "");
+        if (north == "up" && south == "up") {
+          positive.insert(expected);
+        }
       }
     }
   }
@@ -379,11 +396,18 @@ static void RedstoneWire() {
   code << "static bool IsAlwaysTransparentAgainstRedstoneWire(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
-  for (auto const &it : transparent) {
+  for (auto const &it : positive) {
     code << "  case " << it.substr(10) << ":" << endl;
   }
-  code << "    true false;" << endl;
+  code << "      // mcfile::blocks::IsTransparent(id) == false, but transparent against redstone wire" << endl;
+  code << "      return true;" << endl;
+  for (auto const &it : negative) {
+    code << "  case " << it.substr(10) << ":" << endl;
+  }
+  code << "      // mcfile::blocks::IsTransparent(id) == true, but not transparent against redstone wire" << endl;
+  code << "      return false;" << endl;
   code << "  }" << endl;
+  code << "  return mcfile::blocks::IsTransparent(id);" << endl;
   code << "}" << endl;
   code << endl;
 }
