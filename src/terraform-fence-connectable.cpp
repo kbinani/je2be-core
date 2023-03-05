@@ -193,6 +193,10 @@ public:
     case mcfile::blocks::minecraft::calcite:
     case mcfile::blocks::minecraft::cartography_table:
     case mcfile::blocks::minecraft::chain_command_block:
+    case mcfile::blocks::minecraft::cherry_fence:
+    case mcfile::blocks::minecraft::cherry_log:
+    case mcfile::blocks::minecraft::cherry_planks:
+    case mcfile::blocks::minecraft::cherry_wood:
     case mcfile::blocks::minecraft::chiseled_bookshelf:
     case mcfile::blocks::minecraft::chiseled_deepslate:
     case mcfile::blocks::minecraft::chiseled_nether_bricks:
@@ -456,6 +460,8 @@ public:
     case mcfile::blocks::minecraft::stripped_bamboo_block:
     case mcfile::blocks::minecraft::stripped_birch_log:
     case mcfile::blocks::minecraft::stripped_birch_wood:
+    case mcfile::blocks::minecraft::stripped_cherry_log:
+    case mcfile::blocks::minecraft::stripped_cherry_wood:
     case mcfile::blocks::minecraft::stripped_crimson_hyphae:
     case mcfile::blocks::minecraft::stripped_crimson_stem:
     case mcfile::blocks::minecraft::stripped_dark_oak_log:
@@ -471,6 +477,7 @@ public:
     case mcfile::blocks::minecraft::stripped_warped_hyphae:
     case mcfile::blocks::minecraft::stripped_warped_stem:
     case mcfile::blocks::minecraft::structure_block:
+    case mcfile::blocks::minecraft::suspicious_sand:
     case mcfile::blocks::minecraft::target:
     case mcfile::blocks::minecraft::terracotta:
     case mcfile::blocks::minecraft::tinted_glass:
@@ -572,6 +579,9 @@ public:
     case mcfile::blocks::minecraft::calcite:
     case mcfile::blocks::minecraft::cartography_table:
     case mcfile::blocks::minecraft::chain_command_block:
+    case mcfile::blocks::minecraft::cherry_log:
+    case mcfile::blocks::minecraft::cherry_planks:
+    case mcfile::blocks::minecraft::cherry_wood:
     case mcfile::blocks::minecraft::chiseled_bookshelf:
     case mcfile::blocks::minecraft::chiseled_deepslate:
     case mcfile::blocks::minecraft::chiseled_nether_bricks:
@@ -860,6 +870,8 @@ public:
     case mcfile::blocks::minecraft::stripped_bamboo_block:
     case mcfile::blocks::minecraft::stripped_birch_log:
     case mcfile::blocks::minecraft::stripped_birch_wood:
+    case mcfile::blocks::minecraft::stripped_cherry_log:
+    case mcfile::blocks::minecraft::stripped_cherry_wood:
     case mcfile::blocks::minecraft::stripped_crimson_hyphae:
     case mcfile::blocks::minecraft::stripped_crimson_stem:
     case mcfile::blocks::minecraft::stripped_dark_oak_log:
@@ -875,6 +887,7 @@ public:
     case mcfile::blocks::minecraft::stripped_warped_hyphae:
     case mcfile::blocks::minecraft::stripped_warped_stem:
     case mcfile::blocks::minecraft::structure_block:
+    case mcfile::blocks::minecraft::suspicious_sand:
     case mcfile::blocks::minecraft::target:
     case mcfile::blocks::minecraft::terracotta:
     case mcfile::blocks::minecraft::tinted_glass:
