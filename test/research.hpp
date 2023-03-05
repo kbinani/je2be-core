@@ -174,9 +174,10 @@ static void FenceGlassPaneIronBarsConnectable() {
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
   code << "static bool IsFenceAlwaysConnectable(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto n : fenceAttachable) {
-    code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
+    code << "    case " << n.substr(10) << ":" << endl;
   }
   code << "      return true;" << endl;
   code << "    default:" << endl;
@@ -187,9 +188,10 @@ static void FenceGlassPaneIronBarsConnectable() {
   code << "}" << endl;
   code << endl;
   code << "static bool IsGlassPaneOrIronBarsAlwaysConnectable(mcfile::blocks::BlockId id) {" << endl;
+  code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto n : glassPaneAttachable) {
-    code << "    case mcfile::blocks::minecraft::" << n.substr(10) << ":" << endl;
+    code << "    case " << n.substr(10) << ":" << endl;
   }
   code << "      return true;" << endl;
   code << "    default:" << endl;
