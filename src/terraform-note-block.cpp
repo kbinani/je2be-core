@@ -404,6 +404,20 @@ public:
     case brown_wall_banner:
     case campfire:
     case cartography_table:
+    case cherry_door:
+    case cherry_fence:
+    case cherry_fence_gate:
+    case cherry_hanging_sign:
+    case cherry_log:
+    case cherry_planks:
+    case cherry_pressure_plate:
+    case cherry_sign:
+    case cherry_slab:
+    case cherry_stairs:
+    case cherry_trapdoor:
+    case cherry_wall_hanging_sign:
+    case cherry_wall_sign:
+    case cherry_wood:
     case chest:
     case chiseled_bookshelf:
     case composter:
@@ -530,6 +544,8 @@ public:
     case stripped_bamboo_block:
     case stripped_birch_log:
     case stripped_birch_wood:
+    case stripped_cherry_log:
+    case stripped_cherry_wood:
     case stripped_crimson_hyphae:
     case stripped_crimson_stem:
     case stripped_dark_oak_log:
@@ -654,6 +670,7 @@ public:
     case red_concrete_powder:
     case red_sand:
     case sand:
+    case suspicious_sand:
     case white_concrete_powder:
     case yellow_concrete_powder:
       return "snare";
