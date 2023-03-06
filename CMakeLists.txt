@@ -423,7 +423,19 @@ CPMAddPackage(
   OPTIONS "CXXOPTS_BUILD_EXAMPLES OFF"
           "CXXOPTS_BUILD_TESTS OFF")
 
-list(APPEND je2be_link_libraries mcfile leveldb minizip)
+CPMAddPackage(
+  NAME nlohmann_json
+  VERSION 3.11.2
+  # the git repo is incredibly large, so we download the archived include directory
+  URL https://github.com/nlohmann/json/releases/download/v3.11.2/include.zip
+  URL_HASH SHA256=e5c7a9f49a16814be27e4ed0ee900ecd0092bfb7dbfca65b5a421b774dccaaed)
+
+if (nlohmann_json_ADDED)
+  add_library(nlohmann_json INTERFACE IMPORTED)
+  target_include_directories(nlohmann_json INTERFACE ${nlohmann_json_SOURCE_DIR}/include)
+endif()
+
+list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
 
 
 add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
@@ -432,8 +444,8 @@ target_include_directories(je2be PUBLIC
   deps/leveldb
   deps/leveldb/include
   deps/xxhash
-  deps/json/include
   deps/minizip-ng
+  ${nlohmann_json_SOURCE_DIR}/include
   ${je2be_include_directories})
 target_include_directories(je2be PRIVATE ./src ${CMAKE_BINARY_DIR}/_deps/libdeflate-src ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
