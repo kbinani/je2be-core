@@ -416,7 +416,12 @@ option(MZ_SIGNING OFF)
 option(MZ_LIBCOMP OFF)
 add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
 
-add_subdirectory(deps/cxxopts EXCLUDE_FROM_ALL)
+CPMAddPackage(
+  NAME cxxopts
+  GITHUB_REPOSITORY jarro2783/cxxopts
+  VERSION 3.1.1
+  OPTIONS "CXXOPTS_BUILD_EXAMPLES OFF"
+          "CXXOPTS_BUILD_TESTS OFF")
 
 list(APPEND je2be_link_libraries mcfile leveldb minizip)
 

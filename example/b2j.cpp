@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   cxxopts::ParseResult result;
   try {
     result = parser.parse(argc, argv);
-  } catch (cxxopts::OptionException &e) {
+  } catch (cxxopts::exceptions::exception &e) {
     cerr << e.what() << endl;
     cerr << parser.help() << endl;
     return -1;
