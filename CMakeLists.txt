@@ -398,11 +398,14 @@ if (zlib_imported_with_cpm GREATER -1)
     ${CMAKE_BINARY_DIR}/_deps/zlib-build)
 endif()
 
-option(LEVELDB_ZSTD OFF)
-option(LEVELDB_BUILD_TESTS OFF)
-option(LEVELDB_BUILD_BENCHMARKS OFF)
-option(LEVELDB_INSTALL OFF)
-add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
+CPMAddPackage(
+  NAME leveldb
+  GITHUB_REPOSITORY kbinani/leveldb-stdfs
+  GIT_TAG f67b779a77bbfe81002144cf6e568f9d107c0a4e
+  OPTIONS "LEVELDB_ZSTD OFF"
+          "LEVELDB_BUILD_TESTS OFF"
+          "LEVELDB_BUILD_BENCHMARKS OFF"
+          "LEVELDB_INSTALL OFF")
 
 CPMAddPackage(
   NAME cxxopts
@@ -442,7 +445,6 @@ CPMAddPackage(
           "MZ_LIBBSD OFF"
           "MZ_SIGNING OFF"
           "MZ_LIBCOMP OFF")
-message("dir${minizip_SOURCE_DIR}")
 
 list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
 
@@ -450,8 +452,8 @@ list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
 add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
 target_include_directories(je2be PUBLIC
   ./include
-  deps/leveldb
-  deps/leveldb/include
+  ${leveldb_SOURCE_DIR}
+  ${leveldb_SOURCE_DIR}/include
   ${minizip_SOURCE_DIR}
   ${xxhash_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
