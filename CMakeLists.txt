@@ -404,18 +404,6 @@ option(LEVELDB_BUILD_BENCHMARKS OFF)
 option(LEVELDB_INSTALL OFF)
 add_subdirectory(deps/leveldb EXCLUDE_FROM_ALL)
 
-option(MZ_FETCH_LIBS OFF)
-option(MZ_BZIP2 OFF)
-option(MZ_LZMA OFF)
-option(MZ_ZSTD OFF)
-option(MZ_PKCRYPT OFF)
-option(MZ_WZAES OFF)
-option(MZ_OPENSSL OFF)
-option(MZ_LIBBSD OFF)
-option(MZ_SIGNING OFF)
-option(MZ_LIBCOMP OFF)
-add_subdirectory(deps/minizip-ng EXCLUDE_FROM_ALL)
-
 CPMAddPackage(
   NAME cxxopts
   GITHUB_REPOSITORY jarro2783/cxxopts
@@ -440,6 +428,22 @@ CPMAddPackage(
   GIT_TAG c2866db364b6ea3a11933e62235ddc166ba18565
   GIT_REPOSITORY https://github.com/stbrumme/xxhash.git)
 
+CPMAddPackage(
+  NAME minizip
+  GITHUB_REPOSITORY zlib-ng/minizip-ng
+  GIT_TAG 3.0.8
+  OPTIONS "MZ_FETCH_LIBS OFF"
+          "MZ_BZIP2 OFF"
+          "MZ_LZMA OFF"
+          "MZ_ZSTD OFF"
+          "MZ_PKCRYPT OFF"
+          "MZ_WZAES OFF"
+          "MZ_OPENSSL OFF"
+          "MZ_LIBBSD OFF"
+          "MZ_SIGNING OFF"
+          "MZ_LIBCOMP OFF")
+message("dir${minizip_SOURCE_DIR}")
+
 list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
 
 
@@ -448,7 +452,7 @@ target_include_directories(je2be PUBLIC
   ./include
   deps/leveldb
   deps/leveldb/include
-  deps/minizip-ng
+  ${minizip_SOURCE_DIR}
   ${xxhash_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
   ${je2be_include_directories})

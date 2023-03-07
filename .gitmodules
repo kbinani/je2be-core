@@ -1,6 +1,3 @@
 [submodule "ext/leveldb"]
 	path = deps/leveldb
 	url = https://github.com/kbinani/leveldb-stdfs.git
-[submodule "deps/deps/minizip-ng"]
-	path = deps/minizip-ng
-	url = https://github.com/zlib-ng/minizip-ng.git
