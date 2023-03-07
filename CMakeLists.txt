@@ -401,7 +401,7 @@ endif()
 CPMAddPackage(
   NAME leveldb
   GITHUB_REPOSITORY kbinani/leveldb-stdfs
-  GIT_TAG f67b779a77bbfe81002144cf6e568f9d107c0a4e
+  GIT_TAG 207b3693f1276088d9b2b0f3e070afc8fdd459f8
   OPTIONS "LEVELDB_ZSTD OFF"
           "LEVELDB_BUILD_TESTS OFF"
           "LEVELDB_BUILD_BENCHMARKS OFF"
@@ -447,6 +447,20 @@ CPMAddPackage(
           "MZ_LIBCOMP OFF")
 
 list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
+list(APPEND je2be_exe_link_libraries je2be)
+
+if (MSVC)
+  CPMAddPackage(
+    NAME mimalloc
+    GITHUB_REPOSITORY microsoft/mimalloc
+    VERSION 2.0.9
+    OPTIONS "MI_OVERRIDE ON"
+            "MI_BUILD_TESTS OFF"
+            "MI_BUILD_OBJECT OFF"
+            "MI_BUILD_STATIC OFF"
+            "MI_WIN_REDIRECT ON")
+  list(APPEND je2be_exe_link_libraries mimalloc)
+endif()
 
 
 add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
@@ -463,19 +477,19 @@ target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
 
 add_executable(j2b example/j2b.cpp ${je2be_header_files})
-target_link_libraries(j2b je2be cxxopts)
+target_link_libraries(j2b ${je2be_exe_link_libraries} cxxopts)
 
 add_executable(b2j example/b2j.cpp ${je2be_header_files})
-target_link_libraries(b2j je2be cxxopts)
+target_link_libraries(b2j ${je2be_exe_link_libraries} cxxopts)
 
 add_executable(x2j example/x2j.cpp ${je2be_header_files})
-target_link_libraries(x2j je2be cxxopts)
+target_link_libraries(x2j ${je2be_exe_link_libraries} cxxopts)
 
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
 add_executable(je2be-test ${test_files} ${je2be_header_files})
-target_link_libraries(je2be-test je2be doctest)
+target_link_libraries(je2be-test ${je2be_exe_link_libraries} doctest)
 target_include_directories(je2be-test PRIVATE src)
 
 add_executable(j2b2j test/j2b2j.cpp)

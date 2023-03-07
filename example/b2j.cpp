@@ -1,6 +1,10 @@
 #include <cxxopts.hpp>
 #include <je2be.hpp>
 
+#if __has_include(<mimalloc.h>)
+#include <mimalloc.h>
+#endif
+
 #include <iostream>
 #include <thread>
 
@@ -9,6 +13,10 @@ int main(int argc, char *argv[]) {
   using namespace je2be;
   using namespace je2be::toje;
   namespace fs = std::filesystem;
+
+#if __has_include(<mimalloc.h>)
+  mi_version();
+#endif
 
   cxxopts::Options parser("b2j");
   parser.add_options()                                    //

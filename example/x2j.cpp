@@ -1,6 +1,10 @@
 #include <cxxopts.hpp>
 #include <je2be.hpp>
 
+#if __has_include(<mimalloc.h>)
+#include <mimalloc.h>
+#endif
+
 #include <iostream>
 #include <thread>
 
@@ -8,6 +12,10 @@ int main(int argc, char *argv[]) {
   using namespace std;
   using namespace je2be::box360;
   namespace fs = std::filesystem;
+
+#if __has_include(<mimalloc.h>)
+  mi_version();
+#endif
 
   cxxopts::Options parser("x2j");
   parser.add_options()                                    //
