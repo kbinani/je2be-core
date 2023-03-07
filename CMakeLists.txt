@@ -435,6 +435,11 @@ if (nlohmann_json_ADDED)
   target_include_directories(nlohmann_json INTERFACE ${nlohmann_json_SOURCE_DIR}/include)
 endif()
 
+CPMAddPackage(
+  NAME xxhash
+  GIT_TAG c2866db364b6ea3a11933e62235ddc166ba18565
+  GIT_REPOSITORY https://github.com/stbrumme/xxhash.git)
+
 list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
 
 
@@ -443,8 +448,8 @@ target_include_directories(je2be PUBLIC
   ./include
   deps/leveldb
   deps/leveldb/include
-  deps/xxhash
   deps/minizip-ng
+  ${xxhash_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
   ${je2be_include_directories})
 target_include_directories(je2be PRIVATE ./src ${CMAKE_BINARY_DIR}/_deps/libdeflate-src ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src/include)
