@@ -41,7 +41,7 @@ public:
           }
         }
         auto pae = FindPlayerAttachedEntities(levelData, dim, chunkPos);
-        fs::path entitiesDir = worldTempDir / ("c." + to_string(cx) + "." + to_string(cz));
+        fs::path entitiesDir = worldTempDir / ("r." + to_string(region->fX) + "." + to_string(region->fZ)) / ("c." + to_string(cx) + "." + to_string(cz));
         auto ret = Chunk::Convert(
             dim,
             db,
