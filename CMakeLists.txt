@@ -496,6 +496,15 @@ add_executable(j2b2j test/j2b2j.cpp)
 target_link_libraries(j2b2j je2be doctest)
 target_include_directories(j2b2j PRIVATE src)
 
+if (MSVC)
+  foreach(target IN ITEMS j2b b2j x2j je2be-test)
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/_deps/mimalloc-build/\$(Configuration)/mimalloc.dll" "$<TARGET_FILE_DIR:${target}>/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/_deps/mimalloc-build/\$(Configuration)/mimalloc-redirect.dll" "$<TARGET_FILE_DIR:${target}>/"
+      COMMENT "Copy mimalloc dlls to output directory")
+  endforeach()
+endif()
+
 list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
 source_group(TREE ${CMAKE_BINARY_DIR}/_deps/libminecraft-file-src PREFIX deps/mcfile FILES ${mcfile_header_files})
