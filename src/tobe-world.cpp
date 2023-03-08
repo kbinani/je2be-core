@@ -1,5 +1,6 @@
 #include "tobe/_world.hpp"
 
+#include <je2be/fs.hpp>
 #include <je2be/tobe/options.hpp>
 #include <je2be/tobe/progress.hpp>
 
@@ -50,8 +51,8 @@ private:
       if (!s->valid()) {
         return false;
       }
-      InputStreamReader r(s, mcfile::Endian::Little);
-      CompoundTag::ReadUntilEos(r, [db, &digp](auto const &c) {
+      auto r = make_shared<InputStreamReader>(s, mcfile::Endian::Little);
+      CompoundTag::ReadUntilEos(*r, [db, &digp](auto const &c) {
         auto id = c->int64("UniqueID");
         if (!id) {
           return;
@@ -68,6 +69,10 @@ private:
         }
         db->put(key, leveldb::Slice(*value));
       });
+
+      r.reset();
+      s.reset();
+      Fs::Delete(file);
     }
     auto key = mcfile::be::DbKey::Digp(chunk.fX, chunk.fZ, d);
     if (digp.empty()) {
