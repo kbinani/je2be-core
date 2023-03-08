@@ -115,6 +115,6 @@ int main(int argc, char *argv[]) {
     std::chrono::high_resolution_clock::time_point fLast;
     int fStep = 0;
   } progress;
-  auto st = Converter::Run(input, output, options, concurrency);
+  auto st = Converter::Run(input, output, options, concurrency, &progress);
   return st.ok() ? 0 : -1;
 }
