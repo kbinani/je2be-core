@@ -61,7 +61,7 @@ public:
     bool ok = Datapacks::Import(input, output);
 
     auto levelData = std::make_unique<LevelData>(input, o, level.fCurrentTick, level.fDifficulty, level.fCommandsEnabled, level.fGameType);
-    ConcurrentDb db(dbPath, concurrency);
+    ConcurrentDb db(dbPath, concurrency, o.fDbTempDirectory);
     if (!db.valid()) {
       return JE2BE_ERROR;
     }

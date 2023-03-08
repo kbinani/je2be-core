@@ -71,9 +71,13 @@ int main(int argc, char *argv[]) {
   Options options;
   options.fLevelDirectoryStructure = structure;
   options.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
+  options.fDbTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
   defer {
     if (options.fTempDirectory) {
       je2be::Fs::DeleteAll(*options.fTempDirectory);
+    }
+    if (options.fDbTempDirectory) {
+      je2be::Fs::DeleteAll(*options.fDbTempDirectory);
     }
   };
 #if 0

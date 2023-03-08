@@ -11,6 +11,7 @@ public:
   std::unordered_set<mcfile::Dimension> fDimensionFilter;
   std::unordered_set<Pos2i, Pos2iHasher> fChunkFilter;
   std::optional<std::filesystem::path> fTempDirectory;
+  std::optional<std::filesystem::path> fDbTempDirectory;
 
   std::filesystem::path getWorldDirectory(std::filesystem::path const &root, mcfile::Dimension dim) const {
     using namespace mcfile;

@@ -39,9 +39,9 @@ class ConcurrentDb : public DbInterface {
 
   class Writer {
   public:
-    Writer(u32 id, std::filesystem::path const &dbname, std::atomic_uint64_t &sequencer) : fId(id), fDbName(dbname), fSequencer(sequencer) {
+    Writer(u32 id, std::filesystem::path const &directory, std::atomic_uint64_t &sequencer) : fId(id), fSequencer(sequencer) {
       namespace fs = std::filesystem;
-      fs::path dir = dbname / std::to_string(id);
+      fs::path dir = directory / std::to_string(id);
       Fs::DeleteAll(dir);
       if (!Fs::CreateDirectories(dir)) {
         return;
@@ -188,7 +188,6 @@ class ConcurrentDb : public DbInterface {
 
   private:
     u32 const fId;
-    std::filesystem::path fDbName;
     std::atomic_uint64_t &fSequencer;
     std::filesystem::path fDir;
     FILE *fKey = nullptr;
@@ -200,14 +199,14 @@ class ConcurrentDb : public DbInterface {
 
   class Gate : std::enable_shared_from_this<Gate> {
   public:
-    std::shared_ptr<Writer> get(uintptr_t key, std::filesystem::path const &dbname, std::atomic_uint64_t &keySequence, std::atomic_uint32_t &writerIdGenerator) {
+    std::shared_ptr<Writer> get(uintptr_t key, std::filesystem::path const &dir, std::atomic_uint64_t &keySequence, std::atomic_uint32_t &writerIdGenerator) {
       using namespace std;
       auto found = fWriters.find(key);
       if (found != fWriters.end()) {
         return found->second;
       }
       u32 id = writerIdGenerator.fetch_add(1);
-      auto writer = make_shared<Writer>(id, dbname, keySequence);
+      auto writer = make_shared<Writer>(id, dir, keySequence);
       fWriters[key] = writer;
       return writer;
     }
@@ -454,7 +453,8 @@ class ConcurrentDb : public DbInterface {
   };
 
 public:
-  ConcurrentDb(std::filesystem::path const &dbname, unsigned int concurrency) : fDbName(dbname), fSequence(0), fWriterIdGenerator(0), fConcurrency(concurrency) {
+  ConcurrentDb(std::filesystem::path const &dbname, unsigned int concurrency, std::optional<std::filesystem::path> tempDir = std::nullopt)
+      : fDbName(dbname), fSequence(0), fWriterIdGenerator(0), fConcurrency(concurrency), fWriterDir(tempDir ? *tempDir : dbname) {
     leveldb::DestroyDB(dbname, {});
     Fs::CreateDirectories(dbname);
   }
@@ -468,7 +468,7 @@ public:
   }
 
   void put(std::string const &key, leveldb::Slice const &value) override {
-    gate()->get((uintptr_t)this, fDbName, fSequence, fWriterIdGenerator)->put(key, value.ToString());
+    gate()->get((uintptr_t)this, fWriterDir, fSequence, fWriterIdGenerator)->put(key, value.ToString());
   }
 
   void del(std::string const &key) override {}
@@ -513,7 +513,7 @@ public:
         fConcurrency,
         vector<TableBuildResult>(),
         [&](u8 prefix) {
-          auto ret = BuildTable(fDbName, writerIds, &fileNumber, &ok, prefix);
+          auto ret = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, &ok, prefix);
           auto p = done.fetch_add(1) + 1;
           if (progress) {
             progress((double)p / (256 + 1));
@@ -576,6 +576,7 @@ public:
 
   static std::vector<TableBuildResult> BuildTable(
       std::filesystem::path const &dbname,
+      std::filesystem::path const &writerDir,
       std::vector<Writer::CloseResult> const &writerIds,
       std::atomic_uint64_t *fileNumber,
       std::atomic_bool *ok,
@@ -595,7 +596,7 @@ public:
       if (expectedEncount == 0) {
         continue;
       }
-      fs::path fname = dbname / to_string(cr.fWriterId) / "key.bin";
+      fs::path fname = writerDir / to_string(cr.fWriterId) / "key.bin";
       FILE *fp = mcfile::File::Open(fname, mcfile::File::Mode::Read);
       if (!fp) {
         ok->store(false);
@@ -674,7 +675,7 @@ public:
       size += key.fValueSizeCompressed;
       if (size >= kMaxFileSize) {
         u64 fn = fileNumber->fetch_add(1);
-        if (!Write(dbname, bin, fn, result)) {
+        if (!Write(dbname, writerDir, bin, fn, result)) {
           ok->store(false);
           return {};
         }
@@ -684,7 +685,7 @@ public:
     }
     if (!bin.empty()) {
       u64 fn = fileNumber->fetch_add(1);
-      if (!Write(dbname, bin, fn, result)) {
+      if (!Write(dbname, writerDir, bin, fn, result)) {
         ok->store(false);
         return {};
       }
@@ -692,7 +693,7 @@ public:
     return result;
   }
 
-  static bool Write(std::filesystem::path dbname, std::vector<Key> &keys, u64 fileNumber, std::vector<TableBuildResult> &results) {
+  static bool Write(std::filesystem::path dbname, std::optional<std::filesystem::path> tempDir, std::vector<Key> &keys, u64 fileNumber, std::vector<TableBuildResult> &results) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
@@ -717,6 +718,11 @@ public:
     optional<u32> openedFile;
     FILE *fp = nullptr;
 
+    fs::path writerDir = dbname;
+    if (tempDir) {
+      writerDir = *tempDir;
+    }
+
     for (auto const &it : keys) {
       Slice userKey(it.fKey);
       InternalKey ik(userKey, it.fSequence, kTypeValue);
@@ -728,7 +734,7 @@ public:
       if (openedFile == it.fWriterId && fp) {
         f = fp;
       } else {
-        fs::path fname = dbname / to_string(it.fWriterId) / "value.bin";
+        fs::path fname = writerDir / to_string(it.fWriterId) / "value.bin";
         f = mcfile::File::Open(fname, mcfile::File::Mode::Read);
         if (!f) {
           return false;
@@ -824,6 +830,7 @@ private:
   std::atomic_uint32_t fWriterIdGenerator;
   bool fValid = true;
   unsigned int const fConcurrency;
+  std::filesystem::path const fWriterDir;
 
   static constexpr u64 kMaxFileSize = 2 * 1024 * 1024;
 };
