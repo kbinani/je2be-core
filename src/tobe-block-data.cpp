@@ -1651,6 +1651,10 @@ public:
     E(stripped_cherry_log, axisToPillarAxis);
     E(cherry_stairs, Stairs());
     E(cherry_button, button);
+    E(cherry_hanging_sign, HangingSign);
+    E(cherry_wall_hanging_sign, WallHangingSign);
+    E(cherry_sign, Sign("cherry"));
+    E(cherry_wall_sign, WallSign("cherry"));
 #undef E
 
     return table;

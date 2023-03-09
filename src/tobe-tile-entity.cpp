@@ -332,6 +332,10 @@ private:
     E(decorated_pot, DecoratedPot);
     E(suspicious_sand, SuspiciousSand);
     E(jigsaw, Jigsaw);
+    E(cherry_hanging_sign, hangingSign);
+    E(cherry_wall_hanging_sign, hangingSign);
+    E(cherry_sign, sign);
+    E(cherry_wall_sign, sign);
 #undef E
     return table;
   }

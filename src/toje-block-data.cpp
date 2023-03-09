@@ -2583,6 +2583,9 @@ private:
     E(stripped_cherry_log, BlockWithAxisFromPillarAxis);
     E(cherry_stairs, Stairs);
     E(cherry_button, Button);
+    E(cherry_hanging_sign, HangingSign);
+    E(cherry_standing_sign, StandingSign);
+    E(cherry_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
 #undef E
 
     return table;
