@@ -14,7 +14,8 @@ public:
                                                 {"acacia", 4},
                                                 {"dark_oak", 5},
                                                 {"mangrove", 6},
-                                                {"bamboo", 7}});
+                                                {"bamboo", 7},
+                                                {"cherry", 8}});
   }
 
   static i32 BedrockVariantFromJavaType(std::string const &type) {

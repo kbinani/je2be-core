@@ -287,7 +287,7 @@ public:
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j["Type"] = String(type);
 
-    if (!ctx.fDataPack1_20Update && type == "bamboo") {
+    if (!ctx.fDataPack1_20Update && (type == "bamboo" || type == "cherry")) {
       ctx.fDataPack1_20Update = true;
     }
 
