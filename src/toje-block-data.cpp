@@ -2586,6 +2586,7 @@ private:
     E(cherry_hanging_sign, HangingSign);
     E(cherry_standing_sign, StandingSign);
     E(cherry_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(cherry_door, Door);
 #undef E
 
     return table;
