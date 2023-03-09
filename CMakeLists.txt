@@ -9,24 +9,22 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
-  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+  if (MSVC)
     add_compile_options(
       /source-charset:utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
       /wd4100 # Suppress "unreferenced formal parameter" warnings
-      /MP
-    )
+      /MP)
+    if (JE2BE_CORE_USE_INTEL_COMPILER)
+      add_link_options(
+        $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(IPP1ALibDir),>
+        $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(IPP1ACPPLibDir),>
+        $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(ICXLibDir),>)
+    endif()
   endif()
   if ("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
     add_compile_options(-Wno-shorten-64-to-32)
   endif()
-  add_link_options(
-    /DEBUG
-    $<IF:$<CONFIG:Debug>,,/LTCG> # Enable: Link-time code generation
-    $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(IPP1ALibDir),>
-    $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(IPP1ACPPLibDir),>
-    $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(ICXLibDir),>
-  )
 endif()
 
 set(je2be_header_files
@@ -512,13 +510,12 @@ if (MSVC)
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/_deps/mimalloc-build/\$(Configuration)/mimalloc-redirect.dll" "$<TARGET_FILE_DIR:${target}>/"
       COMMENT "Copy mimalloc dlls to output directory")
   endforeach()
-endif()
-
-if (JE2BE_CORE_USE_INTEL_COMPILER)
-  foreach(target IN ITEMS je2be leveldb libdeflate_static zlibstatic mimalloc)
-    set_target_properties(${target} PROPERTIES VS_PLATFORM_TOOLSET "Intel C++ Compiler 2023")
-    target_compile_options(${target} PRIVATE /arch:SSE3)
-  endforeach()
+  if (JE2BE_CORE_USE_INTEL_COMPILER)
+    foreach(target IN ITEMS je2be leveldb libdeflate_static zlibstatic mimalloc)
+      set_target_properties(${target} PROPERTIES VS_PLATFORM_TOOLSET "Intel C++ Compiler 2023")
+      target_compile_options(${target} PRIVATE /arch:SSE3)
+    endforeach()
+  endif()
 endif()
 
 list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
