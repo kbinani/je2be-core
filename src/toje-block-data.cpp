@@ -3,6 +3,7 @@
 #include <je2be/nbt.hpp>
 #include <je2be/strings.hpp>
 
+#include "_closed-range.hpp"
 #include "_namespace.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
@@ -1010,6 +1011,15 @@ private:
 #pragma endregion
 
 #pragma region Converters : P
+  static String PinkPetals(String const &bName, CompoundTag const &s, Props &p) {
+    i32 growth = s.int32("growth", 0);
+    i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
+    p["flower_amount"] = std::to_string(flowerCount);
+    Facing4 direction = Facing4FromNorth2East3South0West1(s.int32("direction", 0));
+    p["facing"] = JavaNameFromFacing4(direction);
+    return bName;
+  }
+
   static String Planks(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string("wood_type", "acacia"); //TODO: acacia?
     return Ns() + woodType + "_planks";
@@ -2564,6 +2574,9 @@ private:
     E(stripped_bamboo_block, BlockWithAxisFromPillarAxis);
     E(decorated_pot, DecoratedPot);
     E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
+    E(cherry_slab, Slab);
+    E(cherry_double_slab, DoubleSlab("cherry_slab"));
+    E(pink_petals, PinkPetals);
 #undef E
 
     return table;

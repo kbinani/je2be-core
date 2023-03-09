@@ -95,6 +95,14 @@ static inline Facing4 Facing4FromBedrockDirection(int d) {
   }
 }
 
+static inline Facing4 Facing4FromNorth2East3South0West1(int d) {
+  return Facing4FromBedrockDirection(d);
+}
+
+static inline int North2East3South0West1FromFacing4(Facing4 f) {
+  return BedrockDirectionFromFacing4(f);
+}
+
 static inline float YawFromFacing4(Facing4 f4) {
   switch (f4) {
   case Facing4::North:

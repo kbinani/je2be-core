@@ -2,6 +2,7 @@
 
 #include <je2be/strings.hpp>
 
+#include "_closed-range.hpp"
 #include "_namespace.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
@@ -373,6 +374,11 @@ public:
       break;
     }
     s->set("direction", Int(direction));
+  }
+
+  static void DirectionNorth2East3South0West1FromFacing(CompoundTagPtr const &s, Block const &block) {
+    auto f4 = Facing4FromJavaName(block.property("facing"));
+    s->set("direction", Int(North2East3South0West1FromFacing4(f4)));
   }
 
   static void DirectionFromFacingA(CompoundTagPtr const &s, Block const &block) {
@@ -1637,9 +1643,24 @@ public:
     E(decorated_pot, Converter(Same, DirectionNorth0East1South2West3FromFacing));
     E(torchflower_crop, Converter(Same, GrowthFromAge));
     E(jigsaw, Jigsaw);
+    E(cherry_slab, Slab("cherry_double_slab"));
+    E(pink_petals, PinkPetals);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr PinkPetals(Block const &block, CompoundTagConstPtr const &tile) {
+    auto c = New(block.fName, true);
+    auto s = States();
+
+    DirectionNorth2East3South0West1FromFacing(s, block);
+
+    i32 flowerCount = Wrap(strings::ToI32(block.property("flower_amount", "1")), 1);
+    i32 growth = ClosedRange<i32>::Clamp(flowerCount - 1, 0, 3);
+    s->set("growth", Int(growth));
+
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr Jigsaw(Block const &block, CompoundTagConstPtr const &tile) {

@@ -22,6 +22,10 @@ public:
     }
   }
 
+  static T Clamp(T v, T minimum, T maximum) {
+    return std::min<T>(std::max<T>(v, minimum), maximum);
+  }
+
   T fMin;
   T fMax;
 };
