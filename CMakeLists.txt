@@ -383,7 +383,7 @@ set(test_files
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 3b8c80cf5412f20870a17510d089593711b134a5)
+  GIT_TAG 280d709e8ef40f4d3689644dd86c7b2f433d2b6a)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
