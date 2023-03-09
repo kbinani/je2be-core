@@ -2577,6 +2577,12 @@ private:
     E(cherry_slab, Slab);
     E(cherry_double_slab, DoubleSlab("cherry_slab"));
     E(pink_petals, PinkPetals);
+    E(cherry_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_cherry_wood, BlockWithAxisFromPillarAxis);
+    E(cherry_log, BlockWithAxisFromPillarAxis);
+    E(stripped_cherry_log, BlockWithAxisFromPillarAxis);
+    E(cherry_stairs, Stairs);
+    E(cherry_button, Button);
 #undef E
 
     return table;

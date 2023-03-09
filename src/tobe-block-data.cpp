@@ -1645,6 +1645,12 @@ public:
     E(jigsaw, Jigsaw);
     E(cherry_slab, Slab("cherry_double_slab"));
     E(pink_petals, PinkPetals);
+    E(cherry_wood, axisToPillarAxis);
+    E(stripped_cherry_wood, axisToPillarAxis);
+    E(cherry_log, axisToPillarAxis);
+    E(stripped_cherry_log, axisToPillarAxis);
+    E(cherry_stairs, Stairs());
+    E(cherry_button, button);
 #undef E
 
     return table;
