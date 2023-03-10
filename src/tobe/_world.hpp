@@ -6,6 +6,8 @@
 
 #include <minecraft-file.hpp>
 
+#include <atomic>
+
 namespace je2be {
 class DbInterface;
 }
@@ -26,7 +28,7 @@ public:
       std::shared_ptr<EntityStore> const &entityStore,
       unsigned int concurrency,
       Progress *progress,
-      std::atomic_uint64_t &done,
+      std::atomic<u64> &done,
       u64 total);
 };
 

@@ -157,7 +157,7 @@ public:
     for (auto const &it : entityStores) {
       totalEntityChunks += it.second->fChunks.size();
     }
-    atomic_uint64_t doneEntityChunks(0);
+    atomic<u64> doneEntityChunks(0);
     for (auto const &it : result.fData) {
       mcfile::Dimension dim = it.first;
 

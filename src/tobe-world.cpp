@@ -23,7 +23,7 @@ public:
       std::shared_ptr<EntityStore> const &entityStore,
       unsigned int concurrency,
       Progress *progress,
-      std::atomic_uint64_t &done,
+      std::atomic<u64> &done,
       uint64_t total) {
     using namespace std;
     using namespace std::placeholders;
@@ -49,7 +49,7 @@ private:
       DbInterface *db,
       EntityStore *store,
       Progress *progress,
-      std::atomic_uint64_t *done,
+      std::atomic<u64> *done,
       u64 total) {
     using namespace std;
     using namespace mcfile;
