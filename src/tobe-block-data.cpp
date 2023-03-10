@@ -1481,7 +1481,8 @@ public:
     E(waxed_copper_block, Rename("waxed_copper"));
     E(rooted_dirt, Rename("dirt_with_roots"));
 
-    E(azalea_leaves, Converter(Same, PersistentAndDistanceToPersistentBitAndUpdateBit));
+    Converter leaves(Same, PersistentAndDistanceToPersistentBitAndUpdateBit);
+    E(azalea_leaves, leaves);
     E(flowering_azalea_leaves, Converter(Name("azalea_leaves_flowered"), PersistentAndDistanceToPersistentBitAndUpdateBit));
 
     E(big_dripleaf, BigDripleaf);
@@ -1603,7 +1604,7 @@ public:
     E(pearlescent_froglight, axisToPillarAxis);
     E(mangrove_propagule, MangrovePropagule);
     E(frogspawn, Rename("frog_spawn"));
-    E(mangrove_leaves, Converter(Same, PersistentAndDistanceToPersistentBitAndUpdateBit));
+    E(mangrove_leaves, leaves);
     E(sculk_shrieker, SculkShrieker);
     E(mud_brick_wall, wall);
     E(sculk_catalyst, SculkCatalyst);
@@ -1661,6 +1662,7 @@ public:
     E(cherry_trapdoor, trapdoor);
     E(cherry_sapling, Converter(Same, StageToAgeBit));
     E(cherry_pressure_plate, pressurePlate);
+    E(cherry_leaves, leaves);
 #undef E
 
     return table;

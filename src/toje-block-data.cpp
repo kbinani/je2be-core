@@ -2596,6 +2596,7 @@ private:
     E(cherry_trapdoor, Trapdoor);
     E(cherry_sapling, C(Same, StageFromAgeBit));
     E(cherry_pressure_plate, PressurePlate);
+    E(cherry_leaves, BlockWithPersistentFromPersistentBitSubmergible);
 #undef E
 
     return table;
