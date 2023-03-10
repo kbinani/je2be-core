@@ -153,6 +153,11 @@ public:
         [](Result const &from, Result &to) -> void {
           from.mergeInto(to);
         });
+    u64 totalEntityChunks = 0;
+    for (auto const &it : entityStores) {
+      totalEntityChunks += it.second->fChunks.size();
+    }
+    atomic_uint64_t doneEntityChunks(0);
     for (auto const &it : result.fData) {
       mcfile::Dimension dim = it.first;
 
@@ -163,9 +168,13 @@ public:
         continue;
       }
 
-      if (!World::PutWorldEntities(dim, db, entityStore, concurrency)) {
-        ok = false;
-        break;
+      if (auto st = World::PutWorldEntities(dim, db, entityStore, concurrency, progress, doneEntityChunks, totalEntityChunks); !st.ok()) {
+        return st;
+      }
+    }
+    if (progress) {
+      if (!progress->reportEntityPostProcess(1)) {
+        return JE2BE_ERROR;
       }
     }
 

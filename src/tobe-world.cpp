@@ -17,11 +17,14 @@ class World::Impl {
   Impl() = delete;
 
 public:
-  static bool PutWorldEntities(
+  static Status PutWorldEntities(
       mcfile::Dimension d,
       DbInterface &db,
       std::shared_ptr<EntityStore> const &entityStore,
-      unsigned int concurrency) {
+      unsigned int concurrency,
+      Progress *progress,
+      std::atomic_uint64_t &done,
+      uint64_t total) {
     using namespace std;
     using namespace std::placeholders;
     namespace fs = std::filesystem;
@@ -31,17 +34,23 @@ public:
       works.push_back(it);
     }
     EntityStore *es = entityStore.get();
-    bool ok = Parallel::Reduce<Pos2i, bool>(
+    return Parallel::Reduce<Pos2i, Status>(
         works,
         concurrency,
-        true,
-        bind(PutChunkEntities, d, _1, &db, es),
-        Parallel::MergeBool);
-    return ok;
+        Status::Ok(),
+        bind(PutChunkEntities, d, _1, &db, es, progress, &done, total),
+        Status::Merge);
   }
 
 private:
-  static bool PutChunkEntities(mcfile::Dimension d, Pos2i chunk, DbInterface *db, EntityStore *store) {
+  static Status PutChunkEntities(
+      mcfile::Dimension d,
+      Pos2i chunk,
+      DbInterface *db,
+      EntityStore *store,
+      Progress *progress,
+      std::atomic_uint64_t *done,
+      u64 total) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::be;
@@ -69,16 +78,25 @@ private:
     } else {
       db->put(key, leveldb::Slice(digp));
     }
-    return true;
+    u64 p = done->fetch_add(1) + 1;
+    if (progress) {
+      if (!progress->reportEntityPostProcess(p / double(total))) {
+        return JE2BE_ERROR;
+      }
+    }
+    return Status::Ok();
   }
 };
 
-bool World::PutWorldEntities(
+Status World::PutWorldEntities(
     mcfile::Dimension d,
     DbInterface &db,
     std::shared_ptr<EntityStore> const &entityStore,
-    unsigned int concurrency) {
-  return Impl::PutWorldEntities(d, db, entityStore, concurrency);
+    unsigned int concurrency,
+    Progress *progress,
+    std::atomic_uint64_t &done,
+    u64 total) {
+  return Impl::PutWorldEntities(d, db, entityStore, concurrency, progress, done, total);
 }
 
 } // namespace je2be::tobe

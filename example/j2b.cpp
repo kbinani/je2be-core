@@ -101,13 +101,26 @@ int main(int argc, char *argv[]) {
       }
       return true;
     }
-    bool reportCompaction(double progress) override {
+    bool reportEntityPostProcess(double progress) override {
       auto now = chrono::high_resolution_clock::now();
       lock_guard<mutex> lock(fMut);
       if (now - fLast > chrono::seconds(1)) {
         if (fStep < 1) {
           cout << endl;
           fStep = 1;
+        }
+        cout << "            \rPostProcess: " << float(progress * 100) << "%";
+        fLast = now;
+      }
+      return true;
+    }
+    bool reportCompaction(double progress) override {
+      auto now = chrono::high_resolution_clock::now();
+      lock_guard<mutex> lock(fMut);
+      if (now - fLast > chrono::seconds(1)) {
+        if (fStep < 2) {
+          cout << endl;
+          fStep = 2;
         }
         cout << "            \rCompaction: " << float(progress * 100) << "%";
         fLast = now;

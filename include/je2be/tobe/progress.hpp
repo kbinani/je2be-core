@@ -8,6 +8,7 @@ class Progress {
 public:
   virtual ~Progress() {}
   virtual bool reportConvert(double progress, u64 numConvertedChunks) = 0;
+  virtual bool reportEntityPostProcess(double progress) = 0;
   virtual bool reportCompaction(double progress) = 0;
 };
 
