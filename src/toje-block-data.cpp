@@ -2595,6 +2595,7 @@ private:
     E(cherry_fence, BlockWithSubmergible);
     E(cherry_trapdoor, Trapdoor);
     E(cherry_sapling, C(Same, StageFromAgeBit));
+    E(cherry_pressure_plate, PressurePlate);
 #undef E
 
     return table;
