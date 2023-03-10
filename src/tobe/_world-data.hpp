@@ -106,18 +106,6 @@ public:
       out.fError = fError;
     }
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
-    for (auto const &it : fEntityFiles) {
-      copy(it.second.begin(), it.second.end(), back_inserter(out.fEntityFiles[it.first]));
-    }
-    unordered_map<Pos2i, vector<std::filesystem::path>, Pos2iHasher>().swap(fEntityFiles);
-  }
-
-  void addEntityFile(Pos2i chunk, std::filesystem::path const &file) {
-    fEntityFiles[chunk].push_back(file);
-  }
-
-  void drainEntityFiles(std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> &out) {
-    out.swap(fEntityFiles);
   }
 
 private:
@@ -175,7 +163,6 @@ private:
   StructurePieceCollection fStructures;
   std::optional<Status::ErrorData> fError;
   i64 fMaxChunkLastUpdate = 0;
-  std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> fEntityFiles;
 };
 
 } // namespace je2be::tobe

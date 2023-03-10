@@ -16,7 +16,7 @@ public:
       mcfile::Dimension dim,
       std::shared_ptr<mcfile::je::Region> const &region,
       Options const &options,
-      std::filesystem::path const &worldTempDir,
+      std::shared_ptr<EntityStore> const &entityStore,
       LevelData const &levelData,
       DbInterface &db,
       Progress *progress,
@@ -41,14 +41,13 @@ public:
           }
         }
         auto pae = FindPlayerAttachedEntities(levelData, dim, chunkPos);
-        fs::path entitiesDir = worldTempDir / ("r." + to_string(region->fX) + "." + to_string(region->fZ)) / ("c." + to_string(cx) + "." + to_string(cz));
         auto ret = Chunk::Convert(
             dim,
             db,
             *region,
             cx, cz,
             levelData.fJavaEditionMap,
-            entitiesDir,
+            entityStore,
             pae,
             levelData.fGameTick,
             levelData.fDifficultyBedrock,
@@ -109,7 +108,7 @@ std::shared_ptr<WorldData> Region::Convert(
     mcfile::Dimension dim,
     std::shared_ptr<mcfile::je::Region> const &region,
     Options const &options,
-    std::filesystem::path const &worldTempDir,
+    std::shared_ptr<EntityStore> const &entityStore,
     LevelData const &levelData,
     DbInterface &db,
     Progress *progress,
@@ -117,7 +116,7 @@ std::shared_ptr<WorldData> Region::Convert(
     double const numTotalChunks,
     std::atomic_bool &abortSignal,
     std::atomic_uint64_t &numConvertedChunks) {
-  return Impl::Convert(dim, region, options, worldTempDir, levelData, db, progress, done, numTotalChunks, abortSignal, numConvertedChunks);
+  return Impl::Convert(dim, region, options, entityStore, levelData, db, progress, done, numTotalChunks, abortSignal, numConvertedChunks);
 }
 
 } // namespace je2be::tobe

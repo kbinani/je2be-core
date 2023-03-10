@@ -12,6 +12,7 @@ class DbInterface;
 namespace je2be::tobe {
 
 class WorldData;
+class EntityStore;
 
 class Chunk {
   class Impl;
@@ -38,7 +39,7 @@ public:
                         mcfile::je::Region region,
                         int cx, int cz,
                         JavaEditionMap mapInfo,
-                        std::filesystem::path entitiesDir,
+                        std::shared_ptr<EntityStore> const &entityStore,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
                         i64 gameTick,
                         int difficultyBedrock,

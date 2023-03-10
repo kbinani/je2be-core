@@ -14,6 +14,7 @@ class LevelData;
 class Progress;
 class WorldData;
 class Options;
+class EntityStore;
 
 class Region {
   class Impl;
@@ -24,7 +25,7 @@ public:
       mcfile::Dimension dim,
       std::shared_ptr<mcfile::je::Region> const &region,
       Options const &options,
-      std::filesystem::path const &worldTempDir,
+      std::shared_ptr<EntityStore> const &entityStore,
       LevelData const &levelData,
       DbInterface &db,
       Progress *progress,

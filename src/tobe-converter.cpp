@@ -18,6 +18,7 @@
 #include "db/_concurrent-db.hpp"
 #include "tobe/_context.hpp"
 #include "tobe/_datapacks.hpp"
+#include "tobe/_entity-store.hpp"
 #include "tobe/_entity.hpp"
 #include "tobe/_level.hpp"
 #include "tobe/_region.hpp"
@@ -94,7 +95,7 @@ public:
         }
       }
     };
-    map<mcfile::Dimension, fs::path> worldTempDirs;
+    map<mcfile::Dimension, std::shared_ptr<EntityStore>> entityStores;
     vector<Work> works;
     for (auto dim : {Dimension::Overworld, Dimension::Nether, Dimension::End}) {
       if (!o.fDimensionFilter.empty()) [[unlikely]] {
@@ -102,14 +103,18 @@ public:
           continue;
         }
       }
-      auto worldTempDir = mcfile::File::CreateTempDir(o.getTempDirectory());
-      if (!worldTempDir) {
+      auto entityStoreDir = mcfile::File::CreateTempDir(o.getTempDirectory());
+      if (!entityStoreDir) {
         return JE2BE_ERROR;
       }
-      worldTempDirs[dim] = *worldTempDir;
+      auto entityStore = EntityStore::Open(*entityStoreDir);
+      if (!entityStore) {
+        return JE2BE_ERROR;
+      }
+      entityStores[dim].reset(entityStore);
       auto dir = o.getWorldDirectory(input, dim);
       mcfile::je::World world(dir);
-      world.eachRegions([dim, worldTempDir, &works](shared_ptr<mcfile::je::Region> const &region) {
+      world.eachRegions([dim, &works](shared_ptr<mcfile::je::Region> const &region) {
         Work work;
         work.fRegion = region;
         work.fDim = dim;
@@ -125,15 +130,15 @@ public:
         works,
         concurrency,
         Result(),
-        [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, worldTempDirs, o, &numConvertedChunks](Work const &work) -> Result {
-          auto found = worldTempDirs.find(work.fDim);
-          assert(found != worldTempDirs.end());
-          fs::path worldTempDir = found->second;
+        [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, entityStores, o, &numConvertedChunks](Work const &work) -> Result {
+          auto found = entityStores.find(work.fDim);
+          assert(found != entityStores.end());
+          shared_ptr<EntityStore> entityStore = found->second;
           auto worldData = Region::Convert(
               work.fDim,
               work.fRegion,
               o,
-              worldTempDir,
+              entityStore,
               *ldPtr,
               db,
               progress,
@@ -149,13 +154,16 @@ public:
           from.mergeInto(to);
         });
     for (auto const &it : result.fData) {
-      it.second->drain(*levelData);
-
-      unordered_map<Pos2i, vector<std::filesystem::path>, Pos2iHasher> entities;
-      it.second->drainEntityFiles(entities);
-
       mcfile::Dimension dim = it.first;
-      if (!World::PutWorldEntities(dim, db, entities, concurrency)) {
+
+      it.second->drain(*levelData);
+      auto entityStore = entityStores[dim];
+      assert(entityStore);
+      if (!entityStore) {
+        continue;
+      }
+
+      if (!World::PutWorldEntities(dim, db, entityStore, concurrency)) {
         ok = false;
         break;
       }

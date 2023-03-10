@@ -9,6 +9,7 @@
 #include "tobe/_chunk-data-package.hpp"
 #include "tobe/_chunk-data.hpp"
 #include "tobe/_context.hpp"
+#include "tobe/_entity-store.hpp"
 #include "tobe/_java-edition-map.hpp"
 #include "tobe/_moving-piston.hpp"
 #include "tobe/_sub-chunk.hpp"
@@ -27,7 +28,7 @@ public:
                         mcfile::je::Region region,
                         int cx, int cz,
                         JavaEditionMap mapInfo,
-                        std::filesystem::path entitiesDir,
+                        std::shared_ptr<EntityStore> const &entityStore,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
                         i64 gameTick,
                         int difficultyBedrock,
@@ -51,7 +52,7 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entitiesDir, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
       return r;
     } catch (std::exception &e) {
       Chunk::Result r;
@@ -79,7 +80,7 @@ public:
                                                   mcfile::Dimension dim,
                                                   DbInterface &db,
                                                   JavaEditionMap const &mapInfo,
-                                                  std::filesystem::path entitiesDir,
+                                                  std::shared_ptr<EntityStore> const &entityStore,
                                                   std::optional<PlayerAttachedEntities> playerAttachedEntities,
                                                   i64 gameTick,
                                                   int difficultyBedrock,
@@ -211,19 +212,9 @@ public:
     }
 
     if (!entities.empty()) {
-      Fs::CreateDirectories(entitiesDir);
-
       for (auto const &it : entities) {
         Pos2i p = it.first;
-        auto file = entitiesDir / ("c." + to_string(p.fX) + "." + to_string(p.fZ) + ".nbt");
-        auto stream = make_shared<FileOutputStream>(file);
-        OutputStreamWriter writer(stream, Endian::Little);
-        for (auto const &e : it.second) {
-          if (!CompoundTag::Write(*e, writer)) {
-            return nullptr;
-          }
-        }
-        ret->addEntityFile(p, file);
+        entityStore->add(it.second, p, Pos2i(chunk->fChunkX, chunk->fChunkZ));
       }
     }
 
@@ -397,13 +388,13 @@ Chunk::Result Chunk::Convert(mcfile::Dimension dim,
                              mcfile::je::Region region,
                              int cx, int cz,
                              JavaEditionMap mapInfo,
-                             std::filesystem::path entitiesDir,
+                             std::shared_ptr<EntityStore> const &entityStore,
                              std::optional<PlayerAttachedEntities> playerAttachedEntities,
                              i64 gameTick,
                              int difficultyBedrock,
                              bool allowCommand,
                              GameMode gameType) {
-  return Impl::Convert(dim, db, region, cx, cz, mapInfo, entitiesDir, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+  return Impl::Convert(dim, db, region, cx, cz, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
 }
 
 } // namespace je2be::tobe

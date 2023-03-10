@@ -10,6 +10,8 @@ class DbInterface;
 
 namespace je2be::tobe {
 
+class EntityStore;
+
 class World {
   class Impl;
   World() = delete;
@@ -18,7 +20,7 @@ public:
   static bool PutWorldEntities(
       mcfile::Dimension d,
       DbInterface &db,
-      std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> const &files,
+      std::shared_ptr<EntityStore> const &entityStore,
       unsigned int concurrency);
 };
 

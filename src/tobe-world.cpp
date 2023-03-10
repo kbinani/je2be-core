@@ -6,6 +6,7 @@
 
 #include "_parallel.hpp"
 #include "tobe/_chunk.hpp"
+#include "tobe/_entity-store.hpp"
 #include "tobe/_java-edition-map.hpp"
 #include "tobe/_level-data.hpp"
 #include "tobe/_world-data.hpp"
@@ -19,61 +20,49 @@ public:
   static bool PutWorldEntities(
       mcfile::Dimension d,
       DbInterface &db,
-      std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> const &files,
+      std::shared_ptr<EntityStore> const &entityStore,
       unsigned int concurrency) {
     using namespace std;
     using namespace std::placeholders;
     namespace fs = std::filesystem;
 
-    vector<pair<Pos2i, vector<fs::path>>> works;
-    for (auto const &it : files) {
+    vector<Pos2i> works;
+    for (auto const &it : entityStore->fChunks) {
       works.push_back(it);
     }
-    bool ok = Parallel::Reduce<pair<Pos2i, vector<fs::path>>, bool>(
+    EntityStore *es = entityStore.get();
+    bool ok = Parallel::Reduce<Pos2i, bool>(
         works,
         concurrency,
         true,
-        bind(PutChunkEntities, d, _1, &db),
+        bind(PutChunkEntities, d, _1, &db, es),
         Parallel::MergeBool);
     return ok;
   }
 
 private:
-  static bool PutChunkEntities(mcfile::Dimension d, std::pair<Pos2i, std::vector<std::filesystem::path>> item, DbInterface *db) {
+  static bool PutChunkEntities(mcfile::Dimension d, Pos2i chunk, DbInterface *db, EntityStore *store) {
     using namespace std;
     using namespace mcfile;
-    using namespace mcfile::stream;
     using namespace mcfile::be;
-    Pos2i chunk = item.first;
     string digp;
-    for (auto const &file : item.second) {
-      auto s = make_shared<FileInputStream>(file);
-      if (!s->valid()) {
-        return false;
+    store->entities(chunk, [db, &digp](CompoundTagPtr const &c) {
+      auto id = c->int64("UniqueID");
+      if (!id) {
+        return;
       }
-      auto r = make_shared<InputStreamReader>(s, mcfile::Endian::Little);
-      CompoundTag::ReadUntilEos(*r, [db, &digp](auto const &c) {
-        auto id = c->int64("UniqueID");
-        if (!id) {
-          return;
-        }
-        i64 v = *id;
-        string prefix;
-        prefix.assign((char const *)&v, sizeof(v));
-        digp += prefix;
+      i64 v = *id;
+      string prefix;
+      prefix.assign((char const *)&v, sizeof(v));
+      digp += prefix;
 
-        auto key = DbKey::Actorprefix(prefix);
-        auto value = CompoundTag::Write(*c, Endian::Little);
-        if (!value) {
-          return;
-        }
-        db->put(key, leveldb::Slice(*value));
-      });
-
-      r.reset();
-      s.reset();
-      Fs::Delete(file);
-    }
+      auto key = DbKey::Actorprefix(prefix);
+      auto value = CompoundTag::Write(*c, Endian::Little);
+      if (!value) {
+        return;
+      }
+      db->put(key, leveldb::Slice(*value));
+    });
     auto key = mcfile::be::DbKey::Digp(chunk.fX, chunk.fZ, d);
     if (digp.empty()) {
       db->del(key);
@@ -87,9 +76,9 @@ private:
 bool World::PutWorldEntities(
     mcfile::Dimension d,
     DbInterface &db,
-    std::unordered_map<Pos2i, std::vector<std::filesystem::path>, Pos2iHasher> const &files,
+    std::shared_ptr<EntityStore> const &entityStore,
     unsigned int concurrency) {
-  return Impl::PutWorldEntities(d, db, files, concurrency);
+  return Impl::PutWorldEntities(d, db, entityStore, concurrency);
 }
 
 } // namespace je2be::tobe
