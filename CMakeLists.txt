@@ -302,6 +302,7 @@ set(je2be_src_files
   src/tobe/_context.hpp
   src/tobe/_datapacks.hpp
   src/tobe/_enchant-data.hpp
+  src/tobe/_entity-store.hpp
   src/tobe/_entity.hpp
   src/tobe/_flat-world-layers.hpp
   src/tobe/_height-map.hpp
