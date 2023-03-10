@@ -1243,9 +1243,8 @@ private:
   }
 
   static String Sapling(String const &bName, CompoundTag const &s, Props &p) {
-    auto age = s.byte("age_bit", 0);
     auto saplingType = s.string("sapling_type", "acacia");
-    p["stage"] = Int(age);
+    StageFromAgeBit(s, p);
     return Ns() + saplingType + "_sapling";
   }
 
@@ -1859,6 +1858,11 @@ private:
     default:
       return "north_south";
     }
+  }
+
+  static void StageFromAgeBit(CompoundTag const &s, Props &p) {
+    auto age = s.byte("age_bit", 0);
+    p["stage"] = Int(age);
   }
 
   static std::string StoneTypeFromStone2(std::string const &stoneType2) {
@@ -2590,6 +2594,7 @@ private:
     E(cherry_fence_gate, FenceGate);
     E(cherry_fence, BlockWithSubmergible);
     E(cherry_trapdoor, Trapdoor);
+    E(cherry_sapling, C(Same, StageFromAgeBit));
 #undef E
 
     return table;

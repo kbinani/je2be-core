@@ -1659,6 +1659,7 @@ public:
     E(cherry_fence_gate, fenceGate);
     E(cherry_fence, Identity);
     E(cherry_trapdoor, trapdoor);
+    E(cherry_sapling, Converter(Same, StageToAgeBit));
 #undef E
 
     return table;
