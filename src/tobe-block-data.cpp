@@ -1656,6 +1656,9 @@ public:
     E(cherry_sign, Sign("cherry"));
     E(cherry_wall_sign, WallSign("cherry"));
     E(cherry_door, door);
+    E(cherry_fence_gate, fenceGate);
+    E(cherry_fence, Identity);
+    E(cherry_trapdoor, trapdoor);
 #undef E
 
     return table;
