@@ -14,36 +14,75 @@ class Pos2iSet {
     i32 fTo;
   };
 
+  struct Bucket {
+    std::deque<Span> fSpans;
+    size_t fUnmergedInserts = 0;
+
+    std::optional<size_t> find(i32 x) const {
+      if (fSpans.empty()) {
+        return std::nullopt;
+      }
+      size_t left = 0;
+      size_t right = fSpans.size() - 1;
+      Span spanL = fSpans[left];
+      Span spanR = fSpans[right];
+      if (x <= spanL.fTo) {
+        return 0;
+      }
+      if (spanR.fFrom <= x && x <= spanR.fTo) {
+        return right;
+      }
+      if (spanR.fTo < x) {
+        return std::nullopt;
+      }
+      assert(spanL.fTo < x && x < spanR.fFrom);
+      while (true) {
+        if (left + 1 == right) {
+          return right;
+        }
+        size_t mid = (left + right) / 2;
+        Span spanM = fSpans[mid];
+        if (spanM.fFrom <= x && x <= spanM.fTo) {
+          return mid;
+        }
+        if (x < spanM.fFrom) {
+          right = mid;
+          spanR = spanM;
+        } else {
+          left = mid;
+          spanL = spanM;
+        }
+      }
+    }
+
+    void mergeAdjacentSpans() {
+      auto it = fSpans.begin();
+      while (true) {
+        Span s0 = *it;
+        auto next = std::next(it);
+        if (next == fSpans.end()) {
+          break;
+        }
+        Span s1 = *next;
+        if (s0.fTo + 1 == s1.fFrom) {
+          fSpans.erase(next);
+          s0.fTo = s1.fTo;
+          *it = s0;
+        }
+      }
+    }
+  };
+
 public:
   void insert(Pos2i const &p) {
     using namespace std;
-    i32 x = p.fX;
-    i32 z = p.fZ;
-    deque<Span> &spans = fSpans[z];
-    auto found = Find(spans, x);
-    if (!found) {
-      Span s;
-      s.fFrom = x;
-      s.fTo = x;
-      spans.insert(spans.end(), s);
+    if (Bucket *bucket = insertImpl(p); bucket) {
       fSize++;
-      return;
+      if (bucket->fUnmergedInserts >= 100) {
+        bucket->mergeAdjacentSpans();
+        bucket->fUnmergedInserts = 0;
+      }
     }
-    Span span = spans[*found];
-    if (span.fFrom <= x && x <= span.fTo) {
-      return;
-    }
-    assert(x < span.fFrom);
-    if (x + 1 == span.fFrom) {
-      spans[*found].fFrom = x;
-      fSize++;
-      return;
-    }
-    Span s;
-    s.fFrom = x;
-    s.fTo = x;
-    spans.insert(spans.begin() + *found, s);
-    fSize++;
   }
 
   size_t size() const {
@@ -58,7 +97,7 @@ public:
     friend class Pos2iSet;
 
     Pos2iSet const *fThis;
-    std::unordered_map<i32, std::deque<Span>>::const_iterator fItrZ;
+    std::unordered_map<i32, Bucket>::const_iterator fItrZ;
     std::deque<Span>::const_iterator fItrSpan;
     i32 fItrX;
 
@@ -83,12 +122,12 @@ public:
       fItrX++;
       if (fItrX > fItrSpan->fTo) {
         fItrSpan++;
-        if (fItrSpan == fItrZ->second.end()) {
+        if (fItrSpan == fItrZ->second.fSpans.end()) {
           fItrZ++;
-          if (fItrZ == fThis->fSpans.end()) {
+          if (fItrZ == fThis->fBuckets.end()) {
             fThis = nullptr;
           } else {
-            fItrSpan = fItrZ->second.begin();
+            fItrSpan = fItrZ->second.fSpans.begin();
             fItrX = fItrSpan->fFrom;
           }
         } else {
@@ -112,13 +151,13 @@ public:
   };
 
   ConstIterator begin() const {
-    if (fSpans.empty()) {
+    if (fBuckets.empty()) {
       return end();
     } else {
       ConstIterator itr;
       itr.fThis = this;
-      itr.fItrZ = fSpans.begin();
-      itr.fItrSpan = itr.fItrZ->second.begin();
+      itr.fItrZ = fBuckets.begin();
+      itr.fItrSpan = itr.fItrZ->second.fSpans.begin();
       itr.fItrX = itr.fItrSpan->fFrom;
       return itr;
     }
@@ -133,20 +172,20 @@ public:
   ConstIterator find(Pos2i const &p) const {
     i32 x = p.fX;
     i32 z = p.fZ;
-    auto found = fSpans.find(z);
-    if (found == fSpans.end()) {
+    auto found = fBuckets.find(z);
+    if (found == fBuckets.end()) {
       return end();
     }
-    auto it = Find(found->second, x);
+    auto it = found->second.find(x);
     if (!it) {
       return end();
     }
-    Span span = found->second[*it];
+    Span span = found->second.fSpans[*it];
     if (span.fFrom <= x && x <= span.fTo) {
       ConstIterator itr;
       itr.fThis = this;
       itr.fItrZ = found;
-      itr.fItrSpan = found->second.begin() + (*it);
+      itr.fItrSpan = found->second.fSpans.begin() + (*it);
       itr.fItrX = x;
       return itr;
     }
@@ -162,62 +201,39 @@ public:
   }
 
 private:
-  static std::optional<size_t> Find(std::deque<Span> const &spans, i32 x) {
-    if (spans.empty()) {
-      return std::nullopt;
+  Bucket *insertImpl(Pos2i const &p) {
+    using namespace std;
+    i32 x = p.fX;
+    i32 z = p.fZ;
+    Bucket &bucket = fBuckets[z];
+    auto found = bucket.find(x);
+    if (!found) {
+      Span s;
+      s.fFrom = x;
+      s.fTo = x;
+      bucket.fSpans.insert(bucket.fSpans.end(), s);
+      bucket.fUnmergedInserts++;
+      return &bucket;
     }
-    size_t left = 0;
-    size_t right = spans.size() - 1;
-    Span spanL = spans[left];
-    Span spanR = spans[right];
-    if (x <= spanL.fTo) {
-      return 0;
+    Span span = bucket.fSpans[*found];
+    if (span.fFrom <= x && x <= span.fTo) {
+      return nullptr;
     }
-    if (spanR.fFrom <= x && x <= spanR.fTo) {
-      return right;
+    assert(x < span.fFrom);
+    if (x + 1 == span.fFrom) {
+      bucket.fSpans[*found].fFrom = x;
+      return &bucket;
     }
-    if (spanR.fTo < x) {
-      return std::nullopt;
-    }
-    assert(spanL.fTo < x && x < spanR.fFrom);
-    while (true) {
-      if (left + 1 == right) {
-        return right;
-      }
-      size_t mid = (left + right) / 2;
-      Span spanM = spans[mid];
-      if (spanM.fFrom <= x && x <= spanM.fTo) {
-        return mid;
-      }
-      if (x < spanM.fFrom) {
-        right = mid;
-        spanR = spanM;
-      } else {
-        left = mid;
-        spanL = spanM;
-      }
-    }
-  }
-
-  static void MergeAdjacentSpans(std::deque<Span> &spans) {
-    auto it = spans.begin();
-    while (true) {
-      Span s0 = *it;
-      auto next = std::next(it);
-      if (next == spans.end()) {
-        break;
-      }
-      Span s1 = *next;
-      if (s0.fTo + 1 == s1.fFrom) {
-        spans.erase(next);
-        s0.fTo = s1.fTo;
-        *it = s0;
-      }
-    }
+    Span s;
+    s.fFrom = x;
+    s.fTo = x;
+    bucket.fSpans.insert(bucket.fSpans.begin() + *found, s);
+    bucket.fUnmergedInserts++;
+    return &bucket;
   }
 
 private:
-  std::unordered_map<i32, std::deque<Span>> fSpans;
+  std::unordered_map<i32, Bucket> fBuckets;
   size_t fSize = 0;
 };
 
