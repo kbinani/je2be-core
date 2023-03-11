@@ -170,6 +170,7 @@ set(je2be_src_files
   src/_optional.hpp
   src/_parallel.hpp
   src/_poi-blocks.hpp
+  src/_pos2i-set.hpp
   src/_pos3.hpp
   src/_props.hpp
   src/_queue2d.hpp
@@ -379,7 +380,8 @@ set(test_files
   test/bee-nest.test.hpp
   test/end-gateway.test.hpp
   test/strings.test.hpp
-  test/je2be-all.hpp)
+  test/je2be-all.hpp
+  test/pos2i-set.test.hpp)
 
 CPMAddPackage(
   NAME libminecraft-file

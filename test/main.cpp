@@ -40,3 +40,4 @@ static fs::path ProjectRootDir() {
 #include "bee-nest.test.hpp"
 #include "end-gateway.test.hpp"
 #include "strings.test.hpp"
+#include "pos2i-set.test.hpp"

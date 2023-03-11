@@ -34,6 +34,7 @@
 #include "_java-level-dat.hpp"
 #include "_poi-blocks.hpp"
 #include "_data3d.hpp"
+#include "_pos2i-set.hpp"
 
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
