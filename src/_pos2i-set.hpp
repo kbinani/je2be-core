@@ -14,74 +14,13 @@ class Pos2iSet {
     i32 fTo;
   };
 
-  struct Bucket {
-    std::deque<Span> fSpans;
-    size_t fUnmergedInserts = 0;
-
-    std::optional<size_t> find(i32 x) const {
-      if (fSpans.empty()) {
-        return std::nullopt;
-      }
-      size_t left = 0;
-      size_t right = fSpans.size() - 1;
-      Span spanL = fSpans[left];
-      Span spanR = fSpans[right];
-      if (x <= spanL.fTo) {
-        return 0;
-      }
-      if (spanR.fFrom <= x && x <= spanR.fTo) {
-        return right;
-      }
-      if (spanR.fTo < x) {
-        return std::nullopt;
-      }
-      assert(spanL.fTo < x && x < spanR.fFrom);
-      while (true) {
-        if (left + 1 == right) {
-          return right;
-        }
-        size_t mid = (left + right) / 2;
-        Span spanM = fSpans[mid];
-        if (spanM.fFrom <= x && x <= spanM.fTo) {
-          return mid;
-        }
-        if (x < spanM.fFrom) {
-          right = mid;
-          spanR = spanM;
-        } else {
-          left = mid;
-          spanL = spanM;
-        }
-      }
-    }
-
-    void mergeAdjacentSpans() {
-      auto it = fSpans.begin();
-      while (true) {
-        Span s0 = *it;
-        auto next = std::next(it);
-        if (next == fSpans.end()) {
-          break;
-        }
-        Span s1 = *next;
-        if (s0.fTo + 1 == s1.fFrom) {
-          fSpans.erase(next);
-          s0.fTo = s1.fTo;
-          *it = s0;
-        }
-      }
-    }
-  };
+  using Bucket = std::deque<Span>;
 
 public:
   void insert(Pos2i const &p) {
     using namespace std;
-    if (Bucket *bucket = insertImpl(p); bucket) {
+    if (insertImpl(p)) {
       fSize++;
-      if (bucket->fUnmergedInserts >= 100) {
-        bucket->mergeAdjacentSpans();
-        bucket->fUnmergedInserts = 0;
-      }
     }
   }
 
@@ -98,7 +37,7 @@ public:
 
     Pos2iSet const *fThis;
     std::unordered_map<i32, Bucket>::const_iterator fItrZ;
-    std::deque<Span>::const_iterator fItrSpan;
+    Bucket::const_iterator fItrSpan;
     i32 fItrX;
 
   public:
@@ -122,12 +61,12 @@ public:
       fItrX++;
       if (fItrX > fItrSpan->fTo) {
         fItrSpan++;
-        if (fItrSpan == fItrZ->second.fSpans.end()) {
+        if (fItrSpan == fItrZ->second.end()) {
           fItrZ++;
           if (fItrZ == fThis->fBuckets.end()) {
             fThis = nullptr;
           } else {
-            fItrSpan = fItrZ->second.fSpans.begin();
+            fItrSpan = fItrZ->second.begin();
             fItrX = fItrSpan->fFrom;
           }
         } else {
@@ -157,7 +96,7 @@ public:
       ConstIterator itr;
       itr.fThis = this;
       itr.fItrZ = fBuckets.begin();
-      itr.fItrSpan = itr.fItrZ->second.fSpans.begin();
+      itr.fItrSpan = itr.fItrZ->second.begin();
       itr.fItrX = itr.fItrSpan->fFrom;
       return itr;
     }
@@ -176,16 +115,16 @@ public:
     if (found == fBuckets.end()) {
       return end();
     }
-    auto it = found->second.find(x);
+    auto it = Find(found->second, x);
     if (!it) {
       return end();
     }
-    Span span = found->second.fSpans[*it];
+    Span span = found->second[*it];
     if (span.fFrom <= x && x <= span.fTo) {
       ConstIterator itr;
       itr.fThis = this;
       itr.fItrZ = found;
-      itr.fItrSpan = found->second.fSpans.begin() + (*it);
+      itr.fItrSpan = found->second.begin() + (*it);
       itr.fItrX = x;
       return itr;
     }
@@ -201,35 +140,90 @@ public:
   }
 
 private:
-  Bucket *insertImpl(Pos2i const &p) {
+  static std::optional<size_t> Find(Bucket const &bucket, i32 x) {
+    if (bucket.empty()) {
+      return std::nullopt;
+    }
+    size_t left = 0;
+    size_t right = bucket.size() - 1;
+    Span spanL = bucket[left];
+    Span spanR = bucket[right];
+    if (x <= spanL.fTo) {
+      return 0;
+    }
+    if (spanR.fFrom <= x && x <= spanR.fTo) {
+      return right;
+    }
+    if (spanR.fTo < x) {
+      return std::nullopt;
+    }
+    assert(spanL.fTo < x && x < spanR.fFrom);
+    while (true) {
+      if (left + 1 == right) {
+        return right;
+      }
+      size_t mid = (left + right) / 2;
+      Span spanM = bucket[mid];
+      if (spanM.fFrom <= x && x <= spanM.fTo) {
+        return mid;
+      }
+      if (x < spanM.fFrom) {
+        right = mid;
+        spanR = spanM;
+      } else {
+        left = mid;
+        spanL = spanM;
+      }
+    }
+  }
+
+  bool insertImpl(Pos2i const &p) {
     using namespace std;
     i32 x = p.fX;
     i32 z = p.fZ;
     Bucket &bucket = fBuckets[z];
-    auto found = bucket.find(x);
+    auto found = Find(bucket, x);
     if (!found) {
+      if (!bucket.empty()) {
+        Span &back = bucket.back();
+        if (back.fTo + 1 == x) {
+          back.fTo = x;
+          return true;
+        }
+      }
       Span s;
       s.fFrom = x;
       s.fTo = x;
-      bucket.fSpans.insert(bucket.fSpans.end(), s);
-      bucket.fUnmergedInserts++;
-      return &bucket;
+      bucket.insert(bucket.end(), s);
+      return true;
     }
-    Span span = bucket.fSpans[*found];
+    Span &span = bucket[*found];
     if (span.fFrom <= x && x <= span.fTo) {
-      return nullptr;
+      return false;
     }
     assert(x < span.fFrom);
+    if (*found > 0) {
+      Span &prev = bucket[*found - 1];
+      if (prev.fTo + 1 == x) {
+        if (x + 1 == span.fFrom) {
+          prev.fTo = span.fTo;
+          bucket.erase(bucket.begin() + *found);
+          return true;
+        } else {
+          prev.fTo = x;
+          return true;
+        }
+      }
+    }
     if (x + 1 == span.fFrom) {
-      bucket.fSpans[*found].fFrom = x;
-      return &bucket;
+      span.fFrom = x;
+      return true;
     }
     Span s;
     s.fFrom = x;
     s.fTo = x;
-    bucket.fSpans.insert(bucket.fSpans.begin() + *found, s);
-    bucket.fUnmergedInserts++;
-    return &bucket;
+    bucket.insert(bucket.begin() + *found, s);
+    return true;
   }
 
 private:

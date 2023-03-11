@@ -5,6 +5,7 @@ TEST_CASE("pos2i-set") {
     v.insert({0, 0});
     v.insert({2, 0});
     v.insert({1, 0});
+    v.insert({1, 0});
     CHECK(v.find({0, 0}) != v.end());
     CHECK(v.count({0, 0}) == 1);
     CHECK(v.find({2, 0}) != v.end());
@@ -15,14 +16,29 @@ TEST_CASE("pos2i-set") {
     CHECK(v.find({100, 100}) == v.end());
     CHECK(v.count({100, 100}) == 0);
 
+    v.insert({5, 0});
+    CHECK(v.size() == 4);
+    v.insert({3, 0});
+    CHECK(v.size() == 5);
+    v.insert({8, 0});
+    CHECK(v.size() == 6);
+    v.insert({7, 0});
+    CHECK(v.size() == 7);
+    v.insert({9, 0});
+    CHECK(v.size() == 8);
+    v.insert({13, 0});
+    CHECK(v.size() == 9);
+    v.insert({11, 0});
+    CHECK(v.size() == 10);
+
     unordered_set<Pos2i, Pos2iHasher> all;
     for (auto const &p : v) {
       all.insert(p);
     }
-    CHECK(all.size() == 3);
-    CHECK(all.count({0, 0}) == 1);
-    CHECK(all.count({1, 0}) == 1);
-    CHECK(all.count({2, 0}) == 1);
+    CHECK(all.size() == v.size());
+    for (auto const &p : all) {
+      CHECK(v.count(p) == 1);
+    }
   }
   SUBCASE("random") {
     random_device rd;
