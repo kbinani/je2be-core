@@ -26,7 +26,7 @@ TEST_CASE("pos2i-set") {
   }
   SUBCASE("random") {
     random_device rd;
-    mt19937 engine(1);
+    mt19937 engine(rd());
     i32 min = -1024;
     i32 max = 1024;
     uniform_int_distribution<int32_t> dist(min, max);
