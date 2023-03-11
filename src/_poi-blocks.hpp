@@ -3,6 +3,7 @@
 #include <je2be/fs.hpp>
 #include <je2be/pos2.hpp>
 
+#include "_pos2i-set.hpp"
 #include "_pos3.hpp"
 
 #include <minecraft-file.hpp>
@@ -206,7 +207,7 @@ public:
   }
 
 private:
-  std::unordered_set<Pos2i, Pos2iHasher> fRegions;
+  Pos2iSet fRegions;
   std::unordered_map<Pos3i, mcfile::blocks::BlockId, Pos3iHasher> fBlocks;
 };
 

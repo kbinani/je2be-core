@@ -95,7 +95,7 @@ public:
       return JE2BE_ERROR;
     }
 
-    unordered_map<Pos2i, unordered_set<Pos2i, Pos2iHasher>, Pos2iHasher> chunksInRegion;
+    unordered_map<Pos2i, Pos2iSet, Pos2iHasher> chunksInRegion;
 
     unordered_map<Pos2i, unordered_map<Uuid, i64, UuidHasher, UuidPred>, Pos2iHasher> leashedEntities;
     for (auto const &it : ctx->fLeashedEntities) {
@@ -123,7 +123,7 @@ public:
       if (!editor) {
         return JE2BE_ERROR;
       }
-      unordered_set<Pos2i, Pos2iHasher> const &chunks = it.second;
+      Pos2iSet const &chunks = it.second;
       for (Pos2i const &chunk : chunks) {
         if (auto st = AttachLeashAndPassengers(chunk, entitiesDir, *editor, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
           return st;

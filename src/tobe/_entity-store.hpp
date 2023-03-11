@@ -3,6 +3,7 @@
 #include <je2be/fs.hpp>
 
 #include "_mem.hpp"
+#include "_pos2i-set.hpp"
 
 namespace je2be::tobe {
 
@@ -87,7 +88,7 @@ private:
   }
 
 public:
-  std::unordered_set<Pos2i, Pos2iHasher> fChunks;
+  Pos2iSet fChunks;
 
 private:
   std::unique_ptr<leveldb::DB> fDb;

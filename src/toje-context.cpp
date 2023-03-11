@@ -39,7 +39,10 @@ class Context::Impl {
         std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher> const &regions = i.second;
         for (auto const &j : regions) {
           Pos2i region = j.first;
-          std::copy(j.second.fChunks.begin(), j.second.fChunks.end(), std::inserter(out.fRegions[dim][region].fChunks, out.fRegions[dim][region].fChunks.end()));
+          auto &dest = out.fRegions[dim][region].fChunks;
+          for (auto const &k : j.second.fChunks) {
+            dest.insert(k);
+          }
         }
       }
       for (auto const &i : fStructurePieces) {

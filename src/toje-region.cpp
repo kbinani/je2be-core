@@ -3,6 +3,7 @@
 #include <je2be/defer.hpp>
 
 #include "_parallel.hpp"
+#include "_pos2i-set.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/java/_block-accessor-java-mca.hpp"
 #include "toje/_chunk.hpp"
@@ -16,7 +17,7 @@ namespace je2be::toje {
 class Region::Impl {
 public:
   static std::shared_ptr<Context> Convert(mcfile::Dimension d,
-                                          std::unordered_set<Pos2i, Pos2iHasher> chunks,
+                                          Pos2iSet chunks,
                                           Pos2i region,
                                           unsigned int concurrency,
                                           mcfile::be::DbInterface *db,
@@ -114,7 +115,7 @@ public:
 };
 
 std::shared_ptr<Context> Region::Convert(mcfile::Dimension d,
-                                         std::unordered_set<Pos2i, Pos2iHasher> chunks,
+                                         Pos2iSet chunks,
                                          Pos2i region,
                                          unsigned int concurrency,
                                          mcfile::be::DbInterface *db,

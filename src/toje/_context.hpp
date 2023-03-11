@@ -7,6 +7,7 @@
 #include "_dimension-ext.hpp"
 #include "_nbt-ext.hpp"
 #include "_poi-blocks.hpp"
+#include "_pos2i-set.hpp"
 #include "_volume.hpp"
 #include "color/_rgba.hpp"
 #include "enums/_game-mode.hpp"
@@ -32,7 +33,7 @@ class Context {
 
 public:
   struct ChunksInRegion {
-    std::unordered_set<Pos2i, Pos2iHasher> fChunks;
+    Pos2iSet fChunks;
   };
 
   static std::shared_ptr<Context> Init(std::filesystem::path const &dbname,
