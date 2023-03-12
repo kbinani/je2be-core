@@ -35,6 +35,18 @@ public:
   class ConstIterator {
     friend class Pos2iSet;
 
+    ConstIterator(Pos2iSet const *self, std::unordered_map<i32, Bucket>::const_iterator itrZ, Bucket::const_iterator itrSpan, i32 itrX)
+        : fThis(self), fItrZ(itrZ), fItrSpan(itrSpan), fItrX(itrX) {
+    }
+
+    ConstIterator() : fThis(nullptr) {
+      static std::unordered_map<i32, Bucket> const sEmpty1;
+      static Bucket const sEmpty2;
+      fItrZ = sEmpty1.end();
+      fItrSpan = sEmpty2.end();
+      fItrX = 0;
+    }
+
     Pos2iSet const *fThis;
     std::unordered_map<i32, Bucket>::const_iterator fItrZ;
     Bucket::const_iterator fItrSpan;
@@ -58,11 +70,11 @@ public:
       if (!fThis) {
         return *this;
       }
-      fItrX++;
+      ++fItrX;
       if (fItrX > fItrSpan->fTo) {
-        fItrSpan++;
+        ++fItrSpan;
         if (fItrSpan == fItrZ->second.end()) {
-          fItrZ++;
+          ++fItrZ;
           if (fItrZ == fThis->fBuckets.end()) {
             fThis = nullptr;
           } else {
@@ -93,18 +105,13 @@ public:
     if (fBuckets.empty()) {
       return end();
     } else {
-      ConstIterator itr;
-      itr.fThis = this;
-      itr.fItrZ = fBuckets.begin();
-      itr.fItrSpan = itr.fItrZ->second.begin();
-      itr.fItrX = itr.fItrSpan->fFrom;
+      ConstIterator itr(this, fBuckets.begin(), fBuckets.begin()->second.begin(), fBuckets.begin()->second.begin()->fFrom);
       return itr;
     }
   }
 
   ConstIterator end() const {
     ConstIterator itr;
-    itr.fThis = nullptr;
     return itr;
   }
 
@@ -169,10 +176,8 @@ private:
       }
       if (x < spanM.fFrom) {
         right = mid;
-        spanR = spanM;
       } else {
         left = mid;
-        spanL = spanM;
       }
     }
   }
