@@ -80,7 +80,7 @@ private:
     }
     u64 p = done->fetch_add(1) + 1;
     if (progress) {
-      if (!progress->reportEntityPostProcess(p / double(total))) {
+      if (!progress->reportEntityPostProcess({p, total})) {
         return JE2BE_ERROR;
       }
     }

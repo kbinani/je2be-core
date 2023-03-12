@@ -42,7 +42,7 @@ public:
       return JE2BE_ERROR;
     }
 
-    int total = 0;
+    u64 total = 0;
     map<Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> regions;
     i64 gameTick = dat->int64("currentTick", 0);
     i32 gameTypeB = dat->int32("GameType", 0);
@@ -65,9 +65,9 @@ public:
     atomic<bool> cancelRequested = false;
     atomic_uint64_t numConvertedChunks(0);
     auto reportProgress = [progress, &done, total, &cancelRequested, &numConvertedChunks]() -> bool {
-      double p = double(done.fetch_add(1) + 1) / total;
+      u64 p = done.fetch_add(1) + 1;
       if (progress) {
-        bool ok = progress->reportConvert(p, numConvertedChunks.load());
+        bool ok = progress->reportConvert({p, total}, numConvertedChunks.load());
         if (!ok) {
           cancelRequested = true;
         }
@@ -207,7 +207,7 @@ private:
     }
 
     if (progress) {
-      if (!progress->reportTerraform(0, numChunks)) {
+      if (!progress->reportTerraform({0, numChunks}, numChunks)) {
         return JE2BE_ERROR;
       }
     }
@@ -303,7 +303,7 @@ private:
               }
               u64 d = done.fetch_add(1) + 1;
               if (progress) {
-                if (!progress->reportTerraform(d / (double)numChunks, d)) {
+                if (!progress->reportTerraform({d, numChunks}, d)) {
                   ok = false;
                   break;
                 }
@@ -338,7 +338,7 @@ private:
       th.join();
     }
     if (progress) {
-      if (!progress->reportTerraform(1, numChunks)) {
+      if (!progress->reportTerraform({1, numChunks}, numChunks)) {
         return JE2BE_ERROR;
       }
     }

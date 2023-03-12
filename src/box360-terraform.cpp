@@ -39,7 +39,7 @@ class Terraform::Impl {
   };
 
 public:
-  static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset) {
     PoiBlocks poi;
     Status st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset);
     if (!st.ok()) {
@@ -53,13 +53,13 @@ public:
   }
 
 private:
-  static Status MultiThread(PoiBlocks &poi, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+  static Status MultiThread(PoiBlocks &poi, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset) {
     using namespace std;
     using namespace std::placeholders;
 
     atomic_bool ok(true);
     optional<Status> error;
-    atomic_int count(0);
+    atomic_uint64_t count(0);
     std::latch latch(concurrency);
     mutex joinMut;
     Queue2d queue({-32, -32}, 64, 64, 1);
@@ -88,8 +88,8 @@ private:
           lock_guard<mutex> lock(queueMut);
           queue.unlockAround(result->fChunk);
         }
-        auto p = count.fetch_add(1) + 1;
-        if (progress && !progress->report((p + progressChunksOffset) / double(World::kProgressWeightPerWorld * 3))) {
+        u64 p = count.fetch_add(1) + 1;
+        if (progress && !progress->report({p + progressChunksOffset, World::kProgressWeightPerWorld * 3})) {
           ok = false;
           break;
         }
@@ -197,7 +197,7 @@ private:
   }
 };
 
-Status Terraform::Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, int progressChunksOffset) {
+Status Terraform::Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset) {
   return Impl::Do(dim, poiDirectory, directory, concurrency, progress, progressChunksOffset);
 }
 

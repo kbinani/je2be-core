@@ -27,7 +27,7 @@ public:
                         Context const &ctx,
                         Options const &options,
                         Progress *progress,
-                        int progressChunksOffset) {
+                        u64 progressChunksOffset) {
     using namespace std;
     using namespace std::placeholders;
 
@@ -96,7 +96,7 @@ public:
       }
     }
 
-    atomic_int progressChunks(progressChunksOffset + skipChunks);
+    atomic_uint64_t progressChunks(progressChunksOffset + skipChunks);
     atomic_bool ok = true;
     Status st = Parallel::Reduce<Pos2i, Status>(
         works,
@@ -107,8 +107,8 @@ public:
           int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
           auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
-          auto p = progressChunks.fetch_add(1) + 1;
-          if (progress && !progress->report(p / double(kProgressWeightPerWorld * 3))) {
+          u64 p = progressChunks.fetch_add(1) + 1;
+          if (progress && !progress->report({p, kProgressWeightPerWorld * 3})) {
             ok = false;
           }
           if (!st.ok()) {
@@ -126,7 +126,7 @@ public:
     if (st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
       return st;
     }
-    if (progress && !progress->report((progressChunksOffset + 8192) / double(kProgressWeightPerWorld * 3))) {
+    if (progress && !progress->report({progressChunksOffset + 8192, kProgressWeightPerWorld * 3})) {
       return JE2BE_ERROR;
     }
 
@@ -155,7 +155,7 @@ public:
     if (!st.ok()) {
       return st;
     }
-    if (progress && !progress->report((progressChunksOffset + 12288) / double(kProgressWeightPerWorld * 3))) {
+    if (progress && !progress->report({progressChunksOffset + 12288, kProgressWeightPerWorld * 3})) {
       return JE2BE_ERROR;
     }
 
@@ -174,7 +174,7 @@ public:
     }
     Fs::DeleteAll(outputDirectory / worldDir / "region_");
 
-    if (progress && !progress->report((progressChunksOffset + kProgressWeightPerWorld) / double(kProgressWeightPerWorld * 3))) {
+    if (progress && !progress->report({progressChunksOffset + kProgressWeightPerWorld, kProgressWeightPerWorld * 3})) {
       return JE2BE_ERROR;
     }
 
@@ -182,7 +182,7 @@ public:
   }
 
 private:
-  static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory, std::atomic_int *progressChunks, Progress *progress) {
+  static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory, std::atomic_uint64_t *progressChunks, Progress *progress) {
     using namespace std;
     namespace fs = std::filesystem;
 
@@ -213,8 +213,8 @@ private:
         auto current = editor->extract(x, z);
         if (!current) {
           if (progress) {
-            auto p = progressChunks->fetch_add(1) + 1;
-            if (!progress->report(p / double(kProgressWeightPerWorld * 3))) {
+            u64 p = progressChunks->fetch_add(1) + 1;
+            if (!progress->report({p, kProgressWeightPerWorld * 3})) {
               return JE2BE_ERROR;
             }
           }
@@ -257,8 +257,8 @@ private:
         }
 
         if (progress) {
-          auto p = progressChunks->fetch_add(1) + 1;
-          if (!progress->report(p / double(kProgressWeightPerWorld * 3))) {
+          u64 p = progressChunks->fetch_add(1) + 1;
+          if (!progress->report({p, kProgressWeightPerWorld * 3})) {
             return JE2BE_ERROR;
           }
         }
@@ -347,7 +347,7 @@ Status World::Convert(std::filesystem::path const &levelRootDirectory,
                       Context const &ctx,
                       Options const &options,
                       Progress *progress,
-                      int progressChunksOffset) {
+                      u64 progressChunksOffset) {
   return Impl::Convert(levelRootDirectory, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset);
 }
 

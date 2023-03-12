@@ -40,7 +40,7 @@ public:
                                        Options opt,
                                        mcfile::Endian endian,
                                        std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
-                                       int &totalChunks,
+                                       u64 &totalChunks,
                                        i64 gameTick,
                                        GameMode gameMode,
                                        unsigned int concurrency);

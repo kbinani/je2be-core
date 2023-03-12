@@ -173,7 +173,7 @@ public:
       }
     }
     if (progress) {
-      if (!progress->reportEntityPostProcess(1)) {
+      if (!progress->reportEntityPostProcess({totalEntityChunks, totalEntityChunks})) {
         return JE2BE_ERROR;
       }
     }
@@ -187,7 +187,7 @@ public:
     }
 
     if (ok) {
-      ok = db.close([progress](double p) {
+      ok = db.close([progress](Rational<u64> const &p) {
         if (!progress) {
           return;
         }

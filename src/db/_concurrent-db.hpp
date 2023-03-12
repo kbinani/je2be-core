@@ -473,7 +473,7 @@ public:
 
   void del(std::string const &key) override {}
 
-  bool close(std::function<void(double progress)> progress = nullptr) override {
+  bool close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
     using namespace std;
     using namespace std::placeholders;
     using namespace leveldb;
@@ -507,7 +507,7 @@ public:
       works.push_back((u8)i);
     }
     atomic_uint64_t fileNumber(1);
-    atomic_uint16_t done(0);
+    atomic_uint64_t done(0);
     auto result = Parallel::Reduce<u8, vector<TableBuildResult>>(
         works,
         fConcurrency,
@@ -516,7 +516,7 @@ public:
           auto ret = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, &ok, prefix);
           auto p = done.fetch_add(1) + 1;
           if (progress) {
-            progress((double)p / (256 + 1));
+            progress({p, 256 + 1});
           }
           return ret;
         },
@@ -568,7 +568,7 @@ public:
     current.reset();
 
     if (progress) {
-      progress(1.0);
+      progress({257, 257});
     }
 
     return true;

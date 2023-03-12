@@ -17,25 +17,18 @@ namespace fs = std::filesystem;
 
 struct StdoutProgressReporter : public Progress {
   struct State {
-    int fConvert = 0;
+    optional<Rational<u64>> fConvert;
     u64 fNumConvertedChunks = 0;
-    int fPostProcess = 0;
-    int fCompaction = 0;
+    optional<Rational<u64>> fPostProcess;
+    optional<Rational<u64>> fCompaction;
   };
 
   StdoutProgressReporter() {
     fIo.reset(new thread([this]() {
       State prev;
-      pbar::pbar convert(kProgressScale);
-      pbar::pbar postProcess(kProgressScale);
-      pbar::pbar compaction(kProgressScale);
-      convert.set_description("Convert");
-      postProcess.set_description("PostProcess");
-      compaction.set_description("LevelDB Compaction");
-
-      convert.enable_recalc_console_width(10);
-      postProcess.enable_recalc_console_width(10);
-      compaction.enable_recalc_console_width(10);
+      unique_ptr<pbar::pbar> convert;
+      unique_ptr<pbar::pbar> postProcess;
+      unique_ptr<pbar::pbar> compaction;
 
       while (!fStop) {
         State s;
@@ -43,17 +36,41 @@ struct StdoutProgressReporter : public Progress {
           lock_guard<mutex> lock(fMut);
           s = fState;
         }
-        if (prev.fConvert < s.fConvert) {
-          convert.tick(s.fConvert - prev.fConvert);
+        if (s.fConvert) {
+          if (!convert) {
+            convert.reset(new pbar::pbar(s.fConvert->fDen));
+            convert->enable_recalc_console_width(10);
+          }
+          if (prev.fConvert) {
+            convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+          } else {
+            convert->tick(s.fConvert->fNum);
+          }
+          convert->set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
         }
-        if (prev.fNumConvertedChunks < s.fNumConvertedChunks) {
-          convert.set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
+        if (s.fPostProcess) {
+          if (!postProcess) {
+            postProcess.reset(new pbar::pbar(s.fPostProcess->fDen));
+            postProcess->set_description("PostProcess");
+            postProcess->enable_recalc_console_width(10);
+          }
+          if (prev.fPostProcess) {
+            postProcess->tick(s.fPostProcess->fNum - prev.fPostProcess->fNum);
+          } else {
+            postProcess->tick(s.fPostProcess->fNum);
+          }
         }
-        if (prev.fPostProcess < s.fPostProcess) {
-          postProcess.tick(s.fPostProcess - prev.fPostProcess);
-        }
-        if (prev.fCompaction < s.fCompaction) {
-          compaction.tick(s.fCompaction - prev.fCompaction);
+        if (s.fCompaction) {
+          if (!compaction) {
+            compaction.reset(new pbar::pbar(s.fCompaction->fDen));
+            compaction->set_description("LevelDB Compaction");
+            compaction->enable_recalc_console_width(10);
+          }
+          if (prev.fCompaction) {
+            compaction->tick(s.fCompaction->fNum - prev.fCompaction->fNum);
+          } else {
+            compaction->tick(s.fCompaction->fNum);
+          }
         }
         prev = s;
         this_thread::sleep_for(chrono::milliseconds(100));
@@ -67,20 +84,20 @@ struct StdoutProgressReporter : public Progress {
     fIo.reset();
   }
 
-  bool reportConvert(double progress, u64 numConvertedChunks) override {
+  bool reportConvert(Rational<u64> const &progress, u64 numConvertedChunks) override {
     lock_guard<mutex> lock(fMut);
-    fState.fConvert = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fConvert = progress;
     fState.fNumConvertedChunks = numConvertedChunks;
     return true;
   }
-  bool reportEntityPostProcess(double progress) override {
+  bool reportEntityPostProcess(Rational<u64> const &progress) override {
     lock_guard<mutex> lock(fMut);
-    fState.fPostProcess = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fPostProcess = progress;
     return true;
   }
-  bool reportCompaction(double progress) override {
+  bool reportCompaction(Rational<u64> const &progress) override {
     lock_guard<mutex> lock(fMut);
-    fState.fCompaction = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fCompaction = progress;
     return true;
   }
 
@@ -89,7 +106,6 @@ struct StdoutProgressReporter : public Progress {
   unique_ptr<thread> fIo;
   atomic_bool fStop = false;
   State fState;
-  int const kProgressScale = 100000;
 };
 
 int main(int argc, char *argv[]) {

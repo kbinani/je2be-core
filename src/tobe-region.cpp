@@ -21,7 +21,7 @@ public:
       DbInterface &db,
       Progress *progress,
       std::atomic_uint32_t &done,
-      double const numTotalChunks,
+      u64 const numTotalChunks,
       std::atomic_bool &abortSignal,
       std::atomic_uint64_t &numConvertedChunks) {
     using namespace std;
@@ -64,9 +64,9 @@ public:
         } else {
           t = numConvertedChunks.load();
         }
-        auto p = (double(done.fetch_add(1) + 1) / (double)numTotalChunks);
+        u64 p = done.fetch_add(1) + 1;
         if (progress) {
-          bool cont = progress->reportConvert(p, t);
+          bool cont = progress->reportConvert({p, numTotalChunks}, t);
           if (!cont) {
             abortSignal.store(true);
           }
@@ -113,7 +113,7 @@ std::shared_ptr<WorldData> Region::Convert(
     DbInterface &db,
     Progress *progress,
     std::atomic_uint32_t &done,
-    double const numTotalChunks,
+    u64 const numTotalChunks,
     std::atomic_bool &abortSignal,
     std::atomic_uint64_t &numConvertedChunks) {
   return Impl::Convert(dim, region, options, entityStore, levelData, db, progress, done, numTotalChunks, abortSignal, numConvertedChunks);

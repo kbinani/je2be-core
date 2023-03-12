@@ -10,21 +10,19 @@
 #include <thread>
 
 using namespace std;
+using namespace je2be;
 using namespace je2be::box360;
 namespace fs = std::filesystem;
 
 struct StdoutProgressReporter : public Progress {
   struct State {
-    int fConvert = 0;
+    optional<Rational<u64>> fConvert;
   };
 
   StdoutProgressReporter() {
     fIo.reset(new thread([this]() {
       State prev;
-      pbar::pbar convert(kProgressScale);
-      convert.set_description("Convert");
-
-      convert.enable_recalc_console_width(10);
+      unique_ptr<pbar::pbar> convert;
 
       while (!fStop) {
         State s;
@@ -32,8 +30,17 @@ struct StdoutProgressReporter : public Progress {
           lock_guard<mutex> lock(fMut);
           s = fState;
         }
-        if (prev.fConvert < s.fConvert) {
-          convert.tick(s.fConvert - prev.fConvert);
+        if (s.fConvert) {
+          if (!convert) {
+            convert.reset(new pbar::pbar(s.fConvert->fDen));
+            convert->set_description("Convert");
+            convert->enable_recalc_console_width(10);
+          }
+          if (prev.fConvert) {
+            convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+          } else {
+            convert->tick(s.fConvert->fNum);
+          }
         }
         prev = s;
         this_thread::sleep_for(chrono::milliseconds(100));
@@ -47,16 +54,15 @@ struct StdoutProgressReporter : public Progress {
     fIo.reset();
   }
 
-  bool report(double progress) override {
+  bool report(Rational<u64> const &progress) override {
     lock_guard<mutex> lock(fMut);
-    fState.fConvert = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fConvert = progress;
     return true;
   }
 
   mutex fMut;
   unique_ptr<thread> fIo;
   atomic_bool fStop = false;
-  int const kProgressScale = 100000;
   State fState;
 };
 

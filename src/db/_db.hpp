@@ -62,19 +62,19 @@ public:
     }
   }
 
-  bool close(std::function<void(double progress)> progress = nullptr) override {
+  bool close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
     if (!fDb) {
       return false;
     }
     if (progress) {
-      progress(0.0);
+      progress({0, 1});
     }
     if (fDb) {
       delete fDb;
       fDb = nullptr;
     }
     if (progress) {
-      progress(1.0);
+      progress({1, 1});
     }
     return true;
   }

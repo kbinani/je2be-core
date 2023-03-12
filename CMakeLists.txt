@@ -47,6 +47,7 @@ set(je2be_header_files
   include/je2be/integers.hpp
   include/je2be/nbt.hpp
   include/je2be/pos2.hpp
+  include/je2be/rational.hpp
   include/je2be/status.hpp
   include/je2be/strings.hpp
   include/je2be/tobe/converter.hpp

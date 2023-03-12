@@ -16,22 +16,17 @@ namespace fs = std::filesystem;
 
 struct StdoutProgressReporter : public Progress {
   struct State {
-    int fConvert = 0;
+    optional<Rational<u64>> fConvert;
     u64 fNumConvertedChunks = 0;
-    int fTerraform = 0;
+    optional<Rational<u64>> fTerraform;
     u64 fNumTerraformedChunks = 0;
   };
 
   StdoutProgressReporter() {
     fIo.reset(new thread([this]() {
       State prev;
-      pbar::pbar convert(kProgressScale);
-      pbar::pbar terraform(kProgressScale);
-      convert.set_description("Convert");
-      terraform.set_description("Terraform");
-
-      convert.enable_recalc_console_width(10);
-      terraform.enable_recalc_console_width(10);
+      unique_ptr<pbar::pbar> convert;
+      unique_ptr<pbar::pbar> terraform;
 
       while (!fStop) {
         State s;
@@ -39,17 +34,29 @@ struct StdoutProgressReporter : public Progress {
           lock_guard<mutex> lock(fMut);
           s = fState;
         }
-        if (prev.fConvert < s.fConvert) {
-          convert.tick(s.fConvert - prev.fConvert);
+        if (s.fConvert) {
+          if (!convert) {
+            convert.reset(new pbar::pbar(s.fConvert->fDen));
+            convert->enable_recalc_console_width(10);
+          }
+          if (prev.fConvert) {
+            convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+          } else {
+            convert->tick(s.fConvert->fNum);
+          }
+          convert->set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
         }
-        if (prev.fNumConvertedChunks < s.fNumConvertedChunks) {
-          convert.set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
-        }
-        if (prev.fTerraform < s.fTerraform) {
-          terraform.tick(s.fTerraform - prev.fTerraform);
-        }
-        if (prev.fNumTerraformedChunks < s.fNumTerraformedChunks) {
-          terraform.set_description("Terraform(" + to_string(s.fNumTerraformedChunks) + "chunks)");
+        if (s.fTerraform) {
+          if (!terraform) {
+            terraform.reset(new pbar::pbar(s.fTerraform->fDen));
+            terraform->enable_recalc_console_width(10);
+          }
+          if (prev.fTerraform) {
+            terraform->tick(s.fTerraform->fNum - prev.fTerraform->fNum);
+          } else {
+            terraform->tick(s.fTerraform->fNum);
+          }
+          terraform->set_description("Terraform(" + to_string(s.fNumTerraformedChunks) + "chunks)");
         }
         prev = s;
         this_thread::sleep_for(chrono::milliseconds(100));
@@ -63,16 +70,16 @@ struct StdoutProgressReporter : public Progress {
     fIo.reset();
   }
 
-  bool reportConvert(double progress, u64 numConvertedChunks) override {
+  bool reportConvert(Rational<u64> const &progress, u64 numConvertedChunks) override {
     lock_guard<mutex> lock(fMut);
-    fState.fConvert = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fConvert = progress;
     fState.fNumConvertedChunks = numConvertedChunks;
     return true;
   }
 
-  bool reportTerraform(double progress, u64 numProcessedChunks) override {
+  bool reportTerraform(Rational<u64> const &progress, u64 numProcessedChunks) override {
     lock_guard<mutex> lock(fMut);
-    fState.fTerraform = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fTerraform = progress;
     fState.fNumTerraformedChunks = numProcessedChunks;
     return true;
   }
@@ -80,7 +87,6 @@ struct StdoutProgressReporter : public Progress {
   mutex fMut;
   unique_ptr<thread> fIo;
   State fState;
-  int const kProgressScale = 100000;
   atomic_bool fStop = false;
 };
 

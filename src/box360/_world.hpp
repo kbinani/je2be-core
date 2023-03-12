@@ -1,5 +1,6 @@
 #pragma once
 
+#include <je2be/integers.hpp>
 #include <je2be/status.hpp>
 
 #include <minecraft-file.hpp>
@@ -27,7 +28,7 @@ public:
                         Context const &ctx,
                         Options const &options,
                         Progress *progress,
-                        int progressChunksOffset);
+                        u64 progressChunksOffset);
 };
 
 } // namespace je2be::box360

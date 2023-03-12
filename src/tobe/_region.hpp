@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/integers.hpp>
+
 #include <minecraft-file.hpp>
 
 #include <atomic>
@@ -30,7 +32,7 @@ public:
       DbInterface &db,
       Progress *progress,
       std::atomic_uint32_t &done,
-      double const numTotalChunks,
+      u64 const numTotalChunks,
       std::atomic_bool &abortSignal,
       std::atomic_uint64_t &numConvertedChunks);
 };
