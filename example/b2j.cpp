@@ -4,16 +4,87 @@
 #if __has_include(<mimalloc.h>)
 #include <mimalloc.h>
 #endif
+#include <pbar.hpp>
 
 #include <iostream>
 #include <thread>
 
-int main(int argc, char *argv[]) {
-  using namespace std;
-  using namespace je2be;
-  using namespace je2be::toje;
-  namespace fs = std::filesystem;
+using namespace std;
+using namespace je2be;
+using namespace je2be::toje;
+namespace fs = std::filesystem;
 
+struct StdoutProgressReporter : public Progress {
+  struct State {
+    int fConvert = 0;
+    u64 fNumConvertedChunks = 0;
+    int fTerraform = 0;
+    u64 fNumTerraformedChunks = 0;
+  };
+
+  StdoutProgressReporter() {
+    fIo.reset(new thread([this]() {
+      State prev;
+      pbar::pbar convert(kProgressScale);
+      pbar::pbar terraform(kProgressScale);
+      convert.set_description("Convert");
+      terraform.set_description("Terraform");
+
+      convert.enable_recalc_console_width(10);
+      terraform.enable_recalc_console_width(10);
+
+      while (!fStop) {
+        State s;
+        {
+          lock_guard<mutex> lock(fMut);
+          s = fState;
+        }
+        if (prev.fConvert < s.fConvert) {
+          convert.tick(s.fConvert - prev.fConvert);
+        }
+        if (prev.fNumConvertedChunks < s.fNumConvertedChunks) {
+          convert.set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
+        }
+        if (prev.fTerraform < s.fTerraform) {
+          terraform.tick(s.fTerraform - prev.fTerraform);
+        }
+        if (prev.fNumTerraformedChunks < s.fNumTerraformedChunks) {
+          terraform.set_description("Terraform(" + to_string(s.fNumTerraformedChunks) + "chunks)");
+        }
+        prev = s;
+        this_thread::sleep_for(chrono::milliseconds(100));
+      }
+    }));
+  }
+
+  ~StdoutProgressReporter() {
+    fStop = true;
+    fIo->join();
+    fIo.reset();
+  }
+
+  bool reportConvert(double progress, u64 numConvertedChunks) override {
+    lock_guard<mutex> lock(fMut);
+    fState.fConvert = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fNumConvertedChunks = numConvertedChunks;
+    return true;
+  }
+
+  bool reportTerraform(double progress, u64 numProcessedChunks) override {
+    lock_guard<mutex> lock(fMut);
+    fState.fTerraform = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fNumTerraformedChunks = numProcessedChunks;
+    return true;
+  }
+
+  mutex fMut;
+  unique_ptr<thread> fIo;
+  State fState;
+  int const kProgressScale = 100000;
+  atomic_bool fStop = false;
+};
+
+int main(int argc, char *argv[]) {
 #if __has_include(<mimalloc.h>)
   mi_version();
 #endif
@@ -51,8 +122,7 @@ int main(int argc, char *argv[]) {
   auto start = chrono::high_resolution_clock::now();
   defer {
     auto elapsed = chrono::high_resolution_clock::now() - start;
-    cout << endl
-         << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
+    cout << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
   };
 
   Options options;
@@ -71,36 +141,8 @@ int main(int argc, char *argv[]) {
     }
   }
 #endif
-  struct StdoutProgressReporter : public Progress {
-    StdoutProgressReporter() : fLast(std::chrono::high_resolution_clock::now()), fStep(0) {}
-
-    bool reportConvert(double progress, u64 numConvertedChunks) override {
-      auto now = chrono::high_resolution_clock::now();
-      lock_guard<mutex> lock(fMut);
-      if (fStep == 0 && now - fLast > chrono::seconds(1)) {
-        cout << "            \rConvert: " << float(progress * 100) << "% " << numConvertedChunks << " chunks";
-        fLast = now;
-      }
-      return true;
-    }
-
-    bool reportTerraform(double progress, u64 numProcessedChunks) override {
-      auto now = chrono::high_resolution_clock::now();
-      lock_guard<mutex> lock(fMut);
-      if (now - fLast > chrono::seconds(1)) {
-        if (fStep < 1) {
-          cout << endl;
-          fStep = 1;
-        }
-        cout << "            \rTerraform: " << float(progress * 100) << "% " << numProcessedChunks << " chunks";
-        fLast = now;
-      }
-      return true;
-    }
-    mutex fMut;
-    std::chrono::high_resolution_clock::time_point fLast;
-    int fStep = 0;
-  } progress;
-  auto st = Converter::Run(input, output, options, concurrency, &progress);
+  unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
+  auto st = Converter::Run(input, output, options, concurrency, progress.get());
+  progress.reset();
   return st.ok() ? 0 : -1;
 }

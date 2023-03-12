@@ -4,15 +4,63 @@
 #if __has_include(<mimalloc.h>)
 #include <mimalloc.h>
 #endif
+#include <pbar.hpp>
 
 #include <iostream>
 #include <thread>
 
-int main(int argc, char *argv[]) {
-  using namespace std;
-  using namespace je2be::box360;
-  namespace fs = std::filesystem;
+using namespace std;
+using namespace je2be::box360;
+namespace fs = std::filesystem;
 
+struct StdoutProgressReporter : public Progress {
+  struct State {
+    int fConvert = 0;
+  };
+
+  StdoutProgressReporter() {
+    fIo.reset(new thread([this]() {
+      State prev;
+      pbar::pbar convert(kProgressScale);
+      convert.set_description("Convert");
+
+      convert.enable_recalc_console_width(10);
+
+      while (!fStop) {
+        State s;
+        {
+          lock_guard<mutex> lock(fMut);
+          s = fState;
+        }
+        if (prev.fConvert < s.fConvert) {
+          convert.tick(s.fConvert - prev.fConvert);
+        }
+        prev = s;
+        this_thread::sleep_for(chrono::milliseconds(100));
+      }
+    }));
+  }
+
+  ~StdoutProgressReporter() {
+    fStop = true;
+    fIo->join();
+    fIo.reset();
+  }
+
+  bool report(double progress) override {
+    lock_guard<mutex> lock(fMut);
+    fState.fConvert = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    return true;
+  }
+
+  mutex fMut;
+  unique_ptr<thread> fIo;
+  atomic_bool fStop = false;
+  int const kProgressScale = 100000;
+  State fState;
+};
+
+int main(int argc, char *argv[]) {
 #if __has_include(<mimalloc.h>)
   mi_version();
 #endif
@@ -50,8 +98,7 @@ int main(int argc, char *argv[]) {
   auto start = chrono::high_resolution_clock::now();
   defer {
     auto elapsed = chrono::high_resolution_clock::now() - start;
-    cout << endl
-         << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
+    cout << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
   };
 
   Options options;
@@ -71,24 +118,8 @@ int main(int argc, char *argv[]) {
   }
 #endif
 
-  struct StdoutProgressReporter : public Progress {
-    StdoutProgressReporter() : fLast(std::chrono::high_resolution_clock::now()) {}
-
-    bool report(double progress) override {
-      auto now = chrono::high_resolution_clock::now();
-      lock_guard<mutex> lock(fMut);
-      if (now - fLast > chrono::seconds(1)) {
-        cout << "            \r" << float(progress * 100) << "%";
-        fLast = now;
-      }
-      return true;
-    }
-
-    mutex fMut;
-    std::chrono::high_resolution_clock::time_point fLast;
-  } progress;
-
-  auto st = Converter::Run(input, output, concurrency, options, &progress);
-  cout << endl;
+  unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
+  auto st = Converter::Run(input, output, concurrency, options, progress.get());
+  progress.reset();
   return st.ok() ? 0 : -1;
 }

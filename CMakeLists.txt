@@ -14,7 +14,9 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
       /source-charset:utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
       /wd4100 # Suppress "unreferenced formal parameter" warnings
-      /MP)
+      /MP
+      /Zc:__cplusplus # Enable updated __cplusplus macro
+    )
     if (JE2BE_CORE_USE_INTEL_COMPILER)
       add_link_options(
         $<IF:$<BOOL:JE2BE_CORE_USE_INTEL_COMPILER>,/LIBPATH:$(IPP1ALibDir),>
@@ -472,6 +474,11 @@ if (MSVC)
   list(APPEND je2be_exe_link_libraries mimalloc)
 endif()
 
+CPMAddPackage(
+  NAME pbar
+  GIT_TAG bcb88172cb691b8296cdea97783b362e1d7582af
+  GIT_REPOSITORY https://github.com/estshorter/pbar.git)
+
 
 add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
 target_include_directories(je2be PUBLIC
@@ -488,12 +495,15 @@ target_link_directories(je2be INTERFACE ${je2be_link_directories})
 
 add_executable(j2b example/j2b.cpp ${je2be_header_files})
 target_link_libraries(j2b ${je2be_exe_link_libraries} cxxopts)
+target_include_directories(j2b PRIVATE ${pbar_SOURCE_DIR})
 
 add_executable(b2j example/b2j.cpp ${je2be_header_files})
 target_link_libraries(b2j ${je2be_exe_link_libraries} cxxopts)
+target_include_directories(b2j PRIVATE ${pbar_SOURCE_DIR})
 
 add_executable(x2j example/x2j.cpp ${je2be_header_files})
 target_link_libraries(x2j ${je2be_exe_link_libraries} cxxopts)
+target_include_directories(x2j PRIVATE ${pbar_SOURCE_DIR})
 
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)

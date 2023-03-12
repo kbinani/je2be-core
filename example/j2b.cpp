@@ -4,17 +4,95 @@
 #if __has_include(<mimalloc.h>)
 #include <mimalloc.h>
 #endif
+#include <pbar.hpp>
 
 #include <iostream>
 #include <string>
 #include <thread>
 
-int main(int argc, char *argv[]) {
-  using namespace std;
-  using namespace je2be;
-  using namespace je2be::tobe;
-  namespace fs = std::filesystem;
+using namespace std;
+using namespace je2be;
+using namespace je2be::tobe;
+namespace fs = std::filesystem;
 
+struct StdoutProgressReporter : public Progress {
+  struct State {
+    int fConvert = 0;
+    u64 fNumConvertedChunks = 0;
+    int fPostProcess = 0;
+    int fCompaction = 0;
+  };
+
+  StdoutProgressReporter() {
+    fIo.reset(new thread([this]() {
+      State prev;
+      pbar::pbar convert(kProgressScale);
+      pbar::pbar postProcess(kProgressScale);
+      pbar::pbar compaction(kProgressScale);
+      convert.set_description("Convert");
+      postProcess.set_description("PostProcess");
+      compaction.set_description("LevelDB Compaction");
+
+      convert.enable_recalc_console_width(10);
+      postProcess.enable_recalc_console_width(10);
+      compaction.enable_recalc_console_width(10);
+
+      while (!fStop) {
+        State s;
+        {
+          lock_guard<mutex> lock(fMut);
+          s = fState;
+        }
+        if (prev.fConvert < s.fConvert) {
+          convert.tick(s.fConvert - prev.fConvert);
+        }
+        if (prev.fNumConvertedChunks < s.fNumConvertedChunks) {
+          convert.set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
+        }
+        if (prev.fPostProcess < s.fPostProcess) {
+          postProcess.tick(s.fPostProcess - prev.fPostProcess);
+        }
+        if (prev.fCompaction < s.fCompaction) {
+          compaction.tick(s.fCompaction - prev.fCompaction);
+        }
+        prev = s;
+        this_thread::sleep_for(chrono::milliseconds(100));
+      }
+    }));
+  }
+
+  ~StdoutProgressReporter() {
+    fStop = true;
+    fIo->join();
+    fIo.reset();
+  }
+
+  bool reportConvert(double progress, u64 numConvertedChunks) override {
+    lock_guard<mutex> lock(fMut);
+    fState.fConvert = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    fState.fNumConvertedChunks = numConvertedChunks;
+    return true;
+  }
+  bool reportEntityPostProcess(double progress) override {
+    lock_guard<mutex> lock(fMut);
+    fState.fPostProcess = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    return true;
+  }
+  bool reportCompaction(double progress) override {
+    lock_guard<mutex> lock(fMut);
+    fState.fCompaction = std::clamp<int>((int)floor(progress * kProgressScale), 0, kProgressScale);
+    return true;
+  }
+
+  mutex fMut;
+  u64 fNumConvertedChunks = 0;
+  unique_ptr<thread> fIo;
+  atomic_bool fStop = false;
+  State fState;
+  int const kProgressScale = 100000;
+};
+
+int main(int argc, char *argv[]) {
 #if __has_include(<mimalloc.h>)
   mi_version();
 #endif
@@ -88,63 +166,8 @@ int main(int argc, char *argv[]) {
     }
   }
 #endif
-  struct StdoutProgressReporter : public Progress {
-    StdoutProgressReporter() : fLast(std::chrono::high_resolution_clock::now()) {}
-
-    bool reportConvert(double progress, u64 numConvertedChunks) override {
-      auto now = chrono::high_resolution_clock::now();
-      lock_guard<mutex> lock(fMut);
-      fNumConvertedChunks = std::max(numConvertedChunks, fNumConvertedChunks);
-      if (progress >= 1) {
-        printConvertProgress(1);
-        cout << "          " << endl;
-        fLast = {};
-      } else if (now - fLast > chrono::seconds(1)) {
-        printConvertProgress(progress);
-        fLast = now;
-      }
-      return true;
-    }
-    void printConvertProgress(double progress) {
-      cout << "\rConvert: " << float(progress * 100) << "% " << fNumConvertedChunks << " chunks";
-    }
-    bool reportEntityPostProcess(double progress) override {
-      auto now = chrono::high_resolution_clock::now();
-      lock_guard<mutex> lock(fMut);
-      if (progress >= 1) {
-        printPostProcessProgress(1);
-        cout << "          " << endl;
-        fLast = {};
-      } else if (now - fLast > chrono::seconds(1)) {
-        printPostProcessProgress(progress);
-        fLast = now;
-      }
-      return true;
-    }
-    void printPostProcessProgress(double progress) {
-      cout << "\rPostProcess: " << float(progress * 100) << "%";
-    }
-    bool reportCompaction(double progress) override {
-      auto now = chrono::high_resolution_clock::now();
-      lock_guard<mutex> lock(fMut);
-      if (progress >= 1) {
-        printCompactionProgress(1);
-        cout << "          " << endl;
-        fLast = {};
-      } else if (now - fLast > chrono::seconds(1)) {
-        printCompactionProgress(progress);
-        fLast = now;
-      }
-      return true;
-    }
-    void printCompactionProgress(double progress) {
-      cout << "\rCompaction: " << float(progress * 100) << "%";
-    }
-
-    mutex fMut;
-    chrono::high_resolution_clock::time_point fLast;
-    u64 fNumConvertedChunks = 0;
-  } progress;
-  auto st = Converter::Run(input, output, options, concurrency, &progress);
+  unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
+  auto st = Converter::Run(input, output, options, concurrency, progress.get());
+  progress.reset();
   return st.ok() ? 0 : -1;
 }
