@@ -68,7 +68,6 @@ public:
           continue;
         }
         CompoundTag::ReadUntilEos(value, mcfile::Endian::Little, cb);
-        fDb->Delete({}, leveldb::Slice(key));
       }
     }
   }
