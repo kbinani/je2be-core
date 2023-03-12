@@ -144,5 +144,11 @@ int main(int argc, char *argv[]) {
   unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
   auto st = Converter::Run(input, output, options, concurrency, progress.get());
   progress.reset();
-  return st.ok() ? 0 : -1;
+  if (auto err = st.error(); err) {
+    cerr << err->fWhat << endl;
+    cerr << err->fWhere.fFile << ":" << err->fWhere.fLine << endl;
+    return -1;
+  } else {
+    return 0;
+  }
 }
