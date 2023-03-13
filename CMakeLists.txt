@@ -478,8 +478,8 @@ endif()
 
 CPMAddPackage(
   NAME pbar
-  GIT_TAG bcb88172cb691b8296cdea97783b362e1d7582af
-  GIT_REPOSITORY https://github.com/estshorter/pbar.git)
+  GIT_TAG 1d0d603c66a7c82e7e9e5fcba8c077623107eb8a
+  GIT_REPOSITORY https://github.com/kbinani/pbar.git)
 
 
 add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
