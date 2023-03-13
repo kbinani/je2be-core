@@ -16,6 +16,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
       /wd4100 # Suppress "unreferenced formal parameter" warnings
       /MP
       /Zc:__cplusplus # Enable updated __cplusplus macro
+      /Zc:preprocessor # Enable preprocessor conformance mode
     )
     if (JE2BE_CORE_USE_INTEL_COMPILER)
       add_link_options(
