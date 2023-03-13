@@ -17,13 +17,7 @@ public:
     if (!status.ok()) {
       return;
     }
-    fDb = db;
-  }
-
-  ~Db() {
-    if (fDb) {
-      delete fDb;
-    }
+    fDb.reset(db);
   }
 
   bool valid() const override { return fDb != nullptr; }
@@ -69,10 +63,7 @@ public:
     if (progress) {
       progress({0, 1});
     }
-    if (fDb) {
-      delete fDb;
-      fDb = nullptr;
-    }
+    fDb.reset();
     if (progress) {
       progress({1, 1});
     }
@@ -81,13 +72,12 @@ public:
 
   void abandon() override {
     if (fDb) {
-      delete fDb;
-      fDb = nullptr;
+      fDb.reset();
     }
   }
 
 private:
-  leveldb::DB *fDb;
+  std::unique_ptr<leveldb::DB> fDb;
   leveldb::WriteOptions fWriteOptions;
 };
 
