@@ -26,11 +26,11 @@ namespace je2be::tobe {
 
 class Item::Impl {
 private:
-  using Converter = std::function<CompoundTagPtr(std::string const &, CompoundTag const &, Context const &ctx)>;
+  using Converter = std::function<CompoundTagPtr(std::string const &, CompoundTag const &, Context &ctx)>;
   using Block = mcfile::je::Block;
 
 public:
-  static CompoundTagPtr From(CompoundTagPtr const &item, Context const &ctx) {
+  static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx) {
     auto result = Convert(item, ctx);
     if (result) {
       return Post(result, *item, ctx);
@@ -60,7 +60,7 @@ public:
   }
 
 private:
-  static CompoundTagPtr Convert(CompoundTagPtr const &in, Context const &ctx) {
+  static CompoundTagPtr Convert(CompoundTagPtr const &in, Context &ctx) {
     using namespace std;
 
     static unique_ptr<unordered_map<string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
@@ -272,7 +272,7 @@ private:
     return table;
   }
 
-  static CompoundTagPtr Sign(std::string const &name, CompoundTag const &item, Context const &ctx) {
+  static CompoundTagPtr Sign(std::string const &name, CompoundTag const &item, Context &ctx) {
     auto ret = DefaultBlockItem(name, item, ctx);
     if (!ret) {
       return nullptr;
@@ -497,7 +497,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr FireworkStar(std::string const &name, CompoundTag const &item, Context const &ctx) {
+  static CompoundTagPtr FireworkStar(std::string const &name, CompoundTag const &item, Context &ctx) {
     auto data = Rename("firework_star")(name, item, ctx);
 
     auto explosion = item.query("tag/Explosion")->asCompound();
@@ -921,7 +921,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr LegacySpawnEgg(std::string const &name, CompoundTag const &j, Context const &ctx) {
+  static CompoundTagPtr LegacySpawnEgg(std::string const &name, CompoundTag const &j, Context &ctx) {
     std::string n = name;
     if (auto tag = j.compoundTag("tag"); tag) {
       if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
@@ -966,7 +966,7 @@ private:
     return b;
   }
 
-  static CompoundTagPtr Crossbow(std::string const &name, CompoundTag const &j, Context const &ctx) {
+  static CompoundTagPtr Crossbow(std::string const &name, CompoundTag const &j, Context &ctx) {
     auto b = New("crossbow");
 
     if (auto tagJ = j.compoundTag("tag"); tagJ) {
@@ -1099,7 +1099,7 @@ private:
 
   Impl() = delete;
 
-  static CompoundTagPtr DefaultBlockItem(std::string const &id, CompoundTag const &item, Context const &ctx) {
+  static CompoundTagPtr DefaultBlockItem(std::string const &id, CompoundTag const &item, Context &ctx) {
     using namespace std;
 
     auto block = make_shared<Block>(id);
@@ -1123,7 +1123,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr DefaultItem(std::string const &name, CompoundTag const &item, Context const &ctx) {
+  static CompoundTagPtr DefaultItem(std::string const &name, CompoundTag const &item, Context &ctx) {
     auto ret = Compound();
     ret->insert({
         {"Name", String(name)},
@@ -1133,7 +1133,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context const &ctx) {
+  static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx) {
     using namespace std;
 
     CopyByteValues(itemJ, *itemB, {{"Count"}});
@@ -1284,7 +1284,7 @@ private:
   }
 };
 
-CompoundTagPtr Item::From(CompoundTagPtr const &item, Context const &ctx) {
+CompoundTagPtr Item::From(CompoundTagPtr const &item, Context &ctx) {
   return Impl::From(item, ctx);
 }
 

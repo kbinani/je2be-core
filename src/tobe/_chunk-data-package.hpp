@@ -15,7 +15,7 @@ public:
   explicit ChunkDataPackage(ChunkConversionMode mode);
   ~ChunkDataPackage();
 
-  void build(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities);
+  void build(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities);
   [[nodiscard]] bool serialize(ChunkData &cd);
   void updateAltitude(int x, int y, int z);
   void addTileBlock(int x, int y, int z, std::shared_ptr<mcfile::je::Block const> const &block);

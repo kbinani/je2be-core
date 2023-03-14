@@ -180,6 +180,9 @@ public:
 
     if (ok) {
       level.fCurrentTick = max(level.fCurrentTick, levelData->fMaxChunkLastUpdate);
+      for (auto const &ex : levelData->fExperiments) {
+        level.fExperiments[ex] = true;
+      }
       ok = level.write(output / "level.dat");
       if (ok) {
         ok = levelData->put(db, *data);

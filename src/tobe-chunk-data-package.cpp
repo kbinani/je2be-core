@@ -20,7 +20,7 @@ public:
 
   ~Impl() = default;
 
-  void build(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
+  void build(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
     buildEntities(chunk, ctx, entities);
     buildData2D(chunk, ctx.fWorldData.fDim);
     buildTileEntities(chunk, ctx);
@@ -59,7 +59,7 @@ public:
   }
 
 private:
-  void buildTileEntities(mcfile::je::Chunk const &chunk, Context const &ctx) {
+  void buildTileEntities(mcfile::je::Chunk const &chunk, Context &ctx) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -111,7 +111,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
+  void buildEntities(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
     using namespace std;
     Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
     for (auto e : chunk.fEntities) {
@@ -355,7 +355,7 @@ ChunkDataPackage::ChunkDataPackage(ChunkConversionMode mode) : fImpl(std::make_u
 
 ChunkDataPackage::~ChunkDataPackage() {}
 
-void ChunkDataPackage::build(mcfile::je::Chunk const &chunk, Context const &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
+void ChunkDataPackage::build(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
   return fImpl->build(chunk, ctx, entities);
 }
 

@@ -32,9 +32,9 @@ namespace je2be::tobe {
 
 class Entity::Impl {
   struct ConverterContext {
-    explicit ConverterContext(Context const &ctx) : fCtx(ctx) {}
+    explicit ConverterContext(Context &ctx) : fCtx(ctx) {}
 
-    Context const &fCtx;
+    Context &fCtx;
     std::vector<CompoundTagPtr> fPassengers;
     std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
   };
@@ -171,7 +171,7 @@ class Entity::Impl {
   };
 
 public:
-  static Result From(CompoundTag const &tag, Context const &ctx) {
+  static Result From(CompoundTag const &tag, Context &ctx) {
     using namespace std;
     auto rawId = tag.string("id");
     Result result;
@@ -252,7 +252,7 @@ public:
     return make_tuple(paf.fPosition, b, key);
   }
 
-  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context const &ctx) {
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx) {
     auto rawId = c.string("id");
     assert(rawId);
     auto id = MigrateName(*rawId);
@@ -264,7 +264,7 @@ public:
     return nullptr;
   }
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::string const &name) {
     auto tag = Compound();
 
     PositionAndFacing paf = GetItemFrameTilePositionAndFacing(c);
@@ -299,7 +299,7 @@ public:
     return id == "minecraft:item_frame" || id == "minecraft:glow_item_frame";
   }
 
-  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx) {
+  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx) {
     using namespace std;
     using namespace mcfile;
 
@@ -674,7 +674,7 @@ private:
     E(tadpole, C(Animal, AgeableE(24000), Definitions("+minecraft:tadpole"), PersistentFromFromBucket));
 
     E(camel, C(Animal, Definitions("+minecraft:camel"), AgeableA("camel"), Steerable("camel"), Camel));
-    E(sniffer, C(Animal, Definitions("+minecraft:sniffer"), AgeableA("sniffer")));
+    E(sniffer, C(Animal, Definitions("+minecraft:sniffer"), AgeableA("sniffer"), Sniffer));
 #undef A
 #undef M
 #undef E
@@ -1252,6 +1252,10 @@ private:
     auto health = tag.float32("Health");
     auto attributes = EntityAttributes::Slime(sizeB, health);
     c["Attributes"] = attributes.toBedrockListTag();
+  }
+
+  static void Sniffer(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    ctx.fCtx.fExperiments.insert("sniffer");
   }
 
   static void SnowGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -2202,7 +2206,7 @@ private:
     return items;
   }
 
-  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context const &ctx) {
+  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context &ctx) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -2505,7 +2509,7 @@ private:
 #pragma endregion
 };
 
-Entity::Result Entity::From(CompoundTag const &tag, Context const &ctx) {
+Entity::Result Entity::From(CompoundTag const &tag, Context &ctx) {
   return Impl::From(tag, ctx);
 }
 
@@ -2517,11 +2521,11 @@ std::tuple<Pos3i, CompoundTagPtr, std::string> Entity::ToItemFrameTileEntityBloc
   return Impl::ToItemFrameTileEntityBlock(c, name);
 }
 
-CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context const &ctx) {
+CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context &ctx) {
   return Impl::ToTileEntityData(c, ctx);
 }
 
-CompoundTagPtr Entity::ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name) {
+CompoundTagPtr Entity::ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::string const &name) {
   return Impl::ToItemFrameTileEntityData(c, ctx, name);
 }
 
@@ -2529,7 +2533,7 @@ bool Entity::IsTileEntity(CompoundTag const &tag) {
   return Impl::IsTileEntity(tag);
 }
 
-std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context const &ctx) {
+std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx) {
   return Impl::LocalPlayer(tag, ctx);
 }
 

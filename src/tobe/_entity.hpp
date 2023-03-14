@@ -23,7 +23,7 @@ public:
     std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
   };
 
-  static Result From(CompoundTag const &tag, Context const &ctx);
+  static Result From(CompoundTag const &tag, Context &ctx);
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
@@ -31,9 +31,9 @@ public:
 
   static std::tuple<Pos3i, CompoundTagPtr, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name);
 
-  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context const &ctx);
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx);
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context const &ctx, std::string const &name);
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::string const &name);
 
   static bool IsTileEntity(CompoundTag const &tag);
 
@@ -43,7 +43,7 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context const &ctx);
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx);
 };
 
 } // namespace je2be::tobe

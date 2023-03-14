@@ -99,6 +99,7 @@ public:
   int const fDifficultyBedrock;
   bool const fAllowCommand;
   GameMode const fGameType;
+  std::unordered_set<std::string> fExperiments;
 
   struct VehicleAndPassengers {
     Pos2i fChunk;

@@ -180,6 +180,9 @@ public:
     if (!cdp.serialize(cd)) {
       return nullptr;
     }
+    for (auto const &ex : ctx.fExperiments) {
+      ret->addExperiment(ex);
+    }
 
     if (playerAttachedEntities) {
       Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);

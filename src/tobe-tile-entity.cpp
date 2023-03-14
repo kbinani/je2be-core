@@ -25,7 +25,7 @@ namespace je2be::tobe {
 class TileEntity::Impl {
 private:
   using Block = mcfile::je::Block;
-  using Converter = std::function<CompoundTagPtr(Pos3i const &, Block const &, CompoundTagPtr const &, Context const &ctx)>;
+  using Converter = std::function<CompoundTagPtr(Pos3i const &, Block const &, CompoundTagPtr const &, Context &ctx)>;
 
   Impl() = delete;
 
@@ -39,7 +39,7 @@ public:
   static CompoundTagPtr FromBlockAndTileEntity(Pos3i const &pos,
                                                mcfile::je::Block const &block,
                                                CompoundTagPtr const &tag,
-                                               Context const &ctx) {
+                                               Context &ctx) {
     using namespace std;
     using namespace mcfile;
 
@@ -53,7 +53,7 @@ public:
 
   static CompoundTagPtr FromBlock(Pos3i const &pos,
                                   mcfile::je::Block const &block,
-                                  Context const &ctx) {
+                                  Context &ctx) {
     using namespace std;
     using namespace mcfile;
 
@@ -340,7 +340,7 @@ private:
     return table;
   }
 
-  static CompoundTagPtr Jigsaw(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Jigsaw(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = New("JigsawBlock");
 
     if (c) {
@@ -351,7 +351,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr SuspiciousSand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr SuspiciousSand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = New("SuspiciousSand");
 
     if (c) {
@@ -378,7 +378,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
     auto shardsB = List<Tag::Type::String>();
     for (int i = 0; i < 4; i++) {
@@ -403,7 +403,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
     auto items = GetItemsRemovingSlot(c, "Items", ctx, 6);
     tag->insert({{"isMovable", Bool(true)},
@@ -413,7 +413,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -479,7 +479,7 @@ private:
   }
 
   static Converter NamedEmpty(std::string id) {
-    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) -> CompoundTagPtr {
+    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) -> CompoundTagPtr {
       if (!c) {
         return nullptr;
       }
@@ -487,7 +487,7 @@ private:
     };
   }
 
-  static CompoundTagPtr Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -496,7 +496,7 @@ private:
     return t;
   }
 
-  static CompoundTagPtr Comparator(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Comparator(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -505,7 +505,7 @@ private:
     return t;
   }
 
-  static CompoundTagPtr Campfire(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Campfire(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
     if (!c) {
       return nullptr;
@@ -531,7 +531,7 @@ private:
     return t;
   }
 
-  static CompoundTagPtr Conduit(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Conduit(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -541,7 +541,7 @@ private:
     return t;
   }
 
-  static CompoundTagPtr Bell(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Bell(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -552,7 +552,7 @@ private:
     return t;
   }
 
-  static CompoundTagPtr EnchantingTable(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr EnchantingTable(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -574,7 +574,7 @@ private:
     return t;
   }
 
-  static CompoundTagPtr EndGateway(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr EndGateway(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
     if (!c) {
       return nullptr;
@@ -605,7 +605,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr MovingPiston(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr MovingPiston(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -619,7 +619,7 @@ private:
     return c;
   }
 
-  static CompoundTagPtr CommandBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr CommandBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
@@ -661,7 +661,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Beehive(Pos3i const &pos, Block const &, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Beehive(Pos3i const &pos, Block const &, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -731,7 +731,7 @@ private:
   struct PistonArm {
     explicit PistonArm(bool sticky) : sticky(sticky) {}
 
-    CompoundTagPtr operator()(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) const {
+    CompoundTagPtr operator()(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) const {
       if (!c) {
         return nullptr;
       }
@@ -763,7 +763,7 @@ private:
     bool const sticky;
   };
 
-  static CompoundTagPtr Lectern(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Lectern(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -800,7 +800,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Beacon(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Beacon(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     int primary = -1;
     int secondary = -1;
     if (c) {
@@ -819,7 +819,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr EndPortal(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr EndPortal(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
     tag->insert({
         {"id", String("EndPortal")},
@@ -829,7 +829,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Cauldron(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Cauldron(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -839,7 +839,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Jukebox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Jukebox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -863,7 +863,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Note(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Note(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto note = strings::ToI32(b.property("note", "0"));
@@ -926,7 +926,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr BrewingStand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr BrewingStand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     if (!c) {
@@ -990,7 +990,7 @@ private:
   }
 
   static Converter AnyStorage(std::string const &name) {
-    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
       using namespace std;
 
       auto tag = Compound();
@@ -1009,7 +1009,7 @@ private:
     };
   }
 
-  static CompoundTagPtr Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
     using namespace mcfile::blocks;
     auto tag = Compound();
@@ -1029,7 +1029,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr PottedBamboo(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr PottedBamboo(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -1055,7 +1055,7 @@ private:
   }
 
   static Converter PottedPlant(std::string const &name, std::map<std::string, std::variant<std::string, bool, i32>> const &properties) {
-    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) -> CompoundTagPtr {
+    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) -> CompoundTagPtr {
       using namespace std;
 
       auto tag = Compound();
@@ -1087,7 +1087,7 @@ private:
     };
   }
 
-  static CompoundTagPtr PottedSapling(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr PottedSapling(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
 
     auto tag = Compound();
@@ -1112,7 +1112,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr FlowerPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr FlowerPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
     if (!c) {
       return nullptr;
@@ -1237,7 +1237,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr Banner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Banner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
     auto tag = Compound();
 
@@ -1350,7 +1350,7 @@ private:
     return found->second;
   }
 
-  static CompoundTagPtr Bed(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr Bed(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
     auto color = BedColor(b.fName);
     tag->insert({
@@ -1362,7 +1362,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr ShulkerBox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context const &ctx) {
+  static CompoundTagPtr ShulkerBox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto facing = BlockData::GetFacingDirectionAFromFacing(b);
     auto tag = Compound();
     tag->insert({
@@ -1443,7 +1443,7 @@ private:
     return ret;
   }
 
-  static ListTagPtr GetItemsRemovingSlot(CompoundTagPtr const &c, std::string const &name, Context const &ctx, size_t capacity) {
+  static ListTagPtr GetItemsRemovingSlot(CompoundTagPtr const &c, std::string const &name, Context &ctx, size_t capacity) {
     auto itemsB = List<Tag::Type::Compound>();
     for (int i = 0; i < capacity; i++) {
       itemsB->push_back(Item::Empty());
@@ -1471,7 +1471,7 @@ private:
     return itemsB;
   }
 
-  static ListTagPtr GetItems(CompoundTagPtr const &c, std::string const &name, Context const &ctx) {
+  static ListTagPtr GetItems(CompoundTagPtr const &c, std::string const &name, Context &ctx) {
     auto tag = List<Tag::Type::Compound>();
     auto list = GetList(c, name);
     if (list == nullptr) {
@@ -1508,7 +1508,7 @@ private:
     return found->second->asList();
   }
 
-  static CompoundTagPtr Chest(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context const &ctx) {
+  static CompoundTagPtr Chest(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx) {
     using namespace std;
 
     auto type = b.property("type", "single");
@@ -1547,7 +1547,7 @@ private:
   }
 
   static Converter Furnace(std::string id) {
-    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context const &ctx) {
+    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx) {
       auto ret = AnyStorage(id)(pos, b, comp, ctx);
       if (comp) {
         auto burnTime = comp->int16("BurnTime");
@@ -1568,7 +1568,7 @@ private:
   }
 
   static Converter Sign(std::string id) {
-    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context const &ctx) -> CompoundTagPtr {
+    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context &ctx) -> CompoundTagPtr {
       using namespace je2be::props;
       using namespace std;
 
@@ -1610,13 +1610,13 @@ bool TileEntity::IsTileEntity(mcfile::blocks::BlockId id) {
 CompoundTagPtr TileEntity::FromBlockAndTileEntity(Pos3i const &pos,
                                                   mcfile::je::Block const &block,
                                                   CompoundTagPtr const &tag,
-                                                  Context const &ctx) {
+                                                  Context &ctx) {
   return Impl::FromBlockAndTileEntity(pos, block, tag, ctx);
 }
 
 CompoundTagPtr TileEntity::FromBlock(Pos3i const &pos,
                                      mcfile::je::Block const &block,
-                                     Context const &ctx) {
+                                     Context &ctx) {
   return Impl::FromBlock(pos, block, ctx);
 }
 

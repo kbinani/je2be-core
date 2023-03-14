@@ -10,7 +10,7 @@ class Item {
   class Impl;
 
 public:
-  static CompoundTagPtr From(CompoundTagPtr const &item, Context const &ctx);
+  static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx);
   static i8 GetSkullTypeFromBlockName(std::string_view const &name);
   static CompoundTagPtr Empty();
 };

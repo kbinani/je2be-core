@@ -56,6 +56,10 @@ public:
     fMaxChunkLastUpdate = std::max(fMaxChunkLastUpdate, chunk.fLastUpdate);
   }
 
+  void addExperiment(std::string const &e) {
+    fExperiments.insert(e);
+  }
+
   void drain(LevelData &wd) {
     wd.fPortals.add(fPortalBlocks, fDim);
     for (auto const &it : fMapItems) {
@@ -74,6 +78,9 @@ public:
       wd.fError = fError;
     }
     wd.fMaxChunkLastUpdate = std::max(wd.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
+    for (auto const &e : fExperiments) {
+      wd.fExperiments.insert(e);
+    }
   }
 
   void drain(WorldData &out) {
@@ -106,6 +113,9 @@ public:
       out.fError = fError;
     }
     out.fMaxChunkLastUpdate = std::max(out.fMaxChunkLastUpdate, fMaxChunkLastUpdate);
+    for (auto const &e : fExperiments) {
+      out.fExperiments.insert(e);
+    }
   }
 
 private:
@@ -163,6 +173,7 @@ private:
   StructurePieceCollection fStructures;
   std::optional<Status::ErrorData> fError;
   i64 fMaxChunkLastUpdate = 0;
+  std::unordered_set<std::string> fExperiments;
 };
 
 } // namespace je2be::tobe
