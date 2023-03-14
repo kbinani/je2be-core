@@ -2,7 +2,7 @@
 
 namespace je2be::toje {
 
-char const *const kVersionString = "1.19.4 Pre-release 2"; //TODO:1.19.4
+char const *const kVersionString = "1.19.4";
 constexpr int kLevelVersion = 19133;
 constexpr int kDataVersion = mcfile::je::Chunk::kDataVersion;
 constexpr int kDataVersionMaxLegacy = 2730; // 1.17.1
