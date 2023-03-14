@@ -675,6 +675,10 @@ private:
 
     E(camel, C(Animal, Definitions("+minecraft:camel"), AgeableA("camel"), Steerable("camel"), Camel));
     E(sniffer, C(Animal, Definitions("+minecraft:sniffer"), AgeableA("sniffer"), Sniffer));
+    E(text_display, Null);
+    E(block_display, Null);
+    E(item_display, Null);
+    E(interaction, Null);
 #undef A
 #undef M
 #undef E
