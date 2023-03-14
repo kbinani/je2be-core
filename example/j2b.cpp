@@ -38,42 +38,45 @@ struct StdoutProgressReporter : public Progress {
         }
         if (s.fConvert) {
           if (!convert) {
-            convert.reset(new pbar::pbar(s.fConvert->fDen));
+            convert.reset(new pbar::pbar(s.fConvert->fDen, "Convert"));
             convert->enable_recalc_console_width(10);
           }
           if (prev.fConvert) {
-            convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+            if (prev.fConvert->fNum < prev.fConvert->fDen) {
+              convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+            }
           } else {
             convert->tick(s.fConvert->fNum);
           }
-          convert->set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
         }
         if (s.fPostProcess) {
           if (!postProcess) {
-            postProcess.reset(new pbar::pbar(s.fPostProcess->fDen));
-            postProcess->set_description("PostProcess");
+            postProcess.reset(new pbar::pbar(s.fPostProcess->fDen, "PostProcess"));
             postProcess->enable_recalc_console_width(10);
           }
           if (prev.fPostProcess) {
-            postProcess->tick(s.fPostProcess->fNum - prev.fPostProcess->fNum);
+            if (prev.fPostProcess->fNum < prev.fPostProcess->fDen) {
+              postProcess->tick(s.fPostProcess->fNum - prev.fPostProcess->fNum);
+            }
           } else {
             postProcess->tick(s.fPostProcess->fNum);
           }
         }
         if (s.fCompaction) {
           if (!compaction) {
-            compaction.reset(new pbar::pbar(s.fCompaction->fDen));
-            compaction->set_description("LevelDB Compaction");
+            compaction.reset(new pbar::pbar(s.fCompaction->fDen, "LevelDB Compaction"));
             compaction->enable_recalc_console_width(10);
           }
           if (prev.fCompaction) {
-            compaction->tick(s.fCompaction->fNum - prev.fCompaction->fNum);
+            if (prev.fCompaction->fNum < prev.fCompaction->fDen) {
+              compaction->tick(s.fCompaction->fNum - prev.fCompaction->fNum);
+            }
           } else {
             compaction->tick(s.fCompaction->fNum);
           }
         }
         prev = s;
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(16));
       }
     }));
   }
@@ -86,23 +89,36 @@ struct StdoutProgressReporter : public Progress {
 
   bool reportConvert(Rational<u64> const &progress, u64 numConvertedChunks) override {
     lock_guard<mutex> lock(fMut);
-    fState.fConvert = progress;
+    if (fState.fConvert) {
+      fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
+    } else {
+      fState.fConvert = progress;
+    }
     fState.fNumConvertedChunks = numConvertedChunks;
     return true;
   }
+
   bool reportEntityPostProcess(Rational<u64> const &progress) override {
     lock_guard<mutex> lock(fMut);
-    fState.fPostProcess = progress;
+    if (fState.fPostProcess) {
+      fState.fPostProcess->fNum = std::max(fState.fPostProcess->fNum, progress.fNum);
+    } else {
+      fState.fPostProcess = progress;
+    }
     return true;
   }
+
   bool reportCompaction(Rational<u64> const &progress) override {
     lock_guard<mutex> lock(fMut);
-    fState.fCompaction = progress;
+    if (fState.fCompaction) {
+      fState.fCompaction->fNum = std::max(fState.fCompaction->fNum, progress.fNum);
+    } else {
+      fState.fCompaction = progress;
+    }
     return true;
   }
 
   mutex fMut;
-  u64 fNumConvertedChunks = 0;
   unique_ptr<thread> fIo;
   atomic_bool fStop = false;
   State fState;
@@ -184,12 +200,12 @@ int main(int argc, char *argv[]) {
 #endif
   unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
   auto st = Converter::Run(input, output, options, concurrency, progress.get());
-  progress.reset();
   if (auto err = st.error(); err) {
     cerr << err->fWhat << endl;
     cerr << err->fWhere.fFile << ":" << err->fWhere.fLine << endl;
     return -1;
   } else {
+    cout << progress->fState.fNumConvertedChunks << " chunks converted" << endl;
     return 0;
   }
 }

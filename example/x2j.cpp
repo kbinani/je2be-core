@@ -32,18 +32,19 @@ struct StdoutProgressReporter : public Progress {
         }
         if (s.fConvert) {
           if (!convert) {
-            convert.reset(new pbar::pbar(s.fConvert->fDen));
-            convert->set_description("Convert");
+            convert.reset(new pbar::pbar(s.fConvert->fDen, "Convert"));
             convert->enable_recalc_console_width(10);
           }
           if (prev.fConvert) {
-            convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+            if (prev.fConvert->fNum < prev.fConvert->fDen) {
+              convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+            }
           } else {
             convert->tick(s.fConvert->fNum);
           }
         }
         prev = s;
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(16));
       }
     }));
   }
@@ -56,7 +57,11 @@ struct StdoutProgressReporter : public Progress {
 
   bool report(Rational<u64> const &progress) override {
     lock_guard<mutex> lock(fMut);
-    fState.fConvert = progress;
+    if (fState.fConvert) {
+      fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
+    } else {
+      fState.fConvert = progress;
+    }
     return true;
   }
 

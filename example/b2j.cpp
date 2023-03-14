@@ -36,30 +36,32 @@ struct StdoutProgressReporter : public Progress {
         }
         if (s.fConvert) {
           if (!convert) {
-            convert.reset(new pbar::pbar(s.fConvert->fDen));
+            convert.reset(new pbar::pbar(s.fConvert->fDen, "Convert"));
             convert->enable_recalc_console_width(10);
           }
           if (prev.fConvert) {
-            convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+            if (prev.fConvert->fNum < prev.fConvert->fDen) {
+              convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
+            }
           } else {
             convert->tick(s.fConvert->fNum);
           }
-          convert->set_description("Convert(" + to_string(s.fNumConvertedChunks) + "chunks)");
         }
         if (s.fTerraform) {
           if (!terraform) {
-            terraform.reset(new pbar::pbar(s.fTerraform->fDen));
+            terraform.reset(new pbar::pbar(s.fTerraform->fDen, "Terraform"));
             terraform->enable_recalc_console_width(10);
           }
           if (prev.fTerraform) {
-            terraform->tick(s.fTerraform->fNum - prev.fTerraform->fNum);
+            if (prev.fTerraform->fNum < prev.fTerraform->fDen) {
+              terraform->tick(s.fTerraform->fNum - prev.fTerraform->fNum);
+            }
           } else {
             terraform->tick(s.fTerraform->fNum);
           }
-          terraform->set_description("Terraform(" + to_string(s.fNumTerraformedChunks) + "chunks)");
         }
         prev = s;
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(16));
       }
     }));
   }
@@ -72,14 +74,22 @@ struct StdoutProgressReporter : public Progress {
 
   bool reportConvert(Rational<u64> const &progress, u64 numConvertedChunks) override {
     lock_guard<mutex> lock(fMut);
-    fState.fConvert = progress;
+    if (fState.fConvert) {
+      fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
+    } else {
+      fState.fConvert = progress;
+    }
     fState.fNumConvertedChunks = numConvertedChunks;
     return true;
   }
 
   bool reportTerraform(Rational<u64> const &progress, u64 numProcessedChunks) override {
     lock_guard<mutex> lock(fMut);
-    fState.fTerraform = progress;
+    if (fState.fTerraform) {
+      fState.fTerraform->fNum = std::max(fState.fTerraform->fNum, progress.fNum);
+    } else {
+      fState.fTerraform = progress;
+    }
     fState.fNumTerraformedChunks = numProcessedChunks;
     return true;
   }
@@ -149,12 +159,13 @@ int main(int argc, char *argv[]) {
 #endif
   unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
   auto st = Converter::Run(input, output, options, concurrency, progress.get());
-  progress.reset();
   if (auto err = st.error(); err) {
     cerr << err->fWhat << endl;
     cerr << err->fWhere.fFile << ":" << err->fWhere.fLine << endl;
     return -1;
   } else {
+    cout << progress->fState.fNumConvertedChunks << " chunks converted" << endl;
+    cout << progress->fState.fNumTerraformedChunks << " chunks terraformed" << endl;
     return 0;
   }
 }
