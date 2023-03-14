@@ -19,7 +19,13 @@ public:
   }
 
   static i32 BedrockVariantFromJavaType(std::string const &type) {
-    return Forward(type, 0);
+    i32 ret = Forward(type, 0);
+    // TODO:1.20
+    if (ret > 7) {
+      return 0;
+    } else {
+      return ret;
+    }
   }
 
   static std::string JavaTypeFromBedrockVariant(i32 variant) {
