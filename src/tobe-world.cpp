@@ -28,7 +28,9 @@ public:
     using namespace std;
     using namespace std::placeholders;
     namespace fs = std::filesystem;
-
+    if (total == 0) {
+      return Status::Ok();
+    }
     vector<Pos2i> works;
     for (auto const &it : entityStore->fChunks) {
       works.push_back(it);

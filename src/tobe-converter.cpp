@@ -173,7 +173,8 @@ public:
       }
     }
     if (progress) {
-      if (!progress->reportEntityPostProcess({totalEntityChunks, totalEntityChunks})) {
+      u64 v = std::max<u64>(1, totalEntityChunks);
+      if (!progress->reportEntityPostProcess({v, v})) {
         return JE2BE_ERROR;
       }
     }
