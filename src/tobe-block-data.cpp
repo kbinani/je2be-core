@@ -293,7 +293,8 @@ public:
 
   static Converter Sponge(std::string const &type) { return Subtype("sponge", "sponge_type", type); }
 
-  static Converter Wool(std::string const &color) { return Subtype("wool", "color", color); }
+  // before 1.19.70, color was stored in states:
+  //static Converter Wool(std::string const &color) { return Subtype("wool", "color", color); }
 
   static Converter RedSandstone(std::string const &type) { return Subtype("red_sandstone", "sand_stone_type", type); }
 
@@ -923,22 +924,22 @@ public:
     E(chiseled_red_sandstone, RedSandstone("heiroglyphs"));
     E(cut_red_sandstone, RedSandstone("cut"));
     E(smooth_red_sandstone, RedSandstone("smooth"));
-    E(white_wool, Wool("white"));
-    E(orange_wool, Wool("orange"));
-    E(magenta_wool, Wool("magenta"));
-    E(light_blue_wool, Wool("light_blue"));
-    E(yellow_wool, Wool("yellow"));
-    E(lime_wool, Wool("lime"));
-    E(pink_wool, Wool("pink"));
-    E(gray_wool, Wool("gray"));
-    E(light_gray_wool, Wool("silver"));
-    E(cyan_wool, Wool("cyan"));
-    E(purple_wool, Wool("purple"));
-    E(blue_wool, Wool("blue"));
-    E(brown_wool, Wool("brown"));
-    E(green_wool, Wool("green"));
-    E(red_wool, Wool("red"));
-    E(black_wool, Wool("black"));
+    E(white_wool, Identity);
+    E(orange_wool, Identity);
+    E(magenta_wool, Identity);
+    E(light_blue_wool, Identity);
+    E(yellow_wool, Identity);
+    E(lime_wool, Identity);
+    E(pink_wool, Identity);
+    E(gray_wool, Identity);
+    E(light_gray_wool, Identity);
+    E(cyan_wool, Identity);
+    E(purple_wool, Identity);
+    E(blue_wool, Identity);
+    E(brown_wool, Identity);
+    E(green_wool, Identity);
+    E(red_wool, Identity);
+    E(black_wool, Identity);
     E(snow_block, Rename("snow"));
     E(quartz_block, QuartzBlock("default"));
     E(smooth_quartz, QuartzBlock("smooth"));
