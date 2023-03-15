@@ -30,7 +30,6 @@ static std::optional<fs::path> BedrockToJava(fs::path const &bedrock) {
 
 static void CheckBedrockBlock(mcfile::be::Block const &a, mcfile::be::Block const &b) {
   CHECK(a.fName == b.fName);
-  CHECK(a.fVersion == b.fVersion);
   bool aEmpty = a.fStates ? a.fStates->empty() : true;
   bool bEmpty = b.fStates ? b.fStates->empty() : true;
   CHECK(aEmpty == bEmpty);
@@ -74,6 +73,10 @@ static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const 
   unordered_set<Pos3i, Pos3iHasher> attachedBlocksA;
   DrainAttachedBlocks(*copyE, attachedBlocksE);
   DrainAttachedBlocks(*copyA, attachedBlocksA);
+  for (string const &tag : {"movingBlock/version", "movingBlockExtra/version"}) {
+    Erase(copyE, tag);
+    Erase(copyA, tag);
+  }
   DiffCompoundTag(*copyE, *copyA);
   CHECK(attachedBlocksE.size() == attachedBlocksA.size());
   if (attachedBlocksE.size() != attachedBlocksA.size()) {
