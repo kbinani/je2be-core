@@ -22,10 +22,16 @@ public:
 
   bool valid() const override { return fDb != nullptr; }
 
-  void put(std::string const &key, leveldb::Slice const &value) override {
+  Status put(std::string const &key, leveldb::Slice const &value) override {
     assert(fDb);
     if (fDb) {
-      fDb->Put(fWriteOptions, key, value);
+      if (auto st = fDb->Put(fWriteOptions, key, value); !st.ok()) {
+        return JE2BE_ERROR_WHAT(st.ToString());
+      } else {
+        return Status::Ok();
+      }
+    } else {
+      return JE2BE_ERROR;
     }
   }
 
@@ -50,15 +56,20 @@ public:
     }
   }
 
-  void del(std::string const &key) override {
-    if (fDb) {
-      fDb->Delete(leveldb::WriteOptions{}, key);
+  Status del(std::string const &key) override {
+    if (!fDb) {
+      return JE2BE_ERROR;
+    }
+    if (auto st = fDb->Delete(leveldb::WriteOptions{}, key); !st.ok()) {
+      return JE2BE_ERROR_WHAT(st.ToString());
+    } else {
+      return Status::Ok();
     }
   }
 
-  bool close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
+  Status close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
     if (!fDb) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (progress) {
       progress({0, 1});
@@ -67,7 +78,7 @@ public:
     if (progress) {
       progress({1, 1});
     }
-    return true;
+    return Status::Ok();
   }
 
   void abandon() override {

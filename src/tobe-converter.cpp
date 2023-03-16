@@ -191,12 +191,15 @@ public:
     }
 
     if (ok) {
-      ok = db.close([progress](Rational<u64> const &p) {
+      auto st = db.close([progress](Rational<u64> const &p) {
         if (!progress) {
           return;
         }
         progress->reportCompaction(p);
       });
+      if (!st.ok()) {
+        return st;
+      }
     } else {
       db.abandon();
     }

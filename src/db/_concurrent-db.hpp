@@ -70,13 +70,13 @@ class ConcurrentDb : public DbInterface {
       abandon();
     }
 
-    void put(std::string const &key, std::string const &value) {
+    Status put(std::string const &key, std::string const &value) {
       using namespace std;
       if (!fValue || !fKey) {
-        return;
+        return JE2BE_ERROR;
       }
       if (key.empty()) {
-        return;
+        return JE2BE_ERROR;
       }
       u64 sequence = fSequencer.fetch_add(1);
       string block;
@@ -84,24 +84,31 @@ class ConcurrentDb : public DbInterface {
 
       u32 valueSizeCompressed = block.size();
       u32 keySize = key.size();
+      Status st;
 
       if (fwrite(block.data(), block.size(), 1, fValue) != 1) {
+        st = JE2BE_ERROR;
         goto error;
       }
 
       if (fwrite(&keySize, sizeof(keySize), 1, fKey) != 1) {
+        st = JE2BE_ERROR;
         goto error;
       }
       if (fwrite(key.data(), key.size(), 1, fKey) != 1) {
+        st = JE2BE_ERROR;
         goto error;
       }
       if (fwrite(&valueSizeCompressed, sizeof(valueSizeCompressed), 1, fKey) != 1) {
+        st = JE2BE_ERROR;
         goto error;
       }
       if (fwrite(&fOffset, sizeof(fOffset), 1, fKey) != 1) {
+        st = JE2BE_ERROR;
         goto error;
       }
       if (fwrite(&sequence, sizeof(sequence), 1, fKey) != 1) {
+        st = JE2BE_ERROR;
         goto error;
       }
       fOffset += block.size();
@@ -114,7 +121,7 @@ class ConcurrentDb : public DbInterface {
         }
         fNumPrefix[idx] = num;
       }
-      return;
+      return st;
 
     error:
       if (fKey) {
@@ -126,6 +133,7 @@ class ConcurrentDb : public DbInterface {
         fValue = nullptr;
       }
       Fs::DeleteAll(fDir);
+      return st;
     }
 
     struct CloseResult {
@@ -467,13 +475,13 @@ public:
     return fValid;
   }
 
-  void put(std::string const &key, leveldb::Slice const &value) override {
-    gate()->get((uintptr_t)this, fWriterDir, fSequence, fWriterIdGenerator)->put(key, value.ToString());
+  Status put(std::string const &key, leveldb::Slice const &value) override {
+    return gate()->get((uintptr_t)this, fWriterDir, fSequence, fWriterIdGenerator)->put(key, value.ToString());
   }
 
-  void del(std::string const &key) override {}
+  Status del(std::string const &key) override { return Status::Ok(); }
 
-  bool close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
+  Status close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
     using namespace std;
     using namespace std::placeholders;
     using namespace leveldb;
@@ -499,39 +507,55 @@ public:
         },
         Parallel::MergeVector<Writer::CloseResult>);
     if (!ok) {
-      return false;
+      return JE2BE_ERROR;
     }
 
+    struct BuildResult {
+      vector<TableBuildResult> fResults;
+      Status fStatus;
+      static void Merge(BuildResult const &from, BuildResult &to) {
+        if (!to.fStatus.ok()) {
+          return;
+        }
+        if (from.fStatus.ok()) {
+          std::copy(from.fResults.begin(), from.fResults.end(), std::back_inserter(to.fResults));
+        } else {
+          to.fStatus = from.fStatus;
+        }
+      }
+    };
     vector<u8> works;
     for (int i = 0; i < 256; i++) {
       works.push_back((u8)i);
     }
     atomic_uint64_t fileNumber(1);
     atomic_uint64_t done(0);
-    auto result = Parallel::Reduce<u8, vector<TableBuildResult>>(
+    auto result = Parallel::Reduce<u8, BuildResult>(
         works,
         fConcurrency,
-        vector<TableBuildResult>(),
+        BuildResult{},
         [&](u8 prefix) {
-          auto ret = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, &ok, prefix);
+          BuildResult ret;
+          auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix);
+          ret.fStatus = st;
           auto p = done.fetch_add(1) + 1;
           if (progress) {
             progress({p, 256 + 1});
           }
           return ret;
         },
-        Parallel::MergeVector<TableBuildResult>);
-    if (!ok) {
-      return false;
+        BuildResult::Merge);
+    if (!result.fStatus.ok()) {
+      return result.fStatus;
     }
-    sort(result.begin(), result.end(), [](TableBuildResult const &lhs, TableBuildResult const &rhs) {
+    sort(result.fResults.begin(), result.fResults.end(), [](TableBuildResult const &lhs, TableBuildResult const &rhs) {
       return lhs.fFileNumber < rhs.fFileNumber;
     });
 
     InternalKeyComparator icmp(BytewiseComparator());
     VersionEdit edit;
     u64 maxFileNumber = 0;
-    for (auto const &it : result) {
+    for (auto const &it : result.fResults) {
       maxFileNumber = (std::max)(maxFileNumber, it.fFileNumber);
       edit.AddFile(1, it.fFileNumber, it.fFileSize, it.fSmallest, it.fLargest);
     }
@@ -545,12 +569,12 @@ public:
     fs::path manifestFile = fDbName / manifestFileName;
     unique_ptr<WritableFile> meta(OpenWritable(manifestFile));
     if (!meta) {
-      return false;
+      return JE2BE_ERROR;
     }
     leveldb::log::Writer writer(meta.get());
     leveldb::Status st = writer.AddRecord(manifestRecord);
     if (!st.ok()) {
-      return false;
+      return JE2BE_ERROR;
     }
     meta->Close();
     meta.reset();
@@ -558,11 +582,11 @@ public:
     fs::path currentFile = fDbName / "CURRENT";
     unique_ptr<WritableFile> current(OpenWritable(currentFile));
     if (!current) {
-      return false;
+      return JE2BE_ERROR;
     }
     st = current->Append(manifestFileName + "\x0a");
     if (!st.ok()) {
-      return false;
+      return JE2BE_ERROR;
     }
     current->Close();
     current.reset();
@@ -571,82 +595,64 @@ public:
       progress({257, 257});
     }
 
-    return true;
+    return Status::Ok();
   }
 
-  static std::vector<TableBuildResult> BuildTable(
+  static Status BuildTable(
       std::filesystem::path const &dbname,
       std::filesystem::path const &writerDir,
       std::vector<Writer::CloseResult> const &writerIds,
       std::atomic_uint64_t *fileNumber,
-      std::atomic_bool *ok,
+      std::vector<TableBuildResult> &out,
       u8 prefix) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
 
-    vector<TableBuildResult> result;
-
     vector<Key> keys;
     for (Writer::CloseResult const &cr : writerIds) {
-      if (!ok->load()) {
-        break;
-      }
       int expectedEncount = (int)cr.fNumPrefix[prefix];
       if (expectedEncount == 0) {
         continue;
       }
       fs::path fname = writerDir / to_string(cr.fWriterId) / "key.bin";
-      FILE *fp = mcfile::File::Open(fname, mcfile::File::Mode::Read);
+      mcfile::ScopedFile fp(mcfile::File::Open(fname, mcfile::File::Mode::Read));
       if (!fp) {
-        ok->store(false);
-        break;
+        return JE2BE_ERROR;
       }
       int encount = 0;
       for (u64 i = 0; i < cr.fNumKeys; i++) {
         Key key;
         key.fWriterId = cr.fWriterId;
         u32 keySize;
-        if (fread(&keySize, sizeof(keySize), 1, fp) != 1) {
-          ok->store(false);
-          fclose(fp);
-          break;
+        if (fread(&keySize, sizeof(keySize), 1, fp.get()) != 1) {
+          return JE2BE_ERROR;
         }
         u8 first;
-        if (fread(&first, sizeof(first), 1, fp) != 1) {
-          ok->store(false);
-          fclose(fp);
-          break;
+        if (fread(&first, sizeof(first), 1, fp.get()) != 1) {
+          return JE2BE_ERROR;
         }
         if (first != prefix) {
-          if (!mcfile::File::Fseek(fp, keySize + sizeof(u32) + sizeof(u64) + sizeof(u64) - 1, SEEK_CUR)) {
-            ok->store(false);
-            break;
+          if (!mcfile::File::Fseek(fp.get(), keySize + sizeof(u32) + sizeof(u64) + sizeof(u64) - 1, SEEK_CUR)) {
+            return JE2BE_ERROR;
           }
           continue;
         }
         key.fKey.resize(keySize);
         key.fKey[0] = (char)prefix;
         if (keySize > 1) {
-          if (fread(key.fKey.data() + 1, keySize - 1, 1, fp) != 1) {
-            ok->store(false);
-            break;
+          if (fread(key.fKey.data() + 1, keySize - 1, 1, fp.get()) != 1) {
+            return JE2BE_ERROR;
           }
         }
-        if (fread(&key.fValueSizeCompressed, sizeof(key.fValueSizeCompressed), 1, fp) != 1) {
-          ok->store(false);
-          fclose(fp);
-          break;
+        if (fread(&key.fValueSizeCompressed, sizeof(key.fValueSizeCompressed), 1, fp.get()) != 1) {
+          return JE2BE_ERROR;
         }
-        if (fread(&key.fOffset, sizeof(key.fOffset), 1, fp) != 1) {
-          ok->store(false);
-          fclose(fp);
-          break;
+        if (fread(&key.fOffset, sizeof(key.fOffset), 1, fp.get()) != 1) {
+          return JE2BE_ERROR;
         }
-        if (fread(&key.fSequence, sizeof(key.fSequence), 1, fp) != 1) {
-          ok->store(false);
-          fclose(fp);
-          break;
+        if (fread(&key.fSequence, sizeof(key.fSequence), 1, fp.get()) != 1) {
+          return JE2BE_ERROR;
         }
         keys.push_back(key);
         encount++;
@@ -654,13 +660,6 @@ public:
           break;
         }
       }
-      fclose(fp);
-      if (!ok->load()) {
-        break;
-      }
-    }
-    if (!ok->load()) {
-      return {};
     }
     Comparator const *cmp = BytewiseComparator();
     sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
@@ -675,9 +674,8 @@ public:
       size += key.fValueSizeCompressed;
       if (size >= kMaxFileSize) {
         u64 fn = fileNumber->fetch_add(1);
-        if (!Write(dbname, writerDir, bin, fn, result)) {
-          ok->store(false);
-          return {};
+        if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
+          return st;
         }
         size = 0;
         bin.clear();
@@ -685,26 +683,25 @@ public:
     }
     if (!bin.empty()) {
       u64 fn = fileNumber->fetch_add(1);
-      if (!Write(dbname, writerDir, bin, fn, result)) {
-        ok->store(false);
-        return {};
+      if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
+        return st;
       }
     }
-    return result;
+    return Status::Ok();
   }
 
-  static bool Write(std::filesystem::path dbname, std::optional<std::filesystem::path> tempDir, std::vector<Key> &keys, u64 fileNumber, std::vector<TableBuildResult> &results) {
+  static Status Write(std::filesystem::path dbname, std::optional<std::filesystem::path> tempDir, std::vector<Key> &keys, u64 fileNumber, std::vector<TableBuildResult> &results) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
 
     if (keys.empty()) {
-      return true;
+      return Status::Ok();
     }
 
     unique_ptr<WritableFile> file(OpenWritable(TableFilePath(dbname, fileNumber)));
     if (!file) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     leveldb::Options bo;
@@ -713,7 +710,7 @@ public:
     bo.comparator = &icmp;
     auto builder = make_shared<ZlibRawTableBuilder>(bo, file.get());
 
-    bool ok = true;
+    Status st;
     string value;
     optional<u32> openedFile;
     FILE *fp = nullptr;
@@ -737,18 +734,18 @@ public:
         fs::path fname = writerDir / to_string(it.fWriterId) / "value.bin";
         f = mcfile::File::Open(fname, mcfile::File::Mode::Read);
         if (!f) {
-          return false;
+          return JE2BE_ERROR;
         }
         fp = f;
         openedFile = it.fWriterId;
       }
       if (!mcfile::File::Fseek(f, it.fOffset, SEEK_SET)) {
-        ok = false;
+        st = JE2BE_ERROR;
         goto cleanup;
       }
       value.resize(it.fValueSizeCompressed);
       if (fread(value.data(), it.fValueSizeCompressed, 1, f) != 1) {
-        ok = false;
+        st = JE2BE_ERROR;
         goto cleanup;
       }
       builder->AddAlreadyCompressedAndFlush(ik.Encode(), value);
@@ -769,7 +766,7 @@ public:
     if (fp) {
       fclose(fp);
     }
-    return ok;
+    return st;
   }
 
   static leveldb::WritableFile *OpenWritable(std::filesystem::path const &path) {

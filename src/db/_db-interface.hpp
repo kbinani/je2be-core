@@ -2,6 +2,7 @@
 
 #include <je2be/integers.hpp>
 #include <je2be/rational.hpp>
+#include <je2be/status.hpp>
 
 #include <functional>
 #include <optional>
@@ -17,9 +18,9 @@ class DbInterface {
 public:
   virtual ~DbInterface() {}
   virtual bool valid() const = 0;
-  virtual void put(std::string const &key, leveldb::Slice const &value) = 0;
-  virtual void del(std::string const &key) = 0;
-  virtual bool close(std::function<void(Rational<u64> const &progress)> progress = nullptr) = 0;
+  virtual Status put(std::string const &key, leveldb::Slice const &value) = 0;
+  virtual Status del(std::string const &key) = 0;
+  virtual Status close(std::function<void(Rational<u64> const &progress)> progress = nullptr) = 0;
   virtual void abandon() = 0;
 };
 
