@@ -290,7 +290,7 @@ static int DumpEntities(fs::path const &dbDir, int chunkX, int chunkZ, mcfile::D
   string entitiesValue;
   ReadOptions ro;
   if (db->Get(ro, entitiesKey, &entitiesValue).ok()) {
-    CompoundTag::ReadUntilEos(entitiesValue, mcfile::Endian::Little, [](CompoundTagPtr const &e) {
+    CompoundTag::ReadSequentialUntilEos(entitiesValue, mcfile::Endian::Little, [](CompoundTagPtr const &e) {
       mcfile::nbt::PrintAsJson(cout, *e, {.fTypeHint = true});
     });
   }

@@ -68,8 +68,9 @@ public:
           continue;
         }
         Status st;
-        CompoundTag::ReadUntilEos(value, mcfile::Endian::Little, [&](CompoundTagPtr const &tag) {
+        CompoundTag::ReadSequential(value, mcfile::Endian::Little, [&](CompoundTagPtr const &tag) {
           st = cb(tag);
+          return st.ok();
         });
         if (!st.ok()) {
           return st;
