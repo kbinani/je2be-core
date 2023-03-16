@@ -69,7 +69,7 @@ public:
       auto key = mcfile::be::DbKey::StructureBounds(it.first.fX, it.first.fZ, dim);
       leveldb::Slice value((char const *)buffer.data(), buffer.size());
       if (auto st = db.put(key, value); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
 

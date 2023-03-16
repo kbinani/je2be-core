@@ -24,7 +24,7 @@ public:
   [[nodiscard]] Status put(DbInterface &db, CompoundTag const &javaLevelData) {
     Status st;
     if (st = fPortals.putInto(db); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     st = fJavaEditionMap.each([this, &db](i32 mapId) {
       auto found = fMapItems.find(mapId);
@@ -34,32 +34,40 @@ public:
       return Map::Convert(mapId, *found->second, fInput, fOptions, db);
     });
     if (!st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (st = putAutonomousEntities(db); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
 
     auto theEnd = Level::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
     if (theEnd) {
       if (st = db.put(mcfile::be::DbKey::TheEnd(), *theEnd); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     } else {
       if (st = db.del(mcfile::be::DbKey::TheEnd()); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
 
     if (st = fStructures.put(db); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
 
     auto mobEvents = Level::MobEvents(javaLevelData);
     if (mobEvents) {
-      return db.put(mcfile::be::DbKey::MobEvents(), *mobEvents);
+      if (st = db.put(mcfile::be::DbKey::MobEvents(), *mobEvents); !st.ok()) {
+        return JE2BE_ERROR_PUSH(st);
+      } else {
+        return Status::Ok();
+      }
     } else {
-      return db.del(mcfile::be::DbKey::MobEvents());
+      if (st = db.del(mcfile::be::DbKey::MobEvents()); !st.ok()) {
+        return JE2BE_ERROR_PUSH(st);
+      } else {
+        return Status::Ok();
+      }
     }
   }
 

@@ -225,7 +225,7 @@ public:
       }
       auto key = mcfile::be::DbKey::Map(uuid);
       if (auto st = db.put(key, leveldb::Slice(*serialized)); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
 

@@ -43,7 +43,7 @@ public:
     PoiBlocks poi;
     Status st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset);
     if (!st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (poi.write(poiDirectory, Chunk::kTargetDataVersion)) {
       return Status::Ok();

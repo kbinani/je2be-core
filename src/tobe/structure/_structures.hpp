@@ -22,12 +22,15 @@ public:
 
   [[nodiscard]] Status put(DbInterface &db) {
     if (auto st = fOverworld.put(db, mcfile::Dimension::Overworld); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = fNether.put(db, mcfile::Dimension::Nether); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
-    return fEnd.put(db, mcfile::Dimension::End);
+    if (auto st = fEnd.put(db, mcfile::Dimension::End); !st.ok()) {
+      return JE2BE_ERROR_PUSH(st);
+    }
+    return Status::Ok();
   }
 
 private:

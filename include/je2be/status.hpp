@@ -30,10 +30,10 @@ public:
   };
 
   struct ErrorData {
-    Where fWhere;
+    std::vector<Where> fTrace;
     std::string fWhat;
 
-    explicit ErrorData(Where where, std::string what = {}) : fWhere(where), fWhat(what) {}
+    explicit ErrorData(Where where, std::string what = {}) : fTrace({where}), fWhat(what) {}
   };
 
   explicit Status(std::optional<ErrorData> error) : fError(error) {
@@ -47,6 +47,16 @@ public:
 
   std::optional<ErrorData> error() const {
     return fError;
+  }
+
+  Status pushed(char const *file, int line) const {
+    if (fError) {
+      ErrorData copy = *fError;
+      copy.fTrace.push_back(Where(file, line));
+      return Status(copy);
+    } else {
+      return *this;
+    }
   }
 
   static Status Ok() {
@@ -75,6 +85,8 @@ private:
 } // namespace je2be
 
 #define JE2BE_ERROR_HELPER(file, line, what) je2be::Status::Error((file), (line), (what))
-
 #define JE2BE_ERROR JE2BE_ERROR_HELPER(__FILE__, __LINE__, std::string())
 #define JE2BE_ERROR_WHAT(what) JE2BE_ERROR_HELPER(__FILE__, __LINE__, (what))
+
+#define JE2BE_ERROR_PUSH_HELPER(base, file, line) (base).pushed((file), (line))
+#define JE2BE_ERROR_PUSH(base) JE2BE_ERROR_PUSH_HELPER((base), __FILE__, __LINE__)

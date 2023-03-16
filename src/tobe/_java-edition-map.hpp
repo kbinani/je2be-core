@@ -28,7 +28,7 @@ public:
   [[nodiscard]] Status each(std::function<Status(i32 /* javaMapId */)> cb) {
     for (auto it : fScaleLookupTable) {
       if (auto st = cb(it.first); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
     return Status::Ok();

@@ -134,7 +134,9 @@ int main(int argc, char *argv[]) {
   progress.reset();
   if (auto err = st.error(); err) {
     cerr << err->fWhat << endl;
-    cerr << err->fWhere.fFile << ":" << err->fWhere.fLine << endl;
+    for (int i = err->fTrace.size() - 1; i >= 0; i--) {
+      cerr << err->fTrace[i].fFile << ":" << err->fTrace[i].fLine << endl;
+    }
     return -1;
   } else {
     return 0;

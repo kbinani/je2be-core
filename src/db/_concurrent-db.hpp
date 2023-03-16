@@ -675,7 +675,7 @@ public:
       if (size >= kMaxFileSize) {
         u64 fn = fileNumber->fetch_add(1);
         if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
-          return st;
+          return JE2BE_ERROR_PUSH(st);
         }
         size = 0;
         bin.clear();
@@ -684,7 +684,7 @@ public:
     if (!bin.empty()) {
       u64 fn = fileNumber->fetch_add(1);
       if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
     return Status::Ok();

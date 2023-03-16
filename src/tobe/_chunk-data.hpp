@@ -17,20 +17,20 @@ public:
   [[nodiscard]] Status put(DbInterface &db) {
     auto [chunkStatus, status] = putChunkSections(db);
     if (!status.ok()) {
-      return status;
+      return JE2BE_ERROR_PUSH(status);
     }
     if (chunkStatus == ChunkStatus::NotEmpty) {
       if (auto st = putVersion(db); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
       if (auto st = putData2D(db); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
       if (auto st = putBlockEntity(db); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
       if (auto st = putFinalizedState(db); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
       return putPendingTicks(db);
     } else {
@@ -92,12 +92,12 @@ private:
       auto key = mcfile::be::DbKey::SubChunk(fChunkX, y, fChunkZ, fDimension);
       if (section.empty()) {
         if (auto st = db.del(key); !st.ok()) {
-          return make_pair(nullopt, st);
+          return make_pair(nullopt, JE2BE_ERROR_PUSH(st));
         }
       } else {
         leveldb::Slice subchunk((char *)section.data(), section.size());
         if (auto st = db.put(key, subchunk); !st.ok()) {
-          return make_pair(nullopt, st);
+          return make_pair(nullopt, JE2BE_ERROR_PUSH(st));
         }
         empty = false;
       }
@@ -128,7 +128,7 @@ private:
 
     leveldb::Slice version(&vernum, sizeof(vernum));
     if (auto st = db.put(versionKey, version); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
 
     return db.del(mcfile::be::DbKey::VersionLegacy(fChunkX, fChunkZ, fDimension));

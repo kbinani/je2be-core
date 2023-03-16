@@ -127,7 +127,7 @@ public:
         continue;
       }
       if (auto st = SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret); !st.ok()) {
-        return make_pair(nullptr, st);
+        return make_pair(nullptr, JE2BE_ERROR_PUSH(st));
       }
     }
 
@@ -220,7 +220,7 @@ public:
     }
 
     if (auto st = cd.put(db); !st.ok()) {
-      return make_pair(nullptr, st);
+      return make_pair(nullptr, JE2BE_ERROR_PUSH(st));
     }
 
     if (!entities.empty()) {

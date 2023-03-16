@@ -71,7 +71,7 @@ public:
     if (localPlayerData) {
       auto k = mcfile::be::DbKey::LocalPlayer();
       if (auto st = db.put(k, *localPlayerData); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
 
@@ -171,7 +171,7 @@ public:
       }
 
       if (auto st = World::PutWorldEntities(dim, db, entityStore, concurrency, progress, doneEntityChunks, totalEntityChunks); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
     if (progress) {
@@ -189,7 +189,7 @@ public:
       ok = level.write(output / "level.dat");
       if (ok) {
         if (auto st = levelData->put(db, *data); !st.ok()) {
-          return st;
+          return JE2BE_ERROR_PUSH(st);
         }
       }
     }
@@ -202,7 +202,7 @@ public:
         progress->reportCompaction(p);
       });
       if (!st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     } else {
       db.abandon();

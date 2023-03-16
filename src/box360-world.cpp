@@ -114,17 +114,17 @@ public:
           if (!st.ok()) {
             ok = false;
           }
-          return st;
+          return JE2BE_ERROR_PUSH(st);
         },
         Status::Merge);
 
     if (!st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
 
     auto poiDirectory = outputDirectory / worldDir / "poi";
     if (st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (progress && !progress->report({progressChunksOffset + 8192, kProgressWeightPerWorld * 3})) {
       return JE2BE_ERROR;
@@ -153,7 +153,7 @@ public:
         bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o),
         Status::Merge);
     if (!st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (progress && !progress->report({progressChunksOffset + 12288, kProgressWeightPerWorld * 3})) {
       return JE2BE_ERROR;
@@ -170,7 +170,7 @@ public:
         bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress),
         Status::Merge);
     if (!st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     Fs::DeleteAll(outputDirectory / worldDir / "region_");
 
@@ -310,7 +310,7 @@ private:
     using namespace std;
     shared_ptr<mcfile::je::WritableChunk> chunk;
     if (auto st = Chunk::Convert(dimension, mcr, cx, cz, chunk, ctx, options); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (!chunk) {
       return Status::Ok();

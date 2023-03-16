@@ -272,9 +272,12 @@ void Context::mergeInto(Context &other) const {
 
 Status Context::postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const {
   if (auto st = exportMaps(root, db); !st.ok()) {
-    return st;
+    return JE2BE_ERROR_PUSH(st);
   }
-  return exportPoi(root);
+  if (auto st = exportPoi(root); !st.ok()) {
+    return JE2BE_ERROR_PUSH(st);
+  }
+  return Status::Ok();
 }
 
 std::optional<MapInfo::Map> Context::mapFromUuid(i64 mapUuid) const {

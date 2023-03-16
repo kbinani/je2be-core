@@ -68,20 +68,20 @@ public:
     }
     Context ctx(TileEntity::Convert, Entity::MigrateName);
     if (auto st = CopyMapFiles(*temp, outputDirectory); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx, options);
     if (!copyPlayersResult) {
       return copyPlayersResult.status();
     }
     if (auto st = CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = SetupResourcePack(outputDirectory); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = SetupDataPack(outputDirectory); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     int progressChunksOffset = 0;
     for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
@@ -94,7 +94,7 @@ public:
         }
       }
       if (auto st = World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
     return Status::Ok();

@@ -73,7 +73,7 @@ public:
           return st.ok();
         });
         if (!st.ok()) {
-          return st;
+          return JE2BE_ERROR_PUSH(st);
         }
       }
     }

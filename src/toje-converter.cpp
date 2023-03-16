@@ -91,7 +91,7 @@ public:
       terrainTempDirs[d] = *terrainTempDir;
       shared_ptr<Context> result;
       if (auto st = World::Convert(d, regions[d], *db, output, concurrency, *bin, result, reportProgress, numConvertedChunks, *terrainTempDir); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
       if (result) {
         result->mergeInto(*bin);
@@ -102,7 +102,7 @@ public:
     }
 
     if (auto st = Terraform(regions, output, terrainTempDirs, concurrency, progress); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     for (auto const &[_, dir] : terrainTempDirs) {
       Fs::DeleteAll(dir);

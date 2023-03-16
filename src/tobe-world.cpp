@@ -75,16 +75,16 @@ private:
       return db->put(key, leveldb::Slice(*value));
     });
     if (!st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     auto key = mcfile::be::DbKey::Digp(chunk.fX, chunk.fZ, d);
     if (digp.empty()) {
       if (st = db->del(key); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     } else {
       if (st = db->put(key, leveldb::Slice(digp)); !st.ok()) {
-        return st;
+        return JE2BE_ERROR_PUSH(st);
       }
     }
     u64 p = done->fetch_add(1) + 1;

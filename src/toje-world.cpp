@@ -126,7 +126,7 @@ public:
       Pos2iSet const &chunks = it.second;
       for (Pos2i const &chunk : chunks) {
         if (auto st = AttachLeashAndPassengers(chunk, entitiesDir, *editor, *ctx, leashedEntities, vehicleEntities); !st.ok()) {
-          return st;
+          return JE2BE_ERROR_PUSH(st);
         }
       }
     }
@@ -162,7 +162,7 @@ public:
     }
     AttachLeash(chunk, ctx, *entities, leashedEntities);
     if (auto st = AttachPassengers(chunk, ctx, entities, entitiesDir, editor, vehicleEntities); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
 
     if (editor.insert(localX, localZ, *content)) {

@@ -197,7 +197,7 @@ private:
                 }
                 offset += 2;
                 if (auto st = V8::ParseGrid<1>(origin, palette, buffer, offset, out); !st.ok()) {
-                  return st;
+                  return JE2BE_ERROR_PUSH(st);
                 }
                 break;
               }
@@ -216,7 +216,7 @@ private:
                 }
                 offset += 4;
                 if (auto st = V8::ParseGrid<2>(origin, palette, buffer, offset, out); !st.ok()) {
-                  return st;
+                  return JE2BE_ERROR_PUSH(st);
                 }
                 break;
               }
@@ -235,7 +235,7 @@ private:
                 }
                 offset += 16;
                 if (auto st = V8::ParseGrid<4>(origin, palette, buffer, offset, out); !st.ok()) {
-                  return st;
+                  return JE2BE_ERROR_PUSH(st);
                 }
                 break;
               }
@@ -387,28 +387,28 @@ private:
 
     int offset = startOffset;
     if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockId, 0); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse8ChunkSections(buffer, &offset, blockId, 128); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockData, 0); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockData, 128); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLight, 0); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse4Bit128Table(buffer, &offset, skyLight, 128); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLight, 0); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = V8::Parse4Bit128Table(buffer, &offset, blockLight, 128); !st.ok()) {
-      return st;
+      return JE2BE_ERROR_PUSH(st);
     }
 
     PopulateBlocks(blockId, blockData, *chunk);
