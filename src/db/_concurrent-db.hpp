@@ -85,10 +85,8 @@ class ConcurrentDb : public DbInterface {
       u32 valueSizeCompressed = block.size();
       u32 keySize = key.size();
 
-      if (block.size() > 0) {
-        if (fwrite(block.data(), block.size(), 1, fValue) != 1) {
-          goto error;
-        }
+      if (fwrite(block.data(), block.size(), 1, fValue) != 1) {
+        goto error;
       }
 
       if (fwrite(&keySize, sizeof(keySize), 1, fKey) != 1) {
@@ -749,11 +747,9 @@ public:
         goto cleanup;
       }
       value.resize(it.fValueSizeCompressed);
-      if (it.fValueSizeCompressed > 0) {
-        if (fread(value.data(), it.fValueSizeCompressed, 1, f) != 1) {
-          ok = false;
-          goto cleanup;
-        }
+      if (fread(value.data(), it.fValueSizeCompressed, 1, f) != 1) {
+        ok = false;
+        goto cleanup;
       }
       builder->AddAlreadyCompressedAndFlush(ik.Encode(), value);
     }
