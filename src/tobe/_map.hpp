@@ -15,7 +15,7 @@ class Map {
 public:
   static i64 UUID(i32 javaMapId, u8 scale);
 
-  static bool Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db);
+  static Status Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db);
 };
 
 } // namespace je2be::tobe

@@ -21,47 +21,50 @@ public:
             bool allowCommand,
             GameMode gameType) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType) {}
 
-  [[nodiscard]] bool put(DbInterface &db, CompoundTag const &javaLevelData) {
-    if (!fPortals.putInto(db)) {
-      return false;
+  [[nodiscard]] Status put(DbInterface &db, CompoundTag const &javaLevelData) {
+    Status st;
+    if (st = fPortals.putInto(db); !st.ok()) {
+      return st;
     }
-    bool ok = fJavaEditionMap.each([this, &db](i32 mapId) {
+    st = fJavaEditionMap.each([this, &db](i32 mapId) {
       auto found = fMapItems.find(mapId);
       if (found == fMapItems.end()) {
-        return true;
+        return Status::Ok();
       }
       return Map::Convert(mapId, *found->second, fInput, fOptions, db);
     });
-    if (!ok) {
-      return false;
+    if (!st.ok()) {
+      return st;
     }
-    if (!putAutonomousEntities(db)) {
-      return false;
+    if (st = putAutonomousEntities(db); !st.ok()) {
+      return st;
     }
 
     auto theEnd = Level::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
     if (theEnd) {
-      db.put(mcfile::be::DbKey::TheEnd(), *theEnd);
+      if (st = db.put(mcfile::be::DbKey::TheEnd(), *theEnd); !st.ok()) {
+        return st;
+      }
     } else {
-      db.del(mcfile::be::DbKey::TheEnd());
+      if (st = db.del(mcfile::be::DbKey::TheEnd()); !st.ok()) {
+        return st;
+      }
     }
 
-    if (!fStructures.put(db)) {
-      return false;
+    if (st = fStructures.put(db); !st.ok()) {
+      return st;
     }
 
     auto mobEvents = Level::MobEvents(javaLevelData);
     if (mobEvents) {
-      db.put(mcfile::be::DbKey::MobEvents(), *mobEvents);
+      return db.put(mcfile::be::DbKey::MobEvents(), *mobEvents);
     } else {
-      db.del(mcfile::be::DbKey::MobEvents());
+      return db.del(mcfile::be::DbKey::MobEvents());
     }
-
-    return true;
   }
 
 private:
-  [[nodiscard]] bool putAutonomousEntities(DbInterface &db) {
+  [[nodiscard]] Status putAutonomousEntities(DbInterface &db) {
     using namespace mcfile::stream;
 
     auto list = List<Tag::Type::Compound>();
@@ -73,13 +76,11 @@ private:
 
     auto buffer = CompoundTag::Write(*root, mcfile::Endian::Little);
     if (!buffer) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     leveldb::Slice v(*buffer);
-    db.put(mcfile::be::DbKey::AutonomousEntities(), v);
-
-    return true;
+    return db.put(mcfile::be::DbKey::AutonomousEntities(), v);
   }
 
 private:

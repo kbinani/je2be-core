@@ -24,19 +24,19 @@ public:
     return *(i64 *)&s;
   }
 
-  static bool Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
+  static Status Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
     using namespace std;
     namespace fs = std::filesystem;
     using namespace mcfile::stream;
 
     auto root = JavaEditionMap::Read(input, opt, javaMapId);
     if (!root) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     auto data = root->query("/data")->asCompound();
     if (!data) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     auto dimensionString = data->string("dimension");
@@ -66,7 +66,7 @@ public:
     auto unlimitedTracking = data->boolean("unlimitedTracking", false);
 
     if (!scale || !xCenter || !zCenter || !colors) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     for (u8 beScale = 0; beScale <= 4; beScale++) {
@@ -221,13 +221,15 @@ public:
 
       auto serialized = CompoundTag::Write(*ret, mcfile::Endian::Little);
       if (!serialized) {
-        return false;
+        return JE2BE_ERROR;
       }
       auto key = mcfile::be::DbKey::Map(uuid);
-      db.put(key, leveldb::Slice(*serialized));
+      if (auto st = db.put(key, leveldb::Slice(*serialized)); !st.ok()) {
+        return st;
+      }
     }
 
-    return true;
+    return Status::Ok();
   }
 
 private:
@@ -249,7 +251,7 @@ i64 Map::UUID(i32 javaMapId, u8 scale) {
   return Impl::UUID(javaMapId, scale);
 }
 
-bool Map::Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
+Status Map::Convert(i32 javaMapId, CompoundTag const &item, std::filesystem::path const &input, Options const &opt, DbInterface &db) {
   return Impl::Convert(javaMapId, item, input, opt, db);
 }
 

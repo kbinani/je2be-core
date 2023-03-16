@@ -14,12 +14,12 @@ class SubChunk::Impl {
   Impl() = delete;
 
 public:
-  [[nodiscard]] static bool Convert(mcfile::je::Chunk const &chunk,
-                                    mcfile::Dimension dim,
-                                    int chunkY,
-                                    ChunkData &cd,
-                                    ChunkDataPackage &cdp,
-                                    WorldData &wd) {
+  [[nodiscard]] static Status Convert(mcfile::je::Chunk const &chunk,
+                                      mcfile::Dimension dim,
+                                      int chunkY,
+                                      ChunkData &cd,
+                                      ChunkDataPackage &cdp,
+                                      WorldData &wd) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -235,17 +235,17 @@ public:
     mcfile::stream::OutputStreamWriter w(stream, Endian::Little);
 
     if (!w.write(kSubChunkBlockStorageVersion)) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (!w.write((u8)numStorageBlocks)) {
-      return false;
+      return JE2BE_ERROR;
     }
     i8 cy = Clamp<i8>(chunkY);
     if (cy != chunkY) {
-      return false;
+      return JE2BE_ERROR;
     }
     if (!w.write(*(u8 *)&cy)) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     {
@@ -280,7 +280,7 @@ public:
       }
 
       if (!w.write((u8)(bitsPerBlock * 2))) {
-        return false;
+        return JE2BE_ERROR;
       }
       u32 const mask = ~((~((u32)0)) << bitsPerBlock);
       for (size_t i = 0; i < 4096; i += blocksPerWord) {
@@ -290,18 +290,18 @@ public:
           v = v | ((mask & index) << (j * bitsPerBlock));
         }
         if (!w.write(v)) {
-          return false;
+          return JE2BE_ERROR;
         }
       }
 
       if (!w.write((u32)numPaletteEntries)) {
-        return false;
+        return JE2BE_ERROR;
       }
 
       for (int i = 0; i < palette.size(); i++) {
         auto const &tag = palette[i];
         if (!CompoundTag::Write(*tag, w)) {
-          return false;
+          return JE2BE_ERROR;
         }
       }
     }
@@ -316,7 +316,7 @@ public:
       u32 const paletteWater = 1;
 
       if (!w.write((u8)(bitsPerBlock * 2))) {
-        return false;
+        return JE2BE_ERROR;
       }
       for (size_t i = 0; i < 4096; i += blocksPerWord) {
         u32 v = 0;
@@ -326,17 +326,17 @@ public:
           v = v | (index << (j * bitsPerBlock));
         }
         if (!w.write(v)) {
-          return false;
+          return JE2BE_ERROR;
         }
       }
 
       if (!w.write((u32)numPaletteEntries)) {
-        return false;
+        return JE2BE_ERROR;
       }
 
       auto air = BlockData::Air();
       if (!CompoundTag::Write(*air, w)) {
-        return false;
+        return JE2BE_ERROR;
       }
 
       auto water = BlockData::Make("water");
@@ -344,13 +344,13 @@ public:
       states->set("liquid_depth", Int(0));
       water->set("states", states);
       if (!CompoundTag::Write(*water, w)) {
-        return false;
+        return JE2BE_ERROR;
       }
     }
 
     stream->drain(cd.fSubChunks[chunkY]);
 
-    return true;
+    return Status::Ok();
   }
 
 private:
@@ -372,12 +372,12 @@ private:
   }
 };
 
-bool SubChunk::Convert(mcfile::je::Chunk const &chunk,
-                       mcfile::Dimension dim,
-                       int chunkY,
-                       ChunkData &cd,
-                       ChunkDataPackage &cdp,
-                       WorldData &wd) {
+Status SubChunk::Convert(mcfile::je::Chunk const &chunk,
+                         mcfile::Dimension dim,
+                         int chunkY,
+                         ChunkData &cd,
+                         ChunkDataPackage &cdp,
+                         WorldData &wd) {
   return Impl::Convert(chunk, dim, chunkY, cd, cdp, wd);
 }
 

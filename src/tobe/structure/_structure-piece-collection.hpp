@@ -12,7 +12,7 @@ public:
 
   decltype(auto) end() const { return fPieces.end(); }
 
-  [[nodiscard]] bool put(DbInterface &db, mcfile::Dimension dim) {
+  [[nodiscard]] Status put(DbInterface &db, mcfile::Dimension dim) {
     using namespace std;
     unordered_map<Pos3i, vector<StructurePiece>, Pos3iHasher> splitted;
     for (auto const &it : fPieces) {
@@ -38,29 +38,29 @@ public:
       auto s = std::make_shared<ByteStream>();
       OutputStreamWriter w(s, mcfile::Endian::Little);
       if (!w.write((u32)it.second.size())) {
-        return false;
+        return JE2BE_ERROR;
       }
       for (auto const &piece : it.second) {
         if (!w.write(piece.fVolume.fStart.fX)) {
-          return false;
+          return JE2BE_ERROR;
         }
         if (!w.write(piece.fVolume.fStart.fY)) {
-          return false;
+          return JE2BE_ERROR;
         }
         if (!w.write(piece.fVolume.fStart.fZ)) {
-          return false;
+          return JE2BE_ERROR;
         }
         if (!w.write(piece.fVolume.fEnd.fX)) {
-          return false;
+          return JE2BE_ERROR;
         }
         if (!w.write(piece.fVolume.fEnd.fY)) {
-          return false;
+          return JE2BE_ERROR;
         }
         if (!w.write(piece.fVolume.fEnd.fZ)) {
-          return false;
+          return JE2BE_ERROR;
         }
         if (!w.write((u8)piece.fType)) {
-          return false;
+          return JE2BE_ERROR;
         }
       }
       vector<u8> buffer;
@@ -68,10 +68,12 @@ public:
 
       auto key = mcfile::be::DbKey::StructureBounds(it.first.fX, it.first.fZ, dim);
       leveldb::Slice value((char const *)buffer.data(), buffer.size());
-      db.put(key, value);
+      if (auto st = db.put(key, value); !st.ok()) {
+        return st;
+      }
     }
 
-    return true;
+    return Status::Ok();
   }
 
 private:

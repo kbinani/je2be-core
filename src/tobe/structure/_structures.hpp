@@ -20,17 +20,14 @@ public:
     }
   }
 
-  [[nodiscard]] bool put(DbInterface &db) {
-    if (!fOverworld.put(db, mcfile::Dimension::Overworld)) {
-      return false;
+  [[nodiscard]] Status put(DbInterface &db) {
+    if (auto st = fOverworld.put(db, mcfile::Dimension::Overworld); !st.ok()) {
+      return st;
     }
-    if (!fNether.put(db, mcfile::Dimension::Nether)) {
-      return false;
+    if (auto st = fNether.put(db, mcfile::Dimension::Nether); !st.ok()) {
+      return st;
     }
-    if (!fEnd.put(db, mcfile::Dimension::End)) {
-      return false;
-    }
-    return true;
+    return fEnd.put(db, mcfile::Dimension::End);
   }
 
 private:

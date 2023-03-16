@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/status.hpp>
+
 #include <minecraft-file.hpp>
 
 namespace je2be::tobe {
@@ -13,12 +15,13 @@ class SubChunk {
   SubChunk() = delete;
 
 public:
-  [[nodiscard]] static bool Convert(mcfile::je::Chunk const &chunk,
-                                    mcfile::Dimension dim,
-                                    int chunkY,
-                                    ChunkData &cd,
-                                    ChunkDataPackage &cdp,
-                                    WorldData &wd);
+  [[nodiscard]] static Status Convert(
+      mcfile::je::Chunk const &chunk,
+      mcfile::Dimension dim,
+      int chunkY,
+      ChunkData &cd,
+      ChunkDataPackage &cdp,
+      WorldData &wd);
 };
 
 } // namespace je2be::tobe

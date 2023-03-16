@@ -57,10 +57,10 @@ private:
     using namespace mcfile;
     using namespace mcfile::be;
     string digp;
-    store->entities(chunk, [db, &digp](CompoundTagPtr const &c) {
+    Status st = store->entities(chunk, [db, &digp](CompoundTagPtr const &c) {
       auto id = c->int64("UniqueID");
       if (!id) {
-        return;
+        return Status::Ok();
       }
       i64 v = *id;
       string prefix;
@@ -70,15 +70,22 @@ private:
       auto key = DbKey::Actorprefix(prefix);
       auto value = CompoundTag::Write(*c, Endian::Little);
       if (!value) {
-        return;
+        return Status::Ok();
       }
-      db->put(key, leveldb::Slice(*value));
+      return db->put(key, leveldb::Slice(*value));
     });
+    if (!st.ok()) {
+      return st;
+    }
     auto key = mcfile::be::DbKey::Digp(chunk.fX, chunk.fZ, d);
     if (digp.empty()) {
-      db->del(key);
+      if (st = db->del(key); !st.ok()) {
+        return st;
+      }
     } else {
-      db->put(key, leveldb::Slice(digp));
+      if (st = db->put(key, leveldb::Slice(digp)); !st.ok()) {
+        return st;
+      }
     }
     u64 p = done->fetch_add(1) + 1;
     if (progress) {

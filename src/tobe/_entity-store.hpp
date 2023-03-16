@@ -52,10 +52,10 @@ public:
     }
   }
 
-  void entities(Pos2i const &chunk, std::function<void(CompoundTagPtr const &)> cb) {
+  Status entities(Pos2i const &chunk, std::function<Status(CompoundTagPtr const &)> cb) {
     using namespace std;
     if (!fDb) {
-      return;
+      return JE2BE_ERROR;
     }
     leveldb::ReadOptions ro;
     ro.fill_cache = false;
@@ -67,9 +67,16 @@ public:
         if (!fDb->Get(ro, leveldb::Slice(key), &value).ok()) {
           continue;
         }
-        CompoundTag::ReadUntilEos(value, mcfile::Endian::Little, cb);
+        Status st;
+        CompoundTag::ReadUntilEos(value, mcfile::Endian::Little, [&](CompoundTagPtr const &tag) {
+          st = cb(tag);
+        });
+        if (!st.ok()) {
+          return st;
+        }
       }
     }
+    return Status::Ok();
   }
 
 private:

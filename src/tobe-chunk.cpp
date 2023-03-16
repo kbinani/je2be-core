@@ -52,7 +52,15 @@ public:
           chunk->fEntities.swap(entities);
         }
       }
-      r.fData = MakeWorldData(chunk, region, dim, db, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+      auto [data, st] = MakeWorldData(chunk, region, dim, db, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+      if (!data) {
+        data = make_shared<WorldData>(dim);
+      }
+      if (!st.ok()) {
+        data->addError(*st.error());
+      }
+      r.fData = data;
+      r.fOk = st.ok();
       return r;
     } catch (std::exception &e) {
       Chunk::Result r;
@@ -75,23 +83,24 @@ public:
     }
   }
 
-  static std::shared_ptr<WorldData> MakeWorldData(std::shared_ptr<mcfile::je::Chunk> const &chunk,
-                                                  mcfile::je::Region region,
-                                                  mcfile::Dimension dim,
-                                                  DbInterface &db,
-                                                  JavaEditionMap const &mapInfo,
-                                                  std::shared_ptr<EntityStore> const &entityStore,
-                                                  std::optional<PlayerAttachedEntities> playerAttachedEntities,
-                                                  i64 gameTick,
-                                                  int difficultyBedrock,
-                                                  bool allowCommand,
-                                                  GameMode gameType) {
+  static std::pair<std::shared_ptr<WorldData>, Status> MakeWorldData(
+      std::shared_ptr<mcfile::je::Chunk> const &chunk,
+      mcfile::je::Region region,
+      mcfile::Dimension dim,
+      DbInterface &db,
+      JavaEditionMap const &mapInfo,
+      std::shared_ptr<EntityStore> const &entityStore,
+      std::optional<PlayerAttachedEntities> playerAttachedEntities,
+      i64 gameTick,
+      int difficultyBedrock,
+      bool allowCommand,
+      GameMode gameType) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
 
     if (!chunk) {
-      return nullptr;
+      return make_pair(nullptr, Status::Ok());
     }
     mcfile::je::CachedChunkLoader loader(region);
 
@@ -117,8 +126,8 @@ public:
       if (!section) {
         continue;
       }
-      if (!SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret)) {
-        return nullptr;
+      if (auto st = SubChunk::Convert(*chunk, dim, section->y(), cd, cdp, *ret); !st.ok()) {
+        return make_pair(nullptr, st);
       }
     }
 
@@ -178,7 +187,7 @@ public:
     Context ctx(mapInfo, *ret, gameTick, difficultyBedrock, allowCommand, gameType);
     cdp.build(*chunk, ctx, entities);
     if (!cdp.serialize(cd)) {
-      return nullptr;
+      return make_pair(nullptr, Status::Ok());
     }
     for (auto const &ex : ctx.fExperiments) {
       ret->addExperiment(ex);
@@ -210,8 +219,8 @@ public:
       copy(playerAttachedEntities->fShoulderRiders.begin(), playerAttachedEntities->fShoulderRiders.end(), back_inserter(entities[chunkPos]));
     }
 
-    if (!cd.put(db)) {
-      return nullptr;
+    if (auto st = cd.put(db); !st.ok()) {
+      return make_pair(nullptr, st);
     }
 
     if (!entities.empty()) {
@@ -221,7 +230,7 @@ public:
       }
     }
 
-    return ret;
+    return make_pair(ret, Status::Ok());
   }
 
 private:

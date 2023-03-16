@@ -25,13 +25,13 @@ public:
     return found->second;
   }
 
-  [[nodiscard]] bool each(std::function<bool(i32 /* javaMapId */)> cb) {
+  [[nodiscard]] Status each(std::function<Status(i32 /* javaMapId */)> cb) {
     for (auto it : fScaleLookupTable) {
-      if (!cb(it.first)) {
-        return false;
+      if (auto st = cb(it.first); !st.ok()) {
+        return st;
       }
     }
-    return true;
+    return Status::Ok();
   }
 
   static CompoundTagPtr Read(std::filesystem::path const &input, Options const &opt, i32 mapId) {

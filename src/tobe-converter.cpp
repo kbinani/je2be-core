@@ -70,7 +70,9 @@ public:
     auto localPlayerData = LocalPlayerData(*data, *levelData);
     if (localPlayerData) {
       auto k = mcfile::be::DbKey::LocalPlayer();
-      db.put(k, *localPlayerData);
+      if (auto st = db.put(k, *localPlayerData); !st.ok()) {
+        return st;
+      }
     }
 
     struct Work {
@@ -186,7 +188,9 @@ public:
       }
       ok = level.write(output / "level.dat");
       if (ok) {
-        ok = levelData->put(db, *data);
+        if (auto st = levelData->put(db, *data); !st.ok()) {
+          return st;
+        }
       }
     }
 

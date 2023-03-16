@@ -16,7 +16,7 @@ public:
     }
   }
 
-  [[nodiscard]] bool putInto(DbInterface &db) {
+  [[nodiscard]] Status putInto(DbInterface &db) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::stream;
@@ -35,14 +35,13 @@ public:
 
     auto buffer = CompoundTag::Write(*root, Endian::Little);
     if (!buffer) {
-      return false;
+      return JE2BE_ERROR;
     }
 
     auto key = mcfile::be::DbKey::Portals();
     leveldb::Slice value(*buffer);
 
-    db.put(key, value);
-    return true;
+    return db.put(key, value);
   }
 
 private:

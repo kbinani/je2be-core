@@ -14,40 +14,52 @@ class ChunkData {
 public:
   ChunkData(i32 chunkX, i32 chunkZ, mcfile::Dimension dim, ChunkConversionMode mode) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim), fMode(mode) {}
 
-  [[nodiscard]] bool put(DbInterface &db) {
-    auto status = putChunkSections(db);
-    if (status == ChunkStatus::NotEmpty) {
-      putVersion(db);
-      putData2D(db);
-      putBlockEntity(db);
-      putFinalizedState(db);
-      putPendingTicks(db);
+  [[nodiscard]] Status put(DbInterface &db) {
+    auto [chunkStatus, status] = putChunkSections(db);
+    if (!status.ok()) {
+      return status;
     }
-    return true;
+    if (chunkStatus == ChunkStatus::NotEmpty) {
+      if (auto st = putVersion(db); !st.ok()) {
+        return st;
+      }
+      if (auto st = putData2D(db); !st.ok()) {
+        return st;
+      }
+      if (auto st = putBlockEntity(db); !st.ok()) {
+        return st;
+      }
+      if (auto st = putFinalizedState(db); !st.ok()) {
+        return st;
+      }
+      return putPendingTicks(db);
+    } else {
+      return Status::Ok();
+    }
   }
 
 private:
-  void putFinalizedState(DbInterface &db) const {
+  Status putFinalizedState(DbInterface &db) const {
     auto key = mcfile::be::DbKey::FinalizedState(fChunkX, fChunkZ, fDimension);
     if (fFinalizedState) {
       i32 v = *fFinalizedState;
-      db.put(key, leveldb::Slice((char const *)&v, sizeof(v)));
+      return db.put(key, leveldb::Slice((char const *)&v, sizeof(v)));
     } else {
-      db.del(key);
+      return db.del(key);
     }
   }
 
-  void putBlockEntity(DbInterface &db) const {
+  Status putBlockEntity(DbInterface &db) const {
     auto key = mcfile::be::DbKey::BlockEntity(fChunkX, fChunkZ, fDimension);
     if (fBlockEntity.empty()) {
-      db.del(key);
+      return db.del(key);
     } else {
       leveldb::Slice blockEntity((char *)fBlockEntity.data(), fBlockEntity.size());
-      db.put(key, blockEntity);
+      return db.put(key, blockEntity);
     }
   }
 
-  void putData2D(DbInterface &db) const {
+  Status putData2D(DbInterface &db) const {
     std::string key;
     switch (fMode) {
     case ChunkConversionMode::Legacy:
@@ -59,10 +71,10 @@ private:
       break;
     }
     if (fData2D.empty()) {
-      db.del(key);
+      return db.del(key);
     } else {
       leveldb::Slice data2D((char *)fData2D.data(), fData2D.size());
-      db.put(key, data2D);
+      return db.put(key, data2D);
     }
   }
 
@@ -71,32 +83,37 @@ private:
     NotEmpty,
   };
 
-  ChunkStatus putChunkSections(DbInterface &db) const {
+  std::pair<std::optional<ChunkStatus>, Status> putChunkSections(DbInterface &db) const {
+    using namespace std;
     bool empty = true;
     for (auto const &it : fSubChunks) {
       i8 y = it.first;
       auto const &section = it.second;
       auto key = mcfile::be::DbKey::SubChunk(fChunkX, y, fChunkZ, fDimension);
       if (section.empty()) {
-        db.del(key);
+        if (auto st = db.del(key); !st.ok()) {
+          return make_pair(nullopt, st);
+        }
       } else {
         leveldb::Slice subchunk((char *)section.data(), section.size());
-        db.put(key, subchunk);
+        if (auto st = db.put(key, subchunk); !st.ok()) {
+          return make_pair(nullopt, st);
+        }
         empty = false;
       }
     }
     if (empty) {
       if (fFinalizedState && *fFinalizedState == 2) {
-        return ChunkStatus::NotEmpty;
+        return make_pair(ChunkStatus::NotEmpty, Status::Ok());
       } else {
-        return ChunkStatus::Empty;
+        return make_pair(ChunkStatus::Empty, Status::Ok());
       }
     } else {
-      return ChunkStatus::NotEmpty;
+      return make_pair(ChunkStatus::NotEmpty, Status::Ok());
     }
   }
 
-  void putVersion(DbInterface &db) const {
+  Status putVersion(DbInterface &db) const {
     auto const &versionKey = mcfile::be::DbKey::Version(fChunkX, fChunkZ, fDimension);
     char vernum;
     switch (fMode) {
@@ -110,18 +127,20 @@ private:
     }
 
     leveldb::Slice version(&vernum, sizeof(vernum));
-    db.put(versionKey, version);
+    if (auto st = db.put(versionKey, version); !st.ok()) {
+      return st;
+    }
 
-    db.del(mcfile::be::DbKey::VersionLegacy(fChunkX, fChunkZ, fDimension));
+    return db.del(mcfile::be::DbKey::VersionLegacy(fChunkX, fChunkZ, fDimension));
   }
 
-  void putPendingTicks(DbInterface &db) const {
+  Status putPendingTicks(DbInterface &db) const {
     auto key = mcfile::be::DbKey::PendingTicks(fChunkX, fChunkZ, fDimension);
     if (fPendingTicks.empty()) {
-      db.del(key);
+      return db.del(key);
     } else {
       leveldb::Slice data((char *)fPendingTicks.data(), fPendingTicks.size());
-      db.put(key, data);
+      return db.put(key, data);
     }
   }
 
