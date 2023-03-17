@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include <je2be/errno.hpp>
 #include <je2be/integers.hpp>
 
 #include <fstream>
@@ -383,7 +384,7 @@ public:
     fstr.reset(new fstream(path.c_str(), fstream::in | fstream::out | fstream::binary | (truncate ? fstream::trunc : static_cast<std::ios_base::openmode>(0))));
     if (!fstr->is_open()) {
       std::string ex("FileIO: Error opening the file. ");
-      ex += StringFromErrno(errno);
+      ex += Errno::StringFromErrno(errno);
       ex += "\n";
       throw ex;
     }
@@ -415,13 +416,13 @@ public:
   void ReadBytes(u8 *outBuffer, u32 len) override {
     fstr->read((char *)outBuffer, len);
     if (fstr->fail())
-      throw std::string("FileIO: Error reading from file.\n") + StringFromErrno(errno);
+      throw std::string("FileIO: Error reading from file.\n") + Errno::StringFromErrno(errno);
   }
 
   void WriteBytes(u8 *buffer, u32 len) override {
     fstr->write((char *)buffer, len);
     if (fstr->fail())
-      throw std::string("FileIO: Error writing to file.\n") + StringFromErrno(errno);
+      throw std::string("FileIO: Error writing to file.\n") + Errno::StringFromErrno(errno);
   }
 
   void Close() override {
@@ -445,7 +446,7 @@ public:
     unique_ptr<fstream> newFileStream(new fstream(newFilePath.c_str(), ios::out | ios::binary | ios::trunc));
     if (!fstr->is_open()) {
       std::string ex("FileIO: Failed to resize file. ");
-      ex += StringFromErrno(errno);
+      ex += Errno::StringFromErrno(errno);
       ex += "\n";
       throw ex;
     }
@@ -492,20 +493,6 @@ public:
   }
 
 private:
-  static std::string StringFromErrno(decltype(errno) e) {
-#if defined(_MSC_VER)
-    std::vector<char> buffer(94 + 1, (char)0);
-    if (strerror_s(buffer.data(), buffer.size(), e) == 0) {
-#else
-    std::vector<char> buffer(256, (char)0);
-    if (strerror_r(e, buffer.data(), buffer.size()) == 0) {
-#endif
-      return std::string(buffer.data());
-    } else {
-      return "(strerror_s failed: errno=" + std::to_string(e) + ")";
-    }
-  }
-
   EndianType endian;
   std::unique_ptr<std::fstream> fstr;
   std::string filePath;

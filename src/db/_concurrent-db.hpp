@@ -87,28 +87,28 @@ class ConcurrentDb : public DbInterface {
       Status st;
 
       if (fwrite(block.data(), block.size(), 1, fValue) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto error;
       }
 
       if (fwrite(&keySize, sizeof(keySize), 1, fKey) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto error;
       }
       if (fwrite(key.data(), key.size(), 1, fKey) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto error;
       }
       if (fwrite(&valueSizeCompressed, sizeof(valueSizeCompressed), 1, fKey) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto error;
       }
       if (fwrite(&fOffset, sizeof(fOffset), 1, fKey) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto error;
       }
       if (fwrite(&sequence, sizeof(sequence), 1, fKey) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto error;
       }
       fOffset += block.size();
@@ -567,28 +567,34 @@ public:
 
     string manifestFileName = "MANIFEST-000001";
     fs::path manifestFile = fDbName / manifestFileName;
-    unique_ptr<WritableFile> meta(OpenWritable(manifestFile));
+    auto [meta, metaOpenStatus] = OpenWritable(manifestFile);
     if (!meta) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(metaOpenStatus.ToString());
     }
     leveldb::log::Writer writer(meta.get());
     leveldb::Status st = writer.AddRecord(manifestRecord);
     if (!st.ok()) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(st.ToString());
     }
-    meta->Close();
+    st = meta->Close();
+    if (!st.ok()) {
+      return JE2BE_ERROR_WHAT(st.ToString());
+    }
     meta.reset();
 
     fs::path currentFile = fDbName / "CURRENT";
-    unique_ptr<WritableFile> current(OpenWritable(currentFile));
+    auto [current, currentOpenStatus] = OpenWritable(currentFile);
     if (!current) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(currentOpenStatus.ToString());
     }
     st = current->Append(manifestFileName + "\x0a");
     if (!st.ok()) {
-      return JE2BE_ERROR;
+      return JE2BE_ERROR_WHAT(st.ToString());
     }
-    current->Close();
+    st = current->Close();
+    if (!st.ok()) {
+      return JE2BE_ERROR_WHAT(st.ToString());
+    }
     current.reset();
 
     if (progress) {
@@ -618,7 +624,7 @@ public:
       fs::path fname = writerDir / to_string(cr.fWriterId) / "key.bin";
       mcfile::ScopedFile fp(mcfile::File::Open(fname, mcfile::File::Mode::Read));
       if (!fp) {
-        return JE2BE_ERROR;
+        return JE2BE_ERROR_ERRNO;
       }
       int encount = 0;
       for (u64 i = 0; i < cr.fNumKeys; i++) {
@@ -626,15 +632,15 @@ public:
         key.fWriterId = cr.fWriterId;
         u32 keySize;
         if (fread(&keySize, sizeof(keySize), 1, fp.get()) != 1) {
-          return JE2BE_ERROR;
+          return JE2BE_ERROR_ERRNO;
         }
         u8 first;
         if (fread(&first, sizeof(first), 1, fp.get()) != 1) {
-          return JE2BE_ERROR;
+          return JE2BE_ERROR_ERRNO;
         }
         if (first != prefix) {
           if (!mcfile::File::Fseek(fp.get(), keySize + sizeof(u32) + sizeof(u64) + sizeof(u64) - 1, SEEK_CUR)) {
-            return JE2BE_ERROR;
+            return JE2BE_ERROR_ERRNO;
           }
           continue;
         }
@@ -642,17 +648,17 @@ public:
         key.fKey[0] = (char)prefix;
         if (keySize > 1) {
           if (fread(key.fKey.data() + 1, keySize - 1, 1, fp.get()) != 1) {
-            return JE2BE_ERROR;
+            return JE2BE_ERROR_ERRNO;
           }
         }
         if (fread(&key.fValueSizeCompressed, sizeof(key.fValueSizeCompressed), 1, fp.get()) != 1) {
-          return JE2BE_ERROR;
+          return JE2BE_ERROR_ERRNO;
         }
         if (fread(&key.fOffset, sizeof(key.fOffset), 1, fp.get()) != 1) {
-          return JE2BE_ERROR;
+          return JE2BE_ERROR_ERRNO;
         }
         if (fread(&key.fSequence, sizeof(key.fSequence), 1, fp.get()) != 1) {
-          return JE2BE_ERROR;
+          return JE2BE_ERROR_ERRNO;
         }
         keys.push_back(key);
         encount++;
@@ -699,9 +705,9 @@ public:
       return Status::Ok();
     }
 
-    unique_ptr<WritableFile> file(OpenWritable(TableFilePath(dbname, fileNumber)));
-    if (!file) {
-      return JE2BE_ERROR;
+    auto [file, status] = OpenWritable(TableFilePath(dbname, fileNumber));
+    if (!status.ok() || !file) {
+      return JE2BE_ERROR_WHAT(status.ToString());
     }
 
     leveldb::Options bo;
@@ -734,18 +740,18 @@ public:
         fs::path fname = writerDir / to_string(it.fWriterId) / "value.bin";
         f = mcfile::File::Open(fname, mcfile::File::Mode::Read);
         if (!f) {
-          return JE2BE_ERROR;
+          return JE2BE_ERROR_ERRNO;
         }
         fp = f;
         openedFile = it.fWriterId;
       }
       if (!mcfile::File::Fseek(f, it.fOffset, SEEK_SET)) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto cleanup;
       }
       value.resize(it.fValueSizeCompressed);
       if (fread(value.data(), it.fValueSizeCompressed, 1, f) != 1) {
-        st = JE2BE_ERROR;
+        st = JE2BE_ERROR_ERRNO;
         goto cleanup;
       }
       builder->AddAlreadyCompressedAndFlush(ik.Encode(), value);
@@ -769,15 +775,16 @@ public:
     return st;
   }
 
-  static leveldb::WritableFile *OpenWritable(std::filesystem::path const &path) {
+  static std::pair<std::unique_ptr<leveldb::WritableFile>, leveldb::Status> OpenWritable(std::filesystem::path const &path) {
     using namespace leveldb;
     Env *env = Env::Default();
     WritableFile *file = nullptr;
     leveldb::Status st = env->NewWritableFile(path, &file);
-    if (!st.ok()) {
-      return nullptr;
+    if (st.ok() && file) {
+      return std::make_pair(std::unique_ptr<leveldb::WritableFile>(file), st);
+    } else {
+      return std::make_pair(nullptr, st);
     }
-    return file;
   }
 
   static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, u64 tableNumber) {

@@ -44,6 +44,7 @@ set(je2be_header_files
   include/je2be/box360/progress.hpp
   include/je2be/defer.hpp
   include/je2be/enums/level-directory-structure.hpp
+  include/je2be/errno.hpp
   include/je2be/fs.hpp
   include/je2be/integers.hpp
   include/je2be/nbt.hpp

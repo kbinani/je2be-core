@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/errno.hpp>
+
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -88,6 +90,8 @@ private:
 #define JE2BE_ERROR_HELPER(file, line, what) je2be::Status::Error((file), (line), (what))
 #define JE2BE_ERROR JE2BE_ERROR_HELPER(__FILE__, __LINE__, std::string())
 #define JE2BE_ERROR_WHAT(what) JE2BE_ERROR_HELPER(__FILE__, __LINE__, (what))
+
+#define JE2BE_ERROR_ERRNO JE2BE_ERROR_HELPER(__FILE__, __LINE__, Errno::StringFromErrno(errno))
 
 #define JE2BE_ERROR_PUSH_HELPER(base, file, line) (base).pushed((file), (line))
 #define JE2BE_ERROR_PUSH(base) JE2BE_ERROR_PUSH_HELPER((base), __FILE__, __LINE__)
