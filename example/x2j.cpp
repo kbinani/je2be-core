@@ -133,9 +133,10 @@ int main(int argc, char *argv[]) {
   auto st = Converter::Run(input, output, concurrency, options, progress.get());
   progress.reset();
   if (auto err = st.error(); err) {
-    cerr << err->fWhat << endl;
+    cerr << "what: " << err->fWhat << endl;
+    cerr << "trace: " << endl;
     for (int i = err->fTrace.size() - 1; i >= 0; i--) {
-      cerr << err->fTrace[i].fFile << ":" << err->fTrace[i].fLine << endl;
+      cerr << "  " << err->fTrace[i].fFile << ":" << err->fTrace[i].fLine << endl;
     }
     return -1;
   } else {

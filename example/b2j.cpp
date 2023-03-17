@@ -160,9 +160,10 @@ int main(int argc, char *argv[]) {
   unique_ptr<StdoutProgressReporter> progress(new StdoutProgressReporter);
   auto st = Converter::Run(input, output, options, concurrency, progress.get());
   if (auto err = st.error(); err) {
-    cerr << err->fWhat << endl;
+    cerr << "what: " << err->fWhat << endl;
+    cerr << "trace: " << endl;
     for (int i = err->fTrace.size() - 1; i >= 0; i--) {
-      cerr << err->fTrace[i].fFile << ":" << err->fTrace[i].fLine << endl;
+      cerr << "  " << err->fTrace[i].fFile << ":" << err->fTrace[i].fLine << endl;
     }
     return -1;
   } else {
