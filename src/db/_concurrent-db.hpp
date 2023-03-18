@@ -44,6 +44,7 @@ class ConcurrentDb : public DbInterface {
       fs::path dir = directory / std::to_string(id);
       Fs::DeleteAll(dir);
       if (!Fs::CreateDirectories(dir)) {
+        fWhy = JE2BE_ERROR;
         return;
       }
       fDir = dir;
@@ -51,12 +52,14 @@ class ConcurrentDb : public DbInterface {
       fs::path keyFile = dir / "key.bin";
       FILE *key = mcfile::File::Open(keyFile, mcfile::File::Mode::Write);
       if (!key) {
+        fWhy = JE2BE_ERROR_ERRNO;
         return;
       }
 
       fs::path valueFile = dir / "value.bin";
       FILE *value = mcfile::File::Open(valueFile, mcfile::File::Mode::Write);
       if (!value) {
+        fWhy = JE2BE_ERROR_ERRNO;
         fclose(key);
         return;
       }
@@ -73,7 +76,11 @@ class ConcurrentDb : public DbInterface {
     Status put(std::string const &key, std::string const &value) {
       using namespace std;
       if (!fValue || !fKey) {
-        return JE2BE_ERROR;
+        if (fWhy.ok()) {
+          return JE2BE_ERROR;
+        } else {
+          return JE2BE_ERROR_PUSH(fWhy);
+        }
       }
       if (key.empty()) {
         return JE2BE_ERROR;
@@ -133,6 +140,7 @@ class ConcurrentDb : public DbInterface {
         fValue = nullptr;
       }
       Fs::DeleteAll(fDir);
+      fWhy = st;
       return st;
     }
 
@@ -203,6 +211,7 @@ class ConcurrentDb : public DbInterface {
     u64 fOffset = 0;
     u64 fNumKeys = 0;
     u16 fNumPrefix[256];
+    Status fWhy;
   };
 
   class Gate : std::enable_shared_from_this<Gate> {
