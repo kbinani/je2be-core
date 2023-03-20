@@ -189,6 +189,7 @@ set(je2be_src_files
   src/_rotation.hpp
   src/_size.hpp
   src/_static-reversible-map.hpp
+  src/_system.hpp
   src/_version.hpp
   src/_volume.hpp
   src/_walk.hpp
@@ -258,6 +259,7 @@ set(je2be_src_files
   src/item/_potion.hpp
   src/item/_tipped-arrow-potion.hpp
   src/structure/_structure-piece.hpp
+  src/system.cpp
   src/terraform-block-property-accessor.cpp
   src/terraform-fence-connectable.cpp
   src/terraform-leaves.cpp
