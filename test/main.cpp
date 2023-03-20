@@ -41,3 +41,4 @@ static fs::path ProjectRootDir() {
 #include "end-gateway.test.hpp"
 #include "strings.test.hpp"
 #include "pos2i-set.test.hpp"
+#include "system.test.hpp"

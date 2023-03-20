@@ -393,7 +393,8 @@ set(test_files
   test/end-gateway.test.hpp
   test/strings.test.hpp
   test/je2be-all.hpp
-  test/pos2i-set.test.hpp)
+  test/pos2i-set.test.hpp
+  test/system.test.hpp)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)
