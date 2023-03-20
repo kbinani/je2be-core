@@ -432,7 +432,7 @@ class ConcurrentDb : public DbInterface {
       CompressionType type = kZlibRawCompression;
 
       std::string *compressed = &r->compressed_output;
-      mcfile::Compression::CompressDeflate((void *)raw.data(), raw.size(), *compressed, Z_BEST_SPEED);
+      mcfile::Compression::CompressDeflate((void *)raw.data(), raw.size(), *compressed, Z_BEST_COMPRESSION);
       if (compressed->size() < raw.size()) {
         block_contents = *compressed;
       } else {
