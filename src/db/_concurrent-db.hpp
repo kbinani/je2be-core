@@ -2,8 +2,10 @@
 
 #include <je2be/defer.hpp>
 #include <je2be/fs.hpp>
+#include <je2be/strings.hpp>
 
 #include "_parallel.hpp"
+#include "_system.hpp"
 #include "db/_db-interface.hpp"
 
 #include <db/log_writer.h>
@@ -66,7 +68,8 @@ class ConcurrentDb : public DbInterface {
 
       fKey = key;
       fValue = value;
-      std::fill_n(fNumPrefix, 256, 0);
+      std::fill_n(fNumKeys, 256, 0);
+      std::fill_n(fTotalKeySize, 256, 0);
     }
 
     ~Writer() {
@@ -119,14 +122,10 @@ class ConcurrentDb : public DbInterface {
         goto error;
       }
       fOffset += block.size();
-      fNumKeys++;
       {
         int idx = (unsigned char)key[0];
-        u16 num = fNumPrefix[idx];
-        if (num < numeric_limits<u16>::max()) {
-          num++;
-        }
-        fNumPrefix[idx] = num;
+        fNumKeys[idx] += 1;
+        fTotalKeySize[idx] += key.size();
       }
       return st;
 
@@ -146,10 +145,10 @@ class ConcurrentDb : public DbInterface {
 
     struct CloseResult {
       u32 fWriterId;
-      u64 fNumKeys;
-      u16 fNumPrefix[256];
+      u64 fNumKeys[256];
+      u64 fTotalKeySize[256];
     };
-    std::optional<CloseResult> close() {
+    std::shared_ptr<CloseResult> close() {
       if (!fValue || !fKey) {
         if (fValue) {
           fclose(fValue);
@@ -159,16 +158,16 @@ class ConcurrentDb : public DbInterface {
           fclose(fKey);
           fKey = nullptr;
         }
-        return std::nullopt;
+        return nullptr;
       }
       fclose(fValue);
       fValue = nullptr;
       fclose(fKey);
       fKey = nullptr;
-      CloseResult result;
-      result.fNumKeys = fNumKeys;
-      result.fWriterId = fId;
-      std::copy_n(fNumPrefix, 256, result.fNumPrefix);
+      auto result = std::make_shared<CloseResult>();
+      result->fWriterId = fId;
+      std::copy_n(fNumKeys, 256, result->fNumKeys);
+      std::copy_n(fTotalKeySize, 256, result->fTotalKeySize);
       return result;
     }
 
@@ -209,9 +208,9 @@ class ConcurrentDb : public DbInterface {
     FILE *fKey = nullptr;
     FILE *fValue = nullptr;
     u64 fOffset = 0;
-    u64 fNumKeys = 0;
-    u16 fNumPrefix[256];
+    u64 fNumKeys[256];
     Status fWhy;
+    u64 fTotalKeySize[256];
   };
 
   class Gate : std::enable_shared_from_this<Gate> {
@@ -496,8 +495,19 @@ public:
     using namespace leveldb;
     namespace fs = std::filesystem;
 
+    if (progress) {
+      progress({0, 257});
+    }
+
     vector<shared_ptr<Writer>> writers;
     Gate::Drain((uintptr_t)this, writers);
+
+    if (writers.empty()) {
+      if (progress) {
+        progress({257, 257});
+      }
+      return Status::Ok();
+    }
 
     atomic_bool ok = true;
     auto writerIds = Parallel::Reduce<shared_ptr<Writer>, vector<Writer::CloseResult>>(
@@ -545,7 +555,7 @@ public:
         BuildResult{},
         [&](u8 prefix) {
           BuildResult ret;
-          auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix);
+          auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix, fConcurrency);
           ret.fStatus = st;
           auto p = done.fetch_add(1) + 1;
           if (progress) {
@@ -619,89 +629,151 @@ public:
       std::vector<Writer::CloseResult> const &writerIds,
       std::atomic_uint64_t *fileNumber,
       std::vector<TableBuildResult> &out,
-      u8 prefix) {
+      u8 prefix,
+      unsigned int concurrency) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
 
-    vector<Key> keys;
+    u64 totalKeySizeWithPrefix = 0;
+    u64 numKeysWithPrefix = 0;
+    u64 numKeys = 0;
     for (Writer::CloseResult const &cr : writerIds) {
-      int expectedEncount = (int)cr.fNumPrefix[prefix];
-      if (expectedEncount == 0) {
-        continue;
-      }
-      fs::path fname = writerDir / to_string(cr.fWriterId) / "key.bin";
-      mcfile::ScopedFile fp(mcfile::File::Open(fname, mcfile::File::Mode::Read));
-      if (!fp) {
-        return JE2BE_ERROR_ERRNO;
-      }
-      int encount = 0;
-      for (u64 i = 0; i < cr.fNumKeys; i++) {
-        Key key;
-        key.fWriterId = cr.fWriterId;
-        u32 keySize;
-        if (fread(&keySize, sizeof(keySize), 1, fp.get()) != 1) {
-          return JE2BE_ERROR_ERRNO;
-        }
-        u8 first;
-        if (fread(&first, sizeof(first), 1, fp.get()) != 1) {
-          return JE2BE_ERROR_ERRNO;
-        }
-        if (first != prefix) {
-          if (!mcfile::File::Fseek(fp.get(), keySize + sizeof(u32) + sizeof(u64) + sizeof(u64) - 1, SEEK_CUR)) {
-            return JE2BE_ERROR_ERRNO;
-          }
-          continue;
-        }
-        key.fKey.resize(keySize);
-        key.fKey[0] = (char)prefix;
-        if (keySize > 1) {
-          if (fread(key.fKey.data() + 1, keySize - 1, 1, fp.get()) != 1) {
-            return JE2BE_ERROR_ERRNO;
-          }
-        }
-        if (fread(&key.fValueSizeCompressed, sizeof(key.fValueSizeCompressed), 1, fp.get()) != 1) {
-          return JE2BE_ERROR_ERRNO;
-        }
-        if (fread(&key.fOffset, sizeof(key.fOffset), 1, fp.get()) != 1) {
-          return JE2BE_ERROR_ERRNO;
-        }
-        if (fread(&key.fSequence, sizeof(key.fSequence), 1, fp.get()) != 1) {
-          return JE2BE_ERROR_ERRNO;
-        }
-        keys.push_back(key);
-        encount++;
-        if (expectedEncount != numeric_limits<u16>::max() && encount == expectedEncount) {
-          break;
-        }
+      totalKeySizeWithPrefix += cr.fTotalKeySize[prefix];
+      numKeysWithPrefix += cr.fNumKeys[prefix];
+      for (int i = 0; i < 256; i++) {
+        numKeys += cr.fNumKeys[i];
       }
     }
-    Comparator const *cmp = BytewiseComparator();
-    sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
-      return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
-    });
+    if (numKeysWithPrefix == 0) {
+      return Status::Ok();
+    }
 
-    u64 size = 0;
-    vector<Key> bin;
-    for (int i = 0; i < keys.size(); i++) {
-      Key key = keys[i];
-      bin.push_back(key);
-      size += key.fValueSizeCompressed;
-      if (size >= kMaxFileSize) {
+    u64 const estimatedKeysSize = totalKeySizeWithPrefix + numKeysWithPrefix * sizeof(Key);
+    u64 const systemMemory = System::GetInstalledMemory();
+
+    int depth = 0;
+    if (concurrency > 0 && 0 < systemMemory && systemMemory < estimatedKeysSize / concurrency) {
+      depth = std::clamp((int)std::ceil(-std::log(concurrency * double(systemMemory) / double(estimatedKeysSize)) / std::log(256.0)), 0, 7);
+    }
+
+    string lower;
+    lower.resize(depth + 1);
+    lower[0] = *(char *)&prefix;
+    u64 const nmax = (u64(1) << (8 * depth));
+    for (u64 n = 0; n < nmax; n++) {
+      string upper = strings::Increment(lower);
+
+      string begin = strings::RTrim(lower, string("\x0", 1));
+      string end = strings::RTrim(upper, string("\x0", 1));
+
+      vector<Key> keys;
+      for (Writer::CloseResult const &cr : writerIds) {
+        u64 expectedEncount = cr.fNumKeys[prefix];
+        if (expectedEncount == 0) {
+          continue;
+        }
+        fs::path fname = writerDir / to_string(cr.fWriterId) / "key.bin";
+        mcfile::ScopedFile fp(mcfile::File::Open(fname, mcfile::File::Mode::Read));
+        if (!fp) {
+          return JE2BE_ERROR_ERRNO;
+        }
+        int encount = 0;
+        for (u64 i = 0; i < numKeys; i++) {
+          u32 keySize;
+          if (fread(&keySize, sizeof(keySize), 1, fp.get()) != 1) {
+            return JE2BE_ERROR_ERRNO;
+          }
+          u8 first;
+          if (fread(&first, sizeof(first), 1, fp.get()) != 1) {
+            return JE2BE_ERROR_ERRNO;
+          }
+          if (first != prefix) {
+            if (!mcfile::File::Fseek(fp.get(), keySize + sizeof(u32) + sizeof(u64) + sizeof(u64) - 1, SEEK_CUR)) {
+              return JE2BE_ERROR_ERRNO;
+            }
+            continue;
+          }
+          encount++;
+
+          string keyString;
+          keyString.resize(keySize);
+          keyString[0] = (char)prefix;
+          if (keySize > 1) {
+            if (fread(keyString.data() + 1, keySize - 1, 1, fp.get()) != 1) {
+              return JE2BE_ERROR_ERRNO;
+            }
+          }
+          if (n != 0 && keyString < lower) {
+            if (encount == expectedEncount) {
+              break;
+            } else {
+              if (!mcfile::File::Fseek(fp.get(), sizeof(u32) + sizeof(u64) + sizeof(u64), SEEK_CUR)) {
+                return JE2BE_ERROR_ERRNO;
+              }
+              continue;
+            }
+          }
+          if (n != nmax - 1 && !(keyString < upper)) {
+            if (encount == expectedEncount) {
+              break;
+            } else {
+              if (!mcfile::File::Fseek(fp.get(), sizeof(u32) + sizeof(u64) + sizeof(u64), SEEK_CUR)) {
+                return JE2BE_ERROR_ERRNO;
+              }
+              continue;
+            }
+          }
+
+          Key key;
+          key.fWriterId = cr.fWriterId;
+          key.fKey = keyString;
+
+          if (fread(&key.fValueSizeCompressed, sizeof(key.fValueSizeCompressed), 1, fp.get()) != 1) {
+            return JE2BE_ERROR_ERRNO;
+          }
+          if (fread(&key.fOffset, sizeof(key.fOffset), 1, fp.get()) != 1) {
+            return JE2BE_ERROR_ERRNO;
+          }
+          if (fread(&key.fSequence, sizeof(key.fSequence), 1, fp.get()) != 1) {
+            return JE2BE_ERROR_ERRNO;
+          }
+          keys.push_back(key);
+          if (encount == expectedEncount) {
+            break;
+          }
+        }
+      }
+      Comparator const *cmp = BytewiseComparator();
+      sort(keys.begin(), keys.end(), [cmp](Key const &lhs, Key const &rhs) {
+        return cmp->Compare(lhs.fKey, rhs.fKey) < 0;
+      });
+
+      u64 size = 0;
+      vector<Key> bin;
+      for (int i = 0; i < keys.size(); i++) {
+        Key key = keys[i];
+        bin.push_back(key);
+        size += key.fValueSizeCompressed;
+        if (size >= kMaxFileSize) {
+          u64 fn = fileNumber->fetch_add(1);
+          if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
+            return JE2BE_ERROR_PUSH(st);
+          }
+          size = 0;
+          bin.clear();
+        }
+      }
+      if (!bin.empty()) {
         u64 fn = fileNumber->fetch_add(1);
         if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
           return JE2BE_ERROR_PUSH(st);
         }
-        size = 0;
-        bin.clear();
       }
+
+      lower = upper;
     }
-    if (!bin.empty()) {
-      u64 fn = fileNumber->fetch_add(1);
-      if (auto st = Write(dbname, writerDir, bin, fn, out); !st.ok()) {
-        return JE2BE_ERROR_PUSH(st);
-      }
-    }
+
     return Status::Ok();
   }
 
