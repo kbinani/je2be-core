@@ -549,13 +549,18 @@ public:
     }
     atomic_uint64_t fileNumber(1);
     atomic_uint64_t done(0);
+    u64 maxMemoryUsage = 0;
+    if (fConcurrency > 0) {
+      u64 const systemMemory = System::GetInstalledMemory();
+      maxMemoryUsage = systemMemory / fConcurrency;
+    }
     auto result = Parallel::Reduce<u8, BuildResult>(
         works,
         fConcurrency,
         BuildResult{},
         [&](u8 prefix) {
           BuildResult ret;
-          auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix, fConcurrency);
+          auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix, maxMemoryUsage);
           ret.fStatus = st;
           auto p = done.fetch_add(1) + 1;
           if (progress) {
@@ -630,7 +635,7 @@ public:
       std::atomic_uint64_t *fileNumber,
       std::vector<TableBuildResult> &out,
       u8 prefix,
-      unsigned int concurrency) {
+      u64 maxMemoryUsage) {
     using namespace std;
     using namespace leveldb;
     namespace fs = std::filesystem;
@@ -650,11 +655,11 @@ public:
     }
 
     u64 const estimatedKeysSize = totalKeySizeWithPrefix + numKeysWithPrefix * sizeof(Key);
-    u64 const systemMemory = System::GetInstalledMemory();
 
     int depth = 0;
-    if (concurrency > 0 && 0 < systemMemory && systemMemory < estimatedKeysSize / concurrency) {
-      depth = std::clamp((int)std::ceil(-std::log(concurrency * double(systemMemory) / double(estimatedKeysSize)) / std::log(256.0)), 0, 7);
+    if (maxMemoryUsage > 0) {
+      int div = (int)std::ceil(-std::log(maxMemoryUsage / double(estimatedKeysSize)) / std::log(256.0));
+      depth = clamp<int>(div, 0, 7);
     }
 
     string lower;
