@@ -8,3 +8,4 @@ variableScope
 unmatchedSuppression
 unusedStructMember
 missingInclude
+preprocessorErrorDirective
