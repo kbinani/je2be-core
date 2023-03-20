@@ -82,7 +82,11 @@ public:
     using namespace std;
 
     int numThreads = (int)concurrency - 1;
-    std::latch latch(concurrency);
+    unique_ptr<std::latch> latch;
+    if (concurrency > 0) {
+      latch.reset(new std::latch(concurrency));
+    }
+    std::latch *latchPtr = latch.get();
 
     vector<shared_ptr<atomic_bool>> done;
     for (int i = 0; i < works.size(); i++) {
@@ -93,7 +97,7 @@ public:
     mutex joinMut;
     Result total = zero();
 
-    auto action = [&latch, zero, donePtr, &joinMut, &works, &func, join, &total]() {
+    auto action = [latchPtr, zero, donePtr, &joinMut, &works, &func, join, &total]() {
       Result sum = zero();
       while (true) {
         Work const *work = nullptr;
@@ -113,7 +117,9 @@ public:
           break;
         }
       }
-      latch.count_down();
+      if (latchPtr) {
+        latchPtr->count_down();
+      }
     };
 
     vector<thread> threads;
@@ -121,7 +127,9 @@ public:
       threads.push_back(thread(action));
     }
     action();
-    latch.wait();
+    if (latch) {
+      latch->wait();
+    }
 
     for (auto &th : threads) {
       th.join();

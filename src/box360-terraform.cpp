@@ -60,12 +60,16 @@ private:
     atomic_bool ok(true);
     optional<Status> error;
     atomic_uint64_t count(0);
-    std::latch latch(concurrency);
+    unique_ptr<std::latch> latch;
+    if (concurrency > 0) {
+      latch.reset(new std::latch(concurrency));
+    }
+    std::latch *latchPtr = latch.get();
     mutex joinMut;
     Queue2d queue({-32, -32}, 64, 64, 1);
     mutex queueMut;
 
-    auto action = [&queue, &queueMut, &joinMut, &latch, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
+    auto action = [&queue, &queueMut, &joinMut, latchPtr, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
       while (ok) {
         optional<Pos2i> next;
         {
@@ -94,7 +98,9 @@ private:
           break;
         }
       }
-      latch.count_down();
+      if (latchPtr) {
+        latchPtr->count_down();
+      }
     };
 
     vector<thread> threads;
@@ -103,7 +109,9 @@ private:
     }
 
     action();
-    latch.wait();
+    if (latch) {
+      latch->wait();
+    }
 
     for (auto &th : threads) {
       th.join();

@@ -212,13 +212,17 @@ private:
       }
     }
 
-    int numThreads = concurrency - 1;
-    std::latch latch(concurrency);
+    int numThreads = (int)concurrency - 1;
+    unique_ptr<std::latch> latch;
+    if (concurrency > 0) {
+      latch.reset(new std::latch(concurrency));
+    }
+    std::latch *latchPtr = latch.get();
     atomic_bool ok(true);
     mutex mut;
     atomic_uint64_t done(0);
 
-    auto action = [&latch, &queues, &mut, output, &ok, terrainTempDirs, regions, &done, progress, numChunks]() {
+    auto action = [latchPtr, &queues, &mut, output, &ok, terrainTempDirs, regions, &done, progress, numChunks]() {
       shared_ptr<terraform::java::BlockAccessorJavaDirectory<3, 3>> blockAccessor;
       optional<mcfile::Dimension> prevDimension;
 
@@ -325,7 +329,9 @@ private:
           queues[dim]->unlock({region});
         }
       }
-      latch.count_down();
+      if (latchPtr) {
+        latchPtr->count_down();
+      }
     };
 
     vector<thread> threads;
@@ -333,7 +339,9 @@ private:
       threads.push_back(thread(action));
     }
     action();
-    latch.wait();
+    if (latch) {
+      latch->wait();
+    }
     for (auto &th : threads) {
       th.join();
     }

@@ -1063,13 +1063,13 @@ static void TestJavaToBedrockToJava(fs::path in) {
     }
   };
 
-  Status st = je2be::tobe::Converter::Run(in, *outB, optB, thread::hardware_concurrency());
+  Status st = je2be::tobe::Converter::Run(in, *outB, optB, multithread ? thread::hardware_concurrency() : 0);
   CHECK(st.ok());
 
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   CHECK(outJ);
-  st = je2be::toje::Converter::Run(*outB, *outJ, optJ, thread::hardware_concurrency());
+  st = je2be::toje::Converter::Run(*outB, *outJ, optJ, multithread ? thread::hardware_concurrency() : 0);
   CHECK(st.ok());
 
   // Compare initial Java input and final Java output.
