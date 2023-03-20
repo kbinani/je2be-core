@@ -19,4 +19,10 @@ TEST_CASE("strings") {
   SUBCASE("CapitalizeSnake") {
     CHECK(strings::CapitalizeSnake("pillager_outpost") == "Pillager_Outpost");
   }
+  SUBCASE("Increment") {
+    CHECK(strings::Increment("") == "\x1");
+    CHECK(strings::Increment("\x1") == "\x2");
+    CHECK(strings::Increment("\xff") == string("\x1\x0", 2));
+    CHECK(strings::Increment("\x1\xff\xff") == string("\x2\x0\x0", 3));
+  }
 }

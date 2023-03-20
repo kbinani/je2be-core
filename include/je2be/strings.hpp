@@ -6,6 +6,7 @@
 
 #include <charconv>
 #include <cstdint>
+#include <vector>
 
 namespace je2be::strings {
 
@@ -194,6 +195,40 @@ inline std::string SnakeFromUpperCamel(std::string const &s) {
 
 inline std::string Substring(std::string const &s, size_t begin, size_t end = std::string::npos) {
   return s.substr(begin, end - begin);
+}
+
+inline std::string Increment(std::string const &p) {
+  using namespace std;
+  if (p.empty()) {
+    string s;
+    s.push_back((char)1);
+    return s;
+  }
+  vector<u16> v;
+  for (int i = p.size() - 1; i >= 0; i--) {
+    char ch = p[i];
+    u8 a = *(u8 *)&ch;
+    v.push_back(a);
+  }
+  v[0] += 1;
+  for (int i = 0; i < v.size(); i++) {
+    if (v[i] > std::numeric_limits<u8>::max()) {
+      if (i == v.size() - 1) {
+        v[i] = 0;
+        v.push_back(1);
+        break;
+      } else {
+        v[i + 1] += 1;
+        v[i] = 0;
+      }
+    }
+  }
+  string ret;
+  for (int i = v.size() - 1; i >= 0; i--) {
+    u16 ch = v[i];
+    ret.push_back(*(unsigned char *)&ch);
+  }
+  return ret;
 }
 
 } // namespace je2be::strings
