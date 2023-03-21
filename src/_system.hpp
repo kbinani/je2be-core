@@ -9,6 +9,7 @@ class System {
 
 public:
   static u64 GetInstalledMemory();
+  static u64 GetAvailableMemory();
 };
 
 } // namespace je2be

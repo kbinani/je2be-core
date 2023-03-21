@@ -551,8 +551,8 @@ public:
     atomic_uint64_t done(0);
     u64 maxMemoryUsage = 0;
     if (fConcurrency > 0) {
-      u64 const systemMemory = System::GetInstalledMemory();
-      maxMemoryUsage = systemMemory / fConcurrency;
+      u64 const availableMemory = System::GetAvailableMemory();
+      maxMemoryUsage = availableMemory / fConcurrency;
     }
     auto result = Parallel::Reduce<u8, BuildResult>(
         works,

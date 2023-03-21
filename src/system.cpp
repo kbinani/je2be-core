@@ -25,8 +25,30 @@ u64 System::GetInstalledMemory() {
   if (pages < 0 || pageSize < 0) {
     return 0;
   }
-  return pages * pageSize;
+  return u64(pages) * u64(pageSize);
 #else
+  return 0;
+#endif
+}
+
+u64 System::GetAvailableMemory() {
+#if __has_include(<windows.h>) && __has_include(<sysinfoapi.h>)
+  MEMORYSTATUSEX st;
+  st.dwLength = sizeof(st);
+  if (GlobalMemoryStatusEx(&st)) {
+    return st.ullAvailPhys;
+  } else {
+    return 0;
+  }
+#elif __has_include(<unistd.h>) && defined(_SC_AVPHYS_PAGES)
+  long pages = sysconf(_SC_AVPHYS_PAGES);
+  long pageSize = sysconf(_SC_PAGE_SIZE);
+  if (pages < 0 || pageSize < 0) {
+    return 0;
+  }
+  return u64(pages) * u64(pageSize);
+#else
+
   return 0;
 #endif
 }
