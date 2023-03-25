@@ -78,6 +78,8 @@ public:
     struct Work {
       Dimension fDim;
       shared_ptr<mcfile::je::Region> fRegion;
+
+      Work(Dimension dim, shared_ptr<mcfile::je::Region> const &region) : fDim(dim), fRegion(region) {}
     };
     struct Result {
       map<mcfile::Dimension, shared_ptr<WorldData>> fData;
@@ -117,9 +119,7 @@ public:
       auto dir = o.getWorldDirectory(input, dim);
       mcfile::je::World world(dir);
       world.eachRegions([dim, &works](shared_ptr<mcfile::je::Region> const &region) {
-        Work work;
-        work.fRegion = region;
-        work.fDim = dim;
+        Work work(dim, region);
         works.push_back(work);
         return true;
       });
