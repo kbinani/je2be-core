@@ -9,3 +9,4 @@ unmatchedSuppression
 unusedStructMember
 missingInclude
 preprocessorErrorDirective
+noValidConfiguration
