@@ -29,14 +29,14 @@ public:
     Fs::DeleteAll(fDir);
   }
 
-  Status add(std::vector<CompoundTagPtr> const &entities, Pos2i const &chunk, Pos2i const &fromChunk) {
+  Status add(std::vector<i64> const &entityUuids, Pos2i const &chunk, Pos2i const &fromChunk) {
     if (!fDb) {
       return JE2BE_ERROR;
     }
     auto stream = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter writer(stream, mcfile::Endian::Little);
-    for (auto const &e : entities) {
-      if (!CompoundTag::Write(*e, writer)) {
+    for (u64 uuid : entityUuids) {
+      if (!writer.write(uuid)) {
         return JE2BE_ERROR;
       }
     }
@@ -52,7 +52,7 @@ public:
     }
   }
 
-  Status entities(Pos2i const &chunk, std::function<Status(CompoundTagPtr const &)> cb) {
+  Status entityUuids(Pos2i const &chunk, std::function<Status(i64)> cb) {
     using namespace std;
     if (!fDb) {
       return JE2BE_ERROR;
@@ -67,13 +67,17 @@ public:
         if (!fDb->Get(ro, leveldb::Slice(key), &value).ok()) {
           continue;
         }
-        Status st;
-        CompoundTag::ReadSequential(value, mcfile::Endian::Little, [&](CompoundTagPtr const &tag) {
-          st = cb(tag);
-          return st.ok();
-        });
-        if (!st.ok()) {
-          return JE2BE_ERROR_PUSH(st);
+        auto s = make_shared<mcfile::stream::ByteInputStream>(value);
+        mcfile::stream::InputStreamReader r(s, mcfile::Endian::Little);
+        size_t count = value.size() / sizeof(i64);
+        for (size_t i = 0; i < count; i++) {
+          i64 uuid;
+          if (!r.read(&uuid)) {
+            return JE2BE_ERROR;
+          }
+          if (auto st = cb(uuid); !st.ok()) {
+            return JE2BE_ERROR_PUSH(st);
+          }
         }
       }
     }

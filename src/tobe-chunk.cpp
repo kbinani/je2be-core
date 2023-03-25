@@ -225,8 +225,32 @@ public:
 
     if (!entities.empty()) {
       for (auto const &it : entities) {
-        Pos2i p = it.first;
-        entityStore->add(it.second, p, Pos2i(chunk->fChunkX, chunk->fChunkZ));
+        vector<i64> uuids;
+        for (auto const &entity : it.second) {
+          auto id = entity->int64(u8"UniqueID");
+          if (!id) {
+            assert(false);
+            continue;
+          }
+          uuids.push_back(*id);
+
+          i64 v = *id;
+          string prefix;
+          prefix.assign((char const *)&v, sizeof(v));
+
+          auto key = mcfile::be::DbKey::Actorprefix(prefix);
+          auto value = CompoundTag::Write(*entity, Endian::Little);
+          if (!value) {
+            return make_pair(ret, JE2BE_ERROR);
+          }
+          if (auto st = db.put(key, leveldb::Slice(*value)); !st.ok()) {
+            return make_pair(ret, JE2BE_ERROR_PUSH(st));
+          }
+        }
+
+        Pos2i entityChunk = it.first;
+        Pos2i fromChunk(chunk->fChunkX, chunk->fChunkZ);
+        entityStore->add(uuids, entityChunk, fromChunk);
       }
     }
 

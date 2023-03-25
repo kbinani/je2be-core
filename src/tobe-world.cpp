@@ -57,22 +57,11 @@ private:
     using namespace mcfile;
     using namespace mcfile::be;
     string digp;
-    Status st = store->entities(chunk, [db, &digp](CompoundTagPtr const &c) {
-      auto id = c->int64(u8"UniqueID");
-      if (!id) {
-        return Status::Ok();
-      }
-      i64 v = *id;
+    Status st = store->entityUuids(chunk, [db, &digp](i64 uuid) {
       string prefix;
-      prefix.assign((char const *)&v, sizeof(v));
+      prefix.assign((char const *)&uuid, sizeof(uuid));
       digp += prefix;
-
-      auto key = DbKey::Actorprefix(prefix);
-      auto value = CompoundTag::Write(*c, Endian::Little);
-      if (!value) {
-        return Status::Ok();
-      }
-      return db->put(key, leveldb::Slice(*value));
+      return Status::Ok();
     });
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
