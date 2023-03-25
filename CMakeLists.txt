@@ -33,7 +33,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 280c7b84ef84cc1e999553805b52cecfd41824ac)
+  GIT_TAG 9953e1393ba0fad8acea600d8243dc73a0f5b910)
 
 set(je2be_header_files
   #begin je2be-header files

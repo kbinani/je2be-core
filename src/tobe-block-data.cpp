@@ -1697,7 +1697,7 @@ public:
     // west_up        4                   0
     // down_south     0                   2
     // down_north     0                   0
-    auto tokens = mcfile::String::Split(std::u8string(orientation), '_');
+    auto tokens = mcfile::String::Split(std::u8string(orientation), u8'_');
     if (tokens.size() == 2) {
       Facing6 f6 = Facing6FromJavaName(tokens[0]);
       int facingDirection = BedrockFacingDirectionAFromFacing6(f6);
