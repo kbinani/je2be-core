@@ -630,8 +630,8 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
     }
     if (!ok) {
       lock_guard<mutex> lock(sMutCerr);
-      cerr << u8"-------------------------------------------------------------------------------------------------------------------" << endl;
-      cerr << kind << u8" " << JavaStringFromDimension(dim) << endl;
+      cerr << "-------------------------------------------------------------------------------------------------------------------" << endl;
+      cerr << kind << " " << JavaStringFromDimension(dim) << endl;
       fprintf(stderr, "%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         fprintf(stderr, "%6d ", x + origin.fX);
@@ -642,11 +642,11 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
         for (int x = 0; x < 16; x++) {
           int vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
           int vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
-          u8string bra = u8"[";
-          u8string ket = u8"]";
+          string bra = "[";
+          string ket = "]";
           if (vE == vA) {
-            bra = u8" ";
-            ket = u8" ";
+            bra = " ";
+            ket = " ";
           }
           fprintf(stderr, "%s%2d,%2d%s", bra.c_str(), vE, vA, ket.c_str());
         }
