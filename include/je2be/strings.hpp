@@ -10,13 +10,24 @@
 
 namespace je2be::strings {
 
-inline std::string LTrim(std::string_view const &s, std::string const &left) {
+inline std::u8string LTrim(std::u8string_view const &s, std::u8string const &left) {
   if (left.empty()) {
-    return std::string(s);
+    return std::u8string(s);
   }
-  std::string ret(s);
+  std::u8string ret(s);
   while (ret.starts_with(left)) {
     ret = ret.substr(left.size());
+  }
+  return ret;
+}
+
+inline std::u8string RTrim(std::u8string_view const &s, std::u8string const &right) {
+  if (right.empty()) {
+    return std::u8string(s);
+  }
+  std::u8string ret(s);
+  while (ret.ends_with(right)) {
+    ret = ret.substr(0, ret.size() - right.size());
   }
   return ret;
 }
@@ -32,16 +43,16 @@ inline std::string RTrim(std::string_view const &s, std::string const &right) {
   return ret;
 }
 
-inline std::string Trim(std::string const &left, std::string_view const &s, std::string const &right) { return RTrim(LTrim(s, left), right); }
+inline std::u8string Trim(std::u8string const &left, std::u8string_view const &s, std::u8string const &right) { return RTrim(LTrim(s, left), right); }
 
-inline std::string Remove(std::string_view const &s, std::string const &search) {
+inline std::u8string Remove(std::u8string_view const &s, std::u8string const &search) {
   if (search.empty()) {
-    return std::string(s);
+    return std::u8string(s);
   }
-  std::string ret(s);
+  std::u8string ret(s);
   while (true) {
     auto i = ret.find(search);
-    if (i == std::string::npos) {
+    if (i == std::u8string::npos) {
       break;
     }
     ret = ret.substr(0, i) + ret.substr(i + search.size());
@@ -49,19 +60,19 @@ inline std::string Remove(std::string_view const &s, std::string const &search) 
   return ret;
 }
 
-inline std::string Replace(std::string_view const &target, std::string const &search, std::string const &replace) {
+inline std::u8string Replace(std::u8string_view const &target, std::u8string const &search, std::u8string const &replace) {
   using namespace std;
   if (search.empty()) {
-    return string(target);
+    return u8string(target);
   }
   if (search == replace) {
-    return string(target);
+    return u8string(target);
   }
   size_t offset = 0;
-  string ret(target);
+  u8string ret(target);
   while (true) {
     auto found = ret.find(search, offset);
-    if (found == string::npos) {
+    if (found == u8string::npos) {
       break;
     }
     ret = ret.substr(0, found) + replace + ret.substr(found + search.size());
@@ -70,27 +81,27 @@ inline std::string Replace(std::string_view const &target, std::string const &se
   return ret;
 }
 
-inline std::optional<i32> ToI32(std::string_view const &s, int base = 10) {
+inline std::optional<i32> ToI32(std::u8string_view const &s, int base = 10) {
   i32 v = 0;
-  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+  if (auto [ptr, ec] = std::from_chars((char const *)s.data(), (char const *)s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
   } else {
     return std::nullopt;
   }
 }
 
-inline std::optional<i64> ToI64(std::string_view const &s, int base = 10) {
+inline std::optional<i64> ToI64(std::u8string_view const &s, int base = 10) {
   i64 v = 0;
-  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+  if (auto [ptr, ec] = std::from_chars((char const *)s.data(), (char const *)s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
   } else {
     return std::nullopt;
   }
 }
 
-inline std::optional<u64> ToU64(std::string_view const &s, int base = 10) {
+inline std::optional<u64> ToU64(std::u8string_view const &s, int base = 10) {
   u64 v = 0;
-  if (auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v, base); ec == std::errc{}) {
+  if (auto [ptr, ec] = std::from_chars((char const *)s.data(), (char const *)s.data() + s.size(), v, base); ec == std::errc{}) {
     return v;
   } else {
     return std::nullopt;
@@ -124,7 +135,7 @@ inline bool Iequals(std::string_view const &a, std::string_view const &b) {
   });
 }
 
-inline void Split(std::string const &s, std::string const &delimiter, std::function<bool(int, std::string const &)> callback) {
+inline void Split(std::u8string const &s, std::u8string const &delimiter, std::function<bool(int, std::u8string const &)> callback) {
   if (delimiter.empty()) {
     callback(0, s);
     return;
@@ -141,18 +152,18 @@ inline void Split(std::string const &s, std::string const &delimiter, std::funct
   callback(count, s.substr(off));
 }
 
-inline std::string Capitalize(std::string const &s) {
+inline std::u8string Capitalize(std::u8string const &s) {
   if (s.empty()) {
     return s;
   }
-  return std::string(1, (char)std::toupper((unsigned char)s[0])) + s.substr(1);
+  return std::u8string(1, (char8_t)std::toupper(s[0])) + s.substr(1);
 }
 
-inline std::string CapitalizeSnake(std::string const &s) {
-  std::string ret;
-  Split(s, "_", [&ret](int i, std::string const &token) {
+inline std::u8string CapitalizeSnake(std::u8string const &s) {
+  std::u8string ret;
+  Split(s, u8"_", [&ret](int i, std::u8string const &token) {
     if (i > 0) {
-      ret += "_";
+      ret += u8"_";
     }
     ret += Capitalize(token);
     return true;
@@ -167,25 +178,25 @@ inline std::string Uncapitalize(std::string const &s) {
   return std::string(1, (char)std::tolower((unsigned char)s[0])) + s.substr(1);
 }
 
-inline std::string UpperCamelFromSnake(std::string const &s) {
-  auto tokens = mcfile::String::Split(s, '_');
-  std::string ret;
+inline std::u8string UpperCamelFromSnake(std::u8string const &s) {
+  auto tokens = mcfile::String::Split(s, u8'_');
+  std::u8string ret;
   for (auto const &t : tokens) {
     ret += Capitalize(t);
   }
   return ret;
 }
 
-inline std::string SnakeFromUpperCamel(std::string const &s) {
-  std::string ret;
+inline std::u8string SnakeFromUpperCamel(std::u8string const &s) {
+  std::u8string ret;
   for (size_t i = 0; i < s.size(); i++) {
-    char ch = s[i];
-    char lower = (char)std::tolower((unsigned char)ch);
+    char8_t ch = s[i];
+    char8_t lower = (char8_t)std::tolower(ch);
     if (lower == ch) {
       ret.push_back(ch);
     } else {
       if (!ret.empty()) {
-        ret.push_back('_');
+        ret.push_back(u8'_');
       }
       ret.push_back(lower);
     }
@@ -193,7 +204,7 @@ inline std::string SnakeFromUpperCamel(std::string const &s) {
   return ret;
 }
 
-inline std::string Substring(std::string const &s, size_t begin, size_t end = std::string::npos) {
+inline std::u8string Substring(std::u8string const &s, size_t begin, size_t end = std::u8string::npos) {
   return s.substr(begin, end - begin);
 }
 

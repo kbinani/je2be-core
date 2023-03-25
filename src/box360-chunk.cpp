@@ -445,8 +445,8 @@ private:
     if (!tag) {
       return JE2BE_ERROR;
     }
-    auto entities = tag->listTag("Entities");
-    auto tileEntities = tag->listTag("TileEntities");
+    auto entities = tag->listTag(u8"Entities");
+    auto tileEntities = tag->listTag(u8"TileEntities");
 
     if (tileEntities) {
       ParseTileEntities(*tileEntities, *chunk, ctx);
@@ -487,27 +487,27 @@ private:
             u8 lowerId = blockId[{x, y - 1, z}];
             u8 lowerData = blockData[{x, y - 1, z}];
             if (auto lower = mcfile::je::Flatten::Block(lowerId, lowerData); lower) {
-              block = lower->applying({{"half", "upper"}});
+              block = lower->applying({{u8"half", u8"upper"}});
             }
           } else if (id == 64) {
             if (y - 1 >= 0) {
               u8 lowerId = blockId[{x, y - 1, z}];
               if (lowerId == 64) {
                 u8 lowerData = blockData[{x, y - 1, z}];
-                map<string, string> props;
+                map<u8string, u8string> props;
                 mcfile::je::Flatten::Door(lowerData, props);
                 mcfile::je::Flatten::Door(data, props);
-                block = make_shared<mcfile::je::Block>("minecraft:oak_door", props);
+                block = make_shared<mcfile::je::Block>(u8"minecraft:oak_door", props);
               }
             }
             if (!block && y + 1 < 256) {
               u8 upperId = blockId[{x, y + 1, z}];
               if (upperId == 64) {
                 u8 upperData = blockData[{x, y + 1, z}];
-                map<string, string> props;
+                map<u8string, u8string> props;
                 mcfile::je::Flatten::Door(upperData, props);
                 mcfile::je::Flatten::Door(data, props);
-                block = make_shared<mcfile::je::Block>("minecraft:oak_door", props);
+                block = make_shared<mcfile::je::Block>(u8"minecraft:oak_door", props);
               }
             }
             if (!block) {
@@ -523,10 +523,10 @@ private:
           if (id == 26) {
             // may be overwritten by ParseTileEntities later
             auto tag = Compound();
-            tag->set("id", String("minecraft:bed"));
-            tag->set("x", Int(x));
-            tag->set("y", Int(y));
-            tag->set("z", Int(z));
+            tag->set(u8"id", String(u8"minecraft:bed"));
+            tag->set(u8"x", Int(x));
+            tag->set(u8"y", Int(y));
+            tag->set(u8"z", Int(z));
             chunk.fTileEntities[{x, y, z}] = tag;
           }
         }
@@ -546,27 +546,27 @@ private:
     if (!tag) {
       return JE2BE_ERROR;
     }
-    auto level = tag->compoundTag("Level");
+    auto level = tag->compoundTag(u8"Level");
     if (!level) {
       return JE2BE_ERROR;
     }
-    auto xPos = level->int32("xPos");
-    auto zPos = level->int32("zPos");
+    auto xPos = level->int32(u8"xPos");
+    auto zPos = level->int32(u8"zPos");
     if (xPos != cx || zPos != cz) {
       return JE2BE_ERROR;
     }
 
-    // auto blockLight = level->byteArrayTag("BlockLight"); // 16384
-    auto blocks = level->byteArrayTag("Blocks"); // 32768
-    auto data = level->byteArrayTag("Data");     // 16384
-    auto entities = level->listTag("Entities");
-    // auto heightMap = level->byteArrayTag("HeightMap"); // 256
-    // auto lastUpdate = level->longTag("LastUpdate");
-    // auto skyLight = level->byteArrayTag("SkyLight"); // 16384
-    // auto terrainPopulated = level->byte("TerrainPopulated");
-    // auto terrainPopulatedFlags = level->int16("TerrainPopulatedFlags"); // TU13 >=
-    auto tileEntities = level->listTag("TileEntities");
-    auto biomes = level->byteArrayTag("Biomes"); // 256
+    // auto blockLight = level->byteArrayTag(u8"BlockLight"); // 16384
+    auto blocks = level->byteArrayTag(u8"Blocks"); // 32768
+    auto data = level->byteArrayTag(u8"Data");     // 16384
+    auto entities = level->listTag(u8"Entities");
+    // auto heightMap = level->byteArrayTag(u8"HeightMap"); // 256
+    // auto lastUpdate = level->longTag(u8"LastUpdate");
+    // auto skyLight = level->byteArrayTag(u8"SkyLight"); // 16384
+    // auto terrainPopulated = level->byte(u8"TerrainPopulated");
+    // auto terrainPopulatedFlags = level->int16(u8"TerrainPopulatedFlags"); // TU13 >=
+    auto tileEntities = level->listTag(u8"TileEntities");
+    auto biomes = level->byteArrayTag(u8"Biomes"); // 256
 
     // terrainPopulatedFlags
     // examples: 16, 20, 36, 52, 60, 62, 102, 126, 244, 254, 450, 486, 894, 970, 1002, 2046
@@ -846,19 +846,19 @@ private:
       }
     }
 
-    string nbt;
+    u8string nbt;
     copy(buffer.begin() + heightMapStartPos + 256 + 2 + 256, buffer.end(), back_inserter(nbt));
-    if (!nbt.starts_with(string("\x0a\x00\x00", 3))) {
+    if (!nbt.starts_with(u8string(u8"\x0a\x00\x00", 3))) {
       return JE2BE_ERROR;
     }
     auto tag = CompoundTag::Read(nbt, mcfile::Endian::Big);
     if (!tag) {
       return JE2BE_ERROR;
     }
-    if (auto te = tag->listTag("TileEntities"); te) {
+    if (auto te = tag->listTag(u8"TileEntities"); te) {
       ParseTileEntities(*te, *chunk, ctx);
     }
-    if (auto e = tag->listTag("Entities"); e) {
+    if (auto e = tag->listTag(u8"Entities"); e) {
       ParseEntities(*e, *chunk, ctx);
     }
 

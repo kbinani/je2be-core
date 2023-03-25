@@ -31,12 +31,12 @@ public:
     auto p = unsafeToBlock();
     if (p) {
       if (isWaterlogged()) {
-        return p->applying({{"waterlogged", "true"}});
+        return p->applying({{u8"waterlogged", u8"true"}});
       } else {
         return p;
       }
     } else {
-      return make_shared<mcfile::je::Block const>("minecraft:air");
+      return make_shared<mcfile::je::Block const>(u8"minecraft:air");
     }
   }
 

@@ -47,7 +47,7 @@ static void CheckBedrockBlock(mcfile::be::Block const &a, mcfile::be::Block cons
 }
 
 static void DrainAttachedBlocks(CompoundTag &tag, unordered_set<Pos3i, Pos3iHasher> &buffer) {
-  auto blocks = tag.listTag("AttachedBlocks");
+  auto blocks = tag.listTag(u8"AttachedBlocks");
   if (!blocks) {
     return;
   }
@@ -62,7 +62,7 @@ static void DrainAttachedBlocks(CompoundTag &tag, unordered_set<Pos3i, Pos3iHash
     Pos3i pos(x->fValue, y->fValue, z->fValue);
     buffer.insert(pos);
   }
-  tag.erase("AttachedBlocks");
+  tag.erase(u8"AttachedBlocks");
 }
 
 static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const &a) {
@@ -73,7 +73,7 @@ static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const 
   unordered_set<Pos3i, Pos3iHasher> attachedBlocksA;
   DrainAttachedBlocks(*copyE, attachedBlocksE);
   DrainAttachedBlocks(*copyA, attachedBlocksA);
-  for (string const &tag : {"movingBlock/version", "movingBlockExtra/version"}) {
+  for (u8string const &tag : {u8"movingBlock/version", u8"movingBlockExtra/version"}) {
     Erase(copyE, tag);
     Erase(copyA, tag);
   }

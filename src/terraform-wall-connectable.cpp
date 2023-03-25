@@ -23,7 +23,7 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
-    vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
+    vector<pair<u8string, Pos2i>> const nesw({{u8"north", Pos2i(0, -1)}, {u8"east", Pos2i(1, 0)}, {u8"south", Pos2i(0, 1)}, {u8"west", Pos2i(-1, 0)}});
 
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int lz = 0; lz < 16; lz++) {
@@ -40,24 +40,24 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
 
           auto upper = blockAccessor.blockAt(x, y + 1, z);
 
           for (auto d : nesw) {
-            string direction = d.first;
+            u8string direction = d.first;
             Pos2i vec = d.second;
-            props[direction] = "none";
+            props[direction] = u8"none";
             auto pos = Pos2i(x, z) + vec;
             auto target = blockAccessor.blockAt(pos.fX, y, pos.fZ);
             if (!target) {
               continue;
             }
             if (IsWallConnectable(*target, vec)) {
-              props[direction] = "low";
+              props[direction] = u8"low";
             }
             if (upper && IsBlockMakeWallTallShape(*upper)) {
-              props[direction] = "tall";
+              props[direction] = u8"tall";
             }
           }
 
@@ -72,18 +72,18 @@ public:
     if (IsWallAlwaysConnectable(target.fId)) {
       return true;
     }
-    if (target.fName.find("trapdoor") != std::string::npos) {
-      auto targetBlockFace = Pos2iFromFacing4(Facing4FromJavaName(target.property("facing")));
-      if (target.property("open") == "true" && targetBlockFace == targetDirection) {
+    if (target.fName.find(u8"trapdoor") != std::string::npos) {
+      auto targetBlockFace = Pos2iFromFacing4(Facing4FromJavaName(target.property(u8"facing")));
+      if (target.property(u8"open") == u8"true" && targetBlockFace == targetDirection) {
         return true;
       }
-    } else if (target.fName.ends_with("stairs")) {
-      auto targetBlockFace = Pos2iFromFacing4(Facing4FromJavaName(target.property("facing")));
+    } else if (target.fName.ends_with(u8"stairs")) {
+      auto targetBlockFace = Pos2iFromFacing4(Facing4FromJavaName(target.property(u8"facing")));
       if (IsOrthogonal(targetBlockFace, targetDirection)) {
         return true;
       }
-    } else if (target.fName.ends_with("slab")) {
-      if (target.property("type") == "double") {
+    } else if (target.fName.ends_with(u8"slab")) {
+      if (target.property(u8"type") == u8"double") {
         return true;
       }
     }
@@ -95,13 +95,13 @@ public:
     if (IsBlockAlwaysMakeWallTallShape(b.fId)) {
       return true;
     }
-    if (b.fName.ends_with("slab") && b.property("type") != "top") {
+    if (b.fName.ends_with(u8"slab") && b.property(u8"type") != u8"top") {
       return true;
     }
-    if (b.fName.ends_with("trapdoor") && b.property("half") == "bottom" && b.property("open") == "false") {
+    if (b.fName.ends_with(u8"trapdoor") && b.property(u8"half") == u8"bottom" && b.property(u8"open") == u8"false") {
       return true;
     }
-    if (b.fName.ends_with("stairs") && b.property("half") == "bottom") {
+    if (b.fName.ends_with(u8"stairs") && b.property(u8"half") == u8"bottom") {
       return true;
     }
     return false;

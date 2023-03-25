@@ -11,15 +11,17 @@
 namespace je2be::props {
 
 struct UUIDKeyName {
-  std::optional<std::string> fLeastAndMostPrefix = std::nullopt;
-  std::optional<std::string> fIntArray = std::nullopt;
-  std::optional<std::string> fHexString = std::nullopt;
+  std::optional<std::u8string> fLeastAndMostPrefix = std::nullopt;
+  std::optional<std::u8string> fIntArray = std::nullopt;
+  std::optional<std::u8string> fHexString = std::nullopt;
 };
 
-static inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag const &tag, std::string const &namePrefix) {
+using Json = nlohmann::json;
+
+static inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag const &tag, std::u8string const &namePrefix) {
   using namespace std;
-  auto least = tag.int64(namePrefix + "Least");
-  auto most = tag.int64(namePrefix + "Most");
+  auto least = tag.int64(namePrefix + u8"Least");
+  auto most = tag.int64(namePrefix + u8"Most");
 
   if (!least || !most) {
     return nullopt;
@@ -36,7 +38,7 @@ static inline std::optional<Uuid> GetUuidWithFormatLeastAndMost(CompoundTag cons
   return uuid;
 }
 
-static inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &tag, std::u8string const &name) {
   using namespace std;
 
   auto found = tag.find(name);
@@ -61,7 +63,7 @@ static inline std::optional<Uuid> GetUuidWithFormatIntArray(CompoundTag const &t
   return Uuid::FromInt32(a, b, c, d);
 }
 
-static inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &tag, std::u8string const &name) {
   using namespace std;
 
   auto found = tag.find(name);
@@ -74,7 +76,7 @@ static inline std::optional<Uuid> GetUuidWithFormatHexString(CompoundTag const &
     return nullopt;
   }
 
-  auto s = strings::Remove(hex->fValue, "-");
+  auto s = strings::Remove(hex->fValue, u8"-");
   if (s.size() != 32) {
     return nullopt;
   }
@@ -112,7 +114,7 @@ static inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName ke
   return std::nullopt;
 }
 
-static inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::u8string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -131,7 +133,7 @@ static inline std::optional<Pos3d> GetPos3d(CompoundTag const &tag, std::string 
   return Pos3d(x, y, z);
 }
 
-static inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::u8string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -150,7 +152,7 @@ static inline std::optional<Pos3f> GetPos3f(CompoundTag const &tag, std::string 
   return Pos3f(x, y, z);
 }
 
-static inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::u8string const &name) {
   using namespace std;
   auto found = tag.find(name);
   if (found == tag.end()) {
@@ -168,26 +170,26 @@ static inline std::optional<Rotation> GetRotation(CompoundTag const &tag, std::s
   return Rotation(yaw, pitch);
 }
 
-template <char xKey, char yKey, char zKey>
+template <char8_t xKey, char8_t yKey, char8_t zKey>
 static inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag) {
-  auto x = tag.int32(std::string(1, xKey));
-  auto y = tag.int32(std::string(1, yKey));
-  auto z = tag.int32(std::string(1, zKey));
+  auto x = tag.int32(std::u8string(1, xKey));
+  auto y = tag.int32(std::u8string(1, yKey));
+  auto z = tag.int32(std::u8string(1, zKey));
   if (!x || !y || !z) {
     return std::nullopt;
   }
   return Pos3i(*x, *y, *z);
 }
 
-static inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3i> GetPos3i(CompoundTag const &tag, std::u8string const &name) {
   auto xyz = tag.compoundTag(name);
   if (!xyz) {
     return std::nullopt;
   }
-  return GetPos3i<'X', 'Y', 'Z'>(*xyz);
+  return GetPos3i<u8'X', u8'Y', u8'Z'>(*xyz);
 }
 
-static inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, std::u8string const &name) {
   auto arr = tag.listTag(name);
   if (!arr) {
     return std::nullopt;
@@ -204,7 +206,7 @@ static inline std::optional<Pos3i> GetPos3iFromListTag(CompoundTag const &tag, s
   return Pos3i(x->fValue, y->fValue, z->fValue);
 }
 
-static inline std::optional<Pos3i> GetPos3iFromIntArrayTag(CompoundTag const &tag, std::string const &name) {
+static inline std::optional<Pos3i> GetPos3iFromIntArrayTag(CompoundTag const &tag, std::u8string const &name) {
   auto arr = tag.intArrayTag(name);
   if (!arr) {
     return std::nullopt;
@@ -215,10 +217,12 @@ static inline std::optional<Pos3i> GetPos3iFromIntArrayTag(CompoundTag const &ta
   return Pos3i(arr->fValue[0], arr->fValue[1], arr->fValue[2]);
 }
 
-static inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
+static inline std::optional<Json> ParseAsJson(std::u8string const &s) {
+  std::string ns;
+  ns.assign((char const *)s.data(), s.size());
   bool allowException = false;
   bool ignoreComment = false;
-  auto json = nlohmann::json::parse(s, nullptr, allowException, ignoreComment);
+  auto json = nlohmann::json::parse(ns, nullptr, allowException, ignoreComment);
   if (json.is_object()) {
     return json;
   } else {
@@ -226,9 +230,30 @@ static inline std::optional<nlohmann::json> ParseAsJson(std::string const &s) {
   }
 }
 
-static inline std::optional<nlohmann::json> GetJson(CompoundTag const &tag, std::string const &name) {
+static inline std::u8string StringFromJson(Json const &j) {
+  std::string s = nlohmann::to_string(j);
+  std::u8string ret;
+  ret.assign((char8_t const *)s.c_str(), s.size());
+  return ret;
+}
+
+static inline std::u8string GetJsonStringValue(Json const &j) {
+  std::string ret = j.get<std::string>();
+  std::u8string u8ret;
+  u8ret.assign((char8_t const *)ret.data(), ret.size());
+  return u8ret;
+}
+
+static inline void SetJsonString(Json &j, std::u8string const &key, std::u8string const &value) {
+  std::string nkey;
+  nkey.assign((char const *)key.data(), key.size());
+  std::string nvalue;
+  nvalue.assign((char const *)value.data(), value.size());
+  j[nkey] = nvalue;
+}
+
+static inline std::optional<Json> GetJson(CompoundTag const &tag, std::u8string const &name) {
   using namespace std;
-  using nlohmann::json;
   auto found = tag.find(name);
   if (found == tag.end()) {
     return nullopt;

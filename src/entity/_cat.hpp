@@ -2,7 +2,7 @@
 
 namespace je2be {
 
-class Cat : StaticReversibleMap<std::string, i32, Cat> {
+class Cat : StaticReversibleMap<std::u8string, i32, Cat> {
 public:
   enum Type : i32 {
     Tabby = 0,
@@ -56,35 +56,35 @@ public:
     });
   }
 
-  static ReversibleMap<std::string, i32> const *CreateTable() {
-    return new ReversibleMap<std::string, i32>({
-        {"tuxedo", Tuxedo},
-        {"red", Red},
-        {"siamese", Siamese},
-        {"british", British},
-        {"calico", Calico},
-        {"persian", Persian},
-        {"ragdoll", Ragdoll},
-        {"white", White},
-        {"jellie", Jellie},
-        {"black", Black},
-        {"tabby", Tabby},
+  static ReversibleMap<std::u8string, i32> const *CreateTable() {
+    return new ReversibleMap<std::u8string, i32>({
+        {u8"tuxedo", Tuxedo},
+        {u8"red", Red},
+        {u8"siamese", Siamese},
+        {u8"british", British},
+        {u8"calico", Calico},
+        {u8"persian", Persian},
+        {u8"ragdoll", Ragdoll},
+        {u8"white", White},
+        {u8"jellie", Jellie},
+        {u8"black", Black},
+        {u8"tabby", Tabby},
     });
   }
 
-  static ReversibleMap<std::string, i32> const *CreateTableJava() {
-    return new ReversibleMap<std::string, i32>({
-        {"black", Tuxedo},
-        {"red", Red},
-        {"siamese", Siamese},
-        {"british_shorthair", British},
-        {"calico", Calico},
-        {"persian", Persian},
-        {"ragdoll", Ragdoll},
-        {"white", White},
-        {"jellie", Jellie},
-        {"all_black", Black},
-        {"tabby", Tabby},
+  static ReversibleMap<std::u8string, i32> const *CreateTableJava() {
+    return new ReversibleMap<std::u8string, i32>({
+        {u8"black", Tuxedo},
+        {u8"red", Red},
+        {u8"siamese", Siamese},
+        {u8"british_shorthair", British},
+        {u8"calico", Calico},
+        {u8"persian", Persian},
+        {u8"ragdoll", Ragdoll},
+        {u8"white", White},
+        {u8"jellie", Jellie},
+        {u8"all_black", Black},
+        {u8"tabby", Tabby},
     });
   }
 
@@ -93,16 +93,16 @@ public:
     return *sTable;
   }
 
-  static std::string BedrockDefinitionKeyFromCatType(Type t) {
-    return Backward(static_cast<i32>(t), "tabby");
+  static std::u8string BedrockDefinitionKeyFromCatType(Type t) {
+    return Backward(static_cast<i32>(t), u8"tabby");
   }
 
-  static ReversibleMap<std::string, i32> const &GetTableJava() {
-    static std::unique_ptr<ReversibleMap<std::string, i32> const> sTable(CreateTableJava());
+  static ReversibleMap<std::u8string, i32> const &GetTableJava() {
+    static std::unique_ptr<ReversibleMap<std::u8string, i32> const> sTable(CreateTableJava());
     return *sTable;
   }
 
-  static Type CatTypeFromJavaVariant(std::string const &variantJ) {
+  static Type CatTypeFromJavaVariant(std::u8string const &variantJ) {
     auto const &table = GetTableJava();
     if (auto type = table.forward(variantJ); type) {
       return static_cast<Type>(*type);
@@ -111,12 +111,12 @@ public:
     }
   }
 
-  static std::string JavaVariantFromCatType(Type type) {
+  static std::u8string JavaVariantFromCatType(Type type) {
     auto const &table = GetTableJava();
     if (auto variantJ = table.backward(type); variantJ) {
       return *variantJ;
     } else {
-      return "tabby";
+      return u8"tabby";
     }
   }
 };

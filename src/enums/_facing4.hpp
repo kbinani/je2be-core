@@ -11,27 +11,27 @@ enum class Facing4 {
   West,
 };
 
-static inline std::string JavaNameFromFacing4(Facing4 f) {
+static inline std::u8string JavaNameFromFacing4(Facing4 f) {
   switch (f) {
   case Facing4::North:
-    return "north";
+    return u8"north";
   case Facing4::East:
-    return "east";
+    return u8"east";
   case Facing4::South:
-    return "south";
+    return u8"south";
   case Facing4::West:
-    return "west";
+    return u8"west";
   }
   assert(false);
-  return "";
+  return u8"";
 }
 
-static inline Facing4 Facing4FromJavaName(std::string_view const &n) {
-  if (n == "north") {
+static inline Facing4 Facing4FromJavaName(std::u8string_view const &n) {
+  if (n == u8"north") {
     return Facing4::North;
-  } else if (n == "east") {
+  } else if (n == u8"east") {
     return Facing4::East;
-  } else if (n == "west") {
+  } else if (n == u8"west") {
     return Facing4::West;
   }
   return Facing4::South;

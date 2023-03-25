@@ -34,7 +34,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          auto replace = blockJ->applying({{"snowy", "true"}});
+          auto replace = blockJ->applying({{u8"snowy", u8"true"}});
           out.setBlockAt(x, y, z, replace);
         }
       }

@@ -16,7 +16,7 @@ class BlockEntity {
 
 public:
   static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx);
-  static ListTagPtr ContainerItems(CompoundTag const &parent, std::string const &key, Context &ctx);
+  static ListTagPtr ContainerItems(CompoundTag const &parent, std::u8string const &key, Context &ctx);
 };
 
 } // namespace je2be::toje

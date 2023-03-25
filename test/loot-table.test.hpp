@@ -2,8 +2,8 @@
 
 TEST_CASE("loot-table") {
   SUBCASE("j2b2j") {
-    auto java = "minecraft:chests/village/village_plains_house";
-    auto bedrock = "loot_tables/chests/village/village_plains_house.json";
+    auto java = u8"minecraft:chests/village/village_plains_house";
+    auto bedrock = u8"loot_tables/chests/village/village_plains_house.json";
     CHECK(LootTable::BedrockTableNameFromJava(java) == bedrock);
     CHECK(LootTable::JavaTableNameFromBedrock(bedrock) == java);
   }
@@ -34,7 +34,7 @@ TEST_CASE("loot-table") {
       switch (static_cast<DbKey::Tag>(parsed->fTagged.fTag)) {
       case DbKey::Tag::BlockEntity:
         CompoundTag::ReadUntilEos(itr->value().ToString(), Endian::Little, [&lootTables](shared_ptr<CompoundTag> const &tag) {
-          auto lootTable = tag->string("LootTable");
+          auto lootTable = tag->string(u8"LootTable");
           if (!lootTable) {
             return;
           }

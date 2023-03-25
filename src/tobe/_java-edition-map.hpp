@@ -70,11 +70,11 @@ private:
       if (!itr->is_regular_file()) {
         continue;
       }
-      auto name = itr->path().filename().string();
-      if (!name.starts_with("map_") || !name.ends_with(".dat")) {
+      auto name = itr->path().filename().u8string();
+      if (!name.starts_with(u8"map_") || !name.ends_with(u8".dat")) {
         continue;
       }
-      auto numberStr = strings::Trim("map_", name, ".dat");
+      auto numberStr = strings::Trim(u8"map_", name, u8".dat");
       auto number = strings::ToI32(numberStr);
       if (!number) {
         continue;
@@ -84,12 +84,12 @@ private:
       if (!map) {
         continue;
       }
-      auto data = map->query("/data")->asCompound();
+      auto data = map->query(u8"/data")->asCompound();
       if (!data) {
         continue;
       }
 
-      auto scale = data->byte("scale");
+      auto scale = data->byte(u8"scale");
       if (!scale) {
         continue;
       }

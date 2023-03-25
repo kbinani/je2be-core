@@ -28,11 +28,11 @@ TEST_CASE("shoulder-riders") {
   auto level = je / "level.dat";
   auto stream = make_shared<mcfile::stream::GzFileInputStream>(level);
   auto dat = CompoundTag::Read(stream, Endian::Big);
-  auto data = dat->compoundTag("Data");
-  auto player = data->compoundTag("Player");
+  auto data = dat->compoundTag(u8"Data");
+  auto player = data->compoundTag(u8"Player");
   CHECK(player);
 
-  CHECK(player->compoundTag("ShoulderEntityLeft"));
-  CHECK(player->compoundTag("ShoulderEntityRight"));
-  CHECK(player->compoundTag("RootVehicle"));
+  CHECK(player->compoundTag(u8"ShoulderEntityLeft"));
+  CHECK(player->compoundTag(u8"ShoulderEntityRight"));
+  CHECK(player->compoundTag(u8"RootVehicle"));
 }

@@ -71,18 +71,18 @@ public:
             }
           }
           if (status[Facing6::Up] != ReachedToObsidian || status[Facing6::Down] != ReachedToObsidian) {
-            out.setBlockAt(center, make_shared<mcfile::je::Block const>("minecraft:air"));
+            out.setBlockAt(center, make_shared<mcfile::je::Block const>(u8"minecraft:air"));
           } else {
             if (status[Facing6::North] == ReachedToObsidian && status[Facing6::South] == ReachedToObsidian) {
               if (auto block = out.blockAt(center); block) {
-                out.setBlockAt(center, block->applying({{"axis", "z"}}));
+                out.setBlockAt(center, block->applying({{u8"axis", u8"z"}}));
               }
             } else if (status[Facing6::East] == ReachedToObsidian && status[Facing6::West] == ReachedToObsidian) {
               if (auto block = out.blockAt(center); block) {
-                out.setBlockAt(center, block->applying({{"axis", "x"}}));
+                out.setBlockAt(center, block->applying({{u8"axis", u8"x"}}));
               }
             } else {
-              out.setBlockAt(center, make_shared<mcfile::je::Block const>("minecraft:air"));
+              out.setBlockAt(center, make_shared<mcfile::je::Block const>(u8"minecraft:air"));
             }
           }
         }

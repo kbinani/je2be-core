@@ -33,7 +33,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG c61e2dc823ccedeab914ff21168bd900c156a34f)
+  GIT_TAG d33d0de475a0de630992e52b0f86d262464ef1c9)
 
 set(je2be_header_files
   #begin je2be-header files
@@ -159,6 +159,7 @@ set(mcfile_header_files
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/stream/output-stream-writer.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/stream/output-stream.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/string.hpp
+  ${libminecraft-file_SOURCE_DIR}/include/mcfile/u8stream.hpp
   ${libminecraft-file_SOURCE_DIR}/include/minecraft-file.hpp
   #end libminecraft-file source files
 )

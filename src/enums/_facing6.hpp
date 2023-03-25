@@ -13,35 +13,35 @@ enum class Facing6 {
   Down,
 };
 
-static inline std::string JavaNameFromFacing6(Facing6 f) {
+static inline std::u8string JavaNameFromFacing6(Facing6 f) {
   switch (f) {
   case Facing6::North:
-    return "north";
+    return u8"north";
   case Facing6::East:
-    return "east";
+    return u8"east";
   case Facing6::South:
-    return "south";
+    return u8"south";
   case Facing6::West:
-    return "west";
+    return u8"west";
   case Facing6::Up:
-    return "up";
+    return u8"up";
   case Facing6::Down:
-    return "down";
+    return u8"down";
   }
   assert(false);
-  return "";
+  return u8"";
 }
 
-static inline Facing6 Facing6FromJavaName(std::string_view const &n) {
-  if (n == "north") {
+static inline Facing6 Facing6FromJavaName(std::u8string_view const &n) {
+  if (n == u8"north") {
     return Facing6::North;
-  } else if (n == "east") {
+  } else if (n == u8"east") {
     return Facing6::East;
-  } else if (n == "south") {
+  } else if (n == u8"south") {
     return Facing6::South;
-  } else if (n == "west") {
+  } else if (n == u8"west") {
     return Facing6::West;
-  } else if (n == "up") {
+  } else if (n == u8"up") {
     return Facing6::Up;
   }
   return Facing6::Down;

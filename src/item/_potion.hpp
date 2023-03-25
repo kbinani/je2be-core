@@ -7,12 +7,12 @@ namespace je2be {
 class Potion {
 public:
   struct TypeAndItemName {
-    std::string fItemName;
-    std::string fPotionType;
+    std::u8string fItemName;
+    std::u8string fPotionType;
   };
   static std::optional<TypeAndItemName> JavaPotionTypeAndItemNameFromLegacyJavaDamage(i16 damage) {
     using namespace std;
-    string type;
+    u8string type;
     // 0x2001: 0010000000000001 regeneration 0:45
     // 0x2021: 0010000000100001 regeneration II 0:22
     // 0x2041: 0010000001000001 regeneration 2:00
@@ -39,149 +39,149 @@ public:
 
     switch (damage & 0x1f) {
     case 0:
-      type = "water";
+      type = u8"water";
       break;
     case 1:
-      type = "regeneration";
+      type = u8"regeneration";
       break;
     case 2:
-      type = "swiftness";
+      type = u8"swiftness";
       break;
     case 3:
-      type = "fire_resistance";
+      type = u8"fire_resistance";
       // fire_resistance potion is default "strong" without prefix
       if (isStrong) {
         isStrong = false;
       }
       break;
     case 4:
-      type = "poison";
+      type = u8"poison";
       break;
     case 5:
-      type = "healing";
+      type = u8"healing";
       // healing potion is default "long" without prefix
       if (isLong) {
         isLong = false;
       }
       break;
     case 6:
-      type = "night_vision";
+      type = u8"night_vision";
       // night_vision potion is default "strong" without prefix
       if (isStrong) {
         isStrong = false;
       }
       break;
     case 8:
-      type = "weakness";
+      type = u8"weakness";
       // weakness potion is default "strong" without prefix
       if (isStrong) {
         isStrong = false;
       }
       break;
     case 9:
-      type = "strength";
+      type = u8"strength";
       break;
     case 10:
-      type = "slowness";
+      type = u8"slowness";
       break;
     case 12:
-      type = "harming";
+      type = u8"harming";
       // harming potion is default "long" without prefix
       if (isLong) {
         isLong = false;
       }
       break;
     case 13:
-      type = "water_breathing";
+      type = u8"water_breathing";
       // water_breathing potion is default "strong" without prefix
       if (isStrong) {
         isStrong = false;
       }
       break;
     case 14:
-      type = "invisibility";
+      type = u8"invisibility";
       // invisibility potion is default "strong" without prefix
       if (isStrong) {
         isStrong = false;
       }
       break;
     case 16:
-      type = "mundane";
+      type = u8"mundane";
       break;
     default:
       return std::nullopt;
     }
 
-    string prefix;
+    u8string prefix;
     if (isLong) {
-      prefix = "long_";
+      prefix = u8"long_";
     }
     if (isStrong) {
-      prefix = "strong_";
+      prefix = u8"strong_";
     }
 
     TypeAndItemName ret;
-    ret.fPotionType = "minecraft:" + prefix + type;
+    ret.fPotionType = u8"minecraft:" + prefix + type;
     if ((0x4000 & damage) == 0x4000) {
-      ret.fItemName = "minecraft:splash_potion";
+      ret.fItemName = u8"minecraft:splash_potion";
     } else {
-      ret.fItemName = "minecraft:potion";
+      ret.fItemName = u8"minecraft:potion";
     }
     return ret;
   }
 
-  static ReversibleMap<std::string, i16> const *GetPotionTypeTableJtoB() {
-    static std::unique_ptr<ReversibleMap<std::string, i16> const> const sTable(CreatePotionTypeTableJtoB());
+  static ReversibleMap<std::u8string, i16> const *GetPotionTypeTableJtoB() {
+    static std::unique_ptr<ReversibleMap<std::u8string, i16> const> const sTable(CreatePotionTypeTableJtoB());
     return sTable.get();
   }
 
-  static ReversibleMap<std::string, i16> const *CreatePotionTypeTableJtoB() {
-    return new ReversibleMap<std::string, i16>({
-        {"minecraft:water", 0},
-        {"minecraft:mundane", 1},
-        {"minecraft:night_vision", 5},
-        {"minecraft:long_night_vision", 6},
-        {"minecraft:thick", 2},
-        {"minecraft:awkward", 3},
-        {"minecraft:invisibility", 7},
-        {"minecraft:long_invisibility", 8},
-        {"minecraft:leaping", 9},
-        {"minecraft:long_leaping", 10},
-        {"minecraft:strong_leaping", 11},
-        {"minecraft:fire_resistance", 12},
-        {"minecraft:long_fire_resistance", 13},
-        {"minecraft:swiftness", 14},
-        {"minecraft:long_swiftness", 15},
-        {"minecraft:strong_swiftness", 16},
-        {"minecraft:slowness", 17},
-        {"minecraft:long_slowness", 18},
-        {"minecraft:strong_slowness", 42},
-        {"minecraft:water_breathing", 19},
-        {"minecraft:long_water_breathing", 20},
-        {"minecraft:healing", 21},
-        {"minecraft:strong_healing", 22},
-        {"minecraft:harming", 23},
-        {"minecraft:strong_harming", 24},
-        {"minecraft:poison", 25},
-        {"minecraft:long_poison", 26},
-        {"minecraft:strong_poison", 27},
-        {"minecraft:regeneration", 28},
-        {"minecraft:long_regeneration", 29},
-        {"minecraft:strong_regeneration", 30},
-        {"minecraft:strength", 31},
-        {"minecraft:long_strength", 32},
-        {"minecraft:strong_strength", 33},
-        {"minecraft:weakness", 34},
-        {"minecraft:long_weakness", 35},
-        {"minecraft:turtle_master", 37},
-        {"minecraft:long_turtle_master", 38},
-        {"minecraft:strong_turtle_master", 39},
-        {"minecraft:slow_falling", 40},
-        {"minecraft:long_slow_falling", 41},
+  static ReversibleMap<std::u8string, i16> const *CreatePotionTypeTableJtoB() {
+    return new ReversibleMap<std::u8string, i16>({
+        {u8"minecraft:water", 0},
+        {u8"minecraft:mundane", 1},
+        {u8"minecraft:night_vision", 5},
+        {u8"minecraft:long_night_vision", 6},
+        {u8"minecraft:thick", 2},
+        {u8"minecraft:awkward", 3},
+        {u8"minecraft:invisibility", 7},
+        {u8"minecraft:long_invisibility", 8},
+        {u8"minecraft:leaping", 9},
+        {u8"minecraft:long_leaping", 10},
+        {u8"minecraft:strong_leaping", 11},
+        {u8"minecraft:fire_resistance", 12},
+        {u8"minecraft:long_fire_resistance", 13},
+        {u8"minecraft:swiftness", 14},
+        {u8"minecraft:long_swiftness", 15},
+        {u8"minecraft:strong_swiftness", 16},
+        {u8"minecraft:slowness", 17},
+        {u8"minecraft:long_slowness", 18},
+        {u8"minecraft:strong_slowness", 42},
+        {u8"minecraft:water_breathing", 19},
+        {u8"minecraft:long_water_breathing", 20},
+        {u8"minecraft:healing", 21},
+        {u8"minecraft:strong_healing", 22},
+        {u8"minecraft:harming", 23},
+        {u8"minecraft:strong_harming", 24},
+        {u8"minecraft:poison", 25},
+        {u8"minecraft:long_poison", 26},
+        {u8"minecraft:strong_poison", 27},
+        {u8"minecraft:regeneration", 28},
+        {u8"minecraft:long_regeneration", 29},
+        {u8"minecraft:strong_regeneration", 30},
+        {u8"minecraft:strength", 31},
+        {u8"minecraft:long_strength", 32},
+        {u8"minecraft:strong_strength", 33},
+        {u8"minecraft:weakness", 34},
+        {u8"minecraft:long_weakness", 35},
+        {u8"minecraft:turtle_master", 37},
+        {u8"minecraft:long_turtle_master", 38},
+        {u8"minecraft:strong_turtle_master", 39},
+        {u8"minecraft:slow_falling", 40},
+        {u8"minecraft:long_slow_falling", 41},
     });
   }
 
-  static i16 BedrockPotionTypeFromJava(std::string const &name) {
+  static i16 BedrockPotionTypeFromJava(std::u8string const &name) {
     i16 type = 0;
     auto table = GetPotionTypeTableJtoB();
     auto found = table->forward(name);
@@ -191,8 +191,8 @@ public:
     return type;
   }
 
-  static std::string JavaPotionTypeFromBedrock(i16 t) {
-    std::string name = "minecraft:water";
+  static std::u8string JavaPotionTypeFromBedrock(i16 t) {
+    std::u8string name = u8"minecraft:water";
     auto table = GetPotionTypeTableJtoB();
     auto found = table->backward(t);
     if (found) {

@@ -31,21 +31,21 @@ public:
   swampland     11          villager_skin_0     5               butcher                 swamp_villager      0
   */
 
-  static std::optional<VillagerType> FromJavaType(std::string type) {
+  static std::optional<VillagerType> FromJavaType(std::u8string type) {
     type = Namespace::Remove(type);
-    if (type == "savanna") {
+    if (type == u8"savanna") {
       return Savanna;
-    } else if (type == "plains") {
+    } else if (type == u8"plains") {
       return Plains;
-    } else if (type == "desert") {
+    } else if (type == u8"desert") {
       return Desert;
-    } else if (type == "jungle") {
+    } else if (type == u8"jungle") {
       return Jungle;
-    } else if (type == "snow") {
+    } else if (type == u8"snow") {
       return Snow;
-    } else if (type == "swamp") {
+    } else if (type == u8"swamp") {
       return Swamp;
-    } else if (type == "taiga") {
+    } else if (type == u8"taiga") {
       return Taiga;
     }
     return std::nullopt;
@@ -55,23 +55,23 @@ public:
     return fVariant;
   }
 
-  std::string string() const {
+  std::u8string string() const {
     switch (fVariant) {
     case Savanna:
-      return "savanna";
+      return u8"savanna";
     case Desert:
-      return "desert";
+      return u8"desert";
     case Jungle:
-      return "jungle";
+      return u8"jungle";
     case Snow:
-      return "snow";
+      return u8"snow";
     case Swamp:
-      return "swamp";
+      return u8"swamp";
     case Taiga:
-      return "taiga";
+      return u8"taiga";
     case Plains:
     default:
-      return "plains";
+      return u8"plains";
     }
   }
 

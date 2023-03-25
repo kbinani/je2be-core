@@ -12,29 +12,29 @@ public:
     explicit Variant(i32 bedrockRawValue) : fBedrockRawValue(bedrockRawValue) {
     }
 
-    std::string definition() const {
+    std::u8string definition() const {
       auto name = colorName();
-      return "+axolotl_" + name;
+      return u8"+axolotl_" + name;
     }
 
-    std::string colorId() const {
-      return "item.axolotlColor" + Cap(colorName()) + ".name";
+    std::u8string colorId() const {
+      return u8"item.axolotlColor" + Cap(colorName()) + u8".name";
     }
 
   private:
-    std::string colorName() const {
+    std::u8string colorName() const {
       switch (fBedrockRawValue) {
       case 1:
-        return "cyan";
+        return u8"cyan";
       case 2:
-        return "gold";
+        return u8"gold";
       case 3:
-        return "wild";
+        return u8"wild";
       case 4:
-        return "blue";
+        return u8"blue";
       case 0:
       default:
-        return "lucy";
+        return u8"lucy";
       }
     }
   };
@@ -48,35 +48,35 @@ public:
 
     auto ret = Compound();
 
-    auto attributes = EntityAttributes::Mob("minecraft:axolotl", fHealth);
+    auto attributes = EntityAttributes::Mob(u8"minecraft:axolotl", fHealth);
     if (attributes) {
-      ret->set("Attributes", attributes->toBedrockListTag());
+      ret->set(u8"Attributes", attributes->toBedrockListTag());
     }
-    string age = fAge < 0 ? "Baby" : "Adult";
-    string bodyId = "item.axolotl" + age + "BodySingle.name";
-    ret->set("BodyID", String(bodyId));
+    u8string age = fAge < 0 ? u8"Baby" : u8"Adult";
+    u8string bodyId = u8"item.axolotl" + age + u8"BodySingle.name";
+    ret->set(u8"BodyID", String(bodyId));
 
-    ret->set("ColorID", String(fVariant.colorId()));
-    ret->set("Variant", Int(fVariant.fBedrockRawValue));
+    ret->set(u8"ColorID", String(fVariant.colorId()));
+    ret->set(u8"Variant", Int(fVariant.fBedrockRawValue));
 
     auto definitions = List<Tag::Type::String>();
-    definitions->push_back(String("+minecraft:axolotl"));
-    definitions->push_back(String("+"));
+    definitions->push_back(String(u8"+minecraft:axolotl"));
+    definitions->push_back(String(u8"+"));
     if (fAge < 0) {
-      definitions->push_back(String("+axolotl_baby"));
+      definitions->push_back(String(u8"+axolotl_baby"));
     } else {
-      definitions->push_back(String("+axolotl_adult"));
+      definitions->push_back(String(u8"+axolotl_adult"));
     }
     definitions->push_back(String(fVariant.definition()));
-    definitions->push_back(String("-axolotl_on_land"));
-    definitions->push_back(String("-axolotl_dried"));
-    definitions->push_back(String("+axolotl_in_water"));
-    ret->set("definitions", definitions);
-    ret->set("identifier", String("minecraft:axolotl"));
+    definitions->push_back(String(u8"-axolotl_on_land"));
+    definitions->push_back(String(u8"-axolotl_dried"));
+    definitions->push_back(String(u8"+axolotl_in_water"));
+    ret->set(u8"definitions", definitions);
+    ret->set(u8"identifier", String(u8"minecraft:axolotl"));
 
-    ret->set("AppendCustomName", Bool(true));
-    ret->set("IsBaby", Bool(fAge < 0));
-    ret->set("MarkVariant", Int(0));
+    ret->set(u8"AppendCustomName", Bool(true));
+    ret->set(u8"IsBaby", Bool(fAge < 0));
+    ret->set(u8"MarkVariant", Int(0));
 
     return ret;
   }
@@ -88,11 +88,11 @@ public:
   }
 
 private:
-  static std::string Cap(std::string const &s) {
+  static std::u8string Cap(std::u8string const &s) {
     if (s.empty()) {
       return s;
     }
-    return std::string(1, (char)std::toupper(s[0])) + s.substr(1);
+    return std::u8string(1, (char8_t)std::toupper(s[0])) + s.substr(1);
   }
 
 private:

@@ -29,7 +29,7 @@ public:
             continue;
           }
           int level = BeaconLevel(x, y, z, cache);
-          tileEntity->set("Levels", Int(level));
+          tileEntity->set(u8"Levels", Int(level));
         }
       }
     }
@@ -57,7 +57,7 @@ public:
       return false;
     }
     auto name = b->fName;
-    return name == "minecraft:iron_block" || name == "minecraft:gold_block" || name == "minecraft:diamond_block" || name == "minecraft:emerald_block" || name == "minecraft:netherite_block";
+    return name == u8"minecraft:iron_block" || name == u8"minecraft:gold_block" || name == u8"minecraft:diamond_block" || name == u8"minecraft:emerald_block" || name == u8"minecraft:netherite_block";
   }
 };
 

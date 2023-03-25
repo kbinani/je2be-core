@@ -3,26 +3,25 @@
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_pos3.hpp"
+#include "_props.hpp"
 #include "box360/_context.hpp"
 #include "enums/_color-code-java.hpp"
 #include "item/_enchantments.hpp"
 #include "item/_potion.hpp"
-
-#include <nlohmann/json.hpp>
 
 namespace je2be::box360 {
 
 class Item::Impl {
   Impl() = delete;
 
-  using Converter = std::function<std::string(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx)>;
+  using Converter = std::function<std::u8string(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx)>;
 
 public:
   static CompoundTagPtr Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
-    optional<string> rawId = in.string("id");
+    optional<u8string> rawId = in.string(u8"id");
     if (!rawId) {
-      auto i16Id = in.int16("id");
+      auto i16Id = in.int16(u8"id");
       if (!i16Id) {
         return nullptr;
       }
@@ -31,7 +30,7 @@ public:
     if (!rawId) {
       return nullptr;
     }
-    if (!rawId->starts_with("minecraft:")) {
+    if (!rawId->starts_with(u8"minecraft:")) {
       return nullptr;
     }
     auto id = Namespace::Remove(*rawId);
@@ -39,10 +38,10 @@ public:
     auto found = table.find(id);
 
     auto out = Compound();
-    CopyByteValues(in, *out, {{"Count"}, {"Slot"}});
+    CopyByteValues(in, *out, {{u8"Count"}, {u8"Slot"}});
 
-    i16 damage = in.int16("Damage", 0);
-    string changedId;
+    i16 damage = in.int16(u8"Damage", 0);
+    u8string changedId;
     if (found == table.end()) {
       changedId = Same(in, out, &damage, ctx);
     } else {
@@ -52,443 +51,443 @@ public:
       return nullptr;
     }
     if (changedId.empty()) {
-      out->set("id", String(*rawId));
+      out->set(u8"id", String(*rawId));
     } else {
-      out->set("id", String("minecraft:" + changedId));
+      out->set(u8"id", String(u8"minecraft:" + changedId));
     }
     auto tagJ = Compound();
-    if (auto tagB = in.compoundTag("tag"); tagB) {
-      if (auto j = out->compoundTag("tag"); j) {
+    if (auto tagB = in.compoundTag(u8"tag"); tagB) {
+      if (auto j = out->compoundTag(u8"tag"); j) {
         tagJ = j;
       }
 
-      if (auto blockEntityTagB = tagB->compoundTag("BlockEntityTag"); blockEntityTagB) {
+      if (auto blockEntityTagB = tagB->compoundTag(u8"BlockEntityTag"); blockEntityTagB) {
         auto tileEntityId = GetTileEntityNameFromItemName(id);
-        blockEntityTagB->set("id", String("minecraft:" + tileEntityId));
+        blockEntityTagB->set(u8"id", String(u8"minecraft:" + tileEntityId));
         if (auto converted = ctx.fTileEntityConverter(*blockEntityTagB, nullptr, Pos3i(0, 0, 0), ctx); converted && converted->fTileEntity) {
-          tagJ->set("BlockEntityTag", converted->fTileEntity);
+          tagJ->set(u8"BlockEntityTag", converted->fTileEntity);
         }
       }
 
-      if (auto displayB = tagB->compoundTag("display"); displayB) {
-        auto displayJ = tagJ->compoundTag("display");
+      if (auto displayB = tagB->compoundTag(u8"display"); displayB) {
+        auto displayJ = tagJ->compoundTag(u8"display");
         if (!displayJ) {
           displayJ = Compound();
         }
-        if (auto name = displayB->string("Name"); name) {
-          nlohmann::json obj;
-          obj["text"] = *name;
-          displayJ->set("Name", String(nlohmann::to_string(obj)));
+        if (auto name = displayB->string(u8"Name"); name) {
+          props::Json obj;
+          props::SetJsonString(obj, u8"text", *name);
+          displayJ->set(u8"Name", String(props::StringFromJson(obj)));
         }
         if (!displayJ->empty()) {
-          tagJ->set("display", displayJ);
+          tagJ->set(u8"display", displayJ);
         }
       }
 
-      CopyIntValues(*tagB, *tagJ, {{"RepairCost"}});
+      CopyIntValues(*tagB, *tagJ, {{u8"RepairCost"}});
 
-      if (auto enchB = tagB->listTag("ench"); enchB) {
+      if (auto enchB = tagB->listTag(u8"ench"); enchB) {
         auto enchantmentsJ = List<Tag::Type::Compound>();
         for (auto const &item : *enchB) {
           auto c = item->asCompound();
           if (!c) {
             continue;
           }
-          auto idB = c->int16("id");
+          auto idB = c->int16(u8"id");
           if (!idB) {
             continue;
           }
-          auto lvl = c->int16("lvl", 1);
-          string idJ = Enchantments::JavaEnchantmentIdFromBox360(*idB);
+          auto lvl = c->int16(u8"lvl", 1);
+          u8string idJ = Enchantments::JavaEnchantmentIdFromBox360(*idB);
           auto itemJ = Compound();
-          itemJ->set("lvl", Short(lvl));
-          itemJ->set("id", String(idJ));
+          itemJ->set(u8"lvl", Short(lvl));
+          itemJ->set(u8"id", String(idJ));
           enchantmentsJ->push_back(itemJ);
         }
         if (!enchantmentsJ->empty()) {
-          tagJ->set("Enchantments", enchantmentsJ);
+          tagJ->set(u8"Enchantments", enchantmentsJ);
         }
       }
     }
     if (damage != 0) {
-      tagJ->set("Damage", Int(damage));
+      tagJ->set(u8"Damage", Int(damage));
     }
     if (!tagJ->empty()) {
-      out->set("tag", tagJ);
+      out->set(u8"tag", tagJ);
     }
     return out;
   }
 
 private:
 #pragma region Converter
-  static std::string Banner(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
+  static std::u8string Banner(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
     i16 d = *damage;
     *damage = 0;
     auto color = ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(d));
-    std::string colorName = JavaNameFromColorCodeJava(color);
-    return colorName + "_banner";
+    std::u8string colorName = JavaNameFromColorCodeJava(color);
+    return colorName + u8"_banner";
   }
 
-  static std::string Coal(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Coal(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "charcoal";
+      return u8"charcoal";
     case 0:
     default:
-      return "coal";
+      return u8"coal";
     }
   }
 
-  static std::string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string CobblestoneWall(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "mossy_cobblestone_wall";
+      return u8"mossy_cobblestone_wall";
     case 0:
     default:
-      return "cobblestone_wall";
+      return u8"cobblestone_wall";
     }
   }
 
-  static std::string CookedFish(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string CookedFish(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "cooked_salmon";
+      return u8"cooked_salmon";
     case 0:
     default:
-      return "cooked_cod";
+      return u8"cooked_cod";
     }
   }
 
-  static std::string Coral(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Coral(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "brain_coral";
+      return u8"brain_coral";
     case 2:
-      return "bubble_coral";
+      return u8"bubble_coral";
     case 3:
-      return "fire_coral";
+      return u8"fire_coral";
     case 4:
-      return "horn_coral";
+      return u8"horn_coral";
     case 0:
     default:
-      return "tube_coral";
+      return u8"tube_coral";
     }
   }
 
-  static std::string CoralBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string CoralBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
-    std::string prefix = (d & 0x8) == 0x8 ? "dead_" : "";
+    std::u8string prefix = (d & 0x8) == 0x8 ? u8"dead_" : u8"";
     switch (d & 0x7) {
     case 1:
-      return prefix + "brain_coral_block";
+      return prefix + u8"brain_coral_block";
     case 2:
-      return prefix + "bubble_coral_block";
+      return prefix + u8"bubble_coral_block";
     case 3:
-      return prefix + "fire_coral_block";
+      return prefix + u8"fire_coral_block";
     case 4:
-      return prefix + "horn_coral_block";
+      return prefix + u8"horn_coral_block";
     case 0:
     default:
-      return prefix + "tube_coral_block";
+      return prefix + u8"tube_coral_block";
     }
   }
 
-  static std::string CoralFan(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string CoralFan(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "brain_coral_fan";
+      return u8"brain_coral_fan";
     case 2:
-      return "bubble_coral_fan";
+      return u8"bubble_coral_fan";
     case 3:
-      return "fire_coral_fan";
+      return u8"fire_coral_fan";
     case 4:
-      return "horn_coral_fan";
+      return u8"horn_coral_fan";
     case 0:
     default:
-      return "tube_coral_fan";
+      return u8"tube_coral_fan";
     }
   }
 
-  static std::string CoralFanDead(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string CoralFanDead(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "dead_brain_coral_fan";
+      return u8"dead_brain_coral_fan";
     case 2:
-      return "dead_bubble_coral_fan";
+      return u8"dead_bubble_coral_fan";
     case 3:
-      return "dead_fire_coral_fan";
+      return u8"dead_fire_coral_fan";
     case 4:
-      return "dead_horn_coral_fan";
+      return u8"dead_horn_coral_fan";
     case 0:
     default:
-      return "dead_tube_coral_fan";
+      return u8"dead_tube_coral_fan";
     }
   }
 
-  static std::string Dirt(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Dirt(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "coarse_dirt";
+      return u8"coarse_dirt";
     case 2:
-      return "podzol";
+      return u8"podzol";
     case 0:
     default:
-      return "dirt";
+      return u8"dirt";
     }
   }
 
-  static std::string DoublePlant(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string DoublePlant(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "lilac";
+      return u8"lilac";
     case 2:
-      return "tall_grass";
+      return u8"tall_grass";
     case 3:
-      return "large_fern";
+      return u8"large_fern";
     case 4:
-      return "rose_bush";
+      return u8"rose_bush";
     case 5:
-      return "peony";
+      return u8"peony";
     case 0:
     default:
-      return "sunflower";
+      return u8"sunflower";
     }
   }
 
-  static std::string Dye(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Dye(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "red_dye";
+      return u8"red_dye";
     case 2:
-      return "green_dye";
+      return u8"green_dye";
     case 3:
-      return "cocoa_beans";
+      return u8"cocoa_beans";
     case 4:
-      return "lapis_lazuli";
+      return u8"lapis_lazuli";
     case 5:
-      return "purple_dye";
+      return u8"purple_dye";
     case 6:
-      return "cyan_dye";
+      return u8"cyan_dye";
     case 7:
-      return "light_gray_dye";
+      return u8"light_gray_dye";
     case 8:
-      return "gray_dye";
+      return u8"gray_dye";
     case 9:
-      return "pink_dye";
+      return u8"pink_dye";
     case 10:
-      return "lime_dye";
+      return u8"lime_dye";
     case 11:
-      return "yellow_dye";
+      return u8"yellow_dye";
     case 12:
-      return "light_blue_dye";
+      return u8"light_blue_dye";
     case 13:
-      return "magenta_dye";
+      return u8"magenta_dye";
     case 14:
-      return "orange_dye";
+      return u8"orange_dye";
     case 15:
-      return "bone_meal";
+      return u8"bone_meal";
     case 0:
     default:
-      return "ink_sac";
+      return u8"ink_sac";
     }
   }
 
-  static std::string EnchantedBook(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
-    if (auto tagB = in.compoundTag("tag"); tagB) {
+  static std::u8string EnchantedBook(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    if (auto tagB = in.compoundTag(u8"tag"); tagB) {
       auto tagJ = Compound();
-      if (auto storedB = tagB->listTag("StoredEnchantments"); storedB) {
+      if (auto storedB = tagB->listTag(u8"StoredEnchantments"); storedB) {
         auto storedJ = List<Tag::Type::Compound>();
         for (auto const &it : *storedB) {
           auto enchB = it->asCompound();
           if (!enchB) {
             continue;
           }
-          auto idB = enchB->int16("id");
+          auto idB = enchB->int16(u8"id");
           if (!idB) {
             continue;
           }
           auto idJ = Enchantments::JavaEnchantmentIdFromBox360(*idB);
-          auto lvl = enchB->int16("lvl");
+          auto lvl = enchB->int16(u8"lvl");
           if (!lvl) {
             continue;
           }
           auto enchJ = Compound();
-          enchJ->set("id", String(idJ));
-          enchJ->set("lvl", Short(*lvl));
+          enchJ->set(u8"id", String(idJ));
+          enchJ->set(u8"lvl", Short(*lvl));
           storedJ->push_back(enchJ);
         }
-        tagJ->set("StoredEnchantments", storedJ);
+        tagJ->set(u8"StoredEnchantments", storedJ);
       }
       if (!tagJ->empty()) {
-        out->set("tag", tagJ);
+        out->set(u8"tag", tagJ);
       }
     }
-    return "";
+    return u8"";
   }
 
-  static std::string FilledMap(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string FilledMap(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     auto tagJ = Compound();
-    tagJ->set("map", Int(d));
-    out->set("tag", tagJ);
-    return "";
+    tagJ->set(u8"map", Int(d));
+    out->set(u8"tag", tagJ);
+    return u8"";
   }
 
-  static std::string Fireworks(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
-    if (auto tag = in.compoundTag("tag"); tag) {
-      out->set("tag", tag->copy());
+  static std::u8string Fireworks(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    if (auto tag = in.compoundTag(u8"tag"); tag) {
+      out->set(u8"tag", tag->copy());
     }
-    return "firework_rocket";
+    return u8"firework_rocket";
   }
 
-  static std::string Fish(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Fish(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "salmon";
+      return u8"salmon";
     case 2:
-      return "tropical_fish";
+      return u8"tropical_fish";
     case 3:
-      return "pufferfish";
+      return u8"pufferfish";
     case 0:
     default:
-      return "cod";
+      return u8"cod";
     }
   }
 
-  static std::string Leaves(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Leaves(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d & 0x7) {
     case 1:
-      return "spruce_leaves";
+      return u8"spruce_leaves";
     case 2:
-      return "birch_leaves";
+      return u8"birch_leaves";
     case 3:
-      return "jungle_leaves";
+      return u8"jungle_leaves";
     case 0:
     default:
-      return "oak_leaves";
+      return u8"oak_leaves";
     }
   }
 
-  static std::string Leaves2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Leaves2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d & 0x7) {
     case 1:
-      return "dark_oak_leaves";
+      return u8"dark_oak_leaves";
     case 0:
     default:
-      return "acacia_leaves";
+      return u8"acacia_leaves";
     }
   }
 
-  static std::string Log(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Log(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "spruce_log";
+      return u8"spruce_log";
     case 2:
-      return "birch_log";
+      return u8"birch_log";
     case 3:
-      return "jungle_log";
+      return u8"jungle_log";
     case 0:
     default:
-      return "oak_log";
+      return u8"oak_log";
     }
   }
 
-  static std::string Log2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Log2(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "dark_oak_log";
+      return u8"dark_oak_log";
     case 0:
     default:
-      return "acacia_log";
+      return u8"acacia_log";
     }
   }
 
-  static std::string MonsterEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string MonsterEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "infested_cobblestone";
+      return u8"infested_cobblestone";
     case 2:
-      return "infested_stone_bricks";
+      return u8"infested_stone_bricks";
     case 3:
-      return "infested_mossy_stone_bricks";
+      return u8"infested_mossy_stone_bricks";
     case 4:
-      return "infested_cracked_stone_bricks";
+      return u8"infested_cracked_stone_bricks";
     case 5:
-      return "infested_chiseled_stone_bricks";
+      return u8"infested_chiseled_stone_bricks";
     case 0:
     default:
-      return "infested_stone";
+      return u8"infested_stone";
     }
   }
 
-  static std::string MushroomBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string MushroomBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 10:
-      return "mushroom_stem";
+      return u8"mushroom_stem";
     default:
-      return "";
+      return u8"";
     }
   }
 
-  static std::string Planks(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Planks(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "spruce_planks";
+      return u8"spruce_planks";
     case 2:
-      return "birch_planks";
+      return u8"birch_planks";
     case 3:
-      return "jungle_planks";
+      return u8"jungle_planks";
     case 4:
-      return "acacia_planks";
+      return u8"acacia_planks";
     case 5:
-      return "dark_oak_planks";
+      return u8"dark_oak_planks";
     case 0:
     default:
-      return "oak_planks";
+      return u8"oak_planks";
     }
   }
 
-  static std::string Potion(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
-    std::string id;
-    if (auto tag = in.compoundTag("tag"); tag) {
+  static std::u8string Potion(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    std::u8string id;
+    if (auto tag = in.compoundTag(u8"tag"); tag) {
       // TU67
-      out->set("tag", tag);
+      out->set(u8"tag", tag);
     } else {
       // TU25
       i16 d = DrainDamage(damage);
@@ -496,394 +495,394 @@ private:
       if (ret) {
         id = Namespace::Remove(ret->fItemName);
         auto t = Compound();
-        t->set("Potion", String(ret->fPotionType));
-        out->set("tag", t);
+        t->set(u8"Potion", String(ret->fPotionType));
+        out->set(u8"tag", t);
       }
     }
     return id;
   }
 
-  static std::string Prismarine(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Prismarine(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "prismarine_bricks";
+      return u8"prismarine_bricks";
     case 2:
-      return "dark_prismarine";
+      return u8"dark_prismarine";
     case 0:
     default:
-      return "prismarine";
+      return u8"prismarine";
     }
   }
 
-  static std::string PrismarineSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string PrismarineSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "prismarine_brick_slab";
+      return u8"prismarine_brick_slab";
     case 2:
-      return "dark_prismarine_slab";
+      return u8"dark_prismarine_slab";
     case 0:
     default:
-      return "prismarine_slab";
+      return u8"prismarine_slab";
     }
   }
 
-  static std::string QuartzBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string QuartzBlock(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "chiseled_quartz_block";
+      return u8"chiseled_quartz_block";
     case 2:
-      return "quartz_pillar";
+      return u8"quartz_pillar";
     case 0:
     default:
-      return "quartz_block";
+      return u8"quartz_block";
     }
   }
 
-  static std::string RedFlower(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string RedFlower(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "blue_orchid";
+      return u8"blue_orchid";
     case 2:
-      return "allium";
+      return u8"allium";
     case 3:
-      return "azure_bluet";
+      return u8"azure_bluet";
     case 4:
-      return "red_tulip";
+      return u8"red_tulip";
     case 5:
-      return "orange_tulip";
+      return u8"orange_tulip";
     case 6:
-      return "white_tulip";
+      return u8"white_tulip";
     case 7:
-      return "pink_tulip";
+      return u8"pink_tulip";
     case 8:
-      return "oxeye_daisy";
+      return u8"oxeye_daisy";
     case 0:
     default:
-      return "poppy";
+      return u8"poppy";
     }
   }
 
-  static std::string RedSandstone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string RedSandstone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "chiseled_red_sandstone";
+      return u8"chiseled_red_sandstone";
     case 2:
-      return "cut_red_sandstone";
+      return u8"cut_red_sandstone";
     case 0:
     default:
-      return "red_sandstone";
+      return u8"red_sandstone";
     }
   }
 
-  static std::string Same(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
-    return "";
+  static std::u8string Same(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+    return u8"";
   }
 
-  static std::string Sand(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Sand(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "red_sand";
+      return u8"red_sand";
     case 0:
     default:
-      return "sand";
+      return u8"sand";
     }
   }
 
-  static std::string Sandstone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Sandstone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "chiseled_sandstone";
+      return u8"chiseled_sandstone";
     case 2:
-      return "cut_sandstone";
+      return u8"cut_sandstone";
     case 0:
     default:
-      return "sandstone";
+      return u8"sandstone";
     }
   }
 
-  static std::string Sapling(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Sapling(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "spruce_sapling";
+      return u8"spruce_sapling";
     case 2:
-      return "birch_sapling";
+      return u8"birch_sapling";
     case 3:
-      return "jungle_sapling";
+      return u8"jungle_sapling";
     case 4:
-      return "acacia_sapling";
+      return u8"acacia_sapling";
     case 5:
-      return "dark_oak_sapling";
+      return u8"dark_oak_sapling";
     case 0:
     default:
-      return "oak_sapling";
+      return u8"oak_sapling";
     }
   }
 
-  static std::string Skull(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Skull(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "wither_skeleton_skull";
+      return u8"wither_skeleton_skull";
     case 2:
-      return "zombie_head";
+      return u8"zombie_head";
     case 3:
-      return "player_head";
+      return u8"player_head";
     case 4:
-      return "creeper_head";
+      return u8"creeper_head";
     case 5:
-      return "dragon_head";
+      return u8"dragon_head";
     case 0:
     default:
-      return "skeleton_skull";
+      return u8"skeleton_skull";
     }
   }
 
-  static std::string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
-    std::string name;
+  static std::u8string SpawnEgg(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
+    std::u8string name;
     i16 d = DrainDamage(damage);
     switch (d) {
     case 50:
-      name = "creeper";
+      name = u8"creeper";
       break;
     case 51:
-      name = "skeleton";
+      name = u8"skeleton";
       break;
     case 52:
-      name = "spider";
+      name = u8"spider";
       break;
     case 54:
-      name = "zombie";
+      name = u8"zombie";
       break;
     case 55:
-      name = "slime";
+      name = u8"slime";
       break;
     case 56:
-      name = "ghast";
+      name = u8"ghast";
       break;
     case 57:
-      name = "zombified_piglin";
+      name = u8"zombified_piglin";
       break;
     case 58:
-      name = "enderman";
+      name = u8"enderman";
       break;
     case 59:
-      name = "cave_spider";
+      name = u8"cave_spider";
       break;
     case 60:
-      name = "silverfish";
+      name = u8"silverfish";
       break;
     case 61:
-      name = "blaze";
+      name = u8"blaze";
       break;
     case 62:
-      name = "magma_cube";
+      name = u8"magma_cube";
       break;
     case 90:
-      name = "pig";
+      name = u8"pig";
       break;
     case 91:
-      name = "sheep";
+      name = u8"sheep";
       break;
     case 92:
-      name = "cow";
+      name = u8"cow";
       break;
     case 93:
-      name = "chicken";
+      name = u8"chicken";
       break;
     case 94:
-      name = "squid";
+      name = u8"squid";
       break;
     case 95:
-      name = "wolf";
+      name = u8"wolf";
       break;
     case 96:
-      name = "mooshroom";
+      name = u8"mooshroom";
       break;
     case 120:
-      name = "villager";
+      name = u8"villager";
       break;
     }
-    if (auto tag = in.compoundTag("tag"); tag) {
-      if (auto entityTag = tag->compoundTag("EntityTag"); entityTag) {
-        if (auto id = entityTag->string("id"); id) {
+    if (auto tag = in.compoundTag(u8"tag"); tag) {
+      if (auto entityTag = tag->compoundTag(u8"EntityTag"); entityTag) {
+        if (auto id = entityTag->string(u8"id"); id) {
           auto n = ctx.fEntityNameMigrator(*id);
-          if (n.starts_with("minecraft:")) {
+          if (n.starts_with(u8"minecraft:")) {
             name = n.substr(10);
           }
         }
       }
     }
     if (name.empty()) {
-      return "";
+      return u8"";
     } else {
-      return name + "_spawn_egg";
+      return name + u8"_spawn_egg";
     }
   }
 
-  static std::string Sponge(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Sponge(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "wet_sponge";
+      return u8"wet_sponge";
     case 0:
     default:
-      return "sponge";
+      return u8"sponge";
     }
   }
 
-  static std::string Stone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Stone(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "granite";
+      return u8"granite";
     case 2:
-      return "polished_granite";
+      return u8"polished_granite";
     case 3:
-      return "diorite";
+      return u8"diorite";
     case 4:
-      return "polished_diorite";
+      return u8"polished_diorite";
     case 5:
-      return "andesite";
+      return u8"andesite";
     case 6:
-      return "polished_andesite";
+      return u8"polished_andesite";
     case 0:
     default:
-      return "stone";
+      return u8"stone";
     }
   }
 
-  static std::string Stonebrick(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Stonebrick(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "mossy_stone_bricks";
+      return u8"mossy_stone_bricks";
     case 2:
-      return "cracked_stone_bricks";
+      return u8"cracked_stone_bricks";
     case 3:
-      return "chiseled_stone_bricks";
+      return u8"chiseled_stone_bricks";
     case 0:
     default:
-      return "stone_bricks";
+      return u8"stone_bricks";
     }
   }
 
-  static std::string StoneSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string StoneSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "sandstone_slab";
+      return u8"sandstone_slab";
     case 2:
-      return "oak_slab";
+      return u8"oak_slab";
     case 3:
-      return "cobblestone_slab";
+      return u8"cobblestone_slab";
     case 4:
-      return "brick_slab";
+      return u8"brick_slab";
     case 5:
-      return "stone_brick_slab";
+      return u8"stone_brick_slab";
     case 6:
-      return "nether_brick_slab";
+      return u8"nether_brick_slab";
     case 7:
-      return "quartz_slab";
+      return u8"quartz_slab";
     case 0:
     default:
-      return "smooth_stone_slab";
+      return u8"smooth_stone_slab";
     }
   }
 
-  static std::string StoneStairs(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string StoneStairs(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 2:
     default:
-      return "cobblestone_stairs";
+      return u8"cobblestone_stairs";
     }
   }
 
-  static std::string Tallgrass(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string Tallgrass(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 2:
-      return "fern";
+      return u8"fern";
     case 0:
-      return "grass"; // shrub
+      return u8"grass"; // shrub
     case 1:
     default:
-      return "grass";
+      return u8"grass";
     }
   }
 
-  static std::string WoodenSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
+  static std::u8string WoodenSlab(CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &) {
     i16 d = *damage;
     *damage = 0;
     switch (d) {
     case 1:
-      return "spruce_slab";
+      return u8"spruce_slab";
     case 2:
-      return "birch_slab";
+      return u8"birch_slab";
     case 3:
-      return "jungle_slab";
+      return u8"jungle_slab";
     case 4:
-      return "acacia_slab";
+      return u8"acacia_slab";
     case 5:
-      return "dark_oak_slab";
+      return u8"dark_oak_slab";
     case 0:
     default:
-      return "oak_slab";
+      return u8"oak_slab";
     }
   }
 #pragma endregion
 
 #pragma region Converter_Generator
-  static Converter Colored(std::string const &suffix) {
+  static Converter Colored(std::u8string const &suffix) {
     return [suffix](CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
       i16 d = *damage;
       *damage = 0;
       auto colorName = JavaNameFromColorCodeJava(static_cast<ColorCodeJava>(d));
-      return colorName + "_" + suffix;
+      return colorName + u8"_" + suffix;
     };
   }
 
-  static Converter Rename(std::string const &name) {
+  static Converter Rename(std::u8string const &name) {
     return [name](CompoundTag const &in, CompoundTagPtr &out, i16 *damage, Context const &ctx) {
       return name;
     };
   }
 #pragma endregion
 
-  static std::optional<std::string> MigrateId(u16 id) {
+  static std::optional<std::u8string> MigrateId(u16 id) {
     using namespace std;
-    static unique_ptr<vector<string> const> const sTable(CreateIdTable());
+    static unique_ptr<vector<u8string> const> const sTable(CreateIdTable());
     if (sTable->size() <= id) {
       return nullopt;
     }
-    string mapped = (*sTable)[id];
+    u8string mapped = (*sTable)[id];
     if (mapped.empty()) {
       return nullopt;
     }
-    return "minecraft:" + mapped;
+    return u8"minecraft:" + mapped;
   }
 
   static i16 DrainDamage(i16 *damage) {
@@ -892,15 +891,15 @@ private:
     return d;
   }
 
-  static std::vector<std::string> const *CreateIdTable() {
+  static std::vector<std::u8string> const *CreateIdTable() {
     using namespace std;
     int maxId = -1;
-    unordered_map<u16, string> t;
+    unordered_map<u16, u8string> t;
 
 #define R(id, name)              \
   assert(t.count(id) == 0);      \
   maxId = (std::max)(maxId, id); \
-  t[id] = #name
+  t[id] = u8"" #name
 
     R(1, stone);
     R(2, grass_block);
@@ -1141,7 +1140,7 @@ private:
 
 #undef R
 
-    auto ret = new vector<string>();
+    auto ret = new vector<u8string>();
     ret->resize(maxId + 1);
     for (auto [id, name] : t) {
       (*ret)[id] = name;
@@ -1149,24 +1148,24 @@ private:
     return ret;
   }
 
-  static std::string GetTileEntityNameFromItemName(std::string const &name) {
-    if (name.find("shulker_box") != std::string::npos) {
-      return "shulker_box";
+  static std::u8string GetTileEntityNameFromItemName(std::u8string const &name) {
+    if (name.find(u8"shulker_box") != std::u8string::npos) {
+      return u8"shulker_box";
     }
     return name;
   }
 
-  static std::unordered_map<std::string, Converter> const &GetTable() {
-    static std::unique_ptr<std::unordered_map<std::string, Converter> const> const sTable(CreateTable());
+  static std::unordered_map<std::u8string, Converter> const &GetTable() {
+    static std::unique_ptr<std::unordered_map<std::u8string, Converter> const> const sTable(CreateTable());
     return *sTable;
   }
 
-  static std::unordered_map<std::string, Converter> const *CreateTable() {
+  static std::unordered_map<std::u8string, Converter> const *CreateTable() {
     using namespace std;
-    auto ret = new unordered_map<string, Converter>();
-#define E(__name, __conv)                   \
-  assert(ret->find(#__name) == ret->end()); \
-  ret->insert(std::make_pair(#__name, __conv))
+    auto ret = new unordered_map<u8string, Converter>();
+#define E(__name, __conv)                        \
+  assert(ret->find(u8"" #__name) == ret->end()); \
+  ret->insert(std::make_pair(u8"" #__name, __conv))
 
     E(comparator, Same);
     E(daylight_detector, Same);
@@ -1224,7 +1223,7 @@ private:
     E(wooden_slab, WoodenSlab);
     E(prismarine_slab, PrismarineSlab);
     E(stone_stairs, StoneStairs);
-    E(stained_hardened_clay, Colored("terracotta"));
+    E(stained_hardened_clay, Colored(u8"terracotta"));
     E(sapling, Sapling);
     E(sponge, Sponge);
     E(skull, Skull);
@@ -1233,90 +1232,90 @@ private:
     E(tallgrass, Tallgrass);
     E(double_plant, DoublePlant);
     E(red_flower, RedFlower);
-    E(concrete, Colored("concrete"));
+    E(concrete, Colored(u8"concrete"));
     E(cobblestone_wall, CobblestoneWall);
-    E(concrete_powder, Colored("concrete_powder"));
-    E(silver_glazed_terracotta, Rename("light_gray_glazed_terracotta"));
+    E(concrete_powder, Colored(u8"concrete_powder"));
+    E(silver_glazed_terracotta, Rename(u8"light_gray_glazed_terracotta"));
     E(banner, Banner);
-    E(wool, Colored("wool"));
-    E(carpet, Colored("carpet"));
-    E(stained_glass, Colored("stained_glass"));
-    E(stained_glass_pane, Colored("stained_glass_pane"));
+    E(wool, Colored(u8"wool"));
+    E(carpet, Colored(u8"carpet"));
+    E(stained_glass, Colored(u8"stained_glass"));
+    E(stained_glass_pane, Colored(u8"stained_glass_pane"));
     E(coral_fan, CoralFan);
     E(coral, Coral);
     E(brown_mushroom_block, MushroomBlock);
     E(red_mushroom_block, MushroomBlock);
     E(coral_fan_dead, CoralFanDead);
     E(coral_block, CoralBlock);
-    E(melon_block, Rename("melon"));
-    E(lit_pumpkin, Rename("jack_o_lantern"));
-    E(waterlily, Rename("lily_pad"));
-    E(deadbush, Rename("dead_bush"));
-    E(yellow_flower, Rename("dandelion"));
-    E(snow_layer, Rename("snow"));
-    E(web, Rename("cobweb"));
-    E(sign, Rename("oak_sign"));
-    E(sea_grass, Rename("seagrass"));
-    E(grass_path, Rename("dirt_path"));
-    E(quartz_ore, Rename("nether_quartz_ore"));
-    E(stripped_log_oak, Rename("stripped_oak_log"));
-    E(stripped_log_spruce, Rename("stripped_spruce_log"));
-    E(stripped_log_birch, Rename("stripped_birch_log"));
-    E(stripped_log_jungle, Rename("stripped_jungle_log"));
-    E(stripped_log_acacia, Rename("stripped_acacia_log"));
-    E(stripped_log_dark_oak, Rename("stripped_dark_oak_log"));
-    E(brick_block, Rename("bricks"));
-    E(magma, Rename("magma_block"));
-    E(slime, Rename("slime_block"));
-    E(fence, Rename("oak_fence"));
-    E(nether_brick, Rename("nether_bricks"));
-    E(red_nether_brick, Rename("red_nether_bricks"));
-    E(end_bricks, Rename("end_stone_bricks"));
-    E(trapdoor, Rename("oak_trapdoor"));
-    E(wooden_door, Rename("oak_door"));
-    E(stone_slab2, Rename("red_sandstone_slab"));
-    E(prismarine_bricks_stairs, Rename("prismarine_brick_stairs"));
-    E(hardened_clay, Rename("terracotta"));
-    E(fence_gate, Rename("oak_fence_gate"));
-    E(golden_rail, Rename("powered_rail"));
-    E(boat, Rename("oak_boat"));
-    E(noteblock, Rename("note_block"));
-    E(wooden_button, Rename("oak_button"));
-    E(wooden_pressure_plate, Rename("oak_pressure_plate"));
-    E(netherbrick, Rename("nether_brick"));
-    E(nautilus, Rename("nautilus_shell"));
-    E(nautilus_core, Rename("heart_of_the_sea"));
-    E(reeds, Rename("sugar_cane"));
-    E(chorus_fruit_popped, Rename("popped_chorus_fruit"));
-    E(turtle_shell_piece, Rename("scute"));
+    E(melon_block, Rename(u8"melon"));
+    E(lit_pumpkin, Rename(u8"jack_o_lantern"));
+    E(waterlily, Rename(u8"lily_pad"));
+    E(deadbush, Rename(u8"dead_bush"));
+    E(yellow_flower, Rename(u8"dandelion"));
+    E(snow_layer, Rename(u8"snow"));
+    E(web, Rename(u8"cobweb"));
+    E(sign, Rename(u8"oak_sign"));
+    E(sea_grass, Rename(u8"seagrass"));
+    E(grass_path, Rename(u8"dirt_path"));
+    E(quartz_ore, Rename(u8"nether_quartz_ore"));
+    E(stripped_log_oak, Rename(u8"stripped_oak_log"));
+    E(stripped_log_spruce, Rename(u8"stripped_spruce_log"));
+    E(stripped_log_birch, Rename(u8"stripped_birch_log"));
+    E(stripped_log_jungle, Rename(u8"stripped_jungle_log"));
+    E(stripped_log_acacia, Rename(u8"stripped_acacia_log"));
+    E(stripped_log_dark_oak, Rename(u8"stripped_dark_oak_log"));
+    E(brick_block, Rename(u8"bricks"));
+    E(magma, Rename(u8"magma_block"));
+    E(slime, Rename(u8"slime_block"));
+    E(fence, Rename(u8"oak_fence"));
+    E(nether_brick, Rename(u8"nether_bricks"));
+    E(red_nether_brick, Rename(u8"red_nether_bricks"));
+    E(end_bricks, Rename(u8"end_stone_bricks"));
+    E(trapdoor, Rename(u8"oak_trapdoor"));
+    E(wooden_door, Rename(u8"oak_door"));
+    E(stone_slab2, Rename(u8"red_sandstone_slab"));
+    E(prismarine_bricks_stairs, Rename(u8"prismarine_brick_stairs"));
+    E(hardened_clay, Rename(u8"terracotta"));
+    E(fence_gate, Rename(u8"oak_fence_gate"));
+    E(golden_rail, Rename(u8"powered_rail"));
+    E(boat, Rename(u8"oak_boat"));
+    E(noteblock, Rename(u8"note_block"));
+    E(wooden_button, Rename(u8"oak_button"));
+    E(wooden_pressure_plate, Rename(u8"oak_pressure_plate"));
+    E(netherbrick, Rename(u8"nether_brick"));
+    E(nautilus, Rename(u8"nautilus_shell"));
+    E(nautilus_core, Rename(u8"heart_of_the_sea"));
+    E(reeds, Rename(u8"sugar_cane"));
+    E(chorus_fruit_popped, Rename(u8"popped_chorus_fruit"));
+    E(turtle_shell_piece, Rename(u8"scute"));
     E(dye, Dye);
     E(cooked_fish, CookedFish);
     E(fish, Fish);
-    E(speckled_melon, Rename("glistering_melon_slice"));
+    E(speckled_melon, Rename(u8"glistering_melon_slice"));
     E(potion, Potion);
     E(lingering_potion, Potion);
     E(splash_potion, Potion);
     E(enchanted_book, EnchantedBook);
     E(tipped_arrow, Potion);
-    E(silver_shulker_box, Rename("light_gray_shulker_box"));
-    E(bed, Colored("bed"));
-    E(fish_bucket, Rename("cod_bucket"));
-    E(puffer_bucket, Rename("pufferfish_bucket"));
-    E(tropical_bucket, Rename("tropical_fish_bucket"));
-    E(mob_spawner, Rename("spawner"));
+    E(silver_shulker_box, Rename(u8"light_gray_shulker_box"));
+    E(bed, Colored(u8"bed"));
+    E(fish_bucket, Rename(u8"cod_bucket"));
+    E(puffer_bucket, Rename(u8"pufferfish_bucket"));
+    E(tropical_bucket, Rename(u8"tropical_fish_bucket"));
+    E(mob_spawner, Rename(u8"spawner"));
     E(spawn_egg, SpawnEgg);
-    E(record_13, Rename("music_disc_13"));
-    E(record_cat, Rename("music_disc_cat"));
-    E(record_blocks, Rename("music_disc_blocks"));
-    E(record_chirp, Rename("music_disc_chirp"));
-    E(record_far, Rename("music_disc_far"));
-    E(record_mall, Rename("music_disc_mall"));
-    E(record_mellohi, Rename("music_disc_mellohi"));
-    E(record_stal, Rename("music_disc_stal"));
-    E(record_strad, Rename("music_disc_strad"));
-    E(record_ward, Rename("music_disc_ward"));
-    E(record_11, Rename("music_disc_11"));
-    E(record_wait, Rename("music_disc_wait"));
+    E(record_13, Rename(u8"music_disc_13"));
+    E(record_cat, Rename(u8"music_disc_cat"));
+    E(record_blocks, Rename(u8"music_disc_blocks"));
+    E(record_chirp, Rename(u8"music_disc_chirp"));
+    E(record_far, Rename(u8"music_disc_far"));
+    E(record_mall, Rename(u8"music_disc_mall"));
+    E(record_mellohi, Rename(u8"music_disc_mellohi"));
+    E(record_stal, Rename(u8"music_disc_stal"));
+    E(record_strad, Rename(u8"music_disc_strad"));
+    E(record_ward, Rename(u8"music_disc_ward"));
+    E(record_11, Rename(u8"music_disc_11"));
+    E(record_wait, Rename(u8"music_disc_wait"));
     E(fireworks, Fireworks);
     E(filled_map, FilledMap);
     E(coal, Coal); // TODO: charcoal(?) for TU76

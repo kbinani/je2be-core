@@ -18,15 +18,15 @@ public:
       current = std::min(v, max);
     }
 
-    CompoundTagPtr toCompoundTag(std::string const &name) const {
+    CompoundTagPtr toCompoundTag(std::u8string const &name) const {
       auto a = Compound();
-      a->set("Base", Float(base));
-      a->set("Current", Float(current));
-      a->set("Max", Float(max));
-      a->set("Name", String("minecraft:" + name));
-      a->set("DefaultMax", Float(max));
-      a->set("DefaultMin", Float(0));
-      a->set("Min", Float(0));
+      a->set(u8"Base", Float(base));
+      a->set(u8"Current", Float(current));
+      a->set(u8"Max", Float(max));
+      a->set(u8"Name", String(u8"minecraft:" + name));
+      a->set(u8"DefaultMax", Float(max));
+      a->set(u8"DefaultMin", Float(0));
+      a->set(u8"Min", Float(0));
       return a;
     }
   };
@@ -46,23 +46,23 @@ public:
 
     ListTagPtr toBedrockListTag() const {
       auto list = List<Tag::Type::Compound>();
-      list->push_back(luck.toCompoundTag("luck"));
-      list->push_back(health.toCompoundTag("health"));
-      list->push_back(absorption.toCompoundTag("absorption"));
-      list->push_back(knockback_resistance.toCompoundTag("knockback_resistance"));
-      list->push_back(movement.toCompoundTag("movement"));
-      list->push_back(underwater_movement.toCompoundTag("underwater_movement"));
-      list->push_back(lava_movement.toCompoundTag("lava_movement"));
-      list->push_back(follow_range.toCompoundTag("follow_range"));
+      list->push_back(luck.toCompoundTag(u8"luck"));
+      list->push_back(health.toCompoundTag(u8"health"));
+      list->push_back(absorption.toCompoundTag(u8"absorption"));
+      list->push_back(knockback_resistance.toCompoundTag(u8"knockback_resistance"));
+      list->push_back(movement.toCompoundTag(u8"movement"));
+      list->push_back(underwater_movement.toCompoundTag(u8"underwater_movement"));
+      list->push_back(lava_movement.toCompoundTag(u8"lava_movement"));
+      list->push_back(follow_range.toCompoundTag(u8"follow_range"));
       if (attack_damage) {
-        list->push_back(attack_damage->toCompoundTag("attack_damage"));
+        list->push_back(attack_damage->toCompoundTag(u8"attack_damage"));
       }
       return list;
     }
   };
 
-  static std::optional<Attributes> Mob(std::string const &name, std::optional<float> health) {
-    static std::unique_ptr<std::unordered_map<std::string, Attributes> const> const table(CreateTable());
+  static std::optional<Attributes> Mob(std::u8string const &name, std::optional<float> health) {
+    static std::unique_ptr<std::unordered_map<std::u8string, Attributes> const> const table(CreateTable());
     auto found = table->find(name);
     if (found == table->end()) {
       return std::nullopt;
@@ -77,7 +77,7 @@ public:
   static ListTagPtr AnyHorseFromJava(CompoundTag const &tag, std::optional<float> currentHealth) {
     using namespace std;
 
-    auto attributes = tag.listTag("Attributes");
+    auto attributes = tag.listTag(u8"Attributes");
     Attribute health(15, 15, 15);
     Attribute movement(0.1125, 0.1125);
     Attribute jumpStrength(0.4, 0.4);
@@ -87,16 +87,16 @@ public:
         if (!attrs) {
           continue;
         }
-        auto name = attrs->string("Name");
-        auto value = attrs->float64("Base");
+        auto name = attrs->string(u8"Name");
+        auto value = attrs->float64(u8"Base");
         if (!name || !value) {
           continue;
         }
-        if (*name == "minecraft:generic.max_health") {
+        if (*name == u8"minecraft:generic.max_health") {
           health = Attribute(*value, *value, *value);
-        } else if (*name == "minecraft:generic.movement_speed") {
+        } else if (*name == u8"minecraft:generic.movement_speed") {
           movement = Attribute(*value, *value);
-        } else if (*name == "minecraft:horse.jump_strength") {
+        } else if (*name == u8"minecraft:horse.jump_strength") {
           jumpStrength = Attribute(*value, *value);
         }
       }
@@ -111,12 +111,12 @@ public:
     }
 
     auto ret = List<Tag::Type::Compound>();
-    ret->push_back(luck.toCompoundTag("luck"));
-    ret->push_back(health.toCompoundTag("health"));
-    ret->push_back(movement.toCompoundTag("movement"));
-    ret->push_back(followRange.toCompoundTag("follow_range"));
-    ret->push_back(absorption.toCompoundTag("absorption"));
-    ret->push_back(jumpStrength.toCompoundTag("horse.jump_strength"));
+    ret->push_back(luck.toCompoundTag(u8"luck"));
+    ret->push_back(health.toCompoundTag(u8"health"));
+    ret->push_back(movement.toCompoundTag(u8"movement"));
+    ret->push_back(followRange.toCompoundTag(u8"follow_range"));
+    ret->push_back(absorption.toCompoundTag(u8"absorption"));
+    ret->push_back(jumpStrength.toCompoundTag(u8"horse.jump_strength"));
     return ret;
   }
 
@@ -209,150 +209,150 @@ public:
   }
 
 private:
-  static std::unordered_map<std::string, Attributes> *CreateTable() {
+  static std::unordered_map<std::u8string, Attributes> *CreateTable() {
     using namespace std;
-    auto table = new unordered_map<string, Attributes>();
-    table->insert(make_pair("minecraft:armor_stand", Attributes(
-                                                         Attribute(6, 6, 6),      // health
-                                                         Attribute(1, 1, 1),      // knockback_resistance
-                                                         Attribute(0.7, 0.7),     // movement
-                                                         Attribute(0.2, 0.2),     // underwater_movement
-                                                         Attribute(0.02, 0.02),   // lava_movement
-                                                         Attribute(16, 16, 2048), // follow_range
-                                                         nullopt)));              // attack_damage
-    table->insert(make_pair("minecraft:bat", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:bee", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
-    table->insert(make_pair("minecraft:blaze", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(48, 48, 48), Attribute(6, 6, 6))));
-    table->insert(make_pair("minecraft:cat", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4))));
-    table->insert(make_pair("minecraft:cave_spider", Attributes(Attribute(12, 12, 12), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:chicken", Attributes(Attribute(4, 4, 4), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:cod", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.1, 0.1), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:cow", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:creeper", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:dolphin", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.15, 0.15), Attribute(0.02, 0.02), Attribute(48, 48, 48), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:drowned", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.06, 0.06), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:elder_guardian", Attributes(Attribute(80, 80, 80), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(16, 16, 16), Attribute(5, 5, 5))));
-    table->insert(make_pair("minecraft:ender_dragon", Attributes(Attribute(200, 200, 200), Attribute(100, 1, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:enderman", Attributes(Attribute(40, 40, 40), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(32, 32, 32), Attribute(7, 7, 7))));
-    table->insert(make_pair("minecraft:endermite", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
-    table->insert(make_pair("minecraft:evoker", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
-    table->insert(make_pair("minecraft:fox", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
-    table->insert(make_pair("minecraft:ghast", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.03, 0.03), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 64), nullopt)));
-    table->insert(make_pair("minecraft:guardian", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 16), Attribute(5, 5, 5))));
-    table->insert(make_pair("minecraft:hoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:husk", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:iron_golem", Attributes(Attribute(100, 100, 100), Attribute(1, 1, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(7, 7, 7))));
+    auto table = new unordered_map<u8string, Attributes>();
+    table->insert(make_pair(u8"minecraft:armor_stand", Attributes(
+                                                           Attribute(6, 6, 6),      // health
+                                                           Attribute(1, 1, 1),      // knockback_resistance
+                                                           Attribute(0.7, 0.7),     // movement
+                                                           Attribute(0.2, 0.2),     // underwater_movement
+                                                           Attribute(0.02, 0.02),   // lava_movement
+                                                           Attribute(16, 16, 2048), // follow_range
+                                                           nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:bat", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:bee", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:blaze", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(48, 48, 48), Attribute(6, 6, 6))));
+    table->insert(make_pair(u8"minecraft:cat", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4))));
+    table->insert(make_pair(u8"minecraft:cave_spider", Attributes(Attribute(12, 12, 12), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:chicken", Attributes(Attribute(4, 4, 4), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:cod", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.1, 0.1), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:cow", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:creeper", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:dolphin", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.15, 0.15), Attribute(0.02, 0.02), Attribute(48, 48, 48), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:drowned", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.06, 0.06), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:elder_guardian", Attributes(Attribute(80, 80, 80), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(16, 16, 16), Attribute(5, 5, 5))));
+    table->insert(make_pair(u8"minecraft:ender_dragon", Attributes(Attribute(200, 200, 200), Attribute(100, 1, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:enderman", Attributes(Attribute(40, 40, 40), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(32, 32, 32), Attribute(7, 7, 7))));
+    table->insert(make_pair(u8"minecraft:endermite", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
+    table->insert(make_pair(u8"minecraft:evoker", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:fox", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
+    table->insert(make_pair(u8"minecraft:ghast", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.03, 0.03), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 64), nullopt)));
+    table->insert(make_pair(u8"minecraft:guardian", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 16), Attribute(5, 5, 5))));
+    table->insert(make_pair(u8"minecraft:hoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:husk", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:iron_golem", Attributes(Attribute(100, 100, 100), Attribute(1, 1, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(7, 7, 7))));
     Attributes llama(Attribute(27, 27, 27), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(40, 40, 40), nullopt);
-    table->insert(make_pair("minecraft:llama", llama));
-    table->insert(make_pair("minecraft:trader_llama", llama));
-    table->insert(make_pair("minecraft:magma_cube", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.75, 0.75), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(6, 6, 6))));
-    table->insert(make_pair("minecraft:mooshroom", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:ocelot", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4))));
-    table->insert(make_pair("minecraft:panda", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.15, 0.15), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
-    table->insert(make_pair("minecraft:parrot", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.4, 0.4), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:phantom", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(1.8, 1.8), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 64), Attribute(6, 6, 6))));
-    table->insert(make_pair("minecraft:pig", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:piglin", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(5, 5, 5))));
-    table->insert(make_pair("minecraft:piglin_brute", Attributes(Attribute(50, 50, 50), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(7, 7, 7))));
-    table->insert(make_pair("minecraft:pillager", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
-    table->insert(make_pair("minecraft:polar_bear", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(48, 48, 2048), nullopt)));
-    table->insert(make_pair("minecraft:pufferfish", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.13, 0.13), Attribute(0.13, 0.13), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:rabbit", Attributes(Attribute(3, 3, 3), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:ravager", Attributes(Attribute(100, 100, 100), Attribute(0.5, 0.5, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(12, 12, 12))));
-    table->insert(make_pair("minecraft:salmon", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:sheep", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:shulker", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0, 0, 0), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:silverfish", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(1, 1, 1))));
-    table->insert(make_pair("minecraft:skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:snow_golem", Attributes(Attribute(4, 4, 4), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
-    table->insert(make_pair("minecraft:spider", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:llama", llama));
+    table->insert(make_pair(u8"minecraft:trader_llama", llama));
+    table->insert(make_pair(u8"minecraft:magma_cube", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.75, 0.75), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(6, 6, 6))));
+    table->insert(make_pair(u8"minecraft:mooshroom", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:ocelot", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4))));
+    table->insert(make_pair(u8"minecraft:panda", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.15, 0.15), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
+    table->insert(make_pair(u8"minecraft:parrot", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.4, 0.4), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:phantom", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(1.8, 1.8), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 64), Attribute(6, 6, 6))));
+    table->insert(make_pair(u8"minecraft:pig", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:piglin", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(5, 5, 5))));
+    table->insert(make_pair(u8"minecraft:piglin_brute", Attributes(Attribute(50, 50, 50), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(7, 7, 7))));
+    table->insert(make_pair(u8"minecraft:pillager", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:polar_bear", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(48, 48, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:pufferfish", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.13, 0.13), Attribute(0.13, 0.13), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:rabbit", Attributes(Attribute(3, 3, 3), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:ravager", Attributes(Attribute(100, 100, 100), Attribute(0.5, 0.5, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(12, 12, 12))));
+    table->insert(make_pair(u8"minecraft:salmon", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:sheep", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:shulker", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0, 0, 0), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:silverfish", Attributes(Attribute(8, 8, 8), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(1, 1, 1))));
+    table->insert(make_pair(u8"minecraft:skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:snow_golem", Attributes(Attribute(4, 4, 4), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
+    table->insert(make_pair(u8"minecraft:spider", Attributes(Attribute(16, 16, 16), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     Attributes squid(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.2, 0.2), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt);
-    table->insert(make_pair("minecraft:squid", squid));
-    table->insert(make_pair("minecraft:stray", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:strider", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.16, 0.16), Attribute(0.02, 0.02), Attribute(0.32, 0.32), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:tropical_fish", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:turtle", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
-    table->insert(make_pair("minecraft:vex", Attributes(Attribute(14, 14, 14), Attribute(0, 0, 1), Attribute(1, 1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(128, 128, 2048), nullopt)));
-    table->insert(make_pair("minecraft:vindicator", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(8, 8, 8))));
-    table->insert(make_pair("minecraft:wandering_trader", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair("minecraft:witch", Attributes(Attribute(26, 26, 26), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
-    table->insert(make_pair("minecraft:wither_skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
-    table->insert(make_pair("minecraft:zoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:zombie", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair("minecraft:zombified_piglin", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(5, 5, 5))));
-    table->insert(make_pair("minecraft:zombie_villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:squid", squid));
+    table->insert(make_pair(u8"minecraft:stray", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:strider", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.16, 0.16), Attribute(0.02, 0.02), Attribute(0.32, 0.32), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:tropical_fish", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:turtle", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:vex", Attributes(Attribute(14, 14, 14), Attribute(0, 0, 1), Attribute(1, 1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(128, 128, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:vindicator", Attributes(Attribute(24, 24, 24), Attribute(0, 0, 1), Attribute(0.35, 0.35), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(8, 8, 8))));
+    table->insert(make_pair(u8"minecraft:wandering_trader", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:witch", Attributes(Attribute(26, 26, 26), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:wither_skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
+    table->insert(make_pair(u8"minecraft:zoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:zombie", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
+    table->insert(make_pair(u8"minecraft:zombified_piglin", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(5, 5, 5))));
+    table->insert(make_pair(u8"minecraft:zombie_villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
 
     // 1.17
-    table->insert(make_pair("minecraft:glow_squid", squid));
-    table->insert(make_pair("minecraft:axolotl", Attributes(
-                                                     Attribute(14, 14, 14),   // health
-                                                     Attribute(0, 0, 1),      // knockback_resistance
-                                                     Attribute(0.1, 0.1),     // movement
-                                                     Attribute(0.2, 0.2),     // underwater_movement
-                                                     Attribute(0.02, 0.02),   // lava_movement
-                                                     Attribute(16, 16, 2048), // follow_range
-                                                     Attribute(2, 2, 2))));   // attack_damage
-    table->insert(make_pair("minecraft:goat", Attributes(
-                                                  Attribute(10, 10, 10),   // health
-                                                  Attribute(0, 0, 1),      // knockback_resistance
-                                                  Attribute(0.4, 0.4),     // movement
-                                                  Attribute(0.02, 0.02),   // underwater_movement
-                                                  Attribute(0.02, 0.02),   // lava_movement
-                                                  Attribute(16, 16, 2048), // follow_range
-                                                  Attribute(2, 2, 2))));   // attack_damage
+    table->insert(make_pair(u8"minecraft:glow_squid", squid));
+    table->insert(make_pair(u8"minecraft:axolotl", Attributes(
+                                                       Attribute(14, 14, 14),   // health
+                                                       Attribute(0, 0, 1),      // knockback_resistance
+                                                       Attribute(0.1, 0.1),     // movement
+                                                       Attribute(0.2, 0.2),     // underwater_movement
+                                                       Attribute(0.02, 0.02),   // lava_movement
+                                                       Attribute(16, 16, 2048), // follow_range
+                                                       Attribute(2, 2, 2))));   // attack_damage
+    table->insert(make_pair(u8"minecraft:goat", Attributes(
+                                                    Attribute(10, 10, 10),   // health
+                                                    Attribute(0, 0, 1),      // knockback_resistance
+                                                    Attribute(0.4, 0.4),     // movement
+                                                    Attribute(0.02, 0.02),   // underwater_movement
+                                                    Attribute(0.02, 0.02),   // lava_movement
+                                                    Attribute(16, 16, 2048), // follow_range
+                                                    Attribute(2, 2, 2))));   // attack_damage
 
     // 1.19
-    table->insert(make_pair("minecraft:frog", Attributes(
-                                                  Attribute(10, 10, 10),   // health
-                                                  Attribute(0, 0, 1),      // knockback_resistance
-                                                  Attribute(0.1, 0.1),     // movement
-                                                  Attribute(0.15, 0.15),   // underwater_movement
-                                                  Attribute(0.02, 0.02),   // lava_movement
-                                                  Attribute(16, 16, 2048), // follow_range
-                                                  nullopt)));              // attack_damage
-    table->insert(make_pair("minecraft:warden", Attributes(
-                                                    Attribute(500, 500, 500),    // health
-                                                    Attribute(1, 1, 1),          // knockback_resistance
-                                                    Attribute(0.3, 0.3),         // movement
-                                                    Attribute(0.02, 0.02),       // underwater_movement
-                                                    Attribute(0.02, 0.02),       // lava_movement
-                                                    Attribute(2048, 2048, 2048), // follow_range
-                                                    Attribute(30, 30, 30))));    // attack_damage
-    table->insert(make_pair("minecraft:allay", Attributes(
-                                                   Attribute(20, 20, 20),       // health(base, current, max)
-                                                   Attribute(0, 0, 1),          // knockback_resistance
-                                                   Attribute(0.1, 0.1),         // movement
-                                                   Attribute(0.02, 0.02),       // underwater_movement
-                                                   Attribute(0.02, 0.02),       // lava_movement
-                                                   Attribute(1024, 1024, 2048), // follow_range
-                                                   nullopt)));                  // attack_damage
-    table->insert(make_pair("minecraft:tadpole", Attributes(
-                                                     Attribute(6, 6, 6),      // health(base, current, max)
+    table->insert(make_pair(u8"minecraft:frog", Attributes(
+                                                    Attribute(10, 10, 10),   // health
+                                                    Attribute(0, 0, 1),      // knockback_resistance
+                                                    Attribute(0.1, 0.1),     // movement
+                                                    Attribute(0.15, 0.15),   // underwater_movement
+                                                    Attribute(0.02, 0.02),   // lava_movement
+                                                    Attribute(16, 16, 2048), // follow_range
+                                                    nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:warden", Attributes(
+                                                      Attribute(500, 500, 500),    // health
+                                                      Attribute(1, 1, 1),          // knockback_resistance
+                                                      Attribute(0.3, 0.3),         // movement
+                                                      Attribute(0.02, 0.02),       // underwater_movement
+                                                      Attribute(0.02, 0.02),       // lava_movement
+                                                      Attribute(2048, 2048, 2048), // follow_range
+                                                      Attribute(30, 30, 30))));    // attack_damage
+    table->insert(make_pair(u8"minecraft:allay", Attributes(
+                                                     Attribute(20, 20, 20),       // health(base, current, max)
+                                                     Attribute(0, 0, 1),          // knockback_resistance
+                                                     Attribute(0.1, 0.1),         // movement
+                                                     Attribute(0.02, 0.02),       // underwater_movement
+                                                     Attribute(0.02, 0.02),       // lava_movement
+                                                     Attribute(1024, 1024, 2048), // follow_range
+                                                     nullopt)));                  // attack_damage
+    table->insert(make_pair(u8"minecraft:tadpole", Attributes(
+                                                       Attribute(6, 6, 6),      // health(base, current, max)
+                                                       Attribute(0, 0, 1),      // knockback_resistance
+                                                       Attribute(0.1, 0.1),     // movement
+                                                       Attribute(0.02, 0.02),   // underwater_movement
+                                                       Attribute(0.02, 0.02),   // lava_movement
+                                                       Attribute(16, 16, 2048), // follow_range
+                                                       nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:camel", Attributes(
+                                                     Attribute(32, 32, 32),   // health(base, current, max)
                                                      Attribute(0, 0, 1),      // knockback_resistance
-                                                     Attribute(0.1, 0.1),     // movement
+                                                     Attribute(0.01, 0.09),   // movement
                                                      Attribute(0.02, 0.02),   // underwater_movement
                                                      Attribute(0.02, 0.02),   // lava_movement
                                                      Attribute(16, 16, 2048), // follow_range
                                                      nullopt)));              // attack_damage
-    table->insert(make_pair("minecraft:camel", Attributes(
-                                                   Attribute(32, 32, 32),   // health(base, current, max)
-                                                   Attribute(0, 0, 1),      // knockback_resistance
-                                                   Attribute(0.01, 0.09),   // movement
-                                                   Attribute(0.02, 0.02),   // underwater_movement
-                                                   Attribute(0.02, 0.02),   // lava_movement
-                                                   Attribute(16, 16, 2048), // follow_range
-                                                   nullopt)));              // attack_damage
 
     // 1.20
-    table->insert(make_pair("minecraft:sniffer", Attributes(
-                                                     Attribute(14, 14, 14),   // health(base, current, max)
-                                                     Attribute(0, 0, 1),      // knockback_resistance
-                                                     Attribute(0.09, 0.09),   // movement
-                                                     Attribute(0.02, 0.02),   // underwater_movement
-                                                     Attribute(0.02, 0.02),   // lava_movement
-                                                     Attribute(64, 64, 2048), // follow_range
-                                                     nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:sniffer", Attributes(
+                                                       Attribute(14, 14, 14),   // health(base, current, max)
+                                                       Attribute(0, 0, 1),      // knockback_resistance
+                                                       Attribute(0.09, 0.09),   // movement
+                                                       Attribute(0.02, 0.02),   // underwater_movement
+                                                       Attribute(0.02, 0.02),   // lava_movement
+                                                       Attribute(64, 64, 2048), // follow_range
+                                                       nullopt)));              // attack_damage
 
     return table;
   }

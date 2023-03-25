@@ -31,10 +31,10 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
 
           // Looking for redstone connectable block in same Y.
-          vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
+          vector<pair<u8string, Pos2i>> const nesw({{u8"north", Pos2i(0, -1)}, {u8"east", Pos2i(1, 0)}, {u8"south", Pos2i(0, 1)}, {u8"west", Pos2i(-1, 0)}});
           for (auto d : nesw) {
             auto vec = d.second;
             auto block = cache.blockAt(x + vec.fX, y, z + vec.fZ);
@@ -42,7 +42,7 @@ public:
             if (block) {
               connect = IsRedstoneConnectable(*block, vec);
             }
-            props[d.first] = connect ? "side" : "none";
+            props[d.first] = connect ? u8"side" : u8"none";
           }
 
           // Check Y + 1, NESW blocks when the upper block is transparent against redstone wire.
@@ -54,20 +54,20 @@ public:
           if (transparentUpper) {
             for (auto d : nesw) {
               Pos2i vec = d.second;
-              if (props[d.first] == "side") {
+              if (props[d.first] == u8"side") {
                 continue;
               }
               auto block = cache.blockAt(x + vec.fX, y + 1, z + vec.fZ);
-              if (block && block->fName == "minecraft:redstone_wire") {
+              if (block && block->fName == u8"minecraft:redstone_wire") {
                 auto side = cache.blockAt(x + vec.fX, y, z + vec.fZ);
                 if (side) {
-                  if (side->fName.find("_slab") != string::npos && side->fName.find("double") == string::npos) {
-                    props[d.first] = "side";
+                  if (side->fName.find(u8"_slab") != string::npos && side->fName.find(u8"double") == string::npos) {
+                    props[d.first] = u8"side";
                   } else {
-                    props[d.first] = "up";
+                    props[d.first] = u8"up";
                   }
                 } else {
-                  props[d.first] = "side";
+                  props[d.first] = u8"side";
                 }
               }
             }
@@ -75,7 +75,7 @@ public:
 
           // Check Y - 1, NESW blocks when NESW block is transparent against redstone wire.
           for (auto d : nesw) {
-            if (props[d.first] != "none") {
+            if (props[d.first] != u8"none") {
               continue;
             }
             Pos2i vec = d.second;
@@ -87,7 +87,7 @@ public:
             if (transparentSide) {
               auto lower = cache.blockAt(x + vec.fX, y - 1, z + vec.fZ);
               if (lower && lower->fId == mcfile::blocks::minecraft::redstone_wire) {
-                props[d.first] = "side";
+                props[d.first] = u8"side";
               }
             }
           }
@@ -95,9 +95,9 @@ public:
           // Change "none" to "side", if there are 3 "none" and 1 "side"/"up" properties.
           int notNoneCount = 0;
           int noneCount = 0;
-          string notNone;
+          u8string notNone;
           for (auto d : nesw) {
-            if (props[d.first] == "none") {
+            if (props[d.first] == u8"none") {
               noneCount++;
             } else {
               notNoneCount++;
@@ -105,18 +105,18 @@ public:
             }
           }
           if (notNoneCount == 1 && noneCount == 3) {
-            if (notNone == "north") {
-              props["south"] = "side";
-            } else if (notNone == "east") {
-              props["west"] = "side";
-            } else if (notNone == "south") {
-              props["north"] = "side";
-            } else if (notNone == "west") {
-              props["east"] = "side";
+            if (notNone == u8"north") {
+              props[u8"south"] = u8"side";
+            } else if (notNone == u8"east") {
+              props[u8"west"] = u8"side";
+            } else if (notNone == u8"south") {
+              props[u8"north"] = u8"side";
+            } else if (notNone == u8"west") {
+              props[u8"east"] = u8"side";
             }
           } else if (noneCount == 4) {
             for (auto it : nesw) {
-              props[it.first] = "side";
+              props[it.first] = u8"side";
             }
           }
 
@@ -131,17 +131,17 @@ public:
     using namespace std;
     using namespace mcfile::blocks::minecraft;
     auto id = block.fId;
-    string_view name = Namespace::Remove(block.fName);
-    if (id == lightning_rod || id == lectern || id == daylight_detector || id == detector_rail || id == redstone_torch || id == redstone_wall_torch || id == tripwire_hook || name.ends_with("pressure_plate") || name.ends_with("button") || id == lever || id == redstone_block || id == target || id == trapped_chest || id == redstone_wire || id == sculk_sensor || id == comparator) {
+    u8string_view name = Namespace::Remove(block.fName);
+    if (id == lightning_rod || id == lectern || id == daylight_detector || id == detector_rail || id == redstone_torch || id == redstone_wall_torch || id == tripwire_hook || name.ends_with(u8"pressure_plate") || name.ends_with(u8"button") || id == lever || id == redstone_block || id == target || id == trapped_chest || id == redstone_wire || id == sculk_sensor || id == comparator) {
       return true;
     }
     if (id == repeater) {
-      auto f4 = Facing4FromJavaName(block.property("facing"));
+      auto f4 = Facing4FromJavaName(block.property(u8"facing"));
       Pos2i d = Pos2iFromFacing4(f4);
       return (d.fX == -direction.fX && d.fZ == -direction.fZ) || (d.fX == direction.fX && d.fZ == direction.fZ);
     }
     if (id == observer) {
-      auto f6 = Facing6FromJavaName(block.property("facing"));
+      auto f6 = Facing6FromJavaName(block.property(u8"facing"));
       Pos3i d3 = Pos3iFromFacing6(f6);
       return d3.fX == direction.fX && d3.fZ == direction.fZ;
     }
@@ -149,8 +149,8 @@ public:
   }
 
   static bool IsTransparentAgainstRedstoneWire(mcfile::je::Block const &block) {
-    if (block.fName.ends_with("slab")) {
-      return block.property("type", "") != "double";
+    if (block.fName.ends_with(u8"slab")) {
+      return block.property(u8"type", u8"") != u8"double";
     }
     return IsAlwaysTransparentAgainstRedstoneWire(block.fId);
   }

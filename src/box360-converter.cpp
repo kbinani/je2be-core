@@ -104,7 +104,7 @@ private:
   struct PlayerInfo {
     Uuid fUuidJ;
     CompoundTag fPlayer;
-    std::string fUuidX;
+    std::u8string fUuidX;
   };
 
   struct CopyPlayersResult {
@@ -145,7 +145,7 @@ private:
 
     if (r.fLocalPlayer) {
       if (options.fLocalPlayer) {
-        r.fLocalPlayer->fPlayer.set("UUID", options.fLocalPlayer->toIntArrayTag());
+        r.fLocalPlayer->fPlayer.set(u8"UUID", options.fLocalPlayer->toIntArrayTag());
         ctx.fPlayers.insert(make_pair(r.fLocalPlayer->fUuidX, *options.fLocalPlayer));
       } else {
         ctx.fPlayers.insert(make_pair(r.fLocalPlayer->fUuidX, r.fLocalPlayer->fUuidJ));
@@ -154,7 +154,7 @@ private:
     }
 
     for (auto const &player : players) {
-      auto filename = player->fUuidJ.toString() + ".dat";
+      auto filename = player->fUuidJ.toString() + u8".dat";
       auto filePath = playersTo / filename;
       if (!CompoundTag::Write(player->fPlayer, filePath, mcfile::Endian::Big)) {
         return JE2BE_NULLABLE_NULL;
@@ -177,55 +177,55 @@ private:
     auto r = make_shared<PlayerInfo>();
     r->fPlayer.fValue.swap(in->copy()->fValue);
 
-    r->fPlayer.erase("GamePrivileges");
-    r->fPlayer.erase("Sleeping");
+    r->fPlayer.erase(u8"GamePrivileges");
+    r->fPlayer.erase(u8"Sleeping");
 
-    Entity::CopyItems(*in, r->fPlayer, ctx, "EnderItems");
-    Entity::CopyItems(*in, r->fPlayer, ctx, "Inventory");
+    Entity::CopyItems(*in, r->fPlayer, ctx, u8"EnderItems");
+    Entity::CopyItems(*in, r->fPlayer, ctx, u8"Inventory");
 
-    if (auto dimensionB = in->int32("Dimension"); dimensionB) {
+    if (auto dimensionB = in->int32(u8"Dimension"); dimensionB) {
       if (auto dimension = DimensionFromXbox360Dimension(*dimensionB); dimension) {
-        r->fPlayer.set("Dimension", String(JavaStringFromDimension(*dimension)));
+        r->fPlayer.set(u8"Dimension", String(JavaStringFromDimension(*dimension)));
       }
     }
 
-    r->fPlayer.set("DataVersion", Int(Chunk::kTargetDataVersion));
+    r->fPlayer.set(u8"DataVersion", Int(Chunk::kTargetDataVersion));
 
-    if (auto rootVehicleB = in->compoundTag("RootVehicle"); rootVehicleB) {
+    if (auto rootVehicleB = in->compoundTag(u8"RootVehicle"); rootVehicleB) {
       auto rootVehicleJ = Compound();
-      if (auto entityB = rootVehicleB->compoundTag("Entity"); entityB) {
+      if (auto entityB = rootVehicleB->compoundTag(u8"Entity"); entityB) {
         if (auto entityJ = Entity::Convert(*entityB, ctx); entityJ && entityJ->fEntity) {
-          rootVehicleJ->set("Entity", entityJ->fEntity);
+          rootVehicleJ->set(u8"Entity", entityJ->fEntity);
         }
       }
-      if (auto attachB = rootVehicleB->string("Attach"); attachB) {
+      if (auto attachB = rootVehicleB->string(u8"Attach"); attachB) {
         if (auto attachJ = Entity::MigrateUuid(*attachB, ctx); attachJ) {
-          rootVehicleJ->set("Attach", attachJ->toIntArrayTag());
+          rootVehicleJ->set(u8"Attach", attachJ->toIntArrayTag());
         }
       }
-      r->fPlayer.set("RootVehicle", rootVehicleJ);
+      r->fPlayer.set(u8"RootVehicle", rootVehicleJ);
     }
 
     shared_ptr<Uuid> uuidJ;
-    if (auto uuidB = in->string("UUID"); uuidB) {
+    if (auto uuidB = in->string(u8"UUID"); uuidB) {
       if (auto migrated = Entity::MigrateUuid(*uuidB, ctx); migrated) {
         uuidJ = make_shared<Uuid>(*migrated);
         r->fUuidX = *uuidB;
       }
     }
     if (!uuidJ) {
-      auto name = inputFile.filename().replace_extension().string();
+      auto name = inputFile.filename().replace_extension().u8string();
       // TODO: should this be converted to "entNNNN.." format?
       if (auto id = strings::ToU64(name, 10); id) {
         auto generated = Uuid::GenWithU64Seed(*id);
         uuidJ = make_shared<Uuid>(generated);
-        r->fUuidX = "je2be_internal_" + name;
+        r->fUuidX = u8"je2be_internal_" + name;
       }
     }
     if (!uuidJ) {
       return nullptr;
     }
-    r->fPlayer.set("UUID", uuidJ->toIntArrayTag());
+    r->fPlayer.set(u8"UUID", uuidJ->toIntArrayTag());
 
     r->fUuidJ = *uuidJ;
     return r;
@@ -367,20 +367,20 @@ private:
     if (!inRoot) {
       return JE2BE_ERROR;
     }
-    auto in = inRoot->compoundTag("Data");
+    auto in = inRoot->compoundTag(u8"Data");
     if (!in) {
       return JE2BE_ERROR;
     }
-    bool newSeaLevel = in->boolean("newSeaLevel", false);
-    auto flat = in->string("generatorName") == "flat";
+    bool newSeaLevel = in->boolean(u8"newSeaLevel", false);
+    auto flat = in->string(u8"generatorName") == u8"flat";
 
     JavaLevelDat::Options o;
-    o.fBonusChestEnabled = in->boolean("spawnBonusChest");
+    o.fBonusChestEnabled = in->boolean(u8"spawnBonusChest");
     o.fDataVersion = Chunk::kTargetDataVersion;
-    o.fRandomSeed = in->int64("RandomSeed");
+    o.fRandomSeed = in->int64(u8"RandomSeed");
     o.fVersionString = Chunk::TargetVersionString();
     if (flat) {
-      // auto generatorVersion = in->int32("generatorVersion");
+      // auto generatorVersion = in->int32(u8"generatorVersion");
       // generatorVersion
       // 0: TU9, TU67, TU74
 
@@ -388,47 +388,47 @@ private:
     } else {
       o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
     }
-    o.fEnabledDataPacks.push_back("file/nether3x");
+    o.fEnabledDataPacks.push_back(u8"file/nether3x");
     auto out = JavaLevelDat::TemplateData(o);
 
-    CopyBoolValues(*in, *out, {{"allowCommands"}, {"DifficultyLocked"}, {"hardcore"}, {"initialized"}, {"raining"}, {"thundering"}});
-    CopyByteValues(*in, *out, {{"Difficulty"}});
-    CopyIntValues(*in, *out, {{"rainTime"}, {"GameType"}, {"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"thunderTime"}, {"clearWeatherTime"}});
-    CopyLongValues(*in, *out, {{"DayTime"}, {"Time"}});
-    CopyStringValues(*in, *out, {{"LevelName"}});
+    CopyBoolValues(*in, *out, {{u8"allowCommands"}, {u8"DifficultyLocked"}, {u8"hardcore"}, {u8"initialized"}, {u8"raining"}, {u8"thundering"}});
+    CopyByteValues(*in, *out, {{u8"Difficulty"}});
+    CopyIntValues(*in, *out, {{u8"rainTime"}, {u8"GameType"}, {u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}, {u8"thunderTime"}, {u8"clearWeatherTime"}});
+    CopyLongValues(*in, *out, {{u8"DayTime"}, {u8"Time"}});
+    CopyStringValues(*in, *out, {{u8"LevelName"}});
 
     if (lastPlayed) {
       // NOTE: LastPlayed in the level.dat from xbox360 edition is wired. Use timestamp of savegame.dat for it
       i64 ms = chrono::duration_cast<chrono::milliseconds>(lastPlayed->time_since_epoch()).count();
-      out->set("LastPlayed", Long(ms));
+      out->set(u8"LastPlayed", Long(ms));
     }
 
-    out->set("BorderCenterX", Double(0));
-    out->set("BorderCenterZ", Double(0));
-    out->set("BorderSize", Double(992));
-    out->set("BorderWarningBlocks", Double(0));
+    out->set(u8"BorderCenterX", Double(0));
+    out->set(u8"BorderCenterZ", Double(0));
+    out->set(u8"BorderSize", Double(992));
+    out->set(u8"BorderWarningBlocks", Double(0));
 
-    if (auto dimensionData = in->compoundTag("DimensionData"); dimensionData) {
-      if (auto theEnd = dimensionData->compoundTag("The End"); theEnd) {
-        if (auto dragonFightB = theEnd->compoundTag("DragonFight"); dragonFightB) {
+    if (auto dimensionData = in->compoundTag(u8"DimensionData"); dimensionData) {
+      if (auto theEnd = dimensionData->compoundTag(u8"The End"); theEnd) {
+        if (auto dragonFightB = theEnd->compoundTag(u8"DragonFight"); dragonFightB) {
           auto dragonFightJ = dragonFightB->copy();
-          if (auto dragonUuidB = dragonFightB->string("DragonUUID"); dragonUuidB) {
+          if (auto dragonUuidB = dragonFightB->string(u8"DragonUUID"); dragonUuidB) {
             if (auto dragonUuidJ = Entity::MigrateUuid(*dragonUuidB, ctx); dragonUuidJ) {
-              dragonFightJ->set("Dragon", dragonUuidJ->toIntArrayTag());
-              dragonFightJ->erase("DragonUUID");
+              dragonFightJ->set(u8"Dragon", dragonUuidJ->toIntArrayTag());
+              dragonFightJ->erase(u8"DragonUUID");
             }
           }
-          out->set("DragonFight", dragonFightJ);
+          out->set(u8"DragonFight", dragonFightJ);
         }
       }
     }
 
     if (localPlayer) {
-      out->set("Player", localPlayer->fPlayer.copy());
+      out->set(u8"Player", localPlayer->fPlayer.copy());
     }
 
     auto outRoot = Compound();
-    outRoot->set("Data", out);
+    outRoot->set(u8"Data", out);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
     if (CompoundTag::Write(*outRoot, outStream, mcfile::Endian::Big)) {
       return Status::Ok();
@@ -439,72 +439,72 @@ private:
 
   static CompoundTagPtr FlatWorldSettings() {
     auto flatSettings = Compound();
-    flatSettings->set("biome", String("minecraft:plains"));
-    flatSettings->set("features", Bool(false));
-    flatSettings->set("lakes", Bool(false));
+    flatSettings->set(u8"biome", String(u8"minecraft:plains"));
+    flatSettings->set(u8"features", Bool(false));
+    flatSettings->set(u8"lakes", Bool(false));
     auto structures = Compound();
-    structures->set("structures", Compound());
-    flatSettings->set("structures", structures);
+    structures->set(u8"structures", Compound());
+    flatSettings->set(u8"structures", structures);
 
     auto layers = List<Tag::Type::Compound>();
 
     auto air = Compound();
-    air->set("block", String("minecraft:air"));
-    air->set("height", Int(64));
+    air->set(u8"block", String(u8"minecraft:air"));
+    air->set(u8"height", Int(64));
     layers->push_back(air);
 
     auto bedrock = Compound();
-    bedrock->set("block", String("minecraft:bedrock"));
-    bedrock->set("height", Int(1));
+    bedrock->set(u8"block", String(u8"minecraft:bedrock"));
+    bedrock->set(u8"height", Int(1));
     layers->push_back(bedrock);
 
     auto dirt = Compound();
-    dirt->set("block", String("minecraft:dirt"));
-    dirt->set("height", Int(2));
+    dirt->set(u8"block", String(u8"minecraft:dirt"));
+    dirt->set(u8"height", Int(2));
     layers->push_back(dirt);
 
     auto grass = Compound();
-    grass->set("block", String("minecraft:grass_block"));
-    grass->set("height", Int(1));
+    grass->set(u8"block", String(u8"minecraft:grass_block"));
+    grass->set(u8"height", Int(1));
     layers->push_back(grass);
 
-    flatSettings->set("layers", layers);
+    flatSettings->set(u8"layers", layers);
 
     return flatSettings;
   }
 
   static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion(bool newSeaLevel) {
     auto flatSettings = Compound();
-    flatSettings->set("biome", String("minecraft:ocean"));
-    flatSettings->set("features", Bool(false));
-    flatSettings->set("lakes", Bool(false));
+    flatSettings->set(u8"biome", String(u8"minecraft:ocean"));
+    flatSettings->set(u8"features", Bool(false));
+    flatSettings->set(u8"lakes", Bool(false));
     auto structures = Compound();
-    structures->set("structures", Compound());
-    flatSettings->set("structures", structures);
+    structures->set(u8"structures", Compound());
+    flatSettings->set(u8"structures", structures);
 
     auto layers = List<Tag::Type::Compound>();
 
     auto air = Compound();
-    air->set("block", String("minecraft:air"));
-    air->set("height", Int(64));
+    air->set(u8"block", String(u8"minecraft:air"));
+    air->set(u8"height", Int(64));
     layers->push_back(air);
 
     auto bedrock = Compound();
-    bedrock->set("block", String("minecraft:bedrock"));
-    bedrock->set("height", Int(1));
+    bedrock->set(u8"block", String(u8"minecraft:bedrock"));
+    bedrock->set(u8"height", Int(1));
     layers->push_back(bedrock);
 
     auto stone = Compound();
-    stone->set("block", String("minecraft:stone"));
-    stone->set("height", Int(53));
+    stone->set(u8"block", String(u8"minecraft:stone"));
+    stone->set(u8"height", Int(53));
     layers->push_back(stone);
 
     auto water = Compound();
-    water->set("block", String("minecraft:water"));
-    water->set("height", Int(newSeaLevel ? 9 : 10));
+    water->set(u8"block", String(u8"minecraft:water"));
+    water->set(u8"height", Int(newSeaLevel ? 9 : 10));
     layers->push_back(water);
 
-    flatSettings->set("layers", layers);
+    flatSettings->set(u8"layers", layers);
 
     return flatSettings;
   }
@@ -525,11 +525,11 @@ private:
         continue;
       }
       auto fileName = it->path().filename();
-      auto fileNameString = fileName.string();
-      if (!fileNameString.starts_with("map_") || !fileNameString.ends_with(".dat")) {
+      auto fileNameString = fileName.u8string();
+      if (!fileNameString.starts_with(u8"map_") || !fileNameString.ends_with(u8".dat")) {
         continue;
       }
-      auto numberString = strings::RTrim(strings::LTrim(fileNameString, "map_"), ".dat");
+      auto numberString = strings::RTrim(strings::LTrim(fileNameString, u8"map_"), u8".dat");
       auto number = strings::ToI32(numberString);
       if (!number) {
         continue;

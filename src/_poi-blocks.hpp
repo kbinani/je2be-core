@@ -13,10 +13,10 @@ namespace je2be {
 class PoiBlocks {
   struct Data {
     i32 fFreeTickets;
-    std::string fType;
+    std::u8string fType;
 
     Data() = default;
-    Data(i32 freeTickets, std::string const &type) : fFreeTickets(freeTickets), fType(type) {}
+    Data(i32 freeTickets, std::u8string const &type) : fFreeTickets(freeTickets), fType(type) {}
   };
 
   static std::unordered_map<mcfile::blocks::BlockId, Data> const &GetTable() {
@@ -29,44 +29,44 @@ class PoiBlocks {
     using namespace mcfile::blocks::minecraft;
     auto ret = new unordered_map<mcfile::blocks::BlockId, Data>();
     auto &t = *ret;
-    t[nether_portal] = {0, "minecraft:nether_portal"};
-    t[bell] = {32, "minecraft:meeting"};
-    t[cartography_table] = {1, "minecraft:cartographer"};
-    t[stonecutter] = {1, "minecraft:mason"};
-    t[blast_furnace] = {1, "minecraft:armorer"};
-    t[white_bed] = {1, "minecraft:home"};
-    t[orange_bed] = {1, "minecraft:home"};
-    t[magenta_bed] = {1, "minecraft:home"};
-    t[light_blue_bed] = {1, "minecraft:home"};
-    t[yellow_bed] = {1, "minecraft:home"};
-    t[lime_bed] = {1, "minecraft:home"};
-    t[pink_bed] = {1, "minecraft:home"};
-    t[gray_bed] = {1, "minecraft:home"};
-    t[light_gray_bed] = {1, "minecraft:home"};
-    t[cyan_bed] = {1, "minecraft:home"};
-    t[purple_bed] = {1, "minecraft:home"};
-    t[blue_bed] = {1, "minecraft:home"};
-    t[brown_bed] = {1, "minecraft:home"};
-    t[green_bed] = {1, "minecraft:home"};
-    t[red_bed] = {1, "minecraft:home"};
-    t[black_bed] = {1, "minecraft:home"};
-    t[lectern] = {1, "minecraft:librarian"};
-    t[fletching_table] = {1, "minecraft:fletcher"};
-    t[composter] = {1, "minecraft:farmer"};
-    t[loom] = {1, "minecraft:shepherd"};
-    t[grindstone] = {1, "minecraft:weaponsmith"};
-    t[barrel] = {1, "minecraft:fisherman"};
-    t[smithing_table] = {1, "minecraft:toolsmith"};
-    t[smoker] = {1, "minecraft:butcher"};
-    t[brewing_stand] = {1, "minecraft:cleric"};
-    t[cauldron] = {1, "minecraft:leatherworker"};
-    t[water_cauldron] = {1, "minecraft:leatherworker"};
-    t[lava_cauldron] = {1, "minecraft:leatherworker"};
-    t[powder_snow_cauldron] = {1, "minecraft:leatherworker"};
-    t[beehive] = {0, "minecraft:beehive"};
-    t[bee_nest] = {0, "minecraft:bee_nest"};
-    t[lightning_rod] = {0, "minecraft:lightning_rod"};
-    t[lodestone] = {0, "minecraft:lodestone"};
+    t[nether_portal] = {0, u8"minecraft:nether_portal"};
+    t[bell] = {32, u8"minecraft:meeting"};
+    t[cartography_table] = {1, u8"minecraft:cartographer"};
+    t[stonecutter] = {1, u8"minecraft:mason"};
+    t[blast_furnace] = {1, u8"minecraft:armorer"};
+    t[white_bed] = {1, u8"minecraft:home"};
+    t[orange_bed] = {1, u8"minecraft:home"};
+    t[magenta_bed] = {1, u8"minecraft:home"};
+    t[light_blue_bed] = {1, u8"minecraft:home"};
+    t[yellow_bed] = {1, u8"minecraft:home"};
+    t[lime_bed] = {1, u8"minecraft:home"};
+    t[pink_bed] = {1, u8"minecraft:home"};
+    t[gray_bed] = {1, u8"minecraft:home"};
+    t[light_gray_bed] = {1, u8"minecraft:home"};
+    t[cyan_bed] = {1, u8"minecraft:home"};
+    t[purple_bed] = {1, u8"minecraft:home"};
+    t[blue_bed] = {1, u8"minecraft:home"};
+    t[brown_bed] = {1, u8"minecraft:home"};
+    t[green_bed] = {1, u8"minecraft:home"};
+    t[red_bed] = {1, u8"minecraft:home"};
+    t[black_bed] = {1, u8"minecraft:home"};
+    t[lectern] = {1, u8"minecraft:librarian"};
+    t[fletching_table] = {1, u8"minecraft:fletcher"};
+    t[composter] = {1, u8"minecraft:farmer"};
+    t[loom] = {1, u8"minecraft:shepherd"};
+    t[grindstone] = {1, u8"minecraft:weaponsmith"};
+    t[barrel] = {1, u8"minecraft:fisherman"};
+    t[smithing_table] = {1, u8"minecraft:toolsmith"};
+    t[smoker] = {1, u8"minecraft:butcher"};
+    t[brewing_stand] = {1, u8"minecraft:cleric"};
+    t[cauldron] = {1, u8"minecraft:leatherworker"};
+    t[water_cauldron] = {1, u8"minecraft:leatherworker"};
+    t[lava_cauldron] = {1, u8"minecraft:leatherworker"};
+    t[powder_snow_cauldron] = {1, u8"minecraft:leatherworker"};
+    t[beehive] = {0, u8"minecraft:beehive"};
+    t[bee_nest] = {0, u8"minecraft:bee_nest"};
+    t[lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[lodestone] = {0, u8"minecraft:lodestone"};
     return ret;
   }
 
@@ -113,7 +113,7 @@ public:
     case green_bed:
     case red_bed:
     case black_bed:
-      return block.property("part") == "head";
+      return block.property(u8"part") == u8"head";
     default:
       return false;
     }
@@ -169,9 +169,9 @@ public:
           if (auto found = table.find(id); found != table.end()) {
             Data const &data = found->second;
             auto record = Compound();
-            record->set("free_tickets", Int(data.fFreeTickets));
-            record->set("type", String(data.fType));
-            record->set("pos", IntArrayFromPos3i(pos));
+            record->set(u8"free_tickets", Int(data.fFreeTickets));
+            record->set(u8"type", String(data.fType));
+            record->set(u8"pos", IntArrayFromPos3i(pos));
 
             i32 y = mcfile::Coordinate::ChunkFromBlock(pos.fY);
             sections[y].push_back(record);
@@ -189,13 +189,13 @@ public:
             recordsTag->push_back(record);
           }
           auto sectionTag = Compound();
-          sectionTag->set("Records", recordsTag);
-          sectionTag->set("Valid", Bool(true));
-          sectionsTag->set(to_string(y), sectionTag);
+          sectionTag->set(u8"Records", recordsTag);
+          sectionTag->set(u8"Valid", Bool(true));
+          sectionsTag->set(mcfile::String::ToString(y), sectionTag);
         }
         auto chunk = Compound();
-        chunk->set("Sections", sectionsTag);
-        chunk->set("DataVersion", Int(dataVersion));
+        chunk->set(u8"Sections", sectionsTag);
+        chunk->set(u8"DataVersion", Int(dataVersion));
         return chunk;
       });
       if (!ok) {

@@ -188,7 +188,7 @@ public:
       }
       for (int sectionY : missing) {
         auto section = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionY);
-        section->fBlocks.fill(make_shared<mcfile::je::Block const>("minecraft:air"));
+        section->fBlocks.fill(make_shared<mcfile::je::Block const>(u8"minecraft:air"));
         section->fBiomes.fill(mcfile::biomes::minecraft::the_end);
         j->fSections.push_back(section);
       }
@@ -250,11 +250,11 @@ public:
         if (result->fTakeItemsFrom) {
           Pos3i pair = *result->fTakeItemsFrom;
           if (auto pairTileEntity = cache.blockEntityAt(pair); pairTileEntity) {
-            auto items = BlockEntity::ContainerItems(*pairTileEntity, "Items", ctx);
+            auto items = BlockEntity::ContainerItems(*pairTileEntity, u8"Items", ctx);
             if (items) {
-              result->fTileEntity->set("Items", items);
+              result->fTileEntity->set(u8"Items", items);
             } else {
-              result->fTileEntity->erase("Items");
+              result->fTileEntity->erase(u8"Items");
             }
           }
         }
@@ -269,11 +269,11 @@ public:
     }
 
     for (auto const &it : b.blockEntities()) {
-      auto id = it.second->string("id");
+      auto id = it.second->string(u8"id");
       if (!id) {
         continue;
       }
-      if (id != "ItemFrame" && id != "GlowItemFrame") {
+      if (id != u8"ItemFrame" && id != u8"GlowItemFrame") {
         continue;
       }
       Pos3i pos = it.first;
@@ -309,9 +309,9 @@ public:
           ctx.fVehicleEntities[result->fUuid] = ve;
         }
         ctx.fEntities[result->fUuid] = pos;
-      } else if (entityB->string("identifier") == "minecraft:leash_knot") {
-        auto id = entityB->int64("UniqueID");
-        auto posf = props::GetPos3f(*entityB, "Pos");
+      } else if (entityB->string(u8"identifier") == u8"minecraft:leash_knot") {
+        auto id = entityB->int64(u8"UniqueID");
+        auto posf = props::GetPos3f(*entityB, u8"Pos");
         if (id && posf) {
           int x = (int)roundf(posf->fX - 0.5f);
           int y = (int)roundf(posf->fY - 0.25f);
@@ -339,15 +339,15 @@ public:
       tb.fZ = pt.fZ;
       tb.fT = pt.fTime - b.currentTick();
       tb.fP = 0;
-      if (nameB == "minecraft:lava" || nameB == "minecraft:water" || nameB == "minecraft:flowing_water" || nameB == "minecraft:flowing_lava") {
+      if (nameB == u8"minecraft:lava" || nameB == u8"minecraft:water" || nameB == u8"minecraft:flowing_water" || nameB == u8"minecraft:flowing_lava") {
         tb.fI = nameB;
         j->fLiquidTicks.push_back(tb);
 
         // Copy liquid_depth to block if exists
-        if (auto depth = pt.fBlockState->fStates->int32("liquid_depth"); depth) {
+        if (auto depth = pt.fBlockState->fStates->int32(u8"liquid_depth"); depth) {
           if (auto blockJ = j->blockAt(pt.fX, pt.fY, pt.fZ); blockJ) {
-            if (blockJ->property("level") != "") {
-              auto replace = blockJ->applying({{"level", to_string(*depth)}});
+            if (blockJ->property(u8"level") != u8"") {
+              auto replace = blockJ->applying({{u8"level", mcfile::String::ToString(*depth)}});
               mcfile::je::SetBlockOptions sbo;
               sbo.fRemoveTileEntity = false;
               j->setBlockAt(pt.fX, pt.fY, pt.fZ, replace, sbo);
@@ -374,15 +374,15 @@ public:
       case StructureType::Monument: {
         if (s.fStartChunk == Pos2i(cx, cz)) {
           auto monument = Compound();
-          monument->set("ChunkX", Int(cx));
-          monument->set("ChunkZ", Int(cz));
-          monument->set("id", String("minecraft:monument"));
-          monument->set("references", Int(0));
+          monument->set(u8"ChunkX", Int(cx));
+          monument->set(u8"ChunkZ", Int(cz));
+          monument->set(u8"id", String(u8"minecraft:monument"));
+          monument->set(u8"references", Int(0));
           auto children = List<Tag::Type::Compound>();
           auto child = Compound();
-          child->set("id", String("minecraft:omb"));
-          child->set("GD", Int(0));
-          child->set("O", Int(0));
+          child->set(u8"id", String(u8"minecraft:omb"));
+          child->set(u8"GD", Int(0));
+          child->set(u8"O", Int(0));
           // IdentifyFacingOfOceanMonument https://github.com/kbinani/je2be/commit/6ca28383bc557bcf60b8203e655fdbb7a87d39d7
           // O=0: north
           // O=1: east
@@ -395,14 +395,14 @@ public:
           bbv.push_back(s.fBounds.fEnd.fY);
           bbv.push_back(s.fBounds.fEnd.fZ);
           auto bb = make_shared<IntArrayTag>(bbv);
-          child->set("BB", bb);
+          child->set(u8"BB", bb);
           children->push_back(child);
-          monument->set("Children", children);
-          startsTag->set("minecraft:monument", monument);
+          monument->set(u8"Children", children);
+          startsTag->set(u8"minecraft:monument", monument);
         }
         vector<i64> references;
         references.push_back(StructureInfo::PackStructureStartsReference(s.fStartChunk.fX, s.fStartChunk.fZ));
-        referencesTag->set("minecraft:monument", make_shared<LongArrayTag>(references));
+        referencesTag->set(u8"minecraft:monument", make_shared<LongArrayTag>(references));
         break;
       }
       default:
@@ -410,10 +410,10 @@ public:
       }
     }
     if (!startsTag->empty()) {
-      structuresTag->set("starts", startsTag);
+      structuresTag->set(u8"starts", startsTag);
     }
     if (!referencesTag->empty()) {
-      structuresTag->set("References", referencesTag);
+      structuresTag->set(u8"References", referencesTag);
     }
     if (!structuresTag->empty()) {
       j->fStructures = structuresTag;
@@ -465,10 +465,10 @@ public:
       }
       Pos3i leashPos = foundLeash->second;
       auto leashTag = Compound();
-      leashTag->set("X", Int(leashPos.fX));
-      leashTag->set("Y", Int(leashPos.fY));
-      leashTag->set("Z", Int(leashPos.fZ));
-      leashedEntity->set("Leash", leashTag);
+      leashTag->set(u8"X", Int(leashPos.fX));
+      leashTag->set(u8"Y", Int(leashPos.fY));
+      leashTag->set(u8"Z", Int(leashPos.fZ));
+      leashedEntity->set(u8"Leash", leashTag);
 
       resolvedLeashedEntities.insert(leashedEntityUuid);
     }
@@ -490,13 +490,13 @@ public:
         continue;
       }
       shared_ptr<CompoundTag> vehicle = found->second;
-      shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
+      shared_ptr<ListTag> passengersTag = vehicle->listTag(u8"Passengers");
       if (!passengersTag) {
         passengersTag = List<Tag::Type::Compound>();
-        vehicle->set("Passengers", passengersTag);
+        vehicle->set(u8"Passengers", passengersTag);
       }
-      if (vehicle->string("id") == "minecraft:chicken") {
-        vehicle->set("IsChickenJockey", Bool(true));
+      if (vehicle->string(u8"id") == u8"minecraft:chicken") {
+        vehicle->set(u8"IsChickenJockey", Bool(true));
       }
       unordered_set<size_t> resolvedPassengers;
       for (auto const &passenger : passengers) {

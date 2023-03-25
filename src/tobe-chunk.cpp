@@ -144,19 +144,19 @@ public:
 
       if (auto found = tickingLiquidOriginalBlocks.find(Pos3i(tb.fX, tb.fY, tb.fZ)); found != tickingLiquidOriginalBlocks.end()) {
         auto original = found->second;
-        if (auto level = strings::ToI32(original->property("level")); level) {
-          if (auto st = blockB->compoundTag("states"); st) {
-            st->set("liquid_depth", Int(*level));
+        if (auto level = strings::ToI32(original->property(u8"level")); level) {
+          if (auto st = blockB->compoundTag(u8"states"); st) {
+            st->set(u8"liquid_depth", Int(*level));
           }
         }
       }
 
       auto tick = Compound();
-      tick->set("blockState", blockB);
-      tick->set("time", Long(time));
-      tick->set("x", Int(tb.fX));
-      tick->set("y", Int(tb.fY));
-      tick->set("z", Int(tb.fZ));
+      tick->set(u8"blockState", blockB);
+      tick->set(u8"time", Long(time));
+      tick->set(u8"x", Int(tb.fX));
+      tick->set(u8"y", Int(tb.fY));
+      tick->set(u8"z", Int(tb.fZ));
       cdp.addLiquidTick(i, tick);
     }
 
@@ -172,11 +172,11 @@ public:
       }
 
       auto tick = Compound();
-      tick->set("blockState", blockB);
-      tick->set("time", Long(time));
-      tick->set("x", Int(tb.fX));
-      tick->set("y", Int(tb.fY));
-      tick->set("z", Int(tb.fZ));
+      tick->set(u8"blockState", blockB);
+      tick->set(u8"time", Long(time));
+      tick->set(u8"x", Int(tb.fX));
+      tick->set(u8"y", Int(tb.fY));
+      tick->set(u8"z", Int(tb.fZ));
       cdp.addTileTick(i, tick);
     }
 
@@ -197,20 +197,20 @@ public:
       Pos2i chunkPos(chunk->fChunkX, chunk->fChunkZ);
       auto vehicleB = playerAttachedEntities->fVehicle;
       if (vehicleB) {
-        if (auto linksTag = vehicleB->listTag("LinksTag"); linksTag) {
+        if (auto linksTag = vehicleB->listTag(u8"LinksTag"); linksTag) {
           auto replace = List<Tag::Type::Compound>();
           auto localPlayer = Compound();
-          localPlayer->set("entityID", Long(playerAttachedEntities->fLocalPlayerUid));
-          localPlayer->set("linkID", Int(0));
+          localPlayer->set(u8"entityID", Long(playerAttachedEntities->fLocalPlayerUid));
+          localPlayer->set(u8"linkID", Int(0));
           replace->push_back(localPlayer);
           for (int i = 0; i < linksTag->size(); i++) {
             auto item = linksTag->at(i);
             if (auto link = dynamic_pointer_cast<CompoundTag>(item); link) {
-              link->set("linkID", Int(i + 1));
+              link->set(u8"linkID", Int(i + 1));
               replace->push_back(link);
             }
           }
-          vehicleB->set("LinksTag", replace);
+          vehicleB->set(u8"LinksTag", replace);
         }
         entities[chunkPos].push_back(vehicleB);
       }
@@ -256,12 +256,12 @@ private:
       if (!before) {
         continue;
       }
-      if (before->fName == "minecraft:lava") {
-        if (liquid->fName == "minecraft:lava" || liquid->fName == "minecraft:flowing_lava") {
+      if (before->fName == u8"minecraft:lava") {
+        if (liquid->fName == u8"minecraft:lava" || liquid->fName == u8"minecraft:flowing_lava") {
           chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, liquid);
         }
-      } else if (before->fName == "minecraft:water") {
-        if (liquid->fName == "minecraft:water" || liquid->fName == "minecraft:flowing_water") {
+      } else if (before->fName == u8"minecraft:water") {
+        if (liquid->fName == u8"minecraft:water" || liquid->fName == u8"minecraft:flowing_water") {
           chunk.setBlockAt(tb.fX, tb.fY, tb.fZ, liquid);
         }
       }
@@ -285,7 +285,7 @@ private:
         continue;
       }
       section->eachBlockPalette([&hasKelp](shared_ptr<Block const> const &block, size_t) {
-        if (block->fName == "minecraft:kelp_plant") {
+        if (block->fName == u8"minecraft:kelp_plant") {
           hasKelp = true;
           return false;
         }
@@ -309,23 +309,23 @@ private:
             break;
           }
           if (lower) {
-            if ((block->fName == "minecraft:kelp_plant" || block->fName == "minecraft:kelp") && lower->fName == "minecraft:water") {
-              auto kelpPlant = make_shared<Block const>("minecraft:kelp_plant");
+            if ((block->fName == u8"minecraft:kelp_plant" || block->fName == u8"minecraft:kelp") && lower->fName == u8"minecraft:water") {
+              auto kelpPlant = make_shared<Block const>(u8"minecraft:kelp_plant");
               for (int i = y - 1; i >= minY; i--) {
                 auto b = chunk.blockAt(x, i, z);
                 if (!b) {
                   break;
                 }
-                if (b->fName == "minecraft:water") {
+                if (b->fName == u8"minecraft:water") {
                   chunk.setBlockAt(x, i, z, kelpPlant);
                 } else {
                   break;
                 }
               }
-            } else if (block->fName == "minecraft:water" && lower->fName == "minecraft:kelp_plant") {
-              map<string, string> props;
-              props["age"] = "22";
-              auto kelp = make_shared<Block const>("minecraft:kelp", props);
+            } else if (block->fName == u8"minecraft:water" && lower->fName == u8"minecraft:kelp_plant") {
+              map<u8string, u8string> props;
+              props[u8"age"] = u8"22";
+              auto kelp = make_shared<Block const>(u8"minecraft:kelp", props);
               chunk.setBlockAt(x, y, z, kelp);
               block = kelp;
             }
@@ -360,12 +360,12 @@ private:
     if (!hasMsurhoom) {
       return;
     }
-    static vector<pair<string, Pos3i>> directions({{"up", Pos3i(0, 1, 0)},
-                                                   {"down", Pos3i(0, -1, 0)},
-                                                   {"north", Pos3i(0, 0, -1)},
-                                                   {"east", Pos3i(1, 0, 0)},
-                                                   {"south", Pos3i(0, 0, 1)},
-                                                   {"west", Pos3i(-1, 0, 0)}});
+    static vector<pair<u8string, Pos3i>> directions({{u8"up", Pos3i(0, 1, 0)},
+                                                     {u8"down", Pos3i(0, -1, 0)},
+                                                     {u8"north", Pos3i(0, 0, -1)},
+                                                     {u8"east", Pos3i(1, 0, 0)},
+                                                     {u8"south", Pos3i(0, 0, 1)},
+                                                     {u8"west", Pos3i(-1, 0, 0)}});
     for (int x = chunk.minBlockX(); x <= chunk.maxBlockX(); x++) {
       for (int z = chunk.minBlockZ(); z <= chunk.maxBlockZ(); z++) {
         int minY = chunk.minBlockY();
@@ -379,7 +379,7 @@ private:
           if (id != red_mushroom_block && id != brown_mushroom_block) {
             continue;
           }
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
           for (auto const &dir : directions) {
             auto pos = Pos3i(x, y, z) + dir.second;
             auto block = loader.blockAt(pos);

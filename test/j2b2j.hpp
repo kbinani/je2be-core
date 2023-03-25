@@ -4,10 +4,10 @@ static std::mutex sMutCerr;
 
 static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual);
 
-static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::string> ignore) {
+static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::u8string> ignore) {
   CHECK(e.fName == a.fName);
-  map<string, optional<string>> op;
-  for (string const &p : ignore) {
+  map<u8string, optional<u8string>> op;
+  for (u8string const &p : ignore) {
     op[p] = nullopt;
   }
   auto blockE = e.applying(op);
@@ -16,34 +16,34 @@ static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block c
 }
 
 static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, Dimension dim, int x, int y, int z) {
-  unordered_map<string_view, string> fallbackJtoB;
-  fallbackJtoB["minecraft:petrified_oak_slab"] = "minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
-  fallbackJtoB["minecraft:cave_air"] = "minecraft:air";
-  fallbackJtoB["minecraft:void_air"] = "minecraft:air";
+  unordered_map<u8string_view, u8string> fallbackJtoB;
+  fallbackJtoB[u8"minecraft:petrified_oak_slab"] = u8"minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
+  fallbackJtoB[u8"minecraft:cave_air"] = u8"minecraft:air";
+  fallbackJtoB[u8"minecraft:void_air"] = u8"minecraft:air";
 
-  unordered_map<string_view, string> fallbackBtoJ;
-  fallbackBtoJ["minecraft:frame"] = "minecraft:air";      // frame should be converted as an entity.
-  fallbackBtoJ["minecraft:glow_frame"] = "minecraft:air"; // frame should be converted as an entity.
+  unordered_map<u8string_view, u8string> fallbackBtoJ;
+  fallbackBtoJ[u8"minecraft:frame"] = u8"minecraft:air";      // frame should be converted as an entity.
+  fallbackBtoJ[u8"minecraft:glow_frame"] = u8"minecraft:air"; // frame should be converted as an entity.
 
   if (blockA && blockE) {
     auto foundJtoB = fallbackJtoB.find(blockE->fName);
     if (foundJtoB == fallbackJtoB.end()) {
       auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
       if (foundBtoJ == fallbackBtoJ.end()) {
-        if (blockE->fName == "minecraft:red_mushroom_block" || blockE->fName == "minecraft:brown_mushroom_block" || blockE->fName == "minecraft:sculk_sensor") {
+        if (blockE->fName == u8"minecraft:red_mushroom_block" || blockE->fName == u8"minecraft:brown_mushroom_block" || blockE->fName == u8"minecraft:sculk_sensor") {
           CHECK(blockE->fName == blockA->fName);
-        } else if (blockE->fName == "minecraft:scaffolding") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"distance"});
-        } else if (blockE->fName == "minecraft:repeater") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"locked"});
-        } else if (blockE->fName == "minecraft:note_block" || blockE->fName.ends_with("_trapdoor") || blockE->fName.ends_with("_fence_gate") || blockE->fName == "minecraft:lectern" || blockE->fName.ends_with("_door") || blockE->fName == "minecraft:lightning_rod") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"powered"});
-        } else if (blockE->fName.ends_with("_button")) {
-          CheckBlockWithIgnore(*blockE, *blockA, {"facing", "powered"});
-        } else if (blockE->fName == "minecraft:fire") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"east", "north", "south", "west", "up"});
-        } else if (blockE->fName == "minecraft:weeping_vines_plant") {
-          if (blockA->toString() == "minecraft:weeping_vines[age=25]") {
+        } else if (blockE->fName == u8"minecraft:scaffolding") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"distance"});
+        } else if (blockE->fName == u8"minecraft:repeater") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"locked"});
+        } else if (blockE->fName == u8"minecraft:note_block" || blockE->fName.ends_with(u8"_trapdoor") || blockE->fName.ends_with(u8"_fence_gate") || blockE->fName == u8"minecraft:lectern" || blockE->fName.ends_with(u8"_door") || blockE->fName == u8"minecraft:lightning_rod") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"powered"});
+        } else if (blockE->fName.ends_with(u8"_button")) {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"facing", u8"powered"});
+        } else if (blockE->fName == u8"minecraft:fire") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"east", u8"north", u8"south", u8"west", u8"up"});
+        } else if (blockE->fName == u8"minecraft:weeping_vines_plant") {
+          if (blockA->toString() == u8"minecraft:weeping_vines[age=25]") {
             // JE: weeping_vines -> tip
             //     weeping_vines_plant -> body
             // BE: weeping_vines -> tip / body
@@ -53,21 +53,21 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           } else {
             CHECK(blockA->toString() == blockE->toString());
           }
-        } else if (blockE->fName == "minecraft:twisting_vines_plant") {
-          if (blockA->toString() == "minecraft:twisting_vines[age=25]") {
+        } else if (blockE->fName == u8"minecraft:twisting_vines_plant") {
+          if (blockA->toString() == u8"minecraft:twisting_vines[age=25]") {
             CHECK(true);
           } else {
             CHECK(blockA->toString() == blockE->toString());
           }
-        } else if (blockE->fName == "minecraft:vine") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"up"});
-        } else if (blockE->fName == "minecraft:mangrove_propagule") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"stage"});
-        } else if (blockE->fName == "minecraft:lever") {
-          CheckBlockWithIgnore(*blockE, *blockA, {"facing"});
+        } else if (blockE->fName == u8"minecraft:vine") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"up"});
+        } else if (blockE->fName == u8"minecraft:mangrove_propagule") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"stage"});
+        } else if (blockE->fName == u8"minecraft:lever") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"facing"});
         } else {
           if (blockA->toString() != blockE->toString()) {
-            cout << "[" << x << ", " << y << ", " << z << "] " << JavaStringFromDimension(dim) << endl;
+            cout << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << endl;
           }
           CHECK(blockA->toString() == blockE->toString());
         }
@@ -78,24 +78,24 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
       CHECK(blockA->fName == foundJtoB->second);
     }
   } else if (blockA) {
-    CHECK(blockA->fName == "minecraft:air");
+    CHECK(blockA->fName == u8"minecraft:air");
   } else if (blockE) {
-    CHECK(blockE->fName == "minecraft:air");
+    CHECK(blockE->fName == u8"minecraft:air");
   }
 }
 
-static void Erase(shared_ptr<CompoundTag> t, string const &path) {
-  auto keys = mcfile::String::Split(path, '/');
+static void Erase(shared_ptr<CompoundTag> t, u8string const &path) {
+  auto keys = mcfile::String::Split(path, u8'/');
   if (keys.size() == 1) {
     t->erase(keys[0]);
     return;
   }
   auto index = strings::ToI32(keys[1]);
-  if (keys[1] == "*") {
+  if (keys[1] == u8"*") {
     assert(keys.size() >= 3);
-    string nextPath = keys[2];
+    u8string nextPath = keys[2];
     for (int i = 3; i < keys.size(); i++) {
-      nextPath += "/" + keys[i];
+      nextPath += u8"/" + keys[i];
     }
     if (auto list = t->listTag(keys[0]); list) {
       for (auto const &it : *list) {
@@ -134,9 +134,9 @@ static void Erase(shared_ptr<CompoundTag> t, string const &path) {
     if (!t) {
       return;
     }
-    string nextPath = keys[1];
+    u8string nextPath = keys[1];
     for (int i = 2; i < keys.size(); i++) {
-      nextPath += "/" + keys[i];
+      nextPath += u8"/" + keys[i];
     }
     Erase(t, nextPath);
   }
@@ -181,43 +181,43 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
 }
 
 static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
-  unordered_set<string> blacklist = {
-      "tag/map",
-      "tag/BlockEntityTag",
+  unordered_set<u8string> blacklist = {
+      u8"tag/map",
+      u8"tag/BlockEntityTag",
   };
 
   CompoundTagPtr copyE = itemE.copy();
   CompoundTagPtr copyA = itemA.copy();
 
-  auto itemId = itemE.string("id");
+  auto itemId = itemE.string(u8"id");
   if (itemId) {
-    if (*itemId == "minecraft:petrified_oak_slab" || *itemId == "minecraft:furnace_minecart") {
-      blacklist.insert("id");
-    } else if (*itemId == "minecraft:bundle") {
+    if (*itemId == u8"minecraft:petrified_oak_slab" || *itemId == u8"minecraft:furnace_minecart") {
+      blacklist.insert(u8"id");
+    } else if (*itemId == u8"minecraft:bundle") {
       // bundle does not exist in BE
       return;
-    } else if (*itemId == "minecraft:debug_stick") {
+    } else if (*itemId == u8"minecraft:debug_stick") {
       return;
-    } else if (*itemId == "minecraft:painting") {
+    } else if (*itemId == u8"minecraft:painting") {
       // tag: {EntityTag:{variant:"minecraft:kebab"}}
-      blacklist.insert("tag");
+      blacklist.insert(u8"tag");
     }
   }
-  auto storedEnchantment = itemE.query("tag/StoredEnchantments/0/id");
+  auto storedEnchantment = itemE.query(u8"tag/StoredEnchantments/0/id");
   if (storedEnchantment && storedEnchantment->asString()) {
-    if (storedEnchantment->asString()->fValue == "minecraft:sweeping") { // sweeping does not exist in BE
-      blacklist.insert("tag/StoredEnchantments/*/id");
+    if (storedEnchantment->asString()->fValue == u8"minecraft:sweeping") { // sweeping does not exist in BE
+      blacklist.insert(u8"tag/StoredEnchantments/*/id");
     }
   }
-  auto tippedArrowPotion = itemE.query("tag/Potion");
+  auto tippedArrowPotion = itemE.query(u8"tag/Potion");
   if (tippedArrowPotion && tippedArrowPotion->asString()) {
-    if (tippedArrowPotion->asString()->fValue == "minecraft:luck") { // luck does not exist in BE
-      blacklist.insert("tag/Potion");
+    if (tippedArrowPotion->asString()->fValue == u8"minecraft:luck") { // luck does not exist in BE
+      blacklist.insert(u8"tag/Potion");
     }
   }
 
-  auto tileE = itemE.query("tag/BlockEntityTag");
-  auto tileA = itemA.query("tag/BlockEntityTag");
+  auto tileE = itemE.query(u8"tag/BlockEntityTag");
+  auto tileA = itemA.query(u8"tag/BlockEntityTag");
   if (tileE && tileE->type() != Tag::Type::End) {
     REQUIRE(tileA);
     REQUIRE(tileE->type() == Tag::Type::Compound);
@@ -227,7 +227,7 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
     CHECK(false);
   }
 
-  for (string const &it : blacklist) {
+  for (u8string const &it : blacklist) {
     Erase(copyE, it);
     Erase(copyA, it);
   }
@@ -239,30 +239,30 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 
-  unordered_set<string> tagBlacklist = {
-      "LootTableSeed",           // chest in dungeon etc.
-      "RecipesUsed",             // furnace, blast_furnace, and smoker
-      "LastOutput",              // command_block
-      "author",                  // structure_block
-      "Book/tag/resolved",       // written_book
-      "Book/tag/filtered_title", // written_book
-      "Items",
-      "Levels",          // beacon. Sometimes reset to 0 in JE
-      "SpawnPotentials", // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
+  unordered_set<u8string> tagBlacklist = {
+      u8"LootTableSeed",           // chest in dungeon etc.
+      u8"RecipesUsed",             // furnace, blast_furnace, and smoker
+      u8"LastOutput",              // command_block
+      u8"author",                  // structure_block
+      u8"Book/tag/resolved",       // written_book
+      u8"Book/tag/filtered_title", // written_book
+      u8"Items",
+      u8"Levels",          // beacon. Sometimes reset to 0 in JE
+      u8"SpawnPotentials", // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
   };
-  auto id = expected.string("id", "");
-  if (id == "minecraft:sculk_shrieker") {
-    tagBlacklist.insert("listener");
-    tagBlacklist.insert("warning_level");
-  } else if (id == "minecraft:sculk_catalyst") {
-    tagBlacklist.insert("cursors");
-  } else if (id == "minecraft:jukebox") {
-    tagBlacklist.insert("IsPlaying");
-    tagBlacklist.insert("TickCount");
-    tagBlacklist.insert("RecordStartTick");
+  auto id = expected.string(u8"id", u8"");
+  if (id == u8"minecraft:sculk_shrieker") {
+    tagBlacklist.insert(u8"listener");
+    tagBlacklist.insert(u8"warning_level");
+  } else if (id == u8"minecraft:sculk_catalyst") {
+    tagBlacklist.insert(u8"cursors");
+  } else if (id == u8"minecraft:jukebox") {
+    tagBlacklist.insert(u8"IsPlaying");
+    tagBlacklist.insert(u8"TickCount");
+    tagBlacklist.insert(u8"RecordStartTick");
   }
-  auto itemsE = expected.listTag("Items");
-  auto itemsA = actual.listTag("Items");
+  auto itemsE = expected.listTag(u8"Items");
+  auto itemsA = actual.listTag(u8"Items");
   if (itemsE) {
     REQUIRE(itemsA);
     CHECK(itemsE->size() == itemsA->size());
@@ -278,7 +278,7 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   } else if (itemsA) {
     CHECK(false);
   }
-  for (string const &b : tagBlacklist) {
+  for (u8string const &b : tagBlacklist) {
     Erase(copyE, b);
     Erase(copyA, b);
   }
@@ -286,14 +286,14 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
 }
 
 static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
-  static unordered_set<string> const blacklist = {
+  static unordered_set<u8string> const blacklist = {
       // allay, etc
-      "memories/minecraft:gaze_cooldown_ticks",
+      u8"memories/minecraft:gaze_cooldown_ticks",
       // goat, frog
-      "memories/minecraft:long_jump_cooling_down",
+      u8"memories/minecraft:long_jump_cooling_down",
       // goat
-      "memories/minecraft:ram_cooldown_ticks memories",
-      "memories/minecraft:ram_cooldown_ticks",
+      u8"memories/minecraft:ram_cooldown_ticks memories",
+      u8"memories/minecraft:ram_cooldown_ticks",
       // piglin
       /*
         "minecraft:hunted_recently": {
@@ -301,32 +301,32 @@ static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
           "value": 1 // byte
         }
        */
-      "memories/minecraft:hunted_recently",
+      u8"memories/minecraft:hunted_recently",
       // allay
-      "memories/minecraft:liked_player",
+      u8"memories/minecraft:liked_player",
       // villager
-      "memories/minecraft:job_site",
-      "memories/minecraft:last_worked_at_poi",
-      "memories/minecraft:meeting_point",
-      "memories/minecraft:golem_detected_recently",
-      "memories/minecraft:potential_job_site",
-      "memories/minecraft:home",
-      "memories/minecraft:last_slept",
-      "memories/minecraft:last_woken",
+      u8"memories/minecraft:job_site",
+      u8"memories/minecraft:last_worked_at_poi",
+      u8"memories/minecraft:meeting_point",
+      u8"memories/minecraft:golem_detected_recently",
+      u8"memories/minecraft:potential_job_site",
+      u8"memories/minecraft:home",
+      u8"memories/minecraft:last_slept",
+      u8"memories/minecraft:last_woken",
       // piglin etc.
-      "memories/minecraft:angry_at", // TODO:
+      u8"memories/minecraft:angry_at", // TODO:
       // sniffer
-      "memories/minecraft:sniff_cooldown",
-      "memories/minecraft:sniffer_explored_positions",
+      u8"memories/minecraft:sniff_cooldown",
+      u8"memories/minecraft:sniffer_explored_positions",
   };
   auto copyE = brainE.copy();
   auto copyA = brainA.copy();
 
-  auto likedPlayerA = copyA->query("memories/minecraft:liked_player");
-  auto likedPlayerE = copyE->query("memories/minecraft:liked_player");
+  auto likedPlayerA = copyA->query(u8"memories/minecraft:liked_player");
+  auto likedPlayerE = copyE->query(u8"memories/minecraft:liked_player");
   CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
 
-  for (string const &b : blacklist) {
+  for (u8string const &b : blacklist) {
     Erase(copyE, b);
     Erase(copyA, b);
   }
@@ -334,156 +334,156 @@ static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static void CheckEntity(std::string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
+static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
-  CHECK(copyE->intArrayTag("UUID"));
-  CHECK(copyA->intArrayTag("UUID"));
+  CHECK(copyE->intArrayTag(u8"UUID"));
+  CHECK(copyA->intArrayTag(u8"UUID"));
 
-  auto posE = props::GetPos3d(*copyE, "Pos");
-  auto posA = props::GetPos3d(*copyA, "Pos");
+  auto posE = props::GetPos3d(*copyE, u8"Pos");
+  auto posA = props::GetPos3d(*copyA, u8"Pos");
   CHECK(posE);
   CHECK(posA);
   CHECK(fabs(posE->fX - posA->fX) <= 0.001);
-  if (id == "minecraft:armor_stand") {
+  if (id == u8"minecraft:armor_stand") {
     // y is aligned 0.5 block in BE
-  } else if (id == "minecraft:chest_minecart") {
+  } else if (id == u8"minecraft:chest_minecart") {
     // y of chest_minecart in abandoned_mineshaft has usually conversion failure because OnGround=false but not on rail
-  } else if (id == "minecraft:boat") {
+  } else if (id == u8"minecraft:boat") {
     // y of boat usually different between JE and BE
   } else {
     CHECK(fabs(posE->fY - posA->fY) <= 0.001);
   }
   CHECK(fabs(posE->fZ - posA->fZ) <= 0.001);
 
-  unordered_set<string> blacklist = {
-      "UUID",
-      "Pos",
-      "Attributes",
-      "Motion",
-      "LeftHanded", // left handed skeleton does not exist in BE
-      "ForcedAge",
-      "Owner",
-      "HurtByTimestamp",
-      "NoAI",
-      "Fire",
-      "Offers/Recipes/*/sell/tag/Effects/*/EffectDuration", // EffectDuration of suspicious_stew is random
-      "Offers/Recipes/*/sell/tag/map",
-      "EatingHaystack",
-      "PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
-      "Leash/UUID",
-      "listener",
-      "HandDropChances", // TODO: Is there any way identifying hand items was picked-up thing or not?
+  unordered_set<u8string> blacklist = {
+      u8"UUID",
+      u8"Pos",
+      u8"Attributes",
+      u8"Motion",
+      u8"LeftHanded", // left handed skeleton does not exist in BE
+      u8"ForcedAge",
+      u8"Owner",
+      u8"HurtByTimestamp",
+      u8"NoAI",
+      u8"Fire",
+      u8"Offers/Recipes/*/sell/tag/Effects/*/EffectDuration", // EffectDuration of suspicious_stew is random
+      u8"Offers/Recipes/*/sell/tag/map",
+      u8"EatingHaystack",
+      u8"PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
+      u8"Leash/UUID",
+      u8"listener",
+      u8"HandDropChances", // TODO: Is there any way identifying hand items was picked-up thing or not?
   };
-  if (id == "minecraft:armor_stand") {
-    blacklist.insert("Pose");
-    blacklist.insert("Health"); // Default health differs. B = 6, J = 20
-  } else if (id == "minecraft:slime" || id == "minecraft:magma_cube") {
-    blacklist.insert("wasOnGround"); // wasOnGround does not exist in BE
-  } else if (id == "minecraft:bee") {
-    blacklist.insert("TicksSincePollination"); // TicksSincePollination does not exist in BE
-    blacklist.insert("FlowerPos");
-  } else if (id == "minecraft:llama") {
-    blacklist.insert("Temper"); // Temper does not exist in BE
-  } else if (id == "minecraft:phantom") {
-    blacklist.insert("AX");
-    blacklist.insert("AY");
-    blacklist.insert("AZ");
-  } else if (id == "minecraft:turtle") {
-    blacklist.insert("TravelPosX");
-    blacklist.insert("TravelPosY");
-    blacklist.insert("TravelPosZ");
-  } else if (id == "minecraft:villager") {
-    blacklist.insert("Gossips");
-    blacklist.insert("LastGossipDecay");
-    blacklist.insert("LastRestock");
-    blacklist.insert("RestocksToday");
-  } else if (id == "minecraft:shulker") {
-    blacklist.insert("AttachFace"); // not exists in BE
-    blacklist.insert("Peek");       // not exists in BE
-  } else if (id == "minecraft:iron_golem") {
-    blacklist.insert("AngerTime");
-    blacklist.insert("AngryAt");
-  } else if (id == "minecraft:zombie_villager") {
-    blacklist.insert("PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
-    blacklist.insert("InWaterTime");
-    blacklist.insert("IsBaby"); //TODO:
-  } else if (id == "minecraft:piglin") {
-    blacklist.insert("TimeInOverworld");
-    blacklist.insert("IsBaby");
-    CHECK(copyE->boolean("IsBaby", false) == copyA->boolean("IsBaby", false));
-  } else if (id == "minecraft:piglin_brute") {
-    blacklist.insert("TimeInOverworld");
-  } else if (id == "minecraft:hoglin") {
-    blacklist.insert("TimeInOverworld");
-  } else if (id == "minecraft:chest_minecart") {
-    blacklist.insert("LootTableSeed");
-  } else if (id == "minecraft:zombie") {
-    blacklist.insert("CanBreakDoors");
-    blacklist.insert("InWaterTime");
-  } else if (id == "minecraft:arrow") {
-    blacklist.insert("HasBeenShot");
-    blacklist.insert("LeftOwner");
-    blacklist.insert("PierceLevel");
-    blacklist.insert("ShotFromCrossbow");
-    blacklist.insert("crit");
-    blacklist.insert("damage");
-    blacklist.insert("inGround");
-    blacklist.insert("life");
-    blacklist.insert("pickup");
-    blacklist.insert("shake");
-    blacklist.insert("inBlockState");
-    blacklist.insert("SoundEvent");
-  } else if (id == "minecraft:falling_block") {
-    blacklist.insert("DropItem");
-    blacklist.insert("FallDistance");
-    blacklist.insert("FallHurtAmount");
-    blacklist.insert("FallHurtMax");
-    blacklist.insert("HurtEntities");
-    blacklist.insert("Time"); // JE: int, BE: byte
-  } else if (id == "minecraft:item") {
-    blacklist.insert("PickupDelay");
-  } else if (id == "minecraft:trader_llama") {
-    blacklist.insert("DespawnDelay"); // "TimeStamp" does not exist in BE.
-  } else if (id == "minecraft:warden") {
-    blacklist.insert("anger");
-  } else if (id == "minecraft:zombified_piglin") {
-    blacklist.insert("CanBreakDoors");
-    blacklist.insert("AngerTime");
-    blacklist.insert("AngryAt");
-    auto angryAtA = copyA->intArrayTag("AngryAt");
-    auto angryAtE = copyE->intArrayTag("AngryAt");
+  if (id == u8"minecraft:armor_stand") {
+    blacklist.insert(u8"Pose");
+    blacklist.insert(u8"Health"); // Default health differs. B = 6, J = 20
+  } else if (id == u8"minecraft:slime" || id == u8"minecraft:magma_cube") {
+    blacklist.insert(u8"wasOnGround"); // wasOnGround does not exist in BE
+  } else if (id == u8"minecraft:bee") {
+    blacklist.insert(u8"TicksSincePollination"); // TicksSincePollination does not exist in BE
+    blacklist.insert(u8"FlowerPos");
+  } else if (id == u8"minecraft:llama") {
+    blacklist.insert(u8"Temper"); // Temper does not exist in BE
+  } else if (id == u8"minecraft:phantom") {
+    blacklist.insert(u8"AX");
+    blacklist.insert(u8"AY");
+    blacklist.insert(u8"AZ");
+  } else if (id == u8"minecraft:turtle") {
+    blacklist.insert(u8"TravelPosX");
+    blacklist.insert(u8"TravelPosY");
+    blacklist.insert(u8"TravelPosZ");
+  } else if (id == u8"minecraft:villager") {
+    blacklist.insert(u8"Gossips");
+    blacklist.insert(u8"LastGossipDecay");
+    blacklist.insert(u8"LastRestock");
+    blacklist.insert(u8"RestocksToday");
+  } else if (id == u8"minecraft:shulker") {
+    blacklist.insert(u8"AttachFace"); // not exists in BE
+    blacklist.insert(u8"Peek");       // not exists in BE
+  } else if (id == u8"minecraft:iron_golem") {
+    blacklist.insert(u8"AngerTime");
+    blacklist.insert(u8"AngryAt");
+  } else if (id == u8"minecraft:zombie_villager") {
+    blacklist.insert(u8"PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
+    blacklist.insert(u8"InWaterTime");
+    blacklist.insert(u8"IsBaby"); //TODO:
+  } else if (id == u8"minecraft:piglin") {
+    blacklist.insert(u8"TimeInOverworld");
+    blacklist.insert(u8"IsBaby");
+    CHECK(copyE->boolean(u8"IsBaby", false) == copyA->boolean(u8"IsBaby", false));
+  } else if (id == u8"minecraft:piglin_brute") {
+    blacklist.insert(u8"TimeInOverworld");
+  } else if (id == u8"minecraft:hoglin") {
+    blacklist.insert(u8"TimeInOverworld");
+  } else if (id == u8"minecraft:chest_minecart") {
+    blacklist.insert(u8"LootTableSeed");
+  } else if (id == u8"minecraft:zombie") {
+    blacklist.insert(u8"CanBreakDoors");
+    blacklist.insert(u8"InWaterTime");
+  } else if (id == u8"minecraft:arrow") {
+    blacklist.insert(u8"HasBeenShot");
+    blacklist.insert(u8"LeftOwner");
+    blacklist.insert(u8"PierceLevel");
+    blacklist.insert(u8"ShotFromCrossbow");
+    blacklist.insert(u8"crit");
+    blacklist.insert(u8"damage");
+    blacklist.insert(u8"inGround");
+    blacklist.insert(u8"life");
+    blacklist.insert(u8"pickup");
+    blacklist.insert(u8"shake");
+    blacklist.insert(u8"inBlockState");
+    blacklist.insert(u8"SoundEvent");
+  } else if (id == u8"minecraft:falling_block") {
+    blacklist.insert(u8"DropItem");
+    blacklist.insert(u8"FallDistance");
+    blacklist.insert(u8"FallHurtAmount");
+    blacklist.insert(u8"FallHurtMax");
+    blacklist.insert(u8"HurtEntities");
+    blacklist.insert(u8"Time"); // JE: int, BE: byte
+  } else if (id == u8"minecraft:item") {
+    blacklist.insert(u8"PickupDelay");
+  } else if (id == u8"minecraft:trader_llama") {
+    blacklist.insert(u8"DespawnDelay"); // "TimeStamp" does not exist in BE.
+  } else if (id == u8"minecraft:warden") {
+    blacklist.insert(u8"anger");
+  } else if (id == u8"minecraft:zombified_piglin") {
+    blacklist.insert(u8"CanBreakDoors");
+    blacklist.insert(u8"AngerTime");
+    blacklist.insert(u8"AngryAt");
+    auto angryAtA = copyA->intArrayTag(u8"AngryAt");
+    auto angryAtE = copyE->intArrayTag(u8"AngryAt");
     CHECK((angryAtE == nullptr) == (angryAtA == nullptr));
-  } else if (id == "minecraft:camel") {
-    blacklist.insert("LastPoseTick");
-  } else if (id == "minecraft:wandering_trader") {
-    blacklist.insert("WanderTarget");
-  } else if (id == "minecraft:boat" || id == "minecraft:chest_boat") {
-    if (entityE.string("Type") == "cherry") {
+  } else if (id == u8"minecraft:camel") {
+    blacklist.insert(u8"LastPoseTick");
+  } else if (id == u8"minecraft:wandering_trader") {
+    blacklist.insert(u8"WanderTarget");
+  } else if (id == u8"minecraft:boat" || id == u8"minecraft:chest_boat") {
+    if (entityE.string(u8"Type") == u8"cherry") {
       // TODO:1.20
-      blacklist.insert("Type");
+      blacklist.insert(u8"Type");
     }
   }
 
-  for (string const &it : blacklist) {
+  for (u8string const &it : blacklist) {
     Erase(copyE, it);
     Erase(copyA, it);
   }
 
-  auto itemE = entityE.compoundTag("Item");
-  auto itemA = entityA.compoundTag("Item");
-  copyE->erase("Item");
-  copyA->erase("Item");
+  auto itemE = entityE.compoundTag(u8"Item");
+  auto itemA = entityA.compoundTag(u8"Item");
+  copyE->erase(u8"Item");
+  copyA->erase(u8"Item");
   if (itemE) {
     REQUIRE(itemA);
     CheckItem(*itemE, *itemA);
   }
 
-  auto passengersE = entityE.listTag("Passengers");
-  auto passengersA = entityA.listTag("Passengers");
-  copyE->erase("Passengers");
-  copyA->erase("Passengers");
+  auto passengersE = entityE.listTag(u8"Passengers");
+  auto passengersA = entityA.listTag(u8"Passengers");
+  copyE->erase(u8"Passengers");
+  copyA->erase(u8"Passengers");
   if (passengersE) {
     REQUIRE(passengersA);
     CHECK(passengersE->size() == passengersA->size());
@@ -492,7 +492,7 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
       auto passengerA = passengersA->at(i);
       REQUIRE(passengerE->type() == Tag::Type::Compound);
       CHECK(passengerE->type() == passengerA->type());
-      auto id = passengerE->asCompound()->string("id");
+      auto id = passengerE->asCompound()->string(u8"id");
       REQUIRE(id);
       CheckEntity(*id, *passengerE->asCompound(), *passengerA->asCompound());
     }
@@ -500,10 +500,10 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     CHECK(false);
   }
 
-  auto brainE = entityE.compoundTag("Brain");
-  auto brainA = entityA.compoundTag("Brain");
-  copyE->erase("Brain");
-  copyA->erase("Brain");
+  auto brainE = entityE.compoundTag(u8"Brain");
+  auto brainA = entityA.compoundTag(u8"Brain");
+  copyE->erase(u8"Brain");
+  copyA->erase(u8"Brain");
   if (brainE) {
     REQUIRE(brainA);
     CheckBrain(*brainE, *brainA);
@@ -511,10 +511,10 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
     CHECK(false);
   }
 
-  auto inventoryE = entityE.listTag("Inventory");
-  auto inventoryA = entityA.listTag("Inventory");
-  copyE->erase("Inventory");
-  copyA->erase("Inventory");
+  auto inventoryE = entityE.listTag(u8"Inventory");
+  auto inventoryA = entityA.listTag(u8"Inventory");
+  copyE->erase(u8"Inventory");
+  copyA->erase(u8"Inventory");
   if (inventoryE) {
     REQUIRE(inventoryA);
     CHECK(inventoryE->size() == inventoryA->size());
@@ -532,19 +532,19 @@ static void CheckEntity(std::string const &id, CompoundTag const &entityE, Compo
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, Rotation rot, std::string const &id, vector<shared_ptr<CompoundTag>> const &entities) {
+static shared_ptr<CompoundTag> FindNearestEntity(Pos3d pos, Rotation rot, std::u8string const &id, vector<shared_ptr<CompoundTag>> const &entities) {
   shared_ptr<CompoundTag> ret = nullptr;
   double minDistance = numeric_limits<double>::max();
   double minRotDifference = numeric_limits<double>::max();
   for (auto const &entity : entities) {
-    if (entity->string("id") != id) {
+    if (entity->string(u8"id") != id) {
       continue;
     }
-    auto p = props::GetPos3d(*entity, "Pos");
+    auto p = props::GetPos3d(*entity, u8"Pos");
     if (!p) {
       continue;
     }
-    auto r = props::GetRotation(*entity, "Rotation");
+    auto r = props::GetRotation(*entity, u8"Rotation");
     if (!r) {
       continue;
     }
@@ -590,10 +590,10 @@ static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlo
 }
 
 static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actual) {
-  static set<string> const sTypes = {"MOTION_BLOCKING",
-                                     "MOTION_BLOCKING_NO_LEAVES",
-                                     "OCEAN_FLOOR",
-                                     "WORLD_SURFACE"};
+  static set<u8string> const sTypes = {u8"MOTION_BLOCKING",
+                                       u8"MOTION_BLOCKING_NO_LEAVES",
+                                       u8"OCEAN_FLOOR",
+                                       u8"WORLD_SURFACE"};
   for (auto const &type : sTypes) {
     auto tagA = actual.longArrayTag(type);
     auto tagE = expected.longArrayTag(type);
@@ -611,7 +611,7 @@ static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actu
   }
 }
 
-static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, Dimension dim, string const &kind) {
+static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, Dimension dim, u8string const &kind) {
   auto dataE = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &e);
   auto dataA = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &a);
   REQUIRE(dataE);
@@ -630,8 +630,8 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
     }
     if (!ok) {
       lock_guard<mutex> lock(sMutCerr);
-      cerr << "-------------------------------------------------------------------------------------------------------------------" << endl;
-      cerr << kind << " " << JavaStringFromDimension(dim) << endl;
+      cerr << u8"-------------------------------------------------------------------------------------------------------------------" << endl;
+      cerr << kind << u8" " << JavaStringFromDimension(dim) << endl;
       fprintf(stderr, "%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         fprintf(stderr, "%6d ", x + origin.fX);
@@ -642,11 +642,11 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
         for (int x = 0; x < 16; x++) {
           int vE = dataE->getUnchecked(origin + Pos3i{x, y, z});
           int vA = dataA->getUnchecked(origin + Pos3i{x, y, z});
-          string bra = "[";
-          string ket = "]";
+          u8string bra = u8"[";
+          u8string ket = u8"]";
           if (vE == vA) {
-            bra = " ";
-            ket = " ";
+            bra = u8" ";
+            ket = u8" ";
           }
           fprintf(stderr, "%s%2d,%2d%s", bra.c_str(), vE, vA, ket.c_str());
         }
@@ -669,11 +669,11 @@ static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk c
     REQUIRE(sectionE->y() == sectionA->y());
     if (!sectionE->fSkyLight.empty() && std::any_of(sectionE->fSkyLight.begin(), sectionE->fSkyLight.end(), [](uint8_t v) { return v != 0; })) {
       CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
-      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, dim, "sky");
+      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, dim, u8"sky");
     }
     if (!sectionE->fBlockLight.empty() && std::any_of(sectionE->fBlockLight.begin(), sectionE->fBlockLight.end(), [](uint8_t v) { return v != 0; })) {
       CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
-      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, dim, "block");
+      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, dim, u8"block");
     }
   }
 }
@@ -722,8 +722,8 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
   for (auto const &it : chunkE->fTileEntities) {
     Pos3i pos = it.first;
     shared_ptr<CompoundTag> const &tileE = it.second;
-    static unordered_set<string> blacklist({"minecraft:sculk_sensor"});
-    if (blacklist.find(tileE->string("id", "")) != blacklist.end()) {
+    static unordered_set<u8string> blacklist({u8"minecraft:sculk_sensor"});
+    if (blacklist.find(tileE->string(u8"id", u8"")) != blacklist.end()) {
       continue;
     }
     auto found = chunkA->fTileEntities.find(pos);
@@ -740,15 +740,15 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     CheckTileEntity(*tileE, *tileA);
   }
 
-  static set<string> const sEntityBlacklist = {
-      "minecraft:text_display",
-      "minecraft:item_display",
-      "minecraft:block_display",
+  static set<u8string> const sEntityBlacklist = {
+      u8"minecraft:text_display",
+      u8"minecraft:item_display",
+      u8"minecraft:block_display",
   };
   for (shared_ptr<CompoundTag> const &entityE : chunkE->fEntities) {
-    Pos3d posE = *props::GetPos3d(*entityE, "Pos");
-    Rotation rotE = *props::GetRotation(*entityE, "Rotation");
-    auto id = entityE->string("id");
+    Pos3d posE = *props::GetPos3d(*entityE, u8"Pos");
+    Rotation rotE = *props::GetRotation(*entityE, u8"Rotation");
+    auto id = entityE->string(u8"id");
     REQUIRE(id);
     if (sEntityBlacklist.find(*id) != sEntityBlacklist.end()) {
       continue;
@@ -782,8 +782,8 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     CheckTickingBlock(tbE, *tbA);
   }
 
-  auto heightMapsE = chunkE->fRoot->compoundTag("Heightmaps");
-  auto heightMapsA = chunkA->fRoot->compoundTag("Heightmaps");
+  auto heightMapsE = chunkE->fRoot->compoundTag(u8"Heightmaps");
+  auto heightMapsA = chunkA->fRoot->compoundTag(u8"Heightmaps");
   REQUIRE(heightMapsE);
   REQUIRE(heightMapsA);
   CheckHeightmaps(*heightMapsE, *heightMapsA);
@@ -805,97 +805,97 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
   CHECK(e);
   CHECK(a);
 
-  auto dataE = e->compoundTag("Data");
-  auto dataA = a->compoundTag("Data");
+  auto dataE = e->compoundTag(u8"Data");
+  auto dataA = a->compoundTag(u8"Data");
   CHECK(dataE);
   CHECK(dataA);
 
-  unordered_set<string> blacklist = {
-      "BorderCenterX",
-      "BorderCenterY",
-      "BorderCenterZ",
-      "BorderSafeZone",
-      "BorderSize",
-      "BorderSizeLerpTarget",
-      "BorderSizeLerpTime",
-      "BorderWarningBlocks",
-      "BorderWarningTime",
-      "BorderDamagePerBlock",
-      "CustomBossEvents",
-      "DifficultyLocked",
-      "DragonFight/Dragon",
-      "LastPlayed", // JE: milli-seconds, BE: seconds
-      "ScheduledEvents",
-      "SpawnAngle",
-      "WanderingTraderId",
-      "WanderingTraderSpawnChance",
-      "WanderingTraderSpawnDelay",
-      "WasModded",
-      "clearWeatherTime",
-      "hardcore",
-      "initialized",
+  unordered_set<u8string> blacklist = {
+      u8"BorderCenterX",
+      u8"BorderCenterY",
+      u8"BorderCenterZ",
+      u8"BorderSafeZone",
+      u8"BorderSize",
+      u8"BorderSizeLerpTarget",
+      u8"BorderSizeLerpTime",
+      u8"BorderWarningBlocks",
+      u8"BorderWarningTime",
+      u8"BorderDamagePerBlock",
+      u8"CustomBossEvents",
+      u8"DifficultyLocked",
+      u8"DragonFight/Dragon",
+      u8"LastPlayed", // JE: milli-seconds, BE: seconds
+      u8"ScheduledEvents",
+      u8"SpawnAngle",
+      u8"WanderingTraderId",
+      u8"WanderingTraderSpawnChance",
+      u8"WanderingTraderSpawnDelay",
+      u8"WasModded",
+      u8"clearWeatherTime",
+      u8"hardcore",
+      u8"initialized",
   };
-  unordered_set<string> ignoredGameRules = {
-      "announceAdvancements",
-      "disableElytraMovementCheck",
-      "disableRaids",
-      "doLimitedCrafting",
-      "forgiveDeadPlayers",
-      "logAdminCommands",
-      "maxEntityCramming",
-      "reducedDebugInfo",
-      "spectatorsGenerateChunks",
-      "universalAnger",
-      "playersSleepingPercentage",
-      "doWardenSpawning",
-      "blockExplosionDropDecay",
-      "globalSoundEvents",
-      "lavaSourceConversion",
-      "tntExplosionDropDecay",
-      "waterSourceConversion",
-      "mobExplosionDropDecay",
-      "snowAccumulationHeight",
-      "commandModificationBlockLimit",
-      "doVinesSpread",
+  unordered_set<u8string> ignoredGameRules = {
+      u8"announceAdvancements",
+      u8"disableElytraMovementCheck",
+      u8"disableRaids",
+      u8"doLimitedCrafting",
+      u8"forgiveDeadPlayers",
+      u8"logAdminCommands",
+      u8"maxEntityCramming",
+      u8"reducedDebugInfo",
+      u8"spectatorsGenerateChunks",
+      u8"universalAnger",
+      u8"playersSleepingPercentage",
+      u8"doWardenSpawning",
+      u8"blockExplosionDropDecay",
+      u8"globalSoundEvents",
+      u8"lavaSourceConversion",
+      u8"tntExplosionDropDecay",
+      u8"waterSourceConversion",
+      u8"mobExplosionDropDecay",
+      u8"snowAccumulationHeight",
+      u8"commandModificationBlockLimit",
+      u8"doVinesSpread",
   };
-  for (string const &rule : ignoredGameRules) {
-    blacklist.insert("GameRules/" + rule);
+  for (u8string const &rule : ignoredGameRules) {
+    blacklist.insert(u8"GameRules/" + rule);
   }
-  unordered_set<string> ignoredPlayerAttributes = {
-      "Attributes",
-      "EnderItems/*/tag/HideFlags", //?
-      "EnderItems/*/tag/map",
-      "Fire",
-      "Motion",
-      "Score",
-      "foodTickTimer",
-      "previousPlayerGameType",
-      "recipeBook",
-      "HurtByTimestamp",
-      "SpawnAngle",
-      "SpawnForced",
-      "ActiveEffects",         // TODO:
-      "enteredNetherPosition", // TODO: exists when logged out from the nether
+  unordered_set<u8string> ignoredPlayerAttributes = {
+      u8"Attributes",
+      u8"EnderItems/*/tag/HideFlags", //?
+      u8"EnderItems/*/tag/map",
+      u8"Fire",
+      u8"Motion",
+      u8"Score",
+      u8"foodTickTimer",
+      u8"previousPlayerGameType",
+      u8"recipeBook",
+      u8"HurtByTimestamp",
+      u8"SpawnAngle",
+      u8"SpawnForced",
+      u8"ActiveEffects",         // TODO:
+      u8"enteredNetherPosition", // TODO: exists when logged out from the nether
   };
-  for (string const &rule : ignoredPlayerAttributes) {
-    blacklist.insert("Player/" + rule);
+  for (u8string const &rule : ignoredPlayerAttributes) {
+    blacklist.insert(u8"Player/" + rule);
   }
-  for (string const &s : blacklist) {
+  for (u8string const &s : blacklist) {
     Erase(dataE, s);
     Erase(dataA, s);
   }
-  auto playerE = dataE->compoundTag("Player");
-  auto playerA = dataA->compoundTag("Player");
-  CheckEntity("player", *playerE, *playerA);
+  auto playerE = dataE->compoundTag(u8"Player");
+  auto playerA = dataA->compoundTag(u8"Player");
+  CheckEntity(u8"player", *playerE, *playerA);
 
-  dataE->erase("Player");
-  dataA->erase("Player");
+  dataE->erase(u8"Player");
+  dataA->erase(u8"Player");
   DiffCompoundTag(*dataE, *dataA);
 }
 
 static void RemoveEmpty(CompoundTag &t) {
   using namespace std;
-  vector<string> remove;
+  vector<u8string> remove;
   for (auto &it : t) {
     if (auto c = dynamic_pointer_cast<CompoundTag>(it.second); c) {
       RemoveEmpty(*c);
@@ -916,10 +916,10 @@ static void RemoveEmpty(CompoundTag &t) {
 static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
   auto poiE = regionE.exportToNbt(cx, cz);
   if (poiE) {
-    static std::unordered_set<std::string> const blacklist = {
-        "Sections/*/Valid",
-        "DataVersion"};
-    for (string const &s : blacklist) {
+    static std::unordered_set<std::u8string> const blacklist = {
+        u8"Sections/*/Valid",
+        u8"DataVersion"};
+    for (u8string const &s : blacklist) {
       Erase(poiE, s);
     }
     RemoveEmpty(*poiE);
@@ -932,8 +932,8 @@ static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const
   if (!poiE || !poiA) {
     return;
   }
-  auto sectionsE = poiE->compoundTag("Sections");
-  auto sectionsA = poiA->compoundTag("Sections");
+  auto sectionsE = poiE->compoundTag(u8"Sections");
+  auto sectionsA = poiA->compoundTag(u8"Sections");
   CHECK(sectionsE);
   CHECK(sectionsA);
   CHECK(sectionsE->fValue.size() == sectionsA->fValue.size());
@@ -946,8 +946,8 @@ static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const
     auto sectionA = sectionATag->asCompound();
     CHECK(sectionA);
 
-    auto recordsE = sectionE->listTag("Records");
-    auto recordsA = sectionA->listTag("Records");
+    auto recordsE = sectionE->listTag(u8"Records");
+    auto recordsA = sectionA->listTag(u8"Records");
     if (recordsE) {
       if (recordsE->empty()) {
         if (recordsA) {
@@ -959,7 +959,7 @@ static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const
         for (auto const &rE : *recordsE) {
           auto recordE = rE->asCompound();
           CHECK(recordE);
-          auto posE = recordE->intArrayTag("pos");
+          auto posE = recordE->intArrayTag(u8"pos");
           CHECK(posE);
           CHECK(posE->fValue.size() == 3);
           int x = posE->fValue[0];
@@ -971,7 +971,7 @@ static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const
             if (!recordA) {
               continue;
             }
-            auto posA = recordA->intArrayTag("pos");
+            auto posA = recordA->intArrayTag(u8"pos");
             if (!posA) {
               continue;
             }
@@ -979,9 +979,9 @@ static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const
               continue;
             }
             if (posA->fValue[0] == x && posA->fValue[1] == y && posA->fValue[2] == z) {
-              CHECK(recordE->string("type") == recordA->string("type"));
-              auto freeTicketsE = recordE->int32("free_tickets");
-              auto freeTicketsA = recordA->int32("free_tickets");
+              CHECK(recordE->string(u8"type") == recordA->string(u8"type"));
+              auto freeTicketsE = recordE->int32(u8"free_tickets");
+              auto freeTicketsA = recordA->int32(u8"free_tickets");
               CHECK(freeTicketsE);
               CHECK(freeTicketsA);
               CHECK(*freeTicketsE <= *freeTicketsA);
@@ -1091,7 +1091,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
         continue;
       }
       auto const &fileA = it.path();
-      if (fileA.extension() != ".mca") {
+      if (fileA.extension() != u8".mca") {
         continue;
       }
 
@@ -1136,7 +1136,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
         continue;
       }
       auto const &fileA = it.path();
-      if (fileA.extension() != ".mca") {
+      if (fileA.extension() != u8".mca") {
         continue;
       }
 

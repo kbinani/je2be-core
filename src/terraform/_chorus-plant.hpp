@@ -30,7 +30,7 @@ public:
           if (!blockB) {
             continue;
           }
-          if (blockB->fName == "minecraft:chorus_flower") {
+          if (blockB->fName == u8"minecraft:chorus_flower") {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);
@@ -45,12 +45,12 @@ public:
           auto west = cache.blockAt(x - 1, y, z);
 
           auto replace = blockJ->applying({
-              {"up", up ? "true" : "false"},
-              {"down", IsChorusPlantConnectable(down)},
-              {"north", IsChorusPlantConnectable(north)},
-              {"east", IsChorusPlantConnectable(east)},
-              {"south", IsChorusPlantConnectable(south)},
-              {"west", IsChorusPlantConnectable(west)},
+              {u8"up", up ? u8"true" : u8"false"},
+              {u8"down", IsChorusPlantConnectable(down)},
+              {u8"north", IsChorusPlantConnectable(north)},
+              {u8"east", IsChorusPlantConnectable(east)},
+              {u8"south", IsChorusPlantConnectable(south)},
+              {u8"west", IsChorusPlantConnectable(west)},
           });
           out.setBlockAt(x, y, z, replace);
         }
@@ -59,17 +59,17 @@ public:
   }
 
 private:
-  static std::string IsChorusPlantConnectable(std::shared_ptr<mcfile::je::Block const> const &b) {
+  static std::u8string IsChorusPlantConnectable(std::shared_ptr<mcfile::je::Block const> const &b) {
     if (!b) {
-      return "false";
+      return u8"false";
     }
     if (BlockPropertyAccessor::IsChorusPlant(*b)) {
-      return "true";
+      return u8"true";
     }
     if (b->fId == mcfile::blocks::minecraft::end_stone) {
-      return "true";
+      return u8"true";
     }
-    return "false";
+    return u8"false";
   }
 };
 

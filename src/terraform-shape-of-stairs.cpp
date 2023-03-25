@@ -74,36 +74,36 @@ public:
           }
 
           auto shape = Shape(direction, outerWeirdoDirection, innerWeirdoDirection, leftWeirdoDirection, rightWeirdoDirection);
-          auto newBlock = blockJ->applying({{"shape", shape}});
+          auto newBlock = blockJ->applying({{u8"shape", shape}});
           out.setBlockAt(x, y, z, newBlock);
         }
       }
     }
   }
 
-  static std::string Shape(mcfile::blocks::data::Directional::BlockFace direction,
-                           std::optional<mcfile::blocks::data::Directional::BlockFace> outer,
-                           std::optional<mcfile::blocks::data::Directional::BlockFace> inner,
-                           std::optional<mcfile::blocks::data::Directional::BlockFace> left,
-                           std::optional<mcfile::blocks::data::Directional::BlockFace> right) {
+  static std::u8string Shape(mcfile::blocks::data::Directional::BlockFace direction,
+                             std::optional<mcfile::blocks::data::Directional::BlockFace> outer,
+                             std::optional<mcfile::blocks::data::Directional::BlockFace> inner,
+                             std::optional<mcfile::blocks::data::Directional::BlockFace> left,
+                             std::optional<mcfile::blocks::data::Directional::BlockFace> right) {
     Pos2i vec = VecFromWeirdoDirection(direction);
     if (outer) {
       Pos2i o = VecFromWeirdoDirection(*outer);
       if (Left90(vec) == o && direction != right) {
-        return "outer_left";
+        return u8"outer_left";
       } else if (Right90(vec) == o && direction != left) {
-        return "outer_right";
+        return u8"outer_right";
       }
     }
     if (inner) {
       Pos2i i = VecFromWeirdoDirection(*inner);
       if (Left90(vec) == i && direction != left) {
-        return "inner_left";
+        return u8"inner_left";
       } else if (Right90(vec) == i && direction != right) {
-        return "inner_right";
+        return u8"inner_right";
       }
     }
-    return "straight";
+    return u8"straight";
   }
 
   static std::shared_ptr<mcfile::blocks::data::type::Stairs> StairsBlockData(BlockAccessor<mcfile::je::Block> &dataAccessor, int x, int y, int z) {

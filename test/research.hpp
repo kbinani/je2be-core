@@ -97,21 +97,21 @@ static void VisitDb(string const &name, function<void(string const &key, string 
 }
 
 static void FenceGlassPaneIronBarsConnectable() {
-  set<string> uniq;
+  set<u8string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
-    string name = mcfile::blocks::Name(id);
-    if (name.ends_with("_stairs")) {
+    u8string name = mcfile::blocks::Name(id);
+    if (name.ends_with(u8"_stairs")) {
       continue;
     }
-    if (name.ends_with("piston")) {
+    if (name.ends_with(u8"piston")) {
       continue;
     }
-    if (name.ends_with("door")) {
+    if (name.ends_with(u8"door")) {
       continue;
     }
     uniq.insert(name);
   }
-  vector<string> names(uniq.begin(), uniq.end());
+  vector<u8string> names(uniq.begin(), uniq.end());
 
   int const x0 = -42;
   int const z0 = 165;
@@ -131,7 +131,7 @@ static void FenceGlassPaneIronBarsConnectable() {
   }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
-    for (string const &name : names) {
+    for (u8string const &name : names) {
       os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
       x++;
     }
@@ -145,8 +145,8 @@ static void FenceGlassPaneIronBarsConnectable() {
   mcfile::je::World w(root);
   shared_ptr<mcfile::je::Chunk> chunk;
   int cz = mcfile::Coordinate::ChunkFromBlock(z0);
-  set<string> glassPaneAttachable;
-  set<string> fenceAttachable;
+  set<u8string> glassPaneAttachable;
+  set<u8string> fenceAttachable;
   for (int x = x0; x < x1; x++) {
     int cx = mcfile::Coordinate::ChunkFromBlock(x);
     if (!chunk || (chunk && chunk->fChunkX != cx)) {
@@ -158,13 +158,13 @@ static void FenceGlassPaneIronBarsConnectable() {
       cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
     } else {
       auto fence = chunk->blockAt(x, y, z0 - 1);
-      auto fenceAttached = fence->property("south") == "true";
+      auto fenceAttached = fence->property(u8"south") == u8"true";
       if (fenceAttached) {
         fenceAttachable.insert(expected);
       }
 
       auto glassPane = chunk->blockAt(x, y, z0 + 1);
-      auto glassPaneAttached = glassPane->property("north") == "true";
+      auto glassPaneAttached = glassPane->property(u8"north") == u8"true";
       if (glassPaneAttached) {
         glassPaneAttachable.insert(expected);
       }
@@ -204,7 +204,7 @@ static void FenceGlassPaneIronBarsConnectable() {
 
 static void NoteBlock() {
   using namespace mcfile::blocks::minecraft;
-  map<string, Pos3i> uniq;
+  map<u8string, Pos3i> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
     switch (id) {
     case cave_vines_plant:
@@ -217,7 +217,7 @@ static void NoteBlock() {
     case weeping_vines_plant:
       continue;
     }
-    string name = mcfile::blocks::Name(id);
+    u8string name = mcfile::blocks::Name(id);
     uniq[name] = {0, 0, 0};
   }
 
@@ -240,8 +240,8 @@ static void NoteBlock() {
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block.mcfunction").string());
     for (auto const &it : uniq) {
-      string name = it.first;
-      if (name.ends_with("_door")) {
+      u8string name = it.first;
+      if (name.ends_with(u8"_door")) {
         os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << "[half=upper]" << endl;
         os << "setblock " << x << " " << (y - 2) << " " << z0 << " " << name << "[half=lower]" << endl;
       } else {
@@ -264,10 +264,10 @@ static void NoteBlock() {
 
   mcfile::je::World w(root);
   shared_ptr<mcfile::je::Chunk> chunk;
-  map<string, set<string>> instruments;
-  set<string> error;
+  map<u8string, set<u8string>> instruments;
+  set<u8string> error;
   for (auto const &it : uniq) {
-    string expected = it.first;
+    u8string expected = it.first;
     Pos3i pos = it.second;
     int cx = mcfile::Coordinate::ChunkFromBlock(pos.fX);
     int cz = mcfile::Coordinate::ChunkFromBlock(pos.fZ);
@@ -279,16 +279,16 @@ static void NoteBlock() {
       error.insert(expected);
     } else {
       auto noteBlock = chunk->blockAt(pos.fX, pos.fY + 1, pos.fZ);
-      auto instrument = noteBlock->property("instrument", "");
+      auto instrument = noteBlock->property(u8"instrument", u8"");
       if (instrument.empty()) {
         cerr << "empty instrument: [" << x << ", " << z0 << "]" << endl;
       } else {
-        instruments[string(instrument)].insert(string(center->fName));
+        instruments[u8string(instrument)].insert(u8string(center->fName));
       }
     }
   }
 
-  instruments.erase("harp");
+  instruments.erase(u8"harp");
 
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
@@ -297,12 +297,12 @@ static void NoteBlock() {
   code << "  auto static const bedrock = mcfile::blocks::minecraft::bedrock;" << endl;
   code << "  switch (id) {" << endl;
   for (auto const &it : instruments) {
-    string instrument = it.first;
-    set<string> const &blocks = it.second;
-    for (string const &block : blocks) {
+    u8string instrument = it.first;
+    set<u8string> const &blocks = it.second;
+    for (u8string const &block : blocks) {
       code << "  case " << block.substr(10) << ":" << endl;
     }
-    code << "    return \"" + instrument << "\";" << endl;
+    code << u8"    return \"" + instrument << u8"\";" << endl;
   }
   code << "  default:" << endl;
   code << "    return \"harp\";" << endl;
@@ -312,18 +312,18 @@ static void NoteBlock() {
 }
 
 static void RedstoneWire() {
-  set<string> uniq;
+  set<u8string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
-    string name = mcfile::blocks::Name(id);
-    if (name.ends_with("slab")) {
+    u8string name = mcfile::blocks::Name(id);
+    if (name.ends_with(u8"slab")) {
       continue;
     }
-    if (name.ends_with("rail")) {
+    if (name.ends_with(u8"rail")) {
       continue;
     }
     uniq.insert(name);
   }
-  vector<string> names(uniq.begin(), uniq.end());
+  vector<u8string> names(uniq.begin(), uniq.end());
 
   int const x0 = -42;
   int const z0 = 165;
@@ -344,7 +344,7 @@ static void RedstoneWire() {
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_redstone_wire.mcfunction").string());
     os << "fill " << x0 << " " << y << " " << (z0 - 1) << " " << (x0 + 2 * names.size()) << " " << (y + 2) << " " << (z0 + 1) << " air" << endl;
-    for (string const &name : names) {
+    for (u8string const &name : names) {
       os << "setblock " << x << " " << (y - 1) << " " << z0 << " air" << endl;
       os << "setblock " << x << " " << (y - 2) << " " << z0 << " redstone_wire" << endl;
       os << "setblock " << x << " " << (y - 1) << " " << (z0 - 1) << " redstone_wire" << endl;
@@ -360,8 +360,8 @@ static void RedstoneWire() {
   mcfile::je::World w(root);
   shared_ptr<mcfile::je::Chunk> chunk;
   int cz = mcfile::Coordinate::ChunkFromBlock(z0);
-  set<string> negative;
-  set<string> positive;
+  set<u8string> negative;
+  set<u8string> positive;
   int i = 0;
   for (int x = x0; x < x1; x += 2, i++) {
     int cx = mcfile::Coordinate::ChunkFromBlock(x);
@@ -375,16 +375,16 @@ static void RedstoneWire() {
     } else {
       if (mcfile::blocks::IsTransparent(center->fId)) {
         auto wire = chunk->blockAt(x, y - 2, z0);
-        auto north = wire->property("north", "");
-        auto south = wire->property("south", "");
-        if (north != "up" || south != "up") {
+        auto north = wire->property(u8"north", u8"");
+        auto south = wire->property(u8"south", u8"");
+        if (north != u8"up" || south != u8"up") {
           negative.insert(expected);
         }
       } else {
         auto wire = chunk->blockAt(x, y - 2, z0);
-        auto north = wire->property("north", "");
-        auto south = wire->property("south", "");
-        if (north == "up" && south == "up") {
+        auto north = wire->property(u8"north", u8"");
+        auto south = wire->property(u8"south", u8"");
+        if (north == u8"up" && south == u8"up") {
           positive.insert(expected);
         }
       }
@@ -539,30 +539,30 @@ static void MonumentBedrock() {
     }
   }
   Volume::Connect(volumes);
-  unordered_map<Pos3i, string, Pos3iHasher> blocks;
-  unordered_set<string> ignore = {
-      "water",
-      "kelp",
-      "seagrass",
-      "dirt",
-      "flowing_water",
-      "sand",
-      "gravel",
-      "stone",
-      "copper_ore",
-      "coal_ore",
-      "iron_ore",
-      "lapis_ore",
-      "sandstone",
-      "packed_ice",
-      "sponge",
-      "ice",
-      "blue_ice",
-      "gold_block",
+  unordered_map<Pos3i, u8string, Pos3iHasher> blocks;
+  unordered_set<u8string> ignore = {
+      u8"water",
+      u8"kelp",
+      u8"seagrass",
+      u8"dirt",
+      u8"flowing_water",
+      u8"sand",
+      u8"gravel",
+      u8"stone",
+      u8"copper_ore",
+      u8"coal_ore",
+      u8"iron_ore",
+      u8"lapis_ore",
+      u8"sandstone",
+      u8"packed_ice",
+      u8"sponge",
+      u8"ice",
+      u8"blue_ice",
+      u8"gold_block",
   };
-  unordered_set<string> target = {
-      "prismarine",
-      "seaLantern",
+  unordered_set<u8string> target = {
+      u8"prismarine",
+      u8"seaLantern",
   };
   for (Volume const &v : volumes) {
     cout << "=====" << endl;
@@ -634,7 +634,7 @@ static void MonumentBedrock() {
             cerr << "cannot get block at [" << x << ", " << y << ", " << z << "]" << endl;
             return;
           }
-          string name = bl->fName.substr(10);
+          u8string name = bl->fName.substr(10);
           Pos3i local(x - x0, y - y0, z - z0);
           Pos2i radius(29, 29);
           Pos2i xz(local.fX, local.fZ);
@@ -668,9 +668,9 @@ static void MonumentBedrock() {
           auto found = b.find(local);
           if (ignore.find(name) != ignore.end()) {
             if (found == b.end()) {
-              b[local] = "";
-            } else if (found->second != "") {
-              b[local] = "";
+              b[local] = u8"";
+            } else if (found->second != u8"") {
+              b[local] = u8"";
             }
             continue;
           }
@@ -678,7 +678,7 @@ static void MonumentBedrock() {
             if (found == b.end()) {
               b[local] = name;
             } else if (found->second != name) {
-              b[local] = "";
+              b[local] = u8"";
             }
             continue;
           }
@@ -691,7 +691,7 @@ static void MonumentBedrock() {
 #if 1
   for (auto const &it : blocks) {
     Pos3i p = it.first;
-    string block = it.second;
+    u8string block = it.second;
     if (block.empty()) {
       continue;
     }
@@ -712,28 +712,28 @@ static void Box360Chunk() {
 }
 
 static void WallConnectable() {
-  set<string> uniq;
+  set<u8string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
     switch (id) {
     case mcfile::blocks::minecraft::reinforced_deepslate:
       continue;
     }
-    string name = mcfile::blocks::Name(id);
-    if (name.ends_with("_stairs")) {
+    u8string name = mcfile::blocks::Name(id);
+    if (name.ends_with(u8"_stairs")) {
       continue;
     }
-    if (name.ends_with("piston")) {
+    if (name.ends_with(u8"piston")) {
       continue;
     }
-    if (name.ends_with("door")) {
+    if (name.ends_with(u8"door")) {
       continue;
     }
-    if (name.find("sculk") != string::npos && id != mcfile::blocks::minecraft::sculk_sensor) {
+    if (name.find(u8"sculk") != string::npos && id != mcfile::blocks::minecraft::sculk_sensor) {
       continue;
     }
     uniq.insert(name);
   }
-  vector<string> names(uniq.begin(), uniq.end());
+  vector<u8string> names(uniq.begin(), uniq.end());
 
   int const x0 = -42;
   int const z0 = 165;
@@ -753,7 +753,7 @@ static void WallConnectable() {
   }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
-    for (string const &name : names) {
+    for (u8string const &name : names) {
       os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
       os << "setblock " << x << " " << (y + 1) << " " << (z0 + 1) << " " << name << endl;
       x++;
@@ -768,8 +768,8 @@ static void WallConnectable() {
   mcfile::je::World w(root);
   shared_ptr<mcfile::je::Chunk> chunk;
   int cz = mcfile::Coordinate::ChunkFromBlock(z0);
-  set<string> wallAttachable;
-  set<string> tall;
+  set<u8string> wallAttachable;
+  set<u8string> tall;
   for (int x = x0; x < x1; x++) {
     int cx = mcfile::Coordinate::ChunkFromBlock(x);
     if (!chunk || (chunk && chunk->fChunkX != cx)) {
@@ -781,12 +781,12 @@ static void WallConnectable() {
       cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
     } else {
       auto wall = chunk->blockAt(x, y, z0 + 1);
-      auto wallAttached = wall->property("north") != "none";
+      auto wallAttached = wall->property(u8"north") != u8"none";
       if (wallAttached) {
         wallAttachable.insert(expected);
       }
-      if (wall->property("south") == "tall") {
-        if (!expected.ends_with("slab") && !expected.ends_with("stairs") && !expected.ends_with("trapdoor")) {
+      if (wall->property(u8"south") == u8"tall") {
+        if (!expected.ends_with(u8"slab") && !expected.ends_with(u8"stairs") && !expected.ends_with(u8"trapdoor")) {
           tall.insert(expected);
         }
       }
@@ -832,14 +832,14 @@ static void PistonArm() {
       auto t = Compound();
 
       auto block = chunk->blockAt(0, y, 0);
-      t->set("block", block->toCompoundTag());
+      t->set(u8"block", block->toCompoundTag());
 
       auto tile = chunk->blockEntityAt(0, y, 0);
       if (tile) {
-        t->set("tile", tile->clone());
+        t->set(u8"tile", tile->clone());
       }
 
-      root->set(to_string(y), t);
+      root->set(mcfile::String::ToString(y), t);
     }
     ostringstream ss;
     mcfile::nbt::PrintAsJson(ss, *root, {.fTypeHint = true});
@@ -862,14 +862,14 @@ static void PistonArm() {
       auto t = Compound();
 
       auto block = chunk->blockAt(0, y, 0);
-      t->set("block", block->toCompoundTag());
+      t->set(u8"block", block->toCompoundTag());
 
       auto tile = chunk->tileEntityAt(0, y, 0);
       if (tile) {
-        t->set("tile", tile->clone());
+        t->set(u8"tile", tile->clone());
       }
 
-      root->set(to_string(y), t);
+      root->set(mcfile::String::ToString(y), t);
     }
     ostringstream ss;
     mcfile::nbt::PrintAsJson(ss, *root, {.fTypeHint = true});
@@ -942,7 +942,7 @@ static void LightTransmission1() {
     int x = x0;
     for (mcfile::blocks::BlockId id = 1; id <= mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
       auto name = mcfile::blocks::Name(id);
-      if (name.ends_with("_stairs") || name.ends_with("_slab")) {
+      if (name.ends_with(u8"_stairs") || name.ends_with(u8"_slab")) {
         continue;
       }
       int y = y0;
@@ -1002,7 +1002,7 @@ static void LightTransmission1() {
       cerr << mcfile::blocks::Name(id) << " not set (2)" << endl;
       continue;
     }
-    if (block->property("waterlogged") == "true") {
+    if (block->property(u8"waterlogged") == u8"true") {
       cerr << mcfile::blocks::Name(id) << " waterlogged is set to true" << endl;
       continue;
     }
@@ -1156,13 +1156,13 @@ static void LightEmission() {
       continue;
     }
     auto name = mcfile::blocks::Name(id).substr(10);
-    if (name.ends_with("bed")) {
+    if (name.ends_with(u8"bed")) {
       continue;
     }
-    if (name.ends_with("banner")) {
+    if (name.ends_with(u8"banner")) {
       continue;
     }
-    if (name.ends_with("candle_cake")) {
+    if (name.ends_with(u8"candle_cake")) {
       continue;
     }
     using namespace mcfile::blocks::minecraft;
@@ -1272,24 +1272,24 @@ static void Heightmaps() {
     if (!chunk || chunk->fChunkX != cx || chunk->fChunkZ != cz) {
       chunk = world.writableChunkAt(cx, cz);
       REQUIRE(chunk);
-      auto heightMaps = chunk->fRoot->compoundTag("Heightmaps");
+      auto heightMaps = chunk->fRoot->compoundTag(u8"Heightmaps");
       REQUIRE(heightMaps);
-      if (auto tag = heightMaps->longArrayTag("MOTION_BLOCKING"); tag) {
+      if (auto tag = heightMaps->longArrayTag(u8"MOTION_BLOCKING"); tag) {
         motionBlocking.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
-      if (auto tag = heightMaps->longArrayTag("MOTION_BLOCKING_NO_LEAVES"); tag) {
+      if (auto tag = heightMaps->longArrayTag(u8"MOTION_BLOCKING_NO_LEAVES"); tag) {
         motionBlockingNoLeaves.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
-      if (auto tag = heightMaps->longArrayTag("OCEAN_FLOOR"); tag) {
+      if (auto tag = heightMaps->longArrayTag(u8"OCEAN_FLOOR"); tag) {
         oceanFloor.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);
       }
-      if (auto tag = heightMaps->longArrayTag("WORLD_SURFACE"); tag) {
+      if (auto tag = heightMaps->longArrayTag(u8"WORLD_SURFACE"); tag) {
         worldSurface.copyFrom(tag->fValue);
       } else {
         REQUIRE(false);

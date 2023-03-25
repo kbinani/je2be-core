@@ -326,8 +326,8 @@ private:
     }
 
     auto pendingTicks = Compound();
-    pendingTicks->set("currentTick", Int(fChunkLastUpdate));
-    pendingTicks->set("tickList", tickList);
+    pendingTicks->set(u8"currentTick", Int(fChunkLastUpdate));
+    pendingTicks->set(u8"tickList", tickList);
 
     auto s = make_shared<mcfile::stream::ByteStream>();
     if (!CompoundTag::Write(*pendingTicks, s, mcfile::Endian::Little)) {

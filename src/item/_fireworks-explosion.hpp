@@ -8,9 +8,9 @@ class FireworksExplosion {
 public:
   static FireworksExplosion FromJava(CompoundTag const &tag) {
     FireworksExplosion e;
-    e.fTrail = tag.boolean("Trail");
-    e.fFlicker = tag.boolean("Flicker");
-    auto colors = tag.query("Colors")->asIntArray();
+    e.fTrail = tag.boolean(u8"Trail");
+    e.fFlicker = tag.boolean(u8"Flicker");
+    auto colors = tag.query(u8"Colors")->asIntArray();
     if (colors) {
       for (auto v : colors->value()) {
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
@@ -19,7 +19,7 @@ public:
         e.fColor.push_back(Rgba(r, g, b));
       }
     }
-    auto fadeColors = tag.query("FadeColors")->asIntArray();
+    auto fadeColors = tag.query(u8"FadeColors")->asIntArray();
     if (fadeColors) {
       for (auto v : fadeColors->value()) {
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
@@ -28,7 +28,7 @@ public:
         e.fFadeColor.push_back(Rgba(r, g, b));
       }
     }
-    e.fType = tag.byte("Type");
+    e.fType = tag.byte(u8"Type");
     return e;
 
     // Java
@@ -47,9 +47,9 @@ public:
 
   static FireworksExplosion FromBedrock(CompoundTag const &tag) {
     FireworksExplosion e;
-    e.fFlicker = tag.boolean("FireworkFlicker");
-    e.fTrail = tag.boolean("FireworkTrail");
-    auto colorB = tag.byteArrayTag("FireworkColor");
+    e.fFlicker = tag.boolean(u8"FireworkFlicker");
+    e.fTrail = tag.boolean(u8"FireworkTrail");
+    auto colorB = tag.byteArrayTag(u8"FireworkColor");
     auto const *table = GetTable();
     if (colorB) {
       for (i8 code : colorB->value()) {
@@ -59,7 +59,7 @@ public:
         }
       }
     }
-    auto fade = tag.byteArrayTag("FireworkFade");
+    auto fade = tag.byteArrayTag(u8"FireworkFade");
     if (fade) {
       for (i8 code : fade->value()) {
         auto found = table->find(code);
@@ -68,34 +68,34 @@ public:
         }
       }
     }
-    e.fType = tag.byte("FireworkType");
+    e.fType = tag.byte(u8"FireworkType");
     return e;
   }
 
   CompoundTagPtr toBedrockCompoundTag() const {
     auto ret = Compound();
     if (fFlicker) {
-      ret->set("FireworkFlicker", Bool(*fFlicker));
+      ret->set(u8"FireworkFlicker", Bool(*fFlicker));
     }
     if (fTrail) {
-      ret->set("FireworkTrail", Bool(*fTrail));
+      ret->set(u8"FireworkTrail", Bool(*fTrail));
     }
     if (fType) {
-      ret->set("FireworkType", Byte(*fType));
+      ret->set(u8"FireworkType", Byte(*fType));
     }
     if (!fColor.empty()) {
       std::vector<u8> colors;
       for (Rgba c : fColor) {
         colors.push_back(GetBedrockColorCode(c));
       }
-      ret->set("FireworkColor", std::make_shared<ByteArrayTag>(colors));
+      ret->set(u8"FireworkColor", std::make_shared<ByteArrayTag>(colors));
     }
     if (!fFadeColor.empty()) {
       std::vector<u8> fade;
       for (Rgba f : fFadeColor) {
         fade.push_back(GetBedrockColorCode(f));
       }
-      ret->set("FireworkFade", std::make_shared<ByteArrayTag>(fade));
+      ret->set(u8"FireworkFade", std::make_shared<ByteArrayTag>(fade));
     }
     return ret;
   }
@@ -104,27 +104,27 @@ public:
     using namespace std;
     auto ret = Compound();
     if (fTrail) {
-      ret->set("Trail", Bool(*fTrail));
+      ret->set(u8"Trail", Bool(*fTrail));
     }
     if (fFlicker) {
-      ret->set("Flicker", Bool(*fFlicker));
+      ret->set(u8"Flicker", Bool(*fFlicker));
     }
     if (fType) {
-      ret->set("Type", Byte(*fType));
+      ret->set(u8"Type", Byte(*fType));
     }
     if (!fColor.empty()) {
       vector<i32> colors;
       for (auto const &it : fColor) {
         colors.push_back(it.toRGB());
       }
-      ret->set("Colors", make_shared<IntArrayTag>(colors));
+      ret->set(u8"Colors", make_shared<IntArrayTag>(colors));
     }
     if (!fFadeColor.empty()) {
       vector<i32> fade;
       for (auto const &it : fFadeColor) {
         fade.push_back(it.toRGB());
       }
-      ret->set("FadeColors", make_shared<IntArrayTag>(fade));
+      ret->set(u8"FadeColors", make_shared<IntArrayTag>(fade));
     }
     return ret;
   }

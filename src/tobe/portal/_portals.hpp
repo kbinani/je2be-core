@@ -30,8 +30,8 @@ public:
     for (auto const &portal : portals) {
       portalRecords->push_back(portal.toCompoundTag());
     }
-    data->set("PortalRecords", portalRecords);
-    root->set("data", data);
+    data->set(u8"PortalRecords", portalRecords);
+    root->set(u8"data", data);
 
     auto buffer = CompoundTag::Write(*root, Endian::Little);
     if (!buffer) {

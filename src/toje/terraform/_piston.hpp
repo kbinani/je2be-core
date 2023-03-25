@@ -41,18 +41,18 @@ public:
             continue;
           }
           auto blockEntity = chunkB->blockEntityAt(x, y, z);
-          if ((blockB->fName == "minecraft:piston" || blockB->fName == "minecraft:sticky_piston") && blockEntity) {
+          if ((blockB->fName == u8"minecraft:piston" || blockB->fName == u8"minecraft:sticky_piston") && blockEntity) {
             // Block
-            auto state = blockEntity->byte("State");
-            int facingDirectionB = blockB->fStates->int32("facing_direction", 0);
+            auto state = blockEntity->byte(u8"State");
+            int facingDirectionB = blockB->fStates->int32(u8"facing_direction", 0);
             Facing6 f6 = Facing6FromBedrockFacingDirectionB(facingDirectionB);
-            bool sticky = blockB->fName == "minecraft:sticky_piston";
+            bool sticky = blockB->fName == u8"minecraft:sticky_piston";
 
             if (state == 3) {
-              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston")->applying({{"facing", JavaNameFromFacing6(f6)}, {"type", sticky ? "sticky" : "normal"}});
+              auto replace = make_shared<mcfile::je::Block const>(u8"minecraft:moving_piston")->applying({{u8"facing", JavaNameFromFacing6(f6)}, {u8"type", sticky ? u8"sticky" : u8"normal"}});
               chunkJ.setBlockAt(x, y, z, replace, sbo);
             } else {
-              auto replace = blockJ->applying({{"extended", ToString(state == 1 || state == 2)}});
+              auto replace = blockJ->applying({{u8"extended", ToString(state == 1 || state == 2)}});
               chunkJ.setBlockAt(x, y, z, replace, sbo);
             }
 
@@ -61,92 +61,92 @@ public:
               bool extending = false;
 
               auto tileEntityJ = Compound();
-              tileEntityJ->set("id", String("minecraft:piston"));
-              tileEntityJ->set("keepPacked", Bool(false));
-              tileEntityJ->set("x", Int(x));
-              tileEntityJ->set("y", Int(y));
-              tileEntityJ->set("z", Int(z));
-              tileEntityJ->set("extending", Bool(extending));
-              tileEntityJ->set("progress", Float(0));
-              tileEntityJ->set("facing", Int(facingDirectionB));
-              tileEntityJ->set("source", Bool(true));
+              tileEntityJ->set(u8"id", String(u8"minecraft:piston"));
+              tileEntityJ->set(u8"keepPacked", Bool(false));
+              tileEntityJ->set(u8"x", Int(x));
+              tileEntityJ->set(u8"y", Int(y));
+              tileEntityJ->set(u8"z", Int(z));
+              tileEntityJ->set(u8"extending", Bool(extending));
+              tileEntityJ->set(u8"progress", Float(0));
+              tileEntityJ->set(u8"facing", Int(facingDirectionB));
+              tileEntityJ->set(u8"source", Bool(true));
 
-              map<string, string> blockStateProps;
-              blockStateProps["extended"] = ToString(extending);
-              blockStateProps["facing"] = JavaNameFromFacing6(f6);
+              map<u8string, u8string> blockStateProps;
+              blockStateProps[u8"extended"] = ToString(extending);
+              blockStateProps[u8"facing"] = JavaNameFromFacing6(f6);
               auto blockState = make_shared<mcfile::je::Block const>(blockB->fName, blockStateProps);
 
-              tileEntityJ->set("blockState", blockState->toCompoundTag());
+              tileEntityJ->set(u8"blockState", blockState->toCompoundTag());
 
               chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
             }
-          } else if ((blockB->fName == "minecraft:movingBlock" || blockB->fName == "minecraft:moving_block") && blockEntity) {
+          } else if ((blockB->fName == u8"minecraft:movingBlock" || blockB->fName == u8"minecraft:moving_block") && blockEntity) {
             auto piston = PistonBodyFromPistonPos(*blockEntity, cache);
             if (piston) {
               // Block
-              int facingDirectionB = piston->fBlock->fStates->int32("facing_direction", 0);
+              int facingDirectionB = piston->fBlock->fStates->int32(u8"facing_direction", 0);
               Facing6 pistonFacing = Facing6FromBedrockFacingDirectionB(facingDirectionB);
 
-              auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston")->applying({
-                  {"facing", JavaNameFromFacing6(pistonFacing)}, {"type", "normal"}, // Always "normal"
+              auto replace = make_shared<mcfile::je::Block const>(u8"minecraft:moving_piston")->applying({
+                  {u8"facing", JavaNameFromFacing6(pistonFacing)}, {u8"type", u8"normal"}, // Always "normal"
               });
               chunkJ.setBlockAt(x, y, z, replace, sbo);
 
               // Tile entity
-              auto state = piston->fBlockEntity->byte("State");
+              auto state = piston->fBlockEntity->byte(u8"State");
               bool extending = state == 1; // state should be 3 or 1 here.
               auto tileEntityJ = Compound();
-              tileEntityJ->set("id", String("minecraft:piston"));
-              tileEntityJ->set("keepPacked", Bool(false));
-              tileEntityJ->set("x", Int(x));
-              tileEntityJ->set("y", Int(y));
-              tileEntityJ->set("z", Int(z));
-              tileEntityJ->set("extending", Bool(extending));
-              tileEntityJ->set("progress", Float(state == 3 ? 0 : 0.5));
-              tileEntityJ->set("facing", Int(facingDirectionB));
-              tileEntityJ->set("source", Bool(false));
+              tileEntityJ->set(u8"id", String(u8"minecraft:piston"));
+              tileEntityJ->set(u8"keepPacked", Bool(false));
+              tileEntityJ->set(u8"x", Int(x));
+              tileEntityJ->set(u8"y", Int(y));
+              tileEntityJ->set(u8"z", Int(z));
+              tileEntityJ->set(u8"extending", Bool(extending));
+              tileEntityJ->set(u8"progress", Float(state == 3 ? 0 : 0.5));
+              tileEntityJ->set(u8"facing", Int(facingDirectionB));
+              tileEntityJ->set(u8"source", Bool(false));
 
               auto movingBlockJ = MovingBlock(*blockEntity);
               if (movingBlockJ) {
-                tileEntityJ->set("blockState", movingBlockJ->toCompoundTag());
+                tileEntityJ->set(u8"blockState", movingBlockJ->toCompoundTag());
               }
 
               chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
             }
-          } else if (blockB->fName == "minecraft:pistonArmCollision" || blockB->fName == "minecraft:piston_arm_collision" || blockB->fName == "minecraft:stickyPistonArmCollision" || blockB->fName == "minecraft:sticky_piston_arm_collision") {
-            int facingDirectionB = blockB->fStates->int32("facing_direction", 0);
+          } else if (blockB->fName == u8"minecraft:pistonArmCollision" || blockB->fName == u8"minecraft:piston_arm_collision" || blockB->fName == u8"minecraft:stickyPistonArmCollision" || blockB->fName == u8"minecraft:sticky_piston_arm_collision") {
+            int facingDirectionB = blockB->fStates->int32(u8"facing_direction", 0);
             Facing6 f6 = Facing6FromBedrockFacingDirectionB(facingDirectionB);
             Pos3i direction = Pos3iFromFacing6(f6);
             Pos3i pistonPos = Pos3i(x, y, z) - direction;
             auto pistonBlockEntity = cache.blockEntityAt(pistonPos);
             if (pistonBlockEntity) {
-              auto state = pistonBlockEntity->byte("State");
+              auto state = pistonBlockEntity->byte(u8"State");
               if (state == 1) {
                 // Block
                 // state = 1 means the piston is extending state.
                 // Block name shold be renamed to "moving_piston".
-                bool sticky = (blockB->fName == "minecraft:stickyPistonArmCollision") || (blockB->fName == "minecraft:sticky_piston_arm_collision");
-                auto replace = make_shared<mcfile::je::Block const>("minecraft:moving_piston")->applying({{"facing", JavaNameFromFacing6(f6)}, {"type", sticky ? "sticky" : "normal"}});
+                bool sticky = (blockB->fName == u8"minecraft:stickyPistonArmCollision") || (blockB->fName == u8"minecraft:sticky_piston_arm_collision");
+                auto replace = make_shared<mcfile::je::Block const>(u8"minecraft:moving_piston")->applying({{u8"facing", JavaNameFromFacing6(f6)}, {u8"type", sticky ? u8"sticky" : u8"normal"}});
                 chunkJ.setBlockAt(x, y, z, replace, sbo);
 
                 // Tile Entity
                 auto tileEntityJ = Compound();
-                tileEntityJ->set("id", String("minecraft:piston"));
-                tileEntityJ->set("keepPacked", Bool(false));
-                tileEntityJ->set("x", Int(x));
-                tileEntityJ->set("y", Int(y));
-                tileEntityJ->set("z", Int(z));
-                tileEntityJ->set("progress", Float(0.5));
-                tileEntityJ->set("facing", Int(facingDirectionB));
-                tileEntityJ->set("source", Bool(true));
-                tileEntityJ->set("extending", Bool(true));
+                tileEntityJ->set(u8"id", String(u8"minecraft:piston"));
+                tileEntityJ->set(u8"keepPacked", Bool(false));
+                tileEntityJ->set(u8"x", Int(x));
+                tileEntityJ->set(u8"y", Int(y));
+                tileEntityJ->set(u8"z", Int(z));
+                tileEntityJ->set(u8"progress", Float(0.5));
+                tileEntityJ->set(u8"facing", Int(facingDirectionB));
+                tileEntityJ->set(u8"source", Bool(true));
+                tileEntityJ->set(u8"extending", Bool(true));
 
-                map<string, string> pistonHeadProps;
-                pistonHeadProps["facing"] = JavaNameFromFacing6(f6);
-                pistonHeadProps["short"] = "false";
-                pistonHeadProps["type"] = sticky ? "sticky" : "normal";
-                auto pistonHead = make_shared<mcfile::je::Block const>("minecraft:piston_head", pistonHeadProps);
-                tileEntityJ->set("blockState", pistonHead->toCompoundTag());
+                map<u8string, u8string> pistonHeadProps;
+                pistonHeadProps[u8"facing"] = JavaNameFromFacing6(f6);
+                pistonHeadProps[u8"short"] = u8"false";
+                pistonHeadProps[u8"type"] = sticky ? u8"sticky" : u8"normal";
+                auto pistonHead = make_shared<mcfile::je::Block const>(u8"minecraft:piston_head", pistonHeadProps);
+                tileEntityJ->set(u8"blockState", pistonHead->toCompoundTag());
 
                 chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
               }
@@ -158,7 +158,7 @@ public:
   }
 
   static std::shared_ptr<mcfile::je::Block const> MovingBlock(CompoundTag const &blockEntity) {
-    auto movingBlock = blockEntity.compoundTag("movingBlock");
+    auto movingBlock = blockEntity.compoundTag(u8"movingBlock");
     if (!movingBlock) {
       return nullptr;
     }
@@ -175,9 +175,9 @@ public:
   };
 
   static std::optional<PistonBody> PistonBodyFromPistonPos(CompoundTag const &blockEntity, terraform::bedrock::BlockAccessorBedrock<3, 3> &loader) {
-    auto x = blockEntity.int32("pistonPosX");
-    auto y = blockEntity.int32("pistonPosY");
-    auto z = blockEntity.int32("pistonPosZ");
+    auto x = blockEntity.int32(u8"pistonPosX");
+    auto y = blockEntity.int32(u8"pistonPosY");
+    auto z = blockEntity.int32(u8"pistonPosZ");
     if (!x || !y || !z) {
       return std::nullopt;
     }
@@ -195,8 +195,8 @@ public:
     return pb;
   }
 
-  static std::string ToString(bool b) {
-    return b ? "true" : "false";
+  static std::u8string ToString(bool b) {
+    return b ? u8"true" : u8"false";
   }
 };
 

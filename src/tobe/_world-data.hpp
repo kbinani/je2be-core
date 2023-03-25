@@ -31,9 +31,9 @@ public:
     if (!chunk.fStructures) {
       return;
     }
-    auto start = chunk.fStructures->compoundTag("starts"); // 1.18~
+    auto start = chunk.fStructures->compoundTag(u8"starts"); // 1.18~
     if (!start) {
-      start = chunk.fStructures->compoundTag("Starts"); // ~1.17
+      start = chunk.fStructures->compoundTag(u8"Starts"); // ~1.17
     }
     if (!start) {
       return;
@@ -41,13 +41,13 @@ public:
     if (start->empty()) {
       return;
     }
-    if (auto fortress = Get(*start, "fortress"); fortress) {
+    if (auto fortress = Get(*start, u8"fortress"); fortress) {
       addStructures(*fortress, StructureType::Fortress);
     }
-    if (auto monument = Get(*start, "monument"); monument) {
+    if (auto monument = Get(*start, u8"monument"); monument) {
       addStructures(*monument, StructureType::Monument);
     }
-    if (auto outpost = Get(*start, "pillager_outpost"); outpost) {
+    if (auto outpost = Get(*start, u8"pillager_outpost"); outpost) {
       addStructures(*outpost, StructureType::Outpost);
     }
   }
@@ -56,7 +56,7 @@ public:
     fMaxChunkLastUpdate = std::max(fMaxChunkLastUpdate, chunk.fLastUpdate);
   }
 
-  void addExperiment(std::string const &e) {
+  void addExperiment(std::u8string const &e) {
     fExperiments.insert(e);
   }
 
@@ -120,7 +120,7 @@ public:
 
 private:
   void addStructures(CompoundTag const &structure, StructureType type) {
-    auto children = structure.listTag("Children");
+    auto children = structure.listTag(u8"Children");
     if (!children) {
       return;
     }
@@ -129,7 +129,7 @@ private:
       if (!c) {
         continue;
       }
-      auto bb = GetBoundingBox(*c, "BB");
+      auto bb = GetBoundingBox(*c, u8"BB");
       if (!bb) {
         continue;
       }
@@ -138,7 +138,7 @@ private:
     }
   }
 
-  static std::optional<Volume> GetBoundingBox(CompoundTag const &tag, std::string const &name) {
+  static std::optional<Volume> GetBoundingBox(CompoundTag const &tag, std::u8string const &name) {
     auto bb = tag.intArrayTag(name);
     if (!bb) {
       return std::nullopt;
@@ -152,8 +152,8 @@ private:
     return Volume(start, end);
   }
 
-  static CompoundTagPtr Get(CompoundTag const &src, std::string const &name) {
-    if (auto ret = src.compoundTag("minecraft:" + name); ret) {
+  static CompoundTagPtr Get(CompoundTag const &src, std::u8string const &name) {
+    if (auto ret = src.compoundTag(u8"minecraft:" + name); ret) {
       return ret;
     }
     if (auto ret = src.compoundTag(name); ret) {
@@ -173,7 +173,7 @@ private:
   StructurePieceCollection fStructures;
   std::optional<Status::ErrorData> fError;
   i64 fMaxChunkLastUpdate = 0;
-  std::unordered_set<std::string> fExperiments;
+  std::unordered_set<std::u8string> fExperiments;
 };
 
 } // namespace je2be::tobe

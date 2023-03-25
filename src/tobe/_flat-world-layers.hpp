@@ -4,6 +4,7 @@
 
 #include <je2be/nbt.hpp>
 
+#include "_props.hpp"
 #include "tobe/_block-data.hpp"
 
 namespace je2be::tobe {
@@ -11,13 +12,13 @@ class FlatWorldLayers {
   FlatWorldLayers() = delete;
 
 public:
-  static std::optional<std::string> FromLevelData(CompoundTag const &data) {
+  static std::optional<std::u8string> FromLevelData(CompoundTag const &data) {
     using namespace std;
-    auto compoundGeneratorOptions = data.compoundTag("generatorOptions");
-    auto worldGenSettings = data.compoundTag("WorldGenSettings");
-    auto stringGeneratorOptions = data.string("generatorOptions");
-    auto generatorName = data.string("generatorName");
-    auto version = data.int32("DataVersion");
+    auto compoundGeneratorOptions = data.compoundTag(u8"generatorOptions");
+    auto worldGenSettings = data.compoundTag(u8"WorldGenSettings");
+    auto stringGeneratorOptions = data.string(u8"generatorOptions");
+    auto generatorName = data.string(u8"generatorName");
+    auto version = data.int32(u8"DataVersion");
     if (worldGenSettings && version) {
       auto ret = UsingWorldGenSettings(*worldGenSettings, *version);
       if (ret) {
@@ -36,44 +37,44 @@ public:
         return ret;
       }
     }
-    if (generatorName == "flat") {
-      return R"({"biome_id":1,"block_layers":[{"block_name":"minecraft:bedrock","count":1},{"block_name":"minecraft:dirt","count":2},{"block_name":"minecraft:grass","count":1}],"encoding_version":5,"structure_options":null})" + string("\x0a");
+    if (generatorName == u8"flat") {
+      return u8R"({"biome_id":1,"block_layers":[{"block_name":"minecraft:bedrock","count":1},{"block_name":"minecraft:dirt","count":2},{"block_name":"minecraft:grass","count":1}],"encoding_version":5,"structure_options":null})" + u8string(u8"\x0a");
     }
     return nullopt;
   }
 
-  static std::optional<std::string> UsingStringGeneratorOptions(std::string const &generatorOptions, int dataVersion) {
+  static std::optional<std::u8string> UsingStringGeneratorOptions(std::u8string const &generatorOptions, int dataVersion) {
     using namespace std;
     using namespace mcfile;
 
-    auto idx = generatorOptions.find(';');
-    if (idx == string::npos) {
+    auto idx = generatorOptions.find(u8';');
+    if (idx == u8string::npos) {
       return nullopt;
     }
-    string version;
+    u8string version;
     version.assign(generatorOptions.begin(), generatorOptions.begin() + idx);
-    string trailing = generatorOptions.substr(idx + 1);
-    if (version == "2") {
+    u8string trailing = generatorOptions.substr(idx + 1);
+    if (version == u8"2") {
       return UsingStringGeneratorOptionsV2(trailing, dataVersion);
-    } else if (version == "3") {
+    } else if (version == u8"3") {
       return UsingStringGeneratorOptionsV3(trailing, dataVersion);
     }
     return nullopt;
   }
 
-  static std::optional<std::string> UsingStringGeneratorOptionsV3(std::string const &options, int dataVersion) {
+  static std::optional<std::u8string> UsingStringGeneratorOptionsV3(std::u8string const &options, int dataVersion) {
     // 3;minecraft:bedrock,230*minecraft:stone,5*minecraft:dirt,minecraft:grass;3;biome_1,decoration,stronghold,mineshaft,dungeon
 
     using namespace std;
     using namespace mcfile;
 
-    auto idxBiomeStart = options.find(';');
-    if (idxBiomeStart == string::npos) {
+    auto idxBiomeStart = options.find(u8';');
+    if (idxBiomeStart == u8string::npos) {
       return nullopt;
     }
-    string biomeString;
-    auto idxBiomeEnd = options.find(';', idxBiomeStart + 1);
-    if (idxBiomeEnd == string::npos) {
+    u8string biomeString;
+    auto idxBiomeEnd = options.find(u8';', idxBiomeStart + 1);
+    if (idxBiomeEnd == u8string::npos) {
       biomeString = options.substr(idxBiomeStart + 1);
     } else {
       biomeString.assign(options.begin() + idxBiomeStart + 1, options.begin() + idxBiomeEnd);
@@ -87,18 +88,18 @@ public:
       return nullopt;
     }
 
-    nlohmann::json obj;
+    props::Json obj;
     obj["biome_id"] = mcfile::be::Biome::ToUint32(biome);
     obj["block_layers"] = nlohmann::json::value_t::array;
 
-    string layersString = options.substr(0, idxBiomeStart);
+    u8string layersString = options.substr(0, idxBiomeStart);
 
-    for (string const &option : String::Split(layersString, ',')) {
-      auto x = option.find('*');
+    for (u8string const &option : String::Split(layersString, u8',')) {
+      auto x = option.find(u8'*');
       int count = 1;
-      string blockString = option;
-      if (x != string::npos) {
-        string countString = option.substr(0, x);
+      u8string blockString = option;
+      if (x != u8string::npos) {
+        u8string countString = option.substr(0, x);
         auto c = strings::ToI32(countString);
         if (!c) {
           return nullopt;
@@ -110,8 +111,8 @@ public:
       if (!name) {
         return nullopt;
       }
-      nlohmann::json item;
-      item["block_name"] = *name;
+      props::Json item;
+      props::SetJsonString(item, u8"block_name", *name);
       item["count"] = count;
       obj["block_layers"].push_back(item);
     }
@@ -119,20 +120,20 @@ public:
     obj["encoding_version"] = 5;
     obj["structure_options"] = nlohmann::json::value_t::null;
 
-    return nlohmann::to_string(obj) + "\x0a";
+    return props::StringFromJson(obj) + u8"\x0a";
   }
 
-  static std::optional<std::string> UsingStringGeneratorOptionsV2(std::string const &options, int dataVersion) {
+  static std::optional<std::u8string> UsingStringGeneratorOptionsV2(std::u8string const &options, int dataVersion) {
     // 2;7,2x3:2,2;1;village
     using namespace std;
     using namespace mcfile;
-    auto idxBiomeStart = options.find(';');
-    if (idxBiomeStart == string::npos) {
+    auto idxBiomeStart = options.find(u8';');
+    if (idxBiomeStart == u8string::npos) {
       return nullopt;
     }
-    string biomeString;
-    auto idxBiomeEnd = options.find(';', idxBiomeStart + 1);
-    if (idxBiomeEnd == string::npos) {
+    u8string biomeString;
+    auto idxBiomeEnd = options.find(u8';', idxBiomeStart + 1);
+    if (idxBiomeEnd == u8string::npos) {
       biomeString = options.find(idxBiomeStart + 1);
     } else {
       biomeString.assign(options.begin() + idxBiomeStart + 1, options.begin() + idxBiomeEnd);
@@ -146,17 +147,17 @@ public:
       return nullopt;
     }
 
-    nlohmann::json obj;
+    props::Json obj;
     obj["biome_id"] = mcfile::be::Biome::ToUint32(biome);
     obj["block_layers"] = nlohmann::json::value_t::array;
 
-    string layersString = options.substr(0, idxBiomeStart);
-    for (string const &option : String::Split(layersString, ',')) {
+    u8string layersString = options.substr(0, idxBiomeStart);
+    for (u8string const &option : String::Split(layersString, u8',')) {
       int count = 1;
-      auto x = option.find('x');
-      string blockString = option;
-      if (x != string::npos) {
-        string countString = option.substr(0, x);
+      auto x = option.find(u8'x');
+      u8string blockString = option;
+      if (x != u8string::npos) {
+        u8string countString = option.substr(0, x);
         auto countInt = strings::ToI32(countString);
         if (!countInt) {
           return nullopt;
@@ -166,7 +167,7 @@ public:
       }
       auto colon = blockString.find(':');
       int data = 0;
-      if (colon != string::npos) {
+      if (colon != u8string::npos) {
         auto maybeData = strings::ToI32(blockString.substr(colon + 1));
         if (!maybeData) {
           return nullopt;
@@ -186,12 +187,12 @@ public:
       if (!converted) {
         return nullopt;
       }
-      auto name = converted->string("name");
+      auto name = converted->string(u8"name");
       if (!name) {
         return nullopt;
       }
-      nlohmann::json item;
-      item["block_name"] = *name;
+      props::Json item;
+      props::SetJsonString(item, u8"block_name", *name);
       item["count"] = count;
       obj["block_layers"].push_back(item);
     }
@@ -199,13 +200,13 @@ public:
     obj["encoding_version"] = 5;
     obj["structure_options"] = nlohmann::json::value_t::null;
 
-    return nlohmann::to_string(obj) + "\x0a";
+    return props::StringFromJson(obj) + u8"\x0a";
   }
 
-  static std::optional<std::string> UsingCompoundGeneratorOptions(CompoundTag const &generatorOptions, int dataVersion) {
+  static std::optional<std::u8string> UsingCompoundGeneratorOptions(CompoundTag const &generatorOptions, int dataVersion) {
     using namespace std;
-    auto layers = generatorOptions.listTag("layers");
-    auto biomeString = generatorOptions.string("biome");
+    auto layers = generatorOptions.listTag(u8"layers");
+    auto biomeString = generatorOptions.string(u8"biome");
     if (!layers || !biomeString) {
       return nullopt;
     }
@@ -213,7 +214,7 @@ public:
     if (!biome) {
       return nullopt;
     }
-    nlohmann::json obj;
+    props::Json obj;
     obj["biome_id"] = mcfile::be::Biome::ToUint32(*biome);
     obj["block_layers"] = nlohmann::json::value_t::array;
     for (auto const &layer : *layers) {
@@ -221,16 +222,16 @@ public:
       if (!c) {
         return nullopt;
       }
-      auto blockString = c->string("block");
+      auto blockString = c->string(u8"block");
       if (!blockString) {
         return nullopt;
       }
       int height = 1;
-      auto heightByte = c->byte("height");
+      auto heightByte = c->byte(u8"height");
       if (heightByte) {
         height = *heightByte;
       } else {
-        auto heightInt16 = c->int16("height");
+        auto heightInt16 = c->int16(u8"height");
         if (!heightInt16) {
           return nullopt;
         }
@@ -240,45 +241,45 @@ public:
       if (!name) {
         return nullopt;
       }
-      nlohmann::json item;
-      item["block_name"] = *name;
+      props::Json item;
+      props::SetJsonString(item, u8"block_name", *name);
       item["count"] = height;
       obj["block_layers"].push_back(item);
     }
     obj["encoding_version"] = 5;
     obj["structure_options"] = nlohmann::json::value_t::null;
 
-    return nlohmann::to_string(obj) + "\x0a";
+    return props::StringFromJson(obj) + u8"\x0a";
   }
 
-  static std::optional<std::string> UsingWorldGenSettings(CompoundTag const &worldGenSettings, int dataVersion) {
+  static std::optional<std::u8string> UsingWorldGenSettings(CompoundTag const &worldGenSettings, int dataVersion) {
     using namespace std;
-    auto dimensions = worldGenSettings.compoundTag("dimensions");
+    auto dimensions = worldGenSettings.compoundTag(u8"dimensions");
     if (!dimensions) {
       return nullopt;
     }
-    auto overworld = dimensions->compoundTag("minecraft:overworld");
+    auto overworld = dimensions->compoundTag(u8"minecraft:overworld");
     if (!overworld) {
       return nullopt;
     }
-    auto type = overworld->string("type");
-    if (type != "minecraft:overworld") {
+    auto type = overworld->string(u8"type");
+    if (type != u8"minecraft:overworld") {
       return nullopt;
     }
-    auto generator = overworld->compoundTag("generator");
+    auto generator = overworld->compoundTag(u8"generator");
     if (!generator) {
       return nullopt;
     }
-    auto generatorType = generator->string("type");
-    if (generatorType != "minecraft:flat") {
+    auto generatorType = generator->string(u8"type");
+    if (generatorType != u8"minecraft:flat") {
       return nullopt;
     }
-    auto settings = generator->compoundTag("settings");
+    auto settings = generator->compoundTag(u8"settings");
     if (!settings) {
       return nullopt;
     }
-    auto layers = settings->listTag("layers");
-    auto biomeString = settings->string("biome");
+    auto layers = settings->listTag(u8"layers");
+    auto biomeString = settings->string(u8"biome");
     if (!layers || !biomeString) {
       return nullopt;
     }
@@ -286,7 +287,7 @@ public:
     if (!biome) {
       return nullopt;
     }
-    nlohmann::json obj;
+    props::Json obj;
     obj["biome_id"] = mcfile::be::Biome::ToUint32(*biome);
     obj["block_layers"] = nlohmann::json::value_t::array;
     for (auto const &layer : *layers) {
@@ -294,8 +295,8 @@ public:
       if (!c) {
         return nullopt;
       }
-      auto blockString = c->string("block");
-      auto height = c->int32("height");
+      auto blockString = c->string(u8"block");
+      auto height = c->int32(u8"height");
       if (!blockString || !height) {
         return nullopt;
       }
@@ -303,8 +304,8 @@ public:
       if (!name) {
         return nullopt;
       }
-      nlohmann::json item;
-      item["block_name"] = *name;
+      props::Json item;
+      props::SetJsonString(item, u8"block_name", *name);
       item["count"] = *height;
       obj["block_layers"].push_back(item);
     }
@@ -317,11 +318,11 @@ public:
       obj["world_version"] = "version.post_1_18";
     }
 
-    return nlohmann::to_string(obj) + "\x0a";
+    return props::StringFromJson(obj) + u8"\x0a";
   }
 
 private:
-  static std::optional<std::string> BedrockBlockName(std::string const &blockData, int dataVersion) {
+  static std::optional<std::u8string> BedrockBlockName(std::u8string const &blockData, int dataVersion) {
     using namespace std;
     auto block = mcfile::je::Block::FromBlockData(blockData, dataVersion);
     if (!block) {
@@ -331,7 +332,7 @@ private:
     if (!converted) {
       return nullopt;
     }
-    auto name = converted->string("name");
+    auto name = converted->string(u8"name");
     if (!name) {
       return nullopt;
     }

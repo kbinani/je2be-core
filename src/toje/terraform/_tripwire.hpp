@@ -16,7 +16,7 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
-    vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
+    vector<pair<u8string, Pos2i>> const nesw({{u8"north", Pos2i(0, -1)}, {u8"east", Pos2i(1, 0)}, {u8"south", Pos2i(0, 1)}, {u8"west", Pos2i(-1, 0)}});
 
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
@@ -29,7 +29,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
           for (auto it : nesw) {
             Pos2i vec = it.second;
             auto block = cache.blockAt(x + vec.fX, y, z + vec.fZ);
@@ -37,15 +37,15 @@ public:
             if (block) {
               if (terraform::BlockPropertyAccessor::IsTripwire(*block)) {
                 connect = true;
-              } else if (block->fName == "minecraft:tripwire_hook") {
-                Facing4 f4 = Facing4FromBedrockDirection(block->fStates->int32("direction", 0));
+              } else if (block->fName == u8"minecraft:tripwire_hook") {
+                Facing4 f4 = Facing4FromBedrockDirection(block->fStates->int32(u8"direction", 0));
                 Pos2i direction = Pos2iFromFacing4(f4);
                 connect = direction.fX == -vec.fX && direction.fZ == -vec.fZ;
               } else {
                 connect = false;
               }
             }
-            props[it.first] = connect ? "true" : "false";
+            props[it.first] = connect ? u8"true" : u8"false";
           }
           auto replace = blockJ->applying(props);
           out.setBlockAt(x, y, z, replace);

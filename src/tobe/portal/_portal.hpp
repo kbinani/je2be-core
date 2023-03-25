@@ -10,13 +10,13 @@ public:
     using namespace std;
     auto tag = Compound();
     tag->insert({
-        {"DimId", Int(fDimId)},
-        {"Span", Byte(fSpan)},
-        {"TpX", Int(fTpX)},
-        {"TpY", Int(fTpY)},
-        {"TpZ", Int(fTpZ)},
-        {"Xa", Byte(fXa)},
-        {"Za", Byte(fZa)},
+        {u8"DimId", Int(fDimId)},
+        {u8"Span", Byte(fSpan)},
+        {u8"TpX", Int(fTpX)},
+        {u8"TpY", Int(fTpY)},
+        {u8"TpZ", Int(fTpZ)},
+        {u8"Xa", Byte(fXa)},
+        {u8"Za", Byte(fZa)},
     });
     return tag;
   }

@@ -26,7 +26,7 @@ public:
       return ret;
     }
 
-    static void SetRot(Rot rot, std::string const &key, CompoundTag &dest) {
+    static void SetRot(Rot rot, std::u8string const &key, CompoundTag &dest) {
       using namespace std;
       if (get<0>(rot) == 0 && get<1>(rot) == 0 && get<2>(rot) == 0) {
         return;
@@ -34,7 +34,7 @@ public:
       dest[key] = ListTagFromRot(rot);
     }
 
-    static Rot GetRot(std::string const &key, CompoundTag const &src) {
+    static Rot GetRot(std::u8string const &key, CompoundTag const &src) {
       Rot zero{0.0f, 0.0f, 0.0f};
       auto l = src.listTag(key);
       if (!l) {
@@ -48,23 +48,23 @@ public:
 
     CompoundTagPtr toCompoundTag() const {
       auto ret = Compound();
-      SetRot(fBody, "Body", *ret);
-      SetRot(fHead, "Head", *ret);
-      SetRot(fLeftLeg, "LeftLeg", *ret);
-      SetRot(fRightLeg, "RightLeg", *ret);
-      SetRot(fLeftArm, "LeftArm", *ret);
-      SetRot(fRightArm, "RightArm", *ret);
+      SetRot(fBody, u8"Body", *ret);
+      SetRot(fHead, u8"Head", *ret);
+      SetRot(fLeftLeg, u8"LeftLeg", *ret);
+      SetRot(fRightLeg, u8"RightLeg", *ret);
+      SetRot(fLeftArm, u8"LeftArm", *ret);
+      SetRot(fRightArm, u8"RightArm", *ret);
       return ret;
     }
 
     static Pose FromCompoundTag(CompoundTag const &pose) {
       Pose p;
-      p.fBody = GetRot("Body", pose);
-      p.fHead = GetRot("Head", pose);
-      p.fLeftLeg = GetRot("LeftLeg", pose);
-      p.fRightLeg = GetRot("RightLeg", pose);
-      p.fLeftArm = GetRot("LeftArm", pose);
-      p.fRightArm = GetRot("RightArm", pose);
+      p.fBody = GetRot(u8"Body", pose);
+      p.fHead = GetRot(u8"Head", pose);
+      p.fLeftLeg = GetRot(u8"LeftLeg", pose);
+      p.fRightLeg = GetRot(u8"RightLeg", pose);
+      p.fLeftArm = GetRot(u8"LeftArm", pose);
+      p.fRightArm = GetRot(u8"RightArm", pose);
       return p;
     }
   };

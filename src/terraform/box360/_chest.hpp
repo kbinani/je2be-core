@@ -27,31 +27,31 @@ public:
           if (!blockJ) {
             continue;
           }
-          auto type = blockJ->property("type");
-          if (type == "left" || type == "right") {
+          auto type = blockJ->property(u8"type");
+          if (type == u8"left" || type == u8"right") {
             continue;
           }
-          type = "single";
+          type = u8"single";
 
-          auto f4 = Facing4FromJavaName(blockJ->property("facing"));
+          auto f4 = Facing4FromJavaName(blockJ->property(u8"facing"));
           auto facing = Pos2iFromFacing4(f4);
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
 
           Pos2i left = Pos2i(x, z) + Left90(facing);
           if (auto leftBlock = cache.blockAt(left.fX, y, left.fZ); leftBlock) {
-            if (leftBlock->fId == blockJ->fId && leftBlock->property("facing") == blockJ->property("facing")) {
-              type = "right";
+            if (leftBlock->fId == blockJ->fId && leftBlock->property(u8"facing") == blockJ->property(u8"facing")) {
+              type = u8"right";
             }
           }
 
           Pos2i right = Pos2i(x, z) + Right90(facing);
           if (auto rightBlock = cache.blockAt(right.fX, y, right.fZ); rightBlock) {
-            if (rightBlock->fId == blockJ->fId && rightBlock->property("facing") == blockJ->property("facing")) {
-              type = "left";
+            if (rightBlock->fId == blockJ->fId && rightBlock->property(u8"facing") == blockJ->property(u8"facing")) {
+              type = u8"left";
             }
           }
 
-          props["type"] = type;
+          props[u8"type"] = type;
           auto replace = blockJ->applying(props);
           mcfile::je::SetBlockOptions sbo;
           sbo.fRemoveTileEntity = false;

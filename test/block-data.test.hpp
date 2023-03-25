@@ -15,7 +15,7 @@ TEST_CASE("block-data") {
     }
 
     fs::path filename = path.filename();
-    string javaBlockData = string("minecraft:") + filename.replace_extension().string();
+    u8string javaBlockData = u8string(u8"minecraft:") + filename.replace_extension().u8string();
 
     auto fis = make_shared<mcfile::stream::FileInputStream>(path);
     mcfile::stream::InputStreamReader isr(fis);

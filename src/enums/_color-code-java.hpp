@@ -23,24 +23,24 @@ enum class ColorCodeJava : i32 {
   Black = 15,
 };
 
-static inline ColorCodeJava ColorCodeJavaFromJavaName(std::string const &color) {
-  static std::unordered_map<std::string, ColorCodeJava> const mapping = {
-      {"white", ColorCodeJava::White},
-      {"orange", ColorCodeJava::Orange},
-      {"magenta", ColorCodeJava::Magenta},
-      {"light_blue", ColorCodeJava::LightBlue},
-      {"yellow", ColorCodeJava::Yellow},
-      {"lime", ColorCodeJava::Lime},
-      {"pink", ColorCodeJava::Pink},
-      {"gray", ColorCodeJava::Gray},
-      {"light_gray", ColorCodeJava::LightGray},
-      {"cyan", ColorCodeJava::Cyan},
-      {"purple", ColorCodeJava::Purple},
-      {"blue", ColorCodeJava::Blue},
-      {"brown", ColorCodeJava::Brown},
-      {"green", ColorCodeJava::Green},
-      {"red", ColorCodeJava::Red},
-      {"black", ColorCodeJava::Black},
+static inline ColorCodeJava ColorCodeJavaFromJavaName(std::u8string const &color) {
+  static std::unordered_map<std::u8string, ColorCodeJava> const mapping = {
+      {u8"white", ColorCodeJava::White},
+      {u8"orange", ColorCodeJava::Orange},
+      {u8"magenta", ColorCodeJava::Magenta},
+      {u8"light_blue", ColorCodeJava::LightBlue},
+      {u8"yellow", ColorCodeJava::Yellow},
+      {u8"lime", ColorCodeJava::Lime},
+      {u8"pink", ColorCodeJava::Pink},
+      {u8"gray", ColorCodeJava::Gray},
+      {u8"light_gray", ColorCodeJava::LightGray},
+      {u8"cyan", ColorCodeJava::Cyan},
+      {u8"purple", ColorCodeJava::Purple},
+      {u8"blue", ColorCodeJava::Blue},
+      {u8"brown", ColorCodeJava::Brown},
+      {u8"green", ColorCodeJava::Green},
+      {u8"red", ColorCodeJava::Red},
+      {u8"black", ColorCodeJava::Black},
   };
   auto found = mapping.find(color);
   if (found == mapping.end()) {
@@ -50,24 +50,24 @@ static inline ColorCodeJava ColorCodeJavaFromJavaName(std::string const &color) 
   }
 }
 
-static inline ColorCodeJava ColorCodeJavaFromBedrockName(std::string const &color) {
-  static std::unordered_map<std::string, ColorCodeJava> const mapping = {
-      {"white", ColorCodeJava::White},
-      {"orange", ColorCodeJava::Orange},
-      {"magenta", ColorCodeJava::Magenta},
-      {"light_blue", ColorCodeJava::LightBlue},
-      {"yellow", ColorCodeJava::Yellow},
-      {"lime", ColorCodeJava::Lime},
-      {"pink", ColorCodeJava::Pink},
-      {"gray", ColorCodeJava::Gray},
-      {"silver", ColorCodeJava::LightGray},
-      {"cyan", ColorCodeJava::Cyan},
-      {"purple", ColorCodeJava::Purple},
-      {"blue", ColorCodeJava::Blue},
-      {"brown", ColorCodeJava::Brown},
-      {"green", ColorCodeJava::Green},
-      {"red", ColorCodeJava::Red},
-      {"black", ColorCodeJava::Black},
+static inline ColorCodeJava ColorCodeJavaFromBedrockName(std::u8string const &color) {
+  static std::unordered_map<std::u8string, ColorCodeJava> const mapping = {
+      {u8"white", ColorCodeJava::White},
+      {u8"orange", ColorCodeJava::Orange},
+      {u8"magenta", ColorCodeJava::Magenta},
+      {u8"light_blue", ColorCodeJava::LightBlue},
+      {u8"yellow", ColorCodeJava::Yellow},
+      {u8"lime", ColorCodeJava::Lime},
+      {u8"pink", ColorCodeJava::Pink},
+      {u8"gray", ColorCodeJava::Gray},
+      {u8"silver", ColorCodeJava::LightGray},
+      {u8"cyan", ColorCodeJava::Cyan},
+      {u8"purple", ColorCodeJava::Purple},
+      {u8"blue", ColorCodeJava::Blue},
+      {u8"brown", ColorCodeJava::Brown},
+      {u8"green", ColorCodeJava::Green},
+      {u8"red", ColorCodeJava::Red},
+      {u8"black", ColorCodeJava::Black},
   };
   auto found = mapping.find(color);
   if (found == mapping.end()) {
@@ -77,79 +77,79 @@ static inline ColorCodeJava ColorCodeJavaFromBedrockName(std::string const &colo
   }
 }
 
-static inline std::string JavaNameFromColorCodeJava(ColorCodeJava code) {
+static inline std::u8string JavaNameFromColorCodeJava(ColorCodeJava code) {
   switch (code) {
   case ColorCodeJava::Black:
-    return "black";
+    return u8"black";
   case ColorCodeJava::Blue:
-    return "blue";
+    return u8"blue";
   case ColorCodeJava::Brown:
-    return "brown";
+    return u8"brown";
   case ColorCodeJava::Cyan:
-    return "cyan";
+    return u8"cyan";
   case ColorCodeJava::Gray:
-    return "gray";
+    return u8"gray";
   case ColorCodeJava::Green:
-    return "green";
+    return u8"green";
   case ColorCodeJava::LightBlue:
-    return "light_blue";
+    return u8"light_blue";
   case ColorCodeJava::LightGray:
-    return "light_gray";
+    return u8"light_gray";
   case ColorCodeJava::Lime:
-    return "lime";
+    return u8"lime";
   case ColorCodeJava::Magenta:
-    return "magenta";
+    return u8"magenta";
   case ColorCodeJava::Orange:
-    return "orange";
+    return u8"orange";
   case ColorCodeJava::Pink:
-    return "pink";
+    return u8"pink";
   case ColorCodeJava::Purple:
-    return "purple";
+    return u8"purple";
   case ColorCodeJava::Red:
-    return "red";
+    return u8"red";
   case ColorCodeJava::Yellow:
-    return "yellow";
+    return u8"yellow";
   case ColorCodeJava::White:
   default:
-    return "white";
+    return u8"white";
   }
 }
 
-static inline std::string BedrockNameFromColorCodeJava(ColorCodeJava code) {
+static inline std::u8string BedrockNameFromColorCodeJava(ColorCodeJava code) {
   switch (code) {
   case ColorCodeJava::Black:
-    return "black";
+    return u8"black";
   case ColorCodeJava::Blue:
-    return "blue";
+    return u8"blue";
   case ColorCodeJava::Brown:
-    return "brown";
+    return u8"brown";
   case ColorCodeJava::Cyan:
-    return "cyan";
+    return u8"cyan";
   case ColorCodeJava::Gray:
-    return "gray";
+    return u8"gray";
   case ColorCodeJava::Green:
-    return "green";
+    return u8"green";
   case ColorCodeJava::LightBlue:
-    return "light_blue";
+    return u8"light_blue";
   case ColorCodeJava::LightGray:
-    return "silver";
+    return u8"silver";
   case ColorCodeJava::Lime:
-    return "lime";
+    return u8"lime";
   case ColorCodeJava::Magenta:
-    return "magenta";
+    return u8"magenta";
   case ColorCodeJava::Orange:
-    return "orange";
+    return u8"orange";
   case ColorCodeJava::Pink:
-    return "pink";
+    return u8"pink";
   case ColorCodeJava::Purple:
-    return "purple";
+    return u8"purple";
   case ColorCodeJava::Red:
-    return "red";
+    return u8"red";
   case ColorCodeJava::Yellow:
-    return "yellow";
+    return u8"yellow";
   case ColorCodeJava::White:
   default:
-    return "white";
+    return u8"white";
   }
 }
 

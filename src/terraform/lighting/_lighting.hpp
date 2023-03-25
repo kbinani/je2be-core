@@ -620,137 +620,137 @@ private:
   static LightingModel GetLightingModel(mcfile::je::Block const &block) {
     using namespace mcfile::blocks::minecraft;
 
-    if (block.fName.ends_with("_stairs")) {
-      auto half = block.property("half");
-      auto facing = block.property("facing", "north");
+    if (block.fName.ends_with(u8"_stairs")) {
+      auto half = block.property(u8"half");
+      auto facing = block.property(u8"facing", u8"north");
       Facing4 f4 = Facing4FromJavaName(facing);
-      auto shape = block.property("shape");
-      auto waterlogged = block.property("waterlogged");
+      auto shape = block.property(u8"shape");
+      auto waterlogged = block.property(u8"waterlogged");
 
       LightingModel m;
       m.fEmission = 0;
       m.fModel = MODEL_CLEAR;
       m.fTransparency = TRANSLUCENT;
-      m.fBehaveAsAirWhenOpenUp = waterlogged != "true";
+      m.fBehaveAsAirWhenOpenUp = waterlogged != u8"true";
 
-      if (shape == "outer_right") {
+      if (shape == u8"outer_right") {
         switch (f4) {
         case Facing4::North:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x100408);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x10102);
           }
           break;
         case Facing4::East:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x400880);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x40220);
           }
           break;
         case Facing4::South:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x808040);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x82010);
           }
           break;
         case Facing4::West:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x204004);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x21001);
           }
           break;
         }
-      } else if (shape == "outer_left") {
+      } else if (shape == u8"outer_left") {
         switch (f4) {
         case Facing4::North:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x204004);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x21001);
           }
           break;
         case Facing4::East:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x100408);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x10102);
           }
           break;
         case Facing4::South:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x400880);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x40220);
           }
           break;
         case Facing4::West:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x808040);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x82010);
           }
           break;
         }
-      } else if (shape.starts_with("inner_right")) {
+      } else if (shape.starts_with(u8"inner_right")) {
         switch (f4) {
         case Facing4::North:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x808040));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x82010));
           }
           break;
         case Facing4::East:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x204004));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x21001));
           }
           break;
         case Facing4::South:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x100408));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x10102));
           }
           break;
         case Facing4::West:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x400880));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x40220));
           }
           break;
         }
-      } else if (shape.starts_with("inner_left")) {
+      } else if (shape.starts_with(u8"inner_left")) {
         switch (f4) {
         case Facing4::North:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x400880));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x40220));
           }
           break;
         case Facing4::East:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x808040));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x82010));
           }
           break;
         case Facing4::South:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x204004));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x21001));
           }
           break;
         case Facing4::West:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_SOLID & (~u32(0x100408));
           } else {
             m.fModel = MODEL_SOLID & (~u32(0x10102));
@@ -760,28 +760,28 @@ private:
       } else { // "straight"
         switch (f4) {
         case Facing4::North:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x30440c);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x31103);
           }
           break;
         case Facing4::East:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0x500c88);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0x50322);
           }
           break;
         case Facing4::South:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0xc088c0);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0xc2230);
           }
           break;
         case Facing4::West:
-          if (half == "bottom") {
+          if (half == u8"bottom") {
             m.fModel = MODEL_HALF_BOTTOM | u32(0xa0c044);
           } else {
             m.fModel = MODEL_HALF_TOP | u32(0xa3011);
@@ -790,15 +790,15 @@ private:
         }
       }
       return m;
-    } else if (block.fName.ends_with("slab")) {
+    } else if (block.fName.ends_with(u8"slab")) {
       LightingModel m;
       m.fEmission = 0;
-      m.fBehaveAsAirWhenOpenUp = block.property("waterlogged") != "true";
-      auto type = block.property("type");
-      if (type == "double") {
+      m.fBehaveAsAirWhenOpenUp = block.property(u8"waterlogged") != u8"true";
+      auto type = block.property(u8"type");
+      if (type == u8"double") {
         m.fModel = MODEL_SOLID;
         m.fTransparency = SOLID;
-      } else if (type == "top") {
+      } else if (type == u8"top") {
         m.fModel = MODEL_HALF_TOP;
         m.fTransparency = TRANSLUCENT;
       } else { // "bottom"
@@ -807,8 +807,8 @@ private:
       }
       return m;
     } else if (block.fId == piston || block.fId == sticky_piston) {
-      if (block.property("extended") == "true") {
-        Facing6 f = Facing6FromJavaName(block.property("facing"));
+      if (block.property(u8"extended") == u8"true") {
+        Facing6 f = Facing6FromJavaName(block.property(u8"facing"));
         LightingModel m;
         m.fEmission = 0;
         switch (f) {
@@ -848,7 +848,7 @@ private:
         return m;
       }
     } else if (block.fId == piston_head) {
-      Facing6 f = Facing6FromJavaName(block.property("facing"));
+      Facing6 f = Facing6FromJavaName(block.property(u8"facing"));
       LightingModel m;
       m.fEmission = 0;
       switch (f) {
@@ -888,7 +888,7 @@ private:
       m.fBehaveAsAirWhenOpenUp = true;
       return m;
     } else if (block.fId == snow) {
-      auto layers = Wrap(strings::ToI32(block.property("layers", "1")), 1);
+      auto layers = Wrap(strings::ToI32(block.property(u8"layers", u8"1")), 1);
       if (layers == 8) {
         LightingModel m;
         m.fEmission = 0;
@@ -994,7 +994,7 @@ private:
       amount = LightAttenuationAmountById(block.fId);
       break;
     }
-    if (amount == 0 && block.property("waterlogged") == "true") {
+    if (amount == 0 && block.property(u8"waterlogged") == u8"true") {
       amount = 1;
     }
     switch (amount) {
@@ -1038,44 +1038,44 @@ private:
       return 15;
     }
     if (block.fId == cave_vines_plant || block.fId == cave_vines) {
-      if (block.property("berries") == "true") {
+      if (block.property(u8"berries") == u8"true") {
         return 14;
       } else {
         return 0;
       }
     } else if (block.fId == furnace || block.fId == smoker || block.fId == blast_furnace) {
-      if (block.property("lit") == "true") {
+      if (block.property(u8"lit") == u8"true") {
         return 13;
       } else {
         return 0;
       }
     } else if (block.fId == campfire) {
-      if (block.property("lit") == "true") {
+      if (block.property(u8"lit") == u8"true") {
         return 15;
       } else {
         return 0;
       }
     } else if (block.fId == soul_campfire) {
-      if (block.property("lit") == "true") {
+      if (block.property(u8"lit") == u8"true") {
         return 10;
       } else {
         return 0;
       }
     } else if (block.fId == redstone_torch || block.fId == redstone_wall_torch) {
-      if (block.property("lit") == "true") {
+      if (block.property(u8"lit") == u8"true") {
         return 7;
       } else {
         return 0;
       }
-    } else if (block.fName.ends_with("candle_cake")) {
-      if (block.property("lit") == "true") {
+    } else if (block.fName.ends_with(u8"candle_cake")) {
+      if (block.property(u8"lit") == u8"true") {
         return 3;
       } else {
         return 0;
       }
-    } else if (block.fName.ends_with("candle")) {
-      if (block.property("lit") == "true") {
-        auto candles = Wrap(strings::ToI32(block.property("candles", "1")), 1);
+    } else if (block.fName.ends_with(u8"candle")) {
+      if (block.property(u8"lit") == u8"true") {
+        auto candles = Wrap(strings::ToI32(block.property(u8"candles", u8"1")), 1);
         return candles * 3;
       } else {
         return 0;
@@ -1083,28 +1083,28 @@ private:
     } else if (block.fId == lava_cauldron) {
       return 15;
     } else if (block.fId == redstone_lamp) {
-      if (block.property("lit") == "true") {
+      if (block.property(u8"lit") == u8"true") {
         return 15;
       } else {
         return 0;
       }
     } else if (block.fId == sea_pickle) {
-      if (block.property("waterlogged") == "true") {
-        auto pickles = Wrap(strings::ToI32(block.property("pickles", "1")), 1);
+      if (block.property(u8"waterlogged") == u8"true") {
+        auto pickles = Wrap(strings::ToI32(block.property(u8"pickles", u8"1")), 1);
         return (pickles + 1) * 3;
       } else {
         return 0;
       }
     } else if (block.fId == light) {
-      return Wrap(strings::ToI32(block.property("level", "1")), 1);
+      return Wrap(strings::ToI32(block.property(u8"level", u8"1")), 1);
     } else if (block.fId == redstone_ore || block.fId == deepslate_redstone_ore) {
-      if (block.property("lit") == "true") {
+      if (block.property(u8"lit") == u8"true") {
         return 9;
       } else {
         return 0;
       }
     } else if (block.fId == respawn_anchor) {
-      auto charges = Wrap(strings::ToI32(block.property("charges", "0")), 0);
+      auto charges = Wrap(strings::ToI32(block.property(u8"charges", u8"0")), 0);
       if (charges <= 0) {
         return 0;
       } else {

@@ -15,54 +15,54 @@ public:
   };
 
   static State JavaToBedrock(CompoundTag const &j, CompoundTag &b) {
-    auto lootTable = j.string("LootTable"); // "minecraft:chests/simple_dungeon"
-    auto lootTableSeed = j.int64("LootTableSeed");
+    auto lootTable = j.string(u8"LootTable"); // "minecraft:chests/simple_dungeon"
+    auto lootTableSeed = j.int64(u8"LootTableSeed");
     if (lootTable && lootTableSeed) {
       auto tableName = BedrockTableNameFromJava(*lootTable);
       if (tableName) {
-        b["LootTable"] = String(*tableName);
-        b["LootTableSeed"] = Int(props::SquashI64ToI32(*lootTableSeed));
+        b[u8"LootTable"] = String(*tableName);
+        b[u8"LootTableSeed"] = Int(props::SquashI64ToI32(*lootTableSeed));
         return State::HasLootTable;
       }
     }
     return State::NoLootTable;
   }
 
-  static std::optional<std::string> BedrockTableNameFromJava(std::string const &java) {
+  static std::optional<std::u8string> BedrockTableNameFromJava(std::u8string const &java) {
     auto const &exceptional = GetJavaToBedrockTable();
     auto found = exceptional.forward(java);
     if (found) {
       return *found;
     }
-    auto slash = java.find_first_of('/');
-    if (java.starts_with("minecraft:") && slash != std::string::npos) {
-      return "loot_tables/" + java.substr(10) + ".json"; // "loot_tables/chests/simple_dungeon.json"
+    auto slash = java.find_first_of(u8'/');
+    if (java.starts_with(u8"minecraft:") && slash != std::u8string::npos) {
+      return u8"loot_tables/" + java.substr(10) + u8".json"; // "loot_tables/chests/simple_dungeon.json"
     } else {
       return std::nullopt;
     }
   }
 
-  static std::optional<std::string> JavaTableNameFromBedrock(std::string const &bedrock) {
+  static std::optional<std::u8string> JavaTableNameFromBedrock(std::u8string const &bedrock) {
     auto const &exceptional = GetJavaToBedrockTable();
     auto found = exceptional.backward(bedrock);
     if (found) {
       return *found;
     }
-    if (bedrock.starts_with("loot_tables/") && bedrock.ends_with(".json")) {
-      std::string name = strings::RTrim(bedrock.substr(12), ".json");
-      return "minecraft:" + name;
+    if (bedrock.starts_with(u8"loot_tables/") && bedrock.ends_with(u8".json")) {
+      std::u8string name = strings::RTrim(bedrock.substr(12), u8".json");
+      return u8"minecraft:" + name;
     }
     return std::nullopt;
   }
 
   static State BedrockToJava(CompoundTag const &b, CompoundTag &j) {
-    auto lootTable = b.string("LootTable");
-    auto lootTableSeed = b.int32("LootTableSeed");
+    auto lootTable = b.string(u8"LootTable");
+    auto lootTableSeed = b.int32(u8"LootTableSeed");
     if (lootTable && lootTableSeed) {
       auto tableName = JavaTableNameFromBedrock(*lootTable);
       if (tableName) {
-        j["LootTable"] = String(*tableName);
-        j["LootTableSeed"] = Long(*lootTableSeed);
+        j[u8"LootTable"] = String(*tableName);
+        j[u8"LootTableSeed"] = Long(*lootTableSeed);
         return State::HasLootTable;
       }
     }
@@ -71,8 +71,8 @@ public:
 
   static State Box360ToJava(CompoundTag const &b, CompoundTag &j) {
     using namespace std;
-    auto lootTable = b.string("LootTable");
-    auto lootTableSeed = b.int64("LootTableSeed");
+    auto lootTable = b.string(u8"LootTable");
+    auto lootTableSeed = b.int64(u8"LootTableSeed");
     if (!lootTable || !lootTableSeed) {
       return State::NoLootTable;
     }
@@ -94,26 +94,26 @@ public:
     minecraft:chests/igloo_chest            => same
     minecraft:chests/abandoned_mineshaft    => same
     */
-    static unordered_map<string, string> const mapping = {
-        {"minecraft:chests/shipwrecksupply", "minecraft:chests/shipwreck_supply"},
-        {"minecraft:chests/shipwrecktreasure", "minecraft:chests/shipwreck_treasure"},
-        {"minecraft:chests/shipwreck", "minecraft:chests/shipwreck_map"},
-        {"minecraft:chests/buriedtreasure", "minecraft:chests/buried_treasure"},
-        {"minecraft:chests/village_blacksmith", "minecraft:chests/village/village_toolsmith"},
+    static unordered_map<u8string, u8string> const mapping = {
+        {u8"minecraft:chests/shipwrecksupply", u8"minecraft:chests/shipwreck_supply"},
+        {u8"minecraft:chests/shipwrecktreasure", u8"minecraft:chests/shipwreck_treasure"},
+        {u8"minecraft:chests/shipwreck", u8"minecraft:chests/shipwreck_map"},
+        {u8"minecraft:chests/buriedtreasure", u8"minecraft:chests/buried_treasure"},
+        {u8"minecraft:chests/village_blacksmith", u8"minecraft:chests/village/village_toolsmith"},
     };
-    string table = *lootTable;
+    u8string table = *lootTable;
     auto found = mapping.find(table);
     if (found != mapping.end()) {
       table = found->second;
     }
-    j["LootTable"] = String(table);
-    j["LootTableSeed"] = Long(*lootTableSeed);
+    j[u8"LootTable"] = String(table);
+    j[u8"LootTableSeed"] = Long(*lootTableSeed);
     return State::HasLootTable;
   }
 
 private:
-  static ReversibleMap<std::string, std::string> *CreateJavaToBedrockTable() {
-    return new ReversibleMap<std::string, std::string>({
+  static ReversibleMap<std::u8string, std::u8string> *CreateJavaToBedrockTable() {
+    return new ReversibleMap<std::u8string, std::u8string>({
         /* Java(1.19.2)                                   Bedrock(1.19.41)
         "minecraft:chests/abandoned_mineshaft"            "loot_tables/chests/abandoned_mineshaft.json"
         "minecraft:chests/ancient_city"                   "loot_tables/chests/ancient_city.json"
@@ -163,18 +163,18 @@ private:
         "minecraft:archaeology/desert_pyramid" "loot_tables/entities/desert_pyramid_suspicious_sand.json"
         */
 
-        {"minecraft:chests/buried_treasure", "loot_tables/chests/buriedtreasure.json"},
-        {"minecraft:chests/jungle_temple_dispenser", "loot_tables/chests/dispenser_trap.json"},
-        {"minecraft:chests/shipwreck_map", "loot_tables/chests/shipwreck.json"},
-        {"minecraft:chests/shipwreck_supply", "loot_tables/chests/shipwrecksupply.json"},
-        {"minecraft:chests/shipwreck_treasure", "loot_tables/chests/shipwrecktreasure.json"},
-        {"minecraft:archaeology/desert_pyramid", "loot_tables/entities/desert_pyramid_suspicious_sand.json"},
+        {u8"minecraft:chests/buried_treasure", u8"loot_tables/chests/buriedtreasure.json"},
+        {u8"minecraft:chests/jungle_temple_dispenser", u8"loot_tables/chests/dispenser_trap.json"},
+        {u8"minecraft:chests/shipwreck_map", u8"loot_tables/chests/shipwreck.json"},
+        {u8"minecraft:chests/shipwreck_supply", u8"loot_tables/chests/shipwrecksupply.json"},
+        {u8"minecraft:chests/shipwreck_treasure", u8"loot_tables/chests/shipwrecktreasure.json"},
+        {u8"minecraft:archaeology/desert_pyramid", u8"loot_tables/entities/desert_pyramid_suspicious_sand.json"},
     });
   }
 
-  static ReversibleMap<std::string, std::string> const &GetJavaToBedrockTable() {
+  static ReversibleMap<std::u8string, std::u8string> const &GetJavaToBedrockTable() {
     using namespace std;
-    static unique_ptr<ReversibleMap<string, string> const> sTable(CreateJavaToBedrockTable());
+    static unique_ptr<ReversibleMap<u8string, u8string> const> sTable(CreateJavaToBedrockTable());
     return *sTable.get();
   }
 };

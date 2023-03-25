@@ -9,9 +9,9 @@ public:
   static FireworksData FromJava(CompoundTag const &fireworks) {
     FireworksData es;
 
-    es.fFlight = fireworks.byte("Flight");
+    es.fFlight = fireworks.byte(u8"Flight");
 
-    auto explosions = fireworks.listTag("Explosions");
+    auto explosions = fireworks.listTag(u8"Explosions");
     if (explosions) {
       for (auto const &it : *explosions) {
         auto c = it->asCompound();
@@ -28,8 +28,8 @@ public:
 
   static FireworksData FromBedrock(CompoundTag const &tagB) {
     FireworksData fd;
-    fd.fFlight = tagB.byte("Flight");
-    auto explosions = tagB.listTag("Explosions");
+    fd.fFlight = tagB.byte(u8"Flight");
+    auto explosions = tagB.listTag(u8"Explosions");
     if (explosions) {
       for (auto const &it : *explosions) {
         auto c = it->asCompound();
@@ -49,9 +49,9 @@ public:
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toBedrockCompoundTag());
     }
-    ret->set("Explosions", explosions);
+    ret->set(u8"Explosions", explosions);
     if (fFlight) {
-      ret->set("Flight", Byte(*fFlight));
+      ret->set(u8"Flight", Byte(*fFlight));
     }
     return ret;
   }
@@ -62,9 +62,9 @@ public:
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toJavaCompoundTag());
     }
-    ret->set("Explosions", explosions);
+    ret->set(u8"Explosions", explosions);
     if (fFlight) {
-      ret->set("Flight", Byte(*fFlight));
+      ret->set(u8"Flight", Byte(*fFlight));
     }
     return ret;
   }

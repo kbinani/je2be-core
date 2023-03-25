@@ -45,9 +45,9 @@ struct Uuid {
     return u;
   }
 
-  static std::optional<Uuid> FromString(std::string const &str) {
+  static std::optional<Uuid> FromString(std::u8string const &str) {
     using namespace std;
-    string uuid = strings::Replace(str, "-", "");
+    u8string uuid = strings::Replace(str, u8"-", u8"");
     if (uuid.size() != 32) {
       return nullopt;
     }
@@ -99,7 +99,7 @@ struct Uuid {
     return GenWithU64Seed(u);
   }
 
-  std::string toString() const {
+  std::u8string toString() const {
     std::ostringstream s;
     s << std::hex << std::setfill('0')
       << std::setw(2) << (int)fData[0]
@@ -122,7 +122,10 @@ struct Uuid {
       << std::setw(2) << (int)fData[13]
       << std::setw(2) << (int)fData[14]
       << std::setw(2) << (int)fData[15];
-    return s.str();
+    std::string ns = s.str();
+    std::u8string ret;
+    ret.assign((char8_t const *)ns.data(), ns.size());
+    return ret;
   }
 
   ListTagPtr toListTag() const {

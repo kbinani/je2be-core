@@ -29,13 +29,13 @@ public:
             if (!block) {
               continue;
             }
-            if (block->fName != "minecraft:sticky_piston" && block->fName != "minecraft:piston") {
+            if (block->fName != u8"minecraft:sticky_piston" && block->fName != u8"minecraft:piston") {
               continue;
             }
             if (loader.tileEntityAt(pos)) {
               continue;
             }
-            Facing6 f6 = Facing6FromJavaName(block->property("facing", ""));
+            Facing6 f6 = Facing6FromJavaName(block->property(u8"facing", u8""));
             Pos3i vec = Pos3iFromFacing6(f6);
             Pos3i pistonHeadPos = pos + vec;
             int facingDirectionB = BedrockFacingDirectionBFromFacing6(f6);
@@ -60,37 +60,37 @@ public:
                 attachedBlocksTag->push_back(Int(actual.fY));
                 attachedBlocksTag->push_back(Int(actual.fZ));
               }
-              pistonArm->set("AttachedBlocks", attachedBlocksTag);
-              pistonArm->set("BreakBlocks", List<Tag::Type::Int>());
-              pistonArm->set("LastProgress", Float(0.5));
-              pistonArm->set("NewState", Byte(1));
-              pistonArm->set("Progress", Float(1));
-              pistonArm->set("State", Byte(1));
-              pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
-              pistonArm->set("id", String("j2b:PistonArm"));
-              pistonArm->set("isMovable", Bool(false));
-              pistonArm->set("x", Int(pos.fX));
-              pistonArm->set("y", Int(pos.fY));
-              pistonArm->set("z", Int(pos.fZ));
+              pistonArm->set(u8"AttachedBlocks", attachedBlocksTag);
+              pistonArm->set(u8"BreakBlocks", List<Tag::Type::Int>());
+              pistonArm->set(u8"LastProgress", Float(0.5));
+              pistonArm->set(u8"NewState", Byte(1));
+              pistonArm->set(u8"Progress", Float(1));
+              pistonArm->set(u8"State", Byte(1));
+              pistonArm->set(u8"Sticky", Bool(block->fName == u8"minecraft:sticky_piston"));
+              pistonArm->set(u8"id", String(u8"j2b:PistonArm"));
+              pistonArm->set(u8"isMovable", Bool(false));
+              pistonArm->set(u8"x", Int(pos.fX));
+              pistonArm->set(u8"y", Int(pos.fY));
+              pistonArm->set(u8"z", Int(pos.fZ));
 
               tileEntityReplacement[pos] = pistonArm;
             } else {
               // Tile entity doesn't exist at piston_head position.
               // This means the piston is in static state.
-              bool extended = block->property("extended", "false") == "true";
+              bool extended = block->property(u8"extended", u8"false") == u8"true";
               auto pistonArm = Compound();
-              pistonArm->set("AttachedBlocks", List<Tag::Type::Int>());
-              pistonArm->set("BreakBlocks", List<Tag::Type::Int>());
-              pistonArm->set("LastProgress", Float(extended ? 1 : 0));
-              pistonArm->set("NewState", Byte(extended ? 2 : 0));
-              pistonArm->set("Progress", Float(extended ? 1 : 0));
-              pistonArm->set("State", Byte(extended ? 2 : 0));
-              pistonArm->set("Sticky", Bool(block->fName == "minecraft:sticky_piston"));
-              pistonArm->set("id", String("j2b:PistonArm"));
-              pistonArm->set("isMovable", Bool(extended ? false : true));
-              pistonArm->set("x", Int(pos.fX));
-              pistonArm->set("y", Int(pos.fY));
-              pistonArm->set("z", Int(pos.fZ));
+              pistonArm->set(u8"AttachedBlocks", List<Tag::Type::Int>());
+              pistonArm->set(u8"BreakBlocks", List<Tag::Type::Int>());
+              pistonArm->set(u8"LastProgress", Float(extended ? 1 : 0));
+              pistonArm->set(u8"NewState", Byte(extended ? 2 : 0));
+              pistonArm->set(u8"Progress", Float(extended ? 1 : 0));
+              pistonArm->set(u8"State", Byte(extended ? 2 : 0));
+              pistonArm->set(u8"Sticky", Bool(block->fName == u8"minecraft:sticky_piston"));
+              pistonArm->set(u8"id", String(u8"j2b:PistonArm"));
+              pistonArm->set(u8"isMovable", Bool(extended ? false : true));
+              pistonArm->set(u8"x", Int(pos.fX));
+              pistonArm->set(u8"y", Int(pos.fY));
+              pistonArm->set(u8"z", Int(pos.fZ));
 
               tileEntityReplacement[pos] = pistonArm;
             }
@@ -102,22 +102,22 @@ public:
     for (auto it : chunk.fTileEntities) {
       Pos3i pos = it.first;
       auto const &item = it.second;
-      auto id = item->string("id");
+      auto id = item->string(u8"id");
       if (!id) {
         continue;
       }
-      if (id != "minecraft:piston") {
+      if (id != u8"minecraft:piston") {
         continue;
       }
-      auto extending = item->boolean("extending");
+      auto extending = item->boolean(u8"extending");
       if (!extending) {
         continue;
       }
-      auto source = item->boolean("source");
+      auto source = item->boolean(u8"source");
       if (!source) {
         continue;
       }
-      auto facing = item->int32("facing");
+      auto facing = item->int32(u8"facing");
       if (!facing) {
         continue;
       }
@@ -129,10 +129,10 @@ public:
             continue;
           }
 
-          map<string, string> props;
-          props["facing_direction"] = to_string(*facing);
-          assert(block->fName == "minecraft:moving_piston");
-          string name = block->property("type") == "sticky" ? "j2b:sticky_piston_arm_collision" : "j2b:piston_arm_collision";
+          map<u8string, u8string> props;
+          props[u8"facing_direction"] = String::ToString(*facing);
+          assert(block->fName == u8"minecraft:moving_piston");
+          u8string name = block->property(u8"type") == u8"sticky" ? u8"j2b:sticky_piston_arm_collision" : u8"j2b:piston_arm_collision";
           auto newBlock = make_shared<Block>(name, props);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
@@ -144,8 +144,8 @@ public:
             continue;
           }
 
-          auto sticky = block->property("type", "normal") == "sticky";
-          string name = sticky ? "minecraft:sticky_piston" : "minecraft:piston";
+          auto sticky = block->property(u8"type", u8"normal") == u8"sticky";
+          u8string name = sticky ? u8"minecraft:sticky_piston" : u8"minecraft:piston";
           auto newBlock = block->renamed(name);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
@@ -161,18 +161,18 @@ public:
             attachedBlocksTag->push_back(Int(attachedBlock.fY + vec.fY));
             attachedBlocksTag->push_back(Int(attachedBlock.fZ + vec.fZ));
           }
-          pistonArm->set("AttachedBlocks", attachedBlocksTag);
-          pistonArm->set("BreakBlocks", List<Tag::Type::Int>());
-          pistonArm->set("LastProgress", Float(1));
-          pistonArm->set("NewState", Byte(3));
-          pistonArm->set("Progress", Float(0.5));
-          pistonArm->set("State", Byte(3));
-          pistonArm->set("Sticky", Bool(sticky));
-          pistonArm->set("id", String("j2b:PistonArm"));
-          pistonArm->set("isMovable", Bool(false));
-          pistonArm->set("x", Int(pos.fX));
-          pistonArm->set("y", Int(pos.fY));
-          pistonArm->set("z", Int(pos.fZ));
+          pistonArm->set(u8"AttachedBlocks", attachedBlocksTag);
+          pistonArm->set(u8"BreakBlocks", List<Tag::Type::Int>());
+          pistonArm->set(u8"LastProgress", Float(1));
+          pistonArm->set(u8"NewState", Byte(3));
+          pistonArm->set(u8"Progress", Float(0.5));
+          pistonArm->set(u8"State", Byte(3));
+          pistonArm->set(u8"Sticky", Bool(sticky));
+          pistonArm->set(u8"id", String(u8"j2b:PistonArm"));
+          pistonArm->set(u8"isMovable", Bool(false));
+          pistonArm->set(u8"x", Int(pos.fX));
+          pistonArm->set(u8"y", Int(pos.fY));
+          pistonArm->set(u8"z", Int(pos.fZ));
 
           tileEntityReplacement[pos] = pistonArm;
         }
@@ -201,10 +201,10 @@ private:
     using namespace mcfile::je;
 
     auto e = Compound();
-    e->set("id", String("j2b:MovingBlock"));
-    e->set("isMovable", Bool(true));
+    e->set(u8"id", String(u8"j2b:MovingBlock"));
+    e->set(u8"isMovable", Bool(true));
 
-    auto blockState = item->compoundTag("blockState");
+    auto blockState = item->compoundTag(u8"blockState");
     if (!blockState) {
       return nullptr;
     }
@@ -213,66 +213,66 @@ private:
     if (!movingBlock) {
       return nullptr;
     }
-    e->set("movingBlock", movingBlock);
+    e->set(u8"movingBlock", movingBlock);
 
     auto movingBlockExtra = Compound();
-    movingBlockExtra->set("name", String("minecraft:air"));
-    movingBlockExtra->set("states", Compound());
-    movingBlockExtra->set("version", Int(kBlockDataVersion));
-    e->set("movingBlockExtra", movingBlockExtra);
+    movingBlockExtra->set(u8"name", String(u8"minecraft:air"));
+    movingBlockExtra->set(u8"states", Compound());
+    movingBlockExtra->set(u8"version", Int(kBlockDataVersion));
+    e->set(u8"movingBlockExtra", movingBlockExtra);
 
     auto pistonPos = LookupPistonPos(loader, pos, facing);
     if (pistonPos) {
-      e->set("pistonPosX", Int(pistonPos->fX));
-      e->set("pistonPosY", Int(pistonPos->fY));
-      e->set("pistonPosZ", Int(pistonPos->fZ));
+      e->set(u8"pistonPosX", Int(pistonPos->fX));
+      e->set(u8"pistonPosY", Int(pistonPos->fY));
+      e->set(u8"pistonPosZ", Int(pistonPos->fZ));
     }
 
-    e->set("x", Int(pos.fX));
-    e->set("y", Int(pos.fY));
-    e->set("z", Int(pos.fZ));
+    e->set(u8"x", Int(pos.fX));
+    e->set(u8"y", Int(pos.fY));
+    e->set(u8"z", Int(pos.fZ));
 
     return e;
   }
 
   struct PistonTileEntity {
-    std::string fName;
+    std::u8string fName;
     int fFacing;
     bool fExtending;
     bool fSource;
     Pos3i fPos;
 
-    PistonTileEntity(std::string const &name, int facing, bool extending, bool source, Pos3i pos)
+    PistonTileEntity(std::u8string const &name, int facing, bool extending, bool source, Pos3i pos)
         : fName(name), fFacing(facing), fExtending(extending), fSource(source), fPos(pos) {}
 
     static std::optional<PistonTileEntity> From(std::shared_ptr<CompoundTag const> const &tag, Pos3i pos) {
       if (!tag) {
         return std::nullopt;
       }
-      auto id = tag->string("id");
+      auto id = tag->string(u8"id");
       if (!id) {
         return std::nullopt;
       }
-      if (*id != "minecraft:piston") {
+      if (*id != u8"minecraft:piston") {
         return std::nullopt;
       }
-      auto state = tag->compoundTag("blockState");
+      auto state = tag->compoundTag(u8"blockState");
       if (!state) {
         return std::nullopt;
       }
-      auto name = state->string("Name");
+      auto name = state->string(u8"Name");
       if (!name) {
         return std::nullopt;
       }
-      auto facing = tag->int32("facing");
+      auto facing = tag->int32(u8"facing");
       if (!facing) {
         return std::nullopt;
       }
-      auto extending = tag->boolean("extending");
+      auto extending = tag->boolean(u8"extending");
       if (!extending) {
         return std::nullopt;
       }
-      auto source = tag->boolean("source");
+      auto source = tag->boolean(u8"source");
       if (!source) {
         return std::nullopt;
       }
@@ -380,9 +380,9 @@ private:
         if (!test->fSource) {
           continue;
         }
-        if (test->fName == "minecraft:piston" || test->fName == "minecraft:sticky_piston") {
+        if (test->fName == u8"minecraft:piston" || test->fName == u8"minecraft:sticky_piston") {
           return testPos;
-        } else if (test->fName == "minecraft:piston_head") {
+        } else if (test->fName == u8"minecraft:piston_head") {
           return testPos - VectorOfFacing(facing);
         }
       }
@@ -442,8 +442,8 @@ private:
   }
 
   static bool IsBaseStickyAgainstTarget(PistonTileEntity const &base, PistonTileEntity const &target) {
-    static std::string const slimeBlock = "minecraft:slime_block";
-    static std::string const honeyBlock = "minecraft:honey_block";
+    static std::u8string const slimeBlock = u8"minecraft:slime_block";
+    static std::u8string const honeyBlock = u8"minecraft:honey_block";
 
     if (base.fFacing != target.fFacing) {
       return false;
@@ -491,7 +491,7 @@ private:
       }
       bool has = false;
       section->eachBlockPalette([&has](std::shared_ptr<mcfile::je::Block const> const &b, size_t) {
-        if (b->fName == "minecraft:sticky_piston" || b->fName == "minecraft:piston" || b->fName == "minecraft:moving_piston") {
+        if (b->fName == u8"minecraft:sticky_piston" || b->fName == u8"minecraft:piston" || b->fName == u8"minecraft:moving_piston") {
           has = true;
           return false;
         }

@@ -34,22 +34,22 @@ public:
       return JE2BE_ERROR;
     }
 
-    auto data = root->query("/data")->asCompound();
+    auto data = root->query(u8"/data")->asCompound();
     if (!data) {
       return JE2BE_ERROR;
     }
 
-    auto dimensionString = data->string("dimension");
-    auto dimensionInt = data->int32("dimension");
-    auto dimensionByte = data->byte("dimension");
+    auto dimensionString = data->string(u8"dimension");
+    auto dimensionInt = data->int32(u8"dimension");
+    auto dimensionByte = data->byte(u8"dimension");
 
     i8 outDimension = 0;
     if (dimensionString) {
-      if (*dimensionString == "minecraft:overworld") {
+      if (*dimensionString == u8"minecraft:overworld") {
         outDimension = 0;
-      } else if (*dimensionString == "minecraft:the_nether") {
+      } else if (*dimensionString == u8"minecraft:the_nether") {
         outDimension = 1;
-      } else if (*dimensionString == "minecraft:the_end") {
+      } else if (*dimensionString == u8"minecraft:the_end") {
         outDimension = 2;
       }
     } else if (dimensionInt) {
@@ -58,12 +58,12 @@ public:
     } else if (dimensionByte) {
       outDimension = *dimensionByte;
     }
-    auto locked = data->boolean("locked", false);
-    auto scale = data->byte("scale");
-    auto xCenter = data->int32("xCenter");
-    auto zCenter = data->int32("zCenter");
-    auto colors = data->byteArrayTag("colors");
-    auto unlimitedTracking = data->boolean("unlimitedTracking", false);
+    auto locked = data->boolean(u8"locked", false);
+    auto scale = data->byte(u8"scale");
+    auto xCenter = data->int32(u8"xCenter");
+    auto zCenter = data->int32(u8"zCenter");
+    auto colors = data->byteArrayTag(u8"colors");
+    auto unlimitedTracking = data->boolean(u8"unlimitedTracking", false);
 
     if (!scale || !xCenter || !zCenter || !colors) {
       return JE2BE_ERROR;
@@ -72,22 +72,22 @@ public:
     for (u8 beScale = 0; beScale <= 4; beScale++) {
       i64 uuid = UUID(javaMapId, beScale);
       auto ret = Compound();
-      ret->set("dimension", Byte(outDimension));
-      ret->set("fullyExplored", Bool(false)); //?
-      ret->set("height", Short(128));
-      ret->set("mapId", Long(uuid));
-      ret->set("mapLocked", Bool(locked));
+      ret->set(u8"dimension", Byte(outDimension));
+      ret->set(u8"fullyExplored", Bool(false)); //?
+      ret->set(u8"height", Short(128));
+      ret->set(u8"mapId", Long(uuid));
+      ret->set(u8"mapLocked", Bool(locked));
       if (beScale == 4) {
-        ret->set("parentMapId", Long(-1));
+        ret->set(u8"parentMapId", Long(-1));
       } else {
         i64 parent = UUID(javaMapId, beScale + 1);
-        ret->set("parentMapId", Long(parent));
+        ret->set(u8"parentMapId", Long(parent));
       }
-      ret->set("scale", Byte(beScale));
-      ret->set("unlimitedTracking", Bool(unlimitedTracking));
-      ret->set("width", Short(128));
-      ret->set("xCenter", Int(*xCenter));
-      ret->set("zCenter", Int(*zCenter));
+      ret->set(u8"scale", Byte(beScale));
+      ret->set(u8"unlimitedTracking", Bool(unlimitedTracking));
+      ret->set(u8"width", Short(128));
+      ret->set(u8"xCenter", Int(*xCenter));
+      ret->set(u8"zCenter", Int(*zCenter));
 
       std::vector<u8> outColors(65536);
       auto decorations = List<Tag::Type::Compound>();
@@ -108,21 +108,21 @@ public:
           }
         }
 
-        auto frames = data->listTag("frames");
+        auto frames = data->listTag(u8"frames");
         if (frames) {
           for (auto const &it : *frames) {
             auto frame = it->asCompound();
             if (!frame) {
               continue;
             }
-            auto pos = frame->compoundTag("Pos");
-            auto rotation = frame->int32("Rotation");
+            auto pos = frame->compoundTag(u8"Pos");
+            auto rotation = frame->int32(u8"Rotation");
             if (!pos || !rotation) {
               continue;
             }
-            auto x = pos->int32("X");
-            auto y = pos->int32("Y");
-            auto z = pos->int32("Z");
+            auto x = pos->int32(u8"X");
+            auto y = pos->int32(u8"Y");
+            auto z = pos->int32(u8"Z");
             if (!x || !y || !z) {
               continue;
             }
@@ -145,39 +145,39 @@ public:
             }
 
             auto frameData = Compound();
-            frameData->set("rot", Int(rot));
-            frameData->set("type", Int(1));
+            frameData->set(u8"rot", Int(rot));
+            frameData->set(u8"type", Int(1));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
             }
-            frameData->set("x", Int(markerX));
-            frameData->set("y", Int(markerY));
+            frameData->set(u8"x", Int(markerX));
+            frameData->set(u8"y", Int(markerY));
 
             auto key = Compound();
-            key->set("blockX", Int(*x));
-            key->set("blockY", Int(*y));
-            key->set("blockZ", Int(*z));
-            key->set("type", Int(1));
+            key->set(u8"blockX", Int(*x));
+            key->set(u8"blockY", Int(*y));
+            key->set(u8"blockZ", Int(*z));
+            key->set(u8"type", Int(1));
 
             auto decoration = Compound();
-            decoration->set("data", frameData);
-            decoration->set("key", key);
+            decoration->set(u8"data", frameData);
+            decoration->set(u8"key", key);
 
             decorations->push_back(decoration);
           }
         }
 
-        auto inDecorations = item.query("tag/Decorations")->asList();
+        auto inDecorations = item.query(u8"tag/Decorations")->asList();
         if (inDecorations) {
           for (auto const &d : *inDecorations) {
             auto e = d->asCompound();
             if (!e) {
               continue;
             }
-            auto type = e->byte("type");
-            auto x = e->float64("x");
-            auto z = e->float64("z");
+            auto type = e->byte(u8"type");
+            auto x = e->float64(u8"x");
+            auto z = e->float64(u8"z");
             if (!type || !x || !z) {
               continue;
             }
@@ -191,33 +191,33 @@ public:
             }
 
             auto frameData = Compound();
-            frameData->set("rot", Int(8));
-            frameData->set("type", Int(outType));
+            frameData->set(u8"rot", Int(8));
+            frameData->set(u8"type", Int(outType));
             auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
             }
-            frameData->set("x", Int(markerX));
-            frameData->set("y", Int(markerY));
+            frameData->set(u8"x", Int(markerX));
+            frameData->set(u8"y", Int(markerY));
 
             auto key = Compound();
-            key->set("blockX", Int((i32)*x));
-            key->set("blockZ", Int((i32)*z));
-            key->set("blockY", Int(64)); // fixed value?
-            key->set("type", Int(1));    //?
+            key->set(u8"blockX", Int((i32)*x));
+            key->set(u8"blockZ", Int((i32)*z));
+            key->set(u8"blockY", Int(64)); // fixed value?
+            key->set(u8"type", Int(1));    //?
 
             auto decoration = Compound();
-            decoration->set("data", frameData);
-            decoration->set("key", key);
+            decoration->set(u8"data", frameData);
+            decoration->set(u8"key", key);
 
             decorations->push_back(decoration);
           }
         }
       }
       auto outColorsTag = make_shared<ByteArrayTag>(outColors);
-      ret->set("colors", outColorsTag);
+      ret->set(u8"colors", outColorsTag);
 
-      ret->set("decorations", decorations);
+      ret->set(u8"decorations", decorations);
 
       auto serialized = CompoundTag::Write(*ret, mcfile::Endian::Little);
       if (!serialized) {

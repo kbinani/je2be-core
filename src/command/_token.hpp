@@ -19,21 +19,23 @@ public:
     Comment,
   };
 
-  Token(std::string const &raw) : fRaw(raw) {}
+  Token(std::u8string const &raw) : fRaw(raw) {}
   virtual ~Token() {}
 
   virtual Type type() const { return Type::Simple; }
 
-  virtual std::string toString(Mode m) const {
+  virtual std::u8string toString(Mode m) const {
     return fRaw;
   }
 
-  static bool IterateStringLiterals(std::string const &s, std::function<void(std::string const &str, bool stringLiteral)> callback) {
+  static bool IterateStringLiterals(std::u8string const &s, std::function<void(std::u8string const &str, bool stringLiteral)> callback) {
     using namespace std;
     static regex const sStringLiteralRegex(R"((\"(\\.|[^"\\])*\"?|'(\\.|[^'\\])*'?))");
 
     ptrdiff_t pos = 0;
-    auto begin = sregex_iterator(s.begin(), s.end(), sStringLiteralRegex);
+    string ns;
+    ns.assign((char const *)s.data(), s.size());
+    auto begin = sregex_iterator(ns.begin(), ns.end(), sStringLiteralRegex);
     auto end = sregex_iterator();
     for (auto it = begin; it != end; it++) {
       smatch m = *it;
@@ -44,7 +46,9 @@ public:
         callback(pre, false);
       }
       auto part = m.str();
-      callback(part, true);
+      u8string u8part;
+      u8part.assign((char8_t const *)part.data(), part.size());
+      callback(u8part, true);
       if (!part.ends_with(part.at(0))) {
         // Wasn't enclosed with correct quoatation
         return false;
@@ -58,17 +62,17 @@ public:
   }
 
   // Replace contents of string literals to special character '\t'
-  static bool EscapeStringLiteralContents(std::string const &s, std::string *result) {
+  static bool EscapeStringLiteralContents(std::u8string const &s, std::u8string *result) {
     using namespace std;
     if (!result) {
       return false;
     }
     result->clear();
-    return IterateStringLiterals(s, [&result](string const &str, bool stringLiteral) {
+    return IterateStringLiterals(s, [&result](u8string const &str, bool stringLiteral) {
       if (stringLiteral) {
-        string s = "\"";
-        s += string(str.length() - 2, '\t');
-        s += "\"";
+        u8string s = u8"\"";
+        s += u8string(str.length() - 2, u8'\t');
+        s += u8"\"";
         *result += s;
       } else {
         *result += str;
@@ -77,24 +81,24 @@ public:
   }
 
 public:
-  std::string fRaw;
+  std::u8string fRaw;
 };
 
 class Whitespace : public Token {
 public:
-  Whitespace(std::string const &raw) : Token(raw) {}
+  Whitespace(std::u8string const &raw) : Token(raw) {}
   Type type() const override { return Type::Whitespace; }
 };
 
 class Comment : public Token {
 public:
-  Comment(std::string const &raw) : Token(raw) {}
+  Comment(std::u8string const &raw) : Token(raw) {}
   virtual Type type() const override { return Type::Comment; }
 };
 
 class StringLiteral : public Token {
 public:
-  StringLiteral(std::string const &raw) : Token(raw) {}
+  StringLiteral(std::u8string const &raw) : Token(raw) {}
   Type type() const override { return Type::StringLiteral; }
 };
 

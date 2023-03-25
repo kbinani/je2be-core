@@ -44,8 +44,8 @@ public:
 
     u64 total = 0;
     map<Dimension, vector<pair<Pos2i, Context::ChunksInRegion>>> regions;
-    i64 gameTick = dat->int64("currentTick", 0);
-    i32 gameTypeB = dat->int32("GameType", 0);
+    i64 gameTick = dat->int64(u8"currentTick", 0);
+    i32 gameTypeB = dat->int32(u8"GameType", 0);
     GameMode gameMode = GameMode::Survival;
     if (auto t = GameModeFromBedrock(gameTypeB); t) {
       gameMode = *t;
@@ -111,41 +111,41 @@ public:
     if (auto rootVehicle = bin->drainRootVehicle(); rootVehicle) {
       Uuid vehicleUuid = rootVehicle->first;
       auto entity = rootVehicle->second;
-      if (auto data = levelDat->compoundTag("Data"); data) {
-        if (auto player = data->compoundTag("Player"); player) {
-          if (auto vehiclePos = props::GetPos3d(*entity, "Pos"); vehiclePos) {
-            if (auto playerPos = props::GetPos3d(*player, "Pos"); playerPos) {
-              auto vehicleId = entity->string("id", "");
-              if (vehicleId == "minecraft:boat") {
+      if (auto data = levelDat->compoundTag(u8"Data"); data) {
+        if (auto player = data->compoundTag(u8"Player"); player) {
+          if (auto vehiclePos = props::GetPos3d(*entity, u8"Pos"); vehiclePos) {
+            if (auto playerPos = props::GetPos3d(*player, u8"Pos"); playerPos) {
+              auto vehicleId = entity->string(u8"id", u8"");
+              if (vehicleId == u8"minecraft:boat") {
                 playerPos->fY = vehiclePos->fY - 0.45;
-              } else if (vehicleId == "minecraft:minecart") {
-                if (entity->boolean("OnGround", false)) {
+              } else if (vehicleId == u8"minecraft:minecart") {
+                if (entity->boolean(u8"OnGround", false)) {
                   playerPos->fY = vehiclePos->fY - 0.35;
                 } else {
                   playerPos->fY = vehiclePos->fY - 0.2875;
                 }
               }
-              player->set("Pos", playerPos->toListTag());
+              player->set(u8"Pos", playerPos->toListTag());
             }
           }
           auto rootVehicleTag = Compound();
-          rootVehicleTag->set("Entity", entity);
-          rootVehicleTag->set("Attach", vehicleUuid.toIntArrayTag());
-          player->set("RootVehicle", rootVehicleTag);
+          rootVehicleTag->set(u8"Entity", entity);
+          rootVehicleTag->set(u8"Attach", vehicleUuid.toIntArrayTag());
+          player->set(u8"RootVehicle", rootVehicleTag);
         }
       }
     }
 
-    if (auto data = levelDat->compoundTag("Data"); data) {
-      if (auto player = data->compoundTag("Player"); player) {
+    if (auto data = levelDat->compoundTag(u8"Data"); data) {
+      if (auto player = data->compoundTag(u8"Player"); player) {
         CompoundTagPtr shoulderEntityLeft;
         CompoundTagPtr shoulderEntityRight;
         bin->drainShoulderEntities(shoulderEntityLeft, shoulderEntityRight);
         if (shoulderEntityLeft) {
-          player->set("ShoulderEntityLeft", shoulderEntityLeft);
+          player->set(u8"ShoulderEntityLeft", shoulderEntityLeft);
         }
         if (shoulderEntityRight) {
-          player->set("ShoulderEntityRight", shoulderEntityRight);
+          player->set(u8"ShoulderEntityRight", shoulderEntityRight);
         }
       }
     }

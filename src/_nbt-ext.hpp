@@ -72,7 +72,7 @@ static inline void CopyShortValues(CompoundTag const &src, CompoundTag &dest, st
   }
 }
 
-static inline void CopyStringValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<std::string>> keys) {
+static inline void CopyStringValues(CompoundTag const &src, CompoundTag &dest, std::initializer_list<RenamePair<std::u8string>> keys) {
   for (auto const &it : keys) {
     auto value = src.string(it.fBefore);
     if (value) {

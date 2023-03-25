@@ -17,6 +17,7 @@
 
 using namespace std;
 using namespace mcfile;
+using namespace mcfile::u8stream;
 using namespace je2be;
 namespace fs = std::filesystem;
 

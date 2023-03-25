@@ -80,7 +80,7 @@ private:
       list->push_back(e);
     }
     auto root = Compound();
-    root->set("AutonomousEntityList", list);
+    root->set(u8"AutonomousEntityList", list);
 
     auto buffer = CompoundTag::Write(*root, mcfile::Endian::Little);
     if (!buffer) {
@@ -108,7 +108,7 @@ public:
   int const fDifficultyBedrock;
   bool const fAllowCommand;
   GameMode const fGameType;
-  std::unordered_set<std::string> fExperiments;
+  std::unordered_set<std::u8string> fExperiments;
 
   struct VehicleAndPassengers {
     Pos2i fChunk;

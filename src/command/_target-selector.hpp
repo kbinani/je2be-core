@@ -8,18 +8,18 @@ namespace je2be::command {
 
 struct Argument {
   virtual ~Argument() {}
-  virtual void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const = 0;
+  virtual void toRawArgument(std::vector<std::pair<std::u8string, std::u8string>> &buffer, Mode mode) const = 0;
 };
 
 struct SimpleArgument : public Argument {
-  SimpleArgument(std::string const &k, std::string const &v) : fKey(k), fValue(v) {}
+  SimpleArgument(std::u8string const &k, std::u8string const &v) : fKey(k), fValue(v) {}
 
-  void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const override {
+  void toRawArgument(std::vector<std::pair<std::u8string, std::u8string>> &buffer, Mode mode) const override {
     buffer.push_back(std::make_pair(fKey, fValue));
   }
 
-  std::string fKey;
-  std::string fValue;
+  std::u8string fKey;
+  std::u8string fValue;
 };
 
 enum class DedicatedArgumentType {
@@ -28,35 +28,35 @@ enum class DedicatedArgumentType {
 };
 
 struct DedicatedArgument : public Argument {
-  DedicatedArgument(DedicatedArgumentType type, std::string const &value) : fType(type), fValue(value) {}
+  DedicatedArgument(DedicatedArgumentType type, std::u8string const &value) : fType(type), fValue(value) {}
 
-  void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode mode) const override {
+  void toRawArgument(std::vector<std::pair<std::u8string, std::u8string>> &buffer, Mode mode) const override {
     using namespace std;
-    string name;
-    string value;
+    u8string name;
+    u8string value;
     switch (fType) {
     case DedicatedArgumentType::Limit: {
       value = fValue;
       if (mode == Mode::Bedrock) {
-        name = "c";
+        name = u8"c";
       } else {
-        name = "limit";
+        name = u8"limit";
       }
       break;
     }
     case DedicatedArgumentType::GameMode: {
       value = fValue;
       if (mode == Mode::Bedrock) {
-        name = "m";
+        name = u8"m";
       } else {
-        name = "gamemode";
-        unordered_map<string, string> const mapping = {
-            {"0", "survival"},
-            {"s", "survival"},
-            {"1", "creative"},
-            {"c", "creative"},
-            {"2", "adventure"},
-            {"a", "adventure"},
+        name = u8"gamemode";
+        unordered_map<u8string, u8string> const mapping = {
+            {u8"0", u8"survival"},
+            {u8"s", u8"survival"},
+            {u8"1", u8"creative"},
+            {u8"c", u8"creative"},
+            {u8"2", u8"adventure"},
+            {u8"a", u8"adventure"},
         };
         auto found = mapping.find(fValue);
         if (found != mapping.end()) {
@@ -72,7 +72,7 @@ struct DedicatedArgument : public Argument {
   }
 
   DedicatedArgumentType fType;
-  std::string fValue;
+  std::u8string fValue;
 };
 
 enum class NumberArgumentType {
@@ -84,15 +84,15 @@ enum class NumberArgumentType {
 
 struct RangedNumberArgument : public Argument {
   NumberArgumentType const fType;
-  std::string fMinimum;
-  std::string fMaximum;
+  std::u8string fMinimum;
+  std::u8string fMaximum;
 
-  RangedNumberArgument(NumberArgumentType type, std::string const &min, std::string const &max) : fType(type), fMinimum(min), fMaximum(max) {
+  RangedNumberArgument(NumberArgumentType type, std::u8string const &min, std::u8string const &max) : fType(type), fMinimum(min), fMaximum(max) {
   }
 
-  static std::shared_ptr<RangedNumberArgument> ParseJava(NumberArgumentType type, std::string const &value) {
+  static std::shared_ptr<RangedNumberArgument> ParseJava(NumberArgumentType type, std::u8string const &value) {
     using namespace std;
-    size_t range = value.find("..");
+    size_t range = value.find(u8"..");
     if (range != string::npos) {
       auto min = value.substr(0, range);
       auto max = value.substr(range + 2);
@@ -102,30 +102,30 @@ struct RangedNumberArgument : public Argument {
     }
   }
 
-  void toRawArgument(std::vector<std::pair<std::string, std::string>> &buffer, Mode m) const override {
+  void toRawArgument(std::vector<std::pair<std::u8string, std::u8string>> &buffer, Mode m) const override {
     using namespace std;
     if (m == Mode::Bedrock) {
-      string min;
-      string max;
+      u8string min;
+      u8string max;
       switch (fType) {
       case NumberArgumentType::Distance: {
-        max = "r";
-        min = "rm";
+        max = u8"r";
+        min = u8"rm";
         break;
       }
       case NumberArgumentType::Level: {
-        max = "l";
-        min = "lm";
+        max = u8"l";
+        min = u8"lm";
         break;
       }
       case NumberArgumentType::XRotation: {
-        max = "rx";
-        min = "rxm";
+        max = u8"rx";
+        min = u8"rxm";
         break;
       }
       case NumberArgumentType::YRotation: {
-        max = "ry";
-        min = "rym";
+        max = u8"ry";
+        min = u8"rym";
         break;
       }
       default:
@@ -138,22 +138,22 @@ struct RangedNumberArgument : public Argument {
         buffer.push_back(make_pair(max, fMaximum));
       }
     } else {
-      string name;
+      u8string name;
       switch (fType) {
       case NumberArgumentType::Distance: {
-        name = "distance";
+        name = u8"distance";
         break;
       }
       case NumberArgumentType::Level: {
-        name = "level";
+        name = u8"level";
         break;
       }
       case NumberArgumentType::XRotation: {
-        name = "x_rotation";
+        name = u8"x_rotation";
         break;
       }
       case NumberArgumentType::YRotation: {
-        name = "y_rotation";
+        name = u8"y_rotation";
         break;
       }
       default:
@@ -163,12 +163,12 @@ struct RangedNumberArgument : public Argument {
         if (fMinimum == fMaximum) {
           buffer.push_back(make_pair(name, fMaximum));
         } else {
-          buffer.push_back(make_pair(name, fMinimum + ".." + fMaximum));
+          buffer.push_back(make_pair(name, fMinimum + u8".." + fMaximum));
         }
       } else if (!fMinimum.empty()) {
-        buffer.push_back(make_pair(name, fMinimum + ".."));
+        buffer.push_back(make_pair(name, fMinimum + u8".."));
       } else if (!fMaximum.empty()) {
-        buffer.push_back(make_pair(name, ".." + fMaximum));
+        buffer.push_back(make_pair(name, u8".." + fMaximum));
       }
     }
   }
@@ -176,50 +176,50 @@ struct RangedNumberArgument : public Argument {
 
 class TargetSelector : public Token {
 public:
-  TargetSelector(std::string const &raw) : Token(raw) {}
+  TargetSelector(std::u8string const &raw) : Token(raw) {}
 
   Type type() const override { return Type::TargetSelector; }
 
-  std::string toString(Mode m) const override {
+  std::u8string toString(Mode m) const override {
     using namespace std;
     if (fArguments.empty()) {
       return fType;
     }
-    string r = fType + "[";
-    vector<pair<string, string>> raw;
+    u8string r = fType + u8"[";
+    vector<pair<u8string, u8string>> raw;
     for (auto const &arg : fArguments) {
       arg->toRawArgument(raw, m);
     }
     for (size_t i = 0; i < raw.size(); i++) {
       auto const arg = raw[i];
-      r += arg.first + "=" + arg.second;
+      r += arg.first + u8"=" + arg.second;
       if (i + 1 < raw.size()) {
-        r += ",";
+        r += u8",";
       }
     }
-    return r + "]";
+    return r + u8"]";
   }
 
-  static std::shared_ptr<TargetSelector> Parse(std::string const &raw) {
+  static std::shared_ptr<TargetSelector> Parse(std::u8string const &raw) {
     using namespace std;
 
     shared_ptr<TargetSelector> ret(new TargetSelector(raw));
-    size_t openBracket = raw.find('[');
-    if (openBracket == string::npos) {
+    size_t openBracket = raw.find(u8'[');
+    if (openBracket == u8string::npos) {
       ret->fType = raw;
       return ret;
     }
-    if (!raw.ends_with("]")) {
+    if (!raw.ends_with(u8"]")) {
       return nullptr;
     }
     ret->fType = raw.substr(0, openBracket);
-    string body = raw.substr(openBracket + 1, raw.length() - openBracket - 2);
-    string replaced;
+    u8string body = raw.substr(openBracket + 1, raw.length() - openBracket - 2);
+    u8string replaced;
     if (!EscapeStringLiteralContents(body, &replaced)) {
       return nullptr;
     }
     size_t pos = 0;
-    vector<pair<string, string>> arguments;
+    vector<pair<u8string, u8string>> arguments;
     while (pos < replaced.length()) {
       auto arg = ParseArgument(body, replaced, pos);
       if (!arg) {
@@ -234,7 +234,7 @@ public:
   }
 
 private:
-  static void Erase(std::vector<std::pair<std::string, std::string>> &v, std::string const &key) {
+  static void Erase(std::vector<std::pair<std::u8string, std::u8string>> &v, std::u8string const &key) {
     for (int i = 0; i < v.size(); i++) {
       if (v[i].first == key) {
         v.erase(v.begin() + i);
@@ -243,74 +243,74 @@ private:
     }
   }
 
-  static std::string Get(std::vector<std::pair<std::string, std::string>> const &v, std::string const &key) {
+  static std::u8string Get(std::vector<std::pair<std::u8string, std::u8string>> const &v, std::u8string const &key) {
     for (int i = 0; i < v.size(); i++) {
       if (v[i].first == key) {
         return v[i].second;
       }
     }
-    return "";
+    return u8"";
   }
 
-  static bool ParseRawArguments(std::vector<std::pair<std::string, std::string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
+  static bool ParseRawArguments(std::vector<std::pair<std::u8string, std::u8string>> const &raw, std::vector<std::shared_ptr<Argument>> &parsed) {
     using namespace std;
-    vector<pair<string, string>> args(raw);
+    vector<pair<u8string, u8string>> args(raw);
 
     while (!args.empty()) {
       auto pair = args[0];
-      string k = pair.first;
-      string v = pair.second;
-      if (k == "distance") {
+      u8string k = pair.first;
+      u8string v = pair.second;
+      if (k == u8"distance") {
         auto distance = RangedNumberArgument::ParseJava(NumberArgumentType::Distance, v);
         if (!distance) {
           return false;
         }
         parsed.push_back(distance);
-      } else if (k == "r" || k == "rm") {
-        auto min = Get(args, "rm");
-        auto max = Get(args, "r");
+      } else if (k == u8"r" || k == u8"rm") {
+        auto min = Get(args, u8"rm");
+        auto max = Get(args, u8"r");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Distance, min, max));
-        Erase(args, "r");
-        Erase(args, "rm");
-      } else if (k == "level") {
+        Erase(args, u8"r");
+        Erase(args, u8"rm");
+      } else if (k == u8"level") {
         auto level = RangedNumberArgument::ParseJava(NumberArgumentType::Level, v);
         if (!level) {
           return false;
         }
         parsed.push_back(level);
-      } else if (k == "l" || k == "lm") {
-        auto min = Get(args, "lm");
-        auto max = Get(args, "l");
+      } else if (k == u8"l" || k == u8"lm") {
+        auto min = Get(args, u8"lm");
+        auto max = Get(args, u8"l");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::Level, min, max));
-        Erase(args, "l");
-        Erase(args, "lm");
-      } else if (k == "x_rotation") {
+        Erase(args, u8"l");
+        Erase(args, u8"lm");
+      } else if (k == u8"x_rotation") {
         auto p = RangedNumberArgument::ParseJava(NumberArgumentType::XRotation, v);
         if (!p) {
           return false;
         }
         parsed.push_back(p);
-      } else if (k == "rx" || k == "rxm") {
-        auto min = Get(args, "rxm");
-        auto max = Get(args, "rx");
+      } else if (k == u8"rx" || k == u8"rxm") {
+        auto min = Get(args, u8"rxm");
+        auto max = Get(args, u8"rx");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::XRotation, min, max));
-        Erase(args, "rx");
-        Erase(args, "rxm");
-      } else if (k == "y_rotation") {
+        Erase(args, u8"rx");
+        Erase(args, u8"rxm");
+      } else if (k == u8"y_rotation") {
         auto p = RangedNumberArgument::ParseJava(NumberArgumentType::YRotation, v);
         if (!p) {
           return false;
         }
         parsed.push_back(p);
-      } else if (k == "ry" || k == "rym") {
-        auto min = Get(args, "rym");
-        auto max = Get(args, "ry");
+      } else if (k == u8"ry" || k == u8"rym") {
+        auto min = Get(args, u8"rym");
+        auto max = Get(args, u8"ry");
         parsed.push_back(make_shared<RangedNumberArgument>(NumberArgumentType::YRotation, min, max));
-        Erase(args, "ry");
-        Erase(args, "rym");
-      } else if (k == "gamemode" || k == "m") {
+        Erase(args, u8"ry");
+        Erase(args, u8"rym");
+      } else if (k == u8"gamemode" || k == u8"m") {
         parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::GameMode, v));
-      } else if (k == "limit" || k == "c") {
+      } else if (k == u8"limit" || k == u8"c") {
         parsed.push_back(make_shared<DedicatedArgument>(DedicatedArgumentType::Limit, v));
       } else {
         parsed.push_back(make_shared<SimpleArgument>(k, v));
@@ -320,13 +320,16 @@ private:
     return true;
   }
 
-  static std::optional<std::pair<std::string, std::string>> ParseArgument(std::string const &body, std::string const &replaced, size_t &pos) {
+  static std::optional<std::pair<std::u8string, std::u8string>> ParseArgument(std::u8string const &body, std::u8string const &replaced, size_t &pos) {
     using namespace std;
-    if (body.substr(pos).starts_with("scores=")) {
+
+    if (body.substr(pos).starts_with(u8"scores=")) {
       static regex const sScoresRegex(R"((scores=\{[^\}]*\}).*)");
       smatch m;
-      string s = body.substr(pos);
-      if (!std::regex_match(s, m, sScoresRegex)) {
+      u8string s = body.substr(pos);
+      string ss;
+      ss.assign((char const *)s.data(), s.size());
+      if (!std::regex_match(ss, m, sScoresRegex)) {
         return nullopt;
       }
       if (m.size() < 2) {
@@ -335,15 +338,17 @@ private:
       string kv = m[1].str();
       string value = kv.substr(7);
       pos = pos += kv.size() + 1;
-      return make_pair("scores", value);
+      u8string u8value;
+      u8value.assign((char8_t const *)value.data(), value.size());
+      return make_pair(u8"scores", u8value);
     } else {
-      size_t equal = replaced.find('=', pos);
+      size_t equal = replaced.find(u8'=', pos);
       if (equal == string::npos) {
         return nullopt;
       }
       size_t comma = replaced.find(',', equal);
-      string arg = strings::Substring(body, pos, equal);
-      string value = strings::Substring(body, equal + 1, comma);
+      u8string arg = strings::Substring(body, pos, equal);
+      u8string value = strings::Substring(body, equal + 1, comma);
       if (comma != string::npos) {
         pos = comma + 1;
       } else {
@@ -354,7 +359,7 @@ private:
   }
 
 public:
-  std::string fType;
+  std::u8string fType;
   std::vector<std::shared_ptr<Argument>> fArguments;
 };
 

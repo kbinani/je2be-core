@@ -27,24 +27,24 @@ enum class BannerColorCodeBedrock : i32 {
   White = 15,
 };
 
-static inline BannerColorCodeBedrock BannerColorCodeFromName(std::string const &color) {
-  static std::unordered_map<std::string, BannerColorCodeBedrock> const mapping = {
-      {"white", BannerColorCodeBedrock::White},
-      {"orange", BannerColorCodeBedrock::Orange},
-      {"magenta", BannerColorCodeBedrock::Magenta},
-      {"light_blue", BannerColorCodeBedrock::LightBlue},
-      {"yellow", BannerColorCodeBedrock::Yellow},
-      {"lime", BannerColorCodeBedrock::Lime},
-      {"pink", BannerColorCodeBedrock::Pink},
-      {"gray", BannerColorCodeBedrock::Gray},
-      {"light_gray", BannerColorCodeBedrock::LightGray},
-      {"cyan", BannerColorCodeBedrock::Cyan},
-      {"purple", BannerColorCodeBedrock::Purple},
-      {"blue", BannerColorCodeBedrock::Blue},
-      {"brown", BannerColorCodeBedrock::Brown},
-      {"green", BannerColorCodeBedrock::Green},
-      {"red", BannerColorCodeBedrock::Red},
-      {"black", BannerColorCodeBedrock::Black},
+static inline BannerColorCodeBedrock BannerColorCodeFromName(std::u8string const &color) {
+  static std::unordered_map<std::u8string, BannerColorCodeBedrock> const mapping = {
+      {u8"white", BannerColorCodeBedrock::White},
+      {u8"orange", BannerColorCodeBedrock::Orange},
+      {u8"magenta", BannerColorCodeBedrock::Magenta},
+      {u8"light_blue", BannerColorCodeBedrock::LightBlue},
+      {u8"yellow", BannerColorCodeBedrock::Yellow},
+      {u8"lime", BannerColorCodeBedrock::Lime},
+      {u8"pink", BannerColorCodeBedrock::Pink},
+      {u8"gray", BannerColorCodeBedrock::Gray},
+      {u8"light_gray", BannerColorCodeBedrock::LightGray},
+      {u8"cyan", BannerColorCodeBedrock::Cyan},
+      {u8"purple", BannerColorCodeBedrock::Purple},
+      {u8"blue", BannerColorCodeBedrock::Blue},
+      {u8"brown", BannerColorCodeBedrock::Brown},
+      {u8"green", BannerColorCodeBedrock::Green},
+      {u8"red", BannerColorCodeBedrock::Red},
+      {u8"black", BannerColorCodeBedrock::Black},
   };
   auto found = mapping.find(color);
   if (found == mapping.end()) {

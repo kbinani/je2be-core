@@ -58,7 +58,7 @@ private:
     using namespace mcfile::be;
     string digp;
     Status st = store->entities(chunk, [db, &digp](CompoundTagPtr const &c) {
-      auto id = c->int64("UniqueID");
+      auto id = c->int64(u8"UniqueID");
       if (!id) {
         return Status::Ok();
       }

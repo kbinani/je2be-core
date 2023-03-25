@@ -11,7 +11,7 @@ class Item {
 
 public:
   static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx);
-  static i8 GetSkullTypeFromBlockName(std::string_view const &name);
+  static i8 GetSkullTypeFromBlockName(std::u8string_view const &name);
   static CompoundTagPtr Empty();
 };
 

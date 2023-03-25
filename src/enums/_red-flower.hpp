@@ -18,67 +18,67 @@ enum class RedFlower : u8 {
   RedFlowerLast
 };
 
-static inline std::string BedrockNameFromRedFlower(RedFlower f) {
+static inline std::u8string BedrockNameFromRedFlower(RedFlower f) {
   switch (f) {
   case RedFlower::BlueOrchid:
-    return "orchid";
+    return u8"orchid";
   case RedFlower::AzureBluet:
-    return "houstonia";
+    return u8"houstonia";
   case RedFlower::RedTulip:
-    return "tulip_red";
+    return u8"tulip_red";
   case RedFlower::OrangeTulip:
-    return "tulip_orange";
+    return u8"tulip_orange";
   case RedFlower::WhiteTulip:
-    return "tulip_white";
+    return u8"tulip_white";
   case RedFlower::PinkTulip:
-    return "tulip_pink";
+    return u8"tulip_pink";
   case RedFlower::OxeyeDaisy:
-    return "oxeye";
+    return u8"oxeye";
   case RedFlower::Poppy:
-    return "poppy";
+    return u8"poppy";
   case RedFlower::Allium:
-    return "allium";
+    return u8"allium";
   case RedFlower::Cornflower:
-    return "cornflower";
+    return u8"cornflower";
   case RedFlower::LilyOfTheValley:
-    return "lily_of_the_valley";
+    return u8"lily_of_the_valley";
   default:
     assert(false);
-    return "";
+    return u8"";
   }
 }
 
-static inline std::string JavaNameFromRedFlower(RedFlower f) {
+static inline std::u8string JavaNameFromRedFlower(RedFlower f) {
   switch (f) {
   case RedFlower::BlueOrchid:
-    return "blue_orchid";
+    return u8"blue_orchid";
   case RedFlower::AzureBluet:
-    return "azure_bluet";
+    return u8"azure_bluet";
   case RedFlower::RedTulip:
-    return "red_tulip";
+    return u8"red_tulip";
   case RedFlower::OrangeTulip:
-    return "orange_tulip";
+    return u8"orange_tulip";
   case RedFlower::WhiteTulip:
-    return "white_tulip";
+    return u8"white_tulip";
   case RedFlower::PinkTulip:
-    return "pink_tulip";
+    return u8"pink_tulip";
   case RedFlower::OxeyeDaisy:
-    return "oxeye_daisy";
+    return u8"oxeye_daisy";
   case RedFlower::Poppy:
-    return "poppy";
+    return u8"poppy";
   case RedFlower::Allium:
-    return "allium";
+    return u8"allium";
   case RedFlower::Cornflower:
-    return "cornflower";
+    return u8"cornflower";
   case RedFlower::LilyOfTheValley:
-    return "lily_of_the_valley";
+    return u8"lily_of_the_valley";
   default:
     assert(false);
-    return "";
+    return u8"";
   }
 }
 
-static inline std::optional<RedFlower> RedFlowerFromBedrockName(std::string const &name) {
+static inline std::optional<RedFlower> RedFlowerFromBedrockName(std::u8string const &name) {
   for (u8 f = 1; f < static_cast<u8>(RedFlower::RedFlowerLast); f++) {
     RedFlower rf = static_cast<RedFlower>(f);
     if (BedrockNameFromRedFlower(rf) == name) {
@@ -88,7 +88,7 @@ static inline std::optional<RedFlower> RedFlowerFromBedrockName(std::string cons
   return std::nullopt;
 }
 
-static inline std::optional<RedFlower> RedFlowerFromJavaName(std::string const &name) {
+static inline std::optional<RedFlower> RedFlowerFromJavaName(std::u8string const &name) {
   for (u8 f = 1; f < static_cast<u8>(RedFlower::RedFlowerLast); f++) {
     RedFlower rf = static_cast<RedFlower>(f);
     if (JavaNameFromRedFlower(rf) == name) {

@@ -1,5 +1,5 @@
 TEST_CASE("uuid") {
-  std::string const input("49b21cb8-100b-44fa-96bd-6b3034283d37");
+  std::u8string const input(u8"49b21cb8-100b-44fa-96bd-6b3034283d37");
 
   auto uuid = Uuid::FromString(input);
   CHECK(uuid);

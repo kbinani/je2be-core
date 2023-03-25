@@ -53,8 +53,8 @@ static inline std::shared_ptr<LongTag> Long(i64 v) {
   return std::make_shared<LongTag>(v);
 }
 
-static inline std::shared_ptr<StringTag> String(std::string_view v) {
-  return std::make_shared<StringTag>(std::string(v));
+static inline std::shared_ptr<StringTag> String(std::u8string_view v) {
+  return std::make_shared<StringTag>(std::u8string(v));
 }
 
 static inline std::shared_ptr<FloatTag> Float(float v) {

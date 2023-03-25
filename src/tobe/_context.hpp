@@ -22,7 +22,7 @@ struct Context {
   int const fDifficultyBedrock;
   bool const fAllowCommand;
   GameMode const fGameType;
-  std::unordered_set<std::string> fExperiments;
+  std::unordered_set<std::u8string> fExperiments;
 };
 
 } // namespace je2be::tobe

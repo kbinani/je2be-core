@@ -17,7 +17,7 @@ public:
 
     vector<u16> indicesJ(4096, 0);
     if (sectionB.fPaletteIndices.size() != 4096 || sectionB.fPalette.empty()) {
-      paletteJ.push_back(make_shared<mcfile::je::Block const>("minecraft:air"));
+      paletteJ.push_back(make_shared<mcfile::je::Block const>(u8"minecraft:air"));
     } else {
       for (size_t idx = 0; idx < sectionB.fPalette.size(); idx++) {
         auto const &blockB = sectionB.fPalette[idx];
@@ -41,7 +41,7 @@ public:
     if (sectionB.fWaterPaletteIndices.size() == 4096) {
       vector<bool> isWaterB(sectionB.fWaterPalette.size());
       for (size_t i = 0; i < sectionB.fWaterPalette.size(); i++) {
-        isWaterB[i] = sectionB.fWaterPalette[i]->fName == "minecraft:water";
+        isWaterB[i] = sectionB.fWaterPalette[i]->fName == u8"minecraft:water";
       }
       for (int x = 0, indexB = 0; x < 16; x++) {
         for (int z = 0; z < 16; z++) {
@@ -58,12 +58,12 @@ public:
             auto dryBlockJ = paletteJ[indexDryJ];
             int waterLoggedIndexJ = waterLoggedJ[indexDryJ];
             if (waterLoggedIndexJ < 0) {
-              if (dryBlockJ->property("waterlogged") == "") {
+              if (dryBlockJ->property(u8"waterlogged") == u8"") {
                 // This block can't be waterlogged in Java.
                 waterLoggedIndexJ = indexDryJ;
                 waterLoggedJ[indexDryJ] = indexDryJ;
               } else {
-                auto waterLoggedBlockJ = dryBlockJ->applying({{"waterlogged", "true"}});
+                auto waterLoggedBlockJ = dryBlockJ->applying({{u8"waterlogged", u8"true"}});
                 waterLoggedIndexJ = paletteJ.size();
                 paletteJ.push_back(waterLoggedBlockJ);
                 waterLoggedJ[indexDryJ] = waterLoggedIndexJ;

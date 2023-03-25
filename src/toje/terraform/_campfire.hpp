@@ -27,12 +27,12 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, optional<string>> props;
-          props["signal_fire"] = "false";
+          map<u8string, optional<u8string>> props;
+          props[u8"signal_fire"] = u8"false";
           auto lower = cache.blockAt(x, y - 1, z);
           if (lower) {
-            if (lower->fName == "minecraft:hay_block") {
-              props["signal_fire"] = "true";
+            if (lower->fName == u8"minecraft:hay_block") {
+              props[u8"signal_fire"] = u8"true";
             }
           }
           auto replace = blockJ->applying(props);

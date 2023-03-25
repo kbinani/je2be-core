@@ -20,12 +20,12 @@ TEST_CASE("bee-nest") {
     CHECK(chunk);
     auto tile = chunk->tileEntityAt(2, -60, 2);
     CHECK(tile);
-    CHECK(tile->string("id") == "minecraft:beehive");
-    auto bees = tile->listTag("Bees");
+    CHECK(tile->string(u8"id") == u8"minecraft:beehive");
+    auto bees = tile->listTag(u8"Bees");
     CHECK(bees);
     CHECK(bees->size() == 1);
     auto bee = bees->at(0);
     CHECK(bee->asCompound());
-    CHECK(bee->asCompound()->string("id") == "minecraft:bee");
+    CHECK(bee->asCompound()->string(u8"id") == u8"minecraft:bee");
   }
 }

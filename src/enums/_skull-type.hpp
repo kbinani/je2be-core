@@ -14,32 +14,32 @@ enum class SkullType : u8 {
   SkullTypeLast,
 };
 
-static inline std::string JavaNameFromSkullType(SkullType st) {
+static inline std::u8string JavaNameFromSkullType(SkullType st) {
   switch (st) {
   case SkullType::Player:
-    return "player_head";
+    return u8"player_head";
   case SkullType::Zombie:
-    return "zombie_head";
+    return u8"zombie_head";
   case SkullType::Creeper:
-    return "creeper_head";
+    return u8"creeper_head";
   case SkullType::Dragon:
-    return "dragon_head";
+    return u8"dragon_head";
   case SkullType::Skeleton:
-    return "skeleton_skull";
+    return u8"skeleton_skull";
   case SkullType::WitherSkeleton:
-    return "wither_skeleton_skull";
+    return u8"wither_skeleton_skull";
   case SkullType::Piglin:
-    return "piglin_head";
+    return u8"piglin_head";
   default:
     assert(false);
-    return "";
+    return u8"";
   }
 }
 
-static inline std::optional<SkullType> SkullTypeFromJavaName(std::string const &name) {
+static inline std::optional<SkullType> SkullTypeFromJavaName(std::u8string const &name) {
   for (u8 i = 0; i < static_cast<u8>(SkullType::SkullTypeLast); i++) {
     SkullType st = static_cast<SkullType>(i);
-    std::string n = JavaNameFromSkullType(st);
+    std::u8string n = JavaNameFromSkullType(st);
     if (n == name) {
       return st;
     }

@@ -13,8 +13,8 @@ public:
     static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, mcfile::Endian endian) {
       auto ret = Compound();
       CompoundTag &j = *ret;
-#define B(__nameJ, __nameB, __default) j[#__nameJ] = String(b.boolean(#__nameB, __default) ? "true" : "false");
-#define I(__nameJ, __nameB, __default) j[#__nameJ] = String(std::to_string(b.int32(#__nameB, __default)));
+#define B(__nameJ, __nameB, __default) j[u8"" #__nameJ] = String(b.boolean(u8"" #__nameB, __default) ? u8"true" : u8"false");
+#define I(__nameJ, __nameB, __default) j[u8"" #__nameJ] = String(mcfile::String::ToString(b.int32(u8"" #__nameB, __default)));
       // announceAdvancements
       B(commandBlockOutput, commandblockoutput, true);
       // disableElytraMovementCheck
@@ -55,11 +55,11 @@ public:
 
       if (auto mobEventsData = db.get(mcfile::be::DbKey::MobEvents()); mobEventsData) {
         if (auto mobEvents = CompoundTag::Read(*mobEventsData, endian); mobEvents) {
-          auto doPatrolSpawning = mobEvents->boolean("minecraft:pillager_patrols_event", true);
-          auto doTraderSpawning = mobEvents->boolean("minecraft:wandering_trader_event", true);
+          auto doPatrolSpawning = mobEvents->boolean(u8"minecraft:pillager_patrols_event", true);
+          auto doTraderSpawning = mobEvents->boolean(u8"minecraft:wandering_trader_event", true);
 
-          ret->set("doPatrolSpawning", String(doPatrolSpawning ? "true" : "false"));
-          ret->set("doTraderSpawning", String(doTraderSpawning ? "true" : "false"));
+          ret->set(u8"doPatrolSpawning", String(doPatrolSpawning ? u8"true" : u8"false"));
+          ret->set(u8"doTraderSpawning", String(doTraderSpawning ? u8"true" : u8"false"));
         }
       }
 
@@ -119,31 +119,31 @@ public:
 
     JavaLevelDat::Options o;
     o.fDataVersion = toje::kDataVersion;
-    o.fRandomSeed = b.int64("RandomSeed");
+    o.fRandomSeed = b.int64(u8"RandomSeed");
     o.fVersionString = kVersionString;
     o.fFlatWorldSettings = FlatWorldSettings(b);
-    o.fBonusChestEnabled = b.boolean("bonusChestEnabled");
+    o.fBonusChestEnabled = b.boolean(u8"bonusChestEnabled");
 
     auto data = JavaLevelDat::TemplateData(o);
 
     CompoundTag &j = *data;
 
-    CopyStringValues(b, j, {{"LevelName"}});
-    CopyIntValues(b, j, {{"SpawnX"}, {"SpawnY"}, {"SpawnZ"}, {"rainTime"}, {"lightningTime", "thunderTime"}});
-    CopyBoolValues(b, j, {{"commandsEnabled", "allowCommands", false}});
-    CopyLongValues(b, j, {{"Time", "DayTime"}, {"currentTick", "Time"}});
+    CopyStringValues(b, j, {{u8"LevelName"}});
+    CopyIntValues(b, j, {{u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}, {u8"rainTime"}, {u8"lightningTime", u8"thunderTime"}});
+    CopyBoolValues(b, j, {{u8"commandsEnabled", u8"allowCommands", false}});
+    CopyLongValues(b, j, {{u8"Time", u8"DayTime"}, {u8"currentTick", u8"Time"}});
 
-    j["Difficulty"] = Byte(b.int32("Difficulty", 2));
-    j["GameRules"] = GameRules::Import(b, db, ctx.fEndian);
-    j["LastPlayed"] = Long(b.int64("LastPlayed", 0) * 1000);
-    j["raining"] = Bool(b.float32("rainLevel", 0) >= 1);
-    j["thundering"] = Bool(b.float32("lightningLevel", 0) >= 1);
-    j["GameType"] = Int(JavaFromGameMode(ctx.fGameMode));
-    j["initialized"] = Bool(true);
+    j[u8"Difficulty"] = Byte(b.int32(u8"Difficulty", 2));
+    j[u8"GameRules"] = GameRules::Import(b, db, ctx.fEndian);
+    j[u8"LastPlayed"] = Long(b.int64(u8"LastPlayed", 0) * 1000);
+    j[u8"raining"] = Bool(b.float32(u8"rainLevel", 0) >= 1);
+    j[u8"thundering"] = Bool(b.float32(u8"lightningLevel", 0) >= 1);
+    j[u8"GameType"] = Int(JavaFromGameMode(ctx.fGameMode));
+    j[u8"initialized"] = Bool(true);
     //TODO: j["hardcore"] = Bool(false);
 
     if (auto dragonFight = DragonFight(db, ctx.fEndian); dragonFight) {
-      j["DragonFight"] = dragonFight;
+      j[u8"DragonFight"] = dragonFight;
     }
 
     if (auto playerData = Player(db, ctx, opt.fLocalPlayer.get()); playerData) {
@@ -154,46 +154,46 @@ public:
       if (playerData->fShoulderEntityRight) {
         ctx.setShoulderEntityRight(*playerData->fShoulderEntityRight);
       }
-      j["Player"] = playerData->fEntity;
+      j[u8"Player"] = playerData->fEntity;
     }
 
     auto root = Compound();
-    root->set("Data", data);
+    root->set(u8"Data", data);
     return root;
   }
 
   static void UpdateDataPacksAndEnabledFeatures(CompoundTag &root, Context const &ctx) {
-    auto data = root.compoundTag("Data");
+    auto data = root.compoundTag(u8"Data");
     if (!data) {
       return;
     }
     auto enabledFeatures = List<Tag::Type::String>();
     if (ctx.fDataPack1_20Update || ctx.fDataPackBundle) {
       if (ctx.fDataPack1_20Update) {
-        enabledFeatures->push_back(String("minecraft:update_1_20"));
+        enabledFeatures->push_back(String(u8"minecraft:update_1_20"));
       }
       if (ctx.fDataPackBundle) {
-        enabledFeatures->push_back(String("minecraft:bundle"));
+        enabledFeatures->push_back(String(u8"minecraft:bundle"));
       }
-      enabledFeatures->push_back(String("minecraft:vanilla"));
-      data->set("enabled_features", enabledFeatures);
+      enabledFeatures->push_back(String(u8"minecraft:vanilla"));
+      data->set(u8"enabled_features", enabledFeatures);
     }
 
-    if (auto dataPacks = data->compoundTag("DataPacks"); dataPacks) {
-      if (auto enabledDataPacks = dataPacks->listTag("Enabled"); enabledDataPacks) {
+    if (auto dataPacks = data->compoundTag(u8"DataPacks"); dataPacks) {
+      if (auto enabledDataPacks = dataPacks->listTag(u8"Enabled"); enabledDataPacks) {
         if (ctx.fDataPackBundle) {
-          enabledDataPacks->push_back(String("bundle"));
+          enabledDataPacks->push_back(String(u8"bundle"));
         }
         if (ctx.fDataPack1_20Update) {
-          enabledDataPacks->push_back(String("update_1_20"));
+          enabledDataPacks->push_back(String(u8"update_1_20"));
         }
       }
-      if (auto disabledDataPacks = dataPacks->listTag("Disabled"); disabledDataPacks) {
+      if (auto disabledDataPacks = dataPacks->listTag(u8"Disabled"); disabledDataPacks) {
         if (!ctx.fDataPackBundle) {
-          disabledDataPacks->push_back(String("bundle"));
+          disabledDataPacks->push_back(String(u8"bundle"));
         }
         if (!ctx.fDataPack1_20Update) {
-          disabledDataPacks->push_back(String("update_1_20"));
+          disabledDataPacks->push_back(String(u8"update_1_20"));
         }
       }
     }
@@ -201,13 +201,13 @@ public:
 
   static CompoundTagPtr FlatWorldSettings(CompoundTag const &b) {
     using namespace std;
-    if (b.int32("Generator") != 2) {
+    if (b.int32(u8"Generator") != 2) {
       return nullptr;
     }
     auto settings = Compound();
-    settings->set("features", Bool(false));
-    settings->set("lakes", Bool(false));
-    auto flatWorldLayers = b.string("FlatWorldLayers");
+    settings->set(u8"features", Bool(false));
+    settings->set(u8"lakes", Bool(false));
+    auto flatWorldLayers = b.string(u8"FlatWorldLayers");
     if (!flatWorldLayers) {
       return nullptr;
     }
@@ -224,7 +224,7 @@ public:
     if (biomeJ == mcfile::biomes::unknown) {
       return nullptr;
     }
-    settings->set("biome", String(mcfile::biomes::Name(biomeJ, toje::kDataVersion)));
+    settings->set(u8"biome", String(mcfile::biomes::Name(biomeJ, toje::kDataVersion)));
     auto layersB = json["block_layers"];
     if (!layersB.is_array()) {
       return nullptr;
@@ -236,20 +236,20 @@ public:
       if (!blockName.is_string() || !count.is_number_unsigned()) {
         return nullptr;
       }
-      mcfile::be::Block blockB(blockName.get<string>(), Compound(), je2be::tobe::kBlockDataVersion);
+      mcfile::be::Block blockB(props::GetJsonStringValue(blockName), Compound(), je2be::tobe::kBlockDataVersion);
       auto blockJ = BlockData::From(blockB);
       if (!blockJ) {
         return nullptr;
       }
       auto layerJ = Compound();
-      layerJ->set("block", String(blockJ->fName));
-      layerJ->set("height", Int(count.get<u32>()));
+      layerJ->set(u8"block", String(blockJ->fName));
+      layerJ->set(u8"height", Int(count.get<u32>()));
       layersJ->push_back(layerJ);
     }
-    settings->set("layers", layersJ);
+    settings->set(u8"layers", layersJ);
     auto structures = Compound();
-    structures->set("structures", Compound());
-    settings->set("structures", structures);
+    structures->set(u8"structures", Compound());
+    settings->set(u8"structures", structures);
     return settings;
   }
 
@@ -276,31 +276,31 @@ public:
     if (!tag) {
       return nullptr;
     }
-    auto data = tag->compoundTag("data");
+    auto data = tag->compoundTag(u8"data");
     if (!data) {
       return nullptr;
     }
-    auto fightB = data->compoundTag("DragonFight");
+    auto fightB = data->compoundTag(u8"DragonFight");
     if (!fightB) {
       return nullptr;
     }
     auto fightJ = Compound();
-    if (auto exitPortalLocation = props::GetPos3iFromListTag(*fightB, "ExitPortalLocation"); exitPortalLocation) {
+    if (auto exitPortalLocation = props::GetPos3iFromListTag(*fightB, u8"ExitPortalLocation"); exitPortalLocation) {
       auto exitPortalLocationJ = Compound();
-      exitPortalLocationJ->set("X", Int(exitPortalLocation->fX));
-      exitPortalLocationJ->set("Y", Int(exitPortalLocation->fY));
-      exitPortalLocationJ->set("Z", Int(exitPortalLocation->fZ));
-      fightJ->set("ExitPortalLocation", exitPortalLocationJ);
+      exitPortalLocationJ->set(u8"X", Int(exitPortalLocation->fX));
+      exitPortalLocationJ->set(u8"Y", Int(exitPortalLocation->fY));
+      exitPortalLocationJ->set(u8"Z", Int(exitPortalLocation->fZ));
+      fightJ->set(u8"ExitPortalLocation", exitPortalLocationJ);
     }
-    CopyBoolValues(*fightB, *fightJ, {{"DragonKilled"}, {"PreviouslyKilled"}});
-    if (auto dragonUidB = fightB->int64("DragonUUID"); dragonUidB) {
+    CopyBoolValues(*fightB, *fightJ, {{u8"DragonKilled"}, {u8"PreviouslyKilled"}});
+    if (auto dragonUidB = fightB->int64(u8"DragonUUID"); dragonUidB) {
       auto dragonUidJ = Uuid::GenWithI64Seed(*dragonUidB);
-      fightJ->set("Dragon", dragonUidJ.toIntArrayTag());
+      fightJ->set(u8"Dragon", dragonUidJ.toIntArrayTag());
     }
-    if (auto gateways = fightB->listTag("Gateways"); gateways) {
-      fightJ->set("Gateways", gateways);
+    if (auto gateways = fightB->listTag(u8"Gateways"); gateways) {
+      fightJ->set(u8"Gateways", gateways);
     }
-    fightJ->set("NeedsStateScanning", Bool(false));
+    fightJ->set(u8"NeedsStateScanning", Bool(false));
     return fightJ;
   }
 

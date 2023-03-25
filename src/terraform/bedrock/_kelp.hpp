@@ -22,7 +22,7 @@ public:
           auto p = accessor.property(x, y, z);
           auto upper = accessor.property(x, y + 1, z);
           if (p == BlockPropertyAccessor::KELP && upper == BlockPropertyAccessor::KELP) {
-            auto kelpPlant = make_shared<mcfile::je::Block const>("minecraft:kelp_plant");
+            auto kelpPlant = make_shared<mcfile::je::Block const>(u8"minecraft:kelp_plant");
             out.setBlockAt(x, y, z, kelpPlant);
           }
         }

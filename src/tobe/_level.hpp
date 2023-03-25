@@ -14,8 +14,8 @@ class Level {
 public:
   PlayerAbilities fAbilities;
   Version fMinimumCompatibleClientVersion = kMinimumCompatibleClientVersion;
-  std::string fBaseGameVersion = "*";
-  std::string fBiomeOverride = "";
+  std::u8string fBaseGameVersion = u8"*";
+  std::u8string fBiomeOverride = u8"";
   bool fBonusChestEnabled = false;
   bool fBonusChestSpawned = false;
   i8 fCenterMapsToOrigin = -7;
@@ -25,7 +25,7 @@ public:
   bool fConfirmedPlatformLockedContent = false;
   i64 fCurrentTick = 0;
   i32 fDifficulty = 2;
-  std::string fFlatWorldLayers = "null\x0a";
+  std::u8string fFlatWorldLayers = u8"null\x0a";
   bool fDoDaylightCycle = true;
   bool fDoEntityDrops = true;
   bool fDoFireTick = true;
@@ -38,7 +38,7 @@ public:
   bool fDrowningDamage = true;
   bool fEducationFeaturesEnabled = false;
   i32 fEduOffer = 0;
-  std::unordered_map<std::string, bool> fExperiments;
+  std::unordered_map<std::u8string, bool> fExperiments;
   bool fFallDamage = true;
   bool fFireDamage = true;
   bool fFreezeDamage = true;
@@ -50,11 +50,11 @@ public:
   bool fHasLockedBehaviorPack = false;
   bool fHasLockedResourcePack = false;
   bool fImmutableWorld = false;
-  std::string fInventoryVersion = kInventoryVersion;
+  std::u8string fInventoryVersion = kInventoryVersion;
   bool fLANBroadcast = true;
   bool fLANBroadcastIntent = true;
   i64 fLastPlayed = 0;
-  std::string fLevelName = "";
+  std::u8string fLevelName = u8"";
   i32 fLimitedWorldOriginX = 1852;
   i32 fLimitedWorldOriginY = 32767;
   i32 fLimitedWorldOriginZ = 4;
@@ -65,7 +65,7 @@ public:
   i32 fNetworkVersion = kNetworkVersion;
   i32 fPlatform = 2;
   i32 fPlatformBroadcastIntent = 3;
-  std::string fPrid = "";
+  std::u8string fPrid = u8"";
   bool fPvp = true;
   float fRainLevel = 0;
   i32 fRainTime = 0;
@@ -107,105 +107,105 @@ public:
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
     root->insert({
-        {"abilities", fAbilities.toCompoundTag()},
-        {"MinimumCompatibleClientVersion", fMinimumCompatibleClientVersion.toListTag()},
-        {"baseGameVersion", String(fBaseGameVersion)},
-        {"BiomeOverride", String(fBiomeOverride)},
-        {"bonusChestEnabled", Bool(fBonusChestEnabled)},
-        {"bonusChestSpawned", Bool(fBonusChestSpawned)},
-        {"CenterMapsToOrigin", Byte(fCenterMapsToOrigin)},
-        {"commandblockoutput", Bool(fCommandBlockOutput)},
-        {"commandblocksenabled", Bool(fCommandblocksEnabled)},
-        {"commandsEnabled", Bool(fCommandsEnabled)},
-        {"ConfirmedPlatformLockedContent", Bool(fConfirmedPlatformLockedContent)},
-        {"currentTick", Long(fCurrentTick)},
-        {"Difficulty", Int(fDifficulty)},
-        {"FlatWorldLayers", String(fFlatWorldLayers)},
-        {"dodaylightcycle", Bool(fDoDaylightCycle)},
-        {"doentitydrops", Bool(fDoEntityDrops)},
-        {"dofiretick", Bool(fDoFireTick)},
-        {"doimmediaterespawn", Bool(fDoImmediateRespawn)},
-        {"doinsomnia", Bool(fDoInsomnia)},
-        {"domobloot", Bool(fDoMobLoot)},
-        {"domobspawning", Bool(fDoMobSpawning)},
-        {"dotiledrops", Bool(fDoTileDrops)},
-        {"doweathercycle", Bool(fDoWeatherCycle)},
-        {"drowningdamage", Bool(fDrowningDamage)},
-        {"educationFeaturesEnabled", Bool(fEducationFeaturesEnabled)},
-        {"eduOffer", Int(fEduOffer)},
-        {"falldamage", Bool(fFallDamage)},
-        {"firedamage", Bool(fFireDamage)},
-        {"freezedamage", Bool(fFreezeDamage)},
-        {"ForceGameType", Bool(fForceGameType)},
-        {"functioncommandlimit", Int(fFunctionCommandLimit)},
-        {"GameType", Int(BedrockFromGameMode(fGameType))},
-        {"Generator", Int(fGenerator)},
-        {"hasBeenLoadedInCreative", Bool(fHasBeenLoadedInCreative)},
-        {"hasLockedBehaviorPack", Bool(fHasLockedBehaviorPack)},
-        {"hasLockedResourcePack", Bool(fHasLockedResourcePack)},
-        {"immutableWorld", Bool(fImmutableWorld)},
-        {"InventoryVersion", String(fInventoryVersion)},
-        {"LANBroadcast", Bool(fLANBroadcast)},
-        {"LANBroadcastIntent", Bool(fLANBroadcastIntent)},
-        {"LastPlayed", Long(fLastPlayed)},
-        {"LevelName", String(fLevelName)},
-        {"LimitedWorldOriginX", Int(fLimitedWorldOriginX)},
-        {"LimitedWorldOriginY", Int(fLimitedWorldOriginY)},
-        {"LimitedWorldOriginZ", Int(fLimitedWorldOriginZ)},
-        {"MultiplayerGame", Bool(fMultiplayerGame)},
-        {"MultiplayerGameIntent", Bool(fMultiplayerGameIntent)},
-        {"naturalregeneration", Bool(fNaturalRegeneration)},
-        {"NetherScale", Int(fNetherScale)},
-        {"NetworkVersion", Int(fNetworkVersion)},
-        {"Platform", Int(fPlatform)},
-        {"PlatformBroadcastIntent", Int(fPlatformBroadcastIntent)},
-        {"prid", String(fPrid)},
-        {"pvp", Bool(fPvp)},
-        {"rainLevel", Float(fRainLevel)},
-        {"rainTime", Int(fRainTime)},
-        {"RandomSeed", Long(fRandomSeed)},
-        {"randomtickspeed", Int(fRandomTickSpeed)},
-        {"requiresCopiedPackRemovalCheck", Bool(fRequiresCopiedPackRemovalCheck)},
-        {"sendcommandfeedback", Bool(fSendCommandFeedback)},
-        {"serverChunkTickRange", Int(fServerChunkTickRange)},
-        {"showcoordinates", Bool(fShowCoordinates)},
-        {"showdeathmessages", Bool(fShowDeathMessages)},
-        {"showtags", Bool(fShowTags)},
-        {"spawnMobs", Bool(fSpawnMobs)},
-        {"spawnradius", Int(fSpawnRadius)},
-        {"SpawnV1Villagers", Bool(fSpawnV1Villagers)},
-        {"SpawnX", Int(fSpawnX)},
-        {"SpawnY", Int(fSpawnY)},
-        {"SpawnZ", Int(fSpawnZ)},
-        {"startWithMapEnabled", Bool(fStartWithMapEnabled)},
-        {"StorageVersion", Int(fStorageVersion)},
-        {"texturePacksRequired", Bool(fTexturePacksRequired)},
-        {"Time", Long(fTime)},
-        {"tntexplodes", Bool(fTntExplodes)},
-        {"useMsaGamertagsOnly", Bool(fUseMsaGamertagsOnly)},
-        {"worldStartCount", Long(fWorldStartCount)},
-        {"XBLBroadcastIntent", Int(fXBLBroadcastIntent)},
-        {"isFromLockedTemplate", Bool(fIsFromLockedTemplate)},
-        {"isFromWorldTemplate", Bool(fIsFromWorldTemplate)},
-        {"isSingleUseWorld", Bool(fIsSingleUseWorld)},
-        {"isWorldTemplateOptionLocked", Bool(fIsWorldTemplateOptionLocked)},
-        {"keepinventory", Bool(fKeepInventory)},
-        {"mobgriefing", Bool(fMobGriefing)},
-        {"lastOpenedWithVersion", fLastOpenedWithVersion.toListTag()},
-        {"lightningLevel", Float(fLightningLevel)},
-        {"lightningTime", Int(fLightningTime)},
-        {"limitedWorldDepth", Int(fLimitedWorldDepth)},
-        {"limitedWorldWidth", Int(fLimitedWorldWidth)},
-        {"maxcommandchainlength", Int(fMaxCommandChainLength)},
+        {u8"abilities", fAbilities.toCompoundTag()},
+        {u8"MinimumCompatibleClientVersion", fMinimumCompatibleClientVersion.toListTag()},
+        {u8"baseGameVersion", String(fBaseGameVersion)},
+        {u8"BiomeOverride", String(fBiomeOverride)},
+        {u8"bonusChestEnabled", Bool(fBonusChestEnabled)},
+        {u8"bonusChestSpawned", Bool(fBonusChestSpawned)},
+        {u8"CenterMapsToOrigin", Byte(fCenterMapsToOrigin)},
+        {u8"commandblockoutput", Bool(fCommandBlockOutput)},
+        {u8"commandblocksenabled", Bool(fCommandblocksEnabled)},
+        {u8"commandsEnabled", Bool(fCommandsEnabled)},
+        {u8"ConfirmedPlatformLockedContent", Bool(fConfirmedPlatformLockedContent)},
+        {u8"currentTick", Long(fCurrentTick)},
+        {u8"Difficulty", Int(fDifficulty)},
+        {u8"FlatWorldLayers", String(fFlatWorldLayers)},
+        {u8"dodaylightcycle", Bool(fDoDaylightCycle)},
+        {u8"doentitydrops", Bool(fDoEntityDrops)},
+        {u8"dofiretick", Bool(fDoFireTick)},
+        {u8"doimmediaterespawn", Bool(fDoImmediateRespawn)},
+        {u8"doinsomnia", Bool(fDoInsomnia)},
+        {u8"domobloot", Bool(fDoMobLoot)},
+        {u8"domobspawning", Bool(fDoMobSpawning)},
+        {u8"dotiledrops", Bool(fDoTileDrops)},
+        {u8"doweathercycle", Bool(fDoWeatherCycle)},
+        {u8"drowningdamage", Bool(fDrowningDamage)},
+        {u8"educationFeaturesEnabled", Bool(fEducationFeaturesEnabled)},
+        {u8"eduOffer", Int(fEduOffer)},
+        {u8"falldamage", Bool(fFallDamage)},
+        {u8"firedamage", Bool(fFireDamage)},
+        {u8"freezedamage", Bool(fFreezeDamage)},
+        {u8"ForceGameType", Bool(fForceGameType)},
+        {u8"functioncommandlimit", Int(fFunctionCommandLimit)},
+        {u8"GameType", Int(BedrockFromGameMode(fGameType))},
+        {u8"Generator", Int(fGenerator)},
+        {u8"hasBeenLoadedInCreative", Bool(fHasBeenLoadedInCreative)},
+        {u8"hasLockedBehaviorPack", Bool(fHasLockedBehaviorPack)},
+        {u8"hasLockedResourcePack", Bool(fHasLockedResourcePack)},
+        {u8"immutableWorld", Bool(fImmutableWorld)},
+        {u8"InventoryVersion", String(fInventoryVersion)},
+        {u8"LANBroadcast", Bool(fLANBroadcast)},
+        {u8"LANBroadcastIntent", Bool(fLANBroadcastIntent)},
+        {u8"LastPlayed", Long(fLastPlayed)},
+        {u8"LevelName", String(fLevelName)},
+        {u8"LimitedWorldOriginX", Int(fLimitedWorldOriginX)},
+        {u8"LimitedWorldOriginY", Int(fLimitedWorldOriginY)},
+        {u8"LimitedWorldOriginZ", Int(fLimitedWorldOriginZ)},
+        {u8"MultiplayerGame", Bool(fMultiplayerGame)},
+        {u8"MultiplayerGameIntent", Bool(fMultiplayerGameIntent)},
+        {u8"naturalregeneration", Bool(fNaturalRegeneration)},
+        {u8"NetherScale", Int(fNetherScale)},
+        {u8"NetworkVersion", Int(fNetworkVersion)},
+        {u8"Platform", Int(fPlatform)},
+        {u8"PlatformBroadcastIntent", Int(fPlatformBroadcastIntent)},
+        {u8"prid", String(fPrid)},
+        {u8"pvp", Bool(fPvp)},
+        {u8"rainLevel", Float(fRainLevel)},
+        {u8"rainTime", Int(fRainTime)},
+        {u8"RandomSeed", Long(fRandomSeed)},
+        {u8"randomtickspeed", Int(fRandomTickSpeed)},
+        {u8"requiresCopiedPackRemovalCheck", Bool(fRequiresCopiedPackRemovalCheck)},
+        {u8"sendcommandfeedback", Bool(fSendCommandFeedback)},
+        {u8"serverChunkTickRange", Int(fServerChunkTickRange)},
+        {u8"showcoordinates", Bool(fShowCoordinates)},
+        {u8"showdeathmessages", Bool(fShowDeathMessages)},
+        {u8"showtags", Bool(fShowTags)},
+        {u8"spawnMobs", Bool(fSpawnMobs)},
+        {u8"spawnradius", Int(fSpawnRadius)},
+        {u8"SpawnV1Villagers", Bool(fSpawnV1Villagers)},
+        {u8"SpawnX", Int(fSpawnX)},
+        {u8"SpawnY", Int(fSpawnY)},
+        {u8"SpawnZ", Int(fSpawnZ)},
+        {u8"startWithMapEnabled", Bool(fStartWithMapEnabled)},
+        {u8"StorageVersion", Int(fStorageVersion)},
+        {u8"texturePacksRequired", Bool(fTexturePacksRequired)},
+        {u8"Time", Long(fTime)},
+        {u8"tntexplodes", Bool(fTntExplodes)},
+        {u8"useMsaGamertagsOnly", Bool(fUseMsaGamertagsOnly)},
+        {u8"worldStartCount", Long(fWorldStartCount)},
+        {u8"XBLBroadcastIntent", Int(fXBLBroadcastIntent)},
+        {u8"isFromLockedTemplate", Bool(fIsFromLockedTemplate)},
+        {u8"isFromWorldTemplate", Bool(fIsFromWorldTemplate)},
+        {u8"isSingleUseWorld", Bool(fIsSingleUseWorld)},
+        {u8"isWorldTemplateOptionLocked", Bool(fIsWorldTemplateOptionLocked)},
+        {u8"keepinventory", Bool(fKeepInventory)},
+        {u8"mobgriefing", Bool(fMobGriefing)},
+        {u8"lastOpenedWithVersion", fLastOpenedWithVersion.toListTag()},
+        {u8"lightningLevel", Float(fLightningLevel)},
+        {u8"lightningTime", Int(fLightningTime)},
+        {u8"limitedWorldDepth", Int(fLimitedWorldDepth)},
+        {u8"limitedWorldWidth", Int(fLimitedWorldWidth)},
+        {u8"maxcommandchainlength", Int(fMaxCommandChainLength)},
     });
     if (!fExperiments.empty()) {
       auto experiments = Compound();
-      experiments->set("experiments_ever_used", Bool(true));
-      experiments->set("saved_with_toggled_experiments", Bool(true));
+      experiments->set(u8"experiments_ever_used", Bool(true));
+      experiments->set(u8"saved_with_toggled_experiments", Bool(true));
       for (auto const &it : fExperiments) {
         experiments->set(it.first, Bool(it.second));
       }
-      root->set("experiments", experiments);
+      root->set(u8"experiments", experiments);
     }
     return root;
   }
@@ -232,37 +232,37 @@ public:
 
   static Level Import(CompoundTag const &tag) {
     Level ret;
-    auto data = tag.compoundTag("Data");
+    auto data = tag.compoundTag(u8"Data");
     if (!data) {
       return ret;
     }
 
 #define I(__name, __type, __key) ret.__name = data->__type(__key, ret.__name)
-    I(fCommandsEnabled, boolean, "allowCommands");
-    I(fTime, int64, "DayTime");
-    I(fDifficulty, byte, "Difficulty");
-    I(fLevelName, string, "LevelName");
-    I(fSpawnX, int32, "SpawnX");
-    I(fSpawnY, int32, "SpawnY");
-    I(fSpawnZ, int32, "SpawnZ");
-    I(fCurrentTick, int64, "Time");
-    ret.fLastPlayed = data->int64("LastPlayed", ret.fLastPlayed * 1000) / 1000;
+    I(fCommandsEnabled, boolean, u8"allowCommands");
+    I(fTime, int64, u8"DayTime");
+    I(fDifficulty, byte, u8"Difficulty");
+    I(fLevelName, string, u8"LevelName");
+    I(fSpawnX, int32, u8"SpawnX");
+    I(fSpawnY, int32, u8"SpawnY");
+    I(fSpawnZ, int32, u8"SpawnZ");
+    I(fCurrentTick, int64, u8"Time");
+    ret.fLastPlayed = data->int64(u8"LastPlayed", ret.fLastPlayed * 1000) / 1000;
 #undef I
 
-    auto gameRules = data->compoundTag("GameRules");
+    auto gameRules = data->compoundTag(u8"GameRules");
     if (gameRules) {
-#define S(__name, __var)                       \
-  auto __name = gameRules->stringTag(#__name); \
-  if (__name) {                                \
-    __var = __name->fValue == "true";          \
+#define S(__name, __var)                            \
+  auto __name = gameRules->stringTag(u8"" #__name); \
+  if (__name) {                                     \
+    __var = __name->fValue == u8"true";             \
   }
-#define I(__name, __var)                       \
-  auto __name = gameRules->stringTag(#__name); \
-  if (__name) {                                \
-    auto v = strings::ToI32(__name->fValue);   \
-    if (v) {                                   \
-      __var = *v;                              \
-    }                                          \
+#define I(__name, __var)                            \
+  auto __name = gameRules->stringTag(u8"" #__name); \
+  if (__name) {                                     \
+    auto v = strings::ToI32(__name->fValue);        \
+    if (v) {                                        \
+      __var = *v;                                   \
+    }                                               \
   }
       // announceAdvancements
       S(commandBlockOutput, ret.fCommandBlockOutput);
@@ -301,9 +301,9 @@ public:
 #undef I
     }
 
-    auto worldGenSettings = data->compoundTag("WorldGenSettings");
+    auto worldGenSettings = data->compoundTag(u8"WorldGenSettings");
     if (worldGenSettings) {
-      ret.fRandomSeed = worldGenSettings->int64("seed", ret.fRandomSeed);
+      ret.fRandomSeed = worldGenSettings->int64(u8"seed", ret.fRandomSeed);
     }
 
     auto flatWorldLayers = FlatWorldLayers::FromLevelData(*data);
@@ -312,28 +312,28 @@ public:
       ret.fGenerator = 2;
     }
 
-    ret.fRainLevel = data->boolean("raining", false) ? 1 : 0;
-    ret.fRainTime = data->int32("rainTime", ret.fRainTime);
-    ret.fLightningLevel = data->boolean("thundering", false) ? 1 : 0;
-    ret.fLightningTime = data->int32("thunderTime", ret.fLightningTime);
-    if (auto type = GameModeFromJava(data->int32("GameType", 0)); type) {
+    ret.fRainLevel = data->boolean(u8"raining", false) ? 1 : 0;
+    ret.fRainTime = data->int32(u8"rainTime", ret.fRainTime);
+    ret.fLightningLevel = data->boolean(u8"thundering", false) ? 1 : 0;
+    ret.fLightningTime = data->int32(u8"thunderTime", ret.fLightningTime);
+    if (auto type = GameModeFromJava(data->int32(u8"GameType", 0)); type) {
       ret.fGameType = *type;
     }
 
-    if (auto enabledFeatures = data->listTag("enabled_features"); enabledFeatures) {
+    if (auto enabledFeatures = data->listTag(u8"enabled_features"); enabledFeatures) {
       bool experiments = false;
       for (auto it : *enabledFeatures) {
         auto s = it->asString();
         if (!s) {
           continue;
         }
-        if (s->fValue != "minecraft:vanilla") {
+        if (s->fValue != u8"minecraft:vanilla") {
           experiments = true;
           break;
         }
       }
       if (experiments) {
-        ret.fExperiments["next_major_update"] = true;
+        ret.fExperiments[u8"next_major_update"] = true;
       }
     }
 
@@ -341,14 +341,14 @@ public:
   }
 
   static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension) {
-    auto data = tag.query("Data")->asCompound();
+    auto data = tag.query(u8"Data")->asCompound();
     if (!data) {
       return std::nullopt;
     }
 
-    CompoundTag const *dragonFight = data->query("DragonFight")->asCompound();
+    CompoundTag const *dragonFight = data->query(u8"DragonFight")->asCompound();
     if (!dragonFight) {
-      dragonFight = data->query("DimensionData/1/DragonFight")->asCompound();
+      dragonFight = data->query(u8"DimensionData/1/DragonFight")->asCompound();
     }
     if (!dragonFight) {
       return std::nullopt;
@@ -356,27 +356,27 @@ public:
 
     auto fight = Compound();
 
-    fight->set("DragonFightVersion", Byte(kDragonFightVersion));
+    fight->set(u8"DragonFightVersion", Byte(kDragonFightVersion));
 
-    auto killed = dragonFight->boolean("DragonKilled", false);
-    fight->set("DragonKilled", Bool(numAutonomousEntities == 0 && killed));
+    auto killed = dragonFight->boolean(u8"DragonKilled", false);
+    fight->set(u8"DragonKilled", Bool(numAutonomousEntities == 0 && killed));
 
-    auto previouslyKilled = dragonFight->byteTag("PreviouslyKilled");
+    auto previouslyKilled = dragonFight->byteTag(u8"PreviouslyKilled");
     if (previouslyKilled) {
-      fight->set("PreviouslyKilled", Bool(previouslyKilled->fValue != 0));
+      fight->set(u8"PreviouslyKilled", Bool(previouslyKilled->fValue != 0));
     }
 
-    auto uuid = props::GetUuid(*dragonFight, {.fIntArray = "Dragon"});
+    auto uuid = props::GetUuid(*dragonFight, {.fIntArray = u8"Dragon"});
     if (uuid) {
-      fight->set("DragonUUID", Long(UuidRegistrar::ToId(*uuid)));
-      fight->set("DragonSpawned", Bool(true));
+      fight->set(u8"DragonUUID", Long(UuidRegistrar::ToId(*uuid)));
+      fight->set(u8"DragonSpawned", Bool(true));
     } else {
-      fight->set("DragonUUID", Long(-1));
-      fight->set("DragonSpawned", Bool(true));
-      fight->set("IsRespawning", Bool(false));
+      fight->set(u8"DragonUUID", Long(-1));
+      fight->set(u8"DragonSpawned", Bool(true));
+      fight->set(u8"IsRespawning", Bool(false));
     }
 
-    auto gateways = dragonFight->listTag("Gateways");
+    auto gateways = dragonFight->listTag(u8"Gateways");
     if (gateways) {
       auto v = List<Tag::Type::Int>();
       for (auto const &it : *gateways) {
@@ -388,16 +388,16 @@ public:
         v->push_back(Int(p->fValue));
       }
       if (v) {
-        fight->set("Gateways", v);
+        fight->set(u8"Gateways", v);
       }
     }
 
-    auto exitPortalLocation = dragonFight->compoundTag("ExitPortalLocation");
+    auto exitPortalLocation = dragonFight->compoundTag(u8"ExitPortalLocation");
     std::optional<Pos3i> exitLocation;
     if (exitPortalLocation) {
-      auto x = exitPortalLocation->int32("X");
-      auto y = exitPortalLocation->int32("Y");
-      auto z = exitPortalLocation->int32("Z");
+      auto x = exitPortalLocation->int32(u8"X");
+      auto y = exitPortalLocation->int32(u8"Y");
+      auto z = exitPortalLocation->int32(u8"Z");
       if (x && y && z) {
         exitLocation = Pos3i(*x, *y, *z);
       }
@@ -413,13 +413,13 @@ public:
       v->push_back(Int(exitLocation->fX));
       v->push_back(Int(exitLocation->fY));
       v->push_back(Int(exitLocation->fZ));
-      fight->set("ExitPortalLocation", v);
+      fight->set(u8"ExitPortalLocation", v);
     }
 
     auto root = Compound();
     auto d = Compound();
-    d->set("DragonFight", fight);
-    root->set("data", d);
+    d->set(u8"DragonFight", fight);
+    root->set(u8"data", d);
 
     return CompoundTag::Write(*root, mcfile::Endian::Little);
   }
@@ -427,7 +427,7 @@ public:
   static std::optional<std::string> MobEvents(CompoundTag const &tag) {
     using namespace std;
 
-    auto gameRulesTag = tag.query("Data/GameRules");
+    auto gameRulesTag = tag.query(u8"Data/GameRules");
     if (!gameRulesTag) {
       return nullopt;
     }
@@ -436,10 +436,10 @@ public:
       return nullopt;
     }
     auto ret = Compound();
-    ret->set("events_enabled", Bool(true));
-    ret->set("minecraft:ender_dragon_event", Bool(true));
-    ret->set("minecraft:pillager_patrols_event", Bool(gameRules->string("doPatrolSpawning", "true") == "true"));
-    ret->set("minecraft:wandering_trader_event", Bool(gameRules->string("doTraderSpawning", "true") == "true"));
+    ret->set(u8"events_enabled", Bool(true));
+    ret->set(u8"minecraft:ender_dragon_event", Bool(true));
+    ret->set(u8"minecraft:pillager_patrols_event", Bool(gameRules->string(u8"doPatrolSpawning", u8"true") == u8"true"));
+    ret->set(u8"minecraft:wandering_trader_event", Bool(gameRules->string(u8"doTraderSpawning", u8"true") == u8"true"));
 
     return CompoundTag::Write(*ret, mcfile::Endian::Little);
   }

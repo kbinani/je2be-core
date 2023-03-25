@@ -12,7 +12,7 @@ namespace je2be::toje {
 class MapInfo {
 public:
   struct Decoration {
-    std::string fId;
+    std::u8string fId;
     double fRot;
     i64 fType;
     double fX;
@@ -20,11 +20,11 @@ public:
 
     CompoundTagPtr toCompoundTag() const {
       auto ret = Compound();
-      ret->set("id", String(fId));
-      ret->set("rot", Double(fRot));
-      ret->set("type", Byte(fType));
-      ret->set("x", Double(fX));
-      ret->set("z", Double(fZ));
+      ret->set(u8"id", String(fId));
+      ret->set(u8"rot", Double(fRot));
+      ret->set(u8"type", Byte(fType));
+      ret->set(u8"x", Double(fX));
+      ret->set(u8"z", Double(fZ));
       return ret;
     }
   };
@@ -41,7 +41,7 @@ public:
     if (!tag) {
       return nullopt;
     }
-    auto mapId = tag->int64("mapId");
+    auto mapId = tag->int64(u8"mapId");
     if (!mapId) {
       return nullopt;
     }
@@ -50,16 +50,16 @@ public:
     Map map;
     map.fNumber = 0; // This will be set later process
 
-    auto xCenter = tag->int32("xCenter");
-    auto zCenter = tag->int32("zCenter");
+    auto xCenter = tag->int32(u8"xCenter");
+    auto zCenter = tag->int32(u8"zCenter");
     if (!xCenter || !zCenter) {
       return nullopt;
     }
-    auto scale = tag->byte("scale");
+    auto scale = tag->byte(u8"scale");
     if (!scale) {
       return nullopt;
     }
-    auto decorationsB = tag->listTag("decorations");
+    auto decorationsB = tag->listTag(u8"decorations");
     if (decorationsB) {
       for (auto const &it : *decorationsB) {
         auto decorationB = it->asCompound();
@@ -67,21 +67,21 @@ public:
           continue;
         }
         Decoration decorationJ;
-        decorationJ.fId = "+";
-        auto data = decorationB->compoundTag("data");
+        decorationJ.fId = u8"+";
+        auto data = decorationB->compoundTag(u8"data");
         if (!data) {
           continue;
         }
-        auto typeB = data->int32("type");
+        auto typeB = data->int32(u8"type");
         if (!typeB) {
           continue;
         }
-        auto rotB = data->int32("rot");
+        auto rotB = data->int32(u8"rot");
         if (!rotB) {
           continue;
         }
-        auto markerX = data->int32("x");
-        auto markerY = data->int32("y");
+        auto markerX = data->int32(u8"x");
+        auto markerY = data->int32(u8"y");
         if (!markerX || !markerY) {
           continue;
         }

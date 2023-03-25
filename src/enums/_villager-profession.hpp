@@ -27,69 +27,69 @@ public:
 
   constexpr VillagerProfession(Variant variant) : fVariant(variant) {}
 
-  std::optional<std::string> tradeTablePath() const {
+  std::optional<std::u8string> tradeTablePath() const {
     switch (fVariant) {
     case Fletcher:
-      return "trading/economy_trades/fletcher_trades.json";
+      return u8"trading/economy_trades/fletcher_trades.json";
     case Librarian:
-      return "trading/economy_trades/librarian_trades.json";
+      return u8"trading/economy_trades/librarian_trades.json";
     case Armorer:
-      return "trading/economy_trades/armorer_trades.json";
+      return u8"trading/economy_trades/armorer_trades.json";
     case Cartographer:
-      return "trading/economy_trades/cartographer_trades.json";
+      return u8"trading/economy_trades/cartographer_trades.json";
     case Shepherd:
-      return "trading/economy_trades/shepherd_trades.json";
+      return u8"trading/economy_trades/shepherd_trades.json";
     case ToolSmith:
-      return "trading/economy_trades/tool_smith_trades.json";
+      return u8"trading/economy_trades/tool_smith_trades.json";
     case Farmer:
-      return "trading/economy_trades/farmer_trades.json";
+      return u8"trading/economy_trades/farmer_trades.json";
     case Fisherman:
-      return "trading/economy_trades/fisherman_trades.json";
+      return u8"trading/economy_trades/fisherman_trades.json";
     case StoneMason:
-      return "trading/economy_trades/stone_mason_trades.json";
+      return u8"trading/economy_trades/stone_mason_trades.json";
     case Cleric:
-      return "trading/economy_trades/cleric_trades.json";
+      return u8"trading/economy_trades/cleric_trades.json";
     case LeatherWorker:
-      return "trading/economy_trades/leather_worker_trades.json";
+      return u8"trading/economy_trades/leather_worker_trades.json";
     case Butcher:
-      return "trading/economy_trades/butcher_trades.json";
+      return u8"trading/economy_trades/butcher_trades.json";
     case WeaponSmith:
-      return "trading/economy_trades/weapon_smith_trades.json";
+      return u8"trading/economy_trades/weapon_smith_trades.json";
     case Nitwit:
       return std::nullopt;
     }
     return std::nullopt;
   }
 
-  static std::optional<VillagerProfession> FromJavaProfession(std::string profession) {
+  static std::optional<VillagerProfession> FromJavaProfession(std::u8string profession) {
     profession = Namespace::Remove(profession);
-    if (profession == "shepherd") {
+    if (profession == u8"shepherd") {
       return Shepherd;
-    } else if (profession == "farmer") {
+    } else if (profession == u8"farmer") {
       return Farmer;
-    } else if (profession == "fisherman") {
+    } else if (profession == u8"fisherman") {
       return Fisherman;
-    } else if (profession == "butcher") {
+    } else if (profession == u8"butcher") {
       return Butcher;
-    } else if (profession == "armorer") {
+    } else if (profession == u8"armorer") {
       return Armorer;
-    } else if (profession == "cartographer") {
+    } else if (profession == u8"cartographer") {
       return Cartographer;
-    } else if (profession == "fletcher") {
+    } else if (profession == u8"fletcher") {
       return Fletcher;
-    } else if (profession == "weaponsmith") {
+    } else if (profession == u8"weaponsmith") {
       return WeaponSmith;
-    } else if (profession == "toolsmith") {
+    } else if (profession == u8"toolsmith") {
       return ToolSmith;
-    } else if (profession == "mason") {
+    } else if (profession == u8"mason") {
       return StoneMason;
-    } else if (profession == "leatherworker") {
+    } else if (profession == u8"leatherworker") {
       return LeatherWorker;
-    } else if (profession == "cleric") {
+    } else if (profession == u8"cleric") {
       return Cleric;
-    } else if (profession == "librarian") {
+    } else if (profession == u8"librarian") {
       return Librarian;
-    } else if (profession == "nitwit") {
+    } else if (profession == u8"nitwit") {
       return Nitwit;
     }
     return std::nullopt;
@@ -99,38 +99,38 @@ public:
     return fVariant;
   }
 
-  std::string string() const {
+  std::u8string string() const {
     switch (fVariant) {
     case Shepherd:
-      return "shepherd";
+      return u8"shepherd";
     case Farmer:
-      return "farmer";
+      return u8"farmer";
     case Fisherman:
-      return "fisherman";
+      return u8"fisherman";
     case Butcher:
-      return "butcher";
+      return u8"butcher";
     case Armorer:
-      return "armorer";
+      return u8"armorer";
     case Cartographer:
-      return "cartographer";
+      return u8"cartographer";
     case Fletcher:
-      return "fletcher";
+      return u8"fletcher";
     case WeaponSmith:
-      return "weaponsmith";
+      return u8"weaponsmith";
     case ToolSmith:
-      return "toolsmith";
+      return u8"toolsmith";
     case StoneMason:
-      return "mason";
+      return u8"mason";
     case LeatherWorker:
-      return "leatherworker";
+      return u8"leatherworker";
     case Cleric:
-      return "cleric";
+      return u8"cleric";
     case Librarian:
-      return "librarian";
+      return u8"librarian";
     case Nitwit:
-      return "nitwit";
+      return u8"nitwit";
     }
-    return "none";
+    return u8"none";
   }
 
 private:

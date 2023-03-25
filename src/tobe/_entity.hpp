@@ -27,13 +27,13 @@ public:
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
-  static std::optional<std::tuple<Pos3i, CompoundTagPtr, std::string>> ToTileEntityBlock(CompoundTag const &c);
+  static std::optional<std::tuple<Pos3i, CompoundTagPtr, std::u8string>> ToTileEntityBlock(CompoundTag const &c);
 
-  static std::tuple<Pos3i, CompoundTagPtr, std::string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::string const &name);
+  static std::tuple<Pos3i, CompoundTagPtr, std::u8string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::u8string const &name);
 
   static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx);
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::string const &name);
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name);
 
   static bool IsTileEntity(CompoundTag const &tag);
 

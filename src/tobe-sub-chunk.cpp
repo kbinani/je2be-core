@@ -96,7 +96,7 @@ public:
             }
           }
         } else if (blockJ->fId == mcfile::blocks::minecraft::nether_portal) {
-          bool xAxis = blockJ->property("axis", "x") == "x";
+          bool xAxis = blockJ->property(u8"axis", u8"x") == u8"x";
           int j = 0;
           for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -339,10 +339,10 @@ public:
         return JE2BE_ERROR;
       }
 
-      auto water = BlockData::Make("water");
+      auto water = BlockData::Make(u8"water");
       auto states = Compound();
-      states->set("liquid_depth", Int(0));
-      water->set("states", states);
+      states->set(u8"liquid_depth", Int(0));
+      water->set(u8"states", states);
       if (!CompoundTag::Write(*water, w)) {
         return JE2BE_ERROR;
       }
@@ -362,8 +362,8 @@ private:
   static bool IsWaterLogged(mcfile::je::Block const &block) {
     using namespace mcfile::blocks;
     if (!block.fData.empty()) {
-      auto waterlogged = block.property("waterlogged", "");
-      if (waterlogged == "true") {
+      auto waterlogged = block.property(u8"waterlogged", u8"");
+      if (waterlogged == u8"true") {
         return true;
       }
     }

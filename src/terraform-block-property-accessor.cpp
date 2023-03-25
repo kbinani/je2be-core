@@ -17,15 +17,15 @@ public:
   }
 
   static bool IsStairs(mcfile::be::Block const &b) {
-    return b.fName.ends_with("_stairs");
+    return b.fName.ends_with(u8"_stairs");
   }
 
   static bool IsStairs(mcfile::je::Block const &b) {
-    return b.fName.ends_with("_stairs");
+    return b.fName.ends_with(u8"_stairs");
   }
 
   static bool IsKelp(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:kelp";
+    return b.fName == u8"minecraft:kelp";
   }
 
   static bool IsKelp(mcfile::je::Block const &b) {
@@ -33,7 +33,7 @@ public:
   }
 
   static bool IsTwistingVines(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:twisting_vines";
+    return b.fName == u8"minecraft:twisting_vines";
   }
 
   static bool IsTwistingVines(mcfile::je::Block const &b) {
@@ -41,7 +41,7 @@ public:
   }
 
   static bool IsWeepingVines(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:weeping_vines";
+    return b.fName == u8"minecraft:weeping_vines";
   }
 
   static bool IsWeepingVines(mcfile::je::Block const &b) {
@@ -49,7 +49,7 @@ public:
   }
 
   static bool IsPumpkinStem(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:pumpkin_stem";
+    return b.fName == u8"minecraft:pumpkin_stem";
   }
 
   static bool IsPumpkinStem(mcfile::je::Block const &b) {
@@ -57,9 +57,9 @@ public:
   }
 
   static bool IsCaveVines(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:cave_vines" ||
-           b.fName == "minecraft:cave_vines_head_with_berries" ||
-           b.fName == "minecraft:cave_vines_body_with_berries";
+    return b.fName == u8"minecraft:cave_vines" ||
+           b.fName == u8"minecraft:cave_vines_head_with_berries" ||
+           b.fName == u8"minecraft:cave_vines_body_with_berries";
   }
 
   static bool IsCaveVines(mcfile::je::Block const &b) {
@@ -68,9 +68,9 @@ public:
   }
 
   static bool IsSnowy(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:grass" ||
-           b.fName == "minecraft:podzol" ||
-           b.fName == "minecraft:mycelium";
+    return b.fName == u8"minecraft:grass" ||
+           b.fName == u8"minecraft:podzol" ||
+           b.fName == u8"minecraft:mycelium";
   }
 
   static bool IsSnowy(mcfile::je::Block const &b) {
@@ -79,8 +79,8 @@ public:
   }
 
   static bool IsChorusPlant(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:chorus_plant" ||
-           b.fName == "minecraft:chorus_flower";
+    return b.fName == u8"minecraft:chorus_plant" ||
+           b.fName == u8"minecraft:chorus_flower";
   }
 
   static bool IsChorusPlant(mcfile::je::Block const &b) {
@@ -89,25 +89,25 @@ public:
   }
 
   static bool IsFence(mcfile::be::Block const &b) {
-    return b.fName.ends_with("fence");
+    return b.fName.ends_with(u8"fence");
   }
 
   static bool IsFence(mcfile::je::Block const &b) {
-    return b.fName.ends_with("fence");
+    return b.fName.ends_with(u8"fence");
   }
 
   static bool IsGlassPaneOrIronBars(mcfile::be::Block const &b) {
-    return b.fName.ends_with("glass_pane") ||
-           b.fName == "minecraft:iron_bars";
+    return b.fName.ends_with(u8"glass_pane") ||
+           b.fName == u8"minecraft:iron_bars";
   }
 
   static bool IsGlassPaneOrIronBars(mcfile::je::Block const &b) {
-    return b.fName.ends_with("glass_pane") ||
+    return b.fName.ends_with(u8"glass_pane") ||
            b.fId == mcfile::blocks::minecraft::iron_bars;
   }
 
   static bool IsCampfire(mcfile::be::Block const &b) {
-    return b.fName.ends_with("campfire");
+    return b.fName.ends_with(u8"campfire");
   }
 
   static bool IsCampfire(mcfile::je::Block const &b) {
@@ -116,7 +116,7 @@ public:
   }
 
   static bool IsNoteBlock(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:noteblock";
+    return b.fName == u8"minecraft:noteblock";
   }
 
   static bool IsNoteBlock(mcfile::je::Block const &b) {
@@ -124,7 +124,7 @@ public:
   }
 
   static bool IsRedstoneWire(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:redstone_wire";
+    return b.fName == u8"minecraft:redstone_wire";
   }
 
   static bool IsRedstoneWire(mcfile::je::Block const &b) {
@@ -132,8 +132,8 @@ public:
   }
 
   static bool IsTripwire(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:tripWire" ||
-           b.fName == "minecraft:trip_wire";
+    return b.fName == u8"minecraft:tripWire" ||
+           b.fName == u8"minecraft:trip_wire";
   }
 
   static bool IsTripwire(mcfile::je::Block const &b) {
@@ -141,14 +141,14 @@ public:
   }
 
   static bool IsPiston(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:piston" ||
-           b.fName == "minecraft:sticky_piston" ||
-           b.fName == "minecraft:pistonArmCollision" ||
-           b.fName == "minecraft:piston_arm_collision" ||
-           b.fName == "minecraft:stickyPistonArmCollision" ||
-           b.fName == "minecraft:sticky_piston_arm_collision" ||
-           b.fName == "minecraft:movingBlock" ||
-           b.fName == "minecraft:moving_block";
+    return b.fName == u8"minecraft:piston" ||
+           b.fName == u8"minecraft:sticky_piston" ||
+           b.fName == u8"minecraft:pistonArmCollision" ||
+           b.fName == u8"minecraft:piston_arm_collision" ||
+           b.fName == u8"minecraft:stickyPistonArmCollision" ||
+           b.fName == u8"minecraft:sticky_piston_arm_collision" ||
+           b.fName == u8"minecraft:movingBlock" ||
+           b.fName == u8"minecraft:moving_block";
   }
 
   static bool IsPiston(mcfile::je::Block const &b) {
@@ -157,7 +157,7 @@ public:
   }
 
   static bool IsBeacon(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:beacon";
+    return b.fName == u8"minecraft:beacon";
   }
 
   static bool IsBeacon(mcfile::je::Block const &b) {
@@ -165,7 +165,7 @@ public:
   }
 
   static bool IsMelonStem(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:melon_stem";
+    return b.fName == u8"minecraft:melon_stem";
   }
 
   static bool IsMelonStem(mcfile::je::Block const &b) {
@@ -173,31 +173,31 @@ public:
   }
 
   static bool IsDoor(mcfile::be::Block const &b) {
-    return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
+    return b.fName.ends_with(u8"door") && b.fName.find(u8"trap") == std::string::npos;
   }
 
   static bool IsDoor(mcfile::je::Block const &b) {
-    return b.fName.ends_with("door") && b.fName.find("trap") == std::string::npos;
+    return b.fName.ends_with(u8"door") && b.fName.find(u8"trap") == std::string::npos;
   }
 
   static bool IsWall(mcfile::be::Block const &b) {
-    return b.fName.ends_with("wall");
+    return b.fName.ends_with(u8"wall");
   }
 
   static bool IsWall(mcfile::je::Block const &b) {
-    return b.fName.ends_with("wall");
+    return b.fName.ends_with(u8"wall");
   }
 
   static bool IsLeaves(mcfile::be::Block const &b) {
-    return b.fName.ends_with("leaves") || b.fName.ends_with("leaves2") || b.fName == "minecraft:azalea_leaves_flowered";
+    return b.fName.ends_with(u8"leaves") || b.fName.ends_with(u8"leaves2") || b.fName == u8"minecraft:azalea_leaves_flowered";
   }
 
   static bool IsLeaves(mcfile::je::Block const &b) {
-    return b.fName.ends_with("leaves");
+    return b.fName.ends_with(u8"leaves");
   }
 
   static bool IsChest(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:chest" || b.fName == "minecraft:trapped_chest";
+    return b.fName == u8"minecraft:chest" || b.fName == u8"minecraft:trapped_chest";
   }
 
   static bool IsChest(mcfile::je::Block const &b) {
@@ -209,7 +209,7 @@ public:
   }
 
   static bool IsNetherPortal(mcfile::be::Block const &b) {
-    return b.fName == "minecraft:portal";
+    return b.fName == u8"minecraft:portal";
   }
 
   template <class BlockType>

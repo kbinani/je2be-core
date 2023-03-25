@@ -37,22 +37,22 @@ public:
           if (!lowerJ || !upperJ) {
             continue;
           }
-          if (lowerJ->property("half") != "lower" || upperJ->property("half") != "upper") {
+          if (lowerJ->property(u8"half") != u8"lower" || upperJ->property(u8"half") != u8"upper") {
             continue;
           }
-          string facing(lowerJ->property("facing"));
-          string open(lowerJ->property("open"));
-          string hinge(upperJ->property("hinge"));
+          u8string facing(lowerJ->property(u8"facing"));
+          u8string open(lowerJ->property(u8"open"));
+          u8string hinge(upperJ->property(u8"hinge"));
           if (facing.empty() || open.empty() || hinge.empty()) {
             continue;
           }
 
           // NOTE: Doors in villages usually need this repair.
           auto replaceUpper = upperJ->applying({
-              {"facing", facing},
-              {"open", open},
+              {u8"facing", facing},
+              {u8"open", open},
           });
-          auto replaceLower = lowerJ->applying({{"hinge", hinge}});
+          auto replaceLower = lowerJ->applying({{u8"hinge", hinge}});
           out.setBlockAt(x, y, z, replaceLower);
           out.setBlockAt(x, y + 1, z, replaceUpper);
         }

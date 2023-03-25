@@ -17,8 +17,8 @@ public:
   enum {
     kTargetDataVersion = mcfile::je::Chunk::kDataVersion,
   };
-  static std::string TargetVersionString() {
-    return "1.19.3";
+  static std::u8string TargetVersionString() {
+    return u8"1.19.3";
   }
 
   static Status Convert(mcfile::Dimension dimension,

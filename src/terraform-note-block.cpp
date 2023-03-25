@@ -32,7 +32,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          string instrument = "harp";
+          u8string instrument = u8"harp";
           auto lowerJ = out.blockAt(x, y - 1, z);
           if (lowerJ) {
             instrument = NoteBlockInstrument(lowerJ->fId);
@@ -41,41 +41,41 @@ public:
           if (upperJ) {
             switch (upperJ->fId) {
             case minecraft::skeleton_skull:
-              instrument = "skeleton";
+              instrument = u8"skeleton";
               break;
             case minecraft::wither_skeleton_skull:
-              instrument = "wither_skeleton";
+              instrument = u8"wither_skeleton";
               break;
             case minecraft::player_head:
-              instrument = "custom_head";
+              instrument = u8"custom_head";
               break;
             case minecraft::zombie_head:
-              instrument = "zombie";
+              instrument = u8"zombie";
               break;
             case minecraft::creeper_head:
-              instrument = "creeper";
+              instrument = u8"creeper";
               break;
             case minecraft::piglin_head:
-              instrument = "piglin";
+              instrument = u8"piglin";
               break;
             case minecraft::dragon_head:
-              instrument = "dragon";
+              instrument = u8"dragon";
               break;
             }
           }
-          auto replace = blockJ->applying({{"instrument", instrument}});
+          auto replace = blockJ->applying({{u8"instrument", instrument}});
           out.setBlockAt(x, y, z, replace);
         }
       }
     }
   }
 
-  static std::string NoteBlockInstrumentAutogenCode(mcfile::blocks::BlockId id) {
+  static std::u8string NoteBlockInstrumentAutogenCode(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     auto static const bedrock = mcfile::blocks::minecraft::bedrock;
     switch (id) {
     case hay_block:
-      return "banjo";
+      return u8"banjo";
     case andesite:
     case andesite_slab:
     case andesite_stairs:
@@ -347,7 +347,7 @@ public:
     case yellow_concrete:
     case yellow_glazed_terracotta:
     case yellow_terracotta:
-      return "basedrum";
+      return u8"basedrum";
     case acacia_door:
     case acacia_fence:
     case acacia_fence_gate:
@@ -579,19 +579,19 @@ public:
     case white_wall_banner:
     case yellow_banner:
     case yellow_wall_banner:
-      return "bass";
+      return u8"bass";
     case gold_block:
-      return "bell";
+      return u8"bell";
     case emerald_block:
-      return "bit";
+      return u8"bit";
     case packed_ice:
-      return "chime";
+      return u8"chime";
     case soul_sand:
-      return "cow_bell";
+      return u8"cow_bell";
     case pumpkin:
-      return "didgeridoo";
+      return u8"didgeridoo";
     case clay:
-      return "flute";
+      return u8"flute";
     case black_wool:
     case blue_wool:
     case brown_wool:
@@ -608,7 +608,7 @@ public:
     case red_wool:
     case white_wool:
     case yellow_wool:
-      return "guitar";
+      return u8"guitar";
     case beacon:
     case black_stained_glass:
     case black_stained_glass_pane:
@@ -647,11 +647,11 @@ public:
     case white_stained_glass_pane:
     case yellow_stained_glass:
     case yellow_stained_glass_pane:
-      return "hat";
+      return u8"hat";
     case iron_block:
-      return "iron_xylophone";
+      return u8"iron_xylophone";
     case glowstone:
-      return "pling";
+      return u8"pling";
     case birch_wall_hanging_sign:
     case black_concrete_powder:
     case blue_concrete_powder:
@@ -673,15 +673,15 @@ public:
     case suspicious_sand:
     case white_concrete_powder:
     case yellow_concrete_powder:
-      return "snare";
+      return u8"snare";
     case bone_block:
-      return "xylophone";
+      return u8"xylophone";
     default:
-      return "harp";
+      return u8"harp";
     }
   }
 
-  static std::string NoteBlockInstrument(mcfile::blocks::BlockId id) {
+  static std::u8string NoteBlockInstrument(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
     case cave_vines_plant:
@@ -689,7 +689,7 @@ public:
     case chorus_plant:
     case soul_fire:
     case sugar_cane:
-      return "harp";
+      return u8"harp";
       // case kelp_plant:
       // case twisting_vines_plant:
       // case weeping_vines_plant:

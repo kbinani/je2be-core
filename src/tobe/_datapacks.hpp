@@ -5,9 +5,8 @@
 
 #include "_directory-iterator.hpp"
 #include "_file.hpp"
+#include "_props.hpp"
 #include "command/_command.hpp"
-
-#include <nlohmann/json.hpp>
 
 namespace je2be::tobe {
 
@@ -39,25 +38,24 @@ public:
     if (packs.empty()) {
       return true;
     }
-    ostringstream s;
-    s << "[" << endl;
+    u8string json;
+    json += u8"[\xa";
     for (size_t i = 0; i < packs.size(); i++) {
       Pack const &pack = packs[i];
-      s << "  {" << endl;
-      s << "    \"pack_id\": \"" << pack.fId.toString() << "\"," << endl;
-      s << "    \"version\": [" << pack.fVersion[0] << ", " << pack.fVersion[1] << ", " << pack.fVersion[2] << "]" << endl;
-      s << "  }";
+      json += u8"  {\xa";
+      json += u8"    \"pack_id\": \"" + pack.fId.toString() + u8"\",\xa";
+      json += u8"    \"version\": [" + mcfile::String::ToString(pack.fVersion[0]) + u8", " + mcfile::String::ToString(pack.fVersion[1]) + u8", " + mcfile::String::ToString(pack.fVersion[2]) + u8"]\xa";
+      json += u8"  }";
       if (i + 1 < packs.size()) {
-        s << ",";
+        json += u8",";
       }
-      s << endl;
+      json += u8"\xa";
     }
-    s << "]" << endl;
+    json += u8"]\xa";
     mcfile::ScopedFile fp(mcfile::File::Open(beRoot / "world_behavior_packs.json", mcfile::File::Mode::Write));
     if (!fp) {
       return false;
     }
-    string json = s.str();
     if (!mcfile::File::Fwrite(json.c_str(), json.size(), 1, fp.get())) {
       return false;
     }
@@ -69,6 +67,7 @@ private:
 
   static bool ImportPack(std::filesystem::path packRootDir, std::filesystem::path beRoot, std::vector<Pack> &packs) {
     using namespace std;
+    using namespace props;
 
     if (!Fs::Exists(packRootDir / "data")) {
       return true;
@@ -87,13 +86,13 @@ private:
       return false;
     }
 
-    vector<pair<std::string, Uuid>> modules;
+    vector<pair<std::u8string, Uuid>> modules;
 
     for (DirectoryIterator itr(packRootDir / "data"); itr.valid(); itr.next()) {
       if (!itr->is_directory()) {
         continue;
       }
-      string moduleName = itr->path().filename().string();
+      u8string moduleName = itr->path().filename().u8string();
       if (!Fs::CreateDirectories(packDir / "functions" / moduleName)) {
         return false;
       }
@@ -118,7 +117,7 @@ private:
         hasMcfunction = true;
       }
       if (hasMcfunction) {
-        size_t hash = std::hash<std::string>()(moduleName);
+        size_t hash = std::hash<std::u8string>()(moduleName);
         Uuid moduleId = Uuid::GenWithSeed(hash);
         modules.push_back(make_pair(moduleName, moduleId));
       }
@@ -128,14 +127,14 @@ private:
       return true;
     }
 
-    string description = packName.string();
+    u8string description = packName.u8string();
     auto mcmeta = packRootDir / "pack.mcmeta";
     auto desc = ReadDescriptionFromMcmeta(mcmeta);
     if (desc) {
       description = *desc;
     }
 
-    size_t packNameHash = std::hash<std::string>()(packName.string());
+    size_t packNameHash = std::hash<std::u8string>()(packName.u8string());
     auto packId = Uuid::GenWithSeed(packNameHash);
 
     Pack pack;
@@ -144,35 +143,50 @@ private:
     pack.fVersion[1] = 0;
     pack.fVersion[2] = 1;
     packs.push_back(pack);
-    ostringstream s;
-    s << R"({)" << endl;
-    s << R"(  "format_version": 2,)" << endl;
-    s << R"(  "header": {)" << endl;
-    s << R"(    "description": ")" << description << R"(",)" << endl;
-    s << R"(    "name": ")" << packName.string() << R"(",)" << endl;
-    s << R"(    "uuid": ")" << packId.toString() << R"(",)" << endl;
-    s << R"(    "version": [)" << pack.fVersion[0] << ", " << pack.fVersion[1] << ", " << pack.fVersion[2] << R"(],)" << endl;
-    s << R"(    "min_engine_version": [1, 17, 40])" << endl;
-    s << R"(  },)" << endl;
-    s << R"(  "modules": [)" << endl;
+
+    Json root;
+    root["format_version"] = 2;
+
+    Json header;
+    SetJsonString(header, u8"description", description);
+    SetJsonString(header, u8"name", packName.u8string());
+    SetJsonString(header, u8"uuid", packId.toString());
+    Json version = Json::array();
+    version.push_back(pack.fVersion[0]);
+    version.push_back(pack.fVersion[1]);
+    version.push_back(pack.fVersion[2]);
+    header["version"] = version;
+
+    Json minEngineVersion = Json::array();
+    minEngineVersion.push_back(1);
+    minEngineVersion.push_back(17);
+    minEngineVersion.push_back(40);
+    header["min_engine_version"] = minEngineVersion;
+
+    root["header"] = header;
+
+    Json modulesArray = Json::array();
     for (size_t i = 0; i < modules.size(); i++) {
       auto const &it = modules[i];
-      string name = it.first;
+      u8string name = it.first;
       Uuid moduleId = it.second;
-      s << R"(    {)" << endl;
-      s << R"(      "description": ")" << name << R"(",)" << endl;
-      s << R"(      "type": "data",)" << endl;
-      s << R"(      "uuid": ")" << moduleId.toString() << R"(",)" << endl;
-      s << R"(      "version": [0, 0, 1])" << endl;
-      s << R"(    })";
-      if (i + 1 < modules.size()) {
-        s << ",";
-      }
-      s << endl;
+
+      Json moduleObj;
+      SetJsonString(moduleObj, u8"description", name);
+      moduleObj["type"] = "data";
+      SetJsonString(moduleObj, u8"uuid", moduleId.toString());
+
+      Json moduleVersion = Json::array();
+      moduleVersion.push_back(0);
+      moduleVersion.push_back(0);
+      moduleVersion.push_back(1);
+      moduleObj["version"] = moduleVersion;
+
+      modulesArray.push_back(moduleObj);
     }
-    s << R"(  ])" << endl;
-    s << R"(})" << endl;
-    string json = s.str();
+    root["modules"] = modulesArray;
+
+    u8string json = StringFromJson(root);
     mcfile::ScopedFile fp(mcfile::File::Open(packDir / "manifest.json", mcfile::File::Mode::Write));
     if (!fp) {
       return false;
@@ -183,16 +197,16 @@ private:
     return true;
   }
 
-  static std::optional<std::string> ReadDescriptionFromMcmeta(std::filesystem::path mcmeta) {
+  static std::optional<std::u8string> ReadDescriptionFromMcmeta(std::filesystem::path mcmeta) {
     using namespace std;
     std::vector<u8> buffer;
     if (!file::GetContents(mcmeta, buffer)) {
       return nullopt;
     }
-    nlohmann::json json;
+    props::Json json;
     try {
-      json = nlohmann::json::parse(buffer.begin(), buffer.end());
-      return json["pack"]["description"];
+      json = props::Json::parse(buffer.begin(), buffer.end());
+      return props::GetJsonStringValue(json["pack"]["description"]);
     } catch (...) {
       return nullopt;
     }
@@ -211,15 +225,14 @@ private:
     if (!file::GetContents(from, buffer)) {
       return false;
     }
-    std::string content(buffer.begin(), buffer.end());
+    std::u8string content(buffer.begin(), buffer.end());
     buffer.clear();
-    vector<string> lines = String::Split(content, '\x0a');
-    ostringstream s;
+    vector<u8string> lines = String::Split(content, u8'\x0a');
+    u8string transpiled;
     for (auto const &line : lines) {
-      s << command::Command::TranspileJavaToBedrock(line);
-      s << "\x0a";
+      transpiled += command::Command::TranspileJavaToBedrock(line);
+      transpiled += u8"\x0a";
     }
-    string transpiled = s.str();
     ScopedFile fp(File::Open(to, File::Mode::Write));
     if (!fp) {
       return false;

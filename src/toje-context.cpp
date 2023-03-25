@@ -415,16 +415,16 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
       continue;
     }
     auto dataJ = Compound();
-    auto dimensionB = dataB->byte("dimension", 0);
+    auto dimensionB = dataB->byte(u8"dimension", 0);
     Dimension dim = Dimension::Overworld;
     if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
       dim = *dimension;
     }
-    dataJ->set("dimension", String(JavaStringFromDimension(dim)));
-    CopyBoolValues(*dataB, *dataJ, {{"mapLocked", "locked"}});
-    CopyByteValues(*dataB, *dataJ, {{"scale"}, {"unlimitedTracking"}});
-    CopyIntValues(*dataB, *dataJ, {{"xCenter"}, {"zCenter"}});
-    auto colorsTagB = dataB->byteArrayTag("colors");
+    dataJ->set(u8"dimension", String(JavaStringFromDimension(dim)));
+    CopyBoolValues(*dataB, *dataJ, {{u8"mapLocked", u8"locked"}});
+    CopyByteValues(*dataB, *dataJ, {{u8"scale"}, {u8"unlimitedTracking"}});
+    CopyIntValues(*dataB, *dataJ, {{u8"xCenter"}, {u8"zCenter"}});
+    auto colorsTagB = dataB->byteArrayTag(u8"colors");
     if (!colorsTagB) {
       continue;
     }
@@ -442,10 +442,10 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
       u8 id = MapColor::MostSimilarColorId(rgb);
       colorsJ[i] = id;
     }
-    dataJ->set("colors", std::make_shared<ByteArrayTag>(colorsJ));
+    dataJ->set(u8"colors", std::make_shared<ByteArrayTag>(colorsJ));
     auto tagJ = Compound();
-    tagJ->set("data", dataJ);
-    tagJ->set("DataVersion", Int(toje::kDataVersion));
+    tagJ->set(u8"data", dataJ);
+    tagJ->set(u8"DataVersion", Int(toje::kDataVersion));
 
     auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
     auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
@@ -461,9 +461,9 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
   if (maxMapNumber) {
     auto idcounts = Compound();
     auto d = Compound();
-    d->set("map", Int(*maxMapNumber));
-    idcounts->set("data", d);
-    idcounts->set("DataVersion", Int(toje::kDataVersion));
+    d->set(u8"map", Int(*maxMapNumber));
+    idcounts->set(u8"data", d);
+    idcounts->set(u8"DataVersion", Int(toje::kDataVersion));
     auto path = root / "data" / "idcounts.dat";
     auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
     if (!CompoundTag::Write(*idcounts, s, mcfile::Endian::Big)) {

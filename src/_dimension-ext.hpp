@@ -4,27 +4,27 @@
 
 namespace je2be {
 
-static inline std::optional<mcfile::Dimension> DimensionFromJavaString(std::string const &d) {
-  if (d == "minecraft:overworld") {
+static inline std::optional<mcfile::Dimension> DimensionFromJavaString(std::u8string const &d) {
+  if (d == u8"minecraft:overworld") {
     return mcfile::Dimension::Overworld;
-  } else if (d == "minecraft:the_nether") {
+  } else if (d == u8"minecraft:the_nether") {
     return mcfile::Dimension::Nether;
-  } else if (d == "minecraft:the_end") {
+  } else if (d == u8"minecraft:the_end") {
     return mcfile::Dimension::End;
   }
   return std::nullopt;
 }
 
-static inline std::string JavaStringFromDimension(mcfile::Dimension d) {
+static inline std::u8string JavaStringFromDimension(mcfile::Dimension d) {
   using namespace mcfile;
   switch (d) {
   case Dimension::Nether:
-    return "minecraft:the_nether";
+    return u8"minecraft:the_nether";
   case Dimension::End:
-    return "minecraft:the_end";
+    return u8"minecraft:the_end";
   case Dimension::Overworld:
   default:
-    return "minecraft:overworld";
+    return u8"minecraft:overworld";
   }
 }
 

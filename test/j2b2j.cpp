@@ -17,6 +17,9 @@ using namespace mcfile;
 using namespace je2be;
 namespace fs = std::filesystem;
 
+mcfile::U8COut u8cout;
+mcfile::U8CErr u8cerr;
+
 #include "je2be-all.hpp"
 
 #include "j2b2j.hpp"

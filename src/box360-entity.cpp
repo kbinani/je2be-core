@@ -18,12 +18,12 @@ public:
   static std::optional<Result> Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
 
-    auto rawId = in.string("id");
+    auto rawId = in.string(u8"id");
     if (!rawId) {
       return nullopt;
     }
-    string id = MigrateName(*rawId);
-    assert(id.starts_with("minecraft:"));
+    u8string id = MigrateName(*rawId);
+    assert(id.starts_with(u8"minecraft:"));
 
     auto out = Default(in, ctx);
     if (!out) {
@@ -51,25 +51,25 @@ public:
     return r;
   }
 
-  static std::string MigrateName(std::string const &rawName) {
-    std::string name = Namespace::Remove(strings::SnakeFromUpperCamel(rawName));
-    if (name == "zombie_pigman") {
-      name = "zombified_piglin";
-    } else if (name == "evocation_illager") {
-      name = "evoker";
-    } else if (name == "vindication_illager") {
-      name = "vindicator";
-    } else if (name == "fish") {
-      name = "cod";
-    } else if (name == "tropicalfish") {
-      name = "tropical_fish";
-    } else if (name == "ender_crystal") {
-      name = "end_crystal";
+  static std::u8string MigrateName(std::u8string const &rawName) {
+    std::u8string name = Namespace::Remove(strings::SnakeFromUpperCamel(rawName));
+    if (name == u8"zombie_pigman") {
+      name = u8"zombified_piglin";
+    } else if (name == u8"evocation_illager") {
+      name = u8"evoker";
+    } else if (name == u8"vindication_illager") {
+      name = u8"vindicator";
+    } else if (name == u8"fish") {
+      name = u8"cod";
+    } else if (name == u8"tropicalfish") {
+      name = u8"tropical_fish";
+    } else if (name == u8"ender_crystal") {
+      name = u8"end_crystal";
     }
-    return "minecraft:" + name;
+    return u8"minecraft:" + name;
   }
 
-  static std::optional<Uuid> MigrateUuid(std::string const &uuid, Context const &ctx) {
+  static std::optional<Uuid> MigrateUuid(std::u8string const &uuid, Context const &ctx) {
     using namespace std;
     if (uuid.empty()) {
       return nullopt;
@@ -85,7 +85,7 @@ public:
     return Uuid::GenWithI64Seed(seed);
   }
 
-  static void CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::string const &key) {
+  static void CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::u8string const &key) {
     auto handItemsB = in.listTag(key);
     if (!handItemsB) {
       return;
@@ -113,21 +113,21 @@ private:
   }
 
   static bool Item(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    if (auto item = in.compoundTag("Item"); item) {
+    if (auto item = in.compoundTag(u8"Item"); item) {
       if (auto converted = Item::Convert(*item, ctx); converted) {
-        out->set("Item", converted);
+        out->set(u8"Item", converted);
       }
     }
-    if (auto throwerB = in.string("Thrower"); throwerB) {
+    if (auto throwerB = in.string(u8"Thrower"); throwerB) {
       if (auto throwerJ = MigrateUuid(*throwerB, ctx); throwerJ) {
-        out->set("Thrower", throwerJ->toIntArrayTag());
+        out->set(u8"Thrower", throwerJ->toIntArrayTag());
       }
     }
     return true;
   }
 
   static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    i8 facingB = in.byte("Facing", 0);
+    i8 facingB = in.byte(u8"Facing", 0);
     i8 facingJ = 3;
     switch (facingB) {
     case 1:
@@ -144,11 +144,11 @@ private:
       facingJ = 3;
       break;
     }
-    out->set("Facing", Byte(facingJ));
+    out->set(u8"Facing", Byte(facingJ));
 
-    if (auto item = in.compoundTag("Item"); item) {
+    if (auto item = in.compoundTag(u8"Item"); item) {
       if (auto converted = Item::Convert(*item, ctx); converted) {
-        out->set("Item", converted);
+        out->set(u8"Item", converted);
       }
     }
 
@@ -156,22 +156,22 @@ private:
   }
 
   static bool Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    if (auto motiveX = in.string("Motive"); motiveX) {
+    if (auto motiveX = in.string(u8"Motive"); motiveX) {
       auto motive = Painting::MotiveFromBedrock(*motiveX);
       auto motiveJ = Painting::JavaFromMotive(motive);
-      out->set("variant", String(motiveJ));
+      out->set(u8"variant", String(motiveJ));
     }
     return true;
   }
 
   static bool Shulker(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    out->set("Color", Byte(16));
+    out->set(u8"Color", Byte(16));
     return true;
   }
 #pragma endregion
 
   static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
-    auto uuidB = in.string("UUID");
+    auto uuidB = in.string(u8"UUID");
     Uuid uuidJ;
     if (uuidB) {
       if (auto migrated = MigrateUuid(*uuidB, ctx); migrated) {
@@ -184,13 +184,13 @@ private:
     }
 
     auto ret = in.copy();
-    ret->erase("createdOnHost");
-    ret->erase("namedByRestrictedPlayer");
+    ret->erase(u8"createdOnHost");
+    ret->erase(u8"namedByRestrictedPlayer");
 
-    ret->set("UUID", uuidJ.toIntArrayTag());
+    ret->set(u8"UUID", uuidJ.toIntArrayTag());
 
-    if (auto riding = in.listTag("Riding"); riding) {
-      ret->erase("Riding");
+    if (auto riding = in.listTag(u8"Riding"); riding) {
+      ret->erase(u8"Riding");
       auto passengers = List<Tag::Type::Compound>();
       for (auto const &it : *riding) {
         auto rider = it->asCompound();
@@ -203,55 +203,55 @@ private:
         }
         passengers->push_back(converted->fEntity);
       }
-      ret->set("Passengers", passengers);
+      ret->set(u8"Passengers", passengers);
     }
 
-    if (auto customNameB = in.string("CustomName"); customNameB && !customNameB->empty()) {
-      nlohmann::json obj;
-      obj["text"] = *customNameB;
-      ret->set("CustomName", String(nlohmann::to_string(obj)));
+    if (auto customNameB = in.string(u8"CustomName"); customNameB && !customNameB->empty()) {
+      props::Json obj;
+      props::SetJsonString(obj, u8"text", *customNameB);
+      ret->set(u8"CustomName", String(props::StringFromJson(obj)));
     }
 
-    auto idB = in.string("id");
+    auto idB = in.string(u8"id");
     if (!idB) {
       return nullptr;
     }
     auto idJ = MigrateName(*idB);
-    ret->set("id", String(idJ));
+    ret->set(u8"id", String(idJ));
 
-    if (auto drownedConversionTime = in.int32("DrownedConversionTime"); drownedConversionTime) {
+    if (auto drownedConversionTime = in.int32(u8"DrownedConversionTime"); drownedConversionTime) {
       if (*drownedConversionTime == 0) {
-        ret->set("DrownedConversionTime", Int(-1));
+        ret->set(u8"DrownedConversionTime", Int(-1));
       }
     }
 
-    CopyItems(in, *ret, ctx, "HandItems");
-    CopyItems(in, *ret, ctx, "ArmorItems");
-    CopyItems(in, *ret, ctx, "Items");
+    CopyItems(in, *ret, ctx, u8"HandItems");
+    CopyItems(in, *ret, ctx, u8"ArmorItems");
+    CopyItems(in, *ret, ctx, u8"Items");
 
     return ret;
   }
 
-  static std::optional<Uuid> MigrateEntityUuid(std::string const &uuid) {
+  static std::optional<Uuid> MigrateEntityUuid(std::u8string const &uuid) {
     using namespace std;
-    if (!uuid.starts_with("ent") && uuid.size() != 35) {
+    if (!uuid.starts_with(u8"ent") && uuid.size() != 35) {
       return nullopt;
     }
 
     return Uuid::FromString(uuid.substr(3));
   }
 
-  static std::unordered_map<std::string, Converter> const &GetTable() {
+  static std::unordered_map<std::u8string, Converter> const &GetTable() {
     using namespace std;
-    static unique_ptr<unordered_map<string, Converter> const> const sTable(CreateTable());
+    static unique_ptr<unordered_map<u8string, Converter> const> const sTable(CreateTable());
     return *sTable;
   }
 
-  static std::unordered_map<std::string, Converter> const *CreateTable() {
-    auto ret = new std::unordered_map<std::string, Converter>();
-#define E(__name, __conv)                   \
-  assert(ret->find(#__name) == ret->end()); \
-  ret->insert(std::make_pair(#__name, __conv))
+  static std::unordered_map<std::u8string, Converter> const *CreateTable() {
+    auto ret = new std::unordered_map<std::u8string, Converter>();
+#define E(__name, __conv)                        \
+  assert(ret->find(u8"" #__name) == ret->end()); \
+  ret->insert(std::make_pair(u8"" #__name, __conv))
 
     E(item_frame, ItemFrame);
     E(painting, Painting);
@@ -268,15 +268,15 @@ std::optional<Entity::Result> Entity::Convert(CompoundTag const &in, Context con
   return Impl::Convert(in, ctx);
 }
 
-std::string Entity::MigrateName(std::string const &rawName) {
+std::u8string Entity::MigrateName(std::u8string const &rawName) {
   return Impl::MigrateName(rawName);
 }
 
-std::optional<Uuid> Entity::MigrateUuid(std::string const &uuid, Context const &ctx) {
+std::optional<Uuid> Entity::MigrateUuid(std::u8string const &uuid, Context const &ctx) {
   return Impl::MigrateUuid(uuid, ctx);
 }
 
-void Entity::CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::string const &key) {
+void Entity::CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::u8string const &key) {
   return Impl::CopyItems(in, out, ctx, key);
 }
 

@@ -23,7 +23,7 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
-    static vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
+    static vector<pair<u8string, Pos2i>> const nesw({{u8"north", Pos2i(0, -1)}, {u8"east", Pos2i(1, 0)}, {u8"south", Pos2i(0, 1)}, {u8"west", Pos2i(-1, 0)}});
 
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
@@ -36,7 +36,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
           Pos2i const pos(x, z);
           for (auto const &it : nesw) {
             Pos2i direction = it.second;
@@ -55,13 +55,13 @@ public:
     }
   }
 
-  static std::string ToString(bool b) {
-    return b ? "true" : "false";
+  static std::u8string ToString(bool b) {
+    return b ? u8"true" : u8"false";
   }
 
   static bool IsFenceConnectable(mcfile::je::Block const &center, mcfile::je::Block const &targetJ, Pos2i const &targetDirection) {
     if (center.fId == mcfile::blocks::minecraft::nether_brick_fence) {
-      if (targetJ.fName.ends_with("fence")) {
+      if (targetJ.fName.ends_with(u8"fence")) {
         return targetJ.fId == mcfile::blocks::minecraft::nether_brick_fence;
       }
     }
@@ -72,7 +72,7 @@ public:
   }
 
   static bool IsConnectableByBlockNameAndStates(mcfile::je::Block const &target, Pos2i const &targetDirection) {
-    if (target.fName.ends_with("stairs")) {
+    if (target.fName.ends_with(u8"stairs")) {
       auto data = mcfile::blocks::BlockData::Make(target);
       if (auto stairs = std::dynamic_pointer_cast<mcfile::blocks::data::type::Stairs>(data); stairs) {
         auto weridoDirection = stairs->facing();
@@ -81,10 +81,10 @@ public:
           return true;
         }
       }
-    } else if (target.fName.ends_with("slab") && target.fName.find("double") != std::string::npos) {
+    } else if (target.fName.ends_with(u8"slab") && target.fName.find(u8"double") != std::u8string::npos) {
       return true;
-    } else if (target.fName.ends_with("fence_gate")) {
-      auto facing = target.property("facing");
+    } else if (target.fName.ends_with(u8"fence_gate")) {
+      auto facing = target.property(u8"facing");
       Facing4 f4 = Facing4FromJavaName(facing);
       Pos2i gateDirection = Pos2iFromFacing4(f4);
       return IsOrthogonal(gateDirection, targetDirection);
@@ -100,7 +100,7 @@ public:
     int cx = out.fChunkX;
     int cz = out.fChunkZ;
 
-    static vector<pair<string, Pos2i>> const nesw({{"north", Pos2i(0, -1)}, {"east", Pos2i(1, 0)}, {"south", Pos2i(0, 1)}, {"west", Pos2i(-1, 0)}});
+    static vector<pair<u8string, Pos2i>> const nesw({{u8"north", Pos2i(0, -1)}, {u8"east", Pos2i(1, 0)}, {u8"south", Pos2i(0, 1)}, {u8"west", Pos2i(-1, 0)}});
 
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
@@ -113,7 +113,7 @@ public:
           if (!blockJ) {
             continue;
           }
-          map<string, optional<string>> props;
+          map<u8string, optional<u8string>> props;
           Pos2i const pos(x, z);
           for (auto const &it : nesw) {
             Pos2i direction = it.second;

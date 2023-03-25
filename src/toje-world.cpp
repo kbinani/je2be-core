@@ -156,7 +156,7 @@ public:
     if (!content) {
       return JE2BE_ERROR;
     }
-    auto entities = content->listTag("Entities");
+    auto entities = content->listTag(u8"Entities");
     if (!entities) {
       return JE2BE_ERROR;
     }
@@ -221,7 +221,7 @@ public:
           fs::path nbt = entitiesDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
           CompoundTagPtr tag;
           if (mcfile::je::McaEditor::Load(nbt, cx - rx * 32, cz - rz * 32, tag); tag) {
-            entitiesInChunk = tag->listTag("Entities");
+            entitiesInChunk = tag->listTag(u8"Entities");
           }
         }
         if (!entitiesInChunk) {
@@ -242,7 +242,7 @@ public:
         }
         if (chunk != passengerChunk) {
           auto data = Compound();
-          data->set("Entities", entitiesInChunk);
+          data->set(u8"Entities", entitiesInChunk);
           int cx = passengerChunk.fX;
           int cz = passengerChunk.fZ;
           int rx = mcfile::Coordinate::RegionFromChunk(cx);
@@ -262,13 +262,13 @@ public:
       }
 
       // Attach passengers to vehicle
-      shared_ptr<ListTag> passengersTag = vehicle->listTag("Passengers");
+      shared_ptr<ListTag> passengersTag = vehicle->listTag(u8"Passengers");
       if (!passengersTag) {
         passengersTag = List<Tag::Type::Compound>();
-        vehicle->set("Passengers", passengersTag);
+        vehicle->set(u8"Passengers", passengersTag);
       }
-      if (vehicle->string("id") == "minecraft:chicken") {
-        vehicle->set("IsChickenJockey", Bool(true));
+      if (vehicle->string(u8"id") == u8"minecraft:chicken") {
+        vehicle->set(u8"IsChickenJockey", Bool(true));
       }
       for (auto const &it : collectedPassengers) {
         size_t index = it.first;
@@ -309,10 +309,10 @@ public:
       if (entity) {
         Pos3i leashPos = leasherFound->second;
         auto leashTag = Compound();
-        leashTag->set("X", Int(leashPos.fX));
-        leashTag->set("Y", Int(leashPos.fY));
-        leashTag->set("Z", Int(leashPos.fZ));
-        entity->set("Leash", leashTag);
+        leashTag->set(u8"X", Int(leashPos.fX));
+        leashTag->set(u8"Y", Int(leashPos.fY));
+        leashTag->set(u8"Z", Int(leashPos.fZ));
+        entity->set(u8"Leash", leashTag);
       }
     }
   }
@@ -323,7 +323,7 @@ public:
       if (!entityCompound) {
         continue;
       }
-      auto uuid = props::GetUuidWithFormatIntArray(*entityCompound, "UUID");
+      auto uuid = props::GetUuidWithFormatIntArray(*entityCompound, u8"UUID");
       if (!uuid) {
         continue;
       }

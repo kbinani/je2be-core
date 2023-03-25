@@ -9,7 +9,7 @@ Version constexpr kMinimumCompatibleClientVersion = Version(1, 19, 70, 0, 0); //
 u8 constexpr kSubChunkBlockStorageVersion = 9;                                // v1.19.70
 i32 constexpr kStorageVersion = 10;                                           // v1.19.70
 i32 constexpr kNetworkVersion = 575;                                          // v1.19.70
-char const *const kInventoryVersion = "1.19.70";                              // v1.19.70
+char8_t const *const kInventoryVersion = u8"1.19.70";                         // v1.19.70
 u8 constexpr kDragonFightVersion = 0;                                         // v1.19.70
 
 // for lastOpenedWithVersion of level.dat

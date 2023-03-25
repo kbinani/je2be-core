@@ -90,70 +90,70 @@ public:
     return nullopt;
   }
 
-  static std::unordered_map<std::string, Motive> const *CreateRawTableJava() {
-    return new std::unordered_map<std::string, Motive>{
-        {"minecraft:bust", Bust},
-        {"minecraft:pigscene", Pigscene},
-        {"minecraft:burning_skull", BurningSkull},
-        {"minecraft:pointer", Pointer},
-        {"minecraft:skeleton", Skeleton},
-        {"minecraft:donkey_kong", DonkeyKong},
-        {"minecraft:fighters", Fighters},
-        {"minecraft:skull_and_roses", SkullAndRoses},
-        {"minecraft:match", Match},
-        {"minecraft:bust", Bust},
-        {"minecraft:stage", Stage},
-        {"minecraft:void", Void},
-        {"minecraft:wither", Wither},
-        {"minecraft:sunset", Sunset},
-        {"minecraft:courbet", Courbet},
-        {"minecraft:creebet", Creebet},
-        {"minecraft:sea", Sea},
-        {"minecraft:wanderer", Wanderer},
-        {"minecraft:graham", Graham},
-        {"minecraft:aztec2", Aztec2},
-        {"minecraft:alban", Alban},
-        {"minecraft:bomb", Bomb},
-        {"minecraft:kebab", Kebab},
-        {"minecraft:wasteland", Wasteland},
-        {"minecraft:aztec", Aztec},
-        {"minecraft:plant", Plant},
-        {"minecraft:pool", Pool},
+  static std::unordered_map<std::u8string, Motive> const *CreateRawTableJava() {
+    return new std::unordered_map<std::u8string, Motive>{
+        {u8"minecraft:bust", Bust},
+        {u8"minecraft:pigscene", Pigscene},
+        {u8"minecraft:burning_skull", BurningSkull},
+        {u8"minecraft:pointer", Pointer},
+        {u8"minecraft:skeleton", Skeleton},
+        {u8"minecraft:donkey_kong", DonkeyKong},
+        {u8"minecraft:fighters", Fighters},
+        {u8"minecraft:skull_and_roses", SkullAndRoses},
+        {u8"minecraft:match", Match},
+        {u8"minecraft:bust", Bust},
+        {u8"minecraft:stage", Stage},
+        {u8"minecraft:void", Void},
+        {u8"minecraft:wither", Wither},
+        {u8"minecraft:sunset", Sunset},
+        {u8"minecraft:courbet", Courbet},
+        {u8"minecraft:creebet", Creebet},
+        {u8"minecraft:sea", Sea},
+        {u8"minecraft:wanderer", Wanderer},
+        {u8"minecraft:graham", Graham},
+        {u8"minecraft:aztec2", Aztec2},
+        {u8"minecraft:alban", Alban},
+        {u8"minecraft:bomb", Bomb},
+        {u8"minecraft:kebab", Kebab},
+        {u8"minecraft:wasteland", Wasteland},
+        {u8"minecraft:aztec", Aztec},
+        {u8"minecraft:plant", Plant},
+        {u8"minecraft:pool", Pool},
 
-        {"minecraft:earth", Earth},
-        {"minecraft:wind", Wind},
-        {"minecraft:fire", Fire},
-        {"minecraft:water", Water},
+        {u8"minecraft:earth", Earth},
+        {u8"minecraft:wind", Wind},
+        {u8"minecraft:fire", Fire},
+        {u8"minecraft:water", Water},
     };
   }
 
-  static ReversibleMap<std::string, Motive> const *CreateTableJava() {
+  static ReversibleMap<std::u8string, Motive> const *CreateTableJava() {
     return new ReversibleMap(*CreateRawTableJava());
   }
 
-  static ReversibleMap<std::string, Motive> const *GetTableJava() {
-    static std::unique_ptr<ReversibleMap<std::string, Motive> const> const sTable(CreateTableJava());
+  static ReversibleMap<std::u8string, Motive> const *GetTableJava() {
+    static std::unique_ptr<ReversibleMap<std::u8string, Motive> const> const sTable(CreateTableJava());
     return sTable.get();
   }
 
-  static ReversibleMap<std::string, Motive> const *CreateTableBedrock() {
+  static ReversibleMap<std::u8string, Motive> const *CreateTableBedrock() {
     using namespace std;
-    unique_ptr<unordered_map<string, Motive> const> j2b(CreateRawTableJava());
-    unordered_map<std::string, Motive> ret;
+    unique_ptr<unordered_map<u8string, Motive> const> j2b(CreateRawTableJava());
+    unordered_map<std::u8string, Motive> ret;
     for (auto const &it : *j2b) {
-      string motiveJ = it.first;
-      string motiveB = strings::UpperCamelFromSnake(Namespace::Remove(motiveJ));
+      u8string motiveJ = it.first;
+      u8string motiveB = strings::UpperCamelFromSnake(Namespace::Remove(motiveJ));
       ret.insert(make_pair(motiveB, it.second));
     }
-    return new ReversibleMap<std::string, Motive>(ret);
+    return new ReversibleMap<std::u8string, Motive>(ret);
   }
 
-  static ReversibleMap<std::string, Motive> const *GetTableBedrock() {
-    static std::unique_ptr<ReversibleMap<std::string, Motive> const> const sTable(CreateTableBedrock());
+  static ReversibleMap<std::u8string, Motive> const *GetTableBedrock() {
+    static std::unique_ptr<ReversibleMap<std::u8string, Motive> const> const sTable(CreateTableBedrock());
     return sTable.get();
   }
 
-  static Motive MotiveFromJava(std::string const &motiveJ) {
+  static Motive MotiveFromJava(std::u8string const &motiveJ) {
     auto const *table = GetTableJava();
     auto found = table->forward(motiveJ);
     if (found) {
@@ -163,7 +163,7 @@ public:
     }
   }
 
-  static Motive MotiveFromBedrock(std::string const &motiveB) {
+  static Motive MotiveFromBedrock(std::u8string const &motiveB) {
     auto const *table = GetTableBedrock();
     auto found = table->forward(motiveB);
     if (found) {
@@ -173,23 +173,23 @@ public:
     }
   }
 
-  static std::string JavaFromMotive(Motive m) {
+  static std::u8string JavaFromMotive(Motive m) {
     auto table = GetTableJava();
     auto found = table->backward(m);
     if (found) {
       return *found;
     } else {
-      return "minecraft:aztec";
+      return u8"minecraft:aztec";
     }
   }
 
-  static std::string BedrockFromMotive(Motive m) {
+  static std::u8string BedrockFromMotive(Motive m) {
     auto table = GetTableBedrock();
     auto found = table->backward(m);
     if (found) {
       return *found;
     } else {
-      return "Aztec";
+      return u8"Aztec";
     }
   }
 
