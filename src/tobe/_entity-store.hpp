@@ -35,7 +35,7 @@ public:
     }
     auto stream = std::make_shared<mcfile::stream::ByteStream>();
     mcfile::stream::OutputStreamWriter writer(stream, mcfile::Endian::Little);
-    for (u64 uuid : entityUuids) {
+    for (i64 uuid : entityUuids) {
       if (!writer.write(uuid)) {
         return JE2BE_ERROR;
       }
