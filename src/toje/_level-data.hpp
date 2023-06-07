@@ -168,10 +168,7 @@ public:
       return;
     }
     auto enabledFeatures = List<Tag::Type::String>();
-    if (ctx.fDataPack1_20Update || ctx.fDataPackBundle) {
-      if (ctx.fDataPack1_20Update) {
-        enabledFeatures->push_back(String(u8"minecraft:update_1_20"));
-      }
+    if (ctx.fDataPackBundle) {
       if (ctx.fDataPackBundle) {
         enabledFeatures->push_back(String(u8"minecraft:bundle"));
       }
@@ -184,16 +181,10 @@ public:
         if (ctx.fDataPackBundle) {
           enabledDataPacks->push_back(String(u8"bundle"));
         }
-        if (ctx.fDataPack1_20Update) {
-          enabledDataPacks->push_back(String(u8"update_1_20"));
-        }
       }
       if (auto disabledDataPacks = dataPacks->listTag(u8"Disabled"); disabledDataPacks) {
         if (!ctx.fDataPackBundle) {
           disabledDataPacks->push_back(String(u8"bundle"));
-        }
-        if (!ctx.fDataPack1_20Update) {
-          disabledDataPacks->push_back(String(u8"update_1_20"));
         }
       }
     }

@@ -267,7 +267,6 @@ void Context::mergeInto(Context &other) const {
     it.second.mergeInto(dest);
   }
   other.fDataPackBundle = other.fDataPackBundle || fDataPackBundle;
-  other.fDataPack1_20Update = other.fDataPack1_20Update || fDataPack1_20Update;
 }
 
 Status Context::postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const {
@@ -297,7 +296,6 @@ std::shared_ptr<Context> Context::make() const {
   ret->fShoulderEntityLeftId = fShoulderEntityLeftId;
   ret->fShoulderEntityRightId = fShoulderEntityRightId;
   ret->fDataPackBundle = fDataPackBundle;
-  ret->fDataPack1_20Update = fDataPack1_20Update;
   return ret;
 }
 

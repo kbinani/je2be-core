@@ -287,10 +287,6 @@ public:
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j[u8"Type"] = String(type);
 
-    if (!ctx.fDataPack1_20Update && (type == u8"bamboo" || type == u8"cherry")) {
-      ctx.fDataPack1_20Update = true;
-    }
-
     if (auto rotB = props::GetRotation(b, u8"Rotation"); rotB) {
       je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
       j[u8"Rotation"] = rotJ.toListTag();
@@ -971,10 +967,6 @@ public:
 
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j[u8"EatingHaystack"] = Bool(false);
-  }
-
-  static void Experimental120(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    ctx.fDataPack1_20Update = true;
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx) {
@@ -2006,8 +1998,8 @@ public:
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
     E(tadpole, C(Same, LivingEntity, AgeableE(24000), FromBucket));
 
-    E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel, Experimental120));
-    E(sniffer, C(Same, Animal, Experimental120));
+    E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel));
+    E(sniffer, C(Same, Animal));
 #undef E
     return ret;
   }

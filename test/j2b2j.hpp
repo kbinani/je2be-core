@@ -459,11 +459,6 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
     blacklist.insert(u8"LastPoseTick");
   } else if (id == u8"minecraft:wandering_trader") {
     blacklist.insert(u8"WanderTarget");
-  } else if (id == u8"minecraft:boat" || id == u8"minecraft:chest_boat") {
-    if (entityE.string(u8"Type") == u8"cherry") {
-      // TODO:1.20
-      blacklist.insert(u8"Type");
-    }
   }
 
   for (u8string const &it : blacklist) {
