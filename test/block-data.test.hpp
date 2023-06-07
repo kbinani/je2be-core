@@ -1,7 +1,7 @@
 #pragma once
 
 static std::string BlockDataTestVersion() {
-  return "1.19.4";
+  return "1.20";
 }
 
 TEST_CASE("block-data") {
@@ -56,10 +56,10 @@ TEST_CASE("prepare-test-data") {
       }
       for (auto const &section : chunk->fSections) {
         section->eachBlockPalette([root](shared_ptr<Block const> const &b, size_t) {
-          string s = b->toString().substr(string("minecraft:").size());
+          u8string s = b->toString().substr(u8string(u8"minecraft:").size());
           fs::path dir = root / s.substr(0, 1);
           fs::create_directories(dir);
-          fs::path nbt = dir / (s + ".nbt");
+          fs::path nbt = dir / (s + u8".nbt");
           auto converted = je2be::tobe::BlockData::From(b, nullptr);
           CHECK(converted != nullptr);
           auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
