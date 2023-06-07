@@ -297,8 +297,19 @@ public:
       auto dragonUidJ = Uuid::GenWithI64Seed(*dragonUidB);
       fightJ->set(u8"Dragon", dragonUidJ.toIntArrayTag());
     }
-    if (auto gateways = fightB->listTag(u8"Gateways"); gateways) {
-      fightJ->set(u8"Gateways", gateways);
+    if (auto gatewaysB = fightB->listTag(u8"Gateways"); gatewaysB) {
+      auto gatewaysJ = std::make_shared<IntArrayTag>();
+      for (auto const &it : *gatewaysB) {
+        auto gatewayJ = it->asInt();
+        if (!gatewayJ) {
+          gatewaysJ.reset();
+          break;
+        }
+        gatewaysJ->fValue.push_back(gatewayJ->fValue);
+      }
+      if (gatewaysJ) {
+        fightJ->set(u8"Gateways", gatewaysJ);
+      }
     }
     fightJ->set(u8"NeedsStateScanning", Bool(false));
     return fightJ;

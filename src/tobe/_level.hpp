@@ -376,10 +376,17 @@ public:
       fight->set(u8"IsRespawning", Bool(false));
     }
 
-    auto gateways = dragonFight->listTag(u8"Gateways");
-    if (gateways) {
+    if (auto gateways = dragonFight->intArrayTag(u8"Gateways"); gateways) {
+      // >= 1.20
       auto v = List<Tag::Type::Int>();
-      for (auto const &it : *gateways) {
+      for (i32 p : gateways->fValue) {
+        v->push_back(Int(p));
+      }
+      fight->set(u8"Gateways", v);
+    } else if (auto gatewaysList = dragonFight->listTag(u8"Gateways"); gatewaysList) {
+      // < 1.20
+      auto v = List<Tag::Type::Int>();
+      for (auto const &it : *gatewaysList) {
         auto p = it->asInt();
         if (!p) {
           v = nullptr;
