@@ -392,6 +392,7 @@ public:
     case birch_slab:
     case birch_stairs:
     case birch_trapdoor:
+    case birch_wall_hanging_sign:
     case birch_wall_sign:
     case birch_wood:
     case black_banner:
@@ -652,7 +653,6 @@ public:
       return u8"iron_xylophone";
     case glowstone:
       return u8"pling";
-    case birch_wall_hanging_sign:
     case black_concrete_powder:
     case blue_concrete_powder:
     case brown_concrete_powder:
@@ -670,6 +670,7 @@ public:
     case red_concrete_powder:
     case red_sand:
     case sand:
+    case suspicious_gravel:
     case suspicious_sand:
     case white_concrete_powder:
     case yellow_concrete_powder:

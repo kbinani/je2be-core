@@ -1423,6 +1423,9 @@ private:
     case trapped_chest:
     case tripwire:
     case tripwire_hook:
+    case tube_coral:
+    case tube_coral_fan:
+    case tube_coral_wall_fan:
     case turtle_egg:
     case vine:
     case void_air:
@@ -1603,6 +1606,10 @@ private:
     case potted_torchflower:
     case torchflower:
     case torchflower_crop:
+    case calibrated_sculk_sensor:
+    case pitcher_crop:
+    case pitcher_plant:
+    case sniffer_egg:
       return 0;
     case acacia_leaves:
     case beacon:
@@ -1661,6 +1668,7 @@ private:
     case end_portal_frame:
     case small_amethyst_bud:
     case sculk_sensor:
+    case calibrated_sculk_sensor:
       return 1;
     case medium_amethyst_bud:
       return 2;

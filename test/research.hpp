@@ -292,7 +292,7 @@ static void NoteBlock() {
 
   fs::path self = fs::path(__FILE__).parent_path();
   ofstream code((self / "code.hpp").string());
-  code << "static std::string NoteBlockInstrumentAutogenCode(mcfile::blocks::BlockId id) {" << endl;
+  code << "static std::u8string NoteBlockInstrumentAutogenCode(mcfile::blocks::BlockId id) {" << endl;
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  auto static const bedrock = mcfile::blocks::minecraft::bedrock;" << endl;
   code << "  switch (id) {" << endl;
@@ -302,10 +302,10 @@ static void NoteBlock() {
     for (u8string const &block : blocks) {
       code << "  case " << block.substr(10) << ":" << endl;
     }
-    code << u8"    return \"" + instrument << u8"\";" << endl;
+    code << u8"    return u8\"" + instrument << u8"\";" << endl;
   }
   code << "  default:" << endl;
-  code << "    return \"harp\";" << endl;
+  code << "    return u8\"harp\";" << endl;
   code << "  }" << endl;
   code << "}" << endl;
   code << endl;
@@ -1381,6 +1381,12 @@ static void Heightmaps() {
 
 #if 0
 TEST_CASE("research") {
-  Heightmaps();
+  // Heightmaps();
+  // LightEmission()
+  // WallConnectable
+  // RedstoneWire();
+  // LightTransmission1();
+  // NoteBlock();
+  // FenceGlassPaneIronBarsConnectable();
 }
 #endif

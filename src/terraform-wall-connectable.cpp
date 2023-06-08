@@ -469,6 +469,7 @@ public:
     case stripped_warped_hyphae:
     case stripped_warped_stem:
     case structure_block:
+    case suspicious_gravel:
     case suspicious_sand:
     case target:
     case terracotta:
@@ -893,6 +894,7 @@ public:
     case stripped_warped_hyphae:
     case stripped_warped_stem:
     case structure_block:
+    case suspicious_gravel:
     case suspicious_sand:
     case target:
     case terracotta:
