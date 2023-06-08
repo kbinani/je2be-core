@@ -30,7 +30,7 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
     if (foundJtoB == fallbackJtoB.end()) {
       auto foundBtoJ = fallbackBtoJ.find(blockA->fName);
       if (foundBtoJ == fallbackBtoJ.end()) {
-        if (blockE->fName == u8"minecraft:red_mushroom_block" || blockE->fName == u8"minecraft:brown_mushroom_block" || blockE->fName == u8"minecraft:sculk_sensor") {
+        if (blockE->fName == u8"minecraft:red_mushroom_block" || blockE->fName == u8"minecraft:brown_mushroom_block") {
           CHECK(blockE->fName == blockA->fName);
         } else if (blockE->fName == u8"minecraft:scaffolding") {
           CheckBlockWithIgnore(*blockE, *blockA, {u8"distance"});
@@ -65,6 +65,8 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           CheckBlockWithIgnore(*blockE, *blockA, {u8"stage"});
         } else if (blockE->fName == u8"minecraft:lever") {
           CheckBlockWithIgnore(*blockE, *blockA, {u8"facing"});
+        } else if (blockE->fName == u8"minecraft:sculk_sensor" || blockE->fName == u8"minecraft:calibrated_sculk_sensor") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"power"});
         } else {
           if (blockA->toString() != blockE->toString()) {
             cout << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << endl;

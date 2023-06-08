@@ -138,6 +138,19 @@ public:
     s->set(u8"sea_grass_type", String(type));
   }
 
+  static void SculkSensorPhase(CompoundTagPtr const &s, Block const &block) {
+    auto phaseJ = block.property(u8"sculk_sensor_phase", u8"inactive");
+    i32 phaseB = 0;
+    if (phaseJ == u8"inactive") {
+      phaseB = 0;
+    } else if (phaseJ == u8"active") {
+      phaseB = 1;
+    } else if (phaseJ == u8"cooldown") {
+      phaseB = 2;
+    }
+    s->set(u8"sculk_sensor_phase", Int(phaseB));
+  }
+
   static PropertyType Age(Block const &block) {
     auto age = Wrap(strings::ToI32(block.property(u8"age", u8"0")), 0);
     return Int(age);
@@ -1664,9 +1677,32 @@ public:
     E(cherry_sapling, Converter(Same, StageToAgeBit));
     E(cherry_pressure_plate, pressurePlate);
     E(cherry_leaves, leaves);
+
+    E(pitcher_crop, Converter(Same, Name(Age, u8"growth"), UpperBlockBitToHalf));
+    E(pitcher_plant, Converter(Same, UpperBlockBitToHalf));
+    E(sniffer_egg, SnifferEgg);
+    E(sculk_sensor, Converter(Same, SculkSensorPhase));
+    E(calibrated_sculk_sensor, Converter(Same, SculkSensorPhase, DirectionNorth2East3South0West1FromFacing));
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr SnifferEgg(Block const &block, CompoundTagConstPtr const &tile) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    auto hatch = Wrap(strings::ToI32(block.property(u8"hatch", u8"0")), 0);
+    auto crackedState = String(u8"no_cracks");
+    switch (hatch) {
+    case 1:
+      crackedState = String(u8"cracked");
+      break;
+    case 2:
+      crackedState = String(u8"max_cracked");
+      break;
+    }
+    s->set(u8"cracked_state", crackedState);
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr PinkPetals(Block const &block, CompoundTagConstPtr const &tile) {

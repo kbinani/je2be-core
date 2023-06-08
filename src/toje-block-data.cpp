@@ -570,6 +570,7 @@ private:
   static String DecoratedPot(String const &bName, CompoundTag const &s, Props &p) {
     Submergible(s, p);
     Facing4FromDirectionNorth0East1South2West3(s, p);
+    p[u8"cracked"] = u8"false";
     return bName;
   }
 
@@ -1317,6 +1318,18 @@ private:
     return Ns() + u8"small_dripleaf";
   }
 
+  static String SnifferEgg(String const &bName, CompoundTag const &s, Props &p) {
+    auto crackedState = s.string(u8"cracked_state", u8"no_cracks");
+    i32 hatch = 0;
+    if (crackedState == u8"cracked") {
+      hatch = 1;
+    } else if (crackedState == u8"max_cracked") {
+      hatch = 2;
+    }
+    p[u8"hatch"] = Int(hatch);
+    return bName;
+  }
+
   static String SnowLayer(String const &bName, CompoundTag const &s, Props &p) {
     auto height = s.int32(u8"height", 0);
     p[u8"layers"] = Int(height + 1);
@@ -1633,6 +1646,12 @@ private:
   static void Facing4FromDirectionA(CompoundTag const &s, Props &props) {
     auto direction = s.int32(u8"direction", 0);
     Facing4 f4 = Facing4FromBedrockDirection(direction);
+    props[u8"facing"] = JavaNameFromFacing4(f4);
+  }
+
+  static void FacingFromDirectionNorth2East3South0West1(CompoundTag const &s, Props &props) {
+    auto direction = s.int32(u8"direction", 0);
+    Facing4 f4 = Facing4FromNorth2East3South0West1(direction);
     props[u8"facing"] = JavaNameFromFacing4(f4);
   }
 
@@ -2032,6 +2051,20 @@ private:
     p[u8"south"] = WallConnectionType(connectionTypeSouth);
     p[u8"west"] = WallConnectionType(connectionTypeWest);
     p[u8"up"] = Bool(post);
+  }
+
+  static void SculkSensorPhase(CompoundTag const &s, Props &p) {
+    auto phaseB = s.int32(u8"sculk_sensor_phase", 0);
+    std::u8string phaseJ = u8"inactive";
+    switch (phaseB) {
+    case 1:
+      phaseJ = u8"active";
+      break;
+    case 2:
+      phaseJ = u8"cooldown";
+      break;
+    }
+    p[u8"sculk_sensor_phase"] = phaseJ;
   }
 #pragma endregion
 
@@ -2444,7 +2477,7 @@ private:
     E(respawn_anchor, RespawnAnchor);
     E(dirt_with_roots, Rename(u8"rooted_dirt"));
     E(scaffolding, Scaffolding);
-    E(sculk_sensor, Same);
+    E(sculk_sensor, C(Same, SculkSensorPhase, Submergible));
     E(seagrass, Seagrass);
     E(sea_pickle, SeaPickle);
     E(seaLantern, Rename(u8"sea_lantern")); // legacy, < 1.18.30
@@ -2597,6 +2630,10 @@ private:
     E(cherry_sapling, C(Same, StageFromAgeBit));
     E(cherry_pressure_plate, PressurePlate);
     E(cherry_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(pitcher_crop, C(Same, AgeFromGrowth, HalfFromUpperBlockBit));
+    E(pitcher_plant, C(Same, HalfFromUpperBlockBit));
+    E(sniffer_egg, SnifferEgg);
+    E(calibrated_sculk_sensor, C(Same, SculkSensorPhase, FacingFromDirectionNorth2East3South0West1, Submergible));
 #undef E
 
     return table;
