@@ -321,20 +321,24 @@ public:
 
   static std::optional<Result> DecoratedPot(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName(u8"decorated_pot", pos);
-    auto shardsJ = List<Tag::Type::String>();
+    auto sherdsJ = List<Tag::Type::String>();
     for (int i = 0; i < 4; i++) {
-      shardsJ->push_back(String(u8"minecraft:brick"));
+      sherdsJ->push_back(String(u8"minecraft:brick"));
     }
-    if (auto shardsB = tagB.listTag(u8"shards"); shardsB) {
-      for (int i = 0; i < 4 && i < shardsB->size(); i++) {
-        auto const &shardB = shardsB->at(i);
-        if (auto shardName = shardB->asString(); shardName && shardName->fValue.ends_with(u8"_pottery_shard")) {
-          auto name = strings::Trim(u8"minecraft:", shardName->fValue, u8"_pottery_shard");
-          shardsJ->fValue[i] = String(u8"minecraft:pottery_shard_" + name);
+    auto sherdsB = tagB.listTag(u8"sherds");
+    if (!sherdsB) {
+      // < 1.20
+      sherdsB = tagB.listTag(u8"shards");
+    }
+    if (sherdsB) {
+      for (int i = 0; i < 4 && i < sherdsB->size(); i++) {
+        auto const &sherdB = sherdsB->at(i);
+        if (auto sherdName = sherdB->asString(); sherdName) {
+          sherdsJ->fValue[i] = String(sherdName->fValue);
         }
       }
     }
-    t->set(u8"shards", shardsJ);
+    t->set(u8"sherds", sherdsJ);
     Result r;
     r.fTileEntity = t;
     return r;
@@ -551,26 +555,95 @@ public:
     return r;
   }
 
+  static CompoundTagPtr SignText(CompoundTag const &input) {
+    using namespace std;
+    auto ret = Compound();
+
+    CopyBoolValues(input, *ret, {{u8"IgnoreLighting", u8"has_glowing_text", false}});
+
+    auto color = input.int32(u8"SignTextColor");
+    if (color) {
+      Rgba rgba = Rgba::FromRGB(*color);
+      ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
+      ret->set(u8"color", String(JavaNameFromColorCodeJava(jcc)));
+    } else {
+      ret->set(u8"color", String(u8"black"));
+    }
+
+    auto text = input.string(u8"Text", u8"");
+    vector<u8string> linesB = mcfile::String::Split(text, u8'\n');
+    auto messagesB = List<Tag::Type::String>();
+    for (size_t i = 0; i < 4; i++) {
+      u8string line = i < linesB.size() ? linesB[i] : u8"";
+      props::Json json;
+      props::SetJsonString(json, u8"text", line);
+      messagesB->push_back(String(props::StringFromJson(json)));
+    }
+    ret->set(u8"messages", messagesB);
+
+    return ret;
+  }
+
+  static CompoundTagPtr SignTextEmpty() {
+    auto ret = Compound();
+    ret->set(u8"color", String(u8"black"));
+    ret->set(u8"has_glowing_text", Bool(false));
+    auto messages = List<Tag::Type::String>();
+    messages->push_back(String(u8""));
+    messages->push_back(String(u8""));
+    messages->push_back(String(u8""));
+    messages->push_back(String(u8""));
+    ret->set(u8"messages", messages);
+    return ret;
+  }
+
   static Converter Sign(std::u8string id) {
     return [id](Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) -> std::optional<Result> {
       using namespace std;
       auto te = EmptyShortName(id, pos);
-      CopyBoolValues(tag, *te, {{u8"IgnoreLighting", u8"GlowingText", false}});
-      auto color = tag.int32(u8"SignTextColor");
-      if (color) {
-        Rgba rgba = Rgba::FromRGB(*color);
-        ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
-        te->set(u8"Color", String(JavaNameFromColorCodeJava(jcc)));
+
+      auto frontTextB = tag.compoundTag(u8"FrontText");
+      auto backTextB = tag.compoundTag(u8"BackText");
+      if (frontTextB || backTextB) {
+        if (frontTextB) {
+          auto frontTextJ = SignText(*frontTextB);
+          te->set(u8"front_text", frontTextJ);
+        } else {
+          te->set(u8"front_text", SignTextEmpty());
+        }
+        if (backTextB) {
+          auto backTextJ = SignText(*backTextB);
+          te->set(u8"back_text", backTextJ);
+        } else {
+          te->set(u8"back_text", SignTextEmpty());
+        }
+      } else {
+        auto frontTextJ = Compound();
+        CopyBoolValues(tag, *frontTextJ, {{u8"IgnoreLighting", u8"GlowingText", false}});
+        auto color = tag.int32(u8"SignTextColor");
+        if (color) {
+          Rgba rgba = Rgba::FromRGB(*color);
+          ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
+          frontTextJ->set(u8"Color", String(JavaNameFromColorCodeJava(jcc)));
+        }
+        auto text = tag.string(u8"Text", u8"");
+        vector<u8string> lines = mcfile::String::Split(text, u8'\n');
+        auto messagesJ = List<Tag::Type::String>();
+        for (int i = 0; i < 4; i++) {
+          u8string key = u8"Text" + mcfile::String::ToString(i + 1);
+          u8string line = i < lines.size() ? lines[i] : u8"";
+          props::Json json;
+          props::SetJsonString(json, u8"text", line);
+          messagesJ->push_back(String(props::StringFromJson(json)));
+        }
+        frontTextJ->set(u8"messages", messagesJ);
+
+        te->set(u8"front_text", frontTextJ);
+        te->set(u8"back_text", SignTextEmpty());
       }
-      auto text = tag.string(u8"Text", u8"");
-      vector<u8string> lines = mcfile::String::Split(text, u8'\n');
-      for (int i = 0; i < 4; i++) {
-        u8string key = u8"Text" + mcfile::String::ToString(i + 1);
-        u8string line = i < lines.size() ? lines[i] : u8"";
-        props::Json json;
-        props::SetJsonString(json, u8"text", line);
-        te->set(key, String(props::StringFromJson(json)));
-      }
+
+      CopyBoolValues(tag, *te, {{u8"IsWaxed", u8"is_waxed"}});
+
       Result r;
       r.fTileEntity = te;
       return r;
@@ -682,10 +755,10 @@ public:
     return r;
   }
 
-  static std::optional<Result> SuspiciousSand(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+  static std::optional<Result> BrushableBlock(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
 
-    auto tagJ = EmptyShortName(u8"suspicious_sand", pos);
+    auto tagJ = EmptyShortName(u8"brushable_block", pos);
     if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
       if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
         if (auto itemJ = Item::From(*itemB, ctx); itemJ) {
@@ -906,7 +979,8 @@ public:
 
     E(end_gateway, EndGateway);
     E(decorated_pot, DecoratedPot);
-    E(suspicious_sand, SuspiciousSand);
+    E(suspicious_sand, BrushableBlock);
+    E(suspicious_gravel, BrushableBlock);
     E(jigsaw, Jigsaw);
     E(cherry_hanging_sign, hangingSign);
     E(cherry_standing_sign, sign);

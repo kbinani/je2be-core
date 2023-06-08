@@ -168,6 +168,15 @@ public:
       }
     }
 
+    if (auto trimB = tagB->compoundTag(u8"Trim"); trimB) {
+      auto materialB = trimB->string(u8"Material");
+      auto patternB = trimB->string(u8"Pattern");
+      auto trimJ = Compound();
+      trimJ->set(u8"material", String(Namespace::Add(*materialB)));
+      trimJ->set(u8"pattern", String(Namespace::Add(*patternB)));
+      tagJ->set(u8"Trim", trimJ);
+    }
+
     if (!displayJ->empty()) {
       tagJ->set(u8"display", displayJ);
     }

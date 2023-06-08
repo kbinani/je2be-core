@@ -1240,6 +1240,19 @@ private:
       }
     }
 
+    if (auto trimJ = tagJ->compoundTag(u8"Trim"); trimJ) {
+      auto materialJ = trimJ->string(u8"material");
+      auto patternJ = trimJ->string(u8"pattern");
+      if (materialJ && patternJ) {
+        auto materialB = Namespace::Remove(*materialJ);
+        auto patternB = Namespace::Remove(*patternJ);
+        auto trimB = Compound();
+        trimB->set(u8"Material", String(materialB));
+        trimB->set(u8"Pattern", String(patternB));
+        tagB->set(u8"Trim", trimB);
+      }
+    }
+
     if (displayB) {
       tagB->set(u8"display", displayB);
     }

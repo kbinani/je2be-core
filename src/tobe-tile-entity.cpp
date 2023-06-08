@@ -330,7 +330,8 @@ private:
 
     E(chiseled_bookshelf, ChiseledBookshelf);
     E(decorated_pot, DecoratedPot);
-    E(suspicious_sand, SuspiciousSand);
+    E(suspicious_sand, BrushableBlock);
+    E(suspicious_gravel, BrushableBlock);
     E(jigsaw, Jigsaw);
     E(cherry_hanging_sign, hangingSign);
     E(cherry_wall_hanging_sign, hangingSign);
@@ -351,8 +352,8 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr SuspiciousSand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
-    auto tag = New(u8"SuspiciousSand");
+  static CompoundTagPtr BrushableBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
+    auto tag = New(u8"BrushableBlock");
 
     if (c) {
       if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
@@ -380,25 +381,28 @@ private:
 
   static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
-    auto shardsB = List<Tag::Type::String>();
+    auto sherdsB = List<Tag::Type::String>();
     for (int i = 0; i < 4; i++) {
-      shardsB->push_back(String(u8""));
+      sherdsB->push_back(String(u8""));
     }
     if (c) {
-      if (auto shardsJ = c->listTag(u8"shards"); shardsJ) {
-        std::u8string prefix = u8"minecraft:pottery_shard_";
-        for (int i = 0; i < 4 && i < shardsJ->size(); i++) {
-          auto const &shard = shardsJ->at(i);
-          if (auto shardName = shard->asString(); shardName && shardName->fValue.starts_with(prefix)) {
-            auto name = shardName->fValue.substr(prefix.size());
-            shardsB->fValue[i] = String(u8"minecraft:" + name + u8"_pottery_shard");
+      auto sherdsJ = c->listTag(u8"sherds");
+      if (!sherdsJ) {
+        // < 1.20
+        sherdsJ = c->listTag(u8"shards");
+      }
+      if (sherdsJ) {
+        for (int i = 0; i < 4 && i < sherdsJ->size(); i++) {
+          auto const &sherd = sherdsJ->at(i);
+          if (auto sherdName = sherd->asString(); sherdName) {
+            sherdsB->fValue[i] = String(sherdName->fValue);
           }
         }
       }
     }
     tag->insert({{u8"isMovable", Bool(true)},
                  {u8"id", String(u8"DecoratedPot")},
-                 {u8"shards", shardsB}});
+                 {u8"sherds", sherdsB}});
     Attach(c, pos, *tag);
     return tag;
   }
@@ -1387,8 +1391,8 @@ private:
     return props::GetJsonStringValue(*found);
   }
 
-  static std::optional<std::u8string> GetSignLine(CompoundTag const &in, std::u8string const &key) {
-    auto json = props::GetJson(in, key);
+  static std::u8string GetSignLine(std::u8string const &in) {
+    auto json = props::ParseAsJson(in);
     if (json) {
       std::u8string ret;
       auto text = json->find("text");
@@ -1406,7 +1410,7 @@ private:
       }
       return ret;
     } else {
-      return in.string(key);
+      return in;
     }
   }
 
@@ -1567,6 +1571,51 @@ private:
     };
   }
 
+  static CompoundTagPtr SignTextEmpty() {
+    auto ret = Compound();
+    ret->set(u8"HideGlowOutline", Bool(false));
+    ret->set(u8"IgnoreLighting", Bool(false));
+    ret->set(u8"PersistFormatting", Bool(true));
+    ret->set(u8"SignTextColor", Int(-16777216));
+    ret->set(u8"Text", String(u8"back"));
+    ret->set(u8"TextOwner", String(u8""));
+    return ret;
+  }
+
+  static CompoundTagPtr SignText(CompoundTag const &input) {
+    using namespace std;
+    auto ret = Compound();
+    u8string text;
+    if (auto messages = input.listTag(u8"messages"); messages) {
+      for (size_t i = 0; i < 4 && i < messages->size(); i++) {
+        if (i > 0) {
+          text += u8"\x0a";
+        }
+        auto line = messages->fValue[i];
+        if (!line) {
+          continue;
+        }
+        if (auto s = line->asString(); s) {
+          text += GetSignLine(s->fValue);
+        }
+      }
+    }
+    ret->set(u8"Text", String(text));
+
+    u8string color = input.string(u8"color", u8"black");
+    Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
+    ret->set(u8"SignTextColor", Int(signTextColor.toARGB()));
+
+    bool glowing = input.boolean(u8"has_glowing_text", false);
+    ret->set(u8"IgnoreLighting", Bool(glowing));
+
+    ret->set(u8"TextOwner", String(u8""));
+    ret->set(u8"HideGlowOutline", Bool(false));
+    ret->set(u8"PersistFormatting", Bool(false));
+
+    return ret;
+  }
+
   static Converter Sign(std::u8string id) {
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context &ctx) -> CompoundTagPtr {
       using namespace je2be::props;
@@ -1576,27 +1625,47 @@ private:
         return nullptr;
       }
 
-      auto color = Wrap<u8string>(c->string(u8"Color"), u8"black");
-      auto text1 = GetSignLine(*c, u8"Text1");
-      auto text2 = GetSignLine(*c, u8"Text2");
-      auto text3 = GetSignLine(*c, u8"Text3");
-      auto text4 = GetSignLine(*c, u8"Text4");
-      if (!text1 || !text2 || !text3 || !text4) {
-        return nullptr;
-      }
-      Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
-      bool glowing = c->boolean(u8"GlowingText", false);
-      u8string text = *text1 + u8"\x0a" + *text2 + u8"\x0a" + *text3 + u8"\x0a" + *text4;
       auto tag = Compound();
+
+      auto frontTextJ = c->compoundTag(u8"front_text");
+      auto backTextJ = c->compoundTag(u8"back_text");
+      if (frontTextJ || backTextJ) {
+        if (frontTextJ) {
+          auto frontTextB = SignText(*frontTextJ);
+          tag->set(u8"FrontText", frontTextB);
+        } else {
+          tag->set(u8"FrontText", SignTextEmpty());
+        }
+        if (backTextJ) {
+          auto backTextB = SignText(*backTextJ);
+          tag->set(u8"BackText", backTextB);
+        } else {
+          tag->set(u8"BackText", SignTextEmpty());
+        }
+      } else {
+        auto color = Wrap<u8string>(c->string(u8"Color"), u8"black");
+        auto text1 = GetSignLine(c->string(u8"Text1", u8""));
+        auto text2 = GetSignLine(c->string(u8"Text2", u8""));
+        auto text3 = GetSignLine(c->string(u8"Text3", u8""));
+        auto text4 = GetSignLine(c->string(u8"Text4", u8""));
+        Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
+        bool glowing = c->boolean(u8"GlowingText", false);
+        u8string text = text1 + u8"\x0a" + text2 + u8"\x0a" + text3 + u8"\x0a" + text4;
+        auto frontTextB = Compound();
+        frontTextB->set(u8"Text", String(text));
+        frontTextB->set(u8"TextOwner", String(u8""));
+        frontTextB->set(u8"SignTextColor", Int(signTextColor.toARGB()));
+        frontTextB->set(u8"IgnoreLighting", Bool(glowing));
+        frontTextB->set(u8"HideGlowOutline", Bool(false));
+        frontTextB->set(u8"PersistFormatting", Bool(false));
+        tag->set(u8"FrontText", frontTextB);
+        tag->set(u8"BackText", SignTextEmpty());
+      }
       tag->insert({
           {u8"id", String(id)},
           {u8"isMovable", Bool(true)},
-          {u8"Text", String(text)},
-          {u8"TextOwner", String(u8"")},
-          {u8"SignTextColor", Int(signTextColor.toARGB())},
-          {u8"IgnoreLighting", Bool(glowing)},
-          {u8"TextIgnoreLegacyBugResolved", Bool(true)},
       });
+      CopyBoolValues(*c, *tag, {{u8"is_waxed", u8"IsWaxed"}});
       Attach(c, pos, *tag);
       return tag;
     };

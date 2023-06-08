@@ -719,7 +719,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
   for (auto const &it : chunkE->fTileEntities) {
     Pos3i pos = it.first;
     shared_ptr<CompoundTag> const &tileE = it.second;
-    static unordered_set<u8string> blacklist({u8"minecraft:sculk_sensor"});
+    static unordered_set<u8string> blacklist({u8"minecraft:sculk_sensor", u8"minecraft:calibrated_sculk_sensor"});
     if (blacklist.find(tileE->string(u8"id", u8"")) != blacklist.end()) {
       continue;
     }
