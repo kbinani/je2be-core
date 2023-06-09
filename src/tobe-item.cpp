@@ -206,6 +206,7 @@ private:
     E(warped_sign, Sign);
     E(mangrove_sign, Sign);
     E(bamboo_sign, Sign);
+    E(cherry_sign, Sign);
 
     E(goat_horn, GoatHorn);
     E(frogspawn, Rename(u8"frog_spawn"));
@@ -220,6 +221,7 @@ private:
     E(oak_hanging_sign, Sign);
     E(spruce_hanging_sign, Sign);
     E(warped_hanging_sign, Sign);
+    E(cherry_hanging_sign, Sign);
 
     // Java: nether_bricks (block), nether_brick (item)
     // Bedrock: nether_brick (block), netherbrick (item)
