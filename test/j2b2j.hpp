@@ -262,6 +262,15 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
     tagBlacklist.insert(u8"IsPlaying");
     tagBlacklist.insert(u8"TickCount");
     tagBlacklist.insert(u8"RecordStartTick");
+  } else if (id == u8"minecraft:sign") {
+    tagBlacklist.insert(u8"Color");
+    tagBlacklist.insert(u8"GlowingText");
+    tagBlacklist.insert(u8"Text1");
+    tagBlacklist.insert(u8"Text2");
+    tagBlacklist.insert(u8"Text3");
+    tagBlacklist.insert(u8"Text4");
+    tagBlacklist.insert(u8"front_text/filtered_messages");
+    tagBlacklist.insert(u8"back_text/filtered_messages");
   }
   auto itemsE = expected.listTag(u8"Items");
   auto itemsA = actual.listTag(u8"Items");
@@ -831,6 +840,7 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       u8"clearWeatherTime",
       u8"hardcore",
       u8"initialized",
+      u8"removed_features",
   };
   unordered_set<u8string> ignoredGameRules = {
       u8"announceAdvancements",
