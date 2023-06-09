@@ -169,9 +169,7 @@ public:
     }
     auto enabledFeatures = List<Tag::Type::String>();
     if (ctx.fDataPackBundle) {
-      if (ctx.fDataPackBundle) {
-        enabledFeatures->push_back(String(u8"minecraft:bundle"));
-      }
+      enabledFeatures->push_back(String(u8"minecraft:bundle"));
       enabledFeatures->push_back(String(u8"minecraft:vanilla"));
       data->set(u8"enabled_features", enabledFeatures);
     }
