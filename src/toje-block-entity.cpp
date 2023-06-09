@@ -985,6 +985,7 @@ public:
     E(cherry_hanging_sign, hangingSign);
     E(cherry_standing_sign, sign);
     E(cherry_wall_sign, sign);
+    E(calibrated_sculk_sensor, SameNameEmpty);
 #undef E
     return t;
   }

@@ -337,6 +337,7 @@ private:
     E(cherry_wall_hanging_sign, hangingSign);
     E(cherry_sign, sign);
     E(cherry_wall_sign, sign);
+    E(calibrated_sculk_sensor, NamedEmpty(u8"CalibratedSculkSensor"));
 #undef E
     return table;
   }
