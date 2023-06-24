@@ -1295,6 +1295,8 @@ public:
     E(potted_azalea_bush, pottedFlowerPot);
     E(potted_flowering_azalea_bush, pottedFlowerPot);
     E(potted_mangrove_propagule, pottedFlowerPot);
+    E(potted_cherry_sapling, pottedFlowerPot);
+    E(potted_torchflower, pottedFlowerPot);
 
     Converter skull(Name(u8"skull"), AddIntProperty(u8"facing_direction", 1), AddBoolProperty(u8"no_drop_bit", false));
     E(skeleton_skull, skull);

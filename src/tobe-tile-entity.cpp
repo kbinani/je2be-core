@@ -247,6 +247,8 @@ private:
     E(potted_azalea_bush, PottedPlant(u8"azalea", {}));
     E(potted_flowering_azalea_bush, PottedPlant(u8"flowering_azalea", {}));
     E(potted_mangrove_propagule, PottedPlant(u8"mangrove_propagule", {{u8"hanging", false}, {u8"propagule_stage", i32(0)}}));
+    E(potted_cherry_sapling, PottedPlant(u8"cherry_sapling", {{u8"age_bit", i8(0)}}));
+    E(potted_torchflower, PottedPlant(u8"torchflower", {}));
     E(flower_pot, FlowerPot);
 
     E(skeleton_skull, Skull);
@@ -1059,7 +1061,7 @@ private:
     return tag;
   }
 
-  static Converter PottedPlant(std::u8string const &name, std::map<std::u8string, std::variant<std::u8string, bool, i32>> const &properties) {
+  static Converter PottedPlant(std::u8string const &name, std::map<std::u8string, std::variant<std::u8string, bool, i32, i8>> const &properties) {
     return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) -> CompoundTagPtr {
       using namespace std;
 
@@ -1067,12 +1069,14 @@ private:
       auto plantBlock = Compound();
       auto states = Compound();
       for (auto const &p : properties) {
-        if (p.second.index() == 0) {
-          states->set(p.first, String(get<0>(p.second)));
-        } else if (p.second.index() == 1) {
-          states->set(p.first, Bool(get<1>(p.second)));
-        } else if (p.second.index() == 2) {
-          states->set(p.first, Int(get<2>(p.second)));
+        if (holds_alternative<u8string>(p.second)) {
+          states->set(p.first, String(get<u8string>(p.second)));
+        } else if (holds_alternative<bool>(p.second)) {
+          states->set(p.first, Bool(get<bool>(p.second)));
+        } else if (holds_alternative<i32>(p.second)) {
+          states->set(p.first, Int(get<i32>(p.second)));
+        } else if (holds_alternative<i8>(p.second)) {
+          states->set(p.first, Byte(get<i8>(p.second)));
         } else {
           assert(false);
         }
