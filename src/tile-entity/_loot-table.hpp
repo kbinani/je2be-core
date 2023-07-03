@@ -165,10 +165,16 @@ private:
 
         {u8"minecraft:chests/buried_treasure", u8"loot_tables/chests/buriedtreasure.json"},
         {u8"minecraft:chests/jungle_temple_dispenser", u8"loot_tables/chests/dispenser_trap.json"},
+        {u8"minecraft:chests/jungle_temple", u8"loot_tables/chests/jungle_temple.json"},
         {u8"minecraft:chests/shipwreck_map", u8"loot_tables/chests/shipwreck.json"},
         {u8"minecraft:chests/shipwreck_supply", u8"loot_tables/chests/shipwrecksupply.json"},
         {u8"minecraft:chests/shipwreck_treasure", u8"loot_tables/chests/shipwrecktreasure.json"},
-        {u8"minecraft:archaeology/desert_pyramid", u8"loot_tables/entities/desert_pyramid_suspicious_sand.json"},
+        {u8"minecraft:archaeology/desert_pyramid", u8"loot_tables/entities/desert_pyramid_brushable_block.json"},
+        {u8"minecraft:archaeology/desert_well", u8"loot_tables/entities/desert_well_brushable_block.json"},
+        {u8"minecraft:archaeology/ocean_ruin_cold", u8"loot_tables/entities/cold_ocean_ruins_brushable_block.json"},
+        {u8"minecraft:archaeology/ocean_ruin_warm", u8"loot_tables/entities/warm_ocean_ruins_brushable_block.json"},
+        {u8"minecraft:archaeology/trail_ruins_common", u8"loot_tables/entities/trail_ruins_brushable_block_common.json"},
+        {u8"minecraft:archaeology/trail_ruins_rare", u8"loot_tables/entities/trail_ruins_brushable_block_rare.json"},
     });
   }
 
