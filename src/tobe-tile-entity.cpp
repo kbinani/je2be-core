@@ -1001,9 +1001,11 @@ private:
       using namespace std;
 
       auto tag = Compound();
-      auto items = GetItems(c, u8"Items", ctx);
-      if (items) {
-        tag->set(u8"Items", items);
+
+      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
+        if (auto items = GetItems(c, u8"Items", ctx); items) {
+          tag->set(u8"Items", items);
+        }
       }
 
       tag->insert({

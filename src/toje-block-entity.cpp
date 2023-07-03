@@ -782,9 +782,11 @@ public:
   static Converter AnyStorage(std::u8string const &id) {
     return [id](Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx) {
       auto te = EmptyFullName(u8"minecraft:" + id, pos);
-      auto items = ContainerItems(tag, u8"Items", ctx);
-      if (items) {
-        te->set(u8"Items", items);
+      if (LootTable::BedrockToJava(tag, *te) == LootTable::State::NoLootTable) {
+        auto items = ContainerItems(tag, u8"Items", ctx);
+        if (items) {
+          te->set(u8"Items", items);
+        }
       }
       Result r;
       r.fTileEntity = te;
