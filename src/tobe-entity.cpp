@@ -1137,6 +1137,7 @@ private:
     } else {
       AddDefinition(c, u8"+hunter");
     }
+
     CompoundTagPtr itemInHand;
     if (auto inHand = tag.listTag(u8"HandItems"); inHand) {
       for (auto const &it : *inHand) {
@@ -1161,12 +1162,15 @@ private:
     AddDefinition(c, u8"+zombification_sensor");
     AddDefinition(c, u8"+attack_cooldown");
     AddDefinition(c, u8"+interactable_piglin");
-    if (tag.boolean(u8"IsBaby", false)) {
+
+    bool baby = tag.boolean(u8"IsBaby", false);
+    c.set(u8"IsBaby", Bool(baby));
+    if (baby) {
       AddDefinition(c, u8"+piglin_baby");
     } else {
       AddDefinition(c, u8"+piglin_adult");
     }
-    c.set(u8"canPickupItems", Bool(true));
+
     if (!c.listTag(u8"ChestItems")) {
       c.set(u8"ChestItems", InitItemList(8));
     }
