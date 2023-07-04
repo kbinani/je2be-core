@@ -607,7 +607,7 @@ private:
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA(u8"pig"), Steerable(u8"pig")));
-    E(piglin, C(Monster, ChestItemsFromInventory, AgeableB(u8"piglin"), Piglin));
+    E(piglin, C(Monster, ChestItemsFromInventory, Piglin));
     E(piglin_brute, C(Monster, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
 
@@ -1131,9 +1131,44 @@ private:
     CopyIntValues(tag, c, {{u8"Variant"}});
   }
 
-  static void Piglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void Piglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     if (auto cannotHant = tag.boolean(u8"CannotHunt", false); cannotHant) {
       AddDefinition(c, u8"+not_hunter");
+    } else {
+      AddDefinition(c, u8"+hunter");
+    }
+    CompoundTagPtr itemInHand;
+    if (auto inHand = tag.listTag(u8"HandItems"); inHand) {
+      for (auto const &it : *inHand) {
+        if (auto item = dynamic_pointer_cast<CompoundTag>(it); item) {
+          itemInHand = Item::From(item, ctx.fCtx);
+          if (itemInHand) {
+            break;
+          }
+        }
+      }
+    }
+    if (itemInHand) {
+      c.set(u8"ItemInHand", itemInHand);
+      auto name = itemInHand->string(u8"Name");
+      if (name == u8"minecraft:crossbow") {
+        AddDefinition(c, u8"+ranged_unit");
+      } else if (name == u8"minecraft:golden_sword") {
+        AddDefinition(c, u8"+melee_unit");
+      }
+    }
+    AddDefinition(c, u8"+alert_for_attack_targets");
+    AddDefinition(c, u8"+zombification_sensor");
+    AddDefinition(c, u8"+attack_cooldown");
+    AddDefinition(c, u8"+interactable_piglin");
+    if (tag.boolean(u8"IsBaby", false)) {
+      AddDefinition(c, u8"+piglin_baby");
+    } else {
+      AddDefinition(c, u8"+piglin_adult");
+    }
+    c.set(u8"canPickupItems", Bool(true));
+    if (!c.listTag(u8"ChestItems")) {
+      c.set(u8"ChestItems", InitItemList(8));
     }
   }
 
