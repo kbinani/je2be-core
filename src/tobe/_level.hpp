@@ -18,7 +18,7 @@ public:
   std::u8string fBiomeOverride = u8"";
   bool fBonusChestEnabled = false;
   bool fBonusChestSpawned = false;
-  i8 fCenterMapsToOrigin = -7;
+  i8 fCenterMapsToOrigin = 0;
   bool fCommandBlockOutput = true;
   bool fCommandblocksEnabled = true;
   bool fCommandsEnabled = false;
