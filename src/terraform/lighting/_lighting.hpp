@@ -186,36 +186,58 @@ private:
           chunkModel = cachedModel;
         } else {
           auto chunk = blockAccessor.chunkAt(cx + dx, cz + dz);
-          if (!chunk) {
-            continue;
+          if (chunk) {
+            chunkModel = CreateChunkLightingModel(*chunk, cy);
+            lightCache.setModel(cx + dx, cz + dz, chunkModel);
           }
-          chunkModel = CreateChunkLightingModel(*chunk, cy);
-          lightCache.setModel(cx + dx, cz + dz, chunkModel);
         }
-        if (!chunkModel) {
-          continue;
-        }
-        for (int i = 0; i < chunkModel->fSections.size(); i++) {
-          auto const &section = chunkModel->fSections[i];
-          if (!section) {
-            continue;
+        if (chunkModel) {
+          for (int i = 0; i < chunkModel->fSections.size(); i++) {
+            auto const &section = chunkModel->fSections[i];
+            if (!section) {
+              continue;
+            }
+            if (section->empty()) {
+              continue;
+            }
+            Pos3i origin((cx + dx) * 16, (chunkModel->fChunkY + i) * 16, (cz + dz) * 16);
+            Volume sectionVolume(origin, origin + Pos3i(15, 15, 15));
+            auto intersection = Volume::Intersection(sectionVolume, out.volume());
+            if (!intersection) {
+              continue;
+            }
+            for (int y = intersection->fStart.fY; y <= intersection->fEnd.fY; y++) {
+              for (int z = intersection->fStart.fZ; z <= intersection->fEnd.fZ; z++) {
+                for (int x = intersection->fStart.fX; x <= intersection->fEnd.fX; x++) {
+                  int localX = x - origin.fX;
+                  int localY = y - origin.fY;
+                  int localZ = z - origin.fZ;
+                  out[{x, y, z}] = section->getUnchecked((localY * 16 + localZ) * 16 + localX);
+                }
+              }
+            }
           }
-          if (section->empty()) {
-            continue;
-          }
-          Pos3i origin((cx + dx) * 16, (chunkModel->fChunkY + i) * 16, (cz + dz) * 16);
-          Volume sectionVolume(origin, origin + Pos3i(15, 15, 15));
-          auto intersection = Volume::Intersection(sectionVolume, out.volume());
+        } else {
+          int minY = out.volume().fStart.fY;
+          int maxY = out.volume().fEnd.fY;
+          Pos3i origin((cx + dx) * 16, minY, (cz + dz) * 16);
+          Volume chunkVolume(origin, origin + Pos3i(15, maxY - minY, 15));
+          auto intersection = Volume::Intersection(chunkVolume, out.volume());
           if (!intersection) {
             continue;
           }
+          LightingModel solid;
+          solid.fEmission = 0;
+          solid.fTransparency = SOLID;
+          solid.fModel = MODEL_SOLID;
+          solid.fBehaveAsAirWhenOpenUp = false;
           for (int y = intersection->fStart.fY; y <= intersection->fEnd.fY; y++) {
             for (int z = intersection->fStart.fZ; z <= intersection->fEnd.fZ; z++) {
               for (int x = intersection->fStart.fX; x <= intersection->fEnd.fX; x++) {
                 int localX = x - origin.fX;
                 int localY = y - origin.fY;
                 int localZ = z - origin.fZ;
-                out[{x, y, z}] = section->getUnchecked((localY * 16 + localZ) * 16 + localX);
+                out[{x, y, z}] = solid;
               }
             }
           }
