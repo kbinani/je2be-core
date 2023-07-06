@@ -1191,6 +1191,10 @@ private:
         }
       }
     }
+    AddDefinition(c, u8"+zombification_sensor");
+    AddDefinition(c, u8"+alert_for_attack_targets");
+    AddDefinition(c, u8"+melee_unit");
+    AddDefinition(c, u8"+go_back_to_spawn");
   }
 
   static void Pufferfish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
