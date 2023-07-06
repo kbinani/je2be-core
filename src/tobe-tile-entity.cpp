@@ -371,6 +371,8 @@ private:
     auto dusted = Wrap(strings::ToI32(b.property(u8"dusted", u8"0")), 0);
     tag->set(u8"brush_count", Int(dusted));
 
+    tag->set(u8"type", String(b.fName));
+
     Attach(c, pos, *tag);
     return tag;
   }
