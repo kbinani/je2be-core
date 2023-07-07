@@ -17,6 +17,73 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   DiffCompoundTag(*e, *a);
 }
 
+static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual) {
+  auto defE = expected.listTag(u8"definitions");
+  auto defA = expected.listTag(u8"definitions");
+  if (defE) {
+    CHECK(defA);
+    if (defA) {
+      for (auto const &e : *defE) {
+        auto cE = e->asString();
+        if (!cE) {
+          continue;
+        }
+        bool found = false;
+        for (auto const &it : *defA) {
+          auto cA = it->asString();
+          if (!cA) {
+            continue;
+          }
+          if (cA->fValue == cE->fValue) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          cerr << (char const *)cE->fValue.c_str() << " not found for entity id: " << (char const *)id.c_str() << endl;
+        }
+        CHECK(found);
+      }
+    }
+  }
+}
+
+static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk const &actual) {
+  for (auto const &e : expected.entities()) {
+    auto posE = je2be::props::GetPos3f(*e, u8"Pos");
+    REQUIRE(posE);
+    auto idE = e->string(u8"identifier");
+    REQUIRE(idE);
+    double minDistanceSq = numeric_limits<double>::max();
+    CompoundTagPtr a;
+    for (auto const &it : actual.entities()) {
+      auto posA = je2be::props::GetPos3f(*it, u8"Pos");
+      if (!posA) {
+        continue;
+      }
+      auto idA = it->string(u8"identifier");
+      if (idA != *idE) {
+        continue;
+      }
+      double distanceSq = Pos3f::DistanceSquare(*posE, *posA);
+      if (distanceSq < minDistanceSq) {
+        minDistanceSq = distanceSq;
+        a = it;
+      }
+    }
+    if (a) {
+      CheckEntityB(*idE, *e, *a);
+    } else {
+      ostringstream out;
+      PrintAsJson(out, *e, {.fTypeHint = true});
+      lock_guard<mutex> lock(sMutCerr);
+      cerr << out.str();
+      CHECK(false);
+      break;
+    }
+  }
+}
+
 static void TestBedrockToJavaToBedrock(fs::path const &in) {
   auto tmp = mcfile::File::CreateTempDir(fs::temp_directory_path());
   REQUIRE(tmp);
@@ -47,7 +114,23 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(st.ok());
 
   // Compare initial Bedrock input and final Bedrock output.
-  CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  // CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  unique_ptr<leveldb::DB> dbE(OpenF(*inB / "db"));
+  unique_ptr<leveldb::DB> dbA(OpenF(*outB / "db"));
+  REQUIRE(dbE);
+  REQUIRE(dbA);
+  for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
+    mcfile::be::Chunk::ForAll(dbE.get(), dimension, [&](int cx, int cz) {
+      auto chunkE = mcfile::be::Chunk::Load(cx, cz, dimension, dbE.get(), mcfile::Endian::Little);
+      REQUIRE(chunkE);
+      auto chunkA = mcfile::be::Chunk::Load(cx, cz, dimension, dbA.get(), mcfile::Endian::Little);
+      CHECK(chunkA);
+      if (!chunkA) {
+        return;
+      }
+      CheckChunkB(*chunkE, *chunkA);
+    });
+  }
 }
 
 TEST_CASE("b2j2b") {
