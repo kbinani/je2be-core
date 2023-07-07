@@ -43,3 +43,4 @@ static fs::path ProjectRootDir() {
 #include "strings.test.hpp"
 #include "pos2i-set.test.hpp"
 #include "system.test.hpp"
+#include "b2j2b.test.hpp"
