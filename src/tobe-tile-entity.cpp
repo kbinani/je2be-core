@@ -1004,9 +1004,11 @@ private:
 
       auto tag = Compound();
 
-      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
-        if (auto items = GetItems(c, u8"Items", ctx); items) {
-          tag->set(u8"Items", items);
+      if (c) {
+        if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
+          if (auto items = GetItems(c, u8"Items", ctx); items) {
+            tag->set(u8"Items", items);
+          }
         }
       }
 
