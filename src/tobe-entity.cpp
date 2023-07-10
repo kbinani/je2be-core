@@ -576,12 +576,12 @@ private:
     E(bat, C(Mob, Bat));
     E(bee, C(Animal, AgeableA(u8"bee"), Bee));
     M(blaze);
-    E(cat, C(Animal, AgeableA(u8"cat"), TameableA(u8"cat"), Sittable, CollarColorable, Cat));
+    E(cat, C(Animal, AgeableA(u8"minecraft:cat"), TameableA(u8"cat"), Sittable, CollarColorable, Cat));
     M(cave_spider);
-    E(chicken, C(Animal, AgeableA(u8"chicken"), Vehicle(), Chicken));
+    E(chicken, C(Animal, AgeableA(u8"minecraft:chicken"), Vehicle(), Chicken));
     E(cod, C(Mob, PersistentFromFromBucket));
 
-    E(cow, C(Animal, AgeableA(u8"cow")));
+    E(cow, C(Animal, AgeableA(u8"minecraft:cow")));
     E(creeper, C(Monster, Creeper));
     A(dolphin);
     E(donkey, C(Animal, TameableB(u8"donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey"), Temper));
@@ -594,19 +594,19 @@ private:
     E(fox, C(Animal, Fox));
     M(ghast);
     M(guardian);
-    E(hoglin, C(Animal, AgeableA(u8"hoglin"), Hoglin));
-    E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"horse"), Steerable(u8"horse"), Temper, Horse));
-    E(husk, C(Monster, AgeableA(u8"husk")));
-    E(llama, C(Animal, AgeableA(u8"llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Llama));
+    E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), Hoglin));
+    E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"minecraft:horse"), Steerable(u8"horse"), Temper, Horse));
+    E(husk, C(Monster, AgeableA(u8"minecraft:husk")));
+    E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Llama));
     E(magma_cube, C(Monster, Slime));
-    E(mooshroom, C(Animal, AgeableA(u8"mooshroom"), Mooshroom));
+    E(mooshroom, C(Animal, AgeableA(u8"minecraft:cow"), Mooshroom));
 
     E(mule, C(Animal, TameableB(u8"mule"), ChestedHorse(u8"mule"), Steerable(u8"mule"), Temper));
     A(ocelot);
-    E(panda, C(Animal, AgeableA(u8"panda"), Panda));
+    E(panda, C(Animal, AgeableA(u8"minecraft:panda"), Panda));
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
-    E(pig, C(Animal, AgeableA(u8"pig"), Steerable(u8"pig")));
+    E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig")));
     E(piglin, C(Monster, ChestItemsFromInventory, Piglin));
     E(piglin_brute, C(Monster, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
@@ -616,7 +616,7 @@ private:
     E(rabbit, C(Animal, AgeableC, Rabbit));
     E(ravager, C(Monster, AttackTime, CanJoinRaid));
     E(salmon, C(Mob, PersistentFromFromBucket));
-    E(sheep, C(Animal, AgeableA(u8"sheep"), Colorable(u8"sheep"), Definitions(u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"), Sheep));
+    E(sheep, C(Animal, AgeableA(u8"minecraft:sheep"), Colorable(u8"sheep"), Definitions(u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"), Sheep));
     E(shulker, C(Monster, Shulker));
     M(silverfish);
     M(skeleton); // lefty skeleton does not exist in Bedrock?
@@ -626,8 +626,8 @@ private:
     E(spider, C(Monster, Vehicle(u8"spider")));
     A(squid);
     M(stray);
-    E(strider, C(Animal, Steerable(u8"strider"), AgeableA(u8"strider"), DetectSuffocation, Vehicle(u8"strider")));
-    E(trader_llama, C(Animal, Rename(u8"llama"), AgeableA(u8"llama"), Llama, TraderLlama));
+    E(strider, C(Animal, Steerable(u8"strider"), AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider")));
+    E(trader_llama, C(Animal, Rename(u8"llama"), AgeableA(u8"minecraft:llama"), Llama, TraderLlama));
     E(tropical_fish, C(Mob, Rename(u8"tropicalfish"), PersistentFromFromBucket, TropicalFish));
     E(turtle, C(Animal, Turtle));
 
@@ -662,8 +662,8 @@ private:
     E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
     E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid")));
-    E(axolotl, C(Animal, AgeableA(u8"axolotl"), Axolotl));
-    E(goat, C(Animal, AgeableA(u8"goat"), Goat));
+    E(axolotl, C(Animal, AgeableA(u8"minecraft:axolotl"), Axolotl));
+    E(goat, C(Animal, AgeableA(u8"minecraft:goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
     E(wither, C(Mob, Definitions(u8"+minecraft:wither"), Wither));
     E(arrow, C(EntityBase, Arrow));
@@ -673,8 +673,8 @@ private:
     E(allay, C(Animal, Definitions(u8"+minecraft:allay", u8"+pickup_item"), ChestItemsFromInventory, Allay));
     E(tadpole, C(Animal, AgeableE(24000), Definitions(u8"+minecraft:tadpole"), PersistentFromFromBucket));
 
-    E(camel, C(Animal, Definitions(u8"+minecraft:camel"), AgeableA(u8"camel"), Steerable(u8"camel"), Camel));
-    E(sniffer, C(Animal, Definitions(u8"+minecraft:sniffer"), AgeableA(u8"sniffer"), Sniffer));
+    E(camel, C(Animal, Definitions(u8"+minecraft:camel"), AgeableA(u8"minecraft:camel"), Steerable(u8"camel"), Camel));
+    E(sniffer, C(Animal, Definitions(u8"+minecraft:sniffer"), AgeableA(u8"minecraft:sniffer"), Sniffer));
     E(text_display, Null);
     E(block_display, Null);
     E(item_display, Null);
@@ -1128,7 +1128,32 @@ private:
   }
 
   static void Parrot(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    CopyIntValues(tag, c, {{u8"Variant"}});
+    auto variantJ = tag.int32(u8"Variant", 0);
+    c[u8"Variant"] = Int(variantJ);
+
+    std::u8string def;
+    switch (variantJ) {
+    case 0:
+      def = u8"+minecraft:parrot_red";
+      break;
+    case 1:
+      def = u8"+minecraft:parrot_blue";
+      break;
+    case 2:
+      def = u8"+minecraft:parrot_green";
+      break;
+    case 3:
+      def = u8"+minecraft:parrot_cyan";
+      break;
+    case 4:
+      def = u8"+minecraft:parrot_silver";
+      break;
+    }
+    if (!def.empty()) {
+      AddDefinition(c, def);
+    }
+
+    AddDefinition(c, u8"+minecraft:parrot_adult");
   }
 
   static void Piglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
@@ -1884,10 +1909,10 @@ private:
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto age = tag.int32(u8"Age", 0);
       if (age < 0) {
-        AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_baby");
+        AddDefinition(c, u8"+" + definitionKey + u8"_baby");
         c[u8"Age"] = Int(age);
       } else {
-        AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_adult");
+        AddDefinition(c, u8"+" + definitionKey + u8"_adult");
         c.erase(u8"Age");
       }
       c[u8"IsBaby"] = Bool(age < 0);

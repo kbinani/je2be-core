@@ -19,13 +19,16 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
 
 static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual) {
   auto defE = expected.listTag(u8"definitions");
-  auto defA = expected.listTag(u8"definitions");
+  auto defA = actual.listTag(u8"definitions");
   if (defE) {
     CHECK(defA);
     if (defA) {
       for (auto const &e : *defE) {
         auto cE = e->asString();
         if (!cE) {
+          continue;
+        }
+        if (cE->fValue == u8"+") {
           continue;
         }
         bool found = false;
@@ -46,6 +49,8 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
       }
     }
   }
+
+  // TODO: check other properties
 }
 
 static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk const &actual) {
@@ -79,7 +84,6 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       lock_guard<mutex> lock(sMutCerr);
       cerr << out.str();
       CHECK(false);
-      break;
     }
   }
 }
