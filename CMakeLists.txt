@@ -425,7 +425,8 @@ CPMAddPackage(
   OPTIONS "LEVELDB_ZSTD OFF"
           "LEVELDB_BUILD_TESTS OFF"
           "LEVELDB_BUILD_BENCHMARKS OFF"
-          "LEVELDB_INSTALL OFF")
+          "LEVELDB_INSTALL OFF"
+          "LEVELDB_SNAPPY OFF")
 
 CPMAddPackage(
   NAME cxxopts
