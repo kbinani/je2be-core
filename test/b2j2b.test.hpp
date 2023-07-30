@@ -126,9 +126,10 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
       auto chunkA = mcfile::be::Chunk::Load(cx, cz, dimension, dbA.get(), mcfile::Endian::Little);
       CHECK(chunkA);
       if (!chunkA) {
-        return;
+        return true;
       }
       CheckChunkB(*chunkE, *chunkA);
+      return true;
     });
   }
 }
