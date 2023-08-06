@@ -7,6 +7,7 @@
 #include "_props.hpp"
 #include "_queue2d.hpp"
 #include "_walk.hpp"
+#include "db/_readonly-db.hpp"
 #include "enums/_game-mode.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
@@ -52,7 +53,7 @@ public:
     }
     auto bin = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency);
 
-    auto db = mcfile::be::Db::Open(input / "db");
+    unique_ptr<ReadonlyDb> db(new ReadonlyDb(input / "db", options.getTempDirectory()));
     if (!db) {
       return JE2BE_ERROR;
     }

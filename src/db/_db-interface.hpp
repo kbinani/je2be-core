@@ -16,7 +16,7 @@ namespace je2be {
 
 class DbInterface {
 public:
-  virtual ~DbInterface() {}
+  virtual ~DbInterface() = default;
   virtual bool valid() const = 0;
   virtual Status put(std::string const &key, leveldb::Slice const &value) = 0;
   virtual Status del(std::string const &key) = 0;

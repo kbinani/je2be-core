@@ -3,6 +3,7 @@
 #if !defined(EMSCRIPTEN)
 #include "db/_async-iterator.hpp"
 #endif
+#include "db/_readonly-db.hpp"
 #include "structure/_structure-piece.hpp"
 
 namespace je2be::toje {
@@ -124,12 +125,12 @@ public:
     namespace fs = std::filesystem;
 
     DB *dbPtr = nullptr;
-    leveldb::Options o;
-    o.compression = kZlibRawCompression;
-    if (!DB::Open(o, dbname, &dbPtr).ok()) {
+    unique_ptr<ReadonlyDb::Closer> closer = std::move(ReadonlyDb::Open(dbname, &dbPtr, opt.getTempDirectory()));
+    unique_ptr<DB> db;
+    if (!dbPtr) {
       return nullptr;
     }
-    unique_ptr<DB> db(dbPtr);
+    db.reset(dbPtr);
 
 #if defined(EMSCRIPTEN)
     Accum accum(opt, endian);

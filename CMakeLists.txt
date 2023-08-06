@@ -230,7 +230,10 @@ set(je2be_src_files
   src/db/_concurrent-db.hpp
   src/db/_db-interface.hpp
   src/db/_db.hpp
+  src/db/_firewall-env.hpp
   src/db/_null-db.hpp
+  src/db/_proxy-env.hpp
+  src/db/_readonly-db.hpp
   src/entity/_armor-stand.hpp
   src/entity/_axolotl.hpp
   src/entity/_boat.hpp
