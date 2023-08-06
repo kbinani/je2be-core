@@ -119,7 +119,7 @@ private:
       if (!c) {
         continue;
       }
-      auto result = Entity::From(*c, ctx);
+      auto result = Entity::From(*c, ctx, {});
       if (!result.fEntity) {
         continue;
       }

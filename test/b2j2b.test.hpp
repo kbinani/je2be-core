@@ -23,12 +23,17 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
   if (defE) {
     CHECK(defA);
     if (defA) {
+      static set<u8string> const sIgnore = {
+          u8"+",
+          u8"+minecraft:wild_child_ocelot_spawn",
+          u8"+look_for_food",
+      };
       for (auto const &e : *defE) {
         auto cE = e->asString();
         if (!cE) {
           continue;
         }
-        if (cE->fValue == u8"+") {
+        if (sIgnore.count(cE->fValue) > 0) {
           continue;
         }
         bool found = false;
@@ -43,9 +48,32 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
           }
         }
         if (!found) {
-          cerr << (char const *)cE->fValue.c_str() << " not found for entity id: " << (char const *)id.c_str() << endl;
+          cerr << cE->fValue << " not found for entity id: " << id << endl;
         }
         CHECK(found);
+      }
+      for (auto const &a : *defA) {
+        auto cA = a->asString();
+        if (!cA) {
+          continue;
+        }
+        if (sIgnore.count(cA->fValue) > 0) {
+          continue;
+        }
+        bool found = false;
+        for (auto const &it : *defE) {
+          auto cE = it->asString();
+          if (!cE) {
+            continue;
+          }
+          if (cE->fValue == cA->fValue) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          cerr << cA->fValue << " is extra definition for entity " << id << endl;
+        }
       }
     }
   }

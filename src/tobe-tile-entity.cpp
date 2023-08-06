@@ -709,7 +709,7 @@ private:
         auto uuid = make_shared<IntArrayTag>(uuidSource);
         entityData->set(u8"UUID", uuid);
 
-        auto converted = Entity::From(*entityData, ctx);
+        auto converted = Entity::From(*entityData, ctx, {});
         if (!converted.fEntity) {
           continue;
         }

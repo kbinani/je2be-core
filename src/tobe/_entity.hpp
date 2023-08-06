@@ -23,7 +23,11 @@ public:
     std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
   };
 
-  static Result From(CompoundTag const &tag, Context &ctx);
+  enum class Flag : uint32_t {
+    ShoulderRider = uint32_t(1) << 0,
+  };
+
+  static Result From(CompoundTag const &tag, Context &ctx, std::set<Flag> flags);
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
@@ -43,7 +47,7 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx);
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, std::set<Flag> flags);
 };
 
 } // namespace je2be::tobe

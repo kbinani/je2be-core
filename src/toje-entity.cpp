@@ -616,6 +616,10 @@ public:
     j[u8"Type"] = String(type);
   }
 
+  static void Ocelot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    CopyBoolValues(b, j, {{u8"IsTrusting", u8"Trusting"}});
+  }
+
   static void Panda(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     auto genes = b.listTag(u8"GeneArray");
     if (genes) {
@@ -2000,6 +2004,7 @@ public:
 
     E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel));
     E(sniffer, C(Same, Animal));
+    E(ocelot, C(Same, Animal, Age, Ocelot));
 #undef E
     return ret;
   }

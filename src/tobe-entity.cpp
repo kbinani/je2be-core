@@ -32,11 +32,12 @@ namespace je2be::tobe {
 
 class Entity::Impl {
   struct ConverterContext {
-    explicit ConverterContext(Context &ctx) : fCtx(ctx) {}
+    ConverterContext(Context &ctx, std::set<Flag> const &flags) : fCtx(ctx), fFlags(flags) {}
 
     Context &fCtx;
     std::vector<CompoundTagPtr> fPassengers;
     std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
+    std::set<Flag> const &fFlags;
   };
   using Converter = std::function<CompoundTagPtr(CompoundTag const &, ConverterContext &)>;
 
@@ -171,7 +172,7 @@ class Entity::Impl {
   };
 
 public:
-  static Result From(CompoundTag const &tag, Context &ctx) {
+  static Result From(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
     using namespace std;
     auto rawId = tag.string(u8"id");
     Result result;
@@ -191,7 +192,7 @@ public:
       }
       return result;
     }
-    ConverterContext cctx(ctx);
+    ConverterContext cctx(ctx, flags);
     auto converted = found->second(tag, cctx);
     if (converted) {
       result.fEntity = converted;
@@ -299,11 +300,11 @@ public:
     return id == u8"minecraft:item_frame" || id == u8"minecraft:glow_item_frame";
   }
 
-  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx) {
+  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
     using namespace std;
     using namespace mcfile;
 
-    ConverterContext cctx(ctx);
+    ConverterContext cctx(ctx, flags);
     auto entity = LivingEntity(tag, cctx);
     if (!entity) {
       return nullopt;
@@ -602,7 +603,7 @@ private:
     E(mooshroom, C(Animal, AgeableA(u8"minecraft:cow"), Mooshroom));
 
     E(mule, C(Animal, TameableB(u8"mule"), ChestedHorse(u8"mule"), Steerable(u8"mule"), Temper));
-    A(ocelot);
+    E(ocelot, C(Animal, TameableA(u8"ocelot"), AgeableA(u8"minecraft:ocelot"), Trustable(u8"minecraft:ocelot")));
     E(panda, C(Animal, AgeableA(u8"minecraft:panda"), Panda));
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
@@ -785,8 +786,6 @@ private:
     if (hasNectar) {
       AddDefinition(c, u8"+has_nectar");
     }
-    AddDefinition(c, u8"+default_sound");
-    AddDefinition(c, u8"+find_hive");
   }
 
   static std::optional<Pos3d> GetBoatPos(CompoundTag const &j) {
@@ -1127,7 +1126,7 @@ private:
     c[u8"GeneArray"] = genes;
   }
 
-  static void Parrot(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void Parrot(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto variantJ = tag.int32(u8"Variant", 0);
     c[u8"Variant"] = Int(variantJ);
 
@@ -1152,8 +1151,10 @@ private:
     if (!def.empty()) {
       AddDefinition(c, def);
     }
-
     AddDefinition(c, u8"+minecraft:parrot_adult");
+    if (ctx.fFlags.count(Flag::ShoulderRider) == 0) {
+      AddDefinition(c, u8"+minecraft:parrot_not_riding_player");
+    }
   }
 
   static void Piglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
@@ -1226,6 +1227,8 @@ private:
     auto puffState = tag.int32(u8"PuffState", 0);
 
     /*
+    "-minecraft:full_puff",
+    "-minecraft:half_puff_secondary",
     "+minecraft:normal_puff"
 
     "-minecraft:normal_puff",
@@ -1243,20 +1246,23 @@ private:
     "+minecraft:start_deflate"
     */
 
-    std::u8string def;
     switch (puffState) {
     case 1:
-      def = u8"+minecraft:half_puff_primary";
+      AddDefinitionFlag(c, u8"minecraft:normal_puff", false);
+      AddDefinitionFlag(c, u8"minecraft:half_puff_primary", true);
       break;
     case 2:
-      def = u8"+minecraft:full_puff";
+      AddDefinitionFlag(c, u8"minecraft:full_puff", true);
+      AddDefinitionFlag(c, u8"minecraft:deflate_sensor", false);
+      AddDefinitionFlag(c, u8"minecraft:start_deflate", true);
       break;
     case 0:
     default:
-      def = u8"+minecraft:normal_puff";
+      AddDefinitionFlag(c, u8"minecraft:full_puff", false);
+      AddDefinitionFlag(c, u8"minecraft:half_puff_secondary", false);
+      AddDefinitionFlag(c, u8"minecraft:normal_puff", true);
       break;
     }
-    AddDefinition(c, def);
   }
 
   static void Rabbit(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1294,6 +1300,7 @@ private:
 
   static void Sheep(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyBoolValues(tag, c, {{u8"Sheared", u8"Sheared", false}});
+    AddDefinitionFlag(c, u8"minecraft:sheep_sheared", tag.boolean(u8"Sheared", false));
   }
 
   static void Shulker(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -2162,6 +2169,15 @@ private:
     };
   }
 
+  static Behavior Trustable(std::u8string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+      CopyBoolValues(tag, c, {{u8"Trusting", u8"IsTrusting"}});
+      if (tag.boolean(u8"Trusting", false)) {
+        AddDefinition(c, u8"+" + definitionKey + u8"_trusting");
+      }
+    };
+  }
+
   static Behavior Vehicle(std::optional<std::u8string> jockeyDefinitionKey = std::nullopt) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
       auto links = List<Tag::Type::Compound>();
@@ -2175,7 +2191,7 @@ private:
             continue;
           }
 
-          auto ret = From(*comp, ctx.fCtx);
+          auto ret = From(*comp, ctx.fCtx, {});
           if (!ret.fEntity) {
             continue;
           }
@@ -2341,6 +2357,11 @@ private:
     }
     d->push_back(String(definition));
     tag[u8"definitions"] = d;
+  }
+
+  static void AddDefinitionFlag(CompoundTag &tag, std::u8string const &body, bool flag) {
+    std::u8string definition = (flag ? u8"+" : u8"-") + body;
+    AddDefinition(tag, definition);
   }
 
   static void RemoveDefinition(CompoundTag &tag, std::u8string const &definition) {
@@ -2581,8 +2602,8 @@ private:
 #pragma endregion
 };
 
-Entity::Result Entity::From(CompoundTag const &tag, Context &ctx) {
-  return Impl::From(tag, ctx);
+Entity::Result Entity::From(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
+  return Impl::From(tag, ctx, flags);
 }
 
 std::optional<std::tuple<Pos3i, CompoundTagPtr, std::u8string>> Entity::ToTileEntityBlock(CompoundTag const &c) {
@@ -2605,8 +2626,8 @@ bool Entity::IsTileEntity(CompoundTag const &tag) {
   return Impl::IsTileEntity(tag);
 }
 
-std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx) {
-  return Impl::LocalPlayer(tag, ctx);
+std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
+  return Impl::LocalPlayer(tag, ctx, flags);
 }
 
 } // namespace je2be::tobe
