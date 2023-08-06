@@ -101,28 +101,6 @@ public:
       }
     }
 
-    if (d == Dimension::End) {
-      set<int> missing;
-      for (int i = j->fChunkY; i < 16; i++) {
-        missing.insert(i);
-      }
-      for (auto &section : j->fSections) {
-        if (section) {
-          missing.erase(section->y());
-        }
-      }
-      for (int sectionY : missing) {
-        auto section = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionY);
-        section->fBlocks.fill(make_shared<mcfile::je::Block const>(u8"minecraft:air"));
-        section->fBiomes.fill(mcfile::biomes::minecraft::the_end);
-        j->fSections.push_back(section);
-      }
-      j->fSections.erase(remove_if(j->fSections.begin(), j->fSections.end(), [](auto const &it) { return !it; }), j->fSections.end());
-      sort(j->fSections.begin(), j->fSections.end(), [](auto const &a, auto const &b) {
-        return a->y() < b->y();
-      });
-    }
-
     BiomeId defaultBiome = minecraft::plains;
     switch (d) {
     case mcfile::Dimension::Nether:
@@ -136,20 +114,22 @@ public:
       defaultBiome = minecraft::plains;
       break;
     }
-    mcfile::biomes::BiomeId biomes[4][4][4];
-    for (auto &section : j->fSections) {
-      if (!section) {
-        continue;
-      }
-      for (int y = 0; y < 4; y++) {
-        for (int z = 0; z < 4; z++) {
-          for (int x = 0; x < 4; x++) {
-            auto biome = b.biomeAt(cx * 16 + x * 4, section->y() * 16 + y * 4, cz * 16 + z * 4);
-            biomes[x][y][z] = biome ? *biome : defaultBiome;
+
+    for (int by = j->minBlockY(); by <= j->maxBlockY(); by += 4) {
+      for (int bx = j->minBlockX(); bx <= j->maxBlockX(); bx += 4) {
+        for (int bz = j->minBlockZ(); bz <= j->maxBlockZ(); bz += 4) {
+          mcfile::biomes::BiomeId biome = defaultBiome;
+          if (auto biomeB = b.biomeAt(bx, by, bz); biomeB) {
+            biome = *biomeB;
+          } else {
+            int lowerSectionY = mcfile::Coordinate::ChunkFromBlock(by) - 1;
+            if (auto lowerBiomeJ = j->biomeAt(bx, lowerSectionY * 16 + 15, bz); lowerBiomeJ != mcfile::biomes::unknown) {
+              biome = lowerBiomeJ;
+            }
           }
+          j->setBiomeAt(bx, by, bz, biome);
         }
       }
-      section->setBiomes(biomes);
     }
 
     for (auto const &it : b.blockEntities()) {
