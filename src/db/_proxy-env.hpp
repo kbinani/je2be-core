@@ -3,6 +3,8 @@
 #if __has_include(<leveldb/env.h>)
 #include <leveldb/env.h>
 
+#include <atomic>
+
 namespace je2be {
 
 class ProxyEnv : public leveldb::Env {
