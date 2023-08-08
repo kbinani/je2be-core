@@ -457,7 +457,7 @@ private:
   leveldb::Env *fE = nullptr;
   Str fCanonicalProtect;
   std::filesystem::path fWork;
-  std::atomic_uint64_t fNextFileId;
+  std::atomic<uint64_t> fNextFileId;
   std::mutex fMut;
 };
 
