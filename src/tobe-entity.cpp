@@ -1,5 +1,6 @@
 #include "tobe/_entity.hpp"
 
+#include "_default-map.hpp"
 #include "_dimension-ext.hpp"
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
@@ -585,34 +586,34 @@ private:
     E(cow, C(Animal, AgeableA(u8"minecraft:cow")));
     E(creeper, C(Monster, Creeper));
     A(dolphin);
-    E(donkey, C(Animal, TameableB(u8"donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey"), Temper));
-    E(drowned, C(Monster, AgeableD(u8"drowned")));
+    E(donkey, C(Animal, TameableB(u8"donkey"), AgeableA(u8"minecraft:donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
+    E(drowned, C(Monster, AgeableD(u8"drowned"), Zombie, Drowned));
     M(elder_guardian);
     E(enderman, C(Monster, Enderman));
     E(endermite, C(Monster, Endermite));
     E(evoker, C(Monster, Rename(u8"evocation_illager"), CanJoinRaid));
 
-    E(fox, C(Animal, Fox));
+    E(fox, C(Animal, AgeableA(u8"minecraft:fox"), Fox));
     M(ghast);
     M(guardian);
     E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), Hoglin));
-    E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"minecraft:horse"), Steerable(u8"horse"), Temper, Horse));
-    E(husk, C(Monster, AgeableA(u8"minecraft:husk")));
-    E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Llama));
+    E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"minecraft:horse"), Temper, Horse));
+    E(husk, C(Monster, AgeableB(u8"zombie_husk")));
+    E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Definitions(u8"+minecraft:strength_3"), Llama));
     E(magma_cube, C(Monster, Slime));
     E(mooshroom, C(Animal, AgeableA(u8"minecraft:cow"), Mooshroom));
 
-    E(mule, C(Animal, TameableB(u8"mule"), ChestedHorse(u8"mule"), Steerable(u8"mule"), Temper));
+    E(mule, C(Animal, TameableB(u8"mule"), AgeableA(u8"minecraft:mule"), ChestedHorse(u8"mule"), Steerable(u8"mule", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
     E(ocelot, C(Animal, TameableA(u8"ocelot"), AgeableA(u8"minecraft:ocelot"), Trustable(u8"minecraft:ocelot")));
     E(panda, C(Animal, AgeableA(u8"minecraft:panda"), Panda));
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
-    E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig")));
+    E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig", {.fAddAlwaysUnsaddledDefinition = true})));
     E(piglin, C(Monster, ChestItemsFromInventory, Piglin));
     E(piglin_brute, C(Monster, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
 
-    A(polar_bear);
+    E(polar_bear, C(Animal, PolarBear));
     E(pufferfish, C(Mob, PersistentFromFromBucket, Pufferfish));
     E(rabbit, C(Animal, AgeableC, Rabbit));
     E(ravager, C(Monster, AttackTime, CanJoinRaid));
@@ -622,27 +623,27 @@ private:
     M(silverfish);
     M(skeleton); // lefty skeleton does not exist in Bedrock?
 
-    E(skeleton_horse, C(Animal, SkeletonHorse));
+    E(skeleton_horse, C(Animal, Definitions(u8"+minecraft:skeleton_horse_adult"), SkeletonHorse));
     E(slime, C(Monster, Slime));
     E(spider, C(Monster, Vehicle(u8"spider")));
     A(squid);
     M(stray);
-    E(strider, C(Animal, Steerable(u8"strider"), AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider")));
-    E(trader_llama, C(Animal, Rename(u8"llama"), AgeableA(u8"minecraft:llama"), Llama, TraderLlama));
+    E(strider, C(Animal, AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider"), Definitions(u8"+minecraft:strider_pathing_behaviors"), Strider));
+    E(trader_llama, C(Animal, AgeableA(u8"minecraft:llama"), Llama, Definitions(u8"+minecraft:llama_unchested", u8"-minecraft:llama_defend_trader", u8"-minecraft:llama_persistence"), TraderLlama));
     E(tropical_fish, C(Mob, Rename(u8"tropicalfish"), PersistentFromFromBucket, TropicalFish));
-    E(turtle, C(Animal, Turtle));
+    E(turtle, C(Animal, AgeableF, Turtle));
 
     M(vex);
     E(villager, C(Animal, Rename(u8"villager_v2"), Offers(4, u8"Offers"), ChestItemsFromInventory, Villager));
-    M(vindicator);
+    E(vindicator, C(Monster, Definitions(u8"+minecraft:default_targeting")));
     E(wandering_trader, C(Animal, Offers(0, u8"Offers"), ChestItemsFromInventory, WanderingTrader));
     E(witch, C(Monster, CanJoinRaid));
     M(wither_skeleton);
-    E(wolf, C(Animal, TameableA(u8"wolf"), Sittable, CollarColorable, Wolf));
+    E(wolf, C(Animal, TameableA(u8"wolf"), AgeableA(u8"minecraft:wolf"), Sittable, CollarColorable, Wolf));
     M(zoglin);
-    E(zombie, C(Monster, AgeableB(u8"zombie")));
+    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions(u8"+minecraft:can_have_equipment"), Zombie));
 
-    M(zombie_horse);
+    E(zombie_horse, C(Monster, AgeableA(u8"minecraft:horse")));
     E(zombie_villager, C(Animal, Rename(u8"zombie_villager_v2"), Offers(4, u8"persistingOffers"), Villager, ZombieVillager));
     E(zombified_piglin, C(Monster, Rename(u8"zombie_pigman"), AgeableB(u8"pig_zombie"), ZombiePigman));
 
@@ -663,8 +664,8 @@ private:
     E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
     E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid")));
-    E(axolotl, C(Animal, AgeableA(u8"minecraft:axolotl"), Axolotl));
-    E(goat, C(Animal, AgeableA(u8"minecraft:goat"), Goat));
+    E(axolotl, C(Animal, AgeableA(u8"axolotl"), Axolotl));
+    E(goat, C(Animal, AgeableA(u8"goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
     E(wither, C(Mob, Definitions(u8"+minecraft:wither"), Wither));
     E(arrow, C(EntityBase, Arrow));
@@ -674,8 +675,8 @@ private:
     E(allay, C(Animal, Definitions(u8"+minecraft:allay", u8"+pickup_item"), ChestItemsFromInventory, Allay));
     E(tadpole, C(Animal, AgeableE(24000), Definitions(u8"+minecraft:tadpole"), PersistentFromFromBucket));
 
-    E(camel, C(Animal, Definitions(u8"+minecraft:camel"), AgeableA(u8"minecraft:camel"), Steerable(u8"camel"), Camel));
-    E(sniffer, C(Animal, Definitions(u8"+minecraft:sniffer"), AgeableA(u8"minecraft:sniffer"), Sniffer));
+    E(camel, C(Animal, Definitions(u8"+minecraft:camel"), AgeableA(u8"minecraft:camel"), Steerable(u8"camel", {.fAddAlwaysUnsaddledDefinition = false}), Camel));
+    E(sniffer, C(Animal, Definitions(u8"+minecraft:sniffer", u8"+pushable"), AgeableA(u8"sniffer")));
     E(text_display, Null);
     E(block_display, Null);
     E(item_display, Null);
@@ -860,6 +861,25 @@ private:
     }
   }
 
+  static void Drowned(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    bool melee = true;
+    if (auto handItems = tag.listTag(u8"HandItems"); handItems && !handItems->fValue.empty()) {
+      if (auto item = handItems->fValue[0]->asCompound(); item) {
+        if (item->byte(u8"Count", 0) > 0 && item->string(u8"id") == u8"minecraft:trident") {
+          melee = false;
+        }
+      }
+    }
+    if (melee) {
+      AddDefinition(c, u8"+minecraft:melee_equipment");
+      AddDefinition(c, u8"+minecraft:melee_mode");
+    } else {
+      AddDefinition(c, u8"+minecraft:mode_switcher");
+      AddDefinition(c, u8"+minecraft:ranged_equipment");
+      AddDefinition(c, u8"+minecraft:ranged_mode");
+    }
+  }
+
   static void Enderman(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto carriedBlockTagJ = tag.compoundTag(u8"carriedBlockState");
     if (carriedBlockTagJ) {
@@ -925,6 +945,7 @@ private:
       variant = 1;
     }
     c[u8"Variant"] = Int(variant);
+    AddDefinition(c, u8"+minecraft:fox_" + type);
 
     if (tag.boolean(u8"Sleeping", false)) {
       AddDefinition(c, u8"+minecraft:fox_ambient_sleep");
@@ -951,6 +972,16 @@ private:
         c[u8"TrustedPlayersAmount"] = Int(index);
       }
     }
+
+    if (auto handItems = tag.listTag(u8"HandItems"); handItems && !handItems->fValue.empty()) {
+      if (auto itemJ = handItems->fValue[0]->asCompound(); itemJ) {
+        if (itemJ->byte(u8"Count", 0) > 0) {
+          AddDefinitionFlag(c, u8"minecraft:fox_with_item", true);
+        }
+      }
+    }
+
+    AddDefinition(c, u8"+minecraft:fox_ambient_normal");
   }
 
   static void Frog(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -972,6 +1003,7 @@ private:
       AddDefinition(c, u8"+ram_default");
       AddDefinition(c, u8"+interact_default");
     }
+    AddDefinition(c, u8"-attack_cooldown");
 
     i32 hornCount = 0;
     if (tag.boolean(u8"HasLeftHorn", false)) {
@@ -1003,6 +1035,46 @@ private:
         AddChestItem(c, armorItemB, 1, 1);
       }
     }
+
+    static DefaultMap<i32, std::u8string> const sVariant(
+        {
+            {0, u8"base_white"},
+            {1, u8"base_creamy"},
+            {2, u8"base_chestnut"},
+            {3, u8"base_brown"},
+            {4, u8"base_black"},
+            {5, u8"base_gray"},
+            {6, u8"base_darkbrown"},
+        },
+        u8"base_white");
+    AddDefinition(c, u8"+minecraft:" + sVariant.at(baseColor));
+
+    static DefaultMap<i32, std::u8string> const sMarkVariant(
+        {
+            {0, u8"markings_none"},
+            {1, u8"markings_white_details"},
+            {2, u8"markings_white_fields"},
+            {3, u8"markings_white_dots"},
+            {4, u8"markings_black_dots"},
+        },
+        u8"markings_none");
+    AddDefinition(c, u8"+minecraft:" + sMarkVariant.at(markings));
+
+    bool saddle = false;
+    if (auto saddleItem = tag.compoundTag(u8"SaddleItem"); saddleItem) {
+      if (saddleItem->byte(u8"Count", 0) > 0) {
+        AddDefinition(c, u8"+minecraft:horse_saddled");
+        auto item = Compound();
+        item->insert({
+            {u8"Damage", Byte(0)},
+            {u8"Name", String(u8"minecraft:saddle")},
+            {u8"WasPickedUp", Bool(false)},
+        });
+        AddChestItem(c, item, 0, 1);
+        saddle = true;
+      }
+    }
+    c[u8"Saddled"] = Bool(saddle);
   }
 
   static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1223,6 +1295,16 @@ private:
     AddDefinition(c, u8"+go_back_to_spawn");
   }
 
+  static void PolarBear(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    if (tag.int32(u8"Age", 0) >= 0) {
+      AddDefinition(c, u8"+minecraft:adult");
+      AddDefinition(c, u8"+minecraft:adult_wild");
+    } else {
+      AddDefinition(c, u8"+minecraft:baby");
+      AddDefinition(c, u8"+minecraft:baby_wild");
+    }
+  }
+
   static void Pufferfish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto puffState = tag.int32(u8"PuffState", 0);
 
@@ -1331,16 +1413,41 @@ private:
     auto health = tag.float32(u8"Health");
     auto attributes = EntityAttributes::Slime(sizeB, health);
     c[u8"Attributes"] = attributes.toBedrockListTag();
-  }
 
-  static void Sniffer(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    ctx.fCtx.fExperiments.insert(u8"sniffer");
+    // J  B  B(definition)
+    // 3  4  +minecraft:slime_large
+    // 1  2  +minecraft:slime_medium
+    // 0  1  +minecraft:slime_small
+    switch (sizeJ) {
+    case 3:
+      AddDefinition(c, u8"+minecraft:slime_large");
+      break;
+    case 1:
+      AddDefinition(c, u8"+minecraft:slime_medium");
+      break;
+    case 0:
+      AddDefinition(c, u8"+minecraft:slime_small");
+      break;
+    }
+    AddDefinition(c, u8"+minecraft:slime_calm");
   }
 
   static void SnowGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto pumpkin = tag.boolean(u8"Pumpkin", true);
     if (!pumpkin) {
       AddDefinition(c, u8"+minecraft:snowman_sheared");
+    }
+  }
+
+  static void Strider(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    if (tag.int32(u8"Age", 0) >= 0) {
+      if (tag.boolean(u8"Saddle", false)) {
+        AddDefinition(c, u8"-minecraft:strider_unsaddled");
+        AddDefinition(c, u8"+minecraft:strider_saddled");
+      } else {
+        AddDefinition(c, u8"+minecraft:strider_unsaddled");
+      }
+      AddDefinition(c, u8"-minecraft:strider_baby");
     }
   }
 
@@ -1367,12 +1474,78 @@ private:
   }
 
   static void TropicalFish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    auto variant = tag.int32(u8"Variant", 0);
-    auto tf = TropicalFish::FromJavaVariant(variant);
-    c[u8"Variant"] = Int(tf.fSmall ? 0 : 1);
-    c[u8"MarkVariant"] = Int(tf.fPattern);
-    c[u8"Color"] = Byte(tf.fBodyColor);
-    c[u8"Color2"] = Byte(tf.fPatternColor);
+    auto variantJ = tag.int32(u8"Variant", 0);
+    auto tf = TropicalFish::FromJavaVariant(variantJ);
+
+    i32 variant = tf.fSmall ? 0 : 1;
+    c[u8"Variant"] = Int(variant);
+    static DefaultMap<i32, std::u8string> const sVariant(
+        {
+            {0, u8"tropicalfish_variant_a"},
+            {1, u8"tropicalfish_variant_b"},
+        },
+        u8"tropicalfish_variant_a");
+    AddDefinition(c, u8"+minecraft:" + sVariant.at(variant));
+
+    i32 markVariant = tf.fPattern;
+    c[u8"MarkVariant"] = Int(markVariant);
+    static DefaultMap<i32, std::u8string> const sMarkVariant(
+        {
+            {0, u8"tropicalfish_variant_pattern_1"},
+            {1, u8"tropicalfish_variant_pattern_2"},
+            {2, u8"tropicalfish_variant_pattern_3"},
+            {3, u8"tropicalfish_variant_pattern_4"},
+            {4, u8"tropicalfish_variant_pattern_5"},
+            {5, u8"tropicalfish_variant_pattern_6"},
+        },
+        u8"tropicalfish_variant_pattern_1");
+    AddDefinition(c, u8"+minecraft:" + sMarkVariant.at(markVariant));
+
+    i8 color = tf.fBodyColor;
+    c[u8"Color"] = Byte(color);
+    static DefaultMap<i8, std::u8string> const sColor(
+        {
+            {0, u8"tropicalfish_base_white"},
+            {1, u8"tropicalfish_base_orange"},
+            {2, u8"tropicalfish_base_magenta"},
+            {3, u8"tropicalfish_base_lightblue"},
+            {4, u8"tropicalfish_base_yellow"},
+            {5, u8"tropicalfish_base_lightgreen"},
+            {6, u8"tropicalfish_base_pink"},
+            {7, u8"tropicalfish_base_gray"},
+            {8, u8"tropicalfish_base_silver"},
+            {9, u8"tropicalfish_base_cyan"},
+            {10, u8"tropicalfish_base_purple"},
+            {11, u8"tropicalfish_base_blue"},
+            {12, u8"tropicalfish_base_brown"},
+            {13, u8"tropicalfish_base_green"},
+            {14, u8"tropicalfish_base_red"},
+        },
+        u8"tropicalfish_base_white");
+    AddDefinition(c, u8"+minecraft:" + sColor.at(color));
+
+    i8 color2 = tf.fPatternColor;
+    c[u8"Color2"] = Byte(color2);
+    static DefaultMap<i8, std::u8string> const sColor2(
+        {
+            {0, u8"tropicalfish_pattern_white"},
+            {1, u8"tropicalfish_pattern_orange"},
+            {2, u8"tropicalfish_pattern_magenta"},
+            {3, u8"tropicalfish_pattern_lightblue"},
+            {4, u8"tropicalfish_pattern_yellow"},
+            {5, u8"tropicalfish_pattern_lightgreen"},
+            {6, u8"tropicalfish_pattern_pink"},
+            {7, u8"tropicalfish_pattern_gray"},
+            {8, u8"tropicalfish_pattern_silver"},
+            {9, u8"tropicalfish_pattern_cyan"},
+            {10, u8"tropicalfish_pattern_purple"},
+            {11, u8"tropicalfish_pattern_blue"},
+            {12, u8"tropicalfish_pattern_brown"},
+            {13, u8"tropicalfish_pattern_green"},
+            {14, u8"tropicalfish_pattern_red"},
+        },
+        u8"tropicalfish_pattern_white");
+    AddDefinition(c, u8"+minecraft:" + sColor2.at(color2));
   }
 
   static void Turtle(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1481,6 +1654,12 @@ private:
     c[u8"Attributes"] = attributes.toBedrockListTag();
   }
 
+  static void Zombie(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    if (tag.boolean(u8"CanBreakDoors", false)) {
+      AddDefinition(c, u8"+minecraft:can_break_doors");
+    }
+  }
+
   static void ZombiePigman(CompoundTag &tagB, CompoundTag const &tagJ, ConverterContext &ctx) {
     auto angryAt = props::GetUuid(tagJ, {.fIntArray = u8"AngryAt"});
     if (angryAt) {
@@ -1512,6 +1691,18 @@ private:
       c[u8"Age"] = Int(age);
     } else {
       AddDefinition(c, u8"+adult");
+      c.erase(u8"Age");
+    }
+    c[u8"IsBaby"] = Bool(age < 0);
+  }
+
+  static void AgeableF(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    auto age = tag.int32(u8"Age", 0);
+    if (age < 0) {
+      AddDefinition(c, u8"+minecraft:baby");
+      c[u8"Age"] = Int(age);
+    } else {
+      AddDefinition(c, u8"+minecraft:adult");
       c.erase(u8"Age");
     }
     c[u8"IsBaby"] = Bool(age < 0);
@@ -1990,12 +2181,10 @@ private:
       auto chested = tag.boolean(u8"ChestedHorse", false);
       c[u8"Chested"] = Bool(chested);
       if (!chested) {
-        AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_unchested");
         return;
       }
       auto chestItems = tag.listTag(u8"Items");
       if (!chestItems) {
-        AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_unchested");
         return;
       }
 
@@ -2118,7 +2307,10 @@ private:
     };
   }
 
-  static Behavior Steerable(std::u8string const &definitionKey) {
+  struct SteerableOptions {
+    bool fAddAlwaysUnsaddledDefinition = true;
+  };
+  static Behavior Steerable(std::u8string const &definitionKey, SteerableOptions opt) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       auto saddle = tag.boolean(u8"Saddle", false);
       auto saddleItem = tag.compoundTag(u8"SaddleItem");
@@ -2134,7 +2326,7 @@ private:
           });
           AddChestItem(c, item, 0, 1);
         }
-      } else {
+      } else if (opt.fAddAlwaysUnsaddledDefinition) {
         AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_unsaddled");
       }
       c[u8"Saddled"] = Bool(saddle);

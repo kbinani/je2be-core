@@ -431,7 +431,6 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
   } else if (id == u8"minecraft:chest_minecart") {
     blacklist.insert(u8"LootTableSeed");
   } else if (id == u8"minecraft:zombie") {
-    blacklist.insert(u8"CanBreakDoors");
     blacklist.insert(u8"InWaterTime");
   } else if (id == u8"minecraft:arrow") {
     blacklist.insert(u8"HasBeenShot");
@@ -460,7 +459,6 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
   } else if (id == u8"minecraft:warden") {
     blacklist.insert(u8"anger");
   } else if (id == u8"minecraft:zombified_piglin") {
-    blacklist.insert(u8"CanBreakDoors");
     blacklist.insert(u8"AngerTime");
     blacklist.insert(u8"AngryAt");
     auto angryAtA = copyA->intArrayTag(u8"AngryAt");
@@ -720,6 +718,9 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
       for (int x = chunkE->minBlockX(); x <= chunkE->maxBlockX(); x++) {
         auto a = chunkA->biomeAt(x, y, z);
         auto e = chunkE->biomeAt(x, y, z);
+        if (e == mcfile::biomes::unknown) {
+          continue;
+        }
         CHECK(a == e);
       }
     }

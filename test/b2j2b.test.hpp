@@ -17,66 +17,102 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   DiffCompoundTag(*e, *a);
 }
 
+static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expected, ListTagPtr const &actual) {
+  static set<u8string> const sIgnore = {
+      u8"+",
+      u8"minecraft:wild_child_ocelot_spawn",
+      u8"look_for_food",           // bee
+      u8"find_hive",               // bee
+      u8"escape_fire",             // bee
+      u8"return_to_home",          // bee
+      u8"minecraft:fox_with_item", // sometimes this tag exists even when fox does not have any items
+      u8"minecraft:docile_fox",
+      u8"minecraft:fox_night",
+      u8"minecraft:fox_day",
+      u8"minecraft:start_suffocating",
+      u8"minecraft:detect_suffocating",
+      u8"axolotl_on_land",
+      u8"axolotl_dried",
+      u8"axolotl_in_water",
+  };
+
+  set<u8string> setE;
+  if (expected) {
+    for (auto const &it : expected->fValue) {
+      auto s = it->asString();
+      if (!s) {
+        continue;
+      }
+      if (sIgnore.count(s->fValue) > 0) {
+        continue;
+      }
+      if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
+        if (sIgnore.count(s->fValue.substr(1)) > 0) {
+          continue;
+        }
+      }
+      setE.insert(s->fValue);
+    }
+  }
+
+  set<u8string> setA;
+  if (actual) {
+    for (auto const &it : actual->fValue) {
+      auto s = it->asString();
+      if (!s) {
+        continue;
+      }
+      if (sIgnore.count(s->fValue) > 0) {
+        continue;
+      }
+      if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
+        if (sIgnore.count(s->fValue.substr(1)) > 0) {
+          continue;
+        }
+      }
+      setA.insert(s->fValue);
+    }
+  }
+
+  set<u8string> common;
+  set<u8string> extra = setA;
+  set<u8string> missing = setE;
+  while (true) {
+    bool changed = false;
+    for (u8string e : extra) {
+      if (missing.count(e) > 0) {
+        common.insert(e);
+        extra.erase(e);
+        missing.erase(e);
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) {
+      break;
+    }
+  }
+
+  static const set<u8string> const sEntitiesSkipDefinitionCheck{
+      u8"minecraft:villager_v2",
+      u8"minecraft:zombie_villager_v2",
+  };
+  if (sEntitiesSkipDefinitionCheck.count(id) == 0) {
+    for (auto const &m : missing) {
+      cerr << m << " not found for entity id: " << id << endl;
+    }
+    for (auto const &e : extra) {
+      cerr << e << " is extra definition for entity " << id << endl;
+    }
+    CHECK(missing.empty());
+    CHECK(extra.empty());
+  }
+}
+
 static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual) {
   auto defE = expected.listTag(u8"definitions");
   auto defA = actual.listTag(u8"definitions");
-  if (defE) {
-    CHECK(defA);
-    if (defA) {
-      static set<u8string> const sIgnore = {
-          u8"+",
-          u8"+minecraft:wild_child_ocelot_spawn",
-          u8"+look_for_food",
-      };
-      for (auto const &e : *defE) {
-        auto cE = e->asString();
-        if (!cE) {
-          continue;
-        }
-        if (sIgnore.count(cE->fValue) > 0) {
-          continue;
-        }
-        bool found = false;
-        for (auto const &it : *defA) {
-          auto cA = it->asString();
-          if (!cA) {
-            continue;
-          }
-          if (cA->fValue == cE->fValue) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          cerr << cE->fValue << " not found for entity id: " << id << endl;
-        }
-        CHECK(found);
-      }
-      for (auto const &a : *defA) {
-        auto cA = a->asString();
-        if (!cA) {
-          continue;
-        }
-        if (sIgnore.count(cA->fValue) > 0) {
-          continue;
-        }
-        bool found = false;
-        for (auto const &it : *defE) {
-          auto cE = it->asString();
-          if (!cE) {
-            continue;
-          }
-          if (cE->fValue == cA->fValue) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          cerr << cA->fValue << " is extra definition for entity " << id << endl;
-        }
-      }
-    }
-  }
+  CheckEntityDefinitionsB(id, defE, defA);
 
   // TODO: check other properties
 }

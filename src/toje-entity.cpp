@@ -847,7 +847,7 @@ public:
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     j[u8"DrownedConversionTime"] = Int(-1);
-    j[u8"CanBreakDoors"] = Bool(false);
+    j[u8"CanBreakDoors"] = Bool(HasDefinition(b, u8"+minecraft:can_break_doors"));
     j[u8"InWaterTime"] = Int(-1);
   }
 
@@ -2005,6 +2005,7 @@ public:
     E(camel, C(Same, Animal, Bred, SaddleItemFromChestItems, Tame, Camel));
     E(sniffer, C(Same, Animal));
     E(ocelot, C(Same, Animal, Age, Ocelot));
+    E(vindicator, C(Same, LivingEntity));
 #undef E
     return ret;
   }
