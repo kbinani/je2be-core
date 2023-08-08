@@ -93,7 +93,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
     }
   }
 
-  static const set<u8string> const sEntitiesSkipDefinitionCheck{
+  static set<u8string> const sEntitiesSkipDefinitionCheck{
       u8"minecraft:villager_v2",
       u8"minecraft:zombie_villager_v2",
   };
