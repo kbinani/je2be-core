@@ -1720,6 +1720,7 @@ private:
       AddDefinition(c, u8"+minecraft:baby");
       c[u8"Age"] = Int(age);
     } else {
+      AddDefinition(c, u8"-minecraft:baby");
       AddDefinition(c, u8"+minecraft:adult");
       c.erase(u8"Age");
     }

@@ -34,6 +34,9 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"axolotl_on_land",
       u8"axolotl_dried",
       u8"axolotl_in_water",
+      u8"-feeling_happy",          // sniffer
+      u8"-sniffer_search_and_dig", // sniffer
+      u8"-stand_up",               // sniffer
   };
 
   set<u8string> setE;
