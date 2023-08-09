@@ -62,7 +62,7 @@ public:
       return IOError();
     }
     if (auto path = prepareForRead(fname); path) {
-      return fE->NewSequentialFile(*path, result);
+      return fE->NewSequentialFile(Path(*path), result);
     } else {
       return IOError();
     }
@@ -73,7 +73,7 @@ public:
       return IOError();
     }
     if (auto path = prepareForRead(fname); path) {
-      return fE->NewRandomAccessFile(*path, result);
+      return fE->NewRandomAccessFile(Path(*path), result);
     } else {
       return IOError();
     }
@@ -84,7 +84,7 @@ public:
       return IOError();
     }
     if (auto path = prepareForWrite(fname); path) {
-      return fE->NewWritableFile(*path, result);
+      return fE->NewWritableFile(Path(*path), result);
     } else {
       return IOError();
     }
@@ -100,7 +100,7 @@ public:
         std::lock_guard<std::mutex> lock(fMut);
         return fFiles.count(key) > 0;
       } else {
-        return fE->FileExists(fname);
+        return fE->FileExists(Path(fname));
       }
     } else {
       return false;
@@ -118,7 +118,7 @@ public:
     }
     auto [protect, prefix] = *ret;
     if (!protect) {
-      return fE->GetChildren(dir, result);
+      return fE->GetChildren(Path(dir), result);
     }
     if (!prefix.ends_with(fs::path::preferred_separator)) {
       prefix.push_back(fs::path::preferred_separator);
@@ -147,7 +147,7 @@ public:
     }
     auto [protect, key] = *ret;
     if (!protect) {
-      return fE->RemoveFile(fname);
+      return fE->RemoveFile(Path(fname));
     }
     std::lock_guard<std::mutex> lock(fMut);
     auto found = fFiles.find(key);
@@ -155,7 +155,7 @@ public:
       return leveldb::Status::NotFound({});
     }
     if (found->second.fActual) {
-      if (auto st = fE->RemoveFile(*found->second.fActual); !st.ok()) {
+      if (auto st = fE->RemoveFile(Path(*found->second.fActual)); !st.ok()) {
         return st;
       }
     }
@@ -173,7 +173,7 @@ public:
     }
     auto [protect, _] = *ret;
     if (!protect) {
-      return fE->CreateDir(dirname);
+      return fE->CreateDir(Path(dirname));
     }
     return leveldb::Status::OK();
   }
@@ -189,7 +189,7 @@ public:
     }
     auto [protect, prefix] = *ret;
     if (!protect) {
-      return fE->RemoveDir(dirname);
+      return fE->RemoveDir(Path(dirname));
     }
     if (!prefix.ends_with(fs::path::preferred_separator)) {
       prefix.push_back(fs::path::preferred_separator);
@@ -208,7 +208,7 @@ public:
       return IOError();
     }
     if (auto p = prepareForRead(fname); p) {
-      return fE->GetFileSize(*p, file_size);
+      return fE->GetFileSize(Path(*p), file_size);
     } else {
       return IOError();
     }
@@ -229,7 +229,7 @@ public:
     auto [protectSrc, keySrc] = *retSrc;
     auto [protectDest, keyDest] = *retDest;
     if (!protectSrc && !protectDest) {
-      return fE->RenameFile(src, target);
+      return fE->RenameFile(Path(src), Path(target));
     }
     auto actualSrc = prepareForRead(src);
     if (!actualSrc) {
@@ -257,7 +257,7 @@ public:
       std::lock_guard<std::mutex> lock(fMut);
       fFiles.erase(keySrc);
     } else {
-      if (auto st = fE->RemoveFile(src); !st.ok()) {
+      if (auto st = fE->RemoveFile(Path(src)); !st.ok()) {
         return st;
       }
     }
@@ -272,7 +272,7 @@ public:
     if (!actual) {
       return IOError();
     }
-    return fE->LockFile(*actual, lock);
+    return fE->LockFile(Path(*actual), lock);
   }
 
   leveldb::Status UnlockFile(leveldb::FileLock *lock) override {
@@ -308,7 +308,7 @@ public:
     if (!actual) {
       return IOError();
     }
-    return fE->NewLogger(*actual, result);
+    return fE->NewLogger(Path(*actual), result);
   }
 
   uint64_t NowMicros() override {
@@ -452,6 +452,18 @@ private:
     namespace fs = std::filesystem;
     auto id = fNextFileId.fetch_add(1);
     return fWork / (fs::path(std::to_string(id) + "-").native() + p.filename().native());
+  }
+
+  static std::filesystem::path Path(std::filesystem::path p) {
+#if defined(_WIN32)
+    std::wstring s = p.make_preferred().native();
+    if (!s.starts_with(LR"(\\?\)")) {
+      s = LR"(\\?\)" + s;
+    }
+    return std::filesystem::path(s);
+#else
+    return p;
+#endif
   }
 
 private:
