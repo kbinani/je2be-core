@@ -846,9 +846,9 @@ private:
       }
     }
 
-    u8string nbt;
+    string nbt;
     copy(buffer.begin() + heightMapStartPos + 256 + 2 + 256, buffer.end(), back_inserter(nbt));
-    if (!nbt.starts_with(u8string(u8"\x0a\x00\x00", 3))) {
+    if (!nbt.starts_with(string("\x0a\x00\x00", 3))) {
       return JE2BE_ERROR;
     }
     auto tag = CompoundTag::Read(nbt, mcfile::Endian::Big);
