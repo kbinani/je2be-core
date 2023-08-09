@@ -529,7 +529,7 @@ private:
       if (!fileNameString.starts_with(u8"map_") || !fileNameString.ends_with(u8".dat")) {
         continue;
       }
-      auto numberString = strings::RTrim(strings::LTrim(fileNameString, u8"map_"), u8".dat");
+      auto numberString = strings::RemovePrefixAndSuffix(u8"map_", fileNameString, u8".dat");
       auto number = strings::ToI32(numberString);
       if (!number) {
         continue;

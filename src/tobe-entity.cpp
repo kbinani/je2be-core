@@ -1125,7 +1125,7 @@ private:
 
     auto decorItemId = tag.query(u8"DecorItem/id")->asString();
     if (decorItemId && decorItemId->fValue.starts_with(u8"minecraft:") && decorItemId->fValue.ends_with(u8"_carpet")) {
-      auto carpetColor = strings::Trim(u8"minecraft:", decorItemId->fValue, u8"_carpet");
+      auto carpetColor = strings::RemovePrefixAndSuffix(u8"minecraft:", decorItemId->fValue, u8"_carpet");
       auto colorCode = ColorCodeJavaFromJavaName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
       auto armor = Compound();

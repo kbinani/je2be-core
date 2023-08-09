@@ -10,7 +10,7 @@
 
 namespace je2be::strings {
 
-inline std::u8string LTrim(std::u8string_view const &s, std::u8string const &left) {
+inline std::u8string RemovePrefix(std::u8string_view const &s, std::u8string const &left) {
   if (left.empty()) {
     return std::u8string(s);
   }
@@ -21,7 +21,7 @@ inline std::u8string LTrim(std::u8string_view const &s, std::u8string const &lef
   return ret;
 }
 
-inline std::u8string RTrim(std::u8string_view const &s, std::u8string const &right) {
+inline std::u8string RemoveSuffix(std::u8string_view const &s, std::u8string const &right) {
   if (right.empty()) {
     return std::u8string(s);
   }
@@ -32,7 +32,7 @@ inline std::u8string RTrim(std::u8string_view const &s, std::u8string const &rig
   return ret;
 }
 
-inline std::string RTrim(std::string_view const &s, std::string const &right) {
+inline std::string RemoveSuffix(std::string_view const &s, std::string const &right) {
   if (right.empty()) {
     return std::string(s);
   }
@@ -43,7 +43,9 @@ inline std::string RTrim(std::string_view const &s, std::string const &right) {
   return ret;
 }
 
-inline std::u8string Trim(std::u8string const &left, std::u8string_view const &s, std::u8string const &right) { return RTrim(LTrim(s, left), right); }
+inline std::u8string RemovePrefixAndSuffix(std::u8string const &left, std::u8string_view const &s, std::u8string const &right) {
+  return RemoveSuffix(RemovePrefix(s, left), right);
+}
 
 inline std::u8string LTrim(std::u8string const &s) {
   std::u8string ws = u8" \r\n\t";

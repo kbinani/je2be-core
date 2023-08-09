@@ -41,7 +41,7 @@ public:
 
   static i8 GetSkullTypeFromBlockName(std::u8string_view const &name) {
     i8 type = 0;
-    std::u8string n = strings::LTrim(name, u8"minecraft:");
+    std::u8string n = strings::RemovePrefix(name, u8"minecraft:");
     n = strings::Remove(n, u8"_wall");
     auto st = SkullTypeFromJavaName(n);
     if (st) {
@@ -994,7 +994,7 @@ private:
   }
 
   static CompoundTagPtr Banner(std::u8string const &name, CompoundTag const &item, Context const &) {
-    auto colorName = strings::Trim(u8"minecraft:", name, u8"_banner");
+    auto colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_banner");
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     i16 damage = (i16)color;
     auto ret = New(u8"banner");
@@ -1046,7 +1046,7 @@ private:
 
   static CompoundTagPtr Bed(std::u8string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
-    u8string colorName = strings::Trim(u8"minecraft:", name, u8"_bed");
+    u8string colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_bed");
     ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
     i16 damage = (i16)color;
     auto tag = New(u8"bed");
@@ -1286,7 +1286,7 @@ private:
         return nullopt;
       }
     } else {
-      return strings::Trim(u8"\"", *name, u8"\"");
+      return strings::RemovePrefixAndSuffix(u8"\"", *name, u8"\"");
     }
   }
 

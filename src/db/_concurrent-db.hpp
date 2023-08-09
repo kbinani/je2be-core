@@ -669,8 +669,8 @@ public:
     for (u64 n = 0; n < nmax; n++) {
       string upper = strings::Increment(lower);
 
-      string begin = strings::RTrim(lower, string("\x0", 1));
-      string end = strings::RTrim(upper, string("\x0", 1));
+      string begin = strings::RemoveSuffix(lower, string("\x0", 1));
+      string end = strings::RemoveSuffix(upper, string("\x0", 1));
 
       vector<Key> keys;
       for (Writer::CloseResult const &cr : writerIds) {

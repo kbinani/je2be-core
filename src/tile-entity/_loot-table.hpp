@@ -49,7 +49,7 @@ public:
       return *found;
     }
     if (bedrock.starts_with(u8"loot_tables/") && bedrock.ends_with(u8".json")) {
-      std::u8string name = strings::RTrim(bedrock.substr(12), u8".json");
+      std::u8string name = strings::RemoveSuffix(bedrock.substr(12), u8".json");
       return u8"minecraft:" + name;
     }
     return std::nullopt;

@@ -74,7 +74,7 @@ private:
       if (!name.starts_with(u8"map_") || !name.ends_with(u8".dat")) {
         continue;
       }
-      auto numberStr = strings::Trim(u8"map_", name, u8".dat");
+      auto numberStr = strings::RemovePrefixAndSuffix(u8"map_", name, u8".dat");
       auto number = strings::ToI32(numberStr);
       if (!number) {
         continue;

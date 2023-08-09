@@ -1108,7 +1108,7 @@ private:
     auto tag = Compound();
     auto plantBlock = Compound();
     auto states = Compound();
-    auto type = strings::Trim(u8"minecraft:potted_", b.fName, u8"_sapling");
+    auto type = strings::RemovePrefixAndSuffix(u8"minecraft:potted_", b.fName, u8"_sapling");
     states->insert({
         {u8"age_bit", Byte(0)},
         {u8"sapling_type", String(type)},

@@ -420,7 +420,7 @@ public:
 
   static std::optional<Result> Furnace(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     using namespace std;
-    u8string name = strings::LTrim(block.fName.substr(10), u8"lit_");
+    u8string name = strings::RemovePrefix(block.fName.substr(10), u8"lit_");
     auto te = EmptyShortName(name, pos);
     CopyShortValues(tagB, *te, {{u8"BurnDuration", u8"BurnTime"}, {u8"CookTime"}, {u8"BurnTime", u8"CookTimeTotal"}});
     te->set(u8"RecipesUsed", Compound());
