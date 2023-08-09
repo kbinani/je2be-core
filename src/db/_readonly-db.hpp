@@ -5,6 +5,7 @@
 
 #include <je2be/fs.hpp>
 
+#include "_file.hpp"
 #include "db/_firewall-env.hpp"
 #include "db/_proxy-env.hpp"
 
@@ -27,21 +28,34 @@ public:
       if (fTempDir) {
         Fs::DeleteAll(*fTempDir);
       }
+      if (fLockLock) {
+        leveldb::Env::Default()->UnlockFile(fLockLock);
+        fLockLock = nullptr;
+      }
+      if (fManifestLock) {
+        leveldb::Env::Default()->UnlockFile(fManifestLock);
+        fManifestLock = nullptr;
+      }
     }
 
   protected:
     std::optional<std::filesystem::path> fTempDir;
+    leveldb::FileLock *fLockLock = nullptr;
+    leveldb::FileLock *fManifestLock = nullptr;
     std::unique_ptr<FirewallEnv> fFirewall;
     std::unique_ptr<ProxyEnv> fProxy;
   };
 
   static std::unique_ptr<Closer> Open(std::filesystem::path const &db, leveldb::DB **ptr, std::filesystem::path const &tempRoot) {
+    namespace fs = std::filesystem;
+
     auto dir = mcfile::File::CreateTempDir(tempRoot);
     if (!dir) {
       return nullptr;
     }
     std::unique_ptr<Closer> closer(new Closer);
     closer->fTempDir = *dir;
+
     closer->fFirewall.reset(new FirewallEnv(*dir));
     if (!closer->fFirewall->Valid()) {
       return nullptr;
@@ -53,11 +67,33 @@ public:
     leveldb::Options o;
     o.env = closer->fProxy.get();
     *ptr = nullptr;
-    if (auto st = leveldb::DB::Open(o, db, ptr); st.ok()) {
-      return std::move(closer);
-    } else {
+    if (auto st = leveldb::DB::Open(o, db, ptr); !st.ok()) {
       return nullptr;
     }
+
+    auto lockFile = db / "LOCK";
+    if (auto st = leveldb::Env::Default()->LockFile(lockFile, &closer->fLockLock); !st.ok()) {
+      return nullptr;
+    }
+
+    // Bedrock game client doesn't create or lock the "LOCK" file.
+    // The locking process above is for other app reading the db in regular manner.
+    // For bedrock game client, additionally lock the manifest file.
+    auto currentFile = db / "CURRENT";
+    std::vector<u8> content;
+    if (file::GetContents(currentFile, content)) {
+      std::u8string manifestName;
+      manifestName.assign((char8_t const *)content.data(), content.size());
+      manifestName = strings::Trim(manifestName);
+      auto manifestFile = db / manifestName;
+      if (Fs::Exists(manifestFile)) {
+        if (auto st = leveldb::Env::Default()->LockFile(manifestFile, &closer->fManifestLock); !st.ok()) {
+          return nullptr;
+        }
+      }
+    }
+
+    return std::move(closer);
   }
 
   ReadonlyDb(std::filesystem::path const &db, std::filesystem::path const &tempRoot) {

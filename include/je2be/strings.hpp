@@ -45,6 +45,30 @@ inline std::string RTrim(std::string_view const &s, std::string const &right) {
 
 inline std::u8string Trim(std::u8string const &left, std::u8string_view const &s, std::u8string const &right) { return RTrim(LTrim(s, left), right); }
 
+inline std::u8string LTrim(std::u8string const &s) {
+  std::u8string ws = u8" \r\n\t";
+  auto start = s.find_first_not_of(ws);
+  if (start == std::u8string::npos) {
+    return {};
+  } else {
+    return s.substr(start);
+  }
+}
+
+inline std::u8string RTrim(std::u8string const &s) {
+  std::u8string ws = u8" \r\n\t";
+  auto end = s.find_last_not_of(ws);
+  if (end == std::u8string::npos) {
+    return {};
+  } else {
+    return s.substr(0, end + 1);
+  }
+}
+
+inline std::u8string Trim(std::u8string const &s) {
+  return RTrim(LTrim(s));
+}
+
 inline std::u8string Remove(std::u8string_view const &s, std::u8string const &search) {
   if (search.empty()) {
     return std::u8string(s);
