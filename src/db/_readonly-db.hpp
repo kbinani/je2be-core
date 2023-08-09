@@ -81,16 +81,19 @@ public:
     // For bedrock game client, additionally lock the manifest file.
     auto currentFile = db / "CURRENT";
     std::vector<u8> content;
-    if (file::GetContents(currentFile, content)) {
-      std::u8string manifestName;
-      manifestName.assign((char8_t const *)content.data(), content.size());
-      manifestName = strings::Trim(manifestName);
-      auto manifestFile = db / manifestName;
-      if (Fs::Exists(manifestFile)) {
-        if (auto st = leveldb::Env::Default()->LockFile(manifestFile, &closer->fManifestLock); !st.ok()) {
-          return nullptr;
-        }
-      }
+    if (!file::GetContents(currentFile, content)) {
+      return nullptr;
+    }
+
+    std::u8string manifestName;
+    manifestName.assign((char8_t const *)content.data(), content.size());
+    manifestName = strings::Trim(manifestName);
+    auto manifestFile = db / manifestName;
+    if (!Fs::Exists(manifestFile)) {
+      return nullptr;
+    }
+    if (auto st = leveldb::Env::Default()->LockFile(manifestFile, &closer->fManifestLock); !st.ok()) {
+      return nullptr;
     }
 
     return std::move(closer);
