@@ -57,6 +57,9 @@ public:
     if (!db) {
       return JE2BE_ERROR;
     }
+    if (!db->valid()) {
+      return JE2BE_ERROR;
+    }
     auto levelDat = LevelData::Import(*dat, *db, options, *bin);
     if (!levelDat) {
       return JE2BE_ERROR;

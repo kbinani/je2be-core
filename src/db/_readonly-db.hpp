@@ -126,6 +126,10 @@ public:
     }
   }
 
+  bool valid() const {
+    return (bool)fDb;
+  }
+
 private:
   std::unique_ptr<leveldb::DB> fDb;
   std::unique_ptr<Closer> fCloser;
