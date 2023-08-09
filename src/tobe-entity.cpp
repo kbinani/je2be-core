@@ -926,14 +926,32 @@ private:
     u8 time = mcfile::Clamp<u8>(tag.int32(u8"Time", 0));
     c[u8"Time"] = Byte(*(i8 *)&time);
 
-    /*
-    Variant:
-    152 anvil
-    6707 sand
-    6708 red_sand
-    3660 concretepowder
-    3661 orange concretepowder
-    */
+    static std::unordered_map<std::u8string, u32> const sTable = {
+        {u8"minecraft:anvil", 0xcfce05a9},
+        {u8"minecraft:gravel", 0x5b235f1a},
+        {u8"minecraft:sand", 0xe64f91de},
+        {u8"minecraft:white_concrete_powder", 0xd970d61b},
+        {u8"minecraft:red_sand", 0xa6ca8193},
+        {u8"minecraft:orange_concrete_powder", 0xcd0f781b},
+        {u8"minecraft:light_blue_concrete_powder", 0x95c4c950},
+        {u8"minecraft:light_gray_concrete_powder", 0x24de1058},
+        {u8"minecraft:gray_concrete_powder", 0xc69f935c},
+        {u8"minecraft:lime_concrete_powder", 0x5496fa96},
+        {u8"minecraft:yellow_concrete_powder", 0x5e1d0829},
+        {u8"minecraft:magenta_concrete_powder", 0xf8d7dd23},
+        {u8"minecraft:pink_concrete_powder", 0x784c60f},
+        {u8"minecraft:cyan_concrete_powder", 0x2071a1b4},
+        {u8"minecraft:purple_concrete_powder", 0x6fa8a43f},
+        {u8"minecraft:red_concrete_powder", 0x7f5577df},
+        {u8"minecraft:brown_concrete_powder", 0x80526fc2},
+        {u8"minecraft:black_concrete_powder", 0x1cb7ea9},
+        {u8"minecraft:blue_concrete_powder", 0x27892033},
+        {u8"minecraft:green_concrete_powder", 0xf54a339},
+    };
+    if (auto found = sTable.find(*name); found != sTable.end()) {
+      u32 u = found->second;
+      c[u8"Variant"] = Int(*(i32 *)&u);
+    }
   }
 
   static void Fox(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

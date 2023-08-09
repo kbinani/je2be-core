@@ -114,6 +114,26 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
   auto defA = actual.listTag(u8"definitions");
   CheckEntityDefinitionsB(id, defE, defA);
 
+  if (id == u8"minecraft:falling_block") {
+    auto blockE = expected.compoundTag(u8"FallingBlock");
+    auto blockA = actual.compoundTag(u8"FallingBlock");
+    if (blockE) {
+      CHECK(blockA);
+      if (blockA) {
+        auto copyE = blockE->copy();
+        auto copyA = blockA->copy();
+        copyE->erase(u8"version");
+        copyA->erase(u8"version");
+        DiffCompoundTag(*copyE, *copyA);
+      }
+    } else {
+      CHECK(!blockA);
+    }
+
+    auto variantE = expected.int32(u8"Variant");
+    auto variantA = actual.int32(u8"Variant");
+    CHECK(variantE == variantA);
+  }
   // TODO: check other properties
 }
 
