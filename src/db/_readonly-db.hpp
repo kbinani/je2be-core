@@ -99,10 +99,12 @@ public:
     return std::move(closer);
   }
 
-  ReadonlyDb(std::filesystem::path const &db, std::filesystem::path const &tempRoot) {
-    leveldb::DB *ptr = nullptr;
-    fCloser = std::move(Open(db, &ptr, tempRoot));
-    fDb.reset(ptr);
+  static std::unique_ptr<ReadonlyDb> Open(std::filesystem::path const &db, std::filesystem::path const &tempRoot) {
+    std::unique_ptr<ReadonlyDb> ptr(new ReadonlyDb(db, tempRoot));
+    if (!ptr->fDb || !ptr->fCloser) {
+      return nullptr;
+    }
+    return std::move(ptr);
   }
 
   ~ReadonlyDb() {
@@ -126,8 +128,11 @@ public:
     }
   }
 
-  bool valid() const {
-    return (bool)fDb;
+private:
+  ReadonlyDb(std::filesystem::path const &db, std::filesystem::path const &tempRoot) {
+    leveldb::DB *ptr = nullptr;
+    fCloser = std::move(Open(db, &ptr, tempRoot));
+    fDb.reset(ptr);
   }
 
 private:

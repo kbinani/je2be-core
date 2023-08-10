@@ -53,11 +53,8 @@ public:
     }
     auto bin = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency);
 
-    unique_ptr<ReadonlyDb> db(new ReadonlyDb(input / "db", options.getTempDirectory()));
+    auto db = ReadonlyDb::Open(input / "db", options.getTempDirectory());
     if (!db) {
-      return JE2BE_ERROR;
-    }
-    if (!db->valid()) {
       return JE2BE_ERROR;
     }
     auto levelDat = LevelData::Import(*dat, *db, options, *bin);
