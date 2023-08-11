@@ -49,6 +49,8 @@ public:
   static std::unique_ptr<Closer> Open(std::filesystem::path const &db, leveldb::DB **ptr, std::filesystem::path const &tempRoot) {
     namespace fs = std::filesystem;
 
+    *ptr = nullptr;
+
     auto dir = mcfile::File::CreateTempDir(tempRoot);
     if (!dir) {
       return nullptr;
@@ -66,8 +68,8 @@ public:
     }
     leveldb::Options o;
     o.env = closer->fProxy.get();
-    *ptr = nullptr;
-    if (auto st = leveldb::DB::Open(o, db, ptr); !st.ok()) {
+    leveldb::DB *dbPtr = nullptr;
+    if (auto st = leveldb::DB::Open(o, db, &dbPtr); !st.ok()) {
       return nullptr;
     }
 
@@ -96,6 +98,7 @@ public:
       return nullptr;
     }
 
+    *ptr = dbPtr;
     return std::move(closer);
   }
 
