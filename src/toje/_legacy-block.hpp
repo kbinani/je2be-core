@@ -24,25 +24,30 @@ class LegacyBlock {
     std::vector<Migrator> fMigrators;
   };
 
+  template <size_t RightShift, size_t Bits>
   struct PropertySelector {
+    static_assert(RightShift < 16);
+    static_assert(Bits > 0);
+
     PropertySelector(String const &propertyName,
-                     std::optional<int16_t> mask,
-                     std::initializer_list<String> table,
+                     std::optional<String> const table[1 << Bits],
                      std::optional<String> blockName = std::nullopt)
         : fPropertyName(propertyName),
-          fMask(mask),
-          fTable(table),
-          fBlockName(blockName) {}
+          fBlockName(blockName) {
+      fTable.resize(1 << Bits);
+      for (size_t i = 0; i < (1 << Bits); i++) {
+        fTable[i] = table[i];
+      }
+    }
 
     String operator()(String const &n, int16_t v, CompoundTag &s) const {
-      int16_t index;
-      if (fMask) {
-        index = v & (*fMask);
-      } else {
-        index = v;
-      }
+      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      int16_t index = (v >> RightShift) & cMask;
       if (0 <= index && index < fTable.size()) {
-        s[fPropertyName] = std::make_shared<StringTag>(fTable[index]);
+        std::optional<String> value = fTable[index];
+        if (value) {
+          s[fPropertyName] = std::make_shared<StringTag>(*value);
+        }
       }
       if (fBlockName) {
         return *fBlockName;
@@ -52,9 +57,36 @@ class LegacyBlock {
     }
 
     String fPropertyName;
-    std::optional<int16_t> fMask;
-    std::vector<String> fTable;
+    std::vector<std::optional<String>> fTable;
     std::optional<String> fBlockName;
+  };
+
+  template <size_t RightShift, size_t Bits>
+  struct NamePrefixer {
+    NamePrefixer(String const &suffix, std::optional<String> const table[1 << Bits]) : fSuffix(suffix) {
+      fTable.resize(1 << Bits);
+      for (size_t i = 0; i < (1 << Bits); i++) {
+        fTable[i] = table[i];
+      }
+    }
+
+    String operator()(String const &n, int16_t v, CompoundTag &s) const {
+      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      int16_t index = (v >> RightShift) & cMask;
+      if (0 <= index && index < fTable.size()) {
+        auto prefix = fTable[index];
+        if (prefix) {
+          return *prefix + fSuffix;
+        } else {
+          return n;
+        }
+      } else {
+        return n;
+      }
+    }
+
+    std::vector<std::optional<String>> fTable;
+    String fSuffix;
   };
 
 public:
@@ -73,7 +105,7 @@ public:
       if (!b.fStates) {
         b.fStates = std::make_shared<mcfile::nbt::CompoundTag>();
       }
-      static std::unique_ptr<std::unordered_map<std::u8string_view, Migrator> const> const sTable(CreateMigratorTable());
+      static std::unique_ptr<std::unordered_map<std::u8string, Migrator> const> const sTable(CreateMigratorTable());
       std::u8string name = Namespace::Remove(b.fName);
       if (auto found = sTable->find(name); found != sTable->end()) {
         b.fName = Namespace::Add(found->second(name, val, *b.fStates));
@@ -92,88 +124,46 @@ private:
     return n;
   }
 
-  static String Planks(String const &n, int16_t v, CompoundTag &s) {
-    switch (v) {
-    case 1:
-      s[u8"wood_type"] = Str(u8"spruce");
-      break;
-    case 2:
-      s[u8"wood_type"] = Str(u8"birch");
-      break;
-    case 3:
-      s[u8"wood_type"] = Str(u8"jungle");
-      break;
-    case 4:
-      s[u8"wood_type"] = Str(u8"acacia");
-      break;
-    case 5:
-      s[u8"wood_type"] = Str(u8"dark_oak");
-      break;
-    case 0:
-    default:
-      s[u8"wood_type"] = Str(u8"oak");
-      break;
-    }
-    return n;
-  }
-
-  static String Fence(String const &n, int16_t v, CompoundTag &s) {
-    switch (v) {
-    case 1:
-      return u8"spruce_fence";
-    case 2:
-      return u8"birch_fence";
-    case 3:
-      return u8"jungle_fence";
-    case 4:
-      return u8"acacia_fence";
-    case 5:
-      return u8"dark_oak_fence";
-    case 0:
-    default:
-      return u8"oak_fence";
-    }
-  }
-
   static String BlockWithDirection(String const &n, int16_t v, CompoundTag &s) {
     s[u8"direction"] = Int(v);
     return n;
   }
 
-  static String Stairs(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"weirdo_direction"] = Int(v);
-    return n;
+  template <size_t RightShift, size_t Bits>
+  static Migrator IntProperty(String name) {
+    static_assert(0 < Bits && Bits <= 16);
+    return [=](String const &n, int16_t v, CompoundTag &s) {
+      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      s[name] = Int((v >> RightShift) & cMask);
+      return n;
+    };
   }
 
-  static String Door(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"direction"] = Int(v & 0x7);
-    s[u8"upper_block_bit"] = Bool((v & 0x8) == 0x8);
-    return n;
+  template <size_t RightShift, size_t Bits>
+  static Migrator ByteProperty(String name) {
+    static_assert(0 < Bits && Bits <= 8);
+    return [=](String const &n, int16_t v, CompoundTag &s) {
+      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      s[name] = std::make_shared<ByteTag>((v >> RightShift) & cMask);
+      return n;
+    };
   }
 
-  static String Trapdoor(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"direction"] = Int(v & 0x7);
-    s[u8"upside_down_bit"] = Bool((v & 0x8) == 0x8);
-    return n;
-  }
-
-  static String Stone(String const &n, int16_t v, CompoundTag &s) {
-    switch (v) {
-    case 0:
-    default:
-      s[u8"stone_type"] = Str(u8"stone");
-      break;
-    }
-    return n;
-  }
-
-  static String BlockWithFacingDirection(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"facing_direction"] = Int(v);
-    return n;
+  template <size_t RightShift>
+  static Migrator BoolProperty(String name) {
+    return [=](String const &n, int16_t v, CompoundTag &s) {
+      s[name] = Bool(((v >> RightShift) & 0x1) == 0x1);
+      return n;
+    };
   }
 
   static String TopSlotBit(String const &n, int16_t v, CompoundTag &s) {
     s[u8"top_slot_bit"] = Bool((v & 0x8) == 0x8);
+    return n;
+  }
+
+  static String StrippedBit(String const &n, int16_t v, CompoundTag &s) {
+    s[u8"stripped_bit"] = Bool((v & 0x8) == 0x8);
     return n;
   }
 
@@ -189,171 +179,577 @@ private:
     };
   }
 
-  static std::unordered_map<std::u8string_view, Migrator> *CreateMigratorTable() {
-    auto table = new std::unordered_map<std::u8string_view, Migrator>();
+  static Migrator Const(String propertyName, TagPtr propertyValue) {
+    return [=](String const &n, int16_t v, CompoundTag &s) {
+      s[propertyName] = propertyValue;
+      return n;
+    };
+  }
 
-#define E(__name, __migrator)                        \
-  assert(table->find(u8"" #__name) == table->end()); \
-  table->insert(std::make_pair(u8"" #__name, __migrator))
+  static String Growth(String const &n, int16_t v, CompoundTag &s) {
+    s[u8"growth"] = Int((v & 0x7));
+    return n;
+  }
 
-    static PropertySelector const sColoredBlock(u8"color", std::nullopt, {
-                                                                             u8"white",      // 0
-                                                                             u8"orange",     // 1
-                                                                             u8"magenta",    // 2
-                                                                             u8"light_blue", // 3
-                                                                             u8"yellow",     // 4
-                                                                             u8"lime",       // 5
-                                                                             u8"pink",       // 6
-                                                                             u8"gray",       // 7
-                                                                             u8"silver",     // 8
-                                                                             u8"cyan",       // 9
-                                                                             u8"purple",     // 10
-                                                                             u8"blue",       // 11
-                                                                             u8"brown",      // 12
-                                                                             u8"green",      // 13
-                                                                             u8"red",        // 14
-                                                                             u8"black",      // 15
-                                                                         });
-    E(dirt, Dirt);
-    E(planks, Planks);
-    static Compose const sCobblestoneWall(PropertySelector(u8"wall_block_type", std::nullopt, {
-                                                                                                  u8"cobblestone",       // 0
-                                                                                                  u8"mossy_cobblestone", // 1
-                                                                                                  u8"granite",           // 2
-                                                                                                  u8"diorite",           // 3
-                                                                                                  u8"andesite",          // 4
-                                                                                                  u8"sandstone",         // 5
-                                                                                                  u8"brick",             // 6
-                                                                                                  u8"stone_brick",       // 7
-                                                                                                  u8"mossy_stone_brick", // 8
-                                                                                                  u8"nether_brick",      // 9
-                                                                                                  u8"end_brick",         // 10
-                                                                                                  u8"prismarine",        // 11
-                                                                                                  u8"red_sandstone",     // 12
-                                                                                                  u8"red_nether_brick",  // 13
-                                                                                              }));
-    E(cobblestone_wall, sCobblestoneWall);
-    E(fence, Fence);
-    E(fence_gate, BlockWithDirection);
-    E(spruce_fence_gate, BlockWithDirection);
-    E(birch_fence_gate, BlockWithDirection);
-    E(jungle_fence_gate, BlockWithDirection);
-    E(acacia_fence_gate, BlockWithDirection);
-    E(dark_oak_fence_gate, BlockWithDirection);
-    E(normal_stone_stairs, Stairs);
-    E(stone_stairs, Stairs);
-    E(mossy_cobblestone_stairs, Stairs);
-    E(oak_stairs, Stairs);
-    E(spruce_stairs, Stairs);
-    E(birch_stairs, Stairs);
-    E(jungle_stairs, Stairs);
-    E(acacia_stairs, Stairs);
-    E(dark_oak_stairs, Stairs);
-    E(stone_brick_stairs, Stairs);
-    E(mossy_stone_brick_stairs, Stairs);
-    E(sandstone_stairs, Stairs);
-    E(smooth_sandstone_stairs, Stairs);
-    E(red_sandstone_stairs, Stairs);
-    E(smooth_red_sandstone_stairs, Stairs);
-    E(granite_stairs, Stairs);
-    E(polished_granite_stairs, Stairs);
-    E(diorite_stairs, Stairs);
-    E(polished_diorite_stairs, Stairs);
-    E(andesite_stairs, Stairs);
-    E(polished_andesite_stairs, Stairs);
-    E(brick_stairs, Stairs);
-    E(nether_brick_stairs, Stairs);
-    E(red_nether_brick_stairs, Stairs);
-    E(end_brick_stairs, Stairs);
-    E(quartz_stairs, Stairs);
-    E(smooth_quartz_stairs, Stairs);
-    E(purpur_stairs, Stairs);
-    E(prismarine_stairs, Stairs);
-    E(dark_prismarine_stairs, Stairs);
-    E(prismarine_bricks_stairs, Stairs);
-    E(wooden_door, Door);
-    E(spruce_door, Door);
-    E(birch_door, Door);
-    E(jungle_door, Door);
-    E(acacia_door, Door);
-    E(dark_oak_door, Door);
-    E(trapdoor, Trapdoor);
-    E(spruce_trapdoor, Trapdoor);
-    E(birch_trapdoor, Trapdoor);
-    E(jungle_trapdoor, Trapdoor);
-    E(acacia_trapdoor, Trapdoor);
-    E(dark_oak_trapdoor, Trapdoor);
-    E(iron_trapdoor, Trapdoor);
-    E(stained_glass, sColoredBlock);
-    E(stained_glass_pane, sColoredBlock);
-    E(ladder, BlockWithFacingDirection);
-    E(stone, Stone);
-    static PropertySelector const sStoneSlabType(u8"stone_slab_type", 0x7, {
-                                                                               u8"smooth_stone", // 0
-                                                                               u8"sandstone",    // 1
-                                                                               u8"",             // 2
-                                                                               u8"cobblestone",  // 3
-                                                                               u8"brick",        // 4
-                                                                               u8"stone_brick",  // 5
-                                                                               u8"quartz",       // 6
-                                                                               u8"nether_brick", // 7
-                                                                           });
-    E(stone_slab, Compose(sStoneSlabType, Rename(u8"stone_block_slab"), TopSlotBit));
-    E(double_stone_slab, Compose(sStoneSlabType, Rename(u8"double_stone_block_slab"), TopSlotBit));
-    static PropertySelector const sStoneSlabType2(u8"stone_slab_type_2", 0x7, {
-                                                                                  u8"red_sandstone",     // 0
-                                                                                  u8"purpur",            // 1
-                                                                                  u8"prismarine_rough",  // 2
-                                                                                  u8"prismarine_dark",   // 3
-                                                                                  u8"prismarine_brick",  // 4
-                                                                                  u8"mossy_cobblestone", // 5
-                                                                                  u8"smooth_sandstone",  // 6
-                                                                                  u8"red_nether_brick",  // 7
-                                                                              });
-    E(stone_slab2, Compose(sStoneSlabType2, Rename(u8"stone_block_slab2"), TopSlotBit));
-    E(double_stone_slab2, Compose(sStoneSlabType2, Rename(u8"double_stone_block_slab2"), TopSlotBit));
-    static PropertySelector const sStoneSlabType3(u8"stone_slab_type_3", 0x7, {
-                                                                                  u8"end_stone_brick",      // 0
-                                                                                  u8"smooth_red_sandstone", // 1
-                                                                                  u8"polished_andesite",    // 2
-                                                                                  u8"andesite",             // 3
-                                                                                  u8"diorite",              // 4
-                                                                                  u8"polished_diorite",     // 5
-                                                                                  u8"granite",              // 6
-                                                                                  u8"polished_granite",     // 7
-                                                                              });
-    E(stone_slab3, Compose(sStoneSlabType3, Rename(u8"stone_block_slab3"), TopSlotBit));
-    E(double_stone_slab3, Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), TopSlotBit));
-    static PropertySelector const sStoneSlabType4(u8"stone_slab_type_4", 0x7, {
-                                                                                  u8"mossy_stone_brick", // 0
-                                                                                  u8"",                  // 1
-                                                                                  u8"stone",             // 2
-                                                                                  u8"cut_sandstone",     // 3
-                                                                                  u8"cut_red_sandstone", // 4
-                                                                              });
-    E(stone_slab4, Compose(sStoneSlabType4, Rename(u8"stone_block_slab4"), TopSlotBit));
-    E(double_stone_slab4, Compose(sStoneSlabType4, Rename(u8"double_stone_block_slab4"), TopSlotBit));
-    E(scaffolding, Scaffolding);
-    static Compose const sWoodenSlab(PropertySelector(u8"wood_type", 0x7, {
-                                                                              u8"oak",      // 0
-                                                                              u8"spruce",   // 1
-                                                                              u8"birch",    // 2
-                                                                              u8"jungle",   // 3
-                                                                              u8"acacia",   // 4
-                                                                              u8"dark_oak", // 5
-                                                                          }),
+  static std::unordered_map<std::u8string, Migrator> *CreateMigratorTable() {
+    auto table = new std::unordered_map<std::u8string, Migrator>();
+
+    auto E = [&](std::u8string const &name, Migrator m) {
+      assert(table->find(name) == table->end());
+      table->insert(std::make_pair(name, m));
+    };
+
+    static std::optional<String> const sLegacyColors[16]{
+        u8"white",      // 0
+        u8"orange",     // 1
+        u8"magenta",    // 2
+        u8"light_blue", // 3
+        u8"yellow",     // 4
+        u8"lime",       // 5
+        u8"pink",       // 6
+        u8"gray",       // 7
+        u8"silver",     // 8
+        u8"cyan",       // 9
+        u8"purple",     // 10
+        u8"blue",       // 11
+        u8"brown",      // 12
+        u8"green",      // 13
+        u8"red",        // 14
+        u8"black",      // 15
+    };
+    static std::optional<String> const sColors[16]{
+        u8"white",      // 0
+        u8"orange",     // 1
+        u8"magenta",    // 2
+        u8"light_blue", // 3
+        u8"yellow",     // 4
+        u8"lime",       // 5
+        u8"pink",       // 6
+        u8"gray",       // 7
+        u8"light_gray", // 8
+        u8"cyan",       // 9
+        u8"purple",     // 10
+        u8"blue",       // 11
+        u8"brown",      // 12
+        u8"green",      // 13
+        u8"red",        // 14
+        u8"black",      // 15
+    };
+    static PropertySelector<0, 4> const sColoredBlock(u8"color", sLegacyColors);
+    static std::optional<String> const sWoodTypes[8] = {
+        u8"oak",      // 0
+        u8"spruce",   // 1
+        u8"birch",    // 2
+        u8"jungle",   // 3
+        u8"acacia",   // 4
+        u8"dark_oak", // 5
+        std::nullopt,
+        std::nullopt,
+    };
+
+    static std::optional<String> const sDirtTypes[2]{
+        u8"normal", // 0
+        u8"coarse", // 1
+    };
+    static PropertySelector<0, 1> const sDirtType(u8"dirt_type", sDirtTypes);
+    E(u8"dirt", sDirtType);
+    static PropertySelector<0, 3> const sWoodType(u8"wood_type", sWoodTypes);
+    E(u8"planks", sWoodType);
+    static std::optional<String> const sWallBlockTypes[16]{
+        u8"cobblestone",       // 0
+        u8"mossy_cobblestone", // 1
+        u8"granite",           // 2
+        u8"diorite",           // 3
+        u8"andesite",          // 4
+        u8"sandstone",         // 5
+        u8"brick",             // 6
+        u8"stone_brick",       // 7
+        u8"mossy_stone_brick", // 8
+        u8"nether_brick",      // 9
+        u8"end_brick",         // 10
+        u8"prismarine",        // 11
+        u8"red_sandstone",     // 12
+        u8"red_nether_brick",  // 13
+        std::nullopt,
+        std::nullopt,
+    };
+    static Compose const sCobblestoneWall(PropertySelector<0, 4>(u8"wall_block_type", sWallBlockTypes));
+    E(u8"cobblestone_wall", sCobblestoneWall);
+    E(u8"fence", NamePrefixer<0, 3>(u8"_fence", sWoodTypes));
+    static Compose const sFenceGate(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"open_bit"), BoolProperty<3>(u8"in_wall_bit"));
+    E(u8"fence_gate", sFenceGate);
+    E(u8"spruce_fence_gate", sFenceGate);
+    E(u8"birch_fence_gate", sFenceGate);
+    E(u8"jungle_fence_gate", sFenceGate);
+    E(u8"acacia_fence_gate", sFenceGate);
+    E(u8"dark_oak_fence_gate", sFenceGate);
+    static Compose const sStairs(IntProperty<0, 2>(u8"weirdo_direction"), BoolProperty<2>(u8"upside_down_bit"));
+    E(u8"normal_stone_stairs", sStairs);
+    E(u8"stone_stairs", sStairs);
+    E(u8"mossy_cobblestone_stairs", sStairs);
+    E(u8"oak_stairs", sStairs);
+    E(u8"spruce_stairs", sStairs);
+    E(u8"birch_stairs", sStairs);
+    E(u8"jungle_stairs", sStairs);
+    E(u8"acacia_stairs", sStairs);
+    E(u8"dark_oak_stairs", sStairs);
+    E(u8"stone_brick_stairs", sStairs);
+    E(u8"mossy_stone_brick_stairs", sStairs);
+    E(u8"sandstone_stairs", sStairs);
+    E(u8"smooth_sandstone_stairs", sStairs);
+    E(u8"red_sandstone_stairs", sStairs);
+    E(u8"smooth_red_sandstone_stairs", sStairs);
+    E(u8"granite_stairs", sStairs);
+    E(u8"polished_granite_stairs", sStairs);
+    E(u8"diorite_stairs", sStairs);
+    E(u8"polished_diorite_stairs", sStairs);
+    E(u8"andesite_stairs", sStairs);
+    E(u8"polished_andesite_stairs", sStairs);
+    E(u8"brick_stairs", sStairs);
+    E(u8"nether_brick_stairs", sStairs);
+    E(u8"red_nether_brick_stairs", sStairs);
+    E(u8"end_brick_stairs", sStairs);
+    E(u8"quartz_stairs", sStairs);
+    E(u8"smooth_quartz_stairs", sStairs);
+    E(u8"purpur_stairs", sStairs);
+    E(u8"prismarine_stairs", sStairs);
+    E(u8"dark_prismarine_stairs", sStairs);
+    E(u8"prismarine_bricks_stairs", sStairs);
+    static Compose const sDoor(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"open_bit"), BoolProperty<3>(u8"upper_block_bit"));
+    E(u8"wooden_door", sDoor);
+    E(u8"spruce_door", sDoor);
+    E(u8"birch_door", sDoor);
+    E(u8"jungle_door", sDoor);
+    E(u8"acacia_door", sDoor);
+    E(u8"dark_oak_door", sDoor);
+    static Compose const sTrapdoor(IntProperty<0, 2>(u8"direction"), BoolProperty<3>(u8"open_bit"), BoolProperty<2>(u8"upside_down_bit"));
+    E(u8"trapdoor", sTrapdoor);
+    E(u8"spruce_trapdoor", sTrapdoor);
+    E(u8"birch_trapdoor", sTrapdoor);
+    E(u8"jungle_trapdoor", sTrapdoor);
+    E(u8"acacia_trapdoor", sTrapdoor);
+    E(u8"dark_oak_trapdoor", sTrapdoor);
+    E(u8"iron_trapdoor", sTrapdoor);
+    E(u8"stained_glass", sColoredBlock);
+    E(u8"stained_glass_pane", sColoredBlock);
+    static Migrator const sBlockWithFacingDirection = IntProperty<0, 16>(u8"facing_direction");
+    E(u8"ladder", sBlockWithFacingDirection);
+    static std::optional<String> const sStoneTypes[8]{
+        u8"stone",           // 0
+        u8"granite",         // 1
+        u8"granite_smooth",  // 2
+        u8"diorite",         // 3
+        u8"diorite_smooth",  // 4
+        u8"andesite",        // 5
+        u8"andesite_smooth", // 6
+        std::nullopt,
+    };
+    static PropertySelector<0, 3> const sStoneType(u8"stone_type", sStoneTypes);
+    E(u8"stone", sStoneType);
+    static std::optional<String> const sStoneSlabTypes[8]{
+        u8"smooth_stone", // 0
+        u8"sandstone",    // 1
+        std::nullopt,     // 2
+        u8"cobblestone",  // 3
+        u8"brick",        // 4
+        u8"stone_brick",  // 5
+        u8"quartz",       // 6
+        u8"nether_brick", // 7
+    };
+    static PropertySelector<0, 3> const sStoneSlabType(u8"stone_slab_type", sStoneSlabTypes);
+    E(u8"stone_slab", Compose(sStoneSlabType, Rename(u8"stone_block_slab"), TopSlotBit));
+    E(u8"double_stone_slab", Compose(sStoneSlabType, Rename(u8"double_stone_block_slab"), TopSlotBit));
+    static std::optional<String> const sStoneSlabTypes2[8]{
+        u8"red_sandstone",     // 0
+        u8"purpur",            // 1
+        u8"prismarine_rough",  // 2
+        u8"prismarine_dark",   // 3
+        u8"prismarine_brick",  // 4
+        u8"mossy_cobblestone", // 5
+        u8"smooth_sandstone",  // 6
+        u8"red_nether_brick",  // 7
+    };
+    static PropertySelector<0, 3> const sStoneSlabType2(u8"stone_slab_type_2", sStoneSlabTypes2);
+    E(u8"stone_slab2", Compose(sStoneSlabType2, Rename(u8"stone_block_slab2"), TopSlotBit));
+    E(u8"double_stone_slab2", Compose(sStoneSlabType2, Rename(u8"double_stone_block_slab2"), TopSlotBit));
+    static std::optional<String> const sStoneSlabTypes3[8]{
+        u8"end_stone_brick",      // 0
+        u8"smooth_red_sandstone", // 1
+        u8"polished_andesite",    // 2
+        u8"andesite",             // 3
+        u8"diorite",              // 4
+        u8"polished_diorite",     // 5
+        u8"granite",              // 6
+        u8"polished_granite",     // 7
+    };
+    static PropertySelector<0, 3> const sStoneSlabType3(u8"stone_slab_type_3", sStoneSlabTypes3);
+    E(u8"stone_slab3", Compose(sStoneSlabType3, Rename(u8"stone_block_slab3"), TopSlotBit));
+    E(u8"double_stone_slab3", Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), TopSlotBit));
+    static std::optional<String> const sStoneSlabTypes4[8]{
+        u8"mossy_stone_brick", // 0
+        std::nullopt,          // 1
+        u8"stone",             // 2
+        u8"cut_sandstone",     // 3
+        u8"cut_red_sandstone", // 4
+    };
+    static PropertySelector<0, 3> const sStoneSlabType4(u8"stone_slab_type_4", sStoneSlabTypes4);
+    E(u8"stone_slab4", Compose(sStoneSlabType4, Rename(u8"stone_block_slab4"), TopSlotBit));
+    E(u8"double_stone_slab4", Compose(sStoneSlabType4, Rename(u8"double_stone_block_slab4"), TopSlotBit));
+    E(u8"scaffolding", Scaffolding);
+    static Compose const sWoodenSlab(PropertySelector<0, 3>(u8"wood_type", sWoodTypes),
                                      TopSlotBit);
-    E(wooden_slab, sWoodenSlab);
-    E(double_wooden_slab, sWoodenSlab);
-    static Compose const sStonebrick(PropertySelector(u8"stone_brick_type", std::nullopt, {
-                                                                                              u8"default", // 0
-                                                                                              u8"mossy",   // 1
-                                                                                              u8"cracked", // 2
-                                                                                          }));
-    E(stonebrick, sStonebrick);
+    E(u8"wooden_slab", sWoodenSlab);
+    E(u8"double_wooden_slab", sWoodenSlab);
+    static std::optional<String> const sStoneBrickTypes[4]{
+        u8"default",  // 0
+        u8"mossy",    // 1
+        u8"cracked",  // 2
+        u8"chiseled", // 3
+    };
+    static PropertySelector<0, 2> const sStoneBrickType(u8"stone_brick_type", sStoneBrickTypes);
+    E(u8"stonebrick", sStoneBrickType);
+    static std::optional<String> const sPrismarineBlockTypes[4]{
+        u8"default", // 0
+        u8"dark",    // 1
+        u8"bricks",  // 2
+    };
+    static PropertySelector<0, 2> const sPrismarineBlockType(u8"prismarine_block_type", sPrismarineBlockTypes);
+    E(u8"prismarine", sPrismarineBlockType);
+    static std::optional<String> const sSandStoneTypes[4]{
+        u8"default",     // 0
+        u8"heiroglyphs", // 1
+        u8"cut",         // 2
+        u8"smooth",      // 3
+    };
+    static PropertySelector<0, 2> const sSandstoneType(u8"sand_stone_type", sSandStoneTypes);
+    E(u8"sandstone", sSandstoneType);
+    E(u8"red_sandstone", sSandstoneType);
+    static std::optional<String> const sChiselTypes[4]{
+        u8"default",  // 0
+        u8"chiseled", // 1
+        u8"lines",    // 2
+        u8"smooth",   // 3
+    };
+    static PropertySelector<0, 2> const sChiselType(u8"chisel_type", sChiselTypes);
+    static std::optional<String> const sPillarAxes[4]{
+        u8"y", // 0
+        u8"x", // 1
+        u8"z", // 2
+    };
+    static PropertySelector<2, 2> const sPillarAxis2(u8"pillar_axis", sPillarAxes);
+    static PropertySelector<0, 2> const sPillarAxis0(u8"pillar_axis", sPillarAxes);
+    static PropertySelector<3, 2> const sPillarAxis3(u8"pillar_axis", sPillarAxes);
+    E(u8"quartz_block", Compose(sChiselType, sPillarAxis2));
+    E(u8"hay_block", Compose(sPillarAxis2, Const(u8"deprecated", Int(0))));
+    E(u8"bone_block", Compose(sPillarAxis2, Const(u8"deprecated", Int(0))));
+    NamePrefixer<0, 4> wawa(u8"_wool", sColors);
+    E(u8"wool", NamePrefixer<0, 4>(u8"_wool", sColors));
+    E(u8"carpet", NamePrefixer<0, 4>(u8"_carpet", sColors));
+    E(u8"concretePowder", Compose(Rename(u8"concrete_powder"), sColoredBlock));
+    E(u8"concrete", NamePrefixer<0, 4>(u8"_concrete", sColors));
+    E(u8"stained_hardened_clay", sColoredBlock);
+    E(u8"white_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"orange_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"magenta_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"light_blue_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"yellow_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"lime_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"pink_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"gray_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"silver_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"cyan_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"purple_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"blue_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"brown_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"green_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"red_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"black_glazed_terracotta", sBlockWithFacingDirection);
+    E(u8"purpur_block", Compose(sChiselType, sPillarAxis2));
+    static std::optional<String> const sSandTypes[2]{
+        u8"normal", // 0
+        u8"red",    // 1
+    };
+    static PropertySelector<0, 1> const sSandType(u8"sand_type", sSandTypes);
+    E(u8"sand", sSandType);
+    static Migrator const sBlockWithAge = IntProperty<0, 16>(u8"age");
+    E(u8"cactus", sBlockWithAge);
+    static std::optional<String> const sLogNames[4]{
+        u8"oak",    // 0
+        u8"spruce", // 1
+        u8"birch",  // 2
+        u8"jungle", // 3
+    };
+    E(u8"log", Compose(NamePrefixer<0, 2>(u8"_log", sLogNames), sPillarAxis2));
+    E(u8"stripped_oak_log", sPillarAxis0);
+    E(u8"stripped_spruce_log", sPillarAxis0);
+    E(u8"stripped_birch_log", sPillarAxis0);
+    E(u8"stripped_jungle_log", sPillarAxis0);
+    E(u8"stripped_acacia_log", sPillarAxis0);
+    E(u8"stripped_dark_oak_log", sPillarAxis0);
+    static std::optional<String> const sLog2Names[4]{
+        u8"acacia",   // 0
+        u8"dark_oak", // 1
+    };
+    E(u8"log2", Compose(NamePrefixer<0, 2>(u8"_log", sLog2Names), sPillarAxis2));
+    // 0b1001 y true spruce
+    // 0b0010 y false birch
+    // 0b1010 y true birch
+    E(u8"wood", Compose(sWoodType, Const(u8"pillar_axis", Str(u8"y")), StrippedBit));
+    static Migrator const sLiquidDepth = IntProperty<0, 16>(u8"liquid_depth");
+    E(u8"water", sLiquidDepth);
+    E(u8"lava", sLiquidDepth);
+    static Migrator const sPersistentBit = BoolProperty<3>(u8"persistent_bit");
+    static std::optional<String> const sOldLeafTypes[8]{
+        u8"oak",    // 0
+        u8"spruce", // 1
+        u8"birch",  // 2
+        u8"jungle", // 3
+    };
+    E(u8"leaves", Compose(PropertySelector<0, 3>(u8"old_leaf_type", sOldLeafTypes), sPersistentBit, Const(u8"update_bit", Bool(false))));
+    static std::optional<String> const sNewLeafTypes[8]{
+        u8"acacia",   // 0
+        u8"dark_oak", // 1
+    };
+    E(u8"leaves2", Compose(PropertySelector<0, 3>(u8"new_leaf_type", sNewLeafTypes), sPersistentBit, Const(u8"update_bit", Bool(false))));
+    E(u8"sapling", Compose(PropertySelector<0, 3>(u8"sapling_type", sWoodTypes), Const(u8"age_bit", Bool(false))));
+    E(u8"farmland", IntProperty<0, 16>(u8"moisturized_amount"));
+    E(u8"wheat", Growth);
+    static Migrator sStem = Compose(IntProperty<3, 4>(u8"facing_direction"), Growth);
+    E(u8"pumpkin_stem", sStem);
+    E(u8"melon_stem", sStem);
+    E(u8"beetroot", Growth);
+    static std::optional<String> const sCardinalDirections[4]{
+        u8"south", // 0
+        u8"west",  // 1
+        u8"north", // 2
+        u8"east",  // 3
+    };
+    static PropertySelector<0, 2> const sCardinalDirection(u8"minecraft:cardinal_direction", sCardinalDirections);
+    E(u8"pumpkin", sCardinalDirection);
+    E(u8"carved_pumpkin", sCardinalDirection);
+    E(u8"lit_pumpkin", sCardinalDirection);
+    static std::optional<String> const sTallGrassTypes[4]{
+        std::nullopt, // 0
+        u8"tall",     // 1
+        u8"fern",     // 2
+    };
+    E(u8"tallgrass", PropertySelector<0, 2>(u8"tall_grass_type", sTallGrassTypes));
+    static std::optional<String> const sDoublePlantTypes[8]{
+        u8"sunflower", // 0
+        u8"syringa",   // 1
+        u8"grass",     // 2
+        u8"fern",      // 3
+        u8"rose",      // 4
+        u8"paeonia",   // 5
+    };
+    E(u8"double_plant", Compose(PropertySelector<0, 3>(u8"double_plant_type", sDoublePlantTypes), BoolProperty<3>(u8"upper_block_bit")));
+    static Migrator sHugeMushroomBits = IntProperty<0, 16>(u8"huge_mushroom_bits");
+    E(u8"brown_mushroom_block", sHugeMushroomBits);
+    E(u8"red_mushroom_block", sHugeMushroomBits);
+    static std::optional<String> const sCoralTypes[8]{
+        u8"tube",   // 0
+        u8"brain",  // 1
+        u8"bubble", // 2
+        u8"fire",   // 3
+        u8"horn",   // 4
+    };
+    E(u8"coral", NamePrefixer<0, 3>(u8"_coral", sCoralTypes));
+    static std::optional<String> const sCoralColors[8]{
+        u8"blue",   // 0
+        u8"pink",   // 1
+        u8"purple", // 2
+        u8"red",    // 3
+        u8"yellow", // 4
+    };
+    static PropertySelector<0, 3> const sCoralColor(u8"coral_color", sCoralColors);
+    static Compose sCoral(sCoralColor, IntProperty<3, 3>(u8"coral_fan_direction"));
+    E(u8"coral_fan", sCoral);
+    E(u8"coral_fan_dead", sCoral);
+    E(u8"coral_block", Compose(sCoralColor, BoolProperty<3>(u8"dead_bit")));
+    static Compose const sCoralFanHang(IntProperty<2, 3>(u8"coral_direction"), BoolProperty<0>(u8"coral_hang_type_bit"), BoolProperty<1>(u8"dead_bit"));
+    E(u8"coral_fan_hang", sCoralFanHang);
+    E(u8"coral_fan_hang2", sCoralFanHang);
+    E(u8"coral_fan_hang3", sCoralFanHang);
+    E(u8"vine", IntProperty<0, 16>(u8"vine_direction_bits"));
+    E(u8"kelp", IntProperty<0, 16>(u8"kelp_age"));
+    static std::optional<String> const sSeaGrassTypes[4]{
+        u8"default",    // 0
+        u8"double_top", // 1
+        u8"double_bot", // 2
+    };
+    E(u8"seagrass", PropertySelector<0, 2>(u8"sea_grass_type", sSeaGrassTypes));
+    static std::optional<String> const sFlowerTypes[16]{
+        u8"poppy",              // 0
+        u8"orchid",             // 1
+        u8"allium",             // 2
+        u8"houstonia",          // 3
+        u8"tulip_red",          // 4
+        u8"tulip_orange",       // 5
+        u8"tulip_white",        // 6
+        u8"tulip_pink",         // 7
+        u8"oxeye",              // 8
+        u8"cornflower",         // 9
+        u8"lily_of_the_valley", // 10
+    };
+    E(u8"red_flower", PropertySelector<0, 4>(u8"flower_type", sFlowerTypes));
+    E(u8"bamboo_sapling", Compose(ByteProperty<0, 8>(u8"age_bit"), Const(u8"sapling_type", Str(u8"oak"))));
+    static std::optional<String> const sBambooStalkThicknesses[2]{
+        u8"thin",
+        u8"thick",
+    };
+    static std::optional<String> const sBambooLeafSizes[4]{
+        u8"no_leaves",    // 0
+        u8"small_leaves", // 1
+        u8"large_leaves", // 2
+    };
+    E(u8"bamboo", Compose(ByteProperty<3, 8>(u8"age_bit"), PropertySelector<0, 1>(u8"bamboo_stalk_thickness", sBambooStalkThicknesses), PropertySelector<1, 2>(u8"bamboo_leaf_size", sBambooLeafSizes)));
+    E(u8"snow_layer", Compose(IntProperty<0, 8>(u8"height"), Const(u8"covered_bit", Bool(false))));
+    static std::optional<String> const sMonsterEggStoneTypes[8]{
+        u8"stone",                // 0
+        u8"cobblestone",          // 1
+        u8"stone_brick",          // 2
+        u8"mossy_stone_brick",    // 3
+        u8"cracked_stone_brick",  // 4
+        u8"chiseled_stone_brick", // 5
+    };
+    E(u8"monster_egg", PropertySelector<0, 3>(u8"monster_egg_stone_type", sMonsterEggStoneTypes));
+    E(u8"reeds", sBlockWithAge);
+    static std::optional<String> const sCrackedStates[4]{
+        u8"no_cracks",   // 0
+        u8"cracked",     // 1
+        u8"max_cracked", // 2
+    };
+    static std::optional<String> const sTurtleEggCounts[4]{
+        u8"one_egg",
+        u8"two_egg",
+        u8"three_egg",
+        u8"four_egg",
+    };
+    E(u8"turtle_egg", Compose(PropertySelector<2, 2>(u8"cracked_state", sCrackedStates), PropertySelector<0, 2>(u8"turtle_egg_count", sTurtleEggCounts)));
+    E(u8"nether_wart", sBlockWithAge);
+    E(u8"chorus_flower", sBlockWithAge);
+    static std::optional<String> const sSpongeTypes[2]{
+        u8"dry", // 0
+        u8"wet", // 1
+    };
+    E(u8"sponge", PropertySelector<0, 2>(u8"sponge_type", sSpongeTypes));
+    E(u8"cake", IntProperty<0, 16>(u8"bite_counter"));
+    E(u8"bed", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<3>(u8"head_piece_bit"), BoolProperty<4>(u8"occupied_bit")));
+    static std::optional<String> const sTorchFacingDirections[8]{
+        std::nullopt, // 0
+        u8"west",     // 1
+        u8"east",     // 2
+        u8"north",    // 3
+        u8"south",    // 4
+        u8"top",      // 5
+    };
+    static PropertySelector<0, 3> const sTorchFacingDirection(u8"torch_facing_direction", sTorchFacingDirections);
+    E(u8"torch", sTorchFacingDirection);
+    E(u8"redstone_torch", sTorchFacingDirection);
+    E(u8"unlit_redstone_torch", sTorchFacingDirection);
+    E(u8"sea_pickle", Compose(BoolProperty<2>(u8"dead_bit"), IntProperty<0, 2>(u8"cluster_count")));
+    E(u8"lantern", BoolProperty<0>(u8"hanging"));
+    E(u8"furnace", sBlockWithFacingDirection);
+    E(u8"lit_furnace", sBlockWithFacingDirection);
+    static std::optional<String> const sDamages[4]{
+        u8"undamaged",        // 0
+        u8"slightly_damaged", // 1
+        u8"very_damaged",     // 2
+    };
+    E(u8"anvil", Compose(PropertySelector<2, 2>(u8"damage", sDamages), IntProperty<0, 2>(u8"direction")));
+    E(u8"lectern", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"powered_bit")));
+    E(u8"cauldron", Compose(IntProperty<0, 3>(u8"fill_level"), Const(u8"cauldron_liquid", Str(u8"water"))));
+    E(u8"chest", sBlockWithFacingDirection);
+    E(u8"trapped_chest", sBlockWithFacingDirection);
+    E(u8"ender_chest", sBlockWithFacingDirection);
+    E(u8"shulker_box", NamePrefixer<0, 4>(u8"_shulker_box", sColors));
+    E(u8"seaLantern", Rename(u8"sea_lantern"));
+    E(u8"wall_sign", sBlockWithFacingDirection);
+    E(u8"spruce_wall_sign", sBlockWithFacingDirection);
+    E(u8"birch_wall_sign", sBlockWithFacingDirection);
+    E(u8"jungle_wall_sign", sBlockWithFacingDirection);
+    E(u8"acacia_wall_sign", sBlockWithFacingDirection);
+    E(u8"dark_oak_wall_sign", sBlockWithFacingDirection);
+    static Migrator const sGroundSignDirection = IntProperty<0, 16>(u8"ground_sign_direction");
+    E(u8"standing_sign", sGroundSignDirection);
+    E(u8"spruce_standing_sign", sGroundSignDirection);
+    E(u8"birch_standing_sign", sGroundSignDirection);
+    E(u8"jungle_standing_sign", sGroundSignDirection);
+    E(u8"acacia_standing_sign", sGroundSignDirection);
+    E(u8"dark_oak_standing_sign", sGroundSignDirection);
+    E(u8"flower_pot", Const(u8"update_bit", Bool(false)));
+    E(u8"skull", sBlockWithFacingDirection);
+    static std::optional<String> const sLeverDirections[8]{
+        u8"down_east_west",   // 0
+        u8"east",             // 1
+        u8"west",             // 2
+        u8"south",            // 3
+        u8"north",            // 4
+        u8"up_north_south",   // 5
+        u8"up_east_west",     // 6
+        u8"down_north_south", // 7
+    };
+    E(u8"lever", Compose(PropertySelector<0, 3>(u8"lever_direction", sLeverDirections), BoolProperty<3>(u8"open_bit")));
+    static Compose const sButton(IntProperty<0, 3>(u8"facing_direction"), BoolProperty<3>(u8"button_pressed_bit"));
+    E(u8"wooden_button", sButton);
+    E(u8"spruce_button", sButton);
+    E(u8"birch_button", sButton);
+    E(u8"jungle_button", sButton);
+    E(u8"acacia_button", sButton);
+    E(u8"dark_oak_button", sButton);
+    E(u8"stone_button", sButton);
+    E(u8"end_portal_frame", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"end_portal_eye_bit")));
+    E(u8"end_rod", sBlockWithFacingDirection);
+    E(u8"tripwire_hook", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"attached_bit"), BoolProperty<3>(u8"powered_bit")));
+    E(u8"tripWire", Compose(Rename(u8"trip_wire"), BoolProperty<2>(u8"attached_bit"), BoolProperty<1>(u8"suspended_bit"), BoolProperty<0>(u8"powered_bit"), BoolProperty<3>(u8"disarmed_bit")));
+    E(u8"redstone_wire", IntProperty<0, 16>(u8"redstone_signal"));
+    E(u8"brewing_stand", Compose(BoolProperty<0>(u8"brewing_stand_slot_a_bit"), BoolProperty<1>(u8"brewing_stand_slot_b_bit"), BoolProperty<2>(u8"brewing_stand_slot_c_bit")));
+    static Migrator const sRailDirection = IntProperty<0, 4>(u8"rail_direction");
+    E(u8"rail", sRailDirection);
+    static Migrator const sRailDataBit = BoolProperty<3>(u8"rail_data_bit");
+    static Compose const sActiveRail(IntProperty<0, 3>(u8"rail_direction"), sRailDataBit);
+    E(u8"golden_rail", sActiveRail);
+    E(u8"activator_rail", sActiveRail);
+    E(u8"detector_rail", sActiveRail);
+    static Migrator const sRedstoneSignal = IntProperty<0, 16>(u8"redstone_signal");
+    E(u8"wooden_pressure_plate", sRedstoneSignal);
+    E(u8"spruce_pressure_plate", sRedstoneSignal);
+    E(u8"birch_pressure_plate", sRedstoneSignal);
+    E(u8"jungle_pressure_plate", sRedstoneSignal);
+    E(u8"acacia_pressure_plate", sRedstoneSignal);
+    E(u8"dark_oak_pressure_plate", sRedstoneSignal);
+    E(u8"stone_pressure_plate", sRedstoneSignal);
+    E(u8"light_weighted_pressure_plate", sRedstoneSignal);
+    E(u8"heavy_weighted_pressure_plate", sRedstoneSignal);
+    static std::optional<String> const sMinecraftFacingDirections[8]{
+        u8"down",  // 0
+        u8"up",    // 1
+        u8"north", // 2
+        u8"south", // 3
+        u8"west",  // 4
+        u8"east",  // 5
+    };
+    static PropertySelector<0, 3> sMinecraftFacingDirection(u8"minecraft:facing_direction", sMinecraftFacingDirections);
+    E(u8"observer", Compose(sMinecraftFacingDirection, BoolProperty<3>(u8"powered_bit")));
+    E(u8"daylight_detector", sRedstoneSignal);
+    E(u8"daylight_detector_inverted", sRedstoneSignal);
+    static Compose const sRepeater(IntProperty<0, 2>(u8"direction"), IntProperty<2, 2>(u8"repeater_delay"));
+    E(u8"powered_repeater", sRepeater);
+    E(u8"unpowered_repeater", sRepeater);
+    static Compose const sComparator(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"output_subtract_bit"), BoolProperty<3>(u8"output_lit_bit"));
+    E(u8"powered_comparator", sComparator);
+    E(u8"unpowered_comparator", sComparator);
+    E(u8"hopper", Compose(IntProperty<0, 3>(u8"facing_direction"), BoolProperty<3>(u8"toggle_bit")));
+    E(u8"dropper", Compose(IntProperty<0, 3>(u8"facing_direction"), BoolProperty<3>(u8"triggered_bit")));
+    E(u8"dispenser", Compose(IntProperty<0, 3>(u8"facing_direction"), BoolProperty<3>(u8"triggered_bit")));
+    E(u8"piston", Compose(IntProperty<0, 3>(u8"facing_direction")));
+    E(u8"sticky_piston", Compose(IntProperty<0, 3>(u8"facing_direction")));
+    // pistonArmCollision was separated to piston_arm_collision and sticky_piston_arm_collision. Here we can't identify stickyness, so leaving name as is.
+    E(u8"pistonArmCollision", IntProperty<0, 3>(u8"facing_direction"));
+    E(u8"loom", IntProperty<0, 16>(u8"direction"));
+    E(u8"standing_banner", sGroundSignDirection);
+    E(u8"tnt", Compose(BoolProperty<1>(u8"allow_underwater_bit"), BoolProperty<0>(u8"explode_bit")));
 
-#undef E
-#undef A
     return table;
   }
 

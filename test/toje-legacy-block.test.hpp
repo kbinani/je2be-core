@@ -27,20 +27,28 @@ TEST_CASE("toje-legacy-block") {
   REQUIRE(leveldb::DB::Open({}, afterDir / "db", &ptr).ok());
   dbA.reset(ptr);
   for (int cz = 0; cz <= 0; cz++) {
-    for (int cx = 0; cx <= 0; cx++) {
+    for (int cx = 0; cx <= 4; cx++) {
       auto chunkB = mcfile::be::Chunk::Load(cx, cz, mcfile::Dimension::Overworld, dbB.get(), mcfile::Endian::Little);
       auto chunkA = mcfile::be::Chunk::Load(cx, cz, mcfile::Dimension::Overworld, dbA.get(), mcfile::Endian::Little);
       for (int z = chunkB->minBlockZ(); z <= chunkB->maxBlockZ(); z++) {
         for (int x = chunkB->minBlockX(); x <= chunkB->maxBlockX(); x++) {
-          for (int y = 0; y < 16; y++) {
+          for (int y = 0; y < 48; y++) {
             auto blockB = chunkB->blockAt(x, y, z);
             auto blockA = chunkA->blockAt(x, y, z);
-            REQUIRE(blockB);
+            if (!blockB) {
+              continue;
+            }
+
             REQUIRE(blockA);
             auto migratedB = std::make_shared<mcfile::be::Block>(*blockB);
             je2be::toje::LegacyBlock::Migrate(*migratedB);
-            cout << "name=" << blockB->fName << "(expected: " << blockA->fName << "); val = " << *blockB->fVal << endl;
-            CHECK(migratedB->fName == blockA->fName);
+            // cout << "name=" << blockB->fName << "(expected: " << blockA->fName << "); val = " << *blockB->fVal << endl;
+            static unordered_set<u8string> const sIgnoreName = {
+                u8"minecraft:pistonArmCollision",
+            };
+            if (sIgnoreName.count(migratedB->fName) == 0) {
+              CHECK(migratedB->fName == blockA->fName);
+            }
             if (!blockA->fStates->empty()) {
               REQUIRE(migratedB->fStates);
               auto expected = blockA->fStates->copy();
@@ -55,17 +63,8 @@ TEST_CASE("toje-legacy-block") {
                 ignore.insert(u8"wall_connection_type_south");
                 ignore.insert(u8"wall_connection_type_west");
                 ignore.insert(u8"wall_post_bit");
-              } else if (id.ends_with(u8"fence_gate")) {
-                ignore.insert(u8"in_wall_bit");
-                ignore.insert(u8"open_bit");
-              } else if (id.ends_with(u8"stairs")) {
-                ignore.insert(u8"upside_down_bit");
               } else if (id.ends_with(u8"_door")) {
                 ignore.insert(u8"door_hinge_bit");
-                ignore.insert(u8"open_bit");
-                ignore.insert(u8"upper_block_bit");
-              } else if (id.ends_with(u8"trapdoor")) {
-                ignore.insert(u8"open_bit");
               }
               for (auto const &i : ignore) {
                 expected->fValue.erase(i);
