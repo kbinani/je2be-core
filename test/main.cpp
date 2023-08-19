@@ -26,6 +26,8 @@ static fs::path ProjectRootDir() {
   return fs::absolute(thisFile.parent_path().parent_path());
 }
 
+static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a);
+
 // clang-format off
 
 #include "block-data.test.hpp"
