@@ -18,7 +18,6 @@ class BlockData {
 public:
   static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b);
   static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b);
-  static void Migrate(mcfile::be::Block &inout);
 };
 
 } // namespace je2be::toje

@@ -26,8 +26,6 @@ static fs::path ProjectRootDir() {
   return fs::absolute(thisFile.parent_path().parent_path());
 }
 
-static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a);
-
 // clang-format off
 
 #include "block-data.test.hpp"
@@ -46,3 +44,4 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a);
 #include "pos2i-set.test.hpp"
 #include "system.test.hpp"
 #include "b2j2b.test.hpp"
+#include "toje-legacy-block.test.hpp"
