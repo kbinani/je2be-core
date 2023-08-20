@@ -321,7 +321,7 @@ private:
     static PropertySelector<0, 3> const sStoneSlabType(u8"stone_slab_type", {
                                                                                 u8"smooth_stone", // 0
                                                                                 u8"sandstone",    // 1
-                                                                                nullopt,          // 2
+                                                                                u8"wood",         // 2
                                                                                 u8"cobblestone",  // 3
                                                                                 u8"brick",        // 4
                                                                                 u8"stone_brick",  // 5
@@ -357,7 +357,7 @@ private:
     E(u8"double_stone_slab3", Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), sTopSlotBit));
     static PropertySelector<0, 3> const sStoneSlabType4(u8"stone_slab_type_4", {
                                                                                    u8"mossy_stone_brick", // 0
-                                                                                   nullopt,               // 1
+                                                                                   u8"smooth_quartz",     // 1
                                                                                    u8"stone",             // 2
                                                                                    u8"cut_sandstone",     // 3
                                                                                    u8"cut_red_sandstone", // 4
@@ -489,9 +489,9 @@ private:
     E(u8"carved_pumpkin", sCardinalDirection);
     E(u8"lit_pumpkin", sCardinalDirection);
     E(u8"tallgrass", PropertySelector<0, 2>(u8"tall_grass_type", {
-                                                                     nullopt,  // 0
-                                                                     u8"tall", // 1
-                                                                     u8"fern", // 2
+                                                                     u8"default", // 0
+                                                                     u8"tall",    // 1
+                                                                     u8"fern",    // 2
                                                                  }));
     E(u8"double_plant", Compose(PropertySelector<0, 3>(u8"double_plant_type", {
                                                                                   u8"sunflower", // 0
@@ -587,12 +587,12 @@ private:
     E(u8"cake", IntProperty<0, 16>(u8"bite_counter"));
     E(u8"bed", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<3>(u8"head_piece_bit"), BoolProperty<4>(u8"occupied_bit")));
     static PropertySelector<0, 3> const sTorchFacingDirection(u8"torch_facing_direction", {
-                                                                                              nullopt,   // 0
-                                                                                              u8"west",  // 1
-                                                                                              u8"east",  // 2
-                                                                                              u8"north", // 3
-                                                                                              u8"south", // 4
-                                                                                              u8"top",   // 5
+                                                                                              u8"unknown", // 0
+                                                                                              u8"west",    // 1
+                                                                                              u8"east",    // 2
+                                                                                              u8"north",   // 3
+                                                                                              u8"south",   // 4
+                                                                                              u8"top",     // 5
                                                                                           });
     E(u8"torch", sTorchFacingDirection);
     E(u8"redstone_torch", sTorchFacingDirection);
