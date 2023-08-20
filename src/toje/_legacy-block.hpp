@@ -47,7 +47,7 @@ class LegacyBlock {
       int16_t index = (v >> RightShift) & cMask;
       if (0 <= index && index < fTable.size()) {
         std::optional<String> value = fTable[index];
-        if (value) {
+        if (value && s.compoundTag(fPropertyName) == 0) {
           s[fPropertyName] = std::make_shared<StringTag>(*value);
         }
       }
@@ -116,27 +116,14 @@ public:
   }
 
 private:
-  static String Dirt(String const &n, int16_t val, CompoundTag &s) {
-    switch (val) {
-    case 0:
-    default:
-      s[u8"dirt_type"] = Str(u8"normal");
-      break;
-    }
-    return n;
-  }
-
-  static String BlockWithDirection(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"direction"] = Int(v);
-    return n;
-  }
-
   template <size_t RightShift, size_t Bits>
   static Migrator IntProperty(String name) {
     static_assert(0 < Bits && Bits <= 16);
     return [=](String const &n, int16_t v, CompoundTag &s) {
       constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
-      s[name] = Int((v >> RightShift) & cMask);
+      if (s.fValue.count(name) == 0) {
+        s[name] = Int((v >> RightShift) & cMask);
+      }
       return n;
     };
   }
@@ -146,7 +133,9 @@ private:
     static_assert(0 < Bits && Bits <= 8);
     return [=](String const &n, int16_t v, CompoundTag &s) {
       constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
-      s[name] = std::make_shared<ByteTag>((v >> RightShift) & cMask);
+      if (s.fValue.count(name) == 0) {
+        s[name] = std::make_shared<ByteTag>((v >> RightShift) & cMask);
+      }
       return n;
     };
   }
@@ -154,25 +143,11 @@ private:
   template <size_t RightShift>
   static Migrator BoolProperty(String name) {
     return [=](String const &n, int16_t v, CompoundTag &s) {
-      s[name] = Bool(((v >> RightShift) & 0x1) == 0x1);
+      if (s.fValue.count(name) == 0) {
+        s[name] = Bool(((v >> RightShift) & 0x1) == 0x1);
+      }
       return n;
     };
-  }
-
-  static String TopSlotBit(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"top_slot_bit"] = Bool((v & 0x8) == 0x8);
-    return n;
-  }
-
-  static String StrippedBit(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"stripped_bit"] = Bool((v & 0x8) == 0x8);
-    return n;
-  }
-
-  static String Scaffolding(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"stability_check"] = Bool((v & 0x8) == 0x8);
-    s[u8"stability"] = Int(v & 0x7);
-    return n;
   }
 
   static Migrator Rename(String n) {
@@ -183,14 +158,11 @@ private:
 
   static Migrator Const(String propertyName, TagPtr propertyValue) {
     return [=](String const &n, int16_t v, CompoundTag &s) {
-      s[propertyName] = propertyValue;
+      if (s.fValue.count(propertyName) == 0) {
+        s[propertyName] = propertyValue;
+      }
       return n;
     };
-  }
-
-  static String Growth(String const &n, int16_t v, CompoundTag &s) {
-    s[u8"growth"] = Int((v & 0x7));
-    return n;
   }
 
   static std::unordered_map<std::u8string, Migrator> *CreateMigratorTable() {
@@ -356,8 +328,9 @@ private:
                                                                                 u8"quartz",       // 6
                                                                                 u8"nether_brick", // 7
                                                                             });
-    E(u8"stone_slab", Compose(sStoneSlabType, Rename(u8"stone_block_slab"), TopSlotBit));
-    E(u8"double_stone_slab", Compose(sStoneSlabType, Rename(u8"double_stone_block_slab"), TopSlotBit));
+    static Migrator const sTopSlotBit = BoolProperty<3>(u8"top_slot_bit");
+    E(u8"stone_slab", Compose(sStoneSlabType, Rename(u8"stone_block_slab"), sTopSlotBit));
+    E(u8"double_stone_slab", Compose(sStoneSlabType, Rename(u8"double_stone_block_slab"), sTopSlotBit));
     static PropertySelector<0, 3> const sStoneSlabType2(u8"stone_slab_type_2", {
                                                                                    u8"red_sandstone",     // 0
                                                                                    u8"purpur",            // 1
@@ -368,8 +341,8 @@ private:
                                                                                    u8"smooth_sandstone",  // 6
                                                                                    u8"red_nether_brick",  // 7
                                                                                });
-    E(u8"stone_slab2", Compose(sStoneSlabType2, Rename(u8"stone_block_slab2"), TopSlotBit));
-    E(u8"double_stone_slab2", Compose(sStoneSlabType2, Rename(u8"double_stone_block_slab2"), TopSlotBit));
+    E(u8"stone_slab2", Compose(sStoneSlabType2, Rename(u8"stone_block_slab2"), sTopSlotBit));
+    E(u8"double_stone_slab2", Compose(sStoneSlabType2, Rename(u8"double_stone_block_slab2"), sTopSlotBit));
     static PropertySelector<0, 3> const sStoneSlabType3(u8"stone_slab_type_3", {
                                                                                    u8"end_stone_brick",      // 0
                                                                                    u8"smooth_red_sandstone", // 1
@@ -380,8 +353,8 @@ private:
                                                                                    u8"granite",              // 6
                                                                                    u8"polished_granite",     // 7
                                                                                });
-    E(u8"stone_slab3", Compose(sStoneSlabType3, Rename(u8"stone_block_slab3"), TopSlotBit));
-    E(u8"double_stone_slab3", Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), TopSlotBit));
+    E(u8"stone_slab3", Compose(sStoneSlabType3, Rename(u8"stone_block_slab3"), sTopSlotBit));
+    E(u8"double_stone_slab3", Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), sTopSlotBit));
     static PropertySelector<0, 3> const sStoneSlabType4(u8"stone_slab_type_4", {
                                                                                    u8"mossy_stone_brick", // 0
                                                                                    nullopt,               // 1
@@ -389,11 +362,11 @@ private:
                                                                                    u8"cut_sandstone",     // 3
                                                                                    u8"cut_red_sandstone", // 4
                                                                                });
-    E(u8"stone_slab4", Compose(sStoneSlabType4, Rename(u8"stone_block_slab4"), TopSlotBit));
-    E(u8"double_stone_slab4", Compose(sStoneSlabType4, Rename(u8"double_stone_block_slab4"), TopSlotBit));
-    E(u8"scaffolding", Scaffolding);
+    E(u8"stone_slab4", Compose(sStoneSlabType4, Rename(u8"stone_block_slab4"), sTopSlotBit));
+    E(u8"double_stone_slab4", Compose(sStoneSlabType4, Rename(u8"double_stone_block_slab4"), sTopSlotBit));
+    E(u8"scaffolding", Compose(IntProperty<0, 3>(u8"stability"), BoolProperty<3>(u8"stability_check")));
     static Compose const sWoodenSlab(PropertySelector<0, 3>(u8"wood_type", sWoodTypes),
-                                     TopSlotBit);
+                                     sTopSlotBit);
     E(u8"wooden_slab", sWoodenSlab);
     E(u8"double_wooden_slab", sWoodenSlab);
     static PropertySelector<0, 2> const sStoneBrickType(u8"stone_brick_type", {
@@ -480,30 +453,32 @@ private:
                                                          u8"dark_oak", // 1
                                                      }),
                         sPillarAxis2));
-    E(u8"wood", Compose(sWoodType, Const(u8"pillar_axis", Str(u8"y")), StrippedBit));
+    E(u8"wood", Compose(sWoodType, Const(u8"pillar_axis", Str(u8"y")), BoolProperty<3>(u8"stripped_bit")));
     static Migrator const sLiquidDepth = IntProperty<0, 16>(u8"liquid_depth");
     E(u8"water", sLiquidDepth);
     E(u8"lava", sLiquidDepth);
     static Migrator const sPersistentBit = BoolProperty<3>(u8"persistent_bit");
-    E(u8"leaves", Compose(PropertySelector<0, 3>(u8"old_leaf_type", {
+    static Migrator const sUpdateBit = BoolProperty<2>(u8"update_bit");
+    E(u8"leaves", Compose(PropertySelector<0, 2>(u8"old_leaf_type", {
                                                                         u8"oak",    // 0
                                                                         u8"spruce", // 1
                                                                         u8"birch",  // 2
                                                                         u8"jungle", // 3
                                                                     }),
-                          sPersistentBit, Const(u8"update_bit", Bool(false))));
-    E(u8"leaves2", Compose(PropertySelector<0, 3>(u8"new_leaf_type", {
+                          sPersistentBit, sUpdateBit));
+    E(u8"leaves2", Compose(PropertySelector<0, 2>(u8"new_leaf_type", {
                                                                          u8"acacia",   // 0
                                                                          u8"dark_oak", // 1
                                                                      }),
-                           sPersistentBit, Const(u8"update_bit", Bool(false))));
+                           sPersistentBit, sUpdateBit));
     E(u8"sapling", Compose(PropertySelector<0, 3>(u8"sapling_type", sWoodTypes), Const(u8"age_bit", Bool(false))));
     E(u8"farmland", IntProperty<0, 16>(u8"moisturized_amount"));
-    E(u8"wheat", Growth);
-    static Migrator sStem = Compose(IntProperty<3, 4>(u8"facing_direction"), Growth);
+    static Migrator const sGrowth = IntProperty<0, 3>(u8"growth");
+    E(u8"wheat", sGrowth);
+    static Compose const sStem(IntProperty<3, 4>(u8"facing_direction"), sGrowth);
     E(u8"pumpkin_stem", sStem);
     E(u8"melon_stem", sStem);
-    E(u8"beetroot", Growth);
+    E(u8"beetroot", sGrowth);
     static PropertySelector<0, 2> const sCardinalDirection(u8"minecraft:cardinal_direction", {
                                                                                                  u8"south", // 0
                                                                                                  u8"west",  // 1
@@ -729,14 +704,6 @@ private:
 
   static StringTagPtr Str(std::u8string const &v) {
     return std::make_shared<StringTag>(v);
-  }
-
-  static IntTagPtr Int(int32_t v) {
-    return std::make_shared<IntTag>(v);
-  }
-
-  static ByteTagPtr Bool(bool b) {
-    return std::make_shared<ByteTag>(b ? 1 : 0);
   }
 };
 
