@@ -56,6 +56,7 @@ public:
       break;
     case ChunkConversionMode::Legacy:
       j->dataVersion(kDataVersionMaxLegacy);
+      j->fLegacyBiomes.resize(1024);
       break;
     }
 
