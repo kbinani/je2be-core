@@ -83,13 +83,13 @@ public:
     if (!biomeInt) {
       return nullopt;
     }
-    auto biome = mcfile::biomes::FromInt(*biomeInt);
-    if (biome == biomes::unknown) {
+    auto biome = mcfile::biomes::Biome::FromInt(*biomeInt);
+    if (!biome) {
       return nullopt;
     }
 
     props::Json obj;
-    obj["biome_id"] = mcfile::be::Biome::ToUint32(biome);
+    obj["biome_id"] = mcfile::be::Biome::ToUint32(*biome);
     obj["block_layers"] = nlohmann::json::value_t::array;
 
     u8string layersString = options.substr(0, idxBiomeStart);
@@ -142,13 +142,13 @@ public:
     if (!biomeInt) {
       return nullopt;
     }
-    auto biome = mcfile::biomes::FromInt(*biomeInt);
-    if (biome == biomes::unknown) {
+    auto biome = mcfile::biomes::Biome::FromInt(*biomeInt);
+    if (!biome) {
       return nullopt;
     }
 
     props::Json obj;
-    obj["biome_id"] = mcfile::be::Biome::ToUint32(biome);
+    obj["biome_id"] = mcfile::be::Biome::ToUint32(*biome);
     obj["block_layers"] = nlohmann::json::value_t::array;
 
     u8string layersString = options.substr(0, idxBiomeStart);
@@ -210,7 +210,7 @@ public:
     if (!layers || !biomeString) {
       return nullopt;
     }
-    auto biome = mcfile::biomes::FromName(*biomeString);
+    auto biome = mcfile::biomes::Biome::FromName(*biomeString);
     if (!biome) {
       return nullopt;
     }
@@ -283,7 +283,7 @@ public:
     if (!layers || !biomeString) {
       return nullopt;
     }
-    auto biome = mcfile::biomes::FromName(*biomeString);
+    auto biome = mcfile::biomes::Biome::FromName(*biomeString);
     if (!biome) {
       return nullopt;
     }

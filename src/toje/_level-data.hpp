@@ -213,7 +213,7 @@ public:
     if (biomeJ == mcfile::biomes::unknown) {
       return nullptr;
     }
-    settings->set(u8"biome", String(mcfile::biomes::Name(biomeJ, toje::kDataVersion)));
+    settings->set(u8"biome", String(mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion)));
     auto layersB = json["block_layers"];
     if (!layersB.is_array()) {
       return nullptr;

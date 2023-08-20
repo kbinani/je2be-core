@@ -33,7 +33,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG ca8b3e3d498d2274c140503bdee9dcd176a60ff2)
+  GIT_TAG 68c26753e9b441195b9791eed41e27b753f2c301)
 
 set(je2be_header_files
   #begin je2be-header files
@@ -80,10 +80,8 @@ set(mcfile_header_files
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/be/wrap-db.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/biome-palette.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/biomes/biome-id.hpp
-  ${libminecraft-file_SOURCE_DIR}/include/mcfile/biomes/from-int.hpp
-  ${libminecraft-file_SOURCE_DIR}/include/mcfile/biomes/from-name.hpp
+  ${libminecraft-file_SOURCE_DIR}/include/mcfile/biomes/biome.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/biomes/minecraft.hpp
-  ${libminecraft-file_SOURCE_DIR}/include/mcfile/biomes/name.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/blocks/block-data.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/blocks/block-id.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/blocks/data/ageable.hpp
