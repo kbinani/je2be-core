@@ -42,13 +42,14 @@ public:
     using namespace mcfile;
     static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
 
-    u8string_view key(b.fName);
+    mcfile::be::Block migrated = b;
+    LegacyBlock::Migrate(migrated);
+
+    u8string_view key(migrated.fName);
     auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
-      return Identity(b);
+      return Identity(migrated);
     } else {
-      mcfile::be::Block migrated = b;
-      LegacyBlock::Migrate(migrated);
       static CompoundTag const sEmpty;
       CompoundTag const &states = migrated.fStates ? *migrated.fStates : sEmpty;
       map<u8string, u8string> props;
