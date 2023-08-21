@@ -42,7 +42,7 @@ struct StdoutProgressReporter : public Progress {
             convert->enable_recalc_console_width(10);
           }
           if (prev.fConvert) {
-            if (prev.fConvert->fNum < prev.fConvert->fDen) {
+            if (prev.fConvert->fNum < prev.fConvert->fDen && s.fConvert->fNum > prev.fConvert->fNum) {
               convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
             }
           } else {
@@ -55,7 +55,7 @@ struct StdoutProgressReporter : public Progress {
             postProcess->enable_recalc_console_width(10);
           }
           if (prev.fPostProcess) {
-            if (prev.fPostProcess->fNum < prev.fPostProcess->fDen) {
+            if (prev.fPostProcess->fNum < prev.fPostProcess->fDen && s.fPostProcess->fNum > prev.fPostProcess->fNum) {
               postProcess->tick(s.fPostProcess->fNum - prev.fPostProcess->fNum);
             }
           } else {
@@ -68,7 +68,7 @@ struct StdoutProgressReporter : public Progress {
             compaction->enable_recalc_console_width(10);
           }
           if (prev.fCompaction) {
-            if (prev.fCompaction->fNum < prev.fCompaction->fDen) {
+            if (prev.fCompaction->fNum < prev.fCompaction->fDen && s.fCompaction->fNum > prev.fCompaction->fNum) {
               compaction->tick(s.fCompaction->fNum - prev.fCompaction->fNum);
             }
           } else {
@@ -89,31 +89,37 @@ struct StdoutProgressReporter : public Progress {
 
   bool reportConvert(Rational<u64> const &progress, u64 numConvertedChunks) override {
     lock_guard<mutex> lock(fMut);
-    if (fState.fConvert) {
-      fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
-    } else {
-      fState.fConvert = progress;
+    if (progress.fDen > 0) {
+      if (fState.fConvert) {
+        fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
+      } else {
+        fState.fConvert = progress;
+      }
     }
     fState.fNumConvertedChunks = numConvertedChunks;
     return true;
   }
 
   bool reportEntityPostProcess(Rational<u64> const &progress) override {
-    lock_guard<mutex> lock(fMut);
-    if (fState.fPostProcess) {
-      fState.fPostProcess->fNum = std::max(fState.fPostProcess->fNum, progress.fNum);
-    } else {
-      fState.fPostProcess = progress;
+    if (progress.fDen > 0) {
+      lock_guard<mutex> lock(fMut);
+      if (fState.fPostProcess) {
+        fState.fPostProcess->fNum = std::max(fState.fPostProcess->fNum, progress.fNum);
+      } else {
+        fState.fPostProcess = progress;
+      }
     }
     return true;
   }
 
   bool reportCompaction(Rational<u64> const &progress) override {
-    lock_guard<mutex> lock(fMut);
-    if (fState.fCompaction) {
-      fState.fCompaction->fNum = std::max(fState.fCompaction->fNum, progress.fNum);
-    } else {
-      fState.fCompaction = progress;
+    if (progress.fDen > 0) {
+      lock_guard<mutex> lock(fMut);
+      if (fState.fCompaction) {
+        fState.fCompaction->fNum = std::max(fState.fCompaction->fNum, progress.fNum);
+      } else {
+        fState.fCompaction = progress;
+      }
     }
     return true;
   }

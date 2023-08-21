@@ -36,7 +36,7 @@ struct StdoutProgressReporter : public Progress {
             convert->enable_recalc_console_width(10);
           }
           if (prev.fConvert) {
-            if (prev.fConvert->fNum < prev.fConvert->fDen) {
+            if (prev.fConvert->fNum < prev.fConvert->fDen && s.fConvert->fNum > prev.fConvert->fNum) {
               convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
             }
           } else {
@@ -56,11 +56,13 @@ struct StdoutProgressReporter : public Progress {
   }
 
   bool report(Rational<u64> const &progress) override {
-    lock_guard<mutex> lock(fMut);
-    if (fState.fConvert) {
-      fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
-    } else {
-      fState.fConvert = progress;
+    if (progress.fDen > 0) {
+      lock_guard<mutex> lock(fMut);
+      if (fState.fConvert) {
+        fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
+      } else {
+        fState.fConvert = progress;
+      }
     }
     return true;
   }

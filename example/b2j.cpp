@@ -40,7 +40,7 @@ struct StdoutProgressReporter : public Progress {
             convert->enable_recalc_console_width(10);
           }
           if (prev.fConvert) {
-            if (prev.fConvert->fNum < prev.fConvert->fDen) {
+            if (prev.fConvert->fNum < prev.fConvert->fDen && s.fConvert->fNum > prev.fConvert->fNum) {
               convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
             }
           } else {
@@ -53,7 +53,7 @@ struct StdoutProgressReporter : public Progress {
             terraform->enable_recalc_console_width(10);
           }
           if (prev.fTerraform) {
-            if (prev.fTerraform->fNum < prev.fTerraform->fDen) {
+            if (prev.fTerraform->fNum < prev.fTerraform->fDen && s.fTerraform->fNum > prev.fTerraform->fNum) {
               terraform->tick(s.fTerraform->fNum - prev.fTerraform->fNum);
             }
           } else {
@@ -74,10 +74,12 @@ struct StdoutProgressReporter : public Progress {
 
   bool reportConvert(Rational<u64> const &progress, u64 numConvertedChunks) override {
     lock_guard<mutex> lock(fMut);
-    if (fState.fConvert) {
-      fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
-    } else {
-      fState.fConvert = progress;
+    if (progress.fDen > 0) {
+      if (fState.fConvert) {
+        fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
+      } else {
+        fState.fConvert = progress;
+      }
     }
     fState.fNumConvertedChunks = numConvertedChunks;
     return true;
@@ -85,10 +87,12 @@ struct StdoutProgressReporter : public Progress {
 
   bool reportTerraform(Rational<u64> const &progress, u64 numProcessedChunks) override {
     lock_guard<mutex> lock(fMut);
-    if (fState.fTerraform) {
-      fState.fTerraform->fNum = std::max(fState.fTerraform->fNum, progress.fNum);
-    } else {
-      fState.fTerraform = progress;
+    if (progress.fDen > 0) {
+      if (fState.fTerraform) {
+        fState.fTerraform->fNum = std::max(fState.fTerraform->fNum, progress.fNum);
+      } else {
+        fState.fTerraform = progress;
+      }
     }
     fState.fNumTerraformedChunks = numProcessedChunks;
     return true;
