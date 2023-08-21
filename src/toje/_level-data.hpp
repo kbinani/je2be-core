@@ -5,6 +5,8 @@
 #include "toje/_block-data.hpp"
 #include "toje/_entity.hpp"
 
+#include <iostream>
+
 namespace je2be::toje {
 
 class LevelData {
@@ -197,6 +199,31 @@ public:
     settings->set(u8"features", Bool(false));
     settings->set(u8"lakes", Bool(false));
     auto flatWorldLayers = b.string(u8"FlatWorldLayers");
+    /*
+    // version: 1.2.10.2
+    {
+      "biome_id" : 1,
+      "block_layers" : [
+        {
+          "block_data" : 0,
+          "block_id" : 7,
+          "count" : 1
+        },
+        {
+          "block_data" : 0,
+          "block_id" : 3,
+          "count" : 2
+        },
+        {
+          "block_data" : 0,
+          "block_id" : 2,
+          "count" : 1
+        }
+      ],
+      "encoding_version" : 3,
+      "structure_options" : null
+    }
+    */
     if (!flatWorldLayers) {
       return nullptr;
     }
@@ -205,34 +232,43 @@ public:
       return nullptr;
     }
     auto const &json = *parsed;
-    auto biomeB = json["biome_id"];
-    if (!biomeB.is_number_unsigned()) {
+    auto biomeB = json.find("biome_id");
+    if (biomeB == json.end()) {
       return nullptr;
     }
-    auto biomeJ = mcfile::be::Biome::FromUint32(biomeB.get<u32>());
+    if (!biomeB->is_number_unsigned()) {
+      return nullptr;
+    }
+    auto biomeJ = mcfile::be::Biome::FromUint32(biomeB->get<u32>());
     if (biomeJ == mcfile::biomes::unknown) {
       return nullptr;
     }
     settings->set(u8"biome", String(mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion)));
-    auto layersB = json["block_layers"];
-    if (!layersB.is_array()) {
+    auto layersB = json.find("block_layers");
+    if (layersB == json.end()) {
+      return nullptr;
+    }
+    if (!layersB->is_array()) {
       return nullptr;
     }
     auto layersJ = List<Tag::Type::Compound>();
-    for (auto const &it : layersB) {
-      auto blockName = it["block_name"];
-      auto count = it["count"];
-      if (!blockName.is_string() || !count.is_number_unsigned()) {
+    for (auto const &it : *layersB) {
+      auto blockName = it.find("block_name");
+      auto count = it.find("count");
+      if (blockName == it.end() || count == it.end()) {
         return nullptr;
       }
-      mcfile::be::Block blockB(props::GetJsonStringValue(blockName), Compound(), je2be::tobe::kBlockDataVersion);
+      if (!blockName->is_string() || !count->is_number_unsigned()) {
+        return nullptr;
+      }
+      mcfile::be::Block blockB(props::GetJsonStringValue(*blockName), Compound(), je2be::tobe::kBlockDataVersion);
       auto blockJ = BlockData::From(blockB);
       if (!blockJ) {
         return nullptr;
       }
       auto layerJ = Compound();
       layerJ->set(u8"block", String(blockJ->fName));
-      layerJ->set(u8"height", Int(count.get<u32>()));
+      layerJ->set(u8"height", Int(count->get<u32>()));
       layersJ->push_back(layerJ);
     }
     settings->set(u8"layers", layersJ);
