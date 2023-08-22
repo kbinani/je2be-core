@@ -199,31 +199,6 @@ public:
     settings->set(u8"features", Bool(false));
     settings->set(u8"lakes", Bool(false));
     auto flatWorldLayers = b.string(u8"FlatWorldLayers");
-    /*
-    // version: 1.2.10.2
-    {
-      "biome_id" : 1,
-      "block_layers" : [
-        {
-          "block_data" : 0,
-          "block_id" : 7,
-          "count" : 1
-        },
-        {
-          "block_data" : 0,
-          "block_id" : 3,
-          "count" : 2
-        },
-        {
-          "block_data" : 0,
-          "block_id" : 2,
-          "count" : 1
-        }
-      ],
-      "encoding_version" : 3,
-      "structure_options" : null
-    }
-    */
     if (!flatWorldLayers) {
       return nullptr;
     }
@@ -232,6 +207,14 @@ public:
       return nullptr;
     }
     auto const &json = *parsed;
+    auto encodingVersion = json.find("encoding_version");
+    if (encodingVersion == json.end()) {
+      return nullptr;
+    }
+    if (!encodingVersion->is_number_integer()) {
+      return nullptr;
+    }
+    int encodingVersionV = encodingVersion->get<int>();
     auto biomeB = json.find("biome_id");
     if (biomeB == json.end()) {
       return nullptr;
@@ -252,17 +235,48 @@ public:
       return nullptr;
     }
     auto layersJ = List<Tag::Type::Compound>();
+    if (encodingVersionV < 6) {
+      auto under0LayerJ = Compound();
+      under0LayerJ->set(u8"block", String(u8"minecraft:air"));
+      under0LayerJ->set(u8"height", Int(64));
+      layersJ->push_back(under0LayerJ);
+    }
     for (auto const &it : *layersB) {
-      auto blockName = it.find("block_name");
       auto count = it.find("count");
-      if (blockName == it.end() || count == it.end()) {
+      if (count == it.end()) {
         return nullptr;
       }
-      if (!blockName->is_string() || !count->is_number_unsigned()) {
+      if (!count->is_number_unsigned()) {
         return nullptr;
       }
-      mcfile::be::Block blockB(props::GetJsonStringValue(*blockName), Compound(), je2be::tobe::kBlockDataVersion);
-      auto blockJ = BlockData::From(blockB);
+      shared_ptr<mcfile::be::Block> blockB;
+      auto blockName = it.find("block_name");
+      auto blockId = it.find("block_id");
+      if (blockId == it.end() && blockName == it.end()) {
+        return nullptr;
+      }
+      if (blockName == it.end()) {
+        if (!blockId->is_number_unsigned()) {
+          return nullptr;
+        }
+        auto id = blockId->get<uint64_t>();
+        if (id >= 256) {
+          return nullptr;
+        }
+        auto name = mcfile::be::Block::BlockNameById((uint8_t)id);
+        optional<int16_t> val;
+        auto blockData = it.find("block_data");
+        if (blockData != it.end() && blockData->is_number_integer()) {
+          val = blockData->get<int16_t>();
+        }
+        blockB = make_shared<mcfile::be::Block>(name, Compound(), nullopt, val);
+      } else {
+        if (!blockName->is_string()) {
+          return nullptr;
+        }
+        blockB = make_shared<mcfile::be::Block>(props::GetJsonStringValue(*blockName), Compound(), je2be::tobe::kBlockDataVersion);
+      }
+      auto blockJ = BlockData::From(*blockB);
       if (!blockJ) {
         return nullptr;
       }
