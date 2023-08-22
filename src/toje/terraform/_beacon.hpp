@@ -24,7 +24,6 @@ public:
             continue;
           }
           auto tileEntity = out.fTileEntities[Pos3i(x, y, z)];
-          assert(tileEntity);
           if (!tileEntity) [[unlikely]] {
             continue;
           }
