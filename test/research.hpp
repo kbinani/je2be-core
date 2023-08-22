@@ -1379,6 +1379,55 @@ static void Heightmaps() {
   code << endl;
 }
 
+static void BEFormat0() {
+  {
+    unique_ptr<leveldb::DB> db(Open("1.2.10.2-upgrade-test"));
+    int id = 0;
+    uint8_t fill = 0x14;
+    int chunkY = 0;
+    while (id < 256) {
+      vector<uint8_t> data;
+      data.push_back(0);
+      for (int i = 0; i < 4096; i++) {
+        data.push_back(fill);
+      }
+      for (int x = 0; x < 15; x++) {
+        for (int z = 0; z < 15; z++) {
+          for (int y = 0; y < 15 && id < 256; y++) {
+            if (x % 2 == 1 && y % 2 == 1 && z % 2 == 1) {
+              data[1 + (x * 16 + z) * 16 + y] = id++;
+            }
+          }
+        }
+      }
+      for (int i = 0; i < 2048; i++) {
+        data.push_back(0);
+      }
+      auto key = mcfile::be::DbKey::SubChunk(0, chunkY, 0, mcfile::Dimension::Overworld);
+      string value;
+      value.assign((char const *)data.data(), data.size());
+      db->Put({}, key, value);
+      chunkY++;
+    }
+  }
+  {
+    unique_ptr<leveldb::DB> db(Open("after"));
+    auto chunk = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, db.get(), mcfile::Endian::Little);
+    int id = 0;
+    for (int x = 0; x < 15; x++) {
+      for (int z = 0; z < 15; z++) {
+        for (int y = 0; y < 15 && id < 256; y++) {
+          if (x % 2 == 1 && y % 2 == 1 && z % 2 == 1) {
+            auto block = chunk->blockAt(x, y, z);
+            cout << "u8\"" << block->fName << "\"," << endl;
+            id++;
+          }
+        }
+      }
+    }
+  }
+}
+
 #if 0
 TEST_CASE("research") {
   // Heightmaps();
