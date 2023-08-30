@@ -280,7 +280,7 @@ public:
   }
 
   static void StairsDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
-    auto facing = block.property(u8"facing", u8"north");
+    auto facing = block.property(u8"facing", u8"east");
     i32 direction = 0;
     if (facing == u8"east") {
       direction = 0;
@@ -594,8 +594,6 @@ public:
   }
 
   static Converter AnyMushroomBlock(std::u8string const &name, bool stem) { return Converter(Name(name), HugeMushroomBits(stem)); }
-
-  static Converter ShulkerBox(std::u8string const &color) { return Subtype(u8"shulker_box", u8"color", color); }
 
   static void EyeToEndPortalEyeBit(CompoundTagPtr const &s, Block const &block) {
     auto eye = block.property(u8"eye", u8"false") == u8"true";
@@ -1068,12 +1066,12 @@ public:
     E(snow, SnowLayer);
     E(sugar_cane, Converter(Name(u8"reeds"), Name(Age, u8"age")));
     E(end_rod, Converter(Same, EndRodFacingDirectionFromFacing));
-    E(oak_fence, Fence(u8"oak"));
-    E(spruce_fence, Fence(u8"spruce"));
-    E(birch_fence, Fence(u8"birch"));
-    E(jungle_fence, Fence(u8"jungle"));
-    E(acacia_fence, Fence(u8"acacia"));
-    E(dark_oak_fence, Fence(u8"dark_oak"));
+    E(oak_fence, Identity);
+    E(spruce_fence, Identity);
+    E(birch_fence, Identity);
+    E(jungle_fence, Identity);
+    E(acacia_fence, Identity);
+    E(dark_oak_fence, Identity);
     E(bamboo_fence, Identity);
     E(ladder, facingDirectionFromFacingA);
     E(chest, facingDirectionFromFacingA);
@@ -1096,22 +1094,22 @@ public:
     E(brown_mushroom_block, AnyMushroomBlock(u8"brown_mushroom_block", false));
     E(mushroom_stem, AnyMushroomBlock(u8"brown_mushroom_block", true));
     E(end_portal_frame, Converter(Same, DirectionFromFacingA, EyeToEndPortalEyeBit));
-    E(white_shulker_box, ShulkerBox(u8"white"));
-    E(orange_shulker_box, ShulkerBox(u8"orange"));
-    E(magenta_shulker_box, ShulkerBox(u8"magenta"));
-    E(light_blue_shulker_box, ShulkerBox(u8"light_blue"));
-    E(yellow_shulker_box, ShulkerBox(u8"yellow"));
-    E(lime_shulker_box, ShulkerBox(u8"lime"));
-    E(pink_shulker_box, ShulkerBox(u8"pink"));
-    E(gray_shulker_box, ShulkerBox(u8"gray"));
-    E(light_gray_shulker_box, ShulkerBox(u8"silver"));
-    E(cyan_shulker_box, ShulkerBox(u8"cyan"));
-    E(purple_shulker_box, ShulkerBox(u8"purple"));
-    E(blue_shulker_box, ShulkerBox(u8"blue"));
-    E(brown_shulker_box, ShulkerBox(u8"brown"));
-    E(green_shulker_box, ShulkerBox(u8"green"));
-    E(red_shulker_box, ShulkerBox(u8"red"));
-    E(black_shulker_box, ShulkerBox(u8"black"));
+    E(white_shulker_box, Identity);
+    E(orange_shulker_box, Identity);
+    E(magenta_shulker_box, Identity);
+    E(light_blue_shulker_box, Identity);
+    E(yellow_shulker_box, Identity);
+    E(lime_shulker_box, Identity);
+    E(pink_shulker_box, Identity);
+    E(gray_shulker_box, Identity);
+    E(light_gray_shulker_box, Identity);
+    E(cyan_shulker_box, Identity);
+    E(purple_shulker_box, Identity);
+    E(blue_shulker_box, Identity);
+    E(brown_shulker_box, Identity);
+    E(green_shulker_box, Identity);
+    E(red_shulker_box, Identity);
+    E(black_shulker_box, Identity);
     E(shulker_box, Rename(u8"undyed_shulker_box"));
     E(cobblestone_wall, Wall(u8"cobblestone"));
     E(mossy_cobblestone_wall, Wall(u8"mossy_cobblestone"));
@@ -1928,12 +1926,13 @@ public:
     auto c = New(u8"scaffolding");
     auto s = States();
     auto distance = strings::ToI32(block.property(u8"distance", u8"0"));
+    auto bottom = block.property(u8"bottom", u8"false") == u8"true";
     i32 stability = 0;
     if (distance) {
       stability = *distance;
     }
     s->set(u8"stability", Int(stability));
-    s->set(u8"stability_check", Bool(true));
+    s->set(u8"stability_check", Bool(bottom));
     return AttachStates(c, s);
   }
 
@@ -2340,7 +2339,7 @@ CompoundTagPtr BlockData::Make(std::u8string const &name) {
 }
 
 i32 BlockData::GetFacingDirectionAFromFacing(mcfile::je::Block const &block) {
-  auto facing = block.property(u8"facing", u8"north");
+  auto facing = block.property(u8"facing", u8"down");
   auto f6 = Facing6FromJavaName(facing);
   return BedrockFacingDirectionAFromFacing6(f6);
 }

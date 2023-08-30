@@ -266,14 +266,14 @@ private:
     E(dragon_wall_head, Skull);
     E(piglin_wall_head, Skull);
 
-    E(barrel, AnyStorage(u8"Barrel"));
+    E(barrel, AnyStorage(u8"Barrel", false));
     E(furnace, Furnace(u8"Furnace"));
     E(brewing_stand, BrewingStand);
     E(blast_furnace, Furnace(u8"BlastFurnace"));
     E(smoker, Furnace(u8"Smoker"));
     E(hopper, Hopper);
-    E(dropper, AnyStorage(u8"Dropper"));
-    E(dispenser, AnyStorage(u8"Dispenser"));
+    E(dropper, AnyStorage(u8"Dropper", nullopt));
+    E(dispenser, AnyStorage(u8"Dispenser", false));
 
     E(note_block, Note);
     E(jukebox, Jukebox);
@@ -294,7 +294,7 @@ private:
     E(piston, PistonArm(false));
 
     E(end_gateway, EndGateway);
-    E(ender_chest, AnyStorage(u8"EnderChest"));
+    E(ender_chest, AnyStorage(u8"EnderChest", false));
     E(enchanting_table, EnchantingTable);
     E(bell, Bell);
     E(conduit, Conduit);
@@ -340,6 +340,7 @@ private:
     E(cherry_sign, sign);
     E(cherry_wall_sign, sign);
     E(calibrated_sculk_sensor, NamedEmpty(u8"CalibratedSculkSensor"));
+    E(lodestone, Lodestone);
 #undef E
     return table;
   }
@@ -496,11 +497,17 @@ private:
     };
   }
 
+  static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
+    auto tag = Empty(u8"Lodestone", {}, pos);
+    tag->set(u8"isMovable", Bool(true));
+    return tag;
+  }
+
   static CompoundTagPtr Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     if (!c) {
       return nullptr;
     }
-    auto t = AnyStorage(u8"Hopper")(pos, b, c, ctx);
+    auto t = AnyStorage(u8"Hopper", std::nullopt)(pos, b, c, ctx);
     CopyIntValues(*c, *t, {{u8"TransferCooldown", u8"TransferCooldown", 0}});
     return t;
   }
@@ -511,6 +518,7 @@ private:
     }
     auto t = Empty(u8"Comparator", *c, pos);
     CopyIntValues(*c, *t, {{u8"OutputSignal", u8"OutputSignal", 0}});
+    t->set(u8"isMovable", Bool(true));
     return t;
   }
 
@@ -537,6 +545,7 @@ private:
         }
       }
     }
+    t->set(u8"isMovable", Bool(true));
     return t;
   }
 
@@ -651,22 +660,24 @@ private:
         {u8"isMovable", Bool(true)},
         {u8"powered", Bool(powered)},
         {u8"auto", Bool(automatic)},
-        {u8"TrackDelay", Int(0)},
+        {u8"TickDelay", Int(0)},
         {u8"TrackOutput", Bool(trackOutput)},
-        {u8"Version", Int(17)},
+        {u8"Version", Int(34)},
         {u8"SuccessCount", Int(successCount)},
         {u8"Command", String(command)},
         {u8"ExecuteOnFirstTick", Bool(false)},
         {u8"conditionMet", Bool(conditionMet)},
     });
     Attach(c, pos, *tag);
-    auto customName = props::GetJson(*c, u8"CustomName");
-    if (customName) {
-      auto text = GetAsString(*customName, "text");
-      if (text == u8"@") {
-        tag->erase(u8"CustomName");
+    auto customNameJ = props::GetJson(*c, u8"CustomName");
+    std::u8string customNameB;
+    if (customNameJ) {
+      auto text = GetAsString(*customNameJ, "text");
+      if (text && text != u8"@") {
+        customNameB = *text;
       }
     }
+    tag->set(u8"CustomName", String(customNameB));
     return tag;
   }
 
@@ -998,7 +1009,7 @@ private:
     return tag;
   }
 
-  static Converter AnyStorage(std::u8string const &name) {
+  static Converter AnyStorage(std::u8string const &name, std::optional<bool> findable) {
     return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
       using namespace std;
 
@@ -1013,10 +1024,12 @@ private:
       }
 
       tag->insert({
-          {u8"Findable", Bool(false)},
           {u8"id", String(name)},
           {u8"isMovable", Bool(true)},
       });
+      if (findable) {
+        tag->set(u8"Findable", Bool(*findable));
+      }
       Attach(c, pos, *tag);
       return tag;
     };
@@ -1539,6 +1552,7 @@ private:
 
     auto tag = Compound();
     if (comp) {
+      tag->set(u8"Items", List<Tag::Type::Compound>());
       if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
         auto items = GetItems(comp, u8"Items", ctx);
         if (items) {
@@ -1563,7 +1577,7 @@ private:
 
   static Converter Furnace(std::u8string id) {
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx) {
-      auto ret = AnyStorage(id)(pos, b, comp, ctx);
+      auto ret = AnyStorage(id, false)(pos, b, comp, ctx);
       if (comp) {
         auto burnTime = comp->int16(u8"BurnTime");
         if (burnTime) {

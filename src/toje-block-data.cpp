@@ -723,7 +723,7 @@ private:
     return bName;
   }
 
-  static String Fence(String const &bName, CompoundTag const &s, Props &p) {
+  static String FenceLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string(u8"wood_type", u8"oak");
     Submergible(s, p);
     return Ns() + woodType + u8"_fence";
@@ -1298,7 +1298,7 @@ private:
     return bName;
   }
 
-  static String ShulkerBox(String const &bName, CompoundTag const &s, Props &p) {
+  static String ShulkerBoxLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_shulker_box";
@@ -2100,7 +2100,13 @@ private:
     E(crimson_door, Door);
     E(warped_door, Door);
 
-    E(fence, Fence);
+    E(fence, FenceLegacy); // legacy
+    E(oak_fence, BlockWithSubmergible);
+    E(spruce_fence, BlockWithSubmergible);
+    E(birch_fence, BlockWithSubmergible);
+    E(jungle_fence, BlockWithSubmergible);
+    E(acacia_fence, BlockWithSubmergible);
+    E(dark_oak_fence, BlockWithSubmergible);
     E(crimson_fence, BlockWithSubmergible);
     E(nether_brick_fence, BlockWithSubmergible);
     E(warped_fence, BlockWithSubmergible);
@@ -2299,7 +2305,25 @@ private:
     E(white_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
     E(yellow_glazed_terracotta, BlockWithFacing4FromFacingDirectionA);
 
-    E(shulker_box, ShulkerBox);
+    E(shulker_box, ShulkerBoxLegacy);
+    E(white_shulker_box, Same);
+    E(orange_shulker_box, Same);
+    E(magenta_shulker_box, Same);
+    E(light_blue_shulker_box, Same);
+    E(yellow_shulker_box, Same);
+    E(lime_shulker_box, Same);
+    E(pink_shulker_box, Same);
+    E(gray_shulker_box, Same);
+    E(light_gray_shulker_box, Same);
+    E(cyan_shulker_box, Same);
+    E(purple_shulker_box, Same);
+    E(blue_shulker_box, Same);
+    E(brown_shulker_box, Same);
+    E(green_shulker_box, Same);
+    E(red_shulker_box, Same);
+    E(black_shulker_box, Same);
+    E(undyed_shulker_box, Rename(u8"shulker_box"));
+
     E(stained_glass, StainedGlass);
     E(stained_glass_pane, StainedGlassPane);
     E(stained_hardened_clay, StainedHardenedClay);
@@ -2486,7 +2510,6 @@ private:
     E(sea_pickle, SeaPickle);
     E(seaLantern, Rename(u8"sea_lantern")); // legacy, < 1.18.30
     E(sea_lantern, Same);
-    E(undyed_shulker_box, Rename(u8"shulker_box"));
     E(slime, Rename(u8"slime_block"));
     E(small_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
     E(small_dripleaf_block, SmallDripleafBlock);

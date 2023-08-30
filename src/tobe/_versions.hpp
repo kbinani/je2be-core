@@ -4,7 +4,7 @@
 
 namespace je2be::tobe {
 
-i32 constexpr kBlockDataVersion = 18087969;                                  // v1.20.0
+i32 constexpr kBlockDataVersion = 18090528;                                  // v1.20.15
 Version constexpr kMinimumCompatibleClientVersion = Version(1, 20, 0, 0, 0); // v1.20.0
 u8 constexpr kSubChunkBlockStorageVersion = 9;                               // v1.20.0
 i32 constexpr kStorageVersion = 10;                                          // v1.20.0

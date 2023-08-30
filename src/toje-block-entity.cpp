@@ -901,7 +901,23 @@ public:
     E(standing_banner, Banner);
     E(wall_banner, Banner);
     E(jukebox, Jukebox);
-    E(shulker_box, ShulkerBox);
+    E(shulker_box, ShulkerBox); // legacy, < ?
+    E(white_shulker_box, ShulkerBox);
+    E(orange_shulker_box, ShulkerBox);
+    E(magenta_shulker_box, ShulkerBox);
+    E(light_blue_shulker_box, ShulkerBox);
+    E(yellow_shulker_box, ShulkerBox);
+    E(lime_shulker_box, ShulkerBox);
+    E(pink_shulker_box, ShulkerBox);
+    E(gray_shulker_box, ShulkerBox);
+    E(light_gray_shulker_box, ShulkerBox);
+    E(cyan_shulker_box, ShulkerBox);
+    E(purple_shulker_box, ShulkerBox);
+    E(blue_shulker_box, ShulkerBox);
+    E(brown_shulker_box, ShulkerBox);
+    E(green_shulker_box, ShulkerBox);
+    E(red_shulker_box, ShulkerBox);
+    E(black_shulker_box, ShulkerBox);
     E(undyed_shulker_box, ShulkerBox);
     E(noteblock, Noteblock);
     E(chest, Chest);

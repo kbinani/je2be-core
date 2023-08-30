@@ -140,6 +140,31 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
   // TODO: check other properties
 }
 
+static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual) {
+  auto e = expected.copy();
+  auto a = actual.copy();
+  auto idE = e->string(u8"id");
+  auto idA = a->string(u8"id");
+  REQUIRE(idE);
+  REQUIRE(idA);
+  CHECK(*idE == *idA);
+  set<u8string> ignore;
+  if (*idE == u8"CommandBlock") {
+    ignore.insert(u8"LPCommandMode");
+    ignore.insert(u8"LPCondionalMode");
+    ignore.insert(u8"LPRedstoneMode");
+    ignore.insert(u8"LastOutput");
+    ignore.insert(u8"LastOutputParams");
+    ignore.insert(u8"ExecuteOnFirstTick");
+    ignore.insert(u8"Version");
+  }
+  for (auto const &i : ignore) {
+    e->erase(i);
+    a->erase(i);
+  }
+  DiffCompoundTag(*e, *a);
+}
+
 static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk const &actual) {
   for (auto const &e : expected.entities()) {
     auto posE = je2be::props::GetPos3f(*e, u8"Pos");
@@ -173,6 +198,17 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       CHECK(false);
     }
   }
+  auto const &actualBlockEntities = actual.blockEntities();
+  for (auto const &e : expected.blockEntities()) {
+    auto found = actualBlockEntities.find(e.first);
+    REQUIRE(e.second);
+    CHECK(found != actualBlockEntities.end());
+    if (found == actualBlockEntities.end()) {
+      continue;
+    }
+    REQUIRE(found->second);
+    CheckBlockEntityB(*e.second, *found->second);
+  }
 }
 
 static void TestBedrockToJavaToBedrock(fs::path const &in) {
@@ -188,11 +224,22 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   Status st = ZipFile::Unzip(in, *inB);
   REQUIRE(st.ok());
 
+  std::unordered_set<Pos2i, Pos2iHasher> chunkFilter;
+#if 0
+  chunkFilter.insert({0, 0});
+#endif
+
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   REQUIRE(outJ);
   je2be::toje::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
+  if (!chunkFilter.empty()) {
+    optJ.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+    for (auto const &ch : chunkFilter) {
+      optJ.fChunkFilter.insert(ch);
+    }
+  }
   st = je2be::toje::Converter::Run(*inB, *outJ, optJ, concurrency);
   REQUIRE(st.ok());
 
@@ -201,6 +248,12 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(outB);
   je2be::tobe::Options optB;
   optB.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
+  if (!chunkFilter.empty()) {
+    optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
+    for (auto const &ch : chunkFilter) {
+      optB.fChunkFilter.insert(ch);
+    }
+  }
   st = je2be::tobe::Converter::Run(*outJ, *outB, optB, concurrency);
   REQUIRE(st.ok());
 
@@ -211,7 +264,13 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(dbE);
   REQUIRE(dbA);
   for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
+    if (!chunkFilter.empty() && dimension != mcfile::Dimension::Overworld) {
+      continue;
+    }
     mcfile::be::Chunk::ForAll(dbE.get(), dimension, [&](int cx, int cz) {
+      if (!chunkFilter.empty() && chunkFilter.count({cx, cz}) == 0) {
+        return true;
+      }
       auto chunkE = mcfile::be::Chunk::Load(cx, cz, dimension, dbE.get(), mcfile::Endian::Little);
       REQUIRE(chunkE);
       auto chunkA = mcfile::be::Chunk::Load(cx, cz, dimension, dbA.get(), mcfile::Endian::Little);
