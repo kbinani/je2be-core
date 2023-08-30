@@ -273,7 +273,7 @@ private:
     E(smoker, Furnace(u8"Smoker"));
     E(hopper, Hopper);
     E(dropper, AnyStorage(u8"Dropper", nullopt));
-    E(dispenser, AnyStorage(u8"Dispenser", false));
+    E(dispenser, AnyStorage(u8"Dispenser", nullopt));
 
     E(note_block, Note);
     E(jukebox, Jukebox);
@@ -373,6 +373,7 @@ private:
     tag->set(u8"brush_count", Int(dusted));
 
     tag->set(u8"type", String(b.fName));
+    tag->set(u8"brush_direction", Byte(6));
 
     Attach(c, pos, *tag);
     return tag;

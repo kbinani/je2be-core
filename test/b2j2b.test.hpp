@@ -37,6 +37,8 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"-feeling_happy",          // sniffer
       u8"-sniffer_search_and_dig", // sniffer
       u8"-stand_up",               // sniffer
+      u8"minecraft:camel_sitting", // cannot reconstruct LastPoseTick when B->J conversion.
+      u8"minecraft:camel_standing",
   };
 
   set<u8string> setE;

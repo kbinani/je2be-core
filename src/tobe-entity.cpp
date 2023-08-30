@@ -805,7 +805,14 @@ private:
   }
 
   static void Camel(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    auto sitting = tag.boolean(u8"IsSitting", false); // Used only during 1.20 experimental. LastPoseTick is used in 1.9.4pre2
+    auto isSitting = tag.boolean(u8"IsSitting"); // Used only during 1.20 experimental. LastPoseTick is used in 1.9.4pre2
+    auto lastPoseTick = tag.int64(u8"LastPoseTick");
+
+    bool sitting = false;
+    if ((lastPoseTick && *lastPoseTick < 0) || isSitting == true) {
+      sitting = true;
+    }
+
     c[u8"Sitting"] = Bool(sitting);
     if (sitting) {
       AddDefinition(c, u8"+minecraft:camel_sitting");
@@ -947,6 +954,8 @@ private:
         {u8"minecraft:black_concrete_powder", 0x1cb7ea9},
         {u8"minecraft:blue_concrete_powder", 0x27892033},
         {u8"minecraft:green_concrete_powder", 0xf54a339},
+        {u8"minecraft:suspicious_sand", 0x8068e4a9},
+        {u8"minecraft:suspicious_gravel", 0x000981bc},
     };
     if (auto found = sTable.find(*name); found != sTable.end()) {
       u32 u = found->second;

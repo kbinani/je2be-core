@@ -1683,6 +1683,9 @@ public:
     E(sniffer_egg, SnifferEgg);
     E(sculk_sensor, Converter(Same, SculkSensorPhase));
     E(calibrated_sculk_sensor, Converter(Same, SculkSensorPhase, DirectionNorth2East3South0West1FromFacing));
+    Converter suspiciousBlock(Same, AddIntProperty(u8"brushed_progress", 0), AddBoolProperty(u8"hanging", true));
+    E(suspicious_sand, suspiciousBlock);
+    E(suspicious_gravel, suspiciousBlock);
 #undef E
 
     return table;
