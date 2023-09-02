@@ -400,7 +400,7 @@ private:
     return bName;
   }
 
-  static String Carpet(String const &bName, CompoundTag const &s, Props &p) {
+  static String CarpetLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_carpet";
@@ -473,7 +473,7 @@ private:
     return bName;
   }
 
-  static String Concrete(String const &bName, CompoundTag const &s, Props &p) {
+  static String ConcreteLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_concrete";
@@ -1293,7 +1293,9 @@ private:
 
   static String Scaffolding(String const &bName, CompoundTag const &s, Props &p) {
     auto stability = s.int32(u8"stability", 0);
-    p[u8"bottom"] = Bool(stability > 0);
+    auto stabilityCheck = s.boolean(u8"stability_check", false);
+    p[u8"bottom"] = Bool(stabilityCheck);
+    p[u8"distance"] = Int(stability);
     Submergible(s, p);
     return bName;
   }
@@ -2077,7 +2079,9 @@ private:
     auto table = new std::unordered_map<u8string_view, Converter>();
 #define E(__name, __converter)                       \
   assert(table->find(u8"" #__name) == table->end()); \
-  table->emplace(u8"" #__name, __converter);
+  if (string(#__converter) != "Identity") {          \
+    table->emplace(u8"" #__name, __converter);       \
+  }
 
     E(acacia_button, Button);
     E(wooden_button, Button);
@@ -2283,8 +2287,8 @@ private:
     E(white_candle_cake, CandleCake);
     E(yellow_candle_cake, CandleCake);
 
-    E(carpet, Carpet);
-    E(concrete, Concrete);
+    E(carpet, CarpetLegacy);
+    E(concrete, ConcreteLegacy);
     E(concretePowder, ConcretePowder); // legacy, < 1.18.30
     E(concrete_powder, ConcretePowder);
 

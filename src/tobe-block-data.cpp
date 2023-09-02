@@ -415,8 +415,6 @@ public:
 
   static Converter Terracotta(std::u8string const &color) { return Subtype(u8"stained_hardened_clay", u8"color", color); }
 
-  static Converter Concrete(std::u8string const &color) { return Subtype(u8"concrete", u8"color", color); }
-
   static Converter ConcretePowder(std::u8string const &color) { return Subtype(u8"concrete_powder", u8"color", color); }
 
   static Converter CoralBlock(std::u8string const &color, bool dead) { return Converter(Name(u8"coral_block"), AddStringProperty(u8"coral_color", color), AddBoolProperty(u8"dead_bit", dead)); }
@@ -612,6 +610,14 @@ public:
     s->set(u8"facing_direction", Int(direction));
   }
 
+  static void Door(CompoundTagPtr const &s, Block const &block) {
+    auto upper = s->boolean(u8"upper_block_bit", false);
+    if (upper) {
+      s->set(u8"direction", Int(0));
+      s->set(u8"open_bit", Bool(false));
+    }
+  }
+
   static std::u8string GetWallConnectionType(std::u8string_view const &type) {
     if (type == u8"low") {
       return u8"short";
@@ -645,8 +651,6 @@ public:
   }
 
   static Converter Wall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
-
-  static Converter Carpet(std::u8string const &color) { return Subtype(u8"carpet", u8"color", color); }
 
   static Converter StainedGlassPane(std::u8string const &color) { return Subtype(u8"stained_glass_pane", u8"color", color); }
 
@@ -753,7 +757,9 @@ public:
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
 #define E(__name, __func)                                                                               \
   assert(!(*table)[static_cast<u32>(mcfile::blocks::minecraft::__name)] && "converter is already set"); \
-  (*table)[static_cast<u32>(mcfile::blocks::minecraft::__name)] = __func;
+  if (string(#__func) != "Identity") {                                                                  \
+    (*table)[static_cast<u32>(mcfile::blocks::minecraft::__name)] = __func;                             \
+  }
 
     E(stone, Stone(u8"stone"));
     E(granite, Stone(u8"granite"));
@@ -1001,22 +1007,22 @@ public:
     E(green_concrete_powder, ConcretePowder(u8"green"));
     E(red_concrete_powder, ConcretePowder(u8"red"));
     E(black_concrete_powder, ConcretePowder(u8"black"));
-    E(white_concrete, Concrete(u8"white"));
-    E(orange_concrete, Concrete(u8"orange"));
-    E(magenta_concrete, Concrete(u8"magenta"));
-    E(light_blue_concrete, Concrete(u8"light_blue"));
-    E(yellow_concrete, Concrete(u8"yellow"));
-    E(lime_concrete, Concrete(u8"lime"));
-    E(pink_concrete, Concrete(u8"pink"));
-    E(gray_concrete, Concrete(u8"gray"));
-    E(light_gray_concrete, Concrete(u8"silver"));
-    E(cyan_concrete, Concrete(u8"cyan"));
-    E(purple_concrete, Concrete(u8"purple"));
-    E(blue_concrete, Concrete(u8"blue"));
-    E(brown_concrete, Concrete(u8"brown"));
-    E(green_concrete, Concrete(u8"green"));
-    E(red_concrete, Concrete(u8"red"));
-    E(black_concrete, Concrete(u8"black"));
+    E(white_concrete, Identity);
+    E(orange_concrete, Identity);
+    E(magenta_concrete, Identity);
+    E(light_blue_concrete, Identity);
+    E(yellow_concrete, Identity);
+    E(lime_concrete, Identity);
+    E(pink_concrete, Identity);
+    E(gray_concrete, Identity);
+    E(light_gray_concrete, Identity);
+    E(cyan_concrete, Identity);
+    E(purple_concrete, Identity);
+    E(blue_concrete, Identity);
+    E(brown_concrete, Identity);
+    E(green_concrete, Identity);
+    E(red_concrete, Identity);
+    E(black_concrete, Identity);
     E(white_terracotta, Terracotta(u8"white"));
     E(orange_terracotta, Terracotta(u8"orange"));
     E(magenta_terracotta, Terracotta(u8"magenta"));
@@ -1129,22 +1135,22 @@ public:
     E(blackstone_wall, wall);
     E(polished_blackstone_wall, wall);
     E(polished_blackstone_brick_wall, wall);
-    E(white_carpet, Carpet(u8"white"));
-    E(orange_carpet, Carpet(u8"orange"));
-    E(magenta_carpet, Carpet(u8"magenta"));
-    E(light_blue_carpet, Carpet(u8"light_blue"));
-    E(yellow_carpet, Carpet(u8"yellow"));
-    E(lime_carpet, Carpet(u8"lime"));
-    E(pink_carpet, Carpet(u8"pink"));
-    E(gray_carpet, Carpet(u8"gray"));
-    E(light_gray_carpet, Carpet(u8"silver"));
-    E(cyan_carpet, Carpet(u8"cyan"));
-    E(purple_carpet, Carpet(u8"purple"));
-    E(blue_carpet, Carpet(u8"blue"));
-    E(brown_carpet, Carpet(u8"brown"));
-    E(green_carpet, Carpet(u8"green"));
-    E(red_carpet, Carpet(u8"red"));
-    E(black_carpet, Carpet(u8"black"));
+    E(white_carpet, Identity);
+    E(orange_carpet, Identity);
+    E(magenta_carpet, Identity);
+    E(light_blue_carpet, Identity);
+    E(yellow_carpet, Identity);
+    E(lime_carpet, Identity);
+    E(pink_carpet, Identity);
+    E(gray_carpet, Identity);
+    E(light_gray_carpet, Identity);
+    E(cyan_carpet, Identity);
+    E(purple_carpet, Identity);
+    E(blue_carpet, Identity);
+    E(brown_carpet, Identity);
+    E(green_carpet, Identity);
+    E(red_carpet, Identity);
+    E(black_carpet, Identity);
     E(white_stained_glass_pane, StainedGlassPane(u8"white"));
     E(orange_stained_glass_pane, StainedGlassPane(u8"orange"));
     E(magenta_stained_glass_pane, StainedGlassPane(u8"magenta"));
@@ -1433,8 +1439,8 @@ public:
     E(dropper, Converter(Same, FacingDirectionAFromFacing, Name(Triggered, u8"triggered_bit")));
     E(observer, Converter(Same, FacingDirectionAFromFacing, Name(Powered, u8"powered_bit")));
 
-    Converter door(Same, DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge);
-    E(oak_door, Converter(Name(u8"wooden_door"), DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge));
+    Converter door(Same, DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door);
+    E(oak_door, Converter(Name(u8"wooden_door"), DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door));
     E(iron_door, door);
     E(spruce_door, door);
     E(birch_door, door);
@@ -1686,6 +1692,7 @@ public:
     Converter suspiciousBlock(Same, AddIntProperty(u8"brushed_progress", 0), AddBoolProperty(u8"hanging", true));
     E(suspicious_sand, suspiciousBlock);
     E(suspicious_gravel, suspiciousBlock);
+    E(bedrock, Converter(Same, AddBoolProperty(u8"infiniburn_bit", false)));
 #undef E
 
     return table;
