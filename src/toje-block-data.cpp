@@ -444,6 +444,17 @@ private:
     return bName;
   }
 
+  static String ChiseledBookshelf(String const &bName, CompoundTag const &s, Props &p) {
+    Facing4FromDirectionA(s, p);
+    auto stored = s.int32(u8"books_stored", 0);
+    for (int i = 0; i < 6; i++) {
+      bool occupied = (uint8_t(stored) & (uint8_t(1) << i)) == ((uint8_t(1) << i));
+      auto key = u8"slot_" + Int(i) + u8"_occupied";
+      p[key] = Bool(occupied);
+    }
+    return bName;
+  }
+
   static String Cocoa(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromDirectionA(s, p);
     Age(s, p);
@@ -485,7 +496,7 @@ private:
     return Ns() + colorJ + u8"_concrete_powder";
   }
 
-  static String Coral(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = s.boolean(u8"dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -793,23 +804,43 @@ private:
 
     bool hanging = s.boolean(u8"hanging", false);
     if (hanging) {
-      p[u8"attached"] = Bool(s.boolean(u8"attached_bit", false));
-      p[u8"rotation"] = Int(s.int32(u8"ground_sign_direction", 0));
+      auto attached = s.boolean(u8"attached_bit", false);
+      p[u8"attached"] = Bool(attached);
+      if (attached) {
+        p[u8"rotation"] = Int(s.int32(u8"ground_sign_direction", 0));
+      } else {
+        int rotation = 8;
+        switch (s.int32(u8"facing_direction", 2)) {
+        case 3:
+          rotation = 0;
+          break;
+        case 4:
+          rotation = 4;
+          break;
+        case 2:
+          rotation = 8;
+          break;
+        case 5:
+          rotation = 12;
+          break;
+        }
+        p[u8"rotation"] = Int(rotation);
+      }
       return bName;
     } else {
       std::u8string facing = u8"north";
       switch (s.int32(u8"facing_direction", 2)) {
-      case 0:
-        facing = u8"west";
-        break;
-      case 1:
-        facing = u8"east";
-        break;
       case 2:
         facing = u8"north";
         break;
       case 3:
         facing = u8"south";
+        break;
+      case 4:
+        facing = u8"west";
+        break;
+      case 5:
+        facing = u8"east";
         break;
       }
       p[u8"facing"] = facing;
@@ -935,17 +966,23 @@ private:
   }
 
   static String LitPumpkin(String const &bName, CompoundTag const &s, Props &p) {
-    Facing4FromDirectionA(s, p);
+    auto cardinalDirection = s.string(u8"minecraft:cardinal_direction");
+    if (cardinalDirection) {
+      p[u8"facing"] = *cardinalDirection;
+    } else {
+      // legacy
+      Facing4FromDirectionA(s, p);
+    }
     return Ns() + u8"jack_o_lantern";
   }
 
-  static String Log(String const &bName, CompoundTag const &s, Props &p) {
+  static String LogLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto logType = s.string(u8"old_log_type", u8"oak");
     AxisFromPillarAxis(s, p);
     return Ns() + logType + u8"_log";
   }
 
-  static String Log2(String const &bName, CompoundTag const &s, Props &p) {
+  static String Log2Legacy(String const &bName, CompoundTag const &s, Props &p) {
     auto logType = s.string(u8"new_log_type", u8"acacia"); //TODO: acacia?
     AxisFromPillarAxis(s, p);
     return Ns() + logType + u8"_log";
@@ -1008,7 +1045,13 @@ private:
   }
 
   static String Observer(String const &bName, CompoundTag const &s, Props &p) {
-    Facing6FromFacingDirectionA(s, p);
+    auto facingDirection = s.string(u8"minecraft:facing_direction");
+    if (facingDirection) {
+      p[u8"facing"] = String(*facingDirection);
+    } else {
+      // legacy
+      Facing6FromFacingDirectionA(s, p);
+    }
     auto powered = s.boolean(u8"powered", false);
     p[u8"powered"] = Bool(powered);
     return bName;
@@ -1067,6 +1110,17 @@ private:
       name = u8"prismarine";
     }
     return Ns() + name;
+  }
+
+  static String CarvedPumpkin(String const &bName, CompoundTag const &s, Props &p) {
+    auto cardinalDirection = s.string(u8"minecraft:cardinal_direction");
+    if (cardinalDirection) {
+      p[u8"facing"] = *cardinalDirection;
+    } else {
+      // legacy
+      Facing4FromDirectionA(s, p);
+    }
+    return bName;
   }
 
   static String PumpkinStem(String const &bName, CompoundTag const &s, Props &p) {
@@ -1466,7 +1520,7 @@ private:
   }
 
   static String SweetBerryBush(String const &bName, CompoundTag const &s, Props &p) {
-    AgeFromGrowthNonLinear(s, p);
+    AgeFromGrowth(s, p);
     return bName;
   }
 #pragma endregion
@@ -2079,7 +2133,7 @@ private:
     auto table = new std::unordered_map<u8string_view, Converter>();
 #define E(__name, __converter)                       \
   assert(table->find(u8"" #__name) == table->end()); \
-  if (string(#__converter) != "Identity") {          \
+  if (string(#__converter) != "Same") {              \
     table->emplace(u8"" #__name, __converter);       \
   }
 
@@ -2126,8 +2180,14 @@ private:
 
     E(leaves, Leaves);
     E(leaves2, Leaves2);
-    E(log2, Log2);
-    E(log, Log);
+    E(log2, Log2Legacy);
+    E(log, LogLegacy);
+    E(oak_log, BlockWithAxisFromPillarAxis);
+    E(spruce_log, BlockWithAxisFromPillarAxis);
+    E(birch_log, BlockWithAxisFromPillarAxis);
+    E(jungle_log, BlockWithAxisFromPillarAxis);
+    E(acacia_log, BlockWithAxisFromPillarAxis);
+    E(dark_oak_log, BlockWithAxisFromPillarAxis);
     E(planks, Planks);
 
     E(acacia_pressure_plate, PressurePlate);
@@ -2336,7 +2396,17 @@ private:
     E(blast_furnace, FurnaceAndSimilar);
     E(lit_blast_furnace, FurnaceAndSimilar);
     E(bone_block, BlockWithAxisFromPillarAxis);
-    E(coral, Coral);
+    E(coral, CoralLegacy);
+    E(tube_coral, BlockWithSubmergible);
+    E(brain_coral, BlockWithSubmergible);
+    E(bubble_coral, BlockWithSubmergible);
+    E(fire_coral, BlockWithSubmergible);
+    E(horn_coral, BlockWithSubmergible);
+    E(dead_tube_coral, BlockWithSubmergible);
+    E(dead_brain_coral, BlockWithSubmergible);
+    E(dead_bubble_coral, BlockWithSubmergible);
+    E(dead_fire_coral, BlockWithSubmergible);
+    E(dead_horn_coral, BlockWithSubmergible);
     E(coral_block, CoralBlock);
     E(coral_fan_hang, CoralFanHang);
     E(coral_fan_hang2, CoralFanHang);
@@ -2356,7 +2426,7 @@ private:
     E(campfire, Campfire);
     E(soul_campfire, Campfire);
     E(carrots, BlockWithAgeFromGrowth);
-    E(carved_pumpkin, BlockWithFacing4FromDirectionA);
+    E(carved_pumpkin, CarvedPumpkin);
     E(cauldron, Cauldron);
     E(lava_cauldron, Cauldron);
     E(cave_vines, CaveVines);
@@ -2627,7 +2697,7 @@ private:
     E(bamboo_stairs, Stairs);
     E(bamboo_trapdoor, Trapdoor);
     E(bamboo_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
-    E(chiseled_bookshelf, BlockWithFacing4FromDirectionA);
+    E(chiseled_bookshelf, ChiseledBookshelf);
     E(birch_hanging_sign, HangingSign);
     E(crimson_hanging_sign, HangingSign);
     E(dark_oak_hanging_sign, HangingSign);

@@ -117,8 +117,8 @@ private:
   static std::unordered_map<mcfile::blocks::BlockId, Converter> *CreateTable() {
     using namespace std;
     auto table = new unordered_map<mcfile::blocks::BlockId, Converter>();
-#define E(__name, __func)                                                 \
-  assert(table->find(mcfile::blocks::minecraft::__name) == table->end()); \
+#define E(__name, __func)                                       \
+  assert(table->count(mcfile::blocks::minecraft::__name) == 0); \
   table->insert(make_pair(mcfile::blocks::minecraft::__name, __func))
     E(chest, Chest);
     E(trapped_chest, Chest);
@@ -243,7 +243,7 @@ private:
     E(potted_bamboo, PottedBamboo);
     E(potted_crimson_roots, PottedPlant(u8"crimson_roots", {}));
     E(potted_warped_roots, PottedPlant(u8"warped_roots", {}));
-    E(potted_cactus, PottedPlant(u8"cactus", {}));
+    E(potted_cactus, PottedPlant(u8"cactus", {{u8"age", i32(0)}}));
     E(potted_azalea_bush, PottedPlant(u8"azalea", {}));
     E(potted_flowering_azalea_bush, PottedPlant(u8"flowering_azalea", {}));
     E(potted_mangrove_propagule, PottedPlant(u8"mangrove_propagule", {{u8"hanging", false}, {u8"propagule_stage", i32(0)}}));
@@ -277,6 +277,7 @@ private:
 
     E(note_block, Note);
     E(jukebox, Jukebox);
+    E(cauldron, Cauldron);
     E(water_cauldron, Cauldron);
     E(lava_cauldron, Cauldron);
     E(powder_snow_cauldron, Cauldron);
@@ -294,7 +295,7 @@ private:
     E(piston, PistonArm(false));
 
     E(end_gateway, EndGateway);
-    E(ender_chest, AnyStorage(u8"EnderChest", false));
+    E(ender_chest, EnderChest);
     E(enchanting_table, EnchantingTable);
     E(bell, Bell);
     E(conduit, Conduit);
@@ -340,7 +341,8 @@ private:
     E(cherry_sign, sign);
     E(cherry_wall_sign, sign);
     E(calibrated_sculk_sensor, NamedEmpty(u8"CalibratedSculkSensor"));
-    E(lodestone, Lodestone);
+    E(lodestone, NamedEmptyFromNull(u8"Lodestone"));
+    E(spore_blossom, NamedEmptyFromNull(u8"SporeBlossom"));
 #undef E
     return table;
   }
@@ -417,9 +419,32 @@ private:
   static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
     auto items = GetItemsRemovingSlot(c, u8"Items", ctx, 6);
-    tag->insert({{u8"isMovable", Bool(true)},
-                 {u8"id", String(u8"ChiseledBookshelf")},
-                 {u8"Items", items}});
+    if (items) {
+      bool empty = true;
+      for (auto const &item : *items) {
+        if (auto comp = item->asCompound(); comp) {
+          if (auto count = comp->byte(u8"Count"); count && *count > 0) {
+            empty = false;
+            break;
+          }
+        }
+      }
+      if (empty) {
+        items.reset();
+      }
+    }
+    tag->insert({
+        {u8"isMovable", Bool(true)},
+        {u8"id", String(u8"ChiseledBookshelf")},
+    });
+    if (items) {
+      tag->set(u8"Items", items);
+    }
+
+    if (c) {
+      CopyIntValues(*c, *tag, {{u8"last_interacted_slot", u8"LastInteractedSlot"}});
+    }
+
     Attach(c, pos, *tag);
     return tag;
   }
@@ -498,10 +523,10 @@ private:
     };
   }
 
-  static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
-    auto tag = Empty(u8"Lodestone", {}, pos);
-    tag->set(u8"isMovable", Bool(true));
-    return tag;
+  static Converter NamedEmptyFromNull(std::u8string id) {
+    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) -> CompoundTagPtr {
+      return Empty(id, {}, pos);
+    };
   }
 
   static CompoundTagPtr Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
@@ -557,6 +582,7 @@ private:
     auto t = Empty(u8"Conduit", *c, pos);
     t->set(u8"Active", Bool(false));
     t->set(u8"Target", Long(-1));
+    t->set(u8"isMovable", Bool(true));
     return t;
   }
 
@@ -565,9 +591,24 @@ private:
       return nullptr;
     }
     auto t = Empty(u8"Bell", *c, pos);
-    t->set(u8"Direction", Int(0));
+    auto attachment = b.property(u8"attachment", u8"");
+    auto facing = b.property(u8"facing", u8"south");
+    int direction = 255;
+    if (attachment == u8"floor") {
+      if (facing == u8"north") {
+        direction = 0;
+      } else if (facing == u8"east") {
+        direction = 1;
+      } else if (facing == u8"south") {
+        direction = 2;
+      } else if (facing == u8"west") {
+        direction = 3;
+      }
+    }
+    t->set(u8"Direction", Int(direction));
     t->set(u8"Ringing", Bool(false));
     t->set(u8"Ticks", Int(0));
+    t->set(u8"isMovable", Bool(true));
     return t;
   }
 
@@ -591,6 +632,12 @@ private:
     t->set(u8"rott", Float(rott));
 
     return t;
+  }
+
+  static CompoundTagPtr EnderChest(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
+    auto ret = AnyStorage(u8"EnderChest", false)(pos, b, c, ctx);
+    ret->set(u8"Items", List<Tag::Type::Compound>());
+    return ret;
   }
 
   static CompoundTagPtr EndGateway(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
@@ -743,7 +790,7 @@ private:
       }
       tag->set(u8"Occupants", occupants);
     }
-    tag->set(u8"ShouldSpawnBees", Bool(!bees));
+    tag->set(u8"ShouldSpawnBees", Bool(false));
 
     Attach(c, pos, *tag);
     return tag;
@@ -807,7 +854,9 @@ private:
         }
       }
     }
-    tag->set(u8"hasBook", Bool(book != nullptr));
+    if (book) {
+      tag->set(u8"hasBook", Bool(true));
+    }
     if (c) {
       auto page = c->int32(u8"Page");
       if (page) {
@@ -854,7 +903,11 @@ private:
     using namespace std;
 
     auto tag = Compound();
-    tag->insert({{u8"id", String(u8"Cauldron")}, {u8"isMovable", Bool(true)}, {u8"PotionId", Short(-1)}, {u8"PotionType", Short(-1)}});
+    tag->insert({{u8"id", String(u8"Cauldron")},
+                 {u8"isMovable", Bool(true)},
+                 {u8"PotionId", Short(-1)},
+                 {u8"PotionType", Short(-1)},
+                 {u8"Items", List<Tag::Type::Compound>()}});
 
     Attach(c, pos, *tag);
     return tag;
@@ -940,10 +993,11 @@ private:
         {u8"z", Int(*z)},
         {u8"id", String(u8"MobSpawner")},
         {u8"isMovable", Bool(true)},
+        {u8"DisplayEntityHeight", Float(1.8)},
+        {u8"DisplayEntityScale", Float(1)},
+        {u8"DisplayEntityWidth", Float(0.8)},
     });
-    if (!mob.empty()) {
-      tag->set(u8"EntityIdentifier", String(mob));
-    }
+    tag->set(u8"EntityIdentifier", String(mob));
     return tag;
   }
 
@@ -998,11 +1052,10 @@ private:
 
     auto fuel = c->byte(u8"Fuel", 0);
     tag->set(u8"FuelAmount", Short(fuel));
-    tag->set(u8"FuelTotal", Short(20));
+    tag->set(u8"FuelTotal", Short(fuel > 0 ? 20 : 0));
 
     tag->insert({
         {u8"Items", reordered},
-        {u8"Findable", Bool(false)},
         {u8"id", String(u8"BrewingStand")},
         {u8"isMovable", Bool(true)},
     });
@@ -1047,7 +1100,7 @@ private:
     tag->insert({
         {u8"id", String(u8"Skull")},
         {u8"isMovable", Bool(true)},
-        {u8"MouthMoving", Bool(false)},
+        {u8"DoingAnimation", Bool(false)},
         {u8"MouthTickCount", Int(0)},
         {u8"SkullType", Byte(type)},
         {u8"Rotation", Float(rotation)},
@@ -1065,7 +1118,7 @@ private:
     states->insert({
         {u8"age_bit", Byte(0)},
         {u8"bamboo_leaf_size", String(u8"no_leaves")},
-        {u8"mamboo_stalk_thickness", String(u8"thin")},
+        {u8"bamboo_stalk_thickness", String(u8"thin")},
     });
     plantBlock->insert({
         {u8"states", states},
@@ -1143,125 +1196,125 @@ private:
 
   static CompoundTagPtr FlowerPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     using namespace std;
-    if (!c) {
-      return nullptr;
-    }
-    auto item = c->int32(u8"Item"); // legacy: Java 1.7.10
-    if (!item) {
-      return nullptr;
-    }
-    auto data = c->int32(u8"Data", 0);
+
     auto tag = Compound();
+    tag->set(u8"id", String(u8"FlowerPot"));
+    tag->set(u8"isMovable", Bool(true));
+    if (c) {
+      // legacy: Java 1.7.10
+      auto item = c->int32(u8"Item");
+      if (!item) {
+        return nullptr;
+      }
+      auto data = c->int32(u8"Data", 0);
 
-    auto states = Compound();
-    auto plantBlock = Compound();
-    plantBlock->set(u8"version", Int(kBlockDataVersion));
-    u8string name;
+      auto states = Compound();
+      auto plantBlock = Compound();
+      plantBlock->set(u8"version", Int(kBlockDataVersion));
+      u8string name;
 
-    switch (*item) {
-    case 6: {
-      name = u8"sapling";
-      u8string type;
-      switch (data) {
-      case 1:
-        type = u8"spruce";
+      switch (*item) {
+      case 6: {
+        name = u8"sapling";
+        u8string type;
+        switch (data) {
+        case 1:
+          type = u8"spruce";
+          break;
+        case 2:
+          type = u8"birch";
+          break;
+        case 3:
+          type = u8"jungle";
+          break;
+        case 4:
+          type = u8"acacia";
+          break;
+        case 5:
+          type = u8"dark_oak";
+          break;
+        case 0:
+        default:
+          type = u8"oak";
+          break;
+        }
+        states->insert({
+            {u8"age_bit", Byte(0)},
+            {u8"sapling_type", String(type)},
+        });
         break;
-      case 2:
-        type = u8"birch";
+      }
+      case 31: {
+        name = u8"tallgrass";
+        u8string type;
+        switch (data) {
+        case 2:
+          type = u8"fern";
+          break;
+        }
+        states->set(u8"tall_grass_type", String(type));
         break;
-      case 3:
-        type = u8"jungle";
+      }
+      case 32:
+        name = u8"deadbush";
         break;
-      case 4:
-        type = u8"acacia";
+      case 37:
+        name = u8"yellow_flower";
         break;
-      case 5:
-        type = u8"dark_oak";
+      case 38: {
+        name = u8"red_flower";
+        u8string type;
+        switch (data) {
+        case 1:
+          type = u8"orchid";
+          break;
+        case 2:
+          type = u8"allium";
+          break;
+        case 3:
+          type = u8"houstonia";
+          break;
+        case 4:
+          type = u8"tulip_red";
+          break;
+        case 5:
+          type = u8"tulip_orange";
+          break;
+        case 6:
+          type = u8"tulip_white";
+          break;
+        case 7:
+          type = u8"tulip_pink";
+          break;
+        case 8:
+          type = u8"oxeye";
+          break;
+        case 0:
+        default:
+          type = u8"poppy";
+          break;
+        }
+        states->set(u8"flower_type", String(type));
         break;
-      case 0:
+      }
+      case 39:
+        name = u8"brown_mushroom";
+        break;
+      case 40:
+        name = u8"red_mushroom";
+        break;
+      case 81:
+        name = u8"cactus";
+        states->set(u8"age", Int(0));
+        break;
       default:
-        type = u8"oak";
-        break;
+        return nullptr;
       }
-      states->insert({
-          {u8"age_bit", Byte(0)},
-          {u8"sapling_type", String(type)},
-      });
-      break;
-    }
-    case 31: {
-      name = u8"tallgrass";
-      u8string type;
-      switch (data) {
-      case 2:
-        type = u8"fern";
-        break;
-      }
-      states->set(u8"tall_grass_type", String(type));
-      break;
-    }
-    case 32:
-      name = u8"deadbush";
-      break;
-    case 37:
-      name = u8"yellow_flower";
-      break;
-    case 38: {
-      name = u8"red_flower";
-      u8string type;
-      switch (data) {
-      case 1:
-        type = u8"orchid";
-        break;
-      case 2:
-        type = u8"allium";
-        break;
-      case 3:
-        type = u8"houstonia";
-        break;
-      case 4:
-        type = u8"tulip_red";
-        break;
-      case 5:
-        type = u8"tulip_orange";
-        break;
-      case 6:
-        type = u8"tulip_white";
-        break;
-      case 7:
-        type = u8"tulip_pink";
-        break;
-      case 8:
-        type = u8"oxeye";
-        break;
-      case 0:
-      default:
-        type = u8"poppy";
-        break;
-      }
-      states->set(u8"flower_type", String(type));
-      break;
-    }
-    case 39:
-      name = u8"brown_mushroom";
-      break;
-    case 40:
-      name = u8"red_mushroom";
-      break;
-    case 81:
-      name = u8"cactus";
-      break;
-    default:
-      return nullptr;
-    }
-    plantBlock->set(u8"states", states);
-    plantBlock->set(u8"name", String(u8"minecraft:" + name));
+      plantBlock->set(u8"states", states);
+      plantBlock->set(u8"name", String(u8"minecraft:" + name));
 
-    tag->insert({
-        {u8"id", String(u8"FlowerPot")},
-        {u8"isMovable", Bool(true)},
-        {u8"PlantBlock", plantBlock},
-    });
+      tag->set(u8"PlantBlock", plantBlock);
+    }
     Attach(c, pos, *tag);
     return tag;
   }
@@ -1312,8 +1365,10 @@ private:
         {u8"isMovable", Bool(true)},
         {u8"Type", Int(type)},
         {u8"Base", Int(base)},
-        {u8"Patterns", patternsBedrock},
     });
+    if (!patternsBedrock->empty()) {
+      tag->set(u8"Patterns", patternsBedrock);
+    }
     Attach(c, pos, *tag);
     return tag;
   }
@@ -1461,6 +1516,7 @@ private:
     ret->set(u8"x", Int(pos.fX));
     ret->set(u8"y", Int(pos.fY));
     ret->set(u8"z", Int(pos.fZ));
+    ret->set(u8"isMovable", Bool(true));
 
     auto customName = props::GetJson(tagJ, u8"CustomName");
     if (customName) {
@@ -1578,7 +1634,7 @@ private:
 
   static Converter Furnace(std::u8string id) {
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx) {
-      auto ret = AnyStorage(id, false)(pos, b, comp, ctx);
+      auto ret = AnyStorage(id, std::nullopt)(pos, b, comp, ctx);
       if (comp) {
         auto burnTime = comp->int16(u8"BurnTime");
         if (burnTime) {
@@ -1626,6 +1682,13 @@ private:
         }
       }
     }
+    while (true) {
+      auto t = strings::RemoveSuffix(strings::RemoveSuffix(text, u8"\x0d"), u8"\x0a");
+      if (t == text) {
+        break;
+      }
+      text = t;
+    }
     ret->set(u8"Text", String(text));
 
     u8string color = input.string(u8"color", u8"black");
@@ -1637,7 +1700,7 @@ private:
 
     ret->set(u8"TextOwner", String(u8""));
     ret->set(u8"HideGlowOutline", Bool(false));
-    ret->set(u8"PersistFormatting", Bool(false));
+    ret->set(u8"PersistFormatting", Bool(true));
 
     return ret;
   }

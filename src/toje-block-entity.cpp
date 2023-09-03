@@ -83,6 +83,8 @@ public:
           patternsJ->push_back(pJ);
         }
         te->set(u8"Patterns", patternsJ);
+      } else {
+        te->set(u8"Patterns", List<Tag::Type::Compound>());
       }
     }
     Result r;
@@ -260,8 +262,7 @@ public:
     auto itemsJ = ContainerItemsWithoutSlot(tagB, u8"Items", ctx, true);
     t->set(u8"Items", itemsJ);
 
-    int lastInteractedSlot = blockB.fStates->int32(u8"last_interacted_slot", 0);
-    t->set(u8"last_interacted_slot", Int(lastInteractedSlot));
+    CopyIntValues(tagB, *t, {{u8"LastInteractedSlot", u8"last_interacted_slot"}});
 
     map<u8string, optional<u8string>> props;
     if (auto items = tagB.listTag(u8"Items"); items) {
@@ -500,7 +501,9 @@ public:
     auto entity = tag.string(u8"EntityIdentifier");
     if (entity) {
       auto entityTag = Compound();
-      entityTag->set(u8"id", String(*entity));
+      if (!entity->empty()) {
+        entityTag->set(u8"id", String(*entity));
+      }
       auto spawnData = Compound();
       spawnData->set(u8"entity", entityTag);
       t->set(u8"SpawnData", spawnData);

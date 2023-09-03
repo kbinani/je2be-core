@@ -142,7 +142,23 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
   // TODO: check other properties
 }
 
-static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual) {
+static void CheckRotationB(float e, float a) {
+  while (e > 180) {
+    e -= 360;
+  }
+  while (e <= -180) {
+    e += 360;
+  }
+  while (a > 180) {
+    a -= 360;
+  }
+  while (a <= -180) {
+    a += 360;
+  }
+  CHECK(e == a);
+}
+
+static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE) {
   auto e = expected.copy();
   auto a = actual.copy();
   auto idE = e->string(u8"id");
@@ -159,6 +175,30 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"LastOutputParams");
     ignore.insert(u8"ExecuteOnFirstTick");
     ignore.insert(u8"Version");
+  } else if (*idE == u8"Bell") {
+    ignore.insert(u8"Ticks");
+    auto direction = e->int32(u8"Direction");
+    if (direction == 255 || (blockE && blockE->fStates->string(u8"attachment") != u8"standing")) {
+      ignore.insert(u8"Direction");
+    }
+  } else if (*idE == u8"Skull") {
+    auto rotE = e->float32(u8"Rotation");
+    auto rotA = a->float32(u8"Rotation");
+    CHECK(rotE);
+    CHECK(rotA);
+    if (rotE && rotA) {
+      // Rotation can be both 180/-180
+      CheckRotationB(*rotE, *rotA);
+    }
+    ignore.insert(u8"Rotation");
+  } else if (*idE == u8"Conduit") {
+    ignore.insert(u8"Active");
+  } else if (*idE == u8"CalibratedSculkSensor" || *idE == u8"SculkShrieker" || *idE == u8"SculkSensor") {
+    ignore.insert(u8"VibrationListener");
+  } else if (*idE == u8"Furnace" || *idE == u8"BlastFurnace" || *idE == u8"Smoker") {
+    ignore.insert(u8"StoredXPInt");
+  } else if (*idE == u8"EnchantTable") {
+    ignore.insert(u8"rott");
   }
   for (auto const &i : ignore) {
     e->erase(i);
@@ -179,6 +219,11 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
             // TODO:
             continue;
           }
+          if (e->fName == u8"minecraft:brown_mushroom_block" || e->fName == u8"minecraft:red_mushroom_block") {
+            // Java has only "mushroom_stem" for stem block.
+            // Bedrock's "huge_mushroom_bits" property cannot completely represents Java's up/down/north/east/south/west properties.
+            continue;
+          }
           CHECK(e->fName == a->fName);
           auto tagE = e->fStates->copy();
           auto tagA = a->fStates->copy();
@@ -187,6 +232,11 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
             ignore.insert(u8"weeping_vines_age");
           } else if (e->fName == u8"minecraft:twisting_vines") {
             ignore.insert(u8"twisting_vines_age");
+          } else if (e->fName == u8"minecraft:cave_vines") {
+            ignore.insert(u8"growing_plant_age");
+          } else if (e->fName == u8"minecraft:bamboo_sapling") {
+            // Bamboo sapling doesn't have "stage" property in Java
+            ignore.insert(u8"age_bit");
           }
           for (auto const &i : ignore) {
             tagE->erase(i);
@@ -242,7 +292,8 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       continue;
     }
     REQUIRE(found->second);
-    CheckBlockEntityB(*e.second, *found->second);
+    auto blockE = expected.blockAt(e.first);
+    CheckBlockEntityB(*e.second, *found->second, blockE);
   }
 }
 
