@@ -852,10 +852,8 @@ private:
         if (pages) {
           totalPages = pages->size();
         }
+        tag->set(u8"hasBook", Bool(true));
       }
-    }
-    if (book) {
-      tag->set(u8"hasBook", Bool(true));
     }
     if (c) {
       auto page = c->int32(u8"Page");
