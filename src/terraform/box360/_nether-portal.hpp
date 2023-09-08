@@ -39,7 +39,6 @@ public:
           map<Facing6, Status> status;
           Facing6Enumerate([&status](Facing6 f) {
             status[f] = PortalBlock;
-            return true;
           });
           for (int i = 1; i <= 21; i++) {
             Facing6Enumerate([&](Facing6 f) {
@@ -47,12 +46,12 @@ public:
               Pos3i pos = center + direction * i;
 
               if (status[f] != PortalBlock) {
-                return true;
+                return;
               }
               auto block = cache.blockAt(pos.fX, pos.fY, pos.fZ);
               if (!block) {
                 status[f] = Illegal;
-                return true;
+                return;
               }
               switch (block->fId) {
               case minecraft::obsidian:
@@ -64,7 +63,6 @@ public:
                 status[f] = Illegal;
                 break;
               }
-              return true;
             });
             if (all_of(status.begin(), status.end(), [](auto it) { return it.second != PortalBlock; })) {
               break;

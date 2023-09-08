@@ -487,13 +487,13 @@ private:
 
     // "LOAD", "SAVE", "CORNER"
     auto mode = c->string(u8"mode", u8"LOAD");
-    int data = 2;
-    if (mode == u8"LOAD") {
-      data = 2;
-    } else if (mode == u8"SAVE") {
+    int data;
+    if (mode == u8"SAVE") {
       data = 1;
     } else if (mode == u8"CORNER") {
       data = 3;
+    } else { // "LOAD"
+      data = 2;
     }
     t->set(u8"data", Int(data));
 

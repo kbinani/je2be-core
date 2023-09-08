@@ -24,7 +24,6 @@ TEST_CASE("command") {
       {u8"kill @e[type=zombie,distance=10.1..10.2]", u8"kill @e[type=zombie,rm=10.1,r=10.2]"},
 
       {u8"tp @a[gamemode=survival] @s", u8"tp @a[m=survival] @s"},
-      {u8"tp @a[gamemode=survival] @s", u8"tp @a[m=survival] @s"},
 
       {u8R"(tp @a[team="@e[type=foo,distance=1]",limit=1] @s)", u8R"(tp @a[team="@e[type=foo,distance=1]",c=1] @s)"},
       {u8"tp @a[distance=1..invalid]", u8"tp @a[rm=1,r=invalid]"},

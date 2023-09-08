@@ -41,7 +41,7 @@ class ConcurrentDb : public DbInterface {
 
   class Writer {
   public:
-    Writer(u32 id, std::filesystem::path const &directory, std::atomic_uint64_t &sequencer) : fId(id), fSequencer(sequencer) {
+    Writer(u32 id, std::filesystem::path const &directory, std::atomic_uint64_t &sequencer) : fId(id), fSequencer(sequencer), fNumKeys(), fTotalKeySize() {
       namespace fs = std::filesystem;
       fs::path dir = directory / std::to_string(id);
       Fs::DeleteAll(dir);
@@ -68,8 +68,8 @@ class ConcurrentDb : public DbInterface {
 
       fKey = key;
       fValue = value;
-      std::fill_n(fNumKeys, 256, 0);
-      std::fill_n(fTotalKeySize, 256, 0);
+      std::fill_n(fNumKeys, sizeof(fNumKeys) / sizeof(fNumKeys[0]), 0);
+      std::fill_n(fTotalKeySize, sizeof(fTotalKeySize) / sizeof(fTotalKeySize[0]), 0);
     }
 
     ~Writer() {

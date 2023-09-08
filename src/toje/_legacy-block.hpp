@@ -29,7 +29,7 @@ class LegacyBlock {
   template <size_t RightShift, size_t Bits>
   struct PropertySelector {
     static_assert(RightShift < 16);
-    static_assert(Bits > 0);
+    static_assert(0 < Bits && Bits < 16);
 
     PropertySelector(String const &propertyName,
                      std::array<std::optional<String>, 1 << Bits> const &table,
@@ -43,7 +43,7 @@ class LegacyBlock {
     }
 
     String operator()(String const &n, int16_t v, CompoundTag &s) const {
-      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      constexpr uint16_t cMask = (uint16_t)(0xffff & (~((~uint32_t(0)) << Bits)));
       int16_t index = (v >> RightShift) & cMask;
       if (0 <= index && index < fTable.size()) {
         std::optional<String> value = fTable[index];
@@ -73,7 +73,7 @@ class LegacyBlock {
     }
 
     String operator()(String const &n, int16_t v, CompoundTag &s) const {
-      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      constexpr uint16_t cMask = (uint16_t)(0xffff & (~((~uint32_t(0)) << Bits)));
       int16_t index = (v >> RightShift) & cMask;
       if (0 <= index && index < fTable.size()) {
         auto prefix = fTable[index];
@@ -120,7 +120,7 @@ private:
   static Migrator IntProperty(String name) {
     static_assert(0 < Bits && Bits <= 16);
     return [=](String const &n, int16_t v, CompoundTag &s) {
-      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      constexpr uint16_t cMask = (uint16_t)(0xffff & (~((~uint32_t(0)) << Bits)));
       if (s.fValue.count(name) == 0) {
         s[name] = Int((v >> RightShift) & cMask);
       }
@@ -132,7 +132,7 @@ private:
   static Migrator ByteProperty(String name) {
     static_assert(0 < Bits && Bits <= 8);
     return [=](String const &n, int16_t v, CompoundTag &s) {
-      constexpr uint16_t cMask = ~((~uint16_t(0)) << Bits);
+      constexpr uint16_t cMask = (uint16_t)(0xffff & (~((~uint32_t(0)) << Bits)));
       if (s.fValue.count(name) == 0) {
         s[name] = std::make_shared<ByteTag>((v >> RightShift) & cMask);
       }

@@ -76,7 +76,7 @@ public:
     for (int cx = fChunkX; cx < fChunkX + Width; cx++) {
       for (int cz = fChunkZ; cz < fChunkZ + Height; cz++) {
         auto index = getIndex(cx, cz);
-        if (fCacheLoaded[*index]) {
+        if (index && fCacheLoaded[*index]) {
           auto const &chunk = fCache[*index];
           ret->set(cx, cz, chunk);
         }

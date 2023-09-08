@@ -724,9 +724,7 @@ public:
           }
           make_decode_table(k_aligned_max_symbols, k_aligned_table_bits, ALIGNED_len, ALIGNED_table);
           // rest of aligned header is same as verbatim
-#ifdef __clang__
-          [[clang::fallthrough]];
-#endif
+          [[fallthrough]];
         }
 
         case e_block_type::_lxz_block_type_verbatim: {
@@ -914,9 +912,7 @@ public:
         }
       }
     }
-    if (togo != 0) {
-      throw std::runtime_error("LzxDecoder::Decompress: togo != 0\n");
-    }
+    assert(togo == 0);
 
     u32 start_window_pos = window_posn;
     if (start_window_pos == 0) {

@@ -100,7 +100,7 @@ static inline std::optional<Uuid> GetUuid(CompoundTag const &tag, UUIDKeyName ke
     }
   }
   if (keyName.fLeastAndMostPrefix) {
-    auto ret = GetUuidWithFormatLeastAndMost(tag, *keyName.fIntArray);
+    auto ret = GetUuidWithFormatLeastAndMost(tag, *keyName.fLeastAndMostPrefix);
     if (ret) {
       return ret;
     }

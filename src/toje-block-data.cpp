@@ -809,7 +809,7 @@ private:
       if (attached) {
         p[u8"rotation"] = Int(s.int32(u8"ground_sign_direction", 0));
       } else {
-        int rotation = 8;
+        int rotation;
         switch (s.int32(u8"facing_direction", 2)) {
         case 3:
           rotation = 0;
@@ -817,11 +817,12 @@ private:
         case 4:
           rotation = 4;
           break;
-        case 2:
-          rotation = 8;
-          break;
         case 5:
           rotation = 12;
+          break;
+        case 2:
+        default:
+          rotation = 8;
           break;
         }
         p[u8"rotation"] = Int(rotation);

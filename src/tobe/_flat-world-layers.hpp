@@ -134,7 +134,7 @@ public:
     u8string biomeString;
     auto idxBiomeEnd = options.find(u8';', idxBiomeStart + 1);
     if (idxBiomeEnd == u8string::npos) {
-      biomeString = options.find(idxBiomeStart + 1);
+      biomeString = options.substr(idxBiomeStart + 1);
     } else {
       biomeString.assign(options.begin() + idxBiomeStart + 1, options.begin() + idxBiomeEnd);
     }

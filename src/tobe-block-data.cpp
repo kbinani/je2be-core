@@ -484,10 +484,8 @@ public:
 
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property(u8"facing", u8"up");
-    i32 direction = 1;
-    if (facing == u8"up") {
-      direction = 1;
-    } else if (facing == u8"east") {
+    i32 direction;
+    if (facing == u8"east") {
       direction = 4;
     } else if (facing == u8"south") {
       direction = 2;
@@ -497,6 +495,8 @@ public:
       direction = 0;
     } else if (facing == u8"west") {
       direction = 5;
+    } else { // up
+      direction = 1;
     }
     s->set(u8"facing_direction", Int(direction));
   }
@@ -1783,11 +1783,8 @@ public:
   static CompoundTagPtr WallHangingSign(Block const &block, CompoundTagConstPtr const &) {
     auto c = New(strings::Replace(block.fName, u8"_wall_", u8"_"), true);
     Facing4 f4 = Facing4FromJavaName(block.property(u8"facing", u8"north"));
-    int facingDirection = 3;
+    int facingDirection;
     switch (f4) {
-    case Facing4::South:
-      facingDirection = 3;
-      break;
     case Facing4::West:
       facingDirection = 4;
       break;
@@ -1796,6 +1793,10 @@ public:
       break;
     case Facing4::East:
       facingDirection = 5;
+      break;
+    case Facing4::South:
+    default:
+      facingDirection = 3;
       break;
     }
     auto s = States();

@@ -63,7 +63,7 @@ ZipFile::StoreResult ZipFile::store(mcfile::stream::InputStream &stream, std::st
     if (read < buffer.size()) {
       break;
     }
-  } while (err == MZ_OK);
+  } while (true);
   fZip64Used = fZip64Used || (uncompressedSize >= UINT32_MAX || compressedSize >= UINT32_MAX);
 
   if (mz_zip_entry_close(fHandle) != MZ_OK) {

@@ -58,7 +58,6 @@ private:
     using namespace std::placeholders;
 
     atomic_bool ok(true);
-    optional<Status> error;
     atomic_uint64_t count(0);
     unique_ptr<std::latch> latch;
     if (concurrency > 0) {
@@ -118,7 +117,7 @@ private:
     }
 
     if (!ok) {
-      return error ? *error : JE2BE_ERROR;
+      return JE2BE_ERROR;
     }
     return Status::Ok();
   }

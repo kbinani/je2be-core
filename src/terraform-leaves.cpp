@@ -111,18 +111,21 @@ public:
     for (int y = leavesRange->fStart.fY; y <= leavesRange->fEnd.fY; y++) {
       for (int z = leavesRange->fStart.fZ; z <= leavesRange->fEnd.fZ; z++) {
         for (int x = leavesRange->fStart.fX; x <= leavesRange->fEnd.fX; x++) {
-          i8 distance = *data.get({x, y, z});
-          if (distance == Leaves) {
+          auto distance = data.get({x, y, z});
+          if (!distance) {
+            continue;
+          }
+          if (*distance == Leaves) {
             distance = 7;
           }
-          if (distance <= 0) {
+          if (*distance <= 0) {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);
           if (!blockJ) {
             continue;
           }
-          auto replace = blockJ->applying({{u8"distance", mcfile::String::ToString(distance)}});
+          auto replace = blockJ->applying({{u8"distance", mcfile::String::ToString(*distance)}});
           out.setBlockAt(x, y, z, replace);
         }
       }

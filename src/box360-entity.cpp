@@ -128,7 +128,7 @@ private:
 
   static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     i8 facingB = in.byte(u8"Facing", 0);
-    i8 facingJ = 3;
+    i8 facingJ;
     switch (facingB) {
     case 1:
       facingJ = 4;

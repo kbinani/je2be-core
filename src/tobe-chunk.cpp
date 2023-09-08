@@ -239,7 +239,7 @@ public:
           prefix.assign((char const *)&v, sizeof(v));
 
           auto key = mcfile::be::DbKey::Actorprefix(prefix);
-          auto value = CompoundTag::Write(*entity, Endian::Little);
+          optional<string> value = CompoundTag::Write(*entity, Endian::Little);
           if (!value) {
             return make_pair(ret, JE2BE_ERROR);
           }

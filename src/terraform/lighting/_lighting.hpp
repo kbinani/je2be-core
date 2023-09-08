@@ -148,7 +148,7 @@ public:
       }
     }
 
-    if (!out.fSections.empty() && out.fSections[0] && out.fSections[0]->y() == out.fChunkY && !out.fSections[0]->fSkyLight.empty() && skyLight->fStart.fY <= 16 * (out.fChunkY - 1)) {
+    if (!out.fSections.empty() && out.fSections[0] && out.fSections[0]->y() == out.fChunkY && !out.fSections[0]->fSkyLight.empty() && skyLight && skyLight->fStart.fY <= 16 * (out.fChunkY - 1)) {
       auto bottom = make_shared<mcfile::je::ChunkSectionEmpty>(out.fChunkY - 1);
       bottom->fBlockLight.clear();
       bottom->fSkyLight.resize(2048);

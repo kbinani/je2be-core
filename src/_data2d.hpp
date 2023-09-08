@@ -10,7 +10,7 @@ public:
   Data2d(Pos2i const &start, Pos2i const &end, T def)
       : fStart(start), //
         fEnd(end) {
-    fStorage.resize((size_t)(end.fX - start.fX + 1) * (end.fZ - start.fZ + 1), def);
+    fStorage.resize(((size_t)(end.fX - start.fX) + 1) * ((size_t)(end.fZ - start.fZ) + 1), def);
   }
 
   Data2d(Pos2i const &start, u32 width, u32 height, T def)

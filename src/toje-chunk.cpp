@@ -102,7 +102,7 @@ public:
       }
     }
 
-    BiomeId defaultBiome = minecraft::plains;
+    BiomeId defaultBiome;
     switch (d) {
     case mcfile::Dimension::Nether:
       defaultBiome = minecraft::nether_wastes;

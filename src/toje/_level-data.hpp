@@ -223,9 +223,8 @@ public:
       return nullptr;
     }
     auto biomeJ = mcfile::be::Biome::FromUint32(biomeB->get<u32>());
-    if (biomeJ == mcfile::biomes::unknown) {
-      return nullptr;
-    }
+    assert(biomeJ != mcfile::biomes::unknown);
+
     settings->set(u8"biome", String(mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion)));
     auto layersB = json.find("block_layers");
     if (layersB == json.end()) {

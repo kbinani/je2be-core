@@ -156,23 +156,13 @@ static inline Facing6 Facing6Invert(Facing6 f) {
   }
 }
 
-static inline bool Facing6Enumerate(std::function<bool(Facing6)> action) {
-  if (!action(Facing6::North)) {
-    return false;
-  }
-  if (!action(Facing6::East)) {
-    return false;
-  }
-  if (!action(Facing6::South)) {
-    return false;
-  }
-  if (!action(Facing6::West)) {
-    return false;
-  }
-  if (!action(Facing6::Up)) {
-    return false;
-  }
-  return action(Facing6::Down);
+static inline void Facing6Enumerate(std::function<void(Facing6)> action) {
+  action(Facing6::North);
+  action(Facing6::East);
+  action(Facing6::South);
+  action(Facing6::West);
+  action(Facing6::Up);
+  action(Facing6::Down);
 }
 
 } // namespace je2be
