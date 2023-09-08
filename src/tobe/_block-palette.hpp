@@ -23,11 +23,11 @@ public:
         }
       }
       if (found < 0) {
-        size_t size = fPalette.size();
-        if (std::numeric_limits<uint16_t>::max() < size) [[unlikely]] {
+        size_t s = fPalette.size();
+        if (std::numeric_limits<uint16_t>::max() < s) [[unlikely]] {
           return;
         }
-        fIndices[idx] = (uint16_t)size;
+        fIndices[idx] = (uint16_t)s;
         fPalette.push_back(tag);
       } else {
         fIndices[idx] = found;
