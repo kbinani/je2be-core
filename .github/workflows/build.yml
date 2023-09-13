@@ -48,10 +48,16 @@ jobs:
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-11 && export CXX=g++-11
           cmake . -B ./build -DCMAKE_BUILD_TYPE=Release
-      - name: Build
+      - name: Build (Parallel)
+        if: ${{ matrix.os != 'macos-latest' }}
         shell: bash
         run: |
-          cmake --build ./build --target je2be-test --config Release --verbose --parallel $(nproc)
+          cmake --build ./build --target je2be-test --config Release --parallel $(nproc)
+      - name: Build (Serial)
+        if: ${{ matrix.os == 'macos-latest' }}
+        shell: bash
+        run: |
+          cmake --build ./build --target je2be-test --config Release
       - name: Test
         shell: bash
         run: |
