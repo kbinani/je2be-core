@@ -40,9 +40,20 @@ jobs:
           submodules: recursive
           fetch-depth: 0
           lfs: true
+      - name: Restore timestamps
+        shell: bash
+        run: bash tool/git-restore-mtime.sh
       - name: Checkout lfs files
         shell: bash
         run: git lfs checkout
+      - name: Cache workspace directory
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-
       - name: Configure
         shell: bash
         run: |
