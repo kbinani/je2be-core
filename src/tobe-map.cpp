@@ -4,6 +4,7 @@
 
 #include "db/_db-interface.hpp"
 #include "item/_map-color.hpp"
+#include "item/_map-decoration.hpp"
 #include "tobe/_java-edition-map.hpp"
 
 #include <xxhash32.h>
@@ -182,12 +183,8 @@ public:
               continue;
             }
             i32 outType = 1;
-            if (*type == 9) {
-              outType = 15; // id = "+", monument
-            } else if (*type == 8) {
-              outType = 14; // id = "+", mansion
-            } else if (*type == 26) {
-              outType = 4; // id = "+", buried treasure
+            if (auto typeB = MapDecoration::BedrockTypeFromJava(*type); typeB) {
+              outType = *typeB;
             }
 
             auto frameData = Compound();

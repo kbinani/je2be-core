@@ -7,6 +7,8 @@
 #include <je2be/nbt.hpp>
 #include <je2be/pos2.hpp>
 
+#include "item/_map-decoration.hpp"
+
 namespace je2be::toje {
 
 class MapInfo {
@@ -94,12 +96,8 @@ public:
           decorationJ.fRot = 270;
         }
         decorationJ.fType = 0;
-        if (*typeB == 15) {
-          decorationJ.fType = 9;
-        } else if (*typeB == 14) {
-          decorationJ.fType = 8;
-        } else if (*typeB == 4) {
-          decorationJ.fType = 26;
+        if (auto typeJ = MapDecoration::JavaTypeFromBedrock(*typeB); typeJ) {
+          decorationJ.fType = *typeJ;
         }
         auto pos = BlockPosFromMarkerPosition(*xCenter, *zCenter, *scale, *markerX, *markerY);
         decorationJ.fX = pos.fX;

@@ -259,6 +259,7 @@ set(je2be_src_files
   src/item/_fireworks.hpp
   src/item/_goat-horn.hpp
   src/item/_map-color.hpp
+  src/item/_map-decoration.hpp
   src/item/_potion.hpp
   src/item/_tipped-arrow-potion.hpp
   src/structure/_structure-piece.hpp
