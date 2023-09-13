@@ -70,21 +70,17 @@ jobs:
         shell: bash
         run: |
           test "${{ matrix.os }}" == "ubuntu-latest" && export CC=gcc-11 && export CXX=g++-11
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release || (rm -rf ./* && cmake .. -DCMAKE_BUILD_TYPE=Release)
+          cmake . -B ./build -DCMAKE_BUILD_TYPE=Release || (rm -rf ./build && cmake . -B ./build -DCMAKE_BUILD_TYPE=Release)
       - name: Build (Parallel)
         if: ${{ steps.cache.outputs.cache-hit == 'true' || matrix.os != 'macos-latest' }}
         shell: bash
         run: |
-          cd build
-          cmake --build . --target je2be-test --config Release --verbose --parallel $(nproc)
+          cmake --build ./build --target je2be-test --config Release --verbose --parallel $(nproc)
       - name: Build (Serial)
         if: ${{ steps.cache.outputs.cache-hit != 'true' && matrix.os == 'macos-latest' }}
         shell: bash
         run: |
-          cd build
-          cmake --build . --target je2be-test --config Release --verbose
+          cmake --build ./build --target je2be-test --config Release --verbose
       - name: Test
         shell: bash
         run: |
@@ -124,12 +120,12 @@ jobs:
           cmake --build ./build --target je2be --parallel $(nproc)
       - name: Analyze
         run: |
-          pvs-studio-analyzer analyze -f build/compile_commands.json -j
+          pvs-studio-analyzer analyze -f ./build/compile_commands.json -j -e ./build/_deps -e ./test -e ./example
       - name: Convert report
         run: |
           plog-converter -t sarif -o pvs-report.sarif PVS-Studio.log
       - name: Publish report
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: pvs-report.sarif
           category: PVS-Studio
