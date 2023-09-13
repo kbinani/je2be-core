@@ -68,11 +68,16 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
   }
 
   auto tag = Compound();
-  tag->set("name", String(block->fName));
+  tag->set(u8"name", String(block->fName));
   auto states = Compound();
   states = block->fStates;
-  tag->set("states", states);
-  tag->set("version", Int(block->fVersion));
+  tag->set(u8"states", states);
+  if (block->fVersion) {
+    tag->set(u8"version", Int(*block->fVersion));
+  }
+  if (block->fVal) {
+    tag->set(u8"val", Short(*block->fVal));
+  }
   mcfile::nbt::PrintAsJson(cout, *tag, jopt);
   if (section->fWaterPaletteIndices.size() == 4096) {
     auto index = mcfile::be::SubChunk::BlockIndex(lx, ly, lz);
@@ -80,9 +85,14 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
     cout << "layer2 ---" << endl;
     auto layer2Block = section->fWaterPalette[idx];
     auto t = Compound();
-    t->set("name", String(layer2Block->fName));
-    t->set("states", layer2Block->fStates);
-    t->set("version", Int(layer2Block->fVersion));
+    t->set(u8"name", String(layer2Block->fName));
+    t->set(u8"states", layer2Block->fStates);
+    if (layer2Block->fVersion) {
+      t->set(u8"version", Int(*layer2Block->fVersion));
+    }
+    if (layer2Block->fVal) {
+      t->set(u8"val", Short(*layer2Block->fVal));
+    }
     mcfile::nbt::PrintAsJson(cout, *t, jopt);
   }
 }
@@ -125,9 +135,9 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, mcfile::
     auto tag = Compound();
     tag->read(sr);
 
-    auto bx = tag->int32("x");
-    auto by = tag->int32("y");
-    auto bz = tag->int32("z");
+    auto bx = tag->int32(u8"x");
+    auto by = tag->int32(u8"y");
+    auto bz = tag->int32(u8"z");
     if (bx && by && bz) {
       if (*bx == x && *by == y && *bz == z) {
         PrintAsJson(cout, *tag, jopt);
@@ -383,19 +393,19 @@ int main(int argc, char *argv[]) {
 
   if (verb == "block") {
     if (argc == 9 && args[3] == "at" && args[7] == "of") {
-      auto x = strings::ToI32(args[4]);
+      auto x = strings::ToI32((char8_t const *)args[4].c_str());
       if (!x) {
         cerr << "Error: invalid block x: " << args[4] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto y = strings::ToI32(args[5]);
+      auto y = strings::ToI32((char8_t const *)args[5].c_str());
       if (!y) {
         cerr << "Error: invalid block y: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto z = strings::ToI32(args[6]);
+      auto z = strings::ToI32((char8_t const *)args[6].c_str());
       if (!z) {
         cerr << "Error: invalid block z: " << args[6] << endl;
         PrintHelpMessage();
@@ -409,19 +419,19 @@ int main(int argc, char *argv[]) {
       }
       DumpBlock(dir, *x, *y, *z, *dimension);
     } else if (argc == 10 && args[3] == "entity" && args[4] == "at" && args[8] == "of") {
-      auto x = strings::ToI32(args[5]);
+      auto x = strings::ToI32((char8_t const *)args[5].c_str());
       if (!x) {
         cerr << "Error: invalid block x: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto y = strings::ToI32(args[6]);
+      auto y = strings::ToI32((char8_t const *)args[6].c_str());
       if (!y) {
         cerr << "Error: invalid block y: " << args[6] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto z = strings::ToI32(args[7]);
+      auto z = strings::ToI32((char8_t const *)args[7].c_str());
       if (!z) {
         cerr << "Error: invalid block z: " << args[7] << endl;
         PrintHelpMessage();
@@ -447,13 +457,13 @@ int main(int argc, char *argv[]) {
       PrintHelpMessage();
       return 1;
     }
-    auto chunkX = strings::ToI32(args[4]);
+    auto chunkX = strings::ToI32((char8_t const *)args[4].c_str());
     if (!chunkX) {
       cerr << "Error: invalid chunk x: " << args[4] << endl;
       PrintHelpMessage();
       return 1;
     }
-    auto chunkZ = strings::ToI32(args[5]);
+    auto chunkZ = strings::ToI32((char8_t const *)args[5].c_str());
     if (!chunkZ) {
       cerr << "Error: invalid chunk z: " << args[5] << endl;
       PrintHelpMessage();
@@ -472,7 +482,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     if (args[4] == "in" && args[7] == "of") {
-      auto tag = strings::ToI32(args[3]);
+      auto tag = strings::ToI32((char8_t const *)args[3].c_str());
       if (!tag) {
         cerr << "Error: invalid tag: " << args[3] << endl;
         PrintHelpMessage();
@@ -483,13 +493,13 @@ int main(int argc, char *argv[]) {
         PrintHelpMessage();
         return 1;
       }
-      auto chunkX = strings::ToI32(args[5]);
+      auto chunkX = strings::ToI32((char8_t const *)args[5].c_str());
       if (!chunkX) {
         cerr << "Error: invalid chunk x: " << args[5] << endl;
         PrintHelpMessage();
         return 1;
       }
-      auto chunkZ = strings::ToI32(args[6]);
+      auto chunkZ = strings::ToI32((char8_t const *)args[6].c_str());
       if (!chunkZ) {
         cerr << "Error: invalid chunk z: " << args[6] << endl;
         PrintHelpMessage();
