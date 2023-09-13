@@ -1,5 +1,2 @@
 # https://pvs-studio.com/en/docs/warnings/v1042/
 //-V::1042
-//V_EXCLUDE_PATH /build/_deps/*
-//V_EXCLUDE_PATH /test/*
-//V_EXCLUDE_PATH /example/*
