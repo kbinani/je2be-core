@@ -94,10 +94,10 @@ jobs:
           cmake --build ./build --target je2be --parallel $(nproc)
       - name: Analyze
         run: |
-          pvs-studio-analyzer analyze -f ./build/compile_commands.json --cfg ./.pvsconfig -j $(nproc) -e ./build/_deps -e ./test -e ./example
+          pvs-studio-analyzer analyze -f ./build/compile_commands.json -j $(nproc) -e ./build/_deps -e ./test -e ./example
       - name: Convert report
         run: |
-          plog-converter -t sarif -o pvs-report.sarif PVS-Studio.log
+          plog-converter --excludedCodes V1042 -t sarif -o pvs-report.sarif PVS-Studio.log
       - name: Publish report
         uses: github/codeql-action/upload-sarif@v2
         with:
