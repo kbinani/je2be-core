@@ -515,6 +515,9 @@ private:
       for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
         auto v = volumes[{cx, cz}];
         assert(v);
+        if (!v) [[unlikely]] {
+          continue;
+        }
         for (int by = v->fStart.fY; by <= v->fEnd.fY; by++) {
           for (int bz = v->fStart.fZ - 1; bz <= v->fEnd.fZ + 1; bz++) {
             for (int bx = v->fStart.fX - 1; bx <= v->fEnd.fX + 1; bx++) {

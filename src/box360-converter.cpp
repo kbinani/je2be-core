@@ -317,19 +317,19 @@ private:
     // the_nether.json
     {
       json o;
-      o["ultrawarm"] = true;
-      o["natural"] = false;
+      o.emplace("ultrawarm", true);
+      o.emplace("natural", false);
       o["coordinate_scale"] = 3.0;
-      o["has_skylight"] = false;
-      o["has_ceiling"] = true;
+      o.emplace("has_skylight", false);
+      o.emplace("has_ceiling", true);
       o["ambient_light"] = 0.1;
       o["fixed_time"] = 18000;
       o["monster_spawn_light_level"] = 11;
       o["monster_spawn_block_light_limit"] = 15;
-      o["piglin_safe"] = true;
-      o["bed_works"] = false;
-      o["respawn_anchor_works"] = true;
-      o["has_raids"] = false;
+      o.emplace("piglin_safe", true);
+      o.emplace("bed_works", false);
+      o.emplace("respawn_anchor_works", true);
+      o.emplace("has_raids", false);
       o["logical_height"] = 128;
       o["min_y"] = 0;
       o["height"] = 256;
