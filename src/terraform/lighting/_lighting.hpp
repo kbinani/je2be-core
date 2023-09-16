@@ -51,9 +51,9 @@ public:
           Pos3i start((cx + dx) * 16, minBlockY, (cz + dz) * 16);
           Pos3i end(start.fX + 15, maxBlockY, start.fZ + 15);
           Volume chunkVolume(start, end);
-          auto part = Volume::Intersection(skyLight->volume(), chunkVolume);
-          assert(part);
-          skyVolumes[{cx + dx, cz + dz}] = *part;
+          if (auto part = Volume::Intersection(skyLight->volume(), chunkVolume); part) {
+            skyVolumes[{cx + dx, cz + dz}] = *part;
+          }
         }
       }
     }
@@ -73,9 +73,9 @@ public:
         Pos3i start((cx + dx) * 16, minBlockY, (cz + dz) * 16);
         Pos3i end(start.fX + 15, maxBlockY, start.fZ + 15);
         Volume chunkVolume(start, end);
-        auto part = Volume::Intersection(blockLight.volume(), chunkVolume);
-        assert(part);
-        blockVolumes[{cx + dx, cz + dz}] = *part;
+        if (auto part = Volume::Intersection(blockLight.volume(), chunkVolume); part) {
+          blockVolumes[{cx + dx, cz + dz}] = *part;
+        }
       }
     }
 
@@ -435,6 +435,9 @@ private:
       for (int cx = volumes.fStart.fX; cx <= volumes.fEnd.fX; cx++) {
         auto v = volumes[{cx, cz}];
         assert(v);
+        if (!v) [[unlikely]] {
+          continue;
+        }
         optional<int> minY;
         optional<int> maxY;
         for (int bz = v->fStart.fZ; bz <= v->fEnd.fZ; bz++) {
@@ -485,6 +488,9 @@ private:
               }
               auto vv = volumes[{x, z}];
               assert(vv);
+              if (!vv) [[unlikely]] {
+                continue;
+              }
               if (auto intersection = Volume::Intersection(calc, *vv); intersection) {
                 if (auto current = diffuseVolumes[{x, z}]; current) {
                   diffuseVolumes[{x, z}] = Volume::Union(*intersection, *current);
@@ -539,6 +545,9 @@ private:
                     }
                     auto vv = volumes[{x, z}];
                     assert(vv);
+                    if (!vv) [[unlikely]] {
+                      continue;
+                    }
                     if (auto intersection = Volume::Intersection(calc, *vv); intersection) {
                       if (auto current = diffuseVolumes[{x, z}]; current) {
                         diffuseVolumes[{x, z}] = Volume::Union(*intersection, *current);
