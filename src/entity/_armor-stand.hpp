@@ -97,30 +97,30 @@ public:
     }
   }
 
-  static float MaxDiffDegrees(Rot a, Rot b) {
+  static float RotSimilarity(Rot a, Rot b) {
     using namespace std;
-    return (std::max)({Rotation::DiffDegrees(get<0>(a), get<0>(b)), Rotation::DiffDegrees(get<1>(a), get<1>(b)), Rotation::DiffDegrees(get<2>(a), get<2>(b))});
+    return cosf(get<0>(a) - get<0>(b)) + cosf(get<1>(a) - get<1>(b)) + cosf(get<2>(a) - get<2>(b));
   }
 
-  static float MaxDiffDegrees(Pose a, Pose b) {
-    return (std::max)({MaxDiffDegrees(a.fBody, b.fBody),
-                       MaxDiffDegrees(a.fHead, b.fHead),
-                       MaxDiffDegrees(a.fLeftLeg, b.fLeftLeg),
-                       MaxDiffDegrees(a.fRightLeg, b.fRightLeg),
-                       MaxDiffDegrees(a.fLeftArm, b.fLeftArm),
-                       MaxDiffDegrees(a.fRightArm, b.fRightArm)});
+  static float PoseSimilarity(Pose a, Pose b) {
+    return RotSimilarity(a.fBody, b.fBody)           //
+           + RotSimilarity(a.fHead, b.fHead)         //
+           + RotSimilarity(a.fLeftLeg, b.fLeftLeg)   //
+           + RotSimilarity(a.fRightLeg, b.fRightLeg) //
+           + RotSimilarity(a.fLeftArm, b.fLeftArm)   //
+           + RotSimilarity(a.fRightArm, b.fRightArm);
   }
 
-  static std::optional<i32> BedrockMostSimilarPoseIndexFromJava(CompoundTag const &javaPose, float maxDiffDegrees = 10.0f) {
+  static std::optional<i32> BedrockMostSimilarPoseIndexFromJava(CompoundTag const &javaPose) {
     Pose pose = Pose::FromCompoundTag(javaPose);
-    float minDiff = std::numeric_limits<float>::max();
+    float maxSimilarity = std::numeric_limits<float>::lowest();
     int index = -1;
     auto const &poses = GetJavaPoses();
     for (int i = 0; i < poses.size(); i++) {
-      float diff = MaxDiffDegrees(pose, poses[i]);
-      if (diff <= maxDiffDegrees && diff < minDiff) {
+      float similarity = PoseSimilarity(pose, poses[i]);
+      if (similarity > maxSimilarity) {
         index = i;
-        minDiff = diff;
+        maxSimilarity = similarity;
       }
     }
     if (index >= 0) {
