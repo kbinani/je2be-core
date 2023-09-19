@@ -1492,6 +1492,9 @@ public:
     assert(attribute);
     auto name = attribute->string(u8"Name");
     assert(name);
+    if (!name) [[unlikely]] {
+      return;
+    }
     ListTagPtr attributes = entityJ.listTag(u8"Attributes");
     ListTagPtr replace = List<Tag::Type::Compound>();
     if (!attributes) {

@@ -212,6 +212,9 @@ public:
     using namespace std;
     auto rawId = c.string(u8"id");
     assert(rawId);
+    if (!rawId) [[unlikely]] {
+      return nullopt;
+    }
     auto id = MigrateName(*rawId);
     if (id == u8"minecraft:item_frame") {
       return ToItemFrameTileEntityBlock(c, u8"minecraft:frame");
@@ -257,6 +260,9 @@ public:
   static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx) {
     auto rawId = c.string(u8"id");
     assert(rawId);
+    if (!rawId) {
+      return nullptr;
+    }
     auto id = MigrateName(*rawId);
     if (id == u8"minecraft:item_frame") {
       return ToItemFrameTileEntityData(c, ctx, u8"ItemFrame");
