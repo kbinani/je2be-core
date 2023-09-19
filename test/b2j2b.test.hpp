@@ -139,6 +139,16 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
     auto variantA = actual.int32(u8"Variant");
     CHECK(variantE == variantA);
   }
+
+  auto poseE = expected.compoundTag(u8"Pose");
+  auto poseA = actual.compoundTag(u8"Pose");
+  if (poseE) {
+    CHECK(poseA);
+    if (poseA) {
+      CHECK(poseE->int32(u8"PoseIndex") == poseA->int32(u8"PoseIndex"));
+    }
+  }
+
   // TODO: check other properties
 }
 
