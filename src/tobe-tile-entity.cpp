@@ -10,6 +10,7 @@
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
+#include "tile-entity/_beacon.hpp"
 #include "tile-entity/_loot-table.hpp"
 #include "tobe/_context.hpp"
 #include "tobe/_entity.hpp"
@@ -872,8 +873,19 @@ private:
     int primary = -1;
     int secondary = -1;
     if (c) {
-      primary = c->int32(u8"Primary", -1);
-      secondary = c->int32(u8"Secondary", -1);
+      if (auto primaryJ = c->string(u8"primary_effect"); primaryJ) {
+        primary = Beacon::BedrockEffectFromJava(*primaryJ);
+      } else if (auto legacyPrimaryJ = c->int32(u8"Primary"); legacyPrimaryJ) {
+        // <= 1.20.1
+        primary = *legacyPrimaryJ;
+      }
+
+      if (auto secondaryJ = c->string(u8"secondary_effect"); secondaryJ) {
+        secondary = Beacon::BedrockEffectFromJava(*secondaryJ);
+      } else if (auto legacySecondaryJ = c->int32(u8"Secondary"); legacySecondaryJ) {
+        // <= 1.20.1
+        secondary = *legacySecondaryJ;
+      }
     }
 
     auto tag = Compound();

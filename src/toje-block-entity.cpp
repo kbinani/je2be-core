@@ -9,6 +9,7 @@
 #include "enums/_red-flower.hpp"
 #include "enums/_skull-type.hpp"
 #include "item/_banner.hpp"
+#include "tile-entity/_beacon.hpp"
 #include "tile-entity/_loot-table.hpp"
 #include "toje/_context.hpp"
 #include "toje/_entity.hpp"
@@ -95,7 +96,16 @@ public:
 
   static std::optional<Result> Beacon(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName(u8"beacon", pos);
-    CopyIntValues(tagB, *t, {{u8"primary", u8"Primary", -1}, {u8"secondary", u8"Secondary", -1}});
+    if (auto primaryB = tagB.int32(u8"primary"); primaryB) {
+      if (auto primaryJ = Beacon::JavaEffectFromLegacyJavaAndBedrock(*primaryB); primaryJ) {
+        t->set(u8"primary_effect", String(*primaryJ));
+      }
+    }
+    if (auto secondaryB = tagB.int32(u8"secondary"); secondaryB) {
+      if (auto secondaryJ = Beacon::JavaEffectFromLegacyJavaAndBedrock(*secondaryB); secondaryJ) {
+        t->set(u8"secondary_effect", String(*secondaryJ));
+      }
+    }
     // NOTE: "Levels" need to be defined by terrain around the beacon.
     // See also beacon.hpp
     Result r;

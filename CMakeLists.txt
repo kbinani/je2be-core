@@ -296,6 +296,7 @@ set(je2be_src_files
   src/terraform/lighting/_light-cache.hpp
   src/terraform/lighting/_lighting-model.hpp
   src/terraform/lighting/_lighting.hpp
+  src/tile-entity/_beacon.hpp
   src/tile-entity/_loot-table.hpp
   src/tobe-block-data.cpp
   src/tobe-chunk-data-package.cpp

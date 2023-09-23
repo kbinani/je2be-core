@@ -24,6 +24,11 @@ protected:
     }
   }
 
+  static std::optional<T2> Forward(T1 const &v) {
+    auto const *table = GetTable();
+    return table->forward(v);
+  }
+
   static T1 Backward(T2 const &v, T1 defaultValue) {
     auto const *table = GetTable();
     auto ret = table->backward(v);
@@ -32,6 +37,11 @@ protected:
     } else {
       return defaultValue;
     }
+  }
+
+  static std::optional<T1> Backward(T2 const &v) {
+    auto const *table = GetTable();
+    return table->backward(v);
   }
 };
 
