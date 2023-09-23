@@ -47,6 +47,7 @@
 #include "enums/_facing4.hpp"
 #include "enums/_game-mode.hpp"
 #include "enums/_chunk-conversion-mode.hpp"
+#include "enums/_effect.hpp"
 
 #include "color/_sign-color.hpp"
 
@@ -66,7 +67,6 @@
 #include "entity/_tropical-fish.hpp"
 #include "entity/_cat.hpp"
 #include "entity/_panda.hpp"
-#include "entity/_effect.hpp"
 #include "entity/_axolotl.hpp"
 #include "entity/_frog.hpp"
 

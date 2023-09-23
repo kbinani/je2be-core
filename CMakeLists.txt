@@ -237,7 +237,6 @@ set(je2be_src_files
   src/entity/_axolotl.hpp
   src/entity/_boat.hpp
   src/entity/_cat.hpp
-  src/entity/_effect.hpp
   src/entity/_entity-attributes.hpp
   src/entity/_frog.hpp
   src/entity/_painting.hpp
@@ -246,6 +245,7 @@ set(je2be_src_files
   src/enums/_banner-color-code-bedrock.hpp
   src/enums/_chunk-conversion-mode.hpp
   src/enums/_color-code-java.hpp
+  src/enums/_effect.hpp
   src/enums/_facing4.hpp
   src/enums/_facing6.hpp
   src/enums/_game-mode.hpp
