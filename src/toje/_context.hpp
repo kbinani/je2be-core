@@ -91,6 +91,7 @@ public:
   GameMode const fGameMode;
 
   bool fDataPackBundle = false;
+  bool fDataPackTradeRebalance = false;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

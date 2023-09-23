@@ -327,9 +327,12 @@ public:
         if (!s) {
           continue;
         }
-        if (s->fValue != u8"minecraft:vanilla") {
-          experiments = true;
-          break;
+        if (s->fValue == u8"minecraft:vanilla") {
+          continue;
+        }
+        experiments = true;
+        if (s->fValue == u8"minecraft:trade_rebalance") {
+          ret.fExperiments[u8"villager_trades_rebalance"] = true;
         }
       }
       if (experiments) {

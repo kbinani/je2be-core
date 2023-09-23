@@ -126,6 +126,12 @@ public:
     o.fFlatWorldSettings = FlatWorldSettings(b);
     o.fBonusChestEnabled = b.boolean(u8"bonusChestEnabled");
 
+    if (auto experiments = b.compoundTag(u8"experiments"); experiments) {
+      if (experiments->boolean(u8"villager_trades_rebalance")) {
+        ctx.fDataPackTradeRebalance = true;
+      }
+    }
+
     auto data = JavaLevelDat::TemplateData(o);
 
     CompoundTag &j = *data;
@@ -167,24 +173,34 @@ public:
   static void UpdateDataPacksAndEnabledFeatures(CompoundTag &root, Context const &ctx) {
     auto data = root.compoundTag(u8"Data");
     if (!data) {
-      return;
+      data = Compound();
+      root[u8"Data"] = data;
     }
     auto enabledFeatures = List<Tag::Type::String>();
     if (ctx.fDataPackBundle) {
       enabledFeatures->push_back(String(u8"minecraft:bundle"));
-      enabledFeatures->push_back(String(u8"minecraft:vanilla"));
-      data->set(u8"enabled_features", enabledFeatures);
     }
+    if (ctx.fDataPackTradeRebalance) {
+      enabledFeatures->push_back(String(u8"minecraft:trade_rebalance"));
+    }
+    enabledFeatures->push_back(String(u8"minecraft:vanilla"));
+    data->set(u8"enabled_features", enabledFeatures);
 
     if (auto dataPacks = data->compoundTag(u8"DataPacks"); dataPacks) {
       if (auto enabledDataPacks = dataPacks->listTag(u8"Enabled"); enabledDataPacks) {
         if (ctx.fDataPackBundle) {
           enabledDataPacks->push_back(String(u8"bundle"));
         }
+        if (ctx.fDataPackTradeRebalance) {
+          enabledDataPacks->push_back(String(u8"trade_rebalance"));
+        }
       }
       if (auto disabledDataPacks = dataPacks->listTag(u8"Disabled"); disabledDataPacks) {
         if (!ctx.fDataPackBundle) {
           disabledDataPacks->push_back(String(u8"bundle"));
+        }
+        if (!ctx.fDataPackTradeRebalance) {
+          disabledDataPacks->push_back(String(u8"trade_rebalance"));
         }
       }
     }
