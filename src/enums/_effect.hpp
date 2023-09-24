@@ -131,7 +131,7 @@ public:
         {Hunger, u8"minecraft:hunger"},
         {Weakness, u8"minecraft:weakness"},
         {Poison, u8"minecraft:poison"},
-        {Wither, u8"minecraft:poison"},
+        {Wither, u8"minecraft:wither"},
         {HealthBoost, u8"minecraft:health_boost"},
         {Absorption, u8"minecraft:absorption"},
         {Saturation, u8"minecraft:saturation"},
