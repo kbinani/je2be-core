@@ -303,8 +303,8 @@ private:
     E(u8"acacia_trapdoor", sTrapdoor);
     E(u8"dark_oak_trapdoor", sTrapdoor);
     E(u8"iron_trapdoor", sTrapdoor);
-    E(u8"stained_glass", sColoredBlock);
-    E(u8"stained_glass_pane", sColoredBlock);
+    E(u8"stained_glass", NamePrefixer<0, 4>(u8"_stained_glass", sColors));
+    E(u8"stained_glass_pane", NamePrefixer<0, 4>(u8"_stained_glass_pane", sColors));
     static Migrator const sBlockWithFacingDirection = IntProperty<0, 16>(u8"facing_direction");
     E(u8"ladder", sBlockWithFacingDirection);
     static PropertySelector<0, 3> const sStoneType(u8"stone_type", {
@@ -328,9 +328,9 @@ private:
                                                                                 u8"quartz",       // 6
                                                                                 u8"nether_brick", // 7
                                                                             });
-    static Migrator const sTopSlotBit = BoolProperty<3>(u8"top_slot_bit");
-    E(u8"stone_slab", Compose(sStoneSlabType, Rename(u8"stone_block_slab"), sTopSlotBit));
-    E(u8"double_stone_slab", Compose(sStoneSlabType, Rename(u8"double_stone_block_slab"), sTopSlotBit));
+    static PropertySelector<3, 1> const sVerticalHalf(u8"minecraft:vertical_half", {u8"bottom", u8"top"});
+    E(u8"stone_slab", Compose(sStoneSlabType, Rename(u8"stone_block_slab"), sVerticalHalf));
+    E(u8"double_stone_slab", Compose(sStoneSlabType, Rename(u8"double_stone_block_slab"), sVerticalHalf));
     static PropertySelector<0, 3> const sStoneSlabType2(u8"stone_slab_type_2", {
                                                                                    u8"red_sandstone",     // 0
                                                                                    u8"purpur",            // 1
@@ -341,8 +341,8 @@ private:
                                                                                    u8"smooth_sandstone",  // 6
                                                                                    u8"red_nether_brick",  // 7
                                                                                });
-    E(u8"stone_slab2", Compose(sStoneSlabType2, Rename(u8"stone_block_slab2"), sTopSlotBit));
-    E(u8"double_stone_slab2", Compose(sStoneSlabType2, Rename(u8"double_stone_block_slab2"), sTopSlotBit));
+    E(u8"stone_slab2", Compose(sStoneSlabType2, Rename(u8"stone_block_slab2"), sVerticalHalf));
+    E(u8"double_stone_slab2", Compose(sStoneSlabType2, Rename(u8"double_stone_block_slab2"), sVerticalHalf));
     static PropertySelector<0, 3> const sStoneSlabType3(u8"stone_slab_type_3", {
                                                                                    u8"end_stone_brick",      // 0
                                                                                    u8"smooth_red_sandstone", // 1
@@ -353,8 +353,8 @@ private:
                                                                                    u8"granite",              // 6
                                                                                    u8"polished_granite",     // 7
                                                                                });
-    E(u8"stone_slab3", Compose(sStoneSlabType3, Rename(u8"stone_block_slab3"), sTopSlotBit));
-    E(u8"double_stone_slab3", Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), sTopSlotBit));
+    E(u8"stone_slab3", Compose(sStoneSlabType3, Rename(u8"stone_block_slab3"), sVerticalHalf));
+    E(u8"double_stone_slab3", Compose(sStoneSlabType3, Rename(u8"double_stone_block_slab3"), sVerticalHalf));
     static PropertySelector<0, 3> const sStoneSlabType4(u8"stone_slab_type_4", {
                                                                                    u8"mossy_stone_brick", // 0
                                                                                    u8"smooth_quartz",     // 1
@@ -362,11 +362,11 @@ private:
                                                                                    u8"cut_sandstone",     // 3
                                                                                    u8"cut_red_sandstone", // 4
                                                                                });
-    E(u8"stone_slab4", Compose(sStoneSlabType4, Rename(u8"stone_block_slab4"), sTopSlotBit));
-    E(u8"double_stone_slab4", Compose(sStoneSlabType4, Rename(u8"double_stone_block_slab4"), sTopSlotBit));
+    E(u8"stone_slab4", Compose(sStoneSlabType4, Rename(u8"stone_block_slab4"), sVerticalHalf));
+    E(u8"double_stone_slab4", Compose(sStoneSlabType4, Rename(u8"double_stone_block_slab4"), sVerticalHalf));
     E(u8"scaffolding", Compose(IntProperty<0, 3>(u8"stability"), BoolProperty<3>(u8"stability_check")));
     static Compose const sWoodenSlab(PropertySelector<0, 3>(u8"wood_type", sWoodTypes),
-                                     sTopSlotBit);
+                                     sVerticalHalf);
     E(u8"wooden_slab", sWoodenSlab);
     E(u8"double_wooden_slab", sWoodenSlab);
     static PropertySelector<0, 2> const sStoneBrickType(u8"stone_brick_type", {
@@ -408,9 +408,9 @@ private:
     E(u8"bone_block", Compose(sPillarAxis2, Const(u8"deprecated", Int(0))));
     E(u8"wool", NamePrefixer<0, 4>(u8"_wool", sColors));
     E(u8"carpet", NamePrefixer<0, 4>(u8"_carpet", sColors));
-    E(u8"concretePowder", Compose(Rename(u8"concrete_powder"), sColoredBlock));
+    E(u8"concretePowder", NamePrefixer<0, 4>(u8"_concrete_powder", sColors));
     E(u8"concrete", NamePrefixer<0, 4>(u8"_concrete", sColors));
-    E(u8"stained_hardened_clay", sColoredBlock);
+    E(u8"stained_hardened_clay", NamePrefixer<0, 4>(u8"_terracotta", sColors));
     E(u8"white_glazed_terracotta", sBlockWithFacingDirection);
     E(u8"orange_glazed_terracotta", sBlockWithFacingDirection);
     E(u8"magenta_glazed_terracotta", sBlockWithFacingDirection);
@@ -485,6 +485,12 @@ private:
                                                                                                  u8"north", // 2
                                                                                                  u8"east",  // 3
                                                                                              });
+    static PropertySelector<0, 2> const sCardinalDirectionFurnace(u8"minecraft:cardinal_direction", {
+                                                                                                        u8"west",  // 0
+                                                                                                        u8"east",  // 1
+                                                                                                        u8"north", // 2
+                                                                                                        u8"south", // 3
+                                                                                                    });
     E(u8"pumpkin", sCardinalDirection);
     E(u8"carved_pumpkin", sCardinalDirection);
     E(u8"lit_pumpkin", sCardinalDirection);
@@ -599,15 +605,15 @@ private:
     E(u8"unlit_redstone_torch", sTorchFacingDirection);
     E(u8"sea_pickle", Compose(BoolProperty<2>(u8"dead_bit"), IntProperty<0, 2>(u8"cluster_count")));
     E(u8"lantern", BoolProperty<0>(u8"hanging"));
-    E(u8"furnace", sBlockWithFacingDirection);
-    E(u8"lit_furnace", sBlockWithFacingDirection);
+    E(u8"furnace", sCardinalDirectionFurnace);
+    E(u8"lit_furnace", sCardinalDirectionFurnace);
     E(u8"anvil", Compose(PropertySelector<2, 2>(u8"damage", {
                                                                 u8"undamaged",        // 0
                                                                 u8"slightly_damaged", // 1
                                                                 u8"very_damaged",     // 2
                                                             }),
-                         IntProperty<0, 2>(u8"direction")));
-    E(u8"lectern", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"powered_bit")));
+                         sCardinalDirection));
+    E(u8"lectern", Compose(sCardinalDirection, BoolProperty<2>(u8"powered_bit")));
     E(u8"cauldron", Compose(IntProperty<0, 3>(u8"fill_level"), Const(u8"cauldron_liquid", Str(u8"water"))));
     E(u8"chest", sBlockWithFacingDirection);
     E(u8"trapped_chest", sBlockWithFacingDirection);
@@ -648,7 +654,7 @@ private:
     E(u8"acacia_button", sButton);
     E(u8"dark_oak_button", sButton);
     E(u8"stone_button", sButton);
-    E(u8"end_portal_frame", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"end_portal_eye_bit")));
+    E(u8"end_portal_frame", Compose(sCardinalDirection, BoolProperty<2>(u8"end_portal_eye_bit")));
     E(u8"end_rod", sBlockWithFacingDirection);
     E(u8"tripwire_hook", Compose(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"attached_bit"), BoolProperty<3>(u8"powered_bit")));
     E(u8"tripWire", Compose(Rename(u8"trip_wire"), BoolProperty<2>(u8"attached_bit"), BoolProperty<1>(u8"suspended_bit"), BoolProperty<0>(u8"powered_bit"), BoolProperty<3>(u8"disarmed_bit")));
@@ -682,10 +688,10 @@ private:
     E(u8"observer", Compose(sMinecraftFacingDirection, BoolProperty<3>(u8"powered_bit")));
     E(u8"daylight_detector", sRedstoneSignal);
     E(u8"daylight_detector_inverted", sRedstoneSignal);
-    static Compose const sRepeater(IntProperty<0, 2>(u8"direction"), IntProperty<2, 2>(u8"repeater_delay"));
+    static Compose const sRepeater(sCardinalDirection, IntProperty<2, 2>(u8"repeater_delay"));
     E(u8"powered_repeater", sRepeater);
     E(u8"unpowered_repeater", sRepeater);
-    static Compose const sComparator(IntProperty<0, 2>(u8"direction"), BoolProperty<2>(u8"output_subtract_bit"), BoolProperty<3>(u8"output_lit_bit"));
+    static Compose const sComparator(sCardinalDirection, BoolProperty<2>(u8"output_subtract_bit"), BoolProperty<3>(u8"output_lit_bit"));
     E(u8"powered_comparator", sComparator);
     E(u8"unpowered_comparator", sComparator);
     E(u8"hopper", Compose(IntProperty<0, 3>(u8"facing_direction"), BoolProperty<3>(u8"toggle_bit")));

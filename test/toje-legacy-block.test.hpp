@@ -10,7 +10,7 @@ TEST_CASE("toje-legacy-block") {
   };
 
   auto before = dataDir / "1.10.1.1-upgrade-test-before.mcworld";
-  auto after = dataDir / "1.10.1.1-upgrade-test-after.mcworld";
+  auto after = dataDir / "1.10.1.1-upgrade-test-after-1.20.31.mcworld";
   auto beforeDir = *tmp / "before";
   auto afterDir = *tmp / "after";
   REQUIRE(Fs::CreateDirectories(beforeDir));
