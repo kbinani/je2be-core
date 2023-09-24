@@ -200,7 +200,7 @@ public:
       auto itemTag = tagB.compoundTag(u8"Item" + mcfile::String::ToString(i + 1));
       bool itemAdded = false;
       if (itemTag) {
-        auto item = Item::From(*itemTag, ctx);
+        auto item = Item::From(*itemTag, ctx, {});
         if (item) {
           item->set(u8"Slot", Byte(i));
           items->push_back(item);
@@ -469,7 +469,7 @@ public:
     auto record = tag.compoundTag(u8"RecordItem");
     auto te = EmptyShortName(u8"jukebox", pos);
     if (record) {
-      auto itemJ = Item::From(*record, ctx);
+      auto itemJ = Item::From(*record, ctx, {});
       if (itemJ) {
         te->set(u8"RecordItem", itemJ);
       }
@@ -487,7 +487,7 @@ public:
     auto bookB = tag.compoundTag(u8"book");
     shared_ptr<CompoundTag> bookJ;
     if (bookB) {
-      bookJ = Item::From(*bookB, ctx);
+      bookJ = Item::From(*bookB, ctx, {});
     }
 
     Result r;
@@ -774,7 +774,7 @@ public:
     auto tagJ = EmptyShortName(u8"brushable_block", pos);
     if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
       if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
-        if (auto itemJ = Item::From(*itemB, ctx); itemJ) {
+        if (auto itemJ = Item::From(*itemB, ctx, {}); itemJ) {
           tagJ->set(u8"item", itemJ);
         }
       }
@@ -837,7 +837,7 @@ public:
       if (!c) {
         continue;
       }
-      auto converted = Item::From(*c, ctx);
+      auto converted = Item::From(*c, ctx, {});
       if (!converted) {
         continue;
       }
@@ -872,7 +872,7 @@ public:
           continue;
         }
       }
-      auto converted = Item::From(*c, ctx);
+      auto converted = Item::From(*c, ctx, {});
       if (!converted) {
         continue;
       }

@@ -203,6 +203,9 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
     } else if (*itemId == u8"minecraft:painting") {
       // tag: {EntityTag:{variant:"minecraft:kebab"}}
       blacklist.insert(u8"tag");
+    } else if (*itemId == u8"minecraft:suspicious_stew") {
+      // Duration may vary between the source of stews in JE such as craft table, trade, chest loot. Duration doesn't recorded in item tag in BE.
+      blacklist.insert(u8"tag/effects/*/duration");
     }
   }
   auto storedEnchantment = itemE.query(u8"tag/StoredEnchantments/0/id");
@@ -342,6 +345,55 @@ static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
     Erase(copyA, b);
   }
 
+  DiffCompoundTag(*copyE, *copyA);
+}
+
+static void CheckRecipeJ(CompoundTag const &e, CompoundTag const &a) {
+  auto copyE = e.copy();
+  auto copyA = a.copy();
+  for (u8string key : {u8"buy", u8"buyB", u8"sell"}) {
+    auto itemE = e.compoundTag(key);
+    auto itemA = a.compoundTag(key);
+    copyE->erase(key);
+    copyA->erase(key);
+    REQUIRE(itemE);
+    REQUIRE(itemA);
+    auto idE = itemE->string(u8"id");
+    auto idA = itemA->string(u8"id");
+    if (idE == u8"minecraft:air") {
+      CHECK(idA == idE);
+      auto countE = itemE->byte(u8"Count");
+      auto countA = itemA->byte(u8"Count");
+      REQUIRE(countE);
+      REQUIRE(countA);
+      bool okE = countE == 0 || countE == 1;
+      bool okA = countA == 0 || countA == 1;
+      CHECK(okE);
+      CHECK(okA);
+    } else {
+      CheckItem(*itemE, *itemA);
+    }
+  }
+  DiffCompoundTag(*copyE, *copyA);
+}
+
+static void CheckOffersJ(CompoundTag const &e, CompoundTag const &a) {
+  auto copyE = e.copy();
+  auto copyA = a.copy();
+  auto recipesE = e.listTag(u8"Recipes");
+  auto recipesA = a.listTag(u8"Recipes");
+  CHECK(recipesE->size() == recipesA->size());
+  for (size_t i = 0; i < recipesE->size(); i++) {
+    auto recipeE = recipesE->at(i);
+    auto recipeA = recipesA->at(i);
+    CHECK(recipeE);
+    CHECK(recipeA);
+    if (recipeE->asCompound() && recipeA->asCompound()) {
+      CheckRecipeJ(*recipeE->asCompound(), *recipeA->asCompound());
+    }
+  }
+  copyE->erase(u8"Recipes");
+  copyA->erase(u8"Recipes");
   DiffCompoundTag(*copyE, *copyA);
 }
 
@@ -531,6 +583,17 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
     }
   } else if (inventoryA) {
     CHECK(false);
+  }
+
+  auto offersE = entityE.compoundTag(u8"Offers");
+  auto offersA = entityA.compoundTag(u8"Offers");
+  copyE->erase(u8"Offers");
+  copyA->erase(u8"Offers");
+  if (offersE) {
+    CHECK(offersA);
+    if (offersA) {
+      CheckOffersJ(*offersE, *offersA);
+    }
   }
 
   DiffCompoundTag(*copyE, *copyA);

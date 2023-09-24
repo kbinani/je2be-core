@@ -69,29 +69,45 @@ public:
 
   struct SuspiciousStewEffect {
     Type fEffectId;
-    int fDuration;
+    std::optional<i32> fDuration;
 
-    SuspiciousStewEffect(Type id, int duration) : fEffectId(id), fDuration(duration) {}
+    SuspiciousStewEffect(Type id, std::optional<i32> duration) : fEffectId(id), fDuration(duration) {}
   };
 
-  static SuspiciousStewEffect JavaEffectFromBedrockSuspiciousStew(i16 damage) {
+  static SuspiciousStewEffect JavaEffectFromBedrockSuspiciousStew(i16 damage, bool offerItem) {
     switch (damage) {
     case 1:
       return {JumpBoost, 120};
     case 2:
       return {Weakness, 180};
     case 3:
-      return {Blindness, 160};
+      if (offerItem) {
+        return {Blindness, 120};
+      } else {
+        return {Blindness, std::nullopt};
+      }
     case 4:
-      return {Poison, 240};
+      if (offerItem) {
+        return {Poison, 280};
+      } else {
+        return {Poison, 240};
+      }
     case 6:
       return {Saturation, 7};
     case 7:
       return {FireResistance, 80};
     case 8:
-      return {Regeneration, 160};
+      if (offerItem) {
+        return {Regeneration, 160};
+      } else {
+        return {Regeneration, std::nullopt};
+      }
     case 9:
-      return {Wither, 160};
+      if (offerItem) {
+        return {Wither, 160};
+      } else {
+        return {Wither, std::nullopt};
+      }
     case 0:
     default:
       return {NightVision, 100};
