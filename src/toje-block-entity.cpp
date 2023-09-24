@@ -333,6 +333,7 @@ public:
   static std::optional<Result> DecoratedPot(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName(u8"decorated_pot", pos);
     auto sherdsJ = List<Tag::Type::String>();
+    bool some = false;
     for (int i = 0; i < 4; i++) {
       sherdsJ->push_back(String(u8"minecraft:brick"));
     }
@@ -344,12 +345,15 @@ public:
     if (sherdsB) {
       for (int i = 0; i < 4 && i < sherdsB->size(); i++) {
         auto const &sherdB = sherdsB->at(i);
-        if (auto sherdName = sherdB->asString(); sherdName) {
+        if (auto sherdName = sherdB->asString(); sherdName && !sherdName->fValue.empty()) {
+          some = true;
           sherdsJ->fValue[i] = String(sherdName->fValue);
         }
       }
     }
-    t->set(u8"sherds", sherdsJ);
+    if (some) {
+      t->set(u8"sherds", sherdsJ);
+    }
     Result r;
     r.fTileEntity = t;
     return r;
