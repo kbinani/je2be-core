@@ -1708,7 +1708,7 @@ public:
     } else {
       auto air = Compound();
       air->set(u8"id", String(u8"minecraft:air"));
-      air->set(u8"Count", Byte(1));
+      air->set(u8"Count", Byte(0));
       ret->set(u8"buyB", air);
     }
 
