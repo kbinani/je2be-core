@@ -486,6 +486,8 @@ public:
       u8 u = *(u8 *)&i;
       j[u8"Time"] = Int(u);
     }
+
+    j[u8"CancelDrop"] = Bool(false);
   }
 
   static void Fox(CompoundTag const &b, CompoundTag &j, Context &ctx) {
