@@ -462,6 +462,16 @@ public:
     */
   }
 
+  static void ExperienceOrb(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    auto value = b.int32(u8"experience value");
+    if (value) {
+      j[u8"Value"] = Short(*value);
+    }
+    CopyShortValues(b, j, {{u8"Age"}});
+    j[u8"Health"] = Short(5);
+    j[u8"Count"] = Int(1);
+  }
+
   static void FallingBlock(CompoundTag const &b, CompoundTag &j, Context &ctx) {
     if (auto fallingBlockB = b.compoundTag(u8"FallingBlock"); fallingBlockB) {
       if (auto blockB = mcfile::be::Block::FromCompound(*fallingBlockB); blockB) {
@@ -2009,6 +2019,7 @@ public:
     E(sniffer, C(Same, Animal));
     E(ocelot, C(Same, Animal, Age, Ocelot));
     E(vindicator, C(Same, LivingEntity));
+    E(xp_orb, C(Rename(u8"experience_orb"), Base, ExperienceOrb));
 #undef E
     return ret;
   }

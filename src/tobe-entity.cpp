@@ -916,6 +916,7 @@ private:
     if (value) {
       c[u8"experience value"] = Int(*value);
     }
+    CopyShortValues(tag, c, {{u8"Age"}});
     AddDefinition(c, u8"+minecraft:xp_orb");
   }
 
