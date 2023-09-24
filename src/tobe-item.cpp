@@ -13,6 +13,7 @@
 #include "item/_fireworks-explosion.hpp"
 #include "item/_fireworks.hpp"
 #include "item/_goat-horn.hpp"
+#include "item/_map-type.hpp"
 #include "item/_potion.hpp"
 #include "item/_tipped-arrow-potion.hpp"
 #include "tobe/_axolotl.hpp"
@@ -446,12 +447,8 @@ private:
           auto translate = nameJson->find("translate");
           if (translate != nameJson->end() && translate->is_string()) {
             auto translationKey = props::GetJsonStringValue(*translate);
-            if (translationKey == u8"filled_map.buried_treasure") {
-              type = 5;
-            } else if (translationKey == u8"filled_map.mansion") {
-              type = 4;
-            } else if (translationKey == u8"filled_map.monument") {
-              type = 3;
+            if (auto damage = MapType::BedrockDamageFromJavaTranslationKey(translationKey); damage) {
+              type = *damage;
             }
           }
         }

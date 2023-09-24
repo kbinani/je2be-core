@@ -10,6 +10,7 @@
 #include "item/_enchantments.hpp"
 #include "item/_fireworks.hpp"
 #include "item/_goat-horn.hpp"
+#include "item/_map-type.hpp"
 #include "item/_potion.hpp"
 #include "item/_tipped-arrow-potion.hpp"
 #include "tobe/_versions.hpp"
@@ -742,24 +743,13 @@ public:
     }
 
     auto damage = itemB.int16(u8"Damage", 0);
-    std::u8string translate;
-    std::optional<i32> mapColor;
-    if (damage == 3) {
-      translate = u8"filled_map.monument";
-      mapColor = 3830373;
-    } else if (damage == 4) {
-      translate = u8"filled_map.mansion";
-      mapColor = 5393476;
-    } else if (damage == 5) {
-      translate = u8"filled_map.buried_treasure";
-    }
-    if (!translate.empty()) {
+    if (auto translate = MapType::JavaTranslationKeyFromBedrockDamage(damage); translate) {
       auto displayJ = Compound();
       props::Json json;
-      props::SetJsonString(json, u8"translate", translate);
+      props::SetJsonString(json, u8"translate", *translate);
       displayJ->set(u8"Name", String(props::StringFromJson(json)));
 
-      if (mapColor) {
+      if (auto mapColor = MapType::JavaMapColorFromBedrockDamage(damage); mapColor) {
         displayJ->set(u8"MapColor", Int(*mapColor));
       }
 
