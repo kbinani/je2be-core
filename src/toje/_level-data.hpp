@@ -65,6 +65,8 @@ public:
         }
       }
 
+      ret->set(u8"enderPearlsVanishOnDeath", String(u8"true"));
+
       return ret;
     }
   };
