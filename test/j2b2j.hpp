@@ -67,9 +67,12 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           CheckBlockWithIgnore(*blockE, *blockA, {u8"facing"});
         } else if (blockE->fName == u8"minecraft:sculk_sensor" || blockE->fName == u8"minecraft:calibrated_sculk_sensor") {
           CheckBlockWithIgnore(*blockE, *blockA, {u8"power"});
+        } else if (blockE->fName == u8"minecraft:piglin_wall_head" || blockE->fName == u8"minecraft:skeleton_skull" || blockE->fName == u8"minecraft:wither_skeleton_skull" || blockE->fName == u8"minecraft:zombie_head" || blockE->fName == u8"minecraft:creeper_head" || blockE->fName == u8"minecraft:dragon_head" || blockE->fName == u8"minecraft:player_head" || blockE->fName == u8"minecraft:skeleton_wall_skull" || blockE->fName == u8"minecraft:piglin_head" || blockE->fName == u8"minecraft:wither_skeleton_wall_skull" || blockE->fName == u8"minecraft:player_wall_head" || blockE->fName == u8"minecraft:zombie_wall_head" || blockE->fName == u8"minecraft:creeper_wall_head" || blockE->fName == u8"minecraft:dragon_wall_head") {
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"powered"});
         } else {
           if (blockA->toString() != blockE->toString()) {
-            cout << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << endl;
+            lock_guard<mutex> lock(sMutCerr);
+            cerr << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << ", expected=" << blockE->toString() << "; actual=" << blockA->toString() << endl;
           }
           CHECK(blockA->toString() == blockE->toString());
         }
@@ -471,7 +474,7 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
   } else if (id == u8"minecraft:zombie_villager") {
     blacklist.insert(u8"PersistenceRequired"); // BE requires "Persistent" = true to keep them alive, but JE doesn't
     blacklist.insert(u8"InWaterTime");
-    blacklist.insert(u8"IsBaby"); //TODO:
+    blacklist.insert(u8"IsBaby"); // TODO:
   } else if (id == u8"minecraft:piglin") {
     blacklist.insert(u8"TimeInOverworld");
     blacklist.insert(u8"IsBaby");
