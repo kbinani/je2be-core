@@ -433,13 +433,10 @@ static void Structures() {
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
     auto key = itr->key().ToString();
     auto parsed = DbKey::Parse(key);
-    if (!parsed) {
+    if (!parsed.fIsTagged) {
       continue;
     }
-    if (!parsed->fIsTagged) {
-      continue;
-    }
-    uint8_t tag = parsed->fTagged.fTag;
+    uint8_t tag = parsed.fTagged.fTag;
     if (tag != static_cast<uint8_t>(DbKey::Tag::StructureBounds)) {
       continue;
     }
@@ -452,7 +449,7 @@ static void Structures() {
       case StructureType::Outpost:
         break;
       default:
-        auto chunk = parsed->fTagged.fChunk;
+        auto chunk = parsed.fTagged.fChunk;
         cout << "unknown structure type: " << (int)p.fType << " at chunk (" << chunk.fX << ", " << chunk.fZ << "), block (" << (chunk.fX * 16) << ", " << (chunk.fZ * 16) << ")" << endl;
         break;
       }
@@ -486,7 +483,7 @@ static void Stronghold() {
   for (string s : keysA) {
     if (keysB.find(s) == keysB.end()) {
       auto p = DbKey::Parse(s);
-      cout << "new: " << p->toString() << endl;
+      cout << "new: " << p.toString() << endl;
     } else {
       common.insert(s);
     }
@@ -518,10 +515,10 @@ static void MonumentBedrock() {
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
     auto key = itr->key();
     auto parsed = DbKey::Parse(key.ToString());
-    if (!parsed->fIsTagged) {
+    if (!parsed.fIsTagged) {
       continue;
     }
-    if (parsed->fTagged.fTag != static_cast<uint8_t>(DbKey::Tag::StructureBounds)) {
+    if (parsed.fTagged.fTag != static_cast<uint8_t>(DbKey::Tag::StructureBounds)) {
       continue;
     }
     string value;

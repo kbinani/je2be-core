@@ -55,12 +55,9 @@ class Context::Impl {
     void accept(std::string const &key, std::string const &value) {
       using namespace std;
       auto parsed = mcfile::be::DbKey::Parse(key);
-      if (!parsed) {
-        return;
-      }
-      if (parsed->fIsTagged) {
-        u8 tag = parsed->fTagged.fTag;
-        mcfile::Dimension d = parsed->fTagged.fDimension;
+      if (parsed.fIsTagged) {
+        u8 tag = parsed.fTagged.fTag;
+        mcfile::Dimension d = parsed.fTagged.fDimension;
         if (!fOpt.fDimensionFilter.empty()) {
           if (fOpt.fDimensionFilter.find(d) == fOpt.fDimensionFilter.end()) {
             return;
@@ -69,8 +66,8 @@ class Context::Impl {
         switch (tag) {
         case static_cast<u8>(mcfile::be::DbKey::Tag::Data3D):
         case static_cast<u8>(mcfile::be::DbKey::Tag::Data2D): {
-          int cx = parsed->fTagged.fChunk.fX;
-          int cz = parsed->fTagged.fChunk.fZ;
+          int cx = parsed.fTagged.fChunk.fX;
+          int cz = parsed.fTagged.fChunk.fZ;
           Pos2i c(cx, cz);
           if (!fOpt.fChunkFilter.empty()) {
             if (fOpt.fChunkFilter.find(c) == fOpt.fChunkFilter.end()) {
@@ -91,7 +88,7 @@ class Context::Impl {
           break;
         }
         }
-      } else if (parsed->fUnTagged.starts_with("map_")) {
+      } else if (parsed.fUnTagged.starts_with("map_")) {
         i64 mapId;
         auto mapInfo = MapInfo::Parse(value, mapId, fEndian);
         if (!mapInfo) {

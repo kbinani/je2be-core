@@ -274,16 +274,7 @@ static void DumpAllKeys(fs::path const &dbDir) {
   for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
     auto key = itr->key().ToString();
     auto parsed = mcfile::be::DbKey::Parse(key);
-    if (!parsed) {
-      cout << "unknown key: ";
-      for (size_t i = 0; i < key.size(); i++) {
-        char ch = key[i];
-        cout << hex << (int)ch << dec << (0 < i && i < key.size() - 1 ? ", " : "");
-      }
-      cout << endl;
-    } else {
-      cout << parsed->toString() << endl;
-    }
+    cout << parsed.toString() << endl;
   }
 
   itr.reset();
