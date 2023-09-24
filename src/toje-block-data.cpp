@@ -2736,6 +2736,7 @@ private:
     E(pitcher_plant, C(Same, HalfFromUpperBlockBit));
     E(sniffer_egg, SnifferEgg);
     E(calibrated_sculk_sensor, C(Same, SculkSensorPhase, FacingFromDirectionNorth2East3South0West1, Submergible));
+    E(barrier, C(Same, Submergible));
 #undef E
 
     return table;
