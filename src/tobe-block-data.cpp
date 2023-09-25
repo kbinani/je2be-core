@@ -409,13 +409,7 @@ public:
 
   static Converter LitPumpkin() { return Converter(Name(u8"lit_pumpkin"), Name(Facing, u8"minecraft:cardinal_direction")); }
 
-  static Converter StainedGlass(std::u8string const &color) { return Subtype(u8"stained_glass", u8"color", color); }
-
   static Converter Prismarine(std::u8string const &type) { return Subtype(u8"prismarine", u8"prismarine_block_type", type); }
-
-  static Converter Terracotta(std::u8string const &color) { return Subtype(u8"stained_hardened_clay", u8"color", color); }
-
-  static Converter ConcretePowder(std::u8string const &color) { return Subtype(u8"concrete_powder", u8"color", color); }
 
   static Converter CoralBlock(std::u8string const &color, bool dead) { return Converter(Name(u8"coral_block"), AddStringProperty(u8"coral_color", color), AddBoolProperty(u8"dead_bit", dead)); }
 
@@ -652,7 +646,6 @@ public:
 
   static Converter Wall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
 
-  static Converter StainedGlassPane(std::u8string const &color) { return Subtype(u8"stained_glass_pane", u8"color", color); }
 
   static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), DirectionFromFacingA); }
 
@@ -977,38 +970,38 @@ public:
     E(purpur_pillar, Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis));
     E(jack_o_lantern, LitPumpkin());
     E(carved_pumpkin, Converter(Same, Name(Facing, u8"minecraft:cardinal_direction")));
-    E(white_stained_glass, StainedGlass(u8"white"));
-    E(orange_stained_glass, StainedGlass(u8"orange"));
-    E(magenta_stained_glass, StainedGlass(u8"magenta"));
-    E(light_blue_stained_glass, StainedGlass(u8"light_blue"));
-    E(yellow_stained_glass, StainedGlass(u8"yellow"));
-    E(lime_stained_glass, StainedGlass(u8"lime"));
-    E(pink_stained_glass, StainedGlass(u8"pink"));
-    E(gray_stained_glass, StainedGlass(u8"gray"));
-    E(light_gray_stained_glass, StainedGlass(u8"silver"));
-    E(cyan_stained_glass, StainedGlass(u8"cyan"));
-    E(purple_stained_glass, StainedGlass(u8"purple"));
-    E(blue_stained_glass, StainedGlass(u8"blue"));
-    E(brown_stained_glass, StainedGlass(u8"brown"));
-    E(green_stained_glass, StainedGlass(u8"green"));
-    E(red_stained_glass, StainedGlass(u8"red"));
-    E(black_stained_glass, StainedGlass(u8"black"));
-    E(white_concrete_powder, ConcretePowder(u8"white"));
-    E(orange_concrete_powder, ConcretePowder(u8"orange"));
-    E(magenta_concrete_powder, ConcretePowder(u8"magenta"));
-    E(light_blue_concrete_powder, ConcretePowder(u8"light_blue"));
-    E(yellow_concrete_powder, ConcretePowder(u8"yellow"));
-    E(lime_concrete_powder, ConcretePowder(u8"lime"));
-    E(pink_concrete_powder, ConcretePowder(u8"pink"));
-    E(gray_concrete_powder, ConcretePowder(u8"gray"));
-    E(light_gray_concrete_powder, ConcretePowder(u8"silver"));
-    E(cyan_concrete_powder, ConcretePowder(u8"cyan"));
-    E(purple_concrete_powder, ConcretePowder(u8"purple"));
-    E(blue_concrete_powder, ConcretePowder(u8"blue"));
-    E(brown_concrete_powder, ConcretePowder(u8"brown"));
-    E(green_concrete_powder, ConcretePowder(u8"green"));
-    E(red_concrete_powder, ConcretePowder(u8"red"));
-    E(black_concrete_powder, ConcretePowder(u8"black"));
+    E(white_stained_glass, Identity);
+    E(orange_stained_glass, Identity);
+    E(magenta_stained_glass, Identity);
+    E(light_blue_stained_glass, Identity);
+    E(yellow_stained_glass, Identity);
+    E(lime_stained_glass, Identity);
+    E(pink_stained_glass, Identity);
+    E(gray_stained_glass, Identity);
+    E(light_gray_stained_glass, Identity);
+    E(cyan_stained_glass, Identity);
+    E(purple_stained_glass, Identity);
+    E(blue_stained_glass, Identity);
+    E(brown_stained_glass, Identity);
+    E(green_stained_glass, Identity);
+    E(red_stained_glass, Identity);
+    E(black_stained_glass, Identity);
+    E(white_concrete_powder, Identity);
+    E(orange_concrete_powder, Identity);
+    E(magenta_concrete_powder, Identity);
+    E(light_blue_concrete_powder, Identity);
+    E(yellow_concrete_powder, Identity);
+    E(lime_concrete_powder, Identity);
+    E(pink_concrete_powder, Identity);
+    E(gray_concrete_powder, Identity);
+    E(light_gray_concrete_powder, Identity);
+    E(cyan_concrete_powder, Identity);
+    E(purple_concrete_powder, Identity);
+    E(blue_concrete_powder, Identity);
+    E(brown_concrete_powder, Identity);
+    E(green_concrete_powder, Identity);
+    E(red_concrete_powder, Identity);
+    E(black_concrete_powder, Identity);
     E(white_concrete, Identity);
     E(orange_concrete, Identity);
     E(magenta_concrete, Identity);
@@ -1025,22 +1018,22 @@ public:
     E(green_concrete, Identity);
     E(red_concrete, Identity);
     E(black_concrete, Identity);
-    E(white_terracotta, Terracotta(u8"white"));
-    E(orange_terracotta, Terracotta(u8"orange"));
-    E(magenta_terracotta, Terracotta(u8"magenta"));
-    E(light_blue_terracotta, Terracotta(u8"light_blue"));
-    E(yellow_terracotta, Terracotta(u8"yellow"));
-    E(lime_terracotta, Terracotta(u8"lime"));
-    E(pink_terracotta, Terracotta(u8"pink"));
-    E(gray_terracotta, Terracotta(u8"gray"));
-    E(light_gray_terracotta, Terracotta(u8"silver"));
-    E(cyan_terracotta, Terracotta(u8"cyan"));
-    E(purple_terracotta, Terracotta(u8"purple"));
-    E(blue_terracotta, Terracotta(u8"blue"));
-    E(brown_terracotta, Terracotta(u8"brown"));
-    E(green_terracotta, Terracotta(u8"green"));
-    E(red_terracotta, Terracotta(u8"red"));
-    E(black_terracotta, Terracotta(u8"black"));
+    E(white_terracotta, Identity);
+    E(orange_terracotta, Identity);
+    E(magenta_terracotta, Identity);
+    E(light_blue_terracotta, Identity);
+    E(yellow_terracotta, Identity);
+    E(lime_terracotta, Identity);
+    E(pink_terracotta, Identity);
+    E(gray_terracotta, Identity);
+    E(light_gray_terracotta, Identity);
+    E(cyan_terracotta, Identity);
+    E(purple_terracotta, Identity);
+    E(blue_terracotta, Identity);
+    E(brown_terracotta, Identity);
+    E(green_terracotta, Identity);
+    E(red_terracotta, Identity);
+    E(black_terracotta, Identity);
     E(nether_quartz_ore, Rename(u8"quartz_ore"));
     E(red_nether_bricks, Rename(u8"red_nether_brick"));
     E(magma_block, Rename(u8"magma"));
@@ -1153,22 +1146,22 @@ public:
     E(green_carpet, Identity);
     E(red_carpet, Identity);
     E(black_carpet, Identity);
-    E(white_stained_glass_pane, StainedGlassPane(u8"white"));
-    E(orange_stained_glass_pane, StainedGlassPane(u8"orange"));
-    E(magenta_stained_glass_pane, StainedGlassPane(u8"magenta"));
-    E(light_blue_stained_glass_pane, StainedGlassPane(u8"light_blue"));
-    E(yellow_stained_glass_pane, StainedGlassPane(u8"yellow"));
-    E(lime_stained_glass_pane, StainedGlassPane(u8"lime"));
-    E(pink_stained_glass_pane, StainedGlassPane(u8"pink"));
-    E(gray_stained_glass_pane, StainedGlassPane(u8"gray"));
-    E(light_gray_stained_glass_pane, StainedGlassPane(u8"silver"));
-    E(cyan_stained_glass_pane, StainedGlassPane(u8"cyan"));
-    E(purple_stained_glass_pane, StainedGlassPane(u8"purple"));
-    E(blue_stained_glass_pane, StainedGlassPane(u8"blue"));
-    E(brown_stained_glass_pane, StainedGlassPane(u8"brown"));
-    E(green_stained_glass_pane, StainedGlassPane(u8"green"));
-    E(red_stained_glass_pane, StainedGlassPane(u8"red"));
-    E(black_stained_glass_pane, StainedGlassPane(u8"black"));
+    E(white_stained_glass_pane, Identity);
+    E(orange_stained_glass_pane, Identity);
+    E(magenta_stained_glass_pane, Identity);
+    E(light_blue_stained_glass_pane, Identity);
+    E(yellow_stained_glass_pane, Identity);
+    E(lime_stained_glass_pane, Identity);
+    E(pink_stained_glass_pane, Identity);
+    E(gray_stained_glass_pane, Identity);
+    E(light_gray_stained_glass_pane, Identity);
+    E(cyan_stained_glass_pane, Identity);
+    E(purple_stained_glass_pane, Identity);
+    E(blue_stained_glass_pane, Identity);
+    E(brown_stained_glass_pane, Identity);
+    E(green_stained_glass_pane, Identity);
+    E(red_stained_glass_pane, Identity);
+    E(black_stained_glass_pane, Identity);
     E(slime_block, Rename(u8"slime"));
     E(anvil, Anvil(u8"undamaged"));
     E(chipped_anvil, Anvil(u8"slightly_damaged"));
