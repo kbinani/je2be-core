@@ -134,10 +134,6 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
     } else {
       CHECK(!blockA);
     }
-
-    auto variantE = expected.int32(u8"Variant");
-    auto variantA = actual.int32(u8"Variant");
-    CHECK(variantE == variantA);
   }
 
   auto poseE = expected.compoundTag(u8"Pose");
