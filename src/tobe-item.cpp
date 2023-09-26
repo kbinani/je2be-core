@@ -894,7 +894,7 @@ private:
     using namespace std;
 
     auto block = make_shared<Block>(name);
-    auto blockData = BlockData::From(block, nullptr);
+    auto blockData = BlockData::From(block, nullptr, {.fItem = true});
 
     auto states = Compound();
     states->set(u8"torch_facing_direction", String(u8"unknown"));
@@ -1071,7 +1071,7 @@ private:
     using namespace std;
 
     auto block = make_shared<Block>(name);
-    auto blockData = BlockData::From(block, nullptr);
+    auto blockData = BlockData::From(block, nullptr, {.fItem = true});
 
     auto states = Compound();
     states->set(u8"huge_mushroom_bits", Int(14));
@@ -1118,7 +1118,7 @@ private:
     using namespace std;
 
     auto block = make_shared<Block>(id);
-    auto blockData = BlockData::From(block, nullptr);
+    auto blockData = BlockData::From(block, nullptr, {.fItem = true});
     assert(blockData);
 
     auto name = blockData->string(u8"name");

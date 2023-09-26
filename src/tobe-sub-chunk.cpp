@@ -65,7 +65,7 @@ public:
         }
       }
       section->eachBlockPalette([&palette, &airIndex](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
-        auto blockB = BlockData::From(blockJ, nullptr);
+        auto blockB = BlockData::From(blockJ, nullptr, {});
         assert(blockB);
         palette.append(blockB);
         if (blockJ->fId == mcfile::blocks::minecraft::air && airIndex < 0) {
@@ -194,7 +194,7 @@ public:
         // Block states may have extra properties from properties in tile entity.
         // Example: last_interacted_slot of chiseled_bookshelf is stored in tile entity on JE, but in block states on BE.
         auto blockJ = section->blockAtUnchecked(x, y, z);
-        if (auto tag = BlockData::From(blockJ, tile); tag) {
+        if (auto tag = BlockData::From(blockJ, tile, {}); tag) {
           palette.set(idx, tag);
         }
       }

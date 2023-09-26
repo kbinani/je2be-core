@@ -11,7 +11,10 @@ namespace je2be::tobe {
 
 class BlockData {
 public:
-  static CompoundTagPtr From(std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagConstPtr const &tile);
+  struct Options {
+    bool fItem = false;
+  };
+  static CompoundTagPtr From(std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagConstPtr const &tile, Options const &options);
   static CompoundTagPtr Air();
   static CompoundTagPtr Make(std::u8string const &name);
   static i32 GetFacingDirectionAFromFacing(mcfile::je::Block const &block);

@@ -173,7 +173,7 @@ std::unordered_set<std::u8string> *Leaves::Impl::CreateBedrockLogBlocksSet() {
     if (!IsLog(*blockJ)) {
       continue;
     }
-    auto blockB = je2be::tobe::BlockData::From(blockJ, nullptr);
+    auto blockB = je2be::tobe::BlockData::From(blockJ, nullptr, {});
     if (!blockB) {
       continue;
     }
