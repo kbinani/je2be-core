@@ -77,7 +77,7 @@ private:
       // undamaged
       name = u8"anvil";
     }
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     return Ns() + name;
   }
 
@@ -180,7 +180,7 @@ private:
 
   static String BigDripleaf(String const &bName, CompoundTag const &s, Props &p) {
     auto head = s.boolean(u8"big_dripleaf_head", false);
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     std::u8string name;
     if (head) {
       // none,partial_tilt,unstable,full_tilt => none,partial,unstable,full
@@ -234,6 +234,12 @@ private:
 
   static String BlockWithFacing6FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
+  static String BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
+    Facing6FromBlockFaceMigratingFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
@@ -380,7 +386,7 @@ private:
   }
 
   static String Campfire(String const &bName, CompoundTag const &s, Props &p) {
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     Submergible(s, p);
     auto extinguished = s.boolean(u8"extinguished", false);
     p[u8"lit"] = Bool(!extinguished);
@@ -472,7 +478,7 @@ private:
     // auto powered = bName.starts_with(Ns() + "powered_");
     auto lit = s.boolean(u8"output_lit_bit", false);
     auto subtract = s.boolean(u8"output_subtract_bit", false);
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     p[u8"powered"] = Bool(lit);
     p[u8"mode"] = subtract ? u8"subtract" : u8"compare";
     return Ns() + u8"comparator";
@@ -693,7 +699,7 @@ private:
 
 #pragma region Converters : E
   static String EndPortalFrame(String const &bName, CompoundTag const &s, Props &p) {
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     auto eye = s.boolean(u8"end_portal_eye_bit", false);
     p[u8"eye"] = Bool(eye);
     return bName;
@@ -754,7 +760,7 @@ private:
   }
 
   static String FurnaceAndSimilar(String const &bName, CompoundTag const &s, Props &p) {
-    Facing4FromFacingDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingFacingDirectionA(s, p);
     auto lit = bName.starts_with(u8"minecraft:lit_");
     std::u8string name;
     if (lit) {
@@ -912,7 +918,7 @@ private:
   static String Lectern(String const &bName, CompoundTag const &s, Props &p) {
     auto powered = s.boolean(u8"powered_bit", false);
     p[u8"powered"] = Bool(powered);
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     return bName;
   }
 
@@ -967,10 +973,7 @@ private:
   }
 
   static String LitPumpkin(String const &bName, CompoundTag const &s, Props &p) {
-    auto cardinalDirection = s.string(u8"minecraft:cardinal_direction");
-    if (cardinalDirection) {
-      p[u8"facing"] = *cardinalDirection;
-    } else {
+    if (!FacingFromCardinalDirection(s, p)) {
       // legacy
       Facing4FromDirectionA(s, p);
     }
@@ -1064,8 +1067,7 @@ private:
     i32 growth = s.int32(u8"growth", 0);
     i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
     p[u8"flower_amount"] = mcfile::String::ToString(flowerCount);
-    Facing4 direction = Facing4FromNorth2East3South0West1(s.int32(u8"direction", 0));
-    p[u8"facing"] = JavaNameFromFacing4(direction);
+    FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1(s, p);
     return bName;
   }
 
@@ -1114,10 +1116,7 @@ private:
   }
 
   static String CarvedPumpkin(String const &bName, CompoundTag const &s, Props &p) {
-    auto cardinalDirection = s.string(u8"minecraft:cardinal_direction");
-    if (cardinalDirection) {
-      p[u8"facing"] = *cardinalDirection;
-    } else {
+    if (!FacingFromCardinalDirection(s, p)) {
       // legacy
       Facing4FromDirectionA(s, p);
     }
@@ -1260,7 +1259,7 @@ private:
   static String Repeater(String const &bName, CompoundTag const &s, Props &p) {
     auto powered = bName == u8"minecraft:powered_repeater";
     p[u8"powered"] = Bool(powered);
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     auto delay = s.int32(u8"repeater_delay", 0);
     p[u8"delay"] = Int(delay + 1 + 0);
     return Ns() + u8"repeater";
@@ -1368,12 +1367,12 @@ private:
 
   static String Slab(String const &bName, CompoundTag const &s, Props &p) {
     Submergible(s, p);
-    TypeFromTopSlotBit(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     return bName;
   }
 
   static String SmallDripleafBlock(String const &bName, CompoundTag const &s, Props &p) {
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     HalfFromUpperBlockBit(s, p);
     Submergible(s, p);
     return Ns() + u8"small_dripleaf";
@@ -1413,13 +1412,13 @@ private:
     return bName;
   }
 
-  static String StainedGlass(String const &bName, CompoundTag const &s, Props &p) {
+  static String StainedGlassLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_stained_glass";
   }
 
-  static String StainedGlassPane(String const &bName, CompoundTag const &s, Props &p) {
+  static String StainedGlassPaneLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     Submergible(s, p);
@@ -1487,14 +1486,14 @@ private:
 
   static String StoneSlab(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string(u8"stone_slab_type", u8"stone");
-    TypeFromTopSlotBit(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
   static String StoneSlab2(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"stone_slab_type_2", u8"prismarine_dark");
-    TypeFromTopSlotBit(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     auto name = StoneTypeFromStone2(type);
     return Ns() + name + u8"_slab";
@@ -1502,14 +1501,14 @@ private:
 
   static String StoneSlab3(String const &bName, CompoundTag const &s, Props &p) {
     auto stoneSlabType = s.string(u8"stone_slab_type_3", u8"andesite");
-    TypeFromTopSlotBit(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
   static String StoneSlab4(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"stone_slab_type_4", u8"stone");
-    TypeFromTopSlotBit(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + type + u8"_slab";
   }
@@ -1630,7 +1629,7 @@ private:
 
   static String WoodenSlab(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string(u8"wood_type", u8"acacia");
-    TypeFromTopSlotBit(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + woodType + u8"_slab";
   }
@@ -1710,16 +1709,38 @@ private:
     props[u8"facing"] = JavaNameFromFacing4(f4);
   }
 
-  static void FacingFromDirectionNorth2East3South0West1(CompoundTag const &s, Props &props) {
-    auto direction = s.int32(u8"direction", 0);
-    Facing4 f4 = Facing4FromNorth2East3South0West1(direction);
-    props[u8"facing"] = JavaNameFromFacing4(f4);
+  static void Facing4FromCardinalDirectionMigratingDirectionA(CompoundTag const &s, Props &props) {
+    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
+      props[u8"facing"] = *cd;
+    } else {
+      Facing4FromDirectionA(s, props);
+    }
+  }
+
+  static void FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1(CompoundTag const &s, Props &props) {
+    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
+      props[u8"facing"] = *cd;
+    } else {
+      auto direction = s.int32(u8"direction", 0);
+      Facing4 f4 = Facing4FromNorth2East3South0West1(direction);
+      props[u8"facing"] = JavaNameFromFacing4(f4);
+    }
   }
 
   static void Facing6FromFacingDirectionA(CompoundTag const &s, Props &props) {
     auto facingDirection = s.int32(u8"facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
     props[u8"facing"] = JavaNameFromFacing6(f6);
+  }
+
+  static void Facing6FromBlockFaceMigratingFacingDirectionA(CompoundTag const &s, Props &props) {
+    if (auto bf = s.string(u8"minecraft:block_face"); bf) {
+      props[u8"facing"] = *bf;
+    } else {
+      auto facingDirection = s.int32(u8"facing_direction", 0);
+      Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
+      props[u8"facing"] = JavaNameFromFacing6(f6);
+    }
   }
 
   static void Facing4FromFacingDirectionA(CompoundTag const &s, Props &props) {
@@ -1742,6 +1763,14 @@ private:
       break;
     }
     props[u8"facing"] = JavaNameFromFacing4(f4);
+  }
+
+  static void Facing4FromCardinalDirectionMigratingFacingDirectionA(CompoundTag const &s, Props &props) {
+    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
+      props[u8"facing"] = *cd;
+    } else {
+      Facing4FromFacingDirectionA(s, props);
+    }
   }
 
   static void FacingBFromDirection(CompoundTag const &s, Props &props) {
@@ -1877,6 +1906,15 @@ private:
       break;
     }
     p[u8"facing"] = facing;
+  }
+
+  static bool FacingFromCardinalDirection(CompoundTag const &s, Props &p) {
+    if (auto cardinalDirection = s.string(u8"minecraft:cardinal_direction"); cardinalDirection) {
+      p[u8"facing"] = *cardinalDirection;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   static void HalfFromUpperBlockBit(CompoundTag const &s, Props &props) {
@@ -2087,9 +2125,17 @@ private:
     return stem;
   }
 
-  static void TypeFromTopSlotBit(CompoundTag const &s, Props &p) {
-    auto topSlot = s.boolean(u8"top_slot_bit", false);
-    p[u8"type"] = topSlot ? u8"top" : u8"bottom";
+  static void TypeFromVerticalHalfMigratingTopSlotBit(CompoundTag const &s, Props &p) {
+    if (auto vf = s.string(u8"minecraft:vertical_half"); vf) {
+      if (*vf == u8"double") {
+        p[u8"type"] = u8"bottom";
+      } else {
+        p[u8"type"] = *vf;
+      }
+    } else {
+      auto topSlot = s.boolean(u8"top_slot_bit", false);
+      p[u8"type"] = topSlot ? u8"top" : u8"bottom";
+    }
   }
 
   static std::u8string WallConnectionType(std::u8string const &type) {
@@ -2284,7 +2330,7 @@ private:
     E(activator_rail, RailCanBePowered);
     E(detector_rail, RailCanBePowered);
     E(red_flower, RedFlower);
-    E(amethyst_cluster, BlockWithFacing6FromFacingDirectionASubmergible);
+    E(amethyst_cluster, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
     E(stone, Stone);
     E(stone_slab3, StoneSlab3); // legacy, < 1.19
     E(stone_block_slab3, StoneSlab3);
@@ -2389,8 +2435,40 @@ private:
     E(black_shulker_box, Same);
     E(undyed_shulker_box, Rename(u8"shulker_box"));
 
-    E(stained_glass, StainedGlass);
-    E(stained_glass_pane, StainedGlassPane);
+    E(stained_glass, StainedGlassLegacy);
+    E(white_stained_glass, Same);
+    E(orange_stained_glass, Same);
+    E(magenta_stained_glass, Same);
+    E(light_blue_stained_glass, Same);
+    E(yellow_stained_glass, Same);
+    E(lime_stained_glass, Same);
+    E(pink_stained_glass, Same);
+    E(gray_stained_glass, Same);
+    E(light_gray_stained_glass, Same);
+    E(cyan_stained_glass, Same);
+    E(purple_stained_glass, Same);
+    E(blue_stained_glass, Same);
+    E(brown_stained_glass, Same);
+    E(green_stained_glass, Same);
+    E(red_stained_glass, Same);
+    E(black_stained_glass, Same);
+    E(stained_glass_pane, StainedGlassPaneLegacy);
+    E(white_stained_glass_pane, BlockWithSubmergible);
+    E(orange_stained_glass_pane, BlockWithSubmergible);
+    E(magenta_stained_glass_pane, BlockWithSubmergible);
+    E(light_blue_stained_glass_pane, BlockWithSubmergible);
+    E(yellow_stained_glass_pane, BlockWithSubmergible);
+    E(lime_stained_glass_pane, BlockWithSubmergible);
+    E(pink_stained_glass_pane, BlockWithSubmergible);
+    E(gray_stained_glass_pane, BlockWithSubmergible);
+    E(light_gray_stained_glass_pane, BlockWithSubmergible);
+    E(cyan_stained_glass_pane, BlockWithSubmergible);
+    E(purple_stained_glass_pane, BlockWithSubmergible);
+    E(blue_stained_glass_pane, BlockWithSubmergible);
+    E(brown_stained_glass_pane, BlockWithSubmergible);
+    E(green_stained_glass_pane, BlockWithSubmergible);
+    E(red_stained_glass_pane, BlockWithSubmergible);
+    E(black_stained_glass_pane, BlockWithSubmergible);
     E(stained_hardened_clay, StainedHardenedClay);
     E(wall_banner, BlockWithFacing4FromFacingDirectionA);
     E(wool, LegacyWool); // legacy, < preview 1.19.70.26
@@ -2519,7 +2597,7 @@ private:
     E(ladder, BlockWithFacing4FromFacingDirectionASubmergible);
     E(lantern, Lantern);
     E(soul_lantern, Lantern);
-    E(large_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
+    E(large_amethyst_bud, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
     E(double_plant, DoublePlant);
     E(lava, Liquid);
     E(lectern, Lectern);
@@ -2530,7 +2608,7 @@ private:
     E(waterlily, Rename(u8"lily_pad"));
     E(loom, BlockWithFacing4FromDirectionA);
     E(magma, Rename(u8"magma_block"));
-    E(medium_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
+    E(medium_amethyst_bud, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
     E(melon_block, Rename(u8"melon"));
     E(movingBlock, Same); // legacy, < 1.18.30
     E(moving_block, Same);
@@ -2586,7 +2664,7 @@ private:
     E(seaLantern, Rename(u8"sea_lantern")); // legacy, < 1.18.30
     E(sea_lantern, Same);
     E(slime, Rename(u8"slime_block"));
-    E(small_amethyst_bud, BlockWithFacing6FromFacingDirectionASubmergible);
+    E(small_amethyst_bud, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
     E(small_dripleaf_block, SmallDripleafBlock);
     E(smoker, FurnaceAndSimilar);
     E(lit_smoker, FurnaceAndSimilar);
@@ -2735,7 +2813,7 @@ private:
     E(pitcher_crop, C(Same, AgeFromGrowth, HalfFromUpperBlockBit));
     E(pitcher_plant, C(Same, HalfFromUpperBlockBit));
     E(sniffer_egg, SnifferEgg);
-    E(calibrated_sculk_sensor, C(Same, SculkSensorPhase, FacingFromDirectionNorth2East3South0West1, Submergible));
+    E(calibrated_sculk_sensor, C(Same, SculkSensorPhase, FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1, Submergible));
     E(barrier, C(Same, Submergible));
 #undef E
 

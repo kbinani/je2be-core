@@ -106,9 +106,13 @@ public:
     s->set(u8"update_bit", Bool(distance > 6 && !persistent));
   }
 
-  static void TypeToTopSlotBit(CompoundTagPtr const &s, Block const &block) {
+  static void TypeToVerticalHalf(CompoundTagPtr const &s, Block const &block) {
     auto t = block.property(u8"type", u8"bottom");
-    s->set(u8"top_slot_bit", Bool(t == u8"top"));
+    if (t == u8"double") {
+      s->set(u8"minecraft:vertical_half", String(u8"bottom"));
+    } else {
+      s->set(u8"minecraft:vertical_half", String(t));
+    }
   }
 
   static PropertyPickupFunction AddStoneSlabType(std::u8string const &number, std::u8string const &type) {
@@ -232,7 +236,7 @@ public:
 
   static Converter Leaves2(std::u8string const &type) { return Converter(Name(u8"leaves2"), AddStringProperty(u8"new_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
 
-  static Converter WoodenSlab(std::u8string const &type) { return Converter(SlabName(u8"wooden", u8""), TypeToTopSlotBit, AddStringProperty(u8"wood_type", type)); }
+  static Converter WoodenSlab(std::u8string const &type) { return Converter(SlabName(u8"wooden", u8""), TypeToVerticalHalf, AddStringProperty(u8"wood_type", type)); }
 
   static Converter StoneSlab(std::u8string const &type) { return StoneSlabNumbered(u8"", type); }
 
@@ -242,9 +246,9 @@ public:
 
   static Converter StoneSlab4(std::u8string const &type) { return StoneSlabNumbered(u8"4", type); }
 
-  static Converter StoneSlabNumbered(std::u8string const &number, std::u8string const &type) { return Converter(SlabName(u8"stone_block", number), TypeToTopSlotBit, AddStoneSlabType(number, type)); }
+  static Converter StoneSlabNumbered(std::u8string const &number, std::u8string const &type) { return Converter(SlabName(u8"stone_block", number), TypeToVerticalHalf, AddStoneSlabType(number, type)); }
 
-  static Converter Slab(std::u8string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToTopSlotBit); }
+  static Converter Slab(std::u8string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToVerticalHalf); }
 
   static Converter TallGrass(std::u8string const &type) { return Converter(Name(u8"tallgrass"), AddStringProperty(u8"tall_grass_type", type)); }
 
@@ -397,6 +401,10 @@ public:
 
   static void DirectionFromFacingA(CompoundTagPtr const &s, Block const &block) {
     s->set(u8"direction", FacingA(block));
+  }
+
+  static void CardinalDirectionFromFacing4(CompoundTagPtr const &s, Block const &block) {
+    s->set(u8"minecraft:cardinal_direction", String(block.property(u8"facing", u8"south")));
   }
 
   static void DirectionFromFacingB(CompoundTagPtr const &s, Block const &block) {
@@ -597,6 +605,10 @@ public:
     s->set(u8"facing_direction", Int(direction));
   }
 
+  static void BlockFaceFromFacing(CompoundTagPtr const &s, Block const &block) {
+    s->set(u8"minecraft:block_face", String(block.property(u8"facing", u8"down")));
+  }
+
   static void PistonFacingDirectionFromFacing6(CompoundTagPtr const &s, Block const &block) {
     auto facing = block.property(u8"facing", u8"");
     Facing6 f6 = Facing6FromJavaName(facing);
@@ -646,8 +658,7 @@ public:
 
   static Converter Wall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
 
-
-  static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), DirectionFromFacingA); }
+  static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), CardinalDirectionFromFacing4); }
 
   static Converter CoralLegacy(std::u8string const &type, bool dead) { return Converter(Name(u8"coral"), AddStringProperty(u8"coral_color", type), AddBoolProperty(u8"dead_bit", dead)); }
 
@@ -745,6 +756,7 @@ public:
     Converter axisToPillarAxis(Same, AxisToPillarAxis);
     Converter directionFromFacing(Same, DirectionFromFacingA);
     Converter facingDirectionFromFacingA(Same, FacingDirectionAFromFacing);
+    Converter blockFaceFromFacing(Same, BlockFaceFromFacing);
     Converter facingDirectionFromFacingB(Same, PistonFacingDirectionFromFacing6);
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
@@ -1076,7 +1088,7 @@ public:
     E(bamboo_fence, Identity);
     E(ladder, facingDirectionFromFacingA);
     E(chest, facingDirectionFromFacingA);
-    E(furnace, Converter(PrefixLit, FacingDirectionAFromFacing));
+    E(furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(nether_bricks, Rename(u8"nether_brick"));
     E(infested_stone, InfestedStone(u8"stone"));
     E(infested_cobblestone, InfestedStone(u8"cobblestone"));
@@ -1094,7 +1106,7 @@ public:
     E(red_mushroom_block, AnyMushroomBlock(u8"red_mushroom_block", false));
     E(brown_mushroom_block, AnyMushroomBlock(u8"brown_mushroom_block", false));
     E(mushroom_stem, AnyMushroomBlock(u8"brown_mushroom_block", true));
-    E(end_portal_frame, Converter(Same, DirectionFromFacingA, EyeToEndPortalEyeBit));
+    E(end_portal_frame, Converter(Same, CardinalDirectionFromFacing4, EyeToEndPortalEyeBit));
     E(white_shulker_box, Identity);
     E(orange_shulker_box, Identity);
     E(magenta_shulker_box, Identity);
@@ -1354,14 +1366,14 @@ public:
     E(stonecutter, Converter(Name(u8"stonecutter_block"), FacingDirectionAFromFacing));
     E(loom, directionFromFacing);
     E(grindstone, Converter(Name(u8"grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
-    E(smoker, Converter(PrefixLit, FacingDirectionAFromFacing));
-    E(blast_furnace, Converter(PrefixLit, FacingDirectionAFromFacing));
+    E(smoker, Converter(PrefixLit, CardinalDirectionFromFacing4));
+    E(blast_furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(barrel, Converter(Name(u8"barrel"), FacingDirectionAFromFacing, Name(Open, u8"open_bit")));
     Converter lantern(Same, Name(Hanging, u8"hanging"));
     E(lantern, lantern);
     E(soul_lantern, lantern);
     E(bell, Converter(Name(u8"bell"), BellDirectionFromFacing, BellAttachmentFromAttachment, Name(Powered, u8"toggle_bit")));
-    Converter campfire(Same, DirectionFromFacingA, LitToExtinguished);
+    Converter campfire(Same, CardinalDirectionFromFacing4, LitToExtinguished);
     E(campfire, campfire);
     E(soul_campfire, campfire);
     E(piston, facingDirectionFromFacingB);
@@ -1447,8 +1459,8 @@ public:
     E(mangrove_door, door);
     E(bamboo_door, door);
 
-    E(repeater, Converter(RepeaterName, Name(Delay, u8"repeater_delay"), DirectionFromFacingA));
-    E(comparator, Converter(ComparatorName, DirectionFromFacingA, OutputSubtractBitFromMode, Name(Powered, u8"output_lit_bit")));
+    E(repeater, Converter(RepeaterName, Name(Delay, u8"repeater_delay"), CardinalDirectionFromFacing4));
+    E(comparator, Converter(ComparatorName, CardinalDirectionFromFacing4, OutputSubtractBitFromMode, Name(Powered, u8"output_lit_bit")));
     E(powered_rail, Converter(Name(u8"golden_rail"), RailDirectionFromShape, Name(Powered, u8"rail_data_bit")));
     E(detector_rail, Converter(Same, RailDirectionFromShape, Name(Powered, u8"rail_data_bit")));
     E(activator_rail, Converter(Same, RailDirectionFromShape, Name(Powered, u8"rail_data_bit")));
@@ -1469,7 +1481,7 @@ public:
     E(wheat, Converter(Same, Name(Age, u8"growth")));
 
     E(cobweb, Converter(Name(u8"web")));
-    E(lectern, Converter(Same, DirectionFromFacingA, Name(Powered, u8"powered_bit")));
+    E(lectern, Converter(Same, CardinalDirectionFromFacing4, Name(Powered, u8"powered_bit")));
     E(ender_chest, Converter(Same, FacingDirectionAFromFacing));
     E(bone_block, Converter(Same, AxisToPillarAxis, AddIntProperty(u8"deprecated", 0)));
     E(cauldron, Converter(Name(u8"cauldron"), AddIntProperty(u8"fill_level", 0), AddStringProperty(u8"cauldron_liquid", u8"water")));
@@ -1502,8 +1514,8 @@ public:
     E(flowering_azalea_leaves, Converter(Name(u8"azalea_leaves_flowered"), PersistentAndDistanceToPersistentBitAndUpdateBit));
 
     E(big_dripleaf, BigDripleaf);
-    E(big_dripleaf_stem, Converter(Name(u8"big_dripleaf"), AddByteProperty(u8"big_dripleaf_head", false), DirectionFromFacingA, AddStringProperty(u8"big_dripleaf_tilt", u8"none")));
-    E(small_dripleaf, Converter(Name(u8"small_dripleaf_block"), DirectionFromFacingA, UpperBlockBitToHalf));
+    E(big_dripleaf_stem, Converter(Name(u8"big_dripleaf"), AddByteProperty(u8"big_dripleaf_head", false), CardinalDirectionFromFacing4, AddStringProperty(u8"big_dripleaf_tilt", u8"none")));
+    E(small_dripleaf, Converter(Name(u8"small_dripleaf_block"), CardinalDirectionFromFacing4, UpperBlockBitToHalf));
 
     Converter candle(Same, Name(Lit, u8"lit"), Name(Candles, u8"candles"));
     E(candle, candle);
@@ -1583,10 +1595,10 @@ public:
 
     E(lightning_rod, facingDirectionFromFacingA);
 
-    E(small_amethyst_bud, facingDirectionFromFacingA);
-    E(medium_amethyst_bud, facingDirectionFromFacingA);
-    E(large_amethyst_bud, facingDirectionFromFacingA);
-    E(amethyst_cluster, facingDirectionFromFacingA);
+    E(small_amethyst_bud, blockFaceFromFacing);
+    E(medium_amethyst_bud, blockFaceFromFacing);
+    E(large_amethyst_bud, blockFaceFromFacing);
+    E(amethyst_cluster, blockFaceFromFacing);
 
     E(pointed_dripstone, PointedDripstone);
     E(light, Light);
@@ -1684,7 +1696,7 @@ public:
     E(pitcher_plant, Converter(Same, UpperBlockBitToHalf));
     E(sniffer_egg, SnifferEgg);
     E(sculk_sensor, Converter(Same, SculkSensorPhase));
-    E(calibrated_sculk_sensor, Converter(Same, SculkSensorPhase, DirectionNorth2East3South0West1FromFacing));
+    E(calibrated_sculk_sensor, Converter(Same, SculkSensorPhase, CardinalDirectionFromFacing4));
     Converter suspiciousBlock(Same, AddIntProperty(u8"brushed_progress", 0), AddBoolProperty(u8"hanging", true));
     E(suspicious_sand, suspiciousBlock);
     E(suspicious_gravel, suspiciousBlock);
@@ -1717,7 +1729,7 @@ public:
     auto c = New(block.fName, true);
     auto s = States();
 
-    DirectionNorth2East3South0West1FromFacing(s, block);
+    CardinalDirectionFromFacing4(s, block);
 
     i32 flowerCount = Wrap(strings::ToI32(block.property(u8"flower_amount", u8"1")), 1);
     i32 growth = ClosedRange<i32>::Clamp(flowerCount - 1, 0, 3);
@@ -1889,7 +1901,7 @@ public:
     auto c = New(u8"big_dripleaf");
     auto s = States();
     s->set(u8"big_dripleaf_head", Bool(true));
-    DirectionFromFacingA(s, block);
+    CardinalDirectionFromFacing4(s, block);
     auto tilt = block.property(u8"tilt", u8"none");
     if (tilt == u8"none") {
       //nop
