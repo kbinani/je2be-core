@@ -64,13 +64,10 @@ public:
           altitude[x][z] = -1;
         }
       }
-      section->eachBlockPalette([&palette, &airIndex](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+      section->eachBlockPalette([&palette](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
         auto blockB = BlockData::From(blockJ, nullptr, {});
         assert(blockB);
         palette.append(blockB);
-        if (blockJ->fId == mcfile::blocks::minecraft::air && airIndex < 0) {
-          airIndex = i;
-        }
         return true;
       });
       int j = 0;
@@ -153,6 +150,13 @@ public:
           if (altitude[x][z] >= 0) {
             cdp.updateAltitude(x, y0 + altitude[x][z], z);
           }
+        }
+      }
+      palette.resolveDuplication();
+      for (size_t i = 0; i < palette.fPalette.size(); i++) {
+        if (palette.fPalette[i]->string(u8"name") == u8"minecraft:air") {
+          airIndex = (int)i;
+          break;
         }
       }
       if (airIndex < 0) {

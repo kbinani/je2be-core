@@ -34,7 +34,46 @@ public:
       }
     }
   }
+
   size_t size() const { return fPalette.size(); }
+
+  void resolveDuplication() {
+    using namespace std;
+    vector<CompoundTagPtr> palette;
+    vector<u16> paletteMap;
+    vector<u16> indices;
+    unordered_map<string, u16> lookup;
+    for (size_t i = 0; i < fPalette.size(); i++) {
+      auto block = fPalette[i];
+      if (!block) [[unlikely]] {
+        return;
+      }
+      auto serialized = CompoundTag::Write(*block, mcfile::Endian::Little);
+      if (!serialized) [[unlikely]] {
+        return;
+      }
+      auto index = lookup.find(*serialized);
+      if (index == lookup.end()) {
+        auto idx = palette.size();
+        if (idx > numeric_limits<u16>::max()) [[unlikely]] {
+          return;
+        }
+        paletteMap.push_back((u16)idx);
+        lookup[*serialized] = (u16)idx;
+        palette.push_back(block);
+      } else {
+        paletteMap.push_back(index->second);
+      }
+    }
+    indices.reserve(fIndices.size());
+    for (size_t i = 0; i < fIndices.size(); i++) {
+      u16 index = fIndices[i];
+      u16 mapped = paletteMap[index];
+      indices.push_back(mapped);
+    }
+    fPalette.swap(palette);
+    fIndices.swap(indices);
+  }
 
   CompoundTagPtr &operator[](size_t index) { return fPalette[index]; }
   CompoundTagPtr const &operator[](size_t index) const { return fPalette[index]; }
