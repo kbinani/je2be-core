@@ -1328,6 +1328,12 @@ private:
           for (auto const &e : sExclude) {
             blockEntityTagB->erase(e);
           }
+          if (itemB->string(u8"Name") == u8"minecraft:banner" && tagB->int32(u8"Type") == 1) {
+            // ominous_banner: "Type" property was already converted, and Base/Patterns can be omitted.
+            blockEntityTagB->erase(u8"Type");
+            blockEntityTagB->erase(u8"Base");
+            blockEntityTagB->erase(u8"Patterns");
+          }
           for (auto const &it : *blockEntityTagB) {
             if (tagB->find(it.first) == tagB->end()) {
               tagB->set(it.first, it.second);

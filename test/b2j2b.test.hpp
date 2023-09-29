@@ -121,7 +121,7 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
     // Doesn't exist in JE
     ignore.insert(u8"Name");
   }
-  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow" || nameE == u8"minecraft:banner" || nameE == u8"minecraft:brown_mushroom_block") {
+  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow" || nameE == u8"minecraft:brown_mushroom_block") {
     // FIXME:
     return;
   }
