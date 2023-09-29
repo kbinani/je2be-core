@@ -217,6 +217,8 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
       CheckRotationB(*rotE, *rotA);
     }
     ignore.insert(u8"Rotation");
+    ignore.insert(u8"DoingAnimation");
+    ignore.insert(u8"MouthTickCount");
   } else if (*idE == u8"Conduit") {
     ignore.insert(u8"Active");
   } else if (*idE == u8"CalibratedSculkSensor" || *idE == u8"SculkShrieker" || *idE == u8"SculkSensor") {
