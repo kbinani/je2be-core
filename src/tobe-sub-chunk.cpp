@@ -212,7 +212,7 @@ public:
       if (!converted) {
         continue;
       }
-      auto [pos, tag, paletteKey] = *converted;
+      auto [pos, tag] = *converted;
       if (pos.fY < chunkY * 16 || chunkY * 16 + 16 <= pos.fY) {
         continue;
       }

@@ -208,7 +208,7 @@ public:
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
-  static std::optional<std::tuple<Pos3i, CompoundTagPtr, std::u8string>> ToTileEntityBlock(CompoundTag const &c) {
+  static std::optional<std::pair<Pos3i, CompoundTagPtr>> ToTileEntityBlock(CompoundTag const &c) {
     using namespace std;
     auto rawId = c.string(u8"id");
     assert(rawId);
@@ -225,7 +225,7 @@ public:
     return nullopt;
   }
 
-  static std::tuple<Pos3i, CompoundTagPtr, std::u8string> ToItemFrameTileEntityBlock(CompoundTag const &c, std::u8string const &name) {
+  static std::pair<Pos3i, CompoundTagPtr> ToItemFrameTileEntityBlock(CompoundTag const &c, std::u8string const &name) {
     using namespace std;
 
     PositionAndFacing paf = GetItemFrameTilePositionAndFacing(c);
@@ -248,13 +248,12 @@ public:
         {u8"facing_direction", Int(paf.fFacing)},
         {u8"item_frame_map_bit", Bool(map)},
     });
-    u8string key = name + u8"[facing_direction=" + mcfile::String::ToString(paf.fFacing) + u8",item_frame_map_bit=" + (map ? u8"true" : u8"false") + u8"]";
     b->insert({
         {u8"name", String(name)},
         {u8"version", Int(kBlockDataVersion)},
         {u8"states", states},
     });
-    return make_tuple(paf.fPosition, b, key);
+    return make_pair(paf.fPosition, b);
   }
 
   static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx) {
@@ -2804,12 +2803,8 @@ Entity::Result Entity::From(CompoundTag const &tag, Context &ctx, std::set<Flag>
   return Impl::From(tag, ctx, flags);
 }
 
-std::optional<std::tuple<Pos3i, CompoundTagPtr, std::u8string>> Entity::ToTileEntityBlock(CompoundTag const &c) {
+std::optional<std::pair<Pos3i, CompoundTagPtr>> Entity::ToTileEntityBlock(CompoundTag const &c) {
   return Impl::ToTileEntityBlock(c);
-}
-
-std::tuple<Pos3i, CompoundTagPtr, std::u8string> Entity::ToItemFrameTileEntityBlock(CompoundTag const &c, std::u8string const &name) {
-  return Impl::ToItemFrameTileEntityBlock(c, name);
 }
 
 CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context &ctx) {
