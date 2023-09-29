@@ -870,8 +870,8 @@ private:
   }
 
   static CompoundTagPtr Beacon(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
-    int primary = -1;
-    int secondary = -1;
+    int primary = 0;
+    int secondary = 0;
     if (c) {
       if (auto primaryJ = c->string(u8"primary_effect"); primaryJ) {
         primary = Beacon::BedrockEffectFromJava(*primaryJ);
