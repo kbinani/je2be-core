@@ -888,6 +888,8 @@ public:
     E(suspicious_stew, SuspiciousStew);
     E(axolotl_bucket, AxolotlBucket);
     E(crossbow, Crossbow);
+    E(field_masoned_banner_pattern, Rename(u8"flower_banner_pattern"));    // field_masoned_banner_pattern doesn't exist in JE
+    E(bordure_indented_banner_pattern, Rename(u8"flower_banner_pattern")); // bordure_indented_banner_pattern doesn't exist in JE
 
     // 1.19
     E(frog_spawn, Rename(u8"frogspawn"));

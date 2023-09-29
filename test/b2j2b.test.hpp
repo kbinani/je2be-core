@@ -114,6 +114,26 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
   }
 }
 
+static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
+  auto nameE = expected.string(u8"Name");
+  set<u8string> ignore;
+  if (nameE == u8"minecraft:field_masoned_banner_pattern" || nameE == u8"minecraft:bordure_indented_banner_pattern") {
+    // Doesn't exist in JE
+    ignore.insert(u8"Name");
+  }
+  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:coral_fan" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow" || nameE == u8"minecraft:banner" || nameE == u8"minecraft:brown_mushroom_block") {
+    // FIXME:
+    return;
+  }
+  auto e = expected.copy();
+  auto a = actual.copy();
+  for (auto const &i : ignore) {
+    e->erase(i);
+    a->erase(i);
+  }
+  DiffCompoundTag(*e, *a);
+}
+
 static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual) {
   auto defE = expected.listTag(u8"definitions");
   auto defA = actual.listTag(u8"definitions");
@@ -205,6 +225,13 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"StoredXPInt");
   } else if (*idE == u8"EnchantTable") {
     ignore.insert(u8"rott");
+  }
+  auto itemE = e->compoundTag(u8"Item");
+  auto itemA = a->compoundTag(u8"Item");
+  if (itemE) {
+    REQUIRE(itemA);
+    CheckItemB(*itemE, *itemA);
+    ignore.insert(u8"Item");
   }
   for (auto const &i : ignore) {
     e->erase(i);

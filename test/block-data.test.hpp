@@ -60,7 +60,7 @@ TEST_CASE("prepare-test-data") {
           fs::path dir = root / s.substr(0, 1);
           fs::create_directories(dir);
           fs::path nbt = dir / (s + u8".nbt");
-          auto converted = je2be::tobe::BlockData::From(b, nullptr);
+          auto converted = je2be::tobe::BlockData::From(b, nullptr, {});
           CHECK(converted != nullptr);
           auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
           CHECK(CompoundTag::Write(*converted, fos, mcfile::Endian::Big));

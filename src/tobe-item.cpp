@@ -64,8 +64,24 @@ private:
   static CompoundTagPtr Convert(CompoundTagPtr const &in, Context &ctx) {
     using namespace std;
 
-    static unique_ptr<unordered_map<u8string, Converter> const> const blockItemMapping(CreateBlockItemConverterTable());
-    static unique_ptr<unordered_map<u8string, Converter> const> const itemMapping(CreateItemConverterTable());
+    auto const &blockItemMapping = BlockItemConverterTable();
+    auto const &itemMapping = ItemConverterTable();
+#if !defined(NDEBUG)
+    static atomic_bool sChecked(false);
+    if (!sChecked.exchange(true)) {
+      unordered_set<u8string> count;
+      for (auto const &it : blockItemMapping) {
+        count.insert(it.first);
+      }
+      for (auto const &it : itemMapping) {
+        if (count.count(it.first) != 0) {
+          using namespace mcfile::u8stream;
+          ostringstream ss;
+          throw exception(ss.str().c_str());
+        }
+      }
+    }
+#endif
 
     CompoundTagPtr item = in;
     u8string name;
@@ -109,29 +125,503 @@ private:
       }
     }
 
-    if (IsItem(name)) {
-      auto found = itemMapping->find(Namespace::Remove(name));
-      if (found == itemMapping->end()) {
-        return DefaultItem(name, *item, ctx);
+    if (auto foundItem = itemMapping.find(Namespace::Remove(name)); foundItem == itemMapping.end()) {
+      CompoundTagPtr result;
+      if (auto foundBlock = blockItemMapping.find(Namespace::Remove(name)); foundBlock != blockItemMapping.end()) {
+        result = foundBlock->second(name, *item, ctx);
       } else {
-        return found->second(name, *item, ctx);
+        result = DefaultBlockItem(name, *item, ctx);
       }
+      if (!result) {
+        return nullptr;
+      }
+      if (!result->compoundTag(u8"Block")) {
+        auto block = std::make_shared<Block>(name);
+        if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+          result->set(u8"Block", blockData);
+        }
+      }
+      return result;
     } else {
-      auto found = blockItemMapping->find(Namespace::Remove(name));
-      if (found == blockItemMapping->end()) {
-        return DefaultBlockItem(name, *item, ctx);
-      } else {
-        return found->second(name, *item, ctx);
-      }
+      return foundItem->second(name, *item, ctx);
     }
   }
 
   static std::unordered_map<std::u8string, Converter> *CreateBlockItemConverterTable() {
     using namespace std;
     auto table = new unordered_map<u8string, Converter>();
-#define E(__name, __func) table->insert(make_pair(u8"" #__name, __func))
-    E(brown_mushroom_block, MushroomBlock);
-    E(red_mushroom_block, MushroomBlock);
+#define E(__name, __func)                               \
+  if (table->count(u8"" #__name) > 0)                   \
+    throw exception("duplicated block item: " #__name); \
+  table->insert(make_pair(u8"" #__name, __func))
+
+    E(brown_mushroom_block, MushroomBlock(14));
+    E(red_mushroom_block, MushroomBlock(14));
+    E(torch, AnyTorch);
+    E(soul_torch, AnyTorch);
+    E(redstone_torch, AnyTorch);
+    E(frogspawn, Rename(u8"frog_spawn"));
+    E(turtle_egg, DefaultItem);
+    E(conduit, DefaultItem);
+    E(beacon, DefaultItem);
+#undef E
+    return table;
+  }
+
+  static std::unordered_map<std::u8string, Converter> const &BlockItemConverterTable() {
+    using namespace std;
+    using namespace std;
+    static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateBlockItemConverterTable());
+    return *sTable;
+  }
+
+  static std::unordered_map<std::u8string, Converter> *CreateItemConverterTable() {
+    using namespace std;
+    auto table = new unordered_map<u8string, Converter>();
+
+#define E(__name, __func)                         \
+  if (table->count(u8"" #__name) > 0)             \
+    throw exception("duplicated item: " #__name); \
+  table->insert(make_pair(u8"" #__name, __func))
+
+    E(furnace_minecart, Rename(u8"minecart")); // furnace minecart does not exist in bedrock
+    E(tropical_fish_bucket, TropicalFishBucket);
+
+    E(map, Subtype(u8"empty_map", 2));
+    E(firework_rocket, FireworkRocket);
+    E(firework_star, FireworkStar);
+
+    // "13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "otherside", "pigstep"
+    E(music_disc_chirp, DefaultItem);
+    E(music_disc_stal, DefaultItem);
+    E(music_disc_pigstep, DefaultItem);
+    E(music_disc_13, DefaultItem);
+    E(music_disc_11, DefaultItem);
+    E(music_disc_cat, DefaultItem);
+    E(music_disc_blocks, DefaultItem);
+    E(music_disc_far, DefaultItem);
+    E(music_disc_mall, DefaultItem);
+    E(music_disc_mellohi, DefaultItem);
+    E(music_disc_strad, DefaultItem);
+    E(music_disc_ward, DefaultItem);
+    E(music_disc_wait, DefaultItem);
+    E(music_disc_otherside, DefaultItem);
+    E(music_disc_5, DefaultItem);
+    E(music_disc_relic, DefaultItem);
+
+    E(tipped_arrow, TippedArrow);
+    E(potion, AnyPotion);
+    E(splash_potion, AnyPotion);
+    E(lingering_potion, AnyPotion);
+
+    for (u8string type : {u8"helmet", u8"chestplate", u8"leggings", u8"boots"}) {
+      table->insert(std::make_pair(u8"leather_" + type, LeatherArmor));
+    }
+
+    E(writable_book, BooksAndQuill);
+    E(written_book, BooksAndQuill);
+
+    E(axolotl_bucket, AxolotlBucket);
+
+    E(suspicious_stew, SuspiciousStew);
+    E(crossbow, Crossbow);
+
+    // Java: nether_bricks (block), nether_brick (item)
+    // Bedrock: nether_brick (block), netherbrick (item)
+    E(nether_brick, Rename(u8"netherbrick"));
+
+    E(spawn_egg, LegacySpawnEgg); // legacy
+    E(frog_spawn_egg, DefaultItem);
+    E(panda_spawn_egg, DefaultItem);
+    E(zoglin_spawn_egg, DefaultItem);
+    E(horse_spawn_egg, DefaultItem);
+    E(zombie_horse_spawn_egg, DefaultItem);
+    E(spider_spawn_egg, DefaultItem);
+    E(sniffer_spawn_egg, DefaultItem);
+    E(polar_bear_spawn_egg, DefaultItem);
+    E(camel_spawn_egg, DefaultItem);
+    E(allay_spawn_egg, DefaultItem);
+    E(phantom_spawn_egg, DefaultItem);
+    E(slime_spawn_egg, DefaultItem);
+    E(bat_spawn_egg, DefaultItem);
+    E(bee_spawn_egg, DefaultItem);
+    E(blaze_spawn_egg, DefaultItem);
+    E(cat_spawn_egg, DefaultItem);
+    E(cave_spider_spawn_egg, DefaultItem);
+    E(chicken_spawn_egg, DefaultItem);
+    E(cod_spawn_egg, DefaultItem);
+    E(cow_spawn_egg, DefaultItem);
+    E(pillager_spawn_egg, DefaultItem);
+    E(creeper_spawn_egg, DefaultItem);
+    E(trader_llama_spawn_egg, DefaultItem);
+    E(dolphin_spawn_egg, DefaultItem);
+    E(donkey_spawn_egg, DefaultItem);
+    E(drowned_spawn_egg, DefaultItem);
+    E(elder_guardian_spawn_egg, DefaultItem);
+    E(enderman_spawn_egg, DefaultItem);
+    E(endermite_spawn_egg, DefaultItem);
+    E(evoker_spawn_egg, DefaultItem);
+    E(fox_spawn_egg, DefaultItem);
+    E(ghast_spawn_egg, DefaultItem);
+    E(guardian_spawn_egg, DefaultItem);
+    E(hoglin_spawn_egg, DefaultItem);
+    E(husk_spawn_egg, DefaultItem);
+    E(llama_spawn_egg, DefaultItem);
+    E(magma_cube_spawn_egg, DefaultItem);
+    E(mooshroom_spawn_egg, DefaultItem);
+    E(mule_spawn_egg, DefaultItem);
+    E(wandering_trader_spawn_egg, DefaultItem);
+    E(ocelot_spawn_egg, DefaultItem);
+    E(parrot_spawn_egg, DefaultItem);
+    E(pig_spawn_egg, DefaultItem);
+    E(piglin_spawn_egg, DefaultItem);
+    E(piglin_brute_spawn_egg, DefaultItem);
+    E(pufferfish_spawn_egg, DefaultItem);
+    E(rabbit_spawn_egg, DefaultItem);
+    E(ravager_spawn_egg, DefaultItem);
+    E(salmon_spawn_egg, DefaultItem);
+    E(vex_spawn_egg, DefaultItem);
+    E(sheep_spawn_egg, DefaultItem);
+    E(shulker_spawn_egg, DefaultItem);
+    E(silverfish_spawn_egg, DefaultItem);
+    E(skeleton_spawn_egg, DefaultItem);
+    E(skeleton_horse_spawn_egg, DefaultItem);
+    E(squid_spawn_egg, DefaultItem);
+    E(stray_spawn_egg, DefaultItem);
+    E(strider_spawn_egg, DefaultItem);
+    E(tropical_fish_spawn_egg, DefaultItem);
+    E(turtle_spawn_egg, DefaultItem);
+    E(villager_spawn_egg, DefaultItem);
+    E(vindicator_spawn_egg, DefaultItem);
+    E(witch_spawn_egg, DefaultItem);
+    E(wither_skeleton_spawn_egg, DefaultItem);
+    E(wolf_spawn_egg, DefaultItem);
+    E(zombie_spawn_egg, DefaultItem);
+    E(zombie_villager_spawn_egg, DefaultItem);
+    E(iron_golem_spawn_egg, DefaultItem);
+    E(warden_spawn_egg, DefaultItem);
+    E(tadpole_spawn_egg, DefaultItem);
+    E(zombified_piglin_spawn_egg, Rename(u8"zombie_pigman_spawn_egg"));
+    E(ender_dragon_spawn_egg, DefaultItem);
+    E(glow_squid_spawn_egg, DefaultItem);
+    E(axolotl_spawn_egg, DefaultItem);
+    E(goat_spawn_egg, DefaultItem);
+    E(snow_golem_spawn_egg, DefaultItem);
+
+    E(flower_banner_pattern, DefaultItem);
+    E(mojang_banner_pattern, DefaultItem);
+    E(piglin_banner_pattern, DefaultItem);
+    E(creeper_banner_pattern, DefaultItem);
+    E(skull_banner_pattern, DefaultItem);
+    E(globe_banner_pattern, DefaultItem);
+
+    E(minecart, DefaultItem);
+    E(chest_minecart, DefaultItem);
+    E(salmon_bucket, DefaultItem);
+    E(golden_carrot, DefaultItem);
+    E(saddle, DefaultItem);
+    E(bowl, DefaultItem);
+    E(magenta_dye, DefaultItem);
+    E(ink_sac, DefaultItem);
+    E(stone_hoe, DefaultItem);
+    E(carrot_on_a_stick, DefaultItem);
+    E(cooked_cod, DefaultItem);
+    E(netherite_ingot, DefaultItem);
+    E(leather_horse_armor, DefaultItem);
+    E(warped_fungus_on_a_stick, DefaultItem);
+    E(tnt_minecart, DefaultItem);
+    E(light_blue_dye, DefaultItem);
+    E(dragon_breath, DefaultItem);
+    E(hopper_minecart, DefaultItem);
+    E(gunpowder, DefaultItem);
+    E(elytra, DefaultItem);
+    E(arrow, DefaultItem);
+    E(egg, DefaultItem);
+    E(leather, DefaultItem);
+    E(iron_nugget, DefaultItem);
+    E(gray_dye, DefaultItem);
+    E(echo_shard, DefaultItem);
+    E(diamond_pickaxe, DefaultItem);
+    E(iron_ingot, DefaultItem);
+    E(cod, DefaultItem);
+    E(paper, DefaultItem);
+    E(iron_sword, DefaultItem);
+    E(diamond_horse_armor, DefaultItem);
+    E(wheat_seeds, DefaultItem);
+    E(scute, DefaultItem);
+    E(brick, DefaultItem);
+    E(coal, DefaultItem);
+    E(prismarine_shard, DefaultItem);
+    E(charcoal, DefaultItem);
+    E(glowstone_dust, DefaultItem);
+    E(stick, DefaultItem);
+    E(diamond, DefaultItem);
+    E(spectral_arrow, DefaultItem);
+    E(lead, DefaultItem);
+    E(gold_ingot, DefaultItem);
+    E(wooden_pickaxe, DefaultItem);
+    E(netherite_scrap, DefaultItem);
+    E(book, DefaultItem);
+    E(string, DefaultItem);
+    E(iron_axe, DefaultItem);
+    E(pink_dye, DefaultItem);
+    E(feather, DefaultItem);
+    E(dried_kelp, DefaultItem);
+    E(wheat, DefaultItem);
+    E(flint, DefaultItem);
+    E(cyan_dye, DefaultItem);
+    E(golden_axe, DefaultItem);
+    E(bucket, DefaultItem);
+    E(water_bucket, DefaultItem);
+    E(lava_bucket, DefaultItem);
+    E(snowball, DefaultItem);
+    E(milk_bucket, DefaultItem);
+    E(orange_dye, DefaultItem);
+    E(pufferfish_bucket, DefaultItem);
+    E(cod_bucket, DefaultItem);
+    E(clay_ball, DefaultItem);
+    E(slime_ball, DefaultItem);
+    E(cocoa_beans, DefaultItem);
+    E(lapis_lazuli, DefaultItem);
+    E(cauldron, DefaultItem);
+    E(white_dye, DefaultItem);
+    E(yellow_dye, DefaultItem);
+    E(powder_snow_bucket, DefaultItem);
+    E(golden_leggings, DefaultItem);
+    E(lime_dye, DefaultItem);
+    E(rabbit_hide, DefaultItem);
+    E(light_gray_dye, DefaultItem);
+    E(purple_dye, DefaultItem);
+    E(blue_dye, DefaultItem);
+    E(brown_dye, DefaultItem);
+    E(green_dye, DefaultItem);
+    E(red_dye, DefaultItem);
+    E(black_dye, DefaultItem);
+    E(bow, DefaultItem);
+    E(golden_hoe, DefaultItem);
+    E(bone_meal, DefaultItem);
+    E(bone, DefaultItem);
+    E(sugar, DefaultItem);
+    E(flint_and_steel, DefaultItem);
+    E(pumpkin_seeds, DefaultItem);
+    E(melon_seeds, DefaultItem);
+    E(ender_pearl, DefaultItem);
+    E(blaze_rod, DefaultItem);
+    E(glistering_melon_slice, DefaultItem);
+    E(gold_nugget, DefaultItem);
+    E(nether_wart, DefaultItem);
+    E(ender_eye, DefaultItem);
+    E(netherite_axe, DefaultItem);
+    E(chainmail_helmet, DefaultItem);
+    E(carrot, DefaultItem);
+    E(campfire, DefaultItem);
+    E(stone_shovel, DefaultItem);
+    E(sweet_berries, DefaultItem);
+    E(cooked_porkchop, DefaultItem);
+    E(beetroot, DefaultItem);
+    E(cake, DefaultItem);
+    E(golden_pickaxe, DefaultItem);
+    E(iron_leggings, DefaultItem);
+    E(netherite_leggings, DefaultItem);
+    E(glow_berries, DefaultItem);
+    E(experience_bottle, DefaultItem);
+    E(fire_charge, DefaultItem);
+    E(hopper, DefaultItem);
+    E(emerald, DefaultItem);
+    E(nether_star, DefaultItem);
+    E(golden_boots, DefaultItem);
+    E(quartz, DefaultItem);
+    E(stone_axe, DefaultItem);
+    E(prismarine_crystals, DefaultItem);
+    E(iron_horse_armor, DefaultItem);
+    E(golden_horse_armor, DefaultItem);
+    E(shulker_shell, DefaultItem);
+    E(chorus_fruit, DefaultItem);
+    E(popped_chorus_fruit, DefaultItem);
+    E(beetroot_seeds, DefaultItem);
+    E(pufferfish, DefaultItem);
+    E(porkchop, DefaultItem);
+    E(reeds, DefaultItem);
+    E(diamond_helmet, DefaultItem);
+    E(disc_fragment_5, DefaultItem);
+    E(nautilus_shell, DefaultItem);
+    E(heart_of_the_sea, DefaultItem);
+    E(clock, DefaultItem);
+    E(wooden_axe, DefaultItem);
+    E(amethyst_shard, DefaultItem);
+    E(honeycomb, DefaultItem);
+    E(apple, DefaultItem);
+    E(mushroom_stew, DefaultItem);
+    E(bread, DefaultItem);
+    E(golden_apple, DefaultItem);
+    E(enchanted_golden_apple, DefaultItem);
+    E(salmon, DefaultItem);
+    E(tropical_fish, DefaultItem);
+    E(cooked_salmon, DefaultItem);
+    E(shears, DefaultItem);
+    E(cookie, DefaultItem);
+    E(melon_slice, DefaultItem);
+    E(beef, DefaultItem);
+    E(cooked_beef, DefaultItem);
+    E(chicken, DefaultItem);
+    E(cooked_chicken, DefaultItem);
+    E(rotten_flesh, DefaultItem);
+    E(spider_eye, DefaultItem);
+    E(potato, DefaultItem);
+    E(baked_potato, DefaultItem);
+    E(wooden_hoe, DefaultItem);
+    E(poisonous_potato, DefaultItem);
+    E(pumpkin_pie, DefaultItem);
+    E(rabbit, DefaultItem);
+    E(cooked_rabbit, DefaultItem);
+    E(rabbit_stew, DefaultItem);
+    E(mutton, DefaultItem);
+    E(cooked_mutton, DefaultItem);
+    E(enchanted_book, DefaultItem);
+    E(beetroot_soup, DefaultItem);
+    E(honey_bottle, DefaultItem);
+    E(wooden_shovel, DefaultItem);
+    E(stone_pickaxe, DefaultItem);
+    E(golden_shovel, DefaultItem);
+    E(iron_shovel, DefaultItem);
+    E(netherite_helmet, DefaultItem);
+    E(iron_pickaxe, DefaultItem);
+    E(iron_hoe, DefaultItem);
+    E(diamond_shovel, DefaultItem);
+    E(diamond_axe, DefaultItem);
+    E(diamond_hoe, DefaultItem);
+    E(netherite_shovel, DefaultItem);
+    E(netherite_pickaxe, DefaultItem);
+    E(netherite_hoe, DefaultItem);
+    E(compass, DefaultItem);
+    E(fishing_rod, DefaultItem);
+    E(name_tag, DefaultItem);
+    E(wooden_sword, DefaultItem);
+    E(turtle_helmet, DefaultItem);
+    E(stone_sword, DefaultItem);
+    E(golden_chestplate, DefaultItem);
+    E(golden_sword, DefaultItem);
+    E(diamond_sword, DefaultItem);
+    E(sugar_cane, DefaultItem);
+    E(netherite_sword, DefaultItem);
+    E(iron_helmet, DefaultItem);
+    E(chainmail_chestplate, DefaultItem);
+    E(chainmail_leggings, DefaultItem);
+    E(chainmail_boots, DefaultItem);
+    E(iron_chestplate, DefaultItem);
+    E(iron_boots, DefaultItem);
+    E(diamond_chestplate, DefaultItem);
+    E(raw_iron, DefaultItem);
+    E(diamond_leggings, DefaultItem);
+    E(diamond_boots, DefaultItem);
+    E(golden_helmet, DefaultItem);
+    E(recovery_compass, DefaultItem);
+    E(netherite_chestplate, DefaultItem);
+    E(netherite_boots, DefaultItem);
+    E(shield, DefaultItem);
+    E(totem_of_undying, DefaultItem);
+    E(trident, DefaultItem);
+    E(ghast_tear, DefaultItem);
+    E(flower_pot, DefaultItem);
+    E(glass_bottle, DefaultItem);
+    E(fermented_spider_eye, DefaultItem);
+    E(blaze_powder, DefaultItem);
+    E(magma_cream, DefaultItem);
+    E(brewing_stand, DefaultItem);
+    E(rabbit_foot, DefaultItem);
+    E(phantom_membrane, DefaultItem);
+    E(tadpole_bucket, DefaultItem);
+    E(torchflower_seeds, DefaultItem);
+    E(brush, DefaultItem);
+    E(pitcher_pod, DefaultItem);
+    E(glow_ink_sac, DefaultItem);
+    E(repeater, DefaultItem);
+    E(comparator, DefaultItem);
+    E(soul_campfire, DefaultItem);
+    E(kelp, DefaultItem);
+    E(armor_stand, DefaultItem);
+    E(raw_gold, DefaultItem);
+    E(spyglass, DefaultItem);
+    E(goat_horn, GoatHorn);
+    E(nether_sprouts, DefaultItem);
+    E(redstone, DefaultItem);
+    E(copper_ingot, DefaultItem);
+    E(end_crystal, DefaultItem);
+    E(painting, DefaultItem);
+    E(item_frame, Rename(u8"frame"));
+    E(glow_item_frame, Rename(u8"glow_frame"));
+    E(raw_copper, DefaultItem);
+    E(chain, DefaultItem);
+
+    E(oak_boat, DefaultItem);
+    E(birch_boat, DefaultItem);
+    E(spruce_boat, DefaultItem);
+    E(acacia_boat, DefaultItem);
+    E(jungle_boat, DefaultItem);
+    E(dark_oak_boat, DefaultItem);
+    E(mangrove_boat, DefaultItem);
+    E(cherry_boat, DefaultItem);
+    E(bamboo_raft, DefaultItem);
+
+    E(oak_chest_boat, DefaultItem);
+    E(birch_chest_boat, DefaultItem);
+    E(spruce_chest_boat, DefaultItem);
+    E(acacia_chest_boat, DefaultItem);
+    E(jungle_chest_boat, DefaultItem);
+    E(dark_oak_chest_boat, DefaultItem);
+    E(mangrove_chest_boat, DefaultItem);
+    E(cherry_chest_boat, DefaultItem);
+    E(bamboo_chest_raft, DefaultItem);
+
+    E(spire_armor_trim_smithing_template, DefaultItem);
+    E(wild_armor_trim_smithing_template, DefaultItem);
+    E(ward_armor_trim_smithing_template, DefaultItem);
+    E(rib_armor_trim_smithing_template, DefaultItem);
+    E(snout_armor_trim_smithing_template, DefaultItem);
+    E(netherite_upgrade_smithing_template, DefaultItem);
+    E(sentry_armor_trim_smithing_template, DefaultItem);
+    E(dune_armor_trim_smithing_template, DefaultItem);
+    E(coast_armor_trim_smithing_template, DefaultItem);
+    E(eye_armor_trim_smithing_template, DefaultItem);
+    E(vex_armor_trim_smithing_template, DefaultItem);
+    E(tide_armor_trim_smithing_template, DefaultItem);
+    E(host_armor_trim_smithing_template, DefaultItem);
+    E(raiser_armor_trim_smithing_template, DefaultItem);
+    E(wayfinder_armor_trim_smithing_template, DefaultItem);
+    E(shaper_armor_trim_smithing_template, DefaultItem);
+    E(silence_armor_trim_smithing_template, DefaultItem);
+
+    E(pottery_shard_archer, Rename(u8"archer_pottery_sherd"));
+    E(pottery_shard_prize, Rename(u8"prize_pottery_sherd"));
+    E(pottery_shard_arms_up, Rename(u8"arms_up_pottery_sherd"));
+    E(pottery_shard_skull, Rename(u8"skull_pottery_sherd"));
+
+    E(archer_pottery_shard, Rename(u8"archer_pottery_sherd"));
+    E(prize_pottery_shard, Rename(u8"prize_pottery_sherd"));
+    E(arms_up_pottery_shard, Rename(u8"arms_up_pottery_sherd"));
+    E(skull_pottery_shard, Rename(u8"skull_pottery_sherd"));
+
+    E(archer_pottery_sherd, DefaultItem);
+    E(skull_pottery_sherd, DefaultItem);
+    E(friend_pottery_sherd, DefaultItem);
+    E(burn_pottery_sherd, DefaultItem);
+    E(snort_pottery_sherd, DefaultItem);
+    E(angler_pottery_sherd, DefaultItem);
+    E(sheaf_pottery_sherd, DefaultItem);
+    E(plenty_pottery_sherd, DefaultItem);
+    E(arms_up_pottery_sherd, DefaultItem);
+    E(shelter_pottery_sherd, DefaultItem);
+    E(danger_pottery_sherd, DefaultItem);
+    E(brewer_pottery_sherd, DefaultItem);
+    E(blade_pottery_sherd, DefaultItem);
+    E(explorer_pottery_sherd, DefaultItem);
+    E(heart_pottery_sherd, DefaultItem);
+    E(heartbreak_pottery_sherd, DefaultItem);
+    E(howl_pottery_sherd, DefaultItem);
+    E(miner_pottery_sherd, DefaultItem);
+    E(mourner_pottery_sherd, DefaultItem);
+    E(prize_pottery_sherd, DefaultItem);
+
     E(white_bed, Bed);
     E(orange_bed, Bed);
     E(magenta_bed, Bed);
@@ -148,6 +638,44 @@ private:
     E(green_bed, Bed);
     E(red_bed, Bed);
     E(black_bed, Bed);
+
+    E(oak_sign, Sign);
+    E(birch_sign, Sign);
+    E(spruce_sign, Sign);
+    E(jungle_sign, Sign);
+    E(acacia_sign, Sign);
+    E(dark_oak_sign, Sign);
+    E(crimson_sign, Sign);
+    E(warped_sign, Sign);
+    E(mangrove_sign, Sign);
+    E(bamboo_sign, Sign);
+    E(cherry_sign, Sign);
+
+    E(acacia_hanging_sign, Sign);
+    E(bamboo_hanging_sign, Sign);
+    E(birch_hanging_sign, Sign);
+    E(crimson_hanging_sign, Sign);
+    E(dark_oak_hanging_sign, Sign);
+    E(jungle_hanging_sign, Sign);
+    E(mangrove_hanging_sign, Sign);
+    E(oak_hanging_sign, Sign);
+    E(spruce_hanging_sign, Sign);
+    E(warped_hanging_sign, Sign);
+    E(cherry_hanging_sign, Sign);
+
+    E(iron_door, DefaultItem);
+    E(oak_door, Rename(u8"wooden_door"));
+    E(spruce_door, DefaultItem);
+    E(birch_door, DefaultItem);
+    E(jungle_door, DefaultItem);
+    E(acacia_door, DefaultItem);
+    E(dark_oak_door, DefaultItem);
+    E(crimson_door, DefaultItem);
+    E(warped_door, DefaultItem);
+    E(mangrove_door, DefaultItem);
+    E(bamboo_door, DefaultItem);
+    E(cherry_door, DefaultItem);
+
     E(white_banner, Banner);
     E(orange_banner, Banner);
     E(magenta_banner, Banner);
@@ -172,107 +700,14 @@ private:
     E(creeper_head, Skull);
     E(dragon_head, Skull);
     E(piglin_head, Skull);
-
-    E(item_frame, Rename(u8"frame"));
-    E(glow_item_frame, Rename(u8"glow_frame"));
-    E(repeater, DefaultItem);
-    E(comparator, DefaultItem);
-
-    E(iron_door, DefaultItem);
-    E(oak_door, Rename(u8"wooden_door"));
-    E(spruce_door, DefaultItem);
-    E(birch_door, DefaultItem);
-    E(jungle_door, DefaultItem);
-    E(acacia_door, DefaultItem);
-    E(dark_oak_door, DefaultItem);
-    E(crimson_door, DefaultItem);
-    E(warped_door, DefaultItem);
-    E(mangrove_door, DefaultItem);
-
-    E(campfire, DefaultItem);
-    E(soul_campfire, DefaultItem);
-    E(chain, DefaultItem);
-
-    E(torch, AnyTorch);
-    E(soul_torch, AnyTorch);
-    E(redstone_torch, AnyTorch);
-
-    E(oak_sign, Sign);
-    E(birch_sign, Sign);
-    E(spruce_sign, Sign);
-    E(jungle_sign, Sign);
-    E(acacia_sign, Sign);
-    E(dark_oak_sign, Sign);
-    E(crimson_sign, Sign);
-    E(warped_sign, Sign);
-    E(mangrove_sign, Sign);
-    E(bamboo_sign, Sign);
-    E(cherry_sign, Sign);
-
-    E(goat_horn, GoatHorn);
-    E(frogspawn, Rename(u8"frog_spawn"));
-
-    E(acacia_hanging_sign, Sign);
-    E(bamboo_hanging_sign, Sign);
-    E(birch_hanging_sign, Sign);
-    E(crimson_hanging_sign, Sign);
-    E(dark_oak_hanging_sign, Sign);
-    E(jungle_hanging_sign, Sign);
-    E(mangrove_hanging_sign, Sign);
-    E(oak_hanging_sign, Sign);
-    E(spruce_hanging_sign, Sign);
-    E(warped_hanging_sign, Sign);
-    E(cherry_hanging_sign, Sign);
-
-    // Java: nether_bricks (block), nether_brick (item)
-    // Bedrock: nether_brick (block), netherbrick (item)
-    E(nether_brick, Rename(u8"nether_bricks"));
 #undef E
     return table;
   }
 
-  static std::unordered_map<std::u8string, Converter> *CreateItemConverterTable() {
+  static std::unordered_map<std::u8string, Converter> const &ItemConverterTable() {
     using namespace std;
-    auto table = new unordered_map<u8string, Converter>();
-#define E(__name, __func) table->insert(make_pair(u8"" #__name, __func))
-    E(oak_door, Rename(u8"wooden_door"));
-    E(furnace_minecart, Rename(u8"minecart")); // furnace minecart does not exist in bedrock
-    E(tropical_fish_bucket, TropicalFishBucket);
-    E(zombified_piglin_spawn_egg, Rename(u8"zombie_pigman_spawn_egg"));
-
-    E(map, Subtype(u8"empty_map", 2));
-    E(firework_rocket, FireworkRocket);
-    E(firework_star, FireworkStar);
-
-    // "13", "cat", "blocks", "chirp", "far", "mall", "mellohi", "stal", "strad", "ward", "11", "wait", "otherside", "pigstep"
-    // E(u8"music_disc_pigstep", Same);
-
-    E(cod, Rename(u8"fish"));
-    E(tipped_arrow, TippedArrow);
-    E(potion, AnyPotion);
-    E(splash_potion, AnyPotion);
-    E(lingering_potion, AnyPotion);
-
-    for (u8string type : {u8"helmet", u8"chestplate", u8"leggings", u8"boots"}) {
-      table->insert(std::make_pair(u8"leather_" + type, LeatherArmor));
-    }
-
-    E(writable_book, BooksAndQuill);
-    E(written_book, BooksAndQuill);
-
-    E(axolotl_bucket, AxolotlBucket);
-
-    E(suspicious_stew, SuspiciousStew);
-    E(crossbow, Crossbow);
-    E(nether_brick, Rename(u8"netherbrick"));
-
-    E(spawn_egg, LegacySpawnEgg); // legacy
-    E(pottery_shard_archer, Rename(u8"archer_pottery_shard"));
-    E(pottery_shard_prize, Rename(u8"prize_pottery_shard"));
-    E(pottery_shard_arms_up, Rename(u8"arms_up_pottery_shard"));
-    E(pottery_shard_skull, Rename(u8"skull_pottery_shard"));
-#undef E
-    return table;
+    static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateItemConverterTable());
+    return *sTable;
   }
 
   static CompoundTagPtr Sign(std::u8string const &name, CompoundTag const &item, Context &ctx) {
@@ -535,361 +970,6 @@ private:
     };
   }
 
-  static std::unordered_set<std::u8string> *CreateItemNameList() {
-    using namespace std;
-    auto table = new unordered_set<u8string>();
-#define E(__name) table->insert(u8"" #__name)
-    E(minecart);
-    E(saddle);
-    E(oak_boat);
-    E(chest_minecart);
-    E(furnace_minecart);
-    E(carrot_on_a_stick);
-    E(warped_fungus_on_a_stick);
-    E(tnt_minecart);
-    E(hopper_minecart);
-    E(elytra);
-    E(spruce_boat);
-    E(birch_boat);
-    E(jungle_boat);
-    E(acacia_boat);
-    E(dark_oak_boat);
-
-    E(beacon);
-    E(turtle_egg);
-    E(conduit);
-    E(scute);
-    E(coal);
-    E(charcoal);
-    E(diamond);
-    E(iron_ingot);
-    E(gold_ingot);
-    E(netherite_ingot);
-    E(netherite_scrap);
-    E(stick);
-    E(bowl);
-    E(string);
-    E(feather);
-    E(gunpowder);
-    E(wheat_seeds);
-    E(wheat);
-    E(flint);
-    E(bucket);
-    E(water_bucket);
-    E(lava_bucket);
-    E(snowball);
-    E(leather);
-    E(milk_bucket);
-    E(pufferfish_bucket);
-    E(salmon_bucket);
-    E(cod_bucket);
-    E(tropical_fish_bucket);
-    E(brick);
-    E(clay_ball);
-    E(paper);
-    E(book);
-    E(slime_ball);
-    E(egg);
-    E(glowstone_dust);
-    E(ink_sac);
-    E(cocoa_beans);
-    E(lapis_lazuli);
-    E(white_dye);
-    E(orange_dye);
-    E(magenta_dye);
-    E(light_blue_dye);
-    E(yellow_dye);
-    E(lime_dye);
-    E(pink_dye);
-    E(gray_dye);
-    E(light_gray_dye);
-    E(cyan_dye);
-    E(purple_dye);
-    E(blue_dye);
-    E(brown_dye);
-    E(green_dye);
-    E(red_dye);
-    E(black_dye);
-    E(bone_meal);
-    E(bone);
-    E(sugar);
-    E(pumpkin_seeds);
-    E(melon_seeds);
-    E(ender_pearl);
-    E(blaze_rod);
-    E(gold_nugget);
-    E(nether_wart);
-    E(ender_eye);
-    E(bat_spawn_egg);
-    E(bee_spawn_egg);
-    E(blaze_spawn_egg);
-    E(cat_spawn_egg);
-    E(cave_spider_spawn_egg);
-    E(chicken_spawn_egg);
-    E(cod_spawn_egg);
-    E(cow_spawn_egg);
-    E(creeper_spawn_egg);
-    E(dolphin_spawn_egg);
-    E(donkey_spawn_egg);
-    E(drowned_spawn_egg);
-    E(elder_guardian_spawn_egg);
-    E(enderman_spawn_egg);
-    E(endermite_spawn_egg);
-    E(evoker_spawn_egg);
-    E(fox_spawn_egg);
-    E(ghast_spawn_egg);
-    E(guardian_spawn_egg);
-    E(hoglin_spawn_egg);
-    E(horse_spawn_egg);
-    E(husk_spawn_egg);
-    E(llama_spawn_egg);
-    E(magma_cube_spawn_egg);
-    E(mooshroom_spawn_egg);
-    E(mule_spawn_egg);
-    E(ocelot_spawn_egg);
-    E(panda_spawn_egg);
-    E(parrot_spawn_egg);
-    E(phantom_spawn_egg);
-    E(pig_spawn_egg);
-    E(piglin_spawn_egg);
-    E(piglin_brute_spawn_egg);
-    E(pillager_spawn_egg);
-    E(polar_bear_spawn_egg);
-    E(pufferfish_spawn_egg);
-    E(rabbit_spawn_egg);
-    E(ravager_spawn_egg);
-    E(salmon_spawn_egg);
-    E(sheep_spawn_egg);
-    E(shulker_spawn_egg);
-    E(silverfish_spawn_egg);
-    E(skeleton_spawn_egg);
-    E(skeleton_horse_spawn_egg);
-    E(slime_spawn_egg);
-    E(spider_spawn_egg);
-    E(squid_spawn_egg);
-    E(stray_spawn_egg);
-    E(strider_spawn_egg);
-    E(trader_llama_spawn_egg); // there is no spawn egg for trader llama for bedrock
-    E(tropical_fish_spawn_egg);
-    E(turtle_spawn_egg);
-    E(vex_spawn_egg);
-    E(villager_spawn_egg);
-    E(vindicator_spawn_egg);
-    E(wandering_trader_spawn_egg);
-    E(witch_spawn_egg);
-    E(wither_skeleton_spawn_egg);
-    E(wolf_spawn_egg);
-    E(zoglin_spawn_egg);
-    E(zombie_spawn_egg);
-    E(zombie_horse_spawn_egg);
-    E(zombie_villager_spawn_egg);
-    E(zombified_piglin_spawn_egg);
-    E(experience_bottole);
-    E(fire_charge);
-    E(writable_book);
-    E(written_book);
-    E(emerald);
-    E(map);
-    E(nether_star);
-    E(firework_rocket);
-    E(firework_star);
-    E(nether_brick);
-    E(quartz);
-    E(prismarine_shard);
-    E(prismarine_crystals);
-    E(rabbit_hide);
-    E(iron_horse_armor);
-    E(golden_horse_armor);
-    E(diamond_horse_armor);
-    E(leather_horse_armor);
-    E(chorus_fruit);
-    E(popped_chorus_fruit);
-    E(beetroot_seeds);
-    E(shulker_shell);
-    E(iron_nugget);
-    E(music_disc_13);
-    E(music_disc_cat);
-    E(music_disc_blocks);
-    E(music_disc_chirp);
-    E(music_disc_far);
-    E(music_disc_mall);
-    E(music_disc_mellohi);
-    E(music_disc_stal);
-    E(music_disc_strad);
-    E(music_disc_ward);
-    E(music_disc_11);
-    E(music_disc_wait);
-    E(music_disc_pigstep);
-    E(music_disc_otherside);
-    E(music_disc_5);
-    E(disc_fragment_5);
-    E(nautilus_shell);
-    E(heart_of_the_sea);
-    E(flower_banner_pattern);
-    E(creeper_banner_pattern);
-    E(skull_banner_pattern);
-    E(mojang_banner_pattern);
-    E(globe_banner_pattern); // there is no globe banner pattern for bedrock
-    E(piglin_banner_pattern);
-    E(honeycomb);
-
-    E(apple);
-    E(mushroom_stew);
-    E(bread);
-    E(porkchop);
-    E(cooked_porkchop);
-    E(golden_apple);
-    E(enchanted_golden_apple);
-    E(cod);
-    E(salmon);
-    E(tropical_fish);
-    E(pufferfish);
-    E(cooked_cod);
-    E(cooked_salmon);
-    E(cake);
-    E(cookie);
-    E(melon_slice);
-    E(dried_kelp);
-    E(beef);
-    E(cooked_beef);
-    E(chicken);
-    E(cooked_chicken);
-    E(rotten_flesh);
-    E(spider_eye);
-    E(carrot);
-    E(potato);
-    E(baked_potato);
-    E(poisonous_potato);
-    E(pumpkin_pie);
-    E(rabbit);
-    E(cooked_rabbit);
-    E(rabbit_stew);
-    E(mutton);
-    E(cooked_mutton);
-    E(beetroot);
-    E(beetroot_soup);
-    E(sweet_berries);
-    E(honey_bottle);
-
-    E(flint_and_steel);
-    for (u8string type : {u8"wooden", u8"stone", u8"golden", u8"iron", u8"diamond", u8"netherite"}) {
-      for (u8string tool : {u8"shovel", u8"pickaxe", u8"axe", u8"hoe"}) {
-        table->insert(type + u8"_" + tool);
-      }
-    }
-    E(compass);
-    E(fishing_rod);
-    E(clock);
-    E(shears);
-    E(enchanted_book);
-    E(lead);
-    E(name_tag);
-
-    E(turtle_helmet);
-    E(bow);
-    E(arrow);
-    E(wooden_sword);
-    E(stone_sword);
-    E(golden_sword);
-    E(iron_sword);
-    E(diamond_sword);
-    E(netherite_sword);
-    for (u8string type : {u8"leather", u8"chainmail", u8"iron", u8"diamond", u8"golden", u8"netherite"}) {
-      for (u8string item : {u8"helmet", u8"chestplate", u8"leggings", u8"boots"}) {
-        table->insert(type + u8"_" + item);
-      }
-    }
-    E(spectral_arrow);
-    E(tipped_arrow);
-    E(shield);
-    E(totem_of_undying);
-    E(trident);
-    E(crossbow);
-
-    E(ghast_tear);
-    E(potion);
-    E(glass_bottle);
-    E(fermented_spider_eye);
-    E(blaze_powder);
-    E(magma_cream);
-    E(brewing_stand);
-    E(cauldron);
-    E(glistering_melon_slice);
-    E(golden_carrot);
-    E(rabbit_foot);
-    E(dragon_breath);
-    E(splash_potion);
-    E(lingering_potion);
-    E(phantom_membrane);
-    E(axolotl_bucket);
-    E(suspicious_stew);
-    E(raw_iron);
-
-    E(oak_chest_boat);
-    E(birch_chest_boat);
-    E(spruce_chest_boat);
-    E(acacia_chest_boat);
-    E(jungle_chest_boat);
-    E(dark_oak_chest_boat);
-    E(mangrove_chest_boat);
-    E(warden_spawn_egg);
-    E(tadpole_spawn_egg);
-    E(frog_spawn_egg);
-    E(tadpole_bucket);
-    E(mangrove_boat);
-    E(echo_shard);
-    E(recovery_compass);
-    E(spawn_egg); // legacy
-    E(torchflower_seeds);
-    E(pottery_shard_archer);
-    E(pottery_shard_prize);
-    E(pottery_shard_arms_up);
-    E(pottery_shard_skull);
-    E(sniffer_spawn_egg);
-    E(camel_spawn_egg);
-    E(brush);
-    E(cherry_boat);
-    E(cherry_chest_boat);
-    E(netherite_upgrade_smithing_template);
-    E(sentry_armor_trim_smithing_template);
-    E(dune_armor_trim_smithing_template);
-    E(coast_armor_trim_smithing_template);
-    E(wild_armor_trim_smithing_template);
-    E(ward_armor_trim_smithing_template);
-    E(eye_armor_trim_smithing_template);
-    E(vex_armor_trim_smithing_template);
-    E(tide_armor_trim_smithing_template);
-    E(snout_armor_trim_smithing_template);
-    E(rib_armor_trim_smithing_template);
-    E(spire_armor_trim_smithing_template);
-
-    // listed with blocks, but not block item
-
-    E(repeater);
-    E(comparator);
-    E(iron_door);
-    E(oak_door);
-    E(spruce_door);
-    E(birch_door);
-    E(jungle_door);
-    E(acacia_door);
-    E(dark_oak_door);
-    E(crimson_door);
-    E(warped_door);
-    E(campfire);
-    E(soul_campfire);
-    E(hopper);
-    E(flower_pot);
-#undef E
-    return table;
-  }
-
-  static bool IsItem(std::u8string const &name) {
-    using namespace std;
-    static unique_ptr<unordered_set<u8string> const> const list(CreateItemNameList());
-    return list->find(Namespace::Remove(name)) != list->end();
-  }
-
   static CompoundTagPtr AnyTorch(std::u8string const &name, CompoundTag const &item, Context const &) {
     using namespace std;
 
@@ -1067,20 +1147,22 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr MushroomBlock(std::u8string const &name, CompoundTag const &item, Context const &) {
-    using namespace std;
+  static Converter MushroomBlock(int hugeMushroomBits) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &) -> CompoundTagPtr {
+      using namespace std;
 
-    auto block = make_shared<Block>(name);
-    auto blockData = BlockData::From(block, nullptr, {.fItem = true});
+      auto block = make_shared<Block>(name);
+      auto blockData = BlockData::From(block, nullptr, {.fItem = true});
 
-    auto states = Compound();
-    states->set(u8"huge_mushroom_bits", Int(14));
-    blockData->set(u8"states", states);
+      auto states = Compound();
+      states->set(u8"huge_mushroom_bits", Int(hugeMushroomBits));
+      blockData->set(u8"states", states);
 
-    auto tag = New(name, true);
-    tag->set(u8"Damage", Short(0));
-    tag->set(u8"Block", blockData);
-    return tag;
+      auto tag = New(name, true);
+      tag->set(u8"Damage", Short(0));
+      tag->set(u8"Block", blockData);
+      return tag;
+    };
   }
 
   static CompoundTagPtr GoatHorn(std::u8string const &name, CompoundTag const &item, Context const &) {

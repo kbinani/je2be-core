@@ -1236,7 +1236,7 @@ private:
     return Ns() + name;
   }
 
-  static String Reeds(String const &bName, CompoundTag const &s, Props &p) {
+  static String SugarCane(String const &bName, CompoundTag const &s, Props &p) {
     Age(s, p);
     return Ns() + u8"sugar_cane";
   }
@@ -2685,7 +2685,8 @@ private:
     E(stripped_warped_stem, BlockWithAxisFromPillarAxis);
     E(structure_block, StructureBlock);
     E(structure_void, Same);
-    E(reeds, Reeds);
+    E(reeds, SugarCane); // legacy
+    E(sugar_cane, SugarCane);
     E(sweet_berry_bush, SweetBerryBush);
     E(target, Target);
     E(hardened_clay, Rename(u8"terracotta"));

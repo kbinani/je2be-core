@@ -20,7 +20,7 @@ public:
 
   using PropertyType = std::shared_ptr<Tag>;
 
-  using NamingFunction = std::function<std::u8string(Block const &)>;
+  using NamingFunction = std::function<std::u8string(Block const &, Options const &)>;
   using PropertyPickupFunction = std::function<void(CompoundTagPtr const &, Block const &, Options const &)>;
 
   using AnyConverter = std::function<CompoundTagPtr(Block const &, CompoundTagConstPtr const &, Options const &)>;
@@ -32,7 +32,7 @@ public:
 
     CompoundTagPtr operator()(Block const &block, CompoundTagConstPtr const &tile, Options const &options) const {
       using namespace std;
-      u8string name = fName(block);
+      u8string name = fName(block, options);
       auto tag = New(name, true);
       auto states = States();
       for (auto const &p : fProperties) {
@@ -55,20 +55,20 @@ public:
   }
 
   static NamingFunction Name(std::u8string const &name) {
-    return [=](Block const &) { return u8"minecraft:" + name; };
+    return [=](Block const &, Options const &o) { return u8"minecraft:" + name; };
   }
 
-  static std::u8string Same(Block const &block) { return block.name(); }
+  static std::u8string Same(Block const &block, Options const &o) { return block.name(); }
 
   static NamingFunction SlabName(std::u8string const &name, std::u8string const &tail) {
-    return [=](Block const &block) {
+    return [=](Block const &block, Options const &o) {
       auto t = block.property(u8"type", u8"bottom");
       return t == u8"double" ? (u8"minecraft:double_" + name + u8"_slab" + tail) : (u8"minecraft:" + name + u8"_slab" + tail);
     };
   }
 
   static NamingFunction ChangeWhenDoubleType(std::u8string const &doubleName) {
-    return [=](Block const &block) {
+    return [=](Block const &block, Options const &o) {
       auto t = block.property(u8"type", u8"bottom");
       return t == u8"double" ? u8"minecraft:" + doubleName : block.name();
     };
@@ -99,11 +99,15 @@ public:
     auto persistent = block.property(u8"persistent", u8"false") == u8"true";
     auto distance = Wrap(strings::ToI32(block.property(u8"distance", u8"7")), 7);
     s->set(u8"persistent_bit", Bool(persistent));
-    // NOTE:
-    //  Java: leaves decay when distance > 6
-    //  Bedrock: leaves decay when distance > 4
-    // Set update_bit to false for leaves with distance = 5, 6 not to decay as far as possible after conversion
-    s->set(u8"update_bit", Bool(distance > 6 && !persistent));
+    if (o.fItem) {
+      s->set(u8"update_bit", Bool(false));
+    } else {
+      // NOTE:
+      //  Java: leaves decay when distance > 6
+      //  Bedrock: leaves decay when distance > 4
+      // Set update_bit to false for leaves with distance = 5, 6 not to decay as far as possible after conversion
+      s->set(u8"update_bit", Bool(distance > 6 && !persistent));
+    }
   }
 
   static void TypeToVerticalHalf(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -125,8 +129,19 @@ public:
     s->set(u8"upper_block_bit", Bool(half == u8"upper"));
   }
 
+  static PropertyPickupFunction UpperBlockBitToHalfByItemDefault(bool upperBlockBit) {
+    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
+      if (o.fItem) {
+        s->set(u8"upper_block_bit", Bool(upperBlockBit));
+      } else {
+        auto half = block.property(u8"half", u8"lower");
+        s->set(u8"upper_block_bit", Bool(half == u8"upper"));
+      }
+    };
+  }
+
   static void WaterloggedToDeadBit(CompoundTagPtr const &s, Block const &block, Options const &o) {
-    auto waterlogged = block.property(u8"waterlogged", u8"false");
+    auto waterlogged = block.property(u8"waterlogged", u8"true");
     s->set(u8"dead_bit", Bool(waterlogged == u8"false"));
   }
 
@@ -191,33 +206,39 @@ public:
     s->set(u8"vine_direction_bits", Int(direction));
   }
 
-  static void MultiFaceDirectionBits(CompoundTagPtr const &s, Block const &block, Options const &o) {
-    auto down = block.property(u8"down", u8"false") == u8"true";
-    auto up = block.property(u8"up", u8"false") == u8"true";
-    auto east = block.property(u8"east", u8"false") == u8"true";
-    auto west = block.property(u8"west", u8"false") == u8"true";
-    auto north = block.property(u8"north", u8"false") == u8"true";
-    auto south = block.property(u8"south", u8"false") == u8"true";
-    i32 bits = 0;
-    if (down) {
-      bits |= 0x1;
-    }
-    if (up) {
-      bits |= 0x2;
-    }
-    if (north) {
-      bits |= 0x10;
-    }
-    if (south) {
-      bits |= 0x4;
-    }
-    if (west) {
-      bits |= 0x8;
-    }
-    if (east) {
-      bits |= 0x20;
-    }
-    s->set(u8"multi_face_direction_bits", Int(bits));
+  static PropertyPickupFunction MultiFaceDirectionBitsByItemDefault(int multiFaceDirectionBits) {
+    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
+      if (o.fItem) {
+        s->set(u8"multi_face_direction_bits", Int(multiFaceDirectionBits));
+        return;
+      }
+      auto down = block.property(u8"down", u8"false") == u8"true";
+      auto up = block.property(u8"up", u8"false") == u8"true";
+      auto east = block.property(u8"east", u8"false") == u8"true";
+      auto west = block.property(u8"west", u8"false") == u8"true";
+      auto north = block.property(u8"north", u8"false") == u8"true";
+      auto south = block.property(u8"south", u8"false") == u8"true";
+      i32 bits = 0;
+      if (down) {
+        bits |= 0x1;
+      }
+      if (up) {
+        bits |= 0x2;
+      }
+      if (north) {
+        bits |= 0x10;
+      }
+      if (south) {
+        bits |= 0x4;
+      }
+      if (west) {
+        bits |= 0x8;
+      }
+      if (east) {
+        bits |= 0x20;
+      }
+      s->set(u8"multi_face_direction_bits", Int(bits));
+    };
   }
 
   static Converter Subtype(std::u8string const &name, std::u8string const &subtypeTitle, std::u8string const &subtype) { return Converter(Name(name), AddStringProperty(subtypeTitle, subtype)); }
@@ -375,6 +396,10 @@ public:
   }
 
   static void DirectionNorth0East1South2West3FromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
+    if (o.fItem) {
+      s->set(u8"direction", Int(0));
+      return;
+    }
     auto f4 = Facing4FromJavaName(block.property(u8"facing"));
     i32 direction = 0;
     switch (f4) {
@@ -407,6 +432,16 @@ public:
     s->set(u8"minecraft:cardinal_direction", String(block.property(u8"facing", u8"south")));
   }
 
+  static PropertyPickupFunction CardinalDirectionFromFacing4ByItemDefault(Facing4 f4) {
+    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
+      if (o.fItem) {
+        s->set(u8"minecraft:cardinal_direction", String(JavaNameFromFacing4(f4)));
+      } else {
+        CardinalDirectionFromFacing4(s, block, o);
+      }
+    };
+  }
+
   static void DirectionFromFacingB(CompoundTagPtr const &s, Block const &block, Options const &o) {
     s->set(u8"direction", FacingB(block));
   }
@@ -415,7 +450,7 @@ public:
     s->set(u8"direction", FacingC(block));
   }
 
-  static Converter LitPumpkin() { return Converter(Name(u8"lit_pumpkin"), Name(Facing, u8"minecraft:cardinal_direction")); }
+  static Converter LitPumpkin() { return Converter(Name(u8"lit_pumpkin"), CardinalDirectionFromFacing4); }
 
   static Converter Prismarine(std::u8string const &type) { return Subtype(u8"prismarine", u8"prismarine_block_type", type); }
 
@@ -485,6 +520,10 @@ public:
   }
 
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
+    if (o.fItem) {
+      s->set(u8"facing_direction", Int(0));
+      return;
+    }
     auto facing = block.property(u8"facing", u8"up");
     i32 direction;
     if (facing == u8"east") {
@@ -605,8 +644,15 @@ public:
     s->set(u8"facing_direction", Int(direction));
   }
 
+  static PropertyPickupFunction FacingDirectionAFromFacingByItemDefault(int d) {
+    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
+      i32 direction = o.fItem ? d : GetFacingDirectionAFromFacing(block);
+      s->set(u8"facing_direction", Int(direction));
+    };
+  }
+
   static void BlockFaceFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
-    s->set(u8"minecraft:block_face", String(block.property(u8"facing", u8"down")));
+    s->set(u8"minecraft:block_face", String(block.property(u8"facing", u8"up")));
   }
 
   static void PistonFacingDirectionFromFacing6(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -700,7 +746,9 @@ public:
   static void GrindstoneFaceToAttachment(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto face = block.property(u8"face", u8"wall");
     std::u8string attachment;
-    if (face == u8"wall") {
+    if (o.fItem) {
+      attachment = u8"standing";
+    } else if (face == u8"wall") {
       attachment = u8"side";
     } else if (face == u8"floor") {
       attachment = u8"standing";
@@ -900,8 +948,8 @@ public:
     E(twisting_vines_plant, NetherVines(u8"twisting", 25)); // TODO(kbinani): is 25 correct?
     E(twisting_vines, NetherVines(u8"twisting"));
     E(vine, Converter(Same, VineDirectionBits));
-    E(glow_lichen, Converter(Same, MultiFaceDirectionBits));
-    E(sculk_vein, Converter(Same, MultiFaceDirectionBits));
+    E(glow_lichen, Converter(Same, MultiFaceDirectionBitsByItemDefault(63)));
+    E(sculk_vein, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
     E(cocoa, Converter(Same, Name(Age, u8"age"), DirectionFromFacingA));
     E(nether_wart, Converter(Same, Name(Age, u8"age")));
     E(cobblestone_stairs, Stairs(u8"stone_stairs"));
@@ -985,7 +1033,7 @@ public:
     E(purpur_block, Converter(Same, AddStringProperty(u8"chisel_type", u8"default"), AddStringProperty(u8"pillar_axis", u8"y")));
     E(purpur_pillar, Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis));
     E(jack_o_lantern, LitPumpkin());
-    E(carved_pumpkin, Converter(Same, Name(Facing, u8"minecraft:cardinal_direction")));
+    E(carved_pumpkin, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::South)));
     E(white_stained_glass, Identity);
     E(orange_stained_glass, Identity);
     E(magenta_stained_glass, Identity);
@@ -1370,7 +1418,7 @@ public:
     E(stonecutter, Converter(Name(u8"stonecutter_block"), FacingDirectionAFromFacing));
     E(loom, directionFromFacing);
     E(grindstone, Converter(Name(u8"grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
-    E(smoker, Converter(PrefixLit, CardinalDirectionFromFacing4));
+    E(smoker, Converter(PrefixLit, CardinalDirectionFromFacing4ByItemDefault(Facing4::South)));
     E(blast_furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(barrel, Converter(Name(u8"barrel"), FacingDirectionAFromFacing, Name(Open, u8"open_bit")));
     Converter lantern(Same, Name(Hanging, u8"hanging"));
@@ -1385,7 +1433,7 @@ public:
     E(piston_head, PistonHead);
     E(moving_piston, MovingPiston);
     E(note_block, Rename(u8"noteblock"));
-    E(dispenser, Converter(Same, FacingDirectionAFromFacing, Name(Triggered, u8"triggered_bit")));
+    E(dispenser, Converter(Same, FacingDirectionAFromFacingByItemDefault(3), Name(Triggered, u8"triggered_bit")));
     E(lever, Converter(Same, LeverDirection, Name(Powered, u8"open_bit")));
 
     Converter fenceGate(Same, DirectionFromFacingA, Name(InWall, u8"in_wall_bit"), Name(Open, u8"open_bit"));
@@ -1447,7 +1495,7 @@ public:
     E(trapped_chest, facingDirectionFromFacingA);
     E(daylight_detector, Converter(DaylightDetectorName, Name(Power, u8"redstone_signal")));
     E(hopper, Converter(Same, FacingDirectionAFromFacing, ToggleBitFromEnabled));
-    E(dropper, Converter(Same, FacingDirectionAFromFacing, Name(Triggered, u8"triggered_bit")));
+    E(dropper, Converter(Same, FacingDirectionAFromFacingByItemDefault(3), Name(Triggered, u8"triggered_bit")));
     E(observer, Converter(Same, Name(Facing, u8"minecraft:facing_direction"), Name(Powered, u8"powered_bit")));
 
     Converter door(Same, DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door);
@@ -1519,7 +1567,7 @@ public:
 
     E(big_dripleaf, BigDripleaf);
     E(big_dripleaf_stem, Converter(Name(u8"big_dripleaf"), AddByteProperty(u8"big_dripleaf_head", false), CardinalDirectionFromFacing4, AddStringProperty(u8"big_dripleaf_tilt", u8"none")));
-    E(small_dripleaf, Converter(Name(u8"small_dripleaf_block"), CardinalDirectionFromFacing4, UpperBlockBitToHalf));
+    E(small_dripleaf, Converter(Name(u8"small_dripleaf_block"), CardinalDirectionFromFacing4ByItemDefault(Facing4::East), UpperBlockBitToHalfByItemDefault(true)));
 
     Converter candle(Same, Name(Lit, u8"lit"), Name(Candles, u8"candles"));
     E(candle, candle);
@@ -1643,7 +1691,7 @@ public:
     E(mud_brick_slab, Slab(u8"mud_brick_double_slab"));
     E(muddy_mangrove_roots, axisToPillarAxis);
 
-    E(spawner, Null); // spawner doesn't exist as block in BE.
+    E(spawner, Rename(u8"mob_spawner"));
 
     E(bamboo_block, axisToPillarAxis);
     E(stripped_bamboo_block, axisToPillarAxis);
@@ -1783,7 +1831,7 @@ public:
       }
     }
     s->set(u8"books_stored", Int(stored));
-    int direction = BedrockDirectionFromFacing4(Facing4FromJavaName(block.property(u8"facing", u8"north")));
+    int direction = BedrockDirectionFromFacing4(Facing4FromJavaName(block.property(u8"facing", u8"south")));
     s->set(u8"direction", Int(direction));
 
     return AttachStates(c, s);
@@ -2203,7 +2251,7 @@ public:
     return String(facing);
   }
 
-  static std::u8string ComparatorName(Block const &b) {
+  static std::u8string ComparatorName(Block const &b, Options const &o) {
     auto powered = b.property(u8"powered", u8"false") == u8"true";
     if (powered) {
       return u8"minecraft:powered_comparator";
@@ -2212,7 +2260,7 @@ public:
     }
   }
 
-  static std::u8string RepeaterName(Block const &b) {
+  static std::u8string RepeaterName(Block const &b, Options const &o) {
     auto powered = b.property(u8"powered", u8"false") == u8"true";
     if (powered) {
       return u8"minecraft:powered_repeater";
@@ -2221,9 +2269,9 @@ public:
     }
   }
 
-  static std::u8string PrefixLit(Block const &b) {
+  static std::u8string PrefixLit(Block const &b, Options const &o) {
     auto lit = b.property(u8"lit", u8"false") == u8"true";
-    if (lit) {
+    if (lit && !o.fItem) {
       auto name = Namespace::Remove(b.fName);
       return u8"minecraft:lit_" + std::u8string(name);
     } else {
@@ -2232,9 +2280,9 @@ public:
   }
 
   static NamingFunction PrefixUnlit(std::u8string name) {
-    return [name](Block const &b) {
+    return [name](Block const &b, Options const &o) {
       auto lit = b.property(u8"lit", u8"false") == u8"true";
-      if (lit) {
+      if (lit || o.fItem) {
         return u8"minecraft:" + name;
       } else {
         return u8"minecraft:unlit_" + name;
@@ -2252,7 +2300,7 @@ public:
     s->set(u8"toggle_bit", Bool(!enabled));
   }
 
-  static std::u8string DaylightDetectorName(Block const &b) {
+  static std::u8string DaylightDetectorName(Block const &b, Options const &o) {
     auto inverted = b.property(u8"inverted", u8"false") == u8"true";
     if (inverted) {
       return u8"minecraft:daylight_detector_inverted";
@@ -2264,25 +2312,29 @@ public:
   static PropertyType Attached(Block const &b) { return Bool(b.property(u8"attached", u8"false") == u8"true"); }
 
   static void ButtonFacingDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
-    auto face = b.property(u8"face", u8"wall");
-    auto facing = b.property(u8"facing", u8"north");
-    i32 direction = 0;
-    if (face == u8"floor") {
-      direction = 1;
-    } else if (face == u8"ceiling") {
-      direction = 0;
+    if (o.fItem) {
+      s->set(u8"facing_direction", Int(0));
     } else {
-      if (facing == u8"south") {
-        direction = 3;
-      } else if (facing == u8"north") {
-        direction = 2;
-      } else if (facing == u8"east") {
-        direction = 5;
-      } else if (facing == u8"west") {
-        direction = 4;
+      auto face = b.property(u8"face", u8"wall");
+      auto facing = b.property(u8"facing", u8"north");
+      i32 direction = 0;
+      if (face == u8"floor") {
+        direction = 1;
+      } else if (face == u8"ceiling") {
+        direction = 0;
+      } else {
+        if (facing == u8"south") {
+          direction = 3;
+        } else if (facing == u8"north") {
+          direction = 2;
+        } else if (facing == u8"east") {
+          direction = 5;
+        } else if (facing == u8"west") {
+          direction = 4;
+        }
       }
+      s->set(u8"facing_direction", Int(direction));
     }
-    s->set(u8"facing_direction", Int(direction));
   }
 
   static PropertyType Power(Block const &b) { return Int(Wrap(strings::ToI32(b.property(u8"power", u8"0")), 0)); }
@@ -2290,23 +2342,27 @@ public:
   static PropertyType InWall(Block const &b) { return Bool(b.property(u8"in_wall", u8"false") == u8"true"); }
 
   static void LeverDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
-    auto face = b.property(u8"face", u8"wall");
-    auto facing = b.property(u8"facing", u8"north");
     std::u8string result;
-    if (face == u8"floor") {
-      if (facing == u8"west" || facing == u8"east") {
-        result = u8"up_east_west";
-      } else {
-        result = u8"up_north_south";
-      }
-    } else if (face == u8"ceiling") {
-      if (facing == u8"west" || facing == u8"east") {
-        result = u8"down_east_west";
-      } else {
-        result = u8"down_north_south";
-      }
+    if (o.fItem) {
+      result = u8"down_east_west";
     } else {
-      result = facing;
+      auto face = b.property(u8"face", u8"wall");
+      auto facing = b.property(u8"facing", u8"north");
+      if (face == u8"floor") {
+        if (facing == u8"west" || facing == u8"east") {
+          result = u8"up_east_west";
+        } else {
+          result = u8"up_north_south";
+        }
+      } else if (face == u8"ceiling") {
+        if (facing == u8"west" || facing == u8"east") {
+          result = u8"down_east_west";
+        } else {
+          result = u8"down_north_south";
+        }
+      } else {
+        result = facing;
+      }
     }
     s->set(u8"lever_direction", String(result));
   }
