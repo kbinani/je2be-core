@@ -270,6 +270,8 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
           } else if (e->fName == u8"minecraft:bamboo_sapling") {
             // Bamboo sapling doesn't have "stage" property in Java
             ignore.insert(u8"age_bit");
+          } else if (e->fName == u8"minecraft:soul_fire") {
+            ignore.insert(u8"age");
           }
           for (auto const &i : ignore) {
             tagE->erase(i);
