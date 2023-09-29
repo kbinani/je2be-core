@@ -247,6 +247,7 @@ public:
     states->insert({
         {u8"facing_direction", Int(paf.fFacing)},
         {u8"item_frame_map_bit", Bool(map)},
+        {u8"item_frame_photo_bit", Bool(false)},
     });
     b->insert({
         {u8"name", String(name)},
