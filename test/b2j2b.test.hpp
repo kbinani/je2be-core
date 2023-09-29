@@ -121,7 +121,7 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
     // Doesn't exist in JE
     ignore.insert(u8"Name");
   }
-  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:coral_fan" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow" || nameE == u8"minecraft:banner" || nameE == u8"minecraft:brown_mushroom_block") {
+  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow" || nameE == u8"minecraft:banner" || nameE == u8"minecraft:brown_mushroom_block") {
     // FIXME:
     return;
   }
@@ -350,7 +350,7 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   std::unordered_set<Pos2i, Pos2iHasher> chunkFilter;
   mcfile::Dimension dimensionFilter = mcfile::Dimension::Overworld;
 #if 0
-  chunkFilter.insert({0, 0});
+  chunkFilter.insert({0, 1});
 #endif
 
   // bedrock -> java

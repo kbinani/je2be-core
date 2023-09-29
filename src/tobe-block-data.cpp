@@ -712,7 +712,12 @@ public:
 
   static Converter CoralLegacy(std::u8string const &type, bool dead) { return Converter(Name(u8"coral"), AddStringProperty(u8"coral_color", type), AddBoolProperty(u8"dead_bit", dead)); }
 
-  static Converter CoralFan(std::u8string const &type, bool dead) { return Converter(Name(dead ? u8"coral_fan_dead" : u8"coral_fan"), AddStringProperty(u8"coral_color", type), AddIntProperty(u8"coral_fan_direction", dead ? 0 : 1)); }
+  static Converter CoralFan(std::u8string const &type, bool dead) { return Converter(Name(dead ? u8"coral_fan_dead" : u8"coral_fan"), AddStringProperty(u8"coral_color", type), CoralFanDirection); }
+
+  static void CoralFanDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
+    auto waterlogged = b.property(u8"waterlogged", u8"false") == u8"true";
+    s->set(u8"coral_fan_direction", Int(waterlogged ? 1 : 0));
+  }
 
   static Converter CoralWallFan(std::u8string const &tail, bool dead, i8 type) { return Converter(Name(u8"coral_fan_hang" + tail), AddByteProperty(u8"coral_hang_type_bit", type), Name(FacingD, u8"coral_direction"), AddBoolProperty(u8"dead_bit", dead)); }
 
