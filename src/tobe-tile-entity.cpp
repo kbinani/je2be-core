@@ -563,11 +563,10 @@ private:
         t->set(u8"ItemTime" + mcfile::String::ToString(i + 1), Int(time));
       }
     }
-    auto items = GetItems(c, u8"Items", ctx);
+    auto items = GetItems(c, u8"Items", ctx, {.fConvertSlotTag = false});
     if (items) {
       for (int i = 0; i < 4 && i < items->size(); i++) {
-        auto item = items->at(i);
-        if (item) {
+        if (auto item = items->at(i); item) {
           t->set(u8"Item" + mcfile::String::ToString(i + 1), item);
         }
       }
@@ -1019,7 +1018,7 @@ private:
     }
 
     auto tag = Compound();
-    auto items = GetItems(c, u8"Items", ctx);
+    auto items = GetItems(c, u8"Items", ctx, {.fConvertSlotTag = true});
     if (!items) {
       return nullptr;
     }
@@ -1081,7 +1080,7 @@ private:
 
       if (c) {
         if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
-          if (auto items = GetItems(c, u8"Items", ctx); items) {
+          if (auto items = GetItems(c, u8"Items", ctx, {.fConvertSlotTag = true}); items) {
             tag->set(u8"Items", items);
           }
         }
@@ -1465,7 +1464,7 @@ private:
         {u8"Findable", Bool(false)},
         {u8"isMovable", Bool(true)},
     });
-    auto items = GetItems(c, u8"Items", ctx);
+    auto items = GetItems(c, u8"Items", ctx, {.fConvertSlotTag = true});
     if (items) {
       tag->set(u8"Items", items);
     }
@@ -1543,7 +1542,7 @@ private:
     for (int i = 0; i < capacity; i++) {
       itemsB->push_back(Item::Empty());
     }
-    auto items = GetItems(c, name, ctx);
+    auto items = GetItems(c, name, ctx, {.fConvertSlotTag = true});
     if (!items) {
       return itemsB;
     }
@@ -1566,7 +1565,10 @@ private:
     return itemsB;
   }
 
-  static ListTagPtr GetItems(CompoundTagPtr const &c, std::u8string const &name, Context &ctx) {
+  struct GetItemsOption {
+    bool fConvertSlotTag = true;
+  };
+  static ListTagPtr GetItems(CompoundTagPtr const &c, std::u8string const &name, Context &ctx, GetItemsOption opt) {
     auto tag = List<Tag::Type::Compound>();
     auto list = GetList(c, name);
     if (list == nullptr) {
@@ -1583,8 +1585,10 @@ private:
       }
 
       auto count = inItem->byte(u8"Count", 1);
-      auto slot = inItem->byte(u8"Slot", 0);
-      outItem->set(u8"Slot", Byte(slot));
+      if (opt.fConvertSlotTag) {
+        auto slot = inItem->byte(u8"Slot", 0);
+        outItem->set(u8"Slot", Byte(slot));
+      }
       outItem->set(u8"Count", Byte(count));
 
       tag->push_back(outItem);
@@ -1621,7 +1625,7 @@ private:
     if (comp) {
       tag->set(u8"Items", List<Tag::Type::Compound>());
       if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
-        auto items = GetItems(comp, u8"Items", ctx);
+        auto items = GetItems(comp, u8"Items", ctx, {.fConvertSlotTag = true});
         if (items) {
           tag->set(u8"Items", items);
         }
