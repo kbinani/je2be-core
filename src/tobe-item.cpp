@@ -155,8 +155,9 @@ private:
     throw exception("duplicated block item: " #__name); \
   table->insert(make_pair(u8"" #__name, __func))
 
-    E(brown_mushroom_block, MushroomBlock(14));
-    E(red_mushroom_block, MushroomBlock(14));
+    E(brown_mushroom_block, MushroomBlock(u8"minecraft:brown_mushroom_block", 14));
+    E(red_mushroom_block, MushroomBlock(u8"minecraft:red_mushroom_block", 14));
+    E(mushroom_stem, MushroomBlock(u8"minecraft:brown_mushroom_block", 15));
     E(torch, AnyTorch);
     E(soul_torch, AnyTorch);
     E(redstone_torch, AnyTorch);
@@ -1147,8 +1148,8 @@ private:
     return tag;
   }
 
-  static Converter MushroomBlock(int hugeMushroomBits) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &) -> CompoundTagPtr {
+  static Converter MushroomBlock(std::u8string const &name, int hugeMushroomBits) {
+    return [=](std::u8string const &, CompoundTag const &item, Context const &) -> CompoundTagPtr {
       using namespace std;
 
       auto block = make_shared<Block>(name);

@@ -114,19 +114,55 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
   }
 }
 
+static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) {
+  auto nameE = expected.string(u8"name");
+  set<u8string> ignore;
+  if (nameE == u8"minecraft:brown_mushroom_block") {
+    if (auto statesE = expected.compoundTag(u8"states"); statesE) {
+      if (statesE->int32(u8"huge_mushroom_bits") == 0) {
+        ignore.insert(u8"huge_mushroom_bits");
+      }
+    }
+  }
+  CHECK(nameE == actual.string(u8"name"));
+  auto statesE = expected.compoundTag(u8"states");
+  auto statesA = actual.compoundTag(u8"states");
+  if (statesE) {
+    CHECK(statesA);
+    if (statesA) {
+      auto e = statesE->copy();
+      auto a = statesA->copy();
+      for (auto const &i : ignore) {
+        e->erase(i);
+        a->erase(i);
+      }
+      DiffCompoundTag(*e, *a);
+    }
+  }
+}
+
 static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
   auto nameE = expected.string(u8"Name");
+  auto e = expected.copy();
+  auto a = actual.copy();
   set<u8string> ignore;
   if (nameE == u8"minecraft:field_masoned_banner_pattern" || nameE == u8"minecraft:bordure_indented_banner_pattern") {
     // Doesn't exist in JE
     ignore.insert(u8"Name");
   }
-  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow" || nameE == u8"minecraft:brown_mushroom_block") {
+  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow") {
     // FIXME:
     return;
   }
-  auto e = expected.copy();
-  auto a = actual.copy();
+  auto blockE = expected.compoundTag(u8"Block");
+  auto blockA = actual.compoundTag(u8"Block");
+  if (blockE) {
+    CHECK(blockA);
+    if (blockA) {
+      CheckBlockB(*blockE, *blockA);
+    }
+    ignore.insert(u8"Block");
+  }
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);
