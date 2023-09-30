@@ -150,9 +150,8 @@ private:
   static std::unordered_map<std::u8string, Converter> *CreateBlockItemConverterTable() {
     using namespace std;
     auto table = new unordered_map<u8string, Converter>();
-#define E(__name, __func)                               \
-  if (table->count(u8"" #__name) > 0)                   \
-    throw exception("duplicated block item: " #__name); \
+#define E(__name, __func)                  \
+  assert(table->count(u8"" #__name) == 0); \
   table->insert(make_pair(u8"" #__name, __func))
 
     E(brown_mushroom_block, MushroomBlock(u8"minecraft:brown_mushroom_block", 14));
@@ -180,9 +179,8 @@ private:
     using namespace std;
     auto table = new unordered_map<u8string, Converter>();
 
-#define E(__name, __func)                         \
-  if (table->count(u8"" #__name) > 0)             \
-    throw exception("duplicated item: " #__name); \
+#define E(__name, __func)                  \
+  assert(table->count(u8"" #__name) == 0); \
   table->insert(make_pair(u8"" #__name, __func))
 
     E(furnace_minecart, Rename(u8"minecart")); // furnace minecart does not exist in bedrock
