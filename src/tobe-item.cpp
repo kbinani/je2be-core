@@ -941,9 +941,14 @@ private:
 
       auto e = FireworksExplosion::FromJava(*explosion);
       if (!e.fColor.empty()) {
-        i32 customColor = e.fColor[0].toARGB();
-        tag->set(u8"customColor", Int(customColor));
+        i8 damage = FireworksExplosion::GetBedrockColorCode(e.fColor[0]);
+        data->set(u8"Damage", Short(damage));
+
+        if (auto customColor = FireworksExplosion::BedrockCustomColorFromColorCode(damage); customColor) {
+          tag->set(u8"customColor", Int(*customColor));
+        }
       }
+
       tag->set(u8"FireworksItem", e.toBedrockCompoundTag());
       data->set(u8"tag", tag);
     }

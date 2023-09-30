@@ -127,7 +127,6 @@ public:
     return ret;
   }
 
-private:
   static i8 GetBedrockColorCode(Rgba rgb) {
     auto const *table = GetTable();
     i32 code = rgb.toRGB();
@@ -139,6 +138,17 @@ private:
     return MostSimilarColor(rgb);
   }
 
+  static std::optional<i32> BedrockCustomColorFromColorCode(i8 code) {
+    auto const &table = BedrockCustomColorTable();
+    if (auto found = table.find(code); found != table.end()) {
+      u32 color = u32(0xff000000) | (u32)found->second;
+      return *(i32 *)&color;
+    } else {
+      return std::nullopt;
+    }
+  }
+
+private:
   static std::unordered_map<i8, Rgba> const *GetTable() {
     static std::unique_ptr<std::unordered_map<i8, Rgba> const> const sTable(CreateTable());
     return sTable.get();
@@ -163,6 +173,32 @@ private:
         {14, Rgba::FromRGB(15435844)}, // orange
         {15, Rgba::FromRGB(15790320)}, // white
     });
+  }
+
+  static std::unordered_map<i8, i32> *CreateBedrockCustomColorTable() {
+    return new std::unordered_map<i8, i32>({
+        {0, 0x1d1d21},  // black
+        {1, 0xb02e26},  // red
+        {2, 0x5e7c16},  // green
+        {3, 0x835432},  // brown
+        {4, 0x3c44aa},  // blue
+        {5, 0x8932b8},  // purple
+        {6, 0x169c9c},  // cyan
+        {7, 0x9d9d97},  // light gray
+        {8, 0x474f52},  // gray
+        {9, 0xf38baa},  // pink
+        {10, 0x80c71f}, // lime
+        {11, 0xfed83d}, // yellow
+        {12, 0x3ab3da}, // light blue
+        {13, 0xc74ebd}, // magenta
+        {14, 0xf9801d}, // orange
+        {15, 0xf0f0f0}, // white
+    });
+  }
+
+  static std::unordered_map<i8, i32> const &BedrockCustomColorTable() {
+    static std::unique_ptr<std::unordered_map<i8, i32> const> const sTable(CreateBedrockCustomColorTable());
+    return *sTable;
   }
 
   static i8 MostSimilarColor(Rgba rgb) {

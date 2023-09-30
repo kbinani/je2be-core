@@ -159,10 +159,6 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
       CHECK(actual.int16(u8"Damage") == 4);
     }
   }
-  if (nameE == u8"minecraft:firework_star") {
-    // FIXME:
-    return;
-  }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
   if (blockE) {
