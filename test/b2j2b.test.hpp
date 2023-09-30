@@ -149,8 +149,11 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
   if (nameE == u8"minecraft:field_masoned_banner_pattern" || nameE == u8"minecraft:bordure_indented_banner_pattern") {
     // Doesn't exist in JE
     ignore.insert(u8"Name");
+  } else if (nameE == u8"minecraft:empty_map") {
+    // Empty Locator Map (Damage=2) doesn't exist in JE
+    ignore.insert(u8"Damage");
   }
-  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:empty_map" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow") {
+  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow") {
     // FIXME:
     return;
   }
