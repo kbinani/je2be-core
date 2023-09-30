@@ -41,6 +41,7 @@ public:
         {u8"minecraft:strong_strength", 34},
         {u8"minecraft:weakness", 35},
         {u8"minecraft:long_weakness", 36},
+        {u8"minecraft:wither", 37}, // NOTE: wither tipped arrow doesn't exist in JE
         {u8"minecraft:turtle_master", 38},
         {u8"minecraft:long_turtle_master", 39},
         {u8"minecraft:strong_turtle_master", 40},
