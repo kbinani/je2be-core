@@ -23,6 +23,8 @@
 #include "tobe/_tile-entity.hpp"
 #include "tobe/_world-data.hpp"
 
+#include <atomic>
+
 namespace je2be::tobe {
 
 class Item::Impl {
@@ -67,18 +69,14 @@ private:
     auto const &blockItemMapping = BlockItemConverterTable();
     auto const &itemMapping = ItemConverterTable();
 #if !defined(NDEBUG)
-    static atomic_bool sChecked(false);
+    static atomic<bool> sChecked(false);
     if (!sChecked.exchange(true)) {
       unordered_set<u8string> count;
       for (auto const &it : blockItemMapping) {
         count.insert(it.first);
       }
       for (auto const &it : itemMapping) {
-        if (count.count(it.first) != 0) {
-          using namespace mcfile::u8stream;
-          ostringstream ss;
-          throw exception(ss.str().c_str());
-        }
+        assert(count.count(it.first) == 0);
       }
     }
 #endif
