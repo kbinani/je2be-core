@@ -139,10 +139,10 @@ public:
     return new ReversibleMap<std::u8string, i16>({
         {u8"minecraft:water", 0},
         {u8"minecraft:mundane", 1},
+        {u8"minecraft:thick", 3},
+        {u8"minecraft:awkward", 4},
         {u8"minecraft:night_vision", 5},
         {u8"minecraft:long_night_vision", 6},
-        {u8"minecraft:thick", 2},
-        {u8"minecraft:awkward", 3},
         {u8"minecraft:invisibility", 7},
         {u8"minecraft:long_invisibility", 8},
         {u8"minecraft:leaping", 9},
@@ -155,7 +155,6 @@ public:
         {u8"minecraft:strong_swiftness", 16},
         {u8"minecraft:slowness", 17},
         {u8"minecraft:long_slowness", 18},
-        {u8"minecraft:strong_slowness", 42},
         {u8"minecraft:water_breathing", 19},
         {u8"minecraft:long_water_breathing", 20},
         {u8"minecraft:healing", 21},
@@ -173,11 +172,13 @@ public:
         {u8"minecraft:strong_strength", 33},
         {u8"minecraft:weakness", 34},
         {u8"minecraft:long_weakness", 35},
+        {u8"minecraft:wither", 36}, // NOTE: wither potion doesn't exist in JE
         {u8"minecraft:turtle_master", 37},
         {u8"minecraft:long_turtle_master", 38},
         {u8"minecraft:strong_turtle_master", 39},
         {u8"minecraft:slow_falling", 40},
         {u8"minecraft:long_slow_falling", 41},
+        {u8"minecraft:strong_slowness", 42},
     });
   }
 
@@ -197,6 +198,8 @@ public:
     auto found = table->backward(t);
     if (found) {
       name = *found;
+    } else if (t == 2) {
+      name = u8"minecraft:awkward";
     }
     return name;
   }

@@ -152,8 +152,14 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
   } else if (nameE == u8"minecraft:empty_map") {
     // Empty Locator Map (Damage=2) doesn't exist in JE
     ignore.insert(u8"Damage");
+  } else if (nameE == u8"minecraft:potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:lingering_potion") {
+    if (expected.int16(u8"Damage") == 2) {
+      // Long mundane potion doesn't exist in JE
+      ignore.insert(u8"Damage");
+      CHECK(actual.int16(u8"Damage") == 4);
+    }
   }
-  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:potion" || nameE == u8"minecraft:lingering_potion" || nameE == u8"minecraft:splash_potion" || nameE == u8"minecraft:arrow") {
+  if (nameE == u8"minecraft:firework_star" || nameE == u8"minecraft:firework_rocket" || nameE == u8"minecraft:arrow") {
     // FIXME:
     return;
   }
