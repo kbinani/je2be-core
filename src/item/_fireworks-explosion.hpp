@@ -90,13 +90,11 @@ public:
       }
       ret->set(u8"FireworkColor", std::make_shared<ByteArrayTag>(colors));
     }
-    if (!fFadeColor.empty()) {
-      std::vector<u8> fade;
-      for (Rgba f : fFadeColor) {
-        fade.push_back(GetBedrockColorCode(f));
-      }
-      ret->set(u8"FireworkFade", std::make_shared<ByteArrayTag>(fade));
+    std::vector<u8> fade;
+    for (Rgba f : fFadeColor) {
+      fade.push_back(GetBedrockColorCode(f));
     }
+    ret->set(u8"FireworkFade", std::make_shared<ByteArrayTag>(fade));
     return ret;
   }
 
