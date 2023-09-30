@@ -26,7 +26,7 @@ public:
       B(doFireTick, dofiretick, true);
       B(doImmediateRespawn, doimmediaterespawn, false);
       B(doInsomnia, doinsomnia, true);
-      // doLimitedCrafting
+      B(doLimitedCrafting, dolimitedcrafting, false);
       B(doMobLoot, domobloot, true);
       B(doMobSpawning, domobspawning, true);
       // doPatrolSpawning
@@ -46,12 +46,15 @@ public:
       B(mobGriefing, mobgriefing, true);
       B(naturalRegeneration, naturalregeneration, true);
       I(randomTickSpeed, randomtickspeed, 3);
-      // reducedDebugInfo
+      // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
+      auto showcoordinates = b.boolean(u8"showcoordinates", true);
+      j[u8"reducedDebugInfo"] = String(showcoordinates ? u8"false" : u8"true");
       B(sendCommandFeedback, sendcommandfeedback, true);
       B(showDeathMessages, showdeathmessages, true);
       I(spawnRadius, spawnradius, 10);
       // spectatorsGenerateChunks
       // universalAnger
+      I(playersSleepingPercentage, playerssleepingpercentage, 100);
 #undef B
 #undef I
 

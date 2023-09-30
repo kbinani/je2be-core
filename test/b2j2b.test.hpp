@@ -14,6 +14,16 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   if (!e || !a) {
     return;
   }
+  set<u8string> ignore;
+  ignore.insert(u8"hasBeenLoadedInCreative");
+  ignore.insert(u8"lastOpenedWithVersion");
+  ignore.insert(u8"recipesunlock");
+  ignore.insert(u8"serverChunkTickRange");
+  ignore.insert(u8"worldStartCount");
+  for (auto const &i : ignore) {
+    e->erase(i);
+    a->erase(i);
+  }
   DiffCompoundTag(*e, *a);
 }
 
@@ -423,7 +433,7 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(st.ok());
 
   // Compare initial Bedrock input and final Bedrock output.
-  // CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
   unique_ptr<leveldb::DB> dbE(OpenF(*inB / "db"));
   unique_ptr<leveldb::DB> dbA(OpenF(*outB / "db"));
   REQUIRE(dbE);

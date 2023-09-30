@@ -186,6 +186,7 @@ public:
       for (auto const &ex : levelData->fExperiments) {
         level.fExperiments[ex] = true;
       }
+      level.fCheatsEnabled = levelData->fAllowCommand;
       ok = level.write(output / "level.dat");
       if (ok) {
         if (auto st = levelData->put(db, *data); !st.ok()) {

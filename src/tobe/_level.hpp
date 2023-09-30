@@ -26,6 +26,7 @@ public:
   i64 fCurrentTick = 0;
   i32 fDifficulty = 2;
   std::u8string fFlatWorldLayers = u8"null\x0a";
+
   bool fDoDaylightCycle = true;
   bool fDoEntityDrops = true;
   bool fDoFireTick = true;
@@ -36,6 +37,11 @@ public:
   bool fDoTileDrops = true;
   bool fDoWeatherCycle = true;
   bool fDrowningDamage = true;
+  bool fDoLimitedCrafting = false;
+  i32 fPlayersSleepingPercentage = 100;
+  bool fRecipeUnlock = true;
+  bool fRespawnBlocksExplode = true;
+
   bool fEducationFeaturesEnabled = false;
   i32 fEduOffer = 0;
   std::unordered_map<std::u8string, bool> fExperiments;
@@ -55,16 +61,16 @@ public:
   bool fLANBroadcastIntent = true;
   i64 fLastPlayed = 0;
   std::u8string fLevelName = u8"";
-  i32 fLimitedWorldOriginX = 1852;
+  i32 fLimitedWorldOriginX = 0;
   i32 fLimitedWorldOriginY = 32767;
-  i32 fLimitedWorldOriginZ = 4;
+  i32 fLimitedWorldOriginZ = 0;
   bool fMultiplayerGame = true;
   bool fMultiplayerGameIntent = true;
   bool fNaturalRegeneration = true;
   i32 fNetherScale = 8;
   i32 fNetworkVersion = kNetworkVersion;
   i32 fPlatform = 2;
-  i32 fPlatformBroadcastIntent = 3;
+  i32 fPlatformBroadcastIntent = 2;
   std::u8string fPrid = u8"";
   bool fPvp = true;
   float fRainLevel = 0;
@@ -90,7 +96,7 @@ public:
   bool fTntExplodes = true;
   bool fUseMsaGamertagsOnly = false;
   i64 fWorldStartCount = 0;
-  i32 fXBLBroadcastIntent = 3;
+  i32 fXBLBroadcastIntent = 2;
   bool fIsFromLockedTemplate = false;
   bool fIsFromWorldTemplate = false;
   bool fIsSingleUseWorld = false;
@@ -103,6 +109,15 @@ public:
   i32 fLimitedWorldDepth = 16;
   i32 fLimitedWorldWidth = 16;
   i32 fMaxCommandChainLength = 65535;
+  i32 fWorldVersion = 1;
+  bool fCheatsEnabled = false;
+  i32 fEditorWorldType = 0;
+  bool fIsCreatedInEditor = false;
+  bool fIsExportedFromEditor = false;
+  bool fIsRandomSeedAllowed = false;
+  int fPermissionsLevel = 0;
+  int fPlayerPermissionsLevel = 1;
+  bool fShowborderEffect = true;
 
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
@@ -197,16 +212,31 @@ public:
         {u8"limitedWorldDepth", Int(fLimitedWorldDepth)},
         {u8"limitedWorldWidth", Int(fLimitedWorldWidth)},
         {u8"maxcommandchainlength", Int(fMaxCommandChainLength)},
+        {u8"WorldVersion", Int(fWorldVersion)},
+        {u8"cheatsEnabled", Bool(fCheatsEnabled)},
+        {u8"daylightCycle", Int(fDoDaylightCycle ? 0 : 1)},
+        {u8"dolimitedcrafting", Bool(fDoLimitedCrafting)},
+        {u8"editorWorldType", Int(fEditorWorldType)},
+        {u8"isCreatedInEditor", Bool(fIsCreatedInEditor)},
+        {u8"isExportedFromEditor", Bool(fIsExportedFromEditor)},
+        {u8"isRandomSeedAllowed", Bool(fIsRandomSeedAllowed)},
+        {u8"permissionsLevel", Int(fPermissionsLevel)},
+        {u8"playerPermissionsLevel", Int(fPlayerPermissionsLevel)},
+        {u8"playerssleepingpercentage", Int(fPlayersSleepingPercentage)},
+        {u8"recipesunlock", Bool(fRecipeUnlock)},
+        {u8"respawnblocksexplode", Bool(fRespawnBlocksExplode)},
+        {u8"showbordereffect", Bool(fShowborderEffect)},
+        {u8"world_policies", Compound()},
     });
+    auto experiments = Compound();
+    experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
+    experiments->set(u8"saved_with_toggled_experiments", Bool(!fExperiments.empty()));
     if (!fExperiments.empty()) {
-      auto experiments = Compound();
-      experiments->set(u8"experiments_ever_used", Bool(true));
-      experiments->set(u8"saved_with_toggled_experiments", Bool(true));
       for (auto const &it : fExperiments) {
         experiments->set(it.first, Bool(it.second));
       }
-      root->set(u8"experiments", experiments);
     }
+    root->set(u8"experiments", experiments);
     return root;
   }
 
@@ -246,6 +276,8 @@ public:
     I(fSpawnY, int32, u8"SpawnY");
     I(fSpawnZ, int32, u8"SpawnZ");
     I(fCurrentTick, int64, u8"Time");
+    I(fLimitedWorldOriginX, float64, u8"BorderCenterX");
+    I(fLimitedWorldOriginZ, float64, u8"BorderCenterZ");
     ret.fLastPlayed = data->int64(u8"LastPlayed", ret.fLastPlayed * 1000) / 1000;
 #undef I
 
@@ -273,7 +305,7 @@ public:
       S(doFireTick, ret.fDoFireTick);
       S(doImmediateRespawn, ret.fDoImmediateRespawn);
       S(doInsomnia, ret.fDoInsomnia);
-      // doLimitedCrafting
+      S(doLimitedCrafting, ret.fDoLimitedCrafting);
       S(doMobLoot, ret.fDoMobLoot);
       S(doMobSpawning, ret.fDoMobSpawning);
       S(doTileDrops, ret.fDoTileDrops);
@@ -291,12 +323,14 @@ public:
       S(mobGriefing, ret.fMobGriefing);
       S(naturalRegeneration, ret.fNaturalRegeneration);
       I(randomTickSpeed, ret.fRandomTickSpeed);
-      // reducedDebugInfo
       S(sendCommandFeedback, ret.fSendCommandFeedback);
       S(showDeathMessages, ret.fShowDeathMessages);
       I(spawnRadius, ret.fSpawnRadius);
       // spectatorsGenerateChunks
       // universalAnger
+      I(playersSleepingPercentage, ret.fPlayersSleepingPercentage);
+      // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
+      ret.fShowCoordinates = gameRules->string(u8"reducedDebugInfo", u8"false") != u8"true";
 #undef S
 #undef I
     }

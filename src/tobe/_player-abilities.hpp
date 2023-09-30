@@ -11,15 +11,13 @@ public:
   bool fDoorsAndSwitches = true;
   bool fFlying = false;
   float fFlySpeed = 0.05f;
-  bool fInstabuild = true;
-  bool fInvulnerable = true;
+  bool fInstabuild = false;
+  bool fInvulnerable = false;
   bool fLightning = false;
-  bool fMayFly = true;
+  bool fMayFly = false;
   bool fMine = true;
   bool fOp = false;
   bool fOpenContainers = true;
-  int fPermissionsLevel = 0;
-  int fPlayerPermissionsLevel = 1;
   bool fTeleport = false;
   float fWalkSpeed = 0.1f;
 
@@ -39,8 +37,6 @@ public:
         {u8"mine", Bool(fMine)},
         {u8"op", Bool(fOp)},
         {u8"opencontainers", Bool(fOpenContainers)},
-        {u8"permissionsLevel", Int(fPermissionsLevel)},
-        {u8"playerPermissionsLevel", Int(fPlayerPermissionsLevel)},
         {u8"teleport", Bool(fTeleport)},
         {u8"walkSpeed", Float(fWalkSpeed)},
     });

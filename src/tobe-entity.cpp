@@ -438,8 +438,6 @@ public:
       if (ctx.fAllowCommand) {
         converted.fOp = true;
         converted.fTeleport = true;
-        converted.fPermissionsLevel = 3;
-        converted.fPlayerPermissionsLevel = 2;
       }
       entity->set(u8"abilities", converted.toCompoundTag());
     }
