@@ -374,39 +374,123 @@ private:
     bool newSeaLevel = in->boolean(u8"newSeaLevel", false);
     auto flat = in->string(u8"generatorName") == u8"flat";
 
-    JavaLevelDat::Options o;
-    o.fBonusChestEnabled = in->boolean(u8"spawnBonusChest");
-    o.fDataVersion = Chunk::kTargetDataVersion;
-    o.fRandomSeed = in->int64(u8"RandomSeed");
-    o.fVersionString = Chunk::TargetVersionString();
+    auto bonusChestEnabled = in->boolean(u8"spawnBonusChest");
+    auto randomSeed = in->int64(u8"RandomSeed");
+    CompoundTagPtr flatWorldSettings;
     if (flat) {
       // auto generatorVersion = in->int32(u8"generatorVersion");
       // generatorVersion
       // 0: TU9, TU67, TU74
 
-      o.fFlatWorldSettings = FlatWorldSettings();
+      flatWorldSettings = FlatWorldSettings();
     } else {
-      o.fFlatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
+      flatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
     }
-    o.fEnabledDataPacks.push_back(u8"file/nether3x");
-    auto out = JavaLevelDat::TemplateData(o);
+    vector<u8string> enabledDataPacks;
+    enabledDataPacks.push_back(u8"file/nether3x");
 
-    CopyBoolValues(*in, *out, {{u8"allowCommands"}, {u8"DifficultyLocked"}, {u8"hardcore"}, {u8"initialized"}, {u8"raining"}, {u8"thundering"}});
-    CopyByteValues(*in, *out, {{u8"Difficulty"}});
-    CopyIntValues(*in, *out, {{u8"rainTime"}, {u8"GameType"}, {u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}, {u8"thunderTime"}, {u8"clearWeatherTime"}});
-    CopyLongValues(*in, *out, {{u8"DayTime"}, {u8"Time"}});
-    CopyStringValues(*in, *out, {{u8"LevelName"}});
+    auto data = Compound();
+    CompoundTag &j = *data;
+
+    j[u8"DataVersion"] = Int(Chunk::kTargetDataVersion);
+    j[u8"version"] = Int(19133);
+
+    {
+      auto dataPacks = Compound();
+      dataPacks->set(u8"Disabled", List<Tag::Type::String>());
+      auto enabled = List<Tag::Type::String>();
+      enabled->push_back(String(u8"vanilla"));
+      for (auto const &pack : enabledDataPacks) {
+        enabled->push_back(String(pack));
+      }
+      dataPacks->set(u8"Enabled", enabled);
+      j[u8"DataPacks"] = dataPacks;
+    }
+    {
+      auto brands = List<Tag::Type::String>();
+      brands->push_back(String(u8"vanilla"));
+      j[u8"ServerBrands"] = brands;
+    }
+    {
+      auto version = Compound();
+      version->set(u8"Id", Int(Chunk::kTargetDataVersion));
+      version->set(u8"Name", String(Chunk::TargetVersionString()));
+      version->set(u8"Series", String(u8"main"));
+      version->set(u8"Snapshot", Bool(false));
+      j[u8"Version"] = version;
+    }
+
+    auto worldGenSettings = Compound();
+    if (in->boolean(u8"spawnBonusChest", false)) {
+      worldGenSettings->set(u8"bonus_chest", Bool(true));
+    }
+    worldGenSettings->set(u8"generate_features", Bool(true));
+    if (randomSeed) {
+      worldGenSettings->set(u8"seed", Long(*randomSeed));
+      auto dimensions = Compound();
+      {
+        auto overworld = Compound();
+        auto generator = Compound();
+        if (flatWorldSettings) {
+          generator->set(u8"type", String(u8"minecraft:flat"));
+          generator->set(u8"settings", flatWorldSettings);
+        } else {
+          auto biomeSource = Compound();
+          biomeSource->set(u8"preset", String(u8"minecraft:overworld"));
+          biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+          generator->set(u8"biome_source", biomeSource);
+          generator->set(u8"settings", String(u8"minecraft:overworld"));
+          generator->set(u8"type", String(u8"minecraft:noise"));
+        }
+        overworld->set(u8"generator", generator);
+        overworld->set(u8"type", String(u8"minecraft:overworld"));
+        dimensions->set(u8"minecraft:overworld", overworld);
+      }
+      {
+        auto end = Compound();
+        auto generator = Compound();
+        auto biomeSource = Compound();
+        biomeSource->set(u8"type", String(u8"minecraft:the_end"));
+        generator->set(u8"biome_source", biomeSource);
+        generator->set(u8"settings", String(u8"minecraft:end"));
+        generator->set(u8"type", String(u8"minecraft:noise"));
+        end->set(u8"generator", generator);
+        end->set(u8"type", String(u8"minecraft:the_end"));
+        dimensions->set(u8"minecraft:the_end", end);
+      }
+      {
+        auto nether = Compound();
+        auto generator = Compound();
+        auto biomeSource = Compound();
+        biomeSource->set(u8"preset", String(u8"minecraft:nether"));
+        biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+        generator->set(u8"biome_source", biomeSource);
+        generator->set(u8"settings", String(u8"minecraft:nether"));
+        generator->set(u8"type", String(u8"minecraft:noise"));
+        nether->set(u8"generator", generator);
+        nether->set(u8"type", String(u8"minecraft:the_nether"));
+        dimensions->set(u8"minecraft:the_nether", nether);
+      }
+      worldGenSettings->set(u8"dimensions", dimensions);
+    }
+    j[u8"WorldGenSettings"] = worldGenSettings;
+
+    CopyBoolValues(*in, j, {{u8"allowCommands"}, {u8"DifficultyLocked"}, {u8"hardcore"}, {u8"initialized"}, {u8"raining"}, {u8"thundering"}});
+    CopyByteValues(*in, j, {{u8"Difficulty"}});
+    CopyIntValues(*in, j, {{u8"rainTime"}, {u8"GameType"}, {u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}, {u8"thunderTime"}, {u8"clearWeatherTime"}});
+    CopyLongValues(*in, j, {{u8"DayTime"}, {u8"Time"}});
+    CopyStringValues(*in, j, {{u8"LevelName"}});
 
     if (lastPlayed) {
       // NOTE: LastPlayed in the level.dat from xbox360 edition is wired. Use timestamp of savegame.dat for it
       i64 ms = chrono::duration_cast<chrono::milliseconds>(lastPlayed->time_since_epoch()).count();
-      out->set(u8"LastPlayed", Long(ms));
+      j[u8"LastPlayed"] = Long(ms);
     }
 
-    out->set(u8"BorderCenterX", Double(0));
-    out->set(u8"BorderCenterZ", Double(0));
-    out->set(u8"BorderSize", Double(992));
-    out->set(u8"BorderWarningBlocks", Double(0));
+    j[u8"BorderCenterX"] = Double(0);
+    j[u8"BorderCenterZ"] = Double(0);
+    j[u8"BorderSize"] = Double(992);
+    j[u8"BorderWarningBlocks"] = Double(0);
 
     if (auto dimensionData = in->compoundTag(u8"DimensionData"); dimensionData) {
       if (auto theEnd = dimensionData->compoundTag(u8"The End"); theEnd) {
@@ -418,17 +502,17 @@ private:
               dragonFightJ->erase(u8"DragonUUID");
             }
           }
-          out->set(u8"DragonFight", dragonFightJ);
+          j[u8"DragonFight"] = dragonFightJ;
         }
       }
     }
 
     if (localPlayer) {
-      out->set(u8"Player", localPlayer->fPlayer.copy());
+      j[u8"Player"] = localPlayer->fPlayer.copy();
     }
 
     auto outRoot = Compound();
-    outRoot->set(u8"Data", out);
+    outRoot->set(u8"Data", data);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
     if (CompoundTag::Write(*outRoot, outStream, mcfile::Endian::Big)) {
       return Status::Ok();
@@ -483,11 +567,6 @@ private:
     flatSettings->set(u8"structures", structures);
 
     auto layers = List<Tag::Type::Compound>();
-
-    auto air = Compound();
-    air->set(u8"block", String(u8"minecraft:air"));
-    air->set(u8"height", Int(64));
-    layers->push_back(air);
 
     auto bedrock = Compound();
     bedrock->set(u8"block", String(u8"minecraft:bedrock"));

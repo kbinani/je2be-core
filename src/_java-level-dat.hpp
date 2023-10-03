@@ -48,7 +48,7 @@ public:
     }
     {
       auto version = Compound();
-      version->set(u8"Id", Int(toje::kDataVersion));
+      version->set(u8"Id", Int(o.fDataVersion));
       version->set(u8"Name", String(o.fVersionString));
       version->set(u8"Series", String(u8"main"));
       version->set(u8"Snapshot", Bool(false));
