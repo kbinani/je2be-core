@@ -378,7 +378,7 @@ private:
     // 256 bytes: biome 16x16
     // n bytes: nbt (to the end of file)
 
-    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+    auto chunk = MakeEmpty(cx, cz);
 
     Data3dSq<u8, 16> blockId({0, 0, 0}, 256, 0);
     Data3dSq<u8, 16> blockData({0, 0, 0}, 256, 0);
@@ -585,7 +585,7 @@ private:
       return JE2BE_ERROR;
     }
 
-    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+    auto chunk = MakeEmpty(cx, cz);
 
     Data3dSq<u8, 16> blockId({0, 0, 0}, maxY, 0);
     Data3dSq<u8, 16> blockData({0, 0, 0}, maxY, 0);
@@ -676,7 +676,7 @@ private:
                            std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
-    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+    auto chunk = MakeEmpty(cx, cz);
 
     // i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
     // i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
@@ -904,6 +904,12 @@ private:
       }
       chunk.fEntities.push_back(converted->fEntity);
     }
+  }
+
+  static std::shared_ptr<mcfile::je::WritableChunk> MakeEmpty(int cx, int cz) {
+    auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
+    chunk->fLegacyBiomes.resize(1024);
+    return chunk;
   }
 };
 
