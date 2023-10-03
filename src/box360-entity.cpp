@@ -156,11 +156,23 @@ private:
   }
 
   static bool Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    auto direction = in.byte(u8"Direction", 0);
+    auto f4 = Facing4FromNorth2East3South0West1(direction);
+
     if (auto motiveX = in.string(u8"Motive"); motiveX) {
       auto motive = Painting::MotiveFromBedrock(*motiveX);
       auto motiveJ = Painting::JavaFromMotive(motive);
-      out->set(u8"variant", String(motiveJ));
+      out->set(u8"Motive", String(motiveJ));
+
+      if (auto pos = props::GetPos3d(in, u8"Pos"); pos) {
+        if (auto tileOut = Painting::JavaTilePosFromBedrockPos(pos->toF(), f4, motive); tileOut) {
+          out->set(u8"TileX", Int(tileOut->fX));
+          out->set(u8"TileY", Int(tileOut->fY));
+          out->set(u8"TileZ", Int(tileOut->fZ));
+        }
+      }
     }
+    out->set(u8"Facing", Byte(direction));
     return true;
   }
 
