@@ -374,8 +374,6 @@ private:
     bool newSeaLevel = in->boolean(u8"newSeaLevel", false);
     auto flat = in->string(u8"generatorName") == u8"flat";
 
-    auto bonusChestEnabled = in->boolean(u8"spawnBonusChest");
-    auto randomSeed = in->int64(u8"RandomSeed");
     CompoundTagPtr flatWorldSettings;
     if (flat) {
       // auto generatorVersion = in->int32(u8"generatorVersion");
@@ -425,7 +423,7 @@ private:
       worldGenSettings->set(u8"bonus_chest", Bool(true));
     }
     worldGenSettings->set(u8"generate_features", Bool(true));
-    if (randomSeed) {
+    if (auto randomSeed = in->int64(u8"RandomSeed"); randomSeed) {
       worldGenSettings->set(u8"seed", Long(*randomSeed));
       auto dimensions = Compound();
       {
