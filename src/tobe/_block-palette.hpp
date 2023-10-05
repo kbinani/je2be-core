@@ -39,6 +39,9 @@ public:
 
   void resolveDuplication() {
     using namespace std;
+    if (fPalette.size() < 2) {
+      return;
+    }
     vector<CompoundTagPtr> palette;
     vector<u16> paletteMap;
     vector<u16> indices;
