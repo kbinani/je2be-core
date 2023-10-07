@@ -165,7 +165,7 @@ private:
       out->set(u8"Motive", String(motiveJ));
 
       if (auto pos = props::GetPos3d(in, u8"Pos"); pos) {
-        if (auto tileOut = Painting::JavaTilePosFromBedrockPos(pos->toF(), f4, motive); tileOut) {
+        if (auto tileOut = Painting::JavaTilePosFromLegacyConsolePos(pos->toF(), f4, motive); tileOut) {
           out->set(u8"TileX", Int(tileOut->fX));
           out->set(u8"TileY", Int(tileOut->fY));
           out->set(u8"TileZ", Int(tileOut->fZ));

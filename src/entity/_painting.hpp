@@ -194,6 +194,50 @@ public:
   }
 
   static std::optional<Pos3i> JavaTilePosFromBedrockPos(Pos3f pos, Facing4 direction, Motive motive) {
+    return JavaTilePosFromBedrockOrLegacyConsolePos(pos, direction, motive);
+  }
+
+  static std::optional<Pos3i> JavaTilePosFromLegacyConsolePos(Pos3f pos, Facing4 direction, Motive motive) {
+    return JavaTilePosFromBedrockOrLegacyConsolePos(pos, direction, motive);
+  }
+
+  static std::optional<Pos3f> BedrockPosFromJavaTilePos(Pos3i tile, Facing4 direction, Motive motive) {
+    auto size = PaintingSize(motive);
+    if (!size) {
+      return std::nullopt;
+    }
+    float const thickness = 1.0f / 32.0f;
+
+    int dh = 0;
+    int dv = 0;
+    if (size->fWidth >= 4) {
+      dh = 1;
+    }
+    if (size->fHeight >= 3) {
+      dv = 1;
+    }
+
+    float x, z;
+    float y = tile.fY - dv + size->fHeight * 0.5f;
+
+    if (direction == Facing4::South) {
+      x = tile.fX - dh + size->fWidth * 0.5f;
+      z = tile.fZ + thickness;
+    } else if (direction == Facing4::West) {
+      x = tile.fX + 1 - thickness;
+      z = tile.fZ - dh + size->fWidth * 0.5f;
+    } else if (direction == Facing4::North) {
+      x = tile.fX + 1 + dh - size->fWidth * 0.5f;
+      z = tile.fZ + 1 - thickness;
+    } else {
+      x = tile.fX + thickness;
+      z = tile.fZ + 1 + dh - size->fWidth * 0.5f;
+    }
+    return Pos3f(x, y, z);
+  }
+
+private:
+  static std::optional<Pos3i> JavaTilePosFromBedrockOrLegacyConsolePos(Pos3f pos, Facing4 direction, Motive motive) {
     auto size = PaintingSize(motive);
     if (!size) {
       return std::nullopt;
@@ -232,41 +276,6 @@ public:
       break;
     }
     return Pos3i((int)round(tileX), (int)round(tileY), (int)round(tileZ));
-  }
-
-  static std::optional<Pos3f> BedrockPosFromJavaTilePos(Pos3i tile, Facing4 direction, Motive motive) {
-    auto size = PaintingSize(motive);
-    if (!size) {
-      return std::nullopt;
-    }
-    float const thickness = 1.0f / 32.0f;
-
-    int dh = 0;
-    int dv = 0;
-    if (size->fWidth >= 4) {
-      dh = 1;
-    }
-    if (size->fHeight >= 3) {
-      dv = 1;
-    }
-
-    float x, z;
-    float y = tile.fY - dv + size->fHeight * 0.5f;
-
-    if (direction == Facing4::South) {
-      x = tile.fX - dh + size->fWidth * 0.5f;
-      z = tile.fZ + thickness;
-    } else if (direction == Facing4::West) {
-      x = tile.fX + 1 - thickness;
-      z = tile.fZ - dh + size->fWidth * 0.5f;
-    } else if (direction == Facing4::North) {
-      x = tile.fX + 1 + dh - size->fWidth * 0.5f;
-      z = tile.fZ + 1 - thickness;
-    } else {
-      x = tile.fX + thickness;
-      z = tile.fZ + 1 + dh - size->fWidth * 0.5f;
-    }
-    return Pos3f(x, y, z);
   }
 };
 
