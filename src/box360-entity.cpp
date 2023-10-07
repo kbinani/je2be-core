@@ -5,6 +5,7 @@
 #include "box360/_context.hpp"
 #include "box360/_item.hpp"
 #include "entity/_painting.hpp"
+#include "enums/_facing6.hpp"
 #include "tile-entity/_loot-table.hpp"
 
 namespace je2be::box360 {
@@ -127,24 +128,48 @@ private:
   }
 
   static bool ItemFrame(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    i8 facingB = in.byte(u8"Facing", 0);
+    // (tu16)Direction  (tu16)Dir  (j)Facing  physical facing
+    // 2                0          2          north
+    // 3                3          5          east
+    // 0                2          3          south
+    // 1                1          4          west
+    // N/A              N/A        1          up
+    // N/A              N/A        0          down
+
+    i8 facingB = in.byte(u8"Facing", in.byte(u8"Direction", 0));
+    Facing6 facing;
     i8 facingJ;
     switch (facingB) {
     case 1:
+      facing = Facing6::West;
       facingJ = 4;
       break;
     case 2:
       facingJ = 2;
+      facing = Facing6::North;
       break;
     case 3:
       facingJ = 5;
+      facing = Facing6::East;
       break;
     case 0:
     default:
       facingJ = 3;
+      facing = Facing6::South;
       break;
     }
     out->set(u8"Facing", Byte(facingJ));
+
+    auto xTileX = in.int32(u8"TileX");
+    auto xTileY = in.int32(u8"TileY");
+    auto xTileZ = in.int32(u8"TileZ");
+    if (xTileX && xTileY && xTileZ) {
+      Pos3i vec = Pos3iFromFacing6(facing);
+      Pos3i jTile = Pos3i(*xTileX, *xTileY, *xTileZ) + vec;
+      out->set(u8"TileX", Int(jTile.fX));
+      out->set(u8"TileY", Int(jTile.fY));
+      out->set(u8"TileZ", Int(jTile.fZ));
+    }
 
     if (auto item = in.compoundTag(u8"Item"); item) {
       if (auto converted = Item::Convert(*item, ctx); converted) {
