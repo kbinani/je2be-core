@@ -136,10 +136,13 @@ private:
     // N/A              N/A        1          up
     // N/A              N/A        0          down
 
-    i8 facingB = in.byte(u8"Facing", in.byte(u8"Direction", 0));
+    auto directionB = in.byte(u8"Direction");
+    i8 facingB = in.byte(u8"Facing", 0);
+    i8 f = directionB ? *directionB : facingB;
+
     Facing6 facing;
     i8 facingJ;
-    switch (facingB) {
+    switch (f) {
     case 1:
       facing = Facing6::West;
       facingJ = 4;
@@ -165,7 +168,12 @@ private:
     auto xTileZ = in.int32(u8"TileZ");
     if (xTileX && xTileY && xTileZ) {
       Pos3i vec = Pos3iFromFacing6(facing);
-      Pos3i jTile = Pos3i(*xTileX, *xTileY, *xTileZ) + vec;
+      Pos3i jTile;
+      if (directionB) {
+        jTile = Pos3i(*xTileX, *xTileY, *xTileZ) + vec;
+      } else {
+        jTile = Pos3i(*xTileX, *xTileY, *xTileZ);
+      }
       out->set(u8"TileX", Int(jTile.fX));
       out->set(u8"TileY", Int(jTile.fY));
       out->set(u8"TileZ", Int(jTile.fZ));
