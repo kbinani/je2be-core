@@ -19,9 +19,9 @@ class Item::Impl {
 public:
   static CompoundTagPtr Convert(CompoundTag const &in, Context const &ctx) {
     using namespace std;
-    optional<u8string> rawId = in.string(u8"id");
+    optional<u8string> rawId = in.string(u8"id"); // tu31, tu33, tu37, tu45, tu75
     if (!rawId) {
-      auto i16Id = in.int16(u8"id");
+      auto i16Id = in.int16(u8"id"); // tu16, tu30
       if (!i16Id) {
         return nullptr;
       }
@@ -694,6 +694,12 @@ private:
     case 62:
       name = u8"magma_cube";
       break;
+    case 65:
+      name = u8"bat";
+      break;
+    case 66:
+      name = u8"witch";
+      break;
     case 90:
       name = u8"pig";
       break;
@@ -715,8 +721,20 @@ private:
     case 96:
       name = u8"mooshroom";
       break;
+    case 98:
+      name = u8"ocelot";
+      break;
+    case 100:
+      name = u8"horse";
+      break;
     case 120:
       name = u8"villager";
+      break;
+    case 8292:
+      name = u8"donkey";
+      break;
+    case 12388:
+      name = u8"mule";
       break;
     }
     if (auto tag = in.compoundTag(u8"tag"); tag) {
@@ -970,6 +988,7 @@ private:
     R(88, soul_sand);
     R(89, glowstone);
     R(91, lit_pumpkin);
+    R(95, stained_glass);
     R(96, trapdoor);
     R(97, monster_egg);
     R(98, stonebrick);
@@ -988,11 +1007,51 @@ private:
     R(116, enchanting_table);
     R(120, end_portal_frame);
     R(121, end_stone);
+    R(123, redstone_lamp);
     R(126, wooden_slab);
     R(128, sandstone_stairs);
+    R(129, emerald_ore);
+    R(130, ender_chest);
+    R(131, tripwire_hook);
+    R(133, emerald_block);
     R(134, spruce_stairs);
     R(135, birch_stairs);
+    R(136, jungle_stairs);
+    R(138, beacon);
+    R(139, cobblestone_wall);
     R(143, wooden_button);
+    R(145, anvil);
+    R(146, trapped_chest);
+    R(147, light_weighted_pressure_plate);
+    R(148, heavy_weighted_pressure_plate);
+    R(151, daylight_detector);
+    R(152, redstone_block);
+    R(153, quartz_ore);
+    R(155, quartz_block);
+    R(156, quartz_stairs);
+    R(157, activator_rail);
+    R(158, dropper);
+    R(154, hopper);
+    R(159, stained_hardened_clay);
+    R(160, stained_glass_pane);
+    R(161, log2);
+    R(163, acacia_stairs);
+    R(164, dark_oak_stairs);
+    R(167, iron_trapdoor);
+    R(170, hay_block);
+    R(171, carpet);
+    R(172, hardened_clay);
+    R(173, coal_block);
+    R(183, spruce_fence_gate);
+    R(184, birch_fence_gate);
+    R(185, jungle_fence_gate);
+    R(186, acacia_fence_gate);
+    R(187, dark_oak_fence_gate);
+    R(188, spruce_fence);
+    R(189, birch_fence);
+    R(190, jungle_fence);
+    R(191, acacia_fence);
+    R(192, dark_oak_fence);
     R(256, iron_shovel);
     R(257, iron_pickaxe);
     R(258, iron_axe);
@@ -1123,8 +1182,37 @@ private:
     R(383, spawn_egg);
     R(384, experience_bottle);
     R(385, fire_charge);
+    R(386, writable_book);
+    R(388, emerald);
     R(389, item_frame);
+    R(390, flower_pot);
+    R(391, carrot);
+    R(392, potato);
+    R(393, baked_potato);
+    R(394, poisonous_potato);
+    R(395, map); // empty map
+    R(396, golden_carrot);
+    R(397, skull);
+    R(398, carrot_on_a_stick);
+    R(399, nether_star);
+    R(400, pumpkin_pie);
+    R(401, fireworks);
+    R(403, enchanted_book);
+    R(404, comparator);
     R(405, netherbrick);
+    R(406, quartz);
+    R(407, tnt_minecart);
+    R(408, hopper_minecart);
+    R(417, iron_horse_armor);
+    R(418, golden_horse_armor);
+    R(419, diamond_horse_armor);
+    R(420, lead);
+    R(421, name_tag);
+    R(427, spruce_door);
+    R(428, birch_door);
+    R(429, jungle_door);
+    R(430, acacia_door);
+    R(431, dark_oak_door);
     R(2256, music_disc_13);
     R(2257, music_disc_cat);
     R(2258, music_disc_blocks);
