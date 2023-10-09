@@ -38,7 +38,9 @@ public:
     out->set(u8"y", Int(pos.fY));
     out->set(u8"z", Int(pos.fZ));
     out->set(u8"keepPacked", Bool(false));
-    out->set(u8"id", String(id));
+    if (!out->string(u8"id")) {
+      out->set(u8"id", String(id));
+    }
 
     auto ret = found->second(in, block, out, ctx);
     if (!ret) {
@@ -145,6 +147,13 @@ public:
 
   static std::optional<Result> EnderChest(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     out->set(u8"id", String(u8"minecraft:ender_chest"));
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
+  static std::optional<Result> EndPortal(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
+    out->set(u8"id", String(u8"minecraft:end_portal"));
     Result r;
     r.fTileEntity = out;
     return r;
@@ -429,8 +438,9 @@ private:
     E(daylight_detector, Identical);
     E(brewing_stand, BrewingStand);
     E(end_gateway, Identical);
-    E(end_portal, Identical);
+    E(end_portal, EndPortal);
     E(mob_spawner, MobSpawner);
+    E(airportal, EndPortal);
 
 #undef E
     return ret;
