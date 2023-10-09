@@ -8,6 +8,7 @@
 #include "enums/_chunk-conversion-mode.hpp"
 #include "structure/_structure-piece.hpp"
 #include "terraform/_chorus-plant.hpp"
+#include "terraform/_door.hpp"
 #include "terraform/_fence-connectable.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/_note-block.hpp"
@@ -27,7 +28,6 @@
 #include "toje/terraform/_beacon.hpp"
 #include "toje/terraform/_campfire.hpp"
 #include "toje/terraform/_cave-vines.hpp"
-#include "toje/terraform/_door.hpp"
 #include "toje/terraform/_piston.hpp"
 #include "toje/terraform/_tripwire.hpp"
 #include "toje/terraform/_twisting-vines.hpp"
@@ -350,7 +350,7 @@ public:
     RedstoneWire::Do(j, blockAccessor, accessor);
     Tripwire::Do(j, cache, accessor);
     Beacon::Do(j, cache, accessor);
-    Door::Do(j, cache, accessor);
+    Door::Do(j, accessor);
   }
 
   static void AttachLeash(Context &ctx, std::unordered_map<Uuid, CompoundTagPtr, UuidHasher, UuidPred> &entities) {

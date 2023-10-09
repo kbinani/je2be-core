@@ -274,6 +274,7 @@ set(je2be_src_files
   src/terraform/_block-accessor.hpp
   src/terraform/_block-property-accessor.hpp
   src/terraform/_chorus-plant.hpp
+  src/terraform/_door.hpp
   src/terraform/_fence-connectable.hpp
   src/terraform/_leaves.hpp
   src/terraform/_note-block.hpp
@@ -375,7 +376,6 @@ set(je2be_src_files
   src/toje/terraform/_beacon.hpp
   src/toje/terraform/_campfire.hpp
   src/toje/terraform/_cave-vines.hpp
-  src/toje/terraform/_door.hpp
   src/toje/terraform/_piston.hpp
   src/toje/terraform/_tripwire.hpp
   src/toje/terraform/_twisting-vines.hpp

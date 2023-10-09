@@ -1,12 +1,12 @@
 #pragma once
 
-namespace je2be::toje {
+namespace je2be::terraform {
 
 class Door {
   Door() = delete;
 
 public:
-  static void Do(mcfile::je::Chunk &out, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, terraform::BlockPropertyAccessor const &accessor) {
+  static void Do(mcfile::je::Chunk &out, BlockPropertyAccessor const &accessor) {
     using namespace std;
 
     if (!accessor.fHasDoor) {
@@ -21,11 +21,11 @@ public:
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto lowerP = accessor.property(x, y, z);
           auto upperP = accessor.property(x, y + 1, z);
-          if (lowerP != terraform::BlockPropertyAccessor::DOOR || upperP != terraform::BlockPropertyAccessor::DOOR) {
+          if (lowerP != BlockPropertyAccessor::DOOR || upperP != BlockPropertyAccessor::DOOR) {
             continue;
           }
-          auto lowerB = cache.blockAt(x, y, z);
-          auto upperB = cache.blockAt(x, y + 1, z);
+          auto lowerB = out.blockAt(x, y, z);
+          auto upperB = out.blockAt(x, y + 1, z);
           if (!lowerB || !upperB) {
             continue;
           }
@@ -61,4 +61,4 @@ public:
   }
 };
 
-} // namespace je2be::toje
+} // namespace je2be::terraform

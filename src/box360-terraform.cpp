@@ -8,6 +8,7 @@
 #include "box360/_chunk.hpp"
 #include "box360/_world.hpp"
 #include "terraform/_chorus-plant.hpp"
+#include "terraform/_door.hpp"
 #include "terraform/_fence-connectable.hpp"
 #include "terraform/_leaves.hpp"
 #include "terraform/_note-block.hpp"
@@ -161,6 +162,7 @@ private:
     Leaves::Do(*chunk, *cache, accessor);
     Chest::Do(*chunk, *cache, accessor);
     NoteBlock::Do(*chunk, *cache, accessor);
+    Door::Do(*chunk, accessor);
 
     for (auto const &section : chunk->fSections) {
       if (!section) {
