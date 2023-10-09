@@ -530,11 +530,6 @@ private:
 
     auto layers = List<Tag::Type::Compound>();
 
-    auto air = Compound();
-    air->set(u8"block", String(u8"minecraft:air"));
-    air->set(u8"height", Int(64));
-    layers->push_back(air);
-
     auto bedrock = Compound();
     bedrock->set(u8"block", String(u8"minecraft:bedrock"));
     bedrock->set(u8"height", Int(1));
