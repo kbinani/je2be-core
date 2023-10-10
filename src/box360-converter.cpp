@@ -263,7 +263,7 @@ private:
     {
       nlohmann::json obj;
       nlohmann::json pack;
-      pack["pack_format"] = 7;
+      pack["pack_format"] = 6;
       pack["description"] = "invisible worldborder by je2be";
       obj["pack"] = pack;
       auto str = nlohmann::to_string(obj);
@@ -289,7 +289,7 @@ private:
       json root;
       json pack;
       pack["description"] = "nether3x";
-      pack["pack_format"] = 11;
+      pack["pack_format"] = 6;
       root["pack"] = pack;
       auto data = to_string(root);
       mcfile::ScopedFile mcmeta(mcfile::File::Open(outputDirectory / "datapacks" / "nether3x" / "pack.mcmeta", mcfile::File::Mode::Write));
