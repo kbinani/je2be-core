@@ -140,6 +140,14 @@ public:
     return b.fId == mcfile::blocks::minecraft::tripwire;
   }
 
+  static bool IsBed(mcfile::be::Block const &b) {
+    return b.fName == u8"minecraft:bed";
+  }
+
+  static bool IsBed(mcfile::je::Block const &b) {
+    return b.fName.ends_with(u8"_bed");
+  }
+
   static bool IsPiston(mcfile::be::Block const &b) {
     return b.fName == u8"minecraft:piston" ||
            b.fName == u8"minecraft:sticky_piston" ||
@@ -258,6 +266,8 @@ public:
       return CHEST;
     } else if (IsNetherPortal(b)) {
       return NETHER_PORTAL;
+    } else if (IsBed(b)) {
+      return BED;
     }
     return 0;
   }
@@ -402,6 +412,7 @@ void BlockPropertyAccessor::updateHasProperties(DataType p) {
   fHasLeaves |= p == LEAVES;
   fHasChest |= p == CHEST;
   fHasNetherPortal |= p == NETHER_PORTAL;
+  fHasBed |= p == BED;
 }
 
 bool BlockPropertyAccessor::IsChorusPlant(mcfile::je::Block const &b) {

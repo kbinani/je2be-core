@@ -38,9 +38,7 @@ public:
     out->set(u8"y", Int(pos.fY));
     out->set(u8"z", Int(pos.fZ));
     out->set(u8"keepPacked", Bool(false));
-    if (!out->string(u8"id")) {
-      out->set(u8"id", String(id));
-    }
+    out->set(u8"id", String(id));
 
     auto ret = found->second(in, block, out, ctx);
     if (!ret) {
