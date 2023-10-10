@@ -13,6 +13,13 @@ public:
       default:
         return mcfile::biomes::minecraft::nether_wastes;
       }
+    } else if (d == mcfile::Dimension::End) {
+      switch (raw) {
+      case 255:
+        return mcfile::biomes::minecraft::the_end;
+      default:
+        return mcfile::be::Biome::FromUint32(raw);
+      }
     } else {
       return mcfile::be::Biome::FromUint32(raw);
     }
