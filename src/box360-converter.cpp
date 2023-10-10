@@ -437,6 +437,7 @@ private:
           biomeSource->set(u8"preset", String(u8"minecraft:overworld"));
           biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
           generator->set(u8"biome_source", biomeSource);
+          generator->set(u8"seed", Long(*randomSeed));
           generator->set(u8"settings", String(u8"minecraft:overworld"));
           generator->set(u8"type", String(u8"minecraft:noise"));
         }
@@ -449,7 +450,9 @@ private:
         auto generator = Compound();
         auto biomeSource = Compound();
         biomeSource->set(u8"type", String(u8"minecraft:the_end"));
+        biomeSource->set(u8"seed", Long(*randomSeed));
         generator->set(u8"biome_source", biomeSource);
+        generator->set(u8"seed", Long(*randomSeed));
         generator->set(u8"settings", String(u8"minecraft:end"));
         generator->set(u8"type", String(u8"minecraft:noise"));
         end->set(u8"generator", generator);
@@ -462,7 +465,9 @@ private:
         auto biomeSource = Compound();
         biomeSource->set(u8"preset", String(u8"minecraft:nether"));
         biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+        biomeSource->set(u8"seed", Long(*randomSeed));
         generator->set(u8"biome_source", biomeSource);
+        generator->set(u8"seed", Long(*randomSeed));
         generator->set(u8"settings", String(u8"minecraft:nether"));
         generator->set(u8"type", String(u8"minecraft:noise"));
         nether->set(u8"generator", generator);
