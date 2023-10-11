@@ -127,7 +127,7 @@ private:
       if (cx <= -7 || 6 <= cx || cz <= -7) {
         return Empty();
       }
-      if (-6 <= cz && cz <= 5) {
+      if (cz <= 5) {
         return Copy();
       } else if (cz <= 14) {
         return Empty();

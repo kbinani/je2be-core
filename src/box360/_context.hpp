@@ -14,7 +14,7 @@ public:
   using EntityNameMigrator = std::function<std::u8string(std::u8string const &)>;
 
   Context(TileEntityConverter tileEntityConverter, EntityNameMigrator entityNameMigrator)
-      : fTileEntityConverter(tileEntityConverter), fEntityNameMigrator(entityNameMigrator) {}
+      : fTileEntityConverter(tileEntityConverter), fEntityNameMigrator(entityNameMigrator), fNewSeaLevel(false) {}
 
   TileEntityConverter const fTileEntityConverter;
   EntityNameMigrator const fEntityNameMigrator;
