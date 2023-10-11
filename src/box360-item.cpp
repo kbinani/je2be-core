@@ -1344,7 +1344,7 @@ private:
     E(web, Rename(u8"cobweb"));
     E(sign, Rename(u8"oak_sign"));
     E(sea_grass, Rename(u8"seagrass"));
-    E(grass_path, Rename(u8"dirt_path"));
+    E(grass_path, Same);
     E(quartz_ore, Rename(u8"nether_quartz_ore"));
     E(stripped_log_oak, Rename(u8"stripped_oak_log"));
     E(stripped_log_spruce, Rename(u8"stripped_spruce_log"));

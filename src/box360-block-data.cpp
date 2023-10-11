@@ -48,7 +48,12 @@ std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
   u16 id = this->id();
   u8 data = this->data();
   if (rawId == id) {
-    return mcfile::je::Flatten::Block(id, data);
+    auto b = mcfile::je::Flatten::Block(id, data);
+    if (b && b->fId == mcfile::blocks::minecraft::dirt_path) {
+      return std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::dirt_path, u8"minecraft:grass_path", u8"");
+    } else {
+      return b;
+    }
   }
   u8string name;
   map<u8string, u8string> props;
