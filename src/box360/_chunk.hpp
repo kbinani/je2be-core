@@ -28,6 +28,8 @@ public:
                         std::shared_ptr<mcfile::je::WritableChunk> &result,
                         Context const &ctx,
                         Options const &options);
+
+  static std::shared_ptr<mcfile::je::WritableChunk> CreateEmptyChunk(mcfile::Dimension dim, int cx, int cz, bool newSeaLevel);
 };
 
 } // namespace je2be::box360

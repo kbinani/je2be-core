@@ -19,6 +19,7 @@ public:
   TileEntityConverter const fTileEntityConverter;
   EntityNameMigrator const fEntityNameMigrator;
   std::unordered_map<std::u8string, Uuid> fPlayers;
+  bool fNewSeaLevel;
 };
 
 } // namespace je2be::box360

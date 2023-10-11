@@ -352,7 +352,7 @@ private:
                              std::filesystem::path const &outputDirectory,
                              std::optional<std::chrono::system_clock::time_point> lastPlayed,
                              std::shared_ptr<PlayerInfo> const &localPlayer,
-                             Context const &ctx) {
+                             Context &ctx) {
     using namespace std;
     namespace fs = std::filesystem;
     auto datFrom = inputDirectory / "level.dat";
@@ -371,7 +371,7 @@ private:
     if (!in) {
       return JE2BE_ERROR;
     }
-    bool newSeaLevel = in->boolean(u8"newSeaLevel", false);
+    ctx.fNewSeaLevel = in->boolean(u8"newSeaLevel", false);
     auto flat = in->string(u8"generatorName") == u8"flat";
 
     CompoundTagPtr flatWorldSettings;
@@ -381,8 +381,6 @@ private:
       // 0: TU9, TU67, TU74
 
       flatWorldSettings = FlatWorldSettings();
-    } else {
-      flatWorldSettings = FlatWorldSettingsForOverworldOuterRegion(newSeaLevel);
     }
     vector<u8string> enabledDataPacks;
     enabledDataPacks.push_back(u8"file/nether3x");
@@ -492,7 +490,7 @@ private:
 
     j[u8"BorderCenterX"] = Double(0);
     j[u8"BorderCenterZ"] = Double(0);
-    j[u8"BorderSize"] = Double(992);
+    j[u8"BorderSize"] = Double(862);
     j[u8"BorderWarningBlocks"] = Double(0);
 
     if (auto dimensionData = in->compoundTag(u8"DimensionData"); dimensionData) {
@@ -549,37 +547,6 @@ private:
     grass->set(u8"block", String(u8"minecraft:grass_block"));
     grass->set(u8"height", Int(1));
     layers->push_back(grass);
-
-    flatSettings->set(u8"layers", layers);
-
-    return flatSettings;
-  }
-
-  static CompoundTagPtr FlatWorldSettingsForOverworldOuterRegion(bool newSeaLevel) {
-    auto flatSettings = Compound();
-    flatSettings->set(u8"biome", String(u8"minecraft:ocean"));
-    flatSettings->set(u8"features", Bool(false));
-    flatSettings->set(u8"lakes", Bool(false));
-    auto structures = Compound();
-    structures->set(u8"structures", Compound());
-    flatSettings->set(u8"structures", structures);
-
-    auto layers = List<Tag::Type::Compound>();
-
-    auto bedrock = Compound();
-    bedrock->set(u8"block", String(u8"minecraft:bedrock"));
-    bedrock->set(u8"height", Int(1));
-    layers->push_back(bedrock);
-
-    auto stone = Compound();
-    stone->set(u8"block", String(u8"minecraft:stone"));
-    stone->set(u8"height", Int(53));
-    layers->push_back(stone);
-
-    auto water = Compound();
-    water->set(u8"block", String(u8"minecraft:water"));
-    water->set(u8"height", Int(newSeaLevel ? 9 : 10));
-    layers->push_back(water);
 
     flatSettings->set(u8"layers", layers);
 

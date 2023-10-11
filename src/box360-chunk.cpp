@@ -8,12 +8,14 @@
 #include "_props.hpp"
 #include "box360/_biome.hpp"
 #include "box360/_block-data.hpp"
+#include "box360/_context.hpp"
 #include "box360/_entity.hpp"
 #include "box360/_grid.hpp"
 #include "box360/_savegame.hpp"
 #include "box360/_tile-entity.hpp"
 
 #include <bitset>
+#include <variant>
 
 namespace je2be::box360 {
 
@@ -22,6 +24,191 @@ class Chunk::Impl {
 
 public:
   static Status Convert(mcfile::Dimension dimension,
+                        std::filesystem::path const &region,
+                        int cx,
+                        int cz,
+                        std::shared_ptr<mcfile::je::WritableChunk> &result,
+                        Context const &ctx,
+                        Options const &options) {
+    using namespace std;
+    auto pos = ChunkLocation(dimension, cx, cz);
+    if (holds_alternative<Copy>(pos)) {
+      if (auto st = Extract(dimension, region, cx, cz, result, ctx, options); !st.ok()) {
+        return JE2BE_ERROR_PUSH(st);
+      }
+      if (!result) {
+        return Status::Ok();
+      }
+      TranslateExitPortal(dimension, *result);
+      return Status::Ok();
+    } else if (holds_alternative<Move>(pos)) {
+      auto mv = get<Move>(pos);
+      if (auto st = Extract(dimension, region, cx + mv.fDx, cz + mv.fDz, result, ctx, options); !st.ok()) {
+        return JE2BE_ERROR_PUSH(st);
+      }
+      if (!result) {
+        return Status::Ok();
+      }
+      if (auto st = TranslateChunk(*result, Pos2i(-mv.fDx, -mv.fDz)); !st.ok()) {
+        return JE2BE_ERROR_PUSH(st);
+      }
+      TranslateExitPortal(dimension, *result);
+      return Status::Ok();
+    } else if (holds_alternative<Empty>(pos)) {
+      auto chunk = CreateEmptyChunk(dimension, cx, cz, ctx.fNewSeaLevel);
+      if (chunk) {
+        result.swap(chunk);
+        return Status::Ok();
+      } else {
+        return JE2BE_ERROR;
+      }
+    } else {
+      return JE2BE_ERROR;
+    }
+  }
+
+  static std::shared_ptr<mcfile::je::WritableChunk> CreateEmptyChunk(mcfile::Dimension dim, int cx, int cz, bool newSeaLevel) {
+    auto chunk = CreateChunk(cx, cz);
+    FillDefaultBiome(dim, *chunk);
+    chunk->fSections.clear();
+    for (int y = 0; y < 256; y++) {
+      std::shared_ptr<mcfile::je::Block> block;
+      if (dim == mcfile::Dimension::Overworld) {
+        if (y == 0) {
+          block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::bedrock);
+        } else if (y <= 53) {
+          block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::stone);
+        } else {
+          if (newSeaLevel) {
+            if (y <= 62) {
+              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::water);
+            } else {
+              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::air);
+            }
+          } else {
+            if (y <= 63) {
+              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::water);
+            } else {
+              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::air);
+            }
+          }
+        }
+      } else {
+        block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::air);
+      }
+      for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 16; x++) {
+          chunk->setBlockAt(cx * 16 + x, y, cz * 16 + z, block);
+        }
+      }
+    }
+    return chunk;
+  }
+
+private:
+  struct Copy {};
+  struct Move {
+    int fDx;
+    int fDz;
+    Move(int dx, int dz) : fDx(dx), fDz(dz) {}
+  };
+  struct Empty {};
+  static std::variant<Copy, Move, Empty> ChunkLocation(mcfile::Dimension dim, int cx, int cz) {
+    switch (dim) {
+    case mcfile::Dimension::Nether:
+      if (cx < -9 || 8 < cx || cz < -9 || 8 < cz) {
+        return Empty();
+      } else {
+        return Copy();
+      }
+    case mcfile::Dimension::End:
+      // Mainland: [-6, -6]-[5, 5]
+      // EndCity: [-6, 19]-[5, 30]
+      if (cx <= -7 || 6 <= cx || cz <= -7) {
+        return Empty();
+      }
+      if (-6 <= cz && cz <= 5) {
+        return Copy();
+      } else if (cz <= 14) {
+        return Empty();
+      } else if (cz <= 26) {
+        return Move(0, 4);
+      } else {
+        return Empty();
+      }
+    case mcfile::Dimension::Overworld:
+    default:
+      if (-27 <= cx && cx <= 26 && -27 <= cz && cz <= 26) {
+        return Copy();
+      } else {
+        return Empty();
+      }
+    }
+  }
+
+  static Status TranslateChunk(mcfile::je::WritableChunk &chunk, Pos2i tx) {
+    chunk.fChunkX += tx.fX;
+    chunk.fChunkZ += tx.fZ;
+
+    int dx = tx.fX * 16;
+    int dz = tx.fZ * 16;
+
+    for (auto &it : chunk.fTileEntities) {
+      auto tile = it.second;
+      auto x = tile->int32(u8"x");
+      auto z = tile->int32(u8"z");
+      if (x && z) {
+        tile->set(u8"x", Int(*x + dx));
+        tile->set(u8"z", Int(*z + dz));
+      }
+    }
+
+    for (auto &entity : chunk.fEntities) {
+      for (auto const &p : {u8"Tile", u8"AP"}) {
+        auto x = entity->int32(std::u8string(p) + u8"X");
+        auto z = entity->int32(std::u8string(p) + u8"Z");
+        if (x && z) {
+          entity->set(std::u8string(p) + u8"X", Int(*x + dx));
+          entity->set(std::u8string(p) + u8"Z", Int(*z + dz));
+        }
+      }
+      auto pos = entity->listTag(u8"Pos");
+      if (pos && pos->fType == Tag::Type::Double && pos->fValue.size() == 3) {
+        auto x = pos->at(0)->asDouble();
+        auto z = pos->at(2)->asDouble();
+        if (x && z) {
+          pos->fValue[0] = Double(x->fValue + dx);
+          pos->fValue[2] = Double(z->fValue + dz);
+        }
+      }
+    }
+
+    return Status::Ok();
+  }
+
+  static void TranslateExitPortal(mcfile::Dimension dim, mcfile::je::WritableChunk &chunk) {
+    for (auto &tile : chunk.fTileEntities) {
+      auto exitPortal = tile.second->compoundTag(u8"ExitPortal");
+      if (!exitPortal) {
+        continue;
+      }
+      auto x = exitPortal->int32(u8"X");
+      auto z = exitPortal->int32(u8"Z");
+      if (!x || !z) {
+        continue;
+      }
+      auto cx = mcfile::Coordinate::ChunkFromBlock(*x);
+      auto cz = mcfile::Coordinate::ChunkFromBlock(*z);
+      auto pos = ChunkLocation(dim, cx, cz);
+      if (std::holds_alternative<Move>(pos)) {
+        auto mv = std::get<Move>(pos);
+        exitPortal->set(u8"X", Int(*x - 16 * mv.fDx));
+        exitPortal->set(u8"Z", Int(*z - 16 * mv.fDz));
+      }
+    }
+  }
+
+  static Status Extract(mcfile::Dimension dimension,
                         std::filesystem::path const &region,
                         int cx,
                         int cz,
@@ -100,7 +287,6 @@ public:
     }
   }
 
-private:
   struct V8 {
     template <size_t BitPerBlock>
     static Status ParseGrid(
@@ -378,7 +564,7 @@ private:
     // 256 bytes: biome 16x16
     // n bytes: nbt (to the end of file)
 
-    auto chunk = MakeEmpty(cx, cz);
+    auto chunk = CreateChunk(cx, cz);
 
     Data3dSq<u8, 16> blockId({0, 0, 0}, 256, 0);
     Data3dSq<u8, 16> blockData({0, 0, 0}, 256, 0);
@@ -585,7 +771,7 @@ private:
       return JE2BE_ERROR;
     }
 
-    auto chunk = MakeEmpty(cx, cz);
+    auto chunk = CreateChunk(cx, cz);
 
     Data3dSq<u8, 16> blockId({0, 0, 0}, maxY, 0);
     Data3dSq<u8, 16> blockData({0, 0, 0}, maxY, 0);
@@ -646,19 +832,19 @@ private:
     return Status::Ok();
   }
 
-  static void FillDefaultBiome(mcfile::Dimension dim, mcfile::je::WritableChunk &chunk) {
-    mcfile::biomes::BiomeId biome;
+  static mcfile::biomes::BiomeId DefaultBiome(mcfile::Dimension dim) {
     switch (dim) {
     case mcfile::Dimension::End:
-      biome = mcfile::biomes::minecraft::the_end;
-      break;
+      return mcfile::biomes::minecraft::the_end;
     case mcfile::Dimension::Nether:
-      biome = mcfile::biomes::minecraft::nether_wastes;
-      break;
+      return mcfile::biomes::minecraft::nether_wastes;
     default:
-      biome = mcfile::biomes::minecraft::plains;
-      break;
+      return mcfile::biomes::minecraft::plains;
     }
+  }
+
+  static void FillDefaultBiome(mcfile::Dimension dim, mcfile::je::WritableChunk &chunk) {
+    auto biome = DefaultBiome(dim);
     for (int z = 0; z < 16; z++) {
       for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 256; y++) {
@@ -676,7 +862,7 @@ private:
                            std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
-    auto chunk = MakeEmpty(cx, cz);
+    auto chunk = CreateChunk(cx, cz);
 
     // i32 xPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x2));
     // i32 zPos = mcfile::I32FromBE(Mem::Read<i32>(buffer, 0x6));
@@ -906,7 +1092,7 @@ private:
     }
   }
 
-  static std::shared_ptr<mcfile::je::WritableChunk> MakeEmpty(int cx, int cz) {
+  static std::shared_ptr<mcfile::je::WritableChunk> CreateChunk(int cx, int cz) {
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
     chunk->fLegacyBiomes.resize(1024);
     return chunk;
@@ -921,6 +1107,10 @@ Status Chunk::Convert(mcfile::Dimension dimension,
                       Context const &ctx,
                       Options const &options) {
   return Impl::Convert(dimension, region, cx, cz, result, ctx, options);
+}
+
+std::shared_ptr<mcfile::je::WritableChunk> Chunk::CreateEmptyChunk(mcfile::Dimension dim, int cx, int cz, bool newSeaLevel) {
+  return Impl::CreateEmptyChunk(dim, cx, cz, newSeaLevel);
 }
 
 } // namespace je2be::box360
