@@ -214,17 +214,35 @@ inline std::u8string UpperCamelFromSnake(std::u8string const &s) {
 }
 
 inline std::u8string SnakeFromUpperCamel(std::u8string const &s) {
-  std::u8string ret;
-  for (size_t i = 0; i < s.size(); i++) {
-    char8_t ch = s[i];
-    char8_t lower = (char8_t)std::tolower(ch);
-    if (lower == ch) {
-      ret.push_back(ch);
-    } else {
-      if (!ret.empty()) {
-        ret.push_back(u8'_');
+  std::vector<std::u8string> tokens = mcfile::String::Split(s, u8'_');
+  std::vector<std::u8string> waves;
+  for (size_t i = 0; i < tokens.size(); i++) {
+    auto token = tokens[i];
+    if (token.empty()) {
+      waves.push_back(token);
+      continue;
+    }
+    std::u8string wave;
+    for (size_t j = 0; j < token.size(); j++) {
+      char8_t ch = token[j];
+      char8_t lower = (char8_t)std::tolower(ch);
+      if (lower == ch) {
+        wave.push_back(ch);
+      } else {
+        if (!wave.empty()) {
+          wave.push_back(u8'_');
+        }
+        wave.push_back(lower);
       }
-      ret.push_back(lower);
+    }
+    waves.push_back(wave);
+  }
+  std::u8string ret;
+  for (size_t i = 0; i < waves.size(); i++) {
+    if (ret.empty()) {
+      ret += waves[i];
+    } else {
+      ret += u8"_" + waves[i];
     }
   }
   return ret;

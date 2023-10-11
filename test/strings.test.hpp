@@ -25,4 +25,7 @@ TEST_CASE("strings") {
     CHECK(strings::Increment("\xff") == string("\x1\x0", 2));
     CHECK(strings::Increment("\x1\xff\xff") == string("\x2\x0\x0", 3));
   }
+  SUBCASE("SnakeFromUpperCamel") {
+    CHECK(strings::SnakeFromUpperCamel(u8"Ender_Chest") == u8"ender_chest");
+  }
 }

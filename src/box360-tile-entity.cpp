@@ -421,7 +421,7 @@ private:
     E(banner, Banner);
     E(bed, Bed);
     E(chest, Chest);
-    E(ender_Chest, EnderChest);
+    E(ender_chest, EnderChest);
     E(shulker_box, ShulkerBox);
     E(flower_pot, FlowerPot);
     E(jukebox, Jukebox);
