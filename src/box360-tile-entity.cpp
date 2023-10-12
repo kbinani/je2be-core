@@ -448,7 +448,8 @@ private:
     E(jukebox, Jukebox);
     E(record_player, Jukebox);
     E(sign, Sign);
-    E(enchanting_table, Identical);
+    E(enchanting_table, EnchantingTable);
+    E(enchant_table, EnchantingTable);
     E(conduit, Identical);
     E(furnace, Furnace);
     E(dropper, Dropper);
@@ -461,9 +462,8 @@ private:
     E(brewing_stand, BrewingStand);
     E(end_gateway, Identical);
     E(end_portal, EndPortal);
-    E(mob_spawner, MobSpawner);
     E(airportal, EndPortal);
-    E(enchant_table, EnchantingTable);
+    E(mob_spawner, MobSpawner);
     E(cauldron, Cauldron);
 
 #undef E
