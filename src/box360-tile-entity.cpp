@@ -110,10 +110,17 @@ public:
     return r;
   }
 
+  static std::optional<Result> Cauldron(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
+    out->set(u8"id", Id(u8"cauldron"));
+    Result r;
+    // cauldron is not a block entity on JE 1.16.5
+    return r;
+  }
+
   static std::optional<Result> Chest(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
     if (block && block->fId == mcfile::blocks::minecraft::trapped_chest) {
       // TODO: When trapped_chest is an item
-      out->set(u8"id", String(u8"minecraft:trapped_chest"));
+      out->set(u8"id", Id(u8"trapped_chest"));
     }
     Items(in, out, ctx);
     LootTable::Box360ToJava(in, *out);
@@ -130,6 +137,7 @@ public:
   }
 
   static std::optional<Result> Dispenser(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
+    out->set(u8"id", Id(u8"dispenser"));
     Items(in, out, ctx);
     Result r;
     r.fTileEntity = out;
@@ -143,15 +151,22 @@ public:
     return r;
   }
 
+  static std::optional<Result> EnchantingTable(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
+    out->set(u8"id", Id(u8"enchanting_table"));
+    Result r;
+    r.fTileEntity = out;
+    return r;
+  }
+
   static std::optional<Result> EnderChest(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
-    out->set(u8"id", String(u8"minecraft:ender_chest"));
+    out->set(u8"id", Id(u8"ender_chest"));
     Result r;
     r.fTileEntity = out;
     return r;
   }
 
   static std::optional<Result> EndPortal(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
-    out->set(u8"id", String(u8"minecraft:end_portal"));
+    out->set(u8"id", Id(u8"end_portal"));
     Result r;
     r.fTileEntity = out;
     return r;
@@ -260,6 +275,7 @@ public:
   }
 
   static std::optional<Result> Jukebox(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &ctx) {
+    out->set(u8"id", Id(u8"jukebox"));
     if (auto recordItem = in.compoundTag(u8"RecordItem"); recordItem) {
       if (auto converted = Item::Convert(*recordItem, ctx); converted) {
         out->set(u8"RecordItem", converted);
@@ -319,6 +335,7 @@ public:
     if (!block) {
       return std::nullopt;
     }
+    out->set(u8"id", Id(u8"note_block"));
     auto note = in.byte(u8"note", 0);
     auto powered = in.boolean(u8"powered", false);
     Result r;
@@ -389,6 +406,10 @@ private:
     }
   }
 
+  static StringTagPtr Id(std::u8string const &id) {
+    return String(Namespace::Add(id));
+  }
+
   static std::unordered_map<std::u8string, Converter> const &GetTable() {
     static std::unique_ptr<std::unordered_map<std::u8string, Converter> const> const sTable(CreateTable());
     return *sTable;
@@ -425,13 +446,16 @@ private:
     E(shulker_box, ShulkerBox);
     E(flower_pot, FlowerPot);
     E(jukebox, Jukebox);
+    E(record_player, Jukebox);
     E(sign, Sign);
     E(enchanting_table, Identical);
     E(conduit, Identical);
     E(furnace, Furnace);
     E(dropper, Dropper);
     E(dispenser, Dispenser);
+    E(trap, Dispenser);
     E(note_block, NoteBlock);
+    E(music, NoteBlock);
     E(comparator, Comparator);
     E(daylight_detector, Identical);
     E(brewing_stand, BrewingStand);
@@ -439,6 +463,8 @@ private:
     E(end_portal, EndPortal);
     E(mob_spawner, MobSpawner);
     E(airportal, EndPortal);
+    E(enchant_table, EnchantingTable);
+    E(cauldron, Cauldron);
 
 #undef E
     return ret;
