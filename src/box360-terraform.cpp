@@ -94,7 +94,7 @@ private:
           queue.unlockAround(result->fChunk);
         }
         u64 p = count.fetch_add(1) + 1;
-        if (progress && !progress->report({p + progressChunksOffset, World::kProgressWeightPerWorld * 3})) {
+        if (progress && !progress->report({p + progressChunksOffset, World::kProgressWeightTotal})) {
           ok = false;
           break;
         }

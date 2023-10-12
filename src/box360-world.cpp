@@ -71,15 +71,22 @@ public:
     };
 
     int skipChunks = 0;
+    int minRegion = -World::LengthRegions(dimension);
+    int maxRegion = World::LengthRegions(dimension) - 1;
 
-    vector<Pos2i> works;
-    for (int rz = -1; rz <= 0; rz++) {
-      for (int rx = -1; rx <= 0; rx++) {
-        auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
-        if (!Fs::Exists(mcr)) {
-          skipChunks += 1024;
-          continue;
+    vector<Pos2i> chunks;
+    vector<Pos2i> regions;
+
+    for (int rz = minRegion; rz <= maxRegion; rz++) {
+      for (int rx = minRegion; rx <= maxRegion; rx++) {
+        if (-1 <= rx && rx <= 0 && -1 <= rz && rz <= 0) {
+          auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
+          if (!Fs::Exists(mcr)) {
+            skipChunks += 1024;
+            continue;
+          }
         }
+        regions.push_back({rx, rz});
         for (int z = 0; z < 32; z++) {
           for (int x = 0; x < 32; x++) {
             int cx = rx * 32 + x;
@@ -90,16 +97,17 @@ public:
                 continue;
               }
             }
-            works.push_back({cx, cz});
+            chunks.push_back({cx, cz});
           }
         }
       }
     }
+    size_t const numChunksInWorld = chunks.size() + skipChunks;
 
     atomic_uint64_t progressChunks(progressChunksOffset + skipChunks);
     atomic_bool ok = true;
     Status st = Parallel::Reduce<Pos2i, Status>(
-        works,
+        chunks,
         concurrency,
         Status::Ok(),
         [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks, &ok](Pos2i const &chunk) -> Status {
@@ -108,7 +116,7 @@ public:
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
           auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
           u64 p = progressChunks.fetch_add(1) + 1;
-          if (progress && !progress->report({p, kProgressWeightPerWorld * 3})) {
+          if (progress && !progress->report({p, kProgressWeightTotal})) {
             ok = false;
           }
           if (!st.ok()) {
@@ -123,10 +131,10 @@ public:
     }
 
     auto poiDirectory = outputDirectory / worldDir / "poi";
-    if (st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + 4096); !st.ok()) {
+    if (st = Terraform::Do(dimension, poiDirectory, *chunkTempDir, concurrency, progress, progressChunksOffset + numChunksInWorld); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
-    if (progress && !progress->report({progressChunksOffset + 8192, kProgressWeightPerWorld * 3})) {
+    if (progress && !progress->report({progressChunksOffset + 2 * numChunksInWorld, kProgressWeightTotal})) {
       return JE2BE_ERROR;
     }
 
@@ -140,29 +148,23 @@ public:
     mcfile::je::Region::ConcatOptions o;
     o.fDeleteInput = true;
 
-    vector<Pos2i> regions;
-    regions.push_back({-1, -1});
-    regions.push_back({0, -1});
-    regions.push_back({-1, 0});
-    regions.push_back({0, 0});
-
     st = Parallel::Reduce<Pos2i, Status>(
         regions,
         4,
         Status::Ok(),
-        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, o),
+        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress, o),
         Status::Merge);
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
-    if (progress && !progress->report({progressChunksOffset + 12288, kProgressWeightPerWorld * 3})) {
+    if (progress && !progress->report({progressChunksOffset + 3 * numChunksInWorld, kProgressWeightTotal})) {
       return JE2BE_ERROR;
     }
 
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region")) {
       return JE2BE_ERROR;
     }
-    progressChunks = progressChunksOffset + 12288;
+    progressChunks = progressChunksOffset + 3 * numChunksInWorld;
     st = Parallel::Reduce<Pos2i, Status>(
         regions,
         4,
@@ -174,7 +176,7 @@ public:
     }
     Fs::DeleteAll(outputDirectory / worldDir / "region_");
 
-    if (progress && !progress->report({progressChunksOffset + kProgressWeightPerWorld, kProgressWeightPerWorld * 3})) {
+    if (progress && !progress->report({progressChunksOffset + World::ProgressWeight(dimension), kProgressWeightTotal})) {
       return JE2BE_ERROR;
     }
 
@@ -189,18 +191,32 @@ private:
     int rx = region.fX;
     int rz = region.fZ;
 
+    auto report = [&]() {
+      auto p = progressChunks->fetch_add(1024) + 1024;
+      if (progress) {
+        if (!progress->report({p, World::kProgressWeightTotal})) {
+          return JE2BE_ERROR;
+        }
+      }
+      return Status::Ok();
+    };
+
+    if (rx < -1 || 0 < rx || rz < -1 || 0 < rz) {
+      return report();
+    }
+
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     fs::path in = inputDirectory / name;
     if (!Fs::Exists(in)) {
-      return Status::Ok();
+      return report();
     }
     if (auto size = Fs::FileSize(in); size && *size == 0) {
-      return Status::Ok();
+      return report();
     }
 
     auto editor = mcfile::je::McaEditor::Open(in);
     if (!editor) {
-      return Status::Ok();
+      return report();
     }
 
     terraform::lighting::LightCache lightCache(rx, rz);
@@ -214,7 +230,7 @@ private:
         if (!current) {
           if (progress) {
             u64 p = progressChunks->fetch_add(1) + 1;
-            if (!progress->report({p, kProgressWeightPerWorld * 3})) {
+            if (!progress->report({p, kProgressWeightTotal})) {
               return JE2BE_ERROR;
             }
           }
@@ -258,7 +274,7 @@ private:
 
         if (progress) {
           u64 p = progressChunks->fetch_add(1) + 1;
-          if (!progress->report({p, kProgressWeightPerWorld * 3})) {
+          if (!progress->report({p, kProgressWeightTotal})) {
             return JE2BE_ERROR;
           }
         }
@@ -276,6 +292,8 @@ private:
                                     std::filesystem::path outputDirectory,
                                     std::filesystem::path chunkTempDir,
                                     std::filesystem::path entityTempDir,
+                                    std::atomic_uint64_t *progressChunks,
+                                    Progress *progress,
                                     mcfile::je::Region::ConcatOptions options) {
     int rx = region.fX;
     int rz = region.fZ;
@@ -289,12 +307,24 @@ private:
                                                  options)) {
       return JE2BE_ERROR;
     }
+    uint64_t p = progressChunks->fetch_add(512) + 512;
+    if (progress) {
+      if (!progress->report({p, World::kProgressWeightTotal})) {
+        return JE2BE_ERROR;
+      }
+    }
     if (!mcfile::je::Region::ConcatCompressedNbt(rx,
                                                  rz,
                                                  entityTempDir,
                                                  entityMca,
                                                  options)) {
       return JE2BE_ERROR;
+    }
+    p = progressChunks->fetch_add(512) + 512;
+    if (progress) {
+      if (!progress->report({p, World::kProgressWeightTotal})) {
+        return JE2BE_ERROR;
+      }
     }
     return Status::Ok();
   }
