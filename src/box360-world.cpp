@@ -198,16 +198,19 @@ private:
       return Status::Ok();
     };
 
-    if (rx < -1 || 0 < rx || rz < -1 || 0 < rz) {
-      return report();
-    }
-
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     fs::path in = inputDirectory / name;
     if (!Fs::Exists(in)) {
       return report();
     }
     if (auto size = Fs::FileSize(in); size && *size == 0) {
+      return report();
+    }
+
+    if (rx < -1 || 0 < rx || rz < -1 || 0 < rz) {
+      if (!Fs::CopyFile(in, outputDirectory / name)) {
+        return JE2BE_ERROR;
+      }
       return report();
     }
 
