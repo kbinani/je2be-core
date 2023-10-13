@@ -145,14 +145,11 @@ public:
       return JE2BE_ERROR;
     }
 
-    mcfile::je::Region::ConcatOptions o;
-    o.fDeleteInput = true;
-
     st = Parallel::Reduce<Pos2i, Status>(
         regions,
-        4,
+        concurrency,
         Status::Ok(),
-        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress, o),
+        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress),
         Status::Merge);
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
@@ -167,7 +164,7 @@ public:
     progressChunks = progressChunksOffset + 3 * numChunksInWorld;
     st = Parallel::Reduce<Pos2i, Status>(
         regions,
-        4,
+        concurrency,
         Status::Ok(),
         bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress),
         Status::Merge);
@@ -293,8 +290,22 @@ private:
                                     std::filesystem::path chunkTempDir,
                                     std::filesystem::path entityTempDir,
                                     std::atomic_uint64_t *progressChunks,
-                                    Progress *progress,
-                                    mcfile::je::Region::ConcatOptions options) {
+                                    Progress *progress) {
+    mcfile::je::Region::ConcatOptions options;
+    options.fDeleteInput = true;
+
+    uint64_t localProgress = 0;
+    options.fProgress = [&](int chunks) {
+      uint64_t before = localProgress;
+      localProgress = chunks / 2;
+      uint64_t after = localProgress;
+      uint64_t diff = after - before;
+      uint64_t p = progressChunks->fetch_add(diff) + diff;
+      if (progress) {
+        progress->report({p, World::kProgressWeightTotal});
+      }
+    };
+
     int rx = region.fX;
     int rz = region.fZ;
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
@@ -307,24 +318,12 @@ private:
                                                  options)) {
       return JE2BE_ERROR;
     }
-    uint64_t p = progressChunks->fetch_add(512) + 512;
-    if (progress) {
-      if (!progress->report({p, World::kProgressWeightTotal})) {
-        return JE2BE_ERROR;
-      }
-    }
     if (!mcfile::je::Region::ConcatCompressedNbt(rx,
                                                  rz,
                                                  entityTempDir,
                                                  entityMca,
                                                  options)) {
       return JE2BE_ERROR;
-    }
-    p = progressChunks->fetch_add(512) + 512;
-    if (progress) {
-      if (!progress->report({p, World::kProgressWeightTotal})) {
-        return JE2BE_ERROR;
-      }
     }
     return Status::Ok();
   }
