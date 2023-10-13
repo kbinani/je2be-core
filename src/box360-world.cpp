@@ -206,9 +206,11 @@ private:
     if (auto size = Fs::FileSize(in); size && *size == 0) {
       return report();
     }
+    fs::path out = outputDirectory / name;
 
     if (rx < -1 || 0 < rx || rz < -1 || 0 < rz) {
-      if (!Fs::CopyFile(in, outputDirectory / name)) {
+      Fs::Delete(out);
+      if (!Fs::Copy(in, out)) {
         return JE2BE_ERROR;
       }
       return report();
@@ -281,7 +283,7 @@ private:
       }
     }
 
-    if (!editor->write(outputDirectory / name)) {
+    if (!editor->write(out)) {
       return JE2BE_ERROR;
     }
 

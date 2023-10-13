@@ -27,7 +27,7 @@ public:
     }
   }
 
-  static bool CopyFile(std::filesystem::path from, std::filesystem::path to) {
+  static bool Copy(std::filesystem::path from, std::filesystem::path to) {
     std::error_code ec;
     bool ok = std::filesystem::copy_file(from, to, ec);
     if (ec) {
