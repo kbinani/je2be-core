@@ -68,40 +68,43 @@ public:
   }
 
   static std::shared_ptr<mcfile::je::WritableChunk> CreateEmptyChunk(mcfile::Dimension dim, int cx, int cz, bool newSeaLevel) {
-    auto chunk = CreateChunk(cx, cz);
-    FillDefaultBiome(dim, *chunk);
-    chunk->fSections.clear();
-    for (int y = 0; y < 256; y++) {
-      std::shared_ptr<mcfile::je::Block> block;
-      if (dim == mcfile::Dimension::Overworld) {
-        if (y == 0) {
-          block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::bedrock);
-        } else if (y <= 53) {
-          block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::stone);
-        } else {
-          if (newSeaLevel) {
-            if (y <= 62) {
-              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::water);
-            } else {
-              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::air);
-            }
-          } else {
-            if (y <= 63) {
-              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::water);
-            } else {
-              block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::air);
-            }
-          }
-        }
+    using namespace std;
+    static vector<shared_ptr<mcfile::je::WritableChunk const>> sCache(4);
+    enum {
+      OverworldOldSeaLevel = 0,
+      OverworldNewSeaLevel = 1,
+      Nether = 2,
+      End = 3,
+    };
+    int index;
+    switch (dim) {
+    case mcfile::Dimension::Nether:
+      index = Nether;
+      break;
+    case mcfile::Dimension::End:
+      index = End;
+      break;
+    case mcfile::Dimension::Overworld:
+    default:
+      if (newSeaLevel) {
+        index = OverworldNewSeaLevel;
       } else {
-        block = std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::air);
+        index = OverworldOldSeaLevel;
       }
-      for (int z = 0; z < 16; z++) {
-        for (int x = 0; x < 16; x++) {
-          chunk->setBlockAt(cx * 16 + x, y, cz * 16 + z, block);
-        }
-      }
+      break;
     }
+    static mutex sMut;
+    std::shared_ptr<mcfile::je::WritableChunk const> cache;
+    {
+      lock_guard<mutex> lock(sMut);
+      if (!sCache[index]) {
+        sCache[index] = CreateEmptyChunkImpl(dim, newSeaLevel);
+      }
+      cache = sCache[index];
+    }
+    std::shared_ptr<mcfile::je::WritableChunk> chunk(cache->clone());
+    chunk->fChunkX = cx;
+    chunk->fChunkZ = cz;
     return chunk;
   }
 
@@ -1095,6 +1098,39 @@ private:
   static std::shared_ptr<mcfile::je::WritableChunk> CreateChunk(int cx, int cz) {
     auto chunk = mcfile::je::WritableChunk::MakeEmpty(cx, 0, cz, kTargetDataVersion);
     chunk->fLegacyBiomes.resize(1024);
+    return chunk;
+  }
+
+  static std::shared_ptr<mcfile::je::WritableChunk> CreateEmptyChunkImpl(mcfile::Dimension dim, bool newSeaLevel) {
+    auto chunk = CreateChunk(0, 0);
+    FillDefaultBiome(dim, *chunk);
+    chunk->fSections.clear();
+    for (int y = 0; y < 256; y++) {
+      mcfile::blocks::BlockId blockId = mcfile::blocks::minecraft::air;
+      if (dim == mcfile::Dimension::Overworld) {
+        if (y == 0) {
+          blockId = mcfile::blocks::minecraft::bedrock;
+        } else if (y <= 53) {
+          blockId = mcfile::blocks::minecraft::stone;
+        } else {
+          if (newSeaLevel) {
+            if (y <= 62) {
+              blockId = mcfile::blocks::minecraft::water;
+            }
+          } else {
+            if (y <= 63) {
+              blockId = mcfile::blocks::minecraft::water;
+            }
+          }
+        }
+      }
+      auto block = std::make_shared<mcfile::je::Block>(blockId);
+      for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 16; x++) {
+          chunk->setBlockAt(x, y, z, block);
+        }
+      }
+    }
     return chunk;
   }
 };
