@@ -391,6 +391,56 @@ private:
     j[u8"DataVersion"] = Int(Chunk::kTargetDataVersion);
     j[u8"version"] = Int(19133);
 
+    bool doWeatherCycle = true;
+    auto thunderTime = in->int32(u8"thunderTime");
+    auto rainTime = in->int32(u8"rainTime");
+    if (thunderTime && rainTime) {
+      doWeatherCycle = *thunderTime > 0 || *rainTime > 0;
+    }
+
+    bool dyDaylightCycle = true;
+    auto dayTime = in->int64(u8"DayTime");
+    if (dayTime) {
+      dyDaylightCycle = *dayTime >= 0;
+    }
+
+    auto gameRules = Compound();
+    CompoundTag &gr = *gameRules;
+    gr[u8"announceAdvancements"] = String(u8"true");
+    gr[u8"commandBlockOutput"] = String(u8"true");
+    gr[u8"disableElytraMovementCheck"] = String(u8"false");
+    gr[u8"disableRaids"] = String(u8"false");
+    gr[u8"doDaylightCycle"] = String(dyDaylightCycle ? u8"true" : u8"false");
+    gr[u8"doEntityDrops"] = String(u8"true");
+    gr[u8"doFireTick"] = String(u8"true");
+    gr[u8"doImmediateRespawn"] = String(u8"false");
+    gr[u8"doInsomnia"] = String(u8"true");
+    gr[u8"doLimitedCrafting"] = String(u8"false");
+    gr[u8"doMobLoot"] = String(u8"true");
+    gr[u8"doMobSpawning"] = String(u8"true");
+    gr[u8"doPatrolSpawning"] = String(u8"true");
+    gr[u8"doTileDrops"] = String(u8"true");
+    gr[u8"doTraderSpawning"] = String(u8"true");
+    gr[u8"doWeatherCycle"] = String(doWeatherCycle ? u8"true" : u8"false");
+    gr[u8"drowningDamage"] = String(u8"true");
+    gr[u8"fallDamage"] = String(u8"true");
+    gr[u8"fireDamage"] = String(u8"true");
+    gr[u8"forgiveDeadPlayers"] = String(u8"true");
+    gr[u8"keepInventory"] = String(u8"false");
+    gr[u8"logAdminCommands"] = String(u8"true");
+    gr[u8"maxCommandChainLength"] = String(u8"65536");
+    gr[u8"maxEntityCramming"] = String(u8"24");
+    gr[u8"mobGriefing"] = String(u8"true");
+    gr[u8"naturalRegeneration"] = String(u8"true");
+    gr[u8"randomTickSpeed"] = String(u8"3");
+    gr[u8"reducedDebugInfo"] = String(u8"false");
+    gr[u8"sendCommandFeedback"] = String(u8"true");
+    gr[u8"showDeathMessages"] = String(u8"true");
+    gr[u8"spawnRadius"] = String(u8"10");
+    gr[u8"spectatorsGenerateChunks"] = String(u8"true");
+    gr[u8"universalAnger"] = String(u8"false");
+    j[u8"GameRules"] = gameRules;
+
     {
       auto dataPacks = Compound();
       dataPacks->set(u8"Disabled", List<Tag::Type::String>());
