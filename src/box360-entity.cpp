@@ -52,20 +52,33 @@ public:
     return r;
   }
 
+  static std::unordered_map<std::u8string, std::u8string> *CreateNameMigrationTable() {
+    using namespace std;
+    auto ret = make_unique<unordered_map<u8string, u8string>>();
+    auto &t = *ret;
+    t[u8"ender_crystal"] = u8"end_crystal";
+    t[u8"entity_horse"] = u8"horse";
+    t[u8"evocation_illager"] = u8"evoker";
+    t[u8"fish"] = u8"cod";
+    t[u8"lava_slime"] = u8"magma_cube"; // tu9
+    t[u8"minecart_chest"] = u8"chest_minecart";
+    t[u8"minecart_rideable"] = u8"minecart";
+    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9
+    t[u8"ozelot"] = u8"ocelot";               // tu12
+    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9
+    t[u8"tropicalfish"] = u8"tropical_fish";
+    t[u8"villager_golem"] = u8"iron_golem"; // tu12
+    t[u8"vindication_illager"] = u8"vindicator";
+    t[u8"zombie_pigman"] = u8"zombified_piglin";
+    return ret.release();
+  }
+
   static std::u8string MigrateName(std::u8string const &rawName) {
-    std::u8string name = Namespace::Remove(strings::SnakeFromUpperCamel(rawName));
-    if (name == u8"zombie_pigman") {
-      name = u8"zombified_piglin";
-    } else if (name == u8"evocation_illager") {
-      name = u8"evoker";
-    } else if (name == u8"vindication_illager") {
-      name = u8"vindicator";
-    } else if (name == u8"fish") {
-      name = u8"cod";
-    } else if (name == u8"tropicalfish") {
-      name = u8"tropical_fish";
-    } else if (name == u8"ender_crystal") {
-      name = u8"end_crystal";
+    using namespace std;
+    u8string name = Namespace::Remove(strings::SnakeFromUpperCamel(rawName));
+    static unique_ptr<unordered_map<u8string, u8string> const> const sTable(CreateNameMigrationTable());
+    if (auto found = sTable->find(name); found != sTable->end()) {
+      name = found->second;
     }
     return u8"minecraft:" + name;
   }
@@ -213,6 +226,18 @@ private:
     out->set(u8"Color", Byte(16));
     return true;
   }
+
+  static bool Ocelot(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    auto owner = in.string(u8"Owner", u8"");
+    auto catType = in.int32(u8"CatType");
+    if (!owner.empty() && catType) {
+      out->set(u8"id", String(u8"minecraft:cat"));
+      out->set(u8"CatType", Int(*catType));
+    } else {
+      out->set(u8"id", String(u8"minecraft:ocelot"));
+    }
+    return true;
+  }
 #pragma endregion
 
   static CompoundTagPtr Default(CompoundTag const &in, Context const &ctx) {
@@ -303,6 +328,7 @@ private:
     E(shulker, Shulker);
     E(item, Item);
     E(chest_minecart, ChestMinecart);
+    E(ocelot, Ocelot);
 
 #undef E
     return ret;
