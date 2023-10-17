@@ -1,7 +1,9 @@
 #include "box360/_entity.hpp"
 
 #include "_namespace.hpp"
+#include "_nbt-ext.hpp"
 #include "_xxhash.hpp"
+#include "box360/_block-data.hpp"
 #include "box360/_context.hpp"
 #include "box360/_item.hpp"
 #include "entity/_painting.hpp"
@@ -69,6 +71,7 @@ public:
     t[u8"tropicalfish"] = u8"tropical_fish";
     t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19
     t[u8"vindication_illager"] = u8"vindicator";
+    t[u8"wither_boss"] = u8"wither"; // tu19
     t[u8"zombie_pigman"] = u8"zombified_piglin";
     return ret.release();
   }
@@ -135,6 +138,24 @@ private:
         out->set(u8"BlockState", block->toCompoundTag());
       }
     }
+    return true;
+  }
+
+  static bool Horse(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    auto type = in.int32(u8"Type", 0);
+    switch (type) {
+    case 1:
+      out->set(u8"id", String(u8"minecraft:donkey"));
+      break;
+    case 2:
+      out->set(u8"id", String(u8"minecraft:mule"));
+      break;
+    case 0:
+    default:
+      out->set(u8"id", String(u8"minecraft:horse"));
+      break;
+    }
+    out->erase(u8"Type");
     return true;
   }
 
@@ -372,12 +393,28 @@ private:
         }
       }
       ret->set(u8"ArmorItems", armorItems);
+
+      ret->erase(u8"Equipment");
     } else {
       CopyItems(in, *ret, ctx, u8"HandItems");
       CopyItems(in, *ret, ctx, u8"ArmorItems");
     }
 
     CopyItems(in, *ret, ctx, u8"Items");
+
+    if (auto ownerX = in.string(u8"Owner"); ownerX && !ownerX->empty()) {
+      if (auto ownerJ = MigrateUuid(*ownerX, ctx); ownerJ) {
+        ret->set(u8"Owner", ownerJ->toIntArrayTag());
+      }
+    }
+
+    for (std::u8string key : {u8"SaddleItem", u8"ArmorItem"}) {
+      if (auto itemX = in.compoundTag(key); itemX) {
+        if (auto itemJ = Item::Convert(*itemX, ctx); itemJ) {
+          ret->set(key, itemJ);
+        }
+      }
+    }
 
     return ret;
   }
@@ -407,6 +444,7 @@ private:
     E(falling_sand, FallingSand);
     E(item, Item);
     E(item_frame, ItemFrame);
+    E(horse, Horse);
     E(ocelot, Ocelot);
     E(painting, Painting);
     E(shulker, Shulker);
