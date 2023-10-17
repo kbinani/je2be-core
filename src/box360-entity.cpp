@@ -126,6 +126,11 @@ private:
     return true;
   }
 
+  static bool FallingSand(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    out->set(u8"id", String(u8"minecraft:falling_block"));
+    return true;
+  }
+
   static bool Item(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     if (auto item = in.compoundTag(u8"Item"); item) {
       if (auto converted = Item::Convert(*item, ctx); converted) {
@@ -201,6 +206,18 @@ private:
     return true;
   }
 
+  static bool Ocelot(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    auto owner = in.string(u8"Owner", u8"");
+    auto catType = in.int32(u8"CatType");
+    if (!owner.empty() && catType) {
+      out->set(u8"id", String(u8"minecraft:cat"));
+      out->set(u8"CatType", Int(*catType));
+    } else {
+      out->set(u8"id", String(u8"minecraft:ocelot"));
+    }
+    return true;
+  }
+
   static bool Painting(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     auto direction = in.byte(u8"Direction", 0);
     auto f4 = Facing4FromNorth2East3South0West1(direction);
@@ -227,14 +244,40 @@ private:
     return true;
   }
 
-  static bool Ocelot(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    auto owner = in.string(u8"Owner", u8"");
-    auto catType = in.int32(u8"CatType");
-    if (!owner.empty() && catType) {
-      out->set(u8"id", String(u8"minecraft:cat"));
-      out->set(u8"CatType", Int(*catType));
-    } else {
-      out->set(u8"id", String(u8"minecraft:ocelot"));
+  static bool Skeleton(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    ListTagPtr handItems = in.listTag(u8"HandItems");
+    if (!handItems) {
+      // HandItems doesn't exist even when skeleton owns bow
+      // tu9, tu12, tu14
+      handItems = List<Tag::Type::Compound>();
+      auto bow = Compound();
+      bow->set(u8"id", String(u8"minecraft:bow"));
+      bow->set(u8"Count", Byte(1));
+      auto tag = Compound();
+      tag->set(u8"Damage", Short(0));
+      bow->set(u8"tag", tag);
+      handItems->push_back(bow);
+      handItems->push_back(Compound());
+      out->set(u8"HandItems", handItems);
+    }
+    return true;
+  }
+
+  static bool ZombifiedPiglin(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    ListTagPtr handItems = in.listTag(u8"HandItems");
+    if (!handItems) {
+      // HandItems doesn't exist even when skeleton owns golden_sword
+      // tu9, tu12, tu14
+      handItems = List<Tag::Type::Compound>();
+      auto bow = Compound();
+      bow->set(u8"id", String(u8"minecraft:golden_sword"));
+      bow->set(u8"Count", Byte(1));
+      auto tag = Compound();
+      tag->set(u8"Damage", Short(0));
+      bow->set(u8"tag", tag);
+      handItems->push_back(bow);
+      handItems->push_back(Compound());
+      out->set(u8"HandItems", handItems);
     }
     return true;
   }
@@ -323,12 +366,15 @@ private:
   assert(ret->find(u8"" #__name) == ret->end()); \
   ret->insert(std::make_pair(u8"" #__name, __conv))
 
+    E(chest_minecart, ChestMinecart);
+    E(falling_sand, FallingSand);
+    E(item, Item);
     E(item_frame, ItemFrame);
+    E(ocelot, Ocelot);
     E(painting, Painting);
     E(shulker, Shulker);
-    E(item, Item);
-    E(chest_minecart, ChestMinecart);
-    E(ocelot, Ocelot);
+    E(skeleton, Skeleton);
+    E(zombified_piglin, ZombifiedPiglin);
 
 #undef E
     return ret;
