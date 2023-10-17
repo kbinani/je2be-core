@@ -60,14 +60,14 @@ public:
     t[u8"entity_horse"] = u8"horse";
     t[u8"evocation_illager"] = u8"evoker";
     t[u8"fish"] = u8"cod";
-    t[u8"lava_slime"] = u8"magma_cube"; // tu9
+    t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19
     t[u8"minecart_chest"] = u8"chest_minecart";
     t[u8"minecart_rideable"] = u8"minecart";
-    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9
-    t[u8"ozelot"] = u8"ocelot";               // tu12
-    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9
+    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9, tu19
+    t[u8"ozelot"] = u8"ocelot";               // tu12, tu19
+    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19
     t[u8"tropicalfish"] = u8"tropical_fish";
-    t[u8"villager_golem"] = u8"iron_golem"; // tu12
+    t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19
     t[u8"vindication_illager"] = u8"vindicator";
     t[u8"zombie_pigman"] = u8"zombified_piglin";
     return ret.release();
@@ -128,6 +128,13 @@ private:
 
   static bool FallingSand(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     out->set(u8"id", String(u8"minecraft:falling_block"));
+    auto tile = in.byte(u8"Tile");
+    auto data = in.byte(u8"Data", 0);
+    if (tile) {
+      if (auto block = BlockData(*tile, data).toBlock(); block) {
+        out->set(u8"BlockState", block->toCompoundTag());
+      }
+    }
     return true;
   }
 
@@ -245,11 +252,11 @@ private:
   }
 
   static bool Skeleton(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    ListTagPtr handItems = in.listTag(u8"HandItems");
-    if (!handItems) {
-      // HandItems doesn't exist even when skeleton owns bow
+    ListTagPtr equipment = in.listTag(u8"Equipment");
+    if (!equipment) {
+      // Equipment doesn't exist even when skeleton owns bow
       // tu9, tu12, tu14
-      handItems = List<Tag::Type::Compound>();
+      auto handItems = List<Tag::Type::Compound>();
       auto bow = Compound();
       bow->set(u8"id", String(u8"minecraft:bow"));
       bow->set(u8"Count", Byte(1));
@@ -264,11 +271,11 @@ private:
   }
 
   static bool ZombifiedPiglin(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    ListTagPtr handItems = in.listTag(u8"HandItems");
-    if (!handItems) {
-      // HandItems doesn't exist even when skeleton owns golden_sword
+    ListTagPtr equipment = in.listTag(u8"Equipment");
+    if (!equipment) {
+      // Equipment doesn't exist even when skeleton owns golden_sword
       // tu9, tu12, tu14
-      handItems = List<Tag::Type::Compound>();
+      auto handItems = List<Tag::Type::Compound>();
       auto bow = Compound();
       bow->set(u8"id", String(u8"minecraft:golden_sword"));
       bow->set(u8"Count", Byte(1));
@@ -338,8 +345,38 @@ private:
       }
     }
 
-    CopyItems(in, *ret, ctx, u8"HandItems");
-    CopyItems(in, *ret, ctx, u8"ArmorItems");
+    if (auto equipment = in.listTag(u8"Equipment"); equipment && equipment->size() >= 5) {
+      auto handItems = List<Tag::Type::Compound>();
+      if (auto mainHandX = equipment->at(0)->asCompound(); mainHandX) {
+        if (auto mainHandJ = Item::Convert(*mainHandX, ctx); mainHandJ) {
+          handItems->push_back(mainHandJ);
+        } else {
+          handItems->push_back(Compound());
+        }
+      } else {
+        handItems->push_back(Compound());
+      }
+      handItems->push_back(Compound());
+      ret->set(u8"HandItems", handItems);
+
+      auto armorItems = List<Tag::Type::Compound>();
+      for (size_t i = 1; i <= 4; i++) {
+        if (auto itemX = equipment->at(i)->asCompound(); itemX) {
+          if (auto itemJ = Item::Convert(*itemX, ctx); itemJ) {
+            armorItems->push_back(itemJ);
+          } else {
+            armorItems->push_back(Compound());
+          }
+        } else {
+          armorItems->push_back(Compound());
+        }
+      }
+      ret->set(u8"ArmorItems", armorItems);
+    } else {
+      CopyItems(in, *ret, ctx, u8"HandItems");
+      CopyItems(in, *ret, ctx, u8"ArmorItems");
+    }
+
     CopyItems(in, *ret, ctx, u8"Items");
 
     return ret;
