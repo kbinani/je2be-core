@@ -59,21 +59,21 @@ public:
     auto ret = make_unique<unordered_map<u8string, u8string>>();
     auto &t = *ret;
     t[u8"ender_crystal"] = u8"end_crystal";
-    t[u8"entity_horse"] = u8"horse"; // tu19, tu31
+    t[u8"entity_horse"] = u8"horse"; // tu19, tu31, tu43, tu46
     t[u8"evocation_illager"] = u8"evoker";
     t[u8"fish"] = u8"cod";
-    t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19, tu31
+    t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19, tu31, tu43, tu46
     t[u8"minecart_chest"] = u8"chest_minecart";
-    t[u8"minecart_rideable"] = u8"minecart";  // tu31,
-    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9, tu19, tu31
-    t[u8"ozelot"] = u8"ocelot";               // tu12, tu19, tu31
-    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19, tu31
+    t[u8"minecart_rideable"] = u8"minecart";  // tu31, tu46
+    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9, tu19, tu31, tu43, tu46
+    t[u8"ozelot"] = u8"ocelot";               // tu12, tu19, tu31, tu43, tu46
+    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19, tu31, tu43, tu46
     t[u8"primed_tnt"] = u8"tnt";
-    t[u8"snow_man"] = u8"snow_golem"; // tu31
+    t[u8"snow_man"] = u8"snow_golem"; // tu31, tu43, tu46
     t[u8"tropicalfish"] = u8"tropical_fish";
-    t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19, tu31
+    t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19, tu31, tu43, tu46
     t[u8"vindication_illager"] = u8"vindicator";
-    t[u8"wither_boss"] = u8"wither"; // tu19, tu31
+    t[u8"wither_boss"] = u8"wither"; // tu19, tu31, tu43, tu46
     t[u8"zombie_pigman"] = u8"zombified_piglin";
     return ret.release();
   }
@@ -304,6 +304,13 @@ private:
     return true;
   }
 
+  static bool SnowGolem(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    auto glowing = in.boolean(u8"Glowing", false); // tu46
+    out->set(u8"Pumpkin", Bool(!glowing));
+    out->erase(u8"Glowing");
+    return true;
+  }
+
   static bool ZombifiedPiglin(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     ListTagPtr equipment = in.listTag(u8"Equipment");
     if (!equipment) {
@@ -409,6 +416,7 @@ private:
 
       ret->erase(u8"Equipment");
     } else {
+      // tu46
       CopyItems(in, *ret, ctx, u8"HandItems");
       CopyItems(in, *ret, ctx, u8"ArmorItems");
     }
@@ -466,6 +474,7 @@ private:
     E(painting, Painting);
     E(shulker, Shulker);
     E(skeleton, Skeleton);
+    E(snow_golem, SnowGolem);
     E(zombified_piglin, ZombifiedPiglin);
 
 #undef E
