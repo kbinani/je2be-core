@@ -109,6 +109,26 @@ public:
   }
 
 private:
+  static std::optional<Pos2i> ChunkTranslation(mcfile::Dimension dim, int cx, int cz) {
+    switch (dim) {
+    case mcfile::Dimension::Nether:
+      return Pos2i(0, 0);
+    case mcfile::Dimension::End:
+      if (cx <= -7 || 6 <= cx || cz <= 14) {
+        return Pos2i(0, 0);
+      } else if (cz <= 18) {
+        return std::nullopt;
+      } else if (cz <= 30) {
+        return Pos2i(0, -4);
+      } else {
+        return Pos2i(0, 0);
+      }
+    case mcfile::Dimension::Overworld:
+    default:
+      return Pos2i(0, 0);
+    }
+  }
+
   struct Copy {};
   struct Move {
     int fDx;
@@ -202,11 +222,10 @@ private:
       }
       auto cx = mcfile::Coordinate::ChunkFromBlock(*x);
       auto cz = mcfile::Coordinate::ChunkFromBlock(*z);
-      auto pos = ChunkLocation(dim, cx, cz);
-      if (std::holds_alternative<Move>(pos)) {
-        auto mv = std::get<Move>(pos);
-        exitPortal->set(u8"X", Int(*x - 16 * mv.fDx));
-        exitPortal->set(u8"Z", Int(*z - 16 * mv.fDz));
+      auto pos = ChunkTranslation(dim, cx, cz);
+      if (pos && (pos->fX != 0 || pos->fZ != 0)) {
+        exitPortal->set(u8"X", Int(*x + 16 * pos->fX));
+        exitPortal->set(u8"Z", Int(*z + 16 * pos->fZ));
       }
     }
   }
