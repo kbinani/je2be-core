@@ -59,19 +59,21 @@ public:
     auto ret = make_unique<unordered_map<u8string, u8string>>();
     auto &t = *ret;
     t[u8"ender_crystal"] = u8"end_crystal";
-    t[u8"entity_horse"] = u8"horse";
+    t[u8"entity_horse"] = u8"horse"; // tu19, tu31
     t[u8"evocation_illager"] = u8"evoker";
     t[u8"fish"] = u8"cod";
-    t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19
+    t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19, tu31
     t[u8"minecart_chest"] = u8"chest_minecart";
-    t[u8"minecart_rideable"] = u8"minecart";
-    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9, tu19
-    t[u8"ozelot"] = u8"ocelot";               // tu12, tu19
-    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19
+    t[u8"minecart_rideable"] = u8"minecart";  // tu31,
+    t[u8"mushroom_cow"] = u8"mooshroom";      // tu9, tu19, tu31
+    t[u8"ozelot"] = u8"ocelot";               // tu12, tu19, tu31
+    t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19, tu31
+    t[u8"primed_tnt"] = u8"tnt";
+    t[u8"snow_man"] = u8"snow_golem"; // tu31
     t[u8"tropicalfish"] = u8"tropical_fish";
-    t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19
+    t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19, tu31
     t[u8"vindication_illager"] = u8"vindicator";
-    t[u8"wither_boss"] = u8"wither"; // tu19
+    t[u8"wither_boss"] = u8"wither"; // tu19, tu31
     t[u8"zombie_pigman"] = u8"zombified_piglin";
     return ret.release();
   }
@@ -138,6 +140,16 @@ private:
         out->set(u8"BlockState", block->toCompoundTag());
       }
     }
+    return true;
+  }
+
+  static bool Guardian(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+    if (in.boolean(u8"Elder", false)) {
+      out->set(u8"id", String(u8"minecraft:elder_guardian"));
+    } else {
+      out->set(u8"id", String(u8"minecraft:guardian"));
+    }
+    out->erase(u8"Elder");
     return true;
   }
 
@@ -235,13 +247,14 @@ private:
   }
 
   static bool Ocelot(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    auto owner = in.string(u8"Owner", u8"");
+    auto owner = in.string(u8"Owner", u8"");         // tu19
+    auto ownerUUID = in.string(u8"OwnerUUID", u8""); // tu31
     auto catType = in.int32(u8"CatType");
-    if (!owner.empty() && catType) {
+    if ((!owner.empty() || !ownerUUID.empty()) && catType) {
       out->set(u8"id", String(u8"minecraft:cat"));
-      out->set(u8"CatType", Int(*catType));
     } else {
       out->set(u8"id", String(u8"minecraft:ocelot"));
+      out->erase(u8"CatType");
     }
     return true;
   }
@@ -402,9 +415,12 @@ private:
 
     CopyItems(in, *ret, ctx, u8"Items");
 
-    if (auto ownerX = in.string(u8"Owner"); ownerX && !ownerX->empty()) {
-      if (auto ownerJ = MigrateUuid(*ownerX, ctx); ownerJ) {
-        ret->set(u8"Owner", ownerJ->toIntArrayTag());
+    for (std::u8string key : {u8"Owner", u8"OwnerUUID"}) {
+      if (auto ownerX = in.string(key); ownerX && !ownerX->empty()) {
+        if (auto ownerJ = MigrateUuid(*ownerX, ctx); ownerJ) {
+          ret->set(u8"Owner", ownerJ->toIntArrayTag());
+          break;
+        }
       }
     }
 
@@ -442,6 +458,7 @@ private:
 
     E(chest_minecart, ChestMinecart);
     E(falling_sand, FallingSand);
+    E(guardian, Guardian);
     E(item, Item);
     E(item_frame, ItemFrame);
     E(horse, Horse);
