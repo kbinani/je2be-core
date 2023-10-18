@@ -170,7 +170,7 @@ public:
             Data const &data = found->second;
             auto record = Compound();
             record->set(u8"free_tickets", Int(data.fFreeTickets));
-            record->set(u8"type", String(data.fType));
+            record->set(u8"type", data.fType);
             record->set(u8"pos", IntArrayFromPos3i(pos));
 
             i32 y = mcfile::Coordinate::ChunkFromBlock(pos.fY);

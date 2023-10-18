@@ -32,7 +32,7 @@ public:
           tile->set(u8"x", Int(x));
           tile->set(u8"y", Int(y));
           tile->set(u8"z", Int(z));
-          tile->set(u8"id", String(u8"minecraft:bed"));
+          tile->set(u8"id", u8"minecraft:bed");
           out.fTileEntities[{x, y, z}] = tile;
         }
       }

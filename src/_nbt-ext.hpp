@@ -76,9 +76,9 @@ static inline void CopyStringValues(CompoundTag const &src, CompoundTag &dest, s
   for (auto const &it : keys) {
     auto value = src.string(it.fBefore);
     if (value) {
-      dest.set(it.fAfter, String(*value));
+      dest.set(it.fAfter, *value);
     } else if (it.fDefault) {
-      dest.set(it.fAfter, String(*it.fDefault));
+      dest.set(it.fAfter, *it.fDefault);
     }
   }
 }

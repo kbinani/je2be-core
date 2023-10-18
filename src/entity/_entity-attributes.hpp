@@ -23,7 +23,7 @@ public:
       a->set(u8"Base", Float(base));
       a->set(u8"Current", Float(current));
       a->set(u8"Max", Float(max));
-      a->set(u8"Name", String(u8"minecraft:" + name));
+      a->set(u8"Name", u8"minecraft:" + name);
       a->set(u8"DefaultMax", Float(max));
       a->set(u8"DefaultMin", Float(0));
       a->set(u8"Min", Float(0));

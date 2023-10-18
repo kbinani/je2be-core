@@ -66,7 +66,7 @@ public:
       // NOTE: "tag" of standing_sign should be converted to "BlockEntityTag", but itemB doesn't have "Block" tag.
       //  Therefore, we need a dummy blockTag here.
       blockTag = Compound();
-      blockTag->set(u8"name", String(u8"minecraft:standing_sign"));
+      blockTag->set(u8"name", u8"minecraft:standing_sign");
       blockTag->set(u8"version", Int(tobe::kBlockDataVersion));
     }
     if (blockTag) {
@@ -95,7 +95,7 @@ public:
     if (!ctx.fDataPackBundle && nameJ == u8"minecraft:bundle") {
       ctx.fDataPackBundle = true;
     }
-    itemJ.set(u8"id", String(nameJ));
+    itemJ.set(u8"id", nameJ);
 
     CopyByteValues(itemB, itemJ, {{u8"Count"}, {u8"Slot"}});
     CopyIntValues(*tagB, *tagJ, {{u8"Damage"}, {u8"RepairCost"}});
@@ -118,7 +118,7 @@ public:
       if (displayName) {
         props::Json json;
         props::SetJsonString(json, u8"text", *displayName);
-        displayJ->set(u8"Name", String(props::StringFromJson(json)));
+        displayJ->set(u8"Name", props::StringFromJson(json));
       }
 
       if (auto loreB = displayB->listTag(u8"Lore"); loreB) {
@@ -141,7 +141,7 @@ public:
     if (customName && customNameVisible) {
       props::Json json;
       props::SetJsonString(json, u8"text", *customName);
-      displayJ->set(u8"Name", String(props::StringFromJson(json)));
+      displayJ->set(u8"Name", props::StringFromJson(json));
     }
 
     auto enchB = tagB->listTag(u8"ench");
@@ -157,7 +157,7 @@ public:
         if (idB && lvlB) {
           auto cJ = Compound();
           auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
-          cJ->set(u8"id", String(idJ));
+          cJ->set(u8"id", idJ);
           cJ->set(u8"lvl", Short(*lvlB));
           enchJ->push_back(cJ);
         }
@@ -173,8 +173,8 @@ public:
       auto materialB = trimB->string(u8"Material");
       auto patternB = trimB->string(u8"Pattern");
       auto trimJ = Compound();
-      trimJ->set(u8"material", String(Namespace::Add(*materialB)));
-      trimJ->set(u8"pattern", String(Namespace::Add(*patternB)));
+      trimJ->set(u8"material", Namespace::Add(*materialB));
+      trimJ->set(u8"pattern", Namespace::Add(*patternB));
       tagJ->set(u8"Trim", trimJ);
     }
 
@@ -195,7 +195,7 @@ public:
     } else {
       auto potionJ = TippedArrowPotion::JavaPotionType(damage);
       auto tagJ = Compound();
-      tagJ->set(u8"Potion", String(potionJ));
+      tagJ->set(u8"Potion", potionJ);
       itemJ.set(u8"tag", tagJ);
       return Ns() + u8"tipped_arrow";
     }
@@ -254,18 +254,18 @@ public:
         auto bannerPatterns = Banner::OminousBannerPatterns();
         auto blockEntityTag = Compound();
         blockEntityTag->set(u8"Patterns", bannerPatterns);
-        blockEntityTag->set(u8"id", String(u8"minecraft:banner"));
+        blockEntityTag->set(u8"id", u8"minecraft:banner");
         tagJ->set(u8"BlockEntityTag", blockEntityTag);
 
         auto displayJ = Compound();
         props::Json json;
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
-        displayJ->set(u8"Name", String(props::StringFromJson(json)));
+        displayJ->set(u8"Name", props::StringFromJson(json));
         tagJ->set(u8"display", displayJ);
       } else {
         auto blockEntityTag = Compound();
-        blockEntityTag->set(u8"id", String(u8"minecraft:banner"));
+        blockEntityTag->set(u8"id", u8"minecraft:banner");
 
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {
@@ -284,7 +284,7 @@ public:
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*patternColorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
             patternJ->set(u8"Color", Int(static_cast<i32>(ccj)));
-            patternJ->set(u8"Pattern", String(*patternStringB));
+            patternJ->set(u8"Pattern", *patternStringB);
 
             patternsJ->push_back(patternJ);
           }
@@ -336,11 +336,11 @@ public:
     }
     auto author = tagB->string(u8"author");
     if (author) {
-      tagJ->set(u8"author", String(*author));
+      tagJ->set(u8"author", *author);
     }
     auto title = tagB->string(u8"title");
     if (title) {
-      tagJ->set(u8"title", String(*title));
+      tagJ->set(u8"title", *title);
     }
     itemJ.set(u8"tag", tagJ);
     return name;
@@ -431,7 +431,7 @@ public:
     auto damage = itemB.int16(u8"Damage", 0);
     auto instrument = GoatHorn::JavaInstrumentFromBedrockDamage(damage);
     auto tagJ = Compound();
-    tagJ->set(u8"instrument", String(instrument));
+    tagJ->set(u8"instrument", instrument);
     itemJ[u8"tag"] = tagJ;
     return name;
   }
@@ -747,7 +747,7 @@ public:
       auto displayJ = Compound();
       props::Json json;
       props::SetJsonString(json, u8"translate", *translate);
-      displayJ->set(u8"Name", String(props::StringFromJson(json)));
+      displayJ->set(u8"Name", props::StringFromJson(json));
 
       if (auto mapColor = MapType::JavaMapColorFromBedrockDamage(damage); mapColor) {
         displayJ->set(u8"MapColor", Int(*mapColor));
@@ -778,7 +778,7 @@ public:
     auto damage = itemB.int16(u8"Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
     auto tagJ = Compound();
-    tagJ->set(u8"Potion", String(potionName));
+    tagJ->set(u8"Potion", potionName);
     itemJ.set(u8"tag", tagJ);
     return name;
   }
@@ -795,7 +795,7 @@ public:
     Effect::SuspiciousStewEffect sse = Effect::JavaEffectFromBedrockSuspiciousStew(damage, opt.fOfferItem);
     if (auto id = Effect::NamespacedIdFromLegacyId(sse.fEffectId); id) {
       auto effect = Compound();
-      effect->set(u8"id", String(*id));
+      effect->set(u8"id", *id);
       if (sse.fDuration) {
         effect->set(u8"duration", Int(*sse.fDuration));
       }

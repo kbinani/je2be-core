@@ -67,7 +67,7 @@ public:
               pistonArm->set(u8"Progress", Float(1));
               pistonArm->set(u8"State", Byte(1));
               pistonArm->set(u8"Sticky", Bool(block->fName == u8"minecraft:sticky_piston"));
-              pistonArm->set(u8"id", String(u8"j2b:PistonArm"));
+              pistonArm->set(u8"id", u8"j2b:PistonArm");
               pistonArm->set(u8"isMovable", Bool(false));
               pistonArm->set(u8"x", Int(pos.fX));
               pistonArm->set(u8"y", Int(pos.fY));
@@ -86,7 +86,7 @@ public:
               pistonArm->set(u8"Progress", Float(extended ? 1 : 0));
               pistonArm->set(u8"State", Byte(extended ? 2 : 0));
               pistonArm->set(u8"Sticky", Bool(block->fName == u8"minecraft:sticky_piston"));
-              pistonArm->set(u8"id", String(u8"j2b:PistonArm"));
+              pistonArm->set(u8"id", u8"j2b:PistonArm");
               pistonArm->set(u8"isMovable", Bool(extended ? false : true));
               pistonArm->set(u8"x", Int(pos.fX));
               pistonArm->set(u8"y", Int(pos.fY));
@@ -168,7 +168,7 @@ public:
           pistonArm->set(u8"Progress", Float(0.5));
           pistonArm->set(u8"State", Byte(3));
           pistonArm->set(u8"Sticky", Bool(sticky));
-          pistonArm->set(u8"id", String(u8"j2b:PistonArm"));
+          pistonArm->set(u8"id", u8"j2b:PistonArm");
           pistonArm->set(u8"isMovable", Bool(false));
           pistonArm->set(u8"x", Int(pos.fX));
           pistonArm->set(u8"y", Int(pos.fY));
@@ -201,7 +201,7 @@ private:
     using namespace mcfile::je;
 
     auto e = Compound();
-    e->set(u8"id", String(u8"j2b:MovingBlock"));
+    e->set(u8"id", u8"j2b:MovingBlock");
     e->set(u8"isMovable", Bool(true));
 
     auto blockState = item->compoundTag(u8"blockState");
@@ -216,7 +216,7 @@ private:
     e->set(u8"movingBlock", movingBlock);
 
     auto movingBlockExtra = Compound();
-    movingBlockExtra->set(u8"name", String(u8"minecraft:air"));
+    movingBlockExtra->set(u8"name", u8"minecraft:air");
     movingBlockExtra->set(u8"states", Compound());
     movingBlockExtra->set(u8"version", Int(kBlockDataVersion));
     e->set(u8"movingBlockExtra", movingBlockExtra);

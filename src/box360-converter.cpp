@@ -185,7 +185,7 @@ private:
 
     if (auto dimensionB = in->int32(u8"Dimension"); dimensionB) {
       if (auto dimension = DimensionFromXbox360Dimension(*dimensionB); dimension) {
-        r->fPlayer.set(u8"Dimension", String(JavaStringFromDimension(*dimension)));
+        r->fPlayer.set(u8"Dimension", JavaStringFromDimension(*dimension));
       }
     }
 
@@ -460,8 +460,8 @@ private:
     {
       auto version = Compound();
       version->set(u8"Id", Int(Chunk::kTargetDataVersion));
-      version->set(u8"Name", String(Chunk::TargetVersionString()));
-      version->set(u8"Series", String(u8"main"));
+      version->set(u8"Name", Chunk::TargetVersionString());
+      version->set(u8"Series", u8"main");
       version->set(u8"Snapshot", Bool(false));
       j[u8"Version"] = version;
     }
@@ -478,48 +478,48 @@ private:
         auto overworld = Compound();
         auto generator = Compound();
         if (flatWorldSettings) {
-          generator->set(u8"type", String(u8"minecraft:flat"));
+          generator->set(u8"type", u8"minecraft:flat");
           generator->set(u8"settings", flatWorldSettings);
         } else {
           auto biomeSource = Compound();
-          biomeSource->set(u8"preset", String(u8"minecraft:overworld"));
-          biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+          biomeSource->set(u8"preset", u8"minecraft:overworld");
+          biomeSource->set(u8"type", u8"minecraft:multi_noise");
           generator->set(u8"biome_source", biomeSource);
           generator->set(u8"seed", Long(*randomSeed));
-          generator->set(u8"settings", String(u8"minecraft:overworld"));
-          generator->set(u8"type", String(u8"minecraft:noise"));
+          generator->set(u8"settings", u8"minecraft:overworld");
+          generator->set(u8"type", u8"minecraft:noise");
         }
         overworld->set(u8"generator", generator);
-        overworld->set(u8"type", String(u8"minecraft:overworld"));
+        overworld->set(u8"type", u8"minecraft:overworld");
         dimensions->set(u8"minecraft:overworld", overworld);
       }
       {
         auto end = Compound();
         auto generator = Compound();
         auto biomeSource = Compound();
-        biomeSource->set(u8"type", String(u8"minecraft:the_end"));
+        biomeSource->set(u8"type", u8"minecraft:the_end");
         biomeSource->set(u8"seed", Long(*randomSeed));
         generator->set(u8"biome_source", biomeSource);
         generator->set(u8"seed", Long(*randomSeed));
-        generator->set(u8"settings", String(u8"minecraft:end"));
-        generator->set(u8"type", String(u8"minecraft:noise"));
+        generator->set(u8"settings", u8"minecraft:end");
+        generator->set(u8"type", u8"minecraft:noise");
         end->set(u8"generator", generator);
-        end->set(u8"type", String(u8"minecraft:the_end"));
+        end->set(u8"type", u8"minecraft:the_end");
         dimensions->set(u8"minecraft:the_end", end);
       }
       {
         auto nether = Compound();
         auto generator = Compound();
         auto biomeSource = Compound();
-        biomeSource->set(u8"preset", String(u8"minecraft:nether"));
-        biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+        biomeSource->set(u8"preset", u8"minecraft:nether");
+        biomeSource->set(u8"type", u8"minecraft:multi_noise");
         biomeSource->set(u8"seed", Long(*randomSeed));
         generator->set(u8"biome_source", biomeSource);
         generator->set(u8"seed", Long(*randomSeed));
-        generator->set(u8"settings", String(u8"minecraft:nether"));
-        generator->set(u8"type", String(u8"minecraft:noise"));
+        generator->set(u8"settings", u8"minecraft:nether");
+        generator->set(u8"type", u8"minecraft:noise");
         nether->set(u8"generator", generator);
-        nether->set(u8"type", String(u8"minecraft:the_nether"));
+        nether->set(u8"type", u8"minecraft:the_nether");
         dimensions->set(u8"minecraft:the_nether", nether);
       }
       worldGenSettings->set(u8"dimensions", dimensions);
@@ -574,7 +574,7 @@ private:
 
   static CompoundTagPtr FlatWorldSettings() {
     auto flatSettings = Compound();
-    flatSettings->set(u8"biome", String(u8"minecraft:plains"));
+    flatSettings->set(u8"biome", u8"minecraft:plains");
     flatSettings->set(u8"features", Bool(false));
     flatSettings->set(u8"lakes", Bool(false));
     auto structures = Compound();
@@ -584,17 +584,17 @@ private:
     auto layers = List<Tag::Type::Compound>();
 
     auto bedrock = Compound();
-    bedrock->set(u8"block", String(u8"minecraft:bedrock"));
+    bedrock->set(u8"block", u8"minecraft:bedrock");
     bedrock->set(u8"height", Int(1));
     layers->push_back(bedrock);
 
     auto dirt = Compound();
-    dirt->set(u8"block", String(u8"minecraft:dirt"));
+    dirt->set(u8"block", u8"minecraft:dirt");
     dirt->set(u8"height", Int(2));
     layers->push_back(dirt);
 
     auto grass = Compound();
-    grass->set(u8"block", String(u8"minecraft:grass_block"));
+    grass->set(u8"block", u8"minecraft:grass_block");
     grass->set(u8"height", Int(1));
     layers->push_back(grass);
 

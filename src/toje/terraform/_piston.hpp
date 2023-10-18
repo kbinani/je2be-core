@@ -61,7 +61,7 @@ public:
               bool extending = false;
 
               auto tileEntityJ = Compound();
-              tileEntityJ->set(u8"id", String(u8"minecraft:piston"));
+              tileEntityJ->set(u8"id", u8"minecraft:piston");
               tileEntityJ->set(u8"keepPacked", Bool(false));
               tileEntityJ->set(u8"x", Int(x));
               tileEntityJ->set(u8"y", Int(y));
@@ -96,7 +96,7 @@ public:
               auto state = piston->fBlockEntity->byte(u8"State");
               bool extending = state == 1; // state should be 3 or 1 here.
               auto tileEntityJ = Compound();
-              tileEntityJ->set(u8"id", String(u8"minecraft:piston"));
+              tileEntityJ->set(u8"id", u8"minecraft:piston");
               tileEntityJ->set(u8"keepPacked", Bool(false));
               tileEntityJ->set(u8"x", Int(x));
               tileEntityJ->set(u8"y", Int(y));
@@ -131,7 +131,7 @@ public:
 
                 // Tile Entity
                 auto tileEntityJ = Compound();
-                tileEntityJ->set(u8"id", String(u8"minecraft:piston"));
+                tileEntityJ->set(u8"id", u8"minecraft:piston");
                 tileEntityJ->set(u8"keepPacked", Bool(false));
                 tileEntityJ->set(u8"x", Int(x));
                 tileEntityJ->set(u8"y", Int(y));

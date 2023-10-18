@@ -375,7 +375,7 @@ private:
     auto dusted = Wrap(strings::ToI32(b.property(u8"dusted", u8"0")), 0);
     tag->set(u8"brush_count", Int(dusted));
 
-    tag->set(u8"type", String(b.fName));
+    tag->set(u8"type", std::u8string(b.fName));
     tag->set(u8"brush_direction", Byte(6));
 
     Attach(c, pos, *tag);
@@ -385,7 +385,7 @@ private:
   static CompoundTagPtr New(std::u8string const &id) {
     auto tag = Compound();
     tag->set(u8"isMovable", Bool(true));
-    tag->set(u8"id", String(id));
+    tag->set(u8"id", id);
     return tag;
   }
 
@@ -458,7 +458,7 @@ private:
 
     t->set(u8"animationMode", Bool(false));
     t->set(u8"animationSeconds", Float(0));
-    t->set(u8"dataField", String(u8""));
+    t->set(u8"dataField", u8"");
     t->set(u8"includePlayers", Bool(false));
     t->set(u8"redstoneSaveMode", Int(0));
     t->set(u8"removeBlocks", Bool(false));
@@ -681,7 +681,7 @@ private:
       return nullptr;
     }
     std::u8string newId = id->substr(4);
-    c->set(u8"id", String(newId));
+    c->set(u8"id", newId);
     return c;
   }
 
@@ -725,7 +725,7 @@ private:
         customNameB = *text;
       }
     }
-    tag->set(u8"CustomName", String(customNameB));
+    tag->set(u8"CustomName", customNameB);
     return tag;
   }
 
@@ -784,7 +784,7 @@ private:
           outBee->set(u8"TicksLeftToStay", Int(ticksLeftToStay));
         }
 
-        outBee->set(u8"ActorIdentifier", String(u8"minecraft:bee<>"));
+        outBee->set(u8"ActorIdentifier", u8"minecraft:bee<>");
 
         occupants->push_back(outBee);
       }
@@ -808,11 +808,11 @@ private:
         return nullptr;
       }
       if (*id == u8"j2b:PistonArm") {
-        c->set(u8"id", String(u8"PistonArm"));
+        c->set(u8"id", u8"PistonArm");
         return c;
       } else {
         auto ret = Compound();
-        ret->set(u8"id", String(u8"PistonArm"));
+        ret->set(u8"id", u8"PistonArm");
         ret->set(u8"isMovable", Bool(false));
         ret->set(u8"LastProgress", Float(1));
         ret->set(u8"NewState", Byte(2));
@@ -1006,7 +1006,7 @@ private:
         {u8"DisplayEntityScale", Float(1)},
         {u8"DisplayEntityWidth", Float(0.8)},
     });
-    tag->set(u8"EntityIdentifier", String(mob));
+    tag->set(u8"EntityIdentifier", mob);
     return tag;
   }
 
@@ -1152,7 +1152,7 @@ private:
       auto states = Compound();
       for (auto const &p : properties) {
         if (holds_alternative<u8string>(p.second)) {
-          states->set(p.first, String(get<u8string>(p.second)));
+          states->set(p.first, get<u8string>(p.second));
         } else if (holds_alternative<bool>(p.second)) {
           states->set(p.first, Bool(get<bool>(p.second)));
         } else if (holds_alternative<i32>(p.second)) {
@@ -1207,7 +1207,7 @@ private:
     using namespace std;
 
     auto tag = Compound();
-    tag->set(u8"id", String(u8"FlowerPot"));
+    tag->set(u8"id", u8"FlowerPot");
     tag->set(u8"isMovable", Bool(true));
     if (c) {
       // legacy: Java 1.7.10
@@ -1261,7 +1261,7 @@ private:
           type = u8"fern";
           break;
         }
-        states->set(u8"tall_grass_type", String(type));
+        states->set(u8"tall_grass_type", type);
         break;
       }
       case 32:
@@ -1303,7 +1303,7 @@ private:
           type = u8"poppy";
           break;
         }
-        states->set(u8"flower_type", String(type));
+        states->set(u8"flower_type", type);
         break;
       }
       case 39:
@@ -1320,7 +1320,7 @@ private:
         return nullptr;
       }
       plantBlock->set(u8"states", states);
-      plantBlock->set(u8"name", String(u8"minecraft:" + name));
+      plantBlock->set(u8"name", u8"minecraft:" + name);
 
       tag->set(u8"PlantBlock", plantBlock);
     }
@@ -1513,7 +1513,7 @@ private:
       if (customName) {
         auto text = GetAsString(*customName, "text");
         if (text) {
-          tag.set(u8"CustomName", String(*text));
+          tag.set(u8"CustomName", *text);
         }
       }
     }
@@ -1521,7 +1521,7 @@ private:
 
   static CompoundTagPtr Empty(std::u8string const &name, CompoundTag const &tagJ, Pos3i const &pos) {
     auto ret = Compound();
-    ret->set(u8"id", String(name));
+    ret->set(u8"id", name);
     ret->set(u8"x", Int(pos.fX));
     ret->set(u8"y", Int(pos.fY));
     ret->set(u8"z", Int(pos.fZ));
@@ -1531,7 +1531,7 @@ private:
     if (customName) {
       auto text = GetAsString(*customName, "text");
       if (text) {
-        ret->set(u8"CustomName", String(*text));
+        ret->set(u8"CustomName", *text);
       }
     }
     return ret;
@@ -1673,8 +1673,8 @@ private:
     ret->set(u8"IgnoreLighting", Bool(false));
     ret->set(u8"PersistFormatting", Bool(true));
     ret->set(u8"SignTextColor", Int(-16777216));
-    ret->set(u8"Text", String(u8"back"));
-    ret->set(u8"TextOwner", String(u8""));
+    ret->set(u8"Text", u8"back");
+    ret->set(u8"TextOwner", u8"");
     return ret;
   }
 
@@ -1703,7 +1703,7 @@ private:
       }
       text = t;
     }
-    ret->set(u8"Text", String(text));
+    ret->set(u8"Text", text);
 
     u8string color = input.string(u8"color", u8"black");
     Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
@@ -1712,7 +1712,7 @@ private:
     bool glowing = input.boolean(u8"has_glowing_text", false);
     ret->set(u8"IgnoreLighting", Bool(glowing));
 
-    ret->set(u8"TextOwner", String(u8""));
+    ret->set(u8"TextOwner", u8"");
     ret->set(u8"HideGlowOutline", Bool(false));
     ret->set(u8"PersistFormatting", Bool(true));
 
@@ -1755,8 +1755,8 @@ private:
         bool glowing = c->boolean(u8"GlowingText", false);
         u8string text = text1 + u8"\x0a" + text2 + u8"\x0a" + text3 + u8"\x0a" + text4;
         auto frontTextB = Compound();
-        frontTextB->set(u8"Text", String(text));
-        frontTextB->set(u8"TextOwner", String(u8""));
+        frontTextB->set(u8"Text", text);
+        frontTextB->set(u8"TextOwner", u8"");
         frontTextB->set(u8"SignTextColor", Int(signTextColor.toARGB()));
         frontTextB->set(u8"IgnoreLighting", Bool(glowing));
         frontTextB->set(u8"HideGlowOutline", Bool(false));

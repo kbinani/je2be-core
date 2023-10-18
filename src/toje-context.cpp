@@ -416,7 +416,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     if (auto dimension = DimensionFromBedrockDimension(dimensionB); dimension) {
       dim = *dimension;
     }
-    dataJ->set(u8"dimension", String(JavaStringFromDimension(dim)));
+    dataJ->set(u8"dimension", JavaStringFromDimension(dim));
     CopyBoolValues(*dataB, *dataJ, {{u8"mapLocked", u8"locked"}});
     CopyByteValues(*dataB, *dataJ, {{u8"scale"}, {u8"unlimitedTracking"}});
     CopyIntValues(*dataB, *dataJ, {{u8"xCenter"}, {u8"zCenter"}});

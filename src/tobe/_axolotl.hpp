@@ -54,9 +54,9 @@ public:
     }
     u8string age = fAge < 0 ? u8"Baby" : u8"Adult";
     u8string bodyId = u8"item.axolotl" + age + u8"BodySingle.name";
-    ret->set(u8"BodyID", String(bodyId));
+    ret->set(u8"BodyID", bodyId);
 
-    ret->set(u8"ColorID", String(fVariant.colorId()));
+    ret->set(u8"ColorID", fVariant.colorId());
     ret->set(u8"Variant", Int(fVariant.fBedrockRawValue));
 
     auto definitions = List<Tag::Type::String>();
@@ -72,7 +72,7 @@ public:
     definitions->push_back(String(u8"-axolotl_dried"));
     definitions->push_back(String(u8"+axolotl_in_water"));
     ret->set(u8"definitions", definitions);
-    ret->set(u8"identifier", String(u8"minecraft:axolotl"));
+    ret->set(u8"identifier", u8"minecraft:axolotl");
 
     ret->set(u8"AppendCustomName", Bool(true));
     ret->set(u8"IsBaby", Bool(fAge < 0));

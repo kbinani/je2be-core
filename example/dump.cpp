@@ -68,7 +68,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
   }
 
   auto tag = Compound();
-  tag->set(u8"name", String(block->fName));
+  tag->set(u8"name", block->fName);
   auto states = Compound();
   states = block->fStates;
   tag->set(u8"states", states);
@@ -85,7 +85,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
     cout << "layer2 ---" << endl;
     auto layer2Block = section->fWaterPalette[idx];
     auto t = Compound();
-    t->set(u8"name", String(layer2Block->fName));
+    t->set(u8"name", layer2Block->fName);
     t->set(u8"states", layer2Block->fStates);
     if (layer2Block->fVersion) {
       t->set(u8"version", Int(*layer2Block->fVersion));

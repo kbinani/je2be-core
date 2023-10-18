@@ -120,7 +120,7 @@ class Entity::Impl {
           {u8"Variant", Int(fVariant)},
       });
       if (fCustomName) {
-        tag->set(u8"CustomName", String(*fCustomName));
+        tag->set(u8"CustomName", *fCustomName);
         tag->set(u8"CustomNameVisible", Bool(fCustomNameVisible));
       }
       return tag;
@@ -345,8 +345,8 @@ public:
     pos->fY = y;
     entity->set(u8"Pos", pos->toF().toListTag());
 
-    entity->set(u8"format_version", String(u8"1.12.0"));
-    entity->set(u8"identifier", String(u8"minecraft:player"));
+    entity->set(u8"format_version", u8"1.12.0");
+    entity->set(u8"identifier", u8"minecraft:player");
     entity->set(u8"IsOutOfControl", Bool(false));
     entity->set(u8"OwnerNew", Long(-1));
     entity->set(u8"SleepTimer", Short(0));
@@ -1136,7 +1136,7 @@ private:
       auto block = Compound();
       block->insert({{u8"name", String(u8"minecraft:carpet")}, {u8"version", Int(kBlockDataVersion)}});
       auto states = Compound();
-      states->set(u8"color", String(beCarpetColor));
+      states->set(u8"color", beCarpetColor);
       block->set(u8"states", states);
       armor->set(u8"Block", block);
 
@@ -1754,7 +1754,7 @@ private:
           itemB = Compound();
           itemB->set(u8"Count", Byte(0));
           itemB->set(u8"Damage", Short(0));
-          itemB->set(u8"Name", String(u8""));
+          itemB->set(u8"Name", u8"");
           itemB->set(u8"WasPickedUp", Bool(false));
         }
         itemB->set(u8"Slot", Byte(slot));
@@ -2099,7 +2099,7 @@ private:
     e->fIdentifier = u8"minecraft:painting";
     e->fPos = *pos;
     auto c = e->toCompoundTag();
-    c->set(u8"Motive", String(motiveB));
+    c->set(u8"Motive", motiveB);
     c->set(u8"Direction", Byte(facing));
     c->set(u8"Rotation", rotation);
     return c;

@@ -57,7 +57,7 @@ public:
     auto armor = Compound();
     armor->set(u8"Count", Byte(0));
     armor->set(u8"Damage", Short(0));
-    armor->set(u8"Name", String(u8""));
+    armor->set(u8"Name", u8"");
     armor->set(u8"WasPickedUp", Bool(false));
     return armor;
   }
@@ -712,7 +712,7 @@ private:
     if (!ret) {
       return nullptr;
     }
-    ret->set(u8"Name", String(name));
+    ret->set(u8"Name", name);
     ret->erase(u8"Block");
     return ret;
   }
@@ -730,7 +730,7 @@ private:
 
       auto customName = GetCustomName(*tg);
       if (customName) {
-        tag->set(u8"CustomName", String(*customName));
+        tag->set(u8"CustomName", *customName);
         tag->set(u8"CustomNameVisible", Bool(true));
       }
 
@@ -769,11 +769,11 @@ private:
       auto outTag = Compound();
       auto author = tg->stringTag(u8"author");
       if (author) {
-        outTag->set(u8"author", String(author->fValue));
+        outTag->set(u8"author", author->fValue);
       }
       auto title = tg->stringTag(u8"title");
       if (title) {
-        outTag->set(u8"title", String(title->fValue));
+        outTag->set(u8"title", title->fValue);
       }
       if (title || author) {
         outTag->set(u8"generation", Int(0));
@@ -979,7 +979,7 @@ private:
     auto blockData = BlockData::From(block, nullptr, {.fItem = true});
 
     auto states = Compound();
-    states->set(u8"torch_facing_direction", String(u8"unknown"));
+    states->set(u8"torch_facing_direction", u8"unknown");
     blockData->set(u8"states", states);
 
     auto tag = New(name, true);
@@ -1298,7 +1298,7 @@ private:
       if (!displayB) {
         displayB = Compound();
       }
-      displayB->set(u8"Name", String(*name));
+      displayB->set(u8"Name", *name);
     }
 
     if (auto displayJ = tagJ->compoundTag(u8"display"); displayJ) {
@@ -1352,8 +1352,8 @@ private:
         auto materialB = Namespace::Remove(*materialJ);
         auto patternB = Namespace::Remove(*patternJ);
         auto trimB = Compound();
-        trimB->set(u8"Material", String(materialB));
-        trimB->set(u8"Pattern", String(patternB));
+        trimB->set(u8"Material", materialB);
+        trimB->set(u8"Pattern", patternB);
         tagB->set(u8"Trim", trimB);
       }
     }

@@ -39,7 +39,7 @@ public:
         if (customName) {
           props::Json json;
           props::SetJsonString(json, u8"text", *customName);
-          result->fTileEntity->set(u8"CustomName", String(props::StringFromJson(json)));
+          result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
         }
       }
     }
@@ -62,7 +62,7 @@ public:
     auto type = tag.int32(u8"Type", 0);
     if (type == 1) {
       // Illager Banner
-      te->set(u8"CustomName", String(u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
+      te->set(u8"CustomName", u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})");
       te->set(u8"Patterns", Banner::OminousBannerPatterns());
     } else {
       auto patternsB = tag.listTag(u8"Patterns");
@@ -80,7 +80,7 @@ public:
           }
           auto pJ = Compound();
           pJ->set(u8"Color", Int(static_cast<i32>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set(u8"Pattern", String(*pPatternB));
+          pJ->set(u8"Pattern", *pPatternB);
           patternsJ->push_back(pJ);
         }
         te->set(u8"Patterns", patternsJ);
@@ -98,12 +98,12 @@ public:
     auto t = EmptyShortName(u8"beacon", pos);
     if (auto primaryB = tagB.int32(u8"primary"); primaryB) {
       if (auto primaryJ = Beacon::JavaEffectFromLegacyJavaAndBedrock(*primaryB); primaryJ) {
-        t->set(u8"primary_effect", String(*primaryJ));
+        t->set(u8"primary_effect", *primaryJ);
       }
     }
     if (auto secondaryB = tagB.int32(u8"secondary"); secondaryB) {
       if (auto secondaryJ = Beacon::JavaEffectFromLegacyJavaAndBedrock(*secondaryB); secondaryJ) {
-        t->set(u8"secondary_effect", String(*secondaryJ));
+        t->set(u8"secondary_effect", *secondaryJ);
       }
     }
     // NOTE: "Levels" need to be defined by terrain around the beacon.
@@ -301,7 +301,7 @@ public:
 
     if (auto commandB = tagB.string(u8"Command"); commandB) {
       auto commandJ = je2be::command::Command::TranspileBedrockToJava(*commandB);
-      t->set(u8"Command", String(commandJ));
+      t->set(u8"Command", commandJ);
     }
     CopyIntValues(tagB, *t, {{u8"SuccessCount"}});
     CopyBoolValues(tagB, *t, {{u8"auto"}, {u8"powered"}, {u8"conditionMet"}, {u8"TrackOutput"}});
@@ -315,7 +315,7 @@ public:
     }
     props::Json json;
     props::SetJsonString(json, u8"text", customName);
-    t->set(u8"CustomName", String(props::StringFromJson(json)));
+    t->set(u8"CustomName", props::StringFromJson(json));
 
     Result r;
     r.fTileEntity = t;
@@ -516,7 +516,7 @@ public:
     if (entity) {
       auto entityTag = Compound();
       if (!entity->empty()) {
-        entityTag->set(u8"id", String(*entity));
+        entityTag->set(u8"id", *entity);
       }
       auto spawnData = Compound();
       spawnData->set(u8"entity", entityTag);
@@ -582,9 +582,9 @@ public:
     if (color) {
       Rgba rgba = Rgba::FromRGB(*color);
       ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
-      ret->set(u8"color", String(JavaNameFromColorCodeJava(jcc)));
+      ret->set(u8"color", JavaNameFromColorCodeJava(jcc));
     } else {
-      ret->set(u8"color", String(u8"black"));
+      ret->set(u8"color", u8"black");
     }
 
     auto text = input.string(u8"Text", u8"");
@@ -603,7 +603,7 @@ public:
 
   static CompoundTagPtr SignTextEmpty() {
     auto ret = Compound();
-    ret->set(u8"color", String(u8"black"));
+    ret->set(u8"color", u8"black");
     ret->set(u8"has_glowing_text", Bool(false));
     auto messages = List<Tag::Type::String>();
     messages->push_back(String(u8""));
@@ -641,7 +641,7 @@ public:
         if (color) {
           Rgba rgba = Rgba::FromRGB(*color);
           ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
-          frontTextJ->set(u8"Color", String(JavaNameFromColorCodeJava(jcc)));
+          frontTextJ->set(u8"Color", JavaNameFromColorCodeJava(jcc));
         }
         auto text = tag.string(u8"Text", u8"");
         vector<u8string> lines = mcfile::String::Split(text, u8'\n');
@@ -728,7 +728,7 @@ public:
       mirrorJ = u8"NONE";
       break;
     }
-    t->set(u8"mirror", String(mirrorJ));
+    t->set(u8"mirror", mirrorJ);
 
     // "LOAD", "SAVE", "CORNER"
     auto dataB = tag.int32(u8"data", 1);
@@ -745,7 +745,7 @@ public:
       mode = u8"LOAD";
       break;
     }
-    t->set(u8"mode", String(mode));
+    t->set(u8"mode", mode);
 
     // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
     auto rotationB = tag.byte(u8"rotation", 0);
@@ -765,7 +765,7 @@ public:
       rotationJ = u8"NONE";
       break;
     }
-    t->set(u8"rotation", String(rotationJ));
+    t->set(u8"rotation", rotationJ);
 
     Result r;
     r.fTileEntity = t;
@@ -888,7 +888,7 @@ public:
 
   static CompoundTagPtr EmptyFullName(std::u8string const &id, Pos3i const &pos) {
     auto tag = Compound();
-    tag->set(u8"id", String(id));
+    tag->set(u8"id", id);
     tag->set(u8"x", Int(pos.fX));
     tag->set(u8"y", Int(pos.fY));
     tag->set(u8"z", Int(pos.fZ));

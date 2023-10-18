@@ -49,8 +49,8 @@ public:
     {
       auto version = Compound();
       version->set(u8"Id", Int(o.fDataVersion));
-      version->set(u8"Name", String(o.fVersionString));
-      version->set(u8"Series", String(u8"main"));
+      version->set(u8"Name", o.fVersionString);
+      version->set(u8"Series", u8"main");
       version->set(u8"Snapshot", Bool(false));
       j[u8"Version"] = version;
     }
@@ -67,43 +67,43 @@ public:
           auto overworld = Compound();
           auto generator = Compound();
           if (o.fFlatWorldSettings) {
-            generator->set(u8"type", String(u8"minecraft:flat"));
+            generator->set(u8"type", u8"minecraft:flat");
             generator->set(u8"settings", o.fFlatWorldSettings);
           } else {
             auto biomeSource = Compound();
-            biomeSource->set(u8"preset", String(u8"minecraft:overworld"));
-            biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+            biomeSource->set(u8"preset", u8"minecraft:overworld");
+            biomeSource->set(u8"type", u8"minecraft:multi_noise");
             generator->set(u8"biome_source", biomeSource);
-            generator->set(u8"settings", String(u8"minecraft:overworld"));
-            generator->set(u8"type", String(u8"minecraft:noise"));
+            generator->set(u8"settings", u8"minecraft:overworld");
+            generator->set(u8"type", u8"minecraft:noise");
           }
           overworld->set(u8"generator", generator);
-          overworld->set(u8"type", String(u8"minecraft:overworld"));
+          overworld->set(u8"type", u8"minecraft:overworld");
           dimensions->set(u8"minecraft:overworld", overworld);
         }
         {
           auto end = Compound();
           auto generator = Compound();
           auto biomeSource = Compound();
-          biomeSource->set(u8"type", String(u8"minecraft:the_end"));
+          biomeSource->set(u8"type", u8"minecraft:the_end");
           generator->set(u8"biome_source", biomeSource);
-          generator->set(u8"settings", String(u8"minecraft:end"));
-          generator->set(u8"type", String(u8"minecraft:noise"));
+          generator->set(u8"settings", u8"minecraft:end");
+          generator->set(u8"type", u8"minecraft:noise");
           end->set(u8"generator", generator);
-          end->set(u8"type", String(u8"minecraft:the_end"));
+          end->set(u8"type", u8"minecraft:the_end");
           dimensions->set(u8"minecraft:the_end", end);
         }
         {
           auto nether = Compound();
           auto generator = Compound();
           auto biomeSource = Compound();
-          biomeSource->set(u8"preset", String(u8"minecraft:nether"));
-          biomeSource->set(u8"type", String(u8"minecraft:multi_noise"));
+          biomeSource->set(u8"preset", u8"minecraft:nether");
+          biomeSource->set(u8"type", u8"minecraft:multi_noise");
           generator->set(u8"biome_source", biomeSource);
-          generator->set(u8"settings", String(u8"minecraft:nether"));
-          generator->set(u8"type", String(u8"minecraft:noise"));
+          generator->set(u8"settings", u8"minecraft:nether");
+          generator->set(u8"type", u8"minecraft:noise");
           nether->set(u8"generator", generator);
-          nether->set(u8"type", String(u8"minecraft:the_nether"));
+          nether->set(u8"type", u8"minecraft:the_nether");
           dimensions->set(u8"minecraft:the_nether", nether);
         }
         worldGenSettings->set(u8"dimensions", dimensions);

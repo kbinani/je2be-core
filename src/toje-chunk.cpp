@@ -282,11 +282,11 @@ public:
           auto monument = Compound();
           monument->set(u8"ChunkX", Int(cx));
           monument->set(u8"ChunkZ", Int(cz));
-          monument->set(u8"id", String(u8"minecraft:monument"));
+          monument->set(u8"id", u8"minecraft:monument");
           monument->set(u8"references", Int(0));
           auto children = List<Tag::Type::Compound>();
           auto child = Compound();
-          child->set(u8"id", String(u8"minecraft:omb"));
+          child->set(u8"id", u8"minecraft:omb");
           child->set(u8"GD", Int(0));
           child->set(u8"O", Int(0));
           // IdentifyFacingOfOceanMonument https://github.com/kbinani/je2be/commit/6ca28383bc557bcf60b8203e655fdbb7a87d39d7

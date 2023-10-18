@@ -75,7 +75,7 @@ public:
   }
 
   static PropertyPickupFunction AddStringProperty(std::u8string const &name, std::u8string const &value) {
-    return [=](CompoundTagPtr const &s, Block const &b, Options const &o) { s->set(name, String(value)); };
+    return [=](CompoundTagPtr const &s, Block const &b, Options const &o) { s->set(name, value); };
   }
 
   static PropertyPickupFunction AddBoolProperty(std::u8string const &name, bool v) {
@@ -92,7 +92,7 @@ public:
 
   static void AxisToPillarAxis(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto v = block.property(u8"axis", u8"y");
-    s->set(u8"pillar_axis", String(v));
+    s->set(u8"pillar_axis", std::u8string(v));
   }
 
   static void PersistentAndDistanceToPersistentBitAndUpdateBit(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -113,15 +113,15 @@ public:
   static void TypeToVerticalHalf(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto t = block.property(u8"type", u8"bottom");
     if (t == u8"double") {
-      s->set(u8"minecraft:vertical_half", String(u8"bottom"));
+      s->set(u8"minecraft:vertical_half", u8"bottom");
     } else {
-      s->set(u8"minecraft:vertical_half", String(t));
+      s->set(u8"minecraft:vertical_half", std::u8string(t));
     }
   }
 
   static PropertyPickupFunction AddStoneSlabType(std::u8string const &number, std::u8string const &type) {
     auto typeKey = number.empty() ? u8"stone_slab_type" : u8"stone_slab_type_" + number;
-    return [=](CompoundTagPtr const &s, Block const &b, Options const &o) { s->set(typeKey, String(type)); };
+    return [=](CompoundTagPtr const &s, Block const &b, Options const &o) { s->set(typeKey, type); };
   }
 
   static void UpperBlockBitToHalf(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -154,7 +154,7 @@ public:
   static void HalfToSeagrassType(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto half = block.property(u8"half", u8"lower");
     auto type = half == u8"lower" ? u8"double_bot" : u8"double_top";
-    s->set(u8"sea_grass_type", String(type));
+    s->set(u8"sea_grass_type", type);
   }
 
   static void SculkSensorPhase(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -429,13 +429,13 @@ public:
   }
 
   static void CardinalDirectionFromFacing4(CompoundTagPtr const &s, Block const &block, Options const &o) {
-    s->set(u8"minecraft:cardinal_direction", String(block.property(u8"facing", u8"south")));
+    s->set(u8"minecraft:cardinal_direction", std::u8string(block.property(u8"facing", u8"south")));
   }
 
   static PropertyPickupFunction CardinalDirectionFromFacing4ByItemDefault(Facing4 f4) {
     return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
       if (o.fItem) {
-        s->set(u8"minecraft:cardinal_direction", String(JavaNameFromFacing4(f4)));
+        s->set(u8"minecraft:cardinal_direction", JavaNameFromFacing4(f4));
       } else {
         CardinalDirectionFromFacing4(s, block, o);
       }
@@ -559,7 +559,7 @@ public:
   static void TorchFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto facing = block.property(u8"facing", u8"north");
     auto direction = GetTorchFacingDirectionFromFacing(facing);
-    s->set(u8"torch_facing_direction", String(direction));
+    s->set(u8"torch_facing_direction", direction);
   }
 
   static Converter AnyWallTorch(std::u8string const &prefix) { return Converter(Name(prefix + u8"torch"), TorchFacingDirectionFromFacing); }
@@ -652,7 +652,7 @@ public:
   }
 
   static void BlockFaceFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
-    s->set(u8"minecraft:block_face", String(block.property(u8"facing", u8"up")));
+    s->set(u8"minecraft:block_face", std::u8string(block.property(u8"facing", u8"up")));
   }
 
   static void PistonFacingDirectionFromFacing6(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -690,13 +690,13 @@ public:
       auto v = b.property(direction, u8"none");
       if (v == u8"true" || v == u8"false") {
         if (v == u8"true") {
-          s->set(beName, String(u8"short"));
+          s->set(beName, u8"short");
         } else {
-          s->set(beName, String(u8"none"));
+          s->set(beName, u8"none");
         }
       } else {
         auto type = GetWallConnectionType(v);
-        s->set(beName, String(type));
+        s->set(beName, type);
       }
     };
   }
@@ -760,7 +760,7 @@ public:
     } else {
       attachment = u8"hanging";
     }
-    s->set(u8"attachment", String(attachment));
+    s->set(u8"attachment", attachment);
   }
 
   static PropertyType Hanging(Block const &block) {
@@ -770,7 +770,7 @@ public:
 
   static void BellAttachmentFromAttachment(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto attachment = block.property(u8"attachment", u8"floor");
-    s->set(u8"attachment", String(GetAttachment(attachment)));
+    s->set(u8"attachment", GetAttachment(attachment));
   }
 
   static void BellDirectionFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
@@ -1969,7 +1969,7 @@ public:
     } else if (tilt == u8"unstable") {
       //nop
     }
-    s->set(u8"big_dripleaf_tilt", String(tilt));
+    s->set(u8"big_dripleaf_tilt", std::u8string(tilt));
     return AttachStates(c, s);
   }
 
@@ -2011,7 +2011,7 @@ public:
     auto c = New(u8"structure_block");
     auto s = States();
     auto mode = block.property(u8"mode", u8"save");
-    s->set(u8"structure_block_type", String(mode));
+    s->set(u8"structure_block_type", std::u8string(mode));
     return AttachStates(c, s);
   }
 
@@ -2088,7 +2088,7 @@ public:
       thickness = u8"merge";
     }
     auto direction = b.property(u8"vertical_direction", u8"down");
-    s->set(u8"dripstone_thickness", String(thickness));
+    s->set(u8"dripstone_thickness", std::u8string(thickness));
     s->set(u8"hanging", Bool(direction == u8"down"));
     return AttachStates(c, s);
   }
@@ -2101,9 +2101,9 @@ public:
   static void BambooStalkThicknessFromAge(CompoundTagPtr const &s, Block const &b, Options const &o) {
     auto age = b.property(u8"age", u8"0");
     if (age == u8"0") {
-      s->set(u8"bamboo_stalk_thickness", String(u8"thin"));
+      s->set(u8"bamboo_stalk_thickness", u8"thin");
     } else {
-      s->set(u8"bamboo_stalk_thickness", String(u8"thick"));
+      s->set(u8"bamboo_stalk_thickness", u8"thick");
     }
   }
 
@@ -2125,7 +2125,7 @@ public:
     } else if (eggs == u8"4") {
       eggCount = u8"four_egg";
     }
-    s->set(u8"turtle_egg_count", String(eggCount));
+    s->set(u8"turtle_egg_count", eggCount);
   }
 
   static void TurtleEggCrackedState(CompoundTagPtr const &s, Block const &b, Options const &o) {
@@ -2138,7 +2138,7 @@ public:
     } else if (hatch == u8"2") {
       state = u8"max_cracked";
     }
-    s->set(u8"cracked_state", String(state));
+    s->set(u8"cracked_state", state);
   }
 
   static void WallSkullFacingDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
@@ -2206,7 +2206,7 @@ public:
     } else if (leaves == u8"small") {
       size = u8"small_leaves";
     }
-    s->set(u8"bamboo_leaf_size", String(size));
+    s->set(u8"bamboo_leaf_size", size);
   }
 
   static PropertyType Axis(Block const &b) {
@@ -2369,7 +2369,7 @@ public:
         result = facing;
       }
     }
-    s->set(u8"lever_direction", String(result));
+    s->set(u8"lever_direction", result);
   }
 
   static PropertyType Triggered(Block const &b) {
@@ -2394,7 +2394,7 @@ public:
     using namespace std;
     auto tag = Compound();
     u8string fullName = nameIsFull ? u8string(name) : u8"minecraft:" + u8string(name);
-    tag->set(u8"name", String(fullName));
+    tag->set(u8"name", fullName);
     tag->set(u8"version", Int(kBlockDataVersion));
     return tag;
   }

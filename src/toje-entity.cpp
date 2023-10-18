@@ -171,7 +171,7 @@ public:
     CompoundTagPtr operator()(std::u8string const &id, CompoundTag const &entityB, Context &ctx) const {
       auto name = fNamer(id, entityB);
       auto t = fBase(id, entityB, ctx);
-      t->set(u8"id", String(name));
+      t->set(u8"id", name);
       for (auto behavior : fBehaviors) {
         behavior(entityB, *t, ctx);
       }
@@ -682,7 +682,7 @@ public:
     }
 
     auto value = Compound();
-    value->set(u8"dimension", String(JavaStringFromDimension(*dim)));
+    value->set(u8"dimension", JavaStringFromDimension(*dim));
     std::vector<i32> pos;
     pos.push_back((int)round(homePos->fX));
     pos.push_back((int)round(homePos->fY));
@@ -797,7 +797,7 @@ public:
       auto professionVariant = static_cast<VillagerProfession::Variant>(variantB);
       profession = VillagerProfession(professionVariant);
     }
-    dataJ->set(u8"profession", String(u8"minecraft:" + profession.string()));
+    dataJ->set(u8"profession", u8"minecraft:" + profession.string());
 
     VillagerType::Variant variant = VillagerType::Plains;
     auto markVariantB = b.int32(u8"MarkVariant");
@@ -819,7 +819,7 @@ public:
       }
     }
     VillagerType type(variant);
-    dataJ->set(u8"type", String(u8"minecraft:" + type.string()));
+    dataJ->set(u8"type", u8"minecraft:" + type.string());
 
     auto tradeTier = b.int32(u8"TradeTier", 0);
     dataJ->set(u8"level", Int(tradeTier + 1));
@@ -1050,7 +1050,7 @@ public:
     if (current && max) {
       j[u8"Health"] = Float(*current);
       auto attr = Compound();
-      attr->set(u8"Name", String(u8"minecraft:generic.max_health"));
+      attr->set(u8"Name", u8"minecraft:generic.max_health");
       attr->set(u8"Base", Double(*max));
       AddAttribute(attr, j);
     }
@@ -1180,7 +1180,7 @@ public:
     auto current = movementB->float32(u8"Current");
     if (current) {
       auto attr = Compound();
-      attr->set(u8"Name", String(u8"minecraft:generic.movement_speed"));
+      attr->set(u8"Name", u8"minecraft:generic.movement_speed");
       attr->set(u8"Base", Double(*current));
       AddAttribute(attr, j);
     }
@@ -1709,7 +1709,7 @@ public:
       ret->set(u8"buyB", buyB);
     } else {
       auto air = Compound();
-      air->set(u8"id", String(u8"minecraft:air"));
+      air->set(u8"id", u8"minecraft:air");
       air->set(u8"Count", Byte(0));
       ret->set(u8"buyB", air);
     }
@@ -1899,7 +1899,7 @@ public:
     if (deathDimension && deathPositionX && deathPositionY && deathPositionZ) {
       if (auto dimension = DimensionFromBedrockDimension(*deathDimension); dimension) {
         auto lastDeathLocation = Compound();
-        lastDeathLocation->set(u8"dimension", String(JavaStringFromDimension(*dimension)));
+        lastDeathLocation->set(u8"dimension", JavaStringFromDimension(*dimension));
         std::vector<i32> value(3);
         value[0] = *deathPositionX;
         value[1] = *deathPositionY;

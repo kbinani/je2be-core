@@ -132,7 +132,7 @@ private:
   }
 
   static bool FallingSand(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
-    out->set(u8"id", String(u8"minecraft:falling_block"));
+    out->set(u8"id", u8"minecraft:falling_block");
     auto tile = in.byte(u8"Tile");
     auto data = in.byte(u8"Data", 0);
     if (tile) {
@@ -145,9 +145,9 @@ private:
 
   static bool Guardian(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     if (in.boolean(u8"Elder", false)) {
-      out->set(u8"id", String(u8"minecraft:elder_guardian"));
+      out->set(u8"id", u8"minecraft:elder_guardian");
     } else {
-      out->set(u8"id", String(u8"minecraft:guardian"));
+      out->set(u8"id", u8"minecraft:guardian");
     }
     out->erase(u8"Elder");
     return true;
@@ -157,14 +157,14 @@ private:
     auto type = in.int32(u8"Type", 0);
     switch (type) {
     case 1:
-      out->set(u8"id", String(u8"minecraft:donkey"));
+      out->set(u8"id", u8"minecraft:donkey");
       break;
     case 2:
-      out->set(u8"id", String(u8"minecraft:mule"));
+      out->set(u8"id", u8"minecraft:mule");
       break;
     case 0:
     default:
-      out->set(u8"id", String(u8"minecraft:horse"));
+      out->set(u8"id", u8"minecraft:horse");
       break;
     }
     out->erase(u8"Type");
@@ -251,9 +251,9 @@ private:
     auto ownerUUID = in.string(u8"OwnerUUID", u8""); // tu31
     auto catType = in.int32(u8"CatType");
     if ((!owner.empty() || !ownerUUID.empty()) && catType) {
-      out->set(u8"id", String(u8"minecraft:cat"));
+      out->set(u8"id", u8"minecraft:cat");
     } else {
-      out->set(u8"id", String(u8"minecraft:ocelot"));
+      out->set(u8"id", u8"minecraft:ocelot");
       out->erase(u8"CatType");
     }
     return true;
@@ -266,7 +266,7 @@ private:
     if (auto motiveX = in.string(u8"Motive"); motiveX) {
       auto motive = Painting::MotiveFromBedrock(*motiveX);
       auto motiveJ = Painting::JavaFromMotive(motive);
-      out->set(u8"Motive", String(motiveJ));
+      out->set(u8"Motive", motiveJ);
 
       if (auto pos = props::GetPos3d(in, u8"Pos"); pos) {
         if (auto tileOut = Painting::JavaTilePosFromLegacyConsolePos(pos->toF(), f4, motive); tileOut) {
@@ -292,7 +292,7 @@ private:
       // tu9, tu12, tu14
       auto handItems = List<Tag::Type::Compound>();
       auto bow = Compound();
-      bow->set(u8"id", String(u8"minecraft:bow"));
+      bow->set(u8"id", u8"minecraft:bow");
       bow->set(u8"Count", Byte(1));
       auto tag = Compound();
       tag->set(u8"Damage", Short(0));
@@ -311,7 +311,7 @@ private:
       // tu9, tu12, tu14
       auto handItems = List<Tag::Type::Compound>();
       auto bow = Compound();
-      bow->set(u8"id", String(u8"minecraft:golden_sword"));
+      bow->set(u8"id", u8"minecraft:golden_sword");
       bow->set(u8"Count", Byte(1));
       auto tag = Compound();
       tag->set(u8"Damage", Short(0));
@@ -363,7 +363,7 @@ private:
     if (auto customNameB = in.string(u8"CustomName"); customNameB && !customNameB->empty()) {
       props::Json obj;
       props::SetJsonString(obj, u8"text", *customNameB);
-      ret->set(u8"CustomName", String(props::StringFromJson(obj)));
+      ret->set(u8"CustomName", props::StringFromJson(obj));
     }
 
     auto idB = in.string(u8"id");
@@ -371,7 +371,7 @@ private:
       return nullptr;
     }
     auto idJ = MigrateName(*idB);
-    ret->set(u8"id", String(idJ));
+    ret->set(u8"id", idJ);
 
     if (auto drownedConversionTime = in.int32(u8"DrownedConversionTime"); drownedConversionTime) {
       if (*drownedConversionTime == 0) {

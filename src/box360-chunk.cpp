@@ -712,7 +712,7 @@ private:
           if (id == 26) {
             // may be overwritten by ParseTileEntities later
             auto tag = Compound();
-            tag->set(u8"id", String(u8"minecraft:bed"));
+            tag->set(u8"id", u8"minecraft:bed");
             tag->set(u8"x", Int(x));
             tag->set(u8"y", Int(y));
             tag->set(u8"z", Int(z));

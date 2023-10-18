@@ -65,10 +65,10 @@ public:
     } else {
       bodyId = bodyIdPrefix + u8"Multi.name";
     }
-    ret->set(u8"BodyID", String(bodyId));
-    ret->set(u8"ColorID", String(colorId));
+    ret->set(u8"BodyID", bodyId);
+    ret->set(u8"ColorID", colorId);
     if (!color2Id.empty()) {
-      ret->set(u8"Color2ID", String(color2Id));
+      ret->set(u8"Color2ID", color2Id);
     }
     ret->set(u8"AppendCustomName", Bool(true));
     return ret;

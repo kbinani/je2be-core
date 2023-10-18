@@ -63,12 +63,12 @@ public:
           auto doPatrolSpawning = mobEvents->boolean(u8"minecraft:pillager_patrols_event", true);
           auto doTraderSpawning = mobEvents->boolean(u8"minecraft:wandering_trader_event", true);
 
-          ret->set(u8"doPatrolSpawning", String(doPatrolSpawning ? u8"true" : u8"false"));
-          ret->set(u8"doTraderSpawning", String(doTraderSpawning ? u8"true" : u8"false"));
+          ret->set(u8"doPatrolSpawning", doPatrolSpawning ? u8"true" : u8"false");
+          ret->set(u8"doTraderSpawning", doTraderSpawning ? u8"true" : u8"false");
         }
       }
 
-      ret->set(u8"enderPearlsVanishOnDeath", String(u8"true"));
+      ret->set(u8"enderPearlsVanishOnDeath", u8"true");
 
       return ret;
     }
@@ -246,7 +246,7 @@ public:
     auto biomeJ = mcfile::be::Biome::FromUint32(biomeB->get<u32>());
     assert(biomeJ != mcfile::biomes::unknown);
 
-    settings->set(u8"biome", String(mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion)));
+    settings->set(u8"biome", mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion));
     auto layersB = json.find("block_layers");
     if (layersB == json.end()) {
       return nullptr;
@@ -257,7 +257,7 @@ public:
     auto layersJ = List<Tag::Type::Compound>();
     if (encodingVersionV < 6) {
       auto under0LayerJ = Compound();
-      under0LayerJ->set(u8"block", String(u8"minecraft:air"));
+      under0LayerJ->set(u8"block", u8"minecraft:air");
       under0LayerJ->set(u8"height", Int(64));
       layersJ->push_back(under0LayerJ);
     }
@@ -301,7 +301,7 @@ public:
         return nullptr;
       }
       auto layerJ = Compound();
-      layerJ->set(u8"block", String(blockJ->fName));
+      layerJ->set(u8"block", u8string(blockJ->fName));
       layerJ->set(u8"height", Int(count->get<u32>()));
       layersJ->push_back(layerJ);
     }

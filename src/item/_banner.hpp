@@ -9,7 +9,7 @@ public:
   static CompoundTagPtr BannerPattern(i32 color, std::u8string const &pattern) {
     auto c = Compound();
     c->set(u8"Color", Int(color));
-    c->set(u8"Pattern", String(pattern));
+    c->set(u8"Pattern", pattern);
     return c;
   }
 

@@ -22,7 +22,7 @@ public:
 
     CompoundTagPtr toCompoundTag() const {
       auto ret = Compound();
-      ret->set(u8"id", String(fId));
+      ret->set(u8"id", fId);
       ret->set(u8"rot", Double(fRot));
       ret->set(u8"type", Byte(fType));
       ret->set(u8"x", Double(fX));

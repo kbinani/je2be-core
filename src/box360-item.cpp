@@ -51,9 +51,9 @@ public:
       return nullptr;
     }
     if (changedId.empty()) {
-      out->set(u8"id", String(*rawId));
+      out->set(u8"id", *rawId);
     } else {
-      out->set(u8"id", String(u8"minecraft:" + changedId));
+      out->set(u8"id", u8"minecraft:" + changedId);
     }
     auto tagJ = Compound();
     if (auto tagB = in.compoundTag(u8"tag"); tagB) {
@@ -63,7 +63,7 @@ public:
 
       if (auto blockEntityTagB = tagB->compoundTag(u8"BlockEntityTag"); blockEntityTagB) {
         auto tileEntityId = GetTileEntityNameFromItemName(id);
-        blockEntityTagB->set(u8"id", String(u8"minecraft:" + tileEntityId));
+        blockEntityTagB->set(u8"id", u8"minecraft:" + tileEntityId);
         if (auto converted = ctx.fTileEntityConverter(*blockEntityTagB, nullptr, Pos3i(0, 0, 0), ctx); converted && converted->fTileEntity) {
           tagJ->set(u8"BlockEntityTag", converted->fTileEntity);
         }
@@ -77,7 +77,7 @@ public:
         if (auto name = displayB->string(u8"Name"); name) {
           props::Json obj;
           props::SetJsonString(obj, u8"text", *name);
-          displayJ->set(u8"Name", String(props::StringFromJson(obj)));
+          displayJ->set(u8"Name", props::StringFromJson(obj));
         }
         if (!displayJ->empty()) {
           tagJ->set(u8"display", displayJ);
@@ -101,7 +101,7 @@ public:
           u8string idJ = Enchantments::JavaEnchantmentIdFromBox360(*idB);
           auto itemJ = Compound();
           itemJ->set(u8"lvl", Short(lvl));
-          itemJ->set(u8"id", String(idJ));
+          itemJ->set(u8"id", idJ);
           enchantmentsJ->push_back(itemJ);
         }
         if (!enchantmentsJ->empty()) {
@@ -331,7 +331,7 @@ private:
             continue;
           }
           auto enchJ = Compound();
-          enchJ->set(u8"id", String(idJ));
+          enchJ->set(u8"id", idJ);
           enchJ->set(u8"lvl", Short(*lvl));
           storedJ->push_back(enchJ);
         }
@@ -495,7 +495,7 @@ private:
       if (ret) {
         id = Namespace::Remove(ret->fItemName);
         auto t = Compound();
-        t->set(u8"Potion", String(ret->fPotionType));
+        t->set(u8"Potion", ret->fPotionType);
         out->set(u8"tag", t);
       }
     }

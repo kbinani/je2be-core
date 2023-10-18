@@ -38,7 +38,7 @@ public:
     out->set(u8"y", Int(pos.fY));
     out->set(u8"z", Int(pos.fZ));
     out->set(u8"keepPacked", Bool(false));
-    out->set(u8"id", String(id));
+    out->set(u8"id", id);
 
     auto ret = found->second(in, block, out, ctx);
     if (!ret) {
@@ -70,7 +70,7 @@ public:
         if (!p) {
           continue;
         }
-        patternJ->set(u8"Pattern", String(*p));
+        patternJ->set(u8"Pattern", *p);
         auto patternColorB = patternB->int32(u8"Color");
         if (!patternColorB) {
           continue;
@@ -292,7 +292,7 @@ public:
       auto dataJ = Compound();
       auto idJ = ctx.fEntityNameMigrator(*entityId);
       auto entity = Compound();
-      entity->set(u8"id", String(idJ));
+      entity->set(u8"id", idJ);
       dataJ->set(u8"entity", entity);
       out->set(u8"SpawnData", dataJ);
 
@@ -303,7 +303,7 @@ public:
         if (auto idB = dataB->string(u8"id"); idB) {
           auto idJ = ctx.fEntityNameMigrator(*idB);
           auto entity = Compound();
-          entity->set(u8"id", String(idJ));
+          entity->set(u8"id", idJ);
           dataJ->set(u8"entity", entity);
         }
         out->set(u8"SpawnData", dataJ);
@@ -318,7 +318,7 @@ public:
           auto potentialJ = potentialB->copy();
           if (auto entity = potentialJ->compoundTag(u8"Entity"); entity) {
             if (auto idB = entity->string(u8"id"); idB) {
-              entity->set(u8"id", String(ctx.fEntityNameMigrator(*idB)));
+              entity->set(u8"id", ctx.fEntityNameMigrator(*idB));
             }
           }
           potentialsJ->push_back(potentialJ);
@@ -362,7 +362,7 @@ public:
       }
       props::Json obj;
       props::SetJsonString(obj, u8"text", *text);
-      out->set(key, String(props::StringFromJson(obj)));
+      out->set(key, props::StringFromJson(obj));
     }
     r.fTileEntity = out;
     return r;
