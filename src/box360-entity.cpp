@@ -59,8 +59,9 @@ public:
     auto ret = make_unique<unordered_map<u8string, u8string>>();
     auto &t = *ret;
     t[u8"ender_crystal"] = u8"end_crystal";
-    t[u8"entity_horse"] = u8"horse"; // tu19, tu31, tu43, tu46
-    t[u8"evocation_illager"] = u8"evoker";
+    t[u8"entity_horse"] = u8"horse";       // tu19, tu31, tu43, tu46
+    t[u8"evocation_illager"] = u8"evoker"; // tu54
+    t[u8"falling_sand"] = u8"falling_block";
     t[u8"fish"] = u8"cod";
     t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19, tu31, tu43, tu46
     t[u8"minecart_chest"] = u8"chest_minecart";
@@ -70,11 +71,12 @@ public:
     t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19, tu31, tu43, tu46
     t[u8"primed_tnt"] = u8"tnt";
     t[u8"snow_man"] = u8"snow_golem"; // tu31, tu43, tu46
+    t[u8"snowman"] = u8"snow_golem";  // tu54
     t[u8"tropicalfish"] = u8"tropical_fish";
-    t[u8"villager_golem"] = u8"iron_golem"; // tu12, tu19, tu31, tu43, tu46
-    t[u8"vindication_illager"] = u8"vindicator";
-    t[u8"wither_boss"] = u8"wither"; // tu19, tu31, tu43, tu46
-    t[u8"zombie_pigman"] = u8"zombified_piglin";
+    t[u8"villager_golem"] = u8"iron_golem";      // tu12, tu19, tu31, tu43, tu46, tu54
+    t[u8"vindication_illager"] = u8"vindicator"; // tu54
+    t[u8"wither_boss"] = u8"wither";             // tu19, tu31, tu43, tu46
+    t[u8"zombie_pigman"] = u8"zombified_piglin"; // tu54
     return ret.release();
   }
 
@@ -131,15 +133,22 @@ private:
     return true;
   }
 
-  static bool FallingSand(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
+  static bool FallingBlock(CompoundTag const &in, CompoundTagPtr &out, Context const &ctx) {
     out->set(u8"id", u8"minecraft:falling_block");
+    auto block = in.string(u8"Block");
     auto tile = in.byte(u8"Tile");
     auto data = in.byte(u8"Data", 0);
     if (tile) {
-      if (auto block = BlockData(*tile, data).toBlock(); block) {
-        out->set(u8"BlockState", block->toCompoundTag());
+      if (auto b = BlockData(*tile, data).toBlock(); b) {
+        out->set(u8"BlockState", b->toCompoundTag());
       }
+    } else if (block) {
+      auto b = std::make_shared<mcfile::je::Block>(*block);
+      out->set(u8"BlockState", b->toCompoundTag());
     }
+    out->erase(u8"Block");
+    out->erase(u8"Tile");
+    out->erase(u8"Data");
     return true;
   }
 
@@ -465,7 +474,7 @@ private:
   ret->insert(std::make_pair(u8"" #__name, __conv))
 
     E(chest_minecart, ChestMinecart);
-    E(falling_sand, FallingSand);
+    E(falling_block, FallingBlock);
     E(guardian, Guardian);
     E(item, Item);
     E(item_frame, ItemFrame);
