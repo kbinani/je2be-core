@@ -60,9 +60,9 @@ public:
     auto &t = *ret;
     t[u8"ender_crystal"] = u8"end_crystal";
     t[u8"entity_horse"] = u8"horse";       // tu19, tu31, tu43, tu46
-    t[u8"evocation_illager"] = u8"evoker"; // tu54, tu69
+    t[u8"evocation_illager"] = u8"evoker"; // tu54, tu69, tu75
     t[u8"falling_sand"] = u8"falling_block";
-    t[u8"fish"] = u8"cod";              // tu69
+    t[u8"fish"] = u8"cod";              // tu69, tu75
     t[u8"lava_slime"] = u8"magma_cube"; // tu9, tu19, tu31, tu43, tu46
     t[u8"minecart_chest"] = u8"chest_minecart";
     t[u8"minecart_rideable"] = u8"minecart";  // tu31, tu46
@@ -71,12 +71,12 @@ public:
     t[u8"pig_zombie"] = u8"zombified_piglin"; // tu9, tu19, tu31, tu43, tu46
     t[u8"primed_tnt"] = u8"tnt";
     t[u8"snow_man"] = u8"snow_golem";            // tu31, tu43, tu46
-    t[u8"snowman"] = u8"snow_golem";             // tu54, tu69
-    t[u8"tropicalfish"] = u8"tropical_fish";     // tu69
-    t[u8"villager_golem"] = u8"iron_golem";      // tu12, tu19, tu31, tu43, tu46, tu54, tu69
-    t[u8"vindication_illager"] = u8"vindicator"; // tu54, tu69
+    t[u8"snowman"] = u8"snow_golem";             // tu54, tu69, tu75
+    t[u8"tropicalfish"] = u8"tropical_fish";     // tu69, tu75
+    t[u8"villager_golem"] = u8"iron_golem";      // tu12, tu19, tu31, tu43, tu46, tu54, tu69, tu75
+    t[u8"vindication_illager"] = u8"vindicator"; // tu54, tu69, tu75
     t[u8"wither_boss"] = u8"wither";             // tu19, tu31, tu43, tu46
-    t[u8"zombie_pigman"] = u8"zombified_piglin"; // tu54, tu69
+    t[u8"zombie_pigman"] = u8"zombified_piglin"; // tu54, tu69, tu75
     return ret.release();
   }
 
@@ -441,7 +441,7 @@ private:
       }
     }
 
-    for (std::u8string key : {u8"SaddleItem", u8"ArmorItem"}) {
+    for (std::u8string key : {u8"SaddleItem", u8"ArmorItem", u8"DecorItem"}) {
       if (auto itemX = in.compoundTag(key); itemX) {
         if (auto itemJ = Item::Convert(*itemX, ctx); itemJ) {
           ret->set(key, itemJ);
