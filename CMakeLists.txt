@@ -17,6 +17,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
       /MP
       /Zc:__cplusplus # Enable updated __cplusplus macro
       /Zc:preprocessor # Enable preprocessor conformance mode
+      /ZI
     )
     if (JE2BE_CORE_USE_INTEL_COMPILER)
       add_link_options(
