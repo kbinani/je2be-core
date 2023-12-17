@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <latch>
+#include <mutex>
 #include <thread>
 #include <vector>
 

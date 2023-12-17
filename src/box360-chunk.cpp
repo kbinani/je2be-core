@@ -15,6 +15,7 @@
 #include "box360/_tile-entity.hpp"
 
 #include <bitset>
+#include <mutex>
 #include <variant>
 
 namespace je2be::box360 {
