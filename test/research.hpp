@@ -1092,7 +1092,7 @@ static void LightEmission() {
   int const y = 64;
   map<int, set<mcfile::blocks::BlockId>> emissions;
   set<mcfile::blocks::BlockId> ids;
-  for (int cx = 0; cx <= 18; cx++) {
+  for (int cx = 0; cx <= 19; cx++) {
     auto chunk = world.chunkAt(cx, cz);
     REQUIRE(chunk);
     mcfile::je::ChunkSection *section = nullptr;
@@ -1160,6 +1160,9 @@ static void LightEmission() {
       continue;
     }
     if (name.ends_with(u8"candle_cake")) {
+      continue;
+    }
+    if (name.ends_with(u8"_bulb")) {
       continue;
     }
     using namespace mcfile::blocks::minecraft;

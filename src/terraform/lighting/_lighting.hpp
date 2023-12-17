@@ -1144,6 +1144,20 @@ private:
       } else {
         return charges * 4 - 1;
       }
+    } else if (block.fName.ends_with(u8"_bulb")) {
+      if (block.property(u8"lit") == u8"true") {
+        if (block.fName.find(u8"oxidized") != std::u8string::npos) {
+          return 4;
+        } else if (block.fName.find(u8"weathered") != std::u8string::npos) {
+          return 8;
+        } else if (block.fName.find(u8"exposed") != std::u8string::npos) {
+          return 12;
+        } else {
+          return 15;
+        }
+      } else {
+        return 0;
+      }
     }
     return LightEmissionById(block.fId);
   }
@@ -1277,7 +1291,7 @@ private:
     case glass:
     case glass_pane:
     case granite_wall:
-    case grass:
+    case short_grass:
     case gray_banner:
     case gray_bed:
     case gray_carpet:
@@ -1644,6 +1658,33 @@ private:
     case pitcher_crop:
     case pitcher_plant:
     case sniffer_egg:
+    case tuff_wall:
+    case polished_tuff_wall:
+    case tuff_brick_wall:
+    case copper_grate:
+    case exposed_copper_grate:
+    case weathered_copper_grate:
+    case oxidized_copper_grate:
+    case waxed_copper_grate:
+    case waxed_exposed_copper_grate:
+    case waxed_weathered_copper_grate:
+    case waxed_oxidized_copper_grate:
+    case copper_door:
+    case exposed_copper_door:
+    case weathered_copper_door:
+    case oxidized_copper_door:
+    case waxed_copper_door:
+    case waxed_exposed_copper_door:
+    case waxed_weathered_copper_door:
+    case waxed_oxidized_copper_door:
+    case copper_trapdoor:
+    case exposed_copper_trapdoor:
+    case weathered_copper_trapdoor:
+    case oxidized_copper_trapdoor:
+    case waxed_copper_trapdoor:
+    case waxed_exposed_copper_trapdoor:
+    case waxed_weathered_copper_trapdoor:
+    case waxed_oxidized_copper_trapdoor:
       return 0;
     case acacia_leaves:
     case beacon:
@@ -1687,6 +1728,7 @@ private:
     case mangrove_roots:
     case mangrove_leaves:
     case cherry_leaves:
+    case trial_spawner:
       return 1;
     default:
       return 15;
