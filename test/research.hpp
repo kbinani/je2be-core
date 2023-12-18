@@ -221,11 +221,9 @@ static void NoteBlock() {
     uniq[name] = {0, 0, 0};
   }
 
-  int const x0 = -42;
-  int const z0 = 165;
+  int const x0 = 0;
+  int const z0 = 0;
   int const y = -60;
-  int x = x0;
-  int x1 = x0;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/NoteBlock");
   Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
   {
@@ -239,25 +237,27 @@ static void NoteBlock() {
   }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block.mcfunction").string());
+    int width = (int)ceil(sqrt(uniq.size()));
+    int i = 0;
+    int j = 0;
     for (auto const &it : uniq) {
+      int x = x0 + 2 * i;
+      int z = z0 + 2 * j;
       u8string name = it.first;
       if (name.ends_with(u8"_door")) {
-        os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << "[half=upper]" << endl;
-        os << "setblock " << x << " " << (y - 2) << " " << z0 << " " << name << "[half=lower]" << endl;
+        os << "setblock " << x << " " << (y - 1) << " " << z << " " << name << "[half=upper]" << endl;
+        os << "setblock " << x << " " << (y - 2) << " " << z << " " << name << "[half=lower]" << endl;
       } else {
-        os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << endl;
+        os << "setblock " << x << " " << (y - 1) << " " << z << " " << name << endl;
       }
-      os << "setblock " << x << " " << y << " " << z0 << " note_block" << endl;
-      uniq[name] = {x, y - 1, z0};
-      x += 2;
+      os << "setblock " << x << " " << y << " " << z << " note_block" << endl;
+      uniq[name] = {x, y - 1, z};
+      i++;
+      if (i > width) {
+        i = 0;
+        j++;
+      }
     }
-    x1 = x;
-  }
-  {
-    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block_cleanup.mcfunction").string());
-    os << "fill " << x0 << " " << y << " " << z0 << " " << x1 << " " << y << " " << z0 << " air " << endl;
-    os << "fill " << x0 << " " << (y - 2) << " " << z0 << " " << x1 << " " << (y - 2) << " " << z0 << " dirt" << endl;
-    os << "fill " << x0 << " " << (y - 1) << " " << z0 << " " << x1 << " " << (y - 1) << " " << z0 << " grass_block" << endl;
   }
 
   // login the game, then execute /function je2be:research_note_block
@@ -281,7 +281,7 @@ static void NoteBlock() {
       auto noteBlock = chunk->blockAt(pos.fX, pos.fY + 1, pos.fZ);
       auto instrument = noteBlock->property(u8"instrument", u8"");
       if (instrument.empty()) {
-        cerr << "empty instrument: [" << x << ", " << z0 << "]" << endl;
+        cerr << "empty instrument: [" << pos.fX << ", " << pos.fZ << "]" << endl;
       } else {
         instruments[u8string(instrument)].insert(u8string(center->fName));
       }
@@ -1431,8 +1431,8 @@ static void BEFormat0() {
 #if 0
 TEST_CASE("research") {
   // Heightmaps();
-  // LightEmission()
-  // WallConnectable
+  // LightEmission();
+  // WallConnectable();
   // RedstoneWire();
   // LightTransmission1();
   // NoteBlock();

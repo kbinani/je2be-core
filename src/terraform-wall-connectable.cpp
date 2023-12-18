@@ -198,6 +198,7 @@ public:
     case cracked_nether_bricks:
     case cracked_polished_blackstone_bricks:
     case cracked_stone_bricks:
+    case crafter:
     case crafting_table:
     case crimson_hyphae:
     case crimson_nylium:
@@ -642,6 +643,7 @@ public:
     case cracked_nether_bricks:
     case cracked_polished_blackstone_bricks:
     case cracked_stone_bricks:
+    case crafter:
     case crafting_table:
     case crimson_hyphae:
     case crimson_nylium:
