@@ -344,8 +344,33 @@ private:
     E(calibrated_sculk_sensor, NamedEmpty(u8"CalibratedSculkSensor"));
     E(lodestone, NamedEmptyFromNull(u8"Lodestone"));
     E(spore_blossom, NamedEmptyFromNull(u8"SporeBlossom"));
+
+    E(crafter, Crafter);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr Crafter(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
+    auto tag = New(u8"Crafter");
+
+    if (auto itemsB = GetItems(c, u8"Items", ctx, {}); itemsB) {
+      tag->set(u8"Items", itemsB);
+    }
+    if (c) {
+      u16 disabledSlotsB = 0;
+      if (auto disabledSlotsJ = c->listTag(u8"disabled_slots"); disabledSlotsJ) {
+        for (auto entry : *disabledSlotsJ) {
+          if (auto index = entry->asInt(); index && 0 <= index->fValue && index->fValue <= 8) {
+            disabledSlotsB |= u16(1) << index->fValue;
+          }
+        }
+      }
+
+      tag->set(u8"disabled_slots", Short(*(i16 *)&disabledSlotsB));
+    }
+
+    Attach(c, pos, *tag);
+    return tag;
   }
 
   static CompoundTagPtr Jigsaw(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
@@ -392,6 +417,7 @@ private:
   static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx) {
     auto tag = Compound();
     auto sherdsB = List<Tag::Type::String>();
+    bool empty = true;
     for (int i = 0; i < 4; i++) {
       sherdsB->push_back(String(u8""));
     }
@@ -404,15 +430,27 @@ private:
       if (sherdsJ) {
         for (int i = 0; i < 4 && i < sherdsJ->size(); i++) {
           auto const &sherd = sherdsJ->at(i);
-          if (auto sherdName = sherd->asString(); sherdName) {
+          if (auto sherdName = sherd->asString(); sherdName && !sherdName->fValue.empty()) {
             sherdsB->fValue[i] = String(sherdName->fValue);
+            empty = false;
           }
+        }
+      }
+
+      if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
+        if (auto itemB = Item::From(itemJ, ctx); itemB) {
+          tag->set(u8"item", itemB);
+        } else {
+          tag->set(u8"item", Item::Empty());
         }
       }
     }
     tag->insert({{u8"isMovable", Bool(true)},
                  {u8"id", String(u8"DecoratedPot")},
-                 {u8"sherds", sherdsB}});
+                 {u8"animation", Byte(0)}});
+    if (!empty) {
+      tag->set(u8"sherds", sherdsB);
+    }
     Attach(c, pos, *tag);
     return tag;
   }

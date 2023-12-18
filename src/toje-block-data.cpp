@@ -580,6 +580,16 @@ private:
     Submergible(s, p);
     return Ns() + name + u8"_coral_wall_fan";
   }
+
+  static String Crafter(String const &bName, CompoundTag const &s, Props &p) {
+    auto crafting = s.boolean(u8"crafting", false);
+    auto orientation = s.string(u8"orientation", u8"north_up");
+    auto triggered = s.boolean(u8"triggered_bit", false);
+    p[u8"crafting"] = Bool(crafting);
+    p[u8"orientation"] = String(orientation);
+    p[u8"triggered"] = Bool(triggered);
+    return bName;
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -2585,7 +2595,7 @@ private:
     E(grass_path, Rename(u8"dirt_path"));
     E(dispenser, Dispenser);
     E(dropper, Dropper);
-    E(ender_chest, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(ender_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(end_portal_frame, EndPortalFrame);
     E(end_rod, EndRod);
     E(end_bricks, Rename(u8"end_stone_bricks"));
@@ -2867,6 +2877,14 @@ private:
     E(waxed_weathered_copper_trapdoor, Trapdoor);
     E(waxed_oxidized_copper_trapdoor, Trapdoor);
     E(copper_bulb, CopperBulb);
+    E(exposed_copper_bulb, CopperBulb);
+    E(weathered_copper_bulb, CopperBulb);
+    E(oxidized_copper_bulb, CopperBulb);
+    E(waxed_copper_bulb, CopperBulb);
+    E(waxed_exposed_copper_bulb, CopperBulb);
+    E(waxed_weathered_copper_bulb, CopperBulb);
+    E(waxed_oxidized_copper_bulb, CopperBulb);
+    E(crafter, Crafter);
 #undef E
 
     return table;

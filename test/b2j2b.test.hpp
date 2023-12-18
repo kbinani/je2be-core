@@ -50,6 +50,9 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"minecraft:camel_sitting", // cannot reconstruct LastPoseTick when B->J conversion.
       u8"minecraft:camel_standing",
       u8"attack_cooldown",
+      u8"minecraft:deflate_sensor",        // pufferfish
+      u8"minecraft:deflate_sensor_buffer", // pufferfish
+      u8"minecraft:start_deflate",         // pufferfish
   };
 
   set<u8string> setE;

@@ -672,6 +672,14 @@ private:
     E(mangrove_door, DefaultItem);
     E(bamboo_door, DefaultItem);
     E(cherry_door, DefaultItem);
+    E(copper_door, DefaultItem);
+    E(exposed_copper_door, DefaultItem);
+    E(weathered_copper_door, DefaultItem);
+    E(oxidized_copper_door, DefaultItem);
+    E(waxed_copper_door, DefaultItem);
+    E(waxed_exposed_copper_door, DefaultItem);
+    E(waxed_weathered_copper_door, DefaultItem);
+    E(waxed_oxidized_copper_door, DefaultItem);
 
     E(white_banner, Banner);
     E(orange_banner, Banner);

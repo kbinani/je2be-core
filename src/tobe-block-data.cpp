@@ -804,6 +804,20 @@ public:
     return Bool(l);
   }
 
+  static std::function<PropertyType(Block const &)> BooleanProperty(std::u8string const &b) {
+    return [=](Block const &block) {
+      auto p = block.property(b, u8"false") == u8"true";
+      return Bool(p);
+    };
+  }
+
+  static std::function<PropertyType(Block const &)> StringProperty(std::u8string const &b, char8_t const *fallback = u8"") {
+    return [=](Block const &block) {
+      auto p = block.property(b, fallback);
+      return String(p);
+    };
+  }
+
   static void LitToExtinguished(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto l = block.property(u8"lit", u8"false") == u8"true";
     s->set(u8"extinguished", Bool(!l));
@@ -1799,6 +1813,10 @@ public:
     E(waxed_exposed_copper_bulb, copperBulb);
     E(waxed_weathered_copper_bulb, copperBulb);
     E(waxed_oxidized_copper_bulb, copperBulb);
+    E(crafter, Converter(Same,
+                         Name(BooleanProperty(u8"crafting"), u8"crafting"),
+                         Name(BooleanProperty(u8"triggered"), u8"triggered_bit"),
+                         Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
 #undef E
 
     return table;

@@ -233,8 +233,7 @@ public:
     Result r;
 
     if (px && pz) {
-      auto facingDirectionA = block.fStates->int32(u8"facing_direction", 0);
-      Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirectionA);
+      Facing6 f6 = Facing6FromBedrockCardinalDirectionMigratingFacingDirectionA(block);
       Pos3i vec = Pos3iFromFacing6(f6);
       Pos2i d2(vec.fX, vec.fZ);
       Pos2i pos2d(pos.fX, pos.fZ);
@@ -330,6 +329,28 @@ public:
     return r;
   }
 
+  static std::optional<Result> Crafter(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
+    auto t = EmptyShortName(u8"crafter", pos);
+    Result r;
+    auto disabledSlotsB = tagB.i16(u8"disabled_slots", 0);
+    uint32_t bits = *(u16 *)&disabledSlotsB;
+    auto disabledSlotsJ = List<Tag::Type::Int>();
+    for (int i = 0; i < 9; i++) {
+      u32 test = u32(1) << i;
+      if ((bits & test) == test) {
+        disabledSlotsJ->push_back(Int(i));
+      }
+    }
+    t->set(u8"disabled_slots", disabledSlotsJ);
+    t->set(u8"triggered", Bool(blockJ.property(u8"triggered") == u8"true"));
+    t->set(u8"crafting_ticks_remaining", Int(0));
+    if (auto itemsJ = ContainerItems(tagB, u8"Items", ctx); itemsJ) {
+      t->set(u8"Items", itemsJ);
+    }
+    r.fTileEntity = t;
+    return r;
+  }
+
   static std::optional<Result> DecoratedPot(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx) {
     auto t = EmptyShortName(u8"decorated_pot", pos);
     auto sherdsJ = List<Tag::Type::String>();
@@ -353,6 +374,11 @@ public:
     }
     if (some) {
       t->set(u8"sherds", sherdsJ);
+    }
+    if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
+      if (auto itemJ = Item::From(*itemB, ctx, {}); itemJ) {
+        t->set(u8"item", itemJ);
+      }
     }
     Result r;
     r.fTileEntity = t;
@@ -903,6 +929,17 @@ public:
   static std::u8string ToString(bool b) {
     return b ? u8"true" : u8"false";
   }
+
+  static Facing6 Facing6FromBedrockCardinalDirectionMigratingFacingDirectionA(mcfile::be::Block const &block) {
+    auto cardinalDirection = block.fStates->string(u8"minecraft:cardinal_direction");
+    if (cardinalDirection) {
+      return Facing6FromBedrockCardinalDirection(*cardinalDirection);
+    } else {
+      auto facingDirectionA = block.fStates->int32(u8"facing_direction", 0);
+      return Facing6FromBedrockFacingDirectionA(facingDirectionA);
+    }
+  }
+
 #pragma endregion
 
   static std::unordered_map<std::u8string_view, Converter> *CreateTable() {
@@ -1021,6 +1058,8 @@ public:
     E(cherry_standing_sign, sign);
     E(cherry_wall_sign, sign);
     E(calibrated_sculk_sensor, SameNameEmpty);
+
+    E(crafter, Crafter);
 #undef E
     return t;
   }
