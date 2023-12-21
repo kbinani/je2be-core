@@ -2,6 +2,8 @@
 
 #include "enums/_banner-color-code-bedrock.hpp"
 
+#include <minecraft-file.hpp>
+
 namespace je2be {
 
 enum class ColorCodeJava : i32 {
@@ -226,6 +228,120 @@ static inline ColorCodeJava ColorCodeJavaFromBannerColorCodeBedrock(BannerColorC
   case BannerColorCodeBedrock::White:
   default:
     return ColorCodeJava::White;
+  }
+}
+
+static inline mcfile::blocks::BlockId BedBlockIdFromColorCodeJava(ColorCodeJava code) {
+  using namespace mcfile::blocks::minecraft;
+  switch (code) {
+  case ColorCodeJava::Black:
+    return black_bed;
+  case ColorCodeJava::Blue:
+    return blue_bed;
+  case ColorCodeJava::Brown:
+    return brown_bed;
+  case ColorCodeJava::Cyan:
+    return cyan_bed;
+  case ColorCodeJava::Gray:
+    return gray_bed;
+  case ColorCodeJava::Green:
+    return green_bed;
+  case ColorCodeJava::LightBlue:
+    return light_blue_bed;
+  case ColorCodeJava::LightGray:
+    return light_gray_bed;
+  case ColorCodeJava::Lime:
+    return lime_bed;
+  case ColorCodeJava::Magenta:
+    return magenta_bed;
+  case ColorCodeJava::Orange:
+    return orange_bed;
+  case ColorCodeJava::Pink:
+    return pink_bed;
+  case ColorCodeJava::Purple:
+    return purple_bed;
+  case ColorCodeJava::Red:
+    return red_bed;
+  case ColorCodeJava::White:
+    return white_bed;
+  case ColorCodeJava::Yellow:
+    return yellow_bed;
+  }
+}
+
+static inline mcfile::blocks::BlockId BannerBlockIdFromColorCodeJava(ColorCodeJava code) {
+  using namespace mcfile::blocks::minecraft;
+  switch (code) {
+  case ColorCodeJava::Black:
+    return black_banner;
+  case ColorCodeJava::Blue:
+    return blue_banner;
+  case ColorCodeJava::Brown:
+    return brown_banner;
+  case ColorCodeJava::Cyan:
+    return cyan_banner;
+  case ColorCodeJava::Gray:
+    return gray_banner;
+  case ColorCodeJava::Green:
+    return green_banner;
+  case ColorCodeJava::LightBlue:
+    return light_blue_banner;
+  case ColorCodeJava::LightGray:
+    return light_gray_banner;
+  case ColorCodeJava::Lime:
+    return lime_banner;
+  case ColorCodeJava::Magenta:
+    return magenta_banner;
+  case ColorCodeJava::Orange:
+    return orange_banner;
+  case ColorCodeJava::Pink:
+    return pink_banner;
+  case ColorCodeJava::Purple:
+    return purple_banner;
+  case ColorCodeJava::Red:
+    return red_banner;
+  case ColorCodeJava::White:
+    return white_banner;
+  case ColorCodeJava::Yellow:
+    return yellow_banner;
+  }
+}
+
+static inline mcfile::blocks::BlockId WallBannerBlockIdFromColorCodeJava(ColorCodeJava code) {
+  using namespace mcfile::blocks::minecraft;
+  switch (code) {
+  case ColorCodeJava::Black:
+    return black_wall_banner;
+  case ColorCodeJava::Blue:
+    return blue_wall_banner;
+  case ColorCodeJava::Brown:
+    return brown_wall_banner;
+  case ColorCodeJava::Cyan:
+    return cyan_wall_banner;
+  case ColorCodeJava::Gray:
+    return gray_wall_banner;
+  case ColorCodeJava::Green:
+    return green_wall_banner;
+  case ColorCodeJava::LightBlue:
+    return light_blue_wall_banner;
+  case ColorCodeJava::LightGray:
+    return light_gray_wall_banner;
+  case ColorCodeJava::Lime:
+    return lime_wall_banner;
+  case ColorCodeJava::Magenta:
+    return magenta_wall_banner;
+  case ColorCodeJava::Orange:
+    return orange_wall_banner;
+  case ColorCodeJava::Pink:
+    return pink_wall_banner;
+  case ColorCodeJava::Purple:
+    return purple_wall_banner;
+  case ColorCodeJava::Red:
+    return red_wall_banner;
+  case ColorCodeJava::White:
+    return white_wall_banner;
+  case ColorCodeJava::Yellow:
+    return yellow_wall_banner;
   }
 }
 

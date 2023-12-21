@@ -27,15 +27,15 @@ public:
     ShoulderRider = uint32_t(1) << 0,
   };
 
-  static Result From(CompoundTag const &tag, Context &ctx, std::set<Flag> flags);
+  static Result From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags);
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
   static std::optional<std::pair<Pos3i, CompoundTagPtr>> ToTileEntityBlock(CompoundTag const &c);
 
-  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx);
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx, int dataVersion);
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name);
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, int dataVersion);
 
   static bool IsTileEntity(CompoundTag const &tag);
 
@@ -45,7 +45,7 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, std::set<Flag> flags);
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags);
 };
 
 } // namespace je2be::tobe

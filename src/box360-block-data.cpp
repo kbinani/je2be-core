@@ -1,4 +1,5 @@
 #include "box360/_block-data.hpp"
+#include "box360/_chunk.hpp"
 
 #include <je2be/integers.hpp>
 
@@ -48,9 +49,9 @@ std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
   u16 id = this->id();
   u8 data = this->data();
   if (rawId == id) {
-    auto b = mcfile::je::Flatten::Block(id, data);
+    auto b = mcfile::je::Flatten::Block(id, data, Chunk::kTargetDataVersion);
     if (b && b->fId == mcfile::blocks::minecraft::dirt_path) {
-      return std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::dirt_path, u8"minecraft:grass_path", u8"");
+      return std::make_shared<mcfile::je::Block>(mcfile::blocks::minecraft::dirt_path, u8"minecraft:grass_path", u8"", Chunk::kTargetDataVersion);
     } else {
       return b;
     }
@@ -338,10 +339,24 @@ std::shared_ptr<mcfile::je::Block const> BlockData::unsafeToBlock() const {
     break;
   }
   if (name.empty()) {
-    auto b = mcfile::je::Flatten::Block(id, data);
+    auto b = mcfile::je::Flatten::Block(id, data, Chunk::kTargetDataVersion);
     return b;
   } else {
-    return make_shared<mcfile::je::Block const>(u8"minecraft:" + name, props);
+    return mcfile::je::Block::FromNameAndProperties(u8"minecraft:" + name, Chunk::kTargetDataVersion, props);
+  }
+}
+
+std::shared_ptr<mcfile::je::Block const> BlockData::toBlock() const {
+  using namespace std;
+  auto p = unsafeToBlock();
+  if (p) {
+    if (isWaterlogged()) {
+      return p->applying({{u8"waterlogged", u8"true"}});
+    } else {
+      return p;
+    }
+  } else {
+    return mcfile::je::Block::FromId(mcfile::blocks::minecraft::air, Chunk::kTargetDataVersion);
   }
 }
 

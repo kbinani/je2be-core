@@ -118,6 +118,7 @@ public:
   int fPermissionsLevel = 0;
   int fPlayerPermissionsLevel = 1;
   bool fShowborderEffect = true;
+  i32 fDataVersion;
 
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
@@ -353,6 +354,7 @@ public:
     if (auto type = GameModeFromJava(data->int32(u8"GameType", 0)); type) {
       ret.fGameType = *type;
     }
+    ret.fDataVersion = data->int32(u8"DataVersion", mcfile::je::Chunk::kDataVersion);
 
     if (auto enabledFeatures = data->listTag(u8"enabled_features"); enabledFeatures) {
       bool experiments = false;

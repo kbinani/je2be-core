@@ -133,7 +133,7 @@ public:
           props[u8"facing_direction"] = String::ToString(*facing);
           assert(block->fName == u8"minecraft:moving_piston");
           u8string name = block->property(u8"type") == u8"sticky" ? u8"j2b:sticky_piston_arm_collision" : u8"j2b:piston_arm_collision";
-          auto newBlock = make_shared<Block>(name, props);
+          auto newBlock = Block::FromNameAndProperties(name, chunk.getDataVersion(), props);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
           tileEntityReplacement[pos] = nullptr;
@@ -145,8 +145,8 @@ public:
           }
 
           auto sticky = block->property(u8"type", u8"normal") == u8"sticky";
-          u8string name = sticky ? u8"minecraft:sticky_piston" : u8"minecraft:piston";
-          auto newBlock = block->renamed(name);
+          mcfile::blocks::BlockId newId = sticky ? mcfile::blocks::minecraft::sticky_piston : mcfile::blocks::minecraft::piston;
+          auto newBlock = block->withId(newId);
           chunk.setBlockAt(pos, newBlock, withoutRemovingTileEntity);
 
           unordered_set<Pos3i, Pos3iHasher> attachedBlocks;
@@ -178,7 +178,7 @@ public:
         }
       } else {
         // extending = *, source = 0
-        auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader);
+        auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader, chunk.getDataVersion());
         tileEntityReplacement[pos] = e;
       }
     }
@@ -195,7 +195,7 @@ public:
   }
 
 private:
-  static CompoundTagPtr MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader) {
+  static CompoundTagPtr MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader, int dataVersion) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -208,7 +208,7 @@ private:
     if (!blockState) {
       return nullptr;
     }
-    auto block = Block::FromCompoundTag(*blockState);
+    auto block = Block::FromCompoundTag(*blockState, dataVersion);
     auto movingBlock = BlockData::From(block, nullptr, {});
     if (!movingBlock) {
       return nullptr;

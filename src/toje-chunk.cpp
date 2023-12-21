@@ -50,15 +50,17 @@ public:
     j->fLastUpdate = ctx.fGameTick;
 
     auto mode = ConversionMode(b);
+    int dataVersion;
     switch (mode) {
     case ChunkConversionMode::CavesAndCliffs2:
-      j->dataVersion(kDataVersion);
+      dataVersion = kDataVersion;
       break;
     case ChunkConversionMode::Legacy:
-      j->dataVersion(kDataVersionMaxLegacy);
+      dataVersion = kDataVersionMaxLegacy;
       j->fLegacyBiomes.resize(1024);
       break;
     }
+    j->setDataVersion(dataVersion);
 
     int maxChunkY = cy;
     for (auto const &sectionB : b.fSubChunks) {
@@ -66,7 +68,7 @@ public:
         continue;
       }
 
-      auto sectionJ = SubChunk::Convert(*sectionB, d, mode);
+      auto sectionJ = SubChunk::Convert(*sectionB, d, mode, dataVersion);
       if (!sectionJ) {
         return nullptr;
       }
@@ -148,7 +150,7 @@ public:
       if (!blockJ) {
         continue;
       }
-      auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ, ctx);
+      auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ, ctx, dataVersion);
       if (!result) {
         continue;
       }
@@ -156,7 +158,7 @@ public:
         if (result->fTakeItemsFrom) {
           Pos3i pair = *result->fTakeItemsFrom;
           if (auto pairTileEntity = cache.blockEntityAt(pair); pairTileEntity) {
-            auto items = BlockEntity::ContainerItems(*pairTileEntity, u8"Items", ctx);
+            auto items = BlockEntity::ContainerItems(*pairTileEntity, u8"Items", ctx, dataVersion);
             if (items) {
               result->fTileEntity->set(u8"Items", items);
             } else {
@@ -187,7 +189,7 @@ public:
       if (!blockB) {
         continue;
       }
-      auto frameJ = Entity::ItemFrameFromBedrock(d, pos, *blockB, *it.second, ctx);
+      auto frameJ = Entity::ItemFrameFromBedrock(d, pos, *blockB, *it.second, ctx, dataVersion);
       if (frameJ) {
         j->fEntities.push_back(frameJ);
       }
@@ -197,7 +199,7 @@ public:
 
     unordered_map<Uuid, shared_ptr<CompoundTag>, UuidHasher, UuidPred> entities;
     for (auto const &entityB : b.entities()) {
-      auto result = Entity::From(*entityB, ctx);
+      auto result = Entity::From(*entityB, ctx, dataVersion);
       if (result) {
         Pos2i pos(cx, cz);
         entities[result->fUuid] = result->fEntity;
@@ -261,7 +263,7 @@ public:
           }
         }
       } else {
-        auto blockJ = BlockData::From(*pt.fBlockState);
+        auto blockJ = BlockData::From(*pt.fBlockState, dataVersion);
         if (blockJ) {
           tb.fI = blockJ->fName;
           j->fTileTicks.push_back(tb);
@@ -332,7 +334,7 @@ public:
     using namespace je2be::terraform;
     using namespace je2be::terraform::bedrock;
     BlockPropertyAccessorBedrock accessor(b);
-    BlockAccessorWrapper blockAccessor(cache);
+    BlockAccessorWrapper blockAccessor(cache, j.getDataVersion());
 
     Piston::Do(j, cache, accessor);
 

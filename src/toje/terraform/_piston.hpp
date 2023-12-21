@@ -49,7 +49,7 @@ public:
             bool sticky = blockB->fName == u8"minecraft:sticky_piston";
 
             if (state == 3) {
-              auto replace = make_shared<mcfile::je::Block const>(u8"minecraft:moving_piston")->applying({{u8"facing", JavaNameFromFacing6(f6)}, {u8"type", sticky ? u8"sticky" : u8"normal"}});
+              auto replace = mcfile::je::Block::FromId(mcfile::blocks::minecraft::moving_piston, chunkJ.getDataVersion())->applying({{u8"facing", JavaNameFromFacing6(f6)}, {u8"type", sticky ? u8"sticky" : u8"normal"}});
               chunkJ.setBlockAt(x, y, z, replace, sbo);
             } else {
               auto replace = blockJ->applying({{u8"extended", ToString(state == 1 || state == 2)}});
@@ -74,7 +74,7 @@ public:
               map<u8string, u8string> blockStateProps;
               blockStateProps[u8"extended"] = ToString(extending);
               blockStateProps[u8"facing"] = JavaNameFromFacing6(f6);
-              auto blockState = make_shared<mcfile::je::Block const>(blockB->fName, blockStateProps);
+              auto blockState = mcfile::je::Block::FromNameAndProperties(blockB->fName, chunkJ.getDataVersion(), blockStateProps);
 
               tileEntityJ->set(u8"blockState", blockState->toCompoundTag());
 
@@ -87,7 +87,7 @@ public:
               int facingDirectionB = piston->fBlock->fStates->int32(u8"facing_direction", 0);
               Facing6 pistonFacing = Facing6FromBedrockFacingDirectionB(facingDirectionB);
 
-              auto replace = make_shared<mcfile::je::Block const>(u8"minecraft:moving_piston")->applying({
+              auto replace = mcfile::je::Block::FromId(mcfile::blocks::minecraft::moving_piston, chunkJ.getDataVersion())->applying({
                   {u8"facing", JavaNameFromFacing6(pistonFacing)}, {u8"type", u8"normal"}, // Always "normal"
               });
               chunkJ.setBlockAt(x, y, z, replace, sbo);
@@ -106,7 +106,7 @@ public:
               tileEntityJ->set(u8"facing", Int(facingDirectionB));
               tileEntityJ->set(u8"source", Bool(false));
 
-              auto movingBlockJ = MovingBlock(*blockEntity);
+              auto movingBlockJ = MovingBlock(*blockEntity, chunkJ.getDataVersion());
               if (movingBlockJ) {
                 tileEntityJ->set(u8"blockState", movingBlockJ->toCompoundTag());
               }
@@ -126,7 +126,7 @@ public:
                 // state = 1 means the piston is extending state.
                 // Block name shold be renamed to "moving_piston".
                 bool sticky = (blockB->fName == u8"minecraft:stickyPistonArmCollision") || (blockB->fName == u8"minecraft:sticky_piston_arm_collision");
-                auto replace = make_shared<mcfile::je::Block const>(u8"minecraft:moving_piston")->applying({{u8"facing", JavaNameFromFacing6(f6)}, {u8"type", sticky ? u8"sticky" : u8"normal"}});
+                auto replace = mcfile::je::Block::FromId(mcfile::blocks::minecraft::moving_piston, chunkJ.getDataVersion())->applying({{u8"facing", JavaNameFromFacing6(f6)}, {u8"type", sticky ? u8"sticky" : u8"normal"}});
                 chunkJ.setBlockAt(x, y, z, replace, sbo);
 
                 // Tile Entity
@@ -145,7 +145,7 @@ public:
                 pistonHeadProps[u8"facing"] = JavaNameFromFacing6(f6);
                 pistonHeadProps[u8"short"] = u8"false";
                 pistonHeadProps[u8"type"] = sticky ? u8"sticky" : u8"normal";
-                auto pistonHead = make_shared<mcfile::je::Block const>(u8"minecraft:piston_head", pistonHeadProps);
+                auto pistonHead = mcfile::je::Block::FromIdAndProperties(mcfile::blocks::minecraft::piston_head, chunkJ.getDataVersion(), pistonHeadProps);
                 tileEntityJ->set(u8"blockState", pistonHead->toCompoundTag());
 
                 chunkJ.fTileEntities[Pos3i(x, y, z)] = tileEntityJ;
@@ -157,7 +157,7 @@ public:
     }
   }
 
-  static std::shared_ptr<mcfile::je::Block const> MovingBlock(CompoundTag const &blockEntity) {
+  static std::shared_ptr<mcfile::je::Block const> MovingBlock(CompoundTag const &blockEntity, int dataVersion) {
     auto movingBlock = blockEntity.compoundTag(u8"movingBlock");
     if (!movingBlock) {
       return nullptr;
@@ -166,7 +166,7 @@ public:
     if (!movingBlockB) {
       return nullptr;
     }
-    return BlockData::From(*movingBlockB);
+    return BlockData::From(*movingBlockB, dataVersion);
   }
 
   struct PistonBody {

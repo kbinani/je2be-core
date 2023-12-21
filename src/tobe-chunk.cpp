@@ -46,7 +46,7 @@ public:
       if (chunk->status() != mcfile::je::Chunk::Status::FULL) {
         return r;
       }
-      if (chunk->dataVersion() >= 2724) {
+      if (chunk->getDataVersion() >= 2724) {
         vector<shared_ptr<CompoundTag>> entities;
         if (region.entitiesAt(cx, cz, entities)) {
           chunk->fEntities.swap(entities);
@@ -136,7 +136,7 @@ public:
 
       i64 time = chunk->fLastUpdate + tb.fT;
 
-      auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
+      auto blockJ = mcfile::je::Block::FromName(tb.fI, chunk->getDataVersion());
       auto blockB = BlockData::From(blockJ, nullptr, {});
       if (!blockB) {
         continue;
@@ -165,7 +165,7 @@ public:
 
       i64 time = chunk->fLastUpdate + tb.fT;
 
-      auto blockJ = make_shared<mcfile::je::Block const>(tb.fI);
+      auto blockJ = mcfile::je::Block::FromName(tb.fI, chunk->getDataVersion());
       auto blockB = BlockData::From(blockJ, chunk->tileEntityAt(tb.fX, tb.fY, tb.fZ), {});
       if (!blockB) {
         continue;
@@ -275,7 +275,7 @@ private:
 
   static void InjectTickingLiquidBlocksAsBlocks(mcfile::je::Chunk &chunk) {
     for (mcfile::je::TickingBlock const &tb : chunk.fLiquidTicks) {
-      auto liquid = std::make_shared<mcfile::je::Block>(tb.fI);
+      auto liquid = mcfile::je::Block::FromName(tb.fI, chunk.getDataVersion());
       auto before = chunk.blockAt(tb.fX, tb.fY, tb.fZ);
       if (!before) {
         continue;
@@ -293,7 +293,7 @@ private:
   }
 
   static ChunkConversionMode ConversionMode(mcfile::je::Chunk const &chunk) {
-    if (chunk.minBlockY() < 0 || 256 <= chunk.maxBlockY() || chunk.dataVersion() >= mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection118) {
+    if (chunk.minBlockY() < 0 || 256 <= chunk.maxBlockY() || chunk.getDataVersion() >= mcfile::je::chunksection::ChunkSectionGenerator::kMinDataVersionChunkSection118) {
       return ChunkConversionMode::CavesAndCliffs2;
     } else {
       return ChunkConversionMode::Legacy;
@@ -334,7 +334,7 @@ private:
           }
           if (lower) {
             if ((block->fName == u8"minecraft:kelp_plant" || block->fName == u8"minecraft:kelp") && lower->fName == u8"minecraft:water") {
-              auto kelpPlant = make_shared<Block const>(u8"minecraft:kelp_plant");
+              auto kelpPlant = Block::FromId(mcfile::blocks::minecraft::kelp_plant, chunk.getDataVersion());
               for (int i = y - 1; i >= minY; i--) {
                 auto b = chunk.blockAt(x, i, z);
                 if (!b) {
@@ -349,7 +349,7 @@ private:
             } else if (block->fName == u8"minecraft:water" && lower->fName == u8"minecraft:kelp_plant") {
               map<u8string, u8string> props;
               props[u8"age"] = u8"22";
-              auto kelp = make_shared<Block const>(u8"minecraft:kelp", props);
+              auto kelp = Block::FromIdAndProperties(mcfile::blocks::minecraft::kelp, chunk.getDataVersion(), props);
               chunk.setBlockAt(x, y, z, kelp);
               block = kelp;
             }

@@ -47,4 +47,46 @@ static inline std::optional<SkullType> SkullTypeFromJavaName(std::u8string const
   return std::nullopt;
 }
 
+static inline mcfile::blocks::BlockId BlockIdFromSkullType(SkullType st) {
+  using namespace mcfile::blocks::minecraft;
+  switch (st) {
+  case SkullType::Zombie:
+    return zombie_head;
+  case SkullType::Creeper:
+    return creeper_head;
+  case SkullType::Dragon:
+    return dragon_head;
+  case SkullType::Skeleton:
+    return skeleton_skull;
+  case SkullType::WitherSkeleton:
+    return wither_skeleton_skull;
+  case SkullType::Piglin:
+    return piglin_head;
+  case SkullType::Player:
+  default:
+    return player_head;
+  }
+}
+
+static inline mcfile::blocks::BlockId BlockIdFromWallSkullType(SkullType st) {
+  using namespace mcfile::blocks::minecraft;
+  switch (st) {
+  case SkullType::Zombie:
+    return zombie_wall_head;
+  case SkullType::Creeper:
+    return creeper_wall_head;
+  case SkullType::Dragon:
+    return dragon_wall_head;
+  case SkullType::Skeleton:
+    return skeleton_wall_skull;
+  case SkullType::WitherSkeleton:
+    return wither_skeleton_wall_skull;
+  case SkullType::Piglin:
+    return piglin_wall_head;
+  case SkullType::Player:
+  default:
+    return player_wall_head;
+  }
+}
+
 } // namespace je2be

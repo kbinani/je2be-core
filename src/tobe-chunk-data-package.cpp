@@ -80,7 +80,7 @@ private:
         shared_ptr<Block const> block = found->second;
         fTileBlocks.erase(found);
 
-        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, ctx);
+        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, ctx, chunk.getDataVersion());
         if (!tag) {
           continue;
         }
@@ -92,7 +92,7 @@ private:
     for (auto const &it : fTileBlocks) {
       Pos3i const &pos = it.first;
       Block const &block = *it.second;
-      auto tag = TileEntity::FromBlock(pos, block, ctx);
+      auto tag = TileEntity::FromBlock(pos, block, ctx, chunk.getDataVersion());
       if (!tag) {
         continue;
       }
@@ -103,7 +103,7 @@ private:
       if (!Entity::IsTileEntity(*e)) {
         continue;
       }
-      auto tag = Entity::ToTileEntityData(*e, ctx);
+      auto tag = Entity::ToTileEntityData(*e, ctx, chunk.getDataVersion());
       if (!tag) {
         continue;
       }
@@ -119,7 +119,7 @@ private:
       if (!c) {
         continue;
       }
-      auto result = Entity::From(*c, ctx, {});
+      auto result = Entity::From(*c, ctx, chunk.getDataVersion(), {});
       if (!result.fEntity) {
         continue;
       }

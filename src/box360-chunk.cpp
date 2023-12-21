@@ -695,7 +695,7 @@ private:
             // upper half of tall flowers
             u8 lowerId = blockId[{x, y - 1, z}];
             u8 lowerData = blockData[{x, y - 1, z}];
-            if (auto lower = mcfile::je::Flatten::Block(lowerId, lowerData); lower) {
+            if (auto lower = mcfile::je::Flatten::Block(lowerId, lowerData, chunk.getDataVersion()); lower) {
               block = lower->applying({{u8"half", u8"upper"}});
             }
           } else if (id == 64) {
@@ -706,7 +706,7 @@ private:
                 map<u8string, u8string> props;
                 mcfile::je::Flatten::Door(lowerData, props);
                 mcfile::je::Flatten::Door(data, props);
-                block = make_shared<mcfile::je::Block>(u8"minecraft:oak_door", props);
+                block = mcfile::je::Block::FromIdAndProperties(mcfile::blocks::minecraft::oak_door, Chunk::kTargetDataVersion, props);
               }
             }
             if (!block && y + 1 < 256) {
@@ -716,7 +716,7 @@ private:
                 map<u8string, u8string> props;
                 mcfile::je::Flatten::Door(upperData, props);
                 mcfile::je::Flatten::Door(data, props);
-                block = make_shared<mcfile::je::Block>(u8"minecraft:oak_door", props);
+                block = mcfile::je::Block::FromIdAndProperties(mcfile::blocks::minecraft::oak_door, Chunk::kTargetDataVersion, props);
               }
             }
             if (!block) {
@@ -1144,7 +1144,7 @@ private:
           }
         }
       }
-      auto block = std::make_shared<mcfile::je::Block>(blockId);
+      auto block = mcfile::je::Block::FromId(blockId, Chunk::kTargetDataVersion);
       for (int z = 0; z < 16; z++) {
         for (int x = 0; x < 16; x++) {
           chunk->setBlockAt(x, y, z, block);

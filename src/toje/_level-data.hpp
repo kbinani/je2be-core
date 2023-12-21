@@ -296,7 +296,7 @@ public:
         }
         blockB = make_shared<mcfile::be::Block>(props::GetJsonStringValue(*blockName), Compound(), je2be::tobe::kBlockDataVersion);
       }
-      auto blockJ = BlockData::From(*blockB);
+      auto blockJ = BlockData::From(*blockB, toje::kDataVersion);
       if (!blockJ) {
         return nullptr;
       }
@@ -323,7 +323,7 @@ public:
       return std::nullopt;
     }
 
-    return Entity::LocalPlayer(*tag, ctx, uuid);
+    return Entity::LocalPlayer(*tag, ctx, uuid, toje::kDataVersion);
   }
 
   static CompoundTagPtr DragonFight(mcfile::be::DbInterface &db, mcfile::Endian endian) {

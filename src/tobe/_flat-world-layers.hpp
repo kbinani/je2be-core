@@ -179,7 +179,7 @@ public:
       if (!blockId) {
         return nullopt;
       }
-      auto block = mcfile::je::Flatten::Block(*blockId, data);
+      auto block = mcfile::je::Flatten::Block(*blockId, data, dataVersion);
       if (!block) {
         return nullopt;
       }

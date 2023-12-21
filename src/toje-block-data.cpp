@@ -37,7 +37,7 @@ class BlockData::Impl {
   };
 
 public:
-  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
+  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b, int dataVersion) {
     using namespace std;
     using namespace mcfile;
     static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
@@ -48,18 +48,18 @@ public:
     u8string_view key(migrated.fName);
     auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
-      return Identity(migrated);
+      return Identity(migrated, dataVersion);
     } else {
       static CompoundTag const sEmpty;
       CompoundTag const &states = migrated.fStates ? *migrated.fStates : sEmpty;
       map<u8string, u8string> props;
       auto name = found->second(migrated.fName, states, props);
-      return make_shared<mcfile::je::Block const>(name, props);
+      return mcfile::je::Block::FromNameAndProperties(name, dataVersion, props);
     }
   }
 
-  static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b) {
-    return std::make_shared<mcfile::je::Block const>(b.fName);
+  static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b, int dataVersion) {
+    return mcfile::je::Block::FromName(b.fName, dataVersion);
   }
 
 private:
@@ -2911,12 +2911,12 @@ private:
 #pragma endregion
 };
 
-std::shared_ptr<mcfile::je::Block const> BlockData::From(mcfile::be::Block const &b) {
-  return Impl::From(b);
+std::shared_ptr<mcfile::je::Block const> BlockData::From(mcfile::be::Block const &b, int dataVersion) {
+  return Impl::From(b, dataVersion);
 }
 
-std::shared_ptr<mcfile::je::Block const> BlockData::Identity(mcfile::be::Block const &b) {
-  return Impl::Identity(b);
+std::shared_ptr<mcfile::je::Block const> BlockData::Identity(mcfile::be::Block const &b, int dataVersion) {
+  return Impl::Identity(b, dataVersion);
 }
 
 } // namespace je2be::toje

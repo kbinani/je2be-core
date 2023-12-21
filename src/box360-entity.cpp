@@ -4,6 +4,7 @@
 #include "_nbt-ext.hpp"
 #include "_xxhash.hpp"
 #include "box360/_block-data.hpp"
+#include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
 #include "box360/_item.hpp"
 #include "entity/_painting.hpp"
@@ -143,7 +144,7 @@ private:
         out->set(u8"BlockState", b->toCompoundTag());
       }
     } else if (block) {
-      auto b = std::make_shared<mcfile::je::Block>(*block);
+      auto b = mcfile::je::Block::FromName(*block, Chunk::kTargetDataVersion);
       out->set(u8"BlockState", b->toCompoundTag());
     }
     out->erase(u8"Block");

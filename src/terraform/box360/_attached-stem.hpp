@@ -31,7 +31,7 @@ public:
     int cz = out.fChunkZ;
 
     vector<pair<u8string, Pos2i>> const nesw({{u8"north", Pos2i(0, -1)}, {u8"east", Pos2i(1, 0)}, {u8"south", Pos2i(0, 1)}, {u8"west", Pos2i(-1, 0)}});
-    u8string attachedStemBlockName = mcfile::blocks::Name(attachedStemBlockId);
+    u8string attachedStemBlockName = mcfile::blocks::Name(attachedStemBlockId, out.getDataVersion());
 
     for (int y = accessor.minBlockY(); y <= accessor.maxBlockY(); y++) {
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
@@ -53,7 +53,7 @@ public:
             if (target->fId != cropBlockId) {
               continue;
             }
-            auto replace = make_shared<mcfile::je::Block const>(attachedStemBlockName, map<u8string, u8string>{{u8"facing", it.first}});
+            auto replace = mcfile::je::Block::FromNameAndProperties(attachedStemBlockName, out.getDataVersion(), map<u8string, u8string>{{u8"facing", it.first}});
             out.setBlockAt(x, y, z, replace);
             break;
           }

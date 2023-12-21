@@ -26,7 +26,7 @@ public:
             if (!blockJ) {
               continue;
             }
-            auto plant = blockJ->renamed(u8"minecraft:cave_vines_plant")->applying({{u8"age", nullopt}});
+            auto plant = blockJ->withId(mcfile::blocks::minecraft::cave_vines_plant)->applying({{u8"age", nullopt}});
             out.setBlockAt(x, y, z, plant);
           }
         }

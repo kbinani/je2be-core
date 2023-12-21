@@ -18,10 +18,12 @@ public:
   static CompoundTagPtr FromBlockAndTileEntity(Pos3i const &pos,
                                                mcfile::je::Block const &block,
                                                CompoundTagPtr const &tag,
-                                               Context &ctx);
+                                               Context &ctx,
+                                               int dataVersion);
   static CompoundTagPtr FromBlock(Pos3i const &pos,
                                   mcfile::je::Block const &block,
-                                  Context &ctx);
+                                  Context &ctx,
+                                  int dataVersion);
   static bool IsStandaloneTileEntity(CompoundTagPtr const &tag);
   static std::optional<std::tuple<CompoundTagPtr, std::u8string>> StandaloneTileEntityBlockdData(Pos3i pos, CompoundTagPtr const &tag);
   static CompoundTagPtr StandaloneTileEntityData(CompoundTagPtr const &tag);

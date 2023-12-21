@@ -2,6 +2,7 @@
 
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
+#include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
 #include "box360/_item.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
@@ -51,12 +52,12 @@ public:
   static std::optional<Result> Banner(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     auto base = static_cast<BannerColorCodeBedrock>(in.int32(u8"Base", 0));
-    u8string color = JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(base));
-    u8string name;
+    ColorCodeJava color = ColorCodeJavaFromBannerColorCodeBedrock(base);
+    mcfile::blocks::BlockId id;
     if (block && block->fName.find(u8"wall") == std::string::npos) {
-      name = color + u8"_banner";
+      id = BannerBlockIdFromColorCodeJava(color);
     } else {
-      name = color + u8"_wall_banner";
+      id = WallBannerBlockIdFromColorCodeJava(color);
     }
     if (auto patternsB = in.listTag(u8"Patterns"); patternsB && !patternsB->empty()) {
       auto patternsJ = List<Tag::Type::Compound>();
@@ -85,18 +86,18 @@ public:
     Result r;
     r.fTileEntity = out;
     if (block) {
-      r.fBlock = block->renamed(u8"minecraft:" + name);
+      r.fBlock = block->withId(id);
     }
     return r;
   }
 
   static std::optional<Result> Bed(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     auto color = static_cast<ColorCodeJava>(in.int32(u8"color", 0));
-    std::u8string name = JavaNameFromColorCodeJava(color) + u8"_bed";
+    auto id = BedBlockIdFromColorCodeJava(color);
     Result r;
     r.fTileEntity = out;
     if (block) {
-      r.fBlock = block->renamed(u8"minecraft:" + name);
+      r.fBlock = block->withId(id);
     }
     return r;
   }
@@ -174,89 +175,89 @@ public:
 
   static std::optional<Result> FlowerPot(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
+    using namespace mcfile::blocks::minecraft;
     Result r;
-    u8string name;
+    mcfile::blocks::BlockId id;
     auto data = in.int32(u8"Data", 0);
     auto item = in.int32(u8"Item", 0);
     switch (item) {
     case 6:
       switch (data) {
       case 1:
-        name = u8"spruce_sapling";
+        id = potted_spruce_sapling;
         break;
       case 2:
-        name = u8"birch_sapling";
+        id = potted_birch_sapling;
         break;
       case 3:
-        name = u8"jungle_sapling";
+        id = potted_jungle_sapling;
         break;
       case 4:
-        name = u8"acacia_sapling";
+        id = potted_acacia_sapling;
         break;
       case 5:
-        name = u8"dark_oak_sapling";
+        id = potted_dark_oak_sapling;
         break;
       case 0:
       default:
-        name = u8"oak_sapling";
+        id = potted_oak_sapling;
         break;
       }
       break;
     case 31:
-      name = u8"fern"; // data = 2
+      id = potted_fern; // data = 2
       break;
     case 32:
-      name = u8"dead_bush";
+      id = potted_dead_bush;
       break;
     case 37:
-      name = u8"dandelion";
+      id = potted_dandelion;
       break;
     case 38:
       switch (data) {
       case 1:
-        name = u8"blue_orchid";
+        id = potted_blue_orchid;
         break;
       case 2:
-        name = u8"allium";
+        id = potted_allium;
         break;
       case 3:
-        name = u8"azure_bluet";
+        id = potted_azure_bluet;
         break;
       case 4:
-        name = u8"red_tulip";
+        id = potted_red_tulip;
         break;
       case 5:
-        name = u8"orange_tulip";
+        id = potted_orange_tulip;
         break;
       case 6:
-        name = u8"white_tulip";
+        id = potted_white_tulip;
         break;
       case 7:
-        name = u8"pink_tulip";
+        id = potted_pink_tulip;
         break;
       case 8:
-        name = u8"oxeye_daisy";
+        id = potted_oxeye_daisy;
         break;
       case 0:
       default:
-        name = u8"poppy";
+        id = potted_poppy;
         break;
       }
       break;
     case 39:
-      name = u8"brown_mushroom";
+      id = potted_brown_mushroom;
       break;
     case 40:
-      name = u8"red_mushroom";
+      id = potted_red_mushroom;
       break;
     case 81:
-      name = u8"cactus";
+      id = potted_cactus;
       break;
-    }
-    if (name.empty()) {
+    default:
       return nullopt;
     }
-    r.fBlock = make_shared<mcfile::je::Block const>(u8"minecraft:potted_" + name);
+    r.fBlock = mcfile::je::Block::FromId(id, Chunk::kTargetDataVersion);
     return r;
   }
 
@@ -378,16 +379,16 @@ public:
 
     if (block) {
       map<u8string, optional<u8string>> props;
-      u8string name;
+      mcfile::blocks::BlockId id;
       if (block->fName.find(u8"wall") == u8string::npos) {
         if (rot) {
           props[u8"rotation"] = mcfile::String::ToString(*rot);
         }
-        name = skullName;
+        id = BlockIdFromSkullType(type);
       } else {
-        name = strings::Replace(strings::Replace(skullName, u8"_head", u8"_wall_head"), u8"_skull", u8"_wall_skull");
+        id = BlockIdFromWallSkullType(type);
       }
-      auto blockJ = block->renamed(u8"minecraft:" + name)->applying(props);
+      auto blockJ = block->withId(id)->applying(props);
       r.fBlock = blockJ;
     }
     r.fTileEntity = out;
