@@ -260,12 +260,13 @@ static inline mcfile::blocks::BlockId BedBlockIdFromColorCodeJava(ColorCodeJava 
     return pink_bed;
   case ColorCodeJava::Purple:
     return purple_bed;
-  case ColorCodeJava::Red:
-    return red_bed;
   case ColorCodeJava::White:
     return white_bed;
   case ColorCodeJava::Yellow:
     return yellow_bed;
+  case ColorCodeJava::Red:
+  default:
+    return red_bed;
   }
 }
 
@@ -300,10 +301,11 @@ static inline mcfile::blocks::BlockId BannerBlockIdFromColorCodeJava(ColorCodeJa
     return purple_banner;
   case ColorCodeJava::Red:
     return red_banner;
-  case ColorCodeJava::White:
-    return white_banner;
   case ColorCodeJava::Yellow:
     return yellow_banner;
+  case ColorCodeJava::White:
+  default:
+    return white_banner;
   }
 }
 
@@ -338,10 +340,11 @@ static inline mcfile::blocks::BlockId WallBannerBlockIdFromColorCodeJava(ColorCo
     return purple_wall_banner;
   case ColorCodeJava::Red:
     return red_wall_banner;
-  case ColorCodeJava::White:
-    return white_wall_banner;
   case ColorCodeJava::Yellow:
     return yellow_wall_banner;
+  case ColorCodeJava::White:
+  default:
+    return white_wall_banner;
   }
 }
 
