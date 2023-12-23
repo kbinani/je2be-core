@@ -2860,6 +2860,14 @@ private:
     E(tuff_brick_double_slab, DoubleSlab(u8"tuff_brick_slab"));
     E(tuff_brick_stairs, Stairs);
     E(tuff_brick_wall, BlockWithWallProperties);
+    E(copper_grate, BlockWithSubmergible);
+    E(exposed_copper_grate, BlockWithSubmergible);
+    E(weathered_copper_grate, BlockWithSubmergible);
+    E(oxidized_copper_grate, BlockWithSubmergible);
+    E(waxed_copper_grate, BlockWithSubmergible);
+    E(waxed_exposed_copper_grate, BlockWithSubmergible);
+    E(waxed_weathered_copper_grate, BlockWithSubmergible);
+    E(waxed_oxidized_copper_grate, BlockWithSubmergible);
     E(copper_door, Door);
     E(exposed_copper_door, Door);
     E(weathered_copper_door, Door);
