@@ -1253,7 +1253,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
 
   // Compare initial Java input and final Java output.
 
-  //TODO(debug): CheckLevelDat(in / "level.dat", *outJ / "level.dat");
+  CheckLevelDat(in / "level.dat", *outJ / "level.dat");
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!optB.fDimensionFilter.empty()) {

@@ -92,6 +92,7 @@ public:
 
   bool fDataPackBundle = false;
   bool fDataPackTradeRebalance = false;
+  bool fDataPackUpdate1_21 = false;
 
 private:
   std::shared_ptr<MapInfo const> fMapInfo;

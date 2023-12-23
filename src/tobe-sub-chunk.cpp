@@ -64,10 +64,14 @@ public:
           altitude[x][z] = -1;
         }
       }
-      section->eachBlockPalette([&palette](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+      section->eachBlockPalette([&palette, &wd](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+        using namespace mcfile::blocks::minecraft;
         auto blockB = BlockData::From(blockJ, nullptr, {});
         assert(blockB);
         palette.append(blockB);
+        if (BlockData::IsUpdate121Block(blockJ->fId)) {
+          wd.addExperiment(u8"updateAnnouncedLive2023");
+        }
         return true;
       });
       int j = 0;
