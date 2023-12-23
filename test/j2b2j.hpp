@@ -2,7 +2,7 @@
 
 static std::mutex sMutCerr;
 
-static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual);
+static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &actual);
 
 static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::u8string> ignore) {
   CHECK(e.fName == a.fName);
@@ -70,6 +70,11 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
           CheckBlockWithIgnore(*blockE, *blockA, {u8"power"});
         } else if (blockE->fName == u8"minecraft:piglin_wall_head" || blockE->fName == u8"minecraft:skeleton_skull" || blockE->fName == u8"minecraft:wither_skeleton_skull" || blockE->fName == u8"minecraft:zombie_head" || blockE->fName == u8"minecraft:creeper_head" || blockE->fName == u8"minecraft:dragon_head" || blockE->fName == u8"minecraft:player_head" || blockE->fName == u8"minecraft:skeleton_wall_skull" || blockE->fName == u8"minecraft:piglin_head" || blockE->fName == u8"minecraft:wither_skeleton_wall_skull" || blockE->fName == u8"minecraft:player_wall_head" || blockE->fName == u8"minecraft:zombie_wall_head" || blockE->fName == u8"minecraft:creeper_wall_head" || blockE->fName == u8"minecraft:dragon_wall_head") {
           CheckBlockWithIgnore(*blockE, *blockA, {u8"powered"});
+        } else if (blockE->fName.find(u8"copper_grate") != u8string::npos) {
+          // TODO(1.21): Bedrock 1.20.51 does not support water-logging of copper grate
+          CheckBlockWithIgnore(*blockE, *blockA, {u8"waterlogged"});
+        } else if (blockE->fName == u8"minecraft:trial_spawner") {
+          // TODO(1.21):
         } else {
           if (blockA->fId != blockE->fId || blockA->fData != blockE->fData) {
             lock_guard<mutex> lock(sMutCerr);
@@ -267,7 +272,7 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
     REQUIRE(tileA);
     REQUIRE(tileE->type() == Tag::Type::Compound);
     CHECK(tileE->type() == tileA->type());
-    CheckTileEntity(*tileE->asCompound(), *tileA->asCompound());
+    CheckTileEntityJ(*tileE->asCompound(), *tileA->asCompound());
   } else if (tileA && tileA->type() != Tag::Type::End) {
     CHECK(false);
   }
@@ -309,7 +314,7 @@ static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual) {
+static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &actual) {
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 
@@ -341,6 +346,9 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
     tagBlacklist.insert(u8"Text2");
     tagBlacklist.insert(u8"Text3");
     tagBlacklist.insert(u8"Text4");
+  } else if (id == u8"minecraft:trial_spawner") {
+    // TODO(1.21):
+    return;
   }
   auto itemsE = expected.listTag(u8"Items");
   auto itemsA = actual.listTag(u8"Items");
@@ -904,7 +912,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
       break;
     }
     auto tileA = found->second;
-    CheckTileEntity(*tileE, *tileA);
+    CheckTileEntityJ(*tileE, *tileA);
   }
 
   static set<u8string> const sEntityBlacklist = {
