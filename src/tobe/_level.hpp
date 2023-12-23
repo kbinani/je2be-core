@@ -118,7 +118,7 @@ public:
   int fPermissionsLevel = 0;
   int fPlayerPermissionsLevel = 1;
   bool fShowborderEffect = true;
-  i32 fDataVersion;
+  i32 fDataVersion = mcfile::je::Chunk::kDataVersion;
   bool fProjectilescanbreakblocks = true;
   bool fShowrecipemessages = true;
 
