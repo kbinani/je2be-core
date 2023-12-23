@@ -119,6 +119,8 @@ public:
   int fPlayerPermissionsLevel = 1;
   bool fShowborderEffect = true;
   i32 fDataVersion;
+  bool fProjectilescanbreakblocks = true;
+  bool fShowrecipemessages = true;
 
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
@@ -228,6 +230,8 @@ public:
         {u8"respawnblocksexplode", Bool(fRespawnBlocksExplode)},
         {u8"showbordereffect", Bool(fShowborderEffect)},
         {u8"world_policies", Compound()},
+        {u8"projectilescanbreakblocks", Bool(fProjectilescanbreakblocks)},
+        {u8"showrecipemessages", Bool(fShowrecipemessages)},
     });
     auto experiments = Compound();
     experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
@@ -332,6 +336,7 @@ public:
       I(playersSleepingPercentage, ret.fPlayersSleepingPercentage);
       // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
       ret.fShowCoordinates = gameRules->string(u8"reducedDebugInfo", u8"false") != u8"true";
+      S(projectilesCanBreakBlocks, ret.fProjectilescanbreakblocks);
 #undef S
 #undef I
     }
@@ -370,9 +375,6 @@ public:
         if (s->fValue == u8"minecraft:trade_rebalance") {
           ret.fExperiments[u8"villager_trades_rebalance"] = true;
         }
-      }
-      if (experiments) {
-        ret.fExperiments[u8"next_major_update"] = true;
       }
     }
 

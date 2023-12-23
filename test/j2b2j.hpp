@@ -1036,6 +1036,9 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
       u8"snowAccumulationHeight",
       u8"commandModificationBlockLimit",
       u8"doVinesSpread",
+      u8"maxCommandForkCount",
+      u8"playersNetherPortalCreativeDelay",
+      u8"playersNetherPortalDefaultDelay",
   };
   for (u8string const &rule : ignoredGameRules) {
     blacklist.insert(u8"GameRules/" + rule);
