@@ -4,7 +4,7 @@ static std::mutex sMutCerr;
 
 static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &actual);
 
-static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::u8string> ignore) {
+static void CheckBlockJWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::u8string> ignore) {
   CHECK(e.fName == a.fName);
   map<u8string, optional<u8string>> op;
   for (u8string const &p : ignore) {
@@ -16,7 +16,7 @@ static void CheckBlockWithIgnore(mcfile::je::Block const &e, mcfile::je::Block c
   CHECK(blockA->fData == blockE->fData);
 }
 
-static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, Dimension dim, int x, int y, int z) {
+static void CheckBlockJ(shared_ptr<mcfile::je::Block const> const &blockE, shared_ptr<mcfile::je::Block const> const &blockA, Dimension dim, int x, int y, int z) {
   unordered_map<u8string_view, u8string> fallbackJtoB;
   fallbackJtoB[u8"minecraft:petrified_oak_slab"] = u8"minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB[u8"minecraft:cave_air"] = u8"minecraft:air";
@@ -34,15 +34,15 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
         if (blockE->fName == u8"minecraft:red_mushroom_block" || blockE->fName == u8"minecraft:brown_mushroom_block") {
           CHECK(blockE->fName == blockA->fName);
         } else if (blockE->fName == u8"minecraft:scaffolding") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"distance"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"distance"});
         } else if (blockE->fName == u8"minecraft:repeater") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"locked"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"locked"});
         } else if (blockE->fName == u8"minecraft:note_block" || blockE->fName.ends_with(u8"_trapdoor") || blockE->fName.ends_with(u8"_fence_gate") || blockE->fName == u8"minecraft:lectern" || blockE->fName.ends_with(u8"_door") || blockE->fName == u8"minecraft:lightning_rod") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"powered"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"powered"});
         } else if (blockE->fName.ends_with(u8"_button")) {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"facing", u8"powered"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"facing", u8"powered"});
         } else if (blockE->fName == u8"minecraft:fire") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"east", u8"north", u8"south", u8"west", u8"up"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"east", u8"north", u8"south", u8"west", u8"up"});
         } else if (blockE->fName == u8"minecraft:weeping_vines_plant") {
           if (blockA->toString() == u8"minecraft:weeping_vines[age=25]") {
             // JE: weeping_vines -> tip
@@ -61,18 +61,18 @@ static void CheckBlock(shared_ptr<mcfile::je::Block const> const &blockE, shared
             CHECK(blockA->toString() == blockE->toString());
           }
         } else if (blockE->fName == u8"minecraft:vine") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"up"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"up"});
         } else if (blockE->fName == u8"minecraft:mangrove_propagule") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"stage"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"stage"});
         } else if (blockE->fName == u8"minecraft:lever") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"facing"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"facing"});
         } else if (blockE->fName == u8"minecraft:sculk_sensor" || blockE->fName == u8"minecraft:calibrated_sculk_sensor") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"power"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"power"});
         } else if (blockE->fName == u8"minecraft:piglin_wall_head" || blockE->fName == u8"minecraft:skeleton_skull" || blockE->fName == u8"minecraft:wither_skeleton_skull" || blockE->fName == u8"minecraft:zombie_head" || blockE->fName == u8"minecraft:creeper_head" || blockE->fName == u8"minecraft:dragon_head" || blockE->fName == u8"minecraft:player_head" || blockE->fName == u8"minecraft:skeleton_wall_skull" || blockE->fName == u8"minecraft:piglin_head" || blockE->fName == u8"minecraft:wither_skeleton_wall_skull" || blockE->fName == u8"minecraft:player_wall_head" || blockE->fName == u8"minecraft:zombie_wall_head" || blockE->fName == u8"minecraft:creeper_wall_head" || blockE->fName == u8"minecraft:dragon_wall_head") {
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"powered"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"powered"});
         } else if (blockE->fName.find(u8"copper_grate") != u8string::npos) {
           // TODO(1.21): Bedrock 1.20.51 does not support water-logging of copper grate
-          CheckBlockWithIgnore(*blockE, *blockA, {u8"waterlogged"});
+          CheckBlockJWithIgnore(*blockE, *blockA, {u8"waterlogged"});
         } else if (blockE->fName == u8"minecraft:trial_spawner") {
           // TODO(1.21):
         } else {
@@ -227,7 +227,7 @@ static void CheckTextComponent(u8string const &e, u8string const &a) {
   }
 }
 
-static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
+static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<u8string> blacklist = {
       u8"tag/map",
       u8"tag/BlockEntityTag",
@@ -364,7 +364,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       REQUIRE(itemA);
       CHECK(itemE->type() == Tag::Type::Compound);
       CHECK(itemA->type() == Tag::Type::Compound);
-      CheckItem(*itemE->asCompound(), *itemA->asCompound());
+      CheckItemJ(*itemE->asCompound(), *itemA->asCompound());
     }
   } else if (itemsA) {
     CHECK(false);
@@ -398,7 +398,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   }
 }
 
-static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
+static void CheckBrainJ(CompoundTag const &brainE, CompoundTag const &brainA) {
   static unordered_set<u8string> const blacklist = {
       // allay, etc
       u8"memories/minecraft:gaze_cooldown_ticks",
@@ -470,7 +470,7 @@ static void CheckRecipeJ(CompoundTag const &e, CompoundTag const &a) {
       CHECK(okE);
       CHECK(okA);
     } else {
-      CheckItem(*itemE, *itemA);
+      CheckItemJ(*itemE, *itemA);
     }
   }
   DiffCompoundTag(*copyE, *copyA);
@@ -496,7 +496,7 @@ static void CheckOffersJ(CompoundTag const &e, CompoundTag const &a) {
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
+static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
@@ -640,7 +640,7 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
   copyA->erase(u8"Item");
   if (itemE) {
     REQUIRE(itemA);
-    CheckItem(*itemE, *itemA);
+    CheckItemJ(*itemE, *itemA);
   }
 
   auto passengersE = entityE.listTag(u8"Passengers");
@@ -657,7 +657,7 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
       CHECK(passengerE->type() == passengerA->type());
       auto id = passengerE->asCompound()->string(u8"id");
       REQUIRE(id);
-      CheckEntity(*id, *passengerE->asCompound(), *passengerA->asCompound());
+      CheckEntityJ(*id, *passengerE->asCompound(), *passengerA->asCompound());
     }
   } else if (passengersA) {
     CHECK(false);
@@ -669,7 +669,7 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
   copyA->erase(u8"Brain");
   if (brainE) {
     REQUIRE(brainA);
-    CheckBrain(*brainE, *brainA);
+    CheckBrainJ(*brainE, *brainA);
   } else if (brainA) {
     CHECK(false);
   }
@@ -686,7 +686,7 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
       auto itemA = inventoryA->at(i);
       REQUIRE(itemE->type() == Tag::Type::Compound);
       CHECK(itemE->type() == itemA->type());
-      CheckItem(*itemE->asCompound(), *itemA->asCompound());
+      CheckItemJ(*itemE->asCompound(), *itemA->asCompound());
     }
   } else if (inventoryA) {
     CHECK(false);
@@ -754,7 +754,7 @@ static std::optional<mcfile::je::TickingBlock> FindNearestTickingBlock(int x, in
   return ret;
 }
 
-static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlock a) {
+static void CheckTickingBlockJ(mcfile::je::TickingBlock e, mcfile::je::TickingBlock a) {
   CHECK(e.fI == a.fI);
   //CHECK(e.fP == a.fP); "P" does not exist in BE
   CHECK(e.fT == a.fT);
@@ -763,7 +763,7 @@ static void CheckTickingBlock(mcfile::je::TickingBlock e, mcfile::je::TickingBlo
   CHECK(e.fZ == a.fZ);
 }
 
-static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actual) {
+static void CheckHeightmapsJ(CompoundTag const &expected, CompoundTag const &actual) {
   static set<u8string> const sTypes = {u8"MOTION_BLOCKING",
                                        u8"MOTION_BLOCKING_NO_LEAVES",
                                        u8"OCEAN_FLOOR",
@@ -785,7 +785,7 @@ static void CheckHeightmaps(CompoundTag const &expected, CompoundTag const &actu
   }
 }
 
-static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, Dimension dim, u8string const &kind) {
+static void CheckSectionLightJ(Pos3i const &origin, std::vector<uint8_t> &e, std::vector<uint8_t> &a, Dimension dim, u8string const &kind) {
   auto dataE = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &e);
   auto dataA = mcfile::Data4b3dView::Make(origin, 16, 16, 16, &a);
   REQUIRE(dataE);
@@ -832,7 +832,7 @@ static void CheckSectionLight(Pos3i const &origin, std::vector<uint8_t> &e, std:
   }
 }
 
-static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk const &chunkA, Dimension dim) {
+static void CheckChunkLightJ(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk const &chunkA, Dimension dim) {
   REQUIRE(chunkA.fSections.size() == chunkE.fSections.size());
   for (int i = 0; i < chunkE.fSections.size(); i++) {
     auto const &sectionE = chunkE.fSections[i];
@@ -843,16 +843,16 @@ static void CheckChunkLight(mcfile::je::Chunk const &chunkE, mcfile::je::Chunk c
     REQUIRE(sectionE->y() == sectionA->y());
     if (!sectionE->fSkyLight.empty() && std::any_of(sectionE->fSkyLight.begin(), sectionE->fSkyLight.end(), [](uint8_t v) { return v != 0; })) {
       CHECK(sectionE->fSkyLight.size() == sectionA->fSkyLight.size());
-      CheckSectionLight(origin, sectionE->fSkyLight, sectionA->fSkyLight, dim, u8"sky");
+      CheckSectionLightJ(origin, sectionE->fSkyLight, sectionA->fSkyLight, dim, u8"sky");
     }
     if (!sectionE->fBlockLight.empty() && std::any_of(sectionE->fBlockLight.begin(), sectionE->fBlockLight.end(), [](uint8_t v) { return v != 0; })) {
       CHECK(sectionE->fBlockLight.size() == sectionA->fBlockLight.size());
-      CheckSectionLight(origin, sectionE->fBlockLight, sectionA->fBlockLight, dim, u8"block");
+      CheckSectionLightJ(origin, sectionE->fBlockLight, sectionA->fBlockLight, dim, u8"block");
     }
   }
 }
 
-static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
+static void CheckChunkJ(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
   auto chunkA = regionA.writableChunkAt(cx, cz);
   if (!chunkA) {
     return;
@@ -871,7 +871,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
       for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
         auto blockA = chunkA->blockAt(x, y, z);
         auto blockE = chunkE->blockAt(x, y, z);
-        CheckBlock(blockE, blockA, dim, x, y, z);
+        CheckBlockJ(blockE, blockA, dim, x, y, z);
       }
     }
   }
@@ -936,7 +936,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     }
     shared_ptr<CompoundTag> entityA = FindNearestEntity(posE, rotE, *id, chunkA->fEntities);
     if (entityA) {
-      CheckEntity(*id, *entityE, *entityA);
+      CheckEntityJ(*id, *entityE, *entityA);
     } else {
       ostringstream out;
       PrintAsJson(out, *entityE, {.fTypeHint = true});
@@ -952,7 +952,7 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     mcfile::je::TickingBlock tbE = chunkE->fLiquidTicks[i];
     auto tbA = FindNearestTickingBlock(tbE.fX, tbE.fY, tbE.fZ, chunkA->fLiquidTicks);
     CHECK(tbA);
-    CheckTickingBlock(tbE, *tbA);
+    CheckTickingBlockJ(tbE, *tbA);
   }
 
   CHECK(chunkE->fTileTicks.size() == chunkA->fTileTicks.size());
@@ -960,29 +960,29 @@ static void CheckChunk(mcfile::je::Region const &regionE, mcfile::je::Region con
     mcfile::je::TickingBlock tbE = chunkE->fTileTicks[i];
     auto tbA = FindNearestTickingBlock(tbE.fX, tbE.fY, tbE.fZ, chunkA->fTileTicks);
     CHECK(tbA);
-    CheckTickingBlock(tbE, *tbA);
+    CheckTickingBlockJ(tbE, *tbA);
   }
 
   auto heightMapsE = chunkE->fRoot->compoundTag(u8"Heightmaps");
   auto heightMapsA = chunkA->fRoot->compoundTag(u8"Heightmaps");
   REQUIRE(heightMapsE);
   REQUIRE(heightMapsA);
-  CheckHeightmaps(*heightMapsE, *heightMapsA);
+  CheckHeightmapsJ(*heightMapsE, *heightMapsA);
 
   if (0 <= chunkE->fChunkX && chunkE->fChunkX <= 23 && 0 <= chunkE->fChunkZ && chunkE->fChunkZ <= 1) {
     // SkyLight and BlockLight sometimes have wrong value, so check light only for limited chunks
-    CheckChunkLight(*chunkE, *chunkA, dim);
+    CheckChunkLightJ(*chunkE, *chunkA, dim);
   }
 }
 
-static std::shared_ptr<CompoundTag> ReadLevelDat(fs::path const &p) {
+static std::shared_ptr<CompoundTag> ReadLevelDatJ(fs::path const &p) {
   auto s = make_shared<mcfile::stream::GzFileInputStream>(p);
   return CompoundTag::Read(s, Endian::Big);
 }
 
-static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
-  auto e = ReadLevelDat(pathE);
-  auto a = ReadLevelDat(pathA);
+static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {
+  auto e = ReadLevelDatJ(pathE);
+  auto a = ReadLevelDatJ(pathA);
   CHECK(e);
   CHECK(a);
 
@@ -1068,7 +1068,7 @@ static void CheckLevelDat(fs::path const &pathE, fs::path const &pathA) {
   }
   auto playerE = dataE->compoundTag(u8"Player");
   auto playerA = dataA->compoundTag(u8"Player");
-  CheckEntity(u8"player", *playerE, *playerA);
+  CheckEntityJ(u8"player", *playerE, *playerA);
 
   dataE->erase(u8"Player");
   dataA->erase(u8"Player");
@@ -1095,7 +1095,7 @@ static void RemoveEmpty(CompoundTag &t) {
   }
 }
 
-static void CheckPoi(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
+static void CheckPoiJ(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
   auto poiE = regionE.exportToNbt(cx, cz);
   if (poiE) {
     static std::unordered_set<std::u8string> const blacklist = {
@@ -1256,7 +1256,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
 
   // Compare initial Java input and final Java output.
 
-  CheckLevelDat(in / "level.dat", *outJ / "level.dat");
+  CheckLevelDatJ(in / "level.dat", *outJ / "level.dat");
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!optB.fDimensionFilter.empty()) {
@@ -1299,13 +1299,13 @@ static void TestJavaToBedrockToJava(fs::path in) {
             thread::hardware_concurrency(),
             true,
             [regionE, regionA, dim](Pos2i const &pos) -> bool {
-              CheckChunk(*regionE, *regionA, pos.fX, pos.fZ, dim);
+              CheckChunkJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
               return true;
             },
             Parallel::MergeBool);
       } else {
         for (auto const &pos : regionChunks) {
-          CheckChunk(*regionE, *regionA, pos.fX, pos.fZ, dim);
+          CheckChunkJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
         }
       }
     }
@@ -1344,13 +1344,13 @@ static void TestJavaToBedrockToJava(fs::path in) {
             thread::hardware_concurrency(),
             true,
             [regionE, regionA, dim](Pos2i const &pos) -> bool {
-              CheckPoi(*regionE, *regionA, pos.fX, pos.fZ, dim);
+              CheckPoiJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
               return true;
             },
             Parallel::MergeBool);
       } else {
         for (auto const &pos : regionChunks) {
-          CheckPoi(*regionE, *regionA, pos.fX, pos.fZ, dim);
+          CheckPoiJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
         }
       }
     }

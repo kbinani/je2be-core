@@ -154,7 +154,7 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock, i8 
       auto expectedBlock = expected->blockAt(0, y, 0);
       REQUIRE(actualBlock);
       REQUIRE(expectedBlock);
-      CheckBlock(expectedBlock, actualBlock, mcfile::Dimension::Overworld, 0, y, 0);
+      CheckBlockJ(expectedBlock, actualBlock, mcfile::Dimension::Overworld, 0, y, 0);
 
       auto actualTile = actual->tileEntityAt(0, y, 0);
       auto expectedTile = expected->tileEntityAt(0, y, 0);
