@@ -265,6 +265,29 @@ static inline std::optional<Json> GetJson(CompoundTag const &tag, std::u8string 
   return ParseAsJson(s->fValue);
 }
 
+static std::u8string GetTextComponent(std::u8string const &in) {
+  auto json = props::ParseAsJson(in);
+  if (json) {
+    std::u8string ret;
+    auto text = json->find("text");
+    if (text != json->end() && text->is_string()) {
+      ret += props::GetJsonStringValue(*text);
+    }
+    auto extra = json->find("extra");
+    if (extra != json->end() && extra->is_array()) {
+      for (auto it = extra->begin(); it != extra->end(); it++) {
+        auto t = it->find("text");
+        if (t != it->end() && t->is_string()) {
+          ret += props::GetJsonStringValue(*t);
+        }
+      }
+    }
+    return ret;
+  } else {
+    return in;
+  }
+}
+
 static inline i32 SquashI64ToI32(i64 v) {
   if (v < (i64)std::numeric_limits<i32>::min() || (i64)std::numeric_limits<i32>::max() < v) {
     XXHash32 x(0);

@@ -2751,7 +2751,7 @@ private:
     auto rotation = GetRotation(tag, u8"Rotation");
     auto uuid = GetEntityUuid(tag);
     auto id = tag.string(u8"id");
-    auto customName = GetJson(tag, u8"CustomName");
+    auto customNameJ = tag.string(u8"CustomName");
 
     if (!uuid) {
       return nullopt;
@@ -2785,11 +2785,10 @@ private:
     if (id) {
       e.fIdentifier = MigrateName(*id);
     }
-    if (customName) {
-      auto text = customName->find("text");
-      if (text != customName->end() && text->is_string()) {
-        auto t = props::GetJsonStringValue(*text);
-        e.fCustomName = t;
+    if (customNameJ) {
+      auto text = props::GetTextComponent(*customNameJ);
+      if (!text.empty()) {
+        e.fCustomName = text;
         e.fCustomNameVisible = true;
       }
     }

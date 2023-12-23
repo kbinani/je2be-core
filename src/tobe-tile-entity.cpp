@@ -735,7 +735,8 @@ private:
     auto automatic = c->boolean(u8"auto", false);
     auto trackOutput = c->boolean(u8"TrackOutput", true);
     auto successCount = c->int32(u8"SuccessCount", 0);
-    auto command = command::Command::TranspileJavaToBedrock(c->string(u8"Command", u8""));
+    auto commandJ = props::GetTextComponent(c->string(u8"Command", u8""));
+    auto commandB = command::Command::TranspileJavaToBedrock(commandJ);
     auto conditionMet = c->boolean(u8"conditionMet", false);
 
     auto lastExecution = c->int64(u8"LastExecution");
@@ -752,17 +753,17 @@ private:
         {u8"TrackOutput", Bool(trackOutput)},
         {u8"Version", Int(34)},
         {u8"SuccessCount", Int(successCount)},
-        {u8"Command", String(command)},
+        {u8"Command", String(commandB)},
         {u8"ExecuteOnFirstTick", Bool(false)},
         {u8"conditionMet", Bool(conditionMet)},
     });
     Attach(c, pos, *tag);
-    auto customNameJ = props::GetJson(*c, u8"CustomName");
+    auto customNameJ = c->string(u8"CustomName");
     std::u8string customNameB;
     if (customNameJ) {
-      auto text = GetAsString(*customNameJ, "text");
-      if (text && text != u8"@") {
-        customNameB = *text;
+      auto text = props::GetTextComponent(*customNameJ);
+      if (!text.empty() && text != u8"@") {
+        customNameB = text;
       }
     }
     tag->set(u8"CustomName", customNameB);
@@ -1520,40 +1521,17 @@ private:
     return props::GetJsonStringValue(*found);
   }
 
-  static std::u8string GetSignLine(std::u8string const &in) {
-    auto json = props::ParseAsJson(in);
-    if (json) {
-      std::u8string ret;
-      auto text = json->find("text");
-      if (text != json->end() && text->is_string()) {
-        ret += props::GetJsonStringValue(*text);
-      }
-      auto extra = json->find("extra");
-      if (extra != json->end() && extra->is_array()) {
-        for (auto it = extra->begin(); it != extra->end(); it++) {
-          auto t = it->find("text");
-          if (t != it->end() && t->is_string()) {
-            ret += props::GetJsonStringValue(*t);
-          }
-        }
-      }
-      return ret;
-    } else {
-      return in;
-    }
-  }
-
   static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
     tag.set(u8"x", Int(pos.fX));
     tag.set(u8"y", Int(pos.fY));
     tag.set(u8"z", Int(pos.fZ));
 
     if (c) {
-      auto customName = props::GetJson(*c, u8"CustomName");
-      if (customName) {
-        auto text = GetAsString(*customName, "text");
-        if (text) {
-          tag.set(u8"CustomName", *text);
+      auto customNameJ = c->string(u8"CustomName");
+      if (customNameJ) {
+        auto customNameB = props::GetTextComponent(*customNameJ);
+        if (!customNameB.empty()) {
+          tag.set(u8"CustomName", customNameB);
         }
       }
     }
@@ -1732,7 +1710,7 @@ private:
           continue;
         }
         if (auto s = line->asString(); s) {
-          text += GetSignLine(s->fValue);
+          text += props::GetTextComponent(s->fValue);
         }
       }
     }
@@ -1787,10 +1765,10 @@ private:
         }
       } else {
         auto color = Wrap<u8string>(c->string(u8"Color"), u8"black");
-        auto text1 = GetSignLine(c->string(u8"Text1", u8""));
-        auto text2 = GetSignLine(c->string(u8"Text2", u8""));
-        auto text3 = GetSignLine(c->string(u8"Text3", u8""));
-        auto text4 = GetSignLine(c->string(u8"Text4", u8""));
+        auto text1 = GetTextComponent(c->string(u8"Text1", u8""));
+        auto text2 = GetTextComponent(c->string(u8"Text2", u8""));
+        auto text3 = GetTextComponent(c->string(u8"Text3", u8""));
+        auto text4 = GetTextComponent(c->string(u8"Text4", u8""));
         Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
         bool glowing = c->boolean(u8"GlowingText", false);
         u8string text = text1 + u8"\x0a" + text2 + u8"\x0a" + text3 + u8"\x0a" + text4;

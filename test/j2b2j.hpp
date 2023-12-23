@@ -187,6 +187,41 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
   }
 }
 
+static void CheckJson(props::Json const &e, props::Json const &a) {
+  CHECK(e.size() == a.size());
+  for (auto const &it : e.items()) {
+    auto key = it.key();
+    REQUIRE(a.contains(key));
+    auto actual = a.at(key);
+    auto expected = it.value();
+    CHECK(expected == actual);
+  }
+}
+
+static void CheckTextComponent(u8string const &e, u8string const &a) {
+  if (e == a) {
+    CHECK(true);
+    return;
+  }
+  auto jsonE = props::ParseAsJson(e);
+  auto jsonA = props::ParseAsJson(a);
+  if (jsonE == jsonA) {
+    CheckJson(*jsonE, *jsonA);
+  } else if (jsonE) {
+    props::Json jA;
+    props::SetJsonString(jA, u8"text", a);
+    auto jAs = props::StringFromJson(jA);
+    CHECK(e ==  jAs);
+  } else if (jsonA) {
+    props::Json jE;
+    props::SetJsonString(jE, u8"text", e);
+    auto jEs = props::StringFromJson(jE);
+    CHECK(jEs == a);
+  } else {
+    CHECK(e == a);
+  }
+}
+
 static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<u8string> blacklist = {
       u8"tag/map",
@@ -245,6 +280,35 @@ static void CheckItem(CompoundTag const &itemE, CompoundTag const &itemA) {
   DiffCompoundTag(*copyE, *copyA);
 }
 
+static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
+  auto messagesE = e.listTag(u8"messages");
+  if (!messagesE) {
+    messagesE = e.listTag(u8"filtered_messages");
+  }
+  auto messagesA = a.listTag(u8"messages");
+  if (!messagesA) {
+    messagesA = a.listTag(u8"filtered_messages");
+  }
+  if (messagesE) {
+    CHECK(messagesA);
+    CHECK(messagesE->size() == messagesA->size());
+    for (size_t i = 0; i < messagesE->size(); i++) {
+      auto lineE = messagesE->at(i)->asString();
+      REQUIRE(lineE);
+      auto lineA = messagesA->at(i)->asString();
+      REQUIRE(lineA);
+      CheckTextComponent(lineE->fValue, lineA->fValue);
+    }
+  }
+  auto copyE = e.copy();
+  auto copyA = a.copy();
+  for (auto const &key : {u8"messages", u8"filtered_messages"}) {
+    copyE->erase(key);
+    copyA->erase(key);
+  }
+  DiffCompoundTag(*copyE, *copyA);
+}
+
 static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actual) {
   auto copyE = expected.copy();
   auto copyA = actual.copy();
@@ -277,8 +341,6 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
     tagBlacklist.insert(u8"Text2");
     tagBlacklist.insert(u8"Text3");
     tagBlacklist.insert(u8"Text4");
-    tagBlacklist.insert(u8"front_text/filtered_messages");
-    tagBlacklist.insert(u8"back_text/filtered_messages");
   }
   auto itemsE = expected.listTag(u8"Items");
   auto itemsA = actual.listTag(u8"Items");
@@ -297,11 +359,33 @@ static void CheckTileEntity(CompoundTag const &expected, CompoundTag const &actu
   } else if (itemsA) {
     CHECK(false);
   }
+  static set<u8string> const sJsonKeys = {u8"CustomName"};
+  for (u8string const &k : sJsonKeys) {
+    tagBlacklist.insert(k);
+  }
+  for (auto const &key : {u8"back_text", u8"front_text"}) {
+    auto backTextE = expected.compoundTag(key);
+    auto backTextA = actual.compoundTag(key);
+    if (backTextE) {
+      CHECK(backTextA);
+      CheckSignTextLinesJ(*backTextE, *backTextA);
+    }
+    tagBlacklist.insert(key);
+  }
   for (u8string const &b : tagBlacklist) {
     Erase(copyE, b);
     Erase(copyA, b);
   }
   DiffCompoundTag(*copyE, *copyA);
+  for (u8string const &key : sJsonKeys) {
+    auto valueE = expected.string(key);
+    auto valueA = actual.string(key);
+    if (!valueE) {
+      CHECK(!valueA);
+      continue;
+    }
+    CheckTextComponent(*valueE, *valueA);
+  }
 }
 
 static void CheckBrain(CompoundTag const &brainE, CompoundTag const &brainA) {
@@ -526,6 +610,14 @@ static void CheckEntity(std::u8string const &id, CompoundTag const &entityE, Com
   } else if (id == u8"minecraft:wandering_trader") {
     blacklist.insert(u8"WanderTarget");
   }
+
+  auto customNameE = entityE.string(u8"CustomName");
+  auto customNameA = entityA.string(u8"CustomName");
+  if (customNameE) {
+    CHECK(customNameA);
+    CheckTextComponent(*customNameE, *customNameA);
+  }
+  blacklist.insert(u8"CustomName");
 
   for (u8string const &it : blacklist) {
     Erase(copyE, it);
