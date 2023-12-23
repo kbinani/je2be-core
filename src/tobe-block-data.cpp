@@ -1784,7 +1784,6 @@ public:
     E(polished_tuff_stairs, Stairs());
     E(polished_tuff_slab, Slab(u8"polished_tuff_double_slab"));
     E(polished_tuff_wall, wall);
-    E(polished_tuff_stairs, Stairs());
     E(tuff_brick_slab, Slab(u8"tuff_brick_double_slab"));
     E(tuff_brick_stairs, Stairs());
     E(tuff_brick_wall, wall);
