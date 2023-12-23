@@ -58,7 +58,8 @@ public:
 
             // Tile entity
             if (state == 3) {
-              bool extending = false;
+              bool extending = blockEntity->boolean(u8"expanding", false);
+              auto progress = blockEntity->float32(u8"LastProgress", 0.0f);
 
               auto tileEntityJ = Compound();
               tileEntityJ->set(u8"id", u8"minecraft:piston");
@@ -67,7 +68,7 @@ public:
               tileEntityJ->set(u8"y", Int(y));
               tileEntityJ->set(u8"z", Int(z));
               tileEntityJ->set(u8"extending", Bool(extending));
-              tileEntityJ->set(u8"progress", Float(0));
+              tileEntityJ->set(u8"progress", Float(progress));
               tileEntityJ->set(u8"facing", Int(facingDirectionB));
               tileEntityJ->set(u8"source", Bool(true));
 
@@ -94,6 +95,7 @@ public:
 
               // Tile entity
               auto state = piston->fBlockEntity->byte(u8"State");
+              auto lastProgress = piston->fBlockEntity->float32(u8"LastProgress", 0.0f);
               bool extending = state == 1; // state should be 3 or 1 here.
               auto tileEntityJ = Compound();
               tileEntityJ->set(u8"id", u8"minecraft:piston");
@@ -102,7 +104,7 @@ public:
               tileEntityJ->set(u8"y", Int(y));
               tileEntityJ->set(u8"z", Int(z));
               tileEntityJ->set(u8"extending", Bool(extending));
-              tileEntityJ->set(u8"progress", Float(state == 3 ? 0 : 0.5));
+              tileEntityJ->set(u8"progress", Float(lastProgress)); //TODO(1.21) state == 3 ? 0 : 0.5));
               tileEntityJ->set(u8"facing", Int(facingDirectionB));
               tileEntityJ->set(u8"source", Bool(false));
 
@@ -130,13 +132,14 @@ public:
                 chunkJ.setBlockAt(x, y, z, replace, sbo);
 
                 // Tile Entity
+                auto lastProgress = pistonBlockEntity->float32(u8"LastProgress", 0.0f);
                 auto tileEntityJ = Compound();
                 tileEntityJ->set(u8"id", u8"minecraft:piston");
                 tileEntityJ->set(u8"keepPacked", Bool(false));
                 tileEntityJ->set(u8"x", Int(x));
                 tileEntityJ->set(u8"y", Int(y));
                 tileEntityJ->set(u8"z", Int(z));
-                tileEntityJ->set(u8"progress", Float(0.5));
+                tileEntityJ->set(u8"progress", Float(lastProgress));
                 tileEntityJ->set(u8"facing", Int(facingDirectionB));
                 tileEntityJ->set(u8"source", Bool(true));
                 tileEntityJ->set(u8"extending", Bool(true));
