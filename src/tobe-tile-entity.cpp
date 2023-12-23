@@ -360,10 +360,10 @@ private:
     }
     if (c) {
       u16 disabledSlotsB = 0;
-      if (auto disabledSlotsJ = c->listTag(u8"disabled_slots"); disabledSlotsJ) {
-        for (auto entry : *disabledSlotsJ) {
-          if (auto index = entry->asInt(); index && 0 <= index->fValue && index->fValue <= 8) {
-            disabledSlotsB |= u16(1) << index->fValue;
+      if (auto disabledSlotsJ = c->intArrayTag(u8"disabled_slots"); disabledSlotsJ) {
+        for (auto index : disabledSlotsJ->fValue) {
+          if (0 <= index && index <= 8) {
+            disabledSlotsB |= u16(1) << index;
           }
         }
       }

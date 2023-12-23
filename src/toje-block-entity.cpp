@@ -1,6 +1,7 @@
 #include "toje/_block-entity.hpp"
 
 #include "_namespace.hpp"
+#include "_optional.hpp"
 #include "color/_sign-color.hpp"
 #include "command/_command.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
@@ -334,15 +335,15 @@ public:
     Result r;
     auto disabledSlotsB = tagB.int16(u8"disabled_slots", 0);
     uint32_t bits = *(u16 *)&disabledSlotsB;
-    auto disabledSlotsJ = List<Tag::Type::Int>();
+    auto disabledSlotsJ = std::make_shared<IntArrayTag>();
     for (int i = 0; i < 9; i++) {
       u32 test = u32(1) << i;
       if ((bits & test) == test) {
-        disabledSlotsJ->push_back(Int(i));
+        disabledSlotsJ->fValue.push_back(i);
       }
     }
     t->set(u8"disabled_slots", disabledSlotsJ);
-    t->set(u8"triggered", Bool(blockJ.property(u8"triggered") == u8"true"));
+    t->set(u8"triggered", Int(0));
     t->set(u8"crafting_ticks_remaining", Int(0));
     if (auto itemsJ = ContainerItems(tagB, u8"Items", ctx, dataVersion); itemsJ) {
       t->set(u8"Items", itemsJ);
