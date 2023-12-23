@@ -1,5 +1,9 @@
 #pragma once
 
+#include <minecraft-file.hpp>
+
+using namespace mcfile::u8stream;
+
 static std::mutex sMutCerr;
 
 static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &actual);
