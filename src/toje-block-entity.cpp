@@ -622,8 +622,8 @@ public:
       if (line.empty()) {
         messagesJ->push_back(String(u8"\"\""));
       } else {
-      props::Json json;
-      props::SetJsonString(json, u8"text", line);
+        props::Json json;
+        props::SetJsonString(json, u8"text", line);
         messagesJ->push_back(String(props::StringFromJson(json)));
       }
     }
