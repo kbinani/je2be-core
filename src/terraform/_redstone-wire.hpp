@@ -158,10 +158,18 @@ public:
   static bool IsAlwaysTransparentAgainstRedstoneWire(mcfile::blocks::BlockId id) {
     using namespace mcfile::blocks::minecraft;
     switch (id) {
+    case copper_bulb:
+    case exposed_copper_bulb:
     case glowstone:
     case observer:
+    case oxidized_copper_bulb:
     case powder_snow:
     case redstone_block:
+    case waxed_copper_bulb:
+    case waxed_exposed_copper_bulb:
+    case waxed_oxidized_copper_bulb:
+    case waxed_weathered_copper_bulb:
+    case weathered_copper_bulb:
       // mcfile::blocks::IsTransparent(id) == false, but transparent against redstone wire
       return true;
     case barrier:
@@ -194,6 +202,7 @@ public:
     case smoker:
     case soul_sand:
     case spawner:
+    case trial_spawner:
     case verdant_froglight:
     case water:
     case white_shulker_box:

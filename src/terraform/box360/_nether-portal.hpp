@@ -69,7 +69,7 @@ public:
             }
           }
           if (status[Facing6::Up] != ReachedToObsidian || status[Facing6::Down] != ReachedToObsidian) {
-            out.setBlockAt(center, make_shared<mcfile::je::Block const>(u8"minecraft:air"));
+            out.setBlockAt(center, mcfile::je::Block::FromId(mcfile::blocks::minecraft::air, out.getDataVersion()));
           } else {
             if (status[Facing6::North] == ReachedToObsidian && status[Facing6::South] == ReachedToObsidian) {
               if (auto block = out.blockAt(center); block) {
@@ -80,7 +80,7 @@ public:
                 out.setBlockAt(center, block->applying({{u8"axis", u8"x"}}));
               }
             } else {
-              out.setBlockAt(center, make_shared<mcfile::je::Block const>(u8"minecraft:air"));
+              out.setBlockAt(center, mcfile::je::Block::FromId(mcfile::blocks::minecraft::air, out.getDataVersion()));
             }
           }
         }

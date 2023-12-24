@@ -50,6 +50,9 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"minecraft:camel_sitting", // cannot reconstruct LastPoseTick when B->J conversion.
       u8"minecraft:camel_standing",
       u8"attack_cooldown",
+      u8"minecraft:deflate_sensor",        // pufferfish
+      u8"minecraft:deflate_sensor_buffer", // pufferfish
+      u8"minecraft:start_deflate",         // pufferfish
   };
 
   set<u8string> setE;
@@ -214,6 +217,25 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
     CHECK(poseA);
     if (poseA) {
       CHECK(poseE->int32(u8"PoseIndex") == poseA->int32(u8"PoseIndex"));
+    }
+  }
+
+  for (u8string const &key : {u8"Inventory", u8"EnderChestInventory"}) {
+    auto inventoryE = expected.listTag(key);
+    auto inventoryA = actual.listTag(key);
+    if (inventoryE) {
+      CHECK(inventoryA);
+      CHECK(inventoryE->size() == inventoryA->size());
+      for (size_t i = 0; i < inventoryE->size(); i++) {
+        auto e = inventoryE->at(i)->asCompound();
+        REQUIRE(e);
+        auto a = inventoryA->at(i)->asCompound();
+        CHECK(a);
+        if (!a) {
+          continue;
+        }
+        CheckItemB(*e, *a);
+      }
     }
   }
 
@@ -400,7 +422,6 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(st.ok());
 
   std::unordered_set<Pos2i, Pos2iHasher> chunkFilter;
-  mcfile::Dimension dimensionFilter = mcfile::Dimension::Overworld;
 #if 0
   chunkFilter.insert({0, 1});
 #endif
@@ -411,7 +432,6 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   je2be::toje::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
   if (!chunkFilter.empty()) {
-    optJ.fDimensionFilter.insert(dimensionFilter);
     for (auto const &ch : chunkFilter) {
       optJ.fChunkFilter.insert(ch);
     }
@@ -425,7 +445,6 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   je2be::tobe::Options optB;
   optB.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
   if (!chunkFilter.empty()) {
-    optB.fDimensionFilter.insert(dimensionFilter);
     for (auto const &ch : chunkFilter) {
       optB.fChunkFilter.insert(ch);
     }
@@ -441,9 +460,6 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(dbA);
 
   for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
-    if (!chunkFilter.empty() && dimension != dimensionFilter) {
-      continue;
-    }
     mcfile::be::Chunk::ForAll(dbE.get(), dimension, [&](int cx, int cz) {
       if (!chunkFilter.empty() && chunkFilter.count({cx, cz}) == 0) {
         return true;
@@ -458,6 +474,20 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
       CheckChunkB(*chunkE, *chunkA);
       return true;
     });
+  }
+
+  {
+    string localPlayerE;
+    REQUIRE(dbE->Get({}, mcfile::be::DbKey::LocalPlayer(), &localPlayerE).ok());
+    string localPlayerA;
+    CHECK(dbA->Get({}, mcfile::be::DbKey::LocalPlayer(), &localPlayerA).ok());
+    auto componentE = CompoundTag::Read(localPlayerE, mcfile::Endian::Little);
+    REQUIRE(componentE);
+    auto componentA = CompoundTag::Read(localPlayerA, mcfile::Endian::Little);
+    CHECK(componentA);
+    if (componentA) {
+      CheckEntityB(u8"minecraft:player", *componentE, *componentA);
+    }
   }
 }
 

@@ -169,7 +169,7 @@ std::unordered_set<std::u8string> *Leaves::Impl::CreateBedrockLogBlocksSet() {
   using namespace mcfile::blocks;
   unordered_set<u8string> *ret = new unordered_set<u8string>();
   for (BlockId id = unknown + 1; id < minecraft::minecraft_max_block_id; id++) {
-    auto blockJ = make_shared<mcfile::je::Block const>(id);
+    auto blockJ = mcfile::je::Block::FromId(id, mcfile::je::Chunk::kDataVersion);
     if (!IsLog(*blockJ)) {
       continue;
     }

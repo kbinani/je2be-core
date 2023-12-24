@@ -16,8 +16,8 @@ class BlockData {
   using Converter = std::function<String(String const &bName, CompoundTag const &s, Props &p)>;
 
 public:
-  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b);
-  static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b);
+  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b, int dataVersion);
+  static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b, int dataVersion);
 };
 
 } // namespace je2be::toje

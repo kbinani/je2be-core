@@ -1,7 +1,11 @@
 #pragma once
 
 static std::string BlockDataTestVersion() {
-  return "1.20";
+  return "1.20.4";
+}
+
+static int BlockDataTestDataVersion() {
+  return 3700;
 }
 
 TEST_CASE("block-data") {
@@ -23,7 +27,7 @@ TEST_CASE("block-data") {
     CHECK(bedrockBlockData);
 
     // java -> bedrock
-    auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, 2865);
+    auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, BlockDataTestDataVersion());
     CHECK(blockJ);
     auto convertedToBe = je2be::tobe::BlockData::From(blockJ, nullptr, {});
     CheckTag::Check(convertedToBe.get(), bedrockBlockData.get());
@@ -31,7 +35,7 @@ TEST_CASE("block-data") {
     // bedrock -> java
     shared_ptr<mcfile::be::Block> blockB = mcfile::be::Block::FromCompound(*convertedToBe);
     CHECK(blockB);
-    auto convertedJe = je2be::toje::BlockData::From(*blockB);
+    auto convertedJe = je2be::toje::BlockData::From(*blockB, BlockDataTestDataVersion());
     CHECK(convertedJe != nullptr);
   }
 }

@@ -199,6 +199,7 @@ public:
     case cherry_planks:
     case cherry_wood:
     case chiseled_bookshelf:
+    case chiseled_copper:
     case chiseled_deepslate:
     case chiseled_nether_bricks:
     case chiseled_polished_blackstone:
@@ -207,6 +208,8 @@ public:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chorus_flower:
+    case chiseled_tuff:
+    case chiseled_tuff_bricks:
     case clay:
     case coal_block:
     case coal_ore:
@@ -216,12 +219,15 @@ public:
     case command_block:
     case composter:
     case copper_block:
+    case copper_bulb:
+    case copper_grate:
     case copper_ore:
     case cracked_deepslate_bricks:
     case cracked_deepslate_tiles:
     case cracked_nether_bricks:
     case cracked_polished_blackstone_bricks:
     case cracked_stone_bricks:
+    case crafter:
     case crafting_table:
     case crimson_fence:
     case crimson_hyphae:
@@ -271,7 +277,10 @@ public:
     case emerald_ore:
     case end_stone:
     case end_stone_bricks:
+    case exposed_chiseled_copper:
     case exposed_copper:
+    case exposed_copper_bulb:
+    case exposed_copper_grate:
     case exposed_cut_copper:
     case fire_coral_block:
     case fletching_table:
@@ -378,7 +387,10 @@ public:
     case orange_stained_glass:
     case orange_terracotta:
     case orange_wool:
+    case oxidized_chiseled_copper:
     case oxidized_copper:
+    case oxidized_copper_bulb:
+    case oxidized_copper_grate:
     case oxidized_cut_copper:
     case packed_ice:
     case packed_mud:
@@ -398,6 +410,7 @@ public:
     case polished_deepslate:
     case polished_diorite:
     case polished_granite:
+    case polished_tuff:
     case prismarine:
     case prismarine_bricks:
     case purple_concrete:
@@ -484,8 +497,10 @@ public:
     case terracotta:
     case tinted_glass:
     case tnt:
+    case trial_spawner:
     case tube_coral_block:
     case tuff:
+    case tuff_bricks:
     case verdant_froglight:
     case warped_fence:
     case warped_hyphae:
@@ -493,15 +508,30 @@ public:
     case warped_planks:
     case warped_stem:
     case warped_wart_block:
+    case waxed_chiseled_copper:
     case waxed_copper_block:
+    case waxed_copper_bulb:
+    case waxed_copper_grate:
     case waxed_cut_copper:
+    case waxed_exposed_chiseled_copper:
     case waxed_exposed_copper:
+    case waxed_exposed_copper_bulb:
+    case waxed_exposed_copper_grate:
     case waxed_exposed_cut_copper:
+    case waxed_oxidized_chiseled_copper:
     case waxed_oxidized_copper:
+    case waxed_oxidized_copper_bulb:
+    case waxed_oxidized_copper_grate:
     case waxed_oxidized_cut_copper:
+    case waxed_weathered_chiseled_copper:
     case waxed_weathered_copper:
+    case waxed_weathered_copper_bulb:
+    case waxed_weathered_copper_grate:
     case waxed_weathered_cut_copper:
+    case weathered_chiseled_copper:
     case weathered_copper:
+    case weathered_copper_bulb:
+    case weathered_copper_grate:
     case weathered_cut_copper:
     case wet_sponge:
     case white_concrete:
@@ -586,6 +616,7 @@ public:
     case cherry_planks:
     case cherry_wood:
     case chiseled_bookshelf:
+    case chiseled_copper:
     case chiseled_deepslate:
     case chiseled_nether_bricks:
     case chiseled_polished_blackstone:
@@ -594,6 +625,8 @@ public:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chorus_flower:
+    case chiseled_tuff:
+    case chiseled_tuff_bricks:
     case clay:
     case coal_block:
     case coal_ore:
@@ -605,12 +638,15 @@ public:
     case command_block:
     case composter:
     case copper_block:
+    case copper_bulb:
+    case copper_grate:
     case copper_ore:
     case cracked_deepslate_bricks:
     case cracked_deepslate_tiles:
     case cracked_nether_bricks:
     case cracked_polished_blackstone_bricks:
     case cracked_stone_bricks:
+    case crafter:
     case crafting_table:
     case crimson_hyphae:
     case crimson_nylium:
@@ -663,7 +699,10 @@ public:
     case end_stone:
     case end_stone_brick_wall:
     case end_stone_bricks:
+    case exposed_chiseled_copper:
     case exposed_copper:
+    case exposed_copper_bulb:
+    case exposed_copper_grate:
     case exposed_cut_copper:
     case fire_coral_block:
     case fletching_table:
@@ -781,7 +820,10 @@ public:
     case orange_stained_glass_pane:
     case orange_terracotta:
     case orange_wool:
+    case oxidized_chiseled_copper:
     case oxidized_copper:
+    case oxidized_copper_bulb:
+    case oxidized_copper_grate:
     case oxidized_cut_copper:
     case packed_ice:
     case packed_mud:
@@ -804,6 +846,8 @@ public:
     case polished_deepslate_wall:
     case polished_diorite:
     case polished_granite:
+    case polished_tuff:
+    case polished_tuff_wall:
     case prismarine:
     case prismarine_bricks:
     case prismarine_wall:
@@ -896,23 +940,42 @@ public:
     case terracotta:
     case tinted_glass:
     case tnt:
+    case trial_spawner:
     case tube_coral_block:
     case tuff:
+    case tuff_brick_wall:
+    case tuff_bricks:
+    case tuff_wall:
     case verdant_froglight:
     case warped_hyphae:
     case warped_nylium:
     case warped_planks:
     case warped_stem:
     case warped_wart_block:
+    case waxed_chiseled_copper:
     case waxed_copper_block:
+    case waxed_copper_bulb:
+    case waxed_copper_grate:
     case waxed_cut_copper:
+    case waxed_exposed_chiseled_copper:
     case waxed_exposed_copper:
+    case waxed_exposed_copper_bulb:
+    case waxed_exposed_copper_grate:
     case waxed_exposed_cut_copper:
+    case waxed_oxidized_chiseled_copper:
     case waxed_oxidized_copper:
+    case waxed_oxidized_copper_bulb:
+    case waxed_oxidized_copper_grate:
     case waxed_oxidized_cut_copper:
+    case waxed_weathered_chiseled_copper:
     case waxed_weathered_copper:
+    case waxed_weathered_copper_bulb:
+    case waxed_weathered_copper_grate:
     case waxed_weathered_cut_copper:
+    case weathered_chiseled_copper:
     case weathered_copper:
+    case weathered_copper_bulb:
+    case weathered_copper_grate:
     case weathered_cut_copper:
     case wet_sponge:
     case white_concrete:

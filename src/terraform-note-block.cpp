@@ -110,6 +110,8 @@ public:
     case chiseled_red_sandstone:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
+    case chiseled_tuff:
+    case chiseled_tuff_bricks:
     case coal_block:
     case coal_ore:
     case cobbled_deepslate:
@@ -275,6 +277,10 @@ public:
     case polished_granite:
     case polished_granite_slab:
     case polished_granite_stairs:
+    case polished_tuff:
+    case polished_tuff_slab:
+    case polished_tuff_stairs:
+    case polished_tuff_wall:
     case prismarine:
     case prismarine_brick_slab:
     case prismarine_brick_stairs:
@@ -339,7 +345,16 @@ public:
     case stone_stairs:
     case stonecutter:
     case terracotta:
+    case trial_spawner:
+    case tube_coral_block:
     case tuff:
+    case tuff_brick_slab:
+    case tuff_brick_stairs:
+    case tuff_brick_wall:
+    case tuff_bricks:
+    case tuff_slab:
+    case tuff_stairs:
+    case tuff_wall:
     case warped_nylium:
     case white_concrete:
     case white_glazed_terracotta:

@@ -243,7 +243,7 @@ public:
 
   static Converter Subtype(std::u8string const &name, std::u8string const &subtypeTitle, std::u8string const &subtype) { return Converter(Name(name), AddStringProperty(subtypeTitle, subtype)); }
 
-  static Converter Stone(std::u8string const &stoneType) { return Subtype(u8"stone", u8"stone_type", stoneType); }
+  // static Converter StoneLegacy(std::u8string const &stoneType) { return Subtype(u8"stone", u8"stone_type", stoneType); }
 
   static Converter Dirt(std::u8string const &dirtType) { return Subtype(u8"dirt", u8"dirt_type", dirtType); }
 
@@ -342,7 +342,8 @@ public:
 
   static Converter QuartzBlock(std::u8string const &type) { return Converter(Name(u8"quartz_block"), AxisToPillarAxis, AddStringProperty(u8"chisel_type", type)); }
 
-  static Converter Planks(std::u8string const &type) { return Subtype(u8"planks", u8"wood_type", type); }
+  // before 1.20.x, wood type was stored in states
+  // static Converter Planks(std::u8string const &type) { return Subtype(u8"planks", u8"wood_type", type); }
 
   static PropertyType FacingA(Block const &block) {
     auto facing = block.property(u8"facing");
@@ -799,12 +800,26 @@ public:
   }
 
   static PropertyType Lit(Block const &block) {
-    auto l = block.property(u8"lit", u8"flase") == u8"true";
+    auto l = block.property(u8"lit", u8"false") == u8"true";
     return Bool(l);
   }
 
+  static std::function<PropertyType(Block const &)> BooleanProperty(std::u8string const &b) {
+    return [=](Block const &block) {
+      auto p = block.property(b, u8"false") == u8"true";
+      return Bool(p);
+    };
+  }
+
+  static std::function<PropertyType(Block const &)> StringProperty(std::u8string const &b, char8_t const *fallback = u8"") {
+    return [=](Block const &block) {
+      auto p = block.property(b, fallback);
+      return String(p);
+    };
+  }
+
   static void LitToExtinguished(CompoundTagPtr const &s, Block const &block, Options const &o) {
-    auto l = block.property(u8"lit", u8"flase") == u8"true";
+    auto l = block.property(u8"lit", u8"false") == u8"true";
     s->set(u8"extinguished", Bool(!l));
   }
 
@@ -815,6 +830,7 @@ public:
     Converter facingDirectionFromFacingA(Same, FacingDirectionAFromFacing);
     Converter blockFaceFromFacing(Same, BlockFaceFromFacing);
     Converter facingDirectionFromFacingB(Same, PistonFacingDirectionFromFacing6);
+    Converter cardinalDirectionFromFacing4(Same, CardinalDirectionFromFacing4);
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
 #define E(__name, __func)                                                                               \
@@ -823,13 +839,13 @@ public:
     (*table)[static_cast<u32>(mcfile::blocks::minecraft::__name)] = __func;                             \
   }
 
-    E(stone, Stone(u8"stone"));
-    E(granite, Stone(u8"granite"));
-    E(polished_granite, Stone(u8"granite_smooth"));
-    E(andesite, Stone(u8"andesite"));
-    E(polished_andesite, Stone(u8"andesite_smooth"));
-    E(diorite, Stone(u8"diorite"));
-    E(polished_diorite, Stone(u8"diorite_smooth"));
+    E(stone, Identity);
+    E(granite, Identity);
+    E(polished_granite, Identity);
+    E(andesite, Identity);
+    E(polished_andesite, Identity);
+    E(diorite, Identity);
+    E(polished_diorite, Identity);
     E(dirt, Dirt(u8"normal"));
     E(coarse_dirt, Dirt(u8"coarse"));
     E(grass_block, Rename(u8"grass"));
@@ -920,7 +936,7 @@ public:
     E(warped_slab, Slab(u8"warped_double_slab"));
     E(crimson_slab, Slab(u8"crimson_double_slab"));
     E(mangrove_slab, Slab(u8"mangrove_double_slab"));
-    E(grass, TallGrass(u8"tall"));
+    E(short_grass, TallGrass(u8"tall"));
     E(tall_grass, DoublePlant(u8"grass"));
     E(large_fern, DoublePlant(u8"fern"));
     E(fern, TallGrass(u8"fern"));
@@ -1029,12 +1045,12 @@ public:
     E(bricks, Rename(u8"brick_block"));
     E(sand, Sand(u8"normal"));
     E(red_sand, Sand(u8"red"));
-    E(oak_planks, Planks(u8"oak"));
-    E(spruce_planks, Planks(u8"spruce"));
-    E(birch_planks, Planks(u8"birch"));
-    E(jungle_planks, Planks(u8"jungle"));
-    E(acacia_planks, Planks(u8"acacia"));
-    E(dark_oak_planks, Planks(u8"dark_oak"));
+    E(oak_planks, Identity);
+    E(spruce_planks, Identity);
+    E(birch_planks, Identity);
+    E(jungle_planks, Identity);
+    E(acacia_planks, Identity);
+    E(dark_oak_planks, Identity);
     E(purpur_block, Converter(Same, AddStringProperty(u8"chisel_type", u8"default"), AddStringProperty(u8"pillar_axis", u8"y")));
     E(purpur_pillar, Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis));
     E(jack_o_lantern, LitPumpkin());
@@ -1144,7 +1160,7 @@ public:
     E(dark_oak_fence, Identity);
     E(bamboo_fence, Identity);
     E(ladder, facingDirectionFromFacingA);
-    E(chest, facingDirectionFromFacingA);
+    E(chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
     E(furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(nether_bricks, Rename(u8"nether_brick"));
     E(infested_stone, InfestedStone(u8"stone"));
@@ -1420,7 +1436,7 @@ public:
     E(red_wall_banner, wallBanner);
     E(black_wall_banner, wallBanner);
 
-    E(stonecutter, Converter(Name(u8"stonecutter_block"), FacingDirectionAFromFacing));
+    E(stonecutter, Converter(Name(u8"stonecutter_block"), CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
     E(loom, directionFromFacing);
     E(grindstone, Converter(Name(u8"grindstone"), DirectionFromFacingA, GrindstoneFaceToAttachment));
     E(smoker, Converter(PrefixLit, CardinalDirectionFromFacing4ByItemDefault(Facing4::South)));
@@ -1497,7 +1513,7 @@ public:
     E(bamboo_button, button);
 
     E(tripwire_hook, Converter(Same, DirectionFromFacingA, Name(Attached, u8"attached_bit"), Name(Powered, u8"powered_bit")));
-    E(trapped_chest, facingDirectionFromFacingA);
+    E(trapped_chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
     E(daylight_detector, Converter(DaylightDetectorName, Name(Power, u8"redstone_signal")));
     E(hopper, Converter(Same, FacingDirectionAFromFacing, ToggleBitFromEnabled));
     E(dropper, Converter(Same, FacingDirectionAFromFacingByItemDefault(3), Name(Triggered, u8"triggered_bit")));
@@ -1539,7 +1555,7 @@ public:
 
     E(cobweb, Converter(Name(u8"web")));
     E(lectern, Converter(Same, CardinalDirectionFromFacing4, Name(Powered, u8"powered_bit")));
-    E(ender_chest, Converter(Same, FacingDirectionAFromFacing));
+    E(ender_chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
     E(bone_block, Converter(Same, AxisToPillarAxis, AddIntProperty(u8"deprecated", 0)));
     E(cauldron, Converter(Name(u8"cauldron"), AddIntProperty(u8"fill_level", 0), AddStringProperty(u8"cauldron_liquid", u8"water")));
     E(water_cauldron, Converter(Name(u8"cauldron"), CauldronFillLevelFromLevel, AddStringProperty(u8"cauldron_liquid", u8"water")));
@@ -1760,6 +1776,46 @@ public:
     E(bedrock, Converter(Same, AddBoolProperty(u8"infiniburn_bit", false)));
     E(bamboo_pressure_plate, pressurePlate);
     E(mangrove_pressure_plate, pressurePlate);
+
+    // 1.20.3
+    E(tuff_stairs, Stairs());
+    E(tuff_slab, Slab(u8"tuff_double_slab"));
+    E(tuff_wall, wall);
+    E(polished_tuff_stairs, Stairs());
+    E(polished_tuff_slab, Slab(u8"polished_tuff_double_slab"));
+    E(polished_tuff_wall, wall);
+    E(tuff_brick_slab, Slab(u8"tuff_brick_double_slab"));
+    E(tuff_brick_stairs, Stairs());
+    E(tuff_brick_wall, wall);
+    E(copper_door, door);
+    E(exposed_copper_door, door);
+    E(weathered_copper_door, door);
+    E(oxidized_copper_door, door);
+    E(waxed_copper_door, door);
+    E(waxed_exposed_copper_door, door);
+    E(waxed_weathered_copper_door, door);
+    E(waxed_oxidized_copper_door, door);
+    E(copper_trapdoor, trapdoor);
+    E(exposed_copper_trapdoor, trapdoor);
+    E(weathered_copper_trapdoor, trapdoor);
+    E(oxidized_copper_trapdoor, trapdoor);
+    E(waxed_copper_trapdoor, trapdoor);
+    E(waxed_exposed_copper_trapdoor, trapdoor);
+    E(waxed_weathered_copper_trapdoor, trapdoor);
+    E(waxed_oxidized_copper_trapdoor, trapdoor);
+    Converter const copperBulb(Same, Name(Lit, u8"lit"), Name(Powered, u8"powered_bit"));
+    E(copper_bulb, copperBulb);
+    E(exposed_copper_bulb, copperBulb);
+    E(weathered_copper_bulb, copperBulb);
+    E(oxidized_copper_bulb, copperBulb);
+    E(waxed_copper_bulb, copperBulb);
+    E(waxed_exposed_copper_bulb, copperBulb);
+    E(waxed_weathered_copper_bulb, copperBulb);
+    E(waxed_oxidized_copper_bulb, copperBulb);
+    E(crafter, Converter(Same,
+                         Name(BooleanProperty(u8"crafting"), u8"crafting"),
+                         Name(BooleanProperty(u8"triggered"), u8"triggered_bit"),
+                         Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
 #undef E
 
     return table;

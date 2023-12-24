@@ -26,7 +26,7 @@ namespace je2be::toje {
 
 class Entity::Impl {
 public:
-  static CompoundTagPtr ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
+  static CompoundTagPtr ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx, int dataVersion) {
     auto ret = Compound();
     CompoundTag &t = *ret;
     if (blockJ.fName == u8"minecraft:glow_frame") {
@@ -80,7 +80,7 @@ public:
 
     auto itemB = blockEntityB.compoundTag(u8"Item");
     if (itemB) {
-      auto itemJ = Item::From(*itemB, ctx, {});
+      auto itemJ = Item::From(*itemB, ctx, dataVersion, {});
       if (itemJ) {
         t[u8"Item"] = itemJ;
       }
@@ -108,7 +108,7 @@ public:
     return ret;
   }
 
-  static std::optional<Result> From(CompoundTag const &entityB, Context &ctx) {
+  static std::optional<Result> From(CompoundTag const &entityB, Context &ctx, int dataVersion) {
     auto id = entityB.string(u8"identifier");
     if (!id) {
       return std::nullopt;
@@ -127,7 +127,7 @@ public:
       return std::nullopt;
     }
 
-    auto e = found->second(*id, entityB, ctx);
+    auto e = found->second(*id, entityB, ctx, dataVersion);
     if (!e) {
       return std::nullopt;
     }
@@ -160,20 +160,20 @@ public:
     return r;
   }
 
-  using Converter = std::function<CompoundTagPtr(std::u8string const &id, CompoundTag const &eneityB, Context &ctx)>;
+  using Converter = std::function<CompoundTagPtr(std::u8string const &id, CompoundTag const &eneityB, Context &ctx, int dataVersion)>;
   using Namer = std::function<std::u8string(std::u8string const &nameB, CompoundTag const &entityB)>;
-  using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx)>;
+  using Behavior = std::function<void(CompoundTag const &entityB, CompoundTag &entityJ, Context &ctx, int dataVersion)>;
 
   struct C {
     template <class... Arg>
     C(Namer namer, Converter base, Arg... behaviors) : fNamer(namer), fBase(base), fBehaviors(std::initializer_list<Behavior>{behaviors...}) {}
 
-    CompoundTagPtr operator()(std::u8string const &id, CompoundTag const &entityB, Context &ctx) const {
+    CompoundTagPtr operator()(std::u8string const &id, CompoundTag const &entityB, Context &ctx, int dataVersion) const {
       auto name = fNamer(id, entityB);
-      auto t = fBase(id, entityB, ctx);
+      auto t = fBase(id, entityB, ctx, dataVersion);
       t->set(u8"id", name);
       for (auto behavior : fBehaviors) {
-        behavior(entityB, *t, ctx);
+        behavior(entityB, *t, ctx, dataVersion);
       }
       return t;
     }
@@ -205,7 +205,7 @@ public:
 #pragma endregion
 
 #pragma region Dedicated Behaviors
-  static void Allay(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Allay(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto ownerNew = b.int64(u8"OwnerNew"); ownerNew) {
       Uuid uuid;
       if (auto mapped = ctx.mapLocalPlayerId(*ownerNew); mapped) {
@@ -227,7 +227,7 @@ public:
     CopyLongValues(b, j, {{u8"AllayDuplicationCooldown", u8"DuplicationCooldown"}});
   }
 
-  static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j.erase(u8"ArmorDropChances");
     j.erase(u8"HandDropChances");
     j[u8"DisabledSlots"] = Int(false);
@@ -251,16 +251,16 @@ public:
     j[u8"ShowArms"] = Bool(showArms);
   }
 
-  static void Axolotl(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Axolotl(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto variantB = b.int32(u8"Variant", 0);
     j[u8"Variant"] = Int(je2be::Axolotl::JavaVariantFromBedrockVariant(variantB));
   }
 
-  static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Bat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"BatFlags"}});
   }
 
-  static void Bee(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Bee(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"CannotEnterHiveTicks"] = Int(0);
     j[u8"CropsGrownSincePollination"] = Int(0);
     auto hasNectar = HasDefinition(b, u8"+has_nectar");
@@ -282,7 +282,7 @@ public:
     j[u8"HasStung"] = Bool(false);
   }
 
-  static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto variant = b.int32(u8"Variant", 0);
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
     j[u8"Type"] = String(type);
@@ -301,11 +301,11 @@ public:
     }
   }
 
-  static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Temper"] = Int(0);
   }
 
-  static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Cat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     using Cat = je2be::Cat;
 
     auto variantB = b.int32(u8"Variant", 8);
@@ -313,13 +313,13 @@ public:
     j[u8"variant"] = String(u8"minecraft:" + Cat::JavaVariantFromCatType(catType));
   }
 
-  static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ChestMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto st = LootTable::BedrockToJava(b, j); st == LootTable::State::HasLootTable) {
       j.erase(u8"Items");
     }
   }
 
-  static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Chicken(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto entries = b.listTag(u8"entries");
     if (entries) {
       for (auto const &it : *entries) {
@@ -338,7 +338,7 @@ public:
     j[u8"IsChickenJockey"] = Bool(false);
   }
 
-  static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"ExplosionRadius"] = Byte(3);
     j[u8"Fuse"] = Short(30);
     j[u8"ignited"] = Bool(false);
@@ -347,7 +347,7 @@ public:
     }
   }
 
-  static void EnderCrystal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void EnderCrystal(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto x = b.int32(u8"BlockTargetX");
     auto y = b.int32(u8"BlockTargetY");
     auto z = b.int32(u8"BlockTargetZ");
@@ -360,7 +360,7 @@ public:
     }
   }
 
-  static void EnderDragon(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void EnderDragon(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto deathTime = b.int32(u8"DeathTime", 0);
     j[u8"DragonDeathTime"] = Int(deathTime);
     if (deathTime > 0) {
@@ -371,13 +371,13 @@ public:
     j[u8"PersistenceRequired"] = Bool(false);
   }
 
-  static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Enderman(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     using namespace std;
     auto carriedBlockTagB = b.compoundTag(u8"carriedBlock");
     if (carriedBlockTagB) {
       auto carriedBlockB = mcfile::be::Block::FromCompound(*carriedBlockTagB);
       if (carriedBlockB) {
-        auto carriedBlockJ = BlockData::From(*carriedBlockB);
+        auto carriedBlockJ = BlockData::From(*carriedBlockB, dataVersion);
         if (carriedBlockJ) {
           if (carriedBlockJ->fId == mcfile::blocks::minecraft::grass_block) {
             carriedBlockJ = carriedBlockJ->applying({{u8"snowy", u8"false"}});
@@ -388,11 +388,11 @@ public:
     }
   }
 
-  static void Endermite(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Endermite(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"Lifetime"}});
   }
 
-  static void Evoker(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Evoker(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"SpellTicks"] = Int(0);
     /* {
       "Chested": 0, // byte
@@ -462,7 +462,7 @@ public:
     */
   }
 
-  static void ExperienceOrb(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ExperienceOrb(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto value = b.int32(u8"experience value");
     if (value) {
       j[u8"Value"] = Short(*value);
@@ -472,10 +472,10 @@ public:
     j[u8"Count"] = Int(1);
   }
 
-  static void FallingBlock(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void FallingBlock(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto fallingBlockB = b.compoundTag(u8"FallingBlock"); fallingBlockB) {
       if (auto blockB = mcfile::be::Block::FromCompound(*fallingBlockB); blockB) {
-        if (auto blockJ = BlockData::From(*blockB); blockJ) {
+        if (auto blockJ = BlockData::From(*blockB, dataVersion); blockJ) {
           j[u8"BlockState"] = blockJ->toCompoundTag();
         }
       }
@@ -490,7 +490,7 @@ public:
     j[u8"CancelDrop"] = Bool(false);
   }
 
-  static void Fox(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Fox(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto variant = b.int32(u8"Variant", 0);
     std::u8string type;
     if (variant == 1) {
@@ -523,21 +523,21 @@ public:
     j[u8"Trusted"] = trusted;
   }
 
-  static void Frog(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Frog(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto variantB = b.int32(u8"Variant", 0);
     auto variantJ = Frog::JavaVariantFromBedrockVariant(variantB);
     j[u8"variant"] = String(variantJ);
   }
 
-  static void Ghast(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Ghast(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"ExplosionPower"] = Byte(1);
   }
 
-  static void GlowSquid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void GlowSquid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"DarkTicksRemaining"] = Int(0);
   }
 
-  static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     bool screamer = HasDefinition(b, u8"+goat_screamer") || HasDefinition(b, u8"+ram_screamer") || HasDefinition(b, u8"+interact_screamer");
     j[u8"IsScreamingGoat"] = Bool(screamer);
 
@@ -546,13 +546,13 @@ public:
     j[u8"HasLeftHorn"] = Bool(hornCount > 0);
   }
 
-  static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (HasDefinition(b, u8"-angry_hoglin")) {
       j[u8"CannotBeHunted"] = Bool(true);
     }
   }
 
-  static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto armorDropChances = List<Tag::Type::Float>();
     armorDropChances->push_back(Float(0.085));
     armorDropChances->push_back(Float(0.085));
@@ -574,7 +574,7 @@ public:
         if (!itemB) {
           continue;
         }
-        auto itemJ = Item::From(*itemB, ctx, {});
+        auto itemJ = Item::From(*itemB, ctx, dataVersion, {});
         if (!itemJ) {
           continue;
         }
@@ -589,7 +589,7 @@ public:
     }
   }
 
-  static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto target = b.int64(u8"TargetID", -1);
     if (target != -1) {
       auto angryAt = Uuid::GenWithI64Seed(target);
@@ -599,11 +599,11 @@ public:
     j[u8"PlayerCreated"] = Bool(HasDefinition(b, u8"+minecraft:player_created"));
   }
 
-  static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Item(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"PickupDelay"] = Short(0);
     auto itemB = b.compoundTag(u8"Item");
     if (itemB) {
-      auto itemJ = toje::Item::From(*itemB, ctx, {});
+      auto itemJ = toje::Item::From(*itemB, ctx, dataVersion, {});
       if (itemJ) {
         j[u8"Item"] = itemJ;
       }
@@ -611,7 +611,7 @@ public:
     CopyShortValues(b, j, {{u8"Age"}, {u8"Health"}});
   }
 
-  static void Llama(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Llama(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (HasDefinition(b, u8"+minecraft:llama_wandering_trader")) {
       // Ignoring "IsTamed" property here, because it is always true for natural spawned wandering trader llama.
       auto tamed = b.int64(u8"OwnerNew", -1) != -1;
@@ -619,7 +619,7 @@ public:
     }
   }
 
-  static void Mooshroom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Mooshroom(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto variant = b.int32(u8"Variant", 0);
     std::u8string type = u8"red";
     if (variant == 1) {
@@ -628,11 +628,11 @@ public:
     j[u8"Type"] = String(type);
   }
 
-  static void Ocelot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Ocelot(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"IsTrusting", u8"Trusting"}});
   }
 
-  static void Panda(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Panda(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto genes = b.listTag(u8"GeneArray");
     if (genes) {
       std::optional<i32> main;
@@ -657,17 +657,17 @@ public:
     }
   }
 
-  static void Phantom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Phantom(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Size"] = Int(0);
   }
 
-  static void Piglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Piglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (HasDefinition(b, u8"+not_hunter")) {
       j[u8"CannotHunt"] = Bool(true);
     }
   }
 
-  static void PiglinBrute(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PiglinBrute(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto homePos = props::GetPos3f(b, u8"HomePos");
     if (!homePos) {
       return;
@@ -702,7 +702,7 @@ public:
     j[u8"Brain"] = brain;
   }
 
-  static void Pufferfish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Pufferfish(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     int state = 0;
     if (HasDefinition(b, u8"+minecraft:half_puff_primary") || HasDefinition(b, u8"+minecraft:half_puff_secondary")) {
       state = 1;
@@ -712,48 +712,48 @@ public:
     j[u8"PuffState"] = Int(state);
   }
 
-  static void Rabbit(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Rabbit(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"MoreCarrotTicks"}});
     CopyIntValues(b, j, {{u8"Variant", u8"RabbitType", 0}});
   }
 
-  static void Ravager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Ravager(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"RoarTick"] = Int(0);
     j[u8"StunTick"] = Int(0);
   }
 
-  static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Sheared"}});
     CopyByteValues(b, j, {{u8"Color"}});
   }
 
-  static void Shulker(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Shulker(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto variant = b.int32(u8"Variant", 16);
     j[u8"Color"] = Byte(variant);
   }
 
-  static void SkeletonHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void SkeletonHorse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     // summon minecraft:skeleton_horse ~ ~ ~ minecraft:set_trap
     j[u8"SkeletonTrap"] = Bool(HasDefinition(b, u8"+minecraft:skeleton_trap"));
     j[u8"SkeletonTrapTime"] = Int(0);
   }
 
-  static void SnowGolem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void SnowGolem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     bool pumpkin = !HasDefinition(b, u8"+minecraft:snowman_sheared");
     j[u8"Pumpkin"] = Bool(pumpkin);
   }
 
-  static void TntMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void TntMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto fuse = b.byte(u8"Fuse", -1);
     j[u8"TNTFuse"] = Int(fuse);
   }
 
-  static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto tf = TropicalFish::FromBedrockBucketTag(b);
     j[u8"Variant"] = Int(tf.toJavaVariant());
   }
 
-  static void Turtle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Turtle(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto homePos = props::GetPos3f(b, u8"HomePos");
     if (homePos) {
       j[u8"HomePosX"] = Int(roundf(homePos->fX));
@@ -764,7 +764,7 @@ public:
     j[u8"HasEgg"] = Bool(HasDefinition(b, u8"-minecraft:wants_to_lay_egg") || HasDefinition(b, u8"+minecraft:wants_to_lay_egg"));
   }
 
-  static void Villager(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Villager(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"TradeExperience", u8"Xp", 0}});
 
     j.erase(u8"InLove");
@@ -827,7 +827,7 @@ public:
     j[u8"VillagerData"] = dataJ;
   }
 
-  static void WanderingTrader(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void WanderingTrader(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     /*
       // spawned with spawn egg
       "entries": [
@@ -844,7 +844,7 @@ public:
     j[u8"DespawnDelay"] = Int(despawnDelay);
   }
 
-  static void Wither(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Wither(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Invul"] = Int(0);
     if (auto healthB = FindAttribute(b, u8"minecraft:health"); healthB) {
       auto max = healthB->float32(u8"Max");
@@ -857,13 +857,13 @@ public:
     }
   }
 
-  static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"DrownedConversionTime"] = Int(-1);
     j[u8"CanBreakDoors"] = Bool(HasDefinition(b, u8"+minecraft:can_break_doors"));
     j[u8"InWaterTime"] = Int(-1);
   }
 
-  static void ZombifiedPiglin(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ZombifiedPiglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto targetId = b.int64(u8"TargetID", -1);
     if (targetId != -1) {
       auto angryAt = Uuid::GenWithI64Seed(targetId);
@@ -873,23 +873,23 @@ public:
 #pragma endregion
 
 #pragma region Behaviors
-  static void AbsorptionAmount(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void AbsorptionAmount(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"AbsorptionAmount"] = Float(0);
   }
 
-  static void Age(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Age(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"Age", u8"Age", 0}});
   }
 
-  static void Air(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Air(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyShortValues(b, j, {{u8"Air", u8"Air", 300}});
   }
 
-  static void AngerTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void AngerTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"AngerTime"] = Int(0);
   }
 
-  static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto armorsB = b.listTag(u8"Armor");
     auto armorsJ = List<Tag::Type::Compound>();
     auto chances = List<Tag::Type::Float>();
@@ -899,7 +899,7 @@ public:
         auto armorB = it->asCompound();
         CompoundTagPtr armorJ;
         if (armorB) {
-          armorJ = Item::From(*armorB, ctx, {});
+          armorJ = Item::From(*armorB, ctx, dataVersion, {});
         }
         if (!armorJ) {
           armorJ = Compound();
@@ -918,37 +918,37 @@ public:
     j[u8"ArmorDropChances"] = chances;
   }
 
-  static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto attackTime = b.int16(u8"AttackTime");
     if (attackTime) {
       j[u8"AttackTick"] = Int(*attackTime);
     }
   }
 
-  static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto memories = Compound();
     auto brain = Compound();
     brain->set(u8"memories", memories);
     j[u8"Brain"] = brain;
   }
 
-  static void Bred(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Bred(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Bred"] = Bool(false);
   }
 
-  static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"CanJoinRaid"] = Bool(HasDefinition(b, u8"+minecraft:raid_configuration"));
   }
 
-  static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void CanPickUpLoot(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"canPickupItems", u8"CanPickUpLoot"}});
   }
 
-  static void ChestedHorse(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ChestedHorse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Chested", u8"ChestedHorse", false}});
   }
 
-  static void CollarColor(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void CollarColor(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto owner = b.int64(u8"OwnerNew", -1);
     if (owner == -1) {
       j[u8"CollarColor"] = Byte(14);
@@ -957,15 +957,15 @@ public:
     }
   }
 
-  static void ConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"ConversionTime"] = Int(-1);
   }
 
-  static void CopyVariant(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void CopyVariant(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"Variant"}});
   }
 
-  static void CustomName(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void CustomName(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto name = b.string(u8"CustomName");
     if (name) {
       props::Json json;
@@ -974,39 +974,39 @@ public:
     }
   }
 
-  static void DeathTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void DeathTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyShortValues(b, j, {{u8"DeathTime"}});
   }
 
-  static void Debug(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Debug(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
   }
 
-  static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"EatingHaystack"] = Bool(false);
   }
 
-  static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyFloatValues(b, j, {{u8"FallDistance"}});
   }
 
-  static void FallFlying(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void FallFlying(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"FallFlying"] = Bool(false);
   }
 
-  static void Fire(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Fire(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Fire"] = Short(-1);
   }
 
-  static void FoodLevel(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void FoodLevel(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"FoodLevel"] = Byte(0);
   }
 
-  static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void FromBucket(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto naturalSpawn = b.boolean(u8"NaturalSpawn", true);
     j[u8"FromBucket"] = Bool(!naturalSpawn);
   }
 
-  static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto itemsJ = List<Tag::Type::Compound>();
     auto chances = List<Tag::Type::Float>();
     auto identifier = b.string(u8"identifier", u8"");
@@ -1016,7 +1016,7 @@ public:
       if (listB && !listB->empty()) {
         auto c = listB->at(0)->asCompound();
         if (c) {
-          itemJ = Item::From(*c, ctx, {});
+          itemJ = Item::From(*c, ctx, dataVersion, {});
         }
       }
       if (!itemJ) {
@@ -1029,7 +1029,7 @@ public:
     j[u8"HandDropChances"] = chances;
   }
 
-  static void Health(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Health(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto healthB = FindAttribute(b, u8"minecraft:health");
     if (!healthB) {
       return;
@@ -1040,7 +1040,7 @@ public:
     }
   }
 
-  static void HealthWithCustomizedMax(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void HealthWithCustomizedMax(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto healthB = FindAttribute(b, u8"minecraft:health");
     if (!healthB) {
       return;
@@ -1056,26 +1056,26 @@ public:
     }
   }
 
-  static void HopperMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void HopperMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto enabled = HasDefinition(b, u8"+minecraft:hopper_active");
     j[u8"Enabled"] = Bool(enabled);
 
     // j[u8"TransferCooldown"] = Int(0); // Removed in 1.19.4
   }
 
-  static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void HurtByTimestamp(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"HurtByTimestamp"] = Int(0);
   }
 
-  static void HurtTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void HurtTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyShortValues(b, j, {{u8"HurtTime"}});
   }
 
-  static void InLove(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void InLove(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"InLove", u8"InLove", 0}});
   }
 
-  static void Inventory(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Inventory(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto itemsB = b.listTag(u8"ChestItems");
     if (itemsB) {
       auto itemsJ = List<Tag::Type::Compound>();
@@ -1088,7 +1088,7 @@ public:
         if (!nameB) {
           continue;
         }
-        auto itemJ = Item::From(*itemB, ctx, {});
+        auto itemJ = Item::From(*itemB, ctx, dataVersion, {});
         if (!itemJ) {
           continue;
         }
@@ -1099,21 +1099,21 @@ public:
     }
   }
 
-  static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Invulnerable(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Invulnerable"}});
   }
 
-  static void IsBaby(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void IsBaby(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"IsBaby"}});
   }
 
-  static void ItemsFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
-    CopyChestItems(b, u8"ChestItems", j, u8"Items", ctx, false);
+  static void ItemsFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    CopyChestItems(b, u8"ChestItems", j, u8"Items", ctx, false, dataVersion);
   }
 
-  static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto chested = b.boolean(u8"Chested", false); chested) {
-      Items(u8"DecorItem", b, j, ctx);
+      Items(u8"DecorItem", b, j, ctx, dataVersion);
     }
 
     auto armorsJ = j.listTag(u8"ArmorItems");
@@ -1126,13 +1126,13 @@ public:
     armorsJ->fValue[2] = Compound();
   }
 
-  static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto chested = b.boolean(u8"Chested", false); chested) {
-      Items(u8"SaddleItem", b, j, ctx);
+      Items(u8"SaddleItem", b, j, ctx, dataVersion);
     }
   }
 
-  static void JumpStrength(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void JumpStrength(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     std::u8string nameB = u8"minecraft:horse.jump_strength";
     std::u8string nameJ = nameB;
     auto jumpStrengthAttribute = FindAttribute(b, nameB);
@@ -1150,7 +1150,7 @@ public:
     AddAttribute(attr, j);
   }
 
-  static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto posB = props::GetPos3f(b, u8"Pos");
     auto onGround = b.boolean(u8"OnGround");
     if (posB && onGround) {
@@ -1172,7 +1172,7 @@ public:
     }
   }
 
-  static void MovementSpeed(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void MovementSpeed(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto movementB = FindAttribute(b, u8"minecraft:movement");
     if (!movementB) {
       return;
@@ -1186,11 +1186,11 @@ public:
     }
   }
 
-  static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void NoGravity(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"NoGravity"] = Bool(true);
   }
 
-  static void Offers(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Offers(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CompoundTagPtr offersB = b.compoundTag(u8"Offers");
     if (!offersB) {
       offersB = b.compoundTag(u8"persistingOffers");
@@ -1209,7 +1209,7 @@ public:
       if (!recipeB) {
         continue;
       }
-      auto recipeJ = Recipe(*recipeB, ctx);
+      auto recipeJ = Recipe(*recipeB, ctx, dataVersion);
       if (!recipeJ) {
         continue;
       }
@@ -1221,36 +1221,36 @@ public:
     j[u8"Offers"] = offersJ;
   }
 
-  static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto sizeB = b.byte(u8"Size", 1);
     j[u8"Size"] = Int(sizeB - 1);
   }
 
-  static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"StrayConversionTime"] = Int(-1);
   }
 
-  static void Strength(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Strength(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"Strength"}});
   }
 
-  static void Tame(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Tame(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"IsTamed", u8"Tame", false}});
   }
 
-  static void Temper(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Temper(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"Temper", u8"Temper", 0}});
   }
 
-  static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void LeftHanded(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"LeftHanded"] = Bool(false);
   }
 
-  static void OnGround(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void OnGround(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"OnGround"}});
   }
 
-  static void Owner(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Owner(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto ownerNew = b.int64(u8"OwnerNew");
     if (!ownerNew) {
       return;
@@ -1267,7 +1267,7 @@ public:
     j[u8"Owner"] = uuid.toIntArrayTag();
   }
 
-  static void Painting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Painting(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto directionB = b.byte(u8"Direction", 0);
     Facing4 direction = Facing4FromBedrockDirection(directionB);
     auto motiveB = b.string(u8"Motive", u8"Aztec");
@@ -1299,27 +1299,27 @@ public:
     j[u8"TileZ"] = Int(std::round(tile->fZ));
   }
 
-  static void PatrolLeader(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PatrolLeader(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"IsIllagerCaptain", u8"PatrolLeader"}});
   }
 
-  static void Patrolling(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Patrolling(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Patrolling"] = Bool(false);
   }
 
-  static void PersistenceRequiredDefault(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PersistenceRequiredDefault(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Persistent", u8"PersistenceRequired", false}});
   }
 
-  static void PersistenceRequiredAnimal(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PersistenceRequiredAnimal(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"PersistenceRequired"] = Bool(false);
   }
 
-  static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void PortalCooldown(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyIntValues(b, j, {{u8"PortalCooldown"}});
   }
 
-  static void Pos(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Pos(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto posB = b.listTag(u8"Pos");
     if (!posB) {
       return;
@@ -1337,7 +1337,7 @@ public:
     j[u8"Pos"] = posJ.toListTag();
   }
 
-  static void Rotation(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Rotation(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto rotB = b.listTag(u8"Rotation");
     if (!rotB) {
       return;
@@ -1351,11 +1351,11 @@ public:
     j[u8"Rotation"] = rotB->clone();
   }
 
-  static void Saddle(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Saddle(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Saddle"] = Bool(HasDefinitionWithPrefixAndSuffix(b, u8"+minecraft:", u8"_saddled"));
   }
 
-  static void SaddleItemFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void SaddleItemFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto chestItems = b.listTag(u8"ChestItems");
     if (!chestItems) {
       return;
@@ -1380,7 +1380,7 @@ public:
     if (!slot0Item) {
       return;
     }
-    auto saddleItem = Item::From(*slot0Item, ctx, {});
+    auto saddleItem = Item::From(*slot0Item, ctx, dataVersion, {});
     if (!saddleItem) {
       return;
     }
@@ -1388,15 +1388,15 @@ public:
     j[u8"SaddleItem"] = saddleItem;
   }
 
-  static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"ShowBottom"}});
   }
 
-  static void Sitting(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Sitting(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Sitting", u8"Sitting", false}});
   }
 
-  static void Wave(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Wave(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     /*
       uuid := b.int64(u8"DwellingUniqueID")
       c := db.Get(u8"VILLAGE_(uuid)_RAID")
@@ -1427,7 +1427,7 @@ public:
 
 #pragma region Behavior Generators
   static Behavior AgeableE(i32 maxBabyAgeJava) {
-    return [=](CompoundTag const &b, CompoundTag &j, Context &ctx) {
+    return [=](CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
       auto age = b.int32(u8"Age");
       if (!age) {
         return;
@@ -1438,46 +1438,46 @@ public:
 #pragma endregion
 
 #pragma region Converters
-  static CompoundTagPtr Animal(std::u8string const &id, CompoundTag const &b, Context &ctx) {
-    auto ret = LivingEntity(id, b, ctx);
+  static CompoundTagPtr Animal(std::u8string const &id, CompoundTag const &b, Context &ctx, int dataVersion) {
+    auto ret = LivingEntity(id, b, ctx, dataVersion);
     CompoundTag &j = *ret;
-    Age(b, j, ctx);
-    InLove(b, j, ctx);
-    Owner(b, j, ctx);
-    PersistenceRequiredAnimal(b, j, ctx);
+    Age(b, j, ctx, dataVersion);
+    InLove(b, j, ctx, dataVersion);
+    Owner(b, j, ctx, dataVersion);
+    PersistenceRequiredAnimal(b, j, ctx, dataVersion);
     return ret;
   }
 
-  static CompoundTagPtr Base(std::u8string const &id, CompoundTag const &b, Context &ctx) {
+  static CompoundTagPtr Base(std::u8string const &id, CompoundTag const &b, Context &ctx, int dataVersion) {
     auto ret = Compound();
     CompoundTag &j = *ret;
-    Air(b, j, ctx);
-    OnGround(b, j, ctx);
-    Pos(b, j, ctx);
-    Rotation(b, j, ctx);
-    PortalCooldown(b, j, ctx);
-    FallDistance(b, j, ctx);
-    Fire(b, j, ctx);
-    Invulnerable(b, j, ctx);
+    Air(b, j, ctx, dataVersion);
+    OnGround(b, j, ctx, dataVersion);
+    Pos(b, j, ctx, dataVersion);
+    Rotation(b, j, ctx, dataVersion);
+    PortalCooldown(b, j, ctx, dataVersion);
+    FallDistance(b, j, ctx, dataVersion);
+    Fire(b, j, ctx, dataVersion);
+    Invulnerable(b, j, ctx, dataVersion);
     return ret;
   }
 
-  static CompoundTagPtr LivingEntity(std::u8string const &id, CompoundTag const &b, Context &ctx) {
-    auto ret = Base(id, b, ctx);
+  static CompoundTagPtr LivingEntity(std::u8string const &id, CompoundTag const &b, Context &ctx, int dataVersion) {
+    auto ret = Base(id, b, ctx, dataVersion);
     CompoundTag &j = *ret;
-    AbsorptionAmount(b, j, ctx);
-    ArmorItems(b, j, ctx);
-    Brain(b, j, ctx);
-    CanPickUpLoot(b, j, ctx);
-    CustomName(b, j, ctx);
-    DeathTime(b, j, ctx);
-    FallFlying(b, j, ctx);
-    HandItems(b, j, ctx);
-    Health(b, j, ctx);
-    HurtByTimestamp(b, j, ctx);
-    HurtTime(b, j, ctx);
-    LeftHanded(b, j, ctx);
-    PersistenceRequiredDefault(b, j, ctx);
+    AbsorptionAmount(b, j, ctx, dataVersion);
+    ArmorItems(b, j, ctx, dataVersion);
+    Brain(b, j, ctx, dataVersion);
+    CanPickUpLoot(b, j, ctx, dataVersion);
+    CustomName(b, j, ctx, dataVersion);
+    DeathTime(b, j, ctx, dataVersion);
+    FallFlying(b, j, ctx, dataVersion);
+    HandItems(b, j, ctx, dataVersion);
+    Health(b, j, ctx, dataVersion);
+    HurtByTimestamp(b, j, ctx, dataVersion);
+    HurtTime(b, j, ctx, dataVersion);
+    LeftHanded(b, j, ctx, dataVersion);
+    PersistenceRequiredDefault(b, j, ctx, dataVersion);
     return ret;
   }
 #pragma endregion
@@ -1575,7 +1575,7 @@ public:
     return false;
   }
 
-  static void Items(std::u8string subItemKey, CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void Items(std::u8string subItemKey, CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto chestItems = b.listTag(u8"ChestItems");
     auto items = List<Tag::Type::Compound>();
     if (chestItems) {
@@ -1585,7 +1585,7 @@ public:
         if (!itemB) {
           continue;
         }
-        auto itemJ = Item::From(*itemB, ctx, {});
+        auto itemJ = Item::From(*itemB, ctx, dataVersion, {});
         if (!itemJ) {
           continue;
         }
@@ -1609,7 +1609,7 @@ public:
     j[u8"Items"] = items;
   }
 
-  static void CopyChestItems(CompoundTag const &b, std::u8string const &keyB, CompoundTag &j, std::u8string const &keyJ, Context &ctx, bool skipEmpty) {
+  static void CopyChestItems(CompoundTag const &b, std::u8string const &keyB, CompoundTag &j, std::u8string const &keyJ, Context &ctx, bool skipEmpty, int dataVersion) {
     auto itemsB = b.listTag(keyB);
     if (itemsB) {
       auto itemsJ = List<Tag::Type::Compound>();
@@ -1622,7 +1622,7 @@ public:
         if (!nameB) {
           continue;
         }
-        auto itemJ = Item::From(*itemB, ctx, {});
+        auto itemJ = Item::From(*itemB, ctx, dataVersion, {});
         if (!itemJ) {
           continue;
         }
@@ -1666,13 +1666,13 @@ public:
     return st;
   }
 
-  static CompoundTagPtr BuyItem(CompoundTag const &recipeB, std::u8string const &suffix, Context &ctx) {
+  static CompoundTagPtr BuyItem(CompoundTag const &recipeB, std::u8string const &suffix, Context &ctx, int dataVersion) {
     using namespace std;
     auto buy = recipeB.compoundTag(u8"buy" + suffix);
     if (!buy) {
       return nullptr;
     }
-    auto item = Item::From(*buy, ctx, {.fOfferItem = true});
+    auto item = Item::From(*buy, ctx, dataVersion, {.fOfferItem = true});
     if (!item) {
       return nullptr;
     }
@@ -1684,18 +1684,18 @@ public:
     return item;
   }
 
-  static CompoundTagPtr Recipe(CompoundTag const &recipeB, Context &ctx) {
+  static CompoundTagPtr Recipe(CompoundTag const &recipeB, Context &ctx, int dataVersion) {
     auto sellB = recipeB.compoundTag(u8"sell");
     if (!sellB) {
       return nullptr;
     }
-    auto sellJ = Item::From(*sellB, ctx, {.fOfferItem = true});
+    auto sellJ = Item::From(*sellB, ctx, dataVersion, {.fOfferItem = true});
     if (!sellJ) {
       return nullptr;
     }
 
-    auto buyA = BuyItem(recipeB, u8"A", ctx);
-    auto buyB = BuyItem(recipeB, u8"B", ctx);
+    auto buyA = BuyItem(recipeB, u8"A", ctx, dataVersion);
+    auto buyB = BuyItem(recipeB, u8"B", ctx, dataVersion);
     if (!buyA) {
       return nullptr;
     }
@@ -1737,32 +1737,32 @@ public:
     return 0.085;
   }
 
-  static void InjectArmorAndOffhand(CompoundTag const &b, CompoundTag &j, Context &ctx) {
+  static void InjectArmorAndOffhand(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto inventoryJ = j.listTag(u8"Inventory");
     if (!inventoryJ) {
       return;
     }
     if (auto armorB = b.listTag(u8"Armor"); armorB && armorB->size() == 4) {
       if (auto bootsB = armorB->at(3)->asCompound(); bootsB) {
-        if (auto bootsJ = Item::From(*bootsB, ctx, {}); bootsJ && bootsJ->byte(u8"Count", 0) > 0) {
+        if (auto bootsJ = Item::From(*bootsB, ctx, dataVersion, {}); bootsJ && bootsJ->byte(u8"Count", 0) > 0) {
           bootsJ->set(u8"Slot", Byte(100));
           inventoryJ->push_back(bootsJ);
         }
       }
       if (auto leggingsB = armorB->at(2)->asCompound(); leggingsB) {
-        if (auto leggingsJ = Item::From(*leggingsB, ctx, {}); leggingsJ && leggingsJ->byte(u8"Count", 0) > 0) {
+        if (auto leggingsJ = Item::From(*leggingsB, ctx, dataVersion, {}); leggingsJ && leggingsJ->byte(u8"Count", 0) > 0) {
           leggingsJ->set(u8"Slot", Byte(101));
           inventoryJ->push_back(leggingsJ);
         }
       }
       if (auto chestplateB = armorB->at(1)->asCompound(); chestplateB) {
-        if (auto chestplateJ = Item::From(*chestplateB, ctx, {}); chestplateJ && chestplateJ->byte(u8"Count", 0) > 0) {
+        if (auto chestplateJ = Item::From(*chestplateB, ctx, dataVersion, {}); chestplateJ && chestplateJ->byte(u8"Count", 0) > 0) {
           chestplateJ->set(u8"Slot", Byte(102));
           inventoryJ->push_back(chestplateJ);
         }
       }
       if (auto helmetB = armorB->at(0)->asCompound(); helmetB) {
-        if (auto helmetJ = Item::From(*helmetB, ctx, {}); helmetJ && helmetJ->byte(u8"Count", 0) > 0) {
+        if (auto helmetJ = Item::From(*helmetB, ctx, dataVersion, {}); helmetJ && helmetJ->byte(u8"Count", 0) > 0) {
           helmetJ->set(u8"Slot", Byte(103));
           inventoryJ->push_back(helmetJ);
         }
@@ -1770,7 +1770,7 @@ public:
     }
     if (auto offhandB = b.listTag(u8"Offhand"); offhandB && offhandB->size() > 0) {
       if (auto offhandItemB = offhandB->at(0)->asCompound(); offhandItemB) {
-        if (auto offhandJ = Item::From(*offhandItemB, ctx, {}); offhandJ && offhandJ->byte(u8"Count", 0) > 0) {
+        if (auto offhandJ = Item::From(*offhandItemB, ctx, dataVersion, {}); offhandJ && offhandJ->byte(u8"Count", 0) > 0) {
           offhandJ->set(u8"Slot", Byte(-106));
           inventoryJ->push_back(offhandJ);
         }
@@ -1779,23 +1779,23 @@ public:
   }
 #pragma endregion
 
-  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid) {
+  static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid, int dataVersion) {
     LocalPlayerData data;
 
-    data.fEntity = Base(u8"", b, ctx);
+    data.fEntity = Base(u8"", b, ctx, dataVersion);
     CompoundTag &j = *data.fEntity;
 
-    AbsorptionAmount(b, j, ctx);
-    Brain(b, j, ctx);
-    DeathTime(b, j, ctx);
-    FallFlying(b, j, ctx);
-    Health(b, j, ctx);
-    HurtByTimestamp(b, j, ctx);
-    HurtTime(b, j, ctx);
+    AbsorptionAmount(b, j, ctx, dataVersion);
+    Brain(b, j, ctx, dataVersion);
+    DeathTime(b, j, ctx, dataVersion);
+    FallFlying(b, j, ctx, dataVersion);
+    Health(b, j, ctx, dataVersion);
+    HurtByTimestamp(b, j, ctx, dataVersion);
+    HurtTime(b, j, ctx, dataVersion);
 
-    CopyChestItems(b, u8"EnderChestInventory", j, u8"EnderItems", ctx, true);
-    CopyChestItems(b, u8"Inventory", j, u8"Inventory", ctx, true);
-    InjectArmorAndOffhand(b, j, ctx);
+    CopyChestItems(b, u8"EnderChestInventory", j, u8"EnderItems", ctx, true, dataVersion);
+    CopyChestItems(b, u8"Inventory", j, u8"Inventory", ctx, true, dataVersion);
+    InjectArmorAndOffhand(b, j, ctx, dataVersion);
 
     CopyIntValues(b, j, {{u8"SelectedInventorySlot", u8"SelectedItemSlot"}, {u8"PlayerLevel", u8"XpLevel"}, {u8"EnchantmentSeed", u8"XpSeed"}, {u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}});
     CopyShortValues(b, j, {{u8"SleepTimer"}});
@@ -2027,16 +2027,16 @@ public:
   }
 };
 
-CompoundTagPtr Entity::ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx) {
-  return Impl::ItemFrameFromBedrock(d, pos, blockJ, blockEntityB, ctx);
+CompoundTagPtr Entity::ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx, int dataVersion) {
+  return Impl::ItemFrameFromBedrock(d, pos, blockJ, blockEntityB, ctx, dataVersion);
 }
 
-std::optional<Entity::Result> Entity::From(CompoundTag const &entityB, Context &ctx) {
-  return Impl::From(entityB, ctx);
+std::optional<Entity::Result> Entity::From(CompoundTag const &entityB, Context &ctx, int dataVersion) {
+  return Impl::From(entityB, ctx, dataVersion);
 }
 
-std::optional<Entity::LocalPlayerData> Entity::LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid) {
-  return Impl::LocalPlayer(b, ctx, uuid);
+std::optional<Entity::LocalPlayerData> Entity::LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid, int dataVersion) {
+  return Impl::LocalPlayer(b, ctx, uuid, dataVersion);
 }
 
 } // namespace je2be::toje

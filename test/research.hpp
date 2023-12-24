@@ -99,7 +99,7 @@ static void VisitDb(string const &name, function<void(string const &key, string 
 static void FenceGlassPaneIronBarsConnectable() {
   set<u8string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
-    u8string name = mcfile::blocks::Name(id);
+    u8string name = mcfile::blocks::Name(id, toje::kDataVersion);
     if (name.ends_with(u8"_stairs")) {
       continue;
     }
@@ -217,15 +217,13 @@ static void NoteBlock() {
     case weeping_vines_plant:
       continue;
     }
-    u8string name = mcfile::blocks::Name(id);
+    u8string name = mcfile::blocks::Name(id, toje::kDataVersion);
     uniq[name] = {0, 0, 0};
   }
 
-  int const x0 = -42;
-  int const z0 = 165;
+  int const x0 = 0;
+  int const z0 = 0;
   int const y = -60;
-  int x = x0;
-  int x1 = x0;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/NoteBlock");
   Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
   {
@@ -239,25 +237,27 @@ static void NoteBlock() {
   }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block.mcfunction").string());
+    int width = (int)ceil(sqrt(uniq.size()));
+    int i = 0;
+    int j = 0;
     for (auto const &it : uniq) {
+      int x = x0 + 2 * i;
+      int z = z0 + 2 * j;
       u8string name = it.first;
       if (name.ends_with(u8"_door")) {
-        os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << "[half=upper]" << endl;
-        os << "setblock " << x << " " << (y - 2) << " " << z0 << " " << name << "[half=lower]" << endl;
+        os << "setblock " << x << " " << (y - 1) << " " << z << " " << name << "[half=upper]" << endl;
+        os << "setblock " << x << " " << (y - 2) << " " << z << " " << name << "[half=lower]" << endl;
       } else {
-        os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << endl;
+        os << "setblock " << x << " " << (y - 1) << " " << z << " " << name << endl;
       }
-      os << "setblock " << x << " " << y << " " << z0 << " note_block" << endl;
-      uniq[name] = {x, y - 1, z0};
-      x += 2;
+      os << "setblock " << x << " " << y << " " << z << " note_block" << endl;
+      uniq[name] = {x, y - 1, z};
+      i++;
+      if (i > width) {
+        i = 0;
+        j++;
+      }
     }
-    x1 = x;
-  }
-  {
-    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block_cleanup.mcfunction").string());
-    os << "fill " << x0 << " " << y << " " << z0 << " " << x1 << " " << y << " " << z0 << " air " << endl;
-    os << "fill " << x0 << " " << (y - 2) << " " << z0 << " " << x1 << " " << (y - 2) << " " << z0 << " dirt" << endl;
-    os << "fill " << x0 << " " << (y - 1) << " " << z0 << " " << x1 << " " << (y - 1) << " " << z0 << " grass_block" << endl;
   }
 
   // login the game, then execute /function je2be:research_note_block
@@ -281,7 +281,7 @@ static void NoteBlock() {
       auto noteBlock = chunk->blockAt(pos.fX, pos.fY + 1, pos.fZ);
       auto instrument = noteBlock->property(u8"instrument", u8"");
       if (instrument.empty()) {
-        cerr << "empty instrument: [" << x << ", " << z0 << "]" << endl;
+        cerr << "empty instrument: [" << pos.fX << ", " << pos.fZ << "]" << endl;
       } else {
         instruments[u8string(instrument)].insert(u8string(center->fName));
       }
@@ -314,7 +314,7 @@ static void NoteBlock() {
 static void RedstoneWire() {
   set<u8string> uniq;
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
-    u8string name = mcfile::blocks::Name(id);
+    u8string name = mcfile::blocks::Name(id, toje::kDataVersion);
     if (name.ends_with(u8"slab")) {
       continue;
     }
@@ -715,7 +715,7 @@ static void WallConnectable() {
     case mcfile::blocks::minecraft::reinforced_deepslate:
       continue;
     }
-    u8string name = mcfile::blocks::Name(id);
+    u8string name = mcfile::blocks::Name(id, toje::kDataVersion);
     if (name.ends_with(u8"_stairs")) {
       continue;
     }
@@ -938,7 +938,7 @@ static void LightTransmission1() {
     ofstream os(name.string());
     int x = x0;
     for (mcfile::blocks::BlockId id = 1; id <= mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
-      auto name = mcfile::blocks::Name(id);
+      auto name = mcfile::blocks::Name(id, toje::kDataVersion);
       if (name.ends_with(u8"_stairs") || name.ends_with(u8"_slab")) {
         continue;
       }
@@ -954,7 +954,7 @@ static void LightTransmission1() {
       os << "setblock " << x << " " << y << " " << (z + 1) << " barrier" << endl;
       os << "setblock " << x << " " << (y - 1) << " " << z << " sponge" << endl;
       os << "setblock " << x << " " << (y + 1) << " " << z << " barrier" << endl;
-      os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id) << endl;
+      os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id, toje::kDataVersion) << endl;
       x += 4;
       blocks.push_back(id);
     }
@@ -965,7 +965,7 @@ static void LightTransmission1() {
     for (auto id : blocks) {
       os << "fill " << (x - 1) << " " << (y - 1) << " " << (z - 2) << " " << x << " " << (y + 1) << " " << (z + 1) << " tinted_glass " << endl;
       os << "setblock " << x << " " << y << " " << (z - 1) << " torch" << endl;
-      os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id) << endl;
+      os << "setblock " << x << " " << y << " " << z << " " << mcfile::blocks::Name(id, toje::kDataVersion) << endl;
       os << "setblock " << x << " " << y << " " << (z - 1) << " glass" << endl;
 
       x += 2;
@@ -992,15 +992,15 @@ static void LightTransmission1() {
     assert(chunk);
     auto block = chunk->blockAt(x, y, z);
     if (!block) {
-      cerr << mcfile::blocks::Name(id) << " not set (1)" << endl;
+      cerr << mcfile::blocks::Name(id, toje::kDataVersion) << " not set (1)" << endl;
       continue;
     }
     if (block->fId != id) {
-      cerr << mcfile::blocks::Name(id) << " not set (2)" << endl;
+      cerr << mcfile::blocks::Name(id, toje::kDataVersion) << " not set (2)" << endl;
       continue;
     }
     if (block->property(u8"waterlogged") == u8"true") {
-      cerr << mcfile::blocks::Name(id) << " waterlogged is set to true" << endl;
+      cerr << mcfile::blocks::Name(id, toje::kDataVersion) << " waterlogged is set to true" << endl;
       continue;
     }
     int cy = mcfile::Coordinate::ChunkFromBlock(y);
@@ -1036,11 +1036,11 @@ static void LightTransmission1() {
     assert(chunk);
     auto block = chunk->blockAt(x, y, z);
     if (!block) {
-      cerr << mcfile::blocks::Name(id) << " not set (3)" << endl;
+      cerr << mcfile::blocks::Name(id, toje::kDataVersion) << " not set (3)" << endl;
       continue;
     }
     if (block->fId != id) {
-      cerr << mcfile::blocks::Name(id) << " not set (4)" << endl;
+      cerr << mcfile::blocks::Name(id, toje::kDataVersion) << " not set (4)" << endl;
       continue;
     }
     int cy = mcfile::Coordinate::ChunkFromBlock(y);
@@ -1074,7 +1074,7 @@ static void LightTransmission1() {
   for (auto const &i : lightAttenuation) {
     int diff = i.first;
     for (mcfile::blocks::BlockId id : i.second) {
-      auto name = mcfile::blocks::Name(id).substr(10);
+      auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
       code << "  case " << name << ":" << endl;
     }
     code << "    return " << diff << ";" << endl;
@@ -1092,7 +1092,7 @@ static void LightEmission() {
   int const y = 64;
   map<int, set<mcfile::blocks::BlockId>> emissions;
   set<mcfile::blocks::BlockId> ids;
-  for (int cx = 0; cx <= 18; cx++) {
+  for (int cx = 0; cx <= 19; cx++) {
     auto chunk = world.chunkAt(cx, cz);
     REQUIRE(chunk);
     mcfile::je::ChunkSection *section = nullptr;
@@ -1138,7 +1138,7 @@ static void LightEmission() {
   for (auto const &i : emissions) {
     int emission = i.first;
     for (mcfile::blocks::BlockId id : i.second) {
-      auto name = mcfile::blocks::Name(id).substr(10);
+      auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
       code << "  case " << name << ":" << endl;
     }
     code << "    return " << emission << ";" << endl;
@@ -1152,7 +1152,7 @@ static void LightEmission() {
     if (ids.contains(id)) {
       continue;
     }
-    auto name = mcfile::blocks::Name(id).substr(10);
+    auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
     if (name.ends_with(u8"bed")) {
       continue;
     }
@@ -1160,6 +1160,9 @@ static void LightEmission() {
       continue;
     }
     if (name.ends_with(u8"candle_cake")) {
+      continue;
+    }
+    if (name.ends_with(u8"_bulb")) {
       continue;
     }
     using namespace mcfile::blocks::minecraft;
@@ -1203,7 +1206,7 @@ static void Heightmaps() {
     os << "fill 0 -60 -1 16 -60 16 barrier" << endl;
 
     for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
-      auto name = mcfile::blocks::Name(id).substr(10);
+      auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
 
       os << "setblock " << (cx * 16 + lx) << " " << y << " " << z << " " << name << endl;
       blocks.push_back(make_pair(Pos2i(cx * 16 + lx, z), id));
@@ -1262,7 +1265,7 @@ static void Heightmaps() {
   for (auto const &it : blocks) {
     Pos2i p = it.first;
     mcfile::blocks::BlockId id = it.second;
-    auto name = mcfile::blocks::Name(id).substr(10);
+    auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
 
     int cx = mcfile::Coordinate::ChunkFromBlock(p.fX);
     int cz = mcfile::Coordinate::ChunkFromBlock(p.fZ);
@@ -1323,7 +1326,7 @@ static void Heightmaps() {
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : motionBlockingBlocks) {
-    auto name = mcfile::blocks::Name(id).substr(10);
+    auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
     code << "  case " << name << ":" << endl;
   }
   code << "    return true;" << endl;
@@ -1337,7 +1340,7 @@ static void Heightmaps() {
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : motionBlockingNoLeavesBlocks) {
-    auto name = mcfile::blocks::Name(id).substr(10);
+    auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
     code << "  case " << name << ":" << endl;
   }
   code << "    return true;" << endl;
@@ -1351,7 +1354,7 @@ static void Heightmaps() {
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : oceanFloorBlocks) {
-    auto name = mcfile::blocks::Name(id).substr(10);
+    auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
     code << "  case " << name << ":" << endl;
   }
   code << "    return true;" << endl;
@@ -1365,7 +1368,7 @@ static void Heightmaps() {
   code << "  using namespace mcfile::blocks::minecraft;" << endl;
   code << "  switch (id) {" << endl;
   for (auto id : worldSurfaceBlocks) {
-    auto name = mcfile::blocks::Name(id).substr(10);
+    auto name = mcfile::blocks::Name(id, toje::kDataVersion).substr(10);
     code << "  case " << name << ":" << endl;
   }
   code << "    return true;" << endl;
@@ -1428,8 +1431,8 @@ static void BEFormat0() {
 #if 0
 TEST_CASE("research") {
   // Heightmaps();
-  // LightEmission()
-  // WallConnectable
+  // LightEmission();
+  // WallConnectable();
   // RedstoneWire();
   // LightTransmission1();
   // NoteBlock();

@@ -55,6 +55,7 @@ public:
       // spectatorsGenerateChunks
       // universalAnger
       I(playersSleepingPercentage, playerssleepingpercentage, 100);
+      B(projectilesCanBreakBlocks, projectilescanbreakblocks, true);
 #undef B
 #undef I
 
@@ -135,6 +136,9 @@ public:
       if (experiments->boolean(u8"villager_trades_rebalance")) {
         ctx.fDataPackTradeRebalance = true;
       }
+      if (experiments->boolean(u8"updateAnnouncedLive2023")) {
+        ctx.fDataPackUpdate1_21 = true;
+      }
     }
 
     auto data = JavaLevelDat::TemplateData(o);
@@ -182,6 +186,9 @@ public:
       root[u8"Data"] = data;
     }
     auto enabledFeatures = List<Tag::Type::String>();
+    if (ctx.fDataPackUpdate1_21) {
+      enabledFeatures->push_back(String(u8"minecraft:update_1_21"));
+    }
     if (ctx.fDataPackBundle) {
       enabledFeatures->push_back(String(u8"minecraft:bundle"));
     }
@@ -199,6 +206,9 @@ public:
         if (ctx.fDataPackTradeRebalance) {
           enabledDataPacks->push_back(String(u8"trade_rebalance"));
         }
+        if (ctx.fDataPackUpdate1_21) {
+          enabledDataPacks->push_back(String(u8"update_1_21"));
+        }
       }
       if (auto disabledDataPacks = dataPacks->listTag(u8"Disabled"); disabledDataPacks) {
         if (!ctx.fDataPackBundle) {
@@ -206,6 +216,9 @@ public:
         }
         if (!ctx.fDataPackTradeRebalance) {
           disabledDataPacks->push_back(String(u8"trade_rebalance"));
+        }
+        if (!ctx.fDataPackUpdate1_21) {
+          disabledDataPacks->push_back(String(u8"update_1_21"));
         }
       }
     }
@@ -296,7 +309,7 @@ public:
         }
         blockB = make_shared<mcfile::be::Block>(props::GetJsonStringValue(*blockName), Compound(), je2be::tobe::kBlockDataVersion);
       }
-      auto blockJ = BlockData::From(*blockB);
+      auto blockJ = BlockData::From(*blockB, toje::kDataVersion);
       if (!blockJ) {
         return nullptr;
       }
@@ -323,7 +336,7 @@ public:
       return std::nullopt;
     }
 
-    return Entity::LocalPlayer(*tag, ctx, uuid);
+    return Entity::LocalPlayer(*tag, ctx, uuid, toje::kDataVersion);
   }
 
   static CompoundTagPtr DragonFight(mcfile::be::DbInterface &db, mcfile::Endian endian) {

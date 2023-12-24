@@ -102,6 +102,10 @@ static inline Facing6 Facing6FromBedrockFacingDirectionA(int facingDirectionA) {
   }
 }
 
+static inline Facing6 Facing6FromBedrockCardinalDirection(std::u8string const &cardinalDirection) {
+  return Facing6FromJavaName(cardinalDirection);
+}
+
 static inline Facing6 Facing6FromBedrockFacingDirectionB(int direction) {
   switch (direction) {
   case 4:

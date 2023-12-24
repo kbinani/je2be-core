@@ -37,7 +37,7 @@ class BlockData::Impl {
   };
 
 public:
-  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b) {
+  static std::shared_ptr<mcfile::je::Block const> From(mcfile::be::Block const &b, int dataVersion) {
     using namespace std;
     using namespace mcfile;
     static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
@@ -48,18 +48,18 @@ public:
     u8string_view key(migrated.fName);
     auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
-      return Identity(migrated);
+      return Identity(migrated, dataVersion);
     } else {
       static CompoundTag const sEmpty;
       CompoundTag const &states = migrated.fStates ? *migrated.fStates : sEmpty;
       map<u8string, u8string> props;
       auto name = found->second(migrated.fName, states, props);
-      return make_shared<mcfile::je::Block const>(name, props);
+      return mcfile::je::Block::FromNameAndProperties(name, dataVersion, props);
     }
   }
 
-  static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b) {
-    return std::make_shared<mcfile::je::Block const>(b.fName);
+  static std::shared_ptr<mcfile::je::Block const> Identity(mcfile::be::Block const &b, int dataVersion) {
+    return mcfile::je::Block::FromName(b.fName, dataVersion);
   }
 
 private:
@@ -246,6 +246,12 @@ private:
 
   static String BlockWithFacing4FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
+  static String BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
+    Facing4FromCardinalDirectionMigratingFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
@@ -502,6 +508,14 @@ private:
     return Ns() + colorJ + u8"_concrete_powder";
   }
 
+  static String CopperBulb(String const &bName, CompoundTag const &s, Props &p) {
+    auto lit = s.boolean(u8"lit", false);
+    auto poweredBit = s.boolean(u8"powered_bit", false);
+    p[u8"lit"] = Bool(lit);
+    p[u8"powered"] = Bool(poweredBit);
+    return bName;
+  }
+
   static String CoralLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = s.boolean(u8"dead_bit", false);
@@ -565,6 +579,16 @@ private:
     CoralDirection(s, p);
     Submergible(s, p);
     return Ns() + name + u8"_coral_wall_fan";
+  }
+
+  static String Crafter(String const &bName, CompoundTag const &s, Props &p) {
+    auto crafting = s.boolean(u8"crafting", false);
+    auto orientation = s.string(u8"orientation", u8"north_up");
+    auto triggered = s.boolean(u8"triggered_bit", false);
+    p[u8"crafting"] = Bool(crafting);
+    p[u8"orientation"] = String(orientation);
+    p[u8"triggered"] = Bool(triggered);
+    return bName;
   }
 #pragma endregion
 
@@ -1071,7 +1095,7 @@ private:
     return bName;
   }
 
-  static String Planks(String const &bName, CompoundTag const &s, Props &p) {
+  static String PlanksLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto woodType = s.string(u8"wood_type", u8"acacia"); //TODO: acacia?
     return Ns() + woodType + u8"_planks";
   }
@@ -1456,18 +1480,23 @@ private:
   }
 
   static String Stone(String const &bName, CompoundTag const &s, Props &p) {
-    auto type = s.string(u8"stone_type", u8"stone");
-    std::u8string name;
-    if (type == u8"diorite_smooth") {
-      name = u8"polished_diorite";
-    } else if (type == u8"andesite_smooth") {
-      name = u8"polished_andesite";
-    } else if (type == u8"granite_smooth") {
-      name = u8"polished_granite";
+    auto type = s.string(u8"stone_type");
+    if (type) {
+      // legacy, < 1.20.5x
+      std::u8string name;
+      if (type == u8"diorite_smooth") {
+        name = u8"polished_diorite";
+      } else if (type == u8"andesite_smooth") {
+        name = u8"polished_andesite";
+      } else if (type == u8"granite_smooth") {
+        name = u8"polished_granite";
+      } else {
+        name = *type;
+      }
+      return Ns() + name;
     } else {
-      name = type;
+      return Ns() + u8"stone";
     }
-    return Ns() + name;
   }
 
   static String Stonebrick(String const &bName, CompoundTag const &s, Props &p) {
@@ -1480,7 +1509,7 @@ private:
   }
 
   static String StonecutterBlock(String const &bName, CompoundTag const &s, Props &p) {
-    Facing4FromFacingDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingFacingDirectionA(s, p);
     return Ns() + u8"stonecutter";
   }
 
@@ -1531,7 +1560,7 @@ private:
     if (type == u8"fern") {
       return Ns() + u8"fern";
     } else { // "tall"
-      return Ns() + u8"grass";
+      return Ns() + u8"short_grass";
     }
   }
 
@@ -2235,7 +2264,7 @@ private:
     E(jungle_log, BlockWithAxisFromPillarAxis);
     E(acacia_log, BlockWithAxisFromPillarAxis);
     E(dark_oak_log, BlockWithAxisFromPillarAxis);
-    E(planks, Planks);
+    E(planks, PlanksLegacy);
 
     E(acacia_pressure_plate, PressurePlate);
     E(birch_pressure_plate, PressurePlate);
@@ -2515,7 +2544,7 @@ private:
     E(chain, Chain);
     E(chain_command_block, CommandBlock);
     E(command_block, CommandBlock);
-    E(chest, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(quartz_block, QuartzBlock);
     E(red_sandstone, RedSandstone);
     E(sandstone, Sandstone);
@@ -2566,7 +2595,7 @@ private:
     E(grass_path, Rename(u8"dirt_path"));
     E(dispenser, Dispenser);
     E(dropper, Dropper);
-    E(ender_chest, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(ender_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(end_portal_frame, EndPortalFrame);
     E(end_rod, EndRod);
     E(end_bricks, Rename(u8"end_stone_bricks"));
@@ -2692,7 +2721,7 @@ private:
     E(hardened_clay, Rename(u8"terracotta"));
     E(tnt, Tnt);
     E(torch, Torch(u8""));
-    E(trapped_chest, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(trapped_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(tripWire, Tripwire); // legacy, < 1.18.30
     E(trip_wire, Tripwire);
     E(tripwire_hook, TripwireHook);
@@ -2815,7 +2844,55 @@ private:
     E(pitcher_plant, C(Same, HalfFromUpperBlockBit));
     E(sniffer_egg, SnifferEgg);
     E(calibrated_sculk_sensor, C(Same, SculkSensorPhase, FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1, Submergible));
+
     E(barrier, C(Same, Submergible));
+
+    // 1.20.3
+    E(tuff_stairs, Stairs);
+    E(tuff_slab, Slab);
+    E(tuff_double_slab, DoubleSlab(u8"tuff_slab"));
+    E(tuff_wall, BlockWithWallProperties);
+    E(polished_tuff_slab, Slab);
+    E(polished_tuff_stairs, Stairs);
+    E(polished_tuff_double_slab, DoubleSlab(u8"polished_tuff_slab"));
+    E(polished_tuff_wall, BlockWithWallProperties);
+    E(tuff_brick_slab, Slab);
+    E(tuff_brick_double_slab, DoubleSlab(u8"tuff_brick_slab"));
+    E(tuff_brick_stairs, Stairs);
+    E(tuff_brick_wall, BlockWithWallProperties);
+    E(copper_grate, BlockWithSubmergible);
+    E(exposed_copper_grate, BlockWithSubmergible);
+    E(weathered_copper_grate, BlockWithSubmergible);
+    E(oxidized_copper_grate, BlockWithSubmergible);
+    E(waxed_copper_grate, BlockWithSubmergible);
+    E(waxed_exposed_copper_grate, BlockWithSubmergible);
+    E(waxed_weathered_copper_grate, BlockWithSubmergible);
+    E(waxed_oxidized_copper_grate, BlockWithSubmergible);
+    E(copper_door, Door);
+    E(exposed_copper_door, Door);
+    E(weathered_copper_door, Door);
+    E(oxidized_copper_door, Door);
+    E(waxed_copper_door, Door);
+    E(waxed_exposed_copper_door, Door);
+    E(waxed_weathered_copper_door, Door);
+    E(waxed_oxidized_copper_door, Door);
+    E(copper_trapdoor, Trapdoor);
+    E(exposed_copper_trapdoor, Trapdoor);
+    E(weathered_copper_trapdoor, Trapdoor);
+    E(oxidized_copper_trapdoor, Trapdoor);
+    E(waxed_copper_trapdoor, Trapdoor);
+    E(waxed_exposed_copper_trapdoor, Trapdoor);
+    E(waxed_weathered_copper_trapdoor, Trapdoor);
+    E(waxed_oxidized_copper_trapdoor, Trapdoor);
+    E(copper_bulb, CopperBulb);
+    E(exposed_copper_bulb, CopperBulb);
+    E(weathered_copper_bulb, CopperBulb);
+    E(oxidized_copper_bulb, CopperBulb);
+    E(waxed_copper_bulb, CopperBulb);
+    E(waxed_exposed_copper_bulb, CopperBulb);
+    E(waxed_weathered_copper_bulb, CopperBulb);
+    E(waxed_oxidized_copper_bulb, CopperBulb);
+    E(crafter, Crafter);
 #undef E
 
     return table;
@@ -2842,12 +2919,12 @@ private:
 #pragma endregion
 };
 
-std::shared_ptr<mcfile::je::Block const> BlockData::From(mcfile::be::Block const &b) {
-  return Impl::From(b);
+std::shared_ptr<mcfile::je::Block const> BlockData::From(mcfile::be::Block const &b, int dataVersion) {
+  return Impl::From(b, dataVersion);
 }
 
-std::shared_ptr<mcfile::je::Block const> BlockData::Identity(mcfile::be::Block const &b) {
-  return Impl::Identity(b);
+std::shared_ptr<mcfile::je::Block const> BlockData::Identity(mcfile::be::Block const &b, int dataVersion) {
+  return Impl::Identity(b, dataVersion);
 }
 
 } // namespace je2be::toje

@@ -22,7 +22,7 @@ public:
           auto p = accessor.property(x, y, z);
           auto upper = accessor.property(x, y + 1, z);
           if (p == terraform::BlockPropertyAccessor::TWISTING_VINES && upper == terraform::BlockPropertyAccessor::TWISTING_VINES) {
-            auto plant = make_shared<mcfile::je::Block const>(u8"minecraft:twisting_vines_plant");
+            auto plant = mcfile::je::Block::FromId(mcfile::blocks::minecraft::twisting_vines_plant, out.getDataVersion());
             out.setBlockAt(x, y, z, plant);
           }
         }

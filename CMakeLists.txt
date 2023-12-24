@@ -17,6 +17,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
       /MP
       /Zc:__cplusplus # Enable updated __cplusplus macro
       /Zc:preprocessor # Enable preprocessor conformance mode
+      /ZI
     )
     if (JE2BE_CORE_USE_INTEL_COMPILER)
       add_link_options(
@@ -33,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG d2c2b2118b95e739e13ba4f7afa80217d396dd8a)
+  GIT_TAG e663c185376ba168ca350a27a6ecadc5b708e962)
 
 set(je2be_header_files
   #begin je2be-header files
@@ -377,6 +378,7 @@ set(je2be_src_files
   src/toje/terraform/_beacon.hpp
   src/toje/terraform/_campfire.hpp
   src/toje/terraform/_cave-vines.hpp
+  src/toje/terraform/_double_plant.hpp
   src/toje/terraform/_piston.hpp
   src/toje/terraform/_tripwire.hpp
   src/toje/terraform/_twisting-vines.hpp

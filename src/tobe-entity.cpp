@@ -33,11 +33,12 @@ namespace je2be::tobe {
 
 class Entity::Impl {
   struct ConverterContext {
-    ConverterContext(Context &ctx, std::set<Flag> const &flags) : fCtx(ctx), fFlags(flags) {}
+    ConverterContext(Context &ctx, int dataVersion, std::set<Flag> const &flags) : fCtx(ctx), fDataVersion(dataVersion), fFlags(flags) {}
 
     Context &fCtx;
     std::vector<CompoundTagPtr> fPassengers;
     std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
+    int const fDataVersion;
     std::set<Flag> const &fFlags;
   };
   using Converter = std::function<CompoundTagPtr(CompoundTag const &, ConverterContext &)>;
@@ -173,7 +174,7 @@ class Entity::Impl {
   };
 
 public:
-  static Result From(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
+  static Result From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
     using namespace std;
     auto rawId = tag.string(u8"id");
     Result result;
@@ -193,7 +194,7 @@ public:
       }
       return result;
     }
-    ConverterContext cctx(ctx, flags);
+    ConverterContext cctx(ctx, dataVersion, flags);
     auto converted = found->second(tag, cctx);
     if (converted) {
       result.fEntity = converted;
@@ -257,7 +258,7 @@ public:
     return make_pair(paf.fPosition, b);
   }
 
-  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx) {
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx, int dataVersion) {
     auto rawId = c.string(u8"id");
     assert(rawId);
     if (!rawId) {
@@ -265,14 +266,14 @@ public:
     }
     auto id = MigrateName(*rawId);
     if (id == u8"minecraft:item_frame") {
-      return ToItemFrameTileEntityData(c, ctx, u8"ItemFrame");
+      return ToItemFrameTileEntityData(c, ctx, u8"ItemFrame", dataVersion);
     } else if (id == u8"minecraft:glow_item_frame") {
-      return ToItemFrameTileEntityData(c, ctx, u8"GlowItemFrame");
+      return ToItemFrameTileEntityData(c, ctx, u8"GlowItemFrame", dataVersion);
     }
     return nullptr;
   }
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name) {
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, int dataVersion) {
     auto tag = Compound();
 
     PositionAndFacing paf = GetItemFrameTilePositionAndFacing(c);
@@ -288,7 +289,7 @@ public:
     auto found = c.find(u8"Item");
     if (found != c.end() && found->second->type() == Tag::Type::Compound) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(found->second);
-      auto m = Item::From(item, ctx);
+      auto m = Item::From(item, ctx, dataVersion);
       if (m) {
         tag->insert(make_pair(u8"Item", m));
         tag->insert(make_pair(u8"ItemRotation", Float(itemRotation * 45)));
@@ -307,11 +308,11 @@ public:
     return id == u8"minecraft:item_frame" || id == u8"minecraft:glow_item_frame";
   }
 
-  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
+  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
     using namespace std;
     using namespace mcfile;
 
-    ConverterContext cctx(ctx, flags);
+    ConverterContext cctx(ctx, dataVersion, flags);
     auto entity = LivingEntity(tag, cctx);
     if (!entity) {
       return nullopt;
@@ -379,35 +380,35 @@ public:
 
     auto inventory = tag.listTag(u8"Inventory");
     if (inventory) {
-      auto outInventory = ConvertAnyItemList(inventory, 36, ctx);
+      auto outInventory = ConvertAnyItemList(inventory, 36, ctx, dataVersion);
       entity->set(u8"Inventory", outInventory);
 
       // Armor
       auto armor = InitItemList(4);
       auto boots = ItemAtSlot(*inventory, 100);
       if (boots) {
-        auto outBoots = Item::From(boots, ctx);
+        auto outBoots = Item::From(boots, ctx, dataVersion);
         if (outBoots) {
           armor->at(3) = outBoots;
         }
       }
       auto leggings = ItemAtSlot(*inventory, 101);
       if (leggings) {
-        auto outLeggings = Item::From(leggings, ctx);
+        auto outLeggings = Item::From(leggings, ctx, dataVersion);
         if (outLeggings) {
           armor->at(2) = outLeggings;
         }
       }
       auto chestplate = ItemAtSlot(*inventory, 102);
       if (chestplate) {
-        auto outChestplate = Item::From(chestplate, ctx);
+        auto outChestplate = Item::From(chestplate, ctx, dataVersion);
         if (outChestplate) {
           armor->at(1) = outChestplate;
         }
       }
       auto helmet = ItemAtSlot(*inventory, 103);
       if (helmet) {
-        auto outHelmet = Item::From(helmet, ctx);
+        auto outHelmet = Item::From(helmet, ctx, dataVersion);
         if (outHelmet) {
           armor->at(0) = outHelmet;
         }
@@ -417,7 +418,7 @@ public:
       // Offhand
       auto offhand = ItemAtSlot(*inventory, -106);
       if (offhand) {
-        auto offhandItem = Item::From(offhand, ctx);
+        auto offhandItem = Item::From(offhand, ctx, dataVersion);
         if (offhandItem) {
           auto outOffhand = InitItemList(1);
           outOffhand->at(0) = offhandItem;
@@ -428,7 +429,7 @@ public:
 
     auto enderItems = tag.listTag(u8"EnderItems");
     if (enderItems) {
-      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, ctx);
+      auto enderChestInventory = ConvertAnyItemList(enderItems, 27, ctx, dataVersion);
       entity->set(u8"EnderChestInventory", enderChestInventory);
     }
 
@@ -891,12 +892,12 @@ private:
     }
   }
 
-  static void Enderman(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void Enderman(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto carriedBlockTagJ = tag.compoundTag(u8"carriedBlockState");
     if (carriedBlockTagJ) {
       auto name = carriedBlockTagJ->string(u8"Name");
       if (name) {
-        auto carriedBlockJ = std::make_shared<mcfile::je::Block const>(*name);
+        auto carriedBlockJ = mcfile::je::Block::FromName(*name, ctx.fDataVersion);
         auto carriedBlockB = BlockData::From(carriedBlockJ, nullptr, {.fItem = true});
         if (carriedBlockB) {
           c[u8"carriedBlock"] = carriedBlockB;
@@ -918,7 +919,7 @@ private:
     AddDefinition(c, u8"+minecraft:xp_orb");
   }
 
-  static void FallingBlock(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void FallingBlock(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto blockState = tag.compoundTag(u8"BlockState");
     if (!blockState) {
       return;
@@ -927,7 +928,7 @@ private:
     if (!name) {
       return;
     }
-    auto block = BlockData::From(std::make_shared<mcfile::je::Block>(*name), nullptr, {.fItem = true});
+    auto block = BlockData::From(mcfile::je::Block::FromName(*name, ctx.fDataVersion), nullptr, {.fItem = true});
     if (!block) {
       return;
     }
@@ -1034,7 +1035,7 @@ private:
     c[u8"MarkVariant"] = Int(markings);
 
     if (auto armorItemJ = tag.compoundTag(u8"ArmorItem"); armorItemJ) {
-      if (auto armorItemB = Item::From(armorItemJ, ctx.fCtx); armorItemB) {
+      if (auto armorItemB = Item::From(armorItemJ, ctx.fCtx, ctx.fDataVersion); armorItemB) {
         AddChestItem(c, armorItemB, 1, 1);
       }
     }
@@ -1243,7 +1244,7 @@ private:
     if (auto inHand = tag.listTag(u8"HandItems"); inHand) {
       for (auto const &it : *inHand) {
         if (auto item = dynamic_pointer_cast<CompoundTag>(it); item) {
-          itemInHand = Item::From(item, ctx.fCtx);
+          itemInHand = Item::From(item, ctx.fCtx, ctx.fDataVersion);
           if (itemInHand) {
             break;
           }
@@ -1749,7 +1750,7 @@ private:
         if (!itemJ) {
           continue;
         }
-        CompoundTagPtr itemB = Item::From(itemJ, ctx.fCtx);
+        CompoundTagPtr itemB = Item::From(itemJ, ctx.fCtx, ctx.fDataVersion);
         if (!itemB) {
           itemB = Compound();
           itemB->set(u8"Count", Byte(0));
@@ -1778,7 +1779,7 @@ private:
         if (!item) {
           continue;
         }
-        auto converted = Item::From(item, ctx.fCtx);
+        auto converted = Item::From(item, ctx.fCtx, ctx.fDataVersion);
         if (!converted) {
           continue;
         }
@@ -1924,7 +1925,7 @@ private:
     if (!item) {
       return nullptr;
     }
-    auto beItem = Item::From(item, ctx.fCtx);
+    auto beItem = Item::From(item, ctx.fCtx, ctx.fDataVersion);
     if (!beItem) {
       return nullptr;
     }
@@ -2209,7 +2210,7 @@ private:
         if (!count) {
           continue;
         }
-        auto outItem = Item::From(item, ctx.fCtx);
+        auto outItem = Item::From(item, ctx.fCtx, ctx.fDataVersion);
         if (!outItem) {
           continue;
         }
@@ -2387,7 +2388,7 @@ private:
             continue;
           }
 
-          auto ret = From(*comp, ctx.fCtx, {});
+          auto ret = From(*comp, ctx.fCtx, ctx.fDataVersion, {});
           if (!ret.fEntity) {
             continue;
           }
@@ -2437,7 +2438,7 @@ private:
 
     {
       auto count = buyA->byte(u8"Count", 0);
-      auto item = Item::From(buyA, ctx.fCtx);
+      auto item = Item::From(buyA, ctx.fCtx, ctx.fDataVersion);
       if (item && count > 0) {
         bedrock->set(u8"buyA", item);
         bedrock->set(u8"buyCountA", Int(count));
@@ -2449,7 +2450,7 @@ private:
     if (buyB) {
       auto count = buyB->byte(u8"Count", 0);
       auto id = buyB->string(u8"id", u8"minecraft:air");
-      auto item = Item::From(buyB, ctx.fCtx);
+      auto item = Item::From(buyB, ctx.fCtx, ctx.fDataVersion);
       if (id != u8"minecraft:air" && item && count > 0) {
         bedrock->set(u8"buyB", item);
         bedrock->set(u8"buyCountB", Int(count));
@@ -2465,7 +2466,7 @@ private:
       if (count <= 0) {
         return nullptr;
       }
-      auto item = Item::From(sell, ctx.fCtx);
+      auto item = Item::From(sell, ctx.fCtx, ctx.fDataVersion);
       if (!item) {
         return nullptr;
       }
@@ -2490,14 +2491,14 @@ private:
     return items;
   }
 
-  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context &ctx) {
+  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context &ctx, int dataVersion) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
       if (!item) {
         continue;
       }
-      auto converted = Item::From(item, ctx);
+      auto converted = Item::From(item, ctx, dataVersion);
       if (!converted) {
         continue;
       }
@@ -2591,7 +2592,7 @@ private:
           if (!item) {
             continue;
           }
-          auto converted = Item::From(item, ctx.fCtx);
+          auto converted = Item::From(item, ctx.fCtx, ctx.fDataVersion);
           if (converted) {
             armors->fValue[i] = converted;
           }
@@ -2601,21 +2602,21 @@ private:
       // legacy
       if (equipment->fValue.size() >= 3) {
         if (auto leggings = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[2]); leggings) {
-          if (auto converted = Item::From(leggings, ctx.fCtx); converted) {
+          if (auto converted = Item::From(leggings, ctx.fCtx, ctx.fDataVersion); converted) {
             armors->fValue[0] = converted;
           }
         }
       }
       if (equipment->fValue.size() >= 4) {
         if (auto chestplate = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[3]); chestplate) {
-          if (auto converted = Item::From(chestplate, ctx.fCtx); converted) {
+          if (auto converted = Item::From(chestplate, ctx.fCtx, ctx.fDataVersion); converted) {
             armors->fValue[1] = converted;
           }
         }
       }
       if (equipment->fValue.size() >= 5) {
         if (auto helmet = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[4]); helmet) {
-          if (auto converted = Item::From(helmet, ctx.fCtx); converted) {
+          if (auto converted = Item::From(helmet, ctx.fCtx, ctx.fDataVersion); converted) {
             armors->fValue[2] = converted;
           }
         }
@@ -2645,13 +2646,13 @@ private:
     if (mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
       if (inItem) {
-        item = Item::From(inItem, ctx.fCtx);
+        item = Item::From(inItem, ctx.fCtx, ctx.fDataVersion);
       }
     } else if (auto equipment = input.listTag(u8"Equipment"); equipment && equipment->fType == Tag::Type::Compound && index < equipment->fValue.size()) {
       // legacy
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[index]);
       if (inItem) {
-        item = Item::From(inItem, ctx.fCtx);
+        item = Item::From(inItem, ctx.fCtx, ctx.fDataVersion);
       }
     }
     if (!item) {
@@ -2750,7 +2751,7 @@ private:
     auto rotation = GetRotation(tag, u8"Rotation");
     auto uuid = GetEntityUuid(tag);
     auto id = tag.string(u8"id");
-    auto customName = GetJson(tag, u8"CustomName");
+    auto customNameJ = tag.string(u8"CustomName");
 
     if (!uuid) {
       return nullopt;
@@ -2784,11 +2785,10 @@ private:
     if (id) {
       e.fIdentifier = MigrateName(*id);
     }
-    if (customName) {
-      auto text = customName->find("text");
-      if (text != customName->end() && text->is_string()) {
-        auto t = props::GetJsonStringValue(*text);
-        e.fCustomName = t;
+    if (customNameJ) {
+      auto text = props::GetTextComponent(*customNameJ);
+      if (!text.empty()) {
+        e.fCustomName = text;
         e.fCustomNameVisible = true;
       }
     }
@@ -2798,28 +2798,28 @@ private:
 #pragma endregion
 };
 
-Entity::Result Entity::From(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
-  return Impl::From(tag, ctx, flags);
+Entity::Result Entity::From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
+  return Impl::From(tag, ctx, dataVersion, flags);
 }
 
 std::optional<std::pair<Pos3i, CompoundTagPtr>> Entity::ToTileEntityBlock(CompoundTag const &c) {
   return Impl::ToTileEntityBlock(c);
 }
 
-CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context &ctx) {
-  return Impl::ToTileEntityData(c, ctx);
+CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context &ctx, int dataVersion) {
+  return Impl::ToTileEntityData(c, ctx, dataVersion);
 }
 
-CompoundTagPtr Entity::ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name) {
-  return Impl::ToItemFrameTileEntityData(c, ctx, name);
+CompoundTagPtr Entity::ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, int dataVersion) {
+  return Impl::ToItemFrameTileEntityData(c, ctx, name, dataVersion);
 }
 
 bool Entity::IsTileEntity(CompoundTag const &tag) {
   return Impl::IsTileEntity(tag);
 }
 
-std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx, std::set<Flag> flags) {
-  return Impl::LocalPlayer(tag, ctx, flags);
+std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
+  return Impl::LocalPlayer(tag, ctx, dataVersion, flags);
 }
 
 } // namespace je2be::tobe

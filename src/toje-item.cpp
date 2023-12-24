@@ -13,6 +13,7 @@
 #include "item/_map-type.hpp"
 #include "item/_potion.hpp"
 #include "item/_tipped-arrow-potion.hpp"
+#include "tobe/_block-data.hpp"
 #include "tobe/_versions.hpp"
 #include "toje/_block-data.hpp"
 #include "toje/_block-entity.hpp"
@@ -24,7 +25,7 @@ class Item::Impl {
   Impl() = delete;
 
 public:
-  static CompoundTagPtr From(CompoundTag const &tagB, Context &ctx, Options const &opt) {
+  static CompoundTagPtr From(CompoundTag const &tagB, Context &ctx, int dataVersion, Options const &opt) {
     using namespace std;
     auto name = tagB.string(u8"Name");
     if (!name) {
@@ -38,15 +39,15 @@ public:
     u8string_view key(*name);
     auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
-      Default(*name, tagB, *ret, ctx);
+      Default(*name, tagB, *ret, ctx, dataVersion);
     } else {
-      auto renamed = found->second(*name, tagB, *ret, ctx, opt);
-      Default(renamed, tagB, *ret, ctx);
+      auto renamed = found->second(*name, tagB, *ret, ctx, dataVersion, opt);
+      Default(renamed, tagB, *ret, ctx, dataVersion);
     }
     return ret;
   }
 
-  static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx) {
+  static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion) {
     using namespace std;
     using namespace mcfile::blocks::minecraft;
 
@@ -72,13 +73,13 @@ public:
     if (blockTag) {
       auto blockB = mcfile::be::Block::FromCompound(*blockTag);
       if (blockB) {
-        auto blockJ = BlockData::From(*blockB);
+        auto blockJ = BlockData::From(*blockB, dataVersion);
         if (blockJ) {
           nameJ = blockJ->fName;
 
           Pos3i dummy(0, 0, 0);
           if (!tagB->empty()) {
-            if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx); converted && converted->fTileEntity) {
+            if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx, dataVersion); converted && converted->fTileEntity) {
               static unordered_set<u8string> const sExclude({u8"x", u8"y", u8"z", u8"keepPacked", u8"RecipesUsed"});
               auto blockEntityTagJ = converted->fTileEntity;
               for (auto const &e : sExclude) {
@@ -89,11 +90,24 @@ public:
               }
             }
           }
+
+          if (!ctx.fDataPackUpdate1_21) {
+            if (tobe::BlockData::IsUpdate121Block(blockJ->fId)) {
+              ctx.fDataPackUpdate1_21 = true;
+            }
+          }
         }
       }
     }
-    if (!ctx.fDataPackBundle && nameJ == u8"minecraft:bundle") {
-      ctx.fDataPackBundle = true;
+    if (!ctx.fDataPackBundle) {
+      if (nameJ == u8"minecraft:bundle") {
+        ctx.fDataPackBundle = true;
+      }
+    }
+    if (!ctx.fDataPackUpdate1_21) {
+      if (nameJ == u8"minecraft:trial_key") {
+        ctx.fDataPackUpdate1_21 = true;
+      }
     }
     itemJ.set(u8"id", nameJ);
 
@@ -188,7 +202,7 @@ public:
   }
 
 #pragma region Converters
-  static std::u8string Arrow(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Arrow(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     if (damage == 0) {
       return nameB;
@@ -201,7 +215,7 @@ public:
     }
   }
 
-  static std::u8string AxolotlBucket(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string AxolotlBucket(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       auto tagJ = Compound();
@@ -236,7 +250,7 @@ public:
     return nameB;
   }
 
-  static std::u8string Banner(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Banner(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damageB = itemB.int16(u8"Damage", 0);
     BannerColorCodeBedrock colorB = static_cast<BannerColorCodeBedrock>(damageB);
     ColorCodeJava colorJ = ColorCodeJavaFromBannerColorCodeBedrock(colorB);
@@ -298,13 +312,13 @@ public:
     return nameJ;
   }
 
-  static std::u8string Bed(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Bed(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     ColorCodeJava ccj = static_cast<ColorCodeJava>(damage);
     return u8"minecraft:" + JavaNameFromColorCodeJava(ccj) + u8"_bed";
   }
 
-  static std::u8string Book(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Book(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     using namespace std;
     auto tagB = itemB.compoundTag(u8"tag");
     if (!tagB) {
@@ -346,7 +360,7 @@ public:
     return name;
   }
 
-  static std::u8string Bucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Bucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     std::u8string prefix = u8"";
     switch (damage) {
@@ -380,12 +394,12 @@ public:
     return u8"minecraft:" + prefix + u8"bucket";
   }
 
-  static std::u8string Crossbow(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Crossbow(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
       auto tagJ = Compound();
       auto chargedProjectiles = List<Tag::Type::Compound>();
       if (auto chargedItem = tagB->compoundTag(u8"chargedItem"); chargedItem) {
-        if (auto projectileJ = From(*chargedItem, ctx, opt); projectileJ) {
+        if (auto projectileJ = From(*chargedItem, ctx, dataVersion, opt); projectileJ) {
           chargedProjectiles->push_back(projectileJ);
         }
         tagJ->set(u8"ChargedProjectiles", chargedProjectiles);
@@ -396,7 +410,7 @@ public:
     return name;
   }
 
-  static std::u8string FireworkRocket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string FireworkRocket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       auto tagJ = Compound();
@@ -411,7 +425,7 @@ public:
     return u8"minecraft:firework_rocket";
   }
 
-  static std::u8string FireworkStar(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string FireworkStar(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       tagB->erase(u8"customColor");
@@ -427,7 +441,7 @@ public:
     return u8"minecraft:firework_star";
   }
 
-  static std::u8string GoatHorn(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string GoatHorn(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto instrument = GoatHorn::JavaInstrumentFromBedrockDamage(damage);
     auto tagJ = Compound();
@@ -436,7 +450,7 @@ public:
     return name;
   }
 
-  static std::u8string LegacyBannerPattern(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string LegacyBannerPattern(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     std::u8string prefix;
     switch (damage) {
@@ -460,7 +474,7 @@ public:
     return Ns() + prefix + u8"banner_pattern";
   }
 
-  static std::u8string LegacyBoat(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string LegacyBoat(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     std::u8string type = u8"oak";
     switch (damage) {
@@ -487,7 +501,7 @@ public:
     return u8"minecraft:" + type + u8"_boat";
   }
 
-  static std::u8string LegacyDye(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string LegacyDye(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     switch (damage) {
     case 1:
@@ -534,7 +548,7 @@ public:
     }
   }
 
-  static std::u8string LegacySpawnEgg(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string LegacySpawnEgg(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     std::u8string prefix;
     switch (damage) {
@@ -731,7 +745,7 @@ public:
     return u8"minecraft:" + prefix + u8"spawn_egg";
   }
 
-  static std::u8string Map(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Map(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (!tagB) {
       return name;
@@ -774,7 +788,7 @@ public:
     return name;
   }
 
-  static std::u8string Potion(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Potion(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
     auto tagJ = Compound();
@@ -783,13 +797,13 @@ public:
     return name;
   }
 
-  static std::u8string Skull(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string Skull(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     SkullType st = static_cast<SkullType>(damage);
     return u8"minecraft:" + JavaNameFromSkullType(st);
   }
 
-  static std::u8string SuspiciousStew(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string SuspiciousStew(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto effects = List<Tag::Type::Compound>();
     Effect::SuspiciousStewEffect sse = Effect::JavaEffectFromBedrockSuspiciousStew(damage, opt.fOfferItem);
@@ -807,7 +821,7 @@ public:
     return name;
   }
 
-  static std::u8string TropicalFishBucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+  static std::u8string TropicalFishBucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
@@ -821,7 +835,7 @@ public:
 
 #pragma region Converter generators
   static Converter Rename(std::u8string name) {
-    return [name](std::u8string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, Options const &opt) {
+    return [name](std::u8string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
       return u8"minecraft:" + name;
     };
   }
@@ -905,8 +919,8 @@ public:
   }
 };
 
-CompoundTagPtr Item::From(CompoundTag const &tagB, Context &ctx, Item::Options const &opt) {
-  return Impl::From(tagB, ctx, opt);
+CompoundTagPtr Item::From(CompoundTag const &tagB, Context &ctx, int dataVersion, Item::Options const &opt) {
+  return Impl::From(tagB, ctx, dataVersion, opt);
 }
 
 } // namespace je2be::toje

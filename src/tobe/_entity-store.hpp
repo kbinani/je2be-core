@@ -5,6 +5,8 @@
 #include "_mem.hpp"
 #include "_pos2i-set.hpp"
 
+#include <mutex>
+
 namespace je2be::tobe {
 
 class EntityStore {

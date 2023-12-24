@@ -4,6 +4,7 @@
 #include <leveldb/env.h>
 
 #include <atomic>
+#include <mutex>
 
 namespace je2be {
 

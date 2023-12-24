@@ -26,19 +26,7 @@ public:
     return (fRawData & 0x80) == 0x80;
   }
 
-  std::shared_ptr<mcfile::je::Block const> toBlock() const {
-    using namespace std;
-    auto p = unsafeToBlock();
-    if (p) {
-      if (isWaterlogged()) {
-        return p->applying({{u8"waterlogged", u8"true"}});
-      } else {
-        return p;
-      }
-    } else {
-      return make_shared<mcfile::je::Block const>(u8"minecraft:air");
-    }
-  }
+  std::shared_ptr<mcfile::je::Block const> toBlock() const;
 
 public:
   u8 fRawId;

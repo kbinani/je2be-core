@@ -65,9 +65,16 @@ static void DrainAttachedBlocks(CompoundTag &tag, unordered_set<Pos3i, Pos3iHash
   tag.erase(u8"AttachedBlocks");
 }
 
-static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const &a) {
+static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const &a, i8 state) {
   auto copyE = e.copy();
   auto copyA = a.copy();
+
+  if (e.string(u8"id") == u8"PistonArm") {
+    i8 eState = e.byte(u8"State", -1);
+    REQUIRE(eState == state);
+    i8 aState = a.byte(u8"State", -1);
+    CHECK(aState == state);
+  }
 
   unordered_set<Pos3i, Pos3iHasher> attachedBlocksE;
   unordered_set<Pos3i, Pos3iHasher> attachedBlocksA;
@@ -87,7 +94,7 @@ static void CheckMovingPistonTileEntity(CompoundTag const &e, CompoundTag const 
   }
 }
 
-static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
+static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock, i8 state) {
   auto javaReferenceDir = File::CreateTempDir(fs::temp_directory_path());
   REQUIRE(javaReferenceDir);
   REQUIRE(ZipFile::Unzip(java, *javaReferenceDir).ok());
@@ -124,7 +131,7 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
       } else {
         CHECK(actualTile != nullptr);
         if (actualTile) {
-          CheckMovingPistonTileEntity(*expectedTile, *actualTile);
+          CheckMovingPistonTileEntity(*expectedTile, *actualTile, state);
         }
       }
     }
@@ -147,7 +154,7 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock) {
       auto expectedBlock = expected->blockAt(0, y, 0);
       REQUIRE(actualBlock);
       REQUIRE(expectedBlock);
-      CheckBlock(expectedBlock, actualBlock, mcfile::Dimension::Overworld, 0, y, 0);
+      CheckBlockJ(expectedBlock, actualBlock, mcfile::Dimension::Overworld, 0, y, 0);
 
       auto actualTile = actual->tileEntityAt(0, y, 0);
       auto expectedTile = expected->tileEntityAt(0, y, 0);
@@ -175,26 +182,26 @@ TEST_CASE("moving-piston") {
   fs::path const dataDirectory = rel / "test" / "data" / "piston";
 
   SUBCASE("state=0") {
-    string bedrock = "1.19piston_arm_bedrock_-8076300039614213879.mcworld";
-    string java = "1.19piston_arm_java_-8541049737591066119.zip";
-    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
+    string bedrock = "1.20.51piston_arm_bedrock_state0.mcworld";
+    string java = "1.20.4piston_arm_java_state0.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock, 0);
   }
 
   SUBCASE("state=1") {
-    string bedrock = "1.19piston_arm_bedrock_6291263495557308048.mcworld";
-    string java = "1.19piston_arm_java_1094285069167139155.zip";
-    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
+    string bedrock = "1.20.51piston_arm_bedrock_state1.mcworld";
+    string java = "1.20.4piston_arm_java_state1.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock, 1);
   }
 
   SUBCASE("state=2") {
-    string bedrock = "1.19piston_arm_bedrock_4449454955840640434.mcworld";
-    string java = "1.19piston_arm_java_2666496645811299860.zip";
-    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
+    string bedrock = "1.20.51piston_arm_bedrock_state2.mcworld";
+    string java = "1.20.4piston_arm_java_state2.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock, 2);
   }
 
   SUBCASE("state=3") {
-    string bedrock = "1.19piston_arm_bedrock_1911327770476968939.mcworld";
-    string java = "1.19piston_arm_java_3720894831070949398.zip";
-    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock);
+    string bedrock = "1.20.51piston_arm_bedrock_state3.mcworld";
+    string java = "1.20.4piston_arm_java_state3.zip";
+    CheckMovingPiston(dataDirectory / java, dataDirectory / bedrock, 3);
   }
 }

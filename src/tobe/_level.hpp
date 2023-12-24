@@ -118,6 +118,9 @@ public:
   int fPermissionsLevel = 0;
   int fPlayerPermissionsLevel = 1;
   bool fShowborderEffect = true;
+  i32 fDataVersion = mcfile::je::Chunk::kDataVersion;
+  bool fProjectilescanbreakblocks = true;
+  bool fShowrecipemessages = true;
 
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
@@ -227,6 +230,8 @@ public:
         {u8"respawnblocksexplode", Bool(fRespawnBlocksExplode)},
         {u8"showbordereffect", Bool(fShowborderEffect)},
         {u8"world_policies", Compound()},
+        {u8"projectilescanbreakblocks", Bool(fProjectilescanbreakblocks)},
+        {u8"showrecipemessages", Bool(fShowrecipemessages)},
     });
     auto experiments = Compound();
     experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
@@ -331,6 +336,7 @@ public:
       I(playersSleepingPercentage, ret.fPlayersSleepingPercentage);
       // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
       ret.fShowCoordinates = gameRules->string(u8"reducedDebugInfo", u8"false") != u8"true";
+      S(projectilesCanBreakBlocks, ret.fProjectilescanbreakblocks);
 #undef S
 #undef I
     }
@@ -353,6 +359,7 @@ public:
     if (auto type = GameModeFromJava(data->int32(u8"GameType", 0)); type) {
       ret.fGameType = *type;
     }
+    ret.fDataVersion = data->int32(u8"DataVersion", mcfile::je::Chunk::kDataVersion);
 
     if (auto enabledFeatures = data->listTag(u8"enabled_features"); enabledFeatures) {
       bool experiments = false;
@@ -368,9 +375,6 @@ public:
         if (s->fValue == u8"minecraft:trade_rebalance") {
           ret.fExperiments[u8"villager_trades_rebalance"] = true;
         }
-      }
-      if (experiments) {
-        ret.fExperiments[u8"next_major_update"] = true;
       }
     }
 

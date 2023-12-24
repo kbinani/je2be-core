@@ -29,14 +29,14 @@ namespace je2be::tobe {
 
 class Item::Impl {
 private:
-  using Converter = std::function<CompoundTagPtr(std::u8string const &, CompoundTag const &, Context &ctx)>;
+  using Converter = std::function<CompoundTagPtr(std::u8string const &, CompoundTag const &, Context &ctx, int dataVersion)>;
   using Block = mcfile::je::Block;
 
 public:
-  static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx) {
-    auto result = Convert(item, ctx);
+  static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx, int sourceDataVersion) {
+    auto result = Convert(item, ctx, sourceDataVersion);
     if (result) {
-      return Post(result, *item, ctx);
+      return Post(result, *item, ctx, sourceDataVersion);
     } else {
       return nullptr;
     }
@@ -63,7 +63,7 @@ public:
   }
 
 private:
-  static CompoundTagPtr Convert(CompoundTagPtr const &in, Context &ctx) {
+  static CompoundTagPtr Convert(CompoundTagPtr const &in, Context &ctx, int dataVersion) {
     using namespace std;
 
     auto const &blockItemMapping = BlockItemConverterTable();
@@ -103,7 +103,7 @@ private:
         return nullptr;
       }
       i16 damage = *damageTag;
-      auto n = mcfile::je::Flatten::Item(*idTag, &damage);
+      auto n = mcfile::je::Flatten::Item(*idTag, &damage, dataVersion);
       if (!n) {
         return nullptr;
       }
@@ -126,22 +126,22 @@ private:
     if (auto foundItem = itemMapping.find(Namespace::Remove(name)); foundItem == itemMapping.end()) {
       CompoundTagPtr result;
       if (auto foundBlock = blockItemMapping.find(Namespace::Remove(name)); foundBlock != blockItemMapping.end()) {
-        result = foundBlock->second(name, *item, ctx);
+        result = foundBlock->second(name, *item, ctx, dataVersion);
       } else {
-        result = DefaultBlockItem(name, *item, ctx);
+        result = DefaultBlockItem(name, *item, ctx, dataVersion);
       }
       if (!result) {
         return nullptr;
       }
       if (!result->compoundTag(u8"Block")) {
-        auto block = std::make_shared<Block>(name);
+        auto block = Block::FromName(name, dataVersion);
         if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
           result->set(u8"Block", blockData);
         }
       }
       return result;
     } else {
-      return foundItem->second(name, *item, ctx);
+      return foundItem->second(name, *item, ctx, dataVersion);
     }
   }
 
@@ -672,6 +672,14 @@ private:
     E(mangrove_door, DefaultItem);
     E(bamboo_door, DefaultItem);
     E(cherry_door, DefaultItem);
+    E(copper_door, DefaultItem);
+    E(exposed_copper_door, DefaultItem);
+    E(weathered_copper_door, DefaultItem);
+    E(oxidized_copper_door, DefaultItem);
+    E(waxed_copper_door, DefaultItem);
+    E(waxed_exposed_copper_door, DefaultItem);
+    E(waxed_weathered_copper_door, DefaultItem);
+    E(waxed_oxidized_copper_door, DefaultItem);
 
     E(white_banner, Banner);
     E(orange_banner, Banner);
@@ -707,8 +715,8 @@ private:
     return *sTable;
   }
 
-  static CompoundTagPtr Sign(std::u8string const &name, CompoundTag const &item, Context &ctx) {
-    auto ret = DefaultBlockItem(name, item, ctx);
+  static CompoundTagPtr Sign(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = DefaultBlockItem(name, item, ctx, dataVersion);
     if (!ret) {
       return nullptr;
     }
@@ -717,7 +725,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr AxolotlBucket(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr AxolotlBucket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto ret = New(u8"axolotl_bucket");
     ret->set(u8"Damage", Short(0));
     auto tg = item.compoundTag(u8"tag");
@@ -739,7 +747,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto ret = New(u8"tropical_fish_bucket");
     ret->set(u8"Damage", Short(0));
     auto tg = item.compoundTag(u8"tag");
@@ -754,7 +762,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr BooksAndQuill(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr BooksAndQuill(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     using namespace std;
 
     auto tag = Compound();
@@ -830,7 +838,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr LeatherArmor(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr LeatherArmor(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto tag = Compound();
     tag->insert({
         {u8"Name", String(name)},
@@ -892,7 +900,7 @@ private:
     return make_tuple(mapId, ret);
   }
 
-  static CompoundTagPtr AnyPotion(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr AnyPotion(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     std::u8string itemName = name;
     std::optional<i16> type;
     if (auto t = item.query(u8"tag")->asCompound(); t) {
@@ -916,7 +924,7 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr TippedArrow(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr TippedArrow(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto tag = New(u8"arrow");
     auto t = item.query(u8"tag")->asCompound();
     i16 type = 0;
@@ -928,8 +936,8 @@ private:
     return tag;
   }
 
-  static CompoundTagPtr FireworkStar(std::u8string const &name, CompoundTag const &item, Context &ctx) {
-    auto data = Rename(u8"firework_star")(name, item, ctx);
+  static CompoundTagPtr FireworkStar(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto data = Rename(u8"firework_star")(name, item, ctx, dataVersion);
 
     auto explosion = item.query(u8"tag/Explosion")->asCompound();
     if (explosion) {
@@ -952,7 +960,7 @@ private:
     return data;
   }
 
-  static CompoundTagPtr FireworkRocket(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr FireworkRocket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto data = New(u8"firework_rocket");
     auto fireworks = item.query(u8"tag/Fireworks")->asCompound();
     if (fireworks) {
@@ -965,17 +973,17 @@ private:
   }
 
   static Converter Subtype(std::u8string const &newName, i16 damage) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
       auto tag = New(newName);
       tag->set(u8"Damage", Short(damage));
       return tag;
     };
   }
 
-  static CompoundTagPtr AnyTorch(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr AnyTorch(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     using namespace std;
 
-    auto block = make_shared<Block>(name);
+    auto block = Block::FromName(name, dataVersion);
     auto blockData = BlockData::From(block, nullptr, {.fItem = true});
 
     auto states = Compound();
@@ -989,20 +997,20 @@ private:
   }
 
   static Converter Rename(std::u8string const &newName) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
       auto tag = New(newName);
       return tag;
     };
   }
 
-  static CompoundTagPtr Skull(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr Skull(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     i8 type = GetSkullTypeFromBlockName(name);
     auto tag = New(u8"skull");
     tag->set(u8"Damage", Short(type));
     return tag;
   }
 
-  static CompoundTagPtr LegacySpawnEgg(std::u8string const &name, CompoundTag const &j, Context &ctx) {
+  static CompoundTagPtr LegacySpawnEgg(std::u8string const &name, CompoundTag const &j, Context &ctx, int dataVersion) {
     std::u8string n = name;
     if (auto tag = j.compoundTag(u8"tag"); tag) {
       if (auto entityTag = tag->compoundTag(u8"EntityTag"); entityTag) {
@@ -1020,7 +1028,7 @@ private:
     return New(n, true);
   }
 
-  static CompoundTagPtr SuspiciousStew(std::u8string const &name, CompoundTag const &j, Context const &) {
+  static CompoundTagPtr SuspiciousStew(std::u8string const &name, CompoundTag const &j, Context const &, int dataVersion) {
     auto b = New(u8"suspicious_stew");
     auto tagJ = j.compoundTag(u8"tag");
     if (tagJ) {
@@ -1063,7 +1071,7 @@ private:
     return b;
   }
 
-  static CompoundTagPtr Crossbow(std::u8string const &name, CompoundTag const &j, Context &ctx) {
+  static CompoundTagPtr Crossbow(std::u8string const &name, CompoundTag const &j, Context &ctx, int dataVersion) {
     auto b = New(u8"crossbow");
 
     if (auto tagJ = j.compoundTag(u8"tag"); tagJ) {
@@ -1075,7 +1083,7 @@ private:
           if (!projectileJ) {
             continue;
           }
-          auto projectileB = From(projectileJ, ctx);
+          auto projectileB = From(projectileJ, ctx, dataVersion);
           if (projectileB) {
             auto beTag = Compound();
             beTag->set(u8"chargedItem", projectileB);
@@ -1088,7 +1096,7 @@ private:
     return b;
   }
 
-  static CompoundTagPtr Banner(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr Banner(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_banner");
     BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
     i16 damage = (i16)color;
@@ -1139,7 +1147,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr Bed(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr Bed(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     using namespace std;
     u8string colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_bed");
     ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
@@ -1150,10 +1158,10 @@ private:
   }
 
   static Converter MushroomBlock(std::u8string const &name, int hugeMushroomBits) {
-    return [=](std::u8string const &, CompoundTag const &item, Context const &) -> CompoundTagPtr {
+    return [=](std::u8string const &, CompoundTag const &item, Context const &, int dataVersion) -> CompoundTagPtr {
       using namespace std;
 
-      auto block = make_shared<Block>(name);
+      auto block = Block::FromName(name, dataVersion);
       auto blockData = BlockData::From(block, nullptr, {.fItem = true});
 
       auto states = Compound();
@@ -1167,7 +1175,7 @@ private:
     };
   }
 
-  static CompoundTagPtr GoatHorn(std::u8string const &name, CompoundTag const &item, Context const &) {
+  static CompoundTagPtr GoatHorn(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto tagB = New(u8"goat_horn");
     i16 damage = 0;
     if (auto tagJ = item.compoundTag(u8"tag"); tagJ) {
@@ -1198,10 +1206,10 @@ private:
 
   Impl() = delete;
 
-  static CompoundTagPtr DefaultBlockItem(std::u8string const &id, CompoundTag const &item, Context &ctx) {
+  static CompoundTagPtr DefaultBlockItem(std::u8string const &id, CompoundTag const &item, Context &ctx, int dataVersion) {
     using namespace std;
 
-    auto block = make_shared<Block>(id);
+    auto block = Block::FromName(id, dataVersion);
     auto blockData = BlockData::From(block, nullptr, {.fItem = true});
     assert(blockData);
 
@@ -1222,7 +1230,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr DefaultItem(std::u8string const &name, CompoundTag const &item, Context &ctx) {
+  static CompoundTagPtr DefaultItem(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
     auto ret = Compound();
     ret->insert({
         {u8"Name", String(name)},
@@ -1232,7 +1240,7 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx) {
+  static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx, int dataVersion) {
     using namespace std;
 
     CopyByteValues(itemJ, *itemB, {{u8"Count"}});
@@ -1322,10 +1330,10 @@ private:
 
     if (auto blockEntityTagJ = tagJ->compoundTag(u8"BlockEntityTag"); blockEntityTagJ) {
       if (auto id = itemJ.string(u8"id"); id) {
-        auto block = std::make_shared<Block>(*id);
+        auto block = Block::FromName(*id, dataVersion);
 
         Pos3i dummy(0, 0, 0);
-        if (auto blockEntityTagB = TileEntity::FromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx); blockEntityTagB) {
+        if (auto blockEntityTagB = TileEntity::FromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx, dataVersion); blockEntityTagB) {
           static unordered_set<u8string> const sExclude({u8"Findable", u8"id", u8"isMovable", u8"x", u8"y", u8"z"});
           for (auto const &e : sExclude) {
             blockEntityTagB->erase(e);
@@ -1402,8 +1410,8 @@ private:
   }
 };
 
-CompoundTagPtr Item::From(CompoundTagPtr const &item, Context &ctx) {
-  return Impl::From(item, ctx);
+CompoundTagPtr Item::From(CompoundTagPtr const &item, Context &ctx, int sourceDataVersion) {
+  return Impl::From(item, ctx, sourceDataVersion);
 }
 
 i8 Item::GetSkullTypeFromBlockName(std::u8string_view const &name) {

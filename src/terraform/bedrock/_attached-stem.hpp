@@ -11,10 +11,10 @@ class AttachedStem {
 public:
   static void Do(mcfile::je::Chunk &out, BlockAccessorBedrock<3, 3> &cache, BlockPropertyAccessor const &accessor) {
     if (accessor.fHasPumpkinStem) {
-      DoImpl(out, cache, accessor, u8"minecraft:pumpkin", u8"minecraft:attached_pumpkin_stem", IsPumpkinStem);
+      DoImpl(out, cache, accessor, u8"minecraft:pumpkin", mcfile::blocks::minecraft::attached_pumpkin_stem, IsPumpkinStem);
     }
     if (accessor.fHasMelonStem) {
-      DoImpl(out, cache, accessor, u8"minecraft:melon_block", u8"minecraft:attached_melon_stem", IsMelonStem);
+      DoImpl(out, cache, accessor, u8"minecraft:melon_block", mcfile::blocks::minecraft::attached_melon_stem, IsMelonStem);
     }
   }
 
@@ -29,7 +29,7 @@ public:
   static void DoImpl(mcfile::je::Chunk &out,
                      BlockAccessorBedrock<3, 3> &cache, BlockPropertyAccessor const &accessor,
                      std::u8string const &cropFullNameBE,
-                     std::u8string const &stemFullNameJE,
+                     mcfile::blocks::BlockId const &stemIdJE,
                      std::function<bool(BlockPropertyAccessor::DataType)> pred) {
     using namespace std;
 
@@ -54,7 +54,7 @@ public:
             continue;
           }
           map<u8string, optional<u8string>> props;
-          auto name = blockJ->fName;
+          mcfile::blocks::BlockId id = blockJ->fId;
           if (growth < 7) {
             props[u8"facing"] = nullopt;
           } else {
@@ -64,12 +64,12 @@ public:
             if (crop && crop->fName == cropFullNameBE) {
               props[u8"facing"] = FacingFromFacingDirection(d);
               props[u8"age"] = nullopt;
-              name = stemFullNameJE;
+              id = stemIdJE;
             } else {
               props[u8"facing"] = nullopt;
             }
           }
-          auto replace = blockJ->renamed(name)->applying(props);
+          auto replace = blockJ->withId(id)->applying(props);
           out.setBlockAt(x, y, z, replace);
         }
       }

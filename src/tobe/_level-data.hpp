@@ -19,7 +19,8 @@ public:
             i64 gameTick,
             int difficultyBedrock,
             bool allowCommand,
-            GameMode gameType) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType) {}
+            GameMode gameType,
+            int dataVersion) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType), fDataVersion(dataVersion) {}
 
   [[nodiscard]] Status put(DbInterface &db, CompoundTag const &javaLevelData) {
     Status st;
@@ -108,6 +109,7 @@ public:
   int const fDifficultyBedrock;
   bool const fAllowCommand;
   GameMode const fGameType;
+  int const fDataVersion;
   std::unordered_set<std::u8string> fExperiments;
 
   struct VehicleAndPassengers {

@@ -8,7 +8,7 @@ class SubChunk::Impl {
   Impl() = delete;
 
 public:
-  static std::shared_ptr<mcfile::je::ChunkSection> Convert(mcfile::be::SubChunk const &sectionB, mcfile::Dimension dim, ChunkConversionMode mode) {
+  static std::shared_ptr<mcfile::je::ChunkSection> Convert(mcfile::be::SubChunk const &sectionB, mcfile::Dimension dim, ChunkConversionMode mode, int dataVersion) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::biomes;
@@ -17,11 +17,11 @@ public:
 
     vector<u16> indicesJ(4096, 0);
     if (sectionB.fPaletteIndices.size() != 4096 || sectionB.fPalette.empty()) {
-      paletteJ.push_back(make_shared<mcfile::je::Block const>(u8"minecraft:air"));
+      paletteJ.push_back(mcfile::je::Block::FromId(mcfile::blocks::minecraft::air, dataVersion));
     } else {
       for (size_t idx = 0; idx < sectionB.fPalette.size(); idx++) {
         auto const &blockB = sectionB.fPalette[idx];
-        auto blockJ = BlockData::From(*blockB);
+        auto blockJ = BlockData::From(*blockB, dataVersion);
         assert(blockJ);
         paletteJ.push_back(blockJ);
       }
@@ -77,13 +77,13 @@ public:
 
     shared_ptr<mcfile::je::ChunkSection> sectionJ;
     if (mode == ChunkConversionMode::CavesAndCliffs2) {
-      auto section = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB.fChunkY);
+      auto section = mcfile::je::chunksection::ChunkSection118::MakeEmpty(sectionB.fChunkY, dataVersion);
       if (!section->fBlocks.reset(paletteJ, indicesJ)) {
         return nullptr;
       }
       sectionJ = section;
     } else {
-      auto section = mcfile::je::chunksection::ChunkSection116::MakeEmpty(sectionB.fChunkY);
+      auto section = mcfile::je::chunksection::ChunkSection116::MakeEmpty(sectionB.fChunkY, dataVersion);
       if (!section->fBlocks.reset(paletteJ, indicesJ)) {
         return nullptr;
       }
@@ -94,8 +94,8 @@ public:
   }
 };
 
-std::shared_ptr<mcfile::je::ChunkSection> SubChunk::Convert(mcfile::be::SubChunk const &sectionB, mcfile::Dimension dim, ChunkConversionMode mode) {
-  return Impl::Convert(sectionB, dim, mode);
+std::shared_ptr<mcfile::je::ChunkSection> SubChunk::Convert(mcfile::be::SubChunk const &sectionB, mcfile::Dimension dim, ChunkConversionMode mode, int dataVersion) {
+  return Impl::Convert(sectionB, dim, mode, dataVersion);
 }
 
 } // namespace je2be::toje
