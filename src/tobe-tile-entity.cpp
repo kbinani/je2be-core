@@ -762,7 +762,7 @@ private:
     std::u8string customNameB;
     if (customNameJ) {
       auto text = props::GetTextComponent(*customNameJ);
-      if (!text.empty() && text != u8"@") {
+      if (!text.empty() && text != u8"\"@\"") {
         customNameB = text;
       }
     }
@@ -1710,7 +1710,7 @@ private:
           continue;
         }
         if (auto s = line->asString(); s) {
-          text += props::GetTextComponent(s->fValue);
+          text += props::GetTextComponent(strings::Unquote(s->fValue, '"'));
         }
       }
     }

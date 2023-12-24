@@ -310,8 +310,8 @@ public:
     t->set(u8"UpdateLastExecution", Bool(true));
 
     auto customName = tagB.string(u8"CustomName", u8"");
-    if (customName == u8"") {
-      customName = u8"@";
+    if (customName.empty()) {
+      customName = u8"\"@\"";
     }
     props::Json json;
     props::SetJsonString(json, u8"text", customName);
@@ -616,14 +616,18 @@ public:
 
     auto text = input.string(u8"Text", u8"");
     vector<u8string> linesB = mcfile::String::Split(text, u8'\n');
-    auto messagesB = List<Tag::Type::String>();
+    auto messagesJ = List<Tag::Type::String>();
     for (size_t i = 0; i < 4; i++) {
       u8string line = i < linesB.size() ? linesB[i] : u8"";
+      if (line.empty()) {
+        messagesJ->push_back(String(u8"\"\""));
+      } else {
       props::Json json;
       props::SetJsonString(json, u8"text", line);
-      messagesB->push_back(String(props::StringFromJson(json)));
+        messagesJ->push_back(String(props::StringFromJson(json)));
+      }
     }
-    ret->set(u8"messages", messagesB);
+    ret->set(u8"messages", messagesJ);
 
     return ret;
   }

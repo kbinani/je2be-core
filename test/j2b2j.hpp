@@ -306,7 +306,9 @@ static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
       REQUIRE(lineE);
       auto lineA = messagesA->at(i)->asString();
       REQUIRE(lineA);
-      CheckTextComponent(lineE->fValue, lineA->fValue);
+      auto lE = strings::Unquote(lineE->fValue, u8'"');
+      auto lA = strings::Unquote(lineA->fValue, u8'"');
+      CheckTextComponent(lE, lA);
     }
   }
   auto copyE = e.copy();

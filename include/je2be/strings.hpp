@@ -286,4 +286,12 @@ inline std::string Increment(std::string const &p) {
   return ret;
 }
 
+inline std::u8string Unquote(std::u8string const &s, char8_t quoter) {
+  if (s.starts_with(quoter) && s.ends_with(quoter)) {
+    return s.substr(1, s.size() - 2);
+  } else {
+    return s;
+  }
+}
+
 } // namespace je2be::strings
