@@ -237,6 +237,7 @@ static void DumpChunkKey(fs::path const &dbDir, int cx, int cz, mcfile::Dimensio
     DumpBinaryKey(dbDir, key);
     break;
   case static_cast<uint8_t>(Tag::Version):
+  case static_cast<uint8_t>(Tag::VersionLegacy):
     DumpVersionKey(dbDir, key);
     break;
   default:
