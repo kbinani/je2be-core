@@ -117,7 +117,6 @@ public:
   static std::optional<Result> Bed(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
     auto color = tagB.byte(u8"color", 0);
     ColorCodeJava ccj = static_cast<ColorCodeJava>(color);
-    auto name = JavaNameFromColorCodeJava(ccj);
     Result r;
     r.fBlock = blockJ.withId(BedBlockIdFromColorCodeJava(ccj));
     r.fTileEntity = EmptyShortName(u8"bed", pos);

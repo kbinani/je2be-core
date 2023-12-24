@@ -372,7 +372,6 @@ public:
   static std::optional<Result> Skull(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagPtr &out, Context const &) {
     using namespace std;
     auto type = static_cast<SkullType>(in.byte(u8"SkullType", 0));
-    auto skullName = JavaNameFromSkullType(type);
     auto rot = in.byte(u8"Rot");
 
     Result r;
