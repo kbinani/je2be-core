@@ -2,6 +2,7 @@
 /xcode
 *.mca
 *.dat_old
+level*.dat
 session.lock
 *.json
 icon.png
