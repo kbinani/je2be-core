@@ -220,6 +220,23 @@ public:
     return b.fName == u8"minecraft:portal";
   }
 
+  static bool IsDoublePlantUpperSunflower(mcfile::je::Block const &b) {
+    if (b.fId != mcfile::blocks::minecraft::sunflower) {
+      return false;
+    }
+    return b.property(u8"half") == u8"upper";
+  }
+
+  static bool IsDoublePlantUpperSunflower(mcfile::be::Block const &b) {
+    if (b.fName != u8"minecraft:double_plant") {
+      return false;
+    }
+    if (!b.fStates) {
+      return false;
+    }
+    return b.fStates->string(u8"double_plant_type") == u8"sunflower" && b.fStates->boolean(u8"upper_block_bit") == true;
+  }
+
   template <class BlockType>
   static DataType GetBlockProperties(BlockType const &b) {
     if (IsStairs(b)) {
@@ -268,6 +285,8 @@ public:
       return NETHER_PORTAL;
     } else if (IsBed(b)) {
       return BED;
+    } else if (IsDoublePlantUpperSunflower(b)) {
+      return DOUBLE_PLANT_UPPER_SUNFLOWER;
     }
     return 0;
   }
@@ -413,6 +432,7 @@ void BlockPropertyAccessor::updateHasProperties(DataType p) {
   fHasChest |= p == CHEST;
   fHasNetherPortal |= p == NETHER_PORTAL;
   fHasBed |= p == BED;
+  fHasDoublePlantUpperSunflower |= p == DOUBLE_PLANT_UPPER_SUNFLOWER;
 }
 
 bool BlockPropertyAccessor::IsChorusPlant(mcfile::je::Block const &b) {

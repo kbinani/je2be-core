@@ -39,6 +39,7 @@ public:
     CHEST = 22, // chest or trapped_chest
     NETHER_PORTAL = 23,
     BED = 24,
+    DOUBLE_PLANT_UPPER_SUNFLOWER = 25,
   };
 
 public:
@@ -81,6 +82,7 @@ public:
   bool fHasChest = false;
   bool fHasNetherPortal = false;
   bool fHasBed = false;
+  bool fHasDoublePlantUpperSunflower = false;
 
 protected:
   std::vector<std::vector<DataType>> fSections;
