@@ -51,9 +51,15 @@ public:
     if (auto t = GameModeFromBedrock(gameTypeB); t) {
       gameMode = *t;
     }
-    auto bin = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency);
+    unique_ptr<Context> bin;
+    if (auto st = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency, bin); !st.ok()) {
+      return JE2BE_ERROR_PUSH(st);
+    }
 
-    auto db = ReadonlyDb::Open(input / "db", options.getTempDirectory());
+    unique_ptr<ReadonlyDb> db;
+    if (auto st = ReadonlyDb::Open(input / "db", options.getTempDirectory(), db); !st.ok()) {
+      return JE2BE_ERROR_PUSH(st);
+    }
     if (!db) {
       return JE2BE_ERROR;
     }

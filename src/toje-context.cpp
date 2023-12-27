@@ -108,24 +108,28 @@ class Context::Impl {
   };
 
 public:
-  static std::shared_ptr<Context> Init(std::filesystem::path const &dbname,
-                                       Options opt,
-                                       mcfile::Endian endian,
-                                       std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
-                                       u64 &totalChunks,
-                                       i64 gameTick,
-                                       GameMode gameMode,
-                                       unsigned int concurrency) {
+  static Status Init(std::filesystem::path const &dbname,
+                     Options opt,
+                     mcfile::Endian endian,
+                     std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
+                     u64 &totalChunks,
+                     i64 gameTick,
+                     GameMode gameMode,
+                     unsigned int concurrency,
+                     std::unique_ptr<Context> &out) {
     using namespace std;
     using namespace leveldb;
     using namespace mcfile;
     namespace fs = std::filesystem;
 
     DB *dbPtr = nullptr;
-    unique_ptr<ReadonlyDb::Closer> closer = std::move(ReadonlyDb::Open(dbname, &dbPtr, opt.getTempDirectory()));
+    unique_ptr<ReadonlyDb::Closer> closer;
+    if (auto st = ReadonlyDb::Open(dbname, &dbPtr, opt.getTempDirectory(), closer); !st.ok()) {
+      return JE2BE_ERROR_PUSH(st);
+    }
     unique_ptr<DB> db;
     if (!dbPtr) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     db.reset(dbPtr);
 
@@ -221,19 +225,21 @@ public:
     }
 
     fs::path temp = opt.getTempDirectory();
-    return std::shared_ptr<Context>(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode));
+    out.reset(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode));
+    return Status::Ok();
   }
 };
 
-std::shared_ptr<Context> Context::Init(std::filesystem::path const &dbname,
-                                       Options opt,
-                                       mcfile::Endian endian,
-                                       std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
-                                       u64 &totalChunks,
-                                       i64 gameTick,
-                                       GameMode gameMode,
-                                       unsigned int concurrency) {
-  return Impl::Init(dbname, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency);
+Status Context::Init(std::filesystem::path const &dbname,
+                     Options opt,
+                     mcfile::Endian endian,
+                     std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
+                     u64 &totalChunks,
+                     i64 gameTick,
+                     GameMode gameMode,
+                     unsigned int concurrency,
+                     std::unique_ptr<Context> &out) {
+  return Impl::Init(dbname, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency, out);
 }
 
 void Context::markMapUuidAsUsed(i64 uuid) {

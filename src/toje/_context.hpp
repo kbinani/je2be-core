@@ -36,14 +36,15 @@ public:
     Pos2iSet fChunks;
   };
 
-  static std::shared_ptr<Context> Init(std::filesystem::path const &dbname,
-                                       Options opt,
-                                       mcfile::Endian endian,
-                                       std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
-                                       u64 &totalChunks,
-                                       i64 gameTick,
-                                       GameMode gameMode,
-                                       unsigned int concurrency);
+  static Status Init(std::filesystem::path const &dbname,
+                     Options opt,
+                     mcfile::Endian endian,
+                     std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
+                     u64 &totalChunks,
+                     i64 gameTick,
+                     GameMode gameMode,
+                     unsigned int concurrency,
+                     std::unique_ptr<Context> &out);
 
   void markMapUuidAsUsed(i64 uuid);
   void mergeInto(Context &other) const;

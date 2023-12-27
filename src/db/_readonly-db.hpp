@@ -46,36 +46,36 @@ public:
     std::unique_ptr<ProxyEnv> fProxy;
   };
 
-  static std::unique_ptr<Closer> Open(std::filesystem::path const &db, leveldb::DB **ptr, std::filesystem::path const &tempRoot) {
+  static Status Open(std::filesystem::path const &db, leveldb::DB **ptr, std::filesystem::path const &tempRoot, std::unique_ptr<Closer> &outCloser) {
     namespace fs = std::filesystem;
 
     *ptr = nullptr;
 
     auto dir = mcfile::File::CreateTempDir(tempRoot);
     if (!dir) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     std::unique_ptr<Closer> closer(new Closer);
     closer->fTempDir = *dir;
 
     closer->fFirewall.reset(new FirewallEnv(*dir));
     if (!closer->fFirewall->Valid()) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     closer->fProxy.reset(new ProxyEnv(closer->fFirewall.get(), db, *dir));
     if (!closer->fProxy->Valid()) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     leveldb::Options o;
     o.env = closer->fProxy.get();
     leveldb::DB *dbPtr = nullptr;
     if (auto st = leveldb::DB::Open(o, db, &dbPtr); !st.ok()) {
-      return nullptr;
+      return JE2BE_ERROR_PUSH(Status::FromLevelDBStatus(st));
     }
 
     auto lockFile = db / "LOCK";
     if (auto st = leveldb::Env::Default()->LockFile(lockFile, &closer->fLockLock); !st.ok()) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     // Bedrock game client doesn't create or lock the "LOCK" file.
@@ -84,7 +84,7 @@ public:
     auto currentFile = db / "CURRENT";
     std::vector<u8> content;
     if (!file::GetContents(currentFile, content)) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     std::u8string manifestName;
@@ -92,22 +92,25 @@ public:
     manifestName = strings::Trim(manifestName);
     auto manifestFile = db / manifestName;
     if (!Fs::Exists(manifestFile)) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     if (auto st = leveldb::Env::Default()->LockFile(manifestFile, &closer->fManifestLock); !st.ok()) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     *ptr = dbPtr;
-    return std::move(closer);
+    outCloser.swap(closer);
+    return Status::Ok();
   }
 
-  static std::unique_ptr<ReadonlyDb> Open(std::filesystem::path const &db, std::filesystem::path const &tempRoot) {
-    std::unique_ptr<ReadonlyDb> ptr(new ReadonlyDb(db, tempRoot));
-    if (!ptr->fDb || !ptr->fCloser) {
-      return nullptr;
+  static Status Open(std::filesystem::path const &db, std::filesystem::path const &tempRoot, std::unique_ptr<ReadonlyDb> &out) {
+    Status st;
+    std::unique_ptr<ReadonlyDb> ptr(new ReadonlyDb(db, tempRoot, st));
+    if (!ptr->fDb || !ptr->fCloser || !st.ok()) {
+      return JE2BE_ERROR_PUSH(st);
     }
-    return std::move(ptr);
+    out.swap(ptr);
+    return Status::Ok();
   }
 
   ~ReadonlyDb() {
@@ -132,9 +135,9 @@ public:
   }
 
 private:
-  ReadonlyDb(std::filesystem::path const &db, std::filesystem::path const &tempRoot) {
+  ReadonlyDb(std::filesystem::path const &db, std::filesystem::path const &tempRoot, Status &out) {
     leveldb::DB *ptr = nullptr;
-    fCloser = std::move(Open(db, &ptr, tempRoot));
+    out = Open(db, &ptr, tempRoot, fCloser);
     fDb.reset(ptr);
   }
 

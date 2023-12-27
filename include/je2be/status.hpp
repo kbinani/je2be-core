@@ -2,6 +2,10 @@
 
 #include <je2be/errno.hpp>
 
+#if __has_include(<leveldb/status.h>)
+#include <leveldb/status.h>
+#endif
+
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -80,6 +84,16 @@ public:
       to = Status::Ok();
     }
   }
+
+#if __has_include(<leveldb/status.h>)
+  static Status FromLevelDBStatus(leveldb::Status st) {
+    if (st.ok()) {
+      return Ok();
+    } else {
+      return Status(ErrorData(Where(__FILE__, __LINE__), st.ToString()));
+    }
+  }
+#endif
 
 private:
   std::optional<ErrorData> fError;
