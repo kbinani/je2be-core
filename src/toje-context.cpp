@@ -136,16 +136,25 @@ public:
 #if defined(EMSCRIPTEN)
     Accum accum(opt, endian);
     unique_ptr<Iterator> itr(db->NewIterator({}));
+    if (auto st = itr->status(); !st.ok()) {
+      return JE2BE_ERROR_PUSH(Status::FromLevelDBStatus(st));
+    }
     for (itr->SeekToFirst(); itr->Valid(); itr->Next()) {
+      if (auto st = itr->status(); !st.ok()) {
+        return JE2BE_ERROR_PUSH(Status::FromLevelDBStatus(st));
+      }
       accum.accept(itr->key().ToString(), itr->value().ToString());
     }
 #else
-    Accum accum = AsyncIterator::IterateUnordered<Accum>(
+    auto [accum, status] = AsyncIterator::IterateUnordered<Accum>(
         *db,
         concurrency,
         Accum(opt, endian),
         Accum::Accept,
         Accum::Merge);
+    if (!status.ok()) {
+      return JE2BE_ERROR_PUSH(status);
+    }
 #endif
 
     auto mapInfo = make_shared<MapInfo>();

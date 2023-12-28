@@ -9,7 +9,7 @@ class AsyncIterator {
 
 public:
   template <class Accumulator>
-  static Accumulator IterateUnordered(
+  static std::pair<Accumulator, Status> IterateUnordered(
       leveldb::DB &db,
       unsigned int concurrency,
       Accumulator zero,
@@ -22,18 +22,28 @@ public:
     for (int i = 0; i < 256; i++) {
       works[i] = (char)i;
     }
-    return Parallel::Reduce<char, Accumulator>(
+    auto j = [join](pair<Accumulator, Status> const &from, pair<Accumulator, Status> &to) -> void {
+      join(from.first, to.first);
+      Status::Merge(from.second, to.second);
+    };
+    return Parallel::Reduce<char, pair<Accumulator, Status>>(
         works,
         concurrency,
-        zero,
-        [&db, zero, accept](char prefix) -> Accumulator {
+        pair<Accumulator, Status>(zero, Status::Ok()),
+        [&db, zero, accept](char prefix) -> pair<Accumulator, Status> {
           ReadOptions o;
           o.fill_cache = false;
           shared_ptr<Iterator> itr(db.NewIterator(o));
           Accumulator sum = zero;
+          if (auto st = itr->status(); !st.ok()) {
+            return make_pair(sum, Status::FromLevelDBStatus(st));
+          }
           string p;
           p.append(1, prefix);
           for (itr->Seek(Slice(p)); itr->Valid(); itr->Next()) {
+            if (auto st = itr->status(); !st.ok()) {
+              return make_pair(sum, Status::FromLevelDBStatus(st));
+            }
             auto key = itr->key().ToString();
             if (key[0] != prefix) {
               break;
@@ -41,9 +51,9 @@ public:
             auto value = itr->value().ToString();
             accept(key, value, sum);
           }
-          return sum;
+          return make_pair(sum, Status::Ok());
         },
-        join);
+        j);
   }
 };
 
