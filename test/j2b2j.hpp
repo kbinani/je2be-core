@@ -667,6 +667,13 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"LastPoseTick");
   } else if (id == u8"minecraft:wandering_trader") {
     blacklist.insert(u8"WanderTarget");
+  } else if (id == u8"minecraft:experience_orb") {
+    // NOTE: "Count" does not exist in BE.
+    blacklist.insert(u8"Count");
+    blacklist.insert(u8"Value");
+    auto totalE = copyE->int32(u8"Count", 0) * (int)copyE->int16(u8"Value", 0);
+    auto totalA = copyA->int32(u8"Count", 0) * (int)copyA->int16(u8"Value", 0);
+    CHECK(totalE == totalA);
   }
 
   auto customNameE = entityE.string(u8"CustomName");

@@ -912,8 +912,9 @@ private:
 
   static void ExperienceOrb(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto value = tag.int16(u8"Value");
+    auto count = tag.int32(u8"Count", 1);
     if (value) {
-      c[u8"experience value"] = Int(*value);
+      c[u8"experience value"] = Int(*value * count);
     }
     CopyShortValues(tag, c, {{u8"Age"}});
     AddDefinition(c, u8"+minecraft:xp_orb");
