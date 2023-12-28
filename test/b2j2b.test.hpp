@@ -301,6 +301,19 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"StoredXPInt");
   } else if (*idE == u8"EnchantTable") {
     ignore.insert(u8"rott");
+  } else if (*idE == u8"Beehive") {
+    auto occupantsE = e->listTag(u8"Occupants");
+    auto occupantsA = a->listTag(u8"Occupants");
+    if (occupantsE) {
+      CHECK(occupantsA);
+      CHECK(occupantsE->size() == occupantsA->size());
+      for (size_t i = 0; i < occupantsE->size(); i++) {
+        auto occupantE = occupantsE->at(i)->asCompound();
+        auto occupantA = occupantsA->at(i)->asCompound();
+        CheckEntityB(u8"minecraft:bee", *occupantE, *occupantA);
+      }
+    }
+    ignore.insert(u8"Occupants");
   }
   auto itemE = e->compoundTag(u8"Item");
   auto itemA = a->compoundTag(u8"Item");

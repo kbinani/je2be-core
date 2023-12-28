@@ -141,8 +141,14 @@ public:
         }
 
         auto result = Entity::From(*beeB, ctx, dataVersion);
-        if (result) {
+        if (result && result->fEntity) {
           auto data = Compound();
+          for (auto const &key : {u8"Air", u8"ArmorDropChances", u8"ArmorItems", u8"Brain", u8"UUID",
+                                  u8"Pos", u8"CanPickUpLoot", u8"CannotEnterHiveTicks", u8"CropsGrownSincePollination", u8"DeathTime",
+                                  u8"FallDistance", u8"HandItems", u8"FallFlying", u8"HurtTime", u8"NoGravity",
+                                  u8"OnGround", u8"PortalCooldown", u8"Rotation"}) {
+            result->fEntity->erase(key);
+          }
           data->set(u8"EntityData", result->fEntity);
           bees->push_back(data);
         }

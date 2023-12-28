@@ -7,6 +7,18 @@ using namespace mcfile::u8stream;
 static std::mutex sMutCerr;
 
 static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &actual);
+struct CheckEntityJOptions {
+  enum : uint32_t {
+    ignoreUUID = 1 << 0,
+    ignorePos = 1 << 1,
+  };
+
+  uint32_t const fRawValue = 0;
+  explicit CheckEntityJOptions(uint32_t rawValue) : fRawValue(rawValue) {}
+  CheckEntityJOptions() : fRawValue(0) {}
+};
+
+static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA, CheckEntityJOptions options = {});
 
 static void CheckBlockJWithIgnore(mcfile::je::Block const &e, mcfile::je::Block const &a, std::initializer_list<std::u8string> ignore) {
   CHECK(e.fName == a.fName);
@@ -354,6 +366,8 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     tagBlacklist.insert(u8"Text2");
     tagBlacklist.insert(u8"Text3");
     tagBlacklist.insert(u8"Text4");
+  } else if (id == u8"minecraft:beehive" || id == u8"minecraft:bee_nest") {
+    tagBlacklist.insert(u8"FlowerPos");
   } else if (id == u8"minecraft:trial_spawner") {
     // TODO(1.21):
     return;
@@ -387,6 +401,30 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       CheckSignTextLinesJ(*backTextE, *backTextA);
     }
     tagBlacklist.insert(key);
+  }
+  auto beesE = expected.listTag(u8"Bees");
+  auto beesA = actual.listTag(u8"Bees");
+  if (beesE) {
+    CHECK(beesA);
+    CHECK(beesE->size() == beesA->size());
+    for (size_t i = 0; i < beesE->size(); i++) {
+      auto placeholderE = beesE->at(i)->asCompound();
+      auto placeholderA = beesA->at(i)->asCompound();
+      REQUIRE(placeholderE);
+      CHECK(placeholderA);
+      auto beeE = placeholderE->compoundTag(u8"EntityData");
+      auto beeA = placeholderA->compoundTag(u8"EntityData");
+      REQUIRE(beeE);
+      CHECK(beeA);
+      auto beeCopyE = beeE->copy();
+      auto beeCopyA = beeA->copy();
+      for (auto const &ignore : {u8"Attributes"}) {
+        beeCopyE->erase(ignore);
+        beeCopyA->erase(ignore);
+      }
+      CheckEntityJ(u8"minecraft:bee", *beeCopyE, *beeCopyA, CheckEntityJOptions(CheckEntityJOptions::ignorePos | CheckEntityJOptions::ignoreUUID));
+    }
+    tagBlacklist.insert(u8"Bees");
   }
   for (u8string const &b : tagBlacklist) {
     Erase(copyE, b);
@@ -502,28 +540,32 @@ static void CheckOffersJ(CompoundTag const &e, CompoundTag const &a) {
   DiffCompoundTag(*copyE, *copyA);
 }
 
-static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA) {
+static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA, CheckEntityJOptions options) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
-  CHECK(copyE->intArrayTag(u8"UUID"));
-  CHECK(copyA->intArrayTag(u8"UUID"));
-
-  auto posE = props::GetPos3d(*copyE, u8"Pos");
-  auto posA = props::GetPos3d(*copyA, u8"Pos");
-  CHECK(posE);
-  CHECK(posA);
-  CHECK(fabs(posE->fX - posA->fX) <= 0.001);
-  if (id == u8"minecraft:armor_stand") {
-    // y is aligned 0.5 block in BE
-  } else if (id == u8"minecraft:chest_minecart") {
-    // y of chest_minecart in abandoned_mineshaft has usually conversion failure because OnGround=false but not on rail
-  } else if (id == u8"minecraft:boat") {
-    // y of boat usually different between JE and BE
-  } else {
-    CHECK(fabs(posE->fY - posA->fY) <= 0.001);
+  if ((options.fRawValue & CheckEntityJOptions::ignoreUUID) == 0) {
+    CHECK(copyE->intArrayTag(u8"UUID"));
+    CHECK(copyA->intArrayTag(u8"UUID"));
   }
-  CHECK(fabs(posE->fZ - posA->fZ) <= 0.001);
+
+  if ((options.fRawValue & CheckEntityJOptions::ignorePos) == 0) {
+    auto posE = props::GetPos3d(*copyE, u8"Pos");
+    auto posA = props::GetPos3d(*copyA, u8"Pos");
+    CHECK(posE);
+    CHECK(posA);
+    CHECK(fabs(posE->fX - posA->fX) <= 0.001);
+    if (id == u8"minecraft:armor_stand") {
+      // y is aligned 0.5 block in BE
+    } else if (id == u8"minecraft:chest_minecart") {
+      // y of chest_minecart in abandoned_mineshaft has usually conversion failure because OnGround=false but not on rail
+    } else if (id == u8"minecraft:boat") {
+      // y of boat usually different between JE and BE
+    } else {
+      CHECK(fabs(posE->fY - posA->fY) <= 0.001);
+    }
+    CHECK(fabs(posE->fZ - posA->fZ) <= 0.001);
+  }
 
   unordered_set<u8string> blacklist = {
       u8"UUID",
