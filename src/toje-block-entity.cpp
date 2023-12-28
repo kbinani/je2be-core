@@ -142,7 +142,9 @@ public:
 
         auto result = Entity::From(*beeB, ctx, dataVersion);
         if (result) {
-          bees->push_back(result->fEntity);
+          auto data = Compound();
+          data->set(u8"EntityData", result->fEntity);
+          bees->push_back(data);
         }
       }
       te->set(u8"Bees", bees);

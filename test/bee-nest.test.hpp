@@ -17,15 +17,17 @@ TEST_CASE("bee-nest") {
     CHECK(st.ok());
     mcfile::je::World world(out);
     auto chunk = world.chunkAt(0, 0);
-    CHECK(chunk);
+    REQUIRE(chunk);
     auto tile = chunk->tileEntityAt(2, -60, 2);
-    CHECK(tile);
+    REQUIRE(tile);
     CHECK(tile->string(u8"id") == u8"minecraft:beehive");
     auto bees = tile->listTag(u8"Bees");
-    CHECK(bees);
+    REQUIRE(bees);
     CHECK(bees->size() == 1);
     auto bee = bees->at(0);
-    CHECK(bee->asCompound());
-    CHECK(bee->asCompound()->string(u8"id") == u8"minecraft:bee");
+    REQUIRE(bee->asCompound());
+    auto entityData = bee->asCompound()->compoundTag(u8"EntityData");
+    REQUIRE(entityData);
+    CHECK(entityData->string(u8"id") == u8"minecraft:bee");
   }
 }
