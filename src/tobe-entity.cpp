@@ -1156,20 +1156,12 @@ private:
     auto pos = props::GetPos3d(tag, u8"Pos");
     auto onGround = tag.boolean(u8"OnGround");
     if (pos && onGround) {
-      // Java
-      //   on ground: ground level +0
-      //   on rail: ground level +0.0625
-      // Bedrock
-      //   on ground: graound level +0.35
-      //   on rail: ground level +0.5
-      i32 iy = (i32)floor(pos->fY);
-      double dy = pos->fY - iy;
       if (*onGround) {
         // on ground
-        pos->fY = iy + 0.35;
-      } else if (1.0 / 16.0 <= dy && dy < 2.0 / 16.0) {
+        pos->fY += 0.35;
+      } else {
         // on rail
-        pos->fY = iy + 0.5;
+        pos->fY += 0.4375;
       }
       c[u8"Pos"] = pos->toF().toListTag();
     }

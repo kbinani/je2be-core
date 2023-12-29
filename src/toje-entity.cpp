@@ -1155,18 +1155,10 @@ public:
     auto onGround = b.boolean(u8"OnGround");
     if (posB && onGround) {
       Pos3d posJ = posB->toD();
-      int iy = (int)floor(posJ.fY);
-      double dy = posJ.fY - iy;
-      // Java
-      //   on ground: ground level +0
-      //   on rail: ground level +0.0625
-      // Bedrock
-      //   on ground: graound level +0.35
-      //   on rail: ground level +0.5
       if (*onGround) {
-        posJ.fY = posB->fY - 0.35;
-      } else if (dy == 0.5) {
-        posJ.fY = posB->fY - 0.5 + 0.0625;
+        posJ.fY = posB->fY - 0.35 + 0.0001;
+      } else {
+        posJ.fY = posB->fY - 0.4375 + 0.0001;
       }
       j[u8"Pos"] = posJ.toListTag();
     }
@@ -1330,9 +1322,9 @@ public:
     if (posB->fType != Tag::Type::Float) {
       return;
     }
-    double x = posB->at(0)->asFloat()->fValue;
-    double y = posB->at(1)->asFloat()->fValue;
-    double z = posB->at(2)->asFloat()->fValue;
+    double x = posB->at(0)->asFloat()->fValue + 0.0001;
+    double y = posB->at(1)->asFloat()->fValue + 0.0001;
+    double z = posB->at(2)->asFloat()->fValue + 0.0001;
     Pos3d posJ(x, y, z);
     j[u8"Pos"] = posJ.toListTag();
   }
