@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 9b388faeeeacc7265fb0bebe9075c49fcc7806a3)
+  GIT_TAG 51b9e08ad8f5dcd8fc950ba2fd8cd7987adfa58d)
 
 set(je2be_header_files
   #begin je2be-header files
@@ -448,10 +448,10 @@ CPMAddPackage(
 
 CPMAddPackage(
   NAME nlohmann_json
-  VERSION 3.11.2
+  VERSION 3.11.3
   # the git repo is incredibly large, so we download the archived include directory
-  URL https://github.com/nlohmann/json/releases/download/v3.11.2/include.zip
-  URL_HASH SHA256=e5c7a9f49a16814be27e4ed0ee900ecd0092bfb7dbfca65b5a421b774dccaaed)
+  URL https://github.com/nlohmann/json/releases/download/v3.11.3/include.zip
+  URL_HASH SHA256=a22461d13119ac5c78f205d3df1db13403e58ce1bb1794edc9313677313f4a9d)
 
 if (nlohmann_json_ADDED)
   add_library(nlohmann_json INTERFACE IMPORTED)
@@ -466,7 +466,7 @@ CPMAddPackage(
 CPMAddPackage(
   NAME minizip
   GITHUB_REPOSITORY zlib-ng/minizip-ng
-  GIT_TAG 3.0.8
+  GIT_TAG 4.0.4
   OPTIONS "MZ_FETCH_LIBS OFF"
           "MZ_BZIP2 OFF"
           "MZ_LZMA OFF"
@@ -485,7 +485,7 @@ if (MSVC)
   CPMAddPackage(
     NAME mimalloc
     GITHUB_REPOSITORY microsoft/mimalloc
-    VERSION 2.0.9
+    VERSION 2.1.2
     OPTIONS "MI_OVERRIDE ON"
             "MI_BUILD_TESTS OFF"
             "MI_BUILD_OBJECT OFF"
@@ -496,7 +496,7 @@ endif()
 
 CPMAddPackage(
   NAME pbar
-  GIT_TAG 4aedbcaa1ea8f192a20546a5120517762c827ab6
+  GIT_TAG 226b9ad291d72c6859456d5188f33c932e2e730b
   GIT_REPOSITORY https://github.com/estshorter/pbar.git)
 
 

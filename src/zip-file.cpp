@@ -14,13 +14,15 @@
 namespace je2be {
 
 ZipFile::ZipFile(std::filesystem::path const &zipFilePath) : fHandle(nullptr), fStream(nullptr) {
-  if (!mz_stream_os_create(&fStream)) {
+  fStream = mz_stream_os_create();
+  if (!fStream) {
     return;
   }
   if (MZ_OK != mz_stream_os_open(fStream, (char const *)zipFilePath.u8string().c_str(), MZ_OPEN_MODE_CREATE)) {
     return;
   }
-  if (!mz_zip_create(&fHandle)) {
+  fHandle = mz_zip_create();
+  if (!fHandle) {
     return;
   }
   if (MZ_OK != mz_zip_open(fHandle, fStream, MZ_OPEN_MODE_WRITE)) {
@@ -134,14 +136,14 @@ Status ZipFile::Unzip(
   u64 numEntries = 0;
   u64 done = 0;
 
-  handle = mz_zip_create(nullptr);
+  handle = mz_zip_create();
   if (!handle) {
     return JE2BE_ERROR;
   }
   defer {
     mz_zip_delete(&handle);
   };
-  stream = mz_stream_os_create(nullptr);
+  stream = mz_stream_os_create();
   if (!stream) {
     return JE2BE_ERROR;
   }
