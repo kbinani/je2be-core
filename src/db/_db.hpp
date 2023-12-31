@@ -67,16 +67,16 @@ public:
     }
   }
 
-  Status close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
+  Status close(std::function<bool(Rational<u64> const &progress)> progress = nullptr) override {
     if (!fDb) {
       return JE2BE_ERROR;
     }
-    if (progress) {
-      progress({0, 1});
+    if (progress && !progress({0, 1})) {
+      return JE2BE_ERROR;
     }
     fDb.reset();
-    if (progress) {
-      progress({1, 1});
+    if (progress && !progress({1, 1})) {
+      return JE2BE_ERROR;
     }
     return Status::Ok();
   }

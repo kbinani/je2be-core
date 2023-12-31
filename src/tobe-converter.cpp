@@ -201,9 +201,9 @@ public:
     if (ok) {
       auto st = db.close([progress](Rational<u64> const &p) {
         if (!progress) {
-          return;
+          return true;
         }
-        progress->reportCompaction(p);
+        return progress->reportCompaction(p);
       });
       if (!st.ok()) {
         return JE2BE_ERROR_PUSH(st);

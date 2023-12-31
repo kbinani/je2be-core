@@ -489,22 +489,22 @@ public:
 
   Status del(std::string const &key) override { return Status::Ok(); }
 
-  Status close(std::function<void(Rational<u64> const &progress)> progress = nullptr) override {
+  Status close(std::function<bool(Rational<u64> const &progress)> progress = nullptr) override {
     using namespace std;
     using namespace std::placeholders;
     using namespace leveldb;
     namespace fs = std::filesystem;
 
-    if (progress) {
-      progress({0, 257});
+    if (progress && !progress({0, 257})) {
+      return JE2BE_ERROR;
     }
 
     vector<shared_ptr<Writer>> writers;
     Gate::Drain((uintptr_t)this, writers);
 
     if (writers.empty()) {
-      if (progress) {
-        progress({257, 257});
+      if (progress && !progress({257, 257})) {
+        return JE2BE_ERROR;
       }
       return Status::Ok();
     }
@@ -551,15 +551,15 @@ public:
         BuildResult{},
         [&](u8 prefix) -> pair<BuildResult, Status> {
           BuildResult ret;
-          auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix, maxMemoryUsage);
-          if (!st.ok()) {
-            return make_pair(ret, st);
+          if (auto s = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix, maxMemoryUsage); !s.ok()) {
+            return make_pair(ret, JE2BE_ERROR_PUSH(s));
           }
           auto p = done.fetch_add(1) + 1;
-          if (progress) {
-            progress({p, 256 + 1});
+          if (progress && !progress({p, 256 + 1})) {
+            return make_pair(ret, JE2BE_ERROR);
+          } else {
+            return make_pair(ret, Status::Ok());
           }
-          return make_pair(ret, Status::Ok());
         },
         BuildResult::Merge);
     if (!buildStatus.ok()) {
