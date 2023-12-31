@@ -259,7 +259,7 @@ public:
     auto biomeJ = mcfile::be::Biome::FromUint32(biomeB->get<u32>());
     assert(biomeJ != mcfile::biomes::unknown);
 
-    settings->set(u8"biome", mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion));
+    settings->set(u8"biome", mcfile::biomes::Biome::Name(biomeJ, toje::kDataVersion, u8"minecraft:plains"));
     auto layersB = json.find("block_layers");
     if (layersB == json.end()) {
       return nullptr;

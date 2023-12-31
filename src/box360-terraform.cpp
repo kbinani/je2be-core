@@ -44,7 +44,7 @@ class Terraform::Impl {
 public:
   static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset) {
     PoiBlocks poi;
-    Status st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset);
+    Status st = MultiThread(poi, directory, concurrency, progress, progressChunksOffset, dim);
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
@@ -56,7 +56,7 @@ public:
   }
 
 private:
-  static Status MultiThread(PoiBlocks &poi, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset) {
+  static Status MultiThread(PoiBlocks &poi, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset, mcfile::Dimension dim) {
     using namespace std;
     using namespace std::placeholders;
 
@@ -71,7 +71,7 @@ private:
     Queue2d queue({-32, -32}, 64, 64, 1);
     mutex queueMut;
 
-    auto action = [&queue, &queueMut, &joinMut, latchPtr, directory, &poi, &ok, progress, &count, progressChunksOffset]() {
+    auto action = [&queue, &queueMut, &joinMut, latchPtr, directory, &poi, &ok, progress, &count, progressChunksOffset, dim]() {
       while (ok) {
         optional<Pos2i> next;
         {
@@ -82,7 +82,7 @@ private:
         if (!next) {
           break;
         }
-        auto result = DoChunk(next->fX, next->fZ, directory);
+        auto result = DoChunk(next->fX, next->fZ, directory, dim);
         if (result) {
           lock_guard<mutex> lock(joinMut);
           result->fPoi.mergeInto(poi);
@@ -130,7 +130,7 @@ private:
     PoiBlocks fPoi;
   };
 
-  static Nullable<Result> DoChunk(int cx, int cz, std::filesystem::path const &directory) {
+  static Nullable<Result> DoChunk(int cx, int cz, std::filesystem::path const &directory, mcfile::Dimension d) {
     using namespace std;
     using namespace je2be::terraform;
     using namespace je2be::terraform::box360;
@@ -201,7 +201,7 @@ private:
     }
 
     auto output = make_shared<mcfile::stream::FileOutputStream>(file);
-    if (!chunk->write(*output)) {
+    if (!chunk->write(*output, d)) {
       return JE2BE_NULLABLE_NULL;
     }
 

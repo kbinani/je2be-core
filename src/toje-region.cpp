@@ -78,7 +78,7 @@ public:
 
         int localX = cx - rx * 32;
         int localZ = cz - rz * 32;
-        auto terrainTag = j->toCompoundTag();
+        auto terrainTag = j->toCompoundTag(d);
         if (!terrainTag) {
           return nullptr;
         }

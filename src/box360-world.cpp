@@ -266,7 +266,7 @@ private:
 
         lightCache.dispose(cx - 1, cz - 1);
 
-        auto tag = writable->toCompoundTag();
+        auto tag = writable->toCompoundTag(dim);
         if (!tag) {
           return JE2BE_ERROR;
         }
@@ -353,7 +353,7 @@ private:
     {
       auto nbtz = chunkTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
       auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
-      if (!chunk->write(*stream)) {
+      if (!chunk->write(*stream, dimension)) {
         stream.reset();
         Fs::Delete(nbtz);
         return JE2BE_ERROR;

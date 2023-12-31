@@ -404,7 +404,7 @@ private:
     terraform::Leaves::Do(*writable, *blockAccessor, propertyAccessor);
     terraform::lighting::Lighting::Do(dim, *writable, *blockAccessor, lightCache);
 
-    auto tag = writable->toCompoundTag();
+    auto tag = writable->toCompoundTag(dim);
     if (!tag) {
       return JE2BE_ERROR;
     }
