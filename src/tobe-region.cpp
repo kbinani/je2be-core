@@ -28,6 +28,12 @@ public:
     namespace fs = std::filesystem;
 
     auto sum = make_shared<WorldData>(dim);
+    auto terrain = mcfile::je::McaEditor::Open(region->fFilePath);
+    if (!terrain) {
+      return sum;
+    }
+    auto entities = mcfile::je::McaEditor::Open(region->entitiesRegionFilePath());
+
     for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
       for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
         if (abortSignal) {
@@ -44,7 +50,8 @@ public:
         auto ret = Chunk::Convert(
             dim,
             db,
-            *region,
+            *terrain,
+            entities.get(),
             cx, cz,
             levelData.fJavaEditionMap,
             entityStore,

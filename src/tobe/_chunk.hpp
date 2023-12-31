@@ -36,7 +36,8 @@ public:
 public:
   static Result Convert(mcfile::Dimension dim,
                         DbInterface &db,
-                        mcfile::je::Region region,
+                        mcfile::je::McaEditor &terrain,
+                        mcfile::je::McaEditor *entities,
                         int cx, int cz,
                         JavaEditionMap mapInfo,
                         std::shared_ptr<EntityStore> const &entityStore,

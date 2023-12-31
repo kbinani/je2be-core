@@ -25,7 +25,8 @@ class Chunk::Impl {
 public:
   static Result Convert(mcfile::Dimension dim,
                         DbInterface &db,
-                        mcfile::je::Region region,
+                        mcfile::je::McaEditor &terrain,
+                        mcfile::je::McaEditor *entities,
                         int cx, int cz,
                         JavaEditionMap mapInfo,
                         std::shared_ptr<EntityStore> const &entityStore,
@@ -37,7 +38,12 @@ public:
     using namespace std;
     using namespace mcfile;
     try {
-      auto const &chunk = region.chunkAt(cx, cz);
+      int rx = mcfile::Coordinate::RegionFromChunk(cx);
+      int rz = mcfile::Coordinate::RegionFromChunk(cz);
+      int localChunkX = cx - rx * 32;
+      int localChunkZ = cz - rz * 32;
+      auto root = terrain.get(localChunkX, localChunkZ);
+      auto const &chunk = mcfile::je::Chunk::MakeChunk(cx, cz, root);
       Chunk::Result r;
       r.fOk = true;
       if (!chunk) {
@@ -46,13 +52,18 @@ public:
       if (chunk->status() != mcfile::je::Chunk::Status::FULL) {
         return r;
       }
-      if (chunk->getDataVersion() >= 2724) {
-        vector<shared_ptr<CompoundTag>> entities;
-        if (region.entitiesAt(cx, cz, entities)) {
-          chunk->fEntities.swap(entities);
+      if (chunk->getDataVersion() >= 2724 && entities) {
+        if (auto nbt = entities->get(localChunkX, localChunkZ); nbt) {
+          if (auto list = nbt->listTag(u8"Entities"); list) {
+            for (auto const &it : *list) {
+              if (auto e = std::dynamic_pointer_cast<CompoundTag>(it); e) {
+                chunk->fEntities.push_back(e);
+              }
+            }
+          }
         }
       }
-      auto [data, st] = MakeWorldData(chunk, region, dim, db, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+      auto [data, st] = MakeWorldData(chunk, terrain, dim, db, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
       if (!data) {
         data = make_shared<WorldData>(dim);
       }
@@ -85,7 +96,7 @@ public:
 
   static std::pair<std::shared_ptr<WorldData>, Status> MakeWorldData(
       std::shared_ptr<mcfile::je::Chunk> const &chunk,
-      mcfile::je::Region region,
+      mcfile::je::McaEditor &terrain,
       mcfile::Dimension dim,
       DbInterface &db,
       JavaEditionMap const &mapInfo,
@@ -102,7 +113,7 @@ public:
     if (!chunk) {
       return make_pair(nullptr, Status::Ok());
     }
-    mcfile::je::CachedChunkLoader loader(region);
+    mcfile::je::CachedChunkLoader loader(terrain);
 
     unordered_map<Pos3i, shared_ptr<mcfile::je::Block const>, Pos3iHasher> tickingLiquidOriginalBlocks;
     for (auto const &it : chunk->fLiquidTicks) {
@@ -421,7 +432,8 @@ private:
 
 Chunk::Result Chunk::Convert(mcfile::Dimension dim,
                              DbInterface &db,
-                             mcfile::je::Region region,
+                             mcfile::je::McaEditor &terrain,
+                             mcfile::je::McaEditor *entities,
                              int cx, int cz,
                              JavaEditionMap mapInfo,
                              std::shared_ptr<EntityStore> const &entityStore,
@@ -430,7 +442,7 @@ Chunk::Result Chunk::Convert(mcfile::Dimension dim,
                              int difficultyBedrock,
                              bool allowCommand,
                              GameMode gameType) {
-  return Impl::Convert(dim, db, region, cx, cz, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+  return Impl::Convert(dim, db, terrain, entities, cx, cz, mapInfo, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
 }
 
 } // namespace je2be::tobe
