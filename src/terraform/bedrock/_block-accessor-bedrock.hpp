@@ -52,7 +52,6 @@ public:
     if (!fCacheLoaded[*index]) {
       mcfile::be::Chunk::LoadWhat what;
       what.fBiomes = false;
-      what.fBlockEntities = true;
       what.fEntities = false;
       what.fPendingTicks = false;
       fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, *fDb, fEndian, what);

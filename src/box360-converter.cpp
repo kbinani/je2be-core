@@ -126,6 +126,7 @@ private:
     }
 
     CopyPlayersResult r;
+    r.fLocalPlayer = nullptr;
     vector<shared_ptr<PlayerInfo>> players;
 
     for (DirectoryIterator it(playersFrom); it.valid(); it.next()) {
