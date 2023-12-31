@@ -509,7 +509,7 @@ public:
       return Status::Ok();
     }
 
-    auto [writerIds, status] = Parallel::Reduce<shared_ptr<Writer>, vector<Writer::CloseResult>>(
+    auto ret = Parallel::Reduce<shared_ptr<Writer>, vector<Writer::CloseResult>>(
         writers,
         fConcurrency,
         vector<Writer::CloseResult>(),
@@ -524,9 +524,10 @@ public:
           }
         },
         Parallel::MergeVector<Writer::CloseResult>);
-    if (!status.ok()) {
-      return JE2BE_ERROR_PUSH(status);
+    if (!ret.second.ok()) {
+      return JE2BE_ERROR_PUSH(ret.second);
     }
+    vector<Writer::CloseResult> writerIds = ret.first;
 
     struct BuildResult {
       vector<TableBuildResult> fResults;
