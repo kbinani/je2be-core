@@ -406,7 +406,8 @@ set(test_files
   test/pos2i-set.test.hpp
   test/system.test.hpp
   test/b2j2b.test.hpp
-  test/toje-legacy-block.test.hpp)
+  test/toje-legacy-block.test.hpp
+  test/parallel.test.hpp)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND je2be_link_libraries pthread)

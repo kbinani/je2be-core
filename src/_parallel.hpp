@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/status.hpp>
+
 #include <functional>
 #include <latch>
 #include <mutex>
@@ -11,10 +13,10 @@ namespace je2be {
 class Parallel {
 public:
   template <class Work, class Result>
-  static void Map(
+  static Status Map(
       std::vector<Work> const &works,
       unsigned int concurrency,
-      std::function<Result(Work const &work, int index)> func,
+      std::function<std::pair<Result, Status>(Work const &work, int index)> func,
       std::vector<Result> &out) {
     using namespace std;
 
@@ -27,9 +29,11 @@ public:
 
     mutex mut;
     vector<bool> done(works.size(), false);
+    atomic_bool cancel = false;
+    Status status;
 
-    auto action = [&latch, worksPtr, outPtr, &mut, &done, func]() {
-      while (true) {
+    auto action = [&latch, worksPtr, outPtr, &mut, &done, &cancel, &status, func]() {
+      while (!cancel) {
         int index = -1;
         {
           lock_guard<mutex> lock(mut);
@@ -44,7 +48,16 @@ public:
         if (index < 0) {
           break;
         } else {
-          outPtr[index] = func(worksPtr[index], index);
+          auto [ret, st] = func(worksPtr[index], index);
+          outPtr[index] = ret;
+          if (!st.ok()) {
+            lock_guard<mutex> lock(mut);
+            if (status.ok()) {
+              status = st;
+            }
+            cancel = true;
+            break;
+          }
         }
       }
       latch.count_down();
@@ -60,25 +73,35 @@ public:
     for (auto &th : threads) {
       th.join();
     }
+    return status;
+  }
+
+  template <class Work>
+  static Status Process(std::vector<Work> const &works, unsigned int concurrency, std::function<Status(Work const &work)> func) {
+    using namespace std;
+    auto [ret, status] = Reduce<Work, int>(
+        works, concurrency, 0, [func](Work const &work) -> pair<int, Status> { return make_pair(0, func(work)); },
+        [](int const &, int) {});
+    return status;
   }
 
   template <class Work, class Result>
-  static Result Reduce(
+  static std::pair<Result, Status> Reduce(
       std::vector<Work> const &works,
       unsigned int concurrency,
       Result init,
-      std::function<Result(Work const &)> func,
+      std::function<std::pair<Result, Status>(Work const &)> func,
       std::function<void(Result const &, Result &)> join) {
     return Reduce<Work, Result>(
         works, concurrency, [&init]() { return init; }, func, join);
   }
 
   template <class Work, class Result>
-  static Result Reduce(
+  static std::pair<Result, Status> Reduce(
       std::vector<Work> const &works,
       unsigned int concurrency,
       std::function<Result(void)> zero,
-      std::function<Result(Work const &)> func,
+      std::function<std::pair<Result, Status>(Work const &)> func,
       std::function<void(Result const &, Result &)> join) {
     using namespace std;
 
@@ -97,10 +120,12 @@ public:
 
     mutex joinMut;
     Result total = zero();
+    atomic_bool cancel = false;
+    Status status;
 
-    auto action = [latchPtr, zero, donePtr, &joinMut, &works, &func, join, &total]() {
+    auto action = [latchPtr, zero, donePtr, &joinMut, &works, &func, join, &total, &cancel, &status]() {
       Result sum = zero();
-      while (true) {
+      while (!cancel) {
         Work const *work = nullptr;
         for (int j = 0; j < works.size(); j++) {
           bool expected = false;
@@ -110,8 +135,16 @@ public:
           }
         }
         if (work) {
-          Result result = func(*work);
+          auto [result, st] = func(*work);
           join(result, sum);
+          if (!st.ok()) {
+            lock_guard<mutex> lock(joinMut);
+            if (status.ok()) {
+              status = st;
+            }
+            cancel = true;
+            break;
+          }
         } else {
           lock_guard<mutex> lock(joinMut);
           join(sum, total);
@@ -135,7 +168,7 @@ public:
     for (auto &th : threads) {
       th.join();
     }
-    return total;
+    return make_pair(total, status);
   }
 
   static void MergeBool(bool const &from, bool &to) {

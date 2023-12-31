@@ -22,14 +22,13 @@ public:
     for (int i = 0; i < 256; i++) {
       works[i] = (char)i;
     }
-    auto j = [join](pair<Accumulator, Status> const &from, pair<Accumulator, Status> &to) -> void {
-      join(from.first, to.first);
-      Status::Merge(from.second, to.second);
+    auto j = [join](Accumulator const &from, Accumulator &to) -> void {
+      join(from, to);
     };
-    return Parallel::Reduce<char, pair<Accumulator, Status>>(
+    return Parallel::Reduce<char, Accumulator>(
         works,
         concurrency,
-        pair<Accumulator, Status>(zero, Status::Ok()),
+        zero,
         [&db, zero, accept](char prefix) -> pair<Accumulator, Status> {
           ReadOptions o;
           o.fill_cache = false;

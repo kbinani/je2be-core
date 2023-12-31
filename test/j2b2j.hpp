@@ -1349,15 +1349,13 @@ static void TestJavaToBedrockToJava(fs::path in) {
         }
       }
       if (multithread) {
-        Parallel::Reduce<Pos2i, bool>(
+        Parallel::Process<Pos2i>(
             regionChunks,
             thread::hardware_concurrency(),
-            true,
-            [regionE, regionA, dim](Pos2i const &pos) -> bool {
+            [regionE, regionA, dim](Pos2i const &pos) -> Status {
               CheckChunkJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
-              return true;
-            },
-            Parallel::MergeBool);
+              return Status::Ok();
+            });
       } else {
         for (auto const &pos : regionChunks) {
           CheckChunkJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
@@ -1394,15 +1392,13 @@ static void TestJavaToBedrockToJava(fs::path in) {
         }
       }
       if (multithread) {
-        Parallel::Reduce<Pos2i, bool>(
+        Parallel::Process<Pos2i>(
             regionChunks,
             thread::hardware_concurrency(),
-            true,
-            [regionE, regionA, dim](Pos2i const &pos) -> bool {
+            [regionE, regionA, dim](Pos2i const &pos) -> Status {
               CheckPoiJ(*regionE, *regionA, pos.fX, pos.fZ, dim);
-              return true;
-            },
-            Parallel::MergeBool);
+              return Status::Ok();
+            });
       } else {
         for (auto const &pos : regionChunks) {
           CheckPoiJ(*regionE, *regionA, pos.fX, pos.fZ, dim);

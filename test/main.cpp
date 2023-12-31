@@ -45,3 +45,4 @@ static fs::path ProjectRootDir() {
 #include "system.test.hpp"
 #include "b2j2b.test.hpp"
 #include "toje-legacy-block.test.hpp"
+#include "parallel.test.hpp"

@@ -105,29 +105,24 @@ public:
     size_t const numChunksInWorld = chunks.size() + skipChunks;
 
     atomic_uint64_t progressChunks(progressChunksOffset + skipChunks);
-    atomic_bool ok = true;
-    Status st = Parallel::Reduce<Pos2i, Status>(
+    Status st = Parallel::Process<Pos2i>(
         chunks,
         concurrency,
-        Status::Ok(),
-        [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks, &ok](Pos2i const &chunk) -> Status {
-          if (!ok) {
-            return JE2BE_ERROR;
-          }
+        [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks](Pos2i const &chunk) -> Status {
           int rx = mcfile::Coordinate::RegionFromChunk(chunk.fX);
           int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
           Status st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
+          if (!st.ok()) {
+            return st;
+          }
           u64 p = progressChunks.fetch_add(1) + 1;
           if (progress && !progress->report({p, kProgressWeightTotal})) {
-            st = JE2BE_ERROR;
+            return JE2BE_ERROR;
+          } else {
+            return Status::Ok();
           }
-          if (!st.ok()) {
-            ok = false;
-          }
-          return JE2BE_ERROR_PUSH(st);
-        },
-        Status::Merge);
+        });
 
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
@@ -148,12 +143,10 @@ public:
       return JE2BE_ERROR;
     }
 
-    st = Parallel::Reduce<Pos2i, Status>(
+    st = Parallel::Process<Pos2i>(
         regions,
         concurrency,
-        Status::Ok(),
-        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress),
-        Status::Merge);
+        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress));
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
@@ -165,12 +158,10 @@ public:
       return JE2BE_ERROR;
     }
     progressChunks = progressChunksOffset + 3 * numChunksInWorld;
-    st = Parallel::Reduce<Pos2i, Status>(
+    st = Parallel::Process<Pos2i>(
         regions,
         concurrency,
-        Status::Ok(),
-        bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress),
-        Status::Merge);
+        bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress));
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
@@ -193,10 +184,8 @@ private:
 
     auto report = [&]() {
       auto p = progressChunks->fetch_add(1024) + 1024;
-      if (progress) {
-        if (!progress->report({p, World::kProgressWeightTotal})) {
-          return JE2BE_ERROR;
-        }
+      if (progress && !progress->report({p, World::kProgressWeightTotal})) {
+        return JE2BE_ERROR;
       }
       return Status::Ok();
     };
@@ -309,8 +298,10 @@ private:
       uint64_t after = localProgress;
       uint64_t diff = after - before;
       uint64_t p = progressChunks->fetch_add(diff) + diff;
-      if (progress) {
-        progress->report({p, World::kProgressWeightTotal});
+      if (progress && !progress->report({p, World::kProgressWeightTotal})) {
+        return false;
+      } else {
+        return true;
       }
     };
 

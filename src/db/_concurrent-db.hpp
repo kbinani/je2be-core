@@ -509,38 +509,29 @@ public:
       return Status::Ok();
     }
 
-    atomic_bool ok = true;
-    auto writerIds = Parallel::Reduce<shared_ptr<Writer>, vector<Writer::CloseResult>>(
+    auto [writerIds, status] = Parallel::Reduce<shared_ptr<Writer>, vector<Writer::CloseResult>>(
         writers,
         fConcurrency,
         vector<Writer::CloseResult>(),
-        [&ok](shared_ptr<Writer> const &writer) -> vector<Writer::CloseResult> {
-          auto id = writer->close();
+        [](shared_ptr<Writer> const &writer) -> pair<vector<Writer::CloseResult>, Status> {
+          shared_ptr<Writer::CloseResult> id = writer->close();
           vector<Writer::CloseResult> ret;
           if (id) {
             ret.push_back(*id);
+            return make_pair(ret, Status::Ok());
           } else {
-            ok = false;
+            return make_pair(ret, JE2BE_ERROR);
           }
-          return ret;
         },
         Parallel::MergeVector<Writer::CloseResult>);
-    if (!ok) {
-      return JE2BE_ERROR;
+    if (!status.ok()) {
+      return JE2BE_ERROR_PUSH(status);
     }
 
     struct BuildResult {
       vector<TableBuildResult> fResults;
-      Status fStatus;
       static void Merge(BuildResult const &from, BuildResult &to) {
-        if (!to.fStatus.ok()) {
-          return;
-        }
-        if (from.fStatus.ok()) {
-          std::copy(from.fResults.begin(), from.fResults.end(), std::back_inserter(to.fResults));
-        } else {
-          to.fStatus = from.fStatus;
-        }
+        std::copy(from.fResults.begin(), from.fResults.end(), std::back_inserter(to.fResults));
       }
     };
     vector<u8> works;
@@ -554,23 +545,25 @@ public:
       u64 const availableMemory = System::GetAvailableMemory();
       maxMemoryUsage = availableMemory / fConcurrency;
     }
-    auto result = Parallel::Reduce<u8, BuildResult>(
+    auto [result, buildStatus] = Parallel::Reduce<u8, BuildResult>(
         works,
         fConcurrency,
         BuildResult{},
-        [&](u8 prefix) {
+        [&](u8 prefix) -> pair<BuildResult, Status> {
           BuildResult ret;
           auto st = BuildTable(fDbName, fWriterDir, writerIds, &fileNumber, ret.fResults, prefix, maxMemoryUsage);
-          ret.fStatus = st;
+          if (!st.ok()) {
+            return make_pair(ret, st);
+          }
           auto p = done.fetch_add(1) + 1;
           if (progress) {
             progress({p, 256 + 1});
           }
-          return ret;
+          return make_pair(ret, Status::Ok());
         },
         BuildResult::Merge);
-    if (!result.fStatus.ok()) {
-      return result.fStatus;
+    if (!buildStatus.ok()) {
+      return JE2BE_ERROR_PUSH(buildStatus);
     }
     sort(result.fResults.begin(), result.fResults.end(), [](TableBuildResult const &lhs, TableBuildResult const &rhs) {
       return lhs.fFileNumber < rhs.fFileNumber;

@@ -36,12 +36,10 @@ public:
       works.push_back(it);
     }
     EntityStore *es = entityStore.get();
-    return Parallel::Reduce<Pos2i, Status>(
+    return Parallel::Process<Pos2i>(
         works,
         concurrency,
-        Status::Ok(),
-        bind(PutChunkEntities, d, _1, &db, es, progress, &done, total),
-        Status::Merge);
+        bind(PutChunkEntities, d, _1, &db, es, progress, &done, total));
   }
 
 private:

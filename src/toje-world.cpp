@@ -68,30 +68,27 @@ public:
       }
     };
 
-    atomic_bool ok = true;
-    auto ctx = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, shared_ptr<Context>>(
+    auto [ctx, status] = Parallel::Reduce<pair<Pos2i, Context::ChunksInRegion>, shared_ptr<Context>>(
         regions,
         concurrency,
         [&parentContext]() { return parentContext.make(); },
-        [d, &db, dir, &parentContext, reportProgress, &ok, &numConvertedChunks, concurrency, terrainTempDir](pair<Pos2i, Context::ChunksInRegion> const &work) -> shared_ptr<Context> {
+        [d, &db, dir, &parentContext, reportProgress, &numConvertedChunks, concurrency, terrainTempDir](pair<Pos2i, Context::ChunksInRegion> const &work) -> pair<shared_ptr<Context>, Status> {
           auto ctx = parentContext.make();
-          if (!ok) {
-            return ctx;
-          }
           Pos2i region = work.first;
           auto result = Region::Convert(d, work.second.fChunks, region, concurrency, &db, dir, *ctx, reportProgress, numConvertedChunks, terrainTempDir);
           if (result) {
-            return result;
+            return make_pair(result, Status::Ok());
           } else {
-            ok.store(false);
-            return ctx;
+            return make_pair(ctx, JE2BE_ERROR);
           }
         },
         [](shared_ptr<Context> const &from, shared_ptr<Context> to) -> void {
           from->mergeInto(*to);
         });
-
-    if (cancelRequested.load() || !ok) {
+    if (!status.ok()) {
+      return JE2BE_ERROR_PUSH(status);
+    }
+    if (cancelRequested.load()) {
       return JE2BE_ERROR;
     }
 

@@ -128,11 +128,11 @@ public:
     atomic_bool abortSignal(false);
     atomic_uint64_t numConvertedChunks(0);
     LevelData const *ldPtr = levelData.get();
-    Result result = Parallel::Reduce<Work, Result>(
+    auto [result, status] = Parallel::Reduce<Work, Result>(
         works,
         concurrency,
         Result(),
-        [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, entityStores, o, &numConvertedChunks](Work const &work) -> Result {
+        [ldPtr, &db, progress, &done, numTotalChunks, &abortSignal, entityStores, o, &numConvertedChunks](Work const &work) -> pair<Result, Status> {
           auto found = entityStores.find(work.fDim);
           assert(found != entityStores.end());
           shared_ptr<EntityStore> entityStore = found->second;
@@ -150,11 +150,14 @@ public:
               numConvertedChunks);
           Result ret;
           ret.fData[work.fDim] = worldData;
-          return ret;
+          return make_pair(ret, Status::Ok());
         },
         [](Result const &from, Result &to) -> void {
           from.mergeInto(to);
         });
+    if (!status.ok()) {
+      return JE2BE_ERROR_PUSH(status);
+    }
     u64 totalEntityChunks = 0;
     for (auto const &it : entityStores) {
       totalEntityChunks += it.second->fChunks.size();
