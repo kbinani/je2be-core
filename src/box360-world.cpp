@@ -111,13 +111,16 @@ public:
         concurrency,
         Status::Ok(),
         [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks, &ok](Pos2i const &chunk) -> Status {
+          if (!ok) {
+            return JE2BE_ERROR;
+          }
           int rx = mcfile::Coordinate::RegionFromChunk(chunk.fX);
           int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
-          auto st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
+          Status st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
           u64 p = progressChunks.fetch_add(1) + 1;
           if (progress && !progress->report({p, kProgressWeightTotal})) {
-            ok = false;
+            st = JE2BE_ERROR;
           }
           if (!st.ok()) {
             ok = false;
