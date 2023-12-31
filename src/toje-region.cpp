@@ -65,7 +65,7 @@ public:
         }
 
         defer {
-          ok = progress();
+          ok = ok && progress();
         };
 
         auto b = mcfile::be::Chunk::Load(cx, cz, d, *db, ctx->fEndian);
