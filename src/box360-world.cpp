@@ -74,8 +74,9 @@ public:
     int minRegion = -World::LengthRegions(dimension);
     int maxRegion = World::LengthRegions(dimension) - 1;
 
-    vector<Pos2i> chunks;
-    vector<Pos2i> regions;
+    vector<Pos2i> innerChunks;
+    vector<Pos2i> innerRegions;
+    vector<Pos2i> outerRegions;
 
     for (int rz = minRegion; rz <= maxRegion; rz++) {
       for (int rx = minRegion; rx <= maxRegion; rx++) {
@@ -85,28 +86,30 @@ public:
             skipChunks += 1024;
             continue;
           }
-        }
-        regions.emplace_back(rx, rz);
-        for (int z = 0; z < 32; z++) {
-          for (int x = 0; x < 32; x++) {
-            int cx = rx * 32 + x;
-            int cz = rz * 32 + z;
-            if (!options.fChunkFilter.empty()) [[unlikely]] {
-              if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
-                skipChunks += 1;
-                continue;
+          innerRegions.emplace_back(rx, rz);
+          for (int z = 0; z < 32; z++) {
+            for (int x = 0; x < 32; x++) {
+              int cx = rx * 32 + x;
+              int cz = rz * 32 + z;
+              if (!options.fChunkFilter.empty()) [[unlikely]] {
+                if (options.fChunkFilter.find(Pos2i(cx, cz)) == options.fChunkFilter.end()) {
+                  skipChunks += 1;
+                  continue;
+                }
               }
+              innerChunks.emplace_back(cx, cz);
             }
-            chunks.emplace_back(cx, cz);
           }
+        } else {
+          outerRegions.emplace_back(rx, rz);
         }
       }
     }
-    size_t const numChunksInWorld = chunks.size() + skipChunks;
+    size_t const numChunksInWorld = innerChunks.size() + skipChunks + outerRegions.size() * 1024;
 
     atomic_uint64_t progressChunks(progressChunksOffset + skipChunks);
     Status st = Parallel::Process<Pos2i>(
-        chunks,
+        innerChunks,
         concurrency,
         [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks](Pos2i const &chunk) -> Status {
           int rx = mcfile::Coordinate::RegionFromChunk(chunk.fX);
@@ -144,7 +147,7 @@ public:
     }
 
     st = Parallel::Process<Pos2i>(
-        regions,
+        innerRegions,
         concurrency,
         bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress));
     if (!st.ok()) {
@@ -159,13 +162,23 @@ public:
     }
     progressChunks = progressChunksOffset + 3 * numChunksInWorld;
     st = Parallel::Process<Pos2i>(
-        regions,
+        innerRegions,
         concurrency,
         bind(Lighting, _1, dimension, outputDirectory / worldDir / "region_", outputDirectory / worldDir / "region", &progressChunks, progress));
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
     Fs::DeleteAll(outputDirectory / worldDir / "region_");
+
+    if (!outerRegions.empty()) {
+      st = Parallel::Process<Pos2i>(
+          outerRegions,
+          concurrency,
+          bind(CreateOuterRegion, _1, dimension, ctx.fNewSeaLevel, outputDirectory / worldDir / "region", &progressChunks, progress));
+      if (!st.ok()) {
+        return JE2BE_ERROR_PUSH(st);
+      }
+    }
 
     if (progress && !progress->report({progressChunksOffset + World::ProgressWeight(dimension), kProgressWeightTotal})) {
       return JE2BE_ERROR;
@@ -175,6 +188,42 @@ public:
   }
 
 private:
+  static Status CreateOuterRegion(Pos2i region, mcfile::Dimension dim, bool newSeaLevel, std::filesystem::path directory, std::atomic_uint64_t *progressChunks, Progress *progress) {
+    auto file = directory / mcfile::je::Region::GetDefaultRegionFileName(region.fX, region.fZ);
+    auto editor = mcfile::je::McaEditor::Open(file);
+    if (!editor) {
+      return JE2BE_ERROR;
+    }
+    for (int z = 0; z < 32; z++) {
+      for (int x = 0; x < 32; x++) {
+        int cx = region.fX * 32 + x;
+        int cz = region.fZ * 32 + z;
+        auto chunk = Chunk::CreateEmptyChunk(dim, cx, cz, newSeaLevel);
+        if (!chunk) {
+          return JE2BE_ERROR;
+        }
+        auto nbt = chunk->toCompoundTag(dim);
+        if (!nbt) {
+          return JE2BE_ERROR;
+        }
+        if (!editor->insert(x, z, *nbt)) {
+          return JE2BE_ERROR;
+        }
+        if (progress) {
+          auto p = progressChunks->fetch_add(1) + 1;
+          if (!progress->report({p, kProgressWeightTotal})) {
+            return JE2BE_ERROR;
+          }
+        }
+      }
+    }
+    if (editor->write(file)) {
+      return Status::Ok();
+    } else {
+      return JE2BE_ERROR;
+    }
+  }
+
   static Status Lighting(Pos2i const &region, mcfile::Dimension dim, std::filesystem::path inputDirectory, std::filesystem::path outputDirectory, std::atomic_uint64_t *progressChunks, Progress *progress) {
     using namespace std;
     namespace fs = std::filesystem;
