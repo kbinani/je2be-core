@@ -205,6 +205,7 @@ set(je2be_src_files
   src/box360-terraform.cpp
   src/box360-tile-entity.cpp
   src/box360-world.cpp
+  src/box360/_attribute.hpp
   src/box360/_biome.hpp
   src/box360/_block-data.hpp
   src/box360/_chunk.hpp

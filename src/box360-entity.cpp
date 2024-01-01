@@ -3,6 +3,7 @@
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_xxhash.hpp"
+#include "box360/_attribute.hpp"
 #include "box360/_block-data.hpp"
 #include "box360/_chunk.hpp"
 #include "box360/_context.hpp"
@@ -448,6 +449,18 @@ private:
           ret->set(key, itemJ);
         }
       }
+    }
+
+    if (auto attributesX = in.listTag(u8"Attributes"); attributesX) {
+      auto attributesJ = List<Tag::Type::Compound>();
+      for (auto const &it : *attributesX) {
+        if (auto c = it->asCompound(); c) {
+          if (auto j = Attribute::Convert(*c, *idB); j) {
+            attributesJ->push_back(j);
+          }
+        }
+      }
+      ret->set(u8"Attributes", attributesJ);
     }
 
     return ret;
