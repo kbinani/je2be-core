@@ -59,17 +59,6 @@ public:
       Fs::DeleteAll(*chunkTempDir);
     };
 
-    auto entityTempDir = mcfile::File::CreateTempDir(tempRoot);
-    if (!entityTempDir) {
-      return JE2BE_ERROR;
-    }
-    if (!Fs::CreateDirectories(*entityTempDir)) {
-      return JE2BE_ERROR;
-    }
-    defer {
-      Fs::DeleteAll(*entityTempDir);
-    };
-
     int skipChunks = 0;
     int minRegion = -World::LengthRegions(dimension);
     int maxRegion = World::LengthRegions(dimension) - 1;
@@ -111,11 +100,11 @@ public:
     Status st = Parallel::Process<Pos2i>(
         innerChunks,
         concurrency,
-        [levelRootDirectory, worldDir, chunkTempDir, entityTempDir, ctx, options, dimension, progress, &progressChunks](Pos2i const &chunk) -> Status {
+        [levelRootDirectory, worldDir, chunkTempDir, ctx, options, dimension, progress, &progressChunks](Pos2i const &chunk) -> Status {
           int rx = mcfile::Coordinate::RegionFromChunk(chunk.fX);
           int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
-          Status st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, *entityTempDir, ctx, options);
+          Status st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, ctx, options);
           if (!st.ok()) {
             return st;
           }
@@ -142,14 +131,11 @@ public:
     if (!Fs::CreateDirectories(outputDirectory / worldDir / "region_")) {
       return JE2BE_ERROR;
     }
-    if (!Fs::CreateDirectories(outputDirectory / worldDir / "entities")) {
-      return JE2BE_ERROR;
-    }
 
     st = Parallel::Process<Pos2i>(
         innerRegions,
         concurrency,
-        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, *entityTempDir, &progressChunks, progress));
+        bind(ConcatCompressedNbt, _1, outputDirectory / worldDir, *chunkTempDir, &progressChunks, progress));
     if (!st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
@@ -334,7 +320,6 @@ private:
   static Status ConcatCompressedNbt(Pos2i region,
                                     std::filesystem::path outputDirectory,
                                     std::filesystem::path chunkTempDir,
-                                    std::filesystem::path entityTempDir,
                                     std::atomic_uint64_t *progressChunks,
                                     Progress *progress) {
     mcfile::je::Region::ConcatOptions options;
@@ -358,18 +343,10 @@ private:
     int rz = region.fZ;
     auto name = mcfile::je::Region::GetDefaultRegionFileName(rx, rz);
     auto chunkMca = outputDirectory / "region_" / name;
-    auto entityMca = outputDirectory / "entities" / name;
     if (!mcfile::je::Region::ConcatCompressedNbt(rx,
                                                  rz,
                                                  chunkTempDir,
                                                  chunkMca,
-                                                 options)) {
-      return JE2BE_ERROR;
-    }
-    if (!mcfile::je::Region::ConcatCompressedNbt(rx,
-                                                 rz,
-                                                 entityTempDir,
-                                                 entityMca,
                                                  options)) {
       return JE2BE_ERROR;
     }
@@ -381,7 +358,6 @@ private:
                              int cx,
                              int cz,
                              std::filesystem::path chunkTempDir,
-                             std::filesystem::path entityTempDir,
                              Context ctx,
                              Options options) {
     using namespace std;
@@ -397,16 +373,6 @@ private:
       auto nbtz = chunkTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
       auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
       if (!chunk->write(*stream, dimension)) {
-        stream.reset();
-        Fs::Delete(nbtz);
-        return JE2BE_ERROR;
-      }
-    }
-
-    {
-      auto nbtz = entityTempDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-      auto stream = make_shared<mcfile::stream::FileOutputStream>(nbtz);
-      if (!chunk->writeEntities(*stream)) {
         stream.reset();
         Fs::Delete(nbtz);
         return JE2BE_ERROR;
