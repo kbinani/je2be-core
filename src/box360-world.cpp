@@ -86,7 +86,7 @@ public:
             continue;
           }
         }
-        regions.push_back({rx, rz});
+        regions.emplace_back(rx, rz);
         for (int z = 0; z < 32; z++) {
           for (int x = 0; x < 32; x++) {
             int cx = rx * 32 + x;
@@ -97,7 +97,7 @@ public:
                 continue;
               }
             }
-            chunks.push_back({cx, cz});
+            chunks.emplace_back(cx, cz);
           }
         }
       }

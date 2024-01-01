@@ -203,7 +203,7 @@ public:
   static std::shared_ptr<TargetSelector> Parse(std::u8string const &raw) {
     using namespace std;
 
-    shared_ptr<TargetSelector> ret(new TargetSelector(raw));
+    auto ret = make_shared<TargetSelector>(raw);
     size_t openBracket = raw.find(u8'[');
     if (openBracket == u8string::npos) {
       ret->fType = raw;

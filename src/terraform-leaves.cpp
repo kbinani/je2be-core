@@ -78,7 +78,7 @@ public:
         }
       }
     }
-    static vector<Pos3i> const sDirections = {
+    static array<Pos3i, 6> const sDirections = {
         Pos3i(0, 1, 0),  // up
         Pos3i(0, -1, 0), // down
         Pos3i(0, 0, -1), // north

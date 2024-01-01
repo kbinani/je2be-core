@@ -69,7 +69,7 @@ public:
           int y1 = std::max(a.fEnd.fY, b.fEnd.fY);
           int z1 = std::max(a.fEnd.fZ, b.fEnd.fZ);
           if (x1 - x0 <= maxSizeX && y1 - y0 <= maxSizeY && z1 - z0 <= maxSizeZ) {
-            tmp.push_back(Volume({x0, y0, z0}, {x1, y1, z1}));
+            tmp.emplace_back(Pos3i{x0, y0, z0}, Pos3i{x1, y1, z1});
             match = j;
             break;
           }
@@ -178,7 +178,6 @@ private:
     while (true) {
       vector<Volume> buffer;
       vector<bool> used(inout.size(), false);
-      unordered_set<int> ignore;
       for (int i = 0; i < inout.size() - 1; i++) {
         if (used[i]) {
           continue;

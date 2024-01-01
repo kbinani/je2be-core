@@ -65,7 +65,7 @@ public:
 
     vector<thread> threads;
     for (int i = 0; i < numThreads; i++) {
-      threads.push_back(thread(action));
+      threads.emplace_back(action);
     }
     action();
     latch.wait();
@@ -158,7 +158,7 @@ public:
 
     vector<thread> threads;
     for (int i = 0; i < numThreads; i++) {
-      threads.push_back(thread(action));
+      threads.emplace_back(action);
     }
     action();
     if (latch) {

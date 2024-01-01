@@ -573,9 +573,9 @@ private:
 
   static std::unordered_map<std::u8string, Converter> *CreateEntityTable() {
     auto table = new std::unordered_map<std::u8string, Converter>();
-#define E(__name, __func) table->insert(std::make_pair(u8"" #__name, __func))
-#define A(__name) table->insert(std::make_pair(u8"" #__name, Animal))
-#define M(__name) table->insert(std::make_pair(u8"" #__name, Monster))
+#define E(__name, __func) table->try_emplace(u8"" #__name, __func)
+#define A(__name) table->try_emplace(u8"" #__name, Animal)
+#define M(__name) table->try_emplace(u8"" #__name, Monster)
 
     E(painting, Painting);
     E(end_crystal, EndCrystal);

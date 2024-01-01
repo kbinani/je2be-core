@@ -514,7 +514,7 @@ private:
     std::vector<Pos3i> candidates;
     for (auto const &pos : blocks) {
       if (IsValidExitPortal(pos, blocks)) {
-        candidates.push_back(Pos3i(pos.fX + 1, pos.fY, pos.fZ + 2));
+        candidates.emplace_back(pos.fX + 1, pos.fY, pos.fZ + 2);
       }
     }
     if (candidates.empty()) {
@@ -532,7 +532,7 @@ private:
   }
 
   static bool IsValidExitPortal(Pos3i p, std::unordered_set<Pos3i, Pos3iHasher> const &blocks) {
-    static std::vector<Pos3i> const portalPlacement = {
+    static std::array<Pos3i, 20> const portalPlacement = {
         // line1
         Pos3i(0, 0, 0),
         Pos3i(1, 0, 0),

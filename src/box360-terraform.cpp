@@ -107,7 +107,7 @@ private:
 
     vector<thread> threads;
     for (int i = 0; i < (int)concurrency - 1; i++) {
-      threads.push_back(thread(action));
+      threads.emplace_back(action);
     }
 
     action();

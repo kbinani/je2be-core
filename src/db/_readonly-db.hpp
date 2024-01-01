@@ -55,7 +55,7 @@ public:
     if (!dir) {
       return JE2BE_ERROR;
     }
-    std::unique_ptr<Closer> closer(new Closer);
+    auto closer = std::make_unique<Closer>();
     closer->fTempDir = *dir;
 
     closer->fFirewall.reset(new FirewallEnv(*dir));

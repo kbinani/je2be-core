@@ -2210,7 +2210,7 @@ private:
 #define E(__name, __converter)                       \
   assert(table->find(u8"" #__name) == table->end()); \
   if (string(#__converter) != "Same") {              \
-    table->emplace(u8"" #__name, __converter);       \
+    table->try_emplace(u8"" #__name, __converter);   \
   }
 
     E(acacia_button, Button);

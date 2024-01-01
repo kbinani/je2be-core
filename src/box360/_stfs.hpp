@@ -439,11 +439,11 @@ public:
       throw std::string("FileIO: Cannot expand file size.");
     }
 
-    unique_ptr<u8[]> buffer(new u8[0x10000]);
+    vector<u8> buffer(0x10000);
     std::string newFilePath = filePath + ".new";
 
     // open a new stream
-    unique_ptr<fstream> newFileStream(new fstream(newFilePath.c_str(), ios::out | ios::binary | ios::trunc));
+    auto newFileStream = make_unique<fstream>(newFilePath.c_str(), ios::out | ios::binary | ios::trunc);
     if (!fstr->is_open()) {
       std::string ex("FileIO: Failed to resize file. ");
       ex += Errno::StringFromErrno(errno);
@@ -453,16 +453,16 @@ public:
 
     // copy the data
     while (size >= 0x10000) {
-      fstr->read((char *)buffer.get(), 0x10000);
-      newFileStream->write((char *)buffer.get(), 0x10000);
+      fstr->read((char *)buffer.data(), 0x10000);
+      newFileStream->write((char *)buffer.data(), 0x10000);
       size -= 0x10000;
     }
 
     if (size != 0) {
-      fstr->read((char *)buffer.get(), size);
-      newFileStream->write((char *)buffer.get(), size);
+      fstr->read((char *)buffer.data(), size);
+      newFileStream->write((char *)buffer.data(), size);
     }
-    buffer.reset();
+    vector<u8>().swap(buffer);
 
     // close the current stream, delete the files
     fstr->close();
@@ -1137,8 +1137,9 @@ public:
       out.Close();
 
       // update progress if needed
-      if (extractProgress != NULL)
+      if (extractProgress != NULL) {
         extractProgress(arg, 1, 1);
+      }
 
       return;
     }
@@ -1146,7 +1147,7 @@ public:
     // check if all the blocks are consecutive
     if (entry->flags & 1) {
       // allocate 0xAA blocks of memory, for maximum efficiency, yo
-      std::unique_ptr<u8[]> buffer(new u8[0xAA000]);
+      std::vector<u8> buffer(0xAA000);
 
       // seek to the begining of the file
       u32 startAddress = BlockToAddress(entry->startingBlockNum);
@@ -1157,25 +1158,27 @@ public:
 
       // pick up the change at the begining, until we hit a hash table
       if ((u32)entry->blocksForFile <= blockCount) {
-        io->ReadBytes(buffer.get(), entry->fileSize);
-        out.Write(buffer.get(), entry->fileSize);
+        io->ReadBytes(buffer.data(), entry->fileSize);
+        out.Write(buffer.data(), entry->fileSize);
 
         // update progress if needed
-        if (extractProgress != NULL)
+        if (extractProgress != NULL) {
           extractProgress(arg, entry->blocksForFile, entry->blocksForFile);
+        }
 
         out.Close();
 
         // free the temp buffer
-        buffer.reset();
+        std::vector<u8>().swap(buffer);
         return;
       } else {
-        io->ReadBytes(buffer.get(), blockCount << 0xC);
-        out.Write(buffer.get(), blockCount << 0xC);
+        io->ReadBytes(buffer.data(), blockCount << 0xC);
+        out.Write(buffer.data(), blockCount << 0xC);
 
         // update progress if needed
-        if (extractProgress != NULL)
+        if (extractProgress != NULL) {
           extractProgress(arg, blockCount, entry->blocksForFile);
+        }
       }
 
       // extract the blocks inbetween the tables
@@ -1186,17 +1189,18 @@ public:
         io->SetPosition(currentPos + GetHashTableSkipSize(currentPos));
 
         // read in the 0xAA blocks between the tables
-        io->ReadBytes(buffer.get(), 0xAA000);
+        io->ReadBytes(buffer.data(), 0xAA000);
 
         // Write the bytes to the out file
-        out.Write(buffer.get(), 0xAA000);
+        out.Write(buffer.data(), 0xAA000);
 
         tempSize -= 0xAA000;
         blockCount += 0xAA;
 
         // update progress if needed
-        if (extractProgress != NULL)
+        if (extractProgress != NULL) {
           extractProgress(arg, blockCount, entry->blocksForFile);
+        }
       }
 
       // pick up the change at the end
@@ -1206,18 +1210,19 @@ public:
         io->SetPosition(currentPos + GetHashTableSkipSize(currentPos));
 
         // read in the extra crap
-        io->ReadBytes(buffer.get(), tempSize);
+        io->ReadBytes(buffer.data(), tempSize);
 
         // Write it to the out file
-        out.Write(buffer.get(), tempSize);
+        out.Write(buffer.data(), tempSize);
 
         // update progress if needed
-        if (extractProgress != NULL)
+        if (extractProgress != NULL) {
           extractProgress(arg, entry->blocksForFile, entry->blocksForFile);
+        }
       }
 
       // free the temp buffer
-      buffer.reset();
+      std::vector<u8>().swap(buffer);
     } else {
       // generate the block chain which we have to extract
       u32 fullReadCounts = fileSize / 0x1000;
@@ -1227,28 +1232,30 @@ public:
       u32 block = entry->startingBlockNum;
 
       // allocate data for the blocks
-      u8 data[0x1000];
+      std::vector<u8> data(0x1000);
 
       // read all the full blocks the file allocates
       for (u32 i = 0; i < fullReadCounts; i++) {
-        ExtractBlock(block, data);
-        out.Write(data, 0x1000);
+        ExtractBlock(block, data.data());
+        out.Write(data.data(), 0x1000);
 
         block = GetBlockHashEntry(block).nextBlock;
 
         // call the extract progress function if needed
-        if (extractProgress != NULL)
+        if (extractProgress != NULL) {
           extractProgress(arg, i + 1, entry->blocksForFile);
+        }
       }
 
       // read the remaining data
       if (fileSize != 0) {
-        ExtractBlock(block, data, fileSize);
-        out.Write(data, fileSize);
+        ExtractBlock(block, data.data(), fileSize);
+        out.Write(data.data(), fileSize);
 
         // call the extract progress function if needed
-        if (extractProgress != NULL)
+        if (extractProgress != NULL) {
           extractProgress(arg, entry->blocksForFile, entry->blocksForFile);
+        }
       }
     }
 

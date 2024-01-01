@@ -59,7 +59,7 @@ public:
   Status pushed(char const *file, int line) const {
     if (fError) {
       ErrorData copy = *fError;
-      copy.fTrace.push_back(Where(file, line));
+      copy.fTrace.emplace_back(file, line);
       return Status(copy);
     } else {
       return *this;

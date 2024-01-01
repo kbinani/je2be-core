@@ -357,8 +357,6 @@ private:
       return nullopt;
     }
 
-    static std::string const slimeBlock = "minecraft:slime_block";
-    static std::string const honeyBlock = "minecraft:honey_block";
     static int constexpr kMaxMovableBlocksByAPiston = 12;
 
     unordered_map<Pos3i, optional<PistonTileEntity>, Pos3iHasher> testedBlocks;

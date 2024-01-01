@@ -82,7 +82,7 @@ public:
   }
 
   BlockAccessorJavaDirectory<Width, Height> *makeRelocated(int cx, int cz) const {
-    std::unique_ptr<BlockAccessorJavaDirectory<Width, Height>> ret(new BlockAccessorJavaDirectory<Width, Height>(cx, cz, fDir));
+    auto ret = std::make_unique<BlockAccessorJavaDirectory<Width, Height>>(cx, cz, fDir);
     for (int x = 0; x < Width; x++) {
       for (int z = 0; z < Height; z++) {
         auto idx = getIndex(fChunkX + x, fChunkZ + z);

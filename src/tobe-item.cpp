@@ -150,7 +150,7 @@ private:
     auto table = new unordered_map<u8string, Converter>();
 #define E(__name, __func)                  \
   assert(table->count(u8"" #__name) == 0); \
-  table->insert(make_pair(u8"" #__name, __func))
+  table->try_emplace(u8"" #__name, __func)
 
     E(brown_mushroom_block, MushroomBlock(u8"minecraft:brown_mushroom_block", 14));
     E(red_mushroom_block, MushroomBlock(u8"minecraft:red_mushroom_block", 14));
@@ -168,7 +168,6 @@ private:
 
   static std::unordered_map<std::u8string, Converter> const &BlockItemConverterTable() {
     using namespace std;
-    using namespace std;
     static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateBlockItemConverterTable());
     return *sTable;
   }
@@ -179,7 +178,7 @@ private:
 
 #define E(__name, __func)                  \
   assert(table->count(u8"" #__name) == 0); \
-  table->insert(make_pair(u8"" #__name, __func))
+  table->try_emplace(u8"" #__name, __func)
 
     E(furnace_minecart, Rename(u8"minecart")); // furnace minecart does not exist in bedrock
     E(tropical_fish_bucket, TropicalFishBucket);

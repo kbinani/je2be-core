@@ -959,7 +959,7 @@ public:
     auto *t = new unordered_map<u8string_view, Converter>();
 #define E(__name, __conv)                    \
   assert(t->find(u8"" #__name) == t->end()); \
-  t->insert(make_pair(u8"" #__name, __conv))
+  t->try_emplace(u8"" #__name, __conv)
 
     E(flower_pot, FlowerPot);
     E(skull, Skull);

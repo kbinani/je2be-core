@@ -16,7 +16,7 @@ public:
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
         u8 g = 0xff & ((*(u32 *)&v) >> 8);
         u8 b = 0xff & (*(u32 *)&v);
-        e.fColor.push_back(Rgba(r, g, b));
+        e.fColor.emplace_back(r, g, b);
       }
     }
     auto fadeColors = tag.query(u8"FadeColors")->asIntArray();
@@ -25,7 +25,7 @@ public:
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
         u8 g = 0xff & ((*(u32 *)&v) >> 8);
         u8 b = 0xff & (*(u32 *)&v);
-        e.fFadeColor.push_back(Rgba(r, g, b));
+        e.fFadeColor.emplace_back(r, g, b);
       }
     }
     e.fType = tag.byte(u8"Type");
@@ -209,7 +209,7 @@ private:
     std::vector<Color> colors;
     auto const *table = GetTable();
     for (auto const &it : *table) {
-      colors.push_back({it.second, it.first});
+      colors.emplace_back(it.second, it.first);
     }
     std::sort(colors.begin(), colors.end(), [rgb](Color const &lhs, Color const &rhs) { return Lab::CompareBySimirality(rgb)(lhs.fColor, rhs.fColor); });
     auto const &ret = colors[0];

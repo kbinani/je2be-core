@@ -1921,7 +1921,7 @@ public:
 
 #define E(__name, __conv)                        \
   assert(ret->find(u8"" #__name) == ret->end()); \
-  ret->insert(std::make_pair(u8"" #__name, __conv));
+  ret->try_emplace(u8"" #__name, __conv);
 
     E(skeleton, C(Same, LivingEntity, StrayConversionTime));
     E(stray, C(Same, LivingEntity));

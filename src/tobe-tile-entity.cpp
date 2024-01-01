@@ -122,7 +122,7 @@ private:
     auto table = new unordered_map<mcfile::blocks::BlockId, Converter>();
 #define E(__name, __func)                                       \
   assert(table->count(mcfile::blocks::minecraft::__name) == 0); \
-  table->insert(make_pair(mcfile::blocks::minecraft::__name, __func))
+  table->try_emplace(mcfile::blocks::minecraft::__name, __func)
     E(chest, Chest);
     E(trapped_chest, Chest);
 
@@ -1063,7 +1063,7 @@ private:
     if (!items) {
       return nullptr;
     }
-    vector<shared_ptr<CompoundTag>> sorted(5);
+    array<shared_ptr<CompoundTag>, 5> sorted;
     for (auto const &it : *items) {
       auto item = it->asCompound();
       if (!item) {
