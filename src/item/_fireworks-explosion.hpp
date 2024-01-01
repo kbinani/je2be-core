@@ -205,6 +205,7 @@ private:
     struct Color {
       Rgba fColor;
       i8 fCode;
+      Color(Rgba color, i8 code) : fColor(color), fCode(code) {}
     };
     std::vector<Color> colors;
     auto const *table = GetTable();
