@@ -1,6 +1,5 @@
 #pragma once
 
-#include <je2be/defer.hpp>
 #include <je2be/fs.hpp>
 #include <je2be/strings.hpp>
 
@@ -14,6 +13,8 @@
 #include <table/block_builder.h>
 #include <table/format.h>
 #include <util/crc32c.h>
+
+#include <defer.hpp>
 
 #include <execution>
 #include <inttypes.h>

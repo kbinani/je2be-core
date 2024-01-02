@@ -36,6 +36,11 @@ CPMAddPackage(
   GITHUB_REPOSITORY kbinani/libminecraft-file
   GIT_TAG a1284d5490a9d64f6fe6b42bae31bdb5ffecaf8e)
 
+CPMAddPackage(
+  NAME defer
+  GITHUB_REPOSITORY kbinani/defer
+  GIT_TAG b1fa5b1d3d5886c7d07487499febc8d77095d170)
+
 set(je2be_header_files
   #begin je2be-header files
   include/je2be.hpp
@@ -43,7 +48,6 @@ set(je2be_header_files
   include/je2be/box360/minecraft-save-info.hpp
   include/je2be/box360/options.hpp
   include/je2be/box360/progress.hpp
-  include/je2be/defer.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/errno.hpp
   include/je2be/fs.hpp
@@ -479,7 +483,7 @@ CPMAddPackage(
           "MZ_SIGNING OFF"
           "MZ_LIBCOMP OFF")
 
-list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json)
+list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json defer)
 list(APPEND je2be_exe_link_libraries je2be)
 
 if (MSVC)
@@ -510,7 +514,7 @@ target_include_directories(je2be PUBLIC
   ${xxhash_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
   ${je2be_include_directories})
-target_include_directories(je2be PRIVATE ./src ${libdeflate_SOURCE_DIR} ${libminecraft-file_SOURCE_DIR}/include)
+target_include_directories(je2be PRIVATE ./src ${libdeflate_SOURCE_DIR} ${libminecraft-file_SOURCE_DIR}/include ${defer_SOURCE_DIR}/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
 

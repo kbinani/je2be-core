@@ -1,6 +1,5 @@
 #include <je2be/zip-file.hpp>
 
-#include <je2be/defer.hpp>
 #include <je2be/fs.hpp>
 
 #include <iostream>
@@ -10,6 +9,8 @@
 #include <mz_strm.h>
 #include <mz_strm_os.h>
 #include <mz_zip.h>
+
+#include <defer.hpp>
 
 namespace je2be {
 

@@ -2,9 +2,10 @@
 
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/progress.hpp>
-#include <je2be/defer.hpp>
 #include <je2be/fs.hpp>
 #include <je2be/pos2.hpp>
+
+#include <defer.hpp>
 
 #include "_parallel.hpp"
 #include "box360/_chunk.hpp"

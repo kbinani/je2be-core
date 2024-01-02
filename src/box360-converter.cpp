@@ -2,9 +2,10 @@
 
 #include <je2be/box360/options.hpp>
 #include <je2be/box360/progress.hpp>
-#include <je2be/defer.hpp>
 #include <je2be/fs.hpp>
 #include <je2be/zip-file.hpp>
+
+#include <defer.hpp>
 
 #include "_dimension-ext.hpp"
 #include "_directory-iterator.hpp"
