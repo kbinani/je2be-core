@@ -1,4 +1,4 @@
-#include "box360/_chunk.hpp"
+#include "lce/_chunk.hpp"
 
 #include <je2be/nbt.hpp>
 
@@ -6,13 +6,13 @@
 #include "_data3d.hpp"
 #include "_mem.hpp"
 #include "_props.hpp"
-#include "box360/_biome.hpp"
-#include "box360/_block-data.hpp"
-#include "box360/_context.hpp"
-#include "box360/_entity.hpp"
-#include "box360/_grid.hpp"
-#include "box360/_savegame.hpp"
-#include "box360/_tile-entity.hpp"
+#include "lce/_biome.hpp"
+#include "lce/_block-data.hpp"
+#include "lce/_context.hpp"
+#include "lce/_entity.hpp"
+#include "lce/_grid.hpp"
+#include "lce/_savegame.hpp"
+#include "lce/_tile-entity.hpp"
 
 #include <bitset>
 #include <mutex>

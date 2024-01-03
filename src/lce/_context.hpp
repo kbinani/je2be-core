@@ -4,7 +4,7 @@
 #include <je2be/uuid.hpp>
 
 #include "_pos3.hpp"
-#include "box360/_tile-entity-convert-result.hpp"
+#include "lce/_tile-entity-convert-result.hpp"
 
 namespace je2be::box360 {
 

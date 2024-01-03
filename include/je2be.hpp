@@ -6,10 +6,10 @@
 
 #include <je2be/integers.hpp>
 
-#include <je2be/box360/progress.hpp>
-#include <je2be/box360/options.hpp>
-#include <je2be/box360/converter.hpp>
-#include <je2be/box360/minecraft-save-info.hpp>
+#include <je2be/lce/progress.hpp>
+#include <je2be/lce/options.hpp>
+#include <je2be/lce/converter.hpp>
+#include <je2be/lce/minecraft-save-info.hpp>
 
 #include <je2be/tobe/progress.hpp>
 #include <je2be/tobe/options.hpp>

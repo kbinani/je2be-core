@@ -1,12 +1,12 @@
-#include "box360/_terraform.hpp"
+#include "lce/_terraform.hpp"
 
-#include <je2be/box360/progress.hpp>
+#include <je2be/lce/progress.hpp>
 
 #include "_nullable.hpp"
 #include "_poi-blocks.hpp"
 #include "_queue2d.hpp"
-#include "box360/_chunk.hpp"
-#include "box360/_world.hpp"
+#include "lce/_chunk.hpp"
+#include "lce/_world.hpp"
 #include "terraform/_chorus-plant.hpp"
 #include "terraform/_door.hpp"
 #include "terraform/_fence-connectable.hpp"

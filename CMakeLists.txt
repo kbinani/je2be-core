@@ -44,14 +44,14 @@ CPMAddPackage(
 set(je2be_header_files
   #begin je2be-header files
   include/je2be.hpp
-  include/je2be/box360/converter.hpp
-  include/je2be/box360/minecraft-save-info.hpp
-  include/je2be/box360/options.hpp
-  include/je2be/box360/progress.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/errno.hpp
   include/je2be/fs.hpp
   include/je2be/integers.hpp
+  include/je2be/lce/converter.hpp
+  include/je2be/lce/minecraft-save-info.hpp
+  include/je2be/lce/options.hpp
+  include/je2be/lce/progress.hpp
   include/je2be/nbt.hpp
   include/je2be/pos2.hpp
   include/je2be/rational.hpp
@@ -199,32 +199,6 @@ set(je2be_src_files
   src/_volume.hpp
   src/_walk.hpp
   src/_xxhash.hpp
-  src/box360-block-data.cpp
-  src/box360-chunk.cpp
-  src/box360-converter.cpp
-  src/box360-entity.cpp
-  src/box360-item.cpp
-  src/box360-minecraft-save-info.cpp
-  src/box360-savegame.cpp
-  src/box360-terraform.cpp
-  src/box360-tile-entity.cpp
-  src/box360-world.cpp
-  src/box360/_attribute.hpp
-  src/box360/_biome.hpp
-  src/box360/_block-data.hpp
-  src/box360/_chunk.hpp
-  src/box360/_context.hpp
-  src/box360/_entity.hpp
-  src/box360/_grid.hpp
-  src/box360/_item.hpp
-  src/box360/_lzx-decoder.hpp
-  src/box360/_savegame.hpp
-  src/box360/_stfs-ext.hpp
-  src/box360/_stfs.hpp
-  src/box360/_terraform.hpp
-  src/box360/_tile-entity-convert-result.hpp
-  src/box360/_tile-entity.hpp
-  src/box360/_world.hpp
   src/color/_lab.hpp
   src/color/_rgba.hpp
   src/color/_sign-color.hpp
@@ -269,6 +243,32 @@ set(je2be_src_files
   src/item/_map-type.hpp
   src/item/_potion.hpp
   src/item/_tipped-arrow-potion.hpp
+  src/lce-block-data.cpp
+  src/lce-chunk.cpp
+  src/lce-converter.cpp
+  src/lce-entity.cpp
+  src/lce-item.cpp
+  src/lce-minecraft-save-info.cpp
+  src/lce-savegame.cpp
+  src/lce-terraform.cpp
+  src/lce-tile-entity.cpp
+  src/lce-world.cpp
+  src/lce/_attribute.hpp
+  src/lce/_biome.hpp
+  src/lce/_block-data.hpp
+  src/lce/_chunk.hpp
+  src/lce/_context.hpp
+  src/lce/_entity.hpp
+  src/lce/_grid.hpp
+  src/lce/_item.hpp
+  src/lce/_lzx-decoder.hpp
+  src/lce/_savegame.hpp
+  src/lce/_stfs-ext.hpp
+  src/lce/_stfs.hpp
+  src/lce/_terraform.hpp
+  src/lce/_tile-entity-convert-result.hpp
+  src/lce/_tile-entity.hpp
+  src/lce/_world.hpp
   src/structure/_structure-piece.hpp
   src/system.cpp
   src/terraform-block-property-accessor.cpp

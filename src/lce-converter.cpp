@@ -1,7 +1,7 @@
-#include <je2be/box360/converter.hpp>
+#include <je2be/lce/converter.hpp>
 
-#include <je2be/box360/options.hpp>
-#include <je2be/box360/progress.hpp>
+#include <je2be/lce/options.hpp>
+#include <je2be/lce/progress.hpp>
 #include <je2be/fs.hpp>
 #include <je2be/zip-file.hpp>
 
@@ -13,12 +13,12 @@
 #include "_nbt-ext.hpp"
 #include "_nullable.hpp"
 #include "_props.hpp"
-#include "box360/_chunk.hpp"
-#include "box360/_context.hpp"
-#include "box360/_entity.hpp"
-#include "box360/_savegame.hpp"
-#include "box360/_tile-entity.hpp"
-#include "box360/_world.hpp"
+#include "lce/_chunk.hpp"
+#include "lce/_context.hpp"
+#include "lce/_entity.hpp"
+#include "lce/_savegame.hpp"
+#include "lce/_tile-entity.hpp"
+#include "lce/_world.hpp"
 #include "toje/_constants.hpp"
 
 namespace je2be::box360 {
