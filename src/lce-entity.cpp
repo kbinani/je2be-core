@@ -3,13 +3,13 @@
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_xxhash.hpp"
+#include "entity/_painting.hpp"
+#include "enums/_facing6.hpp"
 #include "lce/_attribute.hpp"
 #include "lce/_block-data.hpp"
 #include "lce/_chunk.hpp"
 #include "lce/_context.hpp"
 #include "lce/_item.hpp"
-#include "entity/_painting.hpp"
-#include "enums/_facing6.hpp"
 #include "tile-entity/_loot-table.hpp"
 
 namespace je2be::lce {

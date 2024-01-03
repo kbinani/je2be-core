@@ -44,12 +44,12 @@ CPMAddPackage(
 set(je2be_header_files
   #begin je2be-header files
   include/je2be.hpp
+  include/je2be/box360/minecraft-save-info.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/errno.hpp
   include/je2be/fs.hpp
   include/je2be/integers.hpp
   include/je2be/lce/converter.hpp
-  include/je2be/lce/minecraft-save-info.hpp
   include/je2be/lce/options.hpp
   include/je2be/lce/progress.hpp
   include/je2be/nbt.hpp
@@ -199,6 +199,10 @@ set(je2be_src_files
   src/_volume.hpp
   src/_walk.hpp
   src/_xxhash.hpp
+  src/box360-save-bin.cpp
+  src/box360/_save-bin.hpp
+  src/box360/_stfs-ext.hpp
+  src/box360/_stfs.hpp
   src/color/_lab.hpp
   src/color/_rgba.hpp
   src/color/_sign-color.hpp
@@ -263,8 +267,6 @@ set(je2be_src_files
   src/lce/_item.hpp
   src/lce/_lzx-decoder.hpp
   src/lce/_savegame.hpp
-  src/lce/_stfs-ext.hpp
-  src/lce/_stfs.hpp
   src/lce/_terraform.hpp
   src/lce/_tile-entity-convert-result.hpp
   src/lce/_tile-entity.hpp

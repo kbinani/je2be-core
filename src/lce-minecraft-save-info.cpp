@@ -1,16 +1,16 @@
-#include <je2be/lce/minecraft-save-info.hpp>
+#include <je2be/box360/minecraft-save-info.hpp>
 
 // clang-format off
 #include <fstream>
 
 #include "_mem.hpp"
-#include "lce/_stfs.hpp"
-#include "lce/_stfs-ext.hpp"
+#include "box360/_stfs.hpp"
+#include "box360/_stfs-ext.hpp"
 
 #include <minecraft-file.hpp>
 // clang-format on
 
-namespace je2be::lce {
+namespace je2be::box360 {
 
 using namespace detail;
 
@@ -93,4 +93,4 @@ bool MinecraftSaveInfo::Parse(std::filesystem::path const &saveInfoFilePath, std
   return Impl::Parse(saveInfoFilePath, bins);
 }
 
-} // namespace je2be::lce
+} // namespace je2be::box360

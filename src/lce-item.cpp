@@ -4,10 +4,10 @@
 #include "_nbt-ext.hpp"
 #include "_pos3.hpp"
 #include "_props.hpp"
-#include "lce/_context.hpp"
 #include "enums/_color-code-java.hpp"
 #include "item/_enchantments.hpp"
 #include "item/_potion.hpp"
+#include "lce/_context.hpp"
 
 namespace je2be::lce {
 

@@ -2,12 +2,12 @@
 
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
-#include "lce/_chunk.hpp"
-#include "lce/_context.hpp"
-#include "lce/_item.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_skull-type.hpp"
+#include "lce/_chunk.hpp"
+#include "lce/_context.hpp"
+#include "lce/_item.hpp"
 #include "tile-entity/_loot-table.hpp"
 
 namespace je2be::lce {

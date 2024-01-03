@@ -1,8 +1,8 @@
 #include <je2be/lce/converter.hpp>
 
+#include <je2be/fs.hpp>
 #include <je2be/lce/options.hpp>
 #include <je2be/lce/progress.hpp>
-#include <je2be/fs.hpp>
 #include <je2be/zip-file.hpp>
 
 #include <defer.hpp>
@@ -13,6 +13,7 @@
 #include "_nbt-ext.hpp"
 #include "_nullable.hpp"
 #include "_props.hpp"
+#include "box360/_save-bin.hpp"
 #include "lce/_chunk.hpp"
 #include "lce/_context.hpp"
 #include "lce/_entity.hpp"
@@ -47,7 +48,7 @@ public:
     optional<chrono::system_clock::time_point> lastPlayed;
     {
       vector<u8> buffer;
-      auto savegameInfo = Savegame::ExtractSavagameFromSaveBin(inputSaveBin, buffer);
+      auto savegameInfo = box360::SaveBin::ExtractSavagame(inputSaveBin, buffer);
       if (!savegameInfo) {
         return JE2BE_ERROR;
       }
@@ -60,7 +61,7 @@ public:
       }
       lastPlayed = savegameInfo->fCreatedTime;
 
-      if (!Savegame::DecompressSavegame(buffer)) {
+      if (!box360::SaveBin::DecompressSavegame(buffer)) {
         return JE2BE_ERROR;
       }
       if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {

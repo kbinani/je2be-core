@@ -943,8 +943,8 @@ public:
         if (remaining < 5) {
           return 0;
         }
-        outputSize = mcfile::U16FromBE(Mem::Read<u16>(buffer, pos + 1));
-        inputSize = mcfile::U16FromBE(Mem::Read<u16>(buffer, pos + 3));
+        outputSize = mcfile::U16FromBE(mcfile::Mem::Read<u16>(buffer, pos + 1));
+        inputSize = mcfile::U16FromBE(mcfile::Mem::Read<u16>(buffer, pos + 3));
 
         remaining -= 5;
         pos += 5;
@@ -959,7 +959,7 @@ public:
           }
         }
         outputSize = 0x8000;
-        inputSize = mcfile::U16FromBE(Mem::Read<u16>(buffer, pos));
+        inputSize = mcfile::U16FromBE(mcfile::Mem::Read<u16>(buffer, pos));
         remaining -= 2;
         pos += 2;
       }

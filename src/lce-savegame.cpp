@@ -8,8 +8,6 @@
 
 #include "_mem.hpp"
 #include "lce/_lzx-decoder.hpp"
-#include "lce/_stfs.hpp"
-#include "lce/_stfs-ext.hpp"
 // clang-format on
 
 namespace je2be::lce {
@@ -20,22 +18,6 @@ class Savegame::Impl {
   Impl() = delete;
 
 public:
-  static bool DecompressSavegame(std::vector<u8> &buffer) {
-    using namespace std;
-    if (buffer.size() < 12) {
-      return false;
-    }
-    // u32 inputSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, 0));
-    u32 outputSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, 8));
-    for (int i = 0; i < 12; i++) {
-      buffer.erase(buffer.begin());
-    }
-    if (LzxDecoder::Decode(buffer) != outputSize) {
-      return false;
-    }
-    return true;
-  }
-
   static bool DecompressRawChunk(std::vector<u8> &buffer) {
     if (buffer.size() < 4) {
       return false;
@@ -177,88 +159,7 @@ public:
     auto stream = make_shared<mcfile::stream::FileOutputStream>(file);
     return stream->write(buffer.data() + offset, size);
   }
-
-  static StfsFileEntry *FindSavegameFileEntry(StfsFileListing &listing) {
-    for (auto &file : listing.fileEntries) {
-      if (file.name == "savegame.dat") {
-        return &file;
-      }
-    }
-    for (auto &folder : listing.folderEntries) {
-      if (auto entry = FindSavegameFileEntry(folder); entry) {
-        return entry;
-      }
-    }
-    return nullptr;
-  }
-
-  static std::optional<SavegameInfo> ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<u8> &buffer) {
-    using namespace std;
-    namespace fs = std::filesystem;
-
-    try {
-      auto pkg = make_unique<StfsPackage>(new FileIO2(saveBinFile));
-
-      auto listing = pkg->GetFileListing();
-      auto entry = FindSavegameFileEntry(listing);
-      if (!entry) {
-        return nullopt;
-      }
-      MemoryIO out;
-      pkg->Extract(entry, out);
-      out.Drain(buffer);
-
-      SavegameInfo info;
-      info.fCreatedTime = TimePointFromFatTimestamp(entry->createdTimeStamp);
-      if (auto meta = pkg->GetMetaData(); meta && meta->thumbnailImage && meta->thumbnailImageSize > 0) {
-        info.fThumbnailImage = std::string((char const *)meta->thumbnailImage.get(), meta->thumbnailImageSize);
-      }
-      return info;
-    } catch (...) {
-      return nullopt;
-    }
-  }
-
-  static std::optional<std::chrono::system_clock::time_point> TimePointFromFatTimestamp(u32 fat) {
-    using namespace std;
-    u32 year = (fat >> 25) + 1980;
-    u32 month = 0xf & (fat >> 21);
-    u32 day = 0x1f & (fat >> 16);
-    u32 hour = 0x1f & (fat >> 11);
-    u32 minute = 0x3f & (fat >> 5);
-    u32 second = (0x1f & fat) * 2;
-
-#if defined(__GNUC__)
-    std::tm tm{};
-    tm.tm_year = year - 1900;
-    tm.tm_mon = month - 1;
-    tm.tm_mday = day;
-    tm.tm_hour = hour;
-    tm.tm_min = minute;
-    tm.tm_sec = second;
-    tm.tm_isdst = 0;
-#if defined(_MSC_VER)
-    std::time_t t = _mkgmtime(&tm);
-#else
-    std::time_t t = timegm(&tm);
-#endif
-    if (t == (std::time_t)-1) {
-      return nullopt;
-    }
-    return std::chrono::system_clock::from_time_t(t);
-#else
-    auto ymd = chrono::year(year) / chrono::month(month) / chrono::day(day);
-    if (!ymd.ok()) {
-      return nullopt;
-    }
-    return chrono::sys_days(ymd) + chrono::hours(hour) + chrono::minutes(minute) + chrono::seconds(second);
-#endif
-  }
 };
-
-bool Savegame::DecompressSavegame(std::vector<u8> &buffer) {
-  return Impl::DecompressSavegame(buffer);
-}
 
 bool Savegame::DecompressRawChunk(std::vector<u8> &buffer) {
   return Impl::DecompressRawChunk(buffer);
@@ -274,18 +175,6 @@ bool Savegame::ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream
 
 bool Savegame::ExtractFilesFromDecompressedSavegame(std::vector<u8> const &savegame, std::filesystem::path const &outputDirectory) {
   return Impl::ExtractFilesFromDecompressedSavegame(savegame, outputDirectory);
-}
-
-bool Savegame::ExtractFile(std::vector<u8> const &buffer, u32 indexPosition, std::filesystem::path outputDirectory) {
-  return Impl::ExtractFile(buffer, indexPosition, outputDirectory);
-}
-
-std::optional<Savegame::SavegameInfo> Savegame::ExtractSavagameFromSaveBin(std::filesystem::path const &saveBinFile, std::vector<u8> &buffer) {
-  return Impl::ExtractSavagameFromSaveBin(saveBinFile, buffer);
-}
-
-std::optional<std::chrono::system_clock::time_point> Savegame::TimePointFromFatTimestamp(u32 fat) {
-  return Impl::TimePointFromFatTimestamp(fat);
 }
 
 } // namespace je2be::lce
