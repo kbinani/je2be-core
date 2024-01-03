@@ -9,6 +9,7 @@
 
 #include "_dimension-ext.hpp"
 #include "_directory-iterator.hpp"
+#include "_file.hpp"
 #include "_java-level-dat.hpp"
 #include "_nbt-ext.hpp"
 #include "_nullable.hpp"
@@ -28,7 +29,7 @@ class Converter::Impl {
   Impl() = delete;
 
 public:
-  static Status Run(std::filesystem::path const &inputSaveBin,
+  static Status Run(std::filesystem::path const &inputSavegame,
                     std::filesystem::path const &outputDirectory,
                     unsigned int concurrency,
                     Options const &options,
@@ -45,23 +46,9 @@ public:
       Fs::DeleteAll(*temp);
     };
 
-    optional<chrono::system_clock::time_point> lastPlayed;
     {
-      vector<u8> buffer;
-      auto savegameInfo = box360::SaveBin::ExtractSavagame(inputSaveBin, buffer);
-      if (!savegameInfo) {
-        return JE2BE_ERROR;
-      }
-      if (auto thumbnail = savegameInfo->fThumbnailImage; thumbnail) {
-        auto iconPath = outputDirectory / "icon.png";
-        auto icon = make_shared<mcfile::stream::FileOutputStream>(iconPath);
-        if (!icon->write(thumbnail->data(), thumbnail->size())) {
-          return JE2BE_ERROR;
-        }
-      }
-      lastPlayed = savegameInfo->fCreatedTime;
-
-      if (!box360::SaveBin::DecompressSavegame(buffer)) {
+      vector<uint8_t> buffer;
+      if (!file::GetContents(inputSavegame, buffer)) {
         return JE2BE_ERROR;
       }
       if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {
@@ -76,7 +63,7 @@ public:
     if (!copyPlayersResult) {
       return copyPlayersResult.status();
     }
-    if (auto st = CopyLevelDat(*temp, outputDirectory, lastPlayed, copyPlayersResult->fLocalPlayer, ctx); !st.ok()) {
+    if (auto st = CopyLevelDat(*temp, outputDirectory, options.fLastPlayed, copyPlayersResult->fLocalPlayer, ctx); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
     if (auto st = SetupResourcePack(outputDirectory); !st.ok()) {

@@ -11,6 +11,7 @@
 #include <je2be/lce/converter.hpp>
 
 #include <je2be/box360/minecraft-save-info.hpp>
+#include <je2be/box360/converter.hpp>
 
 #include <je2be/tobe/progress.hpp>
 #include <je2be/tobe/options.hpp>

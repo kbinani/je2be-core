@@ -16,6 +16,7 @@ public:
   std::unordered_set<mcfile::Dimension> fDimensionFilter;
   std::unordered_set<Pos2i, Pos2iHasher> fChunkFilter;
   std::optional<Uuid> fLocalPlayer;
+  std::optional<std::chrono::system_clock::time_point> fLastPlayed;
 };
 
 } // namespace je2be::lce

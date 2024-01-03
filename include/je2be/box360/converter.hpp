@@ -7,16 +7,19 @@ namespace je2be::lce {
 class Options;
 class Progress;
 
+} // namespace je2be::lce
+
+namespace je2be::box360 {
+
 class Converter {
-  class Impl;
   Converter() = delete;
 
 public:
-  static Status Run(std::filesystem::path const &inputSavegame,
+  static Status Run(std::filesystem::path const &inputSaveBin,
                     std::filesystem::path const &outputDirectory,
                     unsigned int concurrency,
-                    Options const &options,
-                    Progress *progress = nullptr);
+                    je2be::lce::Options const &options,
+                    je2be::lce::Progress *progress = nullptr);
 };
 
-} // namespace je2be::lce
+} // namespace je2be::box360

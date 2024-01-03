@@ -44,6 +44,7 @@ CPMAddPackage(
 set(je2be_header_files
   #begin je2be-header files
   include/je2be.hpp
+  include/je2be/box360/converter.hpp
   include/je2be/box360/minecraft-save-info.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/errno.hpp
@@ -199,6 +200,7 @@ set(je2be_src_files
   src/_volume.hpp
   src/_walk.hpp
   src/_xxhash.hpp
+  src/box360-converter.cpp
   src/box360-save-bin.cpp
   src/box360/_save-bin.hpp
   src/box360/_stfs-ext.hpp

@@ -4,6 +4,7 @@
 #if __has_include(<mimalloc.h>)
 #include <mimalloc.h>
 #endif
+#include <defer.hpp>
 #include <pbar.hpp>
 
 #include <iostream>
@@ -11,10 +12,10 @@
 
 using namespace std;
 using namespace je2be;
-using namespace je2be::lce;
+using namespace je2be::box360;
 namespace fs = std::filesystem;
 
-struct StdoutProgressReporter : public Progress {
+struct StdoutProgressReporter : public je2be::lce::Progress {
   struct State {
     optional<Rational<u64>> fConvert;
   };
@@ -114,7 +115,7 @@ int main(int argc, char *argv[]) {
     cout << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
   };
 
-  Options options;
+  je2be::lce::Options options;
   options.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
   defer {
     if (options.fTempDirectory) {
