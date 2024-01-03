@@ -3,7 +3,7 @@
 #include <je2be/pos2.hpp>
 #include <je2be/uuid.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Options {
 public:
@@ -18,4 +18,4 @@ public:
   std::optional<Uuid> fLocalPlayer;
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

@@ -2,7 +2,7 @@
 
 #include <je2be/status.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Options;
 class Progress;
@@ -19,4 +19,4 @@ public:
                     Progress *progress = nullptr);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

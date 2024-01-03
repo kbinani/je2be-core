@@ -4,7 +4,7 @@
 
 #include <minecraft-file.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 struct BlockData {
 private:
@@ -36,4 +36,4 @@ private:
   std::shared_ptr<mcfile::je::Block const> unsafeToBlock() const;
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

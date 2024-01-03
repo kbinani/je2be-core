@@ -21,7 +21,7 @@
 #include "lce/_world.hpp"
 #include "toje/_constants.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Converter::Impl {
   Impl() = delete;
@@ -649,4 +649,4 @@ Status Converter::Run(std::filesystem::path const &inputSaveBin,
   return Impl::Run(inputSaveBin, outputDirectory, concurrency, options, progress);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

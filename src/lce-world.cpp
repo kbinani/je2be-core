@@ -15,7 +15,7 @@
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "terraform/lighting/_lighting.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class World::Impl {
   Impl() = delete;
@@ -395,4 +395,4 @@ Status World::Convert(std::filesystem::path const &levelRootDirectory,
   return Impl::Convert(levelRootDirectory, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

@@ -26,7 +26,7 @@
 #include <mutex>
 #include <thread>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Terraform::Impl {
   Impl() = delete;
@@ -213,4 +213,4 @@ Status Terraform::Do(mcfile::Dimension dim, std::filesystem::path const &poiDire
   return Impl::Do(dim, poiDirectory, directory, concurrency, progress, progressChunksOffset);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

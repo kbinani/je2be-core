@@ -18,7 +18,7 @@
 #include <mutex>
 #include <variant>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Chunk::Impl {
   Impl() = delete;
@@ -1169,4 +1169,4 @@ std::shared_ptr<mcfile::je::WritableChunk> Chunk::CreateEmptyChunk(mcfile::Dimen
   return Impl::CreateEmptyChunk(dim, cx, cz, newSeaLevel);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

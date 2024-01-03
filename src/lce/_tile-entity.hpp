@@ -3,7 +3,7 @@
 #include "_pos3.hpp"
 #include "lce/_tile-entity-convert-result.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Context;
 
@@ -17,4 +17,4 @@ public:
   static std::optional<Result> Convert(CompoundTag const &in, std::shared_ptr<mcfile::je::Block const> const &block, Pos3i const &pos, Context const &ctx);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class MinecraftSaveInfo {
   class Impl;
@@ -20,4 +20,4 @@ public:
   static bool Parse(std::filesystem::path const &saveInfoFilePath, std::vector<SaveBin> &bins);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

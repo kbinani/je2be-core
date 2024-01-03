@@ -12,7 +12,7 @@
 #include "enums/_facing6.hpp"
 #include "tile-entity/_loot-table.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Entity::Impl {
   Impl() = delete;
@@ -521,4 +521,4 @@ void Entity::CopyItems(CompoundTag const &in, CompoundTag &out, Context const &c
   return Impl::CopyItems(in, out, ctx, key);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

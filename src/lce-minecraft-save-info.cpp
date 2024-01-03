@@ -10,7 +10,7 @@
 #include <minecraft-file.hpp>
 // clang-format on
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 using namespace detail;
 
@@ -93,4 +93,4 @@ bool MinecraftSaveInfo::Parse(std::filesystem::path const &saveInfoFilePath, std
   return Impl::Parse(saveInfoFilePath, bins);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

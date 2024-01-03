@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Biome {
   Biome() = delete;
@@ -26,4 +26,4 @@ public:
   }
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

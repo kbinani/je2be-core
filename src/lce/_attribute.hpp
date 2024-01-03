@@ -5,7 +5,7 @@
 #include <iostream>
 #include <mutex>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Attribute {
   Attribute() = delete;
@@ -59,4 +59,4 @@ public:
   }
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

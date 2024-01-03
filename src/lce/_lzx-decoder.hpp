@@ -41,7 +41,7 @@
  */
 #pragma once
 
-namespace je2be::box360::detail {
+namespace je2be::lce::detail {
 
 class LzxDecoder {
 public:
@@ -1256,4 +1256,4 @@ private:
   u16 ALIGNED_table[(1 << k_aligned_table_bits) + (k_aligned_max_symbols * 2)] = {0};
 };
 
-} // namespace je2be::box360::detail
+} // namespace je2be::lce::detail

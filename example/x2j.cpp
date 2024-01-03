@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace je2be;
-using namespace je2be::box360;
+using namespace je2be::lce;
 namespace fs = std::filesystem;
 
 struct StdoutProgressReporter : public Progress {

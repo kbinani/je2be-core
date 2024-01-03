@@ -9,7 +9,7 @@
 #include "item/_enchantments.hpp"
 #include "item/_potion.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Item::Impl {
   Impl() = delete;
@@ -1417,4 +1417,4 @@ CompoundTagPtr Item::Convert(CompoundTag const &in, Context const &ctx) {
   return Impl::Convert(in, ctx);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

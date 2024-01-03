@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-namespace je2be::box360::detail {
+namespace je2be::lce::detail {
 
 using INT24 = signed int;
 
@@ -1613,4 +1613,4 @@ private:
 };
 #pragma endregion
 
-} // namespace je2be::box360::detail
+} // namespace je2be::lce::detail

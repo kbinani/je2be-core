@@ -12,7 +12,7 @@
 #include "lce/_stfs-ext.hpp"
 // clang-format on
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 using namespace detail;
 
@@ -288,4 +288,4 @@ std::optional<std::chrono::system_clock::time_point> Savegame::TimePointFromFatT
   return Impl::TimePointFromFatTimestamp(fat);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

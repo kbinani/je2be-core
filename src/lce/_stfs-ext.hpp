@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::box360::detail {
+namespace je2be::lce::detail {
 
 class MemoryIO : public BaseIO {
 public:
@@ -170,4 +170,4 @@ private:
   FILE *fStream;
 };
 
-} // namespace je2be::box360::detail
+} // namespace je2be::lce::detail

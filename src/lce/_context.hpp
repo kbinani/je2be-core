@@ -6,7 +6,7 @@
 #include "_pos3.hpp"
 #include "lce/_tile-entity-convert-result.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Context {
 public:
@@ -22,4 +22,4 @@ public:
   bool fNewSeaLevel;
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

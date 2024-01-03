@@ -698,7 +698,7 @@ static void MonumentBedrock() {
 }
 
 static void Box360Chunk() {
-  using namespace je2be::box360;
+  using namespace je2be::lce;
   fs::path dir("C:/Users/kbinani/Documents/Projects/je2be-gui/00000001");
   fs::path output("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/_b2j-out");
 

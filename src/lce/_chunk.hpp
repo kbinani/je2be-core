@@ -4,7 +4,7 @@
 
 #include <minecraft-file.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Context;
 class Options;
@@ -32,4 +32,4 @@ public:
   static std::shared_ptr<mcfile::je::WritableChunk> CreateEmptyChunk(mcfile::Dimension dim, int cx, int cz, bool newSeaLevel);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

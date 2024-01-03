@@ -7,7 +7,7 @@
 
 #include <filesystem>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Progress;
 
@@ -19,4 +19,4 @@ public:
   static Status Do(mcfile::Dimension dim, std::filesystem::path const &poiDirectory, std::filesystem::path const &directory, unsigned int concurrency, Progress *progress, u64 progressChunksOffset);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

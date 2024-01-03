@@ -1,6 +1,6 @@
 #pragma once
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Grid {
   Grid() = delete;
@@ -64,4 +64,4 @@ public:
   }
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

@@ -4,7 +4,7 @@
 
 #include <minecraft-file.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Savegame {
   class Impl;
@@ -33,4 +33,4 @@ public:
   static std::optional<std::chrono::system_clock::time_point> TimePointFromFatTimestamp(u32 fat);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

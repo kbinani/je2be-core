@@ -10,7 +10,7 @@
 #include "enums/_skull-type.hpp"
 #include "tile-entity/_loot-table.hpp"
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class TileEntity::Impl {
   Impl() = delete;
@@ -476,4 +476,4 @@ std::optional<TileEntity::Result> TileEntity::Convert(CompoundTag const &in, std
   return Impl::Convert(in, block, pos, ctx);
 }
 
-} // namespace je2be::box360
+} // namespace je2be::lce

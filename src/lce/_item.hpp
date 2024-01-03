@@ -2,7 +2,7 @@
 
 #include <je2be/nbt.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Context;
 
@@ -14,4 +14,4 @@ public:
   static CompoundTagPtr Convert(CompoundTag const &in, Context const &ctx);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce

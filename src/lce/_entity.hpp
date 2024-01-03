@@ -3,7 +3,7 @@
 #include <je2be/nbt.hpp>
 #include <je2be/uuid.hpp>
 
-namespace je2be::box360 {
+namespace je2be::lce {
 
 class Context;
 
@@ -25,4 +25,4 @@ public:
   static void CopyItems(CompoundTag const &in, CompoundTag &out, Context const &ctx, std::u8string const &key);
 };
 
-} // namespace je2be::box360
+} // namespace je2be::lce
