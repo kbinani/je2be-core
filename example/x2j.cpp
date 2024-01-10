@@ -4,74 +4,18 @@
 #if __has_include(<mimalloc.h>)
 #include <mimalloc.h>
 #endif
+#include <defer.hpp>
 #include <pbar.hpp>
 
 #include <iostream>
 #include <thread>
 
+#include "lce-progress.hpp"
+
 using namespace std;
 using namespace je2be;
-using namespace je2be::box360;
+using namespace je2be::xbox360;
 namespace fs = std::filesystem;
-
-struct StdoutProgressReporter : public Progress {
-  struct State {
-    optional<Rational<u64>> fConvert;
-  };
-
-  StdoutProgressReporter() {
-    fIo.reset(new thread([this]() {
-      State prev;
-      unique_ptr<pbar::pbar> convert;
-
-      while (!fStop) {
-        State s;
-        {
-          lock_guard<mutex> lock(fMut);
-          s = fState;
-        }
-        if (s.fConvert) {
-          if (!convert) {
-            convert.reset(new pbar::pbar(s.fConvert->fDen, "Convert"));
-            convert->enable_recalc_console_width(10);
-          }
-          if (prev.fConvert) {
-            if (prev.fConvert->fNum < prev.fConvert->fDen && s.fConvert->fNum > prev.fConvert->fNum) {
-              convert->tick(s.fConvert->fNum - prev.fConvert->fNum);
-            }
-          } else {
-            convert->tick(s.fConvert->fNum);
-          }
-        }
-        prev = s;
-        this_thread::sleep_for(chrono::milliseconds(16));
-      }
-    }));
-  }
-
-  ~StdoutProgressReporter() {
-    fStop = true;
-    fIo->join();
-    fIo.reset();
-  }
-
-  bool report(Rational<u64> const &progress) override {
-    if (progress.fDen > 0) {
-      lock_guard<mutex> lock(fMut);
-      if (fState.fConvert) {
-        fState.fConvert->fNum = std::max(fState.fConvert->fNum, progress.fNum);
-      } else {
-        fState.fConvert = progress;
-      }
-    }
-    return true;
-  }
-
-  mutex fMut;
-  unique_ptr<thread> fIo;
-  atomic_bool fStop = false;
-  State fState;
-};
 
 int main(int argc, char *argv[]) {
 #if __has_include(<mimalloc.h>)
@@ -114,7 +58,7 @@ int main(int argc, char *argv[]) {
     cout << float(chrono::duration_cast<chrono::milliseconds>(elapsed).count() / 1000.0f) << "s" << endl;
   };
 
-  Options options;
+  je2be::lce::Options options;
   options.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
   defer {
     if (options.fTempDirectory) {

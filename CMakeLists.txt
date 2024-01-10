@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 0b12629e995674decf9875fdf10df17fadbef6c8)
+  GIT_TAG 94d0af023b10a084bafb732fa0024fa3488ee89f)
 
 CPMAddPackage(
   NAME defer
@@ -44,26 +44,29 @@ CPMAddPackage(
 set(je2be_header_files
   #begin je2be-header files
   include/je2be.hpp
-  include/je2be/box360/converter.hpp
-  include/je2be/box360/minecraft-save-info.hpp
-  include/je2be/box360/options.hpp
-  include/je2be/box360/progress.hpp
+  include/je2be/bedrock/converter.hpp
+  include/je2be/bedrock/options.hpp
+  include/je2be/bedrock/progress.hpp
   include/je2be/enums/level-directory-structure.hpp
   include/je2be/errno.hpp
   include/je2be/fs.hpp
   include/je2be/integers.hpp
+  include/je2be/java/converter.hpp
+  include/je2be/java/options.hpp
+  include/je2be/java/progress.hpp
+  include/je2be/lce/chunk-decompressor.hpp
+  include/je2be/lce/converter.hpp
+  include/je2be/lce/options.hpp
+  include/je2be/lce/progress.hpp
   include/je2be/nbt.hpp
   include/je2be/pos2.hpp
+  include/je2be/ps3/converter.hpp
   include/je2be/rational.hpp
   include/je2be/status.hpp
   include/je2be/strings.hpp
-  include/je2be/tobe/converter.hpp
-  include/je2be/tobe/options.hpp
-  include/je2be/tobe/progress.hpp
-  include/je2be/toje/converter.hpp
-  include/je2be/toje/options.hpp
-  include/je2be/toje/progress.hpp
   include/je2be/uuid.hpp
+  include/je2be/xbox360/converter.hpp
+  include/je2be/xbox360/minecraft-save-info.hpp
   include/je2be/zip-file.hpp
   #end je2be-header files
   .editorconfig
@@ -199,32 +202,40 @@ set(je2be_src_files
   src/_volume.hpp
   src/_walk.hpp
   src/_xxhash.hpp
-  src/box360-block-data.cpp
-  src/box360-chunk.cpp
-  src/box360-converter.cpp
-  src/box360-entity.cpp
-  src/box360-item.cpp
-  src/box360-minecraft-save-info.cpp
-  src/box360-savegame.cpp
-  src/box360-terraform.cpp
-  src/box360-tile-entity.cpp
-  src/box360-world.cpp
-  src/box360/_attribute.hpp
-  src/box360/_biome.hpp
-  src/box360/_block-data.hpp
-  src/box360/_chunk.hpp
-  src/box360/_context.hpp
-  src/box360/_entity.hpp
-  src/box360/_grid.hpp
-  src/box360/_item.hpp
-  src/box360/_lzx-decoder.hpp
-  src/box360/_savegame.hpp
-  src/box360/_stfs-ext.hpp
-  src/box360/_stfs.hpp
-  src/box360/_terraform.hpp
-  src/box360/_tile-entity-convert-result.hpp
-  src/box360/_tile-entity.hpp
-  src/box360/_world.hpp
+  src/bedrock-block-data.cpp
+  src/bedrock-block-entity.cpp
+  src/bedrock-chunk.cpp
+  src/bedrock-context.cpp
+  src/bedrock-converter.cpp
+  src/bedrock-entity.cpp
+  src/bedrock-item.cpp
+  src/bedrock-region.cpp
+  src/bedrock-sub-chunk.cpp
+  src/bedrock-world.cpp
+  src/bedrock/_block-accessor-wrapper.hpp
+  src/bedrock/_block-data.hpp
+  src/bedrock/_block-entity-convert-result.hpp
+  src/bedrock/_block-entity.hpp
+  src/bedrock/_chunk.hpp
+  src/bedrock/_constants.hpp
+  src/bedrock/_context.hpp
+  src/bedrock/_entity.hpp
+  src/bedrock/_item.hpp
+  src/bedrock/_legacy-block.hpp
+  src/bedrock/_level-data.hpp
+  src/bedrock/_map-info.hpp
+  src/bedrock/_region.hpp
+  src/bedrock/_structure-info.hpp
+  src/bedrock/_sub-chunk.hpp
+  src/bedrock/_world.hpp
+  src/bedrock/terraform/_beacon.hpp
+  src/bedrock/terraform/_campfire.hpp
+  src/bedrock/terraform/_cave-vines.hpp
+  src/bedrock/terraform/_double_plant.hpp
+  src/bedrock/terraform/_piston.hpp
+  src/bedrock/terraform/_tripwire.hpp
+  src/bedrock/terraform/_twisting-vines.hpp
+  src/bedrock/terraform/_weeping-vines.hpp
   src/color/_lab.hpp
   src/color/_rgba.hpp
   src/color/_sign-color.hpp
@@ -269,6 +280,79 @@ set(je2be_src_files
   src/item/_map-type.hpp
   src/item/_potion.hpp
   src/item/_tipped-arrow-potion.hpp
+  src/java-block-data.cpp
+  src/java-chunk-data-package.cpp
+  src/java-chunk.cpp
+  src/java-converter.cpp
+  src/java-entity.cpp
+  src/java-item.cpp
+  src/java-map.cpp
+  src/java-moving-piston.cpp
+  src/java-region.cpp
+  src/java-sub-chunk.cpp
+  src/java-tile-entity.cpp
+  src/java-world.cpp
+  src/java/_axolotl.hpp
+  src/java/_biome-map-legacy.hpp
+  src/java/_block-data.hpp
+  src/java/_block-palette.hpp
+  src/java/_chunk-data-package.hpp
+  src/java/_chunk-data.hpp
+  src/java/_chunk.hpp
+  src/java/_context.hpp
+  src/java/_datapacks.hpp
+  src/java/_enchant-data.hpp
+  src/java/_entity-store.hpp
+  src/java/_entity.hpp
+  src/java/_flat-world-layers.hpp
+  src/java/_height-map.hpp
+  src/java/_item.hpp
+  src/java/_java-edition-map.hpp
+  src/java/_level-data.hpp
+  src/java/_level.hpp
+  src/java/_map.hpp
+  src/java/_moving-piston.hpp
+  src/java/_player-abilities.hpp
+  src/java/_region.hpp
+  src/java/_session-lock.hpp
+  src/java/_sub-chunk.hpp
+  src/java/_tile-entity.hpp
+  src/java/_uuid-registrar.hpp
+  src/java/_versions.hpp
+  src/java/_world-data.hpp
+  src/java/_world.hpp
+  src/java/portal/_oriented-portal-blocks.hpp
+  src/java/portal/_portal-blocks.hpp
+  src/java/portal/_portal.hpp
+  src/java/portal/_portals.hpp
+  src/java/structure/_structure-piece-collection.hpp
+  src/java/structure/_structures.hpp
+  src/lce-block-data.cpp
+  src/lce-chunk.cpp
+  src/lce-converter.cpp
+  src/lce-entity.cpp
+  src/lce-item.cpp
+  src/lce-minecraft-save-info.cpp
+  src/lce-savegame.cpp
+  src/lce-terraform.cpp
+  src/lce-tile-entity.cpp
+  src/lce-world.cpp
+  src/lce/_attribute.hpp
+  src/lce/_biome.hpp
+  src/lce/_block-data.hpp
+  src/lce/_chunk.hpp
+  src/lce/_context.hpp
+  src/lce/_entity.hpp
+  src/lce/_grid.hpp
+  src/lce/_item.hpp
+  src/lce/_lzx-decoder.hpp
+  src/lce/_savegame.hpp
+  src/lce/_terraform.hpp
+  src/lce/_tile-entity-convert-result.hpp
+  src/lce/_tile-entity.hpp
+  src/lce/_world.hpp
+  src/ps3-converter.cpp
+  src/ps3/_chunk-decompressor.hpp
   src/structure/_structure-piece.hpp
   src/system.cpp
   src/terraform-block-property-accessor.cpp
@@ -291,12 +375,6 @@ set(je2be_src_files
   src/terraform/bedrock/_attached-stem.hpp
   src/terraform/bedrock/_block-accessor-bedrock.hpp
   src/terraform/bedrock/_kelp.hpp
-  src/terraform/box360/_attached-stem.hpp
-  src/terraform/box360/_bed.hpp
-  src/terraform/box360/_block-accessor-box360.hpp
-  src/terraform/box360/_chest.hpp
-  src/terraform/box360/_kelp.hpp
-  src/terraform/box360/_nether-portal.hpp
   src/terraform/java/_block-accessor-java-directory.hpp
   src/terraform/java/_block-accessor-java-mca.hpp
   src/terraform/java/_block-accessor-java.hpp
@@ -305,89 +383,20 @@ set(je2be_src_files
   src/terraform/lighting/_light-cache.hpp
   src/terraform/lighting/_lighting-model.hpp
   src/terraform/lighting/_lighting.hpp
+  src/terraform/xbox360/_attached-stem.hpp
+  src/terraform/xbox360/_bed.hpp
+  src/terraform/xbox360/_block-accessor-box360.hpp
+  src/terraform/xbox360/_chest.hpp
+  src/terraform/xbox360/_kelp.hpp
+  src/terraform/xbox360/_nether-portal.hpp
   src/tile-entity/_beacon.hpp
   src/tile-entity/_loot-table.hpp
-  src/tobe-block-data.cpp
-  src/tobe-chunk-data-package.cpp
-  src/tobe-chunk.cpp
-  src/tobe-converter.cpp
-  src/tobe-entity.cpp
-  src/tobe-item.cpp
-  src/tobe-map.cpp
-  src/tobe-moving-piston.cpp
-  src/tobe-region.cpp
-  src/tobe-sub-chunk.cpp
-  src/tobe-tile-entity.cpp
-  src/tobe-world.cpp
-  src/tobe/_axolotl.hpp
-  src/tobe/_biome-map-legacy.hpp
-  src/tobe/_block-data.hpp
-  src/tobe/_block-palette.hpp
-  src/tobe/_chunk-data-package.hpp
-  src/tobe/_chunk-data.hpp
-  src/tobe/_chunk.hpp
-  src/tobe/_context.hpp
-  src/tobe/_datapacks.hpp
-  src/tobe/_enchant-data.hpp
-  src/tobe/_entity-store.hpp
-  src/tobe/_entity.hpp
-  src/tobe/_flat-world-layers.hpp
-  src/tobe/_height-map.hpp
-  src/tobe/_item.hpp
-  src/tobe/_java-edition-map.hpp
-  src/tobe/_level-data.hpp
-  src/tobe/_level.hpp
-  src/tobe/_map.hpp
-  src/tobe/_moving-piston.hpp
-  src/tobe/_player-abilities.hpp
-  src/tobe/_region.hpp
-  src/tobe/_session-lock.hpp
-  src/tobe/_sub-chunk.hpp
-  src/tobe/_tile-entity.hpp
-  src/tobe/_uuid-registrar.hpp
-  src/tobe/_versions.hpp
-  src/tobe/_world-data.hpp
-  src/tobe/_world.hpp
-  src/tobe/portal/_oriented-portal-blocks.hpp
-  src/tobe/portal/_portal-blocks.hpp
-  src/tobe/portal/_portal.hpp
-  src/tobe/portal/_portals.hpp
-  src/tobe/structure/_structure-piece-collection.hpp
-  src/tobe/structure/_structures.hpp
-  src/toje-block-data.cpp
-  src/toje-block-entity.cpp
-  src/toje-chunk.cpp
-  src/toje-context.cpp
-  src/toje-converter.cpp
-  src/toje-entity.cpp
-  src/toje-item.cpp
-  src/toje-region.cpp
-  src/toje-sub-chunk.cpp
-  src/toje-world.cpp
-  src/toje/_block-accessor-wrapper.hpp
-  src/toje/_block-data.hpp
-  src/toje/_block-entity-convert-result.hpp
-  src/toje/_block-entity.hpp
-  src/toje/_chunk.hpp
-  src/toje/_constants.hpp
-  src/toje/_context.hpp
-  src/toje/_entity.hpp
-  src/toje/_item.hpp
-  src/toje/_legacy-block.hpp
-  src/toje/_level-data.hpp
-  src/toje/_map-info.hpp
-  src/toje/_region.hpp
-  src/toje/_structure-info.hpp
-  src/toje/_sub-chunk.hpp
-  src/toje/_world.hpp
-  src/toje/terraform/_beacon.hpp
-  src/toje/terraform/_campfire.hpp
-  src/toje/terraform/_cave-vines.hpp
-  src/toje/terraform/_double_plant.hpp
-  src/toje/terraform/_piston.hpp
-  src/toje/terraform/_tripwire.hpp
-  src/toje/terraform/_twisting-vines.hpp
-  src/toje/terraform/_weeping-vines.hpp
+  src/xbox360-converter.cpp
+  src/xbox360-save-bin.cpp
+  src/xbox360/_chunk-decompressor.hpp
+  src/xbox360/_save-bin.hpp
+  src/xbox360/_stfs-ext.hpp
+  src/xbox360/_stfs.hpp
   src/zip-file.cpp
   #end je2be-src files
   )
@@ -411,7 +420,7 @@ set(test_files
   test/pos2i-set.test.hpp
   test/system.test.hpp
   test/b2j2b.test.hpp
-  test/toje-legacy-block.test.hpp
+  test/bedrock-legacy-block.test.hpp
   test/parallel.test.hpp)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
@@ -530,6 +539,10 @@ add_executable(x2j example/x2j.cpp ${je2be_header_files})
 target_link_libraries(x2j ${je2be_exe_link_libraries} cxxopts)
 target_include_directories(x2j PRIVATE ${pbar_SOURCE_DIR})
 
+add_executable(p2j example/p2j.cpp ${je2be_header_files})
+target_link_libraries(p2j ${je2be_exe_link_libraries} cxxopts)
+target_include_directories(p2j PRIVATE ${pbar_SOURCE_DIR})
+
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
@@ -556,6 +569,6 @@ if (MSVC)
   endif()
 endif()
 
-list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
+list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/p2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
 source_group(TREE ${libminecraft-file_SOURCE_DIR} PREFIX deps/mcfile FILES ${mcfile_header_files})

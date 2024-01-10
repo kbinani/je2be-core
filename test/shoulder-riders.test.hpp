@@ -13,17 +13,17 @@ TEST_CASE("shoulder-riders") {
 
   auto be = *tmp / "be";
   fs::create_directories(be);
-  je2be::tobe::Options optToBe;
+  je2be::java::Options optToBe;
   optToBe.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   optToBe.fChunkFilter.insert(Pos2i(0, 0));
-  CHECK(je2be::tobe::Converter::Run(original, be, optToBe, 1).ok());
+  CHECK(je2be::java::Converter::Run(original, be, optToBe, 1).ok());
 
   auto je = *tmp / "je";
   fs::create_directories(je);
-  je2be::toje::Options optToJe;
+  je2be::bedrock::Options optToJe;
   optToJe.fDimensionFilter.insert(mcfile::Dimension::Overworld);
   optToJe.fChunkFilter.insert(Pos2i(0, 0));
-  CHECK(je2be::toje::Converter::Run(be, je, optToJe, 1).ok());
+  CHECK(je2be::bedrock::Converter::Run(be, je, optToJe, 1).ok());
 
   auto level = je / "level.dat";
   auto stream = make_shared<mcfile::stream::GzFileInputStream>(level);

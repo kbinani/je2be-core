@@ -2,7 +2,7 @@
 
 #include "_data3d.hpp"
 #include "_volume.hpp"
-#include "tobe/_block-data.hpp"
+#include "java/_block-data.hpp"
 
 namespace je2be::terraform {
 
@@ -173,7 +173,7 @@ std::unordered_set<std::u8string> *Leaves::Impl::CreateBedrockLogBlocksSet() {
     if (!IsLog(*blockJ)) {
       continue;
     }
-    auto blockB = je2be::tobe::BlockData::From(blockJ, nullptr, {});
+    auto blockB = je2be::java::BlockData::From(blockJ, nullptr, {});
     if (!blockB) {
       continue;
     }

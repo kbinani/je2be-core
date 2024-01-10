@@ -61,6 +61,15 @@ public:
     return size;
   }
 
+  static std::optional<std::chrono::system_clock::time_point> LastWriteTime(std::filesystem::path p) {
+    std::error_code ec;
+    auto tp = std::filesystem::last_write_time(p, ec);
+    if (ec) {
+      return std::nullopt;
+    }
+    return std::chrono::clock_cast<std::chrono::system_clock>(tp);
+  }
+
 private:
   Fs() = delete;
 };

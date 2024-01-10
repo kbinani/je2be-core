@@ -442,27 +442,27 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   REQUIRE(outJ);
-  je2be::toje::Options optJ;
+  je2be::bedrock::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
   if (!chunkFilter.empty()) {
     for (auto const &ch : chunkFilter) {
       optJ.fChunkFilter.insert(ch);
     }
   }
-  st = je2be::toje::Converter::Run(*inB, *outJ, optJ, concurrency);
+  st = je2be::bedrock::Converter::Run(*inB, *outJ, optJ, concurrency);
   REQUIRE(st.ok());
 
   // java -> bedrock
   auto outB = mcfile::File::CreateTempDir(*tmp);
   REQUIRE(outB);
-  je2be::tobe::Options optB;
+  je2be::java::Options optB;
   optB.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
   if (!chunkFilter.empty()) {
     for (auto const &ch : chunkFilter) {
       optB.fChunkFilter.insert(ch);
     }
   }
-  st = je2be::tobe::Converter::Run(*outJ, *outB, optB, concurrency);
+  st = je2be::java::Converter::Run(*outJ, *outB, optB, concurrency);
   REQUIRE(st.ok());
 
   // Compare initial Bedrock input and final Bedrock output.

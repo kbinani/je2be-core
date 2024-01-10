@@ -29,13 +29,13 @@ TEST_CASE("block-data") {
     // java -> bedrock
     auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, BlockDataTestDataVersion());
     CHECK(blockJ);
-    auto convertedToBe = je2be::tobe::BlockData::From(blockJ, nullptr, {});
+    auto convertedToBe = je2be::java::BlockData::From(blockJ, nullptr, {});
     CheckTag::Check(convertedToBe.get(), bedrockBlockData.get());
 
     // bedrock -> java
     shared_ptr<mcfile::be::Block> blockB = mcfile::be::Block::FromCompound(*convertedToBe);
     CHECK(blockB);
-    auto convertedJe = je2be::toje::BlockData::From(*blockB, BlockDataTestDataVersion());
+    auto convertedJe = je2be::bedrock::BlockData::From(*blockB, BlockDataTestDataVersion());
     CHECK(convertedJe != nullptr);
   }
 }

@@ -10,8 +10,8 @@
 #include "_version.hpp"
 #include "_mem.hpp"
 
-#include "toje/_constants.hpp"
-#include "tobe/_versions.hpp"
+#include "bedrock/_constants.hpp"
+#include "java/_versions.hpp"
 
 #include "_nullable.hpp"
 #include "_file.hpp"
@@ -81,7 +81,7 @@
 #include "terraform/_block-property-accessor.hpp"
 #include "terraform/_block-accessor.hpp"
 #include "terraform/bedrock/_block-accessor-bedrock.hpp"
-#include "terraform/box360/_block-accessor-box360.hpp"
+#include "terraform/xbox360/_block-accessor-box360.hpp"
 #include "terraform/_shape-of-stairs.hpp"
 #include "terraform/_fence-connectable.hpp"
 #include "terraform/_redstone-wire.hpp"
@@ -92,9 +92,9 @@
 #include "terraform/_note-block.hpp"
 #include "terraform/bedrock/_kelp.hpp"
 #include "terraform/bedrock/_attached-stem.hpp"
-#include "terraform/box360/_kelp.hpp"
-#include "terraform/box360/_attached-stem.hpp"
-#include "terraform/box360/_chest.hpp"
+#include "terraform/xbox360/_kelp.hpp"
+#include "terraform/xbox360/_attached-stem.hpp"
+#include "terraform/xbox360/_chest.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "terraform/java/_block-accessor-java-mca.hpp"
 
@@ -103,7 +103,7 @@
 #include "db/_null-db.hpp"
 #include "db/_concurrent-db.hpp"
 
-#include "tobe/_block-data.hpp"
-#include "toje/_block-data.hpp"
-#include "toje/_legacy-block.hpp"
+#include "java/_block-data.hpp"
+#include "bedrock/_block-data.hpp"
+#include "bedrock/_legacy-block.hpp"
 #include "terraform/lighting/_lighting.hpp"

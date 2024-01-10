@@ -6,18 +6,22 @@
 
 #include <je2be/integers.hpp>
 
-#include <je2be/box360/progress.hpp>
-#include <je2be/box360/options.hpp>
-#include <je2be/box360/converter.hpp>
-#include <je2be/box360/minecraft-save-info.hpp>
+#include <je2be/lce/progress.hpp>
+#include <je2be/lce/options.hpp>
+#include <je2be/lce/converter.hpp>
 
-#include <je2be/tobe/progress.hpp>
-#include <je2be/tobe/options.hpp>
-#include <je2be/tobe/converter.hpp>
+#include <je2be/xbox360/minecraft-save-info.hpp>
+#include <je2be/xbox360/converter.hpp>
 
-#include <je2be/toje/progress.hpp>
-#include <je2be/toje/options.hpp>
-#include <je2be/toje/converter.hpp>
+#include <je2be/ps3/converter.hpp>
+
+#include <je2be/java/progress.hpp>
+#include <je2be/java/options.hpp>
+#include <je2be/java/converter.hpp>
+
+#include <je2be/bedrock/progress.hpp>
+#include <je2be/bedrock/options.hpp>
+#include <je2be/bedrock/converter.hpp>
 
 #include <je2be/pos2.hpp>
 #include <je2be/status.hpp>
