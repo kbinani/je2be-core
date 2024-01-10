@@ -7,33 +7,14 @@
 #include <fstream>
 
 #include "_mem.hpp"
-#include "lce/_lzx-decoder.hpp"
 // clang-format on
 
 namespace je2be::lce {
-
-using namespace detail;
 
 class Savegame::Impl {
   Impl() = delete;
 
 public:
-  static bool DecompressRawChunk(std::vector<u8> &buffer) {
-    if (buffer.size() < 4) {
-      return false;
-    }
-    // u32 decompressedSize = mcfile::U32FromBE(Mem::Read<u32>(buffer, 0));
-    for (int j = 0; j < 4; j++) {
-      buffer.erase(buffer.begin());
-    }
-    size_t decodedSize = LzxDecoder::Decode(buffer);
-    if (decodedSize == 0) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
   static void DecodeDecompressedChunk(std::vector<u8> &buffer) {
     // This is a port of ExpandX function from https://sourceforge.net/projects/xboxtopcminecraftconverter/
     std::vector<u8> out;
@@ -160,10 +141,6 @@ public:
     return stream->write(buffer.data() + offset, size);
   }
 };
-
-bool Savegame::DecompressRawChunk(std::vector<u8> &buffer) {
-  return Impl::DecompressRawChunk(buffer);
-}
 
 void Savegame::DecodeDecompressedChunk(std::vector<u8> &buffer) {
   return Impl::DecodeDecompressedChunk(buffer);

@@ -11,8 +11,6 @@ class Savegame {
   Savegame() = delete;
 
 public:
-  static bool DecompressRawChunk(std::vector<u8> &buffer);
-
   static void DecodeDecompressedChunk(std::vector<u8> &buffer);
 
   static bool ExtractRawChunkFromRegionFile(mcfile::stream::InputStream &stream, int x, int z, std::vector<u8> &buffer);
