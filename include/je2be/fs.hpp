@@ -67,7 +67,11 @@ public:
     if (ec) {
       return std::nullopt;
     }
+#if defined(_MSC_VER)
     return std::chrono::clock_cast<std::chrono::system_clock>(tp);
+#else
+    return std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::chrono::file_clock::now() + std::chrono::system_clock::now());
+#endif
   }
 
 private:
