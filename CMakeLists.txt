@@ -50,11 +50,13 @@ set(je2be_header_files
   include/je2be/errno.hpp
   include/je2be/fs.hpp
   include/je2be/integers.hpp
+  include/je2be/lce/chunk-decompressor.hpp
   include/je2be/lce/converter.hpp
   include/je2be/lce/options.hpp
   include/je2be/lce/progress.hpp
   include/je2be/nbt.hpp
   include/je2be/pos2.hpp
+  include/je2be/ps3/converter.hpp
   include/je2be/rational.hpp
   include/je2be/status.hpp
   include/je2be/strings.hpp
@@ -202,6 +204,7 @@ set(je2be_src_files
   src/_xxhash.hpp
   src/box360-converter.cpp
   src/box360-save-bin.cpp
+  src/box360/_chunk-decompressor.hpp
   src/box360/_save-bin.hpp
   src/box360/_stfs-ext.hpp
   src/box360/_stfs.hpp
@@ -273,6 +276,8 @@ set(je2be_src_files
   src/lce/_tile-entity-convert-result.hpp
   src/lce/_tile-entity.hpp
   src/lce/_world.hpp
+  src/ps3-converter.cpp
+  src/ps3/_chunk-decompressor.hpp
   src/structure/_structure-piece.hpp
   src/system.cpp
   src/terraform-block-property-accessor.cpp
@@ -534,6 +539,10 @@ add_executable(x2j example/x2j.cpp ${je2be_header_files})
 target_link_libraries(x2j ${je2be_exe_link_libraries} cxxopts)
 target_include_directories(x2j PRIVATE ${pbar_SOURCE_DIR})
 
+add_executable(p2j example/p2j.cpp ${je2be_header_files})
+target_link_libraries(p2j ${je2be_exe_link_libraries} cxxopts)
+target_include_directories(p2j PRIVATE ${pbar_SOURCE_DIR})
+
 add_executable(dump example/dump.cpp ${je2be_header_files})
 target_link_libraries(dump je2be)
 
@@ -560,6 +569,6 @@ if (MSVC)
   endif()
 endif()
 
-list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/dump.cpp test/j2b2j.cpp)
+list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/p2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
 source_group(TREE ${libminecraft-file_SOURCE_DIR} PREFIX deps/mcfile FILES ${mcfile_header_files})

@@ -29,12 +29,13 @@ public:
                         int cx,
                         int cz,
                         std::shared_ptr<mcfile::je::WritableChunk> &result,
+                        ChunkDecompressor const &chunkDecompressor,
                         Context const &ctx,
                         Options const &options) {
     using namespace std;
     auto pos = ChunkLocation(dimension, cx, cz);
     if (holds_alternative<Copy>(pos)) {
-      if (auto st = Extract(dimension, region, cx, cz, result, ctx, options); !st.ok()) {
+      if (auto st = Extract(dimension, region, cx, cz, result, chunkDecompressor, ctx, options); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
       }
       if (!result) {
@@ -44,7 +45,7 @@ public:
       return Status::Ok();
     } else if (holds_alternative<Move>(pos)) {
       auto mv = get<Move>(pos);
-      if (auto st = Extract(dimension, region, cx + mv.fDx, cz + mv.fDz, result, ctx, options); !st.ok()) {
+      if (auto st = Extract(dimension, region, cx + mv.fDx, cz + mv.fDz, result, chunkDecompressor, ctx, options); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
       }
       if (!result) {
@@ -236,6 +237,7 @@ private:
                         int cx,
                         int cz,
                         std::shared_ptr<mcfile::je::WritableChunk> &result,
+                        ChunkDecompressor const &chunkDecompressor,
                         Context const &ctx,
                         Options const &options) {
     using namespace std;
@@ -254,11 +256,9 @@ private:
     if (buffer.empty()) {
       return Status::Ok();
     }
-    if (!Savegame::DecompressRawChunk(buffer)) {
-      return JE2BE_ERROR;
+    if (auto st = chunkDecompressor.decompress(buffer); !st.ok()) {
+      return JE2BE_ERROR_PUSH(st);
     }
-
-    Savegame::DecodeDecompressedChunk(buffer);
 
     if (buffer.size() < 2) {
       return JE2BE_ERROR;
@@ -1160,9 +1160,10 @@ Status Chunk::Convert(mcfile::Dimension dimension,
                       int cx,
                       int cz,
                       std::shared_ptr<mcfile::je::WritableChunk> &result,
+                      ChunkDecompressor const &chunkDecompressor,
                       Context const &ctx,
                       Options const &options) {
-  return Impl::Convert(dimension, region, cx, cz, result, ctx, options);
+  return Impl::Convert(dimension, region, cx, cz, result, chunkDecompressor, ctx, options);
 }
 
 std::shared_ptr<mcfile::je::WritableChunk> Chunk::CreateEmptyChunk(mcfile::Dimension dim, int cx, int cz, bool newSeaLevel) {

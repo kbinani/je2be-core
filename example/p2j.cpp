@@ -14,7 +14,7 @@
 
 using namespace std;
 using namespace je2be;
-using namespace je2be::box360;
+using namespace je2be::ps3;
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
   mi_version();
 #endif
 
-  cxxopts::Options parser("x2j");
+  cxxopts::Options parser("p2j");
   parser.add_options()                                    //
       ("i", "input directory", cxxopts::value<string>())  //
       ("o", "output directory", cxxopts::value<string>()) //
@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
 
   string inputString = result["i"].as<string>();
   fs::path input(inputString);
-  if (!fs::is_regular_file(input)) {
-    cerr << "error: input file does not exist" << endl;
+  if (!fs::is_directory(input)) {
+    cerr << "error: input directory does not exist" << endl;
     return -1;
   }
 

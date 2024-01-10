@@ -1,14 +1,10 @@
 #include <je2be/box360/converter.hpp>
 
-#include <je2be/fs.hpp>
 #include <je2be/lce/converter.hpp>
 #include <je2be/lce/options.hpp>
 #include <je2be/lce/progress.hpp>
 
-#include <minecraft-file.hpp>
-
-#include <defer.hpp>
-
+#include "box360/_chunk-decompressor.hpp"
 #include "box360/_save-bin.hpp"
 
 namespace je2be::box360 {
@@ -38,25 +34,10 @@ Status Converter::Run(std::filesystem::path const &inputSaveBin,
     return JE2BE_ERROR;
   }
 
-  auto tempRoot = options.getTempDirectory();
-  auto decompressed = tempRoot / Uuid::Gen().toString();
-  {
-    mcfile::ScopedFile fp(mcfile::File::Open(decompressed, mcfile::File::Mode::Write));
-    if (!fp) {
-      return JE2BE_ERROR;
-    }
-    if (!mcfile::File::Fwrite(buffer.data(), 1, buffer.size(), fp.get())) {
-      return JE2BE_ERROR;
-    }
-    vector<uint8_t>().swap(buffer);
-  }
-  defer {
-    Fs::Delete(decompressed);
-  };
-
   je2be::lce::Options o = options;
   o.fLastPlayed = savegameInfo->fCreatedTime;
-  return lce::Converter::Run(decompressed, outputDirectory, concurrency, o, progress);
+  box360::ChunkDecompressor decompressor;
+  return lce::Converter::Run(buffer, outputDirectory, concurrency, decompressor, o, progress);
 }
 
 } // namespace je2be::box360

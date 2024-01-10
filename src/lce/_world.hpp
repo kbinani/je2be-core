@@ -10,6 +10,7 @@ namespace je2be::lce {
 class Context;
 class Options;
 class Progress;
+class ChunkDecompressor;
 
 class World {
   class Impl;
@@ -59,6 +60,7 @@ public:
                         std::filesystem::path const &outputDirectory,
                         mcfile::Dimension dimension,
                         unsigned int concurrency,
+                        ChunkDecompressor const &chunkDecompressor,
                         Context const &ctx,
                         Options const &options,
                         Progress *progress,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <je2be/status.hpp>
+#include <je2be/lce/chunk-decompressor.hpp>
 
 #include <minecraft-file.hpp>
 
@@ -26,6 +26,7 @@ public:
                         int cx,
                         int cz,
                         std::shared_ptr<mcfile::je::WritableChunk> &result,
+                        ChunkDecompressor const &chunkDecompressor,
                         Context const &ctx,
                         Options const &options);
 

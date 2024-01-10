@@ -29,9 +29,10 @@ class Converter::Impl {
   Impl() = delete;
 
 public:
-  static Status Run(std::filesystem::path const &inputSavegame,
+  static Status Run(std::vector<uint8_t> const &inputSavegame,
                     std::filesystem::path const &outputDirectory,
                     unsigned int concurrency,
+                    ChunkDecompressor const &chunkDecompressor,
                     Options const &options,
                     Progress *progress = nullptr) {
     using namespace std;
@@ -46,14 +47,8 @@ public:
       Fs::DeleteAll(*temp);
     };
 
-    {
-      vector<uint8_t> buffer;
-      if (!file::GetContents(inputSavegame, buffer)) {
-        return JE2BE_ERROR;
-      }
-      if (!Savegame::ExtractFilesFromDecompressedSavegame(buffer, *temp)) {
-        return JE2BE_ERROR;
-      }
+    if (!Savegame::ExtractFilesFromDecompressedSavegame(inputSavegame, *temp)) {
+      return JE2BE_ERROR;
     }
     Context ctx(TileEntity::Convert, Entity::MigrateName);
     if (auto st = CopyMapFiles(*temp, outputDirectory); !st.ok()) {
@@ -82,7 +77,7 @@ public:
           continue;
         }
       }
-      if (auto st = World::Convert(*temp, outputDirectory, dimension, concurrency, ctx, options, progress, progressChunksOffset); !st.ok()) {
+      if (auto st = World::Convert(*temp, outputDirectory, dimension, concurrency, chunkDecompressor, ctx, options, progress, progressChunksOffset); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
       }
     }
@@ -629,12 +624,13 @@ private:
   }
 };
 
-Status Converter::Run(std::filesystem::path const &inputSaveBin,
+Status Converter::Run(std::vector<uint8_t> const &inputSaveBin,
                       std::filesystem::path const &outputDirectory,
                       unsigned int concurrency,
+                      ChunkDecompressor const &chunkDecompressor,
                       Options const &options,
                       Progress *progress) {
-  return Impl::Run(inputSaveBin, outputDirectory, concurrency, options, progress);
+  return Impl::Run(inputSaveBin, outputDirectory, concurrency, chunkDecompressor, options, progress);
 }
 
 } // namespace je2be::lce
