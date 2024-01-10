@@ -259,6 +259,7 @@ private:
     if (auto st = chunkDecompressor.decompress(buffer); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
+    Savegame::DecodeDecompressedChunk(buffer);
 
     if (buffer.size() < 2) {
       return JE2BE_ERROR;

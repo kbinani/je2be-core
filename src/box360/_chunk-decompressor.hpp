@@ -12,8 +12,6 @@ public:
     if (!je2be::lce::Savegame::DecompressRawChunk(buffer)) {
       return JE2BE_ERROR;
     }
-
-    je2be::lce::Savegame::DecodeDecompressedChunk(buffer);
     return Status::Ok();
   }
 };
