@@ -9,11 +9,11 @@ TEST_CASE("bee-nest") {
     auto in = *tmp / "in";
     REQUIRE(ZipFile::Unzip(mcworld, in).ok());
     auto out = *tmp / "out";
-    toje::Options opt;
+    bedrock::Options opt;
     opt.fDimensionFilter.insert(Dimension::Overworld);
     opt.fChunkFilter.insert({0, 0});
 
-    auto st = toje::Converter::Run(in, out, opt, thread::hardware_concurrency());
+    auto st = bedrock::Converter::Run(in, out, opt, thread::hardware_concurrency());
     CHECK(st.ok());
     mcfile::je::World world(out);
     auto chunk = world.chunkAt(0, 0);

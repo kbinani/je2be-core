@@ -44,5 +44,5 @@ static fs::path ProjectRootDir() {
 #include "pos2i-set.test.hpp"
 #include "system.test.hpp"
 #include "b2j2b.test.hpp"
-#include "toje-legacy-block.test.hpp"
+#include "bedrock-legacy-block.test.hpp"
 #include "parallel.test.hpp"

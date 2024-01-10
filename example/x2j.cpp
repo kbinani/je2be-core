@@ -14,7 +14,7 @@
 
 using namespace std;
 using namespace je2be;
-using namespace je2be::box360;
+using namespace je2be::xbox360;
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {

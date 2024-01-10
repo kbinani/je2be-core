@@ -14,14 +14,14 @@
 #include "_nbt-ext.hpp"
 #include "_nullable.hpp"
 #include "_props.hpp"
-#include "box360/_save-bin.hpp"
+#include "bedrock/_constants.hpp"
 #include "lce/_chunk.hpp"
 #include "lce/_context.hpp"
 #include "lce/_entity.hpp"
 #include "lce/_savegame.hpp"
 #include "lce/_tile-entity.hpp"
 #include "lce/_world.hpp"
-#include "toje/_constants.hpp"
+#include "xbox360/_save-bin.hpp"
 
 namespace je2be::lce {
 

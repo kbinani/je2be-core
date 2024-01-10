@@ -1250,7 +1250,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
   // java -> bedrock
   auto outB = mcfile::File::CreateTempDir(*tmp);
   CHECK(outB);
-  je2be::tobe::Options optB;
+  je2be::java::Options optB;
   optB.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
   defer {
     if (optB.fTempDirectory) {
@@ -1290,7 +1290,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
   }
   multithread = false;
 #endif
-  je2be::toje::Options optJ;
+  je2be::bedrock::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
   optJ.fDimensionFilter = optB.fDimensionFilter;
   optJ.fChunkFilter = optB.fChunkFilter;
@@ -1300,13 +1300,13 @@ static void TestJavaToBedrockToJava(fs::path in) {
     }
   };
 
-  Status st = je2be::tobe::Converter::Run(in, *outB, optB, multithread ? thread::hardware_concurrency() : 0);
+  Status st = je2be::java::Converter::Run(in, *outB, optB, multithread ? thread::hardware_concurrency() : 0);
   CHECK(st.ok());
 
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   CHECK(outJ);
-  st = je2be::toje::Converter::Run(*outB, *outJ, optJ, multithread ? thread::hardware_concurrency() : 0);
+  st = je2be::bedrock::Converter::Run(*outB, *outJ, optJ, multithread ? thread::hardware_concurrency() : 0);
   CHECK(st.ok());
 
   // Compare initial Java input and final Java output.

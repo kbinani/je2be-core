@@ -16,11 +16,11 @@
 #include "terraform/_shape-of-stairs.hpp"
 #include "terraform/_snowy.hpp"
 #include "terraform/_wall-connectable.hpp"
-#include "terraform/box360/_attached-stem.hpp"
-#include "terraform/box360/_bed.hpp"
-#include "terraform/box360/_block-accessor-box360.hpp"
-#include "terraform/box360/_chest.hpp"
-#include "terraform/box360/_kelp.hpp"
+#include "terraform/xbox360/_attached-stem.hpp"
+#include "terraform/xbox360/_bed.hpp"
+#include "terraform/xbox360/_block-accessor-box360.hpp"
+#include "terraform/xbox360/_chest.hpp"
+#include "terraform/xbox360/_kelp.hpp"
 
 #include <latch>
 #include <mutex>

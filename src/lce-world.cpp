@@ -12,9 +12,9 @@
 #include "lce/_chunk.hpp"
 #include "lce/_context.hpp"
 #include "lce/_terraform.hpp"
-#include "terraform/box360/_nether-portal.hpp"
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "terraform/lighting/_lighting.hpp"
+#include "terraform/xbox360/_nether-portal.hpp"
 
 namespace je2be::lce {
 

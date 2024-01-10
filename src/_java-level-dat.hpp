@@ -1,6 +1,6 @@
 #pragma once
 
-#include "toje/_constants.hpp"
+#include "bedrock/_constants.hpp"
 
 namespace je2be {
 
@@ -8,7 +8,7 @@ class JavaLevelDat {
   JavaLevelDat() = delete;
 
   enum {
-    kLevelVersion = toje::kLevelVersion,
+    kLevelVersion = bedrock::kLevelVersion,
   };
 
 public:

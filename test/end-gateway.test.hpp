@@ -9,11 +9,11 @@ TEST_CASE("end-gateway") {
     auto in = *tmp / "in";
     REQUIRE(ZipFile::Unzip(mcworld, in).ok());
     auto out = *tmp / "out";
-    toje::Options opt;
+    bedrock::Options opt;
     opt.fDimensionFilter.insert(Dimension::End);
     opt.fChunkFilter.insert({-5, -4});
     opt.fChunkFilter.insert({-51, -39});
-    auto st = toje::Converter::Run(in, out, opt, thread::hardware_concurrency());
+    auto st = bedrock::Converter::Run(in, out, opt, thread::hardware_concurrency());
     CHECK(st.ok());
     mcfile::je::World world(out / "DIM1");
     {

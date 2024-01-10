@@ -4,6 +4,7 @@
 #if __has_include(<mimalloc.h>)
 #include <mimalloc.h>
 #endif
+#include <defer.hpp>
 #include <pbar.hpp>
 
 #include <iostream>
@@ -12,7 +13,7 @@
 
 using namespace std;
 using namespace je2be;
-using namespace je2be::tobe;
+using namespace je2be::java;
 namespace fs = std::filesystem;
 
 struct StdoutProgressReporter : public Progress {
