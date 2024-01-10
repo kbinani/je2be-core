@@ -101,8 +101,8 @@ public:
     if (size < 4) {
       return false;
     }
-    buffer.resize(size);
-    return stream.read(buffer.data(), size);
+    buffer.resize(size + 4);
+    return stream.read(buffer.data(), size + 4);
   }
 
   static bool ExtractFilesFromDecompressedSavegame(std::vector<u8> const &savegame, std::filesystem::path const &outputDirectory) {
