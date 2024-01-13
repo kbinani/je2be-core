@@ -1,6 +1,6 @@
 #pragma once
 
-#include <je2be/lce/chunk-decompressor.hpp>
+#include <je2be/status.hpp>
 
 #include <minecraft-file.hpp>
 
@@ -8,6 +8,7 @@ namespace je2be::lce {
 
 class Context;
 class Options;
+class Behavior;
 
 class Chunk {
   class Impl;
@@ -26,7 +27,7 @@ public:
                         int cx,
                         int cz,
                         std::shared_ptr<mcfile::je::WritableChunk> &result,
-                        ChunkDecompressor const &chunkDecompressor,
+                        Behavior const &behavior,
                         Context const &ctx,
                         Options const &options);
 

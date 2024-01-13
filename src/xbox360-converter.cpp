@@ -4,7 +4,7 @@
 #include <je2be/lce/options.hpp>
 #include <je2be/lce/progress.hpp>
 
-#include "xbox360/_chunk-decompressor.hpp"
+#include "xbox360/_behavior.hpp"
 #include "xbox360/_save-bin.hpp"
 
 namespace je2be::xbox360 {
@@ -36,8 +36,8 @@ Status Converter::Run(std::filesystem::path const &inputSaveBin,
 
   je2be::lce::Options o = options;
   o.fLastPlayed = savegameInfo->fCreatedTime;
-  xbox360::ChunkDecompressor decompressor;
-  return lce::Converter::Run(buffer, outputDirectory, concurrency, decompressor, o, progress);
+  xbox360::ConverterBehavior behavior;
+  return lce::Converter::Run(buffer, outputDirectory, concurrency, behavior, o, progress);
 }
 
 } // namespace je2be::xbox360

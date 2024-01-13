@@ -6,7 +6,7 @@
 #include <je2be/lce/progress.hpp>
 
 #include "_file.hpp"
-#include "ps3/_chunk-decompressor.hpp"
+#include "ps3/_behavior.hpp"
 
 namespace je2be::ps3 {
 
@@ -37,8 +37,8 @@ Status Converter::Run(std::filesystem::path const &inputDirectory,
   }
   je2be::lce::Options o = options;
   o.fLastPlayed = Fs::LastWriteTime(gamedataFile);
-  je2be::ps3::ChunkDecompressor decompressor;
-  return lce::Converter::Run(buffer, outputDirectory, concurrency, decompressor, o, progress);
+  je2be::ps3::ConverterBehavior behavior;
+  return lce::Converter::Run(buffer, outputDirectory, concurrency, behavior, o, progress);
 }
 
 } // namespace je2be::ps3

@@ -1,7 +1,7 @@
 #include "lce/_world.hpp"
 
 #include <je2be/fs.hpp>
-#include <je2be/lce/chunk-decompressor.hpp>
+#include <je2be/lce/behavior.hpp>
 #include <je2be/lce/options.hpp>
 #include <je2be/lce/progress.hpp>
 #include <je2be/pos2.hpp>
@@ -26,7 +26,7 @@ public:
                         std::filesystem::path const &outputDirectory,
                         mcfile::Dimension dimension,
                         unsigned int concurrency,
-                        ChunkDecompressor const &chunkDecompressor,
+                        Behavior const &behavior,
                         Context const &ctx,
                         Options const &options,
                         Progress *progress,
@@ -103,11 +103,11 @@ public:
     Status st = Parallel::Process<Pos2i>(
         innerChunks,
         concurrency,
-        [levelRootDirectory, worldDir, chunkTempDir, ctx, options, dimension, progress, &progressChunks, &chunkDecompressor](Pos2i const &chunk) -> Status {
+        [levelRootDirectory, worldDir, chunkTempDir, ctx, options, dimension, progress, &progressChunks, &behavior](Pos2i const &chunk) -> Status {
           int rx = mcfile::Coordinate::RegionFromChunk(chunk.fX);
           int rz = mcfile::Coordinate::RegionFromChunk(chunk.fZ);
           auto mcr = levelRootDirectory / worldDir / "region" / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mcr");
-          Status st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, chunkDecompressor, ctx, options);
+          Status st = ProcessChunk(dimension, mcr, chunk.fX, chunk.fZ, *chunkTempDir, behavior, ctx, options);
           if (!st.ok()) {
             return st;
           }
@@ -361,12 +361,12 @@ private:
                              int cx,
                              int cz,
                              std::filesystem::path chunkTempDir,
-                             ChunkDecompressor const &chunkDecompressor,
+                             Behavior const &behavior,
                              Context ctx,
                              Options options) {
     using namespace std;
     shared_ptr<mcfile::je::WritableChunk> chunk;
-    if (auto st = Chunk::Convert(dimension, mcr, cx, cz, chunk, chunkDecompressor, ctx, options); !st.ok()) {
+    if (auto st = Chunk::Convert(dimension, mcr, cx, cz, chunk, behavior, ctx, options); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
     if (!chunk) {
@@ -391,12 +391,12 @@ Status World::Convert(std::filesystem::path const &levelRootDirectory,
                       std::filesystem::path const &outputDirectory,
                       mcfile::Dimension dimension,
                       unsigned int concurrency,
-                      ChunkDecompressor const &chunkDecompressor,
+                      Behavior const &behavior,
                       Context const &ctx,
                       Options const &options,
                       Progress *progress,
                       u64 progressChunksOffset) {
-  return Impl::Convert(levelRootDirectory, outputDirectory, dimension, concurrency, chunkDecompressor, ctx, options, progress, progressChunksOffset);
+  return Impl::Convert(levelRootDirectory, outputDirectory, dimension, concurrency, behavior, ctx, options, progress, progressChunksOffset);
 }
 
 } // namespace je2be::lce

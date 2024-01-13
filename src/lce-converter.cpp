@@ -1,6 +1,7 @@
 #include <je2be/lce/converter.hpp>
 
 #include <je2be/fs.hpp>
+#include <je2be/lce/behavior.hpp>
 #include <je2be/lce/options.hpp>
 #include <je2be/lce/progress.hpp>
 #include <je2be/zip-file.hpp>
@@ -32,7 +33,7 @@ public:
   static Status Run(std::vector<uint8_t> const &inputSavegame,
                     std::filesystem::path const &outputDirectory,
                     unsigned int concurrency,
-                    ChunkDecompressor const &chunkDecompressor,
+                    Behavior const &behavior,
                     Options const &options,
                     Progress *progress = nullptr) {
     using namespace std;
@@ -54,7 +55,7 @@ public:
     if (auto st = CopyMapFiles(*temp, outputDirectory); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
-    auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, ctx, options);
+    auto copyPlayersResult = CopyPlayers(*temp, outputDirectory, behavior, ctx, options);
     if (!copyPlayersResult) {
       return copyPlayersResult.status();
     }
@@ -77,7 +78,7 @@ public:
           continue;
         }
       }
-      if (auto st = World::Convert(*temp, outputDirectory, dimension, concurrency, chunkDecompressor, ctx, options, progress, progressChunksOffset); !st.ok()) {
+      if (auto st = World::Convert(*temp, outputDirectory, dimension, concurrency, behavior, ctx, options, progress, progressChunksOffset); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
       }
     }
@@ -97,12 +98,12 @@ private:
 
   static Nullable<CopyPlayersResult> CopyPlayers(std::filesystem::path const &inputDirectory,
                                                  std::filesystem::path const &outputDirectory,
+                                                 Behavior const &behavior,
                                                  Context &ctx,
                                                  Options const &options) {
     using namespace std;
     namespace fs = std::filesystem;
 
-    auto playersFrom = inputDirectory / "players";
     auto playersTo = outputDirectory / "playerdata";
 
     if (!Fs::CreateDirectories(playersTo)) {
@@ -111,18 +112,23 @@ private:
 
     CopyPlayersResult r;
     r.fLocalPlayer = nullptr;
-    vector<shared_ptr<PlayerInfo>> players;
 
-    for (DirectoryIterator it(playersFrom); it.valid(); it.next()) {
-      if (!it->is_regular_file()) {
-        continue;
-      }
-      auto player = CopyPlayer(it->path(), playersTo, ctx);
-      if (!player) {
-        continue;
-      }
-      players.push_back(player);
+    map<fs::path, CompoundTagPtr> tags;
+    if (auto st = behavior.loadPlayers(inputDirectory, tags); !st.ok()) {
+      return JE2BE_NULLABLE_NULL;
     }
+
+    vector<shared_ptr<PlayerInfo>> players;
+    for (auto const &it : tags) {
+      if (!it.second) {
+        continue;
+      }
+      if (auto info = CopyPlayer(it.first, *it.second, playersTo, ctx); info) {
+        players.push_back(info);
+      }
+    }
+    map<fs::path, CompoundTagPtr>().swap(tags);
+
     if (players.size() == 1) {
       r.fLocalPlayer = players[0];
       players.clear();
@@ -149,26 +155,19 @@ private:
     return r;
   }
 
-  static std::shared_ptr<PlayerInfo> CopyPlayer(std::filesystem::path const &inputFile, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
+  static std::shared_ptr<PlayerInfo> CopyPlayer(std::filesystem::path const &inputFile, CompoundTag const &inputTag, std::filesystem::path const &outputPlayerdata, Context const &ctx) {
     using namespace std;
-    auto stream = make_shared<mcfile::stream::FileInputStream>(inputFile);
-    auto in = CompoundTag::Read(stream, mcfile::Endian::Big);
-    stream.reset();
-    if (!in) {
-      // Not an nbt format. just skip this
-      return nullptr;
-    }
 
     auto r = make_shared<PlayerInfo>();
-    r->fPlayer.fValue.swap(in->copy()->fValue);
+    r->fPlayer.fValue.swap(inputTag.copy()->fValue);
 
     r->fPlayer.erase(u8"GamePrivileges");
     r->fPlayer.erase(u8"Sleeping");
 
-    Entity::CopyItems(*in, r->fPlayer, ctx, u8"EnderItems");
-    Entity::CopyItems(*in, r->fPlayer, ctx, u8"Inventory");
+    Entity::CopyItems(inputTag, r->fPlayer, ctx, u8"EnderItems");
+    Entity::CopyItems(inputTag, r->fPlayer, ctx, u8"Inventory");
 
-    if (auto dimensionB = in->int32(u8"Dimension"); dimensionB) {
+    if (auto dimensionB = inputTag.int32(u8"Dimension"); dimensionB) {
       if (auto dimension = DimensionFromXbox360Dimension(*dimensionB); dimension) {
         r->fPlayer.set(u8"Dimension", JavaStringFromDimension(*dimension));
       }
@@ -176,7 +175,7 @@ private:
 
     r->fPlayer.set(u8"DataVersion", Int(Chunk::kTargetDataVersion));
 
-    if (auto rootVehicleB = in->compoundTag(u8"RootVehicle"); rootVehicleB) {
+    if (auto rootVehicleB = inputTag.compoundTag(u8"RootVehicle"); rootVehicleB) {
       auto rootVehicleJ = Compound();
       if (auto entityB = rootVehicleB->compoundTag(u8"Entity"); entityB) {
         if (auto entityJ = Entity::Convert(*entityB, ctx); entityJ && entityJ->fEntity) {
@@ -192,7 +191,7 @@ private:
     }
 
     shared_ptr<Uuid> uuidJ;
-    if (auto uuidB = in->string(u8"UUID"); uuidB) {
+    if (auto uuidB = inputTag.string(u8"UUID"); uuidB) {
       if (auto migrated = Entity::MigrateUuid(*uuidB, ctx); migrated) {
         uuidJ = make_shared<Uuid>(*migrated);
         r->fUuidX = *uuidB;
@@ -627,10 +626,10 @@ private:
 Status Converter::Run(std::vector<uint8_t> const &inputSaveBin,
                       std::filesystem::path const &outputDirectory,
                       unsigned int concurrency,
-                      ChunkDecompressor const &chunkDecompressor,
+                      Behavior const &behavior,
                       Options const &options,
                       Progress *progress) {
-  return Impl::Run(inputSaveBin, outputDirectory, concurrency, chunkDecompressor, options, progress);
+  return Impl::Run(inputSaveBin, outputDirectory, concurrency, behavior, options, progress);
 }
 
 } // namespace je2be::lce

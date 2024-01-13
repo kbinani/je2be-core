@@ -54,7 +54,7 @@ set(je2be_header_files
   include/je2be/java/converter.hpp
   include/je2be/java/options.hpp
   include/je2be/java/progress.hpp
-  include/je2be/lce/chunk-decompressor.hpp
+  include/je2be/lce/behavior.hpp
   include/je2be/lce/converter.hpp
   include/je2be/lce/options.hpp
   include/je2be/lce/progress.hpp
@@ -352,7 +352,7 @@ set(je2be_src_files
   src/lce/_tile-entity.hpp
   src/lce/_world.hpp
   src/ps3-converter.cpp
-  src/ps3/_chunk-decompressor.hpp
+  src/ps3/_behavior.hpp
   src/structure/_structure-piece.hpp
   src/system.cpp
   src/terraform-block-property-accessor.cpp
@@ -393,7 +393,7 @@ set(je2be_src_files
   src/tile-entity/_loot-table.hpp
   src/xbox360-converter.cpp
   src/xbox360-save-bin.cpp
-  src/xbox360/_chunk-decompressor.hpp
+  src/xbox360/_behavior.hpp
   src/xbox360/_save-bin.hpp
   src/xbox360/_stfs-ext.hpp
   src/xbox360/_stfs.hpp
