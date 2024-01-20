@@ -9,14 +9,14 @@ class Data2d {
 public:
   Data2d(Pos2i const &start, Pos2i const &end, T def)
       : fStart(start), //
-        fEnd(end) {
-    fStorage.resize(((size_t)(end.fX - start.fX) + 1) * ((size_t)(end.fZ - start.fZ) + 1), def);
+        fEnd(end),
+        fStorage(((size_t)(end.fX - start.fX) + 1) * ((size_t)(end.fZ - start.fZ) + 1), def) {
   }
 
   Data2d(Pos2i const &start, u32 width, u32 height, T def)
       : fStart(start), //
-        fEnd(start.fX + (int)width - 1, start.fZ + (int)height - 1) {
-    fStorage.resize((size_t)width * height, def);
+        fEnd(start.fX + (int)width - 1, start.fZ + (int)height - 1),
+        fStorage((size_t)width * height, def) {
   }
 
   typename std::vector<T>::reference operator[](Pos2i const &p) {

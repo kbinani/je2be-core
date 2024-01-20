@@ -513,6 +513,10 @@ CPMAddPackage(
   GIT_TAG 226b9ad291d72c6859456d5188f33c932e2e730b
   GIT_REPOSITORY https://github.com/estshorter/pbar.git)
 
+CPMAddPackage(
+  NAME sparse
+  GIT_TAG c3b933bb70817a6e20fa5ef23c89c2afcb5c0963
+  GIT_REPOSITORY https://github.com/Arzaghi/sparse.git)
 
 add_library(je2be STATIC ${je2be_header_files} ${mcfile_header_files} ${je2be_src_files})
 target_include_directories(je2be PUBLIC
@@ -522,6 +526,7 @@ target_include_directories(je2be PUBLIC
   ${minizip_SOURCE_DIR}
   ${xxhash_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
+  ${sparse_SOURCE_DIR}
   ${je2be_include_directories})
 target_include_directories(je2be PRIVATE ./src ${libdeflate_SOURCE_DIR} ${libminecraft-file_SOURCE_DIR}/include ${defer_SOURCE_DIR}/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})

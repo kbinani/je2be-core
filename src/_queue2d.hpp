@@ -1,15 +1,21 @@
 #pragma once
 
-#include "_data2d.hpp"
+#include <sparse.hpp>
 
 #include <variant>
 
 namespace je2be {
 
 class Queue2d {
+  struct Element {
+    float fWeight = 0;
+    bool fDone = false;
+    bool fLock = false;
+  };
+
 public:
   Queue2d(Pos2i const &origin, u32 width, u32 height, u32 lockRadius = 0)
-      : fOrigin(origin), fWidth(width), fHeight(height), fLockRadius(lockRadius), fDone(origin, width, height, false), fLock(origin, width, height, false), fWeight(origin, width, height, 0.0f) {
+      : fOrigin(origin), fWidth(width), fHeight(height), fLockRadius(lockRadius), fElements((size_t)width * height, Element()) {
   }
 
   struct Busy {
@@ -25,7 +31,12 @@ public:
     for (int z = 0; z < fHeight; z++) {
       for (int x = 0; x < fWidth; x++) {
         Pos2i center(fOrigin.fX + x, fOrigin.fZ + z);
-        if (fDone[center]) {
+        if (auto centerIndex = index(center); centerIndex) {
+          Element const &element = fElements[*centerIndex];
+          if (element.fDone) {
+            continue;
+          }
+        } else {
           continue;
         }
         remaining = true;
@@ -34,13 +45,14 @@ public:
         for (int dz = -fLockRadius; dz <= fLockRadius; dz++) {
           for (int dx = -fLockRadius; dx <= fLockRadius; dx++) {
             Pos2i p{center.fX + dx, center.fZ + dz};
-            if (auto v = fWeight.get(p); v) {
-              if (fLock[p]) {
+            if (auto pIndex = index(p); pIndex) {
+              Element const &element = fElements[*pIndex];
+              if (element.fLock) {
                 ok = false;
                 break;
               }
-              if (!fDone[p]) {
-                sum += *v;
+              if (!element.fDone) {
+                sum += element.fWeight;
               }
             }
           }
@@ -56,12 +68,21 @@ public:
       }
     }
     if (next) {
-      fDone[next->first] = true;
+      size_t centerIndex = *index(next->first);
+      Element centerElement = fElements[centerIndex];
+      centerElement.fDone = true;
+      centerElement.fLock = true;
+      fElements[centerIndex] = centerElement;
+
       int centerX = next->first.fX;
       int centerZ = next->first.fZ;
-      for (int x = (std::max)(centerX - fLockRadius, fOrigin.fX); x <= (std::min)(centerX + fLockRadius, fOrigin.fX + fWidth - 1); x++) {
-        for (int z = (std::max)(centerZ - fLockRadius, fOrigin.fZ); z <= (std::min)(centerZ + fLockRadius, fOrigin.fZ + fHeight - 1); z++) {
-          fLock[{x, z}] = true;
+      for (int x = centerX - fLockRadius; x <= centerX + fLockRadius; x++) {
+        for (int z = centerZ - fLockRadius; z <= centerZ + fLockRadius; z++) {
+          if (auto idx = index(Pos2i(x, z)); idx && *idx != centerIndex) {
+            Element element = fElements[*idx];
+            element.fLock = true;
+            fElements[*idx] = element;
+          }
         }
       }
       Dequeue d;
@@ -89,18 +110,37 @@ public:
   }
 
   void setDone(Pos2i const &p, bool done) {
-    fDone[p] = done;
+    if (auto idx = index(p); idx) {
+      Element element = fElements[*idx];
+      element.fDone = done;
+      fElements[*idx] = element;
+    }
   }
 
   void unlock(Pos2i const &p) {
-    if (fOrigin.fX <= p.fX && p.fX < fOrigin.fX + fWidth && fOrigin.fZ <= p.fZ && p.fZ < fOrigin.fZ + fHeight) {
-      fLock[p] = false;
+    if (auto idx = index(p); idx) {
+      Element element = fElements[*idx];
+      element.fLock = false;
+      fElements[*idx] = element;
     }
   }
 
   void setWeight(Pos2i const &p, float weight) {
+    if (auto idx = index(p); idx) {
+      Element element = fElements[*idx];
+      element.fWeight = weight;
+      fElements[*idx] = element;
+    }
+  }
+
+private:
+  std::optional<size_t> index(Pos2i const &p) const {
     if (fOrigin.fX <= p.fX && p.fX < fOrigin.fX + fWidth && fOrigin.fZ <= p.fZ && p.fZ < fOrigin.fZ + fHeight) {
-      fWeight[p] = weight;
+      size_t dx = p.fX - fOrigin.fX;
+      size_t dz = p.fZ - fOrigin.fZ;
+      return dz * (fWidth) + dx;
+    } else {
+      return std::nullopt;
     }
   }
 
@@ -109,9 +149,7 @@ private:
   int const fWidth;
   int const fHeight;
   int const fLockRadius;
-  Data2d<bool> fDone;
-  Data2d<bool> fLock;
-  Data2d<float> fWeight;
+  Sparse<Element> fElements;
 };
 
 } // namespace je2be
