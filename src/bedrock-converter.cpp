@@ -235,17 +235,26 @@ private:
 
       while (ok) {
         optional<pair<mcfile::Dimension, Pos2i>> next;
+        bool remaining = false;
         {
           lock_guard<mutex> lock(mut);
           for (auto const &it : queues) {
             if (auto n = it.second->next(); n) {
-              next = make_pair(it.first, *n);
-              break;
+              remaining = true;
+              if (holds_alternative<Queue2d::Dequeue>(*n)) {
+                next = make_pair(it.first, get<Queue2d::Dequeue>(*n).fRegion);
+                break;
+              }
             }
           }
         }
         if (!next) {
-          break;
+          if (!remaining) {
+            break;
+          } else {
+            this_thread::sleep_for(chrono::milliseconds(10));
+            continue;
+          }
         }
 
         mcfile::Dimension dim = next->first;

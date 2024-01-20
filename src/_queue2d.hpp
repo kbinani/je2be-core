@@ -2,7 +2,7 @@
 
 #include "_data2d.hpp"
 
-#include <deque>
+#include <variant>
 
 namespace je2be {
 
@@ -12,15 +12,23 @@ public:
       : fOrigin(origin), fWidth(width), fHeight(height), fLockRadius(lockRadius), fDone(origin, width, height, false), fLock(origin, width, height, false), fWeight(origin, width, height, 0.0f) {
   }
 
-  std::optional<Pos2i> next() {
+  struct Busy {
+  };
+  struct Dequeue {
+    Pos2i fRegion;
+  };
+
+  std::optional<std::variant<Dequeue, Busy>> next() {
     using namespace std;
     optional<pair<Pos2i, float>> next;
+    bool remaining = false;
     for (int z = 0; z < fHeight; z++) {
       for (int x = 0; x < fWidth; x++) {
         Pos2i center(fOrigin.fX + x, fOrigin.fZ + z);
         if (fDone[center]) {
           continue;
         }
+        remaining = true;
         float sum = 0;
         bool ok = true;
         for (int dz = -fLockRadius; dz <= fLockRadius; dz++) {
@@ -41,11 +49,7 @@ public:
           }
         }
         if (ok) {
-          if (next) {
-            if (next->second < sum) {
-              next = make_pair(center, sum);
-            }
-          } else {
+          if (!next || next->second < sum) {
             next = make_pair(center, sum);
           }
         }
@@ -60,7 +64,11 @@ public:
           fLock[{x, z}] = true;
         }
       }
-      return next->first;
+      Dequeue d;
+      d.fRegion = next->first;
+      return d;
+    } else if (remaining) {
+      return Busy();
     } else {
       return std::nullopt;
     }
