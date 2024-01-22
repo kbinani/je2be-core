@@ -68,12 +68,13 @@ private:
     }
     std::latch *latchPtr = latch.get();
     mutex joinMut;
-    Queue2d queue({-32, -32}, 64, 64, 1);
+    using Queue = Queue2d<1, false, vector>;
+    Queue queue({-32, -32}, 64, 64);
     mutex queueMut;
 
     auto action = [&queue, &queueMut, &joinMut, latchPtr, directory, &poi, &ok, progress, &count, progressChunksOffset, dim]() {
       while (ok) {
-        optional<variant<Queue2d::Dequeue, Queue2d::Busy>> next;
+        optional<variant<Queue::Dequeue, Queue::Busy>> next;
         {
           lock_guard<mutex> lock(queueMut);
           next = queue.next();
@@ -82,11 +83,11 @@ private:
         if (!next) {
           break;
         }
-        if (holds_alternative<Queue2d::Busy>(*next)) {
+        if (holds_alternative<Queue::Busy>(*next)) {
           this_thread::sleep_for(chrono::milliseconds(10));
           continue;
         }
-        auto q = get<Queue2d::Dequeue>(*next);
+        auto q = get<Queue::Dequeue>(*next);
         auto result = DoChunk(q.fRegion.fX, q.fRegion.fZ, directory, dim);
         if (result) {
           lock_guard<mutex> lock(joinMut);

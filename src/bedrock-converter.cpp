@@ -16,6 +16,8 @@
 #include "terraform/java/_block-accessor-java-directory.hpp"
 #include "terraform/lighting/_lighting.hpp"
 
+#include <sparse.hpp>
+
 #include <atomic>
 #include <latch>
 #include <thread>
@@ -177,7 +179,8 @@ private:
       return Status::Ok();
     }
 
-    map<mcfile::Dimension, shared_ptr<Queue2d>> queues;
+    using Queue = Queue2d<0, true, Sparse>;
+    map<mcfile::Dimension, shared_ptr<Queue>> queues;
     u64 numChunks = 0;
 
     for (auto const &i : regions) {
@@ -199,16 +202,10 @@ private:
 
       int width = maxR.fX - minR.fX + 1;
       int height = maxR.fZ - minR.fZ + 1;
-      auto queue = make_shared<Queue2d>(minR, width, height);
-      for (int x = minR.fX; x <= maxR.fX; x++) {
-        for (int z = minR.fZ; z <= maxR.fZ; z++) {
-          queue->setDone({x, z}, true);
-        }
-      }
+      auto queue = make_shared<Queue>(minR, width, height);
       for (auto const &j : i.second) {
         Pos2i const &region = j.first;
-        queue->setDone(region, false);
-        queue->setWeight(region, j.second.fChunks.size());
+        queue->markTask(region, j.second.fChunks.size());
       }
       queues[i.first] = queue;
     }
@@ -241,19 +238,19 @@ private:
           for (auto const &it : queues) {
             if (auto n = it.second->next(); n) {
               remaining = true;
-              if (holds_alternative<Queue2d::Dequeue>(*n)) {
-                next = make_pair(it.first, get<Queue2d::Dequeue>(*n).fRegion);
+              if (holds_alternative<Queue::Dequeue>(*n)) {
+                next = make_pair(it.first, get<Queue::Dequeue>(*n).fRegion);
                 break;
               }
             }
           }
         }
         if (!next) {
-          if (!remaining) {
-            break;
-          } else {
+          if (remaining) {
             this_thread::sleep_for(chrono::milliseconds(10));
             continue;
+          } else {
+            break;
           }
         }
 

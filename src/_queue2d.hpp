@@ -6,16 +6,17 @@
 
 namespace je2be {
 
+template <int LockRadius, bool DefaultDone, template <typename...> class Container>
 class Queue2d {
   struct Element {
     float fWeight = 0;
-    bool fDone = false;
+    bool fDone = DefaultDone;
     bool fLock = false;
   };
 
 public:
-  Queue2d(Pos2i const &origin, u32 width, u32 height, u32 lockRadius = 0)
-      : fOrigin(origin), fWidth(width), fHeight(height), fLockRadius(lockRadius), fElements((size_t)width * height, Element()) {
+  Queue2d(Pos2i const &origin, u32 width, u32 height)
+      : fOrigin(origin), fWidth(width), fHeight(height), fElements((size_t)width * height, Element()) {
   }
 
   struct Busy {
@@ -42,9 +43,9 @@ public:
         remaining = true;
         float sum = 0;
         bool ok = true;
-        for (int dz = -fLockRadius; dz <= fLockRadius; dz++) {
-          for (int dx = -fLockRadius; dx <= fLockRadius; dx++) {
-            Pos2i p{center.fX + dx, center.fZ + dz};
+        for (int dz = -LockRadius; dz <= LockRadius; dz++) {
+          for (int dx = -LockRadius; dx <= LockRadius; dx++) {
+            Pos2i p(center.fX + dx, center.fZ + dz);
             if (auto pIndex = index(p); pIndex) {
               Element const &element = fElements[*pIndex];
               if (element.fLock) {
@@ -76,8 +77,8 @@ public:
 
       int centerX = next->first.fX;
       int centerZ = next->first.fZ;
-      for (int x = centerX - fLockRadius; x <= centerX + fLockRadius; x++) {
-        for (int z = centerZ - fLockRadius; z <= centerZ + fLockRadius; z++) {
+      for (int x = centerX - LockRadius; x <= centerX + LockRadius; x++) {
+        for (int z = centerZ - LockRadius; z <= centerZ + LockRadius; z++) {
           if (auto idx = index(Pos2i(x, z)); idx && *idx != centerIndex) {
             Element element = fElements[*idx];
             element.fLock = true;
@@ -96,8 +97,8 @@ public:
   }
 
   void unlockAround(Pos2i const &p) {
-    for (int x = p.fX - fLockRadius; x <= p.fX + fLockRadius; x++) {
-      for (int z = p.fZ - fLockRadius; z <= p.fZ + fLockRadius; z++) {
+    for (int x = p.fX - LockRadius; x <= p.fX + LockRadius; x++) {
+      for (int z = p.fZ - LockRadius; z <= p.fZ + LockRadius; z++) {
         unlock({x, z});
       }
     }
@@ -109,14 +110,6 @@ public:
     }
   }
 
-  void setDone(Pos2i const &p, bool done) {
-    if (auto idx = index(p); idx) {
-      Element element = fElements[*idx];
-      element.fDone = done;
-      fElements[*idx] = element;
-    }
-  }
-
   void unlock(Pos2i const &p) {
     if (auto idx = index(p); idx) {
       Element element = fElements[*idx];
@@ -125,10 +118,11 @@ public:
     }
   }
 
-  void setWeight(Pos2i const &p, float weight) {
+  void markTask(Pos2i const &p, float weight) {
     if (auto idx = index(p); idx) {
       Element element = fElements[*idx];
       element.fWeight = weight;
+      element.fDone = false;
       fElements[*idx] = element;
     }
   }
@@ -148,8 +142,7 @@ private:
   Pos2i const fOrigin;
   int const fWidth;
   int const fHeight;
-  int const fLockRadius;
-  Sparse<Element> fElements;
+  Container<Element> fElements;
 };
 
 } // namespace je2be
