@@ -540,11 +540,11 @@ add_executable(b2j example/b2j.cpp ${je2be_header_files})
 target_link_libraries(b2j ${je2be_exe_link_libraries} cxxopts)
 target_include_directories(b2j PRIVATE ${pbar_SOURCE_DIR})
 
-add_executable(x2j example/x2j.cpp ${je2be_header_files})
+add_executable(x2j example/x2j.cpp example/lce-progress.hpp ${je2be_header_files})
 target_link_libraries(x2j ${je2be_exe_link_libraries} cxxopts)
 target_include_directories(x2j PRIVATE ${pbar_SOURCE_DIR})
 
-add_executable(p2j example/p2j.cpp ${je2be_header_files})
+add_executable(p2j example/p2j.cpp example/lce-progress.hpp ${je2be_header_files})
 target_link_libraries(p2j ${je2be_exe_link_libraries} cxxopts)
 target_include_directories(p2j PRIVATE ${pbar_SOURCE_DIR})
 
@@ -574,6 +574,6 @@ if (MSVC)
   endif()
 endif()
 
-list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/x2j.cpp example/p2j.cpp example/dump.cpp test/j2b2j.cpp)
+list(APPEND all_files ${test_files} ${je2be_header_files} ${je2be_src_files} example/j2b.cpp example/b2j.cpp example/lce-progress.hpp example/x2j.cpp example/p2j.cpp example/dump.cpp test/j2b2j.cpp)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${all_files})
 source_group(TREE ${libminecraft-file_SOURCE_DIR} PREFIX deps/mcfile FILES ${mcfile_header_files})
