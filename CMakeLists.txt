@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 94d0af023b10a084bafb732fa0024fa3488ee89f)
+  GIT_TAG c70bf9ae78a1222bec0e351b6c8a19379be3cf7a)
 
 CPMAddPackage(
   NAME defer
@@ -124,6 +124,7 @@ set(mcfile_header_files
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/heightmaps.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/mca-chunk-locator.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/mca-editor.hpp
+  ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/region-compression.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/region.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/set-block-options.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/ticking-block.hpp
@@ -442,6 +443,8 @@ if (zlib_imported_with_cpm GREATER -1)
     ${zlib_SOURCE_DIR}
     ${zlib_BINARY_DIR})
 endif()
+
+list(APPEND je2be_include_directories ${LZ4_BINARY_DIR}/lib)
 
 CPMAddPackage(
   NAME leveldb

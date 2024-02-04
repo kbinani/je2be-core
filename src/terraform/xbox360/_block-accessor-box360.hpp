@@ -45,7 +45,7 @@ public:
     }
     if (!fCacheLoaded[*idx]) {
       auto file = fDir / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
-      fCache[*idx] = mcfile::je::Chunk::LoadFromCompressedChunkNbtFile(file, cx, cz);
+      fCache[*idx] = mcfile::je::Chunk::LoadFromDeflateCompressedChunkNbtFile(file, cx, cz);
       fCacheLoaded[*idx] = true;
     }
     return fCache[*idx];
