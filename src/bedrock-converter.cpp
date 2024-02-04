@@ -232,6 +232,7 @@ private:
 
       while (ok) {
         optional<pair<mcfile::Dimension, Pos2i>> next;
+        shared_ptr<Queue> queue;
         bool remaining = false;
         {
           lock_guard<mutex> lock(mut);
@@ -240,12 +241,13 @@ private:
               remaining = true;
               if (holds_alternative<Queue::Dequeue>(*n)) {
                 next = make_pair(it.first, get<Queue::Dequeue>(*n).fRegion);
+                queue = it.second;
                 break;
               }
             }
           }
         }
-        if (!next) {
+        if (!next || !queue) {
           if (remaining) {
             this_thread::sleep_for(chrono::milliseconds(10));
             continue;
@@ -313,17 +315,15 @@ private:
           for (int x = 0; x < 32; x++) {
             int cx = x + rx * 32;
             int cz = z + rz * 32;
-            if (chunksInRegion.fChunks.count(Pos2i(cx, cz)) > 0) {
+            if (chunksInRegion.fChunks.find(Pos2i(cx, cz)) != chunksInRegion.fChunks.end()) {
               if (!TerraformChunk(cx, cz, *editor, found->second, blockAccessor, dim, lightCache).ok()) {
                 ok = false;
                 break;
               }
               u64 d = done.fetch_add(1) + 1;
-              if (progress) {
-                if (!progress->reportTerraform({d, numChunks}, d)) {
-                  ok = false;
-                  break;
-                }
+              if (progress && !progress->reportTerraform({d, numChunks}, d)) {
+                ok = false;
+                break;
               }
             }
             lightCache.dispose(cx - 1, cz - 1);
@@ -339,7 +339,7 @@ private:
 
         {
           lock_guard<mutex> lock(mut);
-          queues[dim]->unlock({region});
+          queue->unlock({region});
         }
       }
       if (latchPtr) {
@@ -358,10 +358,8 @@ private:
     for (auto &th : threads) {
       th.join();
     }
-    if (progress) {
-      if (!progress->reportTerraform({1, numChunks}, numChunks)) {
-        return JE2BE_ERROR;
-      }
+    if (progress && !progress->reportTerraform({1, numChunks}, numChunks)) {
+      return JE2BE_ERROR;
     }
     return Status::Ok();
   }
