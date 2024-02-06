@@ -4,7 +4,6 @@
 #include "_nbt-ext.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
-#include "_xxhash.hpp"
 #include "color/_sign-color.hpp"
 #include "command/_command.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
@@ -661,11 +660,11 @@ private:
     // "rott"
     // [-pi, pi] float, an angle of enchant table and player's position who placed the table.
     // Java doesn't store such data in tile entity, so generate rott based on its xyz position.
-    XXHash32 xx(0);
-    xx.add(&pos.fX, sizeof(pos.fX));
-    xx.add(&pos.fY, sizeof(pos.fY));
-    xx.add(&pos.fZ, sizeof(pos.fZ));
-    u32 seed = xx.hash();
+    mcfile::XXHash<u32> xx(0);
+    xx.update(&pos.fX, sizeof(pos.fX));
+    xx.update(&pos.fY, sizeof(pos.fY));
+    xx.update(&pos.fZ, sizeof(pos.fZ));
+    u32 seed = xx.digest();
     std::mt19937 gen(seed);
     std::uniform_real_distribution<float> distribution(-std::numbers::pi, std::numbers::pi);
     float rott = distribution(gen);
@@ -798,11 +797,11 @@ private:
         }
 
         // UUIDs are not stored in EntityData, so create a unique id.
-        XXHash h;
+        mcfile::XXHash<u64> h;
         h.update(&ctx.fWorldData.fDim, sizeof(ctx.fWorldData.fDim));
         h.update(&pos.fX, sizeof(pos.fX));
         h.update(&pos.fZ, sizeof(pos.fZ));
-        i64 hash = h.digest();
+        u64 hash = h.digest();
         u32 lo = ((u32 *)&hash)[0];
         u32 hi = ((u32 *)&hash)[1];
         vector<i32> uuidSource = {*(i32 *)&lo, *(i32 *)&hi, pos.fY, index};

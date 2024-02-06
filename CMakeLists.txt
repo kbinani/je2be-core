@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG a6b876941e2fa13dd4357ea82f328b8ffb5ab052)
+  GIT_TAG 6411a9810404d40daad4107b5478c554685934d6)
 
 CPMAddPackage(
   NAME defer
@@ -167,6 +167,7 @@ set(mcfile_header_files
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/stream/output-stream.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/string.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/u8stream.hpp
+  ${libminecraft-file_SOURCE_DIR}/include/mcfile/xxhash.hpp
   ${libminecraft-file_SOURCE_DIR}/include/minecraft-file.hpp
   #end libminecraft-file source files
 )
@@ -202,7 +203,6 @@ set(je2be_src_files
   src/_version.hpp
   src/_volume.hpp
   src/_walk.hpp
-  src/_xxhash.hpp
   src/bedrock-block-data.cpp
   src/bedrock-block-entity.cpp
   src/bedrock-chunk.cpp
@@ -476,11 +476,6 @@ if (nlohmann_json_ADDED)
 endif()
 
 CPMAddPackage(
-  NAME xxhash
-  GIT_TAG c2866db364b6ea3a11933e62235ddc166ba18565
-  GIT_REPOSITORY https://github.com/stbrumme/xxhash.git)
-
-CPMAddPackage(
   NAME minizip
   GITHUB_REPOSITORY zlib-ng/minizip-ng
   GIT_TAG 4.0.4
@@ -527,7 +522,6 @@ target_include_directories(je2be PUBLIC
   ${leveldb_SOURCE_DIR}
   ${leveldb_SOURCE_DIR}/include
   ${minizip_SOURCE_DIR}
-  ${xxhash_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
   ${sparse_SOURCE_DIR}
   ${je2be_include_directories})

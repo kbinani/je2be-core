@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <xxhash32.h>
 
 #include <je2be/uuid.hpp>
 
@@ -290,10 +289,7 @@ static std::u8string GetTextComponent(std::u8string const &in) {
 
 static inline i32 SquashI64ToI32(i64 v) {
   if (v < (i64)std::numeric_limits<i32>::min() || (i64)std::numeric_limits<i32>::max() < v) {
-    XXHash32 x(0);
-    x.add(&v, sizeof(v));
-    u32 u = x.hash();
-    return *(i32 *)&u;
+    return mcfile::XXHash<i32>::Digest(&v, sizeof(v));
   } else {
     return static_cast<i32>(v);
   }

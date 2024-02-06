@@ -20,8 +20,6 @@
 #include "enums/_villager-type.hpp"
 #include "tile-entity/_loot-table.hpp"
 
-#include <xxhash64.h>
-
 namespace je2be::bedrock {
 
 class Entity::Impl {
@@ -70,12 +68,12 @@ public:
     Pos3d position(pos.fX + 0.5 - direction.fX * thickness, pos.fY + 0.5 - direction.fY * thickness, pos.fZ + 0.5 - direction.fZ * thickness);
     t[u8"Pos"] = position.toListTag();
 
-    XXHash64 h(0);
-    h.add(&d, sizeof(d));
-    h.add(&position.fX, sizeof(position.fX));
-    h.add(&position.fY, sizeof(position.fY));
-    h.add(&position.fZ, sizeof(position.fZ));
-    auto uuid = Uuid::GenWithU64Seed(h.hash());
+    mcfile::XXHash<u64> h(0);
+    h.update(&d, sizeof(d));
+    h.update(&position.fX, sizeof(position.fX));
+    h.update(&position.fY, sizeof(position.fY));
+    h.update(&position.fZ, sizeof(position.fZ));
+    auto uuid = Uuid::GenWithU64Seed(h.digest());
     t[u8"UUID"] = uuid.toIntArrayTag();
 
     auto itemB = blockEntityB.compoundTag(u8"Item");

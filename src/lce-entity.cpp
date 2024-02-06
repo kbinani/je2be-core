@@ -2,7 +2,6 @@
 
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
-#include "_xxhash.hpp"
 #include "entity/_painting.hpp"
 #include "enums/_facing6.hpp"
 #include "lce/_attribute.hpp"
@@ -104,7 +103,7 @@ public:
     if (auto u = MigrateEntityUuid(uuid); u) {
       return *u;
     }
-    i64 seed = XXHash::Digest(uuid.c_str(), uuid.size());
+    i64 seed = mcfile::XXHash<i64>::Digest(uuid.c_str(), uuid.size());
     return Uuid::GenWithI64Seed(seed);
   }
 

@@ -840,7 +840,7 @@ static void PistonArm() {
     ostringstream ss;
     mcfile::nbt::PrintAsJson(ss, *root, {.fTypeHint = true});
     auto s = ss.str();
-    int64_t digest = XXHash::Digest(s.c_str(), s.size());
+    int64_t digest = XXHash<int64_t>::Digest(s.c_str(), s.size());
     fs::path out = fs::path("1.19piston_arm_bedrock_" + to_string(digest) + ".json");
     if (fs::exists(out)) {
       cout << out << " already exists" << endl;
@@ -870,7 +870,7 @@ static void PistonArm() {
     ostringstream ss;
     mcfile::nbt::PrintAsJson(ss, *root, {.fTypeHint = true});
     auto s = ss.str();
-    int64_t digest = XXHash::Digest(s.c_str(), s.size());
+    int64_t digest = XXHash<int64_t>::Digest(s.c_str(), s.size());
     fs::path out = fs::path("1.19piston_arm_java_" + to_string(digest) + ".json");
     if (fs::exists(out)) {
       cout << out << " already exists" << endl;

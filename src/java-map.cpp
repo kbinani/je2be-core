@@ -7,8 +7,6 @@
 #include "item/_map-decoration.hpp"
 #include "java/_java-edition-map.hpp"
 
-#include <xxhash32.h>
-
 #include <optional>
 #include <tuple>
 
@@ -20,8 +18,8 @@ class Map::Impl {
 public:
   static i64 UUID(i32 javaMapId, u8 scale) {
     u32 const seed = 0;
-    u32 hash = XXHash32::hash(&javaMapId, sizeof(javaMapId), seed);
-    u64 s = (u64)hash * 10 + (4 - scale);
+    u64 hash = mcfile::XXHash<u32>::Digest(&javaMapId, sizeof(javaMapId), seed);
+    u64 s = hash * 10 + (4 - scale);
     return *(i64 *)&s;
   }
 

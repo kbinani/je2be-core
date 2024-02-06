@@ -2,8 +2,6 @@
 
 #include <je2be/uuid.hpp>
 
-#include "_xxhash.hpp"
-
 #include <mutex>
 
 namespace je2be::java {
@@ -34,7 +32,7 @@ public:
     if (found != sLut.end()) {
       return found->second;
     }
-    i64 candidate = XXHash::Digest(&id, sizeof(id));
+    i64 candidate = mcfile::XXHash<i64>::Digest(&id, sizeof(id));
     i64 result = AvoidCollision(candidate);
     sLut[id] = result;
     return result;
@@ -50,14 +48,14 @@ private:
     static std::unordered_set<i64> sUsed;
 
     while (sUsed.count(h) > 0) {
-      h = XXHash::Digest(&h, sizeof(h));
+      h = mcfile::XXHash<i64>::Digest(&h, sizeof(h));
     }
     sUsed.insert(h);
     return h;
   }
 
   static i64 FirstCandidate(Uuid const &uuid) {
-    XXHash h;
+    mcfile::XXHash<i64> h;
     h.update(uuid.fData, sizeof(uuid.fData));
     return h.digest();
   }

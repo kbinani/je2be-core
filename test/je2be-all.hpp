@@ -22,7 +22,6 @@
 #include "color/_rgba.hpp"
 #include "color/_lab.hpp"
 #include "_size.hpp"
-#include "_xxhash.hpp"
 #include "_props.hpp"
 #include "_future-support.hpp"
 #include "_parallel.hpp"
