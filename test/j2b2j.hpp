@@ -246,7 +246,8 @@ static void CheckTextComponent(u8string const &e, u8string const &a) {
 static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<u8string> blacklist = {
       u8"tag/map",
-      u8"tag/BlockEntityTag",
+      u8"components/minecraft:block_entity_data",
+      u8"components/minecraft:hide_additional_tooltip",
   };
 
   CompoundTagPtr copyE = itemE.copy();
@@ -282,8 +283,8 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     }
   }
 
-  auto tileE = itemE.query(u8"tag/BlockEntityTag");
-  auto tileA = itemA.query(u8"tag/BlockEntityTag");
+  auto tileE = itemE.query(u8"components/minecraft:block_entity_data");
+  auto tileA = itemA.query(u8"components/minecraft:block_entity_data");
   if (tileE && tileE->type() != Tag::Type::End) {
     REQUIRE(tileA);
     REQUIRE(tileE->type() == Tag::Type::Compound);
@@ -744,6 +745,24 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       CheckItemJ(*itemE->asCompound(), *itemA->asCompound());
     }
   } else if (inventoryA) {
+    CHECK(false);
+  }
+
+  auto enderItemsE = entityE.listTag(u8"EnderItems");
+  auto enderItemsA = entityA.listTag(u8"EnderItems");
+  copyE->erase(u8"EnderItems");
+  copyA->erase(u8"EnderItems");
+  if (enderItemsE) {
+    REQUIRE(enderItemsA);
+    REQUIRE(enderItemsE->size() == enderItemsA->size());
+    for (int i = 0; i < enderItemsE->size(); i++) {
+      auto itemE = enderItemsE->at(i);
+      auto itemA = enderItemsA->at(i);
+      REQUIRE(itemE->type() == Tag::Type::Compound);
+      CHECK(itemE->type() == itemA->type());
+      CheckItemJ(*itemE->asCompound(), *itemA->asCompound());
+    }
+  } else if (enderItemsA) {
     CHECK(false);
   }
 

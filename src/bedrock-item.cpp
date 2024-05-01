@@ -268,6 +268,8 @@ public:
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
         AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+
+        AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
       } else {
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {

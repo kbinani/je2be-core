@@ -859,17 +859,16 @@ private:
     auto ret = New(name, true);
     ret->set(u8"Damage", Short(0));
 
-    auto number = item.query(u8"tag/map")->asInt();
-    if (!number) {
+    auto mapId = Migrate<IntTag>(item, u8"map_id", Depth::Tag, u8"map");
+    if (!mapId) {
       return std::nullopt;
     }
-    i32 mapId = number->fValue;
 
-    auto scale = mapInfo.getScale(mapId);
+    auto scale = mapInfo.getScale(mapId->fValue);
     if (!scale) {
       return std::nullopt;
     }
-    i64 uuid = Map::UUID(mapId, *scale);
+    i64 uuid = Map::UUID(mapId->fValue, *scale);
 
     auto tag = Compound();
     tag->set(u8"map_uuid", Long(uuid));
@@ -877,26 +876,23 @@ private:
     ret->set(u8"tag", tag);
 
     i16 type = 0;
-    auto display = item.query(u8"tag/display")->asCompound();
-    if (display) {
-      auto displayName = display->string(u8"Name");
-      if (displayName) {
-        auto nameJson = props::ParseAsJson(*displayName);
-        if (nameJson) {
-          auto translate = nameJson->find("translate");
-          if (translate != nameJson->end() && translate->is_string()) {
-            auto translationKey = props::GetJsonStringValue(*translate);
-            if (auto damage = MapType::BedrockDamageFromJavaTranslationKey(translationKey); damage) {
-              type = *damage;
-            }
+    auto displayName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name");
+    if (displayName) {
+      auto nameJson = props::ParseAsJson(displayName->fValue);
+      if (nameJson) {
+        auto translate = nameJson->find("translate");
+        if (translate != nameJson->end() && translate->is_string()) {
+          auto translationKey = props::GetJsonStringValue(*translate);
+          if (auto damage = MapType::BedrockDamageFromJavaTranslationKey(translationKey); damage) {
+            type = *damage;
           }
         }
       }
     }
-    tag->set(u8"map_name_index", Int(number->fValue));
+    tag->set(u8"map_name_index", Int(mapId->fValue));
     ret->set(u8"Damage", Short(type));
 
-    return make_tuple(mapId, ret);
+    return make_tuple(mapId->fValue, ret);
   }
 
   static CompoundTagPtr AnyPotion(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
@@ -1108,11 +1104,11 @@ private:
     auto ret = New(u8"banner");
     ret->set(u8"Damage", Short(damage));
 
-    auto patterns = Migrate<ListTag>(item, Depth::BlockEntityTag, u8"banner_patterns", u8"Patterns");
-    auto display = item.query(u8"tag/display")->asCompound();
+    auto patterns = Migrate<ListTag>(item, u8"banner_patterns", Depth::BlockEntityTag, u8"Patterns");
+    auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name");
     bool ominous = false;
-    if (display) {
-      auto json = props::GetJson(*display, u8"Name");
+    if (itemName) {
+      auto json = props::ParseAsJson(itemName->fValue);
       if (json) {
         auto translate = json->find("translate");
         if (translate != json->end() && translate->is_string() && props::GetJsonStringValue(*translate) == u8"block.minecraft.ominous_banner") {
@@ -1255,9 +1251,10 @@ private:
   enum class Depth {
     Tag,            // tag
     BlockEntityTag, // tag/BlockEntityTag
+    Display,        // tag/display
   };
   template <class NbtTag>
-  static std::shared_ptr<NbtTag> Migrate(CompoundTag const &itemJ, Depth depth, std::u8string const &nameWithoutNamespace, std::u8string const &legacyName) {
+  static std::shared_ptr<NbtTag> Migrate(CompoundTag const &itemJ, std::u8string const &nameWithoutNamespace, Depth depth, std::u8string const &legacyName) {
     if (auto components = itemJ.compoundTag(u8"components"); components) {
       if (auto v = components->get<NbtTag>(u8"minecraft:" + nameWithoutNamespace); v) {
         return v;
@@ -1275,6 +1272,15 @@ private:
       if (auto legacyTag = itemJ.compoundTag(u8"tag"); legacyTag) {
         if (auto legacyBlockEntityTag = legacyTag->compoundTag(u8"BlockEntityTag"); legacyBlockEntityTag) {
           if (auto v = legacyBlockEntityTag->get<NbtTag>(legacyName); v) {
+            return v;
+          }
+        }
+      }
+      break;
+    case Depth::Display:
+      if (auto legacyTag = itemJ.compoundTag(u8"tag"); legacyTag) {
+        if (auto legacyDisplayTag = legacyTag->compoundTag(u8"display"); legacyDisplayTag) {
+          if (auto v = legacyDisplayTag->get<NbtTag>(legacyName); v) {
             return v;
           }
         }
@@ -1318,7 +1324,7 @@ private:
       tagB = Compound();
     }
 
-    auto storedEnchantments = Migrate<ListTag>(itemJ, Depth::Tag, u8"stored_enchantments", u8"StoredEnchantments");
+    auto storedEnchantments = Migrate<ListTag>(itemJ, u8"stored_enchantments", Depth::Tag, u8"StoredEnchantments");
     if (storedEnchantments) {
       auto ench = List<Tag::Type::Compound>();
       for (auto const &e : *storedEnchantments) {
@@ -1334,7 +1340,7 @@ private:
       }
       tagB->set(u8"ench", ench);
     } else {
-      auto enchantments = Migrate<ListTag>(itemJ, Depth::Tag, u8"enchantments", u8"Enchantments");
+      auto enchantments = Migrate<ListTag>(itemJ, u8"enchantments", Depth::Tag, u8"Enchantments");
       if (enchantments) {
         auto ench = List<Tag::Type::Compound>();
         for (auto const &e : *enchantments) {
@@ -1352,12 +1358,12 @@ private:
       }
     }
 
-    auto damage = Migrate<IntTag>(itemJ, Depth::Tag, u8"damage", u8"Damage");
+    auto damage = Migrate<IntTag>(itemJ, u8"damage", Depth::Tag, u8"Damage");
     if (damage) {
       tagB->set(u8"Damage", Int(damage->fValue));
     }
 
-    auto repairCost = Migrate<IntTag>(itemJ, Depth::Tag, u8"repair_cost", u8"RepairCost");
+    auto repairCost = Migrate<IntTag>(itemJ, u8"repair_cost", Depth::Tag, u8"RepairCost");
     if (repairCost) {
       tagB->set(u8"RepairCost", Int(repairCost->fValue));
     }
@@ -1398,7 +1404,7 @@ private:
       displayB->set(u8"Lore", loreB);
     }
 
-    if (auto blockEntityTagJ = Migrate<CompoundTag>(itemJ, Depth::Tag, u8"block_entity_data", u8"BlockEntityTag"); blockEntityTagJ) {
+    if (auto blockEntityTagJ = Migrate<CompoundTag>(itemJ, u8"block_entity_data", Depth::Tag, u8"BlockEntityTag"); blockEntityTagJ) {
       if (auto id = itemJ.string(u8"id"); id) {
         auto block = Block::FromName(*id, dataVersion);
 
@@ -1423,7 +1429,7 @@ private:
       }
     }
 
-    if (auto trimJ = Migrate<CompoundTag>(itemJ, Depth::Tag, u8"trim", u8"Trim"); trimJ) {
+    if (auto trimJ = Migrate<CompoundTag>(itemJ, u8"trim", Depth::Tag, u8"Trim"); trimJ) {
       auto materialJ = trimJ->string(u8"material");
       auto patternJ = trimJ->string(u8"pattern");
       if (materialJ && patternJ) {
