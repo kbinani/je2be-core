@@ -735,7 +735,7 @@ private:
       auto axltl = Axolotl(age, health, variant);
       auto tag = axltl.toBucketTag();
 
-      auto customName = GetCustomName(*tg);
+      auto customName = GetCustomName_(item);
       if (customName) {
         tag->set(u8"CustomName", *customName);
         tag->set(u8"CustomNameVisible", Bool(true));
@@ -1239,13 +1239,37 @@ private:
     return ret;
   }
 
+  template <class NbtTag>
+  static std::shared_ptr<NbtTag> Migrate(CompoundTag const &itemJ, std::u8string const &nameWithoutNamespace, std::u8string const &legacyName) {
+    if (auto components = itemJ.compoundTag(u8"components"); components) {
+      if (auto v = components->get<NbtTag>(u8"minecraft:" + nameWithoutNamespace); v) {
+        return v;
+      }
+    }
+    if (auto legacyTag = itemJ.compoundTag(u8"tag"); legacyTag) {
+      if (auto v = legacyTag->get<NbtTag>(legacyName); v) {
+        return v;
+      }
+    }
+    return nullptr;
+  }
+
   static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx, int dataVersion) {
     using namespace std;
 
-    CopyByteValues(itemJ, *itemB, {{u8"Count"}});
+    optional<int8_t> count;
+    if (auto countJ = itemJ.int32(u8"count"); countJ) {
+      count = *countJ;
+    } else if (auto legacyCountJ = itemJ.byte(u8"Count"); legacyCountJ) {
+      count = *countJ;
+    }
+    if (count) {
+      itemB->set(u8"Count", Byte(*count));
+    }
 
-    auto tagJ = itemJ.compoundTag(u8"tag");
-    if (!tagJ) {
+    auto componentsJ = itemJ.compoundTag(u8"components");
+    auto legacyTagJ = itemJ.compoundTag(u8"tag");
+    if (!componentsJ && !legacyTagJ) {
       return itemB;
     }
 
@@ -1254,7 +1278,7 @@ private:
       tagB = Compound();
     }
 
-    auto storedEnchantments = tagJ->listTag(u8"StoredEnchantments");
+    auto storedEnchantments = Migrate<ListTag>(itemJ, u8"stored_enchantments", u8"StoredEnchantments");
     if (storedEnchantments) {
       auto ench = List<Tag::Type::Compound>();
       for (auto const &e : *storedEnchantments) {
@@ -1270,7 +1294,7 @@ private:
       }
       tagB->set(u8"ench", ench);
     } else {
-      auto enchantments = tagJ->listTag(u8"Enchantments");
+      auto enchantments = Migrate<ListTag>(itemJ, u8"enchantments", u8"Enchantments");
       if (enchantments) {
         auto ench = List<Tag::Type::Compound>();
         for (auto const &e : *enchantments) {
@@ -1288,19 +1312,19 @@ private:
       }
     }
 
-    auto damage = tagJ->int32(u8"Damage");
+    auto damage = Migrate<IntTag>(itemJ, u8"damage", u8"Damage");
     if (damage) {
-      tagB->set(u8"Damage", Int(*damage));
+      tagB->set(u8"Damage", Int(damage->fValue));
     }
 
-    auto repairCost = tagJ->int32(u8"RepairCost");
+    auto repairCost = Migrate<IntTag>(itemJ, u8"repair_cost", u8"RepairCost");
     if (repairCost) {
-      tagB->set(u8"RepairCost", Int(*repairCost));
+      tagB->set(u8"RepairCost", Int(repairCost->fValue));
     }
 
     CompoundTagPtr displayB = tagB->compoundTag(u8"display");
 
-    auto name = GetCustomName(*tagJ);
+    auto name = GetCustomName_(itemJ);
     if (name) {
       if (!displayB) {
         displayB = Compound();
@@ -1308,26 +1332,33 @@ private:
       displayB->set(u8"Name", *name);
     }
 
-    if (auto displayJ = tagJ->compoundTag(u8"display"); displayJ) {
-      if (auto loreJ = displayJ->listTag(u8"Lore"); loreJ) {
-        auto loreB = List<Tag::Type::String>();
-        for (auto const &item : *loreJ) {
-          if (auto str = item->asString(); str) {
-            if (str->fValue == u8"\"(+NBT)\"") {
-              loreB->push_back(String(u8"(+DATA)"));
-            } else {
-              loreB->push_back(String(str->fValue));
-            }
-          }
-        }
-        if (!displayB) {
-          displayB = Compound();
-        }
-        displayB->set(u8"Lore", loreB);
+    ListTagPtr loreJ;
+    if (componentsJ) {
+      loreJ = componentsJ->listTag(u8"minecraft:lore");
+    }
+    if (!loreJ && legacyTagJ) {
+      if (auto displayJ = legacyTagJ->compoundTag(u8"display"); displayJ) {
+        loreJ = displayJ->listTag(u8"Lore");
       }
     }
+    if (loreJ) {
+      auto loreB = List<Tag::Type::String>();
+      for (auto const &item : *loreJ) {
+        if (auto str = item->asString(); str) {
+          if (str->fValue == u8"\"(+NBT)\"") {
+            loreB->push_back(String(u8"(+DATA)"));
+          } else {
+            loreB->push_back(String(str->fValue));
+          }
+        }
+      }
+      if (!displayB) {
+        displayB = Compound();
+      }
+      displayB->set(u8"Lore", loreB);
+    }
 
-    if (auto blockEntityTagJ = tagJ->compoundTag(u8"BlockEntityTag"); blockEntityTagJ) {
+    if (auto blockEntityTagJ = Migrate<CompoundTag>(itemJ, u8"block_entity_data", u8"BlockEntityTag"); blockEntityTagJ) {
       if (auto id = itemJ.string(u8"id"); id) {
         auto block = Block::FromName(*id, dataVersion);
 
@@ -1352,7 +1383,7 @@ private:
       }
     }
 
-    if (auto trimJ = tagJ->compoundTag(u8"Trim"); trimJ) {
+    if (auto trimJ = Migrate<CompoundTag>(itemJ, u8"trim", u8"Trim"); trimJ) {
       auto materialJ = trimJ->string(u8"material");
       auto patternJ = trimJ->string(u8"pattern");
       if (materialJ && patternJ) {
@@ -1376,18 +1407,28 @@ private:
     return itemB;
   }
 
-  static std::optional<std::u8string> GetCustomName(CompoundTag const &tag) {
+  static std::optional<std::u8string> GetCustomName_(CompoundTag const &itemJ) {
     using namespace std;
     using namespace je2be::props;
-    auto display = tag.compoundTag(u8"display");
-    if (!display) {
-      return nullopt;
+    u8string name;
+    if (auto components = itemJ.compoundTag(u8"components"); components) {
+      if (auto n = components->string(u8"minecraft:custom_name"); n) {
+        name = *n;
+      } else {
+        return nullopt;
+      }
+    } else if (auto tag = itemJ.compoundTag(u8"tag"); tag) {
+      auto display = tag->compoundTag(u8"display");
+      if (!display) {
+        return nullopt;
+      }
+      if (auto n = display->string(u8"Name"); n) {
+        name = *n;
+      } else {
+        return nullopt;
+      }
     }
-    auto name = display->string(u8"Name");
-    if (!name) {
-      return nullopt;
-    }
-    auto obj = ParseAsJson(*name);
+    auto obj = ParseAsJson(name);
     if (obj) {
       auto text = obj->find("text");
       if (text != obj->end() && text->is_string()) {
@@ -1396,7 +1437,7 @@ private:
         return nullopt;
       }
     } else {
-      return strings::RemovePrefixAndSuffix(u8"\"", *name, u8"\"");
+      return strings::RemovePrefixAndSuffix(u8"\"", name, u8"\"");
     }
   }
 

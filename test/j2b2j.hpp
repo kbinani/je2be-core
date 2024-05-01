@@ -735,7 +735,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   copyA->erase(u8"Inventory");
   if (inventoryE) {
     REQUIRE(inventoryA);
-    CHECK(inventoryE->size() == inventoryA->size());
+    REQUIRE(inventoryE->size() == inventoryA->size());
     for (int i = 0; i < inventoryE->size(); i++) {
       auto itemE = inventoryE->at(i);
       auto itemA = inventoryA->at(i);

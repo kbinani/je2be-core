@@ -2502,7 +2502,13 @@ private:
       if (*slot < 0 || capacity <= *slot) {
         continue;
       }
-      auto count = item->byte(u8"Count");
+      std::optional<int32_t> count = item->int32(u8"count");
+      if (!count) {
+        // legacy: < 12.0.5
+        if (auto c = item->byte(u8"Count"); c) {
+          count = *c;
+        }
+      }
       if (!count) {
         continue;
       }

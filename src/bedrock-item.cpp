@@ -56,9 +56,9 @@ public:
       tagB = Compound();
     }
 
-    auto tagJ = itemJ.compoundTag(u8"tag");
-    if (!tagJ) {
-      tagJ = Compound();
+    auto componentsJ = itemJ.compoundTag(u8"components");
+    if (!componentsJ) {
+      componentsJ = Compound();
     }
 
     u8string nameJ = nameB;
@@ -81,12 +81,12 @@ public:
           if (!tagB->empty()) {
             if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx, dataVersion); converted && converted->fTileEntity) {
               static unordered_set<u8string> const sExclude({u8"x", u8"y", u8"z", u8"keepPacked", u8"RecipesUsed"});
-              auto blockEntityTagJ = converted->fTileEntity;
+              auto blockEntityDataJ = converted->fTileEntity;
               for (auto const &e : sExclude) {
-                blockEntityTagJ->erase(e);
+                blockEntityDataJ->erase(e);
               }
-              if (!blockEntityTagJ->empty()) {
-                tagJ->set(u8"BlockEntityTag", blockEntityTagJ);
+              if (!blockEntityDataJ->empty()) {
+                componentsJ->set(u8"minecraft:block_entity_data", blockEntityDataJ);
               }
             }
           }
@@ -111,19 +111,20 @@ public:
     }
     itemJ.set(u8"id", nameJ);
 
-    CopyByteValues(itemB, itemJ, {{u8"Count"}, {u8"Slot"}});
-    CopyIntValues(*tagB, *tagJ, {{u8"Damage"}, {u8"RepairCost"}});
-
-    auto displayJ = tagJ->compoundTag(u8"display");
-    if (!displayJ) {
-      displayJ = Compound();
+    if (auto countB = itemB.byte(u8"Count"); countB) {
+      itemJ[u8"count"] = Int(*countB);
     }
+    CopyByteValues(itemB, itemJ, {{u8"Slot"}});
+    CopyIntValues(*tagB, *componentsJ, {{u8"Damage", u8"minecraft:damage"}, {u8"minecraft:repair_cost"}});
 
     auto customColor = tagB->int32(u8"customColor");
     if (customColor) {
       i32 c = *customColor;
       u32 rgb = 0xffffff & *(u32 *)&c;
+      // TODO:
+      /*
       displayJ->set(u8"color", Int(*(i32 *)&rgb));
+      */
     }
 
     auto displayB = tagB->compoundTag(u8"display");
@@ -132,7 +133,7 @@ public:
       if (displayName) {
         props::Json json;
         props::SetJsonString(json, u8"text", *displayName);
-        displayJ->set(u8"Name", props::StringFromJson(json));
+        componentsJ->set(u8"minecraft:item_name", props::StringFromJson(json));
       }
 
       if (auto loreB = displayB->listTag(u8"Lore"); loreB) {
@@ -146,7 +147,7 @@ public:
             }
           }
         }
-        displayJ->set(u8"Lore", loreJ);
+        componentsJ->set(u8"minecraft:lore", loreJ);
       }
     }
 
@@ -155,7 +156,7 @@ public:
     if (customName && customNameVisible) {
       props::Json json;
       props::SetJsonString(json, u8"text", *customName);
-      displayJ->set(u8"Name", props::StringFromJson(json));
+      componentsJ->set(u8"minecraft:item_name", props::StringFromJson(json));
     }
 
     auto enchB = tagB->listTag(u8"ench");
@@ -177,9 +178,9 @@ public:
         }
       }
       if (nameB == u8"minecraft:enchanted_book") {
-        tagJ->set(u8"StoredEnchantments", enchJ);
+        componentsJ->set(u8"minecraft:stored_enchantments", enchJ);
       } else {
-        tagJ->set(u8"Enchantments", enchJ);
+        componentsJ->set(u8"minecraft:enchantments", enchJ);
       }
     }
 
@@ -189,15 +190,11 @@ public:
       auto trimJ = Compound();
       trimJ->set(u8"material", Namespace::Add(*materialB));
       trimJ->set(u8"pattern", Namespace::Add(*patternB));
-      tagJ->set(u8"Trim", trimJ);
+      componentsJ->set(u8"minecraft:trim", trimJ);
     }
 
-    if (!displayJ->empty()) {
-      tagJ->set(u8"display", displayJ);
-    }
-
-    if (!tagJ->empty()) {
-      itemJ[u8"tag"] = tagJ;
+    if (!componentsJ->empty()) {
+      itemJ[u8"components"] = componentsJ;
     }
   }
 

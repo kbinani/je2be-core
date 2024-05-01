@@ -1736,6 +1736,17 @@ private:
     return ret;
   }
 
+  static CompoundTagPtr BlockEntityData(CompoundTagPtr const &c) {
+    if (!c) {
+      return nullptr;
+    }
+    auto component = c->compoundTag(u8"components");
+    if (!component) {
+      return nullptr;
+    }
+    return component->compoundTag(u8"minecraft:block_entity_data");
+  }
+
   static Converter Sign(std::u8string id) {
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) -> CompoundTagPtr {
       using namespace je2be::props;
@@ -1747,8 +1758,14 @@ private:
 
       auto tag = Compound();
 
-      auto frontTextJ = c->compoundTag(u8"front_text");
-      auto backTextJ = c->compoundTag(u8"back_text");
+      CompoundTagPtr frontTextJ, backTextJ;
+      if (auto data = BlockEntityData(c); data) {
+        frontTextJ = data->compoundTag(u8"front_text");
+        backTextJ = data->compoundTag(u8"back_text");
+      } else {
+        frontTextJ = c->compoundTag(u8"front_text");
+        backTextJ = c->compoundTag(u8"back_text");
+      }
       if (frontTextJ || backTextJ) {
         if (frontTextJ) {
           auto frontTextB = SignText(*frontTextJ);
