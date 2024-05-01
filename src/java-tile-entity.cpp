@@ -1385,10 +1385,10 @@ private:
       }
     }
 
-    auto patterns = GetList(c, u8"Patterns");
-    auto patternsBedrock = List<Tag::Type::Compound>();
-    if (patterns && type != 1) {
-      for (auto const &pattern : *patterns) {
+    auto patternsJ = Migrate<ListTag>(c, Depth::Root, u8"banner_patterns", u8"Patterns");
+    auto patternsB = List<Tag::Type::Compound>();
+    if (patternsJ && type != 1) {
+      for (auto const &pattern : *patternsJ) {
         auto p = pattern->asCompound();
         if (!p) {
           continue;
@@ -1403,7 +1403,7 @@ private:
             {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
             {u8"Pattern", String(*pat)},
         });
-        patternsBedrock->push_back(ptag);
+        patternsB->push_back(ptag);
       }
     }
 
@@ -1415,8 +1415,8 @@ private:
         {u8"Type", Int(type)},
         {u8"Base", Int(base)},
     });
-    if (!patternsBedrock->empty()) {
-      tag->set(u8"Patterns", patternsBedrock);
+    if (!patternsB->empty()) {
+      tag->set(u8"Patterns", patternsB);
     }
     Attach(c, pos, *tag);
     return tag;
@@ -1611,6 +1611,29 @@ private:
       tag->push_back(outItem);
     }
     return tag;
+  }
+
+  enum class Depth {
+    Root,
+  };
+  template <class NbtTag>
+  static std::shared_ptr<NbtTag> Migrate(CompoundTagPtr const &tileEntityJ, Depth depth, std::u8string const &nameWithoutNamespace, std::u8string const &legacyName) {
+    if (!tileEntityJ) {
+      return nullptr;
+    }
+    if (auto components = tileEntityJ->compoundTag(u8"components"); components) {
+      if (auto v = components->get<NbtTag>(u8"minecraft:" + nameWithoutNamespace); v) {
+        return v;
+      }
+    }
+    switch (depth) {
+    case Depth::Root:
+      if (auto v = tileEntityJ->get<NbtTag>(legacyName); v) {
+        return v;
+      }
+      break;
+    }
+    return nullptr;
   }
 
   static ListTag const *GetList(CompoundTagPtr const &c, std::u8string const &name) {

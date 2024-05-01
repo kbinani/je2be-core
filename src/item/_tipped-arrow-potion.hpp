@@ -48,6 +48,10 @@ public:
         {u8"minecraft:slow_falling", 41},
         {u8"minecraft:long_slow_falling", 42},
         {u8"minecraft:strong_slowness", 43},
+        {u8"minecraft:wind_charged", 43}, // NOTE: 43 conflicting
+        {u8"minecraft:weaving", 44},
+        {u8"minecraft:oozing", 45},
+        {u8"minecraft:infested", 46},
     });
   }
 

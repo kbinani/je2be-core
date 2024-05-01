@@ -206,8 +206,8 @@ public:
     } else {
       auto potionJ = TippedArrowPotion::JavaPotionType(damage);
       auto tagJ = Compound();
-      tagJ->set(u8"Potion", potionJ);
-      itemJ.set(u8"tag", tagJ);
+      tagJ->set(u8"potion", potionJ);
+      AppendComponent(itemJ, u8"potion_contents", tagJ);
       return Ns() + u8"tipped_arrow";
     }
   }
@@ -256,28 +256,19 @@ public:
 
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
-      auto tagJ = Compound();
       auto typeB = tagB->int32(u8"Type");
       bool ominous = typeB == 1;
       if (ominous) {
         nameJ = u8"minecraft:white_banner";
 
         auto bannerPatterns = Banner::OminousBannerPatterns();
-        auto blockEntityTag = Compound();
-        blockEntityTag->set(u8"Patterns", bannerPatterns);
-        blockEntityTag->set(u8"id", u8"minecraft:banner");
-        tagJ->set(u8"BlockEntityTag", blockEntityTag);
+        AppendComponent(itemJ, u8"banner_patterns", bannerPatterns);
 
-        auto displayJ = Compound();
         props::Json json;
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
-        displayJ->set(u8"Name", props::StringFromJson(json));
-        tagJ->set(u8"display", displayJ);
+        AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
       } else {
-        auto blockEntityTag = Compound();
-        blockEntityTag->set(u8"id", u8"minecraft:banner");
-
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {
           auto patternsJ = List<Tag::Type::Compound>();
@@ -294,17 +285,14 @@ public:
             auto patternJ = Compound();
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*patternColorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
-            patternJ->set(u8"Color", Int(static_cast<i32>(ccj)));
-            patternJ->set(u8"Pattern", *patternStringB);
+            patternJ->set(u8"color", String(JavaNameFromColorCodeJava(ccj)));
+            patternJ->set(u8"pattern", *patternStringB);
 
             patternsJ->push_back(patternJ);
           }
-          blockEntityTag->set(u8"Patterns", patternsJ);
+          AppendComponent(itemJ, u8"banner_patterns", patternsJ);
         }
-
-        tagJ->set(u8"BlockEntityTag", blockEntityTag);
       }
-      itemJ.set(u8"tag", tagJ);
     }
     return nameJ;
   }
@@ -837,6 +825,18 @@ public:
     };
   }
 #pragma endregion
+
+  static void AppendComponent(CompoundTag &itemJ, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
+    if (!component) {
+      return;
+    }
+    auto components = itemJ.compoundTag(u8"components");
+    if (!components) {
+      components = Compound();
+      itemJ[u8"components"] = components;
+    }
+    components->set(u8"minecraft:" + nameWithoutNamespace, component);
+  }
 
   static std::u8string Ns() {
     return u8"minecraft:";

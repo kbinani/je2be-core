@@ -61,14 +61,15 @@ public:
     }
     auto te = EmptyShortName(u8"banner", pos);
     auto type = tag.int32(u8"Type", 0);
+    ListTagPtr patternsJ;
     if (type == 1) {
       // Illager Banner
       te->set(u8"CustomName", u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})");
-      te->set(u8"Patterns", Banner::OminousBannerPatterns());
+      patternsJ = Banner::OminousBannerPatterns();
     } else {
       auto patternsB = tag.listTag(u8"Patterns");
+      patternsJ = List<Tag::Type::Compound>();
       if (patternsB) {
-        auto patternsJ = List<Tag::Type::Compound>();
         for (auto const &pB : *patternsB) {
           CompoundTag const *c = pB->asCompound();
           if (!c) {
@@ -84,10 +85,10 @@ public:
           pJ->set(u8"Pattern", *pPatternB);
           patternsJ->push_back(pJ);
         }
-        te->set(u8"Patterns", patternsJ);
-      } else {
-        te->set(u8"Patterns", List<Tag::Type::Compound>());
       }
+    }
+    if (patternsJ) {
+      AppendComponent(te, u8"banner_patterns", patternsJ);
     }
     Result r;
     r.fBlock = blockJ.withId(id);
@@ -627,7 +628,7 @@ public:
     for (size_t i = 0; i < 4; i++) {
       u8string line = i < linesB.size() ? linesB[i] : u8"";
       if (line.empty()) {
-        messagesJ->push_back(String(u8"\"\""));
+        messagesJ->push_back(String(u8R"({"text":""})"));
       } else {
         props::Json json;
         props::SetJsonString(json, u8"text", line);
@@ -644,10 +645,10 @@ public:
     ret->set(u8"color", u8"black");
     ret->set(u8"has_glowing_text", Bool(false));
     auto messages = List<Tag::Type::String>();
-    messages->push_back(String(u8""));
-    messages->push_back(String(u8""));
-    messages->push_back(String(u8""));
-    messages->push_back(String(u8""));
+    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8R"({"text":""})"));
     ret->set(u8"messages", messages);
     return ret;
   }
@@ -950,6 +951,18 @@ public:
       auto facingDirectionA = block.fStates->int32(u8"facing_direction", 0);
       return Facing6FromBedrockFacingDirectionA(facingDirectionA);
     }
+  }
+
+  static void AppendComponent(CompoundTagPtr &tileEntityJ, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
+    if (!component) {
+      return;
+    }
+    auto components = tileEntityJ->compoundTag(u8"components");
+    if (!components) {
+      components = Compound();
+      tileEntityJ->set(u8"components", components);
+    }
+    components->set(u8"minecraft:" + nameWithoutNamespace, component);
   }
 
 #pragma endregion
