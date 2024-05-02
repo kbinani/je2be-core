@@ -293,7 +293,9 @@ public:
 
             patternsJ->push_back(patternJ);
           }
-          AppendComponent(itemJ, u8"banner_patterns", patternsJ);
+          if (!patternsJ->empty()) {
+            AppendComponent(itemJ, u8"banner_patterns", patternsJ);
+          }
         }
       }
     }

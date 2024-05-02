@@ -87,7 +87,7 @@ public:
         }
       }
     }
-    if (patternsJ) {
+    if (patternsJ && !patternsJ->empty()) {
       AppendComponent(te, u8"banner_patterns", patternsJ);
     }
     Result r;
