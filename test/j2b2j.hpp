@@ -1132,7 +1132,7 @@ static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {
       u8"HurtByTimestamp",
       u8"SpawnAngle",
       u8"SpawnForced",
-      u8"ActiveEffects",         // TODO:
+      u8"active_effects",        // TODO:
       u8"enteredNetherPosition", // TODO: exists when logged out from the nether
       u8"ignore_fall_damage_from_current_explosion",
       u8"spawn_extra_particles_on_fall",
