@@ -270,17 +270,14 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
       blacklist.insert(u8"tag/effects/*/duration");
     }
   }
-  auto storedEnchantment = itemE.query(u8"tag/StoredEnchantments/0/id");
-  if (storedEnchantment && storedEnchantment->asString()) {
-    if (storedEnchantment->asString()->fValue == u8"minecraft:sweeping") { // sweeping does not exist in BE
-      blacklist.insert(u8"tag/StoredEnchantments/*/id");
-    }
+  if (auto sweepingEdge = itemE.query(u8"components/minecraft:stored_enchantments/levels/minecraft:sweeping_edge"); sweepingEdge) {
+    // sweeping_edge does not exist in BE
+    blacklist.insert(u8"components/minecraft:stored_enchantments/levels");
   }
-  auto tippedArrowPotion = itemE.query(u8"tag/Potion");
-  if (tippedArrowPotion && tippedArrowPotion->asString()) {
-    if (tippedArrowPotion->asString()->fValue == u8"minecraft:luck") { // luck does not exist in BE
-      blacklist.insert(u8"tag/Potion");
-    }
+  auto tippedArrowPotion = itemE.query(u8"components/minecraft:potion_contents/potion");
+  if (tippedArrowPotion && tippedArrowPotion->asString() && tippedArrowPotion->asString()->fValue == u8"minecraft:luck") {
+    // luck does not exist in BE
+    blacklist.insert(u8"components/minecraft:potion_contents/potion");
   }
 
   auto tileE = itemE.query(u8"components/minecraft:block_entity_data");

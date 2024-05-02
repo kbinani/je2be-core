@@ -192,6 +192,9 @@ public:
         {u8"minecraft:quick_charge", 35},
         {u8"minecraft:soul_speed", 36},
         {u8"minecraft:swift_sneak", 37},
+        {u8"minecraft:wind_burst", 38},
+        {u8"minecraft:density", 39},
+        {u8"minecraft:breach", 40},
     });
   }
 };
