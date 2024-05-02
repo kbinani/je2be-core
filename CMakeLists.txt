@@ -300,6 +300,7 @@ set(je2be_src_files
   src/java/_chunk-data-package.hpp
   src/java/_chunk-data.hpp
   src/java/_chunk.hpp
+  src/java/_components.hpp
   src/java/_context.hpp
   src/java/_datapacks.hpp
   src/java/_enchant-data.hpp

@@ -9,6 +9,7 @@
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
+#include "java/_components.hpp"
 #include "java/_context.hpp"
 #include "java/_entity.hpp"
 #include "java/_item.hpp"
@@ -1385,7 +1386,7 @@ private:
       }
     }
 
-    auto patternsJ = Migrate<ListTag>(c, Depth::Root, u8"banner_patterns", u8"Patterns");
+    auto patternsJ = Migrate<ListTag>(c, u8"banner_patterns", Depth::Root, u8"Patterns");
     auto patternsB = List<Tag::Type::Compound>();
     if (patternsJ && type != 1) {
       for (auto const &pattern : *patternsJ) {
@@ -1611,29 +1612,6 @@ private:
       tag->push_back(outItem);
     }
     return tag;
-  }
-
-  enum class Depth {
-    Root,
-  };
-  template <class NbtTag>
-  static std::shared_ptr<NbtTag> Migrate(CompoundTagPtr const &tileEntityJ, Depth depth, std::u8string const &nameWithoutNamespace, std::u8string const &legacyName) {
-    if (!tileEntityJ) {
-      return nullptr;
-    }
-    if (auto components = tileEntityJ->compoundTag(u8"components"); components) {
-      if (auto v = components->get<NbtTag>(u8"minecraft:" + nameWithoutNamespace); v) {
-        return v;
-      }
-    }
-    switch (depth) {
-    case Depth::Root:
-      if (auto v = tileEntityJ->get<NbtTag>(legacyName); v) {
-        return v;
-      }
-      break;
-    }
-    return nullptr;
   }
 
   static ListTag const *GetList(CompoundTagPtr const &c, std::u8string const &name) {

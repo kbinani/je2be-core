@@ -18,6 +18,7 @@
 #include "item/_tipped-arrow-potion.hpp"
 #include "java/_axolotl.hpp"
 #include "java/_block-data.hpp"
+#include "java/_components.hpp"
 #include "java/_context.hpp"
 #include "java/_enchant-data.hpp"
 #include "java/_tile-entity.hpp"
@@ -735,7 +736,7 @@ private:
       auto axltl = Axolotl(age, health, variant);
       auto tag = axltl.toBucketTag();
 
-      auto customName = GetCustomName_(item);
+      auto customName = GetCustomName(item);
       if (customName) {
         tag->set(u8"CustomName", *customName);
         tag->set(u8"CustomNameVisible", Bool(true));
@@ -1248,48 +1249,6 @@ private:
     return ret;
   }
 
-  enum class Depth {
-    Tag,            // tag
-    BlockEntityTag, // tag/BlockEntityTag
-    Display,        // tag/display
-  };
-  template <class NbtTag>
-  static std::shared_ptr<NbtTag> Migrate(CompoundTag const &itemJ, std::u8string const &nameWithoutNamespace, Depth depth, std::u8string const &legacyName) {
-    if (auto components = itemJ.compoundTag(u8"components"); components) {
-      if (auto v = components->get<NbtTag>(u8"minecraft:" + nameWithoutNamespace); v) {
-        return v;
-      }
-    }
-    switch (depth) {
-    case Depth::Tag:
-      if (auto legacyTag = itemJ.compoundTag(u8"tag"); legacyTag) {
-        if (auto v = legacyTag->get<NbtTag>(legacyName); v) {
-          return v;
-        }
-      }
-      break;
-    case Depth::BlockEntityTag:
-      if (auto legacyTag = itemJ.compoundTag(u8"tag"); legacyTag) {
-        if (auto legacyBlockEntityTag = legacyTag->compoundTag(u8"BlockEntityTag"); legacyBlockEntityTag) {
-          if (auto v = legacyBlockEntityTag->get<NbtTag>(legacyName); v) {
-            return v;
-          }
-        }
-      }
-      break;
-    case Depth::Display:
-      if (auto legacyTag = itemJ.compoundTag(u8"tag"); legacyTag) {
-        if (auto legacyDisplayTag = legacyTag->compoundTag(u8"display"); legacyDisplayTag) {
-          if (auto v = legacyDisplayTag->get<NbtTag>(legacyName); v) {
-            return v;
-          }
-        }
-      }
-      break;
-    }
-    return nullptr;
-  }
-
   template <class NbtTag>
   static std::shared_ptr<NbtTag> Fallback(CompoundTag const &c, std::initializer_list<std::u8string> names) {
     for (auto const &name : names) {
@@ -1370,7 +1329,7 @@ private:
 
     CompoundTagPtr displayB = tagB->compoundTag(u8"display");
 
-    auto name = GetCustomName_(itemJ);
+    auto name = GetCustomName(itemJ);
     if (name) {
       if (!displayB) {
         displayB = Compound();
@@ -1453,7 +1412,7 @@ private:
     return itemB;
   }
 
-  static std::optional<std::u8string> GetCustomName_(CompoundTag const &itemJ) {
+  static std::optional<std::u8string> GetCustomName(CompoundTag const &itemJ) {
     using namespace std;
     using namespace je2be::props;
     u8string name;

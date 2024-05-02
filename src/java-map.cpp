@@ -5,6 +5,7 @@
 #include "db/_db-interface.hpp"
 #include "item/_map-color.hpp"
 #include "item/_map-decoration.hpp"
+#include "java/_components.hpp"
 #include "java/_java-edition-map.hpp"
 
 #include <optional>
@@ -167,45 +168,58 @@ public:
           }
         }
 
-        auto inDecorations = item.query(u8"tag/Decorations")->asList();
-        if (inDecorations) {
-          for (auto const &d : *inDecorations) {
-            auto e = d->asCompound();
-            if (!e) {
-              continue;
-            }
-            auto type = e->byte(u8"type");
-            auto x = e->float64(u8"x");
-            auto z = e->float64(u8"z");
-            if (!type || !x || !z) {
-              continue;
-            }
-            i32 outType = 1;
-            if (auto typeB = MapDecoration::BedrockTypeFromJava(*type); typeB) {
-              outType = *typeB;
-            }
+        auto components = item.compoundTag(u8"components");
+        auto onMapDecoration = [&](CompoundTag const &e) {
+          optional<i32> typeB;
+          if (auto typeJ = e.string(u8"type"); typeJ) {
+            typeB = MapDecoration::BedrockTypeFromJava(*typeJ);
+          } else if (auto legacyTypeJ = e.byte(u8"type"); legacyTypeJ) {
+            typeB = MapDecoration::BedrockTypeFromLegacyJava(*legacyTypeJ);
+          }
+          auto x = e.float64(u8"x");
+          auto z = e.float64(u8"z");
+          if (!typeB || !x || !z) {
+            return;
+          }
 
-            auto frameData = Compound();
-            frameData->set(u8"rot", Int(8));
-            frameData->set(u8"type", Int(outType));
-            auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
-            if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
-              continue;
+          auto frameData = Compound();
+          frameData->set(u8"rot", Int(8));
+          frameData->set(u8"type", Int(*typeB));
+          auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+          if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
+            return;
+          }
+          frameData->set(u8"x", Int(markerX));
+          frameData->set(u8"y", Int(markerY));
+
+          auto key = Compound();
+          key->set(u8"blockX", Int((i32)*x));
+          key->set(u8"blockZ", Int((i32)*z));
+          key->set(u8"blockY", Int(64)); // fixed value?
+          key->set(u8"type", Int(1));    //?
+
+          auto decoration = Compound();
+          decoration->set(u8"data", frameData);
+          decoration->set(u8"key", key);
+
+          decorations->push_back(decoration);
+        };
+        if (components) {
+          if (auto decorationsJ = components->compoundTag(u8"minecraft:map_decorations"); decorationsJ) {
+            for (auto const &it : *decorationsJ) {
+              if (!it.second) {
+                continue;
+              }
+              if (auto d = it.second->asCompound(); d) {
+                onMapDecoration(*d);
+              }
             }
-            frameData->set(u8"x", Int(markerX));
-            frameData->set(u8"y", Int(markerY));
-
-            auto key = Compound();
-            key->set(u8"blockX", Int((i32)*x));
-            key->set(u8"blockZ", Int((i32)*z));
-            key->set(u8"blockY", Int(64)); // fixed value?
-            key->set(u8"type", Int(1));    //?
-
-            auto decoration = Compound();
-            decoration->set(u8"data", frameData);
-            decoration->set(u8"key", key);
-
-            decorations->push_back(decoration);
+          }
+        } else if (auto legacyDecorationsJ = item.query(u8"tag/Decorations")->asList(); legacyDecorationsJ) {
+          for (auto const &d : *legacyDecorationsJ) {
+            if (auto e = d->asCompound(); e) {
+              onMapDecoration(*e);
+            }
           }
         }
       }

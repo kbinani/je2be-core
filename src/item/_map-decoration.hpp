@@ -6,36 +6,63 @@
 
 namespace je2be {
 
-class MapDecoration : StaticReversibleMap<i8, i32, MapDecoration> {
+class MapDecoration {
 public:
-  static std::optional<i32> BedrockTypeFromJava(i8 type) {
-    if (auto be = Forward(type, -1); be > 0) {
-      return be;
-    } else {
-      return std::nullopt;
+  static std::optional<i32> BedrockTypeFromLegacyJava(i8 type) {
+    auto const &table = Table();
+    if (auto found = table.find(type); found != table.end()) {
+      return found->second.second;
     }
+    return std::nullopt;
   }
 
-  static std::optional<i8> JavaTypeFromBedrock(i32 type) {
-    if (auto je = Backward(type, -1); je > 0) {
-      return je;
-    } else {
-      return std::nullopt;
+  static std::optional<i8> LegacyJavaTypeFromBedrock(i32 type) {
+    auto const &table = Table();
+    for (auto const &it : table) {
+      if (it.second.second == type) {
+        return it.first;
+      }
     }
+    return std::nullopt;
   }
 
-  static ReversibleMap<i8, i32> const *CreateTable() {
-    return new ReversibleMap<i8, i32>({
-        {9, 15},  // id = "+", monument
-        {8, 14},  // id = "+", mansion
-        {26, 4},  // id = "+", buried treasure
-        {27, 17}, // village_desert
-        {28, 18}, // village_plains
-        {29, 19}, // village_savanna
-        {30, 20}, // village_snowy
-        {31, 21}, // village_taiga
-        {32, 22}, // jungle_temple
-        {33, 23}, // swamp_hut
+  static std::optional<i32> BedrockTypeFromJava(std::u8string const &type) {
+    auto const &table = Table();
+    for (auto const &it : table) {
+      if (u8"minecraft:" + it.second.first == type) {
+        return it.first;
+      }
+    }
+    return std::nullopt;
+  }
+
+  static std::optional<std::u8string> JavaTypeFromBedrock(i32 type) {
+    auto const &table = Table();
+    if (auto found = table.find(type); found != table.end()) {
+      return found->second.first;
+    }
+    return std::nullopt;
+  }
+
+private:
+  static std::unordered_map<i32, std::pair<std::u8string, i8>> const &Table() {
+    static std::unique_ptr<std::unordered_map<i32, std::pair<std::u8string, i8>> const> const sTable(CreateTable());
+    return *sTable;
+  }
+
+  static std::unordered_map<i32, std::pair<std::u8string, i8>> const *CreateTable() {
+    return new std::unordered_map<i32, std::pair<std::u8string, i8>>({
+        //  {bedrock, {java, legacy_java}}
+        {15, {u8"monument", 9}}, // id = "+"
+        {14, {u8"mansion", 8}},  // id = "+"
+        {4, {u8"red_x", 26}},    // id = "+"
+        {17, {u8"village_desert", 27}},
+        {18, {u8"village_plains", 28}},
+        {19, {u8"village_savanna", 29}},
+        {20, {u8"village_snowy", 30}},
+        {21, {u8"village_taiga", 31}},
+        {22, {u8"jungle_temple", 32}},
+        {23, {u8"swamp_hut", 33}},
     });
   }
 };

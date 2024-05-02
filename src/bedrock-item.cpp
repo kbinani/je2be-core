@@ -737,7 +737,6 @@ public:
     if (!tagB) {
       return name;
     }
-    auto tagJ = Compound();
     auto uuid = tagB->int64(u8"map_uuid");
     if (!uuid) {
       return name;
@@ -745,33 +744,29 @@ public:
 
     auto damage = itemB.int16(u8"Damage", 0);
     if (auto translate = MapType::JavaTranslationKeyFromBedrockDamage(damage); translate) {
-      auto displayJ = Compound();
       props::Json json;
       props::SetJsonString(json, u8"translate", *translate);
-      displayJ->set(u8"Name", props::StringFromJson(json));
+      AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
 
       if (auto mapColor = MapType::JavaMapColorFromBedrockDamage(damage); mapColor) {
-        displayJ->set(u8"MapColor", Int(*mapColor));
+        AppendComponent(itemJ, u8"map_color", Int(*mapColor));
       }
-
-      tagJ->set(u8"display", displayJ);
     }
 
     auto info = ctx.mapFromUuid(*uuid);
     if (info) {
-      tagJ->set(u8"map", Int(info->fNumber));
+      AppendComponent(itemJ, u8"map_id", Int(info->fNumber));
       ctx.markMapUuidAsUsed(*uuid);
 
       if (damage != 0 && !info->fDecorations.empty()) {
-        auto decorationsJ = List<Tag::Type::Compound>();
+        auto decorationsJ = Compound();
         for (MapInfo::Decoration const &decoration : info->fDecorations) {
-          decorationsJ->push_back(decoration.toCompoundTag());
+          decorationsJ->set(decoration.fId, decoration.toCompoundTag());
         }
-        tagJ->set(u8"Decorations", decorationsJ);
+        AppendComponent(itemJ, u8"map_decorations", decorationsJ);
       }
     }
 
-    itemJ.set(u8"tag", tagJ);
     return name;
   }
 
