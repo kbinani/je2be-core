@@ -877,7 +877,7 @@ private:
     bool melee = true;
     if (auto handItems = tag.listTag(u8"HandItems"); handItems && !handItems->fValue.empty()) {
       if (auto item = handItems->fValue[0]->asCompound(); item) {
-        if (item->byte(u8"Count", 0) > 0 && item->string(u8"id") == u8"minecraft:trident") {
+        if (Item::Count(*item, 0) > 0 && item->string(u8"id") == u8"minecraft:trident") {
           melee = false;
         }
       }
@@ -980,7 +980,7 @@ private:
 
     if (auto handItems = tag.listTag(u8"HandItems"); handItems && !handItems->fValue.empty()) {
       if (auto itemJ = handItems->fValue[0]->asCompound(); itemJ) {
-        if (itemJ->byte(u8"Count", 0) > 0) {
+        if (Item::Count(*itemJ, 0) > 0) {
           AddDefinitionFlag(c, u8"minecraft:fox_with_item", true);
         }
       }
@@ -1067,7 +1067,7 @@ private:
 
     bool saddle = false;
     if (auto saddleItem = tag.compoundTag(u8"SaddleItem"); saddleItem) {
-      if (saddleItem->byte(u8"Count", 0) > 0) {
+      if (Item::Count(*saddleItem, 0) > 0) {
         AddDefinition(c, u8"+minecraft:horse_saddled");
         auto item = Compound();
         item->insert({
@@ -2199,7 +2199,7 @@ private:
         if (idx < 0 || 16 <= idx) {
           continue;
         }
-        auto count = item->byte(u8"Count");
+        auto count = Item::Count(*item);
         if (!count) {
           continue;
         }
@@ -2430,7 +2430,7 @@ private:
     auto bedrock = Compound();
 
     {
-      auto count = buyA->byte(u8"Count", 0);
+      auto count = Item::Count(*buyA, 0);
       auto item = Item::From(buyA, ctx.fCtx, ctx.fDataVersion);
       if (item && count > 0) {
         bedrock->set(u8"buyA", item);
@@ -2441,7 +2441,7 @@ private:
     }
 
     if (buyB) {
-      auto count = buyB->byte(u8"Count", 0);
+      auto count = Item::Count(*buyB, 0);
       auto id = buyB->string(u8"id", u8"minecraft:air");
       auto item = Item::From(buyB, ctx.fCtx, ctx.fDataVersion);
       if (id != u8"minecraft:air" && item && count > 0) {
@@ -2455,7 +2455,7 @@ private:
     }
 
     {
-      auto count = sell->byte(u8"Count", 0);
+      auto count = Item::Count(*sell, 0);
       if (count <= 0) {
         return nullptr;
       }
@@ -2502,13 +2502,7 @@ private:
       if (*slot < 0 || capacity <= *slot) {
         continue;
       }
-      std::optional<int32_t> count = item->int32(u8"count");
-      if (!count) {
-        // legacy: < 12.0.5
-        if (auto c = item->byte(u8"Count"); c) {
-          count = *c;
-        }
-      }
+      auto count = Item::Count(*item);
       if (!count) {
         continue;
       }

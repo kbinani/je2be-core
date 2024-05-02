@@ -1252,12 +1252,7 @@ private:
   static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx, int dataVersion) {
     using namespace std;
 
-    optional<int8_t> count;
-    if (auto countJ = itemJ.int32(u8"count"); countJ) {
-      count = *countJ;
-    } else if (auto legacyCountJ = itemJ.byte(u8"Count"); legacyCountJ) {
-      count = *legacyCountJ;
-    }
+    auto count = Item::Count(itemJ);
     if (count) {
       itemB->set(u8"Count", Byte(*count));
     }

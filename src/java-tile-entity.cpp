@@ -464,7 +464,7 @@ private:
       bool empty = true;
       for (auto const &item : *items) {
         if (auto comp = item->asCompound(); comp) {
-          if (auto count = comp->byte(u8"Count"); count && *count > 0) {
+          if (auto count = Item::Count(*comp); count && *count > 0) {
             empty = false;
             break;
           }
@@ -1602,7 +1602,7 @@ private:
         continue;
       }
 
-      auto count = inItem->byte(u8"Count", 1);
+      auto count = Item::Count(*inItem, 1);
       if (opt.fConvertSlotTag) {
         auto slot = inItem->byte(u8"Slot", 0);
         outItem->set(u8"Slot", Byte(slot));

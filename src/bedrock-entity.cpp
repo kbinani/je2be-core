@@ -1670,7 +1670,7 @@ public:
     if (!count) {
       return nullptr;
     }
-    item->set(u8"Count", Byte(*count));
+    item->set(u8"count", Int(*count));
     return item;
   }
 
