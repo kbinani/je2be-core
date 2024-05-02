@@ -245,7 +245,7 @@ static void CheckTextComponent(u8string const &e, u8string const &a) {
 
 static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<u8string> blacklist = {
-      u8"tag/map",
+      u8"components/minecraft:map_id",
       u8"components/minecraft:block_entity_data",
       u8"components/minecraft:hide_additional_tooltip",
   };
@@ -1113,6 +1113,7 @@ static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {
       u8"maxCommandForkCount",
       u8"playersNetherPortalCreativeDelay",
       u8"playersNetherPortalDefaultDelay",
+      u8"spawnChunkRadius",
   };
   for (u8string const &rule : ignoredGameRules) {
     blacklist.insert(u8"GameRules/" + rule);
@@ -1132,6 +1133,8 @@ static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {
       u8"SpawnForced",
       u8"ActiveEffects",         // TODO:
       u8"enteredNetherPosition", // TODO: exists when logged out from the nether
+      u8"ignore_fall_damage_from_current_explosion",
+      u8"spawn_extra_particles_on_fall",
   };
   for (u8string const &rule : ignoredPlayerAttributes) {
     blacklist.insert(u8"Player/" + rule);

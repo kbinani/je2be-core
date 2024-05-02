@@ -52,6 +52,7 @@ public:
       B(sendCommandFeedback, sendcommandfeedback, true);
       B(showDeathMessages, showdeathmessages, true);
       I(spawnRadius, spawnradius, 10);
+      // serverChunkTickRange
       // spectatorsGenerateChunks
       // universalAnger
       I(playersSleepingPercentage, playerssleepingpercentage, 100);
