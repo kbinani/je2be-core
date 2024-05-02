@@ -310,6 +310,7 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
       CHECK(!valueA);
       continue;
     }
+    REQUIRE(valueA);
     CheckTextComponent(valueE->fValue, valueA->fValue);
   }
 
@@ -758,11 +759,11 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     REQUIRE(inventoryA);
     REQUIRE(inventoryE->size() == inventoryA->size());
     for (int i = 0; i < inventoryE->size(); i++) {
-      auto itemE = inventoryE->at(i);
-      auto itemA = inventoryA->at(i);
-      REQUIRE(itemE->type() == Tag::Type::Compound);
-      CHECK(itemE->type() == itemA->type());
-      CheckItemJ(*itemE->asCompound(), *itemA->asCompound());
+      auto e = inventoryE->at(i);
+      auto a = inventoryA->at(i);
+      REQUIRE(e->type() == Tag::Type::Compound);
+      CHECK(e->type() == a->type());
+      CheckItemJ(*e->asCompound(), *a->asCompound());
     }
   } else if (inventoryA) {
     CHECK(false);
@@ -776,11 +777,11 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     REQUIRE(enderItemsA);
     REQUIRE(enderItemsE->size() == enderItemsA->size());
     for (int i = 0; i < enderItemsE->size(); i++) {
-      auto itemE = enderItemsE->at(i);
-      auto itemA = enderItemsA->at(i);
-      REQUIRE(itemE->type() == Tag::Type::Compound);
-      CHECK(itemE->type() == itemA->type());
-      CheckItemJ(*itemE->asCompound(), *itemA->asCompound());
+      auto e = enderItemsE->at(i);
+      auto a = enderItemsA->at(i);
+      REQUIRE(e->type() == Tag::Type::Compound);
+      CHECK(e->type() == a->type());
+      CheckItemJ(*e->asCompound(), *a->asCompound());
     }
   } else if (enderItemsA) {
     CHECK(false);
