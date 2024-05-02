@@ -115,7 +115,7 @@ public:
       itemJ[u8"count"] = Int(*countB);
     }
     CopyByteValues(itemB, itemJ, {{u8"Slot"}});
-    CopyIntValues(*tagB, *componentsJ, {{u8"Damage", u8"minecraft:damage"}, {u8"minecraft:repair_cost"}});
+    CopyIntValues(*tagB, *componentsJ, {{u8"Damage", u8"minecraft:damage"}, {u8"RepairCost", u8"minecraft:repair_cost"}});
 
     auto customColor = tagB->int32(u8"customColor");
     if (customColor) {
