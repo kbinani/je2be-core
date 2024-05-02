@@ -520,22 +520,13 @@ static void CheckRecipeJ(CompoundTag const &e, CompoundTag const &a) {
     auto itemA = a.compoundTag(key);
     copyE->erase(key);
     copyA->erase(key);
-    REQUIRE(itemE);
-    REQUIRE(itemA);
-    auto idE = itemE->string(u8"id");
-    auto idA = itemA->string(u8"id");
-    if (idE == u8"minecraft:air") {
-      CHECK(idA == idE);
-      auto countE = itemE->byte(u8"Count");
-      auto countA = itemA->byte(u8"Count");
-      REQUIRE(countE);
-      REQUIRE(countA);
-      bool okE = countE == 0 || countE == 1;
-      bool okA = countA == 0 || countA == 1;
-      CHECK(okE);
-      CHECK(okA);
+    if (itemE) {
+      CHECK(itemA);
+      if (itemA) {
+        CheckItemJ(*itemE, *itemA);
+      }
     } else {
-      CheckItemJ(*itemE, *itemA);
+      CHECK(!itemA);
     }
   }
   DiffCompoundTag(*copyE, *copyA);

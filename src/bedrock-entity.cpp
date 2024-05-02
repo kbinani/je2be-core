@@ -1697,14 +1697,7 @@ public:
     ret->set(u8"buy", buyA);
     if (buyB) {
       ret->set(u8"buyB", buyB);
-    } else {
-      auto air = Compound();
-      air->set(u8"id", u8"minecraft:air");
-      air->set(u8"Count", Byte(0));
-      ret->set(u8"buyB", air);
     }
-
-    ret->set(u8"specialPrice", Int(0));
 
     CopyIntValues(recipeB, *ret, {{u8"demand"}, {u8"maxUses"}, {u8"uses"}, {u8"traderExp", u8"xp"}});
     CopyByteValues(recipeB, *ret, {{u8"rewardExp"}});
