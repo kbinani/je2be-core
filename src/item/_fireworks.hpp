@@ -9,7 +9,7 @@ public:
   static FireworksData FromJava(CompoundTag const &fireworks) {
     FireworksData es;
 
-    es.fFlight = fireworks.byte(u8"Flight");
+    es.fFlight = FallbackValue<i8>(fireworks, {u8"flight_duration", u8"Flight"});
 
     auto explosions = FallbackPtr<ListTag>(fireworks, {u8"explosions", u8"Explosions"});
     if (explosions) {
