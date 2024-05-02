@@ -877,7 +877,7 @@ private:
     ret->set(u8"tag", tag);
 
     i16 type = 0;
-    auto displayName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name");
+    auto displayName = Migrate<StringTag>(item, u8"custom_name", Depth::Display, u8"Name");
     if (displayName) {
       auto nameJson = props::ParseAsJson(displayName->fValue);
       if (nameJson) {

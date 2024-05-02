@@ -226,16 +226,24 @@ static void CheckTextComponent(u8string const &e, u8string const &a) {
   }
   auto jsonE = props::ParseAsJson(e);
   auto jsonA = props::ParseAsJson(a);
-  if (jsonE == jsonA) {
+  if (jsonE && jsonA) {
     CheckJson(*jsonE, *jsonA);
   } else if (jsonE) {
     props::Json jA;
-    props::SetJsonString(jA, u8"text", a);
+    auto v = a;
+    if (v.starts_with(u8'"') && v.ends_with(u8'"')) {
+      v = v.substr(1, v.size() - 2);
+    }
+    props::SetJsonString(jA, u8"text", v);
     auto jAs = props::StringFromJson(jA);
     CHECK(e == jAs);
   } else if (jsonA) {
     props::Json jE;
-    props::SetJsonString(jE, u8"text", e);
+    auto v = e;
+    if (v.starts_with(u8'"') && v.ends_with(u8'"')) {
+      v = v.substr(1, v.size() - 2);
+    }
+    props::SetJsonString(jE, u8"text", v);
     auto jEs = props::StringFromJson(jE);
     CHECK(jEs == a);
   } else {
@@ -289,6 +297,20 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     CheckTileEntityJ(*tileE->asCompound(), *tileA->asCompound());
   } else if (tileA && tileA->type() != Tag::Type::End) {
     CHECK(false);
+  }
+
+  static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name"};
+  for (u8string const &k : sJsonKeys) {
+    blacklist.insert(k);
+  }
+  for (u8string const &key : sJsonKeys) {
+    auto valueE = itemE.query(key)->asString();
+    auto valueA = itemA.query(key)->asString();
+    if (!valueE) {
+      CHECK(!valueA);
+      continue;
+    }
+    CheckTextComponent(valueE->fValue, valueA->fValue);
   }
 
   for (u8string const &it : blacklist) {
@@ -387,7 +409,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   } else if (itemsA) {
     CHECK(false);
   }
-  static set<u8string> const sJsonKeys = {u8"CustomName"};
+  static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name"};
   for (u8string const &k : sJsonKeys) {
     tagBlacklist.insert(k);
   }
@@ -430,13 +452,13 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   }
   DiffCompoundTag(*copyE, *copyA);
   for (u8string const &key : sJsonKeys) {
-    auto valueE = expected.string(key);
-    auto valueA = actual.string(key);
+    auto valueE = expected.query(key)->asString();
+    auto valueA = actual.query(key)->asString();
     if (!valueE) {
       CHECK(!valueA);
       continue;
     }
-    CheckTextComponent(*valueE, *valueA);
+    CheckTextComponent(valueE->fValue, valueA->fValue);
   }
 }
 

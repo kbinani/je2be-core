@@ -133,7 +133,7 @@ public:
       if (displayName) {
         props::Json json;
         props::SetJsonString(json, u8"text", *displayName);
-        componentsJ->set(u8"minecraft:item_name", props::StringFromJson(json));
+        componentsJ->set(u8"minecraft:custom_name", props::StringFromJson(json));
       }
 
       if (auto loreB = displayB->listTag(u8"Lore"); loreB) {
@@ -156,7 +156,7 @@ public:
     if (customName && customNameVisible) {
       props::Json json;
       props::SetJsonString(json, u8"text", *customName);
-      componentsJ->set(u8"minecraft:item_name", props::StringFromJson(json));
+      componentsJ->set(u8"minecraft:custom_name", props::StringFromJson(json));
     }
 
     auto enchB = tagB->listTag(u8"ench");
