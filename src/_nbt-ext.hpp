@@ -93,13 +93,19 @@ inline std::shared_ptr<NbtTag> FallbackPtr(CompoundTag const &c, std::initialize
   return nullptr;
 }
 
-template <class T>
-inline std::optional<T> FallbackValue(CompoundTag const &c, std::initializer_list<std::u8string> names);
+inline Tag const *FallbackQuery(CompoundTag const &c, std::initializer_list<std::u8string> queries) {
+  for (auto const &query : queries) {
+    if (auto v = c.query(query); v && v->type() != Tag::Type::End) {
+      return v;
+    }
+  }
+  return mcfile::nbt::EndTag::Instance();
+}
 
-template <>
-inline std::optional<bool> FallbackValue(CompoundTag const &c, std::initializer_list<std::u8string> names) {
+template <class T>
+inline std::optional<T> FallbackValue(CompoundTag const &c, std::initializer_list<std::u8string> names) {
   for (auto const &name : names) {
-    if (auto v = c.boolean(name); v) {
+    if (auto v = c.value<T>(name); v) {
       return v;
     }
   }

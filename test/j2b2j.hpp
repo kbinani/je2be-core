@@ -545,14 +545,15 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
 
+  auto posE = props::GetPos3d(*copyE, u8"Pos");
+  auto posA = props::GetPos3d(*copyA, u8"Pos");
+
   if ((options.fRawValue & CheckEntityJOptions::ignoreUUID) == 0) {
     CHECK(copyE->intArrayTag(u8"UUID"));
     CHECK(copyA->intArrayTag(u8"UUID"));
   }
 
   if ((options.fRawValue & CheckEntityJOptions::ignorePos) == 0) {
-    auto posE = props::GetPos3d(*copyE, u8"Pos");
-    auto posA = props::GetPos3d(*copyA, u8"Pos");
     CHECK(posE);
     CHECK(posA);
     CHECK(fabs(posE->fX - posA->fX) <= 0.001);

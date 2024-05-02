@@ -770,9 +770,9 @@ public:
   static std::u8string Potion(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
-    auto tagJ = Compound();
-    tagJ->set(u8"Potion", potionName);
-    itemJ.set(u8"tag", tagJ);
+    auto potionContents = Compound();
+    potionContents->set(u8"potion", potionName);
+    AppendComponent(itemJ, u8"potion_contents", potionContents);
     return name;
   }
 

@@ -899,8 +899,8 @@ private:
   static CompoundTagPtr AnyPotion(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     std::u8string itemName = name;
     std::optional<i16> type;
-    if (auto t = item.query(u8"tag")->asCompound(); t) {
-      if (auto potion = t->string(u8"Potion"); potion) {
+    if (auto potionContents = FallbackQuery(item, {u8"components/minecraft:potion_contents", u8"tag"})->asCompound(); potionContents) {
+      if (auto potion = FallbackValue<std::u8string>(*potionContents, {u8"potion", u8"Potion"}); potion) {
         type = Potion::BedrockPotionTypeFromJava(*potion);
       }
     }
