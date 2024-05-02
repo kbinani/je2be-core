@@ -941,13 +941,13 @@ private:
   static CompoundTagPtr FireworkStar(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
     auto data = Rename(u8"firework_star")(name, item, ctx, dataVersion);
 
-    auto explosion = item.query(u8"tag/Explosion")->asCompound();
+    auto explosion = Migrate<CompoundTag>(item, u8"firework_explosion", Depth::Tag, u8"Explosion");
     if (explosion) {
       auto tag = Compound();
 
       auto e = FireworksExplosion::FromJava(*explosion);
-      if (!e.fColor.empty()) {
-        i8 damage = FireworksExplosion::GetBedrockColorCode(e.fColor[0]);
+      if (!e.fColors.empty()) {
+        i8 damage = FireworksExplosion::GetBedrockColorCode(e.fColors[0]);
         data->set(u8"Damage", Short(damage));
 
         if (auto customColor = FireworksExplosion::BedrockCustomColorFromColorCode(damage); customColor) {
@@ -964,7 +964,7 @@ private:
 
   static CompoundTagPtr FireworkRocket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto data = New(u8"firework_rocket");
-    auto fireworks = item.query(u8"tag/Fireworks")->asCompound();
+    auto fireworks = Migrate<CompoundTag>(item, u8"fireworks", Depth::Tag, u8"Fireworks");
     if (fireworks) {
       auto fireworksData = FireworksData::FromJava(*fireworks);
       auto tag = Compound();
@@ -1137,7 +1137,7 @@ private:
         } else {
           continue;
         }
-        auto pat = Fallback<StringTag>(*c, {u8"pattern", u8"Pattern"});
+        auto pat = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
         if (!pat) {
           continue;
         }
@@ -1247,16 +1247,6 @@ private:
         {u8"Damage", Short(0)},
     });
     return ret;
-  }
-
-  template <class NbtTag>
-  static std::shared_ptr<NbtTag> Fallback(CompoundTag const &c, std::initializer_list<std::u8string> names) {
-    for (auto const &name : names) {
-      if (auto v = c.get<NbtTag>(name); v) {
-        return v;
-      }
-    }
-    return nullptr;
   }
 
   static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx, int dataVersion) {

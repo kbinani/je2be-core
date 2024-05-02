@@ -401,14 +401,12 @@ public:
   static std::u8string FireworkRocket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
-      auto tagJ = Compound();
       auto fireworksB = tagB->compoundTag(u8"Fireworks");
       if (fireworksB) {
         FireworksData data = FireworksData::FromBedrock(*fireworksB);
         auto fireworksJ = data.toJavaCompoundTag();
-        tagJ->set(u8"Fireworks", fireworksJ);
+        AppendComponent(itemJ, u8"fireworks", fireworksJ);
       }
-      itemJ.set(u8"tag", tagJ);
     }
     return u8"minecraft:firework_rocket";
   }
@@ -417,13 +415,11 @@ public:
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       tagB->erase(u8"customColor");
-      auto tagJ = Compound();
       auto fireworksB = tagB->compoundTag(u8"FireworksItem");
       if (fireworksB) {
         FireworksExplosion explosion = FireworksExplosion::FromBedrock(*fireworksB);
         auto explosionJ = explosion.toJavaCompoundTag();
-        tagJ->set(u8"Explosion", explosionJ);
-        itemJ[u8"tag"] = tagJ;
+        AppendComponent(itemJ, u8"firework_explosion", explosionJ);
       }
     }
     return u8"minecraft:firework_star";

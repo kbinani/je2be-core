@@ -82,4 +82,28 @@ static inline void CopyStringValues(CompoundTag const &src, CompoundTag &dest, s
     }
   }
 }
+
+template <class NbtTag>
+inline std::shared_ptr<NbtTag> FallbackPtr(CompoundTag const &c, std::initializer_list<std::u8string> names) {
+  for (auto const &name : names) {
+    if (auto v = c.get<NbtTag>(name); v) {
+      return v;
+    }
+  }
+  return nullptr;
+}
+
+template <class T>
+inline std::optional<T> FallbackValue(CompoundTag const &c, std::initializer_list<std::u8string> names);
+
+template <>
+inline std::optional<bool> FallbackValue(CompoundTag const &c, std::initializer_list<std::u8string> names) {
+  for (auto const &name : names) {
+    if (auto v = c.boolean(name); v) {
+      return v;
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace je2be
