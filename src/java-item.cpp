@@ -1283,23 +1283,42 @@ private:
       tagB = Compound();
     }
 
-    auto storedEnchantments = Migrate<ListTag>(itemJ, u8"stored_enchantments", Depth::Tag, u8"StoredEnchantments");
-    if (storedEnchantments) {
-      auto ench = List<Tag::Type::Compound>();
-      for (auto const &e : *storedEnchantments) {
-        auto c = e->asCompound();
-        if (!c) {
-          continue;
-        }
-        auto be = EnchantData::From(*c);
-        if (!be) {
-          continue;
-        }
-        ench->push_back(be);
+    if (componentsJ) {
+      CompoundTagPtr enchantments;
+      if (auto list = componentsJ->compoundTag(u8"minecraft:stored_enchantments"); list) {
+        enchantments = list;
+      } else if (auto list = componentsJ->compoundTag(u8"minecraft:enchantments"); list) {
+        enchantments = list;
       }
-      tagB->set(u8"ench", ench);
+      if (enchantments) {
+        if (auto levels = enchantments->compoundTag(u8"levels"); levels) {
+          auto ench = List<Tag::Type::Compound>();
+          for (auto const &it : *levels) {
+            if (!it.second) {
+              continue;
+            }
+            auto level = it.second->asInt();
+            if (!level) {
+              continue;
+            }
+            auto id = Enchantments::BedrockEnchantmentIdFromJava(it.first);
+            auto be = Compound();
+            be->set(u8"id", Short(id));
+            be->set(u8"lvl", Short(level->fValue));
+            ench->push_back(be);
+          }
+          if (!ench->empty()) {
+            tagB->set(u8"ench", ench);
+          }
+        }
+      }
     } else {
-      auto enchantments = Migrate<ListTag>(itemJ, u8"enchantments", Depth::Tag, u8"Enchantments");
+      ListTagPtr enchantments;
+      if (auto list = itemJ.listTag(u8"StoredEnchantments"); list) {
+        enchantments = list;
+      } else if (auto list = itemJ.listTag(u8"Enchantments"); list) {
+        enchantments = list;
+      }
       if (enchantments) {
         auto ench = List<Tag::Type::Compound>();
         for (auto const &e : *enchantments) {
@@ -1313,7 +1332,9 @@ private:
           }
           ench->push_back(be);
         }
-        tagB->set(u8"ench", ench);
+        if (!ench->empty()) {
+          tagB->set(u8"ench", ench);
+        }
       }
     }
 

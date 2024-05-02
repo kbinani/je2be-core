@@ -161,7 +161,7 @@ public:
 
     auto enchB = tagB->listTag(u8"ench");
     if (enchB) {
-      auto enchJ = List<Tag::Type::Compound>();
+      auto levelsJ = Compound();
       for (auto const &it : *enchB) {
         auto cB = it->asCompound();
         if (!cB) {
@@ -170,17 +170,18 @@ public:
         auto idB = cB->int16(u8"id");
         auto lvlB = cB->int16(u8"lvl");
         if (idB && lvlB) {
-          auto cJ = Compound();
           auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
-          cJ->set(u8"id", idJ);
-          cJ->set(u8"lvl", Short(*lvlB));
-          enchJ->push_back(cJ);
+          levelsJ->set(idJ, Int(*lvlB));
         }
       }
-      if (nameB == u8"minecraft:enchanted_book") {
-        componentsJ->set(u8"minecraft:stored_enchantments", enchJ);
-      } else {
-        componentsJ->set(u8"minecraft:enchantments", enchJ);
+      if (!levelsJ->empty()) {
+        auto enchJ = Compound();
+        enchJ->set(u8"levels", levelsJ);
+        if (nameB == u8"minecraft:enchanted_book") {
+          componentsJ->set(u8"minecraft:stored_enchantments", enchJ);
+        } else {
+          componentsJ->set(u8"minecraft:enchantments", enchJ);
+        }
       }
     }
 
