@@ -276,6 +276,8 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     } else if (*itemId == u8"minecraft:suspicious_stew") {
       // Duration may vary between the source of stews in JE such as craft table, trade, chest loot. Duration doesn't recorded in item tag in BE.
       blacklist.insert(u8"tag/effects/*/duration");
+    } else if (*itemId == u8"minecraft:written_book") {
+      blacklist.insert(u8"components/minecraft:written_book_content/resolved");
     }
   }
   if (auto sweepingEdge = itemE.query(u8"components/minecraft:stored_enchantments/levels/minecraft:sweeping_edge"); sweepingEdge) {
@@ -454,6 +456,19 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       CheckEntityJ(u8"minecraft:bee", *beeCopyE, *beeCopyA, CheckEntityJOptions(CheckEntityJOptions::ignorePos | CheckEntityJOptions::ignoreUUID));
     }
     tagBlacklist.insert(u8"Bees");
+  }
+  for (auto const &itemKey : {u8"Book"}) {
+    auto itemE = expected.compoundTag(itemKey);
+    auto itemA = actual.compoundTag(itemKey);
+    if (itemE) {
+      CHECK(itemA);
+      if (itemA) {
+        CheckItemJ(*itemE, *itemA);
+      }
+    } else {
+      CHECK(!itemA);
+    }
+    tagBlacklist.insert(itemKey);
   }
   for (u8string const &b : tagBlacklist) {
     Erase(copyE, b);

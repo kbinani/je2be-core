@@ -309,6 +309,7 @@ public:
     if (!tagB) {
       return name;
     }
+    bool written = name == u8"minecraft:written_book";
     auto bookContent = Compound();
     auto pagesB = tagB->listTag(u8"pages");
     if (pagesB) {
@@ -328,17 +329,15 @@ public:
       }
       bookContent->set(u8"pages", pagesJ);
     }
-    auto author = tagB->string(u8"author");
-    if (author) {
+    if (auto author = tagB->string(u8"author"); written && author) {
       bookContent->set(u8"author", *author);
     }
-    auto title = tagB->string(u8"title");
-    if (title) {
+    if (auto title = tagB->string(u8"title"); written && title) {
       auto titleCompound = Compound();
       titleCompound->set(u8"raw", *title);
       bookContent->set(u8"title", titleCompound);
     }
-    java::AppendComponent(itemJ, name == u8"minecraft:written_book" ? u8"written_book_content" : u8"writable_book_content", bookContent);
+    java::AppendComponent(itemJ, written ? u8"written_book_content" : u8"writable_book_content", bookContent);
     return name;
   }
 
