@@ -204,11 +204,14 @@ set(je2be_src_files
   src/_volume.hpp
   src/_walk.hpp
   src/bedrock-block-data.cpp
+  src/bedrock-block-entity-before-components-introduced.hpp
   src/bedrock-block-entity.cpp
   src/bedrock-chunk.cpp
   src/bedrock-context.cpp
   src/bedrock-converter.cpp
+  src/bedrock-entity-before-components-introduced.hpp
   src/bedrock-entity.cpp
+  src/bedrock-item-before-components-introduced.hpp
   src/bedrock-item.cpp
   src/bedrock-region.cpp
   src/bedrock-sub-chunk.cpp

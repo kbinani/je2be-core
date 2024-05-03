@@ -1,57 +1,33 @@
-#include "bedrock/_item.hpp"
-
-#include "_namespace.hpp"
-#include "_props.hpp"
-#include "bedrock/_block-data.hpp"
-#include "bedrock/_block-entity.hpp"
-#include "bedrock/_context.hpp"
-#include "entity/_axolotl.hpp"
-#include "entity/_tropical-fish.hpp"
-#include "enums/_effect.hpp"
-#include "enums/_skull-type.hpp"
-#include "item/_banner.hpp"
-#include "item/_enchantments.hpp"
-#include "item/_fireworks.hpp"
-#include "item/_goat-horn.hpp"
-#include "item/_map-type.hpp"
-#include "item/_potion.hpp"
-#include "item/_tipped-arrow-potion.hpp"
-#include "java/_block-data.hpp"
-#include "java/_components.hpp"
-#include "java/_versions.hpp"
-
-#include "bedrock-item-before-components-introduced.hpp"
+#pragma once
 
 namespace je2be::bedrock {
 
-class Item::Impl {
-  Impl() = delete;
+class BedrockItemBeforeComponentsIntroduced {
+  BedrockItemBeforeComponentsIntroduced() = delete;
+  using Converter = Item::Converter;
+  using Options = Item::Options;
 
 public:
   static CompoundTagPtr From(CompoundTag const &tagB, Context &ctx, int dataVersion, Options const &opt) {
     using namespace std;
-    if (dataVersion >= kDataVersionComponentIntroduced) {
-      auto name = tagB.string(u8"Name");
-      if (!name) {
-        return nullptr;
-      }
-      static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
-      auto ret = Compound();
-      if (name == u8"") {
-        return ret;
-      }
-      u8string_view key(*name);
-      auto found = sTable->find(Namespace::Remove(key));
-      if (found == sTable->end()) {
-        Default(*name, tagB, *ret, ctx, dataVersion);
-      } else {
-        auto renamed = found->second(*name, tagB, *ret, ctx, dataVersion, opt);
-        Default(renamed, tagB, *ret, ctx, dataVersion);
-      }
-      return ret;
-    } else {
-      return BedrockItemBeforeComponentsIntroduced::From(tagB, ctx, dataVersion, opt);
+    auto name = tagB.string(u8"Name");
+    if (!name) {
+      return nullptr;
     }
+    static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
+    auto ret = Compound();
+    if (name == u8"") {
+      return ret;
+    }
+    u8string_view key(*name);
+    auto found = sTable->find(Namespace::Remove(key));
+    if (found == sTable->end()) {
+      Default(*name, tagB, *ret, ctx, dataVersion);
+    } else {
+      auto renamed = found->second(*name, tagB, *ret, ctx, dataVersion, opt);
+      Default(renamed, tagB, *ret, ctx, dataVersion);
+    }
+    return ret;
   }
 
   static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion) {
@@ -61,6 +37,11 @@ public:
     auto tagB = itemB.compoundTag(u8"tag");
     if (!tagB) {
       tagB = Compound();
+    }
+
+    auto tagJ = itemJ.compoundTag(u8"tag");
+    if (!tagJ) {
+      tagJ = Compound();
     }
 
     u8string nameJ = nameB;
@@ -83,12 +64,12 @@ public:
           if (!tagB->empty()) {
             if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx, dataVersion); converted && converted->fTileEntity) {
               static unordered_set<u8string> const sExclude({u8"x", u8"y", u8"z", u8"keepPacked", u8"RecipesUsed"});
-              auto blockEntityDataJ = converted->fTileEntity;
+              auto blockEntityTagJ = converted->fTileEntity;
               for (auto const &e : sExclude) {
-                blockEntityDataJ->erase(e);
+                blockEntityTagJ->erase(e);
               }
-              if (!blockEntityDataJ->empty()) {
-                java::AppendComponent(itemJ, u8"block_entity_data", blockEntityDataJ);
+              if (!blockEntityTagJ->empty()) {
+                tagJ->set(u8"BlockEntityTag", blockEntityTagJ);
               }
             }
           }
@@ -113,23 +94,19 @@ public:
     }
     itemJ.set(u8"id", nameJ);
 
-    if (auto countB = itemB.byte(u8"Count"); countB) {
-      itemJ[u8"count"] = Int(*countB);
-    }
-    CopyByteValues(itemB, itemJ, {{u8"Slot"}});
-    if (auto damage = tagB->int32(u8"Damage"); damage) {
-      java::AppendComponent(itemJ, u8"damage", Int(*damage));
-    }
-    if (auto repairCost = tagB->int32(u8"RepairCost"); repairCost) {
-      java::AppendComponent(itemJ, u8"repair_cost", Int(*repairCost));
+    CopyByteValues(itemB, itemJ, {{u8"Count"}, {u8"Slot"}});
+    CopyIntValues(*tagB, *tagJ, {{u8"Damage"}, {u8"RepairCost"}});
+
+    auto displayJ = tagJ->compoundTag(u8"display");
+    if (!displayJ) {
+      displayJ = Compound();
     }
 
     auto customColor = tagB->int32(u8"customColor");
     if (customColor) {
-      auto dyedColor = Compound();
-      auto rgb = RgbFromCustomColor(*customColor);
-      dyedColor->set(u8"rgb", Int(rgb));
-      java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+      i32 c = *customColor;
+      u32 rgb = 0xffffff & *(u32 *)&c;
+      displayJ->set(u8"color", Int(*(i32 *)&rgb));
     }
 
     auto displayB = tagB->compoundTag(u8"display");
@@ -138,7 +115,7 @@ public:
       if (displayName) {
         props::Json json;
         props::SetJsonString(json, u8"text", *displayName);
-        java::AppendComponent(itemJ, u8"custom_name", String(props::StringFromJson(json)));
+        displayJ->set(u8"Name", props::StringFromJson(json));
       }
 
       if (auto loreB = displayB->listTag(u8"Lore"); loreB) {
@@ -152,7 +129,7 @@ public:
             }
           }
         }
-        java::AppendComponent(itemJ, u8"lore", loreJ);
+        displayJ->set(u8"Lore", loreJ);
       }
     }
 
@@ -161,12 +138,12 @@ public:
     if (customName && customNameVisible) {
       props::Json json;
       props::SetJsonString(json, u8"text", *customName);
-      java::AppendComponent(itemJ, u8"custom_name", String(props::StringFromJson(json)));
+      displayJ->set(u8"Name", props::StringFromJson(json));
     }
 
     auto enchB = tagB->listTag(u8"ench");
     if (enchB) {
-      auto levelsJ = Compound();
+      auto enchJ = List<Tag::Type::Compound>();
       for (auto const &it : *enchB) {
         auto cB = it->asCompound();
         if (!cB) {
@@ -175,18 +152,17 @@ public:
         auto idB = cB->int16(u8"id");
         auto lvlB = cB->int16(u8"lvl");
         if (idB && lvlB) {
+          auto cJ = Compound();
           auto idJ = Enchantments::JavaEnchantmentIdFromBedrock(*idB);
-          levelsJ->set(idJ, Int(*lvlB));
+          cJ->set(u8"id", idJ);
+          cJ->set(u8"lvl", Short(*lvlB));
+          enchJ->push_back(cJ);
         }
       }
-      if (!levelsJ->empty()) {
-        auto enchJ = Compound();
-        enchJ->set(u8"levels", levelsJ);
-        if (nameB == u8"minecraft:enchanted_book") {
-          java::AppendComponent(itemJ, u8"stored_enchantments", enchJ);
-        } else {
-          java::AppendComponent(itemJ, u8"enchantments", enchJ);
-        }
+      if (nameB == u8"minecraft:enchanted_book") {
+        tagJ->set(u8"StoredEnchantments", enchJ);
+      } else {
+        tagJ->set(u8"Enchantments", enchJ);
       }
     }
 
@@ -196,7 +172,15 @@ public:
       auto trimJ = Compound();
       trimJ->set(u8"material", Namespace::Add(*materialB));
       trimJ->set(u8"pattern", Namespace::Add(*patternB));
-      java::AppendComponent(itemJ, u8"trim", trimJ);
+      tagJ->set(u8"Trim", trimJ);
+    }
+
+    if (!displayJ->empty()) {
+      tagJ->set(u8"display", displayJ);
+    }
+
+    if (!tagJ->empty()) {
+      itemJ[u8"tag"] = tagJ;
     }
   }
 
@@ -208,8 +192,8 @@ public:
     } else {
       auto potionJ = TippedArrowPotion::JavaPotionType(damage);
       auto tagJ = Compound();
-      tagJ->set(u8"potion", potionJ);
-      java::AppendComponent(itemJ, u8"potion_contents", tagJ);
+      tagJ->set(u8"Potion", potionJ);
+      itemJ.set(u8"tag", tagJ);
       return Ns() + u8"tipped_arrow";
     }
   }
@@ -258,21 +242,28 @@ public:
 
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
+      auto tagJ = Compound();
       auto typeB = tagB->int32(u8"Type");
       bool ominous = typeB == 1;
       if (ominous) {
         nameJ = u8"minecraft:white_banner";
 
         auto bannerPatterns = Banner::OminousBannerPatterns(dataVersion);
-        java::AppendComponent(itemJ, u8"banner_patterns", bannerPatterns);
+        auto blockEntityTag = Compound();
+        blockEntityTag->set(u8"Patterns", bannerPatterns);
+        blockEntityTag->set(u8"id", u8"minecraft:banner");
+        tagJ->set(u8"BlockEntityTag", blockEntityTag);
 
+        auto displayJ = Compound();
         props::Json json;
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
-        java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
-
-        java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
+        displayJ->set(u8"Name", props::StringFromJson(json));
+        tagJ->set(u8"display", displayJ);
       } else {
+        auto blockEntityTag = Compound();
+        blockEntityTag->set(u8"id", u8"minecraft:banner");
+
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {
           auto patternsJ = List<Tag::Type::Compound>();
@@ -289,16 +280,17 @@ public:
             auto patternJ = Compound();
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*patternColorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
-            patternJ->set(u8"color", String(JavaNameFromColorCodeJava(ccj)));
-            patternJ->set(u8"pattern", *patternStringB);
+            patternJ->set(u8"Color", Int(static_cast<i32>(ccj)));
+            patternJ->set(u8"Pattern", *patternStringB);
 
             patternsJ->push_back(patternJ);
           }
-          if (!patternsJ->empty()) {
-            java::AppendComponent(itemJ, u8"banner_patterns", patternsJ);
-          }
+          blockEntityTag->set(u8"Patterns", patternsJ);
         }
+
+        tagJ->set(u8"BlockEntityTag", blockEntityTag);
       }
+      itemJ.set(u8"tag", tagJ);
     }
     return nameJ;
   }
@@ -315,11 +307,10 @@ public:
     if (!tagB) {
       return name;
     }
-    bool written = name == u8"minecraft:written_book";
-    auto bookContent = Compound();
+    auto tagJ = Compound();
     auto pagesB = tagB->listTag(u8"pages");
     if (pagesB) {
-      auto pagesJ = List<Tag::Type::Compound>();
+      auto pagesJ = List<Tag::Type::String>();
       for (auto const &pageB : *pagesB) {
         auto const *c = pageB->asCompound();
         if (!c) {
@@ -329,21 +320,26 @@ public:
         if (!text) {
           continue;
         }
-        auto pageJ = Compound();
-        pageJ->set(u8"raw", *text);
-        pagesJ->push_back(pageJ);
+        if (name == u8"minecraft:written_book") {
+          props::Json json;
+          props::SetJsonString(json, u8"text", *text);
+          u8string jsonString = props::StringFromJson(json);
+          pagesJ->push_back(String(jsonString));
+        } else {
+          pagesJ->push_back(String(*text));
+        }
       }
-      bookContent->set(u8"pages", pagesJ);
+      tagJ->set(u8"pages", pagesJ);
     }
-    if (auto author = tagB->string(u8"author"); written && author) {
-      bookContent->set(u8"author", *author);
+    auto author = tagB->string(u8"author");
+    if (author) {
+      tagJ->set(u8"author", *author);
     }
-    if (auto title = tagB->string(u8"title"); written && title) {
-      auto titleCompound = Compound();
-      titleCompound->set(u8"raw", *title);
-      bookContent->set(u8"title", titleCompound);
+    auto title = tagB->string(u8"title");
+    if (title) {
+      tagJ->set(u8"title", *title);
     }
-    java::AppendComponent(itemJ, written ? u8"written_book_content" : u8"writable_book_content", bookContent);
+    itemJ.set(u8"tag", tagJ);
     return name;
   }
 
@@ -386,7 +382,7 @@ public:
       auto tagJ = Compound();
       auto chargedProjectiles = List<Tag::Type::Compound>();
       if (auto chargedItem = tagB->compoundTag(u8"chargedItem"); chargedItem) {
-        if (auto projectileJ = From(*chargedItem, ctx, dataVersion, opt); projectileJ) {
+        if (auto projectileJ = Item::From(*chargedItem, ctx, dataVersion, opt); projectileJ) {
           chargedProjectiles->push_back(projectileJ);
         }
         tagJ->set(u8"ChargedProjectiles", chargedProjectiles);
@@ -400,12 +396,14 @@ public:
   static std::u8string FireworkRocket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
+      auto tagJ = Compound();
       auto fireworksB = tagB->compoundTag(u8"Fireworks");
       if (fireworksB) {
         FireworksData data = FireworksData::FromBedrock(*fireworksB);
         auto fireworksJ = data.toJavaCompoundTag();
-        java::AppendComponent(itemJ, u8"fireworks", fireworksJ);
+        tagJ->set(u8"Fireworks", fireworksJ);
       }
+      itemJ.set(u8"tag", tagJ);
     }
     return u8"minecraft:firework_rocket";
   }
@@ -414,11 +412,13 @@ public:
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       tagB->erase(u8"customColor");
+      auto tagJ = Compound();
       auto fireworksB = tagB->compoundTag(u8"FireworksItem");
       if (fireworksB) {
         FireworksExplosion explosion = FireworksExplosion::FromBedrock(*fireworksB);
         auto explosionJ = explosion.toJavaCompoundTag();
-        java::AppendComponent(itemJ, u8"firework_explosion", explosionJ);
+        tagJ->set(u8"Explosion", explosionJ);
+        itemJ[u8"tag"] = tagJ;
       }
     }
     return u8"minecraft:firework_star";
@@ -733,6 +733,7 @@ public:
     if (!tagB) {
       return name;
     }
+    auto tagJ = Compound();
     auto uuid = tagB->int64(u8"map_uuid");
     if (!uuid) {
       return name;
@@ -740,38 +741,42 @@ public:
 
     auto damage = itemB.int16(u8"Damage", 0);
     if (auto translate = MapType::JavaTranslationKeyFromBedrockDamage(damage); translate) {
+      auto displayJ = Compound();
       props::Json json;
       props::SetJsonString(json, u8"translate", *translate);
-      java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+      displayJ->set(u8"Name", props::StringFromJson(json));
 
       if (auto mapColor = MapType::JavaMapColorFromBedrockDamage(damage); mapColor) {
-        java::AppendComponent(itemJ, u8"map_color", Int(*mapColor));
+        displayJ->set(u8"MapColor", Int(*mapColor));
       }
+
+      tagJ->set(u8"display", displayJ);
     }
 
     auto info = ctx.mapFromUuid(*uuid);
     if (info) {
-      java::AppendComponent(itemJ, u8"map_id", Int(info->fNumber));
+      tagJ->set(u8"map", Int(info->fNumber));
       ctx.markMapUuidAsUsed(*uuid);
 
       if (damage != 0 && !info->fDecorations.empty()) {
-        auto decorationsJ = Compound();
+        auto decorationsJ = List<Tag::Type::Compound>();
         for (MapInfo::Decoration const &decoration : info->fDecorations) {
-          decorationsJ->set(decoration.fId, decoration.toCompoundTag());
+          decorationsJ->push_back(decoration.toCompoundTag());
         }
-        java::AppendComponent(itemJ, u8"map_decorations", decorationsJ);
+        tagJ->set(u8"Decorations", decorationsJ);
       }
     }
 
+    itemJ.set(u8"tag", tagJ);
     return name;
   }
 
   static std::u8string Potion(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
-    auto potionContents = Compound();
-    potionContents->set(u8"potion", potionName);
-    java::AppendComponent(itemJ, u8"potion_contents", potionContents);
+    auto tagJ = Compound();
+    tagJ->set(u8"Potion", potionName);
+    itemJ.set(u8"tag", tagJ);
     return name;
   }
 
@@ -793,7 +798,9 @@ public:
       }
       effects->push_back(effect);
     }
-    java::AppendComponent(itemJ, u8"suspicious_stew_effects", effects);
+    auto tag = Compound();
+    tag->set(u8"effects", effects);
+    itemJ[u8"tag"] = tag;
     return name;
   }
 
@@ -803,18 +810,7 @@ public:
       TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
       auto tagJ = Compound();
       tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
-      java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
-    }
-    return name;
-  }
-
-  static std::u8string WolfArmor(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
-    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
-      if (auto customColorB = tagB->int32(u8"customColor"); customColorB) {
-        auto dyedColor = Compound();
-        dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColorB)));
-        java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
-      }
+      itemJ[u8"tag"] = tagJ;
     }
     return name;
   }
@@ -827,11 +823,6 @@ public:
     };
   }
 #pragma endregion
-
-  static i32 RgbFromCustomColor(i32 customColor) {
-    u32 rgb = 0xffffff & *(u32 *)&customColor;
-    return *(i32 *)&rgb;
-  }
 
   static std::u8string Ns() {
     return u8"minecraft:";
@@ -906,16 +897,9 @@ public:
     E(prize_pottery_shard, Rename(u8"pottery_shard_prize"));
     E(arms_up_pottery_shard, Rename(u8"pottery_shard_arms_up"));
     E(skull_pottery_shard, Rename(u8"pottery_shard_skull"));
-
-    // 1.20.5
-    E(wolf_armor, WolfArmor);
 #undef E
     return ret;
   }
 };
-
-CompoundTagPtr Item::From(CompoundTag const &tagB, Context &ctx, int dataVersion, Item::Options const &opt) {
-  return Impl::From(tagB, ctx, dataVersion, opt);
-}
 
 } // namespace je2be::bedrock

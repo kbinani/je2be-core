@@ -1,31 +1,11 @@
-#include "bedrock/_entity.hpp"
-
-#include "_namespace.hpp"
-#include "_nbt-ext.hpp"
-#include "_props.hpp"
-#include "_rotation.hpp"
-#include "bedrock/_block-data.hpp"
-#include "bedrock/_context.hpp"
-#include "bedrock/_item.hpp"
-#include "entity/_armor-stand.hpp"
-#include "entity/_axolotl.hpp"
-#include "entity/_boat.hpp"
-#include "entity/_cat.hpp"
-#include "entity/_frog.hpp"
-#include "entity/_painting.hpp"
-#include "entity/_panda.hpp"
-#include "entity/_tropical-fish.hpp"
-#include "entity/_wolf.hpp"
-#include "enums/_facing6.hpp"
-#include "enums/_villager-profession.hpp"
-#include "enums/_villager-type.hpp"
-#include "tile-entity/_loot-table.hpp"
-
-#include "bedrock-entity-before-components-introduced.hpp"
+#pragma once
 
 namespace je2be::bedrock {
 
-class Entity::Impl {
+class BedrockEntityBeforeComponentsIntroduced {
+  using LocalPlayerData = Entity::LocalPlayerData;
+  using Result = Entity::Result;
+
 public:
   static CompoundTagPtr ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx, int dataVersion) {
     auto ret = Compound();
@@ -110,59 +90,55 @@ public:
   }
 
   static std::optional<Result> From(CompoundTag const &entityB, Context &ctx, int dataVersion) {
-    if (dataVersion >= kDataVersionComponentIntroduced) {
-      auto id = entityB.string(u8"identifier");
-      if (!id) {
-        return std::nullopt;
-      }
-      auto uid = entityB.int64(u8"UniqueID");
-      if (!uid) {
-        return std::nullopt;
-      }
-      i64 v = *uid;
-      Uuid uuid = Uuid::GenWithU64Seed(*(u64 *)&v);
-
-      auto const *table = GetTable();
-      std::u8string_view key(*id);
-      auto found = table->find(Namespace::Remove(key));
-      if (found == table->end()) {
-        return std::nullopt;
-      }
-
-      auto e = found->second(*id, entityB, ctx, dataVersion);
-      if (!e) {
-        return std::nullopt;
-      }
-      e->set(u8"UUID", uuid.toIntArrayTag());
-
-      if (ctx.setShoulderEntityIfItIs(*uid, e)) {
-        return std::nullopt;
-      }
-
-      Result r;
-
-      auto st = Passengers(uuid, entityB, ctx, r.fPassengers);
-      if (st == PassengerStatus::ContainsLocalPlayer) {
-        ctx.setRootVehicle(uuid);
-      }
-
-      auto leasherId = entityB.int64(u8"LeasherID", -1);
-      if (leasherId != -1) {
-        r.fLeasherId = leasherId;
-
-        // NOTE: This "UUID" property will be replaced to "X", "Y", and "Z" when the leasher is a leash_knot.
-        auto leasherIdJ = Uuid::GenWithI64Seed(leasherId);
-        auto leash = Compound();
-        leash->set(u8"UUID", leasherIdJ.toIntArrayTag());
-        e->set(u8"Leash", leash);
-      }
-
-      r.fUuid = uuid;
-      r.fEntity = e;
-      return r;
-    } else {
-      return BedrockEntityBeforeComponentsIntroduced::From(entityB, ctx, dataVersion);
+    auto id = entityB.string(u8"identifier");
+    if (!id) {
+      return std::nullopt;
     }
+    auto uid = entityB.int64(u8"UniqueID");
+    if (!uid) {
+      return std::nullopt;
+    }
+    i64 v = *uid;
+    Uuid uuid = Uuid::GenWithU64Seed(*(u64 *)&v);
+
+    auto const *table = GetTable();
+    std::u8string_view key(*id);
+    auto found = table->find(Namespace::Remove(key));
+    if (found == table->end()) {
+      return std::nullopt;
+    }
+
+    auto e = found->second(*id, entityB, ctx, dataVersion);
+    if (!e) {
+      return std::nullopt;
+    }
+    e->set(u8"UUID", uuid.toIntArrayTag());
+
+    if (ctx.setShoulderEntityIfItIs(*uid, e)) {
+      return std::nullopt;
+    }
+
+    Result r;
+
+    auto st = Passengers(uuid, entityB, ctx, r.fPassengers);
+    if (st == PassengerStatus::ContainsLocalPlayer) {
+      ctx.setRootVehicle(uuid);
+    }
+
+    auto leasherId = entityB.int64(u8"LeasherID", -1);
+    if (leasherId != -1) {
+      r.fLeasherId = leasherId;
+
+      // NOTE: This "UUID" property will be replaced to "X", "Y", and "Z" when the leasher is a leash_knot.
+      auto leasherIdJ = Uuid::GenWithI64Seed(leasherId);
+      auto leash = Compound();
+      leash->set(u8"UUID", leasherIdJ.toIntArrayTag());
+      e->set(u8"Leash", leash);
+    }
+
+    r.fUuid = uuid;
+    r.fEntity = e;
+    return r;
   }
 
   using Converter = std::function<CompoundTagPtr(std::u8string const &id, CompoundTag const &eneityB, Context &ctx, int dataVersion)>;
@@ -588,8 +564,7 @@ public:
         if (slotJ == 0) {
           j[u8"SaddleItem"] = itemJ;
         } else if (slotJ == 1) {
-          j[u8"body_armor_item"] = itemJ;
-          j[u8"body_armor_drop_chance"] = Float(2);
+          j[u8"ArmorItem"] = itemJ;
         }
       }
     }
@@ -613,15 +588,6 @@ public:
       if (itemJ) {
         j[u8"Item"] = itemJ;
       }
-    }
-    if (auto ownerIdB = b.int64(u8"OwnerID"); ownerIdB && *ownerIdB != -1) {
-      Uuid uuid;
-      if (auto mapped = ctx.mapLocalPlayerId(*ownerIdB); mapped) {
-        uuid = *mapped;
-      } else {
-        uuid = Uuid::GenWithI64Seed(*ownerIdB);
-      }
-      j[u8"Thrower"] = uuid.toIntArrayTag();
     }
     CopyShortValues(b, j, {{u8"Age"}, {u8"Health"}});
   }
@@ -870,12 +836,6 @@ public:
         j[u8"Health"] = Float(healthJ);
       }
     }
-  }
-
-  static void Wolf(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    auto variantB = b.int32(u8"Variant", 0);
-    auto variantJ = Wolf::JavaVariantFromBedrockVariant(variantB);
-    j[u8"variant"] = String(variantJ);
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1693,7 +1653,7 @@ public:
     if (!count) {
       return nullptr;
     }
-    item->set(u8"count", Int(*count));
+    item->set(u8"Count", Byte(*count));
     return item;
   }
 
@@ -1720,7 +1680,14 @@ public:
     ret->set(u8"buy", buyA);
     if (buyB) {
       ret->set(u8"buyB", buyB);
+    } else {
+      auto air = Compound();
+      air->set(u8"id", u8"minecraft:air");
+      air->set(u8"Count", Byte(0));
+      ret->set(u8"buyB", air);
     }
+
+    ret->set(u8"specialPrice", Int(0));
 
     CopyIntValues(recipeB, *ret, {{u8"demand"}, {u8"maxUses"}, {u8"uses"}, {u8"traderExp", u8"xp"}});
     CopyByteValues(recipeB, *ret, {{u8"rewardExp"}});
@@ -1945,7 +1912,7 @@ public:
     E(painting, C(Same, Base, Painting));
     E(zombie, C(Same, LivingEntity, IsBaby, Zombie));
     E(chicken, C(Same, Animal, Chicken));
-    E(item, C(Same, Base, Impl::Item));
+    E(item, C(Same, Base, BedrockEntityBeforeComponentsIntroduced::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, C(Rename(u8"end_crystal"), Base, ShowBottom, EnderCrystal));
     E(chest_minecart, C(Same, Base, Minecart, ItemsFromChestItems, ChestMinecart));
@@ -1999,7 +1966,7 @@ public:
     E(vex, C(Same, LivingEntity, NoGravity));
     E(villager_v2, C(Rename(u8"villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
-    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, Wolf));
+    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed));
     E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
@@ -2018,7 +1985,7 @@ public:
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
 
-    E(frog, C(Same, Animal, PersistenceRequiredDefault, Impl::Frog));
+    E(frog, C(Same, Animal, PersistenceRequiredDefault, BedrockEntityBeforeComponentsIntroduced::Frog));
     E(warden, C(Same, LivingEntity));
     E(allay, C(Same, LivingEntity, NoGravity, Inventory, Allay));
     E(tadpole, C(Same, LivingEntity, AgeableE(24000), FromBucket));
@@ -2032,17 +1999,5 @@ public:
     return ret;
   }
 };
-
-CompoundTagPtr Entity::ItemFrameFromBedrock(mcfile::Dimension d, Pos3i pos, mcfile::be::Block const &blockJ, CompoundTag const &blockEntityB, Context &ctx, int dataVersion) {
-  return Impl::ItemFrameFromBedrock(d, pos, blockJ, blockEntityB, ctx, dataVersion);
-}
-
-std::optional<Entity::Result> Entity::From(CompoundTag const &entityB, Context &ctx, int dataVersion) {
-  return Impl::From(entityB, ctx, dataVersion);
-}
-
-std::optional<Entity::LocalPlayerData> Entity::LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid, int dataVersion) {
-  return Impl::LocalPlayer(b, ctx, uuid, dataVersion);
-}
 
 } // namespace je2be::bedrock

@@ -11,11 +11,11 @@ public:
   struct Options {
     bool fOfferItem = false;
   };
+  using Converter = std::function<std::u8string(std::u8string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &)>;
 
 private:
   class Impl;
   Item() = delete;
-  using Converter = std::function<std::u8string(std::u8string const &, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &)>;
 
 public:
   static CompoundTagPtr From(CompoundTag const &tagB, Context &ctx, int dataVersion, Options const &opt);

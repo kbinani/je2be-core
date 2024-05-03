@@ -1,47 +1,34 @@
-#include "bedrock/_block-entity.hpp"
-
-#include "_namespace.hpp"
-#include "_optional.hpp"
-#include "bedrock/_context.hpp"
-#include "bedrock/_entity.hpp"
-#include "bedrock/_item.hpp"
-#include "color/_sign-color.hpp"
-#include "command/_command.hpp"
-#include "enums/_banner-color-code-bedrock.hpp"
-#include "enums/_color-code-java.hpp"
-#include "enums/_facing6.hpp"
-#include "enums/_red-flower.hpp"
-#include "enums/_skull-type.hpp"
-#include "item/_banner.hpp"
-#include "java/_components.hpp"
-#include "tile-entity/_beacon.hpp"
-#include "tile-entity/_loot-table.hpp"
-
-#include <minecraft-file.hpp>
-
-#include "bedrock-block-entity-before-components-introduced.hpp"
+#pragma once
 
 namespace je2be::bedrock {
 
-class BlockEntity::Impl {
+class BedrockBlockEntityBeforeComponentsIntroduced {
 private:
-  Impl() = delete;
+  BedrockBlockEntityBeforeComponentsIntroduced() = delete;
+  using Result = BlockEntityConvertResult;
+  using Converter = std::function<std::optional<Result>(Pos3i const &, mcfile::be::Block const &, CompoundTag const &, mcfile::je::Block const &, Context &ctx, int dataVersion)>;
 
 public:
   static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
     using namespace std;
-    if (dataVersion >= kDataVersionComponentIntroduced) {
-      static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
-      u8string_view key(block.fName);
-      auto found = sTable->find(Namespace::Remove(key));
-      if (found == sTable->end()) {
-        return nullopt;
-      }
-      auto result = found->second(pos, block, tag, blockJ, ctx, dataVersion);
-      return result;
-    } else {
-      return BedrockBlockEntityBeforeComponentsIntroduced::FromBlockAndBlockEntity(pos, block, tag, blockJ, ctx, dataVersion);
+    static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
+    u8string_view key(block.fName);
+    auto found = sTable->find(Namespace::Remove(key));
+    if (found == sTable->end()) {
+      return nullopt;
     }
+    auto result = found->second(pos, block, tag, blockJ, ctx, dataVersion);
+    if (result && result->fTileEntity) {
+      if (!result->fTileEntity->string(u8"CustomName")) {
+        auto customName = tag.string(u8"CustomName");
+        if (customName) {
+          props::Json json;
+          props::SetJsonString(json, u8"text", *customName);
+          result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
+        }
+      }
+    }
+    return result;
   }
 
 #pragma region Dedicated converters
@@ -58,15 +45,14 @@ public:
     }
     auto te = EmptyShortName(u8"banner", pos);
     auto type = tag.int32(u8"Type", 0);
-    ListTagPtr patternsJ;
     if (type == 1) {
       // Illager Banner
-      java::AppendComponent(te, u8"item_name", String(u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
-      patternsJ = Banner::OminousBannerPatterns(dataVersion);
+      te->set(u8"CustomName", u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})");
+      te->set(u8"Patterns", Banner::OminousBannerPatterns(dataVersion));
     } else {
       auto patternsB = tag.listTag(u8"Patterns");
-      patternsJ = List<Tag::Type::Compound>();
       if (patternsB) {
+        auto patternsJ = List<Tag::Type::Compound>();
         for (auto const &pB : *patternsB) {
           CompoundTag const *c = pB->asCompound();
           if (!c) {
@@ -78,14 +64,14 @@ public:
             continue;
           }
           auto pJ = Compound();
-          pJ->set(u8"color", String(JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set(u8"pattern", *pPatternB);
+          pJ->set(u8"Color", Int(static_cast<i32>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+          pJ->set(u8"Pattern", *pPatternB);
           patternsJ->push_back(pJ);
         }
+        te->set(u8"Patterns", patternsJ);
+      } else {
+        te->set(u8"Patterns", List<Tag::Type::Compound>());
       }
-    }
-    if (patternsJ && !patternsJ->empty()) {
-      te->set(u8"patterns", patternsJ);
     }
     Result r;
     r.fBlock = blockJ.withId(id);
@@ -151,7 +137,7 @@ public:
           bees->push_back(data);
         }
       }
-      te->set(u8"bees", bees);
+      te->set(u8"Bees", bees);
     }
     Result r;
     r.fTileEntity = te;
@@ -316,12 +302,11 @@ public:
 
     auto customName = tagB.string(u8"CustomName", u8"");
     if (customName.empty()) {
-      t->set(u8"CustomName", u8"\"@\"");
-    } else {
-      props::Json json;
-      props::SetJsonString(json, u8"text", customName);
-      t->set(u8"CustomName", props::StringFromJson(json));
+      customName = u8"\"@\"";
     }
+    props::Json json;
+    props::SetJsonString(json, u8"text", customName);
+    t->set(u8"CustomName", props::StringFromJson(json));
 
     Result r;
     r.fTileEntity = t;
@@ -626,7 +611,7 @@ public:
     for (size_t i = 0; i < 4; i++) {
       u8string line = i < linesB.size() ? linesB[i] : u8"";
       if (line.empty()) {
-        messagesJ->push_back(String(u8R"({"text":""})"));
+        messagesJ->push_back(String(u8"\"\""));
       } else {
         props::Json json;
         props::SetJsonString(json, u8"text", line);
@@ -643,10 +628,10 @@ public:
     ret->set(u8"color", u8"black");
     ret->set(u8"has_glowing_text", Bool(false));
     auto messages = List<Tag::Type::String>();
-    messages->push_back(String(u8R"({"text":""})"));
-    messages->push_back(String(u8R"({"text":""})"));
-    messages->push_back(String(u8R"({"text":""})"));
-    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8""));
+    messages->push_back(String(u8""));
+    messages->push_back(String(u8""));
+    messages->push_back(String(u8""));
     ret->set(u8"messages", messages);
     return ret;
   }
@@ -1075,13 +1060,5 @@ public:
     return t;
   }
 };
-
-std::optional<BlockEntity::Result> BlockEntity::FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
-  return Impl::FromBlockAndBlockEntity(pos, block, tag, blockJ, ctx, dataVersion);
-}
-
-ListTagPtr BlockEntity::ContainerItems(CompoundTag const &parent, std::u8string const &key, Context &ctx, int dataVersion) {
-  return Impl::ContainerItems(parent, key, ctx, dataVersion);
-}
 
 } // namespace je2be::bedrock
