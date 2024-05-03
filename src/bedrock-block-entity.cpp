@@ -13,6 +13,7 @@
 #include "enums/_red-flower.hpp"
 #include "enums/_skull-type.hpp"
 #include "item/_banner.hpp"
+#include "java/_components.hpp"
 #include "tile-entity/_beacon.hpp"
 #include "tile-entity/_loot-table.hpp"
 
@@ -34,16 +35,6 @@ public:
       return nullopt;
     }
     auto result = found->second(pos, block, tag, blockJ, ctx, dataVersion);
-    if (result && result->fTileEntity) {
-      if (!result->fTileEntity->string(u8"CustomName")) {
-        auto customName = tag.string(u8"CustomName");
-        if (customName) {
-          props::Json json;
-          props::SetJsonString(json, u8"text", *customName);
-          AppendComponent(result->fTileEntity, u8"item_name", String(props::StringFromJson(json)));
-        }
-      }
-    }
     return result;
   }
 
@@ -64,7 +55,7 @@ public:
     ListTagPtr patternsJ;
     if (type == 1) {
       // Illager Banner
-      te->set(u8"CustomName", u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})");
+      java::AppendComponent(te, u8"item_name", String(u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
       patternsJ = Banner::OminousBannerPatterns();
     } else {
       auto patternsB = tag.listTag(u8"Patterns");
@@ -81,14 +72,14 @@ public:
             continue;
           }
           auto pJ = Compound();
-          pJ->set(u8"Color", Int(static_cast<i32>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set(u8"Pattern", *pPatternB);
+          pJ->set(u8"color", String(JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+          pJ->set(u8"pattern", *pPatternB);
           patternsJ->push_back(pJ);
         }
       }
     }
     if (patternsJ && !patternsJ->empty()) {
-      AppendComponent(te, u8"banner_patterns", patternsJ);
+      te->set(u8"patterns", patternsJ);
     }
     Result r;
     r.fBlock = blockJ.withId(id);
