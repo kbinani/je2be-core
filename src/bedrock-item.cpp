@@ -796,9 +796,7 @@ public:
       }
       effects->push_back(effect);
     }
-    auto tag = Compound();
-    tag->set(u8"effects", effects);
-    itemJ[u8"tag"] = tag;
+    java::AppendComponent(itemJ, u8"suspicious_stew_effects", effects);
     return name;
   }
 

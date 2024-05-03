@@ -1032,26 +1032,25 @@ private:
 
   static CompoundTagPtr SuspiciousStew(std::u8string const &name, CompoundTag const &j, Context const &, int dataVersion) {
     auto b = New(u8"suspicious_stew");
-    auto tagJ = j.compoundTag(u8"tag");
-    if (tagJ) {
-      i16 damage = -1;
-      if (auto effectsJ = tagJ->listTag(u8"effects"); effectsJ) {
-        // >= 1.20.2
-        for (auto const &it : *effectsJ) {
-          auto effectJ = it->asCompound();
-          if (!effectJ) {
-            continue;
-          }
-          auto idJ = effectJ->string(u8"id");
-          if (!idJ) {
-            continue;
-          }
-          if (auto legacyIdJ = Effect::LegacyIdFromNamespacedId(*idJ); legacyIdJ) {
-            damage = Effect::BedrockSuspiciousStewFromJavaEffect(*legacyIdJ);
-            break;
-          }
+    i16 damage = -1;
+    if (auto effectsJ = Migrate<ListTag>(j, u8"suspicious_stew_effects", Depth::Tag, u8"effects"); effectsJ) {
+      // >= 1.20.2
+      for (auto const &it : *effectsJ) {
+        auto effectJ = it->asCompound();
+        if (!effectJ) {
+          continue;
         }
-      } else if (auto legacyEffectsJ = tagJ->listTag(u8"Effects"); legacyEffectsJ) {
+        auto idJ = effectJ->string(u8"id");
+        if (!idJ) {
+          continue;
+        }
+        if (auto legacyIdJ = Effect::LegacyIdFromNamespacedId(*idJ); legacyIdJ) {
+          damage = Effect::BedrockSuspiciousStewFromJavaEffect(*legacyIdJ);
+          break;
+        }
+      }
+    } else if (auto tagJ = j.compoundTag(u8"tag"); tagJ) {
+      if (auto legacyEffectsJ = tagJ->listTag(u8"Effects"); legacyEffectsJ) {
         // <= 1.20.1
         for (auto const &it : *legacyEffectsJ) {
           auto effectJ = it->asCompound();
@@ -1066,9 +1065,9 @@ private:
           break;
         }
       }
-      if (damage >= 0) {
-        b->set(u8"Damage", Short(damage));
-      }
+    }
+    if (damage >= 0) {
+      b->set(u8"Damage", Short(damage));
     }
     return b;
   }
