@@ -357,6 +357,10 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   auto copyE = expected.copy();
   auto copyA = actual.copy();
 
+  auto x = expected.int32(u8"x");
+  auto y = expected.int32(u8"y");
+  auto z = expected.int32(u8"z");
+
   unordered_set<u8string> tagBlacklist = {
       u8"LootTableSeed",           // chest in dungeon etc.
       u8"RecipesUsed",             // furnace, blast_furnace, and smoker
@@ -553,6 +557,22 @@ static void CheckOffersJ(CompoundTag const &e, CompoundTag const &a) {
   DiffCompoundTag(*copyE, *copyA);
 }
 
+static void CheckContainerItemsJ(ListTagPtr const &expected, ListTagPtr const &actual) {
+  if (expected) {
+    REQUIRE(actual);
+    REQUIRE(expected->size() == actual->size());
+    for (int i = 0; i < expected->size(); i++) {
+      auto e = expected->at(i);
+      auto a = actual->at(i);
+      REQUIRE(e->type() == Tag::Type::Compound);
+      CHECK(e->type() == a->type());
+      CheckItemJ(*e->asCompound(), *a->asCompound());
+    }
+  } else if (actual) {
+    CHECK(false);
+  }
+}
+
 static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA, CheckEntityJOptions options) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
@@ -743,40 +763,12 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     CHECK(false);
   }
 
-  auto inventoryE = entityE.listTag(u8"Inventory");
-  auto inventoryA = entityA.listTag(u8"Inventory");
-  copyE->erase(u8"Inventory");
-  copyA->erase(u8"Inventory");
-  if (inventoryE) {
-    REQUIRE(inventoryA);
-    REQUIRE(inventoryE->size() == inventoryA->size());
-    for (int i = 0; i < inventoryE->size(); i++) {
-      auto e = inventoryE->at(i);
-      auto a = inventoryA->at(i);
-      REQUIRE(e->type() == Tag::Type::Compound);
-      CHECK(e->type() == a->type());
-      CheckItemJ(*e->asCompound(), *a->asCompound());
-    }
-  } else if (inventoryA) {
-    CHECK(false);
-  }
-
-  auto enderItemsE = entityE.listTag(u8"EnderItems");
-  auto enderItemsA = entityA.listTag(u8"EnderItems");
-  copyE->erase(u8"EnderItems");
-  copyA->erase(u8"EnderItems");
-  if (enderItemsE) {
-    REQUIRE(enderItemsA);
-    REQUIRE(enderItemsE->size() == enderItemsA->size());
-    for (int i = 0; i < enderItemsE->size(); i++) {
-      auto e = enderItemsE->at(i);
-      auto a = enderItemsA->at(i);
-      REQUIRE(e->type() == Tag::Type::Compound);
-      CHECK(e->type() == a->type());
-      CheckItemJ(*e->asCompound(), *a->asCompound());
-    }
-  } else if (enderItemsA) {
-    CHECK(false);
+  for (auto const &containerKey : {u8"Inventory", u8"EnderItems", u8"ArmorItems"}) {
+    auto contentsE = entityE.listTag(containerKey);
+    auto contentsA = entityA.listTag(containerKey);
+    copyE->erase(containerKey);
+    copyA->erase(containerKey);
+    CheckContainerItemsJ(contentsE, contentsA);
   }
 
   auto offersE = entityE.compoundTag(u8"Offers");
