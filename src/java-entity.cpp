@@ -1035,7 +1035,7 @@ private:
     c[u8"Variant"] = Int(baseColor);
     c[u8"MarkVariant"] = Int(markings);
 
-    if (auto armorItemJ = tag.compoundTag(u8"ArmorItem"); armorItemJ) {
+    if (auto armorItemJ = FallbackPtr<CompoundTag>(tag, {u8"body_armor_item", u8"ArmorItem"}); armorItemJ) {
       if (auto armorItemB = Item::From(armorItemJ, ctx.fCtx, ctx.fDataVersion); armorItemB) {
         AddChestItem(c, armorItemB, 1, 1);
       }
@@ -2576,8 +2576,7 @@ private:
       armors->push_back(Item::Empty());
     }
 
-    auto found = tag.find(u8"ArmorItems");
-    if (found != tag.end()) {
+    if (auto found = tag.find(u8"ArmorItems"); found != tag.end()) {
       auto list = found->second->asList();
       if (list && list->fType == Tag::Type::Compound) {
         for (int i = 0; i < 4 && i < list->size(); i++) {

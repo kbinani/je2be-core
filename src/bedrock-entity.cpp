@@ -581,7 +581,8 @@ public:
         if (slotJ == 0) {
           j[u8"SaddleItem"] = itemJ;
         } else if (slotJ == 1) {
-          j[u8"ArmorItem"] = itemJ;
+          j[u8"body_armor_item"] = itemJ;
+          j[u8"body_armor_drop_chance"] = Float(2);
         }
       }
     }
