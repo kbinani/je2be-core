@@ -40,7 +40,7 @@ public:
         if (customName) {
           props::Json json;
           props::SetJsonString(json, u8"text", *customName);
-          result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
+          AppendComponent(result->fTileEntity, u8"item_name", String(props::StringFromJson(json)));
         }
       }
     }

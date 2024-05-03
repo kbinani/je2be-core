@@ -1374,8 +1374,8 @@ private:
     auto tag = Compound();
 
     optional<props::Json> customName;
-    if (c) {
-      customName = props::GetJson(*c, u8"CustomName");
+    if (auto customNameString = Migrate<StringTag>(c, u8"item_name", Depth::Root, u8"CustomName"); customNameString) {
+      customName = props::ParseAsJson(customNameString->fValue);
     }
     i32 type = 0;
     if (customName) {
@@ -1394,15 +1394,22 @@ private:
         if (!p) {
           continue;
         }
-        auto color = p->int32(u8"Color");
-        auto pat = p->string(u8"Pattern");
-        if (!color || !pat) {
+        ColorCodeJava color;
+        if (auto patternColor = p->string(u8"color"); patternColor) {
+          color = ColorCodeJavaFromJavaName(*patternColor);
+        } else if (auto legacyPatternColor = p->int32(u8"Color"); legacyPatternColor) {
+          color = static_cast<ColorCodeJava>(*legacyPatternColor);
+        } else {
+          continue;
+        }
+        auto pat = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
+        if (!pat) {
           continue;
         }
         auto ptag = Compound();
         ptag->insert({
-            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
-            {u8"Pattern", String(*pat)},
+            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(color)))},
+            {u8"Pattern", String(pat->fValue)},
         });
         patternsB->push_back(ptag);
       }
