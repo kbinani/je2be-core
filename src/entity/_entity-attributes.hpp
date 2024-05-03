@@ -155,7 +155,7 @@ public:
                          Attribute(0.02, 0.02),    // lava_movement
                          Attribute(16, 16, 2048),  // follow_range
                          Attribute(3, 3, 3));      // attack_damage
-    Attributes tamedAttrs(Attribute(20, 20, 20),   // health
+    Attributes tamedAttrs(Attribute(40, 40, 40),   // health
                           Attribute(0, 0, 1),      // knockback_resistance
                           Attribute(0.3, 0.3),     // movement
                           Attribute(0.02, 0.02),   // underwater_movement
