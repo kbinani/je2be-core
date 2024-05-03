@@ -93,6 +93,14 @@ inline std::shared_ptr<NbtTag> FallbackPtr(CompoundTag const &c, std::initialize
   return nullptr;
 }
 
+template <class NbtTag>
+inline std::shared_ptr<NbtTag> FallbackPtr(CompoundTagPtr const &c, std::initializer_list<std::u8string> names) {
+  if (!c) {
+    return nullptr;
+  }
+  return FallbackPtr<NbtTag>(*c, names);
+}
+
 inline Tag const *FallbackQuery(CompoundTag const &c, std::initializer_list<std::u8string> queries) {
   for (auto const &query : queries) {
     if (auto v = c.query(query); v && v->type() != Tag::Type::End) {

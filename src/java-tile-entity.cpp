@@ -781,7 +781,7 @@ private:
 
     shared_ptr<ListTag> bees;
     if (c) {
-      bees = c->listTag(u8"Bees");
+      bees = FallbackPtr<ListTag>(*c, {u8"bees", u8"Bees"});
     }
     if (bees) {
       auto occupants = List<Tag::Type::Compound>();

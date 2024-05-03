@@ -154,7 +154,11 @@ public:
           bees->push_back(data);
         }
       }
-      te->set(u8"Bees", bees);
+      if (dataVersion < kDataVersionComponentIntroduced) {
+        te->set(u8"Bees", bees);
+      } else {
+        te->set(u8"bees", bees);
+      }
     }
     Result r;
     r.fTileEntity = te;
