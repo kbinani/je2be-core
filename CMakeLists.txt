@@ -260,6 +260,7 @@ set(je2be_src_files
   src/entity/_painting.hpp
   src/entity/_panda.hpp
   src/entity/_tropical-fish.hpp
+  src/entity/_wolf.hpp
   src/enums/_banner-color-code-bedrock.hpp
   src/enums/_chunk-conversion-mode.hpp
   src/enums/_color-code-java.hpp

@@ -15,6 +15,7 @@
 #include "entity/_painting.hpp"
 #include "entity/_panda.hpp"
 #include "entity/_tropical-fish.hpp"
+#include "entity/_wolf.hpp"
 #include "enums/_facing6.hpp"
 #include "enums/_villager-profession.hpp"
 #include "enums/_villager-type.hpp"
@@ -854,6 +855,12 @@ public:
         j[u8"Health"] = Float(healthJ);
       }
     }
+  }
+
+  static void Wolf(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto variantB = b.int32(u8"Variant", 0);
+    auto variantJ = Wolf::JavaVariantFromBedrockVariant(variantB);
+    j[u8"variant"] = String(variantJ);
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1977,7 +1984,7 @@ public:
     E(vex, C(Same, LivingEntity, NoGravity));
     E(villager_v2, C(Rename(u8"villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
-    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
+    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, Wolf));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed));
     E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));

@@ -14,6 +14,7 @@
 #include "entity/_painting.hpp"
 #include "entity/_panda.hpp"
 #include "entity/_tropical-fish.hpp"
+#include "entity/_wolf.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
@@ -1646,6 +1647,7 @@ private:
   static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto health = tag.float32(u8"Health");
     auto owner = GetOwnerUuid(tag);
+    auto variant = tag.string(u8"variant");
 
     auto attributes = EntityAttributes::Wolf(!!owner, health);
     c[u8"Attributes"] = attributes.toBedrockListTag();
@@ -1658,6 +1660,14 @@ private:
     if (owner) {
       AddDefinition(c, u8"+minecraft:wolf_increased_max_health");
       AddDefinition(c, u8"+minecraft:wolf_armorable");
+    }
+
+    if (variant) {
+      auto name = Namespace::Remove(*variant);
+      AddDefinition(c, u8"+minecraft:wolf_" + name);
+
+      i32 variantB = Wolf::BedrockVariantFromJavaVariant(*variant);
+      c[u8"Variant"] = Int(variantB);
     }
   }
 
