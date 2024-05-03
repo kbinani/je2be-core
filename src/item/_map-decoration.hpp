@@ -2,6 +2,7 @@
 
 #include <je2be/integers.hpp>
 
+#include "_namespace.hpp"
 #include "_static-reversible-map.hpp"
 
 namespace je2be {
@@ -16,10 +17,10 @@ public:
     return std::nullopt;
   }
 
-  static std::optional<i8> LegacyJavaTypeFromBedrock(i32 type) {
+  static std::optional<i8> LegacyJavaTypeFromJava(std::u8string const &type) {
     auto const &table = Table();
     for (auto const &it : table) {
-      if (it.second.second == type) {
+      if (Namespace::Add(it.second.first) == type) {
         return it.first;
       }
     }
@@ -29,7 +30,7 @@ public:
   static std::optional<i32> BedrockTypeFromJava(std::u8string const &type) {
     auto const &table = Table();
     for (auto const &it : table) {
-      if (u8"minecraft:" + it.second.first == type) {
+      if (Namespace::Add(it.second.first) == type) {
         return it.first;
       }
     }

@@ -761,7 +761,7 @@ public:
       if (damage != 0 && !info->fDecorations.empty()) {
         auto decorationsJ = List<Tag::Type::Compound>();
         for (MapInfo::Decoration const &decoration : info->fDecorations) {
-          decorationsJ->push_back(decoration.toCompoundTag());
+          decorationsJ->push_back(decoration.toJavaCompoundTag(dataVersion));
         }
         tagJ->set(u8"Decorations", decorationsJ);
       }

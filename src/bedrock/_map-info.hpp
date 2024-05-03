@@ -20,14 +20,24 @@ public:
     double fX;
     double fZ;
 
-    CompoundTagPtr toCompoundTag() const {
+    CompoundTagPtr toJavaCompoundTag(int dataVersion) const {
       auto ret = Compound();
-      ret->set(u8"rotation", Float(fRotation));
-      if (!fType.empty()) {
-        ret->set(u8"type", String(u8"minecraft:" + fType));
+      if (dataVersion >= kDataVersionComponentIntroduced) {
+        ret->set(u8"rotation", Float(fRotation));
+        if (!fType.empty()) {
+          ret->set(u8"type", String(u8"minecraft:" + fType));
+        }
+        ret->set(u8"x", Double(fX));
+        ret->set(u8"z", Double(fZ));
+      } else {
+        ret->set(u8"id", fId);
+        ret->set(u8"rot", Double(fRotation));
+        if (auto type = MapDecoration::LegacyJavaTypeFromJava(fType); type) {
+          ret->set(u8"type", Byte(*type));
+        }
+        ret->set(u8"x", Double(fX));
+        ret->set(u8"z", Double(fZ));
       }
-      ret->set(u8"x", Double(fX));
-      ret->set(u8"z", Double(fZ));
       return ret;
     }
   };

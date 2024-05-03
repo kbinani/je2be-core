@@ -757,7 +757,7 @@ public:
       if (damage != 0 && !info->fDecorations.empty()) {
         auto decorationsJ = Compound();
         for (MapInfo::Decoration const &decoration : info->fDecorations) {
-          decorationsJ->set(decoration.fId, decoration.toCompoundTag());
+          decorationsJ->set(decoration.fId, decoration.toJavaCompoundTag(dataVersion));
         }
         java::AppendComponent(itemJ, u8"map_decorations", decorationsJ);
       }
