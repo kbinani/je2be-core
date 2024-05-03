@@ -669,7 +669,7 @@ private:
     E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
     E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid")));
-    E(axolotl, C(Animal, AgeableA(u8"axolotl"), Axolotl));
+    E(axolotl, C(Animal, AgeableA(u8"axolotl"), PersistentFromFromBucket, Axolotl));
     E(goat, C(Animal, AgeableA(u8"goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
     E(wither, C(Mob, Definitions(u8"+minecraft:wither"), Wither));

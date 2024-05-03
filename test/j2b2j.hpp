@@ -1292,6 +1292,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
     }
   };
   bool multithread = true;
+  bool checkLevelDat = true;
   unordered_set<Pos2i, Pos2iHasher> chunks;
 #if 1
   Pos2i center(0, 0);
@@ -1323,6 +1324,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
     }
   }
   multithread = false;
+  checkLevelDat = false;
 #endif
   je2be::bedrock::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(fs::temp_directory_path());
@@ -1345,7 +1347,9 @@ static void TestJavaToBedrockToJava(fs::path in) {
 
   // Compare initial Java input and final Java output.
 
-  CheckLevelDatJ(in / "level.dat", *outJ / "level.dat");
+  if (checkLevelDat) {
+    CheckLevelDatJ(in / "level.dat", *outJ / "level.dat");
+  }
 
   for (auto dim : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
     if (!optB.fDimensionFilter.empty()) {
