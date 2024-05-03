@@ -312,10 +312,10 @@ public:
     if (!tagB) {
       return name;
     }
-    auto tagJ = Compound();
+    auto bookContent = Compound();
     auto pagesB = tagB->listTag(u8"pages");
     if (pagesB) {
-      auto pagesJ = List<Tag::Type::String>();
+      auto pagesJ = List<Tag::Type::Compound>();
       for (auto const &pageB : *pagesB) {
         auto const *c = pageB->asCompound();
         if (!c) {
@@ -325,26 +325,23 @@ public:
         if (!text) {
           continue;
         }
-        if (name == u8"minecraft:written_book") {
-          props::Json json;
-          props::SetJsonString(json, u8"text", *text);
-          u8string jsonString = props::StringFromJson(json);
-          pagesJ->push_back(String(jsonString));
-        } else {
-          pagesJ->push_back(String(*text));
-        }
+        auto pageJ = Compound();
+        pageJ->set(u8"raw", *text);
+        pagesJ->push_back(pageJ);
       }
-      tagJ->set(u8"pages", pagesJ);
+      bookContent->set(u8"pages", pagesJ);
     }
     auto author = tagB->string(u8"author");
     if (author) {
-      tagJ->set(u8"author", *author);
+      bookContent->set(u8"author", *author);
     }
     auto title = tagB->string(u8"title");
     if (title) {
-      tagJ->set(u8"title", *title);
+      auto titleCompound = Compound();
+      titleCompound->set(u8"raw", *title);
+      bookContent->set(u8"title", titleCompound);
     }
-    itemJ.set(u8"tag", tagJ);
+    java::AppendComponent(itemJ, name == u8"minecraft:written_book" ? u8"written_book_content" : u8"writable_book_content", bookContent);
     return name;
   }
 

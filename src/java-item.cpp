@@ -774,30 +774,39 @@ private:
         {u8"Damage", Short(0)},
     });
 
-    auto tg = item.compoundTag(u8"tag");
-    if (tg) {
+    auto bookContent = FallbackQuery(item, {u8"components/minecraft:writable_book_content", u8"components/minecraft:written_book_content", u8"tag"})->asCompound();
+    if (bookContent) {
       auto outTag = Compound();
-      auto author = tg->stringTag(u8"author");
+      auto author = bookContent->stringTag(u8"author");
       if (author) {
         outTag->set(u8"author", author->fValue);
       }
-      auto title = tg->stringTag(u8"title");
-      if (title) {
-        outTag->set(u8"title", title->fValue);
+      optional<u8string> title;
+      if (auto titleCompound = bookContent->compoundTag(u8"title"); titleCompound) {
+        if (auto raw = titleCompound->string(u8"raw"); raw) {
+          title = *raw;
+        }
+      } else if (auto titleString = bookContent->string(u8"title"); titleString) {
+        title = *titleString;
       }
-      if (title || author) {
+      if (name == u8"minecraft:written_book") {
+        outTag->set(u8"title", title ? *title : u8"");
         outTag->set(u8"generation", Int(0));
       }
-      auto pages = tg->listTag(u8"pages");
+      auto pages = bookContent->listTag(u8"pages");
       if (pages) {
         auto outPages = List<Tag::Type::Compound>();
         for (auto const &it : *pages) {
-          auto page = it->asString();
-          if (!page) {
-            continue;
+          std::u8string pageContent;
+          if (auto pageCompound = it->asCompound(); pageCompound) {
+            if (auto raw = pageCompound->string(u8"raw"); raw) {
+              pageContent = *raw;
+            }
+          } else if (auto pageString = it->asString(); pageString) {
+            pageContent = pageString->fValue;
           }
           u8string lineText;
-          auto obj = props::ParseAsJson(page->fValue);
+          auto obj = props::ParseAsJson(pageContent);
           if (obj) {
             auto text = obj->find("text");
             auto extra = obj->find("extra");
@@ -824,7 +833,7 @@ private:
               lineText = props::GetJsonStringValue(*text);
             }
           } else {
-            lineText = page->fValue;
+            lineText = pageContent;
           }
           auto lineObj = Compound();
           lineObj->insert({
