@@ -2215,7 +2215,16 @@ private:
         if (!slot) {
           continue;
         }
-        i8 idx = *slot - 1;
+        i8 idx;
+        if (ctx.fDataVersion >= 3809) {
+          // 24w09a
+          // 24w06a
+          // 24w05a
+          idx = *slot + 1;
+        } else {
+          // 24w04a
+          idx = *slot - 1;
+        }
         if (idx < 0 || 16 <= idx) {
           continue;
         }

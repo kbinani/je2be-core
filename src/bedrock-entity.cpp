@@ -1610,7 +1610,7 @@ public:
           itemJ->erase(u8"Slot");
           subItem = itemJ;
         } else {
-          itemJ->set(u8"Slot", Byte(*slot + 1));
+          itemJ->set(u8"Slot", Byte(*slot - 1));
           items->push_back(itemJ);
         }
       }
