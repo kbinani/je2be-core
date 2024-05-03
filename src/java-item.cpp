@@ -705,6 +705,8 @@ private:
     E(creeper_head, Skull);
     E(dragon_head, Skull);
     E(piglin_head, Skull);
+
+    E(wolf_armor, WolfArmor);
 #undef E
     return table;
   }
@@ -846,14 +848,18 @@ private:
         {u8"Damage", Short(0)},
     });
 
-    auto customColor = FallbackQuery(item, {u8"components/minecraft:dyed_color/rgb", u8"tag/display/color"})->asInt();
-    if (customColor) {
-      u32 v = 0xff000000 | *(u32 *)&customColor->fValue;
+    auto rgbJ = FallbackQuery(item, {u8"components/minecraft:dyed_color/rgb", u8"tag/display/color"})->asInt();
+    if (rgbJ) {
       auto t = Compound();
-      t->set(u8"customColor", Int(*(i32 *)&v));
+      t->set(u8"customColor", Int(CustomColor(rgbJ->fValue)));
       tag->set(u8"tag", t);
     }
     return tag;
+  }
+
+  static i32 CustomColor(i32 rgb) {
+    u32 v = 0xff000000 | *(u32 *)&rgb;
+    return *(i32 *)&v;
   }
 
   static std::optional<std::tuple<int, CompoundTagPtr>> Map(std::u8string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
@@ -1193,6 +1199,16 @@ private:
     }
     tagB->set(u8"Damage", Short(damage));
     return tagB;
+  }
+
+  static CompoundTagPtr WolfArmor(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
+    auto itemB = New(u8"wolf_armor");
+    if (auto rgbJ = item.query(u8"components/minecraft:dyed_color/rgb")->asInt(); rgbJ) {
+      auto tagB = Compound();
+      tagB->set(u8"customColor", Int(CustomColor(rgbJ->fValue)));
+      itemB->set(u8"tag", tagB);
+    }
+    return itemB;
   }
 
   static CompoundTagPtr New(std::u8string const &name, bool fullname = false) {

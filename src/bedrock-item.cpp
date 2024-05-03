@@ -120,10 +120,8 @@ public:
 
     auto customColor = tagB->int32(u8"customColor");
     if (customColor) {
-      i32 c = *customColor;
-      u32 rgb = 0xffffff & *(u32 *)&c;
       auto dyedColor = Compound();
-      dyedColor->set(u8"rgb", Int(*(i32 *)&rgb));
+      dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColor)));
       java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
     }
 
@@ -810,6 +808,17 @@ public:
     }
     return name;
   }
+
+  static std::u8string WolfArmor(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      if (auto customColorB = tagB->int32(u8"customColor"); customColorB) {
+        auto dyedColor = Compound();
+        dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColorB)));
+        java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+      }
+    }
+    return name;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -819,6 +828,11 @@ public:
     };
   }
 #pragma endregion
+
+  static i32 RgbFromCustomColor(i32 customColor) {
+    u32 rgb = 0xffffff & *(u32 *)&customColor;
+    return *(i32 *)&rgb;
+  }
 
   static std::u8string Ns() {
     return u8"minecraft:";
@@ -893,6 +907,9 @@ public:
     E(prize_pottery_shard, Rename(u8"pottery_shard_prize"));
     E(arms_up_pottery_shard, Rename(u8"pottery_shard_arms_up"));
     E(skull_pottery_shard, Rename(u8"pottery_shard_skull"));
+
+    // 1.20.5
+    E(wolf_armor, WolfArmor);
 #undef E
     return ret;
   }
