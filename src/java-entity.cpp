@@ -2238,6 +2238,11 @@ private:
         }
         AddChestItem(c, outItem, idx, *count);
       }
+      if (auto armor = tag.compoundTag(u8"body_armor_item"); armor) {
+        if (auto converted = Item::From(armor, ctx.fCtx, ctx.fDataVersion); converted) {
+          AddChestItem(c, converted, 0, 1);
+        }
+      }
       AddDefinition(c, u8"-minecraft:" + definitionKey + u8"_unchested");
       AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_chested");
     };

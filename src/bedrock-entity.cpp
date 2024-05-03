@@ -1134,7 +1134,7 @@ public:
 
   static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto chested = b.boolean(u8"Chested", false); chested) {
-      Items(u8"DecorItem", b, j, ctx, dataVersion);
+      Items(u8"body_armor_item", b, j, ctx, dataVersion);
     }
 
     auto armorsJ = j.listTag(u8"ArmorItems");
@@ -1617,6 +1617,9 @@ public:
 
       if (subItem) {
         j[subItemKey] = subItem;
+        if (subItemKey == u8"body_armor_item") {
+          j[u8"body_armor_drop_chance"] = Float(2);
+        }
       }
     }
     j[u8"Items"] = items;
