@@ -790,6 +790,12 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     }
   }
 
+  auto throwerE = entityE.intArrayTag(u8"Thrower");
+  auto throwerA = entityA.intArrayTag(u8"Thrower");
+  copyE->erase(u8"Thrower");
+  copyA->erase(u8"Thrower");
+  CHECK((bool)throwerE == (bool)throwerA);
+
   DiffCompoundTag(*copyE, *copyA);
 }
 

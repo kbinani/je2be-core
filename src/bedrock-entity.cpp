@@ -608,6 +608,15 @@ public:
         j[u8"Item"] = itemJ;
       }
     }
+    if (auto ownerIdB = b.int64(u8"OwnerID"); ownerIdB && *ownerIdB != -1) {
+      Uuid uuid;
+      if (auto mapped = ctx.mapLocalPlayerId(*ownerIdB); mapped) {
+        uuid = *mapped;
+      } else {
+        uuid = Uuid::GenWithI64Seed(*ownerIdB);
+      }
+      j[u8"Thrower"] = uuid.toIntArrayTag();
+    }
     CopyShortValues(b, j, {{u8"Age"}, {u8"Health"}});
   }
 
