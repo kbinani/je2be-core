@@ -1386,7 +1386,7 @@ private:
       }
     }
 
-    auto patternsJ = Migrate<ListTag>(c, u8"banner_patterns", Depth::Root, u8"Patterns");
+    auto patternsJ = FallbackPtr<ListTag>(c, {u8"patterns", u8"Patterns"});
     auto patternsB = List<Tag::Type::Compound>();
     if (patternsJ && type != 1) {
       for (auto const &pattern : *patternsJ) {
@@ -1402,7 +1402,7 @@ private:
         } else {
           continue;
         }
-        auto pat = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
+        auto pat = FallbackPtr<StringTag>(*p, {u8"pattern", u8"Pattern"});
         if (!pat) {
           continue;
         }
