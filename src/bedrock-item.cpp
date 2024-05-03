@@ -121,10 +121,9 @@ public:
     if (customColor) {
       i32 c = *customColor;
       u32 rgb = 0xffffff & *(u32 *)&c;
-      // TODO:
-      /*
-      displayJ->set(u8"color", Int(*(i32 *)&rgb));
-      */
+      auto dyedColor = Compound();
+      dyedColor->set(u8"rgb", Int(*(i32 *)&rgb));
+      AppendComponent(itemJ, u8"dyed_color", dyedColor);
     }
 
     auto displayB = tagB->compoundTag(u8"display");

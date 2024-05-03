@@ -846,7 +846,7 @@ private:
         {u8"Damage", Short(0)},
     });
 
-    auto customColor = item.query(u8"tag/display/color")->asInt();
+    auto customColor = FallbackQuery(item, {u8"components/minecraft:dyed_color/rgb", u8"tag/display/color"})->asInt();
     if (customColor) {
       u32 v = 0xff000000 | *(u32 *)&customColor->fValue;
       auto t = Compound();
