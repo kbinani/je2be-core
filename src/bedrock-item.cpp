@@ -57,11 +57,6 @@ public:
       tagB = Compound();
     }
 
-    auto componentsJ = itemJ.compoundTag(u8"components");
-    if (!componentsJ) {
-      componentsJ = Compound();
-    }
-
     u8string nameJ = nameB;
     auto blockTag = itemB.compoundTag(u8"Block");
     if (nameB.ends_with(u8"sign") && !tagB->empty()) {
@@ -87,7 +82,7 @@ public:
                 blockEntityDataJ->erase(e);
               }
               if (!blockEntityDataJ->empty()) {
-                componentsJ->set(u8"minecraft:block_entity_data", blockEntityDataJ);
+                java::AppendComponent(itemJ, u8"block_entity_data", blockEntityDataJ);
               }
             }
           }
@@ -116,12 +111,18 @@ public:
       itemJ[u8"count"] = Int(*countB);
     }
     CopyByteValues(itemB, itemJ, {{u8"Slot"}});
-    CopyIntValues(*tagB, *componentsJ, {{u8"Damage", u8"minecraft:damage"}, {u8"RepairCost", u8"minecraft:repair_cost"}});
+    if (auto damage = tagB->int32(u8"Damage"); damage) {
+      java::AppendComponent(itemJ, u8"damage", Int(*damage));
+    }
+    if (auto repairCost = tagB->int32(u8"RepairCost"); repairCost) {
+      java::AppendComponent(itemJ, u8"repair_cost", Int(*repairCost));
+    }
 
     auto customColor = tagB->int32(u8"customColor");
     if (customColor) {
       auto dyedColor = Compound();
-      dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColor)));
+      auto rgb = RgbFromCustomColor(*customColor);
+      dyedColor->set(u8"rgb", Int(rgb));
       java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
     }
 
@@ -131,7 +132,7 @@ public:
       if (displayName) {
         props::Json json;
         props::SetJsonString(json, u8"text", *displayName);
-        componentsJ->set(u8"minecraft:custom_name", props::StringFromJson(json));
+        java::AppendComponent(itemJ, u8"custom_name", String(props::StringFromJson(json)));
       }
 
       if (auto loreB = displayB->listTag(u8"Lore"); loreB) {
@@ -145,7 +146,7 @@ public:
             }
           }
         }
-        componentsJ->set(u8"minecraft:lore", loreJ);
+        java::AppendComponent(itemJ, u8"lore", loreJ);
       }
     }
 
@@ -154,7 +155,7 @@ public:
     if (customName && customNameVisible) {
       props::Json json;
       props::SetJsonString(json, u8"text", *customName);
-      componentsJ->set(u8"minecraft:custom_name", props::StringFromJson(json));
+      java::AppendComponent(itemJ, u8"custom_name", String(props::StringFromJson(json)));
     }
 
     auto enchB = tagB->listTag(u8"ench");
@@ -176,9 +177,9 @@ public:
         auto enchJ = Compound();
         enchJ->set(u8"levels", levelsJ);
         if (nameB == u8"minecraft:enchanted_book") {
-          componentsJ->set(u8"minecraft:stored_enchantments", enchJ);
+          java::AppendComponent(itemJ, u8"stored_enchantments", enchJ);
         } else {
-          componentsJ->set(u8"minecraft:enchantments", enchJ);
+          java::AppendComponent(itemJ, u8"enchantments", enchJ);
         }
       }
     }
@@ -189,11 +190,7 @@ public:
       auto trimJ = Compound();
       trimJ->set(u8"material", Namespace::Add(*materialB));
       trimJ->set(u8"pattern", Namespace::Add(*patternB));
-      componentsJ->set(u8"minecraft:trim", trimJ);
-    }
-
-    if (!componentsJ->empty()) {
-      itemJ[u8"components"] = componentsJ;
+      java::AppendComponent(itemJ, u8"trim", trimJ);
     }
   }
 
