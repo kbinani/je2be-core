@@ -219,7 +219,7 @@ static void CheckJson(props::Json const &e, props::Json const &a) {
   }
 }
 
-static void CheckTextComponent(u8string const &e, u8string const &a) {
+static void CheckTextComponent(u8string const &e, u8string const &a, bool unquote) {
   if (e == a) {
     CHECK(true);
     return;
@@ -231,7 +231,7 @@ static void CheckTextComponent(u8string const &e, u8string const &a) {
   } else if (jsonE) {
     props::Json jA;
     auto v = a;
-    if (v.starts_with(u8'"') && v.ends_with(u8'"')) {
+    if (unquote && v.starts_with(u8'"') && v.ends_with(u8'"')) {
       v = v.substr(1, v.size() - 2);
     }
     props::SetJsonString(jA, u8"text", v);
@@ -240,7 +240,7 @@ static void CheckTextComponent(u8string const &e, u8string const &a) {
   } else if (jsonA) {
     props::Json jE;
     auto v = e;
-    if (v.starts_with(u8'"') && v.ends_with(u8'"')) {
+    if (unquote && v.starts_with(u8'"') && v.ends_with(u8'"')) {
       v = v.substr(1, v.size() - 2);
     }
     props::SetJsonString(jE, u8"text", v);
@@ -311,7 +311,7 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
       continue;
     }
     REQUIRE(valueA);
-    CheckTextComponent(valueE->fValue, valueA->fValue);
+    CheckTextComponent(valueE->fValue, valueA->fValue, true);
   }
 
   for (u8string const &it : blacklist) {
@@ -341,7 +341,7 @@ static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
       REQUIRE(lineA);
       auto lE = strings::Unquote(lineE->fValue, u8'"');
       auto lA = strings::Unquote(lineA->fValue, u8'"');
-      CheckTextComponent(lE, lA);
+      CheckTextComponent(lE, lA, true);
     }
   }
   auto copyE = e.copy();
@@ -467,7 +467,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       CHECK(!valueA);
       continue;
     }
-    CheckTextComponent(valueE->fValue, valueA->fValue);
+    CheckTextComponent(valueE->fValue, valueA->fValue, true);
   }
 }
 
@@ -718,7 +718,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   if (customNameE) {
     CHECK(customNameA);
     if (customNameA) {
-      CheckTextComponent(*customNameE, *customNameA);
+      CheckTextComponent(*customNameE, *customNameA, false);
     }
   }
   blacklist.insert(u8"CustomName");
