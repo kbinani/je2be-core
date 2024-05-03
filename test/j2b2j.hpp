@@ -365,10 +365,11 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       u8"Book/tag/resolved",       // written_book
       u8"Book/tag/filtered_title", // written_book
       u8"Items",
-      u8"Levels",             // beacon. Sometimes reset to 0 in JE
-      u8"SpawnPotentials",    // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
-      u8"placement_priority", // jigsaw
-      u8"selection_priority", // jigsaw
+      u8"Levels",                                       // beacon. Sometimes reset to 0 in JE
+      u8"SpawnPotentials",                              // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
+      u8"placement_priority",                           // jigsaw
+      u8"selection_priority",                           // jigsaw
+      u8"components/minecraft:hide_additional_tooltip", // banner
   };
   auto id = expected.string(u8"id", u8"");
   if (id == u8"minecraft:sculk_shrieker") {
