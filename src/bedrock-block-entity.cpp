@@ -72,14 +72,23 @@ public:
             continue;
           }
           auto pJ = Compound();
-          pJ->set(u8"color", String(JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set(u8"pattern", *pPatternB);
+          if (dataVersion < kDataVersionComponentIntroduced) {
+            pJ->set(u8"Color", Int(static_cast<i32>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+            pJ->set(u8"Pattern", *pPatternB);
+          } else {
+            pJ->set(u8"color", String(JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+            pJ->set(u8"pattern", *pPatternB);
+          }
           patternsJ->push_back(pJ);
         }
       }
     }
     if (patternsJ && !patternsJ->empty()) {
-      te->set(u8"patterns", patternsJ);
+      if (dataVersion < kDataVersionComponentIntroduced) {
+        te->set(u8"Patterns", patternsJ);
+      } else {
+        te->set(u8"patterns", patternsJ);
+      }
     }
     Result r;
     r.fBlock = blockJ.withId(id);
