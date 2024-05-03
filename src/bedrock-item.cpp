@@ -17,6 +17,7 @@
 #include "item/_potion.hpp"
 #include "item/_tipped-arrow-potion.hpp"
 #include "java/_block-data.hpp"
+#include "java/_components.hpp"
 #include "java/_versions.hpp"
 
 namespace je2be::bedrock {
@@ -123,7 +124,7 @@ public:
       u32 rgb = 0xffffff & *(u32 *)&c;
       auto dyedColor = Compound();
       dyedColor->set(u8"rgb", Int(*(i32 *)&rgb));
-      AppendComponent(itemJ, u8"dyed_color", dyedColor);
+      java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
     }
 
     auto displayB = tagB->compoundTag(u8"display");
@@ -207,7 +208,7 @@ public:
       auto potionJ = TippedArrowPotion::JavaPotionType(damage);
       auto tagJ = Compound();
       tagJ->set(u8"potion", potionJ);
-      AppendComponent(itemJ, u8"potion_contents", tagJ);
+      java::AppendComponent(itemJ, u8"potion_contents", tagJ);
       return Ns() + u8"tipped_arrow";
     }
   }
@@ -262,14 +263,14 @@ public:
         nameJ = u8"minecraft:white_banner";
 
         auto bannerPatterns = Banner::OminousBannerPatterns();
-        AppendComponent(itemJ, u8"banner_patterns", bannerPatterns);
+        java::AppendComponent(itemJ, u8"banner_patterns", bannerPatterns);
 
         props::Json json;
         json["color"] = "gold";
         json["translate"] = "block.minecraft.ominous_banner";
-        AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+        java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
 
-        AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
+        java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
       } else {
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {
@@ -293,7 +294,7 @@ public:
             patternsJ->push_back(patternJ);
           }
           if (!patternsJ->empty()) {
-            AppendComponent(itemJ, u8"banner_patterns", patternsJ);
+            java::AppendComponent(itemJ, u8"banner_patterns", patternsJ);
           }
         }
       }
@@ -406,7 +407,7 @@ public:
       if (fireworksB) {
         FireworksData data = FireworksData::FromBedrock(*fireworksB);
         auto fireworksJ = data.toJavaCompoundTag();
-        AppendComponent(itemJ, u8"fireworks", fireworksJ);
+        java::AppendComponent(itemJ, u8"fireworks", fireworksJ);
       }
     }
     return u8"minecraft:firework_rocket";
@@ -420,7 +421,7 @@ public:
       if (fireworksB) {
         FireworksExplosion explosion = FireworksExplosion::FromBedrock(*fireworksB);
         auto explosionJ = explosion.toJavaCompoundTag();
-        AppendComponent(itemJ, u8"firework_explosion", explosionJ);
+        java::AppendComponent(itemJ, u8"firework_explosion", explosionJ);
       }
     }
     return u8"minecraft:firework_star";
@@ -744,16 +745,16 @@ public:
     if (auto translate = MapType::JavaTranslationKeyFromBedrockDamage(damage); translate) {
       props::Json json;
       props::SetJsonString(json, u8"translate", *translate);
-      AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+      java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
 
       if (auto mapColor = MapType::JavaMapColorFromBedrockDamage(damage); mapColor) {
-        AppendComponent(itemJ, u8"map_color", Int(*mapColor));
+        java::AppendComponent(itemJ, u8"map_color", Int(*mapColor));
       }
     }
 
     auto info = ctx.mapFromUuid(*uuid);
     if (info) {
-      AppendComponent(itemJ, u8"map_id", Int(info->fNumber));
+      java::AppendComponent(itemJ, u8"map_id", Int(info->fNumber));
       ctx.markMapUuidAsUsed(*uuid);
 
       if (damage != 0 && !info->fDecorations.empty()) {
@@ -761,7 +762,7 @@ public:
         for (MapInfo::Decoration const &decoration : info->fDecorations) {
           decorationsJ->set(decoration.fId, decoration.toCompoundTag());
         }
-        AppendComponent(itemJ, u8"map_decorations", decorationsJ);
+        java::AppendComponent(itemJ, u8"map_decorations", decorationsJ);
       }
     }
 
@@ -773,7 +774,7 @@ public:
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
     auto potionContents = Compound();
     potionContents->set(u8"potion", potionName);
-    AppendComponent(itemJ, u8"potion_contents", potionContents);
+    java::AppendComponent(itemJ, u8"potion_contents", potionContents);
     return name;
   }
 
@@ -820,18 +821,6 @@ public:
     };
   }
 #pragma endregion
-
-  static void AppendComponent(CompoundTag &itemJ, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
-    if (!component) {
-      return;
-    }
-    auto components = itemJ.compoundTag(u8"components");
-    if (!components) {
-      components = Compound();
-      itemJ[u8"components"] = components;
-    }
-    components->set(u8"minecraft:" + nameWithoutNamespace, component);
-  }
 
   static std::u8string Ns() {
     return u8"minecraft:";

@@ -60,5 +60,24 @@ inline std::shared_ptr<NbtTag> Migrate(CompoundTagPtr const &root, std::u8string
   return Migrate<NbtTag>(*root, nameWithoutNamespace, depth, legacyName);
 }
 
+inline void AppendComponent(CompoundTag &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
+  if (!component) {
+    return;
+  }
+  auto components = root.compoundTag(u8"components");
+  if (!components) {
+    components = Compound();
+    root[u8"components"] = components;
+  }
+  components->set(u8"minecraft:" + nameWithoutNamespace, component);
+}
+
+inline void AppendComponent(CompoundTagPtr &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
+  if (!root) {
+    return;
+  }
+  AppendComponent(*root, nameWithoutNamespace, component);
+}
+
 } // namespace java
 } // namespace je2be

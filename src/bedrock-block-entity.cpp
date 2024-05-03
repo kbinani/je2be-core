@@ -323,7 +323,7 @@ public:
     }
     props::Json json;
     props::SetJsonString(json, u8"text", customName);
-    t->set(u8"CustomName", props::StringFromJson(json));
+    java::AppendComponent(t, u8"item_name", String(props::StringFromJson(json)));
 
     Result r;
     r.fTileEntity = t;
@@ -951,18 +951,6 @@ public:
       auto facingDirectionA = block.fStates->int32(u8"facing_direction", 0);
       return Facing6FromBedrockFacingDirectionA(facingDirectionA);
     }
-  }
-
-  static void AppendComponent(CompoundTagPtr &tileEntityJ, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
-    if (!component) {
-      return;
-    }
-    auto components = tileEntityJ->compoundTag(u8"components");
-    if (!components) {
-      components = Compound();
-      tileEntityJ->set(u8"components", components);
-    }
-    components->set(u8"minecraft:" + nameWithoutNamespace, component);
   }
 
 #pragma endregion
