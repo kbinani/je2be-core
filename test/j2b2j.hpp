@@ -397,6 +397,9 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   } else if (id == u8"minecraft:trial_spawner") {
     // TODO(1.21):
     return;
+  } else if (id == u8"minecraft:banner") {
+    // banners do not have CustomName in BE
+    tagBlacklist.insert(u8"CustomName");
   }
   auto itemsE = expected.listTag(u8"Items");
   auto itemsA = actual.listTag(u8"Items");
@@ -714,7 +717,9 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   auto customNameA = entityA.string(u8"CustomName");
   if (customNameE) {
     CHECK(customNameA);
-    CheckTextComponent(*customNameE, *customNameA);
+    if (customNameA) {
+      CheckTextComponent(*customNameE, *customNameA);
+    }
   }
   blacklist.insert(u8"CustomName");
 

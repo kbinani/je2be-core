@@ -7,4 +7,6 @@ constexpr int kLevelVersion = 19133;
 constexpr int kDataVersion = 3839;          // 1.20.6
 constexpr int kDataVersionMaxLegacy = 2730; // 1.17.1
 
+constexpr int kDataVersionComponentIntroduced = 3819; // 24w09a
+
 } // namespace je2be::bedrock
