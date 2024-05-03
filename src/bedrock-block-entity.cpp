@@ -310,11 +310,12 @@ public:
 
     auto customName = tagB.string(u8"CustomName", u8"");
     if (customName.empty()) {
-      customName = u8"\"@\"";
+      t->set(u8"CustomName", u8"\"@\"");
+    } else {
+      props::Json json;
+      props::SetJsonString(json, u8"text", customName);
+      t->set(u8"CustomName", props::StringFromJson(json));
     }
-    props::Json json;
-    props::SetJsonString(json, u8"text", customName);
-    java::AppendComponent(t, u8"item_name", String(props::StringFromJson(json)));
 
     Result r;
     r.fTileEntity = t;
