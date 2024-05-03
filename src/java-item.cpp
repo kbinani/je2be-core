@@ -752,14 +752,11 @@ private:
   static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto ret = New(u8"tropical_fish_bucket");
     ret->set(u8"Damage", Short(0));
-    auto tg = item.compoundTag(u8"tag");
-    if (tg) {
-      auto variant = tg->intTag(u8"BucketVariantTag");
-      if (variant) {
-        auto tf = TropicalFish::FromJavaVariant(variant->fValue);
-        auto tag = tf.toBedrockBucketTag();
-        ret->set(u8"tag", tag);
-      }
+    auto variant = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data/BucketVariantTag", u8"tag/BucketVariantTag"})->asInt();
+    if (variant) {
+      auto tf = TropicalFish::FromJavaVariant(variant->fValue);
+      auto tag = tf.toBedrockBucketTag();
+      ret->set(u8"tag", tag);
     }
     return ret;
   }
