@@ -1734,7 +1734,9 @@ private:
 
     if (variant) {
       auto name = Namespace::Remove(*variant);
-      AddDefinition(c, u8"+minecraft:wolf_" + name);
+      if (name != u8"pale") {
+        AddDefinition(c, u8"+minecraft:wolf_" + name);
+      }
 
       i32 variantB = Wolf::BedrockVariantFromJavaVariant(*variant);
       c[u8"Variant"] = Int(variantB);
