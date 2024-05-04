@@ -435,19 +435,34 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   Status st = ZipFile::Unzip(in, *inB);
   REQUIRE(st.ok());
 
-  std::unordered_set<Pos2i, Pos2iHasher> chunkFilter;
-#if 0
-  chunkFilter.insert({0, 1});
-#endif
-
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   REQUIRE(outJ);
   je2be::bedrock::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
-  if (!chunkFilter.empty()) {
-    for (auto const &ch : chunkFilter) {
-      optJ.fChunkFilter.insert(ch);
+  std::unordered_set<Pos2i, Pos2iHasher> chunks;
+  std::vector<mcfile::Dimension> dimensions = {mcfile::Dimension::Overworld,
+                                               mcfile::Dimension::Nether,
+                                               mcfile::Dimension::End};
+  bool checkLevelDat = true;
+#if 0
+  chunks.insert({0, 0});
+  dimensions.clear();
+  dimensions = {mcfile::Dimension::Overworld};
+  checkLevelDat = false;
+#endif
+  if (!dimensions.empty()) {
+    for (auto const &d : dimensions) {
+      optJ.fDimensionFilter.insert(d);
+    }
+  }
+  if (!chunks.empty()) {
+    for (auto const &ch : chunks) {
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dz = -1; dz <= 1; dz++) {
+          optJ.fChunkFilter.insert({ch.fX + dx, ch.fZ + dz});
+        }
+      }
     }
   }
   st = je2be::bedrock::Converter::Run(*inB, *outJ, optJ, concurrency);
@@ -458,24 +473,35 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(outB);
   je2be::java::Options optB;
   optB.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
-  if (!chunkFilter.empty()) {
-    for (auto const &ch : chunkFilter) {
-      optB.fChunkFilter.insert(ch);
+  if (!dimensions.empty()) {
+    for (auto const &d : dimensions) {
+      optB.fDimensionFilter.insert(d);
+    }
+  }
+  if (!chunks.empty()) {
+    for (auto const &ch : chunks) {
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dz = -1; dz <= 1; dz++) {
+          optB.fChunkFilter.insert({ch.fX + dx, ch.fZ + dz});
+        }
+      }
     }
   }
   st = je2be::java::Converter::Run(*outJ, *outB, optB, concurrency);
   REQUIRE(st.ok());
 
   // Compare initial Bedrock input and final Bedrock output.
-  CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  if (checkLevelDat) {
+    CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  }
   unique_ptr<leveldb::DB> dbE(OpenF(*inB / "db"));
   unique_ptr<leveldb::DB> dbA(OpenF(*outB / "db"));
   REQUIRE(dbE);
   REQUIRE(dbA);
 
-  for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
+  for (auto dimension : dimensions) {
     mcfile::be::Chunk::ForAll(dbE.get(), dimension, [&](int cx, int cz) {
-      if (!chunkFilter.empty() && chunkFilter.count({cx, cz}) == 0) {
+      if (!chunks.empty() && chunks.count({cx, cz}) == 0) {
         return true;
       }
       auto chunkE = mcfile::be::Chunk::Load(cx, cz, dimension, dbE.get(), mcfile::Endian::Little);
