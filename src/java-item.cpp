@@ -1198,10 +1198,8 @@ private:
   static CompoundTagPtr GoatHorn(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto tagB = New(u8"goat_horn");
     i16 damage = 0;
-    if (auto tagJ = item.compoundTag(u8"tag"); tagJ) {
-      if (auto instrumentJ = tagJ->string(u8"instrument"); instrumentJ) {
-        damage = GoatHorn::BedrockDamageFromJavaInstrument(*instrumentJ);
-      }
+    if (auto instrumentJ = FallbackQuery(item, {u8"components/minecraft:instrument", u8"tag/instrument"})->asString(); instrumentJ) {
+      damage = GoatHorn::BedrockDamageFromJavaInstrument(instrumentJ->fValue);
     }
     tagB->set(u8"Damage", Short(damage));
     return tagB;

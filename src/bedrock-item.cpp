@@ -427,9 +427,7 @@ public:
   static std::u8string GoatHorn(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto instrument = GoatHorn::JavaInstrumentFromBedrockDamage(damage);
-    auto tagJ = Compound();
-    tagJ->set(u8"instrument", instrument);
-    itemJ[u8"tag"] = tagJ;
+    java::AppendComponent(itemJ, u8"instrument", String(instrument));
     return name;
   }
 
