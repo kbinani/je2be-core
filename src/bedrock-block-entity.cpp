@@ -315,9 +315,7 @@ public:
     t->set(u8"UpdateLastExecution", Bool(true));
 
     auto customName = tagB.string(u8"CustomName", u8"");
-    if (customName.empty()) {
-      t->set(u8"CustomName", u8"\"@\"");
-    } else {
+    if (!customName.empty()) {
       props::Json json;
       props::SetJsonString(json, u8"text", customName);
       t->set(u8"CustomName", props::StringFromJson(json));

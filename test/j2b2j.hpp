@@ -218,12 +218,7 @@ static void CheckJson(props::Json const &e, props::Json const &a) {
     CHECK(expected == actual);
   }
 }
-
-static void CheckTextComponent(u8string const &e, u8string const &a, bool unquote) {
-  if (e == a) {
-    CHECK(true);
-    return;
-  }
+static void CheckText(std::u8string const &e, std::u8string const &a, bool unquote) {
   auto jsonE = props::ParseAsJson(e);
   auto jsonA = props::ParseAsJson(a);
   if (jsonE && jsonA) {
@@ -249,6 +244,17 @@ static void CheckTextComponent(u8string const &e, u8string const &a, bool unquot
   } else {
     CHECK(e == a);
   }
+}
+
+static void CheckTextComponent(CompoundTag const &expected, CompoundTag const &actual, u8string const &key) {
+  auto e = expected.query(key)->asString();
+  auto a = actual.query(key)->asString();
+  CHECK((bool)e == (bool)a);
+  if (!e || !a) {
+    return;
+  }
+  bool unquote = key != u8"CustomName";
+  CheckText(e->fValue, e->fValue, unquote);
 }
 
 static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
@@ -302,18 +308,9 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   }
 
   static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name"};
-  for (u8string const &k : sJsonKeys) {
-    blacklist.insert(k);
-  }
   for (u8string const &key : sJsonKeys) {
-    auto valueE = itemE.query(key)->asString();
-    auto valueA = itemA.query(key)->asString();
-    if (!valueE) {
-      CHECK(!valueA);
-      continue;
-    }
-    REQUIRE(valueA);
-    CheckTextComponent(valueE->fValue, valueA->fValue, true);
+    blacklist.insert(key);
+    CheckTextComponent(itemE, itemA, key);
   }
 
   for (u8string const &it : blacklist) {
@@ -343,7 +340,7 @@ static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
       REQUIRE(lineA);
       auto lE = strings::Unquote(lineE->fValue, u8'"');
       auto lA = strings::Unquote(lineA->fValue, u8'"');
-      CheckTextComponent(lE, lA, true);
+      CheckText(lE, lA, true);
     }
   }
   auto copyE = e.copy();
@@ -420,9 +417,10 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   } else if (itemsA) {
     CHECK(false);
   }
-  static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name"};
-  for (u8string const &k : sJsonKeys) {
-    tagBlacklist.insert(k);
+  static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name", u8"CustomName"};
+  for (u8string const &key : sJsonKeys) {
+    tagBlacklist.insert(key);
+    CheckTextComponent(expected, actual, key);
   }
   for (auto const &key : {u8"back_text", u8"front_text"}) {
     auto backTextE = expected.compoundTag(key);
@@ -475,15 +473,6 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     Erase(copyA, b);
   }
   DiffCompoundTag(*copyE, *copyA);
-  for (u8string const &key : sJsonKeys) {
-    auto valueE = expected.query(key)->asString();
-    auto valueA = actual.query(key)->asString();
-    if (!valueE) {
-      CHECK(!valueA);
-      continue;
-    }
-    CheckTextComponent(valueE->fValue, valueA->fValue, true);
-  }
 }
 
 static void CheckBrainJ(CompoundTag const &brainE, CompoundTag const &brainA) {
@@ -730,14 +719,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"NoGravity");
   }
 
-  auto customNameE = entityE.string(u8"CustomName");
-  auto customNameA = entityA.string(u8"CustomName");
-  if (customNameE) {
-    CHECK(customNameA);
-    if (customNameA) {
-      CheckTextComponent(*customNameE, *customNameA, false);
-    }
-  }
+  CheckTextComponent(entityE, entityA, u8"CustomName");
   blacklist.insert(u8"CustomName");
 
   for (u8string const &it : blacklist) {
@@ -785,7 +767,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     CHECK(false);
   }
 
-  for (auto const &containerKey : {u8"Inventory", u8"EnderItems", u8"ArmorItems"}) {
+  for (auto const &containerKey : {u8"Inventory", u8"EnderItems", u8"ArmorItems", u8"Items"}) {
     auto contentsE = entityE.listTag(containerKey);
     auto contentsA = entityA.listTag(containerKey);
     copyE->erase(containerKey);

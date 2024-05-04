@@ -762,7 +762,7 @@ private:
     std::u8string customNameB;
     if (customNameJ) {
       auto text = props::GetTextComponent(*customNameJ);
-      if (!text.empty() && text != u8"\"@\"") {
+      if (!text.empty()) {
         customNameB = text;
       }
     }
