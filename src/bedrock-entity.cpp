@@ -611,9 +611,6 @@ public:
         itemJ->erase(u8"Slot");
         if (slotJ == 0) {
           j[u8"SaddleItem"] = itemJ;
-        } else if (slotJ == 1) {
-          j[u8"body_armor_item"] = itemJ;
-          j[u8"body_armor_drop_chance"] = Float(2);
         }
       }
     }
@@ -2021,7 +2018,7 @@ public:
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
-    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, Horse));
+    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyArmorItemFromArmorItems, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
@@ -2031,8 +2028,8 @@ public:
     E(evocation_illager, C(Rename(u8"evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
-    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
-    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
+    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyArmorItemFromArmorItems, Llama));
+    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyArmorItemFromArmorItems, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper, HealthWithCustomizedMax, MovementSpeed));
