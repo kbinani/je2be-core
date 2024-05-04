@@ -277,8 +277,10 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     } else if (*itemId == u8"minecraft:debug_stick") {
       return;
     } else if (*itemId == u8"minecraft:painting") {
-      // tag: {EntityTag:{variant:"minecraft:kebab"}}
+      // tag: {EntityTag: {variant: "minecraft:kebab"}} for java prior to 1.20.5
+      // components: {minecraft:entity_data: {id: "minecraft:painting", variant: "minecraft:kebab"}} for java 1.20.5 or later
       blacklist.insert(u8"tag");
+      blacklist.insert(u8"components");
     } else if (*itemId == u8"minecraft:suspicious_stew") {
       // Duration may vary between the source of stews in JE such as craft table, trade, chest loot. Duration doesn't recorded in item tag in BE.
       blacklist.insert(u8"tag/effects/*/duration");
