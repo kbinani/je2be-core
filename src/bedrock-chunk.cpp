@@ -232,7 +232,7 @@ public:
     }
 
     AttachPassengers(ctx, entities);
-    AttachLeash(ctx, entities);
+    AttachLeash(ctx, entities, dataVersion);
 
     for (auto const &it : entities) {
       if (!ctx.isRootVehicle(it.first)) {
@@ -357,7 +357,7 @@ public:
     DoublePlant::Do(j, accessor);
   }
 
-  static void AttachLeash(Context &ctx, std::unordered_map<Uuid, CompoundTagPtr, UuidHasher, UuidPred> &entities) {
+  static void AttachLeash(Context &ctx, std::unordered_map<Uuid, CompoundTagPtr, UuidHasher, UuidPred> &entities, int dataVersion) {
     using namespace std;
     unordered_set<Uuid, UuidHasher, UuidPred> resolvedLeashedEntities;
     for (auto &it : ctx.fLeashedEntities) {
@@ -374,11 +374,15 @@ public:
         continue;
       }
       Pos3i leashPos = foundLeash->second;
-      auto leashTag = Compound();
-      leashTag->set(u8"X", Int(leashPos.fX));
-      leashTag->set(u8"Y", Int(leashPos.fY));
-      leashTag->set(u8"Z", Int(leashPos.fZ));
-      leashedEntity->set(u8"Leash", leashTag);
+      if (dataVersion >= kDataVersionComponentIntroduced) {
+        leashedEntity->set(u8"leash", IntArrayFromPos3i(leashPos));
+      } else {
+        auto leashTag = Compound();
+        leashTag->set(u8"X", Int(leashPos.fX));
+        leashTag->set(u8"Y", Int(leashPos.fY));
+        leashTag->set(u8"Z", Int(leashPos.fZ));
+        leashedEntity->set(u8"Leash", leashTag);
+      }
 
       resolvedLeashedEntities.insert(leashedEntityUuid);
     }

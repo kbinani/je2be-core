@@ -1838,28 +1838,45 @@ private:
 
     c->set(u8"Persistent", Bool(true));
 
-    auto leash = tag.compoundTag(u8"Leash");
-    if (leash) {
-      auto x = leash->int32(u8"X");
-      auto y = leash->int32(u8"Y");
-      auto z = leash->int32(u8"Z");
+    if (auto leashIntArray = tag.intArrayTag(u8"leash"); leashIntArray && leashIntArray->fValue.size() == 3) {
+      // java 1.20.5 or later
+      auto x = leashIntArray->fValue[0];
+      auto y = leashIntArray->fValue[1];
+      auto z = leashIntArray->fValue[2];
       auto leashedUuid = GetEntityUuid(tag);
-      auto leasherUuid = props::GetUuid(*leash, {.fIntArray = u8"UUID"});
-      if (x && y && z && leashedUuid) {
-        i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
+      i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
 
-        Rep e(leasherId);
-        e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
-        e.fIdentifier = u8"minecraft:leash_knot";
-        auto leashEntityData = e.toCompoundTag();
-        int cx = mcfile::Coordinate::ChunkFromBlock(*x);
-        int cz = mcfile::Coordinate::ChunkFromBlock(*z);
-        ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
+      Rep e(leasherId);
+      e.fPos = Pos3f(x + 0.5f, y + 0.25f, z + 0.5f);
+      e.fIdentifier = u8"minecraft:leash_knot";
+      auto leashEntityData = e.toCompoundTag();
+      int cx = mcfile::Coordinate::ChunkFromBlock(x);
+      int cz = mcfile::Coordinate::ChunkFromBlock(z);
+      ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
 
-        c->set(u8"LeasherID", Long(leasherId));
-      } else if (leasherUuid) {
-        auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
-        c->set(u8"LeasherID", Long(leasherUuidB));
+      c->set(u8"LeasherID", Long(leasherId));
+    } else if (auto leashCompound = tag.compoundTag(u8"Leash"); leashCompound) {
+      auto x = leashCompound->int32(u8"X");
+      auto y = leashCompound->int32(u8"Y");
+      auto z = leashCompound->int32(u8"Z");
+      if (x && y && z) {
+        if (auto leasherUuid = props::GetUuid(*leashCompound, {.fIntArray = u8"UUID"}); leasherUuid) {
+          auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
+          c->set(u8"LeasherID", Long(leasherUuidB));
+        } else {
+          auto leashedUuid = GetEntityUuid(tag);
+          i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
+
+          Rep e(leasherId);
+          e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
+          e.fIdentifier = u8"minecraft:leash_knot";
+          auto leashEntityData = e.toCompoundTag();
+          int cx = mcfile::Coordinate::ChunkFromBlock(*x);
+          int cz = mcfile::Coordinate::ChunkFromBlock(*z);
+          ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
+
+          c->set(u8"LeasherID", Long(leasherId));
+        }
       }
     }
 
