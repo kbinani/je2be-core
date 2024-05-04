@@ -623,7 +623,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       u8"Offers/Recipes/*/sell/tag/map",
       u8"EatingHaystack",
       u8"PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
-      u8"Leash/UUID",
+      u8"leash/UUID",
       u8"listener",
       u8"HandDropChances", // TODO: Is there any way identifying hand items was picked-up thing or not?
   };

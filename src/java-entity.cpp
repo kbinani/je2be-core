@@ -1855,15 +1855,15 @@ private:
       ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
 
       c->set(u8"LeasherID", Long(leasherId));
-    } else if (auto leashCompound = tag.compoundTag(u8"Leash"); leashCompound) {
-      auto x = leashCompound->int32(u8"X");
-      auto y = leashCompound->int32(u8"Y");
-      auto z = leashCompound->int32(u8"Z");
-      if (x && y && z) {
-        if (auto leasherUuid = props::GetUuid(*leashCompound, {.fIntArray = u8"UUID"}); leasherUuid) {
-          auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
-          c->set(u8"LeasherID", Long(leasherUuidB));
-        } else {
+    } else if (auto leashCompound = FallbackPtr<CompoundTag>(tag, {u8"leash", u8"Leash"}); leashCompound) {
+      if (auto leasherUuid = props::GetUuid(*leashCompound, {.fIntArray = u8"UUID"}); leasherUuid) {
+        auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
+        c->set(u8"LeasherID", Long(leasherUuidB));
+      } else {
+        auto x = leashCompound->int32(u8"X");
+        auto y = leashCompound->int32(u8"Y");
+        auto z = leashCompound->int32(u8"Z");
+        if (x && y && z) {
           auto leashedUuid = GetEntityUuid(tag);
           i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
 

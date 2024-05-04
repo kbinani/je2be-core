@@ -149,6 +149,12 @@ public:
       auto leasherId = entityB.int64(u8"LeasherID", -1);
       if (leasherId != -1) {
         r.fLeasherId = leasherId;
+
+        // NOTE: This "leash" property will be replaced to int array tag like [x, y, z] when the leasher is a leash_knot.
+        auto leasherIdJ = Uuid::GenWithI64Seed(leasherId);
+        auto leash = Compound();
+        leash->set(u8"UUID", leasherIdJ.toIntArrayTag());
+        e->set(u8"leash", leash);
       }
 
       r.fUuid = uuid;
