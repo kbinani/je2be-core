@@ -232,6 +232,26 @@ public:
     CopyLongValues(b, j, {{u8"AllayDuplicationCooldown", u8"DuplicationCooldown"}});
   }
 
+  static void Armadillo(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    std::u8string state = u8"idle";
+    if (HasDefinition(b, u8"+minecraft:rolled_up")) {
+      state = u8"scared";
+    }
+    j[u8"state"] = String(state);
+    if (auto entries = b.listTag(u8"entries"); entries) {
+      for (auto const &it : *entries) {
+        auto v = it->asCompound();
+        if (!v) {
+          continue;
+        }
+        if (auto spawnTimer = v->int32(u8"SpawnTimer"); spawnTimer) {
+          j[u8"scute_time"] = Int(*spawnTimer);
+          break;
+        }
+      }
+    }
+  }
+
   static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j.erase(u8"ArmorDropChances");
     j.erase(u8"HandDropChances");
@@ -2031,6 +2051,8 @@ public:
     E(ocelot, C(Same, Animal, Age, Ocelot));
     E(vindicator, C(Same, LivingEntity));
     E(xp_orb, C(Rename(u8"experience_orb"), Base, ExperienceOrb));
+
+    E(armadillo, C(Same, Animal, Armadillo));
 #undef E
     return ret;
   }

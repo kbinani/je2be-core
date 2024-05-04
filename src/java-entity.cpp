@@ -687,6 +687,8 @@ private:
     E(block_display, Null);
     E(item_display, Null);
     E(interaction, Null);
+
+    E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableF, Armadillo));
 #undef A
 #undef M
 #undef E
@@ -707,6 +709,39 @@ private:
     }
 
     CopyLongValues(j, b, {{u8"DuplicationCooldown", u8"AllayDuplicationCooldown"}});
+  }
+
+  static void Armadillo(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    auto state = tag.string(u8"state", u8"idle");
+    auto age = tag.int32(u8"Age", 0);
+    auto properties = Compound();
+    if (state == u8"idle") {
+      if (age >= 0) {
+        AddDefinition(c, u8"+minecraft:adult_unrolled");
+      } else {
+        AddDefinition(c, u8"+minecraft:baby_unrolled");
+      }
+      AddDefinition(c, u8"+minecraft:unrolled");
+      properties->set(u8"minecraft:armadillo_state", u8"unrolled");
+    } else if (state == u8"scared") {
+      AddDefinition(c, u8"-minecraft:unrolled");
+      AddDefinition(c, u8"-minecraft:adult_unrolled");
+      AddDefinition(c, u8"-minecraft:baby_unrolled");
+      AddDefinition(c, u8"+minecraft:rolled_up");
+      AddDefinition(c, u8"+minecraft:rolled_up_without_threats");
+      // AddDefinition(c, u8"+minecraft:rolled_up_with_threats");
+
+      properties->set(u8"minecraft:armadillo_state", u8"rolled_up_relaxing");
+      // properties->set(u8"minecraft:armadillo_state", u8"rolled_up");
+    }
+    if (auto scuteTime = tag.int32(u8"scute_time"); scuteTime) {
+      auto entries = List<Tag::Type::Compound>();
+      auto entry = Compound();
+      entry->set(u8"SpawnTimer", Int(*scuteTime));
+      entry->set(u8"StopSpawning", Bool(false));
+      entries->push_back(entry);
+      c[u8"entries"] = entries;
+    }
   }
 
   static void ArmorStand(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

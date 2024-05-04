@@ -353,6 +353,15 @@ private:
                                                        Attribute(0.02, 0.02),   // lava_movement
                                                        Attribute(64, 64, 2048), // follow_range
                                                        nullopt)));              // attack_damage
+                                                                                // 1.21
+    table->insert(make_pair(u8"minecraft:armadillo", Attributes(
+                                                         Attribute(12, 12, 12),   // health(base, current, max)
+                                                         Attribute(0, 0, 1),      // knockback_resistance
+                                                         Attribute(0.14, 0.14),   // movement
+                                                         Attribute(0.02, 0.02),   // underwater_movement
+                                                         Attribute(0.02, 0.02),   // lava_movement
+                                                         Attribute(16, 16, 2048), // follow_range
+                                                         nullopt)));              // attack_damage
 
     return table;
   }
