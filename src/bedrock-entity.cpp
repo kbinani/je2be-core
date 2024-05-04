@@ -19,6 +19,8 @@
 #include "enums/_facing6.hpp"
 #include "enums/_villager-profession.hpp"
 #include "enums/_villager-type.hpp"
+#include "item/_tipped-arrow-potion.hpp"
+#include "java/_components.hpp"
 #include "tile-entity/_loot-table.hpp"
 
 #include "bedrock-entity-before-components-introduced.hpp"
@@ -274,6 +276,43 @@ public:
       }
     }
     j[u8"ShowArms"] = Bool(showArms);
+  }
+
+  static void Arrow(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto player = b.boolean(u8"player", false);
+    j[u8"pickup"] = Bool(player);
+
+    auto item = Compound();
+    item->set(u8"count", Int(1));
+    if (auto auxValue = b.byte(u8"auxValue"); auxValue) {
+      auto potion = TippedArrowPotion::JavaPotionType(*auxValue);
+      auto contents = Compound();
+      if (player) {
+        contents->set(u8"potion", potion);
+        java::AppendComponent(item, u8"potion_contents", contents);
+        item->set(u8"id", u8"minecraft:tipped_arrow");
+      } else {
+        auto customEffects = List<Tag::Type::Compound>();
+        auto effect = Compound();
+        auto name = potion;
+        name = strings::RemovePrefix(name, u8"long_");
+        name = strings::RemovePrefix(name, u8"strong_");
+        effect->set(u8"id", name);
+        effect->set(u8"show_icon", Bool(true));
+        auto duration = TippedArrowPotion::JavaPotionDuration(potion);
+        if (duration > 0) {
+          effect->set(u8"duration", Int(duration));
+        }
+        customEffects->push_back(effect);
+        contents->set(u8"custom_effects", customEffects);
+        java::AppendComponent(item, u8"potion_contents", contents);
+        item->set(u8"id", u8"minecraft:arrow");
+      }
+    } else {
+      item->set(u8"id", u8"minecraft:arrow");
+    }
+
+    j[u8"item"] = item;
   }
 
   static void Axolotl(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2067,7 +2106,7 @@ public:
     E(piglin, C(Same, LivingEntity, Inventory, IsBaby, Piglin));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal, Hoglin));
-    E(arrow, C(Same, Base, Owner));
+    E(arrow, C(Same, Base, Owner, Arrow));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
 

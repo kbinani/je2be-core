@@ -21,6 +21,7 @@
 #include "enums/_game-mode.hpp"
 #include "enums/_villager-profession.hpp"
 #include "enums/_villager-type.hpp"
+#include "item/_tipped-arrow-potion.hpp"
 #include "java/_block-data.hpp"
 #include "java/_context.hpp"
 #include "java/_item.hpp"
@@ -780,6 +781,27 @@ private:
     if (owner) {
       c[u8"OwnerID"] = Long(*owner);
       c[u8"OwnerNew"] = Long(*owner);
+    }
+    CopyBoolValues(tag, c, {{u8"pickup", u8"player"}});
+    if (auto potionContents = tag.query(u8"item/components/minecraft:potion_contents")->asCompound(); potionContents) {
+      if (auto potion = potionContents->string(u8"potion"); potion) {
+        auto type = TippedArrowPotion::BedrockPotionType(*potion);
+        c.set(u8"auxValue", Byte(type));
+      } else if (auto customEffects = potionContents->listTag(u8"custom_effects"); customEffects) {
+        for (auto const &it : *customEffects) {
+          auto v = it->asCompound();
+          if (!v) {
+            continue;
+          }
+          auto id = v->string(u8"id");
+          if (!id) {
+            continue;
+          }
+          auto type = TippedArrowPotion::BedrockPotionType(*id);
+          c.set(u8"auxValue", Byte(type));
+          break;
+        }
+      }
     }
   }
 
