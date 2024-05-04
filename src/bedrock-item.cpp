@@ -383,15 +383,12 @@ public:
 
   static std::u8string Crossbow(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
-      auto tagJ = Compound();
       auto chargedProjectiles = List<Tag::Type::Compound>();
       if (auto chargedItem = tagB->compoundTag(u8"chargedItem"); chargedItem) {
         if (auto projectileJ = From(*chargedItem, ctx, dataVersion, opt); projectileJ) {
           chargedProjectiles->push_back(projectileJ);
         }
-        tagJ->set(u8"ChargedProjectiles", chargedProjectiles);
-        tagJ->set(u8"Charged", Bool(!chargedProjectiles->empty()));
-        itemJ[u8"tag"] = tagJ;
+        java::AppendComponent(itemJ, u8"charged_projectiles", chargedProjectiles);
       }
     }
     return name;

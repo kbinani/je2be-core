@@ -1088,22 +1088,19 @@ private:
   static CompoundTagPtr Crossbow(std::u8string const &name, CompoundTag const &j, Context &ctx, int dataVersion) {
     auto b = New(u8"crossbow");
 
-    if (auto tagJ = j.compoundTag(u8"tag"); tagJ) {
-      auto charged = tagJ->boolean(u8"Charged");
-      auto chargedProjectiles = tagJ->listTag(u8"ChargedProjectiles");
-      if (charged && chargedProjectiles) {
-        for (auto const &it : *chargedProjectiles) {
-          auto projectileJ = std::dynamic_pointer_cast<CompoundTag>(it);
-          if (!projectileJ) {
-            continue;
-          }
-          auto projectileB = From(projectileJ, ctx, dataVersion);
-          if (projectileB) {
-            auto beTag = Compound();
-            beTag->set(u8"chargedItem", projectileB);
-            b->set(u8"tag", beTag);
-            break;
-          }
+    auto chargedProjectiles = FallbackQuery(j, {u8"components/minecraft:charged_projectiles", u8"tag/ChargedProjectiles"})->asList();
+    if (chargedProjectiles) {
+      for (auto const &it : *chargedProjectiles) {
+        auto projectileJ = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!projectileJ) {
+          continue;
+        }
+        auto projectileB = From(projectileJ, ctx, dataVersion);
+        if (projectileB) {
+          auto beTag = Compound();
+          beTag->set(u8"chargedItem", projectileB);
+          b->set(u8"tag", beTag);
+          break;
         }
       }
     }
