@@ -759,14 +759,12 @@ private:
     });
     Attach(c, pos, *tag);
     auto customNameJ = c->string(u8"CustomName");
-    std::u8string customNameB;
     if (customNameJ) {
       auto text = props::GetTextComponent(*customNameJ);
       if (!text.empty()) {
-        customNameB = text;
+        tag->set(u8"CustomName", text);
       }
     }
-    tag->set(u8"CustomName", customNameB);
     return tag;
   }
 
