@@ -326,6 +326,10 @@ public:
     }
   }
 
+  static void Bogged(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    CopyBoolValues(b, j, {{u8"Sheared", u8"sheared"}});
+  }
+
   static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Temper"] = Int(0);
   }
@@ -2053,6 +2057,7 @@ public:
     E(xp_orb, C(Rename(u8"experience_orb"), Base, ExperienceOrb));
 
     E(armadillo, C(Same, Animal, Armadillo));
+    E(bogged, C(Same, LivingEntity, Bogged));
 #undef E
     return ret;
   }

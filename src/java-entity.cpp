@@ -689,6 +689,7 @@ private:
     E(interaction, Null);
 
     E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableF, Armadillo));
+    E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
 #undef A
 #undef M
 #undef E
@@ -831,6 +832,14 @@ private:
     if (hasNectar) {
       AddDefinition(c, u8"+has_nectar");
     }
+  }
+
+  static void Bogged(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    auto sheared = tag.boolean(u8"sheared", false);
+    if (sheared) {
+      AddDefinition(c, u8"+minecraft:bogged_sheared");
+    }
+    c[u8"Sheared"] = Bool(sheared);
   }
 
   static std::optional<Pos3d> GetBoatPos(CompoundTag const &j) {
