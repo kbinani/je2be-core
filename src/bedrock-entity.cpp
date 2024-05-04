@@ -970,6 +970,35 @@ public:
     }
   }
 
+  static void BodyArmorItemFromArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    // remove ArmorItems[1] then set to body_armor_item
+    auto armorItems = j.listTag(u8"ArmorItems");
+    auto armorDropChances = j.listTag(u8"ArmorDropChances");
+    if (!armorItems || !armorDropChances) {
+      return;
+    }
+    if (armorItems->size() < 2 || armorDropChances->size() < 2) {
+      return;
+    }
+    auto armorTag = armorItems->fValue[1];
+    auto chanceTag = armorDropChances->fValue[1];
+    if (!armorTag || !chanceTag) {
+      return;
+    }
+    auto armor = std::dynamic_pointer_cast<CompoundTag>(armorTag);
+    auto chance = std::dynamic_pointer_cast<FloatTag>(chanceTag);
+    if (!armor || !chance) {
+      return;
+    }
+    if (armor->empty()) {
+      return;
+    }
+    j[u8"body_armor_item"] = armor;
+    j[u8"body_armor_drop_chance"] = Float(2);
+    armorItems->fValue[1] = Compound();
+    armorDropChances->fValue[1] = Float(0.085);
+  }
+
   static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto memories = Compound();
     auto brain = Compound();
@@ -2026,7 +2055,7 @@ public:
     E(vex, C(Same, LivingEntity, NoGravity));
     E(villager_v2, C(Rename(u8"villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
-    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, Wolf));
+    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, BodyArmorItemFromArmorItems, Wolf));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed));
     E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));

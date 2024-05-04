@@ -2675,7 +2675,11 @@ private:
       armors->push_back(Item::Empty());
     }
 
-    if (auto found = tag.find(u8"ArmorItems"); found != tag.end()) {
+    if (auto armor = tag.compoundTag(u8"body_armor_item"); armor) {
+      if (auto converted = Item::From(armor, ctx.fCtx, ctx.fDataVersion); converted) {
+        armors->fValue[1] = converted;
+      }
+    } else if (auto found = tag.find(u8"ArmorItems"); found != tag.end()) {
       auto list = found->second->asList();
       if (list && list->fType == Tag::Type::Compound) {
         for (int i = 0; i < 4 && i < list->size(); i++) {
