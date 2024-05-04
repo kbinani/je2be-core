@@ -1158,6 +1158,12 @@ private:
       } else {
         return 0;
       }
+    } else if (block.fId == vault) {
+      if (block.property(u8"vault_state") == u8"active") {
+        return 12;
+      } else {
+        return 6;
+      }
     }
     return LightEmissionById(block.fId);
   }
@@ -1729,6 +1735,7 @@ private:
     case mangrove_leaves:
     case cherry_leaves:
     case trial_spawner:
+    case vault:
       return 1;
     default:
       return 15;

@@ -355,6 +355,7 @@ public:
     case tuff_slab:
     case tuff_stairs:
     case tuff_wall:
+    case vault:
     case warped_nylium:
     case white_concrete:
     case white_glazed_terracotta:

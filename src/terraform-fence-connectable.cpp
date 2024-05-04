@@ -501,6 +501,7 @@ public:
     case tube_coral_block:
     case tuff:
     case tuff_bricks:
+    case vault:
     case verdant_froglight:
     case warped_fence:
     case warped_hyphae:
@@ -946,6 +947,7 @@ public:
     case tuff_brick_wall:
     case tuff_bricks:
     case tuff_wall:
+    case vault:
     case verdant_froglight:
     case warped_hyphae:
     case warped_nylium:
