@@ -1818,7 +1818,7 @@ public:
                          Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
 
     E(vault, Converter(Same,
-                       Name(BooleanProperty(u8"ominus"), u8"ominus"),
+                       Name(BooleanProperty(u8"ominous"), u8"ominous"),
                        Name(StringProperty(u8"vault_state"), u8"vault_status"),
                        CardinalDirectionFromFacing4));
     E(heavy_core, Identity);
