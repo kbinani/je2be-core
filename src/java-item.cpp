@@ -730,7 +730,7 @@ private:
   static CompoundTagPtr AxolotlBucket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto ret = New(u8"axolotl_bucket");
     ret->set(u8"Damage", Short(0));
-    auto tg = item.compoundTag(u8"tag");
+    auto tg = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound();
     if (tg) {
       auto age = tg->int32(u8"Age", 0);
       auto health = tg->float32(u8"Health", 14);

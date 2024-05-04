@@ -244,7 +244,7 @@ public:
       auto variantB = tagB->int32(u8"Variant", 0);
       tagJ->set(u8"Variant", Int(Axolotl::JavaVariantFromBedrockVariant(variantB)));
 
-      itemJ[u8"tag"] = tagJ;
+      java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
     }
     return nameB;
   }
