@@ -1633,8 +1633,8 @@ private:
 #pragma region Converters : V
   static String Vault(String const &bName, CompoundTag const &s, Props &p) {
     FacingFromCardinalDirection(s, p);
-    auto ominus = s.boolean(u8"ominus", false);
-    p[u8"ominus"] = Bool(ominus);
+    auto ominous = s.boolean(u8"ominous", false);
+    p[u8"ominous"] = Bool(ominous);
     auto vaultState = s.string(u8"vault_state", u8"inactive");
     p[u8"vault_state"] = vaultState;
     return bName;
