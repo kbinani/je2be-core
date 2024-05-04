@@ -1322,13 +1322,19 @@ static void TestJavaToBedrockToJava(fs::path in) {
   }
 #else
   optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
-  Pos2i center(0, 0);
+#if 1
+  for (int cx = 0; cx <= 27; cx++) {
+    chunks.insert({cx, 0});
+  }
+#else
+  Pos2i center(27, 0);
   int radius = 0;
   for (int cz = center.fZ - radius; cz <= center.fZ + radius; cz++) {
     for (int cx = center.fX - radius; cx <= center.fX + radius; cx++) {
       chunks.insert({cx, cz});
     }
   }
+#endif
   for (Pos2i const &p : chunks) {
     for (int dx = -1; dx <= 1; dx++) {
       for (int dz = -1; dz <= 1; dz++) {
