@@ -14,7 +14,7 @@ u8 constexpr kDragonFightVersion = 0;                                         //
 
 Version constexpr kSupportVersion = Version(1, 20, 81, 1, 0); // v1.20.81, "lastOpenedWithVersion" in level.dat
 
-char constexpr kChunkVersion = 0x80;          // v1.20.81
-char constexpr kChunkVersionMaxLegacy = 0x16; // v1.17.41
+uint8_t constexpr kChunkVersion = 0x80;          // v1.20.81
+uint8_t constexpr kChunkVersionMaxLegacy = 0x16; // v1.17.41
 
 } // namespace je2be::java
