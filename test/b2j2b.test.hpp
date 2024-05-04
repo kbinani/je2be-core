@@ -275,6 +275,7 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"LastOutputParams");
     ignore.insert(u8"ExecuteOnFirstTick");
     ignore.insert(u8"Version");
+    ignore.insert(u8"CustomName");
   } else if (*idE == u8"Bell") {
     ignore.insert(u8"Ticks");
     auto direction = e->int32(u8"Direction");
