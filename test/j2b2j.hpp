@@ -395,6 +395,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     tagBlacklist.insert(u8"Text4");
   } else if (id == u8"minecraft:beehive" || id == u8"minecraft:bee_nest") {
     tagBlacklist.insert(u8"FlowerPos");
+    tagBlacklist.insert(u8"flower_pos");
   } else if (id == u8"minecraft:trial_spawner") {
     // TODO(1.21):
     return;
@@ -637,6 +638,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   } else if (id == u8"minecraft:bee") {
     blacklist.insert(u8"TicksSincePollination"); // TicksSincePollination does not exist in BE
     blacklist.insert(u8"FlowerPos");
+    blacklist.insert(u8"flower_pos");
   } else if (id == u8"minecraft:llama") {
     blacklist.insert(u8"Temper"); // Temper does not exist in BE
   } else if (id == u8"minecraft:phantom") {
