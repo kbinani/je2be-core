@@ -1630,6 +1630,17 @@ private:
   }
 #pragma endregion
 
+#pragma region Converters : V
+  static String Vault(String const &bName, CompoundTag const &s, Props &p) {
+    FacingFromCardinalDirection(s, p);
+    auto ominus = s.boolean(u8"ominus", false);
+    p[u8"ominus"] = Bool(ominus);
+    auto vaultState = s.string(u8"vault_state", u8"inactive");
+    p[u8"vault_state"] = vaultState;
+    return bName;
+  }
+#pragma endregion
+
 #pragma region Converters : W
   static String WallWithBlockType(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"wall_block_type", u8"andesite");
@@ -2893,6 +2904,9 @@ private:
     E(waxed_weathered_copper_bulb, CopperBulb);
     E(waxed_oxidized_copper_bulb, CopperBulb);
     E(crafter, Crafter);
+
+    // 1.21
+    E(vault, Vault);
 #undef E
 
     return table;

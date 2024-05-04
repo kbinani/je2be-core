@@ -403,6 +403,8 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   } else if (id == u8"minecraft:banner") {
     // banners do not have CustomName in BE
     tagBlacklist.insert(u8"CustomName");
+  } else if (id == u8"minecraft:vault") {
+    tagBlacklist.insert(u8"shared_data/connected_players");
   }
   auto itemsE = expected.listTag(u8"Items");
   auto itemsA = actual.listTag(u8"Items");

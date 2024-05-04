@@ -207,6 +207,28 @@ public:
     return r;
   }
 
+  static std::optional<Result> BrushableBlock(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    using namespace std;
+
+    auto tagJ = EmptyShortName(u8"brushable_block", pos);
+    if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
+      if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
+        if (auto itemJ = Item::From(*itemB, ctx, dataVersion, {}); itemJ) {
+          tagJ->set(u8"item", itemJ);
+        }
+      }
+    }
+
+    map<u8string, optional<u8string>> p;
+    auto brushCount = tagB.int32(u8"brush_count", 0);
+    p[u8"dusted"] = mcfile::String::ToString(brushCount);
+
+    Result r;
+    r.fTileEntity = tagJ;
+    r.fBlock = blockJ.applying(p);
+    return r;
+  }
+
   static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
     using namespace std;
     auto items = List<Tag::Type::Compound>();
@@ -817,25 +839,75 @@ public:
     return r;
   }
 
-  static std::optional<Result> BrushableBlock(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
-    using namespace std;
+  static std::optional<Result> Vault(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    auto t = EmptyShortName(u8"vault", pos);
 
-    auto tagJ = EmptyShortName(u8"brushable_block", pos);
-    if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
-      if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
-        if (auto itemJ = Item::From(*itemB, ctx, dataVersion, {}); itemJ) {
-          tagJ->set(u8"item", itemJ);
+    if (auto configB = tagB.compoundTag(u8"config"); configB) {
+      auto configJ = Compound();
+      if (auto keyItemB = configB->compoundTag(u8"key_item"); keyItemB) {
+        if (auto keyItemJ = Item::From(*keyItemB, ctx, dataVersion, {}); keyItemJ) {
+          configJ->set(u8"key_item", keyItemJ);
         }
+      }
+      if (!configJ->empty()) {
+        t->set(u8"config", configJ);
       }
     }
 
-    map<u8string, optional<u8string>> p;
-    auto brushCount = tagB.int32(u8"brush_count", 0);
-    p[u8"dusted"] = mcfile::String::ToString(brushCount);
+    auto serverDataJ = Compound();
+    auto sharedDataJ = Compound();
+    if (auto dataB = tagB.compoundTag(u8"data"); dataB) {
+      if (auto displayItemB = dataB->compoundTag(u8"display_item"); displayItemB) {
+        if (auto displayItemJ = Item::From(*displayItemB, ctx, dataVersion, {}); displayItemJ) {
+          sharedDataJ->set(u8"display_item", displayItemJ);
+        }
+      }
+
+      if (auto itemsToEjectB = dataB->listTag(u8"items_to_eject"); itemsToEjectB) {
+        auto itemsToEjectJ = List<Tag::Type::Compound>();
+        for (auto const &it : *itemsToEjectB) {
+          auto v = it->asCompound();
+          if (!v) {
+            continue;
+          }
+          if (auto converted = Item::From(*v, ctx, dataVersion, {}); converted) {
+            itemsToEjectJ->push_back(converted);
+          }
+        }
+        if (!itemsToEjectJ->empty()) {
+          serverDataJ->set(u8"items_to_eject", itemsToEjectJ);
+        }
+      }
+
+      if (auto rewardedPlayersB = dataB->listTag(u8"rewarded_players"); rewardedPlayersB) {
+        auto rewardedPlayersJ = List<Tag::Type::IntArray>();
+        for (auto const &it : *rewardedPlayersB) {
+          auto v = it->asLong();
+          if (!v) {
+            continue;
+          }
+          Uuid uuid;
+          if (auto mapped = ctx.mapLocalPlayerId(v->fValue); mapped) {
+            uuid = *mapped;
+          } else {
+            uuid = Uuid::GenWithI64Seed(v->fValue);
+          }
+          rewardedPlayersJ->push_back(uuid.toIntArrayTag());
+        }
+        if (!rewardedPlayersJ->empty()) {
+          serverDataJ->set(u8"rewarded_players", rewardedPlayersJ);
+        }
+      }
+
+      CopyLongValues(*dataB, *serverDataJ, {{u8"state_updating_resumes_at"}, {u8"total_ejections_needed"}});
+    }
+    if (!serverDataJ->empty()) {
+      t->set(u8"server_data", serverDataJ);
+    }
+    t->set(u8"shared_data", sharedDataJ);
 
     Result r;
-    r.fTileEntity = tagJ;
-    r.fBlock = blockJ.applying(p);
+    r.fTileEntity = t;
     return r;
   }
 #pragma endregion
@@ -1079,6 +1151,7 @@ public:
     E(calibrated_sculk_sensor, SameNameEmpty);
 
     E(crafter, Crafter);
+    E(vault, Vault);
 #undef E
     return t;
   }

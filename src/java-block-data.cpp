@@ -1816,6 +1816,11 @@ public:
                          Name(BooleanProperty(u8"crafting"), u8"crafting"),
                          Name(BooleanProperty(u8"triggered"), u8"triggered_bit"),
                          Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
+
+    E(vault, Converter(Same,
+                       Name(BooleanProperty(u8"ominus"), u8"ominus"),
+                       Name(StringProperty(u8"vault_state"), u8"vault_status"),
+                       CardinalDirectionFromFacing4));
 #undef E
 
     return table;

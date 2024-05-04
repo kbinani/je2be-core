@@ -348,8 +348,72 @@ private:
     E(spore_blossom, NamedEmptyFromNull(u8"SporeBlossom"));
 
     E(crafter, Crafter);
+    E(vault, Vault);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr Vault(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) {
+    auto ret = New(u8"Vault");
+    if (c) {
+      auto configB = Compound();
+      configB->set(u8"activation_range", Float(4));
+      configB->set(u8"deactivation_range", Float(4.5));
+      configB->set(u8"loot_table", u8"loot_tables/chests/trial_chambers/reward.json");
+      configB->set(u8"override_loot_table_to_display", u8"");
+      if (auto configJ = c->compoundTag(u8"config"); configJ) {
+        if (auto keyItemJ = configJ->compoundTag(u8"key_item"); keyItemJ) {
+          if (auto keyItemB = Item::From(keyItemJ, ctx, dataVersion); keyItemB) {
+            configB->set(u8"key_item", keyItemB);
+          }
+        }
+      }
+
+      auto dataB = Compound();
+      if (auto serverDataJ = c->compoundTag(u8"server_data"); serverDataJ) {
+        auto rewarededPlayersB = List<Tag::Type::Long>();
+        if (auto rewarededPlayersJ = serverDataJ->listTag(u8"rewarded_players"); rewarededPlayersJ) {
+          for (auto const &it : *rewarededPlayersJ) {
+            auto v = it->asIntArray();
+            if (!v) {
+              continue;
+            }
+            if (auto idJ = Uuid::fromIntArray(*v); idJ) {
+              auto idB = UuidRegistrar::ToId(*idJ);
+              rewarededPlayersB->push_back(Long(idB));
+            }
+          }
+        }
+        dataB->set(u8"rewarded_players", rewarededPlayersB);
+
+        auto itemsToEjectB = List<Tag::Type::Compound>();
+        if (auto itemsToEjectJ = serverDataJ->listTag(u8"items_to_eject"); itemsToEjectJ) {
+          for (auto const &it : *itemsToEjectJ) {
+            auto v = std::dynamic_pointer_cast<CompoundTag>(it);
+            if (!v) {
+              continue;
+            }
+            if (auto converted = Item::From(v, ctx, dataVersion); converted) {
+              itemsToEjectB->push_back(converted);
+            }
+          }
+        }
+        dataB->set(u8"items_to_eject", itemsToEjectB);
+
+        CopyLongValues(*serverDataJ, *dataB, {{u8"state_updating_resumes_at"}, {u8"total_ejections_needed"}});
+      }
+      if (auto sharedDataJ = c->compoundTag(u8"shared_data"); sharedDataJ) {
+        if (auto displayItemJ = sharedDataJ->compoundTag(u8"display_item"); displayItemJ) {
+          if (auto displayItemB = Item::From(displayItemJ, ctx, dataVersion); displayItemB) {
+            dataB->set(u8"display_item", displayItemB);
+          }
+        }
+      }
+      ret->set(u8"config", configB);
+      ret->set(u8"data", dataB);
+    }
+    Attach(c, pos, *ret);
+    return ret;
   }
 
   static CompoundTagPtr Crafter(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) {

@@ -45,6 +45,13 @@ struct Uuid {
     return u;
   }
 
+  static std::optional<Uuid> fromIntArray(IntArrayTag const &tag) {
+    if (tag.fValue.size() != 4) {
+      return std::nullopt;
+    }
+    return FromInt32(tag.fValue[0], tag.fValue[1], tag.fValue[2], tag.fValue[3]);
+  }
+
   static std::optional<Uuid> FromString(std::u8string const &str) {
     using namespace std;
     u8string uuid = strings::Replace(str, u8"-", u8"");

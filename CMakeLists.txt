@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG b7135db70a8a958b66fa9e40c3e090d154028935)
+  GIT_TAG a524df631a5546eef4b528e8bec532d657f79e0e)
 
 CPMAddPackage(
   NAME defer
