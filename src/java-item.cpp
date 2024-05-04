@@ -707,6 +707,7 @@ private:
     E(piglin_head, Skull);
 
     E(wolf_armor, WolfArmor);
+    E(ominous_bottle, OminousBottle);
 #undef E
     return table;
   }
@@ -1211,6 +1212,14 @@ private:
       auto tagB = Compound();
       tagB->set(u8"customColor", Int(CustomColor(rgbJ->fValue)));
       itemB->set(u8"tag", tagB);
+    }
+    return itemB;
+  }
+
+  static CompoundTagPtr OminousBottle(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
+    auto itemB = New(u8"ominous_bottle");
+    if (auto amplifier = item.query(u8"components/minecraft:ominous_bottle_amplifier")->asInt(); amplifier) {
+      itemB->set(u8"Damage", Short(amplifier->fValue));
     }
     return itemB;
   }

@@ -764,6 +764,14 @@ public:
     return name;
   }
 
+  static std::u8string OminousBottle(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    auto damage = itemB.int16(u8"Damage", 0);
+    if (damage > 0) {
+      java::AppendComponent(itemJ, u8"ominous_bottle_amplifier", Int(damage));
+    }
+    return name;
+  }
+
   static std::u8string Potion(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     auto potionName = je2be::Potion::JavaPotionTypeFromBedrock(damage);
@@ -907,6 +915,9 @@ public:
 
     // 1.20.5
     E(wolf_armor, WolfArmor);
+
+    // 1.21
+    E(ominous_bottle, OminousBottle);
 #undef E
     return ret;
   }
