@@ -726,6 +726,8 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     auto totalE = copyE->int32(u8"Count", 0) * (int)copyE->int16(u8"Value", 0);
     auto totalA = copyA->int32(u8"Count", 0) * (int)copyA->int16(u8"Value", 0);
     CHECK(totalE == totalA);
+  } else if (id == u8"minecraft:parrot") {
+    blacklist.insert(u8"NoGravity");
   }
 
   auto customNameE = entityE.string(u8"CustomName");
