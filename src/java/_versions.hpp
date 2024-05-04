@@ -4,20 +4,17 @@
 
 namespace je2be::java {
 
-i32 constexpr kBlockDataVersion = 18100737;                                   // v1.20.51
-Version constexpr kMinimumCompatibleClientVersion = Version(1, 20, 50, 0, 0); // v1.20.51
-u8 constexpr kSubChunkBlockStorageVersion = 9;                                // v1.20.51
-i32 constexpr kStorageVersion = 10;                                           // v1.20.51
-i32 constexpr kNetworkVersion = 589;
-// i32 constexpr kNetworkVersion = 594;                                          // v1.20.51
-char8_t const *const kInventoryVersion = u8"1.20.1";
-// char8_t const *const kInventoryVersion = u8"1.20.15";                         // v1.20.51
-u8 constexpr kDragonFightVersion = 1; // v1.20.51
+i32 constexpr kBlockDataVersion = 18108419;                                   // v1.20.81
+Version constexpr kMinimumCompatibleClientVersion = Version(1, 20, 80, 0, 0); // v1.20.81
+u8 constexpr kSubChunkBlockStorageVersion = 9;                                // v1.20.81
+i32 constexpr kStorageVersion = 10;                                           // v1.20.81, "StorageVersion" in level.dat
+i32 constexpr kNetworkVersion = 671;                                          // v1.20.81, "NetworkVersion" in level.dat
+char8_t const *const kInventoryVersion = u8"1.20.81";                         // v1.20.81, "InventoryVersion" in level.dat
+u8 constexpr kDragonFightVersion = 0;                                         // v1.20.81
 
-// for lastOpenedWithVersion of level.dat
-Version constexpr kSupportVersion = Version(1, 20, 51, 1, 0); // v1.20.51
+Version constexpr kSupportVersion = Version(1, 20, 81, 1, 0); // v1.20.81, "lastOpenedWithVersion" in level.dat
 
-char constexpr kChunkVersion = 0x28;          // v1.20.51
+char constexpr kChunkVersion = 0x80;          // v1.20.81
 char constexpr kChunkVersionMaxLegacy = 0x16; // v1.17.41
 
 } // namespace je2be::java
