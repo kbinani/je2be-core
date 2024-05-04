@@ -38,6 +38,16 @@ public:
         return nullopt;
       }
       auto result = found->second(pos, block, tag, blockJ, ctx, dataVersion);
+      if (result && result->fTileEntity) {
+        if (!result->fTileEntity->string(u8"CustomName")) {
+          auto customName = tag.string(u8"CustomName");
+          if (customName) {
+            props::Json json;
+            props::SetJsonString(json, u8"text", *customName);
+            result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
+          }
+        }
+      }
       return result;
     } else {
       return BedrockBlockEntityBeforeComponentsIntroduced::FromBlockAndBlockEntity(pos, block, tag, blockJ, ctx, dataVersion);
