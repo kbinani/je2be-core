@@ -2907,6 +2907,7 @@ private:
 
     // 1.21
     E(vault, Vault);
+    E(heavy_core, BlockWithSubmergible);
 #undef E
 
     return table;

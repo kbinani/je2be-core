@@ -1821,6 +1821,7 @@ public:
                        Name(BooleanProperty(u8"ominus"), u8"ominus"),
                        Name(StringProperty(u8"vault_state"), u8"vault_status"),
                        CardinalDirectionFromFacing4));
+    E(heavy_core, Identity);
 #undef E
 
     return table;

@@ -676,6 +676,7 @@ public:
     case gravel:
     case gray_concrete_powder:
     case green_concrete_powder:
+    case heavy_core:
     case light_blue_concrete_powder:
     case light_gray_concrete_powder:
     case lime_concrete_powder:

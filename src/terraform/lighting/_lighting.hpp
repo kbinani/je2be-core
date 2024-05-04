@@ -1691,6 +1691,7 @@ private:
     case waxed_exposed_copper_trapdoor:
     case waxed_weathered_copper_trapdoor:
     case waxed_oxidized_copper_trapdoor:
+    case heavy_core:
       return 0;
     case acacia_leaves:
     case beacon:
