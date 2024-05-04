@@ -157,7 +157,7 @@ public:
                                   u8"OnGround", u8"PortalCooldown", u8"Rotation"}) {
             result->fEntity->erase(key);
           }
-          data->set(u8"EntityData", result->fEntity);
+          data->set(u8"entity_data", result->fEntity);
           bees->push_back(data);
         }
       }

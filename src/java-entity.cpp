@@ -782,7 +782,10 @@ private:
   }
 
   static void Bee(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    auto hivePos = props::GetPos3d(tag, u8"HivePos");
+    auto hivePos = props::GetPos3d(tag, u8"hive_pos");
+    if (!hivePos) {
+      hivePos = props::GetPos3d(tag, u8"HivePos");
+    }
     if (hivePos) {
       Pos3f homePos = hivePos->toF();
       c[u8"HomePos"] = homePos.toListTag();

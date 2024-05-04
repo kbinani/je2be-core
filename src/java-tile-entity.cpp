@@ -790,7 +790,7 @@ private:
         if (!bee) {
           continue;
         }
-        auto entityData = bee->compoundTag(u8"EntityData");
+        auto entityData = FallbackPtr<CompoundTag>(bee, {u8"entity_data", u8"EntityData"});
         if (!entityData) {
           continue;
         }

@@ -434,8 +434,8 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     }
     tagBlacklist.insert(key);
   }
-  auto beesE = expected.listTag(u8"Bees");
-  auto beesA = actual.listTag(u8"Bees");
+  auto beesE = FallbackPtr<ListTag>(expected, {u8"bees", u8"Bees"});
+  auto beesA = FallbackPtr<ListTag>(actual, {u8"bees", u8"Bees"});
   if (beesE) {
     CHECK(beesA);
     CHECK(beesE->size() == beesA->size());
@@ -444,8 +444,8 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       auto placeholderA = beesA->at(i)->asCompound();
       REQUIRE(placeholderE);
       CHECK(placeholderA);
-      auto beeE = placeholderE->compoundTag(u8"EntityData");
-      auto beeA = placeholderA->compoundTag(u8"EntityData");
+      auto beeE = FallbackPtr<CompoundTag>(*placeholderE, {u8"entity_data", u8"EntityData"});
+      auto beeA = FallbackPtr<CompoundTag>(*placeholderA, {u8"entity_data", u8"EntityData"});
       REQUIRE(beeE);
       CHECK(beeA);
       auto beeCopyE = beeE->copy();
@@ -457,6 +457,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       CheckEntityJ(u8"minecraft:bee", *beeCopyE, *beeCopyA, CheckEntityJOptions(CheckEntityJOptions::ignorePos | CheckEntityJOptions::ignoreUUID));
     }
     tagBlacklist.insert(u8"Bees");
+    tagBlacklist.insert(u8"bees");
   }
   for (auto const &itemKey : {u8"Book"}) {
     auto itemE = expected.compoundTag(itemKey);
