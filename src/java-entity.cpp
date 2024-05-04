@@ -690,6 +690,7 @@ private:
 
     E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableF, Armadillo));
     E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
+    E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
 #undef A
 #undef M
 #undef E

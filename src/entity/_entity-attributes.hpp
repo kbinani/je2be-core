@@ -371,6 +371,14 @@ private:
                                                       Attribute(0.02, 0.02),   // lava_movement
                                                       Attribute(16, 16, 2048), // follow_range
                                                       nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:breeze", Attributes(
+                                                      Attribute(30, 30, 30),   // health(base, current, max)
+                                                      Attribute(0, 0, 1),      // knockback_resistance
+                                                      Attribute(0.4, 0.4),     // movement
+                                                      Attribute(0.02, 0.02),   // underwater_movement
+                                                      Attribute(0.02, 0.02),   // lava_movement
+                                                      Attribute(32, 32, 2048), // follow_range
+                                                      nullopt)));              // attack_damage
 
     return table;
   }

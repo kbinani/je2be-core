@@ -2058,6 +2058,7 @@ public:
 
     E(armadillo, C(Same, Animal, Armadillo));
     E(bogged, C(Same, LivingEntity, Bogged));
+    E(breeze, C(Same, LivingEntity));
 #undef E
     return ret;
   }
