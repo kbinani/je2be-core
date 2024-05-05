@@ -542,6 +542,13 @@ private:
   }
 
   static String CoralFan(String const &bName, CompoundTag const &s, Props &p) {
+    // coral_fan_direction always 1
+    // auto direction = s.int32(u8"coral_fan_direction", 1);
+    Submergible(s, p);
+    return bName;
+  }
+
+  static String CoralFanLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = bName.ends_with(u8"_dead");
     auto type = CoralTypeFromCoralColor(color);
@@ -2527,11 +2534,23 @@ private:
     E(dead_fire_coral, BlockWithSubmergible);
     E(dead_horn_coral, BlockWithSubmergible);
     E(coral_block, CoralBlock);
+
     E(coral_fan_hang, CoralFanHang);
     E(coral_fan_hang2, CoralFanHang);
     E(coral_fan_hang3, CoralFanHang);
-    E(coral_fan, CoralFan);
-    E(coral_fan_dead, CoralFan);
+    E(coral_fan, CoralFanLegacy);      // legacy
+    E(coral_fan_dead, CoralFanLegacy); // legacy
+    E(tube_coral_fan, CoralFan);
+    E(brain_coral_fan, CoralFan);
+    E(bubble_coral_fan, CoralFan);
+    E(fire_coral_fan, CoralFan);
+    E(horn_coral_fan, CoralFan);
+    E(dead_tube_coral_fan, CoralFan);
+    E(dead_brain_coral_fan, CoralFan);
+    E(dead_bubble_coral_fan, CoralFan);
+    E(dead_fire_coral_fan, CoralFan);
+    E(dead_horn_coral_fan, CoralFan);
+
     E(brewing_stand, BrewingStand);
     E(brick_block, Rename(u8"bricks"));
     E(stone_slab, StoneSlab); // legacy, < 1.19

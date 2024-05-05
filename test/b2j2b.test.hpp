@@ -132,6 +132,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
 
 static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) {
   auto nameE = expected.string(u8"name");
+  auto nameA = actual.string(u8"name");
   set<u8string> ignore;
   if (nameE == u8"minecraft:brown_mushroom_block") {
     if (auto statesE = expected.compoundTag(u8"states"); statesE) {
@@ -140,7 +141,7 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) 
       }
     }
   }
-  CHECK(nameE == actual.string(u8"name"));
+  CHECK(nameE == nameA);
   auto statesE = expected.compoundTag(u8"states");
   auto statesA = actual.compoundTag(u8"states");
   if (statesE) {
@@ -263,6 +264,9 @@ static void CheckRotationB(float e, float a) {
 static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE) {
   auto e = expected.copy();
   auto a = actual.copy();
+  auto x = expected.int32(u8"x");
+  auto y = expected.int32(u8"y");
+  auto z = expected.int32(u8"z");
   auto idE = e->string(u8"id");
   auto idA = a->string(u8"id");
   REQUIRE(idE);

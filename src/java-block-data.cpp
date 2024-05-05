@@ -713,7 +713,17 @@ public:
 
   static Converter CoralLegacy(std::u8string const &type, bool dead) { return Converter(Name(u8"coral"), AddStringProperty(u8"coral_color", type), AddBoolProperty(u8"dead_bit", dead)); }
 
-  static Converter CoralFan(std::u8string const &type, bool dead) { return Converter(Name(dead ? u8"coral_fan_dead" : u8"coral_fan"), AddStringProperty(u8"coral_color", type), CoralFanDirection); }
+  static CompoundTagPtr CoralFan(mcfile::je::Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto d = New(block.fName, true);
+    auto s = States();
+    s->set(u8"coral_fan_direction", Int(o.fItem ? 0 : 1));
+    return AttachStates(d, s);
+  }
+
+  static Converter CoralFanLegacy(std::u8string const &type, bool dead) {
+    // before bedrock 1.20.81
+    return Converter(Name(dead ? u8"coral_fan_dead" : u8"coral_fan"), AddStringProperty(u8"coral_color", type), CoralFanDirection);
+  }
 
   static void CoralFanDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
     auto waterlogged = b.property(u8"waterlogged", u8"false") == u8"true";
@@ -1280,17 +1290,17 @@ public:
     E(dead_fire_coral, Identity);
     E(dead_horn_coral, Identity);
 
-    E(tube_coral_fan, CoralFan(u8"blue", false));
-    E(brain_coral_fan, CoralFan(u8"pink", false));
-    E(bubble_coral_fan, CoralFan(u8"purple", false));
-    E(fire_coral_fan, CoralFan(u8"red", false));
-    E(horn_coral_fan, CoralFan(u8"yellow", false));
+    E(tube_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"blue", false));
+    E(brain_coral_fan, CoralFan);  // legacy: CoralFanLegacy(u8"pink", false));
+    E(bubble_coral_fan, CoralFan); // legacy: CoralFanLegacy(u8"purple", false));
+    E(fire_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"red", false));
+    E(horn_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"yellow", false));
 
-    E(dead_tube_coral_fan, CoralFan(u8"blue", true));
-    E(dead_brain_coral_fan, CoralFan(u8"pink", true));
-    E(dead_bubble_coral_fan, CoralFan(u8"purple", true));
-    E(dead_fire_coral_fan, CoralFan(u8"red", true));
-    E(dead_horn_coral_fan, CoralFan(u8"yellow", true));
+    E(dead_tube_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"blue", true));
+    E(dead_brain_coral_fan, CoralFan);  // legacy: CoralFanLegacy(u8"pink", true));
+    E(dead_bubble_coral_fan, CoralFan); // legacy: CoralFanLegacy(u8"purple", true));
+    E(dead_fire_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"red", true));
+    E(dead_horn_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"yellow", true));
 
     E(tube_coral_wall_fan, CoralWallFan(u8"", false, 0));
     E(brain_coral_wall_fan, CoralWallFan(u8"", false, 1));
