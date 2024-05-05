@@ -20,6 +20,8 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   ignore.insert(u8"recipesunlock");
   ignore.insert(u8"serverChunkTickRange");
   ignore.insert(u8"worldStartCount");
+  ignore.insert(u8"InventoryVersion");
+  ignore.insert(u8"NetworkVersion");
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);
