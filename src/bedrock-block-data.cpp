@@ -1682,7 +1682,7 @@ private:
   }
 
   static String WoodenPressurePlate(String const &bName, CompoundTag const &s, Props &p) {
-    auto signal = s.int32(u8"restone_signal", 0);
+    auto signal = s.int32(u8"redstone_signal", 0);
     p[u8"powered"] = Bool(signal > 0);
     return Ns() + u8"oak_pressure_plate";
   }
