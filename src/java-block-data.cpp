@@ -6,6 +6,7 @@
 #include "_namespace.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
+#include "block/_trial-spawner.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
 #include "java/_versions.hpp"
@@ -1852,9 +1853,20 @@ public:
                        Name(StringProperty(u8"vault_state"), u8"vault_state"),
                        CardinalDirectionFromFacing4));
     E(heavy_core, Identity);
+    E(trial_spawner, TrialSpawner);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr TrialSpawner(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    std::u8string stateJ(block.property(u8"trial_spawner_state", u8"inactive"));
+    i32 stateB = TrialSpawner::BedrockTrialSpawnerStateFromJava(stateJ);
+    s->set(u8"trial_spawner_state", Int(stateB));
+    s->set(u8"ominous", Bool(block.property(u8"ominous", u8"false") == u8"true"));
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr SnifferEgg(Block const &block, CompoundTagConstPtr const &tile, Options const &o) {

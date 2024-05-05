@@ -6,6 +6,7 @@
 #include "_closed-range.hpp"
 #include "_namespace.hpp"
 #include "bedrock/_legacy-block.hpp"
+#include "block/_trial-spawner.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
@@ -1595,6 +1596,16 @@ private:
     }
   }
 
+  static String TrialSpawner(String const &bName, CompoundTag const &s, Props &p) {
+    auto stateB = s.int32(u8"trial_spawner_state", 0);
+    auto stateJ = TrialSpawner::JavaTrialSpawnerStateFromBedrock(stateB);
+    p[u8"trial_spawner_state"] = stateJ;
+    if (auto ominous = s.boolean(u8"ominous"); ominous) {
+      p[u8"ominous"] = Bool(*ominous);
+    }
+    return bName;
+  }
+
   static String Tripwire(String const &bName, CompoundTag const &s, Props &p) {
     auto attached = s.boolean(u8"attached_bit", false);
     auto disarmed = s.boolean(u8"disarmed_bit", false);
@@ -2969,6 +2980,7 @@ private:
     // 1.21
     E(vault, Vault);
     E(heavy_core, BlockWithSubmergible);
+    E(trial_spawner, TrialSpawner);
 #undef E
 
     return table;

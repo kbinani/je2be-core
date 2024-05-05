@@ -240,6 +240,7 @@ set(je2be_src_files
   src/bedrock/terraform/_tripwire.hpp
   src/bedrock/terraform/_twisting-vines.hpp
   src/bedrock/terraform/_weeping-vines.hpp
+  src/block/_trial-spawner.hpp
   src/color/_lab.hpp
   src/color/_rgba.hpp
   src/color/_sign-color.hpp
