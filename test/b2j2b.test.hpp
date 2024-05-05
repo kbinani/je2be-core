@@ -160,6 +160,7 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) 
 
 static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
   auto nameE = expected.string(u8"Name");
+  auto nameA = actual.string(u8"Name");
   auto e = expected.copy();
   auto a = actual.copy();
   set<u8string> ignore;
@@ -336,12 +337,12 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
   DiffCompoundTag(*e, *a);
 }
 
-static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk const &actual) {
-  for (int y = expected.minBlockY(); y <= expected.maxBlockY(); y++) {
-    for (int z = expected.minBlockZ(); z <= expected.maxBlockZ(); z++) {
-      for (int x = expected.minBlockX(); x <= expected.maxBlockX(); x++) {
-        auto e = expected.blockAt(x, y, z);
-        auto a = actual.blockAt(x, y, z);
+static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const &chunkA) {
+  for (int y = chunkE.minBlockY(); y <= chunkE.maxBlockY(); y++) {
+    for (int z = chunkE.minBlockZ(); z <= chunkE.maxBlockZ(); z++) {
+      for (int x = chunkE.minBlockX(); x <= chunkE.maxBlockX(); x++) {
+        auto e = chunkE.blockAt(x, y, z);
+        auto a = chunkA.blockAt(x, y, z);
         if (e) {
           REQUIRE(a);
           if (e->fName == u8"minecraft:water" || e->fName == u8"minecraft:flowing_water" || e->fName == u8"minecraft:lava" || e->fName == u8"minecraft:flowing_lava") {
@@ -382,14 +383,14 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       }
     }
   }
-  for (auto const &e : expected.entities()) {
+  for (auto const &e : chunkE.entities()) {
     auto posE = je2be::props::GetPos3f(*e, u8"Pos");
     REQUIRE(posE);
     auto idE = e->string(u8"identifier");
     REQUIRE(idE);
     double minDistanceSq = numeric_limits<double>::max();
     CompoundTagPtr a;
-    for (auto const &it : actual.entities()) {
+    for (auto const &it : chunkA.entities()) {
       auto posA = je2be::props::GetPos3f(*it, u8"Pos");
       if (!posA) {
         continue;
@@ -414,8 +415,8 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       CHECK(false);
     }
   }
-  auto const &actualBlockEntities = actual.blockEntities();
-  for (auto const &e : expected.blockEntities()) {
+  auto const &actualBlockEntities = chunkA.blockEntities();
+  for (auto const &e : chunkE.blockEntities()) {
     auto found = actualBlockEntities.find(e.first);
     REQUIRE(e.second);
     CHECK(found != actualBlockEntities.end());
@@ -423,7 +424,7 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       continue;
     }
     REQUIRE(found->second);
-    auto blockE = expected.blockAt(e.first);
+    auto blockE = chunkE.blockAt(e.first);
     CheckBlockEntityB(*e.second, *found->second, blockE);
   }
 }
@@ -451,8 +452,16 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
                                                mcfile::Dimension::Nether,
                                                mcfile::Dimension::End};
   bool checkLevelDat = true;
-#if 0
-  chunks.insert({0, 0});
+#if 1
+  Pos2i center(0, 0);
+  int radius = 3;
+  for (int x = -radius; x <= radius; x++) {
+    for (int y = -radius; y <= radius; y++) {
+      chunks.insert({center.fX + x, center.fZ + y});
+    }
+  }
+#else
+  chunks.insert({2, 1});
   dimensions.clear();
   dimensions = {mcfile::Dimension::Overworld};
   checkLevelDat = false;

@@ -814,7 +814,7 @@ private:
     return Ns() + u8"powered_rail";
   }
 
-  static String Grass(String const &bName, CompoundTag const &s, Props &p) {
+  static String GrassBlock(String const &bName, CompoundTag const &s, Props &p) {
     p[u8"snowy"] = u8"false";
     return Ns() + u8"grass_block";
   }
@@ -932,7 +932,7 @@ private:
     return bName;
   }
 
-  static String Leaves(String const &bName, CompoundTag const &s, Props &p) {
+  static String LeavesLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto leafType = s.string(u8"old_leaf_type", u8"oak");
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
@@ -1332,7 +1332,7 @@ private:
     return Ns() + name;
   }
 
-  static String Sapling(String const &bName, CompoundTag const &s, Props &p) {
+  static String SaplingLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto saplingType = s.string(u8"sapling_type", u8"acacia");
     StageFromAgeBit(s, p);
     return Ns() + saplingType + u8"_sapling";
@@ -1660,7 +1660,7 @@ private:
     return Ns() + name + u8"_wall";
   }
 
-  static String Wood(String const &bName, CompoundTag const &s, Props &p) {
+  static String WoodLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto stripped = s.boolean(u8"stripped_bit", false);
     auto woodType = s.string(u8"wood_type", u8"oak");
     auto name = stripped ? u8"stripped_" + woodType + u8"_wood" : woodType + u8"_wood";
@@ -2272,8 +2272,14 @@ private:
     E(spruce_fence_gate, BlockWithDirection);
     E(warped_fence_gate, BlockWithDirection);
 
-    E(leaves, Leaves);
+    E(leaves, LeavesLegacy);
     E(leaves2, Leaves2);
+    E(oak_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(birch_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(spruce_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(acacia_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(jungle_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(dark_oak_leaves, BlockWithPersistentFromPersistentBitSubmergible);
     E(log2, Log2Legacy);
     E(log, LogLegacy);
     E(oak_log, BlockWithAxisFromPillarAxis);
@@ -2294,7 +2300,14 @@ private:
     E(stone_pressure_plate, PressurePlate);
     E(warped_pressure_plate, PressurePlate);
 
-    E(sapling, Sapling);
+    E(sapling, SaplingLegacy);
+    C sapling(Same, StageFromAgeBit);
+    E(oak_sapling, sapling);
+    E(birch_sapling, sapling);
+    E(spruce_sapling, sapling);
+    E(acacia_sapling, sapling);
+    E(jungle_sapling, sapling);
+    E(dark_oak_sapling, sapling);
 
     E(acacia_standing_sign, StandingSign);
     E(birch_standing_sign, StandingSign);
@@ -2304,8 +2317,20 @@ private:
     E(spruce_standing_sign, StandingSign);
     E(warped_standing_sign, StandingSign);
 
-    E(wooden_slab, WoodenSlab);
+    E(wooden_slab, WoodenSlab); // legacy
+    E(oak_slab, Slab);
+    E(birch_slab, Slab);
+    E(spruce_slab, Slab);
+    E(acacia_slab, Slab);
+    E(jungle_slab, Slab);
+    E(dark_oak_slab, Slab);
     E(double_wooden_slab, DoubleWoodenSlab);
+    E(oak_double_slab, DoubleSlab(u8"oak_slab"));
+    E(birch_double_slab, DoubleSlab(u8"birch_slab"));
+    E(spruce_double_slab, DoubleSlab(u8"spruce_slab"));
+    E(acacia_double_slab, DoubleSlab(u8"acacia_slab"));
+    E(jungle_double_slab, DoubleSlab(u8"jungle_slab"));
+    E(dark_oak_double_slab, DoubleSlab(u8"dark_oak_slab"));
 
     E(acacia_stairs, Stairs);
     E(andesite_stairs, Stairs);
@@ -2373,7 +2398,20 @@ private:
     E(spruce_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
     E(warped_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
 
-    E(wood, Wood);
+    E(wood, WoodLegacy);
+    E(oak_wood, BlockWithAxisFromPillarAxis);
+    E(birch_wood, BlockWithAxisFromPillarAxis);
+    E(spruce_wood, BlockWithAxisFromPillarAxis);
+    E(acacia_wood, BlockWithAxisFromPillarAxis);
+    E(jungle_wood, BlockWithAxisFromPillarAxis);
+    E(dark_oak_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_oak_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_birch_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_spruce_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_acacia_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_jungle_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_dark_oak_wood, BlockWithAxisFromPillarAxis);
+
     E(activator_rail, RailCanBePowered);
     E(detector_rail, RailCanBePowered);
     E(red_flower, RedFlower);
@@ -2641,7 +2679,9 @@ private:
     E(lit_furnace, FurnaceAndSimilar);
     E(glass_pane, BlockWithSubmergible);
     E(glow_lichen, BlockWithMultiFaceDirectionBitsSubmergible);
-    E(grass, Grass);
+    E(grass, GrassBlock); // legacy
+    E(grass_block, GrassBlock);
+
     E(grindstone, Grindstone);
     E(hanging_roots, BlockWithSubmergible);
     E(hay_block, BlockWithAxisFromPillarAxis);
@@ -2867,7 +2907,7 @@ private:
     E(cherry_fence_gate, BlockWithDirection);
     E(cherry_fence, BlockWithSubmergible);
     E(cherry_trapdoor, Trapdoor);
-    E(cherry_sapling, C(Same, StageFromAgeBit));
+    E(cherry_sapling, sapling);
     E(cherry_pressure_plate, PressurePlate);
     E(cherry_leaves, BlockWithPersistentFromPersistentBitSubmergible);
     E(pitcher_crop, C(Same, AgeFromGrowth, HalfFromUpperBlockBit));
