@@ -224,17 +224,17 @@ private:
     E(potted_jungle_sapling, PottedSapling);
     E(potted_acacia_sapling, PottedSapling);
     E(potted_dark_oak_sapling, PottedSapling);
-    E(potted_poppy, PottedPlant(u8"red_flower", {{u8"flower_type", u8"poppy"}}));
-    E(potted_blue_orchid, PottedPlant(u8"red_flower", {{u8"flower_type", u8"orchid"}}));
-    E(potted_allium, PottedPlant(u8"red_flower", {{u8"flower_type", u8"allium"}}));
-    E(potted_azure_bluet, PottedPlant(u8"red_flower", {{u8"flower_type", u8"houstonia"}}));
-    E(potted_red_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_red"}}));
-    E(potted_orange_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_orange"}}));
-    E(potted_white_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_white"}}));
-    E(potted_pink_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_pink"}}));
-    E(potted_oxeye_daisy, PottedPlant(u8"red_flower", {{u8"flower_type", u8"oxeye"}}));
-    E(potted_cornflower, PottedPlant(u8"red_flower", {{u8"flower_type", u8"cornflower"}}));
-    E(potted_lily_of_the_valley, PottedPlant(u8"red_flower", {{u8"flower_type", u8"lily_of_the_valley"}}));
+    E(potted_poppy, PottedPlant(u8"poppy", {}));
+    E(potted_blue_orchid, PottedPlant(u8"blue_orchid", {}));
+    E(potted_allium, PottedPlant(u8"allium", {}));
+    E(potted_azure_bluet, PottedPlant(u8"azure_bluet", {}));
+    E(potted_red_tulip, PottedPlant(u8"red_tulip", {}));
+    E(potted_orange_tulip, PottedPlant(u8"orange_tulip", {}));
+    E(potted_white_tulip, PottedPlant(u8"white_tulip", {}));
+    E(potted_pink_tulip, PottedPlant(u8"pink_tulip", {}));
+    E(potted_oxeye_daisy, PottedPlant(u8"oxeye_daisy", {}));
+    E(potted_cornflower, PottedPlant(u8"cornflower", {}));
+    E(potted_lily_of_the_valley, PottedPlant(u8"lily_of_the_valley", {}));
     E(potted_dandelion, PottedPlant(u8"yellow_flower", {}));
     E(potted_wither_rose, PottedPlant(u8"wither_rose", {}));
     E(potted_crimson_fungus, PottedPlant(u8"crimson_fungus", {}));
@@ -1288,13 +1288,10 @@ private:
     auto plantBlock = Compound();
     auto states = Compound();
     auto type = strings::RemovePrefixAndSuffix(u8"minecraft:potted_", b.fName, u8"_sapling");
-    states->insert({
-        {u8"age_bit", Byte(0)},
-        {u8"sapling_type", String(type)},
-    });
+    states->set(u8"age_bit", Byte(0));
     plantBlock->insert({
         {u8"states", states},
-        {u8"name", String(u8"minecraft:sapling")},
+        {u8"name", String(Namespace::Add(type + u8"_sapling"))},
         {u8"version", Int(kBlockDataVersion)},
     });
     tag->insert({
@@ -1327,7 +1324,6 @@ private:
 
       switch (*item) {
       case 6: {
-        name = u8"sapling";
         u8string type;
         switch (data) {
         case 1:
@@ -1350,10 +1346,8 @@ private:
           type = u8"oak";
           break;
         }
-        states->insert({
-            {u8"age_bit", Byte(0)},
-            {u8"sapling_type", String(type)},
-        });
+        name = type + u8"_sapling";
+        states->set(u8"age_bit", Byte(0));
         break;
       }
       case 31: {
@@ -1374,39 +1368,37 @@ private:
         name = u8"yellow_flower";
         break;
       case 38: {
-        name = u8"red_flower";
-        u8string type;
+        name = u8"poppy";
         switch (data) {
         case 1:
-          type = u8"orchid";
+          name = u8"blue_orchid"; // orchid
           break;
         case 2:
-          type = u8"allium";
+          name = u8"allium";
           break;
         case 3:
-          type = u8"houstonia";
+          name = u8"azure_bluet"; // houstonia
           break;
         case 4:
-          type = u8"tulip_red";
+          name = u8"red_tulip"; // tulip_red
           break;
         case 5:
-          type = u8"tulip_orange";
+          name = u8"orange_tulip"; // tulip_orange
           break;
         case 6:
-          type = u8"tulip_white";
+          name = u8"white_tulip"; // tulip_white
           break;
         case 7:
-          type = u8"tulip_pink";
+          name = u8"pink_tulip"; // tulip_pink
           break;
         case 8:
-          type = u8"oxeye";
+          name = u8"oxeye_daisy"; // oxeye
           break;
         case 0:
         default:
-          type = u8"poppy";
+          name = u8"poppy";
           break;
         }
-        states->set(u8"flower_type", type);
         break;
       }
       case 39:

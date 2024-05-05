@@ -459,6 +459,7 @@ public:
     u8string name = fullName->substr(10);
     u8string suffix;
     if (name == u8"sapling") {
+      // legacy
       auto type = s->string(u8"sapling_type");
       if (!type) {
         return nullopt;
