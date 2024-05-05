@@ -675,7 +675,7 @@ private:
     E(goat, C(Animal, AgeableA(u8"goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
     E(wither, C(Mob, Definitions(u8"+minecraft:wither"), Wither));
-    E(arrow, C(EntityBase, Arrow));
+    E(arrow, C(EntityBase, Definitions(u8"+minecraft:arrow"), Arrow));
 
     E(frog, C(Animal, Definitions(u8"+minecraft:frog"), Frog));
     E(warden, C(Monster, Definitions(u8"+minecraft:warden")));
