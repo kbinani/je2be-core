@@ -46,10 +46,20 @@ struct Uuid {
   }
 
   static std::optional<Uuid> FromIntArray(IntArrayTag const &tag) {
-    if (tag.fValue.size() != 4) {
+    auto const &values = tag.value();
+    if (values.size() != 4) {
       return std::nullopt;
     }
-    return FromInt32(tag.fValue[0], tag.fValue[1], tag.fValue[2], tag.fValue[3]);
+    i32 f1 = values[0];
+    i32 f2 = values[1];
+    i32 f3 = values[2];
+    i32 f4 = values[3];
+    Uuid u;
+    *(i32 *)u.fData = mcfile::I32FromBE(f1);
+    *((i32 *)u.fData + 1) = mcfile::I32FromBE(f2);
+    *((i32 *)u.fData + 2) = mcfile::I32FromBE(f3);
+    *((i32 *)u.fData + 3) = mcfile::I32FromBE(f4);
+    return u;
   }
 
   static std::optional<Uuid> FromString(std::u8string const &str) {
