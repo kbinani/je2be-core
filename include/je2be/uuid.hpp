@@ -45,7 +45,7 @@ struct Uuid {
     return u;
   }
 
-  static std::optional<Uuid> fromIntArray(IntArrayTag const &tag) {
+  static std::optional<Uuid> FromIntArray(IntArrayTag const &tag) {
     if (tag.fValue.size() != 4) {
       return std::nullopt;
     }
@@ -155,23 +155,6 @@ struct Uuid {
     i32 v4 = mcfile::I32FromBE(*((i32 *)fData + 3));
     std::vector<i32> uuidValues({v1, v2, v3, v4});
     return std::make_shared<IntArrayTag>(uuidValues);
-  }
-
-  static std::optional<Uuid> FromIntArrayTag(IntArrayTag const &tag) {
-    auto const &values = tag.value();
-    if (values.size() != 4) {
-      return std::nullopt;
-    }
-    i32 f1 = values[0];
-    i32 f2 = values[1];
-    i32 f3 = values[2];
-    i32 f4 = values[3];
-    Uuid u;
-    *(i32 *)u.fData = mcfile::I32FromBE(f1);
-    *((i32 *)u.fData + 1) = mcfile::I32FromBE(f2);
-    *((i32 *)u.fData + 2) = mcfile::I32FromBE(f3);
-    *((i32 *)u.fData + 3) = mcfile::I32FromBE(f4);
-    return u;
   }
 };
 

@@ -12,7 +12,7 @@ TEST_CASE("uuid") {
   CHECK(values[2] == -1765971152);
   CHECK(values[3] == 875052343);
 
-  auto uuid2 = Uuid::FromIntArrayTag(*intArray);
+  auto uuid2 = Uuid::FromIntArray(*intArray);
   auto values2 = uuid2->toIntArrayTag()->value();
   CHECK(values2[0] == values[0]);
   CHECK(values2[1] == values[1]);

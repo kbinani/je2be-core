@@ -1865,7 +1865,12 @@ public:
     std::u8string stateJ(block.property(u8"trial_spawner_state", u8"inactive"));
     i32 stateB = TrialSpawner::BedrockTrialSpawnerStateFromJava(stateJ);
     s->set(u8"trial_spawner_state", Int(stateB));
-    s->set(u8"ominous", Bool(block.property(u8"ominous", u8"false") == u8"true"));
+    auto ominous = block.property(u8"ominous", u8"");
+    if (ominous == u8"true") {
+      s->set(u8"ominous", Bool(true));
+    } else if (ominous == u8"false") {
+      s->set(u8"ominous", Bool(false));
+    }
     return AttachStates(c, s);
   }
 

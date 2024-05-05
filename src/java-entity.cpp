@@ -1035,7 +1035,7 @@ private:
         if (!uuidTag) {
           continue;
         }
-        auto uuidJ = Uuid::FromIntArrayTag(*uuidTag);
+        auto uuidJ = Uuid::FromIntArray(*uuidTag);
         if (!uuidJ) {
           continue;
         }

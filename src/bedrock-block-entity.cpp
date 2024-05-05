@@ -840,6 +840,101 @@ public:
     return r;
   }
 
+  static std::optional<Result> TrialSpawner(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    auto t = EmptyShortName(u8"trial_spawner", pos);
+
+    auto spawnDataJ = Compound();
+    auto entityJ = Compound();
+    spawnDataJ->set(u8"entity", entityJ);
+    t->set(u8"spawn_data", spawnDataJ);
+    if (auto spawnDataB = tagB.compoundTag(u8"spawn_data"); spawnDataB) {
+      if (auto idB = spawnDataB->string(u8"TypeId"); idB) {
+        entityJ->set(u8"id", *idB);
+      }
+    }
+
+    for (auto const &key : {u8"registered_players", u8"current_mobs"}) {
+      if (auto uuidListB = tagB.listTag(key); uuidListB) {
+        auto uuidListJ = ConvertUuidList(*uuidListB, ctx);
+        t->set(key, uuidListJ);
+      }
+    }
+
+    bool hasNormalConfig = false;
+    bool hasOminousConfig = false;
+    if (auto config = tagB.compoundTag(u8"normal_config"); config) {
+      t->set(u8"normal_config", TrialSpawnerReplaceConfigLootTables(config));
+      hasNormalConfig = true;
+    }
+    if (auto config = tagB.compoundTag(u8"ominous_config"); config) {
+      t->set(u8"ominous_config", TrialSpawnerReplaceConfigLootTables(config));
+      hasOminousConfig = true;
+    }
+    if (hasNormalConfig || hasOminousConfig) {
+      if (!hasNormalConfig) {
+        t->set(u8"normal_config", Compound());
+      }
+    } else {
+      // trial spawner that was placed by player in creative mode
+      t->set(u8"spawn_range", Int(4));
+      t->set(u8"total_mobs", Float(6));
+      t->set(u8"total_mobs_added_per_player", Float(1));
+      t->set(u8"ticks_between_spawn", Int(20));
+      t->set(u8"simultaneous_mobs", Float(2));
+      t->set(u8"simultaneous_mobs_added_per_player", Float(1));
+    }
+    CopyLongValues(tagB, *t, {{u8"next_mob_spawns_at"}, {u8"cooldown_end_at"}});
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
+  static ListTagPtr ConvertUuidList(ListTag const &bedrock, Context const &ctx) {
+    auto java = List<Tag::Type::IntArray>();
+    for (auto const &it : bedrock) {
+      if (auto uuidB = it->asCompound(); uuidB) {
+        if (auto uuid = uuidB->int64(u8"uuid"); uuid) {
+          auto uuidJ = ConvertEntityId(*uuid, ctx);
+          java->push_back(uuidJ.toIntArrayTag());
+        }
+      }
+    }
+    return java;
+  }
+
+  static CompoundTagPtr TrialSpawnerReplaceConfigLootTables(CompoundTagPtr bedrock) {
+    auto java = bedrock->copy();
+    if (auto dropB = bedrock->string(u8"items_to_drop_when_ominous"); dropB) {
+      if (auto dropJ = LootTable::BedrockTableNameFromJava(*dropB); dropJ) {
+        java->set(u8"items_to_drop_when_ominous", *dropJ);
+      }
+    }
+    if (auto tablesB = bedrock->listTag(u8"loot_tables_to_eject"); tablesB) {
+      auto tablesJ = List<Tag::Type::Compound>();
+      for (auto const &it : *tablesB) {
+        if (auto tableB = it->asCompound(); tableB) {
+          auto tableJ = tableB->copy();
+          if (auto dataB = tableB->string(u8"data"); dataB) {
+            if (auto dataJ = LootTable::JavaTableNameFromBedrock(*dataB); dataJ) {
+              tableJ->set(u8"data", *dataJ);
+            }
+          }
+          tablesJ->push_back(tableJ);
+        }
+      }
+      java->set(u8"loot_tables_to_eject", tablesJ);
+    }
+    return java;
+  }
+
+  static Uuid ConvertEntityId(long bedrock, Context const &ctx) {
+    if (auto mapped = ctx.mapLocalPlayerId(bedrock); mapped) {
+      return *mapped;
+    } else {
+      return Uuid::GenWithI64Seed(bedrock);
+    }
+  }
+
   static std::optional<Result> Vault(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
     auto t = EmptyShortName(u8"vault", pos);
 
@@ -1153,6 +1248,7 @@ public:
 
     E(crafter, Crafter);
     E(vault, Vault);
+    E(trial_spawner, TrialSpawner);
 #undef E
     return t;
   }

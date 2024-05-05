@@ -89,8 +89,6 @@ static void CheckBlockJ(shared_ptr<mcfile::je::Block const> const &blockE, share
         } else if (blockE->fName.find(u8"copper_grate") != u8string::npos) {
           // TODO(1.21): Bedrock 1.20.51 does not support water-logging of copper grate
           CheckBlockJWithIgnore(*blockE, *blockA, {u8"waterlogged"});
-        } else if (blockE->fName == u8"minecraft:trial_spawner") {
-          // TODO(1.21):
         } else {
           if (blockA->fId != blockE->fId || blockA->fData != blockE->fData) {
             lock_guard<mutex> lock(sMutCerr);
@@ -397,9 +395,6 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   } else if (id == u8"minecraft:beehive" || id == u8"minecraft:bee_nest") {
     tagBlacklist.insert(u8"FlowerPos");
     tagBlacklist.insert(u8"flower_pos");
-  } else if (id == u8"minecraft:trial_spawner") {
-    // TODO(1.21):
-    return;
   } else if (id == u8"minecraft:banner") {
     // banners do not have CustomName in BE
     tagBlacklist.insert(u8"CustomName");
@@ -1001,7 +996,6 @@ static void CheckChunkJ(mcfile::je::Region const &regionE, mcfile::je::Region co
     static unordered_set<u8string> blacklist({
         u8"minecraft:sculk_sensor",
         u8"minecraft:calibrated_sculk_sensor",
-        u8"minecraft:trial_spawner", // TODO(1.21)
     });
     if (blacklist.find(tileE->string(u8"id", u8"")) != blacklist.end()) {
       continue;
