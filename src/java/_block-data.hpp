@@ -76,6 +76,8 @@ public:
     case waxed_exposed_copper_trapdoor:
     case waxed_weathered_copper_trapdoor:
     case waxed_oxidized_copper_trapdoor:
+    case vault:
+    case heavy_core:
       return true;
     }
     return false;
