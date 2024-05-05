@@ -287,6 +287,7 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
       blacklist.insert(u8"components/minecraft:written_book_content/resolved");
     }
   }
+  CHECK(itemA.compoundTag(u8"tag") == nullptr);
   if (auto sweepingEdge = itemE.query(u8"components/minecraft:stored_enchantments/levels/minecraft:sweeping_edge"); sweepingEdge) {
     // sweeping_edge does not exist in BE
     blacklist.insert(u8"components/minecraft:stored_enchantments/levels");
@@ -401,6 +402,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   } else if (id == u8"minecraft:vault") {
     tagBlacklist.insert(u8"shared_data/connected_players");
   }
+  CHECK(actual.compoundTag(u8"tag") == nullptr);
   auto itemsE = expected.listTag(u8"Items");
   auto itemsA = actual.listTag(u8"Items");
   if (itemsE) {
