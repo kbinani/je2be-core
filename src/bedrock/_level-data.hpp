@@ -148,7 +148,7 @@ public:
 
     CopyStringValues(b, j, {{u8"LevelName"}});
     CopyIntValues(b, j, {{u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}, {u8"rainTime"}, {u8"lightningTime", u8"thunderTime"}});
-    CopyBoolValues(b, j, {{u8"commandsEnabled", u8"allowCommands", false}});
+    CopyBoolValues(b, j, {{u8"commandsEnabled", u8"allowCommands", false}, {u8"IsHardcore", u8"hardcore"}});
     CopyLongValues(b, j, {{u8"Time", u8"DayTime"}, {u8"currentTick", u8"Time"}});
 
     j[u8"Difficulty"] = Byte(b.int32(u8"Difficulty", 2));
@@ -158,7 +158,6 @@ public:
     j[u8"thundering"] = Bool(b.float32(u8"lightningLevel", 0) >= 1);
     j[u8"GameType"] = Int(JavaFromGameMode(ctx.fGameMode));
     j[u8"initialized"] = Bool(true);
-    //TODO: j["hardcore"] = Bool(false);
 
     if (auto dragonFight = DragonFight(db, ctx.fEndian); dragonFight) {
       j[u8"DragonFight"] = dragonFight;
