@@ -1850,7 +1850,7 @@ public:
 
     E(vault, Converter(Same,
                        Name(BooleanPropertyOptional(u8"ominous"), u8"ominous"),
-                       Name(StringProperty(u8"vault_state"), u8"vault_state"),
+                       Name(StringProperty(u8"vault_state", u8"inactive"), u8"vault_state"),
                        CardinalDirectionFromFacing4));
     E(heavy_core, Identity);
     E(trial_spawner, TrialSpawner);
