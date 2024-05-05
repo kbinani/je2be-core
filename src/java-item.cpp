@@ -1127,8 +1127,8 @@ private:
       }
     }
 
+    auto tag = Compound();
     if (ominous) {
-      auto tag = Compound();
       tag->set(u8"Type", Int(1));
       ret->set(u8"tag", tag);
     } else if (patterns) {
@@ -1157,10 +1157,12 @@ private:
         });
         bePatterns->push_back(ptag);
       }
-      auto tag = Compound();
       tag->set(u8"Patterns", bePatterns);
-      ret->set(u8"tag", tag);
+      tag->set(u8"Type", Int(0));
+    } else {
+      tag->set(u8"Type", Int(0));
     }
+    ret->set(u8"tag", tag);
 
     return ret;
   }
