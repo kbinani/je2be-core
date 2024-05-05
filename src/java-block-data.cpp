@@ -176,7 +176,11 @@ public:
   }
 
   static PropertyPickupFunction Name(std::function<PropertyType(Block const &)> func, std::u8string const &name) {
-    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) { s->set(name, func(block)); };
+    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
+      if (auto v = func(block); v) {
+        s->set(name, v);
+      }
+    };
   }
 
   static PropertyType Level(Block const &block) {
@@ -820,6 +824,19 @@ public:
     return [=](Block const &block) {
       auto p = block.property(b, u8"false") == u8"true";
       return Bool(p);
+    };
+  }
+
+  static std::function<PropertyType(Block const &)> BooleanPropertyOptional(std::u8string const &b) {
+    return [=](Block const &block) -> ByteTagPtr {
+      auto p = block.property(b, u8"");
+      if (p == u8"true") {
+        return Bool(true);
+      } else if (p == u8"false") {
+        return Bool(false);
+      } else {
+        return nullptr;
+      }
     };
   }
 
@@ -1831,8 +1848,8 @@ public:
                          Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
 
     E(vault, Converter(Same,
-                       Name(BooleanProperty(u8"ominous"), u8"ominous"),
-                       Name(StringProperty(u8"vault_state"), u8"vault_status"),
+                       Name(BooleanPropertyOptional(u8"ominous"), u8"ominous"),
+                       Name(StringProperty(u8"vault_state"), u8"vault_state"),
                        CardinalDirectionFromFacing4));
     E(heavy_core, Identity);
 #undef E
