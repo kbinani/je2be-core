@@ -238,6 +238,12 @@ public:
     std::u8string state = u8"idle";
     if (HasDefinition(b, u8"+minecraft:rolled_up")) {
       state = u8"scared";
+      if (HasDefinition(b, u8"+minecraft:rolled_up_with_threats")) {
+        auto danger = Compound();
+        danger->set(u8"ttl", Long(80)); // TODO: randomize ttl
+        danger->set(u8"value", Bool(true));
+        java::AppendMemory(j, u8"danger_detected_recently", danger);
+      }
     }
     j[u8"state"] = String(state);
     if (auto entries = b.listTag(u8"entries"); entries) {

@@ -60,7 +60,8 @@ inline std::shared_ptr<NbtTag> Migrate(CompoundTagPtr const &root, std::u8string
   return Migrate<NbtTag>(*root, nameWithoutNamespace, depth, legacyName);
 }
 
-inline void AppendComponent(CompoundTag &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
+template <class NbtTag>
+inline void AppendComponent(CompoundTag &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<NbtTag> const &component) {
   if (!component) {
     return;
   }
@@ -72,11 +73,38 @@ inline void AppendComponent(CompoundTag &root, std::u8string const &nameWithoutN
   components->set(u8"minecraft:" + nameWithoutNamespace, component);
 }
 
-inline void AppendComponent(CompoundTagPtr &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<Tag> const &component) {
+template <class NbtTag>
+inline void AppendComponent(CompoundTagPtr &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<NbtTag> const &component) {
   if (!root) {
     return;
   }
-  AppendComponent(*root, nameWithoutNamespace, component);
+  AppendComponent<NbtTag>(*root, nameWithoutNamespace, component);
+}
+
+template <class NbtTag>
+inline void AppendMemory(CompoundTag &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<NbtTag> const &memory) {
+  if (!memory) {
+    return;
+  }
+  auto brain = root.compoundTag(u8"Brain");
+  if (!brain) {
+    brain = Compound();
+    root[u8"Brain"] = brain;
+  }
+  auto memories = brain->compoundTag(u8"memories");
+  if (!memories) {
+    memories = Compound();
+    brain->set(u8"memories", memories);
+  }
+  memories->set(Namespace::Add(nameWithoutNamespace), memory);
+}
+
+template <class NbtTag>
+inline void AppendMemory(CompoundTagPtr &root, std::u8string const &nameWithoutNamespace, std::shared_ptr<NbtTag> const &memory) {
+  if (!root) {
+    return;
+  }
+  AppendMemory<NbtTag>(*root, nameWithoutNamespace, memory);
 }
 
 } // namespace java

@@ -689,7 +689,7 @@ private:
     E(item_display, Null);
     E(interaction, Null);
 
-    E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableF, Armadillo));
+    E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableG, Armadillo));
     E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
     E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
 #undef A
@@ -727,15 +727,18 @@ private:
       AddDefinition(c, u8"+minecraft:unrolled");
       properties->set(u8"minecraft:armadillo_state", u8"unrolled");
     } else if (state == u8"scared") {
+      if (auto dangerDetected = tag.query(u8"Brain/memories/minecraft:danger_detected_recently/value")->asByte(); dangerDetected && dangerDetected->fValue != 0) {
+        AddDefinition(c, u8"-minecraft:rolled_up_without_threats");
+        AddDefinition(c, u8"+minecraft:rolled_up_with_threats");
+        properties->set(u8"minecraft:armadillo_state", u8"rolled_up");
+      } else {
+        AddDefinition(c, u8"+minecraft:rolled_up_without_threats");
+        properties->set(u8"minecraft:armadillo_state", u8"rolled_up_relaxing");
+      }
       AddDefinition(c, u8"-minecraft:unrolled");
       AddDefinition(c, u8"-minecraft:adult_unrolled");
       AddDefinition(c, u8"-minecraft:baby_unrolled");
       AddDefinition(c, u8"+minecraft:rolled_up");
-      AddDefinition(c, u8"+minecraft:rolled_up_without_threats");
-      // AddDefinition(c, u8"+minecraft:rolled_up_with_threats");
-
-      properties->set(u8"minecraft:armadillo_state", u8"rolled_up_relaxing");
-      // properties->set(u8"minecraft:armadillo_state", u8"rolled_up");
     }
     if (auto scuteTime = tag.int32(u8"scute_time"); scuteTime) {
       auto entries = List<Tag::Type::Compound>();
@@ -1792,6 +1795,18 @@ private:
       c[u8"Age"] = Int(age);
     } else {
       AddDefinition(c, u8"-minecraft:baby");
+      AddDefinition(c, u8"+minecraft:adult");
+      c.erase(u8"Age");
+    }
+    c[u8"IsBaby"] = Bool(age < 0);
+  }
+
+  static void AgeableG(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    auto age = tag.int32(u8"Age", 0);
+    if (age < 0) {
+      AddDefinition(c, u8"+minecraft:baby");
+      c[u8"Age"] = Int(age);
+    } else {
       AddDefinition(c, u8"+minecraft:adult");
       c.erase(u8"Age");
     }
