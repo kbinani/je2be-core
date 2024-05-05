@@ -4,12 +4,14 @@
 
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
+#include "_optional.hpp"
 #include "_props.hpp"
 #include "entity/_tropical-fish.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_effect.hpp"
 #include "enums/_skull-type.hpp"
+#include "item/_banner.hpp"
 #include "item/_fireworks-explosion.hpp"
 #include "item/_fireworks.hpp"
 #include "item/_goat-horn.hpp"
@@ -1160,14 +1162,15 @@ private:
         } else {
           continue;
         }
-        auto pat = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
-        if (!pat) {
+        auto patternJ = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
+        if (!patternJ) {
           continue;
         }
+        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
         auto ptag = Compound();
         ptag->insert({
             {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(patternColor)))},
-            {u8"Pattern", String(pat->fValue)},
+            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
         });
         bePatterns->push_back(ptag);
       }

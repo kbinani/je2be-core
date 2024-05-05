@@ -9,6 +9,7 @@
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
+#include "item/_banner.hpp"
 #include "java/_components.hpp"
 #include "java/_context.hpp"
 #include "java/_entity.hpp"
@@ -1544,14 +1545,15 @@ private:
         } else {
           continue;
         }
-        auto pat = FallbackPtr<StringTag>(*p, {u8"pattern", u8"Pattern"});
-        if (!pat) {
+        auto patternJ = FallbackPtr<StringTag>(*p, {u8"pattern", u8"Pattern"});
+        if (!patternJ) {
           continue;
         }
+        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
         auto ptag = Compound();
         ptag->insert({
             {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(color)))},
-            {u8"Pattern", String(pat->fValue)},
+            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
         });
         patternsB->push_back(ptag);
       }

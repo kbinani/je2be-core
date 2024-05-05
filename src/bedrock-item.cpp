@@ -1,6 +1,7 @@
 #include "bedrock/_item.hpp"
 
 #include "_namespace.hpp"
+#include "_optional.hpp"
 #include "_props.hpp"
 #include "bedrock/_block-data.hpp"
 #include "bedrock/_block-entity.hpp"
@@ -290,7 +291,7 @@ public:
             BannerColorCodeBedrock bccb = static_cast<BannerColorCodeBedrock>(*patternColorB);
             ColorCodeJava ccj = ColorCodeJavaFromBannerColorCodeBedrock(bccb);
             patternJ->set(u8"color", String(JavaNameFromColorCodeJava(ccj)));
-            patternJ->set(u8"pattern", *patternStringB);
+            patternJ->set(u8"pattern", String(Wrap(Banner::JavaPatternFromBedrockOrLegacyJava(*patternStringB), *patternStringB)));
 
             patternsJ->push_back(patternJ);
           }

@@ -89,7 +89,7 @@ public:
           }
           auto pJ = Compound();
           pJ->set(u8"color", String(JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set(u8"pattern", *pPatternB);
+          pJ->set(u8"pattern", String(Wrap(Banner::JavaPatternFromBedrockOrLegacyJava(*pPatternB), *pPatternB)));
           patternsJ->push_back(pJ);
         }
       }
