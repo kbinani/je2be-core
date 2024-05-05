@@ -374,7 +374,7 @@ public:
         TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
         auto tagJ = Compound();
         tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
-        itemJ[u8"tag"] = tagJ;
+        java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
       }
       break;
     }
