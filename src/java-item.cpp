@@ -708,6 +708,20 @@ private:
 
     E(wolf_armor, WolfArmor);
     E(ominous_bottle, OminousBottle);
+    E(turtle_scute, DefaultItem);
+    E(armadillo_scute, DefaultItem);
+    E(trial_key, DefaultItem);
+    E(flow_banner_pattern, DefaultItem);
+    E(guster_banner_pattern, DefaultItem);
+    E(armadillo_spawn_egg, DefaultItem);
+    E(breeze_spawn_egg, DefaultItem);
+    E(bogged_spawn_egg, DefaultItem);
+    E(mace, DefaultItem);
+    E(bolt_armor_trim_smithing_template, DefaultItem);
+    E(flow_armor_trim_smithing_template, DefaultItem);
+    E(breeze_rod, DefaultItem);
+    E(guster_pottery_sherd, DefaultItem);
+    E(flow_pottery_sherd, DefaultItem);
 #undef E
     return table;
   }
