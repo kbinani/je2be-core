@@ -336,6 +336,10 @@ private:
     if (!name) {
       return nullopt;
     }
+    if (*name == u8"minecraft:grass_block") {
+      // still "grass" when encoding_version is prior to 6
+      return u8"minecraft:grass";
+    }
     return *name;
   }
 };
