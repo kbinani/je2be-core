@@ -82,4 +82,42 @@ static inline void CopyStringValues(CompoundTag const &src, CompoundTag &dest, s
     }
   }
 }
+
+template <class NbtTag>
+inline std::shared_ptr<NbtTag> FallbackPtr(CompoundTag const &c, std::initializer_list<std::u8string> names) {
+  for (auto const &name : names) {
+    if (auto v = c.get<NbtTag>(name); v) {
+      return v;
+    }
+  }
+  return nullptr;
+}
+
+template <class NbtTag>
+inline std::shared_ptr<NbtTag> FallbackPtr(CompoundTagPtr const &c, std::initializer_list<std::u8string> names) {
+  if (!c) {
+    return nullptr;
+  }
+  return FallbackPtr<NbtTag>(*c, names);
+}
+
+inline Tag const *FallbackQuery(CompoundTag const &c, std::initializer_list<std::u8string> queries) {
+  for (auto const &query : queries) {
+    if (auto v = c.query(query); v && v->type() != Tag::Type::End) {
+      return v;
+    }
+  }
+  return mcfile::nbt::EndTag::Instance();
+}
+
+template <class T>
+inline std::optional<T> FallbackValue(CompoundTag const &c, std::initializer_list<std::u8string> names) {
+  for (auto const &name : names) {
+    if (auto v = c.value<T>(name); v) {
+      return v;
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace je2be

@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 6411a9810404d40daad4107b5478c554685934d6)
+  GIT_TAG ed92e06a8726993df399bf5f03264ef15c9c536a)
 
 CPMAddPackage(
   NAME defer
@@ -204,11 +204,14 @@ set(je2be_src_files
   src/_volume.hpp
   src/_walk.hpp
   src/bedrock-block-data.cpp
+  src/bedrock-block-entity-before-components-introduced.hpp
   src/bedrock-block-entity.cpp
   src/bedrock-chunk.cpp
   src/bedrock-context.cpp
   src/bedrock-converter.cpp
+  src/bedrock-entity-before-components-introduced.hpp
   src/bedrock-entity.cpp
+  src/bedrock-item-before-components-introduced.hpp
   src/bedrock-item.cpp
   src/bedrock-region.cpp
   src/bedrock-sub-chunk.cpp
@@ -237,6 +240,7 @@ set(je2be_src_files
   src/bedrock/terraform/_tripwire.hpp
   src/bedrock/terraform/_twisting-vines.hpp
   src/bedrock/terraform/_weeping-vines.hpp
+  src/block/_trial-spawner.hpp
   src/color/_lab.hpp
   src/color/_rgba.hpp
   src/color/_sign-color.hpp
@@ -260,6 +264,7 @@ set(je2be_src_files
   src/entity/_painting.hpp
   src/entity/_panda.hpp
   src/entity/_tropical-fish.hpp
+  src/entity/_wolf.hpp
   src/enums/_banner-color-code-bedrock.hpp
   src/enums/_chunk-conversion-mode.hpp
   src/enums/_color-code-java.hpp
@@ -300,6 +305,7 @@ set(je2be_src_files
   src/java/_chunk-data-package.hpp
   src/java/_chunk-data.hpp
   src/java/_chunk.hpp
+  src/java/_components.hpp
   src/java/_context.hpp
   src/java/_datapacks.hpp
   src/java/_enchant-data.hpp

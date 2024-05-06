@@ -1108,7 +1108,7 @@ static void LightEmission() {
       for (int x = 0; x < 16; x++) {
         Pos3i center(x + cx * 16, y, z + cz * 16);
         auto centerBlock = chunk->blockAt(center);
-        if (centerBlock->fId == mcfile::blocks::minecraft::tinted_glass) {
+        if (centerBlock->fId == mcfile::blocks::minecraft::tinted_glass || centerBlock->fId == mcfile::blocks::minecraft::air) {
           continue;
         }
         Pos3i north(x + cx * 16, y, z - 1 + cz * 16);

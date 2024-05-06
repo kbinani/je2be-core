@@ -9,6 +9,8 @@
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
+#include "item/_banner.hpp"
+#include "java/_components.hpp"
 #include "java/_context.hpp"
 #include "java/_entity.hpp"
 #include "java/_item.hpp"
@@ -223,17 +225,17 @@ private:
     E(potted_jungle_sapling, PottedSapling);
     E(potted_acacia_sapling, PottedSapling);
     E(potted_dark_oak_sapling, PottedSapling);
-    E(potted_poppy, PottedPlant(u8"red_flower", {{u8"flower_type", u8"poppy"}}));
-    E(potted_blue_orchid, PottedPlant(u8"red_flower", {{u8"flower_type", u8"orchid"}}));
-    E(potted_allium, PottedPlant(u8"red_flower", {{u8"flower_type", u8"allium"}}));
-    E(potted_azure_bluet, PottedPlant(u8"red_flower", {{u8"flower_type", u8"houstonia"}}));
-    E(potted_red_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_red"}}));
-    E(potted_orange_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_orange"}}));
-    E(potted_white_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_white"}}));
-    E(potted_pink_tulip, PottedPlant(u8"red_flower", {{u8"flower_type", u8"tulip_pink"}}));
-    E(potted_oxeye_daisy, PottedPlant(u8"red_flower", {{u8"flower_type", u8"oxeye"}}));
-    E(potted_cornflower, PottedPlant(u8"red_flower", {{u8"flower_type", u8"cornflower"}}));
-    E(potted_lily_of_the_valley, PottedPlant(u8"red_flower", {{u8"flower_type", u8"lily_of_the_valley"}}));
+    E(potted_poppy, PottedPlant(u8"poppy", {}));
+    E(potted_blue_orchid, PottedPlant(u8"blue_orchid", {}));
+    E(potted_allium, PottedPlant(u8"allium", {}));
+    E(potted_azure_bluet, PottedPlant(u8"azure_bluet", {}));
+    E(potted_red_tulip, PottedPlant(u8"red_tulip", {}));
+    E(potted_orange_tulip, PottedPlant(u8"orange_tulip", {}));
+    E(potted_white_tulip, PottedPlant(u8"white_tulip", {}));
+    E(potted_pink_tulip, PottedPlant(u8"pink_tulip", {}));
+    E(potted_oxeye_daisy, PottedPlant(u8"oxeye_daisy", {}));
+    E(potted_cornflower, PottedPlant(u8"cornflower", {}));
+    E(potted_lily_of_the_valley, PottedPlant(u8"lily_of_the_valley", {}));
     E(potted_dandelion, PottedPlant(u8"yellow_flower", {}));
     E(potted_wither_rose, PottedPlant(u8"wither_rose", {}));
     E(potted_crimson_fungus, PottedPlant(u8"crimson_fungus", {}));
@@ -347,8 +349,160 @@ private:
     E(spore_blossom, NamedEmptyFromNull(u8"SporeBlossom"));
 
     E(crafter, Crafter);
+    E(vault, Vault);
+    E(trial_spawner, TrialSpawner);
 #undef E
     return table;
+  }
+
+  static ListTagPtr ConvertUuidList(ListTag const &java) {
+    auto bedrock = List<Tag::Type::Compound>();
+    for (auto const &it : java) {
+      if (auto uuidJ = it->asIntArray(); uuidJ) {
+        if (auto uuid = Uuid::FromIntArray(*uuidJ); uuid) {
+          auto uuidB = Compound();
+          uuidB->set(u8"uuid", Long(UuidRegistrar::ToId(*uuid)));
+          bedrock->push_back(uuidB);
+        }
+      }
+    }
+    return bedrock;
+  }
+
+  static CompoundTagPtr TrialSpawner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) {
+    auto ret = New(u8"TrialSpawner");
+    if (c) {
+      if (auto spawnDataJ = c->compoundTag(u8"spawn_data"); spawnDataJ) {
+        auto spawnDataB = Compound();
+        if (auto entityJ = spawnDataJ->compoundTag(u8"entity"); entityJ) {
+          if (auto idJ = entityJ->string(u8"id"); idJ) {
+            spawnDataB->set(u8"TypeId", *idJ);
+            spawnDataB->set(u8"Weight", Int(1));
+            ret->set(u8"spawn_data", spawnDataB);
+          }
+        }
+      }
+      for (auto const &key : {u8"registered_players", u8"current_mobs"}) {
+        if (auto uuidListJ = c->listTag(key); uuidListJ) {
+          auto uuidListB = ConvertUuidList(*uuidListJ);
+          ret->set(key, uuidListB);
+        }
+      }
+      bool hasNormalConfig = false;
+      bool hasOminousConfig = false;
+      if (auto config = c->compoundTag(u8"normal_config"); config) {
+        ret->set(u8"normal_config", TrialSpawnerReplaceConfigLootTables(config));
+        hasNormalConfig = true;
+      }
+      if (auto config = c->compoundTag(u8"ominous_config"); config) {
+        ret->set(u8"ominous_config", TrialSpawnerReplaceConfigLootTables(config));
+        hasOminousConfig = true;
+      }
+      if (hasNormalConfig || hasOminousConfig) {
+        if (!hasNormalConfig) {
+          ret->set(u8"normal_config", Compound());
+        }
+      } else {
+        // trial spawner that was placed by player in creative mode
+        ret->set(u8"spawn_range", Int(4));
+        ret->set(u8"total_mobs", Float(6));
+        ret->set(u8"total_mobs_added_per_player", Float(1));
+        ret->set(u8"ticks_between_spawn", Int(20));
+        ret->set(u8"simultaneous_mobs", Float(2));
+        ret->set(u8"simultaneous_mobs_added_per_player", Float(1));
+      }
+      CopyLongValues(*c, *ret, {{u8"next_mob_spawns_at"}, {u8"cooldown_end_at"}});
+    }
+    Attach(c, pos, *ret);
+    return ret;
+  }
+
+  static CompoundTagPtr TrialSpawnerReplaceConfigLootTables(CompoundTagPtr java) {
+    auto bedrock = java->copy();
+    if (auto dropJ = java->string(u8"items_to_drop_when_ominous"); dropJ) {
+      if (auto dropB = LootTable::BedrockTableNameFromJava(*dropJ); dropB) {
+        bedrock->set(u8"items_to_drop_when_ominous", *dropB);
+      }
+    }
+    if (auto tablesJ = java->listTag(u8"loot_tables_to_eject"); tablesJ) {
+      auto tablesB = List<Tag::Type::Compound>();
+      for (auto const &it : *tablesJ) {
+        if (auto tableJ = it->asCompound(); tableJ) {
+          auto tableB = tableJ->copy();
+          if (auto dataJ = tableJ->string(u8"data"); dataJ) {
+            if (auto dataB = LootTable::BedrockTableNameFromJava(*dataJ); dataB) {
+              tableB->set(u8"data", *dataB);
+            }
+          }
+          tablesB->push_back(tableB);
+        }
+      }
+      bedrock->set(u8"loot_tables_to_eject", tablesB);
+    }
+    return bedrock;
+  }
+
+  static CompoundTagPtr Vault(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) {
+    auto ret = New(u8"Vault");
+    if (c) {
+      auto configB = Compound();
+      configB->set(u8"activation_range", Float(4));
+      configB->set(u8"deactivation_range", Float(4.5));
+      configB->set(u8"loot_table", u8"loot_tables/chests/trial_chambers/reward.json");
+      configB->set(u8"override_loot_table_to_display", u8"");
+      if (auto configJ = c->compoundTag(u8"config"); configJ) {
+        if (auto keyItemJ = configJ->compoundTag(u8"key_item"); keyItemJ) {
+          if (auto keyItemB = Item::From(keyItemJ, ctx, dataVersion); keyItemB) {
+            configB->set(u8"key_item", keyItemB);
+          }
+        }
+      }
+
+      auto dataB = Compound();
+      if (auto serverDataJ = c->compoundTag(u8"server_data"); serverDataJ) {
+        auto rewarededPlayersB = List<Tag::Type::Long>();
+        if (auto rewarededPlayersJ = serverDataJ->listTag(u8"rewarded_players"); rewarededPlayersJ) {
+          for (auto const &it : *rewarededPlayersJ) {
+            auto v = it->asIntArray();
+            if (!v) {
+              continue;
+            }
+            if (auto idJ = Uuid::FromIntArray(*v); idJ) {
+              auto idB = UuidRegistrar::ToId(*idJ);
+              rewarededPlayersB->push_back(Long(idB));
+            }
+          }
+        }
+        dataB->set(u8"rewarded_players", rewarededPlayersB);
+
+        auto itemsToEjectB = List<Tag::Type::Compound>();
+        if (auto itemsToEjectJ = serverDataJ->listTag(u8"items_to_eject"); itemsToEjectJ) {
+          for (auto const &it : *itemsToEjectJ) {
+            auto v = std::dynamic_pointer_cast<CompoundTag>(it);
+            if (!v) {
+              continue;
+            }
+            if (auto converted = Item::From(v, ctx, dataVersion); converted) {
+              itemsToEjectB->push_back(converted);
+            }
+          }
+        }
+        dataB->set(u8"items_to_eject", itemsToEjectB);
+
+        CopyLongValues(*serverDataJ, *dataB, {{u8"state_updating_resumes_at"}, {u8"total_ejections_needed"}});
+      }
+      if (auto sharedDataJ = c->compoundTag(u8"shared_data"); sharedDataJ) {
+        if (auto displayItemJ = sharedDataJ->compoundTag(u8"display_item"); displayItemJ) {
+          if (auto displayItemB = Item::From(displayItemJ, ctx, dataVersion); displayItemB) {
+            dataB->set(u8"display_item", displayItemB);
+          }
+        }
+      }
+      ret->set(u8"config", configB);
+      ret->set(u8"data", dataB);
+    }
+    Attach(c, pos, *ret);
+    return ret;
   }
 
   static CompoundTagPtr Crafter(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) {
@@ -463,7 +617,7 @@ private:
       bool empty = true;
       for (auto const &item : *items) {
         if (auto comp = item->asCompound(); comp) {
-          if (auto count = comp->byte(u8"Count"); count && *count > 0) {
+          if (auto count = Item::Count(*comp); count && *count > 0) {
             empty = false;
             break;
           }
@@ -758,14 +912,12 @@ private:
     });
     Attach(c, pos, *tag);
     auto customNameJ = c->string(u8"CustomName");
-    std::u8string customNameB;
     if (customNameJ) {
       auto text = props::GetTextComponent(*customNameJ);
-      if (!text.empty() && text != u8"\"@\"") {
-        customNameB = text;
+      if (!text.empty()) {
+        tag->set(u8"CustomName", text);
       }
     }
-    tag->set(u8"CustomName", customNameB);
     return tag;
   }
 
@@ -780,7 +932,7 @@ private:
 
     shared_ptr<ListTag> bees;
     if (c) {
-      bees = c->listTag(u8"Bees");
+      bees = FallbackPtr<ListTag>(*c, {u8"bees", u8"Bees"});
     }
     if (bees) {
       auto occupants = List<Tag::Type::Compound>();
@@ -791,7 +943,7 @@ private:
         if (!bee) {
           continue;
         }
-        auto entityData = bee->compoundTag(u8"EntityData");
+        auto entityData = FallbackPtr<CompoundTag>(bee, {u8"entity_data", u8"EntityData"});
         if (!entityData) {
           continue;
         }
@@ -1225,13 +1377,10 @@ private:
     auto plantBlock = Compound();
     auto states = Compound();
     auto type = strings::RemovePrefixAndSuffix(u8"minecraft:potted_", b.fName, u8"_sapling");
-    states->insert({
-        {u8"age_bit", Byte(0)},
-        {u8"sapling_type", String(type)},
-    });
+    states->set(u8"age_bit", Byte(0));
     plantBlock->insert({
         {u8"states", states},
-        {u8"name", String(u8"minecraft:sapling")},
+        {u8"name", String(Namespace::Add(type + u8"_sapling"))},
         {u8"version", Int(kBlockDataVersion)},
     });
     tag->insert({
@@ -1264,7 +1413,6 @@ private:
 
       switch (*item) {
       case 6: {
-        name = u8"sapling";
         u8string type;
         switch (data) {
         case 1:
@@ -1287,10 +1435,8 @@ private:
           type = u8"oak";
           break;
         }
-        states->insert({
-            {u8"age_bit", Byte(0)},
-            {u8"sapling_type", String(type)},
-        });
+        name = type + u8"_sapling";
+        states->set(u8"age_bit", Byte(0));
         break;
       }
       case 31: {
@@ -1311,39 +1457,37 @@ private:
         name = u8"yellow_flower";
         break;
       case 38: {
-        name = u8"red_flower";
-        u8string type;
+        name = u8"poppy";
         switch (data) {
         case 1:
-          type = u8"orchid";
+          name = u8"blue_orchid"; // orchid
           break;
         case 2:
-          type = u8"allium";
+          name = u8"allium";
           break;
         case 3:
-          type = u8"houstonia";
+          name = u8"azure_bluet"; // houstonia
           break;
         case 4:
-          type = u8"tulip_red";
+          name = u8"red_tulip"; // tulip_red
           break;
         case 5:
-          type = u8"tulip_orange";
+          name = u8"orange_tulip"; // tulip_orange
           break;
         case 6:
-          type = u8"tulip_white";
+          name = u8"white_tulip"; // tulip_white
           break;
         case 7:
-          type = u8"tulip_pink";
+          name = u8"pink_tulip"; // tulip_pink
           break;
         case 8:
-          type = u8"oxeye";
+          name = u8"oxeye_daisy"; // oxeye
           break;
         case 0:
         default:
-          type = u8"poppy";
+          name = u8"poppy";
           break;
         }
-        states->set(u8"flower_type", type);
         break;
       }
       case 39:
@@ -1373,8 +1517,8 @@ private:
     auto tag = Compound();
 
     optional<props::Json> customName;
-    if (c) {
-      customName = props::GetJson(*c, u8"CustomName");
+    if (auto customNameString = Migrate<StringTag>(c, u8"item_name", Depth::Root, u8"CustomName"); customNameString) {
+      customName = props::ParseAsJson(customNameString->fValue);
     }
     i32 type = 0;
     if (customName) {
@@ -1385,25 +1529,33 @@ private:
       }
     }
 
-    auto patterns = GetList(c, u8"Patterns");
-    auto patternsBedrock = List<Tag::Type::Compound>();
-    if (patterns && type != 1) {
-      for (auto const &pattern : *patterns) {
+    auto patternsJ = FallbackPtr<ListTag>(c, {u8"patterns", u8"Patterns"});
+    auto patternsB = List<Tag::Type::Compound>();
+    if (patternsJ && type != 1) {
+      for (auto const &pattern : *patternsJ) {
         auto p = pattern->asCompound();
         if (!p) {
           continue;
         }
-        auto color = p->int32(u8"Color");
-        auto pat = p->string(u8"Pattern");
-        if (!color || !pat) {
+        ColorCodeJava color;
+        if (auto patternColor = p->string(u8"color"); patternColor) {
+          color = ColorCodeJavaFromJavaName(*patternColor);
+        } else if (auto legacyPatternColor = p->int32(u8"Color"); legacyPatternColor) {
+          color = static_cast<ColorCodeJava>(*legacyPatternColor);
+        } else {
           continue;
         }
+        auto patternJ = FallbackPtr<StringTag>(*p, {u8"pattern", u8"Pattern"});
+        if (!patternJ) {
+          continue;
+        }
+        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
         auto ptag = Compound();
         ptag->insert({
-            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(static_cast<ColorCodeJava>(*color))))},
-            {u8"Pattern", String(*pat)},
+            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(color)))},
+            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
         });
-        patternsBedrock->push_back(ptag);
+        patternsB->push_back(ptag);
       }
     }
 
@@ -1415,8 +1567,8 @@ private:
         {u8"Type", Int(type)},
         {u8"Base", Int(base)},
     });
-    if (!patternsBedrock->empty()) {
-      tag->set(u8"Patterns", patternsBedrock);
+    if (!patternsB->empty()) {
+      tag->set(u8"Patterns", patternsB);
     }
     Attach(c, pos, *tag);
     return tag;
@@ -1601,7 +1753,7 @@ private:
         continue;
       }
 
-      auto count = inItem->byte(u8"Count", 1);
+      auto count = Item::Count(*inItem, 1);
       if (opt.fConvertSlotTag) {
         auto slot = inItem->byte(u8"Slot", 0);
         outItem->set(u8"Slot", Byte(slot));
@@ -1736,6 +1888,17 @@ private:
     return ret;
   }
 
+  static CompoundTagPtr BlockEntityData(CompoundTagPtr const &c) {
+    if (!c) {
+      return nullptr;
+    }
+    auto component = c->compoundTag(u8"components");
+    if (!component) {
+      return nullptr;
+    }
+    return component->compoundTag(u8"minecraft:block_entity_data");
+  }
+
   static Converter Sign(std::u8string id) {
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) -> CompoundTagPtr {
       using namespace je2be::props;
@@ -1747,8 +1910,14 @@ private:
 
       auto tag = Compound();
 
-      auto frontTextJ = c->compoundTag(u8"front_text");
-      auto backTextJ = c->compoundTag(u8"back_text");
+      CompoundTagPtr frontTextJ, backTextJ;
+      if (auto data = BlockEntityData(c); data) {
+        frontTextJ = data->compoundTag(u8"front_text");
+        backTextJ = data->compoundTag(u8"back_text");
+      } else {
+        frontTextJ = c->compoundTag(u8"front_text");
+        backTextJ = c->compoundTag(u8"back_text");
+      }
       if (frontTextJ || backTextJ) {
         if (frontTextJ) {
           auto frontTextB = SignText(*frontTextJ);

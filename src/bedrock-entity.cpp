@@ -15,10 +15,15 @@
 #include "entity/_painting.hpp"
 #include "entity/_panda.hpp"
 #include "entity/_tropical-fish.hpp"
+#include "entity/_wolf.hpp"
 #include "enums/_facing6.hpp"
 #include "enums/_villager-profession.hpp"
 #include "enums/_villager-type.hpp"
+#include "item/_tipped-arrow-potion.hpp"
+#include "java/_components.hpp"
 #include "tile-entity/_loot-table.hpp"
+
+#include "bedrock-entity-before-components-introduced.hpp"
 
 namespace je2be::bedrock {
 
@@ -107,55 +112,59 @@ public:
   }
 
   static std::optional<Result> From(CompoundTag const &entityB, Context &ctx, int dataVersion) {
-    auto id = entityB.string(u8"identifier");
-    if (!id) {
-      return std::nullopt;
+    if (dataVersion >= kDataVersionComponentIntroduced) {
+      auto id = entityB.string(u8"identifier");
+      if (!id) {
+        return std::nullopt;
+      }
+      auto uid = entityB.int64(u8"UniqueID");
+      if (!uid) {
+        return std::nullopt;
+      }
+      i64 v = *uid;
+      Uuid uuid = Uuid::GenWithU64Seed(*(u64 *)&v);
+
+      auto const *table = GetTable();
+      std::u8string_view key(*id);
+      auto found = table->find(Namespace::Remove(key));
+      if (found == table->end()) {
+        return std::nullopt;
+      }
+
+      auto e = found->second(*id, entityB, ctx, dataVersion);
+      if (!e) {
+        return std::nullopt;
+      }
+      e->set(u8"UUID", uuid.toIntArrayTag());
+
+      if (ctx.setShoulderEntityIfItIs(*uid, e)) {
+        return std::nullopt;
+      }
+
+      Result r;
+
+      auto st = Passengers(uuid, entityB, ctx, r.fPassengers);
+      if (st == PassengerStatus::ContainsLocalPlayer) {
+        ctx.setRootVehicle(uuid);
+      }
+
+      auto leasherId = entityB.int64(u8"LeasherID", -1);
+      if (leasherId != -1) {
+        r.fLeasherId = leasherId;
+
+        // NOTE: This "leash" property will be replaced to int array tag like [x, y, z] when the leasher is a leash_knot.
+        auto leasherIdJ = Uuid::GenWithI64Seed(leasherId);
+        auto leash = Compound();
+        leash->set(u8"UUID", leasherIdJ.toIntArrayTag());
+        e->set(u8"leash", leash);
+      }
+
+      r.fUuid = uuid;
+      r.fEntity = e;
+      return r;
+    } else {
+      return BedrockEntityBeforeComponentsIntroduced::From(entityB, ctx, dataVersion);
     }
-    auto uid = entityB.int64(u8"UniqueID");
-    if (!uid) {
-      return std::nullopt;
-    }
-    i64 v = *uid;
-    Uuid uuid = Uuid::GenWithU64Seed(*(u64 *)&v);
-
-    auto const *table = GetTable();
-    std::u8string_view key(*id);
-    auto found = table->find(Namespace::Remove(key));
-    if (found == table->end()) {
-      return std::nullopt;
-    }
-
-    auto e = found->second(*id, entityB, ctx, dataVersion);
-    if (!e) {
-      return std::nullopt;
-    }
-    e->set(u8"UUID", uuid.toIntArrayTag());
-
-    if (ctx.setShoulderEntityIfItIs(*uid, e)) {
-      return std::nullopt;
-    }
-
-    Result r;
-
-    auto st = Passengers(uuid, entityB, ctx, r.fPassengers);
-    if (st == PassengerStatus::ContainsLocalPlayer) {
-      ctx.setRootVehicle(uuid);
-    }
-
-    auto leasherId = entityB.int64(u8"LeasherID", -1);
-    if (leasherId != -1) {
-      r.fLeasherId = leasherId;
-
-      // NOTE: This "UUID" property will be replaced to "X", "Y", and "Z" when the leasher is a leash_knot.
-      auto leasherIdJ = Uuid::GenWithI64Seed(leasherId);
-      auto leash = Compound();
-      leash->set(u8"UUID", leasherIdJ.toIntArrayTag());
-      e->set(u8"Leash", leash);
-    }
-
-    r.fUuid = uuid;
-    r.fEntity = e;
-    return r;
   }
 
   using Converter = std::function<CompoundTagPtr(std::u8string const &id, CompoundTag const &eneityB, Context &ctx, int dataVersion)>;
@@ -225,6 +234,32 @@ public:
     CopyLongValues(b, j, {{u8"AllayDuplicationCooldown", u8"DuplicationCooldown"}});
   }
 
+  static void Armadillo(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    std::u8string state = u8"idle";
+    if (HasDefinition(b, u8"+minecraft:rolled_up")) {
+      state = u8"scared";
+      if (HasDefinition(b, u8"+minecraft:rolled_up_with_threats")) {
+        auto danger = Compound();
+        danger->set(u8"ttl", Long(80)); // TODO: randomize ttl
+        danger->set(u8"value", Bool(true));
+        java::AppendMemory(j, u8"danger_detected_recently", danger);
+      }
+    }
+    j[u8"state"] = String(state);
+    if (auto entries = b.listTag(u8"entries"); entries) {
+      for (auto const &it : *entries) {
+        auto v = it->asCompound();
+        if (!v) {
+          continue;
+        }
+        if (auto spawnTimer = v->int32(u8"SpawnTimer"); spawnTimer) {
+          j[u8"scute_time"] = Int(*spawnTimer);
+          break;
+        }
+      }
+    }
+  }
+
   static void ArmorStand(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j.erase(u8"ArmorDropChances");
     j.erase(u8"HandDropChances");
@@ -247,6 +282,43 @@ public:
       }
     }
     j[u8"ShowArms"] = Bool(showArms);
+  }
+
+  static void Arrow(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto player = b.boolean(u8"player", false);
+    j[u8"pickup"] = Bool(player);
+
+    auto item = Compound();
+    item->set(u8"count", Int(1));
+    if (auto auxValue = b.byte(u8"auxValue"); auxValue) {
+      auto potion = TippedArrowPotion::JavaPotionType(*auxValue);
+      auto contents = Compound();
+      if (player) {
+        contents->set(u8"potion", potion);
+        java::AppendComponent(item, u8"potion_contents", contents);
+        item->set(u8"id", u8"minecraft:tipped_arrow");
+      } else {
+        auto customEffects = List<Tag::Type::Compound>();
+        auto effect = Compound();
+        auto name = potion;
+        name = strings::RemovePrefix(name, u8"long_");
+        name = strings::RemovePrefix(name, u8"strong_");
+        effect->set(u8"id", name);
+        effect->set(u8"show_icon", Bool(true));
+        auto duration = TippedArrowPotion::JavaPotionDuration(potion);
+        if (duration > 0) {
+          effect->set(u8"duration", Int(duration));
+        }
+        customEffects->push_back(effect);
+        contents->set(u8"custom_effects", customEffects);
+        java::AppendComponent(item, u8"potion_contents", contents);
+        item->set(u8"id", u8"minecraft:arrow");
+      }
+    } else {
+      item->set(u8"id", u8"minecraft:arrow");
+    }
+
+    j[u8"item"] = item;
   }
 
   static void Axolotl(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -297,6 +369,10 @@ public:
       }
       j[u8"Pos"] = posJ.toListTag();
     }
+  }
+
+  static void Bogged(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    CopyBoolValues(b, j, {{u8"Sheared", u8"sheared"}});
   }
 
   static void Camel(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -580,8 +656,6 @@ public:
         itemJ->erase(u8"Slot");
         if (slotJ == 0) {
           j[u8"SaddleItem"] = itemJ;
-        } else if (slotJ == 1) {
-          j[u8"ArmorItem"] = itemJ;
         }
       }
     }
@@ -605,6 +679,15 @@ public:
       if (itemJ) {
         j[u8"Item"] = itemJ;
       }
+    }
+    if (auto ownerIdB = b.int64(u8"OwnerID"); ownerIdB && *ownerIdB != -1) {
+      Uuid uuid;
+      if (auto mapped = ctx.mapLocalPlayerId(*ownerIdB); mapped) {
+        uuid = *mapped;
+      } else {
+        uuid = Uuid::GenWithI64Seed(*ownerIdB);
+      }
+      j[u8"Thrower"] = uuid.toIntArrayTag();
     }
     CopyShortValues(b, j, {{u8"Age"}, {u8"Health"}});
   }
@@ -855,6 +938,12 @@ public:
     }
   }
 
+  static void Wolf(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto variantB = b.int32(u8"Variant", 0);
+    auto variantJ = Wolf::JavaVariantFromBedrockVariant(variantB);
+    j[u8"variant"] = String(variantJ);
+  }
+
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"DrownedConversionTime"] = Int(-1);
     j[u8"CanBreakDoors"] = Bool(HasDefinition(b, u8"+minecraft:can_break_doors"));
@@ -921,6 +1010,35 @@ public:
     if (attackTime) {
       j[u8"AttackTick"] = Int(*attackTime);
     }
+  }
+
+  static void BodyArmorItemFromArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    // remove ArmorItems[1] then set to body_armor_item
+    auto armorItems = j.listTag(u8"ArmorItems");
+    auto armorDropChances = j.listTag(u8"ArmorDropChances");
+    if (!armorItems || !armorDropChances) {
+      return;
+    }
+    if (armorItems->size() < 2 || armorDropChances->size() < 2) {
+      return;
+    }
+    auto armorTag = armorItems->fValue[1];
+    auto chanceTag = armorDropChances->fValue[1];
+    if (!armorTag || !chanceTag) {
+      return;
+    }
+    auto armor = std::dynamic_pointer_cast<CompoundTag>(armorTag);
+    auto chance = std::dynamic_pointer_cast<FloatTag>(chanceTag);
+    if (!armor || !chance) {
+      return;
+    }
+    if (armor->empty()) {
+      return;
+    }
+    j[u8"body_armor_item"] = armor;
+    j[u8"body_armor_drop_chance"] = Float(2);
+    armorItems->fValue[1] = Compound();
+    armorDropChances->fValue[1] = Float(0.085);
   }
 
   static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1111,7 +1229,7 @@ public:
 
   static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto chested = b.boolean(u8"Chested", false); chested) {
-      Items(u8"DecorItem", b, j, ctx, dataVersion);
+      Items(u8"body_armor_item", b, j, ctx, dataVersion);
     }
 
     auto armorsJ = j.listTag(u8"ArmorItems");
@@ -1587,13 +1705,16 @@ public:
           itemJ->erase(u8"Slot");
           subItem = itemJ;
         } else {
-          itemJ->set(u8"Slot", Byte(*slot + 1));
+          itemJ->set(u8"Slot", Byte(*slot - 1));
           items->push_back(itemJ);
         }
       }
 
       if (subItem) {
         j[subItemKey] = subItem;
+        if (subItemKey == u8"body_armor_item") {
+          j[u8"body_armor_drop_chance"] = Float(2);
+        }
       }
     }
     j[u8"Items"] = items;
@@ -1670,7 +1791,7 @@ public:
     if (!count) {
       return nullptr;
     }
-    item->set(u8"Count", Byte(*count));
+    item->set(u8"count", Int(*count));
     return item;
   }
 
@@ -1697,14 +1818,7 @@ public:
     ret->set(u8"buy", buyA);
     if (buyB) {
       ret->set(u8"buyB", buyB);
-    } else {
-      auto air = Compound();
-      air->set(u8"id", u8"minecraft:air");
-      air->set(u8"Count", Byte(0));
-      ret->set(u8"buyB", air);
     }
-
-    ret->set(u8"specialPrice", Int(0));
 
     CopyIntValues(recipeB, *ret, {{u8"demand"}, {u8"maxUses"}, {u8"uses"}, {u8"traderExp", u8"xp"}});
     CopyByteValues(recipeB, *ret, {{u8"rewardExp"}});
@@ -1949,7 +2063,7 @@ public:
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
     E(zoglin, C(Same, LivingEntity));
-    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, Horse));
+    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyArmorItemFromArmorItems, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
@@ -1959,8 +2073,8 @@ public:
     E(evocation_illager, C(Rename(u8"evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
-    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
-    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, Llama));
+    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyArmorItemFromArmorItems, Llama));
+    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyArmorItemFromArmorItems, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper, HealthWithCustomizedMax, MovementSpeed));
@@ -1983,7 +2097,7 @@ public:
     E(vex, C(Same, LivingEntity, NoGravity));
     E(villager_v2, C(Rename(u8"villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
-    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting));
+    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, BodyArmorItemFromArmorItems, Wolf));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed));
     E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
@@ -1998,7 +2112,7 @@ public:
     E(piglin, C(Same, LivingEntity, Inventory, IsBaby, Piglin));
     E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
     E(hoglin, C(Same, Animal, Hoglin));
-    E(arrow, C(Same, Base, Owner));
+    E(arrow, C(Same, Base, Owner, Arrow));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
 
@@ -2012,6 +2126,10 @@ public:
     E(ocelot, C(Same, Animal, Age, Ocelot));
     E(vindicator, C(Same, LivingEntity));
     E(xp_orb, C(Rename(u8"experience_orb"), Base, ExperienceOrb));
+
+    E(armadillo, C(Same, Animal, Armadillo));
+    E(bogged, C(Same, LivingEntity, Bogged));
+    E(breeze, C(Same, LivingEntity));
 #undef E
     return ret;
   }

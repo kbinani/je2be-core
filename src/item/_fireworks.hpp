@@ -9,9 +9,9 @@ public:
   static FireworksData FromJava(CompoundTag const &fireworks) {
     FireworksData es;
 
-    es.fFlight = fireworks.byte(u8"Flight");
+    es.fFlight = FallbackValue<i8>(fireworks, {u8"flight_duration", u8"Flight"});
 
-    auto explosions = fireworks.listTag(u8"Explosions");
+    auto explosions = FallbackPtr<ListTag>(fireworks, {u8"explosions", u8"Explosions"});
     if (explosions) {
       for (auto const &it : *explosions) {
         auto c = it->asCompound();
@@ -62,9 +62,9 @@ public:
     for (auto const &it : fExplosions) {
       explosions->push_back(it.toJavaCompoundTag());
     }
-    ret->set(u8"Explosions", explosions);
+    ret->set(u8"explosions", explosions);
     if (fFlight) {
-      ret->set(u8"Flight", Byte(*fFlight));
+      ret->set(u8"flight_duration", Byte(*fFlight));
     }
     return ret;
   }

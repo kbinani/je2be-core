@@ -13,10 +13,13 @@
 #include "enums/_red-flower.hpp"
 #include "enums/_skull-type.hpp"
 #include "item/_banner.hpp"
+#include "java/_components.hpp"
 #include "tile-entity/_beacon.hpp"
 #include "tile-entity/_loot-table.hpp"
 
 #include <minecraft-file.hpp>
+
+#include "bedrock-block-entity-before-components-introduced.hpp"
 
 namespace je2be::bedrock {
 
@@ -27,24 +30,28 @@ private:
 public:
   static std::optional<Result> FromBlockAndBlockEntity(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
     using namespace std;
-    static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
-    u8string_view key(block.fName);
-    auto found = sTable->find(Namespace::Remove(key));
-    if (found == sTable->end()) {
-      return nullopt;
-    }
-    auto result = found->second(pos, block, tag, blockJ, ctx, dataVersion);
-    if (result && result->fTileEntity) {
-      if (!result->fTileEntity->string(u8"CustomName")) {
-        auto customName = tag.string(u8"CustomName");
-        if (customName) {
-          props::Json json;
-          props::SetJsonString(json, u8"text", *customName);
-          result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
+    if (dataVersion >= kDataVersionComponentIntroduced) {
+      static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
+      u8string_view key(block.fName);
+      auto found = sTable->find(Namespace::Remove(key));
+      if (found == sTable->end()) {
+        return nullopt;
+      }
+      auto result = found->second(pos, block, tag, blockJ, ctx, dataVersion);
+      if (result && result->fTileEntity) {
+        if (!result->fTileEntity->string(u8"CustomName")) {
+          auto customName = tag.string(u8"CustomName");
+          if (customName) {
+            props::Json json;
+            props::SetJsonString(json, u8"text", *customName);
+            result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
+          }
         }
       }
+      return result;
+    } else {
+      return BedrockBlockEntityBeforeComponentsIntroduced::FromBlockAndBlockEntity(pos, block, tag, blockJ, ctx, dataVersion);
     }
-    return result;
   }
 
 #pragma region Dedicated converters
@@ -61,14 +68,15 @@ public:
     }
     auto te = EmptyShortName(u8"banner", pos);
     auto type = tag.int32(u8"Type", 0);
+    ListTagPtr patternsJ;
     if (type == 1) {
       // Illager Banner
-      te->set(u8"CustomName", u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})");
-      te->set(u8"Patterns", Banner::OminousBannerPatterns());
+      java::AppendComponent(te, u8"item_name", String(u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})"));
+      patternsJ = Banner::OminousBannerPatterns(dataVersion);
     } else {
       auto patternsB = tag.listTag(u8"Patterns");
+      patternsJ = List<Tag::Type::Compound>();
       if (patternsB) {
-        auto patternsJ = List<Tag::Type::Compound>();
         for (auto const &pB : *patternsB) {
           CompoundTag const *c = pB->asCompound();
           if (!c) {
@@ -80,14 +88,14 @@ public:
             continue;
           }
           auto pJ = Compound();
-          pJ->set(u8"Color", Int(static_cast<i32>(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
-          pJ->set(u8"Pattern", *pPatternB);
+          pJ->set(u8"color", String(JavaNameFromColorCodeJava(ColorCodeJavaFromBannerColorCodeBedrock(static_cast<BannerColorCodeBedrock>(*pColorB)))));
+          pJ->set(u8"pattern", String(Wrap(Banner::JavaPatternFromBedrockOrLegacyJava(*pPatternB), *pPatternB)));
           patternsJ->push_back(pJ);
         }
-        te->set(u8"Patterns", patternsJ);
-      } else {
-        te->set(u8"Patterns", List<Tag::Type::Compound>());
       }
+    }
+    if (patternsJ && !patternsJ->empty()) {
+      te->set(u8"patterns", patternsJ);
     }
     Result r;
     r.fBlock = blockJ.withId(id);
@@ -149,11 +157,11 @@ public:
                                   u8"OnGround", u8"PortalCooldown", u8"Rotation"}) {
             result->fEntity->erase(key);
           }
-          data->set(u8"EntityData", result->fEntity);
+          data->set(u8"entity_data", result->fEntity);
           bees->push_back(data);
         }
       }
-      te->set(u8"Bees", bees);
+      te->set(u8"bees", bees);
     }
     Result r;
     r.fTileEntity = te;
@@ -196,6 +204,28 @@ public:
     t->set(u8"Fuel", Byte(fuelAmount));
     Result r;
     r.fTileEntity = t;
+    return r;
+  }
+
+  static std::optional<Result> BrushableBlock(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    using namespace std;
+
+    auto tagJ = EmptyShortName(u8"brushable_block", pos);
+    if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
+      if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
+        if (auto itemJ = Item::From(*itemB, ctx, dataVersion, {}); itemJ) {
+          tagJ->set(u8"item", itemJ);
+        }
+      }
+    }
+
+    map<u8string, optional<u8string>> p;
+    auto brushCount = tagB.int32(u8"brush_count", 0);
+    p[u8"dusted"] = mcfile::String::ToString(brushCount);
+
+    Result r;
+    r.fTileEntity = tagJ;
+    r.fBlock = blockJ.applying(p);
     return r;
   }
 
@@ -317,12 +347,11 @@ public:
     t->set(u8"UpdateLastExecution", Bool(true));
 
     auto customName = tagB.string(u8"CustomName", u8"");
-    if (customName.empty()) {
-      customName = u8"\"@\"";
+    if (!customName.empty()) {
+      props::Json json;
+      props::SetJsonString(json, u8"text", customName);
+      t->set(u8"CustomName", props::StringFromJson(json));
     }
-    props::Json json;
-    props::SetJsonString(json, u8"text", customName);
-    t->set(u8"CustomName", props::StringFromJson(json));
 
     Result r;
     r.fTileEntity = t;
@@ -430,6 +459,7 @@ public:
     u8string name = fullName->substr(10);
     u8string suffix;
     if (name == u8"sapling") {
+      // legacy
       auto type = s->string(u8"sapling_type");
       if (!type) {
         return nullopt;
@@ -627,7 +657,7 @@ public:
     for (size_t i = 0; i < 4; i++) {
       u8string line = i < linesB.size() ? linesB[i] : u8"";
       if (line.empty()) {
-        messagesJ->push_back(String(u8"\"\""));
+        messagesJ->push_back(String(u8R"({"text":""})"));
       } else {
         props::Json json;
         props::SetJsonString(json, u8"text", line);
@@ -644,10 +674,10 @@ public:
     ret->set(u8"color", u8"black");
     ret->set(u8"has_glowing_text", Bool(false));
     auto messages = List<Tag::Type::String>();
-    messages->push_back(String(u8""));
-    messages->push_back(String(u8""));
-    messages->push_back(String(u8""));
-    messages->push_back(String(u8""));
+    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(String(u8R"({"text":""})"));
     ret->set(u8"messages", messages);
     return ret;
   }
@@ -810,25 +840,170 @@ public:
     return r;
   }
 
-  static std::optional<Result> BrushableBlock(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
-    using namespace std;
+  static std::optional<Result> TrialSpawner(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    auto t = EmptyShortName(u8"trial_spawner", pos);
 
-    auto tagJ = EmptyShortName(u8"brushable_block", pos);
-    if (LootTable::BedrockToJava(tagB, *tagJ) == LootTable::State::NoLootTable) {
-      if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
-        if (auto itemJ = Item::From(*itemB, ctx, dataVersion, {}); itemJ) {
-          tagJ->set(u8"item", itemJ);
-        }
+    auto spawnDataJ = Compound();
+    auto entityJ = Compound();
+    spawnDataJ->set(u8"entity", entityJ);
+    t->set(u8"spawn_data", spawnDataJ);
+    if (auto spawnDataB = tagB.compoundTag(u8"spawn_data"); spawnDataB) {
+      if (auto idB = spawnDataB->string(u8"TypeId"); idB) {
+        entityJ->set(u8"id", *idB);
       }
     }
 
-    map<u8string, optional<u8string>> p;
-    auto brushCount = tagB.int32(u8"brush_count", 0);
-    p[u8"dusted"] = mcfile::String::ToString(brushCount);
+    for (auto const &key : {u8"registered_players", u8"current_mobs"}) {
+      if (auto uuidListB = tagB.listTag(key); uuidListB) {
+        auto uuidListJ = ConvertUuidList(*uuidListB, ctx);
+        t->set(key, uuidListJ);
+      }
+    }
+
+    bool hasNormalConfig = false;
+    bool hasOminousConfig = false;
+    if (auto config = tagB.compoundTag(u8"normal_config"); config) {
+      t->set(u8"normal_config", TrialSpawnerReplaceConfigLootTables(config));
+      hasNormalConfig = true;
+    }
+    if (auto config = tagB.compoundTag(u8"ominous_config"); config) {
+      t->set(u8"ominous_config", TrialSpawnerReplaceConfigLootTables(config));
+      hasOminousConfig = true;
+    }
+    if (hasNormalConfig || hasOminousConfig) {
+      if (!hasNormalConfig) {
+        t->set(u8"normal_config", Compound());
+      }
+    } else {
+      // trial spawner that was placed by player in creative mode
+      t->set(u8"spawn_range", Int(4));
+      t->set(u8"total_mobs", Float(6));
+      t->set(u8"total_mobs_added_per_player", Float(1));
+      t->set(u8"ticks_between_spawn", Int(20));
+      t->set(u8"simultaneous_mobs", Float(2));
+      t->set(u8"simultaneous_mobs_added_per_player", Float(1));
+    }
+    CopyLongValues(tagB, *t, {{u8"next_mob_spawns_at"}, {u8"cooldown_end_at"}});
+    Result r;
+    r.fTileEntity = t;
+    return r;
+  }
+
+  static ListTagPtr ConvertUuidList(ListTag const &bedrock, Context const &ctx) {
+    auto java = List<Tag::Type::IntArray>();
+    for (auto const &it : bedrock) {
+      if (auto uuidB = it->asCompound(); uuidB) {
+        if (auto uuid = uuidB->int64(u8"uuid"); uuid) {
+          auto uuidJ = ConvertEntityId(*uuid, ctx);
+          java->push_back(uuidJ.toIntArrayTag());
+        }
+      }
+    }
+    return java;
+  }
+
+  static CompoundTagPtr TrialSpawnerReplaceConfigLootTables(CompoundTagPtr bedrock) {
+    auto java = bedrock->copy();
+    if (auto dropB = bedrock->string(u8"items_to_drop_when_ominous"); dropB) {
+      if (auto dropJ = LootTable::BedrockTableNameFromJava(*dropB); dropJ) {
+        java->set(u8"items_to_drop_when_ominous", *dropJ);
+      }
+    }
+    if (auto tablesB = bedrock->listTag(u8"loot_tables_to_eject"); tablesB) {
+      auto tablesJ = List<Tag::Type::Compound>();
+      for (auto const &it : *tablesB) {
+        if (auto tableB = it->asCompound(); tableB) {
+          auto tableJ = tableB->copy();
+          if (auto dataB = tableB->string(u8"data"); dataB) {
+            if (auto dataJ = LootTable::JavaTableNameFromBedrock(*dataB); dataJ) {
+              tableJ->set(u8"data", *dataJ);
+            }
+          }
+          tablesJ->push_back(tableJ);
+        }
+      }
+      java->set(u8"loot_tables_to_eject", tablesJ);
+    }
+    return java;
+  }
+
+  static Uuid ConvertEntityId(long bedrock, Context const &ctx) {
+    if (auto mapped = ctx.mapLocalPlayerId(bedrock); mapped) {
+      return *mapped;
+    } else {
+      return Uuid::GenWithI64Seed(bedrock);
+    }
+  }
+
+  static std::optional<Result> Vault(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    auto t = EmptyShortName(u8"vault", pos);
+
+    if (auto configB = tagB.compoundTag(u8"config"); configB) {
+      auto configJ = Compound();
+      if (auto keyItemB = configB->compoundTag(u8"key_item"); keyItemB) {
+        if (auto keyItemJ = Item::From(*keyItemB, ctx, dataVersion, {}); keyItemJ) {
+          configJ->set(u8"key_item", keyItemJ);
+        }
+      }
+      if (!configJ->empty()) {
+        t->set(u8"config", configJ);
+      }
+    }
+
+    auto serverDataJ = Compound();
+    auto sharedDataJ = Compound();
+    if (auto dataB = tagB.compoundTag(u8"data"); dataB) {
+      if (auto displayItemB = dataB->compoundTag(u8"display_item"); displayItemB) {
+        if (auto displayItemJ = Item::From(*displayItemB, ctx, dataVersion, {}); displayItemJ) {
+          sharedDataJ->set(u8"display_item", displayItemJ);
+        }
+      }
+
+      if (auto itemsToEjectB = dataB->listTag(u8"items_to_eject"); itemsToEjectB) {
+        auto itemsToEjectJ = List<Tag::Type::Compound>();
+        for (auto const &it : *itemsToEjectB) {
+          auto v = it->asCompound();
+          if (!v) {
+            continue;
+          }
+          if (auto converted = Item::From(*v, ctx, dataVersion, {}); converted) {
+            itemsToEjectJ->push_back(converted);
+          }
+        }
+        if (!itemsToEjectJ->empty()) {
+          serverDataJ->set(u8"items_to_eject", itemsToEjectJ);
+        }
+      }
+
+      if (auto rewardedPlayersB = dataB->listTag(u8"rewarded_players"); rewardedPlayersB) {
+        auto rewardedPlayersJ = List<Tag::Type::IntArray>();
+        for (auto const &it : *rewardedPlayersB) {
+          auto v = it->asLong();
+          if (!v) {
+            continue;
+          }
+          Uuid uuid;
+          if (auto mapped = ctx.mapLocalPlayerId(v->fValue); mapped) {
+            uuid = *mapped;
+          } else {
+            uuid = Uuid::GenWithI64Seed(v->fValue);
+          }
+          rewardedPlayersJ->push_back(uuid.toIntArrayTag());
+        }
+        if (!rewardedPlayersJ->empty()) {
+          serverDataJ->set(u8"rewarded_players", rewardedPlayersJ);
+        }
+      }
+
+      CopyLongValues(*dataB, *serverDataJ, {{u8"state_updating_resumes_at"}, {u8"total_ejections_needed"}});
+    }
+    if (!serverDataJ->empty()) {
+      t->set(u8"server_data", serverDataJ);
+    }
+    t->set(u8"shared_data", sharedDataJ);
 
     Result r;
-    r.fTileEntity = tagJ;
-    r.fBlock = blockJ.applying(p);
+    r.fTileEntity = t;
     return r;
   }
 #pragma endregion
@@ -1072,6 +1247,8 @@ public:
     E(calibrated_sculk_sensor, SameNameEmpty);
 
     E(crafter, Crafter);
+    E(vault, Vault);
+    E(trial_spawner, TrialSpawner);
 #undef E
     return t;
   }

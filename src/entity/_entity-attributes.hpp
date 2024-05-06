@@ -102,7 +102,7 @@ public:
       }
     }
 
-    Attribute luck(0, 0, 1024);
+    Attribute luck(0, -1024, 1024);
     Attribute followRange(16, 16, 2048);
     Attribute absorption(0, 0, 16);
 
@@ -155,7 +155,7 @@ public:
                          Attribute(0.02, 0.02),    // lava_movement
                          Attribute(16, 16, 2048),  // follow_range
                          Attribute(3, 3, 3));      // attack_damage
-    Attributes tamedAttrs(Attribute(20, 20, 20),   // health
+    Attributes tamedAttrs(Attribute(40, 40, 40),   // health
                           Attribute(0, 0, 1),      // knockback_resistance
                           Attribute(0.3, 0.3),     // movement
                           Attribute(0.02, 0.02),   // underwater_movement
@@ -270,7 +270,13 @@ private:
     table->insert(make_pair(u8"minecraft:squid", squid));
     table->insert(make_pair(u8"minecraft:stray", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair(u8"minecraft:strider", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.16, 0.16), Attribute(0.02, 0.02), Attribute(0.32, 0.32), Attribute(16, 16, 2048), nullopt)));
-    table->insert(make_pair(u8"minecraft:tropical_fish", Attributes(Attribute(6, 6, 6), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
+    table->insert(make_pair(u8"minecraft:tropical_fish", Attributes(Attribute(3, 3, 3),      // health
+                                                                    Attribute(0, 0, 1),      //knockback_resistance
+                                                                    Attribute(0.12, 0.12),   // movement
+                                                                    Attribute(0.12, 0.12),   // underwater_movement
+                                                                    Attribute(0.02, 0.02),   //lava_movement
+                                                                    Attribute(16, 16, 2048), //follow_range
+                                                                    nullopt)));              //attack_damage
     table->insert(make_pair(u8"minecraft:turtle", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
     table->insert(make_pair(u8"minecraft:vex", Attributes(Attribute(14, 14, 14), Attribute(0, 0, 1), Attribute(1, 1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair(u8"minecraft:villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(128, 128, 2048), nullopt)));
@@ -353,6 +359,32 @@ private:
                                                        Attribute(0.02, 0.02),   // lava_movement
                                                        Attribute(64, 64, 2048), // follow_range
                                                        nullopt)));              // attack_damage
+
+    // 1.21
+    table->insert(make_pair(u8"minecraft:armadillo", Attributes(
+                                                         Attribute(12, 12, 12),   // health(base, current, max)
+                                                         Attribute(0, 0, 1),      // knockback_resistance
+                                                         Attribute(0.14, 0.14),   // movement
+                                                         Attribute(0.02, 0.02),   // underwater_movement
+                                                         Attribute(0.02, 0.02),   // lava_movement
+                                                         Attribute(16, 16, 2048), // follow_range
+                                                         nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:bogged", Attributes(
+                                                      Attribute(16, 16, 16),   // health(base, current, max)
+                                                      Attribute(0, 0, 1),      // knockback_resistance
+                                                      Attribute(0.25, 0.25),   // movement
+                                                      Attribute(0.02, 0.02),   // underwater_movement
+                                                      Attribute(0.02, 0.02),   // lava_movement
+                                                      Attribute(16, 16, 2048), // follow_range
+                                                      nullopt)));              // attack_damage
+    table->insert(make_pair(u8"minecraft:breeze", Attributes(
+                                                      Attribute(30, 30, 30),   // health(base, current, max)
+                                                      Attribute(0, 0, 1),      // knockback_resistance
+                                                      Attribute(0.4, 0.4),     // movement
+                                                      Attribute(0.02, 0.02),   // underwater_movement
+                                                      Attribute(0.02, 0.02),   // lava_movement
+                                                      Attribute(32, 32, 2048), // follow_range
+                                                      nullopt)));              // attack_damage
 
     return table;
   }

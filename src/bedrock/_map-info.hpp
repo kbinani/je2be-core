@@ -15,18 +15,29 @@ class MapInfo {
 public:
   struct Decoration {
     std::u8string fId;
-    double fRot;
-    i64 fType;
+    float fRotation;
+    std::u8string fType;
     double fX;
     double fZ;
 
-    CompoundTagPtr toCompoundTag() const {
+    CompoundTagPtr toJavaCompoundTag(int dataVersion) const {
       auto ret = Compound();
-      ret->set(u8"id", fId);
-      ret->set(u8"rot", Double(fRot));
-      ret->set(u8"type", Byte(fType));
-      ret->set(u8"x", Double(fX));
-      ret->set(u8"z", Double(fZ));
+      if (dataVersion >= kDataVersionComponentIntroduced) {
+        ret->set(u8"rotation", Float(fRotation));
+        if (!fType.empty()) {
+          ret->set(u8"type", String(Namespace::Add(fType)));
+        }
+        ret->set(u8"x", Double(fX));
+        ret->set(u8"z", Double(fZ));
+      } else {
+        ret->set(u8"id", fId);
+        ret->set(u8"rot", Double(fRotation));
+        if (auto type = MapDecoration::LegacyJavaTypeFromJava(fType); type) {
+          ret->set(u8"type", Byte(*type));
+        }
+        ret->set(u8"x", Double(fX));
+        ret->set(u8"z", Double(fZ));
+      }
       return ret;
     }
   };
@@ -87,15 +98,14 @@ public:
         if (!markerX || !markerY) {
           continue;
         }
-        decorationJ.fRot = 0;
+        decorationJ.fRotation = 0;
         if (*rotB == 0) {
-          decorationJ.fRot = 0;
+          decorationJ.fRotation = 0;
         } else if (*rotB == 8) {
-          decorationJ.fRot = 180;
+          decorationJ.fRotation = 180;
         } else if (*rotB == 12) {
-          decorationJ.fRot = 270;
+          decorationJ.fRotation = 270;
         }
-        decorationJ.fType = 0;
         if (auto typeJ = MapDecoration::JavaTypeFromBedrock(*typeB); typeJ) {
           decorationJ.fType = *typeJ;
         }

@@ -355,6 +355,7 @@ public:
     case tuff_slab:
     case tuff_stairs:
     case tuff_wall:
+    case vault:
     case warped_nylium:
     case white_concrete:
     case white_glazed_terracotta:
@@ -675,6 +676,7 @@ public:
     case gravel:
     case gray_concrete_powder:
     case green_concrete_powder:
+    case heavy_core:
     case light_blue_concrete_powder:
     case light_gray_concrete_powder:
     case lime_concrete_powder:

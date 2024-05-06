@@ -38,6 +38,14 @@ public:
     return result;
   }
 
+  static i64 RandomEntityId() {
+    std::random_device rd;
+    std::mt19937_64 mt(rd());
+    std::uniform_int_distribution<i64> distribution(std::numeric_limits<i64>::lowest(), std::numeric_limits<i64>::max());
+    i64 candidate = distribution(mt);
+    return AvoidCollision(candidate);
+  }
+
 private:
   static std::mutex *Mut() {
     static std::mutex sMut;

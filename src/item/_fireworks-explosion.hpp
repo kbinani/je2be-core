@@ -6,56 +6,66 @@ namespace je2be {
 
 class FireworksExplosion {
 public:
+  enum class Shape {
+    SmallBall, // default
+    Star,      // gold nuget
+    Burst,     // feather
+    LargeBall, // firecharge
+    Creeper,   // skull
+  };
+
   static FireworksExplosion FromJava(CompoundTag const &tag) {
     FireworksExplosion e;
-    e.fTrail = tag.boolean(u8"Trail");
-    e.fFlicker = tag.boolean(u8"Flicker");
-    auto colors = tag.query(u8"Colors")->asIntArray();
+    e.fHasTrail = FallbackValue<bool>(tag, {u8"has_trail", u8"Trail"});
+    e.fHasTwinkle = FallbackValue<bool>(tag, {u8"has_twinkle", u8"Flicker"});
+    auto colors = FallbackPtr<IntArrayTag>(tag, {u8"colors", u8"Colors"});
     if (colors) {
       for (auto v : colors->value()) {
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
         u8 g = 0xff & ((*(u32 *)&v) >> 8);
         u8 b = 0xff & (*(u32 *)&v);
-        e.fColor.emplace_back(r, g, b);
+        e.fColors.emplace_back(r, g, b);
       }
     }
-    auto fadeColors = tag.query(u8"FadeColors")->asIntArray();
+    auto fadeColors = FallbackPtr<IntArrayTag>(tag, {u8"fade_colors", u8"FadeColors"});
     if (fadeColors) {
       for (auto v : fadeColors->value()) {
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
         u8 g = 0xff & ((*(u32 *)&v) >> 8);
         u8 b = 0xff & (*(u32 *)&v);
-        e.fFadeColor.emplace_back(r, g, b);
+        e.fFadeColors.emplace_back(r, g, b);
       }
     }
-    e.fType = tag.byte(u8"Type");
+    auto const &table = ShapeTable();
+    if (auto shape = tag.string(u8"shape"); shape) {
+      for (auto const &it : table) {
+        if (it.second.first == *shape) {
+          e.fShape = it.first;
+          break;
+        }
+      }
+    } else if (auto legacyType = tag.byte(u8"Type"); legacyType) {
+      for (auto const &it : table) {
+        if (it.second.second == *legacyType) {
+          e.fShape = it.first;
+          break;
+        }
+      }
+    }
     return e;
-
-    // Java
-    // Fireworks
-    //   Explosions
-    //     Type
-    //       1: large (firecharge)
-    //       2: star (gold nugget)
-    //       3: creeper (skull)
-    //       4: explosion (feather)
-    //    Flicker: true (glowstone dust)
-    //    Trail: true (diamond)
-    //    Colors: IntArray (RGB)
-    //    FadeColors: IntArray (RGB)
   }
 
   static FireworksExplosion FromBedrock(CompoundTag const &tag) {
     FireworksExplosion e;
-    e.fFlicker = tag.boolean(u8"FireworkFlicker");
-    e.fTrail = tag.boolean(u8"FireworkTrail");
+    e.fHasTwinkle = tag.boolean(u8"FireworkFlicker");
+    e.fHasTrail = tag.boolean(u8"FireworkTrail");
     auto colorB = tag.byteArrayTag(u8"FireworkColor");
     auto const *table = GetTable();
     if (colorB) {
       for (i8 code : colorB->value()) {
         auto found = table->find(code);
         if (found != table->end()) {
-          e.fColor.push_back(found->second);
+          e.fColors.push_back(found->second);
         }
       }
     }
@@ -64,34 +74,43 @@ public:
       for (i8 code : fade->value()) {
         auto found = table->find(code);
         if (found != table->end()) {
-          e.fFadeColor.push_back(found->second);
+          e.fFadeColors.push_back(found->second);
         }
       }
     }
-    e.fType = tag.byte(u8"FireworkType");
+    auto fireworkTypeB = tag.byte(u8"FireworkType");
+    for (auto const &it : ShapeTable()) {
+      if (it.second.second == *fireworkTypeB) {
+        e.fShape = it.first;
+        break;
+      }
+    }
     return e;
   }
 
   CompoundTagPtr toBedrockCompoundTag() const {
     auto ret = Compound();
-    if (fFlicker) {
-      ret->set(u8"FireworkFlicker", Bool(*fFlicker));
+    if (fHasTwinkle) {
+      ret->set(u8"FireworkFlicker", Bool(*fHasTwinkle));
     }
-    if (fTrail) {
-      ret->set(u8"FireworkTrail", Bool(*fTrail));
+    if (fHasTrail) {
+      ret->set(u8"FireworkTrail", Bool(*fHasTrail));
     }
-    if (fType) {
-      ret->set(u8"FireworkType", Byte(*fType));
+    if (fShape) {
+      auto const &table = ShapeTable();
+      if (auto found = table.find(*fShape); found != table.end()) {
+        ret->set(u8"FireworkType", Byte(found->second.second));
+      }
     }
-    if (!fColor.empty()) {
+    if (!fColors.empty()) {
       std::vector<u8> colors;
-      for (Rgba c : fColor) {
+      for (Rgba c : fColors) {
         colors.push_back(GetBedrockColorCode(c));
       }
       ret->set(u8"FireworkColor", std::make_shared<ByteArrayTag>(colors));
     }
     std::vector<u8> fade;
-    for (Rgba f : fFadeColor) {
+    for (Rgba f : fFadeColors) {
       fade.push_back(GetBedrockColorCode(f));
     }
     ret->set(u8"FireworkFade", std::make_shared<ByteArrayTag>(fade));
@@ -101,28 +120,31 @@ public:
   CompoundTagPtr toJavaCompoundTag() const {
     using namespace std;
     auto ret = Compound();
-    if (fTrail) {
-      ret->set(u8"Trail", Bool(*fTrail));
+    if (fHasTrail) {
+      ret->set(u8"has_trail", Bool(*fHasTrail)); // this was "Trail"
     }
-    if (fFlicker) {
-      ret->set(u8"Flicker", Bool(*fFlicker));
+    if (fHasTwinkle) {
+      ret->set(u8"has_twinkle", Bool(*fHasTwinkle)); // this was "Flicker"
     }
-    if (fType) {
-      ret->set(u8"Type", Byte(*fType));
+    if (fShape) {
+      auto const &table = ShapeTable();
+      if (auto found = table.find(*fShape); found != table.end()) {
+        ret->set(u8"shape", String(found->second.first));
+      }
     }
-    if (!fColor.empty()) {
+    if (!fColors.empty()) {
       vector<i32> colors;
-      for (auto const &it : fColor) {
+      for (auto const &it : fColors) {
         colors.push_back(it.toRGB());
       }
-      ret->set(u8"Colors", make_shared<IntArrayTag>(colors));
+      ret->set(u8"colors", make_shared<IntArrayTag>(colors));
     }
-    if (!fFadeColor.empty()) {
+    if (!fFadeColors.empty()) {
       vector<i32> fade;
-      for (auto const &it : fFadeColor) {
+      for (auto const &it : fFadeColors) {
         fade.push_back(it.toRGB());
       }
-      ret->set(u8"FadeColors", make_shared<IntArrayTag>(fade));
+      ret->set(u8"fade_colors", make_shared<IntArrayTag>(fade));
     }
     return ret;
   }
@@ -217,12 +239,27 @@ private:
     return ret.fCode;
   }
 
+  static std::unordered_map<Shape, std::pair<std::u8string, i8>> const *CreateShapeTable() {
+    return new std::unordered_map<Shape, std::pair<std::u8string, i8>>({
+        {Shape::SmallBall, {u8"small_ball", 0}},
+        {Shape::LargeBall, {u8"large_ball", 1}},
+        {Shape::Star, {u8"star", 2}},
+        {Shape::Creeper, {u8"creeper", 3}},
+        {Shape::Burst, {u8"burst", 4}},
+    });
+  }
+
+  static std::unordered_map<Shape, std::pair<std::u8string, i8>> const &ShapeTable() {
+    static std::unique_ptr<std::unordered_map<Shape, std::pair<std::u8string, i8>> const> sTable(CreateShapeTable());
+    return *sTable;
+  }
+
 public:
-  std::optional<bool> fFlicker;
-  std::optional<bool> fTrail;
-  std::optional<i8> fType;
-  std::vector<Rgba> fColor;
-  std::vector<Rgba> fFadeColor;
+  std::optional<bool> fHasTwinkle; // glowstone dust
+  std::optional<bool> fHasTrail;   // diamond
+  std::optional<Shape> fShape;
+  std::vector<Rgba> fColors;
+  std::vector<Rgba> fFadeColors;
 };
 
 } // namespace je2be

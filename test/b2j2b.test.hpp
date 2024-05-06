@@ -1,3 +1,5 @@
+static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual);
+
 static std::shared_ptr<CompoundTag> ReadLevelDatB(fs::path const &p) {
   auto s = make_shared<mcfile::stream::FileInputStream>(p);
   REQUIRE(s->seek(4));     // version
@@ -20,6 +22,8 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   ignore.insert(u8"recipesunlock");
   ignore.insert(u8"serverChunkTickRange");
   ignore.insert(u8"worldStartCount");
+  ignore.insert(u8"InventoryVersion");
+  ignore.insert(u8"NetworkVersion");
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);
@@ -53,6 +57,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"minecraft:deflate_sensor",        // pufferfish
       u8"minecraft:deflate_sensor_buffer", // pufferfish
       u8"minecraft:start_deflate",         // pufferfish
+      u8"minecraft:full_puff",             // pufferfish
   };
 
   set<u8string> setE;
@@ -130,6 +135,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
 
 static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) {
   auto nameE = expected.string(u8"name");
+  auto nameA = actual.string(u8"name");
   set<u8string> ignore;
   if (nameE == u8"minecraft:brown_mushroom_block") {
     if (auto statesE = expected.compoundTag(u8"states"); statesE) {
@@ -138,7 +144,7 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) 
       }
     }
   }
-  CHECK(nameE == actual.string(u8"name"));
+  CHECK(nameE == nameA);
   auto statesE = expected.compoundTag(u8"states");
   auto statesA = actual.compoundTag(u8"states");
   if (statesE) {
@@ -157,6 +163,7 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) 
 
 static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
   auto nameE = expected.string(u8"Name");
+  auto nameA = actual.string(u8"Name");
   auto e = expected.copy();
   auto a = actual.copy();
   set<u8string> ignore;
@@ -172,6 +179,26 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
       ignore.insert(u8"Damage");
       CHECK(actual.int16(u8"Damage") == 4);
     }
+  } else if (nameE == u8"minecraft:tropical_fish_bucket" || nameE == u8"minecraft:cod_bucket" || nameE == u8"minecraft:salmon_bucket" || nameE == u8"minecraft:pufferfish_bucket" || nameE == u8"minecraft:axolotl_bucket" || nameE == u8"minecraft:tadpole_bucket") {
+    auto tagE = expected.compoundTag(u8"tag");
+    auto tagA = actual.compoundTag(u8"tag");
+    if (tagE) {
+      auto idE = tagE->string(u8"identifier");
+      REQUIRE(idE);
+      CHECK(tagA);
+      if (tagA) {
+        auto copyE = tagE->copy();
+        auto copyA = tagA->copy();
+        for (auto const &p : {u8"Air"}) {
+          Erase(copyE, p);
+          Erase(copyA, p);
+        }
+        CheckEntityB(*idE, *copyE, *copyA);
+      }
+    } else {
+      CHECK(!tagA);
+    }
+    ignore.insert(u8"tag");
   }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
@@ -183,8 +210,8 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
     ignore.insert(u8"Block");
   }
   for (auto const &i : ignore) {
-    e->erase(i);
-    a->erase(i);
+    Erase(e, i);
+    Erase(a, i);
   }
   DiffCompoundTag(*e, *a);
 }
@@ -261,6 +288,9 @@ static void CheckRotationB(float e, float a) {
 static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE) {
   auto e = expected.copy();
   auto a = actual.copy();
+  auto x = expected.int32(u8"x");
+  auto y = expected.int32(u8"y");
+  auto z = expected.int32(u8"z");
   auto idE = e->string(u8"id");
   auto idA = a->string(u8"id");
   REQUIRE(idE);
@@ -275,6 +305,7 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"LastOutputParams");
     ignore.insert(u8"ExecuteOnFirstTick");
     ignore.insert(u8"Version");
+    ignore.insert(u8"CustomName");
   } else if (*idE == u8"Bell") {
     ignore.insert(u8"Ticks");
     auto direction = e->int32(u8"Direction");
@@ -322,6 +353,28 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     CheckItemB(*itemE, *itemA);
     ignore.insert(u8"Item");
   }
+  for (auto const &key : {u8"Items"}) {
+    ignore.insert(key);
+    auto listE = e->listTag(key);
+    auto listA = a->listTag(key);
+    if (listE) {
+      CHECK(listA);
+      if (listA) {
+        CHECK(listE->size() == listA->size());
+        for (size_t i = 0; i < listE->size(); i++) {
+          auto itemE = listE->at(i)->asCompound();
+          auto itemA = listA->at(i)->asCompound();
+          REQUIRE(itemE);
+          CHECK(itemA);
+          if (itemA) {
+            CheckItemB(*itemE, *itemA);
+          }
+        }
+      }
+    } else {
+      CHECK(!listA);
+    }
+  }
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);
@@ -329,12 +382,12 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
   DiffCompoundTag(*e, *a);
 }
 
-static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk const &actual) {
-  for (int y = expected.minBlockY(); y <= expected.maxBlockY(); y++) {
-    for (int z = expected.minBlockZ(); z <= expected.maxBlockZ(); z++) {
-      for (int x = expected.minBlockX(); x <= expected.maxBlockX(); x++) {
-        auto e = expected.blockAt(x, y, z);
-        auto a = actual.blockAt(x, y, z);
+static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const &chunkA) {
+  for (int y = chunkE.minBlockY(); y <= chunkE.maxBlockY(); y++) {
+    for (int z = chunkE.minBlockZ(); z <= chunkE.maxBlockZ(); z++) {
+      for (int x = chunkE.minBlockX(); x <= chunkE.maxBlockX(); x++) {
+        auto e = chunkE.blockAt(x, y, z);
+        auto a = chunkA.blockAt(x, y, z);
         if (e) {
           REQUIRE(a);
           if (e->fName == u8"minecraft:water" || e->fName == u8"minecraft:flowing_water" || e->fName == u8"minecraft:lava" || e->fName == u8"minecraft:flowing_lava") {
@@ -375,14 +428,14 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       }
     }
   }
-  for (auto const &e : expected.entities()) {
+  for (auto const &e : chunkE.entities()) {
     auto posE = je2be::props::GetPos3f(*e, u8"Pos");
     REQUIRE(posE);
     auto idE = e->string(u8"identifier");
     REQUIRE(idE);
     double minDistanceSq = numeric_limits<double>::max();
     CompoundTagPtr a;
-    for (auto const &it : actual.entities()) {
+    for (auto const &it : chunkA.entities()) {
       auto posA = je2be::props::GetPos3f(*it, u8"Pos");
       if (!posA) {
         continue;
@@ -407,8 +460,8 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       CHECK(false);
     }
   }
-  auto const &actualBlockEntities = actual.blockEntities();
-  for (auto const &e : expected.blockEntities()) {
+  auto const &actualBlockEntities = chunkA.blockEntities();
+  for (auto const &e : chunkE.blockEntities()) {
     auto found = actualBlockEntities.find(e.first);
     REQUIRE(e.second);
     CHECK(found != actualBlockEntities.end());
@@ -416,7 +469,7 @@ static void CheckChunkB(mcfile::be::Chunk const &expected, mcfile::be::Chunk con
       continue;
     }
     REQUIRE(found->second);
-    auto blockE = expected.blockAt(e.first);
+    auto blockE = chunkE.blockAt(e.first);
     CheckBlockEntityB(*e.second, *found->second, blockE);
   }
 }
@@ -434,19 +487,42 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   Status st = ZipFile::Unzip(in, *inB);
   REQUIRE(st.ok());
 
-  std::unordered_set<Pos2i, Pos2iHasher> chunkFilter;
-#if 0
-  chunkFilter.insert({0, 1});
-#endif
-
   // bedrock -> java
   auto outJ = mcfile::File::CreateTempDir(*tmp);
   REQUIRE(outJ);
   je2be::bedrock::Options optJ;
   optJ.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
-  if (!chunkFilter.empty()) {
-    for (auto const &ch : chunkFilter) {
-      optJ.fChunkFilter.insert(ch);
+  std::unordered_set<Pos2i, Pos2iHasher> chunks;
+  std::vector<mcfile::Dimension> dimensions = {mcfile::Dimension::Overworld,
+                                               mcfile::Dimension::Nether,
+                                               mcfile::Dimension::End};
+  bool checkLevelDat = true;
+#if 1
+  Pos2i center(0, 0);
+  int radius = 3;
+  for (int x = -radius; x <= radius; x++) {
+    for (int y = -radius; y <= radius; y++) {
+      chunks.insert({center.fX + x, center.fZ + y});
+    }
+  }
+#else
+  chunks.insert({2, 1});
+  dimensions.clear();
+  dimensions = {mcfile::Dimension::Overworld};
+  checkLevelDat = false;
+#endif
+  if (!dimensions.empty()) {
+    for (auto const &d : dimensions) {
+      optJ.fDimensionFilter.insert(d);
+    }
+  }
+  if (!chunks.empty()) {
+    for (auto const &ch : chunks) {
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dz = -1; dz <= 1; dz++) {
+          optJ.fChunkFilter.insert({ch.fX + dx, ch.fZ + dz});
+        }
+      }
     }
   }
   st = je2be::bedrock::Converter::Run(*inB, *outJ, optJ, concurrency);
@@ -457,24 +533,35 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   REQUIRE(outB);
   je2be::java::Options optB;
   optB.fTempDirectory = mcfile::File::CreateTempDir(*tmp);
-  if (!chunkFilter.empty()) {
-    for (auto const &ch : chunkFilter) {
-      optB.fChunkFilter.insert(ch);
+  if (!dimensions.empty()) {
+    for (auto const &d : dimensions) {
+      optB.fDimensionFilter.insert(d);
+    }
+  }
+  if (!chunks.empty()) {
+    for (auto const &ch : chunks) {
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dz = -1; dz <= 1; dz++) {
+          optB.fChunkFilter.insert({ch.fX + dx, ch.fZ + dz});
+        }
+      }
     }
   }
   st = je2be::java::Converter::Run(*outJ, *outB, optB, concurrency);
   REQUIRE(st.ok());
 
   // Compare initial Bedrock input and final Bedrock output.
-  CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  if (checkLevelDat) {
+    CheckLevelDatB(*inB / "level.dat", *outB / "level.dat");
+  }
   unique_ptr<leveldb::DB> dbE(OpenF(*inB / "db"));
   unique_ptr<leveldb::DB> dbA(OpenF(*outB / "db"));
   REQUIRE(dbE);
   REQUIRE(dbA);
 
-  for (auto dimension : {mcfile::Dimension::Overworld, mcfile::Dimension::Nether, mcfile::Dimension::End}) {
+  for (auto dimension : dimensions) {
     mcfile::be::Chunk::ForAll(dbE.get(), dimension, [&](int cx, int cz) {
-      if (!chunkFilter.empty() && chunkFilter.count({cx, cz}) == 0) {
+      if (!chunks.empty() && chunks.count({cx, cz}) == 0) {
         return true;
       }
       auto chunkE = mcfile::be::Chunk::Load(cx, cz, dimension, dbE.get(), mcfile::Endian::Little);

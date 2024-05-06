@@ -121,6 +121,7 @@ public:
   i32 fDataVersion = mcfile::je::Chunk::kDataVersion;
   bool fProjectilescanbreakblocks = true;
   bool fShowrecipemessages = true;
+  bool fIsHardcore = false;
 
   CompoundTagPtr toCompoundTag() const {
     auto root = Compound();
@@ -232,6 +233,7 @@ public:
         {u8"world_policies", Compound()},
         {u8"projectilescanbreakblocks", Bool(fProjectilescanbreakblocks)},
         {u8"showrecipemessages", Bool(fShowrecipemessages)},
+        {u8"IsHardcore", Bool(fIsHardcore)},
     });
     auto experiments = Compound();
     experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
@@ -283,6 +285,7 @@ public:
     I(fCurrentTick, int64, u8"Time");
     I(fLimitedWorldOriginX, float64, u8"BorderCenterX");
     I(fLimitedWorldOriginZ, float64, u8"BorderCenterZ");
+    I(fIsHardcore, boolean, u8"hardcore");
     ret.fLastPlayed = data->int64(u8"LastPlayed", ret.fLastPlayed * 1000) / 1000;
 #undef I
 

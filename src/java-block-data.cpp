@@ -6,6 +6,7 @@
 #include "_namespace.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
+#include "block/_trial-spawner.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
 #include "java/_versions.hpp"
@@ -70,7 +71,7 @@ public:
   static NamingFunction ChangeWhenDoubleType(std::u8string const &doubleName) {
     return [=](Block const &block, Options const &o) {
       auto t = block.property(u8"type", u8"bottom");
-      return t == u8"double" ? u8"minecraft:" + doubleName : block.name();
+      return t == u8"double" ? Namespace::Add(doubleName) : Namespace::Add(strings::Remove(doubleName, u8"double_"));
     };
   }
 
@@ -176,7 +177,11 @@ public:
   }
 
   static PropertyPickupFunction Name(std::function<PropertyType(Block const &)> func, std::u8string const &name) {
-    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) { s->set(name, func(block)); };
+    return [=](CompoundTagPtr const &s, Block const &block, Options const &o) {
+      if (auto v = func(block); v) {
+        s->set(name, v);
+      }
+    };
   }
 
   static PropertyType Level(Block const &block) {
@@ -251,13 +256,13 @@ public:
 
   // static Converter Log2Legacy(std::u8string const &type) { return Converter(Name(u8"log2"), AddStringProperty(u8"new_log_type", type), AxisToPillarAxis); }
 
-  static Converter Wood(std::u8string const &type, bool stripped) { return Converter(Name(u8"wood"), AxisToPillarAxis, AddStringProperty(u8"wood_type", type), AddBoolProperty(u8"stripped_bit", stripped)); }
+  static Converter WoodLegacy(std::u8string const &type, bool stripped) { return Converter(Name(u8"wood"), AxisToPillarAxis, AddStringProperty(u8"wood_type", type), AddBoolProperty(u8"stripped_bit", stripped)); }
 
-  static Converter Leaves(std::u8string const &type) { return Converter(Name(u8"leaves"), AddStringProperty(u8"old_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
+  static Converter LeavesLegacy(std::u8string const &type) { return Converter(Name(u8"leaves"), AddStringProperty(u8"old_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
 
-  static Converter Leaves2(std::u8string const &type) { return Converter(Name(u8"leaves2"), AddStringProperty(u8"new_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
+  static Converter Leaves2Legacy(std::u8string const &type) { return Converter(Name(u8"leaves2"), AddStringProperty(u8"new_leaf_type", type), PersistentAndDistanceToPersistentBitAndUpdateBit); }
 
-  static Converter WoodenSlab(std::u8string const &type) { return Converter(SlabName(u8"wooden", u8""), TypeToVerticalHalf, AddStringProperty(u8"wood_type", type)); }
+  static Converter WoodenSlabLegacy(std::u8string const &type) { return Converter(SlabName(u8"wooden", u8""), TypeToVerticalHalf, AddStringProperty(u8"wood_type", type)); }
 
   static Converter StoneSlab(std::u8string const &type) { return StoneSlabNumbered(u8"", type); }
 
@@ -269,7 +274,9 @@ public:
 
   static Converter StoneSlabNumbered(std::u8string const &number, std::u8string const &type) { return Converter(SlabName(u8"stone_block", number), TypeToVerticalHalf, AddStoneSlabType(number, type)); }
 
-  static Converter Slab(std::u8string const &doubledName) { return Converter(ChangeWhenDoubleType(doubledName), TypeToVerticalHalf); }
+  static Converter Slab(std::u8string const &doubleName) {
+    return Converter(ChangeWhenDoubleType(doubleName), TypeToVerticalHalf);
+  }
 
   static Converter TallGrass(std::u8string const &type) { return Converter(Name(u8"tallgrass"), AddStringProperty(u8"tall_grass_type", type)); }
 
@@ -279,7 +286,7 @@ public:
 
   static Converter SeaPickle() { return Converter(Name(u8"sea_pickle"), WaterloggedToDeadBit, PicklesToClusterCount); }
 
-  static Converter RedFlower(std::u8string const &type) { return Converter(Name(u8"red_flower"), AddStringProperty(u8"flower_type", type)); }
+  static Converter RedFlowerLegacy(std::u8string const &type) { return Converter(Name(u8"red_flower"), AddStringProperty(u8"flower_type", type)); }
 
   static Converter Kelp(std::optional<i32> age = std::nullopt) {
     if (age) {
@@ -462,7 +469,7 @@ public:
     s->set(u8"age_bit", Bool(stage == u8"1"));
   }
 
-  static Converter Sapling(std::u8string const &type) { return Converter(Name(u8"sapling"), AddStringProperty(u8"sapling_type", type), StageToAgeBit); }
+  static Converter SaplingLegacy(std::u8string const &type) { return Converter(Name(u8"sapling"), AddStringProperty(u8"sapling_type", type), StageToAgeBit); }
 
   static Converter StoneBrick(std::u8string const &type) { return Subtype(u8"stonebrick", u8"stone_brick_type", type); }
 
@@ -713,7 +720,17 @@ public:
 
   static Converter CoralLegacy(std::u8string const &type, bool dead) { return Converter(Name(u8"coral"), AddStringProperty(u8"coral_color", type), AddBoolProperty(u8"dead_bit", dead)); }
 
-  static Converter CoralFan(std::u8string const &type, bool dead) { return Converter(Name(dead ? u8"coral_fan_dead" : u8"coral_fan"), AddStringProperty(u8"coral_color", type), CoralFanDirection); }
+  static CompoundTagPtr CoralFan(mcfile::je::Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto d = New(block.fName, true);
+    auto s = States();
+    s->set(u8"coral_fan_direction", Int(o.fItem ? 0 : 1));
+    return AttachStates(d, s);
+  }
+
+  static Converter CoralFanLegacy(std::u8string const &type, bool dead) {
+    // before bedrock 1.20.81
+    return Converter(Name(dead ? u8"coral_fan_dead" : u8"coral_fan"), AddStringProperty(u8"coral_color", type), CoralFanDirection);
+  }
 
   static void CoralFanDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
     auto waterlogged = b.property(u8"waterlogged", u8"false") == u8"true";
@@ -811,6 +828,19 @@ public:
     };
   }
 
+  static std::function<PropertyType(Block const &)> BooleanPropertyOptional(std::u8string const &b) {
+    return [=](Block const &block) -> ByteTagPtr {
+      auto p = block.property(b, u8"");
+      if (p == u8"true") {
+        return Bool(true);
+      } else if (p == u8"false") {
+        return Bool(false);
+      } else {
+        return nullptr;
+      }
+    };
+  }
+
   static std::function<PropertyType(Block const &)> StringProperty(std::u8string const &b, char8_t const *fallback = u8"") {
     return [=](Block const &block) {
       auto p = block.property(b, fallback);
@@ -848,7 +878,7 @@ public:
     E(polished_diorite, Identity);
     E(dirt, Dirt(u8"normal"));
     E(coarse_dirt, Dirt(u8"coarse"));
-    E(grass_block, Rename(u8"grass"));
+    E(grass_block, Identity);
 
     E(oak_log, axisToPillarAxis);
     E(spruce_log, axisToPillarAxis);
@@ -868,40 +898,41 @@ public:
     E(stripped_dark_oak_log, axisToPillarAxis);
     E(stripped_mangrove_log, axisToPillarAxis);
 
-    E(oak_wood, Wood(u8"oak", false));
-    E(spruce_wood, Wood(u8"spruce", false));
-    E(birch_wood, Wood(u8"birch", false));
-    E(acacia_wood, Wood(u8"acacia", false));
-    E(jungle_wood, Wood(u8"jungle", false));
-    E(dark_oak_wood, Wood(u8"dark_oak", false));
+    E(oak_wood, axisToPillarAxis);      // WoodLegacy(u8"oak", false));
+    E(spruce_wood, axisToPillarAxis);   // WoodLegacy(u8"spruce", false));
+    E(birch_wood, axisToPillarAxis);    // WoodLegacy(u8"birch", false));
+    E(acacia_wood, axisToPillarAxis);   // WoodLegacy(u8"acacia", false));
+    E(jungle_wood, axisToPillarAxis);   // WoodLegacy(u8"jungle", false));
+    E(dark_oak_wood, axisToPillarAxis); // WoodLegacy(u8"dark_oak", false));
     Converter wood(Same, AxisToPillarAxis, AddBoolProperty(u8"stripped_bit", false));
     E(mangrove_wood, wood);
-    E(stripped_oak_wood, Wood(u8"oak", true));
-    E(stripped_spruce_wood, Wood(u8"spruce", true));
-    E(stripped_birch_wood, Wood(u8"birch", true));
-    E(stripped_acacia_wood, Wood(u8"acacia", true));
-    E(stripped_jungle_wood, Wood(u8"jungle", true));
-    E(stripped_dark_oak_wood, Wood(u8"dark_oak", true));
+    E(stripped_oak_wood, axisToPillarAxis);      // WoodLegacy(u8"oak", true));
+    E(stripped_spruce_wood, axisToPillarAxis);   // WoodLegacy(u8"spruce", true));
+    E(stripped_birch_wood, axisToPillarAxis);    // WoodLegacy(u8"birch", true));
+    E(stripped_acacia_wood, axisToPillarAxis);   // WoodLegacy(u8"acacia", true));
+    E(stripped_jungle_wood, axisToPillarAxis);   // WoodLegacy(u8"jungle", true));
+    E(stripped_dark_oak_wood, axisToPillarAxis); // WoodLegacy(u8"dark_oak", true));
     E(stripped_mangrove_wood, axisToPillarAxis);
-    E(oak_leaves, Leaves(u8"oak"));
-    E(spruce_leaves, Leaves(u8"spruce"));
-    E(birch_leaves, Leaves(u8"birch"));
-    E(jungle_leaves, Leaves(u8"jungle"));
-    E(acacia_leaves, Leaves2(u8"acacia"));
-    E(dark_oak_leaves, Leaves2(u8"dark_oak"));
+    Converter leaves(Same, PersistentAndDistanceToPersistentBitAndUpdateBit);
+    E(oak_leaves, leaves);      // LeavesLegacy(u8"oak"));
+    E(spruce_leaves, leaves);   // LeavesLegacy(u8"spruce"));
+    E(birch_leaves, leaves);    // LeavesLegacy(u8"birch"));
+    E(jungle_leaves, leaves);   // LeavesLegacy(u8"jungle"));
+    E(acacia_leaves, leaves);   // Leaves2Legacy(u8"acacia"));
+    E(dark_oak_leaves, leaves); // Leaves2Legacy(u8"dark_oak"));
     E(crimson_hyphae, axisToPillarAxis);
     E(warped_hyphae, axisToPillarAxis);
     E(stripped_crimson_hyphae, axisToPillarAxis);
     E(stripped_warped_hyphae, axisToPillarAxis);
     E(stripped_crimson_stem, axisToPillarAxis);
     E(stripped_warped_stem, axisToPillarAxis);
-    E(oak_slab, WoodenSlab(u8"oak"));
-    E(birch_slab, WoodenSlab(u8"birch"));
-    E(spruce_slab, WoodenSlab(u8"spruce"));
-    E(jungle_slab, WoodenSlab(u8"jungle"));
-    E(acacia_slab, WoodenSlab(u8"acacia"));
-    E(dark_oak_slab, WoodenSlab(u8"dark_oak"));
-    E(petrified_oak_slab, WoodenSlab(u8"oak"));
+    E(oak_slab, Slab(u8"oak_double_slab"));           // WoodenSlabLegacy(u8"oak"));
+    E(birch_slab, Slab(u8"birch_double_slab"));       // WoodenSlabLegacy(u8"birch"));
+    E(spruce_slab, Slab(u8"spruce_double_slab"));     // WoodenSlabLegacy(u8"spruce"));
+    E(jungle_slab, Slab(u8"jungle_double_slab"));     // WoodenSlabLegacy(u8"jungle"));
+    E(acacia_slab, Slab(u8"acacia_double_slab"));     // WoodenSlabLegacy(u8"acacia"));
+    E(dark_oak_slab, Slab(u8"dark_oak_double_slab")); // WoodenSlabLegacy(u8"dark_oak"));
+    E(petrified_oak_slab, Slab(u8"oak_double_slab")); // WoodenSlabLegacy(u8"oak"));
     E(stone_slab, StoneSlab4(u8"stone"));
     E(granite_slab, StoneSlab3(u8"granite"));
     E(andesite_slab, StoneSlab3(u8"andesite"));
@@ -947,17 +978,17 @@ public:
     E(dead_bush, Rename(u8"deadbush"));
     E(sea_pickle, SeaPickle());
     E(dandelion, Rename(u8"yellow_flower"));
-    E(poppy, RedFlower(u8"poppy"));
-    E(blue_orchid, RedFlower(u8"orchid"));
-    E(allium, RedFlower(u8"allium"));
-    E(azure_bluet, RedFlower(u8"houstonia"));
-    E(red_tulip, RedFlower(u8"tulip_red"));
-    E(orange_tulip, RedFlower(u8"tulip_orange"));
-    E(white_tulip, RedFlower(u8"tulip_white"));
-    E(pink_tulip, RedFlower(u8"tulip_pink"));
-    E(oxeye_daisy, RedFlower(u8"oxeye"));
-    E(cornflower, RedFlower(u8"cornflower"));
-    E(lily_of_the_valley, RedFlower(u8"lily_of_the_valley"));
+    E(poppy, Identity);              // RedFlowerLegacy(u8"poppy"));
+    E(blue_orchid, Identity);        // RedFlowerLegacy(u8"orchid"));
+    E(allium, Identity);             // RedFlowerLegacy(u8"allium"));
+    E(azure_bluet, Identity);        // RedFlowerLegacy(u8"houstonia"));
+    E(red_tulip, Identity);          // RedFlowerLegacy(u8"tulip_red"));
+    E(orange_tulip, Identity);       // RedFlowerLegacy(u8"tulip_orange"));
+    E(white_tulip, Identity);        // RedFlowerLegacy(u8"tulip_white"));
+    E(pink_tulip, Identity);         // RedFlowerLegacy(u8"tulip_pink"));
+    E(oxeye_daisy, Identity);        // RedFlowerLegacy(u8"oxeye"));
+    E(cornflower, Identity);         // RedFlowerLegacy(u8"cornflower"));
+    E(lily_of_the_valley, Identity); // RedFlowerLegacy(u8"lily_of_the_valley"));
     E(seagrass, Converter(Name(u8"seagrass"), AddStringProperty(u8"sea_grass_type", u8"default")));
     E(tall_seagrass, Converter(Name(u8"seagrass"), HalfToSeagrassType));
     E(kelp, Kelp());
@@ -1133,12 +1164,13 @@ public:
     E(cracked_stone_bricks, StoneBrick(u8"cracked"));
     E(mossy_stone_bricks, StoneBrick(u8"mossy"));
     E(stone_bricks, StoneBrick(u8"default"));
-    E(oak_sapling, Sapling(u8"oak"));
-    E(birch_sapling, Sapling(u8"birch"));
-    E(jungle_sapling, Sapling(u8"jungle"));
-    E(acacia_sapling, Sapling(u8"acacia"));
-    E(spruce_sapling, Sapling(u8"spruce"));
-    E(dark_oak_sapling, Sapling(u8"dark_oak"));
+    Converter sapling(Same, StageToAgeBit);
+    E(oak_sapling, sapling);      // SaplingLegacy(u8"oak"));
+    E(birch_sapling, sapling);    // SaplingLegacy(u8"birch"));
+    E(jungle_sapling, sapling);   // SaplingLegacy(u8"jungle"));
+    E(acacia_sapling, sapling);   // SaplingLegacy(u8"acacia"));
+    E(spruce_sapling, sapling);   // SaplingLegacy(u8"spruce"));
+    E(dark_oak_sapling, sapling); // SaplingLegacy(u8"dark_oak"));
     E(tube_coral_block, CoralBlock(u8"blue", false));
     E(brain_coral_block, CoralBlock(u8"pink", false));
     E(bubble_coral_block, CoralBlock(u8"purple", false));
@@ -1280,17 +1312,17 @@ public:
     E(dead_fire_coral, Identity);
     E(dead_horn_coral, Identity);
 
-    E(tube_coral_fan, CoralFan(u8"blue", false));
-    E(brain_coral_fan, CoralFan(u8"pink", false));
-    E(bubble_coral_fan, CoralFan(u8"purple", false));
-    E(fire_coral_fan, CoralFan(u8"red", false));
-    E(horn_coral_fan, CoralFan(u8"yellow", false));
+    E(tube_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"blue", false));
+    E(brain_coral_fan, CoralFan);  // legacy: CoralFanLegacy(u8"pink", false));
+    E(bubble_coral_fan, CoralFan); // legacy: CoralFanLegacy(u8"purple", false));
+    E(fire_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"red", false));
+    E(horn_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"yellow", false));
 
-    E(dead_tube_coral_fan, CoralFan(u8"blue", true));
-    E(dead_brain_coral_fan, CoralFan(u8"pink", true));
-    E(dead_bubble_coral_fan, CoralFan(u8"purple", true));
-    E(dead_fire_coral_fan, CoralFan(u8"red", true));
-    E(dead_horn_coral_fan, CoralFan(u8"yellow", true));
+    E(dead_tube_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"blue", true));
+    E(dead_brain_coral_fan, CoralFan);  // legacy: CoralFanLegacy(u8"pink", true));
+    E(dead_bubble_coral_fan, CoralFan); // legacy: CoralFanLegacy(u8"purple", true));
+    E(dead_fire_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"red", true));
+    E(dead_horn_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"yellow", true));
 
     E(tube_coral_wall_fan, CoralWallFan(u8"", false, 0));
     E(brain_coral_wall_fan, CoralWallFan(u8"", false, 1));
@@ -1582,7 +1614,6 @@ public:
     E(waxed_copper_block, Rename(u8"waxed_copper"));
     E(rooted_dirt, Rename(u8"dirt_with_roots"));
 
-    Converter leaves(Same, PersistentAndDistanceToPersistentBitAndUpdateBit);
     E(azalea_leaves, leaves);
     E(flowering_azalea_leaves, Converter(Name(u8"azalea_leaves_flowered"), PersistentAndDistanceToPersistentBitAndUpdateBit));
 
@@ -1679,7 +1710,7 @@ public:
     E(cave_vines_plant, CaveVinesPlant);
     E(chain, axisToPillarAxis);
 
-    E(bamboo_sapling, Converter(Same, AddBoolProperty(u8"age_bit", false), AddStringProperty(u8"sapling_type", u8"oak")));
+    E(bamboo_sapling, sapling);
     E(brewing_stand, BrewingStand);
     E(cactus, Converter(Same, Name(Age, u8"age")));
     E(fire, Converter(Same, Name(Age, u8"age")));
@@ -1761,7 +1792,7 @@ public:
     E(cherry_fence_gate, fenceGate);
     E(cherry_fence, Identity);
     E(cherry_trapdoor, trapdoor);
-    E(cherry_sapling, Converter(Same, StageToAgeBit));
+    E(cherry_sapling, sapling);
     E(cherry_pressure_plate, pressurePlate);
     E(cherry_leaves, leaves);
 
@@ -1816,9 +1847,31 @@ public:
                          Name(BooleanProperty(u8"crafting"), u8"crafting"),
                          Name(BooleanProperty(u8"triggered"), u8"triggered_bit"),
                          Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
+
+    E(vault, Converter(Same,
+                       Name(BooleanPropertyOptional(u8"ominous"), u8"ominous"),
+                       Name(StringProperty(u8"vault_state", u8"inactive"), u8"vault_state"),
+                       CardinalDirectionFromFacing4));
+    E(heavy_core, Identity);
+    E(trial_spawner, TrialSpawner);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr TrialSpawner(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    std::u8string stateJ(block.property(u8"trial_spawner_state", u8"inactive"));
+    i32 stateB = TrialSpawner::BedrockTrialSpawnerStateFromJava(stateJ);
+    s->set(u8"trial_spawner_state", Int(stateB));
+    auto ominous = block.property(u8"ominous", u8"");
+    if (ominous == u8"true") {
+      s->set(u8"ominous", Bool(true));
+    } else if (ominous == u8"false") {
+      s->set(u8"ominous", Bool(false));
+    }
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr SnifferEgg(Block const &block, CompoundTagConstPtr const &tile, Options const &o) {

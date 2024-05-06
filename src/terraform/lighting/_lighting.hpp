@@ -1158,6 +1158,12 @@ private:
       } else {
         return 0;
       }
+    } else if (block.fId == vault) {
+      if (block.property(u8"vault_state") == u8"active") {
+        return 12;
+      } else {
+        return 6;
+      }
     }
     return LightEmissionById(block.fId);
   }
@@ -1685,6 +1691,7 @@ private:
     case waxed_exposed_copper_trapdoor:
     case waxed_weathered_copper_trapdoor:
     case waxed_oxidized_copper_trapdoor:
+    case heavy_core:
       return 0;
     case acacia_leaves:
     case beacon:
@@ -1729,6 +1736,7 @@ private:
     case mangrove_leaves:
     case cherry_leaves:
     case trial_spawner:
+    case vault:
       return 1;
     default:
       return 15;

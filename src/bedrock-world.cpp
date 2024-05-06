@@ -153,11 +153,15 @@ public:
     if (!content) {
       return JE2BE_ERROR;
     }
+    auto dataVersion = content->int32(u8"DataVersion");
+    if (!dataVersion) {
+      return JE2BE_ERROR;
+    }
     auto entities = content->listTag(u8"Entities");
     if (!entities) {
       return JE2BE_ERROR;
     }
-    AttachLeash(chunk, ctx, *entities, leashedEntities);
+    AttachLeash(chunk, *dataVersion, ctx, *entities, leashedEntities);
     if (auto st = AttachPassengers(chunk, ctx, entities, entitiesDir, editor, vehicleEntities); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
@@ -288,6 +292,7 @@ public:
   }
 
   static void AttachLeash(Pos2i chunk,
+                          int dataVersion,
                           Context &ctx,
                           ListTag const &entities,
                           std::unordered_map<Pos2i, std::unordered_map<Uuid, i64, UuidHasher, UuidPred>, Pos2iHasher> const &leashedEntities) {
@@ -305,11 +310,15 @@ public:
       auto entity = FindEntity(entities, entityId);
       if (entity) {
         Pos3i leashPos = leasherFound->second;
-        auto leashTag = Compound();
-        leashTag->set(u8"X", Int(leashPos.fX));
-        leashTag->set(u8"Y", Int(leashPos.fY));
-        leashTag->set(u8"Z", Int(leashPos.fZ));
-        entity->set(u8"Leash", leashTag);
+        if (dataVersion >= kDataVersionComponentIntroduced) {
+          entity->set(u8"leash", IntArrayFromPos3i(leashPos));
+        } else {
+          auto leashTag = Compound();
+          leashTag->set(u8"X", Int(leashPos.fX));
+          leashTag->set(u8"Y", Int(leashPos.fY));
+          leashTag->set(u8"Z", Int(leashPos.fZ));
+          entity->set(u8"Leash", leashTag);
+        }
       }
     }
   }

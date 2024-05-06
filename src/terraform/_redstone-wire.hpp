@@ -203,6 +203,7 @@ public:
     case soul_sand:
     case spawner:
     case trial_spawner:
+    case vault:
     case verdant_froglight:
     case water:
     case white_shulker_box:
