@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity/_entity-attributes.hpp"
+#include "java/_entity.hpp"
 
 namespace je2be {
 
@@ -33,44 +34,18 @@ public:
     return *(i32 *)&u;
   }
 
-  CompoundTagPtr toBedrockBucketTag() const {
+  CompoundTagPtr toBedrockBucketTag(i64 entityId, std::optional<float> health) const {
     using namespace std;
-    auto ret = Compound();
-    auto attributes = EntityAttributes::Mob(u8"minecraft:tropical_fish", nullopt);
+    java::Entity::Rep rep(entityId);
+    auto ret = rep.toCompoundTag();
+    auto attributes = EntityAttributes::Mob(u8"minecraft:tropical_fish", health);
     if (attributes) {
       ret->set(u8"Attributes", attributes->toBedrockListTag());
     }
-    ret->set(u8"Variant", Int(fSmall ? 0 : 1));
-    ret->set(u8"MarkVariant", Int(fPattern));
-    ret->set(u8"Color", Byte(fBodyColor));
-    ret->set(u8"Color2", Byte(fPatternColor));
-    ret->set(u8"EntityType", Int(9071));
-    u8string bodyIdPrefix;
-    if (fSmall) {
-      static vector<u8string> const m = {u8"item.tropicalBodyFlopper", u8"item.tropicalBodyStripey", u8"item.tropicalBodyGlitter", u8"item.tropicalBodyBlockfish", u8"item.tropicalBodyBetty", u8"item.tropicalBodyClayfish"};
-      bodyIdPrefix = m[std::clamp(fPattern, 0, 5)];
-    } else {
-      static vector<u8string> const m = {u8"item.tropicalBodyKob", u8"item.tropicalBodySunstreak", u8"item.tropicalBodySnooper", u8"item.tropicalBodyDasher", u8"item.tropicalBodyBrinely", u8"item.tropicalBodySpotty"};
-      bodyIdPrefix = m[std::clamp(fPattern, 0, 5)];
+    auto props = java::Entity::TropicalFishProperties(toJavaVariant());
+    for (auto const &it : *props) {
+      ret->set(it.first, it.second);
     }
-
-    static vector<u8string> const colorIdMap = {u8"item.tropicalColorWhite.name", u8"item.tropicalColorOrange.name", u8"item.tropicalColorMagenta.name", u8"item.tropicalColorSky.name", u8"item.tropicalColorYellow.name", u8"item.tropicalColorLime.name", u8"item.tropicalColorRose.name", u8"item.tropicalColorGray.name", u8"item.tropicalColorSilver.name", u8"item.tropicalColorTeal.name", u8"item.tropicalColorPlum.name", u8"item.tropicalColorBlue.name", u8"item.tropicalColorBrown.name", u8"item.tropicalColorGreen.name", u8"item.tropicalColorRed.name"};
-    u8string colorId = colorIdMap[std::clamp((int)fBodyColor, 0, 14)];
-
-    u8string color2Id = colorIdMap[std::clamp((int)fPatternColor, 0, 14)];
-    u8string bodyId;
-    if (colorId == color2Id) {
-      bodyId = bodyIdPrefix + u8"Single.name";
-      color2Id = u8"";
-    } else {
-      bodyId = bodyIdPrefix + u8"Multi.name";
-    }
-    ret->set(u8"BodyID", bodyId);
-    ret->set(u8"ColorID", colorId);
-    if (!color2Id.empty()) {
-      ret->set(u8"Color2ID", color2Id);
-    }
-    ret->set(u8"AppendCustomName", Bool(true));
     return ret;
   }
 

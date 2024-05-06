@@ -1,3 +1,5 @@
+static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual);
+
 static std::shared_ptr<CompoundTag> ReadLevelDatB(fs::path const &p) {
   auto s = make_shared<mcfile::stream::FileInputStream>(p);
   REQUIRE(s->seek(4));     // version
@@ -55,6 +57,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"minecraft:deflate_sensor",        // pufferfish
       u8"minecraft:deflate_sensor_buffer", // pufferfish
       u8"minecraft:start_deflate",         // pufferfish
+      u8"minecraft:full_puff",             // pufferfish
   };
 
   set<u8string> setE;
@@ -176,6 +179,26 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
       ignore.insert(u8"Damage");
       CHECK(actual.int16(u8"Damage") == 4);
     }
+  } else if (nameE == u8"minecraft:tropical_fish_bucket" || nameE == u8"minecraft:cod_bucket" || nameE == u8"minecraft:salmon_bucket" || nameE == u8"minecraft:pufferfish_bucket" || nameE == u8"minecraft:axolotl_bucket" || nameE == u8"minecraft:tadpole_bucket") {
+    auto tagE = expected.compoundTag(u8"tag");
+    auto tagA = actual.compoundTag(u8"tag");
+    if (tagE) {
+      auto idE = tagE->string(u8"identifier");
+      REQUIRE(idE);
+      CHECK(tagA);
+      if (tagA) {
+        auto copyE = tagE->copy();
+        auto copyA = tagA->copy();
+        for (auto const &p : {u8"Air"}) {
+          Erase(copyE, p);
+          Erase(copyA, p);
+        }
+        CheckEntityB(*idE, *copyE, *copyA);
+      }
+    } else {
+      CHECK(!tagA);
+    }
+    ignore.insert(u8"tag");
   }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
@@ -187,8 +210,8 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
     ignore.insert(u8"Block");
   }
   for (auto const &i : ignore) {
-    e->erase(i);
-    a->erase(i);
+    Erase(e, i);
+    Erase(a, i);
   }
   DiffCompoundTag(*e, *a);
 }
@@ -329,6 +352,28 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     REQUIRE(itemA);
     CheckItemB(*itemE, *itemA);
     ignore.insert(u8"Item");
+  }
+  for (auto const &key : {u8"Items"}) {
+    ignore.insert(key);
+    auto listE = e->listTag(key);
+    auto listA = a->listTag(key);
+    if (listE) {
+      CHECK(listA);
+      if (listA) {
+        CHECK(listE->size() == listA->size());
+        for (size_t i = 0; i < listE->size(); i++) {
+          auto itemE = listE->at(i)->asCompound();
+          auto itemA = listA->at(i)->asCompound();
+          REQUIRE(itemE);
+          CHECK(itemA);
+          if (itemA) {
+            CheckItemB(*itemE, *itemA);
+          }
+        }
+      }
+    } else {
+      CHECK(!listA);
+    }
   }
   for (auto const &i : ignore) {
     e->erase(i);

@@ -222,24 +222,8 @@ public:
 
       CopyIntValues(*tagB, *tagJ, {{u8"Age", u8"Age", 0}});
 
-      auto attributes = tagB->listTag(u8"Attributes");
-      if (attributes) {
-        for (auto const &it : *attributes) {
-          auto c = it->asCompound();
-          if (!c) {
-            continue;
-          }
-          auto name = c->string(u8"Name");
-          if (name != u8"minecraft:health") {
-            continue;
-          }
-          auto current = c->float32(u8"Current");
-          if (!current) {
-            continue;
-          }
-          tagJ->set(u8"Health", Float(*current));
-          break;
-        }
+      if (auto health = HealthFromBucketTag(*tagB); health) {
+        tagJ->set(u8"Health", Float(*health));
       }
 
       auto variantB = tagB->int32(u8"Variant", 0);
@@ -374,6 +358,9 @@ public:
         TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
         auto tagJ = Compound();
         tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
+        if (auto health = HealthFromBucketTag(*tagB); health) {
+          tagJ->set(u8"Health", Float(*health));
+        }
         java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
       }
       break;
@@ -801,12 +788,30 @@ public:
     return name;
   }
 
+  static std::u8string FishBucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    auto tagB = itemB.compoundTag(u8"tag");
+    if (tagB) {
+      auto tagJ = Compound();
+      if (auto health = HealthFromBucketTag(*tagB); health) {
+        tagJ->set(u8"Health", Float(*health));
+      }
+      if (auto age = tagB->int32(u8"Age"); age) {
+        tagJ->set(u8"Age", Int(*age));
+      }
+      java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
+    }
+    return name;
+  }
+
   static std::u8string TropicalFishBucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
       TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
       auto tagJ = Compound();
       tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
+      if (auto health = HealthFromBucketTag(*tagB); health) {
+        tagJ->set(u8"Health", Float(*health));
+      }
       java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
     }
     return name;
@@ -831,6 +836,25 @@ public:
     };
   }
 #pragma endregion
+
+  static std::optional<float> HealthFromBucketTag(CompoundTag const &tagB) {
+    auto attributes = tagB.listTag(u8"Attributes");
+    if (!attributes) {
+      return std::nullopt;
+    }
+    for (auto const &it : *attributes) {
+      auto c = it->asCompound();
+      if (!c) {
+        continue;
+      }
+      auto name = c->string(u8"Name");
+      if (name != u8"minecraft:health") {
+        continue;
+      }
+      return c->float32(u8"Current");
+    }
+    return std::nullopt;
+  }
 
   static i32 RgbFromCustomColor(i32 customColor) {
     u32 rgb = 0xffffff & *(u32 *)&customColor;
@@ -893,6 +917,10 @@ public:
     E(cooked_fish, Rename(u8"cooked_cod"));                  // legacy
     E(clownfish, Rename(u8"tropical_fish"));                 // legacy
     E(tropical_fish_bucket, TropicalFishBucket);
+    E(cod_bucket, FishBucket);
+    E(salmon_bucket, FishBucket);
+    E(pufferfish_bucket, FishBucket);
+    E(tadpole_bucket, FishBucket);
     E(arrow, Arrow);
     E(totem, Rename(u8"totem_of_undying")); // legacy
     E(suspicious_stew, SuspiciousStew);

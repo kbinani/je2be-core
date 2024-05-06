@@ -23,6 +23,7 @@
 #include "java/_components.hpp"
 #include "java/_context.hpp"
 #include "java/_enchant-data.hpp"
+#include "java/_entity.hpp"
 #include "java/_tile-entity.hpp"
 #include "java/_world-data.hpp"
 
@@ -316,7 +317,7 @@ private:
 
     E(minecart, DefaultItem);
     E(chest_minecart, DefaultItem);
-    E(salmon_bucket, DefaultItem);
+    E(salmon_bucket, FishBucket(u8"salmon"));
     E(golden_carrot, DefaultItem);
     E(saddle, DefaultItem);
     E(bowl, DefaultItem);
@@ -376,8 +377,8 @@ private:
     E(snowball, DefaultItem);
     E(milk_bucket, DefaultItem);
     E(orange_dye, DefaultItem);
-    E(pufferfish_bucket, DefaultItem);
-    E(cod_bucket, DefaultItem);
+    E(pufferfish_bucket, FishBucket(u8"pufferfish"));
+    E(cod_bucket, FishBucket(u8"cod"));
     E(clay_ball, DefaultItem);
     E(slime_ball, DefaultItem);
     E(cocoa_beans, DefaultItem);
@@ -529,7 +530,7 @@ private:
     E(brewing_stand, DefaultItem);
     E(rabbit_foot, DefaultItem);
     E(phantom_membrane, DefaultItem);
-    E(tadpole_bucket, DefaultItem);
+    E(tadpole_bucket, FishBucket(u8"tadpole"));
     E(torchflower_seeds, DefaultItem);
     E(brush, DefaultItem);
     E(pitcher_pod, DefaultItem);
@@ -769,13 +770,40 @@ private:
   static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
     auto ret = New(u8"tropical_fish_bucket");
     ret->set(u8"Damage", Short(0));
-    auto variant = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data/BucketVariantTag", u8"tag/BucketVariantTag"})->asInt();
-    if (variant) {
-      auto tf = TropicalFish::FromJavaVariant(variant->fValue);
-      auto tag = tf.toBedrockBucketTag();
-      ret->set(u8"tag", tag);
+    if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
+      if (auto variant = data->int32(u8"BucketVariantTag"); variant) {
+        auto tf = TropicalFish::FromJavaVariant(*variant);
+        auto tag = tf.toBedrockBucketTag(UuidRegistrar::RandomEntityId(), data->float32(u8"Health"));
+        ret->set(u8"tag", tag);
+      }
     }
     return ret;
+  }
+
+  static Converter FishBucket(std::u8string const &type) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
+      auto ret = New(type + u8"_bucket");
+      ret->set(u8"Damage", Short(0));
+      if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
+        Entity::Rep rep(UuidRegistrar::RandomEntityId());
+        rep.fDefinitions.push_back(u8"+minecraft:" + type);
+        rep.fDefinitions.push_back(u8"+");
+        if (type == u8"salmon") {
+          rep.fDefinitions.push_back(u8"+scale_normal");
+        }
+        auto tagB = rep.toCompoundTag();
+        auto health = data->float32(u8"Health");
+        auto attributes = EntityAttributes::Mob(Namespace::Add(type), health);
+        if (attributes) {
+          tagB->set(u8"Attributes", attributes->toBedrockListTag());
+        }
+        if (auto age = data->int32(u8"Age"); age) {
+          tagB->set(u8"Age", Int(*age));
+        }
+        ret->set(u8"tag", tagB);
+      }
+      return ret;
+    };
   }
 
   static CompoundTagPtr BooksAndQuill(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {

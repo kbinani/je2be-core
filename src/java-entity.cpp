@@ -67,114 +67,6 @@ class Entity::Impl {
     std::vector<Behavior> fBehaviors;
   };
 
-  struct Rep {
-    explicit Rep(i64 uid) : fMotion(0, 0, 0), fPos(0, 0, 0), fRotation(0, 0), fUniqueId(uid) {}
-
-    CompoundTagPtr toCompoundTag() const {
-      using namespace std;
-      auto tag = Compound();
-      auto tags = List<Tag::Type::Compound>();
-      auto definitions = List<Tag::Type::String>();
-      for (auto const &d : fDefinitions) {
-        definitions->push_back(String(d));
-      }
-      tag->insert({
-          {u8"definitions", definitions},
-          {u8"Motion", fMotion.toListTag()},
-          {u8"Pos", fPos.toListTag()},
-          {u8"Rotation", fRotation.toListTag()},
-          {u8"Tags", tags},
-          {u8"Chested", Bool(fChested)},
-          {u8"Color2", Byte(fColor2)},
-          {u8"Color", Byte(fColor)},
-          {u8"Dir", Byte(fDir)},
-          {u8"FallDistance", Float(fFallDistance)},
-          {u8"Fire", Short(std::max((i16)0, fFire))},
-          {u8"identifier", String(fIdentifier)},
-          {u8"Invulnerable", Bool(fInvulnerable)},
-          {u8"IsAngry", Bool(fIsAngry)},
-          {u8"IsAutonomous", Bool(fIsAutonomous)},
-          {u8"IsBaby", Bool(fIsBaby)},
-          {u8"IsEating", Bool(fIsEating)},
-          {u8"IsGliding", Bool(fIsGliding)},
-          {u8"IsGlobal", Bool(fIsGlobal)},
-          {u8"IsIllagerCaptain", Bool(fIsIllagerCaptain)},
-          {u8"IsOrphaned", Bool(fIsOrphaned)},
-          {u8"IsRoaring", Bool(fIsRoaring)},
-          {u8"IsScared", Bool(fIsScared)},
-          {u8"IsStunned", Bool(fIsStunned)},
-          {u8"IsSwimming", Bool(fIsSwimming)},
-          {u8"IsTamed", Bool(fIsTamed)},
-          {u8"IsTrusting", Bool(fIsTrusting)},
-          {u8"LastDimensionId", Int(fLastDimensionId)},
-          {u8"LootDropped", Bool(fLootDropped)},
-          {u8"MarkVariant", Int(fMarkVariant)},
-          {u8"OnGround", Bool(fOnGround)},
-          {u8"OwnerNew", Long(fOwnerNew)},
-          {u8"PortalCooldown", Int(fPortalCooldown)},
-          {u8"Saddled", Bool(fSaddled)},
-          {u8"Sheared", Bool(fSheared)},
-          {u8"ShowBottom", Bool(fShowBottom)},
-          {u8"Sitting", Bool(fSitting)},
-          {u8"SkinID", Int(fSkinId)},
-          {u8"Strength", Int(fStrength)},
-          {u8"StrengthMax", Int(fStrengthMax)},
-          {u8"UniqueID", Long(fUniqueId)},
-          {u8"Variant", Int(fVariant)},
-      });
-      if (fCustomName) {
-        tag->set(u8"CustomName", *fCustomName);
-        tag->set(u8"CustomNameVisible", Bool(fCustomNameVisible));
-      }
-      return tag;
-    }
-
-    std::vector<std::u8string> fDefinitions;
-    Pos3f fMotion;
-    Pos3f fPos;
-    Rotation fRotation;
-    std::vector<CompoundTagPtr> fTags;
-    bool fChested = false;
-    i8 fColor2 = 0;
-    i8 fColor = 0;
-    i8 fDir = 0;
-    float fFallDistance = 0;
-    i16 fFire = 0;
-    std::u8string fIdentifier;
-    bool fInvulnerable = false;
-    bool fIsAngry = false;
-    bool fIsAutonomous = false;
-    bool fIsBaby = false;
-    bool fIsEating = false;
-    bool fIsGliding = false;
-    bool fIsGlobal = false;
-    bool fIsIllagerCaptain = false;
-    bool fIsOrphaned = false;
-    bool fIsRoaring = false;
-    bool fIsScared = false;
-    bool fIsStunned = false;
-    bool fIsSwimming = false;
-    bool fIsTamed = false;
-    bool fIsTrusting = false;
-    i32 fLastDimensionId = 0;
-    bool fLootDropped = false;
-    i32 fMarkVariant = 0;
-    bool fOnGround = true;
-    i64 fOwnerNew = -1;
-    i32 fPortalCooldown = 0;
-    bool fSaddled = false;
-    bool fSheared = false;
-    bool fShowBottom = false;
-    bool fSitting = false;
-    i32 fSkinId = 0;
-    i32 fStrength = 0;
-    i32 fStrengthMax = 0;
-    i64 const fUniqueId;
-    i32 fVariant = 0;
-    std::optional<std::u8string> fCustomName;
-    bool fCustomNameVisible = false;
-  };
-
 public:
   static Result From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
     using namespace std;
@@ -533,6 +425,84 @@ public:
     result.fChunk = Pos2i(cx, cz);
 
     return result;
+  }
+
+  static CompoundTagPtr TropicalFishProperties(i32 variantJ) {
+    auto ret = Compound();
+    auto &c = *ret;
+    AddDefinition(c, u8"+minecraft:tropicalfish");
+    auto tf = TropicalFish::FromJavaVariant(variantJ);
+
+    i32 variantB = tf.fSmall ? 0 : 1;
+    c[u8"Variant"] = Int(variantB);
+    static DefaultMap<i32, std::u8string> const sVariant(
+        {
+            {0, u8"tropicalfish_variant_a"},
+            {1, u8"tropicalfish_variant_b"},
+        },
+        u8"tropicalfish_variant_a");
+    AddDefinition(c, u8"+minecraft:" + sVariant.at(variantB));
+
+    i32 markVariant = tf.fPattern;
+    c[u8"MarkVariant"] = Int(markVariant);
+    static DefaultMap<i32, std::u8string> const sMarkVariant(
+        {
+            {0, u8"tropicalfish_variant_pattern_1"},
+            {1, u8"tropicalfish_variant_pattern_2"},
+            {2, u8"tropicalfish_variant_pattern_3"},
+            {3, u8"tropicalfish_variant_pattern_4"},
+            {4, u8"tropicalfish_variant_pattern_5"},
+            {5, u8"tropicalfish_variant_pattern_6"},
+        },
+        u8"tropicalfish_variant_pattern_1");
+    AddDefinition(c, u8"+minecraft:" + sMarkVariant.at(markVariant));
+
+    i8 color = tf.fBodyColor;
+    c[u8"Color"] = Byte(color);
+    static DefaultMap<i8, std::u8string> const sColor(
+        {
+            {0, u8"tropicalfish_base_white"},
+            {1, u8"tropicalfish_base_orange"},
+            {2, u8"tropicalfish_base_magenta"},
+            {3, u8"tropicalfish_base_lightblue"},
+            {4, u8"tropicalfish_base_yellow"},
+            {5, u8"tropicalfish_base_lightgreen"},
+            {6, u8"tropicalfish_base_pink"},
+            {7, u8"tropicalfish_base_gray"},
+            {8, u8"tropicalfish_base_silver"},
+            {9, u8"tropicalfish_base_cyan"},
+            {10, u8"tropicalfish_base_purple"},
+            {11, u8"tropicalfish_base_blue"},
+            {12, u8"tropicalfish_base_brown"},
+            {13, u8"tropicalfish_base_green"},
+            {14, u8"tropicalfish_base_red"},
+        },
+        u8"tropicalfish_base_white");
+    AddDefinition(c, u8"+minecraft:" + sColor.at(color));
+
+    i8 color2 = tf.fPatternColor;
+    c[u8"Color2"] = Byte(color2);
+    static DefaultMap<i8, std::u8string> const sColor2(
+        {
+            {0, u8"tropicalfish_pattern_white"},
+            {1, u8"tropicalfish_pattern_orange"},
+            {2, u8"tropicalfish_pattern_magenta"},
+            {3, u8"tropicalfish_pattern_lightblue"},
+            {4, u8"tropicalfish_pattern_yellow"},
+            {5, u8"tropicalfish_pattern_lightgreen"},
+            {6, u8"tropicalfish_pattern_pink"},
+            {7, u8"tropicalfish_pattern_gray"},
+            {8, u8"tropicalfish_pattern_silver"},
+            {9, u8"tropicalfish_pattern_cyan"},
+            {10, u8"tropicalfish_pattern_purple"},
+            {11, u8"tropicalfish_pattern_blue"},
+            {12, u8"tropicalfish_pattern_brown"},
+            {13, u8"tropicalfish_pattern_green"},
+            {14, u8"tropicalfish_pattern_red"},
+        },
+        u8"tropicalfish_pattern_white");
+    AddDefinition(c, u8"+minecraft:" + sColor2.at(color2));
+    return ret;
   }
 
 private:
@@ -1546,77 +1516,10 @@ private:
 
   static void TropicalFish(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto variantJ = tag.int32(u8"Variant", 0);
-    auto tf = TropicalFish::FromJavaVariant(variantJ);
-
-    i32 variant = tf.fSmall ? 0 : 1;
-    c[u8"Variant"] = Int(variant);
-    static DefaultMap<i32, std::u8string> const sVariant(
-        {
-            {0, u8"tropicalfish_variant_a"},
-            {1, u8"tropicalfish_variant_b"},
-        },
-        u8"tropicalfish_variant_a");
-    AddDefinition(c, u8"+minecraft:" + sVariant.at(variant));
-
-    i32 markVariant = tf.fPattern;
-    c[u8"MarkVariant"] = Int(markVariant);
-    static DefaultMap<i32, std::u8string> const sMarkVariant(
-        {
-            {0, u8"tropicalfish_variant_pattern_1"},
-            {1, u8"tropicalfish_variant_pattern_2"},
-            {2, u8"tropicalfish_variant_pattern_3"},
-            {3, u8"tropicalfish_variant_pattern_4"},
-            {4, u8"tropicalfish_variant_pattern_5"},
-            {5, u8"tropicalfish_variant_pattern_6"},
-        },
-        u8"tropicalfish_variant_pattern_1");
-    AddDefinition(c, u8"+minecraft:" + sMarkVariant.at(markVariant));
-
-    i8 color = tf.fBodyColor;
-    c[u8"Color"] = Byte(color);
-    static DefaultMap<i8, std::u8string> const sColor(
-        {
-            {0, u8"tropicalfish_base_white"},
-            {1, u8"tropicalfish_base_orange"},
-            {2, u8"tropicalfish_base_magenta"},
-            {3, u8"tropicalfish_base_lightblue"},
-            {4, u8"tropicalfish_base_yellow"},
-            {5, u8"tropicalfish_base_lightgreen"},
-            {6, u8"tropicalfish_base_pink"},
-            {7, u8"tropicalfish_base_gray"},
-            {8, u8"tropicalfish_base_silver"},
-            {9, u8"tropicalfish_base_cyan"},
-            {10, u8"tropicalfish_base_purple"},
-            {11, u8"tropicalfish_base_blue"},
-            {12, u8"tropicalfish_base_brown"},
-            {13, u8"tropicalfish_base_green"},
-            {14, u8"tropicalfish_base_red"},
-        },
-        u8"tropicalfish_base_white");
-    AddDefinition(c, u8"+minecraft:" + sColor.at(color));
-
-    i8 color2 = tf.fPatternColor;
-    c[u8"Color2"] = Byte(color2);
-    static DefaultMap<i8, std::u8string> const sColor2(
-        {
-            {0, u8"tropicalfish_pattern_white"},
-            {1, u8"tropicalfish_pattern_orange"},
-            {2, u8"tropicalfish_pattern_magenta"},
-            {3, u8"tropicalfish_pattern_lightblue"},
-            {4, u8"tropicalfish_pattern_yellow"},
-            {5, u8"tropicalfish_pattern_lightgreen"},
-            {6, u8"tropicalfish_pattern_pink"},
-            {7, u8"tropicalfish_pattern_gray"},
-            {8, u8"tropicalfish_pattern_silver"},
-            {9, u8"tropicalfish_pattern_cyan"},
-            {10, u8"tropicalfish_pattern_purple"},
-            {11, u8"tropicalfish_pattern_blue"},
-            {12, u8"tropicalfish_pattern_brown"},
-            {13, u8"tropicalfish_pattern_green"},
-            {14, u8"tropicalfish_pattern_red"},
-        },
-        u8"tropicalfish_pattern_white");
-    AddDefinition(c, u8"+minecraft:" + sColor2.at(color2));
+    auto p = TropicalFishProperties(variantJ);
+    for (auto const &it : *p) {
+      c[it.first] = it.second;
+    }
   }
 
   static void Turtle(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -2955,6 +2858,10 @@ bool Entity::IsTileEntity(CompoundTag const &tag) {
 
 std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
   return Impl::LocalPlayer(tag, ctx, dataVersion, flags);
+}
+
+CompoundTagPtr Entity::TropicalFishProperties(i32 variant) {
+  return Impl::TropicalFishProperties(variant);
 }
 
 } // namespace je2be::java
