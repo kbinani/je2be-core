@@ -725,6 +725,7 @@ private:
     E(breeze_rod, DefaultItem);
     E(guster_pottery_sherd, DefaultItem);
     E(flow_pottery_sherd, DefaultItem);
+    E(scrape_pottery_sherd, DefaultItem);
 #undef E
     return table;
   }
