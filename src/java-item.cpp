@@ -1342,8 +1342,8 @@ private:
 
     if (componentsJ) {
       CompoundTagPtr enchantments;
-      if (auto list = componentsJ->compoundTag(u8"minecraft:stored_enchantments"); list) {
-        enchantments = list;
+      if (auto storedEnchantments = componentsJ->compoundTag(u8"minecraft:stored_enchantments"); storedEnchantments) {
+        enchantments = storedEnchantments;
       } else if (auto list = componentsJ->compoundTag(u8"minecraft:enchantments"); list) {
         enchantments = list;
       }
@@ -1371,8 +1371,8 @@ private:
       }
     } else {
       ListTagPtr enchantments;
-      if (auto list = itemJ.listTag(u8"StoredEnchantments"); list) {
-        enchantments = list;
+      if (auto storedEnchantments = itemJ.listTag(u8"StoredEnchantments"); storedEnchantments) {
+        enchantments = storedEnchantments;
       } else if (auto list = itemJ.listTag(u8"Enchantments"); list) {
         enchantments = list;
       }
