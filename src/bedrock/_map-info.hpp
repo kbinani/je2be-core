@@ -25,7 +25,7 @@ public:
       if (dataVersion >= kDataVersionComponentIntroduced) {
         ret->set(u8"rotation", Float(fRotation));
         if (!fType.empty()) {
-          ret->set(u8"type", String(u8"minecraft:" + fType));
+          ret->set(u8"type", String(Namespace::Add(fType)));
         }
         ret->set(u8"x", Double(fX));
         ret->set(u8"z", Double(fZ));
