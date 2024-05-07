@@ -446,6 +446,8 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
             ignore.insert(u8"age_bit");
           } else if (e->fName == u8"minecraft:soul_fire") {
             ignore.insert(u8"age");
+          } else if (e->fName == u8"minecraft:bedrock") {
+            ignore.insert(u8"infiniburn_bit");
           }
           for (auto const &i : ignore) {
             tagE->erase(i);
