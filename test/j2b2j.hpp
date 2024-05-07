@@ -724,6 +724,8 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     CHECK(totalE == totalA);
   } else if (id == u8"minecraft:parrot") {
     blacklist.insert(u8"NoGravity");
+  } else if (id == u8"minecraft:ender_dragon") {
+    blacklist.insert(u8"DragonPhase");
   }
 
   CheckTextComponent(entityE, entityA, u8"CustomName");
