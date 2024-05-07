@@ -345,7 +345,7 @@ private:
     E(cherry_sign, sign);
     E(cherry_wall_sign, sign);
     E(calibrated_sculk_sensor, NamedEmpty(u8"CalibratedSculkSensor"));
-    E(lodestone, NamedEmptyFromNull(u8"Lodestone"));
+    E(lodestone, Lodestone);
     E(spore_blossom, NamedEmptyFromNull(u8"SporeBlossom"));
 
     E(crafter, Crafter);
@@ -353,6 +353,14 @@ private:
     E(trial_spawner, TrialSpawner);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, int dataVersion) {
+    auto ret = New(u8"Lodestone");
+    i32 tracker = ctx.fLodestones->get(ctx.fWorldData.fDim, pos);
+    ret->set(u8"trackingHandle", Int(tracker));
+    Attach(c, pos, *ret);
+    return ret;
   }
 
   static ListTagPtr ConvertUuidList(ListTag const &java) {

@@ -6,6 +6,7 @@
 #include "enums/_game-mode.hpp"
 #include "java/_java-edition-map.hpp"
 #include "java/_level.hpp"
+#include "java/_lodestone-registrar.hpp"
 #include "java/_map.hpp"
 #include "java/portal/_portals.hpp"
 #include "java/structure/_structures.hpp"
@@ -20,7 +21,16 @@ public:
             int difficultyBedrock,
             bool allowCommand,
             GameMode gameType,
-            int dataVersion) : fInput(input), fJavaEditionMap(input, opt), fOptions(opt), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType), fDataVersion(dataVersion) {}
+            int dataVersion)
+      : fInput(input),
+        fJavaEditionMap(input, opt),
+        fOptions(opt),
+        fGameTick(gameTick),
+        fDifficultyBedrock(difficultyBedrock),
+        fAllowCommand(allowCommand),
+        fGameType(gameType),
+        fDataVersion(dataVersion),
+        fLodestones(std::make_shared<LodestoneRegistrar>()) {}
 
   [[nodiscard]] Status put(DbInterface &db, CompoundTag const &javaLevelData) {
     Status st;
@@ -60,16 +70,14 @@ public:
     if (mobEvents) {
       if (st = db.put(mcfile::be::DbKey::MobEvents(), *mobEvents); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
-      } else {
-        return Status::Ok();
       }
     } else {
       if (st = db.del(mcfile::be::DbKey::MobEvents()); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
-      } else {
-        return Status::Ok();
       }
     }
+
+    return fLodestones->put(db);
   }
 
 private:
@@ -124,6 +132,7 @@ public:
     std::vector<std::pair<Pos2i, CompoundTagPtr>> fShoulderRiders;
   };
   std::optional<PlayerAttachedEntities> fPlayerAttachedEntities;
+  std::shared_ptr<LodestoneRegistrar> const fLodestones;
 };
 
 } // namespace je2be::java

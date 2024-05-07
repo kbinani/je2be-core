@@ -52,4 +52,12 @@ inline IntArrayTagPtr IntArrayFromPos3i(Pos3i p) {
   return std::make_shared<mcfile::nbt::IntArrayTag>(v);
 }
 
+inline ListTagPtr ListFromPos3i(Pos3i p) {
+  auto ret = List<Tag::Type::Int>();
+  ret->push_back(Int(p.fX));
+  ret->push_back(Int(p.fY));
+  ret->push_back(Int(p.fZ));
+  return ret;
+}
+
 } // namespace je2be

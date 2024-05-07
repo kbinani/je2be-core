@@ -3,6 +3,7 @@
 #if !defined(EMSCRIPTEN)
 #include "db/_async-iterator.hpp"
 #endif
+#include "_props.hpp"
 #include "db/_readonly-db.hpp"
 #include "structure/_structure-piece.hpp"
 
@@ -13,6 +14,7 @@ class Context::Impl {
     std::map<i64, MapInfo::Map> fMaps;
     std::map<mcfile::Dimension, std::unordered_map<Pos2i, ChunksInRegion, Pos2iHasher>> fRegions;
     std::map<mcfile::Dimension, std::vector<StructurePiece>> fStructurePieces;
+    std::unordered_map<i32, std::pair<mcfile::Dimension, Pos3i>> fLodestones;
     int fNumChunks = 0;
 
     Options fOpt;
@@ -50,6 +52,9 @@ class Context::Impl {
         std::copy(i.second.begin(), i.second.end(), std::back_inserter(out.fStructurePieces[i.first]));
       }
       out.fNumChunks += fNumChunks;
+      for (auto const &it : fLodestones) {
+        out.fLodestones[it.first] = it.second;
+      }
     }
 
     void accept(std::string const &key, std::string const &value) {
@@ -88,13 +93,42 @@ class Context::Impl {
           break;
         }
         }
-      } else if (parsed.fUnTagged.starts_with("map_")) {
-        i64 mapId;
-        auto mapInfo = MapInfo::Parse(value, mapId, fEndian);
-        if (!mapInfo) {
-          return;
+      } else {
+        if (parsed.fUnTagged.starts_with("map_")) {
+          i64 mapId;
+          auto mapInfo = MapInfo::Parse(value, mapId, fEndian);
+          if (!mapInfo) {
+            return;
+          }
+          fMaps[mapId] = *mapInfo;
+        } else if (parsed.fUnTagged.starts_with("PosTrackDB-")) {
+          if (auto c = CompoundTag::Read(value, mcfile::Endian::Little); c) {
+            if (auto dim = c->int32(u8"dim"); dim) {
+              std::optional<mcfile::Dimension> d;
+              switch (*dim) {
+              case 0:
+                d = mcfile::Dimension::Overworld;
+                break;
+              case 1:
+                d = mcfile::Dimension::Nether;
+                break;
+              case 2:
+                d = mcfile::Dimension::End;
+                break;
+              }
+              if (d) {
+                if (auto id = c->string(u8"id"); id && id->starts_with(u8"0x")) {
+                  std::string str;
+                  std::copy(id->begin() + 2, id->end(), std::back_inserter(str));
+                  auto numId = std::stoi(str, nullptr, 16);
+                  if (auto pos = props::GetPos3iFromListTag(*c, u8"pos"); pos) {
+                    fLodestones[numId] = std::make_pair(*d, *pos);
+                  }
+                }
+              }
+            }
+          }
         }
-        fMaps[mapId] = *mapInfo;
       }
     }
 
@@ -234,7 +268,7 @@ public:
     }
 
     fs::path temp = opt.getTempDirectory();
-    out.reset(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode));
+    out.reset(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode, accum.fLodestones));
     return Status::Ok();
   }
 };
@@ -301,7 +335,7 @@ void Context::structures(mcfile::Dimension d, Pos2i chunk, std::vector<Structure
 }
 
 std::shared_ptr<Context> Context::make() const {
-  auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode));
+  auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode, fLodestones));
   ret->fLocalPlayer = fLocalPlayer;
   if (fRootVehicle) {
     ret->fRootVehicle = *fRootVehicle;
@@ -504,6 +538,15 @@ Status Context::exportPoi(std::filesystem::path const &root) const {
     }
   }
   return Status::Ok();
+}
+
+std::optional<std::pair<mcfile::Dimension, Pos3i>> Context::getLodestone(i32 trackingHandle) const {
+  auto found = fLodestones.find(trackingHandle);
+  if (found == fLodestones.end()) {
+    return std::nullopt;
+  } else {
+    return found->second;
+  }
 }
 
 } // namespace je2be::bedrock

@@ -2,6 +2,7 @@
 
 #include <je2be/strings.hpp>
 
+#include "_dimension-ext.hpp"
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_optional.hpp"
@@ -493,7 +494,7 @@ private:
     E(netherite_shovel, DefaultItem);
     E(netherite_pickaxe, DefaultItem);
     E(netherite_hoe, DefaultItem);
-    E(compass, DefaultItem);
+    E(compass, Compass);
     E(fishing_rod, DefaultItem);
     E(name_tag, DefaultItem);
     E(wooden_sword, DefaultItem);
@@ -734,6 +735,40 @@ private:
     using namespace std;
     static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateItemConverterTable());
     return *sTable;
+  }
+
+  static CompoundTagPtr Compass(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    struct Info {
+      Info(Pos3i pos, mcfile::Dimension d) : fPos(pos), fDimension(d) {}
+      Pos3i fPos;
+      mcfile::Dimension fDimension;
+    };
+    std::optional<Info> info;
+    if (auto target = item.query(u8"components/minecraft:lodestone_tracker/target")->asCompound(); target) {
+      auto pos = props::GetPos3iFromIntArrayTag(*target, u8"pos");
+      if (auto dimension = target->string(u8"dimension"); dimension) {
+        if (auto d = DimensionFromJavaString(*dimension); d && pos) {
+          info = Info(*pos, *d);
+        }
+      }
+    } else if (auto tag = item.compoundTag(u8"tag"); tag) {
+      auto pos = props::GetPos3i(*tag, u8"LodestonePos");
+      if (auto dimension = tag->string(u8"LodestoneDimension"); dimension) {
+        if (auto d = DimensionFromJavaString(*dimension); d && pos) {
+          info = Info(*pos, *d);
+        }
+      }
+    }
+    if (info) {
+      auto ret = New(u8"lodestone_compass");
+      i32 tracker = ctx.fLodestones->get(info->fDimension, info->fPos);
+      auto tagB = Compound();
+      tagB->set(u8"trackingHandle", Int(tracker));
+      ret->set(u8"tag", tagB);
+      return ret;
+    } else {
+      return New(u8"compass");
+    }
   }
 
   static CompoundTagPtr Sign(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {

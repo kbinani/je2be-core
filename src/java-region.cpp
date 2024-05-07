@@ -54,6 +54,7 @@ public:
             entities.get(),
             cx, cz,
             levelData.fJavaEditionMap,
+            levelData.fLodestones,
             entityStore,
             pae,
             levelData.fGameTick,

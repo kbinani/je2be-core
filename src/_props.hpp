@@ -216,6 +216,15 @@ static inline std::optional<Pos3i> GetPos3iFromIntArrayTag(CompoundTag const &ta
   return Pos3i(arr->fValue[0], arr->fValue[1], arr->fValue[2]);
 }
 
+template <char8_t X = u8'X', char8_t Y = u8'Y', char8_t Z = u8'Z'>
+inline CompoundTagPtr CompoundFromPos3i(Pos3i const &p) {
+  auto r = Compound();
+  r->set(std::u8string(1, X), Int(p.fX));
+  r->set(std::u8string(1, Y), Int(p.fY));
+  r->set(std::u8string(1, Z), Int(p.fZ));
+  return r;
+}
+
 static inline std::optional<Json> ParseAsJson(std::u8string const &s) {
   std::string ns;
   ns.assign((char const *)s.data(), s.size());

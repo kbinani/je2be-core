@@ -236,7 +236,7 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    Context ctx(ld.fJavaEditionMap, wd, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType);
+    Context ctx(ld.fJavaEditionMap, ld.fLodestones, wd, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType);
     auto playerB = Entity::LocalPlayer(*playerJ, ctx, ld.fDataVersion, {});
     if (!playerB) {
       return std::nullopt;

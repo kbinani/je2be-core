@@ -1127,6 +1127,10 @@ public:
     }
   }
 
+  static std::optional<Result> Null(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
+    return std::nullopt;
+  }
+
 #pragma endregion
 
   static std::unordered_map<std::u8string_view, Converter> *CreateTable() {
@@ -1249,6 +1253,7 @@ public:
     E(crafter, Crafter);
     E(vault, Vault);
     E(trial_spawner, TrialSpawner);
+    E(lodestone, Null);
 #undef E
     return t;
   }

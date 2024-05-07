@@ -728,6 +728,19 @@ public:
     return u8"minecraft:" + prefix + u8"spawn_egg";
   }
 
+  static std::u8string LodestoneCompass(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto handle = itemB.int32(u8"trackingHandle"); handle) {
+      if (auto target = ctx.getLodestone(*handle); target) {
+        auto tagJ = Compound();
+        tagJ->set(u8"LodestonePos", props::CompoundFromPos3i(target->second));
+        tagJ->set(u8"LodestoneDimension", JavaStringFromDimension(target->first));
+        tagJ->set(u8"LodestoneTracked", Bool(true));
+        itemJ[u8"tag"] = tagJ;
+      }
+    }
+    return u8"minecraft:compass";
+  }
+
   static std::u8string Map(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (!tagB) {

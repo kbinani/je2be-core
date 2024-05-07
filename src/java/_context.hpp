@@ -6,17 +6,20 @@ namespace je2be::java {
 
 class JavaEditionMap;
 class WorldData;
+class LodestoneRegistrar;
 
 struct Context {
   Context(JavaEditionMap const &mapInfo,
+          std::shared_ptr<LodestoneRegistrar> const &lodestones,
           WorldData &wd,
           i64 gameTick,
           int difficultyBedrock,
           bool allowCommand,
           GameMode gameType)
-      : fMapInfo(mapInfo), fWorldData(wd), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType) {}
+      : fMapInfo(mapInfo), fLodestones(lodestones), fWorldData(wd), fGameTick(gameTick), fDifficultyBedrock(difficultyBedrock), fAllowCommand(allowCommand), fGameType(gameType) {}
 
   JavaEditionMap const &fMapInfo;
+  std::shared_ptr<LodestoneRegistrar> fLodestones;
   WorldData &fWorldData;
   i64 const fGameTick;
   int const fDifficultyBedrock;

@@ -711,6 +711,22 @@ public:
     return u8"minecraft:" + prefix + u8"spawn_egg";
   }
 
+  static std::u8string LodestoneCompass(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      if (auto handle = tagB->int32(u8"trackingHandle"); handle) {
+        if (auto target = ctx.getLodestone(*handle); target) {
+          auto targetJ = Compound();
+          targetJ->set(u8"pos", IntArrayFromPos3i(target->second));
+          targetJ->set(u8"dimension", JavaStringFromDimension(target->first));
+          auto tracker = Compound();
+          tracker->set(u8"target", targetJ);
+          java::AppendComponent(itemJ, u8"lodestone_tracker", tracker);
+        }
+      }
+    }
+    return u8"minecraft:compass";
+  }
+
   static std::u8string Map(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (!tagB) {
@@ -928,6 +944,7 @@ public:
     E(crossbow, Crossbow);
     E(field_masoned_banner_pattern, Rename(u8"flower_banner_pattern"));    // field_masoned_banner_pattern doesn't exist in JE
     E(bordure_indented_banner_pattern, Rename(u8"flower_banner_pattern")); // bordure_indented_banner_pattern doesn't exist in JE
+    E(lodestone_compass, LodestoneCompass);
 
     // 1.19
     E(frog_spawn, Rename(u8"frogspawn"));

@@ -28,8 +28,9 @@ class Context {
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
           i64 gameTick,
-          GameMode gameMode)
-      : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fMapInfo(mapInfo), fStructureInfo(structureInfo) {}
+          GameMode gameMode,
+          std::unordered_map<i32, std::pair<mcfile::Dimension, Pos3i>> const &lodestones)
+      : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fMapInfo(mapInfo), fStructureInfo(structureInfo), fLodestones(lodestones) {}
 
 public:
   struct ChunksInRegion {
@@ -64,6 +65,7 @@ public:
   bool setShoulderEntityIfItIs(i64 uid, CompoundTagPtr entityB);
   void drainShoulderEntities(CompoundTagPtr &left, CompoundTagPtr &right);
   void addToPoiIfItIs(mcfile::Dimension dim, Pos3i const &pos, mcfile::je::Block const &block);
+  std::optional<std::pair<mcfile::Dimension, Pos3i>> getLodestone(i32 trackingHandle) const;
 
 private:
   Status exportMaps(std::filesystem::path const &root, mcfile::be::DbInterface &db) const;
@@ -118,6 +120,7 @@ private:
   CompoundTagPtr fShoulderEntityRight;
 
   std::unordered_map<mcfile::Dimension, PoiBlocks> fPoiBlocks;
+  std::unordered_map<i32, std::pair<mcfile::Dimension, Pos3i>> const fLodestones;
 };
 
 } // namespace je2be::bedrock

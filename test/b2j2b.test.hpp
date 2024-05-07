@@ -1,4 +1,11 @@
-static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual);
+struct B2J2BContext {
+  unordered_map<i32, pair<mcfile::Dimension, Pos3i>> fLodestonesActual;
+  unordered_map<i32, pair<mcfile::Dimension, Pos3i>> fLodestonesExpected;
+  // key: expected, value: actual
+  unordered_map<i32, i32> fLodestoneHandlesKeyExpectedValueActual;
+};
+
+static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual, B2J2BContext &ctx);
 
 static std::shared_ptr<CompoundTag> ReadLevelDatB(fs::path const &p) {
   auto s = make_shared<mcfile::stream::FileInputStream>(p);
@@ -161,7 +168,7 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) 
   }
 }
 
-static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
+static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual, B2J2BContext &ctx) {
   auto nameE = expected.string(u8"Name");
   auto nameA = actual.string(u8"Name");
   auto e = expected.copy();
@@ -193,12 +200,29 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
           Erase(copyE, p);
           Erase(copyA, p);
         }
-        CheckEntityB(*idE, *copyE, *copyA);
+        CheckEntityB(*idE, *copyE, *copyA, ctx);
       }
     } else {
       CHECK(!tagA);
     }
     ignore.insert(u8"tag");
+  } else if (nameE == u8"minecraft:lodestone_compass") {
+    auto tagE = expected.compoundTag(u8"tag");
+    auto tagA = actual.compoundTag(u8"tag");
+    if (tagE) {
+      CHECK(tagA);
+      if (tagA) {
+        auto handleE = tagE->int32(u8"trackingHandle");
+        auto handleA = tagA->int32(u8"trackingHandle");
+        CHECK((bool)handleE == (bool)handleA);
+        if (handleE && handleA) {
+          ctx.fLodestoneHandlesKeyExpectedValueActual[*handleE] = *handleA;
+        }
+        ignore.insert(u8"tag/trackingHandle");
+      }
+    } else {
+      CHECK(!tagA);
+    }
   }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
@@ -216,7 +240,7 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual) {
   DiffCompoundTag(*e, *a);
 }
 
-static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual) {
+static void CheckEntityB(u8string const &id, CompoundTag const &expected, CompoundTag const &actual, B2J2BContext &ctx) {
   auto defE = expected.listTag(u8"definitions");
   auto defA = actual.listTag(u8"definitions");
   CheckEntityDefinitionsB(id, defE, defA);
@@ -261,7 +285,7 @@ static void CheckEntityB(u8string const &id, CompoundTag const &expected, Compou
         if (!a) {
           continue;
         }
-        CheckItemB(*e, *a);
+        CheckItemB(*e, *a, ctx);
       }
     }
   }
@@ -285,7 +309,7 @@ static void CheckRotationB(float e, float a) {
   CHECK(e == a);
 }
 
-static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE) {
+static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE, mcfile::Dimension dim, B2J2BContext &ctx) {
   auto e = expected.copy();
   auto a = actual.copy();
   auto x = expected.int32(u8"x");
@@ -341,16 +365,24 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
       for (size_t i = 0; i < occupantsE->size(); i++) {
         auto occupantE = occupantsE->at(i)->asCompound();
         auto occupantA = occupantsA->at(i)->asCompound();
-        CheckEntityB(u8"minecraft:bee", *occupantE, *occupantA);
+        CheckEntityB(u8"minecraft:bee", *occupantE, *occupantA, ctx);
       }
     }
     ignore.insert(u8"Occupants");
+  } else if (*idE == u8"Lodestone") {
+    auto handleE = e->int32(u8"trackingHandle");
+    auto handleA = a->int32(u8"trackingHandle");
+    if (handleE && handleA) {
+      ctx.fLodestonesExpected[*handleE] = make_pair(dim, Pos3i(*x, *y, *z));
+      ctx.fLodestonesActual[*handleA] = make_pair(dim, Pos3i(*x, *y, *z));
+    }
+    ignore.insert(u8"trackingHandle");
   }
   auto itemE = e->compoundTag(u8"Item");
   auto itemA = a->compoundTag(u8"Item");
   if (itemE) {
     REQUIRE(itemA);
-    CheckItemB(*itemE, *itemA);
+    CheckItemB(*itemE, *itemA, ctx);
     ignore.insert(u8"Item");
   }
   for (auto const &key : {u8"Items"}) {
@@ -367,7 +399,7 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
           REQUIRE(itemE);
           CHECK(itemA);
           if (itemA) {
-            CheckItemB(*itemE, *itemA);
+            CheckItemB(*itemE, *itemA, ctx);
           }
         }
       }
@@ -382,7 +414,7 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
   DiffCompoundTag(*e, *a);
 }
 
-static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const &chunkA) {
+static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const &chunkA, mcfile::Dimension dim, B2J2BContext &ctx) {
   for (int y = chunkE.minBlockY(); y <= chunkE.maxBlockY(); y++) {
     for (int z = chunkE.minBlockZ(); z <= chunkE.maxBlockZ(); z++) {
       for (int x = chunkE.minBlockX(); x <= chunkE.maxBlockX(); x++) {
@@ -451,7 +483,7 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
       }
     }
     if (a) {
-      CheckEntityB(*idE, *e, *a);
+      CheckEntityB(*idE, *e, *a, ctx);
     } else {
       ostringstream out;
       PrintAsJson(out, *e, {.fTypeHint = true});
@@ -470,7 +502,7 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
     }
     REQUIRE(found->second);
     auto blockE = chunkE.blockAt(e.first);
-    CheckBlockEntityB(*e.second, *found->second, blockE);
+    CheckBlockEntityB(*e.second, *found->second, blockE, dim, ctx);
   }
 }
 
@@ -558,6 +590,7 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
   unique_ptr<leveldb::DB> dbA(OpenF(*outB / "db"));
   REQUIRE(dbE);
   REQUIRE(dbA);
+  B2J2BContext ctx;
 
   for (auto dimension : dimensions) {
     mcfile::be::Chunk::ForAll(dbE.get(), dimension, [&](int cx, int cz) {
@@ -571,7 +604,7 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
       if (!chunkA) {
         return true;
       }
-      CheckChunkB(*chunkE, *chunkA);
+      CheckChunkB(*chunkE, *chunkA, dimension, ctx);
       return true;
     });
   }
@@ -586,9 +619,23 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
     auto componentA = CompoundTag::Read(localPlayerA, mcfile::Endian::Little);
     CHECK(componentA);
     if (componentA) {
-      CheckEntityB(u8"minecraft:player", *componentE, *componentA);
+      CheckEntityB(u8"minecraft:player", *componentE, *componentA, ctx);
     }
   }
+  for (auto const &it : ctx.fLodestonesExpected) {
+    auto handleE = it.first;
+    auto foundE = ctx.fLodestoneHandlesKeyExpectedValueActual.find(handleE);
+    REQUIRE(foundE != ctx.fLodestoneHandlesKeyExpectedValueActual.end());
+    auto handleA = foundE->second;
+    auto foundA = ctx.fLodestonesActual.find(handleA);
+    CHECK(foundA != ctx.fLodestonesActual.end());
+    if (foundA != ctx.fLodestonesActual.end()) {
+      CHECK(it.second.first == foundA->second.first);
+      CHECK(it.second.second == foundA->second.second);
+      ctx.fLodestonesActual.erase(foundA);
+    }
+  }
+  CHECK(ctx.fLodestonesActual.empty());
 }
 
 TEST_CASE("b2j2b") {

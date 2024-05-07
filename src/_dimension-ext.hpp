@@ -2,14 +2,17 @@
 
 #include <minecraft-file.hpp>
 
+#include "_namespace.hpp"
+
 namespace je2be {
 
 static inline std::optional<mcfile::Dimension> DimensionFromJavaString(std::u8string const &d) {
-  if (d == u8"minecraft:overworld") {
+  auto dim = Namespace::Remove(d);
+  if (dim == u8"overworld") {
     return mcfile::Dimension::Overworld;
-  } else if (d == u8"minecraft:the_nether") {
+  } else if (dim == u8"the_nether") {
     return mcfile::Dimension::Nether;
-  } else if (d == u8"minecraft:the_end") {
+  } else if (dim == u8"the_end") {
     return mcfile::Dimension::End;
   }
   return std::nullopt;

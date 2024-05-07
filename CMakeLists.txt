@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG ed92e06a8726993df399bf5f03264ef15c9c536a)
+  GIT_TAG 55280ad46cef820f25f3309197d80b0518db2b2d)
 
 CPMAddPackage(
   NAME defer
@@ -317,6 +317,7 @@ set(je2be_src_files
   src/java/_java-edition-map.hpp
   src/java/_level-data.hpp
   src/java/_level.hpp
+  src/java/_lodestone-registrar.hpp
   src/java/_map.hpp
   src/java/_moving-piston.hpp
   src/java/_player-abilities.hpp
