@@ -190,6 +190,11 @@ public:
         tag->insert(make_pair(u8"ItemDropChance", Float(itemDropChance)));
       }
     }
+    if (auto itemJ = c.compoundTag(u8"Item"); itemJ) {
+      if (auto customName = Item::GetCustomName(*itemJ); customName) {
+        tag->set(u8"CustomName", *customName);
+      }
+    }
     return tag;
   }
 
