@@ -870,7 +870,7 @@ public:
 
   static std::filesystem::path TableFilePath(std::filesystem::path const &dbname, u64 tableNumber) {
     std::vector<char> buffer(11, (char)0);
-#if defined(_WIN32)
+#if defined(_MSC_VER)
     sprintf_s(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
 #else
     snprintf(buffer.data(), buffer.size(), "%06" PRIu64 ".ldb", tableNumber);
