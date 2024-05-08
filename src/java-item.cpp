@@ -803,13 +803,13 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
+  static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &ctx, int dataVersion) {
     auto ret = New(u8"tropical_fish_bucket");
     ret->set(u8"Damage", Short(0));
     if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
       if (auto variant = data->int32(u8"BucketVariantTag"); variant) {
         auto tf = TropicalFish::FromJavaVariant(*variant);
-        auto tag = tf.toBedrockBucketTag(UuidRegistrar::RandomEntityId(), data->float32(u8"Health"));
+        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), data->float32(u8"Health"));
         ret->set(u8"tag", tag);
       }
     }
@@ -817,11 +817,11 @@ private:
   }
 
   static Converter FishBucket(std::u8string const &type) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &, int dataVersion) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &ctx, int dataVersion) {
       auto ret = New(type + u8"_bucket");
       ret->set(u8"Damage", Short(0));
       if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
-        Entity::Rep rep(UuidRegistrar::RandomEntityId());
+        Entity::Rep rep(ctx.fUuids->randomEntityId());
         rep.fDefinitions.push_back(u8"+minecraft:" + type);
         rep.fDefinitions.push_back(u8"+");
         if (type == u8"salmon") {

@@ -363,13 +363,13 @@ private:
     return ret;
   }
 
-  static ListTagPtr ConvertUuidList(ListTag const &java) {
+  static ListTagPtr ConvertUuidList(ListTag const &java, Context const &ctx) {
     auto bedrock = List<Tag::Type::Compound>();
     for (auto const &it : java) {
       if (auto uuidJ = it->asIntArray(); uuidJ) {
         if (auto uuid = Uuid::FromIntArray(*uuidJ); uuid) {
           auto uuidB = Compound();
-          uuidB->set(u8"uuid", Long(UuidRegistrar::ToId(*uuid)));
+          uuidB->set(u8"uuid", Long(ctx.fUuids->toId(*uuid)));
           bedrock->push_back(uuidB);
         }
       }
@@ -392,7 +392,7 @@ private:
       }
       for (auto const &key : {u8"registered_players", u8"current_mobs"}) {
         if (auto uuidListJ = c->listTag(key); uuidListJ) {
-          auto uuidListB = ConvertUuidList(*uuidListJ);
+          auto uuidListB = ConvertUuidList(*uuidListJ, ctx);
           ret->set(key, uuidListB);
         }
       }
@@ -476,7 +476,7 @@ private:
               continue;
             }
             if (auto idJ = Uuid::FromIntArray(*v); idJ) {
-              auto idB = UuidRegistrar::ToId(*idJ);
+              auto idB = ctx.fUuids->toId(*idJ);
               rewarededPlayersB->push_back(Long(idB));
             }
           }

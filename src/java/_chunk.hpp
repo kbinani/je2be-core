@@ -13,6 +13,7 @@ namespace je2be::java {
 
 class WorldData;
 class EntityStore;
+class UuidRegistrar;
 class LodestoneRegistrar;
 
 class Chunk {
@@ -42,6 +43,7 @@ public:
                         int cx, int cz,
                         JavaEditionMap mapInfo,
                         std::shared_ptr<LodestoneRegistrar> const &lodestones,
+                        std::shared_ptr<UuidRegistrar> const &uuids,
                         std::shared_ptr<EntityStore> const &entityStore,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
                         i64 gameTick,

@@ -4,6 +4,7 @@
 #include <je2be/status.hpp>
 
 #include "enums/_game-mode.hpp"
+#include "java/_context.hpp"
 #include "java/_java-edition-map.hpp"
 #include "java/_level.hpp"
 #include "java/_lodestone-registrar.hpp"
@@ -30,9 +31,10 @@ public:
         fAllowCommand(allowCommand),
         fGameType(gameType),
         fDataVersion(dataVersion),
-        fLodestones(std::make_shared<LodestoneRegistrar>()) {}
+        fLodestones(std::make_shared<LodestoneRegistrar>()),
+        fUuids(std::make_shared<UuidRegistrar>()) {}
 
-  [[nodiscard]] Status put(DbInterface &db, CompoundTag const &javaLevelData) {
+  [[nodiscard]] Status put(DbInterface &db, CompoundTag const &javaLevelData, std::shared_ptr<UuidRegistrar> const &uuids) {
     Status st;
     if (st = fPortals.putInto(db); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
@@ -51,7 +53,7 @@ public:
       return JE2BE_ERROR_PUSH(st);
     }
 
-    auto theEnd = Level::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension);
+    auto theEnd = Level::TheEndData(javaLevelData, fAutonomousEntities.size(), fEndPortalsInEndDimension, uuids);
     if (theEnd) {
       if (st = db.put(mcfile::be::DbKey::TheEnd(), *theEnd); !st.ok()) {
         return JE2BE_ERROR_PUSH(st);
@@ -133,6 +135,7 @@ public:
   };
   std::optional<PlayerAttachedEntities> fPlayerAttachedEntities;
   std::shared_ptr<LodestoneRegistrar> const fLodestones;
+  std::shared_ptr<UuidRegistrar> const fUuids;
 };
 
 } // namespace je2be::java

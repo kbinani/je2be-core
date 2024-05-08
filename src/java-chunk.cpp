@@ -30,6 +30,7 @@ public:
                         int cx, int cz,
                         JavaEditionMap mapInfo,
                         std::shared_ptr<LodestoneRegistrar> const &lodestones,
+                        std::shared_ptr<UuidRegistrar> const &uuids,
                         std::shared_ptr<EntityStore> const &entityStore,
                         std::optional<PlayerAttachedEntities> playerAttachedEntities,
                         i64 gameTick,
@@ -64,7 +65,7 @@ public:
           }
         }
       }
-      auto [data, st] = MakeWorldData(chunk, terrain, dim, db, mapInfo, lodestones, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+      auto [data, st] = MakeWorldData(chunk, terrain, dim, db, mapInfo, lodestones, uuids, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
       if (!data) {
         data = make_shared<WorldData>(dim);
       }
@@ -102,6 +103,7 @@ public:
       DbInterface &db,
       JavaEditionMap const &mapInfo,
       std::shared_ptr<LodestoneRegistrar> const &lodestones,
+      std::shared_ptr<UuidRegistrar> const &uuids,
       std::shared_ptr<EntityStore> const &entityStore,
       std::optional<PlayerAttachedEntities> playerAttachedEntities,
       i64 gameTick,
@@ -197,7 +199,7 @@ public:
     ret->updateChunkLastUpdate(*chunk);
 
     unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
-    Context ctx(mapInfo, lodestones, *ret, gameTick, difficultyBedrock, allowCommand, gameType);
+    Context ctx(mapInfo, lodestones, uuids, *ret, gameTick, difficultyBedrock, allowCommand, gameType);
     cdp.build(*chunk, ctx, entities);
     if (!cdp.serialize(cd)) {
       return make_pair(nullptr, Status::Ok());
@@ -439,13 +441,14 @@ Chunk::Result Chunk::Convert(mcfile::Dimension dim,
                              int cx, int cz,
                              JavaEditionMap mapInfo,
                              std::shared_ptr<LodestoneRegistrar> const &lodestones,
+                             std::shared_ptr<UuidRegistrar> const &uuids,
                              std::shared_ptr<EntityStore> const &entityStore,
                              std::optional<PlayerAttachedEntities> playerAttachedEntities,
                              i64 gameTick,
                              int difficultyBedrock,
                              bool allowCommand,
                              GameMode gameType) {
-  return Impl::Convert(dim, db, terrain, entities, cx, cz, mapInfo, lodestones, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
+  return Impl::Convert(dim, db, terrain, entities, cx, cz, mapInfo, lodestones, uuids, entityStore, playerAttachedEntities, gameTick, difficultyBedrock, allowCommand, gameType);
 }
 
 } // namespace je2be::java

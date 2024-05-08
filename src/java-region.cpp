@@ -55,6 +55,7 @@ public:
             cx, cz,
             levelData.fJavaEditionMap,
             levelData.fLodestones,
+            levelData.fUuids,
             entityStore,
             pae,
             levelData.fGameTick,

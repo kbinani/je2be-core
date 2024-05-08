@@ -79,16 +79,16 @@ public:
     if (!id.starts_with(u8"minecraft:")) {
       return result;
     }
+    ConverterContext cctx(ctx, dataVersion, flags);
     static unique_ptr<unordered_map<u8string, Converter> const> const table(CreateEntityTable());
     auto found = table->find(Namespace::Remove(id));
     if (found == table->end()) {
-      auto converted = Default(tag);
+      auto converted = Default(tag, cctx);
       if (converted) {
         result.fEntity = converted;
       }
       return result;
     }
-    ConverterContext cctx(ctx, dataVersion, flags);
     auto converted = found->second(tag, cctx);
     if (converted) {
       result.fEntity = converted;
@@ -216,7 +216,7 @@ public:
     if (!entity) {
       return nullopt;
     }
-    auto uuid = GetEntityUuid(tag);
+    auto uuid = GetEntityUuid(tag, cctx);
     if (!uuid) {
       return nullopt;
     }
@@ -679,7 +679,7 @@ private:
       if (auto memories = brain->compoundTag(u8"memories"); memories) {
         if (auto likedPlayer = memories->compoundTag(u8"minecraft:liked_player"); likedPlayer) {
           if (auto likedPlayerUid = props::GetUuidWithFormatIntArray(*likedPlayer, u8"value"); likedPlayerUid) {
-            auto uidB = UuidRegistrar::ToId(*likedPlayerUid);
+            auto uidB = ctx.fCtx.fUuids->toId(*likedPlayerUid);
             b[u8"OwnerNew"] = Long(uidB);
           }
         }
@@ -754,8 +754,8 @@ private:
     }
   }
 
-  static void Arrow(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    auto owner = GetOwnerUuid(tag);
+  static void Arrow(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    auto owner = GetOwnerUuid(tag, ctx);
     if (owner) {
       c[u8"OwnerID"] = Long(*owner);
       c[u8"OwnerNew"] = Long(*owner);
@@ -990,7 +990,7 @@ private:
     c[u8"Time"] = Byte(*(i8 *)&time);
   }
 
-  static void Fox(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void Fox(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto type = tag.string(u8"Type", u8"red");
     i32 variant = 0;
     if (type == u8"red") {
@@ -1017,7 +1017,7 @@ private:
         if (!uuidJ) {
           continue;
         }
-        i64 uuidB = UuidRegistrar::ToId(*uuidJ);
+        i64 uuidB = ctx.fCtx.fUuids->toId(*uuidJ);
         std::u8string key = u8"TrustedPlayer" + mcfile::String::ToString(index);
         c[key] = Long(uuidB);
         index++;
@@ -1138,7 +1138,7 @@ private:
     }
   }
 
-  static void IronGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void IronGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto playerCreated = tag.boolean(u8"PlayerCreated", false);
     auto angryAt = props::GetUuid(tag, {.fIntArray = u8"AngryAt"});
     auto angerTime = tag.int32(u8"AngerTime", 0);
@@ -1150,7 +1150,7 @@ private:
     }
     c[u8"IsAngry"] = Bool(angerTime > 0);
     if (angryAt) {
-      i64 targetId = UuidRegistrar::ToId(*angryAt);
+      i64 targetId = ctx.fCtx.fUuids->toId(*angryAt);
       c[u8"TargetID"] = Long(targetId);
     }
   }
@@ -1625,9 +1625,9 @@ private:
     c[u8"Attributes"] = attributes.toBedrockListTag();
   }
 
-  static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto health = tag.float32(u8"Health");
-    auto owner = GetOwnerUuid(tag);
+    auto owner = GetOwnerUuid(tag, ctx);
     auto variant = tag.string(u8"variant");
 
     auto attributes = EntityAttributes::Wolf(!!owner, health);
@@ -1668,7 +1668,7 @@ private:
 
       tagB[u8"IsAngry"] = Bool(true);
 
-      auto targetId = UuidRegistrar::ToId(*angryAt);
+      auto targetId = ctx.fCtx.fUuids->toId(*angryAt);
       tagB[u8"TargetID"] = Long(targetId);
     } else {
       AddDefinition(tagB, u8"+minecraft:pig_zombie_calm");
@@ -1733,9 +1733,9 @@ private:
     }
   }
 
-  static void CollarColorable(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+  static void CollarColorable(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
     auto collarColor = tag.byte(u8"CollarColor");
-    if (collarColor && GetOwnerUuid(tag)) {
+    if (collarColor && GetOwnerUuid(tag, ctx)) {
       c[u8"Color"] = Byte(*collarColor);
     }
   }
@@ -1838,8 +1838,8 @@ private:
       auto x = leashIntArray->fValue[0];
       auto y = leashIntArray->fValue[1];
       auto z = leashIntArray->fValue[2];
-      auto leashedUuid = GetEntityUuid(tag);
-      i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
+      auto leashedUuid = GetEntityUuid(tag, ctx);
+      i64 leasherId = ctx.fCtx.fUuids->leasherIdFor(*leashedUuid);
 
       Rep e(leasherId);
       e.fPos = Pos3f(x + 0.5f, y + 0.25f, z + 0.5f);
@@ -1852,15 +1852,15 @@ private:
       c->set(u8"LeasherID", Long(leasherId));
     } else if (auto leashCompound = FallbackPtr<CompoundTag>(tag, {u8"leash", u8"Leash"}); leashCompound) {
       if (auto leasherUuid = props::GetUuid(*leashCompound, {.fIntArray = u8"UUID"}); leasherUuid) {
-        auto leasherUuidB = UuidRegistrar::ToId(*leasherUuid);
+        auto leasherUuidB = ctx.fCtx.fUuids->toId(*leasherUuid);
         c->set(u8"LeasherID", Long(leasherUuidB));
       } else {
         auto x = leashCompound->int32(u8"X");
         auto y = leashCompound->int32(u8"Y");
         auto z = leashCompound->int32(u8"Z");
         if (x && y && z) {
-          auto leashedUuid = GetEntityUuid(tag);
-          i64 leasherId = UuidRegistrar::LeasherIdFor(*leashedUuid);
+          auto leashedUuid = GetEntityUuid(tag, ctx);
+          i64 leasherId = ctx.fCtx.fUuids->leasherIdFor(*leashedUuid);
 
           Rep e(leasherId);
           e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
@@ -1878,8 +1878,8 @@ private:
     return c;
   }
 
-  static CompoundTagPtr Default(CompoundTag const &tag) {
-    auto e = BaseProperties(tag);
+  static CompoundTagPtr Default(CompoundTag const &tag, ConverterContext const &ctx) {
+    auto e = BaseProperties(tag, ctx);
     if (!e) {
       return nullptr;
     }
@@ -1887,7 +1887,7 @@ private:
   }
 
   static CompoundTagPtr EndCrystal(CompoundTag const &tag, ConverterContext &ctx) {
-    auto e = BaseProperties(tag);
+    auto e = BaseProperties(tag, ctx);
     if (!e) {
       return nullptr;
     }
@@ -1934,7 +1934,7 @@ private:
   }
 
   static CompoundTagPtr EntityBase(CompoundTag const &tag, ConverterContext &ctx) {
-    auto e = BaseProperties(tag);
+    auto e = BaseProperties(tag, ctx);
     if (!e) {
       return nullptr;
     }
@@ -1942,7 +1942,7 @@ private:
   }
 
   static CompoundTagPtr Item(CompoundTag const &tag, ConverterContext &ctx) {
-    auto e = BaseProperties(tag);
+    auto e = BaseProperties(tag, ctx);
     if (!e) {
       return nullptr;
     }
@@ -1962,7 +1962,7 @@ private:
     auto thrower = props::GetUuid(tag, {.fIntArray = u8"Thrower"});
     i64 owner = -1;
     if (thrower) {
-      owner = UuidRegistrar::ToId(*thrower);
+      owner = ctx.fCtx.fUuids->toId(*thrower);
     }
     ret->set(u8"OwnerID", Long(owner));
     ret->set(u8"OwnerNew", Long(owner));
@@ -1973,7 +1973,7 @@ private:
   }
 
   static CompoundTagPtr LivingEntity(CompoundTag const &tag, ConverterContext &ctx) {
-    auto e = BaseProperties(tag);
+    auto e = BaseProperties(tag, ctx);
     if (!e) {
       return nullptr;
     }
@@ -2119,7 +2119,7 @@ private:
     rotation->push_back(Float(yaw));
     rotation->push_back(Float(0));
 
-    auto e = BaseProperties(tag);
+    auto e = BaseProperties(tag, ctx);
     if (!e) {
       return nullptr;
     }
@@ -2379,8 +2379,8 @@ private:
   }
 
   static Behavior TameableA(std::u8string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      auto owner = GetOwnerUuid(tag);
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+      auto owner = GetOwnerUuid(tag, ctx);
       if (owner) {
         c[u8"OwnerNew"] = Long(*owner);
         AddDefinition(c, u8"-minecraft:" + definitionKey + u8"_wild");
@@ -2393,8 +2393,8 @@ private:
   }
 
   static Behavior TameableB(std::u8string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      auto owner = GetOwnerUuid(tag);
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+      auto owner = GetOwnerUuid(tag, ctx);
       if (owner) {
         c[u8"OwnerNew"] = Long(*owner);
         AddDefinition(c, u8"-minecraft:" + definitionKey + u8"_wild");
@@ -2571,12 +2571,12 @@ private:
     c[u8"ChestItems"] = chestItems;
   }
 
-  static std::optional<i64> GetOwnerUuid(CompoundTag const &tag) {
+  static std::optional<i64> GetOwnerUuid(CompoundTag const &tag, ConverterContext const &ctx) {
     auto uuid = props::GetUuid(tag, {.fIntArray = u8"Owner", .fHexString = u8"OwnerUUID"});
     if (!uuid) {
       return std::nullopt;
     }
-    return UuidRegistrar::ToId(*uuid);
+    return ctx.fCtx.fUuids->toId(*uuid);
   }
 
   static void AddDefinition(CompoundTag &tag, std::u8string const &definition) {
@@ -2707,12 +2707,12 @@ private:
     return ret;
   }
 
-  static std::optional<i64> GetEntityUuid(CompoundTag const &tag) {
+  static std::optional<i64> GetEntityUuid(CompoundTag const &tag, ConverterContext const &ctx) {
     auto uuid = props::GetUuid(tag, {.fLeastAndMostPrefix = u8"UUID", .fIntArray = u8"UUID"});
     if (!uuid) {
       return std::nullopt;
     }
-    return UuidRegistrar::ToId(*uuid);
+    return ctx.fCtx.fUuids->toId(*uuid);
   }
 
   struct PositionAndFacing {
@@ -2781,7 +2781,7 @@ private:
     return ret;
   }
 
-  static std::optional<Rep> BaseProperties(CompoundTag const &tag) {
+  static std::optional<Rep> BaseProperties(CompoundTag const &tag, ConverterContext const &ctx) {
     using namespace je2be::props;
     using namespace std;
 
@@ -2793,7 +2793,7 @@ private:
     auto motion = GetPos3d(tag, u8"Motion");
     auto pos = GetPos3d(tag, u8"Pos");
     auto rotation = GetRotation(tag, u8"Rotation");
-    auto uuid = GetEntityUuid(tag);
+    auto uuid = GetEntityUuid(tag, ctx);
     auto id = tag.string(u8"id");
     auto customNameJ = tag.string(u8"CustomName");
 

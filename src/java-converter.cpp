@@ -192,7 +192,7 @@ public:
       level.fCheatsEnabled = levelData->fAllowCommand;
       ok = level.write(output / "level.dat");
       if (ok) {
-        if (auto st = levelData->put(db, *data); !st.ok()) {
+        if (auto st = levelData->put(db, *data, levelData->fUuids); !st.ok()) {
           return JE2BE_ERROR_PUSH(st);
         }
       }
@@ -236,7 +236,7 @@ public:
     }
 
     WorldData wd(mcfile::Dimension::Overworld);
-    Context ctx(ld.fJavaEditionMap, ld.fLodestones, wd, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType);
+    Context ctx(ld.fJavaEditionMap, ld.fLodestones, ld.fUuids, wd, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType);
     auto playerB = Entity::LocalPlayer(*playerJ, ctx, ld.fDataVersion, {});
     if (!playerB) {
       return std::nullopt;

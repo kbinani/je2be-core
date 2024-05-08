@@ -384,7 +384,7 @@ public:
     return ret;
   }
 
-  static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension) {
+  static std::optional<std::string> TheEndData(CompoundTag const &tag, size_t numAutonomousEntities, std::unordered_set<Pos3i, Pos3iHasher> const &endPortalsInEndDimension, std::shared_ptr<UuidRegistrar> const &uuids) {
     auto data = tag.query(u8"Data")->asCompound();
     if (!data) {
       return std::nullopt;
@@ -412,7 +412,7 @@ public:
 
     auto uuid = props::GetUuid(*dragonFight, {.fIntArray = u8"Dragon"});
     if (uuid) {
-      fight->set(u8"DragonUUID", Long(UuidRegistrar::ToId(*uuid)));
+      fight->set(u8"DragonUUID", Long(uuids->toId(*uuid)));
       fight->set(u8"DragonSpawned", Bool(true));
     } else {
       fight->set(u8"DragonUUID", Long(-1));
