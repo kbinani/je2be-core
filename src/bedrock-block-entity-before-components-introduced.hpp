@@ -50,8 +50,7 @@ public:
       te->set(u8"CustomName", u8R"({"color":"gold","translate":"block.minecraft.ominous_banner"})");
       te->set(u8"Patterns", Banner::OminousBannerPatterns(dataVersion));
     } else {
-      auto patternsB = tag.listTag(u8"Patterns");
-      if (patternsB) {
+      if (auto patternsB = tag.listTag(u8"Patterns"); patternsB) {
         auto patternsJ = List<Tag::Type::Compound>();
         for (auto const &pB : *patternsB) {
           CompoundTag const *c = pB->asCompound();
