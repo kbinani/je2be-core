@@ -75,8 +75,10 @@ public:
         [d, &db, dir, &parentContext, reportProgress, &numConvertedChunks, concurrency, terrainTempDir](pair<Pos2i, Context::ChunksInRegion> const &work) -> pair<shared_ptr<Context>, Status> {
           auto ctx = parentContext.make();
           Pos2i region = work.first;
-          auto result = Region::Convert(d, work.second.fChunks, region, concurrency, &db, dir, *ctx, reportProgress, numConvertedChunks, terrainTempDir);
-          if (result) {
+          shared_ptr<Context> result;
+          if (auto st = Region::Convert(d, work.second.fChunks, region, concurrency, &db, dir, *ctx, reportProgress, numConvertedChunks, terrainTempDir, result); !st.ok()) {
+            return make_pair(ctx, JE2BE_ERROR_PUSH(st));
+          } else if (result) {
             return make_pair(result, Status::Ok());
           } else {
             return make_pair(ctx, JE2BE_ERROR);

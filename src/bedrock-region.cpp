@@ -16,16 +16,17 @@ namespace je2be::bedrock {
 
 class Region::Impl {
 public:
-  static std::shared_ptr<Context> Convert(mcfile::Dimension d,
-                                          Pos2iSet chunks,
-                                          Pos2i region,
-                                          unsigned int concurrency,
-                                          mcfile::be::DbInterface *db,
-                                          std::filesystem::path destination,
-                                          Context const &parentContext,
-                                          std::function<bool(void)> progress,
-                                          std::atomic_uint64_t &numConvertedChunks,
-                                          std::filesystem::path terrainTempDir) {
+  static Status Convert(mcfile::Dimension d,
+                        Pos2iSet chunks,
+                        Pos2i region,
+                        unsigned int concurrency,
+                        mcfile::be::DbInterface *db,
+                        std::filesystem::path destination,
+                        Context const &parentContext,
+                        std::function<bool(void)> progress,
+                        std::atomic_uint64_t &numConvertedChunks,
+                        std::filesystem::path terrainTempDir,
+                        std::shared_ptr<Context> &out) {
     using namespace mcfile;
     using namespace mcfile::stream;
 
@@ -39,12 +40,12 @@ public:
 
     auto terrain = mcfile::je::McaEditor::Open(terrainMcaPath);
     if (!terrain) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     auto entities = mcfile::je::McaEditor::Open(entitiesMcaPath);
     if (!entities) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     bool ok = true;
@@ -74,57 +75,62 @@ public:
         }
         cache->set(cx, cz, b);
 
-        auto j = Chunk::Convert(d, cx, cz, *b, *cache, *ctx);
+        shared_ptr<mcfile::je::WritableChunk> j;
+        if (auto st = Chunk::Convert(d, cx, cz, *b, *cache, *ctx, j); !st.ok()) {
+          return JE2BE_ERROR_PUSH(st);
+        }
 
         int localX = cx - rx * 32;
         int localZ = cz - rz * 32;
         auto terrainTag = j->toCompoundTag(d);
         if (!terrainTag) {
-          return nullptr;
+          return JE2BE_ERROR;
         }
         if (!terrain->insert(localX, localZ, *terrainTag)) {
-          return nullptr;
+          return JE2BE_ERROR;
         }
         auto entitiesTag = j->toEntitiesCompoundTag();
         if (!entitiesTag) {
-          return nullptr;
+          return JE2BE_ERROR;
         }
         if (!entities->insert(localX, localZ, *entitiesTag)) {
-          return nullptr;
+          return JE2BE_ERROR;
         }
         numConvertedChunks.fetch_add(1);
       }
     }
 
     if (!ok) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
 
     if (!terrain->write(terrainMcaPath)) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     terrain.reset();
 
     if (!entities->write(entitiesMcaPath)) {
-      return nullptr;
+      return JE2BE_ERROR;
     }
     entities.reset();
 
-    return ctx;
+    out.swap(ctx);
+    return Status::Ok();
   }
 };
 
-std::shared_ptr<Context> Region::Convert(mcfile::Dimension d,
-                                         Pos2iSet chunks,
-                                         Pos2i region,
-                                         unsigned int concurrency,
-                                         mcfile::be::DbInterface *db,
-                                         std::filesystem::path destination,
-                                         Context const &parentContext,
-                                         std::function<bool(void)> progress,
-                                         std::atomic_uint64_t &numConvertedChunks,
-                                         std::filesystem::path terrainTempDir) {
-  return Impl::Convert(d, chunks, region, concurrency, db, destination, parentContext, progress, numConvertedChunks, terrainTempDir);
+Status Region::Convert(mcfile::Dimension d,
+                       Pos2iSet chunks,
+                       Pos2i region,
+                       unsigned int concurrency,
+                       mcfile::be::DbInterface *db,
+                       std::filesystem::path destination,
+                       Context const &parentContext,
+                       std::function<bool(void)> progress,
+                       std::atomic_uint64_t &numConvertedChunks,
+                       std::filesystem::path terrainTempDir,
+                       std::shared_ptr<Context> &out) {
+  return Impl::Convert(d, chunks, region, concurrency, db, destination, parentContext, progress, numConvertedChunks, terrainTempDir, out);
 }
 
 } // namespace je2be::bedrock

@@ -40,7 +40,7 @@ class Chunk::Impl {
   Impl() = delete;
 
 public:
-  static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx) {
+  static Status Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx, std::shared_ptr<mcfile::je::WritableChunk> &out) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::biomes;
@@ -71,7 +71,7 @@ public:
 
       auto sectionJ = SubChunk::Convert(*sectionB, d, mode, dataVersion);
       if (!sectionJ) {
-        return nullptr;
+        return JE2BE_ERROR;
       }
 
       int sectionIndex = sectionJ->y() - j->fChunkY;
@@ -328,7 +328,8 @@ public:
       j->fStructures = structuresTag;
     }
 
-    return j;
+    out.swap(j);
+    return Status::Ok();
   }
 
   static void Terraform(mcfile::be::Chunk const &b, mcfile::je::Chunk &j, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache) {
@@ -460,8 +461,8 @@ public:
   }
 };
 
-std::shared_ptr<mcfile::je::WritableChunk> Chunk::Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx) {
-  return Impl::Convert(d, cx, cz, b, cache, ctx);
+Status Chunk::Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx, std::shared_ptr<mcfile::je::WritableChunk> &out) {
+  return Impl::Convert(d, cx, cz, b, cache, ctx, out);
 }
 
 } // namespace je2be::bedrock

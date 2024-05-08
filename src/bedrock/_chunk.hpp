@@ -1,5 +1,7 @@
 #pragma once
 
+#include <je2be/status.hpp>
+
 #include <minecraft-file.hpp>
 
 #include "terraform/bedrock/_block-accessor-bedrock.hpp"
@@ -13,7 +15,13 @@ class Chunk {
   class Impl;
 
 public:
-  static std::shared_ptr<mcfile::je::WritableChunk> Convert(mcfile::Dimension d, int cx, int cz, mcfile::be::Chunk const &b, terraform::bedrock::BlockAccessorBedrock<3, 3> &cache, Context &ctx);
+  static Status Convert(mcfile::Dimension d,
+                        int cx,
+                        int cz,
+                        mcfile::be::Chunk const &b,
+                        terraform::bedrock::BlockAccessorBedrock<3, 3> &cache,
+                        Context &ctx,
+                        std::shared_ptr<mcfile::je::WritableChunk> &out);
 };
 
 } // namespace je2be::bedrock
