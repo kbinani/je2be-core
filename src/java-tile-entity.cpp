@@ -1043,26 +1043,23 @@ private:
     if (c) {
       book = c->compoundTag(u8"Book");
     }
-    i32 totalPages = 0;
     if (book) {
       auto item = Item::From(book, ctx, dataVersion);
       if (item) {
         tag->set(u8"book", item);
         auto pages = item->query(u8"tag/pages")->asList();
+        if (auto page = c->int32(u8"Page"); page && page >= 0) {
+          tag->set(u8"page", Int(*page));
+        }
+        i32 totalPages;
         if (pages) {
           totalPages = pages->size();
+        } else {
+          totalPages = 0;
         }
         tag->set(u8"hasBook", Bool(true));
+        tag->set(u8"totalPages", Int(totalPages));
       }
-    }
-    if (c) {
-      auto page = c->int32(u8"Page");
-      if (page) {
-        tag->set(u8"page", Int(*page));
-      }
-    }
-    if (totalPages > 0) {
-      tag->set(u8"totalPages", Int(totalPages));
     }
     Attach(c, pos, *tag);
     return tag;

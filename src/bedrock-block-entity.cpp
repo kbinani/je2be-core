@@ -550,7 +550,6 @@ public:
   static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, int dataVersion) {
     using namespace std;
     auto te = EmptyShortName(u8"lectern", pos);
-    auto page = tag.int32(u8"page");
     auto bookB = tag.compoundTag(u8"book");
     shared_ptr<CompoundTag> bookJ;
     if (bookB) {
@@ -559,11 +558,13 @@ public:
 
     Result r;
     r.fBlock = blockJ.applying({{u8"has_book", ToString(bookJ != nullptr)}});
-    if (page) {
-      te->set(u8"Page", Int(*page));
-    }
     if (bookJ) {
       te->set(u8"Book", bookJ);
+      if (auto page = tag.int32(u8"page"); page) {
+        te->set(u8"Page", Int(*page));
+      } else {
+        te->set(u8"Page", Int(-1));
+      }
     }
     r.fTileEntity = te;
     return r;

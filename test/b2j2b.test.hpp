@@ -223,6 +223,8 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual, B
     } else {
       CHECK(!tagA);
     }
+  } else if (nameE == u8"minecraft:written_book") {
+    ignore.insert(u8"tag/xuid");
   }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
@@ -321,6 +323,8 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
   REQUIRE(idA);
   CHECK(*idE == *idA);
   set<u8string> ignore;
+  set<u8string> itemTags;
+  itemTags.insert(u8"Item");
   if (*idE == u8"CommandBlock") {
     ignore.insert(u8"LPCommandMode");
     ignore.insert(u8"LPCondionalMode");
@@ -377,13 +381,17 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
       ctx.fLodestonesActual[*handleA] = make_pair(dim, Pos3i(*x, *y, *z));
     }
     ignore.insert(u8"trackingHandle");
+  } else if (*idE == u8"Lectern") {
+    itemTags.insert(u8"book");
   }
-  auto itemE = e->compoundTag(u8"Item");
-  auto itemA = a->compoundTag(u8"Item");
-  if (itemE) {
-    REQUIRE(itemA);
-    CheckItemB(*itemE, *itemA, ctx);
-    ignore.insert(u8"Item");
+  for (auto const &key : itemTags) {
+    auto itemE = e->compoundTag(key);
+    auto itemA = a->compoundTag(key);
+    if (itemE) {
+      REQUIRE(itemA);
+      CheckItemB(*itemE, *itemA, ctx);
+      ignore.insert(key);
+    }
   }
   for (auto const &key : {u8"Items"}) {
     ignore.insert(key);
