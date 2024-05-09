@@ -115,7 +115,7 @@ private:
 
   Status putVersion(DbInterface &db) const {
     auto const &versionKey = mcfile::be::DbKey::Version(fChunkX, fChunkZ, fDimension);
-    char vernum;
+    uint8_t vernum;
     switch (fMode) {
     case ChunkConversionMode::Legacy:
       vernum = kChunkVersionMaxLegacy;
@@ -126,7 +126,7 @@ private:
       break;
     }
 
-    leveldb::Slice version(&vernum, sizeof(vernum));
+    leveldb::Slice version((char const *)&vernum, sizeof(vernum));
     if (auto st = db.put(versionKey, version); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
