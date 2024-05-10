@@ -36,7 +36,7 @@ public:
     for (auto const &it : splitted) {
       using namespace mcfile::stream;
       auto s = std::make_shared<ByteStream>();
-      OutputStreamWriter w(s, mcfile::Endian::Little);
+      OutputStreamWriter w(s, mcfile::Encoding::LittleEndian);
       if (!w.write((u32)it.second.size())) {
         return JE2BE_ERROR;
       }

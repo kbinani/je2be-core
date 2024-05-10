@@ -240,7 +240,7 @@ public:
     int const numStorageBlocks = hasWaterlogged ? 2 : 1;
 
     auto stream = make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter w(stream, Endian::Little);
+    mcfile::stream::OutputStreamWriter w(stream, Encoding::LittleEndian);
 
     if (!w.write(kSubChunkBlockStorageVersion)) {
       return JE2BE_ERROR;

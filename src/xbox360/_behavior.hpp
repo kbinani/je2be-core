@@ -32,7 +32,7 @@ public:
       }
       auto path = it->path();
       auto stream = std::make_shared<mcfile::stream::FileInputStream>(path);
-      auto in = CompoundTag::Read(stream, mcfile::Endian::Big);
+      auto in = CompoundTag::Read(stream, mcfile::Encoding::Java);
       if (in) {
         outBuffer[path] = in;
       }

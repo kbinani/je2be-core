@@ -147,7 +147,7 @@ private:
     for (auto const &player : players) {
       auto filename = player->fUuidJ.toString() + u8".dat";
       auto filePath = playersTo / filename;
-      if (!CompoundTag::Write(player->fPlayer, filePath, mcfile::Endian::Big)) {
+      if (!CompoundTag::Write(player->fPlayer, filePath, mcfile::Encoding::Java)) {
         return JE2BE_NULLABLE_NULL;
       }
     }
@@ -346,7 +346,7 @@ private:
     }
 
     auto inStream = make_shared<mcfile::stream::GzFileInputStream>(datFrom);
-    auto inRoot = CompoundTag::Read(inStream, mcfile::Endian::Big);
+    auto inRoot = CompoundTag::Read(inStream, mcfile::Encoding::Java);
     inStream.reset();
     if (!inRoot) {
       return JE2BE_ERROR;
@@ -549,7 +549,7 @@ private:
     auto outRoot = Compound();
     outRoot->set(u8"Data", data);
     auto outStream = make_shared<mcfile::stream::GzFileOutputStream>(datTo);
-    if (CompoundTag::Write(*outRoot, outStream, mcfile::Endian::Big)) {
+    if (CompoundTag::Write(*outRoot, outStream, mcfile::Encoding::Java)) {
       return Status::Ok();
     } else {
       return JE2BE_ERROR;

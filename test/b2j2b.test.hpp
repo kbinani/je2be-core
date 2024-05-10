@@ -11,7 +11,7 @@ static std::shared_ptr<CompoundTag> ReadLevelDatB(fs::path const &p) {
   auto s = make_shared<mcfile::stream::FileInputStream>(p);
   REQUIRE(s->seek(4));     // version
   REQUIRE(s->seek(4 + 4)); // size
-  mcfile::stream::InputStreamReader reader(s, mcfile::Endian::Little);
+  mcfile::stream::InputStreamReader reader(s, mcfile::Encoding::LittleEndian);
   return mcfile::nbt::CompoundTag::Read(reader);
 }
 
@@ -607,9 +607,9 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
       if (!chunks.empty() && chunks.count({cx, cz}) == 0) {
         return true;
       }
-      auto chunkE = mcfile::be::Chunk::Load(cx, cz, dimension, dbE.get(), mcfile::Endian::Little);
+      auto chunkE = mcfile::be::Chunk::Load(cx, cz, dimension, dbE.get(), mcfile::Encoding::LittleEndian);
       REQUIRE(chunkE);
-      auto chunkA = mcfile::be::Chunk::Load(cx, cz, dimension, dbA.get(), mcfile::Endian::Little);
+      auto chunkA = mcfile::be::Chunk::Load(cx, cz, dimension, dbA.get(), mcfile::Encoding::LittleEndian);
       CHECK(chunkA);
       if (!chunkA) {
         return true;
@@ -624,9 +624,9 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
     REQUIRE(dbE->Get({}, mcfile::be::DbKey::LocalPlayer(), &localPlayerE).ok());
     string localPlayerA;
     CHECK(dbA->Get({}, mcfile::be::DbKey::LocalPlayer(), &localPlayerA).ok());
-    auto componentE = CompoundTag::Read(localPlayerE, mcfile::Endian::Little);
+    auto componentE = CompoundTag::Read(localPlayerE, mcfile::Encoding::LittleEndian);
     REQUIRE(componentE);
-    auto componentA = CompoundTag::Read(localPlayerA, mcfile::Endian::Little);
+    auto componentA = CompoundTag::Read(localPlayerA, mcfile::Encoding::LittleEndian);
     CHECK(componentA);
     if (componentA) {
       CheckEntityB(u8"minecraft:player", *componentE, *componentA, ctx);

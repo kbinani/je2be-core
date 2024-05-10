@@ -249,7 +249,7 @@ public:
 
   [[nodiscard]] bool write(std::filesystem::path path) const {
     auto stream = std::make_shared<mcfile::stream::FileOutputStream>(path);
-    mcfile::stream::OutputStreamWriter w(stream, mcfile::Endian::Little);
+    mcfile::stream::OutputStreamWriter w(stream, mcfile::Encoding::LittleEndian);
     if (!w.write((u32)8)) {
       return false;
     }
@@ -472,7 +472,7 @@ public:
     d->set(u8"DragonFight", fight);
     root->set(u8"data", d);
 
-    return CompoundTag::Write(*root, mcfile::Endian::Little);
+    return CompoundTag::Write(*root, mcfile::Encoding::LittleEndian);
   }
 
   static std::optional<std::string> MobEvents(CompoundTag const &tag) {
@@ -492,7 +492,7 @@ public:
     ret->set(u8"minecraft:pillager_patrols_event", Bool(gameRules->string(u8"doPatrolSpawning", u8"true") == u8"true"));
     ret->set(u8"minecraft:wandering_trader_event", Bool(gameRules->string(u8"doTraderSpawning", u8"true") == u8"true"));
 
-    return CompoundTag::Write(*ret, mcfile::Endian::Little);
+    return CompoundTag::Write(*ret, mcfile::Encoding::LittleEndian);
   }
 
   static CompoundTagPtr Read(std::filesystem::path const &javaEditionLevelDat) {
@@ -509,7 +509,7 @@ public:
     }
 
     auto stream = make_shared<GzFileInputStream>(javaEditionLevelDat);
-    return CompoundTag::Read(stream, mcfile::Endian::Big);
+    return CompoundTag::Read(stream, mcfile::Encoding::Java);
   }
 
 private:

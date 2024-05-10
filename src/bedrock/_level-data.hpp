@@ -12,7 +12,7 @@ namespace je2be::bedrock {
 class LevelData {
 public:
   struct GameRules {
-    static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, mcfile::Endian endian) {
+    static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, mcfile::Encoding encoding) {
       auto ret = Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[u8"" #__nameJ] = String(b.boolean(u8"" #__nameB, __default) ? u8"true" : u8"false");
@@ -61,7 +61,7 @@ public:
 #undef I
 
       if (auto mobEventsData = db.get(mcfile::be::DbKey::MobEvents()); mobEventsData) {
-        if (auto mobEvents = CompoundTag::Read(*mobEventsData, endian); mobEvents) {
+        if (auto mobEvents = CompoundTag::Read(*mobEventsData, encoding); mobEvents) {
           auto doPatrolSpawning = mobEvents->boolean(u8"minecraft:pillager_patrols_event", true);
           auto doTraderSpawning = mobEvents->boolean(u8"minecraft:wandering_trader_event", true);
 
@@ -77,50 +77,36 @@ public:
   };
 
 public:
-  static std::optional<mcfile::Endian> Read(std::filesystem::path levelDatFile, CompoundTagPtr &result) {
+  static bool Read(std::filesystem::path levelDatFile, CompoundTagPtr &result) {
     using namespace std;
     using namespace mcfile::stream;
     auto fis = make_shared<FileInputStream>(levelDatFile);
     if (!fis->valid()) {
-      return nullopt;
+      return false;
     }
     u16 versionLo = 0;
     u16 versionHi = 0;
     if (sizeof(versionLo) != fis->read(&versionLo, sizeof(versionLo))) {
-      return nullopt;
+      return false;
     }
     if (sizeof(versionHi) != fis->read(&versionHi, sizeof(versionHi))) {
-      return nullopt;
+      return false;
     }
-    vector<mcfile::Endian> endians;
-    if (versionLo == 0 && versionHi == 0) {
-      return nullopt;
-    } else {
-      if (versionLo > 0) {
-        endians.push_back(mcfile::Endian::Little);
-        endians.push_back(mcfile::Endian::Big);
-      } else {
-        endians.push_back(mcfile::Endian::Big);
-        endians.push_back(mcfile::Endian::Little);
-      }
-      u32 size = 0;
-      if (fis->read(&size, sizeof(size)) != sizeof(size)) {
-        return nullopt;
-      }
+    u32 size = 0;
+    if (fis->read(&size, sizeof(size)) != sizeof(size)) {
+      return false;
     }
 
-    for (mcfile::Endian e : endians) {
-      if (!fis->seek(8)) {
-        return nullopt;
-      }
-      InputStreamReader isr(fis, e);
-      auto tag = CompoundTag::Read(isr);
-      if (tag) {
-        result.swap(tag);
-        return e;
-      }
+    if (!fis->seek(8)) {
+      return false;
     }
-    return nullopt;
+    InputStreamReader isr(fis, mcfile::Encoding::LittleEndian);
+    auto tag = CompoundTag::Read(isr);
+    if (tag) {
+      result.swap(tag);
+      return true;
+    }
+    return false;
   }
 
   static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, Options opt, Context &ctx) {
@@ -152,14 +138,14 @@ public:
     CopyLongValues(b, j, {{u8"Time", u8"DayTime"}, {u8"currentTick", u8"Time"}});
 
     j[u8"Difficulty"] = Byte(b.int32(u8"Difficulty", 2));
-    j[u8"GameRules"] = GameRules::Import(b, db, ctx.fEndian);
+    j[u8"GameRules"] = GameRules::Import(b, db, ctx.fEncoding);
     j[u8"LastPlayed"] = Long(b.int64(u8"LastPlayed", 0) * 1000);
     j[u8"raining"] = Bool(b.float32(u8"rainLevel", 0) >= 1);
     j[u8"thundering"] = Bool(b.float32(u8"lightningLevel", 0) >= 1);
     j[u8"GameType"] = Int(JavaFromGameMode(ctx.fGameMode));
     j[u8"initialized"] = Bool(true);
 
-    if (auto dragonFight = DragonFight(db, ctx.fEndian); dragonFight) {
+    if (auto dragonFight = DragonFight(db, ctx.fEncoding); dragonFight) {
       j[u8"DragonFight"] = dragonFight;
     }
 
@@ -331,7 +317,7 @@ public:
       return std::nullopt;
     }
 
-    auto tag = CompoundTag::Read(*str, ctx.fEndian);
+    auto tag = CompoundTag::Read(*str, ctx.fEncoding);
     if (!tag) {
       return std::nullopt;
     }
@@ -339,12 +325,12 @@ public:
     return Entity::LocalPlayer(*tag, ctx, uuid, bedrock::kDataVersion);
   }
 
-  static CompoundTagPtr DragonFight(mcfile::be::DbInterface &db, mcfile::Endian endian) {
+  static CompoundTagPtr DragonFight(mcfile::be::DbInterface &db, mcfile::Encoding encoding) {
     auto str = db.get(mcfile::be::DbKey::TheEnd());
     if (!str) {
       return nullptr;
     }
-    auto tag = CompoundTag::Read(*str, endian);
+    auto tag = CompoundTag::Read(*str, encoding);
     if (!tag) {
       return nullptr;
     }
@@ -389,7 +375,7 @@ public:
 
   [[nodiscard]] static bool Write(CompoundTag const &tag, std::filesystem::path file) {
     auto gzs = std::make_shared<mcfile::stream::GzFileOutputStream>(file);
-    return CompoundTag::Write(tag, gzs, mcfile::Endian::Big);
+    return CompoundTag::Write(tag, gzs, mcfile::Encoding::Java);
   }
 };
 

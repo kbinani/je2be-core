@@ -50,7 +50,7 @@ public:
 
     bool ok = true;
     for (int cz = rz * 32; ok && cz < rz * 32 + 32; cz++) {
-      auto cache = make_unique<terraform::bedrock::BlockAccessorBedrock<3, 3>>(d, rx * 32 - 1, cz - 1, db, ctx->fEndian);
+      auto cache = make_unique<terraform::bedrock::BlockAccessorBedrock<3, 3>>(d, rx * 32 - 1, cz - 1, db, ctx->fEncoding);
       for (int cx = rx * 32; ok && cx < rx * 32 + 32; cx++) {
         defer {
           unique_ptr<terraform::bedrock::BlockAccessorBedrock<3, 3>> next(cache->makeRelocated(cx, cz - 1));
@@ -69,7 +69,7 @@ public:
           ok = ok && progress();
         };
 
-        auto b = mcfile::be::Chunk::Load(cx, cz, d, *db, ctx->fEndian);
+        auto b = mcfile::be::Chunk::Load(cx, cz, d, *db, ctx->fEncoding);
         if (!b) {
           continue;
         }

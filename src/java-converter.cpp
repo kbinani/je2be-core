@@ -331,7 +331,7 @@ public:
       ld.fPlayerAttachedEntities = pae;
     }
 
-    return CompoundTag::Write(*playerB->fEntity, mcfile::Endian::Little);
+    return CompoundTag::Write(*playerB->fEntity, mcfile::Encoding::LittleEndian);
   }
 
 private:

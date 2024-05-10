@@ -36,7 +36,7 @@ public:
       return JE2BE_ERROR;
     }
     auto stream = std::make_shared<mcfile::stream::ByteStream>();
-    mcfile::stream::OutputStreamWriter writer(stream, mcfile::Endian::Little);
+    mcfile::stream::OutputStreamWriter writer(stream, mcfile::Encoding::LittleEndian);
     for (i64 uuid : entityUuids) {
       if (!writer.write(uuid)) {
         return JE2BE_ERROR;
@@ -70,7 +70,7 @@ public:
           continue;
         }
         auto s = make_shared<mcfile::stream::ByteInputStream>(value);
-        mcfile::stream::InputStreamReader r(s, mcfile::Endian::Little);
+        mcfile::stream::InputStreamReader r(s, mcfile::Encoding::LittleEndian);
         size_t count = value.size() / sizeof(i64);
         for (size_t i = 0; i < count; i++) {
           i64 uuid;

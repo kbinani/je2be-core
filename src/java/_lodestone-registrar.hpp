@@ -73,7 +73,7 @@ public:
 
 private:
   static Status Put(DbInterface &db, std::string const &key, CompoundTag const &tag) {
-    auto buffer = CompoundTag::Write(tag, mcfile::Endian::Little);
+    auto buffer = CompoundTag::Write(tag, mcfile::Encoding::LittleEndian);
     if (!buffer) {
       return JE2BE_ERROR;
     }

@@ -51,7 +51,7 @@ public:
       if (!block) [[unlikely]] {
         return;
       }
-      auto serialized = CompoundTag::Write(*block, mcfile::Endian::Little);
+      auto serialized = CompoundTag::Write(*block, mcfile::Encoding::LittleEndian);
       if (!serialized) [[unlikely]] {
         return;
       }

@@ -112,9 +112,9 @@ static void CheckMovingPiston(fs::path const &java, fs::path const &bedrock, i8 
     unique_ptr<leveldb::DB> expectedDb(OpenF(*bedrockReferenceDir / "db"));
     REQUIRE(expectedDb);
 
-    auto actual = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, actualDb.get(), mcfile::Endian::Little);
+    auto actual = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, actualDb.get(), mcfile::Encoding::LittleEndian);
     REQUIRE(actual);
-    auto expected = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, expectedDb.get(), mcfile::Endian::Little);
+    auto expected = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, expectedDb.get(), mcfile::Encoding::LittleEndian);
     REQUIRE(expected);
 
     for (int y = 0; y < 4; y++) {

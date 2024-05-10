@@ -144,7 +144,7 @@ private:
     auto cache = make_shared<terraform::box360::BlockAccessorBox360<3, 3>>(cx - 1, cz - 1, directory);
     auto file = directory / mcfile::je::Region::GetDefaultCompressedChunkNbtFileName(cx, cz);
     auto input = make_shared<mcfile::stream::FileInputStream>(file);
-    auto root = CompoundTag::ReadDeflateCompressed(*input, mcfile::Endian::Big);
+    auto root = CompoundTag::ReadDeflateCompressed(*input, mcfile::Encoding::Java);
     Result ret;
     ret.fChunk = Pos2i(cx, cz);
     if (!root) {

@@ -12,8 +12,8 @@ namespace je2be::terraform::bedrock {
 template <size_t Width, size_t Height>
 class BlockAccessorBedrock : public BlockAccessor<mcfile::be::Block> {
 public:
-  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, mcfile::be::DbInterface *db, mcfile::Endian endian)
-      : fDim(d), fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fDb(db), fEndian(endian) {
+  BlockAccessorBedrock(mcfile::Dimension d, int cx, int cz, mcfile::be::DbInterface *db, mcfile::Encoding encoding)
+      : fDim(d), fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fDb(db), fEncoding(encoding) {
   }
 
   std::shared_ptr<mcfile::be::Chunk> at(int cx, int cz) const {
@@ -54,7 +54,7 @@ public:
       what.fBiomes = false;
       what.fEntities = false;
       what.fPendingTicks = false;
-      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, *fDb, fEndian, what);
+      fCache[*index] = mcfile::be::Chunk::Load(cx, cz, fDim, *fDb, fEncoding, what);
       fCacheLoaded[*index] = true;
     }
     return fCache[*index];
@@ -71,7 +71,7 @@ public:
   }
 
   BlockAccessorBedrock<Width, Height> *makeRelocated(int chunkX, int chunkZ) const {
-    auto ret = new BlockAccessorBedrock<Width, Height>(fDim, chunkX, chunkZ, fDb, fEndian);
+    auto ret = new BlockAccessorBedrock<Width, Height>(fDim, chunkX, chunkZ, fDb, fEncoding);
     for (int cx = fChunkX; cx < fChunkX + Width; cx++) {
       for (int cz = fChunkZ; cz < fChunkZ + Height; cz++) {
         auto index = getIndex(cx, cz);
@@ -102,7 +102,7 @@ private:
   std::vector<std::shared_ptr<mcfile::be::Chunk>> fCache;
   std::vector<bool> fCacheLoaded;
   mcfile::be::DbInterface *const fDb;
-  mcfile::Endian const fEndian;
+  mcfile::Encoding const fEncoding;
 };
 
 } // namespace je2be::terraform::bedrock

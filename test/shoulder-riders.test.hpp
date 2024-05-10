@@ -27,7 +27,7 @@ TEST_CASE("shoulder-riders") {
 
   auto level = je / "level.dat";
   auto stream = make_shared<mcfile::stream::GzFileInputStream>(level);
-  auto dat = CompoundTag::Read(stream, Endian::Big);
+  auto dat = CompoundTag::Read(stream, Encoding::Java);
   auto data = dat->compoundTag(u8"Data");
   auto player = data->compoundTag(u8"Player");
   CHECK(player);

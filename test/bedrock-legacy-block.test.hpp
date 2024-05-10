@@ -28,8 +28,8 @@ TEST_CASE("toje-legacy-block") {
   dbA.reset(ptr);
   for (int cz = 0; cz <= 0; cz++) {
     for (int cx = 0; cx <= 4; cx++) {
-      auto chunkB = mcfile::be::Chunk::Load(cx, cz, mcfile::Dimension::Overworld, dbB.get(), mcfile::Endian::Little);
-      auto chunkA = mcfile::be::Chunk::Load(cx, cz, mcfile::Dimension::Overworld, dbA.get(), mcfile::Endian::Little);
+      auto chunkB = mcfile::be::Chunk::Load(cx, cz, mcfile::Dimension::Overworld, dbB.get(), mcfile::Encoding::LittleEndian);
+      auto chunkA = mcfile::be::Chunk::Load(cx, cz, mcfile::Dimension::Overworld, dbA.get(), mcfile::Encoding::LittleEndian);
       for (int z = chunkB->minBlockZ(); z <= chunkB->maxBlockZ(); z++) {
         for (int x = chunkB->minBlockX(); x <= chunkB->maxBlockX(); x++) {
           for (int y = 0; y < 48; y++) {

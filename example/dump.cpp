@@ -54,7 +54,7 @@ static void DumpBlock(fs::path const &dbDir, int x, int y, int z, mcfile::Dimens
   if (!st.ok()) {
     return;
   }
-  auto section = mcfile::be::SubChunk::Parse(value, cy, mcfile::Endian::Little);
+  auto section = mcfile::be::SubChunk::Parse(value, cy, mcfile::Encoding::LittleEndian);
   if (!section) {
     return;
   }
@@ -122,13 +122,13 @@ static void DumpBlockEntity(fs::path const &dbDir, int x, int y, int z, mcfile::
   vector<uint8_t> buffer;
   copy(value.begin(), value.end(), back_inserter(buffer));
   auto stream = make_shared<ByteStream>(buffer);
-  InputStreamReader sr(stream, mcfile::Endian::Little);
+  InputStreamReader sr(stream, mcfile::Encoding::LittleEndian);
   while (true) {
     uint8_t type;
     if (!sr.read(&type)) {
       break;
     }
-    string name;
+    u8string name;
     if (!sr.read(name)) {
       break;
     }
@@ -164,13 +164,13 @@ static void DumpKey(fs::path const &dbDir, string const &key) {
   vector<uint8_t> buffer;
   copy(value.begin(), value.end(), back_inserter(buffer));
   auto stream = make_shared<ByteStream>(buffer);
-  InputStreamReader sr(stream, mcfile::Endian::Little);
+  InputStreamReader sr(stream, mcfile::Encoding::LittleEndian);
   while (true) {
     uint8_t type;
     if (!sr.read(&type)) {
       break;
     }
-    string name;
+    u8string name;
     if (!sr.read(name)) {
       break;
     }
@@ -253,7 +253,7 @@ static bool DumpLevelDat(fs::path const &dbDir) {
     return false;
   }
   auto stream = make_shared<FileInputStream>(datFile);
-  InputStreamReader reader(stream, mcfile::Endian::Little);
+  InputStreamReader reader(stream, mcfile::Encoding::LittleEndian);
   auto tag = Compound();
   stream->seek(8);
   tag->read(reader);
@@ -292,7 +292,7 @@ static int DumpEntities(fs::path const &dbDir, int chunkX, int chunkZ, mcfile::D
   string entitiesValue;
   ReadOptions ro;
   if (db->Get(ro, entitiesKey, &entitiesValue).ok()) {
-    CompoundTag::ReadSequentialUntilEos(entitiesValue, mcfile::Endian::Little, [](CompoundTagPtr const &e) {
+    CompoundTag::ReadSequentialUntilEos(entitiesValue, mcfile::Encoding::LittleEndian, [](CompoundTagPtr const &e) {
       mcfile::nbt::PrintAsJson(cout, *e, {.fTypeHint = true});
     });
   }
@@ -303,7 +303,7 @@ static int DumpEntities(fs::path const &dbDir, int chunkX, int chunkZ, mcfile::D
     mcfile::be::DbKey::EnumerateActorprefixKeys(digpValue, [&db, ro](int index, string const &key, bool &stop) {
       string actor;
       if (db->Get(ro, mcfile::be::DbKey::Actorprefix(key), &actor).ok()) {
-        if (auto c = CompoundTag::Read(actor, mcfile::Endian::Little); c) {
+        if (auto c = CompoundTag::Read(actor, mcfile::Encoding::LittleEndian); c) {
           mcfile::nbt::PrintAsJson(cout, *c, {.fTypeHint = true});
         }
       }

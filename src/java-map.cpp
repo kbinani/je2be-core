@@ -228,7 +228,7 @@ public:
 
       ret->set(u8"decorations", decorations);
 
-      auto serialized = CompoundTag::Write(*ret, mcfile::Endian::Little);
+      auto serialized = CompoundTag::Write(*ret, mcfile::Encoding::LittleEndian);
       if (!serialized) {
         return JE2BE_ERROR;
       }

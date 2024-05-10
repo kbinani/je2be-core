@@ -93,7 +93,7 @@ private:
     auto root = Compound();
     root->set(u8"AutonomousEntityList", list);
 
-    auto buffer = CompoundTag::Write(*root, mcfile::Endian::Little);
+    auto buffer = CompoundTag::Write(*root, mcfile::Encoding::LittleEndian);
     if (!buffer) {
       return JE2BE_ERROR;
     }

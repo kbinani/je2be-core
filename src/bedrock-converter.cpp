@@ -40,8 +40,10 @@ public:
     }
 
     CompoundTagPtr dat;
-    auto endian = LevelData::Read(input / "level.dat", dat);
-    if (!endian || !dat) {
+    if (!LevelData::Read(input / "level.dat", dat)) {
+      return JE2BE_ERROR;
+    }
+    if (!dat) {
       return JE2BE_ERROR;
     }
 
@@ -54,7 +56,7 @@ public:
       gameMode = *t;
     }
     unique_ptr<Context> bin;
-    if (auto st = Context::Init(input / "db", options, *endian, regions, total, gameTick, gameMode, concurrency, bin); !st.ok()) {
+    if (auto st = Context::Init(input / "db", options, mcfile::Encoding::LittleEndian, regions, total, gameTick, gameMode, concurrency, bin); !st.ok()) {
       return JE2BE_ERROR_PUSH(st);
     }
 

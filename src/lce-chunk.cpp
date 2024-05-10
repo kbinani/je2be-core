@@ -652,7 +652,7 @@ private:
       return JE2BE_ERROR;
     }
     auto stream = make_shared<mcfile::stream::ByteInputStream>((char *)buffer.data() + offset, buffer.size() - offset);
-    auto tag = CompoundTag::Read(stream, mcfile::Endian::Big);
+    auto tag = CompoundTag::Read(stream, mcfile::Encoding::Java);
     if (!tag) {
       return JE2BE_ERROR;
     }
@@ -753,7 +753,7 @@ private:
                           std::shared_ptr<mcfile::je::WritableChunk> &result) {
     using namespace std;
 
-    auto tag = CompoundTag::Read(buffer, mcfile::Endian::Big);
+    auto tag = CompoundTag::Read(buffer, mcfile::Encoding::Java);
     if (!tag) {
       return JE2BE_ERROR;
     }
@@ -1062,7 +1062,7 @@ private:
     if (!nbt.starts_with(string("\x0a\x00\x00", 3))) {
       return JE2BE_ERROR;
     }
-    auto tag = CompoundTag::Read(nbt, mcfile::Endian::Big);
+    auto tag = CompoundTag::Read(nbt, mcfile::Encoding::Java);
     if (!tag) {
       return JE2BE_ERROR;
     }

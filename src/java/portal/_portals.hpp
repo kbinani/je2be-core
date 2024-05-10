@@ -33,7 +33,7 @@ public:
     data->set(u8"PortalRecords", portalRecords);
     root->set(u8"data", data);
 
-    auto buffer = CompoundTag::Write(*root, Endian::Little);
+    auto buffer = CompoundTag::Write(*root, Encoding::LittleEndian);
     if (!buffer) {
       return JE2BE_ERROR;
     }

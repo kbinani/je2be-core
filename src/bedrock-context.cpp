@@ -18,11 +18,11 @@ class Context::Impl {
     int fNumChunks = 0;
 
     Options fOpt;
-    mcfile::Endian fEndian;
+    mcfile::Encoding fEncoding;
 
-    Accum(Options opt, mcfile::Endian endian) : fOpt(opt), fEndian(endian) {}
+    Accum(Options opt, mcfile::Encoding encoding) : fOpt(opt), fEncoding(encoding) {}
 
-    Accum(Accum const &other) : fOpt(other.fOpt), fEndian(other.fEndian) {
+    Accum(Accum const &other) : fOpt(other.fOpt), fEncoding(other.fEncoding) {
       other.mergeInto(*this);
     }
     Accum &operator=(Accum const &other) {
@@ -96,13 +96,13 @@ class Context::Impl {
       } else {
         if (parsed.fUnTagged.starts_with("map_")) {
           i64 mapId;
-          auto mapInfo = MapInfo::Parse(value, mapId, fEndian);
+          auto mapInfo = MapInfo::Parse(value, mapId, fEncoding);
           if (!mapInfo) {
             return;
           }
           fMaps[mapId] = *mapInfo;
         } else if (parsed.fUnTagged.starts_with("PosTrackDB-")) {
-          if (auto c = CompoundTag::Read(value, mcfile::Endian::Little); c) {
+          if (auto c = CompoundTag::Read(value, fEncoding); c) {
             if (auto dim = c->int32(u8"dim"); dim) {
               std::optional<mcfile::Dimension> d;
               switch (*dim) {
@@ -144,7 +144,7 @@ class Context::Impl {
 public:
   static Status Init(std::filesystem::path const &dbname,
                      Options opt,
-                     mcfile::Endian endian,
+                     mcfile::Encoding encoding,
                      std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                      u64 &totalChunks,
                      i64 gameTick,
@@ -168,7 +168,7 @@ public:
     db.reset(dbPtr);
 
 #if defined(EMSCRIPTEN)
-    Accum accum(opt, endian);
+    Accum accum(opt, encoding);
     unique_ptr<Iterator> itr(db->NewIterator({}));
     if (auto st = itr->status(); !st.ok()) {
       return JE2BE_ERROR_PUSH(Status::FromLevelDBStatus(st));
@@ -183,7 +183,7 @@ public:
     auto [accum, status] = AsyncIterator::IterateUnordered<Accum>(
         *db,
         concurrency,
-        Accum(opt, endian),
+        Accum(opt, encoding),
         Accum::Accept,
         Accum::Merge);
     if (!status.ok()) {
@@ -268,21 +268,21 @@ public:
     }
 
     fs::path temp = opt.getTempDirectory();
-    out.reset(new Context(endian, temp, mapInfo, structureInfo, gameTick, gameMode, accum.fLodestones));
+    out.reset(new Context(encoding, temp, mapInfo, structureInfo, gameTick, gameMode, accum.fLodestones));
     return Status::Ok();
   }
 };
 
 Status Context::Init(std::filesystem::path const &dbname,
                      Options opt,
-                     mcfile::Endian endian,
+                     mcfile::Encoding encoding,
                      std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                      u64 &totalChunks,
                      i64 gameTick,
                      GameMode gameMode,
                      unsigned int concurrency,
                      std::unique_ptr<Context> &out) {
-  return Impl::Init(dbname, opt, endian, regions, totalChunks, gameTick, gameMode, concurrency, out);
+  return Impl::Init(dbname, opt, encoding, regions, totalChunks, gameTick, gameMode, concurrency, out);
 }
 
 void Context::markMapUuidAsUsed(i64 uuid) {
@@ -335,7 +335,7 @@ void Context::structures(mcfile::Dimension d, Pos2i chunk, std::vector<Structure
 }
 
 std::shared_ptr<Context> Context::make() const {
-  auto ret = std::shared_ptr<Context>(new Context(fEndian, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode, fLodestones));
+  auto ret = std::shared_ptr<Context>(new Context(fEncoding, fTempDirectory, fMapInfo, fStructureInfo, fGameTick, fGameMode, fLodestones));
   ret->fLocalPlayer = fLocalPlayer;
   if (fRootVehicle) {
     ret->fRootVehicle = *fRootVehicle;
@@ -455,7 +455,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     if (!str) {
       continue;
     }
-    auto dataB = CompoundTag::Read(*str, fEndian);
+    auto dataB = CompoundTag::Read(*str, fEncoding);
     if (!dataB) {
       continue;
     }
@@ -494,7 +494,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
 
     auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
     auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
-    if (!CompoundTag::Write(*tagJ, s, mcfile::Endian::Big)) {
+    if (!CompoundTag::Write(*tagJ, s, mcfile::Encoding::Java)) {
       return JE2BE_ERROR;
     }
     if (maxMapNumber) {
@@ -511,7 +511,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     idcounts->set(u8"DataVersion", Int(bedrock::kDataVersion));
     auto path = root / "data" / "idcounts.dat";
     auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
-    if (!CompoundTag::Write(*idcounts, s, mcfile::Endian::Big)) {
+    if (!CompoundTag::Write(*idcounts, s, mcfile::Encoding::Java)) {
       return JE2BE_ERROR;
     }
   }

@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG f43ee9f1d2c325be221850f8eb329ea20be87d77)
+  GIT_TAG 10b27ccbc0ea70372a261abb36f3d9d13e4c1cfb)
 
 CPMAddPackage(
   NAME defer
@@ -104,6 +104,7 @@ set(mcfile_header_files
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/coordinate.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/data4b3d.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/dimension.hpp
+  ${libminecraft-file_SOURCE_DIR}/include/mcfile/encoding.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/endianness.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/file.hpp
   ${libminecraft-file_SOURCE_DIR}/include/mcfile/je/block-palette.hpp

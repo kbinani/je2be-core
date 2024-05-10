@@ -34,7 +34,7 @@ public:
         continue;
       }
       auto fs = std::make_shared<mcfile::stream::FileInputStream>(p);
-      if (auto tag = CompoundTag::Read(fs, mcfile::Endian::Big); tag) {
+      if (auto tag = CompoundTag::Read(fs, mcfile::Encoding::Java); tag) {
         outBuffer[p] = tag;
       }
     }

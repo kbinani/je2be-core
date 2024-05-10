@@ -1074,7 +1074,7 @@ static void CheckChunkJ(mcfile::je::Region const &regionE, mcfile::je::Region co
 
 static std::shared_ptr<CompoundTag> ReadLevelDatJ(fs::path const &p) {
   auto s = make_shared<mcfile::stream::GzFileInputStream>(p);
-  return CompoundTag::Read(s, Endian::Big);
+  return CompoundTag::Read(s, Encoding::Java);
 }
 
 static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {

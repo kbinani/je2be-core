@@ -23,14 +23,14 @@ namespace je2be::bedrock {
 class Context {
   class Impl;
 
-  Context(mcfile::Endian endian,
+  Context(mcfile::Encoding encoding,
           std::filesystem::path tempDirectory,
           std::shared_ptr<MapInfo const> const &mapInfo,
           std::shared_ptr<StructureInfo const> const &structureInfo,
           i64 gameTick,
           GameMode gameMode,
           std::unordered_map<i32, std::pair<mcfile::Dimension, Pos3i>> const &lodestones)
-      : fEndian(endian), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fMapInfo(mapInfo), fStructureInfo(structureInfo), fLodestones(lodestones) {}
+      : fEncoding(encoding), fTempDirectory(tempDirectory), fGameTick(gameTick), fGameMode(gameMode), fMapInfo(mapInfo), fStructureInfo(structureInfo), fLodestones(lodestones) {}
 
 public:
   struct ChunksInRegion {
@@ -39,7 +39,7 @@ public:
 
   static Status Init(std::filesystem::path const &dbname,
                      Options opt,
-                     mcfile::Endian endian,
+                     mcfile::Encoding encoding,
                      std::map<mcfile::Dimension, std::vector<std::pair<Pos2i, ChunksInRegion>>> &regions,
                      u64 &totalChunks,
                      i64 gameTick,
@@ -72,7 +72,7 @@ private:
   Status exportPoi(std::filesystem::path const &root) const;
 
 public:
-  mcfile::Endian const fEndian;
+  mcfile::Encoding const fEncoding;
   std::filesystem::path const fTempDirectory;
 
   struct VehicleEntity {

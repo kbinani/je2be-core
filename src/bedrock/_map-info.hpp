@@ -47,10 +47,10 @@ public:
     std::vector<Decoration> fDecorations;
   };
 
-  static std::optional<Map> Parse(std::string const &value, i64 &outMapId, mcfile::Endian endian) {
+  static std::optional<Map> Parse(std::string const &value, i64 &outMapId, mcfile::Encoding encoding) {
     using namespace std;
     using namespace leveldb;
-    auto tag = CompoundTag::Read(value, endian);
+    auto tag = CompoundTag::Read(value, encoding);
     if (!tag) {
       return nullopt;
     }

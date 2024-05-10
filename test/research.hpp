@@ -491,11 +491,11 @@ static void Stronghold() {
 
   auto levelAStream = make_shared<mcfile::stream::GzFileInputStream>(pathA / "level.dat");
   levelAStream->seek(8);
-  auto levelA = CompoundTag::Read(levelAStream, Endian::Little);
+  auto levelA = CompoundTag::Read(levelAStream, Encoding::LittleEndian);
 
   auto levelBStream = make_shared<mcfile::stream::GzFileInputStream>(pathB / "level.dat");
   levelBStream->seek(8);
-  auto levelB = CompoundTag::Read(levelBStream, Endian::Little);
+  auto levelB = CompoundTag::Read(levelBStream, Encoding::LittleEndian);
 
   DiffCompoundTag(*levelB, *levelA);
 }
@@ -572,7 +572,7 @@ static void MonumentBedrock() {
     int y0 = v.fStart.fY;
     int cx = Coordinate::ChunkFromBlock(x0);
     int cz = Coordinate::ChunkFromBlock(z0);
-    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, &wdb, Endian::Little);
+    terraform::bedrock::BlockAccessorBedrock<5, 5> cache(Dimension::Overworld, cx, cz, &wdb, Encoding::LittleEndian);
 
     string facing;
     if (start.fX == 8891 && start.fZ == 13979) {
@@ -822,7 +822,7 @@ static void WallConnectable() {
 static void PistonArm() {
   {
     auto db = OpenF(*BedrockPreviewWorldDirectory("1.19piston_arm"));
-    auto chunk = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, db, mcfile::Endian::Little);
+    auto chunk = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, db, mcfile::Encoding::LittleEndian);
     auto root = Compound();
     for (int y = 0; y < 4; y++) {
       auto t = Compound();
@@ -1411,7 +1411,7 @@ static void BEFormat0() {
   }
   {
     unique_ptr<leveldb::DB> db(Open("after"));
-    auto chunk = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, db.get(), mcfile::Endian::Little);
+    auto chunk = mcfile::be::Chunk::Load(0, 0, mcfile::Dimension::Overworld, db.get(), mcfile::Encoding::LittleEndian);
     int id = 0;
     for (int x = 0; x < 15; x++) {
       for (int z = 0; z < 15; z++) {

@@ -256,7 +256,7 @@ private:
       return true;
     }
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, mcfile::Endian::Little);
+    OutputStreamWriter w(s, mcfile::Encoding::LittleEndian);
     if (!fHeightMap->write(w)) {
       return false;
     }
@@ -282,7 +282,7 @@ private:
       return true;
     }
     auto s = make_shared<ByteStream>();
-    OutputStreamWriter w(s, mcfile::Endian::Little);
+    OutputStreamWriter w(s, mcfile::Encoding::LittleEndian);
     if (!fHeightMap->write(w)) {
       return false;
     }
@@ -302,7 +302,7 @@ private:
     }
     auto s = make_shared<ByteStream>();
     for (auto const &tag : fTileEntities) {
-      if (!CompoundTag::Write(*tag, s, mcfile::Endian::Little)) {
+      if (!CompoundTag::Write(*tag, s, mcfile::Encoding::LittleEndian)) {
         return false;
       }
     }
@@ -330,7 +330,7 @@ private:
     pendingTicks->set(u8"tickList", tickList);
 
     auto s = make_shared<mcfile::stream::ByteStream>();
-    if (!CompoundTag::Write(*pendingTicks, s, mcfile::Endian::Little)) {
+    if (!CompoundTag::Write(*pendingTicks, s, mcfile::Encoding::LittleEndian)) {
       return false;
     }
     s->drain(cd.fPendingTicks);
