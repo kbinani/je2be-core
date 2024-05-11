@@ -210,18 +210,22 @@ private:
 
     Facing6 facing;
     i8 facingJ;
+    Rotation rot(0, 0);
     switch (f) {
     case 1:
       facing = Facing6::West;
       facingJ = 4;
+      rot = Rotation(90, 0);
       break;
     case 2:
       facingJ = 2;
       facing = Facing6::North;
+      rot = Rotation(180, 0);
       break;
     case 3:
       facingJ = 5;
       facing = Facing6::East;
+      rot = Rotation(270, 0);
       break;
     case 0:
     default:
@@ -230,6 +234,9 @@ private:
       break;
     }
     out->set(u8"Facing", Byte(facingJ));
+    out->erase(u8"Dir");
+    out->erase(u8"Direction");
+    out->set(u8"Rotation", rot.toListTag());
 
     auto xTileX = in.int32(u8"TileX");
     auto xTileY = in.int32(u8"TileY");
@@ -287,6 +294,8 @@ private:
       }
     }
     out->set(u8"Facing", Byte(direction));
+    out->erase(u8"Dir");
+    out->erase(u8"Direction");
     return true;
   }
 
