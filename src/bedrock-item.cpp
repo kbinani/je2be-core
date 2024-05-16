@@ -788,12 +788,12 @@ public:
     auto itemsJ = List<Tag::Type::Compound>();
     if (auto itemsB = itemB.query(u8"tag/Items")->asList(); itemsB) {
       for (auto const &it : *itemsB) {
-        if (auto c = it->asCompound(); c) {
-          if (auto slotB = c->byte(u8"Slot"); slotB) {
-            if (auto itemJ = Item::From(*c, ctx, dataVersion, opt); itemJ) {
-              itemJ->erase(u8"Slot");
+        if (auto contentB = it->asCompound(); contentB) {
+          if (auto slotB = contentB->byte(u8"Slot"); slotB) {
+            if (auto contentJ = Item::From(*contentB, ctx, dataVersion, opt); contentJ) {
+              contentJ->erase(u8"Slot");
               auto element = Compound();
-              element->set(u8"item", itemJ);
+              element->set(u8"item", contentJ);
               element->set(u8"slot", Int(*slotB));
               itemsJ->push_back(element);
             }

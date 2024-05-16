@@ -799,11 +799,11 @@ public:
     auto itemsJ = List<Tag::Type::Compound>();
     if (auto itemsB = itemB.query(u8"tag/Items")->asList(); itemsB) {
       for (auto const &it : *itemsB) {
-        if (auto c = it->asCompound(); c) {
-          if (auto slotB = c->byte(u8"Slot"); slotB) {
-            if (auto itemJ = Item::From(*c, ctx, dataVersion, opt); itemJ) {
-              itemJ->set(u8"slot", Int(*slotB));
-              itemsJ->push_back(itemJ);
+        if (auto contentB = it->asCompound(); contentB) {
+          if (auto slotB = contentB->byte(u8"Slot"); slotB) {
+            if (auto contentJ = Item::From(*contentB, ctx, dataVersion, opt); contentJ) {
+              contentJ->set(u8"slot", Int(*slotB));
+              itemsJ->push_back(contentJ);
             }
           }
         }
