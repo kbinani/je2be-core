@@ -727,6 +727,24 @@ private:
     E(guster_pottery_sherd, DefaultItem);
     E(flow_pottery_sherd, DefaultItem);
     E(scrape_pottery_sherd, DefaultItem);
+
+    E(shulker_box, ShulkerBox);
+    E(black_shulker_box, ShulkerBox);
+    E(red_shulker_box, ShulkerBox);
+    E(green_shulker_box, ShulkerBox);
+    E(brown_shulker_box, ShulkerBox);
+    E(blue_shulker_box, ShulkerBox);
+    E(purple_shulker_box, ShulkerBox);
+    E(cyan_shulker_box, ShulkerBox);
+    E(light_gray_shulker_box, ShulkerBox);
+    E(gray_shulker_box, ShulkerBox);
+    E(pink_shulker_box, ShulkerBox);
+    E(lime_shulker_box, ShulkerBox);
+    E(yellow_shulker_box, ShulkerBox);
+    E(light_blue_shulker_box, ShulkerBox);
+    E(magenta_shulker_box, ShulkerBox);
+    E(orange_shulker_box, ShulkerBox);
+    E(white_shulker_box, ShulkerBox);
 #undef E
     return table;
   }
@@ -735,6 +753,55 @@ private:
     using namespace std;
     static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateItemConverterTable());
     return *sTable;
+  }
+
+  static CompoundTagPtr ShulkerBox(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto n = Namespace::Remove(name);
+    if (n == u8"shulker_box") {
+      n = u8"undyed_shulker_box";
+    }
+    auto ret = New(n);
+
+    if (auto block = Block::FromName(name, dataVersion); block) {
+      if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+
+    if (auto container = item.query(u8"components/minecraft:container")->asList(); container) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *container) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
+            if (auto slotJ = c->int32(u8"slot"); slotJ) {
+              if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+                itemB->set(u8"Slot", Byte(*slotJ));
+                itemsB->push_back(itemB);
+              }
+            }
+          }
+        }
+      }
+      auto tagB = Compound();
+      tagB->set(u8"Items", itemsB);
+      ret->set(u8"tag", tagB);
+    } else if (auto itemsJ = item.query(u8"tag/BlockEntityTag/Items")->asList(); itemsJ) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *itemsJ) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto slotJ = c->byte(u8"Slot"); slotJ) {
+            if (auto itemB = Item::From(c, ctx, dataVersion); itemB) {
+              itemB->set(u8"Slot", Byte(*slotJ));
+              itemsB->push_back(itemB);
+            }
+          }
+        }
+      }
+      auto tagB = Compound();
+      tagB->set(u8"Items", itemsB);
+      ret->set(u8"tag", tagB);
+    }
+    return ret;
   }
 
   static CompoundTagPtr Compass(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {

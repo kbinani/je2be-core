@@ -315,6 +315,29 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     CheckTextComponent(itemE, itemA, key);
   }
 
+  auto itemsE = itemE.query(u8"components/minecraft:container")->asList();
+  auto itemsA = itemA.query(u8"components/minecraft:container")->asList();
+  if (itemsE) {
+    CHECK(itemsA);
+    if (itemsA) {
+      CHECK(itemsE->size() == itemsA->size());
+      for (size_t i = 0; i < itemsE->size(); i++) {
+        auto elementE = itemsE->at(i)->asCompound();
+        auto elementA = itemsA->at(i)->asCompound();
+        auto slotE = elementE->int32(u8"slot");
+        auto slotA = elementA->int32(u8"slot");
+        REQUIRE(slotE);
+        CHECK(*slotE == *slotA);
+        REQUIRE(elementE);
+        REQUIRE(elementA);
+        auto itemE = elementE->compoundTag(u8"item");
+        auto itemA = elementA->compoundTag(u8"item");
+        CheckItemJ(*itemE, *itemA);
+      }
+    }
+  }
+  blacklist.insert(u8"components/minecraft:container");
+
   for (u8string const &it : blacklist) {
     Erase(copyE, it);
     Erase(copyA, it);

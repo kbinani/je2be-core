@@ -151,7 +151,7 @@ public:
       if (!blockJ) {
         continue;
       }
-      auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ, ctx, dataVersion);
+      auto result = BlockEntity::FromBlockAndBlockEntity(pos, *blockB, *tagB, *blockJ, ctx, dataVersion, false);
       if (!result) {
         continue;
       }
@@ -159,7 +159,7 @@ public:
         if (result->fTakeItemsFrom) {
           Pos3i pair = *result->fTakeItemsFrom;
           if (auto pairTileEntity = cache.blockEntityAt(pair); pairTileEntity) {
-            auto items = BlockEntity::ContainerItems(*pairTileEntity, u8"Items", ctx, dataVersion);
+            auto items = BlockEntity::ContainerItems(*pairTileEntity, u8"Items", ctx, dataVersion, false);
             if (items) {
               result->fTileEntity->set(u8"Items", items);
             } else {

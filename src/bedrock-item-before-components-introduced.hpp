@@ -62,7 +62,7 @@ public:
 
           Pos3i dummy(0, 0, 0);
           if (!tagB->empty()) {
-            if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx, dataVersion); converted && converted->fTileEntity) {
+            if (auto converted = BlockEntity::FromBlockAndBlockEntity(dummy, *blockB, *tagB, *blockJ, ctx, dataVersion, true); converted && converted->fTileEntity) {
               static unordered_set<u8string> const sExclude({u8"x", u8"y", u8"z", u8"keepPacked", u8"RecipesUsed"});
               auto blockEntityTagJ = converted->fTileEntity;
               for (auto const &e : sExclude) {
@@ -795,6 +795,37 @@ public:
     return name;
   }
 
+  static std::u8string ShulkerBox(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    auto itemsJ = List<Tag::Type::Compound>();
+    if (auto itemsB = itemB.query(u8"tag/Items")->asList(); itemsB) {
+      for (auto const &it : *itemsB) {
+        if (auto c = it->asCompound(); c) {
+          if (auto slotB = c->byte(u8"Slot"); slotB) {
+            if (auto itemJ = Item::From(*c, ctx, dataVersion, opt); itemJ) {
+              itemJ->set(u8"slot", Int(*slotB));
+              itemsJ->push_back(itemJ);
+            }
+          }
+        }
+      }
+    }
+    if (!itemsJ->empty()) {
+      auto tagJ = itemJ.compoundTag(u8"tag");
+      if (!tagJ) {
+        tagJ = Compound();
+        itemJ[u8"tag"] = tagJ;
+      }
+      auto blockEntityTag = Compound();
+      blockEntityTag->set(u8"Items", itemsJ);
+      tagJ->set(u8"BlockEntityTag", blockEntityTag);
+    }
+    if (Namespace::Remove(name) == u8"undyed_shulker_box") {
+      return Namespace::Add(u8"shulker_box");
+    } else {
+      return name;
+    }
+  }
+
   static std::u8string Skull(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     SkullType st = static_cast<SkullType>(damage);
@@ -902,6 +933,24 @@ public:
     E(crossbow, Crossbow);
     E(field_masoned_banner_pattern, Rename(u8"flower_banner_pattern"));    // field_masoned_banner_pattern doesn't exist in JE
     E(bordure_indented_banner_pattern, Rename(u8"flower_banner_pattern")); // bordure_indented_banner_pattern doesn't exist in JE
+    E(shulker_box, ShulkerBox);
+    E(white_shulker_box, ShulkerBox);
+    E(orange_shulker_box, ShulkerBox);
+    E(magenta_shulker_box, ShulkerBox);
+    E(light_blue_shulker_box, ShulkerBox);
+    E(yellow_shulker_box, ShulkerBox);
+    E(lime_shulker_box, ShulkerBox);
+    E(pink_shulker_box, ShulkerBox);
+    E(gray_shulker_box, ShulkerBox);
+    E(light_gray_shulker_box, ShulkerBox);
+    E(cyan_shulker_box, ShulkerBox);
+    E(purple_shulker_box, ShulkerBox);
+    E(blue_shulker_box, ShulkerBox);
+    E(brown_shulker_box, ShulkerBox);
+    E(green_shulker_box, ShulkerBox);
+    E(red_shulker_box, ShulkerBox);
+    E(black_shulker_box, ShulkerBox);
+    E(undyed_shulker_box, ShulkerBox);
 
     // 1.19
     E(frog_spawn, Rename(u8"frogspawn"));
