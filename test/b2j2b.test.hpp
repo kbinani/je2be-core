@@ -65,6 +65,14 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"minecraft:deflate_sensor_buffer", // pufferfish
       u8"minecraft:start_deflate",         // pufferfish
       u8"minecraft:full_puff",             // pufferfish
+      u8"-minecraft:sheep_sheared",
+      // Colored sheep keeps its original wild color definition. There is no equivalent property in Java
+      u8"+minecraft:sheep_white",
+      u8"+minecraft:sheep_brown",
+      u8"+minecraft:sheep_gray",
+      u8"+minecraft:sheep_light_gray",
+      u8"+minecraft:sheep_black",
+      u8"+minecraft:sheep_pink",
   };
 
   set<u8string> setE;

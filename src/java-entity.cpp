@@ -2266,7 +2266,6 @@ private:
       auto color = tag.byte(u8"Color", 0);
       c[u8"Color"] = Byte(color);
       CopyByteValues(tag, c, {{u8"Color"}});
-      AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_" + BedrockNameFromColorCodeJava((ColorCodeJava)color));
     };
   }
 
