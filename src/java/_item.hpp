@@ -68,7 +68,7 @@ public:
         return nullopt;
       }
     } else {
-      return strings::RemovePrefixAndSuffix(u8"\"", *name, u8"\"");
+      return strings::Unquote(*name);
     }
   }
 };

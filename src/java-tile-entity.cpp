@@ -1866,7 +1866,7 @@ private:
           continue;
         }
         if (auto s = line->asString(); s) {
-          text += props::GetTextComponent(strings::Unquote(s->fValue, '"'));
+          text += props::GetTextComponent(strings::Unquote(s->fValue));
         }
       }
     }

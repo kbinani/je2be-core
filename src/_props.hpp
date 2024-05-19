@@ -292,7 +292,7 @@ static std::u8string GetTextComponent(std::u8string const &in) {
     }
     return ret;
   } else {
-    return in;
+    return strings::Unquote(in);
   }
 }
 

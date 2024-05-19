@@ -3,6 +3,7 @@
 #include <je2be/integers.hpp>
 
 #include <minecraft-file.hpp>
+#include <nlohmann/json.hpp>
 
 #include <charconv>
 #include <cstdint>
@@ -286,9 +287,24 @@ inline std::string Increment(std::string const &p) {
   return ret;
 }
 
-inline std::u8string Unquote(std::u8string const &s, char8_t quoter) {
-  if (s.starts_with(quoter) && s.ends_with(quoter)) {
-    return s.substr(1, s.size() - 2);
+inline std::u8string Unquote(std::u8string const &s) {
+  if (s.starts_with(u8'"') && s.ends_with(u8'"')) {
+    std::u8string js = u8R"({"text":)" + s + u8"}";
+    bool allowException = false;
+    bool ignoreComment = false;
+    auto json = nlohmann::json::parse(js, nullptr, allowException, ignoreComment);
+    if (json.is_object()) {
+      if (auto found = json.find("text"); found != json.end() && found->is_string()) {
+        auto raw = found->get<std::string>();
+        std::u8string ret;
+        std::copy(raw.begin(), raw.end(), std::back_inserter(ret));
+        return ret;
+      } else {
+        return s;
+      }
+    } else {
+      return s;
+    }
   } else {
     return s;
   }

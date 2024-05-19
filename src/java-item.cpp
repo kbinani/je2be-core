@@ -49,7 +49,7 @@ public:
 
   static i8 GetSkullTypeFromBlockName(std::u8string_view const &name) {
     i8 type = 0;
-    std::u8string n = strings::RemovePrefix(name, u8"minecraft:");
+    std::u8string n(Namespace::Remove(name));
     n = strings::Remove(n, u8"_wall");
     auto st = SkullTypeFromJavaName(n);
     if (st) {
