@@ -120,4 +120,34 @@ inline std::optional<T> FallbackValue(CompoundTag const &c, std::initializer_lis
   return std::nullopt;
 }
 
+inline CompoundTagPtr EnsureTag(CompoundTag &target) {
+  auto tag = target.compoundTag(u8"tag");
+  if (tag) {
+    return tag;
+  } else {
+    tag = Compound();
+    target[u8"tag"] = tag;
+    return tag;
+  }
+}
+
+template <class NbtTag>
+inline void AppendTag(CompoundTag &target, std::u8string const &key, std::shared_ptr<NbtTag> const &v) {
+  if (!v) {
+    return;
+  }
+  EnsureTag(target)->set(key, v);
+}
+
+template <>
+inline void AppendTag(CompoundTag &target, std::u8string const &key, std::shared_ptr<CompoundTag> const &v) {
+  if (!v) {
+    return;
+  }
+  if (v->empty()) {
+    return;
+  }
+  EnsureTag(target)->set(key, v);
+}
+
 } // namespace je2be

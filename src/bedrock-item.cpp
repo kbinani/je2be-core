@@ -44,10 +44,10 @@ public:
       u8string_view key(*name);
       auto found = sTable->find(Namespace::Remove(key));
       if (found == sTable->end()) {
-        Default(*name, tagB, *ret, ctx, dataVersion);
+        Default(*name, tagB, *ret, ctx, dataVersion, opt);
       } else {
         auto renamed = found->second(*name, tagB, *ret, ctx, dataVersion, opt);
-        Default(renamed, tagB, *ret, ctx, dataVersion);
+        Default(renamed, tagB, *ret, ctx, dataVersion, opt);
       }
       return ret;
     } else {
@@ -55,7 +55,7 @@ public:
     }
   }
 
-  static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion) {
+  static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     using namespace std;
     using namespace mcfile::blocks::minecraft;
 
@@ -66,12 +66,26 @@ public:
 
     u8string nameJ = nameB;
     auto blockTag = itemB.compoundTag(u8"Block");
-    if (nameB.ends_with(u8"sign") && !tagB->empty()) {
-      // NOTE: "tag" of standing_sign should be converted to "BlockEntityTag", but itemB doesn't have "Block" tag.
-      //  Therefore, we need a dummy blockTag here.
-      blockTag = Compound();
-      blockTag->set(u8"name", u8"minecraft:standing_sign");
-      blockTag->set(u8"version", Int(java::kBlockDataVersion));
+    if (!tagB->empty()) {
+      if (blockTag == nullptr) {
+        // NOTE: "tag" of these items should be converted to "block_entity_data", but itemB doesn't have "Block" tag.
+        //  Therefore, we need a dummy blockTag here.
+        if (nameB.ends_with(u8"sign")) {
+          blockTag = Compound();
+          blockTag->set(u8"name", u8"minecraft:standing_sign");
+          blockTag->set(u8"version", Int(java::kBlockDataVersion));
+        } else if (nameB == u8"minecraft:brewing_stand" || nameB == u8"minecraft:hopper" || nameB == u8"minecraft:campfire" || nameB == u8"minecraft:soul_campfire") {
+          blockTag = Compound();
+          blockTag->set(u8"name", nameB);
+          blockTag->set(u8"version", Int(java::kBlockDataVersion));
+        }
+      } else {
+        if (nameB == u8"minecraft:decorated_pot") {
+          // NOTE: decorated_pot item doesn't have "block_entity_data" in Java, but has "Block" in Bedrock.
+          // Therefore, blockTag should be reset here.
+          blockTag = nullptr;
+        }
+      }
     }
     if (blockTag) {
       auto blockB = mcfile::be::Block::FromCompound(*blockTag);
@@ -88,7 +102,9 @@ public:
               for (auto const &e : sExclude) {
                 blockEntityDataJ->erase(e);
               }
-              if (!blockEntityDataJ->empty()) {
+              if (blockEntityDataJ->stringTag(u8"id") && blockEntityDataJ->size() == 1) {
+                // NOTE: Ignore converted result when it has only id.
+              } else if (!blockEntityDataJ->empty()) {
                 java::AppendComponent(itemJ, u8"block_entity_data", blockEntityDataJ);
               }
             }
@@ -199,6 +215,29 @@ public:
         trimJ->set(u8"material", Namespace::Add(*materialB));
         trimJ->set(u8"pattern", Namespace::Add(*patternB));
         java::AppendComponent(itemJ, u8"trim", trimJ);
+      }
+    }
+
+    if (nameB != u8"minecraft:brewing_stand") {
+      // NOTE: brewing_stand need slot remapping
+      auto itemsJ = List<Tag::Type::Compound>();
+      if (auto itemsB = itemB.query(u8"tag/Items")->asList(); itemsB) {
+        for (auto const &it : *itemsB) {
+          if (auto contentB = it->asCompound(); contentB) {
+            if (auto slotB = contentB->byte(u8"Slot"); slotB) {
+              if (auto contentJ = Item::From(*contentB, ctx, dataVersion, opt); contentJ) {
+                contentJ->erase(u8"Slot");
+                auto element = Compound();
+                element->set(u8"item", contentJ);
+                element->set(u8"slot", Int(*slotB));
+                itemsJ->push_back(element);
+              }
+            }
+          }
+        }
+      }
+      if (!itemsJ->empty()) {
+        java::AppendComponent(itemJ, u8"container", itemsJ);
       }
     }
   }
@@ -334,6 +373,35 @@ public:
     return name;
   }
 
+  static std::u8string BrewingStand(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      u8 const mapping[5] = {3, 0, 1, 2, 4};
+      if (auto itemsB = tagB->listTag(u8"Items"); itemsB) {
+        auto itemsJ = List<Tag::Type::Compound>();
+        for (auto const &it : *itemsB) {
+          auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+          if (!c) {
+            continue;
+          }
+          if (auto itemJ = Item::From(*c, ctx, dataVersion, opt); itemJ) {
+            if (auto slotB = c->byte(u8"Slot"); slotB && 0 <= *slotB && *slotB <= 4) {
+              auto slotJ = mapping[*slotB];
+              auto p = Compound();
+              itemJ->erase(u8"Slot");
+              p->set(u8"item", itemJ);
+              p->set(u8"slot", Int(slotJ));
+              itemsJ->push_back(p);
+            }
+          }
+        }
+        if (!itemsJ->empty()) {
+          java::AppendComponent(itemJ, u8"container", itemsJ);
+        }
+      }
+    }
+    return name;
+  }
+
   static std::u8string Bucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto damage = itemB.int16(u8"Damage", 0);
     std::u8string prefix = u8"";
@@ -371,6 +439,53 @@ public:
     return u8"minecraft:" + prefix + u8"bucket";
   }
 
+  static std::u8string Campfire(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      auto itemsJ = List<Tag::Type::Compound>();
+      for (int i = 1; i <= 4; i++) {
+        auto itemKey = u8"Item" + mcfile::String::ToString(i);
+        if (auto iB = tagB->compoundTag(itemKey); iB) {
+          if (auto iJ = Item::From(*iB, ctx, dataVersion, opt); iJ) {
+            iJ->erase(u8"Slot");
+            auto c = Compound();
+            c->set(u8"item", iJ);
+            c->set(u8"slot", Int(i - 1));
+            itemsJ->push_back(c);
+          }
+        }
+      }
+      if (!itemsJ->empty()) {
+        java::AppendComponent(itemJ, u8"container", itemsJ);
+      }
+    }
+    return name;
+  }
+
+  static std::u8string ChiseledBookshelf(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto itemsB = itemB.query(u8"tag/Items")->asList(); itemsB) {
+      auto itemsJ = List<Tag::Type::Compound>();
+      for (int i = 0; i < 6 && i < itemsB->size(); i++) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(itemsB->at(i)); c) {
+          auto count = c->byte(u8"Count", 0);
+          if (count == 0) {
+            continue;
+          }
+          if (auto iJ = Item::From(*c, ctx, dataVersion, opt); iJ) {
+            iJ->erase(u8"Slot");
+            auto element = Compound();
+            element->set(u8"item", iJ);
+            element->set(u8"slot", Int(i));
+            itemsJ->push_back(element);
+          }
+        }
+      }
+      if (!itemsJ->empty()) {
+        java::AppendComponent(itemJ, u8"container", itemsJ);
+      }
+    }
+    return name;
+  }
+
   static std::u8string Crossbow(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
       auto chargedProjectiles = List<Tag::Type::Compound>();
@@ -379,6 +494,22 @@ public:
           chargedProjectiles->push_back(projectileJ);
         }
         java::AppendComponent(itemJ, u8"charged_projectiles", chargedProjectiles);
+      }
+    }
+    return name;
+  }
+
+  static std::u8string DecoratedPot(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      if (auto itemB = tagB->compoundTag(u8"item"); itemB) {
+        if (auto iJ = Item::From(*itemB, ctx, dataVersion, opt); iJ) {
+          auto itemsJ = List<Tag::Type::Compound>();
+          auto c = Compound();
+          c->set(u8"slot", Int(0));
+          c->set(u8"item", iJ);
+          itemsJ->push_back(c);
+          java::AppendComponent(itemJ, u8"container", itemsJ);
+        }
       }
     }
     return name;
@@ -848,6 +979,17 @@ public:
     return name;
   }
 
+  static std::u8string Furnace(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      auto tagJ = Compound();
+      CopyShortValues(*tagB, *tagJ, {{u8"CookTime"}, {u8"BurnTime", u8"BurnDuration"}, {u8"CookTimeTotal", u8"BurnTime"}});
+      if (!tagJ->empty()) {
+        java::AppendComponent(itemJ, u8"block_entity_data", tagJ);
+      }
+    }
+    return name;
+  }
+
   static std::u8string TropicalFishBucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
@@ -992,6 +1134,12 @@ public:
     E(red_shulker_box, ShulkerBox);
     E(black_shulker_box, ShulkerBox);
     E(undyed_shulker_box, ShulkerBox);
+    E(furnace, Furnace);
+    E(campfire, Campfire);
+    E(soul_campfire, Campfire);
+    E(brewing_stand, BrewingStand);
+    E(decorated_pot, DecoratedPot);
+    E(chiseled_bookshelf, ChiseledBookshelf);
 
     // 1.19
     E(frog_spawn, Rename(u8"frogspawn"));

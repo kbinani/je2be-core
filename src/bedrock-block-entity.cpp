@@ -253,10 +253,9 @@ public:
       auto itemTag = tagB.compoundTag(u8"Item" + mcfile::String::ToString(i + 1));
       bool itemAdded = false;
       if (itemTag) {
-        auto item = Item::From(*itemTag, ctx, opt.fDataVersion, {});
-        if (item) {
-          item->set(u8"Slot", Byte(i));
-          items->push_back(item);
+        if (auto itemJ = Item::From(*itemTag, ctx, opt.fDataVersion, {}); itemJ) {
+          itemJ->set(u8"Slot", Byte(i));
+          items->push_back(itemJ);
           itemAdded = true;
         }
       }
@@ -267,10 +266,11 @@ public:
     auto timesTag = make_shared<IntArrayTag>(times);
     auto totalTimesTag = make_shared<IntArrayTag>(totalTimes);
     auto t = EmptyShortName(u8"campfire", pos);
-    t->set(u8"Items", items);
     t->set(u8"CookingTimes", timesTag);
     t->set(u8"CookingTotalTimes", totalTimesTag);
-
+    if (!opt.fItem) {
+      t->set(u8"Items", items);
+    }
     Result r;
     r.fTileEntity = t;
     return r;
@@ -322,7 +322,9 @@ public:
     auto t = EmptyShortName(u8"chiseled_bookshelf", pos);
 
     auto itemsJ = ContainerItemsWithoutSlot(tagB, u8"Items", ctx, true, opt.fDataVersion);
-    t->set(u8"Items", itemsJ);
+    if (!opt.fItem) {
+      t->set(u8"Items", itemsJ);
+    }
 
     CopyIntValues(tagB, *t, {{u8"LastInteractedSlot", u8"last_interacted_slot"}});
 
@@ -1064,6 +1066,9 @@ public:
 
   static ListTagPtr ContainerItems(CompoundTag const &parent, std::u8string const &key, Context &ctx, Options const &opt) {
     using namespace std;
+    if (opt.fItem) {
+      return nullptr;
+    }
     auto tag = parent.listTag(key);
     if (!tag) {
       return nullptr;

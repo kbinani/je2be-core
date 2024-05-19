@@ -298,14 +298,13 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     blacklist.insert(u8"components/minecraft:potion_contents/potion");
   }
 
-  auto tileE = itemE.query(u8"components/minecraft:block_entity_data");
-  auto tileA = itemA.query(u8"components/minecraft:block_entity_data");
-  if (tileE && tileE->type() != Tag::Type::End) {
+  auto tileE = itemE.query(u8"components/minecraft:block_entity_data")->asCompound();
+  auto tileA = itemA.query(u8"components/minecraft:block_entity_data")->asCompound();
+  if (tileE) {
     REQUIRE(tileA);
-    REQUIRE(tileE->type() == Tag::Type::Compound);
     CHECK(tileE->type() == tileA->type());
-    CheckTileEntityJ(*tileE->asCompound(), *tileA->asCompound());
-  } else if (tileA && tileA->type() != Tag::Type::End) {
+    CheckTileEntityJ(*tileE, *tileA);
+  } else if (tileA) {
     CHECK(false);
   }
 

@@ -415,7 +415,7 @@ private:
     E(netherite_axe, DefaultItem);
     E(chainmail_helmet, DefaultItem);
     E(carrot, DefaultItem);
-    E(campfire, DefaultItem);
+    E(campfire, Campfire);
     E(stone_shovel, DefaultItem);
     E(sweet_berries, DefaultItem);
     E(cooked_porkchop, DefaultItem);
@@ -427,7 +427,6 @@ private:
     E(glow_berries, DefaultItem);
     E(experience_bottle, DefaultItem);
     E(fire_charge, DefaultItem);
-    E(hopper, DefaultItem);
     E(emerald, DefaultItem);
     E(nether_star, DefaultItem);
     E(golden_boots, DefaultItem);
@@ -528,7 +527,6 @@ private:
     E(fermented_spider_eye, DefaultItem);
     E(blaze_powder, DefaultItem);
     E(magma_cream, DefaultItem);
-    E(brewing_stand, DefaultItem);
     E(rabbit_foot, DefaultItem);
     E(phantom_membrane, DefaultItem);
     E(tadpole_bucket, FishBucket(u8"tadpole"));
@@ -538,7 +536,7 @@ private:
     E(glow_ink_sac, DefaultItem);
     E(repeater, DefaultItem);
     E(comparator, DefaultItem);
-    E(soul_campfire, DefaultItem);
+    E(soul_campfire, Campfire);
     E(kelp, DefaultItem);
     E(armor_stand, DefaultItem);
     E(raw_gold, DefaultItem);
@@ -745,6 +743,19 @@ private:
     E(magenta_shulker_box, ShulkerBox);
     E(orange_shulker_box, ShulkerBox);
     E(white_shulker_box, ShulkerBox);
+    E(furnace, BlockContainer);
+    E(smoker, BlockContainer);
+    E(blast_furnace, BlockContainer);
+    E(brewing_stand, BrewingStand);
+    E(decorated_pot, DecoratedPot);
+    E(chiseled_bookshelf, ChiseledBookshelf);
+    E(chest, UnfindableBlockContainer);
+    E(barrel, UnfindableBlockContainer);
+    E(dispenser, BlockContainer);
+    E(dropper, BlockContainer);
+    E(hopper, SimpleContainer);
+    E(trapped_chest, UnfindableBlockContainer);
+    E(crafter, BlockContainer);
 #undef E
     return table;
   }
@@ -753,6 +764,157 @@ private:
     using namespace std;
     static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateItemConverterTable());
     return *sTable;
+  }
+
+  static CompoundTagPtr ChiseledBookshelf(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = New(name, true);
+    if (auto itemsJ = GetItems(item, ctx, dataVersion); itemsJ) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (int i = 0; i < 6; i++) {
+        itemsB->push_back(Empty());
+      }
+      for (auto const &it : *itemsJ) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto slot = c->byte(u8"Slot"); slot) {
+            if (0 <= *slot && *slot <= 5) {
+              c->erase(u8"Slot");
+              itemsB->fValue[*slot] = c;
+            }
+          }
+        }
+      }
+      AppendTag(*ret, u8"Items", itemsB);
+    }
+    if (auto block = Block::FromName(name, dataVersion); block) {
+      if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr UnfindableBlockContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = New(name, true);
+    ContainerItems(item, *ret, ctx, dataVersion);
+    if (auto block = Block::FromName(name, dataVersion); block) {
+      if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    if (ret->query(u8"tag/Items")->asList()) {
+      AppendTag(*ret, u8"Findable", Bool(false));
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr DecoratedPot(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = New(name, true);
+    if (auto items = GetItems(item, ctx, dataVersion); items) {
+      for (auto const &it : *items) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte(u8"Slot");
+        if (!slot) {
+          continue;
+        }
+        c->erase(u8"Slot");
+        if (*slot == 0) {
+          AppendTag(*ret, u8"item", c);
+          AppendTag(*ret, u8"animation", Bool(false));
+        }
+      }
+    }
+    if (auto block = Block::FromName(name, dataVersion); block) {
+      if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr BrewingStand(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    u8 const mapping[5] = {1, 2, 3, 0, 4};
+    auto ret = New(name, true);
+    auto tagB = Compound();
+    if (auto items = GetItems(item, ctx, dataVersion); items) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *items) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte(u8"Slot");
+        if (!slot) {
+          continue;
+        }
+        if (0 <= *slot && *slot <= 4) {
+          auto i = mapping[*slot];
+          c->set(u8"Slot", Byte(i));
+          itemsB->push_back(c);
+        }
+      }
+      tagB->set(u8"Items", itemsB);
+    }
+    if (auto blockEntityDataJ = Migrate<CompoundTag>(item, u8"block_entity_data", Depth::Tag, u8"BlockEntityTag"); blockEntityDataJ) {
+      CopyShortValues(*blockEntityDataJ, *tagB, {{u8"BrewTime", u8"CookTime"}});
+      if (auto fuelJ = blockEntityDataJ->byte(u8"Fuel"); fuelJ) {
+        tagB->set(u8"FuelAmount", Short(*fuelJ));
+        tagB->set(u8"FuelTotal", Short(20));
+      }
+    }
+    if (!tagB->empty()) {
+      ret->set(u8"tag", tagB);
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr SimpleContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = New(name, true);
+    ContainerItems(item, *ret, ctx, dataVersion);
+    return ret;
+  }
+
+  static CompoundTagPtr BlockContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = New(name, true);
+    ContainerItems(item, *ret, ctx, dataVersion);
+    if (auto block = Block::FromName(name, dataVersion); block) {
+      if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr Campfire(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
+    auto ret = New(name, true);
+    auto tagB = Compound();
+    if (auto items = GetItems(item, ctx, dataVersion); items) {
+      for (auto const &it : *items) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte(u8"Slot");
+        if (!slot) {
+          continue;
+        }
+        if (0 <= *slot && *slot <= 3) {
+          c->erase(u8"Slot");
+          tagB->set(u8"Item" + mcfile::String::ToString(*slot + 1), c);
+        }
+      }
+    }
+    if (auto cookingTimes = FallbackQuery(item, {u8"components/minecraft:block_entity_data/CookingTimes", u8"tag/BlockEntityTag/CookingTimes"})->asIntArray(); cookingTimes) {
+      for (int i = 0; i < 4 && i < cookingTimes->fValue.size(); i++) {
+        tagB->set(u8"ItemTime" + mcfile::String::ToString(i + 1), Int(cookingTimes->fValue[i]));
+      }
+    }
+    if (!tagB->empty()) {
+      ret->set(u8"tag", tagB);
+    }
+    return ret;
   }
 
   static CompoundTagPtr ShulkerBox(std::u8string const &name, CompoundTag const &item, Context &ctx, int dataVersion) {
@@ -1427,6 +1589,8 @@ private:
   static CompoundTagPtr Post(CompoundTagPtr const &itemB, CompoundTag const &itemJ, Context &ctx, int dataVersion) {
     using namespace std;
 
+    auto nameB = itemB->string(u8"Name");
+
     auto count = Item::Count(itemJ);
     if (count) {
       itemB->set(u8"Count", Byte(*count));
@@ -1546,23 +1710,28 @@ private:
 
     if (auto blockEntityTagJ = Migrate<CompoundTag>(itemJ, u8"block_entity_data", Depth::Tag, u8"BlockEntityTag"); blockEntityTagJ) {
       if (auto id = itemJ.string(u8"id"); id) {
-        auto block = Block::FromName(*id, dataVersion);
-
-        Pos3i dummy(0, 0, 0);
-        if (auto blockEntityTagB = TileEntity::FromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx, dataVersion); blockEntityTagB) {
-          static unordered_set<u8string> const sExclude({u8"Findable", u8"id", u8"isMovable", u8"x", u8"y", u8"z"});
-          for (auto const &e : sExclude) {
-            blockEntityTagB->erase(e);
-          }
-          if (itemB->string(u8"Name") == u8"minecraft:banner" && tagB->int32(u8"Type") == 1) {
-            // ominous_banner: "Type" property was already converted, and Base/Patterns can be omitted.
-            blockEntityTagB->erase(u8"Type");
-            blockEntityTagB->erase(u8"Base");
-            blockEntityTagB->erase(u8"Patterns");
-          }
-          for (auto const &it : *blockEntityTagB) {
-            if (tagB->find(it.first) == tagB->end()) {
-              tagB->set(it.first, it.second);
+        if (auto block = Block::FromName(*id, dataVersion); block) {
+          Pos3i dummy(0, 0, 0);
+          if (auto blockEntityTagB = TileEntity::FromBlockAndTileEntity(dummy, *block, blockEntityTagJ, ctx, dataVersion); blockEntityTagB) {
+            static unordered_set<u8string> const sExclude({u8"Findable", u8"id", u8"isMovable", u8"x", u8"y", u8"z"});
+            for (auto const &e : sExclude) {
+              blockEntityTagB->erase(e);
+            }
+            if (nameB == u8"minecraft:banner" && tagB->int32(u8"Type") == 1) {
+              // ominous_banner: "Type" property was already converted, and Base/Patterns can be omitted.
+              blockEntityTagB->erase(u8"Type");
+              blockEntityTagB->erase(u8"Base");
+              blockEntityTagB->erase(u8"Patterns");
+            }
+            for (auto const &it : *blockEntityTagB) {
+              if (tagB->find(it.first) == tagB->end()) {
+                tagB->set(it.first, it.second);
+              }
+            }
+            if (!itemB->compoundTag(u8"Block") && nameB != u8"minecraft:hopper" && nameB != u8"minecraft:campfire" && nameB != u8"minecraft:soul_campfire") {
+              if (auto blockData = BlockData::From(block, nullptr, {.fItem = true}); blockData) {
+                itemB->set(u8"Block", blockData);
+              }
             }
           }
         }
@@ -1591,6 +1760,48 @@ private:
     }
 
     return itemB;
+  }
+
+  static void ContainerItems(CompoundTag const &itemJ, CompoundTag &itemB, Context &ctx, int dataVersion) {
+    auto itemsB = GetItems(itemJ, ctx, dataVersion);
+    if (!itemsB) {
+      return;
+    }
+    AppendTag(itemB, u8"Items", itemsB);
+  }
+
+  static ListTagPtr GetItems(CompoundTag const &itemJ, Context &ctx, int dataVersion) {
+    if (auto container = itemJ.query(u8"components/minecraft:container")->asList(); container) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *container) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto iJ = c->compoundTag(u8"item"); iJ) {
+            if (auto slotJ = c->int32(u8"slot"); slotJ) {
+              if (auto itemB = Item::From(iJ, ctx, dataVersion); itemB) {
+                itemB->set(u8"Slot", Byte(*slotJ));
+                itemsB->push_back(itemB);
+              }
+            }
+          }
+        }
+      }
+      return itemsB;
+    } else if (auto itemsJ = itemJ.query(u8"tag/BlockEntityTag/Items")->asList(); itemsJ) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *itemsJ) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto slotJ = c->byte(u8"Slot"); slotJ) {
+            if (auto itemB = Item::From(c, ctx, dataVersion); itemB) {
+              itemB->set(u8"Slot", Byte(*slotJ));
+              itemsB->push_back(itemB);
+            }
+          }
+        }
+      }
+      return itemsB;
+    } else {
+      return nullptr;
+    }
   }
 
   // converts block name (bedrock) to item name (bedrock)

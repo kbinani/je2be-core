@@ -140,7 +140,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
   }
 }
 
-static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) {
+static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual, bool item) {
   auto nameE = expected.string(u8"name");
   auto nameA = actual.string(u8"name");
   set<u8string> ignore;
@@ -150,6 +150,9 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual) 
         ignore.insert(u8"huge_mushroom_bits");
       }
     }
+  } else if (item && (nameE == u8"minecraft:dropper" || nameE == u8"minecraft:dispenser")) {
+    // facing_direction may be 0 or 3 when dropper/dispenser is an item
+    ignore.insert(u8"facing_direction");
   }
   CHECK(nameE == nameA);
   auto statesE = expected.compoundTag(u8"states");
@@ -225,13 +228,15 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual, B
     }
   } else if (nameE == u8"minecraft:written_book") {
     ignore.insert(u8"tag/xuid");
+  } else if (nameE == u8"minecraft:furnace" || nameE == u8"minecraft:smoker" || nameE == u8"minecraft:blast_furnace") {
+    ignore.insert(u8"tag/StoredXPInt");
   }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
   if (blockE) {
     CHECK(blockA);
     if (blockA) {
-      CheckBlockB(*blockE, *blockA);
+      CheckBlockB(*blockE, *blockA, true);
     }
     ignore.insert(u8"Block");
   }

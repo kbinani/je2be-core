@@ -22,15 +22,15 @@ public:
     u8string_view key(*name);
     auto found = sTable->find(Namespace::Remove(key));
     if (found == sTable->end()) {
-      Default(*name, tagB, *ret, ctx, dataVersion);
+      Default(*name, tagB, *ret, ctx, dataVersion, opt);
     } else {
       auto renamed = found->second(*name, tagB, *ret, ctx, dataVersion, opt);
-      Default(renamed, tagB, *ret, ctx, dataVersion);
+      Default(renamed, tagB, *ret, ctx, dataVersion, opt);
     }
     return ret;
   }
 
-  static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion) {
+  static void Default(std::u8string const &nameB, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     using namespace std;
     using namespace mcfile::blocks::minecraft;
 
@@ -175,6 +175,29 @@ public:
         trimJ->set(u8"pattern", Namespace::Add(*patternB));
         tagJ->set(u8"Trim", trimJ);
       }
+    }
+
+    auto itemsJ = List<Tag::Type::Compound>();
+    if (auto itemsB = itemB.query(u8"tag/Items")->asList(); itemsB) {
+      for (auto const &it : *itemsB) {
+        if (auto contentB = it->asCompound(); contentB) {
+          if (auto slotB = contentB->byte(u8"Slot"); slotB) {
+            if (auto contentJ = Item::From(*contentB, ctx, dataVersion, opt); contentJ) {
+              contentJ->set(u8"slot", Int(*slotB));
+              itemsJ->push_back(contentJ);
+            }
+          }
+        }
+      }
+    }
+    if (!itemsJ->empty()) {
+      auto blockEntityTag = tagJ->compoundTag(u8"BlockEntityTag");
+      if (!blockEntityTag) {
+        blockEntityTag = Compound();
+        tagJ->set(u8"BlockEntityTag", blockEntityTag);
+      }
+      blockEntityTag->set(u8"Items", itemsJ);
+      tagJ->set(u8"BlockEntityTag", blockEntityTag);
     }
 
     if (!displayJ->empty()) {
@@ -850,6 +873,17 @@ public:
     return name;
   }
 
+  static std::u8string Furnace(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      auto tagJ = Compound();
+      CopyShortValues(*tagB, *tagJ, {{u8"CookTime"}, {u8"BurnTime", u8"BurnDuration"}, {u8"CookTimeTotal", u8"BurnTime"}});
+      if (!tagJ->empty()) {
+        itemJ[u8"tag"] = tagJ;
+      }
+    }
+    return name;
+  }
+
   static std::u8string TropicalFishBucket(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     auto tagB = itemB.compoundTag(u8"tag");
     if (tagB) {
@@ -951,6 +985,7 @@ public:
     E(red_shulker_box, ShulkerBox);
     E(black_shulker_box, ShulkerBox);
     E(undyed_shulker_box, ShulkerBox);
+    E(furnace, Furnace);
 
     // 1.19
     E(frog_spawn, Rename(u8"frogspawn"));
