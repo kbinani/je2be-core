@@ -2584,7 +2584,17 @@ private:
     E(dead_bubble_coral, BlockWithSubmergible);
     E(dead_fire_coral, BlockWithSubmergible);
     E(dead_horn_coral, BlockWithSubmergible);
-    E(coral_block, CoralBlock);
+    E(coral_block, CoralBlock); // legacy < 1.21
+    E(tube_coral_block, Same);
+    E(brain_coral_block, Same);
+    E(bubble_coral_block, Same);
+    E(fire_coral_block, Same);
+    E(horn_coral_block, Same);
+    E(dead_tube_coral_block, Same);
+    E(dead_brain_coral_block, Same);
+    E(dead_bubble_coral_block, Same);
+    E(dead_fire_coral_block, Same);
+    E(dead_horn_coral_block, Same);
 
     E(coral_fan_hang, CoralFanHang);
     E(coral_fan_hang2, CoralFanHang);

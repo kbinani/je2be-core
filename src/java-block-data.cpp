@@ -1188,22 +1188,22 @@ public:
     E(mossy_stone_bricks, StoneBrick(u8"mossy"));
     E(stone_bricks, StoneBrick(u8"default"));
     Converter sapling(Same, StageToAgeBit);
-    E(oak_sapling, sapling);      // SaplingLegacy(u8"oak"));
-    E(birch_sapling, sapling);    // SaplingLegacy(u8"birch"));
-    E(jungle_sapling, sapling);   // SaplingLegacy(u8"jungle"));
-    E(acacia_sapling, sapling);   // SaplingLegacy(u8"acacia"));
-    E(spruce_sapling, sapling);   // SaplingLegacy(u8"spruce"));
-    E(dark_oak_sapling, sapling); // SaplingLegacy(u8"dark_oak"));
-    E(tube_coral_block, CoralBlock(u8"blue", false));
-    E(brain_coral_block, CoralBlock(u8"pink", false));
-    E(bubble_coral_block, CoralBlock(u8"purple", false));
-    E(fire_coral_block, CoralBlock(u8"red", false));
-    E(horn_coral_block, CoralBlock(u8"yellow", false));
-    E(dead_tube_coral_block, CoralBlock(u8"blue", true));
-    E(dead_brain_coral_block, CoralBlock(u8"pink", true));
-    E(dead_bubble_coral_block, CoralBlock(u8"purple", true));
-    E(dead_fire_coral_block, CoralBlock(u8"red", true));
-    E(dead_horn_coral_block, CoralBlock(u8"yellow", true));
+    E(oak_sapling, sapling);              // SaplingLegacy(u8"oak"));
+    E(birch_sapling, sapling);            // SaplingLegacy(u8"birch"));
+    E(jungle_sapling, sapling);           // SaplingLegacy(u8"jungle"));
+    E(acacia_sapling, sapling);           // SaplingLegacy(u8"acacia"));
+    E(spruce_sapling, sapling);           // SaplingLegacy(u8"spruce"));
+    E(dark_oak_sapling, sapling);         // SaplingLegacy(u8"dark_oak"));
+    E(tube_coral_block, Identity);        // CoralBlock(u8"blue", false)) when < 1.21
+    E(brain_coral_block, Identity);       // CoralBlock(u8"pink", false)) when < 1.21
+    E(bubble_coral_block, Identity);      // CoralBlock(u8"purple", false)) when < 1.21
+    E(fire_coral_block, Identity);        // CoralBlock(u8"red", false)) when < 1.21
+    E(horn_coral_block, Identity);        // CoralBlock(u8"yellow", false)) when < 1.21
+    E(dead_tube_coral_block, Identity);   // CoralBlock(u8"blue", true)) when < 1.21
+    E(dead_brain_coral_block, Identity);  // CoralBlock(u8"pink", true)) when < 1.21
+    E(dead_bubble_coral_block, Identity); // CoralBlock(u8"purple", true)) when < 1.21
+    E(dead_fire_coral_block, Identity);   // CoralBlock(u8"red", true)) when < 1.21
+    E(dead_horn_coral_block, Identity);   // CoralBlock(u8"yellow", true)) when < 1.21
     E(snow, SnowLayer);
     E(sugar_cane, Converter(Name(u8"reeds"), Name(Age, u8"age")));
     E(end_rod, Converter(Same, EndRodFacingDirectionFromFacing));
