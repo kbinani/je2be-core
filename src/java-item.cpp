@@ -1019,7 +1019,7 @@ private:
       auto health = tg->float32(u8"Health", 14);
       auto variant = tg->int32(u8"Variant", 0);
       auto axltl = Axolotl(age, health, variant);
-      auto tag = axltl.toBucketTag();
+      auto tag = axltl.toBedrockBucketTag();
 
       auto customName = GetCustomName(item);
       if (customName) {

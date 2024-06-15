@@ -1166,8 +1166,8 @@ public:
     if (current && max) {
       j[u8"Health"] = Float(*current);
       auto attr = Compound();
-      attr->set(u8"Name", u8"minecraft:generic.max_health");
-      attr->set(u8"Base", Double(*max));
+      attr->set(u8"id", u8"minecraft:generic.max_health");
+      attr->set(u8"base", Double(*max));
       AddAttribute(attr, j);
     }
   }
@@ -1261,8 +1261,8 @@ public:
     }
     auto attr = Compound();
     std::u8string name = nameJ;
-    (*attr)[u8"Base"] = Double(*jumpStrength);
-    (*attr)[u8"Name"] = String(name);
+    (*attr)[u8"base"] = Double(*jumpStrength);
+    (*attr)[u8"id"] = String(name);
     AddAttribute(attr, j);
   }
 
@@ -1288,8 +1288,8 @@ public:
     auto current = movementB->float32(u8"Current");
     if (current) {
       auto attr = Compound();
-      attr->set(u8"Name", u8"minecraft:generic.movement_speed");
-      attr->set(u8"Base", Double(*current));
+      attr->set(u8"id", u8"minecraft:generic.movement_speed");
+      attr->set(u8"base", Double(*current));
       AddAttribute(attr, j);
     }
   }
@@ -1592,57 +1592,57 @@ public:
 
 #pragma region Utilities
   static CompoundTagPtr FindAttribute(CompoundTag const &entityB, std::u8string const &name) {
-    auto attributes = entityB.listTag(u8"Attributes");
-    if (!attributes) {
+    auto attributesB = entityB.listTag(u8"Attributes");
+    if (!attributesB) {
       return nullptr;
     }
-    for (auto &attribute : *attributes) {
-      auto c = attribute->asCompound();
+    for (auto &attributeB : *attributesB) {
+      auto c = attributeB->asCompound();
       if (!c) {
         continue;
       }
       if (c->string(u8"Name") == name) {
-        return std::dynamic_pointer_cast<CompoundTag>(attribute);
+        return std::dynamic_pointer_cast<CompoundTag>(attributeB);
       }
     }
     return nullptr;
   }
 
-  static void AddAttribute(CompoundTagPtr const &attribute, CompoundTag &entityJ) {
-    assert(attribute);
-    auto name = attribute->string(u8"Name");
+  static void AddAttribute(CompoundTagPtr const &attributeJ, CompoundTag &entityJ) {
+    assert(attributeJ);
+    auto name = attributeJ->string(u8"id");
     assert(name);
     if (!name) [[unlikely]] {
       return;
     }
-    ListTagPtr attributes = entityJ.listTag(u8"Attributes");
+    ListTagPtr attributesJ = entityJ.listTag(u8"attributes");
     ListTagPtr replace = List<Tag::Type::Compound>();
-    if (!attributes) {
-      replace->push_back(attribute);
-      entityJ[u8"Attributes"] = replace;
+    if (!attributesJ) {
+      replace->push_back(attributeJ);
+      entityJ[u8"attributes"] = replace;
       return;
     }
     bool added = false;
-    for (auto const &it : *attributes) {
+    for (auto const &it : *attributesJ) {
       auto attr = it->asCompound();
       if (!attr) {
         continue;
       }
-      auto n = attr->string(u8"Name");
+      auto n = attr->string(u8"id");
       if (!n) {
         continue;
       }
       if (*n == *name) {
-        replace->push_back(attribute);
+        replace->push_back(attributeJ);
         added = true;
       } else {
         replace->push_back(it);
       }
     }
     if (!added) {
-      replace->push_back(attribute);
+      replace->push_back(attributeJ);
     }
-    entityJ[u8"Attributes"] = replace;
+    entityJ[u8"attributes"] = replace;
   }
 
   static bool HasDefinition(CompoundTag const &entityB, std::u8string const &definitionToSearch) {

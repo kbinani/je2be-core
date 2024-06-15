@@ -43,7 +43,7 @@ public:
       : fAge(age), fHealth(health), fVariant(VariantFromJava(javaVariant)) {
   }
 
-  CompoundTagPtr toBucketTag() {
+  CompoundTagPtr toBedrockBucketTag() {
     using namespace std;
 
     auto ret = Compound();

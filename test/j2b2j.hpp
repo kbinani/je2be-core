@@ -472,7 +472,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       CHECK(beeA);
       auto beeCopyE = beeE->copy();
       auto beeCopyA = beeA->copy();
-      for (auto const &ignore : {u8"Attributes"}) {
+      for (auto const &ignore : {u8"attributes"}) {
         beeCopyE->erase(ignore);
         beeCopyA->erase(ignore);
       }
@@ -639,7 +639,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   unordered_set<u8string> blacklist = {
       u8"UUID",
       u8"Pos",
-      u8"Attributes",
+      u8"attributes",
       u8"Motion",
       u8"LeftHanded", // left handed skeleton does not exist in BE
       u8"ForcedAge",
@@ -1164,7 +1164,7 @@ static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {
     blacklist.insert(u8"GameRules/" + rule);
   }
   unordered_set<u8string> ignoredPlayerAttributes = {
-      u8"Attributes",
+      u8"attributes",
       u8"EnderItems/*/tag/HideFlags", //?
       u8"EnderItems/*/tag/map",
       u8"Fire",

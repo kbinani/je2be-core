@@ -18,7 +18,7 @@ public:
       current = std::min(v, max);
     }
 
-    CompoundTagPtr toCompoundTag(std::u8string const &name) const {
+    CompoundTagPtr toBedrockCompoundTag(std::u8string const &name) const {
       auto a = Compound();
       a->set(u8"Base", Float(base));
       a->set(u8"Current", Float(current));
@@ -46,16 +46,16 @@ public:
 
     ListTagPtr toBedrockListTag() const {
       auto list = List<Tag::Type::Compound>();
-      list->push_back(luck.toCompoundTag(u8"luck"));
-      list->push_back(health.toCompoundTag(u8"health"));
-      list->push_back(absorption.toCompoundTag(u8"absorption"));
-      list->push_back(knockback_resistance.toCompoundTag(u8"knockback_resistance"));
-      list->push_back(movement.toCompoundTag(u8"movement"));
-      list->push_back(underwater_movement.toCompoundTag(u8"underwater_movement"));
-      list->push_back(lava_movement.toCompoundTag(u8"lava_movement"));
-      list->push_back(follow_range.toCompoundTag(u8"follow_range"));
+      list->push_back(luck.toBedrockCompoundTag(u8"luck"));
+      list->push_back(health.toBedrockCompoundTag(u8"health"));
+      list->push_back(absorption.toBedrockCompoundTag(u8"absorption"));
+      list->push_back(knockback_resistance.toBedrockCompoundTag(u8"knockback_resistance"));
+      list->push_back(movement.toBedrockCompoundTag(u8"movement"));
+      list->push_back(underwater_movement.toBedrockCompoundTag(u8"underwater_movement"));
+      list->push_back(lava_movement.toBedrockCompoundTag(u8"lava_movement"));
+      list->push_back(follow_range.toBedrockCompoundTag(u8"follow_range"));
       if (attack_damage) {
-        list->push_back(attack_damage->toCompoundTag(u8"attack_damage"));
+        list->push_back(attack_damage->toBedrockCompoundTag(u8"attack_damage"));
       }
       return list;
     }
@@ -77,7 +77,7 @@ public:
   static ListTagPtr AnyHorseFromJava(CompoundTag const &tag, std::optional<float> currentHealth) {
     using namespace std;
 
-    auto attributes = tag.listTag(u8"Attributes");
+    auto attributes = FallbackPtr<ListTag>(tag, {u8"attributes", u8"Attributes"});
     Attribute health(15, 15, 15);
     Attribute movement(0.1125, 0.1125);
     Attribute jumpStrength(0.4, 0.4);
@@ -87,17 +87,19 @@ public:
         if (!attrs) {
           continue;
         }
-        auto name = attrs->string(u8"Name");
-        auto value = attrs->float64(u8"Base");
-        if (!name || !value) {
+        auto idPtr = FallbackPtr<StringTag>(*attrs, {u8"id", u8"Name"});
+        auto basePtr = FallbackPtr<DoubleTag>(*attrs, {u8"base", u8"Base"});
+        if (!idPtr || !basePtr) {
           continue;
         }
-        if (*name == u8"minecraft:generic.max_health") {
-          health = Attribute(*value, *value, *value);
-        } else if (*name == u8"minecraft:generic.movement_speed") {
-          movement = Attribute(*value, *value);
-        } else if (*name == u8"minecraft:horse.jump_strength") {
-          jumpStrength = Attribute(*value, *value);
+        u8string id = idPtr->fValue;
+        double value = basePtr->fValue;
+        if (id == u8"minecraft:generic.max_health") {
+          health = Attribute(value, value, value);
+        } else if (id == u8"minecraft:generic.movement_speed") {
+          movement = Attribute(value, value);
+        } else if (id == u8"minecraft:horse.jump_strength") {
+          jumpStrength = Attribute(value, value);
         }
       }
     }
@@ -111,12 +113,12 @@ public:
     }
 
     auto ret = List<Tag::Type::Compound>();
-    ret->push_back(luck.toCompoundTag(u8"luck"));
-    ret->push_back(health.toCompoundTag(u8"health"));
-    ret->push_back(movement.toCompoundTag(u8"movement"));
-    ret->push_back(followRange.toCompoundTag(u8"follow_range"));
-    ret->push_back(absorption.toCompoundTag(u8"absorption"));
-    ret->push_back(jumpStrength.toCompoundTag(u8"horse.jump_strength"));
+    ret->push_back(luck.toBedrockCompoundTag(u8"luck"));
+    ret->push_back(health.toBedrockCompoundTag(u8"health"));
+    ret->push_back(movement.toBedrockCompoundTag(u8"movement"));
+    ret->push_back(followRange.toBedrockCompoundTag(u8"follow_range"));
+    ret->push_back(absorption.toBedrockCompoundTag(u8"absorption"));
+    ret->push_back(jumpStrength.toBedrockCompoundTag(u8"horse.jump_strength"));
     return ret;
   }
 

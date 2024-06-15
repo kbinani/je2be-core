@@ -383,19 +383,19 @@ public:
     auto attrsTag = attrs.toBedrockListTag();
     if (auto xpTotal = tag.int32(u8"XpTotal"); xpTotal) {
       EntityAttributes::Attribute level(*xpTotal, xpLevel, 24791);
-      attrsTag->push_back(level.toCompoundTag(u8"player.level"));
+      attrsTag->push_back(level.toBedrockCompoundTag(u8"player.level"));
     }
     if (auto foodExhaustionLevel = tag.float32(u8"foodExhaustionLevel"); foodExhaustionLevel) {
       EntityAttributes::Attribute exhaustion(0, *foodExhaustionLevel, 4);
-      attrsTag->push_back(exhaustion.toCompoundTag(u8"player.exhaustion"));
+      attrsTag->push_back(exhaustion.toBedrockCompoundTag(u8"player.exhaustion"));
     }
     if (auto foodLevel = tag.int32(u8"foodLevel"); foodLevel) {
       EntityAttributes::Attribute hunger(20, *foodLevel, 20);
-      attrsTag->push_back(hunger.toCompoundTag(u8"player.hunger"));
+      attrsTag->push_back(hunger.toBedrockCompoundTag(u8"player.hunger"));
     }
     if (auto foodSaturatonLevel = tag.float32(u8"foodSaturationLevel"); foodSaturatonLevel) {
       EntityAttributes::Attribute saturation(20, *foodSaturatonLevel, 20);
-      attrsTag->push_back(saturation.toCompoundTag(u8"player.saturation"));
+      attrsTag->push_back(saturation.toBedrockCompoundTag(u8"player.saturation"));
     }
     entity->set(u8"Attributes", attrsTag);
 
