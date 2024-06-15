@@ -1872,15 +1872,25 @@ public:
                          Name(BooleanProperty(u8"triggered"), u8"triggered_bit"),
                          Name(StringProperty(u8"orientation", u8"down_east"), u8"orientation")));
 
-    E(vault, Converter(Same,
-                       Name(BooleanPropertyOptional(u8"ominous"), u8"ominous"),
-                       Name(StringProperty(u8"vault_state", u8"inactive"), u8"vault_state"),
-                       CardinalDirectionFromFacing4));
+    E(vault, Vault);
     E(heavy_core, Identity);
     E(trial_spawner, TrialSpawner);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr Vault(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    if (o.fItem) {
+      s->set(u8"ominous", Bool(false));
+    } else {
+      Name(BooleanPropertyOptional(u8"ominous"), u8"ominous")(s, block, o);
+    }
+    Name(StringProperty(u8"vault_state", u8"inactive"), u8"vault_state")(s, block, o);
+    CardinalDirectionFromFacing4(s, block, o);
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr TrialSpawner(Block const &block, CompoundTagConstPtr const &, Options const &o) {
@@ -1890,7 +1900,9 @@ public:
     i32 stateB = TrialSpawner::BedrockTrialSpawnerStateFromJava(stateJ);
     s->set(u8"trial_spawner_state", Int(stateB));
     auto ominous = block.property(u8"ominous", u8"");
-    if (ominous == u8"true") {
+    if (o.fItem) {
+      s->set(u8"ominous", Bool(false));
+    } else if (ominous == u8"true") {
       s->set(u8"ominous", Bool(true));
     } else if (ominous == u8"false") {
       s->set(u8"ominous", Bool(false));
