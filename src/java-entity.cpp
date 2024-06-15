@@ -2107,7 +2107,7 @@ private:
       motive = Painting::MotiveFromJava(motiveJ);
     }
 
-    auto motiveB = Painting::BedrockFromMotive(motive);
+    auto motifB = Painting::BedrockMotifFromJavaMotive(motive);
 
     auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(*tileX, *tileY, *tileZ), f4, motive);
     if (!pos) {
@@ -2126,7 +2126,7 @@ private:
     e->fIdentifier = u8"minecraft:painting";
     e->fPos = *pos;
     auto c = e->toCompoundTag();
-    c->set(u8"Motive", motiveB);
+    c->set(u8"Motif", motifB);
     c->set(u8"Direction", Byte(facing));
     c->set(u8"Rotation", rotation);
     return c;

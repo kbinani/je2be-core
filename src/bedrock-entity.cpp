@@ -1378,9 +1378,9 @@ public:
   static void Painting(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto directionB = b.byte(u8"Direction", 0);
     Facing4 direction = Facing4FromBedrockDirection(directionB);
-    auto motiveB = b.string(u8"Motive", u8"Aztec");
-    Painting::Motive motive = Painting::MotiveFromBedrock(motiveB);
-    auto motiveJ = Painting::JavaFromMotive(motive);
+    auto motifB = b.string(u8"Motif", b.string(u8"Motive", u8"Aztec")); // 1.20.6: "Motive", 1.21.0: "Motif"
+    Painting::Motive motive = Painting::MotiveFromBedrock(motifB);
+    auto motiveJ = Painting::JavaMotiveFromBedrockMotif(motive);
     auto posB = b.listTag(u8"Pos");
     if (!posB) {
       return;

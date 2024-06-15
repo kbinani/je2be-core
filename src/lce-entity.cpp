@@ -282,7 +282,7 @@ private:
 
     if (auto motiveX = in.string(u8"Motive"); motiveX) {
       auto motive = Painting::MotiveFromBedrock(*motiveX);
-      auto motiveJ = Painting::JavaFromMotive(motive);
+      auto motiveJ = Painting::JavaMotiveFromBedrockMotif(motive);
       out->set(u8"Motive", motiveJ);
 
       if (auto pos = props::GetPos3d(in, u8"Pos"); pos) {

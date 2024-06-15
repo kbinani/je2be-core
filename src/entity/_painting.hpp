@@ -14,60 +14,60 @@ class Painting {
   Painting() = delete;
 
 public:
-  enum Motive {
-    Bust,
-    Pigscene,
-    BurningSkull,
-    Pointer,
-    Skeleton,
-    DonkeyKong,
-    Fighters,
-    SkullAndRoses,
-    Match,
-    Stage,
-    Void,
-    Wither,
-    Sunset,
-    Courbet,
-    Creebet,
-    Sea,
-    Wanderer,
-    Graham,
-    Aztec2,
-    Alban,
-    Bomb,
-    Kebab,
-    Wasteland,
-    Aztec,
-    Plant,
-    Pool,
+  enum Motive : uint16_t {
+    Bust = 1,
+    Pigscene = 2,
+    BurningSkull = 3,
+    Pointer = 4,
+    Skeleton = 5,
+    DonkeyKong = 6,
+    Fighters = 7,
+    SkullAndRoses = 8,
+    Match = 9,
+    Stage = 10,
+    Void = 11,
+    Wither = 12,
+    Sunset = 13,
+    Courbet = 14,
+    Creebet = 15,
+    Sea = 16,
+    Wanderer = 17,
+    Graham = 18,
+    Aztec2 = 19,
+    Alban = 20,
+    Bomb = 21,
+    Kebab = 22,
+    Wasteland = 23,
+    Aztec = 24,
+    Plant = 25,
+    Pool = 26,
 
-    Earth,
-    Wind,
-    Fire,
-    Water,
+    Earth = 27,
+    Wind = 28,
+    Fire = 29,
+    Water = 30,
 
-    Meditative,
-    PrairieRide,
-    Baroque,
-    Humble,
-    Unpacked,
+    Meditative = 31,
+    PrairieRide = 32,
+    Baroque = 33,
+    Humble = 34,
+    Unpacked = 35,
 
-    Endboss,
-    Tides,
-    Fern,
-    Sunflowers,
-    Cotan,
-    Owlemons,
-    Cavebird,
-    Bouquet,
-    Backyard,
-    Pond,
-    Passage,
-    Changing,
-    Finding,
-    Lowmist,
-    Orb,
+    Endboss = 36,
+    Tides = 37,
+    Fern = 38,
+    Sunflowers = 39,
+    Cotan = 40,
+    Owlemons = 41,
+    Cavebird = 42,
+    Bouquet = 43,
+    Backyard = 44,
+    Pond = 45,
+    Passage = 46,
+    Changing = 47,
+    Finding = 48,
+    Lowmist = 49,
+    Orb = 50,
   };
 
   static std::optional<Size> PaintingSize(Motive m) {
@@ -136,60 +136,60 @@ public:
 
   static std::unordered_map<std::u8string, Motive> const *CreateRawTableJava() {
     return new std::unordered_map<std::u8string, Motive>{
-        {u8"minecraft:bust", Bust},
-        {u8"minecraft:pigscene", Pigscene},
-        {u8"minecraft:burning_skull", BurningSkull},
-        {u8"minecraft:pointer", Pointer},
-        {u8"minecraft:skeleton", Skeleton},
-        {u8"minecraft:donkey_kong", DonkeyKong},
-        {u8"minecraft:fighters", Fighters},
-        {u8"minecraft:skull_and_roses", SkullAndRoses},
-        {u8"minecraft:match", Match},
-        {u8"minecraft:bust", Bust},
-        {u8"minecraft:stage", Stage},
-        {u8"minecraft:void", Void},
-        {u8"minecraft:wither", Wither},
-        {u8"minecraft:sunset", Sunset},
-        {u8"minecraft:courbet", Courbet},
-        {u8"minecraft:creebet", Creebet},
-        {u8"minecraft:sea", Sea},
-        {u8"minecraft:wanderer", Wanderer},
-        {u8"minecraft:graham", Graham},
-        {u8"minecraft:aztec2", Aztec2},
-        {u8"minecraft:alban", Alban},
-        {u8"minecraft:bomb", Bomb},
-        {u8"minecraft:kebab", Kebab},
-        {u8"minecraft:wasteland", Wasteland},
-        {u8"minecraft:aztec", Aztec},
-        {u8"minecraft:plant", Plant},
-        {u8"minecraft:pool", Pool},
+        {u8"bust", Bust},
+        {u8"pigscene", Pigscene},
+        {u8"burning_skull", BurningSkull},
+        {u8"pointer", Pointer},
+        {u8"skeleton", Skeleton},
+        {u8"donkey_kong", DonkeyKong},
+        {u8"fighters", Fighters},
+        {u8"skull_and_roses", SkullAndRoses},
+        {u8"match", Match},
+        {u8"bust", Bust},
+        {u8"stage", Stage},
+        {u8"void", Void},
+        {u8"wither", Wither},
+        {u8"sunset", Sunset},
+        {u8"courbet", Courbet},
+        {u8"creebet", Creebet},
+        {u8"sea", Sea},
+        {u8"wanderer", Wanderer},
+        {u8"graham", Graham},
+        {u8"aztec2", Aztec2},
+        {u8"alban", Alban},
+        {u8"bomb", Bomb},
+        {u8"kebab", Kebab},
+        {u8"wasteland", Wasteland},
+        {u8"aztec", Aztec},
+        {u8"plant", Plant},
+        {u8"pool", Pool},
 
-        {u8"minecraft:earth", Earth},
-        {u8"minecraft:wind", Wind},
-        {u8"minecraft:fire", Fire},
-        {u8"minecraft:water", Water},
+        {u8"earth", Earth},
+        {u8"wind", Wind},
+        {u8"fire", Fire},
+        {u8"water", Water},
 
-        {u8"minecraft:meditative", Meditative},
-        {u8"minecraft:prairie_ride", PrairieRide},
-        {u8"minecraft:baroque", Baroque},
-        {u8"minecraft:humble", Humble},
-        {u8"minecraft:unpacked", Unpacked},
+        {u8"meditative", Meditative},
+        {u8"prairie_ride", PrairieRide},
+        {u8"baroque", Baroque},
+        {u8"humble", Humble},
+        {u8"unpacked", Unpacked},
 
-        {u8"minecraft:endboss", Endboss},
-        {u8"minecraft:tides", Tides},
-        {u8"minecraft:fern", Fern},
-        {u8"minecraft:sunflowers", Sunflowers},
-        {u8"minecraft:cotan", Cotan},
-        {u8"minecraft:owlemons", Owlemons},
-        {u8"minecraft:cavebird", Cavebird},
-        {u8"minecraft:bouquet", Bouquet},
-        {u8"minecraft:backyard", Backyard},
-        {u8"minecraft:pond", Pond},
-        {u8"minecraft:passage", Passage},
-        {u8"minecraft:changing", Changing},
-        {u8"minecraft:finding", Finding},
-        {u8"minecraft:lowmist", Lowmist},
-        {u8"minecraft:orb", Orb},
+        {u8"endboss", Endboss},
+        {u8"tides", Tides},
+        {u8"fern", Fern},
+        {u8"sunflowers", Sunflowers},
+        {u8"cotan", Cotan},
+        {u8"owlemons", Owlemons},
+        {u8"cavebird", Cavebird},
+        {u8"bouquet", Bouquet},
+        {u8"backyard", Backyard},
+        {u8"pond", Pond},
+        {u8"passage", Passage},
+        {u8"changing", Changing},
+        {u8"finding", Finding},
+        {u8"lowmist", Lowmist},
+        {u8"orb", Orb},
     };
   }
 
@@ -208,8 +208,13 @@ public:
     unordered_map<std::u8string, Motive> ret;
     for (auto const &it : *j2b) {
       u8string motiveJ = it.first;
-      u8string motiveB = strings::UpperCamelFromSnake(Namespace::Remove(motiveJ));
-      ret.insert(make_pair(motiveB, it.second));
+      u8string motifB;
+      if (static_cast<uint16_t>(it.second) > 30) {
+        motifB = motiveJ;
+      } else {
+        motifB = strings::UpperCamelFromSnake(motiveJ);
+      }
+      ret.insert(make_pair(motifB, it.second));
     }
     return new ReversibleMap<std::u8string, Motive>(ret);
   }
@@ -221,7 +226,7 @@ public:
 
   static Motive MotiveFromJava(std::u8string const &motiveJ) {
     auto const *table = GetTableJava();
-    auto found = table->forward(motiveJ);
+    auto found = table->forward(Namespace::Remove(motiveJ));
     if (found) {
       return *found;
     } else {
@@ -239,17 +244,17 @@ public:
     }
   }
 
-  static std::u8string JavaFromMotive(Motive m) {
+  static std::u8string JavaMotiveFromBedrockMotif(Motive m) {
     auto table = GetTableJava();
     auto found = table->backward(m);
     if (found) {
-      return *found;
+      return Namespace::Add(*found);
     } else {
       return u8"minecraft:aztec";
     }
   }
 
-  static std::u8string BedrockFromMotive(Motive m) {
+  static std::u8string BedrockMotifFromJavaMotive(Motive m) {
     auto table = GetTableBedrock();
     auto found = table->backward(m);
     if (found) {

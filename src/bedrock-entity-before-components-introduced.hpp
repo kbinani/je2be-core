@@ -1245,7 +1245,7 @@ public:
     Facing4 direction = Facing4FromBedrockDirection(directionB);
     auto motiveB = b.string(u8"Motive", u8"Aztec");
     Painting::Motive motive = Painting::MotiveFromBedrock(motiveB);
-    auto motiveJ = Painting::JavaFromMotive(motive);
+    auto motiveJ = Painting::JavaMotiveFromBedrockMotif(motive);
     auto posB = b.listTag(u8"Pos");
     if (!posB) {
       return;
