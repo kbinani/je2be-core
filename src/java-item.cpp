@@ -761,6 +761,7 @@ private:
     E(music_disc_creator_music_box, DefaultItem);
     E(music_disc_precipice, DefaultItem);
     E(ominous_trial_key, DefaultItem);
+    E(wind_charge, DefaultItem);
 #undef E
     return table;
   }
