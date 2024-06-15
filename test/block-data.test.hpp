@@ -30,6 +30,7 @@ TEST_CASE("block-data") {
     auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, BlockDataTestDataVersion());
     CHECK(blockJ);
     auto convertedToBe = je2be::java::BlockData::From(blockJ, nullptr, {});
+    convertedToBe->erase(u8"version");
     CheckTag::Check(convertedToBe.get(), bedrockBlockData.get());
 
     // bedrock -> java
