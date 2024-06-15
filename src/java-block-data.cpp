@@ -278,7 +278,30 @@ public:
     return Converter(ChangeWhenDoubleType(doubleName), TypeToVerticalHalf);
   }
 
-  static Converter TallGrass(std::u8string const &type) { return Converter(Name(u8"tallgrass"), AddStringProperty(u8"tall_grass_type", type)); }
+  static AnyConverter SlabWithStoneTypeWhenDouble(std::u8string const &normalName, std::u8string const &doubleName, std::u8string const &stoneSlabType) {
+    return [=](Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
+      auto type = block.property(u8"type", u8"bottom");
+      CompoundTagPtr d;
+      auto s = States();
+      if (type == u8"double") {
+        d = New(doubleName);
+        s->set(u8"stone_slab_type", String(stoneSlabType));
+      } else {
+        d = New(normalName);
+      }
+      TypeToVerticalHalf(s, block, o);
+      return AttachStates(d, s);
+    };
+  }
+
+  static Converter ShortGrass(std::u8string const &type) { return Converter(Name(u8"tallgrass"), AddStringProperty(u8"tall_grass_type", type)); }
+
+  static CompoundTagPtr TallGrass(Block const &b, CompoundTagConstPtr const &tile, Options const &o) {
+    auto d = New(u8"tall_grass");
+    auto s = States();
+    UpperBlockBitToHalf(s, b, o);
+    return AttachStates(d, s);
+  }
 
   static Converter DoublePlant(std::u8string const &type) { return Converter(Name(u8"double_plant"), AddStringProperty(u8"double_plant_type", type), UpperBlockBitToHalf); }
 
@@ -967,10 +990,10 @@ public:
     E(warped_slab, Slab(u8"warped_double_slab"));
     E(crimson_slab, Slab(u8"crimson_double_slab"));
     E(mangrove_slab, Slab(u8"mangrove_double_slab"));
-    E(short_grass, TallGrass(u8"tall"));
-    E(tall_grass, DoublePlant(u8"grass"));
+    E(short_grass, ShortGrass(u8"tall"));
+    E(tall_grass, TallGrass);
     E(large_fern, DoublePlant(u8"fern"));
-    E(fern, TallGrass(u8"fern"));
+    E(fern, ShortGrass(u8"fern"));
     E(lilac, DoublePlant(u8"syringa"));
     E(rose_bush, DoublePlant(u8"rose"));
     E(peony, DoublePlant(u8"paeonia"));
