@@ -420,6 +420,7 @@ private:
         ret->set(u8"simultaneous_mobs_added_per_player", Float(1));
       }
       CopyLongValues(*c, *ret, {{u8"next_mob_spawns_at"}, {u8"cooldown_end_at"}});
+      ret->set(u8"required_player_range", Int(14));
     }
     Attach(c, pos, *ret);
     return ret;
