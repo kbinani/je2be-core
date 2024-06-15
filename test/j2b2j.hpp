@@ -408,6 +408,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     tagBlacklist.insert(u8"IsPlaying");
     tagBlacklist.insert(u8"TickCount");
     tagBlacklist.insert(u8"RecordStartTick");
+    tagBlacklist.insert(u8"ticks_since_song_started");
   } else if (id == u8"minecraft:sign") {
     tagBlacklist.insert(u8"Color");
     tagBlacklist.insert(u8"GlowingText");
@@ -640,6 +641,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       u8"UUID",
       u8"Pos",
       u8"attributes",
+      u8"Attributes",
       u8"Motion",
       u8"LeftHanded", // left handed skeleton does not exist in BE
       u8"ForcedAge",
@@ -748,6 +750,8 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"NoGravity");
   } else if (id == u8"minecraft:ender_dragon") {
     blacklist.insert(u8"DragonPhase");
+  } else if (id == u8"player") {
+    blacklist.insert(u8"current_impulse_context_reset_grace_time");
   }
 
   CheckTextComponent(entityE, entityA, u8"CustomName");
