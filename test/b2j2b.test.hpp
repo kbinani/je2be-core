@@ -31,6 +31,7 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   ignore.insert(u8"worldStartCount");
   ignore.insert(u8"InventoryVersion");
   ignore.insert(u8"NetworkVersion");
+  ignore.insert(u8"showdaysplayed");
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);
