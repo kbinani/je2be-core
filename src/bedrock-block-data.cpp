@@ -2994,6 +2994,10 @@ private:
     E(smooth_stone_slab, Slab);
     E(cobblestone_slab, Slab);
     E(stone_brick_slab, Slab);
+    E(sandstone_slab, Slab);
+    E(brick_slab, Slab);
+    E(nether_brick_slab, Slab);
+    E(quartz_slab, Slab);
 #undef E
 
     return table;
