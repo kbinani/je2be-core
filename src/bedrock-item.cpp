@@ -109,23 +109,12 @@ public:
               }
             }
           }
-
-          if (!ctx.fDataPackUpdate1_21) {
-            if (java::BlockData::IsUpdate121Block(blockJ->fId)) {
-              ctx.fDataPackUpdate1_21 = true;
-            }
-          }
         }
       }
     }
     if (!ctx.fDataPackBundle) {
       if (nameJ == u8"minecraft:bundle") {
         ctx.fDataPackBundle = true;
-      }
-    }
-    if (!ctx.fDataPackUpdate1_21) {
-      if (nameJ == u8"minecraft:trial_key") {
-        ctx.fDataPackUpdate1_21 = true;
       }
     }
     itemJ.set(u8"id", nameJ);

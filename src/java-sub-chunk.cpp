@@ -69,9 +69,6 @@ public:
         auto blockB = BlockData::From(blockJ, nullptr, {});
         assert(blockB);
         palette.append(blockB);
-        if (BlockData::IsUpdate121Block(blockJ->fId)) {
-          wd.addExperiment(u8"updateAnnouncedLive2023");
-        }
         return true;
       });
       int j = 0;
