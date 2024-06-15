@@ -2981,6 +2981,9 @@ private:
     E(vault, Vault);
     E(heavy_core, BlockWithSubmergible);
     E(trial_spawner, TrialSpawner);
+    E(smooth_stone_slab, Slab);
+    E(cobblestone_slab, Slab);
+    E(stone_brick_slab, Slab);
 #undef E
 
     return table;

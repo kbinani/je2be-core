@@ -162,9 +162,13 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual, 
     // facing_direction may be 0 or 3 when dropper/dispenser is an item
     ignore.insert(u8"facing_direction");
   }
-  CHECK(nameE == nameA);
   auto statesE = expected.compoundTag(u8"states");
   auto statesA = actual.compoundTag(u8"states");
+  if (nameE != nameA) {
+    nbt::PrintAsJson(cout, *statesE);
+    nbt::PrintAsJson(cout, *statesA);
+  }
+  CHECK(nameE == nameA);
   if (statesE) {
     CHECK(statesA);
     if (statesA) {
@@ -451,6 +455,10 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
             // Java has only "mushroom_stem" for stem block.
             // Bedrock's "huge_mushroom_bits" property cannot completely represents Java's up/down/north/east/south/west properties.
             continue;
+          }
+          if (e->fName != a->fName) {
+            nbt::PrintAsJson(cout, *e->fStates);
+            nbt::PrintAsJson(cout, *a->fStates);
           }
           CHECK(e->fName == a->fName);
           auto tagE = e->fStates->copy();

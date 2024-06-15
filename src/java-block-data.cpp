@@ -339,7 +339,7 @@ public:
   static Converter Sponge(std::u8string const &type) { return Subtype(u8"sponge", u8"sponge_type", type); }
 
   // before 1.19.70, color was stored in states:
-  //static Converter Wool(std::u8string const &color) { return Subtype(u8"wool", u8"color", color); }
+  // static Converter Wool(std::u8string const &color) { return Subtype(u8"wool", u8"color", color); }
 
   static Converter RedSandstone(std::u8string const &type) { return Subtype(u8"red_sandstone", u8"sand_stone_type", type); }
 
@@ -937,12 +937,12 @@ public:
     E(granite_slab, StoneSlab3(u8"granite"));
     E(andesite_slab, StoneSlab3(u8"andesite"));
     E(diorite_slab, StoneSlab3(u8"diorite"));
-    E(cobblestone_slab, StoneSlab(u8"cobblestone"));
-    E(stone_brick_slab, StoneSlab(u8"stone_brick"));
+    E(cobblestone_slab, SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone"));
+    E(stone_brick_slab, SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick"));
     E(brick_slab, StoneSlab(u8"brick"));
     E(sandstone_slab, StoneSlab(u8"sandstone"));
     E(smooth_sandstone_slab, StoneSlab2(u8"smooth_sandstone"));
-    E(smooth_stone_slab, StoneSlab(u8"smooth_stone"));
+    E(smooth_stone_slab, SmoothStoneSlab);
     E(nether_brick_slab, StoneSlab(u8"nether_brick"));
     E(quartz_slab, StoneSlab(u8"quartz"));
     E(smooth_quartz_slab, StoneSlab4(u8"smooth_quartz"));
@@ -2200,6 +2200,20 @@ public:
     s->set(u8"dripstone_thickness", std::u8string(thickness));
     s->set(u8"hanging", Bool(direction == u8"down"));
     return AttachStates(c, s);
+  }
+
+  static CompoundTagPtr SmoothStoneSlab(mcfile::je::Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto type = block.property(u8"type", u8"bottom");
+    auto s = States();
+    CompoundTagPtr d;
+    if (type == u8"double") {
+      d = New(u8"double_stone_block_slab");
+      AddStoneSlabType(u8"", u8"smooth_stone")(s, block, o);
+    } else {
+      d = New(u8"smooth_stone_slab");
+    }
+    TypeToVerticalHalf(s, block, o);
+    return AttachStates(d, s);
   }
 
   static void Conditional(CompoundTagPtr const &s, Block const &b, Options const &o) {
