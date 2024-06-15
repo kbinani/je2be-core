@@ -243,7 +243,7 @@ private:
     E(potted_dead_bush, PottedPlant(u8"deadbush", {}));
     E(potted_red_mushroom, PottedPlant(u8"red_mushroom", {}));
     E(potted_brown_mushroom, PottedPlant(u8"brown_mushroom", {}));
-    E(potted_fern, PottedPlant(u8"tallgrass", {{u8"tall_grass_type", u8"fern"}}));
+    E(potted_fern, PottedPlant(u8"fern", {}));
     E(potted_bamboo, PottedBamboo);
     E(potted_crimson_roots, PottedPlant(u8"crimson_roots", {}));
     E(potted_warped_roots, PottedPlant(u8"warped_roots", {}));
@@ -1445,14 +1445,7 @@ private:
         break;
       }
       case 31: {
-        name = u8"tallgrass";
-        u8string type;
-        switch (data) {
-        case 2:
-          type = u8"fern";
-          break;
-        }
-        states->set(u8"tall_grass_type", type);
+        name = u8"fern";
         break;
       }
       case 32:

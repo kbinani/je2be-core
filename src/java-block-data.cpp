@@ -294,7 +294,7 @@ public:
     };
   }
 
-  static Converter ShortGrass(std::u8string const &type) { return Converter(Name(u8"tallgrass"), AddStringProperty(u8"tall_grass_type", type)); }
+  static Converter ShortGrass(std::u8string const &type) { return Converter(Name(u8"short_grass"), AddStringProperty(u8"tall_grass_type", type)); }
 
   static CompoundTagPtr TallGrass(Block const &b, CompoundTagConstPtr const &tile, Options const &o) {
     auto d = New(u8"tall_grass");
@@ -990,14 +990,15 @@ public:
     E(warped_slab, Slab(u8"warped_double_slab"));
     E(crimson_slab, Slab(u8"crimson_double_slab"));
     E(mangrove_slab, Slab(u8"mangrove_double_slab"));
-    E(short_grass, ShortGrass(u8"tall"));
+    E(short_grass, Identity); // ShortGrass(u8"tall")) when < 1.21
     E(tall_grass, TallGrass);
-    E(large_fern, DoublePlant(u8"fern"));
-    E(fern, ShortGrass(u8"fern"));
-    E(lilac, DoublePlant(u8"syringa"));
-    E(rose_bush, DoublePlant(u8"rose"));
-    E(peony, DoublePlant(u8"paeonia"));
-    E(sunflower, DoublePlant(u8"sunflower"));
+    Converter doublePlant(Same, UpperBlockBitToHalf);
+    E(large_fern, doublePlant); // DoublePlant(u8"fern")) < when < 1.21
+    E(fern, Identity);          // ShortGrass(u8"fern")) when < 1.21
+    E(lilac, doublePlant);      // DoublePlant(u8"syringa")) when < 1.21
+    E(rose_bush, doublePlant);  // DoublePlant(u8"rose")) when < 1.21
+    E(peony, doublePlant);      // DoublePlant(u8"paeonia")) when < 1.21
+    E(sunflower, doublePlant);  // DoublePlant(u8"sunflower")) when < 1.21
     E(dead_bush, Rename(u8"deadbush"));
     E(sea_pickle, SeaPickle());
     E(dandelion, Rename(u8"yellow_flower"));
@@ -1820,7 +1821,7 @@ public:
     E(cherry_leaves, leaves);
 
     E(pitcher_crop, Converter(Same, Name(Age, u8"growth"), UpperBlockBitToHalf));
-    E(pitcher_plant, Converter(Same, UpperBlockBitToHalf));
+    E(pitcher_plant, doublePlant);
     E(sniffer_egg, SnifferEgg);
     E(sculk_sensor, Converter(Same, SculkSensorPhase));
     E(calibrated_sculk_sensor, Converter(Same, SculkSensorPhase, CardinalDirectionFromFacing4));

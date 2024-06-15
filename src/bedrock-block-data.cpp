@@ -650,7 +650,7 @@ private:
     }
   }
 
-  static String DoublePlant(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoublePlantLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"double_plant_type", u8"rose");
     std::u8string name;
     if (type == u8"fern") {
@@ -2720,7 +2720,7 @@ private:
     E(lantern, Lantern);
     E(soul_lantern, Lantern);
     E(large_amethyst_bud, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
-    E(double_plant, DoublePlant);
+    E(double_plant, DoublePlantLegacy);
     E(lava, Liquid);
     E(lectern, Lectern);
     E(lever, Lever);
@@ -2998,6 +2998,13 @@ private:
     E(brick_slab, Slab);
     E(nether_brick_slab, Slab);
     E(quartz_slab, Slab);
+    C doublePlant(Same, HalfFromUpperBlockBit);
+    E(large_fern, doublePlant);
+    E(tall_grass, doublePlant);
+    E(sunflower, doublePlant);
+    E(lilac, doublePlant);
+    E(rose_bush, doublePlant);
+    E(peony, doublePlant);
 #undef E
 
     return table;
