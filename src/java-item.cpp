@@ -756,6 +756,11 @@ private:
     E(hopper, SimpleContainer);
     E(trapped_chest, UnfindableBlockContainer);
     E(crafter, BlockContainer);
+
+    E(music_disc_creator, DefaultItem);
+    E(music_disc_creator_music_box, DefaultItem);
+    E(music_disc_precipice, DefaultItem);
+    E(ominous_trial_key, DefaultItem);
 #undef E
     return table;
   }
