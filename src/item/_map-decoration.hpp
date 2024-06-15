@@ -92,6 +92,7 @@ private:
         {u8"village_taiga", {31, 21}},
         {u8"jungle_temple", {32, 22}},
         {u8"swamp_hut", {33, 23}},
+        {u8"trial_chambers", {nullopt, 24}},
     });
   }
 };

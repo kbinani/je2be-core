@@ -24,6 +24,7 @@ class MapType {
     (*ret)[11] = {u8"filled_map.village_desert", 10066329};
     (*ret)[9] = {u8"filled_map.village_plains", 10066329};
     (*ret)[7] = {u8"filled_map.village_snowy", 10066329};
+    (*ret)[14] = {u8"filled_map.trial_chambers", 12741452};
     return ret;
   }
 

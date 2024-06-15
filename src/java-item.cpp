@@ -1212,7 +1212,6 @@ private:
         }
       }
     }
-    tag->set(u8"map_name_index", Int(mapId->fValue));
     ret->set(u8"Damage", Short(type));
 
     return make_tuple(mapId->fValue, ret);

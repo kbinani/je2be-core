@@ -242,6 +242,8 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual, B
     ignore.insert(u8"tag/xuid");
   } else if (nameE == u8"minecraft:furnace" || nameE == u8"minecraft:smoker" || nameE == u8"minecraft:blast_furnace") {
     ignore.insert(u8"tag/StoredXPInt");
+  } else if (nameE == u8"minecraft:filled_map") {
+    ignore.insert(u8"tag/map_uuid");
   }
   auto blockE = expected.compoundTag(u8"Block");
   auto blockA = actual.compoundTag(u8"Block");
