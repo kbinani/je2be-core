@@ -1,11 +1,11 @@
 #pragma once
 
 static std::string BlockDataTestVersion() {
-  return "1.20.6";
+  return "1.21";
 }
 
 static int BlockDataTestDataVersion() {
-  return 3839;
+  return 3953;
 }
 
 TEST_CASE("block-data") {
@@ -65,9 +65,10 @@ TEST_CASE("prepare-test-data") {
           fs::create_directories(dir);
           fs::path nbt = dir / (s + u8".nbt");
           auto converted = je2be::java::BlockData::From(b, nullptr, {});
-          CHECK(converted != nullptr);
+          REQUIRE(converted != nullptr);
+          converted->erase(u8"version");
           auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
-          CHECK(CompoundTag::Write(*converted, fos, mcfile::Endian::Big));
+          CHECK(CompoundTag::Write(*converted, fos, mcfile::Encoding::Java));
           return true;
         });
       }
