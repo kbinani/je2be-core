@@ -57,6 +57,7 @@ public:
       // universalAnger
       I(playersSleepingPercentage, playerssleepingpercentage, 100);
       B(projectilesCanBreakBlocks, projectilescanbreakblocks, true);
+      B(tntExplosionDropDecay, tntexplosiondropdecay, false);
 #undef B
 #undef I
 

@@ -41,6 +41,7 @@ public:
   i32 fPlayersSleepingPercentage = 100;
   bool fRecipeUnlock = true;
   bool fRespawnBlocksExplode = true;
+  bool fTntExplosionDropDecay = false;
 
   bool fEducationFeaturesEnabled = false;
   i32 fEduOffer = 0;
@@ -123,7 +124,7 @@ public:
   bool fShowrecipemessages = true;
   bool fIsHardcore = false;
 
-  CompoundTagPtr toCompoundTag() const {
+  CompoundTagPtr toBedrockCompoundTag() const {
     auto root = Compound();
     root->insert({
         {u8"abilities", fAbilities.toCompoundTag()},
@@ -234,6 +235,7 @@ public:
         {u8"projectilescanbreakblocks", Bool(fProjectilescanbreakblocks)},
         {u8"showrecipemessages", Bool(fShowrecipemessages)},
         {u8"IsHardcore", Bool(fIsHardcore)},
+        {u8"tntexplosiondropdecay", Bool(fTntExplosionDropDecay)},
     });
     auto experiments = Compound();
     experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
@@ -256,7 +258,7 @@ public:
     if (!w.write((u32)0)) {
       return false;
     }
-    auto tag = this->toCompoundTag();
+    auto tag = this->toBedrockCompoundTag();
     if (!CompoundTag::Write(*tag, w)) {
       return false;
     }
@@ -340,6 +342,7 @@ public:
       // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
       ret.fShowCoordinates = gameRules->string(u8"reducedDebugInfo", u8"false") != u8"true";
       S(projectilesCanBreakBlocks, ret.fProjectilescanbreakblocks);
+      S(tntexplosiondropdecay, ret.fTntExplosionDropDecay);
 #undef S
 #undef I
     }
