@@ -46,6 +46,28 @@ public:
     Wind,
     Fire,
     Water,
+
+    Meditative,
+    PrairieRide,
+    Baroque,
+    Humble,
+    Unpacked,
+
+    Endboss,
+    Tides,
+    Fern,
+    Sunflowers,
+    Cotan,
+    Owlemons,
+    Cavebird,
+    Bouquet,
+    Backyard,
+    Pond,
+    Passage,
+    Changing,
+    Finding,
+    Lowmist,
+    Orb,
   };
 
   static std::optional<Size> PaintingSize(Motive m) {
@@ -82,6 +104,28 @@ public:
         {Wind, Size(2, 2)},
         {Fire, Size(2, 2)},
         {Water, Size(2, 2)},
+
+        {Meditative, Size(1, 1)},
+        {PrairieRide, Size(1, 2)},
+        {Baroque, Size(2, 2)},
+        {Humble, Size(2, 2)},
+        {Unpacked, Size(4, 4)},
+
+        {Endboss, Size(3, 3)},
+        {Tides, Size(3, 3)},
+        {Fern, Size(3, 3)},
+        {Sunflowers, Size(3, 3)},
+        {Cotan, Size(3, 3)},
+        {Owlemons, Size(3, 3)},
+        {Cavebird, Size(3, 3)},
+        {Bouquet, Size(3, 3)},
+        {Backyard, Size(3, 4)},
+        {Pond, Size(3, 4)},
+        {Passage, Size(4, 2)},
+        {Changing, Size(4, 2)},
+        {Finding, Size(4, 2)},
+        {Lowmist, Size(4, 2)},
+        {Orb, Size(4, 4)},
     };
     auto found = mapping.find(m);
     if (found != mapping.end()) {
@@ -124,6 +168,28 @@ public:
         {u8"minecraft:wind", Wind},
         {u8"minecraft:fire", Fire},
         {u8"minecraft:water", Water},
+
+        {u8"minecraft:meditative", Meditative},
+        {u8"minecraft:prairie_ride", PrairieRide},
+        {u8"minecraft:baroque", Baroque},
+        {u8"minecraft:humble", Humble},
+        {u8"minecraft:unpacked", Unpacked},
+
+        {u8"minecraft:endboss", Endboss},
+        {u8"minecraft:tides", Tides},
+        {u8"minecraft:fern", Fern},
+        {u8"minecraft:sunflowers", Sunflowers},
+        {u8"minecraft:cotan", Cotan},
+        {u8"minecraft:owlemons", Owlemons},
+        {u8"minecraft:cavebird", Cavebird},
+        {u8"minecraft:bouquet", Bouquet},
+        {u8"minecraft:backyard", Backyard},
+        {u8"minecraft:pond", Pond},
+        {u8"minecraft:passage", Passage},
+        {u8"minecraft:changing", Changing},
+        {u8"minecraft:finding", Finding},
+        {u8"minecraft:lowmist", Lowmist},
+        {u8"minecraft:orb", Orb},
     };
   }
 
@@ -210,7 +276,7 @@ public:
 
     int dh = 0;
     int dv = 0;
-    if (size->fWidth >= 4) {
+    if (size->fWidth >= 3) {
       dh = 1;
     }
     if (size->fHeight >= 3) {
@@ -244,7 +310,7 @@ private:
     }
     int dh = 0;
     int dv = 0;
-    if (size->fWidth >= 4) {
+    if (size->fWidth >= 3) {
       dh = 1;
     }
     if (size->fHeight >= 3) {
