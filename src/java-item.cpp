@@ -309,6 +309,7 @@ private:
     E(axolotl_spawn_egg, DefaultItem);
     E(goat_spawn_egg, DefaultItem);
     E(snow_golem_spawn_egg, DefaultItem);
+    E(wither_spawn_egg, DefaultItem);
 
     E(flower_banner_pattern, DefaultItem);
     E(mojang_banner_pattern, DefaultItem);
