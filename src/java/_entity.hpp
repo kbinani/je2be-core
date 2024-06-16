@@ -9,7 +9,9 @@
 #include <unordered_map>
 #include <vector>
 
-namespace je2be::java {
+namespace je2be {
+struct DataVersion;
+namespace java {
 
 struct Context;
 
@@ -27,15 +29,15 @@ public:
     ShoulderRider = uint32_t(1) << 0,
   };
 
-  static Result From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags);
+  static Result From(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags);
 
   static bool RotAlmostEquals(Rotation const &rot, float yaw, float pitch) { return Rotation::DegAlmostEquals(rot.fYaw, yaw) && Rotation::DegAlmostEquals(rot.fPitch, pitch); }
 
   static std::optional<std::pair<Pos3i, CompoundTagPtr>> ToTileEntityBlock(CompoundTag const &c);
 
-  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx, int dataVersion);
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx, DataVersion const &dataVersion);
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, int dataVersion);
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, DataVersion const &dataVersion);
 
   static bool IsTileEntity(CompoundTag const &tag);
 
@@ -45,7 +47,7 @@ public:
     mcfile::Dimension fDimension;
     Pos2i fChunk;
   };
-  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags);
+  static std::optional<LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags);
 
   static CompoundTagPtr TropicalFishProperties(i32 variant);
 
@@ -158,4 +160,5 @@ public:
   };
 };
 
-} // namespace je2be::java
+} // namespace java
+} // namespace je2be

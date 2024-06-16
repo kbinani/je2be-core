@@ -7,6 +7,7 @@
 #include <je2be/nbt.hpp>
 #include <je2be/pos2.hpp>
 
+#include "_data-version.hpp"
 #include "item/_map-decoration.hpp"
 
 namespace je2be::bedrock {
@@ -22,7 +23,7 @@ public:
 
     CompoundTagPtr toJavaCompoundTag(int dataVersion) const {
       auto ret = Compound();
-      if (dataVersion >= kDataVersionComponentIntroduced) {
+      if (dataVersion >= kJavaDataVersionComponentIntroduced) {
         ret->set(u8"rotation", Float(fRotation));
         if (!fType.empty()) {
           ret->set(u8"type", String(Namespace::Add(fType)));

@@ -3,6 +3,7 @@
 #include <je2be/strings.hpp>
 
 #include "_closed-range.hpp"
+#include "_data-version.hpp"
 #include "_namespace.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
@@ -2552,12 +2553,19 @@ public:
   }
 };
 
-CompoundTagPtr BlockData::From(std::shared_ptr<mcfile::je::Block const> const &block, CompoundTagConstPtr const &tile, BlockData::Options const &options) {
+CompoundTagPtr BlockData::From(std::shared_ptr<mcfile::je::Block const> const &input, CompoundTagConstPtr const &tile, DataVersion const &dataVersion, BlockData::Options const &options) {
   using namespace std;
-  static unique_ptr<vector<Impl::AnyConverter> const> const table(Impl::CreateConverterTable());
-  if (!block) {
+  if (!input) {
     return Air();
   }
+  // "j2b:sticky_piston_arm_collision" is created at Converter::PreprocessChunk
+  if (input->fName == u8"j2b:sticky_piston_arm_collision") {
+    return Impl::StickyPistonArmCollision(*input);
+  } else if (input->fName == u8"j2b:piston_arm_collision") {
+    return Impl::PistonArmCollision(*input);
+  }
+  static unique_ptr<vector<Impl::AnyConverter> const> const table(Impl::CreateConverterTable());
+  auto block = make_shared<mcfile::je::Block>(input->fId, mcfile::blocks::Name(input->fId, dataVersion.fTarget), u8string(input->fData), dataVersion.fTarget);
   u32 index = static_cast<u32>(block->fId);
   if (index < table->size()) {
     Impl::AnyConverter func = (*table)[index];
@@ -2565,12 +2573,7 @@ CompoundTagPtr BlockData::From(std::shared_ptr<mcfile::je::Block const> const &b
       return func(*block, tile, options);
     }
   }
-  // "j2b:sticky_piston_arm_collision" is created at Converter::PreprocessChunk
-  if (block->fName == u8"j2b:sticky_piston_arm_collision") {
-    return Impl::StickyPistonArmCollision(*block);
-  } else if (block->fName == u8"j2b:piston_arm_collision") {
-    return Impl::PistonArmCollision(*block);
-  } else if (block->fName == u8"minecraft:flowing_water" || block->fName == u8"minecraft:flowing_lava") {
+  if (block->fName == u8"minecraft:flowing_water" || block->fName == u8"minecraft:flowing_lava") {
     return Impl::FlowingLiquid(*block);
   } else {
     return Impl::Identity(*block, nullptr, options);

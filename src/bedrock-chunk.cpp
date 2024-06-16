@@ -51,13 +51,11 @@ public:
     j->fLastUpdate = ctx.fGameTick;
 
     auto mode = ConversionMode(b);
-    int dataVersion;
+    int const dataVersion = DataVersion::TargetVersionByMode(mode);
     switch (mode) {
     case ChunkConversionMode::CavesAndCliffs2:
-      dataVersion = kDataVersion;
       break;
     case ChunkConversionMode::Legacy:
-      dataVersion = kDataVersionMaxLegacy;
       j->fLegacyBiomes.resize(1024);
       break;
     }
@@ -375,7 +373,7 @@ public:
         continue;
       }
       Pos3i leashPos = foundLeash->second;
-      if (dataVersion >= kDataVersionComponentIntroduced) {
+      if (dataVersion >= kJavaDataVersionComponentIntroduced) {
         leashedEntity->set(u8"leash", IntArrayFromPos3i(leashPos));
       } else {
         auto leashTag = Compound();

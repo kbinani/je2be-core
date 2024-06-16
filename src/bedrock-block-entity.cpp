@@ -43,7 +43,7 @@ public:
       int dataVersion,
       bool item) {
     using namespace std;
-    if (dataVersion >= kDataVersionComponentIntroduced) {
+    if (dataVersion >= kJavaDataVersionComponentIntroduced) {
       static unique_ptr<unordered_map<u8string_view, Converter> const> const sTable(CreateTable());
       u8string_view key(block.fName);
       auto found = sTable->find(Namespace::Remove(key));

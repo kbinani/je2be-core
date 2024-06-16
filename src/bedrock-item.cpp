@@ -31,7 +31,7 @@ class Item::Impl {
 public:
   static CompoundTagPtr From(CompoundTag const &tagB, Context &ctx, int dataVersion, Options const &opt) {
     using namespace std;
-    if (dataVersion >= kDataVersionComponentIntroduced) {
+    if (dataVersion >= kJavaDataVersionComponentIntroduced) {
       auto name = tagB.string(u8"Name");
       if (!name) {
         return nullptr;

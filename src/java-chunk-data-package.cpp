@@ -20,10 +20,10 @@ public:
 
   ~Impl() = default;
 
-  void build(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
-    buildEntities(chunk, ctx, entities);
+  void build(mcfile::je::Chunk const &chunk, Context &ctx, DataVersion const &dataVersion, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
+    buildEntities(chunk, ctx, dataVersion, entities);
     buildData2D(chunk, ctx.fWorldData.fDim);
-    buildTileEntities(chunk, ctx);
+    buildTileEntities(chunk, ctx, dataVersion);
     if (chunk.status() == mcfile::je::Chunk::Status::FULL) {
       fFinalizedState = 2;
     }
@@ -59,7 +59,7 @@ public:
   }
 
 private:
-  void buildTileEntities(mcfile::je::Chunk const &chunk, Context &ctx) {
+  void buildTileEntities(mcfile::je::Chunk const &chunk, Context &ctx, DataVersion const &dataVersion) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -80,7 +80,7 @@ private:
         shared_ptr<Block const> block = found->second;
         fTileBlocks.erase(found);
 
-        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, ctx, chunk.getDataVersion());
+        auto tag = TileEntity::FromBlockAndTileEntity(pos, *block, e, ctx, dataVersion);
         if (!tag) {
           continue;
         }
@@ -92,7 +92,7 @@ private:
     for (auto const &it : fTileBlocks) {
       Pos3i const &pos = it.first;
       Block const &block = *it.second;
-      auto tag = TileEntity::FromBlock(pos, block, ctx, chunk.getDataVersion());
+      auto tag = TileEntity::FromBlock(pos, block, ctx, dataVersion);
       if (!tag) {
         continue;
       }
@@ -103,7 +103,7 @@ private:
       if (!Entity::IsTileEntity(*e)) {
         continue;
       }
-      auto tag = Entity::ToTileEntityData(*e, ctx, chunk.getDataVersion());
+      auto tag = Entity::ToTileEntityData(*e, ctx, dataVersion);
       if (!tag) {
         continue;
       }
@@ -111,7 +111,7 @@ private:
     }
   }
 
-  void buildEntities(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
+  void buildEntities(mcfile::je::Chunk const &chunk, Context &ctx, DataVersion const &dataVersion, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
     using namespace std;
     Pos2i chunkPos(chunk.fChunkX, chunk.fChunkZ);
     for (auto e : chunk.fEntities) {
@@ -119,7 +119,7 @@ private:
       if (!c) {
         continue;
       }
-      auto result = Entity::From(*c, ctx, chunk.getDataVersion(), {});
+      auto result = Entity::From(*c, ctx, dataVersion, {});
       if (!result.fEntity) {
         continue;
       }
@@ -355,8 +355,8 @@ ChunkDataPackage::ChunkDataPackage(ChunkConversionMode mode) : fImpl(std::make_u
 
 ChunkDataPackage::~ChunkDataPackage() {}
 
-void ChunkDataPackage::build(mcfile::je::Chunk const &chunk, Context &ctx, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
-  return fImpl->build(chunk, ctx, entities);
+void ChunkDataPackage::build(mcfile::je::Chunk const &chunk, Context &ctx, DataVersion const &dataVersion, std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> &entities) {
+  return fImpl->build(chunk, ctx, dataVersion, entities);
 }
 
 bool ChunkDataPackage::serialize(ChunkData &cd) {

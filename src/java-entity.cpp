@@ -1,5 +1,6 @@
 #include "java/_entity.hpp"
 
+#include "_data-version.hpp"
 #include "_default-map.hpp"
 #include "_dimension-ext.hpp"
 #include "_namespace.hpp"
@@ -35,12 +36,12 @@ namespace je2be::java {
 
 class Entity::Impl {
   struct ConverterContext {
-    ConverterContext(Context &ctx, int dataVersion, std::set<Flag> const &flags) : fCtx(ctx), fDataVersion(dataVersion), fFlags(flags) {}
+    ConverterContext(Context &ctx, DataVersion const &dataVersion, std::set<Flag> const &flags) : fCtx(ctx), fDataVersion(dataVersion), fFlags(flags) {}
 
     Context &fCtx;
     std::vector<CompoundTagPtr> fPassengers;
     std::unordered_map<Pos2i, std::vector<CompoundTagPtr>, Pos2iHasher> fLeashKnots;
-    int const fDataVersion;
+    DataVersion const fDataVersion;
     std::set<Flag> const &fFlags;
   };
   using Converter = std::function<CompoundTagPtr(CompoundTag const &, ConverterContext &)>;
@@ -68,7 +69,7 @@ class Entity::Impl {
   };
 
 public:
-  static Result From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
+  static Result From(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags) {
     using namespace std;
     auto rawId = tag.string(u8"id");
     Result result;
@@ -152,7 +153,7 @@ public:
     return make_pair(paf.fPosition, b);
   }
 
-  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx, int dataVersion) {
+  static CompoundTagPtr ToTileEntityData(CompoundTag const &c, Context &ctx, DataVersion const &dataVersion) {
     auto rawId = c.string(u8"id");
     assert(rawId);
     if (!rawId) {
@@ -167,7 +168,7 @@ public:
     return nullptr;
   }
 
-  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, int dataVersion) {
+  static CompoundTagPtr ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, DataVersion const &dataVersion) {
     auto tag = Compound();
 
     PositionAndFacing paf = GetItemFrameTilePositionAndFacing(c);
@@ -207,7 +208,7 @@ public:
     return id == u8"minecraft:item_frame" || id == u8"minecraft:glow_item_frame";
   }
 
-  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
+  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags) {
     using namespace std;
     using namespace mcfile;
 
@@ -946,8 +947,8 @@ private:
     if (carriedBlockTagJ) {
       auto name = carriedBlockTagJ->string(u8"Name");
       if (name) {
-        auto carriedBlockJ = mcfile::je::Block::FromName(*name, ctx.fDataVersion);
-        auto carriedBlockB = BlockData::From(carriedBlockJ, nullptr, {.fItem = true});
+        auto carriedBlockJ = mcfile::je::Block::FromName(*name, ctx.fDataVersion.fTarget);
+        auto carriedBlockB = BlockData::From(carriedBlockJ, nullptr, ctx.fDataVersion, {.fItem = true});
         if (carriedBlockB) {
           c[u8"carriedBlock"] = carriedBlockB;
         }
@@ -978,7 +979,7 @@ private:
     if (!name) {
       return;
     }
-    auto block = BlockData::From(mcfile::je::Block::FromName(*name, ctx.fDataVersion), nullptr, {.fItem = true});
+    auto block = BlockData::From(mcfile::je::Block::FromName(*name, ctx.fDataVersion.fTarget), nullptr, ctx.fDataVersion, {.fItem = true});
     if (!block) {
       return;
     }
@@ -2229,7 +2230,7 @@ private:
           continue;
         }
         i8 idx;
-        if (ctx.fDataVersion >= 3809) {
+        if (ctx.fDataVersion.fTarget >= 3809) {
           // 24w09a
           // 24w06a
           // 24w05a
@@ -2530,7 +2531,7 @@ private:
     return items;
   }
 
-  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context &ctx, int dataVersion) {
+  static ListTagPtr ConvertAnyItemList(ListTagPtr const &input, u32 capacity, Context &ctx, DataVersion const &dataVersion) {
     auto ret = InitItemList(capacity);
     for (auto const &it : *input) {
       auto item = std::dynamic_pointer_cast<CompoundTag>(it);
@@ -2841,7 +2842,7 @@ private:
 #pragma endregion
 };
 
-Entity::Result Entity::From(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
+Entity::Result Entity::From(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags) {
   return Impl::From(tag, ctx, dataVersion, flags);
 }
 
@@ -2849,11 +2850,11 @@ std::optional<std::pair<Pos3i, CompoundTagPtr>> Entity::ToTileEntityBlock(Compou
   return Impl::ToTileEntityBlock(c);
 }
 
-CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context &ctx, int dataVersion) {
+CompoundTagPtr Entity::ToTileEntityData(CompoundTag const &c, Context &ctx, DataVersion const &dataVersion) {
   return Impl::ToTileEntityData(c, ctx, dataVersion);
 }
 
-CompoundTagPtr Entity::ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, int dataVersion) {
+CompoundTagPtr Entity::ToItemFrameTileEntityData(CompoundTag const &c, Context &ctx, std::u8string const &name, DataVersion const &dataVersion) {
   return Impl::ToItemFrameTileEntityData(c, ctx, name, dataVersion);
 }
 
@@ -2861,7 +2862,7 @@ bool Entity::IsTileEntity(CompoundTag const &tag) {
   return Impl::IsTileEntity(tag);
 }
 
-std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx, int dataVersion, std::set<Flag> flags) {
+std::optional<Entity::LocalPlayerResult> Entity::LocalPlayer(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags) {
   return Impl::LocalPlayer(tag, ctx, dataVersion, flags);
 }
 

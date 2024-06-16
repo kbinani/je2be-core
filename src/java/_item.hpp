@@ -4,7 +4,11 @@
 
 #include "_props.hpp"
 
-namespace je2be::java {
+namespace je2be {
+
+struct DataVersion;
+
+namespace java {
 
 struct Context;
 
@@ -12,7 +16,7 @@ class Item {
   class Impl;
 
 public:
-  static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx, int sourceDataVersion);
+  static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx, DataVersion const &dataVersion);
   static i8 GetSkullTypeFromBlockName(std::u8string_view const &name);
   static CompoundTagPtr Empty();
 
@@ -73,4 +77,5 @@ public:
   }
 };
 
-} // namespace je2be::java
+} // namespace java
+} // namespace je2be

@@ -2,7 +2,11 @@
 
 #include <minecraft-file.hpp>
 
-namespace je2be::java {
+namespace je2be {
+
+struct DataVersion;
+
+namespace java {
 
 class MovingPiston {
 private:
@@ -10,7 +14,8 @@ private:
   class Impl;
 
 public:
-  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk);
+  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk, DataVersion const &dataVersion);
 };
 
-} // namespace je2be::java
+} // namespace java
+} // namespace je2be

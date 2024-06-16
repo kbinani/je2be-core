@@ -1,5 +1,6 @@
 #include "java/_sub-chunk.hpp"
 
+#include "_data-version.hpp"
 #include "java/_block-data.hpp"
 #include "java/_block-palette.hpp"
 #include "java/_chunk-data-package.hpp"
@@ -24,7 +25,6 @@ public:
     using namespace mcfile;
     using namespace mcfile::je;
     using namespace leveldb;
-
     // subchunk format
     // 0: version (0x8)
     // 1: num storage blocks
@@ -37,6 +37,7 @@ public:
     //
 
     bool hasWaterlogged = false;
+    DataVersion dataVersion = cd.fDataVersion;
 
     shared_ptr<ChunkSection> section;
     for (int i = 0; i < chunk.fSections.size(); i++) {
@@ -64,9 +65,9 @@ public:
           altitude[x][z] = -1;
         }
       }
-      section->eachBlockPalette([&palette, &wd](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
+      section->eachBlockPalette([&palette, &wd, dataVersion](shared_ptr<mcfile::je::Block const> const &blockJ, size_t i) {
         using namespace mcfile::blocks::minecraft;
-        auto blockB = BlockData::From(blockJ, nullptr, {});
+        auto blockB = BlockData::From(blockJ, nullptr, dataVersion, {});
         assert(blockB);
         palette.append(blockB);
         return true;
@@ -199,7 +200,7 @@ public:
         // Block states may have extra properties from properties in tile entity.
         // Example: last_interacted_slot of chiseled_bookshelf is stored in tile entity on JE, but in block states on BE.
         auto blockJ = section->blockAtUnchecked(x, y, z);
-        if (auto tag = BlockData::From(blockJ, tile, {}); tag) {
+        if (auto tag = BlockData::From(blockJ, tile, dataVersion, {}); tag) {
           palette.set(idx, tag);
         }
       }

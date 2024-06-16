@@ -4,6 +4,7 @@
 
 #include <je2be/nbt.hpp>
 
+#include "_data-version.hpp"
 #include "_props.hpp"
 #include "java/_block-data.hpp"
 
@@ -19,20 +20,28 @@ public:
     auto stringGeneratorOptions = data.string(u8"generatorOptions");
     auto generatorName = data.string(u8"generatorName");
     auto version = data.int32(u8"DataVersion");
+    // "short_grass" is still "grass" when encoding_version is prior to 6. So target version is set to 3698 here.
+    DataVersion dataVersion = [version]() {
+      if (version) {
+        return DataVersion(*version, std::min(*version, 3698));
+      } else {
+        return DataVersion(100, 100);
+      }
+    }();
     if (worldGenSettings && version) {
-      auto ret = UsingWorldGenSettings(*worldGenSettings, *version);
+      auto ret = UsingWorldGenSettings(*worldGenSettings, dataVersion);
       if (ret) {
         return ret;
       }
     }
     if (compoundGeneratorOptions && version) {
-      auto ret = UsingCompoundGeneratorOptions(*compoundGeneratorOptions, *version);
+      auto ret = UsingCompoundGeneratorOptions(*compoundGeneratorOptions, dataVersion);
       if (ret) {
         return ret;
       }
     }
     if (stringGeneratorOptions) {
-      auto ret = UsingStringGeneratorOptions(*stringGeneratorOptions, version ? *version : 100);
+      auto ret = UsingStringGeneratorOptions(*stringGeneratorOptions, dataVersion);
       if (ret) {
         return ret;
       }
@@ -43,7 +52,7 @@ public:
     return nullopt;
   }
 
-  static std::optional<std::u8string> UsingStringGeneratorOptions(std::u8string const &generatorOptions, int dataVersion) {
+  static std::optional<std::u8string> UsingStringGeneratorOptions(std::u8string const &generatorOptions, DataVersion const &dataVersion) {
     using namespace std;
     using namespace mcfile;
 
@@ -62,7 +71,7 @@ public:
     return nullopt;
   }
 
-  static std::optional<std::u8string> UsingStringGeneratorOptionsV3(std::u8string const &options, int dataVersion) {
+  static std::optional<std::u8string> UsingStringGeneratorOptionsV3(std::u8string const &options, DataVersion const &dataVersion) {
     // 3;minecraft:bedrock,230*minecraft:stone,5*minecraft:dirt,minecraft:grass;3;biome_1,decoration,stronghold,mineshaft,dungeon
 
     using namespace std;
@@ -123,7 +132,7 @@ public:
     return props::StringFromJson(obj) + u8"\x0a";
   }
 
-  static std::optional<std::u8string> UsingStringGeneratorOptionsV2(std::u8string const &options, int dataVersion) {
+  static std::optional<std::u8string> UsingStringGeneratorOptionsV2(std::u8string const &options, DataVersion const &dataVersion) {
     // 2;7,2x3:2,2;1;village
     using namespace std;
     using namespace mcfile;
@@ -179,11 +188,11 @@ public:
       if (!blockId) {
         return nullopt;
       }
-      auto block = mcfile::je::Flatten::Block(*blockId, data, dataVersion);
+      auto block = mcfile::je::Flatten::Block(*blockId, data, dataVersion.fTarget);
       if (!block) {
         return nullopt;
       }
-      auto converted = BlockData::From(block, nullptr, {});
+      auto converted = BlockData::From(block, nullptr, dataVersion, {});
       if (!converted) {
         return nullopt;
       }
@@ -203,7 +212,7 @@ public:
     return props::StringFromJson(obj) + u8"\x0a";
   }
 
-  static std::optional<std::u8string> UsingCompoundGeneratorOptions(CompoundTag const &generatorOptions, int dataVersion) {
+  static std::optional<std::u8string> UsingCompoundGeneratorOptions(CompoundTag const &generatorOptions, DataVersion const &dataVersion) {
     using namespace std;
     auto layers = generatorOptions.listTag(u8"layers");
     auto biomeString = generatorOptions.string(u8"biome");
@@ -252,7 +261,7 @@ public:
     return props::StringFromJson(obj) + u8"\x0a";
   }
 
-  static std::optional<std::u8string> UsingWorldGenSettings(CompoundTag const &worldGenSettings, int dataVersion) {
+  static std::optional<std::u8string> UsingWorldGenSettings(CompoundTag const &worldGenSettings, DataVersion const &dataVersion) {
     using namespace std;
     auto dimensions = worldGenSettings.compoundTag(u8"dimensions");
     if (!dimensions) {
@@ -311,7 +320,7 @@ public:
     }
     obj["structure_options"] = nlohmann::json::value_t::null;
 
-    if (dataVersion < 2834) {
+    if (dataVersion.fSource < 2834) {
       obj["encoding_version"] = 5;
     } else {
       obj["encoding_version"] = 6;
@@ -322,13 +331,13 @@ public:
   }
 
 private:
-  static std::optional<std::u8string> BedrockBlockName(std::u8string const &blockData, int dataVersion) {
+  static std::optional<std::u8string> BedrockBlockName(std::u8string const &blockData, DataVersion const &dataVersion) {
     using namespace std;
-    auto block = mcfile::je::Block::FromBlockData(blockData, dataVersion);
+    auto block = mcfile::je::Block::FromBlockData(blockData, dataVersion.fSource);
     if (!block) {
       return nullopt;
     }
-    auto converted = BlockData::From(block, nullptr, {});
+    auto converted = BlockData::From(block, nullptr, dataVersion, {});
     if (!converted) {
       return nullopt;
     }

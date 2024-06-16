@@ -4,7 +4,11 @@
 
 #include "_pos3.hpp"
 
-namespace je2be::java {
+namespace je2be {
+
+struct DataVersion;
+
+namespace java {
 
 struct Context;
 
@@ -19,14 +23,15 @@ public:
                                                mcfile::je::Block const &block,
                                                CompoundTagPtr const &tag,
                                                Context &ctx,
-                                               int dataVersion);
+                                               DataVersion const &dataVersion);
   static CompoundTagPtr FromBlock(Pos3i const &pos,
                                   mcfile::je::Block const &block,
                                   Context &ctx,
-                                  int dataVersion);
+                                  DataVersion const &dataVersion);
   static bool IsStandaloneTileEntity(CompoundTagPtr const &tag);
   static std::optional<std::tuple<CompoundTagPtr, std::u8string>> StandaloneTileEntityBlockdData(Pos3i pos, CompoundTagPtr const &tag);
   static CompoundTagPtr StandaloneTileEntityData(CompoundTagPtr const &tag);
 };
 
-} // namespace je2be::java
+} // namespace java
+} // namespace je2be

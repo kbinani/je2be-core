@@ -3,6 +3,8 @@
 #include <je2be/fs.hpp>
 #include <je2be/status.hpp>
 
+#include "_data-version.hpp"
+#include "bedrock/_constants.hpp"
 #include "db/_db-interface.hpp"
 #include "enums/_chunk-conversion-mode.hpp"
 #include "enums/_game-mode.hpp"
@@ -129,13 +131,16 @@ public:
       tickingLiquidOriginalBlocks[pos] = block;
     }
 
-    PreprocessChunk(loader, *chunk);
+    ChunkConversionMode mode = ConversionMode(*chunk);
+    //TODO: Change the line below to "DataVersion dataVersion(chunk->getDataVersion(), mode);"
+    DataVersion dataVersion(chunk->getDataVersion(), kJavaDataVersion);
+
+    PreprocessChunk(loader, *chunk, dataVersion);
 
     auto ret = make_shared<WorldData>(dim);
-    ChunkConversionMode mode = ConversionMode(*chunk);
 
     ChunkDataPackage cdp(mode);
-    ChunkData cd(chunk->fChunkX, chunk->fChunkZ, dim, mode);
+    ChunkData cd(chunk->fChunkX, chunk->fChunkZ, dim, mode, dataVersion);
 
     for (auto const &section : chunk->fSections) {
       if (!section) {
@@ -152,7 +157,7 @@ public:
       i64 time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = mcfile::je::Block::FromName(tb.fI, chunk->getDataVersion());
-      auto blockB = BlockData::From(blockJ, nullptr, {});
+      auto blockB = BlockData::From(blockJ, nullptr, dataVersion, {});
       if (!blockB) {
         continue;
       }
@@ -181,7 +186,7 @@ public:
       i64 time = chunk->fLastUpdate + tb.fT;
 
       auto blockJ = mcfile::je::Block::FromName(tb.fI, chunk->getDataVersion());
-      auto blockB = BlockData::From(blockJ, chunk->tileEntityAt(tb.fX, tb.fY, tb.fZ), {});
+      auto blockB = BlockData::From(blockJ, chunk->tileEntityAt(tb.fX, tb.fY, tb.fZ), dataVersion, {});
       if (!blockB) {
         continue;
       }
@@ -200,7 +205,7 @@ public:
 
     unordered_map<Pos2i, vector<shared_ptr<CompoundTag>>, Pos2iHasher> entities;
     Context ctx(mapInfo, lodestones, uuids, *ret, gameTick, difficultyBedrock, allowCommand, gameType);
-    cdp.build(*chunk, ctx, entities);
+    cdp.build(*chunk, ctx, dataVersion, entities);
     if (!cdp.serialize(cd)) {
       return make_pair(nullptr, Status::Ok());
     }
@@ -273,8 +278,8 @@ public:
   }
 
 private:
-  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
-    MovingPiston::PreprocessChunk(loader, chunk);
+  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk, DataVersion const &dataVersion) {
+    MovingPiston::PreprocessChunk(loader, chunk, dataVersion);
     InjectTickingLiquidBlocksAsBlocks(chunk);
     SortTickingBlocks(chunk.fTileTicks);
     SortTickingBlocks(chunk.fLiquidTicks);

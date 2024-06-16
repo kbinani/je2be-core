@@ -1,5 +1,6 @@
 #pragma once
 
+#include "_data-version.hpp"
 #include "_reversible-map.hpp"
 #include "bedrock/_constants.hpp"
 
@@ -78,7 +79,7 @@ public:
 
   static ListTagPtr OminousBannerPatterns(int dataVersion) {
     auto p = List<Tag::Type::Compound>();
-    if (dataVersion >= bedrock::kDataVersionComponentIntroduced) {
+    if (dataVersion >= kJavaDataVersionComponentIntroduced) {
       p->push_back(BannerPattern(u8"cyan", u8"rhombus"));
       p->push_back(BannerPattern(u8"light_gray", u8"stripe_bottom"));
       p->push_back(BannerPattern(u8"gray", u8"stripe_center"));

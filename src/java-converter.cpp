@@ -237,7 +237,8 @@ public:
 
     WorldData wd(mcfile::Dimension::Overworld);
     Context ctx(ld.fJavaEditionMap, ld.fLodestones, ld.fUuids, wd, ld.fGameTick, ld.fDifficultyBedrock, ld.fAllowCommand, ld.fGameType);
-    auto playerB = Entity::LocalPlayer(*playerJ, ctx, ld.fDataVersion, {});
+    DataVersion dataVersion(ld.fDataVersion, ld.fDataVersion);
+    auto playerB = Entity::LocalPlayer(*playerJ, ctx, dataVersion, {});
     if (!playerB) {
       return std::nullopt;
     }
@@ -248,7 +249,7 @@ public:
     pae.fLocalPlayerUid = playerB->fUid;
     if (auto rootVehicle = playerJ->compoundTag(u8"RootVehicle"); rootVehicle) {
       if (auto entityJ = rootVehicle->compoundTag(u8"Entity"); entityJ) {
-        if (auto entityB = Entity::From(*entityJ, ctx, ld.fDataVersion, {}); entityB.fEntity) {
+        if (auto entityB = Entity::From(*entityJ, ctx, dataVersion, {}); entityB.fEntity) {
           LevelData::VehicleAndPassengers vap;
           vap.fChunk = playerB->fChunk;
           vap.fVehicle = entityB.fEntity;
@@ -305,7 +306,7 @@ public:
       Pos3f riderPos3f(riderPos2d.fX, pos->fY - 0.2, riderPos2d.fZ);
       // ground: 71 -> boat: 71.375 -> player: 72.62 -> parrot: 72.42
       // ground: 71 -> player: 72.62 -> parrot: 72.42
-      if (auto riderB = Entity::From(*shoulderEntity, ctx, ld.fDataVersion, {Entity::Flag::ShoulderRider}); riderB.fEntity) {
+      if (auto riderB = Entity::From(*shoulderEntity, ctx, dataVersion, {Entity::Flag::ShoulderRider}); riderB.fEntity) {
         auto id = riderB.fEntity->int64(u8"UniqueID");
         if (id) {
           riderB.fEntity->set(u8"Pos", riderPos3f.toListTag());

@@ -8,11 +8,12 @@
 
 #include <cstdint>
 
-namespace je2be::java {
-
+namespace je2be {
+struct DataVersion;
+namespace java {
 class ChunkData {
 public:
-  ChunkData(i32 chunkX, i32 chunkZ, mcfile::Dimension dim, ChunkConversionMode mode) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim), fMode(mode) {}
+  ChunkData(i32 chunkX, i32 chunkZ, mcfile::Dimension dim, ChunkConversionMode mode, DataVersion const &dataVersion) : fChunkX(chunkX), fChunkZ(chunkZ), fDimension(dim), fMode(mode), fDataVersion(dataVersion) {}
 
   [[nodiscard]] Status put(DbInterface &db) {
     auto [chunkStatus, status] = putChunkSections(db);
@@ -149,6 +150,7 @@ public:
   i32 const fChunkZ;
   mcfile::Dimension const fDimension;
   ChunkConversionMode const fMode;
+  DataVersion const &fDataVersion;
 
   std::vector<u8> fData2D;
   std::map<i8, std::vector<u8>> fSubChunks;
@@ -157,4 +159,5 @@ public:
   std::vector<u8> fPendingTicks;
 };
 
-} // namespace je2be::java
+} // namespace java
+} // namespace je2be

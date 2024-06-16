@@ -490,7 +490,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     dataJ->set(u8"colors", std::make_shared<ByteArrayTag>(colorsJ));
     auto tagJ = Compound();
     tagJ->set(u8"data", dataJ);
-    tagJ->set(u8"DataVersion", Int(bedrock::kDataVersion));
+    tagJ->set(u8"DataVersion", Int(kJavaDataVersion));
 
     auto path = root / "data" / ("map_" + std::to_string(number) + ".dat");
     auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
@@ -508,7 +508,7 @@ Status Context::exportMaps(std::filesystem::path const &root, mcfile::be::DbInte
     auto d = Compound();
     d->set(u8"map", Int(*maxMapNumber));
     idcounts->set(u8"data", d);
-    idcounts->set(u8"DataVersion", Int(bedrock::kDataVersion));
+    idcounts->set(u8"DataVersion", Int(kJavaDataVersion));
     auto path = root / "data" / "idcounts.dat";
     auto s = std::make_shared<mcfile::stream::GzFileOutputStream>(path);
     if (!CompoundTag::Write(*idcounts, s, mcfile::Encoding::Java)) {
@@ -533,7 +533,7 @@ Status Context::exportPoi(std::filesystem::path const &root) const {
     } else {
       continue;
     }
-    if (!poi.write(dir, kDataVersion)) {
+    if (!poi.write(dir, kJavaDataVersion)) {
       return JE2BE_ERROR;
     }
   }

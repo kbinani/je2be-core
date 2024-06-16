@@ -1,5 +1,6 @@
 #include "java/_moving-piston.hpp"
 
+#include "_data-version.hpp"
 #include "enums/_facing6.hpp"
 #include "java/_block-data.hpp"
 #include "java/_versions.hpp"
@@ -10,7 +11,7 @@ class MovingPiston::Impl {
   Impl() = delete;
 
 public:
-  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
+  static void PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk, DataVersion const &dataVersion) {
     using namespace mcfile;
     using namespace mcfile::je;
     using namespace std;
@@ -185,7 +186,7 @@ public:
         }
       } else {
         // extending = *, source = 0
-        auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader, *extending, chunk.getDataVersion());
+        auto e = MovingBlockEntityFromPistonTileEntity(pos, *facing, item, loader, *extending, dataVersion);
         tileEntityReplacement[pos] = e;
       }
     }
@@ -202,7 +203,7 @@ public:
   }
 
 private:
-  static CompoundTagPtr MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader, bool expanding, int dataVersion) {
+  static CompoundTagPtr MovingBlockEntityFromPistonTileEntity(Pos3i pos, int facing, std::shared_ptr<CompoundTag const> const &item, mcfile::je::CachedChunkLoader &loader, bool expanding, DataVersion const &dataVersion) {
     using namespace std;
     using namespace mcfile;
     using namespace mcfile::je;
@@ -216,8 +217,8 @@ private:
     if (!blockState) {
       return nullptr;
     }
-    auto block = Block::FromCompoundTag(*blockState, dataVersion);
-    auto movingBlock = BlockData::From(block, nullptr, {});
+    auto block = Block::FromCompoundTag(*blockState, dataVersion.fSource);
+    auto movingBlock = BlockData::From(block, nullptr, dataVersion, {});
     if (!movingBlock) {
       return nullptr;
     }
@@ -511,8 +512,8 @@ private:
   }
 };
 
-void MovingPiston::PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk) {
-  return Impl::PreprocessChunk(loader, chunk);
+void MovingPiston::PreprocessChunk(mcfile::je::CachedChunkLoader &loader, mcfile::je::Chunk &chunk, DataVersion const &dataVersion) {
+  return Impl::PreprocessChunk(loader, chunk, dataVersion);
 }
 
 } // namespace je2be::java

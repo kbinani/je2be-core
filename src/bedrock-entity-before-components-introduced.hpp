@@ -1798,7 +1798,7 @@ public:
       }
     }
 
-    j[u8"DataVersion"] = Int(bedrock::kDataVersion);
+    j[u8"DataVersion"] = Int(kJavaDataVersion);
 
     if (auto posB = props::GetPos3f(b, u8"Pos"); posB) {
       Pos3d posJ = posB->toD();

@@ -1,5 +1,6 @@
 #include "terraform/_leaves.hpp"
 
+#include "_data-version.hpp"
 #include "_data3d.hpp"
 #include "_volume.hpp"
 #include "java/_block-data.hpp"
@@ -168,12 +169,13 @@ std::unordered_set<std::u8string> *Leaves::Impl::CreateBedrockLogBlocksSet() {
   using namespace std;
   using namespace mcfile::blocks;
   unordered_set<u8string> *ret = new unordered_set<u8string>();
+  DataVersion dv(mcfile::je::Chunk::kDataVersion, mcfile::je::Chunk::kDataVersion);
   for (BlockId id = unknown + 1; id < minecraft::minecraft_max_block_id; id++) {
     auto blockJ = mcfile::je::Block::FromId(id, mcfile::je::Chunk::kDataVersion);
     if (!IsLog(*blockJ)) {
       continue;
     }
-    auto blockB = je2be::java::BlockData::From(blockJ, nullptr, {});
+    auto blockB = je2be::java::BlockData::From(blockJ, nullptr, dv, {});
     if (!blockB) {
       continue;
     }

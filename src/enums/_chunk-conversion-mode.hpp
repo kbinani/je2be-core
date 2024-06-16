@@ -7,4 +7,4 @@ enum class ChunkConversionMode {
   Legacy,
 };
 
-}
+} // namespace je2be

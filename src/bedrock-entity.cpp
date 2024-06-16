@@ -112,7 +112,7 @@ public:
   }
 
   static std::optional<Result> From(CompoundTag const &entityB, Context &ctx, int dataVersion) {
-    if (dataVersion >= kDataVersionComponentIntroduced) {
+    if (dataVersion >= kJavaDataVersionComponentIntroduced) {
       auto id = entityB.string(u8"identifier");
       if (!id) {
         return std::nullopt;
@@ -1929,7 +1929,7 @@ public:
       }
     }
 
-    j[u8"DataVersion"] = Int(bedrock::kDataVersion);
+    j[u8"DataVersion"] = Int(kJavaDataVersion);
 
     if (auto posB = props::GetPos3f(b, u8"Pos"); posB) {
       Pos3d posJ = posB->toD();

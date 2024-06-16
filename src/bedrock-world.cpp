@@ -312,7 +312,7 @@ public:
       auto entity = FindEntity(entities, entityId);
       if (entity) {
         Pos3i leashPos = leasherFound->second;
-        if (dataVersion >= kDataVersionComponentIntroduced) {
+        if (dataVersion >= kJavaDataVersionComponentIntroduced) {
           entity->set(u8"leash", IntArrayFromPos3i(leashPos));
         } else {
           auto leashTag = Compound();

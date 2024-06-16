@@ -114,7 +114,7 @@ public:
     using namespace std;
 
     JavaLevelDat::Options o;
-    o.fDataVersion = bedrock::kDataVersion;
+    o.fDataVersion = kJavaDataVersion;
     o.fRandomSeed = b.int64(u8"RandomSeed");
     o.fVersionString = kVersionString;
     o.fFlatWorldSettings = FlatWorldSettings(b);
@@ -234,7 +234,7 @@ public:
     auto biomeJ = mcfile::be::Biome::FromUint32(biomeB->get<u32>());
     assert(biomeJ != mcfile::biomes::unknown);
 
-    settings->set(u8"biome", mcfile::biomes::Biome::Name(biomeJ, bedrock::kDataVersion, u8"minecraft:plains"));
+    settings->set(u8"biome", mcfile::biomes::Biome::Name(biomeJ, kJavaDataVersion, u8"minecraft:plains"));
     auto layersB = json.find("block_layers");
     if (layersB == json.end()) {
       return nullptr;
@@ -284,7 +284,7 @@ public:
         }
         blockB = make_shared<mcfile::be::Block>(props::GetJsonStringValue(*blockName), Compound(), je2be::java::kBlockDataVersion);
       }
-      auto blockJ = BlockData::From(*blockB, bedrock::kDataVersion);
+      auto blockJ = BlockData::From(*blockB, kJavaDataVersion);
       if (!blockJ) {
         return nullptr;
       }
@@ -311,7 +311,7 @@ public:
       return std::nullopt;
     }
 
-    return Entity::LocalPlayer(*tag, ctx, uuid, bedrock::kDataVersion);
+    return Entity::LocalPlayer(*tag, ctx, uuid, kJavaDataVersion);
   }
 
   static CompoundTagPtr DragonFight(mcfile::be::DbInterface &db, mcfile::Encoding encoding) {
