@@ -176,8 +176,10 @@ public:
     if (ctx.fDataPackTradeRebalance) {
       enabledFeatures->push_back(String(u8"minecraft:trade_rebalance"));
     }
-    enabledFeatures->push_back(String(u8"minecraft:vanilla"));
-    data->set(u8"enabled_features", enabledFeatures);
+    if (!enabledFeatures->empty()) {
+      enabledFeatures->push_back(String(u8"minecraft:vanilla"));
+      data->set(u8"enabled_features", enabledFeatures);
+    }
 
     if (auto dataPacks = data->compoundTag(u8"DataPacks"); dataPacks) {
       if (auto enabledDataPacks = dataPacks->listTag(u8"Enabled"); enabledDataPacks) {
