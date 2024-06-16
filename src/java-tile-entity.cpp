@@ -601,11 +601,13 @@ private:
         }
       }
 
-      if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
-        if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
-          tag->set(u8"item", itemB);
-        } else {
-          tag->set(u8"item", Item::Empty());
+      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
+        if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
+          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+            tag->set(u8"item", itemB);
+          } else {
+            tag->set(u8"item", Item::Empty());
+          }
         }
       }
     }

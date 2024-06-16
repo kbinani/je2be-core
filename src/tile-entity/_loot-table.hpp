@@ -161,6 +161,14 @@ private:
 
         // Java(1.19.4 Pre Release 2)          Bedrock(Preview 1.19.70.24)
         "minecraft:archaeology/desert_pyramid" "loot_tables/entities/desert_pyramid_suspicious_sand.json"
+
+        // Java(1.21)                                          Bedrock(1.21)
+        "minecraft:chests/trial_chambers/corridor"             "loot_tables/chests/trial_chambers/corridor.json"
+        "minecraft:chests/trial_chambers/entrance"             "loot_tables/chests/trial_chambers/entrance.json"
+        "minecraft:chests/trial_chambers/intersection_barrel"  "loot_tables/chests/trial_chambers/intersection_barrel.json"
+        "minecraft:chests/trial_chambers/reward"               "loot_tables/chests/trial_chambers/reward.json"
+        "minecraft:dispensers/trial_chambers/chamber"          "loot_tables/dispensers/trial_chambers/chamber.json"
+        "minecraft:pots/trial_chambers/corridor"               "loot_tables/pots/trial_chambers/corridor.json"
         */
 
         {u8"minecraft:chests/buried_treasure", u8"loot_tables/chests/buriedtreasure.json"},

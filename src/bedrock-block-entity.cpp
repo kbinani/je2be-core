@@ -429,9 +429,11 @@ public:
     if (some) {
       t->set(u8"sherds", sherdsJ);
     }
-    if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
-      if (auto itemJ = Item::From(*itemB, ctx, opt.fDataVersion, {}); itemJ) {
-        t->set(u8"item", itemJ);
+    if (LootTable::BedrockToJava(tagB, *t) == LootTable::State::NoLootTable) {
+      if (auto itemB = tagB.compoundTag(u8"item"); itemB) {
+        if (auto itemJ = Item::From(*itemB, ctx, opt.fDataVersion, {}); itemJ) {
+          t->set(u8"item", itemJ);
+        }
       }
     }
     Result r;
