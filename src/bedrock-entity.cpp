@@ -38,31 +38,59 @@ public:
       t[u8"id"] = String(u8"minecraft:item_frame");
     }
 
-    i32 facingDirectionA = blockJ.fStates->int32(u8"facing_direction", 0);
-    Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirectionA);
+    Facing6 f6 = Facing6::South;
+    if (auto facingDirectionA = blockJ.fStates->int32(u8"facing_direction"); facingDirectionA) {
+      f6 = Facing6FromBedrockFacingDirectionA(*facingDirectionA);
+    } else if (blockJ.fVal) {
+      switch (*blockJ.fVal) {
+      case 0:
+      case 4: // map?
+        f6 = Facing6::East;
+        break;
+      case 1:
+      case 5: // map?
+        f6 = Facing6::West;
+        break;
+      case 2:
+      case 6: // map?
+        f6 = Facing6::South;
+        break;
+      case 3:
+      case 7: // map
+        f6 = Facing6::North;
+        break;
+      }
+    }
     je2be::Rotation rot(0, 0);
+    i8 facingDirection = 0;
     switch (f6) {
     case Facing6::Up:
       rot.fPitch = -90;
+      facingDirection = 1;
       break;
     case Facing6::North:
       rot.fYaw = 180;
+      facingDirection = 2;
       break;
     case Facing6::East:
       rot.fYaw = 270;
+      facingDirection = 5;
       break;
     case Facing6::South:
       rot.fYaw = 0;
+      facingDirection = 3;
       break;
     case Facing6::West:
       rot.fYaw = 90;
+      facingDirection = 4;
       break;
     case Facing6::Down:
       rot.fPitch = 90;
+      facingDirection = 0;
       break;
     }
     t[u8"Rotation"] = rot.toListTag();
-    t[u8"Facing"] = Byte(facingDirectionA);
+    t[u8"Facing"] = Byte(facingDirection);
 
     t[u8"TileX"] = Int(pos.fX);
     t[u8"TileY"] = Int(pos.fY);
