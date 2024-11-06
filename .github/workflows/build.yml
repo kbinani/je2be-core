@@ -11,9 +11,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Check style
-        uses: DoozyX/clang-format-lint-action@v0.17
+        uses: DoozyX/clang-format-lint-action@v0.18.2
         with:
-          clangFormatVersion: 12
+          clangFormatVersion: 18
   cppcheck:
     runs-on: ubuntu-latest
     needs: [style]
