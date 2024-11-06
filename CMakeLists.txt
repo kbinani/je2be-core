@@ -11,7 +11,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_EXTENSIONS OFF)
   if (MSVC)
     add_compile_options(
-      /source-charset:utf-8
+      /utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
       /wd4100 # Suppress "unreferenced formal parameter" warnings
       /MP
@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 0eb187427e24b099908788f9ee00adc6983546d6)
+  GIT_TAG c5d605b3490399dd4da1925aef17df12e06ff768)
 
 CPMAddPackage(
   NAME defer
@@ -499,7 +499,7 @@ CPMAddPackage(
           "MZ_SIGNING OFF"
           "MZ_LIBCOMP OFF")
 
-list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json defer)
+list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json defer icu::uc)
 list(APPEND je2be_exe_link_libraries je2be)
 
 if (MSVC)
@@ -533,7 +533,8 @@ target_include_directories(je2be PUBLIC
   ${minizip_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
   ${sparse_SOURCE_DIR}
-  ${je2be_include_directories})
+  ${je2be_include_directories}
+  ${icu-cmake_SOURCE_DIR}/icu/icu4c/source/common)
 target_include_directories(je2be PRIVATE ./src ${libdeflate_SOURCE_DIR} ${libminecraft-file_SOURCE_DIR}/include ${defer_SOURCE_DIR}/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
