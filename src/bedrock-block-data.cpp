@@ -941,7 +941,7 @@ private:
   }
 
   static String Leaves2(String const &bName, CompoundTag const &s, Props &p) {
-    auto newLeafType = s.string(u8"new_leaf_type", u8"acacia"); //TODO: acacia?
+    auto newLeafType = s.string(u8"new_leaf_type", u8"acacia"); // TODO: acacia?
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
     return Ns() + newLeafType + u8"_leaves";
@@ -1019,7 +1019,7 @@ private:
   }
 
   static String Log2Legacy(String const &bName, CompoundTag const &s, Props &p) {
-    auto logType = s.string(u8"new_log_type", u8"acacia"); //TODO: acacia?
+    auto logType = s.string(u8"new_log_type", u8"acacia"); // TODO: acacia?
     AxisFromPillarAxis(s, p);
     return Ns() + logType + u8"_log";
   }
@@ -1104,7 +1104,7 @@ private:
   }
 
   static String PlanksLegacy(String const &bName, CompoundTag const &s, Props &p) {
-    auto woodType = s.string(u8"wood_type", u8"acacia"); //TODO: acacia?
+    auto woodType = s.string(u8"wood_type", u8"acacia"); // TODO: acacia?
     return Ns() + woodType + u8"_planks";
   }
 

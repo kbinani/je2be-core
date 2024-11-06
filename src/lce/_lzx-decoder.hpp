@@ -1178,10 +1178,10 @@ private:
     return i;
   }
 
-  //static long const position_base_minus2[];
-  //static u8 const extra_bits[];
-  //u32 position_base[51];
-  //u8 extra_bits[52];
+  // static long const position_base_minus2[];
+  // static u8 const extra_bits[];
+  // u32 position_base[51];
+  // u8 extra_bits[52];
 
   enum class e_block_type : u8 {
     _lxz_block_type_invalid,

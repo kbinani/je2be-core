@@ -3,7 +3,7 @@
 (
 	cd "$(dirname "$0")/.."
 
-	if clang-format --version | grep 'version 12.' >/dev/null; then
+	if clang-format --version | grep 'version 18.' >/dev/null; then
 		bash tool/ls-files | xargs -P$(nproc) -n1 clang-format -i
 	else
 		if [ -d .git ]; then

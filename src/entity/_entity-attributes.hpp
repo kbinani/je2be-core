@@ -273,12 +273,12 @@ private:
     table->insert(make_pair(u8"minecraft:stray", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair(u8"minecraft:strider", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.16, 0.16), Attribute(0.02, 0.02), Attribute(0.32, 0.32), Attribute(16, 16, 2048), nullopt)));
     table->insert(make_pair(u8"minecraft:tropical_fish", Attributes(Attribute(3, 3, 3),      // health
-                                                                    Attribute(0, 0, 1),      //knockback_resistance
+                                                                    Attribute(0, 0, 1),      // knockback_resistance
                                                                     Attribute(0.12, 0.12),   // movement
                                                                     Attribute(0.12, 0.12),   // underwater_movement
-                                                                    Attribute(0.02, 0.02),   //lava_movement
-                                                                    Attribute(16, 16, 2048), //follow_range
-                                                                    nullopt)));              //attack_damage
+                                                                    Attribute(0.02, 0.02),   // lava_movement
+                                                                    Attribute(16, 16, 2048), // follow_range
+                                                                    nullopt)));              // attack_damage
     table->insert(make_pair(u8"minecraft:turtle", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.1, 0.1), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(1024, 1024, 2048), nullopt)));
     table->insert(make_pair(u8"minecraft:vex", Attributes(Attribute(14, 14, 14), Attribute(0, 0, 1), Attribute(1, 1), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair(u8"minecraft:villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.5, 0.5), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(128, 128, 2048), nullopt)));

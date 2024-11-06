@@ -2107,13 +2107,13 @@ public:
     CardinalDirectionFromFacing4(s, block, o);
     auto tilt = block.property(u8"tilt", u8"none");
     if (tilt == u8"none") {
-      //nop
+      // nop
     } else if (tilt == u8"partial") {
       tilt = u8"partial_tilt";
     } else if (tilt == u8"full") {
       tilt = u8"full_tilt";
     } else if (tilt == u8"unstable") {
-      //nop
+      // nop
     }
     s->set(u8"big_dripleaf_tilt", std::u8string(tilt));
     return AttachStates(c, s);
