@@ -11,7 +11,7 @@ if ("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(CMAKE_CXX_EXTENSIONS OFF)
   if (MSVC)
     add_compile_options(
-      /source-charset:utf-8
+      /utf-8
       /we4828 # Treat "The file contains a character that cannot be represented in the current code page" warnings as errors
       /wd4100 # Suppress "unreferenced formal parameter" warnings
       /MP
@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG 51ae418780f33110222101769da7f42d24ec73cb)
+  GIT_TAG c5d605b3490399dd4da1925aef17df12e06ff768)
 
 CPMAddPackage(
   NAME defer
