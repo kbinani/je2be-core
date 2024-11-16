@@ -97,7 +97,7 @@ private:
         return false;
       }
       bool hasMcfunction = false;
-      for (DirectoryIterator mcfunctionItr(itr->path() / "functions"); mcfunctionItr.valid(); mcfunctionItr.next()) {
+      for (DirectoryIterator mcfunctionItr(itr->path() / "function"); mcfunctionItr.valid(); mcfunctionItr.next()) {
         if (!mcfunctionItr->is_regular_file()) {
           continue;
         }
