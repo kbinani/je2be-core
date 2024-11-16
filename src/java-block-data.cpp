@@ -1879,8 +1879,15 @@ public:
 
     // 1.21.4
     E(pale_oak_leaves, leaves);
-    E(resin_clump, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
     E(pale_oak_slab, Slab(u8"pale_oak_double_slab"));
+    E(pale_oak_fence, Identity);
+    E(pale_oak_fence_gate, fenceGate);
+    E(pale_oak_door, door);
+    E(pale_oak_trapdoor, trapdoor);
+    E(pale_oak_pressure_plate, pressurePlate);
+    E(pale_oak_button, button);
+    E(pale_oak_stairs, Stairs());
+    E(resin_clump, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
     E(resin_brick_slab, Slab(u8"resin_brick_double_slab"));
 #undef E
 
