@@ -81,7 +81,7 @@ public:
           return true;
         }
       }
-    } else if (target.fName.ends_with(u8"slab") && target.fName.find(u8"double") != std::u8string::npos) {
+    } else if (target.fName.ends_with(u8"slab") && target.property(u8"type") == u8"double") {
       return true;
     } else if (target.fName.ends_with(u8"fence_gate")) {
       auto facing = target.property(u8"facing");
