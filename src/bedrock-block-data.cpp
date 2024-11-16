@@ -598,6 +598,15 @@ private:
     p[u8"triggered"] = Bool(triggered);
     return bName;
   }
+
+  static String CreakingHeart(String const &bName, CompoundTag const &s, Props &p) {
+    auto active = s.boolean(u8"active", false);
+    p[u8"active"] = Bool(active);
+    auto natural = s.boolean(u8"natural", false);
+    p[u8"natural"] = Bool(natural);
+    AxisFromPillarAxis(s, p);
+    return bName;
+  }
 #pragma endregion
 
 #pragma region Converters : D
@@ -1095,6 +1104,12 @@ private:
 #pragma endregion
 
 #pragma region Converters : P
+  static String PaleHangingMoss(String const &bName, CompoundTag const &s, Props &p) {
+    auto tip = s.boolean(u8"tip", false);
+    p[u8"tip"] = Bool(tip);
+    return bName;
+  }
+
   static String PaleMossCarpet(String const &bName, CompoundTag const &s, Props &p) {
     auto bottom = !s.boolean(u8"upper_block_bit", false);
     p[u8"bottom"] = Bool(bottom);
@@ -3034,12 +3049,19 @@ private:
     E(pale_oak_pressure_plate, PressurePlate);
     E(pale_oak_button, Button);
     E(pale_oak_stairs, Stairs);
+    E(pale_oak_standing_sign, StandingSign);
+    E(pale_oak_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(pale_oak_hanging_sign, HangingSign);
+    E(pale_oak_sapling, sapling);
+    E(pale_oak_log, BlockWithAxisFromPillarAxis);
+    E(pale_hanging_moss, PaleHangingMoss);
     E(pale_moss_carpet, PaleMossCarpet);
     E(resin_clump, BlockWithMultiFaceDirectionBitsSubmergible);
     E(resin_brick_stairs, Stairs);
     E(resin_brick_slab, Slab);
     E(resin_brick_double_slab, DoubleSlab(u8"resin_brick_slab"));
     E(resin_brick_wall, BlockWithWallProperties);
+    E(creaking_heart, CreakingHeart);
 #undef E
 
     return table;

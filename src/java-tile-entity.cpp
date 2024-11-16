@@ -351,8 +351,24 @@ private:
     E(crafter, Crafter);
     E(vault, Vault);
     E(trial_spawner, TrialSpawner);
+
+    E(creaking_heart, CreakingHeart);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr CreakingHeart(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"CreakingHeart");
+    if (c) {
+      if (auto id = c->intArrayTag(u8"creaking"); id) {
+        if (auto uuid = Uuid::FromIntArray(*id); uuid) {
+          auto uuidB = ctx.fUuids->toId(*uuid);
+          ret->set(u8"SpawnedCreakingID", Long(uuidB));
+        }
+      }
+    }
+    Attach(c, pos, *ret);
+    return ret;
   }
 
   static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {

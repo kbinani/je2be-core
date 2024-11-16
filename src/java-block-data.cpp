@@ -1887,14 +1887,40 @@ public:
     E(pale_oak_pressure_plate, pressurePlate);
     E(pale_oak_button, button);
     E(pale_oak_stairs, Stairs());
+    E(pale_oak_sign, Sign(u8"pale_oak"));
+    E(pale_oak_hanging_sign, HangingSign);
+    E(pale_oak_wall_hanging_sign, WallHangingSign);
+    E(pale_oak_log, axisToPillarAxis);
+    E(pale_hanging_moss, PaleHangingMoss);
     E(pale_moss_carpet, PaleMossCarpet);
     E(resin_clump, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
     E(resin_brick_stairs, Stairs());
     E(resin_brick_slab, Slab(u8"resin_brick_double_slab"));
     E(resin_brick_wall, wall);
+    E(pale_oak_sapling, sapling);
+    E(creaking_heart, CreakingHeart);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr CreakingHeart(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    auto active = block.property(u8"active", u8"false") == u8"true";
+    s->set(u8"active", Bool(active));
+    auto natural = block.property(u8"natural", u8"false") == u8"true";
+    s->set(u8"natural", Bool(natural));
+    AxisToPillarAxis(s, block, o);
+    return AttachStates(c, s);
+  }
+
+  static CompoundTagPtr PaleHangingMoss(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    auto tip = block.property(u8"tip", u8"false") == u8"true";
+    s->set(u8"tip", Bool(tip));
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr PaleMossCarpet(Block const &block, CompoundTagConstPtr const &, Options const &o) {

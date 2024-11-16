@@ -1030,6 +1030,18 @@ public:
     r.fTileEntity = t;
     return r;
   }
+
+  static std::optional<Result> CreakingHeart(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
+    Result r;
+    auto t = EmptyShortName(u8"creaking_heart", pos);
+    r.fTileEntity = t;
+    if (auto idB = tagB.int64(u8"SpawnedCreakingID"); idB) {
+      auto id = ConvertEntityId(*idB, ctx);
+      auto idJ = id.toIntArrayTag();
+      t->set(u8"creaking", idJ);
+    }
+    return r;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -1281,6 +1293,8 @@ public:
     E(vault, Vault);
     E(trial_spawner, TrialSpawner);
     E(lodestone, Null);
+
+    E(creaking_heart, CreakingHeart);
 #undef E
     return t;
   }
