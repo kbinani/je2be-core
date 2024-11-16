@@ -132,7 +132,7 @@ public:
     }
 
     ChunkConversionMode mode = ConversionMode(*chunk);
-    //TODO: Change the line below to "DataVersion dataVersion(chunk->getDataVersion(), mode);"
+    // TODO: Change the line below to "DataVersion dataVersion(chunk->getDataVersion(), mode);"
     DataVersion dataVersion(chunk->getDataVersion(), kJavaDataVersion);
 
     PreprocessChunk(loader, *chunk, dataVersion);

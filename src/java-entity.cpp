@@ -1741,7 +1741,7 @@ private:
     }
   }
 
-  //static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
+  // static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
 
   static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"-minecraft:start_suffocating");

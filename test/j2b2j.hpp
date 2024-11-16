@@ -880,7 +880,7 @@ static std::optional<mcfile::je::TickingBlock> FindNearestTickingBlock(int x, in
 
 static void CheckTickingBlockJ(mcfile::je::TickingBlock e, mcfile::je::TickingBlock a) {
   CHECK(e.fI == a.fI);
-  //CHECK(e.fP == a.fP); "P" does not exist in BE
+  // CHECK(e.fP == a.fP); "P" does not exist in BE
   CHECK(e.fT == a.fT);
   CHECK(e.fX == a.fX);
   CHECK(e.fY == a.fY);

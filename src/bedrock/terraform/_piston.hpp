@@ -104,7 +104,7 @@ public:
               tileEntityJ->set(u8"y", Int(y));
               tileEntityJ->set(u8"z", Int(z));
               tileEntityJ->set(u8"extending", Bool(extending));
-              tileEntityJ->set(u8"progress", Float(lastProgress)); //TODO(1.21) state == 3 ? 0 : 0.5));
+              tileEntityJ->set(u8"progress", Float(lastProgress)); // TODO(1.21) state == 3 ? 0 : 0.5));
               tileEntityJ->set(u8"facing", Int(facingDirectionB));
               tileEntityJ->set(u8"source", Bool(false));
 
