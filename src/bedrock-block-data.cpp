@@ -3005,6 +3005,14 @@ private:
     E(lilac, doublePlant);
     E(rose_bush, doublePlant);
     E(peony, doublePlant);
+
+    // 1.21.4
+    E(pale_oak_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(resin_clump, BlockWithMultiFaceDirectionBitsSubmergible);
+    E(pale_oak_slab, Slab);
+    E(pale_oak_double_slab, DoubleSlab(u8"pale_oak_slab"));
+    E(resin_brick_slab, Slab);
+    E(resin_brick_double_slab, DoubleSlab(u8"resin_brick_double_slab"));
 #undef E
 
     return table;
