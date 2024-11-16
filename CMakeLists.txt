@@ -454,6 +454,7 @@ if (zlib_imported_with_cpm GREATER -1)
 endif()
 
 list(APPEND je2be_include_directories ${LZ4_BINARY_DIR}/lib)
+list(APPEND je2be_include_directories ${icu-cmake_BINARY_DIR}/include)
 
 CPMAddPackage(
   NAME leveldb
@@ -499,7 +500,7 @@ CPMAddPackage(
           "MZ_SIGNING OFF"
           "MZ_LIBCOMP OFF")
 
-list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json defer)
+list(APPEND je2be_link_libraries mcfile leveldb minizip nlohmann_json defer icu::uc)
 list(APPEND je2be_exe_link_libraries je2be)
 
 if (MSVC)
