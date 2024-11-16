@@ -1887,11 +1887,37 @@ public:
     E(pale_oak_pressure_plate, pressurePlate);
     E(pale_oak_button, button);
     E(pale_oak_stairs, Stairs());
+    E(pale_moss_carpet, PaleMossCarpet);
     E(resin_clump, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
+    E(resin_brick_stairs, Stairs());
     E(resin_brick_slab, Slab(u8"resin_brick_double_slab"));
+    E(resin_brick_wall, wall);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr PaleMossCarpet(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    if (o.fItem) {
+      // TODO:
+    } else {
+      auto bottom = block.property(u8"bottom", u8"true") == u8"true";
+      for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
+        auto name = JavaNameFromFacing4(f);
+        auto typeJ = block.property(name);
+        std::u8string typeB = u8"none";
+        if (typeJ == u8"low") {
+          typeB = u8"short";
+        } else if (typeJ == u8"tall") {
+          typeB = u8"tall";
+        }
+        s->set(u8"pale_moss_carpet_side_" + name, String(typeB));
+      }
+      s->set(u8"upper_block_bit", Bool(!bottom));
+    }
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr Vault(Block const &block, CompoundTagConstPtr const &, Options const &o) {

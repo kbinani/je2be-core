@@ -1095,6 +1095,23 @@ private:
 #pragma endregion
 
 #pragma region Converters : P
+  static String PaleMossCarpet(String const &bName, CompoundTag const &s, Props &p) {
+    auto bottom = !s.boolean(u8"upper_block_bit", false);
+    p[u8"bottom"] = Bool(bottom);
+    for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
+      auto name = JavaNameFromFacing4(f);
+      auto typeB = s.string(u8"pale_moss_carpet_side_" + name, u8"none");
+      std::u8string typeJ = u8"none";
+      if (typeB == u8"short") {
+        typeJ = u8"low";
+      } else if (typeB == u8"tall") {
+        typeJ = u8"tall";
+      }
+      p[name] = typeJ;
+    }
+    return bName;
+  }
+
   static String PinkPetals(String const &bName, CompoundTag const &s, Props &p) {
     i32 growth = s.int32(u8"growth", 0);
     i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
@@ -3017,9 +3034,12 @@ private:
     E(pale_oak_pressure_plate, PressurePlate);
     E(pale_oak_button, Button);
     E(pale_oak_stairs, Stairs);
+    E(pale_moss_carpet, PaleMossCarpet);
     E(resin_clump, BlockWithMultiFaceDirectionBitsSubmergible);
+    E(resin_brick_stairs, Stairs);
     E(resin_brick_slab, Slab);
-    E(resin_brick_double_slab, DoubleSlab(u8"resin_brick_double_slab"));
+    E(resin_brick_double_slab, DoubleSlab(u8"resin_brick_slab"));
+    E(resin_brick_wall, BlockWithWallProperties);
 #undef E
 
     return table;
