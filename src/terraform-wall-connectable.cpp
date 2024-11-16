@@ -175,6 +175,7 @@ public:
     case chiseled_polished_blackstone:
     case chiseled_quartz_block:
     case chiseled_red_sandstone:
+    case chiseled_resin_bricks:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chiseled_tuff:
@@ -200,6 +201,7 @@ public:
     case cracked_stone_bricks:
     case crafter:
     case crafting_table:
+    case creaking_heart:
     case crimson_hyphae:
     case crimson_nylium:
     case crimson_planks:
@@ -379,6 +381,10 @@ public:
     case oxidized_cut_copper:
     case packed_ice:
     case packed_mud:
+    case pale_moss_block:
+    case pale_oak_log:
+    case pale_oak_planks:
+    case pale_oak_wood:
     case pearlescent_froglight:
     case pink_concrete:
     case pink_concrete_powder:
@@ -435,6 +441,9 @@ public:
     case redstone_lamp:
     case redstone_ore:
     case repeating_command_block:
+    case resin_block:
+    case resin_brick_wall:
+    case resin_bricks:
     case respawn_anchor:
     case rooted_dirt:
     case sand:
@@ -478,6 +487,8 @@ public:
     case stripped_mangrove_wood:
     case stripped_oak_log:
     case stripped_oak_wood:
+    case stripped_pale_oak_log:
+    case stripped_pale_oak_wood:
     case stripped_spruce_log:
     case stripped_spruce_wood:
     case stripped_warped_hyphae:
@@ -623,6 +634,7 @@ public:
     case chiseled_polished_blackstone:
     case chiseled_quartz_block:
     case chiseled_red_sandstone:
+    case chiseled_resin_bricks:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chiseled_tuff:
@@ -646,6 +658,7 @@ public:
     case cracked_stone_bricks:
     case crafter:
     case crafting_table:
+    case creaking_heart:
     case crimson_hyphae:
     case crimson_nylium:
     case crimson_planks:
@@ -836,6 +849,11 @@ public:
     case oxidized_cut_copper:
     case packed_ice:
     case packed_mud:
+    case pale_moss_block:
+    case pale_oak_leaves:
+    case pale_oak_log:
+    case pale_oak_planks:
+    case pale_oak_wood:
     case pearlescent_froglight:
     case pink_carpet:
     case pink_concrete:
@@ -890,6 +908,8 @@ public:
     case redstone_ore:
     case repeater:
     case repeating_command_block:
+    case resin_block:
+    case resin_bricks:
     case respawn_anchor:
     case rooted_dirt:
     case sand:
@@ -936,6 +956,8 @@ public:
     case stripped_mangrove_wood:
     case stripped_oak_log:
     case stripped_oak_wood:
+    case stripped_pale_oak_log:
+    case stripped_pale_oak_wood:
     case stripped_spruce_log:
     case stripped_spruce_wood:
     case stripped_warped_hyphae:

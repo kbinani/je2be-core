@@ -1692,6 +1692,25 @@ private:
     case waxed_weathered_copper_trapdoor:
     case waxed_oxidized_copper_trapdoor:
     case heavy_core:
+    case open_eyeblossom:
+    case closed_eyeblossom:
+    case potted_open_eyeblossom:
+    case potted_closed_eyeblossom:
+    case pale_hanging_moss:
+    case pale_moss_carpet:
+    case pale_oak_fence:
+    case pale_oak_fence_gate:
+    case pale_oak_door:
+    case pale_oak_trapdoor:
+    case pale_oak_pressure_plate:
+    case pale_oak_button:
+    case pale_oak_sign:
+    case pale_oak_wall_sign:
+    case pale_oak_hanging_sign:
+    case pale_oak_wall_hanging_sign:
+    case pale_oak_sapling:
+    case potted_pale_oak_sapling:
+    case resin_brick_wall:
       return 0;
     case acacia_leaves:
     case beacon:
@@ -1737,6 +1756,8 @@ private:
     case cherry_leaves:
     case trial_spawner:
     case vault:
+    case pale_oak_leaves:
+    case resin_clump:
       return 1;
     default:
       return 15;
