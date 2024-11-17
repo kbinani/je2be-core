@@ -1295,6 +1295,9 @@ public:
     E(lodestone, Null);
 
     E(creaking_heart, CreakingHeart);
+    E(pale_oak_standing_sign, sign);
+    E(pale_oak_wall_sign, sign);
+    E(pale_oak_hanging_sign, hangingSign);
 #undef E
     return t;
   }

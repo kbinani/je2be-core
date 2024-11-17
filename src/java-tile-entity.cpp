@@ -353,6 +353,10 @@ private:
     E(trial_spawner, TrialSpawner);
 
     E(creaking_heart, CreakingHeart);
+    E(pale_oak_sign, sign);
+    E(pale_oak_wall_sign, sign);
+    E(pale_oak_hanging_sign, hangingSign);
+    E(pale_oak_wall_hanging_sign, hangingSign);
 #undef E
     return table;
   }
