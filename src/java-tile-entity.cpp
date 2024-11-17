@@ -1543,9 +1543,8 @@ private:
     }
     i32 type = 0;
     if (customName) {
-      auto color = GetAsString(*customName, "color");
       auto translate = GetAsString(*customName, "translate");
-      if (color == u8"gold" && translate == u8"block.minecraft.ominous_banner") {
+      if (translate == u8"block.minecraft.ominous_banner") {
         type = 1; // Illager Banner
       }
     }
