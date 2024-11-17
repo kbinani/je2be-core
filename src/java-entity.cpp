@@ -568,7 +568,7 @@ private:
 
     E(cow, C(Animal, AgeableA(u8"minecraft:cow")));
     E(creeper, C(Monster, Creeper));
-    A(dolphin);
+    E(dolphin, C(Animal, AgeableA(u8"dolphin")));
     E(donkey, C(Animal, TameableB(u8"donkey"), AgeableA(u8"minecraft:donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
     E(drowned, C(Monster, AgeableD(u8"drowned"), Zombie, Drowned));
     M(elder_guardian);
@@ -609,7 +609,7 @@ private:
     E(skeleton_horse, C(Animal, Definitions(u8"+minecraft:skeleton_horse_adult"), SkeletonHorse));
     E(slime, C(Monster, Slime));
     E(spider, C(Monster, Vehicle(u8"spider")));
-    A(squid);
+    E(squid, C(Animal, AgeableH(u8"minecraft:squid")));
     M(stray);
     E(strider, C(Animal, AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider"), Definitions(u8"+minecraft:strider_pathing_behaviors"), Strider));
     E(trader_llama, C(Animal, AgeableA(u8"minecraft:llama"), Llama, Definitions(u8"+minecraft:llama_unchested", u8"-minecraft:llama_defend_trader", u8"-minecraft:llama_persistence"), TraderLlama));
@@ -646,7 +646,7 @@ private:
     E(item_frame, Null);      // item_frame is tile entity in BE.
     E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
-    E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid")));
+    E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid"), AgeableH(u8"minecraft:squid")));
     E(axolotl, C(Animal, AgeableA(u8"axolotl"), PersistentFromFromBucket, Axolotl));
     E(goat, C(Animal, AgeableA(u8"goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
@@ -668,6 +668,8 @@ private:
     E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableG, Armadillo));
     E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
     E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
+
+    E(creaking, C(Monster));
 #undef A
 #undef M
 #undef E
@@ -2191,6 +2193,18 @@ private:
         return;
       }
       c[u8"Age"] = Int(*age - maxBabyAgeJava);
+    };
+  }
+
+  static Behavior AgeableH(std::u8string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+      auto age = tag.int32(u8"Age", 0);
+      if (age < 0) {
+        AddDefinition(c, u8"+" + definitionKey + u8"_baby");
+      } else {
+        AddDefinition(c, u8"+" + definitionKey + u8"_adult");
+      }
+      c[u8"IsBaby"] = Bool(age < 0);
     };
   }
 

@@ -440,6 +440,10 @@ public:
     j[u8"IsChickenJockey"] = Bool(false);
   }
 
+  static void Creaking(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    j[u8"Health"] = Float(1);
+  }
+
   static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"ExplosionRadius"] = Byte(3);
     j[u8"Fuse"] = Short(30);
@@ -637,6 +641,12 @@ public:
 
   static void GlowSquid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"DarkTicksRemaining"] = Int(0);
+    if (HasDefinition(b, u8"+minecraft:squid_baby")) {
+      // BE doesn't have Age tag
+      j[u8"Age"] = Int(-24000);
+    } else {
+      j[u8"Age"] = Int(0);
+    }
   }
 
   static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1542,6 +1552,15 @@ public:
     CopyBoolValues(b, j, {{u8"Sitting", u8"Sitting", false}});
   }
 
+  static void Squid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (HasDefinition(b, u8"+minecraft:squid_baby")) {
+      // BE doesn't have Age tag
+      j[u8"Age"] = Int(24000);
+    } else {
+      j[u8"Age"] = Int(0);
+    }
+  }
+
   static void Wave(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     /*
       uuid := b.int64(u8"DwellingUniqueID")
@@ -2127,7 +2146,7 @@ public:
     E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed, SkeletonHorse));
     E(polar_bear, C(Same, Animal, AngerTime));
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
-    E(squid, C(Same, LivingEntity));
+    E(squid, C(Same, LivingEntity, Squid));
     E(strider, C(Same, Animal, Saddle));
     E(turtle, C(Same, Animal, Turtle));
     E(tropicalfish, C(Rename(u8"tropical_fish"), LivingEntity, FromBucket, TropicalFish));
@@ -2168,6 +2187,9 @@ public:
     E(armadillo, C(Same, Animal, Armadillo));
     E(bogged, C(Same, LivingEntity, Bogged));
     E(breeze, C(Same, LivingEntity));
+    E(dolphine, C(Same, Animal));
+
+    E(creaking, C(Same, LivingEntity, Creaking));
 #undef E
     return ret;
   }

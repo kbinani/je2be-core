@@ -751,6 +751,9 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"DragonPhase");
   } else if (id == u8"player") {
     blacklist.insert(u8"current_impulse_context_reset_grace_time");
+  } else if (id == u8"minecraft:squid" || id == u8"minecraft:glow_squid") {
+    // BE doesn't have Age tag
+    blacklist.insert(u8"Age");
   }
 
   CheckTextComponent(entityE, entityA, u8"CustomName");
