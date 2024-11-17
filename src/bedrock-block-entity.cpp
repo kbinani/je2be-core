@@ -88,6 +88,7 @@ public:
     if (type == 1) {
       // Illager Banner
       java::AppendComponent(te, u8"item_name", String(u8R"({"translate":"block.minecraft.ominous_banner"})"));
+      java::AppendComponent(te, u8"rarity", String(u8"uncommon"));
       patternsJ = Banner::OminousBannerPatterns(opt.fDataVersion);
     } else {
       patternsJ = List<Tag::Type::Compound>();
