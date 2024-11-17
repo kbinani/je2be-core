@@ -782,6 +782,12 @@ private:
     E(purple_bundle, Bundle);
     E(magenta_bundle, Bundle);
     E(pink_bundle, Bundle);
+    E(pale_oak_boat, DefaultItem);
+    E(pale_oak_chest_boat, DefaultItem);
+    E(resin_brick, DefaultItem);
+    E(field_masoned_banner_pattern, DefaultItem);
+    E(bordure_indented_banner_pattern, DefaultItem);
+    E(creaking_spawn_egg, DefaultItem);
 #undef E
     return table;
   }
