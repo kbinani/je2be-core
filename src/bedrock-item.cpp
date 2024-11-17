@@ -282,6 +282,7 @@ public:
         java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
 
         java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
+        java::AppendComponent(itemJ, u8"rarity", String(u8"uncommon"));
       } else {
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {
