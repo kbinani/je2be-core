@@ -237,6 +237,20 @@ public:
   static std::u8string Same(std::u8string const &nameB, CompoundTag const &entityB) {
     return nameB;
   }
+
+  static std::u8string BoatName(std::u8string const &nameB, CompoundTag const &entityB) {
+    auto variant = entityB.int32(u8"Variant", 0);
+    auto type = Boat::JavaTypeFromBedrockVariant(variant);
+    if (nameB.ends_with(u8"chest_boat")) {
+      return Namespace::Add(type + u8"_chest_boat");
+    } else if (nameB.ends_with(u8"chest_raft")) {
+      return Namespace::Add(type + u8"_chest_raft");
+    } else if (nameB.ends_with(u8"raft")) {
+      return Namespace::Add(type + u8"_raft");
+    } else {
+      return Namespace::Add(type + u8"_chest");
+    }
+  }
 #pragma endregion
 
 #pragma region Dedicated Behaviors
@@ -381,10 +395,6 @@ public:
   }
 
   static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    auto variant = b.int32(u8"Variant", 0);
-    auto type = Boat::JavaTypeFromBedrockVariant(variant);
-    j[u8"Type"] = String(type);
-
     if (auto rotB = props::GetRotation(b, u8"Rotation"); rotB) {
       je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
       j[u8"Rotation"] = rotJ.toListTag();
@@ -2105,8 +2115,8 @@ public:
     E(ender_crystal, C(Rename(u8"end_crystal"), Base, ShowBottom, EnderCrystal));
     E(chest_minecart, C(Same, Base, Minecart, ItemsFromChestItems, ChestMinecart));
     E(hopper_minecart, C(Same, Base, Minecart, ItemsFromChestItems, HopperMinecart));
-    E(boat, C(Same, Base, Boat));
-    E(chest_boat, C(Same, Base, ItemsFromChestItems, Boat));
+    E(boat, C(BoatName, Base, Boat));
+    E(chest_boat, C(BoatName, Base, ItemsFromChestItems, Boat));
     E(slime, C(Same, LivingEntity, Size));
     E(salmon, C(Same, LivingEntity, FromBucket, Salmon));
     E(parrot, C(Same, Animal, Sitting, CopyVariant));

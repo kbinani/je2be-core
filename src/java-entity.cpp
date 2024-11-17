@@ -234,7 +234,7 @@ public:
       if (auto vehicleEntity = rootVehicle->compoundTag(u8"Entity"); vehicleEntity) {
         if (auto vehicleRawId = vehicleEntity->string(u8"id"); vehicleRawId) {
           auto vehicleId = MigrateName(*vehicleRawId);
-          if (vehicleId == u8"minecraft:boat" || vehicleId == u8"minecraft:chest_boat") {
+          if (vehicleId == u8"minecraft:boat" || vehicleId == u8"minecraft:chest_boat" || vehicleId.ends_with(u8"_boat") || vehicleId.ends_with(u8"_raft") || vehicleId.ends_with(u8"_chest_boat") || vehicleId.ends_with(u8"_chest_raft")) {
             auto boatPos = GetBoatPos(*vehicleEntity);
             if (boatPos) {
               y = boatPos->fY + 1.24501;
@@ -630,8 +630,8 @@ private:
     E(zombie_villager, C(Animal, Rename(u8"zombie_villager_v2"), Offers(4, u8"persistingOffers"), Villager, ZombieVillager));
     E(zombified_piglin, C(Monster, Rename(u8"zombie_pigman"), AgeableB(u8"pig_zombie"), ZombiePigman));
 
-    E(boat, C(EntityBase, Vehicle(), Impl::Boat(u8"boat")));
-    E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Impl::Boat(u8"chest_boat")));
+    E(boat, C(EntityBase, Vehicle(), Impl::Boat(u8"boat")));                                  // legacy
+    E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Impl::Boat(u8"chest_boat"))); // legacy
     E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions(u8"+minecraft:minecart")));
     E(armor_stand, C(LivingEntity, ArmorStand));
     E(hopper_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions(u8"+minecraft:hopper_minecart"), HopperMinecart));
@@ -670,10 +670,19 @@ private:
     E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
 
     E(creaking, C(Monster));
+    for (std::u8string type : {u8"oak", u8"spruce", u8"birch", u8"jungle", u8"acacia", u8"dark_oak", u8"mangrove", u8"cherry", u8"pale_oak"}) {
+      table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type)));
+      table->try_emplace(type + u8"_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", type)));
+    }
+    table->try_emplace(u8"bamboo_raft", C(EntityBase, Vehicle(), TypedBoat(u8"boat", u8"bamboo")));
+    table->try_emplace(u8"bamboo_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
 #undef A
 #undef M
 #undef E
     return table;
+  }
+
+  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
   }
 
 #pragma region DedicatedBehaviors
@@ -2208,28 +2217,43 @@ private:
     };
   }
 
-  static Behavior Boat(std::u8string const &definitionKey) {
-    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      auto type = tag.string(u8"Type", u8"oak");
-      i32 variant = Boat::BedrockVariantFromJavaType(type);
-      c[u8"Variant"] = Int(variant);
+  static void ConvertBoat(CompoundTag &c, CompoundTag const &tag, ConverterContext &, std::u8string const &definitionKey, std::u8string const &woodType) {
+    i32 variant = Boat::BedrockVariantFromJavaType(woodType);
+    c[u8"Variant"] = Int(variant);
 
-      AddDefinition(c, u8"+minecraft:" + definitionKey);
-      AddDefinition(c, u8"+");
-      if (type == u8"bamboo") {
-        AddDefinition(c, u8"+minecraft:can_ride_bamboo");
+    AddDefinition(c, u8"+minecraft:" + definitionKey);
+    AddDefinition(c, u8"+");
+    if (woodType == u8"bamboo") {
+      AddDefinition(c, u8"+minecraft:can_ride_bamboo");
+    } else {
+      AddDefinition(c, u8"+minecraft:can_ride_default");
+    }
+
+    auto rotation = props::GetRotation(c, u8"Rotation");
+    if (rotation) {
+      Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
+      c[u8"Rotation"] = rot.toListTag();
+    }
+
+    auto pos = GetBoatPos(tag);
+    c[u8"Pos"] = pos->toF().toListTag();
+  }
+
+  static Behavior TypedBoat(std::u8string const &definitionKey, std::u8string const &woodType) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+      ConvertBoat(c, tag, ctx, definitionKey, woodType);
+      if (definitionKey == u8"chest_boat") {
+        c[u8"identifier"] = String(Namespace::Add(u8"chest_boat"));
       } else {
-        AddDefinition(c, u8"+minecraft:can_ride_default");
+        c[u8"identifier"] = String(Namespace::Add(u8"boat"));
       }
+    };
+  }
 
-      auto rotation = props::GetRotation(c, u8"Rotation");
-      if (rotation) {
-        Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
-        c[u8"Rotation"] = rot.toListTag();
-      }
-
-      auto pos = GetBoatPos(tag);
-      c[u8"Pos"] = pos->toF().toListTag();
+  static Behavior Boat(std::u8string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+      auto type = tag.string(u8"Type", u8"oak");
+      ConvertBoat(c, tag, ctx, definitionKey, type);
     };
   }
 

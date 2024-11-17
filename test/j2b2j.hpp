@@ -628,7 +628,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       // y is aligned 0.5 block in BE
     } else if (id == u8"minecraft:chest_minecart") {
       // y of chest_minecart in abandoned_mineshaft has usually conversion failure because OnGround=false but not on rail
-    } else if (id == u8"minecraft:boat") {
+    } else if (id == u8"minecraft:boat" || id.ends_with(u8"_boat") || id.ends_with(u8"_raft") || id.ends_with(u8"_chest_boat") || id.ends_with(u8"_chest_raft")) {
       // y of boat usually different between JE and BE
     } else {
       CHECK(fabs(posE->fY - posA->fY) <= 0.001);

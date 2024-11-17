@@ -15,7 +15,8 @@ public:
                                                   {u8"dark_oak", 5},
                                                   {u8"mangrove", 6},
                                                   {u8"bamboo", 7},
-                                                  {u8"cherry", 8}});
+                                                  {u8"cherry", 8},
+                                                  {u8"pale_oak", 9}});
   }
 
   static i32 BedrockVariantFromJavaType(std::u8string const &type) {
