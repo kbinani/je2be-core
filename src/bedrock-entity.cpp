@@ -831,6 +831,16 @@ public:
     j[u8"StunTick"] = Int(0);
   }
 
+  static void Salmon(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (HasDefinition(b, u8"+scale_small")) {
+      j[u8"type"] = String(u8"small");
+    } else if (HasDefinition(b, u8"+scale_large")) {
+      j[u8"type"] = String(u8"large");
+    } else {
+      j[u8"type"] = String(u8"medium");
+    }
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Sheared"}});
     CopyByteValues(b, j, {{u8"Color"}});
@@ -2079,7 +2089,7 @@ public:
     E(boat, C(Same, Base, Boat));
     E(chest_boat, C(Same, Base, ItemsFromChestItems, Boat));
     E(slime, C(Same, LivingEntity, Size));
-    E(salmon, C(Same, LivingEntity, FromBucket));
+    E(salmon, C(Same, LivingEntity, FromBucket, Salmon));
     E(parrot, C(Same, Animal, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename(u8"zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie, ZombifiedPiglin));

@@ -600,7 +600,7 @@ private:
     E(pufferfish, C(Mob, PersistentFromFromBucket, Pufferfish));
     E(rabbit, C(Animal, AgeableC, Rabbit));
     E(ravager, C(Monster, AttackTime, CanJoinRaid));
-    E(salmon, C(Mob, PersistentFromFromBucket));
+    E(salmon, C(Mob, PersistentFromFromBucket, Salmon));
     E(sheep, C(Animal, AgeableA(u8"minecraft:sheep"), Colorable(u8"sheep"), Definitions(u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"), Sheep));
     E(shulker, C(Monster, Shulker));
     M(silverfish);
@@ -1425,6 +1425,17 @@ private:
     AddDefinition(c, u8"+coat_" + coat);
 
     CopyIntValues(tag, c, {{u8"MoreCarrotTicks"}});
+  }
+
+  static void Salmon(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    auto type = tag.string(u8"type", u8"medium");
+    if (type == u8"small") {
+      AddDefinition(c, u8"+scale_small");
+    } else if (type == u8"large") {
+      AddDefinition(c, u8"+scale_large");
+    } else {
+      AddDefinition(c, u8"+scale_normal");
+    }
   }
 
   static void Sheep(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
