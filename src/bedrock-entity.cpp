@@ -1155,6 +1155,10 @@ public:
   static void Debug(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
   }
 
+  static void Dolphin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    j.erase(u8"InLove");
+  }
+
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"EatingHaystack"] = Bool(false);
   }
@@ -2197,7 +2201,7 @@ public:
     E(armadillo, C(Same, Animal, Armadillo));
     E(bogged, C(Same, LivingEntity, Bogged));
     E(breeze, C(Same, LivingEntity));
-    E(dolphin, C(Same, Animal));
+    E(dolphin, C(Same, Animal, Dolphin));
 
     E(creaking, C(Same, LivingEntity, Creaking));
 #undef E
