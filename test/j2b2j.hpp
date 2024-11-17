@@ -700,6 +700,8 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"TimeInOverworld");
   } else if (id == u8"minecraft:chest_minecart") {
     blacklist.insert(u8"LootTableSeed");
+    blacklist.insert(u8"FlippedRotation");
+    blacklist.insert(u8"HasTicked");
   } else if (id == u8"minecraft:zombie") {
     blacklist.insert(u8"InWaterTime");
   } else if (id == u8"minecraft:arrow") {
