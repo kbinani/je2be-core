@@ -2197,7 +2197,7 @@ public:
     E(armadillo, C(Same, Animal, Armadillo));
     E(bogged, C(Same, LivingEntity, Bogged));
     E(breeze, C(Same, LivingEntity));
-    E(dolphine, C(Same, Animal));
+    E(dolphin, C(Same, Animal));
 
     E(creaking, C(Same, LivingEntity, Creaking));
 #undef E
