@@ -358,7 +358,12 @@ public:
       t->set(u8"Command", commandJ);
     }
     CopyIntValues(tagB, *t, {{u8"SuccessCount"}});
-    CopyBoolValues(tagB, *t, {{u8"auto"}, {u8"powered"}, {u8"conditionMet"}, {u8"TrackOutput"}});
+    auto auto_ = tagB.boolean(u8"auto", false);
+    if (!auto_) {
+      CopyBoolValues(tagB, *t, {{u8"powered"}, {u8"conditionMet"}});
+    }
+    t->set(u8"auto", Bool(auto_));
+    CopyBoolValues(tagB, *t, {{u8"TrackOutput"}});
     CopyLongValues(tagB, *t, {{u8"LastExecution"}});
 
     t->set(u8"UpdateLastExecution", Bool(true));
