@@ -764,8 +764,53 @@ private:
     E(music_disc_precipice, DefaultItem);
     E(ominous_trial_key, DefaultItem);
     E(wind_charge, DefaultItem);
+
+    E(bundle, Bundle);
+    E(white_bundle, Bundle);
+    E(light_gray_bundle, Bundle);
+    E(gray_bundle, Bundle);
+    E(black_bundle, Bundle);
+    E(brown_bundle, Bundle);
+    E(red_bundle, Bundle);
+    E(orange_bundle, Bundle);
+    E(yellow_bundle, Bundle);
+    E(lime_bundle, Bundle);
+    E(green_bundle, Bundle);
+    E(cyan_bundle, Bundle);
+    E(light_blue_bundle, Bundle);
+    E(blue_bundle, Bundle);
+    E(purple_bundle, Bundle);
+    E(magenta_bundle, Bundle);
+    E(pink_bundle, Bundle);
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr Bundle(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    if (auto contentsJ = item.query(u8"components/minecraft:bundle_contents")->asList(); contentsJ) {
+      auto contentsB = List<Tag::Type::Compound>();
+      uint8_t slot = 0;
+      int weight = 4;
+      for (auto it : *contentsJ) {
+        if (auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it); itemJ) {
+          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+            itemB->set(u8"Slot", Byte(slot));
+            slot++;
+            weight += itemB->byte(u8"Count", 0);
+            contentsB->push_back(itemB);
+          }
+        }
+      }
+      for (; slot < 63; slot++) {
+        auto itemB = Empty();
+        itemB->set(u8"Slot", Byte(slot));
+        contentsB->push_back(itemB);
+      }
+      AppendTag(*ret, u8"bundle_weight", Int(weight));
+      AppendTag(*ret, u8"storage_item_component_content", contentsB);
+    }
+    return ret;
   }
 
   static std::unordered_map<std::u8string, Converter> const &ItemConverterTable() {

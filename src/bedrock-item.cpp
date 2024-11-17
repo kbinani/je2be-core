@@ -112,11 +112,6 @@ public:
         }
       }
     }
-    if (!ctx.fDataPackBundle) {
-      if (nameJ == u8"minecraft:bundle") {
-        ctx.fDataPackBundle = true;
-      }
-    }
     itemJ.set(u8"id", nameJ);
 
     if (auto countB = itemB.byte(u8"Count"); countB) {
@@ -1003,6 +998,28 @@ public:
     }
     return name;
   }
+
+  static std::u8string Bundle(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      if (auto contentsB = tagB->listTag(u8"storage_item_component_content"); contentsB) {
+        auto contentsJ = List<Tag::Type::Compound>();
+        for (auto it : *contentsB) {
+          if (auto itemB = std::dynamic_pointer_cast<CompoundTag>(it); itemB) {
+            if (auto count = itemB->byte(u8"Count", 0); count > 0) {
+              if (auto itemJ = Item::From(*itemB, ctx, dataVersion, opt); itemJ) {
+                itemJ->erase(u8"Slot");
+                contentsJ->push_back(itemJ);
+              }
+            }
+          }
+        }
+        if (!contentsJ->empty()) {
+          java::AppendComponent(itemJ, u8"bundle_contents", contentsJ);
+        }
+      }
+    }
+    return name;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -1145,6 +1162,25 @@ public:
 
     // 1.21
     E(ominous_bottle, OminousBottle);
+
+    // 1.21.4
+    E(bundle, Bundle);
+    E(white_bundle, Bundle);
+    E(light_gray_bundle, Bundle);
+    E(gray_bundle, Bundle);
+    E(black_bundle, Bundle);
+    E(brown_bundle, Bundle);
+    E(red_bundle, Bundle);
+    E(orange_bundle, Bundle);
+    E(yellow_bundle, Bundle);
+    E(lime_bundle, Bundle);
+    E(green_bundle, Bundle);
+    E(cyan_bundle, Bundle);
+    E(light_blue_bundle, Bundle);
+    E(blue_bundle, Bundle);
+    E(purple_bundle, Bundle);
+    E(magenta_bundle, Bundle);
+    E(pink_bundle, Bundle);
 #undef E
     return ret;
   }

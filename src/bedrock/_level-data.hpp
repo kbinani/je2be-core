@@ -170,9 +170,6 @@ public:
       root[u8"Data"] = data;
     }
     auto enabledFeatures = List<Tag::Type::String>();
-    if (ctx.fDataPackBundle) {
-      enabledFeatures->push_back(String(u8"minecraft:bundle"));
-    }
     if (ctx.fDataPackTradeRebalance) {
       enabledFeatures->push_back(String(u8"minecraft:trade_rebalance"));
     }
@@ -183,17 +180,11 @@ public:
 
     if (auto dataPacks = data->compoundTag(u8"DataPacks"); dataPacks) {
       if (auto enabledDataPacks = dataPacks->listTag(u8"Enabled"); enabledDataPacks) {
-        if (ctx.fDataPackBundle) {
-          enabledDataPacks->push_back(String(u8"bundle"));
-        }
         if (ctx.fDataPackTradeRebalance) {
           enabledDataPacks->push_back(String(u8"trade_rebalance"));
         }
       }
       if (auto disabledDataPacks = dataPacks->listTag(u8"Disabled"); disabledDataPacks) {
-        if (!ctx.fDataPackBundle) {
-          disabledDataPacks->push_back(String(u8"bundle"));
-        }
         if (!ctx.fDataPackTradeRebalance) {
           disabledDataPacks->push_back(String(u8"trade_rebalance"));
         }

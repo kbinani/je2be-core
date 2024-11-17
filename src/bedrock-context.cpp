@@ -313,7 +313,6 @@ void Context::mergeInto(Context &other) const {
     auto &dest = other.fPoiBlocks[dim];
     it.second.mergeInto(dest);
   }
-  other.fDataPackBundle = other.fDataPackBundle || fDataPackBundle;
 }
 
 Status Context::postProcess(std::filesystem::path root, mcfile::be::DbInterface &db) const {
@@ -342,7 +341,6 @@ std::shared_ptr<Context> Context::make() const {
   }
   ret->fShoulderEntityLeftId = fShoulderEntityLeftId;
   ret->fShoulderEntityRightId = fShoulderEntityRightId;
-  ret->fDataPackBundle = fDataPackBundle;
   return ret;
 }
 

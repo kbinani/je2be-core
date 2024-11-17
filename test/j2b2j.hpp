@@ -92,7 +92,9 @@ static void CheckBlockJ(shared_ptr<mcfile::je::Block const> const &blockE, share
         } else {
           if (blockA->fId != blockE->fId || blockA->fData != blockE->fData) {
             lock_guard<mutex> lock(sMutCerr);
-            cerr << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << ", expected=" << blockE->toString() << "; actual=" << blockA->toString() << endl;
+            cerr << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << endl;
+            cerr << "expected=" << blockE->toString() << endl;
+            cerr << "actual  =" << blockA->toString() << endl;
           }
           CHECK(blockA->fId == blockE->fId);
           CHECK(blockA->fData == blockE->fData);
@@ -269,9 +271,6 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   if (itemId) {
     if (*itemId == u8"minecraft:petrified_oak_slab" || *itemId == u8"minecraft:furnace_minecart") {
       blacklist.insert(u8"id");
-    } else if (*itemId == u8"minecraft:bundle") {
-      // bundle does not exist in BE
-      return;
     } else if (*itemId == u8"minecraft:debug_stick") {
       return;
     } else if (*itemId == u8"minecraft:painting") {

@@ -76,11 +76,6 @@ public:
         }
       }
     }
-    if (!ctx.fDataPackBundle) {
-      if (nameJ == u8"minecraft:bundle") {
-        ctx.fDataPackBundle = true;
-      }
-    }
     itemJ.set(u8"id", nameJ);
 
     CopyByteValues(itemB, itemJ, {{u8"Count"}, {u8"Slot"}});
