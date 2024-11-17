@@ -12,7 +12,7 @@ namespace je2be::bedrock {
 class LevelData {
 public:
   struct GameRules {
-    static CompoundTagPtr Import(CompoundTag const &b, mcfile::be::DbInterface &db, mcfile::Encoding encoding) {
+    static CompoundTagPtr ImportFromBedrock(CompoundTag const &b, mcfile::be::DbInterface &db, mcfile::Encoding encoding) {
       auto ret = Compound();
       CompoundTag &j = *ret;
 #define B(__nameJ, __nameB, __default) j[u8"" #__nameJ] = String(b.boolean(u8"" #__nameB, __default) ? u8"true" : u8"false");
@@ -20,6 +20,7 @@ public:
       // announceAdvancements
       B(commandBlockOutput, commandblockoutput, true);
       // disableElytraMovementCheck
+      // disablePlayerMovementCheck
       // disableRaids
       B(doDaylightCycle, dodaylightcycle, true);
       B(doEntityDrops, doentitydrops, true);
@@ -72,6 +73,7 @@ public:
       }
 
       ret->set(u8"enderPearlsVanishOnDeath", u8"true");
+      ret->set(u8"disablePlayerMovementCheck", u8"false");
 
       return ret;
     }
@@ -136,7 +138,7 @@ public:
     CopyLongValues(b, j, {{u8"Time", u8"DayTime"}, {u8"currentTick", u8"Time"}});
 
     j[u8"Difficulty"] = Byte(b.int32(u8"Difficulty", 2));
-    j[u8"GameRules"] = GameRules::Import(b, db, ctx.fEncoding);
+    j[u8"GameRules"] = GameRules::ImportFromBedrock(b, db, ctx.fEncoding);
     j[u8"LastPlayed"] = Long(b.int64(u8"LastPlayed", 0) * 1000);
     j[u8"raining"] = Bool(b.float32(u8"rainLevel", 0) >= 1);
     j[u8"thundering"] = Bool(b.float32(u8"lightningLevel", 0) >= 1);

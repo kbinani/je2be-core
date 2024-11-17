@@ -32,7 +32,10 @@ public:
 
     {
       auto dataPacks = Compound();
-      dataPacks->set(u8"Disabled", List<Tag::Type::String>());
+      auto disabled = List<Tag::Type::String>();
+      disabled->push_back(String(u8"minecart_improvements"));
+      disabled->push_back(String(u8"redstone_experiments"));
+      dataPacks->set(u8"Disabled", disabled);
       auto enabled = List<Tag::Type::String>();
       enabled->push_back(String(u8"vanilla"));
       for (auto const &pack : o.fEnabledDataPacks) {
@@ -51,7 +54,7 @@ public:
       version->set(u8"Id", Int(o.fDataVersion));
       version->set(u8"Name", o.fVersionString);
       version->set(u8"Series", u8"main");
-      version->set(u8"Snapshot", Bool(false));
+      version->set(u8"Snapshot", Bool(true)); // TODO(1.21.4)
       j[u8"Version"] = version;
     }
     {

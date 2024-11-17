@@ -269,7 +269,7 @@ public:
     return w.write((u32)pos - 8);
   }
 
-  static Level Import(CompoundTag const &tag) {
+  static Level ImportFromJava(CompoundTag const &tag) {
     Level ret;
     auto data = tag.compoundTag(u8"Data");
     if (!data) {
