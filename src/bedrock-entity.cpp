@@ -241,14 +241,18 @@ public:
   static std::u8string BoatName(std::u8string const &nameB, CompoundTag const &entityB) {
     auto variant = entityB.int32(u8"Variant", 0);
     auto type = Boat::JavaTypeFromBedrockVariant(variant);
-    if (nameB.ends_with(u8"chest_boat")) {
-      return Namespace::Add(type + u8"_chest_boat");
-    } else if (nameB.ends_with(u8"chest_raft")) {
-      return Namespace::Add(type + u8"_chest_raft");
-    } else if (nameB.ends_with(u8"raft")) {
-      return Namespace::Add(type + u8"_raft");
+    if (nameB == u8"minecraft:chest_boat") {
+      if (type == u8"bamboo") {
+        return Namespace::Add(u8"bamboo_chest_raft");
+      } else {
+        return Namespace::Add(type + u8"_chest_boat");
+      }
     } else {
-      return Namespace::Add(type + u8"_boat");
+      if (type == u8"bamboo") {
+        return Namespace::Add(u8"bamboo_raft");
+      } else {
+        return Namespace::Add(type + u8"_boat");
+      }
     }
   }
 #pragma endregion
