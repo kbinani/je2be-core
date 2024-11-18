@@ -5,6 +5,7 @@
 #include "_dimension-ext.hpp"
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
+#include "_optional.hpp"
 #include "_props.hpp"
 #include "entity/_armor-stand.hpp"
 #include "entity/_axolotl.hpp"
@@ -1522,7 +1523,7 @@ private:
 
   static void TntMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"+minecraft:tnt_minecart");
-    auto fuse = tag.int32(u8"TNTFuse", -1);
+    auto fuse = Wrap<int32_t>(FallbackValue<int32_t>(tag, {u8"TNTFuse", u8"fuse"}), 0);
     if (fuse < 0) {
       AddDefinition(c, u8"+minecraft:inactive");
     } else {

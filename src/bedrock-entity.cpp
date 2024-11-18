@@ -884,7 +884,7 @@ public:
 
   static void TntMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto fuse = b.byte(u8"Fuse", -1);
-    j[u8"TNTFuse"] = Int(fuse);
+    j[u8"fuse"] = Int(fuse);
   }
 
   static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
