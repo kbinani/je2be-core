@@ -671,11 +671,11 @@ private:
 
     E(creaking, C(Monster));
     for (std::u8string type : {u8"oak", u8"spruce", u8"birch", u8"jungle", u8"acacia", u8"dark_oak", u8"mangrove", u8"cherry", u8"pale_oak"}) {
-      table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type)));
+      table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type), Debug));
       table->try_emplace(type + u8"_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", type)));
     }
     table->try_emplace(u8"bamboo_raft", C(EntityBase, Vehicle(), TypedBoat(u8"boat", u8"bamboo")));
-    table->try_emplace(u8"bamboo_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
+    table->try_emplace(u8"bamboo_chest_raft", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
 #undef A
 #undef M
 #undef E

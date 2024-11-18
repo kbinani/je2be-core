@@ -608,6 +608,19 @@ static void CheckContainerItemsJ(ListTagPtr const &expected, ListTagPtr const &a
   }
 }
 
+static void CheckRotationJ(ListTag const &e, ListTag const &a) {
+  REQUIRE(e.size() == 2);
+  REQUIRE(a.size() == 2);
+  for (size_t i = 0; i < 2; i++) {
+    auto ev = e.at(i)->asFloat();
+    auto av = a.at(i)->asFloat();
+    REQUIRE(ev);
+    REQUIRE(av);
+    float diff = std::fabsf(ev->fValue - av->fValue);
+    CHECK(diff < 0.01f);
+  }
+}
+
 static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA, CheckEntityJOptions options) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
@@ -836,6 +849,17 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   copyE->erase(u8"Thrower");
   copyA->erase(u8"Thrower");
   CHECK((bool)throwerE == (bool)throwerA);
+
+  auto rotationE = entityE.listTag(u8"Rotation");
+  auto rotationA = entityA.listTag(u8"Rotation");
+  copyE->erase(u8"Rotation");
+  copyA->erase(u8"Rotation");
+  if (rotationE) {
+    CHECK(rotationA);
+    CheckRotationJ(*rotationE, *rotationA);
+  } else {
+    CHECK(!rotationA);
+  }
 
   DiffCompoundTag(*copyE, *copyA);
 }

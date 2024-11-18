@@ -248,7 +248,7 @@ public:
     } else if (nameB.ends_with(u8"raft")) {
       return Namespace::Add(type + u8"_raft");
     } else {
-      return Namespace::Add(type + u8"_chest");
+      return Namespace::Add(type + u8"_boat");
     }
   }
 #pragma endregion
