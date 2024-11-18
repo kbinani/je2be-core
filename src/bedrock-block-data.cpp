@@ -3054,6 +3054,9 @@ private:
     E(pale_oak_hanging_sign, HangingSign);
     E(pale_oak_sapling, sapling);
     E(pale_oak_log, BlockWithAxisFromPillarAxis);
+    E(pale_oak_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_pale_oak_log, BlockWithAxisFromPillarAxis);
+    E(stripped_pale_oak_wood, BlockWithAxisFromPillarAxis);
     E(pale_hanging_moss, PaleHangingMoss);
     E(pale_moss_carpet, PaleMossCarpet);
     E(resin_clump, BlockWithMultiFaceDirectionBitsSubmergible);

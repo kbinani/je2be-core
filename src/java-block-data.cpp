@@ -1891,6 +1891,9 @@ public:
     E(pale_oak_hanging_sign, HangingSign);
     E(pale_oak_wall_hanging_sign, WallHangingSign);
     E(pale_oak_log, axisToPillarAxis);
+    E(pale_oak_wood, axisToPillarAxis);
+    E(stripped_pale_oak_log, axisToPillarAxis);
+    E(stripped_pale_oak_wood, axisToPillarAxis);
     E(pale_hanging_moss, PaleHangingMoss);
     E(pale_moss_carpet, PaleMossCarpet);
     E(resin_clump, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
