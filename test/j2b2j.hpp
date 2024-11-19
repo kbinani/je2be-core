@@ -170,7 +170,7 @@ static void Erase(shared_ptr<CompoundTag> t, u8string const &path) {
   }
 }
 
-static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
+static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a, std::string hint = "") {
   ostringstream streamE;
   PrintAsJson(streamE, e, {.fTypeHint = true});
   ostringstream streamA;
@@ -184,6 +184,9 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
     vector<string> linesE = mcfile::String::Split(jsonE, '\n');
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
     size_t lines = (std::min)(linesE.size(), linesA.size());
+    if (!hint.empty()) {
+      out << hint << endl;
+    }
     out << "actual:" << endl;
     for (size_t i = 0; i < lines; i++) {
       if (i < linesE.size() && linesA[i] != linesE[i]) {

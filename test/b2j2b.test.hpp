@@ -485,7 +485,7 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
             tagE->erase(i);
             tagA->erase(i);
           }
-          DiffCompoundTag(*tagE, *tagA);
+          DiffCompoundTag(*tagE, *tagA, "[" + to_string(x) + "," + to_string(y) + "," + to_string(z) + "]");
         } else {
           if (a) {
             CHECK(a->fName == u8"minecraft:air");
