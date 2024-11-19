@@ -74,6 +74,7 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"+minecraft:sheep_light_gray",
       u8"+minecraft:sheep_black",
       u8"+minecraft:sheep_pink",
+      u8"+dolphin_swimming_navigation",
   };
 
   set<u8string> setE;
