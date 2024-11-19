@@ -775,7 +775,7 @@ public:
     return Int(r);
   }
 
-  static Converter Sign(std::optional<std::u8string> prefix = std::nullopt) {
+  static Converter StandingSign(std::optional<std::u8string> prefix = std::nullopt) {
     std::u8string name = prefix ? *prefix + u8"_standing_sign" : u8"standing_sign";
     return Converter(Name(name), Name(Rotation, u8"ground_sign_direction"));
   }
@@ -1363,16 +1363,16 @@ public:
     E(dead_fire_coral_wall_fan, CoralWallFan(u8"2", true, 1));
     E(dead_horn_coral_wall_fan, CoralWallFan(u8"3", true, 0));
 
-    E(oak_sign, Sign());
-    E(spruce_sign, Sign(u8"spruce"));
-    E(birch_sign, Sign(u8"birch"));
-    E(jungle_sign, Sign(u8"jungle"));
-    E(acacia_sign, Sign(u8"acacia"));
-    E(dark_oak_sign, Sign(u8"darkoak"));
-    E(crimson_sign, Sign(u8"crimson"));
-    E(warped_sign, Sign(u8"warped"));
-    E(mangrove_sign, Sign(u8"mangrove"));
-    E(bamboo_sign, Sign(u8"bamboo"));
+    E(oak_sign, StandingSign());
+    E(spruce_sign, StandingSign(u8"spruce"));
+    E(birch_sign, StandingSign(u8"birch"));
+    E(jungle_sign, StandingSign(u8"jungle"));
+    E(acacia_sign, StandingSign(u8"acacia"));
+    E(dark_oak_sign, StandingSign(u8"darkoak"));
+    E(crimson_sign, StandingSign(u8"crimson"));
+    E(warped_sign, StandingSign(u8"warped"));
+    E(mangrove_sign, StandingSign(u8"mangrove"));
+    E(bamboo_sign, StandingSign(u8"bamboo"));
 
     E(oak_wall_sign, WallSign());
     E(spruce_wall_sign, WallSign(u8"spruce"));
@@ -1813,7 +1813,7 @@ public:
     E(cherry_button, button);
     E(cherry_hanging_sign, HangingSign);
     E(cherry_wall_hanging_sign, WallHangingSign);
-    E(cherry_sign, Sign(u8"cherry"));
+    E(cherry_sign, StandingSign(u8"cherry"));
     E(cherry_wall_sign, WallSign(u8"cherry"));
     E(cherry_door, door);
     E(cherry_fence_gate, fenceGate);
@@ -1889,7 +1889,8 @@ public:
     E(pale_oak_pressure_plate, pressurePlate);
     E(pale_oak_button, button);
     E(pale_oak_stairs, Stairs());
-    E(pale_oak_sign, Sign(u8"pale_oak"));
+    E(pale_oak_sign, StandingSign(u8"pale_oak"));
+    E(pale_oak_wall_sign, WallSign(u8"pale_oak"));
     E(pale_oak_hanging_sign, HangingSign);
     E(pale_oak_wall_hanging_sign, WallHangingSign);
     E(pale_oak_log, axisToPillarAxis);
