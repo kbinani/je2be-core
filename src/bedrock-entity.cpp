@@ -1573,7 +1573,7 @@ public:
   static void Squid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (HasDefinition(b, u8"+minecraft:squid_baby")) {
       // BE doesn't have Age tag
-      j[u8"Age"] = Int(24000);
+      j[u8"Age"] = Int(-24000);
     } else {
       j[u8"Age"] = Int(0);
     }
