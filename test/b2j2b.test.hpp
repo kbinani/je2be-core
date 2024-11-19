@@ -332,6 +332,23 @@ static void CheckRotationB(float e, float a) {
   CHECK(e == a);
 }
 
+static void CheckSignTextB(CompoundTagPtr const &expected, CompoundTagPtr const &actual) {
+  if (expected) {
+    REQUIRE(actual);
+    auto e = expected->copy();
+    auto a = actual->copy();
+    set<u8string> ignore;
+    ignore.insert(u8"FilteredText");
+    for (auto const &it : ignore) {
+      e->erase(it);
+      a->erase(it);
+    }
+    DiffCompoundTag(*e, *a);
+  } else {
+    CHECK(!actual);
+  }
+}
+
 static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE, mcfile::Dimension dim, B2J2BContext &ctx) {
   auto e = expected.copy();
   auto a = actual.copy();
@@ -404,6 +421,15 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"trackingHandle");
   } else if (*idE == u8"Lectern") {
     itemTags.insert(u8"book");
+  } else if (*idE == u8"Sign" || *idE == u8"HangingSign") {
+    auto frontE = e->compoundTag(u8"FrontText");
+    auto backE = e->compoundTag(u8"BackText");
+    auto frontA = a->compoundTag(u8"FrontText");
+    auto backA = a->compoundTag(u8"BackText");
+    ignore.insert(u8"FrontText");
+    ignore.insert(u8"BackText");
+    CheckSignTextB(frontE, frontA);
+    CheckSignTextB(backE, backA);
   }
   for (auto const &key : itemTags) {
     auto itemE = e->compoundTag(key);
