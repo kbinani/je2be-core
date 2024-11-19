@@ -236,6 +236,8 @@ public:
         {u8"showrecipemessages", Bool(fShowrecipemessages)},
         {u8"IsHardcore", Bool(fIsHardcore)},
         {u8"tntexplosiondropdecay", Bool(fTntExplosionDropDecay)},
+
+        {u8"HasUncompleteWorldFileOnDisk", Bool(false)},
     });
     auto experiments = Compound();
     experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
