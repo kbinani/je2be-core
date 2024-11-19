@@ -1902,6 +1902,9 @@ public:
     E(resin_brick_wall, wall);
     E(pale_oak_sapling, sapling);
     E(creaking_heart, CreakingHeart);
+    E(potted_open_eyeblossom, pottedFlowerPot);
+    E(potted_closed_eyeblossom, pottedFlowerPot);
+    E(potted_pale_oak_sapling, pottedFlowerPot);
 #undef E
 
     return table;
