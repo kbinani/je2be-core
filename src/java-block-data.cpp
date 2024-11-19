@@ -703,6 +703,8 @@ public:
     if (upper) {
       s->set(u8"direction", Int(0));
       s->set(u8"open_bit", Bool(false));
+    } else {
+      s->set(u8"door_hinge_bit", Bool(false));
     }
   }
 
