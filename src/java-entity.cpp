@@ -670,7 +670,7 @@ private:
     E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
     E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
 
-    E(creaking, C(Monster));
+    E(creaking, C(Monster, Definitions(u8"+minecraft:creaking"), Creaking));
     for (std::u8string type : {u8"oak", u8"spruce", u8"birch", u8"jungle", u8"acacia", u8"dark_oak", u8"mangrove", u8"cherry", u8"pale_oak"}) {
       table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type), Debug));
       table->try_emplace(type + u8"_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", type)));
@@ -924,6 +924,17 @@ private:
       timer->set(u8"StopSpawning", Bool(false));
       entries->push_back(timer);
       c[u8"entries"] = entries;
+    }
+  }
+
+  static void Creaking(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    AddDefinition(c, u8"+minecraft:neutral");
+    AddDefinition(c, u8"+minecraft:mobile");
+    auto homePos = tag.intArrayTag(u8"home_pos");
+    if (homePos) {
+      // TODO(1.21.4)
+    } else {
+      AddDefinition(c, u8"+minecraft:spawned_by_player");
     }
   }
 
