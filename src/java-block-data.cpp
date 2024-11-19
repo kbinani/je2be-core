@@ -251,7 +251,7 @@ public:
 
   // static Converter StoneLegacy(std::u8string const &stoneType) { return Subtype(u8"stone", u8"stone_type", stoneType); }
 
-  static Converter Dirt(std::u8string const &dirtType) { return Subtype(u8"dirt", u8"dirt_type", dirtType); }
+  // static Converter Dirt(std::u8string const &dirtType) { return Subtype(u8"dirt", u8"dirt_type", dirtType); }
 
   // static Converter LogLegacy(std::u8string const &type) { return Converter(Name(u8"log"), AddStringProperty(u8"old_log_type", type), AxisToPillarAxis); }
 
@@ -740,7 +740,7 @@ public:
 
   static Converter Wall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
 
-  static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), CardinalDirectionFromFacing4); }
+  // static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), CardinalDirectionFromFacing4); }
 
   static Converter CoralLegacy(std::u8string const &type, bool dead) { return Converter(Name(u8"coral"), AddStringProperty(u8"coral_color", type), AddBoolProperty(u8"dead_bit", dead)); }
 
@@ -900,8 +900,8 @@ public:
     E(polished_andesite, Identity);
     E(diorite, Identity);
     E(polished_diorite, Identity);
-    E(dirt, Dirt(u8"normal"));
-    E(coarse_dirt, Dirt(u8"coarse"));
+    E(dirt, Identity);
+    E(coarse_dirt, Identity);
     E(grass_block, Identity);
 
     E(oak_log, axisToPillarAxis);
@@ -1305,9 +1305,9 @@ public:
     E(red_stained_glass_pane, Identity);
     E(black_stained_glass_pane, Identity);
     E(slime_block, Rename(u8"slime"));
-    E(anvil, Anvil(u8"undamaged"));
-    E(chipped_anvil, Anvil(u8"slightly_damaged"));
-    E(damaged_anvil, Anvil(u8"very_damaged"));
+    E(anvil, cardinalDirectionFromFacing4);         // Anvil(u8"undamaged"));
+    E(chipped_anvil, cardinalDirectionFromFacing4); // Anvil(u8"slightly_damaged"));
+    E(damaged_anvil, cardinalDirectionFromFacing4); // Anvil(u8"very_damaged"));
     E(white_glazed_terracotta, facingDirectionFromFacingA);
     E(orange_glazed_terracotta, facingDirectionFromFacingA);
     E(magenta_glazed_terracotta, facingDirectionFromFacingA);

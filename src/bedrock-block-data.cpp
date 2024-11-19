@@ -2471,6 +2471,8 @@ private:
     E(blackstone_wall, BlockWithWallProperties);
 
     E(anvil, Anvil);
+    E(chipped_anvil, BlockWithFacing4FromDirectionA);
+    E(damaged_anvil, BlockWithFacing4FromDirectionA);
     E(melon_stem, MelonStem);
     E(pumpkin_stem, PumpkinStem);
     E(azalea_leaves, BlockWithPersistentFromPersistentBitSubmergible);
@@ -2675,6 +2677,8 @@ private:
     E(chorus_flower, BlockWithAge);
     E(chorus_plant, Same);
     E(dirt, Dirt);
+    E(grass_block, Same);
+    E(coarse_dirt, Same);
     E(cobbled_deepslate_slab, Slab);
     E(cobbled_deepslate_double_slab, DoubleSlab(u8"cobbled_deepslate_slab"));
     E(cobbled_deepslate_wall, BlockWithWallProperties);
