@@ -430,6 +430,8 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"BackText");
     CheckSignTextB(frontE, frontA);
     CheckSignTextB(backE, backA);
+  } else if (*idE == u8"CreakingHeart") {
+    ignore.insert(u8"Cooldown");
   }
   for (auto const &key : itemTags) {
     auto itemE = e->compoundTag(key);
