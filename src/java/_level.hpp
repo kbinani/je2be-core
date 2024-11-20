@@ -123,6 +123,7 @@ public:
   bool fProjectilescanbreakblocks = true;
   bool fShowrecipemessages = true;
   bool fIsHardcore = false;
+  bool fPlayerHasDied = false;
 
   CompoundTagPtr toBedrockCompoundTag() const {
     auto root = Compound();
@@ -236,6 +237,7 @@ public:
         {u8"showrecipemessages", Bool(fShowrecipemessages)},
         {u8"IsHardcore", Bool(fIsHardcore)},
         {u8"tntexplosiondropdecay", Bool(fTntExplosionDropDecay)},
+        {u8"PlayerHasDied", Bool(fPlayerHasDied)},
 
         {u8"HasUncompleteWorldFileOnDisk", Bool(false)},
     });
@@ -366,6 +368,13 @@ public:
     ret.fLightningTime = data->int32(u8"thunderTime", ret.fLightningTime);
     if (auto type = GameModeFromJava(data->int32(u8"GameType", 0)); type) {
       ret.fGameType = *type;
+    }
+    if (auto player = data->compoundTag(u8"Player"); player) {
+      if (auto lastDeathLocation = player->compoundTag(u8"LastDeathLocation"); lastDeathLocation) {
+        if (lastDeathLocation->string(u8"dimension") && lastDeathLocation->intArrayTag(u8"pos")) {
+          ret.fPlayerHasDied = true;
+        }
+      }
     }
     ret.fDataVersion = data->int32(u8"DataVersion", mcfile::je::Chunk::kDataVersion);
 
