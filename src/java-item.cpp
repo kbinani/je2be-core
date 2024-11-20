@@ -794,10 +794,10 @@ private:
 
   static CompoundTagPtr Bundle(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
     auto ret = New(name, true);
+    auto contentsB = List<Tag::Type::Compound>();
+    int weight = 4;
+    uint8_t slot = 0;
     if (auto contentsJ = item.query(u8"components/minecraft:bundle_contents")->asList(); contentsJ) {
-      auto contentsB = List<Tag::Type::Compound>();
-      uint8_t slot = 0;
-      int weight = 4;
       for (auto it : *contentsJ) {
         if (auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it); itemJ) {
           if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
@@ -808,14 +808,14 @@ private:
           }
         }
       }
-      for (; slot < 63; slot++) {
-        auto itemB = Empty();
-        itemB->set(u8"Slot", Byte(slot));
-        contentsB->push_back(itemB);
-      }
-      AppendTag(*ret, u8"bundle_weight", Int(weight));
-      AppendTag(*ret, u8"storage_item_component_content", contentsB);
     }
+    for (; slot < 64; slot++) {
+      auto itemB = Empty();
+      itemB->set(u8"Slot", Byte(slot));
+      contentsB->push_back(itemB);
+    }
+    AppendTag(*ret, u8"bundle_weight", Int(weight));
+    AppendTag(*ret, u8"storage_item_component_content", contentsB);
     return ret;
   }
 
