@@ -279,6 +279,21 @@ public:
     return Converter(ChangeWhenDoubleType(doubleName), TypeToVerticalHalf);
   }
 
+  static AnyConverter RenameSlab(std::u8string const &singleName, std::u8string const &doubleName) {
+    return [=](Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
+      CompoundTagPtr d;
+      auto s = States();
+      auto type = block.property(u8"type", u8"bottom");
+      if (type == u8"double") {
+        d = New(doubleName);
+      } else {
+        d = New(singleName);
+      }
+      TypeToVerticalHalf(s, block, o);
+      return AttachStates(d, s);
+    };
+  }
+
   static AnyConverter SlabWithStoneTypeWhenDouble(std::u8string const &normalName, std::u8string const &doubleName, std::u8string const &stoneSlabType) {
     return [=](Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
       auto type = block.property(u8"type", u8"bottom");
@@ -952,14 +967,14 @@ public:
     E(stripped_warped_hyphae, axisToPillarAxis);
     E(stripped_crimson_stem, axisToPillarAxis);
     E(stripped_warped_stem, axisToPillarAxis);
-    E(oak_slab, Slab(u8"oak_double_slab"));           // WoodenSlabLegacy(u8"oak"));
-    E(birch_slab, Slab(u8"birch_double_slab"));       // WoodenSlabLegacy(u8"birch"));
-    E(spruce_slab, Slab(u8"spruce_double_slab"));     // WoodenSlabLegacy(u8"spruce"));
-    E(jungle_slab, Slab(u8"jungle_double_slab"));     // WoodenSlabLegacy(u8"jungle"));
-    E(acacia_slab, Slab(u8"acacia_double_slab"));     // WoodenSlabLegacy(u8"acacia"));
-    E(dark_oak_slab, Slab(u8"dark_oak_double_slab")); // WoodenSlabLegacy(u8"dark_oak"));
-    E(petrified_oak_slab, Slab(u8"oak_double_slab")); // WoodenSlabLegacy(u8"oak"));
-    E(stone_slab, StoneSlab4(u8"stone"));
+    E(oak_slab, Slab(u8"oak_double_slab"));                                         // WoodenSlabLegacy(u8"oak"));
+    E(birch_slab, Slab(u8"birch_double_slab"));                                     // WoodenSlabLegacy(u8"birch"));
+    E(spruce_slab, Slab(u8"spruce_double_slab"));                                   // WoodenSlabLegacy(u8"spruce"));
+    E(jungle_slab, Slab(u8"jungle_double_slab"));                                   // WoodenSlabLegacy(u8"jungle"));
+    E(acacia_slab, Slab(u8"acacia_double_slab"));                                   // WoodenSlabLegacy(u8"acacia"));
+    E(dark_oak_slab, Slab(u8"dark_oak_double_slab"));                               // WoodenSlabLegacy(u8"dark_oak"));
+    E(petrified_oak_slab, Slab(u8"oak_double_slab"));                               // WoodenSlabLegacy(u8"oak"));
+    E(stone_slab, RenameSlab(u8"normal_stone_slab", u8"normal_stone_double_slab")); // StoneSlab4(u8"stone"));
     E(granite_slab, StoneSlab3(u8"granite"));
     E(andesite_slab, StoneSlab3(u8"andesite"));
     E(diorite_slab, StoneSlab3(u8"diorite"));
@@ -968,14 +983,14 @@ public:
     E(brick_slab, SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick"));
     E(sandstone_slab, SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone"));
     E(smooth_sandstone_slab, StoneSlab2(u8"smooth_sandstone"));
-    E(smooth_stone_slab, SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
+    E(smooth_stone_slab, Slab(u8"smooth_stone_double_slab")); // SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
     E(nether_brick_slab, SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick"));
     E(quartz_slab, SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz"));
     E(smooth_quartz_slab, StoneSlab4(u8"smooth_quartz"));
     E(red_sandstone_slab, StoneSlab2(u8"red_sandstone"));
     E(smooth_red_sandstone_slab, StoneSlab3(u8"smooth_red_sandstone"));
     E(cut_red_sandstone_slab, StoneSlab4(u8"cut_red_sandstone"));
-    E(mossy_cobblestone_slab, StoneSlab2(u8"mossy_cobblestone"));
+    E(mossy_cobblestone_slab, Slab(u8"mossy_cobblestone_double_slab")); // StoneSlab2(u8"mossy_cobblestone"));
     E(polished_diorite_slab, StoneSlab3(u8"polished_diorite"));
     E(mossy_stone_brick_slab, StoneSlab4(u8"mossy_stone_brick"));
     E(polished_granite_slab, StoneSlab3(u8"polished_granite"));

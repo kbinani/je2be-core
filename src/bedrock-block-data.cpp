@@ -1080,6 +1080,12 @@ private:
       return bName;
     };
   }
+
+  static String NormalStoneSlab(String const &bName, CompoundTag const &s, Props &p) {
+    Submergible(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
+    return Ns() + u8"stone_slab";
+  }
 #pragma endregion
 
 #pragma region Converters : O
@@ -2648,10 +2654,12 @@ private:
 
     E(brewing_stand, BrewingStand);
     E(brick_block, Rename(u8"bricks"));
-    E(stone_slab, StoneSlab); // legacy, < 1.19
-    E(stone_block_slab, StoneSlab);
-    E(double_stone_slab, DoubleStoneSlab); // legacy, < 1.19
-    E(double_stone_block_slab, DoubleStoneSlab);
+    E(stone_slab, StoneSlab);       // legacy, < 1.19
+    E(stone_block_slab, StoneSlab); // legacy < 1.21.50.20?
+    E(normal_stone_slab, NormalStoneSlab);
+    E(double_stone_slab, DoubleStoneSlab);       // legacy, < 1.19
+    E(double_stone_block_slab, DoubleStoneSlab); // legacy, < 1.21.50.29?
+    E(normal_stone_double_slab, DoubleSlab(u8"stone_slab"));
     E(brown_mushroom_block, BrownMushroomBlock);
     E(bubble_column, BubbleColumn);
     E(cactus, BlockWithAge);
@@ -2707,6 +2715,8 @@ private:
     E(stone_block_slab2, StoneSlab2);
     E(double_stone_slab2, DoubleStoneSlab2); // legacy, < 1.19
     E(double_stone_block_slab2, DoubleStoneSlab2);
+    E(mossy_cobblestone_slab, Slab);
+    E(mossy_cobblestone_double_slab, DoubleSlab(u8"mossy_cobblestone_slab"));
     E(daylight_detector, DaylightDetector);
     E(daylight_detector_inverted, DaylightDetector);
     E(deadbush, Rename(u8"dead_bush"));
@@ -3028,6 +3038,7 @@ private:
     E(heavy_core, BlockWithSubmergible);
     E(trial_spawner, TrialSpawner);
     E(smooth_stone_slab, Slab);
+    E(smooth_stone_double_slab, DoubleSlab(u8"smooth_stone_slab"));
     E(cobblestone_slab, Slab);
     E(stone_brick_slab, Slab);
     E(sandstone_slab, Slab);

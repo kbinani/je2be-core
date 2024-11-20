@@ -1180,6 +1180,7 @@ public:
     E(purple_bundle, Bundle);
     E(magenta_bundle, Bundle);
     E(pink_bundle, Bundle);
+    E(normal_stone_slab, Rename(u8"stone_slab"));
 #undef E
     return ret;
   }
