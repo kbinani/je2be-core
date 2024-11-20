@@ -612,9 +612,10 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
     }
   }
   if (!chunks.empty()) {
+    int radius = 1;
     for (auto const &ch : chunks) {
-      for (int dx = -1; dx <= 1; dx++) {
-        for (int dz = -1; dz <= 1; dz++) {
+      for (int dx = -radius; dx <= radius; dx++) {
+        for (int dz = -radius; dz <= radius; dz++) {
           optJ.fChunkFilter.insert({ch.fX + dx, ch.fZ + dz});
         }
       }
