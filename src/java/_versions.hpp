@@ -4,7 +4,7 @@
 
 namespace je2be::java {
 
-i32 constexpr kBlockDataVersion = 18153475;                                  // v1.21.0
+i32 constexpr kBlockDataVersion = 18163713;                                  // v1.21.50.29 TODO(1.21.4)
 Version constexpr kMinimumCompatibleClientVersion = Version(1, 21, 0, 0, 0); // v1.21.0
 u8 constexpr kSubChunkBlockStorageVersion = 9;                               // v1.21.0
 i32 constexpr kStorageVersion = 10;                                          // v1.21.0, "StorageVersion" in level.dat
