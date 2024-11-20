@@ -788,6 +788,9 @@ private:
     E(field_masoned_banner_pattern, DefaultItem);
     E(bordure_indented_banner_pattern, DefaultItem);
     E(creaking_spawn_egg, DefaultItem);
+    E(pale_oak_door, DefaultItem);
+    E(pale_oak_sign, DefaultItem);
+    E(pale_oak_hanging_sign, DefaultItem);
 #undef E
     return table;
   }
