@@ -1936,7 +1936,11 @@ public:
     auto c = New(block.fName, true);
     auto s = States();
     if (o.fItem) {
-      // TODO:
+      for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
+        auto name = JavaNameFromFacing4(f);
+        s->set(u8"pale_moss_carpet_side_" + name, String(u8"none"));
+      }
+      s->set(u8"upper_block_bit", Bool(false));
     } else {
       auto bottom = block.property(u8"bottom", u8"true") == u8"true";
       for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
