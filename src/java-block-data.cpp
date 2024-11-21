@@ -990,9 +990,9 @@ public:
     E(red_sandstone_slab, StoneSlab2(u8"red_sandstone"));
     E(smooth_red_sandstone_slab, StoneSlab3(u8"smooth_red_sandstone"));
     E(cut_red_sandstone_slab, StoneSlab4(u8"cut_red_sandstone"));
-    E(mossy_cobblestone_slab, Slab(u8"mossy_cobblestone_double_slab")); // StoneSlab2(u8"mossy_cobblestone"));
+    E(mossy_cobblestone_slab, Slab(u8"mossy_cobblestone_double_slab")); // StoneSlab2(u8"mossy_cobblestone")) for < 1.21.50.29
     E(polished_diorite_slab, StoneSlab3(u8"polished_diorite"));
-    E(mossy_stone_brick_slab, StoneSlab4(u8"mossy_stone_brick"));
+    E(mossy_stone_brick_slab, Slab(u8"mossy_stone_brick_double_slab")); // StoneSlab4(u8"mossy_stone_brick")) for < 1.21.50.29
     E(polished_granite_slab, StoneSlab3(u8"polished_granite"));
     E(dark_prismarine_slab, StoneSlab2(u8"prismarine_dark"));
     E(prismarine_brick_slab, StoneSlab2(u8"prismarine_brick"));

@@ -2703,8 +2703,10 @@ private:
     E(crimson_stem, BlockWithAxisFromPillarAxis);
     E(cut_copper_slab, Slab);
     E(double_cut_copper_slab, DoubleSlab(u8"cut_copper_slab"));
-    E(stone_slab4, StoneSlab4); // legacy, < 1.19
-    E(stone_block_slab4, StoneSlab4);
+    E(stone_slab4, StoneSlab4);       // legacy, < 1.19
+    E(stone_block_slab4, StoneSlab4); // legacy, < 1.21.50.29?
+    E(mossy_stone_brick_slab, Slab);
+    E(mossy_stone_brick_double_slab, DoubleSlab(u8"mossy_stone_brick_slab"));
     E(double_stone_slab4, DoubleStoneSlab4); // legacy, < 1.19
     E(double_stone_block_slab4, DoubleStoneSlab4);
     E(yellow_flower, Rename(u8"dandelion"));
