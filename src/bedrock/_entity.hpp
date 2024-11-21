@@ -34,6 +34,23 @@ public:
   };
 
   static std::optional<LocalPlayerData> LocalPlayer(CompoundTag const &b, Context &ctx, Uuid const *uuid, int dataVersion);
+
+  static bool HasDefinition(CompoundTag const &entityB, std::u8string const &definitionToSearch) {
+    auto definitions = entityB.listTag(u8"definitions");
+    if (!definitions) {
+      return false;
+    }
+    for (auto const &it : *definitions) {
+      auto definition = it->asString();
+      if (!definition) {
+        continue;
+      }
+      if (definition->fValue == definitionToSearch) {
+        return true;
+      }
+    }
+    return false;
+  }
 };
 
 } // namespace je2be::bedrock

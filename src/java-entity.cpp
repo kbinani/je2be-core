@@ -1456,7 +1456,7 @@ private:
       AddDefinition(c, u8"+scale_small");
     } else if (type == u8"large") {
       AddDefinition(c, u8"+scale_large");
-    } else {
+    } else if (type == u8"medium") {
       AddDefinition(c, u8"+scale_normal");
     }
   }

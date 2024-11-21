@@ -6,6 +6,7 @@
 #include "bedrock/_block-data.hpp"
 #include "bedrock/_block-entity.hpp"
 #include "bedrock/_context.hpp"
+#include "bedrock/_entity.hpp"
 #include "entity/_axolotl.hpp"
 #include "entity/_tropical-fish.hpp"
 #include "enums/_effect.hpp"
@@ -408,8 +409,7 @@ public:
       break;
     case 4: {
       prefix = u8"tropical_fish_";
-      auto tagB = itemB.compoundTag(u8"tag");
-      if (tagB) {
+      if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
         TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
         auto tagJ = Compound();
         tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
@@ -958,6 +958,15 @@ public:
       }
       if (auto age = tagB->int32(u8"Age"); age) {
         tagJ->set(u8"Age", Int(*age));
+      }
+      if (name == u8"minecraft:salmon_bucket") {
+        if (Entity::HasDefinition(*tagB, u8"+scale_small")) {
+          tagJ->set(u8"type", String(u8"small"));
+        } else if (Entity::HasDefinition(*tagB, u8"+scale_large")) {
+          tagJ->set(u8"type", String(u8"large"));
+        } else if (Entity::HasDefinition(*tagB, u8"+scale_normal")) {
+          tagJ->set(u8"type", String(u8"medium"));
+        }
       }
       java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
     }

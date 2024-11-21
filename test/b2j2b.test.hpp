@@ -40,7 +40,7 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
 }
 
 static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expected, ListTagPtr const &actual) {
-  static set<u8string> const sIgnore = {
+  set<u8string> ignore = {
       u8"+",
       u8"minecraft:wild_child_ocelot_spawn",
       u8"look_for_food",           // bee
@@ -76,6 +76,9 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"+minecraft:sheep_pink",
       u8"+dolphin_swimming_navigation",
   };
+  if (id == u8"minecraft:salmon") {
+    ignore.insert(u8"+scale_normal");
+  }
 
   set<u8string> setE;
   if (expected) {
@@ -84,11 +87,11 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       if (!s) {
         continue;
       }
-      if (sIgnore.count(s->fValue) > 0) {
+      if (ignore.count(s->fValue) > 0) {
         continue;
       }
       if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
-        if (sIgnore.count(s->fValue.substr(1)) > 0) {
+        if (ignore.count(s->fValue.substr(1)) > 0) {
           continue;
         }
       }
@@ -103,11 +106,11 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       if (!s) {
         continue;
       }
-      if (sIgnore.count(s->fValue) > 0) {
+      if (ignore.count(s->fValue) > 0) {
         continue;
       }
       if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
-        if (sIgnore.count(s->fValue.substr(1)) > 0) {
+        if (ignore.count(s->fValue.substr(1)) > 0) {
           continue;
         }
       }
