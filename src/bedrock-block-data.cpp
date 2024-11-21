@@ -1701,10 +1701,14 @@ private:
 
 #pragma region Converters : W
   static String WallWithBlockType(String const &bName, CompoundTag const &s, Props &p) {
-    auto type = s.string(u8"wall_block_type", u8"andesite");
-    std::u8string name = type;
-    if (type == u8"end_brick") {
+    auto type = s.string(u8"wall_block_type");
+    std::u8string name;
+    if (!type) {
+      name = u8"cobblestone";
+    } else if (type == u8"end_brick") {
       name = u8"end_stone_brick";
+    } else {
+      name = *type;
     }
     WallProperties(s, p);
     Submergible(s, p);
@@ -2474,6 +2478,19 @@ private:
     E(double_stone_block_slab3, DoubleStoneSlab3);
 
     E(cobblestone_wall, WallWithBlockType);
+    E(mossy_cobblestone_wall, BlockWithWallProperties);
+    E(granite_wall, BlockWithWallProperties);
+    E(diorite_wall, BlockWithWallProperties);
+    E(andesite_wall, BlockWithWallProperties);
+    E(sandstone_wall, BlockWithWallProperties);
+    E(red_sandstone_wall, BlockWithWallProperties);
+    E(stone_brick_wall, BlockWithWallProperties);
+    E(mossy_stone_brick_wall, BlockWithWallProperties);
+    E(brick_wall, BlockWithWallProperties);
+    E(nether_brick_wall, BlockWithWallProperties);
+    E(red_nether_brick_wall, BlockWithWallProperties);
+    E(end_stone_brick_wall, BlockWithWallProperties);
+    E(prismarine_wall, BlockWithWallProperties);
     E(blackstone_wall, BlockWithWallProperties);
 
     E(anvil, Anvil);

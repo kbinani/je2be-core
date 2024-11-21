@@ -755,7 +755,7 @@ public:
     s->set(u8"wall_post_bit", Bool(up));
   }
 
-  static Converter Wall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
+  static Converter LegacyCobblestoneWall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
 
   // static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), CardinalDirectionFromFacing4); }
 
@@ -902,6 +902,7 @@ public:
     Converter blockFaceFromFacing(Same, BlockFaceFromFacing);
     Converter facingDirectionFromFacingB(Same, PistonFacingDirectionFromFacing6);
     Converter cardinalDirectionFromFacing4(Same, CardinalDirectionFromFacing4);
+    Converter wall(Same, WallPostBit, WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west"));
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
 #define E(__name, __func)                                                                               \
@@ -1271,21 +1272,20 @@ public:
     E(red_shulker_box, Identity);
     E(black_shulker_box, Identity);
     E(shulker_box, Rename(u8"undyed_shulker_box"));
-    E(cobblestone_wall, Wall(u8"cobblestone"));
-    E(mossy_cobblestone_wall, Wall(u8"mossy_cobblestone"));
-    E(brick_wall, Wall(u8"brick"));
-    E(prismarine_wall, Wall(u8"prismarine"));
-    E(red_sandstone_wall, Wall(u8"red_sandstone"));
-    E(mossy_stone_brick_wall, Wall(u8"mossy_stone_brick"));
-    E(granite_wall, Wall(u8"granite"));
-    E(andesite_wall, Wall(u8"andesite"));
-    E(diorite_wall, Wall(u8"diorite"));
-    E(stone_brick_wall, Wall(u8"stone_brick"));
-    E(nether_brick_wall, Wall(u8"nether_brick"));
-    E(red_nether_brick_wall, Wall(u8"red_nether_brick"));
-    E(sandstone_wall, Wall(u8"sandstone"));
-    E(end_stone_brick_wall, Wall(u8"end_brick"));
-    Converter wall(Same, WallPostBit, WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west"));
+    E(cobblestone_wall, wall);       // LegacyCobblestoneWall(u8"cobblestone") for 1.21.50.29
+    E(mossy_cobblestone_wall, wall); // LegacyCobblestoneWall(u8"mossy_cobblestone") for 1.21.50.29
+    E(brick_wall, wall);             // LegacyCobblestoneWall(u8"brick") for 1.21.50.29
+    E(prismarine_wall, wall);        // LegacyCobblestoneWall(u8"prismarine") for 1.21.50.29
+    E(red_sandstone_wall, wall);     // LegacyCobblestoneWall(u8"red_sandstone") for 1.21.50.29
+    E(mossy_stone_brick_wall, wall); // LegacyCobblestoneWall(u8"mossy_stone_brick") for 1.21.50.29
+    E(granite_wall, wall);           // LegacyCobblestoneWall(u8"granite") for 1.21.50.29
+    E(andesite_wall, wall);          // LegacyCobblestoneWall(u8"andesite") for 1.21.50.29
+    E(diorite_wall, wall);           // LegacyCobblestoneWall(u8"diorite") for 1.21.50.29
+    E(stone_brick_wall, wall);       // LegacyCobblestoneWall(u8"stone_brick") for 1.21.50.29
+    E(nether_brick_wall, wall);      // LegacyCobblestoneWall(u8"nether_brick") for 1.21.50.29
+    E(red_nether_brick_wall, wall);  // LegacyCobblestoneWall(u8"red_nether_brick") for 1.21.50.29
+    E(sandstone_wall, wall);         // LegacyCobblestoneWall(u8"sandstone") for 1.21.50.29
+    E(end_stone_brick_wall, wall);   // LegacyCobblestoneWall(u8"end_brick") for 1.21.50.29
     E(blackstone_wall, wall);
     E(polished_blackstone_wall, wall);
     E(polished_blackstone_brick_wall, wall);
