@@ -380,11 +380,11 @@ public:
   // before 1.19.70, color was stored in states:
   // static Converter Wool(std::u8string const &color) { return Subtype(u8"wool", u8"color", color); }
 
-  static Converter RedSandstone(std::u8string const &type) { return Subtype(u8"red_sandstone", u8"sand_stone_type", type); }
+  // static Converter RedSandstone(std::u8string const &type) { return Subtype(u8"red_sandstone", u8"sand_stone_type", type); }
 
-  static Converter Sandstone(std::u8string const &type) { return Subtype(u8"sandstone", u8"sand_stone_type", type); }
+  // static Converter Sandstone(std::u8string const &type) { return Subtype(u8"sandstone", u8"sand_stone_type", type); }
 
-  static Converter Sand(std::u8string const &type) { return Subtype(u8"sand", u8"sand_type", type); }
+  // static Converter LegacySand(std::u8string const &type) { return Subtype(u8"sand", u8"sand_type", type); }
 
   static Converter QuartzBlock(std::u8string const &type) { return Converter(Name(u8"quartz_block"), AxisToPillarAxis, AddStringProperty(u8"chisel_type", type)); }
 
@@ -1087,14 +1087,14 @@ public:
     E(bamboo_mosaic_stairs, Stairs());
     E(sponge, Sponge(u8"dry"));
     E(wet_sponge, Sponge(u8"wet"));
-    E(sandstone, Sandstone(u8"default"));
-    E(chiseled_sandstone, Sandstone(u8"heiroglyphs"));
-    E(cut_sandstone, Sandstone(u8"cut"));
-    E(smooth_sandstone, Sandstone(u8"smooth"));
-    E(red_sandstone, RedSandstone(u8"default"));
-    E(chiseled_red_sandstone, RedSandstone(u8"heiroglyphs"));
-    E(cut_red_sandstone, RedSandstone(u8"cut"));
-    E(smooth_red_sandstone, RedSandstone(u8"smooth"));
+    E(sandstone, Identity);              // Sandstone(u8"default")) for 1.21.50.29
+    E(chiseled_sandstone, Identity);     // Sandstone(u8"heiroglyphs")) for 1.21.50.29
+    E(cut_sandstone, Identity);          // Sandstone(u8"cut")) for 1.21.50.29
+    E(smooth_sandstone, Identity);       // Sandstone(u8"smooth")) for 1.21.50.29
+    E(red_sandstone, Identity);          // RedSandstone(u8"default")) for 1.21.50.29
+    E(chiseled_red_sandstone, Identity); // RedSandstone(u8"heiroglyphs")) for 1.21.50.29
+    E(cut_red_sandstone, Identity);      // RedSandstone(u8"cut")) for 1.21.50.29
+    E(smooth_red_sandstone, Identity);   // RedSandstone(u8"smooth")) for 1.21.50.29
     E(white_wool, Identity);
     E(orange_wool, Identity);
     E(magenta_wool, Identity);
@@ -1117,8 +1117,8 @@ public:
     E(quartz_pillar, QuartzBlock(u8"lines"));
     E(chiseled_quartz_block, QuartzBlock(u8"chiseled"));
     E(bricks, Rename(u8"brick_block"));
-    E(sand, Sand(u8"normal"));
-    E(red_sand, Sand(u8"red"));
+    E(sand, Identity);     // LegacySand(u8"normal")) for 1.21.50.29
+    E(red_sand, Identity); // LegacySand(u8"red")) for 1.21.50.29
     E(oak_planks, Identity);
     E(spruce_planks, Identity);
     E(birch_planks, Identity);

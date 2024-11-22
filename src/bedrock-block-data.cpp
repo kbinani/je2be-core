@@ -1265,7 +1265,7 @@ private:
     }
   }
 
-  static String RedSandstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacyRedSandstone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"sand_stone_type", u8"default");
     std::u8string name = u8"red_sandstone";
     if (type == u8"heiroglyphs") {
@@ -1347,7 +1347,7 @@ private:
     return bName;
   }
 
-  static String Sand(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacySand(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"sand_type", u8"normal");
     if (type == u8"red") {
       return Ns() + u8"red_sand";
@@ -1356,7 +1356,7 @@ private:
     }
   }
 
-  static String Sandstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacySandstone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"sand_stone_type", u8"default");
     std::u8string name = u8"sandstone";
     if (type == u8"heiroglyphs") {
@@ -2696,8 +2696,8 @@ private:
     E(command_block, CommandBlock);
     E(chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(quartz_block, QuartzBlock);
-    E(red_sandstone, RedSandstone);
-    E(sandstone, Sandstone);
+    E(red_sandstone, Same); // RedSandstone for 1.21.50.29
+    E(sandstone, Same);     // LegacySandstone for 1.21.50.29
     E(stonebrick, Stonebrick);
     E(chorus_flower, BlockWithAge);
     E(chorus_plant, Same);
@@ -2838,7 +2838,7 @@ private:
     E(redstone_wire, BlockWithPowerFromRedstoneSignal);
     E(red_mushroom_block, RedMushroomBlock);
     E(red_nether_brick, Rename(u8"red_nether_bricks"));
-    E(sand, Sand);
+    E(sand, Same); // Sand) for 1.21.50.29
     E(powered_repeater, Repeater);
     E(unpowered_repeater, Repeater);
     E(repeating_command_block, CommandBlock);
@@ -3101,6 +3101,13 @@ private:
     E(resin_brick_double_slab, DoubleSlab(u8"resin_brick_slab"));
     E(resin_brick_wall, BlockWithWallProperties);
     E(creaking_heart, CreakingHeart);
+    E(chiseled_sandstone, Same);
+    E(cut_sandstone, Same);
+    E(smooth_sandstone, Same);
+    E(chiseled_red_sandstone, Same);
+    E(cut_red_sandstone, Same);
+    E(smooth_red_sandstone, Same);
+    E(red_sand, Same);
 #undef E
 
     return table;
