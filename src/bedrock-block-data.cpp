@@ -1052,7 +1052,7 @@ private:
     return bName;
   }
 
-  static String MonsterEgg(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacyMonsterEgg(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"monster_egg_stone_type", u8"stone");
     std::u8string name;
     if (type == u8"cobblestone") {
@@ -2775,7 +2775,13 @@ private:
     E(hay_block, BlockWithAxisFromPillarAxis);
     E(heavy_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(hopper, Hopper);
-    E(monster_egg, MonsterEgg);
+    E(monster_egg, LegacyMonsterEgg); // for 1.21.50.29
+    E(infested_stone, Same);
+    E(infested_cobblestone, Same);
+    E(infested_stone_bricks, Same);
+    E(infested_mossy_stone_bricks, Same);
+    E(infested_cracked_stone_bricks, Same);
+    E(infested_chiseled_stone_bricks, Same);
     E(infested_deepslate, BlockWithAxisFromPillarAxis);
     E(iron_bars, BlockWithSubmergible);
     E(lit_pumpkin, LitPumpkin);

@@ -611,7 +611,7 @@ public:
 
   static Converter AnyWallTorch(std::u8string const &prefix) { return Converter(Name(prefix + u8"torch"), TorchFacingDirectionFromFacing); }
 
-  static Converter InfestedStone(std::u8string const &type) { return Subtype(u8"monster_egg", u8"monster_egg_stone_type", type); }
+  static Converter LegacyInfestedStone(std::u8string const &type) { return Subtype(u8"monster_egg", u8"monster_egg_stone_type", type); }
 
   static Converter Fence(std::u8string const &type) { return Subtype(u8"fence", u8"wood_type", type); }
 
@@ -1238,12 +1238,12 @@ public:
     E(chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
     E(furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(nether_bricks, Rename(u8"nether_brick"));
-    E(infested_stone, InfestedStone(u8"stone"));
-    E(infested_cobblestone, InfestedStone(u8"cobblestone"));
-    E(infested_stone_bricks, InfestedStone(u8"stone_brick"));
-    E(infested_mossy_stone_bricks, InfestedStone(u8"mossy_stone_brick"));
-    E(infested_cracked_stone_bricks, InfestedStone(u8"cracked_stone_brick"));
-    E(infested_chiseled_stone_bricks, InfestedStone(u8"chiseled_stone_brick"));
+    E(infested_stone, Identity);                 // InfestedStone(u8"stone")) for 1.21.50.29
+    E(infested_cobblestone, Identity);           // InfestedStone(u8"cobblestone")) for 1.21.50.29
+    E(infested_stone_bricks, Identity);          // InfestedStone(u8"stone_brick")) for 1.21.50.29
+    E(infested_mossy_stone_bricks, Identity);    // InfestedStone(u8"mossy_stone_brick")) for 1.21.50.29
+    E(infested_cracked_stone_bricks, Identity);  // InfestedStone(u8"cracked_stone_brick")) for 1.21.50.29
+    E(infested_chiseled_stone_bricks, Identity); // InfestedStone(u8"chiseled_stone_brick")) for 1.21.50.29
     E(torch, AnyTorch(u8""));
     E(wall_torch, AnyWallTorch(u8""));
     E(soul_torch, AnyTorch(u8"soul_"));
