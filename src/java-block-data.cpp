@@ -304,8 +304,8 @@ public:
         s->set(u8"stone_slab_type", String(stoneSlabType));
       } else {
         d = New(normalName);
+        TypeToVerticalHalf(s, block, o);
       }
-      TypeToVerticalHalf(s, block, o);
       return AttachStates(d, s);
     };
   }
@@ -979,14 +979,14 @@ public:
     E(granite_slab, StoneSlab3(u8"granite"));
     E(andesite_slab, StoneSlab3(u8"andesite"));
     E(diorite_slab, StoneSlab3(u8"diorite"));
-    E(cobblestone_slab, SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone"));
-    E(stone_brick_slab, SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick"));
-    E(brick_slab, SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick"));
-    E(sandstone_slab, SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone"));
+    E(cobblestone_slab, Slab(u8"cobblestone_double_slab")); // SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone")) for < 1.21.50.29
+    E(stone_brick_slab, Slab(u8"stone_brick_double_slab")); // SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick")) for < 1.21.50.29
+    E(brick_slab, Slab(u8"brick_double_slab"));             // SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick")) for < 1.21.50.29
+    E(sandstone_slab, Slab(u8"sandstone_double_slab"));     // SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone")) for < 1.21.50.29
     E(smooth_sandstone_slab, StoneSlab2(u8"smooth_sandstone"));
     E(smooth_stone_slab, Slab(u8"smooth_stone_double_slab")); // SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
-    E(nether_brick_slab, SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick"));
-    E(quartz_slab, SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz"));
+    E(nether_brick_slab, Slab(u8"nether_brick_double_slab")); // SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick")) for < 1.21.50.29
+    E(quartz_slab, Slab(u8"quartz_double_slab"));             // SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz")) for < 1.21.50.29
     E(smooth_quartz_slab, StoneSlab4(u8"smooth_quartz"));
     E(red_sandstone_slab, StoneSlab2(u8"red_sandstone"));
     E(smooth_red_sandstone_slab, StoneSlab3(u8"smooth_red_sandstone"));

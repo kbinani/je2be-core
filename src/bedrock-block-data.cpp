@@ -3059,7 +3059,9 @@ private:
     E(smooth_stone_slab, Slab);
     E(smooth_stone_double_slab, DoubleSlab(u8"smooth_stone_slab"));
     E(cobblestone_slab, Slab);
+    E(cobblestone_double_slab, DoubleSlab(u8"cobblestone_slab"));
     E(stone_brick_slab, Slab);
+    E(stone_brick_double_slab, DoubleSlab(u8"stone_brick_slab"));
     E(sandstone_slab, Slab);
     E(brick_slab, Slab);
     E(nether_brick_slab, Slab);
