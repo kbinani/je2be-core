@@ -764,7 +764,17 @@ public:
   static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
 
-    SkullType type = static_cast<SkullType>(tag.byte(u8"SkullType", 0));
+    i8 typeValue = tag.byte(u8"SkullType", -1);
+    SkullType type = SkullType::Skeleton;
+    if (typeValue < 0) {
+      auto n = Namespace::Remove(block.fName);
+      n = strings::Replace(n, u8"_wall_", u8"_");
+      if (auto t = SkullTypeFromJavaName(n); t) {
+        type = *t;
+      }
+    } else {
+      type = static_cast<SkullType>(typeValue);
+    }
     u8string skullName = JavaNameFromSkullType(type);
 
     map<u8string, optional<u8string>> p;
@@ -1182,7 +1192,14 @@ public:
   t->try_emplace(u8"" #__name, __conv)
 
     E(flower_pot, FlowerPot);
-    E(skull, Skull);
+    E(skull, Skull); // legacy. for < 1.21.50.29
+    E(skeleton_skull, Skull);
+    E(wither_skeleton_skull, Skull);
+    E(player_head, Skull);
+    E(zombie_head, Skull);
+    E(creeper_head, Skull);
+    E(dragon_head, Skull);
+    E(piglin_head, Skull);
     E(bed, Bed);
     E(standing_banner, Banner);
     E(wall_banner, Banner);

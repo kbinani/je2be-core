@@ -1437,6 +1437,30 @@ private:
     return Ns() + u8"light_gray_glazed_terracotta";
   }
 
+  static String Skull(String const &bName, CompoundTag const &s, Props &p) {
+    auto fd = s.int32(u8"facing_direction", 0);
+    auto name = Namespace::Remove(bName);
+    if (fd > 1) {
+      // wall skull
+      name = strings::Replace(name, u8"_head", u8"_wall_head");
+      name = strings::Replace(name, u8"_skull", u8"_wall_skull");
+      if (fd == 3) {
+        p[u8"facing"] = u8"south";
+      } else if (fd == 5) {
+        p[u8"facing"] = u8"east";
+      } else if (fd == 2) {
+        p[u8"facing"] = u8"north";
+      } else if (fd == 4) {
+        p[u8"facing"] = u8"west";
+      }
+    } else {
+      // floor skull
+      // The Bedrock Skull block doesn't have a rotation property.
+      // Instead, the block entity does, so it needs to be imported from the block entity later.
+    }
+    return Ns() + name;
+  }
+
   static String Slab(String const &bName, CompoundTag const &s, Props &p) {
     Submergible(s, p);
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
@@ -2715,7 +2739,14 @@ private:
     E(unpowered_comparator, Comparator);
     E(composter, Composter);
     E(conduit, BlockWithSubmergible);
-    E(skull, Same);
+    E(skull, Same); // legacy
+    E(skeleton_skull, Skull);
+    E(wither_skeleton_skull, Skull);
+    E(player_head, Skull);
+    E(zombie_head, Skull);
+    E(creeper_head, Skull);
+    E(dragon_head, Skull);
+    E(piglin_head, Skull);
     E(crimson_hyphae, BlockWithAxisFromPillarAxis);
     E(crimson_slab, Slab);
     E(crimson_double_slab, DoubleSlab(u8"crimson_slab"));

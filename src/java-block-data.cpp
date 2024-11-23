@@ -566,6 +566,36 @@ public:
     return AttachStates(d, s);
   }
 
+  static CompoundTagPtr Skull(Block const &b, CompoundTagConstPtr const &tile, Options const &o) {
+    auto d = New(b.fName, true);
+    auto s = States();
+    if (o.fItem) {
+      s->set(u8"facing_direction", Int(0));
+    } else {
+      s->set(u8"facing_direction", Int(1));
+    }
+    return AttachStates(d, s);
+  }
+
+  static CompoundTagPtr WallSkull(Block const &b, CompoundTagConstPtr const &tile, Options const &o) {
+    auto name = strings::Replace(b.fName, u8"_wall_", u8"_");
+    auto d = New(name, true);
+    auto s = States();
+    auto facing = b.property(u8"facing", u8"");
+    i32 direction = 0;
+    if (facing == u8"south") {
+      direction = 3;
+    } else if (facing == u8"east") {
+      direction = 5;
+    } else if (facing == u8"north") {
+      direction = 2;
+    } else if (facing == u8"west") {
+      direction = 4;
+    }
+    s->set(u8"facing_direction", Int(direction));
+    return AttachStates(d, s);
+  }
+
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
     if (o.fItem) {
       s->set(u8"facing_direction", Int(0));
@@ -1085,16 +1115,16 @@ public:
     E(polished_blackstone_brick_stairs, Stairs());
     E(bamboo_stairs, Stairs());
     E(bamboo_mosaic_stairs, Stairs());
-    E(sponge, Sponge(u8"dry"));
-    E(wet_sponge, Sponge(u8"wet"));
-    E(sandstone, Identity);              // Sandstone(u8"default")) for 1.21.50.29
-    E(chiseled_sandstone, Identity);     // Sandstone(u8"heiroglyphs")) for 1.21.50.29
-    E(cut_sandstone, Identity);          // Sandstone(u8"cut")) for 1.21.50.29
-    E(smooth_sandstone, Identity);       // Sandstone(u8"smooth")) for 1.21.50.29
-    E(red_sandstone, Identity);          // RedSandstone(u8"default")) for 1.21.50.29
-    E(chiseled_red_sandstone, Identity); // RedSandstone(u8"heiroglyphs")) for 1.21.50.29
-    E(cut_red_sandstone, Identity);      // RedSandstone(u8"cut")) for 1.21.50.29
-    E(smooth_red_sandstone, Identity);   // RedSandstone(u8"smooth")) for 1.21.50.29
+    E(sponge, Identity);                 // Sponge(u8"dry")) for < 1.21.50.29
+    E(wet_sponge, Identity);             // Sponge(u8"wet"))for 1.21.50.29
+    E(sandstone, Identity);              // Sandstone(u8"default")) for < 1.21.50.29
+    E(chiseled_sandstone, Identity);     // Sandstone(u8"heiroglyphs")) for < 1.21.50.29
+    E(cut_sandstone, Identity);          // Sandstone(u8"cut")) for < 1.21.50.29
+    E(smooth_sandstone, Identity);       // Sandstone(u8"smooth")) for < 1.21.50.29
+    E(red_sandstone, Identity);          // RedSandstone(u8"default")) for < 1.21.50.29
+    E(chiseled_red_sandstone, Identity); // RedSandstone(u8"heiroglyphs")) for < 1.21.50.29
+    E(cut_red_sandstone, Identity);      // RedSandstone(u8"cut")) for < 1.21.50.29
+    E(smooth_red_sandstone, Identity);   // RedSandstone(u8"smooth")) for < 1.21.50.29
     E(white_wool, Identity);
     E(orange_wool, Identity);
     E(magenta_wool, Identity);
@@ -1112,10 +1142,10 @@ public:
     E(red_wool, Identity);
     E(black_wool, Identity);
     E(snow_block, Rename(u8"snow"));
-    E(quartz_block, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y"))); // QuartzBlock(u8"default")) for < 1.21.50.29
-    E(smooth_quartz, Identity);                                                  // QuartzBlock(u8"smooth")) for < 1.21.50.29
-    E(quartz_pillar, axisToPillarAxis);                                          // QuartzBlock(u8"lines")) for < 1.21.50.29
-    E(chiseled_quartz_block, Identity);                                          // QuartzBlock(u8"chiseled")) for < 1.21.50.29
+    E(quartz_block, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y")));          // QuartzBlock(u8"default")) for < 1.21.50.29
+    E(smooth_quartz, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y")));         // QuartzBlock(u8"smooth")) for < 1.21.50.29
+    E(quartz_pillar, axisToPillarAxis);                                                   // QuartzBlock(u8"lines")) for < 1.21.50.29
+    E(chiseled_quartz_block, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y"))); // QuartzBlock(u8"chiseled")) for < 1.21.50.29
     E(bricks, Rename(u8"brick_block"));
     E(sand, Identity);     // LegacySand(u8"normal")) for < 1.21.50.29
     E(red_sand, Identity); // LegacySand(u8"red")) for < 1.21.50.29
@@ -1253,7 +1283,7 @@ public:
     E(farmland, Converter(Same, Name(Moisture, u8"moisturized_amount")));
     E(red_mushroom_block, AnyMushroomBlock(u8"red_mushroom_block", false));
     E(brown_mushroom_block, AnyMushroomBlock(u8"brown_mushroom_block", false));
-    E(mushroom_stem, AnyMushroomBlock(u8"brown_mushroom_block", true));
+    E(mushroom_stem, AnyMushroomBlock(u8"mushroom_stem", true)); // AnyMushroomBlock(u8"brown_mushroom_block", true)) for < 1.21.50.29
     E(end_portal_frame, Converter(Same, CardinalDirectionFromFacing4, EyeToEndPortalEyeBit));
     E(white_shulker_box, Identity);
     E(orange_shulker_box, Identity);
@@ -1456,25 +1486,21 @@ public:
     E(potted_cherry_sapling, pottedFlowerPot);
     E(potted_torchflower, pottedFlowerPot);
 
-    // Converter skull(Name(u8"skull"), AddIntProperty(u8"facing_direction", 1));
-    Converter skull(Same, AddIntProperty(u8"facing_direction", 0));
-    E(skeleton_skull, skull);
-    E(wither_skeleton_skull, skull);
-    E(player_head, skull);
-    E(zombie_head, skull);
-    E(creeper_head, skull);
-    E(dragon_head, skull);
-    E(piglin_head, skull);
+    E(skeleton_skull, Skull);
+    E(wither_skeleton_skull, Skull);
+    E(player_head, Skull);
+    E(zombie_head, Skull);
+    E(creeper_head, Skull);
+    E(dragon_head, Skull);
+    E(piglin_head, Skull);
 
-    // Converter wallSkull(Name(u8"skull"), WallSkullFacingDirection);
-    Converter wallSkull(Same, WallSkullFacingDirection);
-    E(skeleton_wall_skull, wallSkull);
-    E(wither_skeleton_wall_skull, wallSkull);
-    E(player_wall_head, wallSkull);
-    E(zombie_wall_head, wallSkull);
-    E(creeper_wall_head, wallSkull);
-    E(dragon_wall_head, wallSkull);
-    E(piglin_wall_head, wallSkull);
+    E(skeleton_wall_skull, WallSkull);
+    E(wither_skeleton_wall_skull, WallSkull);
+    E(player_wall_head, WallSkull);
+    E(zombie_wall_head, WallSkull);
+    E(creeper_wall_head, WallSkull);
+    E(dragon_wall_head, WallSkull);
+    E(piglin_wall_head, WallSkull);
 
     Converter banner(Name(u8"standing_banner"), Name(Rotation, u8"ground_sign_direction"));
     E(white_banner, banner);
@@ -2244,7 +2270,6 @@ public:
     auto s = States();
     auto unstable = block.property(u8"unstable", u8"false") == u8"true";
     s->set(u8"explode_bit", Bool(unstable));
-    s->set(u8"allow_underwater_bit", Bool(false));
     return AttachStates(c, s);
   }
 
@@ -2384,7 +2409,7 @@ public:
 
   static void WallSkullFacingDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
     auto facing = b.property(u8"facing", u8"");
-    i32 direction = 1;
+    i32 direction = 0;
     if (facing == u8"south") {
       direction = 3;
     } else if (facing == u8"east") {

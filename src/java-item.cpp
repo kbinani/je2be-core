@@ -160,7 +160,7 @@ private:
 
     E(brown_mushroom_block, MushroomBlock(u8"minecraft:brown_mushroom_block", 14));
     E(red_mushroom_block, MushroomBlock(u8"minecraft:red_mushroom_block", 14));
-    E(mushroom_stem, MushroomBlock(u8"minecraft:brown_mushroom_block", 15));
+    E(mushroom_stem, MushroomBlock(u8"minecraft:mushroom_stem", 15)); // MushroomBlock(u8"minecraft:brown_mushroom_block", 15) for < 1.21.50.29
     E(torch, AnyTorch);
     E(soul_torch, AnyTorch);
     E(redstone_torch, AnyTorch);
