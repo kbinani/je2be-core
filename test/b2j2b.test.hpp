@@ -170,7 +170,9 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual, 
   auto statesE = expected.compoundTag(u8"states");
   auto statesA = actual.compoundTag(u8"states");
   if (nameE != nameA) {
+    cout << "expected: " << *nameE << endl;
     nbt::PrintAsJson(cout, *statesE);
+    cout << "actual: " << *nameA << endl;
     nbt::PrintAsJson(cout, *statesA);
   }
   CHECK(nameE == nameA);
@@ -492,7 +494,10 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
             continue;
           }
           if (e->fName != a->fName) {
+            cout << "[" + to_string(x) + "," + to_string(y) + "," + to_string(z) + "]" << endl;
+            cout << "expected: " << e->fName << endl;
             nbt::PrintAsJson(cout, *e->fStates);
+            cout << "actual: " << a->fName << endl;
             nbt::PrintAsJson(cout, *a->fStates);
           }
           CHECK(e->fName == a->fName);
