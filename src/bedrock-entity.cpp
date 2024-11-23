@@ -1161,6 +1161,12 @@ public:
 
   static void Dolphin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j.erase(u8"InLove");
+    if (HasDefinition(b, u8"+dolphin_baby")) {
+      // BE doesn't have Age tag
+      j[u8"Age"] = Int(-24000);
+    } else {
+      j[u8"Age"] = Int(0);
+    }
   }
 
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {

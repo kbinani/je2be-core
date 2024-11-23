@@ -80,42 +80,42 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
     ignore.insert(u8"+scale_normal");
   }
 
+  static auto ReduceDefinitions = [](ListTag const &defs, set<u8string> const &ignore, set<u8string> &ret) {
+    for (auto const &it : defs) {
+      auto v = it->asString();
+      if (!v) {
+        continue;
+      }
+      auto value = v->fValue;
+      if (value.starts_with(u8"-")) {
+        ret.erase(u8"+" + value.substr(1));
+        continue;
+      } else if (value.starts_with(u8"+")) {
+        ret.erase(u8"-" + value.substr(1));
+        ret.insert(value);
+      } else {
+        ret.erase(u8"-" + value);
+        ret.insert(u8"+" + value);
+      }
+    }
+    for (auto const &it : ignore) {
+      if (it.starts_with(u8"+") || it.starts_with(u8"-")) {
+        ret.erase(it);
+      } else {
+        ret.erase(u8"+" + it);
+        ret.erase(u8"-" + it);
+      }
+    }
+  };
+
   set<u8string> setE;
   if (expected) {
-    for (auto const &it : expected->fValue) {
-      auto s = it->asString();
-      if (!s) {
-        continue;
-      }
-      if (ignore.count(s->fValue) > 0) {
-        continue;
-      }
-      if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
-        if (ignore.count(s->fValue.substr(1)) > 0) {
-          continue;
-        }
-      }
-      setE.insert(s->fValue);
-    }
+    ReduceDefinitions(*expected, ignore, setE);
   }
 
   set<u8string> setA;
   if (actual) {
-    for (auto const &it : actual->fValue) {
-      auto s = it->asString();
-      if (!s) {
-        continue;
-      }
-      if (ignore.count(s->fValue) > 0) {
-        continue;
-      }
-      if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
-        if (ignore.count(s->fValue.substr(1)) > 0) {
-          continue;
-        }
-      }
-      setA.insert(s->fValue);
-    }
+    ReduceDefinitions(*actual, ignore, setA);
   }
 
   set<u8string> common;

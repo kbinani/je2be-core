@@ -672,7 +672,7 @@ private:
 
     E(creaking, C(Monster, Definitions(u8"+minecraft:creaking"), Creaking));
     for (std::u8string type : {u8"oak", u8"spruce", u8"birch", u8"jungle", u8"acacia", u8"dark_oak", u8"mangrove", u8"cherry", u8"pale_oak"}) {
-      table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type), Debug));
+      table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type)));
       table->try_emplace(type + u8"_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", type)));
     }
     table->try_emplace(u8"bamboo_raft", C(EntityBase, Vehicle(), TypedBoat(u8"boat", u8"bamboo")));
@@ -681,9 +681,6 @@ private:
 #undef M
 #undef E
     return table;
-  }
-
-  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
   }
 
 #pragma region DedicatedBehaviors
@@ -1775,7 +1772,7 @@ private:
     }
   }
 
-  // static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
+  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
 
   static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"-minecraft:start_suffocating");
