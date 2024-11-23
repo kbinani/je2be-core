@@ -142,7 +142,7 @@ private:
   }
 
   static String Bell(String const &bName, CompoundTag const &s, Props &p) {
-    auto attachment = s.string(u8"attachment", u8"floor");
+    auto attachment = s.string(u8"attachment", u8"standing");
     auto direction = s.int32(u8"direction", 0);
     auto toggle = s.boolean(u8"toggle_bit", false);
     std::u8string facing;

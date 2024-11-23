@@ -818,21 +818,7 @@ private:
       return nullptr;
     }
     auto t = Empty(u8"Bell", *c, pos);
-    auto attachment = b.property(u8"attachment", u8"");
-    auto facing = b.property(u8"facing", u8"south");
-    int direction = 255;
-    if (attachment == u8"floor") {
-      if (facing == u8"north") {
-        direction = 0;
-      } else if (facing == u8"east") {
-        direction = 1;
-      } else if (facing == u8"south") {
-        direction = 2;
-      } else if (facing == u8"west") {
-        direction = 3;
-      }
-    }
-    t->set(u8"Direction", Int(direction));
+    t->set(u8"Direction", Int(255));
     t->set(u8"Ringing", Bool(false));
     t->set(u8"Ticks", Int(0));
     t->set(u8"isMovable", Bool(true));
@@ -1325,8 +1311,6 @@ private:
     using namespace std;
     using namespace mcfile::blocks;
     auto tag = Compound();
-    auto const &name = b.fName;
-    i8 type = Item::GetSkullTypeFromBlockName(name);
     auto rot = Wrap(strings::ToI32(b.property(u8"rotation", u8"0")), 0);
     float rotation = Rotation::ClampDegreesBetweenMinus180And180(rot / 16.0f * 360.0f);
     tag->insert({
@@ -1334,7 +1318,7 @@ private:
         {u8"isMovable", Bool(true)},
         {u8"DoingAnimation", Bool(false)},
         {u8"MouthTickCount", Int(0)},
-        {u8"SkullType", Byte(type)},
+        {u8"SkullType", Byte(-1)},
         {u8"Rotation", Float(rotation)},
     });
     Attach(c, pos, *tag);
