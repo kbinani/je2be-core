@@ -236,7 +236,7 @@ private:
     E(potted_oxeye_daisy, PottedPlant(u8"oxeye_daisy", {}));
     E(potted_cornflower, PottedPlant(u8"cornflower", {}));
     E(potted_lily_of_the_valley, PottedPlant(u8"lily_of_the_valley", {}));
-    E(potted_dandelion, PottedPlant(u8"yellow_flower", {}));
+    E(potted_dandelion, PottedPlant(u8"dandelion", {}));
     E(potted_wither_rose, PottedPlant(u8"wither_rose", {}));
     E(potted_crimson_fungus, PottedPlant(u8"crimson_fungus", {}));
     E(potted_warped_fungus, PottedPlant(u8"warped_fungus", {}));
