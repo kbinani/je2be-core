@@ -947,7 +947,7 @@ public:
     E(jungle_wood, axisToPillarAxis);   // WoodLegacy(u8"jungle", false));
     E(dark_oak_wood, axisToPillarAxis); // WoodLegacy(u8"dark_oak", false));
     Converter wood(Same, AxisToPillarAxis, AddBoolProperty(u8"stripped_bit", false));
-    E(mangrove_wood, wood);
+    E(mangrove_wood, axisToPillarAxis);          // wood
     E(stripped_oak_wood, axisToPillarAxis);      // WoodLegacy(u8"oak", true));
     E(stripped_spruce_wood, axisToPillarAxis);   // WoodLegacy(u8"spruce", true));
     E(stripped_birch_wood, axisToPillarAxis);    // WoodLegacy(u8"birch", true));
@@ -976,36 +976,36 @@ public:
     E(dark_oak_slab, Slab(u8"dark_oak_double_slab"));                               // WoodenSlabLegacy(u8"dark_oak"));
     E(petrified_oak_slab, Slab(u8"oak_double_slab"));                               // WoodenSlabLegacy(u8"oak"));
     E(stone_slab, RenameSlab(u8"normal_stone_slab", u8"normal_stone_double_slab")); // StoneSlab4(u8"stone"));
-    E(granite_slab, StoneSlab3(u8"granite"));
-    E(andesite_slab, StoneSlab3(u8"andesite"));
-    E(diorite_slab, StoneSlab3(u8"diorite"));
-    E(cobblestone_slab, Slab(u8"cobblestone_double_slab")); // SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone")) for < 1.21.50.29
-    E(stone_brick_slab, Slab(u8"stone_brick_double_slab")); // SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick")) for < 1.21.50.29
-    E(brick_slab, Slab(u8"brick_double_slab"));             // SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick")) for < 1.21.50.29
-    E(sandstone_slab, Slab(u8"sandstone_double_slab"));     // SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone")) for < 1.21.50.29
-    E(smooth_sandstone_slab, StoneSlab2(u8"smooth_sandstone"));
-    E(smooth_stone_slab, Slab(u8"smooth_stone_double_slab")); // SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
-    E(nether_brick_slab, Slab(u8"nether_brick_double_slab")); // SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick")) for < 1.21.50.29
-    E(quartz_slab, Slab(u8"quartz_double_slab"));             // SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz")) for < 1.21.50.29
-    E(smooth_quartz_slab, StoneSlab4(u8"smooth_quartz"));
-    E(red_sandstone_slab, StoneSlab2(u8"red_sandstone"));
-    E(smooth_red_sandstone_slab, StoneSlab3(u8"smooth_red_sandstone"));
-    E(cut_red_sandstone_slab, StoneSlab4(u8"cut_red_sandstone"));
-    E(mossy_cobblestone_slab, Slab(u8"mossy_cobblestone_double_slab")); // StoneSlab2(u8"mossy_cobblestone")) for < 1.21.50.29
-    E(polished_diorite_slab, StoneSlab3(u8"polished_diorite"));
-    E(mossy_stone_brick_slab, Slab(u8"mossy_stone_brick_double_slab")); // StoneSlab4(u8"mossy_stone_brick")) for < 1.21.50.29
-    E(polished_granite_slab, StoneSlab3(u8"polished_granite"));
-    E(dark_prismarine_slab, StoneSlab2(u8"prismarine_dark"));
-    E(prismarine_brick_slab, StoneSlab2(u8"prismarine_brick"));
-    E(prismarine_slab, StoneSlab2(u8"prismarine_rough"));
-    E(purpur_slab, StoneSlab2(u8"purpur"));
-    E(cut_sandstone_slab, StoneSlab4(u8"cut_sandstone"));
+    E(granite_slab, Slab(u8"granite_double_slab"));                                 // StoneSlab3(u8"granite")) for < 1.21.50.29
+    E(andesite_slab, Slab(u8"andesite_double_slab"));                               // StoneSlab3(u8"andesite")) for < 1.21.50.29
+    E(diorite_slab, Slab(u8"diorite_double_slab"));                                 // StoneSlab3(u8"diorite")) for < 1.21.50.29
+    E(cobblestone_slab, Slab(u8"cobblestone_double_slab"));                         // SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone")) for < 1.21.50.29
+    E(stone_brick_slab, Slab(u8"stone_brick_double_slab"));                         // SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick")) for < 1.21.50.29
+    E(brick_slab, Slab(u8"brick_double_slab"));                                     // SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick")) for < 1.21.50.29
+    E(sandstone_slab, Slab(u8"sandstone_double_slab"));                             // SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone")) for < 1.21.50.29
+    E(smooth_sandstone_slab, Slab(u8"smooth_sandstone_double_slab"));               // StoneSlab2(u8"smooth_sandstone")) for < 1.21.50.29
+    E(smooth_stone_slab, Slab(u8"smooth_stone_double_slab"));                       // SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
+    E(nether_brick_slab, Slab(u8"nether_brick_double_slab"));                       // SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick")) for < 1.21.50.29
+    E(quartz_slab, Slab(u8"quartz_double_slab"));                                   // SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz")) for < 1.21.50.29
+    E(smooth_quartz_slab, Slab(u8"smooth_quartz_double_slab"));                     // StoneSlab4(u8"smooth_quartz")) for < 1.21.50.29
+    E(red_sandstone_slab, Slab(u8"red_sandstone_double_slab"));                     // StoneSlab2(u8"red_sandstone")) for < 1.21.50.29
+    E(smooth_red_sandstone_slab, Slab(u8"smooth_red_sandstone_double_slab"));       // StoneSlab3(u8"smooth_red_sandstone")) for < 1.21.50.29
+    E(cut_red_sandstone_slab, Slab(u8"cut_red_sandstone_double_slab"));             // StoneSlab4(u8"cut_red_sandstone")) for < 1.21.50.29
+    E(mossy_cobblestone_slab, Slab(u8"mossy_cobblestone_double_slab"));             // StoneSlab2(u8"mossy_cobblestone")) for < 1.21.50.29
+    E(polished_diorite_slab, Slab(u8"polished_diorite_double_slab"));               // StoneSlab3(u8"polished_diorite")) for < 1.21.50.29
+    E(mossy_stone_brick_slab, Slab(u8"mossy_stone_brick_double_slab"));             // StoneSlab4(u8"mossy_stone_brick")) for < 1.21.50.29
+    E(polished_granite_slab, Slab(u8"polished_granite_double_slab"));               // StoneSlab3(u8"polished_granite")) for < 1.21.50.29
+    E(dark_prismarine_slab, Slab(u8"dark_prismarine_double_slab"));                 // StoneSlab2(u8"prismarine_dark")) for < 1.21.50.29
+    E(prismarine_brick_slab, Slab(u8"prismarine_brick_double_slab"));               // StoneSlab2(u8"prismarine_brick")) for < 1.21.50.29
+    E(prismarine_slab, Slab(u8"prismarine_double_slab"));                           // StoneSlab2(u8"prismarine_rough")) for < 1.21.50.29
+    E(purpur_slab, Slab(u8"purpur_double_slab"));                                   // StoneSlab2(u8"purpur")) for < 1.21.50.29
+    E(cut_sandstone_slab, Slab(u8"cut_sandstone_double_slab"));                     // StoneSlab4(u8"cut_sandstone")) for < 1.21.50.29
     E(polished_blackstone_brick_slab, Slab(u8"polished_blackstone_brick_double_slab"));
     E(polished_blackstone_slab, Slab(u8"polished_blackstone_double_slab"));
     E(blackstone_slab, Slab(u8"blackstone_double_slab"));
-    E(polished_andesite_slab, StoneSlab3(u8"polished_andesite"));
-    E(red_nether_brick_slab, StoneSlab2(u8"red_nether_brick"));
-    E(end_stone_brick_slab, StoneSlab3(u8"end_stone_brick"));
+    E(polished_andesite_slab, Slab(u8"polished_andesite_double_slab")); // StoneSlab3(u8"polished_andesite")) for < 1.21.50.29
+    E(red_nether_brick_slab, Slab(u8"red_nether_brick_double_slab"));   // StoneSlab2(u8"red_nether_brick")) for < 1.21.50.29
+    E(end_stone_brick_slab, Slab(u8"end_stone_brick_double_slab"));     // StoneSlab3(u8"end_stone_brick")) for < 1.21.50.29
     E(warped_slab, Slab(u8"warped_double_slab"));
     E(crimson_slab, Slab(u8"crimson_double_slab"));
     E(mangrove_slab, Slab(u8"mangrove_double_slab"));
@@ -1020,7 +1020,7 @@ public:
     E(sunflower, doublePlant);  // DoublePlant(u8"sunflower")) when < 1.21
     E(dead_bush, Rename(u8"deadbush"));
     E(sea_pickle, SeaPickle());
-    E(dandelion, Rename(u8"yellow_flower"));
+    E(dandelion, Identity);          // Rename(u8"yellow_flower")) for 1.21.50.29
     E(poppy, Identity);              // RedFlowerLegacy(u8"poppy"));
     E(blue_orchid, Identity);        // RedFlowerLegacy(u8"orchid"));
     E(allium, Identity);             // RedFlowerLegacy(u8"allium"));
@@ -1112,21 +1112,21 @@ public:
     E(red_wool, Identity);
     E(black_wool, Identity);
     E(snow_block, Rename(u8"snow"));
-    E(quartz_block, QuartzBlock(u8"default"));
-    E(smooth_quartz, QuartzBlock(u8"smooth"));
-    E(quartz_pillar, QuartzBlock(u8"lines"));
-    E(chiseled_quartz_block, QuartzBlock(u8"chiseled"));
+    E(quartz_block, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y"))); // QuartzBlock(u8"default")) for < 1.21.50.29
+    E(smooth_quartz, Identity);                                                  // QuartzBlock(u8"smooth")) for < 1.21.50.29
+    E(quartz_pillar, axisToPillarAxis);                                          // QuartzBlock(u8"lines")) for < 1.21.50.29
+    E(chiseled_quartz_block, Identity);                                          // QuartzBlock(u8"chiseled")) for < 1.21.50.29
     E(bricks, Rename(u8"brick_block"));
-    E(sand, Identity);     // LegacySand(u8"normal")) for 1.21.50.29
-    E(red_sand, Identity); // LegacySand(u8"red")) for 1.21.50.29
+    E(sand, Identity);     // LegacySand(u8"normal")) for < 1.21.50.29
+    E(red_sand, Identity); // LegacySand(u8"red")) for < 1.21.50.29
     E(oak_planks, Identity);
     E(spruce_planks, Identity);
     E(birch_planks, Identity);
     E(jungle_planks, Identity);
     E(acacia_planks, Identity);
     E(dark_oak_planks, Identity);
-    E(purpur_block, Converter(Same, AddStringProperty(u8"chisel_type", u8"default"), AddStringProperty(u8"pillar_axis", u8"y")));
-    E(purpur_pillar, Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis));
+    E(purpur_block, axisToPillarAxis);  // Converter(Same, AddStringProperty(u8"chisel_type", u8"default"), AddStringProperty(u8"pillar_axis", u8"y"))) for < 1.21.50.29
+    E(purpur_pillar, axisToPillarAxis); // Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis)) for < 1.21.50.29
     E(jack_o_lantern, LitPumpkin());
     E(carved_pumpkin, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::South)));
     E(white_stained_glass, Identity);
@@ -1197,16 +1197,16 @@ public:
     E(red_nether_bricks, Rename(u8"red_nether_brick"));
     E(magma_block, Rename(u8"magma"));
     E(sea_lantern, Identity);
-    E(prismarine_bricks, Prismarine(u8"bricks"));
-    E(dark_prismarine, Prismarine(u8"dark"));
-    E(prismarine, Prismarine(u8"default"));
+    E(prismarine_bricks, Identity); // Prismarine(u8"bricks")) for < 1.21.50.29
+    E(dark_prismarine, Identity);   // Prismarine(u8"dark")) for < 1.21.50.29
+    E(prismarine, Identity);        // Prismarine(u8"default")) for < 1.21.50.29
     E(terracotta, Rename(u8"hardened_clay"));
     E(end_stone_bricks, Rename(u8"end_bricks"));
     E(melon, Rename(u8"melon_block"));
-    E(chiseled_stone_bricks, StoneBrick(u8"chiseled"));
-    E(cracked_stone_bricks, StoneBrick(u8"cracked"));
-    E(mossy_stone_bricks, StoneBrick(u8"mossy"));
-    E(stone_bricks, StoneBrick(u8"default"));
+    E(chiseled_stone_bricks, Identity); // StoneBrick(u8"chiseled")) for < 1.21.50.29
+    E(cracked_stone_bricks, Identity);  // StoneBrick(u8"cracked")) for < 1.21.50.29
+    E(mossy_stone_bricks, Identity);    // StoneBrick(u8"mossy")) for < 1.21.50.29
+    E(stone_bricks, Identity);          // StoneBrick(u8"default")) for < 1.21.50.29
     Converter sapling(Same, StageToAgeBit);
     E(oak_sapling, sapling);              // SaplingLegacy(u8"oak"));
     E(birch_sapling, sapling);            // SaplingLegacy(u8"birch"));
@@ -1456,7 +1456,8 @@ public:
     E(potted_cherry_sapling, pottedFlowerPot);
     E(potted_torchflower, pottedFlowerPot);
 
-    Converter skull(Name(u8"skull"), AddIntProperty(u8"facing_direction", 1));
+    // Converter skull(Name(u8"skull"), AddIntProperty(u8"facing_direction", 1));
+    Converter skull(Same, AddIntProperty(u8"facing_direction", 0));
     E(skeleton_skull, skull);
     E(wither_skeleton_skull, skull);
     E(player_head, skull);
@@ -1465,7 +1466,8 @@ public:
     E(dragon_head, skull);
     E(piglin_head, skull);
 
-    Converter wallSkull(Name(u8"skull"), WallSkullFacingDirection);
+    // Converter wallSkull(Name(u8"skull"), WallSkullFacingDirection);
+    Converter wallSkull(Same, WallSkullFacingDirection);
     E(skeleton_wall_skull, wallSkull);
     E(wither_skeleton_wall_skull, wallSkull);
     E(player_wall_head, wallSkull);
@@ -1820,7 +1822,7 @@ public:
     E(jigsaw, Jigsaw);
     E(cherry_slab, Slab(u8"cherry_double_slab"));
     E(pink_petals, PinkPetals);
-    E(cherry_wood, wood);
+    E(cherry_wood, axisToPillarAxis); // wood
     E(stripped_cherry_wood, axisToPillarAxis);
     E(cherry_log, axisToPillarAxis);
     E(stripped_cherry_log, axisToPillarAxis);

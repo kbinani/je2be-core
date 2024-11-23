@@ -168,6 +168,14 @@ private:
     E(turtle_egg, DefaultItem);
     E(conduit, DefaultItem);
     E(beacon, DefaultItem);
+
+    E(skeleton_skull, DefaultItem);
+    E(wither_skeleton_skull, DefaultItem);
+    E(player_head, DefaultItem);
+    E(zombie_head, DefaultItem);
+    E(creeper_head, DefaultItem);
+    E(dragon_head, DefaultItem);
+    E(piglin_head, DefaultItem);
 #undef E
     return table;
   }
@@ -701,14 +709,6 @@ private:
     E(green_banner, Banner);
     E(red_banner, Banner);
     E(black_banner, Banner);
-
-    E(skeleton_skull, Skull);
-    E(wither_skeleton_skull, Skull);
-    E(player_head, Skull);
-    E(zombie_head, Skull);
-    E(creeper_head, Skull);
-    E(dragon_head, Skull);
-    E(piglin_head, Skull);
 
     E(wolf_armor, WolfArmor);
     E(ominous_bottle, OminousBottle);
@@ -1396,9 +1396,9 @@ private:
     };
   }
 
-  static CompoundTagPtr Skull(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+  static CompoundTagPtr LegacySkull(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
     i8 type = GetSkullTypeFromBlockName(name);
-    auto tag = New(u8"skull");
+    auto tag = New(name, true);
     tag->set(u8"Damage", Short(type));
     return tag;
   }

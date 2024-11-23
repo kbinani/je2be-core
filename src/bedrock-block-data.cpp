@@ -1215,8 +1215,10 @@ private:
 
 #pragma region Converters : Q
   static String QuartzBlock(String const &bName, CompoundTag const &s, Props &p) {
-    auto type = s.string(u8"chisel_type", u8"chiseled");
-    if (type == u8"lines") {
+    auto type = s.string(u8"chisel_type");
+    if (!type) {
+      return Ns() + u8"quartz_block";
+    } else if (type == u8"lines") {
       AxisFromPillarAxis(s, p);
       return Ns() + u8"quartz_pillar";
     } else if (type == u8"smooth") {
@@ -2472,8 +2474,8 @@ private:
     E(red_flower, RedFlower);
     E(amethyst_cluster, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
     E(stone, Stone);
-    E(stone_slab3, StoneSlab3); // legacy, < 1.19
-    E(stone_block_slab3, StoneSlab3);
+    E(stone_slab3, StoneSlab3);              // legacy, < 1.19
+    E(stone_block_slab3, StoneSlab3);        // legacy, < 1.21.50.29
     E(double_stone_slab3, DoubleStoneSlab3); // legacy, < 1.19
     E(double_stone_block_slab3, DoubleStoneSlab3);
 
@@ -2730,8 +2732,8 @@ private:
     E(darkoak_standing_sign, DarkoakStandingSign);
     E(darkoak_wall_sign, DarkoakWallSign);
     E(prismarine, Prismarine);
-    E(stone_slab2, StoneSlab2); // legacy, < 1.19
-    E(stone_block_slab2, StoneSlab2);
+    E(stone_slab2, StoneSlab2);              // legacy, < 1.19
+    E(stone_block_slab2, StoneSlab2);        // legacy, for 1.21.50.29?
     E(double_stone_slab2, DoubleStoneSlab2); // legacy, < 1.19
     E(double_stone_block_slab2, DoubleStoneSlab2);
     E(mossy_cobblestone_slab, Slab);
