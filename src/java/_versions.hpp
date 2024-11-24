@@ -4,13 +4,13 @@
 
 namespace je2be::java {
 
-i32 constexpr kBlockDataVersion = 18163713;                                  // v1.21.50.29 TODO(1.21.4)
-Version constexpr kMinimumCompatibleClientVersion = Version(1, 21, 0, 0, 0); // v1.21.0
-u8 constexpr kSubChunkBlockStorageVersion = 9;                               // v1.21.0
-i32 constexpr kStorageVersion = 10;                                          // v1.21.0, "StorageVersion" in level.dat
-i32 constexpr kNetworkVersion = 685;                                         // v1.21.0, "NetworkVersion" in level.dat
-char8_t const *const kInventoryVersion = u8"1.21.0";                         // v1.21.0, "InventoryVersion" in level.dat
-u8 constexpr kDragonFightVersion = 0;                                        // v1.21.0
+i32 constexpr kBlockDataVersion = 18163713;                                   // preview v1.21.60.29 TODO(1.21.4)
+Version constexpr kMinimumCompatibleClientVersion = Version(1, 21, 60, 0, 0); // preview v1.21.60.29 TODO(1.21.4)
+u8 constexpr kSubChunkBlockStorageVersion = 9;                                // v1.21.0
+i32 constexpr kStorageVersion = 10;                                           // v1.21.0, "StorageVersion" in level.dat
+i32 constexpr kNetworkVersion = 685;                                          // v1.21.0, "NetworkVersion" in level.dat
+char8_t const *const kInventoryVersion = u8"1.21.0";                          // v1.21.0, "InventoryVersion" in level.dat
+u8 constexpr kDragonFightVersion = 0;                                         // v1.21.0
 
 Version constexpr kSupportVersion = Version(1, 21, 0, 3, 0); // v1.21.0, "lastOpenedWithVersion" in level.dat
 

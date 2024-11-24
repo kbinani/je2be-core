@@ -261,6 +261,22 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual, B
     }
     ignore.insert(u8"Block");
   }
+  for (auto const &key : {u8"tag/Items"}) {
+    ignore.insert(key);
+    auto itemsE = e->query(key)->asList();
+    auto itemsA = a->query(key)->asList();
+    if (itemsE) {
+      REQUIRE(itemsA);
+      REQUIRE(itemsE->size() == itemsA->size());
+      for (size_t i = 0; i < itemsE->size(); i++) {
+        auto itemE = itemsE->at(i)->asCompound();
+        auto itemA = itemsA->at(i)->asCompound();
+        CheckItemB(*itemE, *itemA, ctx);
+      }
+    } else {
+      CHECK(!itemsA);
+    }
+  }
   for (auto const &i : ignore) {
     Erase(e, i);
     Erase(a, i);
@@ -467,6 +483,17 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
       }
     } else {
       CHECK(!listA);
+    }
+  }
+  for (auto const &key : {u8"PlantBlock"}) {
+    ignore.insert(key);
+    auto blockE = e->compoundTag(key);
+    auto blockA = a->compoundTag(key);
+    if (blockE) {
+      REQUIRE(blockA);
+      CheckBlockB(*blockE, *blockA, false);
+    } else {
+      CHECK(!blockA);
     }
   }
   for (auto const &i : ignore) {

@@ -808,7 +808,14 @@ public:
     s->set(u8"coral_fan_direction", Int(waterlogged ? 1 : 0));
   }
 
-  static Converter CoralWallFan(std::u8string const &tail, bool dead, i8 type) { return Converter(Name(u8"coral_fan_hang" + tail), AddByteProperty(u8"coral_hang_type_bit", type), Name(FacingD, u8"coral_direction"), AddBoolProperty(u8"dead_bit", dead)); }
+  static Converter CoralWallFanLegacy(std::u8string const &tail, bool dead, i8 type) { return Converter(Name(u8"coral_fan_hang" + tail), AddByteProperty(u8"coral_hang_type_bit", type), Name(FacingD, u8"coral_direction"), AddBoolProperty(u8"dead_bit", dead)); }
+
+  static CompoundTagPtr CoralWallFan(Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    Name(FacingD, u8"coral_direction")(s, block, o);
+    return AttachStates(c, s);
+  }
 
   static Converter WallSign(std::optional<std::u8string> prefix = std::nullopt) {
     std::u8string name = prefix ? *prefix + u8"_wall_sign" : u8"wall_sign";
@@ -1396,17 +1403,17 @@ public:
     E(dead_fire_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"red", true));
     E(dead_horn_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"yellow", true));
 
-    E(tube_coral_wall_fan, CoralWallFan(u8"", false, 0));
-    E(brain_coral_wall_fan, CoralWallFan(u8"", false, 1));
-    E(bubble_coral_wall_fan, CoralWallFan(u8"2", false, 0));
-    E(fire_coral_wall_fan, CoralWallFan(u8"2", false, 1));
-    E(horn_coral_wall_fan, CoralWallFan(u8"3", false, 0));
+    E(tube_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"", false, 0));
+    E(brain_coral_wall_fan, CoralWallFan);  // CoralWallFanLegacy(u8"", false, 1));
+    E(bubble_coral_wall_fan, CoralWallFan); // CoralWallFanLegacy(u8"2", false, 0));
+    E(fire_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"2", false, 1));
+    E(horn_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"3", false, 0));
 
-    E(dead_tube_coral_wall_fan, CoralWallFan(u8"", true, 0));
-    E(dead_brain_coral_wall_fan, CoralWallFan(u8"", true, 1));
-    E(dead_bubble_coral_wall_fan, CoralWallFan(u8"2", true, 0));
-    E(dead_fire_coral_wall_fan, CoralWallFan(u8"2", true, 1));
-    E(dead_horn_coral_wall_fan, CoralWallFan(u8"3", true, 0));
+    E(dead_tube_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"", true, 0));
+    E(dead_brain_coral_wall_fan, CoralWallFan);  // CoralWallFanLegacy(u8"", true, 1));
+    E(dead_bubble_coral_wall_fan, CoralWallFan); // CoralWallFanLegacy(u8"2", true, 0));
+    E(dead_fire_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"2", true, 1));
+    E(dead_horn_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"3", true, 0));
 
     E(oak_sign, StandingSign());
     E(spruce_sign, StandingSign(u8"spruce"));
