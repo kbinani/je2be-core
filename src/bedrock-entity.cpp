@@ -1041,9 +1041,10 @@ public:
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto armorsB = b.listTag(u8"Armor");
     auto armorsJ = List<Tag::Type::Compound>();
-    auto chances = List<Tag::Type::Float>();
+    auto chancesJ = List<Tag::Type::Float>();
     if (armorsB) {
       std::vector<CompoundTagPtr> armors;
+      std::vector<FloatTagPtr> chances;
       for (auto const &it : *armorsB) {
         auto armorB = it->asCompound();
         CompoundTagPtr armorJ;
@@ -1054,17 +1055,22 @@ public:
           armorJ = Compound();
         }
         armors.push_back(armorJ);
-        chances->push_back(Float(0.085));
+        chances.push_back(Float(0.085));
       }
-      if (armors.size() == 4) {
+      if (armors.size() >= 4) {
         armorsJ->push_back(armors[3]);
         armorsJ->push_back(armors[2]);
         armorsJ->push_back(armors[1]);
         armorsJ->push_back(armors[0]);
+
+        chancesJ->push_back(chances[3]);
+        chancesJ->push_back(chances[2]);
+        chancesJ->push_back(chances[1]);
+        chancesJ->push_back(chances[0]);
       }
     }
     j[u8"ArmorItems"] = armorsJ;
-    j[u8"ArmorDropChances"] = chances;
+    j[u8"ArmorDropChances"] = chancesJ;
   }
 
   static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {

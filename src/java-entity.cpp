@@ -2730,6 +2730,7 @@ private:
     ret->push_back(armors->at(2));
     ret->push_back(armors->at(1));
     ret->push_back(armors->at(0));
+    ret->push_back(Item::Empty());
 
     return ret;
   }
