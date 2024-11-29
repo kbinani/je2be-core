@@ -4,7 +4,7 @@
 
 namespace je2be {
 
-constexpr int kJavaDataVersion = 4179;          // 1.21.4pre1 //TODO(1.21.4)
+constexpr int kJavaDataVersion = 4184;          // 1.21.4rc1 //TODO(1.21.4)
 constexpr int kJavaDataVersionMaxLegacy = 2730; // 1.17.1
 
 constexpr int kJavaDataVersionComponentIntroduced = 3819; // 24w09a
