@@ -522,7 +522,11 @@ public:
     using namespace std;
     u8string name = strings::RemovePrefix(block.fName.substr(10), u8"lit_");
     auto te = EmptyShortName(name, pos);
-    CopyShortValues(tagB, *te, {{u8"BurnDuration", u8"BurnTime"}, {u8"CookTime"}, {u8"BurnTime", u8"CookTimeTotal"}});
+    if (opt.fDataVersion >= 4184) {
+      CopyShortValues(tagB, *te, {{u8"BurnDuration", u8"lit_total_time"}, {u8"CookTime", u8"cooking_time_spent"}, {u8"BurnTime", u8"lit_time_remaining"}});
+    } else {
+      CopyShortValues(tagB, *te, {{u8"BurnDuration", u8"BurnTime"}, {u8"CookTime"}, {u8"BurnTime", u8"CookTimeTotal"}});
+    }
     te->set(u8"RecipesUsed", Compound());
     auto items = ContainerItems(tagB, u8"Items", ctx, opt);
     if (items) {

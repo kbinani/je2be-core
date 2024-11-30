@@ -1826,18 +1826,12 @@ private:
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx, DataVersion const &dataVersion) {
       auto ret = AnyStorage(id, std::nullopt)(pos, b, comp, ctx, dataVersion);
       if (comp) {
-        auto burnTime = comp->int16(u8"BurnTime");
-        if (burnTime) {
-          ret->set(u8"BurnDuration", Short(*burnTime));
-        }
-        auto cookTime = comp->int16(u8"CookTime");
-        if (cookTime) {
-          ret->set(u8"CookTime", Short(*cookTime));
-        }
-        auto cookTimeTotal = comp->int16(u8"CookTimeTotal");
-        if (cookTimeTotal) {
-          ret->set(u8"BurnTime", Short(*cookTimeTotal));
-        }
+        CopyShortValues(*comp, *ret, {{u8"lit_total_time", u8"BurnDuration"}, //
+                                      {u8"BurnTime", u8"BurnDuration"},       //
+                                      {u8"cooking_time_spent", u8"CookTime"}, //
+                                      {u8"CookTime"},                         //
+                                      {u8"lit_time_remaining", u8"BurnTime"}, //
+                                      {u8"CookTimeTotal", u8"BurnTime"}});
       }
       return ret;
     };

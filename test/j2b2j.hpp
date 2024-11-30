@@ -426,6 +426,8 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     tagBlacklist.insert(u8"CustomName");
   } else if (id == u8"minecraft:vault") {
     tagBlacklist.insert(u8"shared_data/connected_players");
+  } else if (id == u8"minecraft:smoker" || id == u8"minecraft:blast_furnace" || id == u8"minecraft:furnace") {
+    tagBlacklist.insert(u8"cooking_total_time");
   }
   CHECK(actual.compoundTag(u8"tag") == nullptr);
   auto itemsE = expected.listTag(u8"Items");
