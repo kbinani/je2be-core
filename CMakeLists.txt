@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG c5d605b3490399dd4da1925aef17df12e06ff768)
+  GIT_TAG 06a35c847835fc1147d2c5cb7936ed381d495dc3)
 
 CPMAddPackage(
   NAME defer
@@ -454,6 +454,7 @@ if (zlib_imported_with_cpm GREATER -1)
 endif()
 
 list(APPEND je2be_include_directories ${LZ4_BINARY_DIR}/lib)
+list(APPEND je2be_include_directories ${icu-cmake_BINARY_DIR}/include)
 
 CPMAddPackage(
   NAME leveldb
@@ -533,8 +534,7 @@ target_include_directories(je2be PUBLIC
   ${minizip_SOURCE_DIR}
   ${nlohmann_json_SOURCE_DIR}/include
   ${sparse_SOURCE_DIR}
-  ${je2be_include_directories}
-  ${icu-cmake_SOURCE_DIR}/icu/icu4c/source/common)
+  ${je2be_include_directories})
 target_include_directories(je2be PRIVATE ./src ${libdeflate_SOURCE_DIR} ${libminecraft-file_SOURCE_DIR}/include ${defer_SOURCE_DIR}/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})

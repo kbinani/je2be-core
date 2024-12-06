@@ -1,30 +1,28 @@
 #pragma once
 
 static std::string BlockDataTestVersion() {
-  return "1.21";
+  return "1.21.4pre1";
 }
 
 static int BlockDataTestDataVersion() {
-  return 3953;
+  return 4179;
 }
 
 TEST_CASE("block-data") {
   fs::path thisFile(__FILE__);
   fs::path dataDir = thisFile.parent_path() / "data";
+  fs::path root = dataDir / "block-data" / BlockDataTestVersion();
 
-  for (auto it : fs::recursive_directory_iterator(dataDir / "block-data" / BlockDataTestVersion())) {
-    auto path = it.path();
-    if (!fs::is_regular_file(path)) {
-      continue;
-    }
+  auto fis = make_shared<mcfile::stream::FileInputStream>(root / "data.deflate.nbt");
+  REQUIRE(fis->valid());
+  auto expected = CompoundTag::ReadDeflateCompressed(*fis, mcfile::Encoding::Java);
+  REQUIRE(expected);
 
-    fs::path filename = path.filename();
-    u8string javaBlockData = u8string(u8"minecraft:") + filename.replace_extension().u8string();
-
-    auto fis = make_shared<mcfile::stream::FileInputStream>(path);
-    mcfile::stream::InputStreamReader isr(fis);
-    shared_ptr<mcfile::nbt::CompoundTag> bedrockBlockData = CompoundTag::Read(isr);
-    CHECK(bedrockBlockData);
+  for (auto it : *expected) {
+    auto name = it.first;
+    u8string javaBlockData = Namespace::Add(name);
+    auto bedrockBlockData = dynamic_pointer_cast<CompoundTag>(it.second);
+    REQUIRE(bedrockBlockData);
 
     // java -> bedrock
     auto blockJ = mcfile::je::Block::FromBlockData(javaBlockData, BlockDataTestDataVersion());
@@ -54,6 +52,9 @@ TEST_CASE("prepare-test-data") {
   fs::remove_all(root);
   fs::create_directories(root);
 
+  DataVersion const dv(BlockDataTestDataVersion(), BlockDataTestDataVersion());
+  auto out = Compound();
+
   for (int cz = region->minChunkZ(); cz <= region->maxChunkZ(); cz++) {
     for (int cx = region->minChunkX(); cx <= region->maxChunkX(); cx++) {
       auto chunk = region->chunkAt(cx, cz);
@@ -61,20 +62,19 @@ TEST_CASE("prepare-test-data") {
         continue;
       }
       for (auto const &section : chunk->fSections) {
-        section->eachBlockPalette([root](shared_ptr<Block const> const &b, size_t) {
-          u8string s = b->toString().substr(u8string(u8"minecraft:").size());
-          fs::path dir = root / s.substr(0, 1);
-          fs::create_directories(dir);
-          fs::path nbt = dir / (s + u8".nbt");
-          auto converted = je2be::java::BlockData::From(b, nullptr, {});
+        section->eachBlockPalette([root, dv, &out](shared_ptr<Block const> const &b, size_t) {
+          u8string s = Namespace::Remove(b->toString());
+          auto converted = je2be::java::BlockData::From(b, nullptr, dv, {});
           REQUIRE(converted != nullptr);
           converted->erase(u8"version");
-          auto fos = make_shared<mcfile::stream::FileOutputStream>(nbt);
-          CHECK(CompoundTag::Write(*converted, fos, mcfile::Encoding::Java));
+          out->set(s, converted);
           return true;
         });
       }
     }
   }
+
+  auto ok = CompoundTag::WriteDeflateCompressed(*out, root / "data.deflate.nbt", mcfile::Encoding::Java);
+  CHECK(ok);
 }
 #endif

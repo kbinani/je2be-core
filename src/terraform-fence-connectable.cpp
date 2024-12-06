@@ -81,7 +81,7 @@ public:
           return true;
         }
       }
-    } else if (target.fName.ends_with(u8"slab") && target.fName.find(u8"double") != std::u8string::npos) {
+    } else if (target.fName.ends_with(u8"slab") && target.property(u8"type") == u8"double") {
       return true;
     } else if (target.fName.ends_with(u8"fence_gate")) {
       auto facing = target.property(u8"facing");
@@ -205,6 +205,7 @@ public:
     case chiseled_polished_blackstone:
     case chiseled_quartz_block:
     case chiseled_red_sandstone:
+    case chiseled_resin_bricks:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chorus_flower:
@@ -229,6 +230,7 @@ public:
     case cracked_stone_bricks:
     case crafter:
     case crafting_table:
+    case creaking_heart:
     case crimson_fence:
     case crimson_hyphae:
     case crimson_nylium:
@@ -394,6 +396,11 @@ public:
     case oxidized_cut_copper:
     case packed_ice:
     case packed_mud:
+    case pale_moss_block:
+    case pale_oak_fence:
+    case pale_oak_log:
+    case pale_oak_planks:
+    case pale_oak_wood:
     case pearlescent_froglight:
     case pink_concrete:
     case pink_concrete_powder:
@@ -442,6 +449,8 @@ public:
     case redstone_ore:
     case reinforced_deepslate:
     case repeating_command_block:
+    case resin_block:
+    case resin_bricks:
     case respawn_anchor:
     case rooted_dirt:
     case sand:
@@ -486,6 +495,8 @@ public:
     case stripped_mangrove_wood:
     case stripped_oak_log:
     case stripped_oak_wood:
+    case stripped_pale_oak_log:
+    case stripped_pale_oak_wood:
     case stripped_spruce_log:
     case stripped_spruce_wood:
     case stripped_warped_hyphae:
@@ -623,6 +634,7 @@ public:
     case chiseled_polished_blackstone:
     case chiseled_quartz_block:
     case chiseled_red_sandstone:
+    case chiseled_resin_bricks:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chorus_flower:
@@ -649,6 +661,7 @@ public:
     case cracked_stone_bricks:
     case crafter:
     case crafting_table:
+    case creaking_heart:
     case crimson_hyphae:
     case crimson_nylium:
     case crimson_planks:
@@ -828,6 +841,10 @@ public:
     case oxidized_cut_copper:
     case packed_ice:
     case packed_mud:
+    case pale_moss_block:
+    case pale_oak_log:
+    case pale_oak_planks:
+    case pale_oak_wood:
     case pearlescent_froglight:
     case pink_concrete:
     case pink_concrete_powder:
@@ -885,6 +902,9 @@ public:
     case redstone_ore:
     case reinforced_deepslate:
     case repeating_command_block:
+    case resin_block:
+    case resin_brick_wall:
+    case resin_bricks:
     case respawn_anchor:
     case rooted_dirt:
     case sand:
@@ -930,6 +950,8 @@ public:
     case stripped_mangrove_wood:
     case stripped_oak_log:
     case stripped_oak_wood:
+    case stripped_pale_oak_log:
+    case stripped_pale_oak_wood:
     case stripped_spruce_log:
     case stripped_spruce_wood:
     case stripped_warped_hyphae:

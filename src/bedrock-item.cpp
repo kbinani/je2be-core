@@ -6,6 +6,7 @@
 #include "bedrock/_block-data.hpp"
 #include "bedrock/_block-entity.hpp"
 #include "bedrock/_context.hpp"
+#include "bedrock/_entity.hpp"
 #include "entity/_axolotl.hpp"
 #include "entity/_tropical-fish.hpp"
 #include "enums/_effect.hpp"
@@ -110,11 +111,6 @@ public:
             }
           }
         }
-      }
-    }
-    if (!ctx.fDataPackBundle) {
-      if (nameJ == u8"minecraft:bundle") {
-        ctx.fDataPackBundle = true;
       }
     }
     itemJ.set(u8"id", nameJ);
@@ -287,6 +283,7 @@ public:
         java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
 
         java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
+        java::AppendComponent(itemJ, u8"rarity", String(u8"uncommon"));
       } else {
         auto patternsB = tagB->listTag(u8"Patterns");
         if (patternsB) {
@@ -412,8 +409,7 @@ public:
       break;
     case 4: {
       prefix = u8"tropical_fish_";
-      auto tagB = itemB.compoundTag(u8"tag");
-      if (tagB) {
+      if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
         TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
         auto tagJ = Compound();
         tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
@@ -963,6 +959,15 @@ public:
       if (auto age = tagB->int32(u8"Age"); age) {
         tagJ->set(u8"Age", Int(*age));
       }
+      if (name == u8"minecraft:salmon_bucket") {
+        if (Entity::HasDefinition(*tagB, u8"+scale_small")) {
+          tagJ->set(u8"type", String(u8"small"));
+        } else if (Entity::HasDefinition(*tagB, u8"+scale_large")) {
+          tagJ->set(u8"type", String(u8"large"));
+        } else if (Entity::HasDefinition(*tagB, u8"+scale_normal")) {
+          tagJ->set(u8"type", String(u8"medium"));
+        }
+      }
       java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
     }
     return name;
@@ -999,6 +1004,28 @@ public:
         auto dyedColor = Compound();
         dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColorB)));
         java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+      }
+    }
+    return name;
+  }
+
+  static std::u8string Bundle(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      if (auto contentsB = tagB->listTag(u8"storage_item_component_content"); contentsB) {
+        auto contentsJ = List<Tag::Type::Compound>();
+        for (auto it : *contentsB) {
+          if (auto itemB = std::dynamic_pointer_cast<CompoundTag>(it); itemB) {
+            if (auto count = itemB->byte(u8"Count", 0); count > 0) {
+              if (auto itemJ = Item::From(*itemB, ctx, dataVersion, opt); itemJ) {
+                itemJ->erase(u8"Slot");
+                contentsJ->push_back(itemJ);
+              }
+            }
+          }
+        }
+        if (!contentsJ->empty()) {
+          java::AppendComponent(itemJ, u8"bundle_contents", contentsJ);
+        }
       }
     }
     return name;
@@ -1102,8 +1129,6 @@ public:
     E(suspicious_stew, SuspiciousStew);
     E(axolotl_bucket, AxolotlBucket);
     E(crossbow, Crossbow);
-    E(field_masoned_banner_pattern, Rename(u8"flower_banner_pattern"));    // field_masoned_banner_pattern doesn't exist in JE
-    E(bordure_indented_banner_pattern, Rename(u8"flower_banner_pattern")); // bordure_indented_banner_pattern doesn't exist in JE
     E(lodestone_compass, LodestoneCompass);
     E(shulker_box, ShulkerBox);
     E(white_shulker_box, ShulkerBox);
@@ -1145,6 +1170,26 @@ public:
 
     // 1.21
     E(ominous_bottle, OminousBottle);
+
+    // 1.21.4
+    E(bundle, Bundle);
+    E(white_bundle, Bundle);
+    E(light_gray_bundle, Bundle);
+    E(gray_bundle, Bundle);
+    E(black_bundle, Bundle);
+    E(brown_bundle, Bundle);
+    E(red_bundle, Bundle);
+    E(orange_bundle, Bundle);
+    E(yellow_bundle, Bundle);
+    E(lime_bundle, Bundle);
+    E(green_bundle, Bundle);
+    E(cyan_bundle, Bundle);
+    E(light_blue_bundle, Bundle);
+    E(blue_bundle, Bundle);
+    E(purple_bundle, Bundle);
+    E(magenta_bundle, Bundle);
+    E(pink_bundle, Bundle);
+    E(normal_stone_slab, Rename(u8"stone_slab"));
 #undef E
     return ret;
   }

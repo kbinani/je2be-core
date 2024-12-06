@@ -32,7 +32,10 @@ public:
 
     {
       auto dataPacks = Compound();
-      dataPacks->set(u8"Disabled", List<Tag::Type::String>());
+      auto disabled = List<Tag::Type::String>();
+      disabled->push_back(String(u8"minecart_improvements"));
+      disabled->push_back(String(u8"redstone_experiments"));
+      dataPacks->set(u8"Disabled", disabled);
       auto enabled = List<Tag::Type::String>();
       enabled->push_back(String(u8"vanilla"));
       for (auto const &pack : o.fEnabledDataPacks) {

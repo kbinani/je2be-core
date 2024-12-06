@@ -38,31 +38,59 @@ public:
       t[u8"id"] = String(u8"minecraft:item_frame");
     }
 
-    i32 facingDirectionA = blockJ.fStates->int32(u8"facing_direction", 0);
-    Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirectionA);
+    Facing6 f6 = Facing6::South;
+    if (auto facingDirectionA = blockJ.fStates->int32(u8"facing_direction"); facingDirectionA) {
+      f6 = Facing6FromBedrockFacingDirectionA(*facingDirectionA);
+    } else if (blockJ.fVal) {
+      switch (*blockJ.fVal) {
+      case 0:
+      case 4: // map?
+        f6 = Facing6::East;
+        break;
+      case 1:
+      case 5: // map?
+        f6 = Facing6::West;
+        break;
+      case 2:
+      case 6: // map?
+        f6 = Facing6::South;
+        break;
+      case 3:
+      case 7: // map
+        f6 = Facing6::North;
+        break;
+      }
+    }
     je2be::Rotation rot(0, 0);
+    i8 facingDirection = 0;
     switch (f6) {
     case Facing6::Up:
       rot.fPitch = -90;
+      facingDirection = 1;
       break;
     case Facing6::North:
       rot.fYaw = 180;
+      facingDirection = 2;
       break;
     case Facing6::East:
       rot.fYaw = 270;
+      facingDirection = 5;
       break;
     case Facing6::South:
       rot.fYaw = 0;
+      facingDirection = 3;
       break;
     case Facing6::West:
       rot.fYaw = 90;
+      facingDirection = 4;
       break;
     case Facing6::Down:
       rot.fPitch = 90;
+      facingDirection = 0;
       break;
     }
     t[u8"Rotation"] = rot.toListTag();
-    t[u8"Facing"] = Byte(facingDirectionA);
+    t[u8"Facing"] = Byte(facingDirection);
 
     t[u8"TileX"] = Int(pos.fX);
     t[u8"TileY"] = Int(pos.fY);
@@ -209,6 +237,24 @@ public:
   static std::u8string Same(std::u8string const &nameB, CompoundTag const &entityB) {
     return nameB;
   }
+
+  static std::u8string BoatName(std::u8string const &nameB, CompoundTag const &entityB) {
+    auto variant = entityB.int32(u8"Variant", 0);
+    auto type = Boat::JavaTypeFromBedrockVariant(variant);
+    if (nameB == u8"minecraft:chest_boat") {
+      if (type == u8"bamboo") {
+        return Namespace::Add(u8"bamboo_chest_raft");
+      } else {
+        return Namespace::Add(type + u8"_chest_boat");
+      }
+    } else {
+      if (type == u8"bamboo") {
+        return Namespace::Add(u8"bamboo_raft");
+      } else {
+        return Namespace::Add(type + u8"_boat");
+      }
+    }
+  }
 #pragma endregion
 
 #pragma region Dedicated Behaviors
@@ -353,10 +399,6 @@ public:
   }
 
   static void Boat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    auto variant = b.int32(u8"Variant", 0);
-    auto type = Boat::JavaTypeFromBedrockVariant(variant);
-    j[u8"Type"] = String(type);
-
     if (auto rotB = props::GetRotation(b, u8"Rotation"); rotB) {
       je2be::Rotation rotJ(Rotation::ClampDegreesBetweenMinus180And180(rotB->fYaw - 90), rotB->fPitch);
       j[u8"Rotation"] = rotJ.toListTag();
@@ -410,6 +452,10 @@ public:
       }
     }
     j[u8"IsChickenJockey"] = Bool(false);
+  }
+
+  static void Creaking(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    j[u8"Health"] = Float(1);
   }
 
   static void Creeper(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -609,6 +655,12 @@ public:
 
   static void GlowSquid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"DarkTicksRemaining"] = Int(0);
+    if (HasDefinition(b, u8"+minecraft:squid_baby")) {
+      // BE doesn't have Age tag
+      j[u8"Age"] = Int(-24000);
+    } else {
+      j[u8"Age"] = Int(0);
+    }
   }
 
   static void Goat(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -803,6 +855,16 @@ public:
     j[u8"StunTick"] = Int(0);
   }
 
+  static void Salmon(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (HasDefinition(b, u8"+scale_small")) {
+      j[u8"type"] = String(u8"small");
+    } else if (HasDefinition(b, u8"+scale_large")) {
+      j[u8"type"] = String(u8"large");
+    } else {
+      j[u8"type"] = String(u8"medium");
+    }
+  }
+
   static void Sheep(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Sheared"}});
     CopyByteValues(b, j, {{u8"Color"}});
@@ -826,7 +888,7 @@ public:
 
   static void TntMinecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto fuse = b.byte(u8"Fuse", -1);
-    j[u8"TNTFuse"] = Int(fuse);
+    j[u8"fuse"] = Int(fuse);
   }
 
   static void TropicalFish(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -979,9 +1041,10 @@ public:
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto armorsB = b.listTag(u8"Armor");
     auto armorsJ = List<Tag::Type::Compound>();
-    auto chances = List<Tag::Type::Float>();
+    auto chancesJ = List<Tag::Type::Float>();
     if (armorsB) {
       std::vector<CompoundTagPtr> armors;
+      std::vector<FloatTagPtr> chances;
       for (auto const &it : *armorsB) {
         auto armorB = it->asCompound();
         CompoundTagPtr armorJ;
@@ -992,17 +1055,22 @@ public:
           armorJ = Compound();
         }
         armors.push_back(armorJ);
-        chances->push_back(Float(0.085));
+        chances.push_back(Float(0.085));
       }
-      if (armors.size() == 4) {
+      if (armors.size() >= 4) {
         armorsJ->push_back(armors[3]);
         armorsJ->push_back(armors[2]);
         armorsJ->push_back(armors[1]);
         armorsJ->push_back(armors[0]);
+
+        chancesJ->push_back(chances[3]);
+        chancesJ->push_back(chances[2]);
+        chancesJ->push_back(chances[1]);
+        chancesJ->push_back(chances[0]);
       }
     }
     j[u8"ArmorItems"] = armorsJ;
-    j[u8"ArmorDropChances"] = chances;
+    j[u8"ArmorDropChances"] = chancesJ;
   }
 
   static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1095,6 +1163,10 @@ public:
   }
 
   static void Debug(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+  }
+
+  static void Dolphin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    j.erase(u8"InLove");
   }
 
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1504,6 +1576,15 @@ public:
     CopyBoolValues(b, j, {{u8"Sitting", u8"Sitting", false}});
   }
 
+  static void Squid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (HasDefinition(b, u8"+minecraft:squid_baby")) {
+      // BE doesn't have Age tag
+      j[u8"Age"] = Int(-24000);
+    } else {
+      j[u8"Age"] = Int(0);
+    }
+  }
+
   static void Wave(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     /*
       uuid := b.int64(u8"DwellingUniqueID")
@@ -1643,23 +1724,6 @@ public:
       replace->push_back(attributeJ);
     }
     entityJ[u8"attributes"] = replace;
-  }
-
-  static bool HasDefinition(CompoundTag const &entityB, std::u8string const &definitionToSearch) {
-    auto definitions = entityB.listTag(u8"definitions");
-    if (!definitions) {
-      return false;
-    }
-    for (auto const &it : *definitions) {
-      auto definition = it->asString();
-      if (!definition) {
-        continue;
-      }
-      if (definition->fValue == definitionToSearch) {
-        return true;
-      }
-    }
-    return false;
   }
 
   static bool HasDefinitionWithPrefixAndSuffix(CompoundTag const &entityB, std::u8string const &prefix, std::u8string const &suffix) {
@@ -2048,10 +2112,10 @@ public:
     E(ender_crystal, C(Rename(u8"end_crystal"), Base, ShowBottom, EnderCrystal));
     E(chest_minecart, C(Same, Base, Minecart, ItemsFromChestItems, ChestMinecart));
     E(hopper_minecart, C(Same, Base, Minecart, ItemsFromChestItems, HopperMinecart));
-    E(boat, C(Same, Base, Boat));
-    E(chest_boat, C(Same, Base, ItemsFromChestItems, Boat));
+    E(boat, C(BoatName, Base, Boat));
+    E(chest_boat, C(BoatName, Base, ItemsFromChestItems, Boat));
     E(slime, C(Same, LivingEntity, Size));
-    E(salmon, C(Same, LivingEntity, FromBucket));
+    E(salmon, C(Same, LivingEntity, FromBucket, Salmon));
     E(parrot, C(Same, Animal, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
     E(zombie_pigman, C(Rename(u8"zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie, ZombifiedPiglin));
@@ -2089,7 +2153,7 @@ public:
     E(skeleton_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed, SkeletonHorse));
     E(polar_bear, C(Same, Animal, AngerTime));
     E(glow_squid, C(Same, LivingEntity, GlowSquid));
-    E(squid, C(Same, LivingEntity));
+    E(squid, C(Same, LivingEntity, Squid));
     E(strider, C(Same, Animal, Saddle));
     E(turtle, C(Same, Animal, Turtle));
     E(tropicalfish, C(Rename(u8"tropical_fish"), LivingEntity, FromBucket, TropicalFish));
@@ -2130,6 +2194,9 @@ public:
     E(armadillo, C(Same, Animal, Armadillo));
     E(bogged, C(Same, LivingEntity, Bogged));
     E(breeze, C(Same, LivingEntity));
+    E(dolphin, C(Same, Animal, Dolphin));
+
+    E(creaking, C(Same, LivingEntity, Creaking));
 #undef E
     return ret;
   }

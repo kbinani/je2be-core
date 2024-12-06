@@ -40,7 +40,7 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
 }
 
 static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expected, ListTagPtr const &actual) {
-  static set<u8string> const sIgnore = {
+  set<u8string> ignore = {
       u8"+",
       u8"minecraft:wild_child_ocelot_spawn",
       u8"look_for_food",           // bee
@@ -74,44 +74,48 @@ static void CheckEntityDefinitionsB(u8string const &id, ListTagPtr const &expect
       u8"+minecraft:sheep_light_gray",
       u8"+minecraft:sheep_black",
       u8"+minecraft:sheep_pink",
+      u8"+dolphin_swimming_navigation",
+  };
+  if (id == u8"minecraft:salmon") {
+    ignore.insert(u8"+scale_normal");
+  }
+
+  static auto ReduceDefinitions = [](ListTag const &defs, set<u8string> const &ignore, set<u8string> &ret) {
+    for (auto const &it : defs) {
+      auto v = it->asString();
+      if (!v) {
+        continue;
+      }
+      auto value = v->fValue;
+      if (value.starts_with(u8"-")) {
+        ret.erase(u8"+" + value.substr(1));
+        continue;
+      } else if (value.starts_with(u8"+")) {
+        ret.erase(u8"-" + value.substr(1));
+        ret.insert(value);
+      } else {
+        ret.erase(u8"-" + value);
+        ret.insert(u8"+" + value);
+      }
+    }
+    for (auto const &it : ignore) {
+      if (it.starts_with(u8"+") || it.starts_with(u8"-")) {
+        ret.erase(it);
+      } else {
+        ret.erase(u8"+" + it);
+        ret.erase(u8"-" + it);
+      }
+    }
   };
 
   set<u8string> setE;
   if (expected) {
-    for (auto const &it : expected->fValue) {
-      auto s = it->asString();
-      if (!s) {
-        continue;
-      }
-      if (sIgnore.count(s->fValue) > 0) {
-        continue;
-      }
-      if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
-        if (sIgnore.count(s->fValue.substr(1)) > 0) {
-          continue;
-        }
-      }
-      setE.insert(s->fValue);
-    }
+    ReduceDefinitions(*expected, ignore, setE);
   }
 
   set<u8string> setA;
   if (actual) {
-    for (auto const &it : actual->fValue) {
-      auto s = it->asString();
-      if (!s) {
-        continue;
-      }
-      if (sIgnore.count(s->fValue) > 0) {
-        continue;
-      }
-      if (s->fValue.starts_with(u8"+") || s->fValue.starts_with(u8"-")) {
-        if (sIgnore.count(s->fValue.substr(1)) > 0) {
-          continue;
-        }
-      }
-      setA.insert(s->fValue);
-    }
+    ReduceDefinitions(*actual, ignore, setA);
   }
 
   set<u8string> common;
@@ -166,7 +170,9 @@ static void CheckBlockB(CompoundTag const &expected, CompoundTag const &actual, 
   auto statesE = expected.compoundTag(u8"states");
   auto statesA = actual.compoundTag(u8"states");
   if (nameE != nameA) {
+    cout << "expected: " << *nameE << endl;
     nbt::PrintAsJson(cout, *statesE);
+    cout << "actual: " << *nameA << endl;
     nbt::PrintAsJson(cout, *statesA);
   }
   CHECK(nameE == nameA);
@@ -255,6 +261,22 @@ static void CheckItemB(CompoundTag const &expected, CompoundTag const &actual, B
     }
     ignore.insert(u8"Block");
   }
+  for (auto const &key : {u8"tag/Items"}) {
+    ignore.insert(key);
+    auto itemsE = e->query(key)->asList();
+    auto itemsA = a->query(key)->asList();
+    if (itemsE) {
+      REQUIRE(itemsA);
+      REQUIRE(itemsE->size() == itemsA->size());
+      for (size_t i = 0; i < itemsE->size(); i++) {
+        auto itemE = itemsE->at(i)->asCompound();
+        auto itemA = itemsA->at(i)->asCompound();
+        CheckItemB(*itemE, *itemA, ctx);
+      }
+    } else {
+      CHECK(!itemsA);
+    }
+  }
   for (auto const &i : ignore) {
     Erase(e, i);
     Erase(a, i);
@@ -331,6 +353,23 @@ static void CheckRotationB(float e, float a) {
   CHECK(e == a);
 }
 
+static void CheckSignTextB(CompoundTagPtr const &expected, CompoundTagPtr const &actual) {
+  if (expected) {
+    REQUIRE(actual);
+    auto e = expected->copy();
+    auto a = actual->copy();
+    set<u8string> ignore;
+    ignore.insert(u8"FilteredText");
+    for (auto const &it : ignore) {
+      e->erase(it);
+      a->erase(it);
+    }
+    DiffCompoundTag(*e, *a);
+  } else {
+    CHECK(!actual);
+  }
+}
+
 static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &actual, std::shared_ptr<mcfile::be::Block const> const &blockE, mcfile::Dimension dim, B2J2BContext &ctx) {
   auto e = expected.copy();
   auto a = actual.copy();
@@ -403,6 +442,17 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
     ignore.insert(u8"trackingHandle");
   } else if (*idE == u8"Lectern") {
     itemTags.insert(u8"book");
+  } else if (*idE == u8"Sign" || *idE == u8"HangingSign") {
+    auto frontE = e->compoundTag(u8"FrontText");
+    auto backE = e->compoundTag(u8"BackText");
+    auto frontA = a->compoundTag(u8"FrontText");
+    auto backA = a->compoundTag(u8"BackText");
+    ignore.insert(u8"FrontText");
+    ignore.insert(u8"BackText");
+    CheckSignTextB(frontE, frontA);
+    CheckSignTextB(backE, backA);
+  } else if (*idE == u8"CreakingHeart") {
+    ignore.insert(u8"Cooldown");
   }
   for (auto const &key : itemTags) {
     auto itemE = e->compoundTag(key);
@@ -435,6 +485,17 @@ static void CheckBlockEntityB(CompoundTag const &expected, CompoundTag const &ac
       CHECK(!listA);
     }
   }
+  for (auto const &key : {u8"PlantBlock"}) {
+    ignore.insert(key);
+    auto blockE = e->compoundTag(key);
+    auto blockA = a->compoundTag(key);
+    if (blockE) {
+      REQUIRE(blockA);
+      CheckBlockB(*blockE, *blockA, false);
+    } else {
+      CHECK(!blockA);
+    }
+  }
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);
@@ -460,7 +521,10 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
             continue;
           }
           if (e->fName != a->fName) {
+            cout << "[" + to_string(x) + "," + to_string(y) + "," + to_string(z) + "]" << endl;
+            cout << "expected: " << e->fName << endl;
             nbt::PrintAsJson(cout, *e->fStates);
+            cout << "actual: " << a->fName << endl;
             nbt::PrintAsJson(cout, *a->fStates);
           }
           CHECK(e->fName == a->fName);
@@ -485,7 +549,7 @@ static void CheckChunkB(mcfile::be::Chunk const &chunkE, mcfile::be::Chunk const
             tagE->erase(i);
             tagA->erase(i);
           }
-          DiffCompoundTag(*tagE, *tagA);
+          DiffCompoundTag(*tagE, *tagA, "[" + to_string(x) + "," + to_string(y) + "," + to_string(z) + "]");
         } else {
           if (a) {
             CHECK(a->fName == u8"minecraft:air");
@@ -583,9 +647,10 @@ static void TestBedrockToJavaToBedrock(fs::path const &in) {
     }
   }
   if (!chunks.empty()) {
+    int radius = 1;
     for (auto const &ch : chunks) {
-      for (int dx = -1; dx <= 1; dx++) {
-        for (int dz = -1; dz <= 1; dz++) {
+      for (int dx = -radius; dx <= radius; dx++) {
+        for (int dz = -radius; dz <= radius; dz++) {
           optJ.fChunkFilter.insert({ch.fX + dx, ch.fZ + dz});
         }
       }

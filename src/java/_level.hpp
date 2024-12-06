@@ -46,6 +46,7 @@ public:
   bool fEducationFeaturesEnabled = false;
   i32 fEduOffer = 0;
   std::unordered_map<std::u8string, bool> fExperiments;
+  bool fExperimentsEverUsed = false;
   bool fFallDamage = true;
   bool fFireDamage = true;
   bool fFreezeDamage = true;
@@ -123,6 +124,7 @@ public:
   bool fProjectilescanbreakblocks = true;
   bool fShowrecipemessages = true;
   bool fIsHardcore = false;
+  bool fPlayerHasDied = false;
 
   CompoundTagPtr toBedrockCompoundTag() const {
     auto root = Compound();
@@ -236,10 +238,13 @@ public:
         {u8"showrecipemessages", Bool(fShowrecipemessages)},
         {u8"IsHardcore", Bool(fIsHardcore)},
         {u8"tntexplosiondropdecay", Bool(fTntExplosionDropDecay)},
+        {u8"PlayerHasDied", Bool(fPlayerHasDied)},
+
+        {u8"HasUncompleteWorldFileOnDisk", Bool(false)},
     });
     auto experiments = Compound();
-    experiments->set(u8"experiments_ever_used", Bool(!fExperiments.empty()));
-    experiments->set(u8"saved_with_toggled_experiments", Bool(!fExperiments.empty()));
+    experiments->set(u8"experiments_ever_used", Bool(fExperimentsEverUsed || !fExperiments.empty()));
+    experiments->set(u8"saved_with_toggled_experiments", Bool(fExperimentsEverUsed || !fExperiments.empty()));
     if (!fExperiments.empty()) {
       for (auto const &it : fExperiments) {
         experiments->set(it.first, Bool(it.second));
@@ -269,7 +274,7 @@ public:
     return w.write((u32)pos - 8);
   }
 
-  static Level Import(CompoundTag const &tag) {
+  static Level ImportFromJava(CompoundTag const &tag) {
     Level ret;
     auto data = tag.compoundTag(u8"Data");
     if (!data) {
@@ -365,10 +370,16 @@ public:
     if (auto type = GameModeFromJava(data->int32(u8"GameType", 0)); type) {
       ret.fGameType = *type;
     }
+    if (auto player = data->compoundTag(u8"Player"); player) {
+      if (auto lastDeathLocation = player->compoundTag(u8"LastDeathLocation"); lastDeathLocation) {
+        if (lastDeathLocation->string(u8"dimension") && lastDeathLocation->intArrayTag(u8"pos")) {
+          ret.fPlayerHasDied = true;
+        }
+      }
+    }
     ret.fDataVersion = data->int32(u8"DataVersion", mcfile::je::Chunk::kDataVersion);
 
     if (auto enabledFeatures = data->listTag(u8"enabled_features"); enabledFeatures) {
-      bool experiments = false;
       for (auto it : *enabledFeatures) {
         auto s = it->asString();
         if (!s) {
@@ -377,7 +388,7 @@ public:
         if (s->fValue == u8"minecraft:vanilla") {
           continue;
         }
-        experiments = true;
+        ret.fExperimentsEverUsed = true;
         if (s->fValue == u8"minecraft:trade_rebalance") {
           ret.fExperiments[u8"villager_trades_rebalance"] = true;
         }

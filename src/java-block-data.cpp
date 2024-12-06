@@ -251,7 +251,7 @@ public:
 
   // static Converter StoneLegacy(std::u8string const &stoneType) { return Subtype(u8"stone", u8"stone_type", stoneType); }
 
-  static Converter Dirt(std::u8string const &dirtType) { return Subtype(u8"dirt", u8"dirt_type", dirtType); }
+  // static Converter Dirt(std::u8string const &dirtType) { return Subtype(u8"dirt", u8"dirt_type", dirtType); }
 
   // static Converter LogLegacy(std::u8string const &type) { return Converter(Name(u8"log"), AddStringProperty(u8"old_log_type", type), AxisToPillarAxis); }
 
@@ -279,6 +279,21 @@ public:
     return Converter(ChangeWhenDoubleType(doubleName), TypeToVerticalHalf);
   }
 
+  static AnyConverter RenameSlab(std::u8string const &singleName, std::u8string const &doubleName) {
+    return [=](Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
+      CompoundTagPtr d;
+      auto s = States();
+      auto type = block.property(u8"type", u8"bottom");
+      if (type == u8"double") {
+        d = New(doubleName);
+      } else {
+        d = New(singleName);
+      }
+      TypeToVerticalHalf(s, block, o);
+      return AttachStates(d, s);
+    };
+  }
+
   static AnyConverter SlabWithStoneTypeWhenDouble(std::u8string const &normalName, std::u8string const &doubleName, std::u8string const &stoneSlabType) {
     return [=](Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
       auto type = block.property(u8"type", u8"bottom");
@@ -289,8 +304,8 @@ public:
         s->set(u8"stone_slab_type", String(stoneSlabType));
       } else {
         d = New(normalName);
+        TypeToVerticalHalf(s, block, o);
       }
-      TypeToVerticalHalf(s, block, o);
       return AttachStates(d, s);
     };
   }
@@ -365,11 +380,11 @@ public:
   // before 1.19.70, color was stored in states:
   // static Converter Wool(std::u8string const &color) { return Subtype(u8"wool", u8"color", color); }
 
-  static Converter RedSandstone(std::u8string const &type) { return Subtype(u8"red_sandstone", u8"sand_stone_type", type); }
+  // static Converter RedSandstone(std::u8string const &type) { return Subtype(u8"red_sandstone", u8"sand_stone_type", type); }
 
-  static Converter Sandstone(std::u8string const &type) { return Subtype(u8"sandstone", u8"sand_stone_type", type); }
+  // static Converter Sandstone(std::u8string const &type) { return Subtype(u8"sandstone", u8"sand_stone_type", type); }
 
-  static Converter Sand(std::u8string const &type) { return Subtype(u8"sand", u8"sand_type", type); }
+  // static Converter LegacySand(std::u8string const &type) { return Subtype(u8"sand", u8"sand_type", type); }
 
   static Converter QuartzBlock(std::u8string const &type) { return Converter(Name(u8"quartz_block"), AxisToPillarAxis, AddStringProperty(u8"chisel_type", type)); }
 
@@ -551,6 +566,36 @@ public:
     return AttachStates(d, s);
   }
 
+  static CompoundTagPtr Skull(Block const &b, CompoundTagConstPtr const &tile, Options const &o) {
+    auto d = New(b.fName, true);
+    auto s = States();
+    if (o.fItem) {
+      s->set(u8"facing_direction", Int(0));
+    } else {
+      s->set(u8"facing_direction", Int(1));
+    }
+    return AttachStates(d, s);
+  }
+
+  static CompoundTagPtr WallSkull(Block const &b, CompoundTagConstPtr const &tile, Options const &o) {
+    auto name = strings::Replace(b.fName, u8"_wall_", u8"_");
+    auto d = New(name, true);
+    auto s = States();
+    auto facing = b.property(u8"facing", u8"");
+    i32 direction = 0;
+    if (facing == u8"south") {
+      direction = 3;
+    } else if (facing == u8"east") {
+      direction = 5;
+    } else if (facing == u8"north") {
+      direction = 2;
+    } else if (facing == u8"west") {
+      direction = 4;
+    }
+    s->set(u8"facing_direction", Int(direction));
+    return AttachStates(d, s);
+  }
+
   static void EndRodFacingDirectionFromFacing(CompoundTagPtr const &s, Block const &block, Options const &o) {
     if (o.fItem) {
       s->set(u8"facing_direction", Int(0));
@@ -596,7 +641,7 @@ public:
 
   static Converter AnyWallTorch(std::u8string const &prefix) { return Converter(Name(prefix + u8"torch"), TorchFacingDirectionFromFacing); }
 
-  static Converter InfestedStone(std::u8string const &type) { return Subtype(u8"monster_egg", u8"monster_egg_stone_type", type); }
+  static Converter LegacyInfestedStone(std::u8string const &type) { return Subtype(u8"monster_egg", u8"monster_egg_stone_type", type); }
 
   static Converter Fence(std::u8string const &type) { return Subtype(u8"fence", u8"wood_type", type); }
 
@@ -703,6 +748,8 @@ public:
     if (upper) {
       s->set(u8"direction", Int(0));
       s->set(u8"open_bit", Bool(false));
+    } else {
+      s->set(u8"door_hinge_bit", Bool(false));
     }
   }
 
@@ -738,9 +785,9 @@ public:
     s->set(u8"wall_post_bit", Bool(up));
   }
 
-  static Converter Wall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
+  static Converter LegacyCobblestoneWall(std::u8string const &type) { return Converter(Name(u8"cobblestone_wall"), WallPostBit, AddStringProperty(u8"wall_block_type", type), WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west")); }
 
-  static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), CardinalDirectionFromFacing4); }
+  // static Converter Anvil(std::u8string const &damage) { return Converter(Name(u8"anvil"), AddStringProperty(u8"damage", damage), CardinalDirectionFromFacing4); }
 
   static Converter CoralLegacy(std::u8string const &type, bool dead) { return Converter(Name(u8"coral"), AddStringProperty(u8"coral_color", type), AddBoolProperty(u8"dead_bit", dead)); }
 
@@ -761,7 +808,14 @@ public:
     s->set(u8"coral_fan_direction", Int(waterlogged ? 1 : 0));
   }
 
-  static Converter CoralWallFan(std::u8string const &tail, bool dead, i8 type) { return Converter(Name(u8"coral_fan_hang" + tail), AddByteProperty(u8"coral_hang_type_bit", type), Name(FacingD, u8"coral_direction"), AddBoolProperty(u8"dead_bit", dead)); }
+  static Converter CoralWallFanLegacy(std::u8string const &tail, bool dead, i8 type) { return Converter(Name(u8"coral_fan_hang" + tail), AddByteProperty(u8"coral_hang_type_bit", type), Name(FacingD, u8"coral_direction"), AddBoolProperty(u8"dead_bit", dead)); }
+
+  static CompoundTagPtr CoralWallFan(Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    Name(FacingD, u8"coral_direction")(s, block, o);
+    return AttachStates(c, s);
+  }
 
   static Converter WallSign(std::optional<std::u8string> prefix = std::nullopt) {
     std::u8string name = prefix ? *prefix + u8"_wall_sign" : u8"wall_sign";
@@ -773,7 +827,7 @@ public:
     return Int(r);
   }
 
-  static Converter Sign(std::optional<std::u8string> prefix = std::nullopt) {
+  static Converter StandingSign(std::optional<std::u8string> prefix = std::nullopt) {
     std::u8string name = prefix ? *prefix + u8"_standing_sign" : u8"standing_sign";
     return Converter(Name(name), Name(Rotation, u8"ground_sign_direction"));
   }
@@ -885,6 +939,7 @@ public:
     Converter blockFaceFromFacing(Same, BlockFaceFromFacing);
     Converter facingDirectionFromFacingB(Same, PistonFacingDirectionFromFacing6);
     Converter cardinalDirectionFromFacing4(Same, CardinalDirectionFromFacing4);
+    Converter wall(Same, WallPostBit, WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west"));
 
     auto table = new vector<AnyConverter>(mcfile::blocks::minecraft::minecraft_max_block_id);
 #define E(__name, __func)                                                                               \
@@ -900,8 +955,8 @@ public:
     E(polished_andesite, Identity);
     E(diorite, Identity);
     E(polished_diorite, Identity);
-    E(dirt, Dirt(u8"normal"));
-    E(coarse_dirt, Dirt(u8"coarse"));
+    E(dirt, Identity);
+    E(coarse_dirt, Identity);
     E(grass_block, Identity);
 
     E(oak_log, axisToPillarAxis);
@@ -929,7 +984,7 @@ public:
     E(jungle_wood, axisToPillarAxis);   // WoodLegacy(u8"jungle", false));
     E(dark_oak_wood, axisToPillarAxis); // WoodLegacy(u8"dark_oak", false));
     Converter wood(Same, AxisToPillarAxis, AddBoolProperty(u8"stripped_bit", false));
-    E(mangrove_wood, wood);
+    E(mangrove_wood, axisToPillarAxis);          // wood
     E(stripped_oak_wood, axisToPillarAxis);      // WoodLegacy(u8"oak", true));
     E(stripped_spruce_wood, axisToPillarAxis);   // WoodLegacy(u8"spruce", true));
     E(stripped_birch_wood, axisToPillarAxis);    // WoodLegacy(u8"birch", true));
@@ -950,44 +1005,44 @@ public:
     E(stripped_warped_hyphae, axisToPillarAxis);
     E(stripped_crimson_stem, axisToPillarAxis);
     E(stripped_warped_stem, axisToPillarAxis);
-    E(oak_slab, Slab(u8"oak_double_slab"));           // WoodenSlabLegacy(u8"oak"));
-    E(birch_slab, Slab(u8"birch_double_slab"));       // WoodenSlabLegacy(u8"birch"));
-    E(spruce_slab, Slab(u8"spruce_double_slab"));     // WoodenSlabLegacy(u8"spruce"));
-    E(jungle_slab, Slab(u8"jungle_double_slab"));     // WoodenSlabLegacy(u8"jungle"));
-    E(acacia_slab, Slab(u8"acacia_double_slab"));     // WoodenSlabLegacy(u8"acacia"));
-    E(dark_oak_slab, Slab(u8"dark_oak_double_slab")); // WoodenSlabLegacy(u8"dark_oak"));
-    E(petrified_oak_slab, Slab(u8"oak_double_slab")); // WoodenSlabLegacy(u8"oak"));
-    E(stone_slab, StoneSlab4(u8"stone"));
-    E(granite_slab, StoneSlab3(u8"granite"));
-    E(andesite_slab, StoneSlab3(u8"andesite"));
-    E(diorite_slab, StoneSlab3(u8"diorite"));
-    E(cobblestone_slab, SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone"));
-    E(stone_brick_slab, SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick"));
-    E(brick_slab, SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick"));
-    E(sandstone_slab, SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone"));
-    E(smooth_sandstone_slab, StoneSlab2(u8"smooth_sandstone"));
-    E(smooth_stone_slab, SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
-    E(nether_brick_slab, SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick"));
-    E(quartz_slab, SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz"));
-    E(smooth_quartz_slab, StoneSlab4(u8"smooth_quartz"));
-    E(red_sandstone_slab, StoneSlab2(u8"red_sandstone"));
-    E(smooth_red_sandstone_slab, StoneSlab3(u8"smooth_red_sandstone"));
-    E(cut_red_sandstone_slab, StoneSlab4(u8"cut_red_sandstone"));
-    E(mossy_cobblestone_slab, StoneSlab2(u8"mossy_cobblestone"));
-    E(polished_diorite_slab, StoneSlab3(u8"polished_diorite"));
-    E(mossy_stone_brick_slab, StoneSlab4(u8"mossy_stone_brick"));
-    E(polished_granite_slab, StoneSlab3(u8"polished_granite"));
-    E(dark_prismarine_slab, StoneSlab2(u8"prismarine_dark"));
-    E(prismarine_brick_slab, StoneSlab2(u8"prismarine_brick"));
-    E(prismarine_slab, StoneSlab2(u8"prismarine_rough"));
-    E(purpur_slab, StoneSlab2(u8"purpur"));
-    E(cut_sandstone_slab, StoneSlab4(u8"cut_sandstone"));
+    E(oak_slab, Slab(u8"oak_double_slab"));                                         // WoodenSlabLegacy(u8"oak"));
+    E(birch_slab, Slab(u8"birch_double_slab"));                                     // WoodenSlabLegacy(u8"birch"));
+    E(spruce_slab, Slab(u8"spruce_double_slab"));                                   // WoodenSlabLegacy(u8"spruce"));
+    E(jungle_slab, Slab(u8"jungle_double_slab"));                                   // WoodenSlabLegacy(u8"jungle"));
+    E(acacia_slab, Slab(u8"acacia_double_slab"));                                   // WoodenSlabLegacy(u8"acacia"));
+    E(dark_oak_slab, Slab(u8"dark_oak_double_slab"));                               // WoodenSlabLegacy(u8"dark_oak"));
+    E(petrified_oak_slab, Slab(u8"oak_double_slab"));                               // WoodenSlabLegacy(u8"oak"));
+    E(stone_slab, RenameSlab(u8"normal_stone_slab", u8"normal_stone_double_slab")); // StoneSlab4(u8"stone"));
+    E(granite_slab, Slab(u8"granite_double_slab"));                                 // StoneSlab3(u8"granite")) for < 1.21.50.29
+    E(andesite_slab, Slab(u8"andesite_double_slab"));                               // StoneSlab3(u8"andesite")) for < 1.21.50.29
+    E(diorite_slab, Slab(u8"diorite_double_slab"));                                 // StoneSlab3(u8"diorite")) for < 1.21.50.29
+    E(cobblestone_slab, Slab(u8"cobblestone_double_slab"));                         // SlabWithStoneTypeWhenDouble(u8"cobblestone_slab", u8"double_stone_block_slab", u8"cobblestone")) for < 1.21.50.29
+    E(stone_brick_slab, Slab(u8"stone_brick_double_slab"));                         // SlabWithStoneTypeWhenDouble(u8"stone_brick_slab", u8"double_stone_block_slab", u8"stone_brick")) for < 1.21.50.29
+    E(brick_slab, Slab(u8"brick_double_slab"));                                     // SlabWithStoneTypeWhenDouble(u8"brick_slab", u8"double_stone_block_slab", u8"brick")) for < 1.21.50.29
+    E(sandstone_slab, Slab(u8"sandstone_double_slab"));                             // SlabWithStoneTypeWhenDouble(u8"sandstone_slab", u8"double_stone_block_slab", u8"sandstone")) for < 1.21.50.29
+    E(smooth_sandstone_slab, Slab(u8"smooth_sandstone_double_slab"));               // StoneSlab2(u8"smooth_sandstone")) for < 1.21.50.29
+    E(smooth_stone_slab, Slab(u8"smooth_stone_double_slab"));                       // SlabWithStoneTypeWhenDouble(u8"smooth_stone_slab", u8"double_stone_block_slab", u8"smooth_stone"));
+    E(nether_brick_slab, Slab(u8"nether_brick_double_slab"));                       // SlabWithStoneTypeWhenDouble(u8"nether_brick_slab", u8"double_stone_block_slab", u8"nether_brick")) for < 1.21.50.29
+    E(quartz_slab, Slab(u8"quartz_double_slab"));                                   // SlabWithStoneTypeWhenDouble(u8"quartz_slab", u8"double_stone_block_slab", u8"quartz")) for < 1.21.50.29
+    E(smooth_quartz_slab, Slab(u8"smooth_quartz_double_slab"));                     // StoneSlab4(u8"smooth_quartz")) for < 1.21.50.29
+    E(red_sandstone_slab, Slab(u8"red_sandstone_double_slab"));                     // StoneSlab2(u8"red_sandstone")) for < 1.21.50.29
+    E(smooth_red_sandstone_slab, Slab(u8"smooth_red_sandstone_double_slab"));       // StoneSlab3(u8"smooth_red_sandstone")) for < 1.21.50.29
+    E(cut_red_sandstone_slab, Slab(u8"cut_red_sandstone_double_slab"));             // StoneSlab4(u8"cut_red_sandstone")) for < 1.21.50.29
+    E(mossy_cobblestone_slab, Slab(u8"mossy_cobblestone_double_slab"));             // StoneSlab2(u8"mossy_cobblestone")) for < 1.21.50.29
+    E(polished_diorite_slab, Slab(u8"polished_diorite_double_slab"));               // StoneSlab3(u8"polished_diorite")) for < 1.21.50.29
+    E(mossy_stone_brick_slab, Slab(u8"mossy_stone_brick_double_slab"));             // StoneSlab4(u8"mossy_stone_brick")) for < 1.21.50.29
+    E(polished_granite_slab, Slab(u8"polished_granite_double_slab"));               // StoneSlab3(u8"polished_granite")) for < 1.21.50.29
+    E(dark_prismarine_slab, Slab(u8"dark_prismarine_double_slab"));                 // StoneSlab2(u8"prismarine_dark")) for < 1.21.50.29
+    E(prismarine_brick_slab, Slab(u8"prismarine_brick_double_slab"));               // StoneSlab2(u8"prismarine_brick")) for < 1.21.50.29
+    E(prismarine_slab, Slab(u8"prismarine_double_slab"));                           // StoneSlab2(u8"prismarine_rough")) for < 1.21.50.29
+    E(purpur_slab, Slab(u8"purpur_double_slab"));                                   // StoneSlab2(u8"purpur")) for < 1.21.50.29
+    E(cut_sandstone_slab, Slab(u8"cut_sandstone_double_slab"));                     // StoneSlab4(u8"cut_sandstone")) for < 1.21.50.29
     E(polished_blackstone_brick_slab, Slab(u8"polished_blackstone_brick_double_slab"));
     E(polished_blackstone_slab, Slab(u8"polished_blackstone_double_slab"));
     E(blackstone_slab, Slab(u8"blackstone_double_slab"));
-    E(polished_andesite_slab, StoneSlab3(u8"polished_andesite"));
-    E(red_nether_brick_slab, StoneSlab2(u8"red_nether_brick"));
-    E(end_stone_brick_slab, StoneSlab3(u8"end_stone_brick"));
+    E(polished_andesite_slab, Slab(u8"polished_andesite_double_slab")); // StoneSlab3(u8"polished_andesite")) for < 1.21.50.29
+    E(red_nether_brick_slab, Slab(u8"red_nether_brick_double_slab"));   // StoneSlab2(u8"red_nether_brick")) for < 1.21.50.29
+    E(end_stone_brick_slab, Slab(u8"end_stone_brick_double_slab"));     // StoneSlab3(u8"end_stone_brick")) for < 1.21.50.29
     E(warped_slab, Slab(u8"warped_double_slab"));
     E(crimson_slab, Slab(u8"crimson_double_slab"));
     E(mangrove_slab, Slab(u8"mangrove_double_slab"));
@@ -1002,7 +1057,7 @@ public:
     E(sunflower, doublePlant);  // DoublePlant(u8"sunflower")) when < 1.21
     E(dead_bush, Rename(u8"deadbush"));
     E(sea_pickle, SeaPickle());
-    E(dandelion, Rename(u8"yellow_flower"));
+    E(dandelion, Identity);          // Rename(u8"yellow_flower")) for 1.21.50.29
     E(poppy, Identity);              // RedFlowerLegacy(u8"poppy"));
     E(blue_orchid, Identity);        // RedFlowerLegacy(u8"orchid"));
     E(allium, Identity);             // RedFlowerLegacy(u8"allium"));
@@ -1067,16 +1122,16 @@ public:
     E(polished_blackstone_brick_stairs, Stairs());
     E(bamboo_stairs, Stairs());
     E(bamboo_mosaic_stairs, Stairs());
-    E(sponge, Sponge(u8"dry"));
-    E(wet_sponge, Sponge(u8"wet"));
-    E(sandstone, Sandstone(u8"default"));
-    E(chiseled_sandstone, Sandstone(u8"heiroglyphs"));
-    E(cut_sandstone, Sandstone(u8"cut"));
-    E(smooth_sandstone, Sandstone(u8"smooth"));
-    E(red_sandstone, RedSandstone(u8"default"));
-    E(chiseled_red_sandstone, RedSandstone(u8"heiroglyphs"));
-    E(cut_red_sandstone, RedSandstone(u8"cut"));
-    E(smooth_red_sandstone, RedSandstone(u8"smooth"));
+    E(sponge, Identity);                 // Sponge(u8"dry")) for < 1.21.50.29
+    E(wet_sponge, Identity);             // Sponge(u8"wet"))for 1.21.50.29
+    E(sandstone, Identity);              // Sandstone(u8"default")) for < 1.21.50.29
+    E(chiseled_sandstone, Identity);     // Sandstone(u8"heiroglyphs")) for < 1.21.50.29
+    E(cut_sandstone, Identity);          // Sandstone(u8"cut")) for < 1.21.50.29
+    E(smooth_sandstone, Identity);       // Sandstone(u8"smooth")) for < 1.21.50.29
+    E(red_sandstone, Identity);          // RedSandstone(u8"default")) for < 1.21.50.29
+    E(chiseled_red_sandstone, Identity); // RedSandstone(u8"heiroglyphs")) for < 1.21.50.29
+    E(cut_red_sandstone, Identity);      // RedSandstone(u8"cut")) for < 1.21.50.29
+    E(smooth_red_sandstone, Identity);   // RedSandstone(u8"smooth")) for < 1.21.50.29
     E(white_wool, Identity);
     E(orange_wool, Identity);
     E(magenta_wool, Identity);
@@ -1094,21 +1149,21 @@ public:
     E(red_wool, Identity);
     E(black_wool, Identity);
     E(snow_block, Rename(u8"snow"));
-    E(quartz_block, QuartzBlock(u8"default"));
-    E(smooth_quartz, QuartzBlock(u8"smooth"));
-    E(quartz_pillar, QuartzBlock(u8"lines"));
-    E(chiseled_quartz_block, QuartzBlock(u8"chiseled"));
+    E(quartz_block, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y")));          // QuartzBlock(u8"default")) for < 1.21.50.29
+    E(smooth_quartz, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y")));         // QuartzBlock(u8"smooth")) for < 1.21.50.29
+    E(quartz_pillar, axisToPillarAxis);                                                   // QuartzBlock(u8"lines")) for < 1.21.50.29
+    E(chiseled_quartz_block, Converter(Same, AddStringProperty(u8"pillar_axis", u8"y"))); // QuartzBlock(u8"chiseled")) for < 1.21.50.29
     E(bricks, Rename(u8"brick_block"));
-    E(sand, Sand(u8"normal"));
-    E(red_sand, Sand(u8"red"));
+    E(sand, Identity);     // LegacySand(u8"normal")) for < 1.21.50.29
+    E(red_sand, Identity); // LegacySand(u8"red")) for < 1.21.50.29
     E(oak_planks, Identity);
     E(spruce_planks, Identity);
     E(birch_planks, Identity);
     E(jungle_planks, Identity);
     E(acacia_planks, Identity);
     E(dark_oak_planks, Identity);
-    E(purpur_block, Converter(Same, AddStringProperty(u8"chisel_type", u8"default"), AddStringProperty(u8"pillar_axis", u8"y")));
-    E(purpur_pillar, Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis));
+    E(purpur_block, axisToPillarAxis);  // Converter(Same, AddStringProperty(u8"chisel_type", u8"default"), AddStringProperty(u8"pillar_axis", u8"y"))) for < 1.21.50.29
+    E(purpur_pillar, axisToPillarAxis); // Converter(Name(u8"purpur_block"), AddStringProperty(u8"chisel_type", u8"lines"), AxisToPillarAxis)) for < 1.21.50.29
     E(jack_o_lantern, LitPumpkin());
     E(carved_pumpkin, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::South)));
     E(white_stained_glass, Identity);
@@ -1179,16 +1234,16 @@ public:
     E(red_nether_bricks, Rename(u8"red_nether_brick"));
     E(magma_block, Rename(u8"magma"));
     E(sea_lantern, Identity);
-    E(prismarine_bricks, Prismarine(u8"bricks"));
-    E(dark_prismarine, Prismarine(u8"dark"));
-    E(prismarine, Prismarine(u8"default"));
+    E(prismarine_bricks, Identity); // Prismarine(u8"bricks")) for < 1.21.50.29
+    E(dark_prismarine, Identity);   // Prismarine(u8"dark")) for < 1.21.50.29
+    E(prismarine, Identity);        // Prismarine(u8"default")) for < 1.21.50.29
     E(terracotta, Rename(u8"hardened_clay"));
     E(end_stone_bricks, Rename(u8"end_bricks"));
     E(melon, Rename(u8"melon_block"));
-    E(chiseled_stone_bricks, StoneBrick(u8"chiseled"));
-    E(cracked_stone_bricks, StoneBrick(u8"cracked"));
-    E(mossy_stone_bricks, StoneBrick(u8"mossy"));
-    E(stone_bricks, StoneBrick(u8"default"));
+    E(chiseled_stone_bricks, Identity); // StoneBrick(u8"chiseled")) for < 1.21.50.29
+    E(cracked_stone_bricks, Identity);  // StoneBrick(u8"cracked")) for < 1.21.50.29
+    E(mossy_stone_bricks, Identity);    // StoneBrick(u8"mossy")) for < 1.21.50.29
+    E(stone_bricks, Identity);          // StoneBrick(u8"default")) for < 1.21.50.29
     Converter sapling(Same, StageToAgeBit);
     E(oak_sapling, sapling);              // SaplingLegacy(u8"oak"));
     E(birch_sapling, sapling);            // SaplingLegacy(u8"birch"));
@@ -1220,12 +1275,12 @@ public:
     E(chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
     E(furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(nether_bricks, Rename(u8"nether_brick"));
-    E(infested_stone, InfestedStone(u8"stone"));
-    E(infested_cobblestone, InfestedStone(u8"cobblestone"));
-    E(infested_stone_bricks, InfestedStone(u8"stone_brick"));
-    E(infested_mossy_stone_bricks, InfestedStone(u8"mossy_stone_brick"));
-    E(infested_cracked_stone_bricks, InfestedStone(u8"cracked_stone_brick"));
-    E(infested_chiseled_stone_bricks, InfestedStone(u8"chiseled_stone_brick"));
+    E(infested_stone, Identity);                 // InfestedStone(u8"stone")) for 1.21.50.29
+    E(infested_cobblestone, Identity);           // InfestedStone(u8"cobblestone")) for 1.21.50.29
+    E(infested_stone_bricks, Identity);          // InfestedStone(u8"stone_brick")) for 1.21.50.29
+    E(infested_mossy_stone_bricks, Identity);    // InfestedStone(u8"mossy_stone_brick")) for 1.21.50.29
+    E(infested_cracked_stone_bricks, Identity);  // InfestedStone(u8"cracked_stone_brick")) for 1.21.50.29
+    E(infested_chiseled_stone_bricks, Identity); // InfestedStone(u8"chiseled_stone_brick")) for 1.21.50.29
     E(torch, AnyTorch(u8""));
     E(wall_torch, AnyWallTorch(u8""));
     E(soul_torch, AnyTorch(u8"soul_"));
@@ -1235,7 +1290,7 @@ public:
     E(farmland, Converter(Same, Name(Moisture, u8"moisturized_amount")));
     E(red_mushroom_block, AnyMushroomBlock(u8"red_mushroom_block", false));
     E(brown_mushroom_block, AnyMushroomBlock(u8"brown_mushroom_block", false));
-    E(mushroom_stem, AnyMushroomBlock(u8"brown_mushroom_block", true));
+    E(mushroom_stem, AnyMushroomBlock(u8"mushroom_stem", true)); // AnyMushroomBlock(u8"brown_mushroom_block", true)) for < 1.21.50.29
     E(end_portal_frame, Converter(Same, CardinalDirectionFromFacing4, EyeToEndPortalEyeBit));
     E(white_shulker_box, Identity);
     E(orange_shulker_box, Identity);
@@ -1254,21 +1309,20 @@ public:
     E(red_shulker_box, Identity);
     E(black_shulker_box, Identity);
     E(shulker_box, Rename(u8"undyed_shulker_box"));
-    E(cobblestone_wall, Wall(u8"cobblestone"));
-    E(mossy_cobblestone_wall, Wall(u8"mossy_cobblestone"));
-    E(brick_wall, Wall(u8"brick"));
-    E(prismarine_wall, Wall(u8"prismarine"));
-    E(red_sandstone_wall, Wall(u8"red_sandstone"));
-    E(mossy_stone_brick_wall, Wall(u8"mossy_stone_brick"));
-    E(granite_wall, Wall(u8"granite"));
-    E(andesite_wall, Wall(u8"andesite"));
-    E(diorite_wall, Wall(u8"diorite"));
-    E(stone_brick_wall, Wall(u8"stone_brick"));
-    E(nether_brick_wall, Wall(u8"nether_brick"));
-    E(red_nether_brick_wall, Wall(u8"red_nether_brick"));
-    E(sandstone_wall, Wall(u8"sandstone"));
-    E(end_stone_brick_wall, Wall(u8"end_brick"));
-    Converter wall(Same, WallPostBit, WallConnectionType(u8"east"), WallConnectionType(u8"north"), WallConnectionType(u8"south"), WallConnectionType(u8"west"));
+    E(cobblestone_wall, wall);       // LegacyCobblestoneWall(u8"cobblestone") for 1.21.50.29
+    E(mossy_cobblestone_wall, wall); // LegacyCobblestoneWall(u8"mossy_cobblestone") for 1.21.50.29
+    E(brick_wall, wall);             // LegacyCobblestoneWall(u8"brick") for 1.21.50.29
+    E(prismarine_wall, wall);        // LegacyCobblestoneWall(u8"prismarine") for 1.21.50.29
+    E(red_sandstone_wall, wall);     // LegacyCobblestoneWall(u8"red_sandstone") for 1.21.50.29
+    E(mossy_stone_brick_wall, wall); // LegacyCobblestoneWall(u8"mossy_stone_brick") for 1.21.50.29
+    E(granite_wall, wall);           // LegacyCobblestoneWall(u8"granite") for 1.21.50.29
+    E(andesite_wall, wall);          // LegacyCobblestoneWall(u8"andesite") for 1.21.50.29
+    E(diorite_wall, wall);           // LegacyCobblestoneWall(u8"diorite") for 1.21.50.29
+    E(stone_brick_wall, wall);       // LegacyCobblestoneWall(u8"stone_brick") for 1.21.50.29
+    E(nether_brick_wall, wall);      // LegacyCobblestoneWall(u8"nether_brick") for 1.21.50.29
+    E(red_nether_brick_wall, wall);  // LegacyCobblestoneWall(u8"red_nether_brick") for 1.21.50.29
+    E(sandstone_wall, wall);         // LegacyCobblestoneWall(u8"sandstone") for 1.21.50.29
+    E(end_stone_brick_wall, wall);   // LegacyCobblestoneWall(u8"end_brick") for 1.21.50.29
     E(blackstone_wall, wall);
     E(polished_blackstone_wall, wall);
     E(polished_blackstone_brick_wall, wall);
@@ -1305,9 +1359,9 @@ public:
     E(red_stained_glass_pane, Identity);
     E(black_stained_glass_pane, Identity);
     E(slime_block, Rename(u8"slime"));
-    E(anvil, Anvil(u8"undamaged"));
-    E(chipped_anvil, Anvil(u8"slightly_damaged"));
-    E(damaged_anvil, Anvil(u8"very_damaged"));
+    E(anvil, cardinalDirectionFromFacing4);         // Anvil(u8"undamaged"));
+    E(chipped_anvil, cardinalDirectionFromFacing4); // Anvil(u8"slightly_damaged"));
+    E(damaged_anvil, cardinalDirectionFromFacing4); // Anvil(u8"very_damaged"));
     E(white_glazed_terracotta, facingDirectionFromFacingA);
     E(orange_glazed_terracotta, facingDirectionFromFacingA);
     E(magenta_glazed_terracotta, facingDirectionFromFacingA);
@@ -1349,28 +1403,28 @@ public:
     E(dead_fire_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"red", true));
     E(dead_horn_coral_fan, CoralFan);   // legacy: CoralFanLegacy(u8"yellow", true));
 
-    E(tube_coral_wall_fan, CoralWallFan(u8"", false, 0));
-    E(brain_coral_wall_fan, CoralWallFan(u8"", false, 1));
-    E(bubble_coral_wall_fan, CoralWallFan(u8"2", false, 0));
-    E(fire_coral_wall_fan, CoralWallFan(u8"2", false, 1));
-    E(horn_coral_wall_fan, CoralWallFan(u8"3", false, 0));
+    E(tube_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"", false, 0));
+    E(brain_coral_wall_fan, CoralWallFan);  // CoralWallFanLegacy(u8"", false, 1));
+    E(bubble_coral_wall_fan, CoralWallFan); // CoralWallFanLegacy(u8"2", false, 0));
+    E(fire_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"2", false, 1));
+    E(horn_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"3", false, 0));
 
-    E(dead_tube_coral_wall_fan, CoralWallFan(u8"", true, 0));
-    E(dead_brain_coral_wall_fan, CoralWallFan(u8"", true, 1));
-    E(dead_bubble_coral_wall_fan, CoralWallFan(u8"2", true, 0));
-    E(dead_fire_coral_wall_fan, CoralWallFan(u8"2", true, 1));
-    E(dead_horn_coral_wall_fan, CoralWallFan(u8"3", true, 0));
+    E(dead_tube_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"", true, 0));
+    E(dead_brain_coral_wall_fan, CoralWallFan);  // CoralWallFanLegacy(u8"", true, 1));
+    E(dead_bubble_coral_wall_fan, CoralWallFan); // CoralWallFanLegacy(u8"2", true, 0));
+    E(dead_fire_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"2", true, 1));
+    E(dead_horn_coral_wall_fan, CoralWallFan);   // CoralWallFanLegacy(u8"3", true, 0));
 
-    E(oak_sign, Sign());
-    E(spruce_sign, Sign(u8"spruce"));
-    E(birch_sign, Sign(u8"birch"));
-    E(jungle_sign, Sign(u8"jungle"));
-    E(acacia_sign, Sign(u8"acacia"));
-    E(dark_oak_sign, Sign(u8"darkoak"));
-    E(crimson_sign, Sign(u8"crimson"));
-    E(warped_sign, Sign(u8"warped"));
-    E(mangrove_sign, Sign(u8"mangrove"));
-    E(bamboo_sign, Sign(u8"bamboo"));
+    E(oak_sign, StandingSign());
+    E(spruce_sign, StandingSign(u8"spruce"));
+    E(birch_sign, StandingSign(u8"birch"));
+    E(jungle_sign, StandingSign(u8"jungle"));
+    E(acacia_sign, StandingSign(u8"acacia"));
+    E(dark_oak_sign, StandingSign(u8"darkoak"));
+    E(crimson_sign, StandingSign(u8"crimson"));
+    E(warped_sign, StandingSign(u8"warped"));
+    E(mangrove_sign, StandingSign(u8"mangrove"));
+    E(bamboo_sign, StandingSign(u8"bamboo"));
 
     E(oak_wall_sign, WallSign());
     E(spruce_wall_sign, WallSign(u8"spruce"));
@@ -1439,23 +1493,21 @@ public:
     E(potted_cherry_sapling, pottedFlowerPot);
     E(potted_torchflower, pottedFlowerPot);
 
-    Converter skull(Name(u8"skull"), AddIntProperty(u8"facing_direction", 1));
-    E(skeleton_skull, skull);
-    E(wither_skeleton_skull, skull);
-    E(player_head, skull);
-    E(zombie_head, skull);
-    E(creeper_head, skull);
-    E(dragon_head, skull);
-    E(piglin_head, skull);
+    E(skeleton_skull, Skull);
+    E(wither_skeleton_skull, Skull);
+    E(player_head, Skull);
+    E(zombie_head, Skull);
+    E(creeper_head, Skull);
+    E(dragon_head, Skull);
+    E(piglin_head, Skull);
 
-    Converter wallSkull(Name(u8"skull"), WallSkullFacingDirection);
-    E(skeleton_wall_skull, wallSkull);
-    E(wither_skeleton_wall_skull, wallSkull);
-    E(player_wall_head, wallSkull);
-    E(zombie_wall_head, wallSkull);
-    E(creeper_wall_head, wallSkull);
-    E(dragon_wall_head, wallSkull);
-    E(piglin_wall_head, wallSkull);
+    E(skeleton_wall_skull, WallSkull);
+    E(wither_skeleton_wall_skull, WallSkull);
+    E(player_wall_head, WallSkull);
+    E(zombie_wall_head, WallSkull);
+    E(creeper_wall_head, WallSkull);
+    E(dragon_wall_head, WallSkull);
+    E(piglin_wall_head, WallSkull);
 
     Converter banner(Name(u8"standing_banner"), Name(Rotation, u8"ground_sign_direction"));
     E(white_banner, banner);
@@ -1803,7 +1855,7 @@ public:
     E(jigsaw, Jigsaw);
     E(cherry_slab, Slab(u8"cherry_double_slab"));
     E(pink_petals, PinkPetals);
-    E(cherry_wood, wood);
+    E(cherry_wood, axisToPillarAxis); // wood
     E(stripped_cherry_wood, axisToPillarAxis);
     E(cherry_log, axisToPillarAxis);
     E(stripped_cherry_log, axisToPillarAxis);
@@ -1811,7 +1863,7 @@ public:
     E(cherry_button, button);
     E(cherry_hanging_sign, HangingSign);
     E(cherry_wall_hanging_sign, WallHangingSign);
-    E(cherry_sign, Sign(u8"cherry"));
+    E(cherry_sign, StandingSign(u8"cherry"));
     E(cherry_wall_sign, WallSign(u8"cherry"));
     E(cherry_door, door);
     E(cherry_fence_gate, fenceGate);
@@ -1876,9 +1928,85 @@ public:
     E(vault, Vault);
     E(heavy_core, Identity);
     E(trial_spawner, TrialSpawner);
+
+    // 1.21.4
+    E(pale_oak_leaves, leaves);
+    E(pale_oak_slab, Slab(u8"pale_oak_double_slab"));
+    E(pale_oak_fence, Identity);
+    E(pale_oak_fence_gate, fenceGate);
+    E(pale_oak_door, door);
+    E(pale_oak_trapdoor, trapdoor);
+    E(pale_oak_pressure_plate, pressurePlate);
+    E(pale_oak_button, button);
+    E(pale_oak_stairs, Stairs());
+    E(pale_oak_sign, StandingSign(u8"pale_oak"));
+    E(pale_oak_wall_sign, WallSign(u8"pale_oak"));
+    E(pale_oak_hanging_sign, HangingSign);
+    E(pale_oak_wall_hanging_sign, WallHangingSign);
+    E(pale_oak_log, axisToPillarAxis);
+    E(pale_oak_wood, axisToPillarAxis);
+    E(stripped_pale_oak_log, axisToPillarAxis);
+    E(stripped_pale_oak_wood, axisToPillarAxis);
+    E(pale_hanging_moss, PaleHangingMoss);
+    E(pale_moss_carpet, PaleMossCarpet);
+    E(resin_clump, Converter(Same, MultiFaceDirectionBitsByItemDefault(0)));
+    E(resin_brick_stairs, Stairs());
+    E(resin_brick_slab, Slab(u8"resin_brick_double_slab"));
+    E(resin_brick_wall, wall);
+    E(pale_oak_sapling, sapling);
+    E(creaking_heart, CreakingHeart);
+    E(potted_open_eyeblossom, pottedFlowerPot);
+    E(potted_closed_eyeblossom, pottedFlowerPot);
+    E(potted_pale_oak_sapling, pottedFlowerPot);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr CreakingHeart(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    auto active = block.property(u8"active", u8"false") == u8"true";
+    s->set(u8"active", Bool(active));
+    auto natural = block.property(u8"natural", u8"false") == u8"true";
+    s->set(u8"natural", Bool(natural));
+    AxisToPillarAxis(s, block, o);
+    return AttachStates(c, s);
+  }
+
+  static CompoundTagPtr PaleHangingMoss(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    auto tip = block.property(u8"tip", u8"false") == u8"true";
+    s->set(u8"tip", Bool(tip));
+    return AttachStates(c, s);
+  }
+
+  static CompoundTagPtr PaleMossCarpet(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    if (o.fItem) {
+      for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
+        auto name = JavaNameFromFacing4(f);
+        s->set(u8"pale_moss_carpet_side_" + name, String(u8"none"));
+      }
+      s->set(u8"upper_block_bit", Bool(false));
+    } else {
+      auto bottom = block.property(u8"bottom", u8"true") == u8"true";
+      for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
+        auto name = JavaNameFromFacing4(f);
+        auto typeJ = block.property(name);
+        std::u8string typeB = u8"none";
+        if (typeJ == u8"low") {
+          typeB = u8"short";
+        } else if (typeJ == u8"tall") {
+          typeB = u8"tall";
+        }
+        s->set(u8"pale_moss_carpet_side_" + name, String(typeB));
+      }
+      s->set(u8"upper_block_bit", Bool(!bottom));
+    }
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr Vault(Block const &block, CompoundTagConstPtr const &, Options const &o) {
@@ -2149,7 +2277,6 @@ public:
     auto s = States();
     auto unstable = block.property(u8"unstable", u8"false") == u8"true";
     s->set(u8"explode_bit", Bool(unstable));
-    s->set(u8"allow_underwater_bit", Bool(false));
     return AttachStates(c, s);
   }
 
@@ -2289,7 +2416,7 @@ public:
 
   static void WallSkullFacingDirection(CompoundTagPtr const &s, Block const &b, Options const &o) {
     auto facing = b.property(u8"facing", u8"");
-    i32 direction = 1;
+    i32 direction = 0;
     if (facing == u8"south") {
       direction = 3;
     } else if (facing == u8"east") {

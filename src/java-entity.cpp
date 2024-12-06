@@ -5,6 +5,7 @@
 #include "_dimension-ext.hpp"
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
+#include "_optional.hpp"
 #include "_props.hpp"
 #include "entity/_armor-stand.hpp"
 #include "entity/_axolotl.hpp"
@@ -234,7 +235,7 @@ public:
       if (auto vehicleEntity = rootVehicle->compoundTag(u8"Entity"); vehicleEntity) {
         if (auto vehicleRawId = vehicleEntity->string(u8"id"); vehicleRawId) {
           auto vehicleId = MigrateName(*vehicleRawId);
-          if (vehicleId == u8"minecraft:boat" || vehicleId == u8"minecraft:chest_boat") {
+          if (vehicleId == u8"minecraft:boat" || vehicleId == u8"minecraft:chest_boat" || vehicleId.ends_with(u8"_boat") || vehicleId.ends_with(u8"_raft") || vehicleId.ends_with(u8"_chest_boat") || vehicleId.ends_with(u8"_chest_raft")) {
             auto boatPos = GetBoatPos(*vehicleEntity);
             if (boatPos) {
               y = boatPos->fY + 1.24501;
@@ -568,7 +569,7 @@ private:
 
     E(cow, C(Animal, AgeableA(u8"minecraft:cow")));
     E(creeper, C(Monster, Creeper));
-    A(dolphin);
+    E(dolphin, C(Animal, AgeableA(u8"dolphin")));
     E(donkey, C(Animal, TameableB(u8"donkey"), AgeableA(u8"minecraft:donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
     E(drowned, C(Monster, AgeableD(u8"drowned"), Zombie, Drowned));
     M(elder_guardian);
@@ -600,7 +601,7 @@ private:
     E(pufferfish, C(Mob, PersistentFromFromBucket, Pufferfish));
     E(rabbit, C(Animal, AgeableC, Rabbit));
     E(ravager, C(Monster, AttackTime, CanJoinRaid));
-    E(salmon, C(Mob, PersistentFromFromBucket));
+    E(salmon, C(Mob, PersistentFromFromBucket, Salmon));
     E(sheep, C(Animal, AgeableA(u8"minecraft:sheep"), Colorable(u8"sheep"), Definitions(u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"), Sheep));
     E(shulker, C(Monster, Shulker));
     M(silverfish);
@@ -609,7 +610,7 @@ private:
     E(skeleton_horse, C(Animal, Definitions(u8"+minecraft:skeleton_horse_adult"), SkeletonHorse));
     E(slime, C(Monster, Slime));
     E(spider, C(Monster, Vehicle(u8"spider")));
-    A(squid);
+    E(squid, C(Animal, AgeableH(u8"minecraft:squid")));
     M(stray);
     E(strider, C(Animal, AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider"), Definitions(u8"+minecraft:strider_pathing_behaviors"), Strider));
     E(trader_llama, C(Animal, AgeableA(u8"minecraft:llama"), Llama, Definitions(u8"+minecraft:llama_unchested", u8"-minecraft:llama_defend_trader", u8"-minecraft:llama_persistence"), TraderLlama));
@@ -630,8 +631,8 @@ private:
     E(zombie_villager, C(Animal, Rename(u8"zombie_villager_v2"), Offers(4, u8"persistingOffers"), Villager, ZombieVillager));
     E(zombified_piglin, C(Monster, Rename(u8"zombie_pigman"), AgeableB(u8"pig_zombie"), ZombiePigman));
 
-    E(boat, C(EntityBase, Vehicle(), Impl::Boat(u8"boat")));
-    E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Impl::Boat(u8"chest_boat")));
+    E(boat, C(EntityBase, Vehicle(), Impl::Boat(u8"boat")));                                  // legacy
+    E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Impl::Boat(u8"chest_boat"))); // legacy
     E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions(u8"+minecraft:minecart")));
     E(armor_stand, C(LivingEntity, ArmorStand));
     E(hopper_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions(u8"+minecraft:hopper_minecart"), HopperMinecart));
@@ -646,7 +647,7 @@ private:
     E(item_frame, Null);      // item_frame is tile entity in BE.
     E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
-    E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid")));
+    E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid"), AgeableH(u8"minecraft:squid")));
     E(axolotl, C(Animal, AgeableA(u8"axolotl"), PersistentFromFromBucket, Axolotl));
     E(goat, C(Animal, AgeableA(u8"goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
@@ -668,6 +669,14 @@ private:
     E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableG, Armadillo));
     E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
     E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
+
+    E(creaking, C(Monster, Definitions(u8"+minecraft:creaking"), Creaking));
+    for (std::u8string type : {u8"oak", u8"spruce", u8"birch", u8"jungle", u8"acacia", u8"dark_oak", u8"mangrove", u8"cherry", u8"pale_oak"}) {
+      table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type)));
+      table->try_emplace(type + u8"_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", type)));
+    }
+    table->try_emplace(u8"bamboo_raft", C(EntityBase, Vehicle(), TypedBoat(u8"boat", u8"bamboo")));
+    table->try_emplace(u8"bamboo_chest_raft", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
 #undef A
 #undef M
 #undef E
@@ -912,6 +921,17 @@ private:
       timer->set(u8"StopSpawning", Bool(false));
       entries->push_back(timer);
       c[u8"entries"] = entries;
+    }
+  }
+
+  static void Creaking(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    AddDefinition(c, u8"+minecraft:neutral");
+    AddDefinition(c, u8"+minecraft:mobile");
+    auto homePos = tag.intArrayTag(u8"home_pos");
+    if (homePos) {
+      // nop
+    } else {
+      AddDefinition(c, u8"+minecraft:spawned_by_player");
     }
   }
 
@@ -1427,6 +1447,17 @@ private:
     CopyIntValues(tag, c, {{u8"MoreCarrotTicks"}});
   }
 
+  static void Salmon(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    auto type = tag.string(u8"type", u8"medium");
+    if (type == u8"small") {
+      AddDefinition(c, u8"+scale_small");
+    } else if (type == u8"large") {
+      AddDefinition(c, u8"+scale_large");
+    } else if (type == u8"medium") {
+      AddDefinition(c, u8"+scale_normal");
+    }
+  }
+
   static void Sheep(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyBoolValues(tag, c, {{u8"Sheared", u8"Sheared", false}});
     AddDefinitionFlag(c, u8"minecraft:sheep_sheared", tag.boolean(u8"Sheared", false));
@@ -1500,7 +1531,7 @@ private:
 
   static void TntMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"+minecraft:tnt_minecart");
-    auto fuse = tag.int32(u8"TNTFuse", -1);
+    auto fuse = Wrap<int32_t>(FallbackValue<int32_t>(tag, {u8"TNTFuse", u8"fuse"}), 0);
     if (fuse < 0) {
       AddDefinition(c, u8"+minecraft:inactive");
     } else {
@@ -1741,7 +1772,7 @@ private:
     }
   }
 
-  // static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
+  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
 
   static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"-minecraft:start_suffocating");
@@ -2183,28 +2214,55 @@ private:
     };
   }
 
-  static Behavior Boat(std::u8string const &definitionKey) {
+  static Behavior AgeableH(std::u8string const &definitionKey) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      auto type = tag.string(u8"Type", u8"oak");
-      i32 variant = Boat::BedrockVariantFromJavaType(type);
-      c[u8"Variant"] = Int(variant);
-
-      AddDefinition(c, u8"+minecraft:" + definitionKey);
-      AddDefinition(c, u8"+");
-      if (type == u8"bamboo") {
-        AddDefinition(c, u8"+minecraft:can_ride_bamboo");
+      auto age = tag.int32(u8"Age", 0);
+      if (age < 0) {
+        AddDefinition(c, u8"+" + definitionKey + u8"_baby");
       } else {
-        AddDefinition(c, u8"+minecraft:can_ride_default");
+        AddDefinition(c, u8"+" + definitionKey + u8"_adult");
       }
+      c[u8"IsBaby"] = Bool(age < 0);
+    };
+  }
 
-      auto rotation = props::GetRotation(c, u8"Rotation");
-      if (rotation) {
-        Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
-        c[u8"Rotation"] = rot.toListTag();
+  static void ConvertBoat(CompoundTag &c, CompoundTag const &tag, ConverterContext &, std::u8string const &definitionKey, std::u8string const &woodType) {
+    i32 variant = Boat::BedrockVariantFromJavaType(woodType);
+    c[u8"Variant"] = Int(variant);
+
+    AddDefinition(c, u8"+minecraft:" + definitionKey);
+    AddDefinition(c, u8"+");
+    if (woodType == u8"bamboo") {
+      AddDefinition(c, u8"+minecraft:can_ride_bamboo");
+    } else {
+      AddDefinition(c, u8"+minecraft:can_ride_default");
+    }
+
+    auto rotation = props::GetRotation(c, u8"Rotation");
+    if (rotation) {
+      Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
+      c[u8"Rotation"] = rot.toListTag();
+    }
+
+    auto pos = GetBoatPos(tag);
+    c[u8"Pos"] = pos->toF().toListTag();
+  }
+
+  static Behavior TypedBoat(std::u8string const &definitionKey, std::u8string const &woodType) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+      ConvertBoat(c, tag, ctx, definitionKey, woodType);
+      if (definitionKey == u8"chest_boat") {
+        c[u8"identifier"] = String(Namespace::Add(u8"chest_boat"));
+      } else {
+        c[u8"identifier"] = String(Namespace::Add(u8"boat"));
       }
+    };
+  }
 
-      auto pos = GetBoatPos(tag);
-      c[u8"Pos"] = pos->toF().toListTag();
+  static Behavior Boat(std::u8string const &definitionKey) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+      auto type = tag.string(u8"Type", u8"oak");
+      ConvertBoat(c, tag, ctx, definitionKey, type);
     };
   }
 
@@ -2672,6 +2730,7 @@ private:
     ret->push_back(armors->at(2));
     ret->push_back(armors->at(1));
     ret->push_back(armors->at(0));
+    ret->push_back(Item::Empty());
 
     return ret;
   }

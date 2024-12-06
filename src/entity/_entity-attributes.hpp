@@ -94,11 +94,11 @@ public:
         }
         u8string id = idPtr->fValue;
         double value = basePtr->fValue;
-        if (id == u8"minecraft:generic.max_health") {
+        if (id == u8"minecraft:generic.max_health" || id == u8"minecraft:max_health") {
           health = Attribute(value, value, value);
-        } else if (id == u8"minecraft:generic.movement_speed") {
+        } else if (id == u8"minecraft:generic.movement_speed" || id == u8"minecraft:movement_speed") {
           movement = Attribute(value, value);
-        } else if (id == u8"minecraft:horse.jump_strength") {
+        } else if (id == u8"minecraft:horse.jump_strength" || id == u8"minecraft:jump_strength") {
           jumpStrength = Attribute(value, value);
         }
       }

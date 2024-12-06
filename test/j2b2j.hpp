@@ -92,7 +92,9 @@ static void CheckBlockJ(shared_ptr<mcfile::je::Block const> const &blockE, share
         } else {
           if (blockA->fId != blockE->fId || blockA->fData != blockE->fData) {
             lock_guard<mutex> lock(sMutCerr);
-            cerr << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << ", expected=" << blockE->toString() << "; actual=" << blockA->toString() << endl;
+            cerr << u8"[" << x << u8", " << y << u8", " << z << "] " << JavaStringFromDimension(dim) << endl;
+            cerr << "expected=" << blockE->toString() << endl;
+            cerr << "actual  =" << blockA->toString() << endl;
           }
           CHECK(blockA->fId == blockE->fId);
           CHECK(blockA->fData == blockE->fData);
@@ -168,7 +170,7 @@ static void Erase(shared_ptr<CompoundTag> t, u8string const &path) {
   }
 }
 
-static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
+static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a, std::string hint = "") {
   ostringstream streamE;
   PrintAsJson(streamE, e, {.fTypeHint = true});
   ostringstream streamA;
@@ -182,6 +184,9 @@ static void DiffCompoundTag(CompoundTag const &e, CompoundTag const &a) {
     vector<string> linesE = mcfile::String::Split(jsonE, '\n');
     vector<string> linesA = mcfile::String::Split(jsonA, '\n');
     size_t lines = (std::min)(linesE.size(), linesA.size());
+    if (!hint.empty()) {
+      out << hint << endl;
+    }
     out << "actual:" << endl;
     for (size_t i = 0; i < lines; i++) {
       if (i < linesE.size() && linesA[i] != linesE[i]) {
@@ -269,9 +274,6 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   if (itemId) {
     if (*itemId == u8"minecraft:petrified_oak_slab" || *itemId == u8"minecraft:furnace_minecart") {
       blacklist.insert(u8"id");
-    } else if (*itemId == u8"minecraft:bundle") {
-      // bundle does not exist in BE
-      return;
     } else if (*itemId == u8"minecraft:debug_stick") {
       return;
     } else if (*itemId == u8"minecraft:painting") {
@@ -424,6 +426,8 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     tagBlacklist.insert(u8"CustomName");
   } else if (id == u8"minecraft:vault") {
     tagBlacklist.insert(u8"shared_data/connected_players");
+  } else if (id == u8"minecraft:smoker" || id == u8"minecraft:blast_furnace" || id == u8"minecraft:furnace") {
+    tagBlacklist.insert(u8"cooking_total_time");
   }
   CHECK(actual.compoundTag(u8"tag") == nullptr);
   auto itemsE = expected.listTag(u8"Items");
@@ -609,6 +613,19 @@ static void CheckContainerItemsJ(ListTagPtr const &expected, ListTagPtr const &a
   }
 }
 
+static void CheckRotationJ(ListTag const &e, ListTag const &a) {
+  REQUIRE(e.size() == 2);
+  REQUIRE(a.size() == 2);
+  for (size_t i = 0; i < 2; i++) {
+    auto ev = e.at(i)->asFloat();
+    auto av = a.at(i)->asFloat();
+    REQUIRE(ev);
+    REQUIRE(av);
+    float diff = std::fabsf(ev->fValue - av->fValue);
+    CHECK(diff < 0.01f);
+  }
+}
+
 static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA, CheckEntityJOptions options) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
@@ -629,7 +646,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       // y is aligned 0.5 block in BE
     } else if (id == u8"minecraft:chest_minecart") {
       // y of chest_minecart in abandoned_mineshaft has usually conversion failure because OnGround=false but not on rail
-    } else if (id == u8"minecraft:boat") {
+    } else if (id == u8"minecraft:boat" || id.ends_with(u8"_boat") || id.ends_with(u8"_raft") || id.ends_with(u8"_chest_boat") || id.ends_with(u8"_chest_raft")) {
       // y of boat usually different between JE and BE
     } else {
       CHECK(fabs(posE->fY - posA->fY) <= 0.001);
@@ -699,8 +716,13 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"TimeInOverworld");
   } else if (id == u8"minecraft:hoglin") {
     blacklist.insert(u8"TimeInOverworld");
+  } else if (id == u8"minecraft:minecart" || id == u8"minecraft:tnt_minecart" || id == u8"minecraft:hopper_minecart") {
+    blacklist.insert(u8"FlippedRotation");
+    blacklist.insert(u8"HasTicked");
   } else if (id == u8"minecraft:chest_minecart") {
     blacklist.insert(u8"LootTableSeed");
+    blacklist.insert(u8"FlippedRotation");
+    blacklist.insert(u8"HasTicked");
   } else if (id == u8"minecraft:zombie") {
     blacklist.insert(u8"InWaterTime");
   } else if (id == u8"minecraft:arrow") {
@@ -752,6 +774,15 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"DragonPhase");
   } else if (id == u8"player") {
     blacklist.insert(u8"current_impulse_context_reset_grace_time");
+  } else if (id == u8"minecraft:squid" || id == u8"minecraft:glow_squid") {
+    // BE doesn't have Age tag
+    blacklist.insert(u8"Age");
+  } else if (id == u8"minecraft:dolphin") {
+    blacklist.insert(u8"GotFish");
+    blacklist.insert(u8"Moistness");
+    blacklist.insert(u8"TreasurePosX");
+    blacklist.insert(u8"TreasurePosY");
+    blacklist.insert(u8"TreasurePosZ");
   }
 
   CheckTextComponent(entityE, entityA, u8"CustomName");
@@ -826,6 +857,17 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   copyE->erase(u8"Thrower");
   copyA->erase(u8"Thrower");
   CHECK((bool)throwerE == (bool)throwerA);
+
+  auto rotationE = entityE.listTag(u8"Rotation");
+  auto rotationA = entityA.listTag(u8"Rotation");
+  copyE->erase(u8"Rotation");
+  copyA->erase(u8"Rotation");
+  if (rotationE) {
+    CHECK(rotationA);
+    CheckRotationJ(*rotationE, *rotationA);
+  } else {
+    CHECK(!rotationA);
+  }
 
   DiffCompoundTag(*copyE, *copyA);
 }

@@ -108,6 +108,7 @@ public:
     case chiseled_polished_blackstone:
     case chiseled_quartz_block:
     case chiseled_red_sandstone:
+    case chiseled_resin_bricks:
     case chiseled_sandstone:
     case chiseled_stone_bricks:
     case chiseled_tuff:
@@ -128,6 +129,7 @@ public:
     case cracked_nether_bricks:
     case cracked_polished_blackstone_bricks:
     case cracked_stone_bricks:
+    case creaking_heart:
     case crimson_nylium:
     case crying_obsidian:
     case cut_red_sandstone:
@@ -316,6 +318,11 @@ public:
     case red_terracotta:
     case redstone_ore:
     case reinforced_deepslate:
+    case resin_block:
+    case resin_brick_slab:
+    case resin_brick_stairs:
+    case resin_brick_wall:
+    case resin_bricks:
     case respawn_anchor:
     case sandstone:
     case sandstone_slab:
@@ -533,6 +540,20 @@ public:
     case oak_wood:
     case orange_banner:
     case orange_wall_banner:
+    case pale_oak_door:
+    case pale_oak_fence:
+    case pale_oak_fence_gate:
+    case pale_oak_hanging_sign:
+    case pale_oak_log:
+    case pale_oak_planks:
+    case pale_oak_pressure_plate:
+    case pale_oak_sign:
+    case pale_oak_slab:
+    case pale_oak_stairs:
+    case pale_oak_trapdoor:
+    case pale_oak_wall_hanging_sign:
+    case pale_oak_wall_sign:
+    case pale_oak_wood:
     case pink_banner:
     case pink_wall_banner:
     case purple_banner:
@@ -573,6 +594,8 @@ public:
     case stripped_mangrove_wood:
     case stripped_oak_log:
     case stripped_oak_wood:
+    case stripped_pale_oak_log:
+    case stripped_pale_oak_wood:
     case stripped_spruce_log:
     case stripped_spruce_wood:
     case stripped_warped_hyphae:

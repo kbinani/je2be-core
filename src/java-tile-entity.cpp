@@ -236,7 +236,7 @@ private:
     E(potted_oxeye_daisy, PottedPlant(u8"oxeye_daisy", {}));
     E(potted_cornflower, PottedPlant(u8"cornflower", {}));
     E(potted_lily_of_the_valley, PottedPlant(u8"lily_of_the_valley", {}));
-    E(potted_dandelion, PottedPlant(u8"yellow_flower", {}));
+    E(potted_dandelion, PottedPlant(u8"dandelion", {}));
     E(potted_wither_rose, PottedPlant(u8"wither_rose", {}));
     E(potted_crimson_fungus, PottedPlant(u8"crimson_fungus", {}));
     E(potted_warped_fungus, PottedPlant(u8"warped_fungus", {}));
@@ -351,8 +351,31 @@ private:
     E(crafter, Crafter);
     E(vault, Vault);
     E(trial_spawner, TrialSpawner);
+
+    E(creaking_heart, CreakingHeart);
+    E(pale_oak_sign, sign);
+    E(pale_oak_wall_sign, sign);
+    E(pale_oak_hanging_sign, hangingSign);
+    E(pale_oak_wall_hanging_sign, hangingSign);
+    E(potted_open_eyeblossom, PottedPlant(u8"open_eyeblossom", {}));
+    E(potted_closed_eyeblossom, PottedPlant(u8"closed_eyeblossom", {}));
+    E(potted_pale_oak_sapling, PottedPlant(u8"pale_oak_sapling", {{u8"age_bit", i8(0)}}));
 #undef E
     return table;
+  }
+
+  static CompoundTagPtr CreakingHeart(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"CreakingHeart");
+    if (c) {
+      if (auto id = c->intArrayTag(u8"creaking"); id) {
+        if (auto uuid = Uuid::FromIntArray(*id); uuid) {
+          auto uuidB = ctx.fUuids->toId(*uuid);
+          ret->set(u8"SpawnedCreakingID", Long(uuidB));
+        }
+      }
+    }
+    Attach(c, pos, *ret);
+    return ret;
   }
 
   static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
@@ -795,21 +818,7 @@ private:
       return nullptr;
     }
     auto t = Empty(u8"Bell", *c, pos);
-    auto attachment = b.property(u8"attachment", u8"");
-    auto facing = b.property(u8"facing", u8"south");
-    int direction = 255;
-    if (attachment == u8"floor") {
-      if (facing == u8"north") {
-        direction = 0;
-      } else if (facing == u8"east") {
-        direction = 1;
-      } else if (facing == u8"south") {
-        direction = 2;
-      } else if (facing == u8"west") {
-        direction = 3;
-      }
-    }
-    t->set(u8"Direction", Int(direction));
+    t->set(u8"Direction", Int(255));
     t->set(u8"Ringing", Bool(false));
     t->set(u8"Ticks", Int(0));
     t->set(u8"isMovable", Bool(true));
@@ -1302,8 +1311,6 @@ private:
     using namespace std;
     using namespace mcfile::blocks;
     auto tag = Compound();
-    auto const &name = b.fName;
-    i8 type = Item::GetSkullTypeFromBlockName(name);
     auto rot = Wrap(strings::ToI32(b.property(u8"rotation", u8"0")), 0);
     float rotation = Rotation::ClampDegreesBetweenMinus180And180(rot / 16.0f * 360.0f);
     tag->insert({
@@ -1311,7 +1318,7 @@ private:
         {u8"isMovable", Bool(true)},
         {u8"DoingAnimation", Bool(false)},
         {u8"MouthTickCount", Int(0)},
-        {u8"SkullType", Byte(type)},
+        {u8"SkullType", Byte(-1)},
         {u8"Rotation", Float(rotation)},
     });
     Attach(c, pos, *tag);
@@ -1523,9 +1530,8 @@ private:
     }
     i32 type = 0;
     if (customName) {
-      auto color = GetAsString(*customName, "color");
       auto translate = GetAsString(*customName, "translate");
-      if (color == u8"gold" && translate == u8"block.minecraft.ominous_banner") {
+      if (translate == u8"block.minecraft.ominous_banner") {
         type = 1; // Illager Banner
       }
     }
@@ -1820,18 +1826,12 @@ private:
     return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx, DataVersion const &dataVersion) {
       auto ret = AnyStorage(id, std::nullopt)(pos, b, comp, ctx, dataVersion);
       if (comp) {
-        auto burnTime = comp->int16(u8"BurnTime");
-        if (burnTime) {
-          ret->set(u8"BurnDuration", Short(*burnTime));
-        }
-        auto cookTime = comp->int16(u8"CookTime");
-        if (cookTime) {
-          ret->set(u8"CookTime", Short(*cookTime));
-        }
-        auto cookTimeTotal = comp->int16(u8"CookTimeTotal");
-        if (cookTimeTotal) {
-          ret->set(u8"BurnTime", Short(*cookTimeTotal));
-        }
+        CopyShortValues(*comp, *ret, {{u8"lit_total_time", u8"BurnDuration"}, //
+                                      {u8"BurnTime", u8"BurnDuration"},       //
+                                      {u8"cooking_time_spent", u8"CookTime"}, //
+                                      {u8"CookTime"},                         //
+                                      {u8"lit_time_remaining", u8"BurnTime"}, //
+                                      {u8"CookTimeTotal", u8"BurnTime"}});
       }
       return ret;
     };

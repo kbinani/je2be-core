@@ -93,7 +93,6 @@ public:
   i64 const fGameTick;
   GameMode const fGameMode;
 
-  bool fDataPackBundle = false;
   bool fDataPackTradeRebalance = false;
 
 private:

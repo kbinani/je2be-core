@@ -29,7 +29,7 @@ TEST_CASE("strings") {
     CHECK(strings::SnakeFromUpperCamel(u8"Ender_Chest") == u8"ender_chest");
   }
   SUBCASE("Unquote") {
-    CHECK(strings::Unquote(u8"\"\\\"a\\\"") == u8R"("a")");
+    CHECK(strings::Unquote(u8R"("\"a\"")") == u8R"("a")");
     CHECK(strings::Unquote(u8R"("'a'")") == u8R"('a')");
     CHECK(strings::Unquote(u8"a") == u8"a");
   }

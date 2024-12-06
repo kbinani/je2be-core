@@ -57,7 +57,7 @@ public:
     if (!data) {
       return JE2BE_ERROR;
     }
-    Level level = Level::Import(*data);
+    Level level = Level::ImportFromJava(*data);
 
     bool ok = Datapacks::Import(input, output);
 

@@ -119,18 +119,18 @@ static void FenceGlassPaneIronBarsConnectable() {
   int x = x0;
   int x1 = x0;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/FenceGlassPaneIronBarsConnectabl");
-  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
+  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "function");
   {
     ofstream os((root / "datapacks" / "kbinani" / "pack.mcmeta").string());
     nlohmann::json mcmeta;
     nlohmann::json pack;
-    pack["pack_format"] = 1;
+    pack["pack_format"] = 57;
     pack["description"] = "datapack";
     mcmeta["pack"] = pack;
     os << nlohmann::to_string(mcmeta);
   }
   {
-    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "place_blocks.mcfunction").string());
     for (u8string const &name : names) {
       os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
       x++;
@@ -225,18 +225,18 @@ static void NoteBlock() {
   int const z0 = 0;
   int const y = -60;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/NoteBlock");
-  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
+  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "function");
   {
     ofstream os((root / "datapacks" / "kbinani" / "pack.mcmeta").string());
     nlohmann::json mcmeta;
     nlohmann::json pack;
-    pack["pack_format"] = 1;
+    pack["pack_format"] = 57;
     pack["description"] = "datapack";
     mcmeta["pack"] = pack;
     os << nlohmann::to_string(mcmeta);
   }
   {
-    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_note_block.mcfunction").string());
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "research_note_block.mcfunction").string());
     int width = (int)ceil(sqrt(uniq.size()));
     int i = 0;
     int j = 0;
@@ -331,18 +331,18 @@ static void RedstoneWire() {
   int x = x0;
   int x1 = x0;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/RedstoneWire");
-  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
+  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "function");
   {
     ofstream os((root / "datapacks" / "kbinani" / "pack.mcmeta").string());
     nlohmann::json mcmeta;
     nlohmann::json pack;
-    pack["pack_format"] = 1;
+    pack["pack_format"] = 57;
     pack["description"] = "datapack";
     mcmeta["pack"] = pack;
     os << nlohmann::to_string(mcmeta);
   }
   {
-    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "research_redstone_wire.mcfunction").string());
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "research_redstone_wire.mcfunction").string());
     os << "fill " << x0 << " " << y << " " << (z0 - 1) << " " << (x0 + 2 * names.size()) << " " << (y + 2) << " " << (z0 + 1) << " air" << endl;
     for (u8string const &name : names) {
       os << "setblock " << x << " " << (y - 1) << " " << z0 << " air" << endl;
@@ -737,18 +737,18 @@ static void WallConnectable() {
   int x = x0;
   int x1 = x0;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/WallConnectable");
-  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "functions");
+  Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "function");
   {
     ofstream os((root / "datapacks" / "kbinani" / "pack.mcmeta").string());
     nlohmann::json mcmeta;
     nlohmann::json pack;
-    pack["pack_format"] = 1;
+    pack["pack_format"] = 57;
     pack["description"] = "datapack";
     mcmeta["pack"] = pack;
     os << nlohmann::to_string(mcmeta);
   }
   {
-    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction").string());
+    ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "place_blocks.mcfunction").string());
     for (u8string const &name : names) {
       os << "setblock " << x << " " << y << " " << z0 << " " << name << endl;
       os << "setblock " << x << " " << (y + 1) << " " << (z0 + 1) << " " << name << endl;
@@ -925,14 +925,14 @@ static void LightTransmission1() {
     ofstream os(name.string());
     os << R"({
   "pack": {
-    "pack_format": 1,
+    "pack_format": 57,
     "description": "datapack"
   }
 })" << endl;
   }
   vector<mcfile::blocks::BlockId> blocks;
   {
-    fs::path name = root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction";
+    fs::path name = root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "place_blocks.mcfunction";
     Fs::CreateDirectories(name.parent_path());
     ofstream os(name.string());
     int x = x0;
@@ -1185,14 +1185,14 @@ static void Heightmaps() {
     ofstream os(name.string());
     os << R"({
   "pack": {
-    "pack_format": 1,
+    "pack_format": 57,
     "description": "datapack"
   }
 })" << endl;
   }
   vector<pair<Pos2i, mcfile::blocks::BlockId>> blocks;
   {
-    fs::path name = root / "datapacks" / "kbinani" / "data" / "je2be" / "functions" / "place_blocks.mcfunction";
+    fs::path name = root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "place_blocks.mcfunction";
     Fs::CreateDirectories(name.parent_path());
     ofstream os(name.string());
     int cx = 0;

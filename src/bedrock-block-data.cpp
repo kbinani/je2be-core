@@ -142,7 +142,7 @@ private:
   }
 
   static String Bell(String const &bName, CompoundTag const &s, Props &p) {
-    auto attachment = s.string(u8"attachment", u8"floor");
+    auto attachment = s.string(u8"attachment", u8"standing");
     auto direction = s.int32(u8"direction", 0);
     auto toggle = s.boolean(u8"toggle_bit", false);
     std::u8string facing;
@@ -215,6 +215,13 @@ private:
 
   static String BlockWithAxisFromPillarAxis(String const &bName, CompoundTag const &s, Props &p) {
     AxisFromPillarAxis(s, p);
+    return bName;
+  }
+
+  static String BlockWithFacing4FromCardinalDirection(String const &bName, CompoundTag const &s, Props &p) {
+    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
+      p[u8"facing"] = *cd;
+    }
     return bName;
   }
 
@@ -562,7 +569,7 @@ private:
     return Ns() + name;
   }
 
-  static String CoralFanHang(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralFanHangLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto hangType = s.boolean(u8"coral_hang_type_bit", false);
     auto dead = s.boolean(u8"dead_bit", false);
     std::u8string name;
@@ -589,6 +596,12 @@ private:
     return Ns() + name + u8"_coral_wall_fan";
   }
 
+  static String CoralWallFan(String const &bName, CompoundTag const &s, Props &p) {
+    CoralDirection(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String Crafter(String const &bName, CompoundTag const &s, Props &p) {
     auto crafting = s.boolean(u8"crafting", false);
     auto orientation = s.string(u8"orientation", u8"north_up");
@@ -596,6 +609,15 @@ private:
     p[u8"crafting"] = Bool(crafting);
     p[u8"orientation"] = String(orientation);
     p[u8"triggered"] = Bool(triggered);
+    return bName;
+  }
+
+  static String CreakingHeart(String const &bName, CompoundTag const &s, Props &p) {
+    auto active = s.boolean(u8"active", false);
+    p[u8"active"] = Bool(active);
+    auto natural = s.boolean(u8"natural", false);
+    p[u8"natural"] = Bool(natural);
+    AxisFromPillarAxis(s, p);
     return bName;
   }
 #pragma endregion
@@ -670,11 +692,15 @@ private:
     return Ns() + name;
   }
 
-  static Converter DoubleSlab(std::u8string name) {
+  static Converter DoubleSlab(std::optional<std::u8string> name = std::nullopt) {
     return [name](String const &bName, CompoundTag const &s, Props &p) {
       p[u8"type"] = u8"double";
       Submergible(s, p);
-      return Ns() + name;
+      if (name) {
+        return Ns() + *name;
+      } else {
+        return strings::Remove(bName, u8"double_");
+      }
     };
   }
 
@@ -1043,7 +1069,7 @@ private:
     return bName;
   }
 
-  static String MonsterEgg(String const &bName, CompoundTag const &s, Props &p) {
+  static String MonsterEggLegacy(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"monster_egg_stone_type", u8"stone");
     std::u8string name;
     if (type == u8"cobblestone") {
@@ -1061,6 +1087,11 @@ private:
     }
     return Ns() + u8"infested_" + name;
   }
+
+  static String MushroomStem(String const &bName, CompoundTag const &s, Props &p) {
+    MushroomProperties(s, p);
+    return bName;
+  }
 #pragma endregion
 
 #pragma region Converters : N
@@ -1070,6 +1101,12 @@ private:
       p[u8"age"] = Int(age);
       return bName;
     };
+  }
+
+  static String NormalStoneSlab(String const &bName, CompoundTag const &s, Props &p) {
+    Submergible(s, p);
+    TypeFromVerticalHalfMigratingTopSlotBit(s, p);
+    return Ns() + u8"stone_slab";
   }
 #pragma endregion
 
@@ -1095,6 +1132,29 @@ private:
 #pragma endregion
 
 #pragma region Converters : P
+  static String PaleHangingMoss(String const &bName, CompoundTag const &s, Props &p) {
+    auto tip = s.boolean(u8"tip", false);
+    p[u8"tip"] = Bool(tip);
+    return bName;
+  }
+
+  static String PaleMossCarpet(String const &bName, CompoundTag const &s, Props &p) {
+    auto bottom = !s.boolean(u8"upper_block_bit", false);
+    p[u8"bottom"] = Bool(bottom);
+    for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
+      auto name = JavaNameFromFacing4(f);
+      auto typeB = s.string(u8"pale_moss_carpet_side_" + name, u8"none");
+      std::u8string typeJ = u8"none";
+      if (typeB == u8"short") {
+        typeJ = u8"low";
+      } else if (typeB == u8"tall") {
+        typeJ = u8"tall";
+      }
+      p[name] = typeJ;
+    }
+    return bName;
+  }
+
   static String PinkPetals(String const &bName, CompoundTag const &s, Props &p) {
     i32 growth = s.int32(u8"growth", 0);
     i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
@@ -1177,8 +1237,10 @@ private:
 
 #pragma region Converters : Q
   static String QuartzBlock(String const &bName, CompoundTag const &s, Props &p) {
-    auto type = s.string(u8"chisel_type", u8"chiseled");
-    if (type == u8"lines") {
+    auto type = s.string(u8"chisel_type");
+    if (!type) {
+      return Ns() + u8"quartz_block";
+    } else if (type == u8"lines") {
       AxisFromPillarAxis(s, p);
       return Ns() + u8"quartz_pillar";
     } else if (type == u8"smooth") {
@@ -1227,7 +1289,7 @@ private:
     }
   }
 
-  static String RedSandstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacyRedSandstone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"sand_stone_type", u8"default");
     std::u8string name = u8"red_sandstone";
     if (type == u8"heiroglyphs") {
@@ -1309,7 +1371,7 @@ private:
     return bName;
   }
 
-  static String Sand(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacySand(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"sand_type", u8"normal");
     if (type == u8"red") {
       return Ns() + u8"red_sand";
@@ -1318,7 +1380,7 @@ private:
     }
   }
 
-  static String Sandstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacySandstone(String const &bName, CompoundTag const &s, Props &p) {
     auto type = s.string(u8"sand_stone_type", u8"default");
     std::u8string name = u8"sandstone";
     if (type == u8"heiroglyphs") {
@@ -1395,6 +1457,30 @@ private:
   static String SilverGlazedTerracotta(String const &bName, CompoundTag const &s, Props &p) {
     Facing4FromFacingDirectionA(s, p);
     return Ns() + u8"light_gray_glazed_terracotta";
+  }
+
+  static String Skull(String const &bName, CompoundTag const &s, Props &p) {
+    auto fd = s.int32(u8"facing_direction", 0);
+    auto name = Namespace::Remove(bName);
+    if (fd > 1) {
+      // wall skull
+      name = strings::Replace(name, u8"_head", u8"_wall_head");
+      name = strings::Replace(name, u8"_skull", u8"_wall_skull");
+      if (fd == 3) {
+        p[u8"facing"] = u8"south";
+      } else if (fd == 5) {
+        p[u8"facing"] = u8"east";
+      } else if (fd == 2) {
+        p[u8"facing"] = u8"north";
+      } else if (fd == 4) {
+        p[u8"facing"] = u8"west";
+      }
+    } else {
+      // floor skull
+      // The Bedrock Skull block doesn't have a rotation property.
+      // Instead, the block entity does, so it needs to be imported from the block entity later.
+    }
+    return Ns() + name;
   }
 
   static String Slab(String const &bName, CompoundTag const &s, Props &p) {
@@ -1663,10 +1749,14 @@ private:
 
 #pragma region Converters : W
   static String WallWithBlockType(String const &bName, CompoundTag const &s, Props &p) {
-    auto type = s.string(u8"wall_block_type", u8"andesite");
-    std::u8string name = type;
-    if (type == u8"end_brick") {
+    auto type = s.string(u8"wall_block_type");
+    std::u8string name;
+    if (!type) {
+      name = u8"cobblestone";
+    } else if (type == u8"end_brick") {
       name = u8"end_stone_brick";
+    } else {
+      name = *type;
     }
     WallProperties(s, p);
     Submergible(s, p);
@@ -2338,12 +2428,12 @@ private:
     E(jungle_slab, Slab);
     E(dark_oak_slab, Slab);
     E(double_wooden_slab, DoubleWoodenSlab);
-    E(oak_double_slab, DoubleSlab(u8"oak_slab"));
-    E(birch_double_slab, DoubleSlab(u8"birch_slab"));
-    E(spruce_double_slab, DoubleSlab(u8"spruce_slab"));
-    E(acacia_double_slab, DoubleSlab(u8"acacia_slab"));
-    E(jungle_double_slab, DoubleSlab(u8"jungle_slab"));
-    E(dark_oak_double_slab, DoubleSlab(u8"dark_oak_slab"));
+    E(oak_double_slab, DoubleSlab());
+    E(birch_double_slab, DoubleSlab());
+    E(spruce_double_slab, DoubleSlab());
+    E(acacia_double_slab, DoubleSlab());
+    E(jungle_double_slab, DoubleSlab());
+    E(dark_oak_double_slab, DoubleSlab());
 
     E(acacia_stairs, Stairs);
     E(andesite_stairs, Stairs);
@@ -2430,15 +2520,30 @@ private:
     E(red_flower, RedFlower);
     E(amethyst_cluster, BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible);
     E(stone, Stone);
-    E(stone_slab3, StoneSlab3); // legacy, < 1.19
-    E(stone_block_slab3, StoneSlab3);
+    E(stone_slab3, StoneSlab3);              // legacy, < 1.19
+    E(stone_block_slab3, StoneSlab3);        // legacy, < 1.21.50.29
     E(double_stone_slab3, DoubleStoneSlab3); // legacy, < 1.19
     E(double_stone_block_slab3, DoubleStoneSlab3);
 
     E(cobblestone_wall, WallWithBlockType);
+    E(mossy_cobblestone_wall, BlockWithWallProperties);
+    E(granite_wall, BlockWithWallProperties);
+    E(diorite_wall, BlockWithWallProperties);
+    E(andesite_wall, BlockWithWallProperties);
+    E(sandstone_wall, BlockWithWallProperties);
+    E(red_sandstone_wall, BlockWithWallProperties);
+    E(stone_brick_wall, BlockWithWallProperties);
+    E(mossy_stone_brick_wall, BlockWithWallProperties);
+    E(brick_wall, BlockWithWallProperties);
+    E(nether_brick_wall, BlockWithWallProperties);
+    E(red_nether_brick_wall, BlockWithWallProperties);
+    E(end_stone_brick_wall, BlockWithWallProperties);
+    E(prismarine_wall, BlockWithWallProperties);
     E(blackstone_wall, BlockWithWallProperties);
 
     E(anvil, Anvil);
+    E(chipped_anvil, BlockWithFacing4FromCardinalDirection);
+    E(damaged_anvil, BlockWithFacing4FromCardinalDirection);
     E(melon_stem, MelonStem);
     E(pumpkin_stem, PumpkinStem);
     E(azalea_leaves, BlockWithPersistentFromPersistentBitSubmergible);
@@ -2452,7 +2557,7 @@ private:
     E(bell, Bell);
     E(big_dripleaf, BigDripleaf);
     E(blackstone_slab, Slab);
-    E(blackstone_double_slab, DoubleSlab(u8"blackstone_slab"));
+    E(blackstone_double_slab, DoubleSlab());
     E(standing_banner, BlockWithRotationFromGroundSignDirection);
     E(bed, Bed);
 
@@ -2596,9 +2701,19 @@ private:
     E(dead_fire_coral_block, Same);
     E(dead_horn_coral_block, Same);
 
-    E(coral_fan_hang, CoralFanHang);
-    E(coral_fan_hang2, CoralFanHang);
-    E(coral_fan_hang3, CoralFanHang);
+    E(coral_fan_hang, CoralFanHangLegacy);
+    E(coral_fan_hang2, CoralFanHangLegacy);
+    E(coral_fan_hang3, CoralFanHangLegacy);
+    E(tube_coral_wall_fan, CoralWallFan);
+    E(brain_coral_wall_fan, CoralWallFan);
+    E(bubble_coral_wall_fan, CoralWallFan);
+    E(fire_coral_wall_fan, CoralWallFan);
+    E(horn_coral_wall_fan, CoralWallFan);
+    E(dead_tube_coral_wall_fan, CoralWallFan);
+    E(dead_brain_coral_wall_fan, CoralWallFan);
+    E(dead_bubble_coral_wall_fan, CoralWallFan);
+    E(dead_fire_coral_wall_fan, CoralWallFan);
+    E(dead_horn_coral_wall_fan, CoralWallFan);
     E(coral_fan, CoralFanLegacy);      // legacy
     E(coral_fan_dead, CoralFanLegacy); // legacy
     E(tube_coral_fan, CoralFan);
@@ -2614,11 +2729,14 @@ private:
 
     E(brewing_stand, BrewingStand);
     E(brick_block, Rename(u8"bricks"));
-    E(stone_slab, StoneSlab); // legacy, < 1.19
-    E(stone_block_slab, StoneSlab);
-    E(double_stone_slab, DoubleStoneSlab); // legacy, < 1.19
-    E(double_stone_block_slab, DoubleStoneSlab);
+    E(stone_slab, StoneSlab);       // legacy, < 1.19
+    E(stone_block_slab, StoneSlab); // legacy < 1.21.50.20?
+    E(normal_stone_slab, NormalStoneSlab);
+    E(double_stone_slab, DoubleStoneSlab);       // legacy, < 1.19
+    E(double_stone_block_slab, DoubleStoneSlab); // legacy, < 1.21.50.29?
+    E(normal_stone_double_slab, DoubleSlab(u8"stone_slab"));
     E(brown_mushroom_block, BrownMushroomBlock);
+    E(mushroom_stem, MushroomStem);
     E(bubble_column, BubbleColumn);
     E(cactus, BlockWithAge);
     E(cake, Cake);
@@ -2637,14 +2755,16 @@ private:
     E(command_block, CommandBlock);
     E(chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(quartz_block, QuartzBlock);
-    E(red_sandstone, RedSandstone);
-    E(sandstone, Sandstone);
+    E(red_sandstone, Same); // RedSandstone for 1.21.50.29
+    E(sandstone, Same);     // LegacySandstone for 1.21.50.29
     E(stonebrick, Stonebrick);
     E(chorus_flower, BlockWithAge);
     E(chorus_plant, Same);
     E(dirt, Dirt);
+    E(grass_block, Same);
+    E(coarse_dirt, Same);
     E(cobbled_deepslate_slab, Slab);
-    E(cobbled_deepslate_double_slab, DoubleSlab(u8"cobbled_deepslate_slab"));
+    E(cobbled_deepslate_double_slab, DoubleSlab());
     E(cobbled_deepslate_wall, BlockWithWallProperties);
     E(web, Rename(u8"cobweb"));
     E(cocoa, Cocoa);
@@ -2652,36 +2772,47 @@ private:
     E(unpowered_comparator, Comparator);
     E(composter, Composter);
     E(conduit, BlockWithSubmergible);
-    E(skull, Same);
+    E(skull, Same); // legacy
+    E(skeleton_skull, Skull);
+    E(wither_skeleton_skull, Skull);
+    E(player_head, Skull);
+    E(zombie_head, Skull);
+    E(creeper_head, Skull);
+    E(dragon_head, Skull);
+    E(piglin_head, Skull);
     E(crimson_hyphae, BlockWithAxisFromPillarAxis);
     E(crimson_slab, Slab);
-    E(crimson_double_slab, DoubleSlab(u8"crimson_slab"));
+    E(crimson_double_slab, DoubleSlab());
     E(crimson_stem, BlockWithAxisFromPillarAxis);
     E(cut_copper_slab, Slab);
     E(double_cut_copper_slab, DoubleSlab(u8"cut_copper_slab"));
-    E(stone_slab4, StoneSlab4); // legacy, < 1.19
-    E(stone_block_slab4, StoneSlab4);
+    E(stone_slab4, StoneSlab4);       // legacy, < 1.19
+    E(stone_block_slab4, StoneSlab4); // legacy, < 1.21.50.29?
+    E(mossy_stone_brick_slab, Slab);
+    E(mossy_stone_brick_double_slab, DoubleSlab());
     E(double_stone_slab4, DoubleStoneSlab4); // legacy, < 1.19
     E(double_stone_block_slab4, DoubleStoneSlab4);
-    E(yellow_flower, Rename(u8"dandelion"));
+    E(yellow_flower, Rename(u8"dandelion")); // legacy < 1.21.50.29?
     E(darkoak_standing_sign, DarkoakStandingSign);
     E(darkoak_wall_sign, DarkoakWallSign);
     E(prismarine, Prismarine);
-    E(stone_slab2, StoneSlab2); // legacy, < 1.19
-    E(stone_block_slab2, StoneSlab2);
+    E(stone_slab2, StoneSlab2);              // legacy, < 1.19
+    E(stone_block_slab2, StoneSlab2);        // legacy, for 1.21.50.29?
     E(double_stone_slab2, DoubleStoneSlab2); // legacy, < 1.19
     E(double_stone_block_slab2, DoubleStoneSlab2);
+    E(mossy_cobblestone_slab, Slab);
+    E(mossy_cobblestone_double_slab, DoubleSlab());
     E(daylight_detector, DaylightDetector);
     E(daylight_detector_inverted, DaylightDetector);
     E(deadbush, Rename(u8"dead_bush"));
     E(deepslate, BlockWithAxisFromPillarAxis);
     E(deepslate_brick_slab, Slab);
-    E(deepslate_brick_double_slab, DoubleSlab(u8"deepslate_brick_slab"));
+    E(deepslate_brick_double_slab, DoubleSlab());
     E(deepslate_brick_wall, BlockWithWallProperties);
     E(deepslate_redstone_ore, RedstoneOre);
     E(lit_deepslate_redstone_ore, RedstoneOre);
     E(deepslate_tile_slab, Slab);
-    E(deepslate_tile_double_slab, DoubleSlab(u8"deepslate_tile_slab"));
+    E(deepslate_tile_double_slab, DoubleSlab());
     E(deepslate_tile_wall, BlockWithWallProperties);
     E(grass_path, Rename(u8"dirt_path"));
     E(dispenser, Dispenser);
@@ -2710,7 +2841,13 @@ private:
     E(hay_block, BlockWithAxisFromPillarAxis);
     E(heavy_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(hopper, Hopper);
-    E(monster_egg, MonsterEgg);
+    E(monster_egg, MonsterEggLegacy); // for 1.21.50.29
+    E(infested_stone, Same);
+    E(infested_cobblestone, Same);
+    E(infested_stone_bricks, Same);
+    E(infested_mossy_stone_bricks, Same);
+    E(infested_cracked_stone_bricks, Same);
+    E(infested_chiseled_stone_bricks, Same);
     E(infested_deepslate, BlockWithAxisFromPillarAxis);
     E(iron_bars, BlockWithSubmergible);
     E(lit_pumpkin, LitPumpkin);
@@ -2751,13 +2888,13 @@ private:
     E(pointed_dripstone, PointedDripstone);
     E(polished_basalt, BlockWithAxisFromPillarAxis);
     E(polished_blackstone_brick_slab, Slab);
-    E(polished_blackstone_brick_double_slab, DoubleSlab(u8"polished_blackstone_brick_slab"));
+    E(polished_blackstone_brick_double_slab, DoubleSlab());
     E(polished_blackstone_brick_wall, BlockWithWallProperties);
     E(polished_blackstone_slab, Slab);
-    E(polished_blackstone_double_slab, DoubleSlab(u8"polished_blackstone_slab"));
+    E(polished_blackstone_double_slab, DoubleSlab());
     E(polished_blackstone_wall, BlockWithWallProperties);
     E(polished_deepslate_slab, Slab);
-    E(polished_deepslate_double_slab, DoubleSlab(u8"polished_deepslate_slab"));
+    E(polished_deepslate_double_slab, DoubleSlab());
     E(polished_deepslate_wall, BlockWithWallProperties);
     E(potatoes, BlockWithAgeFromGrowth);
     E(golden_rail, GoldenRail);
@@ -2773,7 +2910,7 @@ private:
     E(redstone_wire, BlockWithPowerFromRedstoneSignal);
     E(red_mushroom_block, RedMushroomBlock);
     E(red_nether_brick, Rename(u8"red_nether_bricks"));
-    E(sand, Sand);
+    E(sand, Same); // Sand) for 1.21.50.29
     E(powered_repeater, Repeater);
     E(unpowered_repeater, Repeater);
     E(repeating_command_block, CommandBlock);
@@ -2823,7 +2960,7 @@ private:
     E(vine, Vine);
     E(warped_hyphae, BlockWithAxisFromPillarAxis);
     E(warped_slab, Slab);
-    E(warped_double_slab, DoubleSlab(u8"warped_slab"));
+    E(warped_double_slab, DoubleSlab());
     E(warped_stem, BlockWithAxisFromPillarAxis);
     E(water, Liquid);
     E(waxed_copper, Rename(u8"waxed_copper_block"));
@@ -2860,7 +2997,7 @@ private:
     E(verdant_froglight, BlockWithAxisFromPillarAxis);
     E(pearlescent_froglight, BlockWithAxisFromPillarAxis);
     E(mangrove_slab, Slab);
-    E(mangrove_double_slab, DoubleSlab(u8"mangrove_slab"));
+    E(mangrove_double_slab, DoubleSlab());
     E(mangrove_button, Button);
     E(mangrove_door, Door);
     E(mangrove_fence, BlockWithSubmergible);
@@ -2879,7 +3016,7 @@ private:
     E(sculk_shrieker, SculkShrieker);
     E(sculk_catalyst, SculkCatalyst);
     E(mud_brick_slab, Slab);
-    E(mud_brick_double_slab, DoubleSlab(u8"mud_brick_slab"));
+    E(mud_brick_double_slab, DoubleSlab());
     E(muddy_mangrove_roots, BlockWithAxisFromPillarAxis);
 
     // 1.19.3
@@ -2890,12 +3027,12 @@ private:
     E(bamboo_fence_gate, BlockWithDirection);
     E(bamboo_hanging_sign, HangingSign);
     E(bamboo_mosaic_slab, Slab);
-    E(bamboo_mosaic_double_slab, DoubleSlab(u8"bamboo_mosaic_slab"));
+    E(bamboo_mosaic_double_slab, DoubleSlab());
     E(bamboo_mosaic_stairs, Stairs);
     E(bamboo_pressure_plate, PressurePlate);
     E(bamboo_standing_sign, StandingSign);
     E(bamboo_slab, Slab);
-    E(bamboo_double_slab, DoubleSlab(u8"bamboo_slab"));
+    E(bamboo_double_slab, DoubleSlab());
     E(bamboo_stairs, Stairs);
     E(bamboo_trapdoor, Trapdoor);
     E(bamboo_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
@@ -2915,7 +3052,7 @@ private:
     E(decorated_pot, DecoratedPot);
     E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
     E(cherry_slab, Slab);
-    E(cherry_double_slab, DoubleSlab(u8"cherry_slab"));
+    E(cherry_double_slab, DoubleSlab());
     E(pink_petals, PinkPetals);
     E(cherry_wood, BlockWithAxisFromPillarAxis);
     E(stripped_cherry_wood, BlockWithAxisFromPillarAxis);
@@ -2943,14 +3080,14 @@ private:
     // 1.20.3
     E(tuff_stairs, Stairs);
     E(tuff_slab, Slab);
-    E(tuff_double_slab, DoubleSlab(u8"tuff_slab"));
+    E(tuff_double_slab, DoubleSlab());
     E(tuff_wall, BlockWithWallProperties);
     E(polished_tuff_slab, Slab);
     E(polished_tuff_stairs, Stairs);
-    E(polished_tuff_double_slab, DoubleSlab(u8"polished_tuff_slab"));
+    E(polished_tuff_double_slab, DoubleSlab());
     E(polished_tuff_wall, BlockWithWallProperties);
     E(tuff_brick_slab, Slab);
-    E(tuff_brick_double_slab, DoubleSlab(u8"tuff_brick_slab"));
+    E(tuff_brick_double_slab, DoubleSlab());
     E(tuff_brick_stairs, Stairs);
     E(tuff_brick_wall, BlockWithWallProperties);
     E(copper_grate, BlockWithSubmergible);
@@ -2992,12 +3129,56 @@ private:
     E(heavy_core, BlockWithSubmergible);
     E(trial_spawner, TrialSpawner);
     E(smooth_stone_slab, Slab);
+    E(smooth_stone_double_slab, DoubleSlab());
     E(cobblestone_slab, Slab);
+    E(cobblestone_double_slab, DoubleSlab());
     E(stone_brick_slab, Slab);
+    E(stone_brick_double_slab, DoubleSlab());
     E(sandstone_slab, Slab);
+    E(sandstone_double_slab, DoubleSlab());
+    E(cut_sandstone_slab, Slab);
+    E(cut_sandstone_double_slab, DoubleSlab());
+    E(smooth_sandstone_slab, Slab);
+    E(smooth_sandstone_double_slab, DoubleSlab());
+    E(red_sandstone_slab, Slab);
+    E(red_sandstone_double_slab, DoubleSlab());
+    E(cut_red_sandstone_slab, Slab);
+    E(cut_red_sandstone_double_slab, DoubleSlab());
+    E(smooth_red_sandstone_slab, Slab);
+    E(smooth_red_sandstone_double_slab, DoubleSlab());
+    E(granite_slab, Slab);
+    E(granite_double_slab, DoubleSlab());
+    E(polished_granite_slab, Slab);
+    E(polished_granite_double_slab, DoubleSlab());
+    E(diorite_slab, Slab);
+    E(diorite_double_slab, DoubleSlab());
+    E(polished_diorite_slab, Slab);
+    E(polished_diorite_double_slab, DoubleSlab());
+    E(andesite_slab, Slab);
+    E(andesite_double_slab, DoubleSlab());
+    E(polished_andesite_slab, Slab);
+    E(polished_andesite_double_slab, DoubleSlab());
+    E(red_nether_brick_slab, Slab);
+    E(red_nether_brick_double_slab, DoubleSlab());
+    E(end_stone_brick_slab, Slab);
+    E(end_stone_brick_double_slab, DoubleSlab());
+    E(smooth_quartz_slab, Slab);
+    E(smooth_quartz_double_slab, DoubleSlab());
+    E(purpur_slab, Slab);
+    E(purpur_double_slab, DoubleSlab());
+    E(prismarine_slab, Slab);
+    E(prismarine_double_slab, DoubleSlab());
+    E(dark_prismarine_slab, Slab);
+    E(dark_prismarine_double_slab, DoubleSlab());
+    E(prismarine_brick_slab, Slab);
+    E(prismarine_brick_double_slab, DoubleSlab());
     E(brick_slab, Slab);
+    E(brick_double_slab, DoubleSlab());
     E(nether_brick_slab, Slab);
+    E(nether_brick_double_slab, DoubleSlab());
     E(quartz_slab, Slab);
+    E(quartz_double_slab, DoubleSlab());
+    E(quartz_pillar, BlockWithAxisFromPillarAxis);
     C doublePlant(Same, HalfFromUpperBlockBit);
     E(large_fern, doublePlant);
     E(tall_grass, doublePlant);
@@ -3005,6 +3186,42 @@ private:
     E(lilac, doublePlant);
     E(rose_bush, doublePlant);
     E(peony, doublePlant);
+
+    // 1.21.4
+    E(pale_oak_leaves, BlockWithPersistentFromPersistentBitSubmergible);
+    E(pale_oak_slab, Slab);
+    E(pale_oak_double_slab, DoubleSlab(u8"pale_oak_slab"));
+    E(pale_oak_fence, BlockWithSubmergible);
+    E(pale_oak_fence_gate, BlockWithDirection);
+    E(pale_oak_door, Door);
+    E(pale_oak_trapdoor, Trapdoor);
+    E(pale_oak_pressure_plate, PressurePlate);
+    E(pale_oak_button, Button);
+    E(pale_oak_stairs, Stairs);
+    E(pale_oak_standing_sign, StandingSign);
+    E(pale_oak_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
+    E(pale_oak_hanging_sign, HangingSign);
+    E(pale_oak_sapling, sapling);
+    E(pale_oak_log, BlockWithAxisFromPillarAxis);
+    E(pale_oak_wood, BlockWithAxisFromPillarAxis);
+    E(stripped_pale_oak_log, BlockWithAxisFromPillarAxis);
+    E(stripped_pale_oak_wood, BlockWithAxisFromPillarAxis);
+    E(pale_hanging_moss, PaleHangingMoss);
+    E(pale_moss_carpet, PaleMossCarpet);
+    E(resin_clump, BlockWithMultiFaceDirectionBitsSubmergible);
+    E(resin_brick_stairs, Stairs);
+    E(resin_brick_slab, Slab);
+    E(resin_brick_double_slab, DoubleSlab(u8"resin_brick_slab"));
+    E(resin_brick_wall, BlockWithWallProperties);
+    E(creaking_heart, CreakingHeart);
+    E(chiseled_sandstone, Same);
+    E(cut_sandstone, Same);
+    E(smooth_sandstone, Same);
+    E(chiseled_red_sandstone, Same);
+    E(cut_red_sandstone, Same);
+    E(smooth_red_sandstone, Same);
+    E(red_sand, Same);
+    E(purpur_pillar, BlockWithAxisFromPillarAxis);
 #undef E
 
     return table;
