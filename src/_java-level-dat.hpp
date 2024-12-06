@@ -54,7 +54,7 @@ public:
       version->set(u8"Id", Int(o.fDataVersion));
       version->set(u8"Name", o.fVersionString);
       version->set(u8"Series", u8"main");
-      version->set(u8"Snapshot", Bool(true)); // TODO(1.21.4)
+      version->set(u8"Snapshot", Bool(false));
       j[u8"Version"] = version;
     }
     {

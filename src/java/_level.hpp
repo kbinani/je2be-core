@@ -245,7 +245,6 @@ public:
     auto experiments = Compound();
     experiments->set(u8"experiments_ever_used", Bool(fExperimentsEverUsed || !fExperiments.empty()));
     experiments->set(u8"saved_with_toggled_experiments", Bool(fExperimentsEverUsed || !fExperiments.empty()));
-    experiments->set(u8"data_driven_vanilla_blocks_and_items", Bool(true));
     if (!fExperiments.empty()) {
       for (auto const &it : fExperiments) {
         experiments->set(it.first, Bool(it.second));

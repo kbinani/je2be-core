@@ -929,7 +929,7 @@ private:
     AddDefinition(c, u8"+minecraft:mobile");
     auto homePos = tag.intArrayTag(u8"home_pos");
     if (homePos) {
-      // TODO(1.21.4)
+      // nop
     } else {
       AddDefinition(c, u8"+minecraft:spawned_by_player");
     }
