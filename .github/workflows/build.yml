@@ -92,13 +92,13 @@ jobs:
       - name: Checkout lfs files
         shell: bash
         run: git lfs checkout
-      - uses: actions/cache@v4
+      - name: Cache workspace directory
+        uses: actions/cache@v4
         with:
-          path: |
-            build/_deps/icu-src
-            build/_deps/icu-build
-            build/_deps/icu-subbuild
-          key: analysis-${{ hashFiles('build/_deps/libminecraft-file-src/cmake/icu.cmake') }}
+          path: build
+          key: analysis-${{ github.run_id }}
+          restore-keys: |
+            analysis-
       - name: Install tools
         run: |
           wget -q -O - https://files.pvs-studio.com/etc/pubkey.txt | sudo apt-key add -
