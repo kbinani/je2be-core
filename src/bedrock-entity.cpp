@@ -53,7 +53,7 @@ public:
         break;
       case 2:
       case 6: // map?
-        f6 = Facing6::South;
+        // f6 = Facing6::South;
         break;
       case 3:
       case 7: // map
