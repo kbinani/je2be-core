@@ -621,7 +621,7 @@ static void CheckRotationJ(ListTag const &e, ListTag const &a) {
     auto av = a.at(i)->asFloat();
     REQUIRE(ev);
     REQUIRE(av);
-    float diff = std::fabsf(ev->fValue - av->fValue);
+    float diff = fabsf(ev->fValue - av->fValue);
     CHECK(diff < 0.01f);
   }
 }
