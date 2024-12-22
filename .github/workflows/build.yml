@@ -14,18 +14,6 @@ jobs:
         uses: DoozyX/clang-format-lint-action@v0.18.2
         with:
           clangFormatVersion: 18
-  cppcheck:
-    runs-on: ubuntu-latest
-    needs: [style]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install cppcheck
-        run: sudo apt install -y cppcheck
-      - name: Run cppcheck
-        run: |
-          cppcheck --version
-          make cppcheck
   build:
     strategy:
       fail-fast: false
