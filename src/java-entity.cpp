@@ -583,7 +583,7 @@ private:
     E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), Hoglin));
     E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"minecraft:horse"), Temper, Horse));
     E(husk, C(Monster, AgeableB(u8"zombie_husk")));
-    E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Definitions(u8"+minecraft:strength_3"), Llama));
+    E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Definitions({u8"+minecraft:strength_3"}), Llama));
     E(magma_cube, C(Monster, Slime));
     E(mooshroom, C(Animal, AgeableA(u8"minecraft:cow"), Mooshroom));
 
@@ -602,30 +602,30 @@ private:
     E(rabbit, C(Animal, AgeableC, Rabbit));
     E(ravager, C(Monster, AttackTime, CanJoinRaid));
     E(salmon, C(Mob, PersistentFromFromBucket, Salmon));
-    E(sheep, C(Animal, AgeableA(u8"minecraft:sheep"), Colorable(u8"sheep"), Definitions(u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"), Sheep));
+    E(sheep, C(Animal, AgeableA(u8"minecraft:sheep"), Colorable(u8"sheep"), Definitions({u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"}), Sheep));
     E(shulker, C(Monster, Shulker));
     M(silverfish);
     M(skeleton); // lefty skeleton does not exist in Bedrock?
 
-    E(skeleton_horse, C(Animal, Definitions(u8"+minecraft:skeleton_horse_adult"), SkeletonHorse));
+    E(skeleton_horse, C(Animal, Definitions({u8"+minecraft:skeleton_horse_adult"}), SkeletonHorse));
     E(slime, C(Monster, Slime));
     E(spider, C(Monster, Vehicle(u8"spider")));
     E(squid, C(Animal, AgeableH(u8"minecraft:squid")));
     M(stray);
-    E(strider, C(Animal, AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider"), Definitions(u8"+minecraft:strider_pathing_behaviors"), Strider));
-    E(trader_llama, C(Animal, AgeableA(u8"minecraft:llama"), Llama, Definitions(u8"+minecraft:llama_unchested", u8"-minecraft:llama_defend_trader", u8"-minecraft:llama_persistence"), TraderLlama));
+    E(strider, C(Animal, AgeableA(u8"minecraft:strider"), DetectSuffocation, Vehicle(u8"strider"), Definitions({u8"+minecraft:strider_pathing_behaviors"}), Strider));
+    E(trader_llama, C(Animal, AgeableA(u8"minecraft:llama"), Llama, Definitions({u8"+minecraft:llama_unchested", u8"-minecraft:llama_defend_trader", u8"-minecraft:llama_persistence"}), TraderLlama));
     E(tropical_fish, C(Mob, Rename(u8"tropicalfish"), PersistentFromFromBucket, TropicalFish));
     E(turtle, C(Animal, AgeableF, Turtle));
 
     M(vex);
     E(villager, C(Animal, Rename(u8"villager_v2"), Offers(4, u8"Offers"), ChestItemsFromInventory, Villager));
-    E(vindicator, C(Monster, Definitions(u8"+minecraft:default_targeting")));
+    E(vindicator, C(Monster, Definitions({u8"+minecraft:default_targeting"})));
     E(wandering_trader, C(Animal, Offers(0, u8"Offers"), ChestItemsFromInventory, WanderingTrader));
     E(witch, C(Monster, CanJoinRaid));
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA(u8"wolf"), AgeableA(u8"minecraft:wolf"), Sittable, CollarColorable, Wolf));
     M(zoglin);
-    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions(u8"+minecraft:can_have_equipment"), Zombie));
+    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions({u8"+minecraft:can_have_equipment"}), Zombie));
 
     E(zombie_horse, C(Monster, AgeableA(u8"minecraft:horse")));
     E(zombie_villager, C(Animal, Rename(u8"zombie_villager_v2"), Offers(4, u8"persistingOffers"), Villager, ZombieVillager));
@@ -633,13 +633,13 @@ private:
 
     E(boat, C(EntityBase, Vehicle(), Impl::Boat(u8"boat")));                                  // legacy
     E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Impl::Boat(u8"chest_boat"))); // legacy
-    E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions(u8"+minecraft:minecart")));
+    E(minecart, C(EntityBase, Vehicle(), Minecart, Definitions({u8"+minecraft:minecart"})));
     E(armor_stand, C(LivingEntity, ArmorStand));
-    E(hopper_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions(u8"+minecraft:hopper_minecart"), HopperMinecart));
-    E(chest_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions(u8"+minecraft:chest_minecart"), ChestMinecart));
+    E(hopper_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions({u8"+minecraft:hopper_minecart"}), HopperMinecart));
+    E(chest_minecart, C(EntityBase, ChestItemsFromItems, Minecart, Definitions({u8"+minecraft:chest_minecart"}), ChestMinecart));
     E(tnt_minecart, C(EntityBase, Vehicle(), Minecart, TntMinecart));
     E(snow_golem, C(Mob, SnowGolem));
-    E(iron_golem, C(Mob, Definitions(u8"+minecraft:iron_golem"), IronGolem));
+    E(iron_golem, C(Mob, Definitions({u8"+minecraft:iron_golem"}), IronGolem));
 
     E(item, Item);
     E(ender_dragon, EnderDragon);
@@ -647,30 +647,30 @@ private:
     E(item_frame, Null);      // item_frame is tile entity in BE.
     E(glow_item_frame, Null); // glow_item_frame is tile entity in BE.
 
-    E(glow_squid, C(Animal, Definitions(u8"+minecraft:glow_squid"), AgeableH(u8"minecraft:squid")));
+    E(glow_squid, C(Animal, Definitions({u8"+minecraft:glow_squid"}), AgeableH(u8"minecraft:squid")));
     E(axolotl, C(Animal, AgeableA(u8"axolotl"), PersistentFromFromBucket, Axolotl));
     E(goat, C(Animal, AgeableA(u8"goat"), Goat));
     E(falling_block, C(EntityBase, FallingBlock));
-    E(wither, C(Mob, Definitions(u8"+minecraft:wither"), Wither));
-    E(arrow, C(EntityBase, Definitions(u8"+minecraft:arrow"), Arrow));
+    E(wither, C(Mob, Definitions({u8"+minecraft:wither"}), Wither));
+    E(arrow, C(EntityBase, Definitions({u8"+minecraft:arrow"}), Arrow));
 
-    E(frog, C(Animal, Definitions(u8"+minecraft:frog"), Frog));
-    E(warden, C(Monster, Definitions(u8"+minecraft:warden")));
-    E(allay, C(Animal, Definitions(u8"+minecraft:allay", u8"+pickup_item"), ChestItemsFromInventory, Allay));
-    E(tadpole, C(Animal, AgeableE(24000), Definitions(u8"+minecraft:tadpole"), PersistentFromFromBucket));
+    E(frog, C(Animal, Definitions({u8"+minecraft:frog"}), Frog));
+    E(warden, C(Monster, Definitions({u8"+minecraft:warden"})));
+    E(allay, C(Animal, Definitions({u8"+minecraft:allay", u8"+pickup_item"}), ChestItemsFromInventory, Allay));
+    E(tadpole, C(Animal, AgeableE(24000), Definitions({u8"+minecraft:tadpole"}), PersistentFromFromBucket));
 
-    E(camel, C(Animal, Definitions(u8"+minecraft:camel"), AgeableA(u8"minecraft:camel"), Steerable(u8"camel", {.fAddAlwaysUnsaddledDefinition = false}), Camel));
-    E(sniffer, C(Animal, Definitions(u8"+minecraft:sniffer", u8"+pushable"), AgeableA(u8"sniffer")));
+    E(camel, C(Animal, Definitions({u8"+minecraft:camel"}), AgeableA(u8"minecraft:camel"), Steerable(u8"camel", {.fAddAlwaysUnsaddledDefinition = false}), Camel));
+    E(sniffer, C(Animal, Definitions({u8"+minecraft:sniffer", u8"+pushable"}), AgeableA(u8"sniffer")));
     E(text_display, Null);
     E(block_display, Null);
     E(item_display, Null);
     E(interaction, Null);
 
-    E(armadillo, C(Animal, Definitions(u8"+minecraft:armadillo"), AgeableG, Armadillo));
-    E(bogged, C(Monster, Definitions(u8"+minecraft:bogged", u8"+minecraft:ranged_attack"), Bogged));
-    E(breeze, C(Monster, Definitions(u8"+minecraft:breeze")));
+    E(armadillo, C(Animal, Definitions({u8"+minecraft:armadillo"}), AgeableG, Armadillo));
+    E(bogged, C(Monster, Definitions({u8"+minecraft:bogged", u8"+minecraft:ranged_attack"}), Bogged));
+    E(breeze, C(Monster, Definitions({u8"+minecraft:breeze"})));
 
-    E(creaking, C(Monster, Definitions(u8"+minecraft:creaking"), Creaking));
+    E(creaking, C(Monster, Definitions({u8"+minecraft:creaking"}), Creaking));
     for (std::u8string type : {u8"oak", u8"spruce", u8"birch", u8"jungle", u8"acacia", u8"dark_oak", u8"mangrove", u8"cherry", u8"pale_oak"}) {
       table->try_emplace(type + u8"_boat", C(EntityBase, Vehicle(), TypedBoat(u8"boat", type)));
       table->try_emplace(type + u8"_chest_boat", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", type)));
@@ -2328,10 +2328,9 @@ private:
     };
   }
 
-  template <class... Arg>
-  static Behavior Definitions(Arg... defs) {
+  static Behavior Definitions(std::list<std::u8string> defs) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-      for (std::u8string const &def : std::initializer_list<std::u8string>{defs...}) {
+      for (std::u8string const &def : defs) {
         AddDefinition(c, def);
       }
     };
