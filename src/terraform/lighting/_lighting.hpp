@@ -1711,6 +1711,14 @@ private:
     case pale_oak_sapling:
     case potted_pale_oak_sapling:
     case resin_brick_wall:
+    case wildflowers:
+    case leaf_litter:
+    case bush:
+    case firefly_bush:
+    case short_dry_grass:
+    case tall_dry_grass:
+    case cactus_flower:
+    case dried_ghast:
       return 0;
     case acacia_leaves:
     case beacon:
@@ -1758,6 +1766,7 @@ private:
     case vault:
     case pale_oak_leaves:
     case resin_clump:
+    case test_instance_block:
       return 1;
     default:
       return 15;
@@ -1776,6 +1785,7 @@ private:
     case calibrated_sculk_sensor:
       return 1;
     case medium_amethyst_bud:
+    case firefly_bush:
       return 2;
     case magma_block:
       return 3;

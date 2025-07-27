@@ -506,6 +506,8 @@ public:
     case suspicious_sand:
     case target:
     case terracotta:
+    case test_block:
+    case test_instance_block:
     case tinted_glass:
     case tnt:
     case trial_spawner:
@@ -961,6 +963,8 @@ public:
     case suspicious_sand:
     case target:
     case terracotta:
+    case test_block:
+    case test_instance_block:
     case tinted_glass:
     case tnt:
     case trial_spawner:
