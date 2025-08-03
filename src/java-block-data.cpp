@@ -1958,9 +1958,20 @@ public:
     E(potted_open_eyeblossom, pottedFlowerPot);
     E(potted_closed_eyeblossom, pottedFlowerPot);
     E(potted_pale_oak_sapling, pottedFlowerPot);
+
+    E(dried_ghast, DriedGhast);
 #undef E
 
     return table;
+  }
+
+  static CompoundTagPtr DriedGhast(Block const &block, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(block.fName, true);
+    auto s = States();
+    CardinalDirectionFromFacing4(s, block, o);
+    auto hydration = Wrap(strings::ToI32(block.property(u8"hydration")), 0);
+    s->set(u8"rehydration_level", Int(hydration));
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr CreakingHeart(Block const &block, CompoundTagConstPtr const &, Options const &o) {

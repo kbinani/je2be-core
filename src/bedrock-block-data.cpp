@@ -747,6 +747,14 @@ private:
     return bName;
   }
 
+  static String DriedGhast(String const &bName, CompoundTag const &s, Props &p) {
+    FacingFromCardinalDirection(s, p);
+    Submergible(s, p);
+    auto hidration = s.int32(u8"rehydration_level", 0);
+    p[u8"hydration"] = Int(hidration);
+    return bName;
+  }
+
   static String Dropper(String const &bName, CompoundTag const &s, Props &p) {
     Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean(u8"triggered_bit", false);
@@ -3222,6 +3230,8 @@ private:
     E(smooth_red_sandstone, Same);
     E(red_sand, Same);
     E(purpur_pillar, BlockWithAxisFromPillarAxis);
+
+    E(dried_ghast, DriedGhast);
 #undef E
 
     return table;
