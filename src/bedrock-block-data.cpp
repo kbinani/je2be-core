@@ -1163,7 +1163,7 @@ private:
     return bName;
   }
 
-  static String PinkPetals(String const &bName, CompoundTag const &s, Props &p) {
+  static String BotanicalCarpet(String const &bName, CompoundTag const &s, Props &p) {
     i32 growth = s.int32(u8"growth", 0);
     i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
     p[u8"flower_amount"] = mcfile::String::ToString(flowerCount);
@@ -3061,7 +3061,7 @@ private:
     E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
     E(cherry_slab, Slab);
     E(cherry_double_slab, DoubleSlab());
-    E(pink_petals, PinkPetals);
+    E(pink_petals, BotanicalCarpet);
     E(cherry_wood, BlockWithAxisFromPillarAxis);
     E(stripped_cherry_wood, BlockWithAxisFromPillarAxis);
     E(cherry_log, BlockWithAxisFromPillarAxis);
@@ -3232,6 +3232,8 @@ private:
     E(purpur_pillar, BlockWithAxisFromPillarAxis);
 
     E(dried_ghast, DriedGhast);
+    E(wildflowers, BotanicalCarpet);
+    E(leaf_litter, BotanicalCarpet);
 #undef E
 
     return table;

@@ -1854,7 +1854,7 @@ public:
     E(torchflower_crop, Converter(Same, GrowthFromAge));
     E(jigsaw, Jigsaw);
     E(cherry_slab, Slab(u8"cherry_double_slab"));
-    E(pink_petals, PinkPetals);
+    E(pink_petals, BotanicalCarpet);
     E(cherry_wood, axisToPillarAxis); // wood
     E(stripped_cherry_wood, axisToPillarAxis);
     E(cherry_log, axisToPillarAxis);
@@ -1960,6 +1960,8 @@ public:
     E(potted_pale_oak_sapling, pottedFlowerPot);
 
     E(dried_ghast, DriedGhast);
+    E(wildflowers, BotanicalCarpet);
+    E(leaf_litter, BotanicalCarpet);
 #undef E
 
     return table;
@@ -2067,7 +2069,7 @@ public:
     return AttachStates(c, s);
   }
 
-  static CompoundTagPtr PinkPetals(Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
+  static CompoundTagPtr BotanicalCarpet(Block const &block, CompoundTagConstPtr const &tile, Options const &o) {
     auto c = New(block.fName, true);
     auto s = States();
 
