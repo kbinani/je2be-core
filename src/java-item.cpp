@@ -791,6 +791,28 @@ private:
     E(pale_oak_door, DefaultItem);
     E(pale_oak_sign, DefaultItem);
     E(pale_oak_hanging_sign, DefaultItem);
+
+    E(white_harness, DefaultItem);
+    E(orange_harness, DefaultItem);
+    E(magenta_harness, DefaultItem);
+    E(light_blue_harness, DefaultItem);
+    E(yellow_harness, DefaultItem);
+    E(lime_harness, DefaultItem);
+    E(pink_harness, DefaultItem);
+    E(gray_harness, DefaultItem);
+    E(light_gray_harness, DefaultItem);
+    E(cyan_harness, DefaultItem);
+    E(purple_harness, DefaultItem);
+    E(blue_harness, DefaultItem);
+    E(brown_harness, DefaultItem);
+    E(green_harness, DefaultItem);
+    E(red_harness, DefaultItem);
+    E(black_harness, DefaultItem);
+    E(music_disc_tears, DefaultItem);
+    E(music_disc_lava_chicken, DefaultItem);
+    E(blue_egg, DefaultItem);
+    E(brown_egg, DefaultItem);
+    E(happy_ghast_spawn_egg, DefaultItem);
 #undef E
     return table;
   }
