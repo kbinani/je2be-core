@@ -677,6 +677,8 @@ private:
     }
     table->try_emplace(u8"bamboo_raft", C(EntityBase, Vehicle(), TypedBoat(u8"boat", u8"bamboo")));
     table->try_emplace(u8"bamboo_chest_raft", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
+
+    E(happy_ghast, C(Monster, HappyGhast));
 #undef A
 #undef M
 #undef E
@@ -1088,6 +1090,30 @@ private:
       hornCount++;
     }
     c[u8"GoatHornCount"] = Int(hornCount);
+  }
+
+  static void HappyGhast(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    AddDefinition(b, u8"+minecraft:happy_ghast");
+    auto age = j.int32(u8"Age", 0);
+    if (age >= 0) {
+      AddDefinition(b, u8"+minecraft:adult");
+      AddDefinition(b, u8"+minecraft:adult_mobile");
+      if (auto id = j.query(u8"equipment/body/id"); id && id->asString() && id->asString()->fValue.ends_with(u8"_harness")) {
+        AddDefinition(b, u8"+minecraft:adult_harnessed");
+      } else {
+        AddDefinition(b, u8"+minecraft:adult_unharnessed");
+      }
+      if (ctx.fFlags.contains(java::Entity::Flag::ShoulderRider)) {
+        AddDefinition(b, u8"+minecraft:adult_with_passengers");
+      } else {
+        AddDefinition(b, u8"+minecraft:adult_without_passengers");
+      }
+    } else {
+      AddDefinition(b, u8"+minecraft:baby");
+    }
+    auto properties = Compound();
+    properties->set(u8"minecraft:can_move", Bool(true));
+    b[u8"properties"] = properties;
   }
 
   static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

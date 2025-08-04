@@ -713,6 +713,17 @@ public:
     }
   }
 
+  static void HappyGhast(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    Equipment(b, j, ctx, dataVersion);
+    auto leasher = b.int64(u8"LeasherID");
+    if (leasher) {
+      j[u8"home_radius"] = Int(9);
+    } else {
+      j[u8"home_radius"] = Int(32);
+    }
+    j[u8"still_timeout"] = Int(0);
+  }
+
   static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto target = b.int64(u8"TargetID", -1);
     if (target != -1) {
@@ -1171,6 +1182,31 @@ public:
 
   static void EatingHaystack(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"EatingHaystack"] = Bool(false);
+  }
+
+  static void Equipment(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto armor = b.listTag(u8"Armor");
+    if (!armor) {
+      return;
+    }
+    if (armor->size() < 5) {
+      return;
+    }
+    auto body = armor->at(4);
+    if (!body) {
+      return;
+    }
+    auto bodyComponent = body->asCompound();
+    if (!bodyComponent) {
+      return;
+    }
+    auto bodyItem = Item::From(*bodyComponent, ctx, dataVersion, {});
+    if (!bodyItem) {
+      return;
+    }
+    auto equipment = Compound();
+    equipment->set(u8"body", bodyItem);
+    j[u8"equipment"] = equipment;
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2197,6 +2233,8 @@ public:
     E(dolphin, C(Same, Animal, Dolphin));
 
     E(creaking, C(Same, LivingEntity, Creaking));
+
+    E(happy_ghast, C(Same, LivingEntity, HappyGhast));
 #undef E
     return ret;
   }

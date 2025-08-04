@@ -27,6 +27,7 @@ public:
 
   enum class Flag : uint32_t {
     ShoulderRider = uint32_t(1) << 0,
+    RootVehicle = uint32_t(1) << 1,
   };
 
   static Result From(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags);

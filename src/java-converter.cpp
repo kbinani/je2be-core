@@ -249,7 +249,7 @@ public:
     pae.fLocalPlayerUid = playerB->fUid;
     if (auto rootVehicle = playerJ->compoundTag(u8"RootVehicle"); rootVehicle) {
       if (auto entityJ = rootVehicle->compoundTag(u8"Entity"); entityJ) {
-        if (auto entityB = Entity::From(*entityJ, ctx, dataVersion, {}); entityB.fEntity) {
+        if (auto entityB = Entity::From(*entityJ, ctx, dataVersion, {Entity::Flag::RootVehicle}); entityB.fEntity) {
           LevelData::VehicleAndPassengers vap;
           vap.fChunk = playerB->fChunk;
           vap.fVehicle = entityB.fEntity;

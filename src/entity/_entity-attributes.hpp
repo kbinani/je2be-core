@@ -388,6 +388,15 @@ private:
                                                       Attribute(32, 32, 2048), // follow_range
                                                       nullopt)));              // attack_damage
 
+    table->insert(make_pair(u8"minecraft:happy_ghast", Attributes(
+                                                           Attribute(10, 10, 10), // health(base, current, max)
+                                                           Attribute(0, 0, 1),    // knockback_resistance
+                                                           Attribute(0.03, 0.03), // movement
+                                                           Attribute(0.02, 0.02), // underwater_movement
+                                                           Attribute(0.02, 0.02), // lava_movement
+                                                           Attribute(64, 64, 64), // follow_range
+                                                           nullopt)));            // attack_damage
+
     return table;
   }
 };
