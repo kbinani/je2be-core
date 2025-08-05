@@ -92,9 +92,14 @@ public:
     t[u8"Rotation"] = rot.toListTag();
     t[u8"Facing"] = Byte(facingDirection);
 
-    t[u8"TileX"] = Int(pos.fX);
-    t[u8"TileY"] = Int(pos.fY);
-    t[u8"TileZ"] = Int(pos.fZ);
+    if (dataVersion >= 4315) {
+      // after 25w07a
+      t[u8"block_pos"] = IntArrayFromPos3i(pos);
+    } else {
+      t[u8"TileX"] = Int(pos.fX);
+      t[u8"TileY"] = Int(pos.fY);
+      t[u8"TileZ"] = Int(pos.fZ);
+    }
 
     Pos3i direction = Pos3iFromFacing6(f6);
     double thickness = 15.0 / 32.0;

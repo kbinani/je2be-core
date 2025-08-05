@@ -2805,15 +2805,45 @@ private:
   };
   static PositionAndFacing GetItemFrameTilePositionAndFacing(CompoundTag const &c) {
     using namespace std;
-    i32 tileX = c.int32(u8"TileX", 0);
-    i32 tileY = c.int32(u8"TileY", 0);
-    i32 tileZ = c.int32(u8"TileZ", 0);
 
     i32 facing = 0;
-    Pos3i pos(tileX, tileY, tileZ);
+    auto rot = props::GetRotation(c, u8"Rotation");
+    if (rot) {
+      // 1.8 or later
+      if (RotAlmostEquals(*rot, 0, -90)) {
+        // up
+        facing = 1;
+      } else if (RotAlmostEquals(*rot, 180, 0)) {
+        // north
+        facing = 2;
+      } else if (RotAlmostEquals(*rot, 270, 0)) {
+        // east
+        facing = 5;
+      } else if (RotAlmostEquals(*rot, 0, 0)) {
+        // south
+        facing = 3;
+      } else if (RotAlmostEquals(*rot, 90, 0)) {
+        // west
+        facing = 4;
+      } else if (RotAlmostEquals(*rot, 0, 90)) {
+        // down
+        facing = 0;
+      }
+    }
 
+    Pos3i pos;
+    auto blockPos = props::GetPos3iFromIntArrayTag(c, u8"block_pos");
+    auto tileX = c.int32(u8"TileX");
+    auto tileY = c.int32(u8"TileY");
+    auto tileZ = c.int32(u8"TileZ");
     auto dir = c.byte(u8"Dir");
     auto direction = c.byte(u8"Direction");
+    if (blockPos) {
+      // 1.21.5 or later
+      pos = *blockPos;
+    } else if (tileX && tileY && tileZ) {
+      pos = Pos3i(*tileX, *tileY, *tileZ);
+    }
     if (dir && direction) {
       // 1.7.10: Tile{X,Y,Z} points to the base block of ItemFrame
       Pos3i normal;
@@ -2837,27 +2867,6 @@ private:
         break;
       }
       pos = pos + normal;
-    } else if (auto rot = props::GetRotation(c, u8"Rotation"); rot) {
-      // 1.8 or later
-      if (RotAlmostEquals(*rot, 0, -90)) {
-        // up
-        facing = 1;
-      } else if (RotAlmostEquals(*rot, 180, 0)) {
-        // north
-        facing = 2;
-      } else if (RotAlmostEquals(*rot, 270, 0)) {
-        // east
-        facing = 5;
-      } else if (RotAlmostEquals(*rot, 0, 0)) {
-        // south
-        facing = 3;
-      } else if (RotAlmostEquals(*rot, 90, 0)) {
-        // west
-        facing = 4;
-      } else if (RotAlmostEquals(*rot, 0, 90)) {
-        // down
-        facing = 0;
-      }
     }
     PositionAndFacing ret;
     ret.fPosition = pos;
