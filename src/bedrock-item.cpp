@@ -506,7 +506,7 @@ public:
       auto fireworksB = tagB->compoundTag(u8"Fireworks");
       if (fireworksB) {
         FireworksData data = FireworksData::FromBedrock(*fireworksB);
-        auto fireworksJ = data.toJavaCompoundTag();
+        auto fireworksJ = data.toJavaCompoundTag(dataVersion);
         java::AppendComponent(itemJ, u8"fireworks", fireworksJ);
       }
     }
@@ -520,7 +520,7 @@ public:
       auto fireworksB = tagB->compoundTag(u8"FireworksItem");
       if (fireworksB) {
         FireworksExplosion explosion = FireworksExplosion::FromBedrock(*fireworksB);
-        auto explosionJ = explosion.toJavaCompoundTag();
+        auto explosionJ = explosion.toJavaCompoundTag(dataVersion);
         java::AppendComponent(itemJ, u8"firework_explosion", explosionJ);
       }
     }

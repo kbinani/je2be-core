@@ -18,13 +18,36 @@ public:
     FireworksExplosion e;
     e.fHasTrail = FallbackValue<bool>(tag, {u8"has_trail", u8"Trail"});
     e.fHasTwinkle = FallbackValue<bool>(tag, {u8"has_twinkle", u8"Flicker"});
-    auto colors = FallbackPtr<IntArrayTag>(tag, {u8"colors", u8"Colors"});
-    if (colors) {
-      for (auto v : colors->value()) {
+    auto colorsArray = FallbackPtr<IntArrayTag>(tag, {u8"colors", u8"Colors"});
+    if (colorsArray) {
+      for (auto v : colorsArray->value()) {
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
         u8 g = 0xff & ((*(u32 *)&v) >> 8);
         u8 b = 0xff & (*(u32 *)&v);
         e.fColors.emplace_back(r, g, b);
+      }
+    } else if (auto colorsList = tag.listTag(u8"colors"); colorsList) {
+      // 1.20.4 tag IntArray
+      // 1.20.5 component IntArray
+      // 1.21.4 component IntArray
+      // 25w02a component IntArray
+      // 25w03a component IntArray
+      // 25w04a component List
+      // 25w07a component List
+      // 1.21.5 component List
+      // 1.21.6 component List
+      // 1.21.8 component List
+      for (auto v : colorsList->fValue) {
+        if (auto i = v->asInt(); i) {
+          int32_t iv = i->fValue;
+          u8 r = 0xff & ((*(u32 *)&iv) >> 16);
+          u8 g = 0xff & ((*(u32 *)&iv) >> 8);
+          u8 b = 0xff & (*(u32 *)&iv);
+          e.fColors.emplace_back(r, g, b);
+        } else {
+          e.fColors.clear();
+          break;
+        }
       }
     }
     auto fadeColors = FallbackPtr<IntArrayTag>(tag, {u8"fade_colors", u8"FadeColors"});
@@ -117,7 +140,7 @@ public:
     return ret;
   }
 
-  CompoundTagPtr toJavaCompoundTag() const {
+  CompoundTagPtr toJavaCompoundTag(int targetDataVersion) const {
     using namespace std;
     auto ret = Compound();
     if (fHasTrail) {
@@ -133,11 +156,20 @@ public:
       }
     }
     if (!fColors.empty()) {
-      vector<i32> colors;
-      for (auto const &it : fColors) {
-        colors.push_back(it.toRGB());
+      if (targetDataVersion >= 4308) {
+        // 25w04a
+        auto colorsList = List<Tag::Type::Int>();
+        for (auto const &it : fColors) {
+          colorsList->push_back(Int(it.toRGB()));
+        }
+        ret->set(u8"colors", colorsList);
+      } else {
+        vector<i32> colors;
+        for (auto const &it : fColors) {
+          colors.push_back(it.toRGB());
+        }
+        ret->set(u8"colors", make_shared<IntArrayTag>(colors));
       }
-      ret->set(u8"colors", make_shared<IntArrayTag>(colors));
     }
     if (!fFadeColors.empty()) {
       vector<i32> fade;

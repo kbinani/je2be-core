@@ -56,11 +56,11 @@ public:
     return ret;
   }
 
-  CompoundTagPtr toJavaCompoundTag() const {
+  CompoundTagPtr toJavaCompoundTag(int targetDataVersion) const {
     auto ret = Compound();
     auto explosions = List<Tag::Type::Compound>();
     for (auto const &it : fExplosions) {
-      explosions->push_back(it.toJavaCompoundTag());
+      explosions->push_back(it.toJavaCompoundTag(targetDataVersion));
     }
     ret->set(u8"explosions", explosions);
     if (fFlight) {
