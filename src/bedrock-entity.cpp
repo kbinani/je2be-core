@@ -133,7 +133,7 @@ public:
     CopyFloatValues(blockEntityB, t, {{u8"ItemDropChance"}});
 
     t[u8"Air"] = Short(300);
-    t[u8"FallDistance"] = Float(0);
+    SetFallDistance(t, 0, dataVersion);
     t[u8"Fire"] = Short(-1);
     t[u8"Fixed"] = Bool(false);
     t[u8"Invisible"] = Bool(false);
@@ -1215,7 +1215,9 @@ public:
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    CopyFloatValues(b, j, {{u8"FallDistance"}});
+    if (auto fallDistance = b.float32(u8"FallDistance"); fallDistance) {
+      SetFallDistance(j, *fallDistance, dataVersion);
+    }
   }
 
   static void FallFlying(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1984,6 +1986,22 @@ public:
           inventoryJ->push_back(offhandJ);
         }
       }
+    }
+  }
+
+  static void SetFallDistance(CompoundTag &j, float v, int targetDataVersion) {
+    if (targetDataVersion >= 4304) {
+      // 25w03a
+      // 25w04a
+      // 25w07a
+      // 1.21.5
+      // 1.21.8
+      j[u8"fall_distance"] = Double(v);
+    } else {
+      // 25w02a
+      // 1.20.4
+      // 1.21.4
+      j[u8"FallDistance"] = Float(v);
     }
   }
 #pragma endregion
