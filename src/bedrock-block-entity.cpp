@@ -1,5 +1,6 @@
 #include "bedrock/_block-entity.hpp"
 
+#include "_java-data-versions.hpp"
 #include "_namespace.hpp"
 #include "_optional.hpp"
 #include "bedrock/_context.hpp"
@@ -312,6 +313,16 @@ public:
       if (items) {
         te->set(u8"Items", items);
       }
+    }
+    if (opt.fOutputDataVersion > (int)JavaDataVersions::Snapshot25w18a) {
+      // 1.21.4 none
+      // 1.21.5 none
+      // 25w17a none
+      // 25w18a {}
+      // 25w19a {}
+      // 25w20a {}
+      // 1.21.6 {}
+      te->set(u8"components", Compound());
     }
     r.fTileEntity = te;
     return r;
