@@ -2706,7 +2706,32 @@ private:
       armors->push_back(Item::Empty());
     }
 
-    if (auto found = tag.find(u8"ArmorItems"); found != tag.end()) {
+    if (auto equipment = tag.compoundTag(u8"equipment"); equipment) {
+      auto leggings = equipment->compoundTag(u8"legs");
+      auto chestplate = equipment->compoundTag(u8"chest");
+      auto boots = equipment->compoundTag(u8"feet");
+      auto helmet = equipment->compoundTag(u8"head");
+      if (leggings) {
+        if (auto converted = Item::From(leggings, ctx.fCtx, ctx.fDataVersion); converted) {
+          armors->fValue[1] = converted;
+        }
+      }
+      if (chestplate) {
+        if (auto converted = Item::From(chestplate, ctx.fCtx, ctx.fDataVersion); converted) {
+          armors->fValue[2] = converted;
+        }
+      }
+      if (boots) {
+        if (auto converted = Item::From(boots, ctx.fCtx, ctx.fDataVersion); converted) {
+          armors->fValue[0] = converted;
+        }
+      }
+      if (helmet) {
+        if (auto converted = Item::From(helmet, ctx.fCtx, ctx.fDataVersion); converted) {
+          armors->fValue[3] = converted;
+        }
+      }
+    } else if (auto found = tag.find(u8"ArmorItems"); found != tag.end()) {
       auto list = found->second->asList();
       if (list && list->fType == Tag::Type::Compound) {
         for (int i = 0; i < 4 && i < list->size(); i++) {

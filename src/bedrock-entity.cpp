@@ -1,5 +1,6 @@
 #include "bedrock/_entity.hpp"
 
+#include "_java-data-versions.hpp"
 #include "_namespace.hpp"
 #include "_nbt-ext.hpp"
 #include "_props.hpp"
@@ -1074,10 +1075,10 @@ public:
         chances.push_back(Float(0.085));
       }
       if (armors.size() >= 4) {
-        armorsJ->push_back(armors[3]);
-        armorsJ->push_back(armors[2]);
-        armorsJ->push_back(armors[1]);
-        armorsJ->push_back(armors[0]);
+        armorsJ->push_back(armors[3]); // boots
+        armorsJ->push_back(armors[2]); // leggings
+        armorsJ->push_back(armors[1]); // chestplate
+        armorsJ->push_back(armors[0]); // helmet
 
         chancesJ->push_back(chances[3]);
         chancesJ->push_back(chances[2]);
@@ -1085,8 +1086,43 @@ public:
         chancesJ->push_back(chances[0]);
       }
     }
-    j[u8"ArmorItems"] = armorsJ;
-    j[u8"ArmorDropChances"] = chancesJ;
+    if (dataVersion > (int)JavaDataVersions::Snapshot25w02a) {
+      // 1.21.5
+      // 25w07a
+      // 25w04a
+      // 25w03a
+      if (armorsJ->size() >= 4) {
+        auto equipment = j.compoundTag(u8"equipment");
+        if (!equipment) {
+          equipment = Compound();
+        }
+        auto boots = armorsJ->at(0)->asCompound();
+        if (boots && !boots->empty()) {
+          equipment->set(u8"feet", armorsJ->at(0));
+        }
+        auto leggings = armorsJ->at(1)->asCompound();
+        if (leggings && !leggings->empty()) {
+          equipment->set(u8"legs", armorsJ->at(1));
+        }
+        auto chestplate = armorsJ->at(2)->asCompound();
+        if (chestplate && !chestplate->empty()) {
+          equipment->set(u8"chest", armorsJ->at(2));
+        }
+        auto helmet = armorsJ->at(3)->asCompound();
+        if (helmet && !helmet->empty()) {
+          equipment->set(u8"head", armorsJ->at(3));
+        }
+        if (!equipment->empty()) {
+          j[u8"equipment"] = equipment;
+        }
+      }
+      // TODO: ArmorDropChances
+    } else {
+      // 25w02a
+      // 1.21.4
+      j[u8"ArmorItems"] = armorsJ;
+      j[u8"ArmorDropChances"] = chancesJ;
+    }
   }
 
   static void AttackTick(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {

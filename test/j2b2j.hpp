@@ -833,12 +833,41 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     CHECK(false);
   }
 
-  for (auto const &containerKey : {u8"Inventory", u8"EnderItems", u8"ArmorItems", u8"Items"}) {
+  for (auto const &containerKey : {u8"Inventory", u8"EnderItems", u8"Items"}) {
     auto contentsE = entityE.listTag(containerKey);
     auto contentsA = entityA.listTag(containerKey);
     copyE->erase(containerKey);
     copyA->erase(containerKey);
     CheckContainerItemsJ(contentsE, contentsA);
+  }
+  REQUIRE(!entityE.listTag(u8"ArmorItems"));
+  CHECK(!entityA.listTag(u8"ArmorItems"));
+
+  auto equipmentE = entityE.compoundTag(u8"equipment");
+  auto equipmentA = entityA.compoundTag(u8"equipment");
+  copyE->erase(u8"equipment");
+  copyA->erase(u8"equipment");
+  if (equipmentE) {
+    CHECK(equipmentA);
+    if (equipmentA) {
+      CHECK(equipmentA->size() == equipmentE->size());
+      for (auto it : *equipmentE) {
+        auto key = it.first;
+        auto valueE = it.second->asCompound();
+        REQUIRE(valueE);
+        auto foundA = equipmentA->find(key);
+        CHECK(foundA != equipmentA->end());
+        if (foundA != equipmentA->end()) {
+          auto valueA = foundA->second->asCompound();
+          CHECK(valueA);
+          if (valueA) {
+            CheckItemJ(*valueE, *valueA);
+          }
+        }
+      }
+    }
+  } else {
+    CHECK(!equipmentA);
   }
 
   auto offersE = entityE.compoundTag(u8"Offers");
