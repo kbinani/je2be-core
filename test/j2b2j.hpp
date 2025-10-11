@@ -500,6 +500,14 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     Erase(copyE, b);
     Erase(copyA, b);
   }
+  auto componentsE = copyE->compoundTag(u8"components");
+  if (componentsE && componentsE->empty()) {
+    copyE->erase(u8"components");
+  }
+  auto componentsA = copyA->compoundTag(u8"components");
+  if (componentsA && componentsA->empty()) {
+    copyA->erase(u8"components");
+  }
   DiffCompoundTag(*copyE, *copyA);
 }
 
