@@ -86,9 +86,6 @@ static void CheckBlockJ(shared_ptr<mcfile::je::Block const> const &blockE, share
           CheckBlockJWithIgnore(*blockE, *blockA, {u8"power"});
         } else if (blockE->fName == u8"minecraft:piglin_wall_head" || blockE->fName == u8"minecraft:skeleton_skull" || blockE->fName == u8"minecraft:wither_skeleton_skull" || blockE->fName == u8"minecraft:zombie_head" || blockE->fName == u8"minecraft:creeper_head" || blockE->fName == u8"minecraft:dragon_head" || blockE->fName == u8"minecraft:player_head" || blockE->fName == u8"minecraft:skeleton_wall_skull" || blockE->fName == u8"minecraft:piglin_head" || blockE->fName == u8"minecraft:wither_skeleton_wall_skull" || blockE->fName == u8"minecraft:player_wall_head" || blockE->fName == u8"minecraft:zombie_wall_head" || blockE->fName == u8"minecraft:creeper_wall_head" || blockE->fName == u8"minecraft:dragon_wall_head") {
           CheckBlockJWithIgnore(*blockE, *blockA, {u8"powered"});
-        } else if (blockE->fName.find(u8"copper_grate") != u8string::npos) {
-          // TODO(1.21): Bedrock 1.20.51 does not support water-logging of copper grate
-          CheckBlockJWithIgnore(*blockE, *blockA, {u8"waterlogged"});
         } else {
           if (blockA->fId != blockE->fId || blockA->fData != blockE->fData) {
             lock_guard<mutex> lock(sMutCerr);
