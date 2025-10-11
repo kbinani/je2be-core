@@ -2793,10 +2793,13 @@ private:
   static ListTagPtr HandItem(CompoundTag const &input, ConverterContext &ctx) {
     auto ret = List<Tag::Type::Compound>();
 
-    auto mainHand = input.listTag(u8"HandItems");
     CompoundTagPtr item;
-
-    if (mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
+    if (auto equipment = input.compoundTag(u8"equipment"); equipment && (index == 0 || index == 1)) {
+      std::u8string key = index == 0 ? u8"mainhand" : u8"offhand";
+      if (auto inItem = equipment->compoundTag(key); inItem) {
+        item = Item::From(inItem, ctx.fCtx, ctx.fDataVersion);
+      }
+    } else if (auto mainHand = input.listTag(u8"HandItems"); mainHand && mainHand->fType == Tag::Type::Compound && index < mainHand->fValue.size()) {
       auto inItem = std::dynamic_pointer_cast<CompoundTag>(mainHand->fValue[index]);
       if (inItem) {
         item = Item::From(inItem, ctx.fCtx, ctx.fDataVersion);

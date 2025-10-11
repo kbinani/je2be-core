@@ -1274,8 +1274,8 @@ public:
   }
 
   static void HandItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    auto itemsJ = List<Tag::Type::Compound>();
-    auto chances = List<Tag::Type::Float>();
+    std::vector<CompoundTagPtr> itemsJ;
+    std::vector<FloatTagPtr> chancesJ;
     auto identifier = b.string(u8"identifier", u8"");
     for (std::u8string key : {u8"Mainhand", u8"Offhand"}) {
       auto listB = b.listTag(key);
@@ -1289,11 +1289,40 @@ public:
       if (!itemJ) {
         itemJ = Compound();
       }
-      itemsJ->push_back(itemJ);
-      chances->push_back(Float(HandDropChance(*itemJ, identifier)));
+      itemsJ.push_back(itemJ);
+      chancesJ.push_back(Float(HandDropChance(*itemJ, identifier)));
     }
-    j[u8"HandItems"] = itemsJ;
-    j[u8"HandDropChances"] = chances;
+    if (dataVersion > (int)JavaDataVersions::Snapshot25w02a) {
+      auto equipmentJ = j.compoundTag(u8"equipment");
+      if (!equipmentJ) {
+        equipmentJ = Compound();
+      }
+      if (itemsJ.size() > 0) {
+        if (auto mainhand = itemsJ[0]; !mainhand->empty()) {
+          equipmentJ->set(u8"mainhand", mainhand);
+        }
+      }
+      if (itemsJ.size() > 1) {
+        if (auto offhand = itemsJ[1]; !offhand->empty()) {
+          equipmentJ->set(u8"offhand", offhand);
+        }
+      }
+      if (!equipmentJ->empty()) {
+        j[u8"equipment"] = equipmentJ;
+      }
+      // TODO: HandDropChances
+    } else {
+      auto items = List<Tag::Type::Compound>();
+      for (auto v : itemsJ) {
+        items->push_back(v);
+      }
+      j[u8"HandItems"] = items;
+      auto chances = List<Tag::Type::Float>();
+      for (auto v : chancesJ) {
+        chances->push_back(v);
+      }
+      j[u8"HandDropChances"] = chances;
+    }
   }
 
   static void Health(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
