@@ -129,10 +129,14 @@ public:
 
     auto customColor = tagB->int32(u8"customColor");
     if (customColor) {
-      auto dyedColor = Compound();
       auto rgb = RgbFromCustomColor(*customColor);
-      dyedColor->set(u8"rgb", Int(rgb));
-      java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+      if (dataVersion >= (int)JavaDataVersions::Snapshot25w04a) {
+        java::AppendComponent(itemJ, u8"dyed_color", Int(rgb));
+      } else {
+        auto dyedColor = Compound();
+        dyedColor->set(u8"rgb", Int(rgb));
+        java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+      }
     }
 
     auto displayB = tagB->compoundTag(u8"display");

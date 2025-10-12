@@ -1256,7 +1256,7 @@ private:
         {u8"Damage", Short(0)},
     });
 
-    auto rgbJ = FallbackQuery(item, {u8"components/minecraft:dyed_color/rgb", u8"tag/display/color"})->asInt();
+    auto rgbJ = FallbackQuery(item, {u8"components/minecraft:dyed_color", u8"components/minecraft:dyed_color/rgb", u8"tag/display/color"})->asInt();
     if (rgbJ) {
       auto t = Compound();
       t->set(u8"customColor", Int(CustomColor(rgbJ->fValue)));
