@@ -2124,11 +2124,28 @@ private:
   static CompoundTagPtr Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
   static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
-    auto tileX = tag.int32(u8"TileX");
-    auto tileY = tag.int32(u8"TileY");
-    auto tileZ = tag.int32(u8"TileZ");
-    if (!tileX || !tileY || !tileZ) {
-      return nullptr;
+    i32 tileX;
+    i32 tileY;
+    i32 tileZ;
+    if (auto blockPosJ = tag.intArrayTag(u8"block_pos"); blockPosJ) {
+      // 25w07a
+      if (blockPosJ->fValue.size() < 3) {
+        return nullptr;
+      }
+      tileX = blockPosJ->fValue[0];
+      tileY = blockPosJ->fValue[1];
+      tileZ = blockPosJ->fValue[2];
+    } else {
+      // 25w06a
+      auto x = tag.int32(u8"TileX");
+      auto y = tag.int32(u8"TileY");
+      auto z = tag.int32(u8"TileZ");
+      if (!x || !y || !z) {
+        return nullptr;
+      }
+      tileX = *x;
+      tileY = *y;
+      tileZ = *z;
     }
 
     Facing4 f4;
@@ -2154,8 +2171,8 @@ private:
       facing = BedrockDirectionFromFacing4(f4);
 
       Pos2i vec = Pos2iFromFacing4(f4);
-      tileX = *tileX + vec.fX;
-      tileZ = *tileZ + vec.fZ;
+      tileX = tileX + vec.fX;
+      tileZ = tileZ + vec.fZ;
 
       motive = Painting::MotiveFromBedrock(tag.string(u8"Motive", u8"Aztec"));
     } else {
@@ -2167,7 +2184,7 @@ private:
 
     auto motifB = Painting::BedrockMotifFromJavaMotive(motive);
 
-    auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(*tileX, *tileY, *tileZ), f4, motive);
+    auto pos = Painting::BedrockPosFromJavaTilePos(Pos3i(tileX, tileY, tileZ), f4, motive);
     if (!pos) {
       return nullptr;
     }

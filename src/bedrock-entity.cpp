@@ -1582,9 +1582,17 @@ public:
 
     j[u8"variant"] = String(motiveJ);
     j[u8"facing"] = Byte(directionB);
-    j[u8"TileX"] = Int(std::round(tile->fX));
-    j[u8"TileY"] = Int(std::round(tile->fY));
-    j[u8"TileZ"] = Int(std::round(tile->fZ));
+    if (dataVersion > (int)JavaDataVersions::Snapshot25w06a) {
+      auto blockPosJ = std::make_shared<IntArrayTag>();
+      blockPosJ->fValue.push_back(tile->fX);
+      blockPosJ->fValue.push_back(tile->fY);
+      blockPosJ->fValue.push_back(tile->fZ);
+      j[u8"block_pos"] = blockPosJ;
+    } else {
+      j[u8"TileX"] = Int(std::round(tile->fX));
+      j[u8"TileY"] = Int(std::round(tile->fY));
+      j[u8"TileZ"] = Int(std::round(tile->fZ));
+    }
   }
 
   static void PatrolLeader(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
