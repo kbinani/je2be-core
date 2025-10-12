@@ -455,6 +455,12 @@ public:
         break;
       }
     }
+    auto properties = b.compoundTag(u8"properties");
+    if (properties) {
+      if (auto variantB = properties->string(u8"minecraft:climate_variant"); variantB) {
+        j[u8"variant"] = String(Namespace::Add(*variantB));
+      }
+    }
     j[u8"IsChickenJockey"] = Bool(false);
   }
 

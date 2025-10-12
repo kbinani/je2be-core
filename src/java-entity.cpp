@@ -924,6 +924,9 @@ private:
       entries->push_back(timer);
       c[u8"entries"] = entries;
     }
+    if (auto variantJ = tag.string(u8"variant"); variantJ) {
+      AddProperty(c, u8"minecraft:climate_variant", String(Namespace::Remove(*variantJ)));
+    }
   }
 
   static void Creaking(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -2564,6 +2567,15 @@ private:
 #pragma endregion
 
 #pragma region Utilities
+  static void AddProperty(CompoundTag &bedrock, std::u8string const &key, std::shared_ptr<Tag> const &value) {
+    auto p = bedrock.compoundTag(u8"properties");
+    if (!p) {
+      p = Compound();
+      bedrock[u8"properties"] = p;
+    }
+    p->set(key, value);
+  }
+
   static CompoundTagPtr BedrockRecipieFromJava(CompoundTag const &java, ConverterContext &ctx) {
     using namespace std;
 
