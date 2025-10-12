@@ -1715,25 +1715,28 @@ private:
         enchantments = list;
       }
       if (enchantments) {
-        if (auto levels = enchantments->compoundTag(u8"levels"); levels) {
-          auto ench = List<Tag::Type::Compound>();
-          for (auto const &it : *levels) {
-            if (!it.second) {
-              continue;
-            }
-            auto level = it.second->asInt();
-            if (!level) {
-              continue;
-            }
-            auto id = Enchantments::BedrockEnchantmentIdFromJava(it.first);
-            auto be = Compound();
-            be->set(u8"id", Short(id));
-            be->set(u8"lvl", Short(level->fValue));
-            ench->push_back(be);
+        CompoundTagPtr levels = enchantments->compoundTag(u8"levels");
+        if (!levels) {
+          // 25w04a and later
+          levels = enchantments;
+        }
+        auto ench = List<Tag::Type::Compound>();
+        for (auto const &it : *levels) {
+          if (!it.second) {
+            continue;
           }
-          if (!ench->empty()) {
-            tagB->set(u8"ench", ench);
+          auto level = it.second->asInt();
+          if (!level) {
+            continue;
           }
+          auto id = Enchantments::BedrockEnchantmentIdFromJava(it.first);
+          auto be = Compound();
+          be->set(u8"id", Short(id));
+          be->set(u8"lvl", Short(level->fValue));
+          ench->push_back(be);
+        }
+        if (!ench->empty()) {
+          tagB->set(u8"ench", ench);
         }
       }
     } else {

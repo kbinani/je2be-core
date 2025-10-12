@@ -187,8 +187,13 @@ public:
         }
       }
       if (!levelsJ->empty()) {
-        auto enchJ = Compound();
-        enchJ->set(u8"levels", levelsJ);
+        CompoundTagPtr enchJ;
+        if (dataVersion >= (int)JavaDataVersions::Snapshot24w04a) {
+          enchJ = levelsJ;
+        } else {
+          enchJ = Compound();
+          enchJ->set(u8"levels", levelsJ);
+        }
         if (nameB == u8"minecraft:enchanted_book") {
           java::AppendComponent(itemJ, u8"stored_enchantments", enchJ);
         } else {
