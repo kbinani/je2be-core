@@ -1,5 +1,6 @@
 #include "bedrock/_item.hpp"
 
+#include "_java-data-versions.hpp"
 #include "_namespace.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
@@ -277,10 +278,16 @@ public:
         auto bannerPatterns = Banner::OminousBannerPatterns(dataVersion);
         java::AppendComponent(itemJ, u8"banner_patterns", bannerPatterns);
 
-        props::Json json;
-        json["color"] = "gold";
-        json["translate"] = "block.minecraft.ominous_banner";
-        java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+        if (dataVersion > (int)JavaDataVersions::Release1_21_4) {
+          auto itemName = Compound();
+          itemName->set(u8"translate", String(u8"block.minecraft.ominous_banner"));
+          java::AppendComponent(itemJ, u8"item_name", itemName);
+        } else {
+          props::Json json;
+          json["color"] = "gold";
+          json["translate"] = "block.minecraft.ominous_banner";
+          java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+        }
 
         java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
         java::AppendComponent(itemJ, u8"rarity", String(u8"uncommon"));
@@ -857,9 +864,15 @@ public:
 
     auto damage = itemB.int16(u8"Damage", 0);
     if (auto translate = MapType::JavaTranslationKeyFromBedrockDamage(damage); translate) {
-      props::Json json;
-      props::SetJsonString(json, u8"translate", *translate);
-      java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+      if (dataVersion > (int)JavaDataVersions::Release1_21_4) {
+        auto itemName = Compound();
+        itemName->set(u8"translate", String(*translate));
+        java::AppendComponent(itemJ, u8"item_name", itemName);
+      } else {
+        props::Json json;
+        props::SetJsonString(json, u8"translate", *translate);
+        java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
+      }
 
       if (auto mapColor = MapType::JavaMapColorFromBedrockDamage(damage); mapColor) {
         java::AppendComponent(itemJ, u8"map_color", Int(*mapColor));

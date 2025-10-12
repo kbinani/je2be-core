@@ -88,7 +88,15 @@ public:
     ListTagPtr patternsJ;
     if (type == 1) {
       // Illager Banner
-      java::AppendComponent(te, u8"item_name", String(u8R"({"translate":"block.minecraft.ominous_banner"})"));
+      if (opt.fOutputDataVersion > (int)JavaDataVersions::Release1_21_4) {
+        // 25w02a
+        auto itemName = Compound();
+        itemName->set(u8"translate", String(u8"block.minecraft.ominous_banner"));
+        java::AppendComponent(te, u8"item_name", itemName);
+      } else {
+        // 1.21.4
+        java::AppendComponent(te, u8"item_name", String(u8R"({"translate":"block.minecraft.ominous_banner"})"));
+      }
       java::AppendComponent(te, u8"rarity", String(u8"uncommon"));
       patternsJ = Banner::OminousBannerPatterns(opt.fOutputDataVersion);
     } else {

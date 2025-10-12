@@ -1524,14 +1524,16 @@ private:
     using namespace std;
     auto tag = Compound();
 
-    optional<props::Json> customName;
-    if (auto customNameString = Migrate<StringTag>(c, u8"item_name", Depth::Root, u8"CustomName"); customNameString) {
-      customName = props::ParseAsJson(customNameString->fValue);
-    }
     i32 type = 0;
-    if (customName) {
-      auto translate = GetAsString(*customName, "translate");
-      if (translate == u8"block.minecraft.ominous_banner") {
+    if (auto customNameString = Migrate<StringTag>(c, u8"item_name", Depth::Root, u8"CustomName"); customNameString) {
+      if (auto customName = props::ParseAsJson(customNameString->fValue); customName) {
+        auto translate = GetAsString(*customName, "translate");
+        if (translate == u8"block.minecraft.ominous_banner") {
+          type = 1; // Illager Banner
+        }
+      }
+    } else if (auto itemName = GetComponent<CompoundTag>(c, u8"item_name"); itemName) {
+      if (auto translate = itemName->string(u8"translate"); translate == u8"block.minecraft.ominous_banner") {
         type = 1; // Illager Banner
       }
     }

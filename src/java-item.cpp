@@ -1291,8 +1291,13 @@ private:
     ret->set(u8"tag", tag);
 
     i16 type = 0;
-    auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name");
-    if (itemName) {
+    if (auto itemName = GetComponent<CompoundTag>(item, u8"item_name"); itemName) {
+      if (auto translate = itemName->string(u8"translate"); translate) {
+        if (auto damage = MapType::BedrockDamageFromJavaTranslationKey(*translate); damage) {
+          type = *damage;
+        }
+      }
+    } else if (auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name"); itemName) {
       auto nameJson = props::ParseAsJson(itemName->fValue);
       if (nameJson) {
         auto translate = nameJson->find("translate");
@@ -1514,10 +1519,8 @@ private:
     auto ret = New(u8"banner");
     ret->set(u8"Damage", Short(damage));
 
-    auto patterns = Migrate<ListTag>(item, u8"banner_patterns", Depth::BlockEntityTag, u8"Patterns");
-    auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name");
     bool ominous = false;
-    if (itemName) {
+    if (auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name"); itemName) {
       auto json = props::ParseAsJson(itemName->fValue);
       if (json) {
         auto translate = json->find("translate");
@@ -1525,7 +1528,13 @@ private:
           ominous = true;
         }
       }
+    } else if (auto itemName = GetComponent<CompoundTag>(item, u8"item_name"); itemName) {
+      if (auto translate = itemName->string(u8"translate"); translate == u8"block.minecraft.ominous_banner") {
+        ominous = true;
+      }
     }
+
+    auto patterns = Migrate<ListTag>(item, u8"banner_patterns", Depth::BlockEntityTag, u8"Patterns");
 
     auto tag = Compound();
     if (ominous) {

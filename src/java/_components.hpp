@@ -107,5 +107,22 @@ inline void AppendMemory(CompoundTagPtr &root, std::u8string const &nameWithoutN
   AppendMemory<NbtTag>(*root, nameWithoutNamespace, memory);
 }
 
+template <class NbtTag>
+inline std::shared_ptr<NbtTag> GetComponent(CompoundTag const &root, std::u8string const &nameWithoutNamespace) {
+  auto components = root.compoundTag(u8"components");
+  if (!components) {
+    return nullptr;
+  }
+  return components->get<NbtTag>(Namespace::Add(nameWithoutNamespace));
+}
+
+template <class NbtTag>
+inline std::shared_ptr<NbtTag> GetComponent(CompoundTagPtr const &root, std::u8string const &nameWithoutNamespace) {
+  if (!root) {
+    return nullptr;
+  }
+  return GetComponent<NbtTag>(*root, nameWithoutNamespace);
+}
+
 } // namespace java
 } // namespace je2be

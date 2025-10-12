@@ -246,15 +246,23 @@ static void CheckText(std::u8string const &e, std::u8string const &a, bool unquo
   }
 }
 
-static void CheckTextComponent(CompoundTag const &expected, CompoundTag const &actual, u8string const &key) {
-  auto e = expected.query(key)->asString();
-  auto a = actual.query(key)->asString();
-  CHECK((bool)e == (bool)a);
-  if (!e || !a) {
-    return;
+static void CheckItemName(CompoundTag const &expected, CompoundTag const &actual, u8string const &key) {
+  if (auto e = expected.query(key)->asString(); e) {
+    auto a = actual.query(key)->asString();
+    CHECK((bool)a);
+    if (!a) {
+      return;
+    }
+    bool unquote = key != u8"CustomName";
+    CheckText(e->fValue, e->fValue, unquote);
+  } else if (auto e = expected.query(key)->asCompound(); e) {
+    auto a = actual.query(key)->asCompound();
+    CHECK((bool)a);
+    if (!a) {
+      return;
+    }
+    DiffCompoundTag(*e, *a);
   }
-  bool unquote = key != u8"CustomName";
-  CheckText(e->fValue, e->fValue, unquote);
 }
 
 static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
@@ -310,7 +318,7 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name"};
   for (u8string const &key : sJsonKeys) {
     blacklist.insert(key);
-    CheckTextComponent(itemE, itemA, key);
+    CheckItemName(itemE, itemA, key);
   }
 
   auto itemsE = itemE.query(u8"components/minecraft:container")->asList();
@@ -447,7 +455,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name", u8"CustomName"};
   for (u8string const &key : sJsonKeys) {
     tagBlacklist.insert(key);
-    CheckTextComponent(expected, actual, key);
+    CheckItemName(expected, actual, key);
   }
   for (auto const &key : {u8"back_text", u8"front_text"}) {
     auto backTextE = expected.compoundTag(key);
@@ -790,7 +798,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"TreasurePosZ");
   }
 
-  CheckTextComponent(entityE, entityA, u8"CustomName");
+  CheckItemName(entityE, entityA, u8"CustomName");
   blacklist.insert(u8"CustomName");
 
   for (u8string const &it : blacklist) {
