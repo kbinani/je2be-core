@@ -1,5 +1,6 @@
 #pragma once
 
+#include "_java-data-versions.hpp"
 #include "color/_lab.hpp"
 
 namespace je2be {
@@ -50,9 +51,21 @@ public:
         }
       }
     }
-    auto fadeColors = FallbackPtr<IntArrayTag>(tag, {u8"fade_colors", u8"FadeColors"});
-    if (fadeColors) {
+    if (auto fadeColors = FallbackPtr<IntArrayTag>(tag, {u8"fade_colors", u8"FadeColors"}); fadeColors) {
       for (auto v : fadeColors->value()) {
+        u8 r = 0xff & ((*(u32 *)&v) >> 16);
+        u8 g = 0xff & ((*(u32 *)&v) >> 8);
+        u8 b = 0xff & (*(u32 *)&v);
+        e.fFadeColors.emplace_back(r, g, b);
+      }
+    } else if (auto fadeColors = tag.listTag(u8"fade_colors"); fadeColors) {
+      for (auto item : *fadeColors) {
+        auto it = item->asInt();
+        if (!it) {
+          e.fFadeColors.clear();
+          break;
+        }
+        i32 v = it->fValue;
         u8 r = 0xff & ((*(u32 *)&v) >> 16);
         u8 g = 0xff & ((*(u32 *)&v) >> 8);
         u8 b = 0xff & (*(u32 *)&v);
@@ -172,11 +185,24 @@ public:
       }
     }
     if (!fFadeColors.empty()) {
-      vector<i32> fade;
-      for (auto const &it : fFadeColors) {
-        fade.push_back(it.toRGB());
+      if (targetDataVersion >= (int)JavaDataVersions::Snapshot25w04a) {
+        // 1.21.5
+        // 25w07a
+        // 25w04a
+        auto fadeColors = List<Tag::Type::Int>();
+        for (auto const &it : fFadeColors) {
+          fadeColors->push_back(Int(it.toRGB()));
+        }
+        ret->set(u8"fade_colors", fadeColors);
+      } else {
+        // 25w03a
+        // 25w02a
+        vector<i32> fade;
+        for (auto const &it : fFadeColors) {
+          fade.push_back(it.toRGB());
+        }
+        ret->set(u8"fade_colors", make_shared<IntArrayTag>(fade));
       }
-      ret->set(u8"fade_colors", make_shared<IntArrayTag>(fade));
     }
     return ret;
   }
