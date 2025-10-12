@@ -59,13 +59,13 @@ public:
       outDimension = *dimensionByte;
     }
     auto locked = data->boolean(u8"locked", false);
-    auto scale = data->byte(u8"scale");
+    auto scale = data->byte(u8"scale", 0);
     auto xCenter = data->int32(u8"xCenter");
     auto zCenter = data->int32(u8"zCenter");
     auto colors = data->byteArrayTag(u8"colors");
     auto unlimitedTracking = data->boolean(u8"unlimitedTracking", false);
 
-    if (!scale || !xCenter || !zCenter || !colors) {
+    if (!xCenter || !zCenter || !colors) {
       return JE2BE_ERROR;
     }
 
@@ -92,7 +92,7 @@ public:
       std::vector<u8> outColors(65536);
       auto decorations = List<Tag::Type::Compound>();
 
-      if (beScale == *scale) {
+      if (beScale == scale) {
         int i = 0;
         int j = 0;
         vector<u8> const &colorsArray = colors->value();
@@ -147,7 +147,7 @@ public:
             auto frameData = Compound();
             frameData->set(u8"rot", Int(rot));
             frameData->set(u8"type", Int(1));
-            auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+            auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, scale);
             if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
               continue;
             }
@@ -185,7 +185,7 @@ public:
           auto frameData = Compound();
           frameData->set(u8"rot", Int(8));
           frameData->set(u8"type", Int(*typeB));
-          auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, *scale);
+          auto [markerX, markerY] = MarkerPosition(*x, *z, *xCenter, *zCenter, scale);
           if (markerX < -128 || 128 < markerX || markerY < -128 || 128 < markerY) {
             return;
           }

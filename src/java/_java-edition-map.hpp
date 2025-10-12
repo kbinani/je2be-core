@@ -89,12 +89,8 @@ private:
         continue;
       }
 
-      auto scale = data->byte(u8"scale");
-      if (!scale) {
-        continue;
-      }
-
-      table[*number] = *scale;
+      auto scale = data->byte(u8"scale", 0);
+      table[*number] = scale;
     }
 
     return table;
