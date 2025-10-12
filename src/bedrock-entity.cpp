@@ -123,15 +123,13 @@ public:
       }
     }
 
-    auto itemRotationB = blockEntityB.float32(u8"ItemRotation");
-    if (itemRotationB) {
-      t[u8"ItemRotation"] = Byte(static_cast<i8>(std::roundf(*itemRotationB / 45.0f)));
-    }
+    auto itemRotationB = blockEntityB.float32(u8"ItemRotation", 0);
+    t[u8"ItemRotation"] = Byte(static_cast<i8>(std::roundf(itemRotationB / 45.0f)));
 
     Pos3d motion(0, 0, 0);
     t[u8"Motion"] = motion.toListTag();
 
-    CopyFloatValues(blockEntityB, t, {{u8"ItemDropChance"}});
+    CopyFloatValues(blockEntityB, t, {{u8"ItemDropChance", u8"ItemDropChance", 1.0f}});
 
     t[u8"Air"] = Short(300);
     SetFallDistance(t, 0, dataVersion);
