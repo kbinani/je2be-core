@@ -1011,7 +1011,14 @@ public:
     if (tagB) {
       TropicalFish tf = TropicalFish::FromBedrockBucketTag(*tagB);
       auto tagJ = Compound();
-      tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
+      if (dataVersion >= (int)JavaDataVersions::Snapshot25w03a) {
+        TropicalFish::JavaComponents jc = tf.toJavaComponents();
+        java::AppendComponent(itemJ, u8"tropical_fish/base_color", String(jc.fBaseColor));
+        java::AppendComponent(itemJ, u8"tropical_fish/pattern", String(jc.fPattern));
+        java::AppendComponent(itemJ, u8"tropical_fish/pattern_color", String(jc.fPatternColor));
+      } else {
+        tagJ->set(u8"BucketVariantTag", Int(tf.toJavaVariant()));
+      }
       if (auto health = HealthFromBucketTag(*tagB); health) {
         tagJ->set(u8"Health", Float(*health));
       }

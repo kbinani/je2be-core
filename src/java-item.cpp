@@ -1119,10 +1119,22 @@ private:
   static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &ctx, DataVersion const &dataVersion) {
     auto ret = New(u8"tropical_fish_bucket");
     ret->set(u8"Damage", Short(0));
+    auto baseColor = GetComponent<StringTag>(item, u8"tropical_fish/base_color");
+    auto pattern = GetComponent<StringTag>(item, u8"tropical_fish/pattern");
+    auto patternColor = GetComponent<StringTag>(item, u8"tropical_fish/pattern_color");
     if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
-      if (auto variant = data->int32(u8"BucketVariantTag"); variant) {
+      auto health = data->float32(u8"Health");
+      if (baseColor && pattern && patternColor) {
+        TropicalFish::JavaComponents jc;
+        jc.fBaseColor = baseColor->fValue;
+        jc.fPattern = pattern->fValue;
+        jc.fPatternColor = patternColor->fValue;
+        auto tf = TropicalFish::FromJavaComponents(jc);
+        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), health);
+        ret->set(u8"tag", tag);
+      } else if (auto variant = data->int32(u8"BucketVariantTag"); variant) {
         auto tf = TropicalFish::FromJavaVariant(*variant);
-        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), data->float32(u8"Health"));
+        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), health);
         ret->set(u8"tag", tag);
       }
     }
