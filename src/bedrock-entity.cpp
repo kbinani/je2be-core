@@ -474,6 +474,8 @@ public:
     j[u8"ignited"] = Bool(false);
     if (HasDefinition(b, u8"+minecraft:charged_creeper")) {
       j[u8"powered"] = Bool(true);
+    } else if (dataVersion >= (int)JavaDataVersions::Snapshot25w09a) {
+      j[u8"powered"] = Bool(false);
     }
   }
 
