@@ -295,9 +295,12 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     }
   }
   CHECK(itemA.compoundTag(u8"tag") == nullptr);
-  if (auto sweepingEdge = itemE.query(u8"components/minecraft:stored_enchantments/levels/minecraft:sweeping_edge"); sweepingEdge) {
+  if (auto sweepingEdge = itemE.query(u8"components/minecraft:stored_enchantments/levels/minecraft:sweeping_edge"); sweepingEdge && sweepingEdge->asInt()) {
     // sweeping_edge does not exist in BE
     blacklist.insert(u8"components/minecraft:stored_enchantments/levels");
+  } else if (auto sweepingEdge = itemE.query(u8"components/minecraft:stored_enchantments/minecraft:sweeping_edge"); sweepingEdge && sweepingEdge->asInt()) {
+    // sweeping_edge does not exist in BE
+    blacklist.insert(u8"components/minecraft:stored_enchantments");
   }
   auto tippedArrowPotion = itemE.query(u8"components/minecraft:potion_contents/potion");
   if (tippedArrowPotion && tippedArrowPotion->asString() && tippedArrowPotion->asString()->fValue == u8"minecraft:luck") {
@@ -560,7 +563,7 @@ static void CheckBrainJ(CompoundTag const &brainE, CompoundTag const &brainA) {
 
   auto likedPlayerA = copyA->query(u8"memories/minecraft:liked_player");
   auto likedPlayerE = copyE->query(u8"memories/minecraft:liked_player");
-  CHECK((likedPlayerA == nullptr) == (likedPlayerE == nullptr));
+  CHECK((likedPlayerA->type() == Tag::Type::End) == (likedPlayerE->type() == Tag::Type::End));
 
   for (u8string const &b : blacklist) {
     Erase(copyE, b);
