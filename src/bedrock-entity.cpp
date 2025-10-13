@@ -2294,7 +2294,7 @@ public:
     E(cod, C(Same, LivingEntity, FromBucket));
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle, ClimateVariant));
-    E(zoglin, C(Same, LivingEntity));
+    E(zoglin, C(Same, LivingEntity, IsBaby));
     E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyArmorItemFromArmorItems, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
