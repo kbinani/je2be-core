@@ -2125,6 +2125,22 @@ private:
       }
     }
 
+    if (auto dropChancesJ = tag.compoundTag(u8"drop_chances"); dropChancesJ) {
+      auto slotDropChancesB = List<Tag::Type::Compound>();
+      for (auto const &it : *dropChancesJ) {
+        auto name = it.first;
+        if (auto chanceJ = it.second->asFloat(); chanceJ) {
+          auto chanceB = Compound();
+          chanceB->set(u8"DropChance", Float(chanceJ->fValue));
+          chanceB->set(u8"Slot", String(name));
+          slotDropChancesB->push_back(chanceB);
+        }
+      }
+      if (!slotDropChancesB->empty()) {
+        ret->set(u8"SlotDropChances", slotDropChancesB);
+      }
+    }
+
     return ret;
   }
 

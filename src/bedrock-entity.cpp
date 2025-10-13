@@ -710,12 +710,14 @@ public:
   }
 
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    auto armorDropChances = List<Tag::Type::Float>();
-    armorDropChances->push_back(Float(0.085));
-    armorDropChances->push_back(Float(0.085));
-    armorDropChances->push_back(Float(0));
-    armorDropChances->push_back(Float(0.085));
-    j[u8"ArmorDropChances"] = armorDropChances;
+    if (dataVersion < (int)JavaDataVersions::Snapshot25w02a) {
+      auto armorDropChances = List<Tag::Type::Float>();
+      armorDropChances->push_back(Float(0.085));
+      armorDropChances->push_back(Float(0.085));
+      armorDropChances->push_back(Float(0));
+      armorDropChances->push_back(Float(0.085));
+      j[u8"ArmorDropChances"] = armorDropChances;
+    }
 
     i32 variantB = b.int32(u8"Variant", 0);
     i32 markVariantB = b.int32(u8"MarkVariant", 0);
@@ -1141,7 +1143,6 @@ public:
           j[u8"equipment"] = equipment;
         }
       }
-      // TODO: ArmorDropChances
     } else {
       // 25w02a
       // 1.21.4
@@ -1344,7 +1345,6 @@ public:
       if (!equipmentJ->empty()) {
         j[u8"equipment"] = equipmentJ;
       }
-      // TODO: HandDropChances
     } else {
       auto items = List<Tag::Type::Compound>();
       for (auto v : itemsJ) {
@@ -1546,6 +1546,35 @@ public:
   static void Size(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto sizeB = b.byte(u8"Size", 1);
     j[u8"Size"] = Int(sizeB - 1);
+  }
+
+  static void SlotDropChances(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto slotDropChances = b.listTag(u8"SlotDropChances");
+    if (!slotDropChances) {
+      return;
+    }
+    CompoundTagPtr dropChancesJ = std::dynamic_pointer_cast<CompoundTag>(j[u8"drop_chances"]);
+    if (!dropChancesJ) {
+      dropChancesJ = Compound();
+    }
+    for (auto const &it : *slotDropChances) {
+      auto compound = it->asCompound();
+      if (!compound) {
+        continue;
+      }
+      auto chance = compound->float32(u8"DropChance");
+      if (!chance) {
+        continue;
+      }
+      auto slot = compound->string(u8"Slot");
+      if (!slot) {
+        continue;
+      }
+      dropChancesJ->set(*slot, Float(*chance));
+    }
+    if (dropChancesJ) {
+      j[u8"drop_chances"] = dropChancesJ;
+    }
   }
 
   static void StrayConversionTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1786,6 +1815,7 @@ public:
     InLove(b, j, ctx, dataVersion);
     Owner(b, j, ctx, dataVersion);
     PersistenceRequiredAnimal(b, j, ctx, dataVersion);
+    SlotDropChances(b, j, ctx, dataVersion);
     return ret;
   }
 
