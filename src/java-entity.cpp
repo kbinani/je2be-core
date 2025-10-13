@@ -572,7 +572,7 @@ private:
     E(dolphin, C(Animal, AgeableA(u8"dolphin")));
     E(donkey, C(Animal, TameableB(u8"donkey"), AgeableA(u8"minecraft:donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
     E(drowned, C(Monster, AgeableD(u8"drowned"), Zombie, Drowned));
-    M(elder_guardian);
+    E(elder_guardian, C(Monster, ElderGuardian));
     E(enderman, C(Monster, Enderman));
     E(endermite, C(Monster, Endermite));
     E(evoker, C(Monster, Rename(u8"evocation_illager"), CanJoinRaid));
@@ -960,6 +960,17 @@ private:
       AddDefinition(c, u8"+minecraft:mode_switcher");
       AddDefinition(c, u8"+minecraft:ranged_equipment");
       AddDefinition(c, u8"+minecraft:ranged_mode");
+    }
+  }
+
+  static void ElderGuardian(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    if (auto homePosJ = j.intArrayTag(u8"home_pos"); homePosJ && homePosJ->fValue.size() >= 3) {
+      auto homePosB = List<Tag::Type::Float>();
+      for (size_t i = 0; i < 3; i++) {
+        i32 v = homePosJ->fValue[i];
+        homePosB->push_back(Float(v));
+      }
+      b[u8"HomePos"] = homePosB;
     }
   }
 

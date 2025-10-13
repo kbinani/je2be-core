@@ -473,6 +473,31 @@ public:
     }
   }
 
+  static void ElderGuardian(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (dataVersion >= (int)JavaDataVersions::Snapshot25w18a) {
+      if (auto homePosB = b.listTag(u8"HomePos"); homePosB && homePosB->size() >= 3) {
+        auto homePosJ = std::make_shared<IntArrayTag>();
+        for (size_t i = 0; i < 3; i++) {
+          auto vb = homePosB->fValue[i];
+          if (!vb) {
+            homePosJ->fValue.clear();
+            break;
+          }
+          auto vf = vb->asFloat();
+          if (!vf) {
+            homePosJ->fValue.clear();
+            break;
+          }
+          homePosJ->fValue.push_back((i32)roundf(vf->fValue));
+        }
+        if (homePosJ->fValue.size() == 3) {
+          j[u8"home_pos"] = homePosJ;
+          j[u8"home_radius"] = Int(16);
+        }
+      }
+    }
+  }
+
   static void EnderCrystal(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto x = b.int32(u8"BlockTargetX");
     auto y = b.int32(u8"BlockTargetY");
@@ -2262,8 +2287,8 @@ public:
     E(zombie_pigman, C(Rename(u8"zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie, ZombifiedPiglin));
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
     E(blaze, C(Same, LivingEntity));
-    E(elder_guardian, C(Same, LivingEntity));
     E(cow, C(Same, Animal, ClimateVariant));
+    E(elder_guardian, C(Same, LivingEntity, ElderGuardian));
     E(cod, C(Same, LivingEntity, FromBucket));
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
