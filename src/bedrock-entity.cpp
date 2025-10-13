@@ -1682,7 +1682,9 @@ public:
   }
 
   static void Saddle(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    j[u8"Saddle"] = Bool(HasDefinitionWithPrefixAndSuffix(b, u8"+minecraft:", u8"_saddled"));
+    if (HasDefinitionWithPrefixAndSuffix(b, u8"+minecraft:", u8"_saddled")) {
+      j[u8"Saddle"] = Bool(true);
+    }
   }
 
   static void SaddleItemFromChestItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2291,7 +2293,7 @@ public:
     E(elder_guardian, C(Same, LivingEntity, ElderGuardian));
     E(cod, C(Same, LivingEntity, FromBucket));
     E(fox, C(Same, Animal, Sitting, Fox));
-    E(pig, C(Same, Animal, Saddle));
+    E(pig, C(Same, Animal, Saddle, ClimateVariant));
     E(zoglin, C(Same, LivingEntity));
     E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyArmorItemFromArmorItems, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));

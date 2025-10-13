@@ -592,7 +592,7 @@ private:
     E(panda, C(Animal, AgeableA(u8"minecraft:panda"), Panda));
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
-    E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig", {.fAddAlwaysUnsaddledDefinition = true})));
+    E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig", {.fAddAlwaysUnsaddledDefinition = true}), ClimateVariant));
     E(piglin, C(Monster, ChestItemsFromInventory, Piglin));
     E(piglin_brute, C(Monster, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
