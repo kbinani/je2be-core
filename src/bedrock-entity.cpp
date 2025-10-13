@@ -1084,7 +1084,7 @@ public:
 
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto armorsB = b.listTag(u8"Armor");
-    auto armorsJ = List<Tag::Type::Compound>();
+    std::vector<CompoundTagPtr> armorsJ;
     auto chancesJ = List<Tag::Type::Float>();
     if (armorsB) {
       std::vector<CompoundTagPtr> armors;
@@ -1102,10 +1102,10 @@ public:
         chances.push_back(Float(0.085));
       }
       if (armors.size() >= 4) {
-        armorsJ->push_back(armors[3]); // boots
-        armorsJ->push_back(armors[2]); // leggings
-        armorsJ->push_back(armors[1]); // chestplate
-        armorsJ->push_back(armors[0]); // helmet
+        armorsJ.push_back(armors[3]); // boots
+        armorsJ.push_back(armors[2]); // leggings
+        armorsJ.push_back(armors[1]); // chestplate
+        armorsJ.push_back(armors[0]); // helmet
 
         chancesJ->push_back(chances[3]);
         chancesJ->push_back(chances[2]);
@@ -1118,35 +1118,32 @@ public:
       // 25w07a
       // 25w04a
       // 25w03a
-      if (armorsJ->size() >= 4) {
-        auto equipment = j.compoundTag(u8"equipment");
-        if (!equipment) {
-          equipment = Compound();
-        }
-        auto boots = armorsJ->at(0)->asCompound();
+      if (armorsJ.size() >= 4) {
+        auto boots = armorsJ[0];
         if (boots && !boots->empty()) {
-          equipment->set(u8"feet", armorsJ->at(0));
+          AddEquipment(j, u8"feet", boots);
         }
-        auto leggings = armorsJ->at(1)->asCompound();
+        auto leggings = armorsJ[1];
         if (leggings && !leggings->empty()) {
-          equipment->set(u8"legs", armorsJ->at(1));
+          AddEquipment(j, u8"legs", leggings);
         }
-        auto chestplate = armorsJ->at(2)->asCompound();
+        auto chestplate = armorsJ[2];
         if (chestplate && !chestplate->empty()) {
-          equipment->set(u8"chest", armorsJ->at(2));
+          AddEquipment(j, u8"chest", chestplate);
         }
-        auto helmet = armorsJ->at(3)->asCompound();
+        auto helmet = armorsJ[3];
         if (helmet && !helmet->empty()) {
-          equipment->set(u8"head", armorsJ->at(3));
-        }
-        if (!equipment->empty()) {
-          j[u8"equipment"] = equipment;
+          AddEquipment(j, u8"head", helmet);
         }
       }
     } else {
       // 25w02a
       // 1.21.4
-      j[u8"ArmorItems"] = armorsJ;
+      auto armorItemsJ = List<Tag::Type::Compound>();
+      for (auto const &it : armorsJ) {
+        armorItemsJ->push_back(it);
+      }
+      j[u8"ArmorItems"] = armorItemsJ;
       j[u8"ArmorDropChances"] = chancesJ;
     }
   }
@@ -1280,9 +1277,7 @@ public:
     if (!bodyItem) {
       return;
     }
-    auto equipment = Compound();
-    equipment->set(u8"body", bodyItem);
-    j[u8"equipment"] = equipment;
+    AddEquipment(j, u8"body", bodyItem);
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1328,22 +1323,15 @@ public:
       chancesJ.push_back(Float(HandDropChance(*itemJ, identifier)));
     }
     if (dataVersion > (int)JavaDataVersions::Snapshot25w02a) {
-      auto equipmentJ = j.compoundTag(u8"equipment");
-      if (!equipmentJ) {
-        equipmentJ = Compound();
-      }
       if (itemsJ.size() > 0) {
         if (auto mainhand = itemsJ[0]; !mainhand->empty()) {
-          equipmentJ->set(u8"mainhand", mainhand);
+          AddEquipment(j, u8"mainhand", mainhand);
         }
       }
       if (itemsJ.size() > 1) {
         if (auto offhand = itemsJ[1]; !offhand->empty()) {
-          equipmentJ->set(u8"offhand", offhand);
+          AddEquipment(j, u8"offhand", offhand);
         }
-      }
-      if (!equipmentJ->empty()) {
-        j[u8"equipment"] = equipmentJ;
       }
     } else {
       auto items = List<Tag::Type::Compound>();
@@ -1854,6 +1842,15 @@ public:
 #pragma endregion
 
 #pragma region Utilities
+  static void AddEquipment(CompoundTag &j, std::u8string const &name, CompoundTagPtr const &itemJ) {
+    auto equipment = j.compoundTag(u8"equipment");
+    if (!equipment) {
+      equipment = Compound();
+      j[u8"equipment"] = equipment;
+    }
+    equipment->set(name, itemJ);
+  }
+
   static CompoundTagPtr FindAttribute(CompoundTag const &entityB, std::u8string const &name) {
     auto attributesB = entityB.listTag(u8"Attributes");
     if (!attributesB) {
