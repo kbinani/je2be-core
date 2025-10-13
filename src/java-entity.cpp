@@ -564,10 +564,10 @@ private:
     M(blaze);
     E(cat, C(Animal, AgeableA(u8"minecraft:cat"), TameableA(u8"cat"), Sittable, CollarColorable, Cat));
     M(cave_spider);
-    E(chicken, C(Animal, AgeableA(u8"minecraft:chicken"), Vehicle(), Chicken));
+    E(chicken, C(Animal, AgeableA(u8"minecraft:chicken"), Vehicle(), ClimateVariant, Chicken));
     E(cod, C(Mob, PersistentFromFromBucket));
 
-    E(cow, C(Animal, AgeableA(u8"minecraft:cow")));
+    E(cow, C(Animal, AgeableA(u8"minecraft:cow"), ClimateVariant));
     E(creeper, C(Monster, Creeper));
     E(dolphin, C(Animal, AgeableA(u8"dolphin")));
     E(donkey, C(Animal, TameableB(u8"donkey"), AgeableA(u8"minecraft:donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
@@ -924,11 +924,7 @@ private:
       entries->push_back(timer);
       c[u8"entries"] = entries;
     }
-    if (auto variantJ = tag.string(u8"variant"); variantJ) {
-      AddProperty(c, u8"minecraft:climate_variant", String(Namespace::Remove(*variantJ)));
-    }
   }
-
   static void Creaking(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"+minecraft:neutral");
     AddDefinition(c, u8"+minecraft:mobile");
@@ -1798,6 +1794,12 @@ private:
     auto collarColor = tag.byte(u8"CollarColor");
     if (collarColor && GetOwnerUuid(tag, ctx)) {
       c[u8"Color"] = Byte(*collarColor);
+    }
+  }
+
+  static void ClimateVariant(CompoundTag &b, CompoundTag const &j, ConverterContext &) {
+    if (auto variantJ = j.string(u8"variant"); variantJ) {
+      AddProperty(b, u8"minecraft:climate_variant", String(Namespace::Remove(*variantJ)));
     }
   }
 

@@ -455,12 +455,6 @@ public:
         break;
       }
     }
-    auto properties = b.compoundTag(u8"properties");
-    if (properties) {
-      if (auto variantB = properties->string(u8"minecraft:climate_variant"); variantB) {
-        j[u8"variant"] = String(Namespace::Add(*variantB));
-      }
-    }
     j[u8"IsChickenJockey"] = Bool(false);
   }
 
@@ -1188,6 +1182,15 @@ public:
 
   static void ChestedHorse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyBoolValues(b, j, {{u8"Chested", u8"ChestedHorse", false}});
+  }
+
+  static void ClimateVariant(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto properties = b.compoundTag(u8"properties");
+    if (properties) {
+      if (auto variantB = properties->string(u8"minecraft:climate_variant"); variantB) {
+        j[u8"variant"] = String(Namespace::Add(*variantB));
+      }
+    }
   }
 
   static void CollarColor(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2244,7 +2247,7 @@ public:
     E(bat, C(Same, LivingEntity, Bat));
     E(painting, C(Same, Base, Painting));
     E(zombie, C(Same, LivingEntity, IsBaby, Zombie));
-    E(chicken, C(Same, Animal, Chicken));
+    E(chicken, C(Same, Animal, ClimateVariant, Chicken));
     E(item, C(Same, Base, Impl::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
     E(ender_crystal, C(Rename(u8"end_crystal"), Base, ShowBottom, EnderCrystal));
@@ -2259,8 +2262,8 @@ public:
     E(zombie_pigman, C(Rename(u8"zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie, ZombifiedPiglin));
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
     E(blaze, C(Same, LivingEntity));
-    E(cow, C(Same, Animal));
     E(elder_guardian, C(Same, LivingEntity));
+    E(cow, C(Same, Animal, ClimateVariant));
     E(cod, C(Same, LivingEntity, FromBucket));
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle));
