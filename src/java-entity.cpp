@@ -1616,7 +1616,13 @@ private:
       c[u8"HomePos"] = homePos;
     }
 
-    if (tag.boolean(u8"HasEgg", false)) {
+    bool hasEgg = false;
+    if (auto hasEggTag = tag.boolean(u8"has_egg"); hasEggTag) {
+      hasEgg = *hasEggTag;
+    } else if (auto hasEggTag = tag.boolean(u8"HasEgg"); hasEggTag) {
+      hasEgg = *hasEggTag;
+    }
+    if (hasEgg) {
       AddDefinition(c, u8"-minecraft:pregnant");
       AddDefinition(c, u8"-minecraft:wants_to_lay_egg");
     }

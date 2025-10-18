@@ -952,7 +952,12 @@ public:
       j[u8"HomePosZ"] = Int(roundf(homePos->fZ));
     }
 
-    j[u8"HasEgg"] = Bool(HasDefinition(b, u8"-minecraft:wants_to_lay_egg") || HasDefinition(b, u8"+minecraft:wants_to_lay_egg"));
+    bool hasEgg = HasDefinition(b, u8"-minecraft:wants_to_lay_egg") || HasDefinition(b, u8"+minecraft:wants_to_lay_egg");
+    if (dataVersion >= (int)JavaDataVersions::Snapshot25w07a) {
+      j[u8"has_egg"] = Bool(hasEgg);
+    } else {
+      j[u8"HasEgg"] = Bool(hasEgg);
+    }
   }
 
   static void Villager(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
