@@ -2984,7 +2984,8 @@ private:
     using namespace je2be::props;
     using namespace std;
 
-    auto fallDistance = tag.float32(u8"FallDistance");
+    auto fallDistanceF = tag.float32(u8"FallDistance");
+    auto fallDistanceD = tag.float64(u8"fall_distance");
     auto fire = tag.int16(u8"Fire");
     auto invulnerable = tag.boolean(u8"Invulnerable");
     auto onGround = tag.boolean(u8"OnGround");
@@ -3010,8 +3011,10 @@ private:
     if (rotation) {
       e.fRotation = *rotation;
     }
-    if (fallDistance) {
-      e.fFallDistance = *fallDistance;
+    if (fallDistanceD) {
+      e.fFallDistance = *fallDistanceD;
+    } else if (fallDistanceF) {
+      e.fFallDistance = *fallDistanceF;
     }
     if (fire) {
       e.fFire = *fire;
