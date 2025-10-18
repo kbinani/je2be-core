@@ -1717,7 +1717,15 @@ public:
   }
 
   static void Saddle(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    if (HasDefinitionWithPrefixAndSuffix(b, u8"+minecraft:", u8"_saddled")) {
+    if (!HasDefinitionWithPrefixAndSuffix(b, u8"+minecraft:", u8"_saddled")) {
+      return;
+    }
+    if (dataVersion > (int)JavaDataVersions::Snapshot25w03a) {
+      auto saddleJ = Compound();
+      saddleJ->set(u8"id", String(Namespace::Add(u8"saddle")));
+      saddleJ->set(u8"count", Int(1));
+      AddEquipment(j, u8"saddle", saddleJ);
+    } else {
       j[u8"Saddle"] = Bool(true);
     }
   }
