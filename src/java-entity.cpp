@@ -1814,7 +1814,12 @@ private:
     }
   }
 
-  // static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {}
+  static void Debug(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    std::cout << "(j2b)input" << std::endl;
+    mcfile::nbt::PrintAsJson(std::cout, tag, {.fTypeHint = true});
+    std::cout << "(j2b)output" << std::endl;
+    mcfile::nbt::PrintAsJson(std::cout, c, {.fTypeHint = true});
+  }
 
   static void DetectSuffocation(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"-minecraft:start_suffocating");

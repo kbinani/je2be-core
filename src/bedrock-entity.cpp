@@ -1247,6 +1247,10 @@ public:
   }
 
   static void Debug(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    std::cout << "(b2j)input" << std::endl;
+    mcfile::nbt::PrintAsJson(std::cout, b, {.fTypeHint = true});
+    std::cout << "(b2j)output" << std::endl;
+    mcfile::nbt::PrintAsJson(std::cout, j, {.fTypeHint = true});
   }
 
   static void Dolphin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
