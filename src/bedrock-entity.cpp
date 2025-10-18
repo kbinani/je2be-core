@@ -1057,6 +1057,13 @@ public:
     auto variantB = b.int32(u8"Variant", 0);
     auto variantJ = Wolf::JavaVariantFromBedrockVariant(variantB);
     j[u8"variant"] = String(variantJ);
+    if (auto soundVariantB = GetProperty<StringTag>(b, u8"minecraft:sound_variant"); soundVariantB) {
+      std::u8string soundVariant = Namespace::Remove(soundVariantB->fValue);
+      if (soundVariant == u8"default") {
+        soundVariant = u8"classic";
+      }
+      j[u8"sound_variant"] = String(Namespace::Add(soundVariant));
+    }
   }
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1873,6 +1880,15 @@ public:
 #pragma endregion
 
 #pragma region Utilities
+  template <class NbtTag>
+  static std::shared_ptr<NbtTag> GetProperty(CompoundTag const &b, std::u8string const &key) {
+    auto properties = b.compoundTag(u8"properties");
+    if (!properties) {
+      return nullptr;
+    }
+    return properties->get<NbtTag>(key);
+  }
+
   static void AddEquipment(CompoundTag &j, std::u8string const &name, CompoundTagPtr const &itemJ) {
     auto equipment = j.compoundTag(u8"equipment");
     if (!equipment) {

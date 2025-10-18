@@ -1708,32 +1708,40 @@ private:
     c[u8"Attributes"] = attributes.toBedrockListTag();
   }
 
-  static void Wolf(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    auto health = tag.float32(u8"Health");
-    auto owner = GetOwnerUuid(tag, ctx);
-    auto variant = tag.string(u8"variant");
+  static void Wolf(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    auto health = j.float32(u8"Health");
+    auto owner = GetOwnerUuid(j, ctx);
+    auto variant = j.string(u8"variant");
 
     auto attributes = EntityAttributes::Wolf(!!owner, health);
-    c[u8"Attributes"] = attributes.toBedrockListTag();
+    b[u8"Attributes"] = attributes.toBedrockListTag();
 
     auto properties = Compound();
     properties->set(u8"minecraft:has_increased_max_health", Bool(owner != std::nullopt));
     properties->set(u8"minecraft:is_armorable", Bool(owner != std::nullopt));
-    c[u8"properties"] = properties;
+    b[u8"properties"] = properties;
 
     if (owner) {
-      AddDefinition(c, u8"+minecraft:wolf_increased_max_health");
-      AddDefinition(c, u8"+minecraft:wolf_armorable");
+      AddDefinition(b, u8"+minecraft:wolf_increased_max_health");
+      AddDefinition(b, u8"+minecraft:wolf_armorable");
     }
 
     if (variant) {
       auto name = Namespace::Remove(*variant);
       if (name != u8"pale") {
-        AddDefinition(c, u8"+minecraft:wolf_" + name);
+        AddDefinition(b, u8"+minecraft:wolf_" + name);
       }
 
       i32 variantB = Wolf::BedrockVariantFromJavaVariant(*variant);
-      c[u8"Variant"] = Int(variantB);
+      b[u8"Variant"] = Int(variantB);
+    }
+
+    if (auto soundVariantJ = j.string(u8"sound_variant"); soundVariantJ) {
+      auto soundVariant = Namespace::Remove(*soundVariantJ);
+      if (soundVariant == u8"classic") {
+        soundVariant = u8"default";
+      }
+      AddProperty(b, u8"minecraft:sound_variant", String(Namespace::Add(soundVariant)));
     }
   }
 
