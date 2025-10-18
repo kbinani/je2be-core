@@ -1212,8 +1212,8 @@ private:
     }
   }
 
-  static void Llama(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    auto variant = tag.int32(u8"Variant", 0);
+  static void Llama(CompoundTag &b, CompoundTag const &j, ConverterContext &) {
+    auto variant = j.int32(u8"Variant", 0);
     std::u8string color = u8"creamy";
     switch (variant) {
     case 3:
@@ -1229,33 +1229,42 @@ private:
       color = u8"creamy";
       break;
     }
-    c[u8"Variant"] = Int(variant);
-    AddDefinition(c, u8"+minecraft:llama_" + color);
+    b[u8"Variant"] = Int(variant);
+    AddDefinition(b, u8"+minecraft:llama_" + color);
 
-    auto armors = c.listTag(u8"Armor");
+    auto armorsB = b.listTag(u8"Armor");
 
-    auto decorItemId = tag.query(u8"DecorItem/id")->asString();
-    if (decorItemId && decorItemId->fValue.starts_with(u8"minecraft:") && decorItemId->fValue.ends_with(u8"_carpet")) {
-      auto carpetColor = strings::RemovePrefixAndSuffix(u8"minecraft:", decorItemId->fValue, u8"_carpet");
+    std::u8string bodyItemId;
+    if (auto equipment = j.compoundTag(u8"equipment"); equipment) {
+      if (auto body = equipment->compoundTag(u8"body"); body) {
+        bodyItemId = body->string(u8"id", u8"");
+      }
+    } else if (auto decorItemId = j.query(u8"DecorItem/id")->asString(); decorItemId) {
+      bodyItemId = decorItemId->fValue;
+    }
+    if (bodyItemId.starts_with(u8"minecraft:") && bodyItemId.ends_with(u8"_carpet")) {
+      auto carpetColor = strings::RemovePrefixAndSuffix(u8"minecraft:", bodyItemId, u8"_carpet");
       auto colorCode = ColorCodeJavaFromJavaName(carpetColor);
       auto beCarpetColor = BedrockNameFromColorCodeJava(colorCode);
-      auto armor = Compound();
-      armor->insert({{u8"Count", Byte(1)}, {u8"Damage", Short(0)}, {u8"Name", String(u8"minecraft:carpet")}, {u8"WasPickedUp", Bool(false)}});
+      auto armorB = Compound();
+      armorB->insert({{u8"Count", Byte(1)}, {u8"Damage", Short(0)}, {u8"Name", String(u8"minecraft:carpet")}, {u8"WasPickedUp", Bool(false)}});
       auto block = Compound();
       block->insert({{u8"name", String(u8"minecraft:carpet")}, {u8"version", Int(kBlockDataVersion)}});
       auto states = Compound();
       states->set(u8"color", beCarpetColor);
       block->set(u8"states", states);
-      armor->set(u8"Block", block);
+      armorB->set(u8"Block", block);
 
-      if (armors && armors->size() > 1) {
-        armors->at(1) = armor;
+      if (armorsB && armorsB->size() >= 5) {
+        auto copy = armorB->copy();
+        copy->erase(u8"Slot");
+        armorsB->at(4) = copy;
       }
 
-      AddChestItem(c, armor, 0, 1);
+      AddChestItem(b, armorB, 0, 1);
     }
 
-    CopyIntValues(tag, c, {{u8"Strength"}});
+    CopyIntValues(j, b, {{u8"Strength"}});
   }
 
   static void Minecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

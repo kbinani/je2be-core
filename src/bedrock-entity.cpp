@@ -1155,33 +1155,43 @@ public:
     }
   }
 
-  static void BodyArmorItemFromArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    // remove ArmorItems[1] then set to body_armor_item
-    auto armorItems = j.listTag(u8"ArmorItems");
-    auto armorDropChances = j.listTag(u8"ArmorDropChances");
-    if (!armorItems || !armorDropChances) {
-      return;
+  static void BodyEquipmentFromArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (dataVersion >= (int)JavaDataVersions::Snapshot25w03a) {
+      if (auto armorsB = b.listTag(u8"Armor"); armorsB && armorsB->size() >= 5) {
+        if (auto bodyArmorB = armorsB->at(4)->asCompound(); bodyArmorB) {
+          if (auto bodyArmorJ = Item::From(*bodyArmorB, ctx, dataVersion, {}); bodyArmorJ && !bodyArmorJ->empty()) {
+            AddEquipment(j, u8"body", bodyArmorJ);
+          }
+        }
+      }
+    } else {
+      // remove ArmorItems[1] then set to body_armor_item
+      auto armorItems = j.listTag(u8"ArmorItems");
+      auto armorDropChances = j.listTag(u8"ArmorDropChances");
+      if (!armorItems || !armorDropChances) {
+        return;
+      }
+      if (armorItems->size() < 2 || armorDropChances->size() < 2) {
+        return;
+      }
+      auto armorTag = armorItems->fValue[1];
+      auto chanceTag = armorDropChances->fValue[1];
+      if (!armorTag || !chanceTag) {
+        return;
+      }
+      auto armor = std::dynamic_pointer_cast<CompoundTag>(armorTag);
+      auto chance = std::dynamic_pointer_cast<FloatTag>(chanceTag);
+      if (!armor || !chance) {
+        return;
+      }
+      if (armor->empty()) {
+        return;
+      }
+      j[u8"body_armor_item"] = armor;
+      j[u8"body_armor_drop_chance"] = Float(2);
+      armorItems->fValue[1] = Compound();
+      armorDropChances->fValue[1] = Float(0.085);
     }
-    if (armorItems->size() < 2 || armorDropChances->size() < 2) {
-      return;
-    }
-    auto armorTag = armorItems->fValue[1];
-    auto chanceTag = armorDropChances->fValue[1];
-    if (!armorTag || !chanceTag) {
-      return;
-    }
-    auto armor = std::dynamic_pointer_cast<CompoundTag>(armorTag);
-    auto chance = std::dynamic_pointer_cast<FloatTag>(chanceTag);
-    if (!armor || !chance) {
-      return;
-    }
-    if (armor->empty()) {
-      return;
-    }
-    j[u8"body_armor_item"] = armor;
-    j[u8"body_armor_drop_chance"] = Float(2);
-    armorItems->fValue[1] = Compound();
-    armorDropChances->fValue[1] = Float(0.085);
   }
 
   static void Brain(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2350,7 +2360,7 @@ public:
     E(fox, C(Same, Animal, Sitting, Fox));
     E(pig, C(Same, Animal, Saddle, ClimateVariant));
     E(zoglin, C(Same, LivingEntity, IsBaby));
-    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyArmorItemFromArmorItems, Horse));
+    E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyEquipmentFromArmorItems, Horse));
     E(husk, C(Same, LivingEntity, IsBaby, Zombie));
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
@@ -2360,8 +2370,8 @@ public:
     E(evocation_illager, C(Rename(u8"evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
     E(guardian, C(Same, LivingEntity));
-    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyArmorItemFromArmorItems, Llama));
-    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyArmorItemFromArmorItems, Llama));
+    E(llama, C(LlamaName, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyEquipmentFromArmorItems, Llama));
+    E(trader_llama, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithDecorItem, Tame, Temper, CopyVariant, Strength, BodyEquipmentFromArmorItems, Llama));
     E(magma_cube, C(Same, LivingEntity, Size));
     E(mooshroom, C(Same, Animal, Mooshroom));
     E(mule, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper, HealthWithCustomizedMax, MovementSpeed));
@@ -2384,7 +2394,7 @@ public:
     E(vex, C(Same, LivingEntity, NoGravity));
     E(villager_v2, C(Rename(u8"villager"), Animal, FoodLevel, Inventory, Offers, Villager));
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
-    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, BodyArmorItemFromArmorItems, Wolf));
+    E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, BodyEquipmentFromArmorItems, Wolf));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed));
     E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
