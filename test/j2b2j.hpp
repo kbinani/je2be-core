@@ -689,6 +689,8 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       u8"leash/UUID",
       u8"listener",
       u8"HandDropChances", // TODO: Is there any way identifying hand items was picked-up thing or not?
+      u8"home_pos",
+      u8"home_radius",
   };
   if (id == u8"minecraft:armor_stand") {
     blacklist.insert(u8"Pose");
