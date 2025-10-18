@@ -1562,15 +1562,23 @@ private:
     }
   }
 
-  static void Strider(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    if (tag.int32(u8"Age", 0) >= 0) {
-      if (tag.boolean(u8"Saddle", false)) {
-        AddDefinition(c, u8"-minecraft:strider_unsaddled");
-        AddDefinition(c, u8"+minecraft:strider_saddled");
-      } else {
-        AddDefinition(c, u8"+minecraft:strider_unsaddled");
+  static void Strider(CompoundTag &b, CompoundTag const &j, ConverterContext &) {
+    if (j.int32(u8"Age", 0) >= 0) {
+      bool hasSaddle = false;
+      if (auto equipment = j.compoundTag(u8"equipment"); equipment) {
+        if (auto saddle = equipment->compoundTag(u8"saddle"); saddle) {
+          hasSaddle = true;
+        }
+      } else if (auto saddle = j.boolean(u8"Saddle"); saddle) {
+        hasSaddle = *saddle;
       }
-      AddDefinition(c, u8"-minecraft:strider_baby");
+      if (hasSaddle) {
+        AddDefinition(b, u8"-minecraft:strider_unsaddled");
+        AddDefinition(b, u8"+minecraft:strider_saddled");
+      } else {
+        AddDefinition(b, u8"+minecraft:strider_unsaddled");
+      }
+      AddDefinition(b, u8"-minecraft:strider_baby");
     }
   }
 
