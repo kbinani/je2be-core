@@ -705,6 +705,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"AX");
     blacklist.insert(u8"AY");
     blacklist.insert(u8"AZ");
+    blacklist.insert(u8"anchor_pos");
   } else if (id == u8"minecraft:turtle") {
     blacklist.insert(u8"TravelPosX");
     blacklist.insert(u8"TravelPosY");

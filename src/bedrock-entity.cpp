@@ -835,7 +835,11 @@ public:
   }
 
   static void Phantom(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    j[u8"Size"] = Int(0);
+    if (dataVersion >= (int)JavaDataVersions::Snapshot25w07a) {
+      j[u8"size"] = Int(0);
+    } else {
+      j[u8"Size"] = Int(0);
+    }
   }
 
   static void Piglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
