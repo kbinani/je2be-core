@@ -1431,7 +1431,7 @@ public:
 
   static void ItemsWithDecorItem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto chested = b.boolean(u8"Chested", false); chested) {
-      Items(u8"body_armor_item", b, j, ctx, dataVersion);
+      Items(ItemsSubItemKey::BodyArmorItem, b, j, ctx, dataVersion);
     }
 
     auto armorsJ = j.listTag(u8"ArmorItems");
@@ -1446,7 +1446,7 @@ public:
 
   static void ItemsWithSaddleItem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (auto chested = b.boolean(u8"Chested", false); chested) {
-      Items(u8"SaddleItem", b, j, ctx, dataVersion);
+      Items(ItemsSubItemKey::SaddleItem, b, j, ctx, dataVersion);
     }
   }
 
@@ -1926,7 +1926,11 @@ public:
     return false;
   }
 
-  static void Items(std::u8string subItemKey, CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+  enum class ItemsSubItemKey {
+    SaddleItem,    // SaddleItem
+    BodyArmorItem, // body_armor_item
+  };
+  static void Items(ItemsSubItemKey subItemKey, CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto chestItems = b.listTag(u8"ChestItems");
     auto items = List<Tag::Type::Compound>();
     if (chestItems) {
@@ -1954,9 +1958,29 @@ public:
       }
 
       if (subItem) {
-        j[subItemKey] = subItem;
-        if (subItemKey == u8"body_armor_item") {
-          j[u8"body_armor_drop_chance"] = Float(2);
+        if (dataVersion >= (int)JavaDataVersions::Snapshot25w03a) {
+          // 25w07a
+          // 25w04a
+          // 25w03a
+          switch (subItemKey) {
+          case ItemsSubItemKey::SaddleItem:
+            AddEquipment(j, u8"saddle", subItem);
+            break;
+          case ItemsSubItemKey::BodyArmorItem:
+            AddEquipment(j, u8"body", subItem);
+            break;
+          }
+        } else {
+          // 25w02a
+          switch (subItemKey) {
+          case ItemsSubItemKey::SaddleItem:
+            j[u8"SaddleItem"] = subItem;
+            break;
+          case ItemsSubItemKey::BodyArmorItem:
+            j[u8"body_armor_item"] = subItem;
+            j[u8"body_armor_drop_chance"] = Float(2);
+            break;
+          }
         }
       }
     }

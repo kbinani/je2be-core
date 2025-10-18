@@ -2488,9 +2488,15 @@ private:
     bool fAddAlwaysUnsaddledDefinition = true;
   };
   static Behavior Steerable(std::u8string const &definitionKey, SteerableOptions opt) {
-    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
       auto saddle = tag.boolean(u8"Saddle", false);
-      auto saddleItem = tag.compoundTag(u8"SaddleItem");
+      CompoundTagPtr saddleItem;
+      if (auto equipment = tag.compoundTag(u8"equipment"); equipment) {
+        saddleItem = equipment->compoundTag(u8"saddle");
+      }
+      if (!saddleItem) {
+        saddleItem = tag.compoundTag(u8"SaddleItem");
+      }
       if (saddle || saddleItem) {
         AddDefinition(c, u8"-minecraft:" + definitionKey + u8"_unsaddled");
         AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_saddled");
@@ -2506,7 +2512,7 @@ private:
       } else if (opt.fAddAlwaysUnsaddledDefinition) {
         AddDefinition(c, u8"+minecraft:" + definitionKey + u8"_unsaddled");
       }
-      c[u8"Saddled"] = Bool(saddle);
+      c[u8"Saddled"] = Bool(saddle || saddleItem);
     };
   }
 
