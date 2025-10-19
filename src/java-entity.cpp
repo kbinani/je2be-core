@@ -1134,16 +1134,22 @@ private:
     }
   }
 
-  static void Horse(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    auto variant = tag.int32(u8"Variant", 0);
+  static void Horse(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    auto variant = j.int32(u8"Variant", 0);
     auto baseColor = 0xf & variant;
     auto markings = 0xf & (variant >> 8);
-    c[u8"Variant"] = Int(baseColor);
-    c[u8"MarkVariant"] = Int(markings);
+    b[u8"Variant"] = Int(baseColor);
+    b[u8"MarkVariant"] = Int(markings);
 
-    if (auto armorItemJ = FallbackPtr<CompoundTag>(tag, {u8"body_armor_item", u8"ArmorItem"}); armorItemJ) {
+    CompoundTagPtr armorItemJ;
+    if (auto equipment = j.compoundTag(u8"equipment"); equipment) {
+      armorItemJ = equipment->compoundTag(u8"body");
+    } else {
+      armorItemJ = FallbackPtr<CompoundTag>(j, {u8"body_armor_item", u8"ArmorItem"});
+    }
+    if (armorItemJ) {
       if (auto armorItemB = Item::From(armorItemJ, ctx.fCtx, ctx.fDataVersion); armorItemB) {
-        AddChestItem(c, armorItemB, 1, 1);
+        AddChestItem(b, armorItemB, 1, 1);
       }
     }
 
@@ -1158,7 +1164,7 @@ private:
             {6, u8"base_darkbrown"},
         },
         u8"base_white");
-    AddDefinition(c, u8"+minecraft:" + sVariant.at(baseColor));
+    AddDefinition(b, u8"+minecraft:" + sVariant.at(baseColor));
 
     static DefaultMap<i32, std::u8string> const sMarkVariant(
         {
@@ -1169,23 +1175,27 @@ private:
             {4, u8"markings_black_dots"},
         },
         u8"markings_none");
-    AddDefinition(c, u8"+minecraft:" + sMarkVariant.at(markings));
+    AddDefinition(b, u8"+minecraft:" + sMarkVariant.at(markings));
 
     bool saddle = false;
-    if (auto saddleItem = tag.compoundTag(u8"SaddleItem"); saddleItem) {
-      if (Item::Count(*saddleItem, 0) > 0) {
-        AddDefinition(c, u8"+minecraft:horse_saddled");
-        auto item = Compound();
-        item->insert({
-            {u8"Damage", Byte(0)},
-            {u8"Name", String(u8"minecraft:saddle")},
-            {u8"WasPickedUp", Bool(false)},
-        });
-        AddChestItem(c, item, 0, 1);
-        saddle = true;
-      }
+    CompoundTagPtr saddleItem;
+    if (auto equipment = j.compoundTag(u8"equipment"); equipment) {
+      saddleItem = equipment->compoundTag(u8"saddle");
+    } else {
+      saddleItem = j.compoundTag(u8"SaddleItem");
     }
-    c[u8"Saddled"] = Bool(saddle);
+    if (saddleItem && Item::Count(*saddleItem, 0) > 0) {
+      AddDefinition(b, u8"+minecraft:horse_saddled");
+      auto item = Compound();
+      item->insert({
+          {u8"Damage", Byte(0)},
+          {u8"Name", String(u8"minecraft:saddle")},
+          {u8"WasPickedUp", Bool(false)},
+      });
+      AddChestItem(b, item, 0, 1);
+      saddle = true;
+    }
+    b[u8"Saddled"] = Bool(saddle);
   }
 
   static void HopperMinecart(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -2145,7 +2155,8 @@ private:
       CopyBoolValues(tag, *ret, {{u8"PersistenceRequired", u8"Persistent", false}});
     }
 
-    if (auto rawId = tag.string(u8"id"); rawId) {
+    auto rawId = tag.string(u8"id");
+    if (rawId) {
       auto id = MigrateName(*rawId);
       auto health = tag.float32(u8"Health");
       if (id == u8"minecraft:horse" || id == u8"minecraft:donkey" || id == u8"minecraft:mule" || id == u8"minecraft:skeleton_horse" || id == u8"minecraft:zombie_horse") {
@@ -2165,6 +2176,9 @@ private:
       auto slotDropChancesB = List<Tag::Type::Compound>();
       for (auto const &it : *dropChancesJ) {
         auto name = it.first;
+        if (name == u8"chest" || name == u8"body") {
+          continue;
+        }
         if (auto chanceJ = it.second->asFloat(); chanceJ) {
           auto chanceB = Compound();
           chanceB->set(u8"DropChance", Float(chanceJ->fValue));
@@ -2800,23 +2814,27 @@ private:
     tag[u8"definitions"] = d;
   }
 
-  static ListTagPtr GetArmor(CompoundTag const &tag, ConverterContext &ctx) {
+  static ListTagPtr GetArmor(CompoundTag const &j, ConverterContext &ctx) {
     auto armors = List<Tag::Type::Compound>();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
       armors->push_back(Item::Empty());
     }
 
-    if (auto equipment = tag.compoundTag(u8"equipment"); equipment) {
+    auto id = j.string(u8"id");
+    if (auto equipment = j.compoundTag(u8"equipment"); equipment) {
       auto leggings = equipment->compoundTag(u8"legs");
       auto chestplate = equipment->compoundTag(u8"chest");
       auto boots = equipment->compoundTag(u8"feet");
       auto helmet = equipment->compoundTag(u8"head");
+      auto body = equipment->compoundTag(u8"body");
       if (leggings) {
         if (auto converted = Item::From(leggings, ctx.fCtx, ctx.fDataVersion); converted) {
           armors->fValue[1] = converted;
         }
       }
-      if (chestplate) {
+      if (chestplate && id != u8"minecraft:horse") {
+        // The "minecraft:horse" entity may store body armor under the "chest" key, and this data can sometimes persist.
+        // The correct place to store it is under "body", so the data in "chest" should be ignored.
         if (auto converted = Item::From(chestplate, ctx.fCtx, ctx.fDataVersion); converted) {
           armors->fValue[2] = converted;
         }
@@ -2831,7 +2849,16 @@ private:
           armors->fValue[3] = converted;
         }
       }
-    } else if (auto found = tag.find(u8"ArmorItems"); found != tag.end()) {
+      if (body) {
+        if (auto converted = Item::From(body, ctx.fCtx, ctx.fDataVersion); converted) {
+          armors->fValue[4] = converted;
+        }
+      } else if (id == u8"minecraft:horse" && chestplate) {
+        if (auto converted = Item::From(body, ctx.fCtx, ctx.fDataVersion); converted) {
+          armors->fValue[4] = converted;
+        }
+      }
+    } else if (auto found = j.find(u8"ArmorItems"); found != j.end()) {
       auto list = found->second->asList();
       if (list && list->fType == Tag::Type::Compound) {
         for (int i = 0; i < 4 && i < list->size(); i++) {
@@ -2845,7 +2872,7 @@ private:
           }
         }
       }
-    } else if (auto equipment = tag.listTag(u8"Equipment"); equipment && equipment->fType == Tag::Type::Compound) {
+    } else if (auto equipment = j.listTag(u8"Equipment"); equipment && equipment->fType == Tag::Type::Compound) {
       // legacy
       if (equipment->fValue.size() >= 3) {
         if (auto leggings = std::dynamic_pointer_cast<CompoundTag>(equipment->fValue[2]); leggings) {
@@ -2869,9 +2896,9 @@ private:
         }
       }
     }
-    if (auto armor = tag.compoundTag(u8"body_armor_item"); armor) {
+    if (auto armor = j.compoundTag(u8"body_armor_item"); armor) {
       if (auto converted = Item::From(armor, ctx.fCtx, ctx.fDataVersion); converted) {
-        armors->fValue[1] = converted;
+        armors->fValue[4] = converted;
       }
     }
 
@@ -2880,7 +2907,7 @@ private:
     ret->push_back(armors->at(2));
     ret->push_back(armors->at(1));
     ret->push_back(armors->at(0));
-    ret->push_back(Item::Empty());
+    ret->push_back(armors->at(4));
 
     return ret;
   }

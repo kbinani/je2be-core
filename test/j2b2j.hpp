@@ -867,6 +867,9 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   copyE->erase(u8"equipment");
   copyA->erase(u8"equipment");
   if (equipmentE) {
+    if (id == u8"minecraft:horse") {
+      equipmentE->erase(u8"chest");
+    }
     CHECK(equipmentA);
     if (equipmentA) {
       CHECK(equipmentA->size() == equipmentE->size());
@@ -887,6 +890,25 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     }
   } else {
     CHECK(!equipmentA);
+  }
+
+  auto dropChancesE = entityE.compoundTag(u8"drop_chances");
+  auto dropChancesA = entityA.compoundTag(u8"drop_chances");
+  copyE->erase(u8"drop_chances");
+  copyA->erase(u8"drop_chances");
+  if (dropChancesE && id == u8"minecraft:horse") {
+    dropChancesE->erase(u8"chest");
+    if (dropChancesE->empty()) {
+      dropChancesE = nullptr;
+    }
+  }
+  if (dropChancesE) {
+    CHECK(dropChancesA);
+    if (dropChancesA) {
+      DiffCompoundTag(*dropChancesE, *dropChancesA);
+    }
+  } else {
+    CHECK(!dropChancesA);
   }
 
   auto offersE = entityE.compoundTag(u8"Offers");

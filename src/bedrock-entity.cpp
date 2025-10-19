@@ -740,7 +740,11 @@ public:
         auto slotJ = itemJ->byte(u8"Slot");
         itemJ->erase(u8"Slot");
         if (slotJ == 0) {
-          j[u8"SaddleItem"] = itemJ;
+          if (dataVersion > (int)JavaDataVersions::Snapshot25w02a) {
+            AddEquipment(j, u8"saddle", itemJ);
+          } else {
+            j[u8"SaddleItem"] = itemJ;
+          }
         }
       }
     }
@@ -1177,6 +1181,12 @@ public:
         if (auto bodyArmorB = armorsB->at(4)->asCompound(); bodyArmorB) {
           if (auto bodyArmorJ = Item::From(*bodyArmorB, ctx, dataVersion, {}); bodyArmorJ && !bodyArmorJ->empty()) {
             AddEquipment(j, u8"body", bodyArmorJ);
+            auto dropChancesJ = j.compoundTag(u8"drop_chances");
+            if (!dropChancesJ) {
+              dropChancesJ = Compound();
+            }
+            dropChancesJ->set(u8"body", Float(2));
+            j[u8"drop_chances"] = dropChancesJ;
           }
         }
       }
@@ -1571,7 +1581,7 @@ public:
     if (!slotDropChances) {
       return;
     }
-    CompoundTagPtr dropChancesJ = std::dynamic_pointer_cast<CompoundTag>(j[u8"drop_chances"]);
+    CompoundTagPtr dropChancesJ = j.compoundTag(u8"drop_chances");
     if (!dropChancesJ) {
       dropChancesJ = Compound();
     }
@@ -1590,7 +1600,7 @@ public:
       }
       dropChancesJ->set(*slot, Float(*chance));
     }
-    if (dropChancesJ) {
+    if (!dropChancesJ->empty()) {
       j[u8"drop_chances"] = dropChancesJ;
     }
   }
@@ -2009,13 +2019,22 @@ public:
           // 25w07a
           // 25w04a
           // 25w03a
+          auto dropChancesJ = j.compoundTag(u8"drop_chances");
+          if (!dropChancesJ) {
+            dropChancesJ = Compound();
+          }
           switch (subItemKey) {
           case ItemsSubItemKey::SaddleItem:
             AddEquipment(j, u8"saddle", subItem);
+            dropChancesJ->set(u8"saddle", Float(2));
             break;
           case ItemsSubItemKey::BodyArmorItem:
             AddEquipment(j, u8"body", subItem);
+            dropChancesJ->set(u8"body", Float(2));
             break;
+          }
+          if (!dropChancesJ->empty()) {
+            j[u8"drop_chances"] = dropChancesJ;
           }
         } else {
           // 25w02a
