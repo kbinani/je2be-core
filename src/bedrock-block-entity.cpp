@@ -893,6 +893,9 @@ public:
       break;
     }
     t->set(u8"rotation", rotationJ);
+    if (opt.fOutputDataVersion >= (int)JavaDataVersions::Snapshot25w02a) {
+      t->set(u8"strict", Bool(false));
+    }
 
     Result r;
     r.fTileEntity = t;
