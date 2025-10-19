@@ -1863,7 +1863,9 @@ private:
         if (!line) {
           continue;
         }
-        if (auto s = line->asString(); s) {
+        if (auto c = line->asCompound(); c) {
+          text += c->string(u8"text", u8"");
+        } else if (auto s = line->asString(); s) {
           text += props::GetTextComponent(strings::Unquote(s->fValue));
         }
       }

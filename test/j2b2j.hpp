@@ -218,6 +218,7 @@ static void CheckJson(props::Json const &e, props::Json const &a) {
     CHECK(expected == actual);
   }
 }
+
 static void CheckText(std::u8string const &e, std::u8string const &a, bool unquote) {
   auto jsonE = props::ParseAsJson(e);
   auto jsonA = props::ParseAsJson(a);
@@ -244,6 +245,31 @@ static void CheckText(std::u8string const &e, std::u8string const &a, bool unquo
   } else {
     CHECK(e == a);
   }
+}
+
+static void CheckTextComponent(shared_ptr<Tag> const &e, shared_ptr<Tag> const &a) {
+  static auto getText = [](shared_ptr<Tag> const &tag) -> optional<u8string> {
+    if (auto text = tag->asString(); text) {
+      auto json = props::ParseAsJson(text->fValue);
+      if (json) {
+        if (auto found = json->find("text"); found != json->end() && found->is_string()) {
+          auto str = found->get<string>();
+          return std::u8string((char8_t const *)str.c_str(), str.size());
+        } else {
+          return std::nullopt;
+        }
+      } else {
+        return text->fValue;
+      }
+    } else if (auto compound = tag->asCompound(); compound) {
+      return compound->string(u8"text");
+    } else {
+      return nullopt;
+    }
+  };
+  auto textE = getText(e);
+  auto textA = getText(a);
+  CHECK(textE == textA);
 }
 
 static void CheckItemName(CompoundTag const &expected, CompoundTag const &actual, u8string const &key) {
@@ -368,13 +394,9 @@ static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
     CHECK(messagesA);
     CHECK(messagesE->size() == messagesA->size());
     for (size_t i = 0; i < messagesE->size(); i++) {
-      auto lineE = messagesE->at(i)->asString();
-      REQUIRE(lineE);
-      auto lineA = messagesA->at(i)->asString();
-      REQUIRE(lineA);
-      auto lE = strings::Unquote(lineE->fValue);
-      auto lA = strings::Unquote(lineA->fValue);
-      CheckText(lE, lA, true);
+      auto lineE = messagesE->at(i);
+      auto lineA = messagesA->at(i);
+      CheckTextComponent(lineE, lineA);
     }
   }
   auto copyE = e.copy();

@@ -685,7 +685,7 @@ public:
     return r;
   }
 
-  static CompoundTagPtr SignText(CompoundTag const &input) {
+  static CompoundTagPtr SignText(CompoundTag const &input, int outputDataVersion) {
     using namespace std;
     auto ret = Compound();
 
@@ -702,15 +702,35 @@ public:
 
     auto text = input.string(u8"Text", u8"");
     vector<u8string> linesB = mcfile::String::Split(text, u8'\n');
-    auto messagesJ = List<Tag::Type::String>();
+    ListTagPtr messagesJ;
+    if (outputDataVersion >= (int)JavaDataVersions::Snapshot25w02a) {
+      messagesJ = List<Tag::Type::Compound>();
+    } else {
+      messagesJ = List<Tag::Type::String>();
+    }
     for (size_t i = 0; i < 4; i++) {
       u8string line = i < linesB.size() ? linesB[i] : u8"";
-      if (line.empty()) {
-        messagesJ->push_back(String(u8R"({"text":""})"));
+      if (outputDataVersion >= (int)JavaDataVersions::Snapshot25w02a) {
+        // 1.21.8
+        // 1.21.6
+        // 1.21.5
+        // 25w07a
+        // 25w04a
+        // 25w02a
+        auto text = Compound();
+        text->set(u8"text", String(line));
+        messagesJ->push_back(text);
       } else {
-        props::Json json;
-        props::SetJsonString(json, u8"text", line);
-        messagesJ->push_back(String(props::StringFromJson(json)));
+        // 1.21.4
+        // 1.20.6
+        // 1.20
+        if (line.empty()) {
+          messagesJ->push_back(String(u8R"({"text":""})"));
+        } else {
+          props::Json json;
+          props::SetJsonString(json, u8"text", line);
+          messagesJ->push_back(String(props::StringFromJson(json)));
+        }
       }
     }
     ret->set(u8"messages", messagesJ);
@@ -740,13 +760,13 @@ public:
       auto backTextB = tag.compoundTag(u8"BackText");
       if (frontTextB || backTextB) {
         if (frontTextB) {
-          auto frontTextJ = SignText(*frontTextB);
+          auto frontTextJ = SignText(*frontTextB, opt.fOutputDataVersion);
           te->set(u8"front_text", frontTextJ);
         } else {
           te->set(u8"front_text", SignTextEmpty());
         }
         if (backTextB) {
-          auto backTextJ = SignText(*backTextB);
+          auto backTextJ = SignText(*backTextB, opt.fOutputDataVersion);
           te->set(u8"back_text", backTextJ);
         } else {
           te->set(u8"back_text", SignTextEmpty());
