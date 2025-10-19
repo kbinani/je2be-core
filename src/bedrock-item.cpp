@@ -263,7 +263,13 @@ public:
       }
 
       auto variantB = tagB->int32(u8"Variant", 0);
-      tagJ->set(u8"Variant", Int(Axolotl::JavaVariantFromBedrockVariant(variantB)));
+      auto variantJ = Axolotl::JavaVariantFromBedrockVariant(variantB);
+      if (dataVersion >= (int)JavaDataVersions::Snapshot25w03a) {
+        auto variant = Axolotl::JavaStringVariantFromIntVariant(variantJ);
+        java::AppendComponent(itemJ, u8"axolotl/variant", String(variant));
+      } else {
+        tagJ->set(u8"Variant", Int(variantJ));
+      }
 
       java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);
     }

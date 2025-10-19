@@ -8,6 +8,7 @@
 #include "_nbt-ext.hpp"
 #include "_optional.hpp"
 #include "_props.hpp"
+#include "entity/_axolotl.hpp"
 #include "entity/_tropical-fish.hpp"
 #include "enums/_banner-color-code-bedrock.hpp"
 #include "enums/_color-code-java.hpp"
@@ -1094,26 +1095,32 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr AxolotlBucket(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto ret = New(u8"axolotl_bucket");
-    ret->set(u8"Damage", Short(0));
-    auto tg = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound();
+  static CompoundTagPtr AxolotlBucket(std::u8string const &name, CompoundTag const &j, Context const &, DataVersion const &dataVersion) {
+    auto b = New(u8"axolotl_bucket");
+    b->set(u8"Damage", Short(0));
+    i32 variant = 0;
+    if (auto v = GetComponent<StringTag>(j, u8"axolotl/variant"); v) {
+      variant = je2be::Axolotl::JavaIntVariantFromJavaStringVariant(v->fValue);
+    }
+    auto tg = FallbackQuery(j, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound();
     if (tg) {
       auto age = tg->int32(u8"Age", 0);
       auto health = tg->float32(u8"Health", 14);
-      auto variant = tg->int32(u8"Variant", 0);
+      if (auto v = tg->intTag(u8"Variant"); v) {
+        variant = v->fValue;
+      }
       auto axltl = Axolotl(age, health, variant);
       auto tag = axltl.toBedrockBucketTag();
 
-      auto customName = GetCustomName(item);
+      auto customName = GetCustomName(j);
       if (customName) {
         tag->set(u8"CustomName", *customName);
         tag->set(u8"CustomNameVisible", Bool(true));
       }
 
-      ret->set(u8"tag", tag);
+      b->set(u8"tag", tag);
     }
-    return ret;
+    return b;
   }
 
   static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &ctx, DataVersion const &dataVersion) {
