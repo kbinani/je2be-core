@@ -280,7 +280,9 @@ public:
     }
     j[u8"PersistenceRequired"] = Bool(false);
 
-    j[u8"CanDuplicate"] = Bool(true);
+    if (dataVersion < (int)JavaDataVersions::Snapshot25w07a) {
+      j[u8"CanDuplicate"] = Bool(true);
+    }
     CopyLongValues(b, j, {{u8"AllayDuplicationCooldown", u8"DuplicationCooldown"}});
   }
 
