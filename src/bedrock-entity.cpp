@@ -1784,7 +1784,11 @@ public:
       return;
     }
     saddleItem->erase(u8"Slot");
-    j[u8"SaddleItem"] = saddleItem;
+    if (dataVersion >= (int)JavaDataVersions::Snapshot25w03a) {
+      AddEquipment(j, u8"saddle", saddleItem);
+    } else {
+      j[u8"SaddleItem"] = saddleItem;
+    }
   }
 
   static void ShowBottom(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
