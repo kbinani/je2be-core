@@ -1121,9 +1121,7 @@ private:
     } else {
       AddDefinition(b, u8"+minecraft:baby");
     }
-    auto properties = Compound();
-    properties->set(u8"minecraft:can_move", Bool(true));
-    b[u8"properties"] = properties;
+    AddProperty(b, u8"minecraft:can_move", Bool(true));
   }
 
   static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
@@ -1734,10 +1732,8 @@ private:
     auto attributes = EntityAttributes::Wolf(!!owner, health);
     b[u8"Attributes"] = attributes.toBedrockListTag();
 
-    auto properties = Compound();
-    properties->set(u8"minecraft:has_increased_max_health", Bool(owner != std::nullopt));
-    properties->set(u8"minecraft:is_armorable", Bool(owner != std::nullopt));
-    b[u8"properties"] = properties;
+    AddProperty(b, u8"minecraft:has_increased_max_health", Bool(owner != std::nullopt));
+    AddProperty(b, u8"minecraft:is_armorable", Bool(owner != std::nullopt));
 
     if (owner) {
       AddDefinition(b, u8"+minecraft:wolf_increased_max_health");
