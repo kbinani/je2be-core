@@ -988,12 +988,20 @@ public:
         tagJ->set(u8"Age", Int(*age));
       }
       if (name == u8"minecraft:salmon_bucket") {
+        std::optional<std::u8string> size;
         if (Entity::HasDefinition(*tagB, u8"+scale_small")) {
-          tagJ->set(u8"type", String(u8"small"));
+          size = u8"small";
         } else if (Entity::HasDefinition(*tagB, u8"+scale_large")) {
-          tagJ->set(u8"type", String(u8"large"));
+          size = u8"large";
         } else if (Entity::HasDefinition(*tagB, u8"+scale_normal")) {
-          tagJ->set(u8"type", String(u8"medium"));
+          size = u8"medium";
+        }
+        if (size) {
+          if (dataVersion >= (int)JavaDataVersions::Snapshot25w03a) {
+            java::AppendComponent(itemJ, u8"salmon/size", String(*size));
+          } else {
+            tagJ->set(u8"type", String(*size));
+          }
         }
       }
       java::AppendComponent(itemJ, u8"bucket_entity_data", tagJ);

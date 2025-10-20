@@ -1157,10 +1157,13 @@ private:
         rep.fDefinitions.push_back(u8"+minecraft:" + type);
         rep.fDefinitions.push_back(u8"+");
         if (type == u8"salmon") {
-          auto size = data->string(u8"type");
-          if (size == u8"small") {
+          StringTagPtr size = GetComponent<StringTag>(item, u8"salmon/size");
+          if (!size) {
+            size = data->stringTag(u8"type");
+          }
+          if (size && size->fValue == u8"small") {
             rep.fDefinitions.push_back(u8"+scale_small");
-          } else if (size == u8"large") {
+          } else if (size && size->fValue == u8"large") {
             rep.fDefinitions.push_back(u8"+scale_large");
           } else {
             // "medium" or nullopt
