@@ -322,7 +322,7 @@ public:
         te->set(u8"Items", items);
       }
     }
-    if (opt.fOutputDataVersion > (int)JavaDataVersions::Snapshot25w18a) {
+    if (!opt.fItem && opt.fOutputDataVersion > (int)JavaDataVersions::Snapshot25w18a) {
       // 1.21.4 none
       // 1.21.5 none
       // 25w17a none
