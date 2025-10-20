@@ -613,8 +613,15 @@ private:
   }
 
   static String CreakingHeart(String const &bName, CompoundTag const &s, Props &p) {
-    auto active = s.boolean(u8"active", false);
-    p[u8"active"] = Bool(active);
+    if (auto state = s.string(u8"creaking_heart_state"); state) {
+      p[u8"creaking_heart_state"] = String(*state);
+    } else {
+      if (s.boolean(u8"active", false)) {
+        p[u8"creaking_heart_state"] = String(u8"dormant");
+      } else {
+        p[u8"creaking_heart_state"] = String(u8"uprooted");
+      }
+    }
     auto natural = s.boolean(u8"natural", false);
     p[u8"natural"] = Bool(natural);
     AxisFromPillarAxis(s, p);

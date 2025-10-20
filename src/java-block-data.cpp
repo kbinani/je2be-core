@@ -1979,8 +1979,16 @@ public:
   static CompoundTagPtr CreakingHeart(Block const &block, CompoundTagConstPtr const &, Options const &o) {
     auto c = New(block.fName, true);
     auto s = States();
-    auto active = block.property(u8"active", u8"false") == u8"true";
-    s->set(u8"active", Bool(active));
+    if (auto state = block.property(u8"creaking_heart_state"); !state.empty()) {
+      s->set(u8"creaking_heart_state", String(state));
+    } else {
+      auto active = block.property(u8"active") == u8"true";
+      if (active) {
+        s->set(u8"creaking_heart_state", String(u8"dormant"));
+      } else {
+        s->set(u8"creaking_heart_state", String(u8"uprooted"));
+      }
+    }
     auto natural = block.property(u8"natural", u8"false") == u8"true";
     s->set(u8"natural", Bool(natural));
     AxisToPillarAxis(s, block, o);
