@@ -819,6 +819,14 @@ private:
     return Ns() + woodType + u8"_fence";
   }
 
+  static String FlowerCarpet(String const &bName, CompoundTag const &s, Props &p) {
+    i32 growth = s.int32(u8"growth", 0);
+    i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
+    p[u8"flower_amount"] = mcfile::String::ToString(flowerCount);
+    FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1(s, p);
+    return bName;
+  }
+
   static String BlockWithDirection(String const &bName, CompoundTag const &s, Props &p) {
     auto inWall = s.boolean(u8"in_wall_bit", false);
     p[u8"in_wall"] = Bool(inWall);
@@ -971,6 +979,14 @@ private:
     auto hanging = s.boolean(u8"hanging", false);
     p[u8"hanging"] = Bool(hanging);
     Submergible(s, p);
+    return bName;
+  }
+
+  static String LeafLitter(String const &bName, CompoundTag const &s, Props &p) {
+    i32 growth = s.int32(u8"growth", 0);
+    i32 segmentCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
+    p[u8"segment_amount"] = mcfile::String::ToString(segmentCount);
+    FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1(s, p);
     return bName;
   }
 
@@ -1167,14 +1183,6 @@ private:
       }
       p[name] = typeJ;
     }
-    return bName;
-  }
-
-  static String BotanicalCarpet(String const &bName, CompoundTag const &s, Props &p) {
-    i32 growth = s.int32(u8"growth", 0);
-    i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
-    p[u8"flower_amount"] = mcfile::String::ToString(flowerCount);
-    FacingFromCardinalDirectionMigratingDirectionNorth2East3South0West1(s, p);
     return bName;
   }
 
@@ -3068,7 +3076,7 @@ private:
     E(torchflower_crop, C(Same, AgeFromGrowthNonLinear));
     E(cherry_slab, Slab);
     E(cherry_double_slab, DoubleSlab());
-    E(pink_petals, BotanicalCarpet);
+    E(pink_petals, FlowerCarpet);
     E(cherry_wood, BlockWithAxisFromPillarAxis);
     E(stripped_cherry_wood, BlockWithAxisFromPillarAxis);
     E(cherry_log, BlockWithAxisFromPillarAxis);
@@ -3239,8 +3247,8 @@ private:
     E(purpur_pillar, BlockWithAxisFromPillarAxis);
 
     E(dried_ghast, DriedGhast);
-    E(wildflowers, BotanicalCarpet);
-    E(leaf_litter, BotanicalCarpet);
+    E(wildflowers, FlowerCarpet);
+    E(leaf_litter, LeafLitter);
 #undef E
 
     return table;
