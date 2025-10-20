@@ -1639,9 +1639,17 @@ private:
 
   static CompoundTagPtr WolfArmor(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
     auto itemB = New(u8"wolf_armor");
-    if (auto rgbJ = item.query(u8"components/minecraft:dyed_color/rgb")->asInt(); rgbJ) {
+    std::optional<i32> color;
+    if (auto dyedColor = GetComponent<IntTag>(item, u8"minecraft:dyed_color"); dyedColor) {
+      color = dyedColor->fValue;
+    } else if (auto dyedColor = GetComponent<CompoundTag>(item, u8"minecraft:dyed_color"); dyedColor) {
+      if (auto rgb = dyedColor->int32(u8"rgb"); rgb) {
+        color = *rgb;
+      }
+    }
+    if (color) {
       auto tagB = Compound();
-      tagB->set(u8"customColor", Int(CustomColor(rgbJ->fValue)));
+      tagB->set(u8"customColor", Int(CustomColor(*color)));
       itemB->set(u8"tag", tagB);
     }
     return itemB;

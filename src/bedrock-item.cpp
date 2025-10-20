@@ -1044,9 +1044,13 @@ public:
   static std::u8string WolfArmor(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
     if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
       if (auto customColorB = tagB->int32(u8"customColor"); customColorB) {
-        auto dyedColor = Compound();
-        dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColorB)));
-        java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+        if (dataVersion >= (int)JavaDataVersions::Snapshot25w04a) {
+          java::AppendComponent(itemJ, u8"dyed_color", Int(RgbFromCustomColor(*customColorB)));
+        } else {
+          auto dyedColor = Compound();
+          dyedColor->set(u8"rgb", Int(RgbFromCustomColor(*customColorB)));
+          java::AppendComponent(itemJ, u8"dyed_color", dyedColor);
+        }
       }
     }
     return name;
