@@ -37,6 +37,8 @@ static void CheckBlockJ(shared_ptr<mcfile::je::Block const> const &blockE, share
   fallbackJtoB[u8"minecraft:petrified_oak_slab"] = u8"minecraft:oak_slab"; // does not exist in BE. should be replaced to oak_slab when java -> bedrock.
   fallbackJtoB[u8"minecraft:cave_air"] = u8"minecraft:air";
   fallbackJtoB[u8"minecraft:void_air"] = u8"minecraft:air";
+  fallbackJtoB[u8"minecraft:test_block"] = u8"minecraft:air";
+  fallbackJtoB[u8"minecraft:test_instance_block"] = u8"minecraft:air";
 
   unordered_map<u8string_view, u8string> fallbackBtoJ;
   fallbackBtoJ[u8"minecraft:frame"] = u8"minecraft:air";      // frame should be converted as an entity.
@@ -1160,6 +1162,8 @@ static void CheckChunkJ(mcfile::je::Region const &regionE, mcfile::je::Region co
     static unordered_set<u8string> blacklist({
         u8"minecraft:sculk_sensor",
         u8"minecraft:calibrated_sculk_sensor",
+        u8"minecraft:test_block",
+        u8"minecraft:test_instance_block",
     });
     if (blacklist.find(tileE->string(u8"id", u8"")) != blacklist.end()) {
       continue;

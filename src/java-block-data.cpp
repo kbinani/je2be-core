@@ -1962,6 +1962,8 @@ public:
     E(dried_ghast, DriedGhast);
     E(wildflowers, FlowerCarpet);
     E(leaf_litter, LeafLitter);
+    E(test_block, Rename(u8"air"));
+    E(test_instance_block, Rename(u8"air"));
 #undef E
 
     return table;
