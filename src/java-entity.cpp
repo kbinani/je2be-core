@@ -1105,6 +1105,7 @@ private:
   static void HappyGhast(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
     AddDefinition(b, u8"+minecraft:happy_ghast");
     auto age = j.int32(u8"Age", 0);
+    b[u8"Age"] = Int(age);
     if (age >= 0) {
       AddDefinition(b, u8"+minecraft:adult");
       AddDefinition(b, u8"+minecraft:adult_mobile");
@@ -1122,6 +1123,8 @@ private:
       AddDefinition(b, u8"+minecraft:baby");
     }
     AddProperty(b, u8"minecraft:can_move", Bool(true));
+    auto attributes = EntityAttributes::HappyGhast(age < 0);
+    b[u8"Attributes"] = attributes.toBedrockListTag();
   }
 
   static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {

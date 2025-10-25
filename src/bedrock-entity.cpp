@@ -754,6 +754,9 @@ public:
 
   static void HappyGhast(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     Equipment(b, j, ctx, dataVersion);
+    if (j.query(u8"equipment/body")->type() == Tag::Type::Compound) {
+      AddDropChance(j, u8"body", 2);
+    }
     auto leasher = b.int64(u8"LeasherID");
     if (leasher) {
       j[u8"home_radius"] = Int(9);
@@ -761,6 +764,10 @@ public:
       j[u8"home_radius"] = Int(32);
     }
     j[u8"still_timeout"] = Int(0);
+    auto age = b.int32(u8"Age", 0);
+    if (age < 0) {
+      j[u8"NoGravity"] = Bool(true);
+    }
   }
 
   static void IronGolem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1183,12 +1190,7 @@ public:
         if (auto bodyArmorB = armorsB->at(4)->asCompound(); bodyArmorB) {
           if (auto bodyArmorJ = Item::From(*bodyArmorB, ctx, dataVersion, {}); bodyArmorJ && !bodyArmorJ->empty()) {
             AddEquipment(j, u8"body", bodyArmorJ);
-            auto dropChancesJ = j.compoundTag(u8"drop_chances");
-            if (!dropChancesJ) {
-              dropChancesJ = Compound();
-            }
-            dropChancesJ->set(u8"body", Float(2));
-            j[u8"drop_chances"] = dropChancesJ;
+            AddDropChance(j, u8"body", 2);
           }
         }
       }
@@ -1304,22 +1306,15 @@ public:
     if (!armor) {
       return;
     }
-    if (armor->size() < 5) {
-      return;
+    if (armor->size() >= 5) {
+      if (auto elementB = armor->at(4); elementB) {
+        if (auto itemB = elementB->asCompound(); itemB) {
+          if (auto itemJ = Item::From(*itemB, ctx, dataVersion, {}); itemJ && !itemJ->empty()) {
+            AddEquipment(j, u8"body", itemJ);
+          }
+        }
+      }
     }
-    auto body = armor->at(4);
-    if (!body) {
-      return;
-    }
-    auto bodyComponent = body->asCompound();
-    if (!bodyComponent) {
-      return;
-    }
-    auto bodyItem = Item::From(*bodyComponent, ctx, dataVersion, {});
-    if (!bodyItem) {
-      return;
-    }
-    AddEquipment(j, u8"body", bodyItem);
   }
 
   static void FallDistance(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1583,10 +1578,6 @@ public:
     if (!slotDropChances) {
       return;
     }
-    CompoundTagPtr dropChancesJ = j.compoundTag(u8"drop_chances");
-    if (!dropChancesJ) {
-      dropChancesJ = Compound();
-    }
     for (auto const &it : *slotDropChances) {
       auto compound = it->asCompound();
       if (!compound) {
@@ -1600,10 +1591,7 @@ public:
       if (!slot) {
         continue;
       }
-      dropChancesJ->set(*slot, Float(*chance));
-    }
-    if (!dropChancesJ->empty()) {
-      j[u8"drop_chances"] = dropChancesJ;
+      AddDropChance(j, *slot, *chance);
     }
   }
 
@@ -1914,6 +1902,15 @@ public:
     equipment->set(name, itemJ);
   }
 
+  static void AddDropChance(CompoundTag &j, std::u8string const &part, float chance) {
+    auto dropChancesJ = j.compoundTag(u8"drop_chances");
+    if (!dropChancesJ) {
+      dropChancesJ = Compound();
+      j[u8"drop_chances"] = dropChancesJ;
+    }
+    dropChancesJ->set(part, Float(chance));
+  }
+
   static CompoundTagPtr FindAttribute(CompoundTag const &entityB, std::u8string const &name) {
     auto attributesB = entityB.listTag(u8"Attributes");
     if (!attributesB) {
@@ -2025,22 +2022,15 @@ public:
           // 25w07a
           // 25w04a
           // 25w03a
-          auto dropChancesJ = j.compoundTag(u8"drop_chances");
-          if (!dropChancesJ) {
-            dropChancesJ = Compound();
-          }
           switch (subItemKey) {
           case ItemsSubItemKey::SaddleItem:
             AddEquipment(j, u8"saddle", subItem);
-            dropChancesJ->set(u8"saddle", Float(2));
+            AddDropChance(j, u8"saddle", 2);
             break;
           case ItemsSubItemKey::BodyArmorItem:
             AddEquipment(j, u8"body", subItem);
-            dropChancesJ->set(u8"body", Float(2));
+            AddDropChance(j, u8"body", 2);
             break;
-          }
-          if (!dropChancesJ->empty()) {
-            j[u8"drop_chances"] = dropChancesJ;
           }
         } else {
           // 25w02a
@@ -2489,7 +2479,7 @@ public:
 
     E(creaking, C(Same, LivingEntity, Creaking));
 
-    E(happy_ghast, C(Same, LivingEntity, HappyGhast));
+    E(happy_ghast, C(Same, LivingEntity, Age, InLove, HappyGhast));
 #undef E
     return ret;
   }
