@@ -712,7 +712,6 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
       u8"Offers/Recipes/*/sell/tag/map",
       u8"EatingHaystack",
       u8"PersistenceRequired", // This is default false for animals in JE. BE reqires Persistent = true even for animals. So this property cannot completely recover in round-trip conversion.
-      u8"leash/UUID",
       u8"listener",
       u8"HandDropChances", // TODO: Is there any way identifying hand items was picked-up thing or not?
       u8"home_pos",
@@ -964,6 +963,34 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   } else {
     CHECK(!rotationA);
   }
+
+  auto leashE = entityE.query(u8"leash");
+  auto leashA = entityA.query(u8"leash");
+  if (leashE->type() == Tag::Type::Compound) {
+    auto le = leashE->asCompound();
+    REQUIRE(le);
+    REQUIRE(le->intArrayTag(u8"UUID"));
+    CHECK(leashA->type() == Tag::Type::Compound);
+    if (auto la = leashA->asCompound(); la) {
+      CHECK(la->intArrayTag(u8"UUID"));
+    }
+  } else if (leashE->type() == Tag::Type::IntArray) {
+    auto le = leashE->asIntArray();
+    REQUIRE(le);
+    REQUIRE(le->fValue.size() == 3);
+    CHECK(leashA->type() == Tag::Type::IntArray);
+    if (auto la = leashA->asIntArray(); la) {
+      REQUIRE(la->fValue.size() == 3);
+      for (size_t i = 0; i < 3; i++) {
+        CHECK(le->fValue[i] == la->fValue[i]);
+      }
+    }
+  } else {
+    REQUIRE(leashE->type() == Tag::Type::End);
+    CHECK(leashA->type() == Tag::Type::End);
+  }
+  copyE->erase(u8"leash");
+  copyA->erase(u8"leash");
 
   DiffCompoundTag(*copyE, *copyA);
 }
