@@ -1377,15 +1377,19 @@ private:
     }
   }
 
-  static void Piglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    if (auto cannotHant = tag.boolean(u8"CannotHunt", false); cannotHant) {
-      AddDefinition(c, u8"+not_hunter");
+  static void Piglin(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    if (auto cannotHant = j.boolean(u8"CannotHunt", false); cannotHant) {
+      AddDefinition(b, u8"+not_hunter");
     } else {
-      AddDefinition(c, u8"+hunter");
+      AddDefinition(b, u8"+hunter");
     }
 
     CompoundTagPtr itemInHand;
-    if (auto inHand = tag.listTag(u8"HandItems"); inHand) {
+    if (auto equipment = j.compoundTag(u8"equipment"); equipment) {
+      if (auto mainhand = equipment->compoundTag(u8"mainhand"); mainhand) {
+        itemInHand = Item::From(mainhand, ctx.fCtx, ctx.fDataVersion);
+      }
+    } else if (auto inHand = j.listTag(u8"HandItems"); inHand) {
       for (auto const &it : *inHand) {
         if (auto item = dynamic_pointer_cast<CompoundTag>(it); item) {
           itemInHand = Item::From(item, ctx.fCtx, ctx.fDataVersion);
@@ -1396,28 +1400,28 @@ private:
       }
     }
     if (itemInHand) {
-      c.set(u8"ItemInHand", itemInHand);
+      b.set(u8"ItemInHand", itemInHand);
       auto name = itemInHand->string(u8"Name");
       if (name == u8"minecraft:crossbow") {
-        AddDefinition(c, u8"+ranged_unit");
+        AddDefinition(b, u8"+ranged_unit");
       } else if (name == u8"minecraft:golden_sword") {
-        AddDefinition(c, u8"+melee_unit");
+        AddDefinition(b, u8"+melee_unit");
       }
     }
-    AddDefinition(c, u8"+alert_for_attack_targets");
-    AddDefinition(c, u8"+attack_cooldown");
-    AddDefinition(c, u8"+interactable_piglin");
+    AddDefinition(b, u8"+alert_for_attack_targets");
+    AddDefinition(b, u8"+attack_cooldown");
+    AddDefinition(b, u8"+interactable_piglin");
 
-    bool baby = tag.boolean(u8"IsBaby", false);
-    c.set(u8"IsBaby", Bool(baby));
+    bool baby = j.boolean(u8"IsBaby", false);
+    b.set(u8"IsBaby", Bool(baby));
     if (baby) {
-      AddDefinition(c, u8"+piglin_baby");
+      AddDefinition(b, u8"+piglin_baby");
     } else {
-      AddDefinition(c, u8"+piglin_adult");
+      AddDefinition(b, u8"+piglin_adult");
     }
 
-    if (!c.listTag(u8"ChestItems")) {
-      c.set(u8"ChestItems", InitItemList(8));
+    if (!b.listTag(u8"ChestItems")) {
+      b.set(u8"ChestItems", InitItemList(8));
     }
   }
 
