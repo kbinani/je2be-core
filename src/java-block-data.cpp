@@ -1774,7 +1774,7 @@ public:
     E(deepslate_brick_wall, wall);
     E(deepslate_tile_wall, wall);
 
-    E(lightning_rod, facingDirectionFromFacingA);
+    E(lightning_rod, Converter(Same, FacingDirectionAFromFacing, Name(Powered, u8"powered_bit")););
 
     E(small_amethyst_bud, blockFaceFromFacing);
     E(medium_amethyst_bud, blockFaceFromFacing);

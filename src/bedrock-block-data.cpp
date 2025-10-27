@@ -1045,6 +1045,13 @@ private:
     return Ns() + u8"light";
   }
 
+  static String LightningRod(String const &bName, CompoundTag const &s, Props &p) {
+    Facing6FromFacingDirectionA(s, p);
+    Submergible(s, p);
+    p[u8"powered"] = Bool(s.boolean(u8"powered_bit", false));
+    return bName;
+  }
+
   static String Liquid(String const &bName, CompoundTag const &s, Props &p) {
     auto depth = s.int32(u8"liquid_depth", 0);
     p[u8"level"] = Int(depth);
@@ -2892,7 +2899,7 @@ private:
     E(lava, Liquid);
     E(lectern, Lectern);
     E(lever, Lever);
-    E(lightning_rod, BlockWithFacing6FromFacingDirectionASubmergible);
+    E(lightning_rod, LightningRod);
     E(light_block, LightBlock);
     E(light_weighted_pressure_plate, BlockWithPowerFromRedstoneSignal);
     E(waterlily, Rename(u8"lily_pad"));
