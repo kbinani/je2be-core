@@ -1397,6 +1397,28 @@ static void CheckPoiJ(mcfile::je::Region const &regionE, mcfile::je::Region cons
     for (u8string const &s : blacklist) {
       Erase(poiE, s);
     }
+
+    static std::unordered_set<std::u8string> const typeBlacklist = {
+        u8"minecraft:test_instance",
+    };
+    if (auto sectionsE = poiE->compoundTag(u8"Sections"); sectionsE) {
+      for (auto &[chunk, section] : sectionsE->fValue) {
+        auto sectionCompound = section->asCompound();
+        REQUIRE(sectionCompound);
+        auto records = sectionCompound->listTag(u8"Records");
+        if (!records) {
+          continue;
+        }
+        for (int i = (int)records->fValue.size() - 1; i >= 0; i--) {
+          auto record = records->fValue[i];
+          auto recordCompound = record->asCompound();
+          REQUIRE(recordCompound);
+          if (typeBlacklist.count(recordCompound->string(u8"type", u8"")) > 0) {
+            records->fValue.erase(records->fValue.begin() + i);
+          }
+        }
+      }
+    }
     RemoveEmpty(*poiE);
     if (poiE->empty()) {
       poiE.reset();
