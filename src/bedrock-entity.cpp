@@ -708,6 +708,10 @@ public:
   static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto cannotBeHunted = HasDefinition(b, u8"-angry_hoglin");
     j[u8"CannotBeHunted"] = Bool(cannotBeHunted);
+    if (auto uuidB = b.int64(u8"TargetID"); uuidB && *uuidB != -1) {
+      auto uuidJ = Uuid::GenWithI64Seed(*uuidB);
+      j[u8"last_hurt_by_mob"] = uuidJ.toIntArrayTag();
+    }
   }
 
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {

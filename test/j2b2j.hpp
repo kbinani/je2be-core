@@ -724,6 +724,16 @@ static void CheckRotationJ(ListTag const &e, ListTag const &a) {
   }
 }
 
+static void CheckUuidJ(CompoundTag const &e, CompoundTag const &a, std::u8string const &key) {
+  auto idE = e.intArrayTag(key);
+  auto idA = a.intArrayTag(key);
+  if (idE) {
+    CHECK(idA);
+  } else {
+    CHECK(!idA);
+  }
+}
+
 static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, CompoundTag const &entityA, CheckEntityJOptions options) {
   auto copyE = entityE.copy();
   auto copyA = entityA.copy();
@@ -732,8 +742,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   auto posA = props::GetPos3d(*copyA, u8"Pos");
 
   if ((options.fRawValue & CheckEntityJOptions::ignoreUUID) == 0) {
-    CHECK(copyE->intArrayTag(u8"UUID"));
-    CHECK(copyA->intArrayTag(u8"UUID"));
+    CheckUuidJ(*copyE, *copyA, u8"UUID");
   }
 
   if ((options.fRawValue & CheckEntityJOptions::ignorePos) == 0) {
@@ -816,6 +825,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"TimeInOverworld");
   } else if (id == u8"minecraft:hoglin") {
     blacklist.insert(u8"TimeInOverworld");
+    blacklist.insert(u8"ticks_since_last_hurt_by_mob");
   } else if (id == u8"minecraft:minecart" || id == u8"minecraft:tnt_minecart" || id == u8"minecraft:hopper_minecart") {
     blacklist.insert(u8"FlippedRotation");
     blacklist.insert(u8"HasTicked");
@@ -887,6 +897,9 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
 
   CheckItemName(entityE, entityA, u8"CustomName");
   blacklist.insert(u8"CustomName");
+
+  CheckUuidJ(entityE, entityA, u8"last_hurt_by_mob");
+  blacklist.insert(u8"last_hurt_by_mob");
 
   for (u8string const &it : blacklist) {
     Erase(copyE, it);

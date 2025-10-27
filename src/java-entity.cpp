@@ -1147,10 +1147,16 @@ private:
     Leash(j, b, ctx);
   }
 
-  static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    AddDefinition(c, u8"+huntable_adult");
-    if (tag.boolean(u8"CannotBeHunted", false)) {
-      AddDefinition(c, u8"-angry_hoglin");
+  static void Hoglin(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    AddDefinition(b, u8"+huntable_adult");
+    if (j.boolean(u8"CannotBeHunted", false)) {
+      AddDefinition(b, u8"-angry_hoglin");
+    }
+    if (auto lastHurtByMob = j.intArrayTag(u8"last_hurt_by_mob"); lastHurtByMob) {
+      if (auto uuidJ = Uuid::FromIntArray(*lastHurtByMob); uuidJ) {
+        i64 uuidB = ctx.fCtx.fUuids->toId(*uuidJ);
+        b[u8"TargetID"] = Long(uuidB);
+      }
     }
   }
 
