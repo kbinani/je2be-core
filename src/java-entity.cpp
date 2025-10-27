@@ -599,7 +599,7 @@ private:
     E(fox, C(Animal, AgeableA(u8"minecraft:fox"), Fox));
     M(ghast);
     M(guardian);
-    E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), Hoglin));
+    E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), ZombificationSensor, Hoglin));
     E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"minecraft:horse"), Temper, Horse));
     E(husk, C(Monster, AgeableB(u8"zombie_husk")));
     E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Definitions({u8"+minecraft:strength_3"}), Llama));
@@ -612,8 +612,8 @@ private:
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig", {.fAddAlwaysUnsaddledDefinition = true}), ClimateVariant));
-    E(piglin, C(Monster, ChestItemsFromInventory, Piglin));
-    E(piglin_brute, C(Monster, PiglinBrute));
+    E(piglin, C(Monster, ChestItemsFromInventory, ZombificationSensor, Piglin));
+    E(piglin_brute, C(Monster, ZombificationSensor, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
 
     E(polar_bear, C(Animal, PolarBear));
@@ -1149,7 +1149,6 @@ private:
 
   static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"+huntable_adult");
-    AddDefinition(c, u8"+zombification_sensor");
     if (tag.boolean(u8"CannotBeHunted", false)) {
       AddDefinition(c, u8"-angry_hoglin");
     }
@@ -1400,7 +1399,6 @@ private:
       }
     }
     AddDefinition(c, u8"+alert_for_attack_targets");
-    AddDefinition(c, u8"+zombification_sensor");
     AddDefinition(c, u8"+attack_cooldown");
     AddDefinition(c, u8"+interactable_piglin");
 
@@ -1432,7 +1430,6 @@ private:
         }
       }
     }
-    AddDefinition(c, u8"+zombification_sensor");
     AddDefinition(c, u8"+alert_for_attack_targets");
     AddDefinition(c, u8"+melee_unit");
     AddDefinition(c, u8"+go_back_to_spawn");
@@ -1960,6 +1957,18 @@ private:
 
   static void Temper(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     CopyIntValues(tag, c, {{u8"Temper"}});
+  }
+
+  static void ZombificationSensor(CompoundTag &b, CompoundTag const &j, ConverterContext &) {
+    auto isImmuneToZombification = j.boolean(u8"IsImmuneToZombification");
+    if (!isImmuneToZombification) {
+      return;
+    }
+    if (*isImmuneToZombification) {
+      AddDefinition(b, u8"-zombification_sensor");
+    } else {
+      AddDefinition(b, u8"+zombification_sensor");
+    }
   }
 #pragma endregion
 

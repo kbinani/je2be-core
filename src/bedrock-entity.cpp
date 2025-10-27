@@ -706,9 +706,8 @@ public:
   }
 
   static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
-    if (HasDefinition(b, u8"-angry_hoglin")) {
-      j[u8"CannotBeHunted"] = Bool(true);
-    }
+    auto cannotBeHunted = HasDefinition(b, u8"-angry_hoglin");
+    j[u8"CannotBeHunted"] = Bool(cannotBeHunted);
   }
 
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -858,6 +857,8 @@ public:
   static void Piglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (HasDefinition(b, u8"+not_hunter")) {
       j[u8"CannotHunt"] = Bool(true);
+    } else if (HasDefinition(b, u8"+hunter")) {
+      j[u8"CannotHunt"] = Bool(false);
     }
   }
 
@@ -1427,6 +1428,17 @@ public:
 
   static void HurtTime(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     CopyShortValues(b, j, {{u8"HurtTime"}});
+  }
+
+  static void IsImmuneToZombification(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (dataVersion < (int)JavaDataVersions::Snapshot24w09a) {
+      return;
+    }
+    if (HasDefinition(b, u8"+zombification_sensor")) {
+      j[u8"IsImmuneToZombification"] = Bool(false);
+    } else if (HasDefinition(b, u8"-zombification_sensor")) {
+      j[u8"IsImmuneToZombification"] = Bool(true);
+    }
   }
 
   static void InLove(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2483,9 +2495,9 @@ public:
     E(goat, C(Same, Animal, Goat));
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
     E(wither, C(Same, LivingEntity, Wither));
-    E(piglin, C(Same, LivingEntity, Inventory, IsBaby, Piglin));
-    E(piglin_brute, C(Same, LivingEntity, PiglinBrute));
-    E(hoglin, C(Same, Animal, Hoglin));
+    E(piglin, C(Same, LivingEntity, Inventory, IsBaby, IsImmuneToZombification, Piglin));
+    E(piglin_brute, C(Same, LivingEntity, IsImmuneToZombification, PiglinBrute));
+    E(hoglin, C(Same, Animal, IsImmuneToZombification, Hoglin));
     E(arrow, C(Same, Base, Owner, Arrow));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));
