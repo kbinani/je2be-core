@@ -1125,6 +1125,7 @@ private:
     AddProperty(b, u8"minecraft:can_move", Bool(true));
     auto attributes = EntityAttributes::HappyGhast(age < 0);
     b[u8"Attributes"] = attributes.toBedrockListTag();
+    Leash(j, b, ctx);
   }
 
   static void Hoglin(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
