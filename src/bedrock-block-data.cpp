@@ -827,11 +827,11 @@ private:
     return bName;
   }
 
-  static String BlockWithDirection(String const &bName, CompoundTag const &s, Props &p) {
+  static String FenceGate(String const &bName, CompoundTag const &s, Props &p) {
     auto inWall = s.boolean(u8"in_wall_bit", false);
     p[u8"in_wall"] = Bool(inWall);
     p[u8"powered"] = Bool(false);
-    Facing4FromDirectionA(s, p);
+    Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     OpenFromOpenBit(s, p);
     if (bName.ends_with(u8":fence_gate")) {
       return Ns() + u8"oak_fence_gate";
@@ -2389,14 +2389,14 @@ private:
     E(nether_brick_fence, BlockWithSubmergible);
     E(warped_fence, BlockWithSubmergible);
 
-    E(acacia_fence_gate, BlockWithDirection);
-    E(birch_fence_gate, BlockWithDirection);
-    E(crimson_fence_gate, BlockWithDirection);
-    E(dark_oak_fence_gate, BlockWithDirection);
-    E(jungle_fence_gate, BlockWithDirection);
-    E(fence_gate, BlockWithDirection);
-    E(spruce_fence_gate, BlockWithDirection);
-    E(warped_fence_gate, BlockWithDirection);
+    E(acacia_fence_gate, FenceGate);
+    E(birch_fence_gate, FenceGate);
+    E(crimson_fence_gate, FenceGate);
+    E(dark_oak_fence_gate, FenceGate);
+    E(jungle_fence_gate, FenceGate);
+    E(fence_gate, FenceGate);
+    E(spruce_fence_gate, FenceGate);
+    E(warped_fence_gate, FenceGate);
 
     E(leaves, LeavesLegacy);
     E(leaves2, Leaves2);
@@ -3024,7 +3024,7 @@ private:
     E(mangrove_button, Button);
     E(mangrove_door, Door);
     E(mangrove_fence, BlockWithSubmergible);
-    E(mangrove_fence_gate, BlockWithDirection);
+    E(mangrove_fence_gate, FenceGate);
     E(mangrove_pressure_plate, PressurePlate);
     E(mangrove_standing_sign, StandingSign);
     E(mangrove_stairs, Stairs);
@@ -3047,7 +3047,7 @@ private:
     E(bamboo_button, Button);
     E(bamboo_door, Door);
     E(bamboo_fence, BlockWithSubmergible);
-    E(bamboo_fence_gate, BlockWithDirection);
+    E(bamboo_fence_gate, FenceGate);
     E(bamboo_hanging_sign, HangingSign);
     E(bamboo_mosaic_slab, Slab);
     E(bamboo_mosaic_double_slab, DoubleSlab());
@@ -3087,7 +3087,7 @@ private:
     E(cherry_standing_sign, StandingSign);
     E(cherry_wall_sign, BlockWithFacing4FromFacingDirectionASubmergible);
     E(cherry_door, Door);
-    E(cherry_fence_gate, BlockWithDirection);
+    E(cherry_fence_gate, FenceGate);
     E(cherry_fence, BlockWithSubmergible);
     E(cherry_trapdoor, Trapdoor);
     E(cherry_sapling, sapling);
@@ -3215,7 +3215,7 @@ private:
     E(pale_oak_slab, Slab);
     E(pale_oak_double_slab, DoubleSlab(u8"pale_oak_slab"));
     E(pale_oak_fence, BlockWithSubmergible);
-    E(pale_oak_fence_gate, BlockWithDirection);
+    E(pale_oak_fence_gate, FenceGate);
     E(pale_oak_door, Door);
     E(pale_oak_trapdoor, Trapdoor);
     E(pale_oak_pressure_plate, PressurePlate);

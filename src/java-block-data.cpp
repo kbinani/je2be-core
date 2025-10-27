@@ -1566,8 +1566,8 @@ public:
     E(dispenser, Converter(Same, FacingDirectionAFromFacingByItemDefault(3), Name(Triggered, u8"triggered_bit")));
     E(lever, Converter(Same, LeverDirection, Name(Powered, u8"open_bit")));
 
-    Converter fenceGate(Same, DirectionFromFacingA, Name(InWall, u8"in_wall_bit"), Name(Open, u8"open_bit"));
-    E(oak_fence_gate, Converter(Name(u8"fence_gate"), DirectionFromFacingA, Name(InWall, u8"in_wall_bit"), Name(Open, u8"open_bit")));
+    Converter fenceGate(Same, CardinalDirectionFromFacing4, Name(InWall, u8"in_wall_bit"), Name(Open, u8"open_bit"));
+    E(oak_fence_gate, Converter(Name(u8"fence_gate"), CardinalDirectionFromFacing4, Name(InWall, u8"in_wall_bit"), Name(Open, u8"open_bit")));
     E(spruce_fence_gate, fenceGate);
     E(birch_fence_gate, fenceGate);
     E(jungle_fence_gate, fenceGate);
