@@ -714,10 +714,10 @@ public:
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     if (dataVersion < (int)JavaDataVersions::Snapshot25w02a) {
       auto armorDropChances = List<Tag::Type::Float>();
-      armorDropChances->push_back(Float(0.085));
-      armorDropChances->push_back(Float(0.085));
+      armorDropChances->push_back(Float(0.085f));
+      armorDropChances->push_back(Float(0.085f));
       armorDropChances->push_back(Float(0));
-      armorDropChances->push_back(Float(0.085));
+      armorDropChances->push_back(Float(0.085f));
       j[u8"ArmorDropChances"] = armorDropChances;
     }
 
@@ -1128,7 +1128,7 @@ public:
           armorJ = Compound();
         }
         armors.push_back(armorJ);
-        chances.push_back(Float(0.085));
+        chances.push_back(Float(0.085f));
       }
       if (armors.size() >= 4) {
         armorsJ.push_back(armors[3]); // boots
@@ -1220,7 +1220,7 @@ public:
       j[u8"body_armor_item"] = armor;
       j[u8"body_armor_drop_chance"] = Float(2);
       armorItems->fValue[1] = Compound();
-      armorDropChances->fValue[1] = Float(0.085);
+      armorDropChances->fValue[1] = Float(0.085f);
     }
   }
 
@@ -1359,15 +1359,18 @@ public:
       itemsJ.push_back(itemJ);
       chancesJ.push_back(Float(HandDropChance(*itemJ, identifier)));
     }
+    assert(itemsJ.size() == chancesJ.size());
     if (dataVersion > (int)JavaDataVersions::Snapshot25w02a) {
       if (itemsJ.size() > 0) {
         if (auto mainhand = itemsJ[0]; !mainhand->empty()) {
           AddEquipment(j, u8"mainhand", mainhand);
+          AddDropChance(j, u8"mainhand", chancesJ[0]->fValue);
         }
       }
       if (itemsJ.size() > 1) {
         if (auto offhand = itemsJ[1]; !offhand->empty()) {
           AddEquipment(j, u8"offhand", offhand);
+          AddDropChance(j, u8"offhand", chancesJ[1]->fValue);
         }
       }
     } else {
@@ -1903,6 +1906,9 @@ public:
   }
 
   static void AddDropChance(CompoundTag &j, std::u8string const &part, float chance) {
+    if (chance == 0.085f) {
+      return;
+    }
     auto dropChancesJ = j.compoundTag(u8"drop_chances");
     if (!dropChancesJ) {
       dropChancesJ = Compound();
@@ -2159,15 +2165,15 @@ public:
   static float HandDropChance(CompoundTag const &itemJ, std::u8string const &entityId) {
     auto itemId = itemJ.string(u8"id");
     if (!itemId) {
-      return 0.085;
+      return 0.085f;
     }
     if (*itemId == u8"minecraft:nautilus_shell" && entityId == u8"minecraft:drowned") {
-      return 2;
+      return 2.0f;
     }
-    if (*itemId == u8"minecraft:bone" && entityId == u8"minecraft:zombie") {
-      return 2;
+    if (entityId == u8"minecraft:zombie") {
+      return 2.0f;
     }
-    return 0.085;
+    return 0.085f;
   }
 
   static void InjectArmorAndOffhand(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
