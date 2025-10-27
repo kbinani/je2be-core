@@ -42,6 +42,7 @@ public:
       // forgiveDeadPlayers
       B(freezeDamage, freezedamage, true);
       B(keepInventory, keepinventory, false);
+      B(locatorBar, locatorbar, true);
       // logAdminCommands
       I(maxCommandChainLength, maxcommandchainlength, 65536);
       // maxEntityCramming
@@ -59,6 +60,7 @@ public:
       // universalAnger
       I(playersSleepingPercentage, playerssleepingpercentage, 100);
       B(projectilesCanBreakBlocks, projectilescanbreakblocks, true);
+      B(tntExplodes, tntexplodes, true);
       B(tntExplosionDropDecay, tntexplosiondropdecay, false);
 #undef B
 #undef I
@@ -75,6 +77,7 @@ public:
 
       ret->set(u8"enderPearlsVanishOnDeath", u8"true");
       ret->set(u8"disablePlayerMovementCheck", u8"false");
+      ret->set(u8"allowFireTicksAwayFromPlayer", u8"false");
 
       return ret;
     }

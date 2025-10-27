@@ -125,6 +125,7 @@ public:
   bool fShowrecipemessages = true;
   bool fIsHardcore = false;
   bool fPlayerHasDied = false;
+  bool fLocatorBar = true;
 
   CompoundTagPtr toBedrockCompoundTag() const {
     auto root = Compound();
@@ -218,6 +219,7 @@ public:
         {u8"lightningTime", Int(fLightningTime)},
         {u8"limitedWorldDepth", Int(fLimitedWorldDepth)},
         {u8"limitedWorldWidth", Int(fLimitedWorldWidth)},
+        {u8"locatorbar", Bool(fLocatorBar)},
         {u8"maxcommandchainlength", Int(fMaxCommandChainLength)},
         {u8"WorldVersion", Int(fWorldVersion)},
         {u8"cheatsEnabled", Bool(fCheatsEnabled)},
@@ -311,6 +313,7 @@ public:
       __var = *v;                                   \
     }                                               \
   }
+      // allowFireTicksAwayFromPlayer
       // announceAdvancements
       S(commandBlockOutput, ret.fCommandBlockOutput);
       // disableElytraMovementCheck
@@ -332,6 +335,7 @@ public:
       S(freezeDamage, ret.fFreezeDamage);
       // forgiveDeadPlayers
       S(keepInventory, ret.fKeepInventory);
+      S(locatorBar, ret.fLocatorBar);
       // logAdminCommands
       I(maxCommandChainLength, ret.fMaxCommandChainLength);
       // maxEntityCramming
@@ -347,6 +351,7 @@ public:
       // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
       ret.fShowCoordinates = gameRules->string(u8"reducedDebugInfo", u8"false") != u8"true";
       S(projectilesCanBreakBlocks, ret.fProjectilescanbreakblocks);
+      S(tntExplodes, ret.fTntExplodes);
       S(tntexplosiondropdecay, ret.fTntExplosionDropDecay);
 #undef S
 #undef I
