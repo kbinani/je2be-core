@@ -1091,7 +1091,7 @@ static void LightEmission() {
   int const y = 64;
   map<int, set<mcfile::blocks::BlockId>> emissions;
   set<mcfile::blocks::BlockId> ids;
-  for (int cx = 0; cx <= 19; cx++) {
+  for (int cx = 0; cx <= 21; cx++) {
     auto chunk = world.chunkAt(cx, cz);
     REQUIRE(chunk);
     mcfile::je::ChunkSection *section = nullptr;
@@ -1149,6 +1149,9 @@ static void LightEmission() {
 
   for (mcfile::blocks::BlockId id = 1; id < mcfile::blocks::minecraft::minecraft_max_block_id; id++) {
     if (ids.contains(id)) {
+      continue;
+    }
+    if (id == mcfile::blocks::minecraft::air) {
       continue;
     }
     auto name = mcfile::blocks::Name(id, kJavaDataVersion).substr(10);

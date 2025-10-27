@@ -1513,7 +1513,7 @@ private:
     case crimson_fence:
     case warped_fence:
     case soul_torch:
-    case chain:
+    case iron_chain:
     case blackstone_wall:
     case polished_blackstone_wall:
     case polished_blackstone_brick_wall:
@@ -1813,6 +1813,8 @@ private:
     case end_rod:
     case torch:
     case wall_torch:
+    case copper_torch:
+    case copper_wall_torch:
       return 14;
     case beacon:
     case campfire:
@@ -1831,6 +1833,14 @@ private:
     case ochre_froglight:
     case verdant_froglight:
     case pearlescent_froglight:
+    case copper_lantern:
+    case exposed_copper_lantern:
+    case weathered_copper_lantern:
+    case oxidized_copper_lantern:
+    case waxed_copper_lantern:
+    case waxed_exposed_copper_lantern:
+    case waxed_weathered_copper_lantern:
+    case waxed_oxidized_copper_lantern:
       return 15;
     default:
       return 0;
