@@ -68,6 +68,8 @@ public:
     Finding = 48,
     Lowmist = 49,
     Orb = 50,
+
+    Dennis = 51,
   };
 
   static std::optional<Size> PaintingSize(Motive m) {
@@ -126,6 +128,8 @@ public:
         {Finding, Size(4, 2)},
         {Lowmist, Size(4, 2)},
         {Orb, Size(4, 4)},
+
+        {Dennis, Size(3, 3)},
     };
     auto found = mapping.find(m);
     if (found != mapping.end()) {
@@ -190,6 +194,8 @@ public:
         {u8"finding", Finding},
         {u8"lowmist", Lowmist},
         {u8"orb", Orb},
+
+        {u8"dennis", Dennis},
     };
   }
 
@@ -209,7 +215,7 @@ public:
     for (auto const &it : *j2b) {
       u8string motiveJ = it.first;
       u8string motifB;
-      if (static_cast<uint16_t>(it.second) > 30) {
+      if (static_cast<uint16_t>(it.second) >= static_cast<uint16_t>(Meditative)) {
         motifB = motiveJ;
       } else {
         motifB = strings::UpperCamelFromSnake(motiveJ);

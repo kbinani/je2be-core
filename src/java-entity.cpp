@@ -2164,11 +2164,11 @@ private:
 
   static CompoundTagPtr Null(CompoundTag const &tag, ConverterContext &ctx) { return nullptr; }
 
-  static CompoundTagPtr Painting(CompoundTag const &tag, ConverterContext &ctx) {
+  static CompoundTagPtr Painting(CompoundTag const &j, ConverterContext &ctx) {
     i32 tileX;
     i32 tileY;
     i32 tileZ;
-    if (auto blockPosJ = tag.intArrayTag(u8"block_pos"); blockPosJ) {
+    if (auto blockPosJ = j.intArrayTag(u8"block_pos"); blockPosJ) {
       // 25w07a
       if (blockPosJ->fValue.size() < 3) {
         return nullptr;
@@ -2178,9 +2178,9 @@ private:
       tileZ = blockPosJ->fValue[2];
     } else {
       // 25w06a
-      auto x = tag.int32(u8"TileX");
-      auto y = tag.int32(u8"TileY");
-      auto z = tag.int32(u8"TileZ");
+      auto x = j.int32(u8"TileX");
+      auto y = j.int32(u8"TileY");
+      auto z = j.int32(u8"TileZ");
       if (!x || !y || !z) {
         return nullptr;
       }
@@ -2193,7 +2193,7 @@ private:
     i8 facing;
     Painting::Motive motive;
 
-    if (auto dir = tag.byte(u8"Dir"); dir) {
+    if (auto dir = j.byte(u8"Dir"); dir) {
       switch (*dir) {
       case 1:
         f4 = Facing4::West;
@@ -2215,11 +2215,11 @@ private:
       tileX = tileX + vec.fX;
       tileZ = tileZ + vec.fZ;
 
-      motive = Painting::MotiveFromBedrock(tag.string(u8"Motive", u8"Aztec"));
+      motive = Painting::MotiveFromBedrock(j.string(u8"Motive", u8"Aztec"));
     } else {
-      facing = tag.byte(u8"facing", tag.byte(u8"Facing", 0)); // 1.19: "facing", 1.18: "Facing"
+      facing = j.byte(u8"facing", j.byte(u8"Facing", 0)); // 1.19: "facing", 1.18: "Facing"
       f4 = Facing4FromBedrockDirection(facing);
-      auto motiveJ = tag.string(u8"variant", tag.string(u8"Motive", u8"minecraft:aztec")); // 1.19: "variant", 1.18: "Motive"
+      auto motiveJ = j.string(u8"variant", j.string(u8"Motive", u8"minecraft:aztec")); // 1.19: "variant", 1.18: "Motive"
       motive = Painting::MotiveFromJava(motiveJ);
     }
 
@@ -2235,17 +2235,17 @@ private:
     rotation->push_back(Float(yaw));
     rotation->push_back(Float(0));
 
-    auto e = BaseProperties(tag, ctx);
+    auto e = BaseProperties(j, ctx);
     if (!e) {
       return nullptr;
     }
     e->fIdentifier = u8"minecraft:painting";
     e->fPos = *pos;
-    auto c = e->toCompoundTag();
-    c->set(u8"Motif", motifB);
-    c->set(u8"Direction", Byte(facing));
-    c->set(u8"Rotation", rotation);
-    return c;
+    auto b = e->toCompoundTag();
+    b->set(u8"Motif", motifB);
+    b->set(u8"Direction", Byte(facing));
+    b->set(u8"Rotation", rotation);
+    return b;
   }
 #pragma endregion
 
