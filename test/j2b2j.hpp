@@ -1211,6 +1211,8 @@ static void CheckChunkJ(mcfile::je::Region const &regionE, mcfile::je::Region co
   CHECK(chunkA->minBlockY() == chunkE->minBlockY());
   CHECK(chunkA->maxBlockY() == chunkE->maxBlockY());
 
+  CHECK(chunkE->getDataVersion() == chunkA->getDataVersion());
+
   for (int y = chunkE->minBlockY(); y <= chunkE->maxBlockY(); y++) {
     for (int z = chunkE->minBlockZ() + 1; z < chunkE->maxBlockZ(); z++) {
       for (int x = chunkE->minBlockX() + 1; x < chunkE->maxBlockX(); x++) {
