@@ -1764,6 +1764,8 @@ private:
     if (owner) {
       AddDefinition(b, u8"+minecraft:wolf_increased_max_health");
       AddDefinition(b, u8"+minecraft:wolf_armorable");
+    } else {
+      AddDefinition(b, u8"+minecraft:wolf_leashable");
     }
 
     if (variant) {
