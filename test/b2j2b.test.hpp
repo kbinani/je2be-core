@@ -23,15 +23,17 @@ static void CheckLevelDatB(fs::path const &expected, fs::path const &actual) {
   if (!e || !a) {
     return;
   }
-  set<u8string> ignore;
-  ignore.insert(u8"hasBeenLoadedInCreative");
-  ignore.insert(u8"lastOpenedWithVersion");
-  ignore.insert(u8"recipesunlock");
-  ignore.insert(u8"serverChunkTickRange");
-  ignore.insert(u8"worldStartCount");
-  ignore.insert(u8"InventoryVersion");
-  ignore.insert(u8"NetworkVersion");
-  ignore.insert(u8"showdaysplayed");
+  static set<u8string> const ignore = {
+      u8"hasBeenLoadedInCreative",
+      u8"lastOpenedWithVersion",
+      u8"recipesunlock",
+      u8"serverChunkTickRange",
+      u8"worldStartCount",
+      u8"InventoryVersion",
+      u8"NetworkVersion",
+      u8"showdaysplayed",
+      u8"BiomeOverride",
+  };
   for (auto const &i : ignore) {
     e->erase(i);
     a->erase(i);

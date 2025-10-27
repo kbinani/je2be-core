@@ -325,6 +325,7 @@ public:
     } else {
       obj["encoding_version"] = 6;
       obj["world_version"] = "version.post_1_18";
+      obj["preset_id"] = nlohmann::json::value_t::null;
     }
 
     return props::StringFromJson(obj) + u8"\x0a";

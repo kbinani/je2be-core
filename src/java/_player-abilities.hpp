@@ -20,6 +20,7 @@ public:
   bool fOpenContainers = true;
   bool fTeleport = false;
   float fWalkSpeed = 0.1f;
+  float fVerticalFlySpeed = 1.0f;
 
   CompoundTagPtr toCompoundTag() const {
     auto a = Compound();
@@ -38,6 +39,7 @@ public:
         {u8"op", Bool(fOp)},
         {u8"opencontainers", Bool(fOpenContainers)},
         {u8"teleport", Bool(fTeleport)},
+        {u8"verticalFlySpeed", Float(fVerticalFlySpeed)},
         {u8"walkSpeed", Float(fWalkSpeed)},
     });
     return a;
