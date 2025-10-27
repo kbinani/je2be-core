@@ -304,7 +304,15 @@ public:
           java::AppendComponent(itemJ, u8"item_name", String(props::StringFromJson(json)));
         }
 
-        java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
+        if (dataVersion >= (int)JavaDataVersions::Snapshot25w04a) {
+          auto tooltipDisplay = Compound();
+          auto hiddenComponents = List<Tag::Type::String>();
+          hiddenComponents->push_back(String(u8"minecraft:banner_patterns"));
+          tooltipDisplay->set(u8"hidden_components", hiddenComponents);
+          java::AppendComponent(itemJ, u8"tooltip_display", tooltipDisplay);
+        } else {
+          java::AppendComponent(itemJ, u8"hide_additional_tooltip", Compound());
+        }
         java::AppendComponent(itemJ, u8"rarity", String(u8"uncommon"));
       } else {
         auto patternsB = tagB->listTag(u8"Patterns");

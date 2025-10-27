@@ -317,7 +317,8 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<u8string> blacklist = {
       u8"components/minecraft:map_id",
       u8"components/minecraft:block_entity_data",
-      u8"components/minecraft:hide_additional_tooltip",
+      u8"components/minecraft:hide_additional_tooltip",           // ominous banner
+      u8"components/minecraft:tooltip_display/hidden_components", // ominous banner
   };
 
   CompoundTagPtr copyE = itemE.copy();
@@ -400,6 +401,21 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
     Erase(copyA, it);
   }
 
+  auto componentsE = copyE->compoundTag(u8"components");
+  if (componentsE) {
+    RemoveEmpty(*componentsE);
+  }
+  if (componentsE && componentsE->empty()) {
+    copyE->erase(u8"components");
+  }
+  auto componentsA = copyA->compoundTag(u8"components");
+  if (componentsA) {
+    RemoveEmpty(*componentsA);
+  }
+  if (componentsA && componentsA->empty()) {
+    copyA->erase(u8"components");
+  }
+
   DiffCompoundTag(*copyE, *copyA);
 }
 
@@ -446,11 +462,12 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
       u8"Book/tag/resolved",       // written_book
       u8"Book/tag/filtered_title", // written_book
       u8"Items",
-      u8"Levels",                                       // beacon. Sometimes reset to 0 in JE
-      u8"SpawnPotentials",                              // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
-      u8"placement_priority",                           // jigsaw
-      u8"selection_priority",                           // jigsaw
-      u8"components/minecraft:hide_additional_tooltip", // banner
+      u8"Levels",                                                 // beacon. Sometimes reset to 0 in JE
+      u8"SpawnPotentials",                                        // mob_spawner, SpawnPotentials sometimes doesn't contained in JE
+      u8"placement_priority",                                     // jigsaw
+      u8"selection_priority",                                     // jigsaw
+      u8"components/minecraft:hide_additional_tooltip",           // banner
+      u8"components/minecraft:tooltip_display/hidden_components", // banner
   };
   auto id = expected.string(u8"id", u8"");
   if (id == u8"minecraft:sculk_shrieker") {
@@ -556,10 +573,16 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
     Erase(copyA, b);
   }
   auto componentsE = copyE->compoundTag(u8"components");
+  if (componentsE) {
+    RemoveEmpty(*componentsE);
+  }
   if (componentsE && componentsE->empty()) {
     copyE->erase(u8"components");
   }
   auto componentsA = copyA->compoundTag(u8"components");
+  if (componentsA) {
+    RemoveEmpty(*componentsA);
+  }
   if (componentsA && componentsA->empty()) {
     copyA->erase(u8"components");
   }
