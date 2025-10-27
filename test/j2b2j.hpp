@@ -293,6 +293,26 @@ static void CheckItemName(CompoundTag const &expected, CompoundTag const &actual
   }
 }
 
+static void RemoveEmpty(CompoundTag &t) {
+  using namespace std;
+  vector<u8string> remove;
+  for (auto &it : t) {
+    if (auto c = dynamic_pointer_cast<CompoundTag>(it.second); c) {
+      RemoveEmpty(*c);
+      if (c->empty()) {
+        remove.push_back(it.first);
+      }
+    } else if (auto l = dynamic_pointer_cast<ListTag>(it.second); l) {
+      if (l->empty()) {
+        remove.push_back(it.first);
+      }
+    }
+  }
+  for (auto const &r : remove) {
+    t.erase(r);
+  }
+}
+
 static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   unordered_set<u8string> blacklist = {
       u8"components/minecraft:map_id",
@@ -643,12 +663,25 @@ static void CheckContainerItemsJ(ListTagPtr const &expected, ListTagPtr const &a
   if (expected) {
     REQUIRE(actual);
     REQUIRE(expected->size() == actual->size());
+    static std::unordered_set<std::u8string> ignore = {
+        u8"minecraft:test_block",
+        u8"minecraft:test_instance_block",
+    };
     for (int i = 0; i < expected->size(); i++) {
       auto e = expected->at(i);
       auto a = actual->at(i);
-      REQUIRE(e->type() == Tag::Type::Compound);
-      CHECK(e->type() == a->type());
-      CheckItemJ(*e->asCompound(), *a->asCompound());
+      auto compoundE = e->asCompound();
+      auto compoundA = a->asCompound();
+      REQUIRE(compoundE);
+      CHECK(compoundA);
+      if (!compoundA) {
+        continue;
+      }
+      if (auto idE = compoundE->string(u8"id"); ignore.count(*idE) > 0) {
+        CHECK(compoundA->string(u8"id") == u8"minecraft:air");
+        continue;
+      }
+      CheckItemJ(*compoundE, *compoundA);
     }
   } else if (actual) {
     CHECK(false);
@@ -1366,26 +1399,6 @@ static void CheckLevelDatJ(fs::path const &pathE, fs::path const &pathA) {
   dataE->erase(u8"Player");
   dataA->erase(u8"Player");
   DiffCompoundTag(*dataE, *dataA);
-}
-
-static void RemoveEmpty(CompoundTag &t) {
-  using namespace std;
-  vector<u8string> remove;
-  for (auto &it : t) {
-    if (auto c = dynamic_pointer_cast<CompoundTag>(it.second); c) {
-      RemoveEmpty(*c);
-      if (c->empty()) {
-        remove.push_back(it.first);
-      }
-    } else if (auto l = dynamic_pointer_cast<ListTag>(it.second); l) {
-      if (l->empty()) {
-        remove.push_back(it.first);
-      }
-    }
-  }
-  for (auto const &r : remove) {
-    t.erase(r);
-  }
 }
 
 static void CheckPoiJ(mcfile::je::Region const &regionE, mcfile::je::Region const &regionA, int cx, int cz, Dimension dim) {
