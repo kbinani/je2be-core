@@ -323,13 +323,10 @@ static void RedstoneWire() {
     }
     uniq.insert(name);
   }
-  vector<u8string> names(uniq.begin(), uniq.end());
+  deque<u8string> names(uniq.begin(), uniq.end());
+  vector<pair<u8string, Pos3i>> poss;
 
-  int const x0 = -42;
-  int const z0 = 165;
   int const y = -60;
-  int x = x0;
-  int x1 = x0;
   fs::path root("C:/Users/kbinani/AppData/Roaming/.minecraft/saves/RedstoneWire");
   Fs::CreateDirectories(root / "datapacks" / "kbinani" / "data" / "je2be" / "function");
   {
@@ -343,45 +340,64 @@ static void RedstoneWire() {
   }
   {
     ofstream os((root / "datapacks" / "kbinani" / "data" / "je2be" / "function" / "research_redstone_wire.mcfunction").string());
-    os << "fill " << x0 << " " << y << " " << (z0 - 1) << " " << (x0 + 2 * names.size()) << " " << (y + 2) << " " << (z0 + 1) << " air" << endl;
-    for (u8string const &name : names) {
-      os << "setblock " << x << " " << (y - 1) << " " << z0 << " air" << endl;
-      os << "setblock " << x << " " << (y - 2) << " " << z0 << " redstone_wire" << endl;
-      os << "setblock " << x << " " << (y - 1) << " " << (z0 - 1) << " redstone_wire" << endl;
-      os << "setblock " << x << " " << (y - 1) << " " << (z0 + 1) << " redstone_wire" << endl;
-      os << "setblock " << x << " " << (y - 1) << " " << z0 << " " << name << endl;
-      x += 2;
+    auto const print = [&os, y, &names, &poss](int cx, int cz) {
+      for (int x = 0; x < 8 && !names.empty(); x++) {
+        for (int z = 0; z < 5 && !names.empty(); z++) {
+          u8string name = names.front();
+          names.pop_front();
+          int bx = cx * 16 + x * 2 + (z % 2);
+          int bz = cz * 16 + z * 3 + 1;
+          poss.emplace_back(name, Pos3i(bx, y - 1, bz));
+
+          os << "setblock " << bx << " " << (y - 1) << " " << bz << " air" << endl;
+          os << "setblock " << bx << " " << (y - 2) << " " << bz << " redstone_wire" << endl;
+          os << "setblock " << bx << " " << (y - 1) << " " << (bz - 1) << " redstone_wire" << endl;
+          os << "setblock " << bx << " " << (y - 1) << " " << (bz + 1) << " redstone_wire" << endl;
+          os << "setblock " << bx << " " << (y - 1) << " " << bz << " " << name << endl;
+        }
+      }
+    };
+    print(0, 0);
+    for (int size = 1; !names.empty(); size++) {
+      int cx = size;
+      int cz;
+      for (cz = 0; cz < size && !names.empty(); cz++) {
+        print(cx, cz);
+      }
+      cz = size;
+      for (cx = 0; cx <= size && !names.empty(); cx++) {
+        print(cx, cz);
+      }
     }
-    x1 = x0 + 2 * names.size();
   }
 
   // login the game, then execute /function je2be:research_redstone_wire
 
   mcfile::je::World w(root);
   shared_ptr<mcfile::je::Chunk> chunk;
-  int cz = mcfile::Coordinate::ChunkFromBlock(z0);
   set<u8string> negative;
   set<u8string> positive;
   int i = 0;
-  for (int x = x0; x < x1; x += 2, i++) {
-    int cx = mcfile::Coordinate::ChunkFromBlock(x);
-    if (!chunk || (chunk && chunk->fChunkX != cx)) {
+  for (auto [name, pos] : poss) {
+    int cx = mcfile::Coordinate::ChunkFromBlock(pos.fX);
+    int cz = mcfile::Coordinate::ChunkFromBlock(pos.fZ);
+    if (!chunk || (chunk->fChunkX != cx || chunk->fChunkZ != cz)) {
       chunk = w.chunkAt(cx, cz);
     }
-    auto center = chunk->blockAt(x, y - 1, z0);
-    auto expected = names[i];
+    auto center = chunk->blockAt(pos.fX, pos.fY, pos.fZ);
+    auto expected = name;
     if (expected != center->fName) {
       cerr << "block does not exist: expected=" << expected << "; actual=" << center->fName << endl;
     } else {
       if (mcfile::blocks::IsTransparent(center->fId)) {
-        auto wire = chunk->blockAt(x, y - 2, z0);
+        auto wire = chunk->blockAt(pos.fX, pos.fY - 1, pos.fZ);
         auto north = wire->property(u8"north", u8"");
         auto south = wire->property(u8"south", u8"");
         if (north != u8"up" || south != u8"up") {
           negative.insert(expected);
         }
       } else {
-        auto wire = chunk->blockAt(x, y - 2, z0);
+        auto wire = chunk->blockAt(pos.fX, pos.fY - 1, pos.fZ);
         auto north = wire->property(u8"north", u8"");
         auto south = wire->property(u8"south", u8"");
         if (north == u8"up" && south == u8"up") {
